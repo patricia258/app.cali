@@ -13,7 +13,6 @@ import {
   LogOut,
   Menu,
   PieChart,
-  Puzzle,
   TimerReset,
   X,
   type LucideIcon,
@@ -48,6 +47,15 @@ export const clientNav: NavItem[] = [
   { label: 'Relatórios', icon: PieChart, href: '/cliente/relatorios' },
 ];
 
+function CaliWorkspaceMark({ size = 30 }: { size?: number }) {
+  return (
+    <svg className="cali-workspace-mark" width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <path d="M4.75 4.75h8.7v3.1a2.55 2.55 0 1 0 5.1 0v-3.1h8.7v8.7h-3.1a2.55 2.55 0 1 0 0 5.1h3.1v8.7h-8.7v-3.1a2.55 2.55 0 1 0-5.1 0v3.1h-8.7v-8.7h3.1a2.55 2.55 0 1 0 0-5.1h-3.1v-8.7Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <circle cx="16" cy="16" r="1.65" className="cali-workspace-mark-dot" />
+    </svg>
+  );
+}
+
 export function Brand({ dark = false }: { dark?: boolean }) {
   return (
     <div className={`brand ${dark ? 'brand-dark' : ''}`} aria-label="CALI Workspace">
@@ -60,7 +68,7 @@ export function Brand({ dark = false }: { dark?: boolean }) {
         />
         <span>WORKSPACE</span>
       </div>
-      <span className="brand-compact" aria-hidden="true"><Puzzle size={24} strokeWidth={1.9} /></span>
+      <span className="brand-compact" title="CALI Workspace"><CaliWorkspaceMark /></span>
     </div>
   );
 }
@@ -107,7 +115,7 @@ function Sidebar({ role }: { role: Role }) {
           onClick={() => setPinned((current) => !current)}
           title="Atalho: Ctrl/Cmd + B"
         >
-          {pinned ? <ChevronLeft size={17} /> : <ChevronRight size={17} />}
+          {pinned ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
           <span>{pinned ? 'Retrair automaticamente' : 'Manter aberto'}</span>
         </button>
 
@@ -126,7 +134,7 @@ function Sidebar({ role }: { role: Role }) {
 
         <div className="sidebar-footer">
           <ProfileControl role={role} />
-          <button className="sidebar-logout" type="button" aria-label="Sair" onClick={handleLogout}><LogOut size={18} /></button>
+          <button className="sidebar-logout" type="button" aria-label="Sair" title="Sair" onClick={handleLogout}><LogOut size={18} /></button>
         </div>
       </aside>
     </>
@@ -142,7 +150,6 @@ export function Shell({ role, children }: { role: Role; children: ReactNode }) {
           <div className="topbar-context"><span>{role === 'admin' ? 'CALI Workspace' : 'Área da empresa'}</span></div>
           <div className="top-actions">
             <NotificationCenter role={role} />
-            <ProfileControl role={role} compact />
           </div>
         </header>
         <div className="workspace-view">{children}</div>
