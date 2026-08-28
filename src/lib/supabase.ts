@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 
 const fallbackUrl = 'https://kqtbfeeqbcllwvlkbrkq.supabase.co';
 const fallbackPublishableKey = 'sb_publishable_rhIy864X0VSQ0B7m7gdmCQ_hX3sKFMg';
@@ -8,7 +8,7 @@ const supabasePublishableKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabasePublishableKey);
 
-export const supabase: SupabaseClient | null = isSupabaseConfigured
+export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabasePublishableKey, {
       db: {
         schema: 'cali_workspace',
