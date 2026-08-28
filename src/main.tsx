@@ -7,6 +7,7 @@ import './modules.css';
 import './ux-v2.css';
 import './runtime.css';
 import './page1.css';
+import './page1-hotfix.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
