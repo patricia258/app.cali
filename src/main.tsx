@@ -6,6 +6,7 @@ import './styles.css';
 import './modules.css';
 import './ux-v2.css';
 import './runtime.css';
+import './workspace-v3.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
