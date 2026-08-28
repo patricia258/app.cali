@@ -1,5 +1,5 @@
 import { FormEvent, useMemo, useState } from 'react';
-import { CalendarDays, Clock3, MapPin, Plus, Video, X } from 'lucide-react';
+import { Clock3, MapPin, Plus, Video, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 
 type WorkspaceEvent = {
@@ -23,7 +23,7 @@ const initialEvents: WorkspaceEvent[] = [
 ];
 
 export function AdminCalendarPage() {
-  const [events, setEvents] = useState(initialEvents);
+  const [events, setEvents] = useState<WorkspaceEvent[]>(initialEvents);
   const [filter, setFilter] = useState('Todos');
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -40,7 +40,18 @@ export function AdminCalendarPage() {
     if (!title.trim() || !date) return;
     const parsed = new Date(`${date}T12:00:00`);
     const month = parsed.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
-    setEvents((current) => [...current, { id: `e-${Date.now()}`, day: parsed.getDate(), month, time, title: title.trim(), company, type, mode: 'Remota', shared }].sort((a, b) => a.day - b.day));
+    const newEvent: WorkspaceEvent = {
+      id: `e-${Date.now()}`,
+      day: parsed.getDate(),
+      month,
+      time,
+      title: title.trim(),
+      company,
+      type,
+      mode: 'Remota',
+      shared,
+    };
+    setEvents((current) => [...current, newEvent].sort((a, b) => a.day - b.day));
     setOpen(false);
     setTitle('');
   }
