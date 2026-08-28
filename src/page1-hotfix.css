@@ -1,0 +1,680 @@
+/* Página 1 hotfix — corrige regressões visuais detectadas na validação. */
+
+/* O menu expandido não pode cobrir o conteúdo. */
+@media (min-width: 861px) {
+  .app-shell:has(.sidebar:hover) .main,
+  .app-shell:has(.sidebar:focus-within) .main,
+  .app-shell:has(.sidebar.pinned) .main {
+    margin-left: var(--sidebar-open);
+    width: calc(100% - var(--sidebar-open));
+  }
+
+  .sidebar:hover,
+  .sidebar:focus-within,
+  .sidebar.pinned {
+    overflow: visible;
+  }
+}
+
+/* Marca e topo do menu — preserva alinhamento e evita corte do WORKSPACE. */
+.sidebar-top {
+  min-height: 126px;
+}
+
+.brand {
+  height: 112px;
+}
+
+.brand-full {
+  padding-top: 4px;
+}
+
+.brand-full img {
+  width: 148px;
+}
+
+.brand-full span {
+  margin-top: 8px;
+}
+
+/* Chrome: notificações */
+.chrome-popover {
+  position: relative;
+}
+
+.notification-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.notification-count {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  min-width: 21px;
+  height: 21px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--burgundy);
+  color: white;
+  border: 2px solid var(--ivory);
+  font-size: .68rem;
+  line-height: 1;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(90,30,45,.18);
+}
+
+.notification-panel {
+  position: absolute;
+  z-index: 120;
+  width: min(390px, calc(100vw - 32px));
+  max-height: min(520px, calc(100vh - 90px));
+  overflow: auto;
+  padding: 0;
+  border-radius: 16px;
+  border: 1px solid rgba(90,30,45,.12);
+  background: #fffdf9;
+  box-shadow: 0 24px 60px rgba(48,31,29,.18);
+}
+
+.notification-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid rgba(90,30,45,.08);
+}
+
+.notification-head strong,
+.notification-head span {
+  display: block;
+}
+
+.notification-head strong {
+  font-size: .96rem;
+}
+
+.notification-head span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: .72rem;
+}
+
+.notification-head button {
+  border: 0;
+  background: transparent;
+  color: var(--burgundy);
+  font-size: .74rem;
+  font-weight: 700;
+}
+
+.notification-list {
+  display: grid;
+}
+
+.notification-item {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid rgba(90,30,45,.06);
+  background: transparent;
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  gap: 10px;
+  padding: 14px 18px;
+  text-align: left;
+  color: var(--graphite);
+}
+
+.notification-item:first-child {
+  border-top: 0;
+}
+
+.notification-item:hover {
+  background: rgba(90,30,45,.035);
+}
+
+.notification-item.unread {
+  background: rgba(90,30,45,.045);
+}
+
+.notification-indicator {
+  width: 7px;
+  height: 7px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.notification-item.unread .notification-indicator {
+  background: var(--burgundy);
+}
+
+.notification-item strong,
+.notification-item p,
+.notification-item small {
+  display: block;
+}
+
+.notification-item strong {
+  font-size: .82rem;
+  line-height: 1.35;
+}
+
+.notification-item p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: .76rem;
+  line-height: 1.45;
+}
+
+.notification-item small {
+  margin-top: 5px;
+  color: #9a918b;
+  font-size: .68rem;
+}
+
+.notification-empty {
+  min-height: 170px;
+  padding: 28px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  text-align: center;
+  gap: 7px;
+  color: var(--burgundy);
+}
+
+.notification-empty span {
+  max-width: 260px;
+  color: var(--muted);
+  font-size: .76rem;
+  line-height: 1.45;
+}
+
+/* Chrome: perfil no rodapé do menu. */
+.profile-control {
+  position: relative;
+}
+
+.sidebar-footer .profile-menu {
+  position: absolute;
+  z-index: 130;
+  width: 252px;
+  padding: 10px;
+  border-radius: 15px;
+  border: 1px solid rgba(90,30,45,.12);
+  background: #fffdf9;
+  color: var(--graphite);
+  box-shadow: 0 22px 58px rgba(36,24,25,.22);
+}
+
+.profile-menu-head {
+  display: grid;
+  grid-template-columns: 46px 1fr;
+  align-items: center;
+  gap: 11px;
+  padding: 8px 8px 12px;
+  border-bottom: 1px solid rgba(90,30,45,.08);
+}
+
+.profile-menu-head .profile-avatar {
+  width: 46px;
+  height: 46px;
+}
+
+.profile-menu-head strong,
+.profile-menu-head span {
+  display: block;
+}
+
+.profile-menu-head strong {
+  font-size: .86rem;
+}
+
+.profile-menu-head span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: .72rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-menu > button {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 7px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--graphite);
+  font-weight: 700;
+  font-size: .8rem;
+}
+
+.profile-menu > button:hover {
+  background: var(--soft);
+}
+
+/* Exportação */
+.export-menu-wrap {
+  position: relative;
+}
+
+.export-menu {
+  position: absolute;
+  z-index: 110;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 250px;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(90,30,45,.12);
+  background: #fffdf9;
+  box-shadow: 0 20px 50px rgba(49,31,25,.15);
+}
+
+.export-menu button {
+  width: 100%;
+  min-height: 50px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  color: var(--graphite);
+}
+
+.export-menu button:hover {
+  background: var(--soft);
+}
+
+.export-menu strong,
+.export-menu small {
+  display: block;
+}
+
+.export-menu strong {
+  font-size: .8rem;
+}
+
+.export-menu small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: .68rem;
+}
+
+/* Gráfico de horas */
+.horizontal-bars {
+  display: grid;
+  gap: 18px;
+  padding-top: 6px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: minmax(150px, .9fr) minmax(220px, 2fr) 54px;
+  align-items: center;
+  gap: 12px;
+}
+
+.bar-copy {
+  min-width: 0;
+}
+
+.bar-copy strong,
+.bar-copy span {
+  display: block;
+}
+
+.bar-copy strong {
+  color: var(--graphite);
+  font-size: .84rem;
+  line-height: 1.3;
+}
+
+.bar-copy span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: .72rem;
+}
+
+.bar-track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(90,30,45,.08);
+}
+
+.bar-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--burgundy);
+}
+
+.bar-track > span.warn {
+  background: var(--gold);
+}
+
+.bar-track > span.critical {
+  background: #9a4f44;
+}
+
+.bar-percent {
+  justify-self: end;
+  color: var(--burgundy);
+  font-size: .86rem;
+}
+
+.bar-percent.warn {
+  color: #9a6b2d;
+}
+
+.bar-row > small {
+  grid-column: 2 / 4;
+  margin-top: -8px;
+  color: var(--muted);
+  font-size: .68rem;
+}
+
+/* Donut de entregáveis */
+.donut-layout {
+  min-height: 220px;
+  display: grid;
+  grid-template-columns: 154px minmax(0, 1fr);
+  align-items: center;
+  gap: 24px;
+}
+
+.donut {
+  width: 154px;
+  height: 154px;
+  padding: 18px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.donut > div {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  background: #fffdf9;
+  box-shadow: inset 0 0 0 1px rgba(90,30,45,.055);
+}
+
+.donut strong,
+.donut span {
+  display: block;
+  text-align: center;
+}
+
+.donut strong {
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.donut span {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: .67rem;
+}
+
+.donut-legend {
+  display: grid;
+  gap: 11px;
+}
+
+.donut-legend > div {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.donut-legend span:not(.legend-dot) {
+  color: var(--muted);
+  font-size: .76rem;
+}
+
+.donut-legend strong {
+  font-size: .82rem;
+}
+
+/* Linha de NPS */
+.trend-chart-wrap {
+  width: 100%;
+  overflow: hidden;
+  padding-top: 4px;
+}
+
+.trend-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 205px;
+  overflow: visible;
+}
+
+.chart-grid-line {
+  stroke: rgba(90,30,45,.075);
+  stroke-width: 1;
+}
+
+.trend-line-shadow {
+  fill: none;
+  stroke: rgba(90,30,45,.10);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.trend-line {
+  fill: none;
+  stroke: var(--burgundy);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.trend-dot {
+  fill: #fffdf9;
+  stroke: var(--burgundy);
+  stroke-width: 2.4;
+}
+
+.trend-value {
+  fill: var(--graphite);
+  font-family: Inter, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trend-labels {
+  margin-top: -4px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  color: var(--muted);
+  font-size: .7rem;
+  text-align: center;
+}
+
+/* Mini calendário */
+.mini-calendar {
+  width: 100%;
+  max-width: 290px;
+  padding: 16px;
+  border: 1px solid rgba(90,30,45,.09);
+  border-radius: 14px;
+  background: rgba(255,255,255,.46);
+}
+
+.mini-calendar-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 13px;
+}
+
+.mini-calendar-head strong {
+  font-size: .9rem;
+}
+
+.mini-calendar-head span {
+  color: var(--muted);
+  font-size: .7rem;
+}
+
+.mini-weekdays,
+.mini-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  text-align: center;
+}
+
+.mini-weekdays {
+  margin-bottom: 6px;
+}
+
+.mini-weekdays span {
+  color: #9a918b;
+  font-size: .62rem;
+  font-weight: 700;
+}
+
+.mini-days span {
+  position: relative;
+  aspect-ratio: 1;
+  min-height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--graphite);
+  font-size: .7rem;
+}
+
+.mini-days span.has-event:not(.active)::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.mini-days span.active {
+  background: var(--burgundy);
+  color: white;
+  font-weight: 750;
+}
+
+/* Ajustes finos de cartões para os gráficos não colarem no título. */
+.hours-chart-panel,
+.deliverable-chart-panel,
+.nps-chart-panel {
+  overflow: hidden;
+}
+
+.hours-chart-panel .panel-title,
+.deliverable-chart-panel .panel-title,
+.nps-chart-panel .panel-title {
+  margin-bottom: 24px;
+}
+
+/* O topo da página deve ficar legível também quando o menu está aberto. */
+@media (min-width: 861px) {
+  .app-shell:has(.sidebar:hover) .admin-overview-page,
+  .app-shell:has(.sidebar:focus-within) .admin-overview-page,
+  .app-shell:has(.sidebar.pinned) .admin-overview-page {
+    width: min(1240px, calc(100% - clamp(40px, 6vw, 72px)));
+  }
+}
+
+@media (max-width: 1180px) {
+  .bar-row {
+    grid-template-columns: minmax(140px, .9fr) minmax(180px, 1.7fr) 48px;
+  }
+
+  .donut-layout {
+    grid-template-columns: 140px 1fr;
+  }
+
+  .donut {
+    width: 140px;
+    height: 140px;
+  }
+}
+
+@media (max-width: 860px) {
+  .notification-panel {
+    position: fixed;
+    top: 72px;
+    right: 16px;
+  }
+
+  .bar-row {
+    grid-template-columns: 1fr 50px;
+  }
+
+  .bar-copy {
+    grid-column: 1 / -1;
+  }
+
+  .bar-track {
+    grid-column: 1;
+  }
+
+  .bar-row > small {
+    grid-column: 1 / -1;
+  }
+
+  .donut-layout {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .donut-legend {
+    width: min(320px, 100%);
+  }
+
+  .mini-calendar {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 620px) {
+  .trend-chart {
+    min-height: 170px;
+  }
+
+  .notification-panel {
+    left: 14px;
+    right: 14px;
+    width: auto;
+  }
+}
