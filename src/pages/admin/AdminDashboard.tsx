@@ -1,79 +1,154 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, CircleAlert, Clock3, MessageSquareText, Star, Users } from 'lucide-react';
-import { Kpi, Progress, Shell } from '../../components/WorkspaceShell';
+import { ArrowUpRight, CalendarRange, ChevronRight, CircleAlert, Clock3, MessageSquareText, Plus, Star, Users } from 'lucide-react';
+import { DonutChart, ExportMenu, HorizontalBars, MiniCalendar, TrendChart } from '../../components/DataViz';
+import { Shell } from '../../components/WorkspaceShell';
+
+const clients = [
+  { name: 'Grupo Aurora', service: 'Assessoria Estratégica Mensal', consumed: 24.2, contracted: 30, nps: 4.9, deadline: '18 set', next: 'Validação de indicadores · 03 set' },
+  { name: 'Novatech', service: 'Assessoria Estratégica Mensal', consumed: 32.8, contracted: 40, nps: 4.7, deadline: '22 set', next: 'Checkpoint executivo · 04 set' },
+  { name: 'Studio Norte', service: 'Projeto de Estruturação', consumed: 11.4, contracted: 20, nps: 5.0, deadline: '30 set', next: 'Ritual de gestão · 05 set' },
+];
+
+function greeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Bom dia';
+  if (hour < 18) return 'Boa tarde';
+  return 'Boa noite';
+}
 
 export function AdminDashboard() {
+  const [driveNotice, setDriveNotice] = useState(false);
+  const exportRows = useMemo(() => clients.map((client) => ({
+    Cliente: client.name,
+    Serviço: client.service,
+    'Horas consumidas': client.consumed,
+    'Horas contratadas': client.contracted,
+    NPS: client.nps,
+    Deadline: client.deadline,
+    'Próximo compromisso': client.next,
+  })), []);
+
   return (
     <Shell role="admin">
-      <section className="page">
-        <div className="eyebrow">CALI · OPERAÇÃO</div>
-        <div className="page-heading">
+      <section className="page admin-overview-page">
+        <div className="page-heading overview-heading">
           <div>
-            <h1>Boa tarde, Patrícia.</h1>
-            <p>O que precisa da sua atenção hoje e como estão as contas em andamento.</p>
+            <div className="eyebrow">CALI · OPERAÇÃO</div>
+            <h1>{greeting()}, Patrícia.</h1>
+            <p>Uma leitura rápida do que merece decisão, dos compromissos próximos e da saúde das contas em andamento.</p>
           </div>
-          <button className="primary"><Users size={18} />Cadastrar cliente</button>
+          <div className="overview-actions">
+            <ExportMenu title="Visão geral CALI Workspace" rows={exportRows} onDrive={() => setDriveNotice(true)} />
+            <Link className="primary" to="/admin/clientes"><Plus size={18} />Cadastrar cliente</Link>
+          </div>
         </div>
 
-        <div className="kpi-grid">
-          <Kpi label="Clientes ativos" value="4" helper="1 com ação pendente" />
-          <Kpi label="Entregáveis no mês" value="18" helper="12 concluídos" />
-          <Kpi label="Horas registradas" value="63h40" helper="78% das horas previstas" />
-          <Kpi label="NPS médio" value="4,8" helper="últimos 90 dias" />
-        </div>
+        {driveNotice && <div className="inline-notice">Google Workspace entra na próxima etapa do calendário. Quando a conta estiver conectada, este mesmo menu salva os arquivos diretamente no Drive.</div>}
 
-        <div className="dashboard-grid">
-          <section className="panel attention">
-            <div className="panel-title">
-              <div><span className="section-kicker">AGUARDANDO AÇÃO</span><h2>O que precisa da sua atenção</h2></div>
-              <span className="count">3</span>
+        <section className="overview-signal-strip" aria-label="Sinais da operação">
+          <div><span>Contas ativas</span><strong>4</strong><small>3 no ciclo mensal</small></div>
+          <div><span>Ações pendentes</span><strong>3</strong><small>1 vence hoje</small></div>
+          <div><span>Horas no mês</span><strong>68,4h</strong><small>76% da capacidade contratada</small></div>
+          <div><span>NPS atual</span><strong>4,8</strong><small>estável nos últimos 3 meses</small></div>
+        </section>
+
+        <div className="analytics-grid analytics-primary">
+          <section className="panel chart-panel hours-chart-panel">
+            <div className="panel-title chart-panel-title">
+              <div><span className="section-kicker">CONSUMO DE HORAS</span><h2>Onde o ciclo está mais perto do limite</h2></div>
+              <Link to="/admin/horas">Detalhar horas <ChevronRight size={16} /></Link>
             </div>
-            <div className="action-row">
+            <HorizontalBars data={[
+              { label: 'Grupo Aurora', value: 24.2, max: 30, helper: '6h restantes', tone: 'warn' },
+              { label: 'Novatech', value: 32.8, max: 40, helper: '7h10 restantes', tone: 'warn' },
+              { label: 'Studio Norte', value: 11.4, max: 20, helper: '8h35 restantes', tone: 'normal' },
+            ]} />
+          </section>
+
+          <section className="panel chart-panel deliverable-chart-panel">
+            <div className="panel-title chart-panel-title"><div><span className="section-kicker">ENTREGÁVEIS</span><h2>Status do mês</h2></div><Link to="/admin/projetos">Abrir projetos</Link></div>
+            <DonutChart
+              centerValue="18"
+              centerLabel="no mês"
+              data={[
+                { label: 'Concluídos', value: 9, color: '#5A1E2D' },
+                { label: 'Em andamento', value: 5, color: '#B58C52' },
+                { label: 'Com cliente', value: 3, color: '#8A6B73' },
+                { label: 'Ajuste', value: 1, color: '#D9C9BE' },
+              ]}
+            />
+          </section>
+        </div>
+
+        <div className="analytics-grid analytics-secondary">
+          <section className="panel chart-panel nps-chart-panel">
+            <div className="panel-title chart-panel-title"><div><span className="section-kicker">NPS / SATISFAÇÃO</span><h2>Evolução das avaliações</h2></div><div className="metric-inline"><Star size={17} />4,8</div></div>
+            <TrendChart values={[4.5, 4.6, 4.7, 4.7, 4.9, 4.8]} labels={['Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago']} />
+          </section>
+
+          <section className="panel attention-panel">
+            <div className="panel-title"><div><span className="section-kicker">ATENÇÃO AGORA</span><h2>3 pontos para agir</h2></div><span className="count">3</span></div>
+            <div className="action-row priority-high">
               <div className="status-icon warn"><CircleAlert size={20} /></div>
-              <div><strong>Entregável pronto para aprovação interna</strong><p>Grupo Aurora · Estrutura de indicadores de People</p></div>
-              <button>Revisar <ChevronRight size={17} /></button>
+              <div><strong>Revisão interna vence hoje</strong><p>Grupo Aurora · Estrutura de indicadores de People</p><small>Deadline hoje · 18:00</small></div>
+              <Link className="ghost" to="/admin/projetos">Revisar <ChevronRight size={17} /></Link>
             </div>
             <div className="action-row">
               <div className="status-icon"><Clock3 size={20} /></div>
-              <div><strong>Consumo de horas em 82%</strong><p>Novatech · 32h50 de 40h contratadas</p></div>
+              <div><strong>Novatech chegou a 82% das horas</strong><p>32h50 de 40h contratadas</p><small>Alerta de consumo</small></div>
               <Link className="ghost" to="/admin/horas">Ver horas <ChevronRight size={17} /></Link>
             </div>
             <div className="action-row">
               <div className="status-icon"><MessageSquareText size={20} /></div>
-              <div><strong>Ajuste solicitado pelo cliente</strong><p>Studio Norte · Ritual de gestão com lideranças</p></div>
+              <div><strong>Ajuste solicitado pelo cliente</strong><p>Studio Norte · Ritual de gestão com lideranças</p><small>Comentário recebido há 3h</small></div>
               <Link className="ghost" to="/admin/projetos">Abrir <ChevronRight size={17} /></Link>
             </div>
           </section>
+        </div>
 
-          <section className="panel">
-            <div className="panel-title">
-              <div><span className="section-kicker">AGENDA</span><h2>Próximos compromissos</h2></div>
-              <Link to="/admin/calendario">Ver calendário</Link>
+        <div className="overview-lower-grid">
+          <section className="panel agenda-overview-panel">
+            <div className="panel-title"><div><span className="section-kicker">AGENDA</span><h2>Próximos compromissos</h2></div><Link to="/admin/calendario">Calendário completo</Link></div>
+            <div className="agenda-overview-content">
+              <MiniCalendar monthLabel="Agosto" activeDay={31} />
+              <div className="agenda-timeline">
+                <div className="agenda-line agenda-meeting"><span>31 AGO · 09:30</span><strong>Reunião mensal · Grupo Aurora</strong><small>Google Meet · cliente convidado</small></div>
+                <div className="agenda-line agenda-validation"><span>03 SET · 14:00</span><strong>Validação de indicadores</strong><small>Grupo Aurora · decisão do cliente</small></div>
+                <div className="agenda-line agenda-deadline"><span>05 SET · 18:00</span><strong>Deadline · Ritual de gestão</strong><small>Studio Norte · entrega interna</small></div>
+              </div>
             </div>
-            <div className="event"><div className="date"><strong>31</strong><span>AGO</span></div><div><strong>Reunião mensal · Grupo Aurora</strong><p>09:30 · Remota</p></div></div>
-            <div className="event"><div className="date"><strong>03</strong><span>SET</span></div><div><strong>Validação de indicadores</strong><p>14:00 · Grupo Aurora</p></div></div>
-            <div className="event"><div className="date"><strong>05</strong><span>SET</span></div><div><strong>Checkpoint · Studio Norte</strong><p>11:00 · Remota</p></div></div>
+          </section>
+
+          <section className="panel deadline-panel">
+            <div className="panel-title"><div><span className="section-kicker">DEADLINES</span><h2>Próximos 15 dias</h2></div><CalendarRange size={20} /></div>
+            <div className="deadline-list">
+              <div className="deadline-item critical"><div><strong>Hoje</strong><span>18:00</span></div><p>Revisão de indicadores</p><small>Grupo Aurora</small></div>
+              <div className="deadline-item"><div><strong>05 set</strong><span>18:00</span></div><p>Ritual de gestão</p><small>Studio Norte</small></div>
+              <div className="deadline-item"><div><strong>08 set</strong><span>18:00</span></div><p>Estrutura de governança</p><small>Grupo Aurora</small></div>
+            </div>
           </section>
         </div>
 
-        <section className="panel companies">
+        <section className="panel portfolio-table-panel">
           <div className="panel-title">
             <div><span className="section-kicker">CARTEIRA</span><h2>Clientes em andamento</h2></div>
-            <Link to="/admin/clientes">Ver todos</Link>
+            <Link to="/admin/clientes">Gestão completa <ArrowUpRight size={16} /></Link>
           </div>
-          {[
-            ['Grupo Aurora', '24h10 / 30h', '81%', '4,9'],
-            ['Novatech', '32h50 / 40h', '82%', '4,7'],
-            ['Studio Norte', '11h25 / 20h', '57%', '5,0'],
-          ].map(([name, hours, pct, nps]) => (
-            <div className="company-row" key={name}>
-              <div className="company-mark">{name[0]}</div>
-              <div className="company-name"><strong>{name}</strong><span>Assessoria estratégica mensal</span></div>
-              <div className="hours-cell"><span>{hours}</span><Progress value={parseInt(pct)} /></div>
-              <div className="nps"><Star size={17} />{nps}</div>
-              <Link className="ghost" to="/admin/clientes">Abrir conta</Link>
-            </div>
-          ))}
+          <div className="portfolio-table-head"><span>Cliente / serviço</span><span>Horas</span><span>Deadline</span><span>NPS</span><span>Próximo passo</span><span /></div>
+          {clients.map((client) => {
+            const usage = Math.round(client.consumed / client.contracted * 100);
+            return (
+              <div className="portfolio-table-row" key={client.name}>
+                <div className="client-identity compact-client"><div className="company-mark">{client.name[0]}</div><div><strong>{client.name}</strong><small>{client.service}</small></div></div>
+                <div className="portfolio-hours"><strong>{usage}%</strong><span>{client.consumed.toFixed(1)}h / {client.contracted}h</span></div>
+                <div className="portfolio-deadline"><strong>{client.deadline}</strong><span>ciclo atual</span></div>
+                <div className="metric-inline"><Star size={16} />{client.nps.toFixed(1).replace('.', ',')}</div>
+                <div className="portfolio-next"><strong>{client.next.split(' · ')[0]}</strong><span>{client.next.split(' · ')[1]}</span></div>
+                <Link className="ghost" to="/admin/clientes">Abrir conta <ChevronRight size={16} /></Link>
+              </div>
+            );
+          })}
         </section>
       </section>
     </Shell>
