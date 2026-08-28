@@ -1,7 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Bell,
   Building2,
   CalendarDays,
   ChevronLeft,
@@ -14,11 +13,13 @@ import {
   LogOut,
   Menu,
   PieChart,
+  Puzzle,
   TimerReset,
   X,
   type LucideIcon,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { NotificationCenter, ProfileControl } from './WorkspaceChrome';
 
 export type Role = 'admin' | 'client';
 
@@ -47,12 +48,19 @@ export const clientNav: NavItem[] = [
   { label: 'Relatórios', icon: PieChart, href: '/cliente/relatorios' },
 ];
 
-export function Brand() {
+export function Brand({ dark = false }: { dark?: boolean }) {
   return (
-    <div className="brand" aria-label="CALI Workspace">
-      <strong className="brand-full">CALI</strong>
-      <strong className="brand-compact" aria-hidden="true">C</strong>
-      <span>WORKSPACE</span>
+    <div className={`brand ${dark ? 'brand-dark' : ''}`} aria-label="CALI Workspace">
+      <div className="brand-full">
+        <img
+          src={dark
+            ? 'https://raw.githubusercontent.com/patricia258/cali-portal/main/assets/logo-cali-bordo.png'
+            : 'https://raw.githubusercontent.com/patricia258/cali-portal/main/assets/logo-cali-light.png'}
+          alt="CALI RH"
+        />
+        <span>WORKSPACE</span>
+      </div>
+      <span className="brand-compact" aria-hidden="true"><Puzzle size={24} strokeWidth={1.9} /></span>
     </div>
   );
 }
@@ -71,7 +79,6 @@ function Sidebar({ role }: { role: Role }) {
         setPinned((current) => !current);
       }
     }
-
     window.addEventListener('keydown', handleShortcut);
     return () => window.removeEventListener('keydown', handleShortcut);
   }, []);
@@ -84,16 +91,12 @@ function Sidebar({ role }: { role: Role }) {
 
   return (
     <>
-      <button className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Abrir menu">
-        <Menu />
-      </button>
+      <button className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Abrir menu"><Menu /></button>
       {mobileOpen && <button className="sidebar-backdrop" aria-label="Fechar menu" onClick={() => setMobileOpen(false)} />}
       <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''} ${pinned ? 'pinned' : ''}`}>
         <div className="sidebar-top">
           <Brand />
-          <button className="sidebar-close" onClick={() => setMobileOpen(false)} aria-label="Fechar menu">
-            <X />
-          </button>
+          <button className="sidebar-close" onClick={() => setMobileOpen(false)} aria-label="Fechar menu"><X /></button>
         </div>
 
         <button
@@ -113,14 +116,7 @@ function Sidebar({ role }: { role: Role }) {
             const active = location.pathname === item.href || (item.href !== `/${role}` && location.pathname.startsWith(`${item.href}/`));
             const Icon = item.icon;
             return (
-              <Link
-                key={item.href}
-                to={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={active ? 'active' : ''}
-                data-label={item.label}
-                aria-current={active ? 'page' : undefined}
-              >
+              <Link key={item.href} to={item.href} onClick={() => setMobileOpen(false)} className={active ? 'active' : ''} data-label={item.label} aria-current={active ? 'page' : undefined}>
                 <Icon size={19} />
                 <span className="nav-label">{item.label}</span>
               </Link>
@@ -129,14 +125,8 @@ function Sidebar({ role }: { role: Role }) {
         </nav>
 
         <div className="sidebar-footer">
-          <div className="avatar">{role === 'admin' ? 'PL' : 'GA'}</div>
-          <div className="sidebar-user-copy">
-            <strong>{role === 'admin' ? 'Patrícia Lima' : 'Grupo Aurora'}</strong>
-            <small>{role === 'admin' ? 'Admin CALI' : 'Acesso principal'}</small>
-          </div>
-          <button className="sidebar-logout" type="button" aria-label="Sair" onClick={handleLogout}>
-            <LogOut size={18} />
-          </button>
+          <ProfileControl role={role} />
+          <button className="sidebar-logout" type="button" aria-label="Sair" onClick={handleLogout}><LogOut size={18} /></button>
         </div>
       </aside>
     </>
@@ -149,14 +139,10 @@ export function Shell({ role, children }: { role: Role; children: ReactNode }) {
       <Sidebar role={role} />
       <main className="main">
         <header className="topbar">
-          <div className="topbar-context">
-            <span>{role === 'admin' ? 'CALI Workspace' : 'Área da empresa'}</span>
-          </div>
+          <div className="topbar-context"><span>{role === 'admin' ? 'CALI Workspace' : 'Área da empresa'}</span></div>
           <div className="top-actions">
-            <button aria-label="Notificações" className="icon-button">
-              <Bell size={20} />
-              <span className="notification-dot" />
-            </button>
+            <NotificationCenter role={role} />
+            <ProfileControl role={role} compact />
           </div>
         </header>
         <div className="workspace-view">{children}</div>
@@ -166,20 +152,10 @@ export function Shell({ role, children }: { role: Role; children: ReactNode }) {
 }
 
 export function Kpi({ label, value, helper }: { label: string; value: string; helper: string }) {
-  return (
-    <article className="kpi">
-      <span>{label}</span>
-      <strong>{value}</strong>
-      <small>{helper}</small>
-    </article>
-  );
+  return <article className="kpi"><span>{label}</span><strong>{value}</strong><small>{helper}</small></article>;
 }
 
 export function Progress({ value }: { value: number }) {
   const bounded = Math.max(0, Math.min(100, value));
-  return (
-    <div className="progress" aria-label={`${bounded}%`}>
-      <span style={{ width: `${bounded}%` }} />
-    </div>
-  );
+  return <div className="progress" aria-label={`${bounded}%`}><span style={{ width: `${bounded}%` }} /></div>;
 }
