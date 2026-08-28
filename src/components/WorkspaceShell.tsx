@@ -4,6 +4,8 @@ import {
   Bell,
   Building2,
   CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   FileText,
   FolderKanban,
@@ -46,8 +48,9 @@ export const clientNav: NavItem[] = [
 
 export function Brand() {
   return (
-    <div className="brand">
-      <strong>CALI</strong>
+    <div className="brand" aria-label="CALI Workspace">
+      <strong className="brand-full">CALI</strong>
+      <strong className="brand-compact" aria-hidden="true">C</strong>
       <span>WORKSPACE</span>
     </div>
   );
@@ -56,39 +59,63 @@ export function Brand() {
 function Sidebar({ role }: { role: Role }) {
   const location = useLocation();
   const nav = role === 'admin' ? adminNav : clientNav;
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [pinned, setPinned] = useState(false);
 
   return (
     <>
-      <button className="mobile-menu" onClick={() => setOpen(true)} aria-label="Abrir menu">
+      <button className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Abrir menu">
         <Menu />
       </button>
-      <aside className={`sidebar ${open ? 'open' : ''}`}>
+      {mobileOpen && <button className="sidebar-backdrop" aria-label="Fechar menu" onClick={() => setMobileOpen(false)} />}
+      <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''} ${pinned ? 'pinned' : ''}`}>
         <div className="sidebar-top">
           <Brand />
-          <button className="sidebar-close" onClick={() => setOpen(false)} aria-label="Fechar menu">
+          <button className="sidebar-close" onClick={() => setMobileOpen(false)} aria-label="Fechar menu">
             <X />
           </button>
         </div>
-        <nav>
+
+        <button
+          className="sidebar-pin"
+          type="button"
+          aria-label={pinned ? 'Deixar menu retrair automaticamente' : 'Manter menu aberto'}
+          aria-pressed={pinned}
+          onClick={() => setPinned((current) => !current)}
+        >
+          {pinned ? <ChevronLeft size={17} /> : <ChevronRight size={17} />}
+          <span>{pinned ? 'Retrair automaticamente' : 'Manter aberto'}</span>
+        </button>
+
+        <nav aria-label={role === 'admin' ? 'Navegação administrativa' : 'Navegação do cliente'}>
           {nav.map((item) => {
             const active = location.pathname === item.href || (item.href !== `/${role}` && location.pathname.startsWith(`${item.href}/`));
             const Icon = item.icon;
             return (
-              <Link key={item.href} to={item.href} onClick={() => setOpen(false)} className={active ? 'active' : ''}>
+              <Link
+                key={item.href}
+                to={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={active ? 'active' : ''}
+                data-label={item.label}
+                aria-current={active ? 'page' : undefined}
+              >
                 <Icon size={19} />
-                <span>{item.label}</span>
+                <span className="nav-label">{item.label}</span>
               </Link>
             );
           })}
         </nav>
+
         <div className="sidebar-footer">
           <div className="avatar">{role === 'admin' ? 'PL' : 'GA'}</div>
-          <div>
+          <div className="sidebar-user-copy">
             <strong>{role === 'admin' ? 'Patrícia Lima' : 'Grupo Aurora'}</strong>
             <small>{role === 'admin' ? 'Admin CALI' : 'Acesso principal'}</small>
           </div>
-          <LogOut size={18} />
+          <button className="sidebar-logout" type="button" aria-label="Sair">
+            <LogOut size={18} />
+          </button>
         </div>
       </aside>
     </>
@@ -101,7 +128,9 @@ export function Shell({ role, children }: { role: Role; children: ReactNode }) {
       <Sidebar role={role} />
       <main className="main">
         <header className="topbar">
-          <div />
+          <div className="topbar-context">
+            <span>{role === 'admin' ? 'CALI Workspace' : 'Área da empresa'}</span>
+          </div>
           <div className="top-actions">
             <button aria-label="Notificações" className="icon-button">
               <Bell size={20} />
@@ -109,7 +138,7 @@ export function Shell({ role, children }: { role: Role; children: ReactNode }) {
             </button>
           </div>
         </header>
-        {children}
+        <div className="workspace-view">{children}</div>
       </main>
     </div>
   );
