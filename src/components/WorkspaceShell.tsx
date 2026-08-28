@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell,
   Building2,
@@ -18,6 +18,7 @@ import {
   X,
   type LucideIcon,
 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export type Role = 'admin' | 'client';
 
@@ -58,9 +59,28 @@ export function Brand() {
 
 function Sidebar({ role }: { role: Role }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const nav = role === 'admin' ? adminNav : clientNav;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pinned, setPinned] = useState(false);
+
+  useEffect(() => {
+    function handleShortcut(event: KeyboardEvent) {
+      if (event.key.toLowerCase() === 'b' && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        setPinned((current) => !current);
+      }
+    }
+
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, []);
+
+  async function handleLogout() {
+    sessionStorage.removeItem('cali-preview-role');
+    if (supabase) await supabase.auth.signOut();
+    navigate('/', { replace: true });
+  }
 
   return (
     <>
@@ -82,6 +102,7 @@ function Sidebar({ role }: { role: Role }) {
           aria-label={pinned ? 'Deixar menu retrair automaticamente' : 'Manter menu aberto'}
           aria-pressed={pinned}
           onClick={() => setPinned((current) => !current)}
+          title="Atalho: Ctrl/Cmd + B"
         >
           {pinned ? <ChevronLeft size={17} /> : <ChevronRight size={17} />}
           <span>{pinned ? 'Retrair automaticamente' : 'Manter aberto'}</span>
@@ -113,7 +134,7 @@ function Sidebar({ role }: { role: Role }) {
             <strong>{role === 'admin' ? 'Patrícia Lima' : 'Grupo Aurora'}</strong>
             <small>{role === 'admin' ? 'Admin CALI' : 'Acesso principal'}</small>
           </div>
-          <button className="sidebar-logout" type="button" aria-label="Sair">
+          <button className="sidebar-logout" type="button" aria-label="Sair" onClick={handleLogout}>
             <LogOut size={18} />
           </button>
         </div>
