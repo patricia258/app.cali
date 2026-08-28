@@ -8,8 +8,15 @@ export function ProtectedRoute({ role, children }: { role: Role; children: React
   const [actualRole, setActualRole] = useState<Role | null>(null);
 
   useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) {
+    const previewRole = sessionStorage.getItem('cali-preview-role') as Role | null;
+    if (previewRole === role) {
+      setActualRole(previewRole);
       setState('allowed');
+      return;
+    }
+
+    if (!isSupabaseConfigured || !supabase) {
+      setState('denied');
       return;
     }
 
@@ -22,6 +29,8 @@ export function ProtectedRoute({ role, children }: { role: Role; children: React
         if (active) setState('denied');
         return;
       }
+
+      sessionStorage.removeItem('cali-preview-role');
 
       const { data: profile, error } = await supabase!
         .from('profiles')
