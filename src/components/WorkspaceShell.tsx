@@ -1,4 +1,4 @@
-import { useState, type ComponentType, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Bell,
@@ -14,13 +14,14 @@ import {
   PieChart,
   TimerReset,
   X,
+  type LucideIcon,
 } from 'lucide-react';
 
 export type Role = 'admin' | 'client';
 
 type NavItem = {
   label: string;
-  icon: ComponentType<{ size?: number }>;
+  icon: LucideIcon;
   href: string;
 };
 
