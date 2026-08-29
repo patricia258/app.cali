@@ -1,0 +1,124 @@
+/* CALI Workspace · Projetos polish V3
+   Mantém o roadmap aprovado e adiciona estados operacionais, reações e clareza de subtarefas. */
+
+/* Status semânticos: vivos o suficiente para leitura rápida, sem alterar a estrutura visual. */
+.status-chip-v3,
+.inline-status-select-v3 {
+  --status-color: #827873;
+  --status-bg: rgba(130,120,115,.10);
+  --status-border: rgba(130,120,115,.24);
+}
+.status-neutral { --status-color:#756d69; --status-bg:rgba(117,109,105,.10); --status-border:rgba(117,109,105,.24); }
+.status-progress { --status-color:#2f6fed; --status-bg:rgba(47,111,237,.11); --status-border:rgba(47,111,237,.30); }
+.status-standby { --status-color:#b97808; --status-bg:rgba(229,165,36,.16); --status-border:rgba(229,165,36,.40); }
+.status-review { --status-color:#7051d8; --status-bg:rgba(124,92,231,.12); --status-border:rgba(124,92,231,.30); }
+.status-client { --status-color:#b96108; --status-bg:rgba(217,119,6,.13); --status-border:rgba(217,119,6,.31); }
+.status-adjustment { --status-color:#bf385f; --status-bg:rgba(209,77,114,.12); --status-border:rgba(209,77,114,.30); }
+.status-rebriefing { --status-color:#8f35ad; --status-bg:rgba(163,60,196,.12); --status-border:rgba(163,60,196,.30); }
+.status-approved { --status-color:#238452; --status-bg:rgba(46,155,98,.12); --status-border:rgba(46,155,98,.30); }
+.status-cancelled { --status-color:#c73737; --status-bg:rgba(214,69,69,.11); --status-border:rgba(214,69,69,.30); }
+
+.status-chip-v3 {
+  min-height:30px; display:inline-flex; align-items:center; justify-content:center;
+  padding:0 11px; border:1px solid var(--status-border); border-radius:999px;
+  background:var(--status-bg); color:var(--status-color); font-size:12px; font-weight:800; white-space:nowrap;
+}
+.inline-status-select-v3 {
+  min-height:34px; display:inline-flex; align-items:center; gap:7px; padding:0 8px 0 10px;
+  border:1px solid var(--status-border); border-radius:999px; background:var(--status-bg); color:var(--status-color);
+  cursor:pointer; max-width:172px;
+}
+.inline-status-select-v3.compact { min-height:31px; max-width:166px; }
+.status-dot-v3 { width:7px; height:7px; flex:0 0 auto; border-radius:50%; background:var(--status-color); box-shadow:0 0 0 3px color-mix(in srgb,var(--status-color) 14%,transparent); }
+.inline-status-select-v3 select {
+  min-width:0!important; width:100%; height:30px!important; padding:0 24px 0 0!important;
+  border:0!important; box-shadow:none!important; background:transparent!important; color:var(--status-color)!important;
+  font-size:12px!important; font-weight:800!important; cursor:pointer;
+}
+.inline-status-select-v3 select:disabled { cursor:not-allowed; opacity:.8; }
+.inline-status-select-v3 option { color:#2b2b2b; background:#fff; }
+
+/* Roadmap: preserva frente, meses, ilustrações e hierarquia; apenas o status vira editável na linha. */
+.front-deliverables-v3 { background:var(--theme-surface-soft); }
+.front-deliverable-row-v3 {
+  min-height:64px; display:grid; grid-template-columns:minmax(0,1fr) 172px 130px 34px;
+  gap:12px; align-items:center; padding:9px 18px 9px 74px; border-top:1px solid var(--theme-line);
+}
+.front-deliverable-open-v3 {
+  min-width:0; display:grid; grid-template-columns:28px minmax(220px,1fr) 58px; gap:12px; align-items:center;
+  padding:0; border:0; background:transparent; color:var(--theme-text); text-align:left; cursor:pointer;
+}
+.front-deliverable-open-v3 > svg { color:var(--theme-accent); }
+.front-deliverable-open-v3 > span { min-width:0; display:grid; gap:2px; }
+.front-deliverable-open-v3 small { color:var(--theme-muted); font-size:12px; }
+.front-deliverable-open-v3 strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; }
+.front-deliverable-row-v3 > time { font-size:13px; font-weight:650; color:var(--theme-text); }
+.front-deliverable-row-v3:hover { background:var(--theme-accent-soft); }
+.row-arrow-v3 { width:34px; height:34px; display:grid; place-items:center; border:0; border-radius:9px; background:transparent; color:var(--theme-accent); cursor:pointer; }
+.row-arrow-v3:hover { background:var(--theme-surface-muted); }
+
+/* Lista de entregáveis com o mesmo status editável. */
+.deliverable-list-v3 { padding:0!important; overflow:hidden; }
+.deliverable-list-row-v3 {
+  min-height:78px; display:grid; grid-template-columns:minmax(0,1.6fr) 174px 110px 78px 130px 34px;
+  gap:12px; align-items:center; padding:10px 16px; border-bottom:1px solid var(--theme-line); background:var(--theme-surface-soft);
+}
+.deliverable-list-row-v3:last-child { border-bottom:0; }
+.deliverable-list-row-v3:hover { background:var(--theme-accent-soft); }
+.deliverable-list-open-v3 {
+  min-width:0; display:grid; grid-template-columns:42px minmax(230px,1fr) 58px; gap:12px; align-items:center;
+  padding:0; border:0; background:transparent; color:var(--theme-text); text-align:left; cursor:pointer;
+}
+.deliverable-list-row-v3 > span,.deliverable-list-row-v3 > time { font-size:13px; color:var(--theme-text); }
+
+/* Subtarefas: deixa explícita a relação com o entregável e o significado da data. */
+.task-columns-v3 {
+  display:grid; grid-template-columns:minmax(280px,1fr) 90px 130px 90px; gap:12px;
+  padding:12px 4px 7px 46px; border-bottom:1px solid var(--theme-line); color:var(--theme-muted);
+}
+.task-columns-v3 span { font-size:12px; font-weight:750; }
+.tasks-pane-v2 header p b { color:var(--theme-text); font-weight:750; }
+.task-list-v2 time { color:var(--theme-text)!important; font-weight:650; }
+
+/* Reações rápidas na conversa — discretas, mas com linguagem humana. */
+.reaction-bar-v3 { display:flex; flex-wrap:wrap; gap:6px; margin-top:9px; }
+.reaction-bar-v3 button {
+  min-width:32px; height:30px; display:inline-flex; align-items:center; justify-content:center; gap:4px;
+  padding:0 8px; border:1px solid var(--theme-line); border-radius:999px; background:var(--theme-surface-muted);
+  color:var(--theme-muted); cursor:pointer; transition:.14s ease;
+}
+.reaction-bar-v3 button:hover { transform:translateY(-1px); color:var(--theme-accent); border-color:color-mix(in srgb,var(--theme-accent) 28%,var(--theme-line)); }
+.reaction-bar-v3 button.active { color:#5a1e2d; border-color:rgba(90,30,45,.28); background:rgba(90,30,45,.09); }
+.reaction-bar-v3 button:nth-child(4).active { color:#8f2741; }
+.reaction-bar-v3 button span { font-size:11px; font-weight:800; }
+
+/* Modo noite: mesmas ilustrações e mesmos tamanhos, apenas convertidas para branco. */
+[data-workspace-theme="night"] .front-header-v2 > img,
+.theme-night .front-header-v2 > img {
+  filter:brightness(0) invert(1)!important;
+  opacity:.78!important;
+}
+[data-workspace-theme="night"] .project-hero-illustration,
+.theme-night .project-hero-illustration { filter:brightness(0) invert(1)!important; }
+[data-workspace-theme="night"] .inline-status-select-v3 option,
+.theme-night .inline-status-select-v3 option { background:#21171b; color:#f7f3ee; }
+[data-workspace-theme="night"] .status-neutral,.theme-night .status-neutral { --status-color:#b9afaa; --status-bg:rgba(185,175,170,.10); --status-border:rgba(185,175,170,.24); }
+[data-workspace-theme="night"] .status-progress,.theme-night .status-progress { --status-color:#72a1ff; --status-bg:rgba(47,111,237,.19); --status-border:rgba(114,161,255,.38); }
+[data-workspace-theme="night"] .status-standby,.theme-night .status-standby { --status-color:#f0b943; --status-bg:rgba(229,165,36,.18); --status-border:rgba(240,185,67,.38); }
+[data-workspace-theme="night"] .status-review,.theme-night .status-review { --status-color:#ad92ff; --status-bg:rgba(124,92,231,.19); --status-border:rgba(173,146,255,.38); }
+[data-workspace-theme="night"] .status-client,.theme-night .status-client { --status-color:#f2a343; --status-bg:rgba(217,119,6,.18); --status-border:rgba(242,163,67,.36); }
+[data-workspace-theme="night"] .status-adjustment,.theme-night .status-adjustment { --status-color:#f184a4; --status-bg:rgba(209,77,114,.18); --status-border:rgba(241,132,164,.36); }
+[data-workspace-theme="night"] .status-rebriefing,.theme-night .status-rebriefing { --status-color:#d58bea; --status-bg:rgba(163,60,196,.18); --status-border:rgba(213,139,234,.36); }
+[data-workspace-theme="night"] .status-approved,.theme-night .status-approved { --status-color:#74d49e; --status-bg:rgba(46,155,98,.18); --status-border:rgba(116,212,158,.36); }
+[data-workspace-theme="night"] .status-cancelled,.theme-night .status-cancelled { --status-color:#ff8585; --status-bg:rgba(214,69,69,.18); --status-border:rgba(255,133,133,.36); }
+[data-workspace-theme="night"] .reaction-bar-v3 button.active,.theme-night .reaction-bar-v3 button.active { color:#f0a9ba; background:rgba(217,141,161,.11); border-color:rgba(217,141,161,.28); }
+
+@media(max-width:1100px){
+  .front-deliverable-row-v3{padding-left:56px;grid-template-columns:minmax(0,1fr) 160px 120px 34px}
+  .deliverable-list-row-v3{grid-template-columns:minmax(0,1.5fr) 165px 90px 72px 118px 32px}
+}
+@media(max-width:760px){
+  .front-deliverable-row-v3{padding:11px 14px;grid-template-columns:minmax(0,1fr) auto 34px}.front-deliverable-row-v3>time{display:none}.front-deliverable-open-v3{grid-template-columns:26px 1fr}.front-deliverable-open-v3>.mc-chip{display:none}.inline-status-select-v3.compact{max-width:142px}
+  .deliverable-list-row-v3{grid-template-columns:minmax(0,1fr) auto 34px;padding:11px 12px}.deliverable-list-row-v3>.task-count-v2,.deliverable-list-row-v3>span:not(.task-count-v2),.deliverable-list-row-v3>time{display:none}.deliverable-list-open-v3{grid-template-columns:38px 1fr}.deliverable-list-open-v3>.mc-chip{display:none}.inline-status-select-v3{max-width:150px}
+  .task-columns-v3{display:none}
+}

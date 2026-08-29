@@ -28,6 +28,7 @@ import './page5-projects-flow-v2.css';
 import './modal-system-v3.css';
 import './client-modal-drive-note.css';
 import './workspace-typography-connect.css';
+import './page5-projects-polish-v3.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
 initializeWorkspaceTheme();
