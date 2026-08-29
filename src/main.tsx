@@ -14,6 +14,7 @@ import './workspace-invariants.css';
 import './dashboard-scroll-fix.css';
 import './brand-experience.css';
 import './brand-experience-v2.css';
+import './menu-brand-final.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
