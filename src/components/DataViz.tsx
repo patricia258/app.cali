@@ -1,10 +1,21 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { ChevronDown, Download, FileDown, FileText, HardDrive, Printer } from 'lucide-react';
 
-type BarDatum = { label: string; value: number; max: number; helper?: string; tone?: 'normal' | 'warn' | 'critical' };
+type BarDatum = {
+  label: string;
+  value: number;
+  max: number;
+  helper?: string;
+  tone?: 'normal' | 'warn' | 'critical';
+  logoUrl?: string;
+  logoText?: string;
+  pacePct?: number;
+  paceLabel?: string;
+};
 type DonutDatum = { label: string; value: number; color: string };
 type ExportRow = Record<string, string | number>;
 type CalendarMarker = { day: number; color: string; label?: string };
+export type TrendSeries = { name: string; color: string; values: Array<number | null> };
 
 function downloadBlob(filename: string, content: BlobPart, type: string) {
   const blob = new Blob([content], { type });
@@ -36,7 +47,24 @@ export function ExportMenu({ title, rows, onDrive }: { title: string; rows: Expo
 }
 
 export function HorizontalBars({ data }: { data: BarDatum[] }) {
-  return <div className="horizontal-bars">{data.map((item) => { const pct = item.max > 0 ? Math.min(100, Math.round((item.value / item.max) * 100)) : 0; return <div className="bar-row" key={item.label}><div className="bar-copy"><strong>{item.label}</strong><span>{item.value.toFixed(1)}h de {item.max.toFixed(0)}h</span></div><div className="bar-track"><span className={item.tone || 'normal'} style={{ width: `${pct}%` }} /></div><strong className={`bar-percent ${item.tone || ''}`}>{pct}%</strong>{item.helper && <small>{item.helper}</small>}</div>; })}</div>;
+  return <div className="horizontal-bars hours-pace-bars">{data.map((item) => {
+    const pct = item.max > 0 ? Math.min(100, Math.round((item.value / item.max) * 100)) : 0;
+    const pace = Math.max(0, Math.min(100, item.pacePct ?? 0));
+    return <div className="bar-row bar-row-with-client" key={item.label}>
+      <div className="bar-client-identity">
+        <span className="bar-client-logo">{item.logoUrl ? <img src={item.logoUrl} alt="" /> : (item.logoText || item.label.slice(0, 1))}</span>
+        <div className="bar-copy"><strong>{item.label}</strong><span>{item.value.toFixed(1)}h de {item.max.toFixed(0)}h</span></div>
+      </div>
+      <div className="bar-track-wrap">
+        <div className="bar-track">
+          <span className={item.tone || 'normal'} style={{ width: `${pct}%` }} />
+          {item.pacePct != null && <i className="pace-marker" style={{ left: `${pace}%` }} title={`Ritmo previsto: ${pace}%`} />}
+        </div>
+        <div className="bar-helper-line"><small>{item.helper}</small>{item.paceLabel && <small className="pace-copy">{item.paceLabel}</small>}</div>
+      </div>
+      <strong className={`bar-percent ${item.tone || ''}`}>{pct}%</strong>
+    </div>;
+  })}</div>;
 }
 
 export function DonutChart({ data, centerValue, centerLabel }: { data: DonutDatum[]; centerValue: string; centerLabel: string }) {
@@ -45,10 +73,55 @@ export function DonutChart({ data, centerValue, centerLabel }: { data: DonutDatu
   return <div className="donut-layout"><div className="donut" style={{ background: gradient }}><div><strong>{centerValue}</strong><span>{centerLabel}</span></div></div><div className="donut-legend">{data.map((item) => <div key={item.label}><span className="legend-dot" style={{ background: item.color }} /><span>{item.label}</span><strong>{item.value}</strong></div>)}</div></div>;
 }
 
-export function TrendChart({ values, labels }: { values: number[]; labels: string[] }) {
-  const width = 520, height = 190, min = Math.min(...values, 0), max = Math.max(...values, 1), range = Math.max(1, max - min);
-  const points = values.map((value, index) => { const x = values.length === 1 ? width / 2 : (index / (values.length - 1)) * width; const y = height - ((value - min) / range) * (height - 32) - 16; return `${x},${y}`; }).join(' ');
-  return <div className="trend-chart-wrap"><svg className="trend-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Evolução do NPS">{[0.25, 0.5, 0.75].map((factor) => <line key={factor} x1="0" x2={width} y1={height * factor} y2={height * factor} className="chart-grid-line" />)}<polyline points={points} className="trend-line-shadow" /><polyline points={points} className="trend-line" />{values.map((value, index) => { const [x, y] = points.split(' ')[index].split(',').map(Number); return <g key={`${labels[index]}-${value}`}><circle cx={x} cy={y} r="4.5" className="trend-dot" /><text x={x} y={Math.max(14, y - 12)} textAnchor="middle" className="trend-value">{value.toFixed(1)}</text></g>; })}</svg><div className="trend-labels">{labels.map((label) => <span key={label}>{label}</span>)}</div></div>;
+export function InteractiveTrendChart({ labels, series }: { labels: string[]; series: TrendSeries[] }) {
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [hovered, setHovered] = useState<{ name: string; label: string; value: number; x: number; y: number; color: string } | null>(null);
+  const width = 640;
+  const height = 230;
+  const padX = 18;
+  const padY = 22;
+  const yMin = 4;
+  const yMax = 5;
+  const chartH = height - padY * 2;
+  const chartW = width - padX * 2;
+
+  const pointFor = (value: number, index: number) => {
+    const x = labels.length <= 1 ? width / 2 : padX + (index / (labels.length - 1)) * chartW;
+    const y = padY + (1 - ((value - yMin) / (yMax - yMin))) * chartH;
+    return { x, y };
+  };
+
+  function toggleSeries(name: string) {
+    setHidden((current) => {
+      const next = new Set(current);
+      if (next.has(name)) next.delete(name); else next.add(name);
+      return next;
+    });
+  }
+
+  return <div className="multi-trend-wrap" onMouseLeave={() => setHovered(null)}>
+    <div className="multi-trend-chart-area">
+      <svg className="multi-trend-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Evolução das avaliações por cliente">
+        {[4, 4.25, 4.5, 4.75, 5].map((tick) => {
+          const y = pointFor(tick, 0).y;
+          return <g key={tick}><line x1={padX} x2={width - padX} y1={y} y2={y} className="chart-grid-line" /><text x={padX} y={Math.max(13, y - 5)} className="trend-axis-value">{tick.toFixed(2).replace(/0$/, '')}</text></g>;
+        })}
+        {series.map((item) => {
+          if (hidden.has(item.name)) return null;
+          const valid = item.values.map((value, index) => value == null ? null : ({ ...pointFor(value, index), value, index })).filter(Boolean) as Array<{ x: number; y: number; value: number; index: number }>;
+          const points = valid.map((point) => `${point.x},${point.y}`).join(' ');
+          return <g key={item.name}>
+            {valid.length > 1 && <polyline points={points} fill="none" stroke={item.color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" opacity=".9" />}
+            {valid.map((point) => <circle key={`${item.name}-${point.index}`} cx={point.x} cy={point.y} r="5" fill="#fffdf9" stroke={item.color} strokeWidth="2.6" tabIndex={0} className="trend-hit-point" onMouseEnter={() => setHovered({ name: item.name, label: labels[point.index], value: point.value, x: point.x, y: point.y, color: item.color })} onFocus={() => setHovered({ name: item.name, label: labels[point.index], value: point.value, x: point.x, y: point.y, color: item.color })} />)}
+          </g>;
+        })}
+      </svg>
+      {hovered && <div className="trend-tooltip" style={{ left: `${(hovered.x / width) * 100}%`, top: `${(hovered.y / height) * 100}%` }}><span style={{ background: hovered.color }} /><strong>{hovered.name}</strong><small>{hovered.label} · {hovered.value.toFixed(1).replace('.', ',')}</small></div>}
+    </div>
+    <div className="trend-labels multi-trend-labels">{labels.map((label) => <span key={label}>{label}</span>)}</div>
+    <div className="trend-series-legend" aria-label="Legenda das avaliações">{series.map((item) => <button type="button" key={item.name} className={hidden.has(item.name) ? 'muted' : ''} onClick={() => toggleSeries(item.name)}><span style={{ background: item.color }} />{item.name}</button>)}</div>
+    <p className="trend-chart-hint">Passe o mouse sobre os pontos para ver cliente, período e nota. Clique na legenda para comparar ou ocultar uma série.</p>
+  </div>;
 }
 
 export function MiniCalendar({ monthLabel, activeDay = 31, markers = [] }: { monthLabel: string; activeDay?: number; markers?: CalendarMarker[] }) {
