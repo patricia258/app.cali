@@ -48,10 +48,12 @@
     overflow: hidden !important;
     isolation: isolate !important;
     background-color: #581b24 !important;
-    background-image: url('/brand/cali-sidebar-pattern.webp') !important;
-    background-repeat: no-repeat !important;
-    background-position: center center !important;
-    background-size: cover !important;
+    background-image:
+      linear-gradient(rgba(88, 27, 36, .43), rgba(88, 27, 36, .43)),
+      url('/brand/cali-sidebar-pattern.webp') !important;
+    background-repeat: no-repeat, no-repeat !important;
+    background-position: center center, center center !important;
+    background-size: cover, cover !important;
   }
 
   /* Sem símbolos reconstruídos ou overlays adicionais. */
@@ -194,10 +196,12 @@
     overflow: hidden !important;
     isolation: isolate !important;
     background-color: #581b24 !important;
-    background-image: url('/brand/cali-sidebar-pattern.webp') !important;
-    background-repeat: no-repeat !important;
-    background-position: center center !important;
-    background-size: cover !important;
+    background-image:
+      linear-gradient(rgba(88, 27, 36, .43), rgba(88, 27, 36, .43)),
+      url('/brand/cali-sidebar-pattern.webp') !important;
+    background-repeat: no-repeat, no-repeat !important;
+    background-position: center center, center center !important;
+    background-size: cover, cover !important;
   }
 
   .sidebar.mobile-open::before,
