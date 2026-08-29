@@ -1,0 +1,85 @@
+/* CALI Workspace — fechamento visual do menu aprovado em 28/08/2026.
+   Menu compacto usa somente os dois símbolos oficiais (lima + carvalho).
+   Menu aberto mantém a assinatura CALI centralizada visualmente no eixo da sidebar. */
+
+@media (min-width: 861px) {
+  .sidebar-top {
+    position: relative !important;
+    width: 100% !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+  }
+
+  .sidebar .brand {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 auto !important;
+    padding: 2px 0 18px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Estado retraído: o símbolo ocupa exatamente o eixo do rail. */
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand {
+    width: 54px !important;
+    flex: 0 0 54px !important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand-compact-slide {
+    display: flex !important;
+    width: 54px !important;
+    height: 54px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand-compact-art {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  /* Estado aberto: compensação óptica do PNG oficial.
+     O arquivo tem respiro interno; deslocar o conjunto levemente à esquerda
+     centraliza a arte visível, não apenas a caixa da imagem. */
+  .sidebar:hover .brand-full,
+  .sidebar:focus-within .brand-full,
+  .sidebar.pinned .brand-full {
+    display: flex !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    transform: translateX(-20px) !important;
+  }
+
+  .sidebar:hover .brand-full img,
+  .sidebar:focus-within .brand-full img,
+  .sidebar.pinned .brand-full img {
+    display: block !important;
+    width: 136px !important;
+    max-width: 136px !important;
+    margin: 0 auto !important;
+  }
+
+  .sidebar:hover .brand-full span,
+  .sidebar:focus-within .brand-full span,
+  .sidebar.pinned .brand-full span {
+    display: block !important;
+    width: 136px !important;
+    margin: 7px auto 0 !important;
+    text-align: center !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .sidebar.mobile-open .brand-full {
+    transform: none !important;
+    margin: 0 auto !important;
+  }
+}
