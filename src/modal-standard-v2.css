@@ -1,0 +1,102 @@
+/* CALI Workspace · modal standard v2
+   Global invariant: modal belongs to the viewport, never to a page section. */
+
+.modal-backdrop,
+.workspace-modal-backdrop,
+.full-screen-modal,
+.chrome-modal-backdrop.full-screen-modal,
+.modal-backdrop.full-screen-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  margin: 0 !important;
+  padding: clamp(18px, 4vh, 40px) clamp(18px, 3vw, 44px) !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: auto !important;
+  background: rgba(28, 22, 25, .48) !important;
+  backdrop-filter: blur(8px) saturate(.92) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(.92) !important;
+  z-index: 2147483000 !important;
+}
+
+.modal-backdrop > .modal-card,
+.workspace-modal-backdrop > .modal-card,
+.full-screen-modal > .modal-card {
+  position: relative !important;
+  margin: auto !important;
+  z-index: 2147483001 !important;
+}
+
+body.workspace-modal-open {
+  overflow: hidden !important;
+}
+
+body.workspace-modal-open .topbar {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Safe footer margins: actions never touch or cross the modal border. */
+.account-modal-footer,
+.tabbed-modal-footer,
+.management-footer {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  padding-left: 26px !important;
+  padding-right: 26px !important;
+  overflow: visible !important;
+}
+
+.management-footer {
+  min-width: 0 !important;
+}
+
+.management-danger-actions {
+  min-width: 0 !important;
+  padding-left: 0 !important;
+}
+
+.management-footer .modal-actions,
+.tabbed-modal-footer .modal-actions {
+  flex: 0 0 auto !important;
+  margin-left: auto !important;
+  padding-right: 0 !important;
+}
+
+.management-footer .modal-actions button,
+.tabbed-modal-footer .modal-actions button {
+  white-space: nowrap;
+}
+
+/* Close control keeps its own safe zone and cannot overlap status badges. */
+.client-account-modal .modal-close,
+.lifecycle-modal .modal-close {
+  top: 16px !important;
+  right: 16px !important;
+}
+
+.account-management-header {
+  padding-right: 82px !important;
+}
+
+@media (max-width: 720px) {
+  .modal-backdrop,
+  .workspace-modal-backdrop,
+  .full-screen-modal {
+    padding: 8px !important;
+  }
+
+  .account-modal-footer,
+  .tabbed-modal-footer,
+  .management-footer {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .account-management-header {
+    padding-right: 58px !important;
+  }
+}
