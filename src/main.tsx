@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
+import { initializeWorkspaceTheme, startWorkspaceThemeClock } from './lib/workspaceTheme';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -15,6 +16,10 @@ import './dashboard-scroll-fix.css';
 import './brand-experience.css';
 import './brand-experience-v2.css';
 import './menu-brand-final.css';
+import './theme-system.css';
+
+initializeWorkspaceTheme();
+startWorkspaceThemeClock();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
