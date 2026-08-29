@@ -17,6 +17,7 @@ import './brand-experience.css';
 import './brand-experience-v2.css';
 import './menu-brand-final.css';
 import './theme-system.css';
+import './page2-client-management.css';
 
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
