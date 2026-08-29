@@ -1,0 +1,420 @@
+/* CALI Workspace · tema dia/noite global
+   Dia: 06:00–17:59 · Noite: 18:00–05:59.
+   O override manual é temporário e expira no próximo limite automático. */
+
+:root,
+html[data-workspace-theme='day'] {
+  --theme-page: #faf8f5;
+  --theme-page-2: #f6f1ec;
+  --theme-surface: #fffdf9;
+  --theme-surface-soft: rgba(255,253,249,.94);
+  --theme-surface-muted: #f5eee8;
+  --theme-text: #2b2b2b;
+  --theme-muted: #746d68;
+  --theme-line: rgba(90,30,45,.10);
+  --theme-elevated-shadow: 0 16px 44px rgba(49,31,25,.08);
+  --theme-input: #fffdf9;
+  --theme-input-border: #dfd3ca;
+  --theme-accent: #5a1e2d;
+  --theme-accent-soft: rgba(90,30,45,.08);
+  --theme-gold: #b58c52;
+  --theme-success: #356448;
+  --theme-danger: #8d463e;
+}
+
+html[data-workspace-theme='night'] {
+  --ivory: #171215;
+  --paper: #21191d;
+  --graphite: #f3eeeb;
+  --muted: #b7aaa5;
+  --line: #3b2d33;
+  --soft: #2c2226;
+  --gold: #d1a45f;
+  --success: #82b698;
+  --warning: #d0a05b;
+  --burgundy: #c77b91;
+  --burgundy-dark: #a8566d;
+
+  --theme-page: #171215;
+  --theme-page-2: #1d1619;
+  --theme-surface: #21191d;
+  --theme-surface-soft: rgba(33,25,29,.94);
+  --theme-surface-muted: #2a2024;
+  --theme-text: #f3eeeb;
+  --theme-muted: #b7aaa5;
+  --theme-line: rgba(239,216,222,.10);
+  --theme-elevated-shadow: 0 18px 54px rgba(0,0,0,.25);
+  --theme-input: #1d171a;
+  --theme-input-border: #49373e;
+  --theme-accent: #d08a9d;
+  --theme-accent-soft: rgba(208,138,157,.10);
+  --theme-gold: #d1a45f;
+  --theme-success: #87b99a;
+  --theme-danger: #d88f84;
+}
+
+html[data-workspace-theme='night'],
+html[data-workspace-theme='night'] body,
+html[data-workspace-theme='night'] #root {
+  background: var(--theme-page) !important;
+  color: var(--theme-text) !important;
+}
+
+html[data-workspace-theme='night'] body {
+  background:
+    radial-gradient(circle at 84% 4%, rgba(181,140,82,.07), transparent 26rem),
+    linear-gradient(180deg, #171215 0%, #1a1417 48%, #151013 100%) !important;
+}
+
+html[data-workspace-theme='night'] .main {
+  background:
+    radial-gradient(circle at 82% 8%, rgba(181,140,82,.055), transparent 28rem),
+    linear-gradient(180deg, #171215 0%, #1b1518 48%, #181215 100%) !important;
+}
+
+html[data-workspace-theme='night'] .workspace-view,
+html[data-workspace-theme='night'] .page {
+  color: var(--theme-text) !important;
+}
+
+html[data-workspace-theme='night'] h1,
+html[data-workspace-theme='night'] h2,
+html[data-workspace-theme='night'] h3,
+html[data-workspace-theme='night'] h4,
+html[data-workspace-theme='night'] .main strong,
+html[data-workspace-theme='night'] .main b {
+  color: var(--theme-text) !important;
+}
+
+html[data-workspace-theme='night'] .main p,
+html[data-workspace-theme='night'] .main small,
+html[data-workspace-theme='night'] .main label,
+html[data-workspace-theme='night'] .main .muted,
+html[data-workspace-theme='night'] .main .helper,
+html[data-workspace-theme='night'] .main .field-helper,
+html[data-workspace-theme='night'] .main .topbar-context span {
+  color: var(--theme-muted) !important;
+}
+
+/* A identidade lateral permanece bordô nos dois temas. */
+html[data-workspace-theme='night'] .sidebar {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.025), transparent 22%),
+    #5a1e2d !important;
+  color: #fff !important;
+  box-shadow: 16px 0 48px rgba(0,0,0,.22) !important;
+}
+
+html[data-workspace-theme='night'] .sidebar nav a,
+html[data-workspace-theme='night'] .sidebar .sidebar-pin,
+html[data-workspace-theme='night'] .sidebar .profile-trigger,
+html[data-workspace-theme='night'] .sidebar .profile-trigger strong {
+  color: rgba(255,255,255,.78) !important;
+}
+html[data-workspace-theme='night'] .sidebar nav a:hover,
+html[data-workspace-theme='night'] .sidebar nav a.active,
+html[data-workspace-theme='night'] .sidebar .profile-trigger:hover {
+  color: #fff !important;
+}
+
+/* Topbar e controles globais. */
+html[data-workspace-theme='night'] .topbar {
+  background: rgba(23,18,21,.88) !important;
+  border-bottom-color: var(--theme-line) !important;
+  box-shadow: 0 7px 26px rgba(0,0,0,.10) !important;
+}
+html[data-workspace-theme='night'] .icon-button,
+html[data-workspace-theme='night'] .secondary,
+html[data-workspace-theme='night'] .light-button,
+html[data-workspace-theme='night'] .export-trigger,
+html[data-workspace-theme='night'] .calendar-view-toggle,
+html[data-workspace-theme='night'] .calendar-toolbar button {
+  background: #241b1f !important;
+  border-color: var(--theme-line) !important;
+  color: var(--theme-text) !important;
+  box-shadow: 0 7px 20px rgba(0,0,0,.13) !important;
+}
+html[data-workspace-theme='night'] .icon-button:hover,
+html[data-workspace-theme='night'] .secondary:hover,
+html[data-workspace-theme='night'] .light-button:hover {
+  background: #2c2126 !important;
+}
+html[data-workspace-theme='night'] .primary {
+  background: #6a253a !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+html[data-workspace-theme='night'] .primary:hover { background: #7a2d44 !important; }
+
+.workspace-theme-toggle {
+  position: relative;
+  color: var(--theme-accent) !important;
+}
+.workspace-theme-toggle::after {
+  content: '';
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--theme-gold);
+  box-shadow: 0 0 0 2px var(--theme-surface);
+}
+html[data-workspace-theme='night'] .workspace-theme-toggle {
+  background: linear-gradient(145deg, #2c2025, #21191d) !important;
+  color: #f1d8df !important;
+}
+
+/* Superfícies principais de TODAS as páginas. */
+html[data-workspace-theme='night'] .panel,
+html[data-workspace-theme='night'] .kpi,
+html[data-workspace-theme='night'] .signal-card,
+html[data-workspace-theme='night'] .overview-signal-strip,
+html[data-workspace-theme='night'] .client-summary > div,
+html[data-workspace-theme='night'] .calendar-shell,
+html[data-workspace-theme='night'] .calendar-card,
+html[data-workspace-theme='night'] .calendar-grid,
+html[data-workspace-theme='night'] .mini-calendar,
+html[data-workspace-theme='night'] .deadline-panel,
+html[data-workspace-theme='night'] .deadline-panel-v2,
+html[data-workspace-theme='night'] .document-card,
+html[data-workspace-theme='night'] .report-card,
+html[data-workspace-theme='night'] .project-card,
+html[data-workspace-theme='night'] .client-card,
+html[data-workspace-theme='night'] .company-card,
+html[data-workspace-theme='night'] .hours-card,
+html[data-workspace-theme='night'] .empty-state,
+html[data-workspace-theme='night'] .table-card,
+html[data-workspace-theme='night'] .data-table-wrap {
+  background: var(--theme-surface-soft) !important;
+  border-color: var(--theme-line) !important;
+  box-shadow: var(--theme-elevated-shadow) !important;
+}
+
+html[data-workspace-theme='night'] .page .panel:not(.modal-card),
+html[data-workspace-theme='night'] .overview-signal-strip .signal-card {
+  background-color: var(--theme-surface-soft) !important;
+}
+
+html[data-workspace-theme='night'] .panel:hover,
+html[data-workspace-theme='night'] .signal-card:hover,
+html[data-workspace-theme='night'] .kpi:hover {
+  border-color: rgba(208,138,157,.18) !important;
+  box-shadow: 0 21px 58px rgba(0,0,0,.28) !important;
+}
+
+/* Linhas e listas. */
+html[data-workspace-theme='night'] .action-row,
+html[data-workspace-theme='night'] .company-row,
+html[data-workspace-theme='night'] .deliverable,
+html[data-workspace-theme='night'] .event,
+html[data-workspace-theme='night'] .calendar-event-row,
+html[data-workspace-theme='night'] .document-row,
+html[data-workspace-theme='night'] .deadline-item,
+html[data-workspace-theme='night'] tr,
+html[data-workspace-theme='night'] td,
+html[data-workspace-theme='night'] th {
+  border-color: var(--theme-line) !important;
+}
+html[data-workspace-theme='night'] .action-row:hover,
+html[data-workspace-theme='night'] .company-row:hover,
+html[data-workspace-theme='night'] .deliverable:hover,
+html[data-workspace-theme='night'] .event:hover,
+html[data-workspace-theme='night'] .calendar-event-row:hover,
+html[data-workspace-theme='night'] .document-row:hover {
+  background: rgba(255,255,255,.025) !important;
+}
+
+/* Inputs e formulários. */
+html[data-workspace-theme='night'] input,
+html[data-workspace-theme='night'] select,
+html[data-workspace-theme='night'] textarea {
+  background: var(--theme-input) !important;
+  border-color: var(--theme-input-border) !important;
+  color: var(--theme-text) !important;
+  caret-color: var(--theme-accent) !important;
+}
+html[data-workspace-theme='night'] input::placeholder,
+html[data-workspace-theme='night'] textarea::placeholder {
+  color: #897d79 !important;
+}
+html[data-workspace-theme='night'] input:focus,
+html[data-workspace-theme='night'] select:focus,
+html[data-workspace-theme='night'] textarea:focus {
+  border-color: rgba(208,138,157,.48) !important;
+  box-shadow: 0 0 0 3px rgba(208,138,157,.09) !important;
+}
+html[data-workspace-theme='night'] select { color-scheme: dark; }
+
+/* Modais, dropdowns e popovers. */
+html[data-workspace-theme='night'] .modal-card,
+html[data-workspace-theme='night'] .client-account-modal,
+html[data-workspace-theme='night'] .profile-modal-v2,
+html[data-workspace-theme='night'] .notification-panel,
+html[data-workspace-theme='night'] .notification-popover,
+html[data-workspace-theme='night'] .dropdown-menu,
+html[data-workspace-theme='night'] .export-menu,
+html[data-workspace-theme='night'] .account-form-section,
+html[data-workspace-theme='night'] .profile-photo-workbench,
+html[data-workspace-theme='night'] .document-upload-card {
+  background: #21191d !important;
+  border-color: var(--theme-line) !important;
+  color: var(--theme-text) !important;
+  box-shadow: 0 28px 80px rgba(0,0,0,.38) !important;
+}
+html[data-workspace-theme='night'] .client-account-modal .account-modal-footer,
+html[data-workspace-theme='night'] .profile-modal-v2 .modal-actions {
+  background: #21191d !important;
+  border-top-color: var(--theme-line) !important;
+  box-shadow: 0 -10px 30px rgba(0,0,0,.16) !important;
+}
+html[data-workspace-theme='night'] .full-screen-modal,
+html[data-workspace-theme='night'] .chrome-modal-backdrop.full-screen-modal,
+html[data-workspace-theme='night'] .modal-backdrop.full-screen-modal {
+  background: rgba(3,2,3,.62) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(.82) !important;
+  backdrop-filter: blur(10px) saturate(.82) !important;
+}
+
+/* Badges e estados. */
+html[data-workspace-theme='night'] .signal-trend.good {
+  background: rgba(130,182,152,.11) !important;
+  color: #9cc8aa !important;
+}
+html[data-workspace-theme='night'] .signal-trend.bad {
+  background: rgba(216,143,132,.11) !important;
+  color: #e2a69d !important;
+}
+html[data-workspace-theme='night'] .signal-trend.neutral {
+  background: rgba(209,164,95,.12) !important;
+  color: #d8b778 !important;
+}
+html[data-workspace-theme='night'] .status-icon,
+html[data-workspace-theme='night'] .company-mark,
+html[data-workspace-theme='night'] .company-logo,
+html[data-workspace-theme='night'] .bar-client-logo,
+html[data-workspace-theme='night'] .deadline-client-mark,
+html[data-workspace-theme='night'] .date {
+  background: #2b2125 !important;
+  border-color: var(--theme-line) !important;
+  color: #e3a6b7 !important;
+}
+
+/* Progressos e gráficos. */
+html[data-workspace-theme='night'] .progress,
+html[data-workspace-theme='night'] .bar-track,
+html[data-workspace-theme='night'] .progress-track {
+  background: rgba(255,255,255,.08) !important;
+}
+html[data-workspace-theme='night'] .multi-trend-chart line,
+html[data-workspace-theme='night'] .multi-trend-chart .grid-line {
+  stroke: #3a2d32 !important;
+}
+html[data-workspace-theme='night'] .trend-axis-value {
+  fill: #978b86 !important;
+}
+html[data-workspace-theme='night'] .trend-series-legend button {
+  background: rgba(255,255,255,.035) !important;
+  border-color: var(--theme-line) !important;
+  color: var(--theme-text) !important;
+}
+html[data-workspace-theme='night'] .trend-tooltip {
+  background: #f3eeeb !important;
+  color: #241b1f !important;
+  border-color: rgba(255,255,255,.12) !important;
+}
+html[data-workspace-theme='night'] .trend-tooltip small { color: #6f6561 !important; }
+
+/* Agenda, calendário e deadlines. */
+html[data-workspace-theme='night'] .calendar-day,
+html[data-workspace-theme='night'] .calendar-cell,
+html[data-workspace-theme='night'] .week-day,
+html[data-workspace-theme='night'] .mini-calendar-day {
+  color: var(--theme-text) !important;
+  border-color: var(--theme-line) !important;
+}
+html[data-workspace-theme='night'] .calendar-day:hover,
+html[data-workspace-theme='night'] .calendar-cell:hover,
+html[data-workspace-theme='night'] .week-day:hover {
+  background: rgba(255,255,255,.035) !important;
+}
+html[data-workspace-theme='night'] .deadline-item.critical,
+html[data-workspace-theme='night'] .enhanced-deadlines .deadline-item.critical {
+  background: rgba(181,140,82,.08) !important;
+}
+html[data-workspace-theme='night'] .deadline-copy small,
+html[data-workspace-theme='night'] .enhanced-deadlines .deadline-copy small {
+  background: rgba(209,164,95,.10) !important;
+  color: #d9b97f !important;
+}
+
+/* Marcas de fundo ficam mais luminosas no modo noite sem competir com o conteúdo. */
+html[data-workspace-theme='night'] .workspace-watermark-lime,
+html[data-workspace-theme='night'] .workspace-brand-watermarks::before {
+  background: #eadde0 !important;
+  opacity: .055 !important;
+}
+html[data-workspace-theme='night'] .workspace-watermark-oak,
+html[data-workspace-theme='night'] .workspace-brand-watermarks::after {
+  background: #d1a45f !important;
+  opacity: .065 !important;
+}
+
+/* Hero e blocos especiais. */
+html[data-workspace-theme='night'] .hero-attention {
+  background:
+    linear-gradient(120deg, rgba(200,121,145,.10), rgba(181,140,82,.08) 65%, rgba(255,255,255,.025)) !important;
+  border-color: var(--theme-line) !important;
+}
+html[data-workspace-theme='night'] .consultant {
+  background: #2a2024 !important;
+}
+
+/* Login também acompanha o relógio, mesmo sem topbar. */
+html[data-workspace-theme='night'] .login-page {
+  background: #171215 !important;
+}
+html[data-workspace-theme='night'] .login-form {
+  background: #171215 !important;
+}
+html[data-workspace-theme='night'] .login-card {
+  background: #21191d !important;
+  border-color: var(--theme-line) !important;
+  box-shadow: 0 28px 72px rgba(0,0,0,.34) !important;
+}
+
+/* Transição curta: troca elegante, sem piscar o app inteiro. */
+.main,
+.topbar,
+.panel,
+.kpi,
+.signal-card,
+.modal-card,
+input,
+select,
+textarea,
+.icon-button {
+  transition:
+    background-color .22s ease,
+    background .22s ease,
+    color .22s ease,
+    border-color .22s ease,
+    box-shadow .22s ease,
+    transform .18s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main,
+  .topbar,
+  .panel,
+  .kpi,
+  .signal-card,
+  .modal-card,
+  input,
+  select,
+  textarea,
+  .icon-button {
+    transition-duration: .01ms !important;
+  }
+}
