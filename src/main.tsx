@@ -29,6 +29,7 @@ import './modal-system-v3.css';
 import './client-modal-drive-note.css';
 import './workspace-typography-connect.css';
 import './page5-projects-polish-v3.css';
+import './sidebar-brand-artwork.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
 initializeWorkspaceTheme();

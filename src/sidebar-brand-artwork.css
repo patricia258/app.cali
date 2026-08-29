@@ -1,0 +1,130 @@
+/* CALI Workspace · sidebar brand artwork aprovado em 29/08/2026.
+   Aplica somente ao menu expandido. O rail compacto permanece inalterado
+   até a revisão específica de dia/noite + estado fechado. */
+
+@media (min-width: 861px) {
+  .sidebar:hover,
+  .sidebar:focus-within,
+  .sidebar.pinned {
+    background-color: #581c26 !important;
+    background-image:
+      linear-gradient(180deg, rgba(54, 16, 25, .05) 0%, rgba(54, 16, 25, .10) 58%, rgba(43, 11, 19, .28) 100%),
+      url('/brand/cali-sidebar-pattern.webp') !important;
+    background-repeat: no-repeat, no-repeat !important;
+    background-size: cover, cover !important;
+    background-position: center, center top !important;
+  }
+
+  /* A assinatura já contém CALI + WORKSPACE: não duplicar texto por CSS/HTML. */
+  .sidebar:hover .brand-full,
+  .sidebar:focus-within .brand-full,
+  .sidebar.pinned .brand-full {
+    width: 100% !important;
+    min-height: 126px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    transform: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .sidebar:hover .brand-full img,
+  .sidebar:focus-within .brand-full img,
+  .sidebar.pinned .brand-full img {
+    content: url('/brand/cali-workspace-sidebar-header.webp') !important;
+    display: block !important;
+    width: min(194px, 76%) !important;
+    max-width: 194px !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    mix-blend-mode: lighten;
+  }
+
+  .sidebar:hover .brand-full span,
+  .sidebar:focus-within .brand-full span,
+  .sidebar.pinned .brand-full span {
+    display: none !important;
+  }
+
+  /* Mantém os controles claros sobre a estampa sem alterar a hierarquia aprovada. */
+  .sidebar:hover .sidebar-pin,
+  .sidebar:focus-within .sidebar-pin,
+  .sidebar.pinned .sidebar-pin,
+  .sidebar:hover nav a.active,
+  .sidebar:focus-within nav a.active,
+  .sidebar.pinned nav a.active {
+    background: rgba(247, 243, 238, .115) !important;
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+  }
+
+  .sidebar:hover nav a,
+  .sidebar:focus-within nav a,
+  .sidebar.pinned nav a,
+  .sidebar:hover .sidebar-pin,
+  .sidebar:focus-within .sidebar-pin,
+  .sidebar.pinned .sidebar-pin,
+  .sidebar:hover .sidebar-footer,
+  .sidebar:focus-within .sidebar-footer,
+  .sidebar.pinned .sidebar-footer {
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar:hover nav a .nav-label,
+  .sidebar:focus-within nav a .nav-label,
+  .sidebar.pinned nav a .nav-label,
+  .sidebar:hover .sidebar-pin span,
+  .sidebar:focus-within .sidebar-pin span,
+  .sidebar.pinned .sidebar-pin span {
+    text-shadow: 0 1px 12px rgba(35, 8, 15, .18);
+  }
+
+  .sidebar:hover .sidebar-footer,
+  .sidebar:focus-within .sidebar-footer,
+  .sidebar.pinned .sidebar-footer {
+    border-top-color: rgba(247, 243, 238, .20) !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .sidebar.mobile-open {
+    background-color: #581c26 !important;
+    background-image:
+      linear-gradient(180deg, rgba(54, 16, 25, .05) 0%, rgba(54, 16, 25, .10) 58%, rgba(43, 11, 19, .28) 100%),
+      url('/brand/cali-sidebar-pattern.webp') !important;
+    background-repeat: no-repeat, no-repeat !important;
+    background-size: cover, cover !important;
+    background-position: center, center top !important;
+  }
+
+  .sidebar.mobile-open .brand-full {
+    min-height: 120px !important;
+    padding: 0 !important;
+    transform: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .sidebar.mobile-open .brand-full img {
+    content: url('/brand/cali-workspace-sidebar-header.webp') !important;
+    width: min(190px, 70vw) !important;
+    max-width: 190px !important;
+    height: auto !important;
+    object-fit: contain !important;
+    mix-blend-mode: lighten;
+  }
+
+  .sidebar.mobile-open .brand-full span {
+    display: none !important;
+  }
+
+  .sidebar.mobile-open .sidebar-pin,
+  .sidebar.mobile-open nav a.active {
+    background: rgba(247, 243, 238, .115) !important;
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+  }
+}
