@@ -1,0 +1,403 @@
+/* CALI Workspace · Modal System v3
+   Única regra para qualquer modal do Workspace.
+   O conteúdo de cada fluxo muda; geometria, interação, campos e ações não. */
+
+/*
+ * Correção crítica: uma regra antiga desabilitava pointer-events no .app-shell.
+ * Como os modais também vivem dentro dele, ficavam visíveis porém impossíveis
+ * de clicar/rolar. O overlay já protege o fundo sozinho, então o app precisa
+ * continuar aceitando eventos para que o modal funcione.
+ */
+body.workspace-modal-open .app-shell {
+  pointer-events: auto !important;
+  user-select: auto !important;
+}
+
+body.workspace-modal-open {
+  overflow: hidden !important;
+}
+
+.modal-backdrop,
+.workspace-modal-backdrop,
+.full-screen-modal,
+.chrome-modal-backdrop.full-screen-modal,
+.modal-backdrop.full-screen-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  margin: 0 !important;
+  padding: clamp(16px, 3vh, 32px) clamp(16px, 3vw, 42px) !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  pointer-events: auto !important;
+  touch-action: none;
+  background: rgba(31, 26, 28, .48) !important;
+  backdrop-filter: blur(8px) saturate(.94) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(.94) !important;
+  z-index: 2147483000 !important;
+}
+
+.modal-backdrop > .modal-card,
+.workspace-modal-backdrop > .modal-card,
+.full-screen-modal > .modal-card {
+  position: relative !important;
+  z-index: 2147483001 !important;
+  pointer-events: auto !important;
+  touch-action: auto;
+  margin: 0 !important;
+  background: var(--paper) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 28px 76px rgba(30, 22, 25, .22) !important;
+}
+
+.modal-card *,
+.modal-card button,
+.modal-card input,
+.modal-card select,
+.modal-card textarea,
+.modal-card label {
+  pointer-events: auto;
+}
+
+/* Cabeçalho e X: mesma zona segura em todo modal. */
+.modal-card > .modal-close,
+.document-modal-close {
+  position: absolute !important;
+  top: 18px !important;
+  right: 20px !important;
+  width: 40px !important;
+  height: 40px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 0 !important;
+  border-radius: 11px !important;
+  background: var(--soft) !important;
+  color: var(--graphite) !important;
+  z-index: 50 !important;
+}
+.modal-card > .modal-close:hover,
+.document-modal-close:hover {
+  background: rgba(90,30,45,.09) !important;
+  color: var(--burgundy) !important;
+}
+
+/* Documento: mantém o desenho aprovado, apenas garante interação e rolagem. */
+.document-create-modal {
+  width: min(920px, calc(100vw - 48px)) !important;
+  max-width: 920px !important;
+  height: min(780px, calc(100dvh - 48px)) !important;
+  max-height: calc(100dvh - 48px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+.document-modal-header {
+  flex: 0 0 auto !important;
+  padding: 24px 76px 18px 28px !important;
+}
+.document-modal-scroll {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y !important;
+  padding: 22px 28px 26px !important;
+}
+.document-modal-footer {
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  min-height: 68px !important;
+  padding: 11px 28px !important;
+  box-sizing: border-box !important;
+}
+
+/* Cadastro e gestão do cliente: mesmo sistema visual do modal de documentos. */
+.client-account-modal.compact-account-modal,
+.client-account-modal.management-modal-v3 {
+  width: min(1000px, calc(100vw - 48px)) !important;
+  max-width: 1000px !important;
+  height: min(760px, calc(100dvh - 48px)) !important;
+  max-height: calc(100dvh - 48px) !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.compact-account-modal .account-modal-intro {
+  flex: 0 0 auto !important;
+  padding: 24px 76px 17px 28px !important;
+  border-bottom: 0 !important;
+}
+.compact-account-modal .account-modal-intro h2 {
+  margin-top: 7px !important;
+  font: 750 1.42rem/1.15 Inter, system-ui, sans-serif !important;
+  letter-spacing: -.025em !important;
+}
+.compact-account-modal .account-modal-intro p {
+  margin-top: 7px !important;
+  max-width: 760px !important;
+  font-size: .78rem !important;
+  line-height: 1.48 !important;
+}
+
+.account-management-header {
+  flex: 0 0 auto !important;
+  min-height: 110px !important;
+  padding: 20px 82px 16px 28px !important;
+}
+
+/* Abas: mesma altura, tipografia e linha ativa. */
+.account-tabs-v3 {
+  flex: 0 0 auto !important;
+  min-height: 46px !important;
+  padding: 0 28px !important;
+  gap: 6px !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+.account-tabs-v3 button {
+  min-height: 46px !important;
+  padding: 0 11px !important;
+  border-radius: 0 !important;
+  font-size: .76rem !important;
+  font-weight: 700 !important;
+}
+
+/* Corpo interno é sempre a única região rolável. */
+.compact-account-modal .account-tab-scroll,
+.compact-account-modal .account-management-scroll {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y !important;
+}
+.compact-account-modal .account-tab-pane {
+  padding: 20px 28px 26px !important;
+}
+
+/* Campos: um padrão único em todos os modais. */
+.modal-card .stacked-label {
+  gap: 5px !important;
+  color: var(--graphite) !important;
+  font-size: .72rem !important;
+  font-weight: 700 !important;
+}
+.modal-card .stacked-label input,
+.modal-card .stacked-label select,
+.modal-card .stacked-label textarea,
+.modal-card .account-upload-card input,
+.modal-card .document-form-grid input,
+.modal-card .document-form-grid select,
+.modal-card .document-form-grid textarea {
+  width: 100%;
+  min-height: 42px !important;
+  padding: 9px 12px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 10px !important;
+  background: var(--paper) !important;
+  color: var(--graphite) !important;
+  font-size: .78rem !important;
+  line-height: 1.25 !important;
+  box-shadow: none !important;
+}
+.modal-card .stacked-label textarea,
+.modal-card .document-form-grid textarea {
+  min-height: 72px !important;
+  resize: vertical;
+}
+.modal-card input:focus,
+.modal-card select:focus,
+.modal-card textarea:focus {
+  outline: 2px solid rgba(90,30,45,.13) !important;
+  outline-offset: 1px !important;
+  border-color: rgba(90,30,45,.32) !important;
+}
+
+/* Uploads do cadastro usam a mesma linguagem do upload de Documentos. */
+.compact-account-modal .document-upload-grid-v2 {
+  gap: 14px !important;
+}
+.compact-account-modal .account-upload-card {
+  min-height: 126px !important;
+  padding: 15px !important;
+  border: 1px dashed #cbbdb3 !important;
+  border-radius: 14px !important;
+  background: rgba(247,243,238,.44) !important;
+}
+.compact-account-modal .account-upload-card > div strong {
+  font-size: .8rem !important;
+}
+.compact-account-modal .account-upload-card > div span {
+  margin-top: 4px !important;
+  color: var(--muted) !important;
+  font-size: .68rem !important;
+}
+.compact-account-modal .account-upload-card > label {
+  min-height: 38px !important;
+  padding: 0 12px !important;
+  border-radius: 10px !important;
+  font-size: .72rem !important;
+}
+
+/* Rodapé: borda e margens invioláveis. */
+.account-modal-footer,
+.tabbed-modal-footer,
+.management-footer,
+.document-modal-footer {
+  position: relative !important;
+  inset: auto !important;
+  flex: 0 0 auto !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 11px 28px !important;
+  box-sizing: border-box !important;
+  border-top: 1px solid var(--line) !important;
+  background: var(--paper) !important;
+  box-shadow: 0 -8px 24px rgba(51,35,37,.035) !important;
+  z-index: 20 !important;
+}
+.account-modal-footer > span {
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+  font-size: .68rem !important;
+  color: var(--muted) !important;
+}
+.account-modal-footer .modal-actions,
+.management-footer .modal-actions,
+.document-modal-footer .modal-actions {
+  margin: 0 0 0 auto !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  flex: 0 0 auto !important;
+}
+.management-danger-actions {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+}
+
+/* Botões: mesma altura, raio e peso em qualquer modal. */
+.modal-card .primary,
+.modal-card .secondary,
+.modal-card .ghost-action,
+.modal-card .modal-actions button {
+  min-height: 42px !important;
+  height: 42px !important;
+  padding: 0 15px !important;
+  border-radius: 10px !important;
+  font-size: .76rem !important;
+  font-weight: 750 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+.modal-card .secondary {
+  border: 1px solid rgba(90,30,45,.18) !important;
+  background: var(--paper) !important;
+  color: var(--burgundy) !important;
+}
+.modal-card .primary {
+  border: 1px solid var(--burgundy) !important;
+  background: var(--burgundy) !important;
+  color: #fff !important;
+}
+.modal-card .primary:disabled {
+  opacity: .42 !important;
+}
+
+/* Tema escuro preserva contraste em vez de apenas inverter fundo. */
+html[data-workspace-theme='night'] .modal-backdrop > .modal-card,
+html[data-workspace-theme='night'] .workspace-modal-backdrop > .modal-card,
+html[data-workspace-theme='night'] .full-screen-modal > .modal-card,
+html[data-workspace-theme='night'] .account-modal-footer,
+html[data-workspace-theme='night'] .document-modal-footer {
+  background: #21191d !important;
+  border-color: #49373e !important;
+}
+html[data-workspace-theme='night'] .modal-card .stacked-label,
+html[data-workspace-theme='night'] .modal-card h2,
+html[data-workspace-theme='night'] .modal-card strong {
+  color: #f3eeeb !important;
+}
+html[data-workspace-theme='night'] .modal-card .stacked-label input,
+html[data-workspace-theme='night'] .modal-card .stacked-label select,
+html[data-workspace-theme='night'] .modal-card .stacked-label textarea,
+html[data-workspace-theme='night'] .modal-card .account-upload-card input {
+  background: #1b1518 !important;
+  border-color: #49373e !important;
+  color: #f3eeeb !important;
+}
+html[data-workspace-theme='night'] .compact-account-modal .account-upload-card {
+  background: #241b1f !important;
+  border-color: #574149 !important;
+}
+html[data-workspace-theme='night'] .modal-card .secondary {
+  background: #241b1f !important;
+  border-color: #574149 !important;
+  color: #f0ccd5 !important;
+}
+
+@media (max-width: 760px) {
+  .modal-backdrop,
+  .workspace-modal-backdrop,
+  .full-screen-modal {
+    padding: 8px !important;
+  }
+  .document-create-modal,
+  .client-account-modal.compact-account-modal,
+  .client-account-modal.management-modal-v3 {
+    width: calc(100vw - 16px) !important;
+    height: calc(100dvh - 16px) !important;
+    max-width: none !important;
+    max-height: calc(100dvh - 16px) !important;
+    border-radius: 16px !important;
+  }
+  .document-modal-header,
+  .compact-account-modal .account-modal-intro {
+    padding: 20px 60px 15px 18px !important;
+  }
+  .document-modal-scroll,
+  .compact-account-modal .account-tab-pane {
+    padding: 18px !important;
+  }
+  .account-tabs-v3 {
+    padding: 0 12px !important;
+    overflow-x: auto !important;
+  }
+  .account-modal-footer,
+  .document-modal-footer,
+  .management-footer {
+    padding: 10px 14px !important;
+  }
+  .account-modal-footer > span,
+  .document-modal-footer > span {
+    display: none !important;
+  }
+  .management-footer {
+    align-items: stretch !important;
+    gap: 8px !important;
+    flex-direction: column !important;
+  }
+  .management-danger-actions,
+  .management-footer .modal-actions,
+  .document-modal-footer .modal-actions {
+    width: 100% !important;
+  }
+  .management-footer .modal-actions button,
+  .document-modal-footer .modal-actions button {
+    flex: 1 1 0 !important;
+  }
+}
