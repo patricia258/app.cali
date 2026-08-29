@@ -23,6 +23,7 @@ import './page2-client-management-v3.css';
 import './modal-standard-v2.css';
 import './documents-v2.css';
 import './page4-calendar.css';
+import './page5-projects.css';
 import './modal-system-v3.css';
 import './client-modal-drive-note.css';
 
