@@ -1,0 +1,25 @@
+/* CALI Workspace · contexto de Drive no cadastro
+   A conexão OAuth só pode ser vinculada depois que a empresa possui um id.
+   Mantemos a etapa visível no cadastro sem criar um botão falso/inoperante. */
+
+.compact-account-modal .account-tab-pane .document-upload-grid-v2::after {
+  content: 'Google Drive da empresa  ·  conexão disponível após cadastrar a conta';
+  grid-column: 1 / -1;
+  min-height: 58px;
+  padding: 0 15px;
+  border: 1px solid rgba(90,30,45,.10);
+  border-radius: 12px;
+  background: rgba(181,140,82,.055);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  font-size: .7rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+html[data-workspace-theme='night'] .compact-account-modal .account-tab-pane .document-upload-grid-v2::after {
+  border-color: #49373e;
+  background: rgba(209,164,95,.055);
+  color: #bdb1b5;
+}
