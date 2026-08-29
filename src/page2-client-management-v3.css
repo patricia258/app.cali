@@ -1,0 +1,303 @@
+/* CALI Workspace · Clientes V3 · modal central, denso e legível */
+
+.full-screen-modal {
+  display: grid !important;
+  place-items: center !important;
+  padding: clamp(22px, 4vh, 44px) clamp(22px, 5vw, 74px) !important;
+  overflow: hidden !important;
+}
+
+.full-screen-modal > .modal-card {
+  margin: 0 !important;
+  max-height: calc(100dvh - 72px) !important;
+}
+
+.modal-card > .modal-close {
+  top: 16px !important;
+  right: 16px !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 11px !important;
+  z-index: 20 !important;
+}
+
+.compact-account-modal {
+  width: min(1040px, calc(100vw - 120px)) !important;
+  max-width: 1040px !important;
+  height: min(730px, calc(100dvh - 92px)) !important;
+  max-height: calc(100dvh - 92px) !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  border-radius: 22px !important;
+}
+
+.management-modal-v3 {
+  width: min(1080px, calc(100vw - 120px)) !important;
+  max-width: 1080px !important;
+}
+
+.compact-account-modal .account-modal-intro {
+  padding: 21px 72px 13px 24px !important;
+  flex: 0 0 auto;
+}
+.compact-account-modal .account-modal-intro h2 {
+  margin-top: 4px !important;
+  font: 750 1.34rem/1.14 Inter, system-ui, sans-serif !important;
+  letter-spacing: -.025em !important;
+}
+.compact-account-modal .account-modal-intro p {
+  margin-top: 5px !important;
+  max-width: 760px;
+  font-size: .76rem !important;
+  line-height: 1.45 !important;
+}
+
+.account-management-header {
+  min-height: 104px !important;
+  padding: 18px 78px 14px 24px !important;
+  gap: 18px !important;
+}
+.account-client-brand { gap: 12px !important; }
+.account-client-brand h2 {
+  margin-top: 3px !important;
+  font-size: 1.34rem !important;
+  line-height: 1.12 !important;
+}
+.account-client-brand p { margin-top: 4px !important; font-size: .73rem !important; }
+.management-logo { width: 62px !important; height: 62px !important; min-width: 62px !important; border-radius: 15px !important; }
+.account-header-status { gap: 7px !important; }
+.account-header-status .status-pill {
+  min-width: 0 !important;
+  min-height: 34px !important;
+  padding: 0 12px !important;
+  font-size: .72rem !important;
+}
+
+.account-tabs-v3 {
+  min-height: 42px !important;
+  padding: 0 22px !important;
+  gap: 2px !important;
+}
+.account-tabs-v3 button {
+  min-height: 42px !important;
+  padding: 0 13px !important;
+  font-size: .75rem !important;
+}
+
+.compact-account-modal .account-tab-scroll {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(90,30,45,.18) transparent !important;
+}
+.compact-account-modal .account-tab-scroll::-webkit-scrollbar { width: 7px !important; }
+.compact-account-modal .account-tab-scroll::-webkit-scrollbar-thumb { background: rgba(90,30,45,.16); border-radius: 999px; }
+.compact-account-modal .account-tab-pane { padding: 18px 24px 22px !important; }
+.compact-account-modal .account-pane-heading { margin-bottom: 14px !important; gap: 9px !important; }
+.compact-account-modal .account-pane-heading strong { font-size: .84rem !important; }
+.compact-account-modal .account-pane-heading span { font-size: .68rem !important; margin-top: 2px !important; }
+
+.compact-account-modal .form-grid,
+.compact-account-modal .account-tab-form { gap: 10px 12px !important; }
+.compact-account-modal .stacked-label {
+  gap: 5px !important;
+  font-size: .68rem !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+}
+.compact-account-modal .stacked-label input,
+.compact-account-modal .stacked-label select,
+.compact-account-modal .stacked-label textarea,
+.compact-account-modal .account-upload-card input {
+  min-height: 40px !important;
+  height: 40px !important;
+  padding: 0 12px !important;
+  border-radius: 10px !important;
+  font-size: .79rem !important;
+  line-height: 1.2 !important;
+}
+.compact-account-modal .stacked-label textarea {
+  height: auto !important;
+  min-height: 62px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+.compact-account-modal .field-helper { font-size: .62rem !important; margin-top: -1px !important; }
+
+.compact-account-modal .account-check {
+  min-height: 50px !important;
+  padding: 9px 11px !important;
+  border-radius: 11px !important;
+}
+.compact-account-modal .account-check strong { font-size: .75rem !important; }
+.compact-account-modal .account-check small { font-size: .64rem !important; line-height: 1.35 !important; }
+
+.compact-account-modal .logo-registration-row {
+  grid-template-columns: 64px auto 1fr !important;
+  gap: 11px !important;
+  margin-bottom: 14px !important;
+  padding: 11px !important;
+  border-radius: 12px !important;
+}
+.compact-account-modal .company-logo-editor {
+  width: 62px !important;
+  height: 62px !important;
+  border-radius: 14px !important;
+}
+.compact-account-modal .logo-registration-row > span { font-size: .66rem !important; }
+.compact-account-modal .logo-upload-button { min-height: 38px !important; padding: 0 12px !important; font-size: .72rem !important; }
+.compact-account-modal .edit-logo-row { grid-template-columns: auto 1fr !important; padding: 0 0 10px !important; margin-bottom: 6px !important; }
+
+.compact-account-modal .derived-field {
+  min-height: 66px !important;
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+}
+.compact-account-modal .derived-field span { font-size: .64rem !important; }
+.compact-account-modal .derived-field strong { margin-top: 5px !important; font-size: .84rem !important; }
+
+.compact-account-modal .automation-preview,
+.compact-account-modal .billing-flow-preview {
+  margin-top: 13px !important;
+  padding: 11px 13px !important;
+  gap: 9px !important;
+  border-radius: 11px !important;
+}
+.compact-account-modal .automation-preview strong,
+.compact-account-modal .billing-flow-preview strong { font-size: .75rem !important; }
+.compact-account-modal .automation-preview p,
+.compact-account-modal .billing-flow-preview p { margin-top: 3px !important; font-size: .66rem !important; line-height: 1.45 !important; }
+
+.compact-account-modal .account-summary-strip {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  margin-bottom: 13px !important;
+}
+.compact-account-modal .account-summary-strip > div {
+  min-height: 66px !important;
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+}
+.compact-account-modal .account-summary-strip span { font-size: .62rem !important; }
+.compact-account-modal .account-summary-strip strong { margin-top: 5px !important; font-size: .78rem !important; }
+
+.compact-account-modal .account-operation-card { margin-top: 9px !important; padding: 13px !important; border-radius: 11px !important; }
+.compact-account-modal .account-project-list li { padding: 8px 0 !important; font-size: .72rem !important; }
+.compact-account-modal .account-project-list small { font-size: .64rem !important; }
+.compact-account-modal .contact-action-row { margin-top: 10px !important; }
+.compact-account-modal .contact-action-row a { min-height: 36px !important; font-size: .7rem !important; }
+
+.compact-account-modal .account-modal-footer {
+  flex: 0 0 auto !important;
+  min-height: 58px !important;
+  padding: 8px 14px 8px 22px !important;
+  gap: 14px !important;
+  border-top: 1px solid var(--line) !important;
+  background: var(--paper) !important;
+}
+.compact-account-modal .account-modal-footer > span { font-size: .65rem !important; }
+.compact-account-modal .account-modal-footer .modal-actions { margin: 0 !important; gap: 8px !important; }
+.compact-account-modal .account-modal-footer .modal-actions button,
+.compact-account-modal .management-danger-actions button {
+  min-height: 38px !important;
+  height: 38px !important;
+  padding: 0 13px !important;
+  font-size: .72rem !important;
+}
+.compact-account-modal .management-danger-actions { gap: 2px !important; }
+
+.communication-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.communication-grid > label,
+.automation-master {
+  min-height: 62px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--paper);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.automation-master { margin-bottom: 11px; background: rgba(90,30,45,.035); }
+.communication-grid input[type='checkbox'],
+.automation-master input[type='checkbox'] { margin-top: 2px; accent-color: var(--burgundy); }
+.communication-grid strong,
+.automation-master strong { display:block; font-size:.74rem; }
+.communication-grid small,
+.automation-master small { display:block; margin-top:3px; color:var(--muted); font-size:.64rem; line-height:1.35; }
+.inline-days {
+  width: 42px !important;
+  min-height: 25px !important;
+  height: 25px !important;
+  padding: 0 5px !important;
+  margin: 0 3px !important;
+  display: inline-block !important;
+  font-size: .66rem !important;
+  text-align: center;
+}
+.email-template-list {
+  display:grid;
+  margin-top:14px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+  background:var(--paper);
+}
+.email-template-list > div { display:grid; grid-template-columns:140px 1fr; gap:12px; padding:10px 12px; border-top:1px solid var(--line); }
+.email-template-list > div:first-child { border-top:0; }
+.email-template-list strong { font-size:.69rem; }
+.email-template-list span { color:var(--muted); font-size:.66rem; }
+
+.termination-projection {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin:14px 0 4px;
+}
+.termination-projection > div { padding:10px; border:1px solid var(--line); border-radius:10px; background:rgba(181,140,82,.06); }
+.termination-projection span { display:block; color:var(--muted); font-size:.62rem; }
+.termination-projection strong { display:block; margin-top:5px; font-size:.77rem; }
+.lifecycle-modal-v3 { width:min(560px,calc(100vw - 48px)) !important; padding:24px !important; }
+.lifecycle-modal-v3 h2 { font-size:1.25rem !important; margin-top:6px !important; }
+.lifecycle-modal-v3 > p { font-size:.76rem !important; margin-top:8px !important; }
+.lifecycle-modal-v3 .lifecycle-date,
+.lifecycle-modal-v3 .lifecycle-reason { margin-top:14px !important; }
+
+html[data-workspace-theme='night'] .compact-account-modal .account-modal-footer,
+html[data-workspace-theme='night'] .communication-grid > label,
+html[data-workspace-theme='night'] .automation-master,
+html[data-workspace-theme='night'] .email-template-list,
+html[data-workspace-theme='night'] .termination-projection > div {
+  background:#21191d !important;
+  border-color:#49373e !important;
+}
+html[data-workspace-theme='night'] .automation-master { background:rgba(208,138,157,.055) !important; }
+
+@media (max-width: 1180px) {
+  .compact-account-modal,
+  .management-modal-v3 { width: calc(100vw - 60px) !important; max-width:none !important; }
+}
+
+@media (max-width: 760px) {
+  .full-screen-modal { padding: 8px !important; }
+  .compact-account-modal,
+  .management-modal-v3 { width: calc(100vw - 16px) !important; height: calc(100dvh - 16px) !important; max-height:calc(100dvh - 16px) !important; border-radius:16px !important; }
+  .account-management-header { padding:16px 58px 12px 16px !important; align-items:flex-start !important; flex-direction:column !important; }
+  .compact-account-modal .account-modal-intro { padding:18px 58px 12px 16px !important; }
+  .account-tabs-v3 { padding:0 10px !important; }
+  .compact-account-modal .account-tab-pane { padding:15px 16px 18px !important; }
+  .communication-grid { grid-template-columns:1fr; }
+  .termination-projection { grid-template-columns:1fr; }
+  .email-template-list > div { grid-template-columns:1fr; gap:3px; }
+  .compact-account-modal .account-summary-strip { grid-template-columns:1fr 1fr !important; }
+  .compact-account-modal .management-footer { align-items:stretch !important; }
+}
