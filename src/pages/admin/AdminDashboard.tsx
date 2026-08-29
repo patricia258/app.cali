@@ -1,13 +1,19 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Building2, CalendarRange, ChevronRight, CircleAlert, Clock3, ListChecks, MessageSquareText, Palette, Plus, Star } from 'lucide-react';
-import { DonutChart, ExportMenu, HorizontalBars, MiniCalendar, TrendChart } from '../../components/DataViz';
+import { ArrowDownRight, ArrowUpRight, Building2, CalendarRange, ChevronRight, CircleAlert, Clock3, ListChecks, MessageSquareText, Minus, Palette, Plus, Star } from 'lucide-react';
+import { DonutChart, ExportMenu, HorizontalBars, InteractiveTrendChart, MiniCalendar } from '../../components/DataViz';
 import { Shell } from '../../components/WorkspaceShell';
 
 const clients = [
-  { name: 'Grupo Aurora', service: 'Assessoria Estratégica Mensal', consumed: 24.2, contracted: 30, nps: 4.9, deadline: '18 set', cycle: '19 ago → 18 set', next: 'Validação de indicadores · 03 set' },
-  { name: 'Novatech', service: 'Assessoria Estratégica Mensal', consumed: 32.8, contracted: 40, nps: 4.7, deadline: '22 set', cycle: '23 ago → 22 set', next: 'Checkpoint executivo · 04 set' },
-  { name: 'Studio Norte', service: 'Projeto de Estruturação', consumed: 11.4, contracted: 20, nps: 5.0, deadline: '30 set', cycle: '01 set → 30 set', next: 'Ritual de gestão · 05 set' },
+  { name: 'Grupo Aurora', service: 'Assessoria Estratégica Mensal', consumed: 24.2, contracted: 30, nps: 4.9, deadline: '18 set', cycle: '19 ago → 18 set', next: 'Validação de indicadores · 03 set', mark: 'G' },
+  { name: 'Novatech', service: 'Assessoria Estratégica Mensal', consumed: 32.8, contracted: 40, nps: 4.7, deadline: '22 set', cycle: '23 ago → 22 set', next: 'Checkpoint executivo · 04 set', mark: 'N' },
+  { name: 'Studio Norte', service: 'Projeto de Estruturação', consumed: 11.4, contracted: 20, nps: 5.0, deadline: '30 set', cycle: '01 set → 30 set', next: 'Ritual de gestão · 05 set', mark: 'S' },
+];
+
+const npsSeries = [
+  { name: 'Grupo Aurora', color: '#5A1E2D', values: [4.4, 4.5, 4.7, 4.8, 4.9, 4.9] },
+  { name: 'Novatech', color: '#B58C52', values: [4.6, 4.7, 4.6, 4.7, 4.8, 4.7] },
+  { name: 'Studio Norte', color: '#8A6B73', values: [null, null, 4.7, 4.8, 4.9, 5.0] },
 ];
 
 function greeting() {
@@ -15,6 +21,11 @@ function greeting() {
   if (hour < 12) return 'Bom dia';
   if (hour < 18) return 'Boa tarde';
   return 'Boa noite';
+}
+
+function TrendBadge({ direction, children, tone = 'neutral' }: { direction: 'up' | 'down' | 'flat'; children: string; tone?: 'good' | 'bad' | 'neutral' }) {
+  const Icon = direction === 'up' ? ArrowUpRight : direction === 'down' ? ArrowDownRight : Minus;
+  return <em className={`signal-trend ${tone}`}><Icon size={13} />{children}</em>;
 }
 
 export function AdminDashboard() {
@@ -42,17 +53,21 @@ export function AdminDashboard() {
 
         {driveNotice && <div className="inline-notice">A ação de salvar no Google Drive já está prevista. Ela será ativada junto com a conexão do Google Workspace.</div>}
 
-        <section className="overview-signal-strip" aria-label="Sinais da operação">
-          <div className="signal-card"><span>Contas ativas</span><strong>3</strong><small>todas com ciclo em andamento</small><i><Building2 size={22} /></i></div>
-          <div className="signal-card"><span>Ações pendentes</span><strong>3</strong><small>prazo mais próximo em 31 ago</small><i><ListChecks size={22} /></i></div>
-          <div className="signal-card"><span>Horas no mês</span><strong>68,4h</strong><small>76% das 90h contratadas</small><i><Clock3 size={22} /></i></div>
-          <div className="signal-card"><span>NPS atual</span><strong>4,8</strong><small>média das avaliações recentes</small><i><Star size={22} /></i></div>
+        <section className="overview-signal-strip" aria-label="Sinais da operação de agosto comparados a julho">
+          <div className="signal-card"><span>Contas ativas</span><strong>3</strong><small>todas com ciclo em andamento</small><TrendBadge direction="up" tone="good">+1 vs jul</TrendBadge><i><Building2 size={22} /></i></div>
+          <div className="signal-card"><span>Ações pendentes</span><strong>3</strong><small>prazo mais próximo em 31 ago</small><TrendBadge direction="down" tone="good">−2 vs jul</TrendBadge><i><ListChecks size={22} /></i></div>
+          <div className="signal-card"><span>Horas no mês</span><strong>68,4h</strong><small>76% das 90h contratadas</small><TrendBadge direction="up" tone="neutral">+8,6h vs jul</TrendBadge><i><Clock3 size={22} /></i></div>
+          <div className="signal-card"><span>NPS atual</span><strong>4,8</strong><small>média das avaliações recentes</small><TrendBadge direction="down" tone="bad">−0,1 vs jul</TrendBadge><i><Star size={22} /></i></div>
         </section>
 
         <div className="analytics-grid analytics-primary">
           <section className="panel chart-panel hours-chart-panel">
             <div className="panel-title chart-panel-title"><div><span className="section-kicker">CONSUMO DE HORAS</span><h2>Quem está mais perto do limite do ciclo</h2></div><Link to="/admin/horas">Detalhar horas <ChevronRight size={16} /></Link></div>
-            <HorizontalBars data={[{ label: 'Grupo Aurora', value: 24.2, max: 30, helper: '5h48 restantes', tone: 'warn' }, { label: 'Novatech', value: 32.8, max: 40, helper: '7h12 restantes', tone: 'warn' }, { label: 'Studio Norte', value: 11.4, max: 20, helper: '8h36 restantes', tone: 'normal' }]} />
+            <HorizontalBars data={[
+              { label: 'Grupo Aurora', logoText: 'G', value: 24.2, max: 30, helper: '5h48 restantes', tone: 'warn', pacePct: 75, paceLabel: '6 p.p. acima do ritmo previsto' },
+              { label: 'Novatech', logoText: 'N', value: 32.8, max: 40, helper: '7h12 restantes', tone: 'warn', pacePct: 75, paceLabel: '7 p.p. acima do ritmo previsto' },
+              { label: 'Studio Norte', logoText: 'S', value: 11.4, max: 20, helper: '8h36 restantes', tone: 'normal', pacePct: 50, paceLabel: '7 p.p. acima do ritmo previsto' },
+            ]} />
           </section>
           <section className="panel chart-panel deliverable-chart-panel">
             <div className="panel-title chart-panel-title"><div><span className="section-kicker">ENTREGÁVEIS</span><h2>Status do mês</h2></div><Link to="/admin/projetos">Abrir projetos</Link></div>
@@ -63,7 +78,7 @@ export function AdminDashboard() {
         <div className="analytics-grid analytics-secondary">
           <section className="panel chart-panel nps-chart-panel">
             <div className="panel-title chart-panel-title"><div><span className="section-kicker">NPS / SATISFAÇÃO</span><h2>Evolução das avaliações</h2></div><div className="metric-inline"><Star size={17} />4,8</div></div>
-            <TrendChart values={[4.5, 4.6, 4.7, 4.7, 4.9, 4.8]} labels={['Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago']} />
+            <InteractiveTrendChart labels={['Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago']} series={npsSeries} />
           </section>
           <section className="panel attention-panel">
             <div className="panel-title"><div><span className="section-kicker">ATENÇÃO AGORA</span><h2>3 pontos para agir</h2></div><span className="count">3</span></div>
@@ -90,12 +105,12 @@ export function AdminDashboard() {
             </div>
           </section>
 
-          <section className="panel deadline-panel">
+          <section className="panel deadline-panel deadline-panel-v2">
             <div className="panel-title"><div><span className="section-kicker">DEADLINES</span><h2>Próximos 15 dias</h2></div><CalendarRange size={20} /></div>
-            <div className="deadline-list enhanced-deadlines">
-              <div className="deadline-item critical"><div className="deadline-date"><strong>31 ago</strong><span>18:00</span></div><span className="deadline-client-mark">G</span><div className="deadline-copy"><p>Revisão de indicadores</p><strong>Grupo Aurora</strong><small>vence em 3 dias</small></div></div>
-              <div className="deadline-item"><div className="deadline-date"><strong>05 set</strong><span>18:00</span></div><span className="deadline-client-mark">S</span><div className="deadline-copy"><p>Ritual de gestão</p><strong>Studio Norte</strong><small>entrega interna</small></div></div>
-              <div className="deadline-item"><div className="deadline-date"><strong>08 set</strong><span>18:00</span></div><span className="deadline-client-mark">G</span><div className="deadline-copy"><p>Estrutura de governança</p><strong>Grupo Aurora</strong><small>entrega interna</small></div></div>
+            <div className="deadline-list-v2">
+              <div className="deadline-row-v2 critical"><span className="deadline-logo-v2">G</span><div className="deadline-main-v2"><p>Revisão de indicadores</p><div><strong>Grupo Aurora</strong><span>Entregável</span><small>vence em 3 dias</small></div></div><div className="deadline-time-v2"><strong>31 ago</strong><span>Prazo · 18:00</span></div></div>
+              <div className="deadline-row-v2"><span className="deadline-logo-v2">S</span><div className="deadline-main-v2"><p>Ritual de gestão</p><div><strong>Studio Norte</strong><span>Processo</span><small>entrega interna</small></div></div><div className="deadline-time-v2"><strong>05 set</strong><span>Prazo · 18:00</span></div></div>
+              <div className="deadline-row-v2"><span className="deadline-logo-v2">G</span><div className="deadline-main-v2"><p>Estrutura de governança</p><div><strong>Grupo Aurora</strong><span>Subtarefa</span><small>entrega interna</small></div></div><div className="deadline-time-v2"><strong>08 set</strong><span>Prazo · 18:00</span></div></div>
             </div>
           </section>
         </div>
@@ -103,7 +118,7 @@ export function AdminDashboard() {
         <section className="panel portfolio-table-panel">
           <div className="panel-title"><div><span className="section-kicker">CARTEIRA</span><h2>Clientes em andamento</h2></div><Link to="/admin/clientes">Gestão completa <ArrowUpRight size={16} /></Link></div>
           <div className="portfolio-table-head"><span>Cliente / serviço</span><span>Horas</span><span>Ciclo / deadline</span><span>NPS</span><span>Próximo passo</span><span /></div>
-          {clients.map((client) => { const usage = Math.round(client.consumed / client.contracted * 100); return <div className="portfolio-table-row" key={client.name}><div className="client-identity compact-client"><div className="company-mark">{client.name[0]}</div><div><strong>{client.name}</strong><small>{client.service}</small></div></div><div className="portfolio-hours"><strong>{usage}%</strong><span>{client.consumed.toFixed(1)}h / {client.contracted}h</span></div><div className="portfolio-deadline"><strong>{client.deadline}</strong><span>{client.cycle}</span></div><div className="metric-inline"><Star size={16} />{client.nps.toFixed(1).replace('.', ',')}</div><div className="portfolio-next"><strong>{client.next.split(' · ')[0]}</strong><span>{client.next.split(' · ')[1]}</span></div><Link className="ghost" to="/admin/clientes">Abrir conta <ChevronRight size={16} /></Link></div>; })}
+          {clients.map((client) => { const usage = Math.round(client.consumed / client.contracted * 100); return <div className="portfolio-table-row" key={client.name}><div className="client-identity compact-client"><div className="company-mark">{client.mark}</div><div><strong>{client.name}</strong><small>{client.service}</small></div></div><div className="portfolio-hours"><strong>{usage}%</strong><span>{client.consumed.toFixed(1)}h / {client.contracted}h</span></div><div className="portfolio-deadline"><strong>{client.deadline}</strong><span>{client.cycle}</span></div><div className="metric-inline"><Star size={16} />{client.nps.toFixed(1).replace('.', ',')}</div><div className="portfolio-next"><strong>{client.next.split(' · ')[0]}</strong><span>{client.next.split(' · ')[1]}</span></div><Link className="ghost" to="/admin/clientes">Abrir conta <ChevronRight size={16} /></Link></div>; })}
         </section>
       </section>
     </Shell>
