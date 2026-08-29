@@ -8,6 +8,28 @@
   --sidebar-rail: 78px;
 }
 
+/* O app não deve revelar uma cor de fundo diferente ao fazer overscroll no macOS. */
+html,
+body,
+#root {
+  min-height: 100%;
+  background: #faf8f5 !important;
+  overscroll-behavior: none !important;
+}
+html,
+body {
+  overflow-x: hidden !important;
+}
+#root {
+  min-height: 100dvh;
+}
+.main {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 82% 8%, rgba(181, 140, 82, .055), transparent 28rem),
+    linear-gradient(180deg, #faf8f5 0%, #f8f5f1 48%, #f6f1ec 100%) !important;
+}
+
 /* O antigo motion da workspace-view deixava transform ativo e transformava
    position:fixed dos modais em "fixed dentro da página". Isso causava modal
    vazando para baixo. A entrada de página fica sem transform. */
@@ -174,6 +196,15 @@ body.workspace-modal-open .workspace-view {
 .sidebar-footer .profile-trigger {
   pointer-events: auto;
 }
+.sidebar-footer-profile-only {
+  display: block !important;
+  min-width: 220px !important;
+  padding-right: 0 !important;
+}
+.sidebar-footer-profile-only .profile-control,
+.sidebar-footer-profile-only .profile-trigger {
+  width: 100%;
+}
 
 /* Sidebar: mesma linguagem aprovada, só um pouco mais estreita/delicada. */
 @media (min-width: 861px) {
@@ -199,111 +230,348 @@ body.workspace-modal-open .workspace-view {
   letter-spacing: .24em !important;
 }
 
+/* Topbar: notificações + saída, sem duplicar a ação no menu. */
+.top-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+.topbar-logout {
+  color: var(--burgundy) !important;
+}
+.topbar-logout:hover {
+  background: rgba(90,30,45,.055) !important;
+}
+
+/* Cards de sinal: comparação com o período anterior sem brigar com o KPI. */
+.signal-card {
+  position: relative;
+  padding-bottom: 22px !important;
+}
+.signal-trend {
+  position: absolute;
+  left: 22px;
+  bottom: 8px;
+  min-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: .62rem;
+  line-height: 1;
+  font-style: normal;
+  font-weight: 750;
+  white-space: nowrap;
+  background: rgba(90,30,45,.055);
+  color: var(--muted);
+}
+.signal-trend.good {
+  background: rgba(53,100,72,.08);
+  color: #356448;
+}
+.signal-trend.bad {
+  background: rgba(154,79,68,.09);
+  color: #8d463e;
+}
+.signal-trend.neutral {
+  background: rgba(181,140,82,.1);
+  color: #86612f;
+}
+
+/* Consumo de horas: logo do cliente + ritmo esperado dentro do ciclo. */
+.hours-pace-bars {
+  gap: 16px !important;
+}
+.bar-row-with-client {
+  grid-template-columns: minmax(210px, 1fr) minmax(300px, 2.15fr) 54px !important;
+  gap: 14px !important;
+}
+.bar-client-identity {
+  display: grid;
+  grid-template-columns: 42px minmax(0,1fr);
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.bar-client-logo {
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border: 1px solid rgba(90,30,45,.12);
+  border-radius: 11px;
+  background: #f5eee7;
+  color: var(--burgundy);
+  display: grid;
+  place-items: center;
+  font-size: .78rem;
+  font-weight: 800;
+}
+.bar-client-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.bar-track-wrap {
+  min-width: 0;
+}
+.bar-track {
+  position: relative;
+}
+.pace-marker {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  border-radius: 2px;
+  background: #5d5551;
+  opacity: .55;
+  transform: translateX(-1px);
+}
+.pace-marker::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5d5551;
+  transform: translate(-50%,-50%);
+}
+.bar-helper-line {
+  margin-top: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+}
+.bar-helper-line small {
+  font-size: .64rem;
+}
+.bar-helper-line .pace-copy {
+  color: #86612f;
+  text-align: right;
+}
+
+/* NPS: gráfico multi-série, responsivo, legenda clicável e tooltip por cliente. */
+.multi-trend-wrap {
+  width: 100%;
+}
+.multi-trend-chart-area {
+  position: relative;
+  width: 100%;
+  min-height: 250px;
+}
+.multi-trend-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 245px;
+  overflow: visible;
+}
+.trend-axis-value {
+  fill: #938a84;
+  font-family: Inter, sans-serif;
+  font-size: 9px;
+}
+.trend-hit-point {
+  cursor: crosshair;
+  transition: r .14s ease, stroke-width .14s ease;
+}
+.trend-hit-point:hover,
+.trend-hit-point:focus {
+  r: 7;
+  stroke-width: 3.2px;
+  outline: none;
+}
+.trend-tooltip {
+  position: absolute;
+  z-index: 8;
+  transform: translate(-50%, calc(-100% - 12px));
+  min-width: 132px;
+  padding: 9px 10px;
+  border: 1px solid rgba(90,30,45,.1);
+  border-radius: 10px;
+  background: #2f2927;
+  color: white;
+  box-shadow: 0 10px 28px rgba(31,24,22,.18);
+  pointer-events: none;
+}
+.trend-tooltip > span {
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  display: inline-block;
+  border-radius: 50%;
+}
+.trend-tooltip strong {
+  font-size: .7rem;
+}
+.trend-tooltip small {
+  display: block;
+  margin-top: 4px;
+  color: rgba(255,255,255,.72);
+  font-size: .62rem;
+}
+.multi-trend-labels {
+  margin-top: -4px !important;
+}
+.trend-series-legend {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.trend-series-legend button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(90,30,45,.09);
+  border-radius: 999px;
+  background: rgba(255,255,255,.5);
+  color: var(--graphite);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .67rem;
+  font-weight: 700;
+}
+.trend-series-legend button > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.trend-series-legend button.muted {
+  opacity: .42;
+}
+.trend-chart-hint {
+  margin-top: 8px;
+  font-size: .64rem;
+  line-height: 1.35;
+  color: #928983;
+}
+
 /* Agenda aprovada: não mexer no desenho, só preservar uso de espaço. */
 .agenda-overview-panel {
   min-width: 0;
 }
 
-/* Deadlines: linhas compactas e perfeitamente alinhadas.
-   Ordem visual = cliente/logo | conteúdo/categoria | prazo. */
-.deadline-panel {
+/* Deadlines v2: uma única linha lógica — logo | título/cliente/categoria | prazo. */
+.deadline-panel-v2 {
   padding: 22px !important;
 }
-.deadline-panel .panel-title {
-  margin-bottom: 10px !important;
+.deadline-panel-v2 .panel-title {
+  margin-bottom: 8px !important;
 }
-.enhanced-deadlines .deadline-item {
-  display: grid !important;
-  grid-template-columns: 40px minmax(0, 1fr) 86px !important;
-  grid-template-rows: 1fr !important;
-  gap: 11px !important;
-  align-items: center !important;
-  min-height: 74px !important;
-  padding: 10px 0 !important;
+.deadline-list-v2 {
+  display: grid;
 }
-.enhanced-deadlines .deadline-item.critical {
-  margin: 0 !important;
-  padding: 10px 11px !important;
-  min-height: 78px !important;
+.deadline-row-v2 {
+  min-height: 78px;
+  display: grid;
+  grid-template-columns: 42px minmax(0,1fr) 92px;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-top: 1px solid rgba(90,30,45,.075);
 }
-.enhanced-deadlines .deadline-client-mark {
-  grid-column: 1 !important;
-  grid-row: 1 !important;
-  align-self: center !important;
-  justify-self: start !important;
-  width: 38px !important;
-  height: 38px !important;
-  border-radius: 11px !important;
+.deadline-row-v2:first-child {
+  border-top: 0;
 }
-.enhanced-deadlines .deadline-copy {
-  grid-column: 2 !important;
-  grid-row: 1 !important;
-  align-self: center !important;
-  min-width: 0 !important;
-  display: block !important;
+.deadline-row-v2.critical {
+  margin-bottom: 2px;
+  padding: 11px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(181,140,82,.095);
 }
-.enhanced-deadlines .deadline-date {
-  grid-column: 3 !important;
-  grid-row: 1 !important;
-  align-self: center !important;
-  justify-self: end !important;
-  text-align: right !important;
-  min-width: 82px !important;
+.deadline-logo-v2 {
+  width: 40px;
+  height: 40px;
+  overflow: hidden;
+  border: 1px solid rgba(90,30,45,.13);
+  border-radius: 11px;
+  background: #f4ebe5;
+  color: var(--burgundy);
+  display: grid;
+  place-items: center;
+  font-size: .78rem;
+  font-weight: 800;
 }
-.enhanced-deadlines .deadline-copy p {
-  margin: 0 0 3px !important;
-  font-size: .78rem !important;
-  line-height: 1.2 !important;
-  font-weight: 750 !important;
+.deadline-main-v2 {
+  min-width: 0;
 }
-.enhanced-deadlines .deadline-copy strong {
-  display: inline !important;
-  color: var(--muted) !important;
-  font-size: .68rem !important;
-  line-height: 1.2 !important;
-  font-weight: 650 !important;
+.deadline-main-v2 > p {
+  margin: 0 0 5px;
+  color: var(--graphite);
+  font-size: .79rem;
+  line-height: 1.2;
+  font-weight: 760;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.enhanced-deadlines .deadline-copy small {
-  display: inline-flex !important;
-  align-items: center !important;
-  margin: 5px 0 0 !important;
-  padding: 2px 6px !important;
-  border-radius: 999px !important;
-  background: rgba(181,140,82,.11) !important;
-  color: #765429 !important;
-  font-size: .61rem !important;
-  font-weight: 750 !important;
+.deadline-main-v2 > div {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
 }
-.enhanced-deadlines .deadline-item:nth-child(1) .deadline-copy small::before {
-  content: 'Entregável · ';
+.deadline-main-v2 strong {
+  color: var(--muted);
+  font-size: .66rem;
+  font-weight: 700;
 }
-.enhanced-deadlines .deadline-item:nth-child(2) .deadline-copy small::before {
-  content: 'Processo · ';
+.deadline-main-v2 span,
+.deadline-main-v2 small {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: .59rem;
+  line-height: 1;
+  font-weight: 750;
 }
-.enhanced-deadlines .deadline-item:nth-child(3) .deadline-copy small::before {
-  content: 'Subtarefa · ';
+.deadline-main-v2 span {
+  background: rgba(90,30,45,.065);
+  color: var(--burgundy);
 }
-.enhanced-deadlines .deadline-date strong {
-  display: block !important;
-  color: var(--burgundy) !important;
-  font-size: .76rem !important;
-  line-height: 1.1 !important;
+.deadline-main-v2 small {
+  background: rgba(181,140,82,.11);
+  color: #765429;
 }
-.enhanced-deadlines .deadline-date span {
-  display: block !important;
-  margin-top: 4px !important;
-  color: var(--muted) !important;
-  font-size: .61rem !important;
-  white-space: nowrap !important;
+.deadline-time-v2 {
+  justify-self: end;
+  text-align: right;
 }
-.enhanced-deadlines .deadline-date span::before {
-  content: 'Prazo · ';
+.deadline-time-v2 strong,
+.deadline-time-v2 span {
+  display: block;
+}
+.deadline-time-v2 strong {
+  color: var(--burgundy);
+  font-size: .77rem;
+  line-height: 1.1;
+}
+.deadline-time-v2 span {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: .61rem;
+  white-space: nowrap;
 }
 
 @media (max-width: 1180px) {
   .agenda-deadline-grid,
   .overview-lower-grid.agenda-deadline-grid {
     grid-template-columns: 1fr !important;
+  }
+  .bar-row-with-client {
+    grid-template-columns: minmax(190px,1fr) minmax(240px,2fr) 50px !important;
   }
 }
 
@@ -342,5 +610,28 @@ body.workspace-modal-open .workspace-view {
     margin-right: -16px !important;
     padding-left: 16px !important;
     padding-right: 16px !important;
+  }
+  .bar-row-with-client {
+    grid-template-columns: 1fr 44px !important;
+  }
+  .bar-row-with-client .bar-client-identity {
+    grid-column: 1 / 3;
+  }
+  .bar-row-with-client .bar-track-wrap {
+    grid-column: 1;
+  }
+  .deadline-row-v2 {
+    grid-template-columns: 40px minmax(0,1fr) !important;
+  }
+  .deadline-time-v2 {
+    grid-column: 2;
+    justify-self: start;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-align: left;
+  }
+  .deadline-time-v2 span {
+    margin-top: 0;
   }
 }
