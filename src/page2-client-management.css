@@ -74,6 +74,7 @@ html[data-workspace-theme='night'] .client-account-modal .primary {
 
 /* Lista de clientes: logo da EMPRESA ganha presença real; badges legíveis. */
 .client-data-row {
+  min-height: 92px;
   cursor: pointer;
   border-radius: 14px;
   transition: background .16s ease, box-shadow .16s ease, transform .16s ease;
@@ -99,8 +100,10 @@ html[data-workspace-theme='night'] .client-account-modal .primary {
   gap: 14px !important;
 }
 .status-pill {
+  min-width: 126px;
   min-height: 36px !important;
   padding: 0 13px !important;
+  justify-content: center;
   font-size: .79rem !important;
   line-height: 1 !important;
   font-weight: 700 !important;
@@ -343,6 +346,7 @@ html[data-workspace-theme='night'] .account-project-list li {
   .account-header-badges { justify-content: flex-start; }
   .account-detail-grid { grid-template-columns: 1fr; }
   .client-data-row .company-mark { width: 48px !important; height: 48px !important; min-width: 48px !important; }
+  .status-pill { min-width: 0; }
 }
 @media (max-width: 560px) {
   .account-overview-grid { grid-template-columns: 1fr; }
