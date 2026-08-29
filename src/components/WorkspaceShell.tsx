@@ -75,7 +75,6 @@ export function Brand({ dark = false }: { dark?: boolean }) {
 
 function Sidebar({ role }: { role: Role }) {
   const location = useLocation();
-  const navigate = useNavigate();
   const nav = role === 'admin' ? adminNav : clientNav;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pinned, setPinned] = useState(false);
@@ -90,12 +89,6 @@ function Sidebar({ role }: { role: Role }) {
     window.addEventListener('keydown', handleShortcut);
     return () => window.removeEventListener('keydown', handleShortcut);
   }, []);
-
-  async function handleLogout() {
-    sessionStorage.removeItem('cali-preview-role');
-    if (supabase) await supabase.auth.signOut();
-    navigate('/', { replace: true });
-  }
 
   return (
     <>
@@ -132,9 +125,8 @@ function Sidebar({ role }: { role: Role }) {
           })}
         </nav>
 
-        <div className="sidebar-footer">
+        <div className="sidebar-footer sidebar-footer-profile-only">
           <ProfileControl role={role} />
-          <button className="sidebar-logout" type="button" aria-label="Sair" title="Sair" onClick={handleLogout}><LogOut size={18} /></button>
         </div>
       </aside>
     </>
@@ -142,6 +134,14 @@ function Sidebar({ role }: { role: Role }) {
 }
 
 export function Shell({ role, children }: { role: Role; children: ReactNode }) {
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    sessionStorage.removeItem('cali-preview-role');
+    if (supabase) await supabase.auth.signOut();
+    navigate('/', { replace: true });
+  }
+
   return (
     <div className="app-shell">
       <Sidebar role={role} />
@@ -150,6 +150,7 @@ export function Shell({ role, children }: { role: Role; children: ReactNode }) {
           <div className="topbar-context"><span>{role === 'admin' ? 'CALI Workspace' : 'Área da empresa'}</span></div>
           <div className="top-actions">
             <NotificationCenter role={role} />
+            <button className="icon-button topbar-logout" type="button" aria-label="Sair do Workspace" title="Sair" onClick={handleLogout}><LogOut size={19} /></button>
           </div>
         </header>
         <div className="workspace-view">{children}</div>
