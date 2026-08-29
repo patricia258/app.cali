@@ -20,6 +20,7 @@ import './theme-system.css';
 import './page2-client-management.css';
 import './page2-account-tabs.css';
 
+// Carregamento global do Workspace e da experiência de Gestão da Conta.
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
 
