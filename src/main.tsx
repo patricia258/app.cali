@@ -23,6 +23,7 @@ import './page2-client-management-v3.css';
 import './modal-standard-v2.css';
 import './documents-v2.css';
 import './modal-system-v3.css';
+import './client-modal-drive-note.css';
 
 // Carregamento global do Workspace e da experiência de Gestão da Conta.
 initializeWorkspaceTheme();
