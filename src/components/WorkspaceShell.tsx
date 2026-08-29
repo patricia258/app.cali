@@ -18,7 +18,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { NotificationCenter, ProfileControl } from './WorkspaceChrome';
+import { NotificationCenter } from './WorkspaceChrome';
+import { DirectProfileControl } from './DirectProfileControl';
 
 export type Role = 'admin' | 'client';
 
@@ -27,6 +28,10 @@ type NavItem = {
   icon: LucideIcon;
   href: string;
 };
+
+type CompactMark = 'lime' | 'oak' | 'wordmark';
+
+const compactMarks: CompactMark[] = ['lime', 'oak', 'wordmark'];
 
 export const adminNav: NavItem[] = [
   { label: 'Visão geral', icon: LayoutDashboard, href: '/admin' },
@@ -47,16 +52,14 @@ export const clientNav: NavItem[] = [
   { label: 'Relatórios', icon: PieChart, href: '/cliente/relatorios' },
 ];
 
-function CaliWorkspaceMark({ size = 30 }: { size?: number }) {
-  return (
-    <svg className="cali-workspace-mark" width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      <path d="M4.75 4.75h8.7v3.1a2.55 2.55 0 1 0 5.1 0v-3.1h8.7v8.7h-3.1a2.55 2.55 0 1 0 0 5.1h3.1v8.7h-8.7v-3.1a2.55 2.55 0 1 0-5.1 0v3.1h-8.7v-8.7h3.1a2.55 2.55 0 1 0 0-5.1h-3.1v-8.7Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-      <circle cx="16" cy="16" r="1.65" className="cali-workspace-mark-dot" />
-    </svg>
-  );
+function CompactBrandMark({ variant }: { variant: CompactMark }) {
+  if (variant === 'wordmark') {
+    return <span className="compact-wordmark" aria-hidden="true">CALI</span>;
+  }
+  return <span className={`brand-compact-art brand-compact-${variant}`} aria-hidden="true" />;
 }
 
-export function Brand({ dark = false }: { dark?: boolean }) {
+export function Brand({ dark = false, compactVariant = 'lime' }: { dark?: boolean; compactVariant?: CompactMark }) {
   return (
     <div className={`brand ${dark ? 'brand-dark' : ''}`} aria-label="CALI Workspace">
       <div className="brand-full">
@@ -68,7 +71,9 @@ export function Brand({ dark = false }: { dark?: boolean }) {
         />
         <span>WORKSPACE</span>
       </div>
-      <span className="brand-compact" title="CALI Workspace"><CaliWorkspaceMark /></span>
+      <span className={`brand-compact brand-compact-slide variant-${compactVariant}`} title="CALI Workspace">
+        <CompactBrandMark variant={compactVariant} />
+      </span>
     </div>
   );
 }
@@ -78,6 +83,7 @@ function Sidebar({ role }: { role: Role }) {
   const nav = role === 'admin' ? adminNav : clientNav;
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pinned, setPinned] = useState(false);
+  const [compactMarkIndex, setCompactMarkIndex] = useState(0);
 
   useEffect(() => {
     function handleShortcut(event: KeyboardEvent) {
@@ -90,13 +96,28 @@ function Sidebar({ role }: { role: Role }) {
     return () => window.removeEventListener('keydown', handleShortcut);
   }, []);
 
+  function rotateCompactMark() {
+    setCompactMarkIndex((current) => (current + 1) % compactMarks.length);
+  }
+
+  function togglePinned() {
+    setPinned((current) => {
+      const next = !current;
+      if (!next) rotateCompactMark();
+      return next;
+    });
+  }
+
   return (
     <>
       <button className="mobile-menu" onClick={() => setMobileOpen(true)} aria-label="Abrir menu"><Menu /></button>
       {mobileOpen && <button className="sidebar-backdrop" aria-label="Fechar menu" onClick={() => setMobileOpen(false)} />}
-      <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''} ${pinned ? 'pinned' : ''}`}>
+      <aside
+        className={`sidebar ${mobileOpen ? 'mobile-open' : ''} ${pinned ? 'pinned' : ''}`}
+        onMouseLeave={() => { if (!pinned && !mobileOpen) rotateCompactMark(); }}
+      >
         <div className="sidebar-top">
-          <Brand />
+          <Brand compactVariant={compactMarks[compactMarkIndex]} />
           <button className="sidebar-close" onClick={() => setMobileOpen(false)} aria-label="Fechar menu"><X /></button>
         </div>
 
@@ -105,7 +126,7 @@ function Sidebar({ role }: { role: Role }) {
           type="button"
           aria-label={pinned ? 'Deixar menu retrair automaticamente' : 'Manter menu aberto'}
           aria-pressed={pinned}
-          onClick={() => setPinned((current) => !current)}
+          onClick={togglePinned}
           title="Atalho: Ctrl/Cmd + B"
         >
           {pinned ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
@@ -126,11 +147,20 @@ function Sidebar({ role }: { role: Role }) {
         </nav>
 
         <div className="sidebar-footer sidebar-footer-profile-only">
-          <ProfileControl role={role} />
+          <DirectProfileControl role={role} />
         </div>
       </aside>
     </>
   );
+}
+
+function watermarkScene(pathname: string) {
+  if (pathname === '/admin' || pathname === '/cliente') return 'scene-overview';
+  if (pathname.includes('/clientes') || pathname.includes('/documentos')) return 'scene-lime';
+  if (pathname.includes('/projetos') || pathname.includes('/entregaveis') || pathname.includes('/relatorios')) return 'scene-oak';
+  if (pathname.includes('/horas')) return 'scene-lime-soft';
+  if (pathname.includes('/calendario') || pathname.includes('/cronograma')) return 'scene-oak-soft';
+  return 'scene-overview';
 }
 
 export function Shell({ role, children }: { role: Role; children: ReactNode }) {
@@ -159,7 +189,13 @@ export function Shell({ role, children }: { role: Role; children: ReactNode }) {
             <button className="icon-button topbar-logout" type="button" aria-label="Sair do Workspace" title="Sair" onClick={handleLogout}><LogOut size={19} /></button>
           </div>
         </header>
-        <div className="workspace-view">{children}</div>
+        <div className={`workspace-view workspace-brand-scene ${watermarkScene(location.pathname)}`}>
+          <div className="workspace-brand-watermarks" aria-hidden="true">
+            <span className="workspace-watermark workspace-watermark-lime" />
+            <span className="workspace-watermark workspace-watermark-oak" />
+          </div>
+          {children}
+        </div>
       </main>
     </div>
   );
