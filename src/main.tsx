@@ -13,6 +13,7 @@ import './page1-rules.css';
 import './workspace-invariants.css';
 import './dashboard-scroll-fix.css';
 import './brand-experience.css';
+import './brand-experience-v2.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
