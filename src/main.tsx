@@ -20,6 +20,8 @@ import './theme-system.css';
 import './page2-client-management.css';
 import './page2-account-tabs.css';
 import './page2-client-management-v3.css';
+import './modal-standard-v2.css';
+import './documents-v2.css';
 
 // Carregamento global do Workspace e da experiência de Gestão da Conta.
 initializeWorkspaceTheme();
