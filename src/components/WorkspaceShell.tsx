@@ -29,9 +29,9 @@ type NavItem = {
   href: string;
 };
 
-type CompactMark = 'lime' | 'oak' | 'wordmark';
+type CompactMark = 'lime' | 'oak';
 
-const compactMarks: CompactMark[] = ['lime', 'oak', 'wordmark'];
+const compactMarks: CompactMark[] = ['lime', 'oak'];
 
 export const adminNav: NavItem[] = [
   { label: 'Visão geral', icon: LayoutDashboard, href: '/admin' },
@@ -53,9 +53,6 @@ export const clientNav: NavItem[] = [
 ];
 
 function CompactBrandMark({ variant }: { variant: CompactMark }) {
-  if (variant === 'wordmark') {
-    return <span className="compact-wordmark" aria-hidden="true">CALI</span>;
-  }
   return <span className={`brand-compact-art brand-compact-${variant}`} aria-hidden="true" />;
 }
 
