@@ -6,13 +6,90 @@
   .sidebar:hover,
   .sidebar:focus-within,
   .sidebar.pinned {
-    background-color: #581c26 !important;
-    background-image:
-      linear-gradient(180deg, rgba(54, 16, 25, .05) 0%, rgba(54, 16, 25, .10) 58%, rgba(43, 11, 19, .28) 100%),
-      url('/brand/cali-sidebar-pattern.webp') !important;
-    background-repeat: no-repeat, no-repeat !important;
-    background-size: cover, cover !important;
-    background-position: center, center top !important;
+    position: relative !important;
+    overflow: hidden !important;
+    background: #581c26 !important;
+    isolation: isolate;
+  }
+
+  /*
+   * Estampa aprovada: usamos as próprias marcas oficiais do Workspace como
+   * máscara, em vez do bitmap que não estava sendo renderizado pelo browser.
+   * O resultado preserva a composição vertical do mockup sem distorção.
+   */
+  .sidebar:hover::before,
+  .sidebar:focus-within::before,
+  .sidebar.pinned::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: #936b6f;
+    opacity: .54;
+    -webkit-mask-image:
+      url('/brand/cali-oak-mark.svg'),
+      url('/brand/cali-lime-mark.svg'),
+      url('/brand/cali-lime-mark.svg'),
+      url('/brand/cali-oak-mark.svg'),
+      url('/brand/cali-oak-mark.svg'),
+      url('/brand/cali-lime-mark.svg');
+    mask-image:
+      url('/brand/cali-oak-mark.svg'),
+      url('/brand/cali-lime-mark.svg'),
+      url('/brand/cali-lime-mark.svg'),
+      url('/brand/cali-oak-mark.svg'),
+      url('/brand/cali-oak-mark.svg'),
+      url('/brand/cali-lime-mark.svg');
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size:
+      180px 180px,
+      210px 210px,
+      150px 150px,
+      170px 170px,
+      220px 220px,
+      165px 165px;
+    mask-size:
+      180px 180px,
+      210px 210px,
+      150px 150px,
+      170px 170px,
+      220px 220px,
+      165px 165px;
+    -webkit-mask-position:
+      -66px 22px,
+      142px -34px,
+      154px 405px,
+      32px 610px,
+      -88px 835px,
+      146px 1095px;
+    mask-position:
+      -66px 22px,
+      142px -34px,
+      154px 405px,
+      32px 610px,
+      -88px 835px,
+      146px 1095px;
+  }
+
+  /* Sombra bordô muito leve, só para preservar leitura do menu sobre a estampa. */
+  .sidebar:hover::after,
+  .sidebar:focus-within::after,
+  .sidebar.pinned::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(62,14,25,.06) 0%, rgba(62,14,25,.12) 55%, rgba(45,9,18,.24) 100%);
+  }
+
+  .sidebar:hover > *,
+  .sidebar:focus-within > *,
+  .sidebar.pinned > * {
+    position: relative;
+    z-index: 1;
   }
 
   /* A assinatura já contém CALI + WORKSPACE: não duplicar texto por CSS/HTML. */
@@ -60,19 +137,6 @@
     -webkit-backdrop-filter: blur(3px);
   }
 
-  .sidebar:hover nav a,
-  .sidebar:focus-within nav a,
-  .sidebar.pinned nav a,
-  .sidebar:hover .sidebar-pin,
-  .sidebar:focus-within .sidebar-pin,
-  .sidebar.pinned .sidebar-pin,
-  .sidebar:hover .sidebar-footer,
-  .sidebar:focus-within .sidebar-footer,
-  .sidebar.pinned .sidebar-footer {
-    position: relative;
-    z-index: 1;
-  }
-
   .sidebar:hover nav a .nav-label,
   .sidebar:focus-within nav a .nav-label,
   .sidebar.pinned nav a .nav-label,
@@ -91,13 +155,50 @@
 
 @media (max-width: 860px) {
   .sidebar.mobile-open {
-    background-color: #581c26 !important;
-    background-image:
-      linear-gradient(180deg, rgba(54, 16, 25, .05) 0%, rgba(54, 16, 25, .10) 58%, rgba(43, 11, 19, .28) 100%),
-      url('/brand/cali-sidebar-pattern.webp') !important;
-    background-repeat: no-repeat, no-repeat !important;
-    background-size: cover, cover !important;
-    background-position: center, center top !important;
+    position: relative !important;
+    overflow: hidden !important;
+    background: #581c26 !important;
+    isolation: isolate;
+  }
+
+  .sidebar.mobile-open::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: #936b6f;
+    opacity: .50;
+    -webkit-mask-image:
+      url('/brand/cali-oak-mark.svg'),
+      url('/brand/cali-lime-mark.svg'),
+      url('/brand/cali-oak-mark.svg'),
+      url('/brand/cali-lime-mark.svg');
+    mask-image:
+      url('/brand/cali-oak-mark.svg'),
+      url('/brand/cali-lime-mark.svg'),
+      url('/brand/cali-oak-mark.svg'),
+      url('/brand/cali-lime-mark.svg');
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 180px 180px, 210px 210px, 190px 190px, 170px 170px;
+    mask-size: 180px 180px, 210px 210px, 190px 190px, 170px 170px;
+    -webkit-mask-position: -55px 30px, 170px -28px, -60px 620px, 165px 990px;
+    mask-position: -55px 30px, 170px -28px, -60px 620px, 165px 990px;
+  }
+
+  .sidebar.mobile-open::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(62,14,25,.06), rgba(45,9,18,.23));
+  }
+
+  .sidebar.mobile-open > * {
+    position: relative;
+    z-index: 1;
   }
 
   .sidebar.mobile-open .brand-full {
