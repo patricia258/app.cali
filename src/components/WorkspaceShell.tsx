@@ -135,9 +135,15 @@ function Sidebar({ role }: { role: Role }) {
 
 export function Shell({ role, children }: { role: Role; children: ReactNode }) {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    document.body.classList.remove('workspace-modal-open');
+  }, [location.pathname]);
 
   async function handleLogout() {
     sessionStorage.removeItem('cali-preview-role');
+    document.body.classList.remove('workspace-modal-open');
     if (supabase) await supabase.auth.signOut();
     navigate('/', { replace: true });
   }
