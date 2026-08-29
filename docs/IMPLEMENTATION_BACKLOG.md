@@ -3,31 +3,50 @@
 Regra de execução: uma página por vez. Só iniciar a próxima depois de a página atual estar funcional, responsiva, testada pela Patrícia e explicitamente aprovada.
 
 ## Página 1 — Shell global + Visão Geral Admin
-Status: **em validação da Patrícia**
+Status: **aprovada**
 
 Critério de concluído:
 - menu retraído automaticamente e opção de manter aberto;
-- símbolo próprio do CALI Workspace no menu fechado;
+- símbolos oficiais lima/folha alternando no menu fechado;
 - marca CALI oficial e alinhamento consistente no menu aberto;
 - perfil somente no rodapé do menu, editável;
 - notificações funcionais no topo;
-- modais cobrindo toda a área útil, preservando menu;
+- saída no topo;
+- tema Dia/Noite global, automático às 06:00/18:00 e alternância manual no topbar;
+- modais cobrindo toda a viewport e fundo integralmente desfocado;
 - saudação por horário;
-- consumo de horas por cliente;
+- consumo de horas por cliente e ritmo previsto;
 - status de entregáveis;
-- evolução de NPS;
+- evolução de NPS por cliente, legenda e tooltip;
 - alertas/ações prioritárias;
 - mini calendário + próximos compromissos;
-- deadlines próximos;
+- deadlines próximos com cliente, tipo e prazo;
 - carteira de clientes com serviço, horas, ciclo/deadline, NPS e próximo passo;
 - exportação CSV, Word e PDF; Drive preparado para OAuth;
 - coerência entre totais, horas, percentuais e datas;
 - desktop, tablet e mobile.
 
-## Página 2 — Clientes
-Status: bloqueada até aprovação da Página 1.
+## Página 2 — Clientes / Gestão da Conta
+Status: **em implementação**
 
-Escopo: cadastro e gestão completa de cliente; logo; decisor; contato; serviço; contrato; valor; duração; ciclo; horas; responsabilidades; projetos; documentos; alertas; observações; histórico e acesso principal.
+Escopo: cadastro e gestão completa de cliente; logo; decisor e contatos; serviço; contrato e aditivos; valor e cobrança; duração e renovação; ciclo e horas; responsabilidades; projetos; documentos; situação financeira; alertas; observações; histórico; acesso principal; base para cobrança por Pix/boleto/link e envio organizado por e-mail/app junto ao relatório.
+
+Critério de concluído:
+- carteira pesquisável e filtrável, sem perder leitura executiva;
+- logo/avatar da empresa em todos os pontos relevantes;
+- cadastro inicial completo e editável após criação;
+- ficha da conta com visão 360º;
+- decisor principal e canais de contato;
+- serviço contratado, escopo/responsabilidades e projetos vinculados;
+- contrato, aditivos, datas, valor e renovação;
+- situação financeira, vencimento, forma de cobrança e histórico;
+- upload/visualização de documentos contratuais em storage privado;
+- ciclo vigente, horas contratadas/consumidas e alertas;
+- acesso principal e status do convite;
+- timeline/histórico da relação;
+- ações rápidas contextuais (e-mail, WhatsApp, cobrança, relatório, Drive);
+- comportamento correto em Dia/Noite;
+- desktop, tablet e mobile.
 
 ## Página 3 — Projetos / Cronograma
 Status: bloqueada.
