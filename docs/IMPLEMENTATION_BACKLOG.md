@@ -27,7 +27,7 @@ Critério de concluído:
 - desktop, tablet e mobile.
 
 ## Página 2 — Clientes / Gestão da Conta
-Status: **em implementação**
+Status: **em validação visual da base 360º**
 
 Escopo: cadastro e gestão completa de cliente; logo; decisor e contatos; serviço; contrato e aditivos; valor e cobrança; duração e renovação; ciclo e horas; responsabilidades; projetos; documentos; situação financeira; alertas; observações; histórico; acesso principal; base para cobrança por Pix/boleto/link e envio organizado por e-mail/app junto ao relatório.
 
