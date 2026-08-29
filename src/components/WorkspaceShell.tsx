@@ -12,12 +12,21 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Moon,
   PieChart,
+  Sun,
   TimerReset,
   X,
   type LucideIcon,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import {
+  nextThemeBoundary,
+  resolveWorkspaceTheme,
+  setManualWorkspaceTheme,
+  workspaceThemeEventName,
+  type WorkspaceTheme,
+} from '../lib/workspaceTheme';
 import { NotificationCenter } from './WorkspaceChrome';
 import { DirectProfileControl } from './DirectProfileControl';
 
@@ -151,6 +160,46 @@ function Sidebar({ role }: { role: Role }) {
   );
 }
 
+function ThemeToggle() {
+  const [theme, setTheme] = useState<WorkspaceTheme>(() => resolveWorkspaceTheme());
+
+  useEffect(() => {
+    const eventName = workspaceThemeEventName();
+    const sync = (event?: Event) => {
+      const detailTheme = (event as CustomEvent<{ theme?: WorkspaceTheme }> | undefined)?.detail?.theme;
+      setTheme(detailTheme === 'day' || detailTheme === 'night' ? detailTheme : resolveWorkspaceTheme());
+    };
+    window.addEventListener(eventName, sync);
+    window.addEventListener('focus', sync);
+    return () => {
+      window.removeEventListener(eventName, sync);
+      window.removeEventListener('focus', sync);
+    };
+  }, []);
+
+  const isNight = theme === 'night';
+  const nextBoundary = nextThemeBoundary();
+  const nextLabel = nextBoundary.getHours() === 6 ? '06:00' : '18:00';
+
+  function toggleTheme() {
+    const next = isNight ? 'day' : 'night';
+    setManualWorkspaceTheme(next);
+    setTheme(next);
+  }
+
+  return (
+    <button
+      className={`icon-button workspace-theme-toggle theme-${theme}`}
+      type="button"
+      aria-label={`Tema ${isNight ? 'noturno' : 'diurno'}. Alternar tema`}
+      title={`${isNight ? 'Modo noite' : 'Modo dia'} · automático às 06:00 e 18:00 · ajuste manual vale até ${nextLabel}`}
+      onClick={toggleTheme}
+    >
+      {isNight ? <Moon size={18} /> : <Sun size={18} />}
+    </button>
+  );
+}
+
 function watermarkScene(pathname: string) {
   if (pathname === '/admin' || pathname === '/cliente') return 'scene-overview';
   if (pathname.includes('/clientes') || pathname.includes('/documentos')) return 'scene-lime';
@@ -182,6 +231,7 @@ export function Shell({ role, children }: { role: Role; children: ReactNode }) {
         <header className="topbar">
           <div className="topbar-context"><span>{role === 'admin' ? 'CALI Workspace' : 'Área da empresa'}</span></div>
           <div className="top-actions">
+            <ThemeToggle />
             <NotificationCenter role={role} />
             <button className="icon-button topbar-logout" type="button" aria-label="Sair do Workspace" title="Sair" onClick={handleLogout}><LogOut size={19} /></button>
           </div>
