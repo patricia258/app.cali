@@ -3,7 +3,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
-import { AdminClientsPage } from './pages/admin/AdminClientsPage';
+import { AdminClientsPageV3 } from './pages/admin/AdminClientsPageV3';
 import { AdminProjectsPage } from './pages/admin/AdminProjectsPage';
 import { AdminHoursPage } from './pages/admin/AdminHoursPage';
 import { AdminCalendarPage } from './pages/admin/AdminCalendarPage';
@@ -23,7 +23,7 @@ export default function App() {
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
       <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
-      <Route path="/admin/clientes" element={<ProtectedRoute role="admin"><AdminClientsPage /></ProtectedRoute>} />
+      <Route path="/admin/clientes" element={<ProtectedRoute role="admin"><AdminClientsPageV3 /></ProtectedRoute>} />
       <Route path="/admin/projetos" element={<ProtectedRoute role="admin"><AdminProjectsPage /></ProtectedRoute>} />
       <Route path="/admin/horas" element={<ProtectedRoute role="admin"><AdminHoursPage /></ProtectedRoute>} />
       <Route path="/admin/calendario" element={<ProtectedRoute role="admin"><AdminCalendarPage /></ProtectedRoute>} />
