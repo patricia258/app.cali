@@ -1,22 +1,62 @@
-/* CALI Workspace · sidebar brand artwork aprovado em 29/08/2026.
-   Aplica somente ao menu expandido. O rail compacto permanece inalterado
-   até a revisão específica de dia/noite + estado fechado. */
+/* CALI Workspace · sidebar visual final aprovado em 29/08/2026.
+   Uma única camada: bordô uniforme, estampa distribuída, perfil preservado
+   e shell sem vão quando o menu está aberto. O rail compacto permanece
+   inalterado até a revisão específica de dia/noite + estado fechado. */
+
+:root {
+  --cali-sidebar-art-base: #512027;
+  --cali-sidebar-art-mark: #8b6065;
+}
+
+.app-shell {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  min-width: 0 !important;
+  overflow-x: clip !important;
+}
 
 @media (min-width: 861px) {
+  .main {
+    flex: 0 0 calc(100vw - var(--sidebar-rail)) !important;
+    width: calc(100vw - var(--sidebar-rail)) !important;
+    max-width: calc(100vw - var(--sidebar-rail)) !important;
+    min-width: 0 !important;
+    margin-left: var(--sidebar-rail) !important;
+    left: 0 !important;
+    transform: none !important;
+  }
+
+  .app-shell:has(.sidebar:hover) .main,
+  .app-shell:has(.sidebar:focus-within) .main,
+  .app-shell:has(.sidebar.pinned) .main {
+    flex-basis: calc(100vw - var(--sidebar-open)) !important;
+    width: calc(100vw - var(--sidebar-open)) !important;
+    max-width: calc(100vw - var(--sidebar-open)) !important;
+    margin-left: var(--sidebar-open) !important;
+  }
+
+  .workspace-view {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
   .sidebar:hover,
   .sidebar:focus-within,
   .sidebar.pinned {
-    position: relative !important;
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    width: var(--sidebar-open) !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    box-sizing: border-box !important;
     overflow: hidden !important;
-    background: #581c26 !important;
-    isolation: isolate;
+    isolation: isolate !important;
+    background: var(--cali-sidebar-art-base) !important;
   }
 
-  /*
-   * Estampa aprovada: usamos as próprias marcas oficiais do Workspace como
-   * máscara, em vez do bitmap que não estava sendo renderizado pelo browser.
-   * O resultado preserva a composição vertical do mockup sem distorção.
-   */
+  /* Estampa contínua: símbolos aparecem do topo ao rodapé, inclusive no meio. */
   .sidebar:hover::before,
   .sidebar:focus-within::before,
   .sidebar.pinned::before {
@@ -25,9 +65,13 @@
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    background: #936b6f;
-    opacity: .54;
+    background: var(--cali-sidebar-art-mark);
+    opacity: .70;
     -webkit-mask-image:
+      url('/brand/cali-oak-mark.svg'),
+      url('/brand/cali-lime-mark.svg'),
+      url('/brand/cali-lime-mark.svg'),
+      url('/brand/cali-oak-mark.svg'),
       url('/brand/cali-oak-mark.svg'),
       url('/brand/cali-lime-mark.svg'),
       url('/brand/cali-lime-mark.svg'),
@@ -35,6 +79,10 @@
       url('/brand/cali-oak-mark.svg'),
       url('/brand/cali-lime-mark.svg');
     mask-image:
+      url('/brand/cali-oak-mark.svg'),
+      url('/brand/cali-lime-mark.svg'),
+      url('/brand/cali-lime-mark.svg'),
+      url('/brand/cali-oak-mark.svg'),
       url('/brand/cali-oak-mark.svg'),
       url('/brand/cali-lime-mark.svg'),
       url('/brand/cali-lime-mark.svg'),
@@ -44,65 +92,78 @@
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
     -webkit-mask-size:
-      180px 180px,
-      210px 210px,
-      150px 150px,
-      170px 170px,
-      220px 220px,
-      165px 165px;
+      155px 155px,
+      185px 185px,
+      140px 140px,
+      158px 158px,
+      148px 148px,
+      174px 174px,
+      144px 144px,
+      172px 172px,
+      148px 148px,
+      180px 180px;
     mask-size:
-      180px 180px,
-      210px 210px,
-      150px 150px,
-      170px 170px,
-      220px 220px,
-      165px 165px;
+      155px 155px,
+      185px 185px,
+      140px 140px,
+      158px 158px,
+      148px 148px,
+      174px 174px,
+      144px 144px,
+      172px 172px,
+      148px 148px,
+      180px 180px;
     -webkit-mask-position:
-      -66px 22px,
-      142px -34px,
-      154px 405px,
-      32px 610px,
-      -88px 835px,
-      146px 1095px;
+      -58px 2%,
+      calc(100% + 60px) 5%,
+      calc(100% + 46px) 22%,
+      -54px 29%,
+      calc(100% + 45px) 39%,
+      -68px 49%,
+      calc(100% + 48px) 59%,
+      -62px 68%,
+      calc(100% + 48px) 79%,
+      -60px 91%;
     mask-position:
-      -66px 22px,
-      142px -34px,
-      154px 405px,
-      32px 610px,
-      -88px 835px,
-      146px 1095px;
+      -58px 2%,
+      calc(100% + 60px) 5%,
+      calc(100% + 46px) 22%,
+      -54px 29%,
+      calc(100% + 45px) 39%,
+      -68px 49%,
+      calc(100% + 48px) 59%,
+      -62px 68%,
+      calc(100% + 48px) 79%,
+      -60px 91%;
   }
 
-  /* Sombra bordô muito leve, só para preservar leitura do menu sobre a estampa. */
+  /* Não criar uma segunda tonalidade sobre a arte. */
   .sidebar:hover::after,
   .sidebar:focus-within::after,
   .sidebar.pinned::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background: linear-gradient(180deg, rgba(62,14,25,.06) 0%, rgba(62,14,25,.12) 55%, rgba(45,9,18,.24) 100%);
+    content: none !important;
   }
 
   .sidebar:hover > *,
   .sidebar:focus-within > *,
   .sidebar.pinned > * {
-    position: relative;
-    z-index: 1;
+    position: relative !important;
+    z-index: 1 !important;
   }
 
-  /* A assinatura já contém CALI + WORKSPACE: não duplicar texto por CSS/HTML. */
+  /* A imagem já contém CALI + WORKSPACE. O fundo dela coincide com o sidebar. */
   .sidebar:hover .brand-full,
   .sidebar:focus-within .brand-full,
   .sidebar.pinned .brand-full {
+    display: flex !important;
     width: 100% !important;
-    min-height: 126px !important;
+    min-height: 118px !important;
     margin: 0 auto !important;
     padding: 0 !important;
     transform: none !important;
     align-items: center !important;
     justify-content: center !important;
+    background: transparent !important;
   }
 
   .sidebar:hover .brand-full img,
@@ -110,13 +171,14 @@
   .sidebar.pinned .brand-full img {
     content: url('/brand/cali-workspace-sidebar-header.webp') !important;
     display: block !important;
-    width: min(194px, 76%) !important;
-    max-width: 194px !important;
+    width: min(184px, 72%) !important;
+    max-width: 184px !important;
     height: auto !important;
     margin: 0 auto !important;
     object-fit: contain !important;
     object-position: center !important;
-    mix-blend-mode: lighten;
+    mix-blend-mode: normal !important;
+    background: transparent !important;
   }
 
   .sidebar:hover .brand-full span,
@@ -125,40 +187,96 @@
     display: none !important;
   }
 
-  /* Mantém os controles claros sobre a estampa sem alterar a hierarquia aprovada. */
+  .sidebar:hover nav,
+  .sidebar:focus-within nav,
+  .sidebar.pinned nav {
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+  }
+
   .sidebar:hover .sidebar-pin,
   .sidebar:focus-within .sidebar-pin,
   .sidebar.pinned .sidebar-pin,
   .sidebar:hover nav a.active,
   .sidebar:focus-within nav a.active,
   .sidebar.pinned nav a.active {
-    background: rgba(247, 243, 238, .115) !important;
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
+    background: rgba(247, 243, 238, .12) !important;
+    backdrop-filter: blur(2px) !important;
+    -webkit-backdrop-filter: blur(2px) !important;
   }
 
-  .sidebar:hover nav a .nav-label,
-  .sidebar:focus-within nav a .nav-label,
-  .sidebar.pinned nav a .nav-label,
-  .sidebar:hover .sidebar-pin span,
-  .sidebar:focus-within .sidebar-pin span,
-  .sidebar.pinned .sidebar-pin span {
-    text-shadow: 0 1px 12px rgba(35, 8, 15, .18);
+  /* Perfil sempre completo quando o menu está aberto. */
+  .sidebar:hover .sidebar-footer-profile-only,
+  .sidebar:focus-within .sidebar-footer-profile-only,
+  .sidebar.pinned .sidebar-footer-profile-only {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+    margin-top: auto !important;
+    padding-top: 14px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow: visible !important;
+    border-top-color: rgba(247, 243, 238, .22) !important;
   }
 
-  .sidebar:hover .sidebar-footer,
-  .sidebar:focus-within .sidebar-footer,
-  .sidebar.pinned .sidebar-footer {
-    border-top-color: rgba(247, 243, 238, .20) !important;
+  .sidebar:hover .profile-control-direct,
+  .sidebar:focus-within .profile-control-direct,
+  .sidebar.pinned .profile-control-direct,
+  .sidebar:hover .profile-trigger-direct,
+  .sidebar:focus-within .profile-trigger-direct,
+  .sidebar.pinned .profile-trigger-direct {
+    width: 100% !important;
+    min-width: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .sidebar:hover .profile-trigger-direct,
+  .sidebar:focus-within .profile-trigger-direct,
+  .sidebar.pinned .profile-trigger-direct {
+    display: grid !important;
+    grid-template-columns: 44px minmax(0, 1fr) 18px !important;
+    align-items: center !important;
+    column-gap: 11px !important;
+  }
+
+  .sidebar:hover .profile-copy,
+  .sidebar:focus-within .profile-copy,
+  .sidebar.pinned .profile-copy {
+    display: block !important;
+    min-width: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .sidebar:hover .profile-edit-chevron,
+  .sidebar:focus-within .profile-edit-chevron,
+  .sidebar.pinned .profile-edit-chevron {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 }
 
 @media (max-width: 860px) {
+  .main {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin-left: 0 !important;
+  }
+
   .sidebar.mobile-open {
-    position: relative !important;
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    box-sizing: border-box !important;
     overflow: hidden !important;
-    background: #581c26 !important;
-    isolation: isolate;
+    isolation: isolate !important;
+    background: var(--cali-sidebar-art-base) !important;
   }
 
   .sidebar.mobile-open::before {
@@ -167,9 +285,11 @@
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    background: #936b6f;
-    opacity: .50;
+    background: var(--cali-sidebar-art-mark);
+    opacity: .66;
     -webkit-mask-image:
+      url('/brand/cali-oak-mark.svg'),
+      url('/brand/cali-lime-mark.svg'),
       url('/brand/cali-oak-mark.svg'),
       url('/brand/cali-lime-mark.svg'),
       url('/brand/cali-oak-mark.svg'),
@@ -178,54 +298,59 @@
       url('/brand/cali-oak-mark.svg'),
       url('/brand/cali-lime-mark.svg'),
       url('/brand/cali-oak-mark.svg'),
+      url('/brand/cali-lime-mark.svg'),
+      url('/brand/cali-oak-mark.svg'),
       url('/brand/cali-lime-mark.svg');
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
-    -webkit-mask-size: 180px 180px, 210px 210px, 190px 190px, 170px 170px;
-    mask-size: 180px 180px, 210px 210px, 190px 190px, 170px 170px;
-    -webkit-mask-position: -55px 30px, 170px -28px, -60px 620px, 165px 990px;
-    mask-position: -55px 30px, 170px -28px, -60px 620px, 165px 990px;
+    -webkit-mask-size: 145px 145px, 175px 175px, 150px 150px, 165px 165px, 145px 145px, 175px 175px;
+    mask-size: 145px 145px, 175px 175px, 150px 150px, 165px 165px, 145px 145px, 175px 175px;
+    -webkit-mask-position: -55px 3%, calc(100% + 55px) 8%, -55px 31%, calc(100% + 50px) 49%, -52px 69%, calc(100% + 52px) 88%;
+    mask-position: -55px 3%, calc(100% + 55px) 8%, -55px 31%, calc(100% + 50px) 49%, -52px 69%, calc(100% + 52px) 88%;
   }
 
   .sidebar.mobile-open::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background: linear-gradient(180deg, rgba(62,14,25,.06), rgba(45,9,18,.23));
+    content: none !important;
   }
 
   .sidebar.mobile-open > * {
-    position: relative;
-    z-index: 1;
+    position: relative !important;
+    z-index: 1 !important;
   }
 
   .sidebar.mobile-open .brand-full {
-    min-height: 120px !important;
+    min-height: 112px !important;
     padding: 0 !important;
     transform: none !important;
     align-items: center !important;
     justify-content: center !important;
+    background: transparent !important;
   }
 
   .sidebar.mobile-open .brand-full img {
     content: url('/brand/cali-workspace-sidebar-header.webp') !important;
-    width: min(190px, 70vw) !important;
-    max-width: 190px !important;
+    width: min(180px, 68vw) !important;
+    max-width: 180px !important;
     height: auto !important;
     object-fit: contain !important;
-    mix-blend-mode: lighten;
+    mix-blend-mode: normal !important;
   }
 
   .sidebar.mobile-open .brand-full span {
     display: none !important;
   }
 
-  .sidebar.mobile-open .sidebar-pin,
-  .sidebar.mobile-open nav a.active {
-    background: rgba(247, 243, 238, .115) !important;
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
+  .sidebar.mobile-open .sidebar-footer-profile-only {
+    display: block !important;
+    width: 100% !important;
+    margin-top: auto !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .sidebar.mobile-open .profile-copy,
+  .sidebar.mobile-open .profile-edit-chevron {
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 }
