@@ -21,6 +21,7 @@ import './page2-client-management.css';
 import './page2-account-tabs.css';
 import './page3-documents.css';
 import './page4-calendar.css';
+import './page5-projects.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
 initializeWorkspaceTheme();
