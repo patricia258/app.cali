@@ -265,6 +265,28 @@ body.workspace-modal-open {
   box-shadow: 0 -8px 24px rgba(51,35,37,.035) !important;
   z-index: 20 !important;
 }
+
+/*
+ * Invariante específico do cadastro/gestão de cliente.
+ * Uma camada antiga do Workspace usa margin horizontal negativa no footer.
+ * Como este modal V3 não tem padding externo, a margem negativa empurra o
+ * conteúdo para fora do cartão e corta “Etapa X de 4” e ações. Esta regra é
+ * deliberadamente mais específica para impedir a regressão.
+ */
+.client-account-modal.compact-account-modal .account-modal-footer,
+.client-account-modal.management-modal-v3 .account-modal-footer {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding: 11px 28px !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+  box-sizing: border-box !important;
+}
+
 .account-modal-footer > span {
   padding-left: 0 !important;
   margin-left: 0 !important;
@@ -379,7 +401,9 @@ html[data-workspace-theme='night'] .modal-card .secondary {
   }
   .account-modal-footer,
   .document-modal-footer,
-  .management-footer {
+  .management-footer,
+  .client-account-modal.compact-account-modal .account-modal-footer,
+  .client-account-modal.management-modal-v3 .account-modal-footer {
     padding: 10px 14px !important;
   }
   .account-modal-footer > span,
