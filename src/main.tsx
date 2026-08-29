@@ -24,8 +24,10 @@ import './modal-standard-v2.css';
 import './documents-v2.css';
 import './page4-calendar.css';
 import './page5-projects.css';
+import './page5-projects-flow-v2.css';
 import './modal-system-v3.css';
 import './client-modal-drive-note.css';
+import './workspace-typography-connect.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
 initializeWorkspaceTheme();
