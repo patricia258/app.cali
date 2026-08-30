@@ -20,6 +20,26 @@ export function AuthCallbackPage() {
     let active = true;
 
     async function resolveProfile() {
+      const params = new URLSearchParams(window.location.search);
+      const tokenHash = params.get('token_hash');
+      const tokenType = params.get('type');
+
+      if (tokenHash) {
+        const { error: verifyError } = await supabase!.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: tokenType === 'email' ? 'email' : 'magiclink',
+        });
+
+        if (!active) return;
+        if (verifyError) {
+          console.error('Falha ao validar acesso do Workspace', verifyError);
+          setFailed(true);
+          return;
+        }
+
+        window.history.replaceState({}, document.title, '/auth/callback');
+      }
+
       let userId: string | null = null;
 
       for (let attempt = 0; attempt < 12 && active; attempt += 1) {
