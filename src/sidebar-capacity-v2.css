@@ -1,6 +1,6 @@
-/* CALI Workspace · sidebar capacity v4
-   Compactação real nos estados aberto e fechado.
-   Mantém tipografia legível, pattern aprovado, scroll próprio e perfil fixo. */
+/* CALI Workspace · sidebar capacity v5
+   Compactacao consistente nos estados aberto e fechado.
+   Mantem tipografia legivel, pattern aprovado, scroll proprio e perfil fixo. */
 
 @media (min-width: 861px) {
   .sidebar {
@@ -9,12 +9,12 @@
   }
 
   .sidebar nav {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 0 !important;
-    align-items: stretch !important;
-    align-content: flex-start !important;
-    justify-content: flex-start !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-auto-rows: 40px !important;
+    gap: 1px !important;
+    align-content: start !important;
+    justify-content: stretch !important;
     min-height: 0 !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
@@ -34,6 +34,7 @@
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     border-radius: 11px !important;
+    align-self: stretch !important;
   }
 
   .sidebar nav a svg {
@@ -42,20 +43,56 @@
     flex: 0 0 17px !important;
   }
 
+  /* Rail fechado: nao distribui os icones pela altura da sidebar. */
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .sidebar-top {
+    flex: 0 0 58px !important;
+    min-height: 58px !important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand {
+    padding-bottom: 4px !important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .sidebar-pin {
+    flex: 0 0 42px !important;
+    min-height: 42px !important;
+    height: 42px !important;
+    width: 54px !important;
+    margin: 2px auto 5px !important;
+    padding: 0 !important;
+  }
+
   .sidebar:not(:hover):not(:focus-within):not(.pinned) nav {
-    flex: 1 1 auto !important;
-    padding: 2px 6px 6px !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-auto-rows: 40px !important;
+    gap: 1px !important;
+    align-content: start !important;
+    justify-content: stretch !important;
+    flex: 0 1 auto !important;
+    width: 100% !important;
+    max-height: calc(100dvh - 58px - 49px - 72px - 18px) !important;
+    margin: 0 !important;
+    padding: 0 6px !important;
+    overflow-y: auto !important;
   }
 
   .sidebar:not(:hover):not(:focus-within):not(.pinned) nav a {
     min-height: 40px !important;
     height: 40px !important;
+    width: 100% !important;
     margin: 0 !important;
     justify-content: center !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+    padding: 0 !important;
   }
 
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .sidebar-footer-profile-only {
+    margin-top: auto !important;
+    flex: 0 0 66px !important;
+    min-height: 66px !important;
+  }
+
+  /* Aberto/pinado: mesma densidade visual do rail fechado. */
   .sidebar:hover .brand-full,
   .sidebar:focus-within .brand-full,
   .sidebar.pinned .brand-full {
@@ -86,6 +123,11 @@
   .sidebar:hover nav,
   .sidebar:focus-within nav,
   .sidebar.pinned nav {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-auto-rows: 40px !important;
+    gap: 1px !important;
+    align-content: start !important;
     flex: 1 1 auto !important;
     padding: 0 14px 4px !important;
   }
@@ -110,7 +152,7 @@
   .sidebar.pinned .sidebar-footer-profile-only {
     flex: 0 0 auto !important;
     min-height: 62px !important;
-    margin-top: 0 !important;
+    margin-top: auto !important;
     padding: 6px 14px 7px !important;
     background: linear-gradient(to bottom, rgba(88,27,36,0), rgba(88,27,36,.16) 20%, rgba(88,27,36,.28)) !important;
   }
@@ -136,9 +178,11 @@
   }
 
   .sidebar.mobile-open nav {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 0 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-auto-rows: 40px !important;
+    gap: 1px !important;
+    align-content: start !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
     overflow-y: auto !important;
@@ -160,7 +204,7 @@
   .sidebar.mobile-open .sidebar-footer-profile-only {
     flex: 0 0 auto !important;
     min-height: 62px !important;
-    margin-top: 0 !important;
+    margin-top: auto !important;
     padding-block: 6px !important;
   }
 }
