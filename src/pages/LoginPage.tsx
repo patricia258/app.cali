@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   ExternalLink,
   Instagram,
+  Leaf,
   Linkedin,
   Mail,
   MessageCircle,
@@ -50,6 +51,10 @@ export function LoginPage() {
   return (
     <main className="login-v2">
       <section className="login-v2-brand" aria-label="CALI Workspace">
+        <img className="login-v2-brand-art oak-top" src="/brand/cali-oak-mark.svg" alt="" aria-hidden="true" />
+        <img className="login-v2-brand-art lime-mid" src="/brand/cali-lime-mark.svg" alt="" aria-hidden="true" />
+        <img className="login-v2-brand-art oak-bottom" src="/brand/cali-oak-mark.svg" alt="" aria-hidden="true" />
+
         <div className="login-v2-brand-inner">
           <img
             className="login-v2-logo"
@@ -66,7 +71,7 @@ export function LoginPage() {
           </div>
 
           <div className="login-v2-signature">
-            <span className="login-v2-gold-mark" aria-hidden="true">♡</span>
+            <span className="login-v2-gold-mark" aria-hidden="true"><Leaf size={30} /></span>
             <p>Pessoas como estratégia.<br />Negócios que evoluem.</p>
           </div>
         </div>
