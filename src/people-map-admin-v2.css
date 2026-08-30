@@ -1,0 +1,61 @@
+/* CALI Workspace · Mapa de People v2 additions */
+.people-map-tabs {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin: 10px 0 20px;
+  border-bottom: 1px solid rgba(90,30,45,.10);
+}
+.people-map-tabs button {
+  position: relative;
+  border: 0;
+  background: transparent;
+  padding: 10px 2px 13px;
+  color: #7f7275;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.people-map-tabs button.active { color: #5a1e2d; }
+.people-map-tabs button.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: #5a1e2d;
+}
+.people-map-search > span { font-size: 13px; font-weight: 700; color: #6f6265; }
+.people-map-journey-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 98px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+.people-map-journey-status.concluido { background: #e9f3eb; color: #3d7452; border-color: #c9dfcf; }
+.people-map-journey-status.andamento { background: #e9f0f8; color: #315f88; border-color: #cddcec; }
+.people-map-journey-status.abandono { background: #fff2df; color: #9a681f; border-color: #ead4ad; }
+.people-map-side-actions { display: grid; gap: 9px; }
+.people-map-side-actions h3 { margin: 0 0 4px; font-size: 15px; color: #302a2c; }
+.people-map-side-actions button { width: 100%; justify-content: flex-start; }
+.people-map-side-actions button:disabled { opacity: .45; cursor: not-allowed; }
+
+body[data-workspace-theme='night'] .people-map-tabs { border-color: rgba(247,243,238,.10); }
+body[data-workspace-theme='night'] .people-map-tabs button { color: #a99ca0; }
+body[data-workspace-theme='night'] .people-map-tabs button.active { color: #e4a2b6; }
+body[data-workspace-theme='night'] .people-map-tabs button.active::after { background: #e4a2b6; }
+body[data-workspace-theme='night'] .people-map-search > span,
+body[data-workspace-theme='night'] .people-map-side-actions h3 { color: #f1e9e6; }
+
+@media (max-width: 720px) {
+  .people-map-tabs { gap: 18px; overflow-x: auto; scrollbar-width: none; }
+  .people-map-tabs::-webkit-scrollbar { display: none; }
+}
