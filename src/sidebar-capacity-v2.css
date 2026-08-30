@@ -1,38 +1,84 @@
-/* CALI Workspace · sidebar capacity v3
-   Compactacao real para crescimento dos modulos administrativos.
-   Mantem tipografia legivel, pattern aprovado e perfil fixo no rodape. */
+/* CALI Workspace · sidebar capacity v4
+   Compactação real nos estados aberto e fechado.
+   Mantém tipografia legível, pattern aprovado, scroll próprio e perfil fixo. */
 
 @media (min-width: 861px) {
-  .sidebar:hover,
-  .sidebar:focus-within,
-  .sidebar.pinned {
+  .sidebar {
     display: flex !important;
     flex-direction: column !important;
+  }
+
+  .sidebar nav {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    align-items: stretch !important;
+    align-content: flex-start !important;
+    justify-content: flex-start !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-width: none !important;
+    overscroll-behavior: contain !important;
+  }
+
+  .sidebar nav::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  .sidebar nav a {
+    min-height: 40px !important;
+    height: 40px !important;
+    margin: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    border-radius: 11px !important;
+  }
+
+  .sidebar nav a svg {
+    width: 17px !important;
+    height: 17px !important;
+    flex: 0 0 17px !important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) nav {
+    flex: 1 1 auto !important;
+    padding: 2px 6px 6px !important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) nav a {
+    min-height: 40px !important;
+    height: 40px !important;
+    margin: 0 !important;
+    justify-content: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
   }
 
   .sidebar:hover .brand-full,
   .sidebar:focus-within .brand-full,
   .sidebar.pinned .brand-full {
-    min-height: 76px !important;
-    height: 76px !important;
-    padding: 4px 0 0 !important;
+    min-height: 72px !important;
+    height: 72px !important;
+    padding: 2px 0 0 !important;
   }
 
   .sidebar:hover .brand-full img,
   .sidebar:focus-within .brand-full img,
   .sidebar.pinned .brand-full img {
-    width: min(148px, 66%) !important;
-    max-width: 148px !important;
-    max-height: 66px !important;
+    width: min(146px, 65%) !important;
+    max-width: 146px !important;
+    max-height: 62px !important;
     object-fit: contain !important;
   }
 
   .sidebar:hover .sidebar-pin,
   .sidebar:focus-within .sidebar-pin,
   .sidebar.pinned .sidebar-pin {
-    min-height: 38px !important;
-    height: 38px !important;
-    margin: 2px 14px 4px !important;
+    min-height: 36px !important;
+    height: 36px !important;
+    margin: 1px 14px 3px !important;
     padding: 0 12px !important;
     border-radius: 11px !important;
   }
@@ -41,38 +87,15 @@
   .sidebar:focus-within nav,
   .sidebar.pinned nav {
     flex: 1 1 auto !important;
-    min-height: 0 !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
     padding: 0 14px 4px !important;
-    scrollbar-width: none !important;
-    overscroll-behavior: contain !important;
-  }
-
-  .sidebar:hover nav::-webkit-scrollbar,
-  .sidebar:focus-within nav::-webkit-scrollbar,
-  .sidebar.pinned nav::-webkit-scrollbar {
-    width: 0 !important;
-    height: 0 !important;
   }
 
   .sidebar:hover nav a,
   .sidebar:focus-within nav a,
   .sidebar.pinned nav a {
-    min-height: 38px !important;
-    height: 38px !important;
-    margin: 1px 0 !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    border-radius: 11px !important;
-  }
-
-  .sidebar:hover nav a svg,
-  .sidebar:focus-within nav a svg,
-  .sidebar.pinned nav a svg {
-    width: 17px !important;
-    height: 17px !important;
-    flex: 0 0 17px !important;
+    min-height: 40px !important;
+    height: 40px !important;
+    margin: 0 !important;
   }
 
   .sidebar:hover nav .nav-label,
@@ -86,18 +109,18 @@
   .sidebar:focus-within .sidebar-footer-profile-only,
   .sidebar.pinned .sidebar-footer-profile-only {
     flex: 0 0 auto !important;
-    min-height: 66px !important;
+    min-height: 62px !important;
     margin-top: 0 !important;
-    padding: 7px 14px 8px !important;
+    padding: 6px 14px 7px !important;
     background: linear-gradient(to bottom, rgba(88,27,36,0), rgba(88,27,36,.16) 20%, rgba(88,27,36,.28)) !important;
   }
 
   .sidebar:hover .sidebar-footer-profile-only .profile-avatar,
   .sidebar:focus-within .sidebar-footer-profile-only .profile-avatar,
   .sidebar.pinned .sidebar-footer-profile-only .profile-avatar {
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
   }
 }
 
@@ -108,16 +131,19 @@
   }
 
   .sidebar.mobile-open .brand-full {
-    min-height: 74px !important;
-    height: 74px !important;
+    min-height: 72px !important;
+    height: 72px !important;
   }
 
   .sidebar.mobile-open nav {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    padding-block: 2px !important;
+    padding-block: 1px !important;
     scrollbar-width: none !important;
   }
 
@@ -128,13 +154,13 @@
   .sidebar.mobile-open nav a {
     min-height: 40px !important;
     height: 40px !important;
-    margin-block: 1px !important;
+    margin: 0 !important;
   }
 
   .sidebar.mobile-open .sidebar-footer-profile-only {
     flex: 0 0 auto !important;
-    min-height: 66px !important;
+    min-height: 62px !important;
     margin-top: 0 !important;
-    padding-block: 7px !important;
+    padding-block: 6px !important;
   }
 }
