@@ -3,6 +3,10 @@ import { Navigate } from 'react-router-dom';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import type { Role } from '../components/WorkspaceShell';
 
+function wait(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
 export function AuthCallbackPage() {
   const [destination, setDestination] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
@@ -16,10 +20,19 @@ export function AuthCallbackPage() {
     let active = true;
 
     async function resolveProfile() {
-      const { data: sessionData, error: sessionError } = await supabase!.auth.getSession();
-      const user = sessionData.session?.user;
+      let userId: string | null = null;
+
+      for (let attempt = 0; attempt < 12 && active; attempt += 1) {
+        const { data: sessionData, error: sessionError } = await supabase!.auth.getSession();
+        if (!sessionError && sessionData.session?.user) {
+          userId = sessionData.session.user.id;
+          break;
+        }
+        await wait(250);
+      }
+
       if (!active) return;
-      if (sessionError || !user) {
+      if (!userId) {
         setFailed(true);
         return;
       }
@@ -27,8 +40,8 @@ export function AuthCallbackPage() {
       const { data: profile, error: profileError } = await supabase!
         .from('profiles')
         .select('role, active')
-        .eq('id', user.id)
-        .single();
+        .eq('id', userId)
+        .maybeSingle();
 
       if (!active) return;
       if (profileError || !profile?.active) {
