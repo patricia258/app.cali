@@ -10,6 +10,7 @@ import { AdminCalendarPage } from './pages/admin/AdminCalendarPage';
 import { AdminDocumentsPage } from './pages/admin/AdminDocumentsPage';
 import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 import { AdminPeopleMapPageV2 } from './pages/admin/AdminPeopleMapPageV2';
+import { AdminPeopleMapReportPage } from './pages/admin/AdminPeopleMapReportPage';
 import { ClientDashboard } from './pages/client/ClientDashboard';
 import { ClientTimelinePage } from './pages/client/ClientTimelinePage';
 import { ClientDeliverablesPage } from './pages/client/ClientDeliverablesPage';
@@ -31,6 +32,7 @@ export default function App() {
       <Route path="/admin/documentos" element={<ProtectedRoute role="admin"><AdminDocumentsPage /></ProtectedRoute>} />
       <Route path="/admin/relatorios" element={<ProtectedRoute role="admin"><AdminReportsPage /></ProtectedRoute>} />
       <Route path="/admin/mapa-de-people" element={<ProtectedRoute role="admin"><AdminPeopleMapPageV2 /></ProtectedRoute>} />
+      <Route path="/admin/mapa-de-people/relatorio/:id" element={<ProtectedRoute role="admin"><AdminPeopleMapReportPage /></ProtectedRoute>} />
 
       <Route path="/cliente" element={<ProtectedRoute role="client"><ClientDashboard /></ProtectedRoute>} />
       <Route path="/cliente/cronograma" element={<ProtectedRoute role="client"><ClientTimelinePage /></ProtectedRoute>} />
