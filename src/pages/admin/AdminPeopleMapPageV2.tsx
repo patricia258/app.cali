@@ -209,14 +209,15 @@ export function AdminPeopleMapPageV2() {
   async function loadAll() {
     if (!supabase) return;
     setLoading(true); setError('');
+    const publicDb = supabase.schema('public');
     const [recordsResult, journeysResult] = await Promise.all([
-      supabase.from('mapa_people_admin').select('*').order('created_at', { ascending: false }),
-      supabase.from('mapa_people_journey').select('*').order('accessed_at', { ascending: false }).limit(1000),
+      publicDb.rpc('workspace_mapa_people_records'),
+      publicDb.rpc('workspace_mapa_people_journeys'),
     ]);
     if (recordsResult.error) setError(`Não foi possível carregar as respostas reais: ${recordsResult.error.message}`);
-    else setRecords((recordsResult.data || []) as MapaRecord[]);
+    else setRecords(((recordsResult.data || []) as MapaRecord[]).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
     if (journeysResult.error) setError((current) => current || `Não foi possível carregar a jornada: ${journeysResult.error.message}`);
-    else setJourneys((journeysResult.data || []) as JourneyRecord[]);
+    else setJourneys(((journeysResult.data || []) as JourneyRecord[]).sort((a, b) => new Date(b.accessed_at).getTime() - new Date(a.accessed_at).getTime()).slice(0, 1000));
     setLoading(false);
   }
 
@@ -250,7 +251,7 @@ export function AdminPeopleMapPageV2() {
 
   async function persist(record: MapaRecord, nextStatus: string, nextObservations: Record<string, string>) {
     if (!supabase) return false;
-    const { data, error: rpcError } = await supabase.rpc('update_mapa_people_record', { p_id: record.id, p_status: normalizeStatus(nextStatus), p_observacoes: nextObservations });
+    const { data, error: rpcError } = await supabase.schema('public').rpc('workspace_update_mapa_people_record', { p_id: record.id, p_status: normalizeStatus(nextStatus), p_observacoes: nextObservations });
     if (rpcError) { setError(`Não foi possível salvar no Mapa: ${rpcError.message}`); return false; }
     return Boolean(data);
   }
