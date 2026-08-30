@@ -1,5 +1,5 @@
-import { FormEvent, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   CheckCircle2,
   ExternalLink,
@@ -10,16 +10,39 @@ import {
   MessageCircle,
   Send,
 } from 'lucide-react';
-import { isSupabaseConfigured, sendMagicLink } from '../lib/supabase';
+import { isSupabaseConfigured, sendMagicLink, supabase } from '../lib/supabase';
 
 export function LoginPage() {
-  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
   const valid = useMemo(() => email.includes('@') && email.includes('.'), [email]);
-  const previewEnabled = searchParams.get('preview') === '1' || window.location.hostname.endsWith('.vercel.app');
+  const previewEnabled = window.location.hostname.endsWith('.vercel.app');
+
+  useEffect(() => {
+    if (!supabase) return;
+    let active = true;
+
+    async function resumeExistingSession() {
+      const { data: sessionData, error: sessionError } = await supabase!.auth.getSession();
+      const user = sessionData.session?.user;
+      if (!active || sessionError || !user) return;
+
+      const { data: profile, error: profileError } = await supabase!
+        .from('profiles')
+        .select('role, active')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (!active || profileError || !profile?.active) return;
+      navigate(profile.role === 'admin' ? '/admin' : '/cliente', { replace: true });
+    }
+
+    resumeExistingSession();
+    return () => { active = false; };
+  }, [navigate]);
 
   function enterPreview(role: 'admin' | 'client') {
     sessionStorage.setItem('cali-preview-role', role);
