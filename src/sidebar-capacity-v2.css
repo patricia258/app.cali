@@ -1,6 +1,6 @@
-/* CALI Workspace · sidebar capacity v5
-   Compactacao consistente nos estados aberto e fechado.
-   Mantem tipografia legivel, pattern aprovado, scroll proprio e perfil fixo. */
+/* CALI Workspace · sidebar capacity v6
+   Regra unica de densidade para menu aberto, fechado e mobile.
+   O rail fechado usa posicoes deterministicas para nao distribuir itens pela altura. */
 
 @media (min-width: 861px) {
   .sidebar {
@@ -9,15 +9,6 @@
   }
 
   .sidebar nav {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    grid-auto-rows: 40px !important;
-    gap: 1px !important;
-    align-content: start !important;
-    justify-content: stretch !important;
-    min-height: 0 !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
     scrollbar-width: none !important;
     overscroll-behavior: contain !important;
   }
@@ -27,72 +18,163 @@
     height: 0 !important;
   }
 
-  .sidebar nav a {
-    min-height: 40px !important;
-    height: 40px !important;
-    margin: 0 !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    border-radius: 11px !important;
-    align-self: stretch !important;
+  /* =========================================================
+     RAIL FECHADO
+     ========================================================= */
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    padding: 12px 8px 10px !important;
   }
 
-  .sidebar nav a svg {
-    width: 17px !important;
-    height: 17px !important;
-    flex: 0 0 17px !important;
-  }
-
-  /* Rail fechado: nao distribui os icones pela altura da sidebar. */
   .sidebar:not(:hover):not(:focus-within):not(.pinned) .sidebar-top {
-    flex: 0 0 58px !important;
-    min-height: 58px !important;
+    position: absolute !important;
+    top: 10px !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand {
-    padding-bottom: 4px !important;
+    width: 52px !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    flex: 0 0 52px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand-compact-slide {
+    width: 52px !important;
+    height: 52px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand-compact-art {
+    width: 42px !important;
+    height: 42px !important;
   }
 
   .sidebar:not(:hover):not(:focus-within):not(.pinned) .sidebar-pin {
-    flex: 0 0 42px !important;
-    min-height: 42px !important;
-    height: 42px !important;
-    width: 54px !important;
-    margin: 2px auto 5px !important;
+    position: absolute !important;
+    top: 70px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: 52px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    margin: 0 !important;
     padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 11px !important;
   }
 
   .sidebar:not(:hover):not(:focus-within):not(.pinned) nav {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    grid-auto-rows: 40px !important;
-    gap: 1px !important;
-    align-content: start !important;
-    justify-content: stretch !important;
-    flex: 0 1 auto !important;
-    width: 100% !important;
-    max-height: calc(100dvh - 58px - 49px - 72px - 18px) !important;
+    position: absolute !important;
+    top: 118px !important;
+    left: 8px !important;
+    right: 8px !important;
+    bottom: 82px !important;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
     margin: 0 !important;
-    padding: 0 6px !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 2px !important;
     overflow-y: auto !important;
+    overflow-x: hidden !important;
   }
 
   .sidebar:not(:hover):not(:focus-within):not(.pinned) nav a {
-    min-height: 40px !important;
-    height: 40px !important;
+    flex: 0 0 40px !important;
     width: 100% !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
     margin: 0 !important;
-    justify-content: center !important;
     padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    border-radius: 11px !important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) nav a svg {
+    display: block !important;
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    flex: 0 0 18px !important;
+    margin: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) nav .nav-label {
+    display: none !important;
   }
 
   .sidebar:not(:hover):not(:focus-within):not(.pinned) .sidebar-footer-profile-only {
-    margin-top: auto !important;
-    flex: 0 0 66px !important;
-    min-height: 66px !important;
+    position: absolute !important;
+    left: 8px !important;
+    right: 8px !important;
+    bottom: 10px !important;
+    width: auto !important;
+    height: 60px !important;
+    min-height: 60px !important;
+    margin: 0 !important;
+    padding: 8px 0 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-top: 1px solid rgba(247,243,238,.20) !important;
   }
 
-  /* Aberto/pinado: mesma densidade visual do rail fechado. */
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .profile-trigger-direct {
+    width: 48px !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .profile-avatar {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+  }
+
+  /* =========================================================
+     MENU ABERTO / PINADO
+     ========================================================= */
+  .sidebar:hover,
+  .sidebar:focus-within,
+  .sidebar.pinned {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
   .sidebar:hover .brand-full,
   .sidebar:focus-within .brand-full,
   .sidebar.pinned .brand-full {
@@ -123,13 +205,18 @@
   .sidebar:hover nav,
   .sidebar:focus-within nav,
   .sidebar.pinned nav {
+    position: static !important;
     display: grid !important;
     grid-template-columns: 1fr !important;
     grid-auto-rows: 40px !important;
     gap: 1px !important;
     align-content: start !important;
     flex: 1 1 auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
     padding: 0 14px 4px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
   }
 
   .sidebar:hover nav a,
@@ -138,6 +225,17 @@
     min-height: 40px !important;
     height: 40px !important;
     margin: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    border-radius: 11px !important;
+  }
+
+  .sidebar:hover nav a svg,
+  .sidebar:focus-within nav a svg,
+  .sidebar.pinned nav a svg {
+    width: 17px !important;
+    height: 17px !important;
+    flex: 0 0 17px !important;
   }
 
   .sidebar:hover nav .nav-label,
@@ -150,6 +248,7 @@
   .sidebar:hover .sidebar-footer-profile-only,
   .sidebar:focus-within .sidebar-footer-profile-only,
   .sidebar.pinned .sidebar-footer-profile-only {
+    position: static !important;
     flex: 0 0 auto !important;
     min-height: 62px !important;
     margin-top: auto !important;
