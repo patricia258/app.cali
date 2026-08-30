@@ -1,0 +1,1 @@
+CALI Workspace social preview asset is managed separately from source text files.
