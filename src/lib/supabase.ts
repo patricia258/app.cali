@@ -19,13 +19,7 @@ const workspaceSupabase = isSupabaseConfigured
     })
   : null;
 
-/*
- * Client dedicado aos produtos legados que vivem no schema public
- * (Mapa de People e, futuramente, Portal/Propostas).
- * Ele usa o mesmo projeto e a mesma sessao, mas nunca herda o profile
- * PostgREST do schema cali_workspace.
- */
-export const publicSupabase = isSupabaseConfigured
+const rawPublicSupabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabasePublishableKey, {
       db: { schema: 'public' },
       auth: {
@@ -36,32 +30,61 @@ export const publicSupabase = isSupabaseConfigured
     })
   : null;
 
-if (workspaceSupabase && publicSupabase) {
-  // Garante que o segundo client receba exatamente a mesma sessao do Workspace.
-  workspaceSupabase.auth.getSession().then(({ data }) => {
-    if (data.session) {
-      void publicSupabase.auth.setSession({
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
-      });
-    }
+async function syncPublicSession() {
+  if (!workspaceSupabase || !rawPublicSupabase) return;
+
+  const { data, error } = await workspaceSupabase.auth.getSession();
+  if (error) throw error;
+  if (!data.session) return;
+
+  const { data: publicData } = await rawPublicSupabase.auth.getSession();
+  if (publicData.session?.access_token === data.session.access_token) return;
+
+  const { error: setSessionError } = await rawPublicSupabase.auth.setSession({
+    access_token: data.session.access_token,
+    refresh_token: data.session.refresh_token,
   });
+  if (setSessionError) throw setSessionError;
+}
+
+/*
+ * Cliente dedicado ao schema public (Mapa de People / Portal).
+ * O RPC e sincronizado com a sessao do Workspace antes de cada chamada,
+ * evitando corrida entre a inicializacao dos dois clientes Supabase.
+ */
+export const publicSupabase = rawPublicSupabase
+  ? new Proxy(rawPublicSupabase, {
+      get(target, prop, receiver) {
+        if (prop === 'rpc') {
+          return async (fn: string, args?: Record<string, unknown>, options?: Record<string, unknown>) => {
+            await syncPublicSession();
+            return (target.rpc as any)(fn, args, options);
+          };
+        }
+        const value = Reflect.get(target, prop, receiver);
+        return typeof value === 'function' ? value.bind(target) : value;
+      },
+    })
+  : null;
+
+if (workspaceSupabase && rawPublicSupabase) {
+  void syncPublicSession();
 
   workspaceSupabase.auth.onAuthStateChange((_event, session) => {
     if (session) {
-      void publicSupabase.auth.setSession({
+      void rawPublicSupabase.auth.setSession({
         access_token: session.access_token,
         refresh_token: session.refresh_token,
       });
+    } else {
+      void rawPublicSupabase.auth.signOut({ scope: 'local' });
     }
   });
 }
 
 /*
- * Proxy intencional: o restante do Workspace continua usando cali_workspace.
- * Quando um modulo pede schema('public'), a chamada e roteada para o client
- * public verdadeiro. Isso evita que Accept-Profile/Content-Profile do
- * cali_workspace vaze para Mapa/Portal.
+ * O restante do Workspace continua usando cali_workspace.
+ * Modulos que pedem schema('public') recebem o cliente public dedicado.
  */
 export const supabase = workspaceSupabase
   ? new Proxy(workspaceSupabase, {
