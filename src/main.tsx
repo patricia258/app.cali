@@ -33,6 +33,7 @@ import './sidebar-brand-artwork.css';
 import './sidebar-capacity-v2.css';
 import './login-home-v2.css';
 import './people-map-admin.css';
+import './people-map-admin-v2.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
 initializeWorkspaceTheme();
