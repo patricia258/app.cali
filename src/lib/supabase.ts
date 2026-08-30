@@ -126,16 +126,30 @@ export const supabase = workspaceSupabase
   : null;
 
 export async function sendMagicLink(email: string) {
-  if (!supabase) {
-    throw new Error('Supabase ainda não configurado neste ambiente.');
+  if (!isSupabaseConfigured) {
+    return { data: null, error: { message: 'Supabase ainda não configurado neste ambiente.' } };
   }
 
-  const redirectTo = `${window.location.origin}/auth/callback`;
-  return supabase.auth.signInWithOtp({
-    email,
-    options: {
-      emailRedirectTo: redirectTo,
-      shouldCreateUser: false,
-    },
-  });
+  try {
+    const response = await fetch(`${supabaseUrl}/functions/v1/workspace-access`, {
+      method: 'POST',
+      headers: {
+        apikey: supabasePublishableKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: email.trim(), website: '' }),
+    });
+
+    const payload = await response.json().catch(() => ({})) as { error?: string };
+    if (!response.ok) {
+      return { data: null, error: { message: payload.error || 'Não foi possível enviar o link de acesso.' } };
+    }
+
+    return { data: { ok: true }, error: null };
+  } catch (error) {
+    return {
+      data: null,
+      error: { message: error instanceof Error ? error.message : 'Não foi possível enviar o link de acesso.' },
+    };
+  }
 }
