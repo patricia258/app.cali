@@ -46,12 +46,14 @@ async function directPublicRpc<T = unknown>(fn: string, args?: Record<string, un
   try {
     const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${encodeURIComponent(fn)}`, {
       method: 'POST',
+      cache: 'no-store',
       headers: {
         apikey: supabasePublishableKey,
         Authorization: `Bearer ${sessionData.session.access_token}`,
         'Content-Type': 'application/json',
         'Accept-Profile': 'public',
         'Content-Profile': 'public',
+        'Cache-Control': 'no-store',
       },
       body: JSON.stringify(args || {}),
     });
@@ -78,8 +80,8 @@ async function directPublicRpc<T = unknown>(fn: string, args?: Record<string, un
 /*
  * Cliente dedicado ao schema public (Mapa de People / Portal).
  * RPCs administrativas usam o token real do Workspace em uma chamada REST
- * explicitamente marcada como schema public. Isso impede herança acidental
- * do profile cali_workspace e mantém os módulos integrados isolados.
+ * explicitamente marcada como schema public. Elas nao dependem do schema
+ * cali_workspace para validar o admin, evitando bloqueio cruzado de schemas.
  */
 export const publicSupabase = rawPublicSupabase
   ? new Proxy(rawPublicSupabase, {
