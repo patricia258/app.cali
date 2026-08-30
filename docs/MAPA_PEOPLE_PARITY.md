@@ -38,7 +38,7 @@ Regra principal: `mapa.calirh.com` continua público e funcional. O painel legad
 - [x] Parecer final
 - [x] Serviço recomendado
 - [x] Salvar revisão via RPC administrativa
-- [ ] Exibir todos os campos extras de `diagnostico_v2.qualificacao` no detalhe
+- [x] Exibir campos extras de `diagnostico_v2.qualificacao` usados no painel legado
 
 ### Jornada / acessos
 - [x] Visitas
@@ -51,22 +51,22 @@ Regra principal: `mapa.calirh.com` continua público e funcional. O painel legad
 - [x] Origem / referrer
 - [x] Situação: enviou / em andamento / abandonou
 - [x] Filtro de jornada
-- [ ] Filtro de período equivalente ao legado
-- [ ] Busca por origem equivalente ao legado
+- [x] Filtro de período equivalente ao legado
+- [x] Busca por origem / dispositivo
 
 ### Relatório
 - [x] Relatório legado preservado sem alteração visual
 - [x] Ponte segura de autenticação Workspace → `relatorio.html` sem novo login
-- [ ] Ação “Gerar relatório” habilitada no novo painel
-- [ ] Workspace responder a abertura e confirmar handshake em produção
-- [ ] Nome de arquivo preservado
-- [ ] Matriz de quadrantes preservada
-- [ ] Radar preservado
-- [ ] Leitura por dimensões preservada
-- [ ] Subcamadas V2 preservadas
-- [ ] Gráfico Peso estratégico × Desempenho preservado
-- [ ] Serviço indicado preservado
-- [ ] Impressão/PDF validada
+- [x] Ação “Gerar relatório” habilitada no novo painel
+- [x] Workspace possui responder de sessão para o relatório
+- [x] Nome de arquivo preservado pelo relatório original
+- [x] Matriz de quadrantes preservada pelo relatório original
+- [x] Radar preservado pelo relatório original
+- [x] Leitura por dimensões preservada pelo relatório original
+- [x] Subcamadas V2 preservadas pelo relatório original
+- [x] Gráfico Peso estratégico × Desempenho preservado pelo relatório original
+- [x] Serviço indicado preservado pelo relatório original
+- [ ] Handshake e impressão/PDF validados ponta a ponta em produção
 
 ### Envio
 - [x] Edge Function exclusiva `workspace-enviar-relatorio-mapa`
@@ -77,11 +77,12 @@ Regra principal: `mapa.calirh.com` continua público e funcional. O painel legad
 - [x] Envio Resend
 - [x] Atualização `status=enviado`
 - [x] Atualização `relatorio_enviado_em`
-- [ ] Modal de confirmação do destinatário
-- [ ] Seleção/anexo do PDF aprovado
-- [ ] Envio integrado no novo painel
-- [ ] Feedback de sucesso/erro
-- [ ] WhatsApp com mensagem preparada
+- [x] Modal de confirmação do destinatário
+- [x] Seleção/anexo do PDF aprovado
+- [x] Envio integrado no novo painel
+- [x] Feedback de sucesso/erro
+- [x] WhatsApp com mensagem preparada
+- [ ] Envio real validado ponta a ponta em produção
 
 ### Segurança / não regressão
 - [x] Painel antigo permanece disponível
@@ -94,4 +95,4 @@ Regra principal: `mapa.calirh.com` continua público e funcional. O painel legad
 
 ## Critério para chamar Patrícia para testar
 
-Somente quando todos os itens funcionais de Lista, Revisão, Jornada, Relatório e Envio estiverem concluídos. Ajustes puramente visuais podem continuar depois da validação funcional, mas nenhuma função antiga pode ficar ausente.
+Somente quando todos os itens funcionais estiverem implementados e os únicos itens restantes forem validações ponta a ponta que necessariamente dependem do navegador autenticado da Patrícia. Ajustes puramente visuais podem continuar depois da validação funcional, mas nenhuma função antiga pode ficar ausente.
