@@ -31,6 +31,7 @@ import './workspace-typography-connect.css';
 import './page5-projects-polish-v3.css';
 import './sidebar-brand-artwork.css';
 import './login-home-v2.css';
+import './people-map-admin.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
 initializeWorkspaceTheme();
