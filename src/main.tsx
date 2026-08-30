@@ -35,6 +35,7 @@ import './sidebar-capacity-v2.css';
 import './login-home-v2.css';
 import './people-map-admin.css';
 import './people-map-admin-v2.css';
+import './login-theme-isolation.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
 // O Mapa administrativo usa RPCs públicas seguras; o backend foi sincronizado em 30/08/2026.
