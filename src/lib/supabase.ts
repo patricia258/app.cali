@@ -23,43 +23,69 @@ const rawPublicSupabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabasePublishableKey, {
       db: { schema: 'public' },
       auth: {
-        persistSession: true,
+        persistSession: false,
         autoRefreshToken: false,
         detectSessionInUrl: false,
       },
     })
   : null;
 
-async function syncPublicSession() {
-  if (!workspaceSupabase || !rawPublicSupabase) return;
+type RpcResult<T = unknown> = { data: T | null; error: { message: string } | null };
 
-  const { data, error } = await workspaceSupabase.auth.getSession();
-  if (error) throw error;
-  if (!data.session) return;
+async function directPublicRpc<T = unknown>(fn: string, args?: Record<string, unknown>): Promise<RpcResult<T>> {
+  if (!workspaceSupabase) {
+    return { data: null, error: { message: 'Supabase não configurado.' } };
+  }
 
-  const { data: publicData } = await rawPublicSupabase.auth.getSession();
-  if (publicData.session?.access_token === data.session.access_token) return;
+  const { data: sessionData, error: sessionError } = await workspaceSupabase.auth.getSession();
+  if (sessionError) return { data: null, error: { message: sessionError.message } };
+  if (!sessionData.session?.access_token) {
+    return { data: null, error: { message: 'Sessão administrativa não encontrada. Entre novamente no Workspace.' } };
+  }
 
-  const { error: setSessionError } = await rawPublicSupabase.auth.setSession({
-    access_token: data.session.access_token,
-    refresh_token: data.session.refresh_token,
-  });
-  if (setSessionError) throw setSessionError;
+  try {
+    const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${encodeURIComponent(fn)}`, {
+      method: 'POST',
+      headers: {
+        apikey: supabasePublishableKey,
+        Authorization: `Bearer ${sessionData.session.access_token}`,
+        'Content-Type': 'application/json',
+        'Accept-Profile': 'public',
+        'Content-Profile': 'public',
+      },
+      body: JSON.stringify(args || {}),
+    });
+
+    const text = await response.text();
+    let payload: unknown = null;
+    if (text) {
+      try { payload = JSON.parse(text); } catch { payload = text; }
+    }
+
+    if (!response.ok) {
+      const message = typeof payload === 'object' && payload && 'message' in payload
+        ? String((payload as { message?: unknown }).message || `Erro ${response.status}`)
+        : String(payload || `Erro ${response.status}`);
+      return { data: null, error: { message } };
+    }
+
+    return { data: payload as T, error: null };
+  } catch (error) {
+    return { data: null, error: { message: error instanceof Error ? error.message : 'Falha de conexão com o Supabase.' } };
+  }
 }
 
 /*
  * Cliente dedicado ao schema public (Mapa de People / Portal).
- * O RPC e sincronizado com a sessao do Workspace antes de cada chamada,
- * evitando corrida entre a inicializacao dos dois clientes Supabase.
+ * RPCs administrativas usam o token real do Workspace em uma chamada REST
+ * explicitamente marcada como schema public. Isso impede herança acidental
+ * do profile cali_workspace e mantém os módulos integrados isolados.
  */
 export const publicSupabase = rawPublicSupabase
   ? new Proxy(rawPublicSupabase, {
       get(target, prop, receiver) {
         if (prop === 'rpc') {
-          return async (fn: string, args?: Record<string, unknown>, options?: Record<string, unknown>) => {
-            await syncPublicSession();
-            return (target.rpc as any)(fn, args, options);
-          };
+          return (fn: string, args?: Record<string, unknown>) => directPublicRpc(fn, args);
         }
         const value = Reflect.get(target, prop, receiver);
         return typeof value === 'function' ? value.bind(target) : value;
@@ -67,24 +93,9 @@ export const publicSupabase = rawPublicSupabase
     })
   : null;
 
-if (workspaceSupabase && rawPublicSupabase) {
-  void syncPublicSession();
-
-  workspaceSupabase.auth.onAuthStateChange((_event, session) => {
-    if (session) {
-      void rawPublicSupabase.auth.setSession({
-        access_token: session.access_token,
-        refresh_token: session.refresh_token,
-      });
-    } else {
-      void rawPublicSupabase.auth.signOut({ scope: 'local' });
-    }
-  });
-}
-
 /*
  * O restante do Workspace continua usando cali_workspace.
- * Modulos que pedem schema('public') recebem o cliente public dedicado.
+ * Modulos que pedem schema('public') recebem a ponte publica dedicada.
  */
 export const supabase = workspaceSupabase
   ? new Proxy(workspaceSupabase, {
