@@ -1,6 +1,6 @@
-/* CALI Workspace · sidebar capacity v6
-   Regra unica de densidade para menu aberto, fechado e mobile.
-   O rail fechado usa posicoes deterministicas para nao distribuir itens pela altura. */
+/* CALI Workspace · sidebar capacity v7
+   Mantém a densidade aprovada e corrige somente o rail fechado:
+   sem moldura vazia, avatar visível no rodapé e navegação compacta. */
 
 @media (min-width: 861px) {
   .sidebar {
@@ -65,25 +65,16 @@
     height: 42px !important;
   }
 
+  /* No rail fechado o hover já abre o menu. O botão pin só aparece quando aberto. */
   .sidebar:not(:hover):not(:focus-within):not(.pinned) .sidebar-pin {
-    position: absolute !important;
-    top: 70px !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: 52px !important;
-    height: 40px !important;
-    min-height: 40px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 11px !important;
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
 
   .sidebar:not(:hover):not(:focus-within):not(.pinned) nav {
     position: absolute !important;
-    top: 118px !important;
+    top: 72px !important;
     left: 8px !important;
     right: 8px !important;
     bottom: 82px !important;
@@ -145,7 +136,18 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow: visible !important;
     border-top: 1px solid rgba(247,243,238,.20) !important;
+    z-index: 3 !important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .profile-control-direct,
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .profile-trigger-direct {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 
   .sidebar:not(:hover):not(:focus-within):not(.pinned) .profile-trigger-direct {
@@ -154,19 +156,29 @@
     min-height: 48px !important;
     margin: 0 auto !important;
     padding: 0 !important;
-    display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    border: 0 !important;
+    background: transparent !important;
   }
 
   .sidebar:not(:hover):not(:focus-within):not(.pinned) .profile-avatar {
+    display: grid !important;
+    place-items: center !important;
     width: 42px !important;
     height: 42px !important;
     min-width: 42px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .profile-copy,
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .profile-edit-chevron {
+    display: none !important;
   }
 
   /* =========================================================
-     MENU ABERTO / PINADO
+     MENU ABERTO / PINADO — preservado
      ========================================================= */
   .sidebar:hover,
   .sidebar:focus-within,
@@ -195,6 +207,9 @@
   .sidebar:hover .sidebar-pin,
   .sidebar:focus-within .sidebar-pin,
   .sidebar.pinned .sidebar-pin {
+    display: flex !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
     min-height: 36px !important;
     height: 36px !important;
     margin: 1px 14px 3px !important;
