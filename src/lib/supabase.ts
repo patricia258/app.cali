@@ -26,6 +26,7 @@ const rawPublicSupabase = isSupabaseConfigured
         persistSession: false,
         autoRefreshToken: false,
         detectSessionInUrl: false,
+        storageKey: 'cali-public-transient-auth',
       },
     })
   : null;
