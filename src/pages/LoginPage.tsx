@@ -1,7 +1,14 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, Send } from 'lucide-react';
-import { Brand } from '../components/WorkspaceShell';
+import {
+  CheckCircle2,
+  ExternalLink,
+  Instagram,
+  Linkedin,
+  Mail,
+  MessageCircle,
+  Send,
+} from 'lucide-react';
 import { isSupabaseConfigured, sendMagicLink } from '../lib/supabase';
 
 export function LoginPage() {
@@ -41,33 +48,66 @@ export function LoginPage() {
   }
 
   return (
-    <main className="login-page">
-      <section className="login-brand">
-        <Brand />
-        <div>
-          <span className="section-kicker light">CALI RH</span>
-          <h1>O trabalho continua aqui.</h1>
-          <p>Projetos, decisões, entregas, horas e documentos organizados no mesmo espaço entre a CALI e sua empresa.</p>
+    <main className="login-v2">
+      <section className="login-v2-brand" aria-label="CALI Workspace">
+        <div className="login-v2-brand-inner">
+          <img
+            className="login-v2-logo"
+            src="/brand/cali-workspace-transparent.svg"
+            alt="CALI Workspace"
+          />
+
+          <div className="login-v2-copy">
+            <h1>O trabalho<br />continua aqui.</h1>
+            <span className="login-v2-rule" aria-hidden="true" />
+            <p>
+              Projetos, decisões, entregas, horas e documentos organizados no mesmo espaço entre a CALI e sua empresa.
+            </p>
+          </div>
+
+          <div className="login-v2-signature">
+            <span className="login-v2-gold-mark" aria-hidden="true">♡</span>
+            <p>Pessoas como estratégia.<br />Negócios que evoluem.</p>
+          </div>
         </div>
-        <small>Pessoas como estratégia. Negócios que evoluem.</small>
       </section>
-      <section className="login-form">
-        <form className="login-card" onSubmit={handleSubmit}>
-          <span className="section-kicker">ACESSO SEGURO</span>
+
+      <section className="login-v2-access">
+        <form className="login-v2-card" onSubmit={handleSubmit}>
+          <span className="login-v2-kicker">ACESSO SEGURO</span>
           <h2>Entre no seu Workspace.</h2>
-          <p>Informe o e-mail cadastrado. O acesso chega por um link seguro, sem senha para memorizar.</p>
-          <label>
-            E-mail
-            <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="voce@empresa.com.br" type="email" autoComplete="email" />
+          <p className="login-v2-card-copy">
+            Informe o e-mail cadastrado. O acesso chega por um link seguro, sem senha para memorizar.
+          </p>
+
+          <label className="login-v2-field">
+            <span>E-mail</span>
+            <div className="login-v2-input-wrap">
+              <Mail size={18} aria-hidden="true" />
+              <input
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="voce@empresa.com.br"
+                type="email"
+                autoComplete="email"
+              />
+            </div>
           </label>
-          <button disabled={!valid || loading} className="primary full" type="submit">
+
+          <button disabled={!valid || loading} className="login-v2-submit" type="submit">
             <Send size={18} />
             {loading ? 'Enviando…' : 'Enviar link de acesso'}
           </button>
-          {sent && <div className="form-message success"><CheckCircle2 size={18} />Link enviado. Confira seu e-mail.</div>}
-          {error && <div className="form-message">{error}</div>}
+
+          {sent && (
+            <div className="login-v2-message login-v2-message-success">
+              <CheckCircle2 size={18} />Link enviado. Confira seu e-mail.
+            </div>
+          )}
+          {error && <div className="login-v2-message">{error}</div>}
+
           {previewEnabled && (
-            <div className="demo-links">
+            <div className="demo-links login-v2-demo-links">
               <span>Prévia de desenvolvimento</span>
               <Link to="/admin" onClick={() => enterPreview('admin')}>Patrícia</Link>
               <Link to="/cliente" onClick={() => enterPreview('client')}>Cliente</Link>
@@ -75,6 +115,25 @@ export function LoginPage() {
           )}
         </form>
       </section>
+
+      <footer className="login-v2-footer-brand">
+        <span>© 2026 CALI RH — HR FOR BUSINESS. Todos os direitos reservados.</span>
+      </footer>
+
+      <footer className="login-v2-footer-access">
+        <div className="login-v2-footer-links">
+          <a href="mailto:patricia@calirh.com"><Mail size={15} />patricia@calirh.com</a>
+          <span><MessageCircle size={15} />WhatsApp</span>
+          <span><Linkedin size={15} />LinkedIn</span>
+          <span><Instagram size={15} />Instagram</span>
+        </div>
+        <div className="login-v2-site-link">
+          <span>Visite nosso site</span>
+          <a href="https://calirh.com" target="_blank" rel="noreferrer">
+            calirh.com <ExternalLink size={15} />
+          </a>
+        </div>
+      </footer>
     </main>
   );
 }
