@@ -3,17 +3,27 @@ import { Navigate } from 'react-router-dom';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import type { Role } from './WorkspaceShell';
 
+function previewBypassAllowed() {
+  const hostname = window.location.hostname;
+  return hostname === 'localhost'
+    || hostname === '127.0.0.1'
+    || hostname.endsWith('.vercel.app');
+}
+
 export function ProtectedRoute({ role, children }: { role: Role; children: ReactNode }) {
   const [state, setState] = useState<'loading' | 'allowed' | 'denied'>('loading');
   const [actualRole, setActualRole] = useState<Role | null>(null);
 
   useEffect(() => {
     const previewRole = sessionStorage.getItem('cali-preview-role') as Role | null;
-    if (previewRole === role) {
+    if (previewBypassAllowed() && previewRole === role) {
       setActualRole(previewRole);
       setState('allowed');
       return;
     }
+
+    // Produção nunca pode depender do preview local.
+    if (!previewBypassAllowed()) sessionStorage.removeItem('cali-preview-role');
 
     if (!isSupabaseConfigured || !supabase) {
       setState('denied');
