@@ -1,6 +1,6 @@
-/* CALI Workspace · sidebar capacity v7
-   Mantém a densidade aprovada e corrige somente o rail fechado:
-   sem moldura vazia, avatar visível no rodapé e navegação compacta. */
+/* CALI Workspace · sidebar capacity v8
+   Aberto: preserva a densidade aprovada.
+   Fechado: aplica a mesma logica compacta, sem estado de foco fantasma. */
 
 @media (min-width: 861px) {
   .sidebar {
@@ -20,119 +20,117 @@
 
   /* =========================================================
      RAIL FECHADO
+     A largura/estado visual depende apenas de hover ou pinned.
+     O foco de um link nao pode reabrir o layout internamente.
      ========================================================= */
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) {
+  .sidebar:not(:hover):not(.pinned) {
     position: fixed !important;
     inset: 0 auto 0 0 !important;
     height: 100dvh !important;
     min-height: 100dvh !important;
     max-height: 100dvh !important;
     overflow: hidden !important;
-    padding: 12px 8px 10px !important;
+    padding: 10px 8px 9px !important;
   }
 
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) .sidebar-top {
-    position: absolute !important;
-    top: 10px !important;
-    left: 0 !important;
-    right: 0 !important;
+  .sidebar:not(:hover):not(.pinned) .sidebar-top {
+    position: relative !important;
     width: 100% !important;
-    height: 52px !important;
-    min-height: 52px !important;
+    height: 50px !important;
+    min-height: 50px !important;
+    flex: 0 0 50px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
   }
 
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand {
-    width: 52px !important;
-    height: 52px !important;
-    min-height: 52px !important;
-    flex: 0 0 52px !important;
+  .sidebar:not(:hover):not(.pinned) .brand {
+    width: 50px !important;
+    height: 50px !important;
+    min-height: 50px !important;
+    flex: 0 0 50px !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand-compact-slide {
-    width: 52px !important;
-    height: 52px !important;
+  .sidebar:not(:hover):not(.pinned) .brand-compact-slide {
+    width: 50px !important;
+    height: 50px !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand-compact-art {
-    width: 42px !important;
-    height: 42px !important;
+  .sidebar:not(:hover):not(.pinned) .brand-compact-art {
+    width: 40px !important;
+    height: 40px !important;
   }
 
-  /* No rail fechado o hover já abre o menu. O botão pin só aparece quando aberto. */
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) .sidebar-pin {
+  .sidebar:not(:hover):not(.pinned) .sidebar-pin {
     display: none !important;
     visibility: hidden !important;
     pointer-events: none !important;
   }
 
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) nav {
-    position: absolute !important;
-    top: 72px !important;
-    left: 8px !important;
-    right: 8px !important;
-    bottom: 82px !important;
-    width: auto !important;
+  .sidebar:not(:hover):not(.pinned) nav {
+    position: static !important;
+    width: 100% !important;
     height: auto !important;
     min-height: 0 !important;
-    max-height: none !important;
-    margin: 0 !important;
+    max-height: calc(100dvh - 126px) !important;
+    flex: 0 1 auto !important;
+    margin: 4px 0 0 !important;
     padding: 0 !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
     justify-content: flex-start !important;
-    gap: 2px !important;
+    gap: 0 !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
   }
 
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) nav a {
-    flex: 0 0 40px !important;
+  .sidebar:not(:hover):not(.pinned) nav a {
+    flex: 0 0 38px !important;
     width: 100% !important;
-    height: 40px !important;
-    min-height: 40px !important;
-    max-height: 40px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
     margin: 0 !important;
     padding: 0 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     gap: 0 !important;
-    border-radius: 11px !important;
+    border-radius: 10px !important;
   }
 
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) nav a svg {
+  .sidebar:not(:hover):not(.pinned) nav a svg {
     display: block !important;
+    position: static !important;
     width: 18px !important;
     height: 18px !important;
     min-width: 18px !important;
     flex: 0 0 18px !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
+    transform: none !important;
     opacity: 1 !important;
     visibility: visible !important;
   }
 
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) nav .nav-label {
+  .sidebar:not(:hover):not(.pinned) nav .nav-label {
     display: none !important;
   }
 
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) .sidebar-footer-profile-only {
+  .sidebar:not(:hover):not(.pinned) .sidebar-footer-profile-only {
     position: absolute !important;
     left: 8px !important;
     right: 8px !important;
-    bottom: 10px !important;
+    bottom: 9px !important;
     width: auto !important;
-    height: 60px !important;
-    min-height: 60px !important;
+    height: 58px !important;
+    min-height: 58px !important;
     margin: 0 !important;
-    padding: 8px 0 0 !important;
+    padding: 7px 0 0 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -143,14 +141,14 @@
     z-index: 3 !important;
   }
 
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) .profile-control-direct,
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) .profile-trigger-direct {
+  .sidebar:not(:hover):not(.pinned) .profile-control-direct,
+  .sidebar:not(:hover):not(.pinned) .profile-trigger-direct {
     display: flex !important;
     opacity: 1 !important;
     visibility: visible !important;
   }
 
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) .profile-trigger-direct {
+  .sidebar:not(:hover):not(.pinned) .profile-trigger-direct {
     width: 48px !important;
     height: 48px !important;
     min-height: 48px !important;
@@ -162,7 +160,7 @@
     background: transparent !important;
   }
 
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) .profile-avatar {
+  .sidebar:not(:hover):not(.pinned) .profile-avatar {
     display: grid !important;
     place-items: center !important;
     width: 42px !important;
@@ -172,23 +170,21 @@
     visibility: visible !important;
   }
 
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) .profile-copy,
-  .sidebar:not(:hover):not(:focus-within):not(.pinned) .profile-edit-chevron {
+  .sidebar:not(:hover):not(.pinned) .profile-copy,
+  .sidebar:not(:hover):not(.pinned) .profile-edit-chevron {
     display: none !important;
   }
 
   /* =========================================================
-     MENU ABERTO / PINADO — preservado
+     MENU ABERTO / PINADO — mantem o padrao aprovado
      ========================================================= */
   .sidebar:hover,
-  .sidebar:focus-within,
   .sidebar.pinned {
     display: flex !important;
     flex-direction: column !important;
   }
 
   .sidebar:hover .brand-full,
-  .sidebar:focus-within .brand-full,
   .sidebar.pinned .brand-full {
     min-height: 72px !important;
     height: 72px !important;
@@ -196,7 +192,6 @@
   }
 
   .sidebar:hover .brand-full img,
-  .sidebar:focus-within .brand-full img,
   .sidebar.pinned .brand-full img {
     width: min(146px, 65%) !important;
     max-width: 146px !important;
@@ -205,7 +200,6 @@
   }
 
   .sidebar:hover .sidebar-pin,
-  .sidebar:focus-within .sidebar-pin,
   .sidebar.pinned .sidebar-pin {
     display: flex !important;
     visibility: visible !important;
@@ -218,7 +212,6 @@
   }
 
   .sidebar:hover nav,
-  .sidebar:focus-within nav,
   .sidebar.pinned nav {
     position: static !important;
     display: grid !important;
@@ -235,7 +228,6 @@
   }
 
   .sidebar:hover nav a,
-  .sidebar:focus-within nav a,
   .sidebar.pinned nav a {
     min-height: 40px !important;
     height: 40px !important;
@@ -246,7 +238,6 @@
   }
 
   .sidebar:hover nav a svg,
-  .sidebar:focus-within nav a svg,
   .sidebar.pinned nav a svg {
     width: 17px !important;
     height: 17px !important;
@@ -254,14 +245,12 @@
   }
 
   .sidebar:hover nav .nav-label,
-  .sidebar:focus-within nav .nav-label,
   .sidebar.pinned nav .nav-label {
     font-size: 14px !important;
     line-height: 1.08 !important;
   }
 
   .sidebar:hover .sidebar-footer-profile-only,
-  .sidebar:focus-within .sidebar-footer-profile-only,
   .sidebar.pinned .sidebar-footer-profile-only {
     position: static !important;
     flex: 0 0 auto !important;
@@ -272,7 +261,6 @@
   }
 
   .sidebar:hover .sidebar-footer-profile-only .profile-avatar,
-  .sidebar:focus-within .sidebar-footer-profile-only .profile-avatar,
   .sidebar.pinned .sidebar-footer-profile-only .profile-avatar {
     width: 38px !important;
     height: 38px !important;
