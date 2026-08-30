@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { initializeWorkspaceTheme, startWorkspaceThemeClock } from './lib/workspaceTheme';
+import { installMapaAuthBridge } from './lib/mapaAuthBridge';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -38,6 +39,7 @@ import './people-map-admin-v2.css';
 // Carregamento global do Workspace e das experiências por módulo.
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
+installMapaAuthBridge();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
