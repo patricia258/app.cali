@@ -15,6 +15,7 @@ import {
   Moon,
   PieChart,
   Sun,
+  Target,
   TimerReset,
   X,
   type LucideIcon,
@@ -50,6 +51,7 @@ export const adminNav: NavItem[] = [
   { label: 'Calendário', icon: CalendarDays, href: '/admin/calendario' },
   { label: 'Documentos', icon: FileText, href: '/admin/documentos' },
   { label: 'Relatórios', icon: PieChart, href: '/admin/relatorios' },
+  { label: 'Mapa de People', icon: Target, href: '/admin/mapa-de-people' },
 ];
 
 export const clientNav: NavItem[] = [
@@ -203,7 +205,7 @@ function ThemeToggle() {
 function watermarkScene(pathname: string) {
   if (pathname === '/admin' || pathname === '/cliente') return 'scene-overview';
   if (pathname.includes('/clientes') || pathname.includes('/documentos')) return 'scene-lime';
-  if (pathname.includes('/projetos') || pathname.includes('/entregaveis') || pathname.includes('/relatorios')) return 'scene-oak';
+  if (pathname.includes('/projetos') || pathname.includes('/entregaveis') || pathname.includes('/relatorios') || pathname.includes('/mapa-de-people')) return 'scene-oak';
   if (pathname.includes('/horas')) return 'scene-lime-soft';
   if (pathname.includes('/calendario') || pathname.includes('/cronograma')) return 'scene-oak-soft';
   return 'scene-overview';
