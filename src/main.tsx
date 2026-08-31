@@ -54,6 +54,7 @@ import './reports-v3.css';
 import './reports-v4.css';
 import './reports-v5.css';
 import './reports-v6.css';
+import './reports-v7.css';
 import './app-error-boundary.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
