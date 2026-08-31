@@ -5,6 +5,7 @@ import App from './App';
 import { initializeWorkspaceTheme, startWorkspaceThemeClock } from './lib/workspaceTheme';
 import { installMapaAuthBridge } from './lib/mapaAuthBridge';
 import { installMapaReviewNavigation } from './lib/mapaReviewNavigation';
+import { startIdentityMediaRuntime } from './lib/identityMediaRuntime';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -43,6 +44,7 @@ import './workspace-polish-2026-08-30.css';
 import './sidebar-closed-profile-fix.css';
 import './sidebar-open-night-profile-fix.css';
 import './profile-avatar-polish.css';
+import './identity-media.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
 // O Mapa administrativo usa RPCs públicas seguras; o backend foi sincronizado em 30/08/2026.
@@ -50,6 +52,7 @@ initializeWorkspaceTheme();
 startWorkspaceThemeClock();
 installMapaAuthBridge();
 installMapaReviewNavigation();
+startIdentityMediaRuntime();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
