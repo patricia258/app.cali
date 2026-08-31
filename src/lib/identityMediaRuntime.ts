@@ -50,44 +50,38 @@ function readAdminProfile(): ProfileMedia {
   }
 }
 
-function imageAlreadyApplied(frame: HTMLElement, src: string) {
-  return frame.dataset.identitySrc === src && Boolean(frame.querySelector(':scope > img.identity-media-image'));
+function isSimpleFrame(frame: HTMLElement) {
+  return frame.children.length === 0;
 }
 
-function applyMedia(
-  frame: HTMLElement,
-  src: string,
-  kind: 'person' | 'company',
-  profile?: ProfileMedia,
-) {
-  if (!src || imageAlreadyApplied(frame, src)) return;
+function clearIdentity(frame: HTMLElement) {
+  frame.dataset.identitySrc = '';
+  frame.classList.remove('identity-media-frame', 'identity-media-person', 'identity-media-company', 'identity-media-empty');
+  frame.style.removeProperty('--identity-image');
+  frame.style.removeProperty('--identity-position');
+  frame.style.removeProperty('--identity-size');
+}
 
-  const img = document.createElement('img');
-  img.className = 'identity-media-image';
-  img.alt = '';
-  img.src = src;
-  img.decoding = 'async';
-  img.loading = 'lazy';
+function applyMedia(frame: HTMLElement, src: string, kind: 'person' | 'company', profile?: ProfileMedia) {
+  if (!src || !isSimpleFrame(frame)) return;
+  if (frame.dataset.identitySrc === src && frame.classList.contains('identity-media-frame')) return;
 
-  if (kind === 'person') {
-    const x = Number(profile?.avatar_position_x ?? 50);
-    const y = Number(profile?.avatar_position_y ?? 50);
-    const zoom = Number(profile?.avatar_zoom ?? 1);
-    img.style.objectPosition = `${x}% ${y}%`;
-    img.style.transform = `scale(${zoom})`;
-    img.style.transformOrigin = `${x}% ${y}%`;
-  }
+  const x = Number(profile?.avatar_position_x ?? 50);
+  const y = Number(profile?.avatar_position_y ?? 50);
+  const zoom = Math.max(1, Number(profile?.avatar_zoom ?? 1));
 
-  frame.replaceChildren(img);
   frame.dataset.identitySrc = src;
+  frame.classList.remove('identity-media-person', 'identity-media-company', 'identity-media-empty');
   frame.classList.add('identity-media-frame', kind === 'person' ? 'identity-media-person' : 'identity-media-company');
+  frame.style.setProperty('--identity-image', `url("${src.replace(/"/g, '\\"')}")`);
+  frame.style.setProperty('--identity-position', kind === 'person' ? `${x}% ${y}%` : 'center');
+  frame.style.setProperty('--identity-size', kind === 'person' ? `${zoom * 100}%` : 'contain');
 }
 
-function clearInitial(frame: HTMLElement) {
-  if (frame.querySelector('img')) return;
+function hideInitial(frame: HTMLElement) {
+  if (!isSimpleFrame(frame)) return;
   const text = frame.textContent?.trim() || '';
   if (/^[A-ZÀ-Ü0-9]{1,3}$/i.test(text)) {
-    frame.textContent = '';
     frame.classList.add('identity-media-frame', 'identity-media-empty');
   }
 }
@@ -125,7 +119,7 @@ function decorateConversation() {
 
   document.querySelectorAll<HTMLElement>('.conversation-list-v2 article').forEach((article) => {
     const frame = article.querySelector<HTMLElement>('.conversation-avatar-v2');
-    if (!frame) return;
+    if (!frame || !isSimpleFrame(frame)) return;
 
     const author = normalize(article.querySelector('header strong')?.textContent || '');
     const isCali = author.includes('patricia') || author.includes('cali') || author.includes('nota interna');
@@ -134,13 +128,12 @@ function decorateConversation() {
       applyMedia(frame, admin.avatar_url, 'person', admin);
       return;
     }
-
     if (!isCali && activeCompany?.logo_url) {
       applyMedia(frame, activeCompany.logo_url, 'company');
       return;
     }
-
-    clearInitial(frame);
+    clearIdentity(frame);
+    hideInitial(frame);
   });
 }
 
@@ -149,22 +142,22 @@ function decorateAdminInitials() {
   if (!admin.avatar_url) return;
 
   document.querySelectorAll<HTMLElement>('[class*="avatar"], [class*="profile"], [class*="mark"]').forEach((frame) => {
-    if (frame.querySelector('img')) return;
+    if (!isSimpleFrame(frame)) return;
     const text = normalize(frame.textContent || '');
-    if (text !== 'pl') return;
-    applyMedia(frame, admin.avatar_url!, 'person', admin);
+    if (text === 'pl') applyMedia(frame, admin.avatar_url!, 'person', admin);
   });
 }
 
 function decorateCompanyFrames() {
   document.querySelectorAll<HTMLElement>(COMPANY_FRAME_SELECTORS).forEach((frame) => {
-    if (frame.querySelector('img')) return;
+    if (!isSimpleFrame(frame)) return;
     const company = companyForContext(frame);
     if (company?.logo_url) {
       applyMedia(frame, company.logo_url, 'company');
       return;
     }
-    clearInitial(frame);
+    clearIdentity(frame);
+    hideInitial(frame);
   });
 }
 
@@ -204,8 +197,9 @@ export function startIdentityMediaRuntime() {
   scheduleDecorate();
   void loadCompanies();
 
+  // Observa somente criação/remoção de nós. Nunca altera a árvore React.
   observer = new MutationObserver(() => scheduleDecorate());
-  observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
 
   window.addEventListener('storage', scheduleDecorate);
   window.addEventListener('cali-profile-updated', scheduleDecorate as EventListener);
