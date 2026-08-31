@@ -7,7 +7,7 @@ import { AdminClientsPageV3 } from './pages/admin/AdminClientsPageV3';
 import { AdminProjectsPageV3 } from './pages/admin/AdminProjectsPageV3';
 import { AdminHoursPage } from './pages/admin/AdminHoursPage';
 import { AdminCalendarPage } from './pages/admin/AdminCalendarPage';
-import { AdminDocumentsPage } from './pages/admin/AdminDocumentsPage';
+import { AdminDocumentsPageV4 } from './pages/admin/AdminDocumentsPageV4';
 import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 import { AdminPeopleMapPageV2 } from './pages/admin/AdminPeopleMapPageV2';
 import { AdminPeopleMapReviewPage } from './pages/admin/AdminPeopleMapReviewPage';
@@ -30,7 +30,7 @@ export default function App() {
       <Route path="/admin/projetos" element={<ProtectedRoute role="admin"><AdminProjectsPageV3 /></ProtectedRoute>} />
       <Route path="/admin/horas" element={<ProtectedRoute role="admin"><AdminHoursPage /></ProtectedRoute>} />
       <Route path="/admin/calendario" element={<ProtectedRoute role="admin"><AdminCalendarPage /></ProtectedRoute>} />
-      <Route path="/admin/documentos" element={<ProtectedRoute role="admin"><AdminDocumentsPage /></ProtectedRoute>} />
+      <Route path="/admin/documentos" element={<ProtectedRoute role="admin"><AdminDocumentsPageV4 /></ProtectedRoute>} />
       <Route path="/admin/relatorios" element={<ProtectedRoute role="admin"><AdminReportsPage /></ProtectedRoute>} />
       <Route path="/admin/mapa-de-people" element={<ProtectedRoute role="admin"><AdminPeopleMapPageV2 /></ProtectedRoute>} />
       <Route path="/admin/mapa-de-people/revisao" element={<ProtectedRoute role="admin"><AdminPeopleMapReviewPage /></ProtectedRoute>} />
