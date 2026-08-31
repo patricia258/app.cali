@@ -1,0 +1,41 @@
+.workspace-fatal-fallback {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  background: #f7f3ee;
+  color: #2b2b2b;
+  font-family: Inter, system-ui, sans-serif;
+}
+.workspace-fatal-fallback section {
+  width: min(560px, 100%);
+  padding: 34px;
+  border: 1px solid rgba(90,30,45,.14);
+  border-radius: 22px;
+  background: rgba(255,255,255,.84);
+  box-shadow: 0 22px 60px rgba(60,32,38,.10);
+}
+.workspace-fatal-fallback span {
+  display: block;
+  margin-bottom: 12px;
+  color: #5a1e2d;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+.workspace-fatal-fallback h1 { margin: 0; font-size: clamp(28px, 5vw, 42px); line-height: 1.05; }
+.workspace-fatal-fallback p { margin: 14px 0 22px; color: #756b66; line-height: 1.6; }
+.workspace-fatal-fallback button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: #5a1e2d;
+  color: #fff;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+html[data-workspace-theme='night'] .workspace-fatal-fallback { background: #171113; color: #f7f3ee; }
+html[data-workspace-theme='night'] .workspace-fatal-fallback section { background: #241b1f; border-color: rgba(255,255,255,.10); }
+html[data-workspace-theme='night'] .workspace-fatal-fallback p { color: #c8bdb8; }
