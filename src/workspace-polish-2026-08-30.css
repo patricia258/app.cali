@@ -1,96 +1,65 @@
-/* CALI Workspace · acabamento aprovado 30/08/2026
-   Escopo: Mapa de People + sidebar. Carregado por último para não reabrir
-   componentes aprovados nem contaminar outros módulos.
-   Build marker: final-polish-active. */
+/* CALI Workspace · correções finais do Mapa/Sidebar
+   Carregado por último. Mantém os componentes aprovados e corrige apenas
+   regressões visuais/interativas identificadas em produção. */
 
 /* =========================================================
-   MAPA DE PEOPLE · STATUS
-   A cor é semântica e deve persistir em dia/noite.
+   MAPA DE PEOPLE · STATUS NO MODO NOITE
+   O background global de <select> usa shorthand e estava zerando
+   background-repeat, fazendo a seta virar um padrão repetido.
    ========================================================= */
-.people-map-status {
+html[data-workspace-theme='night'] select.people-map-status {
+  appearance: none !important;
+  -webkit-appearance: none !important;
   min-width: 166px !important;
+  min-height: 38px !important;
   padding: 8px 46px 8px 16px !important;
+  border-radius: 999px !important;
   border-width: 1px !important;
   border-style: solid !important;
-  border-radius: 999px !important;
   font-weight: 800 !important;
+  line-height: 1.2 !important;
+  color-scheme: dark !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%23F7F3EE' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
   background-position: right 16px center !important;
   background-size: 15px 15px !important;
-  transition: background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease !important;
 }
-
-.people-map-status.status-novo {
-  background-color: #f3eeee !important;
-  color: #74686a !important;
-  border-color: #ddd2d4 !important;
-}
-.people-map-status.status-em_andamento {
-  background-color: #e9f0f8 !important;
-  color: #315f88 !important;
-  border-color: #cddcec !important;
-}
-.people-map-status.status-pre_enviado {
-  background-color: #eee8f6 !important;
-  color: #6f4f89 !important;
-  border-color: #ddd0ed !important;
-}
-.people-map-status.status-enviado {
-  background-color: #e9f3eb !important;
-  color: #3d7452 !important;
-  border-color: #c9dfcf !important;
-}
-.people-map-status.status-cancelado {
-  background-color: #fae8e8 !important;
-  color: #a34040 !important;
-  border-color: #edc8c8 !important;
-}
-.people-map-status.status-excluido {
-  background-color: #ece8e6 !important;
-  color: #6d6062 !important;
-  border-color: #d9d0cd !important;
-}
-
-html[data-workspace-theme='night'] .people-map-status {
-  color-scheme: dark !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%23F7F3EE' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
-}
-html[data-workspace-theme='night'] .people-map-status.status-novo {
+html[data-workspace-theme='night'] select.people-map-status.status-novo {
   background-color: #30292c !important;
   color: #eee4e6 !important;
   border-color: #5d4e53 !important;
 }
-html[data-workspace-theme='night'] .people-map-status.status-em_andamento {
+html[data-workspace-theme='night'] select.people-map-status.status-em_andamento {
   background-color: #203444 !important;
   color: #a9d5f4 !important;
   border-color: #426985 !important;
 }
-html[data-workspace-theme='night'] .people-map-status.status-pre_enviado {
+html[data-workspace-theme='night'] select.people-map-status.status-pre_enviado {
   background-color: #352942 !important;
   color: #d2b4ea !important;
   border-color: #69547d !important;
 }
-html[data-workspace-theme='night'] .people-map-status.status-enviado {
+html[data-workspace-theme='night'] select.people-map-status.status-enviado {
   background-color: #20372a !important;
   color: #afe0bb !important;
   border-color: #466e52 !important;
 }
-html[data-workspace-theme='night'] .people-map-status.status-cancelado {
+html[data-workspace-theme='night'] select.people-map-status.status-cancelado {
   background-color: #40262a !important;
   color: #f1a9aa !important;
   border-color: #815057 !important;
 }
-html[data-workspace-theme='night'] .people-map-status.status-excluido {
+html[data-workspace-theme='night'] select.people-map-status.status-excluido {
   background-color: #302a2c !important;
   color: #bfb3b6 !important;
   border-color: #55494d !important;
 }
 
-/* Revisar precisa continuar legível no fundo noturno. */
+/* Revisar permanece legível no fundo noturno. */
 html[data-workspace-theme='night'] .people-map-open {
   color: #e8a4b8 !important;
-  background: rgba(208, 138, 157, .09) !important;
-  border: 1px solid rgba(208, 138, 157, .18) !important;
+  background: rgba(208,138,157,.09) !important;
+  border: 1px solid rgba(208,138,157,.18) !important;
   border-radius: 10px !important;
   padding: 8px 10px !important;
   font-weight: 800 !important;
@@ -98,141 +67,151 @@ html[data-workspace-theme='night'] .people-map-open {
 }
 html[data-workspace-theme='night'] .people-map-open:hover {
   color: #f4c0cf !important;
-  background: rgba(208, 138, 157, .16) !important;
-  border-color: rgba(232, 164, 184, .34) !important;
-  box-shadow: 0 7px 18px rgba(0, 0, 0, .14) !important;
+  background: rgba(208,138,157,.16) !important;
+  border-color: rgba(232,164,184,.34) !important;
 }
 
 /* =========================================================
-   SIDEBAR · PERFIL SEMPRE PRESENTE
-   O nav reserva a área inferior e o perfil fica ancorado no rodapé.
+   ENVIO DO RELATÓRIO POR E-MAIL
+   A tela de revisão usa .workspace-modal-layer, que não pertence ao sistema
+   global de .modal-backdrop. Garantimos aqui que o modal pertença ao viewport.
+   ========================================================= */
+.people-map-send-layer {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  margin: 0 !important;
+  padding: clamp(16px,3vh,32px) clamp(16px,3vw,42px) !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: auto !important;
+  pointer-events: auto !important;
+  touch-action: auto !important;
+  background: rgba(27,21,24,.62) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  z-index: 2147483600 !important;
+}
+.people-map-send-layer > .people-map-send-modal {
+  position: relative !important;
+  z-index: 2147483601 !important;
+  margin: auto !important;
+  pointer-events: auto !important;
+}
+.people-map-send-layer .people-map-send-modal,
+.people-map-send-layer .people-map-send-modal * {
+  pointer-events: auto !important;
+}
+
+/* =========================================================
+   PERFIL · MENU FECHADO
+   O aberto já estava correto. Aqui restauramos apenas o card/foto no rail.
    ========================================================= */
 @media (min-width: 861px) {
-  .sidebar:hover nav,
-  .sidebar:focus-within nav,
-  .sidebar.pinned nav {
-    padding-bottom: 76px !important;
-  }
-
-  .sidebar:hover .sidebar-footer-profile-only,
-  .sidebar:focus-within .sidebar-footer-profile-only,
-  .sidebar.pinned .sidebar-footer-profile-only {
+  .sidebar:not(:hover):not(.pinned) .sidebar-footer-profile-only {
     position: absolute !important;
-    left: 14px !important;
-    right: 14px !important;
+    left: 8px !important;
+    right: 8px !important;
     bottom: 9px !important;
     width: auto !important;
-    min-height: 62px !important;
+    height: 58px !important;
+    min-height: 58px !important;
     margin: 0 !important;
-    padding: 7px 0 0 !important;
-    z-index: 8 !important;
-    display: block !important;
+    padding: 5px 0 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     opacity: 1 !important;
     visibility: visible !important;
     overflow: visible !important;
+    z-index: 12 !important;
   }
 
-  .sidebar:hover .profile-control-direct,
-  .sidebar:focus-within .profile-control-direct,
-  .sidebar.pinned .profile-control-direct,
-  .sidebar:hover .profile-trigger-direct,
-  .sidebar:focus-within .profile-trigger-direct,
-  .sidebar.pinned .profile-trigger-direct {
-    display: block !important;
-    width: 100% !important;
+  .sidebar:not(:hover):not(.pinned) .profile-control-direct {
+    display: flex !important;
+    width: 52px !important;
+    height: 52px !important;
     opacity: 1 !important;
     visibility: visible !important;
   }
 
-  .sidebar:hover .profile-trigger-direct,
-  .sidebar:focus-within .profile-trigger-direct,
-  .sidebar.pinned .profile-trigger-direct {
+  .sidebar:not(:hover):not(.pinned) .profile-trigger-direct {
     display: grid !important;
-    grid-template-columns: 40px minmax(0, 1fr) 18px !important;
-    align-items: center !important;
-    column-gap: 10px !important;
-    min-height: 50px !important;
+    place-items: center !important;
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
+    min-height: 52px !important;
+    margin: 0 !important;
+    padding: 4px !important;
+    border: 1px solid rgba(247,243,238,.22) !important;
+    border-radius: 15px !important;
+    background: rgba(247,243,238,.08) !important;
+    box-shadow: 0 6px 18px rgba(42,17,24,.10) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .sidebar:not(:hover):not(.pinned) .profile-trigger-direct .profile-avatar {
+    display: grid !important;
+    place-items: center !important;
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .sidebar:not(:hover):not(.pinned) .profile-trigger-direct .profile-avatar img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: var(--avatar-x,50%) var(--avatar-y,50%) !important;
+    transform: scale(var(--avatar-zoom,1)) !important;
+    transform-origin: var(--avatar-x,50%) var(--avatar-y,50%) !important;
+  }
+
+  .sidebar:not(:hover):not(.pinned) .profile-copy,
+  .sidebar:not(:hover):not(.pinned) .profile-edit-chevron {
+    display: none !important;
   }
 }
 
-.sidebar-footer-profile-only .profile-avatar {
-  display: grid !important;
-  place-items: center !important;
-  flex: 0 0 auto !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  overflow: hidden !important;
-}
-.sidebar-footer-profile-only .profile-avatar img {
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  object-position: var(--avatar-x, 50%) var(--avatar-y, 50%) !important;
-  transform: scale(var(--avatar-zoom, 1)) !important;
-  transform-origin: var(--avatar-x, 50%) var(--avatar-y, 50%) !important;
-}
-.sidebar-footer-profile-only .profile-copy,
-.sidebar-footer-profile-only .profile-edit-chevron {
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-.sidebar-footer-profile-only .profile-copy {
-  min-width: 0 !important;
-}
-.sidebar-footer-profile-only .profile-copy strong,
-.sidebar-footer-profile-only .profile-copy small {
-  display: block !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
 /* =========================================================
-   SIDEBAR · MODO NOITE INVERTIDO
-   O conteúdo central segue noturno; a navegação vira uma peça clara CALI.
+   SIDEBAR · MODO NOITE CLARO
+   Mesma arte da versão dia: usa exatamente o mesmo arquivo, posição e escala.
+   Só muda a base para marfim e a leitura dos elementos para bordô.
    ========================================================= */
 html[data-workspace-theme='night'] .sidebar {
   isolation: isolate !important;
-  background: linear-gradient(180deg, #f5eee5 0%, #eee2d4 58%, #eadbc9 100%) !important;
+  background: linear-gradient(180deg,#f5eee5 0%,#eee2d4 58%,#eadbc9 100%) !important;
   color: #5a1e2d !important;
-  border-right: 1px solid rgba(90, 30, 45, .12) !important;
-  box-shadow: 16px 0 44px rgba(18, 12, 14, .18) !important;
+  border-right: 1px solid rgba(90,30,45,.12) !important;
+  box-shadow: 16px 0 44px rgba(18,12,14,.18) !important;
 }
 
+/* O fundo ilustrado aparece nos mesmos estados e com a mesma geometria do dia. */
+html[data-workspace-theme='night'] .sidebar:hover,
+html[data-workspace-theme='night'] .sidebar:focus-within,
+html[data-workspace-theme='night'] .sidebar.pinned,
+html[data-workspace-theme='night'] .sidebar.mobile-open {
+  background-color: #f2e8dc !important;
+  background-image: linear-gradient(rgba(247,243,238,.68),rgba(247,243,238,.68)), url('/brand/cali-sidebar-pattern.webp') !important;
+  background-repeat: no-repeat,no-repeat !important;
+  background-position: center center,center center !important;
+  background-size: cover,cover !important;
+}
+
+/* Remove as ilustrações alternativas que haviam sido criadas para o noturno. */
 html[data-workspace-theme='night'] .sidebar::before,
 html[data-workspace-theme='night'] .sidebar::after {
-  content: '' !important;
-  display: block !important;
-  position: absolute !important;
-  pointer-events: none !important;
-  user-select: none !important;
-  z-index: 0 !important;
-  background: #5a1e2d !important;
-}
-html[data-workspace-theme='night'] .sidebar::before {
-  width: 164px !important;
-  height: 164px !important;
-  top: 44px !important;
-  right: -46px !important;
-  opacity: .075 !important;
-  -webkit-mask: url('/brand/cali-oak-mark.svg') center / contain no-repeat !important;
-  mask: url('/brand/cali-oak-mark.svg') center / contain no-repeat !important;
-  transform: rotate(9deg) !important;
-}
-html[data-workspace-theme='night'] .sidebar::after {
-  width: 184px !important;
-  height: 184px !important;
-  left: -68px !important;
-  bottom: 112px !important;
-  opacity: .065 !important;
-  -webkit-mask: url('/brand/cali-lime-mark.svg') center / contain no-repeat !important;
-  mask: url('/brand/cali-lime-mark.svg') center / contain no-repeat !important;
-  transform: rotate(-11deg) !important;
-}
-html[data-workspace-theme='night'] .sidebar > * {
-  position: relative !important;
-  z-index: 1 !important;
+  content: none !important;
+  display: none !important;
 }
 
 html[data-workspace-theme='night'] .sidebar nav a,
@@ -241,21 +220,21 @@ html[data-workspace-theme='night'] .sidebar .profile-trigger,
 html[data-workspace-theme='night'] .sidebar .profile-trigger strong,
 html[data-workspace-theme='night'] .sidebar .profile-copy small,
 html[data-workspace-theme='night'] .sidebar .profile-edit-chevron {
-  color: rgba(90, 30, 45, .78) !important;
+  color: rgba(90,30,45,.78) !important;
 }
 html[data-workspace-theme='night'] .sidebar nav a:hover,
 html[data-workspace-theme='night'] .sidebar nav a.active,
 html[data-workspace-theme='night'] .sidebar .sidebar-pin:hover,
 html[data-workspace-theme='night'] .sidebar .profile-trigger:hover {
   color: #5a1e2d !important;
-  background: rgba(90, 30, 45, .085) !important;
+  background: rgba(90,30,45,.085) !important;
 }
 html[data-workspace-theme='night'] .sidebar nav a.active {
   box-shadow: inset 3px 0 0 #5a1e2d !important;
 }
 html[data-workspace-theme='night'] .sidebar .sidebar-pin {
-  background: rgba(90, 30, 45, .055) !important;
-  border-color: rgba(90, 30, 45, .08) !important;
+  background: rgba(90,30,45,.055) !important;
+  border-color: rgba(90,30,45,.08) !important;
 }
 html[data-workspace-theme='night'] .sidebar .brand-compact-slide,
 html[data-workspace-theme='night'] .sidebar .brand-compact-art {
@@ -267,11 +246,10 @@ html[data-workspace-theme='night'] .sidebar .brand-full img {
   opacity: .96 !important;
 }
 html[data-workspace-theme='night'] .sidebar .brand-full span {
-  color: rgba(90, 30, 45, .72) !important;
+  color: rgba(90,30,45,.72) !important;
 }
 html[data-workspace-theme='night'] .sidebar .sidebar-footer-profile-only {
-  border-top-color: rgba(90, 30, 45, .18) !important;
-  background: linear-gradient(to bottom, rgba(247,243,238,0), rgba(247,243,238,.58) 30%, rgba(247,243,238,.80)) !important;
+  border-top-color: rgba(90,30,45,.18) !important;
 }
 html[data-workspace-theme='night'] .sidebar .profile-avatar {
   background: #5a1e2d !important;
@@ -285,24 +263,21 @@ html[data-workspace-theme='night'] .sidebar .profile-copy small {
   color: #806a70 !important;
 }
 
-@media (max-width: 860px) {
-  .sidebar.mobile-open nav {
-    padding-bottom: 76px !important;
+@media (min-width:861px) {
+  html[data-workspace-theme='night'] .sidebar:not(:hover):not(.pinned) .profile-trigger-direct {
+    border-color: rgba(90,30,45,.18) !important;
+    background: rgba(90,30,45,.065) !important;
+    box-shadow: 0 6px 18px rgba(75,36,47,.08) !important;
   }
-  .sidebar.mobile-open .sidebar-footer-profile-only {
-    position: absolute !important;
-    left: 14px !important;
-    right: 14px !important;
-    bottom: 9px !important;
-    width: auto !important;
-    min-height: 62px !important;
-    z-index: 8 !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-  }
-  .people-map-status {
+}
+
+@media (max-width:720px) {
+  html[data-workspace-theme='night'] select.people-map-status {
     min-width: 156px !important;
     padding-right: 42px !important;
     background-position: right 14px center !important;
+  }
+  .people-map-send-layer {
+    padding: 8px !important;
   }
 }
