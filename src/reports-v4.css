@@ -1,0 +1,51 @@
+.reports-admin-v4 { max-width: 1500px; }
+.reports-heading-v4 { gap: 28px; }
+.reports-period-controls-v4 { align-items:flex-end; justify-content:flex-end; }
+.reports-period-controls-v4 label { display:grid; gap:6px; min-width:150px; }
+.reports-period-controls-v4 label:first-child { min-width:220px; }
+.reports-period-controls-v4 label > span { color:var(--theme-muted); font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; padding-left:2px; }
+.reports-period-controls-v4 select,
+.reports-period-controls-v4 input { width:100%; min-height:44px; }
+
+.report-contract-strip-v4 {
+  display:grid;
+  grid-template-columns:1.25fr 1fr 1.15fr .85fr;
+  gap:0;
+  margin:16px 0 18px;
+  border:1px solid var(--theme-line);
+  border-radius:17px;
+  background:color-mix(in srgb,var(--theme-surface) 93%,var(--theme-surface-soft));
+  box-shadow:0 10px 30px rgba(43,43,43,.025);
+  overflow:hidden;
+}
+.report-contract-strip-v4 > div { display:grid; gap:4px; min-width:0; padding:13px 16px; border-right:1px solid var(--theme-line); }
+.report-contract-strip-v4 > div:last-child { border-right:0; }
+.report-contract-strip-v4 span { color:var(--theme-muted); font-size:8px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.report-contract-strip-v4 strong { color:var(--theme-text); font-size:11px; line-height:1.35; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.report-preview-paper-v3 > header small { display:block; margin-top:3px; color:#7b6e66; font-size:9px; font-weight:500; }
+.report-preview-paper-v3 > header > span { text-align:right; line-height:1.45; }
+
+html[data-workspace-theme='night'] .report-contract-strip-v4 { background:var(--theme-surface); }
+
+@media (max-width:1180px) {
+  .reports-period-controls-v4 { justify-content:flex-start; }
+  .report-contract-strip-v4 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .report-contract-strip-v4 > div:nth-child(2) { border-right:0; }
+  .report-contract-strip-v4 > div:nth-child(-n+2) { border-bottom:1px solid var(--theme-line); }
+}
+
+@media (max-width:760px) {
+  .reports-period-controls-v4 { display:grid; grid-template-columns:1fr 1fr; }
+  .reports-period-controls-v4 label,
+  .reports-period-controls-v4 label:first-child { min-width:0; }
+  .reports-period-controls-v4 label:first-child { grid-column:1 / -1; }
+  .report-contract-strip-v4 { grid-template-columns:1fr; }
+  .report-contract-strip-v4 > div { border-right:0; border-bottom:1px solid var(--theme-line); }
+  .report-contract-strip-v4 > div:last-child { border-bottom:0; }
+}
+
+@media (max-width:470px) {
+  .reports-period-controls-v4 { grid-template-columns:1fr; }
+  .reports-period-controls-v4 label:first-child { grid-column:auto; }
+}
