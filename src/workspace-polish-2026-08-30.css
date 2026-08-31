@@ -73,8 +73,8 @@ html[data-workspace-theme='night'] .people-map-open:hover {
 
 /* =========================================================
    ENVIO DO RELATÓRIO POR E-MAIL
-   A tela de revisão usa .workspace-modal-layer, que não pertence ao sistema
-   global de .modal-backdrop. Garantimos aqui que o modal pertença ao viewport.
+   Agora é renderizado via portal diretamente no body, portanto a camada
+   cobre de verdade topbar, sidebar e conteúdo do Workspace.
    ========================================================= */
 .people-map-send-layer {
   position: fixed !important;
@@ -89,25 +89,155 @@ html[data-workspace-theme='night'] .people-map-open:hover {
   overflow: auto !important;
   pointer-events: auto !important;
   touch-action: auto !important;
-  background: rgba(27,21,24,.62) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
+  background: rgba(27,21,24,.56) !important;
+  backdrop-filter: blur(14px) saturate(.88) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(.88) !important;
   z-index: 2147483600 !important;
 }
 .people-map-send-layer > .people-map-send-modal {
   position: relative !important;
   z-index: 2147483601 !important;
+  width: min(680px,calc(100vw - 40px)) !important;
+  max-height: calc(100dvh - 48px) !important;
   margin: auto !important;
+  padding: 28px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   pointer-events: auto !important;
+  border-radius: 20px !important;
+  background: #fffdf9 !important;
+  border: 1px solid rgba(90,30,45,.10) !important;
+  box-shadow: 0 30px 90px rgba(29,20,23,.24) !important;
 }
 .people-map-send-layer .people-map-send-modal,
 .people-map-send-layer .people-map-send-modal * {
   pointer-events: auto !important;
 }
+.people-map-send-modal > .eyebrow {display:block;margin-bottom:8px}
+.people-map-send-modal > h2 {margin:0 52px 8px 0 !important;font-size:1.65rem !important}
+.people-map-send-modal > p {margin:0 44px 20px 0 !important;font-size:.84rem !important;line-height:1.55 !important}
+.people-map-send-close {
+  position:absolute !important;
+  top:18px !important;
+  right:18px !important;
+  width:40px !important;
+  height:40px !important;
+  display:grid !important;
+  place-items:center !important;
+  border:0 !important;
+  border-radius:11px !important;
+  background:#f0e9e2 !important;
+  color:#5a1e2d !important;
+}
+.people-map-email-form {display:grid;gap:15px;margin-bottom:16px}
+.people-map-email-form .stacked-label {display:grid;gap:7px;font-size:.76rem;font-weight:750;color:#3a3033}
+.people-map-email-form .stacked-label > small {font-size:.67rem;font-weight:500;line-height:1.4;color:#8e8184}
+.people-map-email-form .stacked-label em {font-style:normal;font-weight:500;color:#9e9093}
+.people-map-recipient-list {display:grid;gap:7px}
+.people-map-recipient-row {
+  min-height:44px;
+  display:grid;
+  grid-template-columns:18px minmax(0,1fr) 34px;
+  align-items:center;
+  gap:9px;
+  padding:0 7px 0 12px;
+  border:1px solid #e6ddd4;
+  border-radius:11px;
+  background:#fff;
+  color:#8b7279;
+}
+.people-map-recipient-row:focus-within {border-color:rgba(90,30,45,.32);box-shadow:0 0 0 3px rgba(90,30,45,.07)}
+.people-map-recipient-row input {
+  width:100% !important;
+  min-width:0 !important;
+  height:42px !important;
+  padding:0 !important;
+  border:0 !important;
+  outline:0 !important;
+  background:transparent !important;
+  color:#2b2b2b !important;
+  font-size:.79rem !important;
+}
+.people-map-recipient-row button {
+  width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:9px;background:transparent;color:#9a858b;padding:0
+}
+.people-map-recipient-row button:hover {background:rgba(90,30,45,.07);color:#5a1e2d}
+.people-map-add-recipient {
+  width:max-content;
+  min-height:34px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:0 10px;
+  border:1px solid rgba(90,30,45,.16);
+  border-radius:9px;
+  background:#fffdf9;
+  color:#5a1e2d;
+  font-size:.7rem;
+  font-weight:750;
+}
+.people-map-email-subject {
+  display:grid;
+  gap:4px;
+  padding:11px 13px;
+  border-radius:11px;
+  background:rgba(90,30,45,.035);
+  border:1px solid rgba(90,30,45,.08);
+}
+.people-map-email-subject span {font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:#9b8d90;font-weight:800}
+.people-map-email-subject strong {font-size:.75rem;color:#514649;font-weight:650}
+.people-map-email-form textarea {
+  width:100% !important;
+  min-height:82px !important;
+  resize:vertical !important;
+  padding:11px 12px !important;
+  border:1px solid #e6ddd4 !important;
+  border-radius:11px !important;
+  background:#fff !important;
+  color:#2b2b2b !important;
+  font-size:.78rem !important;
+  line-height:1.5 !important;
+  outline:0 !important;
+}
+.people-map-email-form textarea:focus {border-color:rgba(90,30,45,.32) !important;box-shadow:0 0 0 3px rgba(90,30,45,.07)}
+.people-map-pdf-upload {margin-top:4px !important}
+.people-map-send-modal > footer {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:9px;
+  margin-top:18px;
+  padding-top:14px;
+  border-top:1px solid rgba(90,30,45,.09);
+}
+.people-map-send-modal > footer button {min-height:42px !important}
+
+html[data-workspace-theme='night'] .people-map-send-layer > .people-map-send-modal {
+  background:#21191d !important;
+  border-color:#49373e !important;
+  color:#f7f3ee !important;
+}
+html[data-workspace-theme='night'] .people-map-send-modal > h2,
+html[data-workspace-theme='night'] .people-map-email-form .stacked-label {color:#f7f3ee !important}
+html[data-workspace-theme='night'] .people-map-send-modal > p,
+html[data-workspace-theme='night'] .people-map-email-form .stacked-label > small {color:#bcaeb1 !important}
+html[data-workspace-theme='night'] .people-map-recipient-row,
+html[data-workspace-theme='night'] .people-map-email-form textarea {
+  background:#1b1518 !important;
+  border-color:#49373e !important;
+  color:#f7f3ee !important;
+}
+html[data-workspace-theme='night'] .people-map-recipient-row input {color:#f7f3ee !important}
+html[data-workspace-theme='night'] .people-map-email-subject {background:#241b1f;border-color:#49373e}
+html[data-workspace-theme='night'] .people-map-email-subject strong {color:#e1d6d8}
+html[data-workspace-theme='night'] .people-map-add-recipient {background:#241b1f;color:#efcad3;border-color:#574149}
+html[data-workspace-theme='night'] .people-map-send-close {background:#2d2227;color:#f0ccd5}
 
 /* =========================================================
    PERFIL · MENU FECHADO
    O aberto já estava correto. Aqui restauramos apenas o card/foto no rail.
+   A regra antiga .sidebar-footer tinha min-width:220px; no rail de 78px isso
+   deslocava o avatar para fora da tela. O rail agora zera essa herança.
    ========================================================= */
 @media (min-width: 861px) {
   .sidebar:not(:hover):not(.pinned) .sidebar-footer-profile-only {
@@ -116,35 +246,48 @@ html[data-workspace-theme='night'] .people-map-open:hover {
     right: 8px !important;
     bottom: 9px !important;
     width: auto !important;
+    min-width: 0 !important;
+    max-width: calc(100% - 16px) !important;
     height: 58px !important;
     min-height: 58px !important;
     margin: 0 !important;
     padding: 5px 0 0 !important;
     display: flex !important;
+    grid-template-columns: none !important;
     align-items: center !important;
     justify-content: center !important;
     opacity: 1 !important;
     visibility: visible !important;
-    overflow: visible !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    background: transparent !important;
     z-index: 12 !important;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-control-direct {
     display: flex !important;
+    flex: 0 0 52px !important;
     width: 52px !important;
+    min-width: 0 !important;
+    max-width: 52px !important;
     height: 52px !important;
+    margin: 0 auto !important;
     opacity: 1 !important;
     visibility: visible !important;
+    transform: none !important;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-trigger-direct {
+    position: relative !important;
+    inset: auto !important;
     display: grid !important;
     place-items: center !important;
     width: 52px !important;
     height: 52px !important;
     min-width: 52px !important;
     min-height: 52px !important;
-    margin: 0 !important;
+    max-width: 52px !important;
+    margin: 0 auto !important;
     padding: 4px !important;
     border: 1px solid rgba(247,243,238,.22) !important;
     border-radius: 15px !important;
@@ -152,6 +295,8 @@ html[data-workspace-theme='night'] .people-map-open:hover {
     box-shadow: 0 6px 18px rgba(42,17,24,.10) !important;
     opacity: 1 !important;
     visibility: visible !important;
+    transform: none !important;
+    box-sizing: border-box !important;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-trigger-direct .profile-avatar {
@@ -160,6 +305,7 @@ html[data-workspace-theme='night'] .people-map-open:hover {
     width: 42px !important;
     height: 42px !important;
     min-width: 42px !important;
+    max-width: 42px !important;
     border-radius: 12px !important;
     overflow: hidden !important;
     opacity: 1 !important;
@@ -184,30 +330,26 @@ html[data-workspace-theme='night'] .people-map-open:hover {
 
 /* =========================================================
    SIDEBAR · MODO NOITE CLARO
-   Mesma arte da versão dia: usa exatamente o mesmo arquivo, posição e escala.
-   Só muda a base para marfim e a leitura dos elementos para bordô.
+   O estado aberto foi aprovado visualmente. O rail fechado agora usa a mesma
+   base, a mesma imagem, a mesma escala e o mesmo posicionamento: apenas recorta
+   horizontalmente o pattern quando a largura diminui.
    ========================================================= */
-html[data-workspace-theme='night'] .sidebar {
-  isolation: isolate !important;
-  background: linear-gradient(180deg,#f5eee5 0%,#eee2d4 58%,#eadbc9 100%) !important;
-  color: #5a1e2d !important;
-  border-right: 1px solid rgba(90,30,45,.12) !important;
-  box-shadow: 16px 0 44px rgba(18,12,14,.18) !important;
-}
-
-/* O fundo ilustrado aparece nos mesmos estados e com a mesma geometria do dia. */
+html[data-workspace-theme='night'] .sidebar,
 html[data-workspace-theme='night'] .sidebar:hover,
 html[data-workspace-theme='night'] .sidebar:focus-within,
 html[data-workspace-theme='night'] .sidebar.pinned,
 html[data-workspace-theme='night'] .sidebar.mobile-open {
+  isolation: isolate !important;
   background-color: #f2e8dc !important;
   background-image: linear-gradient(rgba(247,243,238,.68),rgba(247,243,238,.68)), url('/brand/cali-sidebar-pattern.webp') !important;
   background-repeat: no-repeat,no-repeat !important;
   background-position: center center,center center !important;
   background-size: cover,cover !important;
+  color: #5a1e2d !important;
+  border-right: 1px solid rgba(90,30,45,.12) !important;
+  box-shadow: 16px 0 44px rgba(18,12,14,.18) !important;
 }
 
-/* Remove as ilustrações alternativas que haviam sido criadas para o noturno. */
 html[data-workspace-theme='night'] .sidebar::before,
 html[data-workspace-theme='night'] .sidebar::after {
   content: none !important;
@@ -271,13 +413,88 @@ html[data-workspace-theme='night'] .sidebar .profile-copy small {
   }
 }
 
+/* =========================================================
+   LOADING GLOBAL · LIMA ↔ CARVALHO
+   A autenticação entre páginas não mostra mais wordmark/spinner. As duas
+   ilustrações oficiais alternam suavemente, como uma pequena assinatura viva.
+   ========================================================= */
+.cali-route-loading {
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100dvh !important;
+  min-height:100dvh !important;
+  display:grid !important;
+  place-items:center !important;
+  overflow:hidden !important;
+  background:#f7f3ee !important;
+  z-index:2147483700 !important;
+}
+.cali-loading-illustrations {
+  position:relative;
+  width:clamp(92px,10vw,126px);
+  height:clamp(92px,10vw,126px);
+}
+.cali-loading-mark {
+  position:absolute;
+  inset:0;
+  display:block;
+  background:#5a1e2d;
+  opacity:0;
+  transform:scale(.88) rotate(-4deg);
+  filter:drop-shadow(0 12px 22px rgba(90,30,45,.08));
+}
+.cali-loading-lime {
+  -webkit-mask:url('/brand/cali-lime-mark.svg') center / contain no-repeat;
+  mask:url('/brand/cali-lime-mark.svg') center / contain no-repeat;
+  animation:cali-loading-lime 2.4s ease-in-out infinite;
+}
+.cali-loading-oak {
+  -webkit-mask:url('/brand/cali-oak-mark.svg') center / contain no-repeat;
+  mask:url('/brand/cali-oak-mark.svg') center / contain no-repeat;
+  animation:cali-loading-oak 2.4s ease-in-out infinite;
+}
+@keyframes cali-loading-lime {
+  0%,8%{opacity:0;transform:scale(.88) rotate(-6deg)}
+  18%,44%{opacity:.88;transform:scale(1) rotate(0)}
+  54%,100%{opacity:0;transform:scale(.93) rotate(4deg)}
+}
+@keyframes cali-loading-oak {
+  0%,46%{opacity:0;transform:scale(.9) rotate(5deg)}
+  58%,84%{opacity:.88;transform:scale(1) rotate(0)}
+  94%,100%{opacity:0;transform:scale(.92) rotate(-4deg)}
+}
+.sr-only {
+  position:absolute !important;
+  width:1px !important;
+  height:1px !important;
+  padding:0 !important;
+  margin:-1px !important;
+  overflow:hidden !important;
+  clip:rect(0,0,0,0) !important;
+  white-space:nowrap !important;
+  border:0 !important;
+}
+html[data-workspace-theme='night'] .cali-route-loading {background:#171215 !important}
+html[data-workspace-theme='night'] .cali-loading-mark {background:#f1dbe1;filter:drop-shadow(0 12px 24px rgba(0,0,0,.18))}
+
 @media (max-width:720px) {
   html[data-workspace-theme='night'] select.people-map-status {
     min-width: 156px !important;
     padding-right: 42px !important;
     background-position: right 14px center !important;
   }
-  .people-map-send-layer {
-    padding: 8px !important;
+  .people-map-send-layer {padding:8px !important}
+  .people-map-send-layer > .people-map-send-modal {
+    width:calc(100vw - 16px) !important;
+    max-height:calc(100dvh - 16px) !important;
+    padding:22px 18px !important;
+    border-radius:16px !important;
   }
+  .people-map-recipient-row {grid-template-columns:16px minmax(0,1fr) 32px}
+  .people-map-send-modal > footer {position:sticky;bottom:-22px;margin-left:-18px;margin-right:-18px;padding:12px 18px;background:inherit}
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cali-loading-lime,.cali-loading-oak {animation-duration:4s !important}
 }
