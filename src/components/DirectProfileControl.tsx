@@ -146,6 +146,18 @@ export function DirectProfileControl({ role }: { role: Role }) {
     if (!file) return;
     setMessage('');
 
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage('A foto deve ter no máximo 5 MB.');
+      event.target.value = '';
+      return;
+    }
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setMessage('Use uma imagem JPG, PNG ou WEBP.');
+      event.target.value = '';
+      return;
+    }
+
     const localPreview = () => {
       const reader = new FileReader();
       reader.onload = () => setDraft((current) => ({
@@ -172,11 +184,17 @@ export function DirectProfileControl({ role }: { role: Role }) {
 
     const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const path = `${user.id}/avatar-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('workspace-assets').upload(path, file, { upsert: true });
+    const { error } = await supabase.storage.from('workspace-assets').upload(path, file, {
+      cacheControl: '3600',
+      contentType: file.type,
+      upsert: false,
+    });
     if (error) {
-      setMessage('Não consegui enviar essa imagem. Use PNG, JPG ou WEBP com até 5 MB.');
+      setMessage(`Não consegui enviar essa imagem: ${error.message}`);
+      event.target.value = '';
       return;
     }
+
     const { data } = supabase.storage.from('workspace-assets').getPublicUrl(path);
     setDraft((current) => ({
       ...current,
@@ -185,6 +203,7 @@ export function DirectProfileControl({ role }: { role: Role }) {
       avatar_position_y: 50,
       avatar_zoom: 1,
     }));
+    event.target.value = '';
   }
 
   async function saveProfile() {
