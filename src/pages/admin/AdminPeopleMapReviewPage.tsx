@@ -121,9 +121,11 @@ export function AdminPeopleMapReviewPage(){
 
   useEffect(()=>{(async()=>{
     if(!supabase){setError('Supabase não configurado.');setLoading(false);return}
-    const {data,error:rpcError}=await supabase.schema('public').rpc('workspace_mapa_people_records');
+    if(!protocolo){setError('Protocolo não informado.');setLoading(false);return}
+    const {data,error:rpcError}=await supabase.schema('public').rpc('workspace_mapa_people_record',{p_protocolo:protocolo});
     if(rpcError){setError(rpcError.message);setLoading(false);return}
-    const found=((data||[]) as MapaRecord[]).find((item)=>item.protocolo===protocolo);
+    const raw=data as MapaRecord|MapaRecord[]|null;
+    const found=Array.isArray(raw)?raw[0]:raw;
     if(!found){setError('Resposta não encontrada para este protocolo.');setLoading(false);return}
     setRecord(found);
     const saved=found.observacoes||{};
@@ -137,21 +139,58 @@ export function AdminPeopleMapReviewPage(){
   async function save(){
     if(!record||!draft||!supabase)return false;
     setSaving(true);setFeedback('Salvando revisão…');
-    const {data,error:rpcError}=await supabase.schema('public').rpc('workspace_update_mapa_people_record',{p_id:record.id,p_status:normalizeStatus(record.status),p_observacoes:draft});
-    if(rpcError||!data){setFeedback(`Não foi possível salvar: ${rpcError?.message||'erro inesperado'}`);setSaving(false);return false}
-    setRecord({...record,observacoes:draft});setFeedback('Revisão salva ✓');setSaving(false);return true;
-  }
-  async function saveAndOpenReport(){if(!record)return;const ok=await save();if(ok)navigate(`/admin/mapa-de-people/relatorio/${record.id}`)}
-  function openWhatsapp(){if(!record)return;let raw=(record.c_whatsapp||'').replace(/\D/g,'');if(raw.length===10||raw.length===11)raw=`55${raw}`;if(!raw)return;const first=(record.c_nome||'').trim().split(/\s+/)[0]||'';const text=`Oi${first?`, ${first}`:''}! Aqui é a Patrícia, da CALI RH. Estou entrando em contato sobre o seu Mapa de People. Quando puder, me chama por aqui para conversarmos sobre a leitura e os próximos passos.`;window.open(`https://wa.me/${raw}?text=${encodeURIComponent(text)}`,'_blank')}
-  async function sendEmail(){
-    if(!record||!pdfFile||!supabase)return;
-    if(pdfFile.type!=='application/pdf'){setEmailFeedback('Selecione um arquivo PDF.');return}
-    if(pdfFile.size>8*1024*1024){setEmailFeedback('O PDF precisa ter até 8 MB.');return}
-    setSending(true);setEmailFeedback('Enviando…');
-    try{const pdf_base64=await fileToBase64(pdfFile);const {data,error:fnError}=await supabase.functions.invoke('workspace-enviar-relatorio-mapa',{body:{response_id:record.id,pdf_base64,request_id:crypto.randomUUID()}});if(fnError||!data?.ok)throw new Error(data?.error||fnError?.message||'Falha ao enviar.');setEmailFeedback(`Enviado para ${data.to||record.c_email} ✓`);setRecord({...record,status:'enviado',relatorio_enviado_em:new Date().toISOString()})}catch(err){setEmailFeedback(err instanceof Error?err.message:'Não foi possível enviar.')}finally{setSending(false)}
+    try{
+      const {data,error:rpcError}=await supabase.schema('public').rpc('workspace_update_mapa_people_record',{p_id:record.id,p_status:normalizeStatus(record.status),p_observacoes:draft});
+      if(rpcError||!data)throw new Error(rpcError?.message||'erro inesperado');
+      setRecord((current)=>current?{...current,observacoes:draft}:current);
+      setFeedback('Revisão salva ✓');
+      return true;
+    }catch(err){
+      setFeedback(`Não foi possível salvar: ${err instanceof Error?err.message:'erro inesperado'}`);
+      return false;
+    }finally{
+      setSaving(false);
+    }
   }
 
-  if(loading)return <Shell role="admin"><div className="people-map-review-state"><RefreshCw className="spin" size={22}/>Carregando revisão…</div></Shell>;
+  async function saveAndOpenReport(){
+    if(!record)return;
+    const ok=await save();
+    if(ok)navigate(`/admin/mapa-de-people/relatorio/${record.id}`);
+  }
+
+  function openWhatsapp(){
+    if(!record)return;
+    let raw=(record.c_whatsapp||'').replace(/\D/g,'');
+    if(raw.length===10||raw.length===11)raw=`55${raw}`;
+    if(!raw){setFeedback('Este contato não possui WhatsApp informado.');return}
+    const first=(record.c_nome||'').trim().split(/\s+/)[0]||'';
+    const text=`Oi${first?`, ${first}`:''}! Aqui é a Patrícia, da CALI RH. Estou entrando em contato sobre o seu Mapa de People. Quando puder, me chama por aqui para conversarmos sobre a leitura e os próximos passos.`;
+    window.open(`https://wa.me/${raw}?text=${encodeURIComponent(text)}`,'_blank','noopener,noreferrer');
+  }
+
+  async function sendEmail(){
+    if(!record||!supabase)return;
+    if(!pdfFile){setEmailFeedback('Selecione o PDF aprovado antes de enviar.');return}
+    if(pdfFile.type!=='application/pdf'&&!pdfFile.name.toLowerCase().endsWith('.pdf')){setEmailFeedback('Selecione um arquivo PDF.');return}
+    if(pdfFile.size>8*1024*1024){setEmailFeedback('O PDF precisa ter até 8 MB.');return}
+    setSending(true);setEmailFeedback('Enviando relatório…');
+    try{
+      const pdf_base64=await fileToBase64(pdfFile);
+      const {data,error:fnError}=await supabase.functions.invoke('workspace-enviar-relatorio-mapa',{body:{response_id:record.id,pdf_base64,request_id:crypto.randomUUID()}});
+      if(fnError||!data?.ok)throw new Error(data?.error||fnError?.message||'Falha ao enviar.');
+      const sentAt=new Date().toISOString();
+      setEmailFeedback(`Enviado para ${data.to||record.c_email} ✓`);
+      setRecord((current)=>current?{...current,status:'enviado',relatorio_enviado_em:sentAt}:current);
+      setTimeout(()=>{setEmailOpen(false);setPdfFile(null);setEmailFeedback('')},1200);
+    }catch(err){
+      setEmailFeedback(err instanceof Error?err.message:'Não foi possível enviar.');
+    }finally{
+      setSending(false);
+    }
+  }
+
+  if(loading)return <Shell role="admin"><div className="people-map-review-state"><RefreshCw className="spin" size={22}/>Abrindo revisão…</div></Shell>;
   if(error||!record||!draft||!scores)return <Shell role="admin"><div className="people-map-review-state error"><strong>Não foi possível abrir a revisão.</strong><span>{error}</span><button className="secondary" onClick={()=>navigate('/admin/mapa-de-people')}>Voltar ao Mapa</button></div></Shell>;
 
   const dimensions:[1|2|3|4,string,keyof Draft,number|null][]=[
@@ -173,10 +212,10 @@ export function AdminPeopleMapReviewPage(){
         <aside className="people-map-review-side">
           <section className="panel people-map-review-sidecard"><div className="people-map-review-side-title"><UserRound size={18}/><h3>Contato</h3></div><dl><div><dt>Nome</dt><dd>{record.c_nome}</dd></div><div><dt>Empresa</dt><dd>{record.c_empresa}</dd></div><div><dt>Cargo</dt><dd>{record.c_cargo||'Não informado'}</dd></div><div><dt>E-mail</dt><dd>{record.c_email}</dd></div><div><dt>WhatsApp</dt><dd>{record.c_whatsapp||'Não informado'}</dd></div><div><dt>Preferência</dt><dd>{record.c_preferencia_contato||'Não informada'}</dd></div><div><dt>LinkedIn / site</dt><dd>{record.c_linkedin_site||'Não informado'}</dd></div></dl></section>
           <section className="panel people-map-review-sidecard"><div className="people-map-review-side-title"><Building2 size={18}/><h3>Qualificação</h3></div><dl><div><dt>Prazo</dt><dd>{record.q_prazo||'—'}</dd></div><div><dt>Decisores</dt><dd>{[...(record.q_decisor||[]),record.q_decisor_outro].filter(Boolean).join(', ')||'—'}</dd></div><div><dt>Formato</dt><dd>{record.q_formato||'—'}</dd></div><div><dt>Apoio posterior</dt><dd>{qv2.apoio_pos||'—'}</dd></div><div><dt>Jurídico</dt><dd>{qv2.juridico||'—'}</dd></div><div><dt>Investimento</dt><dd>{record.q_investimento||'—'}</dd></div><div><dt>Origem</dt><dd>{record.q_origem||'—'}</dd></div></dl></section>
-          <section className="panel people-map-review-sidecard people-map-review-actions"><h3>Fluxo aprovado</h3><p>Primeiro salve a revisão. Depois abra o relatório, gere o PDF e só então envie ao cliente.</p><button className="secondary" onClick={save} disabled={saving}><Save size={16}/>{saving?'Salvando…':'Salvar revisão'}</button><button className="primary" onClick={saveAndOpenReport} disabled={saving}><FileText size={16}/>Salvar e abrir relatório</button><button className="secondary" onClick={()=>{setPdfFile(null);setEmailFeedback('');setEmailOpen(true)}}><Mail size={16}/>Enviar PDF aprovado</button><button className="secondary" onClick={openWhatsapp}><Send size={16}/>Preparar WhatsApp</button>{record.relatorio_enviado_em&&<small>Último envio: {new Date(record.relatorio_enviado_em).toLocaleString('pt-BR')}</small>}<span className="people-map-review-feedback">{feedback}</span></section>
+          <section className="panel people-map-review-sidecard people-map-review-actions"><h3>Fluxo aprovado</h3><p>Salve a revisão, confira o relatório e envie exatamente o PDF aprovado ao decisor.</p><button className="secondary" onClick={save} disabled={saving}><Save size={16}/>{saving?'Salvando…':'Salvar revisão'}</button><button className="primary" onClick={saveAndOpenReport} disabled={saving}><FileText size={16}/>{saving?'Salvando…':'Salvar e abrir relatório'}</button><button className="secondary" onClick={()=>{setPdfFile(null);setEmailFeedback('');setEmailOpen(true)}} disabled={!record.c_email}><Mail size={16}/>Enviar relatório por e-mail</button><button className="secondary" onClick={openWhatsapp}><Send size={16}/>Preparar WhatsApp</button>{record.relatorio_enviado_em&&<small>Último envio: {new Date(record.relatorio_enviado_em).toLocaleString('pt-BR')}</small>}<span className="people-map-review-feedback" aria-live="polite">{feedback}</span></section>
         </aside>
       </div>
     </section>
-    {emailOpen&&<div className="workspace-modal-layer people-map-send-layer" role="presentation"><section className="workspace-standard-modal people-map-send-modal" role="dialog" aria-modal="true"><button className="people-map-send-close" onClick={()=>setEmailOpen(false)}><X size={20}/></button><span className="eyebrow">ENVIO DO RELATÓRIO</span><h2>Confirmar devolutiva</h2><p>Use o PDF aprovado que acabou de gerar. O envio segue pelo padrão CALI já existente.</p><div className="people-map-send-recipient"><span>Destinatário</span><strong>{record.c_nome} &lt;{record.c_email}&gt;</strong></div><label className="people-map-pdf-upload"><input type="file" accept="application/pdf,.pdf" onChange={(e)=>setPdfFile(e.target.files?.[0]||null)}/><FileText size={22}/><strong>{pdfFile?pdfFile.name:'Selecionar relatório aprovado'}</strong><span>{pdfFile?`${(pdfFile.size/1024/1024).toFixed(2)} MB`:'PDF de até 8 MB'}</span></label>{emailFeedback&&<div className="people-map-email-feedback">{emailFeedback}</div>}<footer><button className="secondary" onClick={()=>setEmailOpen(false)}>Cancelar</button><button className="primary" onClick={sendEmail} disabled={!pdfFile||sending}>{sending?'Enviando…':'Enviar relatório'}</button></footer></section></div>}
+    {emailOpen&&<div className="workspace-modal-layer people-map-send-layer" role="presentation"><section className="workspace-standard-modal people-map-send-modal" role="dialog" aria-modal="true"><button className="people-map-send-close" onClick={()=>!sending&&setEmailOpen(false)} disabled={sending} aria-label="Fechar"><X size={20}/></button><span className="eyebrow">ENVIO DO RELATÓRIO</span><h2>Confirmar devolutiva</h2><p>Selecione o PDF que você acabou de aprovar. O e-mail usa o mesmo padrão oficial do Mapa de People.</p><div className="people-map-send-recipient"><span>Destinatário</span><strong>{record.c_nome} &lt;{record.c_email}&gt;</strong></div><label className={`people-map-pdf-upload${pdfFile?' has-file':''}`}><input type="file" accept="application/pdf,.pdf" disabled={sending} onChange={(e)=>{setPdfFile(e.target.files?.[0]||null);setEmailFeedback('')}}/><FileText size={22}/><strong>{pdfFile?pdfFile.name:'Selecionar relatório aprovado'}</strong><span>{pdfFile?`${(pdfFile.size/1024/1024).toFixed(2)} MB · pronto para enviar`:'PDF de até 8 MB'}</span></label>{emailFeedback&&<div className="people-map-email-feedback" aria-live="polite">{emailFeedback}</div>}<footer><button className="secondary" onClick={()=>setEmailOpen(false)} disabled={sending}>Cancelar</button><button className="primary" onClick={sendEmail} disabled={sending}>{sending?'Enviando…':'Enviar relatório'}</button></footer></section></div>}
   </Shell>;
 }
