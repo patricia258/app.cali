@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { initializeWorkspaceTheme, startWorkspaceThemeClock } from './lib/workspaceTheme';
 import { installMapaAuthBridge } from './lib/mapaAuthBridge';
+import { installMapaReviewNavigation } from './lib/mapaReviewNavigation';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -35,6 +36,8 @@ import './sidebar-capacity-v2.css';
 import './login-home-v2.css';
 import './people-map-admin.css';
 import './people-map-admin-v2.css';
+import './people-map-review.css';
+import './people-map-report-fidelity.css';
 import './login-theme-isolation.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
@@ -42,6 +45,7 @@ import './login-theme-isolation.css';
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
 installMapaAuthBridge();
+installMapaReviewNavigation();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
