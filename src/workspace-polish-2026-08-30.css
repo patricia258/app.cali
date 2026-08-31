@@ -1,0 +1,307 @@
+/* CALI Workspace · acabamento aprovado 30/08/2026
+   Escopo: Mapa de People + sidebar. Carregado por último para não reabrir
+   componentes aprovados nem contaminar outros módulos. */
+
+/* =========================================================
+   MAPA DE PEOPLE · STATUS
+   A cor é semântica e deve persistir em dia/noite.
+   ========================================================= */
+.people-map-status {
+  min-width: 166px !important;
+  padding: 8px 46px 8px 16px !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-radius: 999px !important;
+  font-weight: 800 !important;
+  background-repeat: no-repeat !important;
+  background-position: right 16px center !important;
+  background-size: 15px 15px !important;
+  transition: background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease !important;
+}
+
+.people-map-status.status-novo {
+  background-color: #f3eeee !important;
+  color: #74686a !important;
+  border-color: #ddd2d4 !important;
+}
+.people-map-status.status-em_andamento {
+  background-color: #e9f0f8 !important;
+  color: #315f88 !important;
+  border-color: #cddcec !important;
+}
+.people-map-status.status-pre_enviado {
+  background-color: #eee8f6 !important;
+  color: #6f4f89 !important;
+  border-color: #ddd0ed !important;
+}
+.people-map-status.status-enviado {
+  background-color: #e9f3eb !important;
+  color: #3d7452 !important;
+  border-color: #c9dfcf !important;
+}
+.people-map-status.status-cancelado {
+  background-color: #fae8e8 !important;
+  color: #a34040 !important;
+  border-color: #edc8c8 !important;
+}
+.people-map-status.status-excluido {
+  background-color: #ece8e6 !important;
+  color: #6d6062 !important;
+  border-color: #d9d0cd !important;
+}
+
+html[data-workspace-theme='night'] .people-map-status {
+  color-scheme: dark !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%23F7F3EE' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+}
+html[data-workspace-theme='night'] .people-map-status.status-novo {
+  background-color: #30292c !important;
+  color: #eee4e6 !important;
+  border-color: #5d4e53 !important;
+}
+html[data-workspace-theme='night'] .people-map-status.status-em_andamento {
+  background-color: #203444 !important;
+  color: #a9d5f4 !important;
+  border-color: #426985 !important;
+}
+html[data-workspace-theme='night'] .people-map-status.status-pre_enviado {
+  background-color: #352942 !important;
+  color: #d2b4ea !important;
+  border-color: #69547d !important;
+}
+html[data-workspace-theme='night'] .people-map-status.status-enviado {
+  background-color: #20372a !important;
+  color: #afe0bb !important;
+  border-color: #466e52 !important;
+}
+html[data-workspace-theme='night'] .people-map-status.status-cancelado {
+  background-color: #40262a !important;
+  color: #f1a9aa !important;
+  border-color: #815057 !important;
+}
+html[data-workspace-theme='night'] .people-map-status.status-excluido {
+  background-color: #302a2c !important;
+  color: #bfb3b6 !important;
+  border-color: #55494d !important;
+}
+
+/* Revisar precisa continuar legível no fundo noturno. */
+html[data-workspace-theme='night'] .people-map-open {
+  color: #e8a4b8 !important;
+  background: rgba(208, 138, 157, .09) !important;
+  border: 1px solid rgba(208, 138, 157, .18) !important;
+  border-radius: 10px !important;
+  padding: 8px 10px !important;
+  font-weight: 800 !important;
+  text-decoration: none !important;
+}
+html[data-workspace-theme='night'] .people-map-open:hover {
+  color: #f4c0cf !important;
+  background: rgba(208, 138, 157, .16) !important;
+  border-color: rgba(232, 164, 184, .34) !important;
+  box-shadow: 0 7px 18px rgba(0, 0, 0, .14) !important;
+}
+
+/* =========================================================
+   SIDEBAR · PERFIL SEMPRE PRESENTE
+   O nav reserva a área inferior e o perfil fica ancorado no rodapé.
+   ========================================================= */
+@media (min-width: 861px) {
+  .sidebar:hover nav,
+  .sidebar:focus-within nav,
+  .sidebar.pinned nav {
+    padding-bottom: 76px !important;
+  }
+
+  .sidebar:hover .sidebar-footer-profile-only,
+  .sidebar:focus-within .sidebar-footer-profile-only,
+  .sidebar.pinned .sidebar-footer-profile-only {
+    position: absolute !important;
+    left: 14px !important;
+    right: 14px !important;
+    bottom: 9px !important;
+    width: auto !important;
+    min-height: 62px !important;
+    margin: 0 !important;
+    padding: 7px 0 0 !important;
+    z-index: 8 !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow: visible !important;
+  }
+
+  .sidebar:hover .profile-control-direct,
+  .sidebar:focus-within .profile-control-direct,
+  .sidebar.pinned .profile-control-direct,
+  .sidebar:hover .profile-trigger-direct,
+  .sidebar:focus-within .profile-trigger-direct,
+  .sidebar.pinned .profile-trigger-direct {
+    display: block !important;
+    width: 100% !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .sidebar:hover .profile-trigger-direct,
+  .sidebar:focus-within .profile-trigger-direct,
+  .sidebar.pinned .profile-trigger-direct {
+    display: grid !important;
+    grid-template-columns: 40px minmax(0, 1fr) 18px !important;
+    align-items: center !important;
+    column-gap: 10px !important;
+    min-height: 50px !important;
+  }
+}
+
+.sidebar-footer-profile-only .profile-avatar {
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  overflow: hidden !important;
+}
+.sidebar-footer-profile-only .profile-avatar img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: var(--avatar-x, 50%) var(--avatar-y, 50%) !important;
+  transform: scale(var(--avatar-zoom, 1)) !important;
+  transform-origin: var(--avatar-x, 50%) var(--avatar-y, 50%) !important;
+}
+.sidebar-footer-profile-only .profile-copy,
+.sidebar-footer-profile-only .profile-edit-chevron {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+.sidebar-footer-profile-only .profile-copy {
+  min-width: 0 !important;
+}
+.sidebar-footer-profile-only .profile-copy strong,
+.sidebar-footer-profile-only .profile-copy small {
+  display: block !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* =========================================================
+   SIDEBAR · MODO NOITE INVERTIDO
+   O conteúdo central segue noturno; a navegação vira uma peça clara CALI.
+   ========================================================= */
+html[data-workspace-theme='night'] .sidebar {
+  isolation: isolate !important;
+  background: linear-gradient(180deg, #f5eee5 0%, #eee2d4 58%, #eadbc9 100%) !important;
+  color: #5a1e2d !important;
+  border-right: 1px solid rgba(90, 30, 45, .12) !important;
+  box-shadow: 16px 0 44px rgba(18, 12, 14, .18) !important;
+}
+
+html[data-workspace-theme='night'] .sidebar::before,
+html[data-workspace-theme='night'] .sidebar::after {
+  content: '' !important;
+  display: block !important;
+  position: absolute !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  z-index: 0 !important;
+  background: #5a1e2d !important;
+}
+html[data-workspace-theme='night'] .sidebar::before {
+  width: 164px !important;
+  height: 164px !important;
+  top: 44px !important;
+  right: -46px !important;
+  opacity: .075 !important;
+  -webkit-mask: url('/brand/cali-oak-mark.svg') center / contain no-repeat !important;
+  mask: url('/brand/cali-oak-mark.svg') center / contain no-repeat !important;
+  transform: rotate(9deg) !important;
+}
+html[data-workspace-theme='night'] .sidebar::after {
+  width: 184px !important;
+  height: 184px !important;
+  left: -68px !important;
+  bottom: 112px !important;
+  opacity: .065 !important;
+  -webkit-mask: url('/brand/cali-lime-mark.svg') center / contain no-repeat !important;
+  mask: url('/brand/cali-lime-mark.svg') center / contain no-repeat !important;
+  transform: rotate(-11deg) !important;
+}
+html[data-workspace-theme='night'] .sidebar > * {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+html[data-workspace-theme='night'] .sidebar nav a,
+html[data-workspace-theme='night'] .sidebar .sidebar-pin,
+html[data-workspace-theme='night'] .sidebar .profile-trigger,
+html[data-workspace-theme='night'] .sidebar .profile-trigger strong,
+html[data-workspace-theme='night'] .sidebar .profile-copy small,
+html[data-workspace-theme='night'] .sidebar .profile-edit-chevron {
+  color: rgba(90, 30, 45, .78) !important;
+}
+html[data-workspace-theme='night'] .sidebar nav a:hover,
+html[data-workspace-theme='night'] .sidebar nav a.active,
+html[data-workspace-theme='night'] .sidebar .sidebar-pin:hover,
+html[data-workspace-theme='night'] .sidebar .profile-trigger:hover {
+  color: #5a1e2d !important;
+  background: rgba(90, 30, 45, .085) !important;
+}
+html[data-workspace-theme='night'] .sidebar nav a.active {
+  box-shadow: inset 3px 0 0 #5a1e2d !important;
+}
+html[data-workspace-theme='night'] .sidebar .sidebar-pin {
+  background: rgba(90, 30, 45, .055) !important;
+  border-color: rgba(90, 30, 45, .08) !important;
+}
+html[data-workspace-theme='night'] .sidebar .brand-compact-slide,
+html[data-workspace-theme='night'] .sidebar .brand-compact-art {
+  color: #5a1e2d !important;
+  background-color: #5a1e2d !important;
+}
+html[data-workspace-theme='night'] .sidebar .brand-full img {
+  filter: brightness(0) saturate(100%) invert(17%) sepia(27%) saturate(2250%) hue-rotate(304deg) brightness(86%) contrast(94%) !important;
+  opacity: .96 !important;
+}
+html[data-workspace-theme='night'] .sidebar .brand-full span {
+  color: rgba(90, 30, 45, .72) !important;
+}
+html[data-workspace-theme='night'] .sidebar .sidebar-footer-profile-only {
+  border-top-color: rgba(90, 30, 45, .18) !important;
+  background: linear-gradient(to bottom, rgba(247,243,238,0), rgba(247,243,238,.58) 30%, rgba(247,243,238,.80)) !important;
+}
+html[data-workspace-theme='night'] .sidebar .profile-avatar {
+  background: #5a1e2d !important;
+  color: #f7f3ee !important;
+  border-color: rgba(90,30,45,.14) !important;
+}
+html[data-workspace-theme='night'] .sidebar .profile-copy strong {
+  color: #5a1e2d !important;
+}
+html[data-workspace-theme='night'] .sidebar .profile-copy small {
+  color: #806a70 !important;
+}
+
+@media (max-width: 860px) {
+  .sidebar.mobile-open nav {
+    padding-bottom: 76px !important;
+  }
+  .sidebar.mobile-open .sidebar-footer-profile-only {
+    position: absolute !important;
+    left: 14px !important;
+    right: 14px !important;
+    bottom: 9px !important;
+    width: auto !important;
+    min-height: 62px !important;
+    z-index: 8 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  .people-map-status {
+    min-width: 156px !important;
+    padding-right: 42px !important;
+    background-position: right 14px center !important;
+  }
+}
