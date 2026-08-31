@@ -1,0 +1,129 @@
+/* CALI Workspace · Profile avatar polish
+   Ajuste isolado solicitado em 30/08/2026.
+   Regra: NÃO alterar o avatar do sidebar fechado, que já está aprovado.
+   Apenas amplia e adota moldura quadrada arredondada no editor e no sidebar aberto. */
+
+/* =========================================================
+   EDITOR DE PERFIL · PRÉVIA GRANDE E QUADRADA
+   ========================================================= */
+.profile-modal-v2 .profile-photo-workbench {
+  display: grid !important;
+  grid-template-columns: minmax(190px, .58fr) minmax(360px, 1.42fr) !important;
+  align-items: center !important;
+  gap: clamp(24px, 4vw, 44px) !important;
+  min-height: 210px !important;
+  padding: 20px 24px !important;
+}
+
+.profile-modal-v2 .profile-photo-stage {
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 14px !important;
+}
+
+.profile-modal-v2 .profile-photo-stage .profile-avatar-editor.large-editor-avatar {
+  width: clamp(124px, 10vw, 148px) !important;
+  height: clamp(124px, 10vw, 148px) !important;
+  min-width: 124px !important;
+  min-height: 124px !important;
+  flex: 0 0 auto !important;
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  border: 2px solid rgba(90,30,45,.22) !important;
+  background: rgba(247,243,238,.72) !important;
+  box-shadow: 0 12px 30px rgba(55,31,37,.10) !important;
+}
+
+.profile-modal-v2 .profile-photo-stage .profile-avatar-editor.large-editor-avatar img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: var(--avatar-x,50%) var(--avatar-y,50%) !important;
+  transform: scale(var(--avatar-zoom,1)) !important;
+  transform-origin: var(--avatar-x,50%) var(--avatar-y,50%) !important;
+}
+
+.profile-modal-v2 .photo-upload-button {
+  justify-content: center !important;
+}
+
+html[data-workspace-theme='night'] .profile-modal-v2 .profile-photo-stage .profile-avatar-editor.large-editor-avatar {
+  border-color: rgba(208,138,157,.34) !important;
+  background: #2a2024 !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,.18) !important;
+}
+
+/* =========================================================
+   SIDEBAR ABERTO · FOTO MAIOR E QUADRADA
+   Importante: os seletores abaixo só valem nos estados EXPANDIDOS.
+   O rail fechado não é tocado.
+   ========================================================= */
+@media (min-width: 861px) {
+  .sidebar:hover .profile-trigger-direct,
+  .sidebar:focus-within .profile-trigger-direct,
+  .sidebar.pinned .profile-trigger-direct {
+    min-height: 66px !important;
+    gap: 12px !important;
+    padding: 5px 4px !important;
+  }
+
+  .sidebar:hover .profile-trigger-direct .profile-avatar,
+  .sidebar:focus-within .profile-trigger-direct .profile-avatar,
+  .sidebar.pinned .profile-trigger-direct .profile-avatar {
+    width: 56px !important;
+    height: 56px !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
+    flex: 0 0 56px !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+  }
+
+  .sidebar:hover .profile-trigger-direct .profile-avatar img,
+  .sidebar:focus-within .profile-trigger-direct .profile-avatar img,
+  .sidebar.pinned .profile-trigger-direct .profile-avatar img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: var(--avatar-x,50%) var(--avatar-y,50%) !important;
+    transform: scale(var(--avatar-zoom,1)) !important;
+    transform-origin: var(--avatar-x,50%) var(--avatar-y,50%) !important;
+  }
+}
+
+/* Sidebar mobile aberto: mesma linguagem quadrada, sem exagerar a escala. */
+.sidebar.mobile-open .profile-trigger-direct .profile-avatar {
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
+  flex: 0 0 56px !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+.sidebar.mobile-open .profile-trigger-direct .profile-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: var(--avatar-x,50%) var(--avatar-y,50%) !important;
+  transform: scale(var(--avatar-zoom,1)) !important;
+  transform-origin: var(--avatar-x,50%) var(--avatar-y,50%) !important;
+}
+
+@media (max-width: 720px) {
+  .profile-modal-v2 .profile-photo-workbench {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  .profile-modal-v2 .profile-photo-stage .profile-avatar-editor.large-editor-avatar {
+    width: 124px !important;
+    height: 124px !important;
+  }
+}
