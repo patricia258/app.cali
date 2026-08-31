@@ -1,0 +1,71 @@
+/* CALI Workspace · identidade visual de pessoas e empresas
+   Molduras de identidade devem exibir foto/logo real quando disponível.
+   Iniciais deixam de ser a representação visual principal. */
+
+.identity-media-frame {
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+.identity-media-frame > .identity-media-image {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+}
+
+.identity-media-person {
+  border-radius: 12px !important;
+}
+
+.identity-media-person > .identity-media-image {
+  object-fit: cover !important;
+}
+
+.identity-media-company > .identity-media-image {
+  object-fit: contain !important;
+  padding: 4px !important;
+  transform: none !important;
+  object-position: center !important;
+}
+
+.identity-media-empty {
+  color: transparent !important;
+  font-size: 0 !important;
+}
+
+/* Conversa de projeto: foto real da CALI e identidade visual do cliente. */
+.conversation-avatar-v2.identity-media-frame {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  border-radius: 12px !important;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 18%, var(--theme-line)) !important;
+  background: var(--theme-surface-muted) !important;
+}
+
+.conversation-list-v2 article:has(.conversation-avatar-v2.identity-media-frame) {
+  grid-template-columns: 42px minmax(0,1fr) !important;
+  gap: 12px !important;
+}
+
+/* Seletor de projetos: logo cadastrada substitui a letra da empresa. */
+.project-client-mark.identity-media-company {
+  padding: 3px !important;
+  background: var(--theme-surface-soft) !important;
+}
+
+.project-client-mark.identity-media-company > .identity-media-image {
+  padding: 2px !important;
+}
+
+/* Mantém contraste no modo noite sem criar caixas novas. */
+html[data-workspace-theme='night'] .identity-media-frame {
+  border-color: rgba(90,30,45,.20) !important;
+}
+
+html[data-workspace-theme='night'] .identity-media-company {
+  background: rgba(247,243,238,.72) !important;
+}
