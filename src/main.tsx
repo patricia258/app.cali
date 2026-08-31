@@ -46,6 +46,7 @@ import './sidebar-closed-profile-fix.css';
 import './sidebar-open-night-profile-fix.css';
 import './profile-avatar-polish.css';
 import './identity-media.css';
+import './documents-v3.css';
 import './app-error-boundary.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
