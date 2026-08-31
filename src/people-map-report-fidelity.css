@@ -1,0 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Inter:wght@300;400;500;600;700&display=swap');
+.people-map-report-shell{font-family:'Inter',sans-serif!important}.people-map-report-shell .pmr-page h1,.people-map-report-shell .pmr-page h2,.people-map-report-shell .pmr-dim-card header>strong,.people-map-report-shell .pmr-dim-card header>b,.people-map-report-shell .pmr-radar-insights strong,.people-map-report-shell .pmr-sublayer-grid header strong,.people-map-report-shell .pmr-sublayer-grid header>b,.people-map-report-shell .pmr-effort h3,.people-map-report-shell .pmr-service h3,.people-map-report-shell .pmr-closing p,.people-map-report-shell .pmr-closing-sign strong,.people-map-report-shell .pmr-company,.people-map-report-shell .pmr-sign strong{font-family:'Playfair Display',serif!important}.people-map-report-shell .pmr-synthesis h3,.people-map-report-shell .pmr-service h3{color:var(--pmr-ivory)!important}.people-map-report-shell .pmr-synthesis,.people-map-report-shell .pmr-service,.people-map-report-shell .pmr-closing,.people-map-report-shell .pmr-cover{color:var(--pmr-ivory)!important}.people-map-report-shell .pmr-synthesis *,.people-map-report-shell .pmr-service *{border-color:rgba(247,243,238,.18)}.people-map-report-shell .pmr-service>p,.people-map-report-shell .pmr-synthesis p{color:rgba(247,243,238,.94)!important}.people-map-report-shell .pmr-steps span{color:rgba(247,243,238,.9)!important}.people-map-report-shell .pmr-cover-kicker,.people-map-report-shell .pmr-eyebrow,.people-map-report-shell .pmr-service>div:first-child span{color:var(--pmr-gold)!important}
+@media print{
+  @page{size:A4;margin:0}
+  html,body,#root,.people-map-report-shell,.pmr-doc,.pmr-page{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  html,body,#root{margin:0!important;padding:0!important;background:#fff!important}
+  .people-map-report-shell{background:#fff!important}
+  .pmr-toolbar{display:none!important}
+  .pmr-doc{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
+  .pmr-page{box-sizing:border-box!important;width:auto!important;height:auto!important;min-height:0!important;margin:0!important;padding:14mm 15mm 17mm!important;box-shadow:none!important;overflow:visible!important;break-after:page!important;page-break-after:always!important;break-inside:avoid-page!important;page-break-inside:avoid!important}
+  .pmr-cover,.pmr-closing{height:calc(100vh - 1mm)!important;min-height:calc(100vh - 1mm)!important;overflow:hidden!important;display:flex!important;justify-content:center!important}
+  .pmr-cover{padding:18mm!important}.pmr-closing{padding:18mm!important}
+  .pmr-page-footer{left:15mm!important;right:15mm!important;bottom:7mm!important}
+  .pmr-page:last-child{break-after:auto!important;page-break-after:auto!important}
+  .pmr-synthesis,.pmr-service,.pmr-cover,.pmr-closing,.pmr-quad.q1,.pmr-quad.q2,.pmr-quad.q3,.pmr-quad.q4,.pmr-steps div{background-color:inherit;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
