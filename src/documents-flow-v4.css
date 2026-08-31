@@ -37,9 +37,88 @@
 }
 
 .documents-admin-v4 .document-complete-cta-v4 {
-  min-height: 33px;
-  padding: 0 11px;
+  min-height: 35px;
+  padding: 0 13px;
   border-radius: 10px;
+  font-size: 10px;
+}
+
+/* Card editorial: a listagem mostra somente o necessário para decisão rápida.
+   Métricas, origem, versão e contexto completo continuam no modal Detalhes. */
+.documents-admin-v4 .document-card-content-v3 {
+  gap: 14px;
+  padding: 18px;
+}
+
+.documents-admin-v4 .document-card-content-v3 h2 {
+  min-height: 0;
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.32;
+}
+
+.documents-admin-v4 .document-card-tags-v3 {
+  min-height: 24px;
+}
+
+.documents-admin-v4 .document-card-tags-v3 span:nth-child(n + 2) {
+  display: none;
+}
+
+.documents-admin-v4 .document-client-line-v3 {
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 11px;
+}
+
+.documents-admin-v4 .document-client-logo-v3 {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+}
+
+.documents-admin-v4 .document-client-line-v3 strong {
+  font-size: 12px;
+}
+
+.documents-admin-v4 .document-client-line-v3 small {
+  display: none;
+}
+
+.documents-admin-v4 .document-protocol-v3 {
+  margin-top: -2px;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.documents-admin-v4 .document-card-metrics-v3 {
+  display: none;
+}
+
+.documents-admin-v4 .document-card-footer-v3 {
+  align-items: center;
+  gap: 14px;
+  margin-top: 1px;
+  padding-top: 13px;
+  border-top: 1px solid color-mix(in srgb, var(--theme-line) 78%, transparent);
+}
+
+.documents-admin-v4 .document-card-footer-v3 > small {
+  max-width: none;
+  flex: 1 1 auto;
+  color: var(--theme-muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.documents-admin-v4 .document-card-footer-v3 > div {
+  flex: 0 0 auto;
+  gap: 7px;
+  align-items: center;
+}
+
+.documents-admin-v4 .document-card-footer-v3 button {
+  min-height: 35px;
+  padding-inline: 11px;
   font-size: 10px;
 }
 
@@ -73,5 +152,15 @@
   }
   .documents-admin-v4 .document-toolbar-v4 .document-search-v3 {
     grid-column: auto;
+  }
+
+  .documents-admin-v4 .document-card-footer-v3 {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .documents-admin-v4 .document-card-footer-v3 > div {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }
