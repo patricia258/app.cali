@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Building2, FileText, Mail, RefreshCw, Save, Send, UserRound, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { ArrowLeft, Building2, FileText, Mail, Plus, RefreshCw, Save, Send, UserRound, X } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
@@ -63,6 +64,8 @@ const SERVICES = [
   'Treinamentos & Palestras',
 ];
 const SCALE = ['—','Muito baixo','Baixo','Médio','Alto','Muito alto'];
+const REPORT_EMAIL_SUBJECT = 'Seu relatório do Mapa de People chegou 🎉 | CALI RH';
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function mean(values:Array<number|null|undefined>){const valid=values.filter((v):v is number=>v!=null&&Number.isFinite(Number(v))).map(Number);return valid.length?valid.reduce((a,b)=>a+b,0)/valid.length:null}
 function scale10(v:number|null){return v==null?null:v*2}
@@ -117,6 +120,8 @@ export function AdminPeopleMapReviewPage(){
   const [emailOpen,setEmailOpen]=useState(false);
   const [pdfFile,setPdfFile]=useState<File|null>(null);
   const [emailFeedback,setEmailFeedback]=useState('');
+  const [emailRecipients,setEmailRecipients]=useState<string[]>([]);
+  const [emailMessage,setEmailMessage]=useState('');
   const [sending,setSending]=useState(false);
 
   useEffect(()=>{(async()=>{
@@ -132,6 +137,12 @@ export function AdminPeopleMapReviewPage(){
     setDraft({d1_obs:saved.d1_obs||'',d2_obs:saved.d2_obs||'',d3_obs:saved.d3_obs||'',d4_obs:saved.d4_obs||'',parecer:saved.parecer||'',servico_recomendado:saved.servico_recomendado||'Diagnóstico Executivo de People'});
     setLoading(false);
   })()},[protocolo]);
+
+  useEffect(()=>{
+    if(!emailOpen)return;
+    document.body.classList.add('workspace-modal-open');
+    return()=>document.body.classList.remove('workspace-modal-open');
+  },[emailOpen]);
 
   const scores=useMemo(()=>record?scoresFor(record):null,[record]);
   const qv2=record?.diagnostico_v2?.qualificacao||{};
@@ -169,20 +180,48 @@ export function AdminPeopleMapReviewPage(){
     window.open(`https://wa.me/${raw}?text=${encodeURIComponent(text)}`,'_blank','noopener,noreferrer');
   }
 
+  function openEmailModal(){
+    if(!record)return;
+    setPdfFile(null);
+    setEmailFeedback('');
+    setEmailRecipients([record.c_email||'']);
+    setEmailMessage('');
+    setEmailOpen(true);
+  }
+
+  function updateRecipient(index:number,value:string){
+    setEmailRecipients((current)=>current.map((recipient,i)=>i===index?value:recipient));
+    setEmailFeedback('');
+  }
+
+  function addRecipient(){
+    setEmailRecipients((current)=>current.length>=8?current:[...current,'']);
+  }
+
+  function removeRecipient(index:number){
+    setEmailRecipients((current)=>current.length===1?['']:current.filter((_,i)=>i!==index));
+    setEmailFeedback('');
+  }
+
   async function sendEmail(){
     if(!record||!supabase)return;
+    const recipients=[...new Set(emailRecipients.map((value)=>value.trim().toLowerCase()).filter(Boolean))];
+    if(!recipients.length){setEmailFeedback('Informe pelo menos um destinatário.');return}
+    const invalid=recipients.find((email)=>!EMAIL_PATTERN.test(email));
+    if(invalid){setEmailFeedback(`Confira o e-mail: ${invalid}`);return}
     if(!pdfFile){setEmailFeedback('Selecione o PDF aprovado antes de enviar.');return}
     if(pdfFile.type!=='application/pdf'&&!pdfFile.name.toLowerCase().endsWith('.pdf')){setEmailFeedback('Selecione um arquivo PDF.');return}
     if(pdfFile.size>8*1024*1024){setEmailFeedback('O PDF precisa ter até 8 MB.');return}
     setSending(true);setEmailFeedback('Enviando relatório…');
     try{
       const pdf_base64=await fileToBase64(pdfFile);
-      const {data,error:fnError}=await supabase.functions.invoke('workspace-enviar-relatorio-mapa',{body:{response_id:record.id,pdf_base64,request_id:crypto.randomUUID()}});
+      const {data,error:fnError}=await supabase.functions.invoke('workspace-enviar-relatorio-mapa',{body:{response_id:record.id,pdf_base64,request_id:crypto.randomUUID(),recipients,custom_message:emailMessage.trim()||null}});
       if(fnError||!data?.ok)throw new Error(data?.error||fnError?.message||'Falha ao enviar.');
       const sentAt=new Date().toISOString();
-      setEmailFeedback(`Enviado para ${data.to||record.c_email} ✓`);
+      const sentTo=Array.isArray(data.to)?data.to.join(', '):(data.to||recipients.join(', '));
+      setEmailFeedback(`Enviado para ${sentTo} ✓`);
       setRecord((current)=>current?{...current,status:'enviado',relatorio_enviado_em:sentAt}:current);
-      setTimeout(()=>{setEmailOpen(false);setPdfFile(null);setEmailFeedback('')},1200);
+      setTimeout(()=>{setEmailOpen(false);setPdfFile(null);setEmailRecipients([]);setEmailMessage('');setEmailFeedback('')},1400);
     }catch(err){
       setEmailFeedback(err instanceof Error?err.message:'Não foi possível enviar.');
     }finally{
@@ -212,10 +251,10 @@ export function AdminPeopleMapReviewPage(){
         <aside className="people-map-review-side">
           <section className="panel people-map-review-sidecard"><div className="people-map-review-side-title"><UserRound size={18}/><h3>Contato</h3></div><dl><div><dt>Nome</dt><dd>{record.c_nome}</dd></div><div><dt>Empresa</dt><dd>{record.c_empresa}</dd></div><div><dt>Cargo</dt><dd>{record.c_cargo||'Não informado'}</dd></div><div><dt>E-mail</dt><dd>{record.c_email}</dd></div><div><dt>WhatsApp</dt><dd>{record.c_whatsapp||'Não informado'}</dd></div><div><dt>Preferência</dt><dd>{record.c_preferencia_contato||'Não informada'}</dd></div><div><dt>LinkedIn / site</dt><dd>{record.c_linkedin_site||'Não informado'}</dd></div></dl></section>
           <section className="panel people-map-review-sidecard"><div className="people-map-review-side-title"><Building2 size={18}/><h3>Qualificação</h3></div><dl><div><dt>Prazo</dt><dd>{record.q_prazo||'—'}</dd></div><div><dt>Decisores</dt><dd>{[...(record.q_decisor||[]),record.q_decisor_outro].filter(Boolean).join(', ')||'—'}</dd></div><div><dt>Formato</dt><dd>{record.q_formato||'—'}</dd></div><div><dt>Apoio posterior</dt><dd>{qv2.apoio_pos||'—'}</dd></div><div><dt>Jurídico</dt><dd>{qv2.juridico||'—'}</dd></div><div><dt>Investimento</dt><dd>{record.q_investimento||'—'}</dd></div><div><dt>Origem</dt><dd>{record.q_origem||'—'}</dd></div></dl></section>
-          <section className="panel people-map-review-sidecard people-map-review-actions"><h3>Fluxo aprovado</h3><p>Salve a revisão, confira o relatório e envie exatamente o PDF aprovado ao decisor.</p><button className="secondary" onClick={save} disabled={saving}><Save size={16}/>{saving?'Salvando…':'Salvar revisão'}</button><button className="primary" onClick={saveAndOpenReport} disabled={saving}><FileText size={16}/>{saving?'Salvando…':'Salvar e abrir relatório'}</button><button className="secondary" onClick={()=>{setPdfFile(null);setEmailFeedback('');setEmailOpen(true)}} disabled={!record.c_email}><Mail size={16}/>Enviar relatório por e-mail</button><button className="secondary" onClick={openWhatsapp}><Send size={16}/>Preparar WhatsApp</button>{record.relatorio_enviado_em&&<small>Último envio: {new Date(record.relatorio_enviado_em).toLocaleString('pt-BR')}</small>}<span className="people-map-review-feedback" aria-live="polite">{feedback}</span></section>
+          <section className="panel people-map-review-sidecard people-map-review-actions"><h3>Fluxo aprovado</h3><p>Salve a revisão, confira o relatório e envie exatamente o PDF aprovado ao decisor.</p><button className="secondary" onClick={save} disabled={saving}><Save size={16}/>{saving?'Salvando…':'Salvar revisão'}</button><button className="primary" onClick={saveAndOpenReport} disabled={saving}><FileText size={16}/>{saving?'Salvando…':'Salvar e abrir relatório'}</button><button className="secondary" onClick={openEmailModal}><Mail size={16}/>Enviar relatório por e-mail</button><button className="secondary" onClick={openWhatsapp}><Send size={16}/>Preparar WhatsApp</button>{record.relatorio_enviado_em&&<small>Último envio: {new Date(record.relatorio_enviado_em).toLocaleString('pt-BR')}</small>}<span className="people-map-review-feedback" aria-live="polite">{feedback}</span></section>
         </aside>
       </div>
     </section>
-    {emailOpen&&<div className="workspace-modal-layer people-map-send-layer" role="presentation"><section className="workspace-standard-modal people-map-send-modal" role="dialog" aria-modal="true"><button className="people-map-send-close" onClick={()=>!sending&&setEmailOpen(false)} disabled={sending} aria-label="Fechar"><X size={20}/></button><span className="eyebrow">ENVIO DO RELATÓRIO</span><h2>Confirmar devolutiva</h2><p>Selecione o PDF que você acabou de aprovar. O e-mail usa o mesmo padrão oficial do Mapa de People.</p><div className="people-map-send-recipient"><span>Destinatário</span><strong>{record.c_nome} &lt;{record.c_email}&gt;</strong></div><label className={`people-map-pdf-upload${pdfFile?' has-file':''}`}><input type="file" accept="application/pdf,.pdf" disabled={sending} onChange={(e)=>{setPdfFile(e.target.files?.[0]||null);setEmailFeedback('')}}/><FileText size={22}/><strong>{pdfFile?pdfFile.name:'Selecionar relatório aprovado'}</strong><span>{pdfFile?`${(pdfFile.size/1024/1024).toFixed(2)} MB · pronto para enviar`:'PDF de até 8 MB'}</span></label>{emailFeedback&&<div className="people-map-email-feedback" aria-live="polite">{emailFeedback}</div>}<footer><button className="secondary" onClick={()=>setEmailOpen(false)} disabled={sending}>Cancelar</button><button className="primary" onClick={sendEmail} disabled={sending}>{sending?'Enviando…':'Enviar relatório'}</button></footer></section></div>}
+    {emailOpen&&createPortal(<div className="workspace-modal-layer people-map-send-layer" role="presentation" onMouseDown={(event)=>{if(event.target===event.currentTarget&&!sending)setEmailOpen(false)}}><section className="workspace-standard-modal people-map-send-modal" role="dialog" aria-modal="true" aria-labelledby="people-map-send-title"><button className="people-map-send-close" onClick={()=>!sending&&setEmailOpen(false)} disabled={sending} aria-label="Fechar"><X size={20}/></button><span className="eyebrow">ENVIO DO RELATÓRIO</span><h2 id="people-map-send-title">Confirmar devolutiva</h2><p>O destinatário principal vem do Mapa, mas você pode alterar ou incluir outras pessoas antes do envio.</p><div className="people-map-email-form"><label className="stacked-label"><span>Destinatários</span><small>Até 8 endereços. O primeiro já vem preenchido com o e-mail do formulário.</small><div className="people-map-recipient-list">{emailRecipients.map((recipient,index)=><div className="people-map-recipient-row" key={index}><Mail size={16}/><input type="email" value={recipient} disabled={sending} placeholder="nome@empresa.com.br" onChange={(event)=>updateRecipient(index,event.target.value)}/><button type="button" aria-label={`Remover destinatário ${index+1}`} onClick={()=>removeRecipient(index)} disabled={sending}><X size={16}/></button></div>)}</div><button type="button" className="people-map-add-recipient" onClick={addRecipient} disabled={sending||emailRecipients.length>=8}><Plus size={15}/>Adicionar destinatário</button></label><div className="people-map-email-subject"><span>Assunto</span><strong>{REPORT_EMAIL_SUBJECT}</strong></div><label className="stacked-label"><span>Mensagem adicional <em>opcional</em></span><textarea rows={3} value={emailMessage} disabled={sending} maxLength={3000} placeholder="Escreva aqui uma observação pessoal para acompanhar o e-mail padrão da CALI." onChange={(event)=>setEmailMessage(event.target.value)}/><small>{emailMessage.length}/3000 · entra no corpo do e-mail sem substituir o modelo aprovado.</small></label></div><label className={`people-map-pdf-upload${pdfFile?' has-file':''}`}><input type="file" accept="application/pdf,.pdf" disabled={sending} onChange={(e)=>{setPdfFile(e.target.files?.[0]||null);setEmailFeedback('')}}/><FileText size={22}/><strong>{pdfFile?pdfFile.name:'Selecionar relatório aprovado'}</strong><span>{pdfFile?`${(pdfFile.size/1024/1024).toFixed(2)} MB · pronto para enviar`:'PDF de até 8 MB'}</span></label>{emailFeedback&&<div className="people-map-email-feedback" aria-live="polite">{emailFeedback}</div>}<footer><button className="secondary" onClick={()=>setEmailOpen(false)} disabled={sending}>Cancelar</button><button className="primary" onClick={sendEmail} disabled={sending}>{sending?'Enviando…':'Enviar relatório'}</button></footer></section></div>,document.body)}
   </Shell>;
 }
