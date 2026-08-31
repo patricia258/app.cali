@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
+import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { initializeWorkspaceTheme, startWorkspaceThemeClock } from './lib/workspaceTheme';
 import { installMapaAuthBridge } from './lib/mapaAuthBridge';
 import { installMapaReviewNavigation } from './lib/mapaReviewNavigation';
@@ -45,6 +46,7 @@ import './sidebar-closed-profile-fix.css';
 import './sidebar-open-night-profile-fix.css';
 import './profile-avatar-polish.css';
 import './identity-media.css';
+import './app-error-boundary.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
 // O Mapa administrativo usa RPCs públicas seguras; o backend foi sincronizado em 30/08/2026.
@@ -56,8 +58,10 @@ startIdentityMediaRuntime();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <AppErrorBoundary>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </AppErrorBoundary>
   </React.StrictMode>,
 );
