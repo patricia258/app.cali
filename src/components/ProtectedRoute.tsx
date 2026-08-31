@@ -10,6 +10,18 @@ function previewBypassAllowed() {
     || hostname.endsWith('.vercel.app');
 }
 
+function WorkspaceRouteLoader() {
+  return (
+    <main className="route-loading cali-route-loading" aria-live="polite" aria-busy="true">
+      <div className="cali-loading-illustrations" aria-hidden="true">
+        <span className="cali-loading-mark cali-loading-lime" />
+        <span className="cali-loading-mark cali-loading-oak" />
+      </div>
+      <span className="sr-only">Carregando seu Workspace</span>
+    </main>
+  );
+}
+
 export function ProtectedRoute({ role, children }: { role: Role; children: ReactNode }) {
   const [state, setState] = useState<'loading' | 'allowed' | 'denied'>('loading');
   const [actualRole, setActualRole] = useState<Role | null>(null);
@@ -63,9 +75,7 @@ export function ProtectedRoute({ role, children }: { role: Role; children: React
     return () => { active = false; };
   }, [role]);
 
-  if (state === 'loading') {
-    return <main className="route-loading"><div className="loading-mark">CALI</div><p>Carregando seu Workspace…</p></main>;
-  }
+  if (state === 'loading') return <WorkspaceRouteLoader />;
 
   if (state === 'denied') {
     if (actualRole) return <Navigate to={actualRole === 'admin' ? '/admin' : '/cliente'} replace />;
