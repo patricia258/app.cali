@@ -3,9 +3,11 @@ export type WorkspaceRole = 'admin' | 'client';
 export type DeliverableStatus =
   | 'not_started'
   | 'in_progress'
+  | 'standby'
   | 'internal_review'
   | 'client_review'
   | 'adjustment_requested'
+  | 'rebriefing'
   | 'approved'
   | 'cancelled';
 
