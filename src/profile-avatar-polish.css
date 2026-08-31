@@ -58,7 +58,7 @@ html[data-workspace-theme='night'] .profile-modal-v2 .profile-photo-stage .profi
 }
 
 /* =========================================================
-   SIDEBAR ABERTO · FOTO MAIOR E QUADRADA
+   SIDEBAR ABERTO · FOTO QUADRADA COM RESPIRO
    Importante: os seletores abaixo só valem nos estados EXPANDIDOS.
    O rail fechado não é tocado.
    ========================================================= */
@@ -66,21 +66,30 @@ html[data-workspace-theme='night'] .profile-modal-v2 .profile-photo-stage .profi
   .sidebar:hover .profile-trigger-direct,
   .sidebar:focus-within .profile-trigger-direct,
   .sidebar.pinned .profile-trigger-direct {
-    min-height: 66px !important;
-    gap: 12px !important;
+    min-height: 62px !important;
+    gap: 14px !important;
+    column-gap: 14px !important;
     padding: 5px 4px !important;
   }
 
   .sidebar:hover .profile-trigger-direct .profile-avatar,
   .sidebar:focus-within .profile-trigger-direct .profile-avatar,
   .sidebar.pinned .profile-trigger-direct .profile-avatar {
-    width: 56px !important;
-    height: 56px !important;
-    min-width: 56px !important;
-    min-height: 56px !important;
-    flex: 0 0 56px !important;
-    border-radius: 16px !important;
+    width: 50px !important;
+    height: 50px !important;
+    min-width: 50px !important;
+    min-height: 50px !important;
+    flex: 0 0 50px !important;
+    margin-right: 2px !important;
+    border-radius: 14px !important;
     overflow: hidden !important;
+  }
+
+  .sidebar:hover .profile-trigger-direct .profile-copy,
+  .sidebar:focus-within .profile-trigger-direct .profile-copy,
+  .sidebar.pinned .profile-trigger-direct .profile-copy {
+    min-width: 0 !important;
+    margin-left: 2px !important;
   }
 
   .sidebar:hover .profile-trigger-direct .profile-avatar img,
@@ -97,13 +106,18 @@ html[data-workspace-theme='night'] .profile-modal-v2 .profile-photo-stage .profi
 }
 
 /* Sidebar mobile aberto: mesma linguagem quadrada, sem exagerar a escala. */
+.sidebar.mobile-open .profile-trigger-direct {
+  gap: 14px !important;
+}
+
 .sidebar.mobile-open .profile-trigger-direct .profile-avatar {
-  width: 56px !important;
-  height: 56px !important;
-  min-width: 56px !important;
-  min-height: 56px !important;
-  flex: 0 0 56px !important;
-  border-radius: 16px !important;
+  width: 50px !important;
+  height: 50px !important;
+  min-width: 50px !important;
+  min-height: 50px !important;
+  flex: 0 0 50px !important;
+  margin-right: 2px !important;
+  border-radius: 14px !important;
   overflow: hidden !important;
 }
 
