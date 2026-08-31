@@ -48,6 +48,7 @@ import './profile-avatar-polish.css';
 import './identity-media.css';
 import './documents-v3.css';
 import './client-documents-v3.css';
+import './documents-flow-v4.css';
 import './app-error-boundary.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
