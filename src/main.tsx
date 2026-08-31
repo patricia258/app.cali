@@ -41,6 +41,7 @@ import './people-map-report-fidelity.css';
 import './login-theme-isolation.css';
 import './workspace-polish-2026-08-30.css';
 import './sidebar-closed-profile-fix.css';
+import './sidebar-open-night-profile-fix.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
 // O Mapa administrativo usa RPCs públicas seguras; o backend foi sincronizado em 30/08/2026.
