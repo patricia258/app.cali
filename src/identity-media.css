@@ -1,39 +1,28 @@
 /* CALI Workspace · identidade visual de pessoas e empresas
-   Molduras de identidade devem exibir foto/logo real quando disponível.
-   Iniciais deixam de ser a representação visual principal. */
+   Renderização segura: usa background-image na moldura existente e não altera a árvore React. */
 
 .identity-media-frame {
   overflow: hidden !important;
   position: relative !important;
-}
-
-.identity-media-frame > .identity-media-image {
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: none !important;
-  max-height: none !important;
-  margin: 0 !important;
+  background-image: var(--identity-image, none) !important;
+  background-repeat: no-repeat !important;
+  background-position: var(--identity-position, center) !important;
+  background-size: var(--identity-size, cover) !important;
+  color: transparent !important;
+  text-shadow: none !important;
 }
 
 .identity-media-person {
   border-radius: 12px !important;
 }
 
-.identity-media-person > .identity-media-image {
-  object-fit: cover !important;
-}
-
-.identity-media-company > .identity-media-image {
-  object-fit: contain !important;
-  padding: 4px !important;
-  transform: none !important;
-  object-position: center !important;
+.identity-media-company {
+  background-color: var(--theme-surface-soft) !important;
 }
 
 .identity-media-empty {
   color: transparent !important;
-  font-size: 0 !important;
+  text-shadow: none !important;
 }
 
 /* Conversa de projeto: foto real da CALI e identidade visual do cliente. */
@@ -43,7 +32,7 @@
   min-width: 40px !important;
   border-radius: 12px !important;
   border: 1px solid color-mix(in srgb, var(--theme-accent) 18%, var(--theme-line)) !important;
-  background: var(--theme-surface-muted) !important;
+  background-color: var(--theme-surface-muted) !important;
 }
 
 .conversation-list-v2 article:has(.conversation-avatar-v2.identity-media-frame) {
@@ -53,12 +42,9 @@
 
 /* Seletor de projetos: logo cadastrada substitui a letra da empresa. */
 .project-client-mark.identity-media-company {
-  padding: 3px !important;
-  background: var(--theme-surface-soft) !important;
-}
-
-.project-client-mark.identity-media-company > .identity-media-image {
-  padding: 2px !important;
+  background-color: var(--theme-surface-soft) !important;
+  background-origin: content-box !important;
+  padding: 5px !important;
 }
 
 /* Mantém contraste no modo noite sem criar caixas novas. */
@@ -67,5 +53,5 @@ html[data-workspace-theme='night'] .identity-media-frame {
 }
 
 html[data-workspace-theme='night'] .identity-media-company {
-  background: rgba(247,243,238,.72) !important;
+  background-color: rgba(247,243,238,.72) !important;
 }
