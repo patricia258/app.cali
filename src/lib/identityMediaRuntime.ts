@@ -30,6 +30,7 @@ let companies: CompanyMedia[] = [];
 let observer: MutationObserver | null = null;
 let scheduled = false;
 let companyLoadStarted = false;
+const signedMediaCache = new Map<string, string>();
 
 function normalize(value = '') {
   return value
@@ -38,6 +39,18 @@ function normalize(value = '') {
     .toLocaleLowerCase('pt-BR')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+async function resolvePrivateMedia(raw?: string | null) {
+  if (!raw || !supabase || !raw.startsWith('private:')) return raw || '';
+  const cached = signedMediaCache.get(raw);
+  if (cached) return cached;
+  const { data, error } = await supabase.storage
+    .from('cali-workspace-private')
+    .createSignedUrl(raw.slice('private:'.length), 3600);
+  if (error || !data?.signedUrl) return '';
+  signedMediaCache.set(raw, data.signedUrl);
+  return data.signedUrl;
 }
 
 function readAdminProfile(): ProfileMedia {
@@ -161,11 +174,26 @@ function decorateCompanyFrames() {
   });
 }
 
+function decoratePrivateImages() {
+  document.querySelectorAll<HTMLImageElement>('img').forEach((image) => {
+    const raw = image.getAttribute('src') || '';
+    if (!raw.startsWith('private:') || image.dataset.privateMediaPending === raw) return;
+    image.dataset.privateMediaPending = raw;
+    void resolvePrivateMedia(raw).then((signed) => {
+      if (!signed) return;
+      image.setAttribute('src', signed);
+      image.dataset.privateMediaResolved = 'true';
+      delete image.dataset.privateMediaPending;
+    });
+  });
+}
+
 function decorateIdentityMedia() {
   scheduled = false;
   decorateConversation();
   decorateAdminInitials();
   decorateCompanyFrames();
+  decoratePrivateImages();
 }
 
 function scheduleDecorate() {
@@ -183,7 +211,10 @@ async function loadCompanies() {
       .select('display_name,logo_url')
       .neq('status', 'closed')
       .order('display_name');
-    companies = (data || []) as CompanyMedia[];
+    companies = await Promise.all(((data || []) as CompanyMedia[]).map(async (item) => ({
+      ...item,
+      logo_url: await resolvePrivateMedia(item.logo_url),
+    })));
     scheduleDecorate();
   } catch {
     // A identidade pessoal continua funcionando mesmo sem leitura de empresas.
@@ -197,7 +228,7 @@ export function startIdentityMediaRuntime() {
   scheduleDecorate();
   void loadCompanies();
 
-  // Observa somente criação/remoção de nós. Nunca altera a árvore React.
+  // Observa somente criação/remoção de nós. Nunca remove elementos da árvore React.
   observer = new MutationObserver(() => scheduleDecorate());
   observer.observe(document.documentElement, { childList: true, subtree: true });
 
