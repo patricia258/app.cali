@@ -8,6 +8,7 @@ import { installMapaAuthBridge } from './lib/mapaAuthBridge';
 import { installMapaReviewNavigation } from './lib/mapaReviewNavigation';
 import { startIdentityMediaRuntime } from './lib/identityMediaRuntime';
 import { installReportsPdfRuntime } from './lib/reportsPdfRuntime';
+import { installReportsDedupRuntime } from './lib/reportsDedupRuntime';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -59,6 +60,7 @@ import './reports-v7.css';
 import './reports-v8.css';
 import './reports-v9.css';
 import './reports-v10-pdf-fix.css';
+import './reports-v11-dedup.css';
 import './app-error-boundary.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
@@ -69,6 +71,7 @@ installMapaAuthBridge();
 installMapaReviewNavigation();
 startIdentityMediaRuntime();
 installReportsPdfRuntime();
+installReportsDedupRuntime();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
