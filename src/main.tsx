@@ -7,6 +7,7 @@ import { initializeWorkspaceTheme, startWorkspaceThemeClock } from './lib/worksp
 import { installMapaAuthBridge } from './lib/mapaAuthBridge';
 import { installMapaReviewNavigation } from './lib/mapaReviewNavigation';
 import { startIdentityMediaRuntime } from './lib/identityMediaRuntime';
+import { installReportsPdfRuntime } from './lib/reportsPdfRuntime';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -57,6 +58,7 @@ import './reports-v6.css';
 import './reports-v7.css';
 import './reports-v8.css';
 import './reports-v9.css';
+import './reports-v10-pdf-fix.css';
 import './app-error-boundary.css';
 
 // Carregamento global do Workspace e das experiências por módulo.
@@ -66,6 +68,7 @@ startWorkspaceThemeClock();
 installMapaAuthBridge();
 installMapaReviewNavigation();
 startIdentityMediaRuntime();
+installReportsPdfRuntime();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
