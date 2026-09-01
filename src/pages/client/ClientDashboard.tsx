@@ -6,6 +6,7 @@ import { demoCompany, demoDeliverables } from '../../data/demo';
 const statusLabel = {
   not_started: 'Não iniciado',
   in_progress: 'Em andamento',
+  standby: 'Em espera',
   internal_review: 'Revisão CALI',
   client_review: 'Aguardando validação',
   adjustment_requested: 'Ajuste solicitado',
