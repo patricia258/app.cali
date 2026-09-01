@@ -9,6 +9,7 @@ const statusLabel = {
   internal_review: 'Revisão CALI',
   client_review: 'Aguardando validação',
   adjustment_requested: 'Ajuste solicitado',
+  rebriefing: 'Rebriefing',
   approved: 'Aprovado',
   cancelled: 'Cancelado',
 };
