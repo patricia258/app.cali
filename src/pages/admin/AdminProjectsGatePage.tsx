@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle, CheckCircle2, FolderKanban, Loader2 } from 'lucide-react';
+import { AlertTriangle, FolderKanban, Loader2 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
 import { AdminProjectsPageV3 } from './AdminProjectsPageV3';
@@ -50,8 +50,6 @@ export function AdminProjectsGatePage() {
         )}
 
         {state === 'error' && <section className="panel project-real-data-gate"><AlertTriangle size={24} /><div><h2>Não foi possível validar a base de projetos.</h2><p>{message}</p></div></section>}
-
-        {state === 'ready' && <div className="inline-notice success"><CheckCircle2 size={18} />Projeto real encontrado.</div>}
       </section>
     </Shell>
   );
