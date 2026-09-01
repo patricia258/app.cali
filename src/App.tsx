@@ -5,7 +5,7 @@ import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminClientsPageV3 } from './pages/admin/AdminClientsPageV3';
 import { AdminProjectsGatePage } from './pages/admin/AdminProjectsGatePage';
-import { AdminHoursPageV2 } from './pages/admin/AdminHoursPageV2';
+import { AdminHoursPageV3 } from './pages/admin/AdminHoursPageV3';
 import { AdminCalendarPage } from './pages/admin/AdminCalendarPage';
 import { AdminDocumentsPageV4 } from './pages/admin/AdminDocumentsPageV4';
 import { AdminReportsPageV12 } from './pages/admin/AdminReportsPageV12';
@@ -29,7 +29,7 @@ export default function App() {
       <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
       <Route path="/admin/clientes" element={<ProtectedRoute role="admin"><AdminClientsPageV3 /></ProtectedRoute>} />
       <Route path="/admin/projetos" element={<ProtectedRoute role="admin"><AdminProjectsGatePage /></ProtectedRoute>} />
-      <Route path="/admin/horas" element={<ProtectedRoute role="admin"><AdminHoursPageV2 /></ProtectedRoute>} />
+      <Route path="/admin/horas" element={<ProtectedRoute role="admin"><AdminHoursPageV3 /></ProtectedRoute>} />
       <Route path="/admin/calendario" element={<ProtectedRoute role="admin"><AdminCalendarPage /></ProtectedRoute>} />
       <Route path="/admin/registros" element={<ProtectedRoute role="admin"><AdminRecordsPage /></ProtectedRoute>} />
       <Route path="/admin/documentos" element={<ProtectedRoute role="admin"><AdminDocumentsPageV4 /></ProtectedRoute>} />
