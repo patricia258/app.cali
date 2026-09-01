@@ -61,10 +61,12 @@ import './reports-v8.css';
 import './reports-v9.css';
 import './reports-v10-pdf-fix.css';
 import './reports-v11-dedup.css';
+import './records-v12.css';
+import './hours-v12.css';
+import './reports-v12.css';
+import './client-reports-v12.css';
 import './app-error-boundary.css';
 
-// Carregamento global do Workspace e das experiências por módulo.
-// O Mapa administrativo usa RPCs públicas seguras; o backend foi sincronizado em 30/08/2026.
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
 installMapaAuthBridge();
@@ -76,9 +78,7 @@ installReportsDedupRuntime();
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AppErrorBoundary>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <BrowserRouter><App /></BrowserRouter>
     </AppErrorBoundary>
   </React.StrictMode>,
 );
