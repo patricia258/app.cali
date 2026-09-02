@@ -36,7 +36,11 @@ export type WorkspaceCalendarEvent = {
   sourceEntityId?: string | null;
   sourceProtocol?: string | null;
   googleEventId?: string | null;
-  syncStatus?: 'local' | 'pending' | 'synced' | 'error';
+  googleHtmlLink?: string | null;
+  meetSpaceName?: string | null;
+  reminderMinutes?: number;
+  autoTranscription?: boolean;
+  syncStatus?: 'local' | 'pending' | 'synced' | 'error' | 'cancelled_google';
   cancelledAt?: string | null;
   synthetic?: boolean;
 };
@@ -55,13 +59,13 @@ export const previewCalendarEvents: WorkspaceCalendarEvent[] = [
   {
     id: 'cal-1', protocol: 'CALI-EVT-2026-000031', title: 'Reunião mensal · Grupo Aurora', companyId: 'aurora', company: 'Grupo Aurora', type: 'meeting', color: '#6D2338',
     startsAt: '2026-08-31T09:30:00-03:00', endsAt: '2026-08-31T10:30:00-03:00', allDay: false, mode: 'remote', location: 'Google Meet',
-    meetingUrl: 'https://meet.google.com/', description: 'Fechamento do ciclo, indicadores e prioridades para setembro.', visibility: 'client',
+    meetingUrl: 'https://meet.google.com/', description: 'Fechamento do ciclo, indicadores e prioridades para setembro.', visibility: 'client', reminderMinutes: 30, autoTranscription: true,
     attendees: [{ name: 'Marina Costa', email: 'marina@grupoaurora.com.br', status: 'accepted' }], sourceType: 'manual', syncStatus: 'local',
   },
   {
     id: 'cal-2', protocol: 'CALI-EVT-2026-000032', title: 'Validação de indicadores', companyId: 'aurora', company: 'Grupo Aurora', type: 'validation', color: '#B58C52',
     startsAt: '2026-09-03T14:00:00-03:00', endsAt: '2026-09-03T15:00:00-03:00', allDay: false, mode: 'remote', location: 'Google Meet',
-    description: 'Decisão do cliente sobre a estrutura de indicadores.', visibility: 'client', attendees: [{ name: 'Marina Costa', email: 'marina@grupoaurora.com.br', status: 'pending' }], sourceType: 'manual', syncStatus: 'local',
+    description: 'Decisão do cliente sobre a estrutura de indicadores.', visibility: 'client', reminderMinutes: 30, autoTranscription: true, attendees: [{ name: 'Marina Costa', email: 'marina@grupoaurora.com.br', status: 'pending' }], sourceType: 'manual', syncStatus: 'local',
   },
   {
     id: 'cal-3', title: 'Ritual de gestão · prazo', companyId: 'studio-norte', company: 'Studio Norte', type: 'deadline', color: '#A85B3A',
@@ -70,7 +74,7 @@ export const previewCalendarEvents: WorkspaceCalendarEvent[] = [
   {
     id: 'cal-4', protocol: 'CALI-EVT-2026-000033', title: 'Checkpoint executivo', companyId: 'novatech', company: 'Novatech', type: 'meeting', color: '#6D2338',
     startsAt: '2026-09-08T10:00:00-03:00', endsAt: '2026-09-08T10:45:00-03:00', allDay: false, mode: 'remote', location: 'Google Meet',
-    description: 'Checkpoint do advisory com liderança.', visibility: 'client', attendees: [{ name: 'Ricardo Martins', email: 'ricardo@novatech.com.br', status: 'pending' }], sourceType: 'manual', syncStatus: 'local',
+    description: 'Checkpoint do advisory com liderança.', visibility: 'client', reminderMinutes: 30, autoTranscription: true, attendees: [{ name: 'Ricardo Martins', email: 'ricardo@novatech.com.br', status: 'pending' }], sourceType: 'manual', syncStatus: 'local',
   },
   {
     id: 'cal-5', title: 'Estrutura de governança · prazo', companyId: 'aurora', company: 'Grupo Aurora', type: 'deadline', color: '#A85B3A',
@@ -79,7 +83,7 @@ export const previewCalendarEvents: WorkspaceCalendarEvent[] = [
   {
     id: 'cal-6', protocol: 'CALI-EVT-2026-000034', title: 'Workshop de liderança', companyId: 'studio-norte', company: 'Studio Norte', type: 'training', color: '#7B6A43',
     startsAt: '2026-09-11T13:30:00-03:00', endsAt: '2026-09-11T16:30:00-03:00', allDay: false, mode: 'in_person', location: 'Sede do cliente',
-    description: 'Encontro presencial com lideranças.', visibility: 'client', attendees: [], sourceType: 'manual', syncStatus: 'local',
+    description: 'Encontro presencial com lideranças.', visibility: 'client', reminderMinutes: 30, autoTranscription: false, attendees: [], sourceType: 'manual', syncStatus: 'local',
   },
 ];
 
@@ -90,9 +94,7 @@ export function dateKey(date: Date) {
   return `${y}-${m}-${d}`;
 }
 
-export function eventDateKey(event: WorkspaceCalendarEvent) {
-  return event.startsAt.slice(0, 10);
-}
+export function eventDateKey(event: WorkspaceCalendarEvent) { return event.startsAt.slice(0, 10); }
 
 export function startOfCalendarWeek(date: Date) {
   const copy = new Date(date);
@@ -107,20 +109,12 @@ export function monthCells(cursor: Date) {
   const last = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0, 12);
   const start = startOfCalendarWeek(first);
   const needed = Math.ceil((last.getDate() + first.getDay()) / 7) * 7;
-  return Array.from({ length: needed }, (_, index) => {
-    const date = new Date(start);
-    date.setDate(start.getDate() + index);
-    return date;
-  });
+  return Array.from({ length: needed }, (_, index) => { const date = new Date(start); date.setDate(start.getDate() + index); return date; });
 }
 
 export function weekCells(cursor: Date) {
   const start = startOfCalendarWeek(cursor);
-  return Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(start);
-    date.setDate(start.getDate() + index);
-    return date;
-  });
+  return Array.from({ length: 7 }, (_, index) => { const date = new Date(start); date.setDate(start.getDate() + index); return date; });
 }
 
 export function formatCalendarTime(value: string | null | undefined) {
