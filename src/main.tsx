@@ -9,6 +9,7 @@ import { installMapaReviewNavigation } from './lib/mapaReviewNavigation';
 import { startIdentityMediaRuntime } from './lib/identityMediaRuntime';
 import { installReportsPdfRuntime } from './lib/reportsPdfRuntime';
 import { installReportsDedupRuntime } from './lib/reportsDedupRuntime';
+import { installGoogleCalendarRuntime } from './lib/googleCalendarRuntime';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -88,6 +89,7 @@ installMapaReviewNavigation();
 startIdentityMediaRuntime();
 installReportsPdfRuntime();
 installReportsDedupRuntime();
+installGoogleCalendarRuntime();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
