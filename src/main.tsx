@@ -65,6 +65,7 @@ import './records-v12.css';
 import './hours-v12.css';
 import './hours-v13.css';
 import './reports-v12.css';
+import './reports-v13.css';
 import './client-reports-v12.css';
 import './app-error-boundary.css';
 
