@@ -33,7 +33,7 @@
         <div style="font-size:11px;color:#cfc7c3">Confira todas as páginas antes de salvar e enviar.</div>
       </div>
       <div class="proposal-toolbar-actions">
-        <a class="btn btn-soft" href="/admin/propostas">← Propostas</a>
+        <a class="btn btn-soft" href="/admin/propostas" target="_top" data-workspace-nav>← Propostas</a>
         <button class="btn btn-gold" id="print">Salvar PDF</button>
         <button class="btn btn-primary" id="open-send">Enviar por e-mail</button>
       </div>
@@ -75,6 +75,17 @@
     </div>
     <div class="drawer-footer"><button class="btn btn-primary" id="send-email" disabled>Confirmar e enviar</button></div>
   </aside>
+  <script>
+    document.addEventListener('click',function(event){
+      const link=event.target.closest('a[data-workspace-nav]');
+      if(!link)return;
+      const href=link.getAttribute('href');
+      if(!href)return;
+      event.preventDefault();
+      if(window.top&&window.top!==window)window.top.location.assign(href);
+      else window.location.assign(href);
+    });
+  </script>
   <script type="module" src="https://cdn.jsdelivr.net/gh/patricia258/cali-portal@3bf5456fc582d03abfda619887f4b3dade44bec8/js/proposta.js"></script>
 </body>
 </html>
