@@ -1,0 +1,63 @@
+const fieldValues:Record<string,Record<string,string>>={
+  preferencia_contato:{email:'E-mail',whatsapp:'WhatsApp',ambos:'Tanto faz'},
+  origem_contato:{indicacao:'Indicação',linkedin:'LinkedIn',instagram:'Instagram',site:'Site ou busca',evento:'Evento ou palestra',cliente:'Já sou cliente',outro:'Outro'},
+  segmento:{tecnologia:'Tecnologia e software',servicos:'Serviços profissionais',industria:'Indústria',varejo:'Varejo e e-commerce',saude:'Saúde',educacao:'Educação',financeiro:'Financeiro e seguros',logistica:'Logística e transportes',construcao:'Construção e mercado imobiliário',agro:'Agronegócio',hospitalidade:'Hospitalidade e alimentação',terceiro_setor:'Terceiro setor',publico:'Setor público',outro:'Outro'},
+  modelo_trabalho:{presencial:'Presencial',hibrido:'Híbrido',remoto:'Remoto',misto:'Varia por área'},
+  momento_empresa:{crescimento:'Crescimento',reestruturacao:'Reestruturação',estabilizacao:'Estabilização',ma:'Fusão ou aquisição',crise:'Pressão ou crise operacional'},
+  prazo_inicio:{imediato:'O quanto antes','30':'Em até 30 dias','60':'Entre 30 e 60 dias','90':'Em até 90 dias',planejamento:'Em planejamento'},
+  modelo_interesse:{PARTNER:'CALI PARTNER',FULL:'CALI FULL',RECOMENDAR:'Quero que a CALI recomende'},
+  rh_interno:{nao:'Não',operacional:'Sim, predominantemente operacional',estruturado:'Sim, já estruturado'},
+  lideranca_rh:{nao:'Não',parcial:'Parcial ou acumulada por outra área',sim:'Sim'},
+  frequencia:{mensal:'Mensal',quinzenal:'Quinzenal',semanal:'Semanal'},
+  presencial:{nao:'Sem necessidade fixa',eventual:'Eventual, quando necessário',mensal:'Uma visita por mês',mais:'Mais de uma visita por mês',presencial:'Presencial, recomendado',hibrido:'Híbrido',remoto:'Remoto'},
+  frentes:{planejamento:'Planejamento estratégico de pessoas',desenho:'Estrutura e desenho organizacional',governanca:'Governança, políticas e processos',people_analytics:'People Analytics e dashboards',desempenho:'Gestão de desempenho e metas',clima:'Clima e engajamento',cultura:'Cultura e valores',cargos:'Cargos, carreira e salários',sucessao:'Sucessão e gestão de talentos',liderancas:'Desenvolvimento e apoio às lideranças',decisoes:'Decisões sensíveis e relações de trabalho',atracao:'Atração, seleção e onboarding',marca:'Marca empregadora e experiência do colaborador',comunicacao:'Comunicação interna',saude:'Saúde mental, ocupacional e conformidade',diversidade:'Diversidade, equidade e inclusão'},
+  tempo_rh:{ate2:'Até 2 anos','3a5':'3 a 5 anos','6a10':'6 a 10 anos','10mais':'Mais de 10 anos','5a10':'5 a 10 anos'},
+  objetivos:{estrategia:'Atuação estratégica',posicionamento:'Posicionamento executivo',decisao:'Tomada de decisão',comunicacao:'Comunicação e oratória',carreira:'Transição de carreira',consultoria:'Crescimento em consultoria',lideranca:'Liderança de RH',visao_negocio:'Visão de negócio'},
+  modalidade:{individual:'Individual',grupo:'Grupo da mesma empresa'},
+  status_iniciativa:{aprovada:'Aprovada e com orçamento',aprovada_sem_orcamento:'Aprovada, orçamento em definição',avaliacao:'Em avaliação pela empresa',nao_apresentada:'Ainda não foi apresentada'},
+  duracao_sessao:{'60':'60 minutos','90':'90 minutos'},
+  suporte:{essencial:'Sem suporte por mensagem',mensagens:'Dúvidas pontuais por mensagem',proximo:'Check-ins e discussão de casos'},
+  senioridade_rh:{sem:'Não há responsável definido',operacional:'Operacional',coordenacao:'Coordenação ou gerência',diretoria:'Diretoria ou CHRO'},
+  problemas:{turnover:'Turnover',lideranca:'Liderança',clima:'Clima e engajamento',processos:'Processos desorganizados',cargos:'Cargos e salários',indicadores:'Ausência de indicadores',conformidade:'Riscos e conformidade',crescimento:'Estrutura para crescimento',rotatividade:'Alta rotatividade',escala:'Escala de contratação',reputacao:'Reputação empregadora fraca',ma:'M&A ou transformação',atracao:'Dificuldade de atrair cargos-chave',comunicacao:'Comunicação interna desestruturada'},
+  documentos:{organizada:'Organizada e atualizada',parcial:'Parcial ou dispersa',desorganizada:'Muito desorganizada ou inexistente'},
+  indicadores_disponiveis:{sim:'Sim',parcial:'Alguns',nao:'Não'},
+  survey:{nao:'Não neste momento',sim:'Sim, com colaboradores'},
+  acesso_dados:{sim:'Sim, estão disponíveis',parcial:'Parcialmente',nao:'Ainda precisam ser organizados'},
+  formato_entrevistas:{remoto:'Remoto',hibrido:'Híbrido',presencial:'Presencial'},
+  contexto:{crescimento:'Crescimento',ma:'Fusão ou aquisição',reestruturacao:'Reestruturação',desalinhamento:'Desalinhamento entre discurso e prática',lideranca:'Mudança de liderança',marca:'Reposicionamento de marca'},
+  pesquisa:{amostra:'Amostra',todos:'Todos os colaboradores',definir:'A definir'},
+  patrocinio_lideranca:{alto:'Alto — prioridade executiva',parcial:'Parcial — ainda precisa de alinhamento',baixo:'Baixo — iniciativa concentrada no RH'},
+  comunicacao_interna:{sim:'Sim, estruturados',parcial:'Parcialmente',nao:'Ainda não'},
+  nivel:{primeira:'Primeira liderança',gerencia:'Gerência',diretoria:'Diretoria',founders:'Founders ou sócios'},
+  situacoes:{reunioes:'Reuniões de time',decisoes:'Tomada de decisão',feedback:'Feedback e conversas difíceis',conflito:'Conflitos',rituais:'Rituais de gestão',um_a_um:'Reuniões individuais'},
+  devolutiva:{individual:'Individual',individual_executiva:'Individual + síntese executiva'},
+  feedback_360:{nao:'Não',sim:'Sim'},
+  ciencia_lideres:{sim:'Sim',parcial:'Algumas já sabem',nao:'Ainda não foi apresentada'},
+  senioridade_publico:{operacional:'Operacional',especialistas:'Especialistas',primeira_lideranca:'Primeira liderança',gestao:'Gerência e coordenação',executiva:'Diretoria e C-level',misto:'Público misto'},
+  formato:{online:'Online',presencial:'Presencial',hibrido:'Híbrido'},
+  carga_horaria:{'1.5':'60 a 90 min','4':'Meio período','8':'Dia inteiro'},
+  infraestrutura:{sala:'Sala adequada',projetor:'Projetor ou TV',som:'Sistema de som',wifi:'Wi-Fi'},
+  materiais:{nao:'Não',sim:'Sim'},followup:{nao:'Não',sim:'Sim'},gravacao:{nao:'Não',sim:'Sim',avaliar:'A avaliar'},
+  decisao_evento:{aprovada:'Aprovada e com orçamento',aprovada_sem_orcamento:'Aprovada, orçamento em definição',cotacao:'Cotação ou comparação de fornecedores',ideia:'Ainda é uma ideia inicial'},
+  modelo_contratacao:{projeto:'Projeto pontual',recorrente:'Atuação recorrente',avaliar:'Quero avaliar os dois'},
+  reviews:{positivas:'Predominantemente positivas',mistas:'Mistas',negativas:'Predominantemente negativas',poucas:'Poucas ou nenhuma'},
+  evp:{sim:'Sim',parcial:'Parcialmente',nao:'Não'},
+  canais:{linkedin:'LinkedIn',instagram:'Instagram',site:'Site de carreiras',interno:'Comunicação interna',eventos:'Eventos e comunidades',embaixadores:'Embaixadores internos'},
+  ativos:{evp:'EVP e pilares',campanhas:'Campanhas',conteudo:'Calendário de conteúdo',embaixadores:'Programa de embaixadores',incentivo:'Programas de incentivo',dashboard:'Painel de KPIs'},
+  equipe_interna:{rh:'RH',marketing:'Marketing',comunicacao:'Comunicação interna',lideranca:'Alta liderança',juridico:'Jurídico ou compliance',agencia:'Agência ou parceiro externo'},
+  temas_aproximados:{estrategia_pessoas:'Estratégia de pessoas e RH',estrutura_processos:'Estrutura, políticas ou processos',lideranca:'Liderança e tomada de decisão',cultura:'Cultura e transformação',carreira_desenvolvimento:'Carreira e desenvolvimento',dados_indicadores:'Dados, indicadores e People Analytics',comunicacao_experiencia:'Comunicação e experiência do colaborador',atracao_marca:'Atração e marca empregadora',treinamento:'Treinamento, palestra ou facilitação',outro:'Outro desafio'},
+  publico_envolvido:{founders:'Founders ou sócios',diretoria:'Diretoria ou C-level',liderancas:'Lideranças',rh:'Time de RH',area:'Uma área específica',empresa:'Toda a empresa',outros:'Outros públicos'},
+  formato_desejado:{remoto:'Remoto',hibrido:'Híbrido',presencial:'Presencial',avaliar:'Quero que a CALI recomende'},
+  etapa_decisao:{aprovada:'Demanda aprovada e com orçamento',orcamento:'Demanda aprovada; orçamento em definição',avaliacao:'Em avaliação interna',exploratoria:'Primeira conversa exploratória'},
+  investimento:{ate5:'Até R$ 5 mil','5a8':'R$ 5 mil a R$ 8 mil','8a12':'R$ 8 mil a R$ 12 mil','12mais':'Acima de R$ 12 mil',ate15:'Até R$ 1,5 mil','15a24':'R$ 1,5 mil a R$ 2,4 mil','24mais':'Acima de R$ 2,4 mil',ate3:'Até R$ 3 mil','3a45':'R$ 3 mil a R$ 4,5 mil','45mais':'Acima de R$ 4,5 mil',ate4:'Até R$ 4 mil','4mais':'Acima de R$ 4 mil',avaliar:'Prefiro avaliar pelo escopo'},
+  budget:{ate25:'Até R$ 2,5 mil','25a5':'R$ 2,5 mil a R$ 5 mil','5mais':'Acima de R$ 5 mil',avaliar:'Prefiro avaliar pelo escopo'},
+};
+
+export function readablePortalValue(key:string,value:unknown):string{
+  if(value===null||value===undefined||value==='')return '—';
+  if(value===true||value==='true')return 'Sim';
+  if(value===false||value==='false')return 'Não';
+  if(Array.isArray(value))return value.map(item=>readablePortalValue(key,item)).join(' · ');
+  if(typeof value==='object')return Object.entries(value as Record<string,unknown>).map(([k,v])=>`${k.replace(/_/g,' ')}: ${readablePortalValue(k,v)}`).join(' | ');
+  const raw=String(value);return fieldValues[key]?.[raw]||raw;
+}
