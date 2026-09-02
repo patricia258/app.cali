@@ -7,15 +7,17 @@ function requestParentSession(){
   if(window.parent===window)return Promise.resolve(null);
   return new Promise((resolve)=>{
     let settled=false;
-    const finish=(value)=>{if(settled)return;settled=true;window.removeEventListener('message',onMessage);clearTimeout(timer);resolve(value)};
+    const finish=(value)=>{if(settled)return;settled=true;window.removeEventListener('message',onMessage);clearTimeout(timer);clearInterval(retry);resolve(value)};
     const onMessage=(event)=>{
       if(event.origin!==window.location.origin)return;
       if(event.data?.type!=='CALI_PORTAL_SESSION')return;
       finish(event.data.session||null);
     };
-    const timer=window.setTimeout(()=>finish(null),5000);
+    const ask=()=>window.parent.postMessage({type:'CALI_PORTAL_SESSION_REQUEST'},window.location.origin);
+    const timer=window.setTimeout(()=>finish(null),6000);
+    const retry=window.setInterval(ask,350);
     window.addEventListener('message',onMessage);
-    window.parent.postMessage({type:'CALI_PORTAL_SESSION_REQUEST'},window.location.origin);
+    ask();
   });
 }
 
