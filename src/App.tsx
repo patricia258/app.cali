@@ -18,7 +18,7 @@ import { ClientTimelinePage } from './pages/client/ClientTimelinePage';
 import { ClientDeliverablesPage } from './pages/client/ClientDeliverablesPage';
 import { ClientHoursPage } from './pages/client/ClientHoursPage';
 import { ClientDocumentsPage } from './pages/client/ClientDocumentsPage';
-import { ClientReportsPageV2 } from './pages/client/ClientReportsPageV2';
+import { ClientReportsPageV3 } from './pages/client/ClientReportsPageV3';
 
 export default function App() {
   return (
@@ -44,7 +44,7 @@ export default function App() {
       <Route path="/cliente/horas" element={<ProtectedRoute role="client"><ClientHoursPage /></ProtectedRoute>} />
       <Route path="/cliente/registros" element={<ProtectedRoute role="client"><ClientRecordsPage /></ProtectedRoute>} />
       <Route path="/cliente/documentos" element={<ProtectedRoute role="client"><ClientDocumentsPage /></ProtectedRoute>} />
-      <Route path="/cliente/relatorios" element={<ProtectedRoute role="client"><ClientReportsPageV2 /></ProtectedRoute>} />
+      <Route path="/cliente/relatorios" element={<ProtectedRoute role="client"><ClientReportsPageV3 /></ProtectedRoute>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
