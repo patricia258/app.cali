@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AlertTriangle, CheckCircle2, Eye, FileText, History, Loader2, Mail, Printer,
+  AlertTriangle, CheckCircle2, Eye, FileText, Loader2, Mail, Printer,
   RefreshCw, RotateCcw, Send, Trash2, X,
 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
@@ -9,15 +9,16 @@ import { supabase } from '../../lib/supabase';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 import { reportTypeLabel, type ReportEditor, type ReportType } from '../../lib/reportComposition';
 import {
-  buildExecutiveReading, groupHours, normalizeIntelligenceSnapshot, upgradeSignal,
+  buildExecutiveReading, groupHours, normalizeIntelligenceSnapshot,
   type IntelligenceSnapshot,
 } from '../../lib/reportIntelligence';
 import {
-  buildReportAlertsV14, decisionOptionsV14, deliveryRowsForPdf, deliveryTimingLabelV14,
+  decisionOptionsV14, deliveryRowsForPdf, deliveryTimingLabelV14,
   formatHoursV14, isAlertDismissed, periodLabelV14, reportKpisV14,
   type DeliveryPerformanceRow, type DismissedReportAlert, type ReportCloseAlert,
   type ReportLifecycleStatus,
 } from '../../lib/reportV14';
+import { buildReportAlertsV15, capacitySignalV15 } from '../../lib/reportV15';
 
 type Company={id:string;name:string;logoUrl?:string|null;serviceType?:string|null;servicePlan?:string|null};
 type Report={
@@ -77,7 +78,7 @@ export function AdminReportsPageV15(){
   const selectedCompany=useMemo(()=>companies.find((item)=>item.id===companyId)||null,[companies,companyId]);
   const periodName=periodLabelV14(reportType,periodStart),quarters=useMemo(()=>quarterOptions(),[]);
   const companyReports=useMemo(()=>reports.filter((item)=>item.companyId===companyId).sort((a,b)=>b.periodStart.localeCompare(a.periodStart)||b.version-a.version),[reports,companyId]);
-  const alerts=useMemo(()=>snapshot?buildReportAlertsV14(snapshot,deliveries):[],[snapshot,deliveries]);
+  const alerts=useMemo(()=>snapshot?buildReportAlertsV15(snapshot,deliveries):[],[snapshot,deliveries]);
   const unresolvedAlerts=useMemo(()=>alerts.filter((item)=>!isAlertDismissed(item,dismissedAlerts)),[alerts,dismissedAlerts]);
   const unresolvedBlocking=useMemo(()=>unresolvedAlerts.filter((item)=>item.blocking),[unresolvedAlerts]);
   const decisionOptions=useMemo(()=>snapshot?Array.from(new Set([...decisionOptionsV14(snapshot),...lines(editor.decisions)])):[],[snapshot,editor.decisions]);
@@ -87,7 +88,7 @@ export function AdminReportsPageV15(){
   const kpis=useMemo(()=>snapshot?reportKpisV14(snapshot,deliveries):null,[snapshot,deliveries]);
   const hourGroups=useMemo(()=>snapshot?groupHours(snapshot).slice(0,6):[],[snapshot]);
   const periodDeliveries=useMemo(()=>snapshot?deliveryRowsForPdf(snapshot,deliveries):[],[snapshot,deliveries]);
-  const capacitySignal=useMemo(()=>snapshot?upgradeSignal(snapshot):null,[snapshot]);
+  const capacitySignal=useMemo(()=>snapshot?capacitySignalV15(snapshot):null,[snapshot]);
   const canEdit=Boolean(activeReport&&(activeReport.status==='draft'||activeReport.status==='review'));
   const lifecycleStatus=activeReport?.status||'draft';
 
