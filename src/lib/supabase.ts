@@ -78,12 +78,6 @@ async function directPublicRpc<T = unknown>(fn: string, args?: Record<string, un
   }
 }
 
-/*
- * Cliente dedicado ao schema public (Mapa de People / Portal).
- * RPCs administrativas usam o token real do Workspace em uma chamada REST
- * explicitamente marcada como schema public. Elas nao dependem do schema
- * cali_workspace para validar o admin, evitando bloqueio cruzado de schemas.
- */
 export const publicSupabase = rawPublicSupabase
   ? new Proxy(rawPublicSupabase, {
       get(target, prop, receiver) {
@@ -96,10 +90,6 @@ export const publicSupabase = rawPublicSupabase
     })
   : null;
 
-/*
- * O restante do Workspace continua usando cali_workspace.
- * Modulos que pedem schema('public') recebem a ponte publica dedicada.
- */
 export const supabase = workspaceSupabase
   ? new Proxy(workspaceSupabase, {
       get(target, prop, receiver) {
@@ -125,7 +115,9 @@ export const supabase = workspaceSupabase
     })
   : null;
 
-export async function sendMagicLink(email: string) {
+type AccessResponse = { ok?: boolean; error?: string; token_hash?: string; role?: 'admin' | 'client'; challenge?: string };
+
+async function workspaceAccessRequest(body: Record<string, unknown>) {
   if (!isSupabaseConfigured) {
     return { data: null, error: { message: 'Supabase ainda não configurado neste ambiente.' } };
   }
@@ -137,19 +129,35 @@ export async function sendMagicLink(email: string) {
         apikey: supabasePublishableKey,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email: email.trim(), website: '' }),
+      body: JSON.stringify({ ...body, website: '' }),
     });
-
-    const payload = await response.json().catch(() => ({})) as { error?: string };
+    const payload = await response.json().catch(() => ({})) as AccessResponse;
     if (!response.ok) {
-      return { data: null, error: { message: payload.error || 'Não foi possível enviar o link de acesso.' } };
+      return { data: null, error: { message: payload.error || 'Não foi possível concluir o acesso.' } };
     }
-
-    return { data: { ok: true }, error: null };
+    return { data: payload, error: null };
   } catch (error) {
-    return {
-      data: null,
-      error: { message: error instanceof Error ? error.message : 'Não foi possível enviar o link de acesso.' },
-    };
+    return { data: null, error: { message: error instanceof Error ? error.message : 'Não foi possível concluir o acesso.' } };
   }
+}
+
+export function requestAccessCode(email: string) {
+  return workspaceAccessRequest({ action: 'request', email: email.trim() });
+}
+
+export async function verifyAccessCode(email: string, code: string) {
+  const result = await workspaceAccessRequest({ action: 'verify', email: email.trim(), code });
+  if (result.error || !result.data?.token_hash || !workspaceSupabase) return result;
+
+  const { error: verifyError } = await workspaceSupabase.auth.verifyOtp({
+    token_hash: result.data.token_hash,
+    type: 'email',
+  });
+  if (verifyError) return { data: null, error: { message: verifyError.message } };
+  return result;
+}
+
+// Compatibilidade temporária com chamadas antigas: passa a solicitar código, não link.
+export function sendMagicLink(email: string) {
+  return requestAccessCode(email);
 }
