@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Archive, ArchiveRestore, Download, FileText, Loader2, RefreshCw, Search, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import {
-  PORTAL_STATUS, appendPortalActivity, loadPortalAdminData, portalServiceLabel, portalStatusLabel,
+  PORTAL_STATUS, loadPortalAdminData, portalServiceLabel, portalStatusLabel,
   updatePortalSubmission, type PortalActivity, type PortalPricingRule, type PortalProposal,
   type PortalSubmission, type PortalSubmissionStatus,
 } from '../../lib/portalAdminApi';
@@ -80,7 +80,6 @@ export function AdminProposalsPage(){
     if(!selected)return;setSaving(true);setError('');
     try{
       const updated=await updatePortalSubmission(selected.id,{status:next});
-      await appendPortalActivity({submission_id:selected.id,event_type:'workspace_status_changed',metadata:{from:selected.status,to:next,source:'workspace'}});
       setData(current=>({...current,submissions:current.submissions.map(item=>item.id===selected.id?(updated||{...item,status:next}):item)}));
     }catch(e){setError(e instanceof Error?e.message:'Não foi possível atualizar o status.');}
     finally{setSaving(false);}
@@ -89,7 +88,6 @@ export function AdminProposalsPage(){
     if(!selected)return;setSaving(true);setError('');
     try{
       const updated=await updatePortalSubmission(selected.id,{internal_notes:notes});
-      await appendPortalActivity({submission_id:selected.id,event_type:'workspace_notes_updated',metadata:{source:'workspace'}});
       setData(current=>({...current,submissions:current.submissions.map(item=>item.id===selected.id?(updated||{...item,internal_notes:notes}):item)}));
     }catch(e){setError(e instanceof Error?e.message:'Não foi possível salvar a nota interna.');}
     finally{setSaving(false);}
@@ -101,7 +99,6 @@ export function AdminProposalsPage(){
     try{
       const archivedAt=archive?new Date().toISOString():null;
       const updated=await updatePortalSubmission(item.id,{archived_at:archivedAt});
-      await appendPortalActivity({submission_id:item.id,event_type:archive?'workspace_submission_archived':'workspace_submission_restored',metadata:{source:'workspace'}});
       setData(current=>({...current,submissions:current.submissions.map(row=>row.id===item.id?(updated||{...row,archived_at:archivedAt}):row)}));
       if(selectedId===item.id)setSelectedId(null);
     }catch(e){setError(e instanceof Error?e.message:'Não foi possível atualizar o arquivamento.');}
