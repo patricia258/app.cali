@@ -9,6 +9,7 @@ import { installMapaReviewNavigation } from './lib/mapaReviewNavigation';
 import { startIdentityMediaRuntime } from './lib/identityMediaRuntime';
 import { installReportsPdfRuntime } from './lib/reportsPdfRuntime';
 import { installReportsDedupRuntime } from './lib/reportsDedupRuntime';
+import { installReportsV14ClarityRuntime } from './lib/reportsV14ClarityRuntime';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -69,6 +70,7 @@ import './hours-v14.css';
 import './reports-v12.css';
 import './reports-v13.css';
 import './reports-v14.css';
+import './reports-v14-clarity.css';
 import './client-reports-v12.css';
 import './app-error-boundary.css';
 
@@ -79,6 +81,7 @@ installMapaReviewNavigation();
 startIdentityMediaRuntime();
 installReportsPdfRuntime();
 installReportsDedupRuntime();
+installReportsV14ClarityRuntime();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
