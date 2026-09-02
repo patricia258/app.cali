@@ -2,249 +2,48 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pause, Play, Square, TimerReset } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../lib/supabase';
+import { finalizeTimerWork, pauseTimerSession, TIMER_EVENT } from '../lib/timerSemantics';
+import { TimerFinalizationDialog, type TimerFinalizationTarget } from './TimerFinalizationDialog';
 
-type Role = 'admin' | 'client';
-type TimerStatus = 'active' | 'paused';
-type TimerRow = {
-  id: string;
-  companyId: string;
-  projectId?: string | null;
-  deliverableId?: string | null;
-  taskId?: string | null;
-  startedAt: string;
-  status: TimerStatus;
-  pausedAt?: string | null;
-  pausedSeconds: number;
-  description?: string | null;
-};
-type DeliverableContext = {
-  id: string;
-  companyId: string;
-  projectId: string;
-  title: string;
-  protocol?: string | null;
-  status: string;
-  clientVisible: boolean;
-};
-type TaskContext = {
-  id: string;
-  deliverableId: string;
-  title: string;
-  protocol?: string | null;
-  status: string;
-  clientVisible: boolean;
-};
+type Role='admin'|'client';
+type TimerRow={id:string;companyId:string;projectId?:string|null;deliverableId?:string|null;taskId?:string|null;startedAt:string;pausedSeconds:number;description?:string|null};
+type DeliverableContext={id:string;companyId:string;projectId:string;title:string;protocol?:string|null;status:string;clientVisible:boolean;workClosedAt?:string|null;approvedAt?:string|null};
+type TaskContext={id:string;deliverableId:string;title:string;protocol?:string|null;status:string;clientVisible:boolean;workClosedAt?:string|null};
+type PortalTarget={task:TaskContext;node:HTMLElement};
+type PendingFinalization={timer:TimerRow;target:TimerFinalizationTarget}|null;
 
-type PortalTarget = { task: TaskContext; node: HTMLElement };
-const TIMER_EVENT = 'cali:timers-changed';
+function normalize(value?:string|null){return(value||'').replace(/\s+/g,' ').trim().toLocaleLowerCase('pt-BR');}
+function secondsFor(timer:TimerRow,nowMs:number){return Math.max(0,Math.floor((nowMs-new Date(timer.startedAt).getTime())/1000)-Number(timer.pausedSeconds||0));}
+function timeLabel(seconds:number){const h=Math.floor(seconds/3600),m=Math.floor((seconds%3600)/60),s=seconds%60;return[h,m,s].map(v=>String(v).padStart(2,'0')).join(':');}
+function currentModalProtocol(){return document.querySelector<HTMLElement>('.deliverable-workspace-modal-v2 .deliverable-title-v2 .section-kicker')?.textContent?.trim()||'';}
+function findTaskNode(task:TaskContext){return Array.from(document.querySelectorAll<HTMLElement>('.task-list-v2 article')).find(row=>{const protocol=row.querySelector('small')?.textContent?.trim();return Boolean(task.protocol&&protocol===task.protocol)||normalize(row.querySelector('strong')?.textContent)===normalize(task.title);})||null;}
 
-function normalize(value?: string | null) {
-  return (value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('pt-BR');
-}
+export function ProjectTimerBridge({role}:{role:Role}){
+  const [deliverable,setDeliverable]=useState<DeliverableContext|null>(null),[tasks,setTasks]=useState<TaskContext[]>([]),[timers,setTimers]=useState<TimerRow[]>([]),[headerTarget,setHeaderTarget]=useState<HTMLElement|null>(null),[taskTargets,setTaskTargets]=useState<PortalTarget[]>([]);
+  const [nowMs,setNowMs]=useState(Date.now()),[busyKey,setBusyKey]=useState<string|null>(null),[message,setMessage]=useState(''),[domVersion,setDomVersion]=useState(0),[pending,setPending]=useState<PendingFinalization>(null),[confirmStep,setConfirmStep]=useState<1|2>(1);
 
-function secondsFor(timer: TimerRow, nowMs: number) {
-  const start = new Date(timer.startedAt).getTime();
-  const end = timer.status === 'paused' && timer.pausedAt ? new Date(timer.pausedAt).getTime() : nowMs;
-  return Math.max(0, Math.floor((end - start) / 1000) - Number(timer.pausedSeconds || 0));
-}
+  const loadTimers=useCallback(async()=>{if(role!=='admin'||!supabase){setTimers([]);return;}const user=(await supabase.auth.getUser()).data.user;if(!user){setTimers([]);return;}const result=await supabase.from('work_timers').select('id,company_id,project_id,deliverable_id,task_id,started_at,paused_seconds,description').eq('user_id',user.id).eq('status','active').order('started_at',{ascending:true});if(result.error){console.error(result.error);return;}setTimers((result.data||[]).map((r:any)=>({id:r.id,companyId:r.company_id,projectId:r.project_id,deliverableId:r.deliverable_id,taskId:r.task_id,startedAt:r.started_at,pausedSeconds:Number(r.paused_seconds||0),description:r.description})));},[role]);
 
-function timeLabel(seconds: number) {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  return [h, m, s].map((value) => String(value).padStart(2, '0')).join(':');
-}
+  const loadContext=useCallback(async()=>{if(role!=='admin'||!supabase)return;const modal=document.querySelector<HTMLElement>('.deliverable-workspace-modal-v2');setHeaderTarget(modal?.querySelector<HTMLElement>('.deliverable-head-actions-v2')||null);if(!modal){setDeliverable(null);setTasks([]);setTaskTargets([]);return;}const protocol=currentModalProtocol(),title=modal.querySelector('h2')?.textContent?.trim()||'';let query=supabase.from('deliverables').select('id,company_id,project_id,title,protocol,status,client_visible,work_closed_at,approved_at');query=protocol&&protocol!=='—'?query.eq('protocol',protocol):query.eq('title',title);const result=await query.limit(2);if(result.error||!result.data?.length){setDeliverable(null);setTasks([]);setTaskTargets([]);return;}const r:any=result.data[0];const next={id:r.id,companyId:r.company_id,projectId:r.project_id,title:r.title,protocol:r.protocol,status:r.status,clientVisible:Boolean(r.client_visible),workClosedAt:r.work_closed_at,approvedAt:r.approved_at};setDeliverable(next);const taskResult=await supabase.from('deliverable_tasks').select('id,deliverable_id,title,protocol,status,client_visible,work_closed_at').eq('deliverable_id',r.id).neq('status','cancelled').order('sort_order');const nextTasks=(taskResult.data||[]).map((t:any)=>({id:t.id,deliverableId:t.deliverable_id,title:t.title,protocol:t.protocol,status:t.status,clientVisible:Boolean(t.client_visible),workClosedAt:t.work_closed_at}));setTasks(nextTasks);setTaskTargets(nextTasks.map((task:any)=>({task,node:findTaskNode(task)})).filter((x:any):x is PortalTarget=>Boolean(x.node)));},[role]);
 
-function currentModalProtocol() {
-  const modal = document.querySelector<HTMLElement>('.deliverable-workspace-modal-v2');
-  if (!modal) return '';
-  return modal.querySelector<HTMLElement>('.deliverable-title-v2 .section-kicker')?.textContent?.trim() || '';
-}
+  useEffect(()=>{if(role!=='admin')return;void loadTimers();void loadContext();const tick=window.setInterval(()=>setNowMs(Date.now()),1000),refresh=window.setInterval(()=>{void loadTimers();void loadContext();},12000),onTimers=()=>{void loadTimers();void loadContext();};window.addEventListener(TIMER_EVENT,onTimers);return()=>{window.clearInterval(tick);window.clearInterval(refresh);window.removeEventListener(TIMER_EVENT,onTimers);};},[role,loadTimers,loadContext]);
+  useEffect(()=>{if(role!=='admin')return;let scheduled=false;const observer=new MutationObserver(()=>{if(scheduled)return;scheduled=true;window.requestAnimationFrame(()=>{scheduled=false;setDomVersion(v=>v+1);});});observer.observe(document.body,{childList:true,subtree:true});return()=>observer.disconnect();},[role]);
+  useEffect(()=>{void loadContext();},[domVersion,loadContext]);
 
-function findTaskNode(task: TaskContext) {
-  const rows = Array.from(document.querySelectorAll<HTMLElement>('.task-list-v2 article'));
-  return rows.find((row) => {
-    const protocol = row.querySelector('small')?.textContent?.trim();
-    if (task.protocol && protocol === task.protocol) return true;
-    const title = row.querySelector('strong')?.textContent;
-    return normalize(title) === normalize(task.title);
-  }) || null;
-}
+  const companyTimer=useMemo(()=>deliverable?timers.find(t=>t.companyId===deliverable.companyId)||null:null,[timers,deliverable]);
+  const deliverableTimer=useMemo(()=>deliverable?timers.find(t=>t.deliverableId===deliverable.id&&!t.taskId)||null:null,[timers,deliverable]);
+  const workLocked=Boolean(deliverable?.workClosedAt||deliverable?.status==='approved'||deliverable?.status==='cancelled');
 
-export function ProjectTimerBridge({ role }: { role: Role }) {
-  const [deliverable, setDeliverable] = useState<DeliverableContext | null>(null);
-  const [tasks, setTasks] = useState<TaskContext[]>([]);
-  const [timers, setTimers] = useState<TimerRow[]>([]);
-  const [footerTarget, setFooterTarget] = useState<HTMLElement | null>(null);
-  const [taskTargets, setTaskTargets] = useState<PortalTarget[]>([]);
-  const [nowMs, setNowMs] = useState(Date.now());
-  const [busyKey, setBusyKey] = useState<string | null>(null);
-  const [message, setMessage] = useState('');
-  const [domVersion, setDomVersion] = useState(0);
+  async function start(targetTask?:TaskContext){if(!supabase||!deliverable||busyKey)return;if(workLocked){setMessage('A execução deste entregável já foi encerrada. Novas horas estão bloqueadas.');return;}if(targetTask&&(targetTask.workClosedAt||targetTask.status==='done')){setMessage('Esta subtarefa já foi finalizada.');return;}if(companyTimer){setMessage('Esta empresa já possui um timer ativo. Pause a sessão atual antes de iniciar outra.');return;}setBusyKey(targetTask?.id||deliverable.id);setMessage('');try{const result=await supabase.rpc('start_work_timer_v2',{p_company_id:deliverable.companyId,p_project_id:deliverable.projectId,p_deliverable_id:deliverable.id,p_task_id:targetTask?.id||null,p_category:'Entregáveis',p_description:targetTask?.title||deliverable.title,p_client_visible:targetTask?targetTask.clientVisible:deliverable.clientVisible});if(result.error)throw result.error;window.dispatchEvent(new CustomEvent(TIMER_EVENT));await Promise.all([loadTimers(),loadContext()]);}catch(e){console.error(e);setMessage(e instanceof Error?e.message:'Não foi possível iniciar o timer.');}finally{setBusyKey(null);}}
+  async function pause(timer:TimerRow){if(busyKey)return;setBusyKey(timer.id);setMessage('');try{await pauseTimerSession(timer.id);setMessage('Sessão pausada e registrada no histórico de Horas. Você pode iniciar uma nova sessão depois.');await Promise.all([loadTimers(),loadContext()]);}catch(e){setMessage(e instanceof Error?e.message:'Não foi possível pausar a sessão.');}finally{setBusyKey(null);}}
+  function requestStop(timer:TimerRow,task?:TaskContext){if(!deliverable)return;setPending({timer,target:{id:task?.id||deliverable.id,label:task?.title||deliverable.title,kind:task?'task':'deliverable',clientApproved:deliverable.status==='approved'}});setConfirmStep(1);}
+  async function confirmStop(){if(!pending||busyKey)return;setBusyKey(pending.timer.id);try{await finalizeTimerWork({...pending.timer,deliverableName:deliverable?.title,taskName:pending.target.kind==='task'?pending.target.label:null});setMessage(`${pending.target.kind==='task'?'Subtarefa':'Execução do entregável'} finalizada. Novas horas estão bloqueadas.`);setPending(null);setConfirmStep(1);await Promise.all([loadTimers(),loadContext()]);}catch(e){setMessage(e instanceof Error?e.message:'Não foi possível finalizar a execução.');}finally{setBusyKey(null);}}
+  function controls(timer:TimerRow,task?:TaskContext){return <span className={`project-timer-controls ${task?'compact':''}`}><span className="project-timer-live">{timeLabel(secondsFor(timer,nowMs))}</span><button type="button" disabled={busyKey===timer.id} onClick={()=>void pause(timer)} title="Pausar: registra esta sessão e libera para continuar depois" aria-label="Pausar e registrar sessão"><Pause size={14}/></button><button type="button" className="stop" disabled={busyKey===timer.id} onClick={()=>requestStop(timer,task)} title="Stop: finalizar definitivamente" aria-label="Finalizar trabalho definitivamente"><Square size={13}/></button></span>;}
 
-  const loadTimers = useCallback(async () => {
-    if (role !== 'admin' || !supabase) { setTimers([]); return; }
-    const userResult = await supabase.auth.getUser();
-    const userId = userResult.data.user?.id;
-    if (!userId) { setTimers([]); return; }
-    const result = await supabase
-      .from('work_timers')
-      .select('id,company_id,project_id,deliverable_id,task_id,started_at,status,paused_at,paused_seconds,description')
-      .eq('user_id', userId)
-      .in('status', ['active', 'paused'])
-      .order('started_at', { ascending: true });
-    if (result.error) { console.error('Falha ao carregar timers do contexto de projetos', result.error); return; }
-    setTimers((result.data || []).map((row: any) => ({
-      id: row.id, companyId: row.company_id, projectId: row.project_id, deliverableId: row.deliverable_id, taskId: row.task_id,
-      startedAt: row.started_at, status: row.status, pausedAt: row.paused_at, pausedSeconds: Number(row.paused_seconds || 0), description: row.description,
-    })));
-  }, [role]);
+  if(role!=='admin'||!deliverable)return null;
+  const contextTimer=deliverableTimer||(companyTimer?.deliverableId===deliverable.id?companyTimer:null);
+  const headerPortal=headerTarget?createPortal(<div className={`project-header-timer ${contextTimer?'active':''}`} data-timer-context-deliverable-id={deliverable.id} data-timer-context-task-id={contextTimer?.taskId||undefined}>{message&&<span className="project-timer-message project-timer-message-floating">{message}</span>}{contextTimer?<><span className="project-header-timer-label"><TimerReset size={15}/>{contextTimer.taskId?'Subtarefa em execução':'Timer ativo'}</span>{controls(contextTimer,tasks.find(t=>t.id===contextTimer.taskId))}</>:companyTimer?<button className="project-timer-company-busy" type="button" onClick={()=>setMessage('Outro timer desta empresa está ativo e permanece disponível no topo.')}><TimerReset size={15}/>Empresa com timer ativo</button>:!workLocked?<button className="project-header-timer-start" type="button" disabled={Boolean(busyKey)} onClick={()=>void start()}><Play size={15}/>Iniciar timer</button>:<span className="project-work-closed"><TimerReset size={15}/>Execução encerrada</span>}</div>,headerTarget):null;
+  const taskPortals=taskTargets.map(({task,node})=>{const timer=timers.find(t=>t.taskId===task.id)||null,blocked=Boolean(companyTimer&&!timer)||workLocked||Boolean(task.workClosedAt)||task.status==='done';return createPortal(<span className="task-inline-timer" key={task.id} data-timer-context-task-id={task.id} data-timer-context-deliverable-id={deliverable.id}>{timer?controls(timer,task):<button type="button" disabled={blocked||Boolean(busyKey)} onClick={()=>void start(task)} title={blocked?'Subtarefa indisponível para novas horas':`Iniciar timer: ${task.title}`}><Play size={14}/><span>{task.workClosedAt||task.status==='done'?'Finalizada':'Timer'}</span></button>}</span>,node);});
 
-  const loadContext = useCallback(async () => {
-    if (role !== 'admin' || !supabase) return;
-    const modal = document.querySelector<HTMLElement>('.deliverable-workspace-modal-v2');
-    const footer = modal?.querySelector<HTMLElement>('.deliverable-actions-right-v2') || null;
-    setFooterTarget(footer);
-    if (!modal) { setDeliverable(null); setTasks([]); setTaskTargets([]); return; }
-
-    const protocol = currentModalProtocol();
-    const title = modal.querySelector('h2')?.textContent?.trim() || '';
-    let query = supabase.from('deliverables').select('id,company_id,project_id,title,protocol,status,client_visible');
-    query = protocol && protocol !== '—' ? query.eq('protocol', protocol) : query.eq('title', title);
-    const result = await query.limit(2);
-    if (result.error || !result.data?.length) {
-      setDeliverable(null); setTasks([]); setTaskTargets([]); return;
-    }
-    const row: any = result.data[0];
-    const nextDeliverable: DeliverableContext = {
-      id: row.id, companyId: row.company_id, projectId: row.project_id, title: row.title, protocol: row.protocol,
-      status: row.status, clientVisible: Boolean(row.client_visible),
-    };
-    setDeliverable(nextDeliverable);
-
-    const taskResult = await supabase.from('deliverable_tasks').select('id,deliverable_id,title,protocol,status,client_visible').eq('deliverable_id', row.id).neq('status', 'cancelled').order('sort_order');
-    const nextTasks: TaskContext[] = (taskResult.data || []).map((task: any) => ({
-      id: task.id, deliverableId: task.deliverable_id, title: task.title, protocol: task.protocol, status: task.status, clientVisible: Boolean(task.client_visible),
-    }));
-    setTasks(nextTasks);
-    setTaskTargets(nextTasks.map((task) => ({ task, node: findTaskNode(task) })).filter((item): item is PortalTarget => Boolean(item.node)));
-  }, [role]);
-
-  useEffect(() => {
-    if (role !== 'admin') return;
-    void loadTimers();
-    void loadContext();
-    const timer = window.setInterval(() => setNowMs(Date.now()), 1000);
-    const refresh = window.setInterval(() => { void loadTimers(); void loadContext(); }, 12000);
-    const onTimers = () => { void loadTimers(); void loadContext(); };
-    window.addEventListener(TIMER_EVENT, onTimers);
-    return () => { window.clearInterval(timer); window.clearInterval(refresh); window.removeEventListener(TIMER_EVENT, onTimers); };
-  }, [role, loadTimers, loadContext]);
-
-  useEffect(() => {
-    if (role !== 'admin') return;
-    let scheduled = false;
-    const observer = new MutationObserver(() => {
-      if (scheduled) return;
-      scheduled = true;
-      window.requestAnimationFrame(() => { scheduled = false; setDomVersion((value) => value + 1); });
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, [role]);
-
-  useEffect(() => { void loadContext(); }, [domVersion, loadContext]);
-
-  const companyTimer = useMemo(() => deliverable ? timers.find((timer) => timer.companyId === deliverable.companyId) || null : null, [timers, deliverable]);
-  const deliverableTimer = useMemo(() => deliverable ? timers.find((timer) => timer.deliverableId === deliverable.id && !timer.taskId) || null : null, [timers, deliverable]);
-
-  async function start(targetTask?: TaskContext) {
-    if (!supabase || !deliverable || busyKey) return;
-    if (companyTimer) { setMessage('Esta empresa já possui um timer aberto. Use o timer existente ou encerre-o antes de iniciar outro trabalho nela.'); return; }
-    const key = targetTask?.id || deliverable.id;
-    setBusyKey(key); setMessage('');
-    try {
-      const description = targetTask?.title || deliverable.title;
-      const result = await supabase.rpc('start_work_timer_v2', {
-        p_company_id: deliverable.companyId,
-        p_project_id: deliverable.projectId,
-        p_deliverable_id: deliverable.id,
-        p_task_id: targetTask?.id || null,
-        p_category: 'Entregáveis',
-        p_description: description,
-        p_client_visible: targetTask ? targetTask.clientVisible : deliverable.clientVisible,
-      });
-      if (result.error) throw result.error;
-
-      if (deliverable.status === 'not_started') {
-        const user = await supabase.auth.getUser();
-        const updated = await supabase.from('deliverables').update({ status: 'in_progress' }).eq('id', deliverable.id);
-        if (!updated.error) {
-          await supabase.from('deliverable_status_history').insert({ company_id: deliverable.companyId, deliverable_id: deliverable.id, from_status: 'not_started', to_status: 'in_progress', actor_user_id: user.data.user?.id || null, note: 'Timer iniciado' });
-          setDeliverable((current) => current ? { ...current, status: 'in_progress' } : current);
-        }
-      }
-      if (targetTask && targetTask.status === 'todo') {
-        await supabase.from('deliverable_tasks').update({ status: 'in_progress' }).eq('id', targetTask.id);
-        setTasks((current) => current.map((task) => task.id === targetTask.id ? { ...task, status: 'in_progress' } : task));
-      }
-      window.dispatchEvent(new CustomEvent(TIMER_EVENT));
-      await loadTimers();
-    } catch (error) {
-      console.error('Não foi possível iniciar o timer do contexto', error);
-      setMessage(error instanceof Error ? error.message : 'Não foi possível iniciar o timer.');
-    } finally { setBusyKey(null); }
-  }
-
-  async function mutate(timer: TimerRow, action: 'pause' | 'resume' | 'stop') {
-    if (!supabase || busyKey) return;
-    setBusyKey(timer.id); setMessage('');
-    try {
-      const result = action === 'pause'
-        ? await supabase.rpc('pause_work_timer', { p_timer_id: timer.id })
-        : action === 'resume'
-          ? await supabase.rpc('resume_work_timer', { p_timer_id: timer.id })
-          : await supabase.rpc('stop_work_timer', { p_timer_id: timer.id, p_description: timer.description || 'Atuação CALI' });
-      if (result.error) throw result.error;
-      window.dispatchEvent(new CustomEvent(TIMER_EVENT));
-      await loadTimers();
-      if (action === 'stop') setMessage('Apontamento encerrado e registrado em Horas.');
-    } catch (error) {
-      console.error(`Não foi possível ${action} o timer`, error);
-      setMessage(error instanceof Error ? error.message : 'Não foi possível atualizar o timer.');
-    } finally { setBusyKey(null); }
-  }
-
-  function controls(timer: TimerRow, compact = false) {
-    return <span className={`project-timer-controls ${compact ? 'compact' : ''}`}>
-      <span className={`project-timer-live ${timer.status === 'paused' ? 'paused' : ''}`}>{timeLabel(secondsFor(timer, nowMs))}</span>
-      <button type="button" disabled={busyKey === timer.id} onClick={() => void mutate(timer, timer.status === 'paused' ? 'resume' : 'pause')} title={timer.status === 'paused' ? 'Retomar timer' : 'Pausar timer'} aria-label={timer.status === 'paused' ? 'Retomar timer' : 'Pausar timer'}>{timer.status === 'paused' ? <Play size={14}/> : <Pause size={14}/>}</button>
-      <button type="button" className="stop" disabled={busyKey === timer.id} onClick={() => void mutate(timer, 'stop')} title="Encerrar timer" aria-label="Encerrar timer"><Square size={13}/></button>
-    </span>;
-  }
-
-  if (role !== 'admin' || !deliverable || !footerTarget) return null;
-
-  const footerTimer = deliverableTimer || (companyTimer?.deliverableId === deliverable.id ? companyTimer : null);
-  const footer = createPortal(
-    <div className="global-context-timer" data-timer-context-deliverable-id={deliverable.id} data-timer-context-task-id={footerTimer?.taskId || undefined}>
-      {message && <span className="project-timer-message">{message}</span>}
-      {footerTimer ? <>
-        <span className="project-timer-context-label"><TimerReset size={15}/>{footerTimer.taskId ? 'Timer da subtarefa' : 'Timer do entregável'}</span>
-        {controls(footerTimer)}
-      </> : companyTimer ? <button className="project-timer-company-busy" type="button" onClick={() => setMessage('Já existe outro timer aberto para esta empresa. Ele continua disponível no topo quando você sair deste contexto.')}><TimerReset size={15}/>Timer ativo nesta empresa</button> : <button className="timer-button-v2 project-timer-start" type="button" disabled={Boolean(busyKey)} onClick={() => void start()}><Play size={16}/>Iniciar timer</button>}
-    </div>, footerTarget
-  );
-
-  const taskPortals = taskTargets.map(({ task, node }) => {
-    const timer = timers.find((item) => item.taskId === task.id) || null;
-    const blocked = Boolean(companyTimer && !timer);
-    return createPortal(
-      <span className="task-inline-timer" key={task.id} data-timer-context-task-id={task.id} data-timer-context-deliverable-id={deliverable.id}>
-        {timer ? controls(timer, true) : <button type="button" disabled={blocked || Boolean(busyKey)} onClick={() => void start(task)} title={blocked ? 'Esta empresa já possui outro timer aberto' : `Iniciar timer: ${task.title}`} aria-label={`Iniciar timer para ${task.title}`}><Play size={14}/><span>Timer</span></button>}
-      </span>, node
-    );
-  });
-
-  return <>{footer}{taskPortals}</>;
+  return <>{headerPortal}{taskPortals}<TimerFinalizationDialog target={pending?.target||null} step={confirmStep} busy={Boolean(pending&&busyKey===pending.timer.id)} onCancel={()=>{setPending(null);setConfirmStep(1);}} onAdvance={()=>setConfirmStep(2)} onConfirm={()=>void confirmStop()}/></>;
 }
