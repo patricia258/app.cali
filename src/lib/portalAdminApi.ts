@@ -9,7 +9,7 @@ export type PortalSubmission = {
   contact_name:string; contact_role?:string|null; contact_email:string; contact_phone?:string|null;
   contact_preference?:string|null; company_name?:string|null; company_segment?:string|null;
   company_size?:number|null; company_units?:number|null; company_location?:string|null;
-  answers:Record<string,unknown>; source_path?:string|null; lgpd_accepted:boolean;
+  answers:Record<string,any>; source_path?:string|null; lgpd_accepted:boolean;
   internal_notes?:string|null; archived_at?:string|null; created_at:string; updated_at:string;
 };
 export type PortalSubmissionPatch=Partial<Pick<PortalSubmission,'status'|'internal_notes'|'archived_at'|'contact_name'|'contact_role'|'contact_email'|'contact_phone'|'contact_preference'|'company_name'|'company_segment'|'company_size'|'company_units'|'company_location'>>;
@@ -87,6 +87,15 @@ export async function appendPortalActivity(input:{submission_id:string;proposal_
   const rows=await request<PortalActivity[]>('cali_activity',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({...input,metadata:input.metadata||{}})});return rows[0]||null;
 }
 
-export function portalServiceLabel(slug:string){const labels:Record<string,string>={'assessoria-estrategica':'Assessoria Estratégica Mensal — HR as a Service','mentoria-rh':'Mentoria para Profissionais de RH','diagnostico-executivo':'Diagnóstico Executivo de Pessoas','cultura-direcao':'Projeto de Cultura e Direção','shadowing-lideranca':'Shadowing de Liderança',treinamentos:'Treinamentos & Palestras','marca-empregadora':'Marca Empregadora','solucao-personalizada':'Solução Personalizada'};return labels[slug]||slug;}
+export function portalServiceLabel(slug:string){const labels:Record<string,string>={
+  'assessoria-estrategica':'Assessoria Estratégica Mensal — HR as a Service',
+  'mentoria-rh':'Programa de Desenvolvimento para Profissionais de RH',
+  'diagnostico-executivo':'Diagnóstico Executivo de People',
+  'cultura-direcao':'Projeto de Cultura e Direção',
+  'shadowing-lideranca':'Shadowing de Liderança',
+  treinamentos:'Treinamentos & Palestras',
+  'marca-empregadora':'Marca Empregadora',
+  'solucao-personalizada':'Solução Personalizada',
+};return labels[slug]||slug;}
 export const PORTAL_STATUS:Array<{value:PortalSubmissionStatus;label:string}>=[{value:'novo',label:'Nova resposta'},{value:'analise',label:'Em análise'},{value:'edicao',label:'Proposta em edição'},{value:'aprovada',label:'Aprovada internamente'},{value:'enviada',label:'Enviada'},{value:'negociacao',label:'Em negociação'},{value:'fechada',label:'Fechada'},{value:'recusada',label:'Recusada'},{value:'expirada',label:'Expirada'}];
 export function portalStatusLabel(status:string){return PORTAL_STATUS.find(item=>item.value===status)?.label||status;}
