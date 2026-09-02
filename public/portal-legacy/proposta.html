@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Proposta CALI</title>
+  <link rel="icon" href="https://cdn.jsdelivr.net/gh/patricia258/cali-portal@3bf5456fc582d03abfda619887f4b3dade44bec8/assets/logo-cali-bordo.png" type="image/png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/patricia258/cali-portal@70b0c95ed2dbe5f5242e31ac2b7abea690b6cf89/styles.css">
+  <style>
+    html{color-scheme:light!important;background:#f7f3ee!important}
+    body{background:#f7f3ee!important;color:#2b2b2b!important}
+    .proposal-toolbar .btn-soft{cursor:pointer}
+    @media print{html,body{background:#fff!important;color-scheme:light!important}}
+  </style>
+</head>
+<body>
+  <header class="proposal-toolbar">
+    <div class="shell proposal-toolbar-inner">
+      <div>
+        <strong>Prévia da proposta</strong>
+        <div style="font-size:11px;color:#cfc7c3">Confira todas as páginas antes de salvar e enviar.</div>
+      </div>
+      <div class="proposal-toolbar-actions">
+        <a class="btn btn-soft" href="/admin/propostas">← Propostas</a>
+        <button class="btn btn-gold" id="print">Salvar PDF</button>
+        <button class="btn btn-primary" id="open-send">Enviar por e-mail</button>
+      </div>
+    </div>
+  </header>
+  <main id="proposal-root"><div class="empty">Carregando proposta…</div></main>
+  <div class="drawer-overlay" id="send-overlay"></div>
+  <aside class="drawer" id="send-drawer">
+    <div class="drawer-head">
+      <div>
+        <div class="eyebrow" style="margin:0;color:#DDBB7F">Envio aprovado</div>
+        <h2>Enviar proposta</h2>
+        <p id="send-to">Revise os dados antes do disparo.</p>
+      </div>
+      <button class="icon-btn" id="close-send">×</button>
+    </div>
+    <div class="drawer-body">
+      <div class="drawer-section">
+        <h3>1. Salve o PDF</h3>
+        <p>Use o botão “Salvar PDF”. A versão de impressão preserva as páginas, as cores e os detalhes da proposta.</p>
+      </div>
+      <div class="drawer-section">
+        <h3>2. Confirme o destinatário</h3>
+        <p class="send-standard-note">Os dados vieram do briefing. Você pode corrigi-los para este envio sem alterar o cadastro original do lead.</p>
+        <div class="send-confirm-grid">
+          <div class="field"><label for="send-company">Empresa</label><input class="control" id="send-company" type="text" maxlength="180" autocomplete="organization"></div>
+          <div class="field"><label for="send-recipient-name">Nome do decisor <span class="required">*</span></label><input class="control" id="send-recipient-name" type="text" maxlength="160" autocomplete="name" required></div>
+          <div class="field send-confirm-email"><label for="send-recipient-email">E-mail de envio <span class="required">*</span></label><input class="control" id="send-recipient-email" type="email" maxlength="254" autocomplete="email" required></div>
+        </div>
+        <div class="send-subject-preview"><span>Assunto do e-mail</span><strong id="send-subject"></strong></div>
+      </div>
+      <div class="drawer-section">
+        <h3>3. Anexe e envie</h3>
+        <p class="send-standard-note">O e-mail apresenta a proposta, destaca o escopo construído e abre um canal direto para a conversa.</p>
+        <div class="field"><label for="pdf-file">Proposta final em PDF</label><input class="control" id="pdf-file" type="file" accept="application/pdf,.pdf"></div>
+        <div class="field" style="margin-top:14px"><label for="email-note">Mensagem pessoal adicional, se quiser</label><textarea class="control" id="email-note" placeholder="Ex.: Foi muito bom conhecer o momento da equipe na nossa conversa."></textarea></div>
+        <div class="auth-feedback" id="send-feedback"></div>
+      </div>
+    </div>
+    <div class="drawer-footer"><button class="btn btn-primary" id="send-email" disabled>Confirmar e enviar</button></div>
+  </aside>
+  <script type="module" src="https://cdn.jsdelivr.net/gh/patricia258/cali-portal@3bf5456fc582d03abfda619887f4b3dade44bec8/js/proposta.js"></script>
+</body>
+</html>
