@@ -1,134 +1,32 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Archive, ArchiveRestore, Download, FileText, Loader2, RefreshCw, Search, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
-import {
-  PORTAL_STATUS, loadPortalAdminData, portalServiceLabel, portalStatusLabel,
-  updatePortalSubmission, type PortalActivity, type PortalPricingRule, type PortalProposal,
-  type PortalSubmission, type PortalSubmissionStatus,
-} from '../../lib/portalAdminApi';
+import { PORTAL_STATUS, loadPortalAdminData, portalServiceLabel, portalStatusLabel, updatePortalSubmission, type PortalActivity, type PortalPricingRule, type PortalProposal, type PortalSubmission, type PortalSubmissionStatus } from '../../lib/portalAdminApi';
 
 type PortalData={submissions:PortalSubmission[];proposals:PortalProposal[];pricing:PortalPricingRule[];activity:PortalActivity[]};
 const emptyData:PortalData={submissions:[],proposals:[],pricing:[],activity:[]};
-
-function formatDate(value?:string|null,withTime=false){
-  if(!value)return '—';
-  const date=new Date(value);
-  if(Number.isNaN(date.getTime()))return '—';
-  return new Intl.DateTimeFormat('pt-BR',withTime?{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}:{day:'2-digit',month:'short',year:'numeric'}).format(date);
-}
-function prettyKey(key:string){
-  const known:Record<string,string>={
-    nome:'Seu nome',cargo:'Cargo',email:'E-mail profissional',whatsapp:'WhatsApp',preferencia_contato:'Preferência de contato',
-    origem_contato:'Como conheceu a CALI?',contexto_profissional:'Contexto profissional',empresa:'Empresa',segmento:'Segmento',
-    segmento_outro:'Segmento informado',colaboradores:'Número de colaboradores',unidades:'Unidades ou filiais',localidade:'Cidade e estado',
-    site_empresa:'Site ou LinkedIn',filiais_outro_estado:'Filiais em outros estados',estados_filiais:'Estados das filiais',
-    modelo_trabalho:'Modelo de trabalho',momento_empresa:'Momento atual da empresa',modelo_interesse:'Modelo de interesse',
-    principal_desafio:'Principal desafio',investimento:'Investimento previsto',prazo_inicio:'Prazo para início',frentes:'Frentes de apoio',
-  };
-  return known[key]||key.replace(/_/g,' ').replace(/\b\w/g,(m)=>m.toUpperCase());
-}
-function displayValue(value:unknown):string{
-  if(value===null||value===undefined||value==='')return '—';
-  if(typeof value==='boolean')return value?'Sim':'Não';
-  if(Array.isArray(value))return value.map(displayValue).join(' · ');
-  if(typeof value==='object')return Object.entries(value as Record<string,unknown>).map(([key,item])=>`${prettyKey(key)}: ${displayValue(item)}`).join(' | ');
-  return String(value);
-}
+function formatDate(value?:string|null,withTime=false){if(!value)return'—';const date=new Date(value);if(Number.isNaN(date.getTime()))return'—';return new Intl.DateTimeFormat('pt-BR',withTime?{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}:{day:'2-digit',month:'short',year:'numeric'}).format(date);}
+function prettyKey(key:string){const known:Record<string,string>={nome:'Seu nome',cargo:'Cargo',email:'E-mail profissional',whatsapp:'WhatsApp',preferencia_contato:'Preferência de contato',origem_contato:'Como conheceu a CALI?',contexto_profissional:'Contexto profissional',empresa:'Empresa',segmento:'Segmento',segmento_outro:'Segmento informado',colaboradores:'Número de colaboradores',unidades:'Unidades ou filiais',localidade:'Cidade e estado',site_empresa:'Site ou LinkedIn',filiais_outro_estado:'Filiais em outros estados',estados_filiais:'Estados das filiais',modelo_trabalho:'Modelo de trabalho',momento_empresa:'Momento atual da empresa',modelo_interesse:'Modelo de interesse',principal_desafio:'Principal desafio',investimento:'Investimento previsto',prazo_inicio:'Prazo para início',frentes:'Frentes de apoio'};return known[key]||key.replace(/_/g,' ').replace(/\b\w/g,m=>m.toUpperCase());}
+function displayValue(value:unknown):string{if(value===null||value===undefined||value==='')return'—';if(typeof value==='boolean')return value?'Sim':'Não';if(Array.isArray(value))return value.map(displayValue).join(' · ');if(typeof value==='object')return Object.entries(value as Record<string,unknown>).map(([key,item])=>`${prettyKey(key)}: ${displayValue(item)}`).join(' | ');return String(value);}
 function csvValue(value:unknown){const text=displayValue(value);return `"${text.replace(/"/g,'""')}"`;}
 
 export function AdminProposalsPage(){
-  const[data,setData]=useState<PortalData>(emptyData);
-  const[loading,setLoading]=useState(true);
-  const[saving,setSaving]=useState(false);
-  const[error,setError]=useState('');
-  const[query,setQuery]=useState('');
-  const[service,setService]=useState('');
-  const[status,setStatus]=useState('');
-  const[showArchived,setShowArchived]=useState(false);
-  const[selectedId,setSelectedId]=useState<string|null>(null);
-  const[notes,setNotes]=useState('');
-
-  async function load(){
-    setLoading(true);setError('');
-    try{setData(await loadPortalAdminData());}
-    catch(e){setError(e instanceof Error?e.message:'Não foi possível carregar as oportunidades do Portal.');}
-    finally{setLoading(false);}
-  }
-  useEffect(()=>{void load();},[]);
-
-  const active=useMemo(()=>data.submissions.filter(item=>!item.archived_at),[data.submissions]);
-  const kpis=useMemo(()=>({
-    novo:active.filter(item=>item.status==='novo').length,
-    analise:active.filter(item=>['analise','edicao','aprovada'].includes(item.status)).length,
-    enviadas:active.filter(item=>['enviada','negociacao'].includes(item.status)).length,
-    fechadas:active.filter(item=>item.status==='fechada').length,
-  }),[active]);
-  const services=useMemo(()=>Array.from(new Set(data.submissions.map(item=>item.service_slug))).sort(),[data.submissions]);
-  const filtered=useMemo(()=>data.submissions.filter(item=>{
-    if(Boolean(item.archived_at)!==showArchived)return false;
-    if(service&&item.service_slug!==service)return false;
-    if(status&&item.status!==status)return false;
-    const haystack=[item.company_name,item.contact_name,item.contact_email,item.protocol,portalServiceLabel(item.service_slug)].join(' ').toLowerCase();
-    return !query.trim()||haystack.includes(query.trim().toLowerCase());
-  }),[data.submissions,query,service,status,showArchived]);
-  const selected=useMemo(()=>data.submissions.find(item=>item.id===selectedId)||null,[data.submissions,selectedId]);
-  const selectedProposals=useMemo(()=>selected?data.proposals.filter(item=>item.submission_id===selected.id).sort((a,b)=>b.version-a.version):[],[data.proposals,selected]);
-  const selectedActivity=useMemo(()=>selected?data.activity.filter(item=>item.submission_id===selected.id).slice(0,20):[],[data.activity,selected]);
-  useEffect(()=>{setNotes(selected?.internal_notes||'');},[selected?.id,selected?.internal_notes]);
-
-  async function saveStatus(next:PortalSubmissionStatus){
-    if(!selected)return;setSaving(true);setError('');
-    try{
-      const updated=await updatePortalSubmission(selected.id,{status:next});
-      setData(current=>({...current,submissions:current.submissions.map(item=>item.id===selected.id?(updated||{...item,status:next}):item)}));
-    }catch(e){setError(e instanceof Error?e.message:'Não foi possível atualizar o status.');}
-    finally{setSaving(false);}
-  }
-  async function saveNotes(){
-    if(!selected)return;setSaving(true);setError('');
-    try{
-      const updated=await updatePortalSubmission(selected.id,{internal_notes:notes});
-      setData(current=>({...current,submissions:current.submissions.map(item=>item.id===selected.id?(updated||{...item,internal_notes:notes}):item)}));
-    }catch(e){setError(e instanceof Error?e.message:'Não foi possível salvar a nota interna.');}
-    finally{setSaving(false);}
-  }
-  async function toggleArchive(item:PortalSubmission){
-    const archive=!item.archived_at;
-    if(archive&&!window.confirm(`Arquivar ${item.company_name||item.contact_name}? O briefing, propostas, PDFs e histórico serão preservados.`))return;
-    setSaving(true);setError('');
-    try{
-      const archivedAt=archive?new Date().toISOString():null;
-      const updated=await updatePortalSubmission(item.id,{archived_at:archivedAt});
-      setData(current=>({...current,submissions:current.submissions.map(row=>row.id===item.id?(updated||{...row,archived_at:archivedAt}):row)}));
-      if(selectedId===item.id)setSelectedId(null);
-    }catch(e){setError(e instanceof Error?e.message:'Não foi possível atualizar o arquivamento.');}
-    finally{setSaving(false);}
-  }
-  function exportCsv(){
-    if(!filtered.length)return;
-    const answerKeys=Array.from(new Set(filtered.flatMap(item=>Object.keys(item.answers||{}))));
-    const header=['Data','Protocolo','Serviço','Status','Nome','Cargo','E-mail','WhatsApp','Empresa',...answerKeys.map(prettyKey)];
-    const lines=[header.map(csvValue).join(';'),...filtered.map(item=>[
-      formatDate(item.created_at,true),item.protocol,portalServiceLabel(item.service_slug),portalStatusLabel(item.status),item.contact_name,item.contact_role,item.contact_email,item.contact_phone,item.company_name,
-      ...answerKeys.map(key=>item.answers?.[key]),
-    ].map(csvValue).join(';'))];
-    const blob=new Blob(['\ufeff',lines.join('\n')],{type:'text/csv;charset=utf-8'});
-    const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`CALI-briefings-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);
-  }
-
-  return <Shell role="admin"><section className="page portal-admin-migration">
-    <header className="portal-admin-head"><div><span className="eyebrow">PORTAL CALI</span><h1>Propostas</h1><p>Briefings que chegam pelo Portal, análise comercial, proposta e histórico no mesmo fluxo.</p></div><div className="portal-admin-head-actions"><button className="secondary" onClick={exportCsv} disabled={!filtered.length}><Download size={16}/>Baixar CSV</button><button className="secondary" onClick={()=>void load()} disabled={loading}><RefreshCw size={16}/>Atualizar</button></div></header>
-    {error&&<div className="inline-notice danger">{error}</div>}
-    <section className="portal-admin-kpis"><article><span>Novas</span><strong>{kpis.novo}</strong></article><article><span>Em análise</span><strong>{kpis.analise}</strong></article><article><span>Propostas enviadas</span><strong>{kpis.enviadas}</strong></article><article><span>Fechadas</span><strong>{kpis.fechadas}</strong></article></section>
-    <section className="portal-admin-toolbar panel"><label className="portal-admin-search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar empresa, contato ou protocolo"/></label><select value={service} onChange={e=>setService(e.target.value)}><option value="">Todos os serviços</option>{services.map(item=><option key={item} value={item}>{portalServiceLabel(item)}</option>)}</select><select value={status} onChange={e=>setStatus(e.target.value)}><option value="">Todos os status</option>{PORTAL_STATUS.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select><button className={showArchived?'primary':'secondary'} onClick={()=>setShowArchived(v=>!v)}>{showArchived?<ArchiveRestore size={16}/>:<Archive size={16}/>} {showArchived?'Ver ativos':'Ver arquivados'}</button></section>
-    <section className="panel portal-admin-table-card">{loading?<div className="portal-admin-loading"><Loader2 className="spin"/>Carregando dados reais do Portal…</div>:<div className="portal-admin-table-wrap"><table><thead><tr><th>Entrada</th><th>Empresa / contato</th><th>Serviço</th><th>Momento</th><th>Status</th><th>Ações</th></tr></thead><tbody>{filtered.map(item=><tr key={item.id}><td>{formatDate(item.created_at)}<small>{item.protocol}</small></td><td><button className="portal-admin-open" onClick={()=>setSelectedId(item.id)}><strong>{item.company_name||item.contact_name}</strong><span>{item.contact_name} · {item.contact_email}</span></button></td><td>{portalServiceLabel(item.service_slug)}</td><td>{displayValue(item.answers?.momento_empresa||item.answers?.prazo_inicio)}</td><td><span className={`portal-status status-${item.status}`}>{portalStatusLabel(item.status)}</span></td><td><div className="portal-admin-row-actions"><button className="icon-button" title="Abrir" onClick={()=>setSelectedId(item.id)}><FileText size={17}/></button><button className="icon-button" title={item.archived_at?'Restaurar':'Arquivar'} onClick={()=>void toggleArchive(item)}>{item.archived_at?<ArchiveRestore size={17}/>:<Archive size={17}/>}</button></div></td></tr>)}{!filtered.length&&<tr><td colSpan={6} className="portal-admin-empty">Nenhuma oportunidade encontrada.</td></tr>}</tbody></table></div>}</section>
-
-    {selected&&<><button className="portal-admin-drawer-backdrop" onClick={()=>setSelectedId(null)} aria-label="Fechar"/><aside className="portal-admin-drawer"><header><div><span className="eyebrow">{selected.protocol}</span><h2>{selected.company_name||selected.contact_name}</h2><p>{portalServiceLabel(selected.service_slug)}</p></div><button className="icon-button" onClick={()=>setSelectedId(null)}><X/></button></header><div className="portal-admin-drawer-scroll">
-      <section className="portal-admin-drawer-section"><h3>Oportunidade</h3><div className="portal-admin-form-grid"><label>Status<select value={selected.status} disabled={saving} onChange={e=>void saveStatus(e.target.value as PortalSubmissionStatus)}>{PORTAL_STATUS.map(item=><option value={item.value} key={item.value}>{item.label}</option>)}</select></label><div><span>Entrada</span><strong>{formatDate(selected.created_at,true)}</strong></div><div><span>Contato</span><strong>{selected.contact_name}</strong><small>{selected.contact_role||'—'}</small></div><div><span>E-mail</span><strong>{selected.contact_email}</strong></div><div><span>WhatsApp</span><strong>{selected.contact_phone||'—'}</strong></div><div><span>Empresa</span><strong>{selected.company_name||'—'}</strong></div></div></section>
-      <section className="portal-admin-drawer-section"><h3>Briefing completo</h3><div className="portal-answer-list">{Object.entries(selected.answers||{}).map(([key,value])=><article key={key}><span>{prettyKey(key)}</span><p>{displayValue(value)}</p></article>)}</div></section>
-      <section className="portal-admin-drawer-section"><h3>Nota interna</h3><textarea rows={5} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Observações da CALI sobre esta oportunidade."/><button className="primary" disabled={saving||notes===(selected.internal_notes||'')} onClick={()=>void saveNotes()}>{saving?'Salvando…':'Salvar nota'}</button></section>
-      <section className="portal-admin-drawer-section"><h3>Propostas</h3>{selectedProposals.length?<div className="portal-proposal-list">{selectedProposals.map(proposal=><article key={proposal.id}><div><strong>v{proposal.version} · {proposal.package_code}</strong><span>{proposal.status}</span></div><div><b>{Number(proposal.final_unit||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</b><small>{proposal.sent_at?`Enviada em ${formatDate(proposal.sent_at,true)}`:'Ainda não enviada'}</small></div></article>)}</div>:<p className="portal-admin-muted">Ainda não existe proposta salva para este briefing.</p>}</section>
-      <section className="portal-admin-drawer-section"><h3>Histórico</h3>{selectedActivity.length?<div className="portal-activity-list">{selectedActivity.map(event=><article key={event.id}><span>{formatDate(event.created_at,true)}</span><strong>{event.event_type.replace(/_/g,' ')}</strong></article>)}</div>:<p className="portal-admin-muted">Sem eventos registrados ainda.</p>}</section>
-    </div><footer><button className="secondary" onClick={()=>void toggleArchive(selected)}>{selected.archived_at?'Restaurar oportunidade':'Arquivar oportunidade'}</button><span>{saving?'Salvando alterações…':'Dados sincronizados com o Portal'}</span></footer></aside></>}
-  </section></Shell>;
+ const[data,setData]=useState<PortalData>(emptyData),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(''),[query,setQuery]=useState(''),[service,setService]=useState(''),[status,setStatus]=useState(''),[showArchived,setShowArchived]=useState(false),[selectedId,setSelectedId]=useState<string|null>(null),[notes,setNotes]=useState('');
+ async function load(){setLoading(true);setError('');try{setData(await loadPortalAdminData());}catch(e){setError(e instanceof Error?e.message:'Não foi possível carregar as oportunidades do Portal.');}finally{setLoading(false);}}
+ useEffect(()=>{void load();},[]);
+ const active=useMemo(()=>data.submissions.filter(item=>!item.archived_at),[data.submissions]);
+ const kpis=useMemo(()=>({novo:active.filter(item=>item.status==='novo').length,analise:active.filter(item=>['analise','edicao','aprovada'].includes(item.status)).length,enviadas:active.filter(item=>['enviada','negociacao'].includes(item.status)).length,fechadas:active.filter(item=>item.status==='fechada').length}),[active]);
+ const services=useMemo(()=>Array.from(new Set(data.submissions.map(item=>item.service_slug))).sort(),[data.submissions]);
+ const filtered=useMemo(()=>data.submissions.filter(item=>{if(Boolean(item.archived_at)!==showArchived)return false;if(service&&item.service_slug!==service)return false;if(status&&item.status!==status)return false;const haystack=[item.company_name,item.contact_name,item.contact_email,item.protocol,portalServiceLabel(item.service_slug)].join(' ').toLowerCase();return!query.trim()||haystack.includes(query.trim().toLowerCase());}),[data.submissions,query,service,status,showArchived]);
+ const selected=useMemo(()=>data.submissions.find(item=>item.id===selectedId)||null,[data.submissions,selectedId]);
+ const selectedProposals=useMemo(()=>selected?data.proposals.filter(item=>item.submission_id===selected.id).sort((a,b)=>b.version-a.version):[],[data.proposals,selected]);
+ const selectedActivity=useMemo(()=>selected?data.activity.filter(item=>item.submission_id===selected.id).slice(0,20):[],[data.activity,selected]);
+ useEffect(()=>{setNotes(selected?.internal_notes||'');},[selected?.id,selected?.internal_notes]);
+ async function saveStatus(next:PortalSubmissionStatus){if(!selected)return;setSaving(true);setError('');try{const updated=await updatePortalSubmission(selected.id,{status:next});setData(current=>({...current,submissions:current.submissions.map(item=>item.id===selected.id?(updated||{...item,status:next}):item)}));}catch(e){setError(e instanceof Error?e.message:'Não foi possível atualizar o status.');}finally{setSaving(false);}}
+ async function saveNotes(){if(!selected)return;setSaving(true);setError('');try{const updated=await updatePortalSubmission(selected.id,{internal_notes:notes});setData(current=>({...current,submissions:current.submissions.map(item=>item.id===selected.id?(updated||{...item,internal_notes:notes}):item)}));}catch(e){setError(e instanceof Error?e.message:'Não foi possível salvar a nota interna.');}finally{setSaving(false);}}
+ async function toggleArchive(item:PortalSubmission){const archive=!item.archived_at;if(archive&&!window.confirm(`Arquivar ${item.company_name||item.contact_name}? O briefing, propostas, PDFs e histórico serão preservados.`))return;setSaving(true);setError('');try{const archivedAt=archive?new Date().toISOString():null;const updated=await updatePortalSubmission(item.id,{archived_at:archivedAt});setData(current=>({...current,submissions:current.submissions.map(row=>row.id===item.id?(updated||{...row,archived_at:archivedAt}):row)}));if(selectedId===item.id)setSelectedId(null);}catch(e){setError(e instanceof Error?e.message:'Não foi possível atualizar o arquivamento.');}finally{setSaving(false);}}
+ function exportCsv(){if(!filtered.length)return;const answerKeys=Array.from(new Set(filtered.flatMap(item=>Object.keys(item.answers||{})))),header=['Data','Protocolo','Serviço','Status','Nome','Cargo','E-mail','WhatsApp','Empresa',...answerKeys.map(prettyKey)],csv=[header.map(csvValue).join(';'),...filtered.map(item=>[formatDate(item.created_at,true),item.protocol,portalServiceLabel(item.service_slug),portalStatusLabel(item.status),item.contact_name,item.contact_role,item.contact_email,item.contact_phone,item.company_name,...answerKeys.map(key=>item.answers?.[key])].map(csvValue).join(';'))],blob=new Blob(['\ufeff',csv.join('\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`CALI-briefings-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);}
+ return <Shell role="admin"><section className="page portal-admin-migration"><header className="portal-admin-head"><div><span className="eyebrow">PORTAL CALI</span><h1>Propostas</h1><p>Briefings que chegam pelo Portal, análise comercial, proposta e histórico no mesmo fluxo.</p></div><div className="portal-admin-head-actions"><button className="secondary" onClick={exportCsv} disabled={!filtered.length}><Download size={16}/>Baixar CSV</button><button className="secondary" onClick={()=>void load()} disabled={loading}><RefreshCw size={16}/>Atualizar</button></div></header>{error&&<div className="inline-notice danger">{error}</div>}<section className="portal-admin-kpis"><article><span>Novas</span><strong>{kpis.novo}</strong></article><article><span>Em análise</span><strong>{kpis.analise}</strong></article><article><span>Propostas enviadas</span><strong>{kpis.enviadas}</strong></article><article><span>Fechadas</span><strong>{kpis.fechadas}</strong></article></section><section className="portal-admin-toolbar panel"><label className="portal-admin-search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar empresa, contato ou protocolo"/></label><select value={service} onChange={e=>setService(e.target.value)}><option value="">Todos os serviços</option>{services.map(item=><option key={item} value={item}>{portalServiceLabel(item)}</option>)}</select><select value={status} onChange={e=>setStatus(e.target.value)}><option value="">Todos os status</option>{PORTAL_STATUS.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select><button className={showArchived?'primary':'secondary'} onClick={()=>setShowArchived(v=>!v)}>{showArchived?<ArchiveRestore size={16}/>:<Archive size={16}/>} {showArchived?'Ver ativos':'Ver arquivados'}</button></section><section className="panel portal-admin-table-card">{loading?<div className="portal-admin-loading"><Loader2 className="spin"/>Carregando dados reais do Portal…</div>:<div className="portal-admin-table-wrap"><table><thead><tr><th>Entrada</th><th>Empresa / contato</th><th>Serviço</th><th>Momento</th><th>Status</th><th>Ações</th></tr></thead><tbody>{filtered.map(item=><tr key={item.id}><td>{formatDate(item.created_at)}<small>{item.protocol}</small></td><td><button className="portal-admin-open" onClick={()=>setSelectedId(item.id)}><strong>{item.company_name||item.contact_name}</strong><span>{item.contact_name} · {item.contact_email}</span></button></td><td>{portalServiceLabel(item.service_slug)}</td><td>{displayValue(item.answers?.momento_empresa||item.answers?.prazo_inicio)}</td><td><span className={`portal-status status-${item.status}`}>{portalStatusLabel(item.status)}</span></td><td><div className="portal-admin-row-actions"><button className="icon-button" title="Abrir" onClick={()=>setSelectedId(item.id)}><FileText size={17}/></button><button className="icon-button" title={item.archived_at?'Restaurar':'Arquivar'} onClick={()=>void toggleArchive(item)}>{item.archived_at?<ArchiveRestore size={17}/>:<Archive size={17}/>}</button></div></td></tr>)}{!filtered.length&&<tr><td colSpan={6} className="portal-admin-empty">Nenhuma oportunidade encontrada.</td></tr>}</tbody></table></div>}</section>
+ {selected&&<><button className="portal-admin-drawer-backdrop" onClick={()=>setSelectedId(null)} aria-label="Fechar"/><aside className="portal-admin-drawer"><header><div><span className="eyebrow">{selected.protocol}</span><h2>{selected.company_name||selected.contact_name}</h2><p>{portalServiceLabel(selected.service_slug)}</p></div><button className="icon-button" onClick={()=>setSelectedId(null)}><X/></button></header><div className="portal-admin-drawer-scroll"><section className="portal-admin-drawer-section"><h3>Oportunidade</h3><div className="portal-admin-form-grid"><label>Status<select value={selected.status} disabled={saving} onChange={e=>void saveStatus(e.target.value as PortalSubmissionStatus)}>{PORTAL_STATUS.map(item=><option value={item.value} key={item.value}>{item.label}</option>)}</select></label><div><span>Entrada</span><strong>{formatDate(selected.created_at,true)}</strong></div><div><span>Contato</span><strong>{selected.contact_name}</strong><small>{selected.contact_role||'—'}</small></div><div><span>E-mail</span><strong>{selected.contact_email}</strong></div><div><span>WhatsApp</span><strong>{selected.contact_phone||'—'}</strong></div><div><span>Empresa</span><strong>{selected.company_name||'—'}</strong></div></div></section><section className="portal-admin-drawer-section"><h3>Briefing completo</h3><div className="portal-answer-list">{Object.entries(selected.answers||{}).map(([key,value])=><article key={key}><span>{prettyKey(key)}</span><p>{displayValue(value)}</p></article>)}</div></section><section className="portal-admin-drawer-section"><h3>Nota interna</h3><textarea rows={5} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Observações da CALI sobre esta oportunidade."/><button className="primary" disabled={saving||notes===(selected.internal_notes||'')} onClick={()=>void saveNotes()}>{saving?'Salvando…':'Salvar nota'}</button></section><section className="portal-admin-drawer-section"><h3>Propostas</h3>{selectedProposals.length?<div className="portal-proposal-list">{selectedProposals.map(proposal=><article key={proposal.id}><div><strong>v{proposal.version} · {proposal.package_code}</strong><span>{proposal.status}</span></div><div><b>{Number(proposal.final_unit||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</b><small>{proposal.sent_at?`Enviada em ${formatDate(proposal.sent_at,true)}`:'Ainda não enviada'}</small><button className="text-button" onClick={()=>window.location.assign(`/admin/propostas/proposta/${proposal.id}`)}>Visualizar</button></div></article>)}</div>:<p className="portal-admin-muted">Ainda não existe proposta salva para este briefing.</p>}</section><section className="portal-admin-drawer-section"><h3>Histórico</h3>{selectedActivity.length?<div className="portal-activity-list">{selectedActivity.map(event=><article key={event.id}><span>{formatDate(event.created_at,true)}</span><strong>{event.event_type.replace(/_/g,' ')}</strong></article>)}</div>:<p className="portal-admin-muted">Sem eventos registrados ainda.</p>}</section></div><footer><div className="portal-drawer-footer-actions"><button className="secondary" onClick={()=>void toggleArchive(selected)}>{selected.archived_at?'Restaurar':'Arquivar'}</button><button className="primary" onClick={()=>window.location.assign(`/admin/propostas/${selected.id}/editar`)}>{selectedProposals.length?'Editar / nova versão':'Preparar proposta'}</button></div><span>{saving?'Salvando alterações…':'Dados sincronizados com o Portal'}</span></footer></aside></>}
+ </section></Shell>;
 }
