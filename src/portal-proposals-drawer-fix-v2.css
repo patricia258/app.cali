@@ -3,6 +3,10 @@
 html:has(.portal-admin-drawer),
 body:has(.portal-admin-drawer){overflow:hidden!important;overscroll-behavior:none!important}
 
+/* Quando o briefing lateral está aberto, a topbar global desaparece por completo.
+   O painel passa a ocupar a altura integral da viewport sem competir com o chrome do Workspace. */
+.app-shell:has(.portal-admin-drawer) .topbar{display:none!important}
+
 .portal-admin-drawer-backdrop{
   position:fixed!important;
   inset:0!important;
