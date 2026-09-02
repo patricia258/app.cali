@@ -44,13 +44,14 @@ export function ExecutiveReportPaperV15({company,snapshot,editor,reportType,peri
   const feedback=snapshot.feedback.responses.filter((item)=>item.comment?.trim()).slice(0,2);
   const showSecondPage=Boolean(risks.length||decisions.length||nextSteps.length||feedback.length);
   const cycleLabel=snapshot.cycleContext?.projectName||kpis.cycleLabel||snapshot.projects[0]?.name||'Acompanhamento CALI';
+  const documentType=reportType==='quarterly'?'RELATÓRIO TRIMESTRAL':'RELATÓRIO MENSAL';
 
   return <div className="reports-v15-document">
     <article className="reports-v15-sheet reports-v15-sheet-one">
       <header className="reports-v15-paper-header">
         <div className="reports-v15-brand"><img src={CALI_LOGO} alt="CALI RH"/></div>
         <div className="reports-v15-paper-client">
-          <div><small>RELATÓRIO MENSAL</small><strong>{company.name}</strong><span>{periodName}</span></div>
+          <div><small>{documentType}</small><strong>{company.name}</strong><span>{periodName}</span></div>
           {company.logoUrl?<img src={company.logoUrl} alt={company.name}/>:null}
         </div>
       </header>
@@ -83,7 +84,7 @@ export function ExecutiveReportPaperV15({company,snapshot,editor,reportType,peri
 
       {demands.length>0&&<section className="reports-v15-demands"><div className="reports-v15-section-title"><div><h2>Demandas recebidas no período</h2><p>Solicitações e movimentos adicionais considerados relevantes para a prestação de contas.</p></div></div><ul>{demands.map((item,index)=><li key={`${item}-${index}`}>{item}</li>)}</ul></section>}
 
-      <footer className="reports-v15-page-footer"><span>CALI RH · Patrícia Lima</span><span>{protocol} · v{reportType==='quarterly'?'T':'M'}</span><b>1{showSecondPage?' / 2':''}</b></footer>
+      <footer className="reports-v15-page-footer"><span>CALI RH · Patrícia Lima</span><span>{protocol}</span><b>1{showSecondPage?' / 2':''}</b></footer>
     </article>
 
     {showSecondPage&&<article className="reports-v15-sheet reports-v15-sheet-two">
