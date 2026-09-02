@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
+import { GoogleCalendarCallbackPage } from './pages/GoogleCalendarCallbackPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminClientsPageV3 } from './pages/admin/AdminClientsPageV3';
 import { AdminProposalsPageV2 } from './pages/admin/AdminProposalsPageV2';
@@ -24,7 +25,7 @@ import { ClientDocumentsPage } from './pages/client/ClientDocumentsPage';
 import { ClientReportsPageV3 } from './pages/client/ClientReportsPageV3';
 
 export default function App(){return <Routes>
-  <Route path="/" element={<LoginPage/>}/><Route path="/auth/callback" element={<AuthCallbackPage/>}/>
+  <Route path="/" element={<LoginPage/>}/><Route path="/auth/callback" element={<AuthCallbackPage/>}/><Route path="/oauth/google/callback" element={<GoogleCalendarCallbackPage/>}/>
   <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard/></ProtectedRoute>}/>
   <Route path="/admin/clientes" element={<ProtectedRoute role="admin"><AdminClientsPageV3/></ProtectedRoute>}/>
   <Route path="/admin/propostas" element={<ProtectedRoute role="admin"><AdminProposalsPageV2/></ProtectedRoute>}/>
