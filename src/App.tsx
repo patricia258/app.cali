@@ -5,6 +5,7 @@ import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminClientsPageV3 } from './pages/admin/AdminClientsPageV3';
 import { AdminProposalsPage } from './pages/admin/AdminProposalsPage';
+import { AdminProposalEditorPage } from './pages/admin/AdminProposalEditorPage';
 import { AdminProjectsGatePage } from './pages/admin/AdminProjectsGatePage';
 import { AdminHoursPageV3 } from './pages/admin/AdminHoursPageV3';
 import { AdminCalendarPage } from './pages/admin/AdminCalendarPage';
@@ -21,34 +22,27 @@ import { ClientHoursPage } from './pages/client/ClientHoursPage';
 import { ClientDocumentsPage } from './pages/client/ClientDocumentsPage';
 import { ClientReportsPageV3 } from './pages/client/ClientReportsPageV3';
 
-export default function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<LoginPage />} />
-      <Route path="/auth/callback" element={<AuthCallbackPage />} />
-
-      <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
-      <Route path="/admin/clientes" element={<ProtectedRoute role="admin"><AdminClientsPageV3 /></ProtectedRoute>} />
-      <Route path="/admin/propostas" element={<ProtectedRoute role="admin"><AdminProposalsPage /></ProtectedRoute>} />
-      <Route path="/admin/projetos" element={<ProtectedRoute role="admin"><AdminProjectsGatePage /></ProtectedRoute>} />
-      <Route path="/admin/horas" element={<ProtectedRoute role="admin"><AdminHoursPageV3 /></ProtectedRoute>} />
-      <Route path="/admin/calendario" element={<ProtectedRoute role="admin"><AdminCalendarPage /></ProtectedRoute>} />
-      <Route path="/admin/registros" element={<ProtectedRoute role="admin"><AdminRecordsPage /></ProtectedRoute>} />
-      <Route path="/admin/documentos" element={<ProtectedRoute role="admin"><AdminDocumentsPageV4 /></ProtectedRoute>} />
-      <Route path="/admin/relatorios" element={<ProtectedRoute role="admin"><AdminReportsPageV15 /></ProtectedRoute>} />
-      <Route path="/admin/mapa-de-people" element={<ProtectedRoute role="admin"><AdminPeopleMapPageV2 /></ProtectedRoute>} />
-      <Route path="/admin/mapa-de-people/revisao" element={<ProtectedRoute role="admin"><AdminPeopleMapReviewPage /></ProtectedRoute>} />
-      <Route path="/admin/mapa-de-people/relatorio/:id" element={<ProtectedRoute role="admin"><AdminPeopleMapReportPage /></ProtectedRoute>} />
-
-      <Route path="/cliente" element={<ProtectedRoute role="client"><ClientDashboard /></ProtectedRoute>} />
-      <Route path="/cliente/cronograma" element={<ProtectedRoute role="client"><ClientTimelinePage /></ProtectedRoute>} />
-      <Route path="/cliente/entregaveis" element={<ProtectedRoute role="client"><ClientDeliverablesPage /></ProtectedRoute>} />
-      <Route path="/cliente/horas" element={<ProtectedRoute role="client"><ClientHoursPage /></ProtectedRoute>} />
-      <Route path="/cliente/registros" element={<ProtectedRoute role="client"><ClientRecordsPage /></ProtectedRoute>} />
-      <Route path="/cliente/documentos" element={<ProtectedRoute role="client"><ClientDocumentsPage /></ProtectedRoute>} />
-      <Route path="/cliente/relatorios" element={<ProtectedRoute role="client"><ClientReportsPageV3 /></ProtectedRoute>} />
-
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
-}
+export default function App(){return <Routes>
+  <Route path="/" element={<LoginPage/>}/><Route path="/auth/callback" element={<AuthCallbackPage/>}/>
+  <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard/></ProtectedRoute>}/>
+  <Route path="/admin/clientes" element={<ProtectedRoute role="admin"><AdminClientsPageV3/></ProtectedRoute>}/>
+  <Route path="/admin/propostas" element={<ProtectedRoute role="admin"><AdminProposalsPage/></ProtectedRoute>}/>
+  <Route path="/admin/propostas/:submissionId/editar" element={<ProtectedRoute role="admin"><AdminProposalEditorPage/></ProtectedRoute>}/>
+  <Route path="/admin/projetos" element={<ProtectedRoute role="admin"><AdminProjectsGatePage/></ProtectedRoute>}/>
+  <Route path="/admin/horas" element={<ProtectedRoute role="admin"><AdminHoursPageV3/></ProtectedRoute>}/>
+  <Route path="/admin/calendario" element={<ProtectedRoute role="admin"><AdminCalendarPage/></ProtectedRoute>}/>
+  <Route path="/admin/registros" element={<ProtectedRoute role="admin"><AdminRecordsPage/></ProtectedRoute>}/>
+  <Route path="/admin/documentos" element={<ProtectedRoute role="admin"><AdminDocumentsPageV4/></ProtectedRoute>}/>
+  <Route path="/admin/relatorios" element={<ProtectedRoute role="admin"><AdminReportsPageV15/></ProtectedRoute>}/>
+  <Route path="/admin/mapa-de-people" element={<ProtectedRoute role="admin"><AdminPeopleMapPageV2/></ProtectedRoute>}/>
+  <Route path="/admin/mapa-de-people/revisao" element={<ProtectedRoute role="admin"><AdminPeopleMapReviewPage/></ProtectedRoute>}/>
+  <Route path="/admin/mapa-de-people/relatorio/:id" element={<ProtectedRoute role="admin"><AdminPeopleMapReportPage/></ProtectedRoute>}/>
+  <Route path="/cliente" element={<ProtectedRoute role="client"><ClientDashboard/></ProtectedRoute>}/>
+  <Route path="/cliente/cronograma" element={<ProtectedRoute role="client"><ClientTimelinePage/></ProtectedRoute>}/>
+  <Route path="/cliente/entregaveis" element={<ProtectedRoute role="client"><ClientDeliverablesPage/></ProtectedRoute>}/>
+  <Route path="/cliente/horas" element={<ProtectedRoute role="client"><ClientHoursPage/></ProtectedRoute>}/>
+  <Route path="/cliente/registros" element={<ProtectedRoute role="client"><ClientRecordsPage/></ProtectedRoute>}/>
+  <Route path="/cliente/documentos" element={<ProtectedRoute role="client"><ClientDocumentsPage/></ProtectedRoute>}/>
+  <Route path="/cliente/relatorios" element={<ProtectedRoute role="client"><ClientReportsPageV3/></ProtectedRoute>}/>
+  <Route path="*" element={<Navigate to="/" replace/>}/>
+</Routes>}
