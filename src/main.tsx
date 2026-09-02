@@ -71,6 +71,7 @@ import './reports-v12.css';
 import './reports-v13.css';
 import './reports-v14.css';
 import './reports-v14-clarity.css';
+import './reports-v15.css';
 import './client-reports-v12.css';
 import './app-error-boundary.css';
 
