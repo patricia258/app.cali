@@ -8,25 +8,25 @@ export const PACKAGE_META:Record<string,PackageMeta[]>={
     {code:'FULL',label:'CALI FULL',description:'Maior cadência e até duas prioridades simultâneas, sem criar expectativa de RH interno em tempo integral.',minimumMonths:6,suggestedHours:16,hoursRange:'14 a 18'},
   ],
   'mentoria-rh':[
-    {code:'ESSENCIAL',label:'Programa Essencial',description:'Ciclo objetivo para uma prioridade de desenvolvimento.',minimumMonths:1},
-    {code:'AMPLIADO',label:'Programa Ampliado',description:'Ciclo ampliado com maior número de encontros e suporte.',minimumMonths:1},
+    {code:'ESSENCIAL',label:'Programa Essencial',description:'Três encontros para organizar um objetivo prioritário e construir um plano aplicável.',minimumMonths:1},
+    {code:'AMPLIADO',label:'Programa Ampliado',description:'Cinco encontros para aprofundar competências relacionadas e acompanhar a aplicação prática.',minimumMonths:1},
   ],
   'diagnostico-executivo':[
-    {code:'ESSENCIAL',label:'Leitura Essencial',description:'Diagnóstico focado na decisão prioritária.',minimumMonths:1},
-    {code:'COMPLETO',label:'Diagnóstico Completo',description:'Leitura ampliada com mais entrevistas e profundidade.',minimumMonths:1},
+    {code:'ESSENCIAL',label:'Leitura Essencial',description:'Uma leitura executiva de raio curto para esclarecer uma decisão, organizar os riscos prioritários e orientar os primeiros movimentos de gestão de pessoas.',minimumMonths:1},
+    {code:'COMPLETO',label:'Diagnóstico Completo',description:'Uma leitura organizacional mais ampla, apoiada por entrevistas, documentos e indicadores, que transforma sinais dispersos em prioridades e plano de 90 dias.',minimumMonths:1},
   ],
-  'cultura-direcao':[{code:'PROJETO',label:'Projeto Cultura e Direção',description:'Projeto aplicado de cultura e direção.',minimumMonths:1}],
-  'shadowing-lideranca':[{code:'CICLO',label:'Ciclo Individual de Shadowing',description:'Observação, devolutiva e plano de ação individual.',minimumMonths:1}],
+  'cultura-direcao':[{code:'PROJETO',label:'Projeto Cultura e Direção',description:'Leitura da cultura atual, definição de comportamentos e roadmap de 90 dias.',minimumMonths:1}],
+  'shadowing-lideranca':[{code:'CICLO',label:'Ciclo Individual de Shadowing',description:'Observação estruturada, devolutiva individual e plano de desenvolvimento para uma liderança.',minimumMonths:1}],
   treinamentos:[
-    {code:'PALESTRA',label:'Palestra Estratégica',description:'Palestra estratégica contextualizada.',minimumMonths:1},
-    {code:'WORKSHOP',label:'Workshop Aplicado',description:'Workshop aplicado com exercícios e compromissos.',minimumMonths:1},
-    {code:'TREINAMENTO',label:'Treinamento Personalizado',description:'Trilha personalizada em até três encontros.',minimumMonths:1},
+    {code:'PALESTRA',label:'Palestra Estratégica',description:'Encontro único de 60 a 90 minutos.',minimumMonths:1},
+    {code:'WORKSHOP',label:'Workshop Aplicado',description:'Oficina prática de até quatro horas, com exercício conectado ao contexto.',minimumMonths:1},
+    {code:'TREINAMENTO',label:'Treinamento Personalizado',description:'Programa compacto de até três encontros, desenhado para uma competência prioritária.',minimumMonths:1},
   ],
   'marca-empregadora':[
-    {code:'PROJETO',label:'Projeto de Marca Empregadora',description:'Diagnóstico, EVP, personas, roadmap e indicadores.',minimumMonths:1},
-    {code:'RECORRENTE',label:'Sustentação Recorrente',description:'Acompanhamento recorrente da ativação da marca empregadora.',minimumMonths:4},
+    {code:'PROJETO',label:'Projeto de Marca Empregadora',description:'Projeto estratégico para diagnosticar a percepção atual, definir ou refinar o EVP e organizar um plano de ativação viável para RH, Marketing e liderança.',minimumMonths:1},
+    {code:'RECORRENTE',label:'Sustentação Recorrente',description:'Sustentação consultiva para revisar prioridades, orientar a ativação e acompanhar indicadores, sem assumir a produção criativa ou a operação dos canais.',minimumMonths:4},
   ],
-  'solucao-personalizada':[{code:'SOB_MEDIDA',label:'Projeto sob medida',description:'Escopo desenhado conforme o briefing.',minimumMonths:1}],
+  'solucao-personalizada':[{code:'SOB_MEDIDA',label:'Projeto sob medida',description:'Escopo, formato e investimento construídos após a leitura do contexto.',minimumMonths:1}],
 };
 
 export const DISCOUNT_TYPES=['Condição comercial','Cliente novo','Indicação','Campanha do mês','Parceria','Outro'];
