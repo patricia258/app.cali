@@ -5,7 +5,7 @@ import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminClientsPageV3 } from './pages/admin/AdminClientsPageV3';
 import { AdminProposalsPage } from './pages/admin/AdminProposalsPage';
-import { AdminProposalEditorPageV2 } from './pages/admin/AdminProposalEditorPageV2';
+import { AdminProposalEditorPageV3 } from './pages/admin/AdminProposalEditorPageV3';
 import { AdminProposalPreviewPage } from './pages/admin/AdminProposalPreviewPage';
 import { AdminProjectsGatePage } from './pages/admin/AdminProjectsGatePage';
 import { AdminHoursPageV3 } from './pages/admin/AdminHoursPageV3';
@@ -28,7 +28,7 @@ export default function App(){return <Routes>
   <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard/></ProtectedRoute>}/>
   <Route path="/admin/clientes" element={<ProtectedRoute role="admin"><AdminClientsPageV3/></ProtectedRoute>}/>
   <Route path="/admin/propostas" element={<ProtectedRoute role="admin"><AdminProposalsPage/></ProtectedRoute>}/>
-  <Route path="/admin/propostas/:submissionId/editar" element={<ProtectedRoute role="admin"><AdminProposalEditorPageV2/></ProtectedRoute>}/>
+  <Route path="/admin/propostas/:submissionId/editar" element={<ProtectedRoute role="admin"><AdminProposalEditorPageV3/></ProtectedRoute>}/>
   <Route path="/admin/propostas/proposta/:proposalId" element={<ProtectedRoute role="admin"><AdminProposalPreviewPage/></ProtectedRoute>}/>
   <Route path="/admin/projetos" element={<ProtectedRoute role="admin"><AdminProjectsGatePage/></ProtectedRoute>}/>
   <Route path="/admin/horas" element={<ProtectedRoute role="admin"><AdminHoursPageV3/></ProtectedRoute>}/>
