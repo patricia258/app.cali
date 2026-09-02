@@ -57,6 +57,7 @@ import './portal-proposal-preview.css';
 import './portal-proposals-hotfix.css';
 import './portal-proposals-flow-fix.css';
 import './portal-proposals-drawer-fix-v2.css';
+import './portal-proposal-legacy-host.css';
 import './reports-admin-v2.css';
 import './reports-v3.css';
 import './reports-v4.css';
