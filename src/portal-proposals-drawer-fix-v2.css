@@ -1,0 +1,94 @@
+/* Propostas · briefing lateral v2
+   O painel fica acima do chrome global e apenas seu conteúdo central rola. */
+html:has(.portal-admin-drawer),
+body:has(.portal-admin-drawer){overflow:hidden!important;overscroll-behavior:none!important}
+
+.portal-admin-drawer-backdrop{
+  position:fixed!important;
+  inset:0!important;
+  z-index:4998!important;
+  background:rgba(36,25,27,.30)!important;
+  -webkit-backdrop-filter:blur(3px)!important;
+  backdrop-filter:blur(3px)!important;
+}
+
+.portal-admin-drawer{
+  position:fixed!important;
+  top:0!important;
+  right:0!important;
+  bottom:0!important;
+  z-index:4999!important;
+  width:min(800px,calc(100vw - 84px))!important;
+  height:100dvh!important;
+  max-height:100dvh!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+  overscroll-behavior:contain!important;
+  background:var(--surface,#fff)!important;
+  box-shadow:-24px 0 70px rgba(40,22,26,.22)!important;
+}
+
+.portal-admin-drawer>header{
+  position:relative!important;
+  top:auto!important;
+  z-index:2!important;
+  flex:0 0 auto!important;
+  min-height:132px!important;
+  box-sizing:border-box!important;
+  padding:28px 30px 22px!important;
+  background:var(--surface,#fff)!important;
+  border-bottom:1px solid var(--line,#e8dfda)!important;
+}
+.portal-admin-drawer>header>div{min-width:0!important;padding-right:12px!important}
+.portal-admin-drawer>header h2{overflow-wrap:anywhere!important}
+.portal-admin-drawer>header .icon-button{flex:0 0 auto!important}
+
+.portal-admin-drawer-scroll{
+  position:relative!important;
+  z-index:1!important;
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
+  scrollbar-gutter:stable!important;
+  -webkit-overflow-scrolling:touch!important;
+  padding-bottom:18px!important;
+}
+
+.portal-admin-drawer>footer{
+  position:relative!important;
+  bottom:auto!important;
+  z-index:2!important;
+  flex:0 0 auto!important;
+  min-height:72px!important;
+  box-sizing:border-box!important;
+  margin:0!important;
+  background:var(--surface,#fff)!important;
+  border-top:1px solid var(--line,#e8dfda)!important;
+  box-shadow:0 -8px 24px rgba(40,22,26,.05)!important;
+}
+
+.portal-admin-drawer-section:first-child{padding-top:26px!important}
+.portal-admin-drawer-section:last-child{border-bottom:0!important}
+.portal-answer-list article{min-width:0!important}
+.portal-answer-list p{overflow-wrap:anywhere!important;word-break:break-word!important}
+
+html[data-workspace-theme='night'] .portal-admin-drawer,
+html[data-workspace-theme='night'] .portal-admin-drawer>header,
+html[data-workspace-theme='night'] .portal-admin-drawer>footer{
+  background:#21191d!important;
+  border-color:#3b2d33!important;
+}
+html[data-workspace-theme='night'] .portal-admin-drawer>footer{box-shadow:0 -8px 24px rgba(0,0,0,.18)!important}
+
+@media(max-width:900px){
+  .portal-admin-drawer{width:min(760px,calc(100vw - 56px))!important}
+}
+@media(max-width:650px){
+  .portal-admin-drawer{width:100vw!important;max-width:100vw!important}
+  .portal-admin-drawer>header{min-height:auto!important;padding:22px 18px 18px!important}
+  .portal-admin-drawer-scroll{padding-bottom:8px!important}
+  .portal-admin-drawer>footer{min-height:auto!important;padding:12px 16px!important}
+}
