@@ -73,6 +73,7 @@ import './reports-v9.css';
 import './reports-v10-pdf-fix.css';
 import './reports-v11-dedup.css';
 import './records-v12.css';
+import './records-v13-responsive-fix.css';
 import './hours-v12.css';
 import './hours-v13.css';
 import './hours-final-responsive.css';
