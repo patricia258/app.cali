@@ -31,6 +31,16 @@ function calendarFormValues(form: HTMLFormElement) {
   return { companyId: company?.value || '', visibility: visibility?.value || 'internal', title, protocol };
 }
 
+function calendarTimeValues(form: HTMLFormElement) {
+  const allDay = Boolean(form.querySelector<HTMLInputElement>('.calendar-all-day input[type="checkbox"]')?.checked);
+  const timeInputs = Array.from(form.querySelectorAll<HTMLInputElement>('input[type="time"]'));
+  return {
+    allDay,
+    startTime: timeInputs[0]?.value || '',
+    endTime: timeInputs[1]?.value || '',
+  };
+}
+
 async function invokeSync(eventId: string, silent = false) {
   if (!supabase || !eventId) return;
   const { data, error } = await supabase.functions.invoke('google-calendar-oauth', { body: { action: 'sync_event', eventId } });
@@ -124,6 +134,16 @@ export function installCalendarSyncGuard() {
   document.addEventListener('submit', (event) => {
     const form = event.target as HTMLFormElement | null;
     if (!form?.matches('.calendar-event-modal') || !isAdminCalendar()) return;
+
+    const times = calendarTimeValues(form);
+    if (!times.allDay && times.startTime && times.endTime && times.endTime <= times.startTime) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      alert('O horário de término precisa ser posterior ao horário de início.');
+      return;
+    }
+
     const values = calendarFormValues(form);
     if (values.visibility === 'client' && !values.companyId) {
       event.preventDefault();
