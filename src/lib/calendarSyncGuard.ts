@@ -7,6 +7,10 @@ function isAdminCalendar() {
   return window.location.pathname === '/admin/calendario';
 }
 
+function isAdminWorkspace() {
+  return window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/');
+}
+
 function toast(message: string, kind: 'success' | 'warning' | 'error' = 'success') {
   const old = document.querySelector('.calendar-sync-toast');
   old?.remove();
@@ -50,7 +54,7 @@ async function invokeSync(eventId: string, silent = false) {
   return data;
 }
 
-async function findAndSync(protocol: string | null, title: string) {
+async function findAndSync(protocol: string | null, title: string, attempt = 0) {
   if (!supabase) return;
   try {
     let row: { id: string; sync_status: string | null } | null = null;
@@ -64,7 +68,11 @@ async function findAndSync(protocol: string | null, title: string) {
       const result = await query.maybeSingle();
       row = result.data as typeof row;
     }
-    if (!row?.id || row.sync_status === 'synced') return;
+    if (!row?.id) {
+      if (attempt < 2) window.setTimeout(() => void findAndSync(protocol, title, attempt + 1), 900);
+      return;
+    }
+    if (row.sync_status === 'synced') return;
     await invokeSync(row.id);
   } catch (error) {
     console.error('Falha na sincronização explícita do calendário', error);
@@ -72,13 +80,13 @@ async function findAndSync(protocol: string | null, title: string) {
 }
 
 async function repairPendingEvents() {
-  if (!isAdminCalendar() || !supabase || repairing) return;
+  if (!isAdminWorkspace() || !supabase || repairing) return;
   repairing = true;
   try {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData.user?.id;
     if (!userId) return;
-    const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    const since = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString();
     const { data: rows } = await supabase
       .from('events')
       .select('id,sync_status,created_at')
@@ -87,7 +95,7 @@ async function repairPendingEvents() {
       .gte('created_at', since)
       .is('cancelled_at', null)
       .order('created_at', { ascending: false })
-      .limit(6);
+      .limit(10);
     for (const row of rows || []) {
       try {
         const result = await invokeSync(String(row.id), true);
@@ -124,7 +132,7 @@ export function installCalendarSyncGuard() {
       alert('Para compartilhar um compromisso com o cliente, selecione primeiro qual cliente receberá esse evento.\n\nSe for um compromisso somente seu/CALI, altere a visibilidade para “Somente CALI”.');
       return;
     }
-    window.setTimeout(() => void findAndSync(values.protocol, values.title), 1700);
+    window.setTimeout(() => void findAndSync(values.protocol, values.title), 1100);
   }, true);
 
   window.addEventListener('focus', () => void repairPendingEvents());
