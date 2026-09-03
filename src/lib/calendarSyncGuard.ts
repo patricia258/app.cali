@@ -128,6 +128,23 @@ export function installCalendarSyncGuard() {
     .calendar-sync-toast{position:fixed;right:24px;top:92px;z-index:250;max-width:430px;padding:13px 16px;border-radius:14px;background:#fffdf9;border:1px solid #dfd3ca;color:#2b2b2b;box-shadow:0 18px 48px rgba(48,30,35,.18);font-size:12px;font-weight:750;line-height:1.4}
     .calendar-sync-toast.success{border-left:4px solid #4e8a68}.calendar-sync-toast.warning{border-left:4px solid #b58c52}.calendar-sync-toast.error{border-left:4px solid #9c3d4d}
     [data-workspace-theme='night'] .calendar-sync-toast{background:#21191d;border-color:#49373e;color:#f3eeeb}
+
+    .calendar-workspace-strip,
+    html[data-workspace-theme='night'] .calendar-workspace-strip{
+      background:rgba(255,253,249,.97)!important;
+      border:1px solid rgba(181,140,82,.38)!important;
+      box-shadow:0 12px 30px rgba(49,31,25,.055)!important;
+    }
+    .calendar-workspace-strip strong,
+    html[data-workspace-theme='night'] .calendar-workspace-strip strong{color:#2b2b2b!important}
+    .calendar-workspace-strip p,
+    html[data-workspace-theme='night'] .calendar-workspace-strip p{color:#6e6360!important}
+    .calendar-workspace-icon,
+    html[data-workspace-theme='night'] .calendar-workspace-icon{background:rgba(181,140,82,.12)!important;color:#5a1e2d!important}
+    .calendar-workspace-strip .calendar-connection-status,
+    html[data-workspace-theme='night'] .calendar-workspace-strip .calendar-connection-status{background:#f4efe9!important;color:#6e6360!important}
+    .calendar-workspace-strip .calendar-connection-status.connected,
+    html[data-workspace-theme='night'] .calendar-workspace-strip .calendar-connection-status.connected{background:rgba(53,100,72,.09)!important;color:#356448!important}
   `;
   document.head.appendChild(style);
 
