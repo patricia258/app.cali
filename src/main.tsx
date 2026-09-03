@@ -80,6 +80,7 @@ import './reports-v14.css';
 import './reports-v15.css';
 import './reports-v15-process-order.css';
 import './client-reports-v12.css';
+import './client-home-v2.css';
 import './app-error-boundary.css';
 
 initializeWorkspaceTheme();
