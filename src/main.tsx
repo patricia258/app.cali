@@ -10,6 +10,7 @@ import { startIdentityMediaRuntime } from './lib/identityMediaRuntime';
 import { installReportsPdfRuntime } from './lib/reportsPdfRuntime';
 import { installReportsDedupRuntime } from './lib/reportsDedupRuntime';
 import { installGoogleCalendarRuntime } from './lib/googleCalendarRuntime';
+import { installCalendarSyncGuard } from './lib/calendarSyncGuard';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -82,6 +83,8 @@ import './reports-v15-process-order.css';
 import './client-reports-v12.css';
 import './client-home-v2.css';
 import './client-home-v3.css';
+import './client-home-v4.css';
+import './client-timeline-v2.css';
 import './app-error-boundary.css';
 
 initializeWorkspaceTheme();
@@ -92,6 +95,7 @@ startIdentityMediaRuntime();
 installReportsPdfRuntime();
 installReportsDedupRuntime();
 installGoogleCalendarRuntime();
+installCalendarSyncGuard();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
