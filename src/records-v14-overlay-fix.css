@@ -1,0 +1,60 @@
+/* Registros V14 — conversa deve abrir como drawer real, nunca dentro do fluxo da página */
+.records-v13-drawer-backdrop{
+  position:fixed!important;
+  inset:0!important;
+  top:0!important;
+  right:0!important;
+  bottom:0!important;
+  left:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  min-height:100dvh!important;
+  margin:0!important;
+  padding:0!important;
+  z-index:10000!important;
+  display:flex!important;
+  align-items:stretch!important;
+  justify-content:flex-end!important;
+  background:rgba(27,18,21,.42)!important;
+  backdrop-filter:blur(3px)!important;
+  -webkit-backdrop-filter:blur(3px)!important;
+  transform:none!important;
+  translate:none!important;
+  overflow:hidden!important;
+}
+
+.records-v13-drawer{
+  position:relative!important;
+  inset:auto!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:min(620px,96vw)!important;
+  height:100dvh!important;
+  min-height:100dvh!important;
+  max-height:100dvh!important;
+  margin:0!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+  z-index:10001!important;
+  box-shadow:-28px 0 70px rgba(31,18,23,.2)!important;
+}
+
+/* Alguns layers do Workspace possuem animações/transforms. Ao abrir modal, nenhum deles pode virar containing block do fixed overlay. */
+body.workspace-modal-open .app-shell,
+body.workspace-modal-open .main,
+body.workspace-modal-open .workspace-view,
+body.workspace-modal-open .page.records-v13{
+  transform:none!important;
+  translate:none!important;
+  perspective:none!important;
+  filter:none!important;
+  contain:initial!important;
+}
+
+body.workspace-modal-open{overflow:hidden!important;}
+
+@media(max-width:720px){
+  .records-v13-drawer-backdrop{background:rgba(27,18,21,.5)!important;}
+  .records-v13-drawer{width:100vw!important;max-width:100vw!important;}
+}
