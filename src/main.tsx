@@ -11,6 +11,7 @@ import { installReportsPdfRuntime } from './lib/reportsPdfRuntime';
 import { installReportsDedupRuntime } from './lib/reportsDedupRuntime';
 import { installGoogleCalendarRuntime } from './lib/googleCalendarRuntime';
 import { installCalendarSyncGuard } from './lib/calendarSyncGuard';
+import { installNotificationNavigationRuntime } from './lib/notificationNavigationRuntime';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -96,6 +97,7 @@ installReportsPdfRuntime();
 installReportsDedupRuntime();
 installGoogleCalendarRuntime();
 installCalendarSyncGuard();
+installNotificationNavigationRuntime();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
