@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowUpRight, CalendarDays, Clock3, FileCheck2, Loader2, MapPin, Video } from 'lucide-react';
+import { ClientGoogleCalendarPanel } from '../../components/ClientGoogleCalendarPanel';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
 
@@ -25,6 +26,7 @@ type ClientDeliverable = {
 
 type TimelineItem = {
   id: string;
+  sourceId: string;
   kind: 'event' | 'deadline';
   title: string;
   at: string;
@@ -33,6 +35,8 @@ type TimelineItem = {
   meetingUrl?: string | null;
   mode?: string | null;
 };
+
+type AttendeeStatus = 'pending' | 'accepted' | 'declined' | 'tentative';
 
 function dateState(value: string): TimelineItem['state'] {
   const at = new Date(value);
@@ -63,13 +67,30 @@ function statusText(status: string) {
   return map[status] || status;
 }
 
+function inviteText(status?: AttendeeStatus) {
+  if (status === 'accepted') return 'Convite aceito';
+  if (status === 'declined') return 'Convite recusado';
+  if (status === 'tentative') return 'Talvez';
+  if (status === 'pending') return 'Aguardando resposta';
+  return '';
+}
+
 export function ClientTimelinePage() {
   const [events, setEvents] = useState<ClientEvent[]>([]);
   const [deliverables, setDeliverables] = useState<ClientDeliverable[]>([]);
+  const [attendeeStatus, setAttendeeStatus] = useState<Record<string, AttendeeStatus>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => { void load(); }, []);
+
+  async function refreshGoogleStatuses(rows: ClientEvent[]) {
+    if (!supabase) return;
+    const candidates = rows
+      .filter((event) => event.sync_status === 'synced' && new Date(event.starts_at).getTime() >= Date.now() - 24 * 60 * 60 * 1000)
+      .slice(0, 6);
+    await Promise.allSettled(candidates.map((event) => supabase!.functions.invoke('google-calendar-refresh-event', { body: { eventId: event.id } })));
+  }
 
   async function load() {
     if (!supabase) return;
@@ -81,9 +102,10 @@ export function ClientTimelinePage() {
       const userId = userData.user?.id;
       if (!userId) throw new Error('Sessão do cliente não encontrada.');
 
-      const profile = await supabase.from('profiles').select('company_id').eq('id', userId).maybeSingle();
+      const profile = await supabase.from('profiles').select('company_id,email').eq('id', userId).maybeSingle();
       if (profile.error) throw profile.error;
       const companyId = profile.data?.company_id;
+      const clientEmail = String(profile.data?.email || userData.user?.email || '').trim().toLowerCase();
       if (!companyId) throw new Error('Este acesso ainda não está vinculado a uma empresa.');
 
       const [eventResult, deliverableResult] = await Promise.all([
@@ -106,8 +128,26 @@ export function ClientTimelinePage() {
 
       if (eventResult.error) throw eventResult.error;
       if (deliverableResult.error) throw deliverableResult.error;
-      setEvents((eventResult.data || []) as ClientEvent[]);
+      const nextEvents = (eventResult.data || []) as ClientEvent[];
+      setEvents(nextEvents);
       setDeliverables((deliverableResult.data || []) as ClientDeliverable[]);
+
+      // Atualiza no Google antes de mostrar aceite/recusa na plataforma.
+      await refreshGoogleStatuses(nextEvents);
+      if (nextEvents.length && clientEmail) {
+        const attendeeResult = await supabase
+          .from('event_attendees')
+          .select('event_id,email,status')
+          .in('event_id', nextEvents.map((event) => event.id))
+          .eq('email', clientEmail);
+        if (!attendeeResult.error) {
+          const nextStatuses: Record<string, AttendeeStatus> = {};
+          for (const attendee of attendeeResult.data || []) {
+            nextStatuses[String(attendee.event_id)] = String(attendee.status || 'pending') as AttendeeStatus;
+          }
+          setAttendeeStatus(nextStatuses);
+        }
+      }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar a agenda compartilhada.');
     } finally {
@@ -118,6 +158,7 @@ export function ClientTimelinePage() {
   const items = useMemo<TimelineItem[]>(() => {
     const meetingItems = events.map((event) => ({
       id: `event-${event.id}`,
+      sourceId: event.id,
       kind: 'event' as const,
       title: event.title,
       at: event.starts_at,
@@ -128,6 +169,7 @@ export function ClientTimelinePage() {
     }));
     const deadlineItems = deliverables.map((deliverable) => ({
       id: `deadline-${deliverable.id}`,
+      sourceId: deliverable.id,
       kind: 'deadline' as const,
       title: deliverable.title,
       at: String(deliverable.due_at),
@@ -145,7 +187,7 @@ export function ClientTimelinePage() {
 
   return (
     <Shell role="client">
-      <section className="page client-timeline-v2">
+      <section className="page client-timeline-v2 client-timeline-v3">
         <div className="eyebrow">PLANEJAMENTO COMPARTILHADO</div>
         <div className="page-heading client-timeline-heading">
           <div>
@@ -153,6 +195,8 @@ export function ClientTimelinePage() {
             <p>Reuniões, validações e prazos publicados pela CALI para a sua empresa, em uma única leitura.</p>
           </div>
         </div>
+
+        <ClientGoogleCalendarPanel />
 
         {error && <div className="inline-notice">{error}</div>}
         {loading ? <div className="data-loading"><Loader2 className="spin" size={20} />Carregando sua agenda…</div> : <>
@@ -178,16 +222,21 @@ export function ClientTimelinePage() {
             </div>
 
             {items.length ? <div className="client-real-timeline-list">
-              {items.map((item) => (
-                <article key={item.id} className={`client-real-timeline-row ${item.state}`}>
+              {items.map((item) => {
+                const inviteStatus = item.kind === 'event' ? attendeeStatus[item.sourceId] : undefined;
+                return <article key={item.id} className={`client-real-timeline-row ${item.state}`}>
                   <div className={`client-real-timeline-marker ${item.kind}`}>
                     {item.kind === 'event' ? (item.mode === 'in_person' ? <MapPin size={18} /> : <Video size={18} />) : <FileCheck2 size={18} />}
                   </div>
                   <time>{formatDay(item.at)}<span>{item.kind === 'event' ? formatTime(item.at) : 'prazo'}</span></time>
-                  <div className="client-real-timeline-copy"><strong>{item.title}</strong><p>{item.subtitle}</p></div>
+                  <div className="client-real-timeline-copy">
+                    <strong>{item.title}</strong>
+                    <p>{item.subtitle}</p>
+                    {inviteStatus && <span className={`client-invite-status ${inviteStatus}`}>{inviteText(inviteStatus)}</span>}
+                  </div>
                   {item.meetingUrl ? <a href={item.meetingUrl} target="_blank" rel="noreferrer">Abrir Meet <ArrowUpRight size={15} /></a> : <span className="client-real-timeline-kind">{item.kind === 'event' ? 'Compromisso' : 'Entrega'}</span>}
-                </article>
-              ))}
+                </article>;
+              })}
             </div> : <div className="client-timeline-empty"><CalendarDays size={24} /><strong>Nenhum compromisso ou prazo publicado ainda.</strong><p>Quando a CALI compartilhar uma reunião ou definir um prazo visível, ele aparecerá aqui automaticamente.</p></div>}
           </section>
         </>}
