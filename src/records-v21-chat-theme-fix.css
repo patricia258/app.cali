@@ -1,0 +1,89 @@
+/* Registros V21 — corrige herança de cores do drawer e reforça o composer */
+.records-v13-drawer{
+  --records-bordeaux:#5A1E2D;
+  --records-gold:#B58C52;
+  --records-green:#47745A;
+  --records-red:#A44752;
+  background:#FBF7F2!important;
+  color:var(--theme-text)!important;
+}
+.records-v13-drawer>header,
+.records-v13-drawer-meta,
+.records-v13-drawer-actions,
+.records-v13-drawer .conversation-compose{
+  background:rgba(255,252,248,.96)!important;
+}
+.records-v13-drawer .records-v13-conversation,
+.records-v13-drawer .conversation-history{
+  background:linear-gradient(180deg,#FBF7F2 0%,#F7F1EA 100%)!important;
+}
+.records-v13-drawer .records-chat-line.role-admin .records-chat-bubble{
+  background:#5A1E2D!important;
+  border-color:#5A1E2D!important;
+  color:#fff!important;
+}
+.records-v13-drawer .records-chat-line.role-client .records-chat-bubble{
+  background:#F2D89D!important;
+  border-color:#D5B36A!important;
+  color:#34291E!important;
+}
+.records-v13-drawer .records-chat-bubble strong,
+.records-v13-drawer .records-chat-bubble p,
+.records-v13-drawer .records-chat-bubble time{color:inherit!important;}
+.records-v13-drawer .conversation-compose textarea{
+  background:#FFFDFC!important;
+  border-color:#DCCFC4!important;
+  color:#2B2B2B!important;
+}
+.records-v13-drawer .records-chat-tools>button{
+  background:#FFFDFC!important;
+  border-color:#DED1C7!important;
+  color:#5A1E2D!important;
+  font-size:19px!important;
+}
+.records-v13-drawer .records-chat-tools>button:hover{
+  background:#F6EBDD!important;
+  border-color:#B58C52!important;
+}
+.records-v13-drawer .records-chat-emoji-picker{
+  z-index:10060!important;
+  bottom:50px!important;
+  background:#FFF9F2!important;
+  border-color:#D8C4AD!important;
+  box-shadow:0 18px 44px rgba(54,31,37,.18)!important;
+}
+.records-v13-drawer .records-chat-emoji-picker button{
+  font-size:21px!important;
+  line-height:1!important;
+}
+.records-v13-drawer .records-chat-emoji-picker button:hover{background:#F2E5D4!important;}
+
+[data-workspace-theme='night'] .records-v13-drawer{
+  background:#1D1518!important;
+  color:#F7F3EE!important;
+}
+[data-workspace-theme='night'] .records-v13-drawer>header,
+[data-workspace-theme='night'] .records-v13-drawer-meta,
+[data-workspace-theme='night'] .records-v13-drawer-actions,
+[data-workspace-theme='night'] .records-v13-drawer .conversation-compose{
+  background:#21171A!important;
+}
+[data-workspace-theme='night'] .records-v13-drawer .records-v13-conversation,
+[data-workspace-theme='night'] .records-v13-drawer .conversation-history{
+  background:linear-gradient(180deg,#1D1518 0%,#181114 100%)!important;
+}
+[data-workspace-theme='night'] .records-v13-drawer .conversation-compose textarea,
+[data-workspace-theme='night'] .records-v13-drawer .records-chat-tools>button{
+  background:#2A1D21!important;
+  border-color:#4A343B!important;
+  color:#F7F3EE!important;
+}
+[data-workspace-theme='night'] .records-v13-drawer .records-chat-emoji-picker{
+  background:#2A1D21!important;
+  border-color:#5B3C46!important;
+}
+[data-workspace-theme='night'] .records-v13-drawer .records-chat-emoji-picker button:hover{background:#3A272D!important;}
+
+@media(max-width:760px){
+  .records-v13-drawer .records-chat-emoji-picker{left:0!important;right:auto!important;width:224px!important;}
+}
