@@ -28,6 +28,7 @@ import { installProjectApprovalWorkflowRuntimeV38 } from './lib/projectApprovalW
 import { installProjectApprovalRulesRuntimeV39 } from './lib/projectApprovalRulesRuntimeV39';
 import { installCompanyWorkspaceIdentityRuntimeV39 } from './lib/companyWorkspaceIdentityRuntimeV39';
 import { installProjectsClientPortfolioRuntimeV39 } from './lib/projectsClientPortfolioRuntimeV39';
+import { installClientHomeCompanyIdentityRuntimeV40 } from './lib/clientHomeCompanyIdentityRuntimeV40';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -150,6 +151,7 @@ installProjectApprovalWorkflowRuntimeV38();
 installProjectApprovalRulesRuntimeV39();
 installCompanyWorkspaceIdentityRuntimeV39();
 installProjectsClientPortfolioRuntimeV39();
+installClientHomeCompanyIdentityRuntimeV40();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
