@@ -6,7 +6,6 @@ type ProjectRow={id:string;protocol:string|null;company_id:string;name:string;pl
 type FrontRow={id:string;protocol:string|null;project_id:string;name:string;objective:string|null;status:string;sort_order:number|null;roadmap_month_start:number|null;roadmap_month_end:number|null};
 type DeliverableRow={id:string;protocol:string|null;project_id:string;workstream:string|null;workstream_id:string|null;title:string;due_at:string|null;status:string;sort_order:number|null};
 type ReviewRow={id:string;project_id:string;status:string;request_number:number;response_due_at:string|null;response_note:string|null;requested_changes:any;resolution_note:string|null;requested_at:string};
-
 type Context={project:ProjectRow;fronts:FrontRow[];deliverables:DeliverableRow[];reviews:ReviewRow[]};
 
 let installed=false,timer=0,busy=false;
@@ -17,7 +16,7 @@ function formatDate(value?:string|null){if(!value)return'A definir';const d=new 
 function formatDateTime(value?:string|null){if(!value)return'—';const d=new Date(value);return Number.isNaN(d.getTime())?'—':new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(d).replace('.','');}
 function escapeHtml(value=''){return value.replace(/[&<>'"]/g,(ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]||ch));}
 function projectProtocolFromAdmin(){const text=document.querySelector<HTMLElement>('.project-hero-v2 > div:first-of-type > span')?.textContent||'';return text.match(/CALI-PRJ-[A-Z0-9-]+/i)?.[0]||'';}
-function currentClientProjectId(){const picker=document.querySelector<HTMLSelectElement>('.client-project-picker-v33 select');return picker?.value||'';}
+function currentClientProjectId(){return document.querySelector<HTMLSelectElement>('.client-project-picker-v33 select')?.value||'';}
 function closeWorkflowModal(){document.querySelector('.workflow-dialog-backdrop-v38')?.remove();}
 function showError(message:string){window.alert(message);}
 
@@ -80,7 +79,7 @@ function deleteFrontDialog(ctx:Context,front:FrontRow){
 }
 
 function addFrontAdminActions(ctx:Context){
-  if(ctx.project.planning_status!=='draft')return;
+  if(ctx.project.planning_status!=='draft'){document.querySelectorAll('.front-admin-actions-v38').forEach((node)=>node.remove());return;}
   document.querySelectorAll<HTMLElement>('.front-section-v2').forEach((section)=>{
     const protocol=section.querySelector<HTMLElement>('.front-copy-v2 span')?.textContent?.trim()||'';const name=section.querySelector<HTMLElement>('.front-copy-v2 strong')?.textContent?.trim()||'';const front=ctx.fronts.find((item)=>item.protocol===protocol)||ctx.fronts.find((item)=>normalize(item.name)===normalize(name));if(!front)return;
     const header=section.querySelector<HTMLElement>('.front-header-v2');if(!header||header.querySelector('.front-admin-actions-v38'))return;
@@ -91,14 +90,17 @@ function addFrontAdminActions(ctx:Context){
 }
 
 function draftReadiness(ctx:Context){
-  document.querySelector('.project-review-banner-v38')?.remove();
   const hero=document.querySelector<HTMLElement>('.project-hero-v2');if(!hero)return;
   const send=Array.from(hero.querySelectorAll<HTMLButtonElement>('button')).find((button)=>/enviar ao cliente/i.test(button.textContent||''));
-  if(ctx.project.planning_status!=='draft'){if(send)send.disabled=false;return;}
+  const existing=document.querySelector<HTMLElement>('.project-review-banner-v38');
+  if(ctx.project.planning_status!=='draft'){if(send){send.disabled=false;send.title='';}if(existing?.classList.contains('draft'))existing.remove();return;}
   const empty=ctx.fronts.filter((front)=>frontDeliverables(ctx,front).length===0);const missing=ctx.deliverables.filter((item)=>!item.due_at);const ready=ctx.deliverables.length>0&&!empty.length&&!missing.length;
   if(send){send.disabled=!ready;send.title=ready?'Enviar cronograma para aprovação do cliente':`${empty.length?`${empty.length} frente(s) sem entregáveis. `:''}${missing.length?`${missing.length} entregável(is) sem deadline.`:''}`;}
-  if(ready)return;
-  const banner=document.createElement('section');banner.className='project-review-banner-v38 draft';banner.innerHTML=`<div><span>RASCUNHO</span><strong>Finalize o cronograma antes de enviar</strong><p>${ctx.deliverables.length===0?'Inclua pelo menos um entregável. ':''}${empty.length?`${empty.length} frente(s) ainda não têm entregáveis. `:''}${missing.length?`${missing.length} entregável(is) ainda não têm deadline.`:''}</p></div>`;hero.insertAdjacentElement('afterend',banner);
+  if(ready){if(existing?.classList.contains('draft'))existing.remove();return;}
+  const sig=`draft:${ctx.project.id}:${ctx.deliverables.length}:${empty.map((x)=>x.id).join(',')}:${missing.map((x)=>x.id).join(',')}`;
+  if(existing?.dataset.workflowSig===sig)return;
+  existing?.remove();
+  const banner=document.createElement('section');banner.className='project-review-banner-v38 draft';banner.dataset.workflowSig=sig;banner.innerHTML=`<div><span>RASCUNHO</span><strong>Finalize o cronograma antes de enviar</strong><p>${ctx.deliverables.length===0?'Inclua pelo menos um entregável. ':''}${empty.length?`${empty.length} frente(s) ainda não têm entregáveis. `:''}${missing.length?`${missing.length} entregável(is) ainda não têm deadline.`:''}</p></div>`;hero.insertAdjacentElement('afterend',banner);
 }
 
 function resolveAdjustmentDialog(ctx:Context,review:ReviewRow,accept:boolean){
@@ -109,10 +111,15 @@ function resolveAdjustmentDialog(ctx:Context,review:ReviewRow,accept:boolean){
 
 function adminReviewBanner(ctx:Context){
   if(ctx.project.planning_status==='draft'){draftReadiness(ctx);return;}
-  document.querySelector('.project-review-banner-v38')?.remove();const hero=document.querySelector<HTMLElement>('.project-hero-v2');if(!hero)return;
-  if(!['client_review','adjustment_requested'].includes(ctx.project.planning_status))return;
+  draftReadiness(ctx);
+  const hero=document.querySelector<HTMLElement>('.project-hero-v2');if(!hero)return;
+  const existing=document.querySelector<HTMLElement>('.project-review-banner-v38');
+  if(!['client_review','adjustment_requested'].includes(ctx.project.planning_status)){existing?.remove();return;}
   const current=ctx.reviews.find((review)=>review.status==='pending'||review.status==='adjustment_requested');const used=Math.min(2,Math.max(0,(current?.request_number||1)-(current?.status==='adjustment_requested'?0:1)));
-  const banner=document.createElement('section');banner.className=`project-review-banner-v38 ${ctx.project.planning_status}`;
+  const sig=`${ctx.project.id}:${ctx.project.planning_status}:${current?.id||''}:${current?.status||''}:${current?.request_number||0}:${current?.response_note||''}:${JSON.stringify(current?.requested_changes||{})}`;
+  if(existing?.dataset.workflowSig===sig)return;
+  existing?.remove();
+  const banner=document.createElement('section');banner.className=`project-review-banner-v38 ${ctx.project.planning_status}`;banner.dataset.workflowSig=sig;
   if(ctx.project.planning_status==='client_review'){
     banner.innerHTML=`<div><span>AGUARDANDO CLIENTE</span><strong>Cronograma enviado para aprovação</strong><p>O projeto ainda não começou. O prazo passa a contar somente quando o cliente aprovar oficialmente.</p></div><div class="review-banner-meta-v38"><b>${used}/2</b><small>ajustes utilizados</small>${current?.response_due_at?`<em>Resposta prevista até ${formatDateTime(current.response_due_at)}</em>`:''}</div>`;
   }else if(current){const change=current.requested_changes||{};banner.innerHTML=`<div><span>AJUSTE SOLICITADO · ${current.request_number}/2</span><strong>${escapeHtml(change.targetLabel||'Cronograma')}</strong><p>${escapeHtml(current.response_note||'O cliente solicitou uma alteração no cronograma.')}</p>${change.priority?`<em>${escapeHtml(change.priority)}</em>`:''}</div><div class="review-banner-actions-v38"><button type="button" class="secondary" data-reject>Não aplicar</button><button type="button" class="primary" data-accept>Acolher solicitação</button></div>`;banner.querySelector('[data-reject]')?.addEventListener('click',()=>resolveAdjustmentDialog(ctx,current,false));banner.querySelector('[data-accept]')?.addEventListener('click',()=>resolveAdjustmentDialog(ctx,current,true));}
@@ -122,7 +129,7 @@ function adminReviewBanner(ctx:Context){
 function clientAdjustmentDialog(ctx:Context,current:ReviewRow){
   const overlay=dialog('Solicitar ajuste no cronograma',`PEDIDO ${current.request_number} DE 2`,`<label>O que você quer ajustar?<select id="wf-adjust-type-v38"><option value="workstream">Prioridade de uma frente</option><option value="deliverable">Prazo ou ordem de um entregável</option><option value="project">Outro ponto do cronograma</option></select></label><label id="wf-target-label-v38">Frente<select id="wf-adjust-target-v38"></select></label><label id="wf-priority-label-v38">Como você quer priorizar?<select id="wf-adjust-priority-v38"><option value="Quero antecipar esta frente">Quero antecipar esta frente</option><option value="Quero que esta frente tenha prioridade sobre as próximas">Quero que esta frente tenha prioridade sobre as próximas</option><option value="Esta frente pode ficar para depois">Esta frente pode ficar para depois</option></select></label><label>Explique o ajuste<textarea id="wf-adjust-reason-v38" rows="5" placeholder="Ex.: precisamos priorizar Liderança antes de Comunicação Interna por causa do ciclo de metas."></textarea></label><p class="workflow-help-v38">A CALI recebe o pedido, analisa e responde com justificativa. O cronograma só vira projeto depois da sua aprovação final.</p>`,`<button type="button" class="secondary" data-cancel>Cancelar</button><button type="button" class="primary" data-submit>Enviar pedido</button>`);
   const type=overlay.querySelector<HTMLSelectElement>('#wf-adjust-type-v38')!,target=overlay.querySelector<HTMLSelectElement>('#wf-adjust-target-v38')!,targetLabel=overlay.querySelector<HTMLElement>('#wf-target-label-v38')!,priorityLabel=overlay.querySelector<HTMLElement>('#wf-priority-label-v38')!,priority=overlay.querySelector<HTMLSelectElement>('#wf-adjust-priority-v38')!;
-  const sync=()=>{if(type.value==='project'){targetLabel.hidden=true;priorityLabel.hidden=true;target.replaceChildren();return;}targetLabel.hidden=false;priorityLabel.hidden=type.value!=='workstream';target.replaceChildren();const rows=type.value==='workstream'?ctx.fronts:ctx.deliverables;rows.forEach((row:any)=>{const o=document.createElement('option');o.value=row.id;o.textContent=type.value==='workstream'?row.name:row.title;target.append(o);});targetLabel.firstChild!.textContent=type.value==='workstream'?'Frente':'Entregável';};sync();type.addEventListener('change',sync);overlay.querySelector('[data-cancel]')?.addEventListener('click',closeWorkflowModal);
+  const sync=()=>{if(type.value==='project'){targetLabel.hidden=true;priorityLabel.hidden=true;target.replaceChildren();return;}targetLabel.hidden=false;priorityLabel.hidden=type.value!=='workstream';target.replaceChildren();const rows=type.value==='workstream'?ctx.fronts:ctx.deliverables;rows.forEach((row:any)=>{const o=document.createElement('option');o.value=row.id;o.textContent=type.value==='workstream'?row.name:row.title;target.append(o);});const textNode=Array.from(targetLabel.childNodes).find((node)=>node.nodeType===Node.TEXT_NODE);if(textNode)textNode.textContent=type.value==='workstream'?'Frente':'Entregável';};sync();type.addEventListener('change',sync);overlay.querySelector('[data-cancel]')?.addEventListener('click',closeWorkflowModal);
   overlay.querySelector('[data-submit]')?.addEventListener('click',async()=>{const reason=overlay.querySelector<HTMLTextAreaElement>('#wf-adjust-reason-v38')!.value.trim();if(reason.length<3){showError('Explique o ajuste que você precisa.');return;}const button=overlay.querySelector<HTMLButtonElement>('[data-submit]')!;button.disabled=true;const result=await supabase!.rpc('client_request_project_schedule_adjustment',{p_project_id:ctx.project.id,p_target_type:type.value,p_target_id:type.value==='project'?null:target.value||null,p_reason:reason,p_priority:type.value==='workstream'?priority.value:null});if(result.error){button.disabled=false;showError(result.error.message);return;}location.reload();});
 }
 
@@ -132,10 +139,16 @@ function clientApprovalDialog(ctx:Context){
 }
 
 function clientReviewPanel(ctx:Context){
-  document.querySelector('.client-project-review-v38')?.remove();const table=document.querySelector<HTMLElement>('.client-roadmap-table-v33');const heading=document.querySelector<HTMLElement>('.client-roadmap-heading-v33');if(!table||!heading)return;
-  if(!['client_review','adjustment_requested'].includes(ctx.project.planning_status))return;
-  const current=ctx.reviews.find((review)=>review.status==='pending'||review.status==='adjustment_requested');if(!current)return;
-  const used=Math.min(2,Math.max(0,current.request_number-(current.status==='adjustment_requested'?0:1)));const panel=document.createElement('section');panel.className=`client-project-review-v38 ${ctx.project.planning_status}`;
+  document.querySelector('.client-project-empty-v38')?.remove();
+  const table=document.querySelector<HTMLElement>('.client-roadmap-table-v33');const heading=document.querySelector<HTMLElement>('.client-roadmap-heading-v33');if(!table||!heading)return;
+  const existing=document.querySelector<HTMLElement>('.client-project-review-v38');
+  if(!['client_review','adjustment_requested'].includes(ctx.project.planning_status)){existing?.remove();return;}
+  const current=ctx.reviews.find((review)=>review.status==='pending'||review.status==='adjustment_requested');if(!current){existing?.remove();return;}
+  const used=Math.min(2,Math.max(0,current.request_number-(current.status==='adjustment_requested'?0:1)));
+  const sig=`${ctx.project.id}:${ctx.project.planning_status}:${current.id}:${current.status}:${current.request_number}:${current.response_note||''}:${JSON.stringify(current.requested_changes||{})}:${ctx.fronts.length}:${ctx.deliverables.length}:${ctx.project.roadmap_end_date||''}`;
+  if(existing?.dataset.workflowSig===sig)return;
+  existing?.remove();
+  const panel=document.createElement('section');panel.className=`client-project-review-v38 ${ctx.project.planning_status}`;panel.dataset.workflowSig=sig;
   if(ctx.project.planning_status==='client_review'){
     const canAdjust=current.request_number<=2;panel.innerHTML=`<div class="client-review-copy-v38"><span>CRONOGRAMA PARA APROVAÇÃO</span><h2>Revise antes do projeto começar</h2><p>Confira frentes, sequência e deadlines abaixo. Este ainda não é um projeto ativo: o prazo começa somente depois da sua aprovação formal.</p></div><div class="client-review-metrics-v38"><div><span>Frentes</span><strong>${ctx.fronts.length}</strong></div><div><span>Entregáveis</span><strong>${ctx.deliverables.length}</strong></div><div><span>Conclusão prevista</span><strong>${formatDate(ctx.project.roadmap_end_date)}</strong></div><div><span>Ajustes</span><strong>${used}/2</strong></div></div><div class="client-review-actions-v38">${canAdjust?'<button type="button" class="secondary" data-adjust>Solicitar ajuste</button>':'<span>2/2 ajustes utilizados</span>'}<button type="button" class="primary" data-approve>Aprovar cronograma</button></div>`;if(canAdjust)panel.querySelector('[data-adjust]')?.addEventListener('click',()=>clientAdjustmentDialog(ctx,current));panel.querySelector('[data-approve]')?.addEventListener('click',()=>clientApprovalDialog(ctx));
   }else{const change=current.requested_changes||{};panel.innerHTML=`<div class="client-review-copy-v38"><span>AJUSTE EM ANÁLISE · ${current.request_number}/2</span><h2>A CALI está analisando sua solicitação</h2><p>Enquanto este pedido estiver em análise, o cronograma não pode ser aprovado e o projeto ainda não começou.</p></div><div class="client-review-request-v38"><span>${escapeHtml(change.targetLabel||'Cronograma')}</span><strong>${escapeHtml(current.response_note||'Pedido de ajuste enviado.')}</strong>${change.priority?`<em>${escapeHtml(change.priority)}</em>`:''}</div>`;}
@@ -143,15 +156,16 @@ function clientReviewPanel(ctx:Context){
 }
 
 function clientEmptyState(){
+  document.querySelector('.client-project-review-v38')?.remove();
   if(document.querySelector('.client-roadmap-table-v33')||document.querySelector('.client-project-empty-v38'))return;const heading=document.querySelector<HTMLElement>('.client-roadmap-heading-v33');if(!heading)return;const empty=document.createElement('section');empty.className='client-project-empty-v38';empty.innerHTML='<span>NENHUM CRONOGRAMA COMPARTILHADO</span><h2>Não há projeto aguardando sua validação agora.</h2><p>Rascunhos internos da CALI não aparecem nesta área. Quando um cronograma estiver pronto para sua revisão, ele será disponibilizado aqui e você receberá uma notificação.</p>';heading.insertAdjacentElement('afterend',empty);
 }
 
 async function scan(){
   if(busy||!supabase)return;const admin=location.pathname.startsWith('/admin/projetos'),client=location.pathname.startsWith('/cliente/entregaveis');if(!admin&&!client)return;busy=true;
   try{
-    if(admin){const ctx=await loadAdminContext();if(ctx){addFrontAdminActions(ctx);draftReadiness(ctx);adminReviewBanner(ctx);}}
+    if(admin){const ctx=await loadAdminContext();if(ctx){addFrontAdminActions(ctx);adminReviewBanner(ctx);}}
     if(client){const ctx=await loadClientContext();if(ctx)clientReviewPanel(ctx);else clientEmptyState();}
   }finally{busy=false;}
 }
-function schedule(){window.clearTimeout(timer);timer=window.setTimeout(()=>void scan(),120);}
+function schedule(){window.clearTimeout(timer);timer=window.setTimeout(()=>void scan(),140);}
 export function installProjectApprovalWorkflowRuntimeV38(){if(installed||typeof window==='undefined')return;installed=true;schedule();const observer=new MutationObserver(()=>schedule());observer.observe(document.body,{childList:true,subtree:true});window.addEventListener('focus',schedule);window.addEventListener('popstate',schedule);}
