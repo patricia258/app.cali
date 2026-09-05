@@ -21,6 +21,8 @@ import { installRecordsClosureExperienceRuntimeV29 } from './lib/recordsClosureE
 import { installRecordsClosureFinalPolishV30 } from './lib/recordsClosureFinalPolishV30';
 import { installDashboardSatisfactionRuntimeV29 } from './lib/dashboardSatisfactionRuntimeV29';
 import { installDeliverableChatStandardRuntimeV35 } from './lib/deliverableChatStandardRuntimeV35';
+import { installDeliverableChatFlickerGuardV36 } from './lib/deliverableChatFlickerGuardV36';
+import { installProjectsPlanningIntelligenceRuntimeV36 } from './lib/projectsPlanningIntelligenceRuntimeV36';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -48,6 +50,7 @@ import './modal-system-v3.css';
 import './client-modal-drive-note.css';
 import './workspace-typography-connect.css';
 import './page5-projects-polish-v3.css';
+import './projects-planning-intelligence-v36.css';
 import './sidebar-brand-artwork.css';
 import './sidebar-capacity-v2.css';
 import './login-home-v2.css';
@@ -102,6 +105,7 @@ import './client-deliverables-v31.css';
 import './client-deliverables-v32.css';
 import './client-deliverables-v33.css';
 import './deliverable-chat-standard-v34.css';
+import './deliverable-chat-flicker-fix-v36.css';
 import './app-error-boundary.css';
 import './records-v14-overlay-fix.css';
 import './records-v20-conversation-polish.css';
@@ -130,6 +134,8 @@ installRecordsClosureExperienceRuntimeV29();
 installRecordsClosureFinalPolishV30();
 installDashboardSatisfactionRuntimeV29();
 installDeliverableChatStandardRuntimeV35();
+installDeliverableChatFlickerGuardV36();
+installProjectsPlanningIntelligenceRuntimeV36();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
