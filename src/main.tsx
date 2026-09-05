@@ -94,6 +94,7 @@ import './client-timeline-v3.css';
 import './app-error-boundary.css';
 import './records-v14-overlay-fix.css';
 import './records-v20-conversation-polish.css';
+import './records-v21-chat-theme-fix.css';
 import './notification-experience-v2.css';
 import './loading-illustrations-final.css';
 
