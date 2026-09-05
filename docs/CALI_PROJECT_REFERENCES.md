@@ -42,6 +42,8 @@ O Connect é referência de profundidade operacional, organização de projetos,
 - Dentro da interface do Workspace, preferir sempre `logo_workspace_url`. Relatórios/documentos externos continuam preferindo `logo_url`.
 - **Empresa = logo. Pessoa = foto.** A logo do cliente identifica conta/empresa, projeto, horas, deadline, carteira e demais molduras empresariais. Foto de decisor/usuário identifica uma pessoa em perfil, conversa, resposta, autoria ou contato.
 - A foto da Patrícia deve ser usada em toda superfície que represente a Patrícia como pessoa/responsável/autora da CALI; a marca CALI continua sendo usada quando a referência for à empresa/produto e não à pessoa.
+- Em **Horas > Consumo do ciclo**, cada cliente ocupa sua própria linha com a logo Workspace preenchendo a moldura; com carteira maior, a lista deve crescer de forma controlada e rolável, sem transformar a página em uma coluna interminável.
+- Em **Calendário**, quando uma moldura representa uma empresa/conta, usar a logo Workspace preenchendo todo o tile. O arquivo tratado já contém o respiro interno da marca, portanto a imagem do tile deve usar `cover`, sem criar um segundo recuo visual dentro da moldura.
 
 ## Regra de privacidade do rascunho
 
@@ -84,6 +86,12 @@ Os dois pedidos de ajuste acima pertencem à **fase de aprovação do cronograma
 - O dashboard pode apresentar um resumo executivo, mas o administrativo deve ter uma página própria **NPS & satisfação** com histórico completo.
 - A visão completa deve permitir filtrar por período, intervalo customizado, cliente, origem e nota; mostrar média, volume de respostas, comentários, notas que pedem atenção, distribuição e evolução mensal.
 - Na lista de respostas, mostrar **logo da empresa** para identificar a conta e **foto do respondente** para identificar a pessoa quando disponível.
+
+## Regras consolidadas · Calendário do cliente
+
+- O cliente vê reuniões, compromissos e prazos publicados no **CALI Workspace independentemente de conectar uma conta Google**.
+- A conexão Google do cliente é opcional e serve para integrar a agenda pessoal; ela não é requisito para visualizar eventos, links de Meet ou responder ao fluxo dentro do Workspace.
+- Eventos com `visibility='client'` devem aparecer na agenda compartilhada da conta. A ausência de conexão Google nunca deve esconder o compromisso dentro do Workspace.
 
 ## Regras consolidadas · Conversas
 
