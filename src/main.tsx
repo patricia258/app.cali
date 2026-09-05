@@ -18,6 +18,7 @@ import { installRecordsConversationScrollGuard } from './lib/recordsConversation
 import { installNotificationExperienceRuntime } from './lib/notificationExperienceRuntime';
 import { installRecordsOperationsRuntimeV25 } from './lib/recordsOperationsRuntimeV25';
 import { installRecordsClosureExperienceRuntimeV29 } from './lib/recordsClosureExperienceRuntimeV29';
+import { installRecordsClosureFinalPolishV30 } from './lib/recordsClosureFinalPolishV30';
 import { installDashboardSatisfactionRuntimeV29 } from './lib/dashboardSatisfactionRuntimeV29';
 import './styles.css';
 import './modules.css';
@@ -121,6 +122,7 @@ installRecordsConversationScrollGuard();
 installNotificationExperienceRuntime();
 installRecordsOperationsRuntimeV25();
 installRecordsClosureExperienceRuntimeV29();
+installRecordsClosureFinalPolishV30();
 installDashboardSatisfactionRuntimeV29();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
