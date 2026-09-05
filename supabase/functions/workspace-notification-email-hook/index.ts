@@ -36,8 +36,8 @@ function html(title: string, body: string, url: string, company: string, context
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#fff;border:1px solid #E8DDD4;border-radius:18px;overflow:hidden">
       <tr><td style="padding:20px 26px;border-bottom:1px solid #E8DDD4;background:#FFFDFB">
         <table width="100%" cellpadding="0" cellspacing="0"><tr>
-          <td align="left"><img src="${LOGO_URL}" alt="CALI Workspace" width="150" style="display:block;max-width:150px;height:auto"></td>
-          <td align="right"><img src="${MARK_URL}" alt="" width="34" height="34" style="display:block;width:34px;height:34px;object-fit:contain"></td>
+          <td align="left"><img src="${LOGO_URL}" alt="CALI Workspace" width="132" style="display:block;max-width:132px;height:auto"></td>
+          <td align="right"><img src="${MARK_URL}" alt="" width="42" height="42" style="display:block;width:42px;height:42px;object-fit:contain"></td>
         </tr></table>
       </td></tr>
       <tr><td style="padding:30px">
