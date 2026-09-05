@@ -163,15 +163,19 @@ async function pauseTimer(timerId: string, button: HTMLButtonElement) {
   schedule();
 }
 async function renderAdminTimer(record: RecordRow, host: HTMLElement) {
-  stopTicker();
   const data = await timerData(record.id);
   let card = host.querySelector<HTMLElement>('.records-v25-timer');
+  const locked = ['completed', 'cancelled'].includes(String(record.workflow_status || ''));
+  const signature = [data.timer?.id || 'idle', data.total, data.sessions, locked ? 'locked' : 'open'].join('|');
+  if (card?.dataset.timerSignature === signature) return;
+
+  stopTicker();
   if (!card) {
     card = document.createElement('div');
     card.className = 'records-v25-timer';
     host.prepend(card);
   }
-  const locked = ['completed', 'cancelled'].includes(String(record.workflow_status || ''));
+  card.dataset.timerSignature = signature;
   card.replaceChildren();
 
   const copy = document.createElement('div');
