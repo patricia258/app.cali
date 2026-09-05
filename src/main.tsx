@@ -25,6 +25,7 @@ import { installDeliverableChatFlickerGuardV36 } from './lib/deliverableChatFlic
 import { installProjectsPlanningIntelligenceRuntimeV36 } from './lib/projectsPlanningIntelligenceRuntimeV36';
 import { installProjectsDeadlineAutofillRuntimeV37 } from './lib/projectsDeadlineAutofillRuntimeV37';
 import { installProjectApprovalWorkflowRuntimeV38 } from './lib/projectApprovalWorkflowRuntimeV38';
+import { installProjectApprovalRulesRuntimeV39 } from './lib/projectApprovalRulesRuntimeV39';
 import { installCompanyWorkspaceIdentityRuntimeV39 } from './lib/companyWorkspaceIdentityRuntimeV39';
 import { installProjectsClientPortfolioRuntimeV39 } from './lib/projectsClientPortfolioRuntimeV39';
 import './styles.css';
@@ -56,6 +57,7 @@ import './workspace-typography-connect.css';
 import './page5-projects-polish-v3.css';
 import './projects-planning-intelligence-v36.css';
 import './project-approval-workflow-v38.css';
+import './project-approval-rules-v39.css';
 import './project-client-portfolio-v39.css';
 import './sidebar-brand-artwork.css';
 import './sidebar-capacity-v2.css';
@@ -120,6 +122,7 @@ import './records-v22-message-controls.css';
 import './notification-experience-v2.css';
 import './loading-illustrations-final.css';
 import './records-v25-operations.css';
+import './satisfaction-admin-v39.css';
 
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
@@ -144,6 +147,7 @@ installDeliverableChatFlickerGuardV36();
 installProjectsPlanningIntelligenceRuntimeV36();
 installProjectsDeadlineAutofillRuntimeV37();
 installProjectApprovalWorkflowRuntimeV38();
+installProjectApprovalRulesRuntimeV39();
 installCompanyWorkspaceIdentityRuntimeV39();
 installProjectsClientPortfolioRuntimeV39();
 
