@@ -12,7 +12,7 @@ import { installReportsDedupRuntime } from './lib/reportsDedupRuntime';
 import { installGoogleCalendarRuntime } from './lib/googleCalendarRuntime';
 import { installCalendarSyncGuard } from './lib/calendarSyncGuard';
 import { installNotificationNavigationRuntime } from './lib/notificationNavigationRuntime';
-import { installRecordsExperienceRuntime } from './lib/recordsExperienceRuntime';
+import { installRecordsExperienceRuntimeV2 } from './lib/recordsExperienceRuntimeV2';
 import { installNotificationExperienceRuntime } from './lib/notificationExperienceRuntime';
 import './styles.css';
 import './modules.css';
@@ -107,7 +107,7 @@ installReportsDedupRuntime();
 installGoogleCalendarRuntime();
 installCalendarSyncGuard();
 installNotificationNavigationRuntime();
-installRecordsExperienceRuntime();
+installRecordsExperienceRuntimeV2();
 installNotificationExperienceRuntime();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
