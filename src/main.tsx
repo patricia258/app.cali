@@ -23,6 +23,7 @@ import { installDashboardSatisfactionRuntimeV29 } from './lib/dashboardSatisfact
 import { installDeliverableChatStandardRuntimeV35 } from './lib/deliverableChatStandardRuntimeV35';
 import { installDeliverableChatFlickerGuardV36 } from './lib/deliverableChatFlickerGuardV36';
 import { installProjectsPlanningIntelligenceRuntimeV36 } from './lib/projectsPlanningIntelligenceRuntimeV36';
+import { installProjectsDeadlineAutofillRuntimeV37 } from './lib/projectsDeadlineAutofillRuntimeV37';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -136,6 +137,7 @@ installDashboardSatisfactionRuntimeV29();
 installDeliverableChatStandardRuntimeV35();
 installDeliverableChatFlickerGuardV36();
 installProjectsPlanningIntelligenceRuntimeV36();
+installProjectsDeadlineAutofillRuntimeV37();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
