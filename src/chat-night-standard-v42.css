@@ -1,0 +1,81 @@
+/* CALI Workspace · padrão final de chat no modo noite V42 */
+[data-workspace-theme='night'] .records-v13-drawer .records-chat-line.role-admin .records-chat-bubble,
+[data-workspace-theme='night'] .workspace-chat-standard .workspace-chat-line.role-admin .workspace-chat-bubble {
+  background:#6F2035!important;
+  border-color:#8B354B!important;
+  color:#FFFDFC!important;
+}
+
+[data-workspace-theme='night'] .records-v13-drawer .records-chat-line.role-client .records-chat-bubble,
+[data-workspace-theme='night'] .workspace-chat-standard .workspace-chat-line.role-client .workspace-chat-bubble {
+  background:#73552F!important;
+  border-color:#9B7848!important;
+  color:#FFF8EA!important;
+}
+
+[data-workspace-theme='night'] .records-v13-drawer .records-chat-line.role-system .records-chat-bubble,
+[data-workspace-theme='night'] .workspace-chat-standard .workspace-chat-line.role-system .workspace-chat-bubble {
+  background:#2A1D21!important;
+  border-color:#4A343B!important;
+  color:#F7F3EE!important;
+}
+
+[data-workspace-theme='night'] .records-v13-drawer .records-chat-bubble strong,
+[data-workspace-theme='night'] .records-v13-drawer .records-chat-bubble p,
+[data-workspace-theme='night'] .records-v13-drawer .records-chat-bubble time,
+[data-workspace-theme='night'] .workspace-chat-standard .workspace-chat-bubble strong,
+[data-workspace-theme='night'] .workspace-chat-standard .workspace-chat-bubble p,
+[data-workspace-theme='night'] .workspace-chat-standard .workspace-chat-bubble time {
+  color:inherit!important;
+}
+
+[data-workspace-theme='night'] .records-v13-drawer .role-client .records-message-reactions {
+  border-top-color:rgba(255,248,234,.20)!important;
+}
+[data-workspace-theme='night'] .records-v13-drawer .role-client .records-message-reactions button,
+[data-workspace-theme='night'] .workspace-chat-standard .role-client .workspace-chat-reactions button {
+  border-color:rgba(255,248,234,.24)!important;
+  background:rgba(255,255,255,.08)!important;
+  color:#FFF8EA!important;
+}
+[data-workspace-theme='night'] .records-v13-drawer .role-client .records-message-reactions button:hover,
+[data-workspace-theme='night'] .workspace-chat-standard .role-client .workspace-chat-reactions button:hover {
+  border-color:rgba(255,248,234,.38)!important;
+  background:rgba(255,255,255,.14)!important;
+}
+
+[data-workspace-theme='night'] .records-v13-drawer .role-admin .records-message-reactions button,
+[data-workspace-theme='night'] .workspace-chat-standard .role-admin .workspace-chat-reactions button {
+  border-color:rgba(255,255,255,.22)!important;
+  background:rgba(255,255,255,.07)!important;
+  color:#FFFDFC!important;
+}
+
+[data-workspace-theme='night'] .records-v13-drawer .records-chat-avatar,
+[data-workspace-theme='night'] .workspace-chat-standard .workspace-chat-avatar {
+  border-color:#513941!important;
+  background:#2A1D21!important;
+  color:#F4DFE4!important;
+}
+
+[data-workspace-theme='night'] .workspace-chat-standard .conversation-list-v2.workspace-chat-list {
+  background:linear-gradient(180deg,#1D1518 0%,#181114 100%)!important;
+  border-color:#3B2A30!important;
+}
+[data-workspace-theme='night'] .workspace-chat-standard .workspace-chat-compose textarea,
+[data-workspace-theme='night'] .workspace-chat-standard .workspace-chat-tools>button {
+  background:#2A1D21!important;
+  border-color:#4A343B!important;
+  color:#F7F3EE!important;
+}
+[data-workspace-theme='night'] .workspace-chat-standard .workspace-chat-emoji-picker {
+  background:#2A1D21!important;
+  border-color:#5B3C46!important;
+}
+
+/* Evita texto branco sobre o antigo balão amarelo claro por herança tardia de CSS. */
+[data-workspace-theme='night'] .records-v13-drawer .records-chat-line.role-client .records-message-admin-controls button {
+  border-color:rgba(255,248,234,.22)!important;
+  background:rgba(255,255,255,.08)!important;
+  color:#FFF8EA!important;
+}
