@@ -4,10 +4,20 @@ let installed = false;
 let channel: ReturnType<NonNullable<typeof supabase>['channel']> | null = null;
 let audioContext: AudioContext | null = null;
 
-function chime() {
-  if (document.hidden) return;
+async function unlockAudio() {
   try {
     audioContext ||= new AudioContext();
+    if (audioContext.state === 'suspended') await audioContext.resume();
+  } catch {
+    // O destaque visual permanece disponível mesmo sem áudio.
+  }
+}
+
+async function chime() {
+  if (document.hidden) return;
+  try {
+    await unlockAudio();
+    if (!audioContext || audioContext.state !== 'running') return;
     const now = audioContext.currentTime;
     const gain = audioContext.createGain();
     gain.gain.setValueAtTime(0.0001, now);
@@ -23,7 +33,7 @@ function chime() {
       osc.stop(now + 0.24 + index * 0.075);
     });
   } catch {
-    // Navegadores podem bloquear áudio antes da primeira interação; o destaque visual continua funcionando.
+    // Navegadores podem bloquear áudio; o sino ainda muda visualmente.
   }
 }
 
@@ -45,7 +55,7 @@ async function subscribe() {
   channel = supabase.channel(`workspace-notification-experience-${userId}-${Date.now()}`)
     .on('postgres_changes', { event: 'INSERT', schema: 'cali_workspace', table: 'notifications', filter: `user_id=eq.${userId}` }, () => {
       highlightBell();
-      chime();
+      void chime();
     })
     .subscribe();
 }
@@ -56,5 +66,8 @@ export function installNotificationExperienceRuntime() {
   const boot = () => void subscribe();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
   else boot();
+  const unlock = () => void unlockAudio();
+  window.addEventListener('pointerdown', unlock, { once: true, passive: true });
+  window.addEventListener('keydown', unlock, { once: true });
   window.addEventListener('focus', () => { if (!channel) void subscribe(); });
 }
