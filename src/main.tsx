@@ -24,6 +24,7 @@ import { installDeliverableChatStandardRuntimeV35 } from './lib/deliverableChatS
 import { installDeliverableChatFlickerGuardV36 } from './lib/deliverableChatFlickerGuardV36';
 import { installProjectsPlanningIntelligenceRuntimeV36 } from './lib/projectsPlanningIntelligenceRuntimeV36';
 import { installProjectsDeadlineAutofillRuntimeV37 } from './lib/projectsDeadlineAutofillRuntimeV37';
+import { installProjectApprovalWorkflowRuntimeV38 } from './lib/projectApprovalWorkflowRuntimeV38';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -52,6 +53,7 @@ import './client-modal-drive-note.css';
 import './workspace-typography-connect.css';
 import './page5-projects-polish-v3.css';
 import './projects-planning-intelligence-v36.css';
+import './project-approval-workflow-v38.css';
 import './sidebar-brand-artwork.css';
 import './sidebar-capacity-v2.css';
 import './login-home-v2.css';
@@ -138,6 +140,7 @@ installDeliverableChatStandardRuntimeV35();
 installDeliverableChatFlickerGuardV36();
 installProjectsPlanningIntelligenceRuntimeV36();
 installProjectsDeadlineAutofillRuntimeV37();
+installProjectApprovalWorkflowRuntimeV38();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
