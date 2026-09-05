@@ -20,6 +20,7 @@ import { installRecordsOperationsRuntimeV25 } from './lib/recordsOperationsRunti
 import { installRecordsClosureExperienceRuntimeV29 } from './lib/recordsClosureExperienceRuntimeV29';
 import { installRecordsClosureFinalPolishV30 } from './lib/recordsClosureFinalPolishV30';
 import { installDashboardSatisfactionRuntimeV29 } from './lib/dashboardSatisfactionRuntimeV29';
+import { installDeliverableChatStandardRuntimeV34 } from './lib/deliverableChatStandardRuntimeV34';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -100,6 +101,7 @@ import './client-timeline-v3.css';
 import './client-deliverables-v31.css';
 import './client-deliverables-v32.css';
 import './client-deliverables-v33.css';
+import './deliverable-chat-standard-v34.css';
 import './app-error-boundary.css';
 import './records-v14-overlay-fix.css';
 import './records-v20-conversation-polish.css';
@@ -127,6 +129,7 @@ installRecordsOperationsRuntimeV25();
 installRecordsClosureExperienceRuntimeV29();
 installRecordsClosureFinalPolishV30();
 installDashboardSatisfactionRuntimeV29();
+installDeliverableChatStandardRuntimeV34();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
