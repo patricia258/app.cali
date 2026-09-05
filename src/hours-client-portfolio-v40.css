@@ -1,0 +1,35 @@
+/* CALI Workspace · Horas · carteira de consumo por cliente V40 */
+.hours-v13-usage-list{
+  max-height:min(470px,52vh);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:color-mix(in srgb,var(--theme-accent) 24%,transparent) transparent;
+}
+.hours-v13-usage-list::-webkit-scrollbar{width:6px}
+.hours-v13-usage-list::-webkit-scrollbar-track{background:transparent}
+.hours-v13-usage-list::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--theme-accent) 24%,transparent);border-radius:999px}
+.hours-v13-usage-list>article{min-height:72px}
+.hours-v13-usage-list .hours-v13-logo.workspace-company-logo-tile-v39{
+  background-color:#F7F3EE!important;
+  background-size:cover!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  border-color:#E3D7CE!important;
+}
+.calendar-detail-company-mark.workspace-company-logo-tile-v39{
+  background-color:#F7F3EE!important;
+  border-color:#E3D7CE!important;
+}
+.calendar-detail-company-mark.workspace-company-logo-tile-v39 img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  display:block!important;
+  border-radius:inherit!important;
+}
+[data-workspace-theme='night'] .hours-v13-usage-list .hours-v13-logo.workspace-company-logo-tile-v39,
+[data-workspace-theme='night'] .calendar-detail-company-mark.workspace-company-logo-tile-v39{
+  background-color:#F7F3EE!important;
+  border-color:#E3D7CE!important;
+}
