@@ -8,7 +8,7 @@ const FROM_EMAIL = "CALI Workspace <patricia@calirh.com>";
 const REPLY_TO = "patricia@calirh.com";
 const APP_URL = "https://app.calirh.com";
 const LOGO_URL = `${APP_URL}/brand/cali-workspace-transparent.svg`;
-const MARK_URL = `${APP_URL}/brand/cali-oak-mark.svg`;
+const MARK_URL = `${APP_URL}/brand/cali-oak-mark-light.svg`;
 const headers = { "Content-Type": "application/json" };
 
 const esc = (value: unknown) => String(value ?? "")
@@ -34,10 +34,10 @@ function html(title: string, body: string, url: string, company: string, context
   return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#F7F3EE;font-family:Arial,Helvetica,sans-serif;color:#2B2B2B">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:28px 14px">
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#fff;border:1px solid #E8DDD4;border-radius:18px;overflow:hidden">
-      <tr><td style="padding:20px 26px;border-bottom:1px solid #E8DDD4;background:#FFFDFB">
+      <tr><td style="padding:20px 26px;border-bottom:1px solid #6A2838;background:#5A1E2D">
         <table width="100%" cellpadding="0" cellspacing="0"><tr>
-          <td align="left"><img src="${LOGO_URL}" alt="CALI Workspace" width="132" style="display:block;max-width:132px;height:auto"></td>
-          <td align="right"><img src="${MARK_URL}" alt="" width="42" height="42" style="display:block;width:42px;height:42px;object-fit:contain"></td>
+          <td align="left" valign="middle"><img src="${LOGO_URL}" alt="CALI Workspace" width="122" style="display:block;width:122px;max-width:122px;height:auto"></td>
+          <td align="right" valign="middle"><img src="${MARK_URL}" alt="" width="48" height="48" style="display:block;width:48px;height:48px;object-fit:contain"></td>
         </tr></table>
       </td></tr>
       <tr><td style="padding:30px">
