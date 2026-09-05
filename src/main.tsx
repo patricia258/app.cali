@@ -12,6 +12,8 @@ import { installReportsDedupRuntime } from './lib/reportsDedupRuntime';
 import { installGoogleCalendarRuntime } from './lib/googleCalendarRuntime';
 import { installCalendarSyncGuard } from './lib/calendarSyncGuard';
 import { installNotificationNavigationRuntime } from './lib/notificationNavigationRuntime';
+import { installRecordsExperienceRuntime } from './lib/recordsExperienceRuntime';
+import { installNotificationExperienceRuntime } from './lib/notificationExperienceRuntime';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -91,6 +93,8 @@ import './client-timeline-v2.css';
 import './client-timeline-v3.css';
 import './app-error-boundary.css';
 import './records-v14-overlay-fix.css';
+import './records-v20-conversation-polish.css';
+import './notification-experience-v2.css';
 import './loading-illustrations-final.css';
 
 initializeWorkspaceTheme();
@@ -103,6 +107,8 @@ installReportsDedupRuntime();
 installGoogleCalendarRuntime();
 installCalendarSyncGuard();
 installNotificationNavigationRuntime();
+installRecordsExperienceRuntime();
+installNotificationExperienceRuntime();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
