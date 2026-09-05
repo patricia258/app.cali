@@ -13,6 +13,7 @@ import { AdminHoursPageV3 } from './pages/admin/AdminHoursPageV3';
 import { AdminCalendarPage } from './pages/admin/AdminCalendarPage';
 import { AdminDocumentsPageV4 } from './pages/admin/AdminDocumentsPageV4';
 import { AdminReportsPageV15 } from './pages/admin/AdminReportsPageV15';
+import { AdminSatisfactionPage } from './pages/admin/AdminSatisfactionPage';
 import { AdminPeopleMapPageV2 } from './pages/admin/AdminPeopleMapPageV2';
 import { AdminPeopleMapReviewPage } from './pages/admin/AdminPeopleMapReviewPage';
 import { AdminPeopleMapReportPage } from './pages/admin/AdminPeopleMapReportPage';
@@ -37,6 +38,7 @@ export default function App(){return <Routes>
   <Route path="/admin/registros" element={<ProtectedRoute role="admin"><AdminRecordsPage/></ProtectedRoute>}/>
   <Route path="/admin/documentos" element={<ProtectedRoute role="admin"><AdminDocumentsPageV4/></ProtectedRoute>}/>
   <Route path="/admin/relatorios" element={<ProtectedRoute role="admin"><AdminReportsPageV15/></ProtectedRoute>}/>
+  <Route path="/admin/satisfacao" element={<ProtectedRoute role="admin"><AdminSatisfactionPage/></ProtectedRoute>}/>
   <Route path="/admin/mapa-de-people" element={<ProtectedRoute role="admin"><AdminPeopleMapPageV2/></ProtectedRoute>}/>
   <Route path="/admin/mapa-de-people/revisao" element={<ProtectedRoute role="admin"><AdminPeopleMapReviewPage/></ProtectedRoute>}/>
   <Route path="/admin/mapa-de-people/relatorio/:id" element={<ProtectedRoute role="admin"><AdminPeopleMapReportPage/></ProtectedRoute>}/>
