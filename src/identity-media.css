@@ -17,15 +17,18 @@
 }
 
 .identity-media-company {
-  background-color: var(--theme-surface-soft) !important;
+  background-color: #F7F3EE !important;
+  border-color: #E3D7CE !important;
 }
 
+/* Quando ainda não existe mídia real, mantém o fallback tipográfico visível. */
 .identity-media-empty {
-  color: transparent !important;
+  color: inherit !important;
   text-shadow: none !important;
+  background-image: none !important;
 }
 
-/* Conversa de projeto: foto real da CALI e identidade visual do cliente. */
+/* Conversa de projeto: foto real de quem está falando. */
 .conversation-avatar-v2.identity-media-frame {
   width: 40px !important;
   height: 40px !important;
@@ -40,18 +43,30 @@
   gap: 12px !important;
 }
 
-/* Seletor de projetos: logo cadastrada substitui a letra da empresa. */
-.project-client-mark.identity-media-company {
-  background-color: var(--theme-surface-soft) !important;
-  background-origin: content-box !important;
-  padding: 5px !important;
+/* Molduras de empresa usam sempre o tile CALI derivado. */
+.project-client-mark.identity-media-company,
+.company-mark.identity-media-company,
+.deadline-logo-v2.identity-media-company,
+.bar-client-logo.identity-media-company,
+.client-logo.identity-media-company,
+.client-mark.identity-media-company,
+.account-company-logo.identity-media-company,
+.people-map-company-mark.identity-media-company,
+.people-map-company-avatar.identity-media-company {
+  background-color:#F7F3EE !important;
+  background-origin:border-box !important;
 }
 
-/* Mantém contraste no modo noite sem criar caixas novas. */
+.project-client-mark.identity-media-company {
+  padding:0 !important;
+}
+
+/* A identidade da empresa NÃO acompanha a troca Dia/Noite. */
 html[data-workspace-theme='night'] .identity-media-frame {
   border-color: rgba(90,30,45,.20) !important;
 }
 
 html[data-workspace-theme='night'] .identity-media-company {
-  background-color: rgba(247,243,238,.72) !important;
+  background-color:#F7F3EE !important;
+  border-color:#E3D7CE !important;
 }
