@@ -14,6 +14,7 @@ import { installCalendarSyncGuard } from './lib/calendarSyncGuard';
 import { installNotificationNavigationRuntime } from './lib/notificationNavigationRuntime';
 import { installRecordsExperienceRuntimeV2 } from './lib/recordsExperienceRuntimeV2';
 import { installRecordsMessageControlsRuntime } from './lib/recordsMessageControlsRuntime';
+import { installRecordsConversationScrollGuard } from './lib/recordsConversationScrollGuard';
 import { installNotificationExperienceRuntime } from './lib/notificationExperienceRuntime';
 import './styles.css';
 import './modules.css';
@@ -112,6 +113,7 @@ installCalendarSyncGuard();
 installNotificationNavigationRuntime();
 installRecordsExperienceRuntimeV2();
 installRecordsMessageControlsRuntime();
+installRecordsConversationScrollGuard();
 installNotificationExperienceRuntime();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
