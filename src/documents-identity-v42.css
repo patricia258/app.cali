@@ -1,0 +1,126 @@
+/* CALI Workspace · Documentos · identidade do cliente e capa automática V42 */
+.documents-admin-v4 .document-client-logo-v3.document-company-logo-v42,
+.documents-admin-v4 .document-client-logo-v3.workspace-company-logo-tile-v39 {
+  width:38px;
+  height:38px;
+  padding:0!important;
+  overflow:hidden;
+  border-radius:11px;
+  background:#F7F3EE!important;
+  border-color:#E3D7CE!important;
+}
+.documents-admin-v4 .document-client-logo-v3.document-company-logo-v42 img,
+.documents-admin-v4 .document-client-logo-v3.workspace-company-logo-tile-v39 img {
+  width:100%!important;
+  height:100%!important;
+  padding:0!important;
+  display:block!important;
+  object-fit:cover!important;
+  border-radius:inherit!important;
+}
+
+/* O projeto precisa ficar visível no card; a versão V4 escondia este contexto. */
+.documents-admin-v4 .document-client-line-v3 small { display:none!important; }
+.documents-admin-v4 .document-project-line-v42 {
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:center;
+  gap:8px;
+  margin-top:-4px;
+  color:var(--theme-muted);
+  min-width:0;
+}
+.documents-admin-v4 .document-project-line-v42>span {
+  font-size:8.5px;
+  font-weight:900;
+  letter-spacing:.09em;
+  color:#B58C52;
+}
+.documents-admin-v4 .document-project-line-v42>strong {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--theme-text);
+  font-size:10.5px;
+  font-weight:750;
+}
+
+.documents-admin-v4 .document-card-preview-v3:not(.has-cover) {
+  background:#F7F3EE!important;
+  border-bottom-color:#E3D7CE!important;
+}
+.documents-admin-v4 .document-card-preview-v3:not(.has-cover)::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 10% 18%, rgba(90,30,45,.08) 0 34px, transparent 35px),
+    radial-gradient(circle at 92% 84%, rgba(181,140,82,.11) 0 48px, transparent 49px),
+    linear-gradient(135deg, rgba(90,30,45,.035), transparent 44%, rgba(181,140,82,.04));
+}
+.documents-admin-v4 .document-auto-cover-v42 {
+  position:absolute;
+  inset:0;
+  z-index:1;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  place-items:center;
+  gap:4px;
+  padding:13px 18px 12px;
+  color:#5A1E2D;
+}
+.documents-admin-v4 .document-auto-cover-brand-v42 {
+  justify-self:start;
+  font-family:Georgia,serif;
+  font-size:15px;
+  letter-spacing:.12em;
+  color:#5A1E2D!important;
+}
+.documents-admin-v4 .document-auto-cover-logo-v42 {
+  width:72px;
+  height:72px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border:1px solid #E3D7CE;
+  border-radius:18px;
+  background:#F7F3EE;
+  box-shadow:0 10px 28px rgba(90,30,45,.08);
+}
+.documents-admin-v4 .document-auto-cover-logo-v42 img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.documents-admin-v4 .document-auto-cover-logo-v42 strong {
+  font-family:Georgia,serif;
+  font-size:28px;
+  font-weight:500;
+  color:#5A1E2D;
+}
+.documents-admin-v4 .document-auto-cover-caption-v42 {
+  justify-self:end;
+  font-size:8px;
+  font-weight:800;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  color:#8D766A!important;
+}
+.documents-admin-v4 .document-card-preview-v3:not(.has-cover) .document-status-flag-v3 {
+  z-index:3;
+}
+
+/* A capa de biblioteca é um artefato visual fixo da CALI: não inverte no modo noite. */
+[data-workspace-theme='night'] .documents-admin-v4 .document-card-preview-v3:not(.has-cover),
+[data-workspace-theme='night'] .documents-admin-v4 .document-client-logo-v3.document-company-logo-v42,
+[data-workspace-theme='night'] .documents-admin-v4 .document-client-logo-v3.workspace-company-logo-tile-v39 {
+  background:#F7F3EE!important;
+  border-color:#E3D7CE!important;
+}
+
+@media(max-width:760px){
+  .documents-admin-v4 .document-project-line-v42{grid-template-columns:1fr;gap:2px}
+}
