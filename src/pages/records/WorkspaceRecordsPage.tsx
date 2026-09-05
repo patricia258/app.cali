@@ -83,6 +83,7 @@ const typeLabels: Record<RecordType, string> = {
 const clientTypes: RecordType[] = ['occurrence', 'people_movement', 'leadership', 'request', 'context_change', 'other'];
 const adminTypes = Object.keys(typeLabels) as RecordType[];
 const conversationalTypes = new Set<RecordType>(['occurrence', 'request', 'context_change', 'other']);
+const archivedStatuses = new Set<WorkflowStatus>(['standby', 'completed', 'cancelled']);
 
 const workflowLabels: Record<WorkflowStatus, string> = {
   open: 'Aberta', in_progress: 'Em andamento', waiting_client: 'Aguardando cliente',
@@ -141,6 +142,8 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [messageCounts, setMessageCounts] = useState<Record<string, number>>({});
+  const [feedbackByRecord, setFeedbackByRecord] = useState<Record<string, number>>({});
+  const [reopenByRecord, setReopenByRecord] = useState<Record<string, 'pending'>>({});
   const [companyId, setCompanyId] = useState('');
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<RecordType | 'all'>('all');
@@ -154,6 +157,11 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   const [messageDraft, setMessageDraft] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
+  const [reopenSaving, setReopenSaving] = useState(false);
+  const [feedbackScore, setFeedbackScore] = useState<number | null>(null);
+  const [feedbackComment, setFeedbackComment] = useState('');
+  const [feedbackSaving, setFeedbackSaving] = useState(false);
+  const [feedbackThanks, setFeedbackThanks] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState('');
@@ -172,6 +180,19 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
     deepLinkHandled.current = recordId;
     void openRecord(found);
   }, [records, searchParams]);
+  useEffect(() => {
+    if (!supabase || !companyId) return;
+    const channel = supabase
+      .channel(`records-v27-${companyId}-${role}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'cali_workspace', table: 'account_records', filter: `company_id=eq.${companyId}` }, (payload) => {
+        const next = mapRecord(payload.new);
+        setRecords((current) => current.map((record) => record.id === next.id ? next : record));
+        setSelected((current) => current?.id === next.id ? next : current);
+        void loadContext(companyId);
+      })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [companyId, role]);
 
   async function load() {
     if (!supabase) return;
@@ -201,13 +222,25 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
 
   async function loadContext(targetCompanyId: string) {
     if (!supabase || !targetCompanyId) return;
-    const recordResult = await supabase.from('account_records').select('*').eq('company_id', targetCompanyId).order('last_activity_at', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false });
+    const [recordResult, countResult, feedbackResult, reopenResult] = await Promise.all([
+      supabase.from('account_records').select('*').eq('company_id', targetCompanyId).order('last_activity_at', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false }),
+      supabase.from('account_record_messages').select('id,record_id').eq('company_id', targetCompanyId).is('deleted_at', null),
+      supabase.from('account_record_feedback').select('record_id,score').eq('company_id', targetCompanyId),
+      supabase.from('account_record_reopen_requests').select('record_id,status,requested_at').eq('company_id', targetCompanyId).eq('status', 'pending').order('requested_at', { ascending: false }),
+    ]);
     if (recordResult.error) throw recordResult.error;
-    const countResult = await supabase.from('account_record_messages').select('id,record_id').eq('company_id', targetCompanyId).is('deleted_at', null);
     if (countResult.error) throw countResult.error;
+    if (feedbackResult.error) throw feedbackResult.error;
+    if (reopenResult.error) throw reopenResult.error;
     const counts: Record<string, number> = {};
     for (const row of countResult.data || []) counts[row.record_id] = (counts[row.record_id] || 0) + 1;
+    const feedbacks: Record<string, number> = {};
+    for (const row of feedbackResult.data || []) if (feedbacks[row.record_id] == null) feedbacks[row.record_id] = Number(row.score);
+    const reopen: Record<string, 'pending'> = {};
+    for (const row of reopenResult.data || []) reopen[row.record_id] = 'pending';
     setMessageCounts(counts);
+    setFeedbackByRecord(feedbacks);
+    setReopenByRecord(reopen);
     setRecords((recordResult.data || []).map(mapRecord));
 
     if (role === 'admin') {
@@ -238,6 +271,8 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
     if (query && !`${record.title} ${record.summary || ''} ${record.protocol || ''} ${typeLabels[record.type]} ${record.workflowStatus ? workflowLabels[record.workflowStatus] : ''}`.toLowerCase().includes(query.toLowerCase())) return false;
     return true;
   }), [records, typeFilter, statusFilter, query]);
+  const activeVisible = useMemo(() => visible.filter((record) => !record.workflowStatus || !archivedStatuses.has(record.workflowStatus)), [visible]);
+  const archivedVisible = useMemo(() => visible.filter((record) => Boolean(record.workflowStatus && archivedStatuses.has(record.workflowStatus))), [visible]);
 
   function openNew() {
     setEditing(null);
@@ -327,6 +362,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   async function openRecord(record: AccountRecordRow) {
     if (!supabase) return;
     setSelected(record); setConversationOpen(true); setMessageDraft(''); setMessages([]); setError('');
+    setFeedbackScore(null); setFeedbackComment(''); setFeedbackThanks(false);
     const result = await supabase.from('account_record_messages').select('id,record_id,author_id,author_role,body,visibility,created_at').eq('record_id', record.id).is('deleted_at', null).order('created_at');
     if (result.error) { setError(result.error.message); return; }
     setMessages((result.data || []).map(mapMessage));
@@ -346,6 +382,46 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar a mensagem.');
     } finally { setSendingMessage(false); }
+  }
+
+  async function requestReopen() {
+    if (!supabase || !selected || role !== 'client') return;
+    setReopenSaving(true); setError('');
+    try {
+      const result = await supabase.rpc('request_account_record_reopen', { p_record_id: selected.id, p_reason: null });
+      if (result.error) throw result.error;
+      setReopenByRecord((current) => ({ ...current, [selected.id]: 'pending' }));
+      setNotice('Pedido de reabertura enviado à CALI.');
+      await openRecord(selected);
+      await loadContext(selected.companyId);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Não foi possível solicitar a reabertura.');
+    } finally { setReopenSaving(false); }
+  }
+
+  async function submitFeedback(scoreOverride?: number) {
+    if (!supabase || !selected || role !== 'client') return;
+    const score = scoreOverride ?? feedbackScore;
+    if (!score) return;
+    if (score <= 3 && feedbackComment.trim().length < 3) {
+      setError('Conte brevemente o motivo da sua avaliação.');
+      return;
+    }
+    setFeedbackSaving(true); setError('');
+    try {
+      const result = await supabase.rpc('submit_account_record_feedback', {
+        p_record_id: selected.id,
+        p_score: score,
+        p_comment: score <= 3 ? feedbackComment.trim() : null,
+      });
+      if (result.error) throw result.error;
+      setFeedbackByRecord((current) => ({ ...current, [selected.id]: score }));
+      setFeedbackThanks(true);
+      setFeedbackScore(score);
+      setFeedbackComment('');
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Não foi possível registrar sua avaliação.');
+    } finally { setFeedbackSaving(false); }
   }
 
   async function changeStatus(status: WorkflowStatus) {
@@ -369,6 +445,32 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
 
   const allowedTypes = role === 'admin' ? adminTypes : clientTypes;
   const meetingEvents = events.filter((event) => event.type === 'meeting');
+  const archiveFilterSelected = statusFilter !== 'all' && archivedStatuses.has(statusFilter);
+  const clientConversationLocked = Boolean(role === 'client' && selected?.workflowStatus && archivedStatuses.has(selected.workflowStatus));
+  const reopenPending = Boolean(selected && reopenByRecord[selected.id] === 'pending');
+
+  function recordsTable(rows: AccountRecordRow[], emptyCopy: string) {
+    return <section className="records-v13-table-wrap panel">
+      <table className="records-v13-table">
+        <thead><tr>
+          <th>Protocolo</th>{role === 'admin' && <th>Cliente</th>}<th>Assunto</th><th>Tipo</th><th>Status</th><th>Última atualização</th><th>Histórico</th><th aria-label="Ação" />
+        </tr></thead>
+        <tbody>
+          {rows.map((record) => <tr key={record.id} onClick={() => void openRecord(record)} className={record.requiresAction && role === 'admin' ? 'needs-action' : ''}>
+            <td data-label="Protocolo"><strong className="protocol-cell">{record.protocol || '—'}</strong></td>
+            {role === 'admin' && <td data-label="Cliente">{companyMap.get(record.companyId) || '—'}</td>}
+            <td data-label="Assunto"><div className="subject-cell"><strong>{record.title}</strong>{record.summary && <small>{record.summary}</small>}</div></td>
+            <td data-label="Tipo">{typeLabels[record.type]}</td>
+            <td data-label="Status"><span className={`record-status status-${record.workflowStatus || 'memory'}`}>{statusLabel(record.workflowStatus, role)}</span></td>
+            <td data-label="Atualizado">{formatDateTime(record.lastActivityAt || record.occurredAt)}</td>
+            <td data-label="Histórico"><span className="message-count"><MessageCircle size={14} />{messageCounts[record.id] || 0}</span></td>
+            <td><button className="row-open" type="button" onClick={(event) => { event.stopPropagation(); void openRecord(record); }}>Abrir <ChevronRight size={14} /></button></td>
+          </tr>)}
+          {!rows.length && <tr><td colSpan={role === 'admin' ? 8 : 7}><div className="records-v13-empty"><FileText size={26} /><div><strong>Nenhum registro neste recorte.</strong><span>{emptyCopy}</span></div></div></td></tr>}
+        </tbody>
+      </table>
+    </section>;
+  }
 
   return <Shell role={role}>
     <section className="page records-v13">
@@ -401,30 +503,19 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
         })}</div>
       </section>}
 
-      <section className="records-v13-table-wrap panel">
-        <table className="records-v13-table">
-          <thead><tr>
-            <th>Protocolo</th>{role === 'admin' && <th>Cliente</th>}<th>Assunto</th><th>Tipo</th><th>Status</th><th>Última atualização</th><th>Histórico</th><th aria-label="Ação" />
-          </tr></thead>
-          <tbody>
-            {visible.map((record) => <tr key={record.id} onClick={() => void openRecord(record)} className={record.requiresAction && role === 'admin' ? 'needs-action' : ''}>
-              <td data-label="Protocolo"><strong className="protocol-cell">{record.protocol || '—'}</strong></td>
-              {role === 'admin' && <td data-label="Cliente">{companyMap.get(record.companyId) || '—'}</td>}
-              <td data-label="Assunto"><div className="subject-cell"><strong>{record.title}</strong>{record.summary && <small>{record.summary}</small>}</div></td>
-              <td data-label="Tipo">{typeLabels[record.type]}</td>
-              <td data-label="Status"><span className={`record-status status-${record.workflowStatus || 'memory'}`}>{statusLabel(record.workflowStatus, role)}</span></td>
-              <td data-label="Atualizado">{formatDateTime(record.lastActivityAt || record.occurredAt)}</td>
-              <td data-label="Histórico"><span className="message-count"><MessageCircle size={14} />{messageCounts[record.id] || 0}</span></td>
-              <td><button className="row-open" type="button" onClick={(event) => { event.stopPropagation(); void openRecord(record); }}>Abrir <ChevronRight size={14} /></button></td>
-            </tr>)}
-            {!visible.length && <tr><td colSpan={role === 'admin' ? 8 : 7}><div className="records-v13-empty"><FileText size={26} /><div><strong>Nenhum registro neste recorte.</strong><span>{role === 'admin' ? 'Altere os filtros ou adicione um novo registro.' : 'Quando precisar falar com a CALI, sua solicitação aparecerá aqui com todo o histórico.'}</span></div></div></td></tr>}
-          </tbody>
-        </table>
-      </section>
+      {!archiveFilterSelected && <>
+        <div className="records-v27-group-heading"><div><span>EM ACOMPANHAMENTO</span><strong>{role === 'admin' ? 'Abertos e em andamento' : 'Suas solicitações ativas'}</strong></div><b>{activeVisible.length}</b></div>
+        {recordsTable(activeVisible, role === 'admin' ? 'Altere os filtros ou adicione um novo registro.' : 'Quando precisar falar com a CALI, sua solicitação aparecerá aqui com todo o histórico.')}
+      </>}
+
+      {archivedVisible.length > 0 && <>
+        <div className="records-v27-group-heading archived"><div><span>HISTÓRICO</span><strong>Finalizados, cancelados e em stand by</strong></div><b>{archivedVisible.length}</b></div>
+        {recordsTable(archivedVisible, 'Os registros encerrados e em stand by ficam preservados aqui para consulta.')}
+      </>}
     </section>
 
     {conversationOpen && selected && <div className="records-v13-drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setConversationOpen(false); }}>
-      <aside className="records-v13-drawer" role="dialog" aria-modal="true" aria-label={selected.title}>
+      <aside className="records-v13-drawer records-v27-drawer" role="dialog" aria-modal="true" aria-label={selected.title}>
         <header>
           <div><span className="section-kicker">{selected.protocol || 'MEMÓRIA DA CONTA'}</span><h2>{selected.title}</h2><p>{role === 'admin' ? companyMap.get(selected.companyId) || '' : typeLabels[selected.type]}{role === 'admin' ? ` · ${typeLabels[selected.type]}` : ''}</p></div>
           <button type="button" className="drawer-close" onClick={() => setConversationOpen(false)}><X size={20} /></button>
@@ -434,6 +525,30 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
           <span>Atualizado {formatDateTime(selected.lastActivityAt || selected.occurredAt)}</span>
           {selected.requiresAction && role === 'admin' && <strong>Ação necessária</strong>}
         </div>
+
+        {role === 'client' && selected.workflowStatus === 'completed' && (feedbackThanks || !feedbackByRecord[selected.id]) && <div className="records-v27-feedback-overlay">
+          <section className="records-v27-feedback-card">
+            {feedbackThanks ? <div className="records-v27-feedback-thanks">
+              <CheckCircle2 size={30} />
+              <span>AVALIAÇÃO REGISTRADA</span>
+              <h3>Obrigada pela sua avaliação.</h3>
+              <p>Ela fica vinculada a esta solicitação e ajuda a CALI a acompanhar a qualidade das entregas.</p>
+              <button className="primary" type="button" onClick={() => setFeedbackThanks(false)}>Voltar ao histórico</button>
+            </div> : <>
+              <span className="section-kicker">ANTES DE ENCERRAR</span>
+              <h3>Como foi este atendimento?</h3>
+              <p>Avalie de 1 a 5. Para notas de 1 a 3, conte brevemente o que poderia ter sido melhor.</p>
+              <div className="records-v27-score" role="group" aria-label="Avaliação de 1 a 5">
+                {[1, 2, 3, 4, 5].map((score) => <button key={score} type="button" className={feedbackScore === score ? 'selected' : ''} disabled={feedbackSaving} onClick={() => { setFeedbackScore(score); if (score >= 4) void submitFeedback(score); }}>{score}</button>)}
+              </div>
+              {feedbackScore != null && feedbackScore <= 3 && <div className="records-v27-feedback-reason">
+                <label>O que poderia ter sido melhor?<textarea rows={4} value={feedbackComment} onChange={(event) => setFeedbackComment(event.target.value)} placeholder="Conte em poucas palavras." autoFocus /></label>
+                <button className="primary" type="button" disabled={feedbackSaving || feedbackComment.trim().length < 3} onClick={() => void submitFeedback()}>{feedbackSaving ? 'Enviando…' : 'Enviar avaliação'}</button>
+              </div>}
+              {feedbackSaving && <small className="records-v27-feedback-saving">Registrando sua avaliação…</small>}
+            </>}
+          </section>
+        </div>}
 
         {selected.workflowStatus ? <div className="records-v13-conversation">
           <div className="conversation-history">
@@ -446,9 +561,13 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
               </div>;
             })}
           </div>
-          {!['completed', 'cancelled'].includes(selected.workflowStatus) && <div className="conversation-compose">
+          {!clientConversationLocked && !['completed', 'cancelled'].includes(selected.workflowStatus) && <div className="conversation-compose">
             <textarea rows={3} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder={role === 'admin' ? 'Responder ao cliente…' : 'Responder à Patrícia…'} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} />
             <button className="primary" type="button" disabled={sendingMessage || !messageDraft.trim()} onClick={() => void sendMessage()}><Send size={16} />{sendingMessage ? 'Enviando…' : 'Enviar'}</button>
+          </div>}
+          {clientConversationLocked && <div className="records-v27-chat-locked">
+            <div><span>CONVERSA ENCERRADA</span><strong>{selected.workflowStatus === 'standby' ? 'Esta solicitação está em stand by.' : selected.workflowStatus === 'cancelled' ? 'Esta solicitação foi cancelada.' : 'Esta solicitação foi finalizada.'}</strong><p>O histórico continua disponível, mas novas mensagens só são liberadas depois que a CALI aprovar a reabertura. O tempo já consumido permanece contabilizado e não é devolvido ao saldo de horas.</p></div>
+            <button className="secondary" type="button" disabled={reopenSaving || reopenPending} onClick={() => void requestReopen()}>{reopenPending ? 'Reabertura solicitada' : reopenSaving ? 'Enviando…' : 'Solicitar reabertura'}</button>
           </div>}
         </div> : <div className="records-v13-memory-detail">
           <div><span>Contexto</span><p>{selected.summary || 'Sem resumo registrado.'}</p></div>
@@ -462,8 +581,8 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
             {selected.workflowStatus === 'open' && <button className="primary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Assumir</button>}
             {selected.workflowStatus === 'in_progress' && <><button className="secondary" disabled={statusSaving} onClick={() => void changeStatus('waiting_client')}>Aguardar cliente</button><button className="secondary" disabled={statusSaving} onClick={() => void changeStatus('standby')}>Stand by</button><button className="primary" disabled={statusSaving} onClick={() => void changeStatus('completed')}>Finalizar</button></>}
             {selected.workflowStatus === 'waiting_client' && <><button className="secondary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Retomar</button><button className="secondary" disabled={statusSaving} onClick={() => void changeStatus('standby')}>Stand by</button><button className="primary" disabled={statusSaving} onClick={() => void changeStatus('completed')}>Finalizar</button></>}
-            {selected.workflowStatus === 'standby' && <button className="primary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Retomar</button>}
-            {selected.workflowStatus && ['completed', 'cancelled'].includes(selected.workflowStatus) && <button className="secondary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Reabrir</button>}
+            {selected.workflowStatus === 'standby' && <button className="primary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>{reopenPending ? 'Aprovar reabertura' : 'Retomar'}</button>}
+            {selected.workflowStatus && ['completed', 'cancelled'].includes(selected.workflowStatus) && <button className="secondary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>{reopenPending ? 'Aprovar reabertura' : 'Reabrir'}</button>}
           </div>
           <div className="memory-actions">
             <button className="secondary" type="button" onClick={() => { setConversationOpen(false); openEdit(selected); }}><Pencil size={14} />Enriquecer memória</button>
