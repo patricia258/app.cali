@@ -1,0 +1,56 @@
+/* CALI Workspace · padrão único de conversa aplicado aos entregáveis */
+.client-deliverable-workspace-v33 .deliverable-workspace-header-v2 .status-chip-v3{display:none!important}
+
+.workspace-chat-standard{--chat-bordeaux:#5A1E2D;--chat-gold:#B58C52;--chat-client:#F2D89D;--chat-client-border:#D5B36A;overflow:visible!important}
+.workspace-chat-standard>header{padding-bottom:14px!important}
+.workspace-chat-standard .client-conversation-title-v33>div{gap:4px!important}
+.workspace-chat-standard .client-conversation-title-v33 strong{font-size:15px!important;color:var(--theme-text)!important}
+.workspace-chat-standard .client-conversation-title-v33 p{font-size:11.5px!important;line-height:1.5!important}
+
+.workspace-chat-standard .conversation-list-v2.workspace-chat-list{display:grid!important;gap:17px!important;min-height:260px;max-height:430px;overflow-y:auto!important;padding:22px 20px!important;background:color-mix(in srgb,var(--theme-surface-soft) 44%,var(--theme-surface));border-top:1px solid var(--theme-line);border-bottom:1px solid var(--theme-line)}
+.workspace-chat-line{display:flex;align-items:flex-end;gap:10px;width:100%}
+.workspace-chat-line.mine{justify-content:flex-end}.workspace-chat-line.other{justify-content:flex-start}
+.workspace-chat-avatar{width:42px;height:42px;flex:0 0 42px;border-radius:14px;display:grid;place-items:center;overflow:hidden;border:1px solid var(--theme-line);background-color:var(--theme-surface);background-position:center;background-size:cover;color:var(--chat-bordeaux);font-size:10px;font-weight:900;box-shadow:0 5px 16px rgba(50,32,37,.08)}
+.workspace-chat-bubble{max-width:76%;padding:13px 15px;border:1px solid var(--theme-line);border-radius:18px;box-shadow:0 7px 20px rgba(42,29,33,.07);overflow:visible}
+.workspace-chat-line.role-admin .workspace-chat-bubble{background:var(--chat-bordeaux);border-color:var(--chat-bordeaux);color:#fff;border-radius:18px 18px 18px 5px}
+.workspace-chat-line.role-admin.mine .workspace-chat-bubble{border-radius:18px 18px 5px 18px}
+.workspace-chat-line.role-client .workspace-chat-bubble{background:var(--chat-client);border-color:var(--chat-client-border);color:#34291e;border-radius:18px 18px 18px 5px}
+.workspace-chat-line.role-client.mine .workspace-chat-bubble{border-radius:18px 18px 5px 18px}
+.workspace-chat-line.role-system .workspace-chat-bubble{background:var(--theme-surface-soft);color:var(--theme-text)}
+.workspace-chat-line.internal .workspace-chat-bubble{background:color-mix(in srgb,var(--chat-gold) 13%,var(--theme-surface))!important;border:1px dashed color-mix(in srgb,var(--chat-gold) 43%,var(--theme-line))!important;color:var(--theme-text)!important}
+.workspace-chat-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:7px}
+.workspace-chat-head strong{font-size:11px!important;letter-spacing:.035em;color:inherit!important}.workspace-chat-head time{font-size:9.5px;white-space:nowrap;opacity:.72}
+.workspace-chat-bubble>p{margin:0;font-size:14px!important;line-height:1.55!important;color:inherit!important;white-space:pre-wrap;overflow-wrap:anywhere}
+.workspace-chat-bubble>p a{color:inherit;text-decoration:underline;text-underline-offset:2px;font-weight:750}
+.workspace-chat-empty{display:grid;place-items:center;min-height:190px;color:var(--theme-muted);font-size:12.5px;text-align:center}
+
+.workspace-chat-reactions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:11px;padding-top:9px;border-top:1px solid rgba(255,255,255,.18)}
+.workspace-chat-line.role-client .workspace-chat-reactions{border-top-color:rgba(90,30,45,.12)}
+.workspace-chat-reactions button{min-width:31px;height:31px;padding:0 7px;display:inline-flex;align-items:center;justify-content:center;gap:4px;border:1px solid rgba(255,255,255,.26);border-radius:999px;background:rgba(255,255,255,.09);color:inherit;cursor:pointer;font:inherit;font-size:15px;line-height:1;transition:.15s ease}
+.workspace-chat-reactions button:hover{transform:translateY(-1px);background:rgba(255,255,255,.18)}
+.workspace-chat-reactions button.active{background:var(--chat-gold)!important;border-color:#D1AA6C!important;color:#fff!important;box-shadow:0 4px 12px rgba(86,55,27,.16)}
+.workspace-chat-reactions button small{font-size:9px;font-weight:850;line-height:1}
+.workspace-chat-line.role-client .workspace-chat-reactions button{border-color:rgba(90,30,45,.14);background:rgba(255,255,255,.28);color:#4A2630}
+.workspace-chat-line.role-client .workspace-chat-reactions button:hover{background:rgba(255,255,255,.48);border-color:rgba(90,30,45,.24)}
+
+.workspace-chat-attachments{display:grid;gap:7px;margin-top:10px}.workspace-chat-attachment{display:flex;align-items:center;gap:9px;width:100%;padding:9px 10px;border:1px solid rgba(255,255,255,.25);border-radius:11px;background:rgba(255,255,255,.11);color:inherit;text-align:left;cursor:pointer}
+.workspace-chat-line.role-client .workspace-chat-attachment{border-color:rgba(90,30,45,.16);background:rgba(255,255,255,.32)}
+.workspace-chat-attachment>span:last-child{display:grid;gap:1px;min-width:0}.workspace-chat-attachment strong{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.workspace-chat-attachment small{font-size:9px;opacity:.72}
+
+.workspace-chat-standard .conversation-composer-v2.workspace-chat-compose{position:relative;display:grid!important;grid-template-columns:auto minmax(0,1fr) auto!important;grid-template-areas:"pending pending pending" "tools field send"!important;align-items:end!important;gap:10px!important;padding:16px 18px 18px!important;overflow:visible!important}
+.workspace-chat-compose textarea{grid-area:field;min-height:92px!important;padding:13px 14px!important;border:1px solid var(--theme-line)!important;border-radius:14px!important;background:var(--theme-surface)!important;color:var(--theme-text)!important;font:inherit!important;font-size:14px!important;line-height:1.5!important;resize:vertical;outline:none}
+.workspace-chat-compose textarea:focus{border-color:var(--chat-gold)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--chat-gold) 13%,transparent)!important}
+.workspace-chat-compose>div:not(.workspace-chat-tools):not(.workspace-chat-pending){grid-area:send;display:flex!important;align-items:center!important;gap:8px!important}
+.workspace-chat-compose>div:not(.workspace-chat-tools):not(.workspace-chat-pending)>.primary{height:48px!important;min-width:96px;font-size:12px!important}
+.workspace-chat-tools{grid-area:tools;display:flex;align-items:center;gap:5px;position:relative;padding-bottom:2px;overflow:visible}
+.workspace-chat-tools>button{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--theme-line);border-radius:11px;background:var(--theme-surface-soft);color:var(--theme-text);font:inherit;font-size:17px;cursor:pointer}
+.workspace-chat-tools>button:hover{border-color:var(--chat-gold);background:color-mix(in srgb,var(--chat-gold) 10%,var(--theme-surface))}
+.workspace-chat-emoji-picker{position:absolute;bottom:48px;left:0;z-index:10120;width:252px;display:grid;grid-template-columns:repeat(6,minmax(30px,1fr));gap:5px;padding:12px;border:1px solid var(--theme-line);border-radius:13px;background:var(--theme-surface);box-shadow:0 14px 36px rgba(44,27,32,.16)}
+.workspace-chat-emoji-picker[hidden]{display:none!important}.workspace-chat-emoji-picker button{width:32px;height:32px;padding:3px;display:grid;place-items:center;border:0;border-radius:7px;background:transparent;font-size:20px;line-height:1;cursor:pointer}.workspace-chat-emoji-picker button:hover{background:var(--theme-surface-soft)}
+.workspace-chat-pending{grid-area:pending;display:flex;gap:6px;flex-wrap:wrap}.workspace-chat-pending-chip{display:inline-flex;align-items:center;gap:7px;padding:6px 8px;border:1px solid rgba(181,140,82,.3);border-radius:999px;background:rgba(181,140,82,.09);font-size:10.5px;color:var(--theme-text)}.workspace-chat-pending-chip button{border:0;background:transparent;color:var(--theme-muted);font-size:16px;line-height:1;cursor:pointer}
+
+[data-workspace-theme='night'] .workspace-chat-line.role-admin .workspace-chat-bubble{background:#711f35;border-color:#8a3149}
+[data-workspace-theme='night'] .workspace-chat-line.role-client .workspace-chat-bubble{background:#8A682F;border-color:#A98547;color:#fff8e9}
+[data-workspace-theme='night'] .workspace-chat-line.role-client .workspace-chat-reactions button{border-color:rgba(255,245,225,.18);background:rgba(255,255,255,.07);color:#FFF4DE}
+
+@media(max-width:760px){.workspace-chat-bubble{max-width:82%}.workspace-chat-standard .conversation-composer-v2.workspace-chat-compose{grid-template-columns:1fr auto!important;grid-template-areas:"pending pending" "tools tools" "field send"!important}.workspace-chat-emoji-picker{width:238px;grid-template-columns:repeat(6,minmax(28px,1fr))}.workspace-chat-avatar{width:38px;height:38px;flex-basis:38px}.workspace-chat-standard .conversation-list-v2.workspace-chat-list{padding:18px 14px!important}}
