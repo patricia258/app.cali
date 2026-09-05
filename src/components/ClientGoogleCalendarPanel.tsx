@@ -83,11 +83,11 @@ export function ClientGoogleCalendarPanel(){
   return <section className={`client-google-panel ${connection?'connected':''}`}>
     <div className="client-google-icon"><CalendarCheck2 size={20}/></div>
     <div className="client-google-copy">
-      <span>GOOGLE CALENDAR</span>
-      <strong>{loading?'Verificando sua agenda…':connection?'Sua agenda está conectada':'Conecte sua agenda pessoal'}</strong>
+      <span>GOOGLE CALENDAR · OPCIONAL</span>
+      <strong>{loading?'Verificando sua agenda…':connection?'Sua agenda está conectada':'Sua agenda do Workspace já funciona'}</strong>
       <p>{connection
-        ? `Conectado a ${connection.account_email||'sua conta Google'}. Compromissos criados por você no Workspace podem usar esta agenda.`
-        : 'A conexão é exclusiva da sua conta. A CALI não usa a agenda da Patrícia como substituta da sua.'}</p>
+        ? `Conectado a ${connection.account_email||'sua conta Google'}. Os compromissos publicados pela CALI continuam aparecendo aqui no Workspace e podem também ser acompanhados na sua agenda pessoal.`
+        : 'Você não precisa conectar o Google para ver reuniões, prazos ou links de Meet no Workspace. Conecte apenas se quiser integrar esses compromissos à sua agenda pessoal.'}</p>
       {error&&<small className="client-google-error">{error}</small>}
     </div>
     <div className="client-google-actions">
