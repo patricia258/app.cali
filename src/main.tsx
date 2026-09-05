@@ -20,7 +20,7 @@ import { installRecordsOperationsRuntimeV25 } from './lib/recordsOperationsRunti
 import { installRecordsClosureExperienceRuntimeV29 } from './lib/recordsClosureExperienceRuntimeV29';
 import { installRecordsClosureFinalPolishV30 } from './lib/recordsClosureFinalPolishV30';
 import { installDashboardSatisfactionRuntimeV29 } from './lib/dashboardSatisfactionRuntimeV29';
-import { installDeliverableChatStandardRuntimeV34 } from './lib/deliverableChatStandardRuntimeV34';
+import { installDeliverableChatStandardRuntimeV35 } from './lib/deliverableChatStandardRuntimeV35';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -129,7 +129,7 @@ installRecordsOperationsRuntimeV25();
 installRecordsClosureExperienceRuntimeV29();
 installRecordsClosureFinalPolishV30();
 installDashboardSatisfactionRuntimeV29();
-installDeliverableChatStandardRuntimeV34();
+installDeliverableChatStandardRuntimeV35();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
