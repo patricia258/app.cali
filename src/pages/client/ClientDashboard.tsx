@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowUpRight, CalendarDays, CheckCircle2, ChevronRight, Clock3, FileCheck2,
@@ -6,6 +6,7 @@ import {
   Sparkles, Star, X,
 } from 'lucide-react';
 import { Progress, Shell } from '../../components/WorkspaceShell';
+import { loadClientDeliveryReality, subscribeClientDeliveryReality } from '../../lib/clientDeliveryReality';
 import { supabase } from '../../lib/supabase';
 
 type Company = {
@@ -42,6 +43,8 @@ type DashboardData = {
   events: EventItem[];
   minutes: number;
   nps: number | null;
+  npsCount: number;
+  completionPct: number;
   reportCount: number;
 };
 
@@ -75,21 +78,21 @@ function formatEventDate(value: string) {
     time: new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(date),
   };
 }
-function QualityDonut({ value }: { value: number }) {
+function CompletionDonut({ value }: { value: number }) {
   const bounded = Math.max(0, Math.min(100, value));
   const circumference = 2 * Math.PI * 42;
   const offset = circumference - (bounded / 100) * circumference;
-  return <div className="client-quality-donut" aria-label={`Índice de andamento ${bounded}%`}>
+  return <div className="client-quality-donut" aria-label={`Entregas aprovadas ${bounded}%`}>
     <svg viewBox="0 0 100 100" role="img">
       <circle className="donut-track" cx="50" cy="50" r="42" />
       <circle className="donut-value" cx="50" cy="50" r="42" strokeDasharray={circumference} strokeDashoffset={offset} />
     </svg>
-    <div><strong>{bounded}%</strong><span>andamento</span></div>
+    <div><strong>{bounded}%</strong><span>aprovado</span></div>
   </div>;
 }
 
 export function ClientDashboard() {
-  const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, nps: null, reportCount: 0 });
+  const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, nps: null, npsCount: 0, completionPct: 0, reportCount: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
@@ -98,12 +101,27 @@ export function ClientDashboard() {
   const [chatSent, setChatSent] = useState(false);
   const [assistantReply, setAssistantReply] = useState('');
   const [sending, setSending] = useState(false);
+  const refreshTimer = useRef<number | null>(null);
+  const loadingRef = useRef(false);
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    void load(true);
+    return () => { if (refreshTimer.current) window.clearTimeout(refreshTimer.current); };
+  }, []);
 
-  async function load() {
-    if (!supabase) return;
-    setLoading(true);
+  useEffect(() => {
+    const companyId = data.company?.id;
+    if (!companyId) return;
+    return subscribeClientDeliveryReality(companyId, () => {
+      if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
+      refreshTimer.current = window.setTimeout(() => void load(false), 260);
+    });
+  }, [data.company?.id]);
+
+  async function load(showLoading = false) {
+    if (!supabase || loadingRef.current) return;
+    loadingRef.current = true;
+    if (showLoading) setLoading(true);
     setError('');
     try {
       const userResult = await supabase.auth.getUser();
@@ -117,40 +135,49 @@ export function ClientDashboard() {
       if (!companyId) throw new Error('Este acesso ainda não está vinculado a uma empresa.');
 
       const nowIso = new Date().toISOString();
-      const [companyResult, projectResult, deliverableResult, hoursResult, eventResult, npsResult, reportResult, contactResult] = await Promise.all([
+      const [companyResult, deliveryReality, eventResult, reportResult, contactResult] = await Promise.all([
         supabase.from('companies').select('id,display_name,logo_url,service_type,service_plan,start_date,end_date,monthly_hours_contracted,show_hours_to_client').eq('id', companyId).single(),
-        supabase.from('projects').select('id,name,status,start_date,target_end_date').eq('company_id', companyId).neq('status', 'cancelled').order('created_at', { ascending: false }),
-        supabase.from('deliverables').select('id,title,status,due_at,project_id').eq('company_id', companyId).eq('client_visible', true).neq('status', 'cancelled').order('sort_order'),
-        supabase.from('hour_entries').select('minutes').eq('company_id', companyId).eq('client_visible', true),
+        loadClientDeliveryReality(companyId),
         supabase.from('events').select('id,title,starts_at,mode,meeting_url').eq('company_id', companyId).eq('visibility', 'client').is('cancelled_at', null).gte('starts_at', nowIso).order('starts_at').limit(3),
-        supabase.from('nps_responses').select('score').eq('company_id', companyId).order('created_at', { ascending: false }).limit(20),
         supabase.from('reports').select('id').eq('company_id', companyId).not('published_at', 'is', null),
         supabase.rpc('get_client_account_contact'),
       ]);
 
       if (companyResult.error) throw companyResult.error;
-      if (projectResult.error) throw projectResult.error;
-      if (deliverableResult.error) throw deliverableResult.error;
-      if (hoursResult.error) throw hoursResult.error;
       if (eventResult.error) throw eventResult.error;
-
-      const scores = npsResult.error ? [] : (npsResult.data || []).map((row: any) => Number(row.score)).filter((score: number) => Number.isFinite(score));
-      const nps = scores.length ? scores.reduce((sum: number, score: number) => sum + score, 0) / scores.length : null;
       const contactRows = contactResult.error ? [] : ((contactResult.data || []) as Contact[]);
+
       setData({
         company: companyResult.data as Company,
         profile: profileResult.data as Profile,
         contact: contactRows[0] || null,
-        projects: (projectResult.data || []) as Project[],
-        deliverables: (deliverableResult.data || []) as Deliverable[],
+        projects: deliveryReality.projects.map((project) => ({
+          id: project.id,
+          name: project.name,
+          status: project.status,
+          start_date: project.startDate,
+          target_end_date: project.targetEndDate,
+        })),
+        deliverables: deliveryReality.deliverables.filter((item) => item.status !== 'cancelled').map((item) => ({
+          id: item.id,
+          title: item.title,
+          status: item.status,
+          due_at: item.dueAt,
+          project_id: item.projectId,
+        })),
         events: (eventResult.data || []) as EventItem[],
-        minutes: (hoursResult.data || []).reduce((sum: number, row: any) => sum + Number(row.minutes || 0), 0),
-        nps,
+        minutes: deliveryReality.metrics.visibleMinutes || 0,
+        nps: deliveryReality.metrics.averageDeliveryScore,
+        npsCount: deliveryReality.metrics.feedbackCount,
+        completionPct: deliveryReality.metrics.completionPct,
         reportCount: reportResult.error ? 0 : (reportResult.data || []).length,
       });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar sua área.');
-    } finally { setLoading(false); }
+    } finally {
+      loadingRef.current = false;
+      if (showLoading) setLoading(false);
+    }
   }
 
   const activeProject = data.projects.find((project) => !['completed', 'cancelled'].includes(project.status)) || data.projects[0] || null;
@@ -159,16 +186,10 @@ export function ClientDashboard() {
   const waiting = data.deliverables.filter((item) => item.status === 'client_review');
   const activeDeliverables = data.deliverables.filter((item) => !closedStatuses.has(item.status));
   const movingCount = projectDeliverables.filter((item) => ['in_progress', 'internal_review', 'client_review', 'adjustment_requested', 'rebriefing'].includes(item.status)).length;
-  const contractedMinutes = Number(data.company?.monthly_hours_contracted || 0) * 60;
+  const showHours = Boolean(data.company?.show_hours_to_client);
+  const contractedMinutes = showHours ? Number(data.company?.monthly_hours_contracted || 0) * 60 : 0;
   const hoursPct = contractedMinutes > 0 ? Math.min(100, Math.round((data.minutes / contractedMinutes) * 100)) : 0;
   const packageName = data.company?.service_plan || data.company?.service_type || 'Contratação CALI';
-  const qualityIndex = useMemo(() => {
-    if (!data.deliverables.length) return 0;
-    const approved = data.deliverables.filter((item) => item.status === 'approved').length;
-    const review = data.deliverables.filter((item) => item.status === 'client_review').length;
-    const moving = data.deliverables.filter((item) => ['in_progress', 'internal_review'].includes(item.status)).length;
-    return Math.round(((approved + review * .8 + moving * .5) / data.deliverables.length) * 100);
-  }, [data.deliverables]);
 
   function quickAnswer(kind: 'next_event' | 'hours' | 'validation' | 'reports') {
     if (kind === 'next_event') {
@@ -179,7 +200,10 @@ export function ClientDashboard() {
         setAssistantReply(`Seu próximo compromisso é “${next.title}”, em ${new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(date)}.`);
       }
     }
-    if (kind === 'hours') setAssistantReply(contractedMinutes > 0 ? `Há ${formatHours(data.minutes)} registradas neste ciclo, de ${Number(data.company?.monthly_hours_contracted || 0)}h contratadas.` : `Há ${formatHours(data.minutes)} registradas. A franquia mensal ainda não está definida no cadastro da sua conta.`);
+    if (kind === 'hours') {
+      if (!showHours) setAssistantReply('A visualização de horas não está habilitada para esta conta. Quando a CALI disponibilizar esse indicador, ele aparecerá aqui automaticamente.');
+      else setAssistantReply(contractedMinutes > 0 ? `Há ${formatHours(data.minutes)} registradas neste ciclo, de ${Number(data.company?.monthly_hours_contracted || 0)}h contratadas.` : `Há ${formatHours(data.minutes)} registradas. A franquia mensal ainda não está definida no cadastro da sua conta.`);
+    }
     if (kind === 'validation') setAssistantReply(waiting.length ? `${waiting.length} ${waiting.length === 1 ? 'entrega está' : 'entregas estão'} aguardando sua validação.` : 'Você não tem validação pendente neste momento.');
     if (kind === 'reports') setAssistantReply(data.reportCount ? `${data.reportCount} ${data.reportCount === 1 ? 'relatório publicado está' : 'relatórios publicados estão'} disponível na sua área.` : 'Ainda não há relatório publicado para sua conta.');
   }
@@ -218,7 +242,7 @@ export function ClientDashboard() {
           <div className="contract-icon"><Sparkles size={18} /></div>
           <div className="contract-main"><span>SUA CONTRATAÇÃO</span><strong>{packageName}</strong><small>{data.company?.display_name || 'Conta CALI'}</small></div>
           <div className="contract-metric">
-            {data.company?.monthly_hours_contracted ? <><strong>{formatHours(data.minutes)}</strong><span>de {Number(data.company.monthly_hours_contracted)}h</span></> : <><strong>{activeProject ? 'Ativo' : 'Em preparação'}</strong><span>ciclo atual</span></>}
+            {showHours && data.company?.monthly_hours_contracted ? <><strong>{formatHours(data.minutes)}</strong><span>de {Number(data.company.monthly_hours_contracted)}h</span></> : <><strong>{activeProject ? 'Ativo' : 'Em preparação'}</strong><span>ciclo atual</span></>}
           </div>
         </aside>
       </header>
@@ -232,11 +256,15 @@ export function ClientDashboard() {
       </section>}
 
       <section className="client-executive-grid">
-        <article className="executive-card hours-card">
+        {showHours ? <article className="executive-card hours-card">
           <div className="metric-icon"><Clock3 size={18} /></div><span>Horas do ciclo</span>
           <strong>{formatHours(data.minutes)}{data.company?.monthly_hours_contracted ? <small> de {Number(data.company.monthly_hours_contracted)}h</small> : null}</strong>
-          {contractedMinutes > 0 ? <><Progress value={hoursPct} /><p>{hoursPct}% da referência contratada no ciclo.</p></> : <p>A referência contratada aparece assim que a franquia mensal for definida.</p>}
-        </article>
+          {contractedMinutes > 0 ? <><Progress value={hoursPct} /><p>{hoursPct}% da referência contratada no ciclo.</p></> : <p>Somente horas explicitamente compartilhadas pela CALI entram neste indicador.</p>}
+        </article> : <article className="executive-card hours-card">
+          <div className="metric-icon"><Clock3 size={18} /></div><span>Ciclo atual</span>
+          <strong>{activeProject ? 'Ativo' : 'Em preparação'}</strong>
+          <p>{activeProject?.target_end_date ? `Previsão atual: ${formatDate(activeProject.target_end_date)}.` : 'O cronograma publicado será refletido aqui quando houver uma data definida.'}</p>
+        </article>}
 
         <article className="executive-card project-card">
           <div className="metric-icon"><ListChecks size={18} /></div><span>Entregas do ciclo</span>
@@ -249,12 +277,12 @@ export function ClientDashboard() {
           <div className="metric-icon"><Star size={18} /></div><span>Percepção das entregas</span>
           <strong>{data.nps == null ? '—' : `${data.nps.toFixed(1)} / 5`}</strong>
           <div className="mini-stars">{data.nps == null ? 'Ainda sem avaliação' : '★★★★★'}</div>
-          <p>{data.nps == null ? 'Sua avaliação aparece aqui após as primeiras aprovações.' : 'Média das avaliações registradas.'}</p>
+          <p>{data.nps == null ? 'Sua avaliação aparece aqui após as primeiras aprovações.' : `Média real de ${data.npsCount} ${data.npsCount === 1 ? 'avaliação registrada' : 'avaliações registradas'}.`}</p>
         </article>
 
         <article className="executive-card quality-card">
-          <QualityDonut value={qualityIndex} />
-          <div><span>Índice de evolução</span><strong>Leitura do ciclo</strong><p>Combina entregas concluídas, em validação e em execução para uma leitura rápida do avanço.</p></div>
+          <CompletionDonut value={data.completionPct} />
+          <div><span>Conclusão das entregas</span><strong>Dado real do ciclo</strong><p>{approvedCount} de {projectDeliverables.length} entregas do projeto atual estão aprovadas. O percentual não usa estimativa de status.</p></div>
         </article>
       </section>
 
@@ -300,7 +328,7 @@ export function ClientDashboard() {
 
       <div className="chat-auto-block">
         <span>POSSO RESPONDER AGORA</span>
-        <div className="chat-auto-actions"><button onClick={() => quickAnswer('next_event')}>Próxima reunião</button><button onClick={() => quickAnswer('hours')}>Horas do ciclo</button><button onClick={() => quickAnswer('validation')}>Validações</button><button onClick={() => quickAnswer('reports')}>Relatórios</button></div>
+        <div className="chat-auto-actions"><button onClick={() => quickAnswer('next_event')}>Próxima reunião</button>{showHours && <button onClick={() => quickAnswer('hours')}>Horas do ciclo</button>}<button onClick={() => quickAnswer('validation')}>Validações</button><button onClick={() => quickAnswer('reports')}>Relatórios</button></div>
         {assistantReply && <div className="chat-auto-reply"><Leaf size={15} /><p>{assistantReply}</p></div>}
       </div>
 
