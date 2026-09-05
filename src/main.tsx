@@ -16,6 +16,7 @@ import { installRecordsExperienceRuntimeV2 } from './lib/recordsExperienceRuntim
 import { installRecordsMessageControlsRuntime } from './lib/recordsMessageControlsRuntime';
 import { installRecordsConversationScrollGuard } from './lib/recordsConversationScrollGuard';
 import { installNotificationExperienceRuntime } from './lib/notificationExperienceRuntime';
+import { installRecordsOperationsRuntimeV25 } from './lib/recordsOperationsRuntimeV25';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -100,6 +101,7 @@ import './records-v21-chat-theme-fix.css';
 import './records-v22-message-controls.css';
 import './notification-experience-v2.css';
 import './loading-illustrations-final.css';
+import './records-v25-operations.css';
 
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
@@ -115,6 +117,7 @@ installRecordsExperienceRuntimeV2();
 installRecordsMessageControlsRuntime();
 installRecordsConversationScrollGuard();
 installNotificationExperienceRuntime();
+installRecordsOperationsRuntimeV25();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

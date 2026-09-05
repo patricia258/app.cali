@@ -8,9 +8,9 @@ import { TimerFinalizationDialog, type TimerFinalizationTarget } from './TimerFi
 import type { Role } from './WorkspaceShell';
 
 type TimerRow = {
-  id: string; companyId: string; projectId?: string|null; deliverableId?: string|null; taskId?: string|null;
+  id: string; companyId: string; projectId?: string|null; deliverableId?: string|null; taskId?: string|null; accountRecordId?: string|null;
   startedAt: string; pausedSeconds: number; category?: string|null; description?: string|null;
-  companyName: string; companyLogo?: string|null; projectName?: string|null; deliverableName?: string|null; taskName?: string|null;
+  companyName: string; companyLogo?: string|null; projectName?: string|null; deliverableName?: string|null; taskName?: string|null; recordTitle?: string|null;
   deliverableStatus?: string|null;
 };
 type PendingOrigin = { deliverableId?: string|null; deliverableName?: string|null; taskId?: string|null; taskName?: string|null };
@@ -23,6 +23,7 @@ function initials(name:string){return name.trim().split(/\s+/).slice(0,2).map(p=
 function normalize(value?:string|null){return(value||'').replace(/\s+/g,' ').trim().toLocaleLowerCase('pt-BR');}
 function contextIsVisible(timer:TimerRow,pathname:string){
   if(pathname.startsWith('/admin/horas'))return true;
+  if(timer.accountRecordId&&pathname.startsWith('/admin/registros')&&document.querySelector('.records-v25-timer.is-active'))return true;
   const explicit=Array.from(document.querySelectorAll<HTMLElement>('[data-timer-context-deliverable-id],[data-timer-context-task-id]'));
   if(explicit.some(node=>(timer.taskId&&node.dataset.timerContextTaskId===timer.taskId)||(timer.deliverableId&&node.dataset.timerContextDeliverableId===timer.deliverableId)))return true;
   const modal=document.querySelector<HTMLElement>('.deliverable-workspace-modal-v2');
@@ -41,17 +42,18 @@ export function GlobalTimerBar({role}:{role:Role}){
 
   const load=useCallback(async()=>{
     if(role!=='admin'||!supabase){setTimers([]);return;}const user=(await supabase.auth.getUser()).data.user;if(!user){setTimers([]);return;}
-    const timerResult=await supabase.from('work_timers').select('id,company_id,project_id,deliverable_id,task_id,started_at,paused_seconds,category,description').eq('user_id',user.id).eq('status','active').order('started_at',{ascending:true});
+    const timerResult=await supabase.from('work_timers').select('id,company_id,project_id,deliverable_id,task_id,account_record_id,started_at,paused_seconds,category,description').eq('user_id',user.id).eq('status','active').order('started_at',{ascending:true});
     if(timerResult.error||!timerResult.data?.length){if(mounted.current)setTimers([]);return;}
-    const raw=timerResult.data as any[],companyIds=[...new Set(raw.map(r=>r.company_id).filter(Boolean))],projectIds=[...new Set(raw.map(r=>r.project_id).filter(Boolean))],deliverableIds=[...new Set(raw.map(r=>r.deliverable_id).filter(Boolean))],taskIds=[...new Set(raw.map(r=>r.task_id).filter(Boolean))];
-    const [companies,projects,deliverables,tasks]=await Promise.all([
+    const raw=timerResult.data as any[],companyIds=[...new Set(raw.map(r=>r.company_id).filter(Boolean))],projectIds=[...new Set(raw.map(r=>r.project_id).filter(Boolean))],deliverableIds=[...new Set(raw.map(r=>r.deliverable_id).filter(Boolean))],taskIds=[...new Set(raw.map(r=>r.task_id).filter(Boolean))],recordIds=[...new Set(raw.map(r=>r.account_record_id).filter(Boolean))];
+    const [companies,projects,deliverables,tasks,records]=await Promise.all([
       companyIds.length?supabase.from('companies').select('id,display_name,logo_url').in('id',companyIds):Promise.resolve({data:[]} as any),
       projectIds.length?supabase.from('projects').select('id,name').in('id',projectIds):Promise.resolve({data:[]} as any),
       deliverableIds.length?supabase.from('deliverables').select('id,title,status').in('id',deliverableIds):Promise.resolve({data:[]} as any),
       taskIds.length?supabase.from('deliverable_tasks').select('id,title').in('id',taskIds):Promise.resolve({data:[]} as any),
+      recordIds.length?supabase.from('account_records').select('id,title').in('id',recordIds):Promise.resolve({data:[]} as any),
     ]);
-    const cm=new Map<string,any>((companies.data||[]).map((r:any)=>[r.id,r])),pm=new Map<string,any>((projects.data||[]).map((r:any)=>[r.id,r])),dm=new Map<string,any>((deliverables.data||[]).map((r:any)=>[r.id,r])),tm=new Map<string,any>((tasks.data||[]).map((r:any)=>[r.id,r]));
-    const next=await Promise.all(raw.map(async r=>{const c=cm.get(r.company_id),d=dm.get(r.deliverable_id);return{id:r.id,companyId:r.company_id,projectId:r.project_id,deliverableId:r.deliverable_id,taskId:r.task_id,startedAt:r.started_at,pausedSeconds:Number(r.paused_seconds||0),category:r.category,description:r.description,companyName:c?.display_name||'Cliente',companyLogo:await resolveWorkspaceMedia(c?.logo_url||''),projectName:pm.get(r.project_id)?.name||null,deliverableName:d?.title||null,deliverableStatus:d?.status||null,taskName:tm.get(r.task_id)?.title||null} as TimerRow;}));
+    const cm=new Map<string,any>((companies.data||[]).map((r:any)=>[r.id,r])),pm=new Map<string,any>((projects.data||[]).map((r:any)=>[r.id,r])),dm=new Map<string,any>((deliverables.data||[]).map((r:any)=>[r.id,r])),tm=new Map<string,any>((tasks.data||[]).map((r:any)=>[r.id,r])),rm=new Map<string,any>((records.data||[]).map((r:any)=>[r.id,r]));
+    const next=await Promise.all(raw.map(async r=>{const c=cm.get(r.company_id),d=dm.get(r.deliverable_id);return{id:r.id,companyId:r.company_id,projectId:r.project_id,deliverableId:r.deliverable_id,taskId:r.task_id,accountRecordId:r.account_record_id,startedAt:r.started_at,pausedSeconds:Number(r.paused_seconds||0),category:r.category,description:r.description,companyName:c?.display_name||'Cliente',companyLogo:await resolveWorkspaceMedia(c?.logo_url||''),projectName:pm.get(r.project_id)?.name||null,deliverableName:d?.title||null,deliverableStatus:d?.status||null,taskName:tm.get(r.task_id)?.title||null,recordTitle:rm.get(r.account_record_id)?.title||null} as TimerRow;}));
     if(mounted.current)setTimers(next);
   },[role]);
 
@@ -61,16 +63,21 @@ export function GlobalTimerBar({role}:{role:Role}){
 
   const visibleTimers=useMemo(()=>timers.filter(t=>!contextIsVisible(t,location.pathname)),[timers,location.pathname,domVersion]);
   async function pause(timer:TimerRow){if(busyId)return;setBusyId(timer.id);try{await pauseTimerSession(timer.id);await load();}catch(e){console.error('Falha ao pausar e registrar sessão',e);}finally{setBusyId(null);}}
-  function requestStop(timer:TimerRow){setPending({timer,target:{id:timer.taskId||timer.deliverableId||timer.id,label:timer.taskName||timer.deliverableName||timer.description||'esta atuação',kind:timer.taskId?'task':'deliverable',clientApproved:timer.deliverableStatus==='approved'}});setConfirmStep(1);setMoreOpen(false);}
+  function requestStop(timer:TimerRow){if(timer.accountRecordId)return;setPending({timer,target:{id:timer.taskId||timer.deliverableId||timer.id,label:timer.taskName||timer.deliverableName||timer.description||'esta atuação',kind:timer.taskId?'task':'deliverable',clientApproved:timer.deliverableStatus==='approved'}});setConfirmStep(1);setMoreOpen(false);}
   async function confirmStop(){if(!pending||busyId)return;setBusyId(pending.timer.id);try{await finalizeTimerWork(pending.timer);setPending(null);setConfirmStep(1);await load();}catch(e){console.error('Falha ao finalizar execução',e);}finally{setBusyId(null);}}
-  function goToOrigin(timer:TimerRow){const origin={deliverableId:timer.deliverableId,deliverableName:timer.deliverableName,taskId:timer.taskId,taskName:timer.taskName};sessionStorage.setItem(ORIGIN_KEY,JSON.stringify(origin));setMoreOpen(false);if(location.pathname.startsWith('/admin/projetos')){if(!openPendingOrigin(origin))setDomVersion(v=>v+1);return;}navigate('/admin/projetos');}
+  function goToOrigin(timer:TimerRow){
+    setMoreOpen(false);
+    if(timer.accountRecordId){navigate(`/admin/registros?record=${timer.accountRecordId}`);return;}
+    const origin={deliverableId:timer.deliverableId,deliverableName:timer.deliverableName,taskId:timer.taskId,taskName:timer.taskName};sessionStorage.setItem(ORIGIN_KEY,JSON.stringify(origin));
+    if(location.pathname.startsWith('/admin/projetos')){if(!openPendingOrigin(origin))setDomVersion(v=>v+1);return;}navigate('/admin/projetos');
+  }
 
   const primary=visibleTimers.slice(0,3),overflow=visibleTimers.slice(3);
   const chip=(timer:TimerRow,extended=false)=><article className={`global-timer-chip ${extended?'global-timer-chip-expanded':''}`} key={timer.id}>
-    <button className="global-timer-origin" type="button" onClick={()=>goToOrigin(timer)} title="Abrir tarefa/entregável de origem"><span className="global-timer-logo">{timer.companyLogo?<img src={timer.companyLogo} alt=""/>:initials(timer.companyName)}</span><span className="global-timer-copy"><strong>{timer.companyName}</strong>{extended&&<small>{timer.taskName||timer.deliverableName||timer.description||timer.projectName||'Atuação CALI'}</small>}</span></button>
+    <button className="global-timer-origin" type="button" onClick={()=>goToOrigin(timer)} title="Abrir origem do timer"><span className="global-timer-logo">{timer.companyLogo?<img src={timer.companyLogo} alt=""/>:initials(timer.companyName)}</span><span className="global-timer-copy"><strong>{timer.companyName}</strong>{extended&&<small>{timer.recordTitle||timer.taskName||timer.deliverableName||timer.description||timer.projectName||'Atuação CALI'}</small>}</span></button>
     <span className="global-timer-clock">{timerLabel(timerSeconds(timer,nowMs))}</span>
     <button className="global-timer-control" type="button" disabled={busyId===timer.id} onClick={()=>void pause(timer)} aria-label="Pausar e registrar esta sessão" title="Pausar: registra esta sessão e remove o timer"><Pause size={14}/></button>
-    <button className="global-timer-control stop" type="button" disabled={busyId===timer.id} onClick={()=>requestStop(timer)} aria-label="Finalizar trabalho definitivamente" title="Stop: finalizar trabalho definitivamente"><Square size={13}/></button>
+    {!timer.accountRecordId&&<button className="global-timer-control stop" type="button" disabled={busyId===timer.id} onClick={()=>requestStop(timer)} aria-label="Finalizar trabalho definitivamente" title="Stop: finalizar trabalho definitivamente"><Square size={13}/></button>}
   </article>;
 
   return <>{role==='admin'&&visibleTimers.length>0&&<div className="global-timers" aria-label="Timers ativos"><span className="global-timers-mark" title={`${visibleTimers.length} timer(s) fora do contexto atual`}><TimerReset size={16}/></span><div className="global-timers-primary">{primary.map(t=>chip(t))}</div>{overflow.length>0&&<div className="global-timers-more-wrap"><button className="global-timers-more" type="button" onClick={()=>setMoreOpen(v=>!v)}>+{overflow.length}</button>{moreOpen&&<div className="global-timers-popover"><header><div><strong>Outros timers</strong><small>Empresas diferentes podem rodar em paralelo.</small></div><button type="button" onClick={()=>setMoreOpen(false)}><X size={16}/></button></header><div>{overflow.map(t=>chip(t,true))}</div></div>}</div>}</div>}
