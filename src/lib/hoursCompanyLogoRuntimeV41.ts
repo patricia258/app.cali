@@ -1,3 +1,4 @@
+import '../hours-company-logo-v41.css';
 import { ensureCompanyWorkspaceLogo, resolveCompanyAsset, type CompanyLogoRecord } from './companyWorkspaceLogo';
 import { supabase } from './supabase';
 
