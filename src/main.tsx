@@ -98,6 +98,7 @@ import './client-home-v4.css';
 import './client-timeline-v2.css';
 import './client-timeline-v3.css';
 import './client-deliverables-v31.css';
+import './client-deliverables-v32.css';
 import './app-error-boundary.css';
 import './records-v14-overlay-fix.css';
 import './records-v20-conversation-polish.css';
