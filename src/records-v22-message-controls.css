@@ -1,0 +1,41 @@
+/* Registros V22 — reações, edição administrativa e popover sem corte */
+.records-v13-drawer .records-chat-bubble{position:relative!important;overflow:visible!important;}
+.records-v13-drawer .records-chat-head{align-items:flex-start!important;}
+.records-v13-drawer .records-message-meta-extra{display:inline-flex;align-items:center;gap:7px;margin-left:6px;}
+.records-v13-drawer .records-message-meta-extra>em{font-size:9px;font-style:normal;opacity:.66;text-transform:lowercase;}
+.records-v13-drawer .records-message-admin-controls{display:inline-flex;align-items:center;gap:4px;margin-left:2px;}
+.records-v13-drawer .records-message-admin-controls button{width:25px;height:25px;padding:0;display:grid;place-items:center;border:1px solid rgba(255,255,255,.28);border-radius:8px;background:rgba(255,255,255,.12);color:inherit;font-size:15px;line-height:1;cursor:pointer;transition:.16s ease;}
+.records-v13-drawer .records-message-admin-controls button:hover{transform:translateY(-1px);background:rgba(255,255,255,.22);}
+.records-v13-drawer .role-client .records-message-admin-controls button{border-color:rgba(90,30,45,.18);background:rgba(255,255,255,.34);color:#5A1E2D;}
+
+.records-v13-drawer .records-message-reactions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:11px;padding-top:9px;border-top:1px solid rgba(255,255,255,.18);}
+.records-v13-drawer .role-client .records-message-reactions{border-top-color:rgba(90,30,45,.12);}
+.records-v13-drawer .records-message-reactions button{min-width:31px;height:31px;padding:0 7px;display:inline-flex;align-items:center;justify-content:center;gap:4px;border:1px solid rgba(255,255,255,.26);border-radius:999px;background:rgba(255,255,255,.09);color:inherit;cursor:pointer;font-size:15px;line-height:1;transition:.15s ease;}
+.records-v13-drawer .records-message-reactions button:hover{transform:translateY(-1px);background:rgba(255,255,255,.18);}
+.records-v13-drawer .records-message-reactions button.active{background:#B58C52!important;border-color:#D1AA6C!important;color:#fff!important;box-shadow:0 4px 12px rgba(86,55,27,.16);}
+.records-v13-drawer .records-message-reactions button small{font-size:9px;font-weight:850;line-height:1;}
+.records-v13-drawer .role-client .records-message-reactions button{border-color:rgba(90,30,45,.14);background:rgba(255,255,255,.28);color:#4A2630;}
+.records-v13-drawer .role-client .records-message-reactions button:hover{background:rgba(255,255,255,.48);border-color:rgba(90,30,45,.24);}
+
+.records-v13-drawer .records-inline-edit{display:grid;gap:9px;margin-top:2px;}
+.records-v13-drawer .records-inline-edit textarea{width:100%;min-height:92px;resize:vertical;padding:11px 12px;border:1px solid rgba(255,255,255,.28);border-radius:11px;background:rgba(255,255,255,.12);color:inherit;font:inherit;font-size:13.5px;line-height:1.5;outline:none;}
+.records-v13-drawer .records-inline-edit textarea:focus{border-color:#D9B574;box-shadow:0 0 0 3px rgba(181,140,82,.13);}
+.records-v13-drawer .records-inline-edit-actions{display:flex;justify-content:flex-end;gap:7px;}
+.records-v13-drawer .records-inline-edit-actions button{min-height:34px!important;padding:0 12px!important;border-radius:9px!important;font-size:10.5px!important;}
+
+.records-v13-drawer .records-v13-conversation,
+.records-v13-drawer .conversation-compose,
+.records-v13-drawer .records-chat-tools{overflow:visible!important;}
+.records-v13-drawer .records-chat-emoji-picker{width:252px!important;grid-template-columns:repeat(6,minmax(30px,1fr))!important;gap:5px!important;padding:12px!important;bottom:52px!important;left:0!important;right:auto!important;overflow:visible!important;z-index:10120!important;}
+.records-v13-drawer .records-chat-emoji-picker button{width:32px!important;height:32px!important;padding:3px!important;display:grid!important;place-items:center!important;font-size:20px!important;line-height:1!important;overflow:visible!important;}
+
+[data-workspace-theme='night'] .records-v13-drawer .records-message-admin-controls button{border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.08);}
+[data-workspace-theme='night'] .records-v13-drawer .records-message-reactions button{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.06);}
+[data-workspace-theme='night'] .records-v13-drawer .role-client .records-message-reactions button{border-color:rgba(255,245,225,.18);background:rgba(255,255,255,.07);color:#FFF4DE;}
+[data-workspace-theme='night'] .records-v13-drawer .records-inline-edit textarea{background:#321F25;border-color:#5B3C46;color:#F7F3EE;}
+
+@media(max-width:760px){
+  .records-v13-drawer .records-chat-emoji-picker{width:238px!important;grid-template-columns:repeat(6,minmax(28px,1fr))!important;}
+  .records-v13-drawer .records-message-reactions{gap:5px;}
+  .records-v13-drawer .records-message-reactions button{min-width:30px;height:30px;padding:0 6px;}
+}
