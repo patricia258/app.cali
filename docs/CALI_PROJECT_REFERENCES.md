@@ -14,7 +14,10 @@ O Connect é referência de profundidade operacional, organização de projetos,
 - A página principal de Projetos deve funcionar como portfólio por cliente, não como uma lista plana de projetos.
 - Projetos não encerrados aparecem em **Em andamento**; projetos `closed/encerrados` aparecem em **Finalizados**.
 - Múltiplos projetos da mesma empresa ficam agrupados sob a mesma empresa.
-- Busca deve localizar cliente, projeto ou protocolo; filtro de cliente deve permitir `Todos os clientes`.
+- A seleção principal da carteira deve começar por **cards pequenos de clientes**, com logo + nome. Os projetos aparecem somente depois de clicar no cliente, em modal central com fundo em blur.
+- A faixa de clientes deve ter rolagem horizontal discreta/invisível e alternância entre **Ativos** e **Inativos**.
+- O modal de projetos deve mostrar, no mínimo: nome do projeto, protocolo, data de criação, deadline/previsão e status atual.
+- Busca deve localizar cliente, projeto ou protocolo; filtro de status continua disponível.
 - Projeto em rascunho precisa ter liberdade para adicionar frente, editar/excluir frente, editar/excluir entregável e revisar o cronograma antes de enviar ao cliente.
 - Uma mesma frente ativa não pode ser repetida dentro do mesmo projeto.
 - Se uma frente em rascunho estiver vazia, pode ser excluída diretamente.
@@ -23,6 +26,20 @@ O Connect é referência de profundidade operacional, organização de projetos,
 - Ao escolher `Outro`, permitir nome personalizado.
 - A frente organiza o trabalho; a janela M1–M… deve ser derivada dos entregáveis vinculados, em vez de exigir uma estimativa artificial antes de o escopo estar detalhado.
 - Deve existir apenas um botão principal de **Adicionar frente** no rascunho.
+
+## Regra de identidade visual das logos de clientes
+
+- A logo é enviada **uma única vez** no cadastro/edição da empresa.
+- O Workspace preserva duas versões:
+  - `logo_url`: **original**, intacta, com identidade e cores do cliente. Usar em relatórios, documentos externos e peças em que a marca original do cliente precisa ser respeitada.
+  - `logo_workspace_url`: **derivação automática para interface**, sem tratamento manual empresa por empresa.
+- A versão Workspace deve preservar o símbolo/formato reconhecível da marca, neutralizar o fundo quando possível e converter a marca para o bordô CALI `#5A1E2D`.
+- A versão Workspace é renderizada sobre **fundo marfim fixo `#F7F3EE`**, com respiro e proporção padronizados.
+- O tile da logo **não muda entre tema Dia e tema Noite**. No modo Noite, continua marfim + bordô. O objetivo é impedir que a marca brigue com o tema dinâmico do aplicativo.
+- Fotos de pessoas não recebem tratamento monocromático; permanecem fotos reais dentro do frame visual CALI.
+- Se a logo original for alterada, a derivação Workspace anterior deve ser invalidada e recriada automaticamente.
+- Se a logo não puder ser processada, usar fallback tipográfico/inicial no mesmo tile marfim, sem interromper o cadastro.
+- Dentro da interface do Workspace, preferir sempre `logo_workspace_url`. Relatórios/documentos externos continuam preferindo `logo_url`.
 
 ## Regra de privacidade do rascunho
 
