@@ -29,6 +29,8 @@ import { installProjectApprovalRulesRuntimeV39 } from './lib/projectApprovalRule
 import { installCompanyWorkspaceIdentityRuntimeV39 } from './lib/companyWorkspaceIdentityRuntimeV39';
 import { installProjectsClientPortfolioRuntimeV39 } from './lib/projectsClientPortfolioRuntimeV39';
 import { installClientHomeCompanyIdentityRuntimeV40 } from './lib/clientHomeCompanyIdentityRuntimeV40';
+import { installHoursCompanyLogoRuntimeV41 } from './lib/hoursCompanyLogoRuntimeV41';
+import { installDocumentsIdentityRuntimeV42 } from './lib/documentsIdentityRuntimeV42';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -125,6 +127,8 @@ import './notification-experience-v2.css';
 import './loading-illustrations-final.css';
 import './records-v25-operations.css';
 import './satisfaction-admin-v39.css';
+import './documents-identity-v42.css';
+import './chat-night-standard-v42.css';
 
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
@@ -153,6 +157,8 @@ installProjectApprovalRulesRuntimeV39();
 installCompanyWorkspaceIdentityRuntimeV39();
 installProjectsClientPortfolioRuntimeV39();
 installClientHomeCompanyIdentityRuntimeV40();
+installHoursCompanyLogoRuntimeV41();
+installDocumentsIdentityRuntimeV42();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
