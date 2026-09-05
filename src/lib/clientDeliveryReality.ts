@@ -56,6 +56,19 @@ export type ClientDeliveryHistoryItem = {
   createdAt: string;
 };
 
+export type ClientDeliveryWorkstream = {
+  id: string;
+  companyId: string;
+  projectId: string;
+  protocol?: string | null;
+  name: string;
+  objective?: string | null;
+  monthStart: number | null;
+  monthEnd: number | null;
+  status: string;
+  sortOrder: number;
+};
+
 export type ClientDeliveryItem = {
   id: string;
   companyId: string;
@@ -69,7 +82,11 @@ export type ClientDeliveryItem = {
   description?: string | null;
   status: ClientDeliveryStatus;
   priority?: string | null;
+  complexity?: 'MC1' | 'MC2' | 'MC3' | string | null;
   workstream?: string | null;
+  workstreamId?: string | null;
+  roadmapMonthStart?: number | null;
+  roadmapMonthEnd?: number | null;
   dueAt?: string | null;
   originalDueAt?: string | null;
   clientResponseDueAt?: string | null;
@@ -109,6 +126,7 @@ export type ClientDeliveryReality = {
     showHoursToClient: boolean;
   };
   projects: ClientDeliveryProject[];
+  workstreams: ClientDeliveryWorkstream[];
   deliverables: ClientDeliveryItem[];
   metrics: {
     total: number;
@@ -133,7 +151,7 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
   if (!supabase) throw new Error('Workspace indisponível.');
   if (!companyId) throw new Error('Empresa do cliente não encontrada.');
 
-  const [companyResult, projectResult, deliverableResult, taskResult, hourResult, fileResult, npsResult, adjustmentResult, historyResult] = await Promise.all([
+  const [companyResult, projectResult, workstreamResult, deliverableResult, taskResult, hourResult, fileResult, npsResult, adjustmentResult, historyResult] = await Promise.all([
     supabase.from('companies')
       .select('id,display_name,monthly_hours_contracted,show_hours_to_client')
       .eq('id', companyId)
@@ -143,8 +161,13 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
       .eq('company_id', companyId)
       .neq('status', 'cancelled')
       .order('created_at', { ascending: false }),
+    supabase.from('project_workstreams')
+      .select('id,company_id,project_id,protocol,name,objective,roadmap_month_start,roadmap_month_end,status,sort_order')
+      .eq('company_id', companyId)
+      .neq('status', 'cancelled')
+      .order('sort_order'),
     supabase.from('deliverables')
-      .select('id,company_id,project_id,protocol,code,title,description,status,priority,workstream,due_at,original_due_at,client_response_due_at,started_at,approval_requested_at,client_response_at,approved_at,cancelled_at,updated_at,adjustment_count,rebriefing_required,is_document,final_drive_url,sort_order,client_visible')
+      .select('id,company_id,project_id,protocol,code,title,description,status,priority,complexity,workstream,workstream_id,roadmap_month_start,roadmap_month_end,due_at,original_due_at,client_response_due_at,started_at,approval_requested_at,client_response_at,approved_at,cancelled_at,updated_at,adjustment_count,rebriefing_required,is_document,final_drive_url,sort_order,client_visible')
       .eq('company_id', companyId)
       .eq('client_visible', true)
       .order('sort_order')
@@ -182,6 +205,7 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
 
   if (companyResult.error) throw companyResult.error;
   if (projectResult.error) throw projectResult.error;
+  if (workstreamResult.error) throw workstreamResult.error;
   if (deliverableResult.error) throw deliverableResult.error;
   if (taskResult.error) throw taskResult.error;
   if (hourResult.error && companyResult.data?.show_hours_to_client) throw hourResult.error;
@@ -207,6 +231,19 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
     targetEndDate: row.target_end_date,
   }));
   const projectMap = new Map(projects.map((project) => [project.id, project]));
+
+  const workstreams: ClientDeliveryWorkstream[] = (workstreamResult.data || []).map((row: any) => ({
+    id: row.id,
+    companyId: row.company_id,
+    projectId: row.project_id,
+    protocol: row.protocol,
+    name: row.name,
+    objective: row.objective,
+    monthStart: row.roadmap_month_start == null ? null : finiteNumber(row.roadmap_month_start),
+    monthEnd: row.roadmap_month_end == null ? null : finiteNumber(row.roadmap_month_end),
+    status: row.status,
+    sortOrder: finiteNumber(row.sort_order),
+  }));
 
   const tasksByDeliverable = new Map<string, ClientVisibleTask[]>();
   for (const row of taskResult.data || []) {
@@ -294,7 +331,11 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
       description: row.description,
       status: row.status as ClientDeliveryStatus,
       priority: row.priority,
+      complexity: row.complexity,
       workstream: row.workstream,
+      workstreamId: row.workstream_id,
+      roadmapMonthStart: row.roadmap_month_start == null ? null : finiteNumber(row.roadmap_month_start),
+      roadmapMonthEnd: row.roadmap_month_end == null ? null : finiteNumber(row.roadmap_month_end),
       dueAt: row.due_at,
       originalDueAt: row.original_due_at,
       clientResponseDueAt: row.client_response_due_at,
@@ -332,10 +373,11 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
   return {
     company,
     projects,
+    workstreams,
     deliverables,
     metrics: {
       total: nonCancelled.length,
-      active: nonCancelled.filter((item) => !['approved'].includes(item.status)).length,
+      active: nonCancelled.filter((item) => item.status !== 'approved').length,
       waitingClient: nonCancelled.filter((item) => item.status === 'client_review').length,
       approved,
       cancelled: deliverables.filter((item) => item.status === 'cancelled').length,
@@ -353,6 +395,7 @@ export function subscribeClientDeliveryReality(companyId: string, onChange: () =
   const channel = supabase.channel(`client-delivery-reality-${companyId}`);
   const companyTables = [
     'projects',
+    'project_workstreams',
     'deliverables',
     'deliverable_tasks',
     'deliverable_adjustments',
