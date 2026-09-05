@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AlertTriangle, CalendarClock, Check, CheckCircle2, ChevronRight, CircleDot,
-  Clock3, FileCheck2, FileText, History, ListChecks, Loader2, MessageSquareText,
-  RefreshCw, Star, X,
+  AlertTriangle, Check, CheckCircle2, ChevronRight, CircleDot, Clock3,
+  FileCheck2, FileText, History, ListChecks, Loader2, MessageCircle,
+  Send, Star, X,
 } from 'lucide-react';
 import { Progress, Shell } from '../../components/WorkspaceShell';
 import { demoDeliverables } from '../../data/demo';
@@ -14,22 +14,31 @@ import {
   type ClientDeliveryStatus,
   type ClientPublishedDocument,
 } from '../../lib/clientDeliveryReality';
+import {
+  loadClientDeliverableConversation,
+  sendClientDeliverableMessage,
+  subscribeClientDeliverableConversation,
+  type ClientDeliverableMessage,
+} from '../../lib/clientDeliverableConversation';
 import { supabase } from '../../lib/supabase';
 
+type DeliveryFilter = 'moving' | 'waiting' | 'done';
+
 const statusLabel: Record<ClientDeliveryStatus, string> = {
-  not_started: 'Não iniciado',
+  not_started: 'Programada',
   in_progress: 'Em andamento',
   standby: 'Em espera',
   internal_review: 'Revisão CALI',
-  client_review: 'Aguardando sua validação',
-  adjustment_requested: 'Ajuste solicitado',
+  client_review: 'Aguardando você',
+  adjustment_requested: 'Ajuste em andamento',
   rebriefing: 'Em rebriefing',
-  approved: 'Aprovado',
-  cancelled: 'Cancelado',
+  approved: 'Concluída',
+  cancelled: 'Cancelada',
 };
 
 const taskStatusLabel: Record<string, string> = {
   todo: 'A fazer',
+  in_progress: 'Em andamento',
   doing: 'Em andamento',
   done: 'Concluída',
   completed: 'Concluída',
@@ -37,9 +46,9 @@ const taskStatusLabel: Record<string, string> = {
   cancelled: 'Cancelada',
 };
 
-const activeStatuses = new Set<ClientDeliveryStatus>([
+const movingStatuses = new Set<ClientDeliveryStatus>([
   'not_started', 'in_progress', 'standby', 'internal_review',
-  'client_review', 'adjustment_requested', 'rebriefing',
+  'adjustment_requested', 'rebriefing',
 ]);
 
 function formatDate(value?: string | null, withYear = true) {
@@ -58,13 +67,6 @@ function formatDateTime(value?: string | null) {
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
   }).format(date).replace('.', '');
-}
-
-function formatHours(minutes: number | null) {
-  if (minutes == null) return '—';
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  return rest ? `${hours}h ${String(rest).padStart(2, '0')}min` : `${hours}h`;
 }
 
 function scoreReaction(score: number) {
@@ -101,7 +103,7 @@ function previewReality(): ClientDeliveryReality {
     rebriefingRequired: false,
     isDocument: Boolean(item.isDocument),
     finalDriveUrl: null,
-    visibleMinutes: Math.round(item.hours * 60),
+    visibleMinutes: null,
     visibleTasks: [],
     visibleTaskProgress: null,
     document: null,
@@ -109,24 +111,84 @@ function previewReality(): ClientDeliveryReality {
     latestAdjustment: null,
     history: [],
   }));
-  const nonCancelled = deliverables.filter((item) => item.status !== 'cancelled');
-  const approved = nonCancelled.filter((item) => item.status === 'approved').length;
+  const visible = deliverables.filter((item) => item.status !== 'cancelled');
+  const approved = visible.filter((item) => item.status === 'approved').length;
   return {
-    company: { id: 'preview-aurora', displayName: 'Aurora Tech', monthlyHoursContracted: 20, showHoursToClient: true },
+    company: { id: 'preview-aurora', displayName: 'Aurora Tech', monthlyHoursContracted: null, showHoursToClient: false },
     projects: [{ id: 'preview-project', name: 'Estruturação People', status: 'active' }],
     deliverables,
     metrics: {
-      total: nonCancelled.length,
-      active: nonCancelled.filter((item) => item.status !== 'approved').length,
-      waitingClient: nonCancelled.filter((item) => item.status === 'client_review').length,
+      total: visible.length,
+      active: visible.filter((item) => item.status !== 'approved').length,
+      waitingClient: visible.filter((item) => item.status === 'client_review').length,
       approved,
       cancelled: 0,
       overdue: 0,
-      completionPct: nonCancelled.length ? Math.round((approved / nonCancelled.length) * 100) : 0,
-      visibleMinutes: deliverables.reduce((sum, item) => sum + Number(item.visibleMinutes || 0), 0),
+      completionPct: visible.length ? Math.round((approved / visible.length) * 100) : 0,
+      visibleMinutes: null,
       averageDeliveryScore: null,
       feedbackCount: 0,
     },
+  };
+}
+
+function currentMoment(item: ClientDeliveryItem) {
+  const nextTask = item.visibleTasks.find((task) => !['done', 'completed', 'cancelled'].includes(task.status));
+  if (item.status === 'client_review') return {
+    eyebrow: 'AGORA É COM VOCÊ',
+    title: 'Esta entrega está pronta para sua validação.',
+    copy: item.clientResponseDueAt
+      ? `Revise e responda até ${formatDateTime(item.clientResponseDueAt)}.`
+      : 'Revise o material e aprove ou peça o ajuste necessário.',
+    tone: 'client',
+  };
+  if (item.status === 'in_progress') return {
+    eyebrow: 'CALI EM AÇÃO',
+    title: 'A CALI está trabalhando nesta entrega.',
+    copy: nextTask ? `Próxima etapa compartilhada: ${nextTask.title}.` : 'Quando houver uma atualização relevante ou algo para sua validação, ela aparecerá aqui.',
+    tone: 'moving',
+  };
+  if (item.status === 'internal_review') return {
+    eyebrow: 'REVISÃO CALI',
+    title: 'O material está em revisão interna.',
+    copy: 'A CALI está revisando a entrega antes de disponibilizá-la para você.',
+    tone: 'moving',
+  };
+  if (item.status === 'adjustment_requested') return {
+    eyebrow: 'AJUSTE RECEBIDO',
+    title: 'Seu pedido de ajuste está com a CALI.',
+    copy: 'A nova versão voltará para sua validação assim que estiver pronta.',
+    tone: 'moving',
+  };
+  if (item.status === 'rebriefing') return {
+    eyebrow: 'REBRIEFING',
+    title: 'Escopo e próximos passos estão sendo reorganizados.',
+    copy: 'A CALI está revisando o contexto desta entrega antes de retomar a execução.',
+    tone: 'warning',
+  };
+  if (item.status === 'standby') return {
+    eyebrow: 'EM ESPERA',
+    title: 'Esta entrega está temporariamente em espera.',
+    copy: 'Quando a execução for retomada, o status será atualizado automaticamente.',
+    tone: 'neutral',
+  };
+  if (item.status === 'approved') return {
+    eyebrow: 'CONCLUÍDA',
+    title: 'Esta entrega foi aprovada.',
+    copy: item.approvedAt ? `Aprovação registrada em ${formatDateTime(item.approvedAt)}.` : 'A aprovação está registrada no histórico do projeto.',
+    tone: 'success',
+  };
+  if (item.status === 'cancelled') return {
+    eyebrow: 'ENCERRADA',
+    title: 'Esta entrega foi cancelada.',
+    copy: 'O registro permanece disponível no histórico do projeto.',
+    tone: 'neutral',
+  };
+  return {
+    eyebrow: 'PROGRAMADA',
+    title: 'Esta entrega ainda não foi iniciada.',
+    copy: item.dueAt ? `Prazo atual: ${formatDate(item.dueAt)}.` : 'O início e o prazo serão atualizados pela CALI quando definidos.',
+    tone: 'neutral',
   };
 }
 
@@ -134,48 +196,72 @@ export function ClientDeliverablesPage() {
   const preview = sessionStorage.getItem('cali-preview-role') === 'client';
   const previewData = useMemo(() => previewReality(), []);
   const refreshTimer = useRef<number | null>(null);
+  const conversationRef = useRef<HTMLDivElement | null>(null);
+
   const [companyId, setCompanyId] = useState(preview ? previewData.company.id : '');
   const [reality, setReality] = useState<ClientDeliveryReality | null>(preview ? previewData : null);
-  const [selectedId, setSelectedId] = useState(previewData.deliverables.find((item) => item.status === 'client_review')?.id || previewData.deliverables[0]?.id || '');
+  const [selectedId, setSelectedId] = useState(previewData.deliverables[0]?.id || '');
   const [projectFilter, setProjectFilter] = useState('all');
+  const [deliveryFilter, setDeliveryFilter] = useState<DeliveryFilter>('moving');
+  const [messages, setMessages] = useState<ClientDeliverableMessage[]>([]);
+  const [messageDraft, setMessageDraft] = useState('');
+  const [conversationLoading, setConversationLoading] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
   const [adjustmentOpen, setAdjustmentOpen] = useState(false);
   const [adjustmentText, setAdjustmentText] = useState('');
   const [npsOpen, setNpsOpen] = useState(false);
   const [score, setScore] = useState(0);
   const [npsComment, setNpsComment] = useState('');
-  const [message, setMessage] = useState('');
+  const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(!preview);
   const [saving, setSaving] = useState(false);
-  const [syncing, setSyncing] = useState(false);
 
-  const allItems = reality?.deliverables || [];
-  const filteredItems = useMemo(() => projectFilter === 'all'
-    ? allItems
-    : allItems.filter((item) => item.projectId === projectFilter), [allItems, projectFilter]);
-  const selected = useMemo(() => allItems.find((item) => item.id === selectedId) || filteredItems[0] || allItems[0], [allItems, filteredItems, selectedId]);
-  const waitingItems = filteredItems.filter((item) => item.status === 'client_review');
-  const activeItems = filteredItems.filter((item) => activeStatuses.has(item.status) && item.status !== 'client_review');
-  const historyItems = filteredItems.filter((item) => ['approved', 'cancelled'].includes(item.status));
+  const projectItems = useMemo(() => {
+    const all = reality?.deliverables || [];
+    return projectFilter === 'all' ? all : all.filter((item) => item.projectId === projectFilter);
+  }, [reality?.deliverables, projectFilter]);
+
+  const movingItems = projectItems.filter((item) => movingStatuses.has(item.status));
+  const waitingItems = projectItems.filter((item) => item.status === 'client_review');
+  const doneItems = projectItems.filter((item) => ['approved', 'cancelled'].includes(item.status));
+  const filteredItems = deliveryFilter === 'moving' ? movingItems : deliveryFilter === 'waiting' ? waitingItems : doneItems;
+  const selected = useMemo(() => {
+    const all = reality?.deliverables || [];
+    return all.find((item) => item.id === selectedId) || filteredItems[0] || all[0];
+  }, [reality?.deliverables, selectedId, filteredItems]);
+  const moment = selected ? currentMoment(selected) : null;
   const npsCommentRequired = score > 0 && score <= 3;
   const reaction = score ? scoreReaction(score) : null;
 
   useEffect(() => {
     if (preview || !supabase) return;
     void bootstrap();
-    return () => {
-      if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
-    };
+    return () => { if (refreshTimer.current) window.clearTimeout(refreshTimer.current); };
   }, []);
 
   useEffect(() => {
     if (preview || !companyId) return;
-    const unsubscribe = subscribeClientDeliveryReality(companyId, () => {
+    return subscribeClientDeliveryReality(companyId, () => {
       if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
-      refreshTimer.current = window.setTimeout(() => void refreshReality(false), 220);
+      refreshTimer.current = window.setTimeout(() => void refreshReality(), 180);
     });
-    return unsubscribe;
   }, [companyId, preview]);
+
+  useEffect(() => {
+    if (!selected) return;
+    if (preview) {
+      setMessages([]);
+      return;
+    }
+    void loadConversation(selected.id);
+    return subscribeClientDeliverableConversation(selected.id, () => void loadConversation(selected.id, false));
+  }, [selected?.id, preview]);
+
+  useEffect(() => {
+    if (!conversationRef.current) return;
+    conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
+  }, [messages.length]);
 
   useEffect(() => {
     const modalOpen = adjustmentOpen || npsOpen;
@@ -197,8 +283,7 @@ export function ClientDeliverablesPage() {
       const nextCompanyId = profileResult.data?.company_id || '';
       if (!nextCompanyId) throw new Error('Este acesso ainda não está vinculado a uma empresa.');
       setCompanyId(nextCompanyId);
-      const nextReality = await loadClientDeliveryReality(nextCompanyId);
-      applyReality(nextReality);
+      applyReality(await loadClientDeliveryReality(nextCompanyId), true);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar os entregáveis.');
     } finally {
@@ -206,34 +291,82 @@ export function ClientDeliverablesPage() {
     }
   }
 
-  function applyReality(nextReality: ClientDeliveryReality) {
+  function applyReality(nextReality: ClientDeliveryReality, initial = false) {
     setReality(nextReality);
+    if (initial) {
+      const waiting = nextReality.deliverables.find((item) => item.status === 'client_review');
+      const moving = nextReality.deliverables.find((item) => movingStatuses.has(item.status));
+      const fallback = waiting || moving || nextReality.deliverables[0];
+      setSelectedId(fallback?.id || '');
+      setDeliveryFilter(waiting ? 'waiting' : moving ? 'moving' : 'done');
+      return;
+    }
     setSelectedId((current) => nextReality.deliverables.some((item) => item.id === current)
       ? current
-      : nextReality.deliverables.find((item) => item.status === 'client_review')?.id || nextReality.deliverables[0]?.id || '');
-    setProjectFilter((current) => current === 'all' || nextReality.projects.some((project) => project.id === current) ? current : 'all');
+      : nextReality.deliverables[0]?.id || '');
   }
 
-  async function refreshReality(showIndicator = true) {
+  async function refreshReality() {
     if (preview || !companyId) return;
-    if (showIndicator) setSyncing(true);
     try {
-      const nextReality = await loadClientDeliveryReality(companyId);
-      applyReality(nextReality);
+      applyReality(await loadClientDeliveryReality(companyId));
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Não foi possível sincronizar os dados.');
-    } finally {
-      if (showIndicator) setSyncing(false);
+      setError(requestError instanceof Error ? requestError.message : 'Não foi possível atualizar os dados.');
     }
   }
 
-  function approveDeliverable() {
-    if (!selected || selected.status !== 'client_review') return;
-    setScore(0);
-    setNpsComment('');
-    setNpsOpen(true);
-    setMessage('');
+  async function loadConversation(deliverableId: string, showLoading = true) {
+    if (preview) return;
+    if (showLoading) setConversationLoading(true);
+    try {
+      setMessages(await loadClientDeliverableConversation(deliverableId));
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar a conversa desta entrega.');
+    } finally {
+      if (showLoading) setConversationLoading(false);
+    }
+  }
+
+  function chooseFilter(next: DeliveryFilter) {
+    setDeliveryFilter(next);
+    const pool = next === 'moving' ? movingItems : next === 'waiting' ? waitingItems : doneItems;
+    setSelectedId(pool[0]?.id || '');
+  }
+
+  function chooseProject(next: string) {
+    setProjectFilter(next);
+    const pool = next === 'all' ? reality?.deliverables || [] : (reality?.deliverables || []).filter((item) => item.projectId === next);
+    const waiting = pool.find((item) => item.status === 'client_review');
+    const moving = pool.find((item) => movingStatuses.has(item.status));
+    const fallback = waiting || moving || pool[0];
+    setDeliveryFilter(waiting ? 'waiting' : moving ? 'moving' : 'done');
+    setSelectedId(fallback?.id || '');
+  }
+
+  async function sendMessage() {
+    if (!selected || !messageDraft.trim()) return;
+    const body = messageDraft.trim();
+    setSendingMessage(true);
     setError('');
+    try {
+      if (preview) {
+        setMessages((current) => [...current, {
+          id: `preview-message-${Date.now()}`,
+          deliverableId: selected.id,
+          body,
+          sourceActor: 'client',
+          createdAt: new Date().toISOString(),
+        }]);
+      } else {
+        await sendClientDeliverableMessage(selected.id, body);
+        await loadConversation(selected.id, false);
+      }
+      setMessageDraft('');
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar a mensagem.');
+    } finally {
+      setSendingMessage(false);
+    }
   }
 
   async function submitAdjustment() {
@@ -244,7 +377,7 @@ export function ClientDeliverablesPage() {
       if (preview || !supabase) {
         setAdjustmentOpen(false);
         setAdjustmentText('');
-        setMessage('Seu pedido de ajuste foi registrado.');
+        setNotice('Seu pedido de ajuste foi registrado.');
         return;
       }
       const result = await supabase.rpc('request_deliverable_adjustment', {
@@ -253,10 +386,10 @@ export function ClientDeliverablesPage() {
         p_impact_business_days: 0,
       });
       if (result.error) throw result.error;
-      setMessage('Seu pedido de ajuste foi registrado e já está disponível para acompanhamento da CALI.');
+      setNotice('Seu pedido de ajuste foi registrado e já está com a CALI.');
       setAdjustmentOpen(false);
       setAdjustmentText('');
-      await refreshReality(false);
+      await refreshReality();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível registrar o ajuste.');
     } finally {
@@ -271,7 +404,7 @@ export function ClientDeliverablesPage() {
     try {
       if (preview || !supabase) {
         setNpsOpen(false);
-        setMessage('Entregável aprovado. Sua avaliação também foi registrada.');
+        setNotice('Entrega aprovada. Sua avaliação também foi registrada.');
         return;
       }
       const result = await supabase.rpc('client_approve_deliverable_with_feedback', {
@@ -281,12 +414,10 @@ export function ClientDeliverablesPage() {
       });
       if (result.error) throw result.error;
       setNpsOpen(false);
-      setMessage(selected.isDocument
-        ? 'Entregável aprovado. Sua avaliação foi registrada e o documento segue para finalização da CALI.'
-        : 'Entregável aprovado. Sua avaliação também foi registrada.');
+      setNotice('Entrega aprovada. Sua avaliação foi registrada.');
       setScore(0);
       setNpsComment('');
-      await refreshReality(false);
+      await refreshReality();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível concluir a aprovação.');
     } finally {
@@ -308,132 +439,140 @@ export function ClientDeliverablesPage() {
     if (document.driveUrl) window.open(document.driveUrl, '_blank', 'noopener,noreferrer');
   }
 
-  function selectProject(value: string) {
-    setProjectFilter(value);
-    const candidate = value === 'all' ? allItems : allItems.filter((item) => item.projectId === value);
-    setSelectedId(candidate.find((item) => item.status === 'client_review')?.id || candidate[0]?.id || '');
-  }
-
-  function renderListGroup(title: string, kicker: string, list: ClientDeliveryItem[]) {
-    if (!list.length) return null;
-    return <div className="client-delivery-group">
-      <div className="client-delivery-group-title"><div><span>{kicker}</span><strong>{title}</strong></div><b>{list.length}</b></div>
-      {list.map((item) => <button key={item.id} type="button" className={`client-delivery-select ${selected?.id === item.id ? 'selected' : ''} ${item.status === 'client_review' ? 'needs-action' : ''}`} onClick={() => setSelectedId(item.id)}>
-        <span className={`client-delivery-dot status-${item.status}`} />
+  function renderDelivery(item: ClientDeliveryItem) {
+    const done = item.visibleTasks.filter((task) => ['done', 'completed'].includes(task.status)).length;
+    return <button key={item.id} type="button" className={`client-delivery-v32-item ${selected?.id === item.id ? 'selected' : ''}`} onClick={() => setSelectedId(item.id)}>
+      <span className={`client-delivery-v32-dot status-${item.status}`} />
+      <div className="client-delivery-v32-item-main">
+        <small>{item.projectName || 'Projeto CALI'}</small>
+        <strong>{item.title}</strong>
         <div>
-          <small>{item.protocol || item.code || 'ENTREGÁVEL'} · {item.projectName || 'Projeto CALI'}</small>
-          <strong>{item.title}</strong>
-          <span>{statusLabel[item.status]}{item.dueAt ? ` · ${formatDate(item.dueAt, false)}` : ''}</span>
+          <span>{statusLabel[item.status]}</span>
+          {item.dueAt && <span>Prazo {formatDate(item.dueAt, false)}</span>}
+          {item.visibleTasks.length > 0 && <span>{done}/{item.visibleTasks.length} etapas</span>}
         </div>
-        <ChevronRight size={16} />
-      </button>)}
-    </div>;
+      </div>
+      <ChevronRight size={16} />
+    </button>;
   }
-
-  const metrics = reality?.metrics;
-  const showHours = Boolean(reality?.company.showHoursToClient);
 
   return <Shell role="client">
-    <section className="page client-deliverables-v31">
-      <header className="client-deliverables-heading">
+    <section className="page client-deliverables-v32">
+      <header className="client-deliverables-v32-heading">
         <div>
-          <span className="eyebrow">ENTREGAS · DADOS DO WORKSPACE</span>
+          <span className="eyebrow">ENTREGAS DO PROJETO</span>
           <h1>Entregáveis</h1>
-          <p>Acompanhe o que a CALI está executando, o que precisa da sua validação e o histórico do que já foi aprovado.</p>
+          <p>Veja o que a CALI está fazendo, o que precisa de você e converse dentro de cada entrega.</p>
         </div>
-        <div className="client-delivery-heading-actions">
-          {reality && reality.projects.length > 1 && <label><span>Projeto</span><select value={projectFilter} onChange={(event) => selectProject(event.target.value)}><option value="all">Todos os projetos</option>{reality.projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>}
-          {!preview && <button type="button" className="secondary client-sync-button" disabled={syncing} onClick={() => void refreshReality()}><RefreshCw size={15} className={syncing ? 'spin' : ''} />Sincronizar</button>}
+        <div className="client-delivery-v32-tools">
+          {reality && reality.projects.length > 1 && <label>
+            <span>Projeto</span>
+            <select value={projectFilter} onChange={(event) => chooseProject(event.target.value)}>
+              <option value="all">Todos os projetos</option>
+              {reality.projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+            </select>
+          </label>}
+          <div className="client-delivery-v32-live"><span />Atualização automática</div>
         </div>
       </header>
 
-      {message && <div className="inline-notice success"><CheckCircle2 size={19} />{message}</div>}
+      {notice && <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div>}
       {error && <div className="inline-notice"><AlertTriangle size={18} />{error}</div>}
-      {loading && <div className="data-loading"><Loader2 className="spin" size={20} />Carregando dados reais dos entregáveis…</div>}
+      {loading && <div className="data-loading"><Loader2 className="spin" size={20} />Carregando entregas…</div>}
 
       {!loading && reality && <>
-        <section className={`client-delivery-kpis ${showHours ? '' : 'without-hours'}`}>
-          <article className={metrics?.waitingClient ? 'attention' : ''}><span>AGUARDANDO VOCÊ</span><strong>{metrics?.waitingClient || 0}</strong><small>{metrics?.waitingClient ? 'validação pendente' : 'nenhuma ação pendente'}</small></article>
-          <article><span>EM ACOMPANHAMENTO</span><strong>{metrics?.active || 0}</strong><small>entregas ainda abertas</small></article>
-          <article><span>APROVADAS</span><strong>{metrics?.approved || 0}</strong><small>de {metrics?.total || 0} entregas visíveis</small></article>
-          {showHours ? <article><span>HORAS VISÍVEIS</span><strong>{formatHours(metrics?.visibleMinutes ?? 0)}</strong><small>{reality.company.monthlyHoursContracted ? `referência mensal: ${reality.company.monthlyHoursContracted}h` : 'registros compartilhados pela CALI'}</small></article>
-            : <article className={metrics?.overdue ? 'warning' : ''}><span>PRAZOS</span><strong>{metrics?.overdue || 0}</strong><small>{metrics?.overdue ? 'entrega com prazo ultrapassado' : 'nenhum prazo ultrapassado'}</small></article>}
-        </section>
+        <nav className="client-delivery-v32-tabs" aria-label="Filtrar entregas">
+          <button type="button" className={deliveryFilter === 'moving' ? 'active' : ''} onClick={() => chooseFilter('moving')}><span>Em andamento</span><b>{movingItems.length}</b></button>
+          <button type="button" className={`${deliveryFilter === 'waiting' ? 'active' : ''} ${waitingItems.length ? 'attention' : ''}`} onClick={() => chooseFilter('waiting')}><span>Aguardando você</span><b>{waitingItems.length}</b></button>
+          <button type="button" className={deliveryFilter === 'done' ? 'active' : ''} onClick={() => chooseFilter('done')}><span>Concluídas</span><b>{doneItems.length}</b></button>
+        </nav>
 
-        {!allItems.length ? <section className="panel data-empty"><strong>Nenhum entregável disponível.</strong><span>Quando a CALI compartilhar uma entrega, ela aparecerá aqui automaticamente.</span></section> : <div className="client-delivery-layout">
-          <aside className="panel client-delivery-list-panel">
-            <div className="panel-title"><div><span className="section-kicker">VISÃO DO CLIENTE</span><h2>{projectFilter === 'all' ? 'Todas as entregas' : reality.projects.find((project) => project.id === projectFilter)?.name || 'Projeto'}</h2></div><span className="count">{filteredItems.length}</span></div>
-            <div className="client-delivery-list-scroll">
-              {renderListGroup('Prontas para sua validação', 'PRECISA DE VOCÊ', waitingItems)}
-              {renderListGroup('Em movimento', 'CALI EM AÇÃO', activeItems)}
-              {renderListGroup('Concluídas e arquivadas', 'HISTÓRICO', historyItems)}
-              {!filteredItems.length && <div className="client-delivery-empty-filter">Nenhuma entrega neste projeto.</div>}
-            </div>
-          </aside>
-
-          {selected && <section className="panel client-delivery-detail-panel">
-            <div className="client-delivery-detail-head">
-              <div><span>{selected.protocol || selected.code || 'ENTREGÁVEL'}</span><h2>{selected.title}</h2><p>{selected.projectName || 'Projeto CALI'}{selected.workstream ? ` · ${selected.workstream}` : ''}</p></div>
-              <span className={`client-delivery-status status-${selected.status}`}>{statusLabel[selected.status]}</span>
-            </div>
-
-            {selected.description && <p className="client-delivery-description">{selected.description}</p>}
-
-            {selected.status === 'client_review' && <div className="client-delivery-action-callout"><div><span>SUA AÇÃO É NECESSÁRIA</span><strong>Esta entrega está pronta para sua validação.</strong><p>{selected.clientResponseDueAt ? `Responda até ${formatDateTime(selected.clientResponseDueAt)}.` : 'Revise o material e aprove ou solicite o ajuste necessário.'}</p></div><CalendarClock size={21} /></div>}
-
-            <div className="client-delivery-meta-grid">
-              <div><span>Prazo da entrega</span><strong>{formatDate(selected.dueAt)}</strong>{selected.originalDueAt && selected.originalDueAt !== selected.dueAt && <small>Original: {formatDate(selected.originalDueAt)}</small>}</div>
-              <div><span>Início real</span><strong>{formatDateTime(selected.startedAt)}</strong></div>
-              <div><span>Última atualização</span><strong>{formatDateTime(selected.updatedAt)}</strong></div>
-              {showHours && <div><span>Horas compartilhadas</span><strong>{formatHours(selected.visibleMinutes)}</strong></div>}
-            </div>
-
-            {selected.visibleTaskProgress != null && <section className="client-delivery-real-progress">
-              <div><span>ETAPAS COMPARTILHADAS</span><strong>{selected.visibleTaskProgress}%</strong></div>
-              <Progress value={selected.visibleTaskProgress} />
-              <small>Percentual calculado somente pelas etapas visíveis abaixo — não por uma estimativa de status.</small>
-            </section>}
-
-            {selected.visibleTasks.length > 0 && <section className="client-delivery-section">
-              <div className="client-delivery-section-title"><ListChecks size={17} /><div><span>ETAPAS VISÍVEIS</span><strong>Acompanhamento desta entrega</strong></div><b>{selected.visibleTasks.filter((task) => ['done', 'completed'].includes(task.status)).length}/{selected.visibleTasks.length}</b></div>
-              <div className="client-delivery-task-list">{selected.visibleTasks.map((task) => <div key={task.id} className={`client-delivery-task status-${task.status}`}><span>{['done', 'completed'].includes(task.status) ? <Check size={14} /> : <CircleDot size={14} />}</span><div><strong>{task.title}</strong><small>{taskStatusLabel[task.status] || task.status}{task.dueAt ? ` · prazo ${formatDate(task.dueAt, false)}` : ''}</small></div></div>)}</div>
-            </section>}
-
-            {selected.isDocument && <section className="client-delivery-document">
-              <FileText size={20} />
-              <div>
-                <span>DOCUMENTO DESTA ENTREGA</span>
-                <strong>{selected.document ? selected.document.title : selected.status === 'approved' ? 'Arquivo final em preparação' : 'Documento ainda não publicado'}</strong>
-                <p>{selected.document ? `${selected.document.versionLabel ? `${selected.document.versionLabel} · ` : ''}Publicado ${formatDateTime(selected.document.publishedAt)} e também disponível na Biblioteca.` : selected.status === 'approved' ? 'A aprovação está registrada. A CALI ainda está preparando/publicando o arquivo final.' : 'Quando houver uma versão publicada para o cliente, ela aparecerá aqui automaticamente.'}</p>
+        {!projectItems.length ? <section className="panel data-empty"><strong>Nenhum entregável disponível.</strong><span>Quando a CALI compartilhar uma entrega, ela aparecerá aqui automaticamente.</span></section>
+          : <div className="client-delivery-v32-layout">
+            <aside className="panel client-delivery-v32-list">
+              <div className="client-delivery-v32-list-head">
+                <strong>{deliveryFilter === 'moving' ? 'Em andamento' : deliveryFilter === 'waiting' ? 'Aguardando você' : 'Concluídas'}</strong>
+                <span>{filteredItems.length}</span>
               </div>
-              {selected.document && <button type="button" className="secondary" onClick={() => void openPublishedDocument(selected.document!)}>Abrir documento</button>}
-            </section>}
+              <div className="client-delivery-v32-list-body">
+                {filteredItems.length ? filteredItems.map(renderDelivery) : <div className="client-delivery-v32-empty">Nada nesta etapa agora.</div>}
+              </div>
+            </aside>
 
-            {selected.latestAdjustment && <section className="client-delivery-adjustment-history">
-              <MessageSquareText size={18} />
-              <div><span>ÚLTIMO PEDIDO DE AJUSTE · #{selected.latestAdjustment.requestNumber}</span><strong>{selected.latestAdjustment.reason}</strong><small>{formatDateTime(selected.latestAdjustment.createdAt)} · {selected.latestAdjustment.status === 'open' ? 'em acompanhamento' : 'resolvido'}</small></div>
-            </section>}
+            {selected && moment ? <main className="panel client-delivery-v32-detail">
+              <header className="client-delivery-v32-detail-head">
+                <div>
+                  <small>{selected.protocol || selected.code || 'ENTREGÁVEL'}{selected.workstream ? ` · ${selected.workstream}` : ''}</small>
+                  <h2>{selected.title}</h2>
+                  {selected.description && <p>{selected.description}</p>}
+                </div>
+                <span className={`client-delivery-v32-status status-${selected.status}`}>{statusLabel[selected.status]}</span>
+              </header>
 
-            {selected.feedback && <section className="client-delivery-feedback-history">
-              <div className="client-delivery-feedback-score"><span>{scoreReaction(selected.feedback.score).emoji}</span><strong>{selected.feedback.score}<small>/5</small></strong></div>
-              <div><span>SUA AVALIAÇÃO DESTA ENTREGA</span><strong>{scoreReaction(selected.feedback.score).title}</strong><p>{selected.feedback.comment || 'Você não deixou comentário adicional.'}</p><small>Registrada {formatDateTime(selected.feedback.createdAt)}</small></div>
-            </section>}
+              <section className={`client-delivery-v32-now tone-${moment.tone}`}>
+                <div>
+                  <span>{moment.eyebrow}</span>
+                  <strong>{moment.title}</strong>
+                  <p>{moment.copy}</p>
+                </div>
+                {selected.status === 'client_review' && <div className="client-delivery-v32-now-actions">
+                  <button type="button" className="secondary" onClick={() => { setAdjustmentText(''); setAdjustmentOpen(true); }}>Solicitar ajuste</button>
+                  <button type="button" className="primary" onClick={() => { setScore(0); setNpsComment(''); setNpsOpen(true); }}><FileCheck2 size={16} />Aprovar entrega</button>
+                </div>}
+              </section>
 
-            {selected.history.length > 0 && <details className="client-delivery-history-details">
-              <summary><History size={16} /><span>Ver histórico de status</span><ChevronRight size={15} /></summary>
-              <div>{selected.history.slice(0, 8).map((item) => <div key={item.id}><span className={`client-delivery-dot status-${item.toStatus}`} /><strong>{statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}</strong><small>{formatDateTime(item.createdAt)}</small></div>)}</div>
-            </details>}
+              <div className="client-delivery-v32-facts">
+                <div><span>Prazo</span><strong>{formatDate(selected.dueAt)}</strong></div>
+                <div><span>Atualizado</span><strong>{formatDateTime(selected.updatedAt)}</strong></div>
+                <div><span>Etapas visíveis</span><strong>{selected.visibleTasks.length ? `${selected.visibleTasks.filter((task) => ['done', 'completed'].includes(task.status)).length} de ${selected.visibleTasks.length}` : 'Nenhuma publicada'}</strong></div>
+              </div>
 
-            {selected.status === 'client_review' && <div className="client-delivery-review-actions">
-              <button className="secondary" type="button" onClick={() => { setAdjustmentOpen(true); setAdjustmentText(''); setError(''); }}>Solicitar ajuste</button>
-              <button className="primary" type="button" onClick={approveDeliverable}><FileCheck2 size={16} />Aprovar entrega</button>
-            </div>}
+              {selected.visibleTasks.length > 0 && <section className="client-delivery-v32-section">
+                <div className="client-delivery-v32-section-head"><ListChecks size={18} /><div><span>ANDAMENTO</span><strong>Etapas compartilhadas</strong></div><b>{selected.visibleTaskProgress ?? 0}%</b></div>
+                <Progress value={selected.visibleTaskProgress ?? 0} />
+                <div className="client-delivery-v32-task-list">{selected.visibleTasks.map((task) => <div key={task.id} className={`client-delivery-v32-task status-${task.status}`}>
+                  <span>{['done', 'completed'].includes(task.status) ? <Check size={14} /> : <CircleDot size={14} />}</span>
+                  <div><strong>{task.title}</strong><small>{taskStatusLabel[task.status] || task.status}{task.dueAt ? ` · ${formatDate(task.dueAt, false)}` : ''}</small></div>
+                </div>)}</div>
+              </section>}
 
-            {selected.status === 'adjustment_requested' && <div className="inline-notice"><Clock3 size={18} />A CALI recebeu seu pedido de ajuste. A nova versão voltará para sua validação quando estiver pronta.</div>}
-            {selected.status === 'rebriefing' && <div className="inline-notice"><AlertTriangle size={18} />Esta entrega entrou em rebriefing. Escopo e prazo estão sendo reorganizados antes da nova validação.</div>}
-            {selected.status === 'approved' && <div className="inline-notice success"><CheckCircle2 size={19} />Entrega aprovada e preservada no histórico do projeto.</div>}
-          </section>}
-        </div>}
+              {selected.isDocument && <section className="client-delivery-v32-file">
+                <div className="client-delivery-v32-file-icon"><FileText size={20} /></div>
+                <div>
+                  <span>ARQUIVO DA ENTREGA</span>
+                  <strong>{selected.document ? selected.document.title : 'Ainda não publicado'}</strong>
+                  <p>{selected.document ? `Publicado ${formatDateTime(selected.document.publishedAt)} e disponível também na Biblioteca.` : selected.status === 'approved' ? 'A entrega foi aprovada e o arquivo final ainda está sendo preparado pela CALI.' : 'Quando houver uma versão para você, ela aparecerá aqui.'}</p>
+                </div>
+                {selected.document && <button type="button" className="secondary" onClick={() => void openPublishedDocument(selected.document!)}>Abrir</button>}
+              </section>}
+
+              <section className="client-delivery-v32-conversation">
+                <div className="client-delivery-v32-section-head conversation-head"><MessageCircle size={18} /><div><span>CONVERSA DESTA ENTREGA</span><strong>Fale com a CALI sobre {selected.title}</strong></div></div>
+                <p className="client-delivery-v32-conversation-note">Tudo o que for enviado aqui fica vinculado a este entregável e aparece para a CALI dentro do projeto.</p>
+                <div className="client-delivery-v32-messages" ref={conversationRef}>
+                  {conversationLoading ? <div className="client-delivery-v32-message-empty"><Loader2 className="spin" size={17} />Carregando conversa…</div>
+                    : messages.length ? messages.map((message) => <div key={message.id} className={`client-delivery-v32-message ${message.sourceActor === 'client' ? 'mine' : message.sourceActor === 'system' ? 'system' : 'cali'}`}>
+                      <div className="client-delivery-v32-message-meta"><strong>{message.sourceActor === 'client' ? 'Você' : message.sourceActor === 'system' ? 'Sistema' : 'CALI'}</strong><span>{formatDateTime(message.createdAt)}</span></div>
+                      <p>{message.body}</p>
+                    </div>) : <div className="client-delivery-v32-message-empty">Ainda não há mensagens nesta entrega. Se precisar alinhar algo, escreva abaixo.</div>}
+                </div>
+                <div className="client-delivery-v32-composer">
+                  <textarea rows={2} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder="Escreva uma mensagem sobre esta entrega…" onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void sendMessage(); }} />
+                  <button type="button" className="primary" disabled={sendingMessage || !messageDraft.trim()} onClick={() => void sendMessage()}>{sendingMessage ? <Loader2 className="spin" size={16} /> : <Send size={16} />}Enviar</button>
+                </div>
+              </section>
+
+              {selected.feedback && <section className="client-delivery-v32-feedback">
+                <div><span>{scoreReaction(selected.feedback.score).emoji}</span><strong>{selected.feedback.score}<small>/5</small></strong></div>
+                <div><span>SUA AVALIAÇÃO</span><strong>{scoreReaction(selected.feedback.score).title}</strong><p>{selected.feedback.comment || 'Sem comentário adicional.'}</p><small>{formatDateTime(selected.feedback.createdAt)}</small></div>
+              </section>}
+
+              {selected.history.length > 0 && <details className="client-delivery-v32-history">
+                <summary><History size={16} /><span>Histórico desta entrega</span><ChevronRight size={15} /></summary>
+                <div>{selected.history.slice(0, 10).map((item) => <div key={item.id}><span className={`client-delivery-v32-dot status-${item.toStatus}`} /><strong>{statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}</strong><small>{formatDateTime(item.createdAt)}</small></div>)}</div>
+              </details>}
+            </main> : <section className="panel client-delivery-v32-no-selection"><strong>Selecione uma entrega.</strong><span>Os detalhes aparecerão aqui.</span></section>}
+          </div>}
       </>}
     </section>
 
@@ -442,7 +581,7 @@ export function ClientDeliverablesPage() {
         <button className="modal-close" type="button" onClick={() => setAdjustmentOpen(false)} aria-label="Fechar"><X size={20} /></button>
         <span className="section-kicker">SOLICITAR AJUSTE</span>
         <h2 id="adjustment-title">O que precisa ser revisto?</h2>
-        <p>Descreva o ponto que precisa mudar. O pedido fica vinculado a <strong>{selected.protocol || selected.title}</strong> e entra no acompanhamento da CALI.</p>
+        <p>Descreva o ponto que precisa mudar. O pedido fica vinculado a <strong>{selected.protocol || selected.title}</strong>.</p>
         <textarea value={adjustmentText} onChange={(event) => setAdjustmentText(event.target.value)} placeholder="Ex.: precisamos separar este indicador por unidade antes da validação final." rows={5} autoFocus />
         <div className="modal-actions"><button className="secondary" type="button" onClick={() => setAdjustmentOpen(false)}>Cancelar</button><button className="primary" type="button" disabled={saving || adjustmentText.trim().length < 3} onClick={() => void submitAdjustment()}>{saving ? 'Registrando…' : 'Enviar ajuste'}</button></div>
       </section>
