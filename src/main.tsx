@@ -17,6 +17,8 @@ import { installRecordsMessageControlsRuntime } from './lib/recordsMessageContro
 import { installRecordsConversationScrollGuard } from './lib/recordsConversationScrollGuard';
 import { installNotificationExperienceRuntime } from './lib/notificationExperienceRuntime';
 import { installRecordsOperationsRuntimeV25 } from './lib/recordsOperationsRuntimeV25';
+import { installRecordsClosureExperienceRuntimeV28 } from './lib/recordsClosureExperienceRuntimeV28';
+import { installDashboardSatisfactionRuntimeV28 } from './lib/dashboardSatisfactionRuntimeV28';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -118,6 +120,8 @@ installRecordsMessageControlsRuntime();
 installRecordsConversationScrollGuard();
 installNotificationExperienceRuntime();
 installRecordsOperationsRuntimeV25();
+installRecordsClosureExperienceRuntimeV28();
+installDashboardSatisfactionRuntimeV28();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
