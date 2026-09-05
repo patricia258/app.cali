@@ -1,4 +1,5 @@
 /* CALI Workspace · padrão final de chat no modo noite V42 */
+/* Deploy marker: publicar junto correções de Horas, Documentos e chats. */
 [data-workspace-theme='night'] .records-v13-drawer .records-chat-line.role-admin .records-chat-bubble,
 [data-workspace-theme='night'] .workspace-chat-standard .workspace-chat-line.role-admin .workspace-chat-bubble {
   background:#6F2035!important;
