@@ -1,0 +1,146 @@
+/* CALI Workspace · fechamento final de avaliações e reabertura */
+
+.records-v30-admin-reopen-card{
+  width:min(510px,100%)!important;
+  padding:20px!important;
+}
+.records-v30-admin-reopen-card>h3{
+  font-size:21px!important;
+  margin:6px 0!important;
+}
+.records-v30-admin-reopen-card>p{
+  font-size:10.8px!important;
+}
+.records-v30-admin-reopen-card .records-v28-reopen-summary{
+  grid-template-columns:138px minmax(0,1fr)!important;
+  gap:8px!important;
+  margin-top:14px!important;
+}
+.records-v30-admin-reopen-card .records-v28-reopen-summary>div{
+  padding:9px 10px!important;
+}
+.records-v30-summary-period .records-v30-period-dates{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:4px;
+}
+.records-v30-period-dates p{
+  display:grid;
+  gap:2px;
+  margin:0;
+}
+.records-v30-period-dates small{
+  color:var(--theme-muted);
+  font-size:8.5px;
+  font-weight:700;
+}
+.records-v30-period-dates strong{
+  color:var(--theme-text);
+  font-size:10.5px;
+  white-space:nowrap;
+}
+.records-v30-admin-reopen-card .records-v28-reason-box{
+  margin-top:10px!important;
+  padding:11px 12px!important;
+}
+.records-v30-admin-reopen-card .records-v28-feedback-inline{
+  margin-top:8px!important;
+  padding:9px 10px!important;
+}
+.records-v30-admin-reopen-card>label{
+  margin-top:11px!important;
+}
+.records-v30-admin-reopen-card textarea{
+  min-height:74px;
+  max-height:110px;
+}
+.records-v30-admin-actions{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.45fr) auto auto;
+  align-items:center;
+  gap:8px!important;
+  margin-top:13px!important;
+}
+.records-v30-admin-actions .records-v28-history-button{
+  margin-right:0!important;
+}
+.records-v30-admin-actions button{
+  width:auto!important;
+  min-height:38px!important;
+  padding:8px 12px!important;
+  font-size:10.5px!important;
+  white-space:nowrap;
+}
+
+.records-v30-client-feedback-history{
+  margin:0 22px 14px;
+  border:1px solid color-mix(in srgb,#B58C52 32%,var(--theme-line));
+  border-radius:12px;
+  background:color-mix(in srgb,#B58C52 5%,var(--theme-surface));
+  overflow:hidden;
+}
+.records-v30-client-feedback-history summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  min-height:46px;
+  padding:10px 13px;
+  cursor:pointer;
+  list-style:none;
+}
+.records-v30-client-feedback-history summary::-webkit-details-marker{display:none}
+.records-v30-client-feedback-history summary::after{
+  content:'⌄';
+  color:var(--theme-muted);
+  font-size:14px;
+  transition:transform .15s ease;
+}
+.records-v30-client-feedback-history[open] summary::after{transform:rotate(180deg)}
+.records-v30-client-feedback-label{
+  color:var(--theme-muted);
+  font-size:9px;
+  font-weight:820;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.records-v30-client-feedback-history summary strong{
+  margin-left:auto;
+  color:var(--theme-text);
+  font-size:12px;
+  white-space:nowrap;
+}
+.records-v30-client-feedback-body{
+  display:grid;
+  gap:4px;
+  padding:0 13px 12px;
+  border-top:1px solid color-mix(in srgb,#B58C52 20%,var(--theme-line));
+}
+.records-v30-client-feedback-body p{
+  margin:10px 0 0;
+  color:var(--theme-text);
+  font-size:10.5px;
+  line-height:1.45;
+}
+.records-v30-client-feedback-body small{
+  color:var(--theme-muted);
+  font-size:9px;
+}
+
+@media(max-width:720px){
+  .records-v30-admin-reopen-card{
+    width:100%!important;
+    padding:18px!important;
+  }
+  .records-v30-admin-reopen-card .records-v28-reopen-summary{
+    grid-template-columns:1fr!important;
+  }
+  .records-v30-admin-actions{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+  }
+  .records-v30-admin-actions button{width:100%!important}
+  .records-v30-client-feedback-history{margin:0 14px 12px}
+}
