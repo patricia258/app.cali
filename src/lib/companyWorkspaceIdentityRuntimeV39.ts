@@ -1,4 +1,5 @@
 import { backfillWorkspaceLogos, loadCompanyLogoRegistry } from './companyWorkspaceLogo';
+import { installHoursCompanyLogoRuntimeV41 } from './hoursCompanyLogoRuntimeV41';
 import { supabase } from './supabase';
 
 let installed = false;
@@ -132,8 +133,6 @@ function watchLogoInputs() {
     const target = event.target;
     if (!(target instanceof HTMLInputElement) || target.type !== 'file') return;
     if (!target.closest('.logo-upload-button')) return;
-    // The React page uploads the untouched original. The DB trigger invalidates the derived
-    // Workspace version and this runtime recreates it automatically after the save.
     window.setTimeout(() => void backfillWorkspaceLogos(2), 2500);
     window.setTimeout(() => void backfillWorkspaceLogos(2), 7000);
   }, true);
@@ -157,6 +156,7 @@ async function startCompanyRealtime() {
 export function installCompanyWorkspaceIdentityRuntimeV39() {
   if (installed || typeof window === 'undefined') return;
   installed = true;
+  installHoursCompanyLogoRuntimeV41();
   watchLogoInputs();
   void startCompanyRealtime();
   void backfillWorkspaceLogos(3).then(() => refreshRegistry(true)).then(scan);
