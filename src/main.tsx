@@ -33,6 +33,7 @@ import { installHoursCompanyLogoRuntimeV41 } from './lib/hoursCompanyLogoRuntime
 import { installDocumentsIdentityRuntimeV42 } from './lib/documentsIdentityRuntimeV42';
 import { installProjectExecutionLifecycleRuntimeV44 } from './lib/projectExecutionLifecycleRuntimeV44';
 import { installProjectLifecycleRecalcUxV45 } from './lib/projectLifecycleRecalcUxV45';
+import { installReportClientTrackingRuntimeV55 } from './lib/reportClientTrackingRuntimeV55';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -136,6 +137,7 @@ import './workspace-theme-polish-v52.css';
 import './reports-v16.css';
 import './critical-fixes-v53.css';
 import './reports-pdf-polish-v54.css';
+import './report-client-flow-v55.css';
 
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
@@ -168,6 +170,7 @@ installHoursCompanyLogoRuntimeV41();
 installDocumentsIdentityRuntimeV42();
 installProjectExecutionLifecycleRuntimeV44();
 installProjectLifecycleRecalcUxV45();
+installReportClientTrackingRuntimeV55();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
