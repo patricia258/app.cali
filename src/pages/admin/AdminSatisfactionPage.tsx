@@ -123,7 +123,7 @@ export function AdminSatisfactionPage(){
           <div className="satisfaction-company-v39"><span className="workspace-company-logo-tile-v39">{row.companyLogoResolved?<img src={row.companyLogoResolved} alt=""/>:<strong>{initials(row.company)}</strong>}</span><div><strong>{row.company}</strong><small>{sourceLabel(row.sourceType)}</small></div></div>
           <div className="satisfaction-score-v39"><strong>{row.score}/5</strong><span>{scoreLabel(row.score)}</span></div>
           <div className="satisfaction-feedback-v39"><strong>{row.title||row.protocol||'Avaliação do cliente'}</strong><p>{row.comment?.trim()||'Sem comentário adicional.'}</p><small>{formatDate(row.createdAt)}</small></div>
-          <div className="satisfaction-responder-v39">{row.responderAvatarResolved?<img src={row.responderAvatarResolved} alt=""/>:<span>{initials(row.responderName)}</span>}<div><strong>{row.responderName||'Cliente'}</strong><small>respondente</small></div></div>
+          <div className="satisfaction-responder-v39"><span className="satisfaction-responder-avatar-v48 profile-person-frame-v47" style={{width:34,height:34,display:'grid',placeItems:'center',flex:'0 0 34px',overflow:'hidden',borderRadius:14}}>{row.responderAvatarResolved?<img src={row.responderAvatarResolved} alt="" style={{width:'100%',height:'100%',display:'block',objectFit:'cover'}}/>:initials(row.responderName)}</span><div><strong>{row.responderName||'Cliente'}</strong><small>respondente</small></div></div>
           <a href={href} aria-label="Abrir origem">Abrir <ArrowUpRight size={15}/></a>
         </article>;
       })}</div>:<div className="satisfaction-empty-v39">Nenhuma avaliação encontrada com os filtros atuais.</div>}
