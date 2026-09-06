@@ -1,4 +1,4 @@
-/* CALI Workspace · Documentos · identidade do cliente e capa automática V42 */
+/* CALI Workspace · Documentos · identidade do cliente e capa automática V45 */
 .documents-admin-v4 .document-client-logo-v3.document-company-logo-v42,
 .documents-admin-v4 .document-client-logo-v3.workspace-company-logo-tile-v39 {
   width:38px;
@@ -46,75 +46,63 @@
   font-weight:750;
 }
 
-.documents-admin-v4 .document-card-preview-v3:not(.has-cover) {
-  background:#F7F3EE!important;
-  border-bottom-color:#E3D7CE!important;
+/* Capa automática: identidade original do cliente. A CALI organiza a moldura, mas não recolore a marca. */
+.document-library-card-v3 .document-card-preview-v3.document-brand-preview-v45 {
+  background:var(--document-client-brand,#F7F3EE)!important;
+  border-bottom-color:color-mix(in srgb,var(--document-client-brand,#F7F3EE) 70%,#5A1E2D)!important;
 }
-.documents-admin-v4 .document-card-preview-v3:not(.has-cover)::before {
-  content:'';
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  background:
-    radial-gradient(circle at 10% 18%, rgba(90,30,45,.08) 0 34px, transparent 35px),
-    radial-gradient(circle at 92% 84%, rgba(181,140,82,.11) 0 48px, transparent 49px),
-    linear-gradient(135deg, rgba(90,30,45,.035), transparent 44%, rgba(181,140,82,.04));
+.document-library-card-v3 .document-card-preview-v3.document-brand-preview-v45::before {
+  display:none!important;
+  content:none!important;
 }
-.documents-admin-v4 .document-auto-cover-v42 {
+.document-library-card-v3 .document-auto-cover-v42.document-brand-cover-v45 {
   position:absolute;
   inset:0;
   z-index:1;
   display:grid;
-  grid-template-rows:auto 1fr auto;
   place-items:center;
-  gap:4px;
-  padding:13px 18px 12px;
-  color:#5A1E2D;
+  padding:18px 28px;
+  background:var(--document-client-brand,#F7F3EE)!important;
+  color:var(--document-client-brand-fg,#5A1E2D);
 }
-.documents-admin-v4 .document-auto-cover-brand-v42 {
-  justify-self:start;
-  font-family:Georgia,serif;
-  font-size:15px;
-  letter-spacing:.12em;
-  color:#5A1E2D!important;
-}
-.documents-admin-v4 .document-auto-cover-logo-v42 {
-  width:72px;
-  height:72px;
+.document-library-card-v3 .document-brand-cover-v45 .document-auto-cover-logo-v42 {
+  width:min(62%,190px);
+  height:72%;
+  max-height:118px;
   display:grid;
   place-items:center;
-  overflow:hidden;
-  border:1px solid #E3D7CE;
-  border-radius:18px;
-  background:#F7F3EE;
-  box-shadow:0 10px 28px rgba(90,30,45,.08);
+  overflow:visible;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
 }
-.documents-admin-v4 .document-auto-cover-logo-v42 img {
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
+.document-library-card-v3 .document-brand-cover-v45 .document-auto-cover-logo-v42 img {
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  display:block!important;
+  border-radius:0!important;
+  background:transparent!important;
 }
-.documents-admin-v4 .document-auto-cover-logo-v42 strong {
+.document-library-card-v3 .document-brand-cover-v45 .document-auto-cover-logo-v42 strong {
   font-family:Georgia,serif;
-  font-size:28px;
+  font-size:34px;
   font-weight:500;
-  color:#5A1E2D;
-}
-.documents-admin-v4 .document-auto-cover-caption-v42 {
-  justify-self:end;
-  font-size:8px;
-  font-weight:800;
-  letter-spacing:.09em;
-  text-transform:uppercase;
-  color:#8D766A!important;
-}
-.documents-admin-v4 .document-card-preview-v3:not(.has-cover) .document-status-flag-v3 {
-  z-index:3;
+  color:var(--document-client-brand-fg,#5A1E2D)!important;
 }
 
-/* A capa de biblioteca é um artefato visual fixo da CALI: não inverte no modo noite. */
-[data-workspace-theme='night'] .documents-admin-v4 .document-card-preview-v3:not(.has-cover),
+/* Não repetir informação dentro da imagem da capa. */
+.document-library-card-v3 .document-card-preview-v3.document-brand-preview-v45 .document-status-flag-v3,
+.document-library-card-v3 .document-brand-cover-v45 .document-auto-cover-brand-v42,
+.document-library-card-v3 .document-brand-cover-v45 .document-auto-cover-caption-v42 {
+  display:none!important;
+}
+
+/* A capa é um artefato da marca do cliente e permanece idêntica no modo noite. */
+[data-workspace-theme='night'] .document-library-card-v3 .document-card-preview-v3.document-brand-preview-v45 {
+  background:var(--document-client-brand,#F7F3EE)!important;
+}
 [data-workspace-theme='night'] .documents-admin-v4 .document-client-logo-v3.document-company-logo-v42,
 [data-workspace-theme='night'] .documents-admin-v4 .document-client-logo-v3.workspace-company-logo-tile-v39 {
   background:#F7F3EE!important;
@@ -123,4 +111,5 @@
 
 @media(max-width:760px){
   .documents-admin-v4 .document-project-line-v42{grid-template-columns:1fr;gap:2px}
+  .document-library-card-v3 .document-brand-cover-v45 .document-auto-cover-logo-v42{width:min(70%,170px)}
 }
