@@ -42,6 +42,7 @@ let companyLoadStarted = false;
 let profileLoading = false;
 let profilesLoaded = false;
 let tooltipTimer = 0;
+let tooltipSequence = 0;
 const signedMediaCache = new Map<string, string>();
 
 function normalize(value = '') {
@@ -167,12 +168,14 @@ function ensurePolishStyles() {
       font:750 12px/1.35 Inter,system-ui,sans-serif!important;
       pointer-events:none!important;
       opacity:0!important;
+      visibility:hidden!important;
       transform:translateY(4px)!important;
       transition:opacity .16s ease,transform .16s ease!important;
       white-space:normal!important;
     }
     .front-toggle-toast-v47.show{
       opacity:1!important;
+      visibility:visible!important;
       transform:translateY(0)!important;
     }
   `;
@@ -405,11 +408,22 @@ function getFrontToast() {
   return toast;
 }
 
+function hideFrontTip() {
+  tooltipSequence += 1;
+  window.clearTimeout(tooltipTimer);
+  tooltipTimer = 0;
+  const toast = document.querySelector<HTMLElement>('.front-toggle-toast-v47');
+  if (!toast) return;
+  toast.classList.remove('show');
+  toast.style.visibility = 'hidden';
+}
+
 function showFrontTip(trigger: HTMLImageElement) {
   trigger.removeAttribute('title');
   const header = trigger.closest<HTMLElement>('.front-header-v2');
   header?.removeAttribute('data-front-toggle-tip');
   const toast = getFrontToast();
+  const sequence = ++tooltipSequence;
   toast.textContent = frontTipText(trigger);
   toast.classList.remove('show');
   toast.style.visibility = 'hidden';
@@ -417,6 +431,12 @@ function showFrontTip(trigger: HTMLImageElement) {
   toast.style.top = '12px';
 
   window.requestAnimationFrame(() => {
+    if (sequence !== tooltipSequence) return;
+    if (!trigger.matches(':hover') && document.activeElement !== trigger) {
+      hideFrontTip();
+      return;
+    }
+
     const triggerRect = trigger.getBoundingClientRect();
     const headerRect = header?.getBoundingClientRect() || triggerRect;
     const toastRect = toast.getBoundingClientRect();
@@ -433,7 +453,9 @@ function showFrontTip(trigger: HTMLImageElement) {
   });
 
   window.clearTimeout(tooltipTimer);
-  tooltipTimer = window.setTimeout(() => toast.classList.remove('show'), 5000);
+  tooltipTimer = window.setTimeout(() => {
+    if (sequence === tooltipSequence) hideFrontTip();
+  }, 5000);
 }
 
 function decorateFrontTooltips() {
@@ -444,9 +466,9 @@ function decorateFrontTooltips() {
     trigger.dataset.frontTipBoundV47 = '1';
     trigger.addEventListener('mouseenter', () => showFrontTip(trigger));
     trigger.addEventListener('focus', () => showFrontTip(trigger));
-    trigger.addEventListener('click', () => {
-      window.setTimeout(() => showFrontTip(trigger), 0);
-    });
+    trigger.addEventListener('mouseleave', hideFrontTip);
+    trigger.addEventListener('blur', hideFrontTip);
+    trigger.addEventListener('click', hideFrontTip);
   });
 }
 
@@ -537,5 +559,8 @@ export function startIdentityMediaRuntime() {
 
   window.addEventListener('storage', scheduleDecorate);
   window.addEventListener('focus', scheduleDecorate);
+  window.addEventListener('resize', hideFrontTip);
+  window.addEventListener('blur', hideFrontTip);
+  document.addEventListener('scroll', hideFrontTip, true);
   window.addEventListener('cali-profile-updated', (() => void loadProfiles(true)) as EventListener);
 }
