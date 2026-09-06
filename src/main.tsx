@@ -32,6 +32,7 @@ import { installClientHomeCompanyIdentityRuntimeV40 } from './lib/clientHomeComp
 import { installHoursCompanyLogoRuntimeV41 } from './lib/hoursCompanyLogoRuntimeV41';
 import { installDocumentsIdentityRuntimeV42 } from './lib/documentsIdentityRuntimeV42';
 import { installProjectExecutionLifecycleRuntimeV44 } from './lib/projectExecutionLifecycleRuntimeV44';
+import { installProjectLifecycleRecalcUxV45 } from './lib/projectLifecycleRecalcUxV45';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -161,6 +162,7 @@ installClientHomeCompanyIdentityRuntimeV40();
 installHoursCompanyLogoRuntimeV41();
 installDocumentsIdentityRuntimeV42();
 installProjectExecutionLifecycleRuntimeV44();
+installProjectLifecycleRecalcUxV45();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
