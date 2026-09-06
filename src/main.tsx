@@ -131,6 +131,7 @@ import './records-v25-operations.css';
 import './satisfaction-admin-v39.css';
 import './documents-identity-v42.css';
 import './chat-night-standard-v42.css';
+import './client-approval-highlight-v50.css';
 
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
