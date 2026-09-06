@@ -109,7 +109,6 @@ import './reports-v13.css';
 import './reports-v14.css';
 import './reports-v15.css';
 import './reports-v15-process-order.css';
-import './reports-v16.css';
 import './client-reports-v12.css';
 import './client-home-v2.css';
 import './client-home-v3.css';
@@ -134,6 +133,7 @@ import './documents-identity-v42.css';
 import './chat-night-standard-v42.css';
 import './client-approval-highlight-v50.css';
 import './workspace-theme-polish-v52.css';
+import './reports-v16.css';
 
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
