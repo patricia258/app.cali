@@ -135,6 +135,7 @@ import './client-approval-highlight-v50.css';
 import './workspace-theme-polish-v52.css';
 import './reports-v16.css';
 import './critical-fixes-v53.css';
+import './reports-pdf-polish-v54.css';
 
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
