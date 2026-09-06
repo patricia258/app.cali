@@ -1,0 +1,303 @@
+/* CALI Workspace · Relatórios V54 · equilíbrio visual, cards e paginação segura */
+
+/* O papel ganha largura útil mais equilibrada, sem alterar o A4. */
+.reports-v16-paper{
+  --cali-wine:#5A1E2D;
+  --cali-gold:#B58C52;
+  --cali-graphite:#2B2B2B;
+  --cali-taupe:#B7A99A;
+  --cali-ivory:#F7F3EE;
+  --cali-gold-soft:#FBF3DE;
+  --cali-wine-soft:#F5ECEF;
+  --cali-taupe-soft:#F1ECE7;
+}
+
+/* Hierarquia editorial mais forte. */
+.reports-v16-paper .reports-v16-reading h1,
+.reports-v16-paper .reports-v16-page-two-title h1{
+  color:var(--cali-graphite)!important;
+  font-size:22pt!important;
+  line-height:1.08!important;
+  font-weight:800!important;
+  letter-spacing:-.04em!important;
+}
+.reports-v16-paper .reports-v16-section-head h2{
+  color:var(--cali-graphite)!important;
+  font-size:12.4pt!important;
+  line-height:1.15!important;
+  font-weight:800!important;
+  letter-spacing:-.022em!important;
+}
+.reports-v16-paper .reports-v16-kicker,
+.reports-v16-paper .reports-v16-section-head small,
+.reports-v16-paper .reports-v16-page-two-title>span{
+  display:inline-flex!important;
+  width:max-content!important;
+  align-items:center!important;
+  min-height:5.5mm!important;
+  padding:0 2.2mm!important;
+  border-radius:999px!important;
+  background:var(--cali-gold-soft)!important;
+  color:#7A5A24!important;
+  font-size:6.7pt!important;
+  font-weight:900!important;
+  letter-spacing:.12em!important;
+}
+
+/* Leitura executiva: a resposta manual passa a ser um card real. */
+.reports-v16-paper .reports-v16-reading{
+  padding:5.5mm 0 4.8mm!important;
+}
+.reports-v16-paper .reports-v16-reading p{
+  margin:3mm 0 0!important;
+  padding:3.6mm 4mm!important;
+  border:1px solid #E6DCD4!important;
+  border-left:1.15mm solid var(--cali-gold)!important;
+  border-radius:3mm!important;
+  background:linear-gradient(135deg,#FBF8F4 0%,var(--cali-ivory) 100%)!important;
+  color:#4A413C!important;
+  font-size:9.6pt!important;
+  line-height:1.5!important;
+}
+
+/* Cards de fatos: preenchem 100% da largura, sem a sobra à direita. */
+.reports-v16-paper .reports-v16-metrics{
+  width:100%!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:2.4mm!important;
+  border:0!important;
+}
+.reports-v16-paper .reports-v16-metrics>div{
+  min-width:0!important;
+  margin:0!important;
+  padding:3.2mm!important;
+  border:1px solid #E6DDD6!important;
+  border-radius:3mm!important;
+  background:var(--cali-ivory)!important;
+}
+.reports-v16-paper .reports-v16-metrics>div:nth-child(2){background:var(--cali-gold-soft)!important;border-color:#E9D7AE!important}
+.reports-v16-paper .reports-v16-metrics>div:nth-child(3){background:var(--cali-taupe-soft)!important;border-color:#DED3C9!important}
+.reports-v16-paper .reports-v16-metrics>div:nth-child(4){background:var(--cali-wine-soft)!important;border-color:#E4CDD4!important}
+.reports-v16-paper .reports-v16-metrics strong{font-weight:800!important}
+.reports-v16-paper .reports-v16-metrics>div:nth-child(1) strong{color:var(--cali-wine)!important}
+.reports-v16-paper .reports-v16-metrics>div:nth-child(2) strong{color:#8A641D!important}
+.reports-v16-paper .reports-v16-metrics>div:nth-child(3) strong{color:#584C43!important}
+.reports-v16-paper .reports-v16-metrics>div:nth-child(4) strong{color:#7C3548!important}
+
+/* Entregas e dedicação também passam a se comportar como dois cards proporcionais. */
+.reports-v16-paper .reports-v16-execution-grid{
+  width:100%!important;
+  grid-template-columns:minmax(0,1.58fr) minmax(0,.82fr)!important;
+  gap:3mm!important;
+  padding:4mm 0!important;
+}
+.reports-v16-paper .reports-v16-execution-block,
+.reports-v16-paper .reports-v16-hours{
+  min-width:0!important;
+  padding:3.2mm!important;
+  border:1px solid #E4DBD4!important;
+  border-radius:3mm!important;
+  background:#FCFAF8!important;
+}
+.reports-v16-paper .reports-v16-hours{
+  background:var(--cali-gold-soft)!important;
+  border-color:#E7D4A7!important;
+}
+.reports-v16-paper .reports-v16-execution-grid .reports-v16-section-head small{
+  background:#EFE8E2!important;
+  color:#65564D!important;
+}
+.reports-v16-paper .reports-v16-hours .reports-v16-section-head small{
+  background:#F2DEAD!important;
+  color:#735319!important;
+}
+
+/* Comparativo: se houver 2, 3 ou 4 cards, todos ocupam a largura inteira. */
+.reports-v16-paper .reports-v16-changes>div:last-child{
+  width:100%!important;
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(34mm,1fr))!important;
+  gap:2.4mm!important;
+}
+.reports-v16-paper .reports-v16-changes article{
+  min-width:0!important;
+  padding:3mm!important;
+  border-radius:3mm!important;
+  background:var(--cali-ivory)!important;
+}
+.reports-v16-paper .reports-v16-changes .tone-positive{background:#EEF5EE!important;border-color:#D5E3D4!important}
+.reports-v16-paper .reports-v16-changes .tone-attention{background:var(--cali-gold-soft)!important;border-color:#E7D4A7!important}
+.reports-v16-paper .reports-v16-changes .tone-negative{background:var(--cali-wine-soft)!important;border-color:#E2C8D0!important}
+.reports-v16-paper .reports-v16-changes .reports-v16-section-head small{
+  background:var(--cali-wine-soft)!important;
+  color:#7B3447!important;
+}
+
+/* Página 2: cada resposta preenchida fica contida em card. */
+.reports-v16-paper .reports-v16-editorial-block{
+  padding:3.7mm 0!important;
+  border-top:0!important;
+}
+.reports-v16-paper .reports-v16-editorial-block+.reports-v16-editorial-block{
+  border-top:1px solid #E7DED7!important;
+}
+.reports-v16-paper .reports-v16-editorial-block ul,
+.reports-v16-paper .reports-v16-editorial-block ol{
+  margin:0!important;
+  padding:0!important;
+  list-style:none!important;
+  display:grid!important;
+  gap:2mm!important;
+}
+.reports-v16-paper .reports-v16-editorial-block li{
+  position:relative!important;
+  margin:0!important;
+  padding:3mm 3.4mm!important;
+  border:1px solid #E4DBD4!important;
+  border-radius:3mm!important;
+  background:var(--cali-ivory)!important;
+  color:#433A35!important;
+  font-size:8pt!important;
+  line-height:1.45!important;
+}
+.reports-v16-paper .reports-v16-editorial-block ul li{
+  border-left:1.05mm solid var(--cali-gold)!important;
+}
+.reports-v16-paper .reports-v16-editorial-block ol{
+  counter-reset:cali-decision!important;
+}
+.reports-v16-paper .reports-v16-editorial-block ol li{
+  counter-increment:cali-decision!important;
+  padding-left:11mm!important;
+  background:var(--cali-taupe-soft)!important;
+}
+.reports-v16-paper .reports-v16-editorial-block ol li:before{
+  content:counter(cali-decision,decimal-leading-zero)!important;
+  position:absolute!important;
+  left:3mm!important;
+  top:3mm!important;
+  display:grid!important;
+  place-items:center!important;
+  width:6mm!important;
+  height:6mm!important;
+  border-radius:50%!important;
+  background:#FFF!important;
+  border:1px solid #D7CBC1!important;
+  color:var(--cali-wine)!important;
+  font-size:6pt!important;
+  font-weight:900!important;
+}
+.reports-v16-paper .reports-v16-dependencies{
+  gap:2mm!important;
+}
+.reports-v16-paper .reports-v16-dependencies article{
+  grid-template-columns:38mm minmax(0,1fr) auto!important;
+  gap:3mm!important;
+  padding:3mm!important;
+  border:1px solid #DED3C9!important;
+  border-radius:3mm!important;
+  background:var(--cali-taupe-soft)!important;
+}
+.reports-v16-paper .reports-v16-numbered{
+  gap:2mm!important;
+}
+.reports-v16-paper .reports-v16-numbered article{
+  padding:3mm!important;
+  border:1px solid #E3CFD5!important;
+  border-radius:3mm!important;
+  background:var(--cali-wine-soft)!important;
+}
+.reports-v16-paper .reports-v16-editorial-block.next .reports-v16-numbered article{
+  background:var(--cali-gold-soft)!important;
+  border-color:#E6D3A8!important;
+}
+.reports-v16-paper .reports-v16-editorial-block.next .reports-v16-numbered article>b{
+  border-color:#D9BE7D!important;
+  color:#7A5A24!important;
+  background:#FFF9EA!important;
+}
+.reports-v16-paper .reports-v16-feedback{
+  border:1px solid #E5D3A8!important;
+  border-left:1.2mm solid var(--cali-gold)!important;
+  border-radius:3mm!important;
+  background:linear-gradient(135deg,#FCF7EA,var(--cali-gold-soft))!important;
+}
+
+/* Variação visual de rótulos por tipo de bloco. */
+.reports-v16-paper .reports-v16-editorial-block:has(.reports-v16-dependencies) .reports-v16-section-head small{
+  background:var(--cali-taupe-soft)!important;
+  color:#65564D!important;
+}
+.reports-v16-paper .reports-v16-editorial-block:has(.reports-v16-numbered):not(.next) .reports-v16-section-head small{
+  background:var(--cali-wine-soft)!important;
+  color:#7B3447!important;
+}
+.reports-v16-paper .reports-v16-editorial-block:has(ol) .reports-v16-section-head small{
+  background:#EFE8E2!important;
+  color:#62534A!important;
+}
+.reports-v16-paper .reports-v16-editorial-block.next .reports-v16-section-head small{
+  background:var(--cali-gold-soft)!important;
+  color:#7A5A24!important;
+}
+
+/* Texto e cards sempre usam toda a área útil do documento. */
+.reports-v16-paper .reports-v16-reading,
+.reports-v16-paper .reports-v16-facts,
+.reports-v16-paper .reports-v16-execution-grid,
+.reports-v16-paper .reports-v16-changes,
+.reports-v16-paper .reports-v16-page-two-title,
+.reports-v16-paper .reports-v16-editorial-block,
+.reports-v16-paper .reports-v16-feedback{
+  width:100%!important;
+  max-width:none!important;
+  margin-left:0!important;
+  margin-right:0!important;
+}
+
+/* Na prévia, conteúdo maior que uma folha não é cortado visualmente. */
+.reports-v16-preview-document .reports-v16-paper{
+  height:auto!important;
+  min-height:297mm!important;
+  overflow:visible!important;
+  padding-bottom:16mm!important;
+}
+.reports-v16-preview-document .reports-v16-footer{
+  bottom:5mm!important;
+}
+
+/* Paginação inteligente: nenhum card/linha é cortado no meio. */
+@media print{
+  .report-print-v16-stage .reports-v16-paper{
+    height:auto!important;
+    min-height:297mm!important;
+    overflow:visible!important;
+    padding-bottom:16mm!important;
+  }
+  .report-print-v16-stage .reports-v16-paper :where(
+    .reports-v16-reading,
+    .reports-v16-facts,
+    .reports-v16-execution-grid,
+    .reports-v16-changes,
+    .reports-v16-page-two-title,
+    .reports-v16-editorial-block,
+    .reports-v16-feedback,
+    .reports-v16-metrics>div,
+    .reports-v16-changes article,
+    .reports-v16-dependencies article,
+    .reports-v16-numbered article,
+    .reports-v16-editorial-block li,
+    tr
+  ){
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+  .report-print-v16-stage .reports-v16-paper :where(p,li,blockquote){
+    orphans:3!important;
+    widows:3!important;
+  }
+  .report-print-v16-stage .reports-v16-footer{
+    bottom:5mm!important;
+  }
+}
