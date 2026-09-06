@@ -13,14 +13,31 @@ type Loaded={company:{name:string;logoUrl?:string|null};snapshot:IntelligenceSna
 function periodLabel(type:ReportType,start:string){const[year,month]=start.split('-').map(Number);return type==='monthly'?new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'}).format(new Date(year,month-1,1)):`${Math.floor((month-1)/3)+1}º trimestre de ${year}`;}
 function editorOf(row:any):ReportEditor{return{summary:row.executive_summary||'',movements:Array.isArray(row.movements)?row.movements.map(String).join('\n'):'',decisions:Array.isArray(row.decisions)?row.decisions.map(String).join('\n'):'',risks:Array.isArray(row.risks)?row.risks.map(String).join('\n'):'',nextSteps:Array.isArray(row.next_steps)?row.next_steps.map(String).join('\n'):''};}
 function deliveriesOf(snapshot:IntelligenceSnapshot){const raw=(snapshot as any)?.deliveryPerformanceV14;return Array.isArray(raw)?raw as DeliveryPerformanceRow[]:[];}
-async function waitForImages(){const images=Array.from(document.images);await Promise.all(images.map((image)=>image.complete?Promise.resolve():new Promise<void>((resolve)=>{const done=()=>resolve();image.addEventListener('load',done,{once:true});image.addEventListener('error',done,{once:true});})));}
+async function waitForPrintAssets(){const images=Array.from(document.images);await Promise.all(images.map((image)=>image.complete?Promise.resolve():new Promise<void>((resolve)=>{const done=()=>resolve();image.addEventListener('load',done,{once:true});image.addEventListener('error',done,{once:true});})));try{await document.fonts?.ready;}catch{}}
 
 export function ReportPrintPageV16({role}:Props){
   const{reportId}=useParams(),navigate=useNavigate();
   const[data,setData]=useState<Loaded|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState('');
   const autoPrint=useMemo(()=>new URLSearchParams(window.location.search).get('print')==='1',[]);
+
+  useEffect(()=>{
+    const html=document.documentElement;
+    const previousTheme=html.getAttribute('data-workspace-theme');
+    const previousScheme=html.style.colorScheme;
+    html.classList.add('report-print-v16-isolated');
+    html.setAttribute('data-workspace-theme','day');
+    html.style.colorScheme='light';
+    document.body.classList.add('reports-v16-print-route');
+    return()=>{
+      html.classList.remove('report-print-v16-isolated');
+      document.body.classList.remove('reports-v16-print-route');
+      if(previousTheme)html.setAttribute('data-workspace-theme',previousTheme);else html.removeAttribute('data-workspace-theme');
+      html.style.colorScheme=previousScheme;
+    };
+  },[]);
+
   useEffect(()=>{void load();},[reportId,role]);
-  useEffect(()=>{if(!data||!autoPrint)return;let cancelled=false;void(async()=>{await waitForImages();if(cancelled)return;document.title=`Relatório CALI RH - ${data.company.name} - ${data.periodName}`;window.setTimeout(()=>{if(!cancelled)window.print();},180);})();return()=>{cancelled=true;};},[data,autoPrint]);
+  useEffect(()=>{if(!data||!autoPrint)return;let cancelled=false;void(async()=>{await waitForPrintAssets();if(cancelled)return;document.title=`Relatório CALI RH - ${data.company.name} - ${data.periodName}`;window.setTimeout(()=>{if(!cancelled)window.print();},220);})();return()=>{cancelled=true;};},[data,autoPrint]);
 
   async function load(){if(!supabase||!reportId)return;setLoading(true);setError('');try{let companyId='';if(role==='client'){const user=await supabase.auth.getUser();if(user.error)throw user.error;const profile=await supabase.from('profiles').select('company_id').eq('id',user.data.user?.id||'').maybeSingle();if(profile.error)throw profile.error;companyId=String(profile.data?.company_id||'');if(!companyId)throw new Error('Empresa vinculada ao acesso não encontrada.');}
       let query=supabase.from('reports').select('id,company_id,report_type,period_start,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,version').eq('id',reportId);

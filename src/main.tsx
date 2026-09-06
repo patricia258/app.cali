@@ -134,6 +134,7 @@ import './chat-night-standard-v42.css';
 import './client-approval-highlight-v50.css';
 import './workspace-theme-polish-v52.css';
 import './reports-v16.css';
+import './critical-fixes-v53.css';
 
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();

@@ -1,0 +1,158 @@
+/* CALI Workspace · V53 · correções críticas de contraste, tipografia e impressão */
+
+/* Calendário: o card do Google Workspace é AMARELO nos dois temas. */
+.calendar-page-v2 > .calendar-workspace-strip,
+html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip{
+  background-color:#E7C66F!important;
+  background-image:none!important;
+  border-color:#C89E3F!important;
+  color:#2E251D!important;
+  box-shadow:0 13px 30px rgba(83,59,29,.14)!important;
+}
+.calendar-page-v2 > .calendar-workspace-strip strong,
+html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip strong{color:#2E251D!important}
+.calendar-page-v2 > .calendar-workspace-strip p,
+.calendar-page-v2 > .calendar-workspace-strip .google-calendar-runtime-detail,
+html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip p,
+html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip .google-calendar-runtime-detail{color:#5B4931!important}
+.calendar-page-v2 > .calendar-workspace-strip .calendar-workspace-icon,
+html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip .calendar-workspace-icon{
+  background:#5A1E2D!important;border-color:#5A1E2D!important;color:#FFF!important;
+}
+.calendar-page-v2 > .calendar-workspace-strip .google-calendar-runtime-button,
+html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip .google-calendar-runtime-button{
+  background:#FFF8E6!important;border-color:rgba(90,30,45,.24)!important;color:#5A1E2D!important;
+}
+.calendar-page-v2 > .calendar-workspace-strip .google-calendar-runtime-button.primary,
+html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip .google-calendar-runtime-button.primary{
+  background:#5A1E2D!important;border-color:#5A1E2D!important;color:#FFF!important;
+}
+
+/* Relatórios: o card amarelo permanece, mas nunca herda texto branco do modo noite. */
+.reports-admin-v16 .reports-v16-review-map,
+html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-map{
+  background:linear-gradient(135deg,#F4DEA0 0%,#E7C66F 52%,#F6E8B8 100%)!important;
+  border-color:#C89E3F!important;
+  color:#30251E!important;
+}
+.reports-admin-v16 .reports-v16-review-map>div:first-child>span,
+html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-map>div:first-child>span{color:#5A1E2D!important}
+.reports-admin-v16 .reports-v16-review-map h2,
+html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-map h2{color:#30251E!important}
+.reports-admin-v16 .reports-v16-review-map p,
+html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-map p{color:#665443!important}
+.reports-admin-v16 .reports-v16-review-stats article,
+html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats article{
+  background:rgba(255,253,249,.74)!important;border-color:rgba(90,30,45,.12)!important;
+}
+.reports-admin-v16 .reports-v16-review-stats article:not(.attention) strong,
+html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats article:not(.attention) strong{color:#5A1E2D!important}
+.reports-admin-v16 .reports-v16-review-stats article:not(.attention) span,
+html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats article:not(.attention) span{color:#5D4C3C!important}
+.reports-admin-v16 .reports-v16-review-stats article.attention,
+html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats article.attention{background:#5A1E2D!important;border-color:#5A1E2D!important}
+.reports-admin-v16 .reports-v16-review-stats article.attention strong,
+.reports-admin-v16 .reports-v16-review-stats article.attention span,
+html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats article.attention strong,
+html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats article.attention span{color:#FFF!important}
+
+/* Tipografia: números e leituras do módulo não usam mais Georgia/Times/serif. */
+.reports-admin-v16 .reports-v16-review-stats strong,
+.reports-admin-v16 .reports-v16-section-heading>span,
+.reports-admin-v16 .reports-v16-fact-grid strong,
+.reports-admin-v16 .reports-v16-change-grid strong,
+.reports-v16-paper .reports-v16-reading h1,
+.reports-v16-paper .reports-v16-reading p,
+.reports-v16-paper .reports-v16-section-head h2,
+.reports-v16-paper .reports-v16-metrics strong,
+.reports-v16-paper .reports-v16-changes article>strong,
+.reports-v16-paper .reports-v16-page-two-title h1,
+.reports-v16-paper .reports-v16-feedback strong,
+.reports-v16-paper .reports-v16-feedback blockquote,
+.reports-v16-paper .reports-v16-feedback>p{
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+}
+.reports-admin-v16 .reports-v16-fact-grid strong{font-weight:750!important;letter-spacing:-.025em!important}
+.reports-v16-paper .reports-v16-reading h1,.reports-v16-paper .reports-v16-page-two-title h1{font-weight:700!important;letter-spacing:-.035em!important}
+.reports-v16-paper .reports-v16-reading p{font-weight:400!important}
+
+/* A versão ativa já aparece no topo; histórico mostra somente versões anteriores. */
+.reports-v16-history-table>div.active{display:none!important}
+.reports-v16-history-table:not(:has(>div:not(.head):not(.active))) .head{display:none!important}
+.reports-v16-history-table:not(:has(>div:not(.head):not(.active)))::after{
+  content:'Nenhuma versão anterior ainda. A versão atual está aberta acima.';
+  display:block;padding:14px 0;color:#81746E;font-size:11px;
+}
+html[data-workspace-theme='night'] .reports-v16-history-table:not(:has(>div:not(.head):not(.active)))::after{color:#B9AAA5!important}
+
+/* Prévia: o papel é um documento claro mesmo quando o Workspace está no modo noite. */
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper{
+  background:#FFF!important;color:#2B2B2B!important;color-scheme:light!important;
+}
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper :where(p,span,small,td,li,blockquote){color:#5F5550!important}
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper :where(h1,h2,h3,h4,strong,b){color:#2B2B2B!important}
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-kicker,
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-section-head small,
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-page-two-title>span{color:#B58C52!important}
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-reading h1,
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-section-head h2,
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-metrics strong,
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-changes article>strong,
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-feedback strong,
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-footer b{color:#5A1E2D!important}
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-client-id small,
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-meta,
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-metrics small,
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-metrics span,
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-footer{color:#80736C!important}
+
+/* Rota de impressão: isolamento total do tema da aplicação. */
+html.report-print-v16-isolated,
+html.report-print-v16-isolated body,
+html.report-print-v16-isolated #root,
+body.reports-v16-print-route,
+.report-print-v16-page,
+.report-print-v16-stage{
+  background:#FFF!important;color:#2B2B2B!important;color-scheme:light!important;
+}
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper{
+  background:#FFF!important;color:#2B2B2B!important;color-scheme:light!important;
+}
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper :where(p,span,small,td,li,blockquote){color:#5F5550!important}
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper :where(h1,h2,h3,h4,strong,b){color:#2B2B2B!important}
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-kicker,
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-section-head small,
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-page-two-title>span{color:#B58C52!important}
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-reading h1,
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-section-head h2,
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-metrics strong,
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-changes article>strong,
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-feedback strong,
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-footer b{color:#5A1E2D!important}
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-client-id small,
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-meta,
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-metrics small,
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-metrics span,
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-footer{color:#80736C!important}
+
+@media print{
+  @page{size:A4;margin:0!important}
+  html.report-print-v16-isolated,
+  html.report-print-v16-isolated body,
+  html.report-print-v16-isolated #root,
+  body.reports-v16-print-route,
+  .report-print-v16-page,
+  .report-print-v16-stage{
+    margin:0!important;padding:0!important;width:210mm!important;min-width:210mm!important;
+    background:#FFF!important;color:#2B2B2B!important;overflow:visible!important;
+  }
+  .report-print-v16-toolbar{display:none!important}
+  .report-print-v16-stage .reports-v16-document{display:block!important;width:210mm!important;margin:0!important;padding:0!important;gap:0!important}
+  .report-print-v16-stage .reports-v16-paper{
+    display:block!important;width:210mm!important;height:297mm!important;margin:0!important;
+    padding:12mm 13mm 10mm!important;background:#FFF!important;color:#2B2B2B!important;
+    box-shadow:none!important;overflow:hidden!important;break-after:page!important;page-break-after:always!important;
+    -webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;
+  }
+  .report-print-v16-stage .reports-v16-paper:last-child{break-after:auto!important;page-break-after:auto!important}
+}
