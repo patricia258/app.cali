@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Cloud, Eye, FileCheck2, FileText, Loader2, MessageSquare, Search, Send, X } from 'lucide-react';
+import { CheckCircle2, Cloud, ExternalLink, Eye, FileCheck2, FileText, Loader2, MessageSquare, Search, Send, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
 
@@ -50,6 +50,7 @@ export function ClientDocumentsPage() {
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [driveConnection, setDriveConnection] = useState<DriveConnection | null>(null);
+  const [driveConnecting, setDriveConnecting] = useState(false);
   const [syncByFile, setSyncByFile] = useState<Record<string, SyncState>>({});
   const [acknowledged, setAcknowledged] = useState<string[]>(preview ? ['d1'] : []);
   const [loading, setLoading] = useState(!preview);
@@ -88,11 +89,10 @@ export function ClientDocumentsPage() {
     if (!supabase) return;
     setLoading(true);
     setError('');
-    const [filesResult, ackResult, driveResult, syncResult] = await Promise.all([
+    const [filesResult, ackResult, driveStatusResult] = await Promise.all([
       supabase.from('files').select('id,company_id,title,category,document_kind,version_label,protocol,storage_path,drive_url,cover_storage_path,requires_acknowledgement,description,updated_at,status,client_visible').eq('client_visible', true).eq('status', 'published').order('updated_at', { ascending: false }),
       supabase.from('document_acknowledgements').select('file_id,acknowledged_at'),
-      supabase.from('drive_connections').select('id,account_email,root_folder_name,status').eq('owner_type', 'client').eq('status', 'connected').limit(1),
-      supabase.from('file_sync_jobs').select('file_id,status,external_url,updated_at').order('updated_at', { ascending: false }),
+      supabase.functions.invoke('google-drive-oauth', { body: { action: 'status' } }),
     ]);
     if (filesResult.error) {
       setError(filesResult.error.message);
@@ -116,11 +116,15 @@ export function ClientDocumentsPage() {
     })));
     setDocuments(rows);
     setAcknowledged((ackResult.data ?? []).filter((item) => item.acknowledged_at).map((item) => item.file_id));
-    setDriveConnection((driveResult.data?.[0] as DriveConnection | undefined) || null);
+
+    const driveData = driveStatusResult.data;
+    setDriveConnection(!driveStatusResult.error && driveData?.connected && driveData?.connection ? driveData.connection as DriveConnection : null);
     const nextSync: Record<string, SyncState> = {};
-    (syncResult.data || []).forEach((item) => {
-      if (!nextSync[item.file_id]) nextSync[item.file_id] = { status: item.status as SyncState['status'], url: item.external_url };
-    });
+    if (!driveStatusResult.error) {
+      (driveData?.jobs || []).forEach((item: any) => {
+        if (!nextSync[item.file_id]) nextSync[item.file_id] = { status: item.status as SyncState['status'], url: item.external_url };
+      });
+    }
     setSyncByFile(nextSync);
     setLoading(false);
   }
@@ -201,45 +205,64 @@ export function ClientDocumentsPage() {
     await openComments(commentDoc);
   }
 
+  async function connectDrive() {
+    if (preview) {
+      setNotice('No ambiente de demonstração, a conexão com o Google Drive não é aberta.');
+      return;
+    }
+    if (!supabase || driveConnecting) return;
+    setDriveConnecting(true);
+    setError('');
+    try {
+      const { data, error: invokeError } = await supabase.functions.invoke('google-drive-oauth', { body: { action: 'authorize' } });
+      if (invokeError || data?.error || !data?.url) throw new Error(data?.detail || data?.error || invokeError?.message || 'Não foi possível iniciar a conexão com o Google Drive.');
+      window.location.assign(data.url);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Não foi possível iniciar a conexão com o Google Drive.');
+      setDriveConnecting(false);
+    }
+  }
+
   async function requestDriveCopy(doc: ClientDoc) {
-    if (!driveConnection || !supabase || preview) return;
+    if (!driveConnection || !supabase || preview || !doc.storagePath) return;
     const existing = syncByFile[doc.id];
-    if (existing?.status === 'pending' || existing?.status === 'processing' || existing?.status === 'synced') return;
-    const { data: sessionData } = await supabase.auth.getSession();
-    const userId = sessionData.session?.user.id;
-    if (!userId) return;
-    const { error: syncError } = await supabase.from('file_sync_jobs').insert({
-      file_id: doc.id,
-      company_id: doc.companyId,
-      connection_id: driveConnection.id,
-      status: 'pending',
-      requested_by: userId,
-    });
-    if (syncError) { setError(syncError.message); return; }
-    setSyncByFile((current) => ({ ...current, [doc.id]: { status: 'pending' } }));
-    setNotice(`Cópia de ${doc.title} solicitada para o Drive conectado.`);
+    if (existing?.status === 'synced' && existing.url) {
+      window.open(existing.url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    if (existing?.status === 'pending' || existing?.status === 'processing') return;
+    setError('');
+    setSyncByFile((current) => ({ ...current, [doc.id]: { status: 'processing' } }));
+    const { data, error: syncError } = await supabase.functions.invoke('google-drive-oauth', { body: { action: 'copy_file', fileId: doc.id } });
+    if (syncError || data?.error) {
+      setSyncByFile((current) => ({ ...current, [doc.id]: { status: 'error' } }));
+      setError(data?.detail || data?.error || syncError?.message || 'Não foi possível salvar este arquivo no Google Drive.');
+      return;
+    }
+    setSyncByFile((current) => ({ ...current, [doc.id]: { status: 'synced', url: data?.url || null } }));
+    setNotice(`${doc.title} foi salvo no seu Google Drive.`);
   }
 
   function driveActionLabel(state?: SyncState) {
-    if (!state) return 'Salvar no Drive';
-    if (state.status === 'synced') return 'Salvo no Drive';
+    if (!state) return 'Salvar no meu Drive';
+    if (state.status === 'synced') return 'Abrir no Drive';
     if (state.status === 'error') return 'Tentar novamente';
-    return 'Cópia solicitada';
+    return 'Salvando no Drive…';
   }
 
   return (
     <Shell role="client">
       <section className="page client-documents-v2 client-documents-v3">
         <div className="eyebrow">BIBLIOTECA DO PROJETO</div>
-        <div className="page-heading"><div><h1>Documentos</h1><p>Arquivos compartilhados pela CALI permanecem organizados pelo mesmo protocolo, com versão, contexto, comentários e registro de ciência quando necessário.</p></div></div>
+        <div className="page-heading"><div><h1>Documentos</h1><p>Aqui aparecem somente as versões finalizadas e liberadas pela CALI. Abra, comente, registre ciência quando necessário e, se quiser, salve uma cópia no seu Google Drive.</p></div></div>
 
         {notice && <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div>}
         {error && <div className="inline-notice">{error}</div>}
 
         <section className={`drive-banner ${driveConnection ? 'connected' : 'not-configured'}`}>
           <div className="drive-icon"><Cloud size={23} /></div>
-          <div><strong>{driveConnection ? 'Google Drive da empresa conectado' : 'Google Drive não configurado para esta conta'}</strong><p>{driveConnection ? `${driveConnection.accountEmail || 'Conta conectada'}${driveConnection.rootFolderName ? ` · pasta ${driveConnection.rootFolderName}` : ''}. Você pode solicitar uma cópia sem retirar o arquivo do Workspace.` : 'Os documentos continuam seguros e disponíveis no Workspace. A opção de copiar para o Drive só é habilitada quando existe uma conexão real da empresa.'}</p></div>
-          {driveConnection && <span className="client-drive-connected-v3"><CheckCircle2 size={15} />Conectado</span>}
+          <div><span className="client-drive-kicker-v52">SEU ARQUIVO, NO SEU DRIVE</span><strong>{driveConnection ? 'Google Drive conectado' : 'Leve suas versões aprovadas para o seu Drive'}</strong><p>{driveConnection ? `${driveConnection.accountEmail || 'Conta Google conectada'}. Os documentos continuam disponíveis no Workspace e você escolhe quais deseja copiar.` : 'Conecte sua conta uma única vez. Depois, cada documento liberado pela CALI pode ser salvo no seu Drive com um clique, sem configurar pastas nem permissões manualmente.'}</p></div>
+          <div className="client-drive-actions-v52">{driveConnection && <span className="client-drive-connected-v3"><CheckCircle2 size={15} />Conectado</span>}<button type="button" className="client-drive-action-v52" disabled={driveConnecting} onClick={() => void connectDrive()}><Cloud size={16} />{driveConnecting ? 'Abrindo Google…' : driveConnection ? 'Trocar conta' : 'Conectar meu Drive'}</button></div>
         </section>
 
         <div className="client-doc-toolbar-v3">
@@ -248,12 +271,12 @@ export function ClientDocumentsPage() {
         </div>
 
         {loading && <div className="data-loading"><Loader2 className="spin" size={20} />Carregando biblioteca…</div>}
-        {!loading && filtered.length === 0 && <div className="panel data-empty"><strong>Nenhum documento encontrado.</strong><span>{documents.length ? 'Ajuste a busca ou o filtro.' : 'Os documentos publicados pela CALI aparecerão aqui.'}</span></div>}
+        {!loading && filtered.length === 0 && <div className="panel data-empty"><strong>Nenhum documento encontrado.</strong><span>{documents.length ? 'Ajuste a busca ou o filtro.' : 'Assim que a CALI publicar uma versão final para você, ela aparecerá aqui.'}</span></div>}
         <section className="document-cards document-cards-v2">
           {filtered.map((doc) => {
             const isAcknowledged = acknowledged.includes(doc.id);
             const syncState = syncByFile[doc.id];
-            const syncLocked = syncState?.status === 'pending' || syncState?.status === 'processing' || syncState?.status === 'synced';
+            const syncLocked = syncState?.status === 'pending' || syncState?.status === 'processing';
             return (
               <article className="document-card document-card-v2" key={doc.id}>
                 <div className="document-card-cover">{doc.coverUrl ? <img src={doc.coverUrl} alt="" /> : <div><FileText size={31} /><span>{doc.kind}</span></div>}</div>
@@ -267,7 +290,7 @@ export function ClientDocumentsPage() {
                     <button className="secondary" onClick={() => void openDocument(doc)}><Eye size={17} />Abrir</button>
                     <button className="secondary" onClick={() => void openComments(doc)}><MessageSquare size={17} />Comentar</button>
                     {doc.requiresAcknowledgement && <button className={`secondary ${isAcknowledged ? 'acknowledged' : ''}`} disabled={isAcknowledged} onClick={() => void acknowledgeDocument(doc)}>{isAcknowledged ? <><CheckCircle2 size={17} />Ciente</> : <><FileCheck2 size={17} />Registrar ciência</>}</button>}
-                    {driveConnection && <button className={`secondary ${syncState?.status === 'synced' ? 'acknowledged' : ''}`} disabled={Boolean(syncLocked)} onClick={() => void requestDriveCopy(doc)}>{syncState?.status === 'synced' ? <CheckCircle2 size={17} /> : <Cloud size={17} />}{driveActionLabel(syncState)}</button>}
+                    {driveConnection && doc.storagePath && <button className={`secondary ${syncState?.status === 'synced' ? 'acknowledged' : ''}`} disabled={Boolean(syncLocked)} onClick={() => void requestDriveCopy(doc)}>{syncState?.status === 'synced' ? <ExternalLink size={17} /> : <Cloud size={17} />}{driveActionLabel(syncState)}</button>}
                   </div>
                 </div>
               </article>
