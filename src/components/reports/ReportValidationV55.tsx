@@ -1,12 +1,14 @@
 import type { CSSProperties } from 'react';
 
+export type ReportSignatureStyleV59='executive'|'editorial'|'notarial'|'heritage'|'calligraphic'|'autograph'|'contemporary'|'italian'|'minimal'|'personal'|'classic'|'fluid'|'delicate'|'formal';
 export type ReportIdentityV55={
   user_id?:string;full_name?:string;job_title?:string;avatar_url?:string;
   avatar_position_x?:number;avatar_position_y?:number;avatar_zoom?:number;
-  signature_mode?:'generated'|'uploaded';signature_url?:string;signature_style?:'classic'|'fluid'|'delicate'|'formal';
+  signature_mode?:'generated'|'uploaded';signature_url?:string;signature_style?:ReportSignatureStyleV59;
   signed_at?:string;protocol?:string;
 };
 
+const allowedStyles=new Set<ReportSignatureStyleV59>(['executive','editorial','notarial','heritage','calligraphic','autograph','contemporary','italian','minimal','personal','classic','fluid','delicate','formal']);
 function fmt(value?:string|null){
   if(!value)return'—';
   const date=new Date(value);
@@ -22,7 +24,7 @@ function avatarVars(identity?:ReportIdentityV55|null):CSSProperties{
   } as CSSProperties;
 }
 function initials(name?:string){return String(name||'C').split(' ').filter(Boolean).slice(0,2).map((part)=>part[0]?.toUpperCase()).join('')||'C';}
-function styleClass(identity?:ReportIdentityV55|null){const value=identity?.signature_style;return `signature-style-${value==='fluid'||value==='delicate'||value==='formal'?value:'classic'}`;}
+function styleClass(identity?:ReportIdentityV55|null){const raw=identity?.signature_style;const value=raw&&allowedStyles.has(raw)?raw:'executive';return `signature-style-${value}`;}
 
 function SignatureMark({identity}:{identity:ReportIdentityV55}){
   if(identity.signature_mode==='uploaded'&&identity.signature_url){
