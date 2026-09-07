@@ -12,7 +12,7 @@ import { AdminProjectsGatePage } from './pages/admin/AdminProjectsGatePage';
 import { AdminHoursPageV3 } from './pages/admin/AdminHoursPageV3';
 import { AdminCalendarPage } from './pages/admin/AdminCalendarPage';
 import { AdminDocumentsPageV4 } from './pages/admin/AdminDocumentsPageV4';
-import { AdminReportsPageV16 } from './pages/admin/AdminReportsPageV16';
+import { AdminReportsPageV17 } from './pages/admin/AdminReportsPageV17';
 import { AdminSatisfactionPage } from './pages/admin/AdminSatisfactionPage';
 import { AdminPeopleMapPageV2 } from './pages/admin/AdminPeopleMapPageV2';
 import { AdminPeopleMapReviewPage } from './pages/admin/AdminPeopleMapReviewPage';
@@ -24,7 +24,7 @@ import { ClientDeliverablesPage } from './pages/client/ClientDeliverablesPage';
 import { ClientHoursPage } from './pages/client/ClientHoursPage';
 import { ClientDocumentsPage } from './pages/client/ClientDocumentsPage';
 import { ClientReportsPageV5 } from './pages/client/ClientReportsPageV5';
-import { ReportPrintPageV16 } from './pages/reports/ReportPrintPageV16';
+import { ReportPrintPageV17 } from './pages/reports/ReportPrintPageV17';
 
 export default function App(){return <Routes>
   <Route path="/" element={<LoginPage/>}/><Route path="/auth/callback" element={<AuthCallbackPage/>}/><Route path="/oauth/google/callback" element={<GoogleCalendarCallbackPage/>}/>
@@ -38,8 +38,8 @@ export default function App(){return <Routes>
   <Route path="/admin/calendario" element={<ProtectedRoute role="admin"><AdminCalendarPage/></ProtectedRoute>}/>
   <Route path="/admin/registros" element={<ProtectedRoute role="admin"><AdminRecordsPage/></ProtectedRoute>}/>
   <Route path="/admin/documentos" element={<ProtectedRoute role="admin"><AdminDocumentsPageV4/></ProtectedRoute>}/>
-  <Route path="/admin/relatorios/impressao/:reportId" element={<ProtectedRoute role="admin"><ReportPrintPageV16 role="admin"/></ProtectedRoute>}/>
-  <Route path="/admin/relatorios" element={<ProtectedRoute role="admin"><AdminReportsPageV16/></ProtectedRoute>}/>
+  <Route path="/admin/relatorios/impressao/:reportId" element={<ProtectedRoute role="admin"><ReportPrintPageV17 role="admin"/></ProtectedRoute>}/>
+  <Route path="/admin/relatorios" element={<ProtectedRoute role="admin"><AdminReportsPageV17/></ProtectedRoute>}/>
   <Route path="/admin/satisfacao" element={<ProtectedRoute role="admin"><AdminSatisfactionPage/></ProtectedRoute>}/>
   <Route path="/admin/mapa-de-people" element={<ProtectedRoute role="admin"><AdminPeopleMapPageV2/></ProtectedRoute>}/>
   <Route path="/admin/mapa-de-people/revisao" element={<ProtectedRoute role="admin"><AdminPeopleMapReviewPage/></ProtectedRoute>}/>
@@ -50,7 +50,7 @@ export default function App(){return <Routes>
   <Route path="/cliente/horas" element={<ProtectedRoute role="client"><ClientHoursPage/></ProtectedRoute>}/>
   <Route path="/cliente/registros" element={<ProtectedRoute role="client"><ClientRecordsPage/></ProtectedRoute>}/>
   <Route path="/cliente/documentos" element={<ProtectedRoute role="client"><ClientDocumentsPage/></ProtectedRoute>}/>
-  <Route path="/cliente/relatorios/impressao/:reportId" element={<ProtectedRoute role="client"><ReportPrintPageV16 role="client"/></ProtectedRoute>}/>
+  <Route path="/cliente/relatorios/impressao/:reportId" element={<ProtectedRoute role="client"><ReportPrintPageV17 role="client"/></ProtectedRoute>}/>
   <Route path="/cliente/relatorios" element={<ProtectedRoute role="client"><ClientReportsPageV5/></ProtectedRoute>}/>
   <Route path="*" element={<Navigate to="/" replace/>}/>
 </Routes>}
