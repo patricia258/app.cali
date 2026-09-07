@@ -138,6 +138,7 @@ import './reports-v16.css';
 import './critical-fixes-v53.css';
 import './reports-pdf-polish-v54.css';
 import './report-client-flow-v55.css';
+import './report-client-flow-v56.css';
 
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
