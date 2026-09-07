@@ -1,0 +1,500 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap');
+
+/* CALI Workspace · Relatórios V18
+   Documento executivo alinhado aos dois padrões aprovados da marca:
+   Portal (disciplina A4, ritmo e paginação) + Mapa de People (hierarquia editorial). */
+
+.reports-v16-preview-document,
+.client-reports-v16-document{
+  background:#d8d2cd;
+}
+
+.reports-v16-document{
+  gap:24px;
+}
+
+.reports-v16-paper{
+  --report-bordo:#5A1E2D;
+  --report-bordo-dark:#3E1520;
+  --report-ivory:#F7F3EE;
+  --report-graphite:#2B2B2B;
+  --report-taupe:#B7A99A;
+  --report-gold:#B58C52;
+  --report-rule:#DDD4CE;
+  --report-soft:#EEE8E3;
+  width:210mm;
+  height:297mm;
+  padding:14mm 15mm 14mm;
+  background:#fffdf9!important;
+  color:var(--report-graphite)!important;
+  font-family:'Inter',Arial,sans-serif;
+  font-weight:400;
+  box-shadow:0 14px 38px rgba(37,25,21,.14);
+}
+
+.reports-v16-paper::before{
+  content:'';
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  height:2.4mm;
+  background:var(--report-bordo);
+}
+
+.reports-v16-paper::after{
+  content:'';
+  position:absolute;
+  width:48mm;
+  height:48mm;
+  right:-33mm;
+  top:28mm;
+  border:6mm solid rgba(181,140,82,.045);
+  border-radius:50%;
+  pointer-events:none;
+}
+
+.reports-v16-paper-header{
+  min-height:20mm;
+  padding:3mm 0 4mm;
+  border-bottom:1px solid rgba(183,169,154,.55);
+  align-items:center;
+  gap:12mm;
+}
+
+.reports-v16-paper-header.compact{
+  min-height:18mm;
+  padding:2.5mm 0 3.5mm;
+}
+
+.reports-v16-brand img{
+  width:31mm;
+  height:13mm;
+  object-fit:contain;
+  object-position:left center;
+}
+
+.reports-v16-client-id{
+  gap:4mm;
+  max-width:105mm;
+}
+
+.reports-v16-client-id>div{
+  gap:.8mm;
+}
+
+.reports-v16-client-id small{
+  font-size:6.8pt;
+  font-weight:700;
+  letter-spacing:.17em;
+  text-transform:uppercase;
+  color:var(--report-gold);
+}
+
+.reports-v16-client-id strong{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:11.5pt;
+  line-height:1.15;
+  font-weight:600;
+  color:var(--report-bordo);
+}
+
+.reports-v16-client-id span{
+  font-size:7.8pt;
+  line-height:1.3;
+  color:#746966;
+}
+
+.reports-v16-client-id img{
+  width:16mm;
+  height:13mm;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  object-fit:contain;
+  object-position:center;
+}
+
+.reports-v16-meta{
+  gap:2.4mm;
+  padding:3mm 0 0;
+  font-size:6.8pt;
+  line-height:1.35;
+  color:#776d68;
+  letter-spacing:.025em;
+}
+
+.reports-v16-meta i{
+  width:1.2mm;
+  height:1.2mm;
+  background:var(--report-gold);
+  opacity:.7;
+}
+
+.reports-v16-reading{
+  position:relative;
+  padding:10mm 0 8mm;
+  max-width:164mm;
+}
+
+.reports-v16-reading::before,
+.reports-v16-page-two-title::before{
+  content:'';
+  display:block;
+  width:15mm;
+  height:1px;
+  margin:0 0 3.5mm;
+  background:var(--report-gold);
+}
+
+.reports-v16-kicker,
+.reports-v16-section-head small,
+.reports-v16-page-two-title>span{
+  font-family:'Inter',Arial,sans-serif;
+  font-size:6.7pt;
+  font-weight:700;
+  letter-spacing:.19em;
+  text-transform:uppercase;
+  color:var(--report-gold);
+}
+
+.reports-v16-reading h1,
+.reports-v16-page-two-title h1{
+  max-width:158mm;
+  margin:2mm 0 0;
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:27pt;
+  line-height:1.05;
+  letter-spacing:-.02em;
+  font-weight:600;
+  color:var(--report-bordo);
+}
+
+.reports-v16-reading p{
+  max-width:158mm;
+  margin:4mm 0 0;
+  font-family:'Inter',Arial,sans-serif;
+  font-size:10.1pt;
+  line-height:1.68;
+  font-weight:300;
+  color:#4b4340;
+  white-space:pre-line;
+}
+
+.reports-v16-facts{
+  padding:5.5mm 0 5mm;
+  border-top:1px solid var(--report-rule);
+}
+
+.reports-v16-section-head{
+  margin-bottom:3.3mm;
+}
+
+.reports-v16-section-head.compact{
+  margin-bottom:2.7mm;
+}
+
+.reports-v16-section-head h2{
+  margin:1.1mm 0 0;
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:13.2pt;
+  line-height:1.18;
+  font-weight:600;
+  color:var(--report-bordo);
+}
+
+.reports-v16-metrics{
+  border-top:1px solid var(--report-rule);
+  border-bottom:1px solid var(--report-rule);
+}
+
+.reports-v16-metrics>div{
+  min-height:20mm;
+  padding:3.5mm 4mm 3.2mm 0;
+  margin-right:4mm;
+  border-right:1px solid var(--report-soft);
+}
+
+.reports-v16-metrics small{
+  font-size:6.1pt;
+  font-weight:700;
+  letter-spacing:.095em;
+  color:#857872;
+}
+
+.reports-v16-metrics strong{
+  margin-top:1.6mm;
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:19pt;
+  line-height:1;
+  font-weight:600;
+  color:var(--report-bordo);
+}
+
+.reports-v16-metrics span{
+  margin-top:1.4mm;
+  font-size:6.6pt;
+  line-height:1.35;
+  color:#81746e;
+}
+
+.reports-v16-capacity-note{
+  margin:2.5mm 0 0;
+  padding-left:3mm;
+  border-left:1.5px solid var(--report-gold);
+  font-size:6.8pt;
+  line-height:1.45;
+  color:#6e625c;
+}
+
+.reports-v16-execution-grid{
+  padding:5mm 0;
+  border-top:1px solid var(--report-rule);
+}
+
+.reports-v16-execution-block table{
+  table-layout:fixed;
+}
+
+.reports-v16-execution-block th{
+  padding:1.6mm 2mm 1.8mm 0;
+  border-bottom:1px solid var(--report-bordo);
+  font-size:6.2pt;
+  font-weight:700;
+  letter-spacing:.085em;
+  color:#80736d;
+}
+
+.reports-v16-execution-block th:first-child{width:43%}
+.reports-v16-execution-block th:nth-child(2),
+.reports-v16-execution-block th:nth-child(3){width:17%}
+.reports-v16-execution-block th:nth-child(4){width:23%}
+
+.reports-v16-execution-block td{
+  padding:2.2mm 2mm 2.2mm 0;
+  border-bottom:1px solid var(--report-soft);
+  font-size:7.4pt;
+  line-height:1.35;
+  color:#403936;
+}
+
+.reports-v16-execution-block td strong{
+  font-weight:600;
+  color:#342e2b;
+}
+
+.reports-v16-execution-block td span{
+  margin-top:.7mm;
+  font-size:6.2pt;
+  color:#8c7f78;
+}
+
+.reports-v16-changes{
+  padding:5mm 0 0;
+  border-top:1px solid var(--report-rule);
+}
+
+.reports-v16-changes>div:last-child{
+  gap:0;
+  border-top:1px solid var(--report-rule);
+  border-bottom:1px solid var(--report-rule);
+}
+
+.reports-v16-changes article,
+.reports-v16-changes .tone-positive,
+.reports-v16-changes .tone-attention{
+  min-height:20mm;
+  padding:3mm 3.5mm;
+  border:0;
+  border-right:1px solid var(--report-soft);
+  border-radius:0;
+  background:transparent;
+}
+
+.reports-v16-changes article:last-child{border-right:0}
+
+.reports-v16-changes article>span{
+  font-size:5.9pt;
+  letter-spacing:.08em;
+  font-weight:700;
+}
+
+.reports-v16-changes article>strong{
+  margin:1.3mm 0 1mm;
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:13.5pt;
+  line-height:1.05;
+  font-weight:600;
+  color:var(--report-bordo);
+}
+
+.reports-v16-changes article p{
+  font-size:6.2pt;
+  line-height:1.42;
+  color:#786c66;
+}
+
+.reports-v16-page-two-title{
+  position:relative;
+  padding:10mm 0 8mm;
+}
+
+.reports-v16-page-two-title h1{
+  font-size:25.5pt;
+  max-width:155mm;
+}
+
+.reports-v16-editorial-block{
+  padding:5mm 0;
+  border-top:1px solid var(--report-rule);
+}
+
+.reports-v16-editorial-block ol,
+.reports-v16-editorial-block ul{
+  margin:0;
+  padding:0;
+  list-style:none;
+  counter-reset:report-item;
+}
+
+.reports-v16-editorial-block li{
+  position:relative;
+  padding:2.3mm 0 2.3mm 11mm;
+  margin:0;
+  border-bottom:1px solid var(--report-soft);
+  font-size:8.3pt;
+  line-height:1.55;
+  color:#403936;
+  counter-increment:report-item;
+}
+
+.reports-v16-editorial-block li::before{
+  content:counter(report-item, decimal-leading-zero);
+  position:absolute;
+  left:0;
+  top:2.2mm;
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:8.5pt;
+  font-weight:600;
+  color:var(--report-gold);
+}
+
+.reports-v16-numbered{
+  gap:0;
+  border-top:1px solid var(--report-soft);
+}
+
+.reports-v16-numbered article{
+  grid-template-columns:11mm minmax(0,1fr);
+  gap:3mm;
+  padding:2.6mm 0;
+  border-bottom:1px solid var(--report-soft);
+}
+
+.reports-v16-numbered article>b{
+  display:block;
+  width:auto;
+  height:auto;
+  padding-top:.4mm;
+  border:0;
+  border-radius:0;
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:9pt;
+  font-weight:600;
+  color:var(--report-gold);
+}
+
+.reports-v16-numbered p{
+  margin:0;
+  font-size:8.3pt;
+  line-height:1.55;
+  color:#403936;
+}
+
+.reports-v16-feedback{
+  grid-template-columns:42mm minmax(0,1fr);
+  gap:6mm;
+  margin-top:5mm;
+  padding:5mm 0 5mm 5mm;
+  border-left:2px solid var(--report-gold);
+  background:transparent;
+}
+
+.reports-v16-feedback small{
+  font-size:6.2pt;
+  letter-spacing:.13em;
+  color:var(--report-gold);
+}
+
+.reports-v16-feedback strong{
+  margin-top:1.5mm;
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:18pt;
+  font-weight:600;
+  color:var(--report-bordo);
+}
+
+.reports-v16-feedback blockquote,
+.reports-v16-feedback>p{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:9.4pt;
+  line-height:1.58;
+  font-style:italic;
+  color:#4a413d;
+}
+
+.reports-v16-footer{
+  left:15mm;
+  right:15mm;
+  bottom:7mm;
+  gap:4mm;
+  padding-top:2.8mm;
+  border-top:1px solid rgba(183,169,154,.52);
+  font-size:6.2pt;
+  letter-spacing:.025em;
+  color:#847870;
+}
+
+.reports-v16-footer b{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:7pt;
+  font-weight:600;
+  color:var(--report-bordo);
+}
+
+/* A página de validação continua documental, mas com o mesmo acabamento editorial. */
+.reports-v16-paper-signature .report-validation-document-v57{
+  border-top:1px solid var(--report-rule)!important;
+}
+
+.reports-v16-paper-signature .report-validation-head-v57 h2,
+.reports-v16-paper-signature .report-signature-party-v57 strong{
+  font-family:'Playfair Display',Georgia,serif!important;
+}
+
+.reports-v16-paper-signature .report-validation-head-v57 small,
+.reports-v16-paper-signature .report-signature-label-v57{
+  font-family:'Inter',Arial,sans-serif!important;
+  letter-spacing:.14em!important;
+}
+
+@media print{
+  @page{size:A4;margin:0}
+  html,body{background:#fff!important}
+  .report-print-v16-stage .reports-v16-paper{
+    width:210mm!important;
+    height:297mm!important;
+    padding:14mm 15mm 14mm!important;
+    margin:0!important;
+    background:#fffdf9!important;
+    box-shadow:none!important;
+    overflow:hidden!important;
+    break-after:page!important;
+    page-break-after:always!important;
+  }
+  .report-print-v16-stage .reports-v16-paper:last-child{
+    break-after:auto!important;
+    page-break-after:auto!important;
+  }
+}
