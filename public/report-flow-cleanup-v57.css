@@ -1,0 +1,96 @@
+/* V57 · Relatórios: menos redundância, detalhe sob demanda e assinatura documental */
+
+/* Cliente: tabela limpa. */
+.client-reports-v57 .page-heading{margin-bottom:24px}
+.client-report-library-v57{background:var(--surface,#fff)}
+.client-report-table-v57{min-width:1040px}
+.client-report-table-v57 td{padding-top:18px;padding-bottom:18px}
+.client-report-protocol-v57{display:flex;align-items:center;gap:8px;min-width:0}
+.client-report-protocol-v57 strong{min-width:0;overflow-wrap:anywhere}
+.client-report-expand-v57{width:28px;height:28px;display:grid;place-items:center;flex:0 0 auto;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--text-muted,#786d66);cursor:pointer;transition:.16s ease}
+.client-report-expand-v57:hover{border-color:rgba(181,140,82,.36);background:rgba(181,140,82,.08);color:#5A1E2D}
+.client-report-table-v57 tr.expanded .client-report-expand-v57 svg{transform:rotate(180deg)}
+.client-report-expand-v57 svg{transition:transform .16s ease}
+.client-report-detail-row-v57 td{padding:0 16px 16px!important;background:rgba(181,140,82,.035)}
+.client-report-detail-grid-v57{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;border:1px solid var(--border,#e5dcd5);border-radius:12px;overflow:hidden}
+.client-report-detail-grid-v57>div{min-width:0;padding:11px 13px;border-right:1px solid var(--border,#e5dcd5)}
+.client-report-detail-grid-v57>div:last-child{border-right:0}
+.client-report-detail-grid-v57>div.wide{grid-column:1/-1;border-top:1px solid var(--border,#e5dcd5);border-right:0}
+.client-report-detail-grid-v57 span{display:block;margin-bottom:3px;font-size:8.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted,#857a73)}
+.client-report-detail-grid-v57 strong{display:block;font-size:10.5px;font-weight:700;color:inherit;overflow-wrap:anywhere}
+
+/* Assinatura no documento: não é card de interface; é registro documental. */
+.report-validation-document-v57{position:relative!important;width:100%!important;margin:7mm 0 3mm!important;padding:5mm 0 1mm!important;border-top:1px solid #D9CFC8!important;background:transparent!important;break-inside:avoid!important;page-break-inside:avoid!important}
+.report-validation-head-v57{display:flex;align-items:flex-end;justify-content:space-between;gap:8mm;margin-bottom:7mm}
+.report-validation-head-v57 span{font-size:6.6pt!important;font-weight:900!important;letter-spacing:.14em!important;color:#B58C52!important}
+.report-validation-head-v57 strong{font-size:7.2pt!important;font-weight:700!important;color:#756A64!important}
+.report-signature-grid-v57{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12mm;width:100%}
+.report-signature-party-v57{min-width:0!important;padding:0 0 2mm!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:#2B2B2B!important}
+.report-signature-label-v57{display:block;margin-bottom:10mm;font-size:6.2pt!important;font-weight:900!important;letter-spacing:.12em!important;color:#8D7C70!important}
+.report-signature-line-v57{position:relative;display:flex;align-items:flex-end;min-height:13mm;padding:0 1mm 2.2mm;border-bottom:1px solid #AFA39B;overflow:hidden}
+.report-signature-line-v57 .report-signature-image-v55{display:block!important;max-width:48mm!important;width:auto!important;max-height:10mm!important;height:auto!important;object-fit:contain!important;object-position:left bottom!important;filter:none!important}
+.report-signature-line-v57 .report-signature-generated-v55{display:block!important;max-width:100%!important;overflow:hidden!important;white-space:nowrap!important;color:#5A1E2D!important;font-size:16pt!important;line-height:1!important}
+.report-signature-person-v57{display:flex;align-items:center;gap:2.5mm;margin-top:3mm;min-width:0}
+.report-signature-person-v57 .report-validation-avatar-v55{width:8mm!important;height:8mm!important;flex:0 0 8mm!important;border-radius:2mm!important;background:#F7F3EE!important;border:1px solid #D8C9BF!important}
+.report-signature-person-v57>div{display:grid;min-width:0}
+.report-signature-person-v57 strong{font-size:7.4pt!important;line-height:1.15!important;color:#2B2B2B!important;font-weight:800!important}
+.report-signature-person-v57 span{margin-top:.6mm;font-size:6.1pt!important;line-height:1.15!important;color:#7F746D!important}
+.report-signature-meta-v57{display:flex;align-items:center;justify-content:space-between;gap:3mm;margin-top:3mm;font-size:5.8pt!important;color:#81756E!important}
+.report-signature-meta-v57 b{font-size:5.7pt!important;font-weight:800!important;color:#5A1E2D!important;overflow-wrap:anywhere}
+.report-signature-party-v57.pending .report-signature-line-v57{align-items:flex-end}
+.report-signature-pending-v57{padding-bottom:.6mm;font-size:8pt!important;font-weight:750!important;color:#9A8F88!important}
+.report-signature-party-v57.pending p{margin:2.8mm 0 0!important;font-size:6.3pt!important;color:#91857E!important}
+.reports-v16-paper .report-validation-card-v55{border:0!important;background:transparent!important;border-radius:0!important;box-shadow:none!important}
+.reports-v16-paper .report-validation-grid-v55{display:none!important}
+.reports-v16-paper-two:has(.report-validation-document-v57){padding-bottom:24mm!important}
+.reports-v16-paper-two:has(.report-validation-document-v57) .reports-v16-footer{bottom:5mm!important}
+
+/* Admin: nada de card repetindo o acompanhamento. Apenas um acesso discreto ao histórico. */
+.report-client-track-v55{display:none!important}
+.report-client-history-trigger-v57{min-height:38px!important;border:1px solid #DED3CC!important;border-radius:10px!important;background:transparent!important;color:#5A1E2D!important;padding:0 12px!important;font:inherit!important;font-size:10.5px!important;font-weight:800!important;cursor:pointer}
+.report-client-history-trigger-v57:hover{background:rgba(90,30,45,.05)!important}
+.report-client-history-modal-v57{width:min(900px,94vw)!important;max-width:900px!important}
+.report-client-history-modal-v57>p{margin:4px 0 18px!important;color:var(--text-muted,#786d66)!important}
+.report-client-history-table-wrap-v57{overflow:auto;border:1px solid var(--border,#e5dbd4);border-radius:13px}
+.report-client-history-table-v57{width:100%;min-width:680px;border-collapse:collapse}
+.report-client-history-table-v57 th{padding:10px 12px;border-bottom:1px solid var(--border,#e5dbd4);background:rgba(183,169,154,.08);font-size:9px;letter-spacing:.09em;text-transform:uppercase;text-align:left;color:var(--text-muted,#786d66)}
+.report-client-history-table-v57 td{padding:12px;border-bottom:1px solid var(--border,#e5dbd4);font-size:11px;vertical-align:middle}
+.report-client-history-table-v57 tbody>tr.current:not(.report-history-detail-row-v57){box-shadow:inset 3px 0 0 #B58C52}
+.report-client-history-table-v57 tbody>tr:last-child td{border-bottom:0}
+.report-client-history-table-v57 td>strong{font-size:11px}
+.report-history-expand-v57{border:0;background:transparent;color:#5A1E2D;font:inherit;font-size:10px;font-weight:800;cursor:pointer;padding:5px 0}
+.report-history-detail-row-v57 td{padding:0 12px 14px!important;background:rgba(181,140,82,.035)}
+.report-history-detail-grid-v57{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border:1px solid var(--border,#e5dbd4);border-radius:11px;overflow:hidden}
+.report-history-detail-grid-v57>div{padding:10px 11px;border-right:1px solid var(--border,#e5dbd4)}
+.report-history-detail-grid-v57>div.wide{grid-column:1/-1;border-top:1px solid var(--border,#e5dbd4);border-right:0}
+.report-history-detail-grid-v57 span{display:block;margin-bottom:3px;font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted,#786d66)}
+.report-history-detail-grid-v57 strong{display:block;font-size:10px;overflow-wrap:anywhere}
+.report-history-events-v57{display:grid;margin-top:8px}
+.report-history-events-v57>div{display:grid;grid-template-columns:105px 1fr auto;gap:10px;padding:8px 2px;border-bottom:1px solid var(--border,#e5dbd4);font-size:9.5px}
+.report-history-events-v57>div:last-child{border-bottom:0}
+.report-history-events-v57>span{display:block;padding:9px 2px;color:var(--text-muted,#786d66);font-size:10px}
+
+[data-workspace-theme="night"] .client-report-detail-row-v57 td,[data-workspace-theme="night"] .report-history-detail-row-v57 td{background:rgba(231,198,111,.035)}
+[data-workspace-theme="night"] .client-report-detail-grid-v57,[data-workspace-theme="night"] .client-report-detail-grid-v57>div,[data-workspace-theme="night"] .report-client-history-table-wrap-v57,[data-workspace-theme="night"] .report-client-history-table-v57 th,[data-workspace-theme="night"] .report-client-history-table-v57 td,[data-workspace-theme="night"] .report-history-detail-grid-v57,[data-workspace-theme="night"] .report-history-detail-grid-v57>div,[data-workspace-theme="night"] .report-history-events-v57>div{border-color:#49343A}
+[data-workspace-theme="night"] .report-client-history-table-v57 th{background:#2B2023;color:#CBBEB7}
+[data-workspace-theme="night"] .report-client-history-trigger-v57{border-color:#5B434A!important;color:#F7F3EE!important}
+[data-workspace-theme="night"] .report-client-history-trigger-v57:hover{background:rgba(231,198,111,.07)!important}
+[data-workspace-theme="night"] .reports-v16-paper .report-validation-document-v57,[data-workspace-theme="night"] .reports-v16-paper .report-signature-party-v57{background:transparent!important;color:#2B2B2B!important}
+[data-workspace-theme="night"] .reports-v16-paper .report-signature-person-v57 strong{color:#2B2B2B!important}
+[data-workspace-theme="night"] .reports-v16-paper .report-signature-line-v57 .report-signature-generated-v55{color:#5A1E2D!important}
+
+@media(max-width:900px){
+  .client-report-detail-grid-v57,.report-history-detail-grid-v57{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .client-report-detail-grid-v57>div,.report-history-detail-grid-v57>div{border-bottom:1px solid var(--border,#e5dbd4)}
+  .client-report-row-actions-v56{flex-wrap:wrap}
+}
+@media(max-width:680px){
+  .report-signature-grid-v57{grid-template-columns:1fr;gap:9mm}
+  .report-history-events-v57>div{grid-template-columns:1fr;gap:3px}
+}
+@media print{
+  .report-validation-document-v57,.report-signature-grid-v57,.report-signature-party-v57{break-inside:avoid!important;page-break-inside:avoid!important}
+  .report-validation-document-v57{margin-bottom:6mm!important}
+  .report-signature-party-v57,.report-signature-line-v57{background:transparent!important;color:#2B2B2B!important}
+  .report-signature-line-v57 .report-signature-generated-v55{color:#5A1E2D!important}
+}
