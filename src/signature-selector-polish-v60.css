@@ -1,0 +1,26 @@
+/* V60 · assinatura: seletor sutil, compacto e sem corte no modal */
+.profile-signature-v59{padding:18px!important}
+.profile-signature-v59 .profile-signature-heading-v55{margin-bottom:12px}
+.profile-signature-v59 .profile-signature-heading-v55 h3{font-size:17px}
+.profile-signature-v59 .profile-signature-heading-v55 p{font-size:11px}
+.profile-signature-source-v59{margin-bottom:13px}
+.profile-signature-source-v59 button,.profile-signature-source-v59 label{min-height:34px;padding:0 11px;font-size:10.5px;border-radius:8px}
+.profile-signature-field-label-v59{margin-bottom:5px;font-size:8.5px}
+.profile-signature-select-trigger-v59{min-height:56px;grid-template-columns:minmax(0,1fr) auto 18px;gap:12px;padding:7px 11px;border-radius:10px}
+.profile-signature-selected-mark-v59{font-size:23px;line-height:1;padding:2px 0}
+.profile-signature-selected-copy-v59{display:flex;align-items:center;border-left:0;padding-left:0}
+.profile-signature-selected-copy-v59 strong{font-size:10px;font-weight:800;color:#514844;white-space:nowrap}
+.profile-signature-selected-copy-v59 small{display:none}
+.profile-signature-options-v59{position:relative;z-index:auto;left:auto;right:auto;top:auto;margin-top:6px;max-height:236px;overflow:auto;padding:3px;border-radius:10px;box-shadow:0 10px 24px rgba(65,42,33,.11)}
+.profile-signature-options-v59>button{min-height:44px;grid-template-columns:minmax(0,1fr) auto 16px;gap:10px;padding:6px 9px}
+.profile-signature-option-mark-v59{font-size:20px;line-height:1;padding:2px 0}
+.profile-signature-options-v59>button>span:nth-child(2){display:flex;align-items:center}
+.profile-signature-options-v59>button>span:nth-child(2)>strong{font-size:9.5px;font-weight:800;white-space:nowrap}
+.profile-signature-options-v59>button>span:nth-child(2)>small{display:none}
+.profile-signature-options-v59>button.active{box-shadow:inset 2px 0 0 #B58C52}
+.profile-signature-options-v59>button>svg{width:14px;height:14px}
+.profile-signature-uploaded-preview-v59{min-height:66px}
+.profile-signature-uploaded-preview-v59 img{max-height:50px}
+.profile-modal-v55{overflow-y:auto!important;overscroll-behavior:contain}
+[data-workspace-theme="night"] .profile-signature-selected-copy-v59 strong,[data-workspace-theme="night"] .profile-signature-options-v59>button>span:nth-child(2)>strong{color:#F7F3EE}
+@media(max-width:700px){.profile-signature-select-trigger-v59,.profile-signature-options-v59>button{grid-template-columns:minmax(0,1fr) auto 16px}.profile-signature-selected-copy-v59,.profile-signature-options-v59>button>span:nth-child(2){display:flex}.profile-signature-selected-mark-v59{font-size:21px}.profile-signature-option-mark-v59{font-size:19px}}
