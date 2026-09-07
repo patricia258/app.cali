@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Allura&family=Bodoni+Moda:ital,wght@1,500&family=Cormorant+Garamond:ital,wght@1,500&family=Italianno&family=Libre+Caslon+Text:ital@1&family=Mrs+Saint+Delafield&family=Pinyon+Script&family=Sacramento&display=swap');
+@import './signature-selector-polish-v60.css';
 
 /* V59 · assinatura profissional: lista suspensa compacta + presets adultos */
 .profile-signature-v59{position:relative;overflow:visible!important;padding:22px!important;background:rgba(181,140,82,.045)!important}
