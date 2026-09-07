@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Allura&family=Bodoni+Moda:ital,wght@1,500&family=Cormorant+Garamond:ital,wght@1,500&family=Italianno&family=Libre+Caslon+Text:ital@1&family=Mrs+Saint+Delafield&family=Pinyon+Script&family=Sacramento&display=swap');
+
+/* V59 · assinatura profissional: lista suspensa compacta + presets adultos */
+.profile-signature-v59{position:relative;overflow:visible!important;padding:22px!important;background:rgba(181,140,82,.045)!important}
+.profile-signature-v59 .profile-signature-heading-v55{margin-bottom:14px}
+.profile-signature-v59 .profile-signature-heading-v55 h3{font-size:18px;margin-top:4px}
+.profile-signature-v59 .profile-signature-heading-v55 p{max-width:610px;margin-top:4px;font-size:11.5px}
+.profile-signature-source-v59{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.profile-signature-source-v59 button,.profile-signature-source-v59 label{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:37px;padding:0 12px;border:1px solid rgba(90,30,45,.24);border-radius:9px;background:transparent;color:#5A1E2D;font:inherit;font-size:11px;font-weight:800;cursor:pointer;transition:.16s ease}
+.profile-signature-source-v59 button:hover,.profile-signature-source-v59 label:hover{background:rgba(90,30,45,.045)}
+.profile-signature-source-v59 .active{background:#5A1E2D!important;border-color:#5A1E2D!important;color:#fff!important}
+.profile-signature-source-v59 input{display:none}
+.profile-signature-select-v59{position:relative;max-width:100%}
+.profile-signature-field-label-v59{display:block;margin-bottom:6px;font-size:9px;font-weight:850;letter-spacing:.1em;text-transform:uppercase;color:#85776f}
+.profile-signature-select-trigger-v59{width:100%;min-height:76px;display:grid;grid-template-columns:minmax(210px,1.35fr) minmax(150px,.75fr) 20px;align-items:center;gap:16px;padding:10px 14px;border:1px solid #ddd2ca;border-radius:12px;background:#fff;color:#2B2B2B;text-align:left;cursor:pointer;transition:.16s ease}
+.profile-signature-select-trigger-v59:hover,.profile-signature-select-trigger-v59[aria-expanded="true"]{border-color:#B58C52;box-shadow:0 0 0 3px rgba(181,140,82,.08)}
+.profile-signature-selected-mark-v59{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#5A1E2D;font-size:31px;line-height:1.02;padding:4px 2px}
+.profile-signature-selected-copy-v59{display:grid;gap:2px;border-left:1px solid #ece3dd;padding-left:16px}
+.profile-signature-selected-copy-v59 strong{font-family:Inter,system-ui,sans-serif!important;font-size:11px;color:#3A332F}
+.profile-signature-selected-copy-v59 small{font-family:Inter,system-ui,sans-serif!important;font-size:9.5px;color:#857A73}
+.profile-signature-select-trigger-v59>svg{color:#8E7B70;transition:transform .16s ease}
+.profile-signature-select-trigger-v59[aria-expanded="true"]>svg{transform:rotate(180deg)}
+.profile-signature-options-v59{position:absolute;z-index:140;left:0;right:0;top:calc(100% + 7px);max-height:354px;overflow:auto;padding:6px;border:1px solid #D8CCC4;border-radius:13px;background:#FFFDF9;box-shadow:0 20px 52px rgba(65,42,33,.18);scrollbar-width:thin}
+.profile-signature-options-v59>button{width:100%;min-height:64px;display:grid;grid-template-columns:minmax(220px,1.35fr) minmax(160px,.75fr) 18px;align-items:center;gap:15px;padding:8px 11px;border:0;border-bottom:1px solid #EEE5DE;background:transparent;color:#2B2B2B;text-align:left;cursor:pointer}
+.profile-signature-options-v59>button:last-child{border-bottom:0}
+.profile-signature-options-v59>button:hover,.profile-signature-options-v59>button.active{background:rgba(181,140,82,.09)}
+.profile-signature-options-v59>button.active{box-shadow:inset 3px 0 0 #B58C52}
+.profile-signature-option-mark-v59{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#5A1E2D;font-size:28px;line-height:1;padding:4px 2px}
+.profile-signature-options-v59>button>span:nth-child(2){display:grid;gap:2px}
+.profile-signature-options-v59>button>span:nth-child(2)>strong{font-family:Inter,system-ui,sans-serif!important;font-size:10.5px;color:#3E3733}
+.profile-signature-options-v59>button>span:nth-child(2)>small{font-family:Inter,system-ui,sans-serif!important;font-size:9px;color:#887C75}
+.profile-signature-options-v59>button>svg{color:#5A1E2D}
+.profile-signature-uploaded-preview-v59{min-height:82px;display:flex;align-items:center;justify-content:center;padding:10px 14px;border:1px solid #DDD2CA;border-radius:12px;background:#fff}
+.profile-signature-uploaded-preview-v59 img{display:block;max-width:320px;max-height:62px;object-fit:contain}
+.profile-signature-uploaded-empty-v59{padding:18px;border:1px dashed #D9CCC4;border-radius:12px;color:#887C75;font-size:11px;text-align:center;background:#fff}
+.profile-signature-v59>small{display:block;margin-top:11px;color:#867A73;font-size:9.5px}
+
+/* Os novos presets evitam fontes infantis e usam famílias caligráficas/editoriais de registro. */
+.signature-style-executive,.signature-style-executive span{font-family:"Cormorant Garamond",Baskerville,Georgia,serif!important;font-style:italic!important;font-weight:500!important;letter-spacing:-.025em!important}
+.signature-style-editorial,.signature-style-editorial span{font-family:"Bodoni Moda",Didot,"Times New Roman",serif!important;font-style:italic!important;font-weight:500!important;letter-spacing:-.035em!important}
+.signature-style-notarial,.signature-style-notarial span{font-family:"Libre Caslon Text",Baskerville,Georgia,serif!important;font-style:italic!important;font-weight:400!important;letter-spacing:-.02em!important}
+.signature-style-heritage,.signature-style-heritage span{font-family:"Pinyon Script","Snell Roundhand",cursive!important;font-style:normal!important;font-weight:400!important;letter-spacing:0!important}
+.signature-style-calligraphic,.signature-style-calligraphic span{font-family:"Mrs Saint Delafield","Apple Chancery",cursive!important;font-style:normal!important;font-weight:400!important;letter-spacing:.01em!important}
+.signature-style-autograph,.signature-style-autograph span{font-family:"Allura","Monotype Corsiva",cursive!important;font-style:normal!important;font-weight:400!important;letter-spacing:0!important}
+.signature-style-contemporary,.signature-style-contemporary span{font-family:"Sacramento","Segoe Script",cursive!important;font-style:normal!important;font-weight:400!important;letter-spacing:-.01em!important}
+.signature-style-italian,.signature-style-italian span{font-family:"Italianno","Apple Chancery",cursive!important;font-style:normal!important;font-weight:400!important;letter-spacing:.005em!important}
+.signature-style-minimal,.signature-style-minimal span{font-family:"Playfair Display",Baskerville,Georgia,serif!important;font-style:italic!important;font-weight:600!important;letter-spacing:-.045em!important}
+.signature-style-personal,.signature-style-personal span{font-family:"Alex Brush","Snell Roundhand",cursive!important;font-style:normal!important;font-weight:400!important;letter-spacing:0!important}
+
+.report-signature-generated-v55.signature-style-executive,.report-signature-generated-v55.signature-style-editorial,.report-signature-generated-v55.signature-style-notarial,.report-signature-generated-v55.signature-style-heritage,.report-signature-generated-v55.signature-style-calligraphic,.report-signature-generated-v55.signature-style-autograph,.report-signature-generated-v55.signature-style-contemporary,.report-signature-generated-v55.signature-style-italian,.report-signature-generated-v55.signature-style-minimal,.report-signature-generated-v55.signature-style-personal{color:#5A1E2D!important;text-rendering:geometricPrecision}
+.report-signature-generated-v55.signature-style-calligraphic{font-size:20pt!important}
+.report-signature-generated-v55.signature-style-heritage,.report-signature-generated-v55.signature-style-autograph,.report-signature-generated-v55.signature-style-personal{font-size:18pt!important}
+
+[data-workspace-theme="night"] .profile-signature-v59{background:rgba(231,198,111,.045)!important}
+[data-workspace-theme="night"] .profile-signature-source-v59 button,[data-workspace-theme="night"] .profile-signature-source-v59 label{border-color:#594148;color:#F7F3EE}
+[data-workspace-theme="night"] .profile-signature-select-trigger-v59,[data-workspace-theme="night"] .profile-signature-options-v59,[data-workspace-theme="night"] .profile-signature-uploaded-preview-v59,[data-workspace-theme="night"] .profile-signature-uploaded-empty-v59{background:#241A1D;border-color:#49343A;color:#F7F3EE}
+[data-workspace-theme="night"] .profile-signature-selected-mark-v59,[data-workspace-theme="night"] .profile-signature-option-mark-v59{color:#E7C66F}
+[data-workspace-theme="night"] .profile-signature-selected-copy-v59{border-color:#49343A}
+[data-workspace-theme="night"] .profile-signature-selected-copy-v59 strong,[data-workspace-theme="night"] .profile-signature-options-v59>button>span:nth-child(2)>strong{color:#F7F3EE}
+[data-workspace-theme="night"] .profile-signature-selected-copy-v59 small,[data-workspace-theme="night"] .profile-signature-options-v59>button>span:nth-child(2)>small,[data-workspace-theme="night"] .profile-signature-field-label-v59,[data-workspace-theme="night"] .profile-signature-v59>small{color:#C9BBB4}
+[data-workspace-theme="night"] .profile-signature-options-v59>button{border-color:#49343A;color:#F7F3EE}
+[data-workspace-theme="night"] .profile-signature-options-v59>button:hover,[data-workspace-theme="night"] .profile-signature-options-v59>button.active{background:rgba(231,198,111,.08)}
+
+@media(max-width:700px){
+  .profile-signature-select-trigger-v59,.profile-signature-options-v59>button{grid-template-columns:minmax(0,1fr) 18px}
+  .profile-signature-selected-copy-v59,.profile-signature-options-v59>button>span:nth-child(2){display:none}
+  .profile-signature-selected-mark-v59{font-size:27px}
+  .profile-signature-option-mark-v59{font-size:25px}
+  .profile-signature-source-v59{align-items:stretch;flex-direction:column}
+}
+
+@media print{
+  .report-signature-generated-v55.signature-style-executive,.report-signature-generated-v55.signature-style-editorial,.report-signature-generated-v55.signature-style-notarial,.report-signature-generated-v55.signature-style-heritage,.report-signature-generated-v55.signature-style-calligraphic,.report-signature-generated-v55.signature-style-autograph,.report-signature-generated-v55.signature-style-contemporary,.report-signature-generated-v55.signature-style-italian,.report-signature-generated-v55.signature-style-minimal,.report-signature-generated-v55.signature-style-personal{color:#5A1E2D!important}
+}
