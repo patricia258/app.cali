@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import '../../signature-professional-v59.css';
 
 export type ReportSignatureStyleV59='executive'|'editorial'|'notarial'|'heritage'|'calligraphic'|'autograph'|'contemporary'|'italian'|'minimal'|'personal'|'classic'|'fluid'|'delicate'|'formal';
 export type ReportIdentityV55={
