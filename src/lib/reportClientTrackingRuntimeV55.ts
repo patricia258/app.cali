@@ -158,7 +158,7 @@ async function openHistory(current:Track){
       const opening=detail.hidden;
       detail.hidden=!opening;
       button.setAttribute('aria-expanded',String(opening));
-      button.textContent=opening?'Recolher':'Detalhes';
+      button.textContent=opening?'Ocultar detalhes':'Detalhes';
     });
   });
   const close=()=>{backdrop.remove();document.body.classList.remove('workspace-modal-open');};
