@@ -120,7 +120,11 @@ export function ClientReportsPageV5(){
       return next;
     });
   }
-  async function openReport(report:Report){setSelectedId(report.id);await recordOpen(report.id);setPreviewOpen(true);}
+  async function openReport(report:Report){
+    setSelectedId(report.id);
+    await recordOpen(report.id);
+    window.location.assign(`/cliente/relatorios/impressao/${report.id}`);
+  }
   async function openPrint(report:Report){
     if(!supabase)return;
     setSelectedId(report.id);
