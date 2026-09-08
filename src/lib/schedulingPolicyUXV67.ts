@@ -44,8 +44,22 @@ const STYLE = `
 }
 #scheduling-v65-client-host .scheduling-v65-head{background:transparent!important;padding:15px 18px!important;border-bottom:1px solid rgba(90,30,45,.10)!important}
 #scheduling-v65-client-host .scheduling-v65-head p{display:none!important}
-#scheduling-v65-client-host .scheduling-v65-list,
 #scheduling-v65-client-host .scheduling-v65-empty{display:none!important}
+#scheduling-v65-client-host .scheduling-v65-list{display:none!important;padding:0 18px 14px!important;border-top:1px solid rgba(90,30,45,.10)!important}
+#scheduling-v65-client-host .scheduling-v65-list:has([data-scheduling-client-accept]){display:block!important}
+#scheduling-v65-client-host .scheduling-v65-list:has([data-scheduling-client-accept])::before{content:'Resposta da CALI';display:block;padding:12px 0 3px;font-size:11px;line-height:1.2;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#5A1E2D}
+#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-request{grid-template-columns:minmax(0,1fr) minmax(210px,260px)!important;gap:12px 18px!important;padding:8px 0 2px!important;border-top:0!important}
+#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-request-top{margin-bottom:5px!important}
+#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-request-top strong{font-size:14px!important}
+#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-request-top .scheduling-v65-badge{display:none!important}
+#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-request p{font-size:12px!important;line-height:1.45!important}
+#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-slots{margin-top:7px!important;gap:6px!important}
+#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-slot{font-size:11px!important;padding:7px 9px!important}
+#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-note{font-size:11px!important;line-height:1.4!important;margin-top:8px!important}
+#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-ack{font-size:11px!important;line-height:1.4!important}
+#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-actions{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:6px!important;max-width:260px!important}
+#scheduling-v65-client-host .scheduling-v65-list [data-scheduling-client-accept],
+#scheduling-v65-client-host .scheduling-v65-list [data-scheduling-client-more]{width:100%!important;white-space:normal!important;text-align:center!important;font-size:11px!important;min-height:38px!important}
 #scheduling-v65-client-host .scheduling-v66-contract-summary{grid-template-columns:minmax(170px,1.15fr) repeat(3,minmax(110px,.62fr))!important;gap:10px!important;padding:12px 18px!important;border-bottom:0!important}
 #scheduling-v65-client-host .scheduling-v66-contract-summary>div:first-child{padding:10px 12px!important;border:1px solid rgba(90,30,45,.12);border-radius:12px;background:rgba(255,255,255,.28)}
 #scheduling-v65-client-host .scheduling-v66-contract-summary>div:first-child p{display:none!important}
@@ -83,12 +97,14 @@ const STYLE = `
 #scheduling-v65-admin-host .scheduling-v65-request p{font-size:12px!important;line-height:1.4!important}
 
 html[data-workspace-theme='night'] #scheduling-v65-client-host .scheduling-v65-panel{background:linear-gradient(135deg,#44361F 0%,#322719 100%)!important;border-color:#80662E!important;border-left-color:#D2A650!important}
+html[data-workspace-theme='night'] #scheduling-v65-client-host .scheduling-v65-list{border-top-color:rgba(216,177,92,.18)!important}
+html[data-workspace-theme='night'] #scheduling-v65-client-host .scheduling-v65-list:has([data-scheduling-client-accept])::before{color:#D2A650}
 html[data-workspace-theme='night'] #scheduling-v65-client-host .scheduling-v66-contract-summary>div:first-child{background:rgba(255,255,255,.05);border-color:rgba(216,177,92,.22)}
 html[data-workspace-theme='night'] .scheduling-v67-contract-help{background:#2b2024;border-color:#523d44;color:#d9cfc8}
 html[data-workspace-theme='night'] #scheduling-v65-admin-host .scheduling-v67-admin-note{background:rgba(181,140,82,.08);color:#d9cfc8}
 html[data-workspace-theme='night'] #scheduling-v65-admin-host .scheduling-v67-admin-note.billable{background:rgba(90,30,45,.22);color:#ead8dd}
 @media(max-width:900px){#scheduling-v65-admin-host .scheduling-v65-request{grid-template-columns:1fr!important}#scheduling-v65-admin-host .scheduling-v65-actions{max-width:none!important}}
-@media(max-width:760px){#scheduling-v65-client-host .scheduling-v66-contract-summary{grid-template-columns:1fr 1fr!important}#scheduling-v65-client-host .scheduling-v66-contract-summary>div:first-child{grid-column:1/-1!important}}
+@media(max-width:760px){#scheduling-v65-client-host .scheduling-v66-contract-summary{grid-template-columns:1fr 1fr!important}#scheduling-v65-client-host .scheduling-v66-contract-summary>div:first-child{grid-column:1/-1!important}#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-request{grid-template-columns:1fr!important}#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-actions{max-width:none!important}}
 @media(max-width:560px){.scheduling-v67-contract-help{font-size:13px}#scheduling-v65-client-host .scheduling-v66-contract-summary{grid-template-columns:1fr!important}#scheduling-v65-client-host .scheduling-v66-contract-summary>div:first-child{grid-column:1!important}}
 `;
 
