@@ -20,11 +20,7 @@ function recipients(v:unknown){const source=Array.isArray(v)?v:typeof v==="strin
 function monthLabel(start:string){const[year,month]=start.slice(0,10).split("-").map(Number);return new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric",timeZone:"UTC"}).format(new Date(Date.UTC(year,month-1,1)));}
 function dateOnly(value:unknown){const raw=String(value??"").slice(0,10);return /^\d{4}-\d{2}-\d{2}$/.test(raw)?raw:"";}
 function inclusiveDays(from:string,to:string){if(!from||!to||to<from)return 0;const a=Date.parse(`${from}T12:00:00Z`),b=Date.parse(`${to}T12:00:00Z`);return Math.floor((b-a)/86400000)+1;}
-function firstName(to:string[],profiles:any[]){
-  const matches=(profiles||[]).filter((item:any)=>to.includes(String(item.email||"").trim().toLowerCase()));
-  const profile=matches.find((item:any)=>item.is_primary)||matches.find((item:any)=>String(item.full_name||"").trim())||null;
-  return String(profile?.full_name||"").trim().split(/\s+/)[0]||"";
-}
+function firstName(to:string[],profiles:any[]){const matches=(profiles||[]).filter((item:any)=>to.includes(String(item.email||"").trim().toLowerCase()));const profile=matches.find((item:any)=>item.is_primary)||matches.find((item:any)=>String(item.full_name||"").trim())||null;return String(profile?.full_name||"").trim().split(/\s+/)[0]||"";}
 function subject(name:string,period:string,protocol:string){return name?`CALI RH - Olá, ${name}, seu relatório de ${period} chegou · ${protocol}`:`CALI RH - Seu relatório de ${period} chegou · ${protocol}`;}
 function html(company:string,period:string,message:string,reportId:string,recipientName:string,protocol:string){
   const url=`${APP_URL}?report=${encodeURIComponent(reportId)}`;
@@ -56,20 +52,20 @@ Deno.serve(async(req:Request)=>{
     ]);
     if(existingOfficial)return json(req,{ok:false,error:"Já existe um fechamento oficial enviado para esta competência. Retire a versão ainda não visualizada ou use o fluxo de correção quando já houver leitura."},409);
 
-    if(String(report.report_type||"monthly")==="monthly"){
+    const isTestEnvironment=String(company?.display_name||"")==="CALI · Ambiente de Teste";
+    if(String(report.report_type||"monthly")==="monthly"&&!isTestEnvironment){
       const periodStart=dateOnly(report.period_start),periodEnd=dateOnly(report.period_end),companyStart=dateOnly(company?.start_date);const today=new Date().toISOString().slice(0,10);
       const collectionStart=companyStart&&companyStart>periodStart?companyStart:periodStart;const collectionEnd=today<periodEnd?today:periodEnd;const collected=inclusiveDays(collectionStart,collectionEnd);
       if(collected<20)return json(req,{ok:false,error:`Este fechamento ainda tem ${collected} de 20 dias mínimos de coleta. Continue usando a prévia interna até completar a base do período.`},409);
     }
 
     let to=recipients(payload?.recipients);if(!to.length)to=recipients((clientProfiles??[]).map((x:any)=>x.email));if(!to.length)return json(req,{ok:false,error:"Nenhum destinatário foi informado."},400);
-    const message=String(payload?.message??"").trim().slice(0,2000);const period=monthLabel(String(report.period_start));const recipientName=firstName(to,clientProfiles??[]);
-    const emailSubject=subject(recipientName,period,String(report.protocol||""));
+    const message=String(payload?.message??"").trim().slice(0,2000);const period=monthLabel(String(report.period_start));const recipientName=firstName(to,clientProfiles??[]);const emailSubject=subject(recipientName,period,String(report.protocol||""));
     const emailRes=await fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:`Bearer ${RESEND_API_KEY}`,"Content-Type":"application/json","Idempotency-Key":`workspace-report-${report.id}-v${report.version}`},body:JSON.stringify({from:FROM_EMAIL,to,reply_to:REPLY_TO,subject:emailSubject,html:html(company?.display_name||"sua empresa",period,message,report.id,recipientName,String(report.protocol||""))})});
     const emailText=await emailRes.text();if(!emailRes.ok)throw new Error(`Falha no serviço de e-mail (${emailRes.status}): ${emailText}`);let email:any={};try{email=JSON.parse(emailText);}catch{}
     const now=new Date().toISOString();const{error:updateError}=await ws.from("reports").update({status:"sent",sent_at:now,sent_by:user.id,sent_to:to,published_at:now}).eq("id",report.id);if(updateError)throw updateError;
-    await ws.from("activity_log").insert({company_id:report.company_id,event_type:"report_sent",entity_type:"report",entity_id:report.id,metadata:{version:report.version,to,email_id:email?.id??null,subject:emailSubject}});
+    await ws.from("activity_log").insert({company_id:report.company_id,event_type:"report_sent",entity_type:"report",entity_id:report.id,metadata:{version:report.version,to,email_id:email?.id??null,subject:emailSubject,test_environment:isTestEnvironment}});
     const notificationRows=(clientProfiles??[]).map((item:any)=>({company_id:report.company_id,user_id:item.id,notification_type:"report_available",title:"Novo relatório disponível",body:`O fechamento de ${period} está disponível no Workspace.`,entity_type:"report",entity_id:report.id,action_url:`/cliente/relatorios?report=${report.id}`,relevance:"high",email_required:false,emailed_at:now}));if(notificationRows.length)await ws.from("notifications").insert(notificationRows);
-    return json(req,{ok:true,email_id:email?.id??null,to,subject:emailSubject,status:"sent",notifications:notificationRows.length});
+    return json(req,{ok:true,email_id:email?.id??null,to,subject:emailSubject,status:"sent",notifications:notificationRows.length,test_environment:isTestEnvironment});
   }catch(error){console.error("workspace-send-executive-report",error);const message=error instanceof Error?error.message:"Falha inesperada no envio.";return json(req,{ok:false,error:message},/inválid|destinat|Apenas relatórios|competência|dias mínimos/i.test(message)?400:500);}
 });
