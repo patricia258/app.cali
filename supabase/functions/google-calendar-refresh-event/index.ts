@@ -107,9 +107,6 @@ Deno.serve(async (req) => {
       await service.from('event_attendees').update({ status: next, responded_at: next === 'pending' ? null : new Date().toISOString() }).eq('id', attendee.id);
       changed.push({ email, from: attendee.status, to: next, attendeeType: attendee.attendee_type });
 
-      // O banco já gera a atualização individual do próprio convidado. A borda Google
-      // só informa a CALI quando um CONVIDADO de cliente efetivamente responde.
-      // "Pendente" não é uma resposta e nunca deve gerar notificação.
       if (attendee.attendee_type === 'client' && ['accepted', 'declined', 'tentative'].includes(next)) {
         const bodyText = `${email} ${responseLabel(next)} o convite “${event.title}”.`;
         await service.rpc('notify_workspace_movement', {
@@ -128,11 +125,16 @@ Deno.serve(async (req) => {
       }
     }
 
-    await service.from('events').update({ google_html_link: googleEvent.htmlLink || event.google_html_link || null, meeting_url: googleEvent.hangoutLink || event.meeting_url || null, updated_at: new Date().toISOString() }).eq('id', event.id);
+    const nextGoogleHtmlLink = googleEvent.htmlLink || event.google_html_link || null;
+    const nextMeetingUrl = googleEvent.hangoutLink || event.meeting_url || null;
+    if (nextGoogleHtmlLink !== event.google_html_link || nextMeetingUrl !== event.meeting_url) {
+      await service.from('events').update({ google_html_link: nextGoogleHtmlLink, meeting_url: nextMeetingUrl, updated_at: new Date().toISOString() }).eq('id', event.id);
+    }
+
     return json({
       status: 'refreshed',
-      googleHtmlLink: googleEvent.htmlLink || null,
-      meetingUrl: googleEvent.hangoutLink || null,
+      googleHtmlLink: nextGoogleHtmlLink,
+      meetingUrl: nextMeetingUrl,
       organizer: organizerEmail || null,
       attendees: Array.from(attendeeStatus.entries()).map(([email, status]) => ({ email, status })),
       changed,
