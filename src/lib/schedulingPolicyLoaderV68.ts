@@ -1,5 +1,6 @@
 import { installSchedulingPostConfirmationV69, refreshSchedulingPostConfirmationV69 } from './schedulingPostConfirmationV69';
 import { installSchedulingMeetingContextV70, refreshSchedulingMeetingContextV70 } from './schedulingMeetingContextV70';
+import { refreshSchedulingReportAgendaV71 } from './schedulingReportAgendaV71';
 
 let installed = false;
 let policiesLoaded = false;
@@ -71,6 +72,7 @@ function refreshSchedulingLayers() {
   window.setTimeout(() => {
     void refreshSchedulingPostConfirmationV69();
     void refreshSchedulingMeetingContextV70();
+    void refreshSchedulingReportAgendaV71();
   }, 180);
 }
 
