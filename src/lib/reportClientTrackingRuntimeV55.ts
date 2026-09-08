@@ -20,48 +20,78 @@ function month(value?:string|null){
   return Number.isNaN(date.getTime())?'—':new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'}).format(date);
 }
 function typeLabel(value?:string|null){return value==='quarterly'?'Trimestral':'Mensal';}
-function esc(value:unknown){return String(value??'').replace(/[&<>'"]/g,(char)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[char]||char));}
+function esc(value:unknown){return String(value??'').replace(/[&<>'\"]/g,(char)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','\"':'&quot;'}[char]||char));}
 function protocol(){
   const values=Array.from(document.querySelectorAll<HTMLElement>('.reports-v16-identification dd'));
   return values.map((item)=>item.textContent?.trim()||'').find((value)=>/^CALI-RPT-/i.test(value))||'';
 }
 function ensureStyles(){
-  if(document.getElementById('report-flow-cleanup-v57'))return;
-  const link=document.createElement('link');
-  link.id='report-flow-cleanup-v57';link.rel='stylesheet';link.href='/report-flow-cleanup-v57.css';
-  document.head.appendChild(link);
+  const ensure=(id:string,href:string)=>{
+    if(document.getElementById(id))return;
+    const link=document.createElement('link');link.id=id;link.rel='stylesheet';link.href=href;document.head.appendChild(link);
+  };
+  ensure('report-flow-cleanup-v57','/report-flow-cleanup-v57.css');
+  ensure('report-print-completeness-v63','/report-print-completeness-v63.css');
 }
 function remove(){
   document.querySelector('.report-client-track-v55')?.remove();
   document.querySelector('.report-client-history-trigger-v57')?.remove();
+  document.querySelector('.report-client-sent-version-v63')?.remove();
   document.querySelector('.report-client-history-backdrop-v55')?.remove();
 }
 function debounce(){window.clearTimeout(timer);timer=window.setTimeout(()=>void render(),180);}
+function openSentVersion(id:string){
+  window.open(`/admin/relatorios/impressao/${encodeURIComponent(id)}`,'_blank','noopener,noreferrer');
+}
+
+async function findOfficial(report:Track){
+  if(!supabase)return null;
+  if(['sent','published'].includes(report.status)||report.sent_at)return report;
+  if(!report.company_id||!report.period_start)return null;
+  const query=await supabase.from('reports')
+    .select('id,company_id,report_type,period_start,version,status,sent_at,client_open_count,client_first_opened_at,client_last_opened_at,client_pdf_count,acknowledged_at,acknowledgement_protocol')
+    .eq('company_id',report.company_id)
+    .eq('report_type',report.report_type||'monthly')
+    .eq('period_start',String(report.period_start).slice(0,10))
+    .in('status',['sent','published'])
+    .order('version',{ascending:false}).limit(1).maybeSingle();
+  return query.error||!query.data?null:query.data as Track;
+}
 
 async function render(){
   if(window.location.pathname!=='/admin/relatorios'||!supabase){remove();lastProtocol='';return;}
   document.querySelector('.report-client-track-v55')?.remove();
   const nextProtocol=protocol();
-  if(!nextProtocol){document.querySelector('.report-client-history-trigger-v57')?.remove();return;}
+  if(!nextProtocol){document.querySelector('.report-client-history-trigger-v57')?.remove();document.querySelector('.report-client-sent-version-v63')?.remove();return;}
   lastProtocol=nextProtocol;
   const result=await supabase.from('reports')
     .select('id,company_id,report_type,period_start,version,status,sent_at,client_open_count,client_first_opened_at,client_last_opened_at,client_pdf_count,acknowledged_at,acknowledgement_protocol')
     .eq('protocol',nextProtocol).maybeSingle();
   if(result.error||!result.data||lastProtocol!==nextProtocol)return;
-  const report=result.data as Track;
+  const current=result.data as Track;
+  const report=await findOfficial(current);
   const toolbar=document.querySelector('.reports-v16-toolbar');
   if(!toolbar)return;
   const actionHost=toolbar.querySelector<HTMLElement>(':scope > div:last-child')||toolbar as HTMLElement;
-  let button=toolbar.querySelector<HTMLButtonElement>('.report-client-history-trigger-v57');
-  if(!['sent','published'].includes(report.status)&&!report.sent_at){button?.remove();return;}
-  if(!button){
-    button=document.createElement('button');
-    button.type='button';
-    button.className='secondary report-client-history-trigger-v57';
-    button.textContent='Histórico do cliente';
-    actionHost.appendChild(button);
+  let historyButton=toolbar.querySelector<HTMLButtonElement>('.report-client-history-trigger-v57');
+  let sentButton=toolbar.querySelector<HTMLButtonElement>('.report-client-sent-version-v63');
+  if(!report){historyButton?.remove();sentButton?.remove();return;}
+  if(!sentButton){
+    sentButton=document.createElement('button');
+    sentButton.type='button';
+    sentButton.className='secondary report-client-sent-version-v63';
+    sentButton.textContent='Ver versão enviada';
+    actionHost.appendChild(sentButton);
   }
-  button.onclick=()=>void openHistory(report);
+  sentButton.onclick=()=>openSentVersion(report.id);
+  if(!historyButton){
+    historyButton=document.createElement('button');
+    historyButton.type='button';
+    historyButton.className='secondary report-client-history-trigger-v57';
+    historyButton.textContent='Histórico do cliente';
+    actionHost.appendChild(historyButton);
+  }
+  historyButton.onclick=()=>void openHistory(report);
 }
 
 async function openHistory(current:Track){
@@ -124,7 +154,7 @@ async function openHistory(current:Track){
             <td>${esc(typeLabel(item.report_type))}</td>
             <td>${opens>0?'<span class="history-status-v56 ok">Visualizado</span>':'<span class="history-status-v56 pending">Não visualizado</span>'}</td>
             <td>${item.acknowledged_at?'<span class="history-status-v56 ok">Registrada</span>':'<span class="history-status-v56 pending">Pendente</span>'}</td>
-            <td><button type="button" class="report-history-expand-v57" data-history-expand="${esc(item.id)}" aria-expanded="false">Detalhes</button></td>
+            <td><div class="report-history-actions-v63"><button type="button" class="report-history-open-v63" data-history-open="${esc(item.id)}">Ver versão</button><button type="button" class="report-history-expand-v57" data-history-expand="${esc(item.id)}" aria-expanded="false">Detalhes</button></div></td>
           </tr>
           <tr class="report-history-detail-row-v57" data-history-detail="${esc(item.id)}" hidden>
             <td colspan="5">
@@ -150,6 +180,9 @@ async function openHistory(current:Track){
   document.body.appendChild(backdrop);
   document.body.classList.add('workspace-modal-open');
 
+  modal.querySelectorAll<HTMLButtonElement>('[data-history-open]').forEach((button)=>{
+    button.addEventListener('click',()=>openSentVersion(button.dataset.historyOpen||''));
+  });
   modal.querySelectorAll<HTMLButtonElement>('[data-history-expand]').forEach((button)=>{
     button.addEventListener('click',()=>{
       const id=button.dataset.historyExpand||'';
