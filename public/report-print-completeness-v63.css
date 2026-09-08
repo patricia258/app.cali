@@ -1,34 +1,120 @@
-/* V63 · Relatórios: impressão completa + acesso exato à versão enviada */
+/* V64 · Relatórios: A4 estável, conteúdo completo e acesso exato à versão enviada */
 
-/* A rota de impressão não pode simular uma folha fixa e cortar conteúdo maior. */
+/*
+ * O V63 deixou cada folha com altura automática. Isso permitiu que o navegador
+ * criasse uma página física extra no meio da folha lógica e produziu a página
+ * quase vazia vista no PDF. O documento volta a trabalhar com folhas A4 reais.
+ */
 .report-print-v16-stage .reports-v19-paper{
-  height:auto!important;
+  width:210mm!important;
+  height:297mm!important;
   min-height:297mm!important;
-  overflow:visible!important;
-  padding-bottom:18mm!important;
+  max-height:297mm!important;
+  overflow:hidden!important;
+  padding:11mm 13mm 9mm!important;
 }
+
+/* A leitura executiva usa toda a largura útil; não existe coluna invisível à direita. */
+.report-print-v16-stage .reports-v19-paper .reports-v16-reading,
+.report-print-v16-stage .reports-v19-paper .reports-v16-reading p{
+  width:100%!important;
+  max-width:none!important;
+}
+
+/* Tabela sempre ocupa a largura útil, sem cortar linhas. */
 .report-print-v16-stage .reports-v19-table{
+  width:100%!important;
+  max-width:none!important;
+  table-layout:fixed!important;
   break-inside:auto!important;
   page-break-inside:auto!important;
 }
-.report-print-v16-stage .reports-v19-table thead{
-  display:table-header-group!important;
+.report-print-v16-stage .reports-v19-table thead{display:table-header-group!important}
+.report-print-v16-stage .reports-v19-table tbody{break-inside:auto!important;page-break-inside:auto!important}
+.report-print-v16-stage .reports-v19-table tr{break-inside:avoid!important;page-break-inside:avoid!important}
+
+/*
+ * Quando a primeira folha tem 6+ entregas, reduzimos apenas respiros verticais.
+ * A tipografia principal continua legível; o ganho vem de padding/margens, não
+ * de esconder conteúdo ou criar uma página fantasma para uma única linha.
+ */
+.report-print-v16-stage .reports-v16-paper-one:has(.reports-v19-table tbody tr:nth-child(6)) .reports-v16-reading{
+  padding:3.2mm 0 3mm!important;
 }
-.report-print-v16-stage .reports-v19-table tbody{
-  break-inside:auto!important;
-  page-break-inside:auto!important;
+.report-print-v16-stage .reports-v16-paper-one:has(.reports-v19-table tbody tr:nth-child(6)) .reports-v16-reading p{
+  margin-top:2mm!important;
+  padding:2.8mm 3.4mm!important;
+  font-size:9.4pt!important;
+  line-height:1.46!important;
+}
+.report-print-v16-stage .reports-v16-paper-one:has(.reports-v19-table tbody tr:nth-child(6)) .reports-v19-capacity{
+  padding:3.2mm 0!important;
+}
+.report-print-v16-stage .reports-v16-paper-one:has(.reports-v19-table tbody tr:nth-child(6)) .reports-v19-capacity-head{
+  margin:2mm 0 1.5mm!important;
+}
+.report-print-v16-stage .reports-v16-paper-one:has(.reports-v19-table tbody tr:nth-child(6)) .reports-v19-legend{
+  margin-top:1.6mm!important;
+  gap:1mm 4mm!important;
+}
+.report-print-v16-stage .reports-v16-paper-one:has(.reports-v19-table tbody tr:nth-child(6)) .reports-v19-note{
+  margin-top:1.8mm!important;
+  padding:2.1mm 2.7mm!important;
+  line-height:1.38!important;
+}
+.report-print-v16-stage .reports-v16-paper-one:has(.reports-v19-table tbody tr:nth-child(6)) .reports-v21-manual-note{
+  margin-top:1.5mm!important;
+}
+.report-print-v16-stage .reports-v16-paper-one:has(.reports-v19-table tbody tr:nth-child(6)) .reports-v16-execution-grid{
+  padding:2.8mm 0!important;
+}
+.report-print-v16-stage .reports-v16-paper-one:has(.reports-v19-table tbody tr:nth-child(6)) .reports-v16-section-head{
+  margin-bottom:1.6mm!important;
+}
+.report-print-v16-stage .reports-v16-paper-one:has(.reports-v19-table tbody tr:nth-child(6)) .reports-v19-table th{
+  padding-top:1.4mm!important;
+  padding-bottom:1.5mm!important;
+}
+.report-print-v16-stage .reports-v16-paper-one:has(.reports-v19-table tbody tr:nth-child(6)) .reports-v19-table td{
+  padding-top:1.75mm!important;
+  padding-bottom:1.75mm!important;
+  line-height:1.34!important;
+}
+
+/* Com 8+ linhas apertamos mais os espaços, sem reduzir o corpo abaixo do padrão. */
+.report-print-v16-stage .reports-v16-paper-one:has(.reports-v19-table tbody tr:nth-child(8)) .reports-v16-reading{
+  padding:2.4mm 0!important;
+}
+.report-print-v16-stage .reports-v16-paper-one:has(.reports-v19-table tbody tr:nth-child(8)) .reports-v19-capacity{
+  padding:2.5mm 0!important;
+}
+.report-print-v16-stage .reports-v16-paper-one:has(.reports-v19-table tbody tr:nth-child(8)) .reports-v19-table td{
+  padding-top:1.35mm!important;
+  padding-bottom:1.35mm!important;
 }
 
 @media print{
+  @page{size:A4;margin:0}
+  html,body{width:210mm!important;margin:0!important;padding:0!important;background:#fff!important}
+  .report-print-v16-stage .reports-v19-paper{
+    width:210mm!important;
+    height:297mm!important;
+    min-height:297mm!important;
+    max-height:297mm!important;
+    overflow:hidden!important;
+    break-after:page!important;
+    page-break-after:always!important;
+  }
+  .report-print-v16-stage .reports-v19-paper:last-child{
+    break-after:auto!important;
+    page-break-after:auto!important;
+  }
   .report-print-v16-stage .reports-v19-paper .reports-v16-execution-grid,
   .report-print-v16-stage .reports-v19-paper .reports-v16-execution-block,
   .report-print-v16-stage .reports-v19-paper .reports-v19-table,
   .report-print-v16-stage .reports-v19-paper .reports-v19-table tbody{
     break-inside:auto!important;
     page-break-inside:auto!important;
-  }
-  .report-print-v16-stage .reports-v19-paper .reports-v19-table thead{
-    display:table-header-group!important;
   }
   .report-print-v16-stage .reports-v19-paper .reports-v19-table tr{
     break-inside:avoid!important;
