@@ -48,7 +48,8 @@ Deno.serve(async(req)=>{
     await service.from('google_calendar_credentials').update({access_token:token,expires_at:new Date(Date.now()+Number(td.expires_in||3600)*1000).toISOString(),updated_at:new Date().toISOString()}).eq('credential_key',key);
   }
   const{data:attendees}=await service.from('event_attendees').select('email').eq('event_id',event.id);
-  const emails=[...new Set((attendees||[]).map((row:any)=>String(row.email||'').trim().toLowerCase()).filter(Boolean))];
+  const organizerEmail=String(connection.account_email||'').trim().toLowerCase();
+  const emails=[...new Set((attendees||[]).map((row:any)=>String(row.email||'').trim().toLowerCase()).filter((email:string)=>Boolean(email)&&email!==organizerEmail))];
   const tz=event.timezone||'America/Sao_Paulo';
   const googleBody:any={summary:event.title,description:event.description||undefined,location:event.location||undefined,attendees:emails.map((email:string)=>({email})),reminders:{useDefault:false,overrides:Number(event.reminder_minutes)>0?[{method:'popup',minutes:Number(event.reminder_minutes)}]:[]},extendedProperties:{private:{caliWorkspaceEventId:event.id,caliProtocol:event.protocol||'',caliSchedulingRequestId:event.source_entity_id||''}},start:{dateTime:event.starts_at,timeZone:tz},end:{dateTime:event.ends_at||event.starts_at,timeZone:tz}};
   if(event.mode==='remote'&&!event.meeting_url)googleBody.conferenceData={createRequest:{requestId:`cali-schedule-${event.id}-${Date.now()}`,conferenceSolutionKey:{type:'hangoutsMeet'}}};
