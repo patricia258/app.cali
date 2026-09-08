@@ -28,6 +28,7 @@ let timer: number | undefined;
 let policy: AgendaPolicyV67 | null = null;
 let policyLoading = false;
 let adminLoading = false;
+let adminLoaded = false;
 let adminRequests = new Map<string, AdminRequestV67>();
 
 const STYLE = `
@@ -123,7 +124,7 @@ async function loadClientPolicy() {
 }
 
 async function loadAdminRequests() {
-  if (!supabase || adminLoading || location.pathname !== '/admin/calendario') return;
+  if (!supabase || adminLoading || adminLoaded || location.pathname !== '/admin/calendario') return;
   adminLoading = true;
   try {
     const { data, error } = await supabase
@@ -133,6 +134,7 @@ async function loadAdminRequests() {
       .limit(60);
     if (error) throw error;
     adminRequests = new Map(((data || []) as AdminRequestV67[]).map((row) => [row.id, row]));
+    adminLoaded = true;
   } catch (error) {
     console.error('Agenda V67 · solicitações admin', error);
   } finally {
@@ -148,7 +150,7 @@ function selectedMode(form: HTMLFormElement) {
 function fixClientModal() {
   const form = document.querySelector<HTMLFormElement>('#scheduling-client-form');
   if (!form) return;
-  form.querySelectorAll<HTMLElement>('.scheduling-v65-grid>div:empty').forEach((el) => { el.style.display = 'none'; });
+  form.querySelectorAll<HTMLElement>('.scheduling-v65-grid>div:empty').forEach((el) => { if (el.style.display !== 'none') el.style.display = 'none'; });
 
   const policyBox = form.querySelector<HTMLElement>('#scheduling-client-policy');
   if (!policyBox || !policy) return;
@@ -159,16 +161,14 @@ function fixClientModal() {
     const plan = String(policy.plan || '').toLowerCase();
     const onsite = Number(policy.onsitePerMonth || 0);
     const onlineOnly = String(policy.modePolicy || '') === 'online_only';
-
-    if (plan === 'partner' || onlineOnly || onsite === 0) {
-      policyBox.className = 'scheduling-v65-policy billable';
-      policyBox.innerHTML = '<strong>Visita presencial fora do seu pacote</strong>O CALI Partner inclui 1 encontro online por mês. Se a CALI confirmar esta visita, ela será tratada como atendimento adicional e haverá cobrança conforme a condição comercial informada.';
-      return;
-    }
-
-    if (plan === 'full') {
-      policyBox.className = 'scheduling-v65-policy';
-      policyBox.innerHTML = '<strong>Visita presencial no CALI Full</strong>Até 1 dos 2 encontros do mês pode ser presencial. Escolha a primeira data para verificar a disponibilidade no período.';
+    const desired = plan === 'partner' || onlineOnly || onsite === 0
+      ? '<strong>Visita presencial fora do seu pacote</strong>O CALI Partner inclui 1 encontro online por mês. Se a CALI confirmar esta visita, ela será tratada como atendimento adicional e haverá cobrança conforme a condição comercial informada.'
+      : plan === 'full'
+        ? '<strong>Visita presencial no CALI Full</strong>Até 1 dos 2 encontros do mês pode ser presencial. Escolha a primeira data para verificar a disponibilidade no período.'
+        : '';
+    if (desired && policyBox.innerHTML !== desired) {
+      policyBox.className = plan === 'partner' || onlineOnly || onsite === 0 ? 'scheduling-v65-policy billable' : 'scheduling-v65-policy';
+      policyBox.innerHTML = desired;
     }
   }
 }
@@ -201,7 +201,7 @@ function setAutoFields(form: HTMLFormElement) {
   ['sessions', 'cadence', 'onsite'].forEach((name) => {
     const input = form.elements.namedItem(name) as HTMLInputElement | null;
     if (!input) return;
-    input.readOnly = automatic;
+    if (input.readOnly !== automatic) input.readOnly = automatic;
     input.dataset.v67Auto = automatic ? '1' : '0';
   });
 }
@@ -214,9 +214,9 @@ function fixAdminContractModal() {
     const input = field.querySelector<HTMLInputElement | HTMLSelectElement>('input,select');
     const span = field.querySelector<HTMLElement>(':scope>span');
     if (!input || !span) continue;
-    if (input.getAttribute('name') === 'sessions') span.textContent = 'Encontros contratuais / mês';
-    if (input.getAttribute('name') === 'cadence') span.textContent = 'Intervalo de referência (dias)';
-    if (input.getAttribute('name') === 'onsite') span.textContent = 'Destes, quantos podem ser presenciais';
+    const name = input.getAttribute('name');
+    const desired = name === 'sessions' ? 'Encontros contratuais / mês' : name === 'cadence' ? 'Intervalo de referência (dias)' : name === 'onsite' ? 'Destes, quantos podem ser presenciais' : '';
+    if (desired && span.textContent !== desired) span.textContent = desired;
   }
 
   setAutoFields(form);
@@ -240,20 +240,21 @@ function simplifyAdminRequestCards() {
     const top = card.querySelector<HTMLElement>('.scheduling-v65-request-top');
     if (top) {
       const badges = Array.from(top.querySelectorAll<HTMLElement>('.scheduling-v65-badge'));
-      badges.slice(1).forEach((badge) => badge.remove());
+      if (badges.length > 1) badges.slice(1).forEach((badge) => badge.remove());
     }
 
     const meta = card.querySelector<HTMLElement>('.scheduling-v66-request-meta');
     if (meta) {
-      meta.classList.add('scheduling-v67-admin-meta');
-      meta.querySelectorAll<HTMLElement>('.scheduling-v65-badge').forEach((badge) => { badge.style.display = 'none'; });
+      if (!meta.classList.contains('scheduling-v67-admin-meta')) meta.classList.add('scheduling-v67-admin-meta');
+      meta.querySelectorAll<HTMLElement>('.scheduling-v65-badge').forEach((badge) => { if (badge.style.display !== 'none') badge.style.display = 'none'; });
       let format = meta.querySelector<HTMLElement>('.scheduling-v67-admin-format');
       if (!format) {
         format = document.createElement('span');
         format.className = 'scheduling-v67-admin-format';
         meta.prepend(format);
       }
-      format.textContent = request.request_mode === 'in_person' ? 'Presencial' : 'Online';
+      const desiredFormat = request.request_mode === 'in_person' ? 'Presencial' : 'Online';
+      if (format.textContent !== desiredFormat) format.textContent = desiredFormat;
     }
 
     let note = card.querySelector<HTMLElement>('.scheduling-v67-admin-note');
@@ -272,19 +273,20 @@ function simplifyAdminRequestCards() {
         const copy = card.querySelector<HTMLElement>('.scheduling-v65-request-copy');
         copy?.appendChild(note);
       }
-      note.classList.toggle('billable', Boolean(request.billable_extra || request.urgency_fee_applies));
-      note.textContent = messages.join(' ');
-    } else {
-      note?.remove();
+      const billable = Boolean(request.billable_extra || request.urgency_fee_applies);
+      if (note.classList.contains('billable') !== billable) note.classList.toggle('billable', billable);
+      const desiredText = messages.join(' ');
+      if (note.textContent !== desiredText) note.textContent = desiredText;
+    } else if (note) {
+      note.remove();
     }
 
     const optionButtons = Array.from(card.querySelectorAll<HTMLButtonElement>('[data-scheduling-admin-use-slot]'));
     optionButtons.forEach((button, index) => {
-      let detail = button.dataset.v67Detail || '';
-      if (!detail) {
-        detail = String(button.textContent || '').replace(/^Confirmar opção\s*·\s*/i, '').trim();
-        button.dataset.v67Detail = detail;
-      }
+      if (button.dataset.v67Ready === '1') return;
+      const detail = String(button.textContent || '').replace(/^Confirmar opção\s*·\s*/i, '').trim();
+      button.dataset.v67Detail = detail;
+      button.dataset.v67Ready = '1';
       button.replaceChildren();
       const strong = document.createElement('strong');
       strong.textContent = `Confirmar opção ${index + 1}`;
@@ -329,6 +331,7 @@ export function installSchedulingPolicyUXV67() {
   observer.observe(document.documentElement, { childList: true, subtree: true });
   window.addEventListener('popstate', () => {
     policy = null;
+    adminLoaded = false;
     adminRequests.clear();
     scheduleApply(80);
   });
