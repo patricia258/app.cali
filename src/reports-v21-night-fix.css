@@ -1,0 +1,76 @@
+/* CALI Workspace · Relatórios — paridade Dia/Noite dos complementos manuais.
+   Este arquivo entra depois de reports-v20-refinements.css para neutralizar tokens legados
+   e manter o módulo no mesmo sistema visual do restante do Workspace. */
+
+.reports-v21-manual-section{
+  background:var(--theme-surface-soft,var(--surface-elevated,#fffdf9))!important;
+  border-color:var(--theme-line,var(--border-subtle,rgba(90,30,45,.10)))!important;
+  color:var(--theme-text,var(--text-primary,#2b2b2b))!important;
+}
+.reports-v21-manual-summary{
+  color:var(--theme-muted,var(--text-secondary,#756a66))!important;
+}
+.reports-v21-manual-summary strong,
+.reports-v21-manual-group-head h3{
+  color:var(--theme-text,var(--text-primary,#2b2b2b))!important;
+}
+.reports-v21-manual-group{
+  background:var(--theme-surface,var(--surface,#fffdf9))!important;
+  border-color:var(--theme-line,var(--border-subtle,rgba(90,30,45,.10)))!important;
+  color:var(--theme-text,var(--text-primary,#2b2b2b))!important;
+}
+.reports-v21-manual-group-head p,
+.reports-v21-manual-grid label>span{
+  color:var(--theme-muted,var(--text-muted,#8b8180))!important;
+}
+.reports-v21-manual-item{
+  background:var(--theme-surface-muted,var(--surface-elevated,#f5eee8))!important;
+  border-color:var(--theme-line,var(--border-subtle,rgba(90,30,45,.10)))!important;
+  color:var(--theme-text,var(--text-primary,#2b2b2b))!important;
+}
+.reports-v21-manual-item-top button{
+  color:var(--theme-muted,var(--text-muted,#8b8180))!important;
+}
+.reports-v21-manual-grid input,
+.reports-v21-manual-grid select{
+  background:var(--theme-input,var(--surface-elevated,#fffdf9))!important;
+  border-color:var(--theme-input-border,var(--border-subtle,#dfd3ca))!important;
+  color:var(--theme-text,var(--text-primary,#2b2b2b))!important;
+}
+
+html[data-workspace-theme='night'] .reports-v21-manual-section{
+  background:#21191d!important;
+  border-color:rgba(239,216,222,.10)!important;
+}
+html[data-workspace-theme='night'] .reports-v21-manual-group{
+  background:#241b1f!important;
+  border-color:rgba(239,216,222,.10)!important;
+}
+html[data-workspace-theme='night'] .reports-v21-manual-item{
+  background:#2a2024!important;
+  border-color:rgba(239,216,222,.10)!important;
+}
+html[data-workspace-theme='night'] .reports-v21-manual-summary,
+html[data-workspace-theme='night'] .reports-v21-manual-group-head p,
+html[data-workspace-theme='night'] .reports-v21-manual-grid label>span{
+  color:#b7aaa5!important;
+}
+html[data-workspace-theme='night'] .reports-v21-manual-summary strong,
+html[data-workspace-theme='night'] .reports-v21-manual-group-head h3{
+  color:#f3eeeb!important;
+}
+html[data-workspace-theme='night'] .reports-v21-manual-grid input,
+html[data-workspace-theme='night'] .reports-v21-manual-grid select{
+  background:#1d171a!important;
+  border-color:#49373e!important;
+  color:#f3eeeb!important;
+}
+html[data-workspace-theme='night'] .reports-v21-manual-group-head button.secondary{
+  background:#33262b!important;
+  border-color:#49373e!important;
+  color:#f3eeeb!important;
+  box-shadow:none!important;
+}
+html[data-workspace-theme='night'] .reports-v21-manual-group-head button.secondary:hover{
+  background:#3b2c32!important;
+}

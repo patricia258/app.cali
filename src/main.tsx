@@ -145,6 +145,7 @@ import './report-client-flow-v56.css';
 import './workspace-system-v61.css';
 import './reports-v18-editorial.css';
 import './reports-v20-refinements.css';
+import './reports-v21-night-fix.css';
 
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
