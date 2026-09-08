@@ -74,3 +74,78 @@ html[data-workspace-theme='night'] .reports-v21-manual-group-head button.seconda
 html[data-workspace-theme='night'] .reports-v21-manual-group-head button.secondary:hover{
   background:#3b2c32!important;
 }
+
+/* V22 · Documento: A4 lógico é A4 físico. Nunca deixar conteúdo atravessar o rodapé. */
+.reports-v19-paper{
+  height:297mm!important;
+  min-height:297mm!important;
+  max-height:297mm!important;
+  overflow:hidden!important;
+  padding-bottom:18mm!important;
+}
+.reports-v16-preview-document .reports-v19-paper,
+.client-report-preview-stage-v55 .reports-v19-paper,
+.client-reports-v16-document .reports-v19-paper{
+  height:297mm!important;
+  min-height:297mm!important;
+  max-height:297mm!important;
+  overflow:hidden!important;
+  padding-bottom:18mm!important;
+}
+
+/* A logo do documento é um asset bordô real. Não depender de mask, que falhava na prévia do cliente. */
+.reports-v19-paper .reports-v19-brand{
+  width:39mm!important;
+  height:15mm!important;
+  background:transparent!important;
+  -webkit-mask:none!important;
+  mask:none!important;
+}
+.reports-v19-paper .reports-v19-brand img{
+  display:block!important;
+  visibility:visible!important;
+  width:39mm!important;
+  height:15mm!important;
+  object-fit:contain!important;
+  object-position:left center!important;
+}
+
+/* Quando as entregas viram página própria, existe área editorial de sobra e o rodapé fica reservado. */
+.reports-v19-execution-page .reports-v19-execution-title{
+  padding:8mm 0 5mm!important;
+}
+.reports-v19-execution-page .reports-v16-execution-grid{
+  display:block!important;
+  width:100%!important;
+  padding:3mm 0 0!important;
+  border-top:1px solid #DDD4CE!important;
+}
+.reports-v19-execution-page .reports-v16-execution-block{
+  width:100%!important;
+  min-width:0!important;
+}
+.reports-v19-execution-page .reports-v19-table{
+  width:100%!important;
+}
+
+@media print{
+  .report-print-v16-stage .reports-v19-paper{
+    width:210mm!important;
+    height:297mm!important;
+    min-height:297mm!important;
+    max-height:297mm!important;
+    margin:0!important;
+    overflow:hidden!important;
+    padding-bottom:18mm!important;
+    break-after:page!important;
+    page-break-after:always!important;
+  }
+  .report-print-v16-stage .reports-v19-paper:last-child{
+    break-after:auto!important;
+    page-break-after:auto!important;
+  }
+  .report-print-v16-stage .reports-v19-table tr{
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+}
