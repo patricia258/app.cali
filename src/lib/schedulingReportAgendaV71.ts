@@ -75,25 +75,38 @@ function renderAgenda(section: HTMLElement, a: AgendaComplianceV71) {
   section.innerHTML = `<div class="reports-v66-agenda-head"><div><small>AGENDA E ATENDIMENTOS</small><h2>Encontros do período</h2></div><span>${esc(a.label || 'CALI')} · não cumulativo</span></div><div class="reports-v66-agenda-grid"><div><small>Previstos no contrato</small><strong>${required}</strong></div><div><small>Realizados</small><strong>${occurred}</strong></div><div><small>Não realizados</small><strong>${notOccurred}</strong></div><div><small>Adicionais realizados</small><strong>${extraOccurred}</strong></div></div><p class="reports-v66-agenda-note"><b>Formato dos encontros realizados:</b> ${remoteOccurred} online · ${inPersonOccurred} presencial.${notItems.length ? ` <b>Não ocorrência:</b> ${notItems.map((item) => `${formatDay(item.startsAt)} · ${reasonLabel(item.reasonCategory)}${item.note ? ` (${esc(item.note)})` : ''}`).join('; ')}.` : ''}${pending ? ` <b>Pendente de registro:</b> ${pending} encontro(s) passado(s) ainda sem confirmação de resultado.` : ''}</p>`;
 }
 
+function ensureSection(paper: HTMLElement) {
+  const existing = paper.querySelector<HTMLElement>('.reports-v66-agenda');
+  if (existing) return existing;
+  const section = document.createElement('section');
+  section.className = 'reports-v66-agenda';
+  section.dataset.v71Native = '1';
+  const changes = paper.querySelector('.reports-v16-changes');
+  const footer = paper.querySelector('.reports-v16-footer');
+  if (changes) changes.insertAdjacentElement('beforebegin', section);
+  else footer?.insertAdjacentElement('beforebegin', section);
+  return section;
+}
+
 export async function refreshSchedulingReportAgendaV71() {
   if (!supabase || !window.location.pathname.includes('/relatorios')) return;
   const papers = Array.from(document.querySelectorAll<HTMLElement>('.reports-v16-paper-one'));
   for (const paper of papers) {
-    const section = paper.querySelector<HTMLElement>('.reports-v66-agenda');
-    if (!section || section.dataset.v71Loading === '1') continue;
+    if (paper.dataset.v71AgendaLoading === '1') continue;
     const protocol = String(paper.querySelector('.reports-v19-meta strong')?.textContent || '').trim();
     if (!protocol || protocol === '—') continue;
-    section.dataset.v71Loading = '1';
+    paper.dataset.v71AgendaLoading = '1';
     try {
       const { data, error } = await supabase.from('reports').select('source_snapshot').eq('protocol', protocol).maybeSingle();
       if (error) throw error;
       const agenda = (data?.source_snapshot as any)?.agendaCompliance as AgendaComplianceV71 | undefined;
-      if (!agenda) continue;
+      if (!agenda || (!number(agenda.requiredTotal) && !number(agenda.extraCount))) continue;
+      const section = ensureSection(paper);
       renderAgenda(section, agenda);
     } catch (error) {
       console.error('Agenda V71 no relatório', error);
     } finally {
-      delete section.dataset.v71Loading;
+      delete paper.dataset.v71AgendaLoading;
     }
   }
 }
