@@ -1,0 +1,47 @@
+/* CALI Workspace · Relatórios V20 — refinamentos de impressão e leitura */
+.reports-v19-paper .reports-v16-execution-grid,
+.reports-v19-paper .reports-v16-execution-block{
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+}
+.reports-v19-paper .reports-v16-execution-grid{
+  display:block!important;
+  grid-template-columns:none!important;
+}
+.reports-v19-paper .reports-v19-table{
+  width:100%!important;
+  max-width:none!important;
+  table-layout:fixed!important;
+}
+.reports-v19-paper .reports-v19-table th:nth-child(1){width:34%!important}
+.reports-v19-paper .reports-v19-table th:nth-child(2){width:22%!important}
+.reports-v19-paper .reports-v19-table th:nth-child(3){width:10%!important}
+.reports-v19-paper .reports-v19-table th:nth-child(4){width:14%!important}
+.reports-v19-paper .reports-v19-table th:nth-child(5){width:20%!important}
+.reports-v19-paper .reports-v19-table th,
+.reports-v19-paper .reports-v19-table td{padding-right:3mm!important}
+.reports-v19-paper .reports-v19-table th:last-child,
+.reports-v19-paper .reports-v19-table td:last-child{padding-right:0!important}
+
+/* O asset-base do Workspace é claro para superfícies escuras. No documento claro, use a versão bordô. */
+.reports-v19-paper .reports-v19-brand img{
+  content:url('/brand/cali-workspace-burgundy.svg')!important;
+}
+
+/* Evita o contador herdado do sistema antigo: o índice explícito em <b> é o único número. */
+.reports-v19-paper .reports-v19-simple-list{
+  list-style:none!important;
+  counter-reset:none!important;
+}
+.reports-v19-paper .reports-v19-simple-list li::before,
+.reports-v19-paper .reports-v19-simple-list li::marker{
+  content:none!important;
+  display:none!important;
+}
+
+@media print{
+  .reports-v19-paper .reports-v16-execution-grid,
+  .reports-v19-paper .reports-v16-execution-block,
+  .reports-v19-paper .reports-v19-table{width:100%!important;max-width:none!important}
+}
