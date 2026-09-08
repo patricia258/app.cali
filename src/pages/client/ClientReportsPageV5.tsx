@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, ChevronDown, Eye, FileText, Loader2, Printer, ShieldCheck, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
-import { ExecutiveReportPaperV16 } from '../../components/reports/ExecutiveReportPaperV16';
+import { ExecutiveReportPaperV17 } from '../../components/reports/ExecutiveReportPaperV17';
 import type { ReportIdentityV55 } from '../../components/reports/ReportValidationV55';
 import { supabase } from '../../lib/supabase';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
@@ -87,7 +87,7 @@ export function ClientReportsPageV5(){
       ]);
       if(companyResult.error)throw companyResult.error;
       if(reportResult.error)throw reportResult.error;
-      setCompany({name:companyResult.data?.display_name||'Empresa',logoUrl:await resolveWorkspaceMedia(companyResult.data?.logo_url)});
+      setCompany({name:companyResult.data?.display_name||'Empresa',logoUrl:await resolveWorkspaceMedia(companyResult.data?.logo_url,86400,true)});
       const next=(reportResult.data||[]).map(rowToReport);
       setReports(next);
       const queryId=new URLSearchParams(window.location.search).get('report')||'';
@@ -202,7 +202,7 @@ export function ClientReportsPageV5(){
             </table>
           </div>
         </section>}
-    {previewOpen&&selected?.snapshot?<div className="modal-backdrop full-screen-modal client-report-preview-v55" role="presentation"><section className="client-report-preview-card-v55" role="dialog" aria-modal="true" aria-label="Relatório completo"><button className="modal-close" type="button" onClick={()=>setPreviewOpen(false)} aria-label="Fechar"><X size={20}/></button><div className="client-report-preview-stage-v55"><ExecutiveReportPaperV16 company={company||{name:'Empresa'}} snapshot={selected.snapshot} editor={editorOf(selected)} reportType={selected.reportType} periodName={periodLabel(selected.reportType,selected.periodStart)} protocol={selected.protocol} deliveries={deliveriesOf(selected)} approvalIdentity={selected.approvalIdentity} acknowledgementIdentity={selected.ackIdentity} approvedAt={selected.approvedAt} acknowledgedAt={selected.acknowledgedAt} acknowledgementProtocol={selected.ackProtocol}/></div></section></div>:null}
+    {previewOpen&&selected?.snapshot?<div className="modal-backdrop full-screen-modal client-report-preview-v55" role="presentation"><section className="client-report-preview-card-v55" role="dialog" aria-modal="true" aria-label="Relatório completo"><button className="modal-close" type="button" onClick={()=>setPreviewOpen(false)} aria-label="Fechar"><X size={20}/></button><div className="client-report-preview-stage-v55"><ExecutiveReportPaperV17 company={company||{name:'Empresa'}} snapshot={selected.snapshot} editor={editorOf(selected)} reportType={selected.reportType} periodName={periodLabel(selected.reportType,selected.periodStart)} protocol={selected.protocol} deliveries={deliveriesOf(selected)} approvalIdentity={selected.approvalIdentity} acknowledgementIdentity={selected.ackIdentity} approvedAt={selected.approvedAt} acknowledgedAt={selected.acknowledgedAt} acknowledgementProtocol={selected.ackProtocol}/></div></section></div>:null}
     {ackOpen&&selected?<div className="modal-backdrop full-screen-modal" role="presentation"><section className="modal-card client-report-ack-modal-v55" role="dialog" aria-modal="true" aria-label="Registrar ciência"><button className="modal-close" type="button" onClick={()=>setAckOpen(false)} aria-label="Fechar"><X size={20}/></button><span className="section-kicker">CIÊNCIA DA LEITURA</span><h2>Registrar ciência deste fechamento?</h2><p>Este registro é opcional. Ele confirma que você teve ciência desta versão e não representa concordância ou aprovação do conteúdo.</p><div className="client-report-ack-note-v55"><ShieldCheck size={18}/><span>Sua identidade e a assinatura configurada no perfil serão registradas com data, hora e protocolo.</span></div><div className="modal-actions"><button className="client-report-secondary-v56" type="button" onClick={()=>setAckOpen(false)}>Agora não</button><button className="client-report-primary-v56" type="button" disabled={acknowledging} onClick={()=>void acknowledge()}>{acknowledging?<Loader2 className="spin" size={17}/>:<CheckCircle2 size={17}/>}Registrar ciência</button></div></section></div>:null}
   </section></Shell>;
 }
