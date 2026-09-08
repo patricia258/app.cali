@@ -5,6 +5,7 @@ let installed = false;
 let policiesLoaded = false;
 let loadingPolicies = false;
 let historyPatched = false;
+let internalPolicyRefresh = false;
 
 class SilentMutationObserver implements MutationObserver {
   readonly root: MutationObserver | null = null;
@@ -37,10 +38,17 @@ async function loadPoliciesWithoutObservers() {
 }
 
 function notifyPolicyRuntimes() {
-  if (!policiesLoaded) return;
-  // Os runtimes V66/V67 já escutam popstate para reaplicar somente quando a rota muda.
-  // Um único evento substitui os MutationObservers contínuos.
-  window.dispatchEvent(new PopStateEvent('popstate', { state: history.state }));
+  if (!policiesLoaded || internalPolicyRefresh) return;
+
+  // V66/V67 usam popstate como sinal de reaplicação. Este evento é interno e não pode
+  // acionar novamente o próprio loader, senão cria um ciclo infinito de re-render.
+  internalPolicyRefresh = true;
+  try {
+    window.dispatchEvent(new PopStateEvent('popstate', { state: history.state }));
+  } finally {
+    internalPolicyRefresh = false;
+  }
+
   window.setTimeout(() => {
     void refreshSchedulingPostConfirmationV69();
     void refreshSchedulingMeetingContextV70();
@@ -88,6 +96,9 @@ export function installSchedulingPolicyLoaderV68() {
   installSchedulingPostConfirmationV69();
   installSchedulingMeetingContextV70();
   patchHistory();
-  window.addEventListener('popstate', () => window.setTimeout(onRouteSettled, 0));
+  window.addEventListener('popstate', () => {
+    if (internalPolicyRefresh) return;
+    window.setTimeout(onRouteSettled, 0);
+  });
   window.setTimeout(onRouteSettled, 220);
 }
