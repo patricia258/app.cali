@@ -36,6 +36,7 @@ import { installProjectLifecycleRecalcUxV45 } from './lib/projectLifecycleRecalc
 import { installReportClientTrackingRuntimeV55 } from './lib/reportClientTrackingRuntimeV55';
 import { installReportWorkflowGovernanceV61 } from './lib/reportWorkflowGovernanceV61';
 import { installReportToolbarDedupeV18 } from './lib/reportToolbarDedupeV18';
+import { installReportWithdrawalRuntimeV62 } from './lib/reportWithdrawalRuntimeV62';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -143,6 +144,7 @@ import './report-client-flow-v55.css';
 import './report-client-flow-v56.css';
 import './workspace-system-v61.css';
 import './reports-v18-editorial.css';
+import './reports-v20-refinements.css';
 
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
@@ -178,6 +180,7 @@ installProjectLifecycleRecalcUxV45();
 installReportClientTrackingRuntimeV55();
 installReportWorkflowGovernanceV61();
 installReportToolbarDedupeV18();
+installReportWithdrawalRuntimeV62();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
