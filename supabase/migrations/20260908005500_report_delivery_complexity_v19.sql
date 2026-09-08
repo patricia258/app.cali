@@ -1,6 +1,7 @@
 -- CALI Workspace · Relatórios V19
 -- O relatório executivo precisa exibir a complexidade MC1/MC2/MC3 do entregável
--- sem criar uma segunda fonte de verdade. A view continua derivando tudo de deliverables.
+-- sem criar uma segunda fonte de verdade. Para manter compatibilidade com a view
+-- existente, a nova coluna é acrescentada ao final da projeção.
 
 create or replace view cali_workspace.deliverable_delivery_performance
 with (security_invoker=true)
@@ -13,7 +14,6 @@ select
   d.title,
   d.status,
   d.workstream,
-  d.complexity,
   coalesce(p.roadmap_start_date,p.start_date) as project_planned_start,
   case
     when coalesce(p.roadmap_start_date,p.start_date) is not null
@@ -70,7 +70,8 @@ select
     select sum(h.minutes)
     from cali_workspace.hour_entries h
     where h.deliverable_id=d.id
-  ),0)::integer as total_minutes
+  ),0)::integer as total_minutes,
+  d.complexity
 from cali_workspace.deliverables d
 left join cali_workspace.projects p on p.id=d.project_id;
 
