@@ -37,6 +37,7 @@ import { installReportClientTrackingRuntimeV55 } from './lib/reportClientTrackin
 import { installReportWorkflowGovernanceV61 } from './lib/reportWorkflowGovernanceV61';
 import { installReportToolbarDedupeV18 } from './lib/reportToolbarDedupeV18';
 import { installReportWithdrawalRuntimeV62 } from './lib/reportWithdrawalRuntimeV62';
+import { installSchedulingRequestsRuntimeV65 } from './lib/schedulingRequestsRuntimeV65';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -182,6 +183,7 @@ installReportClientTrackingRuntimeV55();
 installReportWorkflowGovernanceV61();
 installReportToolbarDedupeV18();
 installReportWithdrawalRuntimeV62();
+installSchedulingRequestsRuntimeV65();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
