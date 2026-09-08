@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Eye, FileText, Loader2, Mail, Printer, RefreshCw, RotateCcw, Send, Trash2, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { ExecutiveReportPaperV17 } from '../../components/reports/ExecutiveReportPaperV17';
+import { ReportManualComplementsPanel } from '../../components/reports/ReportManualComplementsPanel';
 import { supabase } from '../../lib/supabase';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 import { reportTypeLabel, type ReportEditor, type ReportType } from '../../lib/reportComposition';
@@ -10,6 +11,7 @@ import { deliveryRowsForPdf, deliveryTimingLabelV14, formatHoursV14, isAlertDism
 import { buildReportAlertsV15, capacitySignalV15 } from '../../lib/reportV15';
 import { reportReviewCountsV16 } from '../../lib/reportV16';
 import { buildEditorialSeedV17, decisionCandidatesV17, demandCandidatesV17, periodChangeSignalsV17 } from '../../lib/reportEditorialV17';
+import { attachReportManualComplements, augmentReportData, emptyReportManualComplements, reportManualComplementsFromSnapshot, type ReportManualComplements } from '../../lib/reportManualComplements';
 
 type Company = { id: string; name: string; logoUrl?: string | null; serviceType?: string | null; servicePlan?: string | null };
 type Report = {
@@ -78,6 +80,7 @@ export function AdminReportsPageV17() {
   const [companyId, setCompanyId] = useState(''), [reportType, setReportType] = useState<ReportType>('monthly'), [periodStart, setPeriodStart] = useState(initial.start), [periodEnd, setPeriodEnd] = useState(initial.end);
   const [snapshot, setSnapshot] = useState<IntelligenceSnapshot | null>(null), [liveSnapshot, setLiveSnapshot] = useState<IntelligenceSnapshot | null>(null), [deliveries, setDeliveries] = useState<DeliveryPerformanceRow[]>([]), [activeReport, setActiveReport] = useState<Report | null>(null);
   const [editor, setEditor] = useState<ReportEditor>(emptyEditor), [internalNote, setInternalNote] = useState(''), [dismissedAlerts, setDismissedAlerts] = useState<DismissedReportAlert[]>([]);
+  const [manualComplements, setManualComplements] = useState<ReportManualComplements>(emptyReportManualComplements());
   const [readiness, setReadiness] = useState<Readiness | null>(null);
   const [loadingBase, setLoadingBase] = useState(true), [loadingPeriod, setLoadingPeriod] = useState(false), [saving, setSaving] = useState(false), [autosaveState, setAutosaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle'), [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [notice, setNotice] = useState(''), [error, setError] = useState(''), [previewOpen, setPreviewOpen] = useState(false);
@@ -88,18 +91,21 @@ export function AdminReportsPageV17() {
   const selectedCompany = useMemo(() => companies.find((item) => item.id === companyId) || null, [companies, companyId]);
   const periodName = periodLabelV14(reportType, periodStart), quarters = useMemo(() => quarterOptions(), []);
   const companyReports = useMemo(() => reports.filter((item) => item.companyId === companyId).sort((a, b) => b.periodStart.localeCompare(a.periodStart) || b.version - a.version), [reports, companyId]);
-  const alerts = useMemo(() => snapshot ? buildReportAlertsV15(snapshot, deliveries) : [], [snapshot, deliveries]);
+  const effectiveReportData = useMemo(() => snapshot ? augmentReportData(snapshot, deliveries, manualComplements) : null, [snapshot, deliveries, manualComplements]);
+  const effectiveSnapshot = effectiveReportData?.snapshot || snapshot;
+  const effectiveDeliveries = effectiveReportData?.deliveries || deliveries;
+  const alerts = useMemo(() => effectiveSnapshot ? buildReportAlertsV15(effectiveSnapshot, effectiveDeliveries) : [], [effectiveSnapshot, effectiveDeliveries]);
   const unresolvedAlerts = useMemo(() => alerts.filter((item) => !isAlertDismissed(item, dismissedAlerts)), [alerts, dismissedAlerts]);
   const unresolvedBlocking = useMemo(() => unresolvedAlerts.filter((item) => item.blocking), [unresolvedAlerts]);
   const decisionOptions = useMemo(() => snapshot ? Array.from(new Set([...decisionCandidatesV17(snapshot), ...lines(editor.decisions)])) : [], [snapshot, editor.decisions]);
   const demandChoices = useMemo(() => snapshot ? Array.from(new Set([...demandCandidatesV17(snapshot), ...lines(editor.movements)])) : [], [snapshot, editor.movements]);
   const selectedDecisions = useMemo(() => new Set(lines(editor.decisions)), [editor.decisions]);
   const selectedDemands = useMemo(() => new Set(lines(editor.movements)), [editor.movements]);
-  const kpis = useMemo(() => snapshot ? reportKpisV14(snapshot, deliveries) : null, [snapshot, deliveries]);
-  const periodDeliveries = useMemo(() => snapshot ? deliveryRowsForPdf(snapshot, deliveries) : [], [snapshot, deliveries]);
-  const capacitySignal = useMemo(() => snapshot ? capacitySignalV15(snapshot) : null, [snapshot]);
-  const changes = useMemo(() => snapshot ? periodChangeSignalsV17(snapshot, reportType) : [], [snapshot, reportType]);
-  const reviewCounts = useMemo(() => snapshot ? reportReviewCountsV16(snapshot, deliveries, selectedDemands.size, selectedDecisions.size, unresolvedAlerts.length) : null, [snapshot, deliveries, selectedDemands.size, selectedDecisions.size, unresolvedAlerts.length]);
+  const kpis = useMemo(() => effectiveSnapshot ? reportKpisV14(effectiveSnapshot, effectiveDeliveries) : null, [effectiveSnapshot, effectiveDeliveries]);
+  const periodDeliveries = useMemo(() => effectiveSnapshot ? deliveryRowsForPdf(effectiveSnapshot, effectiveDeliveries) : [], [effectiveSnapshot, effectiveDeliveries]);
+  const capacitySignal = useMemo(() => effectiveSnapshot ? capacitySignalV15(effectiveSnapshot) : null, [effectiveSnapshot]);
+  const changes = useMemo(() => effectiveSnapshot ? periodChangeSignalsV17(effectiveSnapshot, reportType) : [], [effectiveSnapshot, reportType]);
+  const reviewCounts = useMemo(() => effectiveSnapshot ? reportReviewCountsV16(effectiveSnapshot, effectiveDeliveries, selectedDemands.size, selectedDecisions.size, unresolvedAlerts.length) : null, [effectiveSnapshot, effectiveDeliveries, selectedDemands.size, selectedDecisions.size, unresolvedAlerts.length]);
   const isSimulation = Boolean((activeReport?.snapshot as any)?.workflow_mode === 'simulation');
   const canEdit = Boolean(!activeReport || activeReport.status === 'draft' || activeReport.status === 'review');
   const lifecycleStatus = activeReport?.status || 'draft';
@@ -109,17 +115,17 @@ export function AdminReportsPageV17() {
   useEffect(() => { if (!previewOpen && !dismissTarget && !sendOpen) return; document.body.classList.add('workspace-modal-open'); return () => document.body.classList.remove('workspace-modal-open'); }, [previewOpen, dismissTarget, sendOpen]);
   useEffect(() => {
     if (!activeReport || !canEdit) return;
-    const payload = JSON.stringify({ summary: editor.summary, movements: editor.movements, decisions: editor.decisions, risks: editor.risks, nextSteps: editor.nextSteps, internalNote, dismissedAlerts });
+    const payload = JSON.stringify({ summary: editor.summary, movements: editor.movements, decisions: editor.decisions, risks: editor.risks, nextSteps: editor.nextSteps, internalNote, dismissedAlerts, manualComplements });
     if (payload === lastSavedPayload.current) return;
     setAutosaveState('saving');
     const timer = window.setTimeout(async () => {
       if (!supabase) return;
-      const result = await supabase.from('reports').update({ executive_summary: editor.summary, movements: lines(editor.movements), decisions: lines(editor.decisions), risks: lines(editor.risks), next_steps: lines(editor.nextSteps), internal_note: internalNote, dismissed_alerts: dismissedAlerts }).eq('id', activeReport.id);
+      const result = await supabase.from('reports').update({ executive_summary: editor.summary, movements: lines(editor.movements), decisions: lines(editor.decisions), risks: lines(editor.risks), next_steps: lines(editor.nextSteps), internal_note: internalNote, dismissed_alerts: dismissedAlerts, source_snapshot: snapshot ? attachReportManualComplements(snapshot, manualComplements) : activeReport.snapshot }).eq('id', activeReport.id);
       if (result.error) { setAutosaveState('error'); setError(`Autosave: ${result.error.message}`); return; }
       lastSavedPayload.current = payload; setAutosaveState('saved'); setLastSavedAt(new Date().toISOString());
     }, 850);
     return () => window.clearTimeout(timer);
-  }, [activeReport?.id, canEdit, editor, internalNote, dismissedAlerts]);
+  }, [activeReport?.id, canEdit, editor, internalNote, dismissedAlerts, manualComplements, snapshot]);
 
   async function loadBase() {
     if (!supabase) return;
@@ -161,10 +167,10 @@ export function AdminReportsPageV17() {
     return result.data as Readiness;
   }
 
-  async function createDraft(fresh: FreshPeriodData, version = 1, parentId: string | null = null, mode: 'official' | 'simulation' = 'official', initialEditor?: ReportEditor, initialInternalNote = '') {
+  async function createDraft(fresh: FreshPeriodData, version = 1, parentId: string | null = null, mode: 'official' | 'simulation' = 'official', initialEditor?: ReportEditor, initialInternalNote = '', initialManual: ReportManualComplements = emptyReportManualComplements()) {
     if (!supabase || !selectedCompany) throw new Error('Cliente não selecionado.');
     const seed = buildEditorialSeedV17(fresh.snapshot, reportType);
-    const sourceSnapshot: any = { ...fresh.snapshot, deliveryPerformanceV14: fresh.deliveries, workflow_mode: mode, ...(mode === 'simulation' ? { simulation_of: parentId, simulation_marked_at: new Date().toISOString() } : {}) };
+    const sourceSnapshot = attachReportManualComplements({ ...fresh.snapshot, deliveryPerformanceV14: fresh.deliveries, workflow_mode: mode, ...(mode === 'simulation' ? { simulation_of: parentId, simulation_marked_at: new Date().toISOString() } : {}) } as IntelligenceSnapshot, initialManual);
     const payload = {
       company_id: selectedCompany.id,
       title: `Relatório Executivo ${reportTypeLabel[reportType]} · ${selectedCompany.name} · ${periodName}`,
@@ -207,6 +213,7 @@ export function AdminReportsPageV17() {
         setSnapshot(fresh.snapshot);
         setDeliveries(fresh.deliveries);
         setEditor(buildEditorialSeedV17(fresh.snapshot, nextType));
+        setManualComplements(emptyReportManualComplements());
         setInternalNote(''); setDismissedAlerts([]); setLastSavedAt(null); lastSavedPayload.current = '';
         return;
       }
@@ -214,10 +221,11 @@ export function AdminReportsPageV17() {
       const report = reportRow(reportResult.data), savedSnapshot = report.snapshot || fresh.snapshot;
       const frozen = frozenDeliveryRows(savedSnapshot);
       const useFrozen = ['approved', 'sent', 'published'].includes(report.status) && frozen;
-      setActiveReport(report); setSnapshot(savedSnapshot); setDeliveries(useFrozen ? frozen! : fresh.deliveries); setEditor(editorFrom(report)); setInternalNote(report.internalNote); setDismissedAlerts(report.dismissedAlerts); setLastSavedAt(report.updatedAt);
-      lastSavedPayload.current = JSON.stringify({ summary: report.summary, movements: report.movements.join('\n'), decisions: report.decisions.join('\n'), risks: report.risks.join('\n'), nextSteps: report.nextSteps.join('\n'), internalNote: report.internalNote, dismissedAlerts: report.dismissedAlerts });
+      const savedManual = reportManualComplementsFromSnapshot(savedSnapshot);
+      setActiveReport(report); setSnapshot(savedSnapshot); setDeliveries(useFrozen ? frozen! : fresh.deliveries); setEditor(editorFrom(report)); setManualComplements(savedManual); setInternalNote(report.internalNote); setDismissedAlerts(report.dismissedAlerts); setLastSavedAt(report.updatedAt);
+      lastSavedPayload.current = JSON.stringify({ summary: report.summary, movements: report.movements.join('\n'), decisions: report.decisions.join('\n'), risks: report.risks.join('\n'), nextSteps: report.nextSteps.join('\n'), internalNote: report.internalNote, dismissedAlerts: report.dismissedAlerts, manualComplements: savedManual });
     } catch (requestError) {
-      setSnapshot(null); setLiveSnapshot(null); setDeliveries([]); setActiveReport(null); setEditor(emptyEditor); setReadiness(null); setError(requestError instanceof Error ? requestError.message : 'Não foi possível montar o fechamento.');
+      setSnapshot(null); setLiveSnapshot(null); setDeliveries([]); setActiveReport(null); setEditor(emptyEditor); setManualComplements(emptyReportManualComplements()); setReadiness(null); setError(requestError instanceof Error ? requestError.message : 'Não foi possível montar o fechamento.');
     } finally { setLoadingPeriod(false); }
   }
 
@@ -233,7 +241,7 @@ export function AdminReportsPageV17() {
       const currentReadiness = await fetchReadiness(companyId, reportType, periodStart, periodEnd);
       if (currentReadiness && !currentReadiness.can_generate_official) throw new Error(`O fechamento oficial ainda não está disponível. A coleta mínima é de ${currentReadiness.required_days} dias.`);
       const fresh = await fetchFreshPeriod(companyId, reportType, periodStart, periodEnd);
-      await createDraft(fresh, 1, null, 'official', editor, internalNote);
+      await createDraft(fresh, 1, null, 'official', editor, internalNote, manualComplements);
       setNotice('Fechamento oficial criado. A curadoria que você preparou na prévia foi preservada.');
       await loadBase(); await loadPeriod(companyId, reportType, periodStart, periodEnd);
     } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Não foi possível criar o fechamento oficial.'); }
@@ -246,7 +254,7 @@ export function AdminReportsPageV17() {
     try {
       const fresh = await fetchFreshPeriod(companyId, reportType, periodStart, periodEnd);
       const previousMode = (activeReport.snapshot as any)?.workflow_mode || 'official';
-      const sourceSnapshot: any = { ...fresh.snapshot, deliveryPerformanceV14: fresh.deliveries, workflow_mode: previousMode, ...((activeReport.snapshot as any)?.simulation_of ? { simulation_of: (activeReport.snapshot as any).simulation_of } : {}) };
+      const sourceSnapshot = attachReportManualComplements({ ...fresh.snapshot, deliveryPerformanceV14: fresh.deliveries, workflow_mode: previousMode, ...((activeReport.snapshot as any)?.simulation_of ? { simulation_of: (activeReport.snapshot as any).simulation_of } : {}) } as IntelligenceSnapshot, manualComplements);
       const result = await supabase.from('reports').update({ source_snapshot: sourceSnapshot, data_refreshed_at: new Date().toISOString(), service_type_snapshot: fresh.snapshot.contract.serviceType || selectedCompany?.serviceType || null, service_plan_snapshot: fresh.snapshot.contract.servicePlan || selectedCompany?.servicePlan || null, contracted_hours_snapshot: fresh.snapshot.contract.contractedHoursPeriod }).eq('id', activeReport.id);
       if (result.error) throw result.error;
       setSnapshot(fresh.snapshot); setLiveSnapshot(fresh.snapshot); setDeliveries(fresh.deliveries); setNotice('Dados automáticos atualizados. Sua curadoria editorial foi preservada.'); await loadBase();
@@ -272,7 +280,7 @@ export function AdminReportsPageV17() {
     setSaving(true); setError('');
     try {
       const user = await supabase.auth.getUser(); if (user.error) throw user.error;
-      const sourceSnapshot: any = { ...snapshot, deliveryPerformanceV14: deliveries, workflow_mode: 'official' };
+      const sourceSnapshot = attachReportManualComplements({ ...snapshot, deliveryPerformanceV14: deliveries, workflow_mode: 'official' } as IntelligenceSnapshot, manualComplements);
       const now = new Date().toISOString();
       const result = await supabase.from('reports').update({ status: 'approved', approved_at: now, approved_by: user.data.user?.id || null, source_snapshot: sourceSnapshot, executive_summary: editor.summary, movements: lines(editor.movements), decisions: lines(editor.decisions), risks: lines(editor.risks), next_steps: lines(editor.nextSteps), internal_note: internalNote, dismissed_alerts: dismissedAlerts }).eq('id', activeReport.id);
       if (result.error) throw result.error;
@@ -308,7 +316,7 @@ export function AdminReportsPageV17() {
     try {
       const fresh = await fetchFreshPeriod(companyId, reportType, periodStart, periodEnd);
       const simulation = ['sent', 'published'].includes(activeReport.status);
-      await createDraft(fresh, activeReport.version + 1, activeReport.id, simulation ? 'simulation' : 'official');
+      await createDraft(fresh, activeReport.version + 1, activeReport.id, simulation ? 'simulation' : 'official', undefined, '', manualComplements);
       setNotice(simulation ? 'Simulação interna criada. Ela não altera nem substitui a versão enviada ao cliente.' : `Versão ${activeReport.version + 1} criada como novo rascunho.`);
       await loadBase(); await loadPeriod(companyId, reportType, periodStart, periodEnd);
     } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Não foi possível criar a nova versão.'); }
@@ -363,6 +371,7 @@ export function AdminReportsPageV17() {
         <main className="reports-v16-workspace">
           <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>01</span><div><h2>Base da prévia</h2><p>Identificação e fatos são lidos da origem, sem gravar relatório.</p></div></div><dl className="reports-v16-identification"><div><dt>Cliente</dt><dd>{selectedCompany.name}</dd></div><div><dt>Período</dt><dd>{periodName}</dd></div><div><dt>Projeto / ciclo</dt><dd>{snapshot.cycleContext?.projectName || kpis?.cycleLabel || snapshot.projects[0]?.name || '—'}</dd></div><div><dt>Protocolo</dt><dd>Será gerado no fechamento</dd></div></dl></section>
           <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>02</span><div><h2>Fatos disponíveis</h2><p>Só aparece o que possui base real no período.</p></div></div><div className="reports-v16-fact-grid">{hasCapacity ? <article><small>Capacidade utilizada</small><strong>{usagePercent === null ? formatHoursV14(usedMinutes) : `${usagePercent}%`}</strong></article> : null}{hasPlanned ? <article><small>Entregas previstas</small><strong>{kpis?.completedDeliveries}/{kpis?.plannedDeliveries}</strong></article> : null}{hasAdherence ? <article><small>Aderência ao prazo</small><strong>{kpis?.deliveryAdherence}%</strong></article> : null}</div>{periodDeliveries.length ? <div><h3>Planejado x realizado</h3><table className="reports-v16-table deliveries"><thead><tr><th>Entregável</th><th>Previsto</th><th>Realizado</th><th>Situação</th></tr></thead><tbody>{periodDeliveries.map((item) => <tr key={item.deliverable_id}><td><strong>{item.title}</strong>{item.workstream ? <small>{item.workstream}</small> : null}</td><td>{formatDate(item.effective_due_at)}</td><td>{formatDate(item.completion_at)}</td><td>{deliveryTimingLabelV14(item)}</td></tr>)}</tbody></table></div> : <p className="reports-v16-empty">Nenhum entregável movimentado neste período.</p>}</section>
+          <ReportManualComplementsPanel value={manualComplements} onChange={setManualComplements} />
           {previewEditorial}
           {history}
         </main>
@@ -375,6 +384,8 @@ export function AdminReportsPageV17() {
           <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>01</span><div><h2>Base do fechamento</h2><p>Identificação automática. Nada aqui deve ser digitado no relatório.</p></div></div><dl className="reports-v16-identification"><div><dt>Cliente</dt><dd>{selectedCompany.name}</dd></div><div><dt>Período</dt><dd>{periodName}</dd></div><div><dt>Projeto / ciclo</dt><dd>{snapshot.cycleContext?.projectName || kpis?.cycleLabel || snapshot.projects[0]?.name || '—'}</dd></div><div><dt>Protocolo</dt><dd>{activeReport.protocol}</dd></div></dl></section>
 
           <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>02</span><div><h2>Fatos do período</h2><p>Indicadores sem base deixam de ocupar espaço.</p></div></div><div className="reports-v16-fact-grid">{hasCapacity ? <article><small>{extraMinutes > 0 ? 'Consumo no período' : 'Capacidade utilizada'}</small><strong>{usagePercent === null ? formatHoursV14(usedMinutes) : `${usagePercent}%`}</strong></article> : null}{hasPlanned ? <article><small>Entregas previstas</small><strong>{kpis?.completedDeliveries}/{kpis?.plannedDeliveries}</strong></article> : null}{hasAdherence ? <article><small>Aderência ao prazo</small><strong>{kpis?.deliveryAdherence}%</strong></article> : null}</div>{contractedMinutes > 0 ? <div className="reports-v16-usage-track"><span style={{ width: `${Math.min(100, Math.max(0, usagePercent || 0))}%` }} /></div> : null}{extraMinutes > 0 && capacitySignal?.message ? <p className="reports-v16-capacity-signal">{capacitySignal.message}</p> : null}<div className="reports-v16-facts-split" style={{ gridTemplateColumns: '1fr' }}><div><h3>Entregas e andamento</h3>{periodDeliveries.length ? <table className="reports-v16-table deliveries"><thead><tr><th>Entregável</th><th>Previsto</th><th>Realizado</th><th>Situação</th></tr></thead><tbody>{periodDeliveries.map((item) => <tr key={item.deliverable_id}><td><strong>{item.title}</strong>{item.workstream ? <small>{item.workstream}</small> : null}</td><td>{formatDate(item.effective_due_at)}</td><td>{formatDate(item.completion_at)}</td><td>{deliveryTimingLabelV14(item)}</td></tr>)}</tbody></table> : <p className="reports-v16-empty">Nenhum entregável movimentado neste período.</p>}</div></div></section>
+
+          <ReportManualComplementsPanel value={manualComplements} onChange={setManualComplements} locked={!canEdit} />
 
           {changes.length ? <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>03</span><div><h2>{reportType === 'quarterly' ? 'Evolução dentro do trimestre' : 'O que mudou'}</h2><p>Só existe comparativo quando há base real nos dois períodos.</p></div></div><div className="reports-v16-change-grid">{changes.map((item) => <article className={`tone-${item.tone}`} key={item.id}><span>{item.label}</span><strong>{item.value}</strong><p>{item.detail}</p></article>)}</div></section> : null}
 
@@ -396,6 +407,6 @@ export function AdminReportsPageV17() {
 
     {sendOpen && activeReport ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-modal-backdrop"><section className="modal-card reports-v16-send-modal" role="dialog" aria-modal="true"><button className="modal-close" type="button" onClick={() => setSendOpen(false)}><X size={19} /></button><span className="section-kicker">ENVIAR AO CLIENTE</span><h2>Relatório aprovado · v{activeReport.version}</h2><p>Ao confirmar, esta versão congelada ficará disponível em Relatórios no Workspace do cliente e os destinatários receberão a notificação por e-mail.</p><div className="reports-v16-send-channels"><label><input type="checkbox" checked readOnly />Disponibilizar no Workspace</label><label><input type="checkbox" checked readOnly />Enviar notificação por e-mail</label></div><label><span>Destinatários</span><input type="text" value={sendRecipients} onChange={(event) => setSendRecipients(event.target.value)} placeholder="email@cliente.com, outro@cliente.com" /></label><label><span>Mensagem opcional</span><textarea rows={4} value={sendMessage} onChange={(event) => setSendMessage(event.target.value)} placeholder="Uma observação curta antes do acesso ao relatório." /></label><footer><button className="secondary" type="button" disabled={sending} onClick={() => setSendOpen(false)}>Cancelar</button><button className="primary" type="button" disabled={sending || !sendRecipients.trim()} onClick={() => void sendReport()}>{sending ? <Loader2 className="spin" size={16} /> : <Mail size={16} />}Enviar relatório</button></footer></section></div> : null}
 
-    {previewOpen && snapshot && selectedCompany ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-preview-backdrop"><section className="modal-card reports-v16-preview-modal" role="dialog" aria-modal="true"><div className="reports-v16-preview-toolbar"><div><strong>{activeReport ? 'Prévia da versão congelável' : 'Prévia interna sem persistência'}</strong><span>{selectedCompany.name} · {periodName}{activeReport ? ` · v${activeReport.version}` : ''}</span></div><div><button className="secondary" type="button" onClick={() => setPreviewOpen(false)}><X size={16} />Voltar</button>{activeReport ? <button className="secondary" type="button" onClick={openPrint}><Printer size={16} />Baixar / imprimir PDF</button> : null}{activeReport?.status === 'review' && !isSimulation ? <button className="primary" type="button" onClick={() => void approveReport()}><CheckCircle2 size={16} />Aprovar relatório</button> : activeReport?.status === 'approved' ? <button className="primary" type="button" onClick={() => void openSend()}><Send size={16} />Enviar ao cliente</button> : null}</div></div><div className="reports-v16-preview-document"><ExecutiveReportPaperV17 company={selectedCompany} snapshot={snapshot} editor={editor} reportType={reportType} periodName={periodName} protocol={activeReport?.protocol || '—'} deliveries={deliveries} /></div></section></div> : null}
+    {previewOpen && snapshot && selectedCompany ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-preview-backdrop"><section className="modal-card reports-v16-preview-modal" role="dialog" aria-modal="true"><div className="reports-v16-preview-toolbar"><div><strong>{activeReport ? 'Prévia da versão congelável' : 'Prévia interna sem persistência'}</strong><span>{selectedCompany.name} · {periodName}{activeReport ? ` · v${activeReport.version}` : ''}</span></div><div><button className="secondary" type="button" onClick={() => setPreviewOpen(false)}><X size={16} />Voltar</button>{activeReport ? <button className="secondary" type="button" onClick={openPrint}><Printer size={16} />Baixar / imprimir PDF</button> : null}{activeReport?.status === 'review' && !isSimulation ? <button className="primary" type="button" onClick={() => void approveReport()}><CheckCircle2 size={16} />Aprovar relatório</button> : activeReport?.status === 'approved' ? <button className="primary" type="button" onClick={() => void openSend()}><Send size={16} />Enviar ao cliente</button> : null}</div></div><div className="reports-v16-preview-document"><ExecutiveReportPaperV17 company={selectedCompany} snapshot={attachReportManualComplements(snapshot, manualComplements)} editor={editor} reportType={reportType} periodName={periodName} protocol={activeReport?.protocol || '—'} deliveries={deliveries} /></div></section></div> : null}
   </section></Shell>;
 }
