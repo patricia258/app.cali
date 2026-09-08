@@ -10,6 +10,16 @@ type AgendaPolicyV67 = {
   requiredTotal?: number;
   occurredCount?: number;
   scheduledCount?: number;
+  extraCount?: number;
+};
+
+type AdminRequestV67 = {
+  id: string;
+  request_mode?: string | null;
+  billable_extra?: boolean | null;
+  billing_acknowledged_at?: string | null;
+  urgency_level?: string | null;
+  urgency_fee_applies?: boolean | null;
 };
 
 let installed = false;
@@ -17,6 +27,8 @@ let observer: MutationObserver | null = null;
 let timer: number | undefined;
 let policy: AgendaPolicyV67 | null = null;
 let policyLoading = false;
+let adminLoading = false;
+let adminRequests = new Map<string, AdminRequestV67>();
 
 const STYLE = `
 /* CALI Workspace · agenda contratual UX V67 */
@@ -26,15 +38,54 @@ const STYLE = `
   background:linear-gradient(135deg,#FFF4C9 0%,#F7E3A3 100%)!important;
   box-shadow:0 12px 30px rgba(89,63,25,.09)!important;
 }
-#scheduling-v65-client-host .scheduling-v65-head{background:transparent!important}
+#scheduling-v65-client-host .scheduling-v65-head{background:transparent!important;padding:15px 18px!important;border-bottom:1px solid rgba(90,30,45,.10)!important}
+#scheduling-v65-client-host .scheduling-v65-head p{display:none!important}
+#scheduling-v65-client-host .scheduling-v65-list,
+#scheduling-v65-client-host .scheduling-v65-empty{display:none!important}
+#scheduling-v65-client-host .scheduling-v66-contract-summary{grid-template-columns:minmax(170px,1.15fr) repeat(3,minmax(110px,.62fr))!important;gap:10px!important;padding:12px 18px!important;border-bottom:0!important}
+#scheduling-v65-client-host .scheduling-v66-contract-summary>div:first-child{padding:10px 12px!important;border:1px solid rgba(90,30,45,.12);border-radius:12px;background:rgba(255,255,255,.28)}
+#scheduling-v65-client-host .scheduling-v66-contract-summary>div:first-child p{display:none!important}
+#scheduling-v65-client-host .scheduling-v66-contract-summary small{font-size:11px!important;margin-bottom:3px!important}
+#scheduling-v65-client-host .scheduling-v66-contract-summary strong{font-size:16px!important}
+#scheduling-v65-client-host .scheduling-v66-stat{padding:10px 12px!important}
+#scheduling-v65-client-host .scheduling-v66-stat b{font-size:20px!important}
+#scheduling-v65-client-host .scheduling-v66-stat span{font-size:11px!important}
 #scheduling-client-form .scheduling-v65-grid>div:empty{display:none!important}
 #scheduling-client-form .scheduling-v65-field[data-v67-auto]{min-width:0}
 .scheduling-v67-contract-help{grid-column:1/-1;margin-top:0;padding:10px 12px;border-radius:10px;border:1px solid var(--theme-line,#ded5cf);background:var(--theme-surface-soft,#faf7f5);font-size:13px;line-height:1.5;color:var(--theme-muted,#716660)}
 .scheduling-v67-contract-help strong{color:var(--theme-text,#2b2b2b)}
 #v66-contract-form input[readonly]{background:color-mix(in srgb,var(--theme-surface-soft,#faf7f5) 88%,#B58C52 12%);color:var(--theme-muted,#716660);cursor:default}
+
+/* Admin: estado e ação sem mural de etiquetas */
+#scheduling-v65-admin-host .scheduling-v65-head{padding:15px 18px!important}
+#scheduling-v65-admin-host .scheduling-v65-head p{display:none!important}
+#scheduling-v65-admin-host .scheduling-v65-list{padding-bottom:6px!important}
+#scheduling-v65-admin-host .scheduling-v65-request{grid-template-columns:minmax(0,1fr) 330px!important;gap:14px 22px!important;padding:13px 0!important}
+#scheduling-v65-admin-host .scheduling-v65-request-top{margin-bottom:4px!important}
+#scheduling-v65-admin-host .scheduling-v65-request-top strong{font-size:14px!important}
+#scheduling-v65-admin-host .scheduling-v65-slots,
+#scheduling-v65-admin-host .scheduling-v65-contract{display:none!important}
+#scheduling-v65-admin-host .scheduling-v67-admin-meta{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:5px 0 6px!important}
+#scheduling-v65-admin-host .scheduling-v67-admin-meta .scheduling-v65-badge{display:none!important}
+#scheduling-v65-admin-host .scheduling-v67-admin-format{font-size:12px;font-weight:800;color:var(--theme-muted,#716660)}
+#scheduling-v65-admin-host .scheduling-v66-urgency-select{min-height:32px!important;padding:0 8px!important;font-size:12px!important;font-weight:700!important}
+#scheduling-v65-admin-host .scheduling-v67-admin-note{margin:7px 0 0;padding:7px 9px;border-left:2px solid #B58C52;border-radius:0 8px 8px 0;background:color-mix(in srgb,#B58C52 6%,var(--theme-surface,#fff));font-size:12px;line-height:1.4;color:var(--theme-muted,#6f6460)}
+#scheduling-v65-admin-host .scheduling-v67-admin-note.billable{border-left-color:#5A1E2D;background:color-mix(in srgb,#5A1E2D 5%,var(--theme-surface,#fff));color:#71404b}
+#scheduling-v65-admin-host .scheduling-v65-actions{max-width:330px!important;gap:6px!important}
+#scheduling-v65-admin-host .scheduling-v65-admin-slot-actions{gap:6px!important;width:100%}
+#scheduling-v65-admin-host [data-scheduling-admin-use-slot]{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:1px!important;min-height:44px!important;padding:7px 12px!important;text-align:left!important}
+#scheduling-v65-admin-host [data-scheduling-admin-use-slot] strong{font-size:12px!important;line-height:1.2!important}
+#scheduling-v65-admin-host [data-scheduling-admin-use-slot] small{font-size:10px!important;line-height:1.2!important;font-weight:650!important;opacity:.86}
+#scheduling-v65-admin-host .scheduling-v65-request p{font-size:12px!important;line-height:1.4!important}
+
 html[data-workspace-theme='night'] #scheduling-v65-client-host .scheduling-v65-panel{background:linear-gradient(135deg,#44361F 0%,#322719 100%)!important;border-color:#80662E!important;border-left-color:#D2A650!important}
+html[data-workspace-theme='night'] #scheduling-v65-client-host .scheduling-v66-contract-summary>div:first-child{background:rgba(255,255,255,.05);border-color:rgba(216,177,92,.22)}
 html[data-workspace-theme='night'] .scheduling-v67-contract-help{background:#2b2024;border-color:#523d44;color:#d9cfc8}
-@media(max-width:560px){.scheduling-v67-contract-help{font-size:13px}}
+html[data-workspace-theme='night'] #scheduling-v65-admin-host .scheduling-v67-admin-note{background:rgba(181,140,82,.08);color:#d9cfc8}
+html[data-workspace-theme='night'] #scheduling-v65-admin-host .scheduling-v67-admin-note.billable{background:rgba(90,30,45,.22);color:#ead8dd}
+@media(max-width:900px){#scheduling-v65-admin-host .scheduling-v65-request{grid-template-columns:1fr!important}#scheduling-v65-admin-host .scheduling-v65-actions{max-width:none!important}}
+@media(max-width:760px){#scheduling-v65-client-host .scheduling-v66-contract-summary{grid-template-columns:1fr 1fr!important}#scheduling-v65-client-host .scheduling-v66-contract-summary>div:first-child{grid-column:1/-1!important}}
+@media(max-width:560px){.scheduling-v67-contract-help{font-size:13px}#scheduling-v65-client-host .scheduling-v66-contract-summary{grid-template-columns:1fr!important}#scheduling-v65-client-host .scheduling-v66-contract-summary>div:first-child{grid-column:1!important}}
 `;
 
 function ensureStyle() {
@@ -71,6 +122,25 @@ async function loadClientPolicy() {
   }
 }
 
+async function loadAdminRequests() {
+  if (!supabase || adminLoading || location.pathname !== '/admin/calendario') return;
+  adminLoading = true;
+  try {
+    const { data, error } = await supabase
+      .from('scheduling_requests')
+      .select('id,request_mode,billable_extra,billing_acknowledged_at,urgency_level,urgency_fee_applies')
+      .order('created_at', { ascending: false })
+      .limit(60);
+    if (error) throw error;
+    adminRequests = new Map(((data || []) as AdminRequestV67[]).map((row) => [row.id, row]));
+  } catch (error) {
+    console.error('Agenda V67 · solicitações admin', error);
+  } finally {
+    adminLoading = false;
+    scheduleApply(0);
+  }
+}
+
 function selectedMode(form: HTMLFormElement) {
   return form.querySelector<HTMLInputElement>('input[name="mode"]:checked')?.value || 'remote';
 }
@@ -78,7 +148,6 @@ function selectedMode(form: HTMLFormElement) {
 function fixClientModal() {
   const form = document.querySelector<HTMLFormElement>('#scheduling-client-form');
   if (!form) return;
-
   form.querySelectorAll<HTMLElement>('.scheduling-v65-grid>div:empty').forEach((el) => { el.style.display = 'none'; });
 
   const policyBox = form.querySelector<HTMLElement>('#scheduling-client-policy');
@@ -86,8 +155,6 @@ function fixClientModal() {
   const mode = selectedMode(form);
   const date1 = (form.elements.namedItem('date1') as HTMLInputElement | null)?.value || '';
 
-  // A regra do pacote já permite orientar o cliente antes da escolha da data.
-  // Quando houver data, o V66 assume e calcula a condição exata daquele período.
   if (mode === 'in_person' && !date1) {
     const plan = String(policy.plan || '').toLowerCase();
     const onsite = Number(policy.onsitePerMonth || 0);
@@ -95,51 +162,37 @@ function fixClientModal() {
 
     if (plan === 'partner' || onlineOnly || onsite === 0) {
       policyBox.className = 'scheduling-v65-policy billable';
-      policyBox.innerHTML = '<strong>Visita presencial fora do seu pacote</strong>O CALI Partner inclui 1 encontro online por mês. Visita presencial não faz parte da agenda contratual deste plano. Se você seguir com o pedido e a CALI confirmar a visita, ela será tratada como atendimento adicional e haverá cobrança conforme a condição comercial informada pela CALI.';
+      policyBox.innerHTML = '<strong>Visita presencial fora do seu pacote</strong>O CALI Partner inclui 1 encontro online por mês. Se a CALI confirmar esta visita, ela será tratada como atendimento adicional e haverá cobrança conforme a condição comercial informada.';
       return;
     }
 
     if (plan === 'full') {
       policyBox.className = 'scheduling-v65-policy';
-      policyBox.innerHTML = '<strong>Visita presencial no CALI Full</strong>O seu plano prevê 2 encontros por mês e até 1 deles pode ser presencial. Escolha a primeira data para o Workspace verificar se a visita ainda está disponível no período ou se será um encontro adicional.';
+      policyBox.innerHTML = '<strong>Visita presencial no CALI Full</strong>Até 1 dos 2 encontros do mês pode ser presencial. Escolha a primeira data para verificar a disponibilidade no período.';
     }
   }
 }
 
 function fixClientCard() {
-  const summary = document.querySelector<HTMLElement>('#scheduling-v65-client-host .scheduling-v66-contract-summary');
+  const host = document.getElementById('scheduling-v65-client-host');
+  const summary = host?.querySelector<HTMLElement>('.scheduling-v66-contract-summary');
   if (!summary || !policy) return;
-  const intro = summary.firstElementChild as HTMLElement | null;
-  const stats = Array.from(summary.querySelectorAll<HTMLElement>('.scheduling-v66-stat'));
+
   const plan = String(policy.plan || '').toLowerCase();
+  const planLabel = plan === 'partner' ? 'CALI Partner' : plan === 'full' ? 'CALI Full' : String(policy.label || 'Personalizado');
+  const required = Number(policy.requiredTotal || policy.sessionsPerMonth || 0);
+  const occurred = Number(policy.occurredCount || 0);
+  const scheduled = Number(policy.scheduledCount || 0);
+  const extras = Number(policy.extraCount || 0);
+  const signature = `${planLabel}|${required}|${occurred}|${scheduled}|${extras}`;
+  if (summary.dataset.v67Signature === signature) return;
+  summary.dataset.v67Signature = signature;
 
-  if (intro && intro.dataset.v67Copy !== plan) {
-    intro.dataset.v67Copy = plan;
-    if (plan === 'partner') {
-      intro.innerHTML = '<small>CALI PARTNER</small><strong>1 encontro online por mês</strong><p>Sua reunião contratual é organizada previamente pela CALI e não acumula. Se precisar de outro encontro ou de uma visita presencial, envie uma solicitação: o Workspace sinaliza antes do envio quando a condição estiver fora do pacote.</p>';
-    } else if (plan === 'full') {
-      intro.innerHTML = '<small>CALI FULL</small><strong>2 encontros por mês, em ritmo quinzenal</strong><p>O mês pode ter 1 encontro online + 1 presencial ou 2 encontros online. A visita presencial não utilizada não acumula. Solicitações além dos 2 encontros do mês são tratadas como adicionais.</p>';
-    }
-  }
-
-  if (stats[0]) {
-    const small = stats[0].querySelector('small');
-    const span = stats[0].querySelector('span');
-    if (small) small.textContent = plan === 'full' ? 'Encontros do mês' : 'Encontro do mês';
-    if (span) span.textContent = 'realizados';
-  }
-  if (stats[1]) {
-    const small = stats[1].querySelector('small');
-    const span = stats[1].querySelector('span');
-    if (small) small.textContent = 'Na agenda';
-    if (span) span.textContent = 'encontros futuros';
-  }
-  if (stats[2]) {
-    const small = stats[2].querySelector('small');
-    const span = stats[2].querySelector('span');
-    if (small) small.textContent = 'Adicionais';
-    if (span) span.textContent = 'fora do pacote';
-  }
+  summary.innerHTML = `
+    <div><small>SEU PACOTE</small><strong>${planLabel}</strong></div>
+    <div class="scheduling-v66-stat"><small>${required === 1 ? 'Encontro do mês' : 'Encontros do mês'}</small><b>${occurred}/${required}</b><span>realizados</span></div>
+    <div class="scheduling-v66-stat"><small>Na agenda</small><b>${scheduled}</b><span>confirmados</span></div>
+    <div class="scheduling-v66-stat"><small>Adicionais</small><b>${extras}</b><span>fora do pacote</span></div>`;
 }
 
 function setAutoFields(form: HTMLFormElement) {
@@ -170,9 +223,75 @@ function fixAdminContractModal() {
   if (!form.querySelector('.scheduling-v67-contract-help')) {
     const help = document.createElement('div');
     help.className = 'scheduling-v67-contract-help';
-    help.innerHTML = '<strong>Nos pacotes padrão, estes números são automáticos.</strong> CALI Partner: 1 encontro por mês, referência de 30 dias e 0 presencial. CALI Full: 2 encontros por mês, referência de 14 dias e até 1 presencial dentro desses 2 encontros. Edite manualmente apenas em “Personalizado”.';
+    help.innerHTML = '<strong>Pacotes padrão usam regras automáticas.</strong> Partner: 1 encontro/mês, 30 dias, online. Full: 2 encontros/mês, 14 dias, até 1 presencial. Edite apenas no plano Personalizado.';
     const policyBox = form.querySelector('.scheduling-v65-policy');
     policyBox?.insertAdjacentElement('beforebegin', help);
+  }
+}
+
+function simplifyAdminRequestCards() {
+  const host = document.getElementById('scheduling-v65-admin-host');
+  if (!host || !adminRequests.size) return;
+
+  for (const [id, request] of adminRequests) {
+    const card = host.querySelector<HTMLElement>(`[data-admin-request="${CSS.escape(id)}"]`);
+    if (!card) continue;
+
+    const top = card.querySelector<HTMLElement>('.scheduling-v65-request-top');
+    if (top) {
+      const badges = Array.from(top.querySelectorAll<HTMLElement>('.scheduling-v65-badge'));
+      badges.slice(1).forEach((badge) => badge.remove());
+    }
+
+    const meta = card.querySelector<HTMLElement>('.scheduling-v66-request-meta');
+    if (meta) {
+      meta.classList.add('scheduling-v67-admin-meta');
+      meta.querySelectorAll<HTMLElement>('.scheduling-v65-badge').forEach((badge) => { badge.style.display = 'none'; });
+      let format = meta.querySelector<HTMLElement>('.scheduling-v67-admin-format');
+      if (!format) {
+        format = document.createElement('span');
+        format.className = 'scheduling-v67-admin-format';
+        meta.prepend(format);
+      }
+      format.textContent = request.request_mode === 'in_person' ? 'Presencial' : 'Online';
+    }
+
+    let note = card.querySelector<HTMLElement>('.scheduling-v67-admin-note');
+    const messages: string[] = [];
+    if (request.billable_extra) {
+      messages.push(request.billing_acknowledged_at
+        ? 'Presencial adicional. Cliente ciente da cobrança no mês seguinte + deslocamento.'
+        : 'Presencial adicional. Ciência do cliente sobre a cobrança ainda pendente.');
+    }
+    if (request.urgency_fee_applies) messages.push('Urgência com taxa adicional.');
+
+    if (messages.length) {
+      if (!note) {
+        note = document.createElement('div');
+        note.className = 'scheduling-v67-admin-note';
+        const copy = card.querySelector<HTMLElement>('.scheduling-v65-request-copy');
+        copy?.appendChild(note);
+      }
+      note.classList.toggle('billable', Boolean(request.billable_extra || request.urgency_fee_applies));
+      note.textContent = messages.join(' ');
+    } else {
+      note?.remove();
+    }
+
+    const optionButtons = Array.from(card.querySelectorAll<HTMLButtonElement>('[data-scheduling-admin-use-slot]'));
+    optionButtons.forEach((button, index) => {
+      let detail = button.dataset.v67Detail || '';
+      if (!detail) {
+        detail = String(button.textContent || '').replace(/^Confirmar opção\s*·\s*/i, '').trim();
+        button.dataset.v67Detail = detail;
+      }
+      button.replaceChildren();
+      const strong = document.createElement('strong');
+      strong.textContent = `Confirmar opção ${index + 1}`;
+      const small = document.createElement('small');
+      small.textContent = detail;
+      button.append(strong, small);
+    });
   }
 }
 
@@ -182,7 +301,11 @@ function apply() {
     fixClientModal();
     fixClientCard();
   }
-  if (location.pathname === '/admin/calendario') fixAdminContractModal();
+  if (location.pathname === '/admin/calendario') {
+    void loadAdminRequests();
+    fixAdminContractModal();
+    simplifyAdminRequestCards();
+  }
 }
 
 function scheduleApply(delay = 35) {
@@ -204,7 +327,11 @@ export function installSchedulingPolicyUXV67() {
   window.addEventListener('change', handleChange, true);
   observer = new MutationObserver(() => scheduleApply());
   observer.observe(document.documentElement, { childList: true, subtree: true });
-  window.addEventListener('popstate', () => { policy = null; scheduleApply(80); });
+  window.addEventListener('popstate', () => {
+    policy = null;
+    adminRequests.clear();
+    scheduleApply(80);
+  });
   window.setTimeout(apply, 120);
 }
 
