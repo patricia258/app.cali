@@ -93,21 +93,19 @@ html[data-workspace-theme='night'] .reports-v21-manual-group-head button.seconda
   padding-bottom:18mm!important;
 }
 
-/* A logo do documento é um asset bordô real. Não depender de mask, que falhava na prévia do cliente. */
+/* Marca CALI: o SVG canônico é claro, então o papel usa a máscara vetorial local em bordô.
+   Isso evita o wrapper SVG com referência aninhada que desaparecia em alguns contextos de impressão. */
 .reports-v19-paper .reports-v19-brand{
   width:39mm!important;
   height:15mm!important;
-  background:transparent!important;
-  -webkit-mask:none!important;
-  mask:none!important;
+  background:#5A1E2D!important;
+  -webkit-mask:url('/brand/cali-workspace-transparent.svg') left center/contain no-repeat!important;
+  mask:url('/brand/cali-workspace-transparent.svg') left center/contain no-repeat!important;
 }
 .reports-v19-paper .reports-v19-brand img{
-  display:block!important;
-  visibility:visible!important;
   width:39mm!important;
   height:15mm!important;
-  object-fit:contain!important;
-  object-position:left center!important;
+  visibility:hidden!important;
 }
 
 /* Quando as entregas viram página própria, existe área editorial de sobra e o rodapé fica reservado. */
