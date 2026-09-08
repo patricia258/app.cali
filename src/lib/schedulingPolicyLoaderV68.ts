@@ -1,4 +1,5 @@
 import { installSchedulingPostConfirmationV69, refreshSchedulingPostConfirmationV69 } from './schedulingPostConfirmationV69';
+import { installSchedulingMeetingContextV70, refreshSchedulingMeetingContextV70 } from './schedulingMeetingContextV70';
 
 let installed = false;
 let policiesLoaded = false;
@@ -40,14 +41,20 @@ function notifyPolicyRuntimes() {
   // Os runtimes V66/V67 já escutam popstate para reaplicar somente quando a rota muda.
   // Um único evento substitui os MutationObservers contínuos.
   window.dispatchEvent(new PopStateEvent('popstate', { state: history.state }));
-  window.setTimeout(() => { void refreshSchedulingPostConfirmationV69(); }, 180);
+  window.setTimeout(() => {
+    void refreshSchedulingPostConfirmationV69();
+    void refreshSchedulingMeetingContextV70();
+  }, 180);
 }
 
 function onRouteSettled() {
   if (!isSchedulingRoute()) return;
   if (!policiesLoaded) {
     window.setTimeout(() => {
-      void loadPoliciesWithoutObservers().then(() => window.setTimeout(() => { void refreshSchedulingPostConfirmationV69(); }, 180));
+      void loadPoliciesWithoutObservers().then(() => window.setTimeout(() => {
+        void refreshSchedulingPostConfirmationV69();
+        void refreshSchedulingMeetingContextV70();
+      }, 180));
     }, 180);
     return;
   }
@@ -79,6 +86,7 @@ export function installSchedulingPolicyLoaderV68() {
   if (installed) return;
   installed = true;
   installSchedulingPostConfirmationV69();
+  installSchedulingMeetingContextV70();
   patchHistory();
   window.addEventListener('popstate', () => window.setTimeout(onRouteSettled, 0));
   window.setTimeout(onRouteSettled, 220);
