@@ -25,11 +25,14 @@ type AdminRequestV67 = {
 let installed = false;
 let observer: MutationObserver | null = null;
 let timer: number | undefined;
+let applying = false;
 let policy: AgendaPolicyV67 | null = null;
 let policyLoading = false;
 let adminLoading = false;
 let adminLoaded = false;
 let adminRequests = new Map<string, AdminRequestV67>();
+
+const OBSERVED_SELECTOR = '#scheduling-v65-client-host,#scheduling-v65-admin-host,#scheduling-client-form,#v66-contract-form';
 
 const STYLE = `
 /* CALI Workspace · agenda contratual UX V67 */
@@ -297,16 +300,43 @@ function simplifyAdminRequestCards() {
   }
 }
 
-function apply() {
-  if (location.pathname === '/cliente/cronograma') {
-    void loadClientPolicy();
-    fixClientModal();
-    fixClientCard();
+function watchDom() {
+  if (!observer) return;
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+}
+
+function mutationIsRelevant(mutations: MutationRecord[]) {
+  for (const mutation of mutations) {
+    const target = mutation.target instanceof Element ? mutation.target : mutation.target.parentElement;
+    if (target?.closest(OBSERVED_SELECTOR)) return true;
+    for (const node of Array.from(mutation.addedNodes)) {
+      if (!(node instanceof Element)) continue;
+      if (node.matches(OBSERVED_SELECTOR) || node.querySelector(OBSERVED_SELECTOR)) return true;
+    }
   }
-  if (location.pathname === '/admin/calendario') {
-    void loadAdminRequests();
-    fixAdminContractModal();
-    simplifyAdminRequestCards();
+  return false;
+}
+
+function apply() {
+  if (applying) return;
+  applying = true;
+  observer?.disconnect();
+  try {
+    if (location.pathname === '/cliente/cronograma') {
+      void loadClientPolicy();
+      fixClientModal();
+      fixClientCard();
+    }
+    if (location.pathname === '/admin/calendario') {
+      void loadAdminRequests();
+      fixAdminContractModal();
+      simplifyAdminRequestCards();
+    }
+  } finally {
+    window.setTimeout(() => {
+      applying = false;
+      watchDom();
+    }, 0);
   }
 }
 
@@ -327,8 +357,10 @@ export function installSchedulingPolicyUXV67() {
   installed = true;
   ensureStyle();
   window.addEventListener('change', handleChange, true);
-  observer = new MutationObserver(() => scheduleApply());
-  observer.observe(document.documentElement, { childList: true, subtree: true });
+  observer = new MutationObserver((mutations) => {
+    if (!applying && mutationIsRelevant(mutations)) scheduleApply(40);
+  });
+  watchDom();
   window.addEventListener('popstate', () => {
     policy = null;
     adminLoaded = false;
@@ -336,6 +368,7 @@ export function installSchedulingPolicyUXV67() {
     scheduleApply(80);
   });
   window.setTimeout(apply, 120);
+  window.setTimeout(apply, 420);
 }
 
 installSchedulingPolicyUXV67();
