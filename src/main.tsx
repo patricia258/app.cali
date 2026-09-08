@@ -38,6 +38,8 @@ import { installReportWorkflowGovernanceV61 } from './lib/reportWorkflowGovernan
 import { installReportToolbarDedupeV18 } from './lib/reportToolbarDedupeV18';
 import { installReportWithdrawalRuntimeV62 } from './lib/reportWithdrawalRuntimeV62';
 import { installSchedulingRequestsRuntimeV65 } from './lib/schedulingRequestsRuntimeV65';
+import './lib/schedulingPolicyRuntimeV66';
+import './lib/schedulingPolicyUXV67';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
