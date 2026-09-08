@@ -1,0 +1,69 @@
+/* V63 · Relatórios: impressão completa + acesso exato à versão enviada */
+
+/* A rota de impressão não pode simular uma folha fixa e cortar conteúdo maior. */
+.report-print-v16-stage .reports-v19-paper{
+  height:auto!important;
+  min-height:297mm!important;
+  overflow:visible!important;
+  padding-bottom:18mm!important;
+}
+.report-print-v16-stage .reports-v19-table{
+  break-inside:auto!important;
+  page-break-inside:auto!important;
+}
+.report-print-v16-stage .reports-v19-table thead{
+  display:table-header-group!important;
+}
+.report-print-v16-stage .reports-v19-table tbody{
+  break-inside:auto!important;
+  page-break-inside:auto!important;
+}
+
+@media print{
+  .report-print-v16-stage .reports-v19-paper .reports-v16-execution-grid,
+  .report-print-v16-stage .reports-v19-paper .reports-v16-execution-block,
+  .report-print-v16-stage .reports-v19-paper .reports-v19-table,
+  .report-print-v16-stage .reports-v19-paper .reports-v19-table tbody{
+    break-inside:auto!important;
+    page-break-inside:auto!important;
+  }
+  .report-print-v16-stage .reports-v19-paper .reports-v19-table thead{
+    display:table-header-group!important;
+  }
+  .report-print-v16-stage .reports-v19-paper .reports-v19-table tr{
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+}
+
+/* Admin: a versão efetivamente enviada precisa ser encontrável sem abrir a área do cliente. */
+.report-client-sent-version-v63{
+  min-height:38px!important;
+  border:1px solid #DED3CC!important;
+  border-radius:10px!important;
+  background:transparent!important;
+  color:#5A1E2D!important;
+  padding:0 12px!important;
+  font:inherit!important;
+  font-size:10.5px!important;
+  font-weight:800!important;
+  cursor:pointer!important;
+  white-space:nowrap!important;
+}
+.report-client-sent-version-v63:hover{background:rgba(90,30,45,.05)!important}
+.report-history-actions-v63{display:flex;align-items:center;justify-content:flex-end;gap:10px;white-space:nowrap}
+.report-history-open-v63{
+  border:0!important;
+  background:transparent!important;
+  color:#B58C52!important;
+  font:inherit!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  cursor:pointer!important;
+  padding:5px 0!important;
+}
+.report-history-open-v63:hover{color:#8B6937!important}
+
+[data-workspace-theme="night"] .report-client-sent-version-v63{border-color:#5B434A!important;color:#F7F3EE!important}
+[data-workspace-theme="night"] .report-client-sent-version-v63:hover{background:rgba(231,198,111,.07)!important}
+[data-workspace-theme="night"] .report-history-open-v63{color:#D8B56E!important}
