@@ -82,7 +82,7 @@ function relevantDeliveries(snapshot: IntelligenceSnapshot, rows: DeliveryPerfor
     const manual = Boolean((item as DeliveryPerformanceRow & { manual_source?: boolean }).manual_source);
     const ongoing = !item.completion_at && (status.includes('progress') || status.includes('review') || status.includes('adjust')) && (!item.actual_started_at || item.actual_started_at.slice(0, 10) <= end);
     return manual || ongoing || within(item.effective_due_at, start, end) || within(item.completion_at, start, end) || within(item.actual_started_at, start, end);
-  }).sort((a, b) => String(a.effective_due_at || a.completion_at || '').localeCompare(String(b.effective_due_at || b.completion_at || ''))).slice(0, 5);
+  }).sort((a, b) => String(a.effective_due_at || a.completion_at || '').localeCompare(String(b.effective_due_at || b.completion_at || '')));
 }
 function deliveryState(item: DeliveryPerformanceRow, referenceEnd: string) {
   const status = normalized(item.status);
