@@ -1,1 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 419" role="img" aria-label="CALI Workspace"><style>path{fill:#5A1E2D}</style><image href="/brand/cali-workspace-transparent.svg" width="800" height="419"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 419" role="img" aria-label="CALI Workspace">
+  <defs>
+    <filter id="burgundy" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix" values="0 0 0 0 0.352941  0 0 0 0 0.117647  0 0 0 0 0.176471  0 0 0 1 0" />
+    </filter>
+  </defs>
+  <image href="/brand/cali-workspace-transparent.svg" width="800" height="419" filter="url(#burgundy)" />
+</svg>
