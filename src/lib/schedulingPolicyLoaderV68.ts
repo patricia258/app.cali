@@ -5,7 +5,7 @@ let installed = false;
 let policiesLoaded = false;
 let loadingPolicies = false;
 let historyPatched = false;
-let internalPolicyRefresh = false;
+const policyPopstateListeners: Array<EventListenerOrEventListenerObject> = [];
 
 class SilentMutationObserver implements MutationObserver {
   readonly root: MutationObserver | null = null;
@@ -19,36 +19,55 @@ function isSchedulingRoute(pathname = window.location.pathname) {
   return pathname === '/cliente/cronograma' || pathname === '/admin/calendario' || pathname.includes('/relatorios');
 }
 
+function capturePolicyPopstateListener(listener: EventListenerOrEventListenerObject | null) {
+  if (!listener) return;
+  if (!policyPopstateListeners.includes(listener)) policyPopstateListeners.push(listener);
+}
+
 async function loadPoliciesWithoutObservers() {
   if (policiesLoaded || loadingPolicies) return;
   loadingPolicies = true;
   const NativeMutationObserver = window.MutationObserver;
+  const nativeAddEventListener = window.addEventListener.bind(window);
   try {
-    // V66/V67 são camadas de enriquecimento. Elas não devem observar o DOM inteiro:
-    // o React/V65 já controlam a renderização base e o observer antigo criava ciclos de
-    // remove/insere que faziam os cards e a página inteira piscarem.
+    // V66/V67 ainda possuem listeners/observers legados internamente. Durante a carga,
+    // neutralizamos somente o observer de DOM e capturamos apenas o popstate dessas duas
+    // camadas. Assim elas continuam com seus eventos de click/change/submit, mas não
+    // passam a escutar a navegação global do Workspace.
     (window as any).MutationObserver = SilentMutationObserver;
+    (window as any).addEventListener = ((type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | AddEventListenerOptions) => {
+      if (type === 'popstate') {
+        capturePolicyPopstateListener(listener);
+        return;
+      }
+      nativeAddEventListener(type, listener as EventListenerOrEventListenerObject, options);
+    }) as typeof window.addEventListener;
+
     await import('./schedulingPolicyRuntimeV66');
     await import('./schedulingPolicyUXV67');
     policiesLoaded = true;
   } finally {
     (window as any).MutationObserver = NativeMutationObserver;
+    (window as any).addEventListener = nativeAddEventListener;
     loadingPolicies = false;
   }
 }
 
-function notifyPolicyRuntimes() {
-  if (!policiesLoaded || internalPolicyRefresh) return;
-
-  // V66/V67 usam popstate como sinal de reaplicação. Este evento é interno e não pode
-  // acionar novamente o próprio loader, senão cria um ciclo infinito de re-render.
-  internalPolicyRefresh = true;
-  try {
-    window.dispatchEvent(new PopStateEvent('popstate', { state: history.state }));
-  } finally {
-    internalPolicyRefresh = false;
+function notifyCapturedPolicyRuntimes() {
+  if (!policiesLoaded || !policyPopstateListeners.length) return;
+  const event = new PopStateEvent('popstate', { state: history.state });
+  for (const listener of policyPopstateListeners) {
+    try {
+      if (typeof listener === 'function') listener.call(window, event);
+      else listener.handleEvent(event);
+    } catch (error) {
+      console.error('Agenda · falha ao atualizar política isolada', error);
+    }
   }
+}
 
+function refreshSchedulingLayers() {
+  notifyCapturedPolicyRuntimes();
   window.setTimeout(() => {
     void refreshSchedulingPostConfirmationV69();
     void refreshSchedulingMeetingContextV70();
@@ -59,14 +78,13 @@ function onRouteSettled() {
   if (!isSchedulingRoute()) return;
   if (!policiesLoaded) {
     window.setTimeout(() => {
-      void loadPoliciesWithoutObservers().then(() => window.setTimeout(() => {
-        void refreshSchedulingPostConfirmationV69();
-        void refreshSchedulingMeetingContextV70();
-      }, 180));
+      void loadPoliciesWithoutObservers().then(() => {
+        window.setTimeout(refreshSchedulingLayers, 180);
+      });
     }, 180);
     return;
   }
-  window.setTimeout(notifyPolicyRuntimes, 90);
+  window.setTimeout(refreshSchedulingLayers, 90);
 }
 
 function patchHistory() {
@@ -96,8 +114,11 @@ export function installSchedulingPolicyLoaderV68() {
   installSchedulingPostConfirmationV69();
   installSchedulingMeetingContextV70();
   patchHistory();
+
+  // Somente popstate REAL do navegador chega aqui. Nunca disparamos popstate sintético
+  // no window, porque isso acordava runtimes de outros módulos e fazia a tela inteira
+  // piscar. V66/V67 são atualizados de forma privada por notifyCapturedPolicyRuntimes().
   window.addEventListener('popstate', () => {
-    if (internalPolicyRefresh) return;
     window.setTimeout(onRouteSettled, 0);
   });
   window.setTimeout(onRouteSettled, 220);
