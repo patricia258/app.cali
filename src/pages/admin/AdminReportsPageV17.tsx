@@ -101,7 +101,7 @@ export function AdminReportsPageV17() {
   const changes = useMemo(() => snapshot ? periodChangeSignalsV17(snapshot, reportType) : [], [snapshot, reportType]);
   const reviewCounts = useMemo(() => snapshot ? reportReviewCountsV16(snapshot, deliveries, selectedDemands.size, selectedDecisions.size, unresolvedAlerts.length) : null, [snapshot, deliveries, selectedDemands.size, selectedDecisions.size, unresolvedAlerts.length]);
   const isSimulation = Boolean((activeReport?.snapshot as any)?.workflow_mode === 'simulation');
-  const canEdit = Boolean(activeReport && (activeReport.status === 'draft' || activeReport.status === 'review'));
+  const canEdit = Boolean(!activeReport || activeReport.status === 'draft' || activeReport.status === 'review');
   const lifecycleStatus = activeReport?.status || 'draft';
 
   useEffect(() => { void loadBase(); }, []);
@@ -161,7 +161,7 @@ export function AdminReportsPageV17() {
     return result.data as Readiness;
   }
 
-  async function createDraft(fresh: FreshPeriodData, version = 1, parentId: string | null = null, mode: 'official' | 'simulation' = 'official') {
+  async function createDraft(fresh: FreshPeriodData, version = 1, parentId: string | null = null, mode: 'official' | 'simulation' = 'official', initialEditor?: ReportEditor, initialInternalNote = '') {
     if (!supabase || !selectedCompany) throw new Error('Cliente não selecionado.');
     const seed = buildEditorialSeedV17(fresh.snapshot, reportType);
     const sourceSnapshot: any = { ...fresh.snapshot, deliveryPerformanceV14: fresh.deliveries, workflow_mode: mode, ...(mode === 'simulation' ? { simulation_of: parentId, simulation_marked_at: new Date().toISOString() } : {}) };
@@ -175,18 +175,18 @@ export function AdminReportsPageV17() {
       status: 'draft',
       version,
       revision_parent_id: parentId,
-      executive_summary: seed.summary,
-      movements: [],
-      decisions: [],
-      risks: [],
-      next_steps: [],
+      executive_summary: initialEditor ? initialEditor.summary : seed.summary,
+      movements: initialEditor ? lines(initialEditor.movements) : [],
+      decisions: initialEditor ? lines(initialEditor.decisions) : [],
+      risks: initialEditor ? lines(initialEditor.risks) : [],
+      next_steps: initialEditor ? lines(initialEditor.nextSteps) : [],
       source_snapshot: sourceSnapshot,
       service_type_snapshot: fresh.snapshot.contract.serviceType || selectedCompany.serviceType || null,
       service_plan_snapshot: fresh.snapshot.contract.servicePlan || selectedCompany.servicePlan || null,
       contracted_hours_snapshot: fresh.snapshot.contract.contractedHoursPeriod,
       data_refreshed_at: new Date().toISOString(),
       dismissed_alerts: [],
-      internal_note: null,
+      internal_note: initialEditor ? (initialInternalNote.trim() || null) : null,
     };
     const result = await supabase.from('reports').insert(payload).select('id').single();
     if (result.error) throw result.error;
@@ -233,8 +233,8 @@ export function AdminReportsPageV17() {
       const currentReadiness = await fetchReadiness(companyId, reportType, periodStart, periodEnd);
       if (currentReadiness && !currentReadiness.can_generate_official) throw new Error(`O fechamento oficial ainda não está disponível. A coleta mínima é de ${currentReadiness.required_days} dias.`);
       const fresh = await fetchFreshPeriod(companyId, reportType, periodStart, periodEnd);
-      await createDraft(fresh, 1, null, 'official');
-      setNotice('Fechamento oficial criado. Agora a curadoria editorial pode ser revisada antes da aprovação.');
+      await createDraft(fresh, 1, null, 'official', editor, internalNote);
+      setNotice('Fechamento oficial criado. A curadoria que você preparou na prévia foi preservada.');
       await loadBase(); await loadPeriod(companyId, reportType, periodStart, periodEnd);
     } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Não foi possível criar o fechamento oficial.'); }
     finally { setSaving(false); }
@@ -343,6 +343,15 @@ export function AdminReportsPageV17() {
 
   const history = <section className="reports-v16-history"><div className="reports-v16-section-heading"><span>08</span><div><h2>Histórico e versões</h2><p>Versões oficiais preservam o fechamento do período. Rascunhos e simulações só existem quando você os cria.</p></div></div><div className="reports-v16-history-table"><div className="head"><span>Período</span><span>Versão</span><span>Status</span><span>Data</span><span>Ações</span></div>{companyReports.slice(0, 12).map((report) => <div className={report.id === activeReport?.id ? 'active' : ''} key={report.id}><button type="button" className="period" onClick={() => { setReportType(report.reportType); setPeriodStart(report.periodStart); setPeriodEnd(report.periodEnd); }}>{periodLabelV14(report.reportType, report.periodStart)}</button><span>v{report.version}</span><span>{(report.snapshot as any)?.workflow_mode === 'simulation' ? 'Simulação' : statusLabel[report.status]}</span><span>{formatDateTime(report.sentAt || report.approvedAt || report.updatedAt)}</span><span className="actions"><button type="button" onClick={() => { setReportType(report.reportType); setPeriodStart(report.periodStart); setPeriodEnd(report.periodEnd); }}>Abrir</button>{['draft', 'review'].includes(report.status) ? <button type="button" className="delete" onClick={() => void deleteReport(report)} aria-label="Excluir versão"><Trash2 size={14} /></button> : null}</span></div>)}</div></section>;
 
+  const previewEditorial = <>
+    {changes.length ? <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>03</span><div><h2>{reportType === 'quarterly' ? 'Evolução dentro do trimestre' : 'O que mudou'}</h2><p>Só existe comparativo quando há base real nos dois períodos.</p></div></div><div className="reports-v16-change-grid">{changes.map((item) => <article className={`tone-${item.tone}`} key={item.id}><span>{item.label}</span><strong>{item.value}</strong><p>{item.detail}</p></article>)}</div></section> : null}
+    <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>04</span><div><h2>Curadoria de demandas e decisões</h2><p>Você pode preparar a curadoria agora. Nada é gravado até criar o fechamento oficial.</p></div></div><div className="reports-v16-selection-grid"><div><h3>Demandas para leitura interna</h3>{demandChoices.length ? <div className="reports-v16-check-list">{demandChoices.map((item) => <label key={item}><input type="checkbox" checked={selectedDemands.has(item)} onChange={() => toggleSelection(item, 'movements')} /><span>{item}</span></label>)}</div> : <p className="reports-v16-empty">Nenhuma demanda estruturada foi registrada.</p>}</div><div><h3>Decisões registradas</h3>{decisionOptions.length ? <div className="reports-v16-check-list">{decisionOptions.map((item) => <label key={item}><input type="checkbox" checked={selectedDecisions.has(item)} onChange={() => toggleSelection(item, 'decisions')} /><span>{item}</span></label>)}</div> : <p className="reports-v16-empty">Nenhuma decisão estruturada foi registrada.</p>}</div></div></section>
+    <section className="reports-v16-section reports-v16-alert-section"><div className="reports-v16-section-heading"><span>05</span><div><h2>Conferência antes da aprovação</h2><p>{unresolvedAlerts.length ? `${unresolvedAlerts.length} ponto(s) merecem conferência antes de fechar.` : 'Nenhuma pendência aberta.'}</p></div></div>{unresolvedAlerts.length ? <div className="reports-v16-alert-list">{unresolvedAlerts.map((alert) => <article key={alert.id}><div><strong>{alert.blocking ? 'Precisa corrigir' : 'Atenção'}</strong><span><b>{alert.title}</b><p>{alert.detail}</p></span></div><div>{alert.actionHref ? <a href={alert.actionHref}>{alert.actionLabel || 'Ver origem'}</a> : null}</div></article>)}</div> : <div className="reports-v16-ok"><CheckCircle2 size={18} />Os fatos estão consistentes para o fechamento.</div>}</section>
+    <section className="reports-v16-section reports-v16-editorial"><div className="reports-v16-section-heading"><span>06</span><div><h2>Leitura executiva CALI</h2><p>Estes campos continuam editáveis antes do fechamento. O conteúdo será levado para a versão oficial quando você criá-la.</p></div></div><EditorialField title={reportType === 'quarterly' ? 'Leitura executiva do trimestre' : 'Leitura executiva do mês'} value={editor.summary} onChange={(value) => setEditor((current) => ({ ...current, summary: value }))} helper="3–5 linhas. Explique o que o período revela; não copie logs, dúvidas ou tabelas." rows={7} locked={false} /><EditorialField title="Pontos de atenção para o cliente" value={editor.risks} onChange={(value) => setEditor((current) => ({ ...current, risks: value }))} helper="Até 3 pontos. Traga risco + recomendação + dependência, sem repetir o texto da leitura executiva." rows={5} locked={false} /></section>
+    <section className="reports-v16-section reports-v16-editorial"><div className="reports-v16-section-heading"><span>07</span><div><h2>{reportType === 'quarterly' ? 'Prioridades do próximo trimestre' : 'Prioridades do próximo ciclo'}</h2><p>Feche olhando para frente. Prioridade não repete ponto de atenção.</p></div></div><EditorialField title="Prioridades" value={editor.nextSteps} onChange={(value) => setEditor((current) => ({ ...current, nextSteps: value }))} helper="1–3 movimentos. Inclua prazo, responsável ou dependência quando isso mudar a leitura." rows={5} locked={false} /></section>
+    <details className="reports-v16-internal"><summary>Adicionar nota interna</summary><p>Visível somente para você. A nota só passa a ser gravada quando o fechamento oficial for criado.</p><textarea rows={4} value={internalNote} onChange={(event) => setInternalNote(event.target.value)} placeholder="Anotação para a conversa ou para o próximo fechamento." /></details>
+  </>;
+
   return <Shell role="admin"><section className="page reports-admin-v16">
     <header className="reports-v16-heading"><div><span className="eyebrow">FECHAMENTO EXECUTIVO</span><h1>Relatórios</h1><p>Os fatos vêm do Workspace. O relatório só nasce quando você cria o fechamento e seleciona o que merece virar decisão executiva.</p></div><div className="reports-v16-filters"><label>Cliente<select value={companyId} onChange={(event) => setCompanyId(event.target.value)}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label><label>Tipo<select value={reportType} onChange={(event) => changeType(event.target.value as ReportType)}><option value="monthly">Mensal</option><option value="quarterly">Trimestral</option></select></label>{reportType === 'monthly' ? <label>Período<input type="month" value={periodStart.slice(0, 7)} onChange={(event) => changeMonth(event.target.value)} /></label> : <label>Período<select value={quarterKey(periodStart)} onChange={(event) => changeQuarter(event.target.value)}>{quarters.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>}</div></header>
     {notice ? <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div> : null}{error ? <div className="inline-notice"><AlertTriangle size={18} />{error}</div> : null}
@@ -350,10 +359,11 @@ export function AdminReportsPageV17() {
     {loadingPeriod ? <div className="panel data-loading"><Loader2 className="spin" size={20} />Lendo {periodName}…</div> : snapshot && selectedCompany ? <>
       {!activeReport ? <>
         <div className="reports-v16-toolbar"><div><strong>Prévia interna</strong><span>Sem registro persistente</span><span>{readiness?.required_days ? `${Math.max(0, readiness.collected_days)} de ${readiness.required_days} dias de coleta` : 'Dados lidos em tempo real'}</span></div><div><button className="secondary" type="button" disabled={saving} onClick={() => void loadPeriod(companyId, reportType, periodStart, periodEnd)}><RefreshCw size={15} />Atualizar prévia</button><button className="secondary" type="button" onClick={() => setPreviewOpen(true)}><FileText size={15} />Visualizar prévia</button><button className="primary" type="button" disabled={saving || Boolean(readiness && !readiness.can_generate_official)} onClick={() => void createOfficialClosing()}><CheckCircle2 size={15} />Criar fechamento oficial</button></div></div>
-        <section className="reports-v16-review-map"><div><span>PRÉVIA SEM PERSISTÊNCIA</span><h2>Navegar pelo período não cria mais rascunho.</h2><p>{readiness && !readiness.can_generate_official ? `A coleta mínima ainda não foi atingida. O fechamento oficial ficará disponível a partir de ${formatDate(readiness.available_on)}.` : 'Os dados podem ser conferidos agora. O registro oficial só será criado por ação explícita.'}</p></div><div className="reports-v16-review-stats"><article><strong>{reviewCounts?.facts || 0}</strong><span>fontes automáticas</span></article><article><strong>{periodDeliveries.length}</strong><span>entregas no período</span></article><article><strong>{changes.length}</strong><span>comparativos com base</span></article></div></section>
+        <section className="reports-v16-review-map"><div><span>PRÉVIA SEM PERSISTÊNCIA</span><h2>Navegar pelo período não cria mais rascunho.</h2><p>{readiness && !readiness.can_generate_official ? `A coleta mínima ainda não foi atingida. O fechamento oficial ficará disponível a partir de ${formatDate(readiness.available_on)}.` : 'Os dados podem ser conferidos e a curadoria pode ser preparada agora. O registro oficial só será criado por ação explícita.'}</p></div><div className="reports-v16-review-stats"><article><strong>{reviewCounts?.facts || 0}</strong><span>fontes automáticas</span></article><article><strong>{periodDeliveries.length}</strong><span>entregas no período</span></article><article><strong>{changes.length}</strong><span>comparativos com base</span></article></div></section>
         <main className="reports-v16-workspace">
           <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>01</span><div><h2>Base da prévia</h2><p>Identificação e fatos são lidos da origem, sem gravar relatório.</p></div></div><dl className="reports-v16-identification"><div><dt>Cliente</dt><dd>{selectedCompany.name}</dd></div><div><dt>Período</dt><dd>{periodName}</dd></div><div><dt>Projeto / ciclo</dt><dd>{snapshot.cycleContext?.projectName || kpis?.cycleLabel || snapshot.projects[0]?.name || '—'}</dd></div><div><dt>Protocolo</dt><dd>Será gerado no fechamento</dd></div></dl></section>
           <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>02</span><div><h2>Fatos disponíveis</h2><p>Só aparece o que possui base real no período.</p></div></div><div className="reports-v16-fact-grid">{hasCapacity ? <article><small>Capacidade utilizada</small><strong>{usagePercent === null ? formatHoursV14(usedMinutes) : `${usagePercent}%`}</strong></article> : null}{hasPlanned ? <article><small>Entregas previstas</small><strong>{kpis?.completedDeliveries}/{kpis?.plannedDeliveries}</strong></article> : null}{hasAdherence ? <article><small>Aderência ao prazo</small><strong>{kpis?.deliveryAdherence}%</strong></article> : null}</div>{periodDeliveries.length ? <div><h3>Planejado x realizado</h3><table className="reports-v16-table deliveries"><thead><tr><th>Entregável</th><th>Previsto</th><th>Realizado</th><th>Situação</th></tr></thead><tbody>{periodDeliveries.map((item) => <tr key={item.deliverable_id}><td><strong>{item.title}</strong>{item.workstream ? <small>{item.workstream}</small> : null}</td><td>{formatDate(item.effective_due_at)}</td><td>{formatDate(item.completion_at)}</td><td>{deliveryTimingLabelV14(item)}</td></tr>)}</tbody></table></div> : <p className="reports-v16-empty">Nenhum entregável movimentado neste período.</p>}</section>
+          {previewEditorial}
           {history}
         </main>
       </> : <>
