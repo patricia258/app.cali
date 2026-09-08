@@ -24,9 +24,18 @@
 .reports-v19-paper .reports-v19-table th:last-child,
 .reports-v19-paper .reports-v19-table td:last-child{padding-right:0!important}
 
-/* O asset-base do Workspace é claro para superfícies escuras. No documento claro, use a versão bordô. */
+/* Logo CALI Workspace: o SVG-base é claro; no papel claro ele vira máscara bordô. */
+.reports-v19-paper .reports-v19-brand{
+  width:39mm!important;
+  height:15mm!important;
+  background:#5A1E2D!important;
+  -webkit-mask:url('/brand/cali-workspace-transparent.svg') left center/contain no-repeat!important;
+  mask:url('/brand/cali-workspace-transparent.svg') left center/contain no-repeat!important;
+}
 .reports-v19-paper .reports-v19-brand img{
-  content:url('/brand/cali-workspace-burgundy.svg')!important;
+  visibility:hidden!important;
+  width:39mm!important;
+  height:15mm!important;
 }
 
 /* Evita o contador herdado do sistema antigo: o índice explícito em <b> é o único número. */
@@ -39,6 +48,21 @@
   content:none!important;
   display:none!important;
 }
+
+/* Contraste correto na prévia clara e nos avisos do admin. */
+.reports-v16-preview-modal .reports-v16-preview-toolbar{
+  background:#FFFFFF!important;
+  color:#2B2B2B!important;
+  border-bottom:1px solid #DED5D0!important;
+}
+.reports-v16-preview-modal .reports-v16-preview-toolbar strong{color:#5A1E2D!important}
+.reports-v16-preview-modal .reports-v16-preview-toolbar span{color:#6A5F59!important}
+.reports-admin-v16>.inline-notice:not(.success){
+  background:#F7F3EE!important;
+  border:1px solid #D7C6BD!important;
+  color:#5A1E2D!important;
+}
+.reports-admin-v16>.inline-notice:not(.success) svg{color:#8B4855!important}
 
 /* Retirada segura: disponível somente para relatório enviado ainda não aberto/confirmado. */
 .report-withdraw-v62-button{white-space:nowrap!important}
