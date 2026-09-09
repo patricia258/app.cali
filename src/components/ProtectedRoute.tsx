@@ -1,6 +1,6 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { useWorkspaceAuth } from '../auth/WorkspaceAuthProvider';
 import type { Role } from './WorkspaceShell';
 
 function previewBypassAllowed() {
@@ -10,7 +10,7 @@ function previewBypassAllowed() {
     || hostname.endsWith('.vercel.app');
 }
 
-function WorkspaceRouteLoader() {
+export function WorkspaceRouteLoader() {
   return (
     <main className="route-loading cali-route-loading" aria-live="polite" aria-busy="true">
       <div className="cali-loading-illustrations" aria-hidden="true">
@@ -23,63 +23,18 @@ function WorkspaceRouteLoader() {
 }
 
 export function ProtectedRoute({ role, children }: { role: Role; children: ReactNode }) {
-  const [state, setState] = useState<'loading' | 'allowed' | 'denied'>('loading');
-  const [actualRole, setActualRole] = useState<Role | null>(null);
+  const auth = useWorkspaceAuth();
+  const previewRole = sessionStorage.getItem('cali-preview-role') as Role | null;
 
-  useEffect(() => {
-    const previewRole = sessionStorage.getItem('cali-preview-role') as Role | null;
-    if (previewBypassAllowed() && previewRole === role) {
-      setActualRole(previewRole);
-      setState('allowed');
-      return;
-    }
+  if (previewBypassAllowed() && previewRole === role) return <>{children}</>;
+  if (!previewBypassAllowed()) sessionStorage.removeItem('cali-preview-role');
 
-    // Produção nunca pode depender do preview local.
-    if (!previewBypassAllowed()) sessionStorage.removeItem('cali-preview-role');
+  if (!auth.ready) return <WorkspaceRouteLoader />;
 
-    if (!isSupabaseConfigured || !supabase) {
-      setState('denied');
-      return;
-    }
+  if (!auth.user || !auth.active || !auth.role) return <Navigate to="/" replace />;
 
-    let active = true;
-
-    async function validateAccess() {
-      const { data: sessionData } = await supabase!.auth.getSession();
-      const user = sessionData.session?.user;
-      if (!user) {
-        if (active) setState('denied');
-        return;
-      }
-
-      sessionStorage.removeItem('cali-preview-role');
-
-      const { data: profile, error } = await supabase!
-        .from('profiles')
-        .select('role, active')
-        .eq('id', user.id)
-        .single();
-
-      if (!active) return;
-      if (error || !profile?.active) {
-        setState('denied');
-        return;
-      }
-
-      const profileRole = profile.role as Role;
-      setActualRole(profileRole);
-      setState(profileRole === role ? 'allowed' : 'denied');
-    }
-
-    validateAccess();
-    return () => { active = false; };
-  }, [role]);
-
-  if (state === 'loading') return <WorkspaceRouteLoader />;
-
-  if (state === 'denied') {
-    if (actualRole) return <Navigate to={actualRole === 'admin' ? '/admin' : '/cliente'} replace />;
-    return <Navigate to="/" replace />;
+  if (auth.role !== role) {
+    return <Navigate to={auth.role === 'admin' ? '/admin' : '/cliente'} replace />;
   }
 
   return <>{children}</>;
