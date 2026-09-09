@@ -116,10 +116,9 @@ function installAdminProjectsAfterHydration() {
     }
     if (!adminProjectsHasRealData()) return;
 
-    // O React desta página nasce historicamente com preview e depois troca para os
-    // dados reais. Os runtimes não podem observar/alterar o DOM durante essa troca.
-    // Depois que o protocolo real apareceu, damos um frame curto para o commit do
-    // React terminar e só então instalamos as camadas funcionais já aprovadas.
+    // Os runtimes entram somente depois que a página já mostra o projeto real.
+    // Isso evita que camadas históricas observem e alterem o DOM durante a
+    // hidratação principal da rota.
     window.clearTimeout(adminProjectsTimer);
     adminProjectsTimer = window.setTimeout(() => {
       if (!adminProjectsHasRealData()) return;
@@ -198,13 +197,12 @@ function warmOnce(key: string, task: () => Promise<unknown>) {
 
 function warmProjectGate() {
   warmOnce('data-admin-projects-gate', async () => {
-    const { supabase } = await import('../lib/supabase');
-    if (!supabase) return;
-    const { count, error } = await supabase.from('projects').select('id', { count: 'exact', head: true });
-    if (error) return;
+    const { fetchProjectsWorkspaceSnapshot } = await import('../lib/projectsWorkspaceSnapshot');
+    const { data, error } = await fetchProjectsWorkspaceSnapshot();
+    if (error || !data) return;
     try {
       window.localStorage.setItem('cali-admin-projects-gate-v1', JSON.stringify({
-        ready: (count || 0) > 0,
+        ready: data.projects.length > 0,
         savedAt: Date.now(),
       }));
     } catch {
