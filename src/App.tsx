@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute, WorkspaceRouteLoader } from './components/ProtectedRoute';
+import { Shell, type Role } from './components/WorkspaceShell';
 
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage').then((m) => ({ default: m.AuthCallbackPage })));
@@ -66,44 +67,63 @@ function prefetchLikelyRoutes() {
   return () => window.clearTimeout(timer);
 }
 
+function WorkspaceRoleLayout({ role }: { role: Role }) {
+  return (
+    <ProtectedRoute role={role}>
+      <Shell role={role}>
+        <Suspense fallback={null}>
+          <Outlet />
+        </Suspense>
+      </Shell>
+    </ProtectedRoute>
+  );
+}
+
+function PublicLazy({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<WorkspaceRouteLoader />}>{children}</Suspense>;
+}
+
 function AppRoutes() {
   useEffect(() => prefetchLikelyRoutes(), []);
 
   return (
-    <Suspense fallback={<WorkspaceRouteLoader />}>
-      <Routes>
-        <Route path="/" element={<LoginPage/>}/>
-        <Route path="/auth/callback" element={<AuthCallbackPage/>}/>
-        <Route path="/oauth/google/callback" element={<GoogleCalendarCallbackPage/>}/>
+    <Routes>
+      <Route path="/" element={<PublicLazy><LoginPage/></PublicLazy>}/>
+      <Route path="/auth/callback" element={<PublicLazy><AuthCallbackPage/></PublicLazy>}/>
+      <Route path="/oauth/google/callback" element={<PublicLazy><GoogleCalendarCallbackPage/></PublicLazy>}/>
 
-        <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard/></ProtectedRoute>}/>
-        <Route path="/admin/clientes" element={<ProtectedRoute role="admin"><AdminClientsPageV3/></ProtectedRoute>}/>
-        <Route path="/admin/propostas" element={<ProtectedRoute role="admin"><AdminProposalsPageV2/></ProtectedRoute>}/>
-        <Route path="/admin/propostas/:submissionId/editar" element={<ProtectedRoute role="admin"><AdminProposalEditorPageV3/></ProtectedRoute>}/>
-        <Route path="/admin/propostas/proposta/:proposalId" element={<ProtectedRoute role="admin"><AdminProposalPreviewPageV3/></ProtectedRoute>}/>
-        <Route path="/admin/projetos" element={<ProtectedRoute role="admin"><AdminProjectsGatePage/></ProtectedRoute>}/>
-        <Route path="/admin/horas" element={<ProtectedRoute role="admin"><AdminHoursPageV3/></ProtectedRoute>}/>
-        <Route path="/admin/calendario" element={<ProtectedRoute role="admin"><AdminCalendarPage/></ProtectedRoute>}/>
-        <Route path="/admin/registros" element={<ProtectedRoute role="admin"><AdminRecordsPage/></ProtectedRoute>}/>
-        <Route path="/admin/documentos" element={<ProtectedRoute role="admin"><AdminDocumentsPageV4/></ProtectedRoute>}/>
-        <Route path="/admin/relatorios/impressao/:reportId" element={<ProtectedRoute role="admin"><ReportPrintPageV17 role="admin"/></ProtectedRoute>}/>
-        <Route path="/admin/relatorios" element={<ProtectedRoute role="admin"><AdminReportsPageV17/></ProtectedRoute>}/>
-        <Route path="/admin/satisfacao" element={<ProtectedRoute role="admin"><AdminSatisfactionPage/></ProtectedRoute>}/>
-        <Route path="/admin/mapa-de-people" element={<ProtectedRoute role="admin"><AdminPeopleMapPageV2/></ProtectedRoute>}/>
-        <Route path="/admin/mapa-de-people/revisao" element={<ProtectedRoute role="admin"><AdminPeopleMapReviewPage/></ProtectedRoute>}/>
-        <Route path="/admin/mapa-de-people/relatorio/:id" element={<ProtectedRoute role="admin"><AdminPeopleMapReportPage/></ProtectedRoute>}/>
+      <Route element={<WorkspaceRoleLayout role="admin"/>}>
+        <Route path="/admin" element={<AdminDashboard/>}/>
+        <Route path="/admin/clientes" element={<AdminClientsPageV3/>}/>
+        <Route path="/admin/propostas" element={<AdminProposalsPageV2/>}/>
+        <Route path="/admin/propostas/:submissionId/editar" element={<AdminProposalEditorPageV3/>}/>
+        <Route path="/admin/propostas/proposta/:proposalId" element={<AdminProposalPreviewPageV3/>}/>
+        <Route path="/admin/projetos" element={<AdminProjectsGatePage/>}/>
+        <Route path="/admin/horas" element={<AdminHoursPageV3/>}/>
+        <Route path="/admin/calendario" element={<AdminCalendarPage/>}/>
+        <Route path="/admin/registros" element={<AdminRecordsPage/>}/>
+        <Route path="/admin/documentos" element={<AdminDocumentsPageV4/>}/>
+        <Route path="/admin/relatorios" element={<AdminReportsPageV17/>}/>
+        <Route path="/admin/satisfacao" element={<AdminSatisfactionPage/>}/>
+        <Route path="/admin/mapa-de-people" element={<AdminPeopleMapPageV2/>}/>
+        <Route path="/admin/mapa-de-people/revisao" element={<AdminPeopleMapReviewPage/>}/>
+        <Route path="/admin/mapa-de-people/relatorio/:id" element={<AdminPeopleMapReportPage/>}/>
+      </Route>
 
-        <Route path="/cliente" element={<ProtectedRoute role="client"><ClientDashboard/></ProtectedRoute>}/>
-        <Route path="/cliente/cronograma" element={<ProtectedRoute role="client"><ClientTimelinePage/></ProtectedRoute>}/>
-        <Route path="/cliente/entregaveis" element={<ProtectedRoute role="client"><ClientDeliverablesPage/></ProtectedRoute>}/>
-        <Route path="/cliente/horas" element={<ProtectedRoute role="client"><ClientHoursPage/></ProtectedRoute>}/>
-        <Route path="/cliente/registros" element={<ProtectedRoute role="client"><ClientRecordsPage/></ProtectedRoute>}/>
-        <Route path="/cliente/documentos" element={<ProtectedRoute role="client"><ClientDocumentsPage/></ProtectedRoute>}/>
-        <Route path="/cliente/relatorios/impressao/:reportId" element={<ProtectedRoute role="client"><ReportPrintPageV17 role="client"/></ProtectedRoute>}/>
-        <Route path="/cliente/relatorios" element={<ProtectedRoute role="client"><ClientReportsPageV5/></ProtectedRoute>}/>
-        <Route path="*" element={<Navigate to="/" replace/>}/>
-      </Routes>
-    </Suspense>
+      <Route element={<WorkspaceRoleLayout role="client"/>}>
+        <Route path="/cliente" element={<ClientDashboard/>}/>
+        <Route path="/cliente/cronograma" element={<ClientTimelinePage/>}/>
+        <Route path="/cliente/entregaveis" element={<ClientDeliverablesPage/>}/>
+        <Route path="/cliente/horas" element={<ClientHoursPage/>}/>
+        <Route path="/cliente/registros" element={<ClientRecordsPage/>}/>
+        <Route path="/cliente/documentos" element={<ClientDocumentsPage/>}/>
+        <Route path="/cliente/relatorios" element={<ClientReportsPageV5/>}/>
+      </Route>
+
+      <Route path="/admin/relatorios/impressao/:reportId" element={<ProtectedRoute role="admin"><PublicLazy><ReportPrintPageV17 role="admin"/></PublicLazy></ProtectedRoute>}/>
+      <Route path="/cliente/relatorios/impressao/:reportId" element={<ProtectedRoute role="client"><PublicLazy><ReportPrintPageV17 role="client"/></PublicLazy></ProtectedRoute>}/>
+      <Route path="*" element={<Navigate to="/" replace/>}/>
+    </Routes>
   );
 }
 
