@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 const installed = new Set<string>();
@@ -130,23 +130,113 @@ function installMap() {
   });
 }
 
+async function warmAdminRuntimeChunks() {
+  await Promise.all([
+    import('../lib/reportsPdfRuntime'),
+    import('../lib/reportsDedupRuntime'),
+    import('../lib/reportClientTrackingRuntimeV55'),
+    import('../lib/reportWorkflowGovernanceV61'),
+    import('../lib/reportToolbarDedupeV18'),
+    import('../lib/reportWithdrawalRuntimeV62'),
+    import('../lib/googleCalendarRuntime'),
+    import('../lib/calendarSyncGuard'),
+    import('../lib/schedulingRequestsRuntimeV65'),
+    import('../lib/schedulingPolicyLoaderV68'),
+    import('../lib/recordsExperienceRuntimeV2'),
+    import('../lib/recordsMessageControlsRuntime'),
+    import('../lib/recordsConversationScrollGuard'),
+    import('../lib/recordsOperationsRuntimeV25'),
+    import('../lib/recordsClosureExperienceRuntimeV29'),
+    import('../lib/recordsClosureFinalPolishV30'),
+    import('../lib/deliverableChatStandardRuntimeV35'),
+    import('../lib/deliverableChatFlickerGuardV36'),
+    import('../lib/projectsPlanningIntelligenceRuntimeV36'),
+    import('../lib/projectsDeadlineAutofillRuntimeV37'),
+    import('../lib/projectApprovalWorkflowRuntimeV38'),
+    import('../lib/projectApprovalRulesRuntimeV39'),
+    import('../lib/projectsClientPortfolioRuntimeV39'),
+    import('../lib/projectExecutionLifecycleRuntimeV44'),
+    import('../lib/projectLifecycleRecalcUxV45'),
+    import('../lib/documentsIdentityRuntimeV42'),
+    import('../lib/hoursCompanyLogoRuntimeV41'),
+    import('../lib/dashboardSatisfactionRuntimeV29'),
+    import('../lib/mapaAuthBridge'),
+    import('../lib/mapaReviewNavigation'),
+  ]);
+}
+
+async function warmClientRuntimeChunks() {
+  await Promise.all([
+    import('../lib/reportsPdfRuntime'),
+    import('../lib/reportsDedupRuntime'),
+    import('../lib/reportClientTrackingRuntimeV55'),
+    import('../lib/reportWorkflowGovernanceV61'),
+    import('../lib/reportToolbarDedupeV18'),
+    import('../lib/reportWithdrawalRuntimeV62'),
+    import('../lib/googleCalendarRuntime'),
+    import('../lib/calendarSyncGuard'),
+    import('../lib/schedulingRequestsRuntimeV65'),
+    import('../lib/schedulingPolicyLoaderV68'),
+    import('../lib/recordsExperienceRuntimeV2'),
+    import('../lib/recordsMessageControlsRuntime'),
+    import('../lib/recordsConversationScrollGuard'),
+    import('../lib/recordsOperationsRuntimeV25'),
+    import('../lib/recordsClosureExperienceRuntimeV29'),
+    import('../lib/recordsClosureFinalPolishV30'),
+    import('../lib/deliverableChatStandardRuntimeV35'),
+    import('../lib/deliverableChatFlickerGuardV36'),
+    import('../lib/projectsPlanningIntelligenceRuntimeV36'),
+    import('../lib/projectsDeadlineAutofillRuntimeV37'),
+    import('../lib/projectApprovalWorkflowRuntimeV38'),
+    import('../lib/projectApprovalRulesRuntimeV39'),
+    import('../lib/projectsClientPortfolioRuntimeV39'),
+    import('../lib/projectExecutionLifecycleRuntimeV44'),
+    import('../lib/projectLifecycleRecalcUxV45'),
+    import('../lib/documentsIdentityRuntimeV42'),
+    import('../lib/hoursCompanyLogoRuntimeV41'),
+    import('../lib/clientHomeCompanyIdentityRuntimeV40'),
+  ]);
+}
+
+function scheduleRuntimeWarmup(pathname: string) {
+  if (!pathname.startsWith('/admin') && !pathname.startsWith('/cliente')) return () => {};
+
+  const run = () => {
+    const warmup = pathname.startsWith('/admin') ? warmAdminRuntimeChunks : warmClientRuntimeChunks;
+    void warmup().catch(() => {
+      // Warmup é oportunista: nunca deve bloquear nem alterar a experiência atual.
+    });
+  };
+
+  const idleWindow = window as Window & {
+    requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+    cancelIdleCallback?: (id: number) => void;
+  };
+
+  if (idleWindow.requestIdleCallback) {
+    const id = idleWindow.requestIdleCallback(run, { timeout: 5000 });
+    return () => idleWindow.cancelIdleCallback?.(id);
+  }
+
+  const timer = window.setTimeout(run, 3000);
+  return () => window.clearTimeout(timer);
+}
+
 export function RouteRuntimeManager() {
   const { pathname } = useLocation();
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      if (pathname.includes('/relatorios')) installReports();
-      if (pathname === '/admin/calendario' || pathname === '/cliente/cronograma') installCalendar();
-      if (pathname.includes('/registros')) installRecords();
-      if (pathname === '/admin/projetos' || pathname === '/cliente/entregaveis') installProjects();
-      if (pathname.includes('/documentos')) installDocuments();
-      if (pathname.includes('/horas')) installHours();
-      if (pathname.includes('/mapa-de-people')) installMap();
-      installDashboards(pathname);
-    }, 0);
-
-    return () => window.clearTimeout(timer);
+  useLayoutEffect(() => {
+    if (pathname.includes('/relatorios')) installReports();
+    if (pathname === '/admin/calendario' || pathname === '/cliente/cronograma') installCalendar();
+    if (pathname.includes('/registros')) installRecords();
+    if (pathname === '/admin/projetos' || pathname === '/cliente/entregaveis') installProjects();
+    if (pathname.includes('/documentos')) installDocuments();
+    if (pathname.includes('/horas')) installHours();
+    if (pathname.includes('/mapa-de-people')) installMap();
+    installDashboards(pathname);
   }, [pathname]);
+
+  useEffect(() => scheduleRuntimeWarmup(pathname), [pathname]);
 
   return null;
 }
