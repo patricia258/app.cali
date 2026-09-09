@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 
 const installed = new Set<string>();
 const warmed = new Set<string>();
+let adminProjectsObserver: MutationObserver | null = null;
+let adminProjectsTimer = 0;
 
 function once(key: string, task: () => Promise<void>) {
   if (installed.has(key)) return;
@@ -66,7 +68,7 @@ function installRecords() {
   });
 }
 
-function installProjects() {
+function installProjectsNow() {
   once('projects', async () => {
     const [chat, flicker, planning, deadlines, workflow, rules, portfolio, lifecycle, recalc] = await Promise.all([
       import('../lib/deliverableChatStandardRuntimeV35'),
@@ -89,6 +91,63 @@ function installProjects() {
     lifecycle.installProjectExecutionLifecycleRuntimeV44();
     recalc.installProjectLifecycleRecalcUxV45();
   });
+}
+
+function adminProjectsHasRealData() {
+  if (window.location.pathname !== '/admin/projetos') return false;
+  const identity = document.querySelector<HTMLElement>('.project-hero-v2 > div:first-of-type > span')?.textContent || '';
+  return Boolean(identity && !/PREVIEW/i.test(identity) && /CALI-PRJ-/i.test(identity));
+}
+
+function cancelAdminProjectsInstallWatch() {
+  window.clearTimeout(adminProjectsTimer);
+  adminProjectsTimer = 0;
+  adminProjectsObserver?.disconnect();
+  adminProjectsObserver = null;
+}
+
+function installAdminProjectsAfterHydration() {
+  if (installed.has('projects') || window.location.pathname !== '/admin/projetos') return;
+
+  const attempt = () => {
+    if (installed.has('projects') || window.location.pathname !== '/admin/projetos') {
+      cancelAdminProjectsInstallWatch();
+      return;
+    }
+    if (!adminProjectsHasRealData()) return;
+
+    // O React desta página nasce historicamente com preview e depois troca para os
+    // dados reais. Os runtimes não podem observar/alterar o DOM durante essa troca.
+    // Depois que o protocolo real apareceu, damos um frame curto para o commit do
+    // React terminar e só então instalamos as camadas funcionais já aprovadas.
+    window.clearTimeout(adminProjectsTimer);
+    adminProjectsTimer = window.setTimeout(() => {
+      if (!adminProjectsHasRealData()) return;
+      cancelAdminProjectsInstallWatch();
+      installProjectsNow();
+    }, 120);
+  };
+
+  attempt();
+  if (installed.has('projects') || adminProjectsObserver) return;
+
+  const page = document.querySelector<HTMLElement>('.projects-flow-page');
+  if (page) {
+    adminProjectsObserver = new MutationObserver(attempt);
+    adminProjectsObserver.observe(page, { childList: true, subtree: true, characterData: true });
+    return;
+  }
+
+  // A rota pode ter sido resolvida antes do componente lazy terminar de montar.
+  // Este observer existe apenas durante essa janela e se desconecta assim que a
+  // página real está hidratada; não permanece como observer global do Workspace.
+  adminProjectsObserver = new MutationObserver(() => {
+    const mounted = document.querySelector<HTMLElement>('.projects-flow-page');
+    if (!mounted) return;
+    cancelAdminProjectsInstallWatch();
+    installAdminProjectsAfterHydration();
+  });
+  adminProjectsObserver.observe(document.body, { childList: true, subtree: true });
 }
 
 function installDocuments() {
@@ -267,11 +326,16 @@ export function RouteRuntimeManager() {
     if (pathname.includes('/relatorios')) installReports();
     if (pathname === '/admin/calendario' || pathname === '/cliente/cronograma') installCalendar();
     if (pathname.includes('/registros')) installRecords();
-    if (pathname === '/admin/projetos' || pathname === '/cliente/entregaveis') installProjects();
+    if (pathname === '/admin/projetos') installAdminProjectsAfterHydration();
+    if (pathname === '/cliente/entregaveis') installProjectsNow();
     if (pathname.includes('/documentos')) installDocuments();
     if (pathname.includes('/horas')) installHours();
     if (pathname.includes('/mapa-de-people')) installMap();
     installDashboards(pathname);
+
+    return () => {
+      if (pathname === '/admin/projetos' && !installed.has('projects')) cancelAdminProjectsInstallWatch();
+    };
   }, [pathname]);
 
   useEffect(() => {
