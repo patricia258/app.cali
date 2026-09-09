@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
+import { WorkspaceAuthProvider } from './auth/WorkspaceAuthProvider';
 import { initializeWorkspaceTheme, startWorkspaceThemeClock } from './lib/workspaceTheme';
 import { installMapaAuthBridge } from './lib/mapaAuthBridge';
 import { installMapaReviewNavigation } from './lib/mapaReviewNavigation';
@@ -190,7 +191,11 @@ installSchedulingPolicyLoaderV68();
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AppErrorBoundary>
-      <BrowserRouter><App /></BrowserRouter>
+      <BrowserRouter>
+        <WorkspaceAuthProvider>
+          <App />
+        </WorkspaceAuthProvider>
+      </BrowserRouter>
     </AppErrorBoundary>
   </React.StrictMode>,
 );
