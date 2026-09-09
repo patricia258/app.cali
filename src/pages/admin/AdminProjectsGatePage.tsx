@@ -6,11 +6,42 @@ import { AdminProjectsPageV3 } from './AdminProjectsPageV3';
 
 type GateState = 'loading' | 'ready' | 'empty' | 'error';
 
+type GateCache = { ready: boolean; savedAt: number };
+const GATE_CACHE_KEY = 'cali-admin-projects-gate-v1';
+const GATE_CACHE_TTL = 15 * 60 * 1000;
+
+function readGateCache(): GateCache | null {
+  try {
+    const raw = window.localStorage.getItem(GATE_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as GateCache;
+    if (!parsed?.savedAt || Date.now() - parsed.savedAt > GATE_CACHE_TTL) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeGateCache(ready: boolean) {
+  try {
+    window.localStorage.setItem(GATE_CACHE_KEY, JSON.stringify({ ready, savedAt: Date.now() } satisfies GateCache));
+  } catch {
+    // Cache é apenas uma aceleração. Nunca bloqueia o Workspace.
+  }
+}
+
 export function AdminProjectsGatePage() {
-  const [state, setState] = useState<GateState>('loading');
+  const cached = readGateCache();
+  const [state, setState] = useState<GateState>(cached?.ready ? 'ready' : 'loading');
   const [message, setMessage] = useState('');
 
-  useEffect(() => { void checkWorkspace(); }, []);
+  useEffect(() => {
+    if (cached?.ready) {
+      const timer = window.setTimeout(() => { void checkWorkspace(); }, 1200);
+      return () => window.clearTimeout(timer);
+    }
+    void checkWorkspace();
+  }, []);
 
   async function checkWorkspace() {
     if (!supabase) {
@@ -20,11 +51,14 @@ export function AdminProjectsGatePage() {
     }
     const { count, error } = await supabase.from('projects').select('id', { count: 'exact', head: true });
     if (error) {
+      if (cached?.ready) return;
       setState('error');
       setMessage(error.message);
       return;
     }
-    setState((count || 0) > 0 ? 'ready' : 'empty');
+    const ready = (count || 0) > 0;
+    writeGateCache(ready);
+    setState(ready ? 'ready' : 'empty');
   }
 
   if (state === 'ready') return <AdminProjectsPageV3 />;
