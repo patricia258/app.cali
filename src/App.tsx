@@ -33,7 +33,7 @@ const ReportPrintPageV17 = lazy(() => import('./pages/reports/ReportPrintPageV17
 
 function prefetchLikelyRoutes() {
   const path = window.location.pathname;
-  const schedule = window.setTimeout(() => {
+  const run = () => {
     if (path.startsWith('/admin')) {
       void import('./pages/admin/AdminCalendarPage');
       void import('./pages/admin/AdminReportsPageV17');
@@ -50,9 +50,20 @@ function prefetchLikelyRoutes() {
       void import('./pages/client/ClientHoursPage');
       void import('./pages/client/ClientDeliverablesPage');
     }
-  }, 1200);
+  };
 
-  return () => window.clearTimeout(schedule);
+  const idleWindow = window as Window & {
+    requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+    cancelIdleCallback?: (id: number) => void;
+  };
+
+  if (idleWindow.requestIdleCallback) {
+    const id = idleWindow.requestIdleCallback(run, { timeout: 4500 });
+    return () => idleWindow.cancelIdleCallback?.(id);
+  }
+
+  const timer = window.setTimeout(run, 2500);
+  return () => window.clearTimeout(timer);
 }
 
 function AppRoutes() {
