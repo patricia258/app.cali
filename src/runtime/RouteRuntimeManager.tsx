@@ -154,13 +154,12 @@ function warmProjectGate() {
   });
 }
 
-function warmRuntimeForPath(pathname: string) {
-  if (pathname === '/admin/calendario') {
-    warmOnce('page-admin-calendar', () => import('../pages/admin/AdminCalendarPage'));
-  }
-  if (pathname === '/cliente/cronograma') {
-    warmOnce('page-client-timeline', () => import('../pages/client/ClientTimelinePage'));
-  }
+function warmPageForPath(pathname: string) {
+  if (pathname === '/admin') warmOnce('page-admin-dashboard', () => import('../pages/admin/AdminDashboard'));
+  if (pathname === '/admin/clientes') warmOnce('page-admin-clients', () => import('../pages/admin/AdminClientsPageV3'));
+  if (pathname === '/admin/propostas') warmOnce('page-admin-proposals', () => import('../pages/admin/AdminProposalsPageV2'));
+  if (pathname.startsWith('/admin/propostas/') && pathname.endsWith('/editar')) warmOnce('page-admin-proposal-editor', () => import('../pages/admin/AdminProposalEditorPageV3'));
+  if (pathname.startsWith('/admin/propostas/proposta/')) warmOnce('page-admin-proposal-preview', () => import('../pages/admin/AdminProposalPreviewPageV3'));
   if (pathname === '/admin/projetos') {
     warmOnce('page-admin-projects', () => Promise.all([
       import('../pages/admin/AdminProjectsGatePage'),
@@ -168,6 +167,29 @@ function warmRuntimeForPath(pathname: string) {
     ]));
     warmProjectGate();
   }
+  if (pathname === '/admin/horas') warmOnce('page-admin-hours', () => import('../pages/admin/AdminHoursPageV3'));
+  if (pathname === '/admin/calendario') warmOnce('page-admin-calendar', () => import('../pages/admin/AdminCalendarPage'));
+  if (pathname === '/admin/registros') warmOnce('page-records', () => import('../pages/records/WorkspaceRecordsPage'));
+  if (pathname === '/admin/documentos') warmOnce('page-admin-documents', () => import('../pages/admin/AdminDocumentsPageV4'));
+  if (pathname === '/admin/relatorios') warmOnce('page-admin-reports', () => import('../pages/admin/AdminReportsPageV17'));
+  if (pathname.startsWith('/admin/relatorios/impressao/')) warmOnce('page-report-print', () => import('../pages/reports/ReportPrintPageV17'));
+  if (pathname === '/admin/satisfacao') warmOnce('page-admin-satisfaction', () => import('../pages/admin/AdminSatisfactionPage'));
+  if (pathname === '/admin/mapa-de-people') warmOnce('page-admin-people-map', () => import('../pages/admin/AdminPeopleMapPageV2'));
+  if (pathname === '/admin/mapa-de-people/revisao') warmOnce('page-admin-people-map-review', () => import('../pages/admin/AdminPeopleMapReviewPage'));
+  if (pathname.startsWith('/admin/mapa-de-people/relatorio/')) warmOnce('page-admin-people-map-report', () => import('../pages/admin/AdminPeopleMapReportPage'));
+
+  if (pathname === '/cliente') warmOnce('page-client-dashboard', () => import('../pages/client/ClientDashboard'));
+  if (pathname === '/cliente/cronograma') warmOnce('page-client-timeline', () => import('../pages/client/ClientTimelinePage'));
+  if (pathname === '/cliente/entregaveis') warmOnce('page-client-deliverables', () => import('../pages/client/ClientDeliverablesPage'));
+  if (pathname === '/cliente/horas') warmOnce('page-client-hours', () => import('../pages/client/ClientHoursPage'));
+  if (pathname === '/cliente/registros') warmOnce('page-records', () => import('../pages/records/WorkspaceRecordsPage'));
+  if (pathname === '/cliente/documentos') warmOnce('page-client-documents', () => import('../pages/client/ClientDocumentsPage'));
+  if (pathname === '/cliente/relatorios') warmOnce('page-client-reports', () => import('../pages/client/ClientReportsPageV5'));
+  if (pathname.startsWith('/cliente/relatorios/impressao/')) warmOnce('page-report-print', () => import('../pages/reports/ReportPrintPageV17'));
+}
+
+function warmRuntimeForPath(pathname: string) {
+  warmPageForPath(pathname);
 
   if (pathname.includes('/relatorios')) {
     warmOnce('reports', () => Promise.all([
@@ -264,12 +286,15 @@ export function RouteRuntimeManager() {
     }
 
     const onPointerOver = (event: PointerEvent) => warmFromTarget(event.target);
+    const onPointerDown = (event: PointerEvent) => warmFromTarget(event.target);
     const onFocusIn = (event: FocusEvent) => warmFromTarget(event.target);
 
     document.addEventListener('pointerover', onPointerOver, { passive: true });
+    document.addEventListener('pointerdown', onPointerDown, { passive: true });
     document.addEventListener('focusin', onFocusIn);
     return () => {
       document.removeEventListener('pointerover', onPointerOver);
+      document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('focusin', onFocusIn);
     };
   }, []);
