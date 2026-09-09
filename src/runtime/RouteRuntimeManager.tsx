@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 const installed = new Set<string>();
+const warmed = new Set<string>();
 
 function once(key: string, task: () => Promise<void>) {
   if (installed.has(key)) return;
@@ -130,96 +131,80 @@ function installMap() {
   });
 }
 
-async function warmAdminRuntimeChunks() {
-  await Promise.all([
-    import('../lib/reportsPdfRuntime'),
-    import('../lib/reportsDedupRuntime'),
-    import('../lib/reportClientTrackingRuntimeV55'),
-    import('../lib/reportWorkflowGovernanceV61'),
-    import('../lib/reportToolbarDedupeV18'),
-    import('../lib/reportWithdrawalRuntimeV62'),
-    import('../lib/googleCalendarRuntime'),
-    import('../lib/calendarSyncGuard'),
-    import('../lib/schedulingRequestsRuntimeV65'),
-    import('../lib/schedulingPolicyLoaderV68'),
-    import('../lib/recordsExperienceRuntimeV2'),
-    import('../lib/recordsMessageControlsRuntime'),
-    import('../lib/recordsConversationScrollGuard'),
-    import('../lib/recordsOperationsRuntimeV25'),
-    import('../lib/recordsClosureExperienceRuntimeV29'),
-    import('../lib/recordsClosureFinalPolishV30'),
-    import('../lib/deliverableChatStandardRuntimeV35'),
-    import('../lib/deliverableChatFlickerGuardV36'),
-    import('../lib/projectsPlanningIntelligenceRuntimeV36'),
-    import('../lib/projectsDeadlineAutofillRuntimeV37'),
-    import('../lib/projectApprovalWorkflowRuntimeV38'),
-    import('../lib/projectApprovalRulesRuntimeV39'),
-    import('../lib/projectsClientPortfolioRuntimeV39'),
-    import('../lib/projectExecutionLifecycleRuntimeV44'),
-    import('../lib/projectLifecycleRecalcUxV45'),
-    import('../lib/documentsIdentityRuntimeV42'),
-    import('../lib/hoursCompanyLogoRuntimeV41'),
-    import('../lib/dashboardSatisfactionRuntimeV29'),
-    import('../lib/mapaAuthBridge'),
-    import('../lib/mapaReviewNavigation'),
-  ]);
+function warmOnce(key: string, task: () => Promise<unknown>) {
+  if (warmed.has(key) || installed.has(key)) return;
+  warmed.add(key);
+  void task().catch(() => warmed.delete(key));
 }
 
-async function warmClientRuntimeChunks() {
-  await Promise.all([
-    import('../lib/reportsPdfRuntime'),
-    import('../lib/reportsDedupRuntime'),
-    import('../lib/reportClientTrackingRuntimeV55'),
-    import('../lib/reportWorkflowGovernanceV61'),
-    import('../lib/reportToolbarDedupeV18'),
-    import('../lib/reportWithdrawalRuntimeV62'),
-    import('../lib/googleCalendarRuntime'),
-    import('../lib/calendarSyncGuard'),
-    import('../lib/schedulingRequestsRuntimeV65'),
-    import('../lib/schedulingPolicyLoaderV68'),
-    import('../lib/recordsExperienceRuntimeV2'),
-    import('../lib/recordsMessageControlsRuntime'),
-    import('../lib/recordsConversationScrollGuard'),
-    import('../lib/recordsOperationsRuntimeV25'),
-    import('../lib/recordsClosureExperienceRuntimeV29'),
-    import('../lib/recordsClosureFinalPolishV30'),
-    import('../lib/deliverableChatStandardRuntimeV35'),
-    import('../lib/deliverableChatFlickerGuardV36'),
-    import('../lib/projectsPlanningIntelligenceRuntimeV36'),
-    import('../lib/projectsDeadlineAutofillRuntimeV37'),
-    import('../lib/projectApprovalWorkflowRuntimeV38'),
-    import('../lib/projectApprovalRulesRuntimeV39'),
-    import('../lib/projectsClientPortfolioRuntimeV39'),
-    import('../lib/projectExecutionLifecycleRuntimeV44'),
-    import('../lib/projectLifecycleRecalcUxV45'),
-    import('../lib/documentsIdentityRuntimeV42'),
-    import('../lib/hoursCompanyLogoRuntimeV41'),
-    import('../lib/clientHomeCompanyIdentityRuntimeV40'),
-  ]);
-}
-
-function scheduleRuntimeWarmup(pathname: string) {
-  if (!pathname.startsWith('/admin') && !pathname.startsWith('/cliente')) return () => {};
-
-  const run = () => {
-    const warmup = pathname.startsWith('/admin') ? warmAdminRuntimeChunks : warmClientRuntimeChunks;
-    void warmup().catch(() => {
-      // Warmup é oportunista: nunca deve bloquear nem alterar a experiência atual.
-    });
-  };
-
-  const idleWindow = window as Window & {
-    requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
-    cancelIdleCallback?: (id: number) => void;
-  };
-
-  if (idleWindow.requestIdleCallback) {
-    const id = idleWindow.requestIdleCallback(run, { timeout: 5000 });
-    return () => idleWindow.cancelIdleCallback?.(id);
+function warmRuntimeForPath(pathname: string) {
+  if (pathname.includes('/relatorios')) {
+    warmOnce('reports', () => Promise.all([
+      import('../lib/reportsPdfRuntime'),
+      import('../lib/reportsDedupRuntime'),
+      import('../lib/reportClientTrackingRuntimeV55'),
+      import('../lib/reportWorkflowGovernanceV61'),
+      import('../lib/reportToolbarDedupeV18'),
+      import('../lib/reportWithdrawalRuntimeV62'),
+    ]));
   }
 
-  const timer = window.setTimeout(run, 3000);
-  return () => window.clearTimeout(timer);
+  if (pathname === '/admin/calendario' || pathname === '/cliente/cronograma') {
+    warmOnce('calendar', () => Promise.all([
+      import('../lib/googleCalendarRuntime'),
+      import('../lib/calendarSyncGuard'),
+      import('../lib/schedulingRequestsRuntimeV65'),
+      import('../lib/schedulingPolicyLoaderV68'),
+    ]));
+  }
+
+  if (pathname.includes('/registros')) {
+    warmOnce('records', () => Promise.all([
+      import('../lib/recordsExperienceRuntimeV2'),
+      import('../lib/recordsMessageControlsRuntime'),
+      import('../lib/recordsConversationScrollGuard'),
+      import('../lib/recordsOperationsRuntimeV25'),
+      import('../lib/recordsClosureExperienceRuntimeV29'),
+      import('../lib/recordsClosureFinalPolishV30'),
+    ]));
+  }
+
+  if (pathname === '/admin/projetos' || pathname === '/cliente/entregaveis') {
+    warmOnce('projects', () => Promise.all([
+      import('../lib/deliverableChatStandardRuntimeV35'),
+      import('../lib/deliverableChatFlickerGuardV36'),
+      import('../lib/projectsPlanningIntelligenceRuntimeV36'),
+      import('../lib/projectsDeadlineAutofillRuntimeV37'),
+      import('../lib/projectApprovalWorkflowRuntimeV38'),
+      import('../lib/projectApprovalRulesRuntimeV39'),
+      import('../lib/projectsClientPortfolioRuntimeV39'),
+      import('../lib/projectExecutionLifecycleRuntimeV44'),
+      import('../lib/projectLifecycleRecalcUxV45'),
+    ]));
+  }
+
+  if (pathname.includes('/documentos')) {
+    warmOnce('documents', () => import('../lib/documentsIdentityRuntimeV42'));
+  }
+
+  if (pathname.includes('/horas')) {
+    warmOnce('hours', () => import('../lib/hoursCompanyLogoRuntimeV41'));
+  }
+
+  if (pathname.includes('/mapa-de-people')) {
+    warmOnce('people-map', () => Promise.all([
+      import('../lib/mapaAuthBridge'),
+      import('../lib/mapaReviewNavigation'),
+    ]));
+  }
+
+  if (pathname === '/admin') {
+    warmOnce('admin-dashboard', () => import('../lib/dashboardSatisfactionRuntimeV29'));
+  }
+
+  if (pathname === '/cliente') {
+    warmOnce('client-dashboard', () => import('../lib/clientHomeCompanyIdentityRuntimeV40'));
+  }
 }
 
 export function RouteRuntimeManager() {
@@ -236,7 +221,27 @@ export function RouteRuntimeManager() {
     installDashboards(pathname);
   }, [pathname]);
 
-  useEffect(() => scheduleRuntimeWarmup(pathname), [pathname]);
+  useEffect(() => {
+    function warmFromTarget(target: EventTarget | null) {
+      if (!(target instanceof Element)) return;
+      const anchor = target.closest<HTMLAnchorElement>('a[href]');
+      if (!anchor) return;
+      const url = new URL(anchor.href, window.location.origin);
+      if (url.origin !== window.location.origin) return;
+      if (!url.pathname.startsWith('/admin') && !url.pathname.startsWith('/cliente')) return;
+      warmRuntimeForPath(url.pathname);
+    }
+
+    const onPointerOver = (event: PointerEvent) => warmFromTarget(event.target);
+    const onFocusIn = (event: FocusEvent) => warmFromTarget(event.target);
+
+    document.addEventListener('pointerover', onPointerOver, { passive: true });
+    document.addEventListener('focusin', onFocusIn);
+    return () => {
+      document.removeEventListener('pointerover', onPointerOver);
+      document.removeEventListener('focusin', onFocusIn);
+    };
+  }, []);
 
   return null;
 }
