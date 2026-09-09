@@ -285,15 +285,16 @@ export function RouteRuntimeManager() {
       warmRuntimeForPath(url.pathname);
     }
 
-    const onPointerOver = (event: PointerEvent) => warmFromTarget(event.target);
+    // Não aquece mais por hover: ao atravessar o menu lateral, vários módulos e
+    // runtimes de páginas que não seriam abertas competiam com a tela atual.
+    // Pointer down mantém o benefício imediatamente antes da navegação real;
+    // focusin preserva o mesmo ganho para navegação por teclado.
     const onPointerDown = (event: PointerEvent) => warmFromTarget(event.target);
     const onFocusIn = (event: FocusEvent) => warmFromTarget(event.target);
 
-    document.addEventListener('pointerover', onPointerOver, { passive: true });
     document.addEventListener('pointerdown', onPointerDown, { passive: true });
     document.addEventListener('focusin', onFocusIn);
     return () => {
-      document.removeEventListener('pointerover', onPointerOver);
       document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('focusin', onFocusIn);
     };
