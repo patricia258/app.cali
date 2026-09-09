@@ -183,7 +183,9 @@ export function installSchedulingMeetingContextV70() {
   if (installed) return;
   installed = true;
   ensureStyle();
-  document.addEventListener('click', () => {
+  document.addEventListener('click', (event) => {
+    const target = event.target as Element | null;
+    if (target?.closest('#scheduling-client-form')) return;
     window.setTimeout(() => { void refreshSchedulingMeetingContextV70(); }, 120);
   }, true);
   window.addEventListener('popstate', () => {
