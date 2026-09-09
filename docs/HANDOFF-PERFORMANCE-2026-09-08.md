@@ -107,6 +107,41 @@ Antes/depois de cada fase registrar:
 5. Índices e RLS das tabelas mais consultadas.
 6. Nova auditoria de performance e segurança.
 
+## Execução realizada em 08/09/2026
+
+### Fase 1 — concluída
+
+- Criado `WorkspaceAuthProvider` para manter sessão, usuário, role e estado ativo em memória durante a SPA.
+- `ProtectedRoute` deixou de executar `auth.getSession()` + consulta a `profiles` em toda troca de rota.
+- A validação agora ocorre na inicialização/autenticação e reage a mudanças reais de sessão.
+
+### Fase 2 — concluída
+
+- Todas as páginas principais foram migradas para `React.lazy`.
+- Adicionado prefetch discreto de rotas prováveis após a página inicial estabilizar.
+- Resultado de build: o JS principal caiu de aproximadamente **1,47 MB** para **438,35 kB** minificado; gzip de **126,64 kB**.
+- O chunk principal saiu do alerta de 500 kB do Vite.
+
+### Fase 3 — parcialmente concluída com ganho estrutural relevante
+
+- Criado `RouteRuntimeManager`.
+- Runtimes de Relatórios, Calendário/Agenda, Registros, Projetos, Documentos, Horas, Dashboards e Mapa deixaram de ser instalados globalmente no `main.tsx` e passam a ser carregados somente quando a rota correspondente é visitada.
+- Permaneceram globais apenas os comportamentos considerados transversais: tema, identidade, navegação/experiência de notificações e identidade corporativa do Workspace.
+- Próxima etapa desta fase: consolidar CSS históricos por domínio. Não remover CSS em massa; fazer por módulo com QA visual antes/depois.
+
+### Fase 4 — primeira rodada concluída
+
+- Criados índices somente nos hot paths de `profiles`, `notifications`, `events`, `event_attendees`, `scheduling_requests`, `deliverables`, `hour_entries`, `reports`, `report_client_events`, `event_outcomes` e `google_calendar_credentials`.
+- Advisors do Supabase: foreign keys sem índice caíram de **71 para 56**.
+- RLS com reavaliação de `auth.*` por linha caiu de **22 para 19** após otimização de `profiles_self_select`, `notifications_self_select` e `event_attendees_client_update_own`.
+- As múltiplas policies permissivas restantes não foram consolidadas nesta rodada para evitar qualquer alteração precipitada de isolamento admin/client.
+
+### Estado técnico após a rodada
+
+- Deploy de produção `READY` em `app.calirh.com`.
+- Sem erros de runtime reportados pela Vercel na checagem pós-deploy.
+- CSS principal ainda está alto: aproximadamente **918,46 kB** minificado / **138,41 kB gzip**. Esta passa a ser a principal dívida de frontend para a próxima rodada de performance.
+
 ## Definição de pronto para esta frente
 
 Esta frente não termina quando "carrega um pouco mais rápido". Considerar concluída quando:
