@@ -192,7 +192,11 @@ export function ClientTimelinePage() {
       setDeliverables((deliverableResult.data || []) as ClientDeliverable[]);
       setRequests((requestResult.data || []) as ClientSchedulingRequest[]);
 
-      await refreshGoogleStatuses(nextEvents);
+      // A agenda base já está pronta neste ponto. Libera a renderização e deixa
+      // revalidações secundárias (Google/RSVP) acontecerem em segundo plano.
+      setLoading(false);
+      void refreshGoogleStatuses(nextEvents);
+
       if (nextEvents.length && clientEmail) {
         const attendeeResult = await supabase
           .from('event_attendees')
