@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, FolderKanban, Loader2 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
-import { supabase } from '../../lib/supabase';
+import { fetchProjectsWorkspaceSnapshot, readProjectsWorkspaceSnapshot } from '../../lib/projectsWorkspaceSnapshot';
 import { AdminProjectsPageV3 } from './AdminProjectsPageV3';
 
 type GateState = 'loading' | 'ready' | 'empty' | 'error';
@@ -31,32 +31,25 @@ function writeGateCache(ready: boolean) {
 }
 
 export function AdminProjectsGatePage() {
-  const cached = readGateCache();
-  const [state, setState] = useState<GateState>(cached?.ready ? 'ready' : 'loading');
+  const cachedGate = readGateCache();
+  const cachedSnapshot = readProjectsWorkspaceSnapshot();
+  const cachedReady = Boolean(cachedGate?.ready && cachedSnapshot?.projects.length);
+  const [state, setState] = useState<GateState>(cachedReady ? 'ready' : 'loading');
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (cached?.ready) {
-      const timer = window.setTimeout(() => { void checkWorkspace(); }, 1200);
-      return () => window.clearTimeout(timer);
-    }
+    if (cachedReady) return;
     void checkWorkspace();
   }, []);
 
   async function checkWorkspace() {
-    if (!supabase) {
-      setState('error');
-      setMessage('Supabase não configurado.');
-      return;
-    }
-    const { count, error } = await supabase.from('projects').select('id', { count: 'exact', head: true });
+    const { data, error } = await fetchProjectsWorkspaceSnapshot();
     if (error) {
-      if (cached?.ready) return;
       setState('error');
       setMessage(error.message);
       return;
     }
-    const ready = (count || 0) > 0;
+    const ready = Boolean(data?.projects.length);
     writeGateCache(ready);
     setState(ready ? 'ready' : 'empty');
   }
