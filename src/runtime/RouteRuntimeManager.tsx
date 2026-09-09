@@ -4,7 +4,6 @@ import { useLocation } from 'react-router-dom';
 const installed = new Set<string>();
 const warmed = new Set<string>();
 let adminProjectsObserver: MutationObserver | null = null;
-let adminProjectsTimer = 0;
 
 function once(key: string, task: () => Promise<void>) {
   if (installed.has(key)) return;
@@ -77,7 +76,7 @@ function installProjectsNow() {
       import('../lib/projectsDeadlineAutofillRuntimeV37'),
       import('../lib/projectApprovalWorkflowRuntimeV38'),
       import('../lib/projectApprovalRulesRuntimeV39'),
-      import('../lib/projectsClientPortfolioRuntimeV39'),
+      import('../lib/projectsClientPortfolioRuntime'),
       import('../lib/projectExecutionLifecycleRuntimeV44'),
       import('../lib/projectLifecycleRecalcUxV45'),
     ]);
@@ -87,7 +86,7 @@ function installProjectsNow() {
     deadlines.installProjectsDeadlineAutofillRuntimeV37();
     workflow.installProjectApprovalWorkflowRuntimeV38();
     rules.installProjectApprovalRulesRuntimeV39();
-    portfolio.installProjectsClientPortfolioRuntimeV39();
+    portfolio.installProjectsClientPortfolioRuntime();
     lifecycle.installProjectExecutionLifecycleRuntimeV44();
     recalc.installProjectLifecycleRecalcUxV45();
   });
@@ -100,8 +99,6 @@ function adminProjectsHasRealData() {
 }
 
 function cancelAdminProjectsInstallWatch() {
-  window.clearTimeout(adminProjectsTimer);
-  adminProjectsTimer = 0;
   adminProjectsObserver?.disconnect();
   adminProjectsObserver = null;
 }
@@ -116,15 +113,11 @@ function installAdminProjectsAfterHydration() {
     }
     if (!adminProjectsHasRealData()) return;
 
-    // Os runtimes entram somente depois que a página já mostra o projeto real.
-    // Isso evita que camadas históricas observem e alterem o DOM durante a
-    // hidratação principal da rota.
-    window.clearTimeout(adminProjectsTimer);
-    adminProjectsTimer = window.setTimeout(() => {
-      if (!adminProjectsHasRealData()) return;
-      cancelAdminProjectsInstallWatch();
-      installProjectsNow();
-    }, 120);
+    // O gate agora só libera esta página depois de existir um snapshot real.
+    // Assim que o protocolo real está no DOM, instalamos as camadas funcionais
+    // sem o atraso artificial que antes fazia blocos aparecerem depois do paint.
+    cancelAdminProjectsInstallWatch();
+    installProjectsNow();
   };
 
   attempt();
@@ -137,9 +130,8 @@ function installAdminProjectsAfterHydration() {
     return;
   }
 
-  // A rota pode ter sido resolvida antes do componente lazy terminar de montar.
-  // Este observer existe apenas durante essa janela e se desconecta assim que a
-  // página real está hidratada; não permanece como observer global do Workspace.
+  // Observer transitório apenas para a janela do lazy mount. Ele se desconecta
+  // assim que a página real aparece e não permanece monitorando o Workspace.
   adminProjectsObserver = new MutationObserver(() => {
     const mounted = document.querySelector<HTMLElement>('.projects-flow-page');
     if (!mounted) return;
@@ -287,7 +279,7 @@ function warmRuntimeForPath(pathname: string) {
       import('../lib/projectsDeadlineAutofillRuntimeV37'),
       import('../lib/projectApprovalWorkflowRuntimeV38'),
       import('../lib/projectApprovalRulesRuntimeV39'),
-      import('../lib/projectsClientPortfolioRuntimeV39'),
+      import('../lib/projectsClientPortfolioRuntime'),
       import('../lib/projectExecutionLifecycleRuntimeV44'),
       import('../lib/projectLifecycleRecalcUxV45'),
     ]));
@@ -324,7 +316,10 @@ export function RouteRuntimeManager() {
     if (pathname.includes('/relatorios')) installReports();
     if (pathname === '/admin/calendario' || pathname === '/cliente/cronograma') installCalendar();
     if (pathname.includes('/registros')) installRecords();
-    if (pathname === '/admin/projetos') installAdminProjectsAfterHydration();
+    if (pathname === '/admin/projetos') {
+      installAdminProjectsAfterHydration();
+      queueMicrotask(() => window.dispatchEvent(new CustomEvent('cali:projects-route-active')));
+    }
     if (pathname === '/cliente/entregaveis') installProjectsNow();
     if (pathname.includes('/documentos')) installDocuments();
     if (pathname.includes('/horas')) installHours();
@@ -347,10 +342,9 @@ export function RouteRuntimeManager() {
       warmRuntimeForPath(url.pathname);
     }
 
-    // Não aquece mais por hover: ao atravessar o menu lateral, vários módulos e
-    // runtimes de páginas que não seriam abertas competiam com a tela atual.
-    // Pointer down mantém o benefício imediatamente antes da navegação real;
-    // focusin preserva o mesmo ganho para navegação por teclado.
+    // Não aquece por hover: atravessar o menu não pode competir com a tela atual.
+    // Pointer down aquece apenas a navegação efetivamente iniciada; focusin mantém
+    // o mesmo ganho para teclado.
     const onPointerDown = (event: PointerEvent) => warmFromTarget(event.target);
     const onFocusIn = (event: FocusEvent) => warmFromTarget(event.target);
 
