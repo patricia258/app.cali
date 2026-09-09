@@ -17,6 +17,7 @@ type CachedSnapshot = {
 
 const SNAPSHOT_CACHE_KEY = 'cali-admin-projects-workspace-snapshot-v1';
 const SNAPSHOT_CACHE_TTL = 5 * 60 * 1000;
+export const projectsSnapshotUpdatedEvent = 'cali:projects-snapshot-updated';
 
 function normalizeSnapshot(value: unknown): ProjectsWorkspaceSnapshot | null {
   if (!value || typeof value !== 'object') return null;
@@ -53,6 +54,7 @@ export function writeProjectsWorkspaceSnapshot(snapshot: ProjectsWorkspaceSnapsh
   } catch {
     // Cache de sessão é apenas uma aceleração; nunca bloqueia o Workspace.
   }
+  window.dispatchEvent(new CustomEvent(projectsSnapshotUpdatedEvent));
 }
 
 export function clearProjectsWorkspaceSnapshot() {
