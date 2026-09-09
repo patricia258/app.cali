@@ -77,11 +77,12 @@ function companyNameFromContext(tile: HTMLElement) {
 }
 
 async function refreshRegistry(force = false) {
-  if (document.visibilityState === 'hidden') return;
-  if (!force && Date.now() - lastRegistryAt < 2500) return;
+  if (document.visibilityState === 'hidden') return false;
+  if (!force && Date.now() - lastRegistryAt < 60_000) return false;
   lastRegistryAt = Date.now();
   const loaded = await loadCompanyLogoRegistry();
   registry = loaded.byName;
+  return true;
 }
 
 function applyResolvedTile(tile: HTMLElement, resolved: string) {
@@ -120,12 +121,21 @@ function decorateTile(tile: HTMLElement) {
   applyResolvedTile(tile, entry.resolved);
 }
 
+function decorateVisibleTiles() {
+  document.querySelectorAll<HTMLElement>(COMPANY_TILE_SELECTORS).forEach(decorateTile);
+}
+
 function scan() {
   window.clearTimeout(scanTimer);
-  scanTimer = window.setTimeout(async () => {
-    await refreshRegistry();
-    document.querySelectorAll<HTMLElement>(COMPANY_TILE_SELECTORS).forEach(decorateTile);
-  }, 70);
+  scanTimer = window.setTimeout(() => {
+    // Primeiro aplica o registro já disponível. A revalidação de rede nunca deve
+    // segurar a primeira pintura de uma logo que o Workspace já conhece.
+    decorateVisibleTiles();
+
+    void refreshRegistry().then((changed) => {
+      if (changed) decorateVisibleTiles();
+    });
+  }, 16);
 }
 
 function watchLogoInputs() {
