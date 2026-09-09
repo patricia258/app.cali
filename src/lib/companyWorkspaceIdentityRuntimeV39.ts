@@ -78,7 +78,7 @@ function companyNameFromContext(tile: HTMLElement) {
 
 async function refreshRegistry(force = false) {
   if (document.visibilityState === 'hidden') return false;
-  if (!force && Date.now() - lastRegistryAt < 60_000) return false;
+  if (!force && Date.now() - lastRegistryAt < 300_000) return false;
   lastRegistryAt = Date.now();
   const loaded = await loadCompanyLogoRegistry();
   registry = loaded.byName;
@@ -128,10 +128,7 @@ function decorateVisibleTiles() {
 function scan() {
   window.clearTimeout(scanTimer);
   scanTimer = window.setTimeout(() => {
-    // Primeiro aplica o registro já disponível. A revalidação de rede nunca deve
-    // segurar a primeira pintura de uma logo que o Workspace já conhece.
     decorateVisibleTiles();
-
     void refreshRegistry().then((changed) => {
       if (changed) decorateVisibleTiles();
     });
@@ -169,7 +166,7 @@ export function installCompanyWorkspaceIdentityRuntimeV39() {
   installHoursCompanyLogoRuntimeV41();
   watchLogoInputs();
   void startCompanyRealtime();
-  void backfillWorkspaceLogos(3).then(() => refreshRegistry(true)).then(scan);
+  void refreshRegistry(true).then(scan);
   observer = new MutationObserver((mutations) => {
     if (mutations.every((mutation) => {
       const target = mutation.target instanceof Element ? mutation.target : null;
@@ -179,8 +176,7 @@ export function installCompanyWorkspaceIdentityRuntimeV39() {
   });
   observer.observe(document.body, { childList: true, subtree: true });
   window.addEventListener('focus', () => {
-    lastRegistryAt = 0;
-    void backfillWorkspaceLogos(2).then(() => refreshRegistry(true)).then(scan);
+    void refreshRegistry().then(scan);
   });
   scan();
 }
