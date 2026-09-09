@@ -4,42 +4,12 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { WorkspaceAuthProvider } from './auth/WorkspaceAuthProvider';
+import { RouteRuntimeManager } from './runtime/RouteRuntimeManager';
 import { initializeWorkspaceTheme, startWorkspaceThemeClock } from './lib/workspaceTheme';
-import { installMapaAuthBridge } from './lib/mapaAuthBridge';
-import { installMapaReviewNavigation } from './lib/mapaReviewNavigation';
 import { startIdentityMediaRuntime } from './lib/identityMediaRuntime';
-import { installReportsPdfRuntime } from './lib/reportsPdfRuntime';
-import { installReportsDedupRuntime } from './lib/reportsDedupRuntime';
-import { installGoogleCalendarRuntime } from './lib/googleCalendarRuntime';
-import { installCalendarSyncGuard } from './lib/calendarSyncGuard';
 import { installNotificationNavigationRuntime } from './lib/notificationNavigationRuntime';
-import { installRecordsExperienceRuntimeV2 } from './lib/recordsExperienceRuntimeV2';
-import { installRecordsMessageControlsRuntime } from './lib/recordsMessageControlsRuntime';
-import { installRecordsConversationScrollGuard } from './lib/recordsConversationScrollGuard';
 import { installNotificationExperienceRuntime } from './lib/notificationExperienceRuntime';
-import { installRecordsOperationsRuntimeV25 } from './lib/recordsOperationsRuntimeV25';
-import { installRecordsClosureExperienceRuntimeV29 } from './lib/recordsClosureExperienceRuntimeV29';
-import { installRecordsClosureFinalPolishV30 } from './lib/recordsClosureFinalPolishV30';
-import { installDashboardSatisfactionRuntimeV29 } from './lib/dashboardSatisfactionRuntimeV29';
-import { installDeliverableChatStandardRuntimeV35 } from './lib/deliverableChatStandardRuntimeV35';
-import { installDeliverableChatFlickerGuardV36 } from './lib/deliverableChatFlickerGuardV36';
-import { installProjectsPlanningIntelligenceRuntimeV36 } from './lib/projectsPlanningIntelligenceRuntimeV36';
-import { installProjectsDeadlineAutofillRuntimeV37 } from './lib/projectsDeadlineAutofillRuntimeV37';
-import { installProjectApprovalWorkflowRuntimeV38 } from './lib/projectApprovalWorkflowRuntimeV38';
-import { installProjectApprovalRulesRuntimeV39 } from './lib/projectApprovalRulesRuntimeV39';
 import { installCompanyWorkspaceIdentityRuntimeV39 } from './lib/companyWorkspaceIdentityRuntimeV39';
-import { installProjectsClientPortfolioRuntimeV39 } from './lib/projectsClientPortfolioRuntimeV39';
-import { installClientHomeCompanyIdentityRuntimeV40 } from './lib/clientHomeCompanyIdentityRuntimeV40';
-import { installHoursCompanyLogoRuntimeV41 } from './lib/hoursCompanyLogoRuntimeV41';
-import { installDocumentsIdentityRuntimeV42 } from './lib/documentsIdentityRuntimeV42';
-import { installProjectExecutionLifecycleRuntimeV44 } from './lib/projectExecutionLifecycleRuntimeV44';
-import { installProjectLifecycleRecalcUxV45 } from './lib/projectLifecycleRecalcUxV45';
-import { installReportClientTrackingRuntimeV55 } from './lib/reportClientTrackingRuntimeV55';
-import { installReportWorkflowGovernanceV61 } from './lib/reportWorkflowGovernanceV61';
-import { installReportToolbarDedupeV18 } from './lib/reportToolbarDedupeV18';
-import { installReportWithdrawalRuntimeV62 } from './lib/reportWithdrawalRuntimeV62';
-import { installSchedulingRequestsRuntimeV65 } from './lib/schedulingRequestsRuntimeV65';
-import { installSchedulingPolicyLoaderV68 } from './lib/schedulingPolicyLoaderV68';
 import './styles.css';
 import './modules.css';
 import './ux-v2.css';
@@ -152,47 +122,17 @@ import './reports-v21-night-fix.css';
 
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
-installMapaAuthBridge();
-installMapaReviewNavigation();
 startIdentityMediaRuntime();
-installReportsPdfRuntime();
-installReportsDedupRuntime();
-installGoogleCalendarRuntime();
-installCalendarSyncGuard();
 installNotificationNavigationRuntime();
-installRecordsExperienceRuntimeV2();
-installRecordsMessageControlsRuntime();
-installRecordsConversationScrollGuard();
 installNotificationExperienceRuntime();
-installRecordsOperationsRuntimeV25();
-installRecordsClosureExperienceRuntimeV29();
-installRecordsClosureFinalPolishV30();
-installDashboardSatisfactionRuntimeV29();
-installDeliverableChatStandardRuntimeV35();
-installDeliverableChatFlickerGuardV36();
-installProjectsPlanningIntelligenceRuntimeV36();
-installProjectsDeadlineAutofillRuntimeV37();
-installProjectApprovalWorkflowRuntimeV38();
-installProjectApprovalRulesRuntimeV39();
 installCompanyWorkspaceIdentityRuntimeV39();
-installProjectsClientPortfolioRuntimeV39();
-installClientHomeCompanyIdentityRuntimeV40();
-installHoursCompanyLogoRuntimeV41();
-installDocumentsIdentityRuntimeV42();
-installProjectExecutionLifecycleRuntimeV44();
-installProjectLifecycleRecalcUxV45();
-installReportClientTrackingRuntimeV55();
-installReportWorkflowGovernanceV61();
-installReportToolbarDedupeV18();
-installReportWithdrawalRuntimeV62();
-installSchedulingRequestsRuntimeV65();
-installSchedulingPolicyLoaderV68();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AppErrorBoundary>
       <BrowserRouter>
         <WorkspaceAuthProvider>
+          <RouteRuntimeManager />
           <App />
         </WorkspaceAuthProvider>
       </BrowserRouter>
