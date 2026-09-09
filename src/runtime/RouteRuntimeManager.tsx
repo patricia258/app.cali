@@ -137,6 +137,23 @@ function warmOnce(key: string, task: () => Promise<unknown>) {
   void task().catch(() => warmed.delete(key));
 }
 
+function warmProjectGate() {
+  warmOnce('data-admin-projects-gate', async () => {
+    const { supabase } = await import('../lib/supabase');
+    if (!supabase) return;
+    const { count, error } = await supabase.from('projects').select('id', { count: 'exact', head: true });
+    if (error) return;
+    try {
+      window.localStorage.setItem('cali-admin-projects-gate-v1', JSON.stringify({
+        ready: (count || 0) > 0,
+        savedAt: Date.now(),
+      }));
+    } catch {
+      // Aquecimento oportunista; nunca interfere na navegação.
+    }
+  });
+}
+
 function warmRuntimeForPath(pathname: string) {
   if (pathname === '/admin/calendario') {
     warmOnce('page-admin-calendar', () => import('../pages/admin/AdminCalendarPage'));
@@ -149,6 +166,7 @@ function warmRuntimeForPath(pathname: string) {
       import('../pages/admin/AdminProjectsGatePage'),
       import('../pages/admin/AdminProjectsPageV3'),
     ]));
+    warmProjectGate();
   }
 
   if (pathname.includes('/relatorios')) {
