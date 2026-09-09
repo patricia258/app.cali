@@ -138,6 +138,19 @@ function warmOnce(key: string, task: () => Promise<unknown>) {
 }
 
 function warmRuntimeForPath(pathname: string) {
+  if (pathname === '/admin/calendario') {
+    warmOnce('page-admin-calendar', () => import('../pages/admin/AdminCalendarPage'));
+  }
+  if (pathname === '/cliente/cronograma') {
+    warmOnce('page-client-timeline', () => import('../pages/client/ClientTimelinePage'));
+  }
+  if (pathname === '/admin/projetos') {
+    warmOnce('page-admin-projects', () => Promise.all([
+      import('../pages/admin/AdminProjectsGatePage'),
+      import('../pages/admin/AdminProjectsPageV3'),
+    ]));
+  }
+
   if (pathname.includes('/relatorios')) {
     warmOnce('reports', () => Promise.all([
       import('../lib/reportsPdfRuntime'),
