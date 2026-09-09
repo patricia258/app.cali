@@ -1,8 +1,8 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute, WorkspaceRouteLoader } from './components/ProtectedRoute';
-import { Shell, type Role } from './components/WorkspaceShell';
 
+const WorkspaceRoleLayout = lazy(() => import('./components/WorkspaceRoleLayout').then((m) => ({ default: m.WorkspaceRoleLayout })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage').then((m) => ({ default: m.AuthCallbackPage })));
 const GoogleCalendarCallbackPage = lazy(() => import('./pages/GoogleCalendarCallbackPage').then((m) => ({ default: m.GoogleCalendarCallbackPage })));
@@ -67,18 +67,6 @@ function prefetchLikelyRoutes() {
   return () => window.clearTimeout(timer);
 }
 
-function WorkspaceRoleLayout({ role }: { role: Role }) {
-  return (
-    <ProtectedRoute role={role}>
-      <Shell role={role}>
-        <Suspense fallback={null}>
-          <Outlet />
-        </Suspense>
-      </Shell>
-    </ProtectedRoute>
-  );
-}
-
 function PublicLazy({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<WorkspaceRouteLoader />}>{children}</Suspense>;
 }
@@ -92,7 +80,7 @@ function AppRoutes() {
       <Route path="/auth/callback" element={<PublicLazy><AuthCallbackPage/></PublicLazy>}/>
       <Route path="/oauth/google/callback" element={<PublicLazy><GoogleCalendarCallbackPage/></PublicLazy>}/>
 
-      <Route element={<WorkspaceRoleLayout role="admin"/>}>
+      <Route element={<PublicLazy><WorkspaceRoleLayout role="admin"/></PublicLazy>}>
         <Route path="/admin" element={<AdminDashboard/>}/>
         <Route path="/admin/clientes" element={<AdminClientsPageV3/>}/>
         <Route path="/admin/propostas" element={<AdminProposalsPageV2/>}/>
@@ -110,7 +98,7 @@ function AppRoutes() {
         <Route path="/admin/mapa-de-people/relatorio/:id" element={<AdminPeopleMapReportPage/>}/>
       </Route>
 
-      <Route element={<WorkspaceRoleLayout role="client"/>}>
+      <Route element={<PublicLazy><WorkspaceRoleLayout role="client"/></PublicLazy>}>
         <Route path="/cliente" element={<ClientDashboard/>}/>
         <Route path="/cliente/cronograma" element={<ClientTimelinePage/>}/>
         <Route path="/cliente/entregaveis" element={<ClientDeliverablesPage/>}/>
