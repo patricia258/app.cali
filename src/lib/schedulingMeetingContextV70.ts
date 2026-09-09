@@ -13,21 +13,21 @@ const STYLE = `
 /* CALI Workspace · contexto comercial da reunião V70 */
 .v69-facts[data-v70-condition]::after,
 .calendar-detail-facts[data-v70-condition]::after{
-  content:'Condição · ' attr(data-v70-condition-label) '\A' attr(data-v70-condition-detail);
-  white-space:pre-line;
-  display:flex;
-  align-items:center;
-  min-height:58px;
+  content:attr(data-v70-condition-label) ': ' attr(data-v70-condition-detail);
+  grid-column:1 / -1;
+  width:100%;
   box-sizing:border-box;
-  padding:11px 13px;
+  display:block;
+  min-height:0;
+  padding:10px 14px;
   border:1px solid var(--theme-line,#e8dfd9);
   border-left:3px solid #B58C52;
   border-radius:12px;
   background:var(--theme-surface-soft,#fffdfa);
   color:var(--theme-text,#2b2b2b);
-  font-size:12px;
-  line-height:1.48;
-  font-weight:700;
+  font-size:13px;
+  line-height:1.45;
+  font-weight:650;
 }
 .v69-facts[data-v70-condition='extra']::after,
 .calendar-detail-facts[data-v70-condition='extra']::after{
@@ -58,12 +58,13 @@ function protocolFromAdminModal(modal: HTMLElement) {
   return text.match(/CALI-EVT-[0-9-]+/i)?.[0] || '';
 }
 
-function fallbackDetail(extra: boolean, reason?: string | null) {
-  if (!extra) return 'Este encontro está contemplado na agenda contratual do período.';
-  if (reason?.toLowerCase().includes('deslocamento')) {
-    return 'Se confirmado e realizado, será cobrado no mês subsequente, acrescido da taxa de deslocamento aplicável.';
+function conciseDetail(extra: boolean, reason?: string | null, notice?: string | null) {
+  if (!extra) return 'Este encontro faz parte da agenda contratual do período.';
+  const text = `${reason || ''} ${notice || ''}`.toLowerCase();
+  if (text.includes('deslocamento')) {
+    return 'Visita adicional. Se realizada, será cobrada no próximo mês, com taxa de deslocamento.';
   }
-  return 'Este encontro excede a agenda contratual disponível e terá cobrança adicional quando realizado.';
+  return 'Encontro adicional. Se realizado, será cobrado no próximo mês.';
 }
 
 async function conditionForProtocol(protocol: string): Promise<MeetingCondition | null> {
@@ -77,7 +78,7 @@ async function conditionForProtocol(protocol: string): Promise<MeetingCondition 
   if (event.source_type !== 'scheduling_request' && event.billing_applies === null) return null;
 
   const extra = Boolean(event.billing_applies);
-  let detail = fallbackDetail(extra, event.billing_reason);
+  let billingNotice: string | null = null;
 
   if (event.source_type === 'scheduling_request' && event.source_entity_id) {
     const { data: request } = await supabase
@@ -85,13 +86,13 @@ async function conditionForProtocol(protocol: string): Promise<MeetingCondition 
       .select('billing_notice,billable_extra,meeting_entitlement')
       .eq('id', event.source_entity_id)
       .maybeSingle();
-    if (request?.billing_notice) detail = String(request.billing_notice).trim();
+    billingNotice = request?.billing_notice ? String(request.billing_notice).trim() : null;
   }
 
   return {
     extra,
-    label: extra ? 'Adicional' : 'Incluso no contrato',
-    detail,
+    label: extra ? 'Lembrete' : 'Agenda contratual',
+    detail: conciseDetail(extra, event.billing_reason, billingNotice),
   };
 }
 
@@ -105,6 +106,32 @@ function applyCondition(target: HTMLElement, condition: MeetingCondition) {
   target.dataset.v70Condition = next;
   target.dataset.v70ConditionLabel = condition.label;
   target.dataset.v70ConditionDetail = condition.detail;
+}
+
+function softenClientContractCopy() {
+  if (location.pathname !== '/cliente/cronograma') return;
+  const summary = document.querySelector<HTMLElement>('.scheduling-v66-contract-summary');
+  if (!summary) return;
+  const intro = summary.firstElementChild as HTMLElement | null;
+  if (!intro) return;
+  const label = (intro.querySelector('small')?.textContent || '').trim().toLowerCase();
+  const title = intro.querySelector<HTMLElement>('strong');
+  const note = intro.querySelector<HTMLElement>('p');
+
+  if (label.includes('partner')) {
+    const nextTitle = 'A agenda do seu pacote prevê 1 encontro online por mês, alinhado previamente pela CALI.';
+    const nextNote = 'Se precisar de outro encontro, envie uma solicitação para análise. Se o encontro do mês não for utilizado, ele não é transferido para o período seguinte.';
+    if (title && title.textContent !== nextTitle) title.textContent = nextTitle;
+    if (note && note.textContent !== nextNote) note.textContent = nextNote;
+    return;
+  }
+
+  if (label.includes('full')) {
+    const nextTitle = 'A agenda do seu pacote prevê 2 encontros por mês, em ritmo quinzenal.';
+    const nextNote = 'Um deles pode ser presencial; se preferir, os dois podem ser online. Se precisar de outro encontro, envie uma solicitação para análise. A disponibilidade do mês não é transferida para o período seguinte.';
+    if (title && title.textContent !== nextTitle) title.textContent = nextTitle;
+    if (note && note.textContent !== nextNote) note.textContent = nextNote;
+  }
 }
 
 async function decorateClientModal() {
@@ -142,7 +169,10 @@ export async function refreshSchedulingMeetingContextV70() {
   if (location.pathname !== '/cliente/cronograma' && location.pathname !== '/admin/calendario') return;
   decorating = true;
   try {
-    if (location.pathname === '/cliente/cronograma') await decorateClientModal();
+    if (location.pathname === '/cliente/cronograma') {
+      softenClientContractCopy();
+      await decorateClientModal();
+    }
     if (location.pathname === '/admin/calendario') await decorateAdminModal();
   } finally {
     decorating = false;
