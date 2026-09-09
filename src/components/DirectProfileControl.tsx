@@ -1,6 +1,7 @@
 import { ChangeEvent, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Camera, Check, ChevronDown, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, Upload, X } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { optimizeWorkspaceImage, workspaceImageGuidance } from '../lib/imageUploadOptimization';
 
 type Role='admin'|'client';
 type SignatureMode='generated'|'uploaded';
@@ -86,15 +87,17 @@ export function DirectProfileControl({role}:{role:Role}){
     if(!user)return'';
     const ext=file.name.split('.').pop()?.toLowerCase()||'png';
     const path=`${user.id}/${kind}-${Date.now()}.${ext}`;
-    const{error}=await supabase.storage.from('workspace-assets').upload(path,file,{cacheControl:'3600',contentType:file.type,upsert:false});
+    const{error}=await supabase.storage.from('workspace-assets').upload(path,file,{cacheControl:'31536000',contentType:file.type,upsert:false});
     if(error)throw error;
     return supabase.storage.from('workspace-assets').getPublicUrl(path).data.publicUrl;
   }
   async function handleAvatar(event:ChangeEvent<HTMLInputElement>){
     const file=event.target.files?.[0];if(!file)return;setMessage('');
-    if(file.size>5*1024*1024){setMessage('A foto deve ter no máximo 5 MB.');event.target.value='';return;}
-    if(!['image/jpeg','image/png','image/webp'].includes(file.type)){setMessage('Use uma imagem JPG, PNG ou WEBP.');event.target.value='';return;}
-    try{const url=await uploadImage(file,'avatar');if(url)setDraft((current)=>({...current,avatar_url:url,avatar_position_x:50,avatar_position_y:50,avatar_zoom:1}));}
+    try{
+      const optimized=await optimizeWorkspaceImage(file,'avatar');
+      const url=await uploadImage(optimized,'avatar');
+      if(url)setDraft((current)=>({...current,avatar_url:url,avatar_position_x:50,avatar_position_y:50,avatar_zoom:1}));
+    }
     catch(error){setMessage(error instanceof Error?error.message:'Não consegui enviar essa imagem.');}
     event.target.value='';
   }
@@ -141,7 +144,7 @@ export function DirectProfileControl({role}:{role:Role}){
         <button className="modal-close" type="button" onClick={()=>setModalOpen(false)} aria-label="Fechar"><X size={20}/></button>
         <span className="section-kicker">SEU PERFIL</span><h2>Perfil e canais de contato</h2>
         <p>Essas informações identificam você no Workspace. Sua assinatura também pode ser usada em registros formais de aprovação ou ciência.</p>
-        <div className="profile-photo-workbench"><div className="profile-photo-stage"><span className="profile-avatar profile-avatar-editor large-editor-avatar">{draft.avatar_url?<img src={draft.avatar_url} alt="Prévia do perfil" style={avatarStyle(draft)}/>:<span>{initials(draft.full_name)}</span>}</span><label className="photo-upload-button"><Camera size={17}/>Escolher foto<input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleAvatar}/></label></div><div className={`profile-crop-controls ${draft.avatar_url?'':'disabled'}`}><label>Zoom<input type="range" min="1" max="3" step="0.05" value={draft.avatar_zoom} disabled={!draft.avatar_url} onChange={(event)=>setDraft((current)=>({...current,avatar_zoom:Number(event.target.value)}))}/></label><label>Horizontal<input type="range" min="0" max="100" value={draft.avatar_position_x} disabled={!draft.avatar_url} onChange={(event)=>setDraft((current)=>({...current,avatar_position_x:Number(event.target.value)}))}/></label><label>Vertical<input type="range" min="0" max="100" value={draft.avatar_position_y} disabled={!draft.avatar_url} onChange={(event)=>setDraft((current)=>({...current,avatar_position_y:Number(event.target.value)}))}/></label></div></div>
+        <div className="profile-photo-workbench"><div className="profile-photo-stage"><span className="profile-avatar profile-avatar-editor large-editor-avatar">{draft.avatar_url?<img src={draft.avatar_url} alt="Prévia do perfil" style={avatarStyle(draft)}/>:<span>{initials(draft.full_name)}</span>}</span><label className="photo-upload-button"><Camera size={17}/>Escolher foto<input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleAvatar}/></label><small className="field-helper">{workspaceImageGuidance.avatar}</small></div><div className={`profile-crop-controls ${draft.avatar_url?'':'disabled'}`}><label>Zoom<input type="range" min="1" max="3" step="0.05" value={draft.avatar_zoom} disabled={!draft.avatar_url} onChange={(event)=>setDraft((current)=>({...current,avatar_zoom:Number(event.target.value)}))}/></label><label>Horizontal<input type="range" min="0" max="100" value={draft.avatar_position_x} disabled={!draft.avatar_url} onChange={(event)=>setDraft((current)=>({...current,avatar_position_x:Number(event.target.value)}))}/></label><label>Vertical<input type="range" min="0" max="100" value={draft.avatar_position_y} disabled={!draft.avatar_url} onChange={(event)=>setDraft((current)=>({...current,avatar_position_y:Number(event.target.value)}))}/></label></div></div>
         <div className="form-grid profile-form-grid"><label className="stacked-label wide">Nome<input value={draft.full_name} onChange={(event)=>setDraft((current)=>({...current,full_name:event.target.value}))}/></label><label className="stacked-label">Cargo / função<input value={draft.job_title} onChange={(event)=>setDraft((current)=>({...current,job_title:event.target.value}))}/></label><label className="stacked-label">Telefone<input value={draft.phone} onChange={(event)=>setDraft((current)=>({...current,phone:event.target.value}))}/></label><label className="stacked-label"><span className="label-with-icon"><MessageCircle size={15}/>WhatsApp</span><input value={draft.whatsapp} onChange={(event)=>setDraft((current)=>({...current,whatsapp:event.target.value}))}/></label><label className="stacked-label"><span className="label-with-icon"><Linkedin size={15}/>LinkedIn</span><input value={draft.linkedin_url} onChange={(event)=>setDraft((current)=>({...current,linkedin_url:event.target.value}))}/></label><label className="stacked-label"><span className="label-with-icon"><Instagram size={15}/>Instagram</span><input value={draft.instagram_url} onChange={(event)=>setDraft((current)=>({...current,instagram_url:event.target.value}))}/></label><label className="stacked-label wide"><span className="label-with-icon"><Mail size={15}/>E-mail</span><input value={draft.email} disabled/></label></div>
 
         <section className="profile-signature-v55 profile-signature-v56 profile-signature-v59">
