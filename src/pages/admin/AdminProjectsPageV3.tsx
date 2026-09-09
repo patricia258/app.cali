@@ -7,6 +7,9 @@ import {
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
 import {
+  fetchProjectsWorkspaceSnapshot, readProjectsWorkspaceSnapshot, type ProjectsWorkspaceSnapshot,
+} from '../../lib/projectsWorkspaceSnapshot';
+import {
   complexityMeta, deliverableLabels, formatProjectDate, previewProjects, projectPlanningLabels,
   projectProgress, type DeliverableStatus, type MaterialComplexity, type ProjectDeliverable,
   type ProjectPlanningStatus, type WorkspaceProject,
@@ -42,6 +45,7 @@ type DeliverableForm = {
 };
 type TaskForm = { title: string; description: string; dueDate: string; estimatedHours: string; clientVisible: boolean };
 type PendingStatus = { item: ProjectDeliverable; status: DeliverableStatus } | null;
+type WorkspaceState = { projects: WorkspaceProject[]; fronts: ProjectFront[]; tasks: TaskItem[]; activeTimer: ActiveTimer };
 
 const statuses: DeliverableStatus[] = ['not_started','in_progress','standby','internal_review','client_review','adjustment_requested','rebriefing','approved','cancelled'];
 const statusTone: Record<DeliverableStatus,string> = {
@@ -103,6 +107,36 @@ function previewTasks(deliverable: ProjectDeliverable): TaskItem[] {
   });
 }
 
+function buildWorkspaceState(snapshot: ProjectsWorkspaceSnapshot): WorkspaceState {
+  const companyRows = snapshot.companies || [];
+  const projectRows = snapshot.projects || [];
+  const frontRows = snapshot.fronts || [];
+  const deliverableRows = snapshot.deliverables || [];
+  const taskRows = snapshot.tasks || [];
+  const hourRows = snapshot.hours || [];
+  const timerRows = snapshot.timers || [];
+  const companyMap=new Map(companyRows.map((r:any)=>[r.id,r]));
+  const taskMap=new Map<string,TaskItem[]>();
+  taskRows.forEach((r:any)=>{
+    const item:TaskItem={id:r.id,protocol:r.protocol||'—',deliverableId:r.deliverable_id,title:r.title,description:r.description,status:r.status,dueAt:r.due_at,clientVisible:Boolean(r.client_visible),estimatedMinutes:Number(r.estimated_minutes||0),sortOrder:Number(r.sort_order||0)};
+    taskMap.set(r.deliverable_id,[...(taskMap.get(r.deliverable_id)||[]),item]);
+  });
+  const hours=new Map<string,number>();
+  hourRows.forEach((r:any)=>hours.set(r.deliverable_id,(hours.get(r.deliverable_id)||0)+Number(r.minutes||0)/60));
+  const nextProjects:WorkspaceProject[]=projectRows.map((row:any)=>{
+    const c:any=companyMap.get(row.company_id)||{};
+    const ds:ProjectDeliverable[]=deliverableRows.filter((d:any)=>d.project_id===row.id).map((d:any)=>{
+      const related=taskMap.get(d.id)||[];
+      return { id:d.id,protocol:d.protocol||d.code||'—',title:d.title,description:d.description,status:d.status as DeliverableStatus,workstream:d.workstream||'Frente não definida',complexity:(d.complexity||'MC2') as MaterialComplexity,roadmapMonthStart:d.roadmap_month_start,roadmapMonthEnd:d.roadmap_month_end,dueAt:d.due_at,originalDueAt:d.original_due_at,clientResponseDueAt:d.client_response_due_at,clientDelayBusinessDays:Number(d.client_delay_business_days||0),adjustmentCount:Number(d.adjustment_count||0),rebriefingRequired:Boolean(d.rebriefing_required),isDocument:Boolean(d.is_document),hours:hours.get(d.id)||0,taskCount:related.length,taskDone:related.filter((t)=>t.status==='done').length,sortOrder:Number(d.sort_order||0),clientVisible:Boolean(d.client_visible),workstreamId:d.workstream_id } as ProjectDeliverable & {workstreamId?:string};
+    });
+    return { id:row.id,protocol:row.protocol||'—',companyId:row.company_id,company:c.display_name||'Cliente',companyLogo:c.logo_url,name:row.name,service:servicePlanLabel(c.service_type,c.service_plan),description:row.description,planningStatus:(row.planning_status||(row.status==='active'?'active':'draft')) as ProjectPlanningStatus,startDate:row.start_date,endDate:row.target_end_date,clientResponseBusinessDays:Number(row.client_response_business_days||3),adjustmentLimit:Number(row.adjustment_limit||3),deliverables:ds };
+  });
+  const nextFronts:ProjectFront[]=frontRows.map((r:any)=>({id:r.id,protocol:r.protocol||'—',projectId:r.project_id,companyId:r.company_id,name:r.name,objective:r.objective||'',monthStart:r.roadmap_month_start,monthEnd:r.roadmap_month_end,status:r.status,sortOrder:Number(r.sort_order||0)}));
+  const nextTasks:TaskItem[]=taskRows.map((r:any)=>({id:r.id,protocol:r.protocol||'—',deliverableId:r.deliverable_id,title:r.title,description:r.description,status:r.status,dueAt:r.due_at,clientVisible:Boolean(r.client_visible),estimatedMinutes:Number(r.estimated_minutes||0),sortOrder:Number(r.sort_order||0)}));
+  const activeTimer:ActiveTimer=timerRows?.[0]?{id:timerRows[0].id,deliverableId:timerRows[0].deliverable_id,startedAt:timerRows[0].started_at,preview:false}:null;
+  return { projects:nextProjects, fronts:nextFronts, tasks:nextTasks, activeTimer };
+}
+
 function StatusSelect({ item, onChange, compact=false }: { item:ProjectDeliverable; onChange:(status:DeliverableStatus)=>void; compact?:boolean }) {
   return <label className={`inline-status-select-v3 ${statusTone[item.status]} ${compact?'compact':''}`} onClick={(e)=>e.stopPropagation()}>
     <span className="status-dot-v3"/><select aria-label={`Status de ${item.title}`} value={item.status} disabled={item.status==='approved'} onChange={(e)=>onChange(e.target.value as DeliverableStatus)}>
@@ -112,10 +146,14 @@ function StatusSelect({ item, onChange, compact=false }: { item:ProjectDeliverab
 }
 
 export function AdminProjectsPageV3() {
-  const [projects,setProjects] = useState<WorkspaceProject[]>(previewProjects);
-  const [selectedProjectId,setSelectedProjectId] = useState(previewProjects[0].id);
-  const [fronts,setFronts] = useState<ProjectFront[]>(previewProjects.flatMap(previewFronts));
-  const [tasks,setTasks] = useState<TaskItem[]>(previewProjects.flatMap((p)=>p.deliverables.flatMap(previewTasks)));
+  const initialWorkspace = useMemo(()=>{
+    const cached = readProjectsWorkspaceSnapshot();
+    return cached?.projects.length ? buildWorkspaceState(cached) : null;
+  },[]);
+  const [projects,setProjects] = useState<WorkspaceProject[]>(initialWorkspace?.projects||previewProjects);
+  const [selectedProjectId,setSelectedProjectId] = useState(initialWorkspace?.projects[0]?.id||previewProjects[0].id);
+  const [fronts,setFronts] = useState<ProjectFront[]>(initialWorkspace?.fronts||previewProjects.flatMap(previewFronts));
+  const [tasks,setTasks] = useState<TaskItem[]>(initialWorkspace?.tasks||previewProjects.flatMap((p)=>p.deliverables.flatMap(previewTasks)));
   const [comments,setComments] = useState<CommentItem[]>([]);
   const [history,setHistory] = useState<HistoryItem[]>([]);
   const [projectView,setProjectView] = useState<ProjectView>('roadmap');
@@ -143,7 +181,7 @@ export function AdminProjectsPageV3() {
   const [showAdjustment,setShowAdjustment] = useState(false);
   const [adjustmentReason,setAdjustmentReason] = useState('');
   const [adjustmentImpact,setAdjustmentImpact] = useState(0);
-  const [activeTimer,setActiveTimer] = useState<ActiveTimer>(null);
+  const [activeTimer,setActiveTimer] = useState<ActiveTimer>(initialWorkspace?.activeTimer||null);
   const [timerSeconds,setTimerSeconds] = useState(0);
   const [saving,setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement|null>(null);
@@ -168,35 +206,15 @@ export function AdminProjectsPageV3() {
   async function loadWorkspace() {
     if(!supabase) return;
     try {
-      const [{data:companyRows},{data:projectRows},{data:frontRows},{data:deliverableRows},{data:taskRows},{data:hourRows},{data:timerRows}] = await Promise.all([
-        supabase.from('companies').select('id,display_name,logo_url,service_type,service_plan').neq('status','closed').order('display_name'),
-        supabase.from('projects').select('*').order('created_at',{ascending:false}),
-        supabase.from('project_workstreams').select('*').order('sort_order'),
-        supabase.from('deliverables').select('*').order('sort_order'),
-        supabase.from('deliverable_tasks').select('*').order('sort_order'),
-        supabase.from('hour_entries').select('deliverable_id,minutes'),
-        supabase.from('work_timers').select('id,deliverable_id,started_at,status').eq('status','active').order('started_at',{ascending:false}).limit(1),
-      ]);
-      if(!projectRows?.length) return;
-      const companyMap=new Map((companyRows||[]).map((r:any)=>[r.id,r]));
-      const taskMap=new Map<string,TaskItem[]>();
-      (taskRows||[]).forEach((r:any)=>{
-        const item:TaskItem={id:r.id,protocol:r.protocol||'—',deliverableId:r.deliverable_id,title:r.title,description:r.description,status:r.status,dueAt:r.due_at,clientVisible:Boolean(r.client_visible),estimatedMinutes:Number(r.estimated_minutes||0),sortOrder:Number(r.sort_order||0)};
-        taskMap.set(r.deliverable_id,[...(taskMap.get(r.deliverable_id)||[]),item]);
-      });
-      const hours=new Map<string,number>(); (hourRows||[]).forEach((r:any)=>hours.set(r.deliverable_id,(hours.get(r.deliverable_id)||0)+Number(r.minutes||0)/60));
-      const nextProjects:WorkspaceProject[]=projectRows.map((row:any)=>{
-        const c:any=companyMap.get(row.company_id)||{};
-        const ds:ProjectDeliverable[]=(deliverableRows||[]).filter((d:any)=>d.project_id===row.id).map((d:any)=>{
-          const related=taskMap.get(d.id)||[];
-          return { id:d.id,protocol:d.protocol||d.code||'—',title:d.title,description:d.description,status:d.status as DeliverableStatus,workstream:d.workstream||'Frente não definida',complexity:(d.complexity||'MC2') as MaterialComplexity,roadmapMonthStart:d.roadmap_month_start,roadmapMonthEnd:d.roadmap_month_end,dueAt:d.due_at,originalDueAt:d.original_due_at,clientResponseDueAt:d.client_response_due_at,clientDelayBusinessDays:Number(d.client_delay_business_days||0),adjustmentCount:Number(d.adjustment_count||0),rebriefingRequired:Boolean(d.rebriefing_required),isDocument:Boolean(d.is_document),hours:hours.get(d.id)||0,taskCount:related.length,taskDone:related.filter((t)=>t.status==='done').length,sortOrder:Number(d.sort_order||0),clientVisible:Boolean(d.client_visible),workstreamId:d.workstream_id } as ProjectDeliverable & {workstreamId?:string};
-        });
-        return { id:row.id,protocol:row.protocol||'—',companyId:row.company_id,company:c.display_name||'Cliente',companyLogo:c.logo_url,name:row.name,service:servicePlanLabel(c.service_type,c.service_plan),description:row.description,planningStatus:(row.planning_status||(row.status==='active'?'active':'draft')) as ProjectPlanningStatus,startDate:row.start_date,endDate:row.target_end_date,clientResponseBusinessDays:Number(row.client_response_business_days||3),adjustmentLimit:Number(row.adjustment_limit||3),deliverables:ds };
-      });
-      const nextFronts:ProjectFront[]=(frontRows||[]).map((r:any)=>({id:r.id,protocol:r.protocol||'—',projectId:r.project_id,companyId:r.company_id,name:r.name,objective:r.objective||'',monthStart:r.roadmap_month_start,monthEnd:r.roadmap_month_end,status:r.status,sortOrder:Number(r.sort_order||0)}));
-      setProjects(nextProjects); setFronts(nextFronts); setTasks((taskRows||[]).map((r:any)=>({id:r.id,protocol:r.protocol||'—',deliverableId:r.deliverable_id,title:r.title,description:r.description,status:r.status,dueAt:r.due_at,clientVisible:Boolean(r.client_visible),estimatedMinutes:Number(r.estimated_minutes||0),sortOrder:Number(r.sort_order||0)})));
-      setSelectedProjectId((current)=>nextProjects.some((p)=>p.id===current)?current:nextProjects[0].id);
-      if(timerRows?.[0]) setActiveTimer({id:timerRows[0].id,deliverableId:timerRows[0].deliverable_id,startedAt:timerRows[0].started_at,preview:false});
+      const { data:snapshot, error } = await fetchProjectsWorkspaceSnapshot();
+      if(error) throw error;
+      if(!snapshot?.projects.length) return;
+      const next = buildWorkspaceState(snapshot);
+      setProjects(next.projects);
+      setFronts(next.fronts);
+      setTasks(next.tasks);
+      setSelectedProjectId((current)=>next.projects.some((p)=>p.id===current)?current:next.projects[0].id);
+      setActiveTimer(next.activeTimer);
     } catch(error){ console.error('Falha ao carregar projetos',error); }
   }
 
