@@ -120,6 +120,24 @@ import './reports-v18-editorial.css';
 import './reports-v20-refinements.css';
 import './reports-v21-night-fix.css';
 
+function warmCachedProfileImages() {
+  if (typeof window === 'undefined' || typeof Image === 'undefined') return;
+  for (const role of ['admin', 'client'] as const) {
+    try {
+      const raw = window.localStorage.getItem(`cali-workspace-profile-${role}`);
+      if (!raw) continue;
+      const avatarUrl = String(JSON.parse(raw)?.avatar_url || '');
+      if (!/^https?:\/\//i.test(avatarUrl)) continue;
+      const image = new Image();
+      image.decoding = 'async';
+      image.src = avatarUrl;
+    } catch {
+      // Cache visual é oportunista; nunca bloqueia o Workspace.
+    }
+  }
+}
+
+warmCachedProfileImages();
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
 startIdentityMediaRuntime();
