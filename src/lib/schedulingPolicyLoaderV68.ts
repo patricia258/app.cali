@@ -110,12 +110,44 @@ function patchHistory() {
   }) as History['replaceState'];
 }
 
+function stabilizeClientSchedulingChange(event: Event) {
+  if (!policiesLoaded) return;
+  const target = event.target as HTMLInputElement | HTMLSelectElement | null;
+  if (!target || !target.closest('#scheduling-client-form')) return;
+  if (!['mode', 'date1'].includes(target.name)) return;
+
+  // V65 e V66 escreviam a mesma área de política em sequência. O usuário via o
+  // texto intermediário do V65 por alguns milissegundos e depois a política
+  // canônica do V66, produzindo a piscada. Mantemos V65 apenas para fallback;
+  // quando V66/V67 já estão ativos, eles passam a ser a única fonte visual da política.
+  if (target.name === 'mode') {
+    const form = target.closest<HTMLFormElement>('#scheduling-client-form');
+    if (form) {
+      const mode = form.querySelector<HTMLInputElement>('input[name="mode"]:checked')?.value || 'remote';
+      const locationField = form.querySelector<HTMLElement>('[data-scheduling-location-field]');
+      if (locationField) locationField.hidden = mode !== 'in_person';
+      const slot2Label = form.querySelector<HTMLElement>('[data-scheduling-slot2-label]');
+      if (slot2Label) slot2Label.textContent = mode === 'in_person' ? '(obrigatória)' : '(opcional no virtual)';
+      const date2 = form.elements.namedItem('date2') as HTMLInputElement | null;
+      const time2 = form.elements.namedItem('time2') as HTMLInputElement | null;
+      if (date2) date2.required = mode === 'in_person';
+      if (time2) time2.required = mode === 'in_person';
+    }
+  }
+
+  // Não impede os listeners do próprio window (V66/V67), apenas evita que o
+  // change continue até o listener legado do V65 no document.
+  event.stopPropagation();
+}
+
 export function installSchedulingPolicyLoaderV68() {
   if (installed) return;
   installed = true;
   installSchedulingPostConfirmationV69();
   installSchedulingMeetingContextV70();
   patchHistory();
+
+  window.addEventListener('change', stabilizeClientSchedulingChange, true);
 
   // Somente popstate REAL do navegador chega aqui. Nunca disparamos popstate sintético
   // no window, porque isso acordava runtimes de outros módulos e fazia a tela inteira
