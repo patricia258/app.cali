@@ -13,21 +13,64 @@ type PerformanceRow={
   start_timing:'started_early'|'started_on_time'|'started_late'|'unknown';business_days_from_original_deadline?:number|null;total_minutes:number;
 };
 
+const projectIdByProtocol=new Map<string,string>();
+let lastLoadedProtocol='';
+let lastLoadedAt=0;
+
 function dateTime(value?:string|null){if(!value)return'—';return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(value));}
 function dateOnly(value?:string|null){if(!value)return'—';return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(`${value.slice(0,10)}T12:00:00`));}
 function hours(minutes:number){const h=Math.floor(minutes/60),m=minutes%60;return h?`${h}h${m?` ${String(m).padStart(2,'0')}min`:''}`:`${m}min`;}
 function timingLabel(row:PerformanceRow){const d=Number(row.business_days_from_deadline||0);if(row.delivery_timing==='before_deadline')return d?`Entregue ${Math.abs(d)} dia(s) útil(eis) antes do prazo`:'Entregue antes do prazo';if(row.delivery_timing==='on_time')return'Entregue no prazo';if(row.delivery_timing==='after_deadline')return`Entregue ${Math.abs(d)} dia(s) útil(eis) depois do prazo`;return'Prazo ainda em aberto';}
 function startLabel(status:PerformanceRow['start_timing']){return status==='started_early'?'Iniciado antes do planejado':status==='started_on_time'?'Iniciado na data planejada':status==='started_late'?'Iniciado depois do planejado':'Início planejado não definido';}
+function currentProtocol(){return document.querySelector<HTMLElement>('.project-selector-v2 > button.active small')?.textContent?.trim()||'';}
 
 export function ProjectDeliveryHistoryBridge({role}:{role:Role}){
   const location=useLocation();const [rows,setRows]=useState<PerformanceRow[]>([]),[target,setTarget]=useState<HTMLElement|null>(null),[domVersion,setDomVersion]=useState(0);
   const completed=useMemo(()=>rows.filter(r=>r.status==='approved'||Boolean(r.work_closed_at)).sort((a,b)=>new Date(b.completion_at||b.work_closed_at||0).getTime()-new Date(a.completion_at||a.work_closed_at||0).getTime()),[rows]);
 
-  const load=useCallback(async()=>{if(role!=='admin'||!supabase||!location.pathname.startsWith('/admin/projetos')){setRows([]);return;}const active=document.querySelector<HTMLElement>('.project-selector-v2 > button.active');const protocol=active?.querySelector('small')?.textContent?.trim();setTarget(document.querySelector<HTMLElement>('.project-history-v2'));if(!protocol)return;const project=await supabase.from('projects').select('id').eq('protocol',protocol).maybeSingle();if(project.error||!project.data?.id)return;const result=await supabase.from('deliverable_delivery_performance').select('*').eq('project_id',project.data.id);if(result.error){console.error('Falha ao carregar desempenho de entregas',result.error);return;}setRows((result.data||[]) as PerformanceRow[]);},[role,location.pathname]);
+  const load=useCallback(async(force=false)=>{
+    if(role!=='admin'||!supabase||!location.pathname.startsWith('/admin/projetos')){setRows([]);return;}
+    setTarget(document.querySelector<HTMLElement>('.project-history-v2'));
+    const protocol=currentProtocol();
+    if(!protocol)return;
+    if(!force&&protocol===lastLoadedProtocol&&Date.now()-lastLoadedAt<30_000)return;
+    lastLoadedProtocol=protocol;lastLoadedAt=Date.now();
+    let projectId=projectIdByProtocol.get(protocol)||'';
+    if(!projectId){
+      const project=await supabase.from('projects').select('id').eq('protocol',protocol).maybeSingle();
+      if(project.error||!project.data?.id)return;
+      projectId=project.data.id;projectIdByProtocol.set(protocol,projectId);
+    }
+    const result=await supabase.from('deliverable_delivery_performance').select('*').eq('project_id',projectId);
+    if(result.error){console.error('Falha ao carregar desempenho de entregas',result.error);return;}
+    setRows((result.data||[]) as PerformanceRow[]);
+  },[role,location.pathname]);
 
-  useEffect(()=>{void load();const id=window.setInterval(()=>void load(),10000);return()=>window.clearInterval(id);},[load]);
-  useEffect(()=>{if(role!=='admin'||!location.pathname.startsWith('/admin/projetos'))return;let scheduled=false;const obs=new MutationObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;setDomVersion(v=>v+1);});});obs.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});return()=>obs.disconnect();},[role,location.pathname]);
-  useEffect(()=>{void load();},[domVersion,load]);
+  useEffect(()=>{
+    if(role!=='admin'||!location.pathname.startsWith('/admin/projetos'))return;
+    void load(true);
+    const id=window.setInterval(()=>void load(true),60_000);
+    const onFocus=()=>void load();
+    const onProjectIntent=(event:Event)=>{
+      const target=event.target as Element|null;
+      if(!target?.closest('.project-selector-v2'))return;
+      window.setTimeout(()=>void load(true),80);
+    };
+    window.addEventListener('focus',onFocus);
+    document.addEventListener('click',onProjectIntent,true);
+    document.addEventListener('change',onProjectIntent,true);
+    return()=>{window.clearInterval(id);window.removeEventListener('focus',onFocus);document.removeEventListener('click',onProjectIntent,true);document.removeEventListener('change',onProjectIntent,true);};
+  },[role,location.pathname,load]);
+
+  useEffect(()=>{
+    if(role!=='admin'||!location.pathname.startsWith('/admin/projetos'))return;
+    let scheduled=false;
+    const syncDom=()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;setTarget(document.querySelector<HTMLElement>('.project-history-v2'));setDomVersion(v=>v+1);});};
+    syncDom();
+    const obs=new MutationObserver(syncDom);
+    obs.observe(document.body,{childList:true,subtree:true});
+    return()=>obs.disconnect();
+  },[role,location.pathname]);
 
   useEffect(()=>{const protocols=new Set(completed.map(r=>r.protocol).filter(Boolean) as string[]);const nodes=Array.from(document.querySelectorAll<HTMLElement>('.front-deliverable-row-v3,.deliverable-list-row-v3,.kanban-v2 button'));nodes.forEach(node=>{const text=node.textContent||'';const closed=Array.from(protocols).some(p=>text.includes(p));node.classList.toggle('work-history-hidden',closed);});},[completed,domVersion]);
 
