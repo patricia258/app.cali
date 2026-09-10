@@ -16,6 +16,7 @@ type TimerRow = {
 type PendingOrigin = { deliverableId?: string|null; deliverableName?: string|null; taskId?: string|null; taskName?: string|null };
 type PendingFinalization = { timer: TimerRow; target: TimerFinalizationTarget } | null;
 const ORIGIN_KEY='cali:timer-origin';
+let timerSnapshotCache:{rows:TimerRow[];at:number}|null=null;
 
 function timerSeconds(timer:TimerRow,nowMs:number){return Math.max(0,Math.floor((nowMs-new Date(timer.startedAt).getTime())/1000)-Number(timer.pausedSeconds||0));}
 function timerLabel(seconds:number){const h=Math.floor(seconds/3600),m=Math.floor((seconds%3600)/60),s=seconds%60;return[h,m,s].map(v=>String(v).padStart(2,'0')).join(':');}
@@ -37,13 +38,15 @@ function openPendingOrigin(origin:PendingOrigin){
 
 export function GlobalTimerBar({role}:{role:Role}){
   const location=useLocation(),navigate=useNavigate();
-  const [timers,setTimers]=useState<TimerRow[]>([]),[nowMs,setNowMs]=useState(Date.now()),[busyId,setBusyId]=useState<string|null>(null),[moreOpen,setMoreOpen]=useState(false),[domVersion,setDomVersion]=useState(0);
+  const [timers,setTimers]=useState<TimerRow[]>(()=>role==='admin'&&timerSnapshotCache?.rows?timerSnapshotCache.rows:[]),[nowMs,setNowMs]=useState(Date.now()),[busyId,setBusyId]=useState<string|null>(null),[moreOpen,setMoreOpen]=useState(false),[domVersion,setDomVersion]=useState(0);
   const [pending,setPending]=useState<PendingFinalization>(null),[confirmStep,setConfirmStep]=useState<1|2>(1);const mounted=useRef(true);
 
-  const load=useCallback(async()=>{
-    if(role!=='admin'||!supabase){setTimers([]);return;}const user=(await supabase.auth.getUser()).data.user;if(!user){setTimers([]);return;}
+  const load=useCallback(async(force=false)=>{
+    if(role!=='admin'||!supabase){setTimers([]);return;}
+    if(!force&&timerSnapshotCache&&Date.now()-timerSnapshotCache.at<60_000){if(mounted.current)setTimers(timerSnapshotCache.rows);return;}
+    const user=(await supabase.auth.getUser()).data.user;if(!user){setTimers([]);return;}
     const timerResult=await supabase.from('work_timers').select('id,company_id,project_id,deliverable_id,task_id,account_record_id,started_at,paused_seconds,category,description').eq('user_id',user.id).eq('status','active').order('started_at',{ascending:true});
-    if(timerResult.error||!timerResult.data?.length){if(mounted.current)setTimers([]);return;}
+    if(timerResult.error||!timerResult.data?.length){timerSnapshotCache={rows:[],at:Date.now()};if(mounted.current)setTimers([]);return;}
     const raw=timerResult.data as any[],companyIds=[...new Set(raw.map(r=>r.company_id).filter(Boolean))],projectIds=[...new Set(raw.map(r=>r.project_id).filter(Boolean))],deliverableIds=[...new Set(raw.map(r=>r.deliverable_id).filter(Boolean))],taskIds=[...new Set(raw.map(r=>r.task_id).filter(Boolean))],recordIds=[...new Set(raw.map(r=>r.account_record_id).filter(Boolean))];
     const [companies,projects,deliverables,tasks,records]=await Promise.all([
       companyIds.length?supabase.from('companies').select('id,display_name,logo_url').in('id',companyIds):Promise.resolve({data:[]} as any),
@@ -54,17 +57,17 @@ export function GlobalTimerBar({role}:{role:Role}){
     ]);
     const cm=new Map<string,any>((companies.data||[]).map((r:any)=>[r.id,r])),pm=new Map<string,any>((projects.data||[]).map((r:any)=>[r.id,r])),dm=new Map<string,any>((deliverables.data||[]).map((r:any)=>[r.id,r])),tm=new Map<string,any>((tasks.data||[]).map((r:any)=>[r.id,r])),rm=new Map<string,any>((records.data||[]).map((r:any)=>[r.id,r]));
     const next=await Promise.all(raw.map(async r=>{const c=cm.get(r.company_id),d=dm.get(r.deliverable_id);return{id:r.id,companyId:r.company_id,projectId:r.project_id,deliverableId:r.deliverable_id,taskId:r.task_id,accountRecordId:r.account_record_id,startedAt:r.started_at,pausedSeconds:Number(r.paused_seconds||0),category:r.category,description:r.description,companyName:c?.display_name||'Cliente',companyLogo:await resolveWorkspaceMedia(c?.logo_url||''),projectName:pm.get(r.project_id)?.name||null,deliverableName:d?.title||null,deliverableStatus:d?.status||null,taskName:tm.get(r.task_id)?.title||null,recordTitle:rm.get(r.account_record_id)?.title||null} as TimerRow;}));
-    if(mounted.current)setTimers(next);
+    timerSnapshotCache={rows:next,at:Date.now()};if(mounted.current)setTimers(next);
   },[role]);
 
-  useEffect(()=>{mounted.current=true;void load();const refresh=window.setInterval(()=>void load(),15000),tick=window.setInterval(()=>setNowMs(Date.now()),1000),changed=()=>void load();window.addEventListener(TIMER_EVENT,changed);return()=>{mounted.current=false;window.clearInterval(refresh);window.clearInterval(tick);window.removeEventListener(TIMER_EVENT,changed);};},[load]);
-  useEffect(()=>{const observer=new MutationObserver(()=>setDomVersion(v=>v+1));observer.observe(document.body,{childList:true,subtree:true});return()=>observer.disconnect();},[]);
+  useEffect(()=>{mounted.current=true;void load();const refresh=window.setInterval(()=>void load(true),60_000),tick=window.setInterval(()=>setNowMs(Date.now()),1000),changed=()=>void load(true),onFocus=()=>void load();window.addEventListener(TIMER_EVENT,changed);window.addEventListener('focus',onFocus);return()=>{mounted.current=false;window.clearInterval(refresh);window.clearInterval(tick);window.removeEventListener(TIMER_EVENT,changed);window.removeEventListener('focus',onFocus);};},[load]);
+  useEffect(()=>{const needsDomContext=role==='admin'&&(location.pathname.startsWith('/admin/projetos')||location.pathname.startsWith('/admin/registros'));if(!needsDomContext)return;let scheduled=false;const observer=new MutationObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;setDomVersion(v=>v+1);});});observer.observe(document.body,{childList:true,subtree:true});return()=>observer.disconnect();},[role,location.pathname]);
   useEffect(()=>{if(role!=='admin'||!location.pathname.startsWith('/admin/projetos'))return;const raw=sessionStorage.getItem(ORIGIN_KEY);if(!raw)return;let origin:PendingOrigin|null=null;try{origin=JSON.parse(raw);}catch{sessionStorage.removeItem(ORIGIN_KEY);}if(!origin)return;let attempts=0;const id=window.setInterval(()=>{attempts++;if(openPendingOrigin(origin as PendingOrigin)||attempts>=30){window.clearInterval(id);sessionStorage.removeItem(ORIGIN_KEY);}},180);return()=>window.clearInterval(id);},[role,location.pathname]);
 
   const visibleTimers=useMemo(()=>timers.filter(t=>!contextIsVisible(t,location.pathname)),[timers,location.pathname,domVersion]);
-  async function pause(timer:TimerRow){if(busyId)return;setBusyId(timer.id);try{await pauseTimerSession(timer.id);await load();}catch(e){console.error('Falha ao pausar e registrar sessão',e);}finally{setBusyId(null);}}
+  async function pause(timer:TimerRow){if(busyId)return;setBusyId(timer.id);try{await pauseTimerSession(timer.id);await load(true);}catch(e){console.error('Falha ao pausar e registrar sessão',e);}finally{setBusyId(null);}}
   function requestStop(timer:TimerRow){if(timer.accountRecordId)return;setPending({timer,target:{id:timer.taskId||timer.deliverableId||timer.id,label:timer.taskName||timer.deliverableName||timer.description||'esta atuação',kind:timer.taskId?'task':'deliverable',clientApproved:timer.deliverableStatus==='approved'}});setConfirmStep(1);setMoreOpen(false);}
-  async function confirmStop(){if(!pending||busyId)return;setBusyId(pending.timer.id);try{await finalizeTimerWork(pending.timer);setPending(null);setConfirmStep(1);await load();}catch(e){console.error('Falha ao finalizar execução',e);}finally{setBusyId(null);}}
+  async function confirmStop(){if(!pending||busyId)return;setBusyId(pending.timer.id);try{await finalizeTimerWork(pending.timer);setPending(null);setConfirmStep(1);await load(true);}catch(e){console.error('Falha ao finalizar execução',e);}finally{setBusyId(null);}}
   function goToOrigin(timer:TimerRow){
     setMoreOpen(false);
     if(timer.accountRecordId){navigate(`/admin/registros?record=${timer.accountRecordId}`);return;}
