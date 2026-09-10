@@ -79,30 +79,38 @@ function installProjects() {
       import('../lib/projectExecutionLifecycleRuntimeV44'),
       import('../lib/projectLifecycleRecalcUxV45'),
     ]);
+
+    // Estes três não dependem do estado real do projeto para começar e não
+    // devem bloquear a primeira pintura da página.
     chat.installDeliverableChatStandardRuntimeV35();
     flicker.installDeliverableChatFlickerGuardV36();
-    planning.installProjectsPlanningIntelligenceRuntimeV36();
-    deadlines.installProjectsDeadlineAutofillRuntimeV37();
-    workflow.installProjectApprovalWorkflowRuntimeV38();
-    rules.installProjectApprovalRulesRuntimeV39();
     portfolio.installProjectsClientPortfolioRuntimeV39();
 
-    const installLifecycle = () => {
+    const installProjectStateRuntimes = () => {
+      planning.installProjectsPlanningIntelligenceRuntimeV36();
+      deadlines.installProjectsDeadlineAutofillRuntimeV37();
+      workflow.installProjectApprovalWorkflowRuntimeV38();
+      rules.installProjectApprovalRulesRuntimeV39();
       lifecycle.installProjectExecutionLifecycleRuntimeV44();
       recalc.installProjectLifecycleRecalcUxV45();
     };
 
+    // No cliente não existe a troca preview -> projeto real da tela admin.
     if (!window.location.pathname.startsWith('/admin/projetos')) {
-      installLifecycle();
+      installProjectStateRuntimes();
       return;
     }
 
+    // Na visão admin, evita que runtimes de planejamento/aprovação/lifecycle
+    // façam consultas ou alterem o DOM enquanto o React ainda está trocando
+    // o estado inicial pelo projeto persistido. A interface final é a mesma;
+    // apenas o trabalho de bastidor começa quando o protocolo real estabiliza.
     let attempts = 0;
     let lastProtocol = '';
     let stableFrames = 0;
     const waitForRealProject = () => {
       if (!window.location.pathname.startsWith('/admin/projetos')) {
-        installLifecycle();
+        installProjectStateRuntimes();
         return;
       }
       const text = document.querySelector<HTMLElement>('.project-hero-v2 > div:first-of-type > span')?.textContent || '';
@@ -114,7 +122,7 @@ function installProjects() {
       }
       attempts += 1;
       if (stableFrames >= 2 || attempts >= 90) {
-        installLifecycle();
+        installProjectStateRuntimes();
         return;
       }
       window.requestAnimationFrame(waitForRealProject);
