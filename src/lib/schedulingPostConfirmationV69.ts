@@ -186,6 +186,7 @@ function onClick(event:MouseEvent){
   const row=target.closest<HTMLElement>('.client-agenda-row.event');if(row?.dataset.v69EventId){openClientEvent(row.dataset.v69EventId);return;}
   const section=target.closest<HTMLElement>('.v69-admin-outcome');if(section){if(target.closest('[data-v69-occurred]'))outcomeForm(section,'occurred');if(target.closest('[data-v69-no-show]'))outcomeForm(section,'not_occurred');if(target.closest('[data-v69-submit-occurred]'))void submitOutcome(section,true);if(target.closest('[data-v69-submit-no-show]'))void submitOutcome(section,false);if(target.closest('[data-v69-save-transcription]'))void saveTranscription(section);return;}
   if(location.pathname==='/admin/calendario') window.setTimeout(()=>void decorateAdminModal(),120);
+  if(location.pathname==='/cliente/cronograma') window.setTimeout(()=>void refreshSchedulingPostConfirmationV69(),500);
 }
 
 export function installSchedulingPostConfirmationV69(){
