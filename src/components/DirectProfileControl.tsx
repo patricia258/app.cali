@@ -11,6 +11,7 @@ type ProfileData={
   signature_mode:SignatureMode;signature_url:string;signature_style:SignatureStyle;
 };
 type SignatureOption={value:SignatureStyle;label:string;hint:string};
+type ProfileCacheEntry={userId:string;at:number;profile:ProfileData};
 
 const signatureStyles:SignatureOption[]=[
   {value:'executive',label:'Executiva',hint:'Sóbria e institucional'},
@@ -30,6 +31,8 @@ const profileFallback:Record<Role,ProfileData>={
   admin:{full_name:'Patrícia Lima',email:'patricia@calirh.com',job_title:'People Advisory Executive',phone:'',whatsapp:'',linkedin_url:'',instagram_url:'',avatar_url:'',avatar_position_x:50,avatar_position_y:50,avatar_zoom:1,signature_mode:'generated',signature_url:'',signature_style:'executive'},
   client:{full_name:'Marina Costa',email:'marina@grupoaurora.com.br',job_title:'Decisora principal',phone:'',whatsapp:'',linkedin_url:'',instagram_url:'',avatar_url:'',avatar_position_x:50,avatar_position_y:50,avatar_zoom:1,signature_mode:'generated',signature_url:'',signature_style:'executive'},
 };
+const PROFILE_CACHE_TTL=300_000;
+const profileSessionCache:Partial<Record<Role,ProfileCacheEntry>>={};
 
 function initials(name:string){return name.split(' ').filter(Boolean).slice(0,2).map((part)=>part[0]?.toUpperCase()).join('')||'C';}
 function normalizeExternalUrl(value:string){const trimmed=value.trim();if(!trimmed)return'';return/^https?:\/\//i.test(trimmed)?trimmed:`https://${trimmed}`;}
@@ -56,6 +59,10 @@ export function DirectProfileControl({role}:{role:Role}){
       const{data:sessionData}=await supabase.auth.getSession();
       const user=sessionData.session?.user;
       if(!user||!mounted)return;
+      const memory=profileSessionCache[role];
+      if(memory?.userId===user.id&&Date.now()-memory.at<PROFILE_CACHE_TTL){
+        setProfile(memory.profile);setDraft(memory.profile);return;
+      }
       const{data}=await supabase.from('profiles').select('full_name,email,job_title,phone,whatsapp,linkedin_url,instagram_url,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom,signature_mode,signature_url,signature_style').eq('id',user.id).single();
       if(!mounted||!data)return;
       const next:ProfileData={
@@ -66,6 +73,8 @@ export function DirectProfileControl({role}:{role:Role}){
         avatar_position_x:Number(data.avatar_position_x??50),avatar_position_y:Number(data.avatar_position_y??50),avatar_zoom:Number(data.avatar_zoom??1),
         signature_mode:data.signature_mode==='uploaded'?'uploaded':'generated',signature_url:data.signature_url||'',signature_style:safeSignatureStyle(data.signature_style),
       };
+      profileSessionCache[role]={userId:user.id,at:Date.now(),profile:next};
+      window.localStorage.setItem(`cali-workspace-profile-${role}`,JSON.stringify(next));
       setProfile(next);setDraft(next);
     }
     void load();
@@ -121,6 +130,7 @@ export function DirectProfileControl({role}:{role:Role}){
           p_signature_mode:next.signature_mode,p_signature_url:next.signature_url||null,p_signature_style:next.signature_style,
         });
         if(error)throw error;
+        profileSessionCache[role]={userId:user.id,at:Date.now(),profile:next};
       }
       window.localStorage.setItem(`cali-workspace-profile-${role}`,JSON.stringify(next));
       setProfile(next);setDraft(next);setModalOpen(false);
