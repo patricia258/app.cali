@@ -1,13 +1,16 @@
+export type SupportedRasterType = 'image/webp' | 'image/jpeg' | 'image/png';
+
 export type ImageUploadOptimizationOptions = {
   maxWidth: number;
   maxHeight: number;
   quality?: number;
-  outputType?: 'image/webp' | 'image/jpeg';
+  outputType?: SupportedRasterType;
 };
 
-function optimizedName(name: string, outputType: 'image/webp' | 'image/jpeg') {
+function optimizedName(name: string, outputType: SupportedRasterType) {
   const stem = name.replace(/\.[^.]+$/, '') || 'imagem';
-  return `${stem}.${outputType === 'image/jpeg' ? 'jpg' : 'webp'}`;
+  const extension = outputType === 'image/jpeg' ? 'jpg' : outputType === 'image/png' ? 'png' : 'webp';
+  return `${stem}.${extension}`;
 }
 
 function loadImage(file: File) {
