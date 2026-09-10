@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute, WorkspaceRouteLoader } from './components/ProtectedRoute';
 
@@ -31,44 +31,7 @@ const ClientDocumentsPage = lazy(() => import('./pages/client/ClientDocumentsPag
 const ClientReportsPageV5 = lazy(() => import('./pages/client/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 })));
 const ReportPrintPageV17 = lazy(() => import('./pages/reports/ReportPrintPageV17').then((m) => ({ default: m.ReportPrintPageV17 })));
 
-function prefetchLikelyRoutes() {
-  const path = window.location.pathname;
-  const run = () => {
-    if (path.startsWith('/admin')) {
-      void import('./pages/admin/AdminCalendarPage');
-      void import('./pages/admin/AdminReportsPageV17');
-      void import('./pages/admin/AdminClientsPageV3');
-      void import('./pages/admin/AdminProjectsGatePage');
-      void import('./pages/admin/AdminHoursPageV3');
-      return;
-    }
-
-    if (path.startsWith('/cliente')) {
-      void import('./pages/client/ClientTimelinePage');
-      void import('./pages/client/ClientReportsPageV5');
-      void import('./pages/client/ClientDocumentsPage');
-      void import('./pages/client/ClientHoursPage');
-      void import('./pages/client/ClientDeliverablesPage');
-    }
-  };
-
-  const idleWindow = window as Window & {
-    requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
-    cancelIdleCallback?: (id: number) => void;
-  };
-
-  if (idleWindow.requestIdleCallback) {
-    const id = idleWindow.requestIdleCallback(run, { timeout: 4500 });
-    return () => idleWindow.cancelIdleCallback?.(id);
-  }
-
-  const timer = window.setTimeout(run, 2500);
-  return () => window.clearTimeout(timer);
-}
-
 function AppRoutes() {
-  useEffect(() => prefetchLikelyRoutes(), []);
-
   return (
     <Suspense fallback={<WorkspaceRouteLoader />}>
       <Routes>
