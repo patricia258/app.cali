@@ -264,12 +264,16 @@ export function installProjectsClientPortfolioRuntimeV39() {
   installed = true;
   document.addEventListener('input', (event) => { if ((event.target as Element)?.closest?.('.project-tools-v2')) schedule(); }, true);
   document.addEventListener('change', (event) => { if ((event.target as Element)?.closest?.('.project-tools-v2')) schedule(); }, true);
+  document.addEventListener('click', (event) => {
+    if (!(event.target as Element)?.closest?.('.project-selector-v2')) return;
+    window.setTimeout(() => schedule(), 0);
+  }, true);
   const observer = new MutationObserver((mutations) => {
-    if (mutations.every((mutation) => {
-      const target = mutation.target instanceof Element ? mutation.target : null;
-      return Boolean(target?.closest('.project-client-strip-v39,.project-client-modal-backdrop-v39'));
-    })) return;
-    schedule();
+    if (!isPage()) return;
+    const selectorChanged = mutations.some((mutation) => Array.from(mutation.addedNodes).some((node) =>
+      node instanceof Element && (node.matches('.project-selector-v2') || Boolean(node.querySelector?.('.project-selector-v2')))
+    ));
+    if (selectorChanged) schedule();
   });
   observer.observe(document.body, { childList: true, subtree: true });
   window.addEventListener('focus', () => schedule(true));
