@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { ChangeEvent, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Camera, Check, ChevronDown, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, Upload, X } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { optimizeImageBeforeUpload } from '../lib/imageUploadOptimization';
@@ -45,11 +45,29 @@ function safeSignatureStyle(value:unknown):SignatureStyle{
   if(legacy)return legacy;
   return signatureStyles.some((item)=>item.value===raw)?raw as SignatureStyle:'executive';
 }
+function workspaceAssetPath(url:string){
+  if(!url)return'';
+  try{
+    const parsed=new URL(url);
+    const marker='/storage/v1/object/public/workspace-assets/';
+    const index=parsed.pathname.indexOf(marker);
+    if(index<0)return'';
+    return decodeURIComponent(parsed.pathname.slice(index+marker.length));
+  }catch{return'';}
+}
+async function removeWorkspaceAsset(url:string){
+  if(!supabase||!url)return;
+  const path=workspaceAssetPath(url);
+  if(!path)return;
+  const{error}=await supabase.storage.from('workspace-assets').remove([path]);
+  if(error)console.warn('[profile-media] cleanup',error.message);
+}
 
 export function DirectProfileControl({role}:{role:Role}){
   const[profile,setProfile]=useState<ProfileData>(profileFallback[role]),[draft,setDraft]=useState<ProfileData>(profileFallback[role]);
   const[modalOpen,setModalOpen]=useState(false),[saving,setSaving]=useState(false),[message,setMessage]=useState('');
   const[signatureMenuOpen,setSignatureMenuOpen]=useState(false);
+  const pendingAvatarUrl=useRef('');
 
   useEffect(()=>{
     const cached=window.localStorage.getItem(`cali-workspace-profile-${role}`);
@@ -84,11 +102,13 @@ export function DirectProfileControl({role}:{role:Role}){
 
   useEffect(()=>{if(!modalOpen)return;document.body.classList.add('workspace-modal-open');return()=>document.body.classList.remove('workspace-modal-open');},[modalOpen]);
   useEffect(()=>{if(!modalOpen)setSignatureMenuOpen(false);},[modalOpen]);
+  useEffect(()=>()=>{const pending=pendingAvatarUrl.current;if(pending)void removeWorkspaceAsset(pending);},[]);
 
   const avatar=useMemo(()=>profile.avatar_url?<img src={profile.avatar_url} alt="" style={avatarStyle(profile)}/>:<span>{initials(profile.full_name)}</span>,[profile]);
   const selectedSignatureStyle=useMemo(()=>signatureStyles.find((item)=>item.value===draft.signature_style)||signatureStyles[0],[draft.signature_style]);
 
-  function openEditor(){setDraft(profile);setMessage('');setSignatureMenuOpen(false);setModalOpen(true);}
+  function openEditor(){pendingAvatarUrl.current='';setDraft(profile);setMessage('');setSignatureMenuOpen(false);setModalOpen(true);}
+  function closeEditor(){const pending=pendingAvatarUrl.current;pendingAvatarUrl.current='';if(pending&&pending!==profile.avatar_url)void removeWorkspaceAsset(pending);setDraft(profile);setModalOpen(false);}
   async function uploadImage(file:File,kind:'avatar'|'signature'){
     if(!supabase)return'';
     const{data:sessionData}=await supabase.auth.getSession();
@@ -107,7 +127,12 @@ export function DirectProfileControl({role}:{role:Role}){
     try{
       const optimized=await optimizeImageBeforeUpload(file,{maxWidth:768,maxHeight:768,quality:.82});
       const url=await uploadImage(optimized,'avatar');
-      if(url)setDraft((current)=>({...current,avatar_url:url,avatar_position_x:50,avatar_position_y:50,avatar_zoom:1}));
+      if(url){
+        const previousPending=pendingAvatarUrl.current;
+        pendingAvatarUrl.current=url;
+        if(previousPending&&previousPending!==url)void removeWorkspaceAsset(previousPending);
+        setDraft((current)=>({...current,avatar_url:url,avatar_position_x:50,avatar_position_y:50,avatar_zoom:1}));
+      }
     }
     catch(error){setMessage(error instanceof Error?error.message:'Não consegui enviar essa imagem.');}
     event.target.value='';
@@ -123,6 +148,7 @@ export function DirectProfileControl({role}:{role:Role}){
   async function saveProfile(){
     if(!draft.full_name.trim())return;
     setSaving(true);setMessage('');
+    const previousAvatar=profile.avatar_url;
     const next={...draft,full_name:draft.full_name.trim(),linkedin_url:normalizeExternalUrl(draft.linkedin_url),instagram_url:normalizeExternalUrl(draft.instagram_url)};
     try{
       const{data:sessionData}=supabase?await supabase.auth.getSession():{data:{session:null}} as const;
@@ -138,6 +164,8 @@ export function DirectProfileControl({role}:{role:Role}){
         profileSessionCache[role]={userId:user.id,at:Date.now(),profile:next};
       }
       window.localStorage.setItem(`cali-workspace-profile-${role}`,JSON.stringify(next));
+      pendingAvatarUrl.current='';
+      if(previousAvatar&&previousAvatar!==next.avatar_url)await removeWorkspaceAsset(previousAvatar);
       setProfile(next);setDraft(next);setModalOpen(false);
     }catch(error){setMessage(error instanceof Error?error.message:'Não foi possível salvar o perfil.');}
     finally{setSaving(false);}
@@ -153,7 +181,7 @@ export function DirectProfileControl({role}:{role:Role}){
     </div>
     {modalOpen?<div className="modal-backdrop chrome-modal-backdrop full-screen-modal" role="presentation">
       <section className="modal-card profile-modal profile-modal-v2 profile-modal-v55" role="dialog" aria-modal="true" aria-label="Editar perfil">
-        <button className="modal-close" type="button" onClick={()=>setModalOpen(false)} aria-label="Fechar"><X size={20}/></button>
+        <button className="modal-close" type="button" onClick={closeEditor} aria-label="Fechar"><X size={20}/></button>
         <span className="section-kicker">SEU PERFIL</span><h2>Perfil e canais de contato</h2>
         <p>Essas informações identificam você no Workspace. Sua assinatura também pode ser usada em registros formais de aprovação ou ciência.</p>
         <div className="profile-photo-workbench"><div className="profile-photo-stage"><span className="profile-avatar profile-avatar-editor large-editor-avatar">{draft.avatar_url?<img src={draft.avatar_url} alt="Prévia do perfil" style={avatarStyle(draft)}/>:<span>{initials(draft.full_name)}</span>}</span><label className="photo-upload-button"><Camera size={17}/>Escolher foto<input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleAvatar}/></label><small>JPG, PNG ou WEBP · recomendado 800 × 800 px · até 5 MB. Otimização automática antes do envio.</small></div><div className={`profile-crop-controls ${draft.avatar_url?'':'disabled'}`}><label>Zoom<input type="range" min="1" max="3" step="0.05" value={draft.avatar_zoom} disabled={!draft.avatar_url} onChange={(event)=>setDraft((current)=>({...current,avatar_zoom:Number(event.target.value)}))}/></label><label>Horizontal<input type="range" min="0" max="100" value={draft.avatar_position_x} disabled={!draft.avatar_url} onChange={(event)=>setDraft((current)=>({...current,avatar_position_x:Number(event.target.value)}))}/></label><label>Vertical<input type="range" min="0" max="100" value={draft.avatar_position_y} disabled={!draft.avatar_url} onChange={(event)=>setDraft((current)=>({...current,avatar_position_y:Number(event.target.value)}))}/></label></div></div>
@@ -185,7 +213,7 @@ export function DirectProfileControl({role}:{role:Role}){
 
         <div className="profile-live-actions">{(draft.whatsapp||draft.phone)?<a className="secondary" href={whatsappUrl(draft.whatsapp||draft.phone)} target="_blank" rel="noreferrer"><MessageCircle size={16}/>Abrir WhatsApp</a>:null}{draft.phone?<a className="secondary" href={`tel:${draft.phone.replace(/[^+\d]/g,'')}`}><Phone size={16}/>Ligar</a>:null}</div>
         {message?<div className="form-message">{message}</div>:null}
-        <div className="modal-actions"><button type="button" className="profile-secondary-v56" onClick={()=>setModalOpen(false)}>Cancelar</button><button type="button" className="profile-primary-v56" onClick={saveProfile} disabled={saving}>{saving?<Loader2 size={17} className="spin"/>:<Check size={17}/>} {saving?'Salvando…':'Salvar perfil'}</button></div>
+        <div className="modal-actions"><button type="button" className="profile-secondary-v56" onClick={closeEditor}>Cancelar</button><button type="button" className="profile-primary-v56" onClick={saveProfile} disabled={saving}>{saving?<Loader2 size={17} className="spin"/>:<Check size={17}/>} {saving?'Salvando…':'Salvar perfil'}</button></div>
       </section>
     </div>:null}
   </>;
