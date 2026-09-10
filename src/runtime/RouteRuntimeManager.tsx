@@ -86,8 +86,40 @@ function installProjects() {
     workflow.installProjectApprovalWorkflowRuntimeV38();
     rules.installProjectApprovalRulesRuntimeV39();
     portfolio.installProjectsClientPortfolioRuntimeV39();
-    lifecycle.installProjectExecutionLifecycleRuntimeV44();
-    recalc.installProjectLifecycleRecalcUxV45();
+
+    const installLifecycle = () => {
+      lifecycle.installProjectExecutionLifecycleRuntimeV44();
+      recalc.installProjectLifecycleRecalcUxV45();
+    };
+
+    if (!window.location.pathname.startsWith('/admin/projetos')) {
+      installLifecycle();
+      return;
+    }
+
+    let attempts = 0;
+    let lastProtocol = '';
+    let stableFrames = 0;
+    const waitForRealProject = () => {
+      if (!window.location.pathname.startsWith('/admin/projetos')) {
+        installLifecycle();
+        return;
+      }
+      const text = document.querySelector<HTMLElement>('.project-hero-v2 > div:first-of-type > span')?.textContent || '';
+      const protocol = text.match(/CALI-PRJ-[A-Z0-9-]+/i)?.[0] || '';
+      if (protocol && protocol === lastProtocol) stableFrames += 1;
+      else {
+        lastProtocol = protocol;
+        stableFrames = protocol ? 1 : 0;
+      }
+      attempts += 1;
+      if (stableFrames >= 2 || attempts >= 90) {
+        installLifecycle();
+        return;
+      }
+      window.requestAnimationFrame(waitForRealProject);
+    };
+    window.requestAnimationFrame(waitForRealProject);
   });
 }
 
