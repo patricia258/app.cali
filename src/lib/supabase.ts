@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { optimizeImageBeforeUpload, type SupportedRasterType } from './imageUploadOptimization';
 
 const fallbackUrl = 'https://kqtbfeeqbcllwvlkbrkq.supabase.co';
 const fallbackPublishableKey = 'sb_publishable_rhIy864X0VSQ0B7m7gdmCQ_hX3sKFMg';
@@ -32,6 +33,47 @@ const rawPublicSupabase = isSupabaseConfigured
   : null;
 
 type RpcResult<T = unknown> = { data: T | null; error: { message: string } | null };
+
+const rasterUploadTypes = new Set<SupportedRasterType>(['image/jpeg', 'image/png', 'image/webp']);
+
+async function optimizeWorkspaceStorageUpload(bucket: string, path: string, body: unknown) {
+  const isClientBrandLogo = bucket === 'cali-workspace-private' && /\/brand\/logo-[^/]+\.(?:png|jpe?g|webp)$/i.test(path);
+  if (!isClientBrandLogo || typeof File === 'undefined' || !(body instanceof File)) return body;
+  if (!rasterUploadTypes.has(body.type as SupportedRasterType)) return body;
+
+  return optimizeImageBeforeUpload(body, {
+    maxWidth: 1600,
+    maxHeight: 800,
+    quality: 0.88,
+    outputType: body.type as SupportedRasterType,
+  });
+}
+
+const workspaceStorage = workspaceSupabase
+  ? new Proxy(workspaceSupabase.storage as any, {
+      get(target, prop, receiver) {
+        if (prop === 'from') {
+          return (bucket: string) => {
+            const fileApi = target.from(bucket);
+            return new Proxy(fileApi as any, {
+              get(fileTarget, fileProp, fileReceiver) {
+                if (fileProp === 'upload') {
+                  return async (path: string, body: unknown, options?: unknown) => {
+                    const optimizedBody = await optimizeWorkspaceStorageUpload(bucket, path, body);
+                    return fileTarget.upload(path, optimizedBody as any, options as any);
+                  };
+                }
+                const value = Reflect.get(fileTarget, fileProp, fileReceiver);
+                return typeof value === 'function' ? value.bind(fileTarget) : value;
+              },
+            });
+          };
+        }
+        const value = Reflect.get(target, prop, receiver);
+        return typeof value === 'function' ? value.bind(target) : value;
+      },
+    })
+  : null;
 
 async function directPublicRpc<T = unknown>(fn: string, args?: Record<string, unknown>): Promise<RpcResult<T>> {
   if (!workspaceSupabase) {
@@ -108,6 +150,8 @@ export const supabase = workspaceSupabase
             return (target.rpc as any)(fn, args, options);
           };
         }
+
+        if (prop === 'storage' && workspaceStorage) return workspaceStorage;
 
         const value = Reflect.get(target, prop, receiver);
         return typeof value === 'function' ? value.bind(target) : value;
