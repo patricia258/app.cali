@@ -5,9 +5,7 @@ import type { Role } from './WorkspaceShell';
 
 function previewBypassAllowed() {
   const hostname = window.location.hostname;
-  return hostname === 'localhost'
-    || hostname === '127.0.0.1'
-    || hostname.endsWith('.vercel.app');
+  return hostname === 'localhost' || hostname === '127.0.0.1';
 }
 
 export function WorkspaceRouteLoader() {
