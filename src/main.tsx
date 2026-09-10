@@ -5,7 +5,6 @@ import App from './App';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { WorkspaceAuthProvider } from './auth/WorkspaceAuthProvider';
 import { RouteRuntimeManager } from './runtime/RouteRuntimeManager';
-import { PreviewPerformanceDiagnostics } from './runtime/PreviewPerformanceDiagnostics';
 import { initializeWorkspaceTheme, startWorkspaceThemeClock } from './lib/workspaceTheme';
 import { startIdentityMediaRuntime } from './lib/identityMediaRuntime';
 import { installNotificationNavigationRuntime } from './lib/notificationNavigationRuntime';
@@ -151,7 +150,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <AppErrorBoundary>
       <BrowserRouter>
         <WorkspaceAuthProvider>
-          <PreviewPerformanceDiagnostics />
           <RouteRuntimeManager />
           <App />
         </WorkspaceAuthProvider>
