@@ -232,13 +232,13 @@ export function RouteRuntimeManager() {
       warmRuntimeForPath(url.pathname);
     }
 
-    const onPointerOver = (event: PointerEvent) => warmFromTarget(event.target);
+    const onPointerDown = (event: PointerEvent) => warmFromTarget(event.target);
     const onFocusIn = (event: FocusEvent) => warmFromTarget(event.target);
 
-    document.addEventListener('pointerover', onPointerOver, { passive: true });
+    document.addEventListener('pointerdown', onPointerDown, { passive: true });
     document.addEventListener('focusin', onFocusIn);
     return () => {
-      document.removeEventListener('pointerover', onPointerOver);
+      document.removeEventListener('pointerdown', onPointerDown);
       document.removeEventListener('focusin', onFocusIn);
     };
   }, []);
