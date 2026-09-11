@@ -18,7 +18,29 @@ function escapeHtml(value=''){return value.replace(/[&<>'"]/g,(ch)=>({'&':'&amp;
 function projectProtocolFromAdmin(){const text=document.querySelector<HTMLElement>('.project-hero-v2 > div:first-of-type > span')?.textContent||'';return text.match(/CALI-PRJ-[A-Z0-9-]+/i)?.[0]||'';}
 function currentClientProjectId(){return document.querySelector<HTMLSelectElement>('.client-project-picker-v33 select')?.value||'';}
 function closeWorkflowModal(){document.querySelector('.workflow-dialog-backdrop-v38')?.remove();}
-function showError(message:string){window.alert(message);}
+function showError(message:string){
+  document.querySelector('.workflow-toast-v40')?.remove();
+  const toast=document.createElement('div');toast.className='workflow-toast-v40 error';toast.setAttribute('role','status');toast.textContent=message;
+  document.body.append(toast);window.setTimeout(()=>toast.remove(),4200);
+}
+
+function showWorkflowToast(message:string){
+  document.querySelector('.workflow-toast-v40')?.remove();
+  const toast=document.createElement('div');toast.className='workflow-toast-v40';toast.setAttribute('role','status');toast.textContent=message;
+  document.body.append(toast);window.setTimeout(()=>toast.remove(),4200);
+}
+
+function decorateRoadmapLegend(){
+  document.querySelectorAll<HTMLElement>('.roadmap-v2 header').forEach((header)=>{
+    const copy=header.querySelector<HTMLElement>(':scope > div:first-child');
+    const legend=header.querySelector<HTMLElement>('.mc-legend');
+    if(!copy||!legend||legend.dataset.v40)return;
+    const description=copy.querySelector('p');if(description)description.textContent='Selecione a referência para entender meses e complexidade.';
+    legend.className='mc-legend-v40';legend.dataset.v40='1';
+    const button=document.createElement('button');button.type='button';button.className='roadmap-help-trigger-v40';button.setAttribute('aria-label','Entender meses e complexidade');button.title='Entender meses e complexidade';button.innerHTML='<span aria-hidden="true">i</span><span class="roadmap-help-popover-v40"><b>Como ler o cronograma</b><i><strong>M1, M2, M3…</strong> meses previstos no cronograma.</i><i><strong>MC1, MC2, MC3</strong> complexidade estimada do material, não prazo.</i></span>';
+    button.addEventListener('click',(event)=>{event.stopPropagation();button.classList.toggle('open');});legend.append(button);
+  });
+}
 
 function dialog(title:string,kicker:string,body:string,footer:string){
   closeWorkflowModal();
@@ -121,9 +143,24 @@ function adminReviewBanner(ctx:Context){
   existing?.remove();
   const banner=document.createElement('section');banner.className=`project-review-banner-v38 ${ctx.project.planning_status}`;banner.dataset.workflowSig=sig;
   if(ctx.project.planning_status==='client_review'){
-    banner.innerHTML=`<div><span>AGUARDANDO CLIENTE</span><strong>Cronograma enviado para aprovação</strong><p>O projeto ainda não começou. O prazo passa a contar somente quando o cliente aprovar oficialmente.</p></div><div class="review-banner-meta-v38"><b>${used}/2</b><small>ajustes utilizados</small>${current?.response_due_at?`<em>Resposta prevista até ${formatDateTime(current.response_due_at)}</em>`:''}</div>`;
+    banner.innerHTML=`<div><span>AGUARDANDO CLIENTE</span><strong>Cronograma enviado para aprovação</strong><p>O projeto ainda não começou. O prazo passa a contar somente quando o cliente aprovar oficialmente.</p></div><div class="review-banner-meta-v40"><div><span>Enviado em</span><b>${formatDateTime(current?.requested_at)}</b></div><div><span>Resposta prevista até</span><b>${formatDateTime(current?.response_due_at)}</b></div><div><span>Ajustes utilizados</span><b>${used}/2</b></div></div><div class="review-banner-actions-v40"><button type="button" class="secondary" data-reminder><span>Lembrar cliente</span></button></div>`;
+    banner.querySelector('[data-reminder]')?.addEventListener('click',()=>sendApprovalReminder(ctx,current));
   }else if(current){const change=current.requested_changes||{};banner.innerHTML=`<div><span>AJUSTE SOLICITADO · ${current.request_number}/2</span><strong>${escapeHtml(change.targetLabel||'Cronograma')}</strong><p>${escapeHtml(current.response_note||'O cliente solicitou uma alteração no cronograma.')}</p>${change.priority?`<em>${escapeHtml(change.priority)}</em>`:''}</div><div class="review-banner-actions-v38"><button type="button" class="secondary" data-reject>Não aplicar</button><button type="button" class="primary" data-accept>Acolher solicitação</button></div>`;banner.querySelector('[data-reject]')?.addEventListener('click',()=>resolveAdjustmentDialog(ctx,current,false));banner.querySelector('[data-accept]')?.addEventListener('click',()=>resolveAdjustmentDialog(ctx,current,true));}
   hero.insertAdjacentElement('afterend',banner);
+}
+
+function sendApprovalReminder(ctx:Context,review:ReviewRow|null){
+  if(!review||!supabase)return;
+  const overlay=dialog('Enviar lembrete ao cliente','ACOMPANHAMENTO DO CRONOGRAMA',`<div class="workflow-warning-v40"><strong>O cliente receberá um lembrete sobre a aprovação pendente.</strong><p>O cronograma continuará aguardando a decisão dele. Esta ação registra uma notificação no Workspace e não altera prazos nem status.</p></div><div class="workflow-approval-summary-v38"><div><span>Projeto</span><b>${escapeHtml(ctx.project.name)}</b></div><div><span>Resposta prevista</span><b>${formatDateTime(review.response_due_at)}</b></div></div>`,`<button type="button" class="secondary" data-cancel>Cancelar</button><button type="button" class="primary" data-send>Enviar lembrete</button>`);
+  overlay.querySelector('[data-cancel]')?.addEventListener('click',closeWorkflowModal);
+  overlay.querySelector('[data-send]')?.addEventListener('click',async()=>{
+    const button=overlay.querySelector<HTMLButtonElement>('[data-send]')!;button.disabled=true;button.textContent='Enviando…';
+    const auth=await supabase!.auth.getUser();const actor=auth.data.user?.id;
+    if(!actor){button.disabled=false;button.textContent='Enviar lembrete';showError('Não foi possível identificar o usuário administrador.');return;}
+    const result=await supabase!.rpc('notify_workspace_movement',{p_company_id:ctx.project.company_id,p_actor_id:actor,p_target:'client',p_notification_type:'project_schedule_reminder',p_title:'Lembrete: cronograma aguardando sua aprovação',p_body:`${ctx.project.name} continua aguardando sua aprovação. Acesse o Workspace para revisar o cronograma.`,p_entity_type:'project',p_entity_id:ctx.project.id,p_action_url:'/cliente/entregaveis',p_relevance:'high',p_email_required:true});
+    if(result.error){button.disabled=false;button.textContent='Enviar lembrete';showError(result.error.message);return;}
+    closeWorkflowModal();showWorkflowToast('Lembrete enviado ao cliente.');
+  });
 }
 
 function clientAdjustmentDialog(ctx:Context,current:ReviewRow){
@@ -165,6 +202,7 @@ async function scan(){
   try{
     if(admin){const ctx=await loadAdminContext();if(ctx){addFrontAdminActions(ctx);adminReviewBanner(ctx);}}
     if(client){const ctx=await loadClientContext();if(ctx)clientReviewPanel(ctx);else clientEmptyState();}
+    decorateRoadmapLegend();
   }finally{busy=false;}
 }
 function schedule(){window.clearTimeout(timer);timer=window.setTimeout(()=>void scan(),140);}
