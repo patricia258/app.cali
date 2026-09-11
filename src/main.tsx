@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, useLocation } from 'react-router-dom';
 import App from './App';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { WorkspaceAuthProvider } from './auth/WorkspaceAuthProvider';
@@ -120,6 +120,11 @@ import './reports-v18-editorial.css';
 import './reports-v20-refinements.css';
 import './reports-v21-night-fix.css';
 
+function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  return <AppErrorBoundary key={location.key}>{children}</AppErrorBoundary>;
+}
+
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
 window.setTimeout(() => {
@@ -131,13 +136,13 @@ installNotificationExperienceRuntime();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AppErrorBoundary>
-      <BrowserRouter>
+    <BrowserRouter>
+      <RouteErrorBoundary>
         <WorkspaceAuthProvider>
           <RouteRuntimeManager />
           <App />
         </WorkspaceAuthProvider>
-      </BrowserRouter>
-    </AppErrorBoundary>
+      </RouteErrorBoundary>
+    </BrowserRouter>
   </React.StrictMode>,
 );
