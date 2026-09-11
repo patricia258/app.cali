@@ -275,6 +275,8 @@ export function ClientTimelinePage() {
   const nextMeeting = events.find((event) => new Date(event.starts_at).getTime() >= Date.now()) || null;
   const nextThirty = futureItems.filter((item) => new Date(item.at).getTime() <= Date.now() + 30 * 24 * 60 * 60 * 1000).length;
 
+  if(loading)return <Shell role="client"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando sua agenda…</section></Shell>;
+
   return (
     <Shell role="client">
       <section className="page client-timeline-v2 client-timeline-v3">
