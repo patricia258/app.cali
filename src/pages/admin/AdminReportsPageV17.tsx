@@ -138,11 +138,10 @@ export function AdminReportsPageV17() {
       if (companyResult.error) throw companyResult.error;
       if (reportResult.error) throw reportResult.error;
       const nextCompanies: Company[] = (companyResult.data || []).map((row: any) => ({ id: row.id, name: row.display_name, logoUrl: row.logo_url || '', serviceType: row.service_type, servicePlan: row.service_plan }));
-      setCompanies(nextCompanies); setReports((reportResult.data || []).map(reportRow));
-      void Promise.all(nextCompanies.map(async (company) => [company.id, await resolveWorkspaceMedia((companyResult.data || []).find((row: any) => row.id === company.id)?.logo_url, 86400, true)] as const)).then((logoRows) => {
-        const logoMap = new Map(logoRows);
-        setCompanies((current) => current.map((company) => ({ ...company, logoUrl: logoMap.get(company.id) || company.logoUrl || '' })));
-      });
+      const logoRows=await Promise.all(nextCompanies.map(async (company) => [company.id, await resolveWorkspaceMedia((companyResult.data || []).find((row: any) => row.id === company.id)?.logo_url, 86400, true)] as const));
+      const logoMap=new Map(logoRows);
+      setCompanies(nextCompanies.map((company)=>({...company,logoUrl:logoMap.get(company.id)||company.logoUrl||''})));
+      setReports((reportResult.data || []).map(reportRow));
       if (!companyId && nextCompanies.length) setCompanyId(nextCompanies[0].id);
     } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar Relatórios.'); }
     finally { setLoadingBase(false); }
