@@ -273,6 +273,7 @@ export function installProjectsClientPortfolioRuntimeV39() {
   });
   observer.observe(document.body, { childList: true, subtree: true });
   window.addEventListener('focus', () => schedule(true));
-  window.addEventListener('popstate', schedule);
+  window.addEventListener('popstate', () => schedule());
   schedule(true);
 }
+
