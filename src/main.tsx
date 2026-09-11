@@ -137,12 +137,12 @@ installNotificationExperienceRuntime();
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <WorkspaceAuthProvider>
-        <RouteErrorBoundary>
+      <RouteErrorBoundary>
+        <WorkspaceAuthProvider>
           <RouteRuntimeManager />
           <App />
-        </RouteErrorBoundary>
-      </WorkspaceAuthProvider>
+        </WorkspaceAuthProvider>
+      </RouteErrorBoundary>
     </BrowserRouter>
   </React.StrictMode>,
 );
