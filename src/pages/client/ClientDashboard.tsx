@@ -6,7 +6,7 @@ import {
   Sparkles, Star, X,
 } from 'lucide-react';
 import { Progress, Shell } from '../../components/WorkspaceShell';
-import { loadClientDeliveryReality, subscribeClientDeliveryReality } from '../../lib/clientDeliveryReality';
+import { loadClientDashboardReality, subscribeClientDeliveryReality } from '../../lib/clientDeliveryReality';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 

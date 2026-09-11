@@ -413,3 +413,121 @@ export function subscribeClientDeliveryReality(companyId: string, onChange: () =
   channel.subscribe();
   return () => { void supabase.removeChannel(channel); };
 }
+
+
+export async function loadClientDashboardReality(companyId: string): Promise<ClientDeliveryReality> {
+  if (!supabase) throw new Error('Workspace indisponível.');
+  if (!companyId) throw new Error('Empresa do cliente não encontrada.');
+
+  const [companyResult, projectResult, deliverableResult, hourResult, npsResult] = await Promise.all([
+    supabase.from('companies')
+      .select('id,display_name,monthly_hours_contracted,show_hours_to_client')
+      .eq('id', companyId)
+      .single(),
+    supabase.from('projects')
+      .select('id,name,protocol,status,planning_status,start_date,target_end_date')
+      .eq('company_id', companyId)
+      .neq('status', 'cancelled')
+      .order('created_at', { ascending: false }),
+    supabase.from('deliverables')
+      .select('id,company_id,project_id,protocol,title,status,due_at,updated_at,is_document')
+      .eq('company_id', companyId)
+      .eq('client_visible', true)
+      .order('sort_order')
+      .order('created_at'),
+    supabase.from('hour_entries')
+      .select('deliverable_id,minutes')
+      .eq('company_id', companyId)
+      .eq('client_visible', true),
+    supabase.from('nps_responses')
+      .select('deliverable_id,score,created_at')
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false }),
+  ]);
+
+  if (companyResult.error) throw companyResult.error;
+  if (projectResult.error) throw projectResult.error;
+  if (deliverableResult.error) throw deliverableResult.error;
+  if (hourResult.error && companyResult.data?.show_hours_to_client) throw hourResult.error;
+  if (npsResult.error) throw npsResult.error;
+
+  const company = {
+    id: companyResult.data.id,
+    displayName: companyResult.data.display_name,
+    monthlyHoursContracted: companyResult.data.monthly_hours_contracted == null ? null : finiteNumber(companyResult.data.monthly_hours_contracted),
+    showHoursToClient: Boolean(companyResult.data.show_hours_to_client),
+  };
+  const projects: ClientDeliveryProject[] = (projectResult.data || []).map((row: any) => ({
+    id: row.id,
+    name: row.name,
+    protocol: row.protocol,
+    status: row.status,
+    planningStatus: row.planning_status,
+    startDate: row.start_date,
+    targetEndDate: row.target_end_date,
+  }));
+  const projectMap = new Map(projects.map((project) => [project.id, project]));
+  const minutesByDeliverable = new Map<string, number>();
+  if (company.showHoursToClient && !hourResult.error) {
+    for (const row of hourResult.data || []) {
+      if (row.deliverable_id) minutesByDeliverable.set(row.deliverable_id, (minutesByDeliverable.get(row.deliverable_id) || 0) + finiteNumber(row.minutes));
+    }
+  }
+  const feedbackByDeliverable = new Map<string, ClientDeliveryFeedback>();
+  const scores: number[] = [];
+  for (const row of npsResult.data || []) {
+    const score = finiteNumber(row.score);
+    if (score >= 1 && score <= 5) scores.push(score);
+    if (row.deliverable_id && !feedbackByDeliverable.has(row.deliverable_id)) feedbackByDeliverable.set(row.deliverable_id, { score, createdAt: row.created_at });
+  }
+  const deliverables: ClientDeliveryItem[] = (deliverableResult.data || []).map((row: any) => {
+    const project = row.project_id ? projectMap.get(row.project_id) : undefined;
+    return {
+      id: row.id,
+      companyId: row.company_id,
+      projectId: row.project_id,
+      projectName: project?.name || null,
+      projectStatus: project?.status || null,
+      projectPlanningStatus: project?.planningStatus || null,
+      protocol: row.protocol,
+      title: row.title,
+      status: row.status as ClientDeliveryStatus,
+      dueAt: row.due_at,
+      updatedAt: row.updated_at,
+      adjustmentCount: 0,
+      rebriefingRequired: false,
+      isDocument: Boolean(row.is_document),
+      visibleMinutes: company.showHoursToClient ? (minutesByDeliverable.get(row.id) || 0) : null,
+      visibleTasks: [],
+      visibleTaskProgress: null,
+      document: null,
+      feedback: feedbackByDeliverable.get(row.id) || null,
+      latestAdjustment: null,
+      history: [],
+    };
+  });
+  const nonCancelled = deliverables.filter((item) => item.status !== 'cancelled');
+  const approved = nonCancelled.filter((item) => item.status === 'approved').length;
+  const visibleMinutes = company.showHoursToClient
+    ? Array.from(minutesByDeliverable.values()).reduce((sum, value) => sum + value, 0)
+    : null;
+
+  return {
+    company,
+    projects,
+    workstreams: [],
+    deliverables,
+    metrics: {
+      total: nonCancelled.length,
+      active: nonCancelled.filter((item) => item.status !== 'approved').length,
+      waitingClient: nonCancelled.filter((item) => item.status === 'client_review').length,
+      approved,
+      cancelled: deliverables.filter((item) => item.status === 'cancelled').length,
+      overdue: nonCancelled.filter((item) => item.dueAt && item.status !== 'approved' && new Date(item.dueAt).getTime() < Date.now()).length,
+      completionPct: nonCancelled.length ? Math.round((approved / nonCancelled.length) * 100) : 0,
+      visibleMinutes,
+      averageDeliveryScore: scores.length ? scores.reduce((sum, score) => sum + score, 0) / scores.length : null,
+      feedbackCount: scores.length,
+    },
+  };
+}
