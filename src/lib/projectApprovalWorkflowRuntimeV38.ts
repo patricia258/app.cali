@@ -137,7 +137,7 @@ function adminReviewBanner(ctx:Context){
   const hero=document.querySelector<HTMLElement>('.project-hero-v2');if(!hero)return;
   const existing=document.querySelector<HTMLElement>('.project-review-banner-v38');
   if(!['client_review','adjustment_requested'].includes(ctx.project.planning_status)){existing?.remove();return;}
-  const current=ctx.reviews.find((review)=>review.status==='pending'||review.status==='adjustment_requested');const used=Math.min(2,Math.max(0,(current?.request_number||1)-(current?.status==='adjustment_requested'?0:1)));
+  const current=ctx.reviews.find((review)=>review.status==='pending'||review.status==='adjustment_requested')||null;const used=Math.min(2,Math.max(0,(current?.request_number||1)-(current?.status==='adjustment_requested'?0:1)));
   const sig=`${ctx.project.id}:${ctx.project.planning_status}:${current?.id||''}:${current?.status||''}:${current?.request_number||0}:${current?.response_note||''}:${JSON.stringify(current?.requested_changes||{})}`;
   if(existing?.dataset.workflowSig===sig)return;
   existing?.remove();
@@ -207,3 +207,4 @@ async function scan(){
 }
 function schedule(){window.clearTimeout(timer);timer=window.setTimeout(()=>void scan(),140);}
 export function installProjectApprovalWorkflowRuntimeV38(){if(installed||typeof window==='undefined')return;installed=true;schedule();const observer=new MutationObserver(()=>schedule());observer.observe(document.body,{childList:true,subtree:true});window.addEventListener('focus',schedule);window.addEventListener('popstate',schedule);}
+
