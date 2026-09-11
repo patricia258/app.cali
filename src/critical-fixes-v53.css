@@ -3,11 +3,15 @@
 /* Calendário: o card do Google Workspace é AMARELO nos dois temas. */
 .calendar-page-v2 > .calendar-workspace-strip,
 html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip{
-  background-color:#E7C66F!important;
-  background-image:none!important;
+  background:linear-gradient(135deg,#FFF0B8 0%,#E7C66F 56%,#F7DFA0 100%)!important;
   border-color:#C89E3F!important;
   color:#2E251D!important;
   box-shadow:0 13px 30px rgba(83,59,29,.14)!important;
+}
+html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip{
+  background:linear-gradient(135deg,#5D4527 0%,#8D6B38 54%,#6B512E 100%)!important;
+  border-color:#C79D52!important;
+  color:#FFF8E6!important;
 }
 .calendar-page-v2 > .calendar-workspace-strip strong,
 html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip strong{color:#2E251D!important}
