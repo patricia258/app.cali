@@ -290,6 +290,11 @@ export function ClientDeliverablesPage() {
       return withDeliverables?.id || nextReality.projects[0]?.id || '';
     });
     setSelectedId((current) => nextReality.deliverables.some((item) => item.id === current) ? current : '');
+    const targetId = new URLSearchParams(window.location.search).get('deliverable');
+    if (targetId) {
+      const target = nextReality.deliverables.find((item) => item.id === targetId);
+      if (target) { setSelectedId(target.id); setDetailTab('conversation'); }
+    }
   }
 
   async function refreshReality() {
