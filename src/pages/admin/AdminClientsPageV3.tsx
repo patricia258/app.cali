@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { Progress, Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
+import { optimizeImageForUpload } from '../../lib/imageUpload';
 
 type ClientProject = { name: string; status: string };
 type AccountHistory = { title: string; detail: string; date: string };
@@ -333,8 +334,9 @@ export function AdminClientsPageV3() {
 
   async function uploadLogo(companyId:string,file:File) {
     if (!supabase) return '';
-    const extension=file.name.split('.').pop()?.toLowerCase()||'png', path=`${companyId}/brand/logo-${Date.now()}.${extension}`;
-    const {error}=await supabase.storage.from('cali-workspace-private').upload(path,file,{upsert:true}); if(error) throw error; return `private:${path}`;
+    const prepared=await optimizeImageForUpload(file,'company-logo');
+    const path=`${companyId}/brand/logo-${Date.now()}.${prepared.extension}`;
+    const {error}=await supabase.storage.from('cali-workspace-private').upload(path,prepared.blob,{cacheControl:'31536000',contentType:prepared.contentType,upsert:false}); if(error) throw error; return `private:${path}`;
   }
   async function uploadDocument(companyId:string,file:File,type:'contract'|'addendum',documentDate:string) {
     if (!supabase) return;
