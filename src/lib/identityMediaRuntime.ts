@@ -550,11 +550,14 @@ export function startIdentityMediaRuntime() {
   void loadProfiles();
 
   observer = new MutationObserver(() => scheduleDecorate());
+  // Observe new route content and real media/state changes only.
+  // The runtime writes its own classes/data attributes; observing those creates
+  // a self-triggering mutation loop and makes the interface visibly assemble.
   observer.observe(document.documentElement, {
     childList: true,
     subtree: true,
     attributes: true,
-    attributeFilter: ['src', 'class', 'title', 'aria-expanded', 'data-front-toggle-tip'],
+    attributeFilter: ['src', 'aria-expanded'],
   });
 
   window.addEventListener('storage', scheduleDecorate);
