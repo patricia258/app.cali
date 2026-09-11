@@ -42,6 +42,25 @@ function WorkspaceNavigationFallback() {
   );
 }
 
+function prefetchRouteModule(pathname: string) {
+  if (pathname === '/admin') return void import('./pages/admin/AdminDashboard');
+  if (pathname === '/admin/clientes') return void import('./pages/admin/AdminClientsPageV3');
+  if (pathname === '/admin/propostas') return void import('./pages/admin/AdminProposalsPageV2');
+  if (pathname === '/admin/projetos') return void import('./pages/admin/AdminProjectsGatePage');
+  if (pathname === '/admin/horas') return void import('./pages/admin/AdminHoursPageV3');
+  if (pathname === '/admin/calendario') return void import('./pages/admin/AdminCalendarPage');
+  if (pathname === '/admin/registros') return void import('./pages/records/WorkspaceRecordsPage');
+  if (pathname === '/admin/documentos') return void import('./pages/admin/AdminDocumentsPageV4');
+  if (pathname === '/admin/relatorios') return void import('./pages/admin/AdminReportsPageV17');
+  if (pathname === '/cliente') return void import('./pages/client/ClientDashboard');
+  if (pathname === '/cliente/cronograma') return void import('./pages/client/ClientTimelinePage');
+  if (pathname === '/cliente/entregaveis') return void import('./pages/client/ClientDeliverablesPage');
+  if (pathname === '/cliente/horas') return void import('./pages/client/ClientHoursPage');
+  if (pathname === '/cliente/registros') return void import('./pages/records/WorkspaceRecordsPage');
+  if (pathname === '/cliente/documentos') return void import('./pages/client/ClientDocumentsPage');
+  if (pathname === '/cliente/relatorios') return void import('./pages/client/ClientReportsPageV5');
+}
+
 function prefetchLikelyRoutes() {
   const path = window.location.pathname;
   const schedule = window.setTimeout(() => {
@@ -64,7 +83,19 @@ function prefetchLikelyRoutes() {
     }
   }, 1200);
 
-  return () => window.clearTimeout(schedule);
+  const prefetchOnHover = (event: PointerEvent) => {
+    const target = event.target as Element | null;
+    const link = target?.closest('a[href]') as HTMLAnchorElement | null;
+    if (!link) return;
+    const url = new URL(link.href, window.location.origin);
+    if (url.origin === window.location.origin) prefetchRouteModule(url.pathname);
+  };
+  document.addEventListener('pointerover', prefetchOnHover, { passive: true });
+
+  return () => {
+    window.clearTimeout(schedule);
+    document.removeEventListener('pointerover', prefetchOnHover);
+  };
 }
 
 function AppRoutes() {
