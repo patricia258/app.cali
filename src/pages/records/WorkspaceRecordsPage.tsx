@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Shell, type Role } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
+import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 
 type RecordType =
   | 'meeting' | 'occurrence' | 'decision' | 'request' | 'people_movement'
@@ -135,6 +136,7 @@ function statusLabel(status: WorkflowStatus | null | undefined, role: Role) {
 }
 
 export function WorkspaceRecordsPage({ role }: { role: Role }) {
+  const { user } = useWorkspaceAuth();
   const [searchParams] = useSearchParams();
   const deepLinkHandled = useRef('');
   const [records, setRecords] = useState<AccountRecordRow[]>([]);
@@ -198,9 +200,8 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
     if (!supabase) return;
     setLoading(true); setError('');
     try {
-      const userResult = await supabase.auth.getUser();
-      if (userResult.error) throw userResult.error;
-      const userId = userResult.data.user?.id || '';
+      const userId = user?.id || '';
+      if (!userId) throw new Error('Sessão não encontrada.');
       let resolvedCompanyId = '';
       if (role === 'admin') {
         const companyResult = await supabase.from('companies').select('id,display_name').neq('status', 'archived').order('display_name');
@@ -223,7 +224,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   async function loadContext(targetCompanyId: string) {
     if (!supabase || !targetCompanyId) return;
     const [recordResult, countResult, feedbackResult, reopenResult] = await Promise.all([
-      supabase.from('account_records').select('*').eq('company_id', targetCompanyId).order('last_activity_at', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false }),
+      supabase.from('account_records').select('id,company_id,project_id,event_id,protocol,record_type,title,occurred_at,visibility,source_actor,participants,summary,transcript,decisions,attention_points,next_actions,impact_level,include_in_report,requires_action,created_by,created_at,workflow_status,last_activity_at,closed_at').eq('company_id', targetCompanyId).order('last_activity_at', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false }),
       supabase.from('account_record_messages').select('id,record_id').eq('company_id', targetCompanyId).is('deleted_at', null),
       supabase.from('account_record_feedback').select('record_id,score').eq('company_id', targetCompanyId),
       supabase.from('account_record_reopen_requests').select('record_id,status,requested_at').eq('company_id', targetCompanyId).eq('status', 'pending').order('requested_at', { ascending: false }),
