@@ -52,7 +52,6 @@ export function AdminHoursPageV3(){
   const [manualOpen,setManualOpen]=useState(false); const [manualDate,setManualDate]=useState(()=>new Date().toISOString().slice(0,10)); const [manualCompanyId,setManualCompanyId]=useState(''); const [manualProjectId,setManualProjectId]=useState(''); const [manualDeliverableId,setManualDeliverableId]=useState(''); const [manualTaskId,setManualTaskId]=useState(''); const [manualStart,setManualStart]=useState(''); const [manualEnd,setManualEnd]=useState(''); const [manualCategory,setManualCategory]=useState(categories[0]); const [manualDescription,setManualDescription]=useState(''); const [manualJustification,setManualJustification]=useState(''); const [manualClientVisible,setManualClientVisible]=useState(true);
   const [interactionOpen,setInteractionOpen]=useState(false); const [interactionChannel,setInteractionChannel]=useState<Channel>('WhatsApp'); const [interactionDate,setInteractionDate]=useState(()=>new Date().toISOString().slice(0,10)); const [interactionCompanyId,setInteractionCompanyId]=useState(''); const [interactionDeliverableId,setInteractionDeliverableId]=useState(''); const [interactionMinutes,setInteractionMinutes]=useState('15'); const [interactionDescription,setInteractionDescription]=useState(''); const [interactionClientVisible,setInteractionClientVisible]=useState(true);
   const [filterCompany,setFilterCompany]=useState('all'); const [filterSource,setFilterSource]=useState('all'); const [expandedId,setExpandedId]=useState<string|null>(null);
-  const [visibilityByCompany,setVisibilityByCompany]=useState<Record<string,boolean>>({});
   const [saving,setSaving]=useState(false); const [loading,setLoading]=useState(true); const [notice,setNotice]=useState(''); const [error,setError]=useState('');
 
   useEffect(()=>{void load();},[period]);
@@ -62,7 +61,7 @@ export function AdminHoursPageV3(){
     if(!supabase)return; setLoading(true); setError('');
     try{
       const {start,next}=monthBounds(period); const userResult=await supabase.auth.getUser(); if(userResult.error)throw userResult.error; const userId=userResult.data.user?.id||'';
-      const [companyResult,projectResult,deliverableResult,taskResult,cycleResult,entryResult,timerResult]=await Promise.all([
+      const [companyResult,visibilityResult,projectResult,deliverableResult,taskResult,cycleResult,entryResult,timerResult]=await Promise.all([
         supabase.from('companies').select('id,display_name,logo_url,monthly_hours_contracted,service_plan,show_hours_to_client').neq('status','closed').order('display_name'),
         supabase.from('company_hours_visibility').select('company_id,period_start,enabled').lte('period_start', period + '-01').order('period_start',{ascending:false}),
         supabase.from('projects').select('id,company_id,name').neq('status','cancelled').order('name'),
@@ -76,7 +75,6 @@ export function AdminHoursPageV3(){
       const nextVisibility:Record<string,boolean>={};
       for(const row of (visibilityResult.data||[]) as any[]) if(nextVisibility[row.company_id]===undefined) nextVisibility[row.company_id]=Boolean(row.enabled);
       const nextCompanies:Company[]=(companyResult.data||[]).map((r:any)=>({id:r.id,name:r.display_name,logoUrl:r.logo_url,monthlyHours:Number(r.monthly_hours_contracted||0),servicePlan:r.service_plan,showHoursToClient:nextVisibility[r.id]??Boolean(r.show_hours_to_client)}));
-      setVisibilityByCompany(nextVisibility);
       setCompanies(nextCompanies); setProjects((projectResult.data||[]).map((r:any)=>({id:r.id,companyId:r.company_id,name:r.name}))); setDeliverables((deliverableResult.data||[]).map((r:any)=>({id:r.id,companyId:r.company_id,projectId:r.project_id,title:r.title,status:r.status,protocol:r.protocol}))); setTasks((taskResult.data||[]).map((r:any)=>({id:r.id,companyId:r.company_id,deliverableId:r.deliverable_id,title:r.title,status:r.status,protocol:r.protocol}))); setCycles((cycleResult.data||[]).map((r:any)=>({id:r.id,companyId:r.company_id,projectId:r.project_id,contractedHours:r.contracted_hours===null?null:Number(r.contracted_hours)})));
       setEntries((entryResult.data||[]).map((r:any)=>({id:r.id,companyId:r.company_id,projectId:r.project_id,deliverableId:r.deliverable_id,taskId:r.task_id,workDate:r.work_date,minutes:Number(r.minutes||0),description:r.description,category:r.category,sourceType:r.source_type||'manual',clientVisible:Boolean(r.client_visible),internalNote:r.internal_note,startedAt:r.started_at,endedAt:r.ended_at,createdAt:r.created_at})));
       setActiveTimers((timerResult.data||[]).map((r:any)=>({id:r.id,companyId:r.company_id,projectId:r.project_id,deliverableId:r.deliverable_id,taskId:r.task_id,cycleId:r.cycle_id,userId:r.user_id,startedAt:r.started_at,status:r.status,pausedAt:r.paused_at,pausedSeconds:Number(r.paused_seconds||0),category:r.category,description:r.description,clientVisible:Boolean(r.client_visible)})));
@@ -125,7 +123,6 @@ export function AdminHoursPageV3(){
       if (visibilityResult.error) throw visibilityResult.error;
       const companyResult = await supabase.from('companies').update({ show_hours_to_client: next }).eq('id', company.id);
       if (companyResult.error) throw companyResult.error;
-      setVisibilityByCompany((current) => ({ ...current, [company.id]: next }));
       setCompanies((current) => current.map((item) => item.id === company.id ? { ...item, showHoursToClient: next } : item));
       setNotice(company.name + ': visualização de horas atualizada a partir de ' + selectedMonth + '.');
     } catch (e) {
