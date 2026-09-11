@@ -154,7 +154,7 @@ export function NotificationCenter({ role }: { role: Role }) {
           <div className="notification-head"><div><strong>Notificações</strong><span>{unread ? `${unread} não lida${unread > 1 ? 's' : ''}` : 'Tudo em dia'}</span></div>{unread > 0 && <button onClick={markAll}>Marcar todas</button>}</div>
           <div className="notification-list">
             {items.length === 0 ? <div className="notification-empty"><Check size={20} /><strong>Nenhum aviso por aqui.</strong><span>Novidades de projetos, horas, agenda e validações aparecem neste canal.</span></div> : items.map((item) => (
-              <button className={`notification-item ${item.read_at ? '' : 'unread'}`} key={item.id} onClick={() => markRead(item)}><span className="notification-indicator" /><div><strong>{item.title}</strong>{item.body && <p>{item.body}</p>}<small>{relativeTime(item.created_at)}</small></div></button>
+              <button className={`notification-item ${item.read_at ? '' : 'unread'}`} data-notification-id={item.id} key={item.id} onClick={() => markRead(item)}><span className="notification-indicator" /><div><strong>{item.title}</strong>{item.body && <p>{item.body}</p>}<small>{relativeTime(item.created_at)}</small></div></button>
             ))}
           </div>
         </div>
