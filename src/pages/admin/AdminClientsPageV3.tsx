@@ -317,11 +317,12 @@ export function AdminClientsPageV3() {
       };
     });
     setClients(rows);
-    const logoRows = await Promise.all(rows.map(async (row) => [row.id, await resolveLogo(companies.find((item:any) => item.id === row.id)?.logo_url)] as const));
-    const logoMap = new Map(logoRows);
-    setClients((current) => current.map((row) => ({ ...row, logoUrl: logoMap.get(row.id) || row.logoUrl || '' })));
     const active=companies.filter((item:any)=>item.status==='active').length,joined=companies.filter((item:any)=>item.created_at>=startIso&&item.created_at<nextIso).length,exited=companies.filter((item:any)=>item.closed_at&&item.closed_at>=startIso&&item.closed_at<nextIso).length;
     setMetrics({active,joined,exited,net:joined-exited}); setLoading(false);
+    void Promise.all(rows.map(async (row) => [row.id, await resolveLogo(companies.find((item:any) => item.id === row.id)?.logo_url)] as const)).then((logoRows) => {
+      const logoMap = new Map(logoRows);
+      setClients((current) => current.map((row) => ({ ...row, logoUrl: logoMap.get(row.id) || row.logoUrl || '' })));
+    });
   }
   useEffect(()=>{ void loadClients(); },[]);
 
