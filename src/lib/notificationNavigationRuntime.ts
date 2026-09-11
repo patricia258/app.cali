@@ -3,10 +3,14 @@ import { supabase } from './supabase';
 let installed = false;
 let navigating = false;
 
-async function resolveNotificationByIndex(index: number) {
+async function resolveNotification(id: string, index: number) {
   if (!supabase) return null;
   const { data: sessionData } = await supabase.auth.getSession();
   if (!sessionData.session?.user) return null;
+  if (id && !id.startsWith('demo-')) {
+    const { data } = await supabase.from('notifications').select('id,action_url,created_at').eq('id', id).eq('user_id', sessionData.session.user.id).maybeSingle();
+    return data || null;
+  }
   const { data } = await supabase
     .from('notifications')
     .select('id,action_url,created_at')
@@ -29,7 +33,7 @@ export function installNotificationNavigationRuntime() {
     if (index < 0) return;
 
     window.setTimeout(async () => {
-      const notification = await resolveNotificationByIndex(index);
+      const notification = await resolveNotification(item.dataset.notificationId || '', index);
       const url = String(notification?.action_url || '').trim();
       if (!url || !url.startsWith('/')) return;
       navigating = true;
