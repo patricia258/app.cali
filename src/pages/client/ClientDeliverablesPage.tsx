@@ -397,6 +397,8 @@ export function ClientDeliverablesPage() {
     if (document.driveUrl) window.open(document.driveUrl, '_blank', 'noopener,noreferrer');
   }
 
+  if(loading)return <Shell role="client"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando cronograma…</section></Shell>;
+
   return <Shell role="client">
     <section className="page client-roadmap-page-v33">
       <header className="client-roadmap-heading-v33">
