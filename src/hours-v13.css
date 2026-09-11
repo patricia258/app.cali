@@ -15,3 +15,30 @@
 @media(max-width:1280px){.global-timers-primary .global-timer-chip:nth-child(3){display:none}.global-timers-primary{max-width:520px}.global-timer-copy{max-width:68px}}
 @media(max-width:980px){.global-timers-mark{display:none}.global-timers-primary .global-timer-chip:nth-child(n+2){display:none}.global-timer-copy{display:none}.global-timer-chip{padding-left:3px}.global-timer-clock{font-size:11px}}
 @media(max-width:760px){.hours-connect-header{align-items:stretch;flex-direction:column}.hours-v13-header-actions{justify-content:flex-start}.hours-v13-header-actions .hours-connect-period{flex:1}.hours-v13-timer-row{grid-template-columns:auto minmax(0,1fr)}.hours-v13-clock{grid-column:2;text-align:left}.hours-v13-timer-actions{grid-column:1/-1;justify-content:flex-start}.hours-v13-start-grid{grid-template-columns:1fr}.hours-v13-start-grid .hours-v13-description{grid-column:auto}.hours-v13-start-footer{align-items:stretch;flex-direction:column}.hours-v13-start-footer .primary{width:100%;justify-content:center}.hours-v13-usage-list>article{grid-template-columns:auto minmax(0,1fr)}.hours-v13-usage-bar,.hours-v13-usage-value{grid-column:1/-1}.hours-v13-usage-value{justify-content:flex-start;text-align:left}.hours-v13-client-toggle{grid-column:1/-1;width:100%}.hours-v13-secondary-actions{grid-template-columns:1fr}.hours-v13-extract-head{align-items:stretch;flex-direction:column}.hours-v13-extract-head .secondary{width:max-content}.hours-v13-logo{width:42px;height:42px}.global-timers{max-width:210px}.global-timer-logo{display:none}.global-timer-control{width:24px;height:24px}.global-timers-primary{max-width:170px}.global-context-timer{width:100%;justify-content:flex-end}.project-timer-message{max-width:100%;width:100%;text-align:right}.task-list-v2 article:has(.task-inline-timer){grid-template-columns:28px minmax(0,1fr) auto auto}.task-inline-timer{grid-column:4}.task-inline-timer>button span{display:none}.project-timer-controls.compact .project-timer-live{display:none}}
+
+/* Hours V14: less repetition, monthly visibility, and calmer client extract. */
+.hours-v13-visibility-panel{margin:0 0 16px;border:1px solid var(--theme-line);border-radius:13px;background:var(--theme-surface);overflow:hidden}
+.hours-v13-visibility-panel>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;cursor:pointer;list-style:none}
+.hours-v13-visibility-panel>summary::-webkit-details-marker{display:none}
+.hours-v13-visibility-panel>summary>span:first-child{display:grid;gap:3px}
+.hours-v13-visibility-panel>summary strong{font-size:13px;color:var(--theme-text)}
+.hours-v13-visibility-panel>summary small{font-size:11.5px;color:var(--theme-muted)}
+.hours-v13-visibility-month{padding:6px 9px;border-radius:8px;background:var(--theme-surface-soft);font-size:11px;color:var(--theme-muted)}
+.hours-v13-visibility-list{border-top:1px solid var(--theme-line)}
+.hours-v13-visibility-list>article{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;border-bottom:1px solid var(--theme-line)}
+.hours-v13-visibility-list>article:last-child{border-bottom:0}
+.hours-v13-visibility-list>article>div{display:grid;gap:3px;min-width:0}
+.hours-v13-visibility-list>article strong{font-size:13px;color:var(--theme-text)}
+.hours-v13-visibility-list>article small{font-size:11.5px;color:var(--theme-muted)}
+.hours-v13-visibility-list .hours-v13-client-toggle{min-width:185px}
+.hours-v13-client-toggle.active{border-color:color-mix(in srgb,#47775f 35%,var(--theme-line));background:color-mix(in srgb,#47775f 7%,var(--theme-surface))}
+.client-hours-alert-text.warning{margin:11px 0 0;padding:9px 11px;border-radius:9px;background:color-mix(in srgb,#B58C52 10%,var(--theme-surface));color:#765b27;font-size:12.5px}
+.client-hours-table th,.client-hours-table td{white-space:nowrap}
+.client-hours-table th:nth-child(5),.client-hours-table td:nth-child(5){min-width:220px;white-space:normal}
+.client-hours-table th:nth-child(6),.client-hours-table td:nth-child(6){min-width:190px;white-space:normal}
+.client-hours-table th:nth-child(7),.client-hours-table td:nth-child(7){min-width:84px}
+.client-hours-table td:nth-child(6) small{display:block;margin-top:3px;color:var(--theme-muted);font-size:11px}
+.client-hours-table td:nth-child(7){color:var(--theme-muted)}
+.client-hours-detail strong{margin-right:7px}
+.client-hours-detail em{font-style:normal;color:var(--theme-accent)}
+@media(max-width:760px){.hours-v13-visibility-panel>summary{align-items:flex-start;flex-direction:column}.hours-v13-visibility-list>article{align-items:stretch;flex-direction:column}.hours-v13-visibility-list .hours-v13-client-toggle{width:100%}}
