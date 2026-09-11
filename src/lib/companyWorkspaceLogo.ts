@@ -211,8 +211,9 @@ export async function uploadWorkspaceLogo(company: CompanyLogoRecord, blob: Blob
 
 export async function ensureCompanyWorkspaceLogo(company: CompanyLogoRecord) {
   if (!company.logo_url || company.logo_workspace_url || !supabase) return company.logo_workspace_url || '';
+  const client = supabase;
   const job = ensureQueue.then(async () => {
-    const fresh = await supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url,logo_workspace_generated_at,status').eq('id', company.id).maybeSingle();
+    const fresh = await client.from('companies').select('id,display_name,logo_url,logo_workspace_url,logo_workspace_generated_at,status').eq('id', company.id).maybeSingle();
     const row = fresh.data as CompanyLogoRecord | null;
     if (!row?.logo_url || row.logo_workspace_url) return row?.logo_workspace_url || '';
     const blob = await createWorkspaceLogoFromUrl(row.logo_url);
@@ -264,3 +265,4 @@ export const companyWorkspaceVisual = {
   mark: WORKSPACE_MARK,
   version: STYLE_VERSION,
 };
+
