@@ -129,22 +129,21 @@ export function installCalendarSyncGuard() {
     .calendar-sync-toast.success{border-left:4px solid #4e8a68}.calendar-sync-toast.warning{border-left:4px solid #b58c52}.calendar-sync-toast.error{border-left:4px solid #9c3d4d}
     [data-workspace-theme='night'] .calendar-sync-toast{background:#21191d;border-color:#49373e;color:#f3eeeb}
 
-    .calendar-workspace-strip,
-    html[data-workspace-theme='night'] .calendar-workspace-strip{
-      background:rgba(255,253,249,.97)!important;
-      border:1px solid rgba(181,140,82,.38)!important;
-      box-shadow:0 12px 30px rgba(49,31,25,.055)!important;
+    .calendar-workspace-strip{
+      background:linear-gradient(135deg,#FFF0B8 0%,#E7C66F 56%,#F7DFA0 100%)!important;
+      border:1px solid #C89E3F!important;
+      box-shadow:0 14px 32px rgba(83,59,29,.14)!important;
     }
-    .calendar-workspace-strip strong,
-    html[data-workspace-theme='night'] .calendar-workspace-strip strong{color:#2b2b2b!important}
-    .calendar-workspace-strip p,
-    html[data-workspace-theme='night'] .calendar-workspace-strip p{color:#6e6360!important}
-    .calendar-workspace-icon,
-    html[data-workspace-theme='night'] .calendar-workspace-icon{background:rgba(181,140,82,.12)!important;color:#5a1e2d!important}
-    .calendar-workspace-strip .calendar-connection-status,
-    html[data-workspace-theme='night'] .calendar-workspace-strip .calendar-connection-status{background:#f4efe9!important;color:#6e6360!important}
-    .calendar-workspace-strip .calendar-connection-status.connected,
-    html[data-workspace-theme='night'] .calendar-workspace-strip .calendar-connection-status.connected{background:rgba(53,100,72,.09)!important;color:#356448!important}
+    .calendar-workspace-strip strong{color:#2E251D!important}
+    .calendar-workspace-strip p{color:#5B4931!important}
+    .calendar-workspace-icon{background:#5A1E2D!important;color:#FFF!important}
+    .calendar-workspace-strip .calendar-connection-status{background:rgba(255,253,249,.62)!important;color:#5B4931!important}
+    .calendar-workspace-strip .calendar-connection-status.connected{background:rgba(53,100,72,.13)!important;color:#356448!important}
+    html[data-workspace-theme='night'] .calendar-workspace-strip{background:linear-gradient(135deg,#5D4527 0%,#8D6B38 54%,#6B512E 100%)!important;border-color:#C79D52!important;color:#FFF8E6!important}
+    html[data-workspace-theme='night'] .calendar-workspace-strip strong{color:#FFF8E6!important}
+    html[data-workspace-theme='night'] .calendar-workspace-strip p{color:#F6E8C6!important}
+    html[data-workspace-theme='night'] .calendar-workspace-strip .calendar-connection-status{background:rgba(35,25,18,.34)!important;color:#F6E8C6!important}
+    html[data-workspace-theme='night'] .calendar-workspace-strip .calendar-connection-status.connected{background:rgba(220,241,222,.16)!important;color:#E0F0E2!important}
   `;
   document.head.appendChild(style);
 
