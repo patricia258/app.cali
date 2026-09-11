@@ -3,6 +3,7 @@ import { ArrowUpRight, CalendarDays, Clock3, FileCheck2, Loader2 } from 'lucide-
 import { ClientGoogleCalendarPanel } from '../../components/ClientGoogleCalendarPanel';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
+import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 
 type Slot = { startsAt: string; endsAt?: string | null };
 
@@ -126,6 +127,7 @@ function futureCountText(count: number) {
 }
 
 export function ClientTimelinePage() {
+  const { user } = useWorkspaceAuth();
   const [events, setEvents] = useState<ClientEvent[]>([]);
   const [deliverables, setDeliverables] = useState<ClientDeliverable[]>([]);
   const [requests, setRequests] = useState<ClientSchedulingRequest[]>([]);
@@ -148,15 +150,13 @@ export function ClientTimelinePage() {
     setLoading(true);
     setError('');
     try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      const userId = userData.user?.id;
+      const userId = user?.id;
       if (!userId) throw new Error('Sessão do cliente não encontrada.');
 
       const profile = await supabase.from('profiles').select('company_id,email').eq('id', userId).maybeSingle();
       if (profile.error) throw profile.error;
       const companyId = profile.data?.company_id;
-      const clientEmail = String(profile.data?.email || userData.user?.email || '').trim().toLowerCase();
+      const clientEmail = String(profile.data?.email || user?.email || '').trim().toLowerCase();
       if (!companyId) throw new Error('Este acesso ainda não está vinculado a uma empresa.');
 
       const [eventResult, deliverableResult, requestResult] = await Promise.all([
@@ -191,21 +191,24 @@ export function ClientTimelinePage() {
       setEvents(nextEvents);
       setDeliverables((deliverableResult.data || []) as ClientDeliverable[]);
       setRequests((requestResult.data || []) as ClientSchedulingRequest[]);
+      setLoading(false);
 
-      await refreshGoogleStatuses(nextEvents);
+      void refreshGoogleStatuses(nextEvents);
       if (nextEvents.length && clientEmail) {
-        const attendeeResult = await supabase
-          .from('event_attendees')
-          .select('event_id,email,status')
-          .in('event_id', nextEvents.map((event) => event.id))
-          .eq('email', clientEmail);
-        if (!attendeeResult.error) {
-          const nextStatuses: Record<string, AttendeeStatus> = {};
-          for (const attendee of attendeeResult.data || []) {
-            nextStatuses[String(attendee.event_id)] = String(attendee.status || 'pending') as AttendeeStatus;
+        void (async () => {
+          const attendeeResult = await supabase
+            .from('event_attendees')
+            .select('event_id,email,status')
+            .in('event_id', nextEvents.map((event) => event.id))
+            .eq('email', clientEmail);
+          if (!attendeeResult.error) {
+            const nextStatuses: Record<string, AttendeeStatus> = {};
+            for (const attendee of attendeeResult.data || []) {
+              nextStatuses[String(attendee.event_id)] = String(attendee.status || 'pending') as AttendeeStatus;
+            }
+            setAttendeeStatus(nextStatuses);
           }
-          setAttendeeStatus(nextStatuses);
-        }
+        })();
       }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar a agenda compartilhada.');
