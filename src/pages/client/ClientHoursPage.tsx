@@ -192,7 +192,6 @@ export function ClientHoursPage() {
 
       {summary && !summary.visible ? <><section className="hours-connect-card client-hours-disabled"><Clock3 size={24} /><div><strong>A visualização de horas não está habilitada para este mês.</strong><p>Os meses já liberados continuam disponíveis para consulta. Selecione outro mês abaixo.</p><label className="client-hours-disabled-month"><span>Consultar mês</span><input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></label></div></section></> : summary && <>
         <section className="hours-connect-card client-hours-summary client-hours-summary-gold">
-          <img className="client-hours-summary-mark" src="/brand/cali-oak-mark.svg" alt="" aria-hidden="true" />
           {alertTone === 'critical' && <div className="client-hours-alert critical"><AlertTriangle size={18} /><span>{alertText}</span></div>}
           <div className="client-hours-summary-top">
             <div><span>Horas do mês</span><h2>{monthLabel(period)}</h2></div>
