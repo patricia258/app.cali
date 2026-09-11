@@ -137,7 +137,7 @@ export function ClientDashboard() {
       const nowIso = new Date().toISOString();
       const [companyResult, deliveryReality, eventResult, reportResult, contactResult] = await Promise.all([
         supabase.from('companies').select('id,display_name,logo_url,service_type,service_plan,start_date,end_date,monthly_hours_contracted,show_hours_to_client').eq('id', companyId).single(),
-        loadClientDeliveryReality(companyId),
+        loadClientDashboardReality(companyId),
         supabase.from('events').select('id,title,starts_at,mode,meeting_url').eq('company_id', companyId).eq('visibility', 'client').is('cancelled_at', null).gte('starts_at', nowIso).order('starts_at').limit(3),
         supabase.from('reports').select('id').eq('company_id', companyId).not('published_at', 'is', null),
         supabase.rpc('get_client_account_contact'),
