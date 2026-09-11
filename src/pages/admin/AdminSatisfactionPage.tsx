@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowUpRight, BarChart3, CalendarRange, CheckCircle2, Clock3, MessageSquareText, RefreshCw, Star, UserRound } from 'lucide-react';
+import { ArrowUpRight, BarChart3, CalendarRange, Clock3, MessageSquareText, RefreshCw, Star, UserRound } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { resolveCompanyAsset } from '../../lib/companyWorkspaceLogo';
 import { supabase } from '../../lib/supabase';
@@ -130,20 +130,19 @@ export function AdminSatisfactionPage(){
       <section className="panel satisfaction-source-panel-v40"><div className="panel-title"><div><span className="section-kicker">ORIGEM DA AVALIAÇÃO</span><h2>De onde o feedback está vindo</h2></div><Clock3 size={18}/></div><div className="satisfaction-source-list-v40">{sourceSeries.map((item)=><div key={item.key}><span>{item.label}</span><strong>{item.count}</strong><div><i style={{width:`${periodFiltered.length?item.count/periodFiltered.length*100:0}%`}}/></div></div>)}</div><p className="satisfaction-chart-note-v40">A avaliação nasce ao aprovar um entregável ou ao finalizar uma solicitação visível ao cliente. As duas fontes são consolidadas aqui sem misturar o contexto original.</p></section>
     </div>
 
-    <section className="panel satisfaction-flow-panel-v40"><div className="panel-title"><div><span className="section-kicker">FLUXO DO DADO</span><h2>Como a avaliação chega a esta página</h2></div><CheckCircle2 size={18}/></div><div className="satisfaction-flow-steps-v40"><div><b>01</b><strong>Momento da experiência</strong><span>Entregável aprovado ou solicitação finalizada.</span></div><div><b>02</b><strong>Cliente responde</strong><span>Nota de 1 a 5 e comentário quando necessário.</span></div><div><b>03</b><strong>Workspace registra</strong><span>Origem, cliente, respondente, data, protocolo e vínculo.</span></div><div><b>04</b><strong>CALI interpreta</strong><span>Distribuição, tendência e prioridade de ação.</span></div></div></section>
-
     <section className="panel satisfaction-response-panel-v39">
       <div className="panel-title"><div><span className="section-kicker">RESPOSTAS</span><h2>Todas as avaliações do período</h2></div><span>{filtered.length} {filtered.length===1?'resposta':'respostas'}</span></div>
-      {loading?<div className="data-loading">Carregando avaliações…</div>:filtered.length?<div className="satisfaction-response-list-v39">{filtered.map((row)=>{
-        const href=row.sourceType==='record'&&row.entityId?`/admin/registros?record=${encodeURIComponent(row.entityId)}`:'/admin/projetos';
-        return <article key={`${row.sourceType}-${row.id}`}>
-          <div className="satisfaction-company-v39"><span className="workspace-company-logo-tile-v39" style={{width:62,height:62,minWidth:62,display:'grid',placeItems:'center',overflow:'hidden',borderRadius:15,flex:'0 0 62px',boxSizing:'border-box',background:'#F7F3EE',border:'1px solid #E3D7CE'}}>{row.companyLogoResolved?<img src={row.companyLogoResolved} alt="" style={{width:'100%',height:'100%',display:'block',objectFit:'cover',borderRadius:'inherit'}}/>:<strong>{initials(row.company)}</strong>}</span><div><strong>{row.company}</strong><small>{sourceLabel(row.sourceType)}</small></div></div>
-          <div className="satisfaction-score-v39"><strong>{row.score}/5</strong><span>{scoreLabel(row.score)}</span></div>
-          <div className="satisfaction-feedback-v39"><strong>{row.title||row.protocol||'Avaliação do cliente'}</strong><p>{row.comment?.trim()||'Sem comentário adicional.'}</p><small>{formatDate(row.createdAt)}</small></div>
-          <div className="satisfaction-responder-v39"><span style={{width:52,height:52,minWidth:52,display:'grid',placeItems:'center',padding:4,flex:'0 0 52px',overflow:'hidden',borderRadius:16,boxSizing:'border-box',border:'1px solid rgba(90,30,45,.24)',background:'transparent'}}><span className="satisfaction-responder-avatar-v48 profile-person-frame-v47" style={{width:42,height:42,minWidth:42,display:'grid',placeItems:'center',flex:'0 0 42px',overflow:'hidden',borderRadius:12}}>{row.responderAvatarResolved?<img src={row.responderAvatarResolved} alt="" style={{width:'100%',height:'100%',display:'block',objectFit:'cover'}}/>:initials(row.responderName)}</span></span><div><strong>{row.responderName||'Cliente'}</strong><small>respondente</small></div></div>
-          <a href={href} aria-label="Abrir origem">Abrir <ArrowUpRight size={15}/></a>
-        </article>;
-      })}</div>:<div className="satisfaction-empty-v39">Nenhuma avaliação encontrada com os filtros atuais.</div>}
+      {loading?<div className="data-loading">Carregando avaliações…</div>:filtered.length?<div className="satisfaction-table-wrap-v41"><table className="satisfaction-table-v41"><thead><tr><th>Cliente</th><th>Nota</th><th>Comentário</th><th>Data</th><th>Tipo</th><th>Registro relacionado</th></tr></thead><tbody>{filtered.map((row)=>{
+        const href=row.sourceType==='record'&&row.entityId?`/admin/registros?record=${encodeURIComponent(row.entityId)}`:row.sourceType==='deliverable'&&row.entityId?`/admin/projetos?deliverable=${encodeURIComponent(row.entityId)}`:'';
+        return <tr key={`${row.sourceType}-${row.id}`}>
+          <td><div className="satisfaction-table-client-v41"><span className="workspace-company-logo-tile-v39">{row.companyLogoResolved?<img src={row.companyLogoResolved} alt=""/>:<strong>{initials(row.company)}</strong>}</span><span><strong>{row.company}</strong><small>{row.responderName||'Cliente'}</small></span></div></td>
+          <td><div className="satisfaction-table-score-v41"><strong>{row.score}/5</strong><small>{scoreLabel(row.score)}</small></div></td>
+          <td><div className="satisfaction-table-comment-v41"><strong>{row.title||'Avaliação do cliente'}</strong><span>{row.comment?.trim()||'Sem comentário adicional.'}</span></div></td>
+          <td><time>{formatDate(row.createdAt)}</time></td>
+          <td><span className={`satisfaction-source-chip-v41 ${row.sourceType}`}>{sourceLabel(row.sourceType)}</span></td>
+          <td>{href?<a className="satisfaction-record-link-v41" href={href}>{row.protocol||'Ver registro'} <ArrowUpRight size={14}/></a>:<span className="satisfaction-no-record-v41">Sem vínculo</span>}</td>
+        </tr>;
+      })}</tbody></table></div>:<div className="satisfaction-empty-v39">Nenhuma avaliação encontrada com os filtros atuais.</div>}
     </section>
   </section></Shell>;
 }
