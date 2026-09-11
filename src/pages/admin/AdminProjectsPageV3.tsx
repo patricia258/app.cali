@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
+import { optimizeImageForUpload } from '../../lib/imageUpload';
 import {
   complexityMeta, deliverableLabels, formatProjectDate, previewProjects, projectPlanningLabels,
   projectProgress, type DeliverableStatus, type MaterialComplexity, type ProjectDeliverable,
@@ -330,7 +331,7 @@ export function AdminProjectsPageV3() {
 
   async function sendMessage(){
     if(!selectedDeliverable||(!messageText.trim()&&!messageFile))return; const body=messageText.trim()||`Anexo: ${messageFile?.name}`; const visible=conversationChannel==='client';
-    if(supabase&&isUuid(selectedDeliverable.id)){ const {data:user}=await supabase.auth.getUser(); let attachmentNote=''; if(messageFile){ const path=`${selectedProject.companyId}/deliverables/${selectedDeliverable.id}/${Date.now()}-${messageFile.name.replace(/[^A-Za-z0-9._-]/g,'_')}`; const upload=await supabase.storage.from('cali-workspace-private').upload(path,messageFile); if(!upload.error){await supabase.from('files').insert({company_id:selectedProject.companyId,project_id:selectedProject.id,deliverable_id:selectedDeliverable.id,title:messageFile.name,category:'deliverable',storage_path:path,original_filename:messageFile.name,file_type:messageFile.type,file_size_bytes:messageFile.size,client_visible:visible,status:'published'});attachmentNote=`\nAnexo: ${messageFile.name}`;}}
+    if(supabase&&isUuid(selectedDeliverable.id)){ const {data:user}=await supabase.auth.getUser(); let attachmentNote=''; if(messageFile){ const prepared=messageFile.type.startsWith('image/')?await optimizeImageForUpload(messageFile,'attachment'):{blob:messageFile,contentType:messageFile.type||'application/octet-stream',extension:messageFile.name.split('.').pop()?.toLowerCase()||'bin'}; const safeName=messageFile.name.replace(/[^A-Za-z0-9._-]/g,'_'); const storedName=messageFile.type.startsWith('image/')?`${safeName.replace(/\.[^.]+$/,'')}.webp`:safeName; const path=`${selectedProject.companyId}/deliverables/${selectedDeliverable.id}/${Date.now()}-${storedName}`; const upload=await supabase.storage.from('cali-workspace-private').upload(path,prepared.blob,{contentType:prepared.contentType,cacheControl:messageFile.type.startsWith('image/')?'31536000':'3600'}); if(!upload.error){await supabase.from('files').insert({company_id:selectedProject.companyId,project_id:selectedProject.id,deliverable_id:selectedDeliverable.id,title:messageFile.name,category:'deliverable',storage_path:path,original_filename:messageFile.name,file_type:prepared.contentType,file_size_bytes:prepared.blob.size,client_visible:visible,status:'published'});attachmentNote=`\nAnexo: ${messageFile.name}`;}}
       const {error}=await supabase.from('comments').insert({company_id:selectedProject.companyId,target_type:'deliverable',target_id:selectedDeliverable.id,author_user_id:user.user?.id||null,body:`${body}${attachmentNote}`,client_visible:visible}); if(error)console.error(error); await loadDeliverableContext(selectedDeliverable.id);
     } else setComments((c)=>[...c,{id:`preview-comment-${Date.now()}`,body:messageFile?`${body}\nAnexo: ${messageFile.name}`:body,clientVisible:visible,createdAt:new Date().toISOString(),author:'Patrícia · CALI',reactions:{},mine:[]}]);
     setMessageText('');setMessageFile(null);
