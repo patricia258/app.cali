@@ -14,6 +14,12 @@ const WORKSPACE_MARK = '#5A1E2D';
 const TILE_SIZE = 256;
 const STYLE_VERSION = 1;
 const signedCache = new Map<string, { url: string; expiresAt: number }>();
+type CompanyLogoRegistry = {
+  byId: Map<string, { raw: string; resolved: string; name: string }>;
+  byName: Map<string, { raw: string; resolved: string; id: string }>;
+};
+let registryCache: { value: CompanyLogoRegistry; expiresAt: number } | null = null;
+let registryPromise: Promise<CompanyLogoRegistry> | null = null;
 let ensureQueue: Promise<unknown> = Promise.resolve();
 
 function clamp(value: number, min = 0, max = 1) {
@@ -219,19 +225,31 @@ export async function ensureCompanyWorkspaceLogo(company: CompanyLogoRecord) {
   return job;
 }
 
-export async function loadCompanyLogoRegistry() {
-  const byId = new Map<string, { raw: string; resolved: string; name: string }>();
-  const byName = new Map<string, { raw: string; resolved: string; id: string }>();
-  if (!supabase) return { byId, byName };
-  const result = await supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url,status').order('display_name');
-  if (result.error) return { byId, byName };
-  for (const row of (result.data || []) as CompanyLogoRecord[]) {
-    const raw = row.logo_workspace_url || '';
-    const resolved = raw ? await resolveCompanyAsset(raw) : '';
-    byId.set(row.id, { raw, resolved, name: row.display_name });
-    byName.set(row.display_name.trim().toLocaleLowerCase('pt-BR'), { raw, resolved, id: row.id });
-  }
-  return { byId, byName };
+export async function loadCompanyLogoRegistry(): Promise<CompanyLogoRegistry> {
+  if (!supabase) return { byId: new Map(), byName: new Map() };
+  if (registryCache && registryCache.expiresAt > Date.now()) return registryCache.value;
+  if (registryPromise) return registryPromise;
+
+  registryPromise = (async () => {
+    const byId = new Map<string, { raw: string; resolved: string; name: string }>();
+    const byName = new Map<string, { raw: string; resolved: string; id: string }>();
+    const result = await supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url,status').order('display_name');
+    if (!result.error) {
+      for (const row of (result.data || []) as CompanyLogoRecord[]) {
+        const raw = row.logo_workspace_url || '';
+        const resolved = raw ? await resolveCompanyAsset(raw) : '';
+        byId.set(row.id, { raw, resolved, name: row.display_name });
+        byName.set(row.display_name.trim().toLocaleLowerCase('pt-BR'), { raw, resolved, id: row.id });
+      }
+    }
+    const value = { byId, byName };
+    registryCache = { value, expiresAt: Date.now() + 5_000 };
+    return value;
+  })().finally(() => {
+    registryPromise = null;
+  });
+
+  return registryPromise;
 }
 
 export async function backfillWorkspaceLogos(limit = 3) {
