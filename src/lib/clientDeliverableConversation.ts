@@ -42,7 +42,8 @@ export async function sendClientDeliverableMessage(deliverableId: string, body: 
 
 export function subscribeClientDeliverableConversation(deliverableId: string, onChange: () => void) {
   if (!supabase || !deliverableId) return () => undefined;
-  const channel = supabase
+  const client = supabase;
+  const channel = client
     .channel(`client-deliverable-conversation-${deliverableId}`)
     .on('postgres_changes', {
       event: '*',
@@ -52,5 +53,6 @@ export function subscribeClientDeliverableConversation(deliverableId: string, on
     }, onChange)
     .subscribe();
 
-  return () => { void supabase.removeChannel(channel); };
+  return () => { void client.removeChannel(channel); };
 }
+
