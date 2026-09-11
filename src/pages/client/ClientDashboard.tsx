@@ -8,6 +8,7 @@ import {
 import { Progress, Shell } from '../../components/WorkspaceShell';
 import { loadClientDeliveryReality, subscribeClientDeliveryReality } from '../../lib/clientDeliveryReality';
 import { supabase } from '../../lib/supabase';
+import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 
 type Company = {
   id: string;
@@ -92,6 +93,7 @@ function CompletionDonut({ value }: { value: number }) {
 }
 
 export function ClientDashboard() {
+  const { user } = useWorkspaceAuth();
   const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, nps: null, npsCount: 0, completionPct: 0, reportCount: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -124,9 +126,7 @@ export function ClientDashboard() {
     if (showLoading) setLoading(true);
     setError('');
     try {
-      const userResult = await supabase.auth.getUser();
-      if (userResult.error) throw userResult.error;
-      const userId = userResult.data.user?.id;
+      const userId = user?.id;
       if (!userId) throw new Error('Sessão do cliente não encontrada.');
 
       const profileResult = await supabase.from('profiles').select('full_name,company_id').eq('id', userId).maybeSingle();
