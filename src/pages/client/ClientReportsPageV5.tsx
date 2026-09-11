@@ -158,6 +158,8 @@ export function ClientReportsPageV5(){
     }finally{setAcknowledging(false);}
   }
 
+  if(loading) return <Shell role="client"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando leitura executiva…</section></Shell>;
+
   return <Shell role="client"><section className="page client-reports-v56 client-reports-v57">
     <div className="eyebrow">LEITURA EXECUTIVA</div>
     <div className="page-heading"><div><h1>Relatórios</h1><p>Consulte os fechamentos liberados pela CALI e abra o documento quando precisar.</p></div></div>
