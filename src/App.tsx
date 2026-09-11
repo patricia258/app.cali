@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute, WorkspaceRouteLoader } from './components/ProtectedRoute';
+import { Shell } from './components/WorkspaceShell';
 
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage').then((m) => ({ default: m.AuthCallbackPage })));
@@ -31,6 +32,16 @@ const ClientDocumentsPage = lazy(() => import('./pages/client/ClientDocumentsPag
 const ClientReportsPageV5 = lazy(() => import('./pages/client/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 })));
 const ReportPrintPageV17 = lazy(() => import('./pages/reports/ReportPrintPageV17').then((m) => ({ default: m.ReportPrintPageV17 })));
 
+function WorkspaceNavigationFallback() {
+  const { pathname } = useLocation();
+  const role = pathname.startsWith('/cliente') ? 'client' : 'admin';
+  return (
+    <Shell role={role}>
+      <WorkspaceRouteLoader />
+    </Shell>
+  );
+}
+
 function prefetchLikelyRoutes() {
   const path = window.location.pathname;
   const schedule = window.setTimeout(() => {
@@ -60,7 +71,7 @@ function AppRoutes() {
   useEffect(() => prefetchLikelyRoutes(), []);
 
   return (
-    <Suspense fallback={<WorkspaceRouteLoader />}>
+    <Suspense fallback={<WorkspaceNavigationFallback />}>
       <Routes>
         <Route path="/" element={<LoginPage/>}/>
         <Route path="/auth/callback" element={<AuthCallbackPage/>}/>
