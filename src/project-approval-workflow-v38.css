@@ -152,3 +152,46 @@
   .client-project-review-v38.client_review .client-review-actions-v38{display:grid;grid-template-columns:1fr}
   .client-project-review-v38.client_review .client-review-actions-v38 button{width:100%}
 }
+
+/* V52 · aprovação pendente no admin + leitura contextual do roadmap */
+.project-review-banner-v38.client_review{
+  position:relative;overflow:hidden;align-items:center;padding:20px 22px;
+  border-color:rgba(181,140,82,.58);
+  background:radial-gradient(circle at 88% 20%,rgba(255,255,255,.28),transparent 24%),linear-gradient(135deg,#fff1bd 0%,#f8df91 58%,#f3d27d 100%);
+  box-shadow:0 12px 30px rgba(181,140,82,.13);
+}
+.project-review-banner-v38.client_review::before{content:"";position:absolute;right:-36px;top:-70px;width:220px;height:220px;background:#5A1E2D;opacity:.055;-webkit-mask:url('/brand/cali-oak-mark.svg') center/contain no-repeat;mask:url('/brand/cali-oak-mark.svg') center/contain no-repeat;transform:rotate(9deg);pointer-events:none}
+.project-review-banner-v38.client_review::after{content:"";position:absolute;left:0;top:0;width:100%;height:3px;background:linear-gradient(90deg,#5A1E2D 0%,#B58C52 48%,rgba(181,140,82,.2) 100%);pointer-events:none}
+.project-review-banner-v38.client_review>div{position:relative;z-index:1}
+.project-review-banner-v38.client_review>div:first-child{gap:5px;flex:1}
+.project-review-banner-v38.client_review>div:first-child>span{color:#6f3243;font-size:9px}
+.project-review-banner-v38.client_review strong{font-size:15px;color:#302426}
+.project-review-banner-v38.client_review p{font-size:11px;color:#66534b}
+.review-banner-meta-v40{display:flex;align-items:stretch;gap:0;min-width:350px}
+.review-banner-meta-v40>div{display:grid;gap:3px;padding:0 14px;border-left:1px solid rgba(90,30,45,.17)}
+.review-banner-meta-v40>div:first-child{padding-left:0;border-left:0}
+.review-banner-meta-v40 span{font-size:8px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#896b3d}
+.review-banner-meta-v40 b{font-size:11px;color:#403331;white-space:nowrap}
+.review-banner-actions-v40{display:flex;position:relative;z-index:1}
+.review-banner-actions-v40 button{min-height:40px;border:1px solid rgba(90,30,45,.28);border-radius:11px;background:#5A1E2D;color:#fff;padding:0 14px;font-weight:800;cursor:pointer;box-shadow:0 6px 14px rgba(90,30,45,.12)}
+.review-banner-actions-v40 button:hover{background:#461522}
+.workflow-warning-v40{display:grid;gap:5px;padding:12px 13px;border:1px solid rgba(181,140,82,.42);border-radius:12px;background:rgba(181,140,82,.1)}
+.workflow-warning-v40 strong{font-size:12px}.workflow-warning-v40 p{margin:0;font-size:10.5px;line-height:1.45;color:var(--theme-muted)}
+.workflow-toast-v40{position:fixed;right:24px;bottom:24px;z-index:16000;padding:13px 17px;border:1px solid rgba(53,100,72,.28);border-radius:12px;background:#f0f8f1;color:#356448;box-shadow:0 14px 30px rgba(32,20,24,.16);font-size:12px;font-weight:800}
+.workflow-toast-v40.error{border-color:rgba(156,54,78,.3);background:#fff2f5;color:#8e3d52}
+.mc-legend-v40{position:relative;display:flex;align-items:center;gap:7px}
+.mc-legend-v40>span{padding:7px 10px;border-radius:9px;background:var(--theme-surface-soft);font-size:10px;font-weight:900;color:#6d4450}
+.roadmap-help-trigger-v40{position:relative;display:grid;place-items:center;width:28px;height:28px;margin-left:3px;border:1px solid var(--theme-line);border-radius:50%;background:var(--theme-surface);color:#6d4450;font-size:14px;font-weight:900;cursor:pointer}
+.roadmap-help-trigger-v40:hover,.roadmap-help-trigger-v40.open{border-color:#B58C52;color:#5A1E2D;background:#fff8e5}
+.roadmap-help-popover-v40{display:none;position:absolute;right:0;top:36px;width:245px;padding:13px;text-align:left;border:1px solid rgba(181,140,82,.4);border-radius:12px;background:var(--theme-surface);box-shadow:0 14px 30px rgba(32,20,24,.16);z-index:20;color:var(--theme-text)}
+.roadmap-help-trigger-v40.open .roadmap-help-popover-v40{display:grid;gap:8px}
+.roadmap-help-popover-v40 b{font-size:11px}.roadmap-help-popover-v40 i{font-style:normal;font-size:10px;line-height:1.4;color:var(--theme-muted)}.roadmap-help-popover-v40 strong{color:var(--theme-text)}
+[data-workspace-theme='night'] .project-review-banner-v38.client_review{border-color:rgba(214,174,103,.45);background:radial-gradient(circle at 88% 20%,rgba(181,140,82,.14),transparent 24%),linear-gradient(135deg,#3b2b21 0%,#30241f 58%,#28201c 100%);box-shadow:0 14px 34px rgba(0,0,0,.2)}
+[data-workspace-theme='night'] .project-review-banner-v38.client_review::before{background:#F7F3EE;opacity:.045}
+[data-workspace-theme='night'] .project-review-banner-v38.client_review>div:first-child>span,[data-workspace-theme='night'] .review-banner-meta-v40 span{color:#e0bd7b}
+[data-workspace-theme='night'] .project-review-banner-v38.client_review strong,[data-workspace-theme='night'] .review-banner-meta-v40 b{color:#f7efe5}
+[data-workspace-theme='night'] .project-review-banner-v38.client_review p{color:#d7c9bf}
+[data-workspace-theme='night'] .roadmap-help-popover-v40{background:#2b2023;border-color:rgba(214,174,103,.35)}
+[data-workspace-theme='night'] .workflow-toast-v40{background:#20382b;color:#c4e5cc}
+@media(max-width:950px){.review-banner-meta-v40{min-width:0;width:100%;}.project-review-banner-v38.client_review{align-items:flex-start;flex-wrap:wrap}.review-banner-actions-v40{margin-left:auto}}
+@media(max-width:620px){.review-banner-meta-v40{display:grid;grid-template-columns:1fr 1fr;gap:10px}.review-banner-meta-v40>div{padding:0;border-left:0}.review-banner-actions-v40{margin-left:0}.roadmap-help-popover-v40{right:-20px}}
