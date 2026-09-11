@@ -122,10 +122,12 @@ import './reports-v21-night-fix.css';
 
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
-startIdentityMediaRuntime();
+window.setTimeout(() => {
+  startIdentityMediaRuntime();
+  installCompanyWorkspaceIdentityRuntimeV39();
+}, 900);
 installNotificationNavigationRuntime();
 installNotificationExperienceRuntime();
-installCompanyWorkspaceIdentityRuntimeV39();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
