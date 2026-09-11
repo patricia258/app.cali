@@ -87,3 +87,10 @@
 @media(max-width:760px){
   .records-v13-drawer .records-chat-emoji-picker{left:0!important;right:auto!important;width:224px!important;}
 }
+
+/* Conversa: mais espaço para leitura, sem reações visuais no histórico. */
+.records-v13-drawer .records-message-reactions,
+.records-v13-drawer .reaction-bar-v3{display:none!important;}
+.records-v13-drawer .conversation-history{padding:28px 30px 24px!important;gap:20px!important;}
+.records-v13-drawer .conversation-compose textarea{min-height:104px!important;}
+@media(max-width:760px){.records-v13-drawer .conversation-history{padding:22px 16px 18px!important;}}
