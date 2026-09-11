@@ -405,6 +405,8 @@ export function AdminClientsPageV3() {
   const regIndex=registrationItems.findIndex((item)=>item.id===registrationTab);
   const closeProjection=lifecycle?.type==='close'?terminationProjection(lifecycle.client,lifecycleDate):null;
 
+  if(loading)return <Shell role="admin"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando carteira…</section></Shell>;
+
   return <Shell role="admin">
     <section className="page clients-page-v3">
       <div className="eyebrow">CARTEIRA CALI</div>
