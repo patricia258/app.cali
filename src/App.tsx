@@ -64,7 +64,7 @@ function prefetchLikelyRoutes() {
       void import('./pages/client/ClientHoursPage');
       void import('./pages/client/ClientDeliverablesPage');
     }
-  }, 1200);
+  }, 250);
 
   return () => window.clearTimeout(schedule);
 }
