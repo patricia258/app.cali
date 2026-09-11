@@ -6,6 +6,7 @@ import { resolveWorkspaceMedia } from '../lib/workspaceMedia';
 import { finalizeTimerWork, pauseTimerSession, TIMER_EVENT } from '../lib/timerSemantics';
 import { TimerFinalizationDialog, type TimerFinalizationTarget } from './TimerFinalizationDialog';
 import type { Role } from './WorkspaceShell';
+import { useWorkspaceAuth } from '../auth/WorkspaceAuthProvider';
 
 type TimerRow = {
   id: string; companyId: string; projectId?: string|null; deliverableId?: string|null; taskId?: string|null; accountRecordId?: string|null;
@@ -36,12 +37,13 @@ function openPendingOrigin(origin:PendingOrigin){
 }
 
 export function GlobalTimerBar({role}:{role:Role}){
+  const { user } = useWorkspaceAuth();
   const location=useLocation(),navigate=useNavigate();
   const [timers,setTimers]=useState<TimerRow[]>([]),[nowMs,setNowMs]=useState(Date.now()),[busyId,setBusyId]=useState<string|null>(null),[moreOpen,setMoreOpen]=useState(false),[domVersion,setDomVersion]=useState(0);
   const [pending,setPending]=useState<PendingFinalization>(null),[confirmStep,setConfirmStep]=useState<1|2>(1);const mounted=useRef(true);
 
   const load=useCallback(async()=>{
-    if(role!=='admin'||!supabase){setTimers([]);return;}const user=(await supabase.auth.getUser()).data.user;if(!user){setTimers([]);return;}
+    if(role!=='admin'||!supabase){setTimers([]);return;}if(!user){setTimers([]);return;}
     const timerResult=await supabase.from('work_timers').select('id,company_id,project_id,deliverable_id,task_id,account_record_id,started_at,paused_seconds,category,description').eq('user_id',user.id).eq('status','active').order('started_at',{ascending:true});
     if(timerResult.error||!timerResult.data?.length){if(mounted.current)setTimers([]);return;}
     const raw=timerResult.data as any[],companyIds=[...new Set(raw.map(r=>r.company_id).filter(Boolean))],projectIds=[...new Set(raw.map(r=>r.project_id).filter(Boolean))],deliverableIds=[...new Set(raw.map(r=>r.deliverable_id).filter(Boolean))],taskIds=[...new Set(raw.map(r=>r.task_id).filter(Boolean))],recordIds=[...new Set(raw.map(r=>r.account_record_id).filter(Boolean))];
@@ -55,7 +57,7 @@ export function GlobalTimerBar({role}:{role:Role}){
     const cm=new Map<string,any>((companies.data||[]).map((r:any)=>[r.id,r])),pm=new Map<string,any>((projects.data||[]).map((r:any)=>[r.id,r])),dm=new Map<string,any>((deliverables.data||[]).map((r:any)=>[r.id,r])),tm=new Map<string,any>((tasks.data||[]).map((r:any)=>[r.id,r])),rm=new Map<string,any>((records.data||[]).map((r:any)=>[r.id,r]));
     const next=await Promise.all(raw.map(async r=>{const c=cm.get(r.company_id),d=dm.get(r.deliverable_id);return{id:r.id,companyId:r.company_id,projectId:r.project_id,deliverableId:r.deliverable_id,taskId:r.task_id,accountRecordId:r.account_record_id,startedAt:r.started_at,pausedSeconds:Number(r.paused_seconds||0),category:r.category,description:r.description,companyName:c?.display_name||'Cliente',companyLogo:await resolveWorkspaceMedia(c?.logo_url||''),projectName:pm.get(r.project_id)?.name||null,deliverableName:d?.title||null,deliverableStatus:d?.status||null,taskName:tm.get(r.task_id)?.title||null,recordTitle:rm.get(r.account_record_id)?.title||null} as TimerRow;}));
     if(mounted.current)setTimers(next);
-  },[role]);
+  },[role,user]);
 
   useEffect(()=>{mounted.current=true;void load();const refresh=window.setInterval(()=>void load(),15000),tick=window.setInterval(()=>setNowMs(Date.now()),1000),changed=()=>void load();window.addEventListener(TIMER_EVENT,changed);return()=>{mounted.current=false;window.clearInterval(refresh);window.clearInterval(tick);window.removeEventListener(TIMER_EVENT,changed);};},[load]);
   useEffect(()=>{const observer=new MutationObserver(()=>setDomVersion(v=>v+1));observer.observe(document.body,{childList:true,subtree:true});return()=>observer.disconnect();},[]);

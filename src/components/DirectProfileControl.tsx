@@ -1,6 +1,7 @@
 import { ChangeEvent, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Camera, Check, ChevronDown, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, Upload, X } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { useWorkspaceAuth } from '../auth/WorkspaceAuthProvider';
 
 type Role='admin'|'client';
 type SignatureMode='generated'|'uploaded';
@@ -43,6 +44,7 @@ function safeSignatureStyle(value:unknown):SignatureStyle{
 }
 
 export function DirectProfileControl({role}:{role:Role}){
+  const { user } = useWorkspaceAuth();
   const[profile,setProfile]=useState<ProfileData>(profileFallback[role]),[draft,setDraft]=useState<ProfileData>(profileFallback[role]);
   const[modalOpen,setModalOpen]=useState(false),[saving,setSaving]=useState(false),[message,setMessage]=useState('');
   const[signatureMenuOpen,setSignatureMenuOpen]=useState(false);
@@ -53,8 +55,6 @@ export function DirectProfileControl({role}:{role:Role}){
     let mounted=true;
     async function load(){
       if(!isSupabaseConfigured||!supabase)return;
-      const{data:sessionData}=await supabase.auth.getSession();
-      const user=sessionData.session?.user;
       if(!user||!mounted)return;
       const{data}=await supabase.from('profiles').select('full_name,email,job_title,phone,whatsapp,linkedin_url,instagram_url,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom,signature_mode,signature_url,signature_style').eq('id',user.id).single();
       if(!mounted||!data)return;
@@ -81,8 +81,6 @@ export function DirectProfileControl({role}:{role:Role}){
   function openEditor(){setDraft(profile);setMessage('');setSignatureMenuOpen(false);setModalOpen(true);}
   async function uploadImage(file:File,kind:'avatar'|'signature'){
     if(!supabase)return'';
-    const{data:sessionData}=await supabase.auth.getSession();
-    const user=sessionData.session?.user;
     if(!user)return'';
     const ext=file.name.split('.').pop()?.toLowerCase()||'png';
     const path=`${user.id}/${kind}-${Date.now()}.${ext}`;
