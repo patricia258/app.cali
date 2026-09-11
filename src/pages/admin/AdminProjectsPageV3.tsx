@@ -147,6 +147,7 @@ export function AdminProjectsPageV3() {
   const [activeTimer,setActiveTimer] = useState<ActiveTimer>(null);
   const [timerSeconds,setTimerSeconds] = useState(0);
   const [saving,setSaving] = useState(false);
+  const [loading,setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement|null>(null);
 
   const selectedProject = projects.find((p)=>p.id===selectedProjectId) || projects[0];
@@ -167,7 +168,7 @@ export function AdminProjectsPageV3() {
   useEffect(()=>{ if(selectedDeliverable) void loadDeliverableContext(selectedDeliverable.id); },[selectedDeliverable?.id]);
 
   async function loadWorkspace() {
-    if(!supabase) return;
+    if(!supabase){ setLoading(false); return; }
     try {
       const [{data:companyRows},{data:projectRows},{data:frontRows},{data:deliverableRows},{data:taskRows},{data:hourRows},{data:timerRows}] = await Promise.all([
         supabase.from('companies').select('id,display_name,logo_url,service_type,service_plan').neq('status','closed').order('display_name'),
@@ -199,6 +200,7 @@ export function AdminProjectsPageV3() {
       setSelectedProjectId((current)=>nextProjects.some((p)=>p.id===current)?current:nextProjects[0].id);
       if(timerRows?.[0]) setActiveTimer({id:timerRows[0].id,deliverableId:timerRows[0].deliverable_id,startedAt:timerRows[0].started_at,preview:false});
     } catch(error){ console.error('Falha ao carregar projetos',error); }
+    finally { setLoading(false); }
   }
 
   async function loadDeliverableContext(deliverableId:string) {
@@ -368,6 +370,8 @@ export function AdminProjectsPageV3() {
   }
 
   const projectHistoryPreview=[{id:'ph1',title:'Cronograma estruturado',detail:'Frentes e entregáveis organizados no roadmap.',createdAt:'19 ago 2026'},{id:'ph2',title:'Cronograma enviado ao cliente',detail:'Cliente recebeu a sequência para validação.',createdAt:'24 ago 2026'},{id:'ph3',title:'Impacto de prazo registrado',detail:'Resposta do cliente deslocou dependências posteriores em dias úteis.',createdAt:'28 ago 2026'}];
+
+  if(loading) return <Shell role="admin"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando execução e roadmap…</section></Shell>;
 
   return <Shell role="admin"><section className="page projects-flow-page">
     <div className="eyebrow">EXECUÇÃO & ROADMAP</div>
