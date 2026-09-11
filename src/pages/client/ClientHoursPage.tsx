@@ -169,11 +169,11 @@ export function ClientHoursPage() {
     if (summary.usagePercent >= 100) {
       alertText = 'Pacote mensal totalmente consumido. Entre em contato com a CALI para alinharmos a continuidade.';
       alertTone = 'critical';
-    } else if (summary.usagePercent >= 85) {
-      alertText = 'Alerta: 85% ou mais do pacote foi consumido neste período.';
+    } else if (summary.usagePercent >= 50) {
+      alertText = 'Atenção: você já utilizou 50% ou mais do pacote mensal.';
       alertTone = 'warning';
-    } else if (summary.usagePercent >= 70) {
-      alertText = 'Atenção: o consumo do pacote já ultrapassou 70%.';
+    } else if (summary.usagePercent >= 40) {
+      alertText = 'O consumo está se aproximando de 50% do pacote mensal.';
       alertTone = 'warning';
     }
   }
@@ -208,14 +208,14 @@ export function ClientHoursPage() {
 
         {filteredEntries.length === 0 ? <section className="hours-connect-card client-hours-empty"><Clock3 size={24} /><p>Nenhum registro de horas neste período.</p></section> : <>
           <section className="hours-connect-card client-hours-table-card">
-            <div className="client-hours-table-wrap"><table className="client-hours-table"><thead><tr><th className="expand" /><th>Data</th><th>Início–Fim</th><th>Duração</th><th>Ação</th><th>Projeto / Entregável</th><th>Contexto</th><th>Tipo</th></tr></thead><tbody>{filteredEntries.map((entry) => {
+            <div className="client-hours-table-wrap"><table className="client-hours-table"><thead><tr><th className="expand" /><th>Data</th><th>Horário</th><th>Duração</th><th>Atividade</th><th>Projeto</th><th>Origem</th></tr></thead><tbody>{filteredEntries.map((entry) => {
               const open = Boolean(expanded[entry.id]);
               const context = contextOf(entry);
               const project = entry.projectId ? projectMap.get(entry.projectId) || '—' : '—';
               const deliverable = entry.deliverableId ? deliverableMap.get(entry.deliverableId) || '—' : '—';
               return <>
-                <tr key={entry.id} className="client-hours-row" onClick={() => setExpanded((current) => ({ ...current, [entry.id]: !current[entry.id] }))}><td className="expand">{open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</td><td>{dateLabel(entry.workDate)}</td><td>{timeLabel(entry.startedAt)}–{timeLabel(entry.endedAt)}</td><td><strong>{formatMinutes(entry.minutes)}</strong></td><td className="action">{entry.description}</td><td><span>{project}</span>{deliverable !== '—' && <small>{deliverable}</small>}</td><td><span className={`client-hours-context ${context}`}>{contextLabel(context)}</span></td><td>{entry.sourceType === 'timer' ? <span className="client-hours-timer-label">Timer</span> : <span className={`hours-connect-type ${entry.sourceType}`}>{sourceLabel(entry.sourceType)}</span>}</td></tr>
-                {open && <tr className="client-hours-detail"><td colSpan={8}><div><strong>Ação completa:</strong><span>{entry.description}</span>{entry.category && <em>{entry.category}</em>}</div></td></tr>}
+                <tr key={entry.id} className="client-hours-row" onClick={() => setExpanded((current) => ({ ...current, [entry.id]: !current[entry.id] }))}><td className="expand">{open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</td><td>{dateLabel(entry.workDate)}</td><td>{timeLabel(entry.startedAt)}–{timeLabel(entry.endedAt)}</td><td><strong>{formatMinutes(entry.minutes)}</strong></td><td className="action">{entry.description}</td><td><span>{project}</span>{deliverable !== '—' && <small>{deliverable}</small>}</td><td>{sourceLabel(entry.sourceType)}</td></tr>
+                {open && <tr className="client-hours-detail"><td colSpan={7}><div><strong>Detalhes:</strong><span>{entry.description}</span>{entry.category && <em>Natureza: {entry.category}</em>}</div></td></tr>}
               </>;
             })}</tbody></table></div>
           </section>
