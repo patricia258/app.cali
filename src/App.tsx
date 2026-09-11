@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute, WorkspaceRouteLoader } from './components/ProtectedRoute';
-import { Shell } from './components/WorkspaceShell';
+import { Shell, WorkspaceFrame } from './components/WorkspaceShell';
 import { useLocation } from 'react-router-dom';
 
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
@@ -72,7 +72,10 @@ function prefetchLikelyRoutes() {
 function AppRoutes() {
   useEffect(() => prefetchLikelyRoutes(), []);
 
-  return (
+  const workspaceRole = pathname.startsWith('/cliente') ? 'client' : pathname.startsWith('/admin') ? 'admin' : null;
+
+  const routes = (
+    
     <Suspense fallback={<WorkspaceNavigationFallback />}>
       <Routes>
         <Route path="/" element={<LoginPage/>}/>
@@ -109,5 +112,8 @@ function AppRoutes() {
     </Suspense>
   );
 }
+;
 
+  return workspaceRole ? <WorkspaceFrame role={workspaceRole}>{routes}</WorkspaceFrame> : routes;
+}
 export default AppRoutes;
