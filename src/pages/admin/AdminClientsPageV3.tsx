@@ -340,8 +340,10 @@ export function AdminClientsPageV3() {
   }
   async function uploadDocument(companyId:string,file:File,type:'contract'|'addendum',documentDate:string) {
     if (!supabase) return;
-    const safe=file.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-'),path=`${companyId}/account/${type}-${Date.now()}-${safe}`;
-    const {error:uploadError}=await supabase.storage.from('cali-workspace-private').upload(path,file,{upsert:false}); if(uploadError) throw uploadError;
+    const safe=file.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-');
+    const prepared=file.type.startsWith('image/')?await optimizeImageForUpload(file,'attachment'):{blob:file,contentType:file.type||'application/octet-stream',extension:file.name.split('.').pop()?.toLowerCase()||'bin'};
+    const path=`${companyId}/account/${type}-${Date.now()}-${safe.replace(/\.[^.]+$/,'')}.${prepared.extension}`;
+    const {error:uploadError}=await supabase.storage.from('cali-workspace-private').upload(path,prepared.blob,{cacheControl:file.type.startsWith('image/')?'31536000':'3600',contentType:prepared.contentType,upsert:false}); if(uploadError) throw uploadError;
     const {data:sessionData}=await supabase.auth.getSession(); const {error}=await supabase.from('account_documents').insert({company_id:companyId,document_type:type,title:type==='contract'?'Contrato assinado':'Aditivo contratual',document_date:documentDate||null,storage_path:path,client_visible:true,created_by:sessionData.session?.user.id??null}); if(error) throw error;
   }
 
