@@ -150,6 +150,7 @@ export function AdminCalendarPage() {
   const [cancelReason, setCancelReason] = useState('');
   const [showCancel, setShowCancel] = useState(false);
   const [calendarConnection, setCalendarConnection] = useState<'connected' | 'not_connected'>('not_connected');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => { void loadCalendar(); }, []);
 
@@ -160,7 +161,7 @@ export function AdminCalendarPage() {
   }, [editorOpen, selectedEvent]);
 
   async function loadCalendar() {
-    if (!supabase) return;
+    if (!supabase) { setLoading(false); return; }
     try {
       const [{ data: companyRows }, { data: eventRows }, { data: attendeeRows }, { data: deadlineRows }, { data: connectionRows }] = await Promise.all([
         supabase.from('companies').select('id, display_name, logo_url').neq('status', 'archived').order('display_name'),
@@ -241,6 +242,8 @@ export function AdminCalendarPage() {
       setCalendarConnection(connectionRows?.length ? 'connected' : 'not_connected');
     } catch (error) {
       console.error('Falha ao carregar calendário', error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -448,6 +451,8 @@ export function AdminCalendarPage() {
       return date.getMonth() === cursor.getMonth() && date.getFullYear() === cursor.getFullYear();
     })
     .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
+
+  if (loading) return <Shell role="admin"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando agenda…</section></Shell>;
 
   return (
     <Shell role="admin">
