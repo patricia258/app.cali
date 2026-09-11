@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 
 let installed = false;
 let repairing = false;
+type CalendarSyncRow = { id: string; sync_status: string | null };
 
 function isAdminCalendar() {
   return window.location.pathname === '/admin/calendario';
@@ -67,16 +68,16 @@ async function invokeSync(eventId: string, silent = false) {
 async function findAndSync(protocol: string | null, title: string, attempt = 0) {
   if (!supabase) return;
   try {
-    let row: { id: string; sync_status: string | null } | null = null;
+    let row: CalendarSyncRow | null = null;
     if (protocol) {
       const result = await supabase.from('events').select('id,sync_status').eq('protocol', protocol).maybeSingle();
-      row = result.data as typeof row;
+      row = result.data as unknown as CalendarSyncRow | null;
     } else if (title) {
       const { data: userData } = await supabase.auth.getUser();
       let query = supabase.from('events').select('id,sync_status').eq('title', title).order('created_at', { ascending: false }).limit(1);
       if (userData.user?.id) query = query.eq('created_by', userData.user.id);
       const result = await query.maybeSingle();
-      row = result.data as typeof row;
+      row = result.data as unknown as CalendarSyncRow | null;
     }
     if (!row?.id) {
       if (attempt < 2) window.setTimeout(() => void findAndSync(protocol, title, attempt + 1), 900);
@@ -175,3 +176,4 @@ export function installCalendarSyncGuard() {
   document.addEventListener('visibilitychange', () => { if (!document.hidden) void repairPendingEvents(); });
   window.setTimeout(() => void repairPendingEvents(), 900);
 }
+
