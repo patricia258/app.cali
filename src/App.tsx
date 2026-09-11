@@ -71,7 +71,7 @@ function prefetchLikelyRoutes() {
 
 function AppRoutes() {
   useEffect(() => prefetchLikelyRoutes(), []);
-
+  const { pathname } = useLocation();
   const workspaceRole = pathname.startsWith('/cliente') ? 'client' : pathname.startsWith('/admin') ? 'admin' : null;
 
   const routes = (
@@ -111,8 +111,7 @@ function AppRoutes() {
       </Routes>
     </Suspense>
   );
-}
-;
+
 
   return workspaceRole ? <WorkspaceFrame role={workspaceRole}>{routes}</WorkspaceFrame> : routes;
 }
