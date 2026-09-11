@@ -496,14 +496,6 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
         <label><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as WorkflowStatus | 'all')}><option value="all">Todos os status</option>{(Object.keys(workflowLabels) as WorkflowStatus[]).map((status) => <option value={status} key={status}>{statusLabel(status, role)}</option>)}</select></label>
       </section>
 
-      {role === 'admin' && meetingEvents.length > 0 && <section className="records-v13-calendar panel">
-        <div><CalendarDays size={18} /><span><strong>Reuniões recentes</strong><small>Uma reunião pode virar memória consultiva sem duplicar data ou horário.</small></span></div>
-        <div>{meetingEvents.slice(0, 3).map((event) => {
-          const already = records.some((record) => record.eventId === event.id);
-          return <button type="button" key={event.id} disabled={already} onClick={() => openFromEvent(event)}><span>{formatDateTime(event.startsAt)}</span><strong>{event.title}</strong><em>{already ? 'Registrada' : 'Registrar'}</em></button>;
-        })}</div>
-      </section>}
-
       {!archiveFilterSelected && <>
         <div className="records-v27-group-heading"><div><span>EM ACOMPANHAMENTO</span><strong>{role === 'admin' ? 'Abertos e em andamento' : 'Suas solicitações ativas'}</strong></div><b>{activeVisible.length}</b></div>
         {recordsTable(activeVisible, role === 'admin' ? 'Altere os filtros ou adicione um novo registro.' : 'Quando precisar falar com a CALI, sua solicitação aparecerá aqui com todo o histórico.')}
