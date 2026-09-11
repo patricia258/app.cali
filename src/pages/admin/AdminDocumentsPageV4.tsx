@@ -402,6 +402,8 @@ export function AdminDocumentsPageV4() {
     setCommentText(''); await loadComments(detailDoc); await loadDocuments();
   }
 
+  if(loading)return <Shell role="admin"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando biblioteca…</section></Shell>;
+
   return (
     <Shell role="admin">
       <section className="page documents-admin-page documents-admin-v3 documents-admin-v4">
