@@ -56,6 +56,7 @@ type DocumentRow = {
   acknowledgements: number;
   expectedAcknowledgements: number;
   comments: number;
+  validUntil?: string | null;
 };
 
 type FormState = {
@@ -72,6 +73,7 @@ type FormState = {
   sourceMode: SourceMode;
   driveUrl: string;
   revisionOfId: string;
+  validUntil: string;
 };
 
 const categoryOptions: Array<{ value: CategorySlug; label: string }> = [
@@ -111,7 +113,7 @@ function nextVersion(value: string) {
 }
 
 function emptyForm(companyId = ''): FormState {
-  return { title: '', companyId, projectId: '', deliverableId: '', category: 'deliverable', kind: 'Entregável', version: 'v1.0', description: '', publish: false, requiresAcknowledgement: false, sourceMode: 'upload', driveUrl: '', revisionOfId: '' };
+  return { title: '', companyId, projectId: '', deliverableId: '', category: 'deliverable', kind: 'Entregável', version: 'v1.0', description: '', publish: false, requiresAcknowledgement: false, sourceMode: 'upload', driveUrl: '', revisionOfId: '', validUntil: '' };
 }
 
 export function AdminDocumentsPageV4() {
@@ -196,7 +198,7 @@ export function AdminDocumentsPageV4() {
         supabase.from('companies').select('id,display_name,logo_url').neq('status', 'closed').order('display_name'),
         supabase.from('projects').select('id,company_id,name').order('created_at', { ascending: false }),
         supabase.from('deliverables').select('id,company_id,project_id,title,status,is_document').order('created_at', { ascending: false }),
-        supabase.from('files').select('id,company_id,project_id,deliverable_id,title,category,version_label,updated_at,published_at,drive_url,client_visible,source_type,protocol,document_kind,cover_storage_path,file_type,file_size_bytes,original_filename,requires_acknowledgement,status,storage_path,description,revision_of_id,workflow_origin,workflow_stage').order('updated_at', { ascending: false }),
+        supabase.from('files').select('id,company_id,project_id,deliverable_id,title,category,version_label,updated_at,published_at,drive_url,client_visible,source_type,protocol,document_kind,cover_storage_path,file_type,file_size_bytes,original_filename,requires_acknowledgement,status,storage_path,description,revision_of_id,workflow_origin,workflow_stage,valid_until').order('updated_at', { ascending: false }),
         supabase.from('document_acknowledgements').select('file_id,status,viewed_at,acknowledged_at'),
         supabase.from('profiles').select('id,company_id,role,active').eq('active', true),
         supabase.from('comments').select('target_id').eq('target_type', 'file'),
@@ -240,7 +242,7 @@ export function AdminDocumentsPageV4() {
           workflowOrigin: (row.workflow_origin || 'manual') as DocumentRow['workflowOrigin'], clientVisible: Boolean(row.client_visible), protocol: row.protocol || '—',
           coverUrl: '', coverStoragePath: row.cover_storage_path, fileType: row.file_type || undefined,
           fileSizeBytes: Number(row.file_size_bytes || 0), originalFilename: row.original_filename, requiresAcknowledgement: Boolean(row.requires_acknowledgement),
-          storagePath: row.storage_path, driveUrl: row.drive_url, description: row.description, revisionOfId: row.revision_of_id,
+          storagePath: row.storage_path, driveUrl: row.drive_url, description: row.description, revisionOfId: row.revision_of_id, validUntil: row.valid_until,
           views: ack.views, acknowledgements: ack.acknowledgements, expectedAcknowledgements: expectedByCompany.get(row.company_id) || 0, comments: commentsByFile.get(row.id) || 0,
         };
       });
@@ -266,13 +268,13 @@ export function AdminDocumentsPageV4() {
 
   function completeDocument(doc: DocumentRow) {
     resetUploads(); setEditingDoc(doc); setEditorMode('complete'); setDetailDoc(null);
-    setForm({ title: doc.title, companyId: doc.companyId, projectId: doc.projectId || '', deliverableId: doc.deliverableId || '', category: doc.category, kind: doc.kind, version: doc.version || 'v1.0', description: doc.description || '', publish: false, requiresAcknowledgement: doc.requiresAcknowledgement, sourceMode: 'upload', driveUrl: '', revisionOfId: '' });
+    setForm({ title: doc.title, companyId: doc.companyId, projectId: doc.projectId || '', deliverableId: doc.deliverableId || '', category: doc.category, kind: doc.kind, version: doc.version || 'v1.0', description: doc.description || '', publish: false, requiresAcknowledgement: doc.requiresAcknowledgement, sourceMode: 'upload', driveUrl: '', revisionOfId: '', validUntil: doc.validUntil || '' });
     setCoverPreview(doc.coverUrl || ''); setEditorOpen(true);
   }
 
   function openNewVersion(doc: DocumentRow) {
     resetUploads(); setEditingDoc(null); setEditorMode('revision'); setDetailDoc(null);
-    setForm({ title: doc.title, companyId: doc.companyId, projectId: doc.projectId || '', deliverableId: doc.deliverableId || '', category: doc.category, kind: doc.kind, version: nextVersion(doc.version), description: doc.description || '', publish: false, requiresAcknowledgement: doc.requiresAcknowledgement, sourceMode: 'upload', driveUrl: '', revisionOfId: doc.id });
+    setForm({ title: doc.title, companyId: doc.companyId, projectId: doc.projectId || '', deliverableId: doc.deliverableId || '', category: doc.category, kind: doc.kind, version: nextVersion(doc.version), description: doc.description || '', publish: false, requiresAcknowledgement: doc.requiresAcknowledgement, sourceMode: 'upload', driveUrl: '', revisionOfId: doc.id, validUntil: doc.validUntil || '' });
     setEditorOpen(true);
   }
 
@@ -331,7 +333,7 @@ export function AdminDocumentsPageV4() {
         uploaded_by: sessionData.session?.user.id ?? null, file_type: uploadedFileType,
         file_size_bytes: uploadedImageSize || editingDoc?.fileSizeBytes || null, original_filename: file?.name || editingDoc?.originalFilename || null,
         status: form.publish ? 'published' : 'draft', requires_acknowledgement: form.requiresAcknowledgement,
-        published_at: form.publish ? now : null, source_type: form.sourceMode === 'drive' ? 'google_drive' : 'workspace',
+        published_at: form.publish ? now : null, source_type: form.sourceMode === 'drive' ? 'google_drive' : 'workspace', valid_until: form.validUntil || null,
       };
 
       if (editorMode === 'complete' && editingDoc) {
@@ -416,15 +418,8 @@ export function AdminDocumentsPageV4() {
         {notice && <div className="inline-notice success"><CheckCircle2 size={19} />{notice}</div>}
         {error && !editorOpen && <div className="inline-notice">{error}</div>}
 
-        <section className="document-summary-v3 document-flow-summary-v4">
-          <article><FileClock size={19} /><div><strong>{stats.preparation}</strong><span>Em preparação</span></div></article>
-          <article><Upload size={19} /><div><strong>{stats.awaitingFinal}</strong><span>Aguardando arquivo final</span></div></article>
-          <article><FileCheck2 size={19} /><div><strong>{stats.ready}</strong><span>Prontos para publicar</span></div></article>
-          <article><ShieldCheck size={19} /><div><strong>{stats.published}</strong><span>Publicados</span></div></article>
-        </section>
-
         <section className={`document-drive-strip-v3 ${driveConnection ? 'connected' : ''}`}>
-          <div className="document-drive-mark-v3"><Cloud size={19} /></div><div><strong>{driveConnection ? 'Google Drive da CALI conectado' : 'Google Drive sem conexão automática'}</strong><span>{driveConnection ? `${driveConnection.accountEmail || 'Conta CALI'}${driveConnection.rootFolderName ? ` · ${driveConnection.rootFolderName}` : ''}` : 'Links do Drive podem ser registrados normalmente. A sincronização automática só aparece quando existir conexão real.'}</span></div>{driveConnection && <span className="document-drive-status-v3"><CheckCircle2 size={15} />Conectado</span>}
+          <div className="document-drive-mark-v3"><Cloud size={19} /></div><div><strong>{driveConnection ? 'Arquivo interno da CALI' : 'Workspace interno da CALI'}</strong><span>{driveConnection ? `${driveConnection.accountEmail || 'Conta CALI'}${driveConnection.rootFolderName ? ` · ${driveConnection.rootFolderName}` : ''} · fonte operacional` : 'A CALI mantém aqui a fonte operacional. Documentos aprovados podem ser copiados para o Drive da empresa cliente na área do cliente.'}</span></div>{driveConnection && <span className="document-drive-status-v3"><CheckCircle2 size={15} />Conectado</span>}
         </section>
 
         <div className="document-toolbar document-toolbar-v3 document-toolbar-v4">
@@ -448,6 +443,7 @@ export function AdminDocumentsPageV4() {
                 <h2>{doc.title}</h2>
                 <div className="document-client-line-v3"><span className="document-client-logo-v3">{doc.companyLogo ? <img src={doc.companyLogo} alt="" /> : <span>{doc.company.slice(0, 1).toUpperCase()}</span>}</span><div><strong>{doc.company}</strong><small>{doc.project || 'Sem projeto'}{doc.deliverable ? ` · ${doc.deliverable}` : ''}</small></div></div>
                 <span className="document-protocol-v3">{doc.protocol}</span>
+                {doc.validUntil && <span className="document-validity-v4">Validade / revisão: {doc.validUntil.split('-').reverse().join('/')}</span>}
                 <div className="document-card-metrics-v3"><span><Eye size={14} />{doc.views} visualizaç{doc.views === 1 ? 'ão' : 'ões'}</span>{doc.requiresAcknowledgement && <span className={pending > 0 ? 'pending' : 'done'}><ShieldCheck size={14} />{doc.acknowledgements}{doc.expectedAcknowledgements ? `/${doc.expectedAcknowledgements}` : ''} ciências</span>}<span><MessageSquare size={14} />{doc.comments}</span></div>
                 <div className="document-card-footer-v3"><small>Atualizado {formatDateTime(doc.updatedAt)}</small><div>{needsFile && <button className="primary document-complete-cta-v4" type="button" onClick={() => completeDocument(doc)}><Upload size={15} />Completar</button>}<button className="secondary" type="button" onClick={() => void openDocument(doc)} disabled={!doc.storagePath && !doc.driveUrl}><ExternalLink size={15} />Abrir</button><button className="secondary" type="button" onClick={() => void loadComments(doc)}>Detalhes</button></div></div>
               </div>
@@ -474,6 +470,7 @@ export function AdminDocumentsPageV4() {
             <label className="stacked-label">Categoria<select value={form.category} onChange={(event) => setForm((current) => ({ ...current, category: event.target.value as CategorySlug }))}>{categoryOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
             <label className="stacked-label">Tipo documental<select value={form.kind} onChange={(event) => setForm((current) => ({ ...current, kind: event.target.value }))}>{documentKinds.map((item) => <option key={item}>{item}</option>)}</select></label>
             <label className="stacked-label">Versão<input value={form.version} onChange={(event) => setForm((current) => ({ ...current, version: event.target.value }))} /></label>
+            <label className="stacked-label">Validade / próxima revisão<input type="date" value={form.validUntil} onChange={(event) => setForm((current) => ({ ...current, validUntil: event.target.value }))} /><small>Alerta ao cliente 60 dias antes.</small></label>
             <label className="stacked-label wide">Descrição / contexto<textarea rows={3} value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} /></label>
           </div>
           <div className="document-publication-options"><label className="check-line"><input type="checkbox" checked={form.publish} onChange={(event) => setForm((current) => ({ ...current, publish: event.target.checked }))} /><span><strong>Disponibilizar ao cliente ao salvar</strong><small>Se desmarcado, fica “Pronto para publicar”.</small></span></label><label className="check-line"><input type="checkbox" checked={form.requiresAcknowledgement} onChange={(event) => setForm((current) => ({ ...current, requiresAcknowledgement: event.target.checked }))} /><span><strong>Solicitar ciência</strong><small>Visualização e ciência ficam registradas por usuário.</small></span></label></div>
