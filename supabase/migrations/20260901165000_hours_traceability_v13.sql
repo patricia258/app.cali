@@ -94,6 +94,7 @@ begin
     into v_consumed
   from cali_workspace.hour_entries h
   where h.company_id = v_company_id
+    and h.client_visible
     and h.work_date between p_period_start and p_period_end;
 
   return jsonb_build_object(
