@@ -65,11 +65,12 @@ export function technicalPackageFor(serviceSlug:string,answers:Record<string,unk
 }
 export function packageForBudget(serviceSlug:string,answers:Record<string,unknown>,pricing:PortalPricingRule[]){
   const investment=investmentContextFor(serviceSlug,answers);const technical=technicalPackageFor(serviceSlug,answers,pricing);
-  if(!investment?.max)return technical;
+  const max=investment?.max;
+  if(max===null||max===undefined)return technical;
   const codes=new Set((PACKAGE_META[serviceSlug]||[]).map(item=>item.code));
   const technicalRule=pricing.find(rule=>rule.service_slug===serviceSlug&&rule.package_code===technical);
-  if(technicalRule&&Number(technicalRule.base_price)>0&&Number(technicalRule.base_price)<=investment.max)return technical;
-  const fitting=pricing.filter(rule=>rule.service_slug===serviceSlug&&codes.has(rule.package_code)&&Number(rule.base_price)>0&&Number(rule.base_price)<=investment.max).sort((a,b)=>Number(a.base_price)-Number(b.base_price));
+  if(technicalRule&&Number(technicalRule.base_price)>0&&Number(technicalRule.base_price)<=max)return technical;
+  const fitting=pricing.filter(rule=>rule.service_slug===serviceSlug&&codes.has(rule.package_code)&&Number(rule.base_price)>0&&Number(rule.base_price)<=max).sort((a,b)=>Number(a.base_price)-Number(b.base_price));
   return fitting.at(-1)?.package_code||technical;
 }
 export function prioritizedScope(serviceSlug:string,answers:Record<string,any>,phased=false,packageCode=initialPackageFor(serviceSlug,answers,[])){
@@ -97,3 +98,4 @@ export function defaultNarrative(company:string,answers:Record<string,any>){
     expectedResults:['Prioridades organizadas e compreendidas pela liderança','Decisões apoiadas por critérios e informações mais claras','Roadmap com responsáveis e próximos movimentos definidos'],
   };
 }
+
