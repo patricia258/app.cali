@@ -41,7 +41,6 @@ function prefetchLikelyRoutes() {
       void import('./pages/admin/AdminProjectsGatePage');
       void import('./pages/admin/AdminHoursPageV3');
       void import('./pages/admin/AdminDocumentsPageV4');
-      void import('./pages/admin/AdminRecordsPage');
       return;
     }
 
