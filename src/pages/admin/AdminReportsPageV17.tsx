@@ -154,7 +154,7 @@ export function AdminReportsPageV17() {
     const [snapshotResult, seriesResult, performanceResult] = await Promise.all([
       supabase.rpc('build_report_intelligence_snapshot', { p_company_id: nextCompanyId, p_period_start: nextStart, p_period_end: nextEnd }),
       supabase.rpc('build_report_monthly_series', { p_company_id: nextCompanyId, p_period_start: seriesFrom, p_period_end: nextEnd }),
-      supabase.from('deliverable_delivery_performance').select('id,company_id,deliverable_id,project_id,title,status,due_at,delivered_at,approved_at,delay_days,client_delay_business_days,adjustment_count').eq('company_id', nextCompanyId),
+      supabase.from('deliverable_delivery_performance').select('deliverable_id,company_id,project_id,protocol,title,status,workstream,planned_start_date,actual_started_at,original_due_at,effective_due_at,work_closed_at,work_close_reason,approved_at,client_response_at,completion_at,delivery_timing,business_days_from_deadline,start_timing,business_days_from_original_deadline,total_minutes').eq('company_id', nextCompanyId),
     ]);
     if (snapshotResult.error) throw snapshotResult.error;
     if (seriesResult.error) throw seriesResult.error;
