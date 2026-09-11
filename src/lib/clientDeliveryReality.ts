@@ -392,7 +392,8 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
 
 export function subscribeClientDeliveryReality(companyId: string, onChange: () => void) {
   if (!supabase || !companyId) return () => undefined;
-  const channel = supabase.channel(`client-delivery-reality-${companyId}`);
+  const client = supabase;
+  const channel = client.channel(`client-delivery-reality-${companyId}`);
   const companyTables = [
     'projects',
     'project_workstreams',
@@ -411,7 +412,7 @@ export function subscribeClientDeliveryReality(companyId: string, onChange: () =
   }
   channel.on('postgres_changes', { event: 'UPDATE', schema: 'cali_workspace', table: 'companies', filter: `id=eq.${companyId}` }, onChange);
   channel.subscribe();
-  return () => { void supabase.removeChannel(channel); };
+  return () => { void client.removeChannel(channel); };
 }
 
 
@@ -531,3 +532,4 @@ export async function loadClientDashboardReality(companyId: string): Promise<Cli
     },
   };
 }
+
