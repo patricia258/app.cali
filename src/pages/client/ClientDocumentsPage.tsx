@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, Cloud, ExternalLink, Eye, FileCheck2, FileText, Loader2, MessageSquare, Search, Send, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Cloud, ExternalLink, Eye, FileCheck2, FileText, Loader2, MessageSquare, Search, Send, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
 
@@ -18,6 +18,7 @@ type ClientDoc = {
   coverUrl?: string;
   requiresAcknowledgement: boolean;
   description?: string | null;
+  validUntil?: string | null;
 };
 
 type CommentRow = { id: string; body: string; createdAt: string; mine: boolean };
@@ -42,6 +43,13 @@ function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(date).replace('.', '');
+}
+
+function daysUntil(value?: string | null) {
+  if (!value) return null;
+  const target = new Date(`${value}T23:59:59`);
+  if (Number.isNaN(target.getTime())) return null;
+  return Math.ceil((target.getTime() - Date.now()) / 86400000);
 }
 
 export function ClientDocumentsPage() {
@@ -90,7 +98,7 @@ export function ClientDocumentsPage() {
     setLoading(true);
     setError('');
     const [filesResult, ackResult, driveStatusResult] = await Promise.all([
-      supabase.from('files').select('id,company_id,title,category,document_kind,version_label,protocol,storage_path,drive_url,cover_storage_path,requires_acknowledgement,description,updated_at,status,client_visible').eq('client_visible', true).eq('status', 'published').order('updated_at', { ascending: false }),
+      supabase.from('files').select('id,company_id,title,category,document_kind,version_label,protocol,storage_path,drive_url,cover_storage_path,requires_acknowledgement,description,updated_at,status,client_visible,valid_until').eq('client_visible', true).eq('status', 'published').order('updated_at', { ascending: false }),
       supabase.from('document_acknowledgements').select('file_id,acknowledged_at'),
       supabase.functions.invoke('google-drive-oauth', { body: { action: 'status' } }),
     ]);
@@ -113,6 +121,7 @@ export function ClientDocumentsPage() {
       coverUrl: await resolveCover(item.cover_storage_path),
       requiresAcknowledgement: Boolean(item.requires_acknowledgement),
       description: item.description,
+      validUntil: item.valid_until,
     })));
     setDocuments(rows);
     setAcknowledged((ackResult.data ?? []).filter((item) => item.acknowledged_at).map((item) => item.file_id));
@@ -128,6 +137,11 @@ export function ClientDocumentsPage() {
     setSyncByFile(nextSync);
     setLoading(false);
   }
+
+  const validityAlerts = useMemo(() => documents.filter((doc) => {
+    const days = daysUntil(doc.validUntil);
+    return days !== null && days <= 60;
+  }), [documents]);
 
   async function markViewed(doc: ClientDoc) {
     if (preview || !supabase) return;
@@ -263,9 +277,11 @@ export function ClientDocumentsPage() {
 
         <section className={`drive-banner ${driveConnection ? 'connected' : 'not-configured'}`}>
           <div className="drive-icon"><Cloud size={23} /></div>
-          <div><span className="client-drive-kicker-v52">SEU ARQUIVO, NO SEU DRIVE</span><strong>{driveConnection ? 'Google Drive conectado' : 'Leve suas versões aprovadas para o seu Drive'}</strong><p>{driveConnection ? `${driveConnection.accountEmail || 'Conta Google conectada'}. Os documentos continuam disponíveis no Workspace e você escolhe quais deseja copiar.` : 'Conecte sua conta uma única vez. Depois, cada documento liberado pela CALI pode ser salvo no seu Drive com um clique, sem configurar pastas nem permissões manualmente.'}</p></div>
+          <div><span className="client-drive-kicker-v52">SEU ARQUIVO, NO SEU DRIVE</span><strong>{driveConnection ? 'Drive da sua empresa conectado' : 'Leve suas versões aprovadas para o Drive da sua empresa'}</strong><p>{driveConnection ? `${driveConnection.accountEmail || 'Conta Google conectada'}. Documentos aprovados continuam no Workspace e você escolhe quais versões copiar para o Drive da empresa.` : 'Conecte a conta Google da sua empresa. Depois, cada documento aprovado pela CALI pode ser salvo no Drive da empresa com um clique.'}</p></div>
           <div className="client-drive-actions-v52">{driveConnection && <span className="client-drive-connected-v3"><CheckCircle2 size={15} />Conectado</span>}<button type="button" className="client-drive-action-v52" disabled={driveConnecting} onClick={() => void connectDrive()}><Cloud size={16} />{driveConnecting ? 'Abrindo Google…' : driveConnection ? 'Trocar conta' : 'Conectar meu Drive'}</button></div>
         </section>
+
+        {validityAlerts.length > 0 && <section className="client-document-validity-alert" role="status"><AlertTriangle size={21} /><div><strong>{validityAlerts.some((doc) => (daysUntil(doc.validUntil) ?? 1) < 0) ? 'Há documentos com revisão vencida ou próxima.' : 'Há documentos próximos da revisão.'}</strong><p>{validityAlerts.length === 1 ? 'A validade deste documento se aproxima. Planeje a revisão para manter a documentação vigente e reduzir riscos trabalhistas e de auditoria.' : `${validityAlerts.length} documentos precisam de atenção. A ausência de revisão pode aumentar o risco trabalhista e o passivo em auditorias.`}</p></div></section>}
 
         <div className="client-doc-toolbar-v3">
           <label className="search-box client-doc-search"><Search size={18} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nome, tipo ou protocolo" /></label>
@@ -287,6 +303,7 @@ export function ClientDocumentsPage() {
                   <h2>{doc.title}</h2>
                   {doc.description && <p className="client-document-context-v3">{doc.description}</p>}
                   <p>{doc.date} · {doc.version}</p>
+                  {doc.validUntil && <div className={`client-document-validity ${((daysUntil(doc.validUntil) ?? 999) <= 60) ? 'attention' : ''}`}><AlertTriangle size={14} />Validade / próxima revisão: {formatDate(doc.validUntil)}{(daysUntil(doc.validUntil) ?? 999) < 0 ? ' · vencida' : ''}</div>}
                   <small className="document-protocol">{doc.protocol}</small>
                   <div className="document-card-actions document-card-actions-v2">
                     <button className="secondary" onClick={() => void openDocument(doc)}><Eye size={17} />Abrir</button>
