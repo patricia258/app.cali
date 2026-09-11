@@ -28,6 +28,7 @@ export function AdminProjectsGatePage() {
   }
 
   if (state === 'ready') return <AdminProjectsPageV3 />;
+  if (state === 'loading') return <Shell role="admin"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando projetos…</section></Shell>;
 
   return (
     <Shell role="admin">
