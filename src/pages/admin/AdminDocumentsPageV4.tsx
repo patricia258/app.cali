@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
+import { optimizeImageForUpload } from '../../lib/imageUpload';
 
 type CategorySlug = 'policy' | 'manual' | 'flow' | 'guide' | 'report' | 'onboarding' | 'deliverable' | 'schedule' | 'contract' | 'reference' | 'other';
 type DocumentStatus = 'draft' | 'published' | 'archived';
@@ -300,14 +301,21 @@ export function AdminDocumentsPageV4() {
         protocol = String(protocolValue);
       }
 
+      let uploadedImageSize = file?.size || null;
+      let uploadedFileType = file?.type || file?.name.split('.').pop()?.toLowerCase() || editingDoc?.fileType || null;
       if (form.sourceMode === 'upload' && file) {
-        uploadedFilePath = `documents/${form.companyId}/${protocol}/file-${Date.now()}-${safeFileName(file.name)}`;
-        const { error: uploadError } = await supabase.storage.from('cali-workspace-private').upload(uploadedFilePath, file, { upsert: false, contentType: file.type || undefined });
+        const prepared = file.type.startsWith('image/') ? await optimizeImageForUpload(file, 'attachment') : { blob: file, contentType: file.type || 'application/octet-stream', extension: file.name.split('.').pop()?.toLowerCase() || 'bin' };
+        uploadedImageSize = prepared.blob.size;
+        uploadedFileType = prepared.contentType;
+        const fileName = file.type.startsWith('image/') ? `${safeFileName(file.name).replace(/\\.[^.]+$/, '')}.webp` : safeFileName(file.name);
+        uploadedFilePath = `documents/${form.companyId}/${protocol}/file-${Date.now()}-${fileName}`;
+        const { error: uploadError } = await supabase.storage.from('cali-workspace-private').upload(uploadedFilePath, prepared.blob, { upsert: false, contentType: prepared.contentType, cacheControl: file.type.startsWith('image/') ? '31536000' : '3600' });
         if (uploadError) throw uploadError;
       }
       if (cover) {
-        uploadedCoverPath = `documents/${form.companyId}/${protocol}/cover-${Date.now()}-${safeFileName(cover.name)}`;
-        const { error: coverError } = await supabase.storage.from('cali-workspace-private').upload(uploadedCoverPath, cover, { upsert: false, contentType: cover.type || undefined });
+        const preparedCover = await optimizeImageForUpload(cover, 'attachment');
+        uploadedCoverPath = `documents/${form.companyId}/${protocol}/cover-${Date.now()}-${safeFileName(cover.name).replace(/\\.[^.]+$/, '')}.webp`;
+        const { error: coverError } = await supabase.storage.from('cali-workspace-private').upload(uploadedCoverPath, preparedCover.blob, { upsert: false, contentType: preparedCover.contentType, cacheControl: '31536000' });
         if (coverError) throw coverError;
       }
 
@@ -320,8 +328,8 @@ export function AdminDocumentsPageV4() {
         drive_url: form.sourceMode === 'drive' ? form.driveUrl.trim() : (editorMode === 'complete' ? editingDoc?.driveUrl || null : null),
         cover_storage_path: uploadedCoverPath || (editorMode === 'complete' ? editingDoc?.coverStoragePath || null : null),
         version_label: form.version.trim() || 'v1.0', is_final: form.publish, client_visible: form.publish,
-        uploaded_by: sessionData.session?.user.id ?? null, file_type: file?.type || file?.name.split('.').pop()?.toLowerCase() || editingDoc?.fileType || null,
-        file_size_bytes: file?.size || editingDoc?.fileSizeBytes || null, original_filename: file?.name || editingDoc?.originalFilename || null,
+        uploaded_by: sessionData.session?.user.id ?? null, file_type: uploadedFileType,
+        file_size_bytes: uploadedImageSize || editingDoc?.fileSizeBytes || null, original_filename: file?.name || editingDoc?.originalFilename || null,
         status: form.publish ? 'published' : 'draft', requires_acknowledgement: form.requiresAcknowledgement,
         published_at: form.publish ? now : null, source_type: form.sourceMode === 'drive' ? 'google_drive' : 'workspace',
       };
