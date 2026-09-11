@@ -157,33 +157,6 @@ function decorateMessage(line: HTMLElement, message: MessageRow, reactions: Reac
   if (extra.childNodes.length) head.append(extra);
 
   bubble.querySelector('.records-message-reactions')?.remove();
-  if (message.visibility !== 'client' || message.author_role === 'system') return;
-  const bar = document.createElement('div');
-  bar.className = 'records-message-reactions';
-  reactionOptions.forEach((option) => {
-    const matching = reactions.filter((item) => item.message_id === message.id && item.reaction === option.code);
-    const mine = viewerId && matching.some((item) => item.user_id === viewerId);
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = mine ? 'active' : '';
-    button.title = option.label;
-    button.setAttribute('aria-label', option.label);
-    button.setAttribute('aria-pressed', String(Boolean(mine)));
-    const icon = document.createElement('span');
-    icon.textContent = option.symbol;
-    button.append(icon);
-    if (matching.length) {
-      const count = document.createElement('small');
-      count.textContent = String(matching.length);
-      button.append(count);
-    }
-    button.onclick = (event) => {
-      event.stopPropagation();
-      void toggleReaction(message.id, option.code);
-    };
-    bar.append(button);
-  });
-  bubble.append(bar);
 }
 
 async function subscribe(recordId: string) {
