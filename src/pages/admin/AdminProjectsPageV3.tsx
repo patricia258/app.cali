@@ -170,10 +170,10 @@ export function AdminProjectsPageV3() {
     try {
       const [{data:companyRows},{data:projectRows},{data:frontRows},{data:deliverableRows},{data:taskRows},{data:hourRows},{data:timerRows}] = await Promise.all([
         supabase.from('companies').select('id,display_name,logo_url,service_type,service_plan').neq('status','closed').order('display_name'),
-        supabase.from('projects').select('*').order('created_at',{ascending:false}),
-        supabase.from('project_workstreams').select('*').order('sort_order'),
-        supabase.from('deliverables').select('*').order('sort_order'),
-        supabase.from('deliverable_tasks').select('*').order('sort_order'),
+        supabase.from('projects').select('id,protocol,company_id,name,description,status,planning_status,start_date,target_end_date,client_response_business_days,adjustment_limit').order('created_at',{ascending:false}),
+        supabase.from('project_workstreams').select('id,protocol,project_id,company_id,name,objective,roadmap_month_start,roadmap_month_end,status,sort_order').order('sort_order'),
+        supabase.from('deliverables').select('id,protocol,code,project_id,company_id,title,description,status,workstream,workstream_id,complexity,roadmap_month_start,roadmap_month_end,due_at,original_due_at,client_response_due_at,client_delay_business_days,adjustment_count,rebriefing_required,is_document,sort_order,client_visible').order('sort_order'),
+        supabase.from('deliverable_tasks').select('id,protocol,deliverable_id,title,description,status,due_at,client_visible,estimated_minutes,sort_order').order('sort_order'),
         supabase.from('hour_entries').select('deliverable_id,minutes'),
         supabase.from('work_timers').select('id,deliverable_id,started_at,status').eq('status','active').order('started_at',{ascending:false}).limit(1),
       ]);
