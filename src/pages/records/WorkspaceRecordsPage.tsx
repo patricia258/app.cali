@@ -184,7 +184,8 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   }, [records, searchParams]);
   useEffect(() => {
     if (!supabase || !companyId) return;
-    const channel = supabase
+    const client = supabase;
+    const channel = client
       .channel(`records-v27-${companyId}-${role}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'cali_workspace', table: 'account_records', filter: `company_id=eq.${companyId}` }, (payload) => {
         const next = mapRecord(payload.new);
@@ -193,7 +194,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
         void loadContext(companyId);
       })
       .subscribe();
-    return () => { void supabase.removeChannel(channel); };
+    return () => { void client.removeChannel(channel); };
   }, [companyId, role]);
 
   async function load() {
@@ -627,3 +628,4 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
 
 export function AdminRecordsPage() { return <WorkspaceRecordsPage role="admin" />; }
 export function ClientRecordsPage() { return <WorkspaceRecordsPage role="client" />; }
+
