@@ -1,8 +1,8 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AlertTriangle, ArrowRight, CalendarDays, Check, CheckCircle2, CircleHelp, Clock3, Edit3,
-  FileText, FolderKanban, GitBranch, Heart, History, LayoutGrid, List, Paperclip, Play,
-  Plus, RefreshCw, Search, Send, ShieldCheck, Smile, Square, ThumbsUp, Trash2, X,
+  AlertTriangle, ArrowRight, CalendarDays, Check, CheckCircle2, Clock3, Edit3,
+  FileText, FolderKanban, GitBranch, History, LayoutGrid, List, Paperclip, Play,
+  Plus, RefreshCw, Search, Send, ShieldCheck, Square, Trash2, X,
 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import '../../page5-projects.css';
@@ -24,7 +24,6 @@ type ProjectView = 'roadmap' | 'deliverables' | 'history';
 type DeliverableView = 'list' | 'kanban';
 type DetailTab = 'overview' | 'tasks' | 'conversation' | 'history';
 type ConversationChannel = 'internal' | 'client';
-type ReactionKey = 'ok' | 'like' | 'question' | 'heart' | 'smile';
 
 type ProjectFront = {
   id: string; protocol: string; projectId: string; companyId: string; name: string; objective: string;
@@ -37,7 +36,7 @@ type TaskItem = {
 };
 type CommentItem = {
   id: string; body: string; clientVisible: boolean; createdAt: string; author?: string;
-  reactions: Partial<Record<ReactionKey, number>>; mine: ReactionKey[];
+
 };
 type HistoryItem = { id: string; title: string; detail: string; createdAt: string };
 type ActiveTimer = { id?: string; deliverableId: string; startedAt: string; preview: boolean } | null;
@@ -60,11 +59,6 @@ const statusTone: Record<DeliverableStatus,string> = {
 const projectTone: Record<ProjectPlanningStatus,string> = {
   draft:'neutral', client_review:'gold', adjustment_requested:'gold', approved:'success', active:'success', rebriefing:'danger', closed:'neutral',
 };
-const reactionMeta: Array<{ key: ReactionKey; label: string; icon: typeof CheckCircle2 }> = [
-  { key:'ok', label:'OK', icon:CheckCircle2 }, { key:'like', label:'Curtir', icon:ThumbsUp },
-  { key:'question', label:'Dúvida', icon:CircleHelp }, { key:'heart', label:'Coração CALI', icon:Heart },
-  { key:'smile', label:'Gostei', icon:Smile },
-];
 
 const servicePlanLabel = (service?: string, plan?: string | null) => {
   if (service === 'CALI Partner') return 'Assessoria Estratégica Mensal · CALI Partner';
@@ -204,6 +198,10 @@ export function AdminProjectsPageV3() {
       });
       const nextFronts:ProjectFront[]=(frontRows||[]).map((r:any)=>({id:r.id,protocol:r.protocol||'—',projectId:r.project_id,companyId:r.company_id,name:r.name,objective:r.objective||'',monthStart:r.roadmap_month_start,monthEnd:r.roadmap_month_end,status:r.status,sortOrder:Number(r.sort_order||0)}));
       setProjects(nextProjects); setFronts(nextFronts); setTasks((taskRows||[]).map((r:any)=>({id:r.id,protocol:r.protocol||'—',deliverableId:r.deliverable_id,title:r.title,description:r.description,status:r.status,dueAt:r.due_at,clientVisible:Boolean(r.client_visible),estimatedMinutes:Number(r.estimated_minutes||0),sortOrder:Number(r.sort_order||0)})));
+      const targetId = new URLSearchParams(window.location.search).get('deliverable');
+      const targetProject = targetId ? nextProjects.find((project) => project.deliverables.some((item) => item.id === targetId)) : null;
+      const targetDeliverable = targetProject?.deliverables.find((item) => item.id === targetId);
+      if (targetProject && targetDeliverable) { setSelectedProjectId(targetProject.id); setSelectedDeliverable(targetDeliverable); setDetailTab('conversation'); }
       setSelectedProjectId((current)=>nextProjects.some((p)=>p.id===current)?current:nextProjects[0].id);
       if(timerRows?.[0]) setActiveTimer({id:timerRows[0].id,deliverableId:timerRows[0].deliverable_id,startedAt:timerRows[0].started_at,preview:false});
     } catch(error){ console.error('Falha ao carregar projetos',error); }
@@ -213,24 +211,19 @@ export function AdminProjectsPageV3() {
   async function loadDeliverableContext(deliverableId:string) {
     if(!supabase || !isUuid(deliverableId)) {
       setComments([
-        {id:'p1',body:'Material organizado e pronto para validação.',clientVisible:true,createdAt:'2026-08-27T12:00:00-03:00',author:'Patrícia · CALI',reactions:{ok:2,heart:1},mine:['heart']},
-        {id:'p2',body:'Revisar dependência com a próxima frente antes de publicar.',clientVisible:false,createdAt:'2026-08-27T09:00:00-03:00',author:'Patrícia · CALI',reactions:{question:1},mine:[]},
+        {id:'p1',body:'Material organizado e pronto para validação.',clientVisible:true,createdAt:'2026-08-27T12:00:00-03:00',author:'Patrícia · CALI'},
+        {id:'p2',body:'Revisar dependência com a próxima frente antes de publicar.',clientVisible:false,createdAt:'2026-08-27T09:00:00-03:00',author:'Patrícia · CALI'},
       ]);
       setHistory([{id:'h1',title:'Entregável criado',detail:'Incluído no cronograma e vinculado à frente.',createdAt:'2026-08-20T10:00:00-03:00'},{id:'h2',title:'Status alterado',detail:`Status atual: ${deliverableLabels[selectedDeliverable?.status||'not_started']}.`,createdAt:'2026-08-27T09:00:00-03:00'}]); return;
     }
-    const [{data:commentRows},{data:statusRows},{data:userData}] = await Promise.all([
+    const [{data:commentRows},{data:statusRows}] = await Promise.all([
       supabase.from('comments').select('id,body,client_visible,created_at').eq('target_type','deliverable').eq('target_id',deliverableId).order('created_at'),
       supabase.from('deliverable_status_history').select('*').eq('deliverable_id',deliverableId).order('created_at',{ascending:false}),
       supabase.auth.getUser(),
     ]);
-    const commentIds=(commentRows||[]).map((r:any)=>r.id);
-    const reactionRows=commentIds.length ? (await supabase.from('comment_reactions').select('comment_id,user_id,reaction').in('comment_id',commentIds)).data||[] : [];
-    const userId=userData.user?.id;
+
     setComments((commentRows||[]).map((r:any)=>{
-      const related=reactionRows.filter((x:any)=>x.comment_id===r.id);
-      const counts:Partial<Record<ReactionKey,number>>={};
-      related.forEach((x:any)=>{const key=x.reaction as ReactionKey;counts[key]=(counts[key]||0)+1;});
-      return {id:r.id,body:r.body,clientVisible:Boolean(r.client_visible),createdAt:r.created_at,author:r.client_visible?'Conversa com cliente':'Nota interna CALI',reactions:counts,mine:related.filter((x:any)=>x.user_id===userId).map((x:any)=>x.reaction as ReactionKey)};
+      return {id:r.id,body:r.body,clientVisible:Boolean(r.client_visible),createdAt:r.created_at,author:r.client_visible?'Conversa com cliente':'Nota interna CALI'};
     }));
     setHistory((statusRows||[]).map((r:any)=>({id:String(r.id),title:`${r.from_status?deliverableLabels[r.from_status as DeliverableStatus]+' → ':''}${deliverableLabels[r.to_status as DeliverableStatus]||r.to_status}`,detail:r.note||'Mudança registrada no fluxo.',createdAt:r.created_at})));
   }
@@ -342,23 +335,10 @@ export function AdminProjectsPageV3() {
     if(!selectedDeliverable||(!messageText.trim()&&!messageFile))return; const body=messageText.trim()||`Anexo: ${messageFile?.name}`; const visible=conversationChannel==='client';
     if(supabase&&isUuid(selectedDeliverable.id)){ const {data:user}=await supabase.auth.getUser(); let attachmentNote=''; if(messageFile){ const prepared=messageFile.type.startsWith('image/')?await optimizeImageForUpload(messageFile,'attachment'):{blob:messageFile,contentType:messageFile.type||'application/octet-stream',extension:messageFile.name.split('.').pop()?.toLowerCase()||'bin'}; const safeName=messageFile.name.replace(/[^A-Za-z0-9._-]/g,'_'); const storedName=messageFile.type.startsWith('image/')?`${safeName.replace(/\.[^.]+$/,'')}.webp`:safeName; const path=`${selectedProject.companyId}/deliverables/${selectedDeliverable.id}/${Date.now()}-${storedName}`; const upload=await supabase.storage.from('cali-workspace-private').upload(path,prepared.blob,{contentType:prepared.contentType,cacheControl:messageFile.type.startsWith('image/')?'31536000':'3600'}); if(!upload.error){await supabase.from('files').insert({company_id:selectedProject.companyId,project_id:selectedProject.id,deliverable_id:selectedDeliverable.id,title:messageFile.name,category:'deliverable',storage_path:path,original_filename:messageFile.name,file_type:prepared.contentType,file_size_bytes:prepared.blob.size,client_visible:visible,status:'published'});attachmentNote=`\nAnexo: ${messageFile.name}`;}}
       const {error}=await supabase.from('comments').insert({company_id:selectedProject.companyId,target_type:'deliverable',target_id:selectedDeliverable.id,author_user_id:user.user?.id||null,body:`${body}${attachmentNote}`,client_visible:visible}); if(error)console.error(error); await loadDeliverableContext(selectedDeliverable.id);
-    } else setComments((c)=>[...c,{id:`preview-comment-${Date.now()}`,body:messageFile?`${body}\nAnexo: ${messageFile.name}`:body,clientVisible:visible,createdAt:new Date().toISOString(),author:'Patrícia · CALI',reactions:{},mine:[]}]);
+    } else setComments((c)=>[...c,{id:`preview-comment-${Date.now()}`,body:messageFile?`${body}\nAnexo: ${messageFile.name}`:body,clientVisible:visible,createdAt:new Date().toISOString(),author:'Patrícia · CALI'}]);
     setMessageText('');setMessageFile(null);
   }
 
-  async function toggleReaction(comment:CommentItem,reaction:ReactionKey){
-    if(supabase&&isUuid(comment.id)){
-      const {data:user}=await supabase.auth.getUser(); if(!user.user)return;
-      if(comment.mine.includes(reaction)) await supabase.from('comment_reactions').delete().eq('comment_id',comment.id).eq('user_id',user.user.id).eq('reaction',reaction);
-      else await supabase.from('comment_reactions').insert({company_id:selectedProject.companyId,comment_id:comment.id,user_id:user.user.id,reaction});
-      if(selectedDeliverable)await loadDeliverableContext(selectedDeliverable.id);
-      return;
-    }
-    setComments((current)=>current.map((item)=>{
-      if(item.id!==comment.id)return item; const active=item.mine.includes(reaction); const count=Math.max(0,(item.reactions[reaction]||0)+(active?-1:1));
-      return {...item,reactions:{...item.reactions,[reaction]:count},mine:active?item.mine.filter((x)=>x!==reaction):[...item.mine,reaction]};
-    }));
-  }
 
   async function startTimer(){
     if(!selectedDeliverable||activeTimer)return;
@@ -411,7 +391,7 @@ export function AdminProjectsPageV3() {
 
   {selectedDeliverable&&<div className="modal-backdrop full-screen-modal"><section className="modal-card deliverable-workspace-modal-v2"><header className="deliverable-workspace-header-v2"><div className="deliverable-big-icon">{selectedDeliverable.isDocument?<FileText size={25}/>:<FolderKanban size={25}/>}</div><div className="deliverable-title-v2"><span className="section-kicker">{selectedDeliverable.protocol}</span><h2>{selectedDeliverable.title}</h2><p>{selectedDeliverable.workstream} · {selectedDeliverable.complexity} · {roadmapLabel(selectedDeliverable)}</p></div><div className="deliverable-head-actions-v2"><span className={`status-chip-v3 ${statusTone[selectedDeliverable.status]}`}>{deliverableLabels[selectedDeliverable.status]}</span><button className="modal-close-static" onClick={()=>{setSelectedDeliverable(null);setShowAdjustment(false);}}><X size={23}/></button></div></header><nav className="deliverable-tabs-v2">{(['overview','tasks','conversation','history'] as DetailTab[]).map((tab)=><button key={tab} className={detailTab===tab?'active':''} onClick={()=>setDetailTab(tab)}>{tab==='overview'?'Visão geral':tab==='tasks'?`Subtarefas (${selectedTasks.length})`:tab==='conversation'?`Conversa (${comments.length})`:'Histórico'}</button>)}</nav><div className="deliverable-workspace-scroll-v2">{detailTab==='overview'&&<><div className="deliverable-summary-lines-v2"><div><CalendarDays size={19}/><span>Deadline</span><strong>{formatProjectDate(selectedDeliverable.dueAt)}</strong>{selectedDeliverable.originalDueAt&&<small>Original: {formatProjectDate(selectedDeliverable.originalDueAt)}</small>}</div><div><Clock3 size={19}/><span>Horas</span><strong>{hoursLabel(selectedDeliverable.hours)}</strong><small>registradas</small></div><div><RefreshCw size={19}/><span>Ajustes</span><strong>{selectedDeliverable.adjustmentCount}/{selectedProject.adjustmentLimit}</strong><small>{selectedDeliverable.rebriefingRequired?'Rebriefing necessário':'com justificativa'}</small></div><div><GitBranch size={19}/><span>Frente</span><strong>{selectedDeliverable.workstream}</strong><small>{roadmapLabel(selectedDeliverable)}</small></div></div>{selectedDeliverable.clientDelayBusinessDays>0&&<div className="deliverable-warning-v2"><AlertTriangle size={18}/><div><strong>Resposta do cliente em atraso</strong><p>{selectedDeliverable.clientDelayBusinessDays} dia(s) útil(eis) de impacto. O atraso altera as próximas deadlines e fica registrado no histórico.</p></div></div>}<section className="deliverable-description-v2"><div><strong>Complexidade</strong><span className={`mc-chip ${selectedDeliverable.complexity.toLowerCase()}`}>{selectedDeliverable.complexity}</span></div><p>{complexityMeta[selectedDeliverable.complexity].description}</p>{selectedDeliverable.description&&<p>{selectedDeliverable.description}</p>}</section>{showAdjustment&&<form className="adjustment-form-v2" onSubmit={(e)=>{e.preventDefault();void requestAdjustment();}}><strong>Registrar pedido de alteração</strong><p>Até o 3º pedido é ajuste. O 4º passa automaticamente para rebriefing.</p><textarea rows={3} value={adjustmentReason} onChange={(e)=>setAdjustmentReason(e.target.value)} placeholder="Justificativa obrigatória"/><label>Impacto na deadline<input type="number" min={0} max={90} value={adjustmentImpact} onChange={(e)=>setAdjustmentImpact(Number(e.target.value))}/><span>dias úteis</span></label><div><button type="button" className="secondary" onClick={()=>setShowAdjustment(false)}>Cancelar</button><button className="primary" disabled={!adjustmentReason.trim()}>Registrar ajuste</button></div></form>}</>}
     {detailTab==='tasks'&&<section className="tasks-pane-v2"><header><div><strong>Subtarefas / etapas</strong><p>Todas as etapas abaixo pertencem a <b>{selectedDeliverable.title}</b>. A data exibida é o <b>prazo da subtarefa</b>, não a data de criação.</p></div><button className="secondary" onClick={()=>setShowTaskForm(true)}><Plus size={16}/>Subtarefa</button></header>{showTaskForm&&<form className="task-form-v2" onSubmit={addTask}><input value={taskForm.title} onChange={(e)=>setTaskForm((c)=>({...c,title:e.target.value}))} placeholder="Nome da etapa"/><input aria-label="Prazo da subtarefa" type="date" value={taskForm.dueDate} onChange={(e)=>setTaskForm((c)=>({...c,dueDate:e.target.value}))}/><input value={taskForm.estimatedHours} onChange={(e)=>setTaskForm((c)=>({...c,estimatedHours:e.target.value.replace(/[^0-9,.]/g,'')}))} placeholder="Estimativa h"/><label><input type="checkbox" checked={taskForm.clientVisible} onChange={(e)=>setTaskForm((c)=>({...c,clientVisible:e.target.checked}))}/> Cliente vê</label><textarea rows={2} value={taskForm.description} onChange={(e)=>setTaskForm((c)=>({...c,description:e.target.value}))} placeholder="Contexto da etapa"/><div><button type="button" className="secondary" onClick={()=>setShowTaskForm(false)}>Cancelar</button><button className="primary" disabled={!taskForm.title.trim()}>Adicionar</button></div></form>}<div className="task-columns-v3"><span>Subtarefa vinculada ao entregável</span><span>Estimativa</span><span>Prazo</span><span>Visibilidade</span></div><div className="task-list-v2">{selectedTasks.map((task)=><article key={task.id} className={task.status==='done'?'done':''}><button className="task-check-v2" onClick={()=>void toggleTask(task)}>{task.status==='done'?<Check size={16}/>:null}</button><div><small>{task.protocol}</small><strong>{task.title}</strong>{task.description&&<p>{task.description}</p>}</div><span>{estimateLabel(task.estimatedMinutes)}</span><time title="Prazo da subtarefa">{formatProjectDate(task.dueAt)}</time><em>{task.clientVisible?'Cliente vê':'Interno'}</em></article>)}{!selectedTasks.length&&<div className="empty-inline-v2">Nenhuma subtarefa cadastrada.</div>}</div></section>}
-    {detailTab==='conversation'&&<section className="conversation-pane-v2"><header><div className="conversation-channels-v2"><button className={conversationChannel==='client'?'active':''} onClick={()=>setConversationChannel('client')}>Cliente</button><button className={conversationChannel==='internal'?'active':''} onClick={()=>setConversationChannel('internal')}>Interno CALI</button></div><span>{conversationChannel==='client'?'Mensagens compartilhadas com o cliente':'Notas internas, invisíveis ao cliente'}</span></header><div className="conversation-list-v2">{comments.filter((m)=>m.clientVisible===(conversationChannel==='client')).map((m)=><article key={m.id}><span className="conversation-avatar-v2">PL</span><div><header><strong>{m.author||'Patrícia · CALI'}</strong><time>{new Date(m.createdAt).toLocaleString('pt-BR')}</time></header><p>{m.body}</p><div className="reaction-bar-v3">{reactionMeta.map(({key,label,icon:Icon})=><button key={key} className={m.mine.includes(key)?'active':''} title={label} onClick={()=>void toggleReaction(m,key)}><Icon size={15}/>{(m.reactions[key]||0)>0&&<span>{m.reactions[key]}</span>}</button>)}</div></div></article>)}{!comments.some((m)=>m.clientVisible===(conversationChannel==='client'))&&<div className="empty-inline-v2">Nenhuma mensagem neste canal.</div>}</div><div className="conversation-composer-v2"><textarea rows={3} value={messageText} onChange={(e)=>setMessageText(e.target.value)} placeholder={conversationChannel==='client'?'Escreva uma mensagem para o cliente…':'Registre uma nota interna…'}/><input ref={fileInputRef} type="file" hidden onChange={(e)=>setMessageFile(e.target.files?.[0]||null)}/><div><button className="secondary" onClick={()=>fileInputRef.current?.click()}><Paperclip size={16}/>{messageFile?messageFile.name:'Anexar'}</button><button className="primary" onClick={()=>void sendMessage()} disabled={!messageText.trim()&&!messageFile}><Send size={16}/>Enviar</button></div></div></section>}
+    {detailTab==='conversation'&&<section className="conversation-pane-v2"><header><div className="conversation-channels-v2"><button className={conversationChannel==='client'?'active':''} onClick={()=>setConversationChannel('client')}>Cliente</button><button className={conversationChannel==='internal'?'active':''} onClick={()=>setConversationChannel('internal')}>Interno CALI</button></div><span>{conversationChannel==='client'?'Mensagens compartilhadas com o cliente':'Notas internas, invisíveis ao cliente'}</span></header><div className="conversation-list-v2">{comments.filter((m)=>m.clientVisible===(conversationChannel==='client')).map((m)=><article key={m.id}><span className="conversation-avatar-v2">PL</span><div><header><strong>{m.author||'Patrícia · CALI'}</strong><time>{new Date(m.createdAt).toLocaleString('pt-BR')}</time></header><p>{m.body}</p></div></article>)}{!comments.some((m)=>m.clientVisible===(conversationChannel==='client'))&&<div className="empty-inline-v2">Nenhuma mensagem neste canal.</div>}</div><div className="conversation-composer-v2"><textarea rows={3} value={messageText} onChange={(e)=>setMessageText(e.target.value)} placeholder={conversationChannel==='client'?'Escreva uma mensagem para o cliente…':'Registre uma nota interna…'}/><input ref={fileInputRef} type="file" hidden onChange={(e)=>setMessageFile(e.target.files?.[0]||null)}/><div><button className="secondary" onClick={()=>fileInputRef.current?.click()}><Paperclip size={16}/>{messageFile?messageFile.name:'Anexar'}</button><button className="primary" onClick={()=>void sendMessage()} disabled={!messageText.trim()&&!messageFile}><Send size={16}/>Enviar</button></div></div></section>}
     {detailTab==='history'&&<section className="deliverable-history-v2"><header><History size={20}/><div><strong>Histórico do entregável</strong><p>Cada mudança registra data/hora. Ajustes preservam justificativa e impacto para os relatórios.</p></div></header>{history.map((item)=><article key={item.id}><i/><div><strong>{item.title}</strong><p>{item.detail}</p><small>{typeof item.createdAt==='string'&&item.createdAt.includes('T')?new Date(item.createdAt).toLocaleString('pt-BR'):item.createdAt}</small></div></article>)}</section>}
   </div><footer className="deliverable-actions-v2"><div className="deliverable-actions-left-v2">{selectedDeliverable.status!=='approved'&&selectedDeliverable.status!=='cancelled'&&<button className="secondary" onClick={()=>openDeliverable(undefined,selectedDeliverable)}><Edit3 size={16}/>Editar</button>}<StatusSelect item={selectedDeliverable} onChange={(next)=>statusChoice(selectedDeliverable,next)}/>{selectedDeliverable.status!=='approved'&&selectedDeliverable.status!=='cancelled'&&<button className="secondary" onClick={()=>setShowAdjustment(true)}><RefreshCw size={16}/>Ajuste</button>}<button className="secondary danger-text" onClick={()=>{setPendingStatus({item:selectedDeliverable,status:'cancelled'});setStatusReason('');}} disabled={selectedDeliverable.status==='approved'||selectedDeliverable.status==='cancelled'}><X size={16}/>Cancelar</button><button className="secondary danger-text" onClick={()=>setConfirmDelete(true)} disabled={selectedDeliverable.status!=='not_started'}><Trash2 size={16}/>Excluir</button></div><div className="deliverable-actions-right-v2">{selectedDeliverable.status==='in_progress'&&<button className="secondary" onClick={()=>void persistStatus(selectedDeliverable,'client_review','Enviado para validação do cliente')}><Send size={16}/>Enviar ao cliente</button>}{selectedDeliverable.status==='approved'?<span className="locked-v2"><ShieldCheck size={16}/>Aprovado e protegido</span>:activeTimer?.deliverableId===selectedDeliverable.id?<button className="timer-button-v2 active" onClick={()=>void stopTimer()}><Square size={15}/>Parar timer · {timerLabel}</button>:<button className="timer-button-v2" onClick={()=>void startTimer()} disabled={Boolean(activeTimer)}><Play size={16}/>Iniciar timer</button>}</div></footer></section></div>}
 
