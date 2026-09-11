@@ -137,8 +137,12 @@ export function AdminReportsPageV17() {
       ]);
       if (companyResult.error) throw companyResult.error;
       if (reportResult.error) throw reportResult.error;
-      const nextCompanies: Company[] = await Promise.all((companyResult.data || []).map(async (row: any) => ({ id: row.id, name: row.display_name, logoUrl: await resolveWorkspaceMedia(row.logo_url, 86400, true), serviceType: row.service_type, servicePlan: row.service_plan })));
+      const nextCompanies: Company[] = (companyResult.data || []).map((row: any) => ({ id: row.id, name: row.display_name, logoUrl: row.logo_url || '', serviceType: row.service_type, servicePlan: row.service_plan }));
       setCompanies(nextCompanies); setReports((reportResult.data || []).map(reportRow));
+      void Promise.all(nextCompanies.map(async (company) => [company.id, await resolveWorkspaceMedia((companyResult.data || []).find((row: any) => row.id === company.id)?.logo_url, 86400, true)] as const)).then((logoRows) => {
+        const logoMap = new Map(logoRows);
+        setCompanies((current) => current.map((company) => ({ ...company, logoUrl: logoMap.get(company.id) || company.logoUrl || '' })));
+      });
       if (!companyId && nextCompanies.length) setCompanyId(nextCompanies[0].id);
     } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar Relatórios.'); }
     finally { setLoadingBase(false); }
@@ -150,7 +154,7 @@ export function AdminReportsPageV17() {
     const [snapshotResult, seriesResult, performanceResult] = await Promise.all([
       supabase.rpc('build_report_intelligence_snapshot', { p_company_id: nextCompanyId, p_period_start: nextStart, p_period_end: nextEnd }),
       supabase.rpc('build_report_monthly_series', { p_company_id: nextCompanyId, p_period_start: seriesFrom, p_period_end: nextEnd }),
-      supabase.from('deliverable_delivery_performance').select('*').eq('company_id', nextCompanyId),
+      supabase.from('deliverable_delivery_performance').select('id,company_id,deliverable_id,project_id,title,status,due_at,delivered_at,approved_at,delay_days,client_delay_business_days,adjustment_count').eq('company_id', nextCompanyId),
     ]);
     if (snapshotResult.error) throw snapshotResult.error;
     if (seriesResult.error) throw seriesResult.error;
