@@ -74,7 +74,7 @@ html[data-workspace-theme='night'] .client-doc-toolbar-v3 select {
 
 .client-document-validity-alert{display:flex;align-items:flex-start;gap:12px;margin:0 0 16px;padding:14px 16px;border:1px solid rgba(181,140,82,.55);border-radius:16px;background:linear-gradient(110deg,rgba(231,198,111,.28),rgba(247,243,238,.7));color:var(--theme-text)}
 .client-document-validity-alert>svg{flex:0 0 auto;margin-top:1px;color:#8b6428}.client-document-validity-alert strong{display:block;font-size:13px}.client-document-validity-alert p{margin:4px 0 0;color:var(--theme-muted);font-size:11px;line-height:1.5}
-.client-document-validity{display:flex;align-items:center;gap:5px;margin:6px 0 0;color:var(--theme-muted);font-size:10px}.client-document-validity.attention{color:#9a6b24;font-weight:750}.client-document-validity svg{flex:0 0 auto}
+.client-document-validity{display:flex;align-items:center;gap:5px;margin:6px 0 0;color:var(--theme-muted);font-size:10px}.client-document-validity.attention{color:#9a6b24;font-weight:750}.client-document-validity svg{flex:0 0 auto}.client-document-validity:not(.attention){opacity:.82}
 html[data-workspace-theme='night'] .client-document-validity-alert{background:linear-gradient(110deg,rgba(181,140,82,.28),rgba(59,43,33,.9));border-color:rgba(224,189,123,.68)}
 html[data-workspace-theme='night'] .client-document-validity-alert p{color:#e0d3c9}.client-documents-v3 .drive-banner{background:linear-gradient(110deg,rgba(231,198,111,.23),rgba(247,243,238,.82))}
 html[data-workspace-theme='night'] .client-documents-v3 .drive-banner{background:linear-gradient(110deg,rgba(181,140,82,.25),rgba(47,35,34,.94))}
