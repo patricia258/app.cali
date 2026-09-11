@@ -225,7 +225,7 @@ export function AdminDocumentsPageV4() {
       const expectedByCompany = new Map<string, number>();
       profileOptions.filter((item) => item.role === 'client' && item.active && item.companyId).forEach((item) => expectedByCompany.set(item.companyId!, (expectedByCompany.get(item.companyId!) || 0) + 1));
 
-      const rows: DocumentRow[] = await Promise.all((fileResult.data || []).map(async (row) => {
+      const rows: DocumentRow[] = (fileResult.data || []).map((row) => {
         const company = companyMap.get(row.company_id);
         const project = row.project_id ? projectMap.get(row.project_id) : undefined;
         const deliverable = row.deliverable_id ? deliverableMap.get(row.deliverable_id) : undefined;
@@ -237,13 +237,17 @@ export function AdminDocumentsPageV4() {
           updatedAt: row.updated_at, publishedAt: row.published_at, sourceType: (row.source_type || 'workspace') as DocumentRow['sourceType'],
           status: (row.status || 'draft') as DocumentStatus, workflowStage: (row.workflow_stage || (row.status === 'published' ? 'published' : 'ready_to_publish')) as WorkflowStage,
           workflowOrigin: (row.workflow_origin || 'manual') as DocumentRow['workflowOrigin'], clientVisible: Boolean(row.client_visible), protocol: row.protocol || '—',
-          coverUrl: await resolveCover(row.cover_storage_path), coverStoragePath: row.cover_storage_path, fileType: row.file_type || undefined,
+          coverUrl: '',, coverStoragePath: row.cover_storage_path, fileType: row.file_type || undefined,
           fileSizeBytes: Number(row.file_size_bytes || 0), originalFilename: row.original_filename, requiresAcknowledgement: Boolean(row.requires_acknowledgement),
           storagePath: row.storage_path, driveUrl: row.drive_url, description: row.description, revisionOfId: row.revision_of_id,
           views: ack.views, acknowledgements: ack.acknowledgements, expectedAcknowledgements: expectedByCompany.get(row.company_id) || 0, comments: commentsByFile.get(row.id) || 0,
         };
       }));
       setDocs(rows);
+      void Promise.all(rows.map(async (doc) => [doc.id, await resolveCover(doc.coverStoragePath)] as const)).then((coverRows) => {
+        const coverMap = new Map(coverRows);
+        setDocs((current) => current.map((doc) => ({ ...doc, coverUrl: coverMap.get(doc.id) || doc.coverUrl })));
+      });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar a biblioteca.');
     } finally { setLoading(false); }
