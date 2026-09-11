@@ -2,6 +2,7 @@ import { ChangeEvent, useEffect, useMemo, useState, type CSSProperties } from 'r
 import { Camera, Check, ChevronDown, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, Upload, X } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { useWorkspaceAuth } from '../auth/WorkspaceAuthProvider';
+import { optimizeImageForUpload } from '../lib/imageUpload';
 
 type Role='admin'|'client';
 type SignatureMode='generated'|'uploaded';
@@ -82,24 +83,20 @@ export function DirectProfileControl({role}:{role:Role}){
   async function uploadImage(file:File,kind:'avatar'|'signature'){
     if(!supabase)return'';
     if(!user)return'';
-    const ext=file.name.split('.').pop()?.toLowerCase()||'png';
-    const path=`${user.id}/${kind}-${Date.now()}.${ext}`;
-    const{error}=await supabase.storage.from('workspace-assets').upload(path,file,{cacheControl:'3600',contentType:file.type,upsert:false});
+    const prepared=await optimizeImageForUpload(file,kind);
+    const path=`${user.id}/${kind}-${Date.now()}.${prepared.extension}`;
+    const{error}=await supabase.storage.from('workspace-assets').upload(path,prepared.blob,{cacheControl:'31536000',contentType:prepared.contentType,upsert:false});
     if(error)throw error;
     return supabase.storage.from('workspace-assets').getPublicUrl(path).data.publicUrl;
   }
   async function handleAvatar(event:ChangeEvent<HTMLInputElement>){
     const file=event.target.files?.[0];if(!file)return;setMessage('');
-    if(file.size>5*1024*1024){setMessage('A foto deve ter no máximo 5 MB.');event.target.value='';return;}
-    if(!['image/jpeg','image/png','image/webp'].includes(file.type)){setMessage('Use uma imagem JPG, PNG ou WEBP.');event.target.value='';return;}
     try{const url=await uploadImage(file,'avatar');if(url)setDraft((current)=>({...current,avatar_url:url,avatar_position_x:50,avatar_position_y:50,avatar_zoom:1}));}
     catch(error){setMessage(error instanceof Error?error.message:'Não consegui enviar essa imagem.');}
     event.target.value='';
   }
   async function handleSignature(event:ChangeEvent<HTMLInputElement>){
     const file=event.target.files?.[0];if(!file)return;setMessage('');
-    if(file.size>3*1024*1024){setMessage('A assinatura deve ter no máximo 3 MB.');event.target.value='';return;}
-    if(!['image/jpeg','image/png','image/webp'].includes(file.type)){setMessage('Use uma assinatura em JPG, PNG ou WEBP.');event.target.value='';return;}
     try{const url=await uploadImage(file,'signature');if(url){setDraft((current)=>({...current,signature_mode:'uploaded',signature_url:url}));setSignatureMenuOpen(false);}}
     catch(error){setMessage(error instanceof Error?error.message:'Não consegui enviar a assinatura.');}
     event.target.value='';
