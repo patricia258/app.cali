@@ -126,7 +126,7 @@ export function AdminSatisfactionPage(){
     </div>
 
     <div className="satisfaction-secondary-grid-v40">
-      <section className="panel satisfaction-client-ranking-v40"><div className="panel-title"><div><span className="section-kicker">RECORTE POR CLIENTE</span><h2>Onde a percepção está concentrada</h2></div><BarChart3 size={18}/></div>{companySeries.length?<div className="satisfaction-ranking-list-v40">{companySeries.map((item)=><div key={item.name}><div><strong>{item.name}</strong><small>{item.count} {item.count===1?'avaliação':'avaliações'} · média {item.average.toFixed(1).replace('.',',')}</small></div><div><i style={{width:`${Math.max(8,item.average/5*100)}%`}}/></div></div>):<div className="satisfaction-empty-v39">Sem avaliações no recorte.</div>}</section>
+      <section className="panel satisfaction-client-ranking-v40"><div className="panel-title"><div><span className="section-kicker">RECORTE POR CLIENTE</span><h2>Onde a percepção está concentrada</h2></div><BarChart3 size={18}/></div>{companySeries.length?<div className="satisfaction-ranking-list-v40">{companySeries.map((item)=><div key={item.name}><div><strong>{item.name}</strong><small>{item.count} {item.count===1?'avaliação':'avaliações'} · média {item.average.toFixed(1).replace('.',',')}</small></div><div><i style={{width:`${Math.max(8,item.average/5*100)}%`}}/></div></div>)}</div>:<div className="satisfaction-empty-v39">Sem avaliações no recorte.</div>}</section>
       <section className="panel satisfaction-source-panel-v40"><div className="panel-title"><div><span className="section-kicker">ORIGEM DA AVALIAÇÃO</span><h2>De onde o feedback está vindo</h2></div><Clock3 size={18}/></div><div className="satisfaction-source-list-v40">{sourceSeries.map((item)=><div key={item.key}><span>{item.label}</span><strong>{item.count}</strong><div><i style={{width:`${periodFiltered.length?item.count/periodFiltered.length*100:0}%`}}/></div></div>)}</div><p className="satisfaction-chart-note-v40">A avaliação nasce ao aprovar um entregável ou ao finalizar uma solicitação visível ao cliente. As duas fontes são consolidadas aqui sem misturar o contexto original.</p></section>
     </div>
 
@@ -147,3 +147,4 @@ export function AdminSatisfactionPage(){
     </section>
   </section></Shell>;
 }
+
