@@ -1,36 +1,53 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, type ComponentType } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute, WorkspaceRouteLoader } from './components/ProtectedRoute';
 import { Shell } from './components/WorkspaceShell';
 
-const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
-const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage').then((m) => ({ default: m.AuthCallbackPage })));
-const GoogleCalendarCallbackPage = lazy(() => import('./pages/GoogleCalendarCallbackPage').then((m) => ({ default: m.GoogleCalendarCallbackPage })));
+function lazyWithRecovery<T extends ComponentType<any>>(loader: () => Promise<{ default: T }>) {
+  return lazy(async () => {
+    const marker = `cali:lazy-route-retry:${window.location.pathname}`;
+    try {
+      const module = await loader();
+      sessionStorage.removeItem(marker);
+      return module;
+    } catch (error) {
+      if (!sessionStorage.getItem(marker)) {
+        sessionStorage.setItem(marker, '1');
+        window.location.reload();
+      }
+      throw error;
+    }
+  });
+}
 
-const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })));
-const AdminClientsPageV3 = lazy(() => import('./pages/admin/AdminClientsPageV3').then((m) => ({ default: m.AdminClientsPageV3 })));
-const AdminProposalsPageV2 = lazy(() => import('./pages/admin/AdminProposalsPageV2').then((m) => ({ default: m.AdminProposalsPageV2 })));
-const AdminProposalEditorPageV3 = lazy(() => import('./pages/admin/AdminProposalEditorPageV3').then((m) => ({ default: m.AdminProposalEditorPageV3 })));
-const AdminProposalPreviewPageV3 = lazy(() => import('./pages/admin/AdminProposalPreviewPageV3').then((m) => ({ default: m.AdminProposalPreviewPageV3 })));
-const AdminProjectsGatePage = lazy(() => import('./pages/admin/AdminProjectsGatePage').then((m) => ({ default: m.AdminProjectsGatePage })));
-const AdminHoursPageV3 = lazy(() => import('./pages/admin/AdminHoursPageV3').then((m) => ({ default: m.AdminHoursPageV3 })));
-const AdminCalendarPage = lazy(() => import('./pages/admin/AdminCalendarPage').then((m) => ({ default: m.AdminCalendarPage })));
-const AdminDocumentsPageV4 = lazy(() => import('./pages/admin/AdminDocumentsPageV4').then((m) => ({ default: m.AdminDocumentsPageV4 })));
-const AdminReportsPageV17 = lazy(() => import('./pages/admin/AdminReportsPageV17').then((m) => ({ default: m.AdminReportsPageV17 })));
-const AdminSatisfactionPage = lazy(() => import('./pages/admin/AdminSatisfactionPage').then((m) => ({ default: m.AdminSatisfactionPage })));
-const AdminPeopleMapPageV2 = lazy(() => import('./pages/admin/AdminPeopleMapPageV2').then((m) => ({ default: m.AdminPeopleMapPageV2 })));
-const AdminPeopleMapReviewPage = lazy(() => import('./pages/admin/AdminPeopleMapReviewPage').then((m) => ({ default: m.AdminPeopleMapReviewPage })));
-const AdminPeopleMapReportPage = lazy(() => import('./pages/admin/AdminPeopleMapReportPage').then((m) => ({ default: m.AdminPeopleMapReportPage })));
+const LoginPage = lazyWithRecovery(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
+const AuthCallbackPage = lazyWithRecovery(() => import('./pages/AuthCallbackPage').then((m) => ({ default: m.AuthCallbackPage })));
+const GoogleCalendarCallbackPage = lazyWithRecovery(() => import('./pages/GoogleCalendarCallbackPage').then((m) => ({ default: m.GoogleCalendarCallbackPage })));
 
-const AdminRecordsPage = lazy(() => import('./pages/records/WorkspaceRecordsPage').then((m) => ({ default: m.AdminRecordsPage })));
-const ClientRecordsPage = lazy(() => import('./pages/records/WorkspaceRecordsPage').then((m) => ({ default: m.ClientRecordsPage })));
-const ClientDashboard = lazy(() => import('./pages/client/ClientDashboard').then((m) => ({ default: m.ClientDashboard })));
-const ClientTimelinePage = lazy(() => import('./pages/client/ClientTimelinePage').then((m) => ({ default: m.ClientTimelinePage })));
-const ClientDeliverablesPage = lazy(() => import('./pages/client/ClientDeliverablesPage').then((m) => ({ default: m.ClientDeliverablesPage })));
-const ClientHoursPage = lazy(() => import('./pages/client/ClientHoursPage').then((m) => ({ default: m.ClientHoursPage })));
-const ClientDocumentsPage = lazy(() => import('./pages/client/ClientDocumentsPage').then((m) => ({ default: m.ClientDocumentsPage })));
-const ClientReportsPageV5 = lazy(() => import('./pages/client/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 })));
-const ReportPrintPageV17 = lazy(() => import('./pages/reports/ReportPrintPageV17').then((m) => ({ default: m.ReportPrintPageV17 })));
+const AdminDashboard = lazyWithRecovery(() => import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })));
+const AdminClientsPageV3 = lazyWithRecovery(() => import('./pages/admin/AdminClientsPageV3').then((m) => ({ default: m.AdminClientsPageV3 })));
+const AdminProposalsPageV2 = lazyWithRecovery(() => import('./pages/admin/AdminProposalsPageV2').then((m) => ({ default: m.AdminProposalsPageV2 })));
+const AdminProposalEditorPageV3 = lazyWithRecovery(() => import('./pages/admin/AdminProposalEditorPageV3').then((m) => ({ default: m.AdminProposalEditorPageV3 })));
+const AdminProposalPreviewPageV3 = lazyWithRecovery(() => import('./pages/admin/AdminProposalPreviewPageV3').then((m) => ({ default: m.AdminProposalPreviewPageV3 })));
+const AdminProjectsGatePage = lazyWithRecovery(() => import('./pages/admin/AdminProjectsGatePage').then((m) => ({ default: m.AdminProjectsGatePage })));
+const AdminHoursPageV3 = lazyWithRecovery(() => import('./pages/admin/AdminHoursPageV3').then((m) => ({ default: m.AdminHoursPageV3 })));
+const AdminCalendarPage = lazyWithRecovery(() => import('./pages/admin/AdminCalendarPage').then((m) => ({ default: m.AdminCalendarPage })));
+const AdminDocumentsPageV4 = lazyWithRecovery(() => import('./pages/admin/AdminDocumentsPageV4').then((m) => ({ default: m.AdminDocumentsPageV4 })));
+const AdminReportsPageV17 = lazyWithRecovery(() => import('./pages/admin/AdminReportsPageV17').then((m) => ({ default: m.AdminReportsPageV17 })));
+const AdminSatisfactionPage = lazyWithRecovery(() => import('./pages/admin/AdminSatisfactionPage').then((m) => ({ default: m.AdminSatisfactionPage })));
+const AdminPeopleMapPageV2 = lazyWithRecovery(() => import('./pages/admin/AdminPeopleMapPageV2').then((m) => ({ default: m.AdminPeopleMapPageV2 })));
+const AdminPeopleMapReviewPage = lazyWithRecovery(() => import('./pages/admin/AdminPeopleMapReviewPage').then((m) => ({ default: m.AdminPeopleMapReviewPage })));
+const AdminPeopleMapReportPage = lazyWithRecovery(() => import('./pages/admin/AdminPeopleMapReportPage').then((m) => ({ default: m.AdminPeopleMapReportPage })));
+
+const AdminRecordsPage = lazyWithRecovery(() => import('./pages/records/WorkspaceRecordsPage').then((m) => ({ default: m.AdminRecordsPage })));
+const ClientRecordsPage = lazyWithRecovery(() => import('./pages/records/WorkspaceRecordsPage').then((m) => ({ default: m.ClientRecordsPage })));
+const ClientDashboard = lazyWithRecovery(() => import('./pages/client/ClientDashboard').then((m) => ({ default: m.ClientDashboard })));
+const ClientTimelinePage = lazyWithRecovery(() => import('./pages/client/ClientTimelinePage').then((m) => ({ default: m.ClientTimelinePage })));
+const ClientDeliverablesPage = lazyWithRecovery(() => import('./pages/client/ClientDeliverablesPage').then((m) => ({ default: m.ClientDeliverablesPage })));
+const ClientHoursPage = lazyWithRecovery(() => import('./pages/client/ClientHoursPage').then((m) => ({ default: m.ClientHoursPage })));
+const ClientDocumentsPage = lazyWithRecovery(() => import('./pages/client/ClientDocumentsPage').then((m) => ({ default: m.ClientDocumentsPage })));
+const ClientReportsPageV5 = lazyWithRecovery(() => import('./pages/client/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 })));
+const ReportPrintPageV17 = lazyWithRecovery(() => import('./pages/reports/ReportPrintPageV17').then((m) => ({ default: m.ReportPrintPageV17 })));
 
 function WorkspaceNavigationFallback() {
   const { pathname } = useLocation();
