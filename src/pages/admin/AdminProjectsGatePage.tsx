@@ -7,10 +7,11 @@ import { AdminProjectsPageV3 } from './AdminProjectsPageV3';
 type GateState = 'loading' | 'ready' | 'empty' | 'error';
 
 export function AdminProjectsGatePage() {
+  const preview = sessionStorage.getItem('cali-preview-role') === 'admin';
   const [state, setState] = useState<GateState>('loading');
   const [message, setMessage] = useState('');
 
-  useEffect(() => { void checkWorkspace(); }, []);
+  useEffect(() => { if (!preview) void checkWorkspace(); }, [preview]);
 
   async function checkWorkspace() {
     if (!supabase) {
@@ -27,7 +28,7 @@ export function AdminProjectsGatePage() {
     setState((count || 0) > 0 ? 'ready' : 'empty');
   }
 
-  if (state === 'ready') return <AdminProjectsPageV3 />;
+  if (preview || state === 'ready') return <AdminProjectsPageV3 />;
   if (state === 'loading') return <Shell role="admin"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando projetos…</section></Shell>;
 
   return (
