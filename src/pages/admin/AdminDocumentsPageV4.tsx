@@ -243,11 +243,9 @@ export function AdminDocumentsPageV4() {
           views: ack.views, acknowledgements: ack.acknowledgements, expectedAcknowledgements: expectedByCompany.get(row.company_id) || 0, comments: commentsByFile.get(row.id) || 0,
         };
       });
-      setDocs(rows);
-      void Promise.all(rows.map(async (doc) => [doc.id, await resolveCover(doc.coverStoragePath)] as const)).then((coverRows) => {
-        const coverMap = new Map(coverRows);
-        setDocs((current) => current.map((doc) => ({ ...doc, coverUrl: coverMap.get(doc.id) || doc.coverUrl })));
-      });
+      const coverRows=await Promise.all(rows.map(async (doc) => [doc.id, await resolveCover(doc.coverStoragePath)] as const));
+      const coverMap=new Map(coverRows);
+      setDocs(rows.map((doc)=>({...doc,coverUrl:coverMap.get(doc.id)||doc.coverUrl})));
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar a biblioteca.');
     } finally { setLoading(false); }
