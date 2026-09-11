@@ -4,6 +4,7 @@ import { Shell } from '../../components/WorkspaceShell';
 import { ExecutiveReportPaperV17 } from '../../components/reports/ExecutiveReportPaperV17';
 import type { ReportIdentityV55 } from '../../components/reports/ReportValidationV55';
 import { supabase } from '../../lib/supabase';
+import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 import { type ReportEditor, type ReportType } from '../../lib/reportComposition';
 import { normalizeIntelligenceSnapshot, type IntelligenceSnapshot } from '../../lib/reportIntelligence';
@@ -54,6 +55,7 @@ function formatDateTime(value?:string|null){
 }
 
 export function ClientReportsPageV5(){
+  const { user } = useWorkspaceAuth();
   const[reports,setReports]=useState<Report[]>([]);
   const[company,setCompany]=useState<Company|null>(null);
   const[selectedId,setSelectedId]=useState('');
@@ -75,9 +77,9 @@ export function ClientReportsPageV5(){
     if(!supabase)return;
     setLoading(true);setError('');
     try{
-      const user=await supabase.auth.getUser();
-      if(user.error)throw user.error;
-      const profile=await supabase.from('profiles').select('company_id').eq('id',user.data.user?.id||'').maybeSingle();
+      const userId=user?.id;
+      if(!userId)throw new Error('Sessão do cliente não encontrada.');
+      const profile=await supabase.from('profiles').select('company_id').eq('id',userId).maybeSingle();
       if(profile.error)throw profile.error;
       const companyId=profile.data?.company_id;
       if(!companyId)throw new Error('Empresa vinculada ao acesso não encontrada.');
@@ -87,7 +89,9 @@ export function ClientReportsPageV5(){
       ]);
       if(companyResult.error)throw companyResult.error;
       if(reportResult.error)throw reportResult.error;
-      setCompany({name:companyResult.data?.display_name||'Empresa',logoUrl:await resolveWorkspaceMedia(companyResult.data?.logo_url,86400,true)});
+      const companyName=companyResult.data?.display_name||'Empresa';
+      setCompany({name:companyName,logoUrl:null});
+      void resolveWorkspaceMedia(companyResult.data?.logo_url,86400,true).then((logoUrl)=>setCompany({name:companyName,logoUrl}));
       const next=(reportResult.data||[]).map(rowToReport);
       setReports(next);
       const queryId=new URLSearchParams(window.location.search).get('report')||'';
