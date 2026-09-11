@@ -31,6 +31,9 @@ html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip
 html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip .google-calendar-runtime-button.primary{
   background:#5A1E2D!important;border-color:#5A1E2D!important;color:#FFF!important;
 }
+html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip strong{color:#FFF8E6!important}
+html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip p,
+html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip .google-calendar-runtime-detail{color:#F6E8C6!important}
 
 /* Relatórios: o card amarelo permanece, mas nunca herda texto branco do modo noite. */
 .reports-admin-v16 .reports-v16-review-map,
