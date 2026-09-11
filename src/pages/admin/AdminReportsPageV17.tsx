@@ -346,7 +346,7 @@ export function AdminReportsPageV17() {
     return <button className="primary" type="button" onClick={() => setPreviewOpen(true)}><Eye size={16} />Ver relatório</button>;
   }
 
-  if (loadingBase) return <Shell role="admin"><section className="page reports-admin-v16"><div className="data-loading"><Loader2 className="spin" size={20} />Carregando Relatórios…</div></section></Shell>;
+  if (loadingBase) return <Shell role="admin"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando fechamento executivo…</section></Shell>;
   const contractedMinutes = Math.max(0, Number(kpis?.contractedHours || 0) * 60), usedMinutes = Math.max(0, Number(kpis?.consumedMinutes || 0)), extraMinutes = Math.max(0, usedMinutes - contractedMinutes), usagePercent = contractedMinutes ? Math.round((usedMinutes / contractedMinutes) * 100) : null;
   const hasCapacity = contractedMinutes > 0 || usedMinutes > 0;
   const hasPlanned = Number(kpis?.plannedDeliveries || 0) > 0;
