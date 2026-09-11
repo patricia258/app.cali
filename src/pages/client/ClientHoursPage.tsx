@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, ChevronDown, ChevronRight, Clock3, Loader2 } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronRight, Clock3, Leaf, Loader2 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
 
@@ -191,7 +191,8 @@ export function ClientHoursPage() {
       {error && <div className="inline-notice"><AlertTriangle size={18} />{error}</div>}
 
       {summary && !summary.visible ? <><section className="hours-connect-card client-hours-disabled"><Clock3 size={24} /><div><strong>A visualização de horas não está habilitada para este mês.</strong><p>Os meses já liberados continuam disponíveis para consulta. Selecione outro mês abaixo.</p><label className="client-hours-disabled-month"><span>Consultar mês</span><input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></label></div></section></> : summary && <>
-        <section className="hours-connect-card client-hours-summary">
+        <section className="hours-connect-card client-hours-summary client-hours-summary-gold">
+          <div className="client-hours-summary-mark" aria-hidden="true"><Leaf size={34} strokeWidth={1.7} /></div>
           {alertTone === 'critical' && <div className="client-hours-alert critical"><AlertTriangle size={18} /><span>{alertText}</span></div>}
           <div className="client-hours-summary-top">
             <div><span>Horas do mês</span><h2>{monthLabel(period)}</h2></div>
