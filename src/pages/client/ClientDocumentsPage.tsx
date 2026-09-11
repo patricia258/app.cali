@@ -250,6 +250,8 @@ export function ClientDocumentsPage() {
     return 'Salvando no Drive…';
   }
 
+  if (loading) return <Shell role="client"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando biblioteca…</section></Shell>;
+
   return (
     <Shell role="client">
       <section className="page client-documents-v2 client-documents-v3">
