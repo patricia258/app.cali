@@ -418,8 +418,8 @@ export function AdminDocumentsPageV4() {
         {notice && <div className="inline-notice success"><CheckCircle2 size={19} />{notice}</div>}
         {error && !editorOpen && <div className="inline-notice">{error}</div>}
 
-        <section className={`document-drive-strip-v3 ${driveConnection ? 'connected' : ''}`}>
-          <div className="document-drive-mark-v3"><Cloud size={19} /></div><div><strong>{driveConnection ? 'Arquivo interno da CALI' : 'Workspace interno da CALI'}</strong><span>{driveConnection ? `${driveConnection.accountEmail || 'Conta CALI'}${driveConnection.rootFolderName ? ` · ${driveConnection.rootFolderName}` : ''} · fonte operacional` : 'A CALI mantém aqui a fonte operacional. Documentos aprovados podem ser copiados para o Drive da empresa cliente na área do cliente.'}</span></div>{driveConnection && <span className="document-drive-status-v3"><CheckCircle2 size={15} />Conectado</span>}
+        <section className={`document-drive-strip-v3 document-workspace-status-v4 ${driveConnection ? 'connected' : ''}`}>
+          <div className="document-drive-mark-v3"><Cloud size={19} /></div><div><strong>{driveConnection ? 'Arquivo interno da CALI' : 'Armazenamento dos documentos'}</strong><span>{driveConnection ? `${driveConnection.accountEmail || 'Conta CALI'}${driveConnection.rootFolderName ? ` · ${driveConnection.rootFolderName}` : ''} · fonte operacional` : 'A CALI organiza a versão de trabalho aqui. Depois da aprovação, o documento fica disponível para ser salvo no Drive da empresa cliente.'}</span></div>{driveConnection && <span className="document-drive-status-v3"><CheckCircle2 size={15} />Conectado</span>}
         </section>
 
         <div className="document-toolbar document-toolbar-v3 document-toolbar-v4">
@@ -443,7 +443,7 @@ export function AdminDocumentsPageV4() {
                 <h2>{doc.title}</h2>
                 <div className="document-client-line-v3"><span className="document-client-logo-v3">{doc.companyLogo ? <img src={doc.companyLogo} alt="" /> : <span>{doc.company.slice(0, 1).toUpperCase()}</span>}</span><div><strong>{doc.company}</strong><small>{doc.project || 'Sem projeto'}{doc.deliverable ? ` · ${doc.deliverable}` : ''}</small></div></div>
                 <span className="document-protocol-v3">{doc.protocol}</span>
-                {doc.validUntil && <span className="document-validity-v4">Validade / revisão: {doc.validUntil.split('-').reverse().join('/')}</span>}
+                <span className={`document-validity-v4 ${doc.validUntil ? '' : 'not-defined'}`}>{doc.validUntil ? `Validade / revisão: ${doc.validUntil.split('-').reverse().join('/')}` : 'Validade / revisão: não definida'}</span>
                 <div className="document-card-metrics-v3"><span><Eye size={14} />{doc.views} visualizaç{doc.views === 1 ? 'ão' : 'ões'}</span>{doc.requiresAcknowledgement && <span className={pending > 0 ? 'pending' : 'done'}><ShieldCheck size={14} />{doc.acknowledgements}{doc.expectedAcknowledgements ? `/${doc.expectedAcknowledgements}` : ''} ciências</span>}<span><MessageSquare size={14} />{doc.comments}</span></div>
                 <div className="document-card-footer-v3"><small>Atualizado {formatDateTime(doc.updatedAt)}</small><div>{needsFile && <button className="primary document-complete-cta-v4" type="button" onClick={() => completeDocument(doc)}><Upload size={15} />Completar</button>}<button className="secondary" type="button" onClick={() => void openDocument(doc)} disabled={!doc.storagePath && !doc.driveUrl}><ExternalLink size={15} />Abrir</button><button className="secondary" type="button" onClick={() => void loadComments(doc)}>Detalhes</button></div></div>
               </div>
