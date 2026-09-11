@@ -29,6 +29,13 @@ function canvasBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
   });
 }
 
+function extensionForType(type: string) {
+  if (type === 'image/jpeg') return 'jpg';
+  if (type === 'image/png') return 'png';
+  if (type === 'image/svg+xml') return 'svg';
+  return 'webp';
+}
+
 export async function optimizeImageForUpload(file: File, presetName: ImageUploadPreset) {
   if (!SUPPORTED_TYPES.has(file.type)) throw new Error('Use uma imagem JPG, PNG, WEBP ou SVG.');
   if (file.size > MAX_INPUT_BYTES) throw new Error('A imagem original deve ter no máximo 12 MB.');
@@ -37,6 +44,21 @@ export async function optimizeImageForUpload(file: File, presetName: ImageUpload
   const image = await loadImage(file);
   const naturalWidth = Math.max(1, image.naturalWidth || image.width);
   const naturalHeight = Math.max(1, image.naturalHeight || image.height);
+  const needsResize = Math.max(naturalWidth, naturalHeight) > preset.maxSide;
+  const needsCompression = file.size > preset.maxBytes;
+
+  // Preserve the approved visual exactly when the file is already safe to store.
+  // This keeps original framing, transparency and color profile for normal logos/photos.
+  if (!needsResize && !needsCompression) {
+    return {
+      blob: file,
+      contentType: file.type,
+      extension: extensionForType(file.type),
+      width: naturalWidth,
+      height: naturalHeight,
+    };
+  }
+
   const scale = Math.min(1, preset.maxSide / Math.max(naturalWidth, naturalHeight));
   const width = Math.max(1, Math.round(naturalWidth * scale));
   const height = Math.max(1, Math.round(naturalHeight * scale));
