@@ -61,10 +61,10 @@ function protocolFromAdminModal(modal: HTMLElement) {
 function conciseDetail(extra: boolean, reason?: string | null, notice?: string | null) {
   if (!extra) return 'Este encontro faz parte da agenda contratual do período.';
   const text = `${reason || ''} ${notice || ''}`.toLowerCase();
-  if (text.includes('deslocamento')) {
-    return 'Visita adicional. Se realizada, será cobrada no próximo mês, com taxa de deslocamento.';
+  if (text.includes('20%') || text.includes('comprometimento')) {
+    return 'Visita adicional. Em caso de cancelamento após a confirmação, aplica-se taxa não reembolsável de 20% pelo comprometimento da agenda. Deslocamento incluso.';
   }
-  return 'Encontro adicional. Se realizado, será cobrado no próximo mês.';
+  return 'Visita adicional. Em caso de cancelamento após a confirmação, aplica-se taxa não reembolsável de 20% pelo comprometimento da agenda. Deslocamento incluso.';
 }
 
 async function conditionForProtocol(protocol: string): Promise<MeetingCondition | null> {
