@@ -46,3 +46,13 @@
 .client-hours-disabled-month{display:flex;align-items:center;gap:10px;margin-top:14px}
 .client-hours-disabled-month span{font-size:12px;font-weight:700;color:var(--theme-text)}
 .client-hours-disabled-month input{min-height:36px;padding:0 10px;border:1px solid var(--theme-line);border-radius:9px;background:var(--theme-surface);color:var(--theme-text)}
+
+.hours-v14-overlay{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:24px;background:rgba(35,18,24,.54);backdrop-filter:blur(3px)}
+.hours-v14-modal{width:min(520px,100%);border:1px solid var(--theme-line);border-radius:22px;background:var(--theme-surface);box-shadow:0 24px 70px rgba(65,25,38,.24);overflow:hidden;color:var(--theme-text)}
+.hours-v14-modal>header{display:flex;align-items:flex-start;gap:14px;padding:24px 24px 18px;border-bottom:1px solid var(--theme-line)}
+.hours-v14-modal-icon{display:grid;place-items:center;flex:0 0 44px;height:44px;border-radius:14px;background:var(--theme-accent-soft);color:var(--theme-accent)}
+.hours-v14-modal h2{margin:4px 0 0;font-size:22px;line-height:1.15}
+.hours-v14-modal-close{margin-left:auto;border:0;background:transparent;color:var(--theme-muted);cursor:pointer;padding:4px;border-radius:8px}.hours-v14-modal-close:hover{background:var(--theme-accent-soft);color:var(--theme-accent)}
+.hours-v14-modal-body{padding:20px 24px}.hours-v14-modal-body p{margin:0;color:var(--theme-muted);line-height:1.55}.hours-v14-modal-note{display:flex;flex-direction:column;gap:3px;margin-top:16px;padding:13px 15px;border-left:3px solid var(--theme-accent);border-radius:0 10px 10px 0;background:var(--theme-accent-soft);font-size:13px}.hours-v14-modal-note span{color:var(--theme-muted)}
+.hours-v14-modal>footer{display:flex;justify-content:flex-end;gap:10px;padding:16px 24px 22px}.hours-v14-modal>footer button{min-height:42px}.hours-v14-danger{border:0;border-radius:10px;padding:0 16px;background:#b96108;color:#fff;font-weight:800;cursor:pointer}.hours-v14-danger:disabled{opacity:.6;cursor:not-allowed}
+@media(max-width:560px){.hours-v14-overlay{padding:14px}.hours-v14-modal>header,.hours-v14-modal-body{padding-left:18px;padding-right:18px}.hours-v14-modal>footer{padding-left:18px;padding-right:18px;flex-direction:column-reverse}.hours-v14-modal>footer button{width:100%}}
