@@ -164,8 +164,8 @@ export function AdminCalendarPage() {
     try {
       const [{ data: companyRows }, { data: eventRows }, { data: attendeeRows }, { data: deadlineRows }, { data: connectionRows }] = await Promise.all([
         supabase.from('companies').select('id, display_name, logo_url').neq('status', 'archived').order('display_name'),
-        supabase.from('events').select('*').is('cancelled_at', null).order('starts_at'),
-        supabase.from('event_attendees').select('*').order('created_at'),
+        supabase.from('events').select('id,protocol,title,company_id,project_id,event_type,color_hex,starts_at,ends_at,all_day,mode,location,meeting_url,description,visibility,source_type,source_entity_id,google_event_id,sync_status,cancelled_at').is('cancelled_at', null).order('starts_at'),
+        supabase.from('event_attendees').select('id,event_id,name,email,status,response_note').order('created_at'),
         supabase.from('deliverables').select('id, company_id, project_id, title, due_at, status, protocol').not('due_at', 'is', null).order('due_at'),
         supabase.from('calendar_connections').select('id, status').eq('provider', 'google').eq('status', 'connected').limit(1),
       ]);
