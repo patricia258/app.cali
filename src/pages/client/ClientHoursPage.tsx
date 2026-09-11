@@ -190,7 +190,7 @@ export function ClientHoursPage() {
 
       {error && <div className="inline-notice"><AlertTriangle size={18} />{error}</div>}
 
-      {summary && !summary.visible ? <section className="hours-connect-card client-hours-disabled"><Clock3 size={24} /><div><strong>A visualização de horas não está habilitada para este contrato.</strong><p>Quando esse acompanhamento estiver disponível, o consumo mensal aparecerá aqui.</p></div></section> : summary && <>
+      {summary && !summary.visible ? <><section className="hours-connect-card client-hours-disabled"><Clock3 size={24} /><div><strong>A visualização de horas não está habilitada para este mês.</strong><p>Os meses já liberados continuam disponíveis para consulta. Selecione outro mês abaixo.</p><label className="client-hours-disabled-month"><span>Consultar mês</span><input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></label></div></section></> : summary && <>
         <section className="hours-connect-card client-hours-summary">
           {alertTone === 'critical' && <div className="client-hours-alert critical"><AlertTriangle size={18} /><span>{alertText}</span></div>}
           <div className="client-hours-summary-top">
