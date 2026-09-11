@@ -37,8 +37,6 @@ export function AdminProjectsGatePage() {
         <div className="eyebrow">EXECUÇÃO & ROADMAP</div>
         <div className="page-heading"><div><h1>Projetos</h1><p>Projetos e entregáveis reais ficam persistidos no Workspace e alimentam Documentos, horas, histórico e validações.</p></div></div>
 
-        {state === 'loading' && <section className="panel data-loading"><Loader2 className="spin" size={20} />Confirmando projetos reais do Workspace…</section>}
-
         {state === 'empty' && (
           <section className="panel project-real-data-gate">
             <div className="project-real-data-gate-icon"><FolderKanban size={28} /></div>
@@ -56,3 +54,4 @@ export function AdminProjectsGatePage() {
     </Shell>
   );
 }
+
