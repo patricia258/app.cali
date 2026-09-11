@@ -303,7 +303,7 @@ export function ClientDocumentsPage() {
                   <h2>{doc.title}</h2>
                   {doc.description && <p className="client-document-context-v3">{doc.description}</p>}
                   <p>{doc.date} · {doc.version}</p>
-                  {doc.validUntil && <div className={`client-document-validity ${((daysUntil(doc.validUntil) ?? 999) <= 60) ? 'attention' : ''}`}><AlertTriangle size={14} />Validade / próxima revisão: {formatDate(doc.validUntil)}{(daysUntil(doc.validUntil) ?? 999) < 0 ? ' · vencida' : ''}</div>}
+                  <div className={`client-document-validity ${doc.validUntil && ((daysUntil(doc.validUntil) ?? 999) <= 60) ? 'attention' : ''}`}><AlertTriangle size={14} />{doc.validUntil ? <>Validade / próxima revisão: {formatDate(doc.validUntil)}{(daysUntil(doc.validUntil) ?? 999) < 0 ? ' · vencida' : ''}</> : 'Validade / próxima revisão: não definida'}</div>
                   <small className="document-protocol">{doc.protocol}</small>
                   <div className="document-card-actions document-card-actions-v2">
                     <button className="secondary" onClick={() => void openDocument(doc)}><Eye size={17} />Abrir</button>
