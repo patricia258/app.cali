@@ -138,3 +138,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </BrowserRouter>
   </React.StrictMode>,
 );
+
+// deploy final: atalhos contextuais e documento PDF fixo
