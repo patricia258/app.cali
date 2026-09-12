@@ -199,10 +199,12 @@ export function AdminProjectsPageV3() {
       const nextFronts:ProjectFront[]=(frontRows||[]).map((r:any)=>({id:r.id,protocol:r.protocol||'—',projectId:r.project_id,companyId:r.company_id,name:r.name,objective:r.objective||'',monthStart:r.roadmap_month_start,monthEnd:r.roadmap_month_end,status:r.status,sortOrder:Number(r.sort_order||0)}));
       setProjects(nextProjects); setFronts(nextFronts); setTasks((taskRows||[]).map((r:any)=>({id:r.id,protocol:r.protocol||'—',deliverableId:r.deliverable_id,title:r.title,description:r.description,status:r.status,dueAt:r.due_at,clientVisible:Boolean(r.client_visible),estimatedMinutes:Number(r.estimated_minutes||0),sortOrder:Number(r.sort_order||0)})));
       const targetId = new URLSearchParams(window.location.search).get('deliverable');
+      const targetProjectId = new URLSearchParams(window.location.search).get('project');
       const targetProject = targetId ? nextProjects.find((project) => project.deliverables.some((item) => item.id === targetId)) : null;
       const targetDeliverable = targetProject?.deliverables.find((item) => item.id === targetId);
       if (targetProject && targetDeliverable) { setSelectedProjectId(targetProject.id); setSelectedDeliverable(targetDeliverable); setDetailTab('conversation'); }
-      setSelectedProjectId((current)=>nextProjects.some((p)=>p.id===current)?current:nextProjects[0].id);
+      if (!targetProject && targetProjectId) setSelectedProjectId(nextProjects.some((p)=>p.id===targetProjectId) ? targetProjectId : nextProjects[0].id);
+      else if (!targetProject) setSelectedProjectId((current)=>nextProjects.some((p)=>p.id===current)?current:nextProjects[0].id);
       if(timerRows?.[0]) setActiveTimer({id:timerRows[0].id,deliverableId:timerRows[0].deliverable_id,startedAt:timerRows[0].started_at,preview:false});
     } catch(error){ console.error('Falha ao carregar projetos',error); }
     finally { setLoading(false); }
