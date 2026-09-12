@@ -402,6 +402,7 @@ function ExportOverview({ data }: { data: DashboardData }) {
   );
 }
 
+// PDF print lifecycle fix
 export function AdminDashboard() {
   const [agendaMode, setAgendaMode] = useState<"month" | "week">("month");
   const [showColors, setShowColors] = useState(false);
