@@ -1,4 +1,5 @@
 .dashboard-empty{display:grid;place-items:center;min-height:116px;padding:18px;border:1px dashed var(--theme-line,rgba(90,30,45,.16));border-radius:14px;color:var(--theme-muted,var(--muted));font-size:.78rem;text-align:center}
+.admin-overview-page .company-mark img,.admin-overview-page .deadline-logo-v2 img{width:100%;height:100%;object-fit:contain;padding:4px;box-sizing:border-box}
 .admin-overview-page .signal-trend{white-space:nowrap}
 .admin-overview-page .hours-pace-bars:empty{min-height:116px;display:grid;place-items:center}
 .admin-overview-page .hours-pace-bars:empty::after{content:'Ainda não há horas registradas no período.';color:var(--theme-muted,var(--muted));font-size:.78rem}
