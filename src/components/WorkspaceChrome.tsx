@@ -24,6 +24,9 @@ type NotificationItem = {
   created_at: string;
   read_at: string | null;
   notification_type?: string;
+  entity_type?: string | null;
+  entity_id?: string | null;
+  action_url?: string | null;
 };
 
 const profileFallback: Record<Role, ProfileData> = {
@@ -115,7 +118,7 @@ export function NotificationCenter({ role }: { role: Role }) {
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData.session?.user;
       if (!user || !mounted) return;
-      const { data } = await supabase.from('notifications').select('id,title,body,created_at,read_at,notification_type').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20);
+      const { data } = await supabase.from('notifications').select('id,title,body,created_at,read_at,notification_type,entity_type,entity_id,action_url').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20);
       if (mounted && data) setItems(data as NotificationItem[]);
       channel = supabase.channel(`workspace-notifications-${user.id}`).on('postgres_changes', { event: 'INSERT', schema: 'cali_workspace', table: 'notifications', filter: `user_id=eq.${user.id}` }, (payload) => {
         if (!mounted) return;
@@ -135,6 +138,21 @@ export function NotificationCenter({ role }: { role: Role }) {
   }, []);
 
   const unread = items.filter((item) => !item.read_at).length;
+  function notificationUrl(item: NotificationItem) {
+    let url = String(item.action_url || '').trim();
+    if (!url.startsWith('/')) return '';
+    if (item.entity_type === 'deliverable' && item.entity_id && !url.includes('deliverable=')) {
+      url += `${url.includes('?') ? '&' : '?'}deliverable=${encodeURIComponent(item.entity_id)}`;
+    } else if (item.entity_type === 'project' && item.entity_id && !url.includes('project=')) {
+      url += `${url.includes('?') ? '&' : '?'}project=${encodeURIComponent(item.entity_id)}`;
+    }
+    return url;
+  }
+  async function openNotification(item: NotificationItem) {
+    await markRead(item);
+    const url = notificationUrl(item);
+    if (url) window.location.assign(url);
+  }
   async function markRead(item: NotificationItem) {
     setItems((current) => current.map((notification) => notification.id === item.id ? { ...notification, read_at: notification.read_at || new Date().toISOString() } : notification));
     if (!item.id.startsWith('demo-') && supabase) await supabase.rpc('mark_notification_read', { p_notification_id: item.id });
@@ -154,7 +172,7 @@ export function NotificationCenter({ role }: { role: Role }) {
           <div className="notification-head"><div><strong>Notificações</strong><span>{unread ? `${unread} não lida${unread > 1 ? 's' : ''}` : 'Tudo em dia'}</span></div>{unread > 0 && <button onClick={markAll}>Marcar todas</button>}</div>
           <div className="notification-list">
             {items.length === 0 ? <div className="notification-empty"><Check size={20} /><strong>Nenhum aviso por aqui.</strong><span>Novidades de projetos, horas, agenda e validações aparecem neste canal.</span></div> : items.map((item) => (
-              <button className={`notification-item ${item.read_at ? '' : 'unread'}`} data-notification-id={item.id} key={item.id} onClick={() => markRead(item)}><span className="notification-indicator" /><div><strong>{item.title}</strong>{item.body && <p>{item.body}</p>}<small>{relativeTime(item.created_at)}</small></div></button>
+              <button className={`notification-item ${item.read_at ? '' : 'unread'}`} data-notification-id={item.id} data-notification-action-url={notificationUrl(item)} key={item.id} onClick={() => void openNotification(item)}><span className="notification-indicator" /><div><strong>{item.title}</strong>{item.body && <p>{item.body}</p>}<small>{relativeTime(item.created_at)}</small></div></button>
             ))}
           </div>
         </div>
