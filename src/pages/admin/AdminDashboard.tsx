@@ -13,10 +13,10 @@ import {
   Palette,
   Plus,
   Star,
+  X,
 } from "lucide-react";
 import {
   DonutChart,
-  ExportMenu,
   HorizontalBars,
   InteractiveTrendChart,
   MiniCalendar,
@@ -72,7 +72,11 @@ type DashboardData = {
   companies: Company[];
   projects: Project[];
   deliverables: Deliverable[];
-  entries: Array<{ companyId: string; minutes: number }>;
+  entries: Array<{
+    companyId: string;
+    minutes: number;
+    workDate?: string | null;
+  }>;
   events: AgendaEvent[];
   satisfaction: Satisfaction;
 };
@@ -131,8 +135,273 @@ function TrendBadge({ children }: { children: string }) {
   );
 }
 
+type ExportRange = "month" | "quarter" | "year";
+
+function overviewExportBounds(range: ExportRange) {
+  const now = new Date();
+  const start =
+    range === "month"
+      ? new Date(now.getFullYear(), now.getMonth(), 1)
+      : range === "quarter"
+        ? new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1)
+        : new Date(now.getFullYear(), 0, 1);
+  return {
+    start: start.toISOString().slice(0, 10),
+    end: now.toISOString().slice(0, 10),
+  };
+}
+
+function ExportOverview({ data }: { data: DashboardData }) {
+  const [open, setOpen] = useState(false);
+  const [range, setRange] = useState<ExportRange>("month");
+  const [companyId, setCompanyId] = useState("all");
+  const bounds = overviewExportBounds(range);
+  const selectedCompanies =
+    companyId === "all"
+      ? data.companies
+      : data.companies.filter((item) => item.id === companyId);
+  const selectedIds = new Set(selectedCompanies.map((item) => item.id));
+  const exportEntries = data.entries.filter(
+    (item) =>
+      selectedIds.has(item.companyId) &&
+      (!item.workDate ||
+        (item.workDate >= bounds.start && item.workDate <= bounds.end)),
+  );
+  const exportDeliverables = data.deliverables.filter(
+    (item) =>
+      selectedIds.has(item.companyId) &&
+      (!item.dueAt ||
+        (item.dueAt.slice(0, 10) >= bounds.start &&
+          item.dueAt.slice(0, 10) <= bounds.end)),
+  );
+  const totalMinutes = exportEntries.reduce(
+    (sum, item) => sum + item.minutes,
+    0,
+  );
+  const groupedHours = selectedCompanies.map((company) => ({
+    company,
+    minutes: exportEntries
+      .filter((item) => item.companyId === company.id)
+      .reduce((sum, item) => sum + item.minutes, 0),
+  }));
+  const periodLabel =
+    range === "month"
+      ? "Mês atual"
+      : range === "quarter"
+        ? "Trimestre atual"
+        : "Ano atual";
+  function printPdf() {
+    document.body.classList.add("overview-export-printing");
+    window.setTimeout(() => window.print(), 40);
+    window.setTimeout(
+      () => document.body.classList.remove("overview-export-printing"),
+      1000,
+    );
+  }
+  return (
+    <>
+      <button
+        className="secondary export-trigger"
+        type="button"
+        onClick={() => setOpen(true)}
+      >
+        Exportar <span aria-hidden="true">⌄</span>
+      </button>
+      {open && (
+        <div
+          className="overview-export-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Exportar visão geral"
+        >
+          <section className="overview-export-modal">
+            <header className="overview-export-toolbar">
+              <div>
+                <span className="section-kicker">EXPORTAÇÃO</span>
+                <h2>Visão geral da operação</h2>
+                <p>
+                  Escolha o recorte e revise a prévia antes de salvar em PDF.
+                </p>
+              </div>
+              <button
+                className="overview-export-close"
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Fechar"
+              >
+                <X size={20} />
+              </button>
+            </header>
+            <div className="overview-export-filters">
+              <label>
+                <span>Período</span>
+                <select
+                  value={range}
+                  onChange={(event) =>
+                    setRange(event.target.value as ExportRange)
+                  }
+                >
+                  <option value="month">Mês atual</option>
+                  <option value="quarter">Trimestre atual</option>
+                  <option value="year">Ano atual</option>
+                </select>
+              </label>
+              <label>
+                <span>Cliente</span>
+                <select
+                  value={companyId}
+                  onChange={(event) => setCompanyId(event.target.value)}
+                >
+                  <option value="all">Todos os clientes</option>
+                  {data.companies.map((company) => (
+                    <option key={company.id} value={company.id}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="overview-export-preview-wrap">
+              <article className="overview-export-print">
+                <header className="overview-export-document-head">
+                  <img
+                    src="/brand/cali-workspace-burgundy.svg"
+                    alt="CALI Workspace"
+                  />
+                  <div>
+                    <span>VISÃO GERAL DA OPERAÇÃO</span>
+                    <strong>{periodLabel}</strong>
+                    <small>
+                      {new Intl.DateTimeFormat("pt-BR", {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                      }).format(new Date())}
+                    </small>
+                  </div>
+                </header>
+                <div className="overview-export-rule" />
+                <section className="overview-export-title">
+                  <span>CALI · OPERAÇÃO</span>
+                  <h1>Panorama do Workspace</h1>
+                  <p>
+                    {companyId === "all"
+                      ? "Consolidado de todos os clientes ativos."
+                      : `Recorte da conta ${selectedCompanies[0]?.name || "selecionada"}.`}
+                  </p>
+                </section>
+                <section className="overview-export-kpis">
+                  <div>
+                    <small>Contas no recorte</small>
+                    <strong>{selectedCompanies.length}</strong>
+                  </div>
+                  <div>
+                    <small>Horas registradas</small>
+                    <strong>{formatHours(totalMinutes)}</strong>
+                  </div>
+                  <div>
+                    <small>Entregáveis</small>
+                    <strong>{exportDeliverables.length}</strong>
+                  </div>
+                  <div>
+                    <small>Avaliações acumuladas</small>
+                    <strong>{data.satisfaction.total}</strong>
+                  </div>
+                </section>
+                <section className="overview-export-section">
+                  <div className="overview-export-section-head">
+                    <span>CONSUMO POR CLIENTE</span>
+                    <strong>Horas registradas no período</strong>
+                  </div>
+                  {groupedHours.length ? (
+                    <div className="overview-export-bars">
+                      {groupedHours.map(({ company, minutes }) => (
+                        <div key={company.id}>
+                          <span>{company.name}</span>
+                          <i>
+                            <b
+                              style={{
+                                width: `${Math.min(100, company.contracted ? (minutes / 60 / company.contracted) * 100 : 0)}%`,
+                              }}
+                            />
+                          </i>
+                          <strong>{formatHours(minutes)}</strong>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="overview-export-empty">
+                      Nenhum cliente encontrado no recorte.
+                    </p>
+                  )}
+                </section>
+                <section className="overview-export-section">
+                  <div className="overview-export-section-head">
+                    <span>ENTREGÁVEIS E PRAZOS</span>
+                    <strong>Itens vinculados ao período</strong>
+                  </div>
+                  {exportDeliverables.length ? (
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Cliente</th>
+                          <th>Entregável</th>
+                          <th>Status</th>
+                          <th>Prazo</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {exportDeliverables.slice(0, 14).map((item) => (
+                          <tr key={item.id}>
+                            <td>
+                              {data.companies.find(
+                                (company) => company.id === item.companyId,
+                              )?.name || "Cliente"}
+                            </td>
+                            <td>{item.title}</td>
+                            <td>{statusNames[item.status] || item.status}</td>
+                            <td>{dateLabel(item.dueAt)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p className="overview-export-empty">
+                      Nenhum entregável com prazo no recorte.
+                    </p>
+                  )}
+                </section>
+                <footer className="overview-export-document-foot">
+                  <span>
+                    Documento gerado pelo CALI Workspace · Dados operacionais do
+                    Supabase
+                  </span>
+                  <strong>
+                    {bounds.start} a {bounds.end}
+                  </strong>
+                </footer>
+              </article>
+            </div>
+            <footer className="overview-export-actions">
+              <button
+                className="secondary"
+                type="button"
+                onClick={() => setOpen(false)}
+              >
+                Voltar
+              </button>
+              <button className="primary" type="button" onClick={printPdf}>
+                Abrir visualização do PDF
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
+    </>
+  );
+}
+
 export function AdminDashboard() {
-  const [driveNotice, setDriveNotice] = useState(false);
   const [agendaMode, setAgendaMode] = useState<"month" | "week">("month");
   const [showColors, setShowColors] = useState(false);
   const [eventColors, setEventColors] = useState({
@@ -159,6 +428,9 @@ export function AdminDashboard() {
         return;
       }
       const { start, next, now } = monthBounds();
+      const historyStart = new Date(now.getFullYear(), now.getMonth() - 11, 1)
+        .toISOString()
+        .slice(0, 10);
       try {
         const [
           companies,
@@ -187,8 +459,8 @@ export function AdminDashboard() {
             .order("due_at", { ascending: true }),
           supabase
             .from("hour_entries")
-            .select("company_id,minutes")
-            .gte("work_date", start)
+            .select("company_id,minutes,work_date")
+            .gte("work_date", historyStart)
             .lt("work_date", next),
           supabase
             .from("events")
@@ -240,6 +512,7 @@ export function AdminDashboard() {
           entries: ((entries.data || []) as any[]).map((row) => ({
             companyId: row.company_id,
             minutes: Number(row.minutes || 0),
+            workDate: row.work_date,
           })),
           events: ((events.data || []) as any[]).map((row) => ({
             id: row.id,
@@ -321,9 +594,20 @@ export function AdminDashboard() {
     () => new Map(data.companies.map((item) => [item.id, item])),
     [data.companies],
   );
+  const currentPeriod = monthBounds();
+  const currentEntries = useMemo(
+    () =>
+      data.entries.filter(
+        (entry) =>
+          !entry.workDate ||
+          (entry.workDate >= currentPeriod.start &&
+            entry.workDate < currentPeriod.next),
+      ),
+    [data.entries, currentPeriod.start, currentPeriod.next],
+  );
   const minutesByCompany = useMemo(
     () =>
-      data.entries.reduce(
+      currentEntries.reduce(
         (map, entry) =>
           map.set(
             entry.companyId,
@@ -331,9 +615,9 @@ export function AdminDashboard() {
           ),
         new Map<string, number>(),
       ),
-    [data.entries],
+    [currentEntries],
   );
-  const totalMinutes = data.entries.reduce(
+  const totalMinutes = currentEntries.reduce(
     (sum, item) => sum + item.minutes,
     0,
   );
@@ -354,13 +638,6 @@ export function AdminDashboard() {
     .filter((item) => item.dueAt)
     .sort((a, b) => String(a.dueAt).localeCompare(String(b.dueAt)))
     .slice(0, 5);
-  const exportRows = data.companies.map((client) => ({
-    Cliente: client.name,
-    Serviço: client.service,
-    "Horas consumidas": formatHours(minutesByCompany.get(client.id) || 0),
-    "Horas contratadas": client.contracted,
-    NPS: data.satisfaction.average ?? "—",
-  }));
   const npsSeries = [
     {
       name: "CALI",
@@ -433,11 +710,7 @@ export function AdminDashboard() {
             </p>
           </div>
           <div className="overview-actions compact-overview-actions">
-            <ExportMenu
-              title="Visão geral CALI Workspace"
-              rows={exportRows}
-              onDrive={() => setDriveNotice(true)}
-            />
+            <ExportOverview data={data} />
             <Link
               className="primary compact-primary-action"
               to="/admin/clientes"
@@ -447,12 +720,6 @@ export function AdminDashboard() {
             </Link>
           </div>
         </div>
-        {driveNotice && (
-          <div className="inline-notice">
-            A ação de salvar no Google Drive já está prevista. Ela será ativada
-            junto com a conexão do Google Workspace.
-          </div>
-        )}
         <section
           className="overview-signal-strip"
           aria-label="Sinais reais da operação"
@@ -750,7 +1017,10 @@ export function AdminDashboard() {
                   <div className="deadline-row-v2" key={item.id}>
                     <span className="deadline-logo-v2">
                       {companyMap.get(item.companyId)?.logoUrl ? (
-                        <img src={companyMap.get(item.companyId)?.logoUrl} alt="" />
+                        <img
+                          src={companyMap.get(item.companyId)?.logoUrl}
+                          alt=""
+                        />
                       ) : (
                         companyMap.get(item.companyId)?.mark || "C"
                       )}
@@ -814,7 +1084,11 @@ export function AdminDashboard() {
                   <div className="portfolio-table-row" key={client.id}>
                     <div className="client-identity compact-client">
                       <div className="company-mark">
-                        {client.logoUrl ? <img src={client.logoUrl} alt="" /> : client.mark}
+                        {client.logoUrl ? (
+                          <img src={client.logoUrl} alt="" />
+                        ) : (
+                          client.mark
+                        )}
                       </div>
                       <div>
                         <strong>{client.name}</strong>
