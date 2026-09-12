@@ -47,7 +47,7 @@ html[data-workspace-theme='night'] .overview-export-modal{background:#241b1e}htm
 .overview-export-print .overview-export-title h1,
 .overview-export-print .overview-export-section-head strong { color: #2b2b2b !important; }
 .overview-export-print .overview-export-document-head img {
-  filter: none !important;
+  filter: brightness(0) saturate(100%) invert(18%) sepia(20%) saturate(1560%) hue-rotate(292deg) brightness(88%) contrast(96%) !important;
   opacity: 1 !important;
   mix-blend-mode: normal !important;
 }
