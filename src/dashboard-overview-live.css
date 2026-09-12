@@ -51,6 +51,8 @@ html[data-workspace-theme='night'] .overview-export-modal{background:#241b1e}htm
   opacity: 1 !important;
   mix-blend-mode: normal !important;
 }
+.overview-export-brand-logo{display:block!important;width:106px!important;height:56px!important;flex:0 0 106px;background:#5A1E2D!important;-webkit-mask:url('/brand/cali-workspace-transparent.svg') left center/contain no-repeat!important;mask:url('/brand/cali-workspace-transparent.svg') left center/contain no-repeat!important;opacity:1!important}
+.overview-export-signal-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}.overview-export-metric{display:grid;gap:3px;margin:0 0 10px}.overview-export-metric b{font-size:22px;color:#5A1E2D!important}.overview-export-metric small{font-size:9px;color:#80736C!important}.overview-export-distribution,.overview-export-events{display:grid;gap:7px}.overview-export-distribution span{display:grid;grid-template-columns:16px 1fr 18px;gap:7px;align-items:center;font-size:9px}.overview-export-distribution i{height:6px;border-radius:99px;background:#e4d8ce;overflow:hidden}.overview-export-distribution em{display:block;height:100%;background:#B58C52;border-radius:inherit}.overview-export-distribution small{text-align:right;color:#80736C!important}.overview-export-events span{display:grid;grid-template-columns:52px 1fr;gap:8px;font-size:9px}.overview-export-events b{color:#5A1E2D!important}.overview-export-events small{color:#5f5550!important}
 .overview-export-print .overview-export-kpis,
 .overview-export-print .overview-export-empty { background: #fffdfa !important; }
 .overview-export-print .overview-export-kpis div { border-color: #e8dfd9 !important; }
