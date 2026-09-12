@@ -291,6 +291,10 @@ export function ClientDeliverablesPage() {
     });
     setSelectedId((current) => nextReality.deliverables.some((item) => item.id === current) ? current : '');
     const targetId = new URLSearchParams(window.location.search).get('deliverable');
+    const targetProjectId = new URLSearchParams(window.location.search).get('project');
+    if (targetProjectId && nextReality.projects.some((item) => item.id === targetProjectId)) {
+      setProjectId(targetProjectId);
+    }
     if (targetId) {
       const target = nextReality.deliverables.find((item) => item.id === targetId);
       if (target) { setSelectedId(target.id); setDetailTab('conversation'); }
