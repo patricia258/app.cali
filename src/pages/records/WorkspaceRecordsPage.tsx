@@ -361,11 +361,35 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
     else { setNotice('Registro excluído.'); await loadContext(record.companyId); }
   }
 
+  async function loadMessages(recordId: string) {
+    if (!supabase) return;
+    const result = await supabase.from('account_record_messages')
+      .select('id,record_id,author_id,author_role,body,visibility,created_at')
+      .eq('record_id', recordId)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: true });
+    if (result.error) throw result.error;
+    setMessages((result.data || []).map(mapMessage));
+  }
+
+  useEffect(() => {
+    if (!supabase || !conversationOpen || !selected?.id) return;
+    const recordId = selected.id;
+    const channel = supabase.channel(`record-conversation-${recordId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'cali_workspace', table: 'account_record_messages', filter: `record_id=eq.${recordId}` }, () => {
+        void loadMessages(recordId);
+      })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [conversationOpen, selected?.id]);
+
   async function openRecord(record: AccountRecordRow) {
     if (!supabase) return;
     setSelected(record); setConversationOpen(true); setMessageDraft(''); setMessages([]); setError('');
     setFeedbackScore(null); setFeedbackComment(''); setFeedbackThanks(false);
-    const result = await supabase.from('account_record_messages').select('id,record_id,author_id,author_role,body,visibility,created_at').eq('record_id', record.id).is('deleted_at', null).order('created_at');
+    try { await loadMessages(record.id); } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar a conversa.');
+    }
     if (result.error) { setError(result.error.message); return; }
     setMessages((result.data || []).map(mapMessage));
   }
@@ -549,7 +573,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
             {messages.length === 0 ? <div className="conversation-empty"><MessageSquareText size={24} /><span>A conversa começa aqui.</span></div> : messages.map((message) => {
               const mine = message.authorRole === role;
               const internal = message.visibility === 'internal';
-              const author = mine ? 'Você' : message.authorRole === 'admin' ? 'Patrícia · CALI' : message.authorRole === 'client' ? 'Cliente' : 'Sistema';
+              const author = mine ? 'Você' : message.authorRole === 'admin' ? 'Patrícia · CALI' : message.authorRole === 'client' ? 'Cliente' : 'CALI RH';
               return <div className={`conversation-line ${mine ? 'mine' : ''} ${internal ? 'internal' : ''}`} key={message.id}>
                 <div className="conversation-bubble"><strong>{internal ? `${author} · nota interna` : author}</strong><p>{message.body}</p><small>{formatDateTime(message.createdAt)}</small></div>
               </div>;
