@@ -266,11 +266,36 @@ function ExportOverview({ data }: { data: DashboardData }) {
           ),
         );
       } finally {
-        await new Promise<void>((resolve) =>
-          printWindow.requestAnimationFrame(() =>
-            printWindow.requestAnimationFrame(() => resolve()),
-          ),
-        );
+        let painted = false;
+        for (let attempt = 0; attempt < 20; attempt += 1) {
+          await new Promise<void>((resolve) =>
+            printWindow.requestAnimationFrame(() =>
+              printWindow.requestAnimationFrame(() => resolve()),
+            ),
+          );
+          const paper =
+            printWindow.document.querySelector<HTMLElement>(
+              ".overview-export-print",
+            );
+          const rect = paper?.getBoundingClientRect();
+          const text = (paper?.textContent || "").trim();
+          if (
+            rect &&
+            rect.width > 500 &&
+            rect.height > 700 &&
+            text.length > 80
+          ) {
+            painted = true;
+            break;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 120));
+        }
+        if (!painted) {
+          printWindow.alert(
+            "O relatório não terminou de renderizar. Feche esta janela e tente novamente.",
+          );
+          return;
+        }
         printWindow.print();
       }
     };
