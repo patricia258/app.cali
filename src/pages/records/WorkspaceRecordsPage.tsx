@@ -569,16 +569,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
         </div>}
 
         {selected.workflowStatus ? <div className="records-v13-conversation">
-          <div className="conversation-history">
-            {messages.length === 0 ? <div className="conversation-empty"><MessageSquareText size={24} /><span>A conversa começa aqui.</span></div> : messages.map((message) => {
-              const mine = message.authorRole === role;
-              const internal = message.visibility === 'internal';
-              const author = mine ? 'Você' : message.authorRole === 'admin' ? 'Patrícia · CALI' : message.authorRole === 'client' ? 'Cliente' : 'CALI RH';
-              return <div className={`conversation-line ${mine ? 'mine' : ''} ${internal ? 'internal' : ''}`} key={message.id}>
-                <div className="conversation-bubble"><strong>{internal ? `${author} · nota interna` : author}</strong><p>{message.body}</p><small>{formatDateTime(message.createdAt)}</small></div>
-              </div>;
-            })}
-          </div>
+          <div className="conversation-history" />
           {!clientConversationLocked && !['completed', 'cancelled'].includes(selected.workflowStatus) && <div className="conversation-compose">
             <textarea rows={3} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder={role === 'admin' ? 'Responder ao cliente…' : 'Responder à Patrícia…'} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} />
             <button className="primary" type="button" disabled={sendingMessage || !messageDraft.trim()} onClick={() => void sendMessage()}><Send size={16} />{sendingMessage ? 'Enviando…' : 'Enviar'}</button>
