@@ -67,9 +67,8 @@ function installRecords() {
 
 function installProjects() {
   once('projects', async () => {
-    const [chat, flicker, planning, deadlines, workflow, rules, portfolio, lifecycle, recalc] = await Promise.all([
+    const [chat, planning, deadlines, workflow, rules, portfolio, lifecycle, recalc] = await Promise.all([
       import('../lib/deliverableChatStandardRuntimeV35'),
-      import('../lib/deliverableChatFlickerGuardV36'),
       import('../lib/projectsPlanningIntelligenceRuntimeV36'),
       import('../lib/projectsDeadlineAutofillRuntimeV37'),
       import('../lib/projectApprovalWorkflowRuntimeV38'),
@@ -79,7 +78,6 @@ function installProjects() {
       import('../lib/projectLifecycleRecalcUxV45'),
     ]);
     chat.installDeliverableChatStandardRuntimeV35();
-    flicker.installDeliverableChatFlickerGuardV36();
     planning.installProjectsPlanningIntelligenceRuntimeV36();
     deadlines.installProjectsDeadlineAutofillRuntimeV37();
     workflow.installProjectApprovalWorkflowRuntimeV38();
