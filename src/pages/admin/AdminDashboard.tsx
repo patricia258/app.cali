@@ -196,13 +196,59 @@ function ExportOverview({ data }: { data: DashboardData }) {
         ? "Trimestre atual"
         : "Ano atual";
   function printPdf() {
-    const cleanup = () => {
-      document.body.classList.remove("overview-export-printing");
-      window.removeEventListener("afterprint", cleanup);
+    const documentNode =
+      document.querySelector<HTMLElement>(".overview-export-print");
+    if (!documentNode) return;
+
+    const printWindow = window.open(
+      "",
+      "_blank",
+      "width=1100,height=900",
+    );
+    if (!printWindow) {
+      window.alert(
+        "O navegador bloqueou a janela de impressão. Permita pop-ups para este site e tente novamente.",
+      );
+      return;
+    }
+
+    const styles = Array.from(
+      document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'),
+    )
+      .map((link) => `<link rel="stylesheet" href="${link.href}">`)
+      .join("");
+
+    printWindow.document.open();
+    printWindow.document.write(`<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Panorama do Workspace</title>
+    ${styles}
+    <style>
+      @page { size: A4; margin: 0; }
+      html, body { margin: 0; padding: 0; background: #fff; }
+      .overview-export-print {
+        width: 210mm !important;
+        min-height: 297mm !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+      }
+    </style>
+  </head>
+  <body>${documentNode.outerHTML}</body>
+</html>`);
+    printWindow.document.close();
+    printWindow.focus();
+
+    const startPrint = () => {
+      window.setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 350);
     };
-    document.body.classList.add("overview-export-printing");
-    window.addEventListener("afterprint", cleanup, { once: true });
-    window.setTimeout(() => window.print(), 120);
+    printWindow.addEventListener("load", startPrint, { once: true });
+    window.setTimeout(startPrint, 1400);
   }
   return (
     <>
