@@ -33,3 +33,5 @@ npm run build
 ## Fluxo de construção
 
 As páginas são fechadas e validadas uma a uma. A branch `main` permanece como base de produção; trabalhos ainda não aprovados ficam em branches de desenvolvimento.
+
+<!-- deploy trigger: connected Vercel production -->
