@@ -212,11 +212,16 @@ function ExportOverview({ data }: { data: DashboardData }) {
       return;
     }
 
-    const styles = Array.from(
-      document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'),
-    )
-      .map((link) => `<link rel="stylesheet" href="${link.href}">`)
-      .join("");
+    let css = "";
+    for (const sheet of Array.from(document.styleSheets)) {
+      try {
+        css += Array.from(sheet.cssRules)
+          .map((rule) => rule.cssText)
+          .join("\n");
+      } catch {
+        // Folhas externas sem acesso ao CSSOM não impedem a impressão.
+      }
+    }
 
     printWindow.document.open();
     printWindow.document.write(`<!doctype html>
@@ -224,15 +229,28 @@ function ExportOverview({ data }: { data: DashboardData }) {
   <head>
     <meta charset="UTF-8" />
     <title>Panorama do Workspace</title>
-    ${styles}
+    <style>${css}</style>
     <style>
       @page { size: A4; margin: 0; }
-      html, body { margin: 0; padding: 0; background: #fff; }
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+      }
       .overview-export-print {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
         width: 210mm !important;
         min-height: 297mm !important;
         margin: 0 !important;
         box-shadow: none !important;
+        background: #f7f3ee !important;
+        color: #2b2b2b !important;
+      }
+      .overview-export-print * {
+        visibility: visible !important;
+        opacity: 1 !important;
       }
     </style>
   </head>
@@ -241,69 +259,9 @@ function ExportOverview({ data }: { data: DashboardData }) {
     printWindow.document.close();
     printWindow.focus();
 
-    let started = false;
-    const startPrint = async () => {
-      if (started) return;
-      started = true;
-      try {
-        if (printWindow.document.fonts?.ready) {
-          await printWindow.document.fonts.ready;
-        }
-        const images = Array.from(printWindow.document.images);
-        await Promise.all(
-          images.map(
-            (image) =>
-              image.complete
-                ? Promise.resolve()
-                : new Promise<void>((resolve) => {
-                    image.addEventListener("load", () => resolve(), {
-                      once: true,
-                    });
-                    image.addEventListener("error", () => resolve(), {
-                      once: true,
-                    });
-                  }),
-          ),
-        );
-      } finally {
-        let painted = false;
-        for (let attempt = 0; attempt < 20; attempt += 1) {
-          await new Promise<void>((resolve) =>
-            printWindow.requestAnimationFrame(() =>
-              printWindow.requestAnimationFrame(() => resolve()),
-            ),
-          );
-          const paper =
-            printWindow.document.querySelector<HTMLElement>(
-              ".overview-export-print",
-            );
-          const rect = paper?.getBoundingClientRect();
-          const text = (paper?.textContent || "").trim();
-          if (
-            rect &&
-            rect.width > 500 &&
-            rect.height > 700 &&
-            text.length > 80
-          ) {
-            painted = true;
-            break;
-          }
-          await new Promise((resolve) => setTimeout(resolve, 120));
-        }
-        if (!painted) {
-          printWindow.alert(
-            "O relatório não terminou de renderizar. Feche esta janela e tente novamente.",
-          );
-          return;
-        }
-        printWindow.print();
-      }
-    };
-
-    printWindow.addEventListener("load", () => void startPrint(), {
-      once: true,
-    });
-    window.setTimeout(() => void startPrint(), 2500);
+    // A impressão precisa acontecer no mesmo gesto que abriu a janela.
+    // Aguardar load/Promise faz o Chrome abrir uma prévia vazia.
+    printWindow.print();
   }
   return (
     <>
