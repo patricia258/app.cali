@@ -241,14 +241,44 @@ function ExportOverview({ data }: { data: DashboardData }) {
     printWindow.document.close();
     printWindow.focus();
 
-    const startPrint = () => {
-      window.setTimeout(() => {
+    let started = false;
+    const startPrint = async () => {
+      if (started) return;
+      started = true;
+      try {
+        if (printWindow.document.fonts?.ready) {
+          await printWindow.document.fonts.ready;
+        }
+        const images = Array.from(printWindow.document.images);
+        await Promise.all(
+          images.map(
+            (image) =>
+              image.complete
+                ? Promise.resolve()
+                : new Promise<void>((resolve) => {
+                    image.addEventListener("load", () => resolve(), {
+                      once: true,
+                    });
+                    image.addEventListener("error", () => resolve(), {
+                      once: true,
+                    });
+                  }),
+          ),
+        );
+      } finally {
+        await new Promise<void>((resolve) =>
+          printWindow.requestAnimationFrame(() =>
+            printWindow.requestAnimationFrame(() => resolve()),
+          ),
+        );
         printWindow.print();
-        printWindow.close();
-      }, 350);
+      }
     };
-    printWindow.addEventListener("load", startPrint, { once: true });
-    window.setTimeout(startPrint, 1400);
+
+    printWindow.addEventListener("load", () => void startPrint(), {
+      once: true,
+    });
+    window.setTimeout(() => void startPrint(), 2500);
   }
   return (
     <>
