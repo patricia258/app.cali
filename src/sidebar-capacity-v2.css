@@ -310,3 +310,111 @@
     padding-block: 6px !important;
   }
 }
+
+
+/* CALI Workspace · sistemas externos integrados
+   Tratamento visual isolado: não altera rotas, ações ou permissões. */
+@media (min-width: 861px) {
+  .sidebar-external-nav {
+    display: grid !important;
+    gap: 6px !important;
+    flex: 0 0 auto !important;
+    margin: 10px 14px 8px !important;
+    padding: 13px 0 0 !important;
+    border-top: 1px solid rgba(247,243,238,.22) !important;
+  }
+  .sidebar-external-label {
+    padding: 0 11px 3px !important;
+    color: rgba(247,243,238,.62) !important;
+    font-size: 9px !important;
+    line-height: 1.1 !important;
+    font-weight: 800 !important;
+    letter-spacing: .15em !important;
+    text-transform: uppercase !important;
+  }
+  .sidebar-external-nav a {
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 0 11px !important;
+    border: 1px solid rgba(247,243,238,.32) !important;
+    border-radius: 11px !important;
+    background: #f7f3ee !important;
+    color: #5a1e2d !important;
+    box-shadow: 0 5px 16px rgba(31,10,18,.14) !important;
+  }
+  .sidebar-external-nav a:hover,
+  .sidebar-external-nav a.active {
+    border-color: #b58c52 !important;
+    background: #b58c52 !important;
+    color: #2b2b2b !important;
+  }
+  .sidebar-external-nav a::after {
+    content: '↗';
+    margin-left: auto;
+    color: currentColor;
+    font-size: 14px;
+    line-height: 1;
+    opacity: .72;
+  }
+  .sidebar-external-nav a.active::after { opacity: 1; }
+  .sidebar:not(:hover):not(.pinned) .sidebar-external-nav {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    margin: 5px 0 4px !important;
+    padding: 6px 0 0 !important;
+    border-top-color: rgba(247,243,238,.18) !important;
+  }
+  .sidebar:not(:hover):not(.pinned) .sidebar-external-label { display: none !important; }
+  .sidebar:not(:hover):not(.pinned) .sidebar-external-nav a {
+    width: 100% !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 9px !important;
+    background: transparent !important;
+    color: rgba(255,255,255,.76) !important;
+    box-shadow: none !important;
+  }
+  .sidebar:not(:hover):not(.pinned) .sidebar-external-nav a:hover,
+  .sidebar:not(:hover):not(.pinned) .sidebar-external-nav a.active {
+    background: #f7f3ee !important;
+    color: #5a1e2d !important;
+  }
+  .sidebar:not(:hover):not(.pinned) .sidebar-external-nav a::after { display: none !important; }
+  .sidebar:not(:hover):not(.pinned) .sidebar-external-nav .nav-label { display: none !important; }
+  .sidebar:not(:hover):not(.pinned) .sidebar-external-nav a svg {
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 auto !important;
+  }
+}
+@media (max-width: 860px) {
+  .sidebar-external-nav {
+    display: grid !important;
+    gap: 6px !important;
+    flex: 0 0 auto !important;
+    margin: 12px 14px 8px !important;
+    padding-top: 12px !important;
+    border-top: 1px solid rgba(247,243,238,.22) !important;
+  }
+  .sidebar-external-label {
+    padding: 0 11px 3px !important;
+    color: rgba(247,243,238,.62) !important;
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    letter-spacing: .15em !important;
+    text-transform: uppercase !important;
+  }
+  .sidebar-external-nav a {
+    min-height: 40px !important;
+    border: 1px solid rgba(247,243,238,.32) !important;
+    border-radius: 11px !important;
+    background: #f7f3ee !important;
+    color: #5a1e2d !important;
+  }
+  .sidebar-external-nav a.active,
+  .sidebar-external-nav a:hover { background: #b58c52 !important; color: #2b2b2b !important; }
+  .sidebar-external-nav a::after { content: '↗'; margin-left: auto; }
+}
