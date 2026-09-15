@@ -418,3 +418,11 @@
   .sidebar-external-nav a:hover { background: #b58c52 !important; color: #2b2b2b !important; }
   .sidebar-external-nav a::after { content: '↗'; margin-left: auto; }
 }
+
+
+/* Reserve the compact rail space for the separated external group. */
+@media (min-width: 861px) {
+  .sidebar:not(:hover):not(.pinned):has(.sidebar-external-nav) nav {
+    max-height: calc(100dvh - 220px) !important;
+  }
+}
