@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { isWorkspaceRoute } from '../runtime/routeActivity';
 
 let installed = false;
 let realtimeChannel: any = null;
@@ -159,7 +160,7 @@ async function connect() { const button = document.querySelector<HTMLButtonEleme
 async function disconnect() { if (!confirm('Desconectar este Google Calendar do CALI Workspace? Os eventos já criados no Google não serão apagados automaticamente.')) return; try { await invoke({ action: 'disconnect', companyId: null }); connectionCache = null; connectionCacheAt = 0; lastRenderKey = ''; document.querySelector<HTMLElement>('.google-calendar-runtime-actions')?.removeAttribute('data-google-connection-ready'); await renderConnection(); } catch (error) { alert(`Não foi possível desconectar.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); } }
 async function deleteEvent(eventId: string) { const reason = window.prompt('Por que você está excluindo este evento?\n\nO evento será removido do Workspace e do Google Calendar. Uma cópia completa ficará preservada na auditoria.'); if (!reason?.trim()) return; if (!window.confirm('Tem certeza que deseja excluir definitivamente este evento da agenda operacional?\n\nOs convidados receberão a atualização do Google quando aplicável.')) return; try { await invoke({ action: 'delete_event', eventId, reason: reason.trim() }); window.location.reload(); } catch (error) { alert(`Não foi possível excluir o evento.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); } }
 
-function scheduleEnhance(delay = 80) { if (enhanceTimer) window.clearTimeout(enhanceTimer); enhanceTimer = window.setTimeout(() => { if (!isCalendar()) { uninstallRealtime(); return; } ensureStyle(); void renderConnection(); void enhanceEditorModal(); void enhanceOpenEventModal(); installRealtime(); }, delay); }
+function scheduleEnhance(delay = 80) { if (!isWorkspaceRoute('/admin/calendario', '/cliente/cronograma')) return; if (enhanceTimer) window.clearTimeout(enhanceTimer); enhanceTimer = window.setTimeout(() => { if (!isCalendar() || !isWorkspaceRoute('/admin/calendario', '/cliente/cronograma')) { uninstallRealtime(); return; } ensureStyle(); void renderConnection(); void enhanceEditorModal(); void enhanceOpenEventModal(); installRealtime(); }, delay); }
 function addedRelevantNode(node: Node) { if (!(node instanceof Element)) return false; return node.matches('.calendar-workspace-strip,.calendar-event-modal,.calendar-detail-modal') || Boolean(node.querySelector('.calendar-workspace-strip,.calendar-event-modal,.calendar-detail-modal')); }
 function installRealtime() {
   if (!supabase || realtimeChannel || !isCalendar()) return;

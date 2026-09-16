@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { isWorkspaceRoute } from '../runtime/routeActivity';
 
 type Slot = { startsAt: string; endsAt: string };
 type SchedulingRequest = {
@@ -297,7 +298,7 @@ function ensureHosts() {
   if (window.location.pathname === '/cliente/cronograma') { void renderClient(); return; }
   if (window.location.pathname === '/admin/calendario') { void renderAdmin(); return; }
 }
-function scheduleHosts() { window.clearTimeout(renderTimer); renderTimer = window.setTimeout(() => { const clientMissing = window.location.pathname === '/cliente/cronograma' && !document.getElementById('scheduling-v65-client-host'); const adminMissing = window.location.pathname === '/admin/calendario' && !document.getElementById('scheduling-v65-admin-host'); if (clientMissing || adminMissing) ensureHosts(); }, 180); }
+function scheduleHosts() { if (!isWorkspaceRoute('/admin/calendario', '/cliente/cronograma')) return; window.clearTimeout(renderTimer); renderTimer = window.setTimeout(() => { const clientMissing = window.location.pathname === '/cliente/cronograma' && !document.getElementById('scheduling-v65-client-host'); const adminMissing = window.location.pathname === '/admin/calendario' && !document.getElementById('scheduling-v65-admin-host'); if (clientMissing || adminMissing) ensureHosts(); }, 180); }
 function installRealtime() {
   if (!supabase || realtime) return;
   realtime = supabase.channel('scheduling-requests-v65').on('postgres_changes', { event: '*', schema: 'cali_workspace', table: 'scheduling_requests' }, () => { void refreshCurrent(); }).subscribe();

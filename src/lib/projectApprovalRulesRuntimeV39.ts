@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { isWorkspaceRoute } from '../runtime/routeActivity';
 
 type ProjectRow={id:string;protocol:string|null;company_id:string;name:string;planning_status:string;start_date:string|null;roadmap_start_date:string|null;roadmap_end_date:string|null;client_response_business_days:number|null};
 type FrontRow={id:string;name:string};
@@ -193,6 +194,6 @@ function patchAdmin(ctx:Context){
   }
 }
 
-async function scan(){if(busy||!supabase)return;const client=location.pathname.startsWith('/cliente/entregaveis'),admin=location.pathname.startsWith('/admin/projetos');if(!client&&!admin)return;busy=true;try{if(client){const ctx=await loadClientContext();if(ctx)patchClient(ctx);}if(admin){const ctx=await loadAdminContext();if(ctx)patchAdmin(ctx);}}finally{busy=false;}}
+async function scan(){if(busy||!supabase||!isWorkspaceRoute('/admin/projetos','/cliente/entregaveis'))return;const client=location.pathname.startsWith('/cliente/entregaveis'),admin=location.pathname.startsWith('/admin/projetos');if(!client&&!admin)return;busy=true;try{if(client){const ctx=await loadClientContext();if(ctx)patchClient(ctx);}if(admin){const ctx=await loadAdminContext();if(ctx)patchAdmin(ctx);}}finally{busy=false;}}
 function schedule(){window.clearTimeout(timer);timer=window.setTimeout(()=>void scan(),180);}
 export function installProjectApprovalRulesRuntimeV39(){if(installed||typeof window==='undefined')return;installed=true;schedule();const observer=new MutationObserver(()=>schedule());observer.observe(document.body,{childList:true,subtree:true});window.addEventListener('focus',schedule);window.addEventListener('popstate',schedule);}

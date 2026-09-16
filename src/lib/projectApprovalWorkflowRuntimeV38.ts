@@ -1,5 +1,6 @@
 import { caliWorkstreams } from '../domain/projects';
 import { supabase } from './supabase';
+import { isWorkspaceRoute } from '../runtime/routeActivity';
 
 type PlanningStatus='draft'|'client_review'|'adjustment_requested'|'approved'|'active'|'rebriefing'|'closed';
 type ProjectRow={id:string;protocol:string|null;company_id:string;name:string;planning_status:PlanningStatus;start_date:string|null;roadmap_start_date:string|null;target_end_date:string|null;roadmap_end_date:string|null;client_response_business_days:number|null;client_approved_at:string|null;activated_at:string|null};
@@ -198,7 +199,7 @@ function clientEmptyState(){
 }
 
 async function scan(){
-  if(busy||!supabase)return;const admin=location.pathname.startsWith('/admin/projetos'),client=location.pathname.startsWith('/cliente/entregaveis');if(!admin&&!client)return;busy=true;
+  if(busy||!supabase||!isWorkspaceRoute('/admin/projetos','/cliente/entregaveis'))return;const admin=location.pathname.startsWith('/admin/projetos'),client=location.pathname.startsWith('/cliente/entregaveis');if(!admin&&!client)return;busy=true;
   try{
     if(admin){const ctx=await loadAdminContext();if(ctx){addFrontAdminActions(ctx);adminReviewBanner(ctx);}}
     if(client){const ctx=await loadClientContext();if(ctx)clientReviewPanel(ctx);else clientEmptyState();}
@@ -207,4 +208,3 @@ async function scan(){
 }
 function schedule(){window.clearTimeout(timer);timer=window.setTimeout(()=>void scan(),140);}
 export function installProjectApprovalWorkflowRuntimeV38(){if(installed||typeof window==='undefined')return;installed=true;schedule();const observer=new MutationObserver(()=>schedule());observer.observe(document.body,{childList:true,subtree:true});window.addEventListener('focus',schedule);window.addEventListener('popstate',schedule);}
-

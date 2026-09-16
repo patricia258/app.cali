@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { activateRoute } from './routeActivity';
 
 const installed = new Set<string>();
 
@@ -132,6 +133,7 @@ export function RouteRuntimeManager() {
   const { pathname } = useLocation();
 
   useEffect(() => {
+    activateRoute(pathname);
     const timer = window.setTimeout(() => {
       if (pathname.includes('/relatorios')) installReports();
       if (pathname === '/admin/calendario' || pathname === '/cliente/cronograma') installCalendar();

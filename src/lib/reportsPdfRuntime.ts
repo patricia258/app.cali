@@ -1,4 +1,5 @@
 import { resolveWorkspaceMedia } from './workspaceMedia';
+import { isWorkspaceRoute } from '../runtime/routeActivity';
 
 let installed = false;
 let previousTitle = '';
@@ -58,6 +59,7 @@ function annotateReviewState(root: ParentNode = document) {
 }
 
 function refreshEnhancements(root: ParentNode = document) {
+  if (!isWorkspaceRoute('/admin/relatorios', '/cliente/relatorios')) return;
   bindReportLogos(root);
   annotateReviewState(root);
 }
