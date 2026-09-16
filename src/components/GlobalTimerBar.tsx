@@ -24,11 +24,8 @@ function initials(name:string){return name.trim().split(/\s+/).slice(0,2).map(p=
 function normalize(value?:string|null){return(value||'').replace(/\s+/g,' ').trim().toLocaleLowerCase('pt-BR');}
 function contextIsVisible(timer:TimerRow,pathname:string){
   if(pathname.startsWith('/admin/horas'))return true;
-  if(timer.accountRecordId&&pathname.startsWith('/admin/registros')&&document.querySelector('.records-v25-timer.is-active'))return true;
-  const explicit=Array.from(document.querySelectorAll<HTMLElement>('[data-timer-context-deliverable-id],[data-timer-context-task-id]'));
-  if(explicit.some(node=>(timer.taskId&&node.dataset.timerContextTaskId===timer.taskId)||(timer.deliverableId&&node.dataset.timerContextDeliverableId===timer.deliverableId)))return true;
-  const modal=document.querySelector<HTMLElement>('.deliverable-workspace-modal-v2');
-  return Boolean(modal&&timer.deliverableName&&normalize(modal.querySelector('h2')?.textContent)===normalize(timer.deliverableName));
+  if(timer.accountRecordId&&pathname.startsWith('/admin/registros'))return true;
+  return false;
 }
 function findOriginButton(deliverableName:string){const title=normalize(deliverableName);return Array.from(document.querySelectorAll<HTMLButtonElement>('.front-deliverable-open-v3,.deliverable-list-open-v3,button')).find(b=>{const t=normalize(b.textContent);return t===title||t.includes(title);})||null;}
 function openPendingOrigin(origin:PendingOrigin){
@@ -39,7 +36,7 @@ function openPendingOrigin(origin:PendingOrigin){
 export function GlobalTimerBar({role}:{role:Role}){
   const { user } = useWorkspaceAuth();
   const location=useLocation(),navigate=useNavigate();
-  const [timers,setTimers]=useState<TimerRow[]>([]),[nowMs,setNowMs]=useState(Date.now()),[busyId,setBusyId]=useState<string|null>(null),[moreOpen,setMoreOpen]=useState(false),[domVersion,setDomVersion]=useState(0);
+  const [timers,setTimers]=useState<TimerRow[]>([]),[nowMs,setNowMs]=useState(Date.now()),[busyId,setBusyId]=useState<string|null>(null),[moreOpen,setMoreOpen]=useState(false);
   const [pending,setPending]=useState<PendingFinalization>(null),[confirmStep,setConfirmStep]=useState<1|2>(1);const mounted=useRef(true);
 
   const load=useCallback(async()=>{
@@ -60,10 +57,9 @@ export function GlobalTimerBar({role}:{role:Role}){
   },[role,user]);
 
   useEffect(()=>{mounted.current=true;void load();const refresh=window.setInterval(()=>void load(),15000),tick=window.setInterval(()=>setNowMs(Date.now()),1000),changed=()=>void load();window.addEventListener(TIMER_EVENT,changed);return()=>{mounted.current=false;window.clearInterval(refresh);window.clearInterval(tick);window.removeEventListener(TIMER_EVENT,changed);};},[load]);
-  useEffect(()=>{const observer=new MutationObserver(()=>setDomVersion(v=>v+1));observer.observe(document.body,{childList:true,subtree:true});return()=>observer.disconnect();},[]);
   useEffect(()=>{if(role!=='admin'||!location.pathname.startsWith('/admin/projetos'))return;const raw=sessionStorage.getItem(ORIGIN_KEY);if(!raw)return;let origin:PendingOrigin|null=null;try{origin=JSON.parse(raw);}catch{sessionStorage.removeItem(ORIGIN_KEY);}if(!origin)return;let attempts=0;const id=window.setInterval(()=>{attempts++;if(openPendingOrigin(origin as PendingOrigin)||attempts>=30){window.clearInterval(id);sessionStorage.removeItem(ORIGIN_KEY);}},180);return()=>window.clearInterval(id);},[role,location.pathname]);
 
-  const visibleTimers=useMemo(()=>timers.filter(t=>!contextIsVisible(t,location.pathname)),[timers,location.pathname,domVersion]);
+  const visibleTimers=useMemo(()=>timers.filter(t=>!contextIsVisible(t,location.pathname)),[timers,location.pathname]);
   async function pause(timer:TimerRow){if(busyId)return;setBusyId(timer.id);try{await pauseTimerSession(timer.id);await load();}catch(e){console.error('Falha ao pausar e registrar sessão',e);}finally{setBusyId(null);}}
   function requestStop(timer:TimerRow){if(timer.accountRecordId)return;setPending({timer,target:{id:timer.taskId||timer.deliverableId||timer.id,label:timer.taskName||timer.deliverableName||timer.description||'esta atuação',kind:timer.taskId?'task':'deliverable',clientApproved:timer.deliverableStatus==='approved'}});setConfirmStep(1);setMoreOpen(false);}
   async function confirmStop(){if(!pending||busyId)return;setBusyId(pending.timer.id);try{await finalizeTimerWork(pending.timer);setPending(null);setConfirmStep(1);await load();}catch(e){console.error('Falha ao finalizar execução',e);}finally{setBusyId(null);}}
@@ -71,7 +67,7 @@ export function GlobalTimerBar({role}:{role:Role}){
     setMoreOpen(false);
     if(timer.accountRecordId){navigate(`/admin/registros?record=${timer.accountRecordId}`);return;}
     const origin={deliverableId:timer.deliverableId,deliverableName:timer.deliverableName,taskId:timer.taskId,taskName:timer.taskName};sessionStorage.setItem(ORIGIN_KEY,JSON.stringify(origin));
-    if(location.pathname.startsWith('/admin/projetos')){if(!openPendingOrigin(origin))setDomVersion(v=>v+1);return;}navigate('/admin/projetos');
+    if(location.pathname.startsWith('/admin/projetos')){openPendingOrigin(origin);return;}navigate('/admin/projetos');
   }
 
   const primary=visibleTimers.slice(0,3),overflow=visibleTimers.slice(3);

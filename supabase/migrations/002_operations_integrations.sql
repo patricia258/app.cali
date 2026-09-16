@@ -1,7 +1,0 @@
--- LEGACY MIGRATION DISABLED ON PURPOSE.
---
--- This prototype depended on the legacy public-schema Workspace tables from
--- 001_initial_workspace.sql. It is intentionally a no-op now.
---
--- The active integration/operations schema is defined in
--- 004_isolated_operations_integrations.sql and stays inside cali_workspace.

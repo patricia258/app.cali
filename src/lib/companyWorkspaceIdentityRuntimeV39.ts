@@ -16,7 +16,6 @@ const COMPANY_TILE_SELECTORS = [
   '[data-company-logo-tile]',
   '.hours-v13-logo',
   '.calendar-detail-company-mark',
-  '.global-timer-logo',
   '.deadline-logo-v2',
   '.project-client-mark',
   '.company-mark',
