@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, useLocation } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { WorkspaceAuthProvider } from './auth/WorkspaceAuthProvider';
@@ -46,8 +46,7 @@ import './workspace-system-v61.css';
 import './global-timer.css';
 
 function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
-  const location = useLocation();
-  return <AppErrorBoundary key={location.key}>{children}</AppErrorBoundary>;
+  return <AppErrorBoundary>{children}</AppErrorBoundary>;
 }
 
 initializeWorkspaceTheme();
