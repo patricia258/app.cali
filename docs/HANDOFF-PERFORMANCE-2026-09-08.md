@@ -195,3 +195,44 @@ Esta frente não termina quando "carrega um pouco mais rápido". Considerar conc
 Ao retomar o projeto, antes de criar uma nova camada de correção, consultar este documento e verificar se a mudança pode ser feita dentro da arquitetura existente. O CALI Workspace está aproximadamente 60% pronto; ainda haverá evolução funcional e visual, portanto preservar performance e capacidade de manutenção agora é condição para chegar aos 100% sem transformar cada ajuste novo em uma regressão em outra área.
 
 **Regra soberana:** o que está no ar e aprovado em 08/09/2026 é o baseline. Nenhuma otimização futura autoriza retrocesso visual ou funcional sem aprovação explícita da Patrícia.
+
+## Registro de continuidade — 16/09/2026
+
+A Patrícia confirmou que o carregamento em blocos continua sendo o problema percebido em vários pontos do produto, tanto no perfil Administrador quanto no perfil Cliente. Não há, neste momento, uma tela branca recorrente a ser tratada como sintoma principal; não reabrir o diagnóstico como se fosse um problema novo.
+
+### Decisões confirmadas
+
+- O trabalho deve considerar o site inteiro, com testes próprios em admin e cliente.
+- PDFs estão funcionando e ficam fora desta rodada.
+- Google Drive não é prioridade agora e não deve ser conectado nesta etapa.
+- O `main` atual está preservado como referência segura; melhorias devem ocorrer separadas e somente depois de passar por verificação.
+- A evolução visual deve trazer aparência de plataforma profissional, sem alterar regras de negócio, respostas do app, gerador de relatórios ou padrões já definidos.
+- A consolidação de versões paralelas, CSS e componentes deve ser gradual, por grupo de páginas, com comparação visual e possibilidade de reversão.
+- Revisão de segurança será tratada como frente própria, mas o alerta crítico do Supabase não deve ser ignorado antes da entrada online.
+
+### Execução iniciada
+
+Foi criada a branch `improvement/quality-gates-2026-09-16` e o PR [#43](https://github.com/patricia258/app.cali/pull/43).
+
+Nesta frente, sem alteração de tela:
+
+- dependências congeladas com `package-lock.json`;
+- criado `npm run check`, que executa typecheck e build;
+- CI alterado para usar `npm ci` e bloquear mudanças que não compilam;
+- corrigido o erro de TypeScript existente na conversa de Registros;
+- CI validado com sucesso;
+- preview da Vercel validado como `READY`;
+- produção mantida intacta.
+
+### Próxima execução autorizada
+
+A próxima entrega deve atacar o carregamento em blocos por grupos de páginas, começando pela medição do CSS/chunks e pela separação segura de estilos de rota. Não apagar versões históricas em massa. Validar cada grupo em:
+
+- Administrador e Cliente;
+- tema claro e noite;
+- desktop e mobile;
+- navegação interna e atualização direta da rota;
+- ausência de erros no console;
+- manutenção das funções, respostas, permissões e persistência.
+
+O próximo resultado para a Patrícia deve ser objetivo: informar qual grupo foi alterado, o que foi medido, o que melhorou e o roteiro exato de teste no cliente e no administrador.
