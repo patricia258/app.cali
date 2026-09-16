@@ -88,6 +88,69 @@ const emptySatisfaction: Satisfaction = {
   monthly: [],
   recent: [],
 };
+
+function createPreviewDashboardData(): DashboardData {
+  const now = new Date();
+  const isoInDays = (days: number) => {
+    const date = new Date(now);
+    date.setDate(date.getDate() + days);
+    return date.toISOString();
+  };
+  const workDate = now.toISOString().slice(0, 10);
+  const monthKey = (offset: number) =>
+    new Date(now.getFullYear(), now.getMonth() + offset, 1)
+      .toISOString()
+      .slice(0, 10);
+
+  return {
+    companies: [
+      { id: "preview-aurora", name: "Grupo Aurora", service: "CALI Partner", contracted: 30, mark: "GA" },
+      { id: "preview-novatech", name: "Novatech", service: "CALI Full", contracted: 40, mark: "N" },
+      { id: "preview-studio", name: "Studio Norte", service: "Projeto de Estruturação", contracted: 20, mark: "SN" },
+      { id: "preview-horizonte", name: "Clínica Horizonte", service: "CALI Partner", contracted: 24, mark: "CH" },
+    ],
+    projects: [
+      { id: "project-aurora", companyId: "preview-aurora", name: "Rituais de gestão", planningStatus: "client_review", status: "in_progress" },
+      { id: "project-novatech", companyId: "preview-novatech", name: "Arquitetura de liderança", planningStatus: "approved", status: "in_progress" },
+      { id: "project-studio", companyId: "preview-studio", name: "Estruturação do RH", planningStatus: "approved", status: "in_progress" },
+      { id: "project-horizonte", companyId: "preview-horizonte", name: "Indicadores de People", planningStatus: "approved", status: "in_progress" },
+    ],
+    deliverables: [
+      { id: "deliverable-1", companyId: "preview-aurora", projectId: "project-aurora", title: "Guia de rituais de liderança", status: "client_review", dueAt: isoInDays(2) },
+      { id: "deliverable-2", companyId: "preview-novatech", projectId: "project-novatech", title: "Matriz de responsabilidades", status: "adjustment_requested", dueAt: isoInDays(4) },
+      { id: "deliverable-3", companyId: "preview-studio", projectId: "project-studio", title: "Plano de estruturação do RH", status: "in_progress", dueAt: isoInDays(6) },
+      { id: "deliverable-4", companyId: "preview-horizonte", projectId: "project-horizonte", title: "Painel de indicadores", status: "approved", dueAt: isoInDays(8) },
+      { id: "deliverable-5", companyId: "preview-aurora", projectId: "project-aurora", title: "Caderno do comitê mensal", status: "internal_review", dueAt: isoInDays(10) },
+      { id: "deliverable-6", companyId: "preview-novatech", projectId: "project-novatech", title: "Trilha de desenvolvimento", status: "approved", dueAt: isoInDays(12) },
+    ],
+    entries: [
+      { companyId: "preview-aurora", minutes: 1420, workDate },
+      { companyId: "preview-novatech", minutes: 1970, workDate },
+      { companyId: "preview-studio", minutes: 685, workDate },
+      { companyId: "preview-horizonte", minutes: 850, workDate },
+    ],
+    events: [
+      { id: "event-1", companyId: "preview-aurora", title: "Comitê executivo · Grupo Aurora", startsAt: isoInDays(2), type: "meeting" },
+      { id: "event-2", companyId: "preview-novatech", title: "Validação da matriz · Novatech", startsAt: isoInDays(4), type: "validation" },
+      { id: "event-3", companyId: "preview-studio", title: "Entrega do plano · Studio Norte", startsAt: isoInDays(7), type: "deadline" },
+    ],
+    satisfaction: {
+      average: 4.8,
+      total: 28,
+      distribution: { "3": 1, "4": 5, "5": 22 },
+      monthly: [-5, -4, -3, -2, -1, 0].map((offset, index) => ({
+        month: monthKey(offset),
+        average: [4.4, 4.6, 4.5, 4.8, 4.7, 4.8][index],
+        count: [3, 4, 4, 5, 6, 6][index],
+      })),
+      recent: [
+        { score: 5, company: "Grupo Aurora", protocol: "NPS-028", title: "Ciclo mensal", createdAt: isoInDays(-3) },
+        { score: 5, company: "Clínica Horizonte", protocol: "NPS-027", title: "Entrega de indicadores", createdAt: isoInDays(-8) },
+        { score: 4, company: "Novatech", protocol: "NPS-026", title: "Encontro de liderança", createdAt: isoInDays(-14) },
+      ],
+    },
+  };
+}
 const statusNames: Record<string, string> = {
   approved: "Aprovados",
   in_progress: "Em andamento",
@@ -499,20 +562,33 @@ export function AdminDashboard() {
     validation: "#B58C52",
     deadline: "#9a5b40",
   });
-  const [data, setData] = useState<DashboardData>({
-    companies: [],
-    projects: [],
-    deliverables: [],
-    entries: [],
-    events: [],
-    satisfaction: emptySatisfaction,
-  });
-  const [loading, setLoading] = useState(true);
+  const previewMode =
+    typeof window !== "undefined" &&
+    window.sessionStorage.getItem("cali-preview-role") === "admin";
+  const [data, setData] = useState<DashboardData>(() =>
+    previewMode
+      ? createPreviewDashboardData()
+      : {
+          companies: [],
+          projects: [],
+          deliverables: [],
+          entries: [],
+          events: [],
+          satisfaction: emptySatisfaction,
+        },
+  );
+  const [loading, setLoading] = useState(!previewMode);
 
   useEffect(() => {
     let cancelled = false;
     let refreshTimer = 0;
     async function load() {
+      if (previewMode) {
+        setData(createPreviewDashboardData());
+        setLoading(false);
+        return;
+      }
+
       if (!supabase) {
         setLoading(false);
         return;
