@@ -766,3 +766,461 @@ html[data-workspace-theme='night'] .admin-overview-page .deadline-logo-v2 {
     font-size: 32px !important;
   }
 }
+
+/* =========================================================
+   SIDEBAR · identidade fixa + respiro do conteúdo
+   ========================================================= */
+.sidebar,
+.sidebar:hover,
+.sidebar:focus-within,
+html[data-workspace-theme='night'] .sidebar,
+html[data-workspace-theme='night'] .sidebar:hover,
+html[data-workspace-theme='night'] .sidebar:focus-within {
+  background-color: #531a2a !important;
+  background-image:
+    linear-gradient(165deg, rgba(107, 38, 57, .76), rgba(63, 20, 33, .82)),
+    url('/brand/cali-sidebar-pattern.webp') !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-position: center, center !important;
+  background-size: cover, cover !important;
+}
+
+.sidebar .sidebar-pin {
+  display: none !important;
+}
+
+.sidebar .brand-full img,
+html[data-workspace-theme='night'] .sidebar .brand-full img {
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+.sidebar .brand-full span,
+html[data-workspace-theme='night'] .sidebar .brand-full span {
+  color: rgba(255, 250, 247, .76) !important;
+}
+
+.sidebar .profile-avatar,
+html[data-workspace-theme='night'] .sidebar .profile-avatar {
+  background: #fffaf7 !important;
+  border-color: rgba(255, 255, 255, .28) !important;
+  color: #5a1e2d !important;
+}
+
+.sidebar .profile-copy strong,
+html[data-workspace-theme='night'] .sidebar .profile-copy strong {
+  color: #fffaf7 !important;
+}
+
+.sidebar .profile-copy small,
+html[data-workspace-theme='night'] .sidebar .profile-copy small,
+.sidebar .profile-edit-chevron,
+html[data-workspace-theme='night'] .sidebar .profile-edit-chevron {
+  color: rgba(255, 250, 247, .68) !important;
+}
+
+.sidebar nav a.active svg,
+.sidebar nav a.active svg *,
+html[data-workspace-theme='night'] .sidebar nav a.active svg,
+html[data-workspace-theme='night'] .sidebar nav a.active svg * {
+  color: #fff !important;
+  stroke: #fff !important;
+}
+
+@media (min-width: 861px) {
+  .sidebar nav {
+    margin-top: 12px !important;
+  }
+
+  .app-shell:has(.sidebar:hover) .main,
+  .app-shell:has(.sidebar:focus-within) .main {
+    margin-left: calc(var(--ux-shell-open) + 24px) !important;
+    width: calc(100% - var(--ux-shell-open) - 24px) !important;
+    max-width: calc(100% - var(--ux-shell-open) - 24px) !important;
+  }
+}
+
+/* =========================================================
+   CLIENTES · carteira executiva em planos
+   ========================================================= */
+.clients-page-v3 {
+  width: min(1380px, calc(100% - clamp(36px, 5vw, 76px))) !important;
+  padding: 42px 0 96px !important;
+}
+
+.clients-page-v3 > .eyebrow {
+  width: max-content;
+  margin: 0 0 -12px 26px;
+  position: relative;
+  z-index: 2;
+  color: #a7783e !important;
+}
+
+.clients-page-v3 > .page-heading {
+  position: relative;
+  min-height: 150px;
+  padding: 34px 32px 28px !important;
+  overflow: hidden;
+  align-items: flex-end !important;
+  border: 1px solid var(--ux-line);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(231, 198, 111, .23), transparent 27%),
+    linear-gradient(126deg, rgba(255, 253, 250, .97), rgba(249, 242, 235, .89));
+  box-shadow: var(--ux-shadow-1);
+  animation: ux-rise .72s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.clients-page-v3 > .page-heading::after {
+  content: '';
+  position: absolute;
+  right: -54px;
+  top: -112px;
+  width: 310px;
+  height: 310px;
+  border: 48px solid rgba(90, 30, 45, .052);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.clients-page-v3 > .page-heading > * {
+  position: relative;
+  z-index: 1;
+}
+
+.clients-page-v3 > .page-heading h1 {
+  font-size: clamp(36px, 4vw, 54px) !important;
+  letter-spacing: -.045em;
+}
+
+.clients-page-v3 > .page-heading p {
+  max-width: 720px;
+  margin-top: 9px !important;
+  font-size: 15px !important;
+  line-height: 1.55;
+}
+
+.clients-page-v3 > .page-heading .primary {
+  min-height: 46px !important;
+  padding-inline: 18px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 26px rgba(90, 30, 45, .18) !important;
+}
+
+.clients-page-v3 .client-portfolio-metrics {
+  gap: 14px;
+  margin-top: 18px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.clients-page-v3 .client-portfolio-metrics article {
+  min-height: 126px;
+  padding: 22px 24px;
+  border: 1px solid var(--ux-line) !important;
+  border-radius: 18px;
+  background: var(--ux-surface);
+  box-shadow: var(--ux-shadow-1);
+  animation: ux-card-in .66s cubic-bezier(.16, 1, .3, 1) both;
+  transition: transform .22s cubic-bezier(.16, 1, .3, 1), box-shadow .22s ease !important;
+}
+
+.clients-page-v3 .client-portfolio-metrics article:nth-child(1) { animation-delay: 100ms; }
+.clients-page-v3 .client-portfolio-metrics article:nth-child(2) { animation-delay: 180ms; }
+.clients-page-v3 .client-portfolio-metrics article:nth-child(3) { animation-delay: 260ms; }
+.clients-page-v3 .client-portfolio-metrics article:nth-child(4) {
+  animation-delay: 340ms;
+  border-color: rgba(181, 140, 82, .28) !important;
+  background: linear-gradient(145deg, rgba(255, 253, 250, .98), rgba(244, 232, 217, .9));
+}
+
+.clients-page-v3 .client-portfolio-metrics article:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--ux-shadow-2);
+}
+
+.clients-page-v3 .client-portfolio-metrics strong {
+  margin-top: 9px;
+  font-size: 2rem;
+}
+
+.clients-page-v3 .client-list-panel {
+  margin-top: 24px;
+  padding: 0 18px 16px !important;
+  overflow: hidden;
+  border: 1px solid var(--ux-line) !important;
+  border-radius: 22px !important;
+  background: var(--ux-surface) !important;
+  box-shadow: var(--ux-shadow-1) !important;
+  animation: ux-rise .72s 430ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.clients-page-v3 .client-data-head {
+  min-height: 58px;
+  margin: 0 -18px;
+  padding: 0 28px !important;
+  border-bottom: 1px solid var(--ux-line);
+  background: rgba(90, 30, 45, .026);
+  text-transform: uppercase;
+  letter-spacing: .055em;
+}
+
+.clients-page-v3 .client-data-row-v2 {
+  min-height: 108px !important;
+  padding: 16px 10px !important;
+  border-radius: 15px;
+}
+
+.clients-page-v3 .client-data-row-v2:hover,
+.clients-page-v3 .client-data-row-v2:focus-visible {
+  transform: translateX(3px);
+  background: rgba(90, 30, 45, .045) !important;
+  box-shadow: inset 3px 0 0 #b58c52, 0 12px 28px rgba(51, 30, 35, .055) !important;
+}
+
+.clients-page-v3 .company-logo-slot {
+  border: 1px solid rgba(90, 30, 45, .11);
+  box-shadow: 0 8px 20px rgba(51, 30, 35, .07);
+}
+
+.clients-page-v3 .client-quick-actions {
+  opacity: .66;
+  transition: opacity .18s ease;
+}
+
+.clients-page-v3 .client-data-row-v2:hover .client-quick-actions,
+.clients-page-v3 .client-data-row-v2:focus-within .client-quick-actions {
+  opacity: 1;
+}
+
+html[data-workspace-theme='night'] .clients-page-v3 > .page-heading {
+  border-color: rgba(247, 243, 238, .09);
+  background:
+    radial-gradient(circle at 88% 10%, rgba(181, 140, 82, .14), transparent 25%),
+    linear-gradient(126deg, rgba(47, 31, 36, .96), rgba(35, 23, 27, .92));
+}
+
+html[data-workspace-theme='night'] .clients-page-v3 .client-portfolio-metrics article,
+html[data-workspace-theme='night'] .clients-page-v3 .client-list-panel {
+  border-color: rgba(247, 243, 238, .1) !important;
+  background: rgba(37, 25, 29, .94) !important;
+}
+
+html[data-workspace-theme='night'] .clients-page-v3 .client-portfolio-metrics article:nth-child(4) {
+  background: linear-gradient(145deg, rgba(55, 37, 43, .97), rgba(57, 40, 36, .92)) !important;
+}
+
+html[data-workspace-theme='night'] .clients-page-v3 .client-data-head {
+  background: rgba(255, 255, 255, .025);
+  border-color: rgba(247, 243, 238, .09);
+}
+
+/* =========================================================
+   MODAL DE CLIENTE · superfície editorial em camadas
+   ========================================================= */
+.client-account-modal.compact-account-modal,
+.client-account-modal.management-modal-v3 {
+  width: min(1120px, calc(100vw - 56px)) !important;
+  max-width: 1120px !important;
+  height: min(810px, calc(100dvh - 56px)) !important;
+  max-height: calc(100dvh - 56px) !important;
+  border-radius: 24px !important;
+  border-color: rgba(90, 30, 45, .11) !important;
+  background: #f4efea !important;
+  box-shadow: 0 34px 100px rgba(34, 20, 25, .3) !important;
+  animation: ux-modal-in .38s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.compact-account-modal .account-modal-intro,
+.client-account-modal .account-management-header {
+  position: relative;
+  min-height: 126px !important;
+  padding: 27px 82px 22px 34px !important;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(90, 30, 45, .08) !important;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(231, 198, 111, .23), transparent 27%),
+    linear-gradient(125deg, #fffdfa, #f7eee6) !important;
+}
+
+.compact-account-modal .account-modal-intro::before,
+.client-account-modal .account-management-header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 25px;
+  bottom: 25px;
+  width: 6px;
+  border-radius: 0 99px 99px 0;
+  background: linear-gradient(180deg, #5a1e2d, #b58c52);
+}
+
+.client-account-modal .account-tabs-v3 {
+  min-height: 58px !important;
+  padding: 9px 28px !important;
+  gap: 7px !important;
+  border-bottom: 1px solid rgba(90, 30, 45, .08) !important;
+  background: rgba(255, 253, 250, .92);
+}
+
+.client-account-modal .account-tabs-v3 button {
+  min-height: 38px !important;
+  padding: 0 14px !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  color: #7f7070 !important;
+  transition: color .18s ease, background .18s ease, box-shadow .18s ease !important;
+}
+
+.client-account-modal .account-tabs-v3 button:hover {
+  color: #5a1e2d !important;
+  background: rgba(90, 30, 45, .05) !important;
+}
+
+.client-account-modal .account-tabs-v3 button.active {
+  color: #fff !important;
+  background: #5a1e2d !important;
+  box-shadow: 0 8px 18px rgba(90, 30, 45, .18) !important;
+}
+
+.client-account-modal .account-tab-scroll,
+.client-account-modal .account-management-scroll {
+  background:
+    linear-gradient(rgba(90, 30, 45, .018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(90, 30, 45, .018) 1px, transparent 1px),
+    #f4efea !important;
+  background-size: 30px 30px !important;
+}
+
+.client-account-modal .account-tab-pane {
+  width: min(980px, 100%);
+  margin: 0 auto;
+  padding: 28px 32px 36px !important;
+}
+
+.client-account-modal .account-pane-heading {
+  margin-bottom: 22px;
+  padding: 15px 17px;
+  border: 1px solid rgba(90, 30, 45, .08);
+  border-radius: 14px;
+  background: rgba(255, 253, 250, .85);
+  box-shadow: 0 8px 24px rgba(51, 30, 35, .045);
+}
+
+.client-account-modal .logo-registration-row,
+.client-account-modal .account-check,
+.client-account-modal .derived-field,
+.client-account-modal .account-summary-strip > div,
+.client-account-modal .account-operation-card,
+.client-account-modal .communication-grid > label {
+  border-color: rgba(90, 30, 45, .1) !important;
+  background: rgba(255, 253, 250, .9) !important;
+  box-shadow: 0 8px 22px rgba(51, 30, 35, .045);
+}
+
+.client-account-modal .stacked-label input,
+.client-account-modal .stacked-label select,
+.client-account-modal .stacked-label textarea {
+  min-height: 46px !important;
+  border-color: rgba(90, 30, 45, .13) !important;
+  background: rgba(255, 255, 255, .94) !important;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease !important;
+}
+
+.client-account-modal .stacked-label input:focus,
+.client-account-modal .stacked-label select:focus,
+.client-account-modal .stacked-label textarea:focus {
+  transform: translateY(-1px);
+  border-color: rgba(90, 30, 45, .42) !important;
+  box-shadow: 0 0 0 4px rgba(90, 30, 45, .07) !important;
+}
+
+.client-account-modal .account-modal-footer {
+  min-height: 72px !important;
+  padding: 13px 30px !important;
+  background: rgba(255, 253, 250, .97) !important;
+  box-shadow: 0 -12px 32px rgba(51, 30, 35, .055) !important;
+}
+
+html[data-workspace-theme='night'] .client-account-modal.compact-account-modal,
+html[data-workspace-theme='night'] .client-account-modal.management-modal-v3 {
+  border-color: rgba(247, 243, 238, .11) !important;
+  background: #171114 !important;
+}
+
+html[data-workspace-theme='night'] .compact-account-modal .account-modal-intro,
+html[data-workspace-theme='night'] .client-account-modal .account-management-header {
+  border-color: rgba(247, 243, 238, .09) !important;
+  background:
+    radial-gradient(circle at 88% 10%, rgba(181, 140, 82, .13), transparent 27%),
+    linear-gradient(125deg, #302027, #21171b) !important;
+}
+
+html[data-workspace-theme='night'] .client-account-modal .account-tabs-v3 {
+  border-color: rgba(247, 243, 238, .09) !important;
+  background: #21191d !important;
+}
+
+html[data-workspace-theme='night'] .client-account-modal .account-tabs-v3 button {
+  color: #bcaeaa !important;
+}
+
+html[data-workspace-theme='night'] .client-account-modal .account-tabs-v3 button.active {
+  color: #fff !important;
+  background: #7a2d44 !important;
+}
+
+html[data-workspace-theme='night'] .client-account-modal .account-tab-scroll,
+html[data-workspace-theme='night'] .client-account-modal .account-management-scroll {
+  background:
+    linear-gradient(rgba(247, 243, 238, .018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(247, 243, 238, .018) 1px, transparent 1px),
+    #171114 !important;
+  background-size: 30px 30px !important;
+}
+
+html[data-workspace-theme='night'] .client-account-modal .account-pane-heading,
+html[data-workspace-theme='night'] .client-account-modal .logo-registration-row,
+html[data-workspace-theme='night'] .client-account-modal .account-check,
+html[data-workspace-theme='night'] .client-account-modal .derived-field,
+html[data-workspace-theme='night'] .client-account-modal .account-summary-strip > div,
+html[data-workspace-theme='night'] .client-account-modal .account-operation-card,
+html[data-workspace-theme='night'] .client-account-modal .communication-grid > label {
+  border-color: rgba(247, 243, 238, .1) !important;
+  background: #241b1f !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .14);
+}
+
+html[data-workspace-theme='night'] .client-account-modal .account-modal-footer {
+  border-color: rgba(247, 243, 238, .1) !important;
+  background: #21191d !important;
+}
+
+@keyframes ux-modal-in {
+  from { opacity: 0; transform: translateY(18px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 860px) {
+  .clients-page-v3 {
+    width: min(100% - 24px, 720px) !important;
+    padding-top: 28px !important;
+  }
+
+  .clients-page-v3 > .page-heading {
+    align-items: flex-start !important;
+    gap: 20px;
+    padding: 28px 22px !important;
+  }
+
+  .client-account-modal.compact-account-modal,
+  .client-account-modal.management-modal-v3 {
+    width: calc(100vw - 16px) !important;
+    height: calc(100dvh - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    border-radius: 17px !important;
+  }
+}
