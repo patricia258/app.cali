@@ -1,0 +1,554 @@
+/* UX/UI preview · shell + visão geral
+   Direção: produto executivo em planos, com navegação persistente e conteúdo em cascata. */
+
+:root {
+  --ux-shell-rail: 88px;
+  --ux-shell-open: 286px;
+  --ux-canvas: #f1ede8;
+  --ux-surface: rgba(255, 253, 250, .92);
+  --ux-line: rgba(90, 30, 45, .105);
+  --ux-shadow-1: 0 1px 2px rgba(51, 30, 35, .05), 0 12px 34px rgba(51, 30, 35, .07);
+  --ux-shadow-2: 0 2px 4px rgba(51, 30, 35, .07), 0 22px 60px rgba(51, 30, 35, .12);
+}
+
+html,
+body {
+  background: var(--ux-canvas) !important;
+}
+
+.app-shell {
+  background:
+    radial-gradient(circle at 82% 6%, rgba(181, 140, 82, .13), transparent 26%),
+    radial-gradient(circle at 30% 34%, rgba(90, 30, 45, .055), transparent 31%),
+    linear-gradient(145deg, #f5f1ed 0%, #efe9e4 52%, #f7f4f0 100%) !important;
+}
+
+/* Sidebar: passa de uma chapa colada na borda para um plano próprio. */
+@media (min-width: 861px) {
+  .sidebar,
+  .sidebar:not(:hover):not(.pinned) {
+    inset: 12px auto 12px 12px !important;
+    width: 64px !important;
+    height: calc(100dvh - 24px) !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 12px 8px 10px !important;
+    border: 1px solid rgba(255, 255, 255, .13) !important;
+    border-radius: 23px !important;
+    background:
+      radial-gradient(circle at 22% 2%, rgba(181, 140, 82, .22), transparent 24%),
+      linear-gradient(165deg, #6b2639 0%, #531a2a 48%, #3f1421 100%) !important;
+    box-shadow: 0 18px 45px rgba(59, 20, 31, .22), inset 0 1px rgba(255, 255, 255, .08) !important;
+    transition: width .32s cubic-bezier(.16, 1, .3, 1), box-shadow .25s ease !important;
+  }
+
+  .sidebar:hover,
+  .sidebar.pinned {
+    width: var(--ux-shell-open) !important;
+    box-shadow: 0 26px 70px rgba(59, 20, 31, .27), inset 0 1px rgba(255, 255, 255, .09) !important;
+  }
+
+  .sidebar:not(:hover):not(.pinned) .sidebar-top {
+    height: 48px !important;
+    min-height: 48px !important;
+    flex-basis: 48px !important;
+  }
+
+  .sidebar:not(:hover):not(.pinned) .brand,
+  .sidebar:not(:hover):not(.pinned) .brand-compact-slide {
+    width: 46px !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    flex-basis: 46px !important;
+  }
+
+  .sidebar:not(:hover):not(.pinned) .brand-compact-art {
+    width: 38px !important;
+    height: 38px !important;
+    filter: drop-shadow(0 7px 10px rgba(0, 0, 0, .15));
+  }
+
+  .sidebar:not(:hover):not(.pinned) nav {
+    margin-top: 10px !important;
+    gap: 4px !important;
+  }
+
+  .sidebar:not(:hover):not(.pinned) nav a {
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    flex-basis: 42px !important;
+    border-radius: 12px !important;
+  }
+
+  .sidebar nav a {
+    position: relative;
+    color: rgba(255, 255, 255, .7) !important;
+    transition: color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease !important;
+  }
+
+  .sidebar nav a:hover {
+    color: #fff !important;
+    background: rgba(255, 255, 255, .075) !important;
+    transform: translateX(2px);
+  }
+
+  .sidebar nav a.active {
+    color: #5a1e2d !important;
+    background: linear-gradient(135deg, #fffdf9, #f3e9df) !important;
+    box-shadow: 0 10px 24px rgba(21, 7, 11, .18), inset 0 1px #fff !important;
+  }
+
+  .sidebar nav a.active::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    width: 3px;
+    height: 20px;
+    border-radius: 8px;
+    background: #e7c66f;
+    box-shadow: 0 0 0 4px rgba(231, 198, 111, .1);
+  }
+
+  .sidebar:hover nav,
+  .sidebar.pinned nav {
+    padding-inline: 12px !important;
+    gap: 3px !important;
+  }
+
+  .sidebar:hover nav a,
+  .sidebar.pinned nav a {
+    min-height: 43px !important;
+    height: 43px !important;
+    padding-inline: 15px !important;
+  }
+
+  .sidebar:hover .sidebar-pin,
+  .sidebar.pinned .sidebar-pin {
+    margin-inline: 12px !important;
+    background: rgba(255, 255, 255, .055) !important;
+  }
+
+  .sidebar:hover .sidebar-footer-profile-only,
+  .sidebar.pinned .sidebar-footer-profile-only {
+    margin: auto 12px 0 !important;
+    padding: 10px 0 2px !important;
+    border-top: 1px solid rgba(255, 255, 255, .12) !important;
+    background: transparent !important;
+  }
+
+  .main {
+    margin-left: var(--ux-shell-rail) !important;
+    width: calc(100% - var(--ux-shell-rail)) !important;
+  }
+}
+
+/* Topbar: superfície flutuante e contexto de navegação explícito. */
+.topbar {
+  top: 12px !important;
+  z-index: 24 !important;
+  height: 66px !important;
+  margin: 12px 18px 0 14px !important;
+  padding: 0 16px 0 20px !important;
+  border: 1px solid rgba(90, 30, 45, .09) !important;
+  border-radius: 18px !important;
+  background: rgba(255, 253, 250, .79) !important;
+  backdrop-filter: blur(22px) saturate(1.25) !important;
+  box-shadow: 0 10px 30px rgba(51, 30, 35, .075), inset 0 1px rgba(255, 255, 255, .9) !important;
+}
+
+.topbar-context {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-context-mark {
+  width: 9px;
+  height: 35px;
+  border-radius: 99px;
+  background: linear-gradient(180deg, #5a1e2d, #b58c52);
+  box-shadow: 0 7px 16px rgba(90, 30, 45, .2);
+}
+
+.topbar-context div {
+  display: grid;
+  gap: 2px;
+}
+
+.topbar-context small {
+  color: #9b8d84;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.topbar-context strong {
+  color: #342b2d;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.top-actions {
+  gap: 8px !important;
+}
+
+.top-actions > .icon-button,
+.top-actions .notification-button {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, .8) !important;
+  box-shadow: 0 4px 14px rgba(51, 30, 35, .055) !important;
+}
+
+.external-products-topnav {
+  padding: 4px !important;
+  border: 1px solid rgba(90, 30, 45, .08);
+  border-radius: 13px;
+  background: rgba(90, 30, 45, .035);
+}
+
+.external-products-topnav a {
+  min-height: 32px !important;
+  border-radius: 9px !important;
+}
+
+.workspace-view {
+  position: relative;
+  padding-top: 6px;
+  background:
+    linear-gradient(rgba(90, 30, 45, .025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(90, 30, 45, .025) 1px, transparent 1px) !important;
+  background-size: 34px 34px !important;
+  background-position: center top !important;
+}
+
+/* Visão geral: hierarquia em planos, assimetria controlada e entrada escalonada. */
+.admin-overview-page {
+  width: min(1380px, calc(100% - clamp(36px, 5vw, 76px))) !important;
+  padding: 42px 0 90px !important;
+}
+
+.admin-overview-page .overview-heading {
+  position: relative;
+  min-height: 142px;
+  align-items: flex-end !important;
+  padding: 28px 30px 26px !important;
+  overflow: hidden;
+  border: 1px solid rgba(90, 30, 45, .105);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 88% 10%, rgba(231, 198, 111, .24), transparent 25%),
+    linear-gradient(126deg, rgba(255, 253, 250, .96), rgba(250, 244, 238, .88));
+  box-shadow: var(--ux-shadow-1);
+  animation: ux-rise .52s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.admin-overview-page .overview-heading::after {
+  content: '';
+  position: absolute;
+  right: -60px;
+  top: -105px;
+  width: 300px;
+  height: 300px;
+  border: 46px solid rgba(90, 30, 45, .055);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.admin-overview-page .overview-heading > * {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-overview-page .overview-heading .eyebrow {
+  color: #9b7743;
+}
+
+.admin-overview-page .overview-heading h1 {
+  margin: 8px 0 8px !important;
+  color: #392d30;
+  font-size: clamp(34px, 3.3vw, 48px) !important;
+  letter-spacing: -.045em;
+}
+
+.admin-overview-page .overview-heading p {
+  max-width: 650px;
+  margin: 0;
+  color: #786b66;
+  font-size: 15px;
+}
+
+.admin-overview-page .overview-actions {
+  padding-bottom: 4px;
+}
+
+.admin-overview-page .overview-actions .primary,
+.admin-overview-page .overview-actions .secondary {
+  min-height: 43px;
+  border-radius: 12px;
+}
+
+.admin-overview-page .overview-signal-strip {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  margin-top: 18px !important;
+  overflow: visible !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.admin-overview-page .overview-signal-strip .signal-card {
+  min-height: 142px !important;
+  padding: 21px 21px 18px !important;
+  border: 1px solid var(--ux-line) !important;
+  border-radius: 19px !important;
+  background: var(--ux-surface) !important;
+  box-shadow: 0 8px 22px rgba(51, 30, 35, .055), inset 0 1px rgba(255, 255, 255, .85) !important;
+  backdrop-filter: blur(14px);
+  animation: ux-card-in .46s cubic-bezier(.16, 1, .3, 1) both;
+  transition: transform .22s cubic-bezier(.16, 1, .3, 1), box-shadow .22s ease, border-color .22s ease !important;
+}
+
+.admin-overview-page .overview-signal-strip .signal-card:nth-child(1) { animation-delay: 70ms; }
+.admin-overview-page .overview-signal-strip .signal-card:nth-child(2) { animation-delay: 120ms; }
+.admin-overview-page .overview-signal-strip .signal-card:nth-child(3) { animation-delay: 170ms; }
+.admin-overview-page .overview-signal-strip .signal-card:nth-child(4) { animation-delay: 220ms; }
+
+.admin-overview-page .overview-signal-strip .signal-card:hover {
+  transform: translateY(-5px) !important;
+  border-color: rgba(181, 140, 82, .3) !important;
+  box-shadow: var(--ux-shadow-2) !important;
+}
+
+.admin-overview-page .overview-signal-strip .signal-card:nth-child(2) {
+  color: #fff7f1;
+  border-color: rgba(90, 30, 45, .3) !important;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(231, 198, 111, .22), transparent 34%),
+    linear-gradient(145deg, #672438, #4c1727) !important;
+  box-shadow: 0 18px 38px rgba(74, 22, 38, .2) !important;
+}
+
+.admin-overview-page .overview-signal-strip .signal-card:nth-child(2) > span,
+.admin-overview-page .overview-signal-strip .signal-card:nth-child(2) > small {
+  color: rgba(255, 247, 241, .7) !important;
+}
+
+.admin-overview-page .overview-signal-strip .signal-card:nth-child(2) > strong {
+  color: #fff !important;
+}
+
+.admin-overview-page .overview-signal-strip .signal-card:nth-child(2) > i {
+  color: #4f1828 !important;
+  background: #e7c66f !important;
+}
+
+.admin-overview-page .overview-signal-strip .signal-card:nth-child(2) .signal-trend {
+  color: #f0d996 !important;
+  border-color: rgba(240, 217, 150, .24) !important;
+  background: rgba(255, 255, 255, .08) !important;
+}
+
+.admin-overview-page .analytics-grid,
+.admin-overview-page .overview-lower-grid,
+.admin-overview-page .portfolio-table-panel {
+  animation: ux-rise .52s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.admin-overview-page .analytics-primary { animation-delay: 260ms; }
+.admin-overview-page .analytics-secondary { animation-delay: 330ms; }
+.admin-overview-page .overview-lower-grid { animation-delay: 400ms; }
+.admin-overview-page .portfolio-table-panel { animation-delay: 470ms; }
+
+.admin-overview-page .analytics-grid {
+  gap: 18px !important;
+  margin-top: 18px !important;
+}
+
+.admin-overview-page .analytics-primary {
+  grid-template-columns: minmax(0, 1.72fr) minmax(290px, .72fr) !important;
+  align-items: start;
+}
+
+.admin-overview-page .analytics-secondary {
+  grid-template-columns: minmax(0, 1.35fr) minmax(340px, .85fr) !important;
+  margin-top: 34px !important;
+}
+
+.admin-overview-page .panel {
+  border: 1px solid var(--ux-line) !important;
+  border-radius: 22px !important;
+  background: var(--ux-surface) !important;
+  box-shadow: var(--ux-shadow-1) !important;
+  backdrop-filter: blur(16px);
+  transition: transform .22s cubic-bezier(.16, 1, .3, 1), box-shadow .22s ease, border-color .22s ease !important;
+}
+
+.admin-overview-page .panel:hover {
+  transform: translateY(-3px);
+  border-color: rgba(181, 140, 82, .24) !important;
+  box-shadow: var(--ux-shadow-2) !important;
+}
+
+.admin-overview-page .hours-chart-panel {
+  min-height: 352px;
+  padding: 27px 28px !important;
+}
+
+.admin-overview-page .deliverable-chart-panel {
+  min-height: 324px;
+  transform: translateY(16px);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(181, 140, 82, .12), transparent 35%),
+    var(--ux-surface) !important;
+}
+
+.admin-overview-page .deliverable-chart-panel:hover {
+  transform: translateY(11px);
+}
+
+.admin-overview-page .attention-panel {
+  border-color: rgba(181, 140, 82, .28) !important;
+  background:
+    linear-gradient(145deg, rgba(255, 253, 250, .97), rgba(244, 232, 217, .88)) !important;
+}
+
+.admin-overview-page .panel-title {
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(90, 30, 45, .075);
+}
+
+.admin-overview-page .panel-title h2 {
+  margin-top: 5px;
+  color: #392e30;
+}
+
+.admin-overview-page .overview-lower-grid {
+  gap: 18px !important;
+  margin-top: 18px !important;
+}
+
+.admin-overview-page .portfolio-table-panel {
+  margin-top: 18px !important;
+  overflow: hidden !important;
+}
+
+@keyframes ux-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ux-card-in {
+  from { opacity: 0; transform: translateY(10px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-overview-page *,
+  .workspace-view,
+  .sidebar {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+html[data-workspace-theme='night'] {
+  --ux-canvas: #160f12;
+  --ux-surface: rgba(37, 25, 29, .92);
+  --ux-line: rgba(247, 243, 238, .1);
+  --ux-shadow-1: 0 1px 2px rgba(0, 0, 0, .2), 0 16px 40px rgba(0, 0, 0, .2);
+  --ux-shadow-2: 0 3px 6px rgba(0, 0, 0, .24), 0 26px 64px rgba(0, 0, 0, .3);
+}
+
+html[data-workspace-theme='night'] .app-shell {
+  background:
+    radial-gradient(circle at 82% 5%, rgba(181, 140, 82, .1), transparent 25%),
+    radial-gradient(circle at 28% 32%, rgba(125, 50, 72, .14), transparent 32%),
+    #160f12 !important;
+}
+
+html[data-workspace-theme='night'] .topbar {
+  border-color: rgba(247, 243, 238, .09) !important;
+  background: rgba(34, 23, 27, .8) !important;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .22) !important;
+}
+
+html[data-workspace-theme='night'] .topbar-context strong,
+html[data-workspace-theme='night'] .admin-overview-page .overview-heading h1,
+html[data-workspace-theme='night'] .admin-overview-page .panel-title h2 {
+  color: #f7f3ee;
+}
+
+html[data-workspace-theme='night'] .admin-overview-page .overview-heading {
+  border-color: rgba(247, 243, 238, .09);
+  background:
+    radial-gradient(circle at 88% 10%, rgba(181, 140, 82, .14), transparent 25%),
+    linear-gradient(126deg, rgba(47, 31, 36, .96), rgba(35, 23, 27, .92));
+}
+
+html[data-workspace-theme='night'] .admin-overview-page .overview-heading p {
+  color: #cbbdb7;
+}
+
+@media (max-width: 1100px) {
+  .admin-overview-page .overview-signal-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .admin-overview-page .analytics-primary,
+  .admin-overview-page .analytics-secondary,
+  .admin-overview-page .overview-lower-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-overview-page .deliverable-chart-panel,
+  .admin-overview-page .deliverable-chart-panel:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .topbar {
+    top: 8px !important;
+    margin: 8px 10px 0 58px !important;
+  }
+
+  .topbar-context small,
+  .external-products-topnav {
+    display: none !important;
+  }
+
+  .admin-overview-page {
+    width: min(100% - 24px, 720px) !important;
+    padding-top: 28px !important;
+  }
+
+  .admin-overview-page .overview-heading {
+    align-items: flex-start !important;
+    padding: 24px 22px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar-context-mark,
+  .topbar-context {
+    display: none !important;
+  }
+
+  .topbar {
+    justify-content: flex-end !important;
+  }
+
+  .admin-overview-page .overview-signal-strip {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-overview-page .overview-heading h1 {
+    font-size: 32px !important;
+  }
+}
