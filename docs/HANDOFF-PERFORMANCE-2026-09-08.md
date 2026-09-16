@@ -289,3 +289,37 @@ Validação do commit `ffd1fdb202d8f4b97ae58928bc4478a1c49b595d`:
 - produção não foi alterada.
 
 O build ainda sinaliza um chunk JavaScript compartilhado acima de 500 kB (**532,78 kB**). Isso ficou identificado como próximo alvo técnico, separado da consolidação visual de CSS, para não misturar duas frentes de risco na mesma mudança.
+
+### Quarta rodada de divisão de JavaScript — 16/09/2026
+
+O JavaScript inicial também foi dividido por responsabilidade, sem alterar respostas, regras, dados ou comportamento do app:
+
+- ícones, Supabase, datas e demais dependências passaram a ter chunks próprios;
+- o chunk principal caiu de **532,78 kB / 151,72 kB gzip** para **125,32 kB / 36,59 kB gzip**;
+- os fornecedores ficam carregados separadamente: dependências gerais **169,86 kB**, Supabase **220,90 kB** e ícones **41,31 kB**;
+- typecheck, build e CI passaram;
+- preview Vercel READY: https://app-cali-4cyqzwwtc-cali11.vercel.app;
+- produção permaneceu intacta.
+
+Esta rodada foi aprovada pela Patrícia somente para testar velocidade de abertura; não representa aprovação visual do preview.
+
+### Diagnóstico dos “blocos” e camadas percebidas — 16/09/2026
+
+A hipótese da Patrícia faz sentido tecnicamente, mas não há evidência de várias páginas React empilhadas. O que foi confirmado no código é:
+
+- vários runtimes antigos e novos são instalados uma vez e permanecem vivos durante toda a sessão;
+- esses runtimes usam `MutationObserver` no `body` ou no documento inteiro;
+- ao navegar, observadores de Projetos, Calendário, Documentos e Relatórios podem continuar reagindo e aplicando CSS/ajustes tardios;
+- as versões históricas de CSS também continuam em cascata quando a rota correspondente é carregada.
+
+Isso pode produzir exatamente a sensação de uma camada anterior aparecendo e depois sendo substituída pela atual, principalmente em páginas vazias ou com mocks. A correção desta branch adiciona uma atividade de rota central e impede que os principais runtimes de Projetos, Calendário, Documentos e Relatórios executem novos ajustes quando a navegação já mudou de página. Não houve remoção em massa nem mutação estrutural do React.
+
+Validação local da branch `improvement/runtime-lifecycle-cleanup-2026-09-16`:
+
+- typecheck: sucesso;
+- build Vite: sucesso;
+- CSS inicial preservado em **226,49 kB / 37,69 kB gzip**;
+- chunks de rota e JavaScript mantidos separados;
+- alerta antigo de importação estática/dinâmica do runtime de logo continua identificado, sem impacto no build.
+
+Próximo passo seguro: validar o preview nos fluxos Administrador e Cliente, navegando entre Projetos, Calendário, Documentos e Relatórios e observando se não há reaplicação tardia de blocos. Só depois dessa validação será avaliada a retirada de versões históricas realmente não usadas.

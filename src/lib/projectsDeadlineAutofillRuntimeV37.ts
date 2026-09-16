@@ -1,7 +1,8 @@
 let installed=false;
+import { isWorkspaceRoute } from '../runtime/routeActivity';
 
 function scan(){
-  if(!location.pathname.startsWith('/admin/projetos'))return;
+  if(!isWorkspaceRoute('/admin/projetos','/cliente/entregaveis'))return;
   document.querySelectorAll<HTMLElement>('.planning-deliverable-modal-v36').forEach(modal=>{
     const deadline=Array.from(modal.querySelectorAll<HTMLLabelElement>('label')).find(label=>/^deadline/i.test((label.textContent||'').trim()))?.querySelector<HTMLInputElement>('input[type="date"]');
     const card=modal.querySelector<HTMLElement>('.deadline-intelligence-v36');

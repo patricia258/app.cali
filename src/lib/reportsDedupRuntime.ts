@@ -173,6 +173,7 @@ function processPaper(paper: HTMLElement) {
 }
 
 function scanReports() {
+  if (!isWorkspaceRoute('/admin/relatorios', '/cliente/relatorios')) return;
   document.querySelectorAll<HTMLElement>('.reports-v9-paper').forEach(processPaper);
 }
 
@@ -186,3 +187,4 @@ export function installReportsDedupRuntime() {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
   else start();
 }
+import { isWorkspaceRoute } from '../runtime/routeActivity';

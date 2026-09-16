@@ -1,5 +1,6 @@
 import { ensureCompanyWorkspaceLogo, resolveCompanyAsset, type CompanyLogoRecord } from './companyWorkspaceLogo';
 import { supabase } from './supabase';
+import { isWorkspaceRoute } from '../runtime/routeActivity';
 
 type ClientScope = 'active' | 'inactive';
 type ProjectRow = {
@@ -254,6 +255,7 @@ async function render() {
 }
 
 function schedule(force = false) {
+  if (!isWorkspaceRoute('/admin/projetos', '/cliente/entregaveis')) return;
   if (force) cache = null;
   window.clearTimeout(timer);
   timer = window.setTimeout(() => void render(), 80);
@@ -276,4 +278,3 @@ export function installProjectsClientPortfolioRuntimeV39() {
   window.addEventListener('popstate', () => schedule());
   schedule(true);
 }
-

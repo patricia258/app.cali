@@ -1,5 +1,6 @@
 import { caliWorkstreams } from '../domain/projects';
 import { supabase } from './supabase';
+import { isWorkspaceRoute } from '../runtime/routeActivity';
 
 type Scope = 'active' | 'closed';
 type ProjectRow = {
@@ -20,7 +21,7 @@ let installed=false,timer=0,busy=false;
 let cache:{protocol:string;at:number;project:ProjectRow|null;deliverables:DeliverableRow[]}|null=null;
 
 function norm(v=''){return v.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR').replace(/\s+/g,' ').trim();}
-function isPage(){return location.pathname.startsWith('/admin/projetos');}
+function isPage(){return isWorkspaceRoute('/admin/projetos','/cliente/entregaveis');}
 function setInput(el:HTMLInputElement,value:string){const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')?.set;setter?.call(el,value);el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));}
 function addBusinessDays(value:Date,days:number){const d=new Date(value);let left=Math.max(0,Math.round(days));while(left>0){d.setDate(d.getDate()+1);if(d.getDay()!==0&&d.getDay()!==6)left-=1;}return d;}
 function addMonths(value:Date,months:number){const d=new Date(value),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+months);const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last));return d;}

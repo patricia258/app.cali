@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { isWorkspaceRoute } from '../runtime/routeActivity';
 
 type WithdrawableReport = {
   id: string;
@@ -186,6 +187,7 @@ async function refreshIndex() {
 }
 
 function schedule() {
+  if (!isWorkspaceRoute('/admin/relatorios', '/cliente/relatorios')) return;
   window.clearTimeout(timer);
   timer = window.setTimeout(() => {
     applyButtons();

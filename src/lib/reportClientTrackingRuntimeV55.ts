@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { isWorkspaceRoute } from '../runtime/routeActivity';
 
 type Track={
   id:string;company_id:string;report_type?:string|null;period_start?:string|null;version?:number|null;
@@ -39,7 +40,7 @@ function remove(){
   document.querySelector('.report-client-sent-version-v63')?.remove();
   document.querySelector('.report-client-history-backdrop-v55')?.remove();
 }
-function debounce(){window.clearTimeout(timer);timer=window.setTimeout(()=>void render(),180);}
+function debounce(){if(!isWorkspaceRoute('/admin/relatorios', '/cliente/relatorios'))return;window.clearTimeout(timer);timer=window.setTimeout(()=>{if(isWorkspaceRoute('/admin/relatorios', '/cliente/relatorios'))void render();},180);}
 function openSentVersion(id:string){
   window.open(`/admin/relatorios/impressao/${encodeURIComponent(id)}`,'_blank','noopener,noreferrer');
 }

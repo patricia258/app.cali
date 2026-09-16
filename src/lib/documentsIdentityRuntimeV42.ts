@@ -1,5 +1,6 @@
 import { ensureCompanyWorkspaceLogo, resolveCompanyAsset, type CompanyLogoRecord } from './companyWorkspaceLogo';
 import { supabase } from './supabase';
+import { isWorkspaceRoute } from '../runtime/routeActivity';
 
 type CompanyRow = CompanyLogoRecord & { status?: string | null };
 type BrandVisual = { color: string; dark: boolean };
@@ -225,7 +226,7 @@ async function decorateCard(card: HTMLElement) {
 }
 
 async function scan(force = false) {
-  if (busy || !isDocumentsSurface()) return;
+  if (busy || !isWorkspaceRoute('/admin/documentos', '/cliente/documentos') || !isDocumentsSurface()) return;
   busy = true;
   try {
     await loadCompanies(force);
