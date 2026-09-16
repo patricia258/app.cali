@@ -271,3 +271,21 @@ O próximo teste da Patrícia deve cobrir, no Administrador e no Cliente, Docume
 ### Limite desta rodada
 
 A referência de “103 arquivos CSS” era a quantidade de imports/fontes de estilo no código, não 103 telas que precisem ser apagadas. Nesta rodada foi feita uma redução controlada do CSS inicial; ainda não foi feita uma limpeza indiscriminada das versões paralelas. A remoção definitiva só deve ocorrer após comparação visual das rotas e confirmação de que cada versão antiga está realmente substituída.
+
+
+### Terceira rodada de separação de CSS — 16/09/2026
+
+Foram separados os estilos de Clientes, Propostas, Projetos e Mapa de People para carregamento sob demanda. Nenhum CSS histórico foi apagado; a alteração apenas mudou o momento de carregamento e preservou a lógica das páginas.
+
+Validação do commit `ffd1fdb202d8f4b97ae58928bc4478a1c49b595d`:
+
+- typecheck: sucesso;
+- build Vite: sucesso;
+- CI GitHub: sucesso no run 885;
+- Vercel: `READY`;
+- preview: https://app-cali-618z7ekug-cali11.vercel.app;
+- CSS inicial medido no build: **226,49 kB** minificado / **37,69 kB gzip**;
+- chunks separados: Clientes **34,98 kB**, Propostas **38,26 kB**, Mapa **34,11 kB**, Projetos **91,98 kB**;
+- produção não foi alterada.
+
+O build ainda sinaliza um chunk JavaScript compartilhado acima de 500 kB (**532,78 kB**). Isso ficou identificado como próximo alvo técnico, separado da consolidação visual de CSS, para não misturar duas frentes de risco na mesma mudança.
