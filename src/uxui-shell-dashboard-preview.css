@@ -748,6 +748,131 @@ html[data-workspace-theme='night'] .admin-overview-page .deadline-logo-v2 {
   }
 }
 
+/* =========================================================
+   POLIMENTO FINAL · PERFIL, TOPBAR E IDENTIDADE DE PÁGINA
+   ========================================================= */
+.topbar {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: 0 12px 30px rgba(51, 30, 35, .07) !important;
+}
+
+html[data-workspace-theme='night'] .topbar {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, .17) !important;
+}
+
+@media (min-width: 861px) {
+  .sidebar:hover .profile-trigger-direct,
+  .sidebar:focus-within .profile-trigger-direct,
+  .sidebar.mobile-open .profile-trigger-direct {
+    padding-right: 20px !important;
+  }
+
+  .sidebar:hover .profile-trigger-direct .profile-copy strong,
+  .sidebar:focus-within .profile-trigger-direct .profile-copy strong,
+  .sidebar.mobile-open .profile-trigger-direct .profile-copy strong,
+  html[data-workspace-theme='night'] .sidebar:hover .profile-trigger-direct .profile-copy strong,
+  html[data-workspace-theme='night'] .sidebar:focus-within .profile-trigger-direct .profile-copy strong,
+  html[data-workspace-theme='night'] .sidebar.mobile-open .profile-trigger-direct .profile-copy strong {
+    color: #fffaf7 !important;
+    opacity: 1 !important;
+  }
+
+  .sidebar:hover .profile-trigger-direct .profile-copy small,
+  .sidebar:focus-within .profile-trigger-direct .profile-copy small,
+  .sidebar.mobile-open .profile-trigger-direct .profile-copy small,
+  html[data-workspace-theme='night'] .sidebar:hover .profile-trigger-direct .profile-copy small,
+  html[data-workspace-theme='night'] .sidebar:focus-within .profile-trigger-direct .profile-copy small,
+  html[data-workspace-theme='night'] .sidebar.mobile-open .profile-trigger-direct .profile-copy small {
+    color: rgba(255, 250, 247, .72) !important;
+    opacity: 1 !important;
+  }
+
+  .sidebar:hover .profile-trigger-direct .profile-edit-chevron,
+  .sidebar:focus-within .profile-trigger-direct .profile-edit-chevron,
+  .sidebar.mobile-open .profile-trigger-direct .profile-edit-chevron,
+  html[data-workspace-theme='night'] .sidebar:hover .profile-trigger-direct .profile-edit-chevron,
+  html[data-workspace-theme='night'] .sidebar:focus-within .profile-trigger-direct .profile-edit-chevron,
+  html[data-workspace-theme='night'] .sidebar.mobile-open .profile-trigger-direct .profile-edit-chevron {
+    flex: 0 0 auto;
+    margin-right: 5px !important;
+    color: rgba(255, 250, 247, .82) !important;
+    opacity: 1 !important;
+  }
+}
+
+.clients-page-v3 > .page-heading {
+  min-height: 174px;
+  padding: 30px 34px !important;
+  align-items: center !important;
+}
+
+.workspace-page-identity {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 20px;
+}
+
+.workspace-page-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .26);
+  border-radius: 18px;
+  color: #fffaf7;
+  background: linear-gradient(145deg, #5a1e2d 0%, #873b48 46%, #d2a852 100%);
+  box-shadow: 0 15px 30px rgba(90, 30, 45, .2), inset 0 1px rgba(255, 255, 255, .2);
+}
+
+.workspace-page-copy {
+  min-width: 0;
+}
+
+.workspace-page-kicker {
+  display: block;
+  margin-bottom: 9px;
+  color: #9b7138;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+html[data-workspace-theme='night'] .workspace-page-kicker {
+  color: #d1ab67;
+}
+
+html[data-workspace-theme='night'] .workspace-page-icon {
+  border-color: rgba(255, 255, 255, .26);
+  color: #fffaf7;
+  background: linear-gradient(145deg, #5a1e2d 0%, #873b48 46%, #d2a852 100%);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, .24), inset 0 1px rgba(255, 255, 255, .2);
+}
+
+@media (max-width: 860px) {
+  .clients-page-v3 > .page-heading {
+    min-height: auto;
+  }
+
+  .workspace-page-identity {
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .workspace-page-icon {
+    width: 50px;
+    height: 50px;
+    flex-basis: 50px;
+    border-radius: 15px;
+  }
+}
+
 @media (max-width: 640px) {
   .topbar-context-mark,
   .topbar-context {
