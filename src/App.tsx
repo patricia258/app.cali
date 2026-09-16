@@ -12,11 +12,26 @@ const AdminDashboard = lazy(async () => {
   await import('./styles/routes/overview');
   return import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard }));
 });
-const AdminClientsPageV3 = lazy(() => import('./pages/admin/AdminClientsPageV3').then((m) => ({ default: m.AdminClientsPageV3 })));
-const AdminProposalsPageV2 = lazy(() => import('./pages/admin/AdminProposalsPageV2').then((m) => ({ default: m.AdminProposalsPageV2 })));
-const AdminProposalEditorPageV3 = lazy(() => import('./pages/admin/AdminProposalEditorPageV3').then((m) => ({ default: m.AdminProposalEditorPageV3 })));
-const AdminProposalPreviewPageV3 = lazy(() => import('./pages/admin/AdminProposalPreviewPageV3').then((m) => ({ default: m.AdminProposalPreviewPageV3 })));
-const AdminProjectsGatePage = lazy(() => import('./pages/admin/AdminProjectsGatePage').then((m) => ({ default: m.AdminProjectsGatePage })));
+const AdminClientsPageV3 = lazy(async () => {
+  await import('./styles/routes/clients');
+  return import('./pages/admin/AdminClientsPageV3').then((m) => ({ default: m.AdminClientsPageV3 }));
+});
+const AdminProposalsPageV2 = lazy(async () => {
+  await import('./styles/routes/proposals');
+  return import('./pages/admin/AdminProposalsPageV2').then((m) => ({ default: m.AdminProposalsPageV2 }));
+});
+const AdminProposalEditorPageV3 = lazy(async () => {
+  await import('./styles/routes/proposals');
+  return import('./pages/admin/AdminProposalEditorPageV3').then((m) => ({ default: m.AdminProposalEditorPageV3 }));
+});
+const AdminProposalPreviewPageV3 = lazy(async () => {
+  await import('./styles/routes/proposals');
+  return import('./pages/admin/AdminProposalPreviewPageV3').then((m) => ({ default: m.AdminProposalPreviewPageV3 }));
+});
+const AdminProjectsGatePage = lazy(async () => {
+  await import('./styles/routes/projects');
+  return import('./pages/admin/AdminProjectsGatePage').then((m) => ({ default: m.AdminProjectsGatePage }));
+});
 const AdminHoursPageV3 = lazy(async () => {
   await import('./styles/routes/hours');
   return import('./pages/admin/AdminHoursPageV3').then((m) => ({ default: m.AdminHoursPageV3 }));
@@ -37,9 +52,18 @@ const AdminSatisfactionPage = lazy(async () => {
   await import('./styles/routes/satisfaction');
   return import('./pages/admin/AdminSatisfactionPage').then((m) => ({ default: m.AdminSatisfactionPage }));
 });
-const AdminPeopleMapPageV2 = lazy(() => import('./pages/admin/AdminPeopleMapPageV2').then((m) => ({ default: m.AdminPeopleMapPageV2 })));
-const AdminPeopleMapReviewPage = lazy(() => import('./pages/admin/AdminPeopleMapReviewPage').then((m) => ({ default: m.AdminPeopleMapReviewPage })));
-const AdminPeopleMapReportPage = lazy(() => import('./pages/admin/AdminPeopleMapReportPage').then((m) => ({ default: m.AdminPeopleMapReportPage })));
+const AdminPeopleMapPageV2 = lazy(async () => {
+  await import('./styles/routes/peopleMap');
+  return import('./pages/admin/AdminPeopleMapPageV2').then((m) => ({ default: m.AdminPeopleMapPageV2 }));
+});
+const AdminPeopleMapReviewPage = lazy(async () => {
+  await import('./styles/routes/peopleMap');
+  return import('./pages/admin/AdminPeopleMapReviewPage').then((m) => ({ default: m.AdminPeopleMapReviewPage }));
+});
+const AdminPeopleMapReportPage = lazy(async () => {
+  await import('./styles/routes/peopleMap');
+  return import('./pages/admin/AdminPeopleMapReportPage').then((m) => ({ default: m.AdminPeopleMapReportPage }));
+});
 
 const AdminRecordsPage = lazy(async () => {
   await import('./styles/routes/records');
