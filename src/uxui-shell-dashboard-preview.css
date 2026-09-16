@@ -749,6 +749,466 @@ html[data-workspace-theme='night'] .admin-overview-page .deadline-logo-v2 {
 }
 
 /* =========================================================
+   PROJETOS · central de execução em camadas
+   ========================================================= */
+:root {
+  --ux-shell-open: 252px;
+}
+
+@media (min-width: 861px) {
+  .app-shell:has(.sidebar:hover) .main,
+  .app-shell:has(.sidebar:focus-within) .main {
+    margin-left: calc(var(--ux-shell-open) + 20px) !important;
+    width: calc(100% - var(--ux-shell-open) - 20px) !important;
+    max-width: calc(100% - var(--ux-shell-open) - 20px) !important;
+  }
+}
+
+.projects-flow-page {
+  width: min(1480px, calc(100% - clamp(36px, 5vw, 76px))) !important;
+  padding: 42px 0 104px !important;
+}
+
+.projects-flow-page > .projects-heading-v2 {
+  position: relative;
+  min-height: 178px;
+  padding: 30px 34px !important;
+  overflow: hidden;
+  align-items: center !important;
+  border: 1px solid var(--ux-line);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(231, 198, 111, .22), transparent 27%),
+    linear-gradient(126deg, rgba(255, 253, 250, .97), rgba(249, 242, 235, .89));
+  box-shadow: var(--ux-shadow-1);
+  animation: ux-rise .72s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.projects-flow-page > .projects-heading-v2::after {
+  content: '';
+  position: absolute;
+  right: -54px;
+  top: -112px;
+  width: 310px;
+  height: 310px;
+  border: 48px solid rgba(90, 30, 45, .052);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.projects-flow-page > .projects-heading-v2 > * {
+  position: relative;
+  z-index: 1;
+}
+
+.projects-flow-page > .projects-heading-v2 h1 {
+  font-size: clamp(36px, 4vw, 54px) !important;
+  letter-spacing: -.045em;
+}
+
+.projects-flow-page > .projects-heading-v2 p {
+  max-width: 780px;
+  margin-top: 9px !important;
+  font-size: 15px !important;
+  line-height: 1.55;
+}
+
+.projects-flow-page > .projects-heading-v2 .primary {
+  min-height: 46px !important;
+  padding-inline: 18px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 26px rgba(90, 30, 45, .18) !important;
+}
+
+.projects-flow-page .project-kpis-v2 {
+  gap: 14px;
+  margin: 18px 0 16px;
+}
+
+.projects-flow-page .project-kpis-v2 article {
+  position: relative;
+  min-height: 126px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  overflow: hidden;
+  border: 1px solid var(--ux-line) !important;
+  border-radius: 18px;
+  background: var(--ux-surface);
+  box-shadow: var(--ux-shadow-1);
+  animation: ux-card-in .7s cubic-bezier(.16, 1, .3, 1) both;
+  transition: transform .22s cubic-bezier(.16, 1, .3, 1), box-shadow .22s ease !important;
+}
+
+.projects-flow-page .project-kpis-v2 article:nth-child(1) { animation-delay: 90ms; }
+.projects-flow-page .project-kpis-v2 article:nth-child(2) { animation-delay: 160ms; }
+.projects-flow-page .project-kpis-v2 article:nth-child(3) { animation-delay: 230ms; }
+.projects-flow-page .project-kpis-v2 article:nth-child(4) { animation-delay: 300ms; }
+
+.projects-flow-page .project-kpis-v2 article:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--ux-shadow-2);
+}
+
+.projects-flow-page .project-kpis-v2 article > div {
+  min-width: 0;
+}
+
+.projects-flow-page .project-kpis-v2 .project-kpi-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  color: #7a2d44;
+  background: rgba(90, 30, 45, .075);
+}
+
+.projects-flow-page .project-kpis-v2 strong {
+  margin-top: 5px;
+  font-size: 31px;
+}
+
+.projects-flow-page .project-kpis-v2 small {
+  display: block;
+  margin-top: 6px;
+  color: var(--theme-muted);
+  font-size: 12px;
+}
+
+.projects-flow-page .project-kpis-v2 .project-kpi-attention {
+  border-color: rgba(181, 140, 82, .32) !important;
+  background:
+    radial-gradient(circle at 100% 0, rgba(255, 233, 168, .5), transparent 43%),
+    linear-gradient(145deg, #fffaf0, #f7e7bb) !important;
+}
+
+.projects-flow-page .project-kpis-v2 .project-kpi-attention .project-kpi-icon {
+  color: #5a1e2d;
+  background: linear-gradient(145deg, #f5d878, #d5a649);
+  box-shadow: 0 10px 22px rgba(181, 140, 82, .22);
+}
+
+.projects-flow-page .project-tools-v2 {
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 9px;
+  border: 1px solid var(--ux-line);
+  border-radius: 16px;
+  background: rgba(255, 253, 250, .78);
+  box-shadow: 0 8px 24px rgba(51, 30, 35, .045);
+  backdrop-filter: blur(16px);
+  animation: ux-card-in .7s 340ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.projects-flow-page .project-tools-v2 > label,
+.projects-flow-page .project-tools-v2 select {
+  border-color: rgba(90, 30, 45, .1) !important;
+  background: rgba(255, 255, 255, .84) !important;
+}
+
+.projects-flow-page .project-selector-v2 {
+  gap: 12px;
+  margin-bottom: 18px;
+  animation: ux-card-in .72s 400ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.projects-flow-page .project-selector-v2 > button {
+  min-height: 96px;
+  padding: 14px;
+  border-color: var(--ux-line);
+  border-radius: 17px;
+  background: var(--ux-surface);
+  box-shadow: 0 8px 24px rgba(51, 30, 35, .04);
+  transition: transform .2s cubic-bezier(.16, 1, .3, 1), border-color .2s ease, box-shadow .2s ease !important;
+}
+
+.projects-flow-page .project-selector-v2 > button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ux-shadow-1);
+}
+
+.projects-flow-page .project-selector-v2 > button.active {
+  border-color: rgba(181, 140, 82, .42) !important;
+  background: linear-gradient(145deg, rgba(255, 253, 250, .98), rgba(247, 237, 225, .94));
+  box-shadow: inset 4px 0 0 #b58c52, 0 12px 28px rgba(51, 30, 35, .07);
+}
+
+.projects-flow-page .project-client-mark {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 14px;
+  color: #fffaf7;
+  background: linear-gradient(145deg, #5a1e2d, #934c55 58%, #c69a50);
+  box-shadow: 0 10px 22px rgba(90, 30, 45, .16);
+}
+
+.projects-flow-page .project-hero-v2 {
+  min-height: 176px;
+  grid-template-columns: minmax(0, 1fr) 170px auto;
+  gap: 28px;
+  padding: 28px 30px;
+  border: 1px solid rgba(255, 255, 255, .15);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 78% 18%, rgba(222, 183, 105, .18), transparent 28%),
+    linear-gradient(135deg, #4e1726 0%, #681f36 56%, #7a4938 132%);
+  box-shadow: 0 22px 48px rgba(65, 25, 36, .18);
+  animation: ux-card-in .72s 460ms cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.projects-flow-page .project-hero-context {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.projects-flow-page .project-hero-context > span {
+  color: rgba(255, 255, 255, .72);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.projects-flow-page .project-hero-context .status-chip {
+  min-height: 25px;
+  color: #fff7e8;
+  border-color: rgba(255, 255, 255, .18);
+  background: rgba(255, 255, 255, .09);
+}
+
+.projects-flow-page .project-hero-v2 h2 {
+  margin: 9px 0 7px;
+  font-size: clamp(25px, 2.3vw, 34px) !important;
+  letter-spacing: -.035em;
+}
+
+.projects-flow-page .project-hero-illustration {
+  right: 235px;
+  bottom: -58px;
+  width: 188px;
+  opacity: .095;
+}
+
+.projects-flow-page .project-progress-v2 {
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, .13);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .065);
+  backdrop-filter: blur(12px);
+}
+
+.projects-flow-page .project-progress-v2 strong {
+  font-size: 34px;
+}
+
+.projects-flow-page .project-hero-buttons .light-button {
+  min-height: 44px;
+  border-color: rgba(255, 255, 255, .18);
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 8px 20px rgba(29, 12, 17, .13);
+}
+
+.projects-flow-page .project-tabs-v2 {
+  gap: 6px;
+  margin: 22px 0 13px;
+  padding: 5px;
+  width: max-content;
+  border: 1px solid var(--ux-line);
+  border-radius: 13px;
+  background: var(--ux-surface);
+  box-shadow: 0 7px 20px rgba(51, 30, 35, .04);
+}
+
+.projects-flow-page .project-tabs-v2 button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+}
+
+.projects-flow-page .project-tabs-v2 button.active {
+  color: #fff;
+  border: 0;
+  background: #5a1e2d;
+  box-shadow: 0 7px 17px rgba(90, 30, 45, .18);
+}
+
+.projects-flow-page .roadmap-v2,
+.projects-flow-page .deliverable-list-v3,
+.projects-flow-page .project-history-v2 {
+  border-color: var(--ux-line) !important;
+  border-radius: 22px !important;
+  background: var(--ux-surface) !important;
+  box-shadow: var(--ux-shadow-1) !important;
+  animation: ux-card-in .68s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.projects-flow-page .roadmap-v2 > header {
+  padding: 23px 26px 19px;
+  background: linear-gradient(135deg, rgba(255, 253, 250, .92), rgba(248, 240, 232, .78));
+}
+
+.projects-flow-page .roadmap-months-v2 {
+  background: rgba(90, 30, 45, .035);
+}
+
+.projects-flow-page .front-header-v2 {
+  min-height: 106px;
+  padding: 17px 20px;
+  background: linear-gradient(105deg, rgba(90, 30, 45, .045), rgba(181, 140, 82, .055));
+}
+
+.projects-flow-page .front-header-v2 > img {
+  width: 42px;
+  height: 42px;
+}
+
+.projects-flow-page .front-monthbar-v2 b {
+  background: linear-gradient(90deg, #5a1e2d, #8c4652);
+  box-shadow: 0 7px 16px rgba(90, 30, 45, .16);
+}
+
+.projects-flow-page .front-deliverable-row-v3 {
+  min-height: 70px;
+  transition: background .18s ease, transform .18s ease;
+}
+
+.projects-flow-page .front-deliverable-row-v3:hover {
+  background: rgba(90, 30, 45, .035);
+}
+
+.projects-flow-page .mc-chip {
+  cursor: help;
+}
+
+.project-modal-v2,
+.simple-project-modal-v2,
+.deliverable-workspace-modal-v2 {
+  border-radius: 24px !important;
+  border-color: rgba(90, 30, 45, .11) !important;
+  background: #f4efea !important;
+  box-shadow: 0 34px 100px rgba(34, 20, 25, .3) !important;
+  animation: ux-modal-in .38s cubic-bezier(.16, 1, .3, 1) both;
+}
+
+.project-modal-v2 > header,
+.simple-project-modal-v2 > header,
+.deliverable-workspace-header-v2 {
+  background:
+    radial-gradient(circle at 88% 10%, rgba(231, 198, 111, .23), transparent 27%),
+    linear-gradient(125deg, #fffdfa, #f7eee6) !important;
+}
+
+html[data-workspace-theme='night'] .projects-flow-page > .projects-heading-v2 {
+  border-color: rgba(247, 243, 238, .1);
+  background:
+    radial-gradient(circle at 88% 10%, rgba(181, 140, 82, .14), transparent 26%),
+    linear-gradient(126deg, rgba(47, 31, 36, .97), rgba(35, 23, 27, .94));
+}
+
+html[data-workspace-theme='night'] .projects-flow-page .project-kpis-v2 article,
+html[data-workspace-theme='night'] .projects-flow-page .project-tools-v2,
+html[data-workspace-theme='night'] .projects-flow-page .project-selector-v2 > button,
+html[data-workspace-theme='night'] .projects-flow-page .roadmap-v2,
+html[data-workspace-theme='night'] .projects-flow-page .deliverable-list-v3,
+html[data-workspace-theme='night'] .projects-flow-page .project-history-v2 {
+  border-color: rgba(247, 243, 238, .1) !important;
+  background: rgba(37, 25, 29, .94) !important;
+}
+
+html[data-workspace-theme='night'] .projects-flow-page .project-kpis-v2 .project-kpi-attention {
+  border-color: rgba(217, 174, 91, .32) !important;
+  background:
+    radial-gradient(circle at 100% 0, rgba(181, 140, 82, .22), transparent 43%),
+    linear-gradient(145deg, #3b2922, #4b3427) !important;
+}
+
+html[data-workspace-theme='night'] .projects-flow-page .project-tools-v2 > label,
+html[data-workspace-theme='night'] .projects-flow-page .project-tools-v2 select {
+  border-color: rgba(247, 243, 238, .1) !important;
+  background: rgba(255, 255, 255, .035) !important;
+}
+
+html[data-workspace-theme='night'] .projects-flow-page .project-selector-v2 > button.active {
+  border-color: rgba(181, 140, 82, .4) !important;
+  background: linear-gradient(145deg, #332329, #3b2d29) !important;
+}
+
+html[data-workspace-theme='night'] .projects-flow-page .roadmap-v2 > header,
+html[data-workspace-theme='night'] .projects-flow-page .front-header-v2 {
+  background: linear-gradient(105deg, rgba(90, 30, 45, .18), rgba(181, 140, 82, .08)) !important;
+}
+
+html[data-workspace-theme='night'] .projects-flow-page .roadmap-months-v2 {
+  background: rgba(255, 255, 255, .025);
+}
+
+html[data-workspace-theme='night'] .project-modal-v2,
+html[data-workspace-theme='night'] .simple-project-modal-v2,
+html[data-workspace-theme='night'] .deliverable-workspace-modal-v2 {
+  border-color: rgba(247, 243, 238, .11) !important;
+  background: #171114 !important;
+}
+
+html[data-workspace-theme='night'] .project-modal-v2 > header,
+html[data-workspace-theme='night'] .simple-project-modal-v2 > header,
+html[data-workspace-theme='night'] .deliverable-workspace-header-v2 {
+  background:
+    radial-gradient(circle at 88% 10%, rgba(181, 140, 82, .13), transparent 27%),
+    linear-gradient(125deg, #302027, #21171b) !important;
+}
+
+@media (max-width: 1100px) {
+  .projects-flow-page .project-hero-v2 {
+    grid-template-columns: minmax(0, 1fr) 150px;
+  }
+}
+
+@media (max-width: 860px) {
+  .projects-flow-page {
+    width: min(100% - 24px, 760px) !important;
+    padding-top: 28px !important;
+  }
+
+  .projects-flow-page > .projects-heading-v2 {
+    min-height: auto;
+    align-items: flex-start !important;
+    gap: 20px;
+    padding: 28px 22px !important;
+  }
+
+  .projects-flow-page .project-kpis-v2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .projects-flow-page .project-hero-v2 {
+    grid-template-columns: 1fr;
+    padding: 24px;
+  }
+
+  .projects-flow-page .project-tabs-v2 {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .projects-flow-page .project-tabs-v2 button {
+    flex: 1 0 auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .projects-flow-page .project-kpis-v2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
    POLIMENTO FINAL · PERFIL, TOPBAR E IDENTIDADE DE PÁGINA
    ========================================================= */
 .topbar {
