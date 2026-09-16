@@ -1,0 +1,177 @@
+/* Relatórios V10 - padrão editorial de impressão
+   O documento impresso é sempre claro e não herda o tema do Workspace. */
+
+.reports-v9-paper{
+  --theme-text:#2B2B2B;
+  --theme-muted:#716862;
+  --theme-line:rgba(90,30,45,.16);
+  --theme-accent:#5A1E2D;
+  color-scheme:light;
+  isolation:isolate;
+  overflow:visible;
+}
+
+/* Logo oficial: usa o arquivo vetorial real do Workspace, não texto reconstruído. */
+.reports-v9-wordmark{
+  display:block!important;
+  width:42mm!important;
+  height:22mm!important;
+  background:#5A1E2D!important;
+  -webkit-mask:url('/brand/cali-workspace-transparent.svg') center/contain no-repeat!important;
+  mask:url('/brand/cali-workspace-transparent.svg') center/contain no-repeat!important;
+}
+.reports-v9-wordmark>*{display:none!important;}
+
+.reports-v9-paper-header>img{
+  width:auto!important;
+  max-width:35mm!important;
+  height:auto!important;
+  max-height:18mm!important;
+  object-fit:contain!important;
+  object-position:right top!important;
+}
+.reports-v9-paper-header>img.reports-v10-broken-client-logo{display:none!important;}
+
+/* Tipografia formalizada para PDF/A4. */
+.reports-v9-title>span{font-size:8.5pt!important;line-height:1.25!important;}
+.reports-v9-title h1{font-size:26pt!important;line-height:1.08!important;}
+.reports-v9-title p{font-size:10pt!important;line-height:1.35!important;}
+.reports-v9-title small{font-size:7.8pt!important;line-height:1.35!important;}
+
+.reports-v9-pulse .reports-v9-signal>span{font-size:7.4pt!important;line-height:1.2!important;}
+.reports-v9-pulse .reports-v9-signal>strong{font-size:10.2pt!important;line-height:1.25!important;}
+.reports-v9-pulse .reports-v9-signal>small{font-size:8.2pt!important;line-height:1.38!important;}
+
+.reports-v9-paper-section>span{font-size:8.2pt!important;line-height:1.2!important;}
+.reports-v9-paper-section p{font-size:9.8pt!important;line-height:1.55!important;}
+.reports-v9-paper-section li{font-size:9.5pt!important;line-height:1.48!important;}
+
+.reports-v9-hours-stats small,
+.reports-v9-feedback-line small{font-size:7.3pt!important;line-height:1.2!important;}
+.reports-v9-hours-stats strong,
+.reports-v9-feedback-line strong{font-size:14pt!important;line-height:1.05!important;}
+.reports-v9-hours-stats em{font-size:7.2pt!important;line-height:1.25!important;}
+.reports-v9-hours-alert,
+.reports-v9-hours-alert strong,
+.reports-v9-hours-alert span{font-size:8pt!important;line-height:1.35!important;}
+.reports-v9-subtitle strong,.reports-v9-sublist>strong{font-size:8.5pt!important;}
+.reports-v9-subtitle span{font-size:7.3pt!important;}
+.reports-v9-bar-row>span,.reports-v9-bar-row>strong{font-size:7.8pt!important;}
+
+/* Fluxo de execução: legenda reta, legível e com espaçamento fixo. */
+.reports-v9-delivery-flow{gap:3mm!important;}
+.reports-v9-flow-bar{height:2.7mm!important;}
+.reports-v9-flow-legend{
+  display:grid!important;
+  grid-template-columns:repeat(3,max-content)!important;
+  align-items:center!important;
+  justify-content:start!important;
+  column-gap:11mm!important;
+  row-gap:2mm!important;
+  margin-top:1mm!important;
+}
+.reports-v9-flow-legend span{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:2mm!important;
+  margin:0!important;
+  color:#554d49!important;
+  font-size:8.7pt!important;
+  line-height:1.2!important;
+  white-space:nowrap!important;
+}
+.reports-v9-flow-legend i{
+  flex:0 0 auto!important;
+  width:2.6mm!important;
+  height:2.6mm!important;
+  margin:0!important;
+}
+.reports-v9-sublist{gap:2mm!important;}
+.reports-v9-sublist li{font-size:9.2pt!important;line-height:1.4!important;}
+
+.reports-v9-quarter-table strong{font-size:8.3pt!important;}
+.reports-v9-quarter-table span{font-size:13.5pt!important;}
+.reports-v9-quarter-table small,.reports-v9-quarter-table em{font-size:7.8pt!important;line-height:1.35!important;}
+.reports-v9-quotes p{font-size:8.8pt!important;line-height:1.45!important;}
+
+/* Fonte/metodologia continua discreta, mas deixa de ser microscópica. */
+.reports-v9-source-note{gap:2mm!important;margin-top:6mm!important;padding-top:3.5mm!important;}
+.reports-v9-source-note svg{width:4mm!important;height:4mm!important;}
+.reports-v9-source-note span{font-size:7.6pt!important;line-height:1.38!important;}
+
+/* Assinatura: uma assinatura, um nome. */
+.reports-v9-paper-footer{margin-top:7mm!important;padding-top:5mm!important;}
+.reports-v9-paper-footer i{font-size:16pt!important;line-height:1.1!important;}
+.reports-v9-paper-footer strong{display:none!important;}
+.reports-v9-paper-footer span,.reports-v9-paper-footer small{font-size:8pt!important;line-height:1.35!important;}
+
+/* O PDF é invariável no modo noite. */
+html[data-workspace-theme='night'] .reports-v9-paper,
+html[data-workspace-theme='night'] .reports-v9-paper *{
+  text-shadow:none!important;
+  filter:none!important;
+}
+html[data-workspace-theme='night'] .reports-v9-paper{background:#F7F3EE!important;color:#2B2B2B!important;}
+html[data-workspace-theme='night'] .reports-v9-paper h1,
+html[data-workspace-theme='night'] .reports-v9-paper h2,
+html[data-workspace-theme='night'] .reports-v9-paper h3,
+html[data-workspace-theme='night'] .reports-v9-paper p,
+html[data-workspace-theme='night'] .reports-v9-paper li{color:#393432!important;}
+html[data-workspace-theme='night'] .reports-v9-paper small,
+html[data-workspace-theme='night'] .reports-v9-paper em{color:#716862!important;}
+
+/* Explica o estado sem poluir a lista. */
+.report-status-v3.review{cursor:help;}
+
+@media print{
+  /* O layout oculto do app não pode gerar páginas vazias. */
+  html,body,#root{
+    margin:0!important;
+    padding:0!important;
+    min-height:0!important;
+    height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+    background:#fff!important;
+  }
+  .reports-v9-print-backdrop{
+    position:absolute!important;
+    inset:0 auto auto 0!important;
+    width:210mm!important;
+    height:auto!important;
+    min-height:0!important;
+    overflow:visible!important;
+  }
+  .reports-v9-preview-modal{
+    position:absolute!important;
+    inset:0 auto auto 0!important;
+    width:210mm!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+  }
+  .reports-v9-paper-full-wrap{
+    width:210mm!important;
+    min-height:0!important;
+    height:auto!important;
+    overflow:visible!important;
+  }
+  .reports-v9-paper{
+    width:210mm!important;
+    min-height:297mm!important;
+    height:auto!important;
+    overflow:visible!important;
+    padding:14mm 15mm 13mm!important;
+  }
+  .reports-v9-paper-section,
+  .reports-v9-paper-footer,
+  .reports-v9-pulse,
+  .reports-v9-hours-stats,
+  .reports-v9-quarter-table,
+  .reports-v9-feedback-line,
+  .reports-v9-delivery-flow{
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+}

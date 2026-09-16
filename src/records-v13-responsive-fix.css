@@ -1,0 +1,4 @@
+@media (max-width:1180px) and (min-width:861px){
+  .records-v13-table th:nth-child(2),
+  .records-v13-table td:nth-child(2){display:table-cell;}
+}

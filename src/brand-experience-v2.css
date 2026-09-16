@@ -1,0 +1,283 @@
+/* CALI Workspace · identidade v2
+   Corrige regressões do menu e torna lima + carvalho uma presença visual real,
+   sem interferir na leitura ou nos componentes funcionais. */
+
+/* ---------- Menu: marca compacta realmente visível ---------- */
+.sidebar .brand {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  padding: 2px 0 18px !important;
+  overflow: visible !important;
+}
+
+.sidebar .brand-compact-slide {
+  width: 54px !important;
+  height: 54px !important;
+  margin: 0 auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  color: #f7f3ee !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.sidebar .brand-compact-slide .brand-compact-art,
+.sidebar .brand-compact-slide .compact-wordmark {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.sidebar .brand-compact-slide .brand-compact-art {
+  width: 42px !important;
+  height: 42px !important;
+  margin: 0 !important;
+  color: #f7f3ee !important;
+  background-color: currentColor !important;
+}
+
+.sidebar .brand-compact-slide .compact-wordmark {
+  width: 52px !important;
+  height: 29px !important;
+  margin: 0 !important;
+  transform: none;
+}
+
+/* ---------- Menu aberto: logo e WORKSPACE voltam a ser um único bloco ---------- */
+.sidebar .brand-full {
+  width: 100% !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 7px !important;
+  overflow: visible !important;
+}
+
+.sidebar .brand-full img {
+  display: block !important;
+  width: 136px !important;
+  max-width: 136px !important;
+  height: auto !important;
+  margin: 0 auto !important;
+  object-fit: contain !important;
+}
+
+.sidebar .brand-full span {
+  display: block !important;
+  width: 136px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  opacity: .72 !important;
+  visibility: visible !important;
+  transform: none !important;
+  text-align: center !important;
+  color: rgba(247,243,238,.82) !important;
+  font-size: .61rem !important;
+  line-height: 1.2 !important;
+  letter-spacing: .23em !important;
+  white-space: nowrap !important;
+}
+
+@media (min-width: 861px) {
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand-full {
+    display: none !important;
+  }
+  .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand-compact-slide {
+    display: flex !important;
+  }
+
+  .sidebar:hover .brand-full,
+  .sidebar:focus-within .brand-full,
+  .sidebar.pinned .brand-full {
+    display: flex !important;
+  }
+  .sidebar:hover .brand-compact-slide,
+  .sidebar:focus-within .brand-compact-slide,
+  .sidebar.pinned .brand-compact-slide {
+    display: none !important;
+  }
+}
+
+/* ---------- Fundo de identidade: visível, dinâmico e repetido ---------- */
+.workspace-brand-watermarks {
+  overflow: hidden !important;
+}
+
+.workspace-watermark,
+.workspace-brand-watermarks::before,
+.workspace-brand-watermarks::after {
+  pointer-events: none !important;
+  user-select: none !important;
+  will-change: transform, opacity;
+}
+
+/* As duas marcas principais aparecem em TODAS as páginas. A cena só muda qual domina. */
+.scene-lime .workspace-watermark-oak,
+.scene-lime-soft .workspace-watermark-oak,
+.scene-oak .workspace-watermark-lime,
+.scene-oak-soft .workspace-watermark-lime {
+  display: block !important;
+}
+
+.workspace-watermark {
+  filter: none !important;
+}
+
+/* Visão geral: composição mais presente, como textura editorial da página. */
+.scene-overview .workspace-watermark-lime {
+  width: clamp(330px, 30vw, 520px) !important;
+  height: clamp(330px, 30vw, 520px) !important;
+  top: -18px !important;
+  right: clamp(-70px, -3vw, -22px) !important;
+  opacity: .085 !important;
+  transform: rotate(-10deg);
+  animation: cali-brand-float-lime 14s ease-in-out infinite alternate;
+}
+
+.scene-overview .workspace-watermark-oak {
+  width: clamp(250px, 23vw, 390px) !important;
+  height: clamp(250px, 23vw, 390px) !important;
+  top: 330px !important;
+  right: clamp(160px, 18vw, 360px) !important;
+  background: #b58c52 !important;
+  opacity: .065 !important;
+  transform: rotate(10deg);
+  animation: cali-brand-float-oak 16s ease-in-out -4s infinite alternate;
+}
+
+/* Páginas com predominância lima. */
+.scene-lime .workspace-watermark-lime,
+.scene-lime-soft .workspace-watermark-lime {
+  width: clamp(330px, 29vw, 500px) !important;
+  height: clamp(330px, 29vw, 500px) !important;
+  top: 54px !important;
+  right: -38px !important;
+  opacity: .08 !important;
+  transform: rotate(-8deg);
+  animation: cali-brand-float-lime 15s ease-in-out infinite alternate;
+}
+.scene-lime .workspace-watermark-oak,
+.scene-lime-soft .workspace-watermark-oak {
+  width: clamp(220px, 19vw, 330px) !important;
+  height: clamp(220px, 19vw, 330px) !important;
+  top: 440px !important;
+  left: clamp(18px, 8vw, 150px) !important;
+  right: auto !important;
+  background: #b58c52 !important;
+  opacity: .045 !important;
+  transform: rotate(12deg);
+  animation: cali-brand-float-oak 17s ease-in-out -5s infinite alternate;
+}
+
+/* Páginas com predominância carvalho. */
+.scene-oak .workspace-watermark-oak,
+.scene-oak-soft .workspace-watermark-oak {
+  width: clamp(320px, 29vw, 500px) !important;
+  height: clamp(320px, 29vw, 500px) !important;
+  top: 40px !important;
+  right: -34px !important;
+  background: #5a1e2d !important;
+  opacity: .078 !important;
+  transform: rotate(9deg);
+  animation: cali-brand-float-oak 16s ease-in-out infinite alternate;
+}
+.scene-oak .workspace-watermark-lime,
+.scene-oak-soft .workspace-watermark-lime {
+  width: clamp(230px, 20vw, 350px) !important;
+  height: clamp(230px, 20vw, 350px) !important;
+  top: 455px !important;
+  left: clamp(22px, 8vw, 155px) !important;
+  right: auto !important;
+  opacity: .046 !important;
+  transform: rotate(-10deg);
+  animation: cali-brand-float-lime 18s ease-in-out -6s infinite alternate;
+}
+
+/* Dois ecos adicionais para a identidade continuar aparecendo durante o scroll. */
+.workspace-brand-watermarks::before,
+.workspace-brand-watermarks::after {
+  content: '';
+  position: absolute;
+  display: block;
+}
+
+.workspace-brand-watermarks::before {
+  width: clamp(250px, 23vw, 400px);
+  height: clamp(250px, 23vw, 400px);
+  top: 58%;
+  right: -70px;
+  background: #5a1e2d;
+  opacity: .045;
+  -webkit-mask: url('/brand/cali-lime-mark.svg') center / contain no-repeat;
+  mask: url('/brand/cali-lime-mark.svg') center / contain no-repeat;
+  transform: rotate(7deg);
+  animation: cali-brand-echo-lime 19s ease-in-out -3s infinite alternate;
+}
+
+.workspace-brand-watermarks::after {
+  width: clamp(210px, 19vw, 340px);
+  height: clamp(210px, 19vw, 340px);
+  top: 78%;
+  left: clamp(-50px, -2vw, -16px);
+  background: #b58c52;
+  opacity: .04;
+  -webkit-mask: url('/brand/cali-oak-mark.svg') center / contain no-repeat;
+  mask: url('/brand/cali-oak-mark.svg') center / contain no-repeat;
+  transform: rotate(-8deg);
+  animation: cali-brand-echo-oak 21s ease-in-out -8s infinite alternate;
+}
+
+@keyframes cali-brand-float-lime {
+  0% { opacity: .065; transform: translate3d(0,0,0) rotate(-10deg) scale(.98); }
+  55% { opacity: .1; }
+  100% { opacity: .078; transform: translate3d(-14px,18px,0) rotate(-5deg) scale(1.025); }
+}
+
+@keyframes cali-brand-float-oak {
+  0% { opacity: .045; transform: translate3d(0,0,0) rotate(10deg) scale(.98); }
+  60% { opacity: .082; }
+  100% { opacity: .06; transform: translate3d(14px,-15px,0) rotate(5deg) scale(1.025); }
+}
+
+@keyframes cali-brand-echo-lime {
+  0% { opacity: .032; transform: translate3d(0,0,0) rotate(7deg) scale(.96); }
+  100% { opacity: .06; transform: translate3d(-18px,-20px,0) rotate(2deg) scale(1.04); }
+}
+
+@keyframes cali-brand-echo-oak {
+  0% { opacity: .028; transform: translate3d(0,0,0) rotate(-8deg) scale(.97); }
+  100% { opacity: .055; transform: translate3d(18px,14px,0) rotate(-3deg) scale(1.035); }
+}
+
+/* Cards continuam legíveis, mas deixam a textura da marca respirar por trás. */
+.page .panel:not(.modal-card),
+.overview-signal-strip .signal-card {
+  background-color: rgba(255,253,249,.94) !important;
+}
+
+@media (max-width: 860px) {
+  .workspace-watermark,
+  .workspace-brand-watermarks::before,
+  .workspace-brand-watermarks::after {
+    opacity: .035 !important;
+    animation: none !important;
+  }
+  .scene-overview .workspace-watermark-lime {
+    right: -105px !important;
+    top: 10px !important;
+  }
+  .scene-overview .workspace-watermark-oak {
+    right: 30px !important;
+    top: 310px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-watermark,
+  .workspace-brand-watermarks::before,
+  .workspace-brand-watermarks::after {
+    animation: none !important;
+  }
+}

@@ -1,0 +1,218 @@
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, ChevronDown, Eye, FileText, Loader2, Printer, ShieldCheck, X } from 'lucide-react';
+import { Shell } from '../../components/WorkspaceShell';
+import { ExecutiveReportPaperV17 } from '../../components/reports/ExecutiveReportPaperV17';
+import type { ReportIdentityV55 } from '../../components/reports/ReportValidationV55';
+import { supabase } from '../../lib/supabase';
+import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
+import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
+import { type ReportEditor, type ReportType } from '../../lib/reportComposition';
+import { normalizeIntelligenceSnapshot, type IntelligenceSnapshot } from '../../lib/reportIntelligence';
+import type { DeliveryPerformanceRow } from '../../lib/reportV14';
+
+type Report={
+  id:string;title:string;reportType:ReportType;periodStart:string;periodEnd:string;summary:string;
+  movements:string[];decisions:string[];risks:string[];nextSteps:string[];snapshot:IntelligenceSnapshot|null;
+  protocol:string;publishedAt?:string|null;sentAt?:string|null;version:number;status:'sent'|'published';
+  approvalIdentity?:ReportIdentityV55|null;ackIdentity?:ReportIdentityV55|null;acknowledgedAt?:string|null;
+  ackProtocol?:string|null;approvedAt?:string|null;openCount:number;firstOpenedAt?:string|null;
+  lastOpenedAt?:string|null;pdfCount:number;
+};
+type Company={name:string;logoUrl?:string|null};
+
+function rowToReport(row:any):Report{
+  return{
+    id:row.id,title:row.title,reportType:(row.report_type||'monthly') as ReportType,
+    periodStart:String(row.period_start||row.reference_month).slice(0,10),
+    periodEnd:String(row.period_end||row.reference_month).slice(0,10),
+    summary:row.executive_summary||'',
+    movements:Array.isArray(row.movements)?row.movements.map(String):[],
+    decisions:Array.isArray(row.decisions)?row.decisions.map(String):[],
+    risks:Array.isArray(row.risks)?row.risks.map(String):[],
+    nextSteps:Array.isArray(row.next_steps)?row.next_steps.map(String):[],
+    snapshot:normalizeIntelligenceSnapshot(row.source_snapshot),protocol:row.protocol||'—',
+    publishedAt:row.published_at,sentAt:row.sent_at,version:Number(row.version||1),status:row.status,
+    approvalIdentity:row.approval_identity_snapshot||null,ackIdentity:row.acknowledgement_identity_snapshot||null,
+    acknowledgedAt:row.acknowledged_at||null,ackProtocol:row.acknowledgement_protocol||null,
+    approvedAt:row.approved_at||null,openCount:Number(row.client_open_count||0),
+    firstOpenedAt:row.client_first_opened_at||null,lastOpenedAt:row.client_last_opened_at||null,
+    pdfCount:Number(row.client_pdf_count||0)
+  };
+}
+function periodLabel(type:ReportType,start:string){
+  const[year,month]=start.split('-').map(Number);
+  return type==='monthly'
+    ?new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'}).format(new Date(year,month-1,1))
+    :`${Math.floor((month-1)/3)+1}º trimestre de ${year}`;
+}
+function typeLabel(type:ReportType){return type==='quarterly'?'Trimestral':'Mensal';}
+function editorOf(report:Report):ReportEditor{return{summary:report.summary,movements:report.movements.join('\n'),decisions:report.decisions.join('\n'),risks:report.risks.join('\n'),nextSteps:report.nextSteps.join('\n')};}
+function deliveriesOf(report:Report){const raw=(report.snapshot as any)?.deliveryPerformanceV14;return Array.isArray(raw)?raw as DeliveryPerformanceRow[]:[];}
+function formatDateTime(value?:string|null){
+  if(!value)return'—';
+  const date=new Date(value);
+  return Number.isNaN(date.getTime())?'—':new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(date).replace('.','');
+}
+
+export function ClientReportsPageV5(){
+  const { user } = useWorkspaceAuth();
+  const[reports,setReports]=useState<Report[]>([]);
+  const[company,setCompany]=useState<Company|null>(null);
+  const[selectedId,setSelectedId]=useState('');
+  const[loading,setLoading]=useState(true);
+  const[error,setError]=useState('');
+  const[expanded,setExpanded]=useState<Set<string>>(()=>new Set());
+  const[previewOpen,setPreviewOpen]=useState(false);
+  const[ackOpen,setAckOpen]=useState(false);
+  const[acknowledging,setAcknowledging]=useState(false);
+
+  useEffect(()=>{void load();},[]);
+  useEffect(()=>{
+    if(!previewOpen&&!ackOpen)return;
+    document.body.classList.add('workspace-modal-open');
+    return()=>document.body.classList.remove('workspace-modal-open');
+  },[previewOpen,ackOpen]);
+
+  async function load(preferredId?:string){
+    if(!supabase)return;
+    setLoading(true);setError('');
+    try{
+      const userId=user?.id;
+      if(!userId)throw new Error('Sessão do cliente não encontrada.');
+      const profile=await supabase.from('profiles').select('company_id').eq('id',userId).maybeSingle();
+      if(profile.error)throw profile.error;
+      const companyId=profile.data?.company_id;
+      if(!companyId)throw new Error('Empresa vinculada ao acesso não encontrada.');
+      const[companyResult,reportResult]=await Promise.all([
+        supabase.from('companies').select('display_name,logo_url').eq('id',companyId).maybeSingle(),
+        supabase.from('reports').select('id,title,report_type,period_start,period_end,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,published_at,sent_at,version,approval_identity_snapshot,acknowledgement_identity_snapshot,acknowledged_at,acknowledgement_protocol,approved_at,client_open_count,client_first_opened_at,client_last_opened_at,client_pdf_count').eq('company_id',companyId).in('status',['sent','published']).order('period_start',{ascending:false}).order('version',{ascending:false})
+      ]);
+      if(companyResult.error)throw companyResult.error;
+      if(reportResult.error)throw reportResult.error;
+      const companyName=companyResult.data?.display_name||'Empresa';
+      setCompany({name:companyName,logoUrl:null});
+      void resolveWorkspaceMedia(companyResult.data?.logo_url,86400,true).then((logoUrl)=>setCompany({name:companyName,logoUrl}));
+      const next=(reportResult.data||[]).map(rowToReport);
+      setReports(next);
+      const queryId=new URLSearchParams(window.location.search).get('report')||'';
+      const desired=preferredId||queryId||selectedId;
+      setSelectedId(next.some((item)=>item.id===desired)?desired:(next[0]?.id||''));
+    }catch(requestError){
+      setError(requestError instanceof Error?requestError.message:'Não foi possível carregar os relatórios.');
+    }finally{setLoading(false);}
+  }
+
+  async function recordOpen(id:string){
+    if(!supabase)return;
+    const result=await supabase.rpc('record_report_client_event_v55',{p_report_id:id,p_event_type:'opened'});
+    if(result.error)return;
+    const data=result.data as any;
+    setReports((current)=>current.map((item)=>item.id===id?{
+      ...item,
+      openCount:Number(data?.open_count??item.openCount),
+      firstOpenedAt:data?.first_opened_at||item.firstOpenedAt,
+      lastOpenedAt:data?.last_opened_at||item.lastOpenedAt
+    }:item));
+  }
+
+  const selected=useMemo(()=>reports.find((item)=>item.id===selectedId)||null,[reports,selectedId]);
+
+  function toggleDetails(id:string){
+    setExpanded((current)=>{
+      const next=new Set(current);
+      next.has(id)?next.delete(id):next.add(id);
+      return next;
+    });
+  }
+  async function openReport(report:Report){
+    setSelectedId(report.id);
+    await recordOpen(report.id);
+    window.location.assign(`/cliente/relatorios/impressao/${report.id}`);
+  }
+  async function openPrint(report:Report){
+    if(!supabase)return;
+    setSelectedId(report.id);
+    await recordOpen(report.id);
+    const tracked=await supabase.rpc('record_report_client_event_v55',{p_report_id:report.id,p_event_type:'pdf_opened'});
+    if(!tracked.error)setReports((current)=>current.map((item)=>item.id===report.id?{...item,pdfCount:item.pdfCount+1}:item));
+    window.open(`/cliente/relatorios/impressao/${report.id}?print=1`,'_blank','noopener,noreferrer');
+  }
+  function requestAcknowledge(report:Report){setSelectedId(report.id);setAckOpen(true);}
+  async function acknowledge(){
+    if(!selected||!supabase)return;
+    setAcknowledging(true);setError('');
+    try{
+      if(!selected.openCount)await recordOpen(selected.id);
+      const result=await supabase.rpc('acknowledge_report_v55',{p_report_id:selected.id});
+      if(result.error)throw result.error;
+      const data=result.data as any;
+      setReports((current)=>current.map((item)=>item.id===selected.id?{
+        ...item,
+        acknowledgedAt:data?.acknowledged_at||item.acknowledgedAt,
+        ackProtocol:data?.acknowledgement_protocol||item.ackProtocol,
+        ackIdentity:data?.identity||item.ackIdentity
+      }:item));
+      setAckOpen(false);
+    }catch(requestError){
+      setError(requestError instanceof Error?requestError.message:'Não foi possível registrar a ciência.');
+    }finally{setAcknowledging(false);}
+  }
+
+  if(loading) return <Shell role="client"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando leitura executiva…</section></Shell>;
+
+  return <Shell role="client"><section className="page client-reports-v56 client-reports-v57">
+    <div className="eyebrow">LEITURA EXECUTIVA</div>
+    <div className="page-heading"><div><h1>Relatórios</h1><p>Consulte os fechamentos liberados pela CALI e abra o documento quando precisar.</p></div></div>
+    {error?<div className="inline-notice">{error}</div>:null}
+    {loading
+      ?<div className="panel data-loading"><Loader2 className="spin" size={20}/>Carregando relatórios…</div>
+      :!reports.length
+        ?<div className="panel client-reports-v56-empty"><FileText size={28}/><strong>Nenhum relatório foi liberado ainda.</strong><p>Quando a CALI enviar um fechamento, ele ficará disponível aqui.</p></div>
+        :<section className="client-report-library-v56 client-report-library-v57">
+          <div className="client-report-table-wrap-v56">
+            <table className="client-report-table-v56 client-report-table-v57">
+              <thead><tr><th>Protocolo</th><th>Referência</th><th>Tipo</th><th>Leitura</th><th>Ciência</th><th>Ações</th></tr></thead>
+              <tbody>{reports.map((report)=>{
+                const isExpanded=expanded.has(report.id);
+                return <Fragment key={report.id}>
+                  <tr className={`${!report.openCount?'unread ':''}${isExpanded?'expanded':''}`.trim()}>
+                    <td data-label="Protocolo">
+                      <div className="client-report-protocol-v57">
+                        <strong>{report.protocol}</strong>
+                        <button type="button" className="client-report-expand-v57" onClick={()=>toggleDetails(report.id)} aria-expanded={isExpanded} aria-label={isExpanded?'Recolher detalhes':'Ver detalhes'} title={isExpanded?'Recolher detalhes':'Ver detalhes'}>
+                          <ChevronDown size={16}/>
+                        </button>
+                      </div>
+                    </td>
+                    <td data-label="Referência"><strong>{periodLabel(report.reportType,report.periodStart)}</strong></td>
+                    <td data-label="Tipo">{typeLabel(report.reportType)}</td>
+                    <td data-label="Leitura">{report.openCount?<span className="report-status-v56 viewed"><CheckCircle2 size={15}/>Visualizado</span>:<span className="report-status-v56 new">Não visualizado</span>}</td>
+                    <td data-label="Ciência">{report.acknowledgedAt?<span className="report-status-v56 acknowledged"><ShieldCheck size={15}/>Registrada</span>:<span className="report-status-v56 pending">Pendente</span>}</td>
+                    <td data-label="Ações"><div className="client-report-row-actions-v56">
+                      <button type="button" className="client-report-secondary-v56" onClick={()=>void openReport(report)}><Eye size={16}/>Abrir relatório</button>
+                      <button type="button" className="client-report-secondary-v56" onClick={()=>void openPrint(report)}><Printer size={16}/>Baixar PDF</button>
+                      {report.acknowledgedAt
+                        ?<span className="client-report-ack-done-v56"><CheckCircle2 size={15}/>Ciência registrada</span>
+                        :<button type="button" className="client-report-primary-v56" onClick={()=>requestAcknowledge(report)}><ShieldCheck size={16}/>Registrar ciência</button>}
+                    </div></td>
+                  </tr>
+                  {isExpanded?<tr className="client-report-detail-row-v57"><td colSpan={6}>
+                    <div className="client-report-detail-grid-v57">
+                      <div><span>Versão</span><strong>v{report.version}</strong></div>
+                      <div><span>Enviado</span><strong>{formatDateTime(report.sentAt)}</strong></div>
+                      <div><span>Acessos</span><strong>{report.openCount||0}</strong></div>
+                      <div><span>Primeiro acesso</span><strong>{formatDateTime(report.firstOpenedAt)}</strong></div>
+                      <div><span>Último acesso</span><strong>{formatDateTime(report.lastOpenedAt)}</strong></div>
+                      <div><span>PDF</span><strong>{report.pdfCount?`${report.pdfCount} acesso${report.pdfCount===1?'':'s'}`:'Nenhum'}</strong></div>
+                      {report.acknowledgedAt?<div className="wide"><span>Ciência</span><strong>{formatDateTime(report.acknowledgedAt)}{report.ackProtocol?` · ${report.ackProtocol}`:''}</strong></div>:null}
+                    </div>
+                  </td></tr>:null}
+                </Fragment>;
+              })}</tbody>
+            </table>
+          </div>
+        </section>}
+    {previewOpen&&selected?.snapshot?<div className="modal-backdrop full-screen-modal client-report-preview-v55" role="presentation"><section className="client-report-preview-card-v55" role="dialog" aria-modal="true" aria-label="Relatório completo"><button className="modal-close" type="button" onClick={()=>setPreviewOpen(false)} aria-label="Fechar"><X size={20}/></button><div className="client-report-preview-stage-v55"><ExecutiveReportPaperV17 company={company||{name:'Empresa'}} snapshot={selected.snapshot} editor={editorOf(selected)} reportType={selected.reportType} periodName={periodLabel(selected.reportType,selected.periodStart)} protocol={selected.protocol} deliveries={deliveriesOf(selected)} approvalIdentity={selected.approvalIdentity} acknowledgementIdentity={selected.ackIdentity} approvedAt={selected.approvedAt} acknowledgedAt={selected.acknowledgedAt} acknowledgementProtocol={selected.ackProtocol}/></div></section></div>:null}
+    {ackOpen&&selected?<div className="modal-backdrop full-screen-modal" role="presentation"><section className="modal-card client-report-ack-modal-v55" role="dialog" aria-modal="true" aria-label="Registrar ciência"><button className="modal-close" type="button" onClick={()=>setAckOpen(false)} aria-label="Fechar"><X size={20}/></button><span className="section-kicker">CIÊNCIA DA LEITURA</span><h2>Registrar ciência deste fechamento?</h2><p>Este registro é opcional. Ele confirma que você teve ciência desta versão e não representa concordância ou aprovação do conteúdo.</p><div className="client-report-ack-note-v55"><ShieldCheck size={18}/><span>Sua identidade e a assinatura configurada no perfil serão registradas com data, hora e protocolo.</span></div><div className="modal-actions"><button className="client-report-secondary-v56" type="button" onClick={()=>setAckOpen(false)}>Agora não</button><button className="client-report-primary-v56" type="button" disabled={acknowledging} onClick={()=>void acknowledge()}>{acknowledging?<Loader2 className="spin" size={17}/>:<CheckCircle2 size={17}/>}Registrar ciência</button></div></section></div>:null}
+  </section></Shell>;
+}

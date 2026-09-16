@@ -1,0 +1,77 @@
+/* CALI Workspace · a home pública mantém a composição aprovada em qualquer horário.
+   O tema dia/noite pertence às áreas autenticadas e não deve inverter o formulário de acesso. */
+html[data-workspace-theme='night'] .login-v2 {
+  color-scheme: light !important;
+  background: #f7f3ee !important;
+  color: #2b2b2b !important;
+}
+
+html[data-workspace-theme='night'] .login-v2-access,
+html[data-workspace-theme='night'] .login-v2-footer-access {
+  background:
+    radial-gradient(circle at 48% 48%, rgba(183,169,154,.10), transparent 30%),
+    #f7f3ee !important;
+  color: #2b2b2b !important;
+}
+
+html[data-workspace-theme='night'] .login-v2-card {
+  background: rgba(255,253,249,.94) !important;
+  border-color: rgba(90,30,45,.09) !important;
+  color: #2b2b2b !important;
+}
+
+html[data-workspace-theme='night'] .login-v2-card h2,
+html[data-workspace-theme='night'] .login-v2-field,
+html[data-workspace-theme='night'] .login-v2-field > span {
+  color: #2b2b2b !important;
+}
+
+html[data-workspace-theme='night'] .login-v2-kicker {
+  color: #5a1e2d !important;
+}
+
+html[data-workspace-theme='night'] .login-v2-card-copy {
+  color: #746d68 !important;
+}
+
+html[data-workspace-theme='night'] .login-v2-input-wrap {
+  color: #8c8179 !important;
+  background: #fffdf9 !important;
+  border-color: #ddd2c8 !important;
+}
+
+html[data-workspace-theme='night'] .login-v2-input-wrap input {
+  background: transparent !important;
+  border: 0 !important;
+  color: #2b2b2b !important;
+  box-shadow: none !important;
+  -webkit-text-fill-color: #2b2b2b !important;
+}
+
+html[data-workspace-theme='night'] .login-v2-input-wrap input::placeholder {
+  color: #9a928c !important;
+  -webkit-text-fill-color: #9a928c !important;
+}
+
+html[data-workspace-theme='night'] .login-v2-input-wrap input:-webkit-autofill,
+html[data-workspace-theme='night'] .login-v2-input-wrap input:-webkit-autofill:hover,
+html[data-workspace-theme='night'] .login-v2-input-wrap input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #2b2b2b !important;
+  -webkit-box-shadow: 0 0 0 1000px #fffdf9 inset !important;
+  transition: background-color 9999s ease-out 0s;
+}
+
+html[data-workspace-theme='night'] .login-v2-submit {
+  background: linear-gradient(135deg, #6d2133, #5a1e2d 56%, #431520) !important;
+  color: #fffdf9 !important;
+}
+
+html[data-workspace-theme='night'] .login-v2-footer-links a,
+html[data-workspace-theme='night'] .login-v2-footer-links span,
+html[data-workspace-theme='night'] .login-v2-site-link > span {
+  color: #746d68 !important;
+}
+
+html[data-workspace-theme='night'] .login-v2-site-link a {
+  color: #5a1e2d !important;
+}

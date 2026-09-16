@@ -1,0 +1,70 @@
+/* Loading institucional final — usar as ilustrações CALI, não spinner ou bolinhas genéricas */
+.data-loading,
+.cali-symbol-loading{
+  min-height:54vh!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:24px!important;
+  background:transparent!important;
+  color:transparent!important;
+  font-size:0!important;
+}
+
+.data-loading svg{display:none!important;}
+
+.data-loading::before,
+.data-loading::after,
+.cali-symbol-dot{
+  display:block!important;
+  width:78px!important;
+  height:78px!important;
+  flex:0 0 78px!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background-image:none!important;
+  opacity:.34;
+  animation:cali-illustration-loading 1.55s ease-in-out infinite!important;
+  -webkit-mask-position:center!important;
+  mask-position:center!important;
+  -webkit-mask-repeat:no-repeat!important;
+  mask-repeat:no-repeat!important;
+  -webkit-mask-size:contain!important;
+  mask-size:contain!important;
+}
+
+.data-loading::before,
+.cali-symbol-dot.one,
+.cali-symbol-dot.three{
+  content:'';
+  background:#5A1E2D!important;
+  -webkit-mask-image:url('/brand/cali-lime-mark.svg')!important;
+  mask-image:url('/brand/cali-lime-mark.svg')!important;
+}
+
+.data-loading::after,
+.cali-symbol-dot.two{
+  content:'';
+  background:#B58C52!important;
+  -webkit-mask-image:url('/brand/cali-oak-mark.svg')!important;
+  mask-image:url('/brand/cali-oak-mark.svg')!important;
+  animation-delay:.22s!important;
+}
+
+.cali-symbol-dot.three{animation-delay:.44s!important;}
+
+html[data-workspace-theme='night'] .data-loading::before,
+html[data-workspace-theme='night'] .cali-symbol-dot.one,
+html[data-workspace-theme='night'] .cali-symbol-dot.three{background:#D6AEB8!important;}
+html[data-workspace-theme='night'] .data-loading::after,
+html[data-workspace-theme='night'] .cali-symbol-dot.two{background:#B58C52!important;}
+
+@keyframes cali-illustration-loading{
+  0%,100%{transform:translateY(5px) scale(.9) rotate(-2deg);opacity:.24;}
+  50%{transform:translateY(-7px) scale(1.04) rotate(1deg);opacity:.88;}
+}
+
+@media(max-width:720px){
+  .data-loading,.cali-symbol-loading{gap:16px!important;min-height:48vh!important;}
+  .data-loading::before,.data-loading::after,.cali-symbol-dot{width:62px!important;height:62px!important;flex-basis:62px!important;}
+}

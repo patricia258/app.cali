@@ -1,0 +1,29 @@
+.data-loading,
+.data-empty {
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+.data-empty {
+  flex-direction: column;
+  text-align: center;
+  padding: 28px;
+}
+
+.data-empty strong {
+  color: var(--graphite);
+  font-size: 1rem;
+}
+
+.data-empty span {
+  max-width: 480px;
+  line-height: 1.55;
+}
+
+.spin { animation: cali-spin .8s linear infinite; }
+@keyframes cali-spin { to { transform: rotate(360deg); } }

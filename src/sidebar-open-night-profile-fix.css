@@ -1,0 +1,42 @@
+/* CALI Workspace · perfil do sidebar aberto no modo noite
+   Ajuste isolado: replica a leveza visual do modo dia sem alterar o rail fechado. */
+
+html[data-workspace-theme='night'] .sidebar:hover .sidebar-footer-profile-only,
+html[data-workspace-theme='night'] .sidebar.pinned .sidebar-footer-profile-only,
+html[data-workspace-theme='night'] .sidebar.mobile-open .sidebar-footer-profile-only {
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(90,30,45,.18) !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+html[data-workspace-theme='night'] .sidebar:hover .profile-trigger-direct,
+html[data-workspace-theme='night'] .sidebar.pinned .profile-trigger-direct,
+html[data-workspace-theme='night'] .sidebar.mobile-open .profile-trigger-direct {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+html[data-workspace-theme='night'] .sidebar:hover .profile-copy strong,
+html[data-workspace-theme='night'] .sidebar.pinned .profile-copy strong,
+html[data-workspace-theme='night'] .sidebar.mobile-open .profile-copy strong {
+  color: #5A1E2D !important;
+  opacity: 1 !important;
+}
+
+html[data-workspace-theme='night'] .sidebar:hover .profile-copy small,
+html[data-workspace-theme='night'] .sidebar.pinned .profile-copy small,
+html[data-workspace-theme='night'] .sidebar.mobile-open .profile-copy small {
+  color: rgba(90,30,45,.64) !important;
+  opacity: 1 !important;
+}
+
+html[data-workspace-theme='night'] .sidebar:hover .profile-edit-chevron,
+html[data-workspace-theme='night'] .sidebar.pinned .profile-edit-chevron,
+html[data-workspace-theme='night'] .sidebar.mobile-open .profile-edit-chevron {
+  color: rgba(90,30,45,.78) !important;
+  opacity: 1 !important;
+}

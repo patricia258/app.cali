@@ -1,0 +1,54 @@
+.client-home-v3 .client-action-hero h2,.client-home-v3 .client-action-hero.quiet h2{color:#fff!important;text-shadow:0 1px 0 rgba(0,0,0,.08)}
+.client-home-v3 .client-action-hero p,.client-home-v3 .client-action-hero.quiet p{color:rgba(255,255,255,.82)!important}
+.client-home-v3 .delivery-status-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:24px 0 8px;color:var(--muted-foreground);font-size:12px}
+.client-home-v3 .delivery-status-line b{font-size:15px;color:var(--foreground)}
+.client-home-v3 .delivery-status-line i{width:4px;height:4px;border-radius:50%;background:var(--client-gold)}
+.client-home-v3 .client-home-summary-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:18px}
+.client-home-v3 .summary-mini-card{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;min-height:108px;padding:17px 18px;border-radius:20px;border:1px solid var(--border);background:color-mix(in srgb,var(--card) 95%,transparent);color:var(--foreground);text-decoration:none;box-shadow:0 10px 26px rgba(52,37,31,.045);overflow:hidden;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.client-home-v3 .summary-mini-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--client-bordeaux),var(--client-gold))}
+.client-home-v3 .summary-mini-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--client-gold) 45%,var(--border));box-shadow:0 15px 32px rgba(90,30,45,.09)}
+.client-home-v3 .summary-mini-card>svg:first-child{color:var(--client-bordeaux)}
+.client-home-v3 .summary-mini-card>svg:last-child{color:var(--muted-foreground)}
+.client-home-v3 .summary-mini-card>div{display:flex;flex-direction:column;min-width:0}
+.client-home-v3 .summary-mini-card span{font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted-foreground);font-weight:800}
+.client-home-v3 .summary-mini-card strong{font-size:23px;line-height:1.05;margin:5px 0 3px;color:var(--foreground)}
+.client-home-v3 .summary-mini-card small{font-size:10px;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.client-home-v3 .summary-mini-card.attention{background:linear-gradient(135deg,color-mix(in srgb,var(--client-gold) 10%,var(--card)),var(--card))}
+.client-home-v3 .summary-mini-card.attention:before{background:var(--client-gold)}
+.client-home-v3 .summary-mini-card.history-card{background:linear-gradient(135deg,color-mix(in srgb,var(--client-bordeaux) 7%,var(--card)),color-mix(in srgb,var(--client-gold) 7%,var(--card)))}
+.client-home-v3 .patricia-identity-card{margin-top:18px;padding:18px;border-radius:20px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:15px;align-items:center;border:1px solid color-mix(in srgb,var(--client-gold) 32%,var(--border));background:linear-gradient(135deg,color-mix(in srgb,var(--client-bordeaux) 8%,var(--card)),color-mix(in srgb,var(--client-gold) 8%,var(--card)));position:relative;overflow:hidden}
+.client-home-v3 .patricia-identity-card:after{content:"";position:absolute;right:-30px;bottom:-45px;width:130px;height:130px;border:24px solid color-mix(in srgb,var(--client-gold) 9%,transparent);border-radius:48%}
+.client-home-v3 .patricia-photo-wrap{width:64px;height:64px;border-radius:20px;overflow:hidden;background:linear-gradient(145deg,var(--client-bordeaux),#793148);display:grid;place-items:center;color:#fff;font-size:17px;font-weight:800;box-shadow:0 8px 22px rgba(90,30,45,.18);position:relative;z-index:1}
+.client-home-v3 .patricia-photo-wrap img{width:100%;height:100%;object-fit:cover;transform-origin:center}
+.client-home-v3 .patricia-identity-card>div:last-child{display:flex;flex-direction:column;position:relative;z-index:1}
+.client-home-v3 .patricia-identity-card span{font-size:9px;letter-spacing:.13em;color:var(--client-gold);font-weight:900}
+.client-home-v3 .patricia-identity-card strong{font-size:18px;line-height:1.05;margin:4px 0 2px;color:var(--foreground)}
+.client-home-v3 .patricia-identity-card em{font-style:normal;font-size:11px;font-weight:800;color:var(--client-bordeaux)}
+.client-home-v3 .patricia-identity-card p{font-size:11px;line-height:1.4;color:var(--muted-foreground);margin:5px 0 0;max-width:290px}
+.client-chat-floating{position:fixed!important;right:26px!important;bottom:24px!important;z-index:140!important;width:min(430px,calc(100vw - 32px))!important;max-height:min(680px,calc(100vh - 40px));overflow:auto;background:var(--card)!important;border:1px solid color-mix(in srgb,#B58C52 35%,var(--border))!important;border-radius:26px!important;padding:22px!important;box-shadow:0 30px 90px rgba(25,12,17,.30)!important;animation:clientChatIn .18s ease-out}
+@keyframes clientChatIn{from{transform:translateY(12px) scale(.985);opacity:0}to{transform:none;opacity:1}}
+.client-chat-window-actions{position:absolute;top:13px;right:13px;display:flex;gap:6px;z-index:3}
+.client-chat-window-actions button{width:32px;height:32px;border-radius:10px;border:1px solid var(--border);background:var(--background);color:var(--foreground);display:grid;place-items:center;cursor:pointer}
+.client-chat-floating .client-chat-brand{padding-right:72px}
+.client-chat-floating .chat-auto-block{margin:14px 0;padding:13px;border-radius:16px;border:1px solid color-mix(in srgb,#B58C52 26%,var(--border));background:color-mix(in srgb,#B58C52 6%,var(--card))}
+.client-chat-floating .chat-auto-block>span{display:block;font-size:9px;letter-spacing:.13em;font-weight:900;color:#B58C52;margin-bottom:9px}
+.client-chat-floating .chat-auto-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.client-chat-floating .chat-auto-actions button{border:1px solid var(--border);background:var(--background);color:var(--foreground);border-radius:11px;padding:8px 9px;text-align:left;font-size:10px;font-weight:750;cursor:pointer}
+.client-chat-floating .chat-auto-reply{display:flex;gap:8px;align-items:flex-start;margin-top:10px;padding:10px;border-radius:12px;background:color-mix(in srgb,#5A1E2D 7%,var(--card));color:var(--foreground)}
+.client-chat-floating .chat-auto-reply svg{flex:0 0 auto;color:#B58C52;margin-top:1px}
+.client-chat-floating .chat-auto-reply p{margin:0;font-size:11px;line-height:1.45}
+.client-chat-floating .chat-kind-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0}
+.client-chat-floating .chat-kind-tabs button{border:1px solid var(--border);background:var(--background);color:var(--muted-foreground);padding:8px 5px;border-radius:10px;font-size:9px;font-weight:800;cursor:pointer}
+.client-chat-floating .chat-kind-tabs button.active{background:#5A1E2D;color:#fff;border-color:#5A1E2D}
+.client-chat-floating .chat-success.compact{padding:12px 4px 2px}
+.client-chat-floating .chat-success.compact strong{font-size:17px}
+.client-chat-floating .chat-success.compact p{margin:6px auto 10px;max-width:320px}
+[data-workspace-theme="night"] .client-home-v3 .patricia-identity-card{background:linear-gradient(135deg,rgba(90,30,45,.28),rgba(181,140,82,.12));border-color:rgba(181,140,82,.32)}
+[data-workspace-theme="night"] .client-home-v3 .patricia-identity-card em{color:#d8ad67}
+[data-workspace-theme="night"] .client-home-v3 .summary-mini-card{background:rgba(42,31,35,.88);border-color:rgba(183,169,154,.18)}
+[data-workspace-theme="night"] .client-home-v3 .summary-mini-card.history-card{background:linear-gradient(135deg,rgba(90,30,45,.32),rgba(181,140,82,.10))}
+[data-workspace-theme="night"] .client-home-v3 .summary-mini-card>svg:first-child{color:#d6a75f}
+[data-workspace-theme="night"] .client-chat-floating{background:#21191c!important;border-color:rgba(181,140,82,.34)!important}
+[data-workspace-theme="night"] .client-chat-floating .chat-kind-tabs button,.client-chat-floating .chat-auto-actions button,.client-chat-window-actions button{background:#191316;border-color:rgba(183,169,154,.18)}
+@media(max-width:1180px){.client-home-v3 .client-home-summary-cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.client-home-v3 .client-home-summary-cards{grid-template-columns:1fr}.client-chat-floating{right:12px!important;bottom:12px!important;max-height:calc(100vh - 24px);border-radius:22px!important;padding:19px!important}.client-chat-floating .chat-kind-tabs{grid-template-columns:1fr 1fr}.client-home-v3 .patricia-identity-card{grid-template-columns:auto 1fr}.client-home-v3 .summary-mini-card{min-height:94px}.client-home-v3 .summary-mini-card strong{font-size:20px}}

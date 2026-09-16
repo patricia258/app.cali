@@ -1,0 +1,229 @@
+/* Página 1 · segunda rodada de validação visual */
+
+/* Modal verdadeiro: cobre viewport inteiro, inclusive menu, e bloqueia hover da navegação. */
+.workspace-modal-open { overflow: hidden; }
+.workspace-modal-open .sidebar { pointer-events: none; }
+.full-screen-modal,
+.chrome-modal-backdrop.full-screen-modal,
+.modal-backdrop.full-screen-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  z-index: 10000 !important;
+  padding: 28px;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  background: rgba(35, 29, 30, .58) !important;
+  backdrop-filter: blur(9px) saturate(.92) !important;
+}
+.full-screen-modal .modal-card { z-index: 10001; }
+
+/* Ações de cabeçalho mais discretas. */
+.compact-overview-actions { gap: 9px; }
+.compact-overview-actions .export-trigger,
+.compact-primary-action {
+  min-height: 42px !important;
+  height: 42px;
+  padding: 0 16px !important;
+  border-radius: 11px !important;
+  font-size: .83rem !important;
+  box-shadow: 0 7px 20px rgba(68, 29, 39, .07) !important;
+}
+
+/* KPIs com iconografia leve no canto direito. */
+.signal-card { position: relative; padding-right: 76px !important; }
+.signal-card > i {
+  position: absolute;
+  right: 22px;
+  top: 21px;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  color: var(--burgundy);
+  background: rgba(90,30,45,.055);
+  border: 1px solid rgba(90,30,45,.07);
+  font-style: normal;
+}
+.signal-card:nth-child(3) > i { color: #8f6a34; background: rgba(181,140,82,.09); }
+.signal-card:nth-child(4) > i { color: #8f6a34; background: rgba(181,140,82,.09); }
+
+/* Agenda: controles, mês/semana e cores visíveis. */
+.agenda-panel-head { gap: 16px; }
+.agenda-head-actions { display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex-wrap: wrap; }
+.view-toggle {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid rgba(90,30,45,.1);
+  border-radius: 10px;
+  background: rgba(90,30,45,.025);
+}
+.view-toggle button,
+.agenda-color-button {
+  min-height: 32px;
+  border: 0;
+  border-radius: 7px;
+  padding: 0 10px;
+  background: transparent;
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 700;
+}
+.view-toggle button.active { color: var(--burgundy); background: white; box-shadow: 0 2px 7px rgba(65,34,38,.07); }
+.agenda-color-button { display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(90,30,45,.1); }
+.agenda-color-button.active { color: var(--burgundy); background: rgba(90,30,45,.05); }
+.event-color-editor {
+  margin: -2px 0 18px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: rgba(90,30,45,.035);
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.event-color-editor label { display: inline-flex; align-items: center; gap: 7px; font-size: .72rem; font-weight: 650; color: var(--graphite); cursor: pointer; }
+.event-color-editor label > span { width: 10px; height: 10px; border-radius: 50%; }
+.event-color-editor input[type="color"] { width: 24px; height: 24px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+
+.mini-days .strong-event:not(.active) {
+  border: 2px solid var(--event-color) !important;
+  background: color-mix(in srgb, var(--event-color) 11%, white) !important;
+  color: var(--graphite) !important;
+  font-weight: 750 !important;
+}
+.mini-days .strong-event::after { display: none !important; }
+
+.agenda-line::before { background: var(--event-color, var(--burgundy)) !important; width: 11px; height: 11px; left: -6px; }
+.agenda-line span { color: var(--event-color, var(--burgundy)) !important; }
+
+.week-calendar {
+  min-width: 292px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  padding: 18px;
+  border: 1px solid rgba(90,30,45,.1);
+  border-radius: 14px;
+  background: rgba(255,255,255,.5);
+}
+.week-calendar-head { grid-column: 1 / -1; display: flex; justify-content: space-between; margin-bottom: 10px; }
+.week-calendar-head strong { font-size: .9rem; }
+.week-calendar-head span { color: var(--muted); font-size: .72rem; }
+.week-day { position: relative; min-height: 70px; padding: 9px 4px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; gap: 7px; border: 1px solid transparent; }
+.week-day span { font-size: .6rem; color: var(--muted); font-weight: 750; }
+.week-day strong { font-size: .82rem; }
+.week-day.active { color: #fff; background: var(--burgundy); }
+.week-day.active span { color: rgba(255,255,255,.72); }
+.week-day.has-event:not(.active) { border-color: rgba(90,30,45,.1); background: rgba(90,30,45,.025); }
+.week-day i { width: 7px; height: 7px; border-radius: 50%; display: block; }
+
+/* Deadlines: cliente deixa de ser subtítulo apagado. */
+.enhanced-deadlines .deadline-item {
+  grid-template-columns: 70px 38px minmax(0,1fr);
+  align-items: center;
+  gap: 10px;
+}
+.enhanced-deadlines .deadline-date { grid-row: auto; }
+.deadline-client-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: rgba(90,30,45,.08);
+  color: var(--burgundy);
+  border: 1px solid rgba(90,30,45,.10);
+  font-weight: 800;
+}
+.deadline-copy { min-width: 0; }
+.deadline-copy p { margin: 0 0 3px; font-size: .82rem; font-weight: 700; }
+.deadline-copy strong { display: inline; color: var(--graphite) !important; font-size: .74rem !important; }
+.deadline-copy small { margin-left: 6px; padding: 2px 6px; border-radius: 999px; background: rgba(181,140,82,.12); color: #79572a; font-size: .66rem; font-weight: 700; }
+
+/* Perfil: foto grande, upload sem input nativo aparente e ajuste de enquadramento. */
+.profile-modal-v2 { width: min(720px, calc(100vw - 48px)); max-height: min(88vh, 850px); overflow-y: auto; padding: 34px 38px 30px; }
+.profile-photo-workbench { margin: 24px 0 24px; display: grid; grid-template-columns: 190px minmax(0,1fr); gap: 28px; align-items: center; padding: 20px; border: 1px solid rgba(90,30,45,.09); border-radius: 16px; background: rgba(90,30,45,.025); }
+.profile-photo-stage { display: grid; justify-items: center; gap: 12px; }
+.large-editor-avatar { width: 138px !important; height: 138px !important; border-radius: 50% !important; box-shadow: 0 12px 32px rgba(59,33,36,.10); border: 4px solid #fff !important; background: #efe5da !important; }
+.profile-avatar img,
+.large-editor-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: var(--avatar-x,50%) var(--avatar-y,50%); transform: scale(var(--avatar-zoom,1)); transform-origin: var(--avatar-x,50%) var(--avatar-y,50%); }
+.photo-upload-button {
+  min-height: 38px;
+  padding: 0 13px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #fff;
+  border: 1px solid rgba(90,30,45,.15);
+  color: var(--burgundy);
+  font-size: .76rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+.photo-upload-button input { display: none !important; }
+.profile-crop-controls { display: grid; gap: 14px; }
+.profile-crop-controls.disabled { opacity: .38; }
+.profile-crop-controls label { display: grid; grid-template-columns: 78px 1fr; align-items: center; gap: 12px; color: var(--muted); font-size: .72rem; font-weight: 650; }
+.profile-crop-controls input[type="range"] { width: 100%; accent-color: var(--burgundy); }
+.profile-form-grid { margin-top: 0 !important; }
+.label-with-icon { display: inline-flex; align-items: center; gap: 6px; }
+.profile-live-actions { display: flex; gap: 8px; margin-top: 14px; }
+.profile-live-actions a { min-height: 38px; padding: 0 12px; font-size: .74rem; text-decoration: none; }
+.profile-quick-actions { display: flex; gap: 6px; padding: 10px 14px; border-bottom: 1px solid rgba(90,30,45,.08); }
+.profile-quick-actions a { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; color: var(--burgundy); background: rgba(90,30,45,.045); }
+
+/* Gestão da conta: modal largo, modular e rolável. */
+.client-account-modal {
+  width: min(930px, calc(100vw - 52px));
+  max-height: calc(100vh - 54px);
+  overflow-y: auto;
+  padding: 34px 38px 0;
+  border-radius: 20px;
+}
+.account-modal-intro { padding-right: 50px; }
+.account-modal-intro p { max-width: 690px; }
+.account-form-sections { display: grid; gap: 14px; margin-top: 24px; }
+.account-form-section { padding: 18px; border: 1px solid rgba(90,30,45,.09); border-radius: 15px; background: rgba(250,248,245,.5); }
+.account-section-title { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; color: var(--burgundy); }
+.account-section-title > svg { margin-top: 1px; }
+.account-section-title strong, .account-section-title span { display: block; }
+.account-section-title strong { font-size: .85rem; color: var(--graphite); }
+.account-section-title span { margin-top: 3px; font-size: .69rem; color: var(--muted); }
+.client-account-modal .form-grid { margin-top: 0; }
+.client-account-modal select { width: 100%; min-height: 48px; border: 1px solid rgba(90,30,45,.16); border-radius: 10px; padding: 0 12px; background: #fff; color: var(--graphite); font: inherit; }
+.document-upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.account-upload-card { padding: 14px; border: 1px dashed rgba(90,30,45,.18); border-radius: 12px; background: #fff; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; }
+.account-upload-card > div strong, .account-upload-card > div span { display: block; }
+.account-upload-card > div strong { font-size: .78rem; }
+.account-upload-card > div span { margin-top: 4px; max-width: 280px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--muted); font-size: .67rem; }
+.account-upload-card label { min-height: 34px; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px; border-radius: 9px; background: rgba(90,30,45,.055); color: var(--burgundy); font-size: .69rem; font-weight: 750; cursor: pointer; }
+.account-upload-card label input { display: none; }
+.account-upload-card > input[type="date"] { grid-column: 1 / -1; min-height: 38px; border: 1px solid rgba(90,30,45,.12); border-radius: 9px; padding: 0 10px; color: var(--graphite); background: rgba(250,248,245,.5); }
+.account-modal-footer { position: sticky; bottom: 0; margin: 18px -38px 0; padding: 14px 38px 20px; border-top: 1px solid rgba(90,30,45,.08); background: rgba(255,253,249,.96); backdrop-filter: blur(14px); display: flex; gap: 20px; align-items: center; justify-content: space-between; }
+.account-modal-footer p { max-width: 510px; color: var(--muted); font-size: .69rem; line-height: 1.45; }
+.account-modal-footer .modal-actions { margin: 0; flex-shrink: 0; }
+
+@media (max-width: 900px) {
+  .profile-photo-workbench { grid-template-columns: 1fr; }
+  .profile-crop-controls { width: 100%; }
+  .document-upload-grid { grid-template-columns: 1fr; }
+  .account-modal-footer { align-items: flex-end; flex-direction: column; }
+  .account-modal-footer p { max-width: none; }
+}
+
+@media (max-width: 680px) {
+  .full-screen-modal { padding: 12px; }
+  .profile-modal-v2, .client-account-modal { width: calc(100vw - 24px); padding-left: 20px; padding-right: 20px; }
+  .client-account-modal { max-height: calc(100vh - 24px); }
+  .account-modal-footer { margin-left: -20px; margin-right: -20px; padding-left: 20px; padding-right: 20px; }
+  .agenda-head-actions { justify-content: flex-start; }
+  .week-calendar { min-width: 0; }
+  .enhanced-deadlines .deadline-item { grid-template-columns: 64px 36px 1fr; }
+  .signal-card { padding-right: 70px !important; }
+}

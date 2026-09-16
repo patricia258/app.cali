@@ -1,0 +1,116 @@
+/* CALI Workspace · regra global de legibilidade inspirada no Connect
+   Texto operacional: 14px | auxiliares: 12px | títulos: 18–24px.
+   Nenhuma informação de uso recorrente deve depender de fonte abaixo de 12px. */
+:root {
+  --ws-font-xs: 12px;
+  --ws-font-sm: 14px;
+  --ws-font-base: 16px;
+  --ws-font-lg: 18px;
+  --ws-font-xl: 20px;
+  --ws-font-2xl: 24px;
+}
+
+body,
+button,
+input,
+select,
+textarea { font-size: var(--ws-font-sm); }
+
+.page p,
+.modal-card p,
+.panel p,
+.data-panel p { font-size: var(--ws-font-sm); line-height: 1.55; }
+
+.page small,
+.modal-card small,
+.panel small,
+.data-panel small,
+.field-helper,
+.eyebrow,
+.section-kicker { font-size: var(--ws-font-xs) !important; line-height: 1.4; }
+
+.page label,
+.modal-card label,
+.stacked-label { font-size: var(--ws-font-sm); }
+
+.page input,
+.page select,
+.page textarea,
+.modal-card input,
+.modal-card select,
+.modal-card textarea { font-size: var(--ws-font-sm) !important; }
+
+.page button,
+.modal-card button,
+.sidebar nav a,
+.topbar button { font-size: var(--ws-font-sm); }
+
+.status-pill,
+.status-chip,
+.project-status-pill,
+.deliverable-status,
+.complexity-pill,
+.mc-chip { font-size: var(--ws-font-xs) !important; }
+
+.page-heading h1 { font-size: clamp(30px, 3vw, 42px); }
+.modal-card h2 { font-size: clamp(20px, 2vw, 24px); line-height: 1.2; }
+.panel h2 { font-size: clamp(18px, 1.6vw, 22px); }
+
+/* Mantém protocolos e metadados compactos, mas legíveis. */
+.deliverable-code,
+.project-selector-card > div:nth-child(2) span,
+.deliverable-main > span,
+.roadmap-row-copy span,
+.project-kanban-card > span,
+.calendar-protocol,
+.document-protocol { font-size: var(--ws-font-xs) !important; }
+
+/* Componentes antigos que haviam caído para 8–10px. */
+.project-kpi-grid article span,
+.project-kpi-grid article small,
+.project-search input,
+.project-portfolio-toolbar select,
+.project-selector-card > div:nth-child(2) strong,
+.project-selector-card > div:nth-child(2) small,
+.project-hero-main p,
+.project-hero-tags span,
+.project-progress-block > span,
+.project-hero-actions .secondary,
+.project-delay-banner strong,
+.project-rebriefing-banner strong,
+.project-delay-banner p,
+.project-rebriefing-banner p,
+.project-tabs button,
+.project-roadmap-header p,
+.roadmap-legend span,
+.roadmap-month-head > span,
+.roadmap-row-copy strong,
+.roadmap-row-copy small,
+.roadmap-bar b,
+.roadmap-deadline span,
+.roadmap-deadline small,
+.deliverable-toolbar > span,
+.deliverable-view-switch button,
+.deliverable-main strong,
+.deliverable-main small,
+.deliverable-task-progress span,
+.deliverable-hours span,
+.deliverable-date strong,
+.deliverable-hours small,
+.deliverable-date small,
+.project-kanban-column header strong,
+.project-kanban-column header span { font-size: var(--ws-font-xs) !important; }
+
+.project-selector-card > div:nth-child(2) strong,
+.project-hero-main p,
+.project-delay-banner p,
+.project-rebriefing-banner p,
+.project-tabs button,
+.project-roadmap-header p,
+.roadmap-row-copy strong,
+.deliverable-main strong { font-size: var(--ws-font-sm) !important; }
+
+@media (max-width: 760px) {
+  body, button, input, select, textarea { font-size: 14px; }
+  .page-heading h1 { font-size: 30px; }
+}

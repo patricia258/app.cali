@@ -1,0 +1,25 @@
+/* CALI Workspace · Horas · logo real do cliente no consumo do ciclo V41 */
+.hours-v13-usage-list .hours-v13-logo.hours-company-logo-v41{
+  overflow:hidden!important;
+  padding:0!important;
+  background:#F7F3EE!important;
+  border-color:#E3D7CE!important;
+  color:transparent!important;
+  display:grid!important;
+  place-items:center!important;
+}
+.hours-v13-usage-list .hours-v13-logo.hours-company-logo-v41 .hours-company-logo-image-v41{
+  width:100%!important;
+  height:100%!important;
+  display:block!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  border-radius:inherit!important;
+  filter:none!important;
+  mix-blend-mode:normal!important;
+  opacity:1!important;
+}
+[data-workspace-theme='night'] .hours-v13-usage-list .hours-v13-logo.hours-company-logo-v41{
+  background:#F7F3EE!important;
+  border-color:#E3D7CE!important;
+}

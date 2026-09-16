@@ -1,0 +1,32 @@
+.data-loading{
+  min-height:52vh!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:13px!important;
+  font-size:0!important;
+  color:transparent!important;
+  background:transparent!important;
+}
+.data-loading svg{display:none!important;}
+.data-loading::before,.data-loading::after{
+  content:'';
+  display:block;
+  width:46px;
+  height:46px;
+  flex:0 0 46px;
+  border-radius:50%;
+  background-color:#5A1E2D;
+  background-image:url('/brand/cali-sidebar-pattern.webp');
+  background-size:220px auto;
+  box-shadow:0 8px 26px rgba(90,30,45,.13);
+  animation:cali-global-loading 1.35s ease-in-out infinite;
+}
+.data-loading::before{background-position:20% 32%;}
+.data-loading::after{background-position:76% 68%;animation-delay:.2s;}
+[data-workspace-theme='night'] .data-loading::before,
+[data-workspace-theme='night'] .data-loading::after{box-shadow:0 8px 30px rgba(0,0,0,.28);}
+@keyframes cali-global-loading{
+  0%,100%{transform:translateY(0) scale(.9);opacity:.42;}
+  50%{transform:translateY(-7px) scale(1);opacity:1;}
+}

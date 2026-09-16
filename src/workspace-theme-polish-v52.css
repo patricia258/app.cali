@@ -1,0 +1,173 @@
+/* CALI Workspace · V52 · ajustes finos de contraste, documentos do cliente e uso do dourado */
+
+/* 1) Cliente · Entregáveis · contador da frente legível no modo noite. */
+html[data-workspace-theme='night'] .client-roadmap-table-v33 .client-front-count-v33{
+  background:#E5C789!important;
+  border-color:#C79E58!important;
+  color:#35291F!important;
+  box-shadow:0 7px 18px rgba(0,0,0,.15)!important;
+}
+
+/* 2) Cliente · Documentos · mais respiro e uma conexão de Drive deliberadamente simples. */
+.client-documents-v3 .drive-banner{
+  display:grid!important;
+  grid-template-columns:48px minmax(0,1fr) auto!important;
+  gap:16px!important;
+  align-items:center!important;
+  margin:22px 0 24px!important;
+  padding:18px 20px!important;
+  border-radius:17px!important;
+}
+.client-documents-v3 .drive-banner.not-configured{opacity:1!important}
+.client-documents-v3 .drive-banner .drive-icon{
+  width:46px!important;
+  height:46px!important;
+  border-radius:14px!important;
+  display:grid!important;
+  place-items:center!important;
+  background:color-mix(in srgb,var(--theme-gold) 12%,var(--theme-surface))!important;
+  border:1px solid color-mix(in srgb,var(--theme-gold) 24%,var(--theme-line))!important;
+  color:var(--theme-gold)!important;
+}
+.client-documents-v3 .drive-banner>div:nth-child(2){display:grid!important;gap:4px!important;min-width:0!important}
+.client-documents-v3 .drive-banner strong{font-size:13px!important;line-height:1.3!important}
+.client-documents-v3 .drive-banner p{margin:0!important;max-width:790px!important;font-size:11.5px!important;line-height:1.5!important}
+.client-drive-kicker-v52{font-size:9px!important;font-weight:850!important;letter-spacing:.1em!important;color:var(--theme-gold)!important;text-transform:uppercase!important}
+.client-drive-actions-v52{display:flex!important;align-items:center!important;gap:9px!important;justify-content:flex-end!important;flex-wrap:wrap!important}
+.client-drive-action-v52{
+  min-height:40px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  padding:0 14px!important;
+  border-radius:11px!important;
+  border:1px solid #B58C52!important;
+  background:#B58C52!important;
+  color:#251C17!important;
+  font:inherit!important;
+  font-size:11px!important;
+  font-weight:850!important;
+  cursor:pointer!important;
+  box-shadow:0 7px 18px rgba(77,54,27,.10)!important;
+  white-space:nowrap!important;
+}
+.client-drive-action-v52:hover{filter:brightness(1.03)}
+.client-drive-action-v52:disabled{opacity:.62!important;cursor:wait!important}
+.client-documents-v3 .client-doc-toolbar-v3{margin-top:0!important;margin-bottom:18px!important}
+.client-documents-v3 .data-empty{margin-top:0!important}
+html[data-workspace-theme='night'] .client-documents-v3 .drive-banner{
+  background:#241C1F!important;
+  border-color:#4A383F!important;
+}
+html[data-workspace-theme='night'] .client-documents-v3 .drive-banner .drive-icon{
+  background:#33291F!important;
+  border-color:#614A2E!important;
+  color:#E2B96D!important;
+}
+html[data-workspace-theme='night'] .client-documents-v3 .drive-banner strong{color:#F7F3EE!important}
+html[data-workspace-theme='night'] .client-documents-v3 .drive-banner p{color:#BFAFAB!important}
+html[data-workspace-theme='night'] .client-documents-v3 .client-drive-kicker-v52{color:#E2B96D!important}
+html[data-workspace-theme='night'] .client-documents-v3 .client-drive-action-v52{
+  background:#D1A45F!important;
+  border-color:#D1A45F!important;
+  color:#241A13!important;
+}
+
+/* 3) Admin · Relatórios · o documento/editor permanece claro também no modo noite.
+   A regra global noturna não pode transformar a tipografia desse papel em branca. */
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-toolbar,
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-close,
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-section,
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-editor-section,
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-alert-section,
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-history{
+  background:#FFFDF9!important;
+  border-color:#E8E0DA!important;
+  color:#2B2B2B!important;
+}
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-internal{
+  background:#FAF7F4!important;
+  border-color:#E8E0DA!important;
+  color:#2B2B2B!important;
+}
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-toolbar>div:first-child strong{
+  color:#5A1E2D!important;
+}
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-toolbar>div:first-child span{
+  color:#756A64!important;
+}
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-close :where(h2,h3,h4,strong,b,dd,td,label){
+  color:#302B28!important;
+}
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-close :where(p,small,dt,th){
+  color:#80736C!important;
+}
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-section-heading>span{
+  color:#9B7A83!important;
+}
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-capacity-admin-numbers strong,
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-internal summary{
+  color:#5A1E2D!important;
+}
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-text-field textarea,
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-internal textarea{
+  background:#FFF!important;
+  border-color:#E2D9D3!important;
+  color:#2B2B2B!important;
+}
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-text-field textarea[readonly],
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-internal textarea[readonly]{
+  background:#F7F4F1!important;
+  color:#6D625C!important;
+}
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-simple-table,
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-identification dl,
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-capacity-admin-numbers,
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-check-list,
+html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-alert-list{
+  border-color:#EEE7E2!important;
+}
+
+/* 4) Admin · Calendário · Google Workspace usa o dourado CALI nos dois temas. */
+.calendar-workspace-strip{
+  background:
+    radial-gradient(circle at 8% 10%,rgba(255,255,255,.32),transparent 28%),
+    linear-gradient(135deg,#F3E4BB 0%,#E8CB8A 54%,#F5E8C8 100%)!important;
+  border-color:#C9A25F!important;
+  color:#342A22!important;
+  box-shadow:0 13px 30px rgba(83,59,29,.11)!important;
+}
+.calendar-workspace-strip .calendar-workspace-icon{
+  background:#5A1E2D!important;
+  color:#FFF!important;
+  border:1px solid rgba(90,30,45,.18)!important;
+}
+.calendar-workspace-strip strong{color:#342A22!important}
+.calendar-workspace-strip p{color:#655748!important}
+.calendar-workspace-strip .calendar-connection-status{
+  background:rgba(255,255,255,.48)!important;
+  border:1px solid rgba(90,30,45,.12)!important;
+  color:#5A1E2D!important;
+}
+.calendar-workspace-strip .calendar-connection-status.connected{color:#356448!important}
+.calendar-workspace-strip .google-calendar-runtime-detail{
+  color:#655748!important;
+}
+.calendar-workspace-strip .google-calendar-runtime-button{
+  background:rgba(255,253,249,.78)!important;
+  border-color:rgba(90,30,45,.22)!important;
+  color:#5A1E2D!important;
+  box-shadow:none!important;
+}
+.calendar-workspace-strip .google-calendar-runtime-button.primary{
+  background:#5A1E2D!important;
+  border-color:#5A1E2D!important;
+  color:#FFF!important;
+}
+.calendar-workspace-strip .google-calendar-runtime-button:hover{filter:brightness(1.02)!important}
+
+@media(max-width:760px){
+  .client-documents-v3 .drive-banner{grid-template-columns:44px minmax(0,1fr)!important;padding:16px!important}
+  .client-drive-actions-v52{grid-column:1/-1!important;justify-content:flex-start!important}
+}

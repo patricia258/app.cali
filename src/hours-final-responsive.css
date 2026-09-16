@@ -1,0 +1,22 @@
+/* CALI Workspace · Horas — fechamento responsivo */
+@media (max-width:1280px){
+  .global-timers-primary{max-width:min(610px,52vw);overflow-x:auto;scrollbar-width:none}
+  .global-timers-primary::-webkit-scrollbar{display:none}
+  .global-timers-primary .global-timer-chip:nth-child(3){display:flex!important}
+  .global-timer-copy{max-width:60px}
+}
+@media (max-width:980px){
+  .global-timers{max-width:min(520px,58vw)}
+  .global-timers-primary{max-width:100%;overflow-x:auto;scrollbar-width:none}
+  .global-timers-primary .global-timer-chip:nth-child(n+2){display:flex!important}
+  .global-timer-copy{display:none}
+  .global-timer-logo{display:grid}
+  .global-timer-chip{flex:0 0 auto}
+}
+@media (max-width:760px){
+  .global-timers{max-width:calc(100vw - 205px)}
+  .global-timers-primary{overflow-x:auto}
+  .global-timer-logo{display:none}
+  .global-timer-chip{flex:0 0 auto}
+  .global-timers-more{flex:0 0 auto}
+}
