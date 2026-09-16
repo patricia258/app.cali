@@ -46,7 +46,10 @@ function WorkspaceNavigationFallback() {
 
 function prefetchLikelyRoutes() {
   const path = window.location.pathname;
+  // Prefetch só depois do primeiro conteúdo estabilizar. Disparar isso em 250 ms
+  // competia com a renderização inicial e tornava a navegação visualmente fragmentada.
   const schedule = window.setTimeout(() => {
+    if (document.visibilityState !== 'visible') return;
     if (path.startsWith('/admin')) {
       void import('./pages/admin/AdminCalendarPage');
       void import('./pages/admin/AdminReportsPageV17');
@@ -64,7 +67,7 @@ function prefetchLikelyRoutes() {
       void import('./pages/client/ClientHoursPage');
       void import('./pages/client/ClientDeliverablesPage');
     }
-  }, 250);
+  }, 1800);
 
   return () => window.clearTimeout(schedule);
 }
