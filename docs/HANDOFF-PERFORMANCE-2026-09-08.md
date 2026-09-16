@@ -289,3 +289,22 @@ Validação do commit `ffd1fdb202d8f4b97ae58928bc4478a1c49b595d`:
 - produção não foi alterada.
 
 O build ainda sinaliza um chunk JavaScript compartilhado acima de 500 kB (**532,78 kB**). Isso ficou identificado como próximo alvo técnico, separado da consolidação visual de CSS, para não misturar duas frentes de risco na mesma mudança.
+
+
+### Quarta rodada — divisão do JavaScript compartilhado — 16/09/2026
+
+A Patrícia esclareceu que os previews desta auditoria estão sendo avaliados apenas pela velocidade de abertura e redução do carregamento em blocos. Eles **não representam aprovação visual final**. O baseline visual de produção continua sendo a única referência aprovada.
+
+Foi criado o PR [#47](https://github.com/patricia258/app.cali/pull/47), separado do PR de CSS, para dividir dependências compartilhadas no Vite/Rollup.
+
+Medição do build:
+
+- chunk compartilhado anterior: **532,78 kB** minificado / **151,72 kB gzip**;
+- após a divisão: entrada principal **124,83 kB** / **36,42 kB gzip**;
+- dependências passaram para chunks próprios: vendor **169,86 kB**, Supabase **220,90 kB**, ícones **41,31 kB**;
+- typecheck + build local: sucesso;
+- CI GitHub: em validação automática do PR;
+- preview Vercel: `READY`;
+- preview: https://app-cali-4cyqzwwtc-cali11.vercel.app.
+
+Esta alteração mexe somente na organização do carregamento dos bundles. Não altera componentes visuais, respostas, regras, dados, PDFs, Drive ou produção. O total transferido não desaparece; ele deixa de bloquear um único arquivo grande e passa a ser distribuído em chunks carregáveis em paralelo. A validação correta é comparar o tempo até o primeiro conteúdo útil e a navegação entre rotas.
