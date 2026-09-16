@@ -43,6 +43,7 @@ import './chat-night-standard-v42.css';
 import './workspace-theme-polish-v52.css';
 import './critical-fixes-v53.css';
 import './workspace-system-v61.css';
+import './global-timer.css';
 
 function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
   const location = useLocation();

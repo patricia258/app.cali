@@ -490,3 +490,32 @@ body[data-workspace-theme='night'] .external-products-topnav a {
 }
 
 /* Consolidated top-bar layout. */
+
+
+/* Workspace chrome permanece aberto durante a troca de rota enquanto o ponteiro continua sobre o menu. */
+@media (min-width: 861px) {
+  .sidebar.hovered {
+    position: fixed !important; inset: 0 auto 0 0 !important; width: var(--sidebar-open) !important;
+    height: 100dvh !important; min-height: 100dvh !important; max-height: 100dvh !important;
+    box-sizing: border-box !important; overflow: hidden !important; isolation: isolate !important;
+    background-color: #581b24 !important;
+    background-image: linear-gradient(rgba(88,27,36,.72),rgba(88,27,36,.72)),url('/brand/cali-sidebar-pattern.webp') !important;
+    background-repeat:no-repeat,no-repeat !important; background-position:center,center !important; background-size:cover,cover !important;
+  }
+  .app-shell:has(.sidebar.hovered) .main {
+    flex-basis: calc(100vw - var(--sidebar-open)) !important; width: calc(100vw - var(--sidebar-open)) !important;
+    max-width: calc(100vw - var(--sidebar-open)) !important; margin-left: var(--sidebar-open) !important;
+  }
+  .sidebar.hovered > * { position:relative !important; z-index:1 !important; }
+  .sidebar.hovered .brand-full { display:flex !important; width:100% !important; min-height:72px !important; height:72px !important; padding:2px 0 0 !important; align-items:center !important; justify-content:center !important; }
+  .sidebar.hovered .brand-compact-slide { display:none !important; }
+  .sidebar.hovered .brand-full img { display:block !important; width:min(146px,65%) !important; max-width:146px !important; max-height:62px !important; object-fit:contain !important; }
+  .sidebar.hovered .brand-full span { display:none !important; }
+  .sidebar.hovered .sidebar-pin { display:flex !important; visibility:visible !important; pointer-events:auto !important; min-height:36px !important; height:36px !important; margin:1px 14px 3px !important; padding:0 12px !important; border-radius:11px !important; }
+  .sidebar.hovered nav { position:static !important; display:grid !important; grid-template-columns:1fr !important; grid-auto-rows:40px !important; gap:1px !important; align-content:start !important; flex:1 1 auto !important; min-height:0 !important; margin:0 !important; padding:0 14px 4px !important; overflow-y:auto !important; overflow-x:hidden !important; }
+  .sidebar.hovered nav a { min-height:40px !important; height:40px !important; margin:0 !important; padding-top:0 !important; padding-bottom:0 !important; border-radius:11px !important; display:flex !important; align-items:center !important; justify-content:flex-start !important; gap:12px !important; }
+  .sidebar.hovered nav a svg { display:block !important; width:17px !important; height:17px !important; flex:0 0 17px !important; margin:0 !important; }
+  .sidebar.hovered nav .nav-label { display:block !important; font-size:14px !important; line-height:1.08 !important; }
+  .sidebar.hovered .sidebar-footer-profile-only { position:static !important; display:block !important; width:100% !important; min-height:62px !important; margin-top:auto !important; padding:6px 14px 7px !important; opacity:1 !important; visibility:visible !important; overflow:visible !important; }
+  .sidebar.hovered .profile-copy, .sidebar.hovered .profile-edit-chevron { display:block !important; opacity:1 !important; visibility:visible !important; }
+}
