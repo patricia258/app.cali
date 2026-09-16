@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Cloud, ExternalLink, Eye, FileCheck2, FileText, Loader2, MessageSquare, Search, Send, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
@@ -16,6 +16,7 @@ type ClientDoc = {
   storagePath?: string;
   driveUrl?: string;
   coverUrl?: string;
+  coverStoragePath?: string;
   requiresAcknowledgement: boolean;
   description?: string | null;
   validUntil?: string | null;
@@ -68,6 +69,7 @@ export function ClientDocumentsPage() {
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [comment, setComment] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
+  const documentsLoadSequence = useRef(0);
 
   const categories = useMemo(() => Array.from(new Set(documents.map((doc) => doc.category))), [documents]);
   const filtered = useMemo(() => documents.filter((doc) => {
@@ -95,6 +97,7 @@ export function ClientDocumentsPage() {
 
   async function loadDocuments() {
     if (!supabase) return;
+    const loadSequence = ++documentsLoadSequence.current;
     setLoading(true);
     setError('');
     const [filesResult, ackResult, driveStatusResult] = await Promise.all([
@@ -107,7 +110,7 @@ export function ClientDocumentsPage() {
       setLoading(false);
       return;
     }
-    const rows = await Promise.all((filesResult.data ?? []).map(async (item) => ({
+    const rows = (filesResult.data ?? []).map((item) => ({
       id: item.id,
       companyId: item.company_id,
       title: item.title,
@@ -118,12 +121,19 @@ export function ClientDocumentsPage() {
       protocol: item.protocol || '—',
       storagePath: item.storage_path || undefined,
       driveUrl: item.drive_url || undefined,
-      coverUrl: await resolveCover(item.cover_storage_path),
+      coverUrl: '',
+      coverStoragePath: item.cover_storage_path || undefined,
       requiresAcknowledgement: Boolean(item.requires_acknowledgement),
       description: item.description,
       validUntil: item.valid_until,
-    })));
+    }));
     setDocuments(rows);
+    void Promise.all(rows.filter((doc) => doc.coverStoragePath).map(async (doc) => [doc.id, await resolveCover(doc.coverStoragePath)] as const))
+      .then((coverRows) => {
+        if (loadSequence !== documentsLoadSequence.current) return;
+        const coverMap = new Map(coverRows);
+        setDocuments((current) => current.map((doc) => ({ ...doc, coverUrl: coverMap.get(doc.id) || doc.coverUrl })));
+      });
     setAcknowledged((ackResult.data ?? []).filter((item) => item.acknowledged_at).map((item) => item.file_id));
 
     const driveData = driveStatusResult.data;
@@ -297,7 +307,7 @@ export function ClientDocumentsPage() {
             const syncLocked = syncState?.status === 'pending' || syncState?.status === 'processing';
             return (
               <article className="document-card document-card-v2" key={doc.id}>
-                <div className="document-card-cover">{doc.coverUrl ? <img src={doc.coverUrl} alt="" /> : <div><FileText size={31} /><span>{doc.kind}</span></div>}</div>
+                <div className="document-card-cover">{doc.coverUrl ? <img src={doc.coverUrl} alt="" loading="lazy" decoding="async" /> : <div><FileText size={31} /><span>{doc.kind}</span></div>}</div>
                 <div className="document-card-body">
                   <div className="document-card-tags"><span>{categoryLabel(doc.category)}</span><span>{doc.kind}</span>{isAcknowledged && <span className="ack-tag"><CheckCircle2 size={13} />Ciência registrada</span>}</div>
                   <h2>{doc.title}</h2>
