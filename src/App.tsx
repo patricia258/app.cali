@@ -15,23 +15,44 @@ const AdminProposalEditorPageV3 = lazy(() => import('./pages/admin/AdminProposal
 const AdminProposalPreviewPageV3 = lazy(() => import('./pages/admin/AdminProposalPreviewPageV3').then((m) => ({ default: m.AdminProposalPreviewPageV3 })));
 const AdminProjectsGatePage = lazy(() => import('./pages/admin/AdminProjectsGatePage').then((m) => ({ default: m.AdminProjectsGatePage })));
 const AdminHoursPageV3 = lazy(() => import('./pages/admin/AdminHoursPageV3').then((m) => ({ default: m.AdminHoursPageV3 })));
-const AdminCalendarPage = lazy(() => import('./pages/admin/AdminCalendarPage').then((m) => ({ default: m.AdminCalendarPage })));
+const AdminCalendarPage = lazy(async () => {
+  await import('./styles/routes/calendar');
+  return import('./pages/admin/AdminCalendarPage').then((m) => ({ default: m.AdminCalendarPage }));
+});
 const AdminDocumentsPageV4 = lazy(() => import('./pages/admin/AdminDocumentsPageV4').then((m) => ({ default: m.AdminDocumentsPageV4 })));
-const AdminReportsPageV17 = lazy(() => import('./pages/admin/AdminReportsPageV17').then((m) => ({ default: m.AdminReportsPageV17 })));
-const AdminSatisfactionPage = lazy(() => import('./pages/admin/AdminSatisfactionPage').then((m) => ({ default: m.AdminSatisfactionPage })));
+const AdminReportsPageV17 = lazy(async () => {
+  await import('./styles/routes/reports');
+  return import('./pages/admin/AdminReportsPageV17').then((m) => ({ default: m.AdminReportsPageV17 }));
+});
+const AdminSatisfactionPage = lazy(async () => {
+  await import('./styles/routes/satisfaction');
+  return import('./pages/admin/AdminSatisfactionPage').then((m) => ({ default: m.AdminSatisfactionPage }));
+});
 const AdminPeopleMapPageV2 = lazy(() => import('./pages/admin/AdminPeopleMapPageV2').then((m) => ({ default: m.AdminPeopleMapPageV2 })));
 const AdminPeopleMapReviewPage = lazy(() => import('./pages/admin/AdminPeopleMapReviewPage').then((m) => ({ default: m.AdminPeopleMapReviewPage })));
 const AdminPeopleMapReportPage = lazy(() => import('./pages/admin/AdminPeopleMapReportPage').then((m) => ({ default: m.AdminPeopleMapReportPage })));
 
-const AdminRecordsPage = lazy(() => import('./pages/records/WorkspaceRecordsPage').then((m) => ({ default: m.AdminRecordsPage })));
-const ClientRecordsPage = lazy(() => import('./pages/records/WorkspaceRecordsPage').then((m) => ({ default: m.ClientRecordsPage })));
+const AdminRecordsPage = lazy(async () => {
+  await import('./styles/routes/records');
+  return import('./pages/records/WorkspaceRecordsPage').then((m) => ({ default: m.AdminRecordsPage }));
+});
+const ClientRecordsPage = lazy(async () => {
+  await import('./styles/routes/records');
+  return import('./pages/records/WorkspaceRecordsPage').then((m) => ({ default: m.ClientRecordsPage }));
+});
 const ClientDashboard = lazy(() => import('./pages/client/ClientDashboard').then((m) => ({ default: m.ClientDashboard })));
 const ClientTimelinePage = lazy(() => import('./pages/client/ClientTimelinePage').then((m) => ({ default: m.ClientTimelinePage })));
-const ClientDeliverablesPage = lazy(() => import('./pages/client/ClientDeliverablesPage').then((m) => ({ default: m.ClientDeliverablesPage })));
+const ClientDeliverablesPage = lazy(async () => {
+  await import('./styles/routes/clientDeliverables');
+  return import('./pages/client/ClientDeliverablesPage').then((m) => ({ default: m.ClientDeliverablesPage }));
+});
 const ClientHoursPage = lazy(() => import('./pages/client/ClientHoursPage').then((m) => ({ default: m.ClientHoursPage })));
 const ClientDocumentsPage = lazy(() => import('./pages/client/ClientDocumentsPage').then((m) => ({ default: m.ClientDocumentsPage })));
 const ClientReportsPageV5 = lazy(() => import('./pages/client/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 })));
-const ReportPrintPageV17 = lazy(() => import('./pages/reports/ReportPrintPageV17').then((m) => ({ default: m.ReportPrintPageV17 })));
+const ReportPrintPageV17 = lazy(async () => {
+  await import('./styles/routes/reports');
+  return import('./pages/reports/ReportPrintPageV17').then((m) => ({ default: m.ReportPrintPageV17 }));
+});
 
 function WorkspaceNavigationFallback() {
   const { pathname } = useLocation();
