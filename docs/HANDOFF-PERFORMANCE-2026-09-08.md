@@ -323,3 +323,116 @@ Validação local da branch `improvement/runtime-lifecycle-cleanup-2026-09-16`:
 - alerta antigo de importação estática/dinâmica do runtime de logo continua identificado, sem impacto no build.
 
 Próximo passo seguro: validar o preview nos fluxos Administrador e Cliente, navegando entre Projetos, Calendário, Documentos e Relatórios e observando se não há reaplicação tardia de blocos. Só depois dessa validação será avaliada a retirada de versões históricas realmente não usadas.
+
+
+## Plano oficial de execução — registrado em 16/09/2026
+
+### Objetivo desta retomada
+
+Aplicar, no aplicativo real, os ganhos de performance que já foram testados no preview, mantendo o commit estável como referência e sem tratar o teste de velocidade como aprovação visual final.
+
+A Patrícia confirmou que:
+
+- o aplicativo de Horas está funcionando com tarefa/timer em execução;
+- o teste de navegação não apresentou tela branca nem erro recorrente;
+- o carregamento em blocos ficou quase imperceptível;
+- páginas vazias ou com mocks não permitem validar completamente os fluxos de negócio;
+- a próxima etapa é levar os ganhos de carregamento para a aplicação real, com cuidado para não interromper timer, persistência, permissões ou dados reais.
+
+### Ordem obrigatória, sem acumular tarefas
+
+**Passo 1 — proteger a base real**
+
+- Confirmar o commit/deploy estável antes de cada mudança.
+- Não trabalhar diretamente acumulando commits na `main` local.
+- Criar uma branch única por melhoria.
+- Manter o domínio oficial intacto até o preview passar.
+- Registrar no PR o que foi alterado, o que não foi alterado e o roteiro de teste.
+
+**Passo 2 — aplicar os ganhos de carregamento na aplicação real**
+
+- Levar para as rotas reais de Administrador e Cliente apenas as otimizações já validadas: carregamento por rota, controle do ciclo de vida dos runtimes e redução do carregamento inicial.
+- Priorizar Documentos/imagens, Projetos, Calendário, Ocorrências, NPS e Relatórios.
+- Preservar o shell, sidebar, top bar, timer, sessão, dados, permissões e respostas atuais.
+- Não fazer limpeza ampla de arquivos históricos nesta mesma entrega.
+
+**Passo 3 — validar o que realmente importa**
+
+O teste deve ser feito em preview com dados reais, quando disponíveis, nos dois perfis:
+
+- Administrador;
+- Cliente;
+- navegação entre as páginas;
+- atualização completa da página;
+- timer em execução;
+- imagens e documentos;
+- tema claro e noite;
+- desktop e mobile;
+- console e rede sem erros novos.
+
+O resultado esperado é a mesma aplicação funcionando, com menos surgimento tardio de blocos, imagens e elementos. Não é esperado alterar conteúdo, regras ou aparência aprovada.
+
+**Passo 4 — separar melhoria visual da correção técnica**
+
+Depois que a estabilidade da aplicação real estiver confirmada, será criada uma frente independente de UX/UI. Essa frente poderá testar:
+
+- skeleton loaders;
+- toasts;
+- transições suaves;
+- microinterações;
+- espaçamento e hierarquia;
+- componentes reutilizáveis;
+- melhorias inspiradas em padrões SaaS modernos.
+
+Nenhum componente novo será instalado ou aplicado globalmente sem verificar compatibilidade com a stack atual. Shadcn/UI, Tailwind, Framer Motion e Sonner são possibilidades, não decisões já aprovadas.
+
+**Passo 5 — publicar somente após aprovação da etapa**
+
+- Um PR por etapa.
+- Um preview por PR.
+- A Patrícia testa a etapa específica.
+- Só depois da confirmação, fazer merge/deploy.
+- Não abrir vários PRs de teste em paralelo.
+- Não criar commits de “experimento” na branch principal.
+
+### Regras de autorização
+
+É permitido:
+
+- corrigir problemas técnicos comprovados;
+- aplicar otimizações que preservem o resultado visual e funcional;
+- criar testes de UX/UI em preview;
+- melhorar estados de carregamento, feedback e transições depois da estabilidade;
+- registrar medições antes/depois;
+- atualizar este handoff.
+
+Não é permitido sem autorização específica:
+
+- alterar PDFs, gerador de relatórios, respostas, timer, persistência, permissões ou regras comerciais;
+- conectar Google Drive nesta fase;
+- publicar no domínio oficial sem aprovação da etapa;
+- apagar versões, CSS ou runtimes em massa;
+- substituir a identidade visual CALI;
+- considerar aprovação visual a partir de um teste apenas de velocidade;
+- usar dados vazios/mocks como prova de que um fluxo real está correto;
+- criar vários commits locais acumulados ou misturar tarefas diferentes no mesmo PR.
+
+### Sobre os testes externos
+
+Testes externos de design/UX/UI servem para experimentar melhorias visuais e de interação. Eles não substituem a validação do código real e não devem ser usados para diagnosticar ou alterar a aplicação oficial por suposição.
+
+A análise de referências como 21st.dev deve orientar padrões de experiência, não impor uma troca automática de stack.
+
+### Critério de conclusão desta retomada
+
+A etapa será considerada concluída quando os ganhos testados no preview estiverem aplicados em uma única entrega controlada para a aplicação real, com:
+
+- navegação Administrador e Cliente validada;
+- timer preservado em execução;
+- documentos e imagens carregando sem bloquear o início da tela;
+- ausência de tela branca e erros novos;
+- build/CI aprovados;
+- métricas de CSS/JS registradas;
+- produção somente atualizada após aprovação da Patrícia.
+
+**Regra soberana desta data:** primeiro estabilizar e aplicar na aplicação real o que já foi testado; depois evoluir UX/UI em etapas separadas. Nenhuma melhoria visual será confundida com aprovação funcional, e nenhum teste será transformado em uma sequência de commits acumulados.
