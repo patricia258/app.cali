@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Archive, CheckCircle2, Cloud, ExternalLink, Eye, FileCheck2, FileClock, FileText,
   FolderOpen, ImagePlus, Layers3, Link2, Loader2, MessageSquare, Plus, Search, Send,
@@ -128,6 +128,7 @@ export function AdminDocumentsPageV4() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const documentsLoadSequence = useRef(0);
 
   const [search, setSearch] = useState('');
   const [companyFilter, setCompanyFilter] = useState('all');
@@ -191,6 +192,7 @@ export function AdminDocumentsPageV4() {
 
   async function loadDocuments() {
     if (!supabase) return;
+    const loadSequence = ++documentsLoadSequence.current;
     setLoading(true);
     setError('');
     try {
@@ -246,9 +248,14 @@ export function AdminDocumentsPageV4() {
           views: ack.views, acknowledgements: ack.acknowledgements, expectedAcknowledgements: expectedByCompany.get(row.company_id) || 0, comments: commentsByFile.get(row.id) || 0,
         };
       });
-      const coverRows=await Promise.all(rows.map(async (doc) => [doc.id, await resolveCover(doc.coverStoragePath)] as const));
-      const coverMap=new Map(coverRows);
-      setDocs(rows.map((doc)=>({...doc,coverUrl:coverMap.get(doc.id)||doc.coverUrl})));
+      // Capas são mídia complementar. Não podem bloquear a montagem da biblioteca.
+      setDocs(rows);
+      void Promise.all(rows.filter((doc) => doc.coverStoragePath).map(async (doc) => [doc.id, await resolveCover(doc.coverStoragePath)] as const))
+        .then((coverRows) => {
+          if (loadSequence !== documentsLoadSequence.current) return;
+          const coverMap = new Map(coverRows);
+          setDocs((current) => current.map((doc) => ({ ...doc, coverUrl: coverMap.get(doc.id) || doc.coverUrl })));
+        });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar a biblioteca.');
     } finally { setLoading(false); }
@@ -437,11 +444,11 @@ export function AdminDocumentsPageV4() {
             const pending = Math.max(0, doc.expectedAcknowledgements - doc.acknowledgements);
             const needsFile = doc.workflowStage === 'preparation' || doc.workflowStage === 'awaiting_final_file';
             return <article className={`document-library-card-v3 status-${doc.status} stage-${doc.workflowStage}`} key={doc.id}>
-              <div className={`document-card-preview-v3 ${doc.coverUrl ? 'has-cover' : ''}`}>{doc.coverUrl ? <img src={doc.coverUrl} alt="" /> : <div><FileText size={34} /><span>{doc.kind}</span></div>}<span className={`document-status-flag-v3 ${doc.workflowStage}`}>{stageLabel(doc.workflowStage)}</span></div>
+              <div className={`document-card-preview-v3 ${doc.coverUrl ? 'has-cover' : ''}`}>{doc.coverUrl ? <img src={doc.coverUrl} alt="" loading="lazy" decoding="async" /> : <div><FileText size={34} /><span>{doc.kind}</span></div>}<span className={`document-status-flag-v3 ${doc.workflowStage}`}>{stageLabel(doc.workflowStage)}</span></div>
               <div className="document-card-content-v3">
                 <div className="document-card-tags-v3"><span>{categoryLabel(doc.category)}</span><span>{doc.version}</span><span>{sourceLabel(doc.sourceType)}</span></div>
                 <h2>{doc.title}</h2>
-                <div className="document-client-line-v3"><span className="document-client-logo-v3">{doc.companyLogo ? <img src={doc.companyLogo} alt="" /> : <span>{doc.company.slice(0, 1).toUpperCase()}</span>}</span><div><strong>{doc.company}</strong><small>{doc.project || 'Sem projeto'}{doc.deliverable ? ` · ${doc.deliverable}` : ''}</small></div></div>
+                <div className="document-client-line-v3"><span className="document-client-logo-v3">{doc.companyLogo ? <img src={doc.companyLogo} alt="" loading="lazy" decoding="async" /> : <span>{doc.company.slice(0, 1).toUpperCase()}</span>}</span><div><strong>{doc.company}</strong><small>{doc.project || 'Sem projeto'}{doc.deliverable ? ` · ${doc.deliverable}` : ''}</small></div></div>
                 <span className="document-protocol-v3">{doc.protocol}</span>
                 <span className={`document-validity-v4 ${doc.validUntil ? '' : 'not-defined'}`}>{doc.validUntil ? `Validade / revisão: ${doc.validUntil.split('-').reverse().join('/')}` : 'Validade / revisão: não definida'}</span>
                 <div className="document-card-metrics-v3"><span><Eye size={14} />{doc.views} visualizaç{doc.views === 1 ? 'ão' : 'ões'}</span>{doc.requiresAcknowledgement && <span className={pending > 0 ? 'pending' : 'done'}><ShieldCheck size={14} />{doc.acknowledgements}{doc.expectedAcknowledgements ? `/${doc.expectedAcknowledgements}` : ''} ciências</span>}<span><MessageSquare size={14} />{doc.comments}</span></div>
