@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle, BookOpenText, CalendarDays, CheckCircle2, ChevronRight, FileText, Filter,
-  MessageCircle, MessageSquareText, Pencil, Plus, Search, Send, Trash2, X,
+  MessageCircle, Pencil, Plus, Search, Send, Trash2, X,
 } from 'lucide-react';
 import { Shell, type Role } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
@@ -522,6 +522,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
           <span>Atualizado {formatDateTime(selected.lastActivityAt || selected.occurredAt)}</span>
           {selected.requiresAction && role === 'admin' && <strong>Ação necessária</strong>}
         </div>
+        <section className="records-v25-ops" aria-label="Resumo do atendimento" />
 
         {role === 'client' && selected.workflowStatus === 'completed' && (feedbackThanks || !feedbackByRecord[selected.id]) && <div className="records-v27-feedback-overlay">
           <section className="records-v27-feedback-card">
@@ -548,17 +549,10 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
         </div>}
 
         {selected.workflowStatus ? <div className="records-v13-conversation">
-          <div className="conversation-history">
-            {messages.length === 0 ? <div className="conversation-empty"><MessageSquareText size={24} /><span>A conversa começa aqui.</span></div> : messages.map((message) => {
-              const mine = message.authorRole === role;
-              const internal = message.visibility === 'internal';
-              const author = mine ? 'Você' : message.authorRole === 'admin' ? 'Patrícia · CALI' : message.authorRole === 'client' ? 'Cliente' : 'Sistema';
-              return <div className={`conversation-line ${mine ? 'mine' : ''} ${internal ? 'internal' : ''}`} key={message.id}>
-                <div className="conversation-bubble"><strong>{internal ? `${author} · nota interna` : author}</strong><p>{message.body}</p><small>{formatDateTime(message.createdAt)}</small></div>
-              </div>;
-            })}
-          </div>
+          <div className="conversation-history" aria-live="polite" />
           {!clientConversationLocked && !['completed', 'cancelled'].includes(selected.workflowStatus) && <div className="conversation-compose">
+            <div className="records-chat-runtime-pending-host" />
+            <div className="records-chat-runtime-tools-host" />
             <textarea rows={3} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder={role === 'admin' ? 'Responder ao cliente…' : 'Responder à Patrícia…'} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} />
             <button className="primary" type="button" disabled={sendingMessage || !messageDraft.trim()} onClick={() => void sendMessage()}><Send size={16} />{sendingMessage ? 'Enviando…' : 'Enviar'}</button>
           </div>}
