@@ -140,10 +140,10 @@ export function DirectProfileControl({role}:{role:Role}){
         <div className="form-grid profile-form-grid"><label className="stacked-label wide">Nome<input value={draft.full_name} onChange={(event)=>setDraft((current)=>({...current,full_name:event.target.value}))}/></label><label className="stacked-label">Cargo / função<input value={draft.job_title} onChange={(event)=>setDraft((current)=>({...current,job_title:event.target.value}))}/></label><label className="stacked-label">Telefone<input value={draft.phone} onChange={(event)=>setDraft((current)=>({...current,phone:event.target.value}))}/></label><label className="stacked-label"><span className="label-with-icon"><MessageCircle size={15}/>WhatsApp</span><input value={draft.whatsapp} onChange={(event)=>setDraft((current)=>({...current,whatsapp:event.target.value}))}/></label><label className="stacked-label"><span className="label-with-icon"><Linkedin size={15}/>LinkedIn</span><input value={draft.linkedin_url} onChange={(event)=>setDraft((current)=>({...current,linkedin_url:event.target.value}))}/></label><label className="stacked-label"><span className="label-with-icon"><Instagram size={15}/>Instagram</span><input value={draft.instagram_url} onChange={(event)=>setDraft((current)=>({...current,instagram_url:event.target.value}))}/></label><label className="stacked-label wide"><span className="label-with-icon"><Mail size={15}/>E-mail</span><input value={draft.email} disabled/></label></div>
 
         <section className="profile-signature-v55 profile-signature-v56 profile-signature-v59">
-          <div className="profile-signature-heading-v55"><div><span>ASSINATURA</span><h3>Assinatura para registros</h3><p>Escolha uma assinatura profissional pelo seu nome ou envie a sua própria imagem.</p></div><PenLine size={21}/></div>
+          <div className="profile-signature-heading-v55"><div><span>ASSINATURA</span><h3>Assinatura</h3><p>Use seu nome ou envie uma imagem própria.</p></div><PenLine size={21}/></div>
           <div className="profile-signature-source-v59">
-            <button type="button" className={draft.signature_mode==='generated'?'active':''} onClick={()=>{setDraft((current)=>({...current,signature_mode:'generated'}));setSignatureMenuOpen(false);}}>Gerar pelo meu nome</button>
-            <label className={draft.signature_mode==='uploaded'?'active':''}><Upload size={15}/>Enviar minha assinatura<input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleSignature}/></label>
+            <button type="button" className={draft.signature_mode==='generated'?'active':''} onClick={()=>{setDraft((current)=>({...current,signature_mode:'generated'}));setSignatureMenuOpen(false);}}>Usar meu nome</button>
+            <label className={draft.signature_mode==='uploaded'?'active':''}><Upload size={14}/>Enviar imagem<input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleSignature}/></label>
           </div>
           {draft.signature_mode==='generated'?<div className="profile-signature-select-v59">
             <span className="profile-signature-field-label-v59">Estilo da assinatura</span>
@@ -165,7 +165,7 @@ export function DirectProfileControl({role}:{role:Role}){
 
         <div className="profile-live-actions">{(draft.whatsapp||draft.phone)?<a className="secondary" href={whatsappUrl(draft.whatsapp||draft.phone)} target="_blank" rel="noreferrer"><MessageCircle size={16}/>Abrir WhatsApp</a>:null}{draft.phone?<a className="secondary" href={`tel:${draft.phone.replace(/[^+\d]/g,'')}`}><Phone size={16}/>Ligar</a>:null}</div>
         {message?<div className="form-message">{message}</div>:null}
-        <div className="modal-actions"><button type="button" className="profile-secondary-v56" onClick={()=>setModalOpen(false)}>Cancelar</button><button type="button" className="profile-primary-v56" onClick={saveProfile} disabled={saving}>{saving?<Loader2 size={17} className="spin"/>:<Check size={17}/>} {saving?'Salvando…':'Salvar perfil'}</button></div>
+        <div className="modal-actions"><button type="button" className="profile-secondary-v56" onClick={()=>setModalOpen(false)}>Fechar</button><button type="button" className="profile-primary-v56" onClick={saveProfile} disabled={saving}>{saving?<Loader2 size={17} className="spin"/>:<Check size={17}/>} {saving?'Salvando…':'Salvar alterações'}</button></div>
       </section>
     </div>:null}
   </>;

@@ -457,11 +457,14 @@ export function AdminCalendarPage() {
   return (
     <Shell role="admin">
       <section className="page calendar-page-v2">
-        <div className="eyebrow">AGENDA DE EXECUÇÃO</div>
         <div className="page-heading calendar-page-heading">
-          <div>
-            <h1>Calendário</h1>
-            <p>Reuniões, validações, compromissos e prazos conectados ao trabalho. Prazos de entregáveis entram automaticamente na agenda.</p>
+          <div className="workspace-page-identity">
+            <span className="workspace-page-icon" aria-hidden="true"><CalendarDays size={27} /></span>
+            <div className="workspace-page-copy">
+              <span className="workspace-page-kicker">AGENDA & PRAZOS</span>
+              <h1>Calendário</h1>
+              <p>Reuniões, validações, compromissos e prazos conectados ao trabalho. Prazos de entregáveis entram automaticamente na agenda.</p>
+            </div>
           </div>
           <button className="primary compact-action" onClick={() => openCreateForDate()}><Plus size={17} />Novo evento</button>
         </div>

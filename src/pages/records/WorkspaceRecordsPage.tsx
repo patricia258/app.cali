@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  AlertTriangle, CalendarDays, CheckCircle2, ChevronRight, FileText, Filter,
+  AlertTriangle, BookOpenText, CalendarDays, CheckCircle2, ChevronRight, FileText, Filter,
   MessageCircle, MessageSquareText, Pencil, Plus, Search, Send, Trash2, X,
 } from 'lucide-react';
 import { Shell, type Role } from '../../components/WorkspaceShell';
@@ -477,12 +477,15 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   return <Shell role={role}>
     <section className="page records-v13">
       <header className="records-v13-heading">
-        <div>
-          <span className="eyebrow">{role === 'admin' ? 'ACOMPANHAMENTO DA CONTA' : 'CANAL COM A CALI'}</span>
-          <h1>{role === 'admin' ? 'Registros e solicitações' : 'Ocorrências e solicitações'}</h1>
-          <p>{role === 'admin'
-            ? 'Acompanhe solicitações, conversas e fatos relevantes da conta. O histórico operacional permanece separado da memória consultiva que alimenta relatórios.'
-            : 'Registre uma situação, faça uma solicitação e acompanhe a conversa com a Patrícia sem perder o histórico.'}</p>
+        <div className="workspace-page-identity">
+          <span className="workspace-page-icon" aria-hidden="true"><BookOpenText size={27} /></span>
+          <div className="workspace-page-copy">
+            <span className="workspace-page-kicker">{role === 'admin' ? 'ACOMPANHAMENTO DA CONTA' : 'CANAL COM A CALI'}</span>
+            <h1>{role === 'admin' ? 'Registros e solicitações' : 'Ocorrências e solicitações'}</h1>
+            <p>{role === 'admin'
+              ? 'Acompanhe solicitações, conversas e fatos relevantes da conta. O histórico operacional permanece separado da memória consultiva que alimenta relatórios.'
+              : 'Registre uma situação, faça uma solicitação e acompanhe a conversa com a Patrícia sem perder o histórico.'}</p>
+          </div>
         </div>
         <button className="primary" type="button" onClick={openNew}><Plus size={17} />{role === 'admin' ? 'Novo registro' : 'Nova solicitação'}</button>
       </header>
