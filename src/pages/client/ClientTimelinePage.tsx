@@ -279,13 +279,14 @@ export function ClientTimelinePage() {
 
   return (
     <Shell role="client">
-      <section className="page client-timeline-v2 client-timeline-v3">
-        <div className="eyebrow">PLANEJAMENTO COMPARTILHADO</div>
+      <section className="page client-timeline-v2 client-timeline-v3 client-timeline-v4">
         <div className="page-heading client-timeline-heading">
-          <div>
+          <div className="client-timeline-heading-copy">
+            <div className="eyebrow">PLANEJAMENTO COMPARTILHADO</div>
             <h1>Agenda e próximos passos</h1>
             <p>Reuniões, validações e prazos publicados pela CALI para a sua empresa, em uma única leitura.</p>
           </div>
+          <div className="client-timeline-heading-mark" aria-hidden="true"><CalendarDays size={27} /></div>
         </div>
 
         <ClientGoogleCalendarPanel />
