@@ -1,5 +1,8 @@
+Warning: truncated output (original token count: 52042)
+Total output lines: 4078
+
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Eye, FileText, Loader2, Mail, Printer, RefreshCw, RotateCcw, Send, Trash2, X } from 'lucide-react';
+import { AlertTriangle, BarChart3, CheckCircle2, Eye, FileText, Loader2, Mail, Printer, RefreshCw, RotateCcw, Send, Trash2, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { ExecutiveReportPaperV17 } from '../../components/reports/ExecutiveReportPaperV17';
 import { ReportManualComplementsPanel } from '../../components/reports/ReportManualComplementsPanel';
@@ -364,7 +367,7 @@ export function AdminReportsPageV17() {
   </>;
 
   return <Shell role="admin"><section className="page reports-admin-v16">
-    <header className="reports-v16-heading"><div><span className="eyebrow">FECHAMENTO EXECUTIVO</span><h1>Relatórios</h1><p>Os fatos vêm do Workspace. O relatório só nasce quando você cria o fechamento e seleciona o que merece virar decisão executiva.</p></div><div className="reports-v16-filters"><label>Cliente<select value={companyId} onChange={(event) => setCompanyId(event.target.value)}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label><label>Tipo<select value={reportType} onChange={(event) => changeType(event.target.value as ReportType)}><option value="monthly">Mensal</option><option value="quarterly">Trimestral</option></select></label>{reportType === 'monthly' ? <label>Período<input type="month" value={periodStart.slice(0, 7)} onChange={(event) => changeMonth(event.target.value)} /></label> : <label>Período<select value={quarterKey(periodStart)} onChange={(event) => changeQuarter(event.target.value)}>{quarters.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>}</div></header>
+    <header className="reports-v16-heading"><div className="workspace-page-identity"><span className="workspace-page-icon" aria-hidden="true"><BarChart3 size={27} /></span><div className="workspace-page-copy"><span className="workspace-page-kicker">FECHAMENTO EXECUTIVO</span><h1>Relatórios</h1><p>Os fatos vêm do Workspace. O relatório só nasce quando você cria o fechamento e seleciona o que merece virar decisão executiva.</p></div></div><div className="reports-v16-filters"><label>Cliente<select value={companyId} onChange={(event) => setCompanyId(event.target.value)}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label><label>Tipo<select value={reportType} onChange={(event) => changeType(event.target.value as ReportType)}><option value="monthly">Mensal</option><option value="quarterly">Trimestral</option></select></label>{reportType === 'monthly' ? <label>Período<input type="month" value={periodStart.slice(0, 7)} onChange={(event) => changeMonth(event.target.value)} /></label> : <label>Período<select value={quarterKey(periodStart)} onChange={(event) => changeQuarter(event.target.value)}>{quarters.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>}</div></header>
     {notice ? <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div> : null}{error ? <div className="inline-notice"><AlertTriangle size={18} />{error}</div> : null}
 
     {loadingPeriod ? <div className="panel data-loading"><Loader2 className="spin" size={20} />Lendo {periodName}…</div> : snapshot && selectedCompany ? <>
