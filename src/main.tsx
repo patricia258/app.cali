@@ -45,6 +45,7 @@ import './critical-fixes-v53.css';
 import './workspace-system-v61.css';
 import './global-timer.css';
 import './uxui-shell-dashboard-preview.css';
+import './workspace-conversations-responsive-v63.css';
 
 function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
   return <AppErrorBoundary>{children}</AppErrorBoundary>;
