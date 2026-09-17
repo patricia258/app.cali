@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { resolveWorkspaceMedia } from './workspaceMedia';
 
 type ProfileMedia = {
   id?: string | null;
@@ -43,7 +44,6 @@ let profileLoading = false;
 let profilesLoaded = false;
 let tooltipTimer = 0;
 let tooltipSequence = 0;
-const signedMediaCache = new Map<string, string>();
 
 function normalize(value = '') {
   return value
@@ -66,15 +66,7 @@ function mediaKey(value?: string | null) {
 }
 
 async function resolvePrivateMedia(raw?: string | null) {
-  if (!raw || !supabase || !raw.startsWith('private:')) return raw || '';
-  const cached = signedMediaCache.get(raw);
-  if (cached) return cached;
-  const { data, error } = await supabase.storage
-    .from('cali-workspace-private')
-    .createSignedUrl(raw.slice('private:'.length), 3600);
-  if (error || !data?.signedUrl) return '';
-  signedMediaCache.set(raw, data.signedUrl);
-  return data.signedUrl;
+  return resolveWorkspaceMedia(raw);
 }
 
 function readAdminProfile(): ProfileMedia {

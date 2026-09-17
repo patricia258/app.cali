@@ -7,7 +7,7 @@
 html[data-workspace-theme='night'] .dashboard-empty{border-color:rgba(245,231,221,.18);color:var(--theme-muted,#cdbdc0)}
 @media (max-width:680px){.admin-overview-page .nps-chart-panel .dashboard-empty{min-height:150px}.admin-overview-page .agenda-head-actions{flex-wrap:wrap}.admin-overview-page .agenda-head-actions>a{width:100%}}
 
-.overview-export-backdrop{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:24px;background:rgba(34,22,26,.72);backdrop-filter:blur(8px)}
+.overview-export-backdrop{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:24px;background:rgba(34,22,26,.72);backdrop-filter:blur(8px);isolation:isolate}
 .overview-export-modal{width:min(1120px,100%);max-height:calc(100vh - 48px);display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;overflow:hidden;border:1px solid rgba(181,140,82,.38);border-radius:22px;background:var(--theme-surface,#fffdfa);box-shadow:0 28px 90px rgba(34,22,26,.28)}
 .overview-export-toolbar{display:flex;justify-content:space-between;gap:20px;padding:22px 26px 18px;border-bottom:1px solid var(--theme-line,rgba(90,30,45,.12))}
 .overview-export-toolbar h2{margin:4px 0 4px;color:var(--theme-text,#2b2b2b);font-size:22px}.overview-export-toolbar p{margin:0;color:var(--theme-muted,#756b67);font-size:12px}.overview-export-close{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--theme-line);border-radius:11px;background:transparent;color:var(--theme-text);cursor:pointer}

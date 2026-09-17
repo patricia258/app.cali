@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { resolveWorkspaceMedia } from './workspaceMedia';
 
 type Role = 'admin' | 'client';
 type Identity = { id?: string | null; full_name: string; avatar_url?: string | null; avatar_position_x?: number | null; avatar_position_y?: number | null; avatar_zoom?: number | null };
@@ -11,7 +12,6 @@ let channel:ReturnType<NonNullable<typeof supabase>['channel']>|null=null;
 let pending:FileToken[]=[];
 const emojis=['🙂','😊','👍','🙏','✨','✅','💡','📌','📎','❤️','👏','🤝'];
 const fileToken=/\[\[arquivo\|([^|]+)\|([^|]+)\|([^|]+)\|(\d+)\]\]/g;
-const signedMediaCache=new Map<string,string>();
 const seenRecordMessages=new Map<string,Set<string>>();
 
 function role():Role|null{if(location.pathname.startsWith('/admin/registros'))return'admin';if(location.pathname.startsWith('/cliente/registros'))return'client';return null;}
@@ -19,7 +19,7 @@ function initials(v:string){return v.split(/\s+/).filter(Boolean).slice(0,2).map
 function when(v:string){const d=new Date(v);return Number.isNaN(d.getTime())?v:new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(d).replace('.','');}
 function safe(v:string){return v.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/-+/g,'-').slice(0,90)||'arquivo';}
 function setValue(el:HTMLTextAreaElement,v:string){const setter=Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value')?.set;setter?.call(el,v);el.dispatchEvent(new Event('input',{bubbles:true}));el.focus();}
-async function resolvePrivateMedia(raw?:string|null){if(!raw||!supabase||!raw.startsWith('private:'))return raw||'';const cached=signedMediaCache.get(raw);if(cached)return cached;const{data,error}=await supabase.storage.from('cali-workspace-private').createSignedUrl(raw.slice('private:'.length),3600);if(error||!data?.signedUrl)return'';signedMediaCache.set(raw,data.signedUrl);return data.signedUrl;}
+async function resolvePrivateMedia(raw?:string|null){return resolveWorkspaceMedia(raw);}
 async function hydrateIdentity(value:Identity):Promise<Identity>{return{...value,avatar_url:await resolvePrivateMedia(value.avatar_url)};}
 function avatar(identity:Identity){const a=document.createElement('span');a.className='records-chat-avatar';if(identity.avatar_url){const x=Number(identity.avatar_position_x??50),y=Number(identity.avatar_position_y??50),zoom=Math.max(1,Number(identity.avatar_zoom??1));a.style.backgroundImage=`url("${identity.avatar_url.replace(/"/g,'\\"')}")`;a.style.backgroundRepeat='no-repeat';a.style.backgroundPosition=`${x}% ${y}%`;a.style.backgroundSize=`${zoom*100}%`;a.dataset.identitySrc=identity.avatar_url;}else a.textContent=initials(identity.full_name);return a;}
 function parseBody(body:string){const files:FileToken[]=[];const clean=body.replace(fileToken,(_m,n,p,t,s)=>{try{files.push({name:decodeURIComponent(n),path:decodeURIComponent(p),mime:decodeURIComponent(t),size:Number(s||0)});}catch{files.push({name:n,path:p,mime:t,size:Number(s||0)});}return'';}).trim();return{clean,files};}
@@ -29,7 +29,7 @@ async function openFile(file:FileToken){if(!supabase)return;const{data,error}=aw
 async function identities(r:Role,companyId:string){const map=new Map<string,Identity>();let admin:Identity={full_name:'Patrícia Lima'},client:Identity={full_name:'Cliente'};if(!supabase)return{map,admin,client};const{data:s}=await supabase.auth.getSession();const uid=s.session?.user?.id||'';if(r==='admin'){
   const self=uid?await supabase.from('profiles').select('id,full_name,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom').eq('id',uid).maybeSingle():{data:null};
   const clients=await supabase.from('profiles').select('id,full_name,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom').eq('company_id',companyId).eq('role','client').eq('active',true);
-  if(self.data){admin=await hydrateIdentity(self.data as Identity);if(admin.id)map.set(String(admin.id),admin);}const hydratedClients:Identity[]=[];for(const item of (clients.data||[]) as Identity[]){const hydrated=await hydrateIdentity(item);hydratedClients.push(hydrated);if(hydrated.id)map.set(String(hydrated.id),hydrated);}if(hydratedClients[0])client=hydratedClients[0];
+  if(self.data){admin=await hydrateIdentity(self.data as Identity);if(admin.id)map.set(String(admin.id),admin);}const hydratedClients=await Promise.all(((clients.data||[]) as Identity[]).map(hydrateIdentity));for(const hydrated of hydratedClients){if(hydrated.id)map.set(String(hydrated.id),hydrated);}if(hydratedClients[0])client=hydratedClients[0];
 }else{
   const self=uid?await supabase.from('profiles').select('id,full_name,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom').eq('id',uid).maybeSingle():{data:null};
   const contact=await supabase.rpc('get_client_account_contact');if(self.data){client=await hydrateIdentity(self.data as Identity);if(client.id)map.set(String(client.id),client);}const c=Array.isArray(contact.data)?contact.data[0]:contact.data;if(c)admin=await hydrateIdentity(c as Identity);

@@ -264,6 +264,11 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
   gap: 8px 10px !important;
   padding: 10px 18px 13px !important;
 }
+.client-deliverable-workspace-v33 .conversation-composer-v2.workspace-chat-compose {
+  grid-template-areas:
+    "pending pending pending"
+    "tools field send" !important;
+}
 .conversation-channel-compact-v64 {
   grid-area: channel !important;
   justify-self: start;
@@ -310,21 +315,27 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
 .records-v13-drawer-meta { padding: 8px 22px !important; }
 .records-v13-drawer .records-v25-ops {
   min-height: 0;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(280px, .92fr);
   align-items: stretch;
   gap: 7px;
   padding: 7px 16px !important;
-  overflow-x: auto;
+  overflow: hidden;
   border-top: 0;
   border-bottom: 1px solid var(--theme-line);
 }
 .records-v13-drawer .records-v25-ops:empty { display: none; }
+.records-v13-drawer .records-v25-ops > :only-child { grid-column: 1 / -1; }
 .records-v13-drawer .records-v25-timer,
 .records-v13-drawer .records-v28-admin-feedback {
   min-width: 0;
-  flex: 1 1 0;
   padding: 8px 10px !important;
   border-radius: 11px !important;
+}
+.records-v13-drawer .records-v25-timer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
 }
 .records-v13-drawer .records-v25-timer-copy { gap: 1px; }
 .records-v13-drawer .records-v25-timer-copy > small {
@@ -334,6 +345,9 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
   white-space: nowrap;
 }
 .records-v13-drawer .records-v25-timer-action > button { min-height: 34px; }
+.records-v13-drawer .records-v25-timer-action { gap: 7px; }
+.records-v13-drawer .records-v25-timer-action > b { min-width: 46px; font-size: 12px; }
+.records-v13-drawer .records-v25-timer-action > button { padding-inline: 10px; white-space: nowrap; }
 .records-v13-drawer .records-v13-conversation {
   min-height: 0;
   height: 100%;
@@ -373,6 +387,8 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
   .workspace-chat-bubble,
   .records-chat-bubble { max-width: min(82%, 590px) !important; }
   .notification-panel { position: fixed !important; top: 72px !important; right: 14px !important; }
+  .records-v13-drawer .records-v25-ops { grid-template-columns: 1fr; }
+  .records-v13-drawer .records-v28-admin-feedback { display: grid; }
 }
 
 @media (max-width: 640px) {
@@ -425,6 +441,9 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
     grid-template-areas: "channel channel" "pending pending" "tools tools" "field send" !important;
     gap: 8px !important;
     padding: 11px 12px 13px !important;
+  }
+  .client-deliverable-workspace-v33 .conversation-composer-v2.workspace-chat-compose {
+    grid-template-areas: "pending pending" "tools tools" "field send" !important;
   }
   .workspace-chat-compose textarea,
   .records-v13-drawer .conversation-compose textarea { min-height: 58px !important; max-height: 118px; padding: 11px 12px !important; font-size: 13px !important; resize: none; }

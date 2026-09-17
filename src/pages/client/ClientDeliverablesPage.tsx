@@ -507,23 +507,25 @@ export function ClientDeliverablesPage() {
           </section>}
 
           {detailTab === 'conversation' && <section className="conversation-pane-v2 client-conversation-pane-v33">
-            <header><div className="client-conversation-title-v33"><MessageCircle size={18} /><div><strong>Conversa desta entrega</strong><p>Tudo o que você enviar aqui fica vinculado a {selected.protocol || selected.title}.</p></div></div></header>
-            <div className="conversation-list-v2 client-conversation-list-v33" ref={conversationRef}>
-              {conversationLoading ? <div className="empty-inline-v2"><Loader2 className="spin" size={17} />Carregando conversa…</div> : messages.length ? messages.map((message) => <article key={message.id} className={message.sourceActor === 'client' ? 'client-message' : 'cali-message'}><span className="conversation-avatar-v2">{message.sourceActor === 'client' ? 'VC' : 'CA'}</span><div><header><strong>{message.sourceActor === 'client' ? 'Você' : message.sourceActor === 'system' ? 'CALI Workspace' : 'CALI'}</strong><time>{formatDateTime(message.createdAt)}</time></header><p>{message.body}</p></div></article>) : <div className="empty-inline-v2">Ainda não há mensagens nesta entrega.</div>}
+            <div className="conversation-list-v2 client-conversation-list-v33 workspace-chat-list" ref={conversationRef} aria-live="polite" />
+            <div className="conversation-composer-v2 workspace-chat-compose">
+              <div className="workspace-chat-runtime-pending-host" />
+              <div className="workspace-chat-runtime-tools-host" />
+              <textarea rows={3} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder="Escreva uma mensagem sobre esta entrega…" onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void sendMessage(); }} />
+              <div className="workspace-chat-send-actions"><button className="primary" onClick={() => void sendMessage()} disabled={sendingMessage || !messageDraft.trim()}>{sendingMessage ? <Loader2 className="spin" size={16} /> : <Send size={16} />}Enviar</button></div>
             </div>
-            <div className="conversation-composer-v2"><textarea rows={3} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder="Escreva uma mensagem sobre esta entrega…" onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void sendMessage(); }} /><div><button className="primary" onClick={() => void sendMessage()} disabled={sendingMessage || !messageDraft.trim()}>{sendingMessage ? <Loader2 className="spin" size={16} /> : <Send size={16} />}Enviar</button></div></div>
           </section>}
 
           {detailTab === 'history' && <section className="deliverable-history-v2"><header><History size={20} /><div><strong>Histórico do entregável</strong><p>As mudanças relevantes desta entrega ficam preservadas aqui.</p></div></header>{selected.history.length ? selected.history.map((item) => <article key={item.id}><i /><div><strong>{statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}</strong><p>{item.fromStatus ? `${statusLabel[item.fromStatus as ClientDeliveryStatus] || item.fromStatus} → ${statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}` : 'Status registrado.'}</p><small>{formatDateTime(item.createdAt)}</small></div></article>) : <div className="empty-inline-v2">Ainda não há movimentações registradas.</div>}</section>}
         </div>
 
-        <footer className="deliverable-actions-v2 client-deliverable-actions-v33">
+        {detailTab !== 'conversation' && <footer className="deliverable-actions-v2 client-deliverable-actions-v33">
           <div className="deliverable-actions-left-v2"><span className={`client-footer-status-v33 ${statusTone[selected.status]}`}><i />{statusLabel[selected.status]}</span></div>
           <div className="deliverable-actions-right-v2">
             {selected.status === 'client_review' && <><button className="secondary" onClick={() => { setAdjustmentText(''); setAdjustmentOpen(true); }}><RefreshCw size={16} />Solicitar ajuste</button><button className="primary" onClick={() => { setScore(0); setNpsComment(''); setNpsOpen(true); }}><FileCheck2 size={16} />Aprovar entrega</button></>}
             {selected.status !== 'client_review' && <button className="secondary" onClick={() => setDetailTab('conversation')}><MessageCircle size={16} />Conversar sobre esta entrega</button>}
           </div>
-        </footer>
+        </footer>}
       </section>
     </div>}
 

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
+import { createPortal } from "react-dom";
 import {
   ArrowUpRight,
   Building2,
@@ -335,7 +336,7 @@ function ExportOverview({ data }: { data: DashboardData }) {
       >
         Exportar <span aria-hidden="true">⌄</span>
       </button>
-      {open && (
+      {open && createPortal((
         <div
           className="overview-export-backdrop"
           role="dialog"
@@ -549,7 +550,7 @@ function ExportOverview({ data }: { data: DashboardData }) {
             </footer>
           </section>
         </div>
-      )}
+      ), document.body)}
     </>
   );
 }
