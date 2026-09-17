@@ -4266,3 +4266,124 @@ html[data-workspace-theme='night'] .client-home-v3 .client-agenda-panel {
   .client-home-v3 .client-home-heading > div:first-child { min-height: auto; padding: 25px 22px; }
   .client-home-v3 .client-home-heading h1 { font-size: 40px !important; }
 }
+
+/* =========================================================
+   CLIENTE · contratação sutil, bordas e presença da Pati
+   ========================================================= */
+@media (min-width: 1181px) {
+  .client-home-v3 .client-home-heading {
+    grid-template-columns: minmax(0, 1fr) minmax(285px, 340px) !important;
+    gap: 16px !important;
+  }
+}
+
+.client-home-v3 .contract-card {
+  min-height: 0 !important;
+  align-self: center !important;
+  gap: 11px !important;
+  padding: 13px 15px !important;
+  border: 1px solid rgba(181, 140, 82, .48) !important;
+  border-radius: 19px !important;
+  background: linear-gradient(120deg, #6a2236 0%, #5a1e2d 63%, #7b4f39 125%) !important;
+  box-shadow: 0 14px 30px rgba(90, 30, 45, .15), inset 0 1px rgba(255,255,255,.11) !important;
+}
+
+.client-home-v3 .contract-icon,
+.client-home-v3 .client-contract-logo-v40 {
+  width: 42px !important;
+  height: 42px !important;
+  flex: 0 0 42px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, .28) !important;
+  border-radius: 13px !important;
+  background: #fffaf7 !important;
+}
+
+.client-home-v3 .client-contract-logo-v40 img {
+  width: 100% !important;
+  height: 100% !important;
+  padding: 4px !important;
+  object-fit: contain !important;
+}
+
+.client-home-v3 .contract-main span,
+.client-home-v3 .contract-metric span { font-size: 8px !important; }
+.client-home-v3 .contract-main strong { margin-block: 2px 1px !important; font-size: 14px !important; }
+.client-home-v3 .contract-main small { font-size: 10px !important; }
+.client-home-v3 .contract-metric { padding-left: 11px !important; }
+.client-home-v3 .contract-metric strong { font-size: 16px !important; }
+
+html[data-workspace-theme='day'] .client-home-v3 .executive-card,
+html[data-workspace-theme='day'] .client-home-v3 .client-project-panel,
+html[data-workspace-theme='day'] .client-home-v3 .client-agenda-panel,
+html[data-workspace-theme='day'] .client-home-v3 .summary-mini-card {
+  border: 1px solid rgba(90, 30, 45, .14) !important;
+  background: rgba(255, 253, 250, .94) !important;
+  box-shadow: 0 14px 34px rgba(52, 31, 37, .075), 0 2px 5px rgba(52, 31, 37, .035) !important;
+}
+
+.patricia-float .patricia-float-art,
+.client-chat-floating .chat-lime {
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 2px solid rgba(231, 198, 111, .76) !important;
+  background: #f0eadf !important;
+}
+
+.patricia-float .patricia-float-art video,
+.client-chat-floating .chat-lime video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+}
+
+.patricia-float .patricia-float-art video { border-radius: 50%; }
+.client-chat-floating .chat-lime video { border-radius: 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .patricia-float .patricia-float-art video,
+  .client-chat-floating .chat-lime video { animation: none !important; }
+}
+
+/* =========================================================
+   SISTEMA · quadriculado contínuo no canvas e no sidebar
+   ========================================================= */
+.workspace-view {
+  background-image:
+    linear-gradient(rgba(90, 30, 45, .042) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(90, 30, 45, .042) 1px, transparent 1px) !important;
+  background-size: 32px 32px !important;
+}
+
+html[data-workspace-theme='night'] .workspace-view {
+  background-image:
+    linear-gradient(rgba(247, 243, 238, .033) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(247, 243, 238, .033) 1px, transparent 1px) !important;
+  background-size: 32px 32px !important;
+}
+
+.sidebar,
+.sidebar:hover,
+.sidebar:focus-within,
+.sidebar.pinned,
+html[data-workspace-theme='night'] .sidebar,
+html[data-workspace-theme='night'] .sidebar:hover,
+html[data-workspace-theme='night'] .sidebar:focus-within,
+html[data-workspace-theme='night'] .sidebar.pinned {
+  background-color: #531a2a !important;
+  background-image:
+    linear-gradient(rgba(255, 250, 247, .065) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 250, 247, .065) 1px, transparent 1px),
+    linear-gradient(165deg, rgba(107, 38, 57, .74), rgba(63, 20, 33, .83)),
+    url('/brand/cali-sidebar-pattern.webp') !important;
+  background-repeat: repeat, repeat, no-repeat, no-repeat !important;
+  background-position: center, center, center, center !important;
+  background-size: 28px 28px, 28px 28px, cover, cover !important;
+}
+
+@media (max-width: 700px) {
+  .client-home-v3 .contract-card { padding: 12px 13px !important; }
+}
