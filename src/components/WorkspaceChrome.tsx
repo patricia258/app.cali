@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { Bell, Camera, Check, ChevronDown, Instagram, Linkedin, Loader2, Mail, MessageCircle, Phone, UserRound, X } from 'lucide-react';
+import { Bell, CalendarDays, Camera, Check, ChevronDown, Clock3, FileText, FolderKanban, Instagram, Linkedin, Loader2, Mail, MessageCircle, Phone, UserRound, X } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import type { Role } from './WorkspaceShell';
 
@@ -85,6 +85,16 @@ function relativeTime(value: string) {
   return `há ${Math.floor(hours / 24)}d`;
 }
 
+function notificationVisual(type?: string) {
+  const value = String(type || '').toLowerCase();
+  if (/report|document/.test(value)) return { kind: 'document', icon: <FileText size={18} /> };
+  if (/hour|timer|capacity/.test(value)) return { kind: 'hours', icon: <Clock3 size={18} /> };
+  if (/calendar|meeting|event/.test(value)) return { kind: 'calendar', icon: <CalendarDays size={18} /> };
+  if (/comment|message|record|occurrence|request/.test(value)) return { kind: 'message', icon: <MessageCircle size={18} /> };
+  if (/deliverable|project|approval|schedule/.test(value)) return { kind: 'project', icon: <FolderKanban size={18} /> };
+  return { kind: 'general', icon: <Bell size={18} /> };
+}
+
 function normalizeExternalUrl(value: string) {
   const trimmed = value.trim();
   if (!trimmed) return '';
@@ -108,7 +118,9 @@ function avatarStyle(profile: Pick<ProfileData, 'avatar_position_x' | 'avatar_po
 export function NotificationCenter({ role }: { role: Role }) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationItem[]>(notificationFallback[role]);
+  const [recentId, setRecentId] = useState('');
   const popoverRef = useRef<HTMLDivElement>(null);
+  const arrivalTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -122,11 +134,15 @@ export function NotificationCenter({ role }: { role: Role }) {
       if (mounted && data) setItems(data as NotificationItem[]);
       channel = supabase.channel(`workspace-notifications-${user.id}`).on('postgres_changes', { event: 'INSERT', schema: 'cali_workspace', table: 'notifications', filter: `user_id=eq.${user.id}` }, (payload) => {
         if (!mounted) return;
-        setItems((current) => [payload.new as NotificationItem, ...current].slice(0, 20));
+        const next = payload.new as NotificationItem;
+        setItems((current) => [next, ...current].slice(0, 20));
+        setRecentId(next.id);
+        if (arrivalTimerRef.current) window.clearTimeout(arrivalTimerRef.current);
+        arrivalTimerRef.current = window.setTimeout(() => setRecentId(''), 1400);
       }).subscribe();
     }
     load();
-    return () => { mounted = false; if (channel && supabase) supabase.removeChannel(channel); };
+    return () => { mounted = false; if (arrivalTimerRef.current) window.clearTimeout(arrivalTimerRef.current); if (channel && supabase) supabase.removeChannel(channel); };
   }, [role]);
 
   useEffect(() => {
@@ -169,11 +185,12 @@ export function NotificationCenter({ role }: { role: Role }) {
       </button>
       {open && (
         <div className="notification-panel" role="dialog" aria-label="Notificações">
-          <div className="notification-head"><div><strong>Notificações</strong><span>{unread ? `${unread} não lida${unread > 1 ? 's' : ''}` : 'Tudo em dia'}</span></div>{unread > 0 && <button onClick={markAll}>Marcar todas</button>}</div>
+          <div className="notification-head"><div className="notification-head-title"><span className="notification-head-mark"><Bell size={18} /></span><div><strong>Notificações</strong><span>{unread ? `${unread} não lida${unread > 1 ? 's' : ''}` : 'Tudo em dia'}</span></div></div>{unread > 0 && <button onClick={markAll}><Check size={15} />Marcar como lidas</button>}</div>
           <div className="notification-list">
-            {items.length === 0 ? <div className="notification-empty"><Check size={20} /><strong>Nenhum aviso por aqui.</strong><span>Novidades de projetos, horas, agenda e validações aparecem neste canal.</span></div> : items.map((item) => (
-              <button className={`notification-item ${item.read_at ? '' : 'unread'}`} data-notification-id={item.id} data-notification-action-url={notificationUrl(item)} key={item.id} onClick={() => void openNotification(item)}><span className="notification-indicator" /><div><strong>{item.title}</strong>{item.body && <p>{item.body}</p>}<small>{relativeTime(item.created_at)}</small></div></button>
-            ))}
+            {items.length === 0 ? <div className="notification-empty"><Check size={20} /><strong>Nenhum aviso por aqui.</strong><span>Novidades de projetos, horas, agenda e validações aparecem neste canal.</span></div> : items.map((item) => {
+              const visual = notificationVisual(item.notification_type);
+              return <button className={`notification-item notification-kind-${visual.kind} ${item.read_at ? '' : 'unread'} ${recentId === item.id ? 'is-arriving' : ''}`} data-notification-id={item.id} data-notification-action-url={notificationUrl(item)} key={item.id} onClick={() => void openNotification(item)}><span className="notification-visual">{visual.icon}</span><div className="notification-copy"><span className="notification-title-row"><strong>{item.title}</strong>{!item.read_at && <i aria-label="Não lida" />}</span>{item.body && <p>{item.body}</p>}<small>{relativeTime(item.created_at)}</small></div></button>;
+            })}
           </div>
         </div>
       )}
