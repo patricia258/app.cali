@@ -34,8 +34,8 @@
 .workspace-chat-standard .conversation-composer-v2.workspace-chat-compose{position:relative;display:grid!important;grid-template-columns:auto minmax(0,1fr) auto!important;grid-template-areas:"pending pending pending" "tools field send"!important;align-items:end!important;gap:10px!important;padding:16px 18px 18px!important;overflow:visible!important}
 .workspace-chat-compose textarea{grid-area:field;min-height:92px!important;padding:13px 14px!important;border:1px solid var(--theme-line)!important;border-radius:14px!important;background:var(--theme-surface)!important;color:var(--theme-text)!important;font:inherit!important;font-size:14px!important;line-height:1.5!important;resize:vertical;outline:none}
 .workspace-chat-compose textarea:focus{border-color:var(--chat-gold)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--chat-gold) 13%,transparent)!important}
-.workspace-chat-compose>div:not(.workspace-chat-tools):not(.workspace-chat-pending){grid-area:send;display:flex!important;align-items:center!important;gap:8px!important}
-.workspace-chat-compose>div:not(.workspace-chat-tools):not(.workspace-chat-pending)>.primary{height:48px!important;min-width:96px;font-size:12px!important}
+.workspace-chat-compose>.workspace-chat-send-actions{grid-area:send;display:flex!important;align-items:center!important;gap:8px!important}
+.workspace-chat-compose>.workspace-chat-send-actions>.primary{height:48px!important;min-width:96px;font-size:12px!important}
 .workspace-chat-tools{grid-area:tools;display:flex;align-items:center;gap:5px;position:relative;padding-bottom:2px;overflow:visible}
 .workspace-chat-tools>button{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--theme-line);border-radius:11px;background:var(--theme-surface-soft);color:var(--theme-text);font:inherit;font-size:17px;cursor:pointer}
 .workspace-chat-tools>button:hover{border-color:var(--chat-gold);background:color-mix(in srgb,var(--chat-gold) 10%,var(--theme-surface))}
