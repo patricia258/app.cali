@@ -1,0 +1,213 @@
+/* CALI Workspace · estabilidade visual da operação de Projetos V62 */
+
+/* Um único timer contextual: o controle oficial fica no cabeçalho do entregável. */
+.deliverable-workspace-modal-v2 .deliverable-actions-right-v2 > .timer-button-v2 {
+  display:none!important;
+}
+
+/* Campos de busca, cronograma e subtarefas seguem a superfície do tema, sem preto nativo. */
+.projects-flow-page .project-tools-v2 input,
+.project-modal-v2 .front-draft-row input,
+.deliverable-workspace-modal-v2 .task-form-v2 input,
+.deliverable-workspace-modal-v2 .task-form-v2 textarea {
+  color:var(--theme-text)!important;
+  background:var(--theme-surface)!important;
+  border:1px solid var(--theme-input-border,var(--theme-line))!important;
+  box-shadow:none!important;
+  outline:none!important;
+}
+.projects-flow-page .project-tools-v2 input {
+  border:0!important;
+  background:transparent!important;
+}
+.project-modal-v2 .front-draft-row input,
+.deliverable-workspace-modal-v2 .task-form-v2 input {
+  min-height:44px;
+  padding:0 13px!important;
+  border-radius:11px!important;
+}
+.deliverable-workspace-modal-v2 .task-form-v2 textarea {
+  min-height:88px;
+  padding:12px 13px!important;
+  border-radius:12px!important;
+  resize:vertical;
+}
+.project-modal-v2 .front-draft-row input:focus,
+.deliverable-workspace-modal-v2 .task-form-v2 input:focus,
+.deliverable-workspace-modal-v2 .task-form-v2 textarea:focus {
+  border-color:#B58C52!important;
+  box-shadow:0 0 0 3px color-mix(in srgb,#B58C52 15%,transparent)!important;
+}
+.project-modal-v2 .front-draft-row input::placeholder,
+.deliverable-workspace-modal-v2 .task-form-v2 input::placeholder,
+.deliverable-workspace-modal-v2 .task-form-v2 textarea::placeholder,
+.projects-flow-page .project-tools-v2 input::placeholder {
+  color:var(--theme-muted)!important;
+  opacity:.82!important;
+}
+.deliverable-workspace-modal-v2 .task-form-v2 {
+  gap:12px!important;
+  padding:18px!important;
+  border-color:var(--theme-line)!important;
+  background:color-mix(in srgb,var(--theme-surface-soft) 72%,var(--theme-surface))!important;
+}
+.deliverable-workspace-modal-v2 .task-form-v2 > label {
+  min-height:44px;
+  padding:0 11px;
+  border:1px solid var(--theme-line);
+  border-radius:11px;
+  background:var(--theme-surface);
+  color:var(--theme-text);
+}
+
+/* O chat já nasce com o desenho final; nenhuma atualização de tela o devolve ao HTML cru. */
+.deliverable-workspace-modal-v2 .workspace-chat-standard {
+  overflow:hidden!important;
+  border:1px solid var(--theme-line);
+  border-radius:17px;
+  background:var(--theme-surface);
+}
+.deliverable-workspace-modal-v2 .workspace-chat-standard > header {
+  padding:14px 16px!important;
+  background:var(--theme-surface-soft);
+}
+.deliverable-workspace-modal-v2 .workspace-chat-fallback-line {
+  width:100%;
+  display:flex!important;
+  align-items:flex-end;
+  gap:10px!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+}
+.deliverable-workspace-modal-v2 .workspace-chat-fallback-bubble {
+  width:fit-content;
+  min-width:180px;
+  max-width:min(76%,640px);
+  padding:13px 15px;
+  border:1px solid #7C2A40;
+  border-radius:18px 18px 18px 5px;
+  background:#5A1E2D;
+  color:#FFFDFC;
+  box-shadow:0 7px 20px rgba(42,29,33,.09);
+}
+.deliverable-workspace-modal-v2 .workspace-chat-fallback-bubble > header {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:7px;
+}
+.deliverable-workspace-modal-v2 .workspace-chat-fallback-bubble strong,
+.deliverable-workspace-modal-v2 .workspace-chat-fallback-bubble time,
+.deliverable-workspace-modal-v2 .workspace-chat-fallback-bubble p {
+  color:inherit!important;
+}
+.deliverable-workspace-modal-v2 .workspace-chat-fallback-bubble strong { font-size:11px!important; }
+.deliverable-workspace-modal-v2 .workspace-chat-fallback-bubble time { font-size:9.5px!important; opacity:.72; }
+.deliverable-workspace-modal-v2 .workspace-chat-fallback-bubble p { margin:0!important; font-size:14px!important; line-height:1.55!important; }
+.deliverable-workspace-modal-v2 .workspace-chat-standard .conversation-avatar-v2 {
+  flex:0 0 42px;
+  width:42px;
+  height:42px;
+  border:1px solid var(--theme-line);
+  border-radius:14px;
+  background:var(--theme-surface-soft);
+}
+
+/* Carteira horizontal: logo + nome completo + quantidade; clique abre os projetos. */
+.projects-flow-page .project-client-strip-v39 {
+  gap:12px;
+  margin:18px 0 22px;
+  padding:18px;
+  border:1px solid var(--theme-line);
+  border-radius:19px;
+  background:color-mix(in srgb,var(--theme-surface) 92%,transparent);
+  box-shadow:0 10px 28px rgba(46,28,34,.045);
+}
+.projects-flow-page .project-client-strip-head-v39>div:first-child>span {
+  color:#A3783E;
+}
+.projects-flow-page .project-client-strip-head-v39>div:first-child>strong {
+  font-size:15px;
+}
+.projects-flow-page .project-client-rail-v39 {
+  gap:12px;
+  padding:3px 2px 6px;
+}
+.projects-flow-page .project-client-card-v39 {
+  flex-basis:228px;
+  min-width:228px;
+  height:78px;
+  grid-template-columns:52px minmax(0,1fr);
+  gap:12px;
+  padding:11px 13px;
+  border-radius:16px;
+  background:linear-gradient(145deg,var(--theme-surface),color-mix(in srgb,#B58C52 5%,var(--theme-surface)));
+}
+.projects-flow-page .project-client-card-v39:hover {
+  transform:translateY(-2px);
+  border-color:color-mix(in srgb,#B58C52 55%,var(--theme-line));
+  box-shadow:0 12px 26px rgba(45,28,34,.09);
+}
+.projects-flow-page .project-client-card-v39.selected {
+  border-color:#B58C52;
+  box-shadow:inset 4px 0 0 #5A1E2D,0 10px 24px rgba(45,28,34,.08);
+}
+.projects-flow-page .project-client-logo-v39 {
+  width:50px;
+  height:50px;
+  border-radius:14px;
+}
+.project-client-copy-v62 {
+  min-width:0;
+  display:grid;
+  gap:4px;
+}
+.project-client-copy-v62 strong {
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--theme-text);
+  font-size:13px;
+  line-height:1.2;
+}
+.project-client-copy-v62 small {
+  color:var(--theme-muted);
+  font-size:10.5px;
+}
+
+html[data-workspace-theme='night'] .projects-flow-page .project-tools-v2 input,
+html[data-workspace-theme='night'] .project-modal-v2 .front-draft-row input,
+html[data-workspace-theme='night'] .deliverable-workspace-modal-v2 .task-form-v2 input,
+html[data-workspace-theme='night'] .deliverable-workspace-modal-v2 .task-form-v2 textarea,
+html[data-workspace-theme='night'] .deliverable-workspace-modal-v2 .task-form-v2 > label {
+  color:#F7F3EE!important;
+  border-color:#4A343B!important;
+  background:#2A1D21!important;
+  color-scheme:dark;
+}
+html[data-workspace-theme='night'] .projects-flow-page .project-tools-v2 input {
+  border:0!important;
+  background:transparent!important;
+}
+html[data-workspace-theme='night'] .projects-flow-page .project-client-strip-v39 {
+  border-color:#3F2D33;
+  background:rgba(35,24,28,.9);
+}
+html[data-workspace-theme='night'] .projects-flow-page .project-client-card-v39 {
+  border-color:#49333B;
+  background:linear-gradient(145deg,#2A1D21,#30251F);
+}
+html[data-workspace-theme='night'] .projects-flow-page .project-client-card-v39:hover,
+html[data-workspace-theme='night'] .projects-flow-page .project-client-card-v39.selected {
+  border-color:#B58C52;
+}
+
+@media(max-width:760px) {
+  .deliverable-workspace-modal-v2 .task-form-v2 { grid-template-columns:1fr!important; }
+  .deliverable-workspace-modal-v2 .task-form-v2 textarea,
+  .deliverable-workspace-modal-v2 .task-form-v2 > div { grid-column:1!important; }
+  .projects-flow-page .project-client-strip-v39 { padding:14px; }
+  .projects-flow-page .project-client-card-v39 { flex-basis:205px; min-width:205px; }
+}
