@@ -409,9 +409,8 @@ export function AdminDocumentsPageV4() {
   return (
     <Shell role="admin">
       <section className="page documents-admin-page documents-admin-v3 documents-admin-v4">
-        <div className="eyebrow">BIBLIOTECA DE TRABALHO</div>
         <div className="page-heading documents-heading-v3">
-          <div><h1>Documentos</h1><p>A fila editorial nasce junto com o trabalho: entregável, aprovação, arquivo final, publicação, comentários e ciência ficam no mesmo histórico.</p></div>
+          <div className="workspace-page-identity"><span className="workspace-page-icon" aria-hidden="true"><FileText size={27} /></span><div className="workspace-page-copy"><span className="workspace-page-kicker">BIBLIOTECA DE TRABALHO</span><h1>Documentos</h1><p>A fila editorial nasce junto com o trabalho: entregável, aprovação, arquivo final, publicação, comentários e ciência ficam no mesmo histórico.</p></div></div>
           <div className="documents-heading-actions-v3"><button className="secondary" type="button" onClick={() => openNewDocument('drive')}><Link2 size={17} />Adicionar via Drive</button><button className="primary" type="button" onClick={() => openNewDocument('upload')}><Plus size={18} />Adicionar documento</button></div>
         </div>
 
