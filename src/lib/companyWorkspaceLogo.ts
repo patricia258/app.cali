@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { resolveWorkspaceMedia } from './workspaceMedia';
 
 export type CompanyLogoRecord = {
   id: string;
@@ -13,7 +14,6 @@ const WORKSPACE_BG = '#F7F3EE';
 const WORKSPACE_MARK = '#5A1E2D';
 const TILE_SIZE = 256;
 const STYLE_VERSION = 1;
-const signedCache = new Map<string, { url: string; expiresAt: number }>();
 type CompanyLogoRegistry = {
   byId: Map<string, { raw: string; resolved: string; name: string }>;
   byName: Map<string, { raw: string; resolved: string; id: string }>;
@@ -31,14 +31,7 @@ function safeName(value: string) {
 }
 
 export async function resolveCompanyAsset(raw?: string | null, expiresIn = 3600) {
-  if (!raw || !supabase) return raw || '';
-  if (!raw.startsWith('private:')) return raw;
-  const cached = signedCache.get(raw);
-  if (cached && cached.expiresAt > Date.now() + 30_000) return cached.url;
-  const { data, error } = await supabase.storage.from('cali-workspace-private').createSignedUrl(raw.slice('private:'.length), expiresIn);
-  if (error || !data?.signedUrl) return '';
-  signedCache.set(raw, { url: data.signedUrl, expiresAt: Date.now() + expiresIn * 1000 });
-  return data.signedUrl;
+  return resolveWorkspaceMedia(raw, expiresIn);
 }
 
 async function blobToImage(blob: Blob): Promise<HTMLImageElement> {
@@ -265,4 +258,3 @@ export const companyWorkspaceVisual = {
   mark: WORKSPACE_MARK,
   version: STYLE_VERSION,
 };
-

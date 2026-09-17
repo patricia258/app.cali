@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { resolveWorkspaceMedia } from './workspaceMedia';
 
 type Role='admin'|'client';
 type Identity={id?:string|null;full_name:string;role?:string|null;avatar_url?:string|null;avatar_position_x?:number|null;avatar_position_y?:number|null;avatar_zoom?:number|null};
@@ -9,7 +10,6 @@ type Context={id:string;company_id:string;project_id?:string|null;protocol?:stri
 let installed=false,busy=false,timer=0,activeId='';
 let channel:ReturnType<NonNullable<typeof supabase>['channel']>|null=null;
 let pending:FileToken[]=[];
-const mediaCache=new Map<string,string>();
 const seenComments=new Map<string,Set<string>>();
 const emojiList=['🙂','😊','👍','🙏','✨','✅','💡','📌','📎','❤️','👏','🤝'];
 const tokenRx=/\[\[arquivo\|([^|]+)\|([^|]+)\|([^|]+)\|(\d+)\]\]/g;
@@ -19,7 +19,7 @@ function initials(v:string){return v.split(/\s+/).filter(Boolean).slice(0,2).map
 function when(v:string){const d=new Date(v);return Number.isNaN(d.getTime())?v:new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(d).replace('.','');}
 function safe(v:string){return v.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/-+/g,'-').slice(0,90)||'arquivo';}
 function setValue(el:HTMLTextAreaElement,v:string){const setter=Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value')?.set;setter?.call(el,v);el.dispatchEvent(new Event('input',{bubbles:true}));el.focus();}
-async function media(raw?:string|null){if(!raw||!supabase||!raw.startsWith('private:'))return raw||'';const cached=mediaCache.get(raw);if(cached)return cached;const{data,error}=await supabase.storage.from('cali-workspace-private').createSignedUrl(raw.slice(8),3600);if(error||!data?.signedUrl)return'';mediaCache.set(raw,data.signedUrl);return data.signedUrl;}
+async function media(raw?:string|null){return resolveWorkspaceMedia(raw);}
 async function hydrate(v:Identity):Promise<Identity>{return{...v,avatar_url:await media(v.avatar_url)};}
 function avatar(v:Identity){const el=document.createElement('span');el.className='workspace-chat-avatar';if(v.avatar_url){const x=Number(v.avatar_position_x??50),y=Number(v.avatar_position_y??50),z=Math.max(1,Number(v.avatar_zoom??1));el.style.backgroundImage=`url("${v.avatar_url.replace(/"/g,'\\"')}")`;el.style.backgroundPosition=`${x}% ${y}%`;el.style.backgroundSize=`${z*100}%`;el.style.backgroundRepeat='no-repeat';}else el.textContent=initials(v.full_name);el.title=v.full_name;return el;}
 function parseBody(body:string){const files:FileToken[]=[];const clean=body.replace(tokenRx,(_m,n,p,t,s)=>{try{files.push({name:decodeURIComponent(n),path:decodeURIComponent(p),mime:decodeURIComponent(t),size:Number(s||0)});}catch{files.push({name:n,path:p,mime:t,size:Number(s||0)});}return'';}).trim();return{clean,files};}
@@ -27,7 +27,7 @@ function linkify(el:HTMLElement,text:string){text.split(/(https?:\/\/[^\s]+)/g).
 async function openFile(f:FileToken){if(!supabase)return;const{data,error}=await supabase.storage.from('cali-workspace-private').createSignedUrl(f.path,300);if(error||!data?.signedUrl){alert('Não foi possível abrir este anexo agora.');return;}window.open(data.signedUrl,'_blank','noopener,noreferrer');}
 
 async function identitySet(r:Role,companyId:string){const map=new Map<string,Identity>();let admin:Identity={full_name:'Patrícia Lima'},client:Identity={full_name:'Cliente'};if(!supabase)return{map,admin,client};const{data:s}=await supabase.auth.getSession();const uid=s.session?.user?.id||'';const self=uid?await supabase.from('profiles').select('id,full_name,role,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom').eq('id',uid).maybeSingle():{data:null};const me=self.data?await hydrate(self.data as Identity):null;if(me?.id)map.set(String(me.id),me);
-  if(r==='admin'||me?.role==='admin'){if(me)admin=me;const q=await supabase.from('profiles').select('id,full_name,role,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom').eq('company_id',companyId).eq('role','client').eq('active',true);for(const row of(q.data||[])as Identity[]){const p=await hydrate(row);if(p.id)map.set(String(p.id),p);if(client.full_name==='Cliente')client=p;}}
+  if(r==='admin'||me?.role==='admin'){if(me)admin=me;const q=await supabase.from('profiles').select('id,full_name,role,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom').eq('company_id',companyId).eq('role','client').eq('active',true);const profiles=await Promise.all(((q.data||[])as Identity[]).map(hydrate));for(const p of profiles){if(p.id)map.set(String(p.id),p);if(client.full_name==='Cliente')client=p;}}
   if(r==='client'&&me?.role==='client'){client=me;const contact=await supabase.rpc('get_client_account_contact');const row=Array.isArray(contact.data)?contact.data[0]:contact.data;if(row)admin=await hydrate(row as Identity);}return{map,admin,client};}
 function who(m:Message,ids:Awaited<ReturnType<typeof identitySet>>){if(m.author_user_id&&ids.map.has(m.author_user_id))return ids.map.get(m.author_user_id)!;if(m.source_actor==='client')return ids.client;if(m.source_actor==='system')return{full_name:'CALI Workspace'};return ids.admin;}
 function visibleChannel(r:Role){if(r==='client')return true;const b=document.querySelector<HTMLElement>('.deliverable-workspace-modal-v2 .conversation-channels-v2 button.active');return!b||/cliente/i.test(b.textContent||'');}
