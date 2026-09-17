@@ -96,8 +96,7 @@ export function AdminSatisfactionPage(){
   function selectPreset(value:PeriodPreset){setPeriod(value);setFrom('');setTo('');}
 
   return <Shell role="admin"><section className="page satisfaction-page-v39">
-    <div className="eyebrow">EXPERIÊNCIA DO CLIENTE</div>
-    <div className="page-heading satisfaction-heading-v39"><div><h1>NPS & satisfação</h1><p>Panorama consolidado de todas as avaliações registradas no Workspace, com leitura por período, cliente, origem e nota.</p></div><button className="secondary" onClick={()=>void load()} disabled={loading}><RefreshCw size={16}/>{loading?'Atualizando…':'Atualizar'}</button></div>
+    <div className="page-heading satisfaction-heading-v39"><div className="workspace-page-identity"><span className="workspace-page-icon" aria-hidden="true"><Star size={27}/></span><div className="workspace-page-copy"><span className="workspace-page-kicker">EXPERIÊNCIA DO CLIENTE</span><h1>NPS & satisfação</h1><p>Panorama consolidado de todas as avaliações registradas no Workspace, com leitura por período, cliente, origem e nota.</p></div></div><button className="secondary" onClick={()=>void load()} disabled={loading}><RefreshCw size={16}/>{loading?'Atualizando…':'Atualizar'}</button></div>
     {error&&<div className="inline-notice">{error}</div>}
 
     <section className="satisfaction-filter-panel-v39 panel">
@@ -146,4 +145,3 @@ export function AdminSatisfactionPage(){
     </section>
   </section></Shell>;
 }
-
