@@ -239,7 +239,11 @@ async function render() {
         const activeProject = data.projects.find((project) => project.company_id === company.id && project.protocol === currentProjectProtocol());
         if (activeProject) button.classList.add('selected');
         button.append(logoTile(company, url));
-        const name = document.createElement('span'); name.textContent = company.display_name; button.append(name);
+        const copy = document.createElement('div'); copy.className = 'project-client-copy-v62';
+        const name = document.createElement('strong'); name.textContent = company.display_name;
+        const count = data.projects.filter((project) => project.company_id === company.id).length;
+        const meta = document.createElement('small'); meta.textContent = `${count} ${count === 1 ? 'projeto' : 'projetos'}`;
+        copy.append(name, meta); button.append(copy);
         button.onclick = () => void openCompany(company, data);
         rail.append(button);
       }
