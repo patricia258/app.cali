@@ -9,6 +9,7 @@ import { Progress, Shell } from '../../components/WorkspaceShell';
 import { loadClientDashboardReality, subscribeClientDeliveryReality } from '../../lib/clientDeliveryReality';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
+import { patiWavePoster, patiWaveVideo } from '../../assets/patiWaveMedia';
 
 type Company = {
   id: string;
@@ -314,7 +315,7 @@ export function ClientDashboard() {
       </section>
 
       {!chatOpen && <button className="patricia-float" type="button" onClick={() => { setChatSent(false); setAssistantReply(''); setChatOpen(true); }} aria-label="Fale com a Pati" title="Fale com a Pati">
-        <span className="patricia-float-art patricia-portrait-slot"><Leaf size={22} /></span><span>Fale com a Pati</span>
+        <span className="patricia-float-art patricia-portrait-slot"><video src={patiWaveVideo} poster={patiWavePoster} muted loop autoPlay playsInline preload="metadata" aria-hidden="true" /></span><span>Fale com a Pati</span>
       </button>}
     </section>
 
@@ -323,7 +324,7 @@ export function ClientDashboard() {
         <button onClick={() => setChatOpen(false)} aria-label="Minimizar"><Minus size={17} /></button>
         <button onClick={() => { setChatOpen(false); setAssistantReply(''); setChatSent(false); }} aria-label="Fechar"><X size={17} /></button>
       </div>
-      <div className="client-chat-brand"><div className="chat-lime patricia-portrait-slot"><Leaf size={23} /></div><div><span>CANAL DIRETO CALI</span><strong>Fale com a Pati</strong><small>{contactRole}</small></div></div>
+      <div className="client-chat-brand"><div className="chat-lime patricia-portrait-slot"><video src={patiWaveVideo} poster={patiWavePoster} muted loop autoPlay playsInline preload="metadata" aria-hidden="true" /></div><div><span>CANAL DIRETO CALI</span><strong>Fale com a Pati</strong><small>{contactRole}</small></div></div>
       <p className="chat-intro">Use este canal para consultar informações da sua conta ou enviar algo que precise de acompanhamento da CALI.</p>
 
       <div className="chat-auto-block">
