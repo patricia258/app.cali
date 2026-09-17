@@ -220,6 +220,148 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
 .deliverable-workspace-modal-v2,
 .records-v13-drawer { animation: cali-modal-in-v63 .4s cubic-bezier(.2,.78,.2,1) both; }
 
+/* V64 — a conversa ocupa o modal; somente as mensagens rolam. */
+.deliverable-workspace-scroll-v2:has(> .conversation-pane-v2) {
+  min-height: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  overflow: hidden !important;
+}
+.deliverable-workspace-modal-v2 .conversation-pane-v2.workspace-chat-standard {
+  min-height: 0 !important;
+  height: 100%;
+  grid-template-rows: minmax(0, 1fr) auto !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+.deliverable-workspace-modal-v2 .conversation-list-v2.workspace-chat-list {
+  min-height: 0 !important;
+  max-height: none !important;
+  height: auto !important;
+  gap: 11px !important;
+  padding: 16px 22px !important;
+  border-top: 0 !important;
+}
+.deliverable-workspace-modal-v2 .workspace-chat-bubble,
+.records-v13-drawer .records-chat-bubble {
+  min-width: 0 !important;
+  max-width: min(66%, 520px) !important;
+  padding: 10px 12px !important;
+  border-radius: 15px !important;
+}
+.deliverable-workspace-modal-v2 .workspace-chat-head,
+.records-v13-drawer .records-chat-head { gap: 12px; margin-bottom: 4px; }
+.deliverable-workspace-modal-v2 .workspace-chat-bubble > p,
+.records-v13-drawer .records-chat-bubble > p { font-size: 12.5px !important; line-height: 1.45 !important; }
+
+.workspace-chat-standard .conversation-composer-v2.workspace-chat-compose {
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  grid-template-areas:
+    "channel channel channel"
+    "pending pending pending"
+    "tools field send" !important;
+  gap: 8px 10px !important;
+  padding: 10px 18px 13px !important;
+}
+.conversation-channel-compact-v64 {
+  grid-area: channel !important;
+  justify-self: start;
+  min-height: 30px;
+  margin: 0 !important;
+  padding: 2px !important;
+  border-radius: 9px !important;
+  background: var(--theme-surface-soft);
+}
+.conversation-channel-compact-v64 button {
+  min-height: 27px !important;
+  padding: 0 10px !important;
+  font-size: 10px !important;
+}
+.workspace-chat-runtime-pending-host {
+  grid-area: pending !important;
+  display: block !important;
+  margin: 0 !important;
+}
+.workspace-chat-runtime-tools-host {
+  grid-area: tools !important;
+  display: block !important;
+  margin: 0 !important;
+}
+.workspace-chat-runtime-tools-host .workspace-chat-tools { display: flex; }
+.workspace-chat-send-actions {
+  grid-area: send !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: 0 !important;
+}
+.workspace-chat-standard .workspace-chat-compose textarea {
+  min-height: 62px !important;
+  max-height: 88px !important;
+  resize: none !important;
+}
+
+/* Ocorrências: resumo compacto no alto, conversa central e composição fixa. */
+.records-v13-drawer {
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto !important;
+}
+.records-v13-drawer > header { padding: 18px 22px 13px !important; }
+.records-v13-drawer-meta { padding: 8px 22px !important; }
+.records-v13-drawer .records-v25-ops {
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 7px;
+  padding: 7px 16px !important;
+  overflow-x: auto;
+  border-top: 0;
+  border-bottom: 1px solid var(--theme-line);
+}
+.records-v13-drawer .records-v25-ops:empty { display: none; }
+.records-v13-drawer .records-v25-timer,
+.records-v13-drawer .records-v28-admin-feedback {
+  min-width: 0;
+  flex: 1 1 0;
+  padding: 8px 10px !important;
+  border-radius: 11px !important;
+}
+.records-v13-drawer .records-v25-timer-copy { gap: 1px; }
+.records-v13-drawer .records-v25-timer-copy > small {
+  max-width: 330px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.records-v13-drawer .records-v25-timer-action > button { min-height: 34px; }
+.records-v13-drawer .records-v13-conversation {
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+.records-v13-drawer .conversation-history {
+  min-height: 0 !important;
+  gap: 10px !important;
+  padding: 14px 18px !important;
+  overflow-y: auto !important;
+}
+.records-v13-drawer .conversation-compose {
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  grid-template-areas: "pending pending pending" "tools field send" !important;
+  gap: 8px 10px !important;
+  padding: 10px 16px 12px !important;
+}
+.records-chat-runtime-pending-host { grid-area: pending; }
+.records-chat-runtime-tools-host { grid-area: tools; align-self: end; }
+.records-chat-runtime-tools-host .records-chat-tools { display: flex; }
+.records-v13-drawer .conversation-compose textarea {
+  grid-area: field;
+  min-height: 58px !important;
+  max-height: 82px !important;
+  resize: none !important;
+}
+.records-v13-drawer .conversation-compose > .primary { grid-area: send; align-self: end; }
+
 @media (max-width: 1024px) {
   .deliverable-workspace-modal-v2,
   .client-deliverable-workspace-v33 {
@@ -280,7 +422,7 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
   .workspace-chat-standard .conversation-composer-v2.workspace-chat-compose,
   .records-v13-drawer .conversation-compose {
     grid-template-columns: 1fr auto !important;
-    grid-template-areas: "pending pending" "tools tools" "field send" !important;
+    grid-template-areas: "channel channel" "pending pending" "tools tools" "field send" !important;
     gap: 8px !important;
     padding: 11px 12px 13px !important;
   }
@@ -290,7 +432,7 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
   .records-chat-tools { gap: 6px; padding: 0 !important; }
   .workspace-chat-tools > button,
   .records-chat-tools > button { width: 34px; height: 34px; border-radius: 10px; font-size: 16px; }
-  .workspace-chat-compose > div:not(.workspace-chat-tools):not(.workspace-chat-pending) > .primary,
+  .workspace-chat-compose > .workspace-chat-send-actions > .primary,
   .records-v13-drawer .conversation-compose > .primary { min-width: 72px !important; height: 46px !important; padding-inline: 12px !important; }
 
   .records-v13-drawer {
@@ -304,6 +446,9 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
   .records-v13-drawer > header h2 { font-size: 21px !important; }
   .records-v13-drawer-meta { padding: 10px 16px !important; }
   .records-v13-drawer-actions { padding: 11px 12px !important; }
+  .records-v13-drawer .records-v25-ops { padding: 6px 10px !important; }
+  .records-v13-drawer .records-v25-timer-copy > small { display: none; }
+  .records-v13-drawer .records-v25-timer-action > button { max-width: 150px; }
 
   .notification-panel {
     inset: auto 8px 8px 8px !important;
