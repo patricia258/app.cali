@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 52042)
-Total output lines: 4078
-
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, BarChart3, CheckCircle2, Eye, FileText, Loader2, Mail, Printer, RefreshCw, RotateCcw, Send, Trash2, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
