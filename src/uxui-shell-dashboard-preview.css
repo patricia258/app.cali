@@ -3921,3 +3921,348 @@ html[data-workspace-theme='night'] .client-chat-floating .chat-kind-tabs { borde
   .profile-modal-v55 .modal-actions { margin-inline: -19px !important; padding-inline: 19px !important; }
   .client-chat-floating { right: 8px !important; bottom: 8px !important; width: calc(100vw - 16px) !important; max-height: calc(100dvh - 16px) !important; border-radius: 20px !important; }
 }
+
+/* =========================================================
+   CORREÇÃO FINAL · assinatura compacta e legível
+   ========================================================= */
+.profile-modal-v55 .profile-signature-v59,
+.profile-modal-v55 .profile-signature-v61 {
+  padding: 16px 18px !important;
+}
+
+.profile-modal-v55 .profile-signature-heading-v55 {
+  display: flex !important;
+  align-items: center !important;
+  margin-bottom: 10px !important;
+}
+
+.profile-modal-v55 .profile-signature-heading-v55 > svg {
+  width: 30px !important;
+  height: 30px !important;
+  padding: 7px !important;
+  flex-basis: 30px !important;
+  border-radius: 9px !important;
+}
+
+.profile-modal-v55 .profile-signature-heading-v55 h3 {
+  margin-bottom: 2px !important;
+  font-size: 16px !important;
+}
+
+.profile-modal-v55 .profile-signature-heading-v55 p {
+  font-size: 11px !important;
+}
+
+.profile-modal-v55 .profile-signature-source-v59 {
+  display: inline-flex !important;
+  grid-template-columns: none !important;
+  width: auto !important;
+  max-width: 100% !important;
+  margin-bottom: 11px !important;
+  padding: 3px !important;
+  gap: 3px !important;
+  border-radius: 10px !important;
+}
+
+.profile-modal-v55 .profile-signature-source-v59 button,
+.profile-modal-v55 .profile-signature-source-v59 label {
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 31px !important;
+  height: 31px !important;
+  padding: 0 10px !important;
+  gap: 5px !important;
+  white-space: nowrap !important;
+  border-radius: 7px !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+}
+
+.profile-modal-v55 .profile-signature-source-v59 input[type='file'] {
+  display: none !important;
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.profile-modal-v55 .profile-signature-field-label-v59 {
+  margin-bottom: 5px !important;
+  font-size: 9px !important;
+}
+
+.profile-modal-v55 .profile-signature-select-trigger-v59 {
+  min-height: 46px !important;
+  height: 46px !important;
+  grid-template-columns: minmax(0, 1fr) 118px 15px !important;
+  padding: 5px 11px !important;
+  border-radius: 10px !important;
+}
+
+.profile-modal-v55 .profile-signature-selected-mark-v59 {
+  min-width: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  font-size: 20px !important;
+  line-height: 1 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.profile-modal-v55 .profile-signature-selected-copy-v59 {
+  padding-left: 10px !important;
+}
+
+.profile-modal-v55 .profile-signature-selected-copy-v59 strong { font-size: 10px !important; }
+.profile-modal-v55 .profile-signature-selected-copy-v59 small { font-size: 8px !important; }
+
+.profile-modal-v55 .profile-signature-options-v59,
+.profile-modal-v55 .profile-signature-popover-v61 {
+  display: block !important;
+  width: 100% !important;
+  max-height: 156px !important;
+  margin-top: 5px !important;
+  padding: 4px !important;
+  border-radius: 10px !important;
+}
+
+.profile-modal-v55 .profile-signature-options-v59 > button,
+.profile-modal-v55 .profile-signature-popover-v61 > button {
+  display: grid !important;
+  width: 100% !important;
+  min-height: 34px !important;
+  height: 34px !important;
+  grid-template-columns: minmax(0, 1fr) 105px 14px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 3px 8px !important;
+  border: 0 !important;
+  border-radius: 7px !important;
+}
+
+.profile-modal-v55 .profile-signature-options-v59 > button + button,
+.profile-modal-v55 .profile-signature-popover-v61 > button + button {
+  border-top: 1px solid rgba(90, 30, 45, .06) !important;
+}
+
+.profile-modal-v55 .profile-signature-option-mark-v59 {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  text-align: left !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.profile-modal-v55 .profile-signature-options-v59 > button > span:nth-child(2) strong,
+.profile-modal-v55 .profile-signature-popover-v61 > button > span:nth-child(2) strong { font-size: 9px !important; }
+.profile-modal-v55 .profile-signature-options-v59 > button > span:nth-child(2) small,
+.profile-modal-v55 .profile-signature-popover-v61 > button > span:nth-child(2) small { font-size: 7px !important; }
+
+/* =========================================================
+   CORREÇÃO FINAL · canal direto inteiro, contraste e salto
+   ========================================================= */
+.client-chat-floating {
+  width: min(448px, calc(100vw - 28px)) !important;
+  max-height: calc(100dvh - 24px) !important;
+  padding: 18px !important;
+  border-radius: 22px !important;
+  animation: ux-chat-pop-final .64s cubic-bezier(.16, 1, .3, 1) both !important;
+}
+
+.client-chat-floating .client-chat-brand {
+  min-height: 46px !important;
+  margin-bottom: 10px !important;
+}
+
+.client-chat-floating .chat-lime {
+  width: 42px !important;
+  height: 42px !important;
+  flex-basis: 42px !important;
+  border-radius: 13px !important;
+}
+
+.client-chat-floating .client-chat-brand strong { font-size: 20px !important; }
+.client-chat-floating .chat-intro { font-size: 11px !important; line-height: 1.42 !important; }
+
+.client-chat-floating .chat-auto-block {
+  margin: 11px 0 9px !important;
+  padding: 10px !important;
+}
+
+.client-chat-floating .chat-auto-block > span { margin-bottom: 6px !important; }
+.client-chat-floating .chat-auto-actions button { min-height: 32px !important; padding: 6px 9px !important; }
+.client-chat-floating .chat-auto-reply { margin-top: 7px !important; padding: 7px !important; }
+
+.client-chat-floating .chat-kind-tabs { margin: 8px 0 !important; }
+.client-chat-floating .chat-kind-tabs button { min-height: 33px !important; padding: 5px 4px !important; }
+
+html[data-workspace-theme='day'] .client-chat-floating .chat-kind-tabs button.active,
+html[data-workspace-theme='night'] .client-chat-floating .chat-kind-tabs button.active,
+.client-chat-floating .chat-kind-tabs button.active {
+  border-color: #5a1e2d !important;
+  color: #fff !important;
+  background: #5a1e2d !important;
+  box-shadow: 0 6px 14px rgba(90, 30, 45, .2) !important;
+}
+
+.client-chat-floating > label { gap: 5px !important; }
+.client-chat-floating textarea {
+  min-height: 76px !important;
+  height: 76px !important;
+  max-height: 100px !important;
+  padding: 10px 12px !important;
+}
+.client-chat-floating .chat-send { min-height: 37px !important; margin-top: 7px !important; }
+.client-chat-floating .chat-note { margin-top: 7px !important; padding-top: 7px !important; font-size: 9px !important; }
+
+@keyframes ux-chat-pop-final {
+  0% { opacity: 0; transform: translateY(42px) scale(.72); }
+  54% { opacity: 1; transform: translateY(-11px) scale(1.045); }
+  76% { transform: translateY(4px) scale(.985); }
+  90% { transform: translateY(-2px) scale(1.008); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* =========================================================
+   HOME DO CLIENTE · hierarquia, profundidade e continuidade
+   ========================================================= */
+.client-home-v3 {
+  --client-surface: color-mix(in srgb, var(--card) 95%, transparent);
+  padding-bottom: 128px !important;
+}
+
+.client-home-v3 .client-home-heading {
+  align-items: stretch !important;
+  margin-bottom: 17px !important;
+}
+
+.client-home-v3 .client-home-heading > div:first-child {
+  position: relative;
+  display: flex;
+  min-height: 186px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 30px 34px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--client-gold) 18%, var(--border));
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--client-gold) 13%, transparent), transparent 30%),
+    var(--client-surface);
+  box-shadow: 0 22px 55px rgba(52, 31, 37, .075);
+}
+
+.client-home-v3 .client-home-heading > div:first-child::after {
+  content: '';
+  position: absolute;
+  right: -42px;
+  bottom: -88px;
+  width: 210px;
+  height: 210px;
+  border: 34px solid color-mix(in srgb, var(--client-bordeaux) 5%, transparent);
+  border-radius: 46% 54% 40% 60%;
+  transform: rotate(-14deg);
+}
+
+.client-home-v3 .client-home-heading h1 {
+  margin: 9px 0 9px !important;
+  font-size: clamp(40px, 4.6vw, 68px) !important;
+}
+
+.client-home-v3 .client-home-heading p { max-width: 690px !important; margin: 0 !important; font-size: 14px !important; }
+
+.client-home-v3 .contract-card {
+  align-self: stretch;
+  border-radius: 26px !important;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.1), transparent 34%),
+    linear-gradient(135deg, #74253c 0%, #5a1e2d 58%, #9a7449 140%) !important;
+  box-shadow: 0 24px 52px rgba(90, 30, 45, .2), inset 0 1px rgba(255,255,255,.14) !important;
+}
+
+.client-home-v3 .client-action-hero {
+  min-height: 142px;
+  padding: 25px 30px !important;
+  border: 1px solid rgba(236, 205, 146, .18);
+  border-radius: 25px !important;
+  box-shadow: 0 24px 54px rgba(90, 30, 45, .18) !important;
+}
+
+.client-home-v3 .client-executive-grid {
+  gap: 14px !important;
+  margin: 17px 0 !important;
+}
+
+.client-home-v3 .executive-card {
+  min-height: 172px !important;
+  padding: 21px !important;
+  border-color: color-mix(in srgb, var(--client-gold) 14%, var(--border)) !important;
+  border-radius: 21px !important;
+  background: var(--client-surface) !important;
+  box-shadow: 0 15px 35px rgba(52, 31, 37, .065) !important;
+  transition: transform .25s cubic-bezier(.16, 1, .3, 1), box-shadow .25s ease, border-color .25s ease;
+}
+
+.client-home-v3 .executive-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--client-gold) 38%, var(--border)) !important;
+  box-shadow: 0 22px 46px rgba(90, 30, 45, .11) !important;
+}
+
+.client-home-v3 .executive-card::before {
+  inset: 0 auto 0 0 !important;
+  width: 4px !important;
+  height: auto !important;
+}
+
+.client-home-v3 .client-home-lower-grid { gap: 16px !important; }
+.client-home-v3 .client-project-panel,
+.client-home-v3 .client-agenda-panel {
+  border: 1px solid color-mix(in srgb, var(--client-gold) 15%, var(--border)) !important;
+  border-radius: 24px !important;
+  background: var(--client-surface) !important;
+  box-shadow: 0 17px 38px rgba(52, 31, 37, .06) !important;
+}
+
+.client-home-v3 .client-live-row,
+.client-home-v3 .client-event {
+  transition: padding .2s ease, background .2s ease;
+}
+.client-home-v3 .client-live-row:hover,
+.client-home-v3 .client-event:hover {
+  padding-inline: 10px !important;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--client-gold) 6%, transparent);
+}
+
+.client-home-v3 .summary-mini-card {
+  border-color: color-mix(in srgb, var(--client-gold) 14%, var(--border)) !important;
+  box-shadow: 0 13px 31px rgba(52, 31, 37, .055) !important;
+}
+
+html[data-workspace-theme='night'] .client-home-v3 .client-home-heading > div:first-child,
+html[data-workspace-theme='night'] .client-home-v3 .executive-card,
+html[data-workspace-theme='night'] .client-home-v3 .client-project-panel,
+html[data-workspace-theme='night'] .client-home-v3 .client-agenda-panel {
+  border-color: rgba(247, 243, 238, .09) !important;
+  background: rgba(35, 25, 29, .9) !important;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, .22) !important;
+}
+
+@media (max-width: 1180px) {
+  .client-home-v3 .client-home-heading > div:first-child { min-height: 160px; }
+}
+
+@media (max-width: 700px) {
+  .profile-modal-v55 .profile-signature-source-v59 { display: flex !important; width: fit-content !important; }
+  .profile-modal-v55 .profile-signature-select-trigger-v59 { grid-template-columns: minmax(0, 1fr) 15px !important; }
+  .profile-modal-v55 .profile-signature-options-v59 > button,
+  .profile-modal-v55 .profile-signature-popover-v61 > button { grid-template-columns: minmax(0, 1fr) 14px !important; }
+  .client-chat-floating { max-height: calc(100dvh - 16px) !important; padding: 15px !important; }
+  .client-home-v3 .client-home-heading > div:first-child { min-height: auto; padding: 25px 22px; }
+  .client-home-v3 .client-home-heading h1 { font-size: 40px !important; }
+}
