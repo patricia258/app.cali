@@ -1,0 +1,349 @@
+/* CALI Workspace v63 — conversas, notificações e acabamento responsivo.
+   Mantém dados e fluxos; altera somente apresentação e movimento. */
+
+@keyframes cali-message-arrive-v63 {
+  0% { opacity: 0; transform: translateY(18px) scale(.94); }
+  58% { opacity: 1; transform: translateY(-5px) scale(1.018); }
+  78% { transform: translateY(2px) scale(.994); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes cali-popover-in-v63 {
+  0% { opacity: 0; transform: translateY(-8px) scale(.975); }
+  68% { opacity: 1; transform: translateY(2px) scale(1.006); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes cali-modal-in-v63 {
+  0% { opacity: 0; transform: translateY(16px) scale(.975); }
+  64% { opacity: 1; transform: translateY(-3px) scale(1.004); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.workspace-chat-line,
+.records-chat-line {
+  transform-origin: bottom center;
+  transition: transform .2s ease, filter .2s ease;
+}
+
+.workspace-chat-line.is-arriving,
+.records-chat-line.is-arriving {
+  animation: cali-message-arrive-v63 .56s cubic-bezier(.2,.78,.2,1) both;
+}
+
+.workspace-chat-line:hover,
+.records-chat-line:hover { transform: translateY(-1px); }
+
+.workspace-chat-standard .conversation-list-v2.workspace-chat-list,
+.records-v13-drawer .conversation-history {
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, #b58c52 34%, transparent) transparent;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--theme-line) 32%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--theme-line) 32%, transparent) 1px, transparent 1px),
+    radial-gradient(circle at 84% 9%, color-mix(in srgb, #e7c66f 10%, transparent), transparent 26%) !important;
+  background-size: 42px 42px, 42px 42px, auto !important;
+  background-position: center !important;
+}
+
+.workspace-chat-standard .conversation-list-v2.workspace-chat-list::-webkit-scrollbar,
+.records-v13-drawer .conversation-history::-webkit-scrollbar { width: 7px; }
+.workspace-chat-standard .conversation-list-v2.workspace-chat-list::-webkit-scrollbar-thumb,
+.records-v13-drawer .conversation-history::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, #b58c52 38%, transparent);
+  background-clip: padding-box;
+}
+
+.workspace-chat-bubble,
+.records-chat-bubble {
+  position: relative;
+  isolation: isolate;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 26px rgba(46, 27, 33, .085) !important;
+}
+
+.workspace-chat-line.role-admin .workspace-chat-bubble,
+.records-chat-line.role-admin .records-chat-bubble {
+  background: linear-gradient(145deg, #641f34, #511724) !important;
+  border-color: rgba(255, 255, 255, .08) !important;
+}
+
+.workspace-chat-line.role-client .workspace-chat-bubble,
+.records-chat-line.role-client .records-chat-bubble {
+  background: linear-gradient(145deg, #f6dfa8, #efd292) !important;
+  border-color: rgba(181, 140, 82, .44) !important;
+}
+
+.workspace-chat-avatar,
+.records-chat-avatar {
+  box-shadow: 0 7px 20px rgba(50, 32, 37, .12) !important;
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+.workspace-chat-line.is-arriving .workspace-chat-avatar,
+.records-chat-line.is-arriving .records-chat-avatar { transform: translateY(-3px) rotate(-2deg); }
+
+.workspace-chat-compose,
+.records-v13-drawer .conversation-compose {
+  border-top: 1px solid color-mix(in srgb, #b58c52 24%, var(--theme-line)) !important;
+  background: color-mix(in srgb, var(--theme-surface) 94%, transparent) !important;
+  box-shadow: 0 -14px 34px rgba(45, 27, 32, .045);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.workspace-chat-compose textarea,
+.records-v13-drawer .conversation-compose textarea {
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.workspace-chat-tools > button,
+.records-chat-tools > button {
+  transition: transform .18s ease, border-color .18s ease, background .18s ease !important;
+}
+.workspace-chat-tools > button:hover,
+.records-chat-tools > button:hover { transform: translateY(-2px); }
+
+/* Notificações: painel mais leve, hierarquia por tipo e leitura fácil. */
+.notification-panel {
+  right: 0 !important;
+  top: calc(100% + 13px) !important;
+  width: min(430px, calc(100vw - 28px)) !important;
+  max-height: min(610px, calc(100dvh - 92px)) !important;
+  overflow: hidden !important;
+  border: 1px solid color-mix(in srgb, #5a1e2d 12%, var(--theme-line)) !important;
+  border-radius: 22px !important;
+  background: color-mix(in srgb, var(--theme-surface) 96%, transparent) !important;
+  box-shadow: 0 28px 76px rgba(44, 24, 31, .2) !important;
+  backdrop-filter: blur(20px) saturate(1.05);
+  -webkit-backdrop-filter: blur(20px) saturate(1.05);
+  animation: cali-popover-in-v63 .34s cubic-bezier(.2,.78,.2,1) both;
+}
+
+.notification-head {
+  min-height: 82px;
+  padding: 17px 18px !important;
+  border-bottom: 1px solid var(--theme-line) !important;
+  background: linear-gradient(120deg, color-mix(in srgb, #5a1e2d 5%, var(--theme-surface)), color-mix(in srgb, #e7c66f 10%, var(--theme-surface))) !important;
+}
+
+.notification-head-title { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.notification-head-mark {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  display: grid !important;
+  place-items: center;
+  margin: 0 !important;
+  border: 1px solid color-mix(in srgb, #b58c52 32%, var(--theme-line));
+  border-radius: 13px;
+  color: #5a1e2d !important;
+  background: color-mix(in srgb, #e7c66f 14%, var(--theme-surface));
+}
+.notification-head-title > div > strong { font-size: .98rem !important; letter-spacing: -.015em; }
+.notification-head-title > div > span { margin-top: 2px !important; font-size: .7rem !important; }
+.notification-head > button {
+  min-height: 34px;
+  padding: 0 10px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, #5a1e2d 13%, var(--theme-line)) !important;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--theme-surface) 82%, transparent) !important;
+  cursor: pointer;
+}
+
+.notification-list {
+  max-height: min(500px, calc(100dvh - 176px));
+  padding: 8px;
+  gap: 5px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.notification-item {
+  position: relative;
+  grid-template-columns: 44px minmax(0, 1fr) !important;
+  align-items: start;
+  gap: 12px !important;
+  padding: 13px !important;
+  border: 1px solid transparent !important;
+  border-radius: 15px;
+  color: var(--theme-text) !important;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.notification-item:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, #5a1e2d 10%, var(--theme-line)) !important;
+  background: color-mix(in srgb, #5a1e2d 4%, var(--theme-surface)) !important;
+  box-shadow: 0 8px 22px rgba(49, 30, 36, .06);
+}
+.notification-item.unread {
+  border-color: color-mix(in srgb, #b58c52 21%, var(--theme-line)) !important;
+  background: linear-gradient(115deg, color-mix(in srgb, #e7c66f 10%, var(--theme-surface)), color-mix(in srgb, #5a1e2d 3%, var(--theme-surface))) !important;
+}
+.notification-item.is-arriving { animation: cali-message-arrive-v63 .56s cubic-bezier(.2,.78,.2,1) both; }
+.notification-visual {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, #5a1e2d 11%, var(--theme-line));
+  border-radius: 13px;
+  color: #5a1e2d;
+  background: var(--theme-surface);
+}
+.notification-kind-document .notification-visual { color: #7a5930; background: color-mix(in srgb, #e7c66f 14%, var(--theme-surface)); }
+.notification-kind-hours .notification-visual { color: #315d48; background: color-mix(in srgb, #7ca98d 14%, var(--theme-surface)); }
+.notification-kind-calendar .notification-visual { color: #755634; background: color-mix(in srgb, #d2a85f 13%, var(--theme-surface)); }
+.notification-kind-message .notification-visual { color: #6e2940; background: color-mix(in srgb, #b95b7b 10%, var(--theme-surface)); }
+.notification-copy { min-width: 0; }
+.notification-title-row { display: flex !important; align-items: flex-start; justify-content: space-between; gap: 10px; margin: 0 !important; }
+.notification-title-row strong { font-size: .82rem !important; line-height: 1.35 !important; }
+.notification-title-row i { width: 7px; height: 7px; flex: 0 0 7px; margin-top: 5px; border-radius: 999px; background: #5a1e2d; box-shadow: 0 0 0 4px rgba(90, 30, 45, .08); }
+.notification-copy p { margin: 4px 0 0 !important; font-size: .74rem !important; line-height: 1.45 !important; }
+.notification-copy small { margin-top: 7px !important; font-size: .65rem !important; }
+.notification-indicator { display: none !important; }
+
+html[data-workspace-theme='night'] .notification-head-mark,
+html[data-workspace-theme='night'] .notification-visual { color: #e6bd73 !important; }
+html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd73; box-shadow: 0 0 0 4px rgba(230, 189, 115, .1); }
+
+/* O mesmo gesto de abertura nos modais do sistema, sem alterar fluxo. */
+.modal-backdrop > .modal-card,
+.workspace-modal-backdrop > .modal-card,
+.full-screen-modal > .modal-card,
+.chrome-modal-backdrop > .modal-card,
+.deliverable-workspace-modal-v2,
+.records-v13-drawer { animation: cali-modal-in-v63 .4s cubic-bezier(.2,.78,.2,1) both; }
+
+@media (max-width: 1024px) {
+  .deliverable-workspace-modal-v2,
+  .client-deliverable-workspace-v33 {
+    width: calc(100vw - 24px) !important;
+    height: calc(100dvh - 24px) !important;
+    max-height: calc(100dvh - 24px) !important;
+  }
+  .workspace-chat-standard .conversation-list-v2.workspace-chat-list { max-height: none; }
+  .workspace-chat-bubble,
+  .records-chat-bubble { max-width: min(82%, 590px) !important; }
+  .notification-panel { position: fixed !important; top: 72px !important; right: 14px !important; }
+}
+
+@media (max-width: 640px) {
+  .modal-backdrop,
+  .workspace-modal-backdrop,
+  .full-screen-modal,
+  .chrome-modal-backdrop.full-screen-modal { padding: 6px !important; }
+
+  .deliverable-workspace-modal-v2,
+  .client-deliverable-workspace-v33 {
+    width: calc(100vw - 12px) !important;
+    height: calc(100dvh - 12px) !important;
+    max-height: calc(100dvh - 12px) !important;
+    border-radius: 20px !important;
+  }
+  .deliverable-workspace-header-v2 {
+    grid-template-columns: 42px minmax(0, 1fr) 42px !important;
+    gap: 10px !important;
+    padding: 14px !important;
+  }
+  .deliverable-title-v2 .section-kicker { font-size: 8px !important; }
+  .deliverable-title-v2 h2 { overflow: hidden; font-size: 18px !important; text-overflow: ellipsis; white-space: nowrap; }
+  .deliverable-title-v2 p { overflow: hidden; font-size: 10px !important; text-overflow: ellipsis; white-space: nowrap; }
+  .deliverable-head-actions-v2 { justify-content: flex-end; }
+  .deliverable-head-actions-v2 > button:not(.modal-close):not(.drawer-close) { display: none !important; }
+  .deliverable-workspace-tabs-v2 { overflow-x: auto; scrollbar-width: none; }
+  .deliverable-workspace-tabs-v2::-webkit-scrollbar { display: none; }
+  .deliverable-workspace-tabs-v2 button { flex: 0 0 auto; min-width: max-content; padding-inline: 13px !important; }
+
+  .workspace-chat-standard > header { padding: 0 2px 11px !important; }
+  .workspace-chat-standard .client-conversation-title-v33 p { font-size: 10.5px !important; }
+  .workspace-chat-standard .conversation-list-v2.workspace-chat-list,
+  .records-v13-drawer .conversation-history { gap: 14px !important; padding: 18px 12px !important; background-size: 34px 34px, 34px 34px, auto !important; }
+  .workspace-chat-bubble,
+  .records-chat-bubble { min-width: 0 !important; max-width: calc(100% - 42px) !important; padding: 11px 12px !important; border-radius: 16px !important; }
+  .workspace-chat-avatar,
+  .records-chat-avatar { width: 34px !important; height: 34px !important; flex-basis: 34px !important; border-radius: 11px !important; }
+  .workspace-chat-head,
+  .records-chat-head { gap: 10px; margin-bottom: 5px; }
+  .workspace-chat-head strong,
+  .records-chat-head strong { font-size: 9.5px !important; }
+  .workspace-chat-head time,
+  .records-chat-head time { font-size: 8px !important; }
+  .workspace-chat-bubble > p,
+  .records-chat-bubble p { font-size: 13px !important; line-height: 1.48 !important; }
+
+  .workspace-chat-standard .conversation-composer-v2.workspace-chat-compose,
+  .records-v13-drawer .conversation-compose {
+    grid-template-columns: 1fr auto !important;
+    grid-template-areas: "pending pending" "tools tools" "field send" !important;
+    gap: 8px !important;
+    padding: 11px 12px 13px !important;
+  }
+  .workspace-chat-compose textarea,
+  .records-v13-drawer .conversation-compose textarea { min-height: 58px !important; max-height: 118px; padding: 11px 12px !important; font-size: 13px !important; resize: none; }
+  .workspace-chat-tools,
+  .records-chat-tools { gap: 6px; padding: 0 !important; }
+  .workspace-chat-tools > button,
+  .records-chat-tools > button { width: 34px; height: 34px; border-radius: 10px; font-size: 16px; }
+  .workspace-chat-compose > div:not(.workspace-chat-tools):not(.workspace-chat-pending) > .primary,
+  .records-v13-drawer .conversation-compose > .primary { min-width: 72px !important; height: 46px !important; padding-inline: 12px !important; }
+
+  .records-v13-drawer {
+    width: calc(100vw - 12px) !important;
+    height: calc(100dvh - 12px) !important;
+    margin: 6px !important;
+    border: 1px solid var(--theme-line) !important;
+    border-radius: 20px !important;
+  }
+  .records-v13-drawer > header { padding: 18px 16px 14px !important; }
+  .records-v13-drawer > header h2 { font-size: 21px !important; }
+  .records-v13-drawer-meta { padding: 10px 16px !important; }
+  .records-v13-drawer-actions { padding: 11px 12px !important; }
+
+  .notification-panel {
+    inset: auto 8px 8px 8px !important;
+    top: auto !important;
+    width: auto !important;
+    max-height: min(76dvh, 610px) !important;
+    border-radius: 22px !important;
+    transform-origin: bottom center;
+  }
+  .notification-head { min-height: 74px; padding: 14px !important; }
+  .notification-head-mark { width: 38px; height: 38px; flex-basis: 38px; }
+  .notification-head > button { width: 36px; padding: 0 !important; justify-content: center; font-size: 0 !important; }
+  .notification-head > button svg { width: 16px; height: 16px; }
+  .notification-list { max-height: calc(76dvh - 82px); }
+  .notification-item { grid-template-columns: 40px minmax(0, 1fr) !important; padding: 12px !important; }
+  .notification-visual { width: 38px; height: 38px; border-radius: 12px; }
+
+  .profile-modal-v55,
+  .document-create-modal,
+  .client-account-modal.compact-account-modal,
+  .client-account-modal.management-modal-v3 {
+    width: calc(100vw - 12px) !important;
+    height: calc(100dvh - 12px) !important;
+    max-height: calc(100dvh - 12px) !important;
+    border-radius: 20px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-chat-line.is-arriving,
+  .records-chat-line.is-arriving,
+  .notification-item.is-arriving,
+  .notification-panel,
+  .modal-backdrop > .modal-card,
+  .workspace-modal-backdrop > .modal-card,
+  .full-screen-modal > .modal-card,
+  .chrome-modal-backdrop > .modal-card,
+  .deliverable-workspace-modal-v2,
+  .records-v13-drawer { animation: none !important; }
+  .workspace-chat-line,
+  .records-chat-line,
+  .notification-item { transition: none !important; }
+}
