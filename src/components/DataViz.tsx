@@ -70,7 +70,7 @@ export function HorizontalBars({ data }: { data: BarDatum[] }) {
 export function DonutChart({ data, centerValue, centerLabel }: { data: DonutDatum[]; centerValue: string; centerLabel: string }) {
   const total = Math.max(1, data.reduce((sum, item) => sum + item.value, 0));
   const gradient = useMemo(() => { let cursor = 0; return `conic-gradient(${data.map((item) => { const start = cursor; cursor += (item.value / total) * 360; return `${item.color} ${start}deg ${cursor}deg`; }).join(',')})`; }, [data, total]);
-  return <div className="donut-layout"><div className="donut" style={{ background: gradient }}><div><strong>{centerValue}</strong><span>{centerLabel}</span></div></div><div className="donut-legend">{data.map((item) => <div key={item.label}><span className="legend-dot" style={{ background: item.color }} /><span>{item.label}</span><strong>{item.value}</strong></div>)}</div></div>;
+  return <div className="donut-layout"><div className="donut" style={{ background: gradient }}><div><strong>{centerValue}</strong><span>{centerLabel}</span></div></div><div className="donut-detail"><div className="status-distribution" aria-label="Distribuição dos entregáveis por status">{data.map((item) => <span key={item.label} style={{ width: `${(item.value / total) * 100}%`, background: item.color }} title={`${item.label}: ${item.value}`} />)}</div><div className="donut-legend">{data.map((item) => <div key={item.label}><span className="legend-dot" style={{ background: item.color }} /><span>{item.label}</span><strong>{item.value}</strong></div>)}</div></div></div>;
 }
 
 export function InteractiveTrendChart({ labels, series }: { labels: string[]; series: TrendSeries[] }) {
@@ -102,6 +102,9 @@ export function InteractiveTrendChart({ labels, series }: { labels: string[]; se
   return <div className="multi-trend-wrap" onMouseLeave={() => setHovered(null)}>
     <div className="multi-trend-chart-area">
       <svg className="multi-trend-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Evolução das avaliações por cliente">
+        <defs>
+          {series.map((item, index) => <linearGradient key={item.name} id={`trend-fill-${index}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={item.color} stopOpacity=".24" /><stop offset="100%" stopColor={item.color} stopOpacity="0" /></linearGradient>)}
+        </defs>
         {[4, 4.25, 4.5, 4.75, 5].map((tick) => {
           const y = pointFor(tick, 0).y;
           return <g key={tick}><line x1={padX} x2={width - padX} y1={y} y2={y} className="chart-grid-line" /><text x={padX} y={Math.max(13, y - 5)} className="trend-axis-value">{tick.toFixed(2).replace(/0$/, '')}</text></g>;
@@ -111,7 +114,8 @@ export function InteractiveTrendChart({ labels, series }: { labels: string[]; se
           const valid = item.values.map((value, index) => value == null ? null : ({ ...pointFor(value, index), value, index })).filter(Boolean) as Array<{ x: number; y: number; value: number; index: number }>;
           const points = valid.map((point) => `${point.x},${point.y}`).join(' ');
           return <g key={item.name}>
-            {valid.length > 1 && <polyline points={points} fill="none" stroke={item.color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" opacity=".9" />}
+            {valid.length > 1 && <polygon className="trend-area" points={`${valid[0].x},${height - padY} ${points} ${valid[valid.length - 1].x},${height - padY}`} fill={`url(#trend-fill-${series.indexOf(item)})`} />}
+            {valid.length > 1 && <polyline className="trend-series-line" points={points} fill="none" stroke={item.color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" opacity=".9" pathLength="1" />}
             {valid.map((point) => <circle key={`${item.name}-${point.index}`} cx={point.x} cy={point.y} r="5" fill="#fffdf9" stroke={item.color} strokeWidth="2.6" tabIndex={0} className="trend-hit-point" onMouseEnter={() => setHovered({ name: item.name, label: labels[point.index], value: point.value, x: point.x, y: point.y, color: item.color })} onFocus={() => setHovered({ name: item.name, label: labels[point.index], value: point.value, x: point.x, y: point.y, color: item.color })} />)}
           </g>;
         })}
