@@ -3661,3 +3661,263 @@ html[data-workspace-theme='night'] .projects-flow-page .project-kpis-v2 .project
     transition: none !important;
   }
 }
+
+/* =========================================================
+   PERFIL · editor contido e assinatura sem sobreposição
+   ========================================================= */
+.chrome-modal-backdrop:has(.profile-modal-v55) {
+  padding: 20px !important;
+  background: rgba(27, 18, 21, .48) !important;
+  backdrop-filter: blur(12px) saturate(.92) !important;
+}
+
+.profile-modal-v55 {
+  width: min(920px, calc(100vw - 40px)) !important;
+  max-width: 920px !important;
+  max-height: calc(100dvh - 40px) !important;
+  padding: 30px 34px 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border: 1px solid rgba(90, 30, 45, .1) !important;
+  border-radius: 25px !important;
+  background: #fbf8f4 !important;
+  box-shadow: 0 38px 110px rgba(30, 16, 21, .32) !important;
+  animation: ux-profile-pop .42s cubic-bezier(.16, 1, .3, 1) both;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(181, 140, 82, .32) transparent;
+}
+
+.profile-modal-v55 > .section-kicker { color: #a97d43 !important; font-size: 10px !important; letter-spacing: .16em !important; }
+.profile-modal-v55 > h2 { margin: 6px 0 7px !important; font-size: 30px !important; letter-spacing: -.035em; }
+.profile-modal-v55 > p { max-width: 700px; margin: 0 0 20px !important; color: #7a6f69 !important; font-size: 13px !important; line-height: 1.55 !important; }
+
+.profile-modal-v55 .profile-photo-workbench {
+  grid-template-columns: 190px minmax(0, 1fr) !important;
+  min-height: 190px !important;
+  margin: 0 0 20px !important;
+  padding: 20px 24px !important;
+  border: 1px solid rgba(90, 30, 45, .08) !important;
+  border-radius: 18px !important;
+  background: linear-gradient(135deg, rgba(90, 30, 45, .035), rgba(181, 140, 82, .055)) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .7);
+}
+
+.profile-modal-v55 .profile-crop-controls { width: 100% !important; min-width: 0 !important; padding: 5px 0 !important; }
+.profile-modal-v55 .profile-crop-controls label { grid-template-columns: 78px minmax(0, 1fr) !important; gap: 13px !important; }
+
+.profile-modal-v55 .profile-form-grid {
+  width: 100% !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 15px 17px !important;
+}
+.profile-modal-v55 .stacked-label { min-width: 0; gap: 7px !important; font-size: 12px !important; }
+.profile-modal-v55 .stacked-label.wide { grid-column: 1 / -1 !important; }
+.profile-modal-v55 .stacked-label input {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 46px !important;
+  padding-inline: 14px !important;
+  border-color: rgba(90, 30, 45, .11) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, .93) !important;
+  font-size: 13px !important;
+}
+
+.profile-modal-v55 .profile-signature-v59,
+.profile-modal-v55 .profile-signature-v61 {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 22px 0 0 !important;
+  padding: 21px 22px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(181, 140, 82, .25) !important;
+  border-radius: 18px !important;
+  background: linear-gradient(145deg, rgba(255, 253, 250, .98), rgba(246, 237, 225, .72)) !important;
+  box-shadow: 0 12px 30px rgba(53, 31, 36, .045) !important;
+}
+
+.profile-modal-v55 .profile-signature-heading-v55 { align-items: flex-start !important; margin: 0 0 15px !important; }
+.profile-modal-v55 .profile-signature-heading-v55 > svg {
+  width: 38px;
+  height: 38px;
+  padding: 9px;
+  flex: 0 0 38px;
+  border-radius: 11px;
+  color: #8b6030;
+  background: rgba(181, 140, 82, .12);
+}
+.profile-modal-v55 .profile-signature-heading-v55 h3 { margin: 0 0 4px !important; font-size: 18px !important; }
+.profile-modal-v55 .profile-signature-heading-v55 p { max-width: none !important; font-size: 12px !important; }
+
+.profile-modal-v55 .profile-signature-source-v59 { display: grid !important; grid-template-columns: 1fr 1fr; width: min(430px, 100%); margin: 0 0 16px !important; padding: 4px; gap: 4px !important; border: 1px solid rgba(90, 30, 45, .08); border-radius: 12px; background: rgba(90, 30, 45, .035); }
+.profile-modal-v55 .profile-signature-source-v59 button,
+.profile-modal-v55 .profile-signature-source-v59 label { min-height: 39px !important; padding: 0 13px !important; border: 0 !important; border-radius: 9px !important; font-size: 12px !important; }
+.profile-modal-v55 .profile-signature-source-v59 .active { color: #fff !important; background: #5a1e2d !important; box-shadow: 0 7px 16px rgba(90, 30, 45, .17); }
+
+.profile-modal-v55 .profile-signature-select-v59,
+.profile-modal-v55 .profile-signature-v61 .profile-signature-select-v59 { position: relative !important; width: 100% !important; max-width: none !important; }
+.profile-modal-v55 .profile-signature-select-trigger-v59 {
+  width: 100% !important;
+  min-height: 62px !important;
+  height: auto !important;
+  grid-template-columns: minmax(0, 1fr) minmax(145px, .42fr) 18px !important;
+  padding: 10px 14px !important;
+  border-color: rgba(90, 30, 45, .12) !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+}
+.profile-modal-v55 .profile-signature-selected-mark-v59 { padding: 4px 2px !important; font-size: 28px !important; }
+.profile-modal-v55 .profile-signature-selected-copy-v59 { display: grid !important; padding-left: 15px !important; text-align: left !important; }
+.profile-modal-v55 .profile-signature-selected-copy-v59 strong { font-size: 12px !important; }
+.profile-modal-v55 .profile-signature-selected-copy-v59 small { display: block !important; margin-top: 2px; font-size: 10px !important; }
+
+.profile-modal-v55 .profile-signature-options-v59,
+.profile-modal-v55 .profile-signature-popover-v61 {
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  max-height: 220px !important;
+  margin-top: 8px !important;
+  padding: 6px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border: 1px solid rgba(90, 30, 45, .1) !important;
+  border-radius: 13px !important;
+  background: #fffdfa !important;
+  box-shadow: inset 0 1px 3px rgba(53, 31, 36, .035) !important;
+  animation: ux-signature-reveal .24s cubic-bezier(.16, 1, .3, 1) both;
+}
+.profile-modal-v55 .profile-signature-options-v59 > button,
+.profile-modal-v55 .profile-signature-popover-v61 > button {
+  min-height: 52px !important;
+  grid-template-columns: minmax(0, 1fr) 115px 18px !important;
+  padding: 7px 11px !important;
+  border-radius: 9px !important;
+}
+.profile-modal-v55 .profile-signature-option-mark-v59 { font-size: 23px !important; }
+.profile-modal-v55 .profile-signature-options-v59 > button > span:nth-child(2),
+.profile-modal-v55 .profile-signature-popover-v61 > button > span:nth-child(2) { display: grid !important; text-align: left !important; }
+
+.profile-modal-v55 .modal-actions {
+  min-height: 74px;
+  justify-content: flex-end !important;
+  gap: 9px !important;
+  margin: 22px -34px 0 !important;
+  padding: 14px 34px 16px !important;
+  border-top: 1px solid rgba(90, 30, 45, .08) !important;
+  background: rgba(251, 248, 244, .94) !important;
+  box-shadow: 0 -14px 34px rgba(53, 31, 36, .055) !important;
+  backdrop-filter: blur(18px);
+}
+.profile-modal-v55 .modal-actions button { min-height: 43px !important; padding-inline: 17px !important; border-radius: 11px !important; font-size: 13px !important; }
+.profile-modal-v55 .profile-secondary-v56 { border-color: rgba(90, 30, 45, .13) !important; color: #6c5e59 !important; background: transparent !important; }
+.profile-modal-v55 .profile-primary-v56 { border-color: #5a1e2d !important; color: #fff !important; background: #5a1e2d !important; box-shadow: 0 10px 22px rgba(90, 30, 45, .18); }
+
+html[data-workspace-theme='night'] .profile-modal-v55 { border-color: rgba(247, 243, 238, .1) !important; background: #1c1518 !important; }
+html[data-workspace-theme='night'] .profile-modal-v55 > p { color: #c6b8b2 !important; }
+html[data-workspace-theme='night'] .profile-modal-v55 .profile-photo-workbench,
+html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-v59,
+html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-v61 { border-color: rgba(247, 243, 238, .09) !important; background: linear-gradient(145deg, #271c21, #22191c) !important; }
+html[data-workspace-theme='night'] .profile-modal-v55 .stacked-label input,
+html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-select-trigger-v59,
+html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-options-v59,
+html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-popover-v61 { border-color: rgba(247, 243, 238, .11) !important; color: #fffaf7 !important; background: #241a1e !important; }
+html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-source-v59 { border-color: rgba(247, 243, 238, .08); background: rgba(255, 255, 255, .025); }
+html[data-workspace-theme='night'] .profile-modal-v55 .modal-actions { border-color: rgba(247, 243, 238, .09) !important; background: rgba(28, 21, 24, .95) !important; }
+
+/* =========================================================
+   CANAL DIRETO · botão pessoal e pop-up compacto
+   ========================================================= */
+.patricia-float {
+  right: 25px !important;
+  bottom: 22px !important;
+  min-height: 56px;
+  padding: 7px 18px 7px 7px !important;
+  gap: 11px !important;
+  border: 1px solid rgba(231, 198, 111, .3) !important;
+  background: linear-gradient(115deg, #5a1e2d, #74263e) !important;
+  box-shadow: 0 18px 42px rgba(90, 30, 45, .29), inset 0 1px rgba(255, 255, 255, .13) !important;
+  transition: transform .2s cubic-bezier(.16, 1, .3, 1), box-shadow .2s ease !important;
+}
+.patricia-float:hover { transform: translateY(-3px) scale(1.015); box-shadow: 0 23px 50px rgba(90, 30, 45, .34), inset 0 1px rgba(255, 255, 255, .15) !important; }
+.patricia-float .patricia-float-art { width: 42px !important; height: 42px !important; color: #6e3d16 !important; background: linear-gradient(145deg, #f0cf77, #b58c52) !important; box-shadow: inset 0 1px rgba(255, 255, 255, .38); }
+.patricia-float > span:last-child { font-size: 13px !important; letter-spacing: -.005em; }
+
+.client-chat-floating {
+  right: 24px !important;
+  bottom: 22px !important;
+  width: min(470px, calc(100vw - 32px)) !important;
+  max-height: min(610px, calc(100dvh - 32px)) !important;
+  padding: 22px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border: 1px solid rgba(181, 140, 82, .3) !important;
+  border-radius: 24px !important;
+  background: rgba(255, 253, 250, .97) !important;
+  box-shadow: 0 35px 100px rgba(31, 16, 21, .34), 0 7px 24px rgba(90, 30, 45, .12) !important;
+  backdrop-filter: blur(22px) saturate(1.08) !important;
+  transform-origin: calc(100% - 36px) 100%;
+  animation: ux-chat-pop .48s cubic-bezier(.16, 1.15, .3, 1) both !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(181, 140, 82, .35) transparent;
+}
+.client-chat-floating::before { background: transparent !important; }
+.client-chat-floating .client-chat-window-actions { right: 14px !important; top: 14px !important; gap: 6px !important; }
+.client-chat-floating .client-chat-window-actions button { width: 34px !important; height: 34px !important; border-radius: 10px !important; border: 1px solid rgba(90, 30, 45, .09) !important; background: rgba(90, 30, 45, .035) !important; }
+.client-chat-floating .client-chat-brand { min-height: 55px; margin: 0 0 15px !important; padding-right: 78px !important; gap: 12px !important; }
+.client-chat-floating .chat-lime { width: 48px !important; height: 48px !important; flex: 0 0 48px; border-radius: 15px !important; color: #6d3d17 !important; background: linear-gradient(145deg, #f0cf77, #b58c52) !important; box-shadow: 0 9px 20px rgba(181, 140, 82, .17), inset 0 1px rgba(255, 255, 255, .35); }
+.client-chat-floating .client-chat-brand span { font-size: 9px !important; letter-spacing: .15em !important; }
+.client-chat-floating .client-chat-brand strong { font-size: 22px !important; letter-spacing: -.025em; }
+.client-chat-floating .client-chat-brand small { font-size: 11px !important; }
+.client-chat-floating .chat-intro { margin: 0 !important; padding: 0 1px; font-size: 12px !important; line-height: 1.52 !important; }
+
+.client-chat-floating .chat-auto-block { margin: 15px 0 13px !important; padding: 13px !important; border-color: rgba(181, 140, 82, .2) !important; border-radius: 15px !important; background: linear-gradient(135deg, rgba(181, 140, 82, .075), rgba(90, 30, 45, .025)) !important; }
+.client-chat-floating .chat-auto-actions { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 6px !important; }
+.client-chat-floating .chat-auto-actions button { min-height: 37px; padding: 8px 10px !important; border-color: rgba(90, 30, 45, .08) !important; border-radius: 10px !important; background: rgba(255, 255, 255, .75) !important; font-size: 11px !important; transition: transform .16s ease, border-color .16s ease, background .16s ease; }
+.client-chat-floating .chat-auto-actions button:hover { transform: translateY(-1px); border-color: rgba(181, 140, 82, .3) !important; background: #fff !important; }
+
+.client-chat-floating .chat-kind-tabs { margin: 12px 0 !important; padding: 4px; gap: 4px !important; border: 1px solid rgba(90, 30, 45, .07); border-radius: 13px; background: rgba(90, 30, 45, .03); }
+.client-chat-floating .chat-kind-tabs button { min-height: 38px; padding: 7px 6px !important; border: 0 !important; border-radius: 9px !important; background: transparent !important; font-size: 10px !important; }
+.client-chat-floating .chat-kind-tabs button.active { color: #fff !important; background: #5a1e2d !important; box-shadow: 0 7px 16px rgba(90, 30, 45, .16); }
+.client-chat-floating > label { gap: 7px !important; font-size: 11px !important; }
+.client-chat-floating textarea { min-height: 104px !important; max-height: 170px; padding: 13px 14px !important; border-color: rgba(90, 30, 45, .1) !important; border-radius: 13px !important; background: rgba(255, 255, 255, .8) !important; font-size: 12px !important; }
+.client-chat-floating .chat-send { min-height: 43px; margin-top: 9px !important; border-radius: 12px !important; box-shadow: 0 10px 22px rgba(90, 30, 45, .16); }
+.client-chat-floating .chat-note { margin-top: 11px !important; padding-top: 11px !important; font-size: 10px !important; line-height: 1.45 !important; }
+
+html[data-workspace-theme='night'] .client-chat-floating { border-color: rgba(181, 140, 82, .28) !important; background: rgba(32, 23, 27, .98) !important; box-shadow: 0 35px 100px rgba(0, 0, 0, .46) !important; }
+html[data-workspace-theme='night'] .client-chat-floating .client-chat-window-actions button,
+html[data-workspace-theme='night'] .client-chat-floating .chat-auto-actions button,
+html[data-workspace-theme='night'] .client-chat-floating textarea { border-color: rgba(247, 243, 238, .09) !important; color: #fffaf7 !important; background: rgba(255, 255, 255, .035) !important; }
+html[data-workspace-theme='night'] .client-chat-floating .chat-kind-tabs { border-color: rgba(247, 243, 238, .08); background: rgba(255, 255, 255, .025); }
+
+@keyframes ux-profile-pop {
+  from { opacity: 0; transform: translateY(18px) scale(.975); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes ux-signature-reveal {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ux-chat-pop {
+  0% { opacity: 0; transform: translateY(24px) scale(.84); }
+  72% { opacity: 1; transform: translateY(-3px) scale(1.012); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 720px) {
+  .chrome-modal-backdrop:has(.profile-modal-v55) { padding: 8px !important; }
+  .profile-modal-v55 { width: calc(100vw - 16px) !important; max-height: calc(100dvh - 16px) !important; padding: 25px 19px 0 !important; border-radius: 19px !important; }
+  .profile-modal-v55 .profile-photo-workbench { grid-template-columns: 1fr !important; }
+  .profile-modal-v55 .profile-form-grid { grid-template-columns: 1fr !important; }
+  .profile-modal-v55 .stacked-label.wide { grid-column: auto !important; }
+  .profile-modal-v55 .profile-signature-source-v59 { grid-template-columns: 1fr !important; width: 100%; }
+  .profile-modal-v55 .profile-signature-select-trigger-v59 { grid-template-columns: minmax(0, 1fr) 18px !important; }
+  .profile-modal-v55 .profile-signature-selected-copy-v59 { display: none !important; }
+  .profile-modal-v55 .profile-signature-options-v59 > button,
+  .profile-modal-v55 .profile-signature-popover-v61 > button { grid-template-columns: minmax(0, 1fr) 18px !important; }
+  .profile-modal-v55 .profile-signature-options-v59 > button > span:nth-child(2),
+  .profile-modal-v55 .profile-signature-popover-v61 > button > span:nth-child(2) { display: none !important; }
+  .profile-modal-v55 .modal-actions { margin-inline: -19px !important; padding-inline: 19px !important; }
+  .client-chat-floating { right: 8px !important; bottom: 8px !important; width: calc(100vw - 16px) !important; max-height: calc(100dvh - 16px) !important; border-radius: 20px !important; }
+}
