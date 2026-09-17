@@ -160,15 +160,22 @@ export function ClientReportsPageV5(){
 
   if(loading) return <Shell role="client"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando leitura executiva…</section></Shell>;
 
-  return <Shell role="client"><section className="page client-reports-v56 client-reports-v57">
-    <div className="eyebrow">LEITURA EXECUTIVA</div>
-    <div className="page-heading"><div><h1>Relatórios</h1><p>Consulte os fechamentos liberados pela CALI e abra o documento quando precisar.</p></div></div>
+  return <Shell role="client"><section className="page client-reports-v56 client-reports-v57 client-reports-v58">
+    <header className="client-reports-heading-v58">
+      <div>
+        <div className="eyebrow">LEITURA EXECUTIVA</div>
+        <h1>Relatórios</h1>
+        <p>Fechamentos liberados pela CALI, com histórico de leitura e ciência em uma única visão.</p>
+      </div>
+      <div className="client-reports-heading-mark-v58" aria-hidden="true"><FileText size={28}/></div>
+    </header>
     {error?<div className="inline-notice">{error}</div>:null}
     {loading
       ?<div className="panel data-loading"><Loader2 className="spin" size={20}/>Carregando relatórios…</div>
       :!reports.length
         ?<div className="panel client-reports-v56-empty"><FileText size={28}/><strong>Nenhum relatório foi liberado ainda.</strong><p>Quando a CALI enviar um fechamento, ele ficará disponível aqui.</p></div>
-        :<section className="client-report-library-v56 client-report-library-v57">
+        :<section className="client-report-library-v56 client-report-library-v57 client-report-library-v58">
+          <div className="client-report-library-head-v58"><div><span>HISTÓRICO DE FECHAMENTOS</span><strong>{reports.length} {reports.length===1?'relatório disponível':'relatórios disponíveis'}</strong></div><p>Abra o relatório para a leitura completa ou expanda uma linha para consultar acessos e protocolo.</p></div>
           <div className="client-report-table-wrap-v56">
             <table className="client-report-table-v56 client-report-table-v57">
               <thead><tr><th>Protocolo</th><th>Referência</th><th>Tipo</th><th>Leitura</th><th>Ciência</th><th>Ações</th></tr></thead>

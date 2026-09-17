@@ -416,14 +416,17 @@ export function ClientDeliverablesPage() {
   if(loading)return <Shell role="client"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando cronograma…</section></Shell>;
 
   return <Shell role="client">
-    <section className="page client-roadmap-page-v33">
+    <section className="page client-roadmap-page-v33 client-roadmap-page-v34">
       <header className="client-roadmap-heading-v33">
         <div>
           <span className="eyebrow">CRONOGRAMA COMPARTILHADO</span>
           <h1>Entregáveis</h1>
           <p>Acompanhe as frentes do trabalho, os entregáveis de cada etapa e abra cada item para ver somente o que é relevante para você.</p>
         </div>
-        {reality && reality.projects.length > 1 && <label className="client-project-picker-v33"><span>Projeto</span><select value={project?.id || ''} onChange={(event) => { setProjectId(event.target.value); closeDeliverable(); }}>{reality.projects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
+        <div className="client-roadmap-heading-side-v34">
+          {reality && reality.projects.length > 1 && <label className="client-project-picker-v33"><span>Projeto</span><select value={project?.id || ''} onChange={(event) => { setProjectId(event.target.value); closeDeliverable(); }}>{reality.projects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
+          <div className="client-roadmap-heading-mark-v34" aria-hidden="true"><FolderKanban size={28} /></div>
+        </div>
       </header>
 
       {notice && <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div>}

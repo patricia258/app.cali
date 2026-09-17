@@ -268,9 +268,15 @@ export function ClientDocumentsPage() {
 
   return (
     <Shell role="client">
-      <section className="page client-documents-v2 client-documents-v3">
-        <div className="eyebrow">BIBLIOTECA DO PROJETO</div>
-        <div className="page-heading"><div><h1>Documentos</h1><p>Aqui aparecem somente as versões finalizadas e liberadas pela CALI. Abra, comente, registre ciência quando necessário e, se quiser, salve uma cópia no seu Google Drive.</p></div></div>
+      <section className="page client-documents-v2 client-documents-v3 client-documents-v4">
+        <header className="client-documents-heading-v4">
+          <div>
+            <div className="eyebrow">BIBLIOTECA DO PROJETO</div>
+            <h1>Documentos</h1>
+            <p>Versões finalizadas e liberadas pela CALI, organizadas para consulta, comentários e registro de ciência.</p>
+          </div>
+          <div className="client-documents-heading-mark-v4" aria-hidden="true"><FileText size={28} /></div>
+        </header>
 
         {notice && <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div>}
         {error && <div className="inline-notice">{error}</div>}
@@ -283,7 +289,8 @@ export function ClientDocumentsPage() {
 
         {validityAlerts.length > 0 && <section className="client-document-validity-alert" role="status"><AlertTriangle size={21} /><div><strong>{validityAlerts.some((doc) => (daysUntil(doc.validUntil) ?? 1) < 0) ? 'Há documentos com revisão vencida ou próxima.' : 'Há documentos próximos da revisão.'}</strong><p>{validityAlerts.length === 1 ? 'A validade deste documento se aproxima. Planeje a revisão para manter a documentação vigente e reduzir riscos trabalhistas e de auditoria.' : `${validityAlerts.length} documentos precisam de atenção. A ausência de revisão pode aumentar o risco trabalhista e o passivo em auditorias.`}</p></div></section>}
 
-        <div className="client-doc-toolbar-v3">
+        <div className="client-doc-toolbar-v3 client-doc-toolbar-v4">
+          <div className="client-doc-toolbar-copy-v4"><span>ACERVO DISPONÍVEL</span><strong>{filtered.length} {filtered.length === 1 ? 'documento' : 'documentos'}</strong><small>Use a busca ou filtre por categoria.</small></div>
           <label className="search-box client-doc-search"><Search size={18} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nome, tipo ou protocolo" /></label>
           <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} aria-label="Filtrar documentos por categoria"><option value="all">Todas as categorias</option>{categories.map((value) => <option key={value} value={value}>{categoryLabel(value)}</option>)}</select>
         </div>
