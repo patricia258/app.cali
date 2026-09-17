@@ -183,9 +183,10 @@ export function ClientHoursPage() {
   }
 
   return <Shell role="client">
-    <section className="page client-hours-connect">
+    <section className="page client-hours-connect client-hours-v2">
       <header className="client-hours-connect-header">
-        <div><h1>Horas Consumidas</h1><p>Acompanhe o consumo do seu pacote.</p></div>
+        <div><span className="eyebrow">ACOMPANHAMENTO DO CICLO</span><h1>Horas do ciclo</h1><p>Consumo, saldo disponível e registros compartilhados pela CALI em uma única leitura.</p></div>
+        <div className="client-hours-heading-mark" aria-hidden="true"><Clock3 size={26} /></div>
       </header>
 
       {error && <div className="inline-notice"><AlertTriangle size={18} />{error}</div>}
@@ -195,13 +196,19 @@ export function ClientHoursPage() {
           {alertTone === 'critical' && <div className="client-hours-alert critical"><AlertTriangle size={18} /><span>{alertText}</span></div>}
           <div className="client-hours-summary-top">
             <div><span>Horas do mês</span><h2>{monthLabel(period)}</h2></div>
-            <div className="client-hours-summary-numbers"><Clock3 size={18} /><strong>{formatMinutes(summary.consumedMinutes)} / {summary.contractedHours ? `${summary.contractedHours}h` : '—'}</strong><span>·</span><em>{summary.overMinutes > 0 ? `${formatMinutes(summary.overMinutes)} excedentes` : `${formatMinutes(summary.remainingMinutes)} restantes`}</em></div>
+            <div className="client-hours-summary-state"><Clock3 size={17} /><span>{percentage}% utilizado</span></div>
+          </div>
+          <div className="client-hours-metric-grid">
+            <div><span>Consumidas</span><strong>{formatMinutes(summary.consumedMinutes)}</strong></div>
+            <div><span>Contratadas</span><strong>{summary.contractedHours ? `${summary.contractedHours}h` : '—'}</strong></div>
+            <div className={summary.overMinutes > 0 ? 'over' : ''}><span>{summary.overMinutes > 0 ? 'Excedentes' : 'Disponíveis'}</span><strong>{summary.overMinutes > 0 ? formatMinutes(summary.overMinutes) : formatMinutes(summary.remainingMinutes)}</strong></div>
           </div>
           <div className="client-hours-progress"><i className={alertTone} style={{ width: `${percentage}%` }} /></div>
           {alertText && alertTone !== 'critical' && <p className={`client-hours-alert-text ${alertTone}`}>{alertText}</p>}
         </section>
 
         <div className="client-hours-filters">
+          <div className="client-hours-filter-copy"><span>REGISTROS COMPARTILHADOS</span><strong>Detalhamento do período</strong><small>{filteredEntries.length} {filteredEntries.length === 1 ? 'registro visível' : 'registros visíveis'}</small></div>
           <label><span>Mês</span><input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></label>
           <label><span>Contexto</span><select value={contextFilter} onChange={(event) => setContextFilter(event.target.value as ContextFilter)}><option value="all">Todos</option><option value="deliverable">Entregável</option><option value="project">Projeto</option><option value="interaction">Interação</option></select></label>
         </div>
