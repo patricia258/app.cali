@@ -4223,6 +4223,11 @@ html[data-workspace-theme='night'] .client-chat-floating .chat-kind-tabs { borde
   border-radius: 10px !important;
 }
 
+.profile-modal-v55 .profile-signature-v59 {
+  overflow: hidden !important;
+  contain: paint;
+}
+
 .profile-modal-v55 .profile-signature-source-v59 button,
 .profile-modal-v55 .profile-signature-source-v59 label {
   width: auto !important;
