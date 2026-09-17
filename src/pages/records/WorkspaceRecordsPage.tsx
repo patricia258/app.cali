@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  AlertTriangle, CalendarDays, CheckCircle2, ChevronRight, FileText, Filter,
+  AlertTriangle, BookOpenText, CalendarDays, CheckCircle2, ChevronRight, FileText, Filter,
   MessageCircle, MessageSquareText, Pencil, Plus, Search, Send, Trash2, X,
 } from 'lucide-react';
 import { Shell, type Role } from '../../components/WorkspaceShell';
