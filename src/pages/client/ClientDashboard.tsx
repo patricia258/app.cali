@@ -313,17 +313,17 @@ export function ClientDashboard() {
         <Link to="/cliente/relatorios" className="summary-mini-card history-card"><History size={19} /><div><span>Histórico executivo</span><strong>Conta CALI</strong><small>Relatórios e evolução registrada</small></div><ChevronRight size={17} /></Link>
       </section>
 
-      {!chatOpen && <button className="patricia-float" type="button" onClick={() => { setChatSent(false); setAssistantReply(''); setChatOpen(true); }} aria-label="Fale com a Patrícia" title="Fale com a Patrícia">
-        <span className="patricia-float-art"><Leaf size={22} /></span><span>Fale com a Patrícia</span>
+      {!chatOpen && <button className="patricia-float" type="button" onClick={() => { setChatSent(false); setAssistantReply(''); setChatOpen(true); }} aria-label="Fale com a Pati" title="Fale com a Pati">
+        <span className="patricia-float-art patricia-portrait-slot"><Leaf size={22} /></span><span>Fale com a Pati</span>
       </button>}
     </section>
 
-    {chatOpen && <aside className="client-chat-panel client-chat-floating" role="dialog" aria-label="Fale com a Patrícia">
+    {chatOpen && <aside className="client-chat-panel client-chat-floating" role="dialog" aria-label="Fale com a Pati">
       <div className="client-chat-window-actions">
         <button onClick={() => setChatOpen(false)} aria-label="Minimizar"><Minus size={17} /></button>
         <button onClick={() => { setChatOpen(false); setAssistantReply(''); setChatSent(false); }} aria-label="Fechar"><X size={17} /></button>
       </div>
-      <div className="client-chat-brand"><div className="chat-lime"><Leaf size={23} /></div><div><span>CANAL DIRETO CALI</span><strong>Fale com a Patrícia</strong><small>{contactRole}</small></div></div>
+      <div className="client-chat-brand"><div className="chat-lime patricia-portrait-slot"><Leaf size={23} /></div><div><span>CANAL DIRETO CALI</span><strong>Fale com a Pati</strong><small>{contactRole}</small></div></div>
       <p className="chat-intro">Use este canal para consultar informações da sua conta ou enviar algo que precise de acompanhamento da CALI.</p>
 
       <div className="chat-auto-block">
@@ -340,7 +340,7 @@ export function ClientDashboard() {
           <button className={chatKind === 'occurrence' ? 'active' : ''} onClick={() => setChatKind('occurrence')}>Ocorrência</button>
         </div>
         <label>Sua mensagem<textarea rows={4} value={chatText} onChange={(event) => setChatText(event.target.value)} placeholder="Escreva aqui. Isso ficará registrado na sua conta CALI." /></label>
-        <button className="chat-send" disabled={!chatText.trim() || sending} onClick={() => void sendMessage()}>{sending ? <Loader2 className="spin" size={17} /> : <Send size={17} />}Enviar para a Patrícia</button>
+        <button className="chat-send" disabled={!chatText.trim() || sending} onClick={() => void sendMessage()}>{sending ? <Loader2 className="spin" size={17} /> : <Send size={17} />}Enviar para a Pati</button>
         <div className="chat-note"><MessageCircle size={15} />Perguntas objetivas usam dados reais do Workspace. Questões estratégicas são registradas para leitura da Patrícia, sem resposta automática inventada.</div>
       </>}
     </aside>}
