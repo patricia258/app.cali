@@ -341,7 +341,7 @@ export function ClientDashboard() {
         </div>
         <label>Sua mensagem<textarea rows={4} value={chatText} onChange={(event) => setChatText(event.target.value)} placeholder="Escreva aqui. Isso ficará registrado na sua conta CALI." /></label>
         <button className="chat-send" disabled={!chatText.trim() || sending} onClick={() => void sendMessage()}>{sending ? <Loader2 className="spin" size={17} /> : <Send size={17} />}Enviar para a Pati</button>
-        <div className="chat-note"><MessageCircle size={15} />Perguntas objetivas usam dados reais do Workspace. Questões estratégicas são registradas para leitura da Patrícia, sem resposta automática inventada.</div>
+        <div className="chat-note"><MessageCircle size={15} />Respostas automáticas usam apenas dados reais. Questões estratégicas ficam registradas para a Pati.</div>
       </>}
     </aside>}
   </Shell>;
