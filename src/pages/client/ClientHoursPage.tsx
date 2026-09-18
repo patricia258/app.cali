@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, ChevronDown, ChevronRight, Clock3, Loader2 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
@@ -30,6 +30,19 @@ type Summary = {
   usagePercent: number | null;
 };
 
+const previewProjects: Project[] = [
+  { id: 'preview-project', name: 'Projeto de estruturação de RH' },
+];
+const previewDeliverables: Deliverable[] = [
+  { id: 'preview-deliverable', projectId: 'preview-project', title: 'Diagnóstico e plano de ação' },
+];
+const previewEntries: Entry[] = [
+  { id: 'preview-1', projectId: 'preview-project', deliverableId: 'preview-deliverable', workDate: '2026-09-17', minutes: 72, description: 'Diagnóstico e plano de ação', category: 'Análise dos dados enviados pela liderança', sourceType: 'timer' },
+  { id: 'preview-2', projectId: 'preview-project', workDate: '2026-09-15', minutes: 45, description: 'Reunião de alinhamento', category: 'Interação', sourceType: 'calendar' },
+  { id: 'preview-3', projectId: 'preview-project', workDate: '2026-09-12', minutes: 30, description: 'Revisão do cronograma', category: null, sourceType: 'manual' },
+];
+const previewSummary: Summary = { visible: true, contractedHours: 15, consumedMinutes: 147, remainingMinutes: 753, overMinutes: 0, usagePercent: 16 };
+
 function currentMonth() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -53,11 +66,6 @@ function monthLabel(value: string) {
 function dateLabel(value: string) {
   const date = new Date(`${value.slice(0, 10)}T12:00:00`);
   return new Intl.DateTimeFormat('pt-BR').format(date);
-}
-
-function timeLabel(value?: string | null) {
-  if (!value) return '—';
-  return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
 }
 
 function formatMinutes(minutes: number) {
@@ -88,18 +96,28 @@ function contextLabel(context: Exclude<ContextFilter, 'all'>) {
   return 'Projeto';
 }
 
+function detailOf(entry: Entry, activity: string) {
+  const detail = String(entry.category || '').trim();
+  if (!detail) return '';
+  const normalized = detail.toLocaleLowerCase('pt-BR');
+  const redundant = [activity, entry.description, 'entregável', 'entregáveis', 'projeto', 'projetos', 'interação', 'interações']
+    .map((value) => String(value || '').trim().toLocaleLowerCase('pt-BR'));
+  return redundant.includes(normalized) ? '' : detail;
+}
+
 export function ClientHoursPage() {
+  const preview = sessionStorage.getItem('cali-preview-role') === 'client';
   const [period, setPeriod] = useState(currentMonth());
-  const [summary, setSummary] = useState<Summary | null>(null);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
-  const [entries, setEntries] = useState<Entry[]>([]);
+  const [summary, setSummary] = useState<Summary | null>(preview ? previewSummary : null);
+  const [projects, setProjects] = useState<Project[]>(preview ? previewProjects : []);
+  const [deliverables, setDeliverables] = useState<Deliverable[]>(preview ? previewDeliverables : []);
+  const [entries, setEntries] = useState<Entry[]>(preview ? previewEntries : []);
   const [contextFilter, setContextFilter] = useState<ContextFilter>('all');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!preview);
   const [error, setError] = useState('');
 
-  useEffect(() => { void load(); }, [period]);
+  useEffect(() => { if (!preview) void load(); }, [period, preview]);
 
   async function load() {
     if (!supabase) return;
@@ -215,15 +233,17 @@ export function ClientHoursPage() {
 
         {filteredEntries.length === 0 ? <section className="hours-connect-card client-hours-empty"><Clock3 size={24} /><p>Nenhum registro de horas neste período.</p></section> : <>
           <section className="hours-connect-card client-hours-table-card">
-            <div className="client-hours-table-wrap"><table className="client-hours-table"><thead><tr><th className="expand" /><th>Data</th><th>Horário</th><th>Duração</th><th>Atividade</th><th>Projeto</th><th>Origem</th></tr></thead><tbody>{filteredEntries.map((entry) => {
+            <div className="client-hours-table-wrap"><table className="client-hours-table"><thead><tr><th className="expand" /><th>Data</th><th>Tempo</th><th>Atividade</th><th>Natureza</th><th>Projeto</th><th>Origem</th></tr></thead><tbody>{filteredEntries.map((entry) => {
               const open = Boolean(expanded[entry.id]);
               const context = contextOf(entry);
               const project = entry.projectId ? projectMap.get(entry.projectId) || '—' : '—';
               const deliverable = entry.deliverableId ? deliverableMap.get(entry.deliverableId) || '—' : '—';
-              return <>
-                <tr key={entry.id} className="client-hours-row" onClick={() => setExpanded((current) => ({ ...current, [entry.id]: !current[entry.id] }))}><td className="expand">{open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</td><td>{dateLabel(entry.workDate)}</td><td>{timeLabel(entry.startedAt)}–{timeLabel(entry.endedAt)}</td><td><strong>{formatMinutes(entry.minutes)}</strong></td><td className="action">{entry.description}</td><td><span>{project}</span>{deliverable !== '—' && <small>{deliverable}</small>}</td><td>{sourceLabel(entry.sourceType)}</td></tr>
-                {open && <tr className="client-hours-detail"><td colSpan={7}><div><strong>Detalhes:</strong><span>{entry.description}</span>{entry.category && <em>Natureza: {entry.category}</em>}</div></td></tr>}
-              </>;
+              const activity = deliverable !== '—' ? deliverable : entry.description;
+              const detail = detailOf(entry, activity);
+              return <Fragment key={entry.id}>
+                <tr className={`client-hours-row${detail ? ' has-detail' : ''}`} onClick={() => detail && setExpanded((current) => ({ ...current, [entry.id]: !current[entry.id] }))}><td className="expand">{detail ? (open ? <ChevronDown size={16} /> : <ChevronRight size={16} />) : null}</td><td>{dateLabel(entry.workDate)}</td><td><strong>{formatMinutes(entry.minutes)}</strong></td><td className="action">{activity}</td><td><span className={`client-hours-context ${context}`}>{contextLabel(context)}</span></td><td>{project}</td><td>{sourceLabel(entry.sourceType)}</td></tr>
+                {open && detail && <tr className="client-hours-detail"><td colSpan={7}><div><strong>Comentário</strong><span>{detail}</span></div></td></tr>}
+              </Fragment>;
             })}</tbody></table></div>
           </section>
 
@@ -232,7 +252,9 @@ export function ClientHoursPage() {
             const context = contextOf(entry);
             const project = entry.projectId ? projectMap.get(entry.projectId) || '—' : '—';
             const deliverable = entry.deliverableId ? deliverableMap.get(entry.deliverableId) || '—' : '—';
-            return <article className="hours-connect-card" key={entry.id}><button type="button" onClick={() => setExpanded((current) => ({ ...current, [entry.id]: !current[entry.id] }))}><div><span>{dateLabel(entry.workDate)} · {timeLabel(entry.startedAt)}–{timeLabel(entry.endedAt)}</span><strong>{formatMinutes(entry.minutes)}</strong></div><h3>{entry.description}</h3><p>{project}{deliverable !== '—' ? ` · ${deliverable}` : ''}</p><footer><span className={`client-hours-context ${context}`}>{contextLabel(context)}</span><span>{sourceLabel(entry.sourceType)}</span>{open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</footer>{open && entry.category && <aside>{entry.category}</aside>}</button></article>;
+            const activity = deliverable !== '—' ? deliverable : entry.description;
+            const detail = detailOf(entry, activity);
+            return <article className="hours-connect-card" key={entry.id}><button type="button" onClick={() => detail && setExpanded((current) => ({ ...current, [entry.id]: !current[entry.id] }))}><div><span>{dateLabel(entry.workDate)}</span><strong>{formatMinutes(entry.minutes)}</strong></div><h3>{activity}</h3><p>{project}</p><footer><span className={`client-hours-context ${context}`}>{contextLabel(context)}</span><span>{sourceLabel(entry.sourceType)}</span>{detail ? (open ? <ChevronDown size={16} /> : <ChevronRight size={16} />) : null}</footer>{open && detail && <aside><strong>Comentário</strong>{detail}</aside>}</button></article>;
           })}</div>
         </>}
       </>}

@@ -1,5 +1,5 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, ChevronDown, Eye, FileText, Loader2, Printer, ShieldCheck, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, Eye, FileText, Loader2, Printer, ShieldCheck, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { ExecutiveReportPaperV17 } from '../../components/reports/ExecutiveReportPaperV17';
 import type { ReportIdentityV55 } from '../../components/reports/ReportValidationV55';
@@ -19,6 +19,11 @@ type Report={
   lastOpenedAt?:string|null;pdfCount:number;
 };
 type Company={name:string;logoUrl?:string|null};
+
+const previewReports:Report[]=[
+  {id:'preview-report-1',title:'Fechamento executivo',reportType:'monthly',periodStart:'2026-09-01',periodEnd:'2026-09-30',summary:'Resumo executivo do período.',movements:[],decisions:[],risks:[],nextSteps:[],snapshot:null,protocol:'CALI-RPT-2026-000011',sentAt:'2026-09-08T04:01:00.000Z',version:3,status:'sent',acknowledgedAt:null,openCount:1,firstOpenedAt:'2026-09-08T04:01:00.000Z',lastOpenedAt:'2026-09-10T18:56:00.000Z',pdfCount:11},
+  {id:'preview-report-2',title:'Fechamento executivo',reportType:'monthly',periodStart:'2026-08-01',periodEnd:'2026-08-31',summary:'Resumo executivo do período.',movements:[],decisions:[],risks:[],nextSteps:[],snapshot:null,protocol:'CALI-RPT-2026-000010',sentAt:'2026-08-08T04:01:00.000Z',version:2,status:'published',acknowledgedAt:'2026-08-12T13:30:00.000Z',openCount:1,firstOpenedAt:'2026-08-09T11:15:00.000Z',lastOpenedAt:'2026-08-12T13:30:00.000Z',pdfCount:2},
+];
 
 function rowToReport(row:any):Report{
   return{
@@ -56,17 +61,17 @@ function formatDateTime(value?:string|null){
 
 export function ClientReportsPageV5(){
   const { user } = useWorkspaceAuth();
-  const[reports,setReports]=useState<Report[]>([]);
-  const[company,setCompany]=useState<Company|null>(null);
-  const[selectedId,setSelectedId]=useState('');
-  const[loading,setLoading]=useState(true);
+  const preview=sessionStorage.getItem('cali-preview-role')==='client';
+  const[reports,setReports]=useState<Report[]>(preview?previewReports:[]);
+  const[company,setCompany]=useState<Company|null>(preview?{name:'Empresa de demonstração'}:null);
+  const[selectedId,setSelectedId]=useState(preview?previewReports[0].id:'');
+  const[loading,setLoading]=useState(!preview);
   const[error,setError]=useState('');
-  const[expanded,setExpanded]=useState<Set<string>>(()=>new Set());
   const[previewOpen,setPreviewOpen]=useState(false);
   const[ackOpen,setAckOpen]=useState(false);
   const[acknowledging,setAcknowledging]=useState(false);
 
-  useEffect(()=>{void load();},[]);
+  useEffect(()=>{if(!preview)void load();},[preview]);
   useEffect(()=>{
     if(!previewOpen&&!ackOpen)return;
     document.body.classList.add('workspace-modal-open');
@@ -117,13 +122,6 @@ export function ClientReportsPageV5(){
 
   const selected=useMemo(()=>reports.find((item)=>item.id===selectedId)||null,[reports,selectedId]);
 
-  function toggleDetails(id:string){
-    setExpanded((current)=>{
-      const next=new Set(current);
-      next.has(id)?next.delete(id):next.add(id);
-      return next;
-    });
-  }
   async function openReport(report:Report){
     setSelectedId(report.id);
     await recordOpen(report.id);
@@ -175,46 +173,26 @@ export function ClientReportsPageV5(){
       :!reports.length
         ?<div className="panel client-reports-v56-empty"><FileText size={28}/><strong>Nenhum relatório foi liberado ainda.</strong><p>Quando a CALI enviar um fechamento, ele ficará disponível aqui.</p></div>
         :<section className="client-report-library-v56 client-report-library-v57 client-report-library-v58">
-          <div className="client-report-library-head-v58"><div><span>HISTÓRICO DE FECHAMENTOS</span><strong>{reports.length} {reports.length===1?'relatório disponível':'relatórios disponíveis'}</strong></div><p>Abra o relatório para a leitura completa ou expanda uma linha para consultar acessos e protocolo.</p></div>
+          <div className="client-report-library-head-v58"><div><span>HISTÓRICO DE FECHAMENTOS</span><strong>{reports.length} {reports.length===1?'relatório disponível':'relatórios disponíveis'}</strong></div><p>Consulte a referência, a leitura e a ciência de cada fechamento.</p></div>
           <div className="client-report-table-wrap-v56">
-            <table className="client-report-table-v56 client-report-table-v57">
-              <thead><tr><th>Protocolo</th><th>Referência</th><th>Tipo</th><th>Leitura</th><th>Ciência</th><th>Ações</th></tr></thead>
+            <table className="client-report-table-v56 client-report-table-v57 client-report-table-v64">
+              <thead><tr><th>Referência</th><th>Visualização</th><th>Ciência</th><th>Enviado em</th><th>Primeiro acesso</th><th>Ciência em</th><th>Ações</th></tr></thead>
               <tbody>{reports.map((report)=>{
-                const isExpanded=expanded.has(report.id);
-                return <Fragment key={report.id}>
-                  <tr className={`${!report.openCount?'unread ':''}${isExpanded?'expanded':''}`.trim()}>
-                    <td data-label="Protocolo">
-                      <div className="client-report-protocol-v57">
-                        <strong>{report.protocol}</strong>
-                        <button type="button" className="client-report-expand-v57" onClick={()=>toggleDetails(report.id)} aria-expanded={isExpanded} aria-label={isExpanded?'Recolher detalhes':'Ver detalhes'} title={isExpanded?'Recolher detalhes':'Ver detalhes'}>
-                          <ChevronDown size={16}/>
-                        </button>
-                      </div>
-                    </td>
-                    <td data-label="Referência"><strong>{periodLabel(report.reportType,report.periodStart)}</strong></td>
-                    <td data-label="Tipo">{typeLabel(report.reportType)}</td>
-                    <td data-label="Leitura">{report.openCount?<span className="report-status-v56 viewed"><CheckCircle2 size={15}/>Visualizado</span>:<span className="report-status-v56 new">Não visualizado</span>}</td>
+                return <tr key={report.id} className={!report.openCount?'unread':''}>
+                    <td data-label="Referência"><strong>{periodLabel(report.reportType,report.periodStart)}</strong><small>{typeLabel(report.reportType)}</small></td>
+                    <td data-label="Visualização">{report.openCount?<span className="report-status-v56 viewed"><CheckCircle2 size={15}/>Visualizado</span>:<span className="report-status-v56 new">Não visualizado</span>}</td>
                     <td data-label="Ciência">{report.acknowledgedAt?<span className="report-status-v56 acknowledged"><ShieldCheck size={15}/>Registrada</span>:<span className="report-status-v56 pending">Pendente</span>}</td>
+                    <td data-label="Enviado em"><span className="client-report-date-v64">{formatDateTime(report.sentAt)}</span></td>
+                    <td data-label="Primeiro acesso"><span className="client-report-date-v64">{formatDateTime(report.firstOpenedAt)}</span></td>
+                    <td data-label="Ciência em"><span className="client-report-date-v64">{formatDateTime(report.acknowledgedAt)}</span></td>
                     <td data-label="Ações"><div className="client-report-row-actions-v56">
-                      <button type="button" className="client-report-secondary-v56" onClick={()=>void openReport(report)}><Eye size={16}/>Abrir relatório</button>
-                      <button type="button" className="client-report-secondary-v56" onClick={()=>void openPrint(report)}><Printer size={16}/>Baixar PDF</button>
+                      <button type="button" className="client-report-primary-v56" onClick={()=>void openReport(report)}><Eye size={16}/>Abrir</button>
+                      <button type="button" className="client-report-secondary-v56" onClick={()=>void openPrint(report)}><Printer size={16}/>PDF</button>
                       {report.acknowledgedAt
                         ?<span className="client-report-ack-done-v56"><CheckCircle2 size={15}/>Ciência registrada</span>
                         :<button type="button" className="client-report-primary-v56" onClick={()=>requestAcknowledge(report)}><ShieldCheck size={16}/>Registrar ciência</button>}
                     </div></td>
-                  </tr>
-                  {isExpanded?<tr className="client-report-detail-row-v57"><td colSpan={6}>
-                    <div className="client-report-detail-grid-v57">
-                      <div><span>Versão</span><strong>v{report.version}</strong></div>
-                      <div><span>Enviado</span><strong>{formatDateTime(report.sentAt)}</strong></div>
-                      <div><span>Acessos</span><strong>{report.openCount||0}</strong></div>
-                      <div><span>Primeiro acesso</span><strong>{formatDateTime(report.firstOpenedAt)}</strong></div>
-                      <div><span>Último acesso</span><strong>{formatDateTime(report.lastOpenedAt)}</strong></div>
-                      <div><span>PDF</span><strong>{report.pdfCount?`${report.pdfCount} acesso${report.pdfCount===1?'':'s'}`:'Nenhum'}</strong></div>
-                      {report.acknowledgedAt?<div className="wide"><span>Ciência</span><strong>{formatDateTime(report.acknowledgedAt)}{report.ackProtocol?` · ${report.ackProtocol}`:''}</strong></div>:null}
-                    </div>
-                  </td></tr>:null}
-                </Fragment>;
+                  </tr>;
               })}</tbody>
             </table>
           </div>
