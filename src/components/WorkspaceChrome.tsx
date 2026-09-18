@@ -287,6 +287,7 @@ export function ProfileControl({ role, compact = false }: { role: Role; compact?
         if (error) throw error;
       }
       window.localStorage.setItem(`cali-workspace-profile-${role}`, JSON.stringify(next));
+      window.dispatchEvent(new CustomEvent('cali-profile-updated', { detail: { role } }));
       setProfile(next); setDraft(next); setModalOpen(false); setMenuOpen(false);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Não foi possível salvar o perfil.');

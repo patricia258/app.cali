@@ -95,7 +95,8 @@ function ensurePolishStyles() {
   style.textContent = `
     .identity-media-person.profile-canonical-v47,
     .records-chat-avatar.profile-canonical-v47,
-    .conversation-avatar-v2.profile-canonical-v47{
+    .conversation-avatar-v2.profile-canonical-v47,
+    .workspace-chat-avatar.profile-canonical-v47{
       position:relative!important;
       overflow:hidden!important;
       border-radius:14px!important;
@@ -107,7 +108,8 @@ function ensurePolishStyles() {
     }
     .identity-media-person.profile-canonical-v47::before,
     .records-chat-avatar.profile-canonical-v47::before,
-    .conversation-avatar-v2.profile-canonical-v47::before{
+    .conversation-avatar-v2.profile-canonical-v47::before,
+    .workspace-chat-avatar.profile-canonical-v47::before{
       content:""!important;
       position:absolute!important;
       inset:0!important;
@@ -139,6 +141,7 @@ function ensurePolishStyles() {
     [data-workspace-theme="night"] .identity-media-person.profile-canonical-v47,
     [data-workspace-theme="night"] .records-chat-avatar.profile-canonical-v47,
     [data-workspace-theme="night"] .conversation-avatar-v2.profile-canonical-v47,
+    [data-workspace-theme="night"] .workspace-chat-avatar.profile-canonical-v47,
     [data-workspace-theme="night"] .profile-person-frame-v47{
       background:#F7F3EE!important;
       border-color:#E3D7CE!important;
@@ -333,6 +336,22 @@ function decorateRecordsConversation() {
   });
 }
 
+function decorateWorkspaceConversation() {
+  document.querySelectorAll<HTMLElement>('.workspace-chat-line').forEach((line) => {
+    const frame = line.querySelector<HTMLElement>('.workspace-chat-avatar');
+    if (!frame || !isSimpleFrame(frame)) return;
+    const authorText = line.querySelector<HTMLElement>('.workspace-chat-head strong')?.textContent || frame.title || '';
+    const backgroundSource = frame.style.backgroundImage.match(/url\(["']?(.*?)["']?\)/)?.[1];
+    const profile = profileForAuthor(authorText) || profileForSource(frame.dataset.identitySrc || backgroundSource);
+    if (profile?.avatar_url) {
+      applyMedia(frame, profile.avatar_url, 'person', profile);
+      return;
+    }
+    clearIdentity(frame);
+    hideInitial(frame);
+  });
+}
+
 function decoratePersonImages() {
   document.querySelectorAll<HTMLImageElement>('img').forEach((image) => {
     if (image.closest('.report-page,.report-preview,.report-document,.pdf-page,[data-document-surface="report"]')) return;
@@ -470,6 +489,7 @@ function decorateIdentityMedia() {
   decoratePrivateImages();
   decorateConversation();
   decorateRecordsConversation();
+  decorateWorkspaceConversation();
   decorateAdminInitials();
   decorateCompanyFrames();
   decoratePersonImages();

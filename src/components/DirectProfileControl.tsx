@@ -118,6 +118,7 @@ export function DirectProfileControl({role}:{role:Role}){
         if(error)throw error;
       }
       window.localStorage.setItem(`cali-workspace-profile-${role}`,JSON.stringify(next));
+      window.dispatchEvent(new CustomEvent('cali-profile-updated',{detail:{role}}));
       setProfile(next);setDraft(next);setModalOpen(false);
     }catch(error){setMessage(error instanceof Error?error.message:'Não foi possível salvar o perfil.');}
     finally{setSaving(false);}

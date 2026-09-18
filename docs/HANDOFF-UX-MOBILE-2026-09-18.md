@@ -90,7 +90,11 @@ Não alterar funcionalidades, integrações, regras, dados, navegação, geraç�
 - validar impressão e download, não apenas a pré-visualização;
 - testar temas sem transportar o fundo do aplicativo para o documento final.
 
-## 9. Evidências mobile
+## 9. Mobile e iPad — em stand by
+
+Decisão de produto em 18/09/2026: não alterar a experiência mobile/iPad nesta rodada. A possibilidade de transformar a área do Cliente em aplicativo dedicado será avaliada antes de retomar esse trabalho. As evidências abaixo permanecem registradas, sem implementação nem critério de promoção nesta entrega.
+
+### Evidências preservadas
 
 Referências: `IMG_7055.PNG` a `IMG_7067.PNG`.
 
