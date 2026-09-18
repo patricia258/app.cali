@@ -181,13 +181,11 @@ async function renderAdminTimer(record: RecordRow, host: HTMLElement) {
   const copy = document.createElement('div');
   copy.className = 'records-v25-timer-copy';
   const eyebrow = document.createElement('span');
-  eyebrow.textContent = 'ACOMPANHAMENTO';
+  eyebrow.textContent = 'TEMPO DE ACOMPANHAMENTO';
   const title = document.createElement('strong');
-  title.textContent = data.timer ? 'Atendimento em andamento' : `${formatMinutes(data.total)} registrados`;
+  title.textContent = data.timer ? 'Atendimento em andamento' : 'Tempo desta interação';
   const detail = document.createElement('small');
-  detail.textContent = data.timer
-    ? `${formatMinutes(data.total)} registrados antes desta sessão.`
-    : `${data.sessions} sessão${data.sessions === 1 ? '' : 'ões'} registrada${data.sessions === 1 ? '' : 's'} nesta ocorrência.`;
+  detail.textContent = `${formatMinutes(data.total)} registrados · ${data.sessions} sessão${data.sessions === 1 ? '' : 'ões'}. Este tempo entra nos indicadores de ocorrências e solicitações.`;
   copy.append(eyebrow, title, detail);
 
   const action = document.createElement('div');
@@ -209,7 +207,7 @@ async function renderAdminTimer(record: RecordRow, host: HTMLElement) {
   } else {
     card.classList.remove('is-active');
     button.className = 'records-v25-timer-start';
-    button.textContent = locked ? 'Encerrado' : 'Iniciar acompanhamento';
+    button.textContent = locked ? 'Atendimento encerrado' : 'Iniciar acompanhamento';
     button.disabled = locked;
     button.onclick = () => void startTimer(record, button);
   }
