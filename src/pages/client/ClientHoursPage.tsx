@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, ChevronDown, ChevronRight, Clock3, Loader2 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
@@ -55,11 +55,6 @@ function dateLabel(value: string) {
   return new Intl.DateTimeFormat('pt-BR').format(date);
 }
 
-function timeLabel(value?: string | null) {
-  if (!value) return '—';
-  return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
-}
-
 function formatMinutes(minutes: number) {
   const safe = Math.max(0, Math.round(Number(minutes || 0)));
   const hours = Math.floor(safe / 60);
@@ -86,6 +81,15 @@ function contextLabel(context: Exclude<ContextFilter, 'all'>) {
   if (context === 'deliverable') return 'Entregável';
   if (context === 'interaction') return 'Interação';
   return 'Projeto';
+}
+
+function detailOf(entry: Entry, activity: string) {
+  const detail = String(entry.category || '').trim();
+  if (!detail) return '';
+  const normalized = detail.toLocaleLowerCase('pt-BR');
+  const redundant = [activity, entry.description, 'entregável', 'entregáveis', 'projeto', 'projetos', 'interação', 'interações']
+    .map((value) => String(value || '').trim().toLocaleLowerCase('pt-BR'));
+  return redundant.includes(normalized) ? '' : detail;
 }
 
 export function ClientHoursPage() {
@@ -215,15 +219,17 @@ export function ClientHoursPage() {
 
         {filteredEntries.length === 0 ? <section className="hours-connect-card client-hours-empty"><Clock3 size={24} /><p>Nenhum registro de horas neste período.</p></section> : <>
           <section className="hours-connect-card client-hours-table-card">
-            <div className="client-hours-table-wrap"><table className="client-hours-table"><thead><tr><th className="expand" /><th>Data</th><th>Horário</th><th>Duração</th><th>Atividade</th><th>Projeto</th><th>Origem</th></tr></thead><tbody>{filteredEntries.map((entry) => {
+            <div className="client-hours-table-wrap"><table className="client-hours-table"><thead><tr><th className="expand" /><th>Data</th><th>Tempo</th><th>Atividade</th><th>Natureza</th><th>Projeto</th><th>Origem</th></tr></thead><tbody>{filteredEntries.map((entry) => {
               const open = Boolean(expanded[entry.id]);
               const context = contextOf(entry);
               const project = entry.projectId ? projectMap.get(entry.projectId) || '—' : '—';
               const deliverable = entry.deliverableId ? deliverableMap.get(entry.deliverableId) || '—' : '—';
-              return <>
-                <tr key={entry.id} className="client-hours-row" onClick={() => setExpanded((current) => ({ ...current, [entry.id]: !current[entry.id] }))}><td className="expand">{open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</td><td>{dateLabel(entry.workDate)}</td><td>{timeLabel(entry.startedAt)}–{timeLabel(entry.endedAt)}</td><td><strong>{formatMinutes(entry.minutes)}</strong></td><td className="action">{entry.description}</td><td><span>{project}</span>{deliverable !== '—' && <small>{deliverable}</small>}</td><td>{sourceLabel(entry.sourceType)}</td></tr>
-                {open && <tr className="client-hours-detail"><td colSpan={7}><div><strong>Detalhes:</strong><span>{entry.description}</span>{entry.category && <em>Natureza: {entry.category}</em>}</div></td></tr>}
-              </>;
+              const activity = deliverable !== '—' ? deliverable : entry.description;
+              const detail = detailOf(entry, activity);
+              return <Fragment key={entry.id}>
+                <tr className={`client-hours-row${detail ? ' has-detail' : ''}`} onClick={() => detail && setExpanded((current) => ({ ...current, [entry.id]: !current[entry.id] }))}><td className="expand">{detail ? (open ? <ChevronDown size={16} /> : <ChevronRight size={16} />) : null}</td><td>{dateLabel(entry.workDate)}</td><td><strong>{formatMinutes(entry.minutes)}</strong></td><td className="action">{activity}</td><td><span className={`client-hours-context ${context}`}>{contextLabel(context)}</span></td><td>{project}</td><td>{sourceLabel(entry.sourceType)}</td></tr>
+                {open && detail && <tr className="client-hours-detail"><td colSpan={7}><div><strong>Comentário</strong><span>{detail}</span></div></td></tr>}
+              </Fragment>;
             })}</tbody></table></div>
           </section>
 
@@ -232,7 +238,9 @@ export function ClientHoursPage() {
             const context = contextOf(entry);
             const project = entry.projectId ? projectMap.get(entry.projectId) || '—' : '—';
             const deliverable = entry.deliverableId ? deliverableMap.get(entry.deliverableId) || '—' : '—';
-            return <article className="hours-connect-card" key={entry.id}><button type="button" onClick={() => setExpanded((current) => ({ ...current, [entry.id]: !current[entry.id] }))}><div><span>{dateLabel(entry.workDate)} · {timeLabel(entry.startedAt)}–{timeLabel(entry.endedAt)}</span><strong>{formatMinutes(entry.minutes)}</strong></div><h3>{entry.description}</h3><p>{project}{deliverable !== '—' ? ` · ${deliverable}` : ''}</p><footer><span className={`client-hours-context ${context}`}>{contextLabel(context)}</span><span>{sourceLabel(entry.sourceType)}</span>{open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</footer>{open && entry.category && <aside>{entry.category}</aside>}</button></article>;
+            const activity = deliverable !== '—' ? deliverable : entry.description;
+            const detail = detailOf(entry, activity);
+            return <article className="hours-connect-card" key={entry.id}><button type="button" onClick={() => detail && setExpanded((current) => ({ ...current, [entry.id]: !current[entry.id] }))}><div><span>{dateLabel(entry.workDate)}</span><strong>{formatMinutes(entry.minutes)}</strong></div><h3>{activity}</h3><p>{project}</p><footer><span className={`client-hours-context ${context}`}>{contextLabel(context)}</span><span>{sourceLabel(entry.sourceType)}</span>{detail ? (open ? <ChevronDown size={16} /> : <ChevronRight size={16} />) : null}</footer>{open && detail && <aside><strong>Comentário</strong>{detail}</aside>}</button></article>;
           })}</div>
         </>}
       </>}

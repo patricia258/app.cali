@@ -436,3 +436,52 @@ A etapa será considerada concluída quando os ganhos testados no preview estive
 - produção somente atualizada após aprovação da Patrícia.
 
 **Regra soberana desta data:** primeiro estabilizar e aplicar na aplicação real o que já foi testado; depois evoluir UX/UI em etapas separadas. Nenhuma melhoria visual será confundida com aprovação funcional, e nenhum teste será transformado em uma sequência de commits acumulados.
+
+## Handoff de experiência responsiva — registrado em 18/09/2026
+
+### Evidências recebidas
+
+Os treze prints de celular enviados pela Patrícia foram usados como referência obrigatória desta etapa:
+
+- `IMG_7055.PNG` e `IMG_7056.PNG`: entrada e autenticação no Safari; preservar a composição aprovada e respeitar a barra inferior/área segura;
+- `IMG_7057.PNG`, `IMG_7058.PNG` e `IMG_7059.PNG`: início do Cliente e abertura do “Fale com a Pati”; reduzir a ocupação do cabeçalho e tratar a conversa como painel inferior controlado, sem cobrir toda a navegação;
+- `IMG_7060.PNG` e `IMG_7067.PNG`: menu lateral aberto; manter leitura dos rótulos sem consumir quase toda a tela;
+- `IMG_7061.PNG`: perfil cortado horizontalmente; o modal precisa caber integralmente na largura e rolar apenas no eixo vertical;
+- `IMG_7062.PNG` e `IMG_7063.PNG`: Planejamento; o cabeçalho móvel não pode esconder avisos, títulos nem o início dos cards;
+- `IMG_7064.PNG`, `IMG_7065.PNG` e `IMG_7066.PNG`: Entregáveis; remover a dependência de uma tabela larga, impedir textos cortados e manter ações acima da barra do Safari.
+
+### Ajustes incluídos nesta frente
+
+- transição de entrada por rota e por seção, com desligamento automático quando o sistema solicitar menos movimento;
+- menu móvel limitado a 78% da largura, com teto de 292 px;
+- modal de perfil limitado ao viewport, sem rolagem horizontal e com ações preservadas na área visível;
+- “Fale com a Pati” convertido em painel inferior com altura máxima de 78% do viewport e respeito à área segura;
+- margem inferior segura para botões flutuantes e ações de entregáveis;
+- Entregáveis reorganizados em cartões no celular, sem largura mínima de desktop e sem seta redundante;
+- Relatórios reorganizados em cartões no iPad e no celular, usando toda a largura útil;
+- topbar, títulos e superfícies compactados no celular;
+- Horas do Cliente reorganizadas para exibir data, duração, atividade, natureza, projeto, origem e comentário somente quando houver conteúdo útil;
+- cartão de acompanhamento de Ocorrências sem repetição de “tempo” e com estado “Encerrado” proporcional;
+- Relatórios do Cliente reduzidos às informações necessárias: referência, visualização, ciência, envio, primeiro acesso e data da ciência;
+- Propostas e Mapa de People receberam apenas acabamento visual; lógica, dados, integrações, rotas e ações permanecem intactos.
+
+### Matriz obrigatória antes de produção
+
+| Cenário | Larguras mínimas de teste | Critério de aceite |
+|---|---:|---|
+| Celular compacto | 375–390 px | Sem corte lateral; menu, perfil, chat, formulários e ações acessíveis |
+| Celular amplo | 412–430 px | Hierarquia preservada e nenhuma ação sob a barra do navegador |
+| iPad retrato | 768–820 px | Relatórios e modais sem tabela de desktop espremida |
+| iPad paisagem | 1024 px | Conteúdo usa a largura sem perder legibilidade nem criar rolagem lateral global |
+| Temas | claro e noite | Contraste, bordas, textos e estados equivalentes |
+| Perfis | Cliente e Administrador | Mesma estabilidade do shell, sem transportar regras de um perfil para o outro |
+
+Também devem ser testados: rotação do aparelho, teclado aberto no chat, atualização completa da página, abertura/fechamento do menu, perfil, notificações, conversa de entregável e barra inferior do Safari.
+
+### Regra para imagens no mobile
+
+Logos e fotos de perfil não podem deslocar o layout enquanto carregam. Devem manter dimensões reservadas, fallback de iniciais e resolução/caching pelo runtime de mídia existente. Qualquer atraso de rede deve afetar somente a imagem, nunca bloquear o restante da tela.
+
+### Limite desta etapa
+
+Os prints são evidência de layout, não aprovação funcional isolada. A publicação oficial continua condicionada a build limpo e validação em preview com dados reais. Nenhuma alteração de banco, timer, permissões ou regra comercial faz parte deste pacote responsivo.
