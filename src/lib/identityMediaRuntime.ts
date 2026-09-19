@@ -95,7 +95,8 @@ function ensurePolishStyles() {
   style.textContent = `
     .identity-media-person.profile-canonical-v47,
     .records-chat-avatar.profile-canonical-v47,
-    .conversation-avatar-v2.profile-canonical-v47{
+    .conversation-avatar-v2.profile-canonical-v47,
+    .workspace-chat-avatar.profile-canonical-v47{
       position:relative!important;
       overflow:hidden!important;
       border-radius:14px!important;
@@ -107,7 +108,8 @@ function ensurePolishStyles() {
     }
     .identity-media-person.profile-canonical-v47::before,
     .records-chat-avatar.profile-canonical-v47::before,
-    .conversation-avatar-v2.profile-canonical-v47::before{
+    .conversation-avatar-v2.profile-canonical-v47::before,
+    .workspace-chat-avatar.profile-canonical-v47::before{
       content:""!important;
       position:absolute!important;
       inset:0!important;
@@ -139,6 +141,7 @@ function ensurePolishStyles() {
     [data-workspace-theme="night"] .identity-media-person.profile-canonical-v47,
     [data-workspace-theme="night"] .records-chat-avatar.profile-canonical-v47,
     [data-workspace-theme="night"] .conversation-avatar-v2.profile-canonical-v47,
+    [data-workspace-theme="night"] .workspace-chat-avatar.profile-canonical-v47,
     [data-workspace-theme="night"] .profile-person-frame-v47{
       background:#F7F3EE!important;
       border-color:#E3D7CE!important;
