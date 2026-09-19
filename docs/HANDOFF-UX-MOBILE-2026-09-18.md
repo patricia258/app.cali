@@ -90,7 +90,11 @@ Não alterar funcionalidades, integrações, regras, dados, navegação, geraç�
 - validar impressão e download, não apenas a pré-visualização;
 - testar temas sem transportar o fundo do aplicativo para o documento final.
 
-## 9. Evidências mobile
+## 9. Mobile e iPad — em stand by
+
+Decisão de produto em 18/09/2026: não alterar a experiência mobile/iPad nesta rodada. A possibilidade de transformar a área do Cliente em aplicativo dedicado será avaliada antes de retomar esse trabalho. As evidências abaixo permanecem registradas, sem implementação nem critério de promoção nesta entrega.
+
+### Evidências preservadas
 
 Referências: `IMG_7055.PNG` a `IMG_7067.PNG`.
 
@@ -117,3 +121,90 @@ Testar também rotação, teclado aberto, atualização completa, menu, perfil, 
 ## Regra de publicação
 
 Preview visual sem acesso aos dados não serve como aprovação funcional. A próxima promoção ao oficial só pode ocorrer depois de validação autenticada ou de um plano de teste que cubra explicitamente os componentes indisponíveis na prévia.
+
+## 10. Pré-diagnóstico de estabilidade e carregamento — 19/09/2026
+
+Escopo desta revisão: somente leitura e documentação. Nenhum código, banco, configuração ou domínio foi alterado.
+
+### Evidências encontradas
+
+- A produção não apresentou erros de runtime da Vercel nas últimas 24 horas no momento da consulta.
+- A tela `Não foi possível concluir esta navegação` é exibida pelo `AppErrorBoundary` global quando ocorre uma exceção de renderização no navegador.
+- O erro capturado pelo `AppErrorBoundary` é enviado apenas para `console.error`. Erros exclusivamente client-side podem, portanto, não aparecer nos logs de runtime da Vercel.
+- Os módulos específicos de Relatórios, Ocorrências, Projetos, Calendário, Documentos, Horas e Mapa são carregados dinamicamente após cada troca de rota. Uma falha de chunk, exceção de inicialização ou conflito de runtime pode acionar o fallback global.
+- Fotos e logos privados dependem da geração de URL assinada. Existe cache em memória e em `sessionStorage`, mas o runtime global de identidade só começa 900 ms após a inicialização e então consulta/aplica as mídias; isso pode explicar o aparecimento perceptivelmente tardio.
+- A aplicação usa vários runtimes de acabamento baseados em `MutationObserver`. Eles devem ser medidos em conjunto, pois sucessivas mutações e reaplicações podem contribuir para travamentos durante navegação, sobretudo em páginas com chats, tabelas e drawers.
+- A ausência de erro nos logs do servidor não permite declarar a navegação perfeitamente estável. O incidente relatado permanece classificado como intermitente e restrito ao cliente até existir telemetria do navegador.
+
+### Hipóteses a validar, sem conclusão antecipada
+
+1. exceção de renderização em uma rota específica ou na desmontagem da rota anterior;
+2. falha transitória ao importar um chunk dinâmico durante a navegação;
+3. disputa entre runtimes DOM/`MutationObserver` instalados ao entrar e sair de páginas;
+4. sessão ou consulta do Supabase em estado transitório;
+5. custo acumulado de CSS, observers, consultas e assinatura de mídias causando lentidão, sem necessariamente gerar erro de servidor.
+
+### Próxima rodada de diagnóstico
+
+- reproduzir com sessão real do Cliente, percorrendo em sequência: Início, Planejamento, Entregáveis, Horas, Ocorrências, Documentos e Relatórios;
+- repetir o circuito nos temas Dia e Noite, com recarregamento completo e também por navegação interna;
+- capturar Console e Network no momento da falha, incluindo nome do chunk, stack trace, rota anterior, rota seguinte e status das chamadas do Supabase/Storage;
+- medir navegação e carregamento de foto de perfil, logo da empresa, avatares de chat e mídia do `Fale com a Pati` em cache frio e cache quente;
+- verificar se o enquadramento canônico definido no Perfil permanece igual em todas as molduras depois de navegações sucessivas;
+- conferir se cada rota deixa observers, canais realtime ou listeners ativos após ser fechada;
+- testar rede lenta e perda breve de conexão, garantindo recuperação orientada sem perder a sessão;
+- adicionar, em futura implementação autorizada, captura estruturada de erros client-side e eventos de performance. Não registrar mensagens, documentos, tokens, URLs assinadas ou dados pessoais sensíveis.
+
+### Critérios de aceite da estabilidade
+
+- nenhum fallback global em três circuitos completos consecutivos por perfil e tema;
+- nenhuma requisição essencial 4xx/5xx e nenhum chunk com falha;
+- navegação continua utilizável enquanto imagens são carregadas;
+- imagem ausente ou lenta usa moldura estável e fallback, sem bloquear conteúdo;
+- fotos respeitam posição e zoom do Perfil; logos respeitam o tratamento canônico empresarial;
+- listeners, observers e canais não crescem a cada visita à mesma página;
+- caso ocorra falha, o evento fica diagnosticável com rota, versão, stack e horário, preservando privacidade.
+
+## 11. Novo perfil interno — People Partner
+
+Criar futuramente um tipo de acesso interno chamado `People Partner`, distinto do Administrador CALI e do Cliente.
+
+### Objetivo
+
+Permitir cadastrar uma pessoa colaboradora/parceira para atuar somente nas contas às quais for explicitamente vinculada, sem acesso administrativo global ao Workspace.
+
+### Escopo mínimo de acesso
+
+- visualizar apenas clientes associados ao seu cadastro;
+- acessar os projetos e entregáveis desses clientes;
+- produzir e entregar atividades autorizadas;
+- participar do chat visível ao cliente nos projetos/entregáveis associados;
+- visualizar o contexto necessário para executar o trabalho, aplicando o princípio do menor privilégio;
+- não visualizar outras contas, configurações globais, finanças, propostas, administração de usuários ou dados estratégicos sem permissão explícita futura.
+
+### Cadastro e governança
+
+- perfil com nome, e-mail, foto, cargo/função e status ativo/inativo;
+- associação explícita entre People Partner e um ou mais clientes;
+- possibilidade de revogar uma associação sem apagar o histórico de autoria;
+- autoria identificada em mensagens, entregas e histórico;
+- auditoria de concessão, alteração e revogação de acesso;
+- regras de banco/RLS obrigatórias: esconder dados na interface não é controle de acesso suficiente;
+- convite, primeiro acesso, recuperação de senha e desligamento devem preservar segurança e rastreabilidade.
+
+### Referência de produto
+
+Usar o modelo de perfis e associação por cliente do antigo Hub Connect como referência funcional, depois adaptá-lo à nomenclatura, à hierarquia e aos fluxos da CALI. O repositório Hub Connect não estava disponível na conexão consultada durante este registro; sua implementação deve ser localizada e auditada antes de fechar requisitos ou reutilizar regras.
+
+### Decisões ainda necessárias
+
+- definir se o People Partner pode iniciar timer e lançar horas;
+- definir se pode ver conversas internas CALI ou apenas conversas compartilhadas com o cliente;
+- definir quem revisa/aprova uma entrega antes de ela chegar ao cliente;
+- definir permissões para documentos, ocorrências, calendário e relatórios;
+- definir se a permissão será apenas por cliente ou também por projeto/entregável;
+- definir substituição temporária, férias e transferência de carteira.
+
+### Fora de escopo desta etapa
+
+Nenhum perfil, tabela, política, tela ou convite de People Partner foi criado. Esta seção é exclusivamente um registro para descoberta e especificação futura.
