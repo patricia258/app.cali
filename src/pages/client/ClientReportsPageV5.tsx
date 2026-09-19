@@ -195,12 +195,12 @@ export function ClientReportsPageV5(){
                     <td data-label="Tipo">{typeLabel(report.reportType)}</td>
                     <td data-label="Leitura">{report.openCount?<span className="report-status-v56 viewed"><CheckCircle2 size={15}/>Visualizado</span>:<span className="report-status-v56 new">Não visualizado</span>}</td>
                     <td data-label="Ciência">{report.acknowledgedAt?<span className="report-status-v56 acknowledged"><ShieldCheck size={15}/>Registrada</span>:<span className="report-status-v56 pending">Pendente</span>}</td>
-                    <td data-label="Ações"><div className="client-report-row-actions-v56" style={{display:'grid',gridTemplateColumns:'max-content max-content',justifyContent:'end',gap:7,whiteSpace:'normal'}}>
+                    <td data-label="Ações"><div className="client-report-row-actions-v56" style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:10,whiteSpace:'normal'}}>
                       <button type="button" className="client-report-secondary-v56" onClick={()=>void openReport(report)}><Eye size={16}/>Abrir relatório</button>
                       <button type="button" className="client-report-secondary-v56" onClick={()=>void openPrint(report)}><Printer size={16}/>Baixar PDF</button>
                       {report.acknowledgedAt
-                        ?<span className="client-report-ack-done-v56" style={{gridColumn:'1 / -1',justifySelf:'end'}}><CheckCircle2 size={15}/>Ciência registrada</span>
-                        :<button type="button" className="client-report-primary-v56" style={{gridColumn:'1 / -1',justifySelf:'end'}} onClick={()=>requestAcknowledge(report)}><ShieldCheck size={16}/>Registrar ciência</button>}
+                        ?<span className="client-report-ack-done-v56"><CheckCircle2 size={15}/>Ciência registrada</span>
+                        :<button type="button" className="client-report-primary-v56" onClick={()=>requestAcknowledge(report)}><ShieldCheck size={16}/>Registrar ciência</button>}
                     </div></td>
                   </tr>
                   {isExpanded?<tr className="client-report-detail-row-v57"><td colSpan={6}>

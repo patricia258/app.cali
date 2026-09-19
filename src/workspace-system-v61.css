@@ -126,3 +126,38 @@ button,input,select,textarea{font-size:var(--ws-type-body)!important}
   .reports-governance-v61{align-items:flex-start;flex-direction:column;gap:3px}
   .profile-signature-v61 .profile-signature-select-v59{width:100%}
 }
+
+
+/* Relatórios do cliente: ações no mesmo sistema visual do Workspace. */
+.client-reports-v56 .client-report-row-actions-v56>button,
+.client-reports-v56 .client-report-row-actions-v56>.client-report-ack-done-v56{
+  width:100%!important;
+  min-width:0!important;
+  min-height:42px!important;
+  padding:10px 12px!important;
+  border-radius:12px!important;
+  font-size:12px!important;
+  line-height:1.2!important;
+  white-space:nowrap!important;
+  box-shadow:none!important;
+}
+.client-reports-v56 .client-report-row-actions-v56>.client-report-secondary-v56{
+  border:1px solid rgba(90,30,45,.28)!important;
+  background:transparent!important;
+  color:#5A1E2D!important;
+}
+.client-reports-v56 .client-report-row-actions-v56>.client-report-primary-v56{
+  border:1px solid #5A1E2D!important;
+  background:#5A1E2D!important;
+  color:#fff!important;
+}
+[data-workspace-theme="night"] .client-reports-v56 .client-report-row-actions-v56>.client-report-secondary-v56{
+  border-color:rgba(231,198,111,.34)!important;
+  background:rgba(247,243,238,.025)!important;
+  color:#F7F3EE!important;
+}
+[data-workspace-theme="night"] .client-reports-v56 .client-report-row-actions-v56>.client-report-primary-v56{
+  border-color:#B58C52!important;
+  background:#B58C52!important;
+  color:#241A1D!important;
+}
