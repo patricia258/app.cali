@@ -177,8 +177,8 @@ export function ClientReportsPageV5(){
         :<section className="client-report-library-v56 client-report-library-v57 client-report-library-v58">
           <div className="client-report-library-head-v58"><div><span>HISTÓRICO DE FECHAMENTOS</span><strong>{reports.length} {reports.length===1?'relatório disponível':'relatórios disponíveis'}</strong></div><p>Abra o relatório para a leitura completa ou expanda uma linha para consultar acessos e protocolo.</p></div>
           <div className="client-report-table-wrap-v56">
-            <table className="client-report-table-v56 client-report-table-v57">
-              <thead><tr><th>Protocolo</th><th>Referência</th><th>Tipo</th><th>Leitura</th><th>Ciência</th><th>Ações</th></tr></thead>
+            <table className="client-report-table-v56 client-report-table-v57" style={{minWidth:1100,tableLayout:'fixed'}}>
+              <thead><tr><th style={{width:'19%'}}>Protocolo</th><th style={{width:'14%'}}>Referência</th><th style={{width:'9%'}}>Tipo</th><th style={{width:'11%'}}>Leitura</th><th style={{width:'10%'}}>Ciência</th><th style={{width:'37%'}}>Ações</th></tr></thead>
               <tbody>{reports.map((report)=>{
                 const isExpanded=expanded.has(report.id);
                 return <Fragment key={report.id}>
@@ -195,12 +195,12 @@ export function ClientReportsPageV5(){
                     <td data-label="Tipo">{typeLabel(report.reportType)}</td>
                     <td data-label="Leitura">{report.openCount?<span className="report-status-v56 viewed"><CheckCircle2 size={15}/>Visualizado</span>:<span className="report-status-v56 new">Não visualizado</span>}</td>
                     <td data-label="Ciência">{report.acknowledgedAt?<span className="report-status-v56 acknowledged"><ShieldCheck size={15}/>Registrada</span>:<span className="report-status-v56 pending">Pendente</span>}</td>
-                    <td data-label="Ações"><div className="client-report-row-actions-v56">
+                    <td data-label="Ações"><div className="client-report-row-actions-v56" style={{display:'grid',gridTemplateColumns:'max-content max-content',justifyContent:'end',gap:7,whiteSpace:'normal'}}>
                       <button type="button" className="client-report-secondary-v56" onClick={()=>void openReport(report)}><Eye size={16}/>Abrir relatório</button>
                       <button type="button" className="client-report-secondary-v56" onClick={()=>void openPrint(report)}><Printer size={16}/>Baixar PDF</button>
                       {report.acknowledgedAt
-                        ?<span className="client-report-ack-done-v56"><CheckCircle2 size={15}/>Ciência registrada</span>
-                        :<button type="button" className="client-report-primary-v56" onClick={()=>requestAcknowledge(report)}><ShieldCheck size={16}/>Registrar ciência</button>}
+                        ?<span className="client-report-ack-done-v56" style={{gridColumn:'1 / -1',justifySelf:'end'}}><CheckCircle2 size={15}/>Ciência registrada</span>
+                        :<button type="button" className="client-report-primary-v56" style={{gridColumn:'1 / -1',justifySelf:'end'}} onClick={()=>requestAcknowledge(report)}><ShieldCheck size={16}/>Registrar ciência</button>}
                     </div></td>
                   </tr>
                   {isExpanded?<tr className="client-report-detail-row-v57"><td colSpan={6}>
