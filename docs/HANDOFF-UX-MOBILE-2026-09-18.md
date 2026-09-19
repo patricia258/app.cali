@@ -194,7 +194,12 @@ Permitir cadastrar uma pessoa colaboradora/parceira para atuar somente nas conta
 
 ### Referência de produto
 
-Usar o modelo de perfis e associação por cliente do antigo Hub Connect como referência funcional, depois adaptá-lo à nomenclatura, à hierarquia e aos fluxos da CALI. O repositório Hub Connect não estava disponível na conexão consultada durante este registro; sua implementação deve ser localizada e auditada antes de fechar requisitos ou reutilizar regras.
+Usar os dois repositórios criados pela Patrícia como referências oficiais de produto, fluxo, arquitetura e inspiração para o futuro perfil People Partner:
+
+- [Azumi Connect Hub Oficial](https://github.com/azudoka/azumi-connect-hub-oficial) — repositório público, TypeScript, com aplicação publicada em `azumi-connect.vercel.app`;
+- [Azumi Connect 1](https://github.com/azudoka/azumi-connect1) — referência complementar informada pela Patrícia. No registro de 19/09/2026, a integração do GitHub retornou 404; confirmar acesso/permissão antes da auditoria técnica.
+
+Esses projetos devem orientar especialmente a análise de perfis internos, associação entre colaborador e cliente, limites de visualização, carteira atribuída e fluxos de execução. Eles não devem ser copiados de forma automática: regras, nomenclatura, identidade, segurança e experiência precisam ser adaptadas à realidade da CALI.
 
 ### Decisões ainda necessárias
 
