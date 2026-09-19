@@ -167,48 +167,205 @@ Escopo desta revisão: somente leitura e documentação. Nenhum código, banco, 
 
 ## 11. Novo perfil interno — People Partner
 
-Criar futuramente um tipo de acesso interno chamado `People Partner`, distinto do Administrador CALI e do Cliente.
+Criar futuramente um terceiro perfil de acesso chamado `People Partner`, distinto do Administrador CALI e do Cliente. Ele representa uma pessoa colaboradora/parceira da operação, com experiência própria e acesso limitado à carteira atribuída.
 
-### Objetivo
+### Objetivo e experiência
 
-Permitir cadastrar uma pessoa colaboradora/parceira para atuar somente nas contas às quais for explicitamente vinculada, sem acesso administrativo global ao Workspace.
+A página inicial deve ser `Minha carteira`, mostrando somente:
 
-### Escopo mínimo de acesso
+- clientes associados ao People Partner;
+- projetos e entregáveis sob sua responsabilidade;
+- prazos próximos;
+- mensagens novas;
+- ocorrências atribuídas;
+- agenda relacionada à carteira;
+- horas registradas pela própria pessoa.
 
-- visualizar apenas clientes associados ao seu cadastro;
-- acessar os projetos e entregáveis desses clientes;
-- produzir e entregar atividades autorizadas;
-- participar do chat visível ao cliente nos projetos/entregáveis associados;
-- visualizar o contexto necessário para executar o trabalho, aplicando o princípio do menor privilégio;
-- não visualizar outras contas, configurações globais, finanças, propostas, administração de usuários ou dados estratégicos sem permissão explícita futura.
+O perfil não deve ser apenas uma cópia visualmente reduzida do Administrador. Rotas, consultas e ações devem nascer restritas ao escopo autorizado.
 
-### Cadastro e governança
+### Estrutura dos perfis
 
-- perfil com nome, e-mail, foto, cargo/função e status ativo/inativo;
-- associação explícita entre People Partner e um ou mais clientes;
-- possibilidade de revogar uma associação sem apagar o histórico de autoria;
-- autoria identificada em mensagens, entregas e histórico;
-- auditoria de concessão, alteração e revogação de acesso;
-- regras de banco/RLS obrigatórias: esconder dados na interface não é controle de acesso suficiente;
-- convite, primeiro acesso, recuperação de senha e desligamento devem preservar segurança e rastreabilidade.
+| Perfil | Escopo |
+|---|---|
+| Administrador CALI | Controla toda a operação, usuários, clientes, regras e publicação |
+| People Partner | Executa o trabalho somente nas contas e projetos associados |
+| Cliente | Acompanha, conversa e valida conteúdos da própria empresa |
 
-### Referência de produto
+### Permissões recomendadas para a primeira versão
 
-Usar os dois repositórios criados pela Patrícia como referências oficiais de produto, fluxo, arquitetura e inspiração para o futuro perfil People Partner:
+O People Partner pode:
 
-- [Azumi Connect Hub Oficial](https://github.com/azudoka/azumi-connect-hub-oficial) — repositório público, TypeScript, com aplicação publicada em `azumi-connect.vercel.app`;
-- [Azumi Connect 1](https://github.com/azudoka/azumi-connect1) — referência complementar informada pela Patrícia. No registro de 19/09/2026, a integração do GitHub retornou 404; confirmar acesso/permissão antes da auditoria técnica.
+- visualizar somente clientes associados;
+- acessar projetos e entregáveis liberados;
+- atualizar atividades sob sua responsabilidade;
+- anexar documentos relacionados ao trabalho;
+- participar do chat compartilhado com o cliente;
+- participar do chat interno CALI quando houver autorização;
+- iniciar timer e registrar as próprias horas, se a permissão estiver habilitada;
+- consultar agenda relacionada à carteira;
+- preparar uma entrega e encaminhá-la para revisão;
+- acompanhar ocorrências atribuídas;
+- consultar o histórico das próprias ações.
 
-Esses projetos devem orientar especialmente a análise de perfis internos, associação entre colaborador e cliente, limites de visualização, carteira atribuída e fluxos de execução. Eles não devem ser copiados de forma automática: regras, nomenclatura, identidade, segurança e experiência precisam ser adaptadas à realidade da CALI.
+O People Partner não pode, por padrão:
+
+- criar, excluir ou editar estruturalmente um cliente;
+- alterar contrato, pacote, saldo ou horas contratadas;
+- visualizar financeiro, propostas ou indicadores comerciais;
+- administrar usuários e permissões;
+- acessar clientes fora da carteira;
+- publicar relatório executivo;
+- aprovar definitivamente uma entrega;
+- enviar conteúdo sensível diretamente ao cliente sem a etapa de revisão;
+- visualizar dados estratégicos globais da CALI.
+
+### Associação e granularidade
+
+A área administrativa deve possuir uma seção `Equipe da conta`, na qual o Administrador poderá:
+
+- escolher um People Partner;
+- associá-lo a um ou mais clientes;
+- liberar todos os projetos do cliente ou somente projetos selecionados;
+- definir permissões específicas;
+- determinar início e término do vínculo;
+- suspender ou revogar o acesso.
+
+Aplicar duas camadas mínimas de escopo:
+
+1. **Cliente:** autoriza ou impede o acesso à conta.
+2. **Projeto:** dentro da conta, autoriza todos os projetos ou somente os selecionados.
+
+A arquitetura deve permitir granularidade futura por entregável, sem exigir essa complexidade na primeira versão.
+
+### Fluxo de entrega
+
+Fluxo padrão recomendado:
+
+1. People Partner prepara ou atualiza o entregável.
+2. Encaminha para `Revisão CALI`.
+3. Administrador revisa.
+4. Administrador libera ao cliente ou solicita ajustes.
+5. Cliente recebe e valida somente após a liberação.
+
+A permissão `Pode enviar diretamente ao cliente` deve ser excepcional, explícita e auditável.
+
+### Conversas
+
+Manter dois contextos visualmente inequívocos:
+
+- **Cliente:** mensagens visíveis ao cliente.
+- **Interno CALI:** alinhamentos entre Administrador e People Partner.
+
+Requisitos:
+
+- impedir envio acidental de mensagem interna ao cliente;
+- identificar autoria, foto e função;
+- preservar autoria após desligamento;
+- registrar edição ou exclusão;
+- notificar somente pessoas relacionadas à conta/projeto;
+- permitir que a CALI defina se o People Partner vê todo o histórico anterior ou apenas o período posterior à associação.
+
+### Cadastro e ciclo de acesso
+
+Campos mínimos:
+
+- nome;
+- e-mail;
+- telefone;
+- foto com enquadramento canônico;
+- função;
+- mini bio opcional;
+- status: convidado, ativo, suspenso ou encerrado;
+- clientes e projetos associados;
+- permissões;
+- possibilidade de timer/horas;
+- possibilidade de conversar com cliente;
+- possibilidade excepcional de envio direto.
+
+O acesso deve cobrir convite, criação de senha, primeiro acesso, recuperação, suspensão e desligamento. Revogar acesso não pode apagar autoria ou histórico.
+
+### Governança e segurança
+
+- autorização efetiva no banco/RLS; ocultar menus não é segurança;
+- consultas sempre filtradas pelos vínculos vigentes;
+- acesso direto por URL deve ser bloqueado;
+- registrar quem concedeu, alterou e revogou acesso;
+- registrar clientes/projetos liberados e período do vínculo;
+- preservar autoria de mensagens, entregas e horas;
+- encerrar sessões e permissões imediatamente após suspensão;
+- aplicar menor privilégio por padrão;
+- separar permissão de visualizar, executar, revisar e publicar.
+
+### Referências verificadas — Connect
+
+Repositórios criados pela Patrícia e definidos como referências oficiais de produto, fluxo, arquitetura e inspiração:
+
+- [Azumi Connect Hub Oficial](https://github.com/azudoka/azumi-connect-hub-oficial);
+- [Azumi Connect 1](https://github.com/azudoka/azumi-connect1).
+
+#### O que foi efetivamente verificado no Azumi Connect Hub Oficial
+
+Revisão do código realizada em 19/09/2026:
+
+- separação de papéis como `admin`, `consultor`, `cliente`, `cliente_avulso`, `trial`, `rh`, `rh_operacional`, `líder`, `colaborador`, `ceo`, `dp`, `contador` e `jurídico`;
+- proteção de rotas por papel com `PrivateRoute`;
+- perfil carregado da tabela `users_profile`, contendo papel, empresa, status, foto e assinatura;
+- permissões organizadas por módulo e por nível: `operar`, `consultar` e `auditoria`;
+- tela de usuários com papéis, status, permissões individuais, alteração de papel e desativação;
+- divisão entre área administrativa/consultor, área do cliente e Hub;
+- projetos com entregáveis, status, complexidade, prazos e etapas de validação interna e do cliente;
+- previsão de conversa entre cliente e consultor ligada ao entregável;
+- separação de documentos e ações conforme o perfil;
+- timer global e área de horas;
+- controle de módulos contratados pelo cliente.
+
+#### O que deve ser aproveitado como referência
+
+- matriz papel × módulo × nível de permissão;
+- proteção de rotas;
+- perfil vinculado a empresa;
+- cadastro e desativação de usuários;
+- separação entre execução interna e validação do cliente;
+- estrutura de projetos, entregáveis, documentos, solicitações e horas;
+- experiência distinta por tipo de usuário.
+
+#### O que não deve ser copiado sem revisão
+
+- no Connect, `admin` e `consultor` compartilham um conjunto amplo de rotas administrativas;
+- o perfil `consultor` ainda não possui, no trecho auditado, uma limitação robusta e explícita por carteira de clientes;
+- algumas telas e permissões da gestão de usuários permanecem mock/local;
+- parte das permissões está aplicada no front-end e precisa ser garantida por políticas de banco;
+- terminologia, módulos e hierarquia pertencem à Azumi e precisam ser traduzidos para a CALI.
+
+Para a CALI, o People Partner deve partir do conceito de `consultor` do Connect, mas com escopo mais restrito, vínculo explícito por cliente/projeto e nenhuma herança automática das rotas administrativas.
+
+#### Situação do Azumi Connect 1
+
+O repositório foi informado pela Patrícia como referência complementar. Na consulta de 19/09/2026, a integração atual do GitHub retornou 404, possivelmente por privacidade ou ausência de permissão. O link deve permanecer registrado e o código deve ser auditado quando o acesso estiver disponível.
 
 ### Decisões ainda necessárias
 
-- definir se o People Partner pode iniciar timer e lançar horas;
-- definir se pode ver conversas internas CALI ou apenas conversas compartilhadas com o cliente;
-- definir quem revisa/aprova uma entrega antes de ela chegar ao cliente;
-- definir permissões para documentos, ocorrências, calendário e relatórios;
-- definir se a permissão será apenas por cliente ou também por projeto/entregável;
-- definir substituição temporária, férias e transferência de carteira.
+- timer e lançamento de horas serão padrão ou permissão opcional;
+- acesso ao chat interno CALI;
+- responsável pela revisão final;
+- permissões para documentos, ocorrências, calendário e relatórios;
+- acesso a histórico anterior à associação;
+- associação apenas por cliente ou também por projeto/entregável;
+- substituição temporária, férias e transferência de carteira;
+- possibilidade e critérios para envio direto ao cliente.
+
+### Primeira versão recomendada
+
+- carteira por cliente;
+- restrição opcional por projeto;
+- projetos e entregáveis;
+- chat compartilhado e chat interno;
+- documentos vinculados;
+- timer e horas próprias mediante permissão;
+- revisão obrigatória pelo Administrador;
+- histórico e auditoria completos.
+
+Relatórios executivos, Mapa de People, propostas, financeiro, administração geral e dados comerciais ficam fora da primeira versão.
 
 ### Fora de escopo desta etapa
 
