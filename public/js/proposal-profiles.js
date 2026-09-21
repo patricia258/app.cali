@@ -1,1 +1,1 @@
-export * from "https://cdn.jsdelivr.net/gh/patricia258/cali-portal@43f9165e6f0882313854c58e2c5f8a0b0d3f205d/js/proposal-profiles.js";
+export * from "https://cdn.jsdelivr.net/gh/patricia258/cali-portal@7914ad62954b130c24caed4a0b63ed79a93ff1d1/js/proposal-profiles.js";
