@@ -104,6 +104,7 @@ export function buildDefaultNarrative(serviceSlug:string,company:string,answers:
     const context=String(answers.contexto||'').trim();
     const objective=String(answers.objetivo||'').trim();
     const accessibility=String(answers.acessibilidade||'').trim();
+    const notes=String(answers.observacoes||'').trim();
     const pieces=[
       `A solicitação é para ${String(type).toLowerCase()}${campaign?`, vinculada a ${campaign}`:''}.`,
       theme?`Tema informado: ${theme}.`:'',
@@ -121,7 +122,7 @@ export function buildDefaultNarrative(serviceSlug:string,company:string,answers:
     ].filter(Boolean);
     return{
       contextSummary:pieces.join(' '),
-      painPoints:[context,objective,accessibility].filter(Boolean).slice(0,3),
+      painPoints:[context,accessibility,notes].filter(Boolean).slice(0,3),
       executiveReading:reading,
       whyNow:campaign?`A ação está vinculada a ${campaign} e será preparada para fazer sentido dentro desse contexto, sem recorrer a conteúdo genérico.`:'A proposta responde ao contexto e ao objetivo registrados no briefing, com um desenho proporcional ao formato solicitado.',
       cycleObjective:objective||'Entregar uma ação de desenvolvimento conectada ao contexto da empresa e ao público participante.',
