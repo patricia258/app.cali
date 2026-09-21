@@ -85,6 +85,12 @@ export function prioritizedScope(serviceSlug:string,answers:Record<string,any>,p
     return [phased?'Fase 1 de direção estratégica com a liderança':'Direção estratégica mensal com a liderança',`${packageCode==='FULL'?'Prioridades':'Prioridade'} do primeiro ciclo: ${description}`,`${packageCode==='FULL'?'Encontros quinzenais':'Encontro mensal'} e apoio a decisões críticas dentro da carga contratada`,'Organização de um roadmap para as demais frentes levantadas no briefing','Revisão das prioridades conforme a evolução do ciclo'];
   }
   const defaults=scopeDefaults(serviceSlug,packageCode);
+  if(serviceSlug==='treinamentos'){
+    // Em treinamentos o budget não cria uma "fase 1" nem um roadmap posterior.
+    // O pacote define uma entrega fechada; qualquer adequação comercial deve preservar
+    // um escopo legível e coerente com o formato contratado.
+    return defaults;
+  }
   return [phased?'Primeira fase do trabalho, com escopo e entregas delimitados':'Escopo priorizado conforme o investimento informado',...defaults.slice(0,3),'Roadmap das demais necessidades para uma etapa posterior'];
 }
 
