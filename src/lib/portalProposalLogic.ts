@@ -19,7 +19,7 @@ const LEGACY:Record<string,InvestmentBand[]>={
   'mentoria-rh':[{value:'ate2',label:'Até R$ 2 mil',min:0,max:2000},{value:'2a4',label:'R$ 2 mil a R$ 4 mil',min:2000,max:4000},{value:'4a7',label:'R$ 4 mil a R$ 7 mil',min:4000,max:7000},{value:'7mais',label:'Acima de R$ 7 mil',min:7000,max:null}],
   'diagnostico-executivo':[{value:'ate5',label:'Até R$ 5 mil',min:0,max:5000},{value:'8a12',label:'R$ 8 mil a R$ 12 mil',min:8000,max:12000},{value:'12mais',label:'Acima de R$ 12 mil',min:12000,max:null}],
   'cultura-direcao':[{value:'ate6',label:'Até R$ 6 mil',min:0,max:6000},{value:'6a10',label:'R$ 6 mil a R$ 10 mil',min:6000,max:10000},{value:'10a15',label:'R$ 10 mil a R$ 15 mil',min:10000,max:15000},{value:'15mais',label:'Acima de R$ 15 mil',min:15000,max:null}],
-  treinamentos:[{value:'ate3',label:'Até R$ 3 mil',min:0,max:3000},{value:'3a6',label:'R$ 3 mil a R$ 6 mil',min:3000,max:6000},{value:'6a12',label:'R$ 6 mil a R$ 12 mil',min:6000,max:12000}],
+  treinamentos:[{value:'25a5',label:'R$ 2,5 mil a R$ 5 mil',min:2500,max:5000},{value:'5mais',label:'Acima de R$ 5 mil',min:5000,max:null},{value:'ate3',label:'Até R$ 3 mil',min:0,max:3000},{value:'3a6',label:'R$ 3 mil a R$ 6 mil',min:3000,max:6000},{value:'6a12',label:'R$ 6 mil a R$ 12 mil',min:6000,max:12000}],
   'marca-empregadora':[{value:'ate6',label:'Até R$ 6 mil',min:0,max:6000},{value:'6a10',label:'R$ 6 mil a R$ 10 mil',min:6000,max:10000},{value:'10a15',label:'R$ 10 mil a R$ 15 mil',min:10000,max:15000},{value:'15mais',label:'Acima de R$ 15 mil',min:15000,max:null}],
   'solucao-personalizada':[{value:'ate5',label:'Até R$ 5 mil',min:0,max:5000},{value:'10a20',label:'R$ 10 mil a R$ 20 mil',min:10000,max:20000},{value:'20mais',label:'Acima de R$ 20 mil',min:20000,max:null}],
 };
