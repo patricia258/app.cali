@@ -34,8 +34,14 @@ const fieldValues:Record<string,Record<string,string>>={
   feedback_360:{nao:'Não',sim:'Sim'},
   ciencia_lideres:{sim:'Sim',parcial:'Algumas já sabem',nao:'Ainda não foi apresentada'},
   senioridade_publico:{operacional:'Operacional',especialistas:'Especialistas',primeira_lideranca:'Primeira liderança',gestao:'Gerência e coordenação',executiva:'Diretoria e C-level',misto:'Público misto'},
+  tipo_contratacao:{campanha:'Palestra para uma campanha ou data do calendário',palestra_tema:'Palestra sobre um tema específico',workshop:'Workshop aplicado',treinamento:'Treinamento de desenvolvimento',programa_lideranca:'Programa / trilha de desenvolvimento de lideranças',recomendar:'Quero que a CALI recomende'},
+  campanha_calendario:{outubro_rosa:'Outubro Rosa',setembro_amarelo:'Setembro Amarelo',dia_mulher:'Dia da Mulher',abril_verde_sipat:'Abril Verde / SIPAT',consciencia_negra:'Consciência Negra',kickoff:'Kickoff / início do ano',dia_trabalho:'Dia do Trabalho',black_friday:'Black Friday / alta temporada',fechamento_ano:'Fechamento de ano / retenção',outro:'Outra campanha ou data'},
+  tema_status:{definido:'Tema definido',recomendar:'Quero que a CALI recomende o tema'},
+  publico:{empresa:'Toda a empresa',liderancas:'Lideranças',diretoria:'Diretoria ou C-level',rh:'Time de RH',operacional:'Equipe operacional',especialistas:'Especialistas ou técnicos',area:'Uma área específica',misto:'Público misto'},
+  nivel_publico:{nao_aplica:'Não se aplica / público amplo',primeira_lideranca:'Primeira liderança',gestao:'Coordenação e gerência',executiva:'Diretoria e C-level',misto:'Misto'},
+  nivel_interacao:{expositivo:'Conteúdo expositivo, sem dinâmica',perguntas:'Conteúdo + perguntas ao final',interacao:'Interação ao longo da fala',dinamica:'Exercícios ou dinâmica prática',recomendar:'Quero que a CALI recomende'},
   formato:{online:'Online',presencial:'Presencial',hibrido:'Híbrido'},
-  carga_horaria:{'1.5':'60 a 90 min','4':'Meio período','8':'Dia inteiro'},
+  carga_horaria:{'1':'60 min','1.5':'90 min','2':'2 horas','3':'3 horas','4':'4 horas','8':'Dia inteiro',recomendar:'Quero que a CALI recomende'},
   infraestrutura:{sala:'Sala adequada',projetor:'Projetor ou TV',som:'Sistema de som',wifi:'Wi-Fi'},
   materiais:{nao:'Não',sim:'Sim'},followup:{nao:'Não',sim:'Sim'},gravacao:{nao:'Não',sim:'Sim',avaliar:'A avaliar'},
   decisao_evento:{aprovada:'Aprovada e com orçamento',aprovada_sem_orcamento:'Aprovada, orçamento em definição',cotacao:'Cotação ou comparação de fornecedores',ideia:'Ainda é uma ideia inicial'},
@@ -50,7 +56,7 @@ const fieldValues:Record<string,Record<string,string>>={
   formato_desejado:{remoto:'Remoto',hibrido:'Híbrido',presencial:'Presencial',avaliar:'Quero que a CALI recomende'},
   etapa_decisao:{aprovada:'Demanda aprovada e com orçamento',orcamento:'Demanda aprovada; orçamento em definição',avaliacao:'Em avaliação interna',exploratoria:'Primeira conversa exploratória'},
   investimento:{ate5:'Até R$ 5 mil','5a8':'R$ 5 mil a R$ 8 mil','8a12':'R$ 8 mil a R$ 12 mil','12mais':'Acima de R$ 12 mil',ate15:'Até R$ 1,5 mil','15a24':'R$ 1,5 mil a R$ 2,4 mil','24mais':'Acima de R$ 2,4 mil',ate3:'Até R$ 3 mil','3a45':'R$ 3 mil a R$ 4,5 mil','45mais':'Acima de R$ 4,5 mil',ate4:'Até R$ 4 mil','4mais':'Acima de R$ 4 mil',avaliar:'Prefiro avaliar pelo escopo'},
-  budget:{ate25:'Até R$ 2,5 mil','25a5':'R$ 2,5 mil a R$ 5 mil','5mais':'Acima de R$ 5 mil',avaliar:'Prefiro avaliar pelo escopo'},
+  budget:{ate25:'Até R$ 2,5 mil','25a4':'R$ 2,5 mil a R$ 4 mil','4a6':'R$ 4 mil a R$ 6 mil','6a10':'R$ 6 mil a R$ 10 mil','10mais':'Acima de R$ 10 mil','25a5':'R$ 2,5 mil a R$ 5 mil','5mais':'Acima de R$ 5 mil',avaliar:'Prefiro avaliar pelo escopo'},
 };
 
 export function readablePortalValue(key:string,value:unknown):string{
