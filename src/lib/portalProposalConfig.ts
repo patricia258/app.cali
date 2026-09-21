@@ -18,9 +18,10 @@ export const PACKAGE_META:Record<string,PackageMeta[]>={
   'cultura-direcao':[{code:'PROJETO',label:'Projeto Cultura e Direção',description:'Leitura da cultura atual, definição de comportamentos e roadmap de 90 dias.',minimumMonths:1}],
   'shadowing-lideranca':[{code:'CICLO',label:'Ciclo Individual de Shadowing',description:'Observação estruturada, devolutiva individual e plano de desenvolvimento para uma liderança.',minimumMonths:1}],
   treinamentos:[
-    {code:'PALESTRA',label:'Palestra Estratégica',description:'Encontro único de 60 a 90 minutos.',minimumMonths:1},
-    {code:'WORKSHOP',label:'Workshop Aplicado',description:'Oficina prática de até quatro horas, com exercício conectado ao contexto.',minimumMonths:1},
-    {code:'TREINAMENTO',label:'Treinamento Personalizado',description:'Programa compacto de até três encontros, desenhado para uma competência prioritária.',minimumMonths:1},
+    {code:'PALESTRA',label:'Palestra Estratégica',description:'Encontro único, normalmente de 60 a 90 minutos, com conteúdo objetivo e interação compatível com o tempo disponível.',minimumMonths:1},
+    {code:'WORKSHOP',label:'Workshop Aplicado',description:'Oficina prática de 2 a 4 horas, com exercícios ou dinâmica conectados ao contexto real.',minimumMonths:1},
+    {code:'TREINAMENTO',label:'Treinamento Personalizado',description:'Desenvolvimento de uma competência prioritária em mais de um encontro, com prática entre etapas.',minimumMonths:1},
+    {code:'PROGRAMA',label:'Programa de Liderança Sob Medida',description:'Trilha estruturada de desenvolvimento, normalmente entre 4 e 10 encontros, com evolução acompanhada.',minimumMonths:1},
   ],
   'marca-empregadora':[
     {code:'PROJETO',label:'Projeto de Marca Empregadora',description:'Projeto estratégico para diagnosticar a percepção atual, definir ou refinar o EVP e organizar um plano de ativação viável para RH, Marketing e liderança.',minimumMonths:1},
