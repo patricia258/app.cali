@@ -19,7 +19,7 @@ const labels:Record<string,Record<string,string>>={
   frequencia:{mensal:'Mensal',quinzenal:'Quinzenal',semanal:'Semanal'},duracao_sessao:{'60':'60 minutos','90':'90 minutos'},
   suporte:{essencial:'Sem suporte por mensagem',mensagens:'Dúvidas pontuais por mensagem',proximo:'Check-ins e discussão de casos'},
   presencial:{presencial:'Presencial, recomendado',hibrido:'Híbrido',remoto:'Remoto',nao:'Sem necessidade fixa',eventual:'Eventual, quando necessário',mensal:'Uma visita por mês',mais:'Mais de uma visita por mês'},
-  formato:{online:'Online',presencial:'Presencial',hibrido:'Híbrido'},carga_horaria:{'1':'60 min','1.5':'90 min','2':'2 horas','3':'3 horas','4':'4 horas','8':'Dia inteiro',recomendar:'duração a recomendar'},
+  formato:{online:'Remoto (Google Meet)',presencial:'Presencial',hibrido:'Híbrido'},carga_horaria:{'1':'60 min','1.5':'90 min','2':'2 horas','3':'3 horas','4':'4 horas','8':'Dia inteiro',recomendar:'duração a recomendar'},
   tipo_contratacao:{palestra:'Palestra Estratégica',campanha:'Palestra para campanha ou data do calendário',palestra_tema:'Palestra sobre tema específico',workshop:'Workshop Aplicado',treinamento:'Treinamento Personalizado',programa_lideranca:'Programa / trilha de liderança',recomendar:'Formato a recomendar'},
   campanha_vinculada:{sim:'Sim',nao:'Não'},
   recorrencia_esperada:{unica:'Uma ação única','2a3':'Dois ou três encontros','4mais':'Quatro ou mais encontros',nao_sei:'Ainda não sei'},
