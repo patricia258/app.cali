@@ -15,7 +15,6 @@ import {
   LayoutDashboard,
   Leaf,
   LineChart,
-  LockKeyhole,
   MessageCircle,
   ShieldCheck,
   Sparkles,
@@ -41,55 +40,55 @@ const SCREENSHOTS: ScreenSlot[] = [
     label: 'Início',
     eyebrow: 'ÁREA DO CLIENTE',
     description: 'Visão executiva do ciclo, entregas, horas e frentes ativas.',
-    src: '/landing/client-home.svg',
+    src: '/landing/client-home.svg?v=5',
   },
   {
     label: 'Fale com a Pati',
     eyebrow: 'CANAL DIRETO CALI',
     description: 'Canal rápido dentro da área do cliente.',
-    src: '/landing/client-home-chat.webp',
+    src: '/landing/client-home-chat.webp?v=5',
   },
   {
     label: 'Planejamento',
     eyebrow: 'AGENDA & PRÓXIMOS PASSOS',
     description: 'Reuniões, validações, prazos e próximos compromissos.',
-    src: '/landing/client-planejamento.svg',
+    src: '/landing/client-planejamento.svg?v=5',
   },
   {
     label: 'Entregáveis',
     eyebrow: 'CRONOGRAMA COMPARTILHADO',
     description: 'Frentes, entregáveis, aprovações e sequência de implantação.',
-    src: '/landing/client-entregaveis.svg',
+    src: '/landing/client-entregaveis.svg?v=5',
   },
   {
     label: 'Conversa no entregável',
     eyebrow: 'CONTEXTO DA ENTREGA',
     description: 'A conversa fica vinculada ao entregável certo.',
-    src: '/landing/client-entregavel-chat.webp',
+    src: '/landing/client-entregavel-chat.webp?v=5',
   },
   {
     label: 'Horas do ciclo',
     eyebrow: 'TRANSPARÊNCIA DO SERVIÇO',
     description: 'Consumo, saldo disponível e registros do período.',
-    src: '/landing/client-horas.svg',
+    src: '/landing/client-horas.svg?v=5',
   },
   {
     label: 'Ocorrências',
     eyebrow: 'CANAL COM A CALI',
     description: 'Solicitações, status e histórico.',
-    src: '/landing/client-ocorrencias.webp',
+    src: '/landing/client-ocorrencias.svg?v=5',
   },
   {
     label: 'Detalhe da solicitação',
     eyebrow: 'HISTÓRICO DA CONVERSA',
     description: 'Contexto, status e conversa preservados no mesmo lugar.',
-    src: '/landing/client-ocorrencia-detalhe.webp',
+    src: '/landing/client-ocorrencia-detalhe.webp?v=5',
   },
   {
     label: 'Documentos',
     eyebrow: 'GOVERNANÇA',
     description: 'Acervo, busca, versões aprovadas e documentos.',
-    src: '/landing/client-documentos.svg',
+    src: '/landing/client-documentos.svg?v=5',
   },
 ];
 
@@ -101,10 +100,10 @@ type PhotoSlot = {
 };
 
 const PHOTO_SLOTS: PhotoSlot[] = [
-  { title: 'CALI em campo', mark: 'oak', src: '/landing/pati-mic.webp', objectPosition: '50% 34%' },
-  { title: 'Condução executiva', mark: 'lime', src: '/landing/pati-presentation.webp', objectPosition: '62% 50%' },
-  { title: 'Presença em mercado', mark: 'oak', src: '/landing/pati-conarh.webp', objectPosition: '50% 32%' },
-  { title: 'Liderança em movimento', mark: 'lime', src: '/landing/pati-speaking.webp', objectPosition: '65% 44%' },
+  { title: 'CALI em campo', mark: 'oak', src: '/landing/pati-mic.webp?v=5', objectPosition: '50% 34%' },
+  { title: 'Condução executiva', mark: 'lime', src: '/landing/pati-presentation.webp?v=5', objectPosition: '62% 50%' },
+  { title: 'Presença em mercado', mark: 'oak', src: '/landing/pati-conarh.webp?v=5', objectPosition: '50% 32%' },
+  { title: 'Liderança em movimento', mark: 'lime', src: '/landing/pati-speaking.webp?v=5', objectPosition: '65% 44%' },
 ];
 
 const MODULES = [
@@ -320,10 +319,6 @@ export function LandingPage() {
                 Conhecer a CALI RH <ArrowRight size={15} />
               </a>
             </div>
-            <div className="lp-hero-note">
-              <LockKeyhole size={16} />
-              <span>Um único acesso. O Workspace identifica o perfil e abre o ambiente correto.</span>
-            </div>
           </div>
 
           <div className="lp-hero-product" data-lp-reveal="right">
@@ -336,7 +331,7 @@ export function LandingPage() {
                   <small>app.calirh.com</small>
                 </div>
                 <div className="lp-window-screen lp-login-screen">
-                  <img src="/landing/cali-workspace-login.svg" alt="Tela de login do CALI Workspace" />
+                  <img src="/landing/cali-workspace-login.svg?v=5" alt="Tela de login do CALI Workspace" />
                 </div>
               </div>
               <div className="lp-monitor-stand" aria-hidden="true"><span /></div>
@@ -485,10 +480,9 @@ export function LandingPage() {
 
       <section className="lp-section lp-screens-section">
         <div className="lp-shell">
-          <div className="lp-section-heading lp-section-heading-centered lp-section-heading-dark" data-lp-reveal="up">
+          <div className="lp-section-heading lp-section-heading-centered lp-section-heading-dark lp-screen-heading" data-lp-reveal="up">
             <span className="lp-kicker">O WORKSPACE NA PRÁTICA</span>
             <h2>Por dentro do Workspace.</h2>
-            <p>As principais telas da área do cliente, com navegação automática e leitura consistente em desktop e celular.</p>
           </div>
 
           <div
