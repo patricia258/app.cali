@@ -23,6 +23,7 @@ import {
   Users,
   Workflow,
 } from 'lucide-react';
+import { patiWavePoster, patiWaveVideo } from '../assets/patiWaveMedia';
 
 type ScreenSlot = {
   label: string;
@@ -69,7 +70,14 @@ const SCREENSHOTS: ScreenSlot[] = [
   },
 ];
 
-const PHOTO_SLOTS = [
+type PhotoSlot = {
+  title: string;
+  mark: 'oak' | 'lime';
+  src?: string;
+  objectPosition?: string;
+};
+
+const PHOTO_SLOTS: PhotoSlot[] = [
   { title: 'CALI em campo', mark: 'oak' },
   { title: 'Leitura executiva', mark: 'lime' },
   { title: 'Trabalho com liderança', mark: 'oak' },
@@ -168,16 +176,38 @@ const PACKAGE_FEATURES = {
   ],
 };
 
-function BrandSlot({ title, mark = 'oak' }: { title: string; mark?: 'oak' | 'lime' }) {
+function BrandSlot({
+  title,
+  mark = 'oak',
+  src,
+  objectPosition = '50% 50%',
+}: {
+  title: string;
+  mark?: 'oak' | 'lime';
+  src?: string;
+  objectPosition?: string;
+}) {
   return (
-    <div className="lp-photo-slot">
-      <img
-        src={mark === 'oak' ? '/brand/cali-oak-mark-light.svg' : '/brand/cali-lime-mark.svg'}
-        alt=""
-        aria-hidden="true"
-      />
-      <span>{title}</span>
-      <small>espaço preparado para imagem</small>
+    <div className={`lp-photo-slot ${src ? 'has-photo' : ''}`}>
+      {src ? (
+        <img
+          className="lp-photo-user"
+          src={src}
+          alt={title}
+          style={{ objectPosition }}
+        />
+      ) : (
+        <img
+          className="lp-photo-brand-mark"
+          src={mark === 'oak' ? '/brand/cali-oak-mark-light.svg' : '/brand/cali-lime-mark.svg'}
+          alt=""
+          aria-hidden="true"
+        />
+      )}
+      <div className="lp-photo-caption">
+        <span>{title}</span>
+        <small>{src ? 'CALI RH' : 'espaço preparado para imagem'}</small>
+      </div>
     </div>
   );
 }
@@ -239,6 +269,7 @@ export function LandingPage() {
           <a href="#workspace">Workspace</a>
           <a href="#pacotes">Pacotes</a>
           <a href="#como-funciona">Como funciona</a>
+          <a href="#fale-com-a-pati">Fale com a Pati</a>
         </nav>
         <Link className="lp-access-link" to="/login">
           Acessar Workspace <ArrowRight size={16} />
@@ -249,7 +280,7 @@ export function LandingPage() {
         <img className="lp-art lp-art-oak" src="/brand/cali-oak-mark-light.svg" alt="" aria-hidden="true" />
         <img className="lp-art lp-art-lime" src="/brand/cali-lime-mark.svg" alt="" aria-hidden="true" />
         <div className="lp-shell lp-hero-grid">
-          <div className="lp-hero-copy" data-lp-reveal>
+          <div className="lp-hero-copy" data-lp-reveal="left">
             <span className="lp-eyebrow">CALI WORKSPACE · HR FOR BUSINESS</span>
             <h1>
               Estratégia de pessoas.
@@ -274,7 +305,7 @@ export function LandingPage() {
             </div>
           </div>
 
-          <div className="lp-hero-product" data-lp-reveal>
+          <div className="lp-hero-product" data-lp-reveal="right">
             <div className="lp-window">
               <div className="lp-window-top">
                 <span />
@@ -314,7 +345,7 @@ export function LandingPage() {
 
       <section className="lp-section lp-section-light" id="cali">
         <div className="lp-shell lp-about-grid">
-          <div className="lp-section-copy" data-lp-reveal>
+          <div className="lp-section-copy" data-lp-reveal="left">
             <span className="lp-kicker">A CALI RH</span>
             <h2>A plataforma acompanha o trabalho. Não substitui o trabalho.</h2>
             <p>
@@ -332,7 +363,7 @@ export function LandingPage() {
             </a>
           </div>
 
-          <div className="lp-principles" data-lp-reveal>
+          <div className="lp-principles" data-lp-reveal="right">
             <article>
               <Leaf size={21} />
               <span>Direção</span>
@@ -356,10 +387,16 @@ export function LandingPage() {
           </div>
         </div>
 
-        <div className="lp-photo-rail" aria-label="Espaços preparados para fotos da CALI">
+        <div className="lp-photo-rail" aria-label="Galeria de fotos da CALI">
           <div className="lp-photo-track">
             {[...PHOTO_SLOTS, ...PHOTO_SLOTS].map((slot, index) => (
-              <BrandSlot key={`${slot.title}-${index}`} title={slot.title} mark={slot.mark as 'oak' | 'lime'} />
+              <BrandSlot
+                key={`${slot.title}-${index}`}
+                title={slot.title}
+                mark={slot.mark}
+                src={slot.src}
+                objectPosition={slot.objectPosition}
+              />
             ))}
           </div>
         </div>
@@ -380,7 +417,12 @@ export function LandingPage() {
             {MODULES.map((module, index) => {
               const Icon = module.icon;
               return (
-                <article className="lp-module-card" key={module.title} data-lp-reveal style={{ transitionDelay: `${index * 45}ms` }}>
+                <article
+                  className="lp-module-card"
+                  key={module.title}
+                  data-lp-reveal={index % 3 === 0 ? 'left' : index % 3 === 1 ? 'up' : 'right'}
+                  style={{ transitionDelay: `${index * 55}ms` }}
+                >
                   <Icon size={21} />
                   <h3>{module.title}</h3>
                   <p>{module.text}</p>
@@ -399,7 +441,7 @@ export function LandingPage() {
           </div>
 
           <div className="lp-audience-grid">
-            <article className="lp-audience-card" data-lp-reveal>
+            <article className="lp-audience-card" data-lp-reveal="left">
               <span className="lp-card-index">01</span>
               <div className="lp-audience-icon"><Users size={23} /></div>
               <small>AMBIENTE DO CLIENTE</small>
@@ -416,7 +458,7 @@ export function LandingPage() {
               </div>
             </article>
 
-            <article className="lp-audience-card lp-audience-card-dark" data-lp-reveal>
+            <article className="lp-audience-card lp-audience-card-dark" data-lp-reveal="right">
               <span className="lp-card-index">02</span>
               <div className="lp-audience-icon"><LayoutDashboard size={23} /></div>
               <small>AMBIENTE CALI</small>
@@ -438,17 +480,17 @@ export function LandingPage() {
 
       <section className="lp-section lp-screens-section">
         <div className="lp-shell">
-          <div className="lp-section-heading lp-section-heading-centered lp-section-heading-dark" data-lp-reveal>
+          <div className="lp-section-heading lp-section-heading-centered lp-section-heading-dark" data-lp-reveal="up">
             <span className="lp-kicker">O WORKSPACE NA PRÁTICA</span>
-            <h2>Telas reais, sem mock de software genérico.</h2>
-            <p>O carrossel já está preparado para receber os prints finais que você enviar.</p>
+            <h2>Veja o Workspace em movimento.</h2>
+            <p>O carrossel está preparado para receber os prints oficiais da CALI, com enquadramento ajustável e leitura consistente em desktop e celular.</p>
           </div>
 
           <div
             className="lp-screen-carousel"
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
-            data-lp-reveal
+            data-lp-reveal="zoom"
           >
             <div className="lp-screen-meta">
               <div>
@@ -505,6 +547,44 @@ export function LandingPage() {
         </div>
       </section>
 
+
+      <section className="lp-section lp-video-section" id="fale-com-a-pati">
+        <img className="lp-video-art lp-video-art-oak" src="/brand/cali-oak-mark-light.svg" alt="" aria-hidden="true" />
+        <img className="lp-video-art lp-video-art-lime" src="/brand/cali-lime-mark.svg" alt="" aria-hidden="true" />
+        <div className="lp-shell lp-video-grid">
+          <div className="lp-video-copy" data-lp-reveal="left">
+            <span className="lp-kicker">FALE COM A PATI</span>
+            <h2>Tem gente de verdade do outro lado.</h2>
+            <p>
+              O Workspace organiza a relação de advisory, mas a conversa continua sendo direta.
+              Estratégia, contexto e decisão passam por quem está acompanhando o negócio de perto.
+            </p>
+            <a className="lp-button lp-button-light" href={WA_LINK} target="_blank" rel="noreferrer">
+              Falar com a Pati <MessageCircle size={17} />
+            </a>
+          </div>
+
+          <div className="lp-video-card" data-lp-reveal="right">
+            <div className="lp-video-badge"><Sparkles size={15} /> CALI RH · PEOPLE ADVISORY</div>
+            <video
+              className="lp-pati-video"
+              src={patiWaveVideo}
+              poster={patiWavePoster}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-label="Vídeo da Patrícia, CALI RH"
+            />
+            <div className="lp-video-caption">
+              <strong>Patrícia Lima</strong>
+              <span>People Advisory Executive · CALI RH</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="lp-section lp-section-light" id="como-funciona">
         <div className="lp-shell">
           <div className="lp-section-heading lp-section-heading-centered" data-lp-reveal>
@@ -516,7 +596,11 @@ export function LandingPage() {
             {STEPS.map((step, index) => {
               const Icon = step.icon;
               return (
-                <article key={step.n} data-lp-reveal style={{ transitionDelay: `${index * 70}ms` }}>
+                <article
+                  key={step.n}
+                  data-lp-reveal={index % 2 === 0 ? 'left' : 'right'}
+                  style={{ transitionDelay: `${index * 80}ms` }}
+                >
                   <div className="lp-step-number">
                     <span>{step.n}</span>
                     <i><Icon size={20} /></i>
@@ -539,7 +623,7 @@ export function LandingPage() {
           </div>
 
           <div className="lp-package-grid">
-            <article className="lp-package-card" data-lp-reveal>
+            <article className="lp-package-card" data-lp-reveal="left">
               <div className="lp-package-top">
                 <div>
                   <small>CALI PARTNER</small>
@@ -564,7 +648,7 @@ export function LandingPage() {
               </a>
             </article>
 
-            <article className="lp-package-card lp-package-card-featured" data-lp-reveal>
+            <article className="lp-package-card lp-package-card-featured" data-lp-reveal="right">
               <div className="lp-package-ribbon">MAIOR PROXIMIDADE</div>
               <div className="lp-package-top">
                 <div>
@@ -595,7 +679,7 @@ export function LandingPage() {
 
       <section className="lp-final-cta">
         <img className="lp-final-art" src="/brand/cali-lime-mark.svg" alt="" aria-hidden="true" />
-        <div className="lp-shell lp-final-grid" data-lp-reveal>
+        <div className="lp-shell lp-final-grid" data-lp-reveal="up">
           <div>
             <span className="lp-eyebrow">JÁ É CLIENTE CALI?</span>
             <h2>O trabalho continua aqui.</h2>
