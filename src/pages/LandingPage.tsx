@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -40,37 +40,55 @@ const SCREENSHOTS: ScreenSlot[] = [
   {
     label: 'Início',
     eyebrow: 'ÁREA DO CLIENTE',
-    description: 'Visão executiva do ciclo, entregas, horas e frentes ativas em um único lugar.',
+    description: 'Visão executiva do ciclo, entregas, horas e frentes ativas.',
     src: '/landing/client-home.svg',
+  },
+  {
+    label: 'Fale com a Pati',
+    eyebrow: 'CANAL DIRETO CALI',
+    description: 'Canal rápido dentro da área do cliente.',
+    src: '/landing/client-home-chat.webp',
   },
   {
     label: 'Planejamento',
     eyebrow: 'AGENDA & PRÓXIMOS PASSOS',
-    description: 'Reuniões, validações, prazos e próximos compromissos publicados pela CALI.',
+    description: 'Reuniões, validações, prazos e próximos compromissos.',
     src: '/landing/client-planejamento.svg',
   },
   {
     label: 'Entregáveis',
     eyebrow: 'CRONOGRAMA COMPARTILHADO',
-    description: 'Frentes, entregáveis, aprovações e sequência de implantação com leitura simples.',
+    description: 'Frentes, entregáveis, aprovações e sequência de implantação.',
     src: '/landing/client-entregaveis.svg',
+  },
+  {
+    label: 'Conversa no entregável',
+    eyebrow: 'CONTEXTO DA ENTREGA',
+    description: 'A conversa fica vinculada ao entregável certo.',
+    src: '/landing/client-entregavel-chat.webp',
   },
   {
     label: 'Horas do ciclo',
     eyebrow: 'TRANSPARÊNCIA DO SERVIÇO',
-    description: 'Consumo, saldo disponível e registros compartilhados do período.',
+    description: 'Consumo, saldo disponível e registros do período.',
     src: '/landing/client-horas.svg',
   },
   {
     label: 'Ocorrências',
     eyebrow: 'CANAL COM A CALI',
-    description: 'Solicitações, status, histórico e acompanhamento sem perder o contexto.',
-    src: '/landing/client-ocorrencias.svg',
+    description: 'Solicitações, status e histórico.',
+    src: '/landing/client-ocorrencias.webp',
+  },
+  {
+    label: 'Detalhe da solicitação',
+    eyebrow: 'HISTÓRICO DA CONVERSA',
+    description: 'Contexto, status e conversa preservados no mesmo lugar.',
+    src: '/landing/client-ocorrencia-detalhe.webp',
   },
   {
     label: 'Documentos',
     eyebrow: 'GOVERNANÇA',
-    description: 'Acervo, busca, versões aprovadas e documentos organizados para consulta.',
+    description: 'Acervo, busca, versões aprovadas e documentos.',
     src: '/landing/client-documentos.svg',
   },
 ];
@@ -83,10 +101,10 @@ type PhotoSlot = {
 };
 
 const PHOTO_SLOTS: PhotoSlot[] = [
-  { title: 'CALI em campo', mark: 'oak' },
-  { title: 'Leitura executiva', mark: 'lime' },
-  { title: 'Trabalho com liderança', mark: 'oak' },
-  { title: 'Decisão com contexto', mark: 'lime' },
+  { title: 'CALI em campo', mark: 'oak', src: '/landing/pati-mic.webp', objectPosition: '50% 34%' },
+  { title: 'Condução executiva', mark: 'lime', src: '/landing/pati-presentation.webp', objectPosition: '62% 50%' },
+  { title: 'Presença em mercado', mark: 'oak', src: '/landing/pati-conarh.webp', objectPosition: '50% 32%' },
+  { title: 'Liderança em movimento', mark: 'lime', src: '/landing/pati-speaking.webp', objectPosition: '65% 44%' },
 ];
 
 const MODULES = [
@@ -235,7 +253,6 @@ function ScreenVisual({ slot }: { slot: ScreenSlot }) {
 export function LandingPage() {
   const [activeScreen, setActiveScreen] = useState(0);
   const [paused, setPaused] = useState(false);
-  const currentScreen = useMemo(() => SCREENSHOTS[activeScreen], [activeScreen]);
 
   useEffect(() => {
     const nodes = Array.from(document.querySelectorAll<HTMLElement>('[data-lp-reveal], [data-lp-flow]'));
@@ -310,34 +327,19 @@ export function LandingPage() {
           </div>
 
           <div className="lp-hero-product" data-lp-reveal="right">
-            <div className="lp-window">
-              <div className="lp-window-top">
-                <span />
-                <span />
-                <span />
-                <small>app.calirh.com</small>
-              </div>
-              <div className="lp-window-screen">
-                <img src="/landing/cali-workspace-login.svg" alt="Tela de login do CALI Workspace" />
-                <div className="lp-window-overlay">
-                  <span>ACESSO SEGURO</span>
-                  <strong>Um login.<br />Dois ambientes.</strong>
+            <div className="lp-monitor-shell" aria-label="Tela de login do CALI Workspace">
+              <div className="lp-window">
+                <div className="lp-window-top">
+                  <span />
+                  <span />
+                  <span />
+                  <small>app.calirh.com</small>
+                </div>
+                <div className="lp-window-screen lp-login-screen">
+                  <img src="/landing/cali-workspace-login.svg" alt="Tela de login do CALI Workspace" />
                 </div>
               </div>
-            </div>
-            <div className="lp-floating-card lp-floating-card-a">
-              <ShieldCheck size={18} />
-              <div>
-                <strong>Acesso seguro</strong>
-                <span>Admin + cliente</span>
-              </div>
-            </div>
-            <div className="lp-floating-card lp-floating-card-b">
-              <Sparkles size={18} />
-              <div>
-                <strong>Sem planilha paralela</strong>
-                <span>uma fonte de verdade</span>
-              </div>
+              <div className="lp-monitor-stand" aria-hidden="true"><span /></div>
             </div>
           </div>
         </div>
@@ -495,14 +497,6 @@ export function LandingPage() {
             onMouseLeave={() => setPaused(false)}
             data-lp-reveal="zoom"
           >
-            <div className="lp-screen-meta">
-              <div>
-                <span>{currentScreen.eyebrow}</span>
-                <strong>{currentScreen.label}</strong>
-              </div>
-              <small>{String(activeScreen + 1).padStart(2, '0')} / {String(SCREENSHOTS.length).padStart(2, '0')}</small>
-            </div>
-
             <div className="lp-screen-frame">
               {SCREENSHOTS.map((slot, index) => (
                 <div
@@ -515,8 +509,18 @@ export function LandingPage() {
               ))}
             </div>
 
-            <div className="lp-screen-bottom">
-              <p>{currentScreen.description}</p>
+            <div className="lp-screen-toolbar">
+              <div className="lp-screen-dots" aria-label="Selecionar tela">
+              {SCREENSHOTS.map((slot, index) => (
+                <button
+                  type="button"
+                  key={slot.label}
+                  aria-label={`Ver ${slot.label}`}
+                  className={index === activeScreen ? 'is-active' : ''}
+                  onClick={() => setActiveScreen(index)}
+                />
+              ))}
+              </div>
               <div className="lp-screen-controls">
                 <button
                   type="button"
@@ -533,18 +537,6 @@ export function LandingPage() {
                   <ChevronRight size={18} />
                 </button>
               </div>
-            </div>
-
-            <div className="lp-screen-dots" aria-label="Selecionar tela">
-              {SCREENSHOTS.map((slot, index) => (
-                <button
-                  type="button"
-                  key={slot.label}
-                  aria-label={`Ver ${slot.label}`}
-                  className={index === activeScreen ? 'is-active' : ''}
-                  onClick={() => setActiveScreen(index)}
-                />
-              ))}
             </div>
           </div>
         </div>
