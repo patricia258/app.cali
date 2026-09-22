@@ -114,3 +114,32 @@ A escrita é parte do produto.
 ## O que não entra nesta versão
 
 Não herdar do antigo Connect: recrutamento completo, Hub de colaboradores, DP, jurídico, contabilidade, folha, gamificação, múltiplos perfis internos, billing/boletos ou módulos de SaaS que não fazem parte da dinâmica CALI-cliente.
+
+
+## Assessoria Estratégica Mensal · termos comerciais oficiais
+
+Atualização confirmada em **21/09/2026**. Esta seção substitui prazos mínimos anteriores registrados em materiais antigos.
+
+### CALI Partner
+
+- Contrato mínimo: **8 meses**.
+- Renovação automática; reajuste a cada 12 meses.
+- Formato: **100% online**. Visita presencial somente sob solicitação, com custo adicional.
+- Dedicação: **10 a 15h/mês**.
+- Ritmo principal: **mensal**.
+- Escopo-base vigente: reunião mensal com founders/diretoria ou RH; leitura mensal de indicadores-chave; orientação de DP sem execução; apoio a decisões críticas; direção estratégica de pessoas e DHO; **1 ajuste ou desenho de política/processo por mês, não cumulativo**.
+
+### CALI Full
+
+- Contrato mínimo: **12 meses**.
+- Renovação automática; reajuste a cada 12 meses.
+- Formato: **1 visita presencial fixa por mês**. Referência atual: Curitiba e Região Metropolitana, sem custo adicional até 10 km.
+- Dedicação: **20 a 25h/mês**.
+- Ritmo principal: **quinzenal**.
+- Escopo-base vigente: tudo do CALI Partner, mais Cargos e Salários; People Analytics nível 3; Treinamento e Desenvolvimento conforme necessidade; Saúde Ocupacional e Conformidade; acompanhamento mais próximo da liderança; até **2 ajustes/desenhos de política ou processo por mês**, ou **1 projeto/treinamento estrutural maior por trimestre**. Pode incluir desenho do processo de Atração e Seleção quando necessário, nunca a operação de abrir vaga ou fazer sourcing.
+
+### Regra de comunicação pública
+
+- Não publicar preço fixo dos pacotes.
+- A landing page, o site, o Portal e as propostas devem usar **8 meses para Partner** e **12 meses para Full**.
+- Em caso de conflito com documento anterior, estes termos de 21/09/2026 prevalecem.

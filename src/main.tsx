@@ -30,6 +30,7 @@ import './workspace-typography-connect.css';
 import './sidebar-brand-artwork.css';
 import './sidebar-capacity-v2.css';
 import './login-home-v2.css';
+import './landing-page.css';
 import './login-theme-isolation.css';
 import './workspace-polish-2026-08-30.css';
 import './sidebar-closed-profile-fix.css';

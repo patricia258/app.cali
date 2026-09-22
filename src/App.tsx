@@ -4,6 +4,7 @@ import { ProtectedRoute, WorkspaceRouteLoader } from './components/ProtectedRout
 import { Shell, WorkspaceFrame } from './components/WorkspaceShell';
 import { useLocation } from 'react-router-dom';
 
+const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage').then((m) => ({ default: m.AuthCallbackPage })));
 const GoogleCalendarCallbackPage = lazy(() => import('./pages/GoogleCalendarCallbackPage').then((m) => ({ default: m.GoogleCalendarCallbackPage })));
@@ -147,7 +148,8 @@ function AppRoutes() {
     
     <Suspense fallback={<WorkspaceNavigationFallback />}>
       <Routes>
-        <Route path="/" element={<LoginPage/>}/>
+        <Route path="/" element={<LandingPage/>}/>
+        <Route path="/login" element={<LoginPage/>}/>
         <Route path="/auth/callback" element={<AuthCallbackPage/>}/>
         <Route path="/oauth/google/callback" element={<GoogleCalendarCallbackPage/>}/>
 
