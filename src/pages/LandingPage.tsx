@@ -38,35 +38,40 @@ const WA_LINK =
 
 const SCREENSHOTS: ScreenSlot[] = [
   {
-    label: 'Visão geral',
-    eyebrow: 'PAINEL EXECUTIVO',
-    description: 'Leitura rápida de operação, prioridades, carteira e sinais que precisam de decisão.',
-    src: '/brand/cali-workspace-preview-v2.jpg',
+    label: 'Início',
+    eyebrow: 'ÁREA DO CLIENTE',
+    description: 'Visão executiva do ciclo, entregas, horas e frentes ativas em um único lugar.',
+    src: '/landing/client-home.svg',
   },
   {
     label: 'Planejamento',
+    eyebrow: 'AGENDA & PRÓXIMOS PASSOS',
+    description: 'Reuniões, validações, prazos e próximos compromissos publicados pela CALI.',
+    src: '/landing/client-planejamento.svg',
+  },
+  {
+    label: 'Entregáveis',
     eyebrow: 'CRONOGRAMA COMPARTILHADO',
-    description: 'Ciclos, reuniões, marcos e validações organizados entre a CALI e o cliente.',
+    description: 'Frentes, entregáveis, aprovações e sequência de implantação com leitura simples.',
+    src: '/landing/client-entregaveis.svg',
   },
   {
-    label: 'Projetos',
-    eyebrow: 'EXECUÇÃO & ENTREGÁVEIS',
-    description: 'Acompanhamento de frentes, entregas, ajustes, aprovações e conversas no contexto certo.',
-  },
-  {
-    label: 'Horas',
+    label: 'Horas do ciclo',
     eyebrow: 'TRANSPARÊNCIA DO SERVIÇO',
-    description: 'Consumo do ciclo, histórico e leitura do investimento de tempo por frente.',
+    description: 'Consumo, saldo disponível e registros compartilhados do período.',
+    src: '/landing/client-horas.svg',
+  },
+  {
+    label: 'Ocorrências',
+    eyebrow: 'CANAL COM A CALI',
+    description: 'Solicitações, status, histórico e acompanhamento sem perder o contexto.',
+    src: '/landing/client-ocorrencias.svg',
   },
   {
     label: 'Documentos',
     eyebrow: 'GOVERNANÇA',
-    description: 'Materiais aprovados, documentos, validade e histórico em um único fluxo.',
-  },
-  {
-    label: 'Relatórios',
-    eyebrow: 'LEITURA EXECUTIVA',
-    description: 'Resultados, decisões, riscos, recomendações e próximos movimentos do ciclo.',
+    description: 'Acervo, busca, versões aprovadas e documentos organizados para consulta.',
+    src: '/landing/client-documentos.svg',
   },
 ];
 
@@ -313,10 +318,10 @@ export function LandingPage() {
                 <small>app.calirh.com</small>
               </div>
               <div className="lp-window-screen">
-                <img src="/brand/cali-workspace-preview-v2.jpg" alt="Prévia do CALI Workspace" />
+                <img src="/landing/cali-workspace-login.svg" alt="Tela de login do CALI Workspace" />
                 <div className="lp-window-overlay">
-                  <span>CALI WORKSPACE</span>
-                  <strong>Trabalho compartilhado.<br />Decisão com contexto.</strong>
+                  <span>ACESSO SEGURO</span>
+                  <strong>Um login.<br />Dois ambientes.</strong>
                 </div>
               </div>
             </div>
@@ -481,7 +486,7 @@ export function LandingPage() {
           <div className="lp-section-heading lp-section-heading-centered lp-section-heading-dark" data-lp-reveal="up">
             <span className="lp-kicker">O WORKSPACE NA PRÁTICA</span>
             <h2>Por dentro do Workspace.</h2>
-            <p>As telas oficiais entram aqui com enquadramento ajustável e leitura consistente em desktop e celular.</p>
+            <p>As principais telas da área do cliente, com navegação automática e leitura consistente em desktop e celular.</p>
           </div>
 
           <div
