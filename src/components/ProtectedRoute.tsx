@@ -31,7 +31,7 @@ export function ProtectedRoute({ role, children }: { role: Role; children: React
 
   if (!auth.ready) return <WorkspaceRouteLoader />;
 
-  if (!auth.user || !auth.active || !auth.role) return <Navigate to="/" replace />;
+  if (!auth.user || !auth.active || !auth.role) return <Navigate to="/login" replace />;
 
   if (auth.role !== role) {
     return <Navigate to={auth.role === 'admin' ? '/admin' : '/cliente'} replace />;
