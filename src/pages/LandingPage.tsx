@@ -56,6 +56,12 @@ const SCREENSHOTS: ScreenSlot[] = [
     src: '/landing/client-entregaveis.svg',
   },
   {
+    label: 'Conversa no entregável',
+    eyebrow: 'CONTEXTO DA ENTREGA',
+    description: 'A conversa fica vinculada à entrega certa, sem perder histórico ou decisão.',
+    src: '/landing/client-entregaveis.svg',
+  },
+  {
     label: 'Horas do ciclo',
     eyebrow: 'TRANSPARÊNCIA DO SERVIÇO',
     description: 'Consumo, saldo disponível e registros compartilhados do período.',
@@ -65,6 +71,12 @@ const SCREENSHOTS: ScreenSlot[] = [
     label: 'Ocorrências',
     eyebrow: 'CANAL COM A CALI',
     description: 'Solicitações, status, histórico e acompanhamento sem perder o contexto.',
+    src: '/landing/client-ocorrencias.svg',
+  },
+  {
+    label: 'Detalhe da solicitação',
+    eyebrow: 'HISTÓRICO DA CONVERSA',
+    description: 'Cada solicitação preserva contexto, status e a conversa com a CALI em um único lugar.',
     src: '/landing/client-ocorrencias.svg',
   },
   {
