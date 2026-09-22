@@ -2232,3 +2232,502 @@
     animation: none !important;
   }
 }
+
+
+/* CALI LP FINAL QA · screenshots + mobile · 2026-09-22 */
+
+/* HERO: login completo, sem crop e sem textos/overlays redundantes */
+.lp-hero-product {
+  width: min(100%, 720px) !important;
+  margin-inline: auto !important;
+}
+.lp-monitor-shell {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 700px !important;
+  margin-inline: auto !important;
+  animation: lp-final-monitor-float 6.8s ease-in-out infinite !important;
+  filter: drop-shadow(0 30px 52px rgba(18, 6, 10, .28)) !important;
+}
+.lp-monitor-shell .lp-window {
+  width: 100% !important;
+  overflow: hidden !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(247,243,238,.16) !important;
+  background: #18090e !important;
+  box-shadow: none !important;
+  transform: none !important;
+  animation: none !important;
+}
+.lp-monitor-shell .lp-window-top {
+  min-height: 40px !important;
+  padding: 0 16px !important;
+}
+.lp-login-screen {
+  position: relative !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  aspect-ratio: 720 / 388 !important;
+  display: block !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  background: #f7f3ee !important;
+}
+.lp-login-screen::before,
+.lp-login-screen::after,
+.lp-window-overlay,
+.lp-floating-card,
+.lp-hero-note {
+  display: none !important;
+  content: none !important;
+}
+.lp-login-screen > img,
+.lp-login-screen img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  opacity: 1 !important;
+  filter: none !important;
+  transform: none !important;
+}
+.lp-monitor-stand {
+  width: 34% !important;
+  height: 38px !important;
+  margin: 0 auto !important;
+}
+.lp-monitor-stand::before {
+  width: 24% !important;
+  height: 29px !important;
+}
+.lp-monitor-stand span {
+  height: 8px !important;
+}
+@keyframes lp-final-monitor-float {
+  0%,100% { transform: translate3d(0,0,0) rotate(-.25deg); }
+  50% { transform: translate3d(0,-9px,0) rotate(.25deg); }
+}
+
+/* SCREEN CAROUSEL: só imagens. Cada slide usa sua proporção natural inteira. */
+.lp-screen-heading {
+  margin-bottom: 34px !important;
+}
+.lp-screen-carousel {
+  width: min(100%, 1080px) !important;
+  margin: 0 auto !important;
+  padding: clamp(10px, 1.5vw, 16px) !important;
+  border-radius: 26px !important;
+  background: rgba(247,243,238,.035) !important;
+}
+.lp-screen-meta,
+.lp-screen-bottom,
+.lp-screen-carousel .lp-screen-meta,
+.lp-screen-carousel .lp-screen-bottom {
+  display: none !important;
+}
+.lp-screen-frame {
+  position: relative !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  aspect-ratio: auto !important;
+  margin: 0 auto !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  background: #fff !important;
+  display: block !important;
+}
+.lp-screen-slide {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  display: block !important;
+  background: #fff !important;
+  transition: opacity .45s ease !important;
+}
+.lp-screen-slide.is-active {
+  position: relative !important;
+  inset: auto !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 2 !important;
+}
+.lp-screen-image,
+.lp-screen-slide img {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  margin: 0 !important;
+  background: #fff !important;
+}
+.lp-screen-toolbar {
+  width: 100% !important;
+  margin: 16px auto 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 20px !important;
+}
+.lp-screen-dots {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  margin: 0 !important;
+}
+.lp-screen-controls {
+  position: absolute !important;
+  right: clamp(18px, 3vw, 34px) !important;
+  bottom: 12px !important;
+  display: flex !important;
+  gap: 9px !important;
+}
+
+/* Fotos reais: sem crop agressivo e com trilho editorial. */
+.lp-photo-rail {
+  overflow: hidden !important;
+}
+.lp-photo-track {
+  align-items: stretch !important;
+}
+.lp-photo-slot {
+  min-width: clamp(280px, 30vw, 430px) !important;
+  width: clamp(280px, 30vw, 430px) !important;
+  height: clamp(360px, 39vw, 520px) !important;
+  overflow: hidden !important;
+  border-radius: 26px !important;
+  border: 1px solid rgba(181,140,82,.3) !important;
+}
+.lp-photo-user {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+.lp-photo-slot.has-photo .lp-photo-caption {
+  z-index: 3 !important;
+}
+
+/* FALE COM A PATI: empilhamento robusto, card quadrado arredondado e contraste real. */
+.lp-video-section {
+  color: #2b2b2b !important;
+  background:
+    linear-gradient(rgba(90,30,45,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(90,30,45,.03) 1px, transparent 1px),
+    radial-gradient(circle at 82% 24%, rgba(181,140,82,.12), transparent 24%),
+    linear-gradient(180deg, #fffdf9 0%, #f6f0ea 100%) !important;
+  background-size: 52px 52px, 52px 52px, auto, auto !important;
+}
+.lp-video-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 350px) !important;
+  gap: clamp(44px, 7vw, 88px) !important;
+  align-items: center !important;
+}
+.lp-video-copy {
+  position: relative !important;
+  z-index: 4 !important;
+  width: 100% !important;
+  max-width: 650px !important;
+}
+.lp-video-copy .lp-kicker {
+  color: #b58c52 !important;
+  opacity: 1 !important;
+}
+.lp-video-copy h2 {
+  color: #5a1e2d !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+.lp-video-copy p {
+  color: #655d58 !important;
+  opacity: 1 !important;
+}
+.lp-video-copy .lp-button-light {
+  color: #5a1e2d !important;
+  background: #fff !important;
+  border-color: rgba(90,30,45,.12) !important;
+}
+.lp-video-card {
+  position: relative !important;
+  inset: auto !important;
+  transform: none !important;
+  width: min(100%, 340px) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  aspect-ratio: 1 / 1 !important;
+  justify-self: end !important;
+  overflow: hidden !important;
+  border: 4px solid #e2c66d !important;
+  border-radius: 28px !important;
+  background: #efe5dc !important;
+  box-shadow: 0 22px 50px rgba(66,22,34,.14) !important;
+}
+.lp-pati-video {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  aspect-ratio: 1 / 1 !important;
+  object-fit: cover !important;
+  object-position: 50% 44% !important;
+  border-radius: 23px !important;
+}
+.lp-video-card::after {
+  border-radius: 23px !important;
+}
+.lp-video-badge {
+  z-index: 5 !important;
+}
+.lp-video-caption {
+  z-index: 5 !important;
+}
+
+/* COMO FUNCIONA: zero texto lavado em fundo claro. */
+#como-funciona,
+#como-funciona .lp-section-heading,
+#como-funciona .lp-steps,
+#como-funciona .lp-steps article {
+  color: #2b2b2b !important;
+}
+#como-funciona .lp-kicker {
+  color: #5a1e2d !important;
+  opacity: 1 !important;
+}
+#como-funciona .lp-section-heading h2,
+#como-funciona .lp-steps h3 {
+  color: #5a1e2d !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+#como-funciona .lp-steps p {
+  color: #655d58 !important;
+  opacity: 1 !important;
+}
+#como-funciona .lp-step-number span {
+  color: #b58c52 !important;
+}
+
+/* Auditoria geral de contraste em superfícies claras. */
+.lp-section-light h1,
+.lp-section-light h2,
+.lp-section-light h3,
+.lp-section-ivory h1,
+.lp-section-ivory h2,
+.lp-section-ivory h3,
+.lp-packages h2 {
+  opacity: 1 !important;
+}
+.lp-section-light .lp-section-copy h2,
+.lp-section-light .lp-section-heading h2,
+.lp-section-ivory > .lp-shell > .lp-section-heading h2,
+.lp-packages .lp-section-heading h2 {
+  color: #5a1e2d !important;
+}
+.lp-section-light .lp-section-copy p,
+.lp-section-light .lp-section-heading p,
+.lp-section-ivory > .lp-shell > .lp-section-heading p,
+.lp-packages .lp-section-heading p {
+  color: #655d58 !important;
+}
+
+@media (max-width: 1040px) {
+  .lp-monitor-shell { max-width: 720px !important; }
+  .lp-video-grid {
+    grid-template-columns: 1fr !important;
+    justify-items: start !important;
+  }
+  .lp-video-card {
+    justify-self: center !important;
+    width: min(330px, 58vw) !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .lp-hero-product,
+  .lp-monitor-shell {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .lp-monitor-shell {
+    padding-inline: 0 !important;
+  }
+  .lp-monitor-shell .lp-window {
+    border-radius: 19px !important;
+  }
+
+  .lp-screen-carousel {
+    width: 100% !important;
+    padding: 8px !important;
+    border-radius: 18px !important;
+  }
+  .lp-screen-frame {
+    width: 100% !important;
+    border-radius: 13px !important;
+  }
+  .lp-screen-controls {
+    position: static !important;
+  }
+  .lp-screen-toolbar {
+    justify-content: space-between !important;
+    padding: 0 4px 2px !important;
+  }
+
+  .lp-video-section {
+    overflow: hidden !important;
+  }
+  .lp-video-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 30px !important;
+    min-height: 0 !important;
+  }
+  .lp-video-copy {
+    order: 1 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+  .lp-video-card {
+    order: 2 !important;
+    position: relative !important;
+    inset: auto !important;
+    transform: none !important;
+    width: min(290px, 76vw) !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 auto !important;
+    justify-self: auto !important;
+    align-self: center !important;
+  }
+  .lp-video-copy h2 {
+    color: #5a1e2d !important;
+    opacity: 1 !important;
+    font-size: clamp(2.55rem, 10.5vw, 4rem) !important;
+    line-height: 1 !important;
+  }
+  .lp-video-copy p {
+    color: #655d58 !important;
+    opacity: 1 !important;
+    font-size: 1rem !important;
+    line-height: 1.7 !important;
+  }
+
+  #como-funciona .lp-steps article {
+    grid-template-columns: 72px minmax(0,1fr) !important;
+    gap: 18px !important;
+  }
+  #como-funciona .lp-steps h3 {
+    color: #5a1e2d !important;
+    opacity: 1 !important;
+    font-size: 1.25rem !important;
+    line-height: 1.15 !important;
+    margin: 0 0 8px !important;
+  }
+  #como-funciona .lp-steps p {
+    color: #655d58 !important;
+    opacity: 1 !important;
+    font-size: .97rem !important;
+    line-height: 1.6 !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .lp-monitor-shell {
+    animation: lp-final-monitor-float-mobile 6.8s ease-in-out infinite !important;
+    filter: drop-shadow(0 20px 32px rgba(18,6,10,.22)) !important;
+  }
+  .lp-monitor-stand {
+    width: 42% !important;
+    height: 28px !important;
+  }
+  .lp-monitor-stand::before {
+    height: 22px !important;
+  }
+
+  .lp-screen-heading {
+    margin-bottom: 22px !important;
+  }
+  .lp-screen-carousel {
+    padding: 6px !important;
+  }
+  .lp-screen-toolbar {
+    margin-top: 10px !important;
+  }
+  .lp-screen-dots {
+    gap: 5px !important;
+  }
+  .lp-screen-controls button {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .lp-photo-slot {
+    min-width: 260px !important;
+    width: 260px !important;
+    height: 340px !important;
+  }
+
+  .lp-video-section {
+    padding-top: 70px !important;
+    padding-bottom: 70px !important;
+  }
+  .lp-video-card {
+    width: min(270px, 76vw) !important;
+    border-radius: 25px !important;
+  }
+  .lp-pati-video,
+  .lp-video-card::after {
+    border-radius: 20px !important;
+  }
+  .lp-video-badge {
+    top: 12px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    white-space: nowrap !important;
+    font-size: .5rem !important;
+  }
+  .lp-video-caption {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 14px !important;
+    text-align: center !important;
+  }
+  .lp-video-caption strong {
+    font-size: 1.12rem !important;
+  }
+
+  #como-funciona .lp-steps article {
+    grid-template-columns: 68px minmax(0,1fr) !important;
+  }
+  #como-funciona .lp-steps h3 {
+    color: #5a1e2d !important;
+    font-size: 1.2rem !important;
+  }
+  #como-funciona .lp-steps p {
+    color: #655d58 !important;
+    font-size: .95rem !important;
+    line-height: 1.55 !important;
+  }
+}
+@keyframes lp-final-monitor-float-mobile {
+  0%,100% { transform: translate3d(0,0,0); }
+  50% { transform: translate3d(0,-6px,0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-monitor-shell {
+    animation: none !important;
+  }
+}
