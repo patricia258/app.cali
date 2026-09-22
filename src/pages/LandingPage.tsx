@@ -233,7 +233,7 @@ export function LandingPage() {
   const currentScreen = useMemo(() => SCREENSHOTS[activeScreen], [activeScreen]);
 
   useEffect(() => {
-    const nodes = Array.from(document.querySelectorAll<HTMLElement>('[data-lp-reveal]'));
+    const nodes = Array.from(document.querySelectorAll<HTMLElement>('[data-lp-reveal], [data-lp-flow]'));
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -287,9 +287,8 @@ export function LandingPage() {
               <span>Execução visível.</span>
             </h1>
             <p>
-              O ambiente compartilhado onde a CALI conduz projetos, decisões, horas,
-              documentos e relatórios com cada cliente — com clareza do que está sendo
-              feito, do que depende de você e do que vem depois.
+              Um único ambiente para transformar direção em execução: projetos, horas,
+              documentos, decisões e leitura executiva organizados no mesmo contexto.
             </p>
             <div className="lp-hero-actions">
               <Link className="lp-button lp-button-light" to="/login">
@@ -347,16 +346,15 @@ export function LandingPage() {
         <div className="lp-shell lp-about-grid">
           <div className="lp-section-copy" data-lp-reveal="left">
             <span className="lp-kicker">A CALI RH</span>
-            <h2>A plataforma acompanha o trabalho. Não substitui o trabalho.</h2>
+            <h2>A plataforma organiza o trabalho. A condução continua sendo da CALI.</h2>
             <p>
-              A CALI atua como <strong>People Advisory Executive</strong> ao lado da liderança.
-              O Workspace não é um SaaS de RH entregue para a empresa operar sozinha:
-              é a infraestrutura que deixa a execução do advisory organizada, rastreável e
-              disponível para quem precisa decidir.
+              A CALI atua como <strong>People Advisory Executive</strong> junto à liderança.
+              O Workspace registra prioridades, entregas e decisões sem transformar o cliente
+              em operador de software.
             </p>
             <p>
-              A lógica é simples: <strong>a CALI administra</strong>; o cliente acompanha,
-              participa, valida e avalia.
+              <strong>A CALI conduz.</strong> O cliente enxerga o ciclo, valida o que importa
+              e decide com contexto.
             </p>
             <a className="lp-text-link" href="https://calirh.com" target="_blank" rel="noreferrer">
               Ver a atuação da CALI <ArrowRight size={15} />
@@ -406,10 +404,10 @@ export function LandingPage() {
         <div className="lp-shell">
           <div className="lp-section-heading lp-section-heading-dark" data-lp-reveal>
             <span className="lp-kicker">DENTRO DO WORKSPACE</span>
-            <h2>O que importa para acompanhar uma relação de advisory de verdade.</h2>
+            <h2>O que precisa estar visível para a decisão não depender de memória.</h2>
             <p>
-              Menos módulos por ter módulo. Mais contexto para a liderança enxergar execução,
-              dependências, decisões e resultado.
+              Projetos, horas, documentos, conversas e indicadores ficam no mesmo contexto,
+              com histórico e responsabilidade claros.
             </p>
           </div>
 
@@ -437,7 +435,7 @@ export function LandingPage() {
         <div className="lp-shell">
           <div className="lp-section-heading" data-lp-reveal>
             <span className="lp-kicker">UM LOGIN · DOIS AMBIENTES</span>
-            <h2>Cliente e CALI trabalham sobre a mesma operação, com responsabilidades diferentes.</h2>
+            <h2>Um login. Papéis diferentes. A mesma fonte de verdade.</h2>
           </div>
 
           <div className="lp-audience-grid">
@@ -447,8 +445,8 @@ export function LandingPage() {
               <small>AMBIENTE DO CLIENTE</small>
               <h3>Visibilidade sem virar operador da ferramenta.</h3>
               <p>
-                Início, cronograma, entregáveis, horas, documentos e relatórios. O cliente
-                acompanha, comenta, aprova, solicita ajuste e acessa o histórico do trabalho.
+                Cronograma, entregáveis, horas, documentos e relatórios ficam disponíveis
+                para consulta, comentários, aprovações e ajustes com histórico.
               </p>
               <div className="lp-mini-list">
                 <span><Check size={15} /> acompanhar</span>
@@ -464,8 +462,8 @@ export function LandingPage() {
               <small>AMBIENTE CALI</small>
               <h3>A operação inteira no mesmo sistema.</h3>
               <p>
-                Carteira, clientes, projetos, horas, agenda, documentos, relatórios, Mapa de
-                People e propostas. A CALI conduz a execução e mantém a governança.
+                Carteira, projetos, agenda, documentos, relatórios, Mapa de People e propostas
+                ficam integrados à operação conduzida pela CALI.
               </p>
               <div className="lp-mini-list">
                 <span><Check size={15} /> administrar</span>
@@ -482,8 +480,8 @@ export function LandingPage() {
         <div className="lp-shell">
           <div className="lp-section-heading lp-section-heading-centered lp-section-heading-dark" data-lp-reveal="up">
             <span className="lp-kicker">O WORKSPACE NA PRÁTICA</span>
-            <h2>Veja o Workspace em movimento.</h2>
-            <p>O carrossel está preparado para receber os prints oficiais da CALI, com enquadramento ajustável e leitura consistente em desktop e celular.</p>
+            <h2>Por dentro do Workspace.</h2>
+            <p>As telas oficiais entram aqui com enquadramento ajustável e leitura consistente em desktop e celular.</p>
           </div>
 
           <div
@@ -556,8 +554,8 @@ export function LandingPage() {
             <span className="lp-kicker">FALE COM A PATI</span>
             <h2>Tem gente de verdade do outro lado.</h2>
             <p>
-              O Workspace organiza a relação de advisory, mas a conversa continua sendo direta.
-              Estratégia, contexto e decisão passam por quem está acompanhando o negócio de perto.
+              Quando algo pede contexto, a conversa não vira ticket. Você fala com a Pati,
+              com a mesma proximidade que orienta o trabalho da CALI.
             </p>
             <a className="lp-button lp-button-light" href={WA_LINK} target="_blank" rel="noreferrer">
               Falar com a Pati <MessageCircle size={17} />
@@ -587,12 +585,12 @@ export function LandingPage() {
 
       <section className="lp-section lp-section-light" id="como-funciona">
         <div className="lp-shell">
-          <div className="lp-section-heading lp-section-heading-centered" data-lp-reveal>
+          <div className="lp-section-heading lp-section-heading-centered" data-lp-reveal="up">
             <span className="lp-kicker">COMO FUNCIONA</span>
-            <h2>Do primeiro direcionamento ao fechamento do ciclo.</h2>
+            <h2>Da direção à leitura executiva.</h2>
           </div>
 
-          <div className="lp-steps">
+          <div className="lp-steps" data-lp-flow>
             {STEPS.map((step, index) => {
               const Icon = step.icon;
               return (
@@ -618,8 +616,8 @@ export function LandingPage() {
         <div className="lp-shell">
           <div className="lp-section-heading lp-section-heading-centered" data-lp-reveal>
             <span className="lp-kicker">ASSESSORIA ESTRATÉGICA MENSAL</span>
-            <h2>Dois formatos de acompanhamento. A mesma lógica: RH para o negócio.</h2>
-            <p>Sem preço exposto. O escopo é definido pela complexidade real da empresa e do ciclo.</p>
+            <h2>Dois formatos para momentos diferentes do negócio.</h2>
+            <p>O escopo acompanha a complexidade real da empresa e do momento.</p>
           </div>
 
           <div className="lp-package-grid">
@@ -683,7 +681,7 @@ export function LandingPage() {
           <div>
             <span className="lp-eyebrow">JÁ É CLIENTE CALI?</span>
             <h2>O trabalho continua aqui.</h2>
-            <p>Entre no Workspace com o e-mail cadastrado. Sem senha para memorizar.</p>
+            <p>Entre com seu e-mail cadastrado e retome o ciclo de onde parou.</p>
           </div>
           <div className="lp-final-actions">
             <Link className="lp-button lp-button-light" to="/login">
