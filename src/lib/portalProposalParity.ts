@@ -89,7 +89,7 @@ export function getProposalProfile(serviceSlug:string,packageCode:string,answers
         'Carga mensal contratada de '+(monthlyHours||'14 a 18')+' horas, incluindo análise, preparação, checkpoints, revisão técnica e devolutivas.',
         'Várias frentes relacionadas podem avançar em sequência ou, quando viável, de forma coordenada dentro do ciclo.',
         'Checkpoints semanais ou quinzenais são definidos conforme fase e capacidade real de implantação.',
-        'Checkpoint executivo com sponsor ou diretoria nos marcos que exigem decisão, aprovação ou remoção de impedimentos.',
+        'Checkpoint executivo com a liderança responsável ou diretoria nos marcos que exigem decisão, aprovação ou remoção de impedimentos.',
         'Atuação 100% online por padrão; presença física é adicional e só entra quando contratada.',
       ]:[
         'Carga mensal contratada de '+(monthlyHours||'8 a 12')+' horas, incluindo análise, preparação, checkpoints, revisão técnica e devolutivas.',
@@ -113,7 +113,7 @@ export function getProposalProfile(serviceSlug:string,packageCode:string,answers
       ],
       advantages:concreteAdvantages(profileAdvantages),
       bonus:['Checklist de sustentação do ciclo','Material de fechamento para registrar responsáveis, indicadores, rotinas de manutenção e próximos marcos após a implantação.'],
-      nextSteps:[['Aprovação','Confirmação do modelo, carga mensal, prazo mínimo e primeira frente ou sequência de frentes.'],['Contrato','Formalização das responsabilidades da CALI, do RH interno e do sponsor.'],['Kickoff','Organização dos insumos, responsáveis, critérios e agenda do primeiro ciclo.'],['Primeiro ciclo','Início da construção assistida com execução interna e checkpoints CALI.']],
+      nextSteps:[['Aprovação','Confirmação do modelo, carga mensal, prazo mínimo e primeira frente ou sequência de frentes.'],['Contrato','Formalização das responsabilidades da CALI, do RH interno e da liderança responsável.'],['Kickoff','Organização dos insumos, responsáveis, critérios e agenda do primeiro ciclo.'],['Primeiro ciclo','Início da construção assistida com execução interna e checkpoints CALI.']],
       contextIds:['momento_empresa','colaboradores','estrutura_rh_status','pessoas_rh','escopo_build','capacidade_execucao','cadencia_build','prazo_inicio'],
       priorityIds:['objetivo_primeiro_ciclo','frentes'],
       contextLabels:{momento_empresa:'Momento da empresa',colaboradores:'Número de colaboradores',estrutura_rh_status:'Estrutura atual do RH',pessoas_rh:'Pessoas no RH',escopo_build:'Amplitude da estruturação',capacidade_execucao:'Capacidade interna semanal',cadencia_build:'Cadência dos checkpoints',prazo_inicio:'Início desejado'},
