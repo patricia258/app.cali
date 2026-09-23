@@ -29,6 +29,7 @@ type ScreenSlot = {
   eyebrow: string;
   description: string;
   src?: string;
+  fallbackSrc?: string;
 };
 
 const WA_LINK =
@@ -40,55 +41,58 @@ const SCREENSHOTS: ScreenSlot[] = [
     label: 'Início',
     eyebrow: 'ÁREA DO CLIENTE',
     description: 'Visão executiva do ciclo, entregas, horas e frentes ativas.',
-    src: '/landing/client-home.svg?v=5',
+    src: '/landing/client-home.svg?v=8',
   },
   {
     label: 'Fale com a Pati',
     eyebrow: 'CANAL DIRETO CALI',
     description: 'Canal rápido dentro da área do cliente.',
-    src: '/landing/client-home-chat.webp?v=5',
+    src: '/landing/client-home-chat.webp?v=8',
+    fallbackSrc: '/landing/client-home.svg?v=8',
   },
   {
     label: 'Planejamento',
     eyebrow: 'AGENDA & PRÓXIMOS PASSOS',
     description: 'Reuniões, validações, prazos e próximos compromissos.',
-    src: '/landing/client-planejamento.svg?v=5',
+    src: '/landing/client-planejamento.svg?v=8',
   },
   {
     label: 'Entregáveis',
     eyebrow: 'CRONOGRAMA COMPARTILHADO',
     description: 'Frentes, entregáveis, aprovações e sequência de implantação.',
-    src: '/landing/client-entregaveis.svg?v=5',
+    src: '/landing/client-entregaveis.svg?v=8',
   },
   {
     label: 'Conversa no entregável',
     eyebrow: 'CONTEXTO DA ENTREGA',
     description: 'A conversa fica vinculada ao entregável certo.',
-    src: '/landing/client-entregavel-chat.webp?v=5',
+    src: '/landing/client-entregavel-chat.webp?v=8',
+    fallbackSrc: '/landing/client-entregaveis.svg?v=8',
   },
   {
     label: 'Horas do ciclo',
     eyebrow: 'TRANSPARÊNCIA DO SERVIÇO',
     description: 'Consumo, saldo disponível e registros do período.',
-    src: '/landing/client-horas.svg?v=5',
+    src: '/landing/client-horas.svg?v=8',
   },
   {
     label: 'Ocorrências',
     eyebrow: 'CANAL COM A CALI',
     description: 'Solicitações, status e histórico.',
-    src: '/landing/client-ocorrencias.svg?v=5',
+    src: '/landing/client-ocorrencias.webp?v=8',
   },
   {
     label: 'Detalhe da solicitação',
     eyebrow: 'HISTÓRICO DA CONVERSA',
     description: 'Contexto, status e conversa preservados no mesmo lugar.',
-    src: '/landing/client-ocorrencia-detalhe.webp?v=5',
+    src: '/landing/client-ocorrencia-detalhe.webp?v=8',
+    fallbackSrc: '/landing/client-ocorrencias.webp?v=8',
   },
   {
     label: 'Documentos',
     eyebrow: 'GOVERNANÇA',
     description: 'Acervo, busca, versões aprovadas e documentos.',
-    src: '/landing/client-documentos.svg?v=5',
+    src: '/landing/client-documentos.svg?v=8',
   },
 ];
 
@@ -100,10 +104,10 @@ type PhotoSlot = {
 };
 
 const PHOTO_SLOTS: PhotoSlot[] = [
-  { title: 'CALI em campo', mark: 'oak', src: '/landing/pati-mic.webp?v=5', objectPosition: '50% 34%' },
-  { title: 'Condução executiva', mark: 'lime', src: '/landing/pati-presentation.webp?v=5', objectPosition: '62% 50%' },
-  { title: 'Presença em mercado', mark: 'oak', src: '/landing/pati-conarh.webp?v=5', objectPosition: '50% 32%' },
-  { title: 'Liderança em movimento', mark: 'lime', src: '/landing/pati-speaking.webp?v=5', objectPosition: '65% 44%' },
+  { title: 'CALI em campo', mark: 'oak', src: '/landing/pati-mic.webp?v=8', objectPosition: '50% 34%' },
+  { title: 'Condução executiva', mark: 'lime', src: '/landing/pati-presentation.webp?v=8', objectPosition: '62% 50%' },
+  { title: 'Presença em mercado', mark: 'oak', src: '/landing/pati-conarh.webp?v=8', objectPosition: '50% 32%' },
+  { title: 'Liderança em movimento', mark: 'lime', src: '/landing/pati-speaking.webp?v=8', objectPosition: '65% 44%' },
 ];
 
 const MODULES = [
@@ -236,7 +240,21 @@ function BrandSlot({
 
 function ScreenVisual({ slot }: { slot: ScreenSlot }) {
   if (slot.src) {
-    return <img className="lp-screen-image" src={slot.src} alt={slot.label} />;
+    return (
+      <img
+        className="lp-screen-image"
+        src={slot.src}
+        alt={slot.label}
+        decoding="async"
+        onError={(event) => {
+          if (!slot.fallbackSrc) return;
+          const image = event.currentTarget;
+          if (image.dataset.fallbackApplied === 'true') return;
+          image.dataset.fallbackApplied = 'true';
+          image.src = slot.fallbackSrc;
+        }}
+      />
+    );
   }
 
   return (
@@ -331,7 +349,7 @@ export function LandingPage() {
                   <small>app.calirh.com</small>
                 </div>
                 <div className="lp-window-screen lp-login-screen">
-                  <img src="/landing/cali-workspace-login.svg?v=5" alt="Tela de login do CALI Workspace" />
+                  <img src="/landing/cali-workspace-login.svg?v=8" alt="Tela de login do CALI Workspace" />
                 </div>
               </div>
               <div className="lp-monitor-stand" aria-hidden="true"><span /></div>
