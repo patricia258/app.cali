@@ -24,12 +24,12 @@ import {
 import { patiWavePoster, patiWaveVideo } from '../assets/patiWaveMedia';
 
 const carouselPhotoModules = import.meta.glob(
-  '../assets/landing-carousel/*.{jpg,jpeg,png,webp}',
+  '../assets/landing-carousel/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',
   { eager: true, import: 'default', query: '?url' },
 ) as Record<string, string>;
 
 const workspaceScreenModules = import.meta.glob(
-  '../assets/workspace-screens/*.{jpg,jpeg,png,webp}',
+  '../assets/workspace-screens/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',
   { eager: true, import: 'default', query: '?url' },
 ) as Record<string, string>;
 
