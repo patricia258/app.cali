@@ -7,6 +7,10 @@ export const PACKAGE_META:Record<string,PackageMeta[]>={
     {code:'PARTNER',label:'CALI PARTNER',description:'Direção estratégica sênior para uma prioridade central por ciclo, com leitura de indicadores e apoio à decisão.',minimumMonths:8,suggestedHours:10,hoursRange:'8 a 12'},
     {code:'FULL',label:'CALI FULL',description:'Maior cadência e até duas prioridades simultâneas, sem criar expectativa de RH interno em tempo integral.',minimumMonths:12,suggestedHours:16,hoursRange:'14 a 18'},
   ],
+  'cali-build':[
+    {code:'ESSENCIAL',label:'CALI Build Essencial',description:'Uma frente prioritária por ciclo, com método, revisão técnica e checkpoints de implantação.',minimumMonths:4,suggestedHours:10,hoursRange:'8 a 12'},
+    {code:'COMPLETO',label:'CALI Build Completo',description:'Estruturação mais ampla, com várias frentes conectadas, maior cadência e checkpoints executivos.',minimumMonths:6,suggestedHours:16,hoursRange:'14 a 18'},
+  ],
   'mentoria-rh':[
     {code:'ESSENCIAL',label:'Programa Essencial',description:'Três encontros para organizar um objetivo prioritário e construir um plano aplicável.',minimumMonths:1},
     {code:'AMPLIADO',label:'Programa Ampliado',description:'Cinco encontros para aprofundar competências relacionadas e acompanhar a aplicação prática.',minimumMonths:1},
@@ -49,6 +53,7 @@ export const BONUS_PRESETS:Record<string,Array<{code:string;title:string;descrip
     {code:'extra-alignment',title:'Encontro adicional de alinhamento',description:'Uma conversa extraordinária de até 60 minutos com a liderança, agendada durante o primeiro ciclo.'},
     {code:'governance-checklist',title:'Checklist de governança de pessoas',description:'Checklist editável para acompanhar decisões, responsáveis, prazos e pendências do primeiro ciclo.'},
   ],
+  'cali-build':[{code:'build-sustain',title:'Checklist de sustentação do ciclo',description:'Material para registrar responsáveis, indicadores, rotinas de manutenção e próximos marcos após a implantação.'}],
   'mentoria-rh':[
     {code:'application-book',title:'Caderno de aplicação CALI',description:'Roteiro editável para registrar decisões, práticas e próximos movimentos entre os encontros.'},
     {code:'extra-checkin',title:'Check-in adicional de 30 minutos',description:'Um encontro breve após o encerramento para revisar a aplicação do plano de desenvolvimento.'},
@@ -66,6 +71,7 @@ export function technicalPackageFor(serviceSlug:string,answers:Record<string,unk
 }
 export function packageForBudget(serviceSlug:string,answers:Record<string,unknown>,pricing:PortalPricingRule[]){
   const investment=investmentContextFor(serviceSlug,answers);const technical=technicalPackageFor(serviceSlug,answers,pricing);
+  if(serviceSlug==='cali-build')return technical;
   const max=investment?.max;
   if(max===null||max===undefined)return technical;
   const codes=new Set((PACKAGE_META[serviceSlug]||[]).map(item=>item.code));
@@ -84,6 +90,12 @@ export function prioritizedScope(serviceSlug:string,answers:Record<string,any>,p
     const limit=packageCode==='FULL'?2:1,priorities=ordered.slice(0,limit).map((x:string)=>labels[x]||x),description=priorities.length?priorities.join(', '):(packageCode==='FULL'?'até duas frentes críticas':'uma frente crítica');
     return [phased?'Fase 1 de direção estratégica com a liderança':'Direção estratégica mensal com a liderança',`${packageCode==='FULL'?'Prioridades':'Prioridade'} do primeiro ciclo: ${description}`,`${packageCode==='FULL'?'Encontros quinzenais':'Encontro mensal'} e apoio a decisões críticas dentro da carga contratada`,'Organização de um roadmap para as demais frentes levantadas no briefing','Revisão das prioridades conforme a evolução do ciclo'];
   }
+  if(serviceSlug==='cali-build'){
+    const selected=Array.isArray(answers.frentes)?answers.frentes:[];
+    const labels:Record<string,string>={planejamento:'Planejamento estratégico de pessoas',desenho:'Estrutura e desenho organizacional',governanca:'Governança, políticas e processos',people_analytics:'Indicadores, People Analytics e dashboards',desempenho:'Gestão de desempenho e metas',clima:'Clima e engajamento',cultura:'Cultura e valores',cargos:'Cargos, carreira e salários',sucessao:'Sucessão e gestão de talentos',liderancas:'Desenvolvimento de lideranças',atracao:'Atração, seleção e onboarding',marca:'Marca empregadora e experiência do colaborador',comunicacao:'Comunicação interna',saude:'Saúde, segurança e conformidade',diversidade:'Diversidade, equidade e inclusão'};
+    const limit=packageCode==='COMPLETO'?3:1,priorities=selected.slice(0,limit).map((x:string)=>labels[x]||x),description=priorities.length?priorities.join(', '):(answers.escopo_build==='rh_completo'?'arquitetura do RH e subsistemas prioritários':'frente prioritária a confirmar no kickoff');
+    return [phased?'Ciclo inicial de estruturação assistida com escopo delimitado':'Estruturação assistida organizada em ciclos','Prioridades do primeiro ciclo: '+description,'Método, modelos, critérios e revisão técnica pela CALI; execução pelo RH interno','Checkpoints de implantação e validações com sponsor nos marcos necessários','Roadmap das demais frentes para ciclos posteriores'];
+  }
   const defaults=scopeDefaults(serviceSlug,packageCode);
   if(serviceSlug==='treinamentos'){
     // Em treinamentos o budget não cria uma "fase 1" nem um roadmap posterior.
@@ -95,6 +107,17 @@ export function prioritizedScope(serviceSlug:string,answers:Record<string,any>,p
 }
 
 export function defaultNarrative(company:string,answers:Record<string,any>){
+  if(answers.escopo_build||answers.estrutura_rh_status){
+    const contextParts=[answers.momento_empresa,answers.estrutura_rh_status,answers.pessoas_rh?String(answers.pessoas_rh)+' pessoa(s) no RH':'',answers.escopo_build].filter(Boolean);
+    return{
+      contextSummary:(company||'A empresa')+' compartilhou um contexto de estruturação em que '+(contextParts.join(', ')||'o RH precisa ganhar método, sequência e capacidade de sustentação')+'. O CALI Build parte dessa realidade para organizar a arquitetura e os ciclos sem substituir a execução do time interno.',
+      painPoints:[answers.objetivo_primeiro_ciclo,answers.principal_bloqueio,...(Array.isArray(answers.frentes)?answers.frentes:[])].filter(Boolean).slice(0,4).map(String),
+      executiveReading:'A leitura inicial deve equilibrar a complexidade do negócio com a capacidade real de execução do RH interno. O primeiro ciclo precisa ser suficientemente claro para avançar, mas também viável para ser construído e sustentado pela equipe.',
+      whyNow:'A estrutura precisa ganhar método antes que novas demandas aumentem dependências, retrabalho e decisões sem continuidade.',
+      cycleObjective:String(answers.objetivo_primeiro_ciclo||'Definir a arquitetura da frente prioritária, colocar a construção em movimento e chegar ao primeiro marco validado de implantação.'),
+      expectedResults:['Arquitetura e prioridades de implantação claramente definidas','Entregas construídas pelo RH interno com revisão técnica e critérios comuns','Roadmap de continuidade com responsáveis, marcos e sustentação definidos'],
+    };
+  }
   const contextParts=[answers.momento_empresa,answers.principal_desafio,Array.isArray(answers.frentes)?answers.frentes.join(', '):''].filter(Boolean);
   return {
     contextSummary:`${company||'A empresa'} compartilhou um contexto que combina ${contextParts.join(', ')||'necessidades de gestão de pessoas que pedem organização e direção'}. Esta proposta parte do briefing recebido e considera o momento atual, a capacidade de implantação e as decisões que precisam ser sustentadas pela liderança.`,
