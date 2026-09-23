@@ -2906,3 +2906,143 @@
     opacity: 1 !important;
   }
 }
+
+
+/* CALI LP media quality system · 2026-09-22 */
+
+/* Carrossel de fotos: volta ao tamanho editorial anterior e sem legenda sobre a foto. */
+.lp-photo-rail {
+  margin-top: 86px !important;
+}
+.lp-photo-track {
+  gap: 18px !important;
+}
+.lp-photo-slot,
+.lp-photo-slot.has-photo {
+  min-width: min(360px, 72vw) !important;
+  width: min(360px, 72vw) !important;
+  height: 230px !important;
+  border-radius: 20px !important;
+}
+.lp-photo-slot.has-photo .lp-photo-caption {
+  display: none !important;
+}
+.lp-photo-slot.has-photo::after {
+  display: none !important;
+  content: none !important;
+}
+.lp-photo-user {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  filter: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Prints do Workspace: nunca ampliar acima da resolução nativa dos assets antigos. */
+.lp-screen-carousel {
+  width: min(100%, 780px) !important;
+}
+.lp-screen-frame {
+  width: min(100%, 720px) !important;
+  max-width: 720px !important;
+  margin-inline: auto !important;
+}
+.lp-screen-slide.is-active .lp-screen-image,
+.lp-screen-slide.is-active img {
+  width: 100% !important;
+  max-width: 720px !important;
+  height: auto !important;
+  margin-inline: auto !important;
+  object-fit: contain !important;
+  image-rendering: auto !important;
+}
+
+/* Vídeo: nenhuma informação em cima da imagem. A identificação fica fora do vídeo. */
+.lp-video-media {
+  width: min(100%, 350px);
+  justify-self: end;
+  display: grid;
+  gap: 12px;
+}
+.lp-video-card .lp-video-badge,
+.lp-video-card .lp-video-caption {
+  display: none !important;
+}
+.lp-video-identity {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  text-align: center;
+  color: #6b615c;
+}
+.lp-video-identity strong {
+  color: #5a1e2d;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.lp-video-identity span {
+  font-size: .7rem;
+  letter-spacing: .025em;
+}
+
+/* Em telas menores, mantém as imagens pequenas o bastante para não revelar compressão. */
+@media (max-width: 820px) {
+  .lp-photo-slot,
+  .lp-photo-slot.has-photo {
+    min-width: min(340px, 78vw) !important;
+    width: min(340px, 78vw) !important;
+    height: 218px !important;
+  }
+
+  .lp-screen-carousel {
+    width: min(100%, 740px) !important;
+  }
+  .lp-screen-frame {
+    width: min(100%, 720px) !important;
+    max-width: 720px !important;
+  }
+
+  .lp-video-media {
+    width: min(100%, 300px);
+    margin-inline: auto;
+    justify-self: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .lp-photo-rail {
+    margin-top: 64px !important;
+  }
+  .lp-photo-slot,
+  .lp-photo-slot.has-photo {
+    min-width: 280px !important;
+    width: 280px !important;
+    height: 180px !important;
+  }
+
+  .lp-screen-carousel {
+    width: 100% !important;
+  }
+  .lp-screen-frame {
+    width: 100% !important;
+    max-width: 720px !important;
+  }
+
+  .lp-video-media {
+    width: min(270px, 76vw);
+  }
+  .lp-video-identity {
+    gap: 4px 7px;
+  }
+  .lp-video-identity strong {
+    font-size: 1rem;
+  }
+  .lp-video-identity span {
+    font-size: .66rem;
+  }
+}
