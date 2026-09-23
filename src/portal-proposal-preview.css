@@ -22,8 +22,8 @@
 .portal-proposal-page.proposal-v3>header strong{font-size:8.2pt;color:var(--p-burgundy);font-weight:700;letter-spacing:.02em}
 .portal-proposal-page.proposal-v3>header span{font-size:7.4pt;color:#857a7c;margin-top:1.4mm}
 .portal-proposal-page.proposal-v3>header.dark strong,.portal-proposal-page.proposal-v3>header.dark span{color:rgba(255,255,255,.84)}
-.portal-proposal-page.proposal-v3>main{flex:1;min-height:0;padding-bottom:13mm}
-.portal-proposal-page.proposal-v3>footer{position:absolute;left:18mm;right:18mm;bottom:8mm;display:flex;justify-content:space-between;border-top:1px solid rgba(181,140,82,.32);padding-top:3mm;font-size:7.5pt;color:#8b8082;background:transparent}
+.portal-proposal-page.proposal-v3>main{flex:1;min-height:0;box-sizing:border-box;padding-bottom:22mm}
+.portal-proposal-page.proposal-v3>footer{position:absolute;z-index:6;left:18mm;right:18mm;bottom:7mm;display:flex;justify-content:space-between;border-top:1px solid rgba(181,140,82,.32);padding-top:3mm;font-size:7.5pt;color:#8b8082;background:var(--p-paper)}
 .portal-proposal-page.proposal-v3 h1,.portal-proposal-page.proposal-v3 h2,.portal-proposal-page.proposal-v3 h3{font-family:"Playfair Display",Georgia,serif;color:var(--p-burgundy);letter-spacing:-.025em}
 .portal-proposal-page.proposal-v3 h1{font-size:27pt;line-height:1.03;margin:0}
 .portal-proposal-page.proposal-v3 h2{font-size:16pt;line-height:1.15;margin:0}
@@ -48,11 +48,11 @@
 .portal-proposal-page.proposal-v3 .proposal-watermark-oak{width:54mm;height:54mm;left:-12mm;bottom:28mm;background:var(--p-gold);opacity:.055;-webkit-mask:url('/brand/cali-oak-mark.svg') center/contain no-repeat;mask:url('/brand/cali-oak-mark.svg') center/contain no-repeat;transform:rotate(8deg)}
 
 /* ---------- Capa ---------- */
-.portal-proposal-page.proposal-v3.proposal-cover{background:linear-gradient(180deg,var(--p-burgundy) 0 35%,var(--p-paper) 35% 100%)}
+.portal-proposal-page.proposal-v3.proposal-cover{background:linear-gradient(180deg,var(--p-burgundy) 0 39%,var(--p-paper) 39% 100%)}
 .portal-proposal-page.proposal-v3.proposal-cover .proposal-watermark-lime{top:-1mm;right:-18mm;width:108mm;height:108mm;background:#fff;opacity:.06}
 .portal-proposal-page.proposal-v3.proposal-cover .proposal-watermark-oak{left:auto;right:20mm;bottom:17mm;background:var(--p-gold);opacity:.055}
 .portal-proposal-page.proposal-v3.proposal-cover>footer{border-top-color:rgba(181,140,82,.32)}
-.proposal-cover-band{color:#fff;min-height:66mm;padding:2mm 0 7mm;display:flex;flex-direction:column;justify-content:flex-end}
+.proposal-cover-band{color:#fff;min-height:76mm;padding:2mm 0 12mm;display:flex;flex-direction:column;justify-content:flex-end}
 .proposal-cover-band h1{color:#fff!important;font-size:34pt!important;max-width:150mm}
 .cover-recipient{color:rgba(255,255,255,.82)!important;margin-top:3.5mm!important;font-size:10.4pt!important;max-width:145mm}
 .cover-recipient strong{color:#fff}
@@ -76,6 +76,13 @@
 .map-result.editorial b{align-self:end;text-align:right;color:var(--p-burgundy);font-size:9.2pt}
 
 /* ---------- Solução ---------- */
+.solution-service-card{position:relative;overflow:hidden;display:grid;grid-template-columns:17mm 1fr;gap:5mm;align-items:center;margin:0 0 6mm;padding:6mm 7mm 6.5mm;background:#fbf7f2;border:1px solid rgba(181,140,82,.34);border-left:3px solid var(--p-gold)}
+.solution-service-number{position:relative;z-index:2;align-self:start;padding-top:1mm;font:600 23pt/1 "Playfair Display",Georgia,serif;color:var(--p-gold)}
+.solution-service-copy{position:relative;z-index:2;min-width:0}
+.solution-service-copy small{display:block;margin-bottom:1.8mm;font-size:7.4pt;letter-spacing:.16em;text-transform:uppercase;color:var(--p-gold);font-weight:800}
+.solution-service-copy h1{font-size:28.5pt!important;line-height:1.02!important}
+.solution-service-copy p{margin-top:2.4mm!important;max-width:132mm;color:var(--p-muted)!important;font-size:10.2pt!important;line-height:1.4!important}
+.solution-service-mark{position:absolute;z-index:1;right:-10mm;top:-12mm;width:58mm;height:58mm;background:var(--p-burgundy);opacity:.055;-webkit-mask:url('/brand/cali-lime-mark.svg') center/contain no-repeat;mask:url('/brand/cali-lime-mark.svg') center/contain no-repeat;transform:rotate(-8deg)}
 .solution-statement{margin:1mm 0 6mm;padding:6mm;border-left:3px solid var(--p-gold);background:#f7f1ec;display:grid;gap:2mm}
 .solution-statement p{font:500 12.6pt/1.5 "Playfair Display",Georgia,serif!important;color:#54383f!important}
 .solution-grid.editorial{display:grid;grid-template-columns:1fr 1fr;gap:3.5mm;margin-bottom:6mm}
@@ -88,7 +95,7 @@
 .outcome-grid>div>span{font:600 12pt/1 "Playfair Display",Georgia,serif;color:var(--p-gold)}
 .outcome-grid p{font-size:9.5pt;line-height:1.42}
 .advantage-grid.editorial{display:grid;grid-template-columns:1fr 1fr;gap:3mm}
-.advantage-grid.editorial>div{display:grid;grid-template-columns:9mm 1fr;gap:3mm;padding:3.2mm 0;border-top:1.4px solid rgba(181,140,82,.36)}
+.advantage-grid.editorial>div{display:grid;grid-template-columns:9mm 1fr;gap:3mm;padding:2.7mm 0;border-top:1.4px solid rgba(181,140,82,.36)}
 .advantage-grid.editorial>div>span{font:600 11pt/1 "Playfair Display",Georgia,serif;color:var(--p-gold)}
 .advantage-grid.editorial p{font-size:9.3pt;line-height:1.42}
 
@@ -154,13 +161,13 @@
 .bonus.editorial p{margin-top:1mm;font-size:8.7pt!important;line-height:1.38!important}
 .commercial-conditions{padding-left:4.5mm!important;margin:0}
 .commercial-conditions li{font-size:8.8pt!important;line-height:1.38!important}
-.next-section{margin-top:6mm}
+.next-section{margin-top:4mm}
 .next-steps.editorial{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm}
 .next-steps.editorial>div{display:grid;grid-template-columns:8mm 1fr;gap:2.2mm;padding:3.2mm;border-top:2px solid var(--p-gold);background:#fff}
 .next-steps.editorial>div>span{font:600 10.5pt/1 "Playfair Display",Georgia,serif;color:var(--p-gold)}
 .next-steps.editorial strong{display:block;color:var(--p-burgundy);font-size:9pt}
 .next-steps.editorial p{margin-top:1mm;font-size:8.3pt!important;line-height:1.34!important}
-.proposal-signature.editorial{display:flex;align-items:center;justify-content:space-between;gap:8mm;margin-top:6mm;padding-top:4mm;border-top:1px solid rgba(181,140,82,.38)}
+.proposal-signature.editorial{display:flex;align-items:center;justify-content:space-between;gap:8mm;margin-top:3.5mm;padding-top:3mm;border-top:1px solid rgba(181,140,82,.38)}
 .proposal-signature.editorial strong{display:block;font:600 15.5pt/1 "Playfair Display",Georgia,serif;color:var(--p-burgundy)}
 .proposal-signature.editorial span{display:block;margin-top:1.4mm;font-size:7.6pt;color:#7e7275}
 .proposal-signature.editorial a{display:inline-flex;align-items:center;justify-content:center;min-height:10mm;padding:0 5mm;border-radius:999px;background:var(--p-burgundy);color:#fff;text-decoration:none;font-size:8.1pt;font-weight:800;white-space:nowrap}
@@ -196,6 +203,6 @@
 @media(max-width:720px){
   .solution-grid.editorial,.outcome-grid,.advantage-grid.editorial,.responsibility-grid.editorial,.commercial-facts.editorial,.commercial-columns,.next-steps.editorial,.operating-cards,.cycle-list.editorial,.roadmap-list,.limits-editorial ul{grid-template-columns:1fr}
   .cover-bottom-grid{grid-template-columns:1fr}
-  .proposal-cover-band{min-height:56mm}
-  .portal-proposal-page.proposal-v3.proposal-cover{background:linear-gradient(180deg,var(--p-burgundy) 0 31%,var(--p-paper) 31% 100%)}
+  .proposal-cover-band{min-height:64mm;padding-bottom:10mm}
+  .portal-proposal-page.proposal-v3.proposal-cover{background:linear-gradient(180deg,var(--p-burgundy) 0 35%,var(--p-paper) 35% 100%)}
 }
