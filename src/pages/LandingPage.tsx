@@ -17,12 +17,29 @@ import {
   LineChart,
   MessageCircle,
   ShieldCheck,
-  Sparkles,
   Target,
   Users,
   Workflow,
 } from 'lucide-react';
 import { patiWavePoster, patiWaveVideo } from '../assets/patiWaveMedia';
+
+const carouselPhotoModules = import.meta.glob(
+  '../assets/landing-carousel/*.{jpg,jpeg,png,webp}',
+  { eager: true, import: 'default', query: '?url' },
+) as Record<string, string>;
+
+const workspaceScreenModules = import.meta.glob(
+  '../assets/workspace-screens/*.{jpg,jpeg,png,webp}',
+  { eager: true, import: 'default', query: '?url' },
+) as Record<string, string>;
+
+const CAROUSEL_PHOTO_URLS = Object.entries(carouselPhotoModules)
+  .sort(([a], [b]) => a.localeCompare(b, 'pt-BR', { numeric: true }))
+  .map(([, url]) => url);
+
+const WORKSPACE_SCREEN_URLS = Object.entries(workspaceScreenModules)
+  .sort(([a], [b]) => a.localeCompare(b, 'pt-BR', { numeric: true }))
+  .map(([, url]) => url);
 
 type ScreenSlot = {
   label: string;
@@ -36,65 +53,53 @@ const WA_LINK =
   'https://wa.me/5541987791933?text=' +
   encodeURIComponent('Olá, Patrícia. Vim pela apresentação do CALI Workspace e quero entender melhor a assessoria da CALI.');
 
-const SCREENSHOTS: ScreenSlot[] = [
+const DEFAULT_SCREENSHOTS: ScreenSlot[] = [
   {
     label: 'Início',
     eyebrow: 'ÁREA DO CLIENTE',
     description: 'Visão executiva do ciclo, entregas, horas e frentes ativas.',
-    src: '/landing/client-home.svg?v=8',
-  },
-  {
-    label: 'Fale com a Pati',
-    eyebrow: 'CANAL DIRETO CALI',
-    description: 'Canal rápido dentro da área do cliente.',
-    src: '/landing/client-home-chat.webp?v=8',
-    fallbackSrc: '/landing/client-home.svg?v=8',
+    src: '/landing/client-home.svg?v=9',
   },
   {
     label: 'Planejamento',
     eyebrow: 'AGENDA & PRÓXIMOS PASSOS',
     description: 'Reuniões, validações, prazos e próximos compromissos.',
-    src: '/landing/client-planejamento.svg?v=8',
+    src: '/landing/client-planejamento.svg?v=9',
   },
   {
     label: 'Entregáveis',
     eyebrow: 'CRONOGRAMA COMPARTILHADO',
     description: 'Frentes, entregáveis, aprovações e sequência de implantação.',
-    src: '/landing/client-entregaveis.svg?v=8',
-  },
-  {
-    label: 'Conversa no entregável',
-    eyebrow: 'CONTEXTO DA ENTREGA',
-    description: 'A conversa fica vinculada ao entregável certo.',
-    src: '/landing/client-entregavel-chat.webp?v=8',
-    fallbackSrc: '/landing/client-entregaveis.svg?v=8',
+    src: '/landing/client-entregaveis.svg?v=9',
   },
   {
     label: 'Horas do ciclo',
     eyebrow: 'TRANSPARÊNCIA DO SERVIÇO',
     description: 'Consumo, saldo disponível e registros do período.',
-    src: '/landing/client-horas.svg?v=8',
+    src: '/landing/client-horas.svg?v=9',
   },
   {
     label: 'Ocorrências',
     eyebrow: 'CANAL COM A CALI',
     description: 'Solicitações, status e histórico.',
-    src: '/landing/client-ocorrencias.webp?v=8',
-  },
-  {
-    label: 'Detalhe da solicitação',
-    eyebrow: 'HISTÓRICO DA CONVERSA',
-    description: 'Contexto, status e conversa preservados no mesmo lugar.',
-    src: '/landing/client-ocorrencia-detalhe.webp?v=8',
-    fallbackSrc: '/landing/client-ocorrencias.webp?v=8',
+    src: '/landing/client-ocorrencias.svg?v=9',
   },
   {
     label: 'Documentos',
     eyebrow: 'GOVERNANÇA',
     description: 'Acervo, busca, versões aprovadas e documentos.',
-    src: '/landing/client-documentos.svg?v=8',
+    src: '/landing/client-documentos.svg?v=9',
   },
 ];
+
+const SCREENSHOTS: ScreenSlot[] = WORKSPACE_SCREEN_URLS.length
+  ? WORKSPACE_SCREEN_URLS.map((src, index) => ({
+      label: `Tela do Workspace ${index + 1}`,
+      eyebrow: 'CALI WORKSPACE',
+      description: 'Tela real do CALI Workspace.',
+      src,
+    }))
+  : DEFAULT_SCREENSHOTS;
 
 type PhotoSlot = {
   title: string;
@@ -103,12 +108,21 @@ type PhotoSlot = {
   objectPosition?: string;
 };
 
-const PHOTO_SLOTS: PhotoSlot[] = [
-  { title: 'CALI em campo', mark: 'oak', src: '/landing/pati-mic.webp?v=8', objectPosition: '50% 34%' },
-  { title: 'Condução executiva', mark: 'lime', src: '/landing/pati-presentation.webp?v=8', objectPosition: '62% 50%' },
-  { title: 'Presença em mercado', mark: 'oak', src: '/landing/pati-conarh.webp?v=8', objectPosition: '50% 32%' },
-  { title: 'Liderança em movimento', mark: 'lime', src: '/landing/pati-speaking.webp?v=8', objectPosition: '65% 44%' },
+const DEFAULT_PHOTO_SLOTS: PhotoSlot[] = [
+  { title: 'Foto CALI 1', mark: 'oak', src: '/landing/pati-mic.webp?v=9', objectPosition: '50% 34%' },
+  { title: 'Foto CALI 2', mark: 'lime', src: '/landing/pati-presentation.webp?v=9', objectPosition: '62% 50%' },
+  { title: 'Foto CALI 3', mark: 'oak', src: '/landing/pati-conarh.webp?v=9', objectPosition: '50% 32%' },
+  { title: 'Foto CALI 4', mark: 'lime', src: '/landing/pati-speaking.webp?v=9', objectPosition: '65% 44%' },
 ];
+
+const PHOTO_SLOTS: PhotoSlot[] = CAROUSEL_PHOTO_URLS.length
+  ? CAROUSEL_PHOTO_URLS.map((src, index) => ({
+      title: `Foto CALI ${index + 1}`,
+      mark: index % 2 === 0 ? 'oak' : 'lime',
+      src,
+      objectPosition: '50% 50%',
+    }))
+  : DEFAULT_PHOTO_SLOTS;
 
 const MODULES = [
   {
@@ -230,10 +244,11 @@ function BrandSlot({
           aria-hidden="true"
         />
       )}
-      <div className="lp-photo-caption">
-        <span>{title}</span>
-        <small>{src ? 'CALI RH' : 'espaço preparado para imagem'}</small>
-      </div>
+      {!src && (
+        <div className="lp-photo-caption" aria-hidden="true">
+          <small>imagem CALI</small>
+        </div>
+      )}
     </div>
   );
 }
@@ -571,9 +586,9 @@ export function LandingPage() {
             </a>
           </div>
 
-          <div className="lp-video-card" data-lp-reveal="right">
-            <div className="lp-video-badge"><Sparkles size={15} /> CALI RH · PEOPLE ADVISORY</div>
-            <video
+          <div className="lp-video-media" data-lp-reveal="right">
+            <div className="lp-video-card">
+              <video
               className="lp-pati-video"
               src={patiWaveVideo}
               poster={patiWavePoster}
@@ -584,7 +599,8 @@ export function LandingPage() {
               preload="metadata"
               aria-label="Vídeo da Patrícia, CALI RH"
             />
-            <div className="lp-video-caption">
+            </div>
+            <div className="lp-video-identity">
               <strong>Patrícia Lima</strong>
               <span>People Advisory Executive · CALI RH</span>
             </div>
