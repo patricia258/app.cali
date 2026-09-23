@@ -4,8 +4,8 @@ import { initialPackageFor, investmentContextFor, scopeDefaults } from './portal
 export type PackageMeta={code:string;label:string;description:string;minimumMonths:number;suggestedHours?:number;hoursRange?:string};
 export const PACKAGE_META:Record<string,PackageMeta[]>={
   'assessoria-estrategica':[
-    {code:'PARTNER',label:'CALI PARTNER',description:'Direção estratégica sênior para uma prioridade central por ciclo, com leitura de indicadores e apoio à decisão.',minimumMonths:6,suggestedHours:10,hoursRange:'8 a 12'},
-    {code:'FULL',label:'CALI FULL',description:'Maior cadência e até duas prioridades simultâneas, sem criar expectativa de RH interno em tempo integral.',minimumMonths:6,suggestedHours:16,hoursRange:'14 a 18'},
+    {code:'PARTNER',label:'CALI PARTNER',description:'Direção estratégica sênior para uma prioridade central por ciclo, com leitura de indicadores e apoio à decisão.',minimumMonths:8,suggestedHours:10,hoursRange:'8 a 12'},
+    {code:'FULL',label:'CALI FULL',description:'Maior cadência e até duas prioridades simultâneas, sem criar expectativa de RH interno em tempo integral.',minimumMonths:12,suggestedHours:16,hoursRange:'14 a 18'},
   ],
   'mentoria-rh':[
     {code:'ESSENCIAL',label:'Programa Essencial',description:'Três encontros para organizar um objetivo prioritário e construir um plano aplicável.',minimumMonths:1},
