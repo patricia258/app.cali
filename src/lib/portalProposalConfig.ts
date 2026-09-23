@@ -7,6 +7,10 @@ export const PACKAGE_META:Record<string,PackageMeta[]>={
     {code:'PARTNER',label:'CALI PARTNER',description:'Direção estratégica sênior para uma prioridade central por ciclo, com leitura de indicadores e apoio à decisão.',minimumMonths:8,suggestedHours:10,hoursRange:'8 a 12'},
     {code:'FULL',label:'CALI FULL',description:'Maior cadência e até duas prioridades simultâneas, sem criar expectativa de RH interno em tempo integral.',minimumMonths:12,suggestedHours:16,hoursRange:'14 a 18'},
   ],
+  'cali-build':[
+    {code:'ESSENCIAL',label:'CALI Build Essencial',description:'Uma frente principal por ciclo, com método, checkpoints e revisão técnica da execução interna.',minimumMonths:4,suggestedHours:10,hoursRange:'8 a 12'},
+    {code:'COMPLETO',label:'CALI Build Completo',description:'Implantação mais ampla ou múltiplas frentes conectadas, com maior cadência, revisão e governança executiva.',minimumMonths:6,suggestedHours:16,hoursRange:'14 a 18'},
+  ],
   'mentoria-rh':[
     {code:'ESSENCIAL',label:'Programa Essencial',description:'Três encontros para organizar um objetivo prioritário e construir um plano aplicável.',minimumMonths:1},
     {code:'AMPLIADO',label:'Programa Ampliado',description:'Cinco encontros para aprofundar competências relacionadas e acompanhar a aplicação prática.',minimumMonths:1},
@@ -49,6 +53,10 @@ export const BONUS_PRESETS:Record<string,Array<{code:string;title:string;descrip
     {code:'extra-alignment',title:'Encontro adicional de alinhamento',description:'Uma conversa extraordinária de até 60 minutos com a liderança, agendada durante o primeiro ciclo.'},
     {code:'governance-checklist',title:'Checklist de governança de pessoas',description:'Checklist editável para acompanhar decisões, responsáveis, prazos e pendências do primeiro ciclo.'},
   ],
+  'cali-build':[
+    {code:'implementation-board',title:'Quadro de implantação CALI Build',description:'Modelo editável para organizar frente, etapa, responsável interno, evidência, checkpoint e aprovação.'},
+    {code:'quality-checklist',title:'Checklist de qualidade da implantação',description:'Critérios para o RH interno revisar cada entrega antes do checkpoint técnico com a CALI.'},
+  ],
   'mentoria-rh':[
     {code:'application-book',title:'Caderno de aplicação CALI',description:'Roteiro editável para registrar decisões, práticas e próximos movimentos entre os encontros.'},
     {code:'extra-checkin',title:'Check-in adicional de 30 minutos',description:'Um encontro breve após o encerramento para revisar a aplicação do plano de desenvolvimento.'},
@@ -75,6 +83,20 @@ export function packageForBudget(serviceSlug:string,answers:Record<string,unknow
   return fitting.at(-1)?.package_code||technical;
 }
 export function prioritizedScope(serviceSlug:string,answers:Record<string,any>,phased=false,packageCode=initialPackageFor(serviceSlug,answers,[])){
+  if(serviceSlug==='cali-build'){
+    const selected=Array.isArray(answers.frentes_build)?answers.frentes_build:[];
+    const labels:Record<string,string>={planejamento:'Planejamento estratégico de pessoas',desenho:'Estrutura, organograma e clareza de papéis',governanca:'Governança, políticas e processos',people_analytics:'Indicadores, People Analytics e dashboards',desempenho:'Gestão de desempenho e metas',clima:'Clima e engajamento',cultura:'Cultura, valores e rituais',cargos:'Cargos, carreira e remuneração',sucessao:'Sucessão e gestão de talentos',liderancas:'Desenvolvimento de lideranças',atracao:'Atração, seleção e onboarding',marca:'Marca empregadora e experiência do colaborador',comunicacao:'Comunicação interna',saude:'Saúde, riscos psicossociais e conformidade',relacoes:'Relações de trabalho e regras operacionais'};
+    const limit=packageCode==='COMPLETO'?3:1;
+    const priorities=selected.slice(0,limit).map((x:string)=>labels[x]||x);
+    const focus=answers.escopo_build==='rh_completo'?'arquitetura do RH e prioridades do primeiro ciclo':priorities.length?priorities.join(', '):'prioridade inicial definida no kickoff';
+    return [
+      phased?'Fase 1 da estruturação assistida, com escopo delimitado':'Diagnóstico de implantação e arquitetura do ciclo',
+      `Foco inicial: ${focus}`,
+      'Método, templates e critérios fornecidos pela CALI para execução pelo RH interno',
+      'Checkpoints técnicos para revisão, correção e validação das entregas construídas internamente',
+      'Roadmap das próximas frentes, responsáveis, indicadores e marcos de aprovação',
+    ];
+  }
   if(serviceSlug==='assessoria-estrategica'){
     const selected=Array.isArray(answers.frentes)?answers.frentes:[];
     const challenge=String(answers.principal_desafio||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
