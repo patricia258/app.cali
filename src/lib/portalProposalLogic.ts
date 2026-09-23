@@ -36,6 +36,12 @@ export const PACKAGE_PRICE_BANDS:Record<string,Record<string,Band>>={
 };
 
 export function investmentContextFor(serviceSlug:string,answers:Answers={}){
+  if(serviceSlug==='cali-build'){
+    const value=String(answers.budget_status||'');if(!value)return null;
+    const max=value==='conheco'&&Number(answers.budget_teto)>0?Number(answers.budget_teto):null;
+    const labels:Record<string,string>={conheco:'Orçamento informado pelo lead',existe_sem_valor:'Existe orçamento, valor não compartilhado',propostas_primeiro:'Diretoria quer avaliar propostas primeiro',nao_definido:'Orçamento ainda não definido'};
+    return{value,label:labels[value]||value,min:null,max,period:'por mês',open:max===null};
+  }
   const config=INVESTMENT_BANDS[serviceSlug];if(!config)return null;
   const value=answers.investimento||answers.budget||'';if(!value)return null;
   const band=config.options.find(item=>item.value===value)||LEGACY[serviceSlug]?.find(item=>item.value===value);if(!band)return null;
@@ -62,6 +68,12 @@ export function initialPackageFor(serviceSlug:string,answers:Answers={},pricing:
     if(['PARTNER','FULL'].includes(String(answers.modelo_interesse)))return String(answers.modelo_interesse);
     const fronts=answers.frentes?.length||0;if(fronts>=5||answers.frequencia==='semanal'||answers.presencial==='mensal'||answers.presencial==='mais')return 'FULL';return 'PARTNER';
   }
+  if(serviceSlug==='cali-build'){
+    const size=Number(answers.colaboradores||0),people=Number(answers.pessoas_rh||0),fronts=Array.isArray(answers.frentes)?answers.frentes.length:0,ratio=people>0?size/people:size;
+    const complexScope=['rh_completo','multiplas_frentes'].includes(String(answers.escopo_build||''));
+    const complex=complexScope||fronts>=3||answers.cadencia_build==='semanal'||answers.capacidade_execucao==='menos2'||(size>=300&&(people<=2||ratio>150||fronts>=2));
+    return complex?'COMPLETO':'ESSENCIAL';
+  }
   if(serviceSlug==='treinamentos')return trainingPackageRecommendation(answers).code;
   if(serviceSlug==='mentoria-rh'){if(answers.modalidade==='grupo'||answers.suporte==='proximo'||(answers.objetivos?.length||0)>=3||answers.frequencia==='semanal')return 'AMPLIADO';return 'ESSENCIAL';}
   if(serviceSlug==='diagnostico-executivo')return Number(answers.entrevistas||0)>3||answers.survey==='sim'||answers.documentos!=='organizada'?'COMPLETO':'ESSENCIAL';
@@ -74,6 +86,18 @@ export function calculateProposal(input:{serviceSlug:string;answers:Answers;pack
   const {serviceSlug,answers,packageCode}=input;const n=(value:any,fallback=0)=>Number(value)||fallback;
   let factor=1,extras=n(input.extras),months=n(input.months,1);const breakdown:any[]=[];
   if(serviceSlug==='assessoria-estrategica'){const size=n(answers.colaboradores,20),sizeFactor=size<=20?1:size<=50?1.08:size<=100?1.15:1.22;const fronts=answers.frentes?.length||1,included=packageCode==='FULL'?2:1,frontFactor=1+Math.max(0,fronts-included)*.06,cadenceFactor=answers.frequencia==='semanal'?1.14:answers.frequencia==='quinzenal'?1.06:1;factor=sizeFactor*frontFactor*cadenceFactor;breakdown.push(['Porte',sizeFactor],['Frentes',frontFactor],['Cadência',cadenceFactor]);const minimumMonths=packageCode==='FULL'?12:8;months=Math.max(months||minimumMonths,minimumMonths);}
+  else if(serviceSlug==='cali-build'){
+    const size=n(answers.colaboradores,20),people=n(answers.pessoas_rh,0),fronts=Array.isArray(answers.frentes)?answers.frentes.length:0,included=packageCode==='COMPLETO'?3:1;
+    const sizeDelta=size<=50?0:size<=100?.05:size<=250?.12:size<=500?.20:size<=1000?.28:.35;
+    const scopeDelta=answers.escopo_build==='rh_completo'?.10:answers.escopo_build==='multiplas_frentes'?.07:0;
+    const frontDelta=Math.min(.15,Math.max(0,fronts-included)*.03);
+    const capacityDelta=answers.capacidade_execucao==='menos2'?.08:answers.capacidade_execucao==='2a4'?.05:answers.capacidade_execucao==='5a8'?.02:0;
+    const ratio=people>0?size/people:size,ratioDelta=ratio>250?.10:ratio>150?.07:ratio>100?.04:0;
+    const cadenceDelta=answers.cadencia_build==='semanal'?.05:answers.cadencia_build==='quinzenal'?.02:0,startingDelta=answers.ponto_partida==='zero'?.04:0;
+    factor=1+sizeDelta+scopeDelta+frontDelta+capacityDelta+ratioDelta+cadenceDelta+startingDelta;
+    breakdown.push(['Porte',1+sizeDelta],['Escopo',1+scopeDelta],['Frentes',1+frontDelta],['Capacidade interna',1+capacityDelta],['Carga do RH interno',1+ratioDelta],['Cadência',1+cadenceDelta],['Ponto de partida',1+startingDelta]);
+    const minimumMonths=packageCode==='COMPLETO'?6:4;months=Math.max(months||minimumMonths,minimumMonths);
+  }
   else if(serviceSlug==='treinamentos'){const groups=n(answers.turmas,1),meetings=n(answers.encontros,1),participants=n(answers.participantes,20),duration=n(answers.carga_horaria,1.5),formatFactor=answers.formato==='presencial'?1.15:answers.formato==='hibrido'?1.2:1,participantFactor=participants>150?1.18:participants>40?1.08:1,durationFactor=duration<=1?1:duration<=1.5?1.05:duration<=2?1.12:duration<=4?1.2:1.3,interactionFactor=answers.nivel_interacao==='dinamica'?1.15:answers.nivel_interacao==='interacao'?1.08:answers.nivel_interacao==='perguntas'?1.03:1,includedMeetings=packageCode==='PROGRAMA'?4:packageCode==='TREINAMENTO'?3:1,meetingFactor=1+Math.max(0,meetings-includedMeetings)*.12,groupFactor=1+Math.max(0,groups-1)*.18;factor=groupFactor*meetingFactor*formatFactor*participantFactor*durationFactor*interactionFactor;if(answers.materiais==='sim')extras+=Math.min(participants*groups*25,500);breakdown.push(['Turmas',groups],['Encontros',meetings],['Formato',formatFactor],['Participantes',participantFactor],['Duração',durationFactor],['Interação',interactionFactor]);}
   else if(serviceSlug==='mentoria-rh'){const participants=answers.modalidade==='grupo'?n(answers.participantes,2):1,durationFactor=answers.duracao_sessao==='90'?1.25:1,supportFactor=answers.suporte==='proximo'?1.2:answers.suporte==='mensagens'?1.1:1;factor=(1+Math.max(0,participants-1)*.12)*durationFactor*supportFactor;breakdown.push(['Participantes',participants],['Duração',durationFactor],['Suporte',supportFactor]);}
   else if(serviceSlug==='diagnostico-executivo'){const interviews=n(answers.entrevistas,packageCode==='COMPLETO'?6:3),units=n(answers.unidades,1),docFactor=answers.documentos==='desorganizada'?1.2:answers.documentos==='parcial'?1.1:1,includedInterviews=packageCode==='COMPLETO'?6:3;factor=(1+Math.max(0,interviews-includedInterviews)*.03)*(1+Math.max(0,units-1)*.05)*docFactor;breakdown.push(['Entrevistas',interviews],['Unidades',units],['Documentação',docFactor]);}
@@ -81,7 +105,7 @@ export function calculateProposal(input:{serviceSlug:string;answers:Answers;pack
   else if(serviceSlug==='shadowing-lideranca'){const leaders=n(answers.lideres,1),hours=n(answers.horas,4);factor=Math.max(1,hours/4);breakdown.push(['Líderes',leaders],['Horas por líder',hours]);}
   else if(serviceSlug==='marca-empregadora'){const units=n(answers.unidades,1),personas=n(answers.personas,2),assets=answers.ativos?.length||1;factor=(1+Math.max(0,units-1)*.08)*(1+Math.max(0,personas-2)*.05)*(1+Math.max(0,assets-3)*.06);breakdown.push(['Unidades',units],['Personas',personas],['Ativos',assets]);}
   const scopeMode=input.scopeMode||'integral';if(scopeMode==='prioritized'){factor=Math.min(factor,1);extras=0;breakdown.push(['Escopo priorizado',1]);}
-  const priceBand=PACKAGE_PRICE_BANDS[serviceSlug]?.[packageCode]||null,monthly=serviceSlug==='assessoria-estrategica'||(serviceSlug==='marca-empregadora'&&packageCode==='RECORRENTE');
+  const priceBand=PACKAGE_PRICE_BANDS[serviceSlug]?.[packageCode]||null,monthly=serviceSlug==='assessoria-estrategica'||serviceSlug==='cali-build'||(serviceSlug==='marca-empregadora'&&packageCode==='RECORRENTE');
   const rawSubtotal=Math.round((n(input.basePrice)*factor+extras)/50)*50,subtotal=priceBand&&rawSubtotal>0?Math.min(priceBand.max,Math.max(priceBand.min,rawSubtotal)):rawSubtotal;
   const discountValue=Math.round(subtotal*Math.min(Math.max(n(input.discount),0),50)/100),calculatedFinal=subtotal-discountValue,hasOverride=input.finalOverride!==null&&input.finalOverride!==''&&Number.isFinite(Number(input.finalOverride));
   const requestedFinal=hasOverride?Math.max(0,Number(input.finalOverride)):calculatedFinal,finalUnit=priceBand&&requestedFinal>0?Math.min(priceBand.max,Math.max(priceBand.min,requestedFinal)):requestedFinal,effectiveDiscountValue=Math.max(0,subtotal-finalUnit),effectiveDiscountPct=subtotal?Number(((effectiveDiscountValue/subtotal)*100).toFixed(2)):0;
@@ -91,6 +115,7 @@ export function calculateProposal(input:{serviceSlug:string;answers:Answers;pack
 export function scopeDefaults(serviceSlug:string,packageCode:string){
   const map:Record<string,string[]>= {
     'assessoria-estrategica':packageCode==='FULL'?['Direção estratégica quinzenal com a liderança','Até duas prioridades simultâneas definidas para o ciclo','Leitura dos indicadores-chave e apoio às decisões críticas','Uma visita presencial mensal com finalidade previamente definida','Roadmap das demais frentes e revisão periódica de prioridades']:['Direção estratégica mensal com a liderança','Uma prioridade central definida para o ciclo','Leitura dos indicadores-chave e apoio às decisões críticas','Estruturação de política, processo ou rotina vinculada à prioridade','Roadmap das demais frentes para ciclos posteriores'],
+    'cali-build':packageCode==='COMPLETO'?['Arquitetura-alvo e roadmap de implantação por ciclos','Métodos, critérios, templates e referências para as frentes priorizadas','Revisões técnicas frequentes das entregas produzidas pelo RH interno','Checkpoints executivos para aprovações e remoção de impedimentos','Acompanhamento da adoção e transferência de conhecimento para sustentação interna']:['Diagnóstico do ponto de partida e arquitetura da frente prioritária','Método, critérios, templates e referências para o primeiro ciclo','Checkpoints de orientação e revisão técnica das entregas internas','Apoio à validação com sponsor ou diretoria nos marcos necessários','Roadmap de sustentação e próximas frentes após o ciclo'],
     'mentoria-rh':packageCode==='AMPLIADO'?['Leitura inicial do momento e dos objetivos profissionais','Cinco encontros aplicados a casos reais','Plano de desenvolvimento com competências prioritárias','Práticas e registros de aplicação entre os encontros','Encontro final de consolidação e próximos movimentos']:['Leitura inicial do momento e do objetivo prioritário','Três encontros aplicados a casos reais','Plano de desenvolvimento focado em uma competência central','Práticas de aplicação entre os encontros','Síntese final com próximos movimentos'],
     'diagnostico-executivo':packageCode==='COMPLETO'?['Kickoff e organização dos insumos','Até 6 entrevistas com lideranças-chave','Leitura documental e dos indicadores disponíveis','Relatório executivo, mapa de riscos e prioridades de 90 dias','Reunião executiva de devolutiva']:['Kickoff focado na decisão prioritária','Até 3 entrevistas com lideranças-chave','Leitura dos documentos e indicadores já disponíveis','Síntese executiva e prioridades de 90 dias','Reunião remota de devolutiva'],
     'cultura-direcao':['Leitura da cultura atual por pesquisa ou amostra definida','Até 4 entrevistas e 1 grupo focal','1 workshop de direção com a liderança','Comportamentos esperados e direcionadores culturais','Roadmap de 90 dias com responsáveis e indicadores'],
