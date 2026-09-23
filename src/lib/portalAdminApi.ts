@@ -89,6 +89,7 @@ export async function appendPortalActivity(input:{submission_id:string;proposal_
 
 export function portalServiceLabel(slug:string){const labels:Record<string,string>={
   'assessoria-estrategica':'Assessoria Estratégica Mensal — HR as a Service',
+  'cali-build':'CALI Build — Estruturação Assistida de RH',
   'mentoria-rh':'Programa de Desenvolvimento para Profissionais de RH',
   'diagnostico-executivo':'Diagnóstico Executivo de People',
   'cultura-direcao':'Projeto de Cultura e Direção',
