@@ -120,7 +120,7 @@ const PHOTO_SLOTS: PhotoSlot[] = CAROUSEL_PHOTO_URLS.length
       title: `Foto CALI ${index + 1}`,
       mark: index % 2 === 0 ? 'oak' : 'lime',
       src,
-      objectPosition: index === 2 ? '50% 18%' : '50% 50%',
+      objectPosition: '50% 50%',
     }))
   : DEFAULT_PHOTO_SLOTS;
 
