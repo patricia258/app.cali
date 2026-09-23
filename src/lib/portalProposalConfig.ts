@@ -74,6 +74,7 @@ export function technicalPackageFor(serviceSlug:string,answers:Record<string,unk
 }
 export function packageForBudget(serviceSlug:string,answers:Record<string,unknown>,pricing:PortalPricingRule[]){
   const investment=investmentContextFor(serviceSlug,answers);const technical=technicalPackageFor(serviceSlug,answers,pricing);
+  if(serviceSlug==='cali-build')return technical;
   const max=investment?.max;
   if(max===null||max===undefined)return technical;
   const codes=new Set((PACKAGE_META[serviceSlug]||[]).map(item=>item.code));
