@@ -2942,11 +2942,11 @@
 
 /* Prints do Workspace: nunca ampliar acima da resolução nativa dos assets antigos. */
 .lp-screen-carousel {
-  width: min(100%, 780px) !important;
+  width: min(100%, 1120px) !important;
 }
 .lp-screen-frame {
-  width: min(100%, 720px) !important;
-  max-width: 720px !important;
+  width: min(100%, 1040px) !important;
+  max-width: 1040px !important;
   margin-inline: auto !important;
 }
 .lp-screen-slide.is-active .lp-screen-image,
@@ -3000,11 +3000,11 @@
   }
 
   .lp-screen-carousel {
-    width: min(100%, 740px) !important;
+    width: min(100%, 980px) !important;
   }
   .lp-screen-frame {
-    width: min(100%, 720px) !important;
-    max-width: 720px !important;
+    width: min(100%, 920px) !important;
+    max-width: 920px !important;
   }
 
   .lp-video-media {
@@ -3030,7 +3030,7 @@
   }
   .lp-screen-frame {
     width: 100% !important;
-    max-width: 720px !important;
+    max-width: 100% !important;
   }
 
   .lp-video-media {
