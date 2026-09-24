@@ -111,6 +111,8 @@
 .proposal-commercial .investment-meta{margin-top:3.5mm;padding-top:3mm}
 .proposal-commercial .commercial-facts.editorial{margin-bottom:4mm}
 .proposal-commercial .commercial-columns{gap:4.5mm}
+.proposal-commercial .payment-grid.editorial>div{padding:3mm}
+.proposal-commercial .commercial-conditions li{font-size:8.5pt!important;line-height:1.34!important}
 .proposal-commercial .next-section{margin-top:2.8mm}
 .proposal-commercial .next-steps.editorial>div{padding:2.6mm}
 .proposal-commercial .proposal-signature.editorial{margin-top:2.5mm;padding-top:2.5mm}
@@ -198,9 +200,10 @@
 .next-steps-final>div>span{font-size:15pt!important}
 .next-steps-final strong{font-size:12pt!important}
 .next-steps-final p{margin-top:1.5mm!important;font-size:9.4pt!important;line-height:1.45!important}
-.activation-reminder.editorial{margin-top:8mm;padding:5.5mm 6mm;border-left:3px solid var(--p-gold);background:#f7f1eb}
-.activation-reminder strong{display:block;margin-top:1.5mm;font:600 16pt/1.1 "Playfair Display",Georgia,serif;color:var(--p-burgundy)}
-.activation-reminder p{margin-top:2mm!important;font-size:9pt!important;line-height:1.45!important;color:#62575a!important}
+.bonus-final.editorial{margin-top:8mm;padding:5mm 6mm;border-left:3px solid var(--p-gold);background:#f7f1eb}
+.bonus-final.editorial>span{font-size:7.2pt}
+.bonus-final.editorial strong{font-size:12pt;margin-top:1.4mm}
+.bonus-final.editorial p{margin-top:1.5mm!important;font-size:9pt!important;line-height:1.45!important}
 .proposal-signature-final{margin-top:auto!important;padding-top:5mm!important}
 
 /* ---------- Drawer de envio ---------- */
