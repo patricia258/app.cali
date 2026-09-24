@@ -124,9 +124,9 @@
 .proposal-commercial .commercial-columns{gap:4.5mm}
 .proposal-commercial .payment-grid.editorial>div{padding:3mm}
 .proposal-commercial .commercial-conditions li{font-size:8.5pt!important;line-height:1.34!important}
-.proposal-commercial .next-section{margin-top:2.8mm}
+.proposal-commercial .next-section{margin-top:4.5mm}
 .proposal-commercial .next-steps.editorial>div{padding:2.6mm}
-.proposal-commercial .proposal-signature.editorial{margin-top:2.5mm;padding-top:2.5mm}
+.proposal-commercial .proposal-signature.editorial{margin-top:8mm;padding-top:4mm}
 
 /* ---------- Escopo ---------- */
 .scope-section{margin-bottom:6mm}
@@ -184,9 +184,9 @@
 .commercial-facts.editorial span,.payment-grid.editorial span{display:block;font-size:7pt;text-transform:uppercase;letter-spacing:.1em;color:#897c7f}
 .commercial-facts.editorial strong{display:block;margin-top:1.7mm;font-size:9.7pt;line-height:1.35;color:#4b4043}
 .commercial-columns{display:grid;grid-template-columns:.86fr 1.14fr;gap:6mm;margin-top:1mm}
-.commercial-columns.recurring-conditions-only{grid-template-columns:1fr;margin-top:1.5mm}
-.commercial-columns.recurring-conditions-only .commercial-conditions{display:grid;grid-template-columns:1fr 1fr;gap:2.2mm 8mm;padding-left:4.5mm!important}
-.commercial-columns.recurring-conditions-only .commercial-conditions li{break-inside:avoid}
+.commercial-columns.commercial-conditions-only{grid-template-columns:1fr;margin-top:1.5mm}
+.commercial-columns.commercial-conditions-only .commercial-conditions{display:grid;grid-template-columns:1fr 1fr;gap:2.2mm 8mm;padding-left:4.5mm!important}
+.commercial-columns.commercial-conditions-only .commercial-conditions li{break-inside:avoid}
 .payment-grid.editorial{display:grid;grid-template-columns:1fr 1fr;gap:3mm}
 .payment-grid.editorial>div{padding:3.5mm;background:#faf6f2;border:1px solid var(--p-line)}
 .payment-grid.editorial strong{display:block;margin-top:1.2mm;font-size:9.2pt;line-height:1.35;color:#4b4043}
@@ -245,7 +245,7 @@
      Estas compensações mantêm o PDF com o mesmo respiro sem alterar a tela do app. */
   .portal-proposal-page.proposal-v3.proposal-cover{background:linear-gradient(180deg,var(--p-burgundy) 0 37%,var(--p-paper) 37% 100%)!important}
   .proposal-cover-band{min-height:70mm!important;padding-bottom:9mm!important}
-  .proposal-cover .proposal-context-block{padding-top:8mm!important}
+  .proposal-cover .proposal-context-block{padding-top:13mm!important}
 
   .proposal-delivery .section-heading{margin-bottom:4.5mm!important;padding-bottom:3mm!important}
   .proposal-delivery .scope-section{margin-bottom:4mm!important}
