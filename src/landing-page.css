@@ -3046,3 +3046,67 @@
     font-size: .66rem;
   }
 }
+
+
+/* CALI ecosystem header standard · 24/09/2026 */
+.lp-ecosystem-header{
+  grid-template-columns:210px 1fr auto!important;
+  gap:18px!important;
+  background:rgba(55,15,25,.78)!important;
+  background-image:none!important;
+  border-color:rgba(247,243,238,.14)!important;
+  box-shadow:0 15px 42px rgba(26,7,13,.16)!important;
+  -webkit-backdrop-filter:blur(18px)!important;
+  backdrop-filter:blur(18px)!important;
+}
+.lp-header-center{
+  min-width:0;display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.lp-ecosystem-links{
+  display:flex;align-items:center;gap:7px;
+}
+.lp-ecosystem-links a{
+  min-height:40px;display:inline-flex;align-items:center;justify-content:center;
+  padding:0 15px;border:1px solid rgba(247,243,238,.22);border-radius:10px;
+  color:#fff!important;text-decoration:none;font-size:.64rem;font-weight:780;letter-spacing:.09em;text-transform:uppercase;
+  transition:transform .22s ease,background .22s ease,border-color .22s ease,color .22s ease;
+}
+.lp-ecosystem-links a:first-child{border-color:rgba(181,140,82,.72);color:#dfbc80!important;background:rgba(181,140,82,.06)}
+.lp-ecosystem-links a:hover{transform:translateY(-1px);background:#fff;color:var(--lp-burgundy)!important;border-color:#fff}
+.lp-ecosystem-social{
+  display:flex;align-items:center;gap:0;overflow:hidden;
+  border:1px solid rgba(247,243,238,.14);border-radius:12px;background:rgba(247,243,238,.025);
+}
+.lp-ecosystem-social a{
+  width:38px;height:38px;display:grid;place-items:center;color:rgba(247,243,238,.78)!important;
+  border-right:1px solid rgba(247,243,238,.11);transition:background .22s ease,color .22s ease;
+}
+.lp-ecosystem-social a:last-child{border-right:0}
+.lp-ecosystem-social a:hover{background:#fff;color:var(--lp-burgundy)!important}
+.lp-ecosystem-header .lp-access-link{min-height:40px;border-radius:10px;padding:0 16px}
+@media(max-width:1040px){
+  .lp-ecosystem-header{grid-template-columns:175px 1fr auto!important}
+  .lp-ecosystem-social a:nth-child(1),.lp-ecosystem-social a:nth-child(4){display:none}
+}
+@media(max-width:820px){
+  .lp-ecosystem-header{grid-template-columns:auto 1fr auto!important;gap:8px!important;padding:0 11px 0 14px!important}
+  .lp-ecosystem-header .lp-brand{width:118px!important}
+  .lp-header-center{justify-content:flex-end}
+  .lp-ecosystem-links a{min-height:36px;padding:0 10px;font-size:.56rem}
+  .lp-ecosystem-social a{width:36px;height:36px}
+  .lp-ecosystem-social a:nth-child(1),.lp-ecosystem-social a:nth-child(3),.lp-ecosystem-social a:nth-child(4){display:none}
+  .lp-ecosystem-header .lp-access-link{min-height:36px;padding:0 11px;font-size:.62rem}
+}
+@media(max-width:620px){
+  .lp-ecosystem-header{grid-template-columns:auto 1fr!important}
+  .lp-header-center{gap:6px}
+  .lp-ecosystem-links a:first-child{display:none}
+  .lp-ecosystem-social{display:none}
+  .lp-ecosystem-header .lp-access-link{position:absolute;right:10px}
+  .lp-ecosystem-links{margin-right:118px}
+}
+@media(max-width:430px){
+  .lp-ecosystem-header .lp-brand{width:102px!important}
+  .lp-ecosystem-links{display:none}
+  .lp-ecosystem-header .lp-access-link{right:8px}
+}
