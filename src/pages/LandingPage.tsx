@@ -12,9 +12,12 @@ import {
   FileText,
   FolderOpen,
   Gauge,
+  Instagram,
   LayoutDashboard,
   Leaf,
   LineChart,
+  Linkedin,
+  Mail,
   MessageCircle,
   ShieldCheck,
   Target,
@@ -201,14 +204,14 @@ const STEPS = [
 
 const PACKAGE_FEATURES = {
   partner: [
-    '10 a 15h de dedicação por mês',
+    '8 a 12h de dedicação por mês',
     '100% online',
     'Reunião mensal com founders, diretoria ou RH',
     'Indicadores, DHO e apoio a decisões críticas',
     '1 ajuste ou desenho de política/processo por mês',
   ],
   full: [
-    '20 a 25h de dedicação por mês',
+    '14 a 18h de dedicação por mês',
     '1 visita presencial fixa por mês',
     'Ritmo quinzenal com maior proximidade',
     'Cargos & Salários, People Analytics nível 3 e desenvolvimento',
@@ -314,17 +317,22 @@ export function LandingPage() {
 
   return (
     <main className="cali-landing">
-      <header className="lp-header">
+      <header className="lp-header lp-ecosystem-header">
         <a className="lp-brand" href="#inicio" aria-label="CALI Workspace">
           <img src="/brand/cali-workspace-transparent.svg" alt="CALI Workspace" />
         </a>
-        <nav className="lp-nav" aria-label="Navegação da apresentação">
-          <a href="#cali">A CALI</a>
-          <a href="#workspace">Workspace</a>
-          <a href="#pacotes">Pacotes</a>
-          <a href="#como-funciona">Como funciona</a>
-          <a href="#fale-com-a-pati">Fale com a Pati</a>
-        </nav>
+        <div className="lp-header-center">
+          <nav className="lp-ecosystem-links" aria-label="Ecossistema CALI">
+            <a href="https://calirh.com" target="_blank" rel="noreferrer">Site CALI</a>
+            <a href="https://portal.calirh.com" target="_blank" rel="noreferrer">Portal</a>
+          </nav>
+          <nav className="lp-ecosystem-social" aria-label="Canais CALI">
+            <a href="https://www.instagram.com/calirh_/" target="_blank" rel="noreferrer" aria-label="Instagram"><Instagram size={16} /></a>
+            <a href="https://wa.me/5541987791933?text=Ol%C3%A1%2C%20Pati!%20Vim%20pelo%20CALI%20Workspace." target="_blank" rel="noreferrer" aria-label="WhatsApp"><MessageCircle size={16} /></a>
+            <a href="https://www.linkedin.com/in/patriciaazumi/" target="_blank" rel="noreferrer" aria-label="LinkedIn"><Linkedin size={16} /></a>
+            <a href="mailto:patricia@calirh.com" aria-label="E-mail"><Mail size={16} /></a>
+          </nav>
+        </div>
         <Link className="lp-access-link" to="/login">
           Acessar Workspace <ArrowRight size={16} />
         </Link>
@@ -659,7 +667,7 @@ export function LandingPage() {
                 ter senioridade disponível nas decisões críticas.
               </p>
               <div className="lp-package-facts">
-                <span><strong>10–15h</strong><small>por mês</small></span>
+                <span><strong>8–12h</strong><small>por mês</small></span>
                 <span><strong>Online</strong><small>100%</small></span>
                 <span><strong>Mensal</strong><small>ritmo principal</small></span>
               </div>
@@ -685,7 +693,7 @@ export function LandingPage() {
                 rota ou quando pessoas já são agenda central da diretoria.
               </p>
               <div className="lp-package-facts">
-                <span><strong>20–25h</strong><small>por mês</small></span>
+                <span><strong>14–18h</strong><small>por mês</small></span>
                 <span><strong>1 visita</strong><small>fixa / mês</small></span>
                 <span><strong>Quinzenal</strong><small>ritmo principal</small></span>
               </div>
