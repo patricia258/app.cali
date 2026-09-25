@@ -3177,3 +3177,44 @@
 .cali-landing .lp-footer-copy{width:100%;display:block;color:#f7f3ee80;font:400 12px 'DM Sans',sans-serif;margin-top:7px}
 @media(max-width:800px){.cali-landing .lp-footer .lp-shell{align-items:flex-start;flex-direction:column}.lp-footer-site-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:15px}}
 @media(prefers-reduced-motion:reduce){.lp-site-header,.lp-site-nav-shell{transition:none}}
+
+/* CALI Workspace LP · lighter opening and visible, automatic product tour. */
+.cali-landing .lp-hero{
+  color:#5a1e2d;
+  min-height:min(850px,100svh);
+  padding:clamp(130px,14vh,180px) 0 clamp(72px,9vh,110px);
+  background:
+    radial-gradient(ellipse 58% 65% at 85% 43%,rgba(181,140,82,.27),transparent 78%),
+    radial-gradient(ellipse 63% 72% at 10% 75%,rgba(90,30,45,.13),transparent 75%),
+    linear-gradient(120deg,#fffdf9 0%,#f7f3ee 52%,#eadacc 100%);
+  background-size:auto;
+}
+.cali-landing .lp-hero::before,.cali-landing .lp-hero::after{display:none;content:none}
+.cali-landing .lp-hero-grid{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(38px,5vw,85px)}
+.cali-landing .lp-hero-copy h1{max-width:570px;margin:23px 0 0;color:#5a1e2d;font-size:clamp(3.25rem,5.3vw,5.4rem);line-height:1.08;font-weight:500;letter-spacing:-.045em}
+.cali-landing .lp-hero-copy h1 span{display:inline;color:#9b7044}
+.cali-landing .lp-hero .lp-eyebrow{color:#8b5d37}
+.cali-landing .lp-hero-foot{color:#8b5d37}
+.cali-landing .lp-hero-foot i{background:#b58c52}
+.cali-landing .lp-monitor-shell{animation:lp-soft-depth 8s ease-in-out infinite!important;transform-origin:50% 55%;filter:drop-shadow(0 22px 34px rgba(90,30,45,.17))!important}
+.cali-landing .lp-monitor-shell .lp-window{border-color:rgba(90,30,45,.16)!important;box-shadow:0 8px 24px rgba(90,30,45,.07)!important}
+@keyframes lp-soft-depth{0%,100%{transform:perspective(1500px) rotateY(-3deg) translateY(0)}50%{transform:perspective(1500px) rotateY(2deg) translateY(-9px)}}
+@media(max-width:820px){.cali-landing .lp-hero{min-height:auto;padding:130px 0 85px}.cali-landing .lp-hero-grid{grid-template-columns:1fr;gap:35px}.cali-landing .lp-hero-copy h1{max-width:680px;font-size:clamp(3.1rem,8vw,5rem)}.cali-landing .lp-hero-product{max-width:700px}}
+@media(max-width:560px){.cali-landing .lp-hero{padding:115px 0 70px}.cali-landing .lp-hero-grid{gap:26px}.cali-landing .lp-hero-copy h1{font-size:clamp(2.75rem,11vw,3.75rem)}.cali-landing .lp-monitor-shell{animation:lp-soft-mobile 8s ease-in-out infinite!important}@keyframes lp-soft-mobile{50%{transform:translateY(-5px)}}}
+@media(prefers-reduced-motion:reduce){.cali-landing .lp-monitor-shell{animation:none!important}}
+
+.cali-landing .lp-screen-toolbar{justify-content:space-between!important;padding:15px 4px 8px!important;gap:30px!important}
+.lp-screen-navigation{display:flex;align-items:center;justify-content:flex-end;gap:24px;flex:none}
+.cali-landing .lp-screen-toolbar .lp-screen-dots{gap:7px!important;max-width:none}
+.cali-landing .lp-screen-dots button{width:10px!important;height:10px!important;background:#cfc0b5!important;border:0!important}
+.cali-landing .lp-screen-dots button.is-active{width:26px!important;background:#5a1e2d!important}
+.cali-landing .lp-screen-toolbar .lp-screen-controls{position:static!important;display:flex!important;gap:8px!important;flex:none}
+.cali-landing .lp-screen-controls button{width:auto!important;height:42px!important;display:inline-flex!important;align-items:center;gap:4px;min-width:100px;padding:0 12px;border:1px solid #cdbcb0!important;border-radius:100px;background:#f7f3ee!important;color:#5a1e2d!important;font-size:12px;font-weight:750}
+.cali-landing .lp-screen-controls button:hover,.cali-landing .lp-screen-controls button:focus-visible{background:#5a1e2d!important;color:#fff!important;border-color:#5a1e2d!important}
+.lp-screen-progress{height:3px;background:#e9ded3;border-radius:99px;overflow:hidden;margin:4px 4px 0}
+.lp-screen-progress span{display:block;height:100%;width:0;background:#b58c52;animation:lp-screen-fill 4.6s linear forwards}
+@keyframes lp-screen-fill{to{width:100%}}
+@media(max-width:1050px){.cali-landing .lp-screen-toolbar{flex-direction:column!important;align-items:stretch!important;gap:14px!important}.lp-screen-navigation{justify-content:space-between}}
+@media(max-width:820px){.cali-landing .lp-screen-toolbar{display:flex!important;flex-direction:column!important;align-items:stretch!important;padding:14px 3px 8px!important}.lp-screen-context{display:grid!important}.lp-screen-navigation{width:100%;gap:12px}.cali-landing .lp-screen-toolbar .lp-screen-dots{justify-content:flex-start!important}.cali-landing .lp-screen-toolbar .lp-screen-controls{margin-left:auto}}
+@media(max-width:560px){.lp-screen-navigation{flex-wrap:wrap}.cali-landing .lp-screen-toolbar .lp-screen-dots{width:100%;justify-content:center!important;padding:7px 0!important}.cali-landing .lp-screen-toolbar .lp-screen-controls{width:100%;justify-content:space-between;margin:0}.cali-landing .lp-screen-controls button{justify-content:center;flex:1}}
+@media(prefers-reduced-motion:reduce){.lp-screen-progress span{animation:none;width:100%}}

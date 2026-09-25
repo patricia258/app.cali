@@ -302,7 +302,6 @@ function ScreenVisual({ slot }: { slot: ScreenSlot }) {
 
 export function LandingPage() {
   const [activeScreen, setActiveScreen] = useState(0);
-  const [paused, setPaused] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -332,12 +331,12 @@ export function LandingPage() {
   }, []);
 
   useEffect(() => {
-    if (paused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const interval = window.setInterval(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const interval = window.setTimeout(() => {
       setActiveScreen((value) => (value + 1) % SCREENSHOTS.length);
     }, 4600);
-    return () => window.clearInterval(interval);
-  }, [paused]);
+    return () => window.clearTimeout(interval);
+  }, [activeScreen]);
 
   return (
     <main className="cali-landing">
@@ -356,27 +355,10 @@ export function LandingPage() {
       </header>
 
       <section className="lp-hero" id="inicio">
-        <img className="lp-art lp-art-oak" src="/brand/cali-oak-mark-light.svg" alt="" aria-hidden="true" />
-        <img className="lp-art lp-art-lime" src="/brand/cali-lime-mark.svg" alt="" aria-hidden="true" />
         <div className="lp-shell lp-hero-grid">
           <div className="lp-hero-copy" data-lp-reveal="left">
-            <span className="lp-eyebrow">CALI WORKSPACE · HR FOR BUSINESS</span>
-            <h1>
-              Estratégia de pessoas.
-              <span>Execução visível.</span>
-            </h1>
-            <p>
-              Um único ambiente para transformar direção em execução: projetos, horas,
-              documentos, decisões e leitura executiva organizados no mesmo contexto.
-            </p>
-            <div className="lp-hero-actions">
-              <Link className="lp-button lp-button-light" to="/login">
-                Acessar Workspace <ArrowRight size={17} />
-              </Link>
-              <a className="lp-text-link lp-text-link-light" href="https://calirh.com" target="_blank" rel="noreferrer">
-                Conhecer a CALI RH <ArrowRight size={15} />
-              </a>
-            </div>
+            <span className="lp-eyebrow">CALI WORKSPACE</span>
+            <h1>Acompanhe seus projetos com o <span>app da CALI.</span></h1>
           </div>
 
           <div className="lp-hero-product" data-lp-reveal="right">
@@ -395,10 +377,6 @@ export function LandingPage() {
               <div className="lp-monitor-stand" aria-hidden="true"><span /></div>
             </div>
           </div>
-        </div>
-        <div className="lp-hero-foot">
-          <span>SCROLL</span>
-          <i />
         </div>
       </section>
 
@@ -546,8 +524,6 @@ export function LandingPage() {
 
           <div
             className="lp-screen-carousel"
-            onMouseEnter={() => setPaused(true)}
-            onMouseLeave={() => setPaused(false)}
             data-lp-reveal="zoom"
           >
             <div className="lp-screen-frame">
@@ -568,6 +544,7 @@ export function LandingPage() {
                 <strong>{SCREENSHOTS[activeScreen].label}</strong>
                 <p>{SCREENSHOTS[activeScreen].description}</p>
               </div>
+              <div className="lp-screen-navigation" aria-label="Navegação do carrossel">
               <div className="lp-screen-dots" aria-label="Selecionar tela">
               {SCREENSHOTS.map((slot, index) => (
                 <button
@@ -585,17 +562,19 @@ export function LandingPage() {
                   aria-label="Tela anterior"
                   onClick={() => setActiveScreen((value) => (value - 1 + SCREENSHOTS.length) % SCREENSHOTS.length)}
                 >
-                  <ChevronLeft size={18} />
+                  <ChevronLeft size={20} /><span>Anterior</span>
                 </button>
                 <button
                   type="button"
                   aria-label="Próxima tela"
                   onClick={() => setActiveScreen((value) => (value + 1) % SCREENSHOTS.length)}
                 >
-                  <ChevronRight size={18} />
+                  <span>Próxima</span><ChevronRight size={20} />
                 </button>
               </div>
+              </div>
             </div>
+            <div className="lp-screen-progress" aria-hidden="true"><span key={activeScreen} /></div>
           </div>
         </div>
       </section>
