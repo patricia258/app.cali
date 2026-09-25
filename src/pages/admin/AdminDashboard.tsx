@@ -583,7 +583,9 @@ export function AdminDashboard() {
   useEffect(() => {
     let cancelled = false;
     let refreshTimer = 0;
+    let loadRevision = 0;
     async function load() {
+      const revision = ++loadRevision;
       if (previewMode) {
         setData(createPreviewDashboardData());
         setLoading(false);
@@ -641,20 +643,19 @@ export function AdminDashboard() {
             .order("starts_at"),
           supabase.rpc("get_admin_satisfaction_overview"),
         ]);
-        if (cancelled) return;
-        const companyData: Company[] = await Promise.all(
-          ((companies.data || []) as any[]).map(async (row) => ({
-            id: row.id,
-            name: row.display_name || "Cliente",
-            service: row.service_plan || row.service_type || "Serviço CALI",
-            contracted: Number(row.monthly_hours_contracted || 0),
-            mark: String(row.display_name || "C")
-              .trim()
-              .slice(0, 1)
-              .toUpperCase(),
-            logoUrl: await resolveWorkspaceMedia(row.logo_url),
-          })),
-        );
+        if (cancelled || revision !== loadRevision) return;
+        const companyRows = (companies.data || []) as any[];
+        const companyData: Company[] = companyRows.map((row) => ({
+          id: row.id,
+          name: row.display_name || "Cliente",
+          service: row.service_plan || row.service_type || "Serviço CALI",
+          contracted: Number(row.monthly_hours_contracted || 0),
+          mark: String(row.display_name || "C")
+            .trim()
+            .slice(0, 1)
+            .toUpperCase(),
+          logoUrl: row.logo_url?.startsWith('private:') ? undefined : row.logo_url,
+        }));
         const satisfactionData =
           satisfaction.error || !satisfaction.data
             ? emptySatisfaction
@@ -695,8 +696,24 @@ export function AdminDashboard() {
           })),
           satisfaction: satisfactionData,
         });
+        // Signed storage URLs can take another network round trip. The portfolio
+        // and its metrics are usable as soon as their queries finish.
+        void Promise.all(companyRows.map(async (row) => ({
+          id: row.id as string,
+          logoUrl: await resolveWorkspaceMedia(row.logo_url),
+        }))).then((logos) => {
+          if (cancelled || revision !== loadRevision) return;
+          const byId = new Map(logos.map(({ id, logoUrl }) => [id, logoUrl]));
+          setData((current) => ({
+            ...current,
+            companies: current.companies.map((company) => ({
+              ...company,
+              logoUrl: byId.get(company.id) || company.logoUrl,
+            })),
+          }));
+        }).catch((error) => console.error('Falha ao carregar logos das empresas', error));
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled && revision === loadRevision) setLoading(false);
       }
     }
     function scheduleReload() {
