@@ -18,11 +18,14 @@ import {
   LineChart,
   Linkedin,
   Mail,
+  Menu,
   MessageCircle,
   ShieldCheck,
   Target,
   Users,
   Workflow,
+  X,
+  ArrowUpRight,
 } from 'lucide-react';
 import { patiWavePoster, patiWaveVideo } from '../assets/patiWaveMedia';
 
@@ -95,11 +98,23 @@ const DEFAULT_SCREENSHOTS: ScreenSlot[] = [
   },
 ];
 
+const SCREEN_DESCRIPTIONS = [
+  { label: 'Visão geral', description: 'Prioridades, entregas e horas do ciclo reunidas na entrada da empresa.' },
+  { label: 'Conversa com a Pati', description: 'Um canal direto para dúvidas e pedidos que precisam de acompanhamento.' },
+  { label: 'Planejamento', description: 'Reuniões, prazos e próximos passos publicados em um lugar só.' },
+  { label: 'Entregáveis', description: 'Cronograma para acompanhar, comentar e aprovar o que está sendo construído.' },
+  { label: 'Conversa na entrega', description: 'Ajustes e decisões registrados no contexto do entregável.' },
+  { label: 'Horas do ciclo', description: 'Consumo e saldo do período com o detalhe do trabalho realizado.' },
+  { label: 'Ocorrências', description: 'Solicitações e situações acompanhadas com status e histórico.' },
+  { label: 'Histórico da solicitação', description: 'A conversa com a CALI permanece junto da solicitação.' },
+  { label: 'Documentos', description: 'Versões aprovadas e arquivos da empresa organizados para consulta.' },
+];
+
 const SCREENSHOTS: ScreenSlot[] = WORKSPACE_SCREEN_URLS.length
   ? WORKSPACE_SCREEN_URLS.map((src, index) => ({
-      label: `Tela do Workspace ${index + 1}`,
+      label: SCREEN_DESCRIPTIONS[index]?.label ?? `Tela do Workspace ${index + 1}`,
       eyebrow: 'CALI WORKSPACE',
-      description: 'Tela real do CALI Workspace.',
+      description: SCREEN_DESCRIPTIONS[index]?.description ?? 'Tela real do CALI Workspace.',
       src,
     }))
   : DEFAULT_SCREENSHOTS;
@@ -288,6 +303,15 @@ function ScreenVisual({ slot }: { slot: ScreenSlot }) {
 export function LandingPage() {
   const [activeScreen, setActiveScreen] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const update = () => setScrolled(window.scrollY > 40);
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    return () => window.removeEventListener('scroll', update);
+  }, []);
 
   useEffect(() => {
     const nodes = Array.from(document.querySelectorAll<HTMLElement>('[data-lp-reveal], [data-lp-flow]'));
@@ -317,25 +341,18 @@ export function LandingPage() {
 
   return (
     <main className="cali-landing">
-      <header className="lp-header lp-ecosystem-header">
-        <a className="lp-brand" href="#inicio" aria-label="CALI Workspace">
-          <img src="/brand/cali-workspace-transparent.svg" alt="CALI Workspace" />
-        </a>
-        <div className="lp-header-center">
-          <nav className="lp-ecosystem-links" aria-label="Ecossistema CALI">
-            <a href="https://calirh.com" target="_blank" rel="noreferrer">Site CALI</a>
-            <a href="https://portal.calirh.com" target="_blank" rel="noreferrer">Portal</a>
+      <header className={`lp-site-header ${scrolled ? 'scrolled' : ''}`}>
+        <div className="lp-site-nav-shell">
+          <a href="https://calirh.com" className="lp-site-brand" aria-label="CALI RH, ir para a página inicial"><img src="/brand/cali-logo-light.svg" alt="CALI RH" /></a>
+          <nav className={`lp-site-nav-links ${menuOpen ? 'open' : ''}`} aria-label="Menu principal">
+            <a href="https://calirh.com">Início</a><a href="https://calirh.com/assessoria">Assessoria mensal</a><a href="https://calirh.com/projetos">Projetos e soluções</a><a href="https://calirh.com/sobre">A CALI</a>
+            <div className="lp-site-mobile-utility"><a href="https://portal.calirh.com">Portal CALI <ArrowUpRight size={16}/></a><Link to="/" onClick={() => setMenuOpen(false)}>CALI Workspace <ArrowUpRight size={16}/></Link><div className="lp-site-mobile-social"><a href="https://www.instagram.com/calirh_/" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><Instagram size={24}/></a><a href="https://www.linkedin.com/in/patriciaazumi/" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer"><Linkedin size={24}/></a><a href="mailto:patricia@calirh.com" aria-label="E-mail"><Mail size={24}/></a></div></div>
+            <a className="lp-site-mobile-contact" href={WA_LINK} target="_blank" rel="noopener noreferrer">Fale com a Pati</a>
           </nav>
-          <nav className="lp-ecosystem-social" aria-label="Canais CALI">
-            <a href="https://www.instagram.com/calirh_/" target="_blank" rel="noreferrer" aria-label="Instagram"><Instagram size={16} /></a>
-            <a href="https://wa.me/5541987791933?text=Ol%C3%A1%2C%20Pati!%20Vim%20pelo%20CALI%20Workspace." target="_blank" rel="noreferrer" aria-label="WhatsApp"><MessageCircle size={16} /></a>
-            <a href="https://www.linkedin.com/in/patriciaazumi/" target="_blank" rel="noreferrer" aria-label="LinkedIn"><Linkedin size={16} /></a>
-            <a href="mailto:patricia@calirh.com" aria-label="E-mail"><Mail size={16} /></a>
-          </nav>
+          <div className="lp-site-nav-utilities"><a href="https://portal.calirh.com">Portal CALI</a><Link to="/" aria-current="page">Workspace</Link><span className="lp-site-nav-social"><a href="https://www.instagram.com/calirh_/" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><Instagram size={21}/></a><a href="https://www.linkedin.com/in/patriciaazumi/" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer"><Linkedin size={21}/></a><a href="mailto:patricia@calirh.com" aria-label="E-mail"><Mail size={21}/></a></span></div>
+          <a className="lp-site-nav-contact" href={WA_LINK} target="_blank" rel="noopener noreferrer">Vamos conversar <ArrowUpRight size={16}/></a>
+          <button className="lp-site-menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'} aria-expanded={menuOpen}>{menuOpen ? <X/> : <Menu/>}</button>
         </div>
-        <Link className="lp-access-link" to="/login">
-          Acessar Workspace <ArrowRight size={16} />
-        </Link>
       </header>
 
       <section className="lp-hero" id="inicio">
@@ -523,7 +540,8 @@ export function LandingPage() {
         <div className="lp-shell">
           <div className="lp-section-heading lp-section-heading-centered lp-section-heading-dark lp-screen-heading" data-lp-reveal="up">
             <span className="lp-kicker">O WORKSPACE NA PRÁTICA</span>
-            <h2>Por dentro do Workspace.</h2>
+            <h2>Veja o trabalho acontecer.</h2>
+            <p>Explore as telas do ambiente compartilhado com sua empresa. Projetos, decisões e entregas ficam à vista durante o ciclo.</p>
           </div>
 
           <div
@@ -545,6 +563,11 @@ export function LandingPage() {
             </div>
 
             <div className="lp-screen-toolbar">
+              <div className="lp-screen-context" aria-live="polite">
+                <span>{String(activeScreen + 1).padStart(2, '0')} / {String(SCREENSHOTS.length).padStart(2, '0')}</span>
+                <strong>{SCREENSHOTS[activeScreen].label}</strong>
+                <p>{SCREENSHOTS[activeScreen].description}</p>
+              </div>
               <div className="lp-screen-dots" aria-label="Selecionar tela">
               {SCREENSHOTS.map((slot, index) => (
                 <button
@@ -729,14 +752,11 @@ export function LandingPage() {
 
       <footer className="lp-footer">
         <div className="lp-shell">
-          <img src="/brand/cali-workspace-burgundy.svg" alt="CALI Workspace" />
+          <a href="https://calirh.com" aria-label="CALI RH, ir para o site"><img src="/brand/cali-logo-light.svg" alt="CALI RH" /></a>
+          <nav className="lp-footer-site-links" aria-label="Links CALI"><a href="https://calirh.com/assessoria">Assessoria mensal</a><a href="https://calirh.com/projetos">Projetos</a><a href="https://calirh.com/sobre">A CALI</a><a href="https://portal.calirh.com">Portal de propostas</a><Link to="/login">Acesso ao app</Link><a href="https://calirh.com/privacidade.html">Privacidade</a></nav>
+          <div className="lp-footer-social"><a href="https://www.instagram.com/calirh_/" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><Instagram size={24}/></a><a href="https://www.linkedin.com/in/patriciaazumi/" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer"><Linkedin size={24}/></a><a href="mailto:patricia@calirh.com" aria-label="E-mail"><Mail size={24}/></a></div>
           <div className="lp-footer-copy">
-            <span>© 2026 CALI RH · HR FOR BUSINESS</span>
-            <span>Curitiba · atendimento remoto em todo o Brasil</span>
-          </div>
-          <div className="lp-footer-links">
-            <a href="mailto:patricia@calirh.com">patricia@calirh.com</a>
-            <a href="https://calirh.com" target="_blank" rel="noreferrer">calirh.com</a>
+            <span>© {new Date().getFullYear()} CALI RH · HRB — RH para o Negócio · Todos os direitos reservados.</span>
           </div>
         </div>
       </footer>

@@ -3112,3 +3112,68 @@
 }
 
 /* deploy-refresh: 20260924-0018 */
+
+/* Shared CALI site navigation, copied into the public Workspace landing only. */
+.lp-site-header{position:fixed;z-index:200;top:0;left:0;right:0;padding:23px 0;transition:padding .35s ease;font-family:'DM Sans',sans-serif}
+.lp-site-header.scrolled{padding-top:10px}
+.lp-site-nav-shell{position:relative;display:flex;align-items:center;justify-content:space-between;gap:clamp(12px,1.25vw,22px);max-width:min(1440px,calc(100% - 36px));margin:auto;padding:12px 22px 12px 27px;border:1px solid #ffffff24;background:#431523de;backdrop-filter:blur(18px);border-radius:100px;box-shadow:0 14px 35px #210b1470;transition:box-shadow .35s ease,background .35s ease}
+.lp-site-header.scrolled .lp-site-nav-shell{background:#431523f5;box-shadow:0 12px 32px #210b1490}
+.lp-site-brand img{display:block;width:96px;height:46px;object-fit:contain}
+.lp-site-nav-links{display:flex;align-items:center;gap:clamp(10px,1.1vw,18px)}
+.lp-site-nav-links>a{color:#fffcefe0;font-size:13px;font-weight:600;transition:color .2s}
+.lp-site-nav-links>a:hover{color:#e5bf85}
+.lp-site-nav-utilities{display:flex;align-items:center;gap:14px;margin-left:auto;white-space:nowrap}
+.lp-site-nav-utilities>a{font-size:12px;font-weight:700;color:#f7f3ee;border-bottom:1px solid #d4ad7380;padding-bottom:4px}
+.lp-site-nav-utilities>a:hover{color:#e5bf85}
+.lp-site-nav-social{display:flex;align-items:center;gap:4px;border-left:1px solid #ffffff3b;padding-left:12px}
+.lp-site-nav-social a{display:grid;place-items:center;width:32px;height:36px;color:#f7f3ee}
+.lp-site-nav-social a:hover{color:#e5bf85}
+.lp-site-nav-contact{display:flex;align-items:center;gap:8px;background:#f7f3ee;color:#5a1e2d!important;padding:11px 15px;border-radius:100px;font-weight:700;font-size:13px;white-space:nowrap}
+.lp-site-nav-contact:hover{background:#e7d6bf}
+.lp-site-menu-toggle,.lp-site-mobile-contact,.lp-site-mobile-utility{display:none}
+@media(max-width:1220px){
+  .lp-site-nav-shell{margin-inline:14px}
+  .lp-site-nav-links{display:none;position:absolute;left:0;right:0;top:calc(100% + 7px);padding:19px 24px;background:#431523;border:1px solid #ffffff25;border-radius:20px;box-shadow:0 20px 30px #210b145e;flex-direction:column;align-items:stretch;gap:0;max-height:calc(100dvh - 110px);overflow:auto}
+  .lp-site-nav-links.open{display:flex}
+  .lp-site-nav-links>a{font-size:15px;padding:12px 9px;border-bottom:1px solid #ffffff20}
+  .lp-site-menu-toggle{display:grid;place-items:center;border:0;color:white;background:transparent;width:42px;height:42px}
+  .lp-site-nav-utilities{display:none}
+  .lp-site-nav-contact{margin-left:auto}
+  .lp-site-mobile-utility{display:block;border-bottom:1px solid #ffffff3b;padding-bottom:8px}
+  .lp-site-mobile-utility>a{display:flex;align-items:center;justify-content:space-between;color:#e6bf8a!important;font-size:15px;padding:12px 9px;border-bottom:1px solid #ffffff20}
+  .lp-site-mobile-social{display:flex;gap:15px;padding:13px 4px}
+  .lp-site-mobile-social a{border:0;padding:5px;display:grid;place-items:center;color:#fff}
+  .lp-site-nav-links .lp-site-mobile-contact{display:block;color:#e6bf8a}
+}
+@media(max-width:800px){.lp-site-header{padding-top:12px}.lp-site-nav-shell{margin-inline:14px;padding:8px 16px;border-radius:24px}.lp-site-brand img{width:85px}}
+@media(max-width:560px){.lp-site-nav-contact{display:none}.lp-site-nav-links{padding:12px 20px}}
+
+/* The product tour gives each real screen a purpose and a clear place in the cycle. */
+.cali-landing .lp-screens-section{background:#f7f3ee;color:#35121f}
+.cali-landing .lp-screen-heading{max-width:740px;margin-inline:auto;margin-bottom:38px!important}
+.cali-landing .lp-screen-heading h2{color:#5a1e2d}
+.cali-landing .lp-screen-heading p{color:#645955;max-width:640px;margin:15px auto 0;line-height:1.6}
+.cali-landing .lp-screen-carousel{position:relative;background:#fffdf9!important;border:1px solid #dccfc1;box-shadow:0 25px 70px #5a1e2d14;padding:clamp(12px,2vw,24px)!important}
+.cali-landing .lp-screen-frame{background:#f7f3ee!important;border:1px solid #e6d9cb!important}
+.cali-landing .lp-screen-toolbar{position:relative;min-height:86px;justify-content:flex-start!important;gap:24px!important;padding:13px 104px 0 4px!important;margin-top:0!important}
+.lp-screen-context{display:grid;grid-template-columns:auto 1fr;align-items:baseline;gap:3px 16px;min-width:0;flex:1;color:#5a1e2d}
+.lp-screen-context span{grid-row:1/3;color:#9b7044;font-size:12px;font-weight:800;letter-spacing:.14em}
+.lp-screen-context strong{font:500 clamp(20px,2.2vw,29px)/1.15 'Playfair Display',Georgia,serif}
+.lp-screen-context p{grid-column:2;margin:0;color:#615653;font-size:14px;line-height:1.4}
+.cali-landing .lp-screen-toolbar .lp-screen-dots{margin:0!important;flex:none;flex-wrap:wrap;max-width:180px}
+.cali-landing .lp-screen-toolbar .lp-screen-controls{right:3px!important;bottom:10px!important}
+@media(max-width:820px){.cali-landing .lp-screen-toolbar{display:grid!important;grid-template-columns:1fr auto;gap:15px!important;padding:15px 4px 4px!important}.lp-screen-context{grid-column:1/-1}.cali-landing .lp-screen-toolbar .lp-screen-controls{position:static!important;grid-column:2;grid-row:2}.cali-landing .lp-screen-toolbar .lp-screen-dots{grid-column:1;grid-row:2;justify-content:flex-start!important}}
+@media(max-width:560px){.cali-landing .lp-screen-heading p{font-size:15px}.lp-screen-context{gap:3px 9px}.lp-screen-context p{font-size:12px}.lp-screen-context strong{font-size:21px}}
+
+/* Site footer system. */
+.cali-landing .lp-footer{background:#35121f;color:#f7f3ee;padding:34px 0 35px}
+.cali-landing .lp-footer .lp-shell{width:min(1240px,calc(100% - 44px));display:flex;align-items:center;justify-content:space-between;gap:25px;flex-wrap:wrap;border-top:1px solid #ffffff35;padding-top:34px}
+.cali-landing .lp-footer img{width:100px;height:60px;object-fit:contain;filter:none}
+.lp-footer-site-links{display:flex;gap:22px;flex-wrap:wrap}
+.lp-footer-site-links a{font:400 13px 'DM Sans',sans-serif;color:#f7f3eec9}
+.lp-footer-site-links a:hover{color:#e2b97e}
+.lp-footer-social{display:flex;gap:8px}
+.lp-footer-social a{display:grid;place-items:center;width:39px;height:39px;color:#f7f3ee}
+.cali-landing .lp-footer-copy{width:100%;display:block;color:#f7f3ee80;font:400 12px 'DM Sans',sans-serif;margin-top:7px}
+@media(max-width:800px){.cali-landing .lp-footer .lp-shell{align-items:flex-start;flex-direction:column}.lp-footer-site-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:15px}}
+@media(prefers-reduced-motion:reduce){.lp-site-header,.lp-site-nav-shell{transition:none}}
