@@ -3239,11 +3239,12 @@
 .cali-landing .lp-hero-copy h1 {
   max-width:none;
   margin:15px 0 0;
+  color:#5a1e2d!important;
   font-size:clamp(2.85rem,5vw,5rem);
   line-height:1.13;
   letter-spacing:-.035em;
 }
-.cali-landing .lp-hero-copy h1 span { display:inline-block; margin:0; color:#8c603e; }
+.cali-landing .lp-hero-copy h1 span { display:inline-block; margin:0; color:#8c603e!important; }
 .cali-landing .lp-hero-product { width:min(730px,84%); max-width:none; margin:0; perspective:1300px; }
 .lp-hero-screen-float { animation:lp-screen-float 7s ease-in-out infinite; }
 .lp-hero-screen-stage {
