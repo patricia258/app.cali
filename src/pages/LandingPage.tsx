@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
@@ -302,6 +302,7 @@ function ScreenVisual({ slot }: { slot: ScreenSlot }) {
 
 export function LandingPage() {
   const [activeScreen, setActiveScreen] = useState(0);
+  const heroScreenRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -356,25 +357,31 @@ export function LandingPage() {
 
       <section className="lp-hero" id="inicio">
         <div className="lp-shell lp-hero-grid">
-          <div className="lp-hero-copy" data-lp-reveal="left">
+          <div className="lp-hero-copy" data-lp-reveal="up">
             <span className="lp-eyebrow">CALI WORKSPACE</span>
-            <h1>Acompanhe seus projetos com o <span>app da CALI.</span></h1>
+            <h1>Acompanhe seus projetos<br /><span>com o app da CALI.</span></h1>
           </div>
 
-          <div className="lp-hero-product" data-lp-reveal="right">
-            <div className="lp-monitor-shell" aria-label="Tela de login do CALI Workspace">
-              <div className="lp-window">
-                <div className="lp-window-top">
-                  <span />
-                  <span />
-                  <span />
-                  <small>app.calirh.com</small>
-                </div>
-                <div className="lp-window-screen lp-login-screen">
-                  <img src="/landing/cali-workspace-login.svg?v=8" alt="Tela de login do CALI Workspace" />
-                </div>
+          <div className="lp-hero-product" data-lp-reveal="up">
+            <div className="lp-hero-screen-float">
+              <div
+                className="lp-hero-screen-stage"
+                ref={heroScreenRef}
+                onPointerMove={(event) => {
+                  if (event.pointerType === 'touch' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                  const rect = event.currentTarget.getBoundingClientRect();
+                  const x = (event.clientX - rect.left) / rect.width - 0.5;
+                  const y = (event.clientY - rect.top) / rect.height - 0.5;
+                  heroScreenRef.current?.style.setProperty('--tilt-x', `${-y * 7}deg`);
+                  heroScreenRef.current?.style.setProperty('--tilt-y', `${x * 9}deg`);
+                }}
+                onPointerLeave={() => {
+                  heroScreenRef.current?.style.setProperty('--tilt-x', '0deg');
+                  heroScreenRef.current?.style.setProperty('--tilt-y', '0deg');
+                }}
+              >
+                <img src="/landing/cali-workspace-login.svg?v=8" alt="Tela de acesso ao CALI Workspace" />
               </div>
-              <div className="lp-monitor-stand" aria-hidden="true"><span /></div>
             </div>
           </div>
         </div>
@@ -516,14 +523,11 @@ export function LandingPage() {
 
       <section className="lp-section lp-screens-section">
         <div className="lp-shell">
-          <div className="lp-section-heading lp-section-heading-centered lp-section-heading-dark lp-screen-heading" data-lp-reveal="up">
-            <span className="lp-kicker">O WORKSPACE NA PRÁTICA</span>
-            <h2>Veja o trabalho acontecer.</h2>
-            <p>Explore as telas do ambiente compartilhado com sua empresa. Projetos, decisões e entregas ficam à vista durante o ciclo.</p>
-          </div>
-
           <div
             className="lp-screen-carousel"
+            role="region"
+            aria-roledescription="carrossel"
+            aria-label="Telas do CALI Workspace na prática"
             data-lp-reveal="zoom"
           >
             <div className="lp-screen-frame">
@@ -538,43 +542,26 @@ export function LandingPage() {
               ))}
             </div>
 
-            <div className="lp-screen-toolbar">
-              <div className="lp-screen-context" aria-live="polite">
-                <span>{String(activeScreen + 1).padStart(2, '0')} / {String(SCREENSHOTS.length).padStart(2, '0')}</span>
-                <strong>{SCREENSHOTS[activeScreen].label}</strong>
-                <p>{SCREENSHOTS[activeScreen].description}</p>
-              </div>
-              <div className="lp-screen-navigation" aria-label="Navegação do carrossel">
-              <div className="lp-screen-dots" aria-label="Selecionar tela">
+            <div className="lp-screen-controls">
+              <button type="button" aria-label="Tela anterior"
+                onClick={() => setActiveScreen((value) => (value - 1 + SCREENSHOTS.length) % SCREENSHOTS.length)}
+              ><ChevronLeft size={18} /></button>
+              <button type="button" aria-label="Próxima tela"
+                onClick={() => setActiveScreen((value) => (value + 1) % SCREENSHOTS.length)}
+              ><ChevronRight size={18} /></button>
+            </div>
+            <div className="lp-screen-dots" aria-label="Selecionar tela">
               {SCREENSHOTS.map((slot, index) => (
                 <button
                   type="button"
                   key={slot.label}
                   aria-label={`Ver ${slot.label}`}
+                  aria-current={index === activeScreen ? 'true' : undefined}
                   className={index === activeScreen ? 'is-active' : ''}
                   onClick={() => setActiveScreen(index)}
                 />
               ))}
-              </div>
-              <div className="lp-screen-controls">
-                <button
-                  type="button"
-                  aria-label="Tela anterior"
-                  onClick={() => setActiveScreen((value) => (value - 1 + SCREENSHOTS.length) % SCREENSHOTS.length)}
-                >
-                  <ChevronLeft size={20} /><span>Anterior</span>
-                </button>
-                <button
-                  type="button"
-                  aria-label="Próxima tela"
-                  onClick={() => setActiveScreen((value) => (value + 1) % SCREENSHOTS.length)}
-                >
-                  <span>Próxima</span><ChevronRight size={20} />
-                </button>
-              </div>
-              </div>
             </div>
-            <div className="lp-screen-progress" aria-hidden="true"><span key={activeScreen} /></div>
           </div>
         </div>
       </section>
