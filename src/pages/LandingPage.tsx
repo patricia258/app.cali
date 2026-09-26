@@ -357,12 +357,15 @@ export function LandingPage() {
 
       <section className="lp-hero" id="inicio">
         <div className="lp-shell lp-hero-grid">
-          <div className="lp-hero-copy" data-lp-reveal="up">
+          <div className="lp-hero-copy" data-lp-reveal="left">
             <span className="lp-eyebrow">CALI WORKSPACE</span>
-            <h1>Acompanhe seus projetos<br /><span>com o app da CALI.</span></h1>
+            <h1>Acompanhe seus projetos <span>com o app da CALI.</span></h1>
+            <Link className="lp-hero-login" to="/login">
+              Entrar no Workspace <ArrowUpRight size={19} aria-hidden="true" />
+            </Link>
           </div>
 
-          <div className="lp-hero-product" data-lp-reveal="up">
+          <div className="lp-hero-product" data-lp-reveal="right">
             <div className="lp-hero-screen-float">
               <div
                 className="lp-hero-screen-stage"
