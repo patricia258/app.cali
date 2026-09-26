@@ -94,7 +94,10 @@ const ClientDocumentsPage = lazy(async () => {
   await import('./styles/routes/documents');
   return import('./pages/client/ClientDocumentsPage').then((m) => ({ default: m.ClientDocumentsPage }));
 });
-const ClientReportsPageV5 = lazy(() => import('./pages/client/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 })));
+const ClientReportsPageV5 = lazy(async () => {
+  await import('./styles/routes/reports');
+  return import('./pages/client/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 }));
+});
 const ReportPrintPageV17 = lazy(async () => {
   await import('./styles/routes/reports');
   return import('./pages/reports/ReportPrintPageV17').then((m) => ({ default: m.ReportPrintPageV17 }));

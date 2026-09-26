@@ -122,6 +122,11 @@ export type ClientDeliveryReality = {
   company: {
     id: string;
     displayName: string;
+    logoUrl?: string | null;
+    serviceType?: string | null;
+    servicePlan?: string | null;
+    startDate?: string | null;
+    endDate?: string | null;
     monthlyHoursContracted: number | null;
     showHoursToClient: boolean;
   };
@@ -422,7 +427,7 @@ export async function loadClientDashboardReality(companyId: string): Promise<Cli
 
   const [companyResult, projectResult, deliverableResult, hourResult, npsResult] = await Promise.all([
     supabase.from('companies')
-      .select('id,display_name,monthly_hours_contracted,show_hours_to_client')
+      .select('id,display_name,logo_url,service_type,service_plan,start_date,end_date,monthly_hours_contracted,show_hours_to_client')
       .eq('id', companyId)
       .single(),
     supabase.from('projects')
@@ -455,6 +460,11 @@ export async function loadClientDashboardReality(companyId: string): Promise<Cli
   const company = {
     id: companyResult.data.id,
     displayName: companyResult.data.display_name,
+    logoUrl: companyResult.data.logo_url,
+    serviceType: companyResult.data.service_type,
+    servicePlan: companyResult.data.service_plan,
+    startDate: companyResult.data.start_date,
+    endDate: companyResult.data.end_date,
     monthlyHoursContracted: companyResult.data.monthly_hours_contracted == null ? null : finiteNumber(companyResult.data.monthly_hours_contracted),
     showHoursToClient: Boolean(companyResult.data.show_hours_to_client),
   };
@@ -532,4 +542,3 @@ export async function loadClientDashboardReality(companyId: string): Promise<Cli
     },
   };
 }
-

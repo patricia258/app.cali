@@ -436,3 +436,49 @@ A etapa será considerada concluída quando os ganhos testados no preview estive
 - produção somente atualizada após aprovação da Patrícia.
 
 **Regra soberana desta data:** primeiro estabilizar e aplicar na aplicação real o que já foi testado; depois evoluir UX/UI em etapas separadas. Nenhuma melhoria visual será confundida com aprovação funcional, e nenhum teste será transformado em uma sequência de commits acumulados.
+
+## Retomada — 25/09/2026: entrada nos perfis Cliente e Administrador
+
+Patrícia relatou espera perceptível, por vezes próxima de três segundos, ao entrar e navegar pelos dois perfis. O deploy de produção estava `READY` no commit `f91b96a71733bdf705db8ea2453a20382fa56181`. A Vercel não retornou logs de funções para o período consultado; este é um SPA estático e esse resultado não mede as consultas feitas diretamente pelo navegador ao Supabase. A base Supabase usada pelo app é o projeto CALI MAPA (`kqtbfeeqbcllwvlkbrkq`), no leste dos EUA. Nenhum dado de cliente ou configuração do banco foi alterado nesta rodada.
+
+### Diagnóstico no código atual
+
+- A sessão global e as rotas lazy já existem. Isso elimina a antiga revalidação de role a cada troca de página, mas o refresh completo ainda depende da restauração de sessão e da consulta ao perfil.
+- A Visão Geral administrativa espera todas as consultas e **também** a criação dos links assinados das logos privadas antes de publicar os dados. Uma resposta lenta de Storage mantém os indicadores e a carteira aguardando.
+- A página inicial do Cliente lê `profiles`, depois dispara as demais consultas; dentro desse segundo grupo, a mesma linha de `companies` era lida duas vezes.
+- Há outros candidatos para a próxima medição: quantidade de consultas paralelas nos dashboards, perfil e notificações no shell, imagens/fontes e a entrada dos estilos/runtimes por rota. Não atribuir os três segundos exclusivamente aos dois pontos acima sem medição autenticada de rede.
+
+### Primeira melhoria isolada
+
+Branch: `improvement/dashboard-load-2026-09-25`.
+
+- Admin: dados e indicadores passam a ser exibidos após as consultas, sem aguardar a assinatura das logos; links de mídia são resolvidos em segundo plano. Recarregamentos concorrentes não aplicam logos de uma versão anterior dos dados.
+- Cliente: os campos da empresa vêm da leitura já feita em `loadClientDashboardReality`, preservando os mesmos dados visíveis e eliminando a consulta duplicada à mesma linha.
+- O vídeo e a capa de “Fale com a Pati” foram extraídos byte a byte do antigo módulo JavaScript em base64 para `/media/pati-wave.mp4` e `/media/pati-wave.webp`. O módulo de mídia caiu de cerca de **217 kB / 162 kB gzip** para **0,08 kB / 0,08 kB gzip**; o navegador passa a buscar os mesmos arquivos de mídia separadamente. Isso afeta também a landing page, que usava o mesmo módulo.
+- Sem alterações em RLS, timer, permissões, PDFs, layout ou regras comerciais.
+- `npm run check` (TypeScript e build Vite): passou. O JS de entrada ficou em torno de **127,89 kB / 37,44 kB gzip** nesta medição; esta rodada visa o tempo de espera por dados, não o tamanho do bundle.
+
+### Validação restante antes de publicar
+
+Medir no preview autenticado, em Cliente e Admin, o tempo do clique/refresh até conteúdo útil e o waterfall de `profiles`, `companies`, dashboard, Storage e mídia. Verificar logo privada, ausência de dados de outra conta, tema dia/noite, desktop/mobile, navegação interna, refresh direto e timer em execução. A melhora em segundos ainda **não foi medida** com uma sessão real; não declarar meta de três segundos cumprida somente com o build. Depois desta validação, seguir página por página com a Patrícia.
+
+### Ajuste visual solicitado após teste do preview — 25/09/2026
+
+Patrícia confirmou melhora discreta no carregamento e enviou três prints: Relatórios Cliente com folha/lima alternadas sobre tela preta, rodapé do Login com contatos amontoados e Projetos Admin com as duas ilustrações lado a lado sobre o fundo quadriculado aprovado.
+
+O motivo da diferença estava no código: `.cali-route-loading` era um overlay `fixed` cobrindo toda a viewport com fundo sólido; `.data-loading` usava dois pseudo-elementos em `flex` lado a lado; e Ocorrências tinha três marcas próprias. O tema noite deixava o overlay escuro, mas sem o quadriculado/marcas d'água do Workspace.
+
+Correção na mesma revisão:
+
+- Loading de rota passa a ocupar e centralizar a área útil do Workspace, com fundo transparente; mantém sidebar, topbar e fundo CALI visíveis em dia/noite.
+- Loading de dados e de Ocorrências usa a mesma animação alternada, com uma única marca por vez no mesmo centro. Os loaders menores mantêm altura local; páginas em carregamento ocupam a área útil.
+- Editor/prévia de Propostas e preparação da impressão de Relatórios também adotam essa marca no estado inicial de página.
+- Rodapé do Login mostra quatro ícones finos e clicáveis (e-mail, WhatsApp, LinkedIn e Instagram), com rótulos acessíveis e os mesmos destinos já usados na landing page. Mantém o link separado para o site.
+
+Conferir no preview Cliente/Relatórios, Admin/Projetos, Ocorrências, Propostas, impressão e Login em desktop/mobile e dia/noite; observar centralização, fundo, transição folha/lima e foco/links dos ícones. Não inferir aprovação visual do typecheck/build.
+
+### Continuação — Relatórios do Cliente, 26/09/2026
+
+A rota `/cliente/relatorios` não carregava seu módulo de estilos separado, ao contrário da rota administrativa e da impressão. A entrada da rota agora carrega `styles/routes/reports` antes de abrir a página. A consulta inicial tinha espera sem limite, inclusive quando não havia cliente Supabase configurado. Agora as três leituras (`profiles`, `companies`, `reports`) compartilham cancelamento após 15 segundos; a página sai do carregamento, informa a falha e oferece **Tentar novamente**. Requisições antigas e links de logo atrasados não substituem dados de uma tentativa posterior. Nenhuma regra de envio, ciência, PDF ou permissão foi alterada.
+
+O build local e o typecheck passaram. Os registros do serviço PostgREST no intervalo do relato continham timeouts, mas não identificam a sessão nem provam que causaram o problema específico da página. Ainda é necessário conferir a rota no preview autenticado, com o relatório real do Cliente, em navegação interna e refresh, e checar o console/rede nos dois perfis antes de considerar a etapa aprovada. Este PR ainda não demonstra redução do tempo real em segundos.

@@ -419,16 +419,16 @@ html[data-workspace-theme='night'] .sidebar .profile-copy small {
    ilustrações oficiais alternam suavemente, como uma pequena assinatura viva.
    ========================================================= */
 .cali-route-loading {
-  position:fixed !important;
-  inset:0 !important;
-  width:100vw !important;
-  height:100dvh !important;
-  min-height:100dvh !important;
+  position:relative !important;
+  inset:auto !important;
+  width:100% !important;
+  height:auto !important;
+  min-height:calc(100dvh - 96px) !important;
   display:grid !important;
   place-items:center !important;
   overflow:hidden !important;
-  background:#f7f3ee !important;
-  z-index:2147483700 !important;
+  background:transparent !important;
+  z-index:1 !important;
 }
 .cali-loading-illustrations {
   position:relative;
@@ -450,6 +450,7 @@ html[data-workspace-theme='night'] .sidebar .profile-copy small {
   animation:cali-loading-lime 2.4s ease-in-out infinite;
 }
 .cali-loading-oak {
+  background:#b58c52;
   -webkit-mask:url('/brand/cali-oak-mark.svg') center / contain no-repeat;
   mask:url('/brand/cali-oak-mark.svg') center / contain no-repeat;
   animation:cali-loading-oak 2.4s ease-in-out infinite;
@@ -475,8 +476,9 @@ html[data-workspace-theme='night'] .sidebar .profile-copy small {
   white-space:nowrap !important;
   border:0 !important;
 }
-html[data-workspace-theme='night'] .cali-route-loading {background:#171215 !important}
+html[data-workspace-theme='night'] .cali-route-loading {background:transparent !important}
 html[data-workspace-theme='night'] .cali-loading-mark {background:#f1dbe1;filter:drop-shadow(0 12px 24px rgba(0,0,0,.18))}
+html[data-workspace-theme='night'] .cali-loading-oak {background:#b58c52}
 
 @media (max-width:720px) {
   html[data-workspace-theme='night'] select.people-map-status {

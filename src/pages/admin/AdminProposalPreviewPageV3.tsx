@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ExternalLink, FileText, Loader2, PencilLine } from 'lucide-react';
+import { ArrowLeft, ExternalLink, FileText, PencilLine } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Shell } from '../../components/WorkspaceShell';
 import { loadPortalProposal, type PortalProposal, type PortalSubmission } from '../../lib/portalAdminApi';
@@ -52,7 +52,7 @@ export function AdminProposalPreviewPageV3(){
     }
   };
 
-  if(loading)return <Shell role="admin"><section className="page"><div className="panel portal-admin-loading"><Loader2 className="spin"/>Carregando proposta…</div></section></Shell>;
+  if(loading)return <Shell role="admin"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando proposta…</section></Shell>;
   if(!proposal)return <Shell role="admin"><section className="page"><div className="inline-notice danger">{error||'Proposta não encontrada.'}</div></section></Shell>;
 
   if(!proposal.pdf_path)return <AdminProposalPreviewPageV2/>;

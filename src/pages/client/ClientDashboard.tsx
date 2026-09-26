@@ -136,20 +136,28 @@ export function ClientDashboard() {
       if (!companyId) throw new Error('Este acesso ainda não está vinculado a uma empresa.');
 
       const nowIso = new Date().toISOString();
-      const [companyResult, deliveryReality, eventResult, reportResult, contactResult] = await Promise.all([
-        supabase.from('companies').select('id,display_name,logo_url,service_type,service_plan,start_date,end_date,monthly_hours_contracted,show_hours_to_client').eq('id', companyId).single(),
+      const [deliveryReality, eventResult, reportResult, contactResult] = await Promise.all([
         loadClientDashboardReality(companyId),
         supabase.from('events').select('id,title,starts_at,mode,meeting_url').eq('company_id', companyId).eq('visibility', 'client').is('cancelled_at', null).gte('starts_at', nowIso).order('starts_at').limit(3),
         supabase.from('reports').select('id').eq('company_id', companyId).not('published_at', 'is', null),
         supabase.rpc('get_client_account_contact'),
       ]);
 
-      if (companyResult.error) throw companyResult.error;
       if (eventResult.error) throw eventResult.error;
       const contactRows = contactResult.error ? [] : ((contactResult.data || []) as Contact[]);
 
       setData({
-        company: companyResult.data as Company,
+        company: {
+          id: deliveryReality.company.id,
+          display_name: deliveryReality.company.displayName,
+          logo_url: deliveryReality.company.logoUrl,
+          service_type: deliveryReality.company.serviceType,
+          service_plan: deliveryReality.company.servicePlan,
+          start_date: deliveryReality.company.startDate,
+          end_date: deliveryReality.company.endDate,
+          monthly_hours_contracted: deliveryReality.company.monthlyHoursContracted,
+          show_hours_to_client: deliveryReality.company.showHoursToClient,
+        },
         profile: profileResult.data as Profile,
         contact: contactRows[0] || null,
         projects: deliveryReality.projects.map((project) => ({

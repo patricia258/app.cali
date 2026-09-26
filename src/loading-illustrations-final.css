@@ -1,70 +1,73 @@
-/* Loading institucional final — usar as ilustrações CALI, não spinner ou bolinhas genéricas */
-.data-loading,
-.cali-symbol-loading{
-  min-height:54vh!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  gap:24px!important;
-  background:transparent!important;
-  color:transparent!important;
-  font-size:0!important;
+/* The same alternating CALI mark is used for route and data loading states. */
+.data-loading {
+  position: relative;
+  min-height: 150px !important;
+  display: grid !important;
+  place-items: center !important;
+  background: transparent !important;
+  color: transparent !important;
+  font-size: 0 !important;
 }
 
-.data-loading svg{display:none!important;}
+.page.data-loading,
+.page > .data-loading,
+.report-print-v16-state.data-loading {
+  min-height: calc(100dvh - 110px) !important;
+}
+
+.data-loading svg { display: none !important; }
 
 .data-loading::before,
-.data-loading::after,
-.cali-symbol-dot{
-  display:block!important;
-  width:78px!important;
-  height:78px!important;
-  flex:0 0 78px!important;
-  border-radius:0!important;
-  box-shadow:none!important;
-  background-image:none!important;
-  opacity:.34;
-  animation:cali-illustration-loading 1.55s ease-in-out infinite!important;
-  -webkit-mask-position:center!important;
-  mask-position:center!important;
-  -webkit-mask-repeat:no-repeat!important;
-  mask-repeat:no-repeat!important;
-  -webkit-mask-size:contain!important;
-  mask-size:contain!important;
+.data-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block !important;
+  width: 96px !important;
+  height: 96px !important;
+  margin: -48px 0 0 -48px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background-image: none !important;
+  opacity: 0;
+  pointer-events: none;
+  -webkit-mask-position: center !important;
+  mask-position: center !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-size: contain !important;
+  mask-size: contain !important;
 }
 
-.data-loading::before,
-.cali-symbol-dot.one,
-.cali-symbol-dot.three{
-  content:'';
-  background:#5A1E2D!important;
-  -webkit-mask-image:url('/brand/cali-lime-mark.svg')!important;
-  mask-image:url('/brand/cali-lime-mark.svg')!important;
+.data-loading::before {
+  background: #5a1e2d !important;
+  -webkit-mask-image: url('/brand/cali-lime-mark.svg') !important;
+  mask-image: url('/brand/cali-lime-mark.svg') !important;
+  animation: cali-loading-lime 2.4s ease-in-out infinite !important;
 }
 
-.data-loading::after,
-.cali-symbol-dot.two{
-  content:'';
-  background:#B58C52!important;
-  -webkit-mask-image:url('/brand/cali-oak-mark.svg')!important;
-  mask-image:url('/brand/cali-oak-mark.svg')!important;
-  animation-delay:.22s!important;
+.data-loading::after {
+  background: #b58c52 !important;
+  -webkit-mask-image: url('/brand/cali-oak-mark.svg') !important;
+  mask-image: url('/brand/cali-oak-mark.svg') !important;
+  animation: cali-loading-oak 2.4s ease-in-out infinite !important;
 }
 
-.cali-symbol-dot.three{animation-delay:.44s!important;}
+html[data-workspace-theme='night'] .data-loading::before { background: #f1dbe1 !important; }
+html[data-workspace-theme='night'] .data-loading::after { background: #b58c52 !important; }
 
-html[data-workspace-theme='night'] .data-loading::before,
-html[data-workspace-theme='night'] .cali-symbol-dot.one,
-html[data-workspace-theme='night'] .cali-symbol-dot.three{background:#D6AEB8!important;}
-html[data-workspace-theme='night'] .data-loading::after,
-html[data-workspace-theme='night'] .cali-symbol-dot.two{background:#B58C52!important;}
-
-@keyframes cali-illustration-loading{
-  0%,100%{transform:translateY(5px) scale(.9) rotate(-2deg);opacity:.24;}
-  50%{transform:translateY(-7px) scale(1.04) rotate(1deg);opacity:.88;}
+@media (max-width: 720px) {
+  .data-loading::before,
+  .data-loading::after {
+    width: 76px !important;
+    height: 76px !important;
+    margin: -38px 0 0 -38px;
+  }
 }
 
-@media(max-width:720px){
-  .data-loading,.cali-symbol-loading{gap:16px!important;min-height:48vh!important;}
-  .data-loading::before,.data-loading::after,.cali-symbol-dot{width:62px!important;height:62px!important;flex-basis:62px!important;}
+@media (prefers-reduced-motion: reduce) {
+  .data-loading::before,
+  .data-loading::after { animation-duration: 4s !important; }
 }
