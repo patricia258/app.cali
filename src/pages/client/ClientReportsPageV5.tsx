@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle2, ChevronDown, Eye, FileText, Loader2, Printer, ShieldCheck, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { ExecutiveReportPaperV17 } from '../../components/reports/ExecutiveReportPaperV17';
@@ -65,8 +65,13 @@ export function ClientReportsPageV5(){
   const[previewOpen,setPreviewOpen]=useState(false);
   const[ackOpen,setAckOpen]=useState(false);
   const[acknowledging,setAcknowledging]=useState(false);
+  const requestId=useRef(0);
+  const activeRequest=useRef<AbortController|null>(null);
 
-  useEffect(()=>{void load();},[]);
+  useEffect(()=>{
+    void load();
+    return()=>{requestId.current++;activeRequest.current?.abort();};
+  },[]);
   useEffect(()=>{
     if(!previewOpen&&!ackOpen)return;
     document.body.classList.add('workspace-modal-open');
@@ -74,32 +79,45 @@ export function ClientReportsPageV5(){
   },[previewOpen,ackOpen]);
 
   async function load(preferredId?:string){
-    if(!supabase)return;
+    activeRequest.current?.abort();
+    const controller=new AbortController();
+    activeRequest.current=controller;
+    const currentRequest=++requestId.current;
+    const timeout=window.setTimeout(()=>controller.abort(),15000);
     setLoading(true);setError('');
     try{
+      if(!supabase)throw new Error('Não foi possível conectar aos relatórios. Tente novamente.');
       const userId=user?.id;
       if(!userId)throw new Error('Sessão do cliente não encontrada.');
-      const profile=await supabase.from('profiles').select('company_id').eq('id',userId).maybeSingle();
+      const profile=await supabase.from('profiles').select('company_id').eq('id',userId).abortSignal(controller.signal).maybeSingle();
       if(profile.error)throw profile.error;
       const companyId=profile.data?.company_id;
       if(!companyId)throw new Error('Empresa vinculada ao acesso não encontrada.');
       const[companyResult,reportResult]=await Promise.all([
-        supabase.from('companies').select('display_name,logo_url').eq('id',companyId).maybeSingle(),
-        supabase.from('reports').select('id,title,report_type,period_start,period_end,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,published_at,sent_at,version,approval_identity_snapshot,acknowledgement_identity_snapshot,acknowledged_at,acknowledgement_protocol,approved_at,client_open_count,client_first_opened_at,client_last_opened_at,client_pdf_count').eq('company_id',companyId).in('status',['sent','published']).order('period_start',{ascending:false}).order('version',{ascending:false})
+        supabase.from('companies').select('display_name,logo_url').eq('id',companyId).abortSignal(controller.signal).maybeSingle(),
+        supabase.from('reports').select('id,title,report_type,period_start,period_end,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,published_at,sent_at,version,approval_identity_snapshot,acknowledgement_identity_snapshot,acknowledged_at,acknowledgement_protocol,approved_at,client_open_count,client_first_opened_at,client_last_opened_at,client_pdf_count').eq('company_id',companyId).in('status',['sent','published']).order('period_start',{ascending:false}).order('version',{ascending:false}).abortSignal(controller.signal)
       ]);
       if(companyResult.error)throw companyResult.error;
       if(reportResult.error)throw reportResult.error;
+      if(currentRequest!==requestId.current||controller.signal.aborted)return;
       const companyName=companyResult.data?.display_name||'Empresa';
       setCompany({name:companyName,logoUrl:null});
-      void resolveWorkspaceMedia(companyResult.data?.logo_url,86400,true).then((logoUrl)=>setCompany({name:companyName,logoUrl}));
+      void resolveWorkspaceMedia(companyResult.data?.logo_url,86400,true).then((logoUrl)=>{
+        if(currentRequest===requestId.current)setCompany({name:companyName,logoUrl});
+      });
       const next=(reportResult.data||[]).map(rowToReport);
       setReports(next);
       const queryId=new URLSearchParams(window.location.search).get('report')||'';
       const desired=preferredId||queryId||selectedId;
       setSelectedId(next.some((item)=>item.id===desired)?desired:(next[0]?.id||''));
     }catch(requestError){
-      setError(requestError instanceof Error?requestError.message:'Não foi possível carregar os relatórios.');
-    }finally{setLoading(false);}
+      if(currentRequest===requestId.current)setError(controller.signal.aborted
+        ?'A consulta demorou mais que o esperado. Tente novamente.'
+        :requestError instanceof Error?requestError.message:'Não foi possível carregar os relatórios.');
+    }finally{
+      window.clearTimeout(timeout);
+      if(currentRequest===requestId.current){activeRequest.current=null;setLoading(false);}
+    }
   }
 
   async function recordOpen(id:string){
@@ -169,12 +187,10 @@ export function ClientReportsPageV5(){
       </div>
       <div className="client-reports-heading-mark-v58" aria-hidden="true"><FileText size={28}/></div>
     </header>
-    {error?<div className="inline-notice">{error}</div>:null}
-    {loading
-      ?<div className="panel data-loading"><Loader2 className="spin" size={20}/>Carregando relatórios…</div>
-      :!reports.length
-        ?<div className="panel client-reports-v56-empty"><FileText size={28}/><strong>Nenhum relatório foi liberado ainda.</strong><p>Quando a CALI enviar um fechamento, ele ficará disponível aqui.</p></div>
-        :<section className="client-report-library-v56 client-report-library-v57 client-report-library-v58">
+    {error?<div className="inline-notice" role="alert">{error} <button type="button" className="client-report-secondary-v56" onClick={()=>void load()}>Tentar novamente</button></div>:null}
+    {!reports.length
+      ?(error?null:<div className="panel client-reports-v56-empty"><FileText size={28}/><strong>Nenhum relatório foi liberado ainda.</strong><p>Quando a CALI enviar um fechamento, ele ficará disponível aqui.</p></div>)
+      :<section className="client-report-library-v56 client-report-library-v57 client-report-library-v58">
           <div className="client-report-library-head-v58"><div><span>HISTÓRICO DE FECHAMENTOS</span><strong>{reports.length} {reports.length===1?'relatório disponível':'relatórios disponíveis'}</strong></div><p>Abra o relatório para a leitura completa ou expanda uma linha para consultar acessos e protocolo.</p></div>
           <div className="client-report-table-wrap-v56">
             <table className="client-report-table-v56 client-report-table-v57" style={{minWidth:1100,tableLayout:'fixed'}}>

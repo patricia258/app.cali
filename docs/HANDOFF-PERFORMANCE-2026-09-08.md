@@ -476,3 +476,9 @@ Correção na mesma revisão:
 - Rodapé do Login mostra quatro ícones finos e clicáveis (e-mail, WhatsApp, LinkedIn e Instagram), com rótulos acessíveis e os mesmos destinos já usados na landing page. Mantém o link separado para o site.
 
 Conferir no preview Cliente/Relatórios, Admin/Projetos, Ocorrências, Propostas, impressão e Login em desktop/mobile e dia/noite; observar centralização, fundo, transição folha/lima e foco/links dos ícones. Não inferir aprovação visual do typecheck/build.
+
+### Continuação — Relatórios do Cliente, 26/09/2026
+
+A rota `/cliente/relatorios` não carregava seu módulo de estilos separado, ao contrário da rota administrativa e da impressão. A entrada da rota agora carrega `styles/routes/reports` antes de abrir a página. A consulta inicial tinha espera sem limite, inclusive quando não havia cliente Supabase configurado. Agora as três leituras (`profiles`, `companies`, `reports`) compartilham cancelamento após 15 segundos; a página sai do carregamento, informa a falha e oferece **Tentar novamente**. Requisições antigas e links de logo atrasados não substituem dados de uma tentativa posterior. Nenhuma regra de envio, ciência, PDF ou permissão foi alterada.
+
+O build local e o typecheck passaram. Os registros do serviço PostgREST no intervalo do relato continham timeouts, mas não identificam a sessão nem provam que causaram o problema específico da página. Ainda é necessário conferir a rota no preview autenticado, com o relatório real do Cliente, em navegação interna e refresh, e checar o console/rede nos dois perfis antes de considerar a etapa aprovada. Este PR ainda não demonstra redução do tempo real em segundos.
