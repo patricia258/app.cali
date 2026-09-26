@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Loader2, Printer } from 'lucide-react';
+import { ArrowLeft, Printer } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ExecutiveReportPaperV17 } from '../../components/reports/ExecutiveReportPaperV17';
 import type { ReportIdentityV55 } from '../../components/reports/ReportValidationV55';
@@ -145,7 +145,7 @@ export function ReportPrintPageV17({ role }: Props) {
     finally { setLoading(false); }
   }
 
-  if (loading) return <main className="report-print-v16-state"><Loader2 className="spin" size={22} />Preparando versão para impressão…</main>;
+  if (loading) return <main className="report-print-v16-state data-loading" aria-live="polite" aria-busy="true">Preparando versão para impressão…</main>;
   if (error || !data) return <main className="report-print-v16-state error"><strong>Não foi possível abrir o relatório.</strong><p>{error}</p><button type="button" onClick={() => navigate(-1)}>Voltar</button></main>;
   return <main className="report-print-v16-page"><div className="report-print-v16-toolbar"><div><strong>Relatório executivo · v{data.version}</strong><span>{data.company.name} · {data.periodName}</span></div><div><button type="button" onClick={() => navigate(-1)}><ArrowLeft size={16} />Voltar</button><button className="primary" type="button" onClick={() => void prepareAndPrint(data)}><Printer size={16} />Imprimir / salvar PDF</button></div></div><div className="report-print-v16-stage"><ExecutiveReportPaperV17 company={data.company} snapshot={data.snapshot} editor={data.editor} reportType={data.reportType} periodName={data.periodName} protocol={data.protocol} deliveries={data.deliveries} approvalIdentity={data.approvalIdentity} acknowledgementIdentity={data.ackIdentity} approvedAt={data.approvedAt} acknowledgedAt={data.acknowledgedAt} acknowledgementProtocol={data.ackProtocol} /></div></main>;
 }

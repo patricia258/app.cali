@@ -461,3 +461,18 @@ Branch: `improvement/dashboard-load-2026-09-25`.
 ### Validação restante antes de publicar
 
 Medir no preview autenticado, em Cliente e Admin, o tempo do clique/refresh até conteúdo útil e o waterfall de `profiles`, `companies`, dashboard, Storage e mídia. Verificar logo privada, ausência de dados de outra conta, tema dia/noite, desktop/mobile, navegação interna, refresh direto e timer em execução. A melhora em segundos ainda **não foi medida** com uma sessão real; não declarar meta de três segundos cumprida somente com o build. Depois desta validação, seguir página por página com a Patrícia.
+
+### Ajuste visual solicitado após teste do preview — 25/09/2026
+
+Patrícia confirmou melhora discreta no carregamento e enviou três prints: Relatórios Cliente com folha/lima alternadas sobre tela preta, rodapé do Login com contatos amontoados e Projetos Admin com as duas ilustrações lado a lado sobre o fundo quadriculado aprovado.
+
+O motivo da diferença estava no código: `.cali-route-loading` era um overlay `fixed` cobrindo toda a viewport com fundo sólido; `.data-loading` usava dois pseudo-elementos em `flex` lado a lado; e Ocorrências tinha três marcas próprias. O tema noite deixava o overlay escuro, mas sem o quadriculado/marcas d'água do Workspace.
+
+Correção na mesma revisão:
+
+- Loading de rota passa a ocupar e centralizar a área útil do Workspace, com fundo transparente; mantém sidebar, topbar e fundo CALI visíveis em dia/noite.
+- Loading de dados e de Ocorrências usa a mesma animação alternada, com uma única marca por vez no mesmo centro. Os loaders menores mantêm altura local; páginas em carregamento ocupam a área útil.
+- Editor/prévia de Propostas e preparação da impressão de Relatórios também adotam essa marca no estado inicial de página.
+- Rodapé do Login mostra quatro ícones finos e clicáveis (e-mail, WhatsApp, LinkedIn e Instagram), com rótulos acessíveis e os mesmos destinos já usados na landing page. Mantém o link separado para o site.
+
+Conferir no preview Cliente/Relatórios, Admin/Projetos, Ocorrências, Propostas, impressão e Login em desktop/mobile e dia/noite; observar centralização, fundo, transição folha/lima e foco/links dos ícones. Não inferir aprovação visual do typecheck/build.

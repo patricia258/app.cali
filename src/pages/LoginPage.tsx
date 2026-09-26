@@ -178,10 +178,10 @@ export function LoginPage() {
       <footer className="login-v2-footer-brand"><span>© 2026 CALI RH — HR FOR BUSINESS. Todos os direitos reservados.</span></footer>
       <footer className="login-v2-footer-access">
         <div className="login-v2-footer-links">
-          <a href="mailto:patricia@calirh.com"><Mail size={15} />patricia@calirh.com</a>
-          <span><MessageCircle size={15} />WhatsApp</span>
-          <span><Linkedin size={15} />LinkedIn</span>
-          <span><Instagram size={15} />Instagram</span>
+          <a href="mailto:patricia@calirh.com" aria-label="E-mail da CALI" title="E-mail"><Mail size={17} strokeWidth={1.6} /></a>
+          <a href="https://wa.me/5541987791933" aria-label="WhatsApp da CALI" title="WhatsApp" target="_blank" rel="noopener noreferrer"><MessageCircle size={17} strokeWidth={1.6} /></a>
+          <a href="https://www.linkedin.com/in/patriciaazumi/" aria-label="LinkedIn da CALI" title="LinkedIn" target="_blank" rel="noopener noreferrer"><Linkedin size={17} strokeWidth={1.6} /></a>
+          <a href="https://www.instagram.com/calirh_/" aria-label="Instagram da CALI" title="Instagram" target="_blank" rel="noopener noreferrer"><Instagram size={17} strokeWidth={1.6} /></a>
         </div>
         <div className="login-v2-site-link"><span>Visite nosso site</span><a href="https://calirh.com" target="_blank" rel="noreferrer">calirh.com <ExternalLink size={15} /></a></div>
       </footer>

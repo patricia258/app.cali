@@ -442,7 +442,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   }
 
   if (loading && !records.length) {
-    return <Shell role={role}><section className="page records-v13"><div className="cali-symbol-loading" aria-label="Carregando"><span className="cali-symbol-dot one" /><span className="cali-symbol-dot two" /><span className="cali-symbol-dot three" /></div></section></Shell>;
+    return <Shell role={role}><section className="page records-v13 data-loading" aria-label="Carregando ocorrências" aria-busy="true">Carregando ocorrências…</section></Shell>;
   }
 
   const allowedTypes = role === 'admin' ? adminTypes : clientTypes;
