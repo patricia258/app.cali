@@ -66,3 +66,18 @@ Registro contínuo, por ordem cronológica, de toda mudança feita por qualquer 
 - **Entrega:** 3 commits em `main`: `79c4667` (Clientes/Calendário/Documentos/Horas/Relatórios), `daecd9f` (NPS/Mapa de People/Agenda), `998f98f` (Projetos + limpeza final das classes compartilhadas). `npm run check` (typecheck + build) validado localmente após cada commit, sem erros.
 - **Aprovação:** Pedido explícito da Pati em 26/09/2026 ("pode seguir com as demanis paginas"). `aguardando avaliação` — ainda não confirmou visualmente.
 - **Limites:** Não testei visualmente (sem navegador/computador vinculado nesta sessão) — só typecheck/build. Não toquei em nenhuma página que já não tivesse o card (Visão Geral/Dashboard, Propostas, editor/preview de proposta, revisão/relatório do Mapa de People, impressão de relatório, Início/Entregáveis/Horas/Documentos/Relatórios do cliente) — nenhuma dessas tinha o padrão de card duplicado. Também não toquei em nenhum arquivo de versão antiga/sem uso que ainda existe no repositório (ex.: `AdminDocumentsPage.tsx`, `AdminReportsPageV3`–`V16`, `ClientReportsPageV4`) — não estão roteados em `App.tsx`, então ficaram fora do escopo; a CSS ainda compartilhada com esses arquivos mortos foi deixada intacta para não arriscar quebrar algo fora do meu campo de visão.
+  - **Correção (mesmo dia):** a afirmação acima de que Início/Entregáveis/Horas/Documentos/Relatórios do cliente "já não tinham esse card" estava errada — a varredura que fiz buscava só os nomes de classe usados no admin (`page-heading`/`workspace-page-identity`); essas 5 páginas do cliente tinham o mesmo card com nomes de classe próprios, que passaram batido. Corrigido na entrada seguinte, depois da Pati apontar que ficaram pendentes.
+
+---
+
+## 2026-09-26 — Claude (correção: páginas do cliente que ficaram pendentes)
+
+- **Superfície/escopo:** Workspace (`app.cali`). Layout — mesma remoção do rollout anterior, agora nas 5 páginas do cliente que a varredura anterior não pegou (ver correção acima).
+- **Mudança e copy:** Pati avisou que algumas páginas do cliente não tinham recebido a atualização. Removido o card duplicado em:
+  - Início (`ClientDashboard`): cabeçalho "Olá, {nome}" + eyebrow + descrição removidos; card de contratação (horas do ciclo/status) preservado, reposicionado em linha de ações própria; função `firstName` removida por ficar sem uso.
+  - Entregáveis (`ClientDeliverablesPage`): eyebrow + h1 + descrição + ícone removidos; seletor de projeto (quando há mais de um) preservado.
+  - Horas do ciclo, Documentos e Relatórios (`ClientHoursPage`, `ClientDocumentsPage`, `ClientReportsPageV5`): removidos por completo, sem botão de ação para preservar.
+- **Limpeza de código:** CSS decorativa (gradiente, sombra, decoração, ícone, variantes de modo noite e responsivo) apagada por completo em `uxui-shell-dashboard-preview.css`, `client-deliverables-v33.css` e `client-home-v2.css` (incluindo trechos embutidos em linhas minificadas). Preservadas as regras ainda compartilhadas com páginas antigas/sem uso (ex.: `.hours-connect-header`, usado por `AdminHoursPageV2.tsx`, não roteado).
+- **Entrega:** Commit `bffe2d4`, em `main`. `npm run check` validado localmente.
+- **Aprovação:** Pati apontou a pendência em 26/09/2026, 22:16 — segue o mesmo pedido já aprovado de remover o card em todas as páginas. `aguardando avaliação`.
+- **Limites:** Não testei visualmente (sem navegador/computador vinculado nesta sessão) — só typecheck/build.
