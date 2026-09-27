@@ -110,12 +110,6 @@ function installDashboards(pathname: string) {
       mod.installDashboardSatisfactionRuntimeV29();
     });
   }
-  if (pathname === '/cliente') {
-    once('client-dashboard', async () => {
-      const mod = await import('../lib/clientHomeCompanyIdentityRuntimeV40');
-      mod.installClientHomeCompanyIdentityRuntimeV40();
-    });
-  }
 }
 
 function installMap() {

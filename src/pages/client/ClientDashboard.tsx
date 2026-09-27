@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowUpRight, CalendarDays, CheckCircle2, ChevronRight, Clock3, FileCheck2,
+  ArrowUpRight, CalendarDays, CheckCircle2, ChevronRight, FileCheck2,
   FileText, History, Leaf, ListChecks, Loader2, MessageCircle, Minus, Send,
   Sparkles, Star, X,
 } from 'lucide-react';
-import { Progress, Shell } from '../../components/WorkspaceShell';
+import { Shell } from '../../components/WorkspaceShell';
 import { loadClientDashboardReality, subscribeClientDeliveryReality } from '../../lib/clientDeliveryReality';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
@@ -65,6 +65,16 @@ function formatHours(minutes: number) {
 }
 function firstName(name?: string | null) {
   return (name || 'Olá').split(' ')[0] || 'Olá';
+}
+const planLabels: Record<string, string> = {
+  partner: 'Cali Partner',
+};
+function planLabel(value?: string | null) {
+  if (!value) return null;
+  const key = value.trim().toLocaleLowerCase('pt-BR');
+  if (planLabels[key]) return planLabels[key];
+  const clean = value.trim();
+  return clean.toLocaleLowerCase('pt-BR').startsWith('cali ') ? clean : `Cali ${clean.charAt(0).toUpperCase()}${clean.slice(1)}`;
 }
 function formatDate(value?: string | null) {
   if (!value) return 'A definir';
@@ -189,8 +199,7 @@ export function ClientDashboard() {
   const movingCount = projectDeliverables.filter((item) => ['in_progress', 'internal_review', 'client_review', 'adjustment_requested', 'rebriefing'].includes(item.status)).length;
   const showHours = Boolean(data.company?.show_hours_to_client);
   const contractedMinutes = showHours ? Number(data.company?.monthly_hours_contracted || 0) * 60 : 0;
-  const hoursPct = contractedMinutes > 0 ? Math.min(100, Math.round((data.minutes / contractedMinutes) * 100)) : 0;
-  const packageName = data.company?.service_plan || data.company?.service_type || 'Contratação CALI';
+  const packageName = planLabel(data.company?.service_plan) || planLabel(data.company?.service_type) || 'Contratação CALI';
 
   function quickAnswer(kind: 'next_event' | 'hours' | 'validation' | 'reports') {
     if (kind === 'next_event') {
@@ -233,40 +242,41 @@ export function ClientDashboard() {
     <section className="page client-home-v2 client-home-v3">
       {error && <div className="inline-notice">{error}</div>}
 
-      <header className="client-home-heading">
-        <div>
-          <span className="eyebrow">ESPAÇO COMPARTILHADO · CALI WORKSPACE</span>
-          <h1>Olá, {firstName(data.profile?.full_name)}.</h1>
-          <p>Seu acompanhamento executivo da parceria com a CALI: prioridades, entregas, agenda e evolução do trabalho em um único lugar.</p>
-        </div>
+      <div className="client-home-greeting">
+        <span className="eyebrow">ESPAÇO COMPARTILHADO · CALI WORKSPACE</span>
+        <h1>Olá, {firstName(data.profile?.full_name)}.</h1>
+      </div>
+
+      <div className="client-home-top-grid">
         <aside className="contract-card" aria-label="Sua contratação">
-          <div className="contract-icon"><Sparkles size={18} /></div>
-          <div className="contract-main"><span>SUA CONTRATAÇÃO</span><strong>{packageName}</strong><small>{data.company?.display_name || 'Conta CALI'}</small></div>
-          <div className="contract-metric">
-            {showHours && data.company?.monthly_hours_contracted ? <><strong>{formatHours(data.minutes)}</strong><span>de {Number(data.company.monthly_hours_contracted)}h</span></> : <><strong>{activeProject ? 'Ativo' : 'Em preparação'}</strong><span>ciclo atual</span></>}
+          <div className="contract-card-head">
+            <div className="contract-logo-frame">
+              {data.company?.logo_url ? <img src={data.company.logo_url} alt="" /> : <Sparkles size={18} />}
+            </div>
+            <div className="contract-main"><span>SUA CONTRATAÇÃO</span><strong>{packageName}</strong><small>{data.company?.display_name || 'Conta CALI'}</small></div>
+          </div>
+          <div className="contract-card-hours">
+            {showHours && data.company?.monthly_hours_contracted ? <>
+              <div className="contract-hours-stat"><strong>{formatHours(data.minutes)}</strong><span>consumidas no mês</span></div>
+              <div className="contract-hours-stat"><strong>{Number(data.company.monthly_hours_contracted)}h</strong><span>total do contrato</span></div>
+            </> : <div className="contract-hours-stat wide"><strong>{activeProject ? 'Ativo' : 'Em preparação'}</strong><span>ciclo atual</span></div>}
           </div>
         </aside>
-      </header>
 
-      {waiting.length > 0 ? <section className="client-action-hero">
-        <div><span>AGUARDANDO VOCÊ</span><h2>{waiting.length === 1 ? '1 entrega está pronta para sua validação.' : `${waiting.length} entregas estão prontas para sua validação.`}</h2><p>{waiting[0].title}{waiting.length > 1 ? ` e mais ${waiting.length - 1}.` : ' já pode ser revisada.'}</p></div>
-        <Link to="/cliente/entregaveis">Revisar agora <ChevronRight size={18} /></Link>
-      </section> : <section className="client-action-hero quiet">
-        <div><span>STATUS DO CICLO</span><h2>Seu trabalho com a CALI está em movimento.</h2><p>{activeDeliverables.length ? `${activeDeliverables.length} frente${activeDeliverables.length > 1 ? 's' : ''} ativa${activeDeliverables.length > 1 ? 's' : ''} neste momento.` : 'Não há nenhuma validação pendente para você agora.'}</p></div>
-        <Link to="/cliente/entregaveis">Ver entregas <ChevronRight size={18} /></Link>
-      </section>}
+        {waiting.length > 0 ? <section className="client-action-hero">
+          <span>AGUARDANDO VOCÊ</span>
+          <h2>{waiting.length === 1 ? '1 entrega está pronta para sua validação.' : `${waiting.length} entregas estão prontas para sua validação.`}</h2>
+          <p>{waiting[0].title}{waiting.length > 1 ? ` e mais ${waiting.length - 1}.` : ' já pode ser revisada.'}</p>
+          <Link to="/cliente/entregaveis" className="client-action-hero-cta">Revisar agora <ChevronRight size={15} /></Link>
+        </section> : <section className="client-action-hero quiet">
+          <span>STATUS DO CICLO</span>
+          <h2>Seu trabalho com a CALI está em movimento.</h2>
+          <p>{activeDeliverables.length ? `${activeDeliverables.length} frente${activeDeliverables.length > 1 ? 's' : ''} ativa${activeDeliverables.length > 1 ? 's' : ''} neste momento.` : 'Não há nenhuma validação pendente para você agora.'}</p>
+          <Link to="/cliente/entregaveis" className="client-action-hero-cta">Ver entregas <ChevronRight size={15} /></Link>
+        </section>}
+      </div>
 
       <section className="client-executive-grid">
-        {showHours ? <article className="executive-card hours-card">
-          <div className="metric-icon"><Clock3 size={18} /></div><span>Horas do ciclo</span>
-          <strong>{formatHours(data.minutes)}{data.company?.monthly_hours_contracted ? <small> de {Number(data.company.monthly_hours_contracted)}h</small> : null}</strong>
-          {contractedMinutes > 0 ? <><Progress value={hoursPct} /><p>{hoursPct}% da referência contratada no ciclo.</p></> : <p>Somente horas explicitamente compartilhadas pela CALI entram neste indicador.</p>}
-        </article> : <article className="executive-card hours-card">
-          <div className="metric-icon"><Clock3 size={18} /></div><span>Ciclo atual</span>
-          <strong>{activeProject ? 'Ativo' : 'Em preparação'}</strong>
-          <p>{activeProject?.target_end_date ? `Previsão atual: ${formatDate(activeProject.target_end_date)}.` : 'O cronograma publicado será refletido aqui quando houver uma data definida.'}</p>
-        </article>}
-
         <article className="executive-card project-card">
           <div className="metric-icon"><ListChecks size={18} /></div><span>Entregas do ciclo</span>
           <strong>{projectDeliverables.length}</strong>
