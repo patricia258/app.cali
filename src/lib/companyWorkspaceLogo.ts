@@ -51,15 +51,6 @@ async function blobToImage(blob: Blob): Promise<HTMLImageElement> {
   }
 }
 
-function rgb(hex: string) {
-  const clean = hex.replace('#', '');
-  return {
-    r: parseInt(clean.slice(0, 2), 16),
-    g: parseInt(clean.slice(2, 4), 16),
-    b: parseInt(clean.slice(4, 6), 16),
-  };
-}
-
 function colorDistance(a: { r: number; g: number; b: number }, b: { r: number; g: number; b: number }) {
   return Math.sqrt((a.r - b.r) ** 2 + (a.g - b.g) ** 2 + (a.b - b.b) ** 2);
 }
@@ -113,7 +104,6 @@ export async function createWorkspaceLogoBlob(source: Blob): Promise<Blob> {
   sourceCtx.drawImage(image, 0, 0, width, height);
   const pixels = sourceCtx.getImageData(0, 0, width, height);
   const background = cornerBackground(pixels);
-  const mark = rgb(WORKSPACE_MARK);
 
   const maskCanvas = document.createElement('canvas');
   maskCanvas.width = width;
@@ -135,9 +125,9 @@ export async function createWorkspaceLogoBlob(source: Blob): Promise<Blob> {
         strength = a * clamp((dist - 8) / 74);
       }
       if (strength <= 0.055) continue;
-      output.data[i] = mark.r;
-      output.data[i + 1] = mark.g;
-      output.data[i + 2] = mark.b;
+      output.data[i] = p.r;
+      output.data[i + 1] = p.g;
+      output.data[i + 2] = p.b;
       output.data[i + 3] = Math.round(255 * strength);
       minX = Math.min(minX, x); minY = Math.min(minY, y); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
     }
@@ -151,7 +141,7 @@ export async function createWorkspaceLogoBlob(source: Blob): Promise<Blob> {
         const i = (y * width + x) * 4;
         const a = pixels.data[i + 3] / 255;
         if (a <= 0.05) continue;
-        output.data[i] = mark.r; output.data[i + 1] = mark.g; output.data[i + 2] = mark.b; output.data[i + 3] = Math.round(255 * a);
+        output.data[i] = pixels.data[i]; output.data[i + 1] = pixels.data[i + 1]; output.data[i + 2] = pixels.data[i + 2]; output.data[i + 3] = Math.round(255 * a);
         minX = Math.min(minX, x); minY = Math.min(minY, y); maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
       }
     }
