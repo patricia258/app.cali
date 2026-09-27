@@ -1,0 +1,72 @@
+/* Home do cliente: saudação livre, dois destaques equilibrados e dados sem excesso de caixas. */
+.client-home-v3 .contract-card,
+.client-home-v3 .client-action-hero {
+  min-width: 0;
+  min-height: 205px;
+  padding: 24px 26px !important;
+}
+.client-home-v3 .contract-card { gap: 18px !important; }
+.client-home-v3 .contract-logo-frame {
+  width: 56px !important;
+  height: 56px !important;
+  flex: 0 0 56px !important;
+}
+.client-home-v3 .contract-main span,
+.client-home-v3 .contract-hours-stat span { font-size: 11px !important; }
+.client-home-v3 .contract-main strong { margin-block: 4px 2px !important; font-size: 22px !important; }
+.client-home-v3 .contract-main small { font-size: 12px !important; }
+.client-home-v3 .contract-hours-stat strong { font-size: 26px !important; }
+
+.client-home-v3 .client-executive-grid { gap: 0 !important; margin: 12px 0 28px !important; }
+.client-home-v3 .executive-card,
+html[data-workspace-theme='day'] .client-home-v3 .executive-card,
+html[data-workspace-theme='night'] .client-home-v3 .executive-card {
+  min-height: 145px !important;
+  padding: 20px 24px !important;
+  border: 0 !important;
+  border-right: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: transform .25s cubic-bezier(.16, 1, .3, 1);
+}
+.client-home-v3 .executive-card:last-child,
+html[data-workspace-theme='day'] .client-home-v3 .executive-card:last-child { border-right: 0 !important; }
+.client-home-v3 .executive-card:hover { transform: translateY(-2px); box-shadow: none !important; }
+.client-home-v3 .executive-card::before { display: none !important; }
+
+.client-home-v3 .client-project-panel,
+.client-home-v3 .client-agenda-panel,
+html[data-workspace-theme='day'] .client-home-v3 .client-project-panel,
+html[data-workspace-theme='day'] .client-home-v3 .client-agenda-panel,
+html[data-workspace-theme='night'] .client-home-v3 .client-project-panel,
+html[data-workspace-theme='night'] .client-home-v3 .client-agenda-panel {
+  border: 0 !important;
+  border-top: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 1180px) {
+  .client-home-v3 .executive-card:nth-child(2),
+  html[data-workspace-theme='day'] .client-home-v3 .executive-card:nth-child(2) { border-right: 0 !important; }
+  .client-home-v3 .executive-card:last-child {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--border) !important;
+  }
+}
+@media (max-width: 700px) {
+  .client-home-v3 .contract-card,
+  .client-home-v3 .client-action-hero { min-height: 0; padding: 22px !important; }
+  .client-home-v3 .executive-card,
+  html[data-workspace-theme='day'] .client-home-v3 .executive-card,
+  html[data-workspace-theme='night'] .client-home-v3 .executive-card {
+    grid-column: auto;
+    min-height: 0 !important;
+    padding: 20px 4px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+  .client-home-v3 .executive-card:last-child { border-bottom: 0 !important; }
+}

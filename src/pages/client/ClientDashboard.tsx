@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowUpRight, CalendarDays, CheckCircle2, ChevronRight, FileCheck2,
-  FileText, History, Leaf, ListChecks, Loader2, MessageCircle, Minus, Send,
+  ArrowUpRight, CalendarDays, CheckCircle2, ChevronRight,
+  Leaf, ListChecks, Loader2, MessageCircle, Minus, Send,
   Sparkles, Star, X,
 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
@@ -67,14 +67,14 @@ function firstName(name?: string | null) {
   return (name || 'Olá').split(' ')[0] || 'Olá';
 }
 const planLabels: Record<string, string> = {
-  partner: 'Cali Partner',
+  partner: 'CALI Partner',
 };
 function planLabel(value?: string | null) {
   if (!value) return null;
   const key = value.trim().toLocaleLowerCase('pt-BR');
   if (planLabels[key]) return planLabels[key];
   const clean = value.trim();
-  return clean.toLocaleLowerCase('pt-BR').startsWith('cali ') ? clean : `Cali ${clean.charAt(0).toUpperCase()}${clean.slice(1)}`;
+  return clean.toLocaleLowerCase('pt-BR').startsWith('cali ') ? clean : `CALI ${clean.charAt(0).toUpperCase()}${clean.slice(1)}`;
 }
 function formatDate(value?: string | null) {
   if (!value) return 'A definir';
@@ -243,7 +243,6 @@ export function ClientDashboard() {
       {error && <div className="inline-notice">{error}</div>}
 
       <div className="client-home-greeting">
-        <span className="eyebrow">ESPAÇO COMPARTILHADO · CALI WORKSPACE</span>
         <h1>Olá, {firstName(data.profile?.full_name)}.</h1>
       </div>
 
@@ -258,7 +257,7 @@ export function ClientDashboard() {
           <div className="contract-card-hours">
             {showHours && data.company?.monthly_hours_contracted ? <>
               <div className="contract-hours-stat"><strong>{formatHours(data.minutes)}</strong><span>consumidas no mês</span></div>
-              <div className="contract-hours-stat"><strong>{Number(data.company.monthly_hours_contracted)}h</strong><span>total do contrato</span></div>
+              <div className="contract-hours-stat"><strong>{Number(data.company.monthly_hours_contracted)}h</strong><span>contratadas no mês</span></div>
             </> : <div className="contract-hours-stat wide"><strong>{activeProject ? 'Ativo' : 'Em preparação'}</strong><span>ciclo atual</span></div>}
           </div>
         </aside>
@@ -270,8 +269,8 @@ export function ClientDashboard() {
           <Link to="/cliente/entregaveis" className="client-action-hero-cta">Revisar agora <ChevronRight size={15} /></Link>
         </section> : <section className="client-action-hero quiet">
           <span>STATUS DO CICLO</span>
-          <h2>Seu trabalho com a CALI está em movimento.</h2>
-          <p>{activeDeliverables.length ? `${activeDeliverables.length} frente${activeDeliverables.length > 1 ? 's' : ''} ativa${activeDeliverables.length > 1 ? 's' : ''} neste momento.` : 'Não há nenhuma validação pendente para você agora.'}</p>
+          <h2>{activeDeliverables.length ? `${activeDeliverables.length} ${activeDeliverables.length === 1 ? 'entrega para acompanhar' : 'entregas para acompanhar'}.` : 'Tudo em dia por aqui.'}</h2>
+          <p>{activeDeliverables.length ? 'Acompanhe o andamento e as próximas decisões.' : 'Nenhuma validação pendente no momento.'}</p>
           <Link to="/cliente/entregaveis" className="client-action-hero-cta">Ver entregas <ChevronRight size={15} /></Link>
         </section>}
       </div>
@@ -293,7 +292,7 @@ export function ClientDashboard() {
 
         <article className="executive-card quality-card">
           <CompletionDonut value={data.completionPct} />
-          <div><span>Conclusão das entregas</span><strong>Dado real do ciclo</strong><p>{approvedCount} de {projectDeliverables.length} entregas do projeto atual estão aprovadas. O percentual não usa estimativa de status.</p></div>
+          <div><span>Conclusão das entregas</span><strong>{data.completionPct}% aprovadas</strong><p>Do projeto atual</p></div>
         </article>
       </section>
 
@@ -317,12 +316,10 @@ export function ClientDashboard() {
         </section>
       </div>
 
-      <section className="client-home-summary-cards" aria-label="Resumo da conta">
-        <Link to="/cliente/relatorios" className="summary-mini-card"><FileText size={19} /><div><span>Relatórios publicados</span><strong>{data.reportCount}</strong><small>Abrir histórico executivo</small></div><ChevronRight size={17} /></Link>
-        <Link to="/cliente/entregaveis" className="summary-mini-card"><FileCheck2 size={19} /><div><span>Entregas visíveis</span><strong>{data.deliverables.length}</strong><small>Consultar entregáveis</small></div><ChevronRight size={17} /></Link>
-        <Link to="/cliente/entregaveis" className={`summary-mini-card ${waiting.length ? 'attention' : ''}`}><CheckCircle2 size={19} /><div><span>Validações pendentes</span><strong>{waiting.length}</strong><small>{waiting.length ? 'Sua ação é necessária' : 'Tudo em dia'}</small></div><ChevronRight size={17} /></Link>
-        <Link to="/cliente/relatorios" className="summary-mini-card history-card"><History size={19} /><div><span>Histórico executivo</span><strong>Conta CALI</strong><small>Relatórios e evolução registrada</small></div><ChevronRight size={17} /></Link>
-      </section>
+      <Link to="/cliente/relatorios" className="client-home-reports-link">
+        <span><strong>{data.reportCount}</strong> {data.reportCount === 1 ? 'relatório publicado' : 'relatórios publicados'}</span>
+        <span>Ver relatórios <ChevronRight size={16} /></span>
+      </Link>
 
       {!chatOpen && <button className="patricia-float" type="button" onClick={() => { setChatSent(false); setAssistantReply(''); setChatOpen(true); }} aria-label="Fale com a Pati" title="Fale com a Pati">
         <span className="patricia-float-art patricia-portrait-slot"><video src={patiWaveVideo} poster={patiWavePoster} muted loop autoPlay playsInline preload="metadata" aria-hidden="true" /></span><span>Fale com a Pati</span>
