@@ -184,11 +184,6 @@ export function ClientHoursPage() {
 
   return <Shell role="client">
     <section className="page client-hours-connect client-hours-v2">
-      <header className="client-hours-connect-header">
-        <div><span className="eyebrow">ACOMPANHAMENTO DO CICLO</span><h1>Horas do ciclo</h1><p>Consumo, saldo disponível e registros compartilhados pela CALI em uma única leitura.</p></div>
-        <div className="client-hours-heading-mark" aria-hidden="true"><Clock3 size={26} /></div>
-      </header>
-
       {error && <div className="inline-notice"><AlertTriangle size={18} />{error}</div>}
 
       {summary && !summary.visible ? <><section className="hours-connect-card client-hours-disabled"><Clock3 size={24} /><div><strong>A visualização de horas não está habilitada para este mês.</strong><p>Os meses já liberados continuam disponíveis para consulta. Selecione outro mês abaixo.</p><label className="client-hours-disabled-month"><span>Consultar mês</span><input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></label></div></section></> : summary && <>

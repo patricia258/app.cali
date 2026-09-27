@@ -161,14 +161,6 @@ export function ClientReportsPageV5(){
   if(loading) return <Shell role="client"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando leitura executiva…</section></Shell>;
 
   return <Shell role="client"><section className="page client-reports-v56 client-reports-v57 client-reports-v58">
-    <header className="client-reports-heading-v58">
-      <div>
-        <div className="eyebrow">LEITURA EXECUTIVA</div>
-        <h1>Relatórios</h1>
-        <p>Fechamentos liberados pela CALI, com histórico de leitura e ciência em uma única visão.</p>
-      </div>
-      <div className="client-reports-heading-mark-v58" aria-hidden="true"><FileText size={28}/></div>
-    </header>
     {error?<div className="inline-notice">{error}</div>:null}
     {loading
       ?<div className="panel data-loading"><Loader2 className="spin" size={20}/>Carregando relatórios…</div>

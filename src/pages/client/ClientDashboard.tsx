@@ -63,9 +63,6 @@ function formatHours(minutes: number) {
   const m = minutes % 60;
   return m ? `${h}h${String(m).padStart(2, '0')}` : `${h}h`;
 }
-function firstName(name?: string | null) {
-  return (name || 'Olá').split(' ')[0] || 'Olá';
-}
 function formatDate(value?: string | null) {
   if (!value) return 'A definir';
   const date = new Date(value);
@@ -233,12 +230,7 @@ export function ClientDashboard() {
     <section className="page client-home-v2 client-home-v3">
       {error && <div className="inline-notice">{error}</div>}
 
-      <header className="client-home-heading">
-        <div>
-          <span className="eyebrow">ESPAÇO COMPARTILHADO · CALI WORKSPACE</span>
-          <h1>Olá, {firstName(data.profile?.full_name)}.</h1>
-          <p>Seu acompanhamento executivo da parceria com a CALI: prioridades, entregas, agenda e evolução do trabalho em um único lugar.</p>
-        </div>
+      <div className="client-home-actions-v3">
         <aside className="contract-card" aria-label="Sua contratação">
           <div className="contract-icon"><Sparkles size={18} /></div>
           <div className="contract-main"><span>SUA CONTRATAÇÃO</span><strong>{packageName}</strong><small>{data.company?.display_name || 'Conta CALI'}</small></div>
@@ -246,7 +238,7 @@ export function ClientDashboard() {
             {showHours && data.company?.monthly_hours_contracted ? <><strong>{formatHours(data.minutes)}</strong><span>de {Number(data.company.monthly_hours_contracted)}h</span></> : <><strong>{activeProject ? 'Ativo' : 'Em preparação'}</strong><span>ciclo atual</span></>}
           </div>
         </aside>
-      </header>
+      </div>
 
       {waiting.length > 0 ? <section className="client-action-hero">
         <div><span>AGUARDANDO VOCÊ</span><h2>{waiting.length === 1 ? '1 entrega está pronta para sua validação.' : `${waiting.length} entregas estão prontas para sua validação.`}</h2><p>{waiting[0].title}{waiting.length > 1 ? ` e mais ${waiting.length - 1}.` : ' já pode ser revisada.'}</p></div>

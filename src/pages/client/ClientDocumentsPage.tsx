@@ -269,14 +269,6 @@ export function ClientDocumentsPage() {
   return (
     <Shell role="client">
       <section className="page client-documents-v2 client-documents-v3 client-documents-v4">
-        <header className="client-documents-heading-v4">
-          <div>
-            <div className="eyebrow">BIBLIOTECA DO PROJETO</div>
-            <h1>Documentos</h1>
-            <p>Versões finalizadas e liberadas pela CALI, organizadas para consulta, comentários e registro de ciência.</p>
-          </div>
-          <div className="client-documents-heading-mark-v4" aria-hidden="true"><FileText size={28} /></div>
-        </header>
 
         {notice && <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div>}
         {error && <div className="inline-notice">{error}</div>}
