@@ -72,7 +72,7 @@
   font-weight: 800;
 }
 .company-logo-slot img,
-.company-logo-editor img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.company-logo-editor img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .client-data-row-v2 .hours-cell .progress { margin-top: 8px; }
 .client-data-row-v2 .nps-cell { font-size: 1.05rem; }
 

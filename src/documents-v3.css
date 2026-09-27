@@ -361,8 +361,7 @@ html[data-workspace-theme='night'] .document-workspace-status-v4 .document-drive
 .document-client-logo-v3 img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  padding: 3px;
+  object-fit: cover;
 }
 
 .document-client-line-v3 > div {
