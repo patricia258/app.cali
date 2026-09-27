@@ -153,53 +153,11 @@ body {
   padding: 38px 0 104px !important;
 }
 
-.reports-admin-v16 .reports-v16-heading {
-  position: relative;
-  min-height: 188px;
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end !important;
-  gap: 34px !important;
-  margin-bottom: 20px !important;
-  padding: 32px 34px !important;
-  overflow: hidden;
-  border: 1px solid rgba(90, 30, 45, .1);
-  border-radius: 26px;
-  background:
-    radial-gradient(circle at 88% 8%, rgba(231, 198, 111, .28), transparent 25%),
-    linear-gradient(125deg, rgba(255, 253, 250, .98), rgba(248, 239, 232, .91));
-  box-shadow: 0 22px 54px rgba(53, 31, 36, .095), 0 3px 10px rgba(53, 31, 36, .045);
-  animation: ux-rise .7s cubic-bezier(.16, 1, .3, 1) both;
+.reports-admin-v16 .reports-v17-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
 }
-
-.reports-admin-v16 .reports-v16-heading::after {
-  content: '';
-  position: absolute;
-  right: -70px;
-  top: -118px;
-  width: 350px;
-  height: 350px;
-  border: 50px solid rgba(90, 30, 45, .048);
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.reports-admin-v16 .reports-v16-heading > * { position: relative; z-index: 1; }
-.reports-admin-v16 .workspace-page-identity { min-width: 0; display: flex; align-items: flex-start; gap: 17px; }
-.reports-admin-v16 .workspace-page-icon {
-  width: 54px;
-  height: 54px;
-  flex: 0 0 54px;
-  display: grid;
-  place-items: center;
-  border-radius: 16px;
-  color: #fff8f4;
-  background: linear-gradient(145deg, #7b2d43, #5a1e2d 62%, #b58c52 145%);
-  box-shadow: 0 14px 28px rgba(90, 30, 45, .2), inset 0 1px rgba(255, 255, 255, .18);
-}
-.reports-admin-v16 .workspace-page-kicker { display: block; color: #a2763e; font-size: 12px; font-weight: 850; letter-spacing: .15em; }
-.reports-admin-v16 .reports-v16-heading h1 { margin: 6px 0 8px !important; font-size: clamp(40px, 4vw, 58px) !important; line-height: .98 !important; letter-spacing: -.05em !important; }
-.reports-admin-v16 .reports-v16-heading p { max-width: 700px !important; font-size: 15px !important; line-height: 1.58 !important; }
 
 .reports-admin-v16 .reports-v16-filters {
   min-width: 500px;
@@ -429,11 +387,6 @@ body {
 }
 .reports-v16-preview-document { padding: 30px 18px 50px !important; }
 
-html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-heading {
-  border-color: rgba(247, 243, 238, .09) !important;
-  background: radial-gradient(circle at 88% 7%, rgba(181, 140, 82, .15), transparent 26%), linear-gradient(125deg, #302027, #20171b) !important;
-  box-shadow: 0 23px 58px rgba(0, 0, 0, .27) !important;
-}
 html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-filters,
 html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-toolbar { border-color: rgba(247, 243, 238, .09) !important; background: rgba(35, 25, 29, .87) !important; }
 html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-filters select,
@@ -458,15 +411,11 @@ html[data-workspace-theme='night'] .reports-v16-small-modal,
 html[data-workspace-theme='night'] .reports-v16-send-modal { border-color: rgba(247, 243, 238, .1) !important; background: #21191d !important; }
 
 @media (max-width: 1120px) {
-  .reports-admin-v16 .reports-v16-heading { grid-template-columns: 1fr !important; align-items: start !important; }
   .reports-admin-v16 .reports-v16-filters { min-width: 0; width: 100%; }
 }
 
 @media (max-width: 760px) {
   .reports-admin-v16 { width: calc(100% - 24px) !important; padding-top: 24px !important; }
-  .reports-admin-v16 .reports-v16-heading { min-height: 0; padding: 25px 20px !important; border-radius: 20px; }
-  .reports-admin-v16 .workspace-page-icon { width: 46px; height: 46px; flex-basis: 46px; border-radius: 13px; }
-  .reports-admin-v16 .reports-v16-heading h1 { font-size: 38px !important; }
   .reports-admin-v16 .reports-v16-filters { grid-template-columns: 1fr; }
   .reports-admin-v16 .reports-v16-toolbar { position: relative !important; top: 0 !important; align-items: flex-start !important; }
   .reports-admin-v16 .reports-v16-toolbar > div:last-child { width: 100%; overflow-x: auto; padding-bottom: 2px; flex-wrap: nowrap !important; }
@@ -494,36 +443,11 @@ html[data-workspace-theme='night'] .reports-v16-send-modal { border-color: rgba(
   padding: 34px 0 72px !important;
 }
 
-.documents-admin-v4 .documents-heading-v3 {
-  position: relative;
-  min-height: 174px;
-  margin: 0 0 18px !important;
-  padding: 30px 34px !important;
-  align-items: center !important;
-  overflow: hidden;
-  border: 1px solid rgba(90, 30, 45, .1) !important;
-  border-radius: 25px !important;
-  background:
-    radial-gradient(circle at 89% 7%, rgba(222, 177, 92, .23), transparent 27%),
-    linear-gradient(125deg, rgba(255, 255, 255, .98), rgba(255, 249, 243, .94)) !important;
-  box-shadow: 0 22px 52px rgba(51, 30, 35, .1), 0 2px 6px rgba(51, 30, 35, .035) !important;
-  animation: ux-rise .68s cubic-bezier(.16, 1, .3, 1) both;
+.documents-admin-v4 .documents-v4-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 18px;
 }
-.documents-admin-v4 .documents-heading-v3::after {
-  content: '';
-  position: absolute;
-  right: -55px;
-  top: -112px;
-  width: 310px;
-  height: 310px;
-  border: 46px solid rgba(90, 30, 45, .045);
-  border-radius: 50%;
-  pointer-events: none;
-}
-.documents-admin-v4 .documents-heading-v3 > * { position: relative; z-index: 1; }
-.documents-admin-v4 .documents-heading-v3 .workspace-page-identity { max-width: 940px; }
-.documents-admin-v4 .documents-heading-v3 h1 { font-size: clamp(2.7rem, 4vw, 4.5rem) !important; }
-.documents-admin-v4 .documents-heading-v3 p { max-width: 840px; font-size: 15px !important; line-height: 1.6 !important; }
 .documents-admin-v4 .documents-heading-actions-v3 button { min-height: 46px !important; padding-inline: 17px !important; border-radius: 12px !important; }
 .documents-admin-v4 .documents-heading-actions-v3 .primary { box-shadow: 0 14px 28px rgba(90, 30, 45, .19) !important; }
 
@@ -634,7 +558,6 @@ html[data-workspace-theme='night'] .reports-v16-send-modal { border-color: rgba(
 .document-comment-list-v3 p { font-size: 13px !important; line-height: 1.55 !important; }
 .document-comment-composer-v3 textarea { min-height: 92px !important; font-size: 13px !important; }
 
-html[data-workspace-theme='night'] .documents-admin-v4 .documents-heading-v3 { border-color: rgba(247, 243, 238, .09) !important; background: radial-gradient(circle at 89% 7%, rgba(181, 140, 82, .14), transparent 27%), linear-gradient(125deg, #302027, #20171b) !important; box-shadow: 0 24px 58px rgba(0, 0, 0, .25) !important; }
 html[data-workspace-theme='night'] .documents-admin-v4 .document-workspace-status-v4,
 html[data-workspace-theme='night'] .documents-admin-v4 .document-toolbar-v4 { border-color: rgba(247, 243, 238, .09) !important; background: rgba(35, 25, 29, .9) !important; }
 html[data-workspace-theme='night'] .documents-admin-v4 .document-toolbar-v4 select,
@@ -762,9 +685,7 @@ html[data-workspace-theme='night'] .satisfaction-table-v41 th { color: #e3b0bd !
 @media (max-width: 860px) {
   .documents-admin-v4,
   .satisfaction-page-v39 { width: min(100% - 24px, 760px) !important; padding-top: 24px !important; }
-  .documents-admin-v4 .documents-heading-v3,
   .satisfaction-heading-v39 { min-height: 0; align-items: flex-start !important; padding: 25px 22px !important; }
-  .documents-admin-v4 .documents-heading-v3 h1,
   .satisfaction-heading-v39 h1 { font-size: 2.55rem !important; }
 }
 @media (max-width: 660px) {
@@ -1822,50 +1743,10 @@ html[data-workspace-theme='night'] .projects-flow-page .project-kpis-v2 .project
   padding: 42px 0 104px !important;
 }
 
-.hours-connect .hours-heading-v2 {
-  position: relative;
-  min-height: 178px;
+.hours-connect .hours-v3-actions {
+  display: flex;
+  justify-content: flex-end;
   margin-bottom: 18px;
-  padding: 30px 34px !important;
-  overflow: hidden;
-  align-items: center !important;
-  border: 1px solid var(--ux-line);
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at 88% 12%, rgba(231, 198, 111, .22), transparent 27%),
-    linear-gradient(126deg, rgba(255, 253, 250, .97), rgba(249, 242, 235, .89));
-  box-shadow: var(--ux-shadow-1);
-  animation: ux-rise .72s cubic-bezier(.16, 1, .3, 1) both;
-}
-
-.hours-connect .hours-heading-v2::after {
-  content: '';
-  position: absolute;
-  right: -54px;
-  top: -112px;
-  width: 310px;
-  height: 310px;
-  border: 48px solid rgba(90, 30, 45, .052);
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.hours-connect .hours-heading-v2 > * {
-  position: relative;
-  z-index: 1;
-}
-
-.hours-connect .hours-heading-v2 h1 {
-  margin: 0 !important;
-  font-size: clamp(36px, 4vw, 54px) !important;
-  letter-spacing: -.045em;
-}
-
-.hours-connect .hours-heading-v2 p {
-  max-width: 780px;
-  margin-top: 9px !important;
-  font-size: 15px !important;
-  line-height: 1.55;
 }
 
 .hours-connect .hours-v13-header-actions {
@@ -2027,13 +1908,6 @@ html[data-workspace-theme='night'] .projects-flow-page .project-kpis-v2 .project
   background: rgba(90, 30, 45, .025);
 }
 
-html[data-workspace-theme='night'] .hours-connect .hours-heading-v2 {
-  border-color: rgba(247, 243, 238, .1);
-  background:
-    radial-gradient(circle at 88% 10%, rgba(181, 140, 82, .14), transparent 26%),
-    linear-gradient(126deg, rgba(47, 31, 36, .97), rgba(35, 23, 27, .94));
-}
-
 html[data-workspace-theme='night'] .hours-connect .hours-v13-header-actions,
 html[data-workspace-theme='night'] .hours-connect .hours-connect-card,
 html[data-workspace-theme='night'] .hours-connect .hours-v13-visibility-panel,
@@ -2072,12 +1946,6 @@ html[data-workspace-theme='night'] .hours-connect .hours-connect-table th {
     padding-top: 28px !important;
   }
 
-  .hours-connect .hours-heading-v2 {
-    min-height: auto;
-    align-items: flex-start !important;
-    gap: 20px;
-    padding: 28px 22px !important;
-  }
 
   .hours-connect .hours-v13-header-actions {
     width: 100%;
@@ -2145,36 +2013,13 @@ html[data-workspace-theme='night'] .hours-connect .hours-connect-table th {
   padding-bottom: 64px !important;
 }
 
-.calendar-page-heading {
-  position: relative;
-  min-height: 168px;
-  margin: 0 0 18px !important;
-  padding: 30px 34px !important;
-  overflow: hidden;
-  border: 1px solid rgba(90, 30, 45, .1) !important;
-  border-radius: 25px !important;
-  background:
-    radial-gradient(circle at 89% 8%, rgba(222, 177, 92, .23), transparent 26%),
-    linear-gradient(125deg, rgba(255, 255, 255, .98), rgba(255, 250, 244, .93)) !important;
-  box-shadow: 0 22px 52px rgba(51, 30, 35, .1), 0 2px 6px rgba(51, 30, 35, .04) !important;
+.calendar-v2-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 18px;
 }
 
-.calendar-page-heading::before,
-.calendar-page-heading::after {
-  content: '';
-  position: absolute;
-  pointer-events: none;
-  border: 38px solid rgba(90, 30, 45, .045);
-  border-radius: 50%;
-}
-
-.calendar-page-heading::before { width: 230px; height: 230px; right: -38px; top: -104px; }
-.calendar-page-heading::after { width: 120px; height: 120px; right: 132px; bottom: -95px; border-color: rgba(181, 140, 82, .09); }
-.calendar-page-heading > * { position: relative; z-index: 1; }
-.calendar-page-heading .workspace-page-identity { max-width: 920px; }
-.calendar-page-heading .workspace-page-copy h1 { font-size: clamp(2.6rem, 4vw, 4.7rem) !important; }
-.calendar-page-heading .workspace-page-copy p { max-width: 780px; font-size: 1rem !important; line-height: 1.55 !important; }
-.calendar-page-heading > .primary { min-height: 48px !important; padding-inline: 20px !important; box-shadow: 0 14px 28px rgba(90, 30, 45, .2) !important; }
+.calendar-v2-actions > .primary { min-height: 48px !important; padding-inline: 20px !important; box-shadow: 0 14px 28px rgba(90, 30, 45, .2) !important; }
 
 .calendar-workspace-strip {
   margin: 0 0 18px !important;
@@ -2340,13 +2185,6 @@ html[data-workspace-theme='night'] .hours-connect .hours-connect-table th {
 .calendar-attendee-list small,
 .calendar-attendee-list b { font-size: 11px !important; }
 
-html[data-workspace-theme='night'] .calendar-page-heading {
-  border-color: rgba(247, 243, 238, .08) !important;
-  background:
-    radial-gradient(circle at 89% 8%, rgba(181, 140, 82, .15), transparent 28%),
-    linear-gradient(125deg, #302027, #20171b) !important;
-  box-shadow: 0 24px 58px rgba(0, 0, 0, .25) !important;
-}
 html[data-workspace-theme='night'] .calendar-workspace-strip,
 html[data-workspace-theme='night'] .calendar-main-toolbar { border-color: rgba(247, 243, 238, .09) !important; background: rgba(35, 25, 29, .88) !important; }
 html[data-workspace-theme='night'] .calendar-primary-panel,
@@ -2379,8 +2217,6 @@ html[data-workspace-theme='night'] .calendar-cancel-box { background: #241b1f !i
 
 @media (max-width: 860px) {
   .calendar-page-v2 { width: min(100% - 24px, 760px) !important; padding-top: 24px !important; }
-  .calendar-page-heading { align-items: flex-start !important; padding: 25px 22px !important; }
-  .calendar-page-heading .workspace-page-copy h1 { font-size: 2.65rem !important; }
   .calendar-main-toolbar { align-items: flex-start !important; }
 }
 
@@ -3158,12 +2994,6 @@ html[data-workspace-theme='night'] .topbar {
   }
 }
 
-.clients-page-v3 > .page-heading {
-  min-height: 174px;
-  padding: 30px 34px !important;
-  align-items: center !important;
-}
-
 .workspace-page-identity {
   display: flex;
   align-items: center;
@@ -3211,10 +3041,6 @@ html[data-workspace-theme='night'] .workspace-page-icon {
 }
 
 @media (max-width: 860px) {
-  .clients-page-v3 > .page-heading {
-    min-height: auto;
-  }
-
   .workspace-page-identity {
     align-items: flex-start;
     gap: 14px;
@@ -3336,51 +3162,13 @@ html[data-workspace-theme='night'] .sidebar nav a.active svg * {
   color: #a7783e !important;
 }
 
-.clients-page-v3 > .page-heading {
-  position: relative;
-  min-height: 150px;
-  padding: 34px 32px 28px !important;
-  overflow: hidden;
-  align-items: flex-end !important;
-  border: 1px solid var(--ux-line);
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at 88% 12%, rgba(231, 198, 111, .23), transparent 27%),
-    linear-gradient(126deg, rgba(255, 253, 250, .97), rgba(249, 242, 235, .89));
-  box-shadow: var(--ux-shadow-1);
-  animation: ux-rise .72s cubic-bezier(.16, 1, .3, 1) both;
+.clients-v3-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 14px;
 }
 
-.clients-page-v3 > .page-heading::after {
-  content: '';
-  position: absolute;
-  right: -54px;
-  top: -112px;
-  width: 310px;
-  height: 310px;
-  border: 48px solid rgba(90, 30, 45, .052);
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.clients-page-v3 > .page-heading > * {
-  position: relative;
-  z-index: 1;
-}
-
-.clients-page-v3 > .page-heading h1 {
-  font-size: clamp(36px, 4vw, 54px) !important;
-  letter-spacing: -.045em;
-}
-
-.clients-page-v3 > .page-heading p {
-  max-width: 720px;
-  margin-top: 9px !important;
-  font-size: 15px !important;
-  line-height: 1.55;
-}
-
-.clients-page-v3 > .page-heading .primary {
+.clients-v3-actions > .primary {
   min-height: 46px !important;
   padding-inline: 18px !important;
   border-radius: 12px !important;
@@ -3474,13 +3262,6 @@ html[data-workspace-theme='night'] .sidebar nav a.active svg * {
 .clients-page-v3 .client-data-row-v2:hover .client-quick-actions,
 .clients-page-v3 .client-data-row-v2:focus-within .client-quick-actions {
   opacity: 1;
-}
-
-html[data-workspace-theme='night'] .clients-page-v3 > .page-heading {
-  border-color: rgba(247, 243, 238, .09);
-  background:
-    radial-gradient(circle at 88% 10%, rgba(181, 140, 82, .14), transparent 25%),
-    linear-gradient(126deg, rgba(47, 31, 36, .96), rgba(35, 23, 27, .92));
 }
 
 html[data-workspace-theme='night'] .clients-page-v3 .client-portfolio-metrics article,
@@ -3688,12 +3469,6 @@ html[data-workspace-theme='night'] .client-account-modal .account-modal-footer {
   .clients-page-v3 {
     width: min(100% - 24px, 720px) !important;
     padding-top: 28px !important;
-  }
-
-  .clients-page-v3 > .page-heading {
-    align-items: flex-start !important;
-    gap: 20px;
-    padding: 28px 22px !important;
   }
 
   .client-account-modal.compact-account-modal,
