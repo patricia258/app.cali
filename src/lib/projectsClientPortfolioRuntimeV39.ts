@@ -1,4 +1,4 @@
-import { ensureCompanyWorkspaceLogo, resolveCompanyAsset, type CompanyLogoRecord } from './companyWorkspaceLogo';
+import { resolveCompanyAsset, type CompanyLogoRecord } from './companyWorkspaceLogo';
 import { supabase } from './supabase';
 import { isWorkspaceRoute } from '../runtime/routeActivity';
 
@@ -84,13 +84,8 @@ function logoTile(company: CompanyRow, url: string) {
 }
 
 async function companyLogo(company: CompanyRow) {
+  if (company.logo_url) return resolveCompanyAsset(company.logo_url);
   if (company.logo_workspace_url) return resolveCompanyAsset(company.logo_workspace_url);
-  if (company.logo_url) {
-    void ensureCompanyWorkspaceLogo(company).then(() => {
-      cache = null;
-      window.setTimeout(schedule, 80);
-    });
-  }
   return '';
 }
 

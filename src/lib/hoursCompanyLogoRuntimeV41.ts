@@ -1,5 +1,5 @@
 import '../hours-company-logo-v41.css';
-import { ensureCompanyWorkspaceLogo, resolveCompanyAsset, type CompanyLogoRecord } from './companyWorkspaceLogo';
+import { resolveCompanyAsset, type CompanyLogoRecord } from './companyWorkspaceLogo';
 import { supabase } from './supabase';
 
 type CompanyRow = CompanyLogoRecord & { status?: string | null };
@@ -37,11 +37,7 @@ async function loadCompanies(force = false) {
 async function resolveLogo(company: CompanyRow) {
   const cached = resolved.get(company.id);
   if (cached) return cached;
-  let raw = company.logo_workspace_url || '';
-  if (!raw && company.logo_url) {
-    raw = await ensureCompanyWorkspaceLogo(company);
-    if (raw) company.logo_workspace_url = raw;
-  }
+  const raw = company.logo_url || company.logo_workspace_url || '';
   if (!raw) return '';
   const url = await resolveCompanyAsset(raw);
   if (url) resolved.set(company.id, url);

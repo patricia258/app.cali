@@ -220,7 +220,7 @@ async function decorateCard(card: HTMLElement) {
   if (!company) return;
   const [workspaceUrl, originalUrl] = await Promise.all([resolveWorkspaceLogo(company), resolveOriginalLogo(company)]);
   const tile = card.querySelector<HTMLElement>('.document-client-logo-v3');
-  if (tile) setClientLogo(tile, company, workspaceUrl);
+  if (tile) setClientLogo(tile, company, originalUrl || workspaceUrl);
   ensureProjectLegend(card);
   await ensureAutomaticCover(card, company, originalUrl, workspaceUrl);
 }

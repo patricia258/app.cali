@@ -362,7 +362,7 @@ function decorateCompanyFrames() {
   document.querySelectorAll<HTMLElement>(COMPANY_FRAME_SELECTORS).forEach((frame) => {
     if (!isSimpleFrame(frame) || isReportSurface(frame)) return;
     const company = companyForContext(frame);
-    const logo = company?.logo_workspace_url || company?.logo_url;
+    const logo = company?.logo_url || company?.logo_workspace_url;
     if (logo) {
       applyMedia(frame, logo, 'company');
       return;

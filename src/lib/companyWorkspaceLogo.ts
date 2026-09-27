@@ -220,7 +220,7 @@ export async function loadCompanyLogoRegistry(): Promise<CompanyLogoRegistry> {
     const result = await supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url,status').order('display_name');
     if (!result.error) {
       for (const row of (result.data || []) as CompanyLogoRecord[]) {
-        const raw = row.logo_workspace_url || '';
+        const raw = row.logo_url || row.logo_workspace_url || '';
         const resolved = raw ? await resolveCompanyAsset(raw) : '';
         byId.set(row.id, { raw, resolved, name: row.display_name });
         byName.set(row.display_name.trim().toLocaleLowerCase('pt-BR'), { raw, resolved, id: row.id });
