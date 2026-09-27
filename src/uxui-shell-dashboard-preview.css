@@ -578,25 +578,11 @@ html[data-workspace-theme='night'] .document-detail-scroll-v3 { background: #171
   padding: 34px 0 76px !important;
   gap: 18px !important;
 }
-.satisfaction-heading-v39 {
-  position: relative;
-  min-height: 174px;
-  margin: 0 !important;
-  padding: 30px 34px !important;
-  align-items: center !important;
-  overflow: hidden;
-  border: 1px solid rgba(90, 30, 45, .1) !important;
-  border-radius: 25px !important;
-  background: radial-gradient(circle at 89% 7%, rgba(222, 177, 92, .23), transparent 27%), linear-gradient(125deg, rgba(255, 255, 255, .98), rgba(255, 249, 243, .94)) !important;
-  box-shadow: 0 22px 52px rgba(51, 30, 35, .1), 0 2px 6px rgba(51, 30, 35, .035) !important;
-  animation: ux-rise .68s cubic-bezier(.16, 1, .3, 1) both;
+.satisfaction-v39-actions {
+  display: flex;
+  justify-content: flex-end;
 }
-.satisfaction-heading-v39::after { content: ''; position: absolute; right: -55px; top: -112px; width: 310px; height: 310px; border: 46px solid rgba(90, 30, 45, .045); border-radius: 50%; pointer-events: none; }
-.satisfaction-heading-v39 > * { position: relative; z-index: 1; }
-.satisfaction-heading-v39 .workspace-page-identity { max-width: 930px; }
-.satisfaction-heading-v39 h1 { font-size: clamp(2.7rem, 4vw, 4.5rem) !important; }
-.satisfaction-heading-v39 p { max-width: 800px; font-size: 15px !important; line-height: 1.6 !important; }
-.satisfaction-heading-v39 > button { min-height: 45px !important; border-radius: 12px !important; }
+.satisfaction-v39-actions > button { min-height: 45px !important; border-radius: 12px !important; }
 
 .satisfaction-filter-panel-v39 { gap: 16px !important; padding: 17px 18px !important; border: 1px solid rgba(90, 30, 45, .09) !important; border-radius: 18px !important; background: rgba(255, 253, 250, .88) !important; box-shadow: 0 13px 34px rgba(51, 30, 35, .06) !important; backdrop-filter: blur(16px); animation: ux-rise .64s 90ms cubic-bezier(.16, 1, .3, 1) both; }
 .satisfaction-period-tabs-v39 { gap: 7px !important; }
@@ -667,7 +653,6 @@ html[data-workspace-theme='night'] .document-detail-scroll-v3 { background: #171
 .satisfaction-record-link-v41 { font-size: 11px !important; }
 .satisfaction-empty-v39 { min-height: 150px; display: grid; place-items: center; font-size: 13px !important; }
 
-html[data-workspace-theme='night'] .satisfaction-heading-v39 { border-color: rgba(247, 243, 238, .09) !important; background: radial-gradient(circle at 89% 7%, rgba(181, 140, 82, .14), transparent 27%), linear-gradient(125deg, #302027, #20171b) !important; box-shadow: 0 24px 58px rgba(0, 0, 0, .25) !important; }
 html[data-workspace-theme='night'] .satisfaction-filter-panel-v39,
 html[data-workspace-theme='night'] .satisfaction-kpis-v39 article,
 html[data-workspace-theme='night'] .satisfaction-analysis-grid-v39 > .panel,
@@ -685,8 +670,6 @@ html[data-workspace-theme='night'] .satisfaction-table-v41 th { color: #e3b0bd !
 @media (max-width: 860px) {
   .documents-admin-v4,
   .satisfaction-page-v39 { width: min(100% - 24px, 760px) !important; padding-top: 24px !important; }
-  .satisfaction-heading-v39 { min-height: 0; align-items: flex-start !important; padding: 25px 22px !important; }
-  .satisfaction-heading-v39 h1 { font-size: 2.55rem !important; }
 }
 @media (max-width: 660px) {
   .documents-admin-v4 .document-library-grid-v3 { grid-template-columns: 1fr !important; }
@@ -4424,57 +4407,6 @@ html[data-workspace-theme='night'] .sidebar.pinned {
   padding: 34px 0 96px !important;
 }
 
-.client-timeline-v4 .client-timeline-heading {
-  position: relative;
-  display: flex !important;
-  min-height: 174px;
-  align-items: center !important;
-  justify-content: space-between;
-  margin: 0 0 16px !important;
-  padding: 28px 32px !important;
-  overflow: hidden;
-  border: 1px solid rgba(90, 30, 45, .13) !important;
-  border-radius: 25px !important;
-  background:
-    radial-gradient(circle at 87% 17%, rgba(231, 198, 111, .24), transparent 25%),
-    rgba(255, 253, 250, .94) !important;
-  box-shadow: 0 21px 52px rgba(52, 31, 37, .085) !important;
-  animation: ux-rise .68s cubic-bezier(.16, 1, .3, 1) both;
-}
-
-.client-timeline-v4 .client-timeline-heading::after {
-  content: '';
-  position: absolute;
-  right: -54px;
-  bottom: -118px;
-  width: 265px;
-  height: 265px;
-  border: 40px solid rgba(90, 30, 45, .045);
-  border-radius: 50%;
-}
-
-.client-timeline-v4 .client-timeline-heading-copy,
-.client-timeline-v4 .client-timeline-heading-mark { position: relative; z-index: 1; }
-.client-timeline-v4 .client-timeline-heading h1 {
-  margin: 9px 0 9px !important;
-  font-size: clamp(42px, 4.4vw, 66px) !important;
-  letter-spacing: -.05em;
-}
-.client-timeline-v4 .client-timeline-heading p { max-width: 760px; margin: 0 !important; font-size: 14px !important; }
-.client-timeline-v4 .client-timeline-heading-mark {
-  display: grid;
-  width: 60px;
-  height: 60px;
-  place-items: center;
-  flex: 0 0 60px;
-  margin-right: 8px;
-  border: 1px solid rgba(181, 140, 82, .3);
-  border-radius: 18px;
-  color: #6b2639;
-  background: linear-gradient(145deg, #f2d47f, #b58c52);
-  box-shadow: 0 13px 28px rgba(181, 140, 82, .22);
-}
-
 .client-timeline-v4 .client-google-panel {
   margin-bottom: 16px !important;
   padding: 14px 17px !important;
@@ -4554,7 +4486,6 @@ html[data-workspace-theme='night'] .sidebar.pinned {
 }
 .client-timeline-v4 .client-agenda-row.past { opacity: .52 !important; }
 
-html[data-workspace-theme='night'] .client-timeline-v4 .client-timeline-heading,
 html[data-workspace-theme='night'] .client-timeline-v4 .client-google-panel,
 html[data-workspace-theme='night'] .client-timeline-v4 .client-timeline-summary article,
 html[data-workspace-theme='night'] .client-timeline-v4 .client-real-timeline-panel {
@@ -4741,11 +4672,8 @@ html[data-workspace-theme='night'] .client-hours-v2 .client-hours-table th { col
 }
 
 @media (max-width: 620px) {
-  .client-timeline-v4 .client-timeline-heading,
   .client-hours-v2 .client-hours-connect-header { min-height: 0; padding: 24px 21px !important; }
-  .client-timeline-v4 .client-timeline-heading-mark,
   .client-hours-heading-mark { display: none; }
-  .client-timeline-v4 .client-timeline-heading h1,
   .client-hours-v2 .client-hours-connect-header h1 { font-size: 39px !important; }
   .client-hours-metric-grid { grid-template-columns: 1fr !important; }
   .client-hours-metric-grid > div { border-top: 1px solid rgba(90,30,45,.12); border-left: 0; }

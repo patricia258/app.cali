@@ -309,8 +309,7 @@ export function AdminPeopleMapPageV2() {
 
   return <Shell role="admin">
     <section className="page people-map-page">
-      <div className="eyebrow">ENTRADA COMERCIAL · DIAGNÓSTICO</div>
-      <div className="page-heading people-map-heading"><div><h1>Mapa de People</h1><p>O Mapa público continua no endereço atual. Aqui ficam a leitura real das respostas, a jornada e a revisão administrativa.</p></div><div className="people-map-heading-actions"><button className="secondary" type="button" onClick={loadAll}><RefreshCw size={17}/>Atualizar</button><a className="primary people-map-public-link" href="https://mapa.calirh.com" target="_blank" rel="noreferrer">Abrir Mapa público<ArrowUpRight size={17}/></a></div></div>
+      <div className="people-map-heading-actions"><button className="secondary" type="button" onClick={loadAll}><RefreshCw size={17}/>Atualizar</button><a className="primary people-map-public-link" href="https://mapa.calirh.com" target="_blank" rel="noreferrer">Abrir Mapa público<ArrowUpRight size={17}/></a></div>
       <div className="people-map-tabs"><button className={tab === 'respostas' ? 'active' : ''} onClick={() => setTab('respostas')}>Respostas</button><button className={tab === 'jornada' ? 'active' : ''} onClick={() => setTab('jornada')}>Jornada e acessos</button></div>
 
       {tab === 'respostas' ? <>
