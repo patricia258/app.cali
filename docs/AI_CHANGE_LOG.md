@@ -11,6 +11,10 @@ Registro contínuo, por ordem cronológica, de toda mudança feita por qualquer 
 | Aprovação | Frase ou pedido expresso da Pati; marcar `aprovado`, `ajustes pedidos` ou `aguardando avaliação`. |
 | Limites | O que não foi testado ou depende de inspeção; conflitos conhecidos. |
 
+## Regra permanente (Pati, 26/09/2026)
+
+Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão) que exista replicada nos diferentes perfis (admin e cliente) precisa ser aplicado de forma **idêntica** nos dois lados — mesma regra, mesmo comportamento. Não vale corrigir só a versão do admin e deixar a do cliente com o bug antigo (ou vice-versa). Antes de marcar uma correção como concluída, checar explicitamente se existe uma versão da mesma tela/componente no outro perfil e replicar lá também, ou registrar por que não se aplica (ex.: a tela só existe em um dos perfis).
+
 ---
 
 ## 2026-09-26 — Claude
