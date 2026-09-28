@@ -38,6 +38,10 @@ type Contact = {
   avatar_zoom?: number | null;
 };
 type ChatKind = 'question' | 'context_change' | 'request' | 'occurrence';
+type WorkMetrics = {
+  total: number; completed: number; notStarted: number; inProgress: number;
+  internalReview: number; withClient: number;
+};
 
 type DashboardData = {
   company: Company | null;
@@ -53,6 +57,8 @@ type DashboardData = {
   nps: number | null;
   npsCount: number;
   completionPct: number;
+  workMetrics: WorkMetrics | null;
+  unlinkedHourEntries: number;
   reportCount: number | null;
   latestDocument: ClientDocument | null;
   documentCount: number | null;
@@ -124,7 +130,7 @@ function currentMonthBounds() {
 }
 export function ClientDashboard() {
   const { user } = useWorkspaceAuth();
-  const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, hoursVisible: false, contractedHours: 0, hoursLoadError: false, nps: null, npsCount: 0, completionPct: 0, reportCount: null, latestDocument: null, documentCount: null, openOccurrenceCount: null, latestOccurrence: null, occurrenceLoadError: false });
+  const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, hoursVisible: false, contractedHours: 0, hoursLoadError: false, nps: null, npsCount: 0, completionPct: 0, workMetrics: null, unlinkedHourEntries: 0, reportCount: null, latestDocument: null, documentCount: null, openOccurrenceCount: null, latestOccurrence: null, occurrenceLoadError: false });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
@@ -175,10 +181,11 @@ export function ClientDashboard() {
 
       const nowIso = new Date().toISOString();
       const { start, end } = currentMonthBounds();
-      const [companyResult, deliveryReality, hoursResult, eventResult, reportResult, contactResult, documentsResult, occurrencesResult, latestOccurrenceResult] = await Promise.all([
+      const [companyResult, deliveryReality, hoursResult, workResult, eventResult, reportResult, contactResult, documentsResult, occurrencesResult, latestOccurrenceResult] = await Promise.all([
         supabase.from('companies').select('id,display_name,logo_url,service_type,service_plan,start_date,end_date,monthly_hours_contracted,show_hours_to_client').eq('id', companyId).single(),
         loadClientDashboardReality(companyId),
         supabase.rpc('get_client_hours_summary', { p_period_start: start, p_period_end: end }),
+        supabase.rpc('get_client_home_work_metrics', { p_period_start: start, p_period_end: end }),
         supabase.from('events').select('id,title,starts_at,mode,meeting_url').eq('company_id', companyId).eq('visibility', 'client').is('cancelled_at', null).gte('starts_at', nowIso).order('starts_at').limit(3),
         supabase.from('reports').select('id').eq('company_id', companyId).in('status', ['sent', 'published']),
         supabase.rpc('get_client_account_contact'),
@@ -189,8 +196,10 @@ export function ClientDashboard() {
 
       if (companyResult.error) throw companyResult.error;
       if (eventResult.error) throw eventResult.error;
+      if (workResult.error) throw workResult.error;
       const contactRows = contactResult.error ? [] : ((contactResult.data || []) as Contact[]);
       const hoursSummary = (hoursResult.error ? null : hoursResult.data) as { visible?: boolean; contractedHours?: number; consumedMinutes?: number } | null;
+      const workSummary = workResult.data as { ratings?: { average?: number | null; count?: number }; work?: WorkMetrics; unlinkedHourEntries?: number } | null;
 
       setData({
         company: companyResult.data as Company,
@@ -215,9 +224,11 @@ export function ClientDashboard() {
         hoursVisible: hoursSummary?.visible === true,
         contractedHours: Number(hoursSummary?.contractedHours || 0),
         hoursLoadError: Boolean(hoursResult.error),
-        nps: deliveryReality.metrics.averageDeliveryScore,
-        npsCount: deliveryReality.metrics.feedbackCount,
-        completionPct: deliveryReality.metrics.completionPct,
+        nps: workSummary?.ratings?.average == null ? null : Number(workSummary.ratings.average),
+        npsCount: Number(workSummary?.ratings?.count || 0),
+        completionPct: workSummary?.work?.total ? Math.round(workSummary.work.completed / workSummary.work.total * 100) : 0,
+        workMetrics: workSummary?.work || null,
+        unlinkedHourEntries: Number(workSummary?.unlinkedHourEntries || 0),
         reportCount: reportResult.error ? null : (reportResult.data || []).length,
         latestDocument: documentsResult.error ? null : (documentsResult.data?.[0] as ClientDocument || null),
         documentCount: documentsResult.error ? null : documentsResult.count,
@@ -256,13 +267,13 @@ export function ClientDashboard() {
     { label: 'Pendentes', count: pendingCount, color: '#E3A536' },
     { label: 'Canceladas', count: cancelledCount, color: '#B84D51' },
   ];
-  const projectCompletionPct = projectDeliverables.length ? Math.round(approvedCount / projectDeliverables.length * 100) : 0;
+  const work = data.workMetrics;
   const deliveryStages = [
-    { label: 'Não iniciadas', count: projectDeliverables.filter((item) => item.status === 'not_started').length },
-    { label: 'Em andamento', count: projectDeliverables.filter((item) => ['in_progress', 'standby', 'adjustment_requested', 'rebriefing'].includes(item.status)).length },
-    { label: 'Revisão CALI', count: projectDeliverables.filter((item) => item.status === 'internal_review').length },
-    { label: 'Com o cliente', count: projectDeliverables.filter((item) => item.status === 'client_review').length },
-    { label: 'Aprovadas', count: approvedCount },
+    { label: 'Não iniciadas', count: work?.notStarted || 0 },
+    { label: 'Em andamento', count: work?.inProgress || 0 },
+    { label: 'Revisão CALI', count: work?.internalReview || 0 },
+    { label: 'Com o cliente', count: work?.withClient || 0 },
+    { label: 'Concluídas', count: work?.completed || 0 },
   ];
   const highestStageCount = Math.max(1, ...deliveryStages.map((stage) => stage.count));
   const waiting = data.deliverables.filter((item) => item.status === 'client_review');
@@ -365,9 +376,9 @@ export function ClientDashboard() {
 
         <article className="executive-card nps-card client-perception-card">
           <div className="client-perception-copy">
-            <span>Percepção das entregas</span>
+            <span>Percepção do trabalho · mês atual</span>
             <div className="client-perception-detail"><i><Star size={18} /></i><div><strong>{data.npsCount} {data.npsCount === 1 ? 'avaliação recebida' : 'avaliações recebidas'}</strong><small>da sua empresa</small></div></div>
-            <div className="client-perception-detail"><i><CheckCircle2 size={18} /></i><div><strong>{data.nps == null ? 'Aguardando a primeira' : 'Média das avaliações'}</strong><small>{data.nps == null ? 'Disponível após uma aprovação' : 'Atualizada com as respostas recebidas'}</small></div></div>
+            <div className="client-perception-detail"><i><CheckCircle2 size={18} /></i><div><strong>{data.nps == null ? 'Aguardando a primeira' : 'Média das avaliações'}</strong><small>{data.nps == null ? 'De entregas ou ocorrências' : 'Entregas e ocorrências avaliadas'}</small></div></div>
           </div>
           <div className="client-perception-gauge" role="img" aria-label={data.nps == null ? 'Ainda sem avaliação das entregas' : `Nota média ${data.nps.toFixed(1)} de 5, em ${data.npsCount} avaliações`}>
             <svg viewBox="0 0 180 102" aria-hidden="true">
@@ -381,9 +392,10 @@ export function ClientDashboard() {
 
         <article className="executive-card quality-card">
           <div className="client-completion-copy">
-            <span>Conclusão das entregas</span>
-            <strong>{projectCompletionPct}%</strong>
-            <p>{approvedCount} de {projectDeliverables.length} {projectDeliverables.length === 1 ? 'entrega aprovada' : 'entregas aprovadas'} no projeto atual</p>
+            <span>Conclusão do trabalho · mês atual</span>
+            <strong>{data.completionPct}%</strong>
+            <p>{work?.completed || 0} de {work?.total || 0} {work?.total === 1 ? 'atividade concluída' : 'atividades concluídas'} entre entregas e ocorrências</p>
+            {data.unlinkedHourEntries > 0 && <small>{data.unlinkedHourEntries} {data.unlinkedHourEntries === 1 ? 'lançamento de horas sem vínculo' : 'lançamentos de horas sem vínculo'} com uma atividade</small>}
           </div>
           <div className="client-completion-bars" role="img" aria-label={deliveryStages.map((stage) => `${stage.label}: ${stage.count}`).join('; ')}>
             {deliveryStages.map((stage, index) => <span key={stage.label} className={`client-completion-bar stage-${index + 1}${stage.count ? '' : ' is-empty'}`} style={{ height: stage.count ? `${Math.max(25, stage.count / highestStageCount * 100)}%` : '4px' }} title={`${stage.label}: ${stage.count}`} />)}

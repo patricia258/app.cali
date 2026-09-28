@@ -227,3 +227,12 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/lib/clientDeliveryReality.ts`, este registro. **Autor:** Codex. **Aprovação:** correções solicitadas pela Pati, resultado `aguardando avaliação`.
 
 ---
+## 2026-09-28 — Codex (percepção e conclusão unificadas na home do cliente)
+
+- **Pedido:** incluir as avaliações de ocorrências e o andamento dos registros na percepção e na conclusão da home, junto aos entregáveis, no período do mês. A Pati apontou duas ocorrências avaliadas que não apareciam.
+- **Origem dos dados:** novo RPC `get_client_home_work_metrics` agrega `nps_responses` e `account_record_feedback` da empresa no mês civil de São Paulo, sem duplicar a mesma linha de avaliação. A consulta é restrita a um perfil de cliente ativo da própria empresa, devolve somente média e quantidade agregadas, e não expõe notas e comentários individuais de outros usuários. O cliente de teste tem duas avaliações de registros no mês, notas 4 e 5, média 4,5; anteriormente a home mostrava zero por olhar só entregáveis.
+- **Conclusão:** entram entregáveis visíveis e registros compartilhados com fluxo ativo que tenham sido criados, modificados, concluídos ou tenham horas visíveis vinculadas no período. Cada objeto é contado uma vez, em cinco estados. Para a conta de teste são 8 atividades no mês, 2 concluídas, 25%. “Entregas do ciclo” permanece específico do projeto, pois é outro recorte.
+- **Horas sem vínculo:** a conta de teste tem um lançamento visível sem entregável nem registro associado. Ele é indicado separadamente no card; não foi atribuído arbitrariamente um estado de conclusão a uma hora sem objeto. Horas ocultas/internas ou fora do período não entram na contagem exposta ao cliente. Os indicadores são atualizados pelos canais existentes e pela conferência periódica de 30 segundos, inclusive após novas notas em registros.
+- **Verificação:** migração aplicada no projeto Supabase CALI; chamada do RPC sob o papel autenticado do cliente de teste retornou média 4,5, 2 avaliações e 2 de 8 atividades concluídas. `npm run check` e revisão do diff passaram. **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `supabase/migrations/20260928193000_client_home_unified_work_metrics.sql`, este registro. **Autor:** Codex. **Aprovação:** solicitado pela Pati; resultado `aguardando avaliação`.
+
+---
