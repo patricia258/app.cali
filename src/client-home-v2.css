@@ -108,7 +108,6 @@
 .executive-card > strong { display: block; font-size: 32px; letter-spacing: -.035em; margin: 22px 0 10px; }
 .executive-card > strong small { font-size: 13px; color: var(--muted-foreground); font-weight: 600; }
 .executive-card p { font-size: 12px; line-height: 1.45; color: var(--muted-foreground); margin: 10px 0 0; }
-.mini-stars { font-size: 12px; color: var(--client-gold); letter-spacing: .08em; font-weight: 700; }
 .quality-card { display: grid; grid-template-columns: minmax(0, 1fr) 122px; align-items: center; gap: 14px; }
 
 .client-home-lower-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(360px, .65fr); gap: 18px; }

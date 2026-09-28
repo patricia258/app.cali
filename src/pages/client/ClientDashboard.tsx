@@ -300,11 +300,20 @@ export function ClientDashboard() {
           <p>{waiting.length ? `${waiting.length} aguardando sua validação.` : 'Nenhuma validação pendente agora.'}</p>
         </article>
 
-        <article className="executive-card nps-card">
-          <div className="metric-icon"><Star size={18} /></div><span>Percepção das entregas</span>
-          <strong>{data.nps == null ? '—' : `${data.nps.toFixed(1)} / 5`}</strong>
-          <div className="mini-stars">{data.nps == null ? 'Ainda sem avaliação' : '★★★★★'}</div>
-          <p>{data.nps == null ? 'Sua avaliação aparece aqui após as primeiras aprovações.' : `Média real de ${data.npsCount} ${data.npsCount === 1 ? 'avaliação registrada' : 'avaliações registradas'}.`}</p>
+        <article className="executive-card nps-card client-perception-card">
+          <div className="client-perception-copy">
+            <span>Percepção das entregas</span>
+            <div className="client-perception-detail"><i><Star size={18} /></i><div><strong>{data.npsCount} {data.npsCount === 1 ? 'avaliação recebida' : 'avaliações recebidas'}</strong><small>da sua empresa</small></div></div>
+            <div className="client-perception-detail"><i><CheckCircle2 size={18} /></i><div><strong>{data.nps == null ? 'Aguardando a primeira' : 'Média das avaliações'}</strong><small>{data.nps == null ? 'Disponível após uma aprovação' : 'Atualizada com as respostas recebidas'}</small></div></div>
+          </div>
+          <div className="client-perception-gauge" role="img" aria-label={data.nps == null ? 'Ainda sem avaliação das entregas' : `Nota média ${data.nps.toFixed(1)} de 5, em ${data.npsCount} avaliações`}>
+            <svg viewBox="0 0 180 102" aria-hidden="true">
+              <defs><linearGradient id="client-perception-gradient"><stop offset="0%" stopColor="#D85C73" /><stop offset="50%" stopColor="#E3A536" /><stop offset="100%" stopColor="#2BAFA8" /></linearGradient></defs>
+              <path className="client-perception-gauge-track" d="M 15 90 A 75 75 0 0 1 165 90" fill="none" pathLength="100" />
+              {data.nps != null && <path className="client-perception-gauge-fill" d="M 15 90 A 75 75 0 0 1 165 90" fill="none" pathLength="100" strokeDasharray={`${Math.max(0, Math.min(100, data.nps / 5 * 100))} 100`} />}
+            </svg>
+            <div><strong>{data.nps == null ? '—' : data.nps.toFixed(1)}</strong><small>{data.nps == null ? 'Sem nota' : 'de 5 pontos'}</small></div>
+          </div>
         </article>
 
         <article className="executive-card quality-card">

@@ -154,3 +154,12 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Estado da composição nova:** `aguardando avaliação` da Pati.
 
 ---
+## 2026-09-28 — Codex (percepção das entregas e cores mais vivas)
+
+- **Escopo:** home `/cliente`, segundo par de prints da Pati. Print 1 era o indicador atual “Percepção das entregas”; print 2 do MatDash serviu de referência estrutural para informações à esquerda e medidor em semicírculo à direita.
+- **Mudança:** indicador agora mostra quantidade real de avaliações e estado da média, com nota real (0–5) num arco proporcional. Sem avaliações, arco sem preenchimento e “— / Sem nota”; não há valor demonstrativo nem estrelas preenchidas falsas. Texto antigo “Sua avaliação aparece aqui...” foi substituído por “Disponível após uma aprovação”. Mantida a origem real `data.nps`/`data.npsCount`.
+- **Cor:** Pati considerou as cores aprovadas opacas; aumentada a intensidade da paleta secundária em cápsulas de prazo, barras de conclusão e elementos do indicador de percepção, em desktop e celular. Novos tons e usos em `docs/CALI_SECONDARY_PALETTE.md`. Os significados continuam escritos, sem depender da cor.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v2.css`, `src/client-home-v5.css`, `docs/CALI_SECONDARY_PALETTE.md` e este registro. Sem mudanças em query, permissões ou fluxos.
+- **Aprovação:** Pati pediu estes ajustes; resultado visual novo `aguardando avaliação`.
+
+---

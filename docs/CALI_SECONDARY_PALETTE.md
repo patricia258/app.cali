@@ -5,13 +5,15 @@ As cores abaixo dão contraste aos estados das entregas no painel do cliente. O 
 
 | Cor | Hex | Uso inicial |
 | --- | --- | --- |
-| Sálvia | `#567B66` | Aprovado |
-| Azul ardósia | `#617987` | Revisão CALI |
-| Terracota | `#B46D5C` | Ajuste solicitado |
-| Ameixa acinzentada | `#806176` | Rebriefing |
+| Sálvia viva | `#367B60` | Aprovado |
+| Azul ardósia | `#3D7793` | Revisão CALI |
+| Coral terroso | `#B84D51` | Ajuste solicitado |
+| Ameixa rosada | `#AD4F6A` | Rebriefing |
 | Taupe profundo | `#8B786E` | Em espera |
-| Dourado claro | `#D8B674` | Validação do cliente e detalhe no tema noite |
+| Âmbar | `#E3A536` | Validação do cliente |
+| Hibisco | `#D85C73` | Detalhes de avaliação |
+| Turquesa suave | `#2BAFA8` | Detalhes de avaliação |
 
 As cápsulas usam texto branco, exceto o dourado claro, que usa grafite escuro. O bordô continua marcando “Em andamento”.
-“Ameixa” aqui é um tom fechado e acinzentado, próximo do bordô; não é roxo vivo.
+“Ameixa” aqui é um tom rosado de profundidade média, próximo do bordô; não é roxo vivo. Após a revisão da Pati, as cores de interface ganharam saturação; o bordô, o marfim e o dourado fosco da marca não mudaram.
 Quando várias entregas estão “Não iniciadas”, as datas alternam tons da cartela apenas para distinguir visualmente as linhas. O texto informa o estado verdadeiro.
