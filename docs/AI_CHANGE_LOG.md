@@ -1,5 +1,15 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-09-28 — Codex (implementação da visita extra)
+
+- **Escopo:** Workspace, agenda do cliente e calendário administrativo, com migrações Supabase. Pedido explícito da Pati: “você vai codar”, após aprovar as regras documentadas por Claude em `docs/VISITA_EXTRA_SPEC.md`.
+- **Mudança:** botão “Solicitar visita extra” no topbar do cliente; formulário em voz da Patrícia com R$ 800,00/4h para todos os planos, duas datas, antecedência mínima de 48 horas corridas, 9h–16h Brasília, segunda-feira sinalizada para avaliação manual, despesas comprovadas à parte, taxa de 20% sujeita a decisão manual, nome completo digitado e ciência gravada. O pedido reutiliza `scheduling_requests` com snapshot de termos/preço e `meeting_entitlement=extra`, sem consumir a visita incluída. Admin confirma uma opção diretamente na agenda ou envia duas alternativas; cliente pode responder com duas novas datas. Notificações e evento são persistidos no Supabase. Após a realização, admin anexa comprovantes de despesas em armazenamento privado; cliente pode abri-los no histórico. Não ocorrência recebe avaliação expressa da taxa (R$ 160,00 ou isenção), com motivo registrado.
+- **Arquivos:** `src/components/ExtraVisitRequest.tsx`, `ExtraVisitExpenses.tsx`, `extra-visit-request.css`, `WorkspaceShell.tsx`, `src/lib/schedulingRequestsRuntimeV65.ts`, `schedulingPolicyRuntimeV66.ts`, migrações `20260928223000`–`20260928223400`.
+- **Limites:** quilometragem/carro próprio permanece sem lançamento automático até definição de R$/km. A visita de mais de 4 horas exige orçamento e aprovação em procedimento separado; não há tarifa automática. Os valores são registrados para conciliação na competência da visita, mas **não criam nem alteram fatura automaticamente**. A agenda fixa recorrente mensal do CALI Full é outro recurso ainda sem desenho aprovado. Validação local: `npm run check`; migrações aplicadas no projeto Supabase da CALI. Teste autenticado ponta a ponta e inspeção visual dependem de acesso às contas cliente/admin.
+- **Aprovação:** regras aprovadas pela Pati; implementação `aguardando avaliação`.
+
+---
+
 Registro contínuo, por ordem cronológica, de toda mudança feita por qualquer um dos dois agentes neste repositório. Formato herdado do handoff `docs/HANDOFF-CODEX-CALI-2026-09-26.md` (seção 8), para manter os dois agentes na mesma referência.
 
 | Campo | Registrar |
