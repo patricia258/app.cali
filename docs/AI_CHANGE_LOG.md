@@ -275,3 +275,15 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Entrega:** Commit `da33675`, em `main`. Sem alteração de código de produto; `npm run check` não se aplica (só markdown).
 - **Aprovação:** Pati pediu o fluxo por escrito antes de codar (28/09/2026). `aguardando validação` — nada será implementado até ela confirmar o documento e resolver os dois bloqueios acima.
 - **Limites:** Nenhuma tela, rota, tabela ou RPC foi criada. Este registro documenta só a proposta de fluxo.
+
+---
+
+## 2026-09-28 — Claude (Visita Extra: valores reais do contrato + divergência sinalizada)
+
+- **Pedido:** Pati anexou a minuta `CALI_RH_Minuta_CALI_PARTNER_KIE-TEC_revisada.docx`, o modelo de contrato que ela tinha prometido, com os valores reais da visita presencial adicional.
+- **Valores extraídos (Anexo I da minuta):** visita presencial adicional = R$ 800,00 por visita de até 4 horas (cláusula 2.1); custos de estacionamento, deslocamento e alimentação cobrados à parte, mediante comprovação (cláusula 2.2); faturamento junto com a cobrança do período correspondente (cláusula 3.2).
+- **Divergência real encontrada (sinalizada, não resolvida sozinho):** a Pati descreveu de viva voz que passar de 4h gera cobrança automática "adicional por hora". A minuta diz o contrário — visitas acima de 4h não têm tarifa por hora, viram "orçamento específico e aprovação prévia da CONTRATANTE" (cláusula 2.3), e nada extraordinário é cobrado sem alinhamento prévio entre as partes (cláusula 2.4). Recomendei seguir o texto do contrato (sem tarifa automática por hora extra) e registrei que, se ela realmente quiser uma tarifa automática, isso exige revisar a cláusula 2.3 do contrato-modelo também, não só a plataforma.
+- **Atualização em `docs/VISITA_EXTRA_SPEC.md`:** copy do painel do cliente ajustada (visita acima de 4h vira alinhamento de orçamento, não "R$/h"); campo `visit_extra_hour_rate` removido do desenho de configuração por contrato (não existe base contratual pra ele); default de `visit_flat_fee` fixado em R$ 800,00; fluxo do admin (seção 7) ganhou o passo do orçamento específico quando a visita passa de 4h.
+- **Entrega:** Commit pendente nesta mensagem, em `main`. Sem alteração de código de produto.
+- **Aprovação:** Pati anexou o contrato a pedido da entrada anterior (28/09/2026). `aguardando validação` — falta ela confirmar a divergência do item acima e o ponto 2 (comprovação do próprio deslocamento) antes de qualquer implementação.
+- **Limites:** Não li o contrato inteiro linha a linha em busca de outras cláusulas fora do escopo de visita/Anexo I (ex.: rescisão, confidencialidade) — não era o pedido. Se houver outra cláusula relevante para esta funcionalidade que eu tenha deixado passar, preciso que ela aponte.

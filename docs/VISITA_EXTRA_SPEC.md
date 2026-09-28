@@ -2,6 +2,7 @@
 
 > Status: **rascunho para validação da Pati, antes de qualquer código.**
 > Pedido dela (28/09/2026): montar o fluxo completo (perfil cliente + perfil admin) antes de mexer em qualquer coisa no código. Este arquivo é essa proposta. Nada aqui foi implementado ainda.
+> Atualizado com os valores reais da minuta `CALI_RH_Minuta_CALI_PARTNER_KIE-TEC_revisada.docx` (anexada por ela em 28/09) — ver seção 8, que aponta uma divergência real entre o que está no contrato e o que ela descreveu de viva voz.
 
 ## 1. Contexto
 
@@ -22,13 +23,13 @@ Aparece no topo do painel, antes do formulário. Copy proposta (ajustável):
 > Pra fechar isso, só um resumo rápido antes de você escolher a data:
 >
 > - A solicitação é avaliada por mim com **pelo menos 48h úteis de antecedência** dos dias e horário propostos.
-> - A visita tem **até 4 horas** inclusas na taxa de {valor_visita}. Passando disso, é cobrado adicional por hora ({valor_hora_extra}/h).
+> - A visita tem **até 4 horas** inclusas na taxa de {valor_visita}. Passando disso, entro em contato pra alinhar um orçamento específico antes de qualquer coisa — nada é cobrado sem a gente combinar antes.
 > - **Não atendo às segundas-feiras** — minha agenda já é fechada nesse dia. Se for algo realmente importante, me conta no campo de observações que eu avalio ajustar.
-> - Deslocamento e alimentação **não estão inclusos** no valor da visita e são cobrados à parte, mediante comprovante (Uber, nota fiscal).
+> - Deslocamento, estacionamento e alimentação **não estão inclusos** no valor da visita e são cobrados à parte, sempre com comprovante.
 > - Tudo isso entra na **fatura do mês de uso** da visita.
 > - E fica tranquilo(a): esse horário é **100% dedicado a você** — não vou estar atendendo outras contas ou resolvendo outras pendências nesse período.
 
-Os valores entre `{}` vêm do contrato configurado do cliente (ver seção 6), nunca hardcoded no componente.
+O valor entre `{}` vem do contrato configurado do cliente (ver seção 6), nunca hardcoded no componente. Para o CALI Partner padrão, hoje é **R$ 800,00 por visita de até 4 horas** (Anexo I, cláusula 2.1 da minuta).
 
 ## 4. Formulário
 
@@ -54,8 +55,8 @@ Os valores entre `{}` vêm do contrato configurado do cliente (ver seção 6), n
 
 Novos campos no cadastro/edição de contrato do cliente (mesma tela onde hoje ficam plano, horas contratadas etc.):
 
-- **Taxa da visita** (valor fixo, até 4h inclusas) — `visit_flat_fee`.
-- **Valor da hora adicional** (após as 4h) — `visit_extra_hour_rate`.
+- **Taxa da visita** (valor fixo, até 4h inclusas) — `visit_flat_fee`. Default para novos contratos CALI Partner: **R$ 800,00** (Anexo I, cláusula 2.1 da minuta).
+- Não existe campo de "valor da hora adicional" — ver seção 8, item 1: pela minuta, visita acima de 4h não tem tarifa automática, vai para orçamento específico.
 - Os demais parâmetros (janela de 48h úteis, horário 9h–16h, bloqueio de segunda) começam como regra **global da Pati**, não por cliente — não há indicação de que variem de contrato para contrato. Se algum cliente precisar de regra diferente, tratamos como exceção quando aparecer.
 
 Isso é o que a Pati descreveu na abertura da conversa: "vai entrar algumas questões... primeiro eu preciso montar as regras... o correto é a gente deixar isso visível ali na plataforma" — os valores vêm do contrato de cada cliente, não de um texto fixo.
@@ -71,14 +72,14 @@ Isso é o que a Pati descreveu na abertura da conversa: "vai entrar algumas ques
    - Aceita uma das novas datas → confirma, vira compromisso na agenda.
    - Recusa as duas → devolve uma nova sugestão de data para a Pati, reabrindo a avaliação (o ciclo do passo 3 se repete).
 5. Em qualquer tela de "não deu match ainda" (recusa, contraproposta), o tom é leve e tranquilizador, mantendo a identidade da Pati — ex.: "Opa, essa data não encaixou na minha agenda 🙂 Mas vai dar tudo certo, só mais um ajuste!" — nunca um erro seco.
-6. Ao confirmar, o valor da visita (+ hora extra se aplicável) entra automaticamente no relatório/fatura do mês de uso. Deslocamento e alimentação entram **depois**, quando a Pati anexar o comprovante — não no momento da confirmação.
+6. Ao confirmar, o valor fixo da visita ({valor_visita}) entra automaticamente no relatório/fatura do mês de uso. Deslocamento, estacionamento e alimentação entram **depois**, quando a Pati anexar o comprovante — não no momento da confirmação.
+7. Se a visita proposta pelo cliente já indicar necessidade de mais de 4h (ou isso ficar claro depois), não existe cobrança automática de hora extra — a Pati sinaliza no pedido que aquilo entra como **orçamento específico**, alinha o valor à parte com o cliente, e só depois de aprovado ele é lançado manualmente na fatura. O fluxo de aceite/agenda continua igual; só o valor cobrado muda de automático para manual nesse caso.
 
 ## 8. Em aberto — bloqueadores reais (preciso de você aqui, Pati)
 
-Isso eu não posso decidir sozinho, preciso do dado ou da decisão:
-
-1. **Valor da taxa de visita (`visit_flat_fee`) e da hora extra (`visit_extra_hour_rate`)** — você mencionou que ia anexar o modelo de contrato com esses valores; ainda não chegou. Preciso disso antes de definir os defaults do sistema (mesmo sendo configurável por cliente, precisa de um valor-base pra novos cadastros).
-2. **Comprovação do seu próprio deslocamento** — você mesma colocou em aberto ("não sei como a gente pode fazer isso no caso"). Minha sugestão, pra você validar: você anexa o comprovante (nota fiscal/recibo) manualmente depois da visita, igual faria com Uber do cliente, e o valor entra como um lançamento avulso na fatura do mês — sem fluxo automático de "solicitação" nesse caso, porque é custo seu, não do cliente. Confirma se é assim ou se você tem outra ideia?
+1. **Resolvido pela minuta, mas com uma divergência que preciso que você confirme:** você descreveu de viva voz que, passando das 4h, seria "cobrado adicional por hora". A minuta que você anexou (Anexo I, cláusulas 2.1 e 2.3) diz outra coisa: a visita de até 4h custa R$ 800,00, e visitas **acima de 4h não têm tarifa por hora** — viram "objeto de orçamento específico e aprovação prévia da CONTRATANTE" (cláusula 2.3), e a cláusula 2.4 reforça que nada extraordinário é cobrado sem alinhamento prévio entre as partes.
+   Minha recomendação: sigo a minuta, que é o documento que vale juridicamente — nada de tarifa automática por hora extra; passou de 4h, vira conversa/orçamento à parte, como descrevi na seção 7. Se você realmente quer uma tarifa automática por hora (ex.: para agilizar, sem precisar renegociar toda vez), isso exigiria revisar a cláusula 2.3 do contrato-modelo também, não só a plataforma — me avisa se é isso que você quer, porque aí o próximo passo não é só técnico.
+2. **Comprovação do seu próprio deslocamento/estacionamento/alimentação** — você mesma colocou em aberto ("não sei como a gente pode fazer isso no caso"). A minuta só diz que esses custos são cobrados do cliente "efetivamente relacionados" (ou seja, comprovados), mas não define como você registra o comprovante no seu lado. Minha sugestão, pra você validar: você anexa o comprovante (nota fiscal/recibo) manualmente depois da visita, e o valor entra como um lançamento avulso na fatura do mês — sem fluxo automático de "solicitação" nesse caso, porque é custo seu, não do cliente. Confirma se é assim ou se você tem outra ideia?
 
 Fora esses dois pontos, o fluxo acima está fechado o suficiente pra eu começar a desenhar as telas assim que você validar. Não vou tocar em código antes disso.
 
