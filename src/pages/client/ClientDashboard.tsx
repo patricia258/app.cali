@@ -55,6 +55,7 @@ type DashboardData = {
   documentCount: number | null;
   openOccurrenceCount: number | null;
   latestOccurrence: ClientOccurrence | null;
+  occurrenceLoadError: boolean;
 };
 
 const statusLabel: Record<string, string> = {
@@ -113,7 +114,7 @@ function formatEventDate(value: string) {
 }
 export function ClientDashboard() {
   const { user } = useWorkspaceAuth();
-  const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, nps: null, npsCount: 0, completionPct: 0, reportCount: 0, latestDocument: null, documentCount: null, openOccurrenceCount: null, latestOccurrence: null });
+  const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, nps: null, npsCount: 0, completionPct: 0, reportCount: 0, latestDocument: null, documentCount: null, openOccurrenceCount: null, latestOccurrence: null, occurrenceLoadError: false });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
@@ -161,8 +162,8 @@ export function ClientDashboard() {
         supabase.from('reports').select('id').eq('company_id', companyId).in('status', ['sent', 'published']),
         supabase.rpc('get_client_account_contact'),
         supabase.from('files').select('id,title,updated_at,category', { count: 'exact' }).eq('company_id', companyId).eq('client_visible', true).eq('status', 'published').order('updated_at', { ascending: false }).limit(1),
-        supabase.from('account_records').select('id', { count: 'exact', head: true }).eq('company_id', companyId).eq('visibility', 'client').eq('record_type', 'occurrence').in('workflow_status', ['open', 'in_progress', 'waiting_client']),
-        supabase.from('account_records').select('id,title,workflow_status,occurred_at,last_activity_at').eq('company_id', companyId).eq('visibility', 'client').eq('record_type', 'occurrence').order('last_activity_at', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false }).limit(1),
+        supabase.from('account_records').select('id', { count: 'exact', head: true }).eq('company_id', companyId).eq('visibility', 'client').in('record_type', ['occurrence', 'request', 'context_change', 'other']).in('workflow_status', ['open', 'in_progress', 'waiting_client', 'standby']),
+        supabase.from('account_records').select('id,title,workflow_status,occurred_at,last_activity_at').eq('company_id', companyId).eq('visibility', 'client').in('record_type', ['occurrence', 'request', 'context_change', 'other']).order('last_activity_at', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false }).limit(1),
       ]);
 
       if (companyResult.error) throw companyResult.error;
@@ -197,6 +198,7 @@ export function ClientDashboard() {
         documentCount: documentsResult.error ? null : documentsResult.count,
         openOccurrenceCount: occurrencesResult.error ? null : occurrencesResult.count,
         latestOccurrence: latestOccurrenceResult.error ? null : (latestOccurrenceResult.data?.[0] as ClientOccurrence || null),
+        occurrenceLoadError: Boolean(latestOccurrenceResult.error),
       });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar sua área.');
@@ -236,10 +238,12 @@ export function ClientDashboard() {
   const waiting = data.deliverables.filter((item) => item.status === 'client_review');
   const showHours = Boolean(data.company?.show_hours_to_client);
   const contractedMinutes = showHours ? Number(data.company?.monthly_hours_contracted || 0) * 60 : 0;
+  const hoursProgress = contractedMinutes > 0 ? Math.min(100, Math.max(0, data.minutes / contractedMinutes * 100)) : 0;
+  const hoursPercentage = contractedMinutes > 0 ? Math.round(data.minutes / contractedMinutes * 100) : 0;
   const packageName = planLabel(data.company?.service_plan) || planLabel(data.company?.service_type) || 'Contratação CALI';
   const latestOccurrence = data.latestOccurrence;
-  const occurrenceStatus = latestOccurrence?.workflow_status || 'open';
-  const occurrenceStatusText: Record<string, string> = { open: 'Aberta', in_progress: 'Em andamento', waiting_client: 'Aguardando resposta', standby: 'Em espera', completed: 'Encerrada', cancelled: 'Cancelada' };
+  const occurrenceStatus = latestOccurrence?.workflow_status || 'recorded';
+  const occurrenceStatusText: Record<string, string> = { open: 'Aberta', in_progress: 'Em andamento', waiting_client: 'Aguardando você', standby: 'Em espera', completed: 'Encerrada', cancelled: 'Cancelada', recorded: 'Registrada' };
   const occurrenceDays = latestOccurrence ? Math.max(0, Math.floor((Date.now() - new Date(latestOccurrence.occurred_at).getTime()) / 86400000)) : 0;
 
   function quickAnswer(kind: 'next_event' | 'hours' | 'validation' | 'reports') {
@@ -301,10 +305,14 @@ export function ClientDashboard() {
           </div>
           <div className="contract-card-hours">
             {showHours && data.company?.monthly_hours_contracted ? <>
-              <div className="contract-hours-stat"><strong>{formatHours(data.minutes)}</strong><span>consumidas no mês</span></div>
+              <div className="contract-hours-stat"><strong>{formatHours(data.minutes)}</strong><span>consumidas no mês · {hoursPercentage}%</span></div>
               <div className="contract-hours-stat"><strong>{Number(data.company.monthly_hours_contracted)}h</strong><span>contratadas no mês</span></div>
             </> : <div className="contract-hours-stat wide"><strong>{activeProject ? 'Ativo' : 'Em preparação'}</strong><span>ciclo atual</span></div>}
           </div>
+          {contractedMinutes > 0 && <div className="contract-hours-progress" role="progressbar" aria-label="Horas consumidas neste mês" aria-valuemin={0} aria-valuemax={contractedMinutes} aria-valuenow={Math.min(contractedMinutes, data.minutes)} aria-valuetext={`${formatHours(data.minutes)} de ${Number(data.company?.monthly_hours_contracted)} horas, ${hoursPercentage}%`}>
+            <div className="contract-hours-scale"><span>0h</span><span>50%</span><span>{Number(data.company?.monthly_hours_contracted)}h</span></div>
+            <div className="contract-hours-track"><div className="contract-hours-fill" style={{ clipPath: `inset(0 ${100 - hoursProgress}% 0 0)` }} /><i aria-hidden="true" /></div>
+          </div>}
         </aside>
 
       </div>
@@ -359,7 +367,7 @@ export function ClientDashboard() {
           </div>
           <div className="client-service-content">
             <span className="client-service-kicker">DOCUMENTO MAIS RECENTE</span>
-            <strong>{data.latestDocument?.title || 'Nenhum documento publicado'}</strong>
+            <strong>{data.latestDocument?.title || (data.documentCount == null ? 'Documentos indisponíveis agora' : 'Nenhum documento publicado')}</strong>
             {data.latestDocument && <p>Atualizado em {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(data.latestDocument.updated_at)).replace('.', '')}</p>}
             <Link to="/cliente/documentos">{data.latestDocument ? 'Ver documento e acervo' : 'Ver documentos'} <ChevronRight size={15} /></Link>
           </div>
@@ -372,8 +380,8 @@ export function ClientDashboard() {
             <span className="client-occurrence-avatar company">{data.company?.logo_url ? <img src={data.company.logo_url} alt={data.company.display_name} /> : 'C'}</span>
           </div>
           <span className="client-service-kicker">OCORRÊNCIA MAIS RECENTE</span>
-          <strong>{latestOccurrence?.title || 'Nenhuma ocorrência registrada'}</strong>
-          {latestOccurrence ? <p>{occurrenceDays === 0 ? 'Registrada hoje' : `Registrada há ${occurrenceDays} ${occurrenceDays === 1 ? 'dia' : 'dias'}`} · {data.openOccurrenceCount ?? '—'} em aberto</p> : <p>{data.openOccurrenceCount == null ? 'Consulte os registros da sua conta.' : 'Os registros compartilhados aparecerão aqui.'}</p>}
+          <strong>{latestOccurrence?.title || (data.occurrenceLoadError ? 'Ocorrências indisponíveis agora' : 'Nenhuma ocorrência registrada')}</strong>
+          {latestOccurrence ? <p>{occurrenceDays === 0 ? 'Registrada hoje' : `Registrada há ${occurrenceDays} ${occurrenceDays === 1 ? 'dia' : 'dias'}`} · {data.openOccurrenceCount ?? '—'} em aberto</p> : <p>{data.occurrenceLoadError ? 'Acesse a página de registros para tentar novamente.' : 'Os registros compartilhados aparecerão aqui.'}</p>}
           <Link to={latestOccurrence ? `/cliente/registros?record=${encodeURIComponent(latestOccurrence.id)}` : '/cliente/registros'}>{latestOccurrence ? 'Abrir ocorrência' : 'Ver ocorrências'} <ChevronRight size={15} /></Link>
         </article>
       </section>

@@ -205,3 +205,14 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Aprovação:** pedido da Pati; composição final `aguardando avaliação`.
 
 ---
+
+## 2026-09-28 — Codex (molduras, ocorrências e consumo mensal)
+
+- **Escopo:** home `/cliente`, revisão dos dois cartões recentes e da contratação com base nos prints das 12h29–12h30. Pedido e composição anteriores foram aprovados pela Pati; esta nova revisão aguarda avaliação.
+- **Molduras e imagens:** documento e ocorrência recebem contornos próprios discretos com cantos arredondados iguais; as variáveis inválidas `--card` e `--border` da versão anterior foram trocadas pelas variáveis reais do tema. Os três avatares da ocorrência têm a mesma forma e tamanho, e a marca do cliente ocupa mais da sua área. A logo na capa dos documentos também cresce, mantendo o fundo extraído da marca.
+- **Dados de ocorrências:** a home filtrava somente `record_type='occurrence'`, enquanto a página de registros admite conversas `occurrence`, `request`, `context_change` e `other`. A consulta e a contagem agora usam esses mesmos tipos, com filtro de empresa/visibilidade do cliente. A conversa mais recente aponta ao registro real. Um erro de consulta mostra estado de indisponibilidade em vez de afirmar incorretamente que não há registros. O estado sem `workflow_status` é exibido como “Registrada”, sem inferir abertura.
+- **Horas:** para contas com horas visíveis e contratadas, a régua cresce de acordo com `visibleMinutes` do ciclo mensal e `monthly_hours_contracted`, com porcentagem calculada e marca de 50%. Verde, âmbar, laranja e vermelho indicam o avanço visual; horas e números permanecem explícitos. Sem limite contratado não há régua nem divisão inventada.
+- **Verificação:** compilação e revisão de diffs. O Workspace utiliza o banco do projeto CALI MAPA com schema `cali_workspace`. Consulta de leitura confirmou na conta CALI · Ambiente de Teste dois registros `request` (um `waiting_client` e um `completed`) e um `leadership` concluído; o `request` com resposta aguardada tem a atividade mais recente e será exibido pela nova consulta. A política RLS existente restringe a leitura do cliente à sua empresa e `visibility='client'`. Conferir a apresentação na sessão autenticada após o deploy.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v5.css`, `src/client-document-brand-cover.css` e este registro. Aprovação visual: `aguardando avaliação`.
+
+---
