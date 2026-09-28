@@ -17,7 +17,13 @@
 .client-home-v3 .contract-main small { font-size: 12px !important; }
 .client-home-v3 .contract-hours-stat strong { font-size: 26px !important; }
 
-.client-home-v3 .client-executive-grid { gap: 0 !important; margin: 12px 0 28px !important; }
+.client-home-v3 .client-executive-grid {
+  gap: 0 !important;
+  margin: 12px 0 28px !important;
+  border: 1px solid rgba(181, 140, 82, .32);
+  border-radius: 22px;
+  overflow: hidden;
+}
 .client-home-v3 .executive-card,
 html[data-workspace-theme='day'] .client-home-v3 .executive-card,
 html[data-workspace-theme='night'] .client-home-v3 .executive-card {
@@ -41,12 +47,76 @@ html[data-workspace-theme='day'] .client-home-v3 .client-project-panel,
 html[data-workspace-theme='day'] .client-home-v3 .client-agenda-panel,
 html[data-workspace-theme='night'] .client-home-v3 .client-project-panel,
 html[data-workspace-theme='night'] .client-home-v3 .client-agenda-panel {
-  border: 0 !important;
-  border-top: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
+  border: 1px solid rgba(181, 140, 82, .32) !important;
+  border-radius: 22px !important;
+  background: var(--card) !important;
   box-shadow: none !important;
 }
+html[data-workspace-theme='night'] .client-home-v3 .client-executive-grid,
+html[data-workspace-theme='night'] .client-home-v3 .client-project-panel,
+html[data-workspace-theme='night'] .client-home-v3 .client-agenda-panel {
+  border-color: rgba(224, 189, 123, .38) !important;
+}
+.client-home-v3 .client-home-reports-link {
+  border: 1px solid rgba(181, 140, 82, .32);
+  border-radius: 18px;
+  padding: 16px 20px;
+}
+html[data-workspace-theme='night'] .client-home-v3 .client-home-reports-link {
+  border-color: rgba(224, 189, 123, .38);
+}
+
+/* Prazos reais em trilhas, sem sugerir duração inexistente nos dados. */
+.client-delivery-schedule { margin-top: 22px; min-width: 0; }
+.client-delivery-lanes { border-top: 1px solid var(--border); }
+.client-delivery-lane {
+  display: grid;
+  grid-template-columns: minmax(130px, 36%) minmax(0, 1fr);
+  align-items: center;
+  min-height: 75px;
+  border-bottom: 1px solid var(--border);
+}
+.client-delivery-name { min-width: 0; padding: 12px 15px 12px 0; }
+.client-delivery-name strong { display: block; font-size: 13px; line-height: 1.35; overflow-wrap: anywhere; }
+.client-delivery-name small { display: block; margin-top: 5px; color: var(--muted-foreground); font-size: 11px; }
+.client-delivery-track {
+  position: relative;
+  height: 75px;
+  background: repeating-linear-gradient(90deg, transparent 0, transparent calc(50% - 1px), color-mix(in srgb, var(--client-gold) 17%, transparent) 50%);
+}
+.client-delivery-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 70px;
+  padding: 9px 11px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--client-gold) 24%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--client-gold) 38%, transparent);
+  color: var(--foreground);
+  text-align: center;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.client-delivery-marker.status-in_progress,
+.client-delivery-marker.status-internal_review,
+.client-delivery-marker.status-adjustment_requested,
+.client-delivery-marker.status-rebriefing { background: var(--client-bordeaux); border-color: var(--client-bordeaux); color: #fff; }
+.client-delivery-marker.status-approved { background: #3f7258; border-color: #3f7258; color: #fff; }
+.client-delivery-marker.status-client_review { background: var(--client-gold); border-color: var(--client-gold); color: #291b1c; }
+.client-delivery-undated { display: inline-block; margin: 27px 0 0 10px; color: var(--muted-foreground); font-size: 11px; }
+.client-delivery-axis {
+  display: grid;
+  grid-template-columns: minmax(130px, 36%) repeat(3, 1fr);
+  padding: 12px 0 2px;
+  color: var(--muted-foreground);
+  font-size: 10px;
+}
+.client-delivery-axis time { text-align: center; }
+.client-delivery-axis time:nth-child(2) { text-align: left; }
+.client-delivery-axis time:last-child { text-align: right; }
+.client-delivery-mobile-date { display: none; }
 
 @media (max-width: 1180px) {
   .client-home-v3 .executive-card:nth-child(2),
@@ -69,4 +139,15 @@ html[data-workspace-theme='night'] .client-home-v3 .client-agenda-panel {
     border-bottom: 1px solid var(--border) !important;
   }
   .client-home-v3 .executive-card:last-child { border-bottom: 0 !important; }
+  .client-delivery-lane { grid-template-columns: minmax(0, 1fr) auto; min-height: 68px; gap: 12px; }
+  .client-delivery-track, .client-delivery-axis { display: none; }
+  .client-delivery-mobile-date {
+    display: block;
+    padding: 7px 10px;
+    border: 1px solid rgba(181, 140, 82, .42);
+    border-radius: 999px;
+    color: var(--foreground);
+    font-size: 11px;
+    white-space: nowrap;
+  }
 }

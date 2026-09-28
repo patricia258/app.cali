@@ -126,3 +126,13 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v2.css`, `src/client-home-v5.css`, `src/styles/routes/clientExperience.ts` e este registro. O CSS novo entra somente na rota do cliente, depois dos estilos anteriores, sem editar o arquivo compartilhado `uxui-shell-dashboard-preview.css`. Não se aplica ao administrativo: a saudação, o bloco de contratação do cliente e as métricas desta home são exclusivos de `/cliente`.
 - **Entrega/verificação:** desenvolvido sobre `b99ff484`; publicado no commit [`cc1c704`](https://github.com/patricia258/app.cali/commit/cc1c704a0100dfc82b418d9bbb57b671f8ffe6dd), com deploy de produção `READY`. `npm run check` (typecheck + build) e `git diff --check` passaram. O layout autenticado não foi validado visualmente com uma sessão de cliente.
 - **Aprovação:** Pati rejeitou o print 2 e pediu correção. Estado desta revisão: `aguardando avaliação` após publicação. Não confundir pedido de conserto com aprovação da nova composição.
+## 2026-09-28 — Codex (perfil do cliente: linha do tempo e molduras)
+
+- **Superfície/escopo:** home autenticada do cliente `/cliente`, painel “Em movimento”, molduras dos painéis e indicadores da mesma página. Pedido da Pati: print 1 é a tela existente; print 2 do MatDash é referência apenas de estrutura/layout, adaptada à CALI. O arquivo MatDash gratuito enviado não contém o componente “Weekly Schedules” do print; usei o print como referência visual, sem importar dados ou conteúdo demonstrativo.
+- **Mudança:** as quatro entregas visíveis do projeto atual agora aparecem em trilhas horizontais, ordenadas pelo prazo real, com cápsulas posicionadas em um eixo calculado com `due_at`. O estado real fica junto ao título; prazos ausentes aparecem como “Prazo a definir”, sem sugerir data ou duração. Em telas pequenas, cada trilha vira uma linha legível com prazo ao lado. O link “Ver projeto” e a origem dos dados permanecem iguais.
+- **Molduras:** restaurada uma linha dourada fina ao redor de “Em movimento”, “Agenda compartilhada”, conjunto dos três indicadores e link de relatórios, com contraste próprio nos temas dia e noite. Sem sombra pesada.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v5.css` e este registro. Sem alterações de query, status, permissões ou cálculos financeiros.
+- **Verificação:** `npm run check` (typecheck e build) e `git diff --check` passaram. A tela autenticada ainda precisa ser conferida visualmente com uma conta cliente nos dois temas e no celular.
+- **Aprovação:** solicitado pela Pati em 28/09/2026; `aguardando avaliação`. Não confundir a referência MatDash com aprovação final da adaptação.
+
+---

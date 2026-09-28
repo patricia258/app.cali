@@ -82,6 +82,21 @@ function formatDate(value?: string | null) {
   if (Number.isNaN(date.getTime())) return 'A definir';
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(date).replace('.', '');
 }
+function deliveryDate(value?: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+function deliveryTimeline(items: Deliverable[]) {
+  const dated = items.map((item) => deliveryDate(item.due_at)?.getTime()).filter((time): time is number => time != null);
+  if (!dated.length) return null;
+  const day = 24 * 60 * 60 * 1000;
+  const first = Math.min(...dated);
+  const last = Math.max(...dated);
+  const span = Math.max(14 * day, last - first + 4 * day);
+  const start = first - (span - (last - first)) / 2;
+  return { start, span, ticks: [start, start + span / 2, start + span] };
+}
 function formatEventDate(value: string) {
   const date = new Date(value);
   return {
@@ -193,6 +208,12 @@ export function ClientDashboard() {
 
   const activeProject = data.projects.find((project) => !['completed', 'cancelled'].includes(project.status)) || data.projects[0] || null;
   const projectDeliverables = activeProject ? data.deliverables.filter((item) => item.project_id === activeProject.id) : data.deliverables;
+  const visibleDeliverables = [...projectDeliverables].sort((a, b) => {
+    const aDate = deliveryDate(a.due_at)?.getTime() ?? Infinity;
+    const bDate = deliveryDate(b.due_at)?.getTime() ?? Infinity;
+    return aDate - bDate;
+  }).slice(0, 4);
+  const timeline = deliveryTimeline(visibleDeliverables);
   const approvedCount = projectDeliverables.filter((item) => item.status === 'approved').length;
   const waiting = data.deliverables.filter((item) => item.status === 'client_review');
   const activeDeliverables = data.deliverables.filter((item) => !closedStatuses.has(item.status));
@@ -299,11 +320,20 @@ export function ClientDashboard() {
       <div className="client-home-lower-grid">
         <section className="panel client-project-panel">
           <div className="panel-title"><div><span className="section-kicker">EM MOVIMENTO</span><h2>{activeProject?.name || 'Projeto atual'}</h2></div><Link to="/cliente/entregaveis">Ver projeto</Link></div>
-          {projectDeliverables.length ? <div className="client-live-deliverables">{projectDeliverables.slice(0, 4).map((deliverable) => <div className="client-live-row" key={deliverable.id}>
-            <span className={`live-dot ${deliverable.status}`} />
-            <div><strong>{deliverable.title}</strong><small>{statusLabel[deliverable.status] || deliverable.status}</small></div>
-            <div><span>{formatDate(deliverable.due_at)}</span></div>
-          </div>)}</div> : <div className="client-empty-inline">Quando a CALI abrir as primeiras entregas deste projeto, elas aparecerão aqui.</div>}
+          {visibleDeliverables.length ? <div className="client-delivery-schedule" aria-label="Prazos e andamento das entregas">
+            <div className="client-delivery-lanes">{visibleDeliverables.map((deliverable) => {
+              const due = deliveryDate(deliverable.due_at);
+              const position = due && timeline ? Math.max(12, Math.min(88, (due.getTime() - timeline.start) / timeline.span * 100)) : 50;
+              return <div className="client-delivery-lane" key={deliverable.id}>
+                <div className="client-delivery-name"><strong>{deliverable.title}</strong><small>{statusLabel[deliverable.status] || deliverable.status}</small></div>
+                <div className="client-delivery-track" aria-hidden="true">
+                  {due && timeline ? <span className={`client-delivery-marker status-${deliverable.status}`} style={{ left: `${position}%` }}>{formatDate(deliverable.due_at)}</span> : <span className="client-delivery-undated">Prazo a definir</span>}
+                </div>
+                <span className="client-delivery-mobile-date">{formatDate(deliverable.due_at)}</span>
+              </div>;
+            })}</div>
+            {timeline && <div className="client-delivery-axis" aria-hidden="true"><span />{timeline.ticks.map((tick) => <time key={tick}>{formatDate(new Date(tick).toISOString())}</time>)}</div>}
+          </div> : <div className="client-empty-inline">Quando a CALI abrir as primeiras entregas deste projeto, elas aparecerão aqui.</div>}
         </section>
 
         <section className="panel client-agenda-panel">
