@@ -216,3 +216,14 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v5.css`, `src/client-document-brand-cover.css` e este registro. Aprovação visual: `aguardando avaliação`.
 
 ---
+
+## 2026-09-28 — Codex (auditoria de dados e atualização da home do cliente)
+
+- **Pedido:** Pati aprovou os cartões e pediu que toda a home `/cliente` mostre dados atuais do Supabase, atualizando após mudanças sem depender de recarga manual. Nenhuma ação de exemplo foi inserida.
+- **Fontes verificadas:** saudação em `profiles`; empresa/plano em `companies`; contato executivo em `get_client_account_contact`; entregas, distribuição, conclusão e projeto em `projects`/`deliverables`; percepção em `nps_responses`; documentos em `files` publicados; agenda em `events` futuros e visíveis; ocorrências em `account_records` compartilhados; relatórios em `reports` enviados/publicados. Estados vazios são resultado das consultas, não mockups. O vídeo da Pati é apenas decorativo.
+- **Correção das horas:** a home antes somava `hour_entries` de todos os períodos e comparava com a franquia mensal de `companies`. Passou a usar o RPC já adotado na página `/cliente/horas`: `get_client_hours_summary` para o mês corrente no fuso de São Paulo, que respeita visibilidade, período, projeto operacional e eventual franquia de `service_cycles`. A consulta duplicada de horas sem período no carregador da home foi retirada; a página detalhada de entregáveis conserva sua consulta. Falha da consulta não é mostrada como 0h.
+- **Tempo real:** o assinante existente já acompanha `projects`, `deliverables`, `nps_responses`, `files`, `hour_entries`, `events`, `reports` e alterações de `companies`; agora acompanha também `account_records` para status/título de ocorrência. O banco confirma essas tabelas na publicação `supabase_realtime`. Atualização ao voltar para a aba e conferência a cada 30 segundos enquanto ela está visível cobrem desconexão, alterações de perfil/contato e eventos que não cheguem pelo canal. Mudanças recebidas durante uma consulta em andamento geram uma nova consulta ao final, sem perder a última movimentação.
+- **Verificação de dados:** consulta somente de leitura no banco `cali_workspace` da conta de teste encontrou 2 projetos, 5 entregáveis visíveis, 0 avaliações, 1 documento publicado, 1 compromisso futuro e 2 conversas compartilhadas. A página continua sujeita ao RLS do cliente para exibir apenas dados autorizados. Sem teste automatizado de uma sessão cliente autenticada neste ambiente; validar a atualização visual simultânea admin/cliente no app.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/lib/clientDeliveryReality.ts`, este registro. **Autor:** Codex. **Aprovação:** correções solicitadas pela Pati, resultado `aguardando avaliação`.
+
+---

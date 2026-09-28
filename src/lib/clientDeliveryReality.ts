@@ -406,6 +406,7 @@ export function subscribeClientDeliveryReality(companyId: string, onChange: () =
     'nps_responses',
     'events',
     'reports',
+    'account_records',
   ];
   for (const table of companyTables) {
     channel.on('postgres_changes', { event: '*', schema: 'cali_workspace', table, filter: `company_id=eq.${companyId}` }, onChange);
@@ -420,7 +421,7 @@ export async function loadClientDashboardReality(companyId: string): Promise<Cli
   if (!supabase) throw new Error('Workspace indisponível.');
   if (!companyId) throw new Error('Empresa do cliente não encontrada.');
 
-  const [companyResult, projectResult, deliverableResult, hourResult, npsResult] = await Promise.all([
+  const [companyResult, projectResult, deliverableResult, npsResult] = await Promise.all([
     supabase.from('companies')
       .select('id,display_name,monthly_hours_contracted,show_hours_to_client')
       .eq('id', companyId)
@@ -436,10 +437,6 @@ export async function loadClientDashboardReality(companyId: string): Promise<Cli
       .eq('client_visible', true)
       .order('sort_order')
       .order('created_at'),
-    supabase.from('hour_entries')
-      .select('deliverable_id,minutes')
-      .eq('company_id', companyId)
-      .eq('client_visible', true),
     supabase.from('nps_responses')
       .select('deliverable_id,score,created_at')
       .eq('company_id', companyId)
@@ -449,7 +446,6 @@ export async function loadClientDashboardReality(companyId: string): Promise<Cli
   if (companyResult.error) throw companyResult.error;
   if (projectResult.error) throw projectResult.error;
   if (deliverableResult.error) throw deliverableResult.error;
-  if (hourResult.error && companyResult.data?.show_hours_to_client) throw hourResult.error;
   if (npsResult.error) throw npsResult.error;
 
   const company = {
@@ -468,12 +464,6 @@ export async function loadClientDashboardReality(companyId: string): Promise<Cli
     targetEndDate: row.target_end_date,
   }));
   const projectMap = new Map(projects.map((project) => [project.id, project]));
-  const minutesByDeliverable = new Map<string, number>();
-  if (company.showHoursToClient && !hourResult.error) {
-    for (const row of hourResult.data || []) {
-      if (row.deliverable_id) minutesByDeliverable.set(row.deliverable_id, (minutesByDeliverable.get(row.deliverable_id) || 0) + finiteNumber(row.minutes));
-    }
-  }
   const feedbackByDeliverable = new Map<string, ClientDeliveryFeedback>();
   const scores: number[] = [];
   for (const row of npsResult.data || []) {
@@ -498,7 +488,7 @@ export async function loadClientDashboardReality(companyId: string): Promise<Cli
       adjustmentCount: 0,
       rebriefingRequired: false,
       isDocument: Boolean(row.is_document),
-      visibleMinutes: company.showHoursToClient ? (minutesByDeliverable.get(row.id) || 0) : null,
+      visibleMinutes: null,
       visibleTasks: [],
       visibleTaskProgress: null,
       document: null,
@@ -509,10 +499,6 @@ export async function loadClientDashboardReality(companyId: string): Promise<Cli
   });
   const nonCancelled = deliverables.filter((item) => item.status !== 'cancelled');
   const approved = nonCancelled.filter((item) => item.status === 'approved').length;
-  const visibleMinutes = company.showHoursToClient
-    ? Array.from(minutesByDeliverable.values()).reduce((sum, value) => sum + value, 0)
-    : null;
-
   return {
     company,
     projects,
@@ -526,10 +512,9 @@ export async function loadClientDashboardReality(companyId: string): Promise<Cli
       cancelled: deliverables.filter((item) => item.status === 'cancelled').length,
       overdue: nonCancelled.filter((item) => item.dueAt && item.status !== 'approved' && new Date(item.dueAt).getTime() < Date.now()).length,
       completionPct: nonCancelled.length ? Math.round((approved / nonCancelled.length) * 100) : 0,
-      visibleMinutes,
+      visibleMinutes: null,
       averageDeliveryScore: scores.length ? scores.reduce((sum, score) => sum + score, 0) / scores.length : null,
       feedbackCount: scores.length,
     },
   };
 }
-

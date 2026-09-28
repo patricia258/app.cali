@@ -47,10 +47,13 @@ type DashboardData = {
   deliverables: Deliverable[];
   events: EventItem[];
   minutes: number;
+  hoursVisible: boolean;
+  contractedHours: number;
+  hoursLoadError: boolean;
   nps: number | null;
   npsCount: number;
   completionPct: number;
-  reportCount: number;
+  reportCount: number | null;
   latestDocument: ClientDocument | null;
   documentCount: number | null;
   openOccurrenceCount: number | null;
@@ -112,9 +115,16 @@ function formatEventDate(value: string) {
     time: new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(date),
   };
 }
+function currentMonthBounds() {
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit' }).formatToParts(new Date());
+  const year = Number(parts.find((part) => part.type === 'year')?.value);
+  const month = Number(parts.find((part) => part.type === 'month')?.value);
+  const prefix = `${year}-${String(month).padStart(2, '0')}`;
+  return { start: `${prefix}-01`, end: `${prefix}-${String(new Date(year, month, 0).getDate()).padStart(2, '0')}` };
+}
 export function ClientDashboard() {
   const { user } = useWorkspaceAuth();
-  const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, nps: null, npsCount: 0, completionPct: 0, reportCount: 0, latestDocument: null, documentCount: null, openOccurrenceCount: null, latestOccurrence: null, occurrenceLoadError: false });
+  const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, hoursVisible: false, contractedHours: 0, hoursLoadError: false, nps: null, npsCount: 0, completionPct: 0, reportCount: null, latestDocument: null, documentCount: null, openOccurrenceCount: null, latestOccurrence: null, occurrenceLoadError: false });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
@@ -125,6 +135,7 @@ export function ClientDashboard() {
   const [sending, setSending] = useState(false);
   const refreshTimer = useRef<number | null>(null);
   const loadingRef = useRef(false);
+  const refreshPendingRef = useRef(false);
 
   useEffect(() => {
     void load(true);
@@ -134,14 +145,22 @@ export function ClientDashboard() {
   useEffect(() => {
     const companyId = data.company?.id;
     if (!companyId) return;
-    return subscribeClientDeliveryReality(companyId, () => {
+    const queueRefresh = () => {
       if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
       refreshTimer.current = window.setTimeout(() => void load(false), 260);
-    });
+    };
+    const unsubscribe = subscribeClientDeliveryReality(companyId, queueRefresh);
+    const onFocus = () => queueRefresh();
+    const onVisible = () => { if (!document.hidden) queueRefresh(); };
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisible);
+    const fallback = window.setInterval(() => { if (!document.hidden) queueRefresh(); }, 30_000);
+    return () => { unsubscribe(); window.clearInterval(fallback); window.removeEventListener('focus', onFocus); document.removeEventListener('visibilitychange', onVisible); };
   }, [data.company?.id]);
 
   async function load(showLoading = false) {
-    if (!supabase || loadingRef.current) return;
+    if (!supabase) return;
+    if (loadingRef.current) { refreshPendingRef.current = true; return; }
     loadingRef.current = true;
     if (showLoading) setLoading(true);
     setError('');
@@ -155,9 +174,11 @@ export function ClientDashboard() {
       if (!companyId) throw new Error('Este acesso ainda não está vinculado a uma empresa.');
 
       const nowIso = new Date().toISOString();
-      const [companyResult, deliveryReality, eventResult, reportResult, contactResult, documentsResult, occurrencesResult, latestOccurrenceResult] = await Promise.all([
+      const { start, end } = currentMonthBounds();
+      const [companyResult, deliveryReality, hoursResult, eventResult, reportResult, contactResult, documentsResult, occurrencesResult, latestOccurrenceResult] = await Promise.all([
         supabase.from('companies').select('id,display_name,logo_url,service_type,service_plan,start_date,end_date,monthly_hours_contracted,show_hours_to_client').eq('id', companyId).single(),
         loadClientDashboardReality(companyId),
+        supabase.rpc('get_client_hours_summary', { p_period_start: start, p_period_end: end }),
         supabase.from('events').select('id,title,starts_at,mode,meeting_url').eq('company_id', companyId).eq('visibility', 'client').is('cancelled_at', null).gte('starts_at', nowIso).order('starts_at').limit(3),
         supabase.from('reports').select('id').eq('company_id', companyId).in('status', ['sent', 'published']),
         supabase.rpc('get_client_account_contact'),
@@ -169,6 +190,7 @@ export function ClientDashboard() {
       if (companyResult.error) throw companyResult.error;
       if (eventResult.error) throw eventResult.error;
       const contactRows = contactResult.error ? [] : ((contactResult.data || []) as Contact[]);
+      const hoursSummary = (hoursResult.error ? null : hoursResult.data) as { visible?: boolean; contractedHours?: number; consumedMinutes?: number } | null;
 
       setData({
         company: companyResult.data as Company,
@@ -189,11 +211,14 @@ export function ClientDashboard() {
           project_id: item.projectId,
         })),
         events: (eventResult.data || []) as EventItem[],
-        minutes: deliveryReality.metrics.visibleMinutes || 0,
+        minutes: Number(hoursSummary?.consumedMinutes || 0),
+        hoursVisible: hoursSummary?.visible === true,
+        contractedHours: Number(hoursSummary?.contractedHours || 0),
+        hoursLoadError: Boolean(hoursResult.error),
         nps: deliveryReality.metrics.averageDeliveryScore,
         npsCount: deliveryReality.metrics.feedbackCount,
         completionPct: deliveryReality.metrics.completionPct,
-        reportCount: reportResult.error ? 0 : (reportResult.data || []).length,
+        reportCount: reportResult.error ? null : (reportResult.data || []).length,
         latestDocument: documentsResult.error ? null : (documentsResult.data?.[0] as ClientDocument || null),
         documentCount: documentsResult.error ? null : documentsResult.count,
         openOccurrenceCount: occurrencesResult.error ? null : occurrencesResult.count,
@@ -205,6 +230,11 @@ export function ClientDashboard() {
     } finally {
       loadingRef.current = false;
       if (showLoading) setLoading(false);
+      if (refreshPendingRef.current) {
+        refreshPendingRef.current = false;
+        if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
+        refreshTimer.current = window.setTimeout(() => void load(false), 260);
+      }
     }
   }
 
@@ -236,8 +266,8 @@ export function ClientDashboard() {
   ];
   const highestStageCount = Math.max(1, ...deliveryStages.map((stage) => stage.count));
   const waiting = data.deliverables.filter((item) => item.status === 'client_review');
-  const showHours = Boolean(data.company?.show_hours_to_client);
-  const contractedMinutes = showHours ? Number(data.company?.monthly_hours_contracted || 0) * 60 : 0;
+  const showHours = data.hoursVisible;
+  const contractedMinutes = showHours ? data.contractedHours * 60 : 0;
   const hoursProgress = contractedMinutes > 0 ? Math.min(100, Math.max(0, data.minutes / contractedMinutes * 100)) : 0;
   const hoursPercentage = contractedMinutes > 0 ? Math.round(data.minutes / contractedMinutes * 100) : 0;
   const packageName = planLabel(data.company?.service_plan) || planLabel(data.company?.service_type) || 'Contratação CALI';
@@ -256,11 +286,12 @@ export function ClientDashboard() {
       }
     }
     if (kind === 'hours') {
-      if (!showHours) setAssistantReply('A visualização de horas não está habilitada para esta conta. Quando a CALI disponibilizar esse indicador, ele aparecerá aqui automaticamente.');
-      else setAssistantReply(contractedMinutes > 0 ? `Há ${formatHours(data.minutes)} registradas neste ciclo, de ${Number(data.company?.monthly_hours_contracted || 0)}h contratadas.` : `Há ${formatHours(data.minutes)} registradas. A franquia mensal ainda não está definida no cadastro da sua conta.`);
+      if (data.hoursLoadError) setAssistantReply('Não consegui consultar as horas agora. Tente novamente na página de Horas.');
+      else if (!showHours) setAssistantReply('A visualização de horas não está habilitada para esta conta. Quando a CALI disponibilizar esse indicador, ele aparecerá aqui automaticamente.');
+      else setAssistantReply(contractedMinutes > 0 ? `Há ${formatHours(data.minutes)} registradas neste mês, de ${data.contractedHours}h contratadas.` : `Há ${formatHours(data.minutes)} registradas neste mês. A franquia mensal ainda não está definida no cadastro da sua conta.`);
     }
     if (kind === 'validation') setAssistantReply(waiting.length ? `${waiting.length} ${waiting.length === 1 ? 'entrega está' : 'entregas estão'} aguardando sua validação.` : 'Você não tem validação pendente neste momento.');
-    if (kind === 'reports') setAssistantReply(data.reportCount ? `${data.reportCount} ${data.reportCount === 1 ? 'relatório publicado está' : 'relatórios publicados estão'} disponível na sua área.` : 'Ainda não há relatório publicado para sua conta.');
+    if (kind === 'reports') setAssistantReply(data.reportCount == null ? 'Não consegui consultar os relatórios agora. Acesse a página de Relatórios para tentar novamente.' : data.reportCount ? `${data.reportCount} ${data.reportCount === 1 ? 'relatório publicado está' : 'relatórios publicados estão'} disponível na sua área.` : 'Ainda não há relatório publicado para sua conta.');
   }
 
   async function sendMessage() {
@@ -304,13 +335,13 @@ export function ClientDashboard() {
             <div className="contract-main"><span>SUA CONTRATAÇÃO</span><strong>{packageName}</strong><small>{data.company?.display_name || 'Conta CALI'}</small></div>
           </div>
           <div className="contract-card-hours">
-            {showHours && data.company?.monthly_hours_contracted ? <>
+            {showHours && data.contractedHours > 0 ? <>
               <div className="contract-hours-stat"><strong>{formatHours(data.minutes)}</strong><span>consumidas no mês · {hoursPercentage}%</span></div>
-              <div className="contract-hours-stat"><strong>{Number(data.company.monthly_hours_contracted)}h</strong><span>contratadas no mês</span></div>
-            </> : <div className="contract-hours-stat wide"><strong>{activeProject ? 'Ativo' : 'Em preparação'}</strong><span>ciclo atual</span></div>}
+              <div className="contract-hours-stat"><strong>{data.contractedHours}h</strong><span>contratadas no mês</span></div>
+            </> : showHours ? <div className="contract-hours-stat wide"><strong>{formatHours(data.minutes)}</strong><span>consumidas no mês · franquia não definida</span></div> : <div className="contract-hours-stat wide"><strong>{data.hoursLoadError ? 'Indisponível' : activeProject ? 'Ativo' : 'Em preparação'}</strong><span>{data.hoursLoadError ? 'horas do mês' : 'ciclo atual'}</span></div>}
           </div>
-          {contractedMinutes > 0 && <div className="contract-hours-progress" role="progressbar" aria-label="Horas consumidas neste mês" aria-valuemin={0} aria-valuemax={contractedMinutes} aria-valuenow={Math.min(contractedMinutes, data.minutes)} aria-valuetext={`${formatHours(data.minutes)} de ${Number(data.company?.monthly_hours_contracted)} horas, ${hoursPercentage}%`}>
-            <div className="contract-hours-scale"><span>0h</span><span>50%</span><span>{Number(data.company?.monthly_hours_contracted)}h</span></div>
+          {contractedMinutes > 0 && <div className="contract-hours-progress" role="progressbar" aria-label="Horas consumidas neste mês" aria-valuemin={0} aria-valuemax={contractedMinutes} aria-valuenow={Math.min(contractedMinutes, data.minutes)} aria-valuetext={`${formatHours(data.minutes)} de ${data.contractedHours} horas, ${hoursPercentage}%`}>
+            <div className="contract-hours-scale"><span>0h</span><span>50%</span><span>{data.contractedHours}h</span></div>
             <div className="contract-hours-track"><div className="contract-hours-fill" style={{ clipPath: `inset(0 ${100 - hoursProgress}% 0 0)` }} /><i aria-hidden="true" /></div>
           </div>}
         </aside>
