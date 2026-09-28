@@ -115,3 +115,150 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Entrega:** Commit `57aee9e`, em `main`. `npm run check` (typecheck + build) validado localmente, sem erros.
 - **Aprovação:** Pedido detalhado e explícito da Pati nesta mensagem (26/09/2026), com print anexado, restrito a esta página ("MAS VAMOS AJUSTAR PRIMEIRO AQUI NESSA PAGINA"). `aguardando avaliação`.
 - **Limites:** Não testei visualmente (sem navegador/computador vinculado nesta sessão) — só typecheck/build. A discussão mais ampla que a Pati sinalizou — reduzir o excesso de cards em geral pela aplicação, citando o "espaço compartilhado" como exemplo — não foi iniciada; ela pediu explicitamente para resolver esta página primeiro. Não toquei em nenhuma outra página nem no componente `ExecutiveReportPaperV17`.
+
+---
+
+## 2026-09-26 — Codex (revisão da home do cliente após print 2)
+
+- **Superfície/escopo:** Workspace (`app.cali`), somente a home `/cliente`. Continuação do ajuste visual pedido pela Pati após avaliar o redesign de Claude (`57aee9e`).
+- **Mudança e copy:** removido o eyebrow genérico “ESPAÇO COMPARTILHADO · CALI WORKSPACE”; preservada a saudação “Olá, {nome}” fora de qualquer card. “Sua contratação” e “Status do ciclo” ocupam duas colunas iguais, com altura igual no desktop e empilhamento no celular. A logo da empresa permanece diretamente no card, recortada com `cover`. Nome do serviço com CALI em caixa alta; números e rótulos maiores. O dado `monthly_hours_contracted` passou de “total do contrato” para “contratadas no mês”, pois é uma franquia mensal no banco. No status, removida a afirmação genérica “Seu trabalho com a CALI está em movimento” e corrigida a contagem que antes chamava entregáveis de “frentes”: agora diz “X entregas para acompanhar”, mantendo a CTA discreta. Nenhuma query, cálculo ou regra de horas/validação mudou.
+- **Hierarquia:** Entregas, percepção/NPS e percentual de conclusão passaram de três cards com sombra para indicadores abertos separados por linhas. “Dado real do ciclo” e texto explicativo redundante foram substituídos por percentual direto. Projetos e agenda perderam as molduras pesadas; as quatro caixas de resumo repetidas abaixo foram substituídas por um link simples com contagem de relatórios. Navegação para entregas, relatórios e conversa preservada.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v2.css`, `src/client-home-v5.css`, `src/styles/routes/clientExperience.ts` e este registro. O CSS novo entra somente na rota do cliente, depois dos estilos anteriores, sem editar o arquivo compartilhado `uxui-shell-dashboard-preview.css`. Não se aplica ao administrativo: a saudação, o bloco de contratação do cliente e as métricas desta home são exclusivos de `/cliente`.
+- **Entrega/verificação:** desenvolvido sobre `b99ff484`; publicado no commit [`cc1c704`](https://github.com/patricia258/app.cali/commit/cc1c704a0100dfc82b418d9bbb57b671f8ffe6dd), com deploy de produção `READY`. `npm run check` (typecheck + build) e `git diff --check` passaram. O layout autenticado não foi validado visualmente com uma sessão de cliente.
+- **Aprovação:** Pati rejeitou o print 2 e pediu correção. Estado desta revisão: `aguardando avaliação` após publicação. Não confundir pedido de conserto com aprovação da nova composição.
+## 2026-09-28 — Codex (perfil do cliente: linha do tempo e molduras)
+
+- **Superfície/escopo:** home autenticada do cliente `/cliente`, painel “Em movimento”, molduras dos painéis e indicadores da mesma página. Pedido da Pati: print 1 é a tela existente; print 2 do MatDash é referência apenas de estrutura/layout, adaptada à CALI. O arquivo MatDash gratuito enviado não contém o componente “Weekly Schedules” do print; usei o print como referência visual, sem importar dados ou conteúdo demonstrativo.
+- **Mudança:** as quatro entregas visíveis do projeto atual agora aparecem em trilhas horizontais, ordenadas pelo prazo real, com cápsulas posicionadas em um eixo calculado com `due_at`. O estado real fica junto ao título; prazos ausentes aparecem como “Prazo a definir”, sem sugerir data ou duração. Em telas pequenas, cada trilha vira uma linha legível com prazo ao lado. O link “Ver projeto” e a origem dos dados permanecem iguais.
+- **Molduras:** restaurada uma linha dourada fina ao redor de “Em movimento”, “Agenda compartilhada”, conjunto dos três indicadores e link de relatórios, com contraste próprio nos temas dia e noite. Sem sombra pesada.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v5.css` e este registro. Sem alterações de query, status, permissões ou cálculos financeiros.
+- **Entrega/verificação:** publicado no commit `41e4776d4f3344560d3a23508b03e330ee595998` em `main`, deploy de produção `READY`. `npm run check` (typecheck e build) e `git diff --check` passaram. A tela autenticada ainda precisa ser conferida visualmente com uma conta cliente nos dois temas e no celular.
+- **Aprovação:** solicitado pela Pati em 28/09/2026; `aguardando avaliação`. Não confundir a referência MatDash com aprovação final da adaptação.
+
+---
+## 2026-09-28 — Codex (carregamento e cores secundárias do cliente)
+
+- **Escopo:** correção do carregamento interno do Workspace e apresentação da linha do tempo “Em movimento” em `/cliente`, após avaliação da Pati. O carregamento é um padrão compartilhado por admin e cliente; a mesma correção foi aplicada nos dois perfis. A linha do tempo da home do cliente não possui uma réplica do mesmo componente no admin.
+- **Causa e mudança do carregamento:** `.data-loading` mostrava simultaneamente dois pseudoelementos, e `.cali-symbol-loading` mostrava até três ícones. Agora a Lima e a folha ocupam exatamente a mesma posição e alternam suavemente, uma por vez, nos estados internos. O carregamento da rota já tinha sobreposição e mantém esse comportamento. Removido `loading-brand-standard.css`, um estilo antigo concorrente, e sua importação de `main.tsx`.
+- **Linha do tempo:** grades verticais mais visíveis entre as datas; cápsulas com cores secundárias relacionadas aos estados reais, sem mudar rótulos nem dados. Cartela proposta e usos em `docs/CALI_SECONDARY_PALETTE.md`; sem cor como único sinal de status. Mantida a apresentação compacta no celular.
+- **Arquivos:** `src/loading-illustrations-final.css`, `src/loading-brand-standard.css` (removido), `src/main.tsx`, `src/client-home-v5.css`, `docs/CALI_SECONDARY_PALETTE.md`, este registro.
+- **Aprovação:** Pati pediu a correção e aceitou receber uma proposta de cores; a escolha visual final segue `aguardando avaliação`. Não confundir o pedido com aprovação do resultado.
+
+---
+## 2026-09-28 — Codex (conclusão das entregas e cor das datas)
+
+- **Escopo:** home autenticada `/cliente`; print 1 (indicador “Conclusão das entregas”) adaptado à composição do print 2 do MatDash. Não existe cópia desse componente no administrativo.
+- **Aprovação recebida:** Pati aprovou a cartela secundária proposta anteriormente. Esclarecido no guia que “ameixa” é acinzentada e fechada, não roxo vivo. Ela observou que as novas cores não apareciam nas datas quando as entregas estavam todas “Não iniciadas”; agora elas alternam entre azul ardósia, ameixa, terracota e sálvia, inclusive no celular. Esta alternância é decorativa; o estado continua escrito por extenso.
+- **Mudança no indicador:** removido o donut e a repetição “0% / 0% aprovadas”. A nova composição mostra título, percentual do projeto atual, contagem de entregas aprovadas e cinco barras de contagem real por etapa (não iniciadas, em andamento, revisão CALI, com o cliente, aprovadas). Barra zerada é só uma linha discreta; nenhum número foi inventado. O percentual agora é calculado das entregas do projeto exibido, evitando misturar todos os projetos enquanto o texto diz “projeto atual”.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v2.css`, `src/client-home-v5.css`, `docs/CALI_SECONDARY_PALETTE.md` e este registro. Nenhuma query ou regra de negócio foi alterada.
+- **Estado da composição nova:** `aguardando avaliação` da Pati.
+
+---
+## 2026-09-28 — Codex (percepção das entregas e cores mais vivas)
+
+- **Escopo:** home `/cliente`, segundo par de prints da Pati. Print 1 era o indicador atual “Percepção das entregas”; print 2 do MatDash serviu de referência estrutural para informações à esquerda e medidor em semicírculo à direita.
+- **Mudança:** indicador agora mostra quantidade real de avaliações e estado da média, com nota real (0–5) num arco proporcional. Sem avaliações, arco sem preenchimento e “— / Sem nota”; não há valor demonstrativo nem estrelas preenchidas falsas. Texto antigo “Sua avaliação aparece aqui...” foi substituído por “Disponível após uma aprovação”. Mantida a origem real `data.nps`/`data.npsCount`.
+- **Cor:** Pati considerou as cores aprovadas opacas; aumentada a intensidade da paleta secundária em cápsulas de prazo, barras de conclusão e elementos do indicador de percepção, em desktop e celular. Novos tons e usos em `docs/CALI_SECONDARY_PALETTE.md`. Os significados continuam escritos, sem depender da cor.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v2.css`, `src/client-home-v5.css`, `docs/CALI_SECONDARY_PALETTE.md` e este registro. Sem mudanças em query, permissões ou fluxos.
+- **Aprovação:** Pati pediu estes ajustes; resultado visual novo `aguardando avaliação`.
+
+---
+
+## 2026-09-28 — Codex (distribuição das entregas do ciclo)
+
+- **Escopo:** indicador “Entregas do ciclo” na home `/cliente`. Print 1 era a apresentação atual; print 2 do MatDash foi referência de hierarquia e gráfico de rosca, adaptados aos dados e à cartela CALI.
+- **Mudança:** total do projeto em destaque, gráfico de rosca e legenda com quantidades reais de aprovadas, pendentes e canceladas. “Pendentes” inclui todos os estados que ainda não foram aprovados ou cancelados, como não iniciadas, em andamento e aguardando validação. Cores secundárias aprovadas: sálvia, âmbar e coral, com rótulos e números sempre visíveis. Estado vazio recebe apenas o anel neutro.
+- **Dados:** `loadClientDashboardReality` já retorna entregas canceladas visíveis ao cliente; a home deixava de recebê-las por um filtro local. Agora elas entram apenas no total/distribuição do novo indicador. Lista, cronograma e percentual de conclusão continuam ignorando cancelamentos como antes; os estados e fluxos de aprovação não mudaram.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v5.css` e este registro.
+- **Aprovação:** solicitado pela Pati em 28/09/2026; resultado visual `aguardando avaliação`.
+
+---
+
+## 2026-09-28 — Codex (composição da home do cliente e agenda)
+
+- **Escopo:** `/cliente`, a partir dos quatro prints enviados pela Pati às 11h57–11h59. Os três indicadores aprovados de entregas/percepção/conclusão foram preservados.
+- **Topo:** a saudação e o card da responsável executiva ficam lado a lado no desktop (empilhados no celular). O card com foto e contato foi preservado, menor e próximo do nome do cliente. A contratação mantém logo, plano e horas, com altura reduzida.
+- **Atalhos com dados reais:** o antigo card redundante “Status do ciclo” foi substituído por dois acessos: quantidade e último título de documento publicado; quantidade de ocorrências compartilhadas em aberto. As consultas respeitam empresa e visibilidade do cliente; erro de consulta mostra “—”, sem inventar zero. Quando existe entrega aguardando validação, mantém-se um link discreto para revisá-la.
+- **Agenda:** exibe somente compromissos futuros publicados, em linha do tempo com dia, mês e horário. A responsável deixou de estar dentro da agenda e os prazos/estados das entregas continuam apenas em “Em movimento”. “Relatórios publicados” virou atalho compacto após os painéis.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v5.css`, este registro. Sem alterações em inserção, fluxo, permissões ou estados dos registros.
+- **Aprovação:** mudanças solicitadas pela Pati; composição final `aguardando avaliação`.
+
+---
+
+## 2026-09-28 — Codex (relatórios no top bar do cliente)
+
+- **Escopo:** top bar compartilhado por todas as rotas do cliente e remoção do atalho isolado no fim da home `/cliente`. Os cards de documentos e ocorrências não foram alterados; a Pati quer revisá-los depois.
+- **Mudança:** atalho com desenho de documento em dourado, dica “Relatórios” ao passar o mouse ou focar pelo teclado, nome acessível para leitores de tela e bolha numérica quando há relatórios disponíveis. O contador acompanha a lista da própria página de relatórios: estados `sent`/`published`, filtrados pela empresa do cliente; atualiza em tempo real e quando a janela volta ao foco. O acesso à página pela sidebar permanece.
+- **Consistência:** a resposta rápida “Relatórios” do chat da home passa a contar os mesmos estados da lista, para não divergir do top bar. Sem relatório, o ícone permanece visível, sem bolha. Falha na consulta não se transforma em zero exibido.
+- **Arquivos:** `src/components/WorkspaceShell.tsx`, `src/pages/client/ClientDashboard.tsx`, `src/main.tsx`, `src/client-reports-top-shortcut.css` e este registro. Nenhum fluxo de criação, publicação ou permissão foi alterado.
+- **Aprovação:** solicitado pela Pati em 28/09/2026; resultado `aguardando avaliação`.
+
+---
+
+## 2026-09-28 — Codex (capa dos documentos e cartões recentes)
+
+- **Escopo:** `/cliente/documentos` e home `/cliente` a partir de cinco prints da Pati às 12h11–12h15. Preservados os indicadores já aprovados, agenda e top bar.
+- **Capa padrão:** a grade de documentos do cliente usava outro componente que o administrativo, por isso a capa automática não chegava nela. A capa visível agora usa a logo original da empresa centralizada e o fundo extraído da cor da logo, inclusive quando a logo é transparente; fallback marfim quando não há logo legível. A mesma capa aparece em escala reduzida na home. A versão do cliente prioriza esta capa de marca mesmo quando existe capa antiga enviada; não se altera o arquivo original nem o fluxo de upload.
+- **Home:** a contratação fica em uma faixa compacta após a saudação. Os cards de documento e ocorrência passam para uma linha própria após os três indicadores, com bordas arredondadas moderadas. O documento mostra título e atualização do último arquivo publicado, sua capa e entrada no acervo. A ocorrência mostra a atividade mais recente compartilhada, status real, dias desde o registro e acesso direto ao detalhe; as imagens são dos contatos da conta e da CALI com a logo da empresa, sem afirmar que são os autores da mensagem. Se não houver registro, há estado vazio sem item demonstrativo.
+- **Prazos:** `account_records` não expõe prazo de atendimento no fluxo consultado. O cartão não afirma “dentro/fora do prazo”; mostra dias decorridos para evitar informação inventada.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/pages/client/ClientDocumentsPage.tsx`, `src/components/ClientDocumentBrandCover.tsx`, `src/lib/documentsIdentityRuntimeV42.ts`, `src/client-home-v5.css`, `src/client-document-brand-cover.css`, `src/main.tsx` e este registro. Fluxo de comentários, ciência, Drive, ocorrências e permissões preservado.
+- **Aprovação:** pedido da Pati; composição final `aguardando avaliação`.
+
+---
+
+## 2026-09-28 — Codex (molduras, ocorrências e consumo mensal)
+
+- **Escopo:** home `/cliente`, revisão dos dois cartões recentes e da contratação com base nos prints das 12h29–12h30. Pedido e composição anteriores foram aprovados pela Pati; esta nova revisão aguarda avaliação.
+- **Molduras e imagens:** documento e ocorrência recebem contornos próprios discretos com cantos arredondados iguais; as variáveis inválidas `--card` e `--border` da versão anterior foram trocadas pelas variáveis reais do tema. Os três avatares da ocorrência têm a mesma forma e tamanho, e a marca do cliente ocupa mais da sua área. A logo na capa dos documentos também cresce, mantendo o fundo extraído da marca.
+- **Dados de ocorrências:** a home filtrava somente `record_type='occurrence'`, enquanto a página de registros admite conversas `occurrence`, `request`, `context_change` e `other`. A consulta e a contagem agora usam esses mesmos tipos, com filtro de empresa/visibilidade do cliente. A conversa mais recente aponta ao registro real. Um erro de consulta mostra estado de indisponibilidade em vez de afirmar incorretamente que não há registros. O estado sem `workflow_status` é exibido como “Registrada”, sem inferir abertura.
+- **Horas:** para contas com horas visíveis e contratadas, a régua cresce de acordo com `visibleMinutes` do ciclo mensal e `monthly_hours_contracted`, com porcentagem calculada e marca de 50%. Verde, âmbar, laranja e vermelho indicam o avanço visual; horas e números permanecem explícitos. Sem limite contratado não há régua nem divisão inventada.
+- **Verificação:** compilação e revisão de diffs. O Workspace utiliza o banco do projeto CALI MAPA com schema `cali_workspace`. Consulta de leitura confirmou na conta CALI · Ambiente de Teste dois registros `request` (um `waiting_client` e um `completed`) e um `leadership` concluído; o `request` com resposta aguardada tem a atividade mais recente e será exibido pela nova consulta. A política RLS existente restringe a leitura do cliente à sua empresa e `visibility='client'`. Conferir a apresentação na sessão autenticada após o deploy.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v5.css`, `src/client-document-brand-cover.css` e este registro. Aprovação visual: `aguardando avaliação`.
+
+---
+
+## 2026-09-28 — Codex (auditoria de dados e atualização da home do cliente)
+
+- **Pedido:** Pati aprovou os cartões e pediu que toda a home `/cliente` mostre dados atuais do Supabase, atualizando após mudanças sem depender de recarga manual. Nenhuma ação de exemplo foi inserida.
+- **Fontes verificadas:** saudação em `profiles`; empresa/plano em `companies`; contato executivo em `get_client_account_contact`; entregas, distribuição, conclusão e projeto em `projects`/`deliverables`; percepção em `nps_responses`; documentos em `files` publicados; agenda em `events` futuros e visíveis; ocorrências em `account_records` compartilhados; relatórios em `reports` enviados/publicados. Estados vazios são resultado das consultas, não mockups. O vídeo da Pati é apenas decorativo.
+- **Correção das horas:** a home antes somava `hour_entries` de todos os períodos e comparava com a franquia mensal de `companies`. Passou a usar o RPC já adotado na página `/cliente/horas`: `get_client_hours_summary` para o mês corrente no fuso de São Paulo, que respeita visibilidade, período, projeto operacional e eventual franquia de `service_cycles`. A consulta duplicada de horas sem período no carregador da home foi retirada; a página detalhada de entregáveis conserva sua consulta. Falha da consulta não é mostrada como 0h.
+- **Tempo real:** o assinante existente já acompanha `projects`, `deliverables`, `nps_responses`, `files`, `hour_entries`, `events`, `reports` e alterações de `companies`; agora acompanha também `account_records` para status/título de ocorrência. O banco confirma essas tabelas na publicação `supabase_realtime`. Atualização ao voltar para a aba e conferência a cada 30 segundos enquanto ela está visível cobrem desconexão, alterações de perfil/contato e eventos que não cheguem pelo canal. Mudanças recebidas durante uma consulta em andamento geram uma nova consulta ao final, sem perder a última movimentação.
+- **Verificação de dados:** consulta somente de leitura no banco `cali_workspace` da conta de teste encontrou 2 projetos, 5 entregáveis visíveis, 0 avaliações, 1 documento publicado, 1 compromisso futuro e 2 conversas compartilhadas. A página continua sujeita ao RLS do cliente para exibir apenas dados autorizados. Sem teste automatizado de uma sessão cliente autenticada neste ambiente; validar a atualização visual simultânea admin/cliente no app.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/lib/clientDeliveryReality.ts`, este registro. **Autor:** Codex. **Aprovação:** correções solicitadas pela Pati, resultado `aguardando avaliação`.
+
+---
+## 2026-09-28 — Codex (percepção e conclusão unificadas na home do cliente)
+
+- **Pedido:** incluir as avaliações de ocorrências e o andamento dos registros na percepção e na conclusão da home, junto aos entregáveis, no período do mês. A Pati apontou duas ocorrências avaliadas que não apareciam.
+- **Origem dos dados:** novo RPC `get_client_home_work_metrics` agrega `nps_responses` e `account_record_feedback` da empresa no mês civil de São Paulo, sem duplicar a mesma linha de avaliação. A consulta é restrita a um perfil de cliente ativo da própria empresa, devolve somente média e quantidade agregadas, e não expõe notas e comentários individuais de outros usuários. O cliente de teste tem duas avaliações de registros no mês, notas 4 e 5, média 4,5; anteriormente a home mostrava zero por olhar só entregáveis.
+- **Conclusão:** entram entregáveis visíveis e registros compartilhados com fluxo ativo que tenham sido criados, modificados, concluídos ou tenham horas visíveis vinculadas no período. Cada objeto é contado uma vez, em cinco estados. Para a conta de teste são 8 atividades no mês, 2 concluídas, 25%. “Entregas do ciclo” permanece específico do projeto, pois é outro recorte.
+- **Horas sem vínculo:** a conta de teste tem um lançamento visível sem entregável nem registro associado. Ele é indicado separadamente no card; não foi atribuído arbitrariamente um estado de conclusão a uma hora sem objeto. Horas ocultas/internas ou fora do período não entram na contagem exposta ao cliente. Os indicadores são atualizados pelos canais existentes e pela conferência periódica de 30 segundos, inclusive após novas notas em registros.
+- **Feedback em tempo real:** `account_record_feedback` entrou na publicação de Realtime e no assinante da home para refletir imediatamente as novas avaliações da própria pessoa cliente. O polling de 30 segundos continua cobrindo avaliações de outros usuários da mesma empresa, que a RLS individual não transmite pelo canal.
+- **Verificação:** migrações aplicadas no projeto Supabase CALI; chamada do RPC sob o papel autenticado do cliente de teste retornou média 4,5, 2 avaliações e 2 de 8 atividades concluídas. `npm run check` e revisão do diff passaram. **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/lib/clientDeliveryReality.ts`, `supabase/migrations/20260928193000_client_home_unified_work_metrics.sql`, `supabase/migrations/20260928194500_client_record_feedback_realtime.sql`, este registro. **Autor:** Codex. **Aprovação:** solicitado pela Pati; resultado `aguardando avaliação`.
+
+---
+## 2026-09-28 — Codex (sidebar de cliente e administrador, regra de dados reais)
+
+- **Regra permanente aprovada pela Pati:** tanto o **Início do cliente** (`/cliente`) quanto a **Visão geral do administrador** (`/admin`) devem mostrar somente dados reais e atuais do Supabase. Antes de alterar qualquer indicador, conferir tabela/RPC, empresa, período, visibilidade e estados no banco; atualizar após movimentações e mostrar estados vazios/erros reais. Nunca preencher a tela com números de exemplo ou mockups. A home do cliente teve sua fonte auditada e a percepção/conclusão unificadas na entrada imediatamente anterior; a revisão equivalente da Visão geral administrativa fica para a próxima etapa solicitada pela Pati. Esta entrada registra a regra, sem alterar hoje a funcionalidade do dashboard do administrador.
+- **Pedido visual atual:** o mesmo sidebar compartilhado entre os dois perfis piscava ao passar o cursor pelo espaço entre a borda esquerda da janela e a moldura flutuante. Preservar logo, ilustrações do rail compacto, foto, links, dimensões dos itens, expansão ao hover e comportamento de navegação. Remover apenas o afastamento externo do menu e a textura de desenhos/xadrez do próprio sidebar. Aplicar um degradê bordô e dourado contínuo tanto no rail quanto no menu aberto, inclusive no modo noite e no menu mobile.
+- **Implementação:** `src/sidebar-edge-gradient.css` é a camada isolada do sidebar, importada ao final em `src/main.tsx`; elimina o vão externo e cantos de cartão, ancora o gradiente à esquerda com a mesma escala nos dois estados e acompanha a largura do conteúdo para não deixar faixa vazia. Ajusta contraste da marca e da navegação no modo noite. O xadrez das páginas fora do sidebar permanece como estava.
+- **Autor:** Codex. **Aprovação:** regra dos dados reais e escopo visual solicitados pela Pati; resultado do sidebar `aguardando avaliação`.
+
+---
+
+---
+## 2026-09-28 — Codex (biblioteca de relatórios do cliente)
+
+- **Pedido:** simplificar `/cliente/relatorios` segundo os dois prints da Pati das 13h49–13h50, com logo real da empresa, menos informações, estados coloridos e uma única ação para ler/obter PDF. Aprovação da composição: `aguardando avaliação`.
+- **Interface:** a tabela horizontal de seis colunas virou lista de relatórios expansível, com logo da empresa em moldura quadrada suave, título e período, tipo e versão, marcadores de “Novo/Visualizado” e “Ciência pendente/registrada”. Detalhes exibem apenas protocolo, envio e data de ciência quando existente. Não se mostram contadores de acessos, datas de cada abertura nem botão de ciência já registrada ao cliente. Layout responsivo e modo noite.
+- **Ações:** “Ver relatório” abre a rota existente de leitura em outra aba; a barra dessa rota oferece “Imprimir / salvar PDF”, reunindo leitura e obtenção do arquivo. O botão “Registrar ciência” só aparece enquanto pendente; RPC de abertura e RPC de ciência existentes foram preservados. A rota de impressão continua registrando o evento PDF no banco. A janela de impressão não abre automaticamente nesse fluxo. “Voltar” na rota do cliente agora aponta explicitamente para a lista de relatórios, inclusive quando a rota foi aberta em aba nova.
+- **Limite de verificação:** build e revisão do código; o travamento relatado após logout/abertura não pôde ser reproduzido sem a sessão autenticada da cliente. O novo fluxo evita a impressão automática e uma navegação de retorno sem histórico, duas fontes possíveis de confusão, sem afirmar que eram a causa observada.
+- **Arquivos:** `src/pages/client/ClientReportsPageV5.tsx`, `src/pages/reports/ReportPrintPageV17.tsx`, `src/client-reports-list-v64.css`, `src/main.tsx` e este registro. **Autor:** Codex.
+
+---
+## 2026-09-28 — Codex (filtro, protocolo e molduras das imagens)
+
+- **Pedido:** Pati aprovou a nova lista de relatórios do cliente, pediu moldura da logo menor e melhor preenchimento, filtro por período, protocolo visível e retirada de “Mensal · v3”. O segundo print mostrou três imagens do card de ocorrência com bordas sobrepostas e enquadramento desigual. Resultado desta revisão: `aguardando avaliação`.
+- **Relatórios `/cliente/relatorios`:** moldura da empresa reduzida de 54px para 44px (40px no mobile); prioriza `companies.logo_workspace_url`, cuja versão quadrada já recorta as margens da marca, com fallback à logo original sem corte forçado. Filtro por período deriva apenas dos períodos reais dos relatórios enviados/publicados; mantém todas as versões do período selecionado. Número do protocolo fica na linha principal. “Mensal · v3” sai da linha; a versão continua no registro do relatório e na tela completa, sem ser um marcador confuso para o cliente. O período aparece no apoio só quando não estiver no título, evitando repetição.
+- **Home `/cliente`:** as fotos do contato do cliente e da CALI e a logo da empresa têm três molduras independentes iguais, sem margem negativa/overlap e sem ampliar a logo além da borda. A foto do cliente passa a usar posição e zoom já salvos no perfil, como a foto da Pati; consulta de perfil inclui esses campos existentes. Nenhuma lógica de ocorrência, visibilidade ou ação foi alterada.
+- **Arquivos:** `src/pages/client/ClientReportsPageV5.tsx`, `src/client-reports-list-v64.css`, `src/pages/client/ClientDashboard.tsx`, `src/client-home-v5.css` e este registro. **Autor:** Codex. **Verificação:** typecheck, build e revisão do diff; conferir a composição com a sessão autenticada nos modos dia/noite e mobile.

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Cloud, ExternalLink, Eye, FileCheck2, FileText, Loader2, MessageSquare, Search, Send, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
+import { ClientDocumentBrandCover } from '../../components/ClientDocumentBrandCover';
 import { supabase } from '../../lib/supabase';
 
 type CategorySlug = 'policy' | 'manual' | 'flow' | 'guide' | 'report' | 'onboarding' | 'deliverable' | 'schedule' | 'contract' | 'reference' | 'other';
@@ -55,6 +56,7 @@ function daysUntil(value?: string | null) {
 export function ClientDocumentsPage() {
   const preview = sessionStorage.getItem('cali-preview-role') === 'client';
   const [documents, setDocuments] = useState<ClientDoc[]>(preview ? previewDocuments : []);
+  const [companyBrand, setCompanyBrand] = useState({ name: 'sua empresa', logoUrl: '' });
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [driveConnection, setDriveConnection] = useState<DriveConnection | null>(null);
@@ -87,18 +89,12 @@ export function ClientDocumentsPage() {
     return () => document.body.classList.remove('workspace-modal-open');
   }, [commentDoc]);
 
-  async function resolveCover(path?: string | null) {
-    if (!path || !supabase) return '';
-    const { data } = await supabase.storage.from('cali-workspace-private').createSignedUrl(path, 3600);
-    return data?.signedUrl || '';
-  }
-
   async function loadDocuments() {
     if (!supabase) return;
     setLoading(true);
     setError('');
     const [filesResult, ackResult, driveStatusResult] = await Promise.all([
-      supabase.from('files').select('id,company_id,title,category,document_kind,version_label,protocol,storage_path,drive_url,cover_storage_path,requires_acknowledgement,description,updated_at,status,client_visible,valid_until').eq('client_visible', true).eq('status', 'published').order('updated_at', { ascending: false }),
+      supabase.from('files').select('id,company_id,title,category,document_kind,version_label,protocol,storage_path,drive_url,requires_acknowledgement,description,updated_at,status,client_visible,valid_until').eq('client_visible', true).eq('status', 'published').order('updated_at', { ascending: false }),
       supabase.from('document_acknowledgements').select('file_id,acknowledged_at'),
       supabase.functions.invoke('google-drive-oauth', { body: { action: 'status' } }),
     ]);
@@ -106,6 +102,10 @@ export function ClientDocumentsPage() {
       setError(filesResult.error.message);
       setLoading(false);
       return;
+    }
+    if (filesResult.data?.[0]?.company_id) {
+      const companyResult = await supabase.from('companies').select('display_name,logo_url').eq('id', filesResult.data[0].company_id).maybeSingle();
+      if (companyResult.data) setCompanyBrand({ name: companyResult.data.display_name || 'sua empresa', logoUrl: companyResult.data.logo_url || '' });
     }
     const rows = await Promise.all((filesResult.data ?? []).map(async (item) => ({
       id: item.id,
@@ -118,7 +118,6 @@ export function ClientDocumentsPage() {
       protocol: item.protocol || '—',
       storagePath: item.storage_path || undefined,
       driveUrl: item.drive_url || undefined,
-      coverUrl: await resolveCover(item.cover_storage_path),
       requiresAcknowledgement: Boolean(item.requires_acknowledgement),
       description: item.description,
       validUntil: item.valid_until,
@@ -296,7 +295,7 @@ export function ClientDocumentsPage() {
             const syncLocked = syncState?.status === 'pending' || syncState?.status === 'processing';
             return (
               <article className="document-card document-card-v2" key={doc.id}>
-                <div className="document-card-cover">{doc.coverUrl ? <img src={doc.coverUrl} alt="" /> : <div><FileText size={31} /><span>{doc.kind}</span></div>}</div>
+                <div className="document-card-cover"><ClientDocumentBrandCover companyId={doc.companyId} companyName={companyBrand.name} logoUrl={companyBrand.logoUrl} /></div>
                 <div className="document-card-body">
                   <div className="document-card-tags"><span>{categoryLabel(doc.category)}</span><span>{doc.kind}</span>{isAcknowledged && <span className="ack-tag"><CheckCircle2 size={13} />Ciência registrada</span>}</div>
                   <h2>{doc.title}</h2>

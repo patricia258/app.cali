@@ -130,7 +130,7 @@ async function imageFromUrl(url: string) {
   }
 }
 
-async function resolveBrandVisual(company: CompanyRow, originalUrl: string): Promise<BrandVisual> {
+export async function resolveDocumentBrandVisual(company: CompanyLogoRecord, originalUrl: string): Promise<BrandVisual> {
   const cached = brandVisuals.get(company.id);
   if (cached) return cached;
   const fallback: BrandVisual = { color: '#F7F3EE', dark: false };
@@ -168,6 +168,23 @@ async function resolveBrandVisual(company: CompanyRow, originalUrl: string): Pro
         return visual;
       }
     }
+    // Logos com fundo transparente ou branco usam a cor predominante da marca.
+    const bins = new Map<string, { r: number; g: number; b: number; count: number }>();
+    for (let i = 0; i < pixels.data.length; i += 4) {
+      const r = pixels.data[i], g = pixels.data[i + 1], b = pixels.data[i + 2];
+      if (pixels.data[i + 3] < 150 || saturation(r, g, b) < .18 || luminance(r, g, b) < .07 || luminance(r, g, b) > .88) continue;
+      const bucket = `${Math.floor(r / 32)}-${Math.floor(g / 32)}-${Math.floor(b / 32)}`;
+      const item = bins.get(bucket) || { r: 0, g: 0, b: 0, count: 0 };
+      item.r += r; item.g += g; item.b += b; item.count++;
+      bins.set(bucket, item);
+    }
+    const main = [...bins.values()].sort((a, b) => b.count - a.count)[0];
+    if (main && main.count >= 18) {
+      const r = main.r / main.count, g = main.g / main.count, b = main.b / main.count;
+      const visual = { color: cssRgb(r, g, b), dark: luminance(r, g, b) < .48 };
+      brandVisuals.set(company.id, visual);
+      return visual;
+    }
   } catch (error) {
     console.warn('CALI document cover brand color', company.display_name, error);
   }
@@ -190,7 +207,7 @@ async function ensureAutomaticCover(card: HTMLElement, company: CompanyRow, orig
 
   cover.classList.add('document-brand-cover-v45');
   cover.innerHTML = '<div class="document-auto-cover-logo-v42"></div>';
-  const visual = await resolveBrandVisual(company, originalUrl);
+  const visual = await resolveDocumentBrandVisual(company, originalUrl);
   cover.style.setProperty('--document-client-brand', visual.color);
   cover.style.setProperty('--document-client-brand-fg', visual.dark ? '#FFFFFF' : '#5A1E2D');
   preview.classList.add('document-brand-preview-v45');

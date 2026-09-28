@@ -1,70 +1,73 @@
-/* Loading institucional final — usar as ilustrações CALI, não spinner ou bolinhas genéricas */
+/* Uma ilustração por vez, centralizada em todas as páginas com dados. */
 .data-loading,
-.cali-symbol-loading{
-  min-height:54vh!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  gap:24px!important;
-  background:transparent!important;
-  color:transparent!important;
-  font-size:0!important;
+.cali-symbol-loading {
+  position: relative;
+  min-height: 48vh !important;
+  display: grid !important;
+  place-items: center !important;
+  background: transparent !important;
+  color: transparent !important;
+  font-size: 0 !important;
 }
 
-.data-loading svg{display:none!important;}
+.data-loading svg { display: none !important; }
 
 .data-loading::before,
 .data-loading::after,
-.cali-symbol-dot{
-  display:block!important;
-  width:78px!important;
-  height:78px!important;
-  flex:0 0 78px!important;
-  border-radius:0!important;
-  box-shadow:none!important;
-  background-image:none!important;
-  opacity:.34;
-  animation:cali-illustration-loading 1.55s ease-in-out infinite!important;
-  -webkit-mask-position:center!important;
-  mask-position:center!important;
-  -webkit-mask-repeat:no-repeat!important;
-  mask-repeat:no-repeat!important;
-  -webkit-mask-size:contain!important;
-  mask-size:contain!important;
+.cali-symbol-dot {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block !important;
+  width: 78px !important;
+  height: 78px !important;
+  border-radius: 0 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 
 .data-loading::before,
-.cali-symbol-dot.one,
-.cali-symbol-dot.three{
-  content:'';
-  background:#5A1E2D!important;
-  -webkit-mask-image:url('/brand/cali-lime-mark.svg')!important;
-  mask-image:url('/brand/cali-lime-mark.svg')!important;
+.cali-symbol-dot.one {
+  background: #5A1E2D !important;
+  -webkit-mask-image: url('/brand/cali-lime-mark.svg');
+  mask-image: url('/brand/cali-lime-mark.svg');
+  animation: cali-loading-first 2.4s ease-in-out infinite !important;
 }
-
 .data-loading::after,
-.cali-symbol-dot.two{
-  content:'';
-  background:#B58C52!important;
-  -webkit-mask-image:url('/brand/cali-oak-mark.svg')!important;
-  mask-image:url('/brand/cali-oak-mark.svg')!important;
-  animation-delay:.22s!important;
+.cali-symbol-dot.two {
+  background: #B58C52 !important;
+  -webkit-mask-image: url('/brand/cali-oak-mark.svg');
+  mask-image: url('/brand/cali-oak-mark.svg');
+  animation: cali-loading-second 2.4s ease-in-out infinite !important;
 }
-
-.cali-symbol-dot.three{animation-delay:.44s!important;}
+.cali-symbol-dot.three { display: none !important; }
 
 html[data-workspace-theme='night'] .data-loading::before,
-html[data-workspace-theme='night'] .cali-symbol-dot.one,
-html[data-workspace-theme='night'] .cali-symbol-dot.three{background:#D6AEB8!important;}
+html[data-workspace-theme='night'] .cali-symbol-dot.one { background: #D6AEB8 !important; }
 html[data-workspace-theme='night'] .data-loading::after,
-html[data-workspace-theme='night'] .cali-symbol-dot.two{background:#B58C52!important;}
+html[data-workspace-theme='night'] .cali-symbol-dot.two { background: #D8B674 !important; }
 
-@keyframes cali-illustration-loading{
-  0%,100%{transform:translateY(5px) scale(.9) rotate(-2deg);opacity:.24;}
-  50%{transform:translateY(-7px) scale(1.04) rotate(1deg);opacity:.88;}
+@keyframes cali-loading-first {
+  0%, 8% { opacity: 0; transform: translate(-50%, -50%) scale(.88) rotate(-6deg); }
+  18%, 44% { opacity: .9; transform: translate(-50%, -50%) scale(1); }
+  54%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(.93) rotate(4deg); }
 }
-
-@media(max-width:720px){
-  .data-loading,.cali-symbol-loading{gap:16px!important;min-height:48vh!important;}
-  .data-loading::before,.data-loading::after,.cali-symbol-dot{width:62px!important;height:62px!important;flex-basis:62px!important;}
+@keyframes cali-loading-second {
+  0%, 46% { opacity: 0; transform: translate(-50%, -50%) scale(.9) rotate(5deg); }
+  58%, 84% { opacity: .9; transform: translate(-50%, -50%) scale(1); }
+  94%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(.92) rotate(-4deg); }
+}
+@media (max-width: 720px) {
+  .data-loading::before, .data-loading::after, .cali-symbol-dot { width: 62px !important; height: 62px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .data-loading::before, .cali-symbol-dot.one { animation: none !important; opacity: .9; transform: translate(-50%, -50%); }
+  .data-loading::after, .cali-symbol-dot.two { animation: none !important; opacity: 0; }
 }

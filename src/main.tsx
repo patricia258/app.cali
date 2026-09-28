@@ -23,7 +23,6 @@ import './brand-experience.css';
 import './brand-experience-v2.css';
 import './menu-brand-final.css';
 import './theme-system.css';
-import './loading-brand-standard.css';
 import './modal-standard-v2.css';
 import './modal-system-v3.css';
 import './workspace-typography-connect.css';
@@ -47,6 +46,10 @@ import './workspace-system-v61.css';
 import './global-timer.css';
 import './uxui-shell-dashboard-preview.css';
 import './workspace-conversations-responsive-v63.css';
+import './client-reports-top-shortcut.css';
+import './client-document-brand-cover.css';
+import './sidebar-edge-gradient.css';
+import './client-reports-list-v64.css';
 
 function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
   return <AppErrorBoundary>{children}</AppErrorBoundary>;

@@ -1,0 +1,22 @@
+.client-document-brand-cover {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 154px;
+  padding: 16px;
+  color: #5a1e2d;
+}
+.client-document-brand-cover img {
+  display: block;
+  width: min(86%, 240px) !important;
+  height: min(86%, 126px) !important;
+  object-fit: contain !important;
+  background: transparent !important;
+}
+.client-service-card .client-document-brand-cover { min-height: 190px; padding: 10px; }
+.client-service-card .client-document-brand-cover img { width: min(94%, 210px) !important; height: min(88%, 145px) !important; transform: scale(1.2); }
+html[data-workspace-theme='night'] .client-document-brand-cover { color: #5a1e2d; }
+@media(max-width:700px) {
+  .client-service-card .client-document-brand-cover { min-height: 154px; }
+}
