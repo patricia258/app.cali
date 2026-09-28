@@ -145,3 +145,12 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Aprovação:** Pati pediu a correção e aceitou receber uma proposta de cores; a escolha visual final segue `aguardando avaliação`. Não confundir o pedido com aprovação do resultado.
 
 ---
+## 2026-09-28 — Codex (conclusão das entregas e cor das datas)
+
+- **Escopo:** home autenticada `/cliente`; print 1 (indicador “Conclusão das entregas”) adaptado à composição do print 2 do MatDash. Não existe cópia desse componente no administrativo.
+- **Aprovação recebida:** Pati aprovou a cartela secundária proposta anteriormente. Esclarecido no guia que “ameixa” é acinzentada e fechada, não roxo vivo. Ela observou que as novas cores não apareciam nas datas quando as entregas estavam todas “Não iniciadas”; agora elas alternam entre azul ardósia, ameixa, terracota e sálvia, inclusive no celular. Esta alternância é decorativa; o estado continua escrito por extenso.
+- **Mudança no indicador:** removido o donut e a repetição “0% / 0% aprovadas”. A nova composição mostra título, percentual do projeto atual, contagem de entregas aprovadas e cinco barras de contagem real por etapa (não iniciadas, em andamento, revisão CALI, com o cliente, aprovadas). Barra zerada é só uma linha discreta; nenhum número foi inventado. O percentual agora é calculado das entregas do projeto exibido, evitando misturar todos os projetos enquanto o texto diz “projeto atual”.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v2.css`, `src/client-home-v5.css`, `docs/CALI_SECONDARY_PALETTE.md` e este registro. Nenhuma query ou regra de negócio foi alterada.
+- **Estado da composição nova:** `aguardando avaliação` da Pati.
+
+---

@@ -41,6 +41,44 @@ html[data-workspace-theme='day'] .client-home-v3 .executive-card:last-child { bo
 .client-home-v3 .executive-card:hover { transform: translateY(-2px); box-shadow: none !important; }
 .client-home-v3 .executive-card::before { display: none !important; }
 
+.client-home-v3 .quality-card { grid-template-columns: minmax(0, 1fr) 122px; gap: 16px; }
+.client-completion-copy { min-width: 0; }
+.client-home-v3 .client-completion-copy > span {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 750;
+}
+.client-completion-copy > strong {
+  display: block;
+  color: var(--foreground);
+  font-size: clamp(30px, 3vw, 38px);
+  letter-spacing: -.04em;
+  line-height: 1;
+}
+.client-home-v3 .client-completion-copy > p {
+  margin: 8px 0 0;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  line-height: 1.35;
+}
+.client-completion-bars {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 7px;
+  height: 82px;
+  padding-block: 4px;
+}
+.client-completion-bar { flex: 1 1 0; min-width: 0; border-radius: 5px 5px 2px 2px; background: #8B786E; transition: height .35s ease; }
+.client-completion-bar.stage-1 { background: #B7A99A; }
+.client-completion-bar.stage-2 { background: #806176; }
+.client-completion-bar.stage-3 { background: #617987; }
+.client-completion-bar.stage-4 { background: #D8B674; }
+.client-completion-bar.stage-5 { background: #567B66; }
+.client-completion-bar.is-empty { opacity: .5; }
+
 .client-home-v3 .client-project-panel,
 .client-home-v3 .client-agenda-panel,
 html[data-workspace-theme='day'] .client-home-v3 .client-project-panel,
@@ -117,6 +155,11 @@ html[data-workspace-theme='night'] .client-home-v3 .client-home-reports-link {
 .client-delivery-marker.status-standby { background: #8B786E; border-color: #8B786E; color: #fff; }
 .client-delivery-marker.status-approved { background: #567B66; border-color: #567B66; color: #fff; }
 .client-delivery-marker.status-client_review { background: #D8B674; border-color: #D8B674; color: #291b1c; }
+/* Para prazos ainda não iniciados, as cores diferenciam as linhas; o estado continua no texto. */
+.client-delivery-lane:nth-child(4n + 1) .client-delivery-marker.status-not_started { background: #617987; border-color: #617987; color: #fff; }
+.client-delivery-lane:nth-child(4n + 2) .client-delivery-marker.status-not_started { background: #806176; border-color: #806176; color: #fff; }
+.client-delivery-lane:nth-child(4n + 3) .client-delivery-marker.status-not_started { background: #B46D5C; border-color: #B46D5C; color: #fff; }
+.client-delivery-lane:nth-child(4n + 4) .client-delivery-marker.status-not_started { background: #567B66; border-color: #567B66; color: #fff; }
 .client-delivery-undated { display: inline-block; margin: 27px 0 0 10px; color: var(--muted-foreground); font-size: 11px; }
 .client-delivery-axis {
   display: grid;
@@ -151,6 +194,7 @@ html[data-workspace-theme='night'] .client-home-v3 .client-home-reports-link {
     border-bottom: 1px solid var(--border) !important;
   }
   .client-home-v3 .executive-card:last-child { border-bottom: 0 !important; }
+  .client-home-v3 .quality-card { grid-template-columns: minmax(0, 1fr) 108px; }
   .client-delivery-lane { grid-template-columns: minmax(0, 1fr) auto; min-height: 68px; gap: 12px; }
   .client-delivery-track, .client-delivery-axis { display: none; }
   .client-delivery-mobile-date {
@@ -162,4 +206,8 @@ html[data-workspace-theme='night'] .client-home-v3 .client-home-reports-link {
     font-size: 11px;
     white-space: nowrap;
   }
+  .client-delivery-lane:nth-child(4n + 1) .client-delivery-mobile-date { background: #617987; border-color: #617987; color: #fff; }
+  .client-delivery-lane:nth-child(4n + 2) .client-delivery-mobile-date { background: #806176; border-color: #806176; color: #fff; }
+  .client-delivery-lane:nth-child(4n + 3) .client-delivery-mobile-date { background: #B46D5C; border-color: #B46D5C; color: #fff; }
+  .client-delivery-lane:nth-child(4n + 4) .client-delivery-mobile-date { background: #567B66; border-color: #567B66; color: #fff; }
 }

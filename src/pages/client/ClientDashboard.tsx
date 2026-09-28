@@ -105,19 +105,6 @@ function formatEventDate(value: string) {
     time: new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(date),
   };
 }
-function CompletionDonut({ value }: { value: number }) {
-  const bounded = Math.max(0, Math.min(100, value));
-  const circumference = 2 * Math.PI * 42;
-  const offset = circumference - (bounded / 100) * circumference;
-  return <div className="client-quality-donut" aria-label={`Entregas aprovadas ${bounded}%`}>
-    <svg viewBox="0 0 100 100" role="img">
-      <circle className="donut-track" cx="50" cy="50" r="42" />
-      <circle className="donut-value" cx="50" cy="50" r="42" strokeDasharray={circumference} strokeDashoffset={offset} />
-    </svg>
-    <div><strong>{bounded}%</strong><span>aprovado</span></div>
-  </div>;
-}
-
 export function ClientDashboard() {
   const { user } = useWorkspaceAuth();
   const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, nps: null, npsCount: 0, completionPct: 0, reportCount: 0 });
@@ -215,6 +202,15 @@ export function ClientDashboard() {
   }).slice(0, 4);
   const timeline = deliveryTimeline(visibleDeliverables);
   const approvedCount = projectDeliverables.filter((item) => item.status === 'approved').length;
+  const projectCompletionPct = projectDeliverables.length ? Math.round(approvedCount / projectDeliverables.length * 100) : 0;
+  const deliveryStages = [
+    { label: 'Não iniciadas', count: projectDeliverables.filter((item) => item.status === 'not_started').length },
+    { label: 'Em andamento', count: projectDeliverables.filter((item) => ['in_progress', 'standby', 'adjustment_requested', 'rebriefing'].includes(item.status)).length },
+    { label: 'Revisão CALI', count: projectDeliverables.filter((item) => item.status === 'internal_review').length },
+    { label: 'Com o cliente', count: projectDeliverables.filter((item) => item.status === 'client_review').length },
+    { label: 'Aprovadas', count: approvedCount },
+  ];
+  const highestStageCount = Math.max(1, ...deliveryStages.map((stage) => stage.count));
   const waiting = data.deliverables.filter((item) => item.status === 'client_review');
   const activeDeliverables = data.deliverables.filter((item) => !closedStatuses.has(item.status));
   const movingCount = projectDeliverables.filter((item) => ['in_progress', 'internal_review', 'client_review', 'adjustment_requested', 'rebriefing'].includes(item.status)).length;
@@ -312,8 +308,14 @@ export function ClientDashboard() {
         </article>
 
         <article className="executive-card quality-card">
-          <CompletionDonut value={data.completionPct} />
-          <div><span>Conclusão das entregas</span><strong>{data.completionPct}% aprovadas</strong><p>Do projeto atual</p></div>
+          <div className="client-completion-copy">
+            <span>Conclusão das entregas</span>
+            <strong>{projectCompletionPct}%</strong>
+            <p>{approvedCount} de {projectDeliverables.length} {projectDeliverables.length === 1 ? 'entrega aprovada' : 'entregas aprovadas'} no projeto atual</p>
+          </div>
+          <div className="client-completion-bars" role="img" aria-label={deliveryStages.map((stage) => `${stage.label}: ${stage.count}`).join('; ')}>
+            {deliveryStages.map((stage, index) => <span key={stage.label} className={`client-completion-bar stage-${index + 1}${stage.count ? '' : ' is-empty'}`} style={{ height: stage.count ? `${Math.max(25, stage.count / highestStageCount * 100)}%` : '4px' }} title={`${stage.label}: ${stage.count}`} />)}
+          </div>
         </article>
       </section>
 
