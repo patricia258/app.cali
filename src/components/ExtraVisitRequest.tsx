@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { CalendarPlus, X, AlertTriangle } from 'lucide-react';
+import { CalendarPlus, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './extra-visit-request.css';
 
@@ -74,7 +74,7 @@ export function ExtraVisitRequest() {
             <li>Atendo de segunda a sexta, entre 9h e 16h. Segunda costuma estar fechada; se precisar desse dia, me conte nas observações que eu avalio.</li>
             <li>Deslocamento, estacionamento e alimentação necessária são cobrados à parte com comprovantes. Carro próprio depende de condições combinadas previamente.</li>
             <li>Cancelamento ou ausência sem aviso ou justificativa pode gerar taxa de <strong>20% ({'R$ 160,00'})</strong>, após minha avaliação. Com aviso ou justificativa, não cobro a taxa.</li>
-          </ul></div><div className="extra-visit-highlight"><AlertTriangle size={18} aria-hidden="true"/><p>Esse tempo é <strong>100% dedicado à sua empresa</strong>. A cobrança da visita realizada será conciliada no período da visita.</p></div><footer><button type="button" onClick={() => setOpen(false)}>Agora não</button><button type="button" className="extra-visit-next" onClick={() => setStep(2)}>Escolher datas →</button></footer></> : step === 2 ? <>
+          </ul></div><footer><button type="button" onClick={() => setOpen(false)}>Agora não</button><button type="button" className="extra-visit-next" onClick={() => setStep(2)}>Escolher datas →</button></footer></> : step === 2 ? <>
           <div className="extra-visit-fields"><label>Assunto<input value={title} onChange={e => setTitle(e.target.value)} maxLength={160} minLength={2} required/></label><label>Endereço da visita<input value={address} onChange={e => setAddress(e.target.value)} minLength={5} required placeholder="Rua, número, bairro, cidade"/></label><label className="full">Objetivo e observações<textarea value={purpose} onChange={e => setPurpose(e.target.value)} placeholder="Conte o que precisa ser tratado. Se precisar de uma segunda-feira, me avise aqui."/></label>
             {slots.map((slot, index) => <div className="extra-visit-slot" key={index}><strong>Opção {index + 1}</strong><div><label>Data<input type="date" value={slot.date} onChange={e => updateSlot(index as 0 | 1, 'date', e.target.value)} required/></label><label>Início<input type="time" min="09:00" max="12:00" step="900" value={slot.time} onChange={e => updateSlot(index as 0 | 1, 'time', e.target.value)} required/></label></div></div>)}
           </div>

@@ -45,6 +45,7 @@ let adminContext: AdminContext | null = null;
 let modal: HTMLElement | null = null;
 let adminRenderInFlight = false;
 let clientRenderInFlight = false;
+let adminDrawerOpen = false;
 
 const ACTIVE_STATUSES = new Set(['submitted', 'client_review', 'confirmed', 'reschedule_review']);
 const ADMIN_PENDING_STATUSES = new Set(['submitted', 'client_review', 'reschedule_review']);
@@ -61,6 +62,19 @@ const style = `
 .scheduling-v65-extra{margin:7px 0 9px;padding:10px 12px;border:1px solid #d7b37c;border-left:3px solid #b58c52;border-radius:0 11px 11px 0;background:#fff9e9}.scheduling-v65-extra-head{display:flex;align-items:center;gap:7px;color:#5a1e2d}.scheduling-v65-extra-head svg{flex:none;color:#b58c52}.scheduling-v65-extra-head strong{font-size:11px;letter-spacing:.02em}.scheduling-v65-extra-fee{margin-left:auto;font-size:9px;font-weight:900;letter-spacing:.03em;color:#8b662e;background:#fff3d0;border:1px solid #ead5aa;border-radius:999px;padding:2px 8px;white-space:nowrap}.scheduling-v65-extra-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px;margin:8px 0 0;padding:0}.scheduling-v65-extra-facts>div{min-width:0}.scheduling-v65-extra-facts dt{margin:0;font-size:8px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:#8b7a6d}.scheduling-v65-extra-facts dd{margin:2px 0 0;font-size:10px;line-height:1.4;color:#4a3a37;word-break:break-word}
 html[data-workspace-theme='night'] .scheduling-v65-extra{background:#2b241c;border-color:#5d4b34}html[data-workspace-theme='night'] .scheduling-v65-extra-head{color:#f1dddc}html[data-workspace-theme='night'] .scheduling-v65-extra-head svg{color:#e8ce91}html[data-workspace-theme='night'] .scheduling-v65-extra-fee{background:#3a2f22;border-color:#6a5936;color:#e8ce91}html[data-workspace-theme='night'] .scheduling-v65-extra-facts dt{color:#c9bbb0}html[data-workspace-theme='night'] .scheduling-v65-extra-facts dd{color:#f1dddc}
 @media(max-width:560px){.scheduling-v65-extra-facts{grid-template-columns:1fr}}
+.scheduling-v65-float{position:fixed;right:22px;bottom:22px;z-index:10040;display:flex;align-items:center;gap:9px;min-height:52px;padding:0 18px 0 14px;border:1px solid #b98e55;border-radius:999px;background:#5A1E2D;color:#fff;box-shadow:0 16px 40px rgba(90,30,45,.32);font:800 13px/1.2 inherit;cursor:pointer}.scheduling-v65-float:hover{transform:translateY(-2px)}.scheduling-v65-float-icon{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:999px;background:rgba(255,255,255,.14)}.scheduling-v65-float-badge{display:grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#f0cf77;color:#5A1E2D;font-size:11px;font-weight:900}
+.scheduling-v65-drawer-backdrop{position:fixed;inset:0;z-index:10045;background:rgba(20,13,16,.4)}
+.scheduling-v65-drawer{position:fixed;top:0;right:0;bottom:0;z-index:10046;width:min(420px,92vw);display:flex;flex-direction:column;background:var(--theme-surface,#fff);color:var(--theme-text,#2b2b2b);box-shadow:-24px 0 60px rgba(0,0,0,.22);transform:translateX(100%);transition:transform .22s ease}
+.scheduling-v65-drawer.is-open{transform:translateX(0)}
+.scheduling-v65-drawer-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 18px 14px;border-bottom:1px solid var(--theme-line,#eee6e0)}
+.scheduling-v65-drawer-head h2{margin:4px 0 0;font-size:17px}
+.scheduling-v65-drawer-head button{width:34px;height:34px;flex:none;border-radius:10px;border:1px solid var(--theme-line,#ddd4ce);background:var(--theme-surface-soft,#f8f4f1);color:var(--theme-text,#2b2b2b);cursor:pointer}
+.scheduling-v65-drawer-body{flex:1;overflow:auto;padding:4px 4px 16px}
+.scheduling-v65-drawer-body .scheduling-v65-list{padding:0 14px}
+.scheduling-v65-drawer-body .scheduling-v65-request{grid-template-columns:1fr}
+.scheduling-v65-drawer-body .scheduling-v65-actions{justify-content:flex-start;max-width:none}
+html[data-workspace-theme='night'] .scheduling-v65-drawer{background:#241a1e;color:#f2e8ea}html[data-workspace-theme='night'] .scheduling-v65-drawer-head{border-color:#4b373e}html[data-workspace-theme='night'] .scheduling-v65-drawer-head button{background:#2c2024;border-color:#554047;color:#eee3e6}
+@media(max-width:560px){.scheduling-v65-drawer{width:100vw}.scheduling-v65-float-label{display:none}.scheduling-v65-float{padding:0;width:52px;justify-content:center}}
 html[data-workspace-theme='night'] .scheduling-v65-panel,html[data-workspace-theme='night'] .scheduling-v65-modal{background:#241a1e;border-color:#4b373e;color:#f2e8ea}html[data-workspace-theme='night'] .scheduling-v65-head{background:linear-gradient(135deg,rgba(181,140,82,.08),rgba(90,30,45,.16))}html[data-workspace-theme='night'] .scheduling-v65-button{background:#2c2024;border-color:#554047;color:#eee3e6}html[data-workspace-theme='night'] .scheduling-v65-button.primary{background:#7a2942;border-color:#7a2942;color:#fff}html[data-workspace-theme='night'] .scheduling-v65-slot,html[data-workspace-theme='night'] .scheduling-v65-field input,html[data-workspace-theme='night'] .scheduling-v65-field select,html[data-workspace-theme='night'] .scheduling-v65-field textarea,html[data-workspace-theme='night'] .scheduling-v65-mode label{background:#2b2024;border-color:#523d44;color:#eee3e6}html[data-workspace-theme='night'] .scheduling-v65-policy{background:#2b241c;border-color:#5d4b34;color:#d9cfc8}html[data-workspace-theme='night'] .scheduling-v65-policy.billable{background:#322126;border-color:#6a3c47}html[data-workspace-theme='night'] .scheduling-v65-note{background:#2b231f}
 @media(max-width:900px){.scheduling-v65-request,.scheduling-v65-admin .scheduling-v65-request{grid-template-columns:1fr}.scheduling-v65-actions{justify-content:flex-start;max-width:none}.scheduling-v65-grid{grid-template-columns:1fr}.scheduling-v65-field.full{grid-column:1}.scheduling-v65-head{align-items:flex-start;flex-direction:column}.scheduling-v65-head>.scheduling-v65-button{width:100%}}
 @media(max-width:560px){.scheduling-v65-modal-backdrop{padding:8px}.scheduling-v65-modal{width:100%;max-height:96vh;border-radius:16px}.scheduling-v65-form,.scheduling-v65-modal-head{padding-left:15px;padding-right:15px}.scheduling-v65-slot-grid,.scheduling-v65-mode{grid-template-columns:1fr}.scheduling-v65-actions{flex-direction:column;align-items:stretch}.scheduling-v65-actions .scheduling-v65-button{width:100%}}
@@ -104,6 +118,29 @@ function ensureStyle() {
   const node = document.createElement('style'); node.id = 'scheduling-v65-style'; node.textContent = style; document.head.appendChild(node);
 }
 function closeModal() { modal?.remove(); modal = null; document.body.classList.remove('workspace-modal-open'); }
+function ensureAdminFloatHost() {
+  if (!document.getElementById('scheduling-v65-admin-float')) {
+    const button = document.createElement('button');
+    button.type = 'button'; button.id = 'scheduling-v65-admin-float'; button.className = 'scheduling-v65-float';
+    button.setAttribute('data-scheduling-admin-float-toggle', ''); button.setAttribute('aria-label', 'Solicitações de agenda'); button.hidden = true;
+    button.innerHTML = '<span class="scheduling-v65-float-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span><span class="scheduling-v65-float-label">Solicitações de agenda</span><span class="scheduling-v65-float-badge">0</span>';
+    document.body.appendChild(button);
+  }
+  if (!document.getElementById('scheduling-v65-admin-drawer-backdrop')) {
+    const backdrop = document.createElement('div');
+    backdrop.id = 'scheduling-v65-admin-drawer-backdrop'; backdrop.className = 'scheduling-v65-drawer-backdrop'; backdrop.hidden = true;
+    document.body.appendChild(backdrop);
+  }
+  if (!document.getElementById('scheduling-v65-admin-drawer')) {
+    const drawer = document.createElement('aside');
+    drawer.id = 'scheduling-v65-admin-drawer'; drawer.className = 'scheduling-v65-drawer'; drawer.setAttribute('role', 'dialog'); drawer.setAttribute('aria-label', 'Pedidos de agenda');
+    drawer.innerHTML = '<div class="scheduling-v65-drawer-head"><div><span class="scheduling-v65-kicker">SOLICITAÇÕES DE AGENDA</span><h2>Pedidos de agenda</h2></div><button type="button" data-scheduling-admin-drawer-close aria-label="Fechar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div><div class="scheduling-v65-drawer-body"></div>';
+    document.body.appendChild(drawer);
+  }
+}
+function openAdminDrawer() { adminDrawerOpen = true; document.getElementById('scheduling-v65-admin-drawer')?.classList.add('is-open'); const backdrop = document.getElementById('scheduling-v65-admin-drawer-backdrop'); if (backdrop) backdrop.hidden = false; }
+function closeAdminDrawer() { adminDrawerOpen = false; document.getElementById('scheduling-v65-admin-drawer')?.classList.remove('is-open'); const backdrop = document.getElementById('scheduling-v65-admin-drawer-backdrop'); if (backdrop) backdrop.hidden = true; }
+function toggleAdminDrawer() { if (adminDrawerOpen) closeAdminDrawer(); else openAdminDrawer(); }
 function setModalError(message: string) { const node = modal?.querySelector<HTMLElement>('.scheduling-v65-error'); if (node) { node.textContent = message; node.classList.add('show'); } }
 function toast(message: string, tone: 'normal' | 'error' = 'normal') { document.querySelector('.scheduling-v65-toast')?.remove(); const node = document.createElement('div'); node.className = `scheduling-v65-toast ${tone === 'error' ? 'error' : ''}`; node.textContent = message; document.body.appendChild(node); window.setTimeout(() => node.remove(), 4200); }
 function openModal(title: string, kicker: string, body: string) {
@@ -191,11 +228,16 @@ async function renderAdmin() {
   if (!supabase || window.location.pathname !== '/admin/calendario') return;
   if (adminRenderInFlight) return;
   adminRenderInFlight = true;
-  const anchor = document.querySelector<HTMLElement>('.calendar-workspace-strip'); if (!anchor) { adminRenderInFlight = false; return; }
-  let host = document.getElementById('scheduling-v65-admin-host');
-  document.querySelectorAll<HTMLElement>('[id="scheduling-v65-admin-host"]').forEach((node, index) => { if (index > 0) node.remove(); });
-  if (!host) { host = document.createElement('div'); host.id = 'scheduling-v65-admin-host'; anchor.insertAdjacentElement('afterend', host); }
-  host.innerHTML = '<section class="scheduling-v65-panel"><div class="scheduling-v65-empty">Carregando solicitações de agenda…</div></section>';
+  ensureAdminFloatHost();
+  const float = document.getElementById('scheduling-v65-admin-float') as HTMLButtonElement | null;
+  const drawerBody = document.querySelector<HTMLElement>('#scheduling-v65-admin-drawer .scheduling-v65-drawer-body');
+  const anchor = document.querySelector<HTMLElement>('.calendar-workspace-strip');
+  let host: HTMLElement | null = null;
+  if (anchor) {
+    host = document.getElementById('scheduling-v65-admin-host');
+    document.querySelectorAll<HTMLElement>('[id="scheduling-v65-admin-host"]').forEach((node, index) => { if (index > 0) node.remove(); });
+    if (!host) { host = document.createElement('div'); host.id = 'scheduling-v65-admin-host'; anchor.insertAdjacentElement('afterend', host); }
+  }
   try {
     const [companiesResult, requestResult] = await Promise.all([
       supabase.from('companies').select('id,display_name,onsite_visits_included_per_month').neq('status', 'archived').order('display_name'),
@@ -204,9 +246,13 @@ async function renderAdmin() {
     if (companiesResult.error) throw companiesResult.error; if (requestResult.error) throw requestResult.error;
     const companies = (companiesResult.data || []) as Company[], requests = (requestResult.data || []) as SchedulingRequest[]; adminContext = { companies, requests };
     const active = requests.filter((request) => ACTIVE_STATUSES.has(request.status));
+    const pendingCount = requests.filter((request) => ADMIN_PENDING_STATUSES.has(request.status)).length;
     const extraOutcomes = requests.filter(request => request.extra_visit && request.status === 'not_occurred');
-    host.innerHTML = `<section class="scheduling-v65-panel scheduling-v65-admin${active.length ? '' : ' is-empty'}"><div class="scheduling-v65-head"><div><span class="scheduling-v65-kicker">SOLICITAÇÕES DE AGENDA</span><h2>Pedidos de agenda</h2><p>${active.length ? 'Confira e responda os horários enviados pelos clientes.' : 'Aqui aparecem pedidos de reunião ou visita enviados pelos clientes para você analisar.'}</p></div><button type="button" class="scheduling-v65-button ${active.length ? '' : 'gold'}" data-scheduling-admin-contract>Configurar encontros do contrato</button></div>${active.length ? `<div class="scheduling-v65-list">${active.map(renderAdminRequest).join('')}</div>` : '<div class="scheduling-v65-empty">Nenhum pedido de agenda pendente.</div>'}</section>${extraOutcomes.length ? `<section class="scheduling-v65-panel"><div class="scheduling-v65-head"><div><span class="scheduling-v65-kicker">DECISÃO MANUAL</span><h2>Visitas extras não realizadas</h2><p>A taxa de 20% depende da sua avaliação do aviso e da justificativa.</p></div></div><div class="scheduling-v65-list">${extraOutcomes.map(request => `<article class="scheduling-v65-request"><strong>${esc(companyFor(request.company_id)?.display_name || 'Cliente')} · ${esc(request.title)}</strong><p>${request.extra_visit_cancellation_fee_cents == null ? 'Avalie se houve ausência ou cancelamento sem aviso e sem justificativa.' : `Decisão registrada: ${request.extra_visit_cancellation_fee_cents ? 'R$ 160,00' : 'sem taxa'} · ${esc(request.extra_visit_cancellation_note || '')}`}</p><div class="scheduling-v65-actions"><button type="button" class="scheduling-v65-button" data-extra-cancel-id="${esc(request.id)}">${request.extra_visit_cancellation_fee_cents == null ? 'Registrar decisão' : 'Rever decisão'}</button></div></article>`).join('')}</div></section>` : ''}`;
-  } catch (error) { host.innerHTML = `<section class="scheduling-v65-panel"><div class="scheduling-v65-empty">${esc(errorText(error))}</div></section>`; } finally { adminRenderInFlight = false; }
+    if (float) { float.hidden = pendingCount === 0; const badge = float.querySelector('.scheduling-v65-float-badge'); if (badge) badge.textContent = String(pendingCount); }
+    if (pendingCount === 0) closeAdminDrawer();
+    if (drawerBody) drawerBody.innerHTML = active.length ? `<div class="scheduling-v65-list">${active.map(renderAdminRequest).join('')}</div>` : '<div class="scheduling-v65-empty">Nenhum pedido de agenda pendente.</div>';
+    if (host) host.innerHTML = `<section class="scheduling-v65-panel scheduling-v65-admin-config"><div class="scheduling-v65-head"><div><span class="scheduling-v65-kicker">CONFIGURAÇÃO</span><h2>Agenda do contrato</h2><p>Defina quantas visitas presenciais estão incluídas por mês para cada cliente.</p></div><button type="button" class="scheduling-v65-button" data-scheduling-admin-contract>Configurar encontros do contrato</button></div></section>${extraOutcomes.length ? `<section class="scheduling-v65-panel"><div class="scheduling-v65-head"><div><span class="scheduling-v65-kicker">DECISÃO MANUAL</span><h2>Visitas extras não realizadas</h2><p>A taxa de 20% depende da sua avaliação do aviso e da justificativa.</p></div></div><div class="scheduling-v65-list">${extraOutcomes.map(request => `<article class="scheduling-v65-request"><strong>${esc(companyFor(request.company_id)?.display_name || 'Cliente')} · ${esc(request.title)}</strong><p>${request.extra_visit_cancellation_fee_cents == null ? 'Avalie se houve ausência ou cancelamento sem aviso e sem justificativa.' : `Decisão registrada: ${request.extra_visit_cancellation_fee_cents ? 'R$ 160,00' : 'sem taxa'} · ${esc(request.extra_visit_cancellation_note || '')}`}</p><div class="scheduling-v65-actions"><button type="button" class="scheduling-v65-button" data-extra-cancel-id="${esc(request.id)}">${request.extra_visit_cancellation_fee_cents == null ? 'Registrar decisão' : 'Rever decisão'}</button></div></article>`).join('')}</div></section>` : ''}`;
+  } catch (error) { if (drawerBody) drawerBody.innerHTML = `<div class="scheduling-v65-empty">${esc(errorText(error))}</div>`; if (host) host.innerHTML = `<section class="scheduling-v65-panel"><div class="scheduling-v65-empty">${esc(errorText(error))}</div></section>`; } finally { adminRenderInFlight = false; }
 }
 function companyFor(id: string) { return adminContext?.companies.find((company) => company.id === id) || null; }
 function renderAdminRequest(request: SchedulingRequest) {
@@ -250,6 +296,9 @@ async function handleClick(event: MouseEvent) {
     return;
   }
   if (target.closest('[data-scheduling-close]')) { event.preventDefault(); closeModal(); return; }
+  if (target.closest('[data-scheduling-admin-float-toggle]')) { event.preventDefault(); toggleAdminDrawer(); return; }
+  if (target.closest('[data-scheduling-admin-drawer-close]')) { event.preventDefault(); closeAdminDrawer(); return; }
+  if (target.id === 'scheduling-v65-admin-drawer-backdrop') { closeAdminDrawer(); return; }
   if (target.closest('[data-scheduling-client-new]')) { event.preventDefault(); openClientForm(); return; }
   const accept = target.closest<HTMLElement>('[data-scheduling-client-accept]');
   if (accept) {

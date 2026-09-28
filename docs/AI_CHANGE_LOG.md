@@ -361,3 +361,16 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Verificação:** `npm run check` (typecheck + build) passou. Sem acesso a navegador/dispositivo nesta sessão — nada foi verificado visualmente; a Pati precisa conferir ao vivo.
 - **Autor:** Claude, em cima do código do Codex — nenhuma reestruturação do fluxo em si, só os pontos que ela apontou.
 - **Aprovação:** pendente da revisão visual da Pati.
+
+---
+
+## 2026-09-28 — Claude (Visita Extra: 2ª rodada de review — remoção de destaque, painel admin flutuante, despesas na página de Clientes)
+
+- **Pedido:** Pati testou de novo e trouxe 3 pontos novos, com prints.
+- **1) Removido:** o card de destaque "Esse tempo é 100% dedicado à sua empresa" (adicionado na rodada anterior) — ela achou que não combinava logo depois do card que já falava sobre tempo dedicado. Voltou a ser texto simples dentro da lista de condições, como estava antes dessa rodada.
+- **2) Painel admin de "Solicitações de agenda" virou botão flutuante + gaveta lateral.** Ela não gostou do painel estático ocupando o topo do Calendário com badges soltos. Agora: um botão flutuante no canto inferior direito (`.scheduling-v65-float`, ícone de sino + contador) só aparece quando existe pedido pendente de análise; ao clicar, abre uma gaveta lateral (`.scheduling-v65-drawer`, desliza da direita, ~420px) com a lista de pedidos, no mesmo padrão visual já usado pelo card de visita extra. Quando não há mais pedidos pendentes, o botão some e a gaveta fecha sozinha. O botão "Configurar encontros do contrato" continua sempre acessível, agora num bloco fixo mais discreto (`Agenda do contrato`) que não desaparece com a lista. A seção "Visitas extras não realizadas" (decisão manual de no-show) não foi mexida — ela não reclamou dessa parte.
+  Referência de estilo usada: o widget "Fale com a Pati" do cliente (botão flutuante + painel lateral) — sem o vídeo animado da Pati, para não aumentar o bundle do admin com o asset de vídeo (~217KB); posso adicionar a animação depois se ela quiser, é só pedir.
+- **3) Botão "Despesas das visitas" saiu do topo do Calendário e foi para a página de Clientes** (`/admin/clientes`) — ela achou o botão grande demais no topbar do Calendário. E o modal foi **redesenhado do zero**: antes usava o mesmo estilo "quente" (creme/dourado, serifada) do modal do cliente, o que destoava do resto do admin; agora usa CSS próprio (`extra-visit-expenses.css`) no padrão neutro do admin (cores de `--theme-surface`/`--theme-text`, sans-serif, cantos e sombras iguais aos outros modais do sistema).
+- **Arquivos:** `src/components/ExtraVisitRequest.tsx`, `src/components/extra-visit-request.css`, `src/components/ExtraVisitExpenses.tsx`, `src/components/extra-visit-expenses.css` (novo), `src/components/WorkspaceShell.tsx`, `src/lib/schedulingRequestsRuntimeV65.ts`.
+- **Verificação:** `npm run check` (typecheck + build) passou. Sem navegador nesta sessão — nada verificado visualmente; ela precisa conferir ao vivo, principalmente a gaveta lateral do admin (é a peça nova mais arriscada visualmente).
+- **Autor:** Claude. **Aprovação:** pendente da revisão visual da Pati.
