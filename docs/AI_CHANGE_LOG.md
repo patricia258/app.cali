@@ -132,7 +132,7 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Mudança:** as quatro entregas visíveis do projeto atual agora aparecem em trilhas horizontais, ordenadas pelo prazo real, com cápsulas posicionadas em um eixo calculado com `due_at`. O estado real fica junto ao título; prazos ausentes aparecem como “Prazo a definir”, sem sugerir data ou duração. Em telas pequenas, cada trilha vira uma linha legível com prazo ao lado. O link “Ver projeto” e a origem dos dados permanecem iguais.
 - **Molduras:** restaurada uma linha dourada fina ao redor de “Em movimento”, “Agenda compartilhada”, conjunto dos três indicadores e link de relatórios, com contraste próprio nos temas dia e noite. Sem sombra pesada.
 - **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v5.css` e este registro. Sem alterações de query, status, permissões ou cálculos financeiros.
-- **Verificação:** `npm run check` (typecheck e build) e `git diff --check` passaram. A tela autenticada ainda precisa ser conferida visualmente com uma conta cliente nos dois temas e no celular.
+- **Entrega/verificação:** publicado no commit `41e4776d4f3344560d3a23508b03e330ee595998` em `main`, deploy de produção `READY`. `npm run check` (typecheck e build) e `git diff --check` passaram. A tela autenticada ainda precisa ser conferida visualmente com uma conta cliente nos dois temas e no celular.
 - **Aprovação:** solicitado pela Pati em 28/09/2026; `aguardando avaliação`. Não confundir a referência MatDash com aprovação final da adaptação.
 
 ---
