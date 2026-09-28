@@ -301,3 +301,10 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 
 - **Fonte nova:** `CALI_RH_Minuta_CALI_PARTNER_KIE-TEC_revisada(1).docx`, recebida após o PDF anterior. O Anexo I, item 2.1, prevê R$ 800,00 por visita presencial extra de até 4h **para esse contrato**. O item 2.2 prevê estacionamento, deslocamento e alimentação necessária aplicáveis à parte; os itens 2.3–2.4 exigem orçamento e aprovação prévios para visitas acima de 4h. R$ 350,00/h, com mínimo de 2h, é capacidade **remota** adicional (itens 1.1–1.2), não tarifa presencial. Esse valor de R$ 800,00/4h agora está confirmado de forma independente por Claude (docx original) e Codex (docx revisado) — mesmo número, duas fontes.
 - **Alteração:** corrigi `docs/VISITA_EXTRA_SPEC.md` para remover a afirmação anterior de que o anexo não trazia o preço, não inventar uma hora presencial tabelada e conciliar o faturamento com o item 3.2. Nenhuma tela, RPC, migração ou regra operacional foi alterada. **Autor:** Codex. **Aprovação da proposta:** pendente de Pati.
+
+---
+## 2026-09-28 — Codex (molduras do card de ocorrências no início do cliente)
+
+- **Pedido:** Pati mostrou três molduras diferentes e definiu a foto central da Patrícia como padrão exato de formato/cor para foto do cliente e logo da empresa; a logo deve preencher a moldura. Print das 17h46. **Autor:** Codex; **aprovação do resultado:** aguardando avaliação.
+- **Alteração visual:** as três posições usam o mesmo quadrado de 38px, raio de 10px, borda dourada `#B58C52` e fundo escuro da foto central, inclusive no tema dia/noite. Removi as regras que deixavam o cliente com fundo azulado e a logo em fundo claro com imagem reduzida por `contain`/padding. A borda fica acima da imagem para evitar que um zoom salvo esconda a moldura.
+- **Logo:** o card prioriza `companies.logo_workspace_url`, versão quadrada já preparada para preencher a moldura, com fallback para `logo_url`. A URL privada é resolvida pelo mesmo utilitário usado na biblioteca de relatórios. Os demais lugares que exibem a logo não foram alterados. **Arquivos:** `src/client-home-v5.css`, `src/pages/client/ClientDashboard.tsx` e este registro.

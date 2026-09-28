@@ -38,11 +38,24 @@
 .client-service-card a:hover,.client-service-card a:focus-visible { text-decoration: underline; }
 .client-home-v3 .client-home-service-grid > .client-service-card.occurrences { display: flex; flex-direction: column; align-items: start; padding: 20px 22px; background: color-mix(in srgb,var(--theme-surface) 96%,#3D7793 4%) !important; }
 .client-occurrence-people { display: flex; align-items: center; gap: 7px; margin: 0 0 9px; }
-.client-occurrence-avatar { display: grid; place-items: center; width: 38px; height: 38px; flex: 0 0 38px; margin: 0; overflow: hidden; border: 1px solid rgba(181,140,82,.6); border-radius: 10px !important; background: #e9d4c2; color: var(--client-bordeaux); font-size: 12px; font-weight: 800; }
-.client-occurrence-avatar:nth-child(2) { background: #d9e8e9; }
-.client-occurrence-avatar.company { background: #f3ece3; }
-.client-home-v3 .client-occurrence-avatar img { display: block; width: 100% !important; height: 100% !important; border-radius: 0 !important; object-fit: cover !important; }
-.client-home-v3 .client-occurrence-avatar.company img { object-fit: contain !important; transform: none; padding: 2px; }
+.client-home-v3 .client-occurrence-people .client-occurrence-avatar {
+  display: grid; place-items: center; position: relative;
+  width: 38px; height: 38px; flex: 0 0 38px; margin: 0;
+  overflow: hidden; box-sizing: border-box;
+  border: 1px solid #b58c52 !important; border-radius: 10px !important;
+  background: #292426 !important; color: #fffaf7;
+  box-shadow: none !important; font-size: 12px; font-weight: 800;
+}
+.client-home-v3 .client-occurrence-people .client-occurrence-avatar img {
+  display: block; width: 100% !important; height: 100% !important;
+  padding: 0 !important; border: 0 !important; border-radius: 0 !important;
+  object-fit: cover !important; transform-origin: center;
+}
+.client-home-v3 .client-occurrence-people .client-occurrence-avatar::after {
+  content: ''; position: absolute; inset: 0; z-index: 1;
+  border: 1px solid #b58c52; border-radius: inherit;
+  pointer-events: none;
+}
 .client-occurrence-badge { position: absolute; top: 20px; right: 20px; padding: 6px 9px; border-radius: 8px; background: #d9e9f0; color: #2c5970; font-size: 10px; font-weight: 800; }
 .client-occurrence-badge.status-waiting_client { background: #fff0c9; color: #68430c; }
 .client-occurrence-badge.status-completed { background: #dcefe2; color: #285e40; }

@@ -9,6 +9,7 @@ import { Shell } from '../../components/WorkspaceShell';
 import { ClientDocumentBrandCover } from '../../components/ClientDocumentBrandCover';
 import { loadClientDashboardReality, subscribeClientDeliveryReality } from '../../lib/clientDeliveryReality';
 import { supabase } from '../../lib/supabase';
+import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 import { patiWavePoster, patiWaveVideo } from '../../assets/patiWaveMedia';
 
@@ -16,6 +17,7 @@ type Company = {
   id: string;
   display_name: string;
   logo_url?: string | null;
+  logo_workspace_url?: string | null;
   service_type?: string | null;
   service_plan?: string | null;
   start_date?: string | null;
@@ -131,6 +133,7 @@ function currentMonthBounds() {
 export function ClientDashboard() {
   const { user } = useWorkspaceAuth();
   const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, hoursVisible: false, contractedHours: 0, hoursLoadError: false, nps: null, npsCount: 0, completionPct: 0, workMetrics: null, unlinkedHourEntries: 0, reportCount: null, latestDocument: null, documentCount: null, openOccurrenceCount: null, latestOccurrence: null, occurrenceLoadError: false });
+  const [occurrenceLogoUrl, setOccurrenceLogoUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
@@ -147,6 +150,14 @@ export function ClientDashboard() {
     void load(true);
     return () => { if (refreshTimer.current) window.clearTimeout(refreshTimer.current); };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    const logo = data.company?.logo_workspace_url || data.company?.logo_url;
+    if (!logo) { setOccurrenceLogoUrl(''); return; }
+    void resolveWorkspaceMedia(logo, 86400).then((url) => { if (active) setOccurrenceLogoUrl(url); });
+    return () => { active = false; };
+  }, [data.company?.logo_workspace_url, data.company?.logo_url]);
 
   useEffect(() => {
     const companyId = data.company?.id;
@@ -182,7 +193,7 @@ export function ClientDashboard() {
       const nowIso = new Date().toISOString();
       const { start, end } = currentMonthBounds();
       const [companyResult, deliveryReality, hoursResult, workResult, eventResult, reportResult, contactResult, documentsResult, occurrencesResult, latestOccurrenceResult] = await Promise.all([
-        supabase.from('companies').select('id,display_name,logo_url,service_type,service_plan,start_date,end_date,monthly_hours_contracted,show_hours_to_client').eq('id', companyId).single(),
+        supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url,service_type,service_plan,start_date,end_date,monthly_hours_contracted,show_hours_to_client').eq('id', companyId).single(),
         loadClientDashboardReality(companyId),
         supabase.rpc('get_client_hours_summary', { p_period_start: start, p_period_end: end }),
         supabase.rpc('get_client_home_work_metrics', { p_period_start: start, p_period_end: end }),
@@ -420,7 +431,7 @@ export function ClientDashboard() {
           <div className="client-occurrence-people" aria-label="Contatos da empresa e da CALI">
             <span className="client-occurrence-avatar">{data.profile?.avatar_url ? <img src={data.profile.avatar_url} alt={data.profile.full_name} style={{ objectPosition: `${Number(data.profile.avatar_position_x ?? 50)}% ${Number(data.profile.avatar_position_y ?? 50)}%`, transform: `scale(${Number(data.profile.avatar_zoom ?? 1)})` }} /> : firstName(data.profile?.full_name).charAt(0)}</span>
             <span className="client-occurrence-avatar">{data.contact?.avatar_url ? <img src={data.contact.avatar_url} alt={contactName} style={{ objectPosition: `${Number(data.contact.avatar_position_x ?? 50)}% ${Number(data.contact.avatar_position_y ?? 50)}%`, transform: `scale(${Number(data.contact.avatar_zoom ?? 1)})` }} /> : contactName.charAt(0)}</span>
-            <span className="client-occurrence-avatar company">{data.company?.logo_url ? <img src={data.company.logo_url} alt={data.company.display_name} /> : 'C'}</span>
+            <span className="client-occurrence-avatar company">{occurrenceLogoUrl ? <img src={occurrenceLogoUrl} alt={data.company?.display_name || 'Empresa'} /> : 'C'}</span>
           </div>
           <span className="client-service-kicker">OCORRÊNCIA MAIS RECENTE</span>
           <strong>{latestOccurrence?.title || (data.occurrenceLoadError ? 'Ocorrências indisponíveis agora' : 'Nenhuma ocorrência registrada')}</strong>
