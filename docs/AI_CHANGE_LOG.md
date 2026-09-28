@@ -194,3 +194,14 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Aprovação:** solicitado pela Pati em 28/09/2026; resultado `aguardando avaliação`.
 
 ---
+
+## 2026-09-28 — Codex (capa dos documentos e cartões recentes)
+
+- **Escopo:** `/cliente/documentos` e home `/cliente` a partir de cinco prints da Pati às 12h11–12h15. Preservados os indicadores já aprovados, agenda e top bar.
+- **Capa padrão:** a grade de documentos do cliente usava outro componente que o administrativo, por isso a capa automática não chegava nela. A capa visível agora usa a logo original da empresa centralizada e o fundo extraído da cor da logo, inclusive quando a logo é transparente; fallback marfim quando não há logo legível. A mesma capa aparece em escala reduzida na home. A versão do cliente prioriza esta capa de marca mesmo quando existe capa antiga enviada; não se altera o arquivo original nem o fluxo de upload.
+- **Home:** a contratação fica em uma faixa compacta após a saudação. Os cards de documento e ocorrência passam para uma linha própria após os três indicadores, com bordas arredondadas moderadas. O documento mostra título e atualização do último arquivo publicado, sua capa e entrada no acervo. A ocorrência mostra a atividade mais recente compartilhada, status real, dias desde o registro e acesso direto ao detalhe; as imagens são dos contatos da conta e da CALI com a logo da empresa, sem afirmar que são os autores da mensagem. Se não houver registro, há estado vazio sem item demonstrativo.
+- **Prazos:** `account_records` não expõe prazo de atendimento no fluxo consultado. O cartão não afirma “dentro/fora do prazo”; mostra dias decorridos para evitar informação inventada.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/pages/client/ClientDocumentsPage.tsx`, `src/components/ClientDocumentBrandCover.tsx`, `src/lib/documentsIdentityRuntimeV42.ts`, `src/client-home-v5.css`, `src/client-document-brand-cover.css`, `src/main.tsx` e este registro. Fluxo de comentários, ciência, Drive, ocorrências e permissões preservado.
+- **Aprovação:** pedido da Pati; composição final `aguardando avaliação`.
+
+---

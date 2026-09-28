@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowUpRight, CalendarDays, CheckCircle2, ChevronRight, FileText,
-  Leaf, Loader2, MessageCircle, Minus, Send, NotebookPen,
+  Leaf, Loader2, MessageCircle, Minus, Send,
   Sparkles, Star, X,
 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
+import { ClientDocumentBrandCover } from '../../components/ClientDocumentBrandCover';
 import { loadClientDashboardReality, subscribeClientDeliveryReality } from '../../lib/clientDeliveryReality';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
@@ -22,11 +23,12 @@ type Company = {
   monthly_hours_contracted?: number | null;
   show_hours_to_client?: boolean | null;
 };
-type Profile = { full_name: string; company_id: string };
+type Profile = { full_name: string; company_id: string; avatar_url?: string | null };
 type Project = { id: string; name: string; status: string; start_date?: string | null; target_end_date?: string | null };
 type Deliverable = { id: string; title: string; status: string; due_at?: string | null; project_id?: string | null };
 type EventItem = { id: string; title: string; starts_at: string; mode?: string | null; meeting_url?: string | null };
-type ClientDocument = { id: string; title: string; updated_at: string };
+type ClientDocument = { id: string; title: string; updated_at: string; category?: string | null };
+type ClientOccurrence = { id: string; title: string; workflow_status?: string | null; occurred_at: string; last_activity_at?: string | null };
 type Contact = {
   full_name: string;
   job_title?: string | null;
@@ -52,6 +54,7 @@ type DashboardData = {
   latestDocument: ClientDocument | null;
   documentCount: number | null;
   openOccurrenceCount: number | null;
+  latestOccurrence: ClientOccurrence | null;
 };
 
 const statusLabel: Record<string, string> = {
@@ -110,7 +113,7 @@ function formatEventDate(value: string) {
 }
 export function ClientDashboard() {
   const { user } = useWorkspaceAuth();
-  const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, nps: null, npsCount: 0, completionPct: 0, reportCount: 0, latestDocument: null, documentCount: null, openOccurrenceCount: null });
+  const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, nps: null, npsCount: 0, completionPct: 0, reportCount: 0, latestDocument: null, documentCount: null, openOccurrenceCount: null, latestOccurrence: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
@@ -145,20 +148,21 @@ export function ClientDashboard() {
       const userId = user?.id;
       if (!userId) throw new Error('Sessão do cliente não encontrada.');
 
-      const profileResult = await supabase.from('profiles').select('full_name,company_id').eq('id', userId).maybeSingle();
+      const profileResult = await supabase.from('profiles').select('full_name,company_id,avatar_url').eq('id', userId).maybeSingle();
       if (profileResult.error) throw profileResult.error;
       const companyId = profileResult.data?.company_id;
       if (!companyId) throw new Error('Este acesso ainda não está vinculado a uma empresa.');
 
       const nowIso = new Date().toISOString();
-      const [companyResult, deliveryReality, eventResult, reportResult, contactResult, documentsResult, occurrencesResult] = await Promise.all([
+      const [companyResult, deliveryReality, eventResult, reportResult, contactResult, documentsResult, occurrencesResult, latestOccurrenceResult] = await Promise.all([
         supabase.from('companies').select('id,display_name,logo_url,service_type,service_plan,start_date,end_date,monthly_hours_contracted,show_hours_to_client').eq('id', companyId).single(),
         loadClientDashboardReality(companyId),
         supabase.from('events').select('id,title,starts_at,mode,meeting_url').eq('company_id', companyId).eq('visibility', 'client').is('cancelled_at', null).gte('starts_at', nowIso).order('starts_at').limit(3),
         supabase.from('reports').select('id').eq('company_id', companyId).in('status', ['sent', 'published']),
         supabase.rpc('get_client_account_contact'),
-        supabase.from('files').select('id,title,updated_at', { count: 'exact' }).eq('company_id', companyId).eq('client_visible', true).eq('status', 'published').order('updated_at', { ascending: false }).limit(1),
+        supabase.from('files').select('id,title,updated_at,category', { count: 'exact' }).eq('company_id', companyId).eq('client_visible', true).eq('status', 'published').order('updated_at', { ascending: false }).limit(1),
         supabase.from('account_records').select('id', { count: 'exact', head: true }).eq('company_id', companyId).eq('visibility', 'client').eq('record_type', 'occurrence').in('workflow_status', ['open', 'in_progress', 'waiting_client']),
+        supabase.from('account_records').select('id,title,workflow_status,occurred_at,last_activity_at').eq('company_id', companyId).eq('visibility', 'client').eq('record_type', 'occurrence').order('last_activity_at', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false }).limit(1),
       ]);
 
       if (companyResult.error) throw companyResult.error;
@@ -192,6 +196,7 @@ export function ClientDashboard() {
         latestDocument: documentsResult.error ? null : (documentsResult.data?.[0] as ClientDocument || null),
         documentCount: documentsResult.error ? null : documentsResult.count,
         openOccurrenceCount: occurrencesResult.error ? null : occurrencesResult.count,
+        latestOccurrence: latestOccurrenceResult.error ? null : (latestOccurrenceResult.data?.[0] as ClientOccurrence || null),
       });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar sua área.');
@@ -232,6 +237,10 @@ export function ClientDashboard() {
   const showHours = Boolean(data.company?.show_hours_to_client);
   const contractedMinutes = showHours ? Number(data.company?.monthly_hours_contracted || 0) * 60 : 0;
   const packageName = planLabel(data.company?.service_plan) || planLabel(data.company?.service_type) || 'Contratação CALI';
+  const latestOccurrence = data.latestOccurrence;
+  const occurrenceStatus = latestOccurrence?.workflow_status || 'open';
+  const occurrenceStatusText: Record<string, string> = { open: 'Aberta', in_progress: 'Em andamento', waiting_client: 'Aguardando resposta', standby: 'Em espera', completed: 'Encerrada', cancelled: 'Cancelada' };
+  const occurrenceDays = latestOccurrence ? Math.max(0, Math.floor((Date.now() - new Date(latestOccurrence.occurred_at).getTime()) / 86400000)) : 0;
 
   function quickAnswer(kind: 'next_event' | 'hours' | 'validation' | 'reports') {
     if (kind === 'next_event') {
@@ -298,10 +307,6 @@ export function ClientDashboard() {
           </div>
         </aside>
 
-        <div className="client-home-service-grid">
-          <Link to="/cliente/documentos" className="client-service-card documents"><FileText size={20} /><span>DOCUMENTOS</span><strong>{data.documentCount == null ? '—' : data.documentCount}</strong><p>{data.latestDocument ? `Mais recente: ${data.latestDocument.title}` : data.documentCount == null ? 'Abrir documentos' : 'Nenhum documento publicado'}</p><small>Ver documentos <ChevronRight size={14} /></small></Link>
-          <Link to="/cliente/registros" className="client-service-card occurrences"><NotebookPen size={20} /><span>OCORRÊNCIAS</span><strong>{data.openOccurrenceCount == null ? '—' : data.openOccurrenceCount}</strong><p>{data.openOccurrenceCount == null ? 'Abrir ocorrências' : data.openOccurrenceCount === 1 ? 'ocorrência em aberto' : 'ocorrências em aberto'}</p><small>Acompanhar <ChevronRight size={14} /></small></Link>
-        </div>
       </div>
       {waiting.length > 0 && <Link to="/cliente/entregaveis" className="client-home-validation">{waiting.length} {waiting.length === 1 ? 'entrega aguarda' : 'entregas aguardam'} sua validação <ChevronRight size={15} /></Link>}
 
@@ -344,6 +349,32 @@ export function ClientDashboard() {
           <div className="client-completion-bars" role="img" aria-label={deliveryStages.map((stage) => `${stage.label}: ${stage.count}`).join('; ')}>
             {deliveryStages.map((stage, index) => <span key={stage.label} className={`client-completion-bar stage-${index + 1}${stage.count ? '' : ' is-empty'}`} style={{ height: stage.count ? `${Math.max(25, stage.count / highestStageCount * 100)}%` : '4px' }} title={`${stage.label}: ${stage.count}`} />)}
           </div>
+        </article>
+      </section>
+
+      <section className="client-home-service-grid" aria-label="Atualizações da conta">
+        <article className="client-service-card documents">
+          <div className="client-service-cover">
+            {data.latestDocument ? <ClientDocumentBrandCover companyId={data.company?.id || ''} companyName={data.company?.display_name || 'sua empresa'} logoUrl={data.company?.logo_url} compact /> : <div className="client-service-empty-cover"><FileText size={26} /></div>}
+          </div>
+          <div className="client-service-content">
+            <span className="client-service-kicker">DOCUMENTO MAIS RECENTE</span>
+            <strong>{data.latestDocument?.title || 'Nenhum documento publicado'}</strong>
+            {data.latestDocument && <p>Atualizado em {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(data.latestDocument.updated_at)).replace('.', '')}</p>}
+            <Link to="/cliente/documentos">{data.latestDocument ? 'Ver documento e acervo' : 'Ver documentos'} <ChevronRight size={15} /></Link>
+          </div>
+        </article>
+        <article className="client-service-card occurrences">
+          {latestOccurrence && <span className={`client-occurrence-badge status-${occurrenceStatus}`}>{occurrenceStatusText[occurrenceStatus] || 'Em acompanhamento'}</span>}
+          <div className="client-occurrence-people" aria-label="Contatos da empresa e da CALI">
+            <span className="client-occurrence-avatar">{data.profile?.avatar_url ? <img src={data.profile.avatar_url} alt={data.profile.full_name} /> : firstName(data.profile?.full_name).charAt(0)}</span>
+            <span className="client-occurrence-avatar">{data.contact?.avatar_url ? <img src={data.contact.avatar_url} alt={contactName} /> : contactName.charAt(0)}</span>
+            <span className="client-occurrence-avatar company">{data.company?.logo_url ? <img src={data.company.logo_url} alt={data.company.display_name} /> : 'C'}</span>
+          </div>
+          <span className="client-service-kicker">OCORRÊNCIA MAIS RECENTE</span>
+          <strong>{latestOccurrence?.title || 'Nenhuma ocorrência registrada'}</strong>
+          {latestOccurrence ? <p>{occurrenceDays === 0 ? 'Registrada hoje' : `Registrada há ${occurrenceDays} ${occurrenceDays === 1 ? 'dia' : 'dias'}`} · {data.openOccurrenceCount ?? '—'} em aberto</p> : <p>{data.openOccurrenceCount == null ? 'Consulte os registros da sua conta.' : 'Os registros compartilhados aparecerão aqui.'}</p>}
+          <Link to={latestOccurrence ? `/cliente/registros?record=${encodeURIComponent(latestOccurrence.id)}` : '/cliente/registros'}>{latestOccurrence ? 'Abrir ocorrência' : 'Ver ocorrências'} <ChevronRight size={15} /></Link>
         </article>
       </section>
 
