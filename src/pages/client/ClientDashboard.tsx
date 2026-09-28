@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowUpRight, CalendarDays, CheckCircle2, ChevronRight,
-  Leaf, Loader2, MessageCircle, Minus, Send,
+  ArrowUpRight, CalendarDays, CheckCircle2, ChevronRight, FileText,
+  Leaf, Loader2, MessageCircle, Minus, Send, NotebookPen,
   Sparkles, Star, X,
 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
@@ -26,6 +26,7 @@ type Profile = { full_name: string; company_id: string };
 type Project = { id: string; name: string; status: string; start_date?: string | null; target_end_date?: string | null };
 type Deliverable = { id: string; title: string; status: string; due_at?: string | null; project_id?: string | null };
 type EventItem = { id: string; title: string; starts_at: string; mode?: string | null; meeting_url?: string | null };
+type ClientDocument = { id: string; title: string; updated_at: string };
 type Contact = {
   full_name: string;
   job_title?: string | null;
@@ -48,6 +49,9 @@ type DashboardData = {
   npsCount: number;
   completionPct: number;
   reportCount: number;
+  latestDocument: ClientDocument | null;
+  documentCount: number | null;
+  openOccurrenceCount: number | null;
 };
 
 const statusLabel: Record<string, string> = {
@@ -56,7 +60,6 @@ const statusLabel: Record<string, string> = {
   adjustment_requested: 'Ajuste solicitado', rebriefing: 'Em rebriefing',
   approved: 'Aprovado', cancelled: 'Cancelado',
 };
-const closedStatuses = new Set(['approved', 'cancelled']);
 
 function formatHours(minutes: number) {
   const h = Math.floor(minutes / 60);
@@ -107,7 +110,7 @@ function formatEventDate(value: string) {
 }
 export function ClientDashboard() {
   const { user } = useWorkspaceAuth();
-  const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, nps: null, npsCount: 0, completionPct: 0, reportCount: 0 });
+  const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, nps: null, npsCount: 0, completionPct: 0, reportCount: 0, latestDocument: null, documentCount: null, openOccurrenceCount: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [chatOpen, setChatOpen] = useState(false);
@@ -148,12 +151,14 @@ export function ClientDashboard() {
       if (!companyId) throw new Error('Este acesso ainda não está vinculado a uma empresa.');
 
       const nowIso = new Date().toISOString();
-      const [companyResult, deliveryReality, eventResult, reportResult, contactResult] = await Promise.all([
+      const [companyResult, deliveryReality, eventResult, reportResult, contactResult, documentsResult, occurrencesResult] = await Promise.all([
         supabase.from('companies').select('id,display_name,logo_url,service_type,service_plan,start_date,end_date,monthly_hours_contracted,show_hours_to_client').eq('id', companyId).single(),
         loadClientDashboardReality(companyId),
         supabase.from('events').select('id,title,starts_at,mode,meeting_url').eq('company_id', companyId).eq('visibility', 'client').is('cancelled_at', null).gte('starts_at', nowIso).order('starts_at').limit(3),
         supabase.from('reports').select('id').eq('company_id', companyId).not('published_at', 'is', null),
         supabase.rpc('get_client_account_contact'),
+        supabase.from('files').select('id,title,updated_at', { count: 'exact' }).eq('company_id', companyId).eq('client_visible', true).eq('status', 'published').order('updated_at', { ascending: false }).limit(1),
+        supabase.from('account_records').select('id', { count: 'exact', head: true }).eq('company_id', companyId).eq('visibility', 'client').eq('record_type', 'occurrence').in('workflow_status', ['open', 'in_progress', 'waiting_client']),
       ]);
 
       if (companyResult.error) throw companyResult.error;
@@ -184,6 +189,9 @@ export function ClientDashboard() {
         npsCount: deliveryReality.metrics.feedbackCount,
         completionPct: deliveryReality.metrics.completionPct,
         reportCount: reportResult.error ? 0 : (reportResult.data || []).length,
+        latestDocument: documentsResult.error ? null : (documentsResult.data?.[0] as ClientDocument || null),
+        documentCount: documentsResult.error ? null : documentsResult.count,
+        openOccurrenceCount: occurrencesResult.error ? null : occurrencesResult.count,
       });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar sua área.');
@@ -221,7 +229,6 @@ export function ClientDashboard() {
   ];
   const highestStageCount = Math.max(1, ...deliveryStages.map((stage) => stage.count));
   const waiting = data.deliverables.filter((item) => item.status === 'client_review');
-  const activeDeliverables = data.deliverables.filter((item) => !closedStatuses.has(item.status));
   const showHours = Boolean(data.company?.show_hours_to_client);
   const contractedMinutes = showHours ? Number(data.company?.monthly_hours_contracted || 0) * 60 : 0;
   const packageName = planLabel(data.company?.service_plan) || planLabel(data.company?.service_type) || 'Contratação CALI';
@@ -267,8 +274,12 @@ export function ClientDashboard() {
     <section className="page client-home-v2 client-home-v3">
       {error && <div className="inline-notice">{error}</div>}
 
-      <div className="client-home-greeting">
+      <div className="client-home-greeting client-home-intro">
         <h1>Olá, {firstName(data.profile?.full_name)}.</h1>
+        <div className="patricia-identity-card client-home-contact">
+          <div className="patricia-photo-wrap">{data.contact?.avatar_url ? <img src={data.contact.avatar_url} alt={contactName} style={{ objectPosition: `${Number(data.contact.avatar_position_x || 50)}% ${Number(data.contact.avatar_position_y || 50)}%`, transform: `scale(${Number(data.contact.avatar_zoom || 1)})` }} /> : <span>PL</span>}</div>
+          <div><span>RESPONSÁVEL EXECUTIVA DA CONTA</span><strong>{contactName}</strong><em>{contactRole}</em></div>
+        </div>
       </div>
 
       <div className="client-home-top-grid">
@@ -287,18 +298,12 @@ export function ClientDashboard() {
           </div>
         </aside>
 
-        {waiting.length > 0 ? <section className="client-action-hero">
-          <span>AGUARDANDO VOCÊ</span>
-          <h2>{waiting.length === 1 ? '1 entrega está pronta para sua validação.' : `${waiting.length} entregas estão prontas para sua validação.`}</h2>
-          <p>{waiting[0].title}{waiting.length > 1 ? ` e mais ${waiting.length - 1}.` : ' já pode ser revisada.'}</p>
-          <Link to="/cliente/entregaveis" className="client-action-hero-cta">Revisar agora <ChevronRight size={15} /></Link>
-        </section> : <section className="client-action-hero quiet">
-          <span>STATUS DO CICLO</span>
-          <h2>{activeDeliverables.length ? `${activeDeliverables.length} ${activeDeliverables.length === 1 ? 'entrega para acompanhar' : 'entregas para acompanhar'}.` : 'Tudo em dia por aqui.'}</h2>
-          <p>{activeDeliverables.length ? 'Acompanhe o andamento e as próximas decisões.' : 'Nenhuma validação pendente no momento.'}</p>
-          <Link to="/cliente/entregaveis" className="client-action-hero-cta">Ver entregas <ChevronRight size={15} /></Link>
-        </section>}
+        <div className="client-home-service-grid">
+          <Link to="/cliente/documentos" className="client-service-card documents"><FileText size={20} /><span>DOCUMENTOS</span><strong>{data.documentCount == null ? '—' : data.documentCount}</strong><p>{data.latestDocument ? `Mais recente: ${data.latestDocument.title}` : data.documentCount == null ? 'Abrir documentos' : 'Nenhum documento publicado'}</p><small>Ver documentos <ChevronRight size={14} /></small></Link>
+          <Link to="/cliente/registros" className="client-service-card occurrences"><NotebookPen size={20} /><span>OCORRÊNCIAS</span><strong>{data.openOccurrenceCount == null ? '—' : data.openOccurrenceCount}</strong><p>{data.openOccurrenceCount == null ? 'Abrir ocorrências' : data.openOccurrenceCount === 1 ? 'ocorrência em aberto' : 'ocorrências em aberto'}</p><small>Acompanhar <ChevronRight size={14} /></small></Link>
+        </div>
       </div>
+      {waiting.length > 0 && <Link to="/cliente/entregaveis" className="client-home-validation">{waiting.length} {waiting.length === 1 ? 'entrega aguarda' : 'entregas aguardam'} sua validação <ChevronRight size={15} /></Link>}
 
       <section className="client-executive-grid">
         <article className="executive-card project-card">
@@ -363,18 +368,11 @@ export function ClientDashboard() {
 
         <section className="panel client-agenda-panel">
           <div className="panel-title"><div><span className="section-kicker">PRÓXIMOS PASSOS</span><h2>Agenda compartilhada</h2></div><Link to="/cliente/cronograma">Abrir</Link></div>
-          {data.events.length ? data.events.map((event) => { const date = formatEventDate(event.starts_at); return <div className="client-event" key={event.id}><div className="date"><strong>{date.day}</strong><span>{date.month}</span></div><div><strong>{event.title}</strong><p>{date.time}{event.mode ? ` · ${event.mode}` : ''}</p></div>{event.meeting_url && <a href={event.meeting_url} target="_blank" rel="noreferrer" aria-label="Abrir reunião"><ArrowUpRight size={17} /></a>}</div>; }) : <div className="client-empty-inline"><CalendarDays size={18} />Nenhum compromisso futuro publicado para sua empresa.</div>}
-          <div className="patricia-identity-card">
-            <div className="patricia-photo-wrap">{data.contact?.avatar_url ? <img src={data.contact.avatar_url} alt={contactName} style={{ objectPosition: `${Number(data.contact.avatar_position_x || 50)}% ${Number(data.contact.avatar_position_y || 50)}%`, transform: `scale(${Number(data.contact.avatar_zoom || 1)})` }} /> : <span>PL</span>}</div>
-            <div><span>RESPONSÁVEL EXECUTIVA DA CONTA</span><strong>{contactName}</strong><em>{contactRole}</em><p>Leitura executiva, prioridades e acompanhamento da relação com a CALI.</p></div>
-          </div>
+          {data.events.length ? <div className="client-agenda-timeline">{data.events.map((event) => { const date = formatEventDate(event.starts_at); return <div className="client-agenda-step" key={event.id}><time dateTime={event.starts_at}><strong>{date.day}</strong><span>{date.month}</span><small>{date.time}</small></time><i aria-hidden="true" /><div><strong>{event.title}</strong>{event.mode && <p>{event.mode === 'in_person' ? 'Presencial' : event.mode === 'remote' || event.mode === 'online' ? 'Online' : event.mode}</p>}</div>{event.meeting_url && <a href={event.meeting_url} target="_blank" rel="noreferrer" aria-label={`Abrir reunião: ${event.title}`}><ArrowUpRight size={17} /></a>}</div>; })}</div> : <div className="client-empty-inline"><CalendarDays size={18} />Nenhum compromisso futuro publicado para sua empresa.</div>}
         </section>
       </div>
 
-      <Link to="/cliente/relatorios" className="client-home-reports-link">
-        <span><strong>{data.reportCount}</strong> {data.reportCount === 1 ? 'relatório publicado' : 'relatórios publicados'}</span>
-        <span>Ver relatórios <ChevronRight size={16} /></span>
-      </Link>
+      <Link to="/cliente/relatorios" className="client-home-reports-link"><span><strong>{data.reportCount}</strong> {data.reportCount === 1 ? 'relatório publicado' : 'relatórios publicados'}</span><span>Ver relatórios <ChevronRight size={16} /></span></Link>
 
       {!chatOpen && <button className="patricia-float" type="button" onClick={() => { setChatSent(false); setAssistantReply(''); setChatOpen(true); }} aria-label="Fale com a Pati" title="Fale com a Pati">
         <span className="patricia-float-art patricia-portrait-slot"><video src={patiWaveVideo} poster={patiWavePoster} muted loop autoPlay playsInline preload="metadata" aria-hidden="true" /></span><span>Fale com a Pati</span>

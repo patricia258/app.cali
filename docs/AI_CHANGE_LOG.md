@@ -173,3 +173,14 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Aprovação:** solicitado pela Pati em 28/09/2026; resultado visual `aguardando avaliação`.
 
 ---
+
+## 2026-09-28 — Codex (composição da home do cliente e agenda)
+
+- **Escopo:** `/cliente`, a partir dos quatro prints enviados pela Pati às 11h57–11h59. Os três indicadores aprovados de entregas/percepção/conclusão foram preservados.
+- **Topo:** a saudação e o card da responsável executiva ficam lado a lado no desktop (empilhados no celular). O card com foto e contato foi preservado, menor e próximo do nome do cliente. A contratação mantém logo, plano e horas, com altura reduzida.
+- **Atalhos com dados reais:** o antigo card redundante “Status do ciclo” foi substituído por dois acessos: quantidade e último título de documento publicado; quantidade de ocorrências compartilhadas em aberto. As consultas respeitam empresa e visibilidade do cliente; erro de consulta mostra “—”, sem inventar zero. Quando existe entrega aguardando validação, mantém-se um link discreto para revisá-la.
+- **Agenda:** exibe somente compromissos futuros publicados, em linha do tempo com dia, mês e horário. A responsável deixou de estar dentro da agenda e os prazos/estados das entregas continuam apenas em “Em movimento”. “Relatórios publicados” virou atalho compacto após os painéis.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v5.css`, este registro. Sem alterações em inserção, fluxo, permissões ou estados dos registros.
+- **Aprovação:** mudanças solicitadas pela Pati; composição final `aguardando avaliação`.
+
+---
