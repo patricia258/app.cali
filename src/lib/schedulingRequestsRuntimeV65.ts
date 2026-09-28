@@ -280,17 +280,19 @@ async function handleClick(event: MouseEvent) {
   if (target.closest('[data-scheduling-admin-contract]')) { event.preventDefault(); openContractConfig(); return; }
   const cancellation = target.closest<HTMLElement>('[data-extra-cancel-id]'); if (cancellation) {
     event.preventDefault(); const id = String(cancellation.dataset.extraCancelId || '');
-    const note = window.prompt('Registre o motivo da decisão (aviso, justificativa ou ausência sem aviso):');
-    if (!note) return;
-    const charge = window.confirm('Aplicar a taxa de 20% (R$ 160,00)?\nOK = cobrar; Cancelar = isentar.');
-    try { await rpc('admin_set_extra_visit_cancellation_v1', { p_request_id: id, p_charge: charge, p_note: note }); toast(charge ? 'Taxa de R$ 160,00 registrada.' : 'Isenção registrada.'); await renderAdmin(); }
-    catch (error) { toast(errorText(error), 'error'); }
+    openModal('Decisão sobre a visita não realizada', 'AVALIAÇÃO MANUAL', `<form class="scheduling-v65-form" id="extra-visit-cancellation-form" data-request-id="${esc(id)}"><p>Avalie se houve aviso ou uma justificativa. A taxa de 20% corresponde a R$ 160,00.</p><div class="scheduling-v65-mode"><label><input type="radio" name="charge" value="false" checked/> Isentar · com aviso ou justificativa</label><label><input type="radio" name="charge" value="true"/> Cobrar R$ 160,00 · sem aviso nem justificativa</label></div><label class="scheduling-v65-field"><span>Motivo da decisão</span><textarea name="note" required minlength="5" placeholder="Registre o aviso, a justificativa ou a ausência sem aviso."></textarea></label><div class="scheduling-v65-error"></div><div class="scheduling-v65-modal-actions"><button type="button" class="scheduling-v65-button" data-scheduling-close>Voltar</button><button type="submit" class="scheduling-v65-button primary">Registrar decisão</button></div></form>`);
     return;
   }
 }
 
 async function handleSubmit(event: SubmitEvent) {
   const form = event.target as HTMLFormElement | null; if (!form) return;
+  if (form.id === 'extra-visit-cancellation-form') {
+    event.preventDefault(); const fd = new FormData(form), charge = fd.get('charge') === 'true';
+    try { await rpc('admin_set_extra_visit_cancellation_v1', { p_request_id: String(form.dataset.requestId || ''), p_charge: charge, p_note: String(fd.get('note') || '') }); closeModal(); toast(charge ? 'Taxa de R$ 160,00 registrada.' : 'Isenção registrada.'); await renderAdmin(); }
+    catch (error) { setModalError(errorText(error)); }
+    return;
+  }
   if (form.id === 'extra-visit-client-counter') {
     event.preventDefault(); const fd = new FormData(form); const date1 = String(fd.get('date1') || ''), time1 = String(fd.get('time1') || ''), date2 = String(fd.get('date2') || ''), time2 = String(fd.get('time2') || '');
     if (!date1 || !time1 || !date2 || !time2) { setModalError('Informe duas opções completas.'); return; }

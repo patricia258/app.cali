@@ -51,7 +51,7 @@ export function ExtraVisitRequest() {
     setOpen(false); window.location.assign('/cliente/cronograma');
   }
   return <>
-    <button className="extra-visit-top-action" type="button" onClick={() => setOpen(true)}><CalendarPlus size={17}/><span>Solicitar visita extra</span></button>
+    <button className="extra-visit-top-action" type="button" aria-label="Solicitar visita extra" title="Solicitar visita extra" onClick={() => setOpen(true)}><CalendarPlus size={17}/><span>Solicitar visita extra</span></button>
     {open && <div className="extra-visit-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setOpen(false); }}>
       <section className="extra-visit-dialog" role="dialog" aria-modal="true" aria-labelledby="extra-visit-heading">
         <header><div><small>ALÉM DAS VISITAS INCLUÍDAS NO CONTRATO</small><h2 id="extra-visit-heading">Que legal que você quer uma visita presencial minha!</h2></div><button type="button" className="extra-visit-close" aria-label="Fechar" onClick={() => setOpen(false)}><X size={20}/></button></header>
