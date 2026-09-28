@@ -275,3 +275,10 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Entrega:** Commit `da33675`, em `main`. Sem alteração de código de produto; `npm run check` não se aplica (só markdown).
 - **Aprovação:** Pati pediu o fluxo por escrito antes de codar (28/09/2026). `aguardando validação` — nada será implementado até ela confirmar o documento e resolver os dois bloqueios acima.
 - **Limites:** Nenhuma tela, rota, tabela ou RPC foi criada. Este registro documenta só a proposta de fluxo.
+
+---
+## 2026-09-28 — Codex (sidebar no tema dia e complemento ao fluxo da visita)
+
+- **Sidebar:** a Pati pediu nesta mensagem a correção do degradê no tema dia em cliente e administrador. `src/sidebar-edge-gradient.css` agora usa um eixo vertical explícito em dia: o dourado aparece no rail compacto, menu aberto e mobile; tema noite e interação permanecem como estavam. A indicação anterior de que ela teria pedido para desconsiderar o sidebar não corresponde à mensagem recebida por Codex. **Resultado:** aguardando avaliação da Pati.
+- **Visita extra:** preservei `docs/VISITA_EXTRA_SPEC.md`, criado por Claude, e acrescentei complemento identificado como Codex após conferir a minuta anexada e o fluxo atual de agenda. O PDF chegou, mas não informa tarifa de visita, excedente ou km. A interface atual ainda mostra 1h30, deslocamento incluído e 20% de cancelamento, divergindo das novas regras; isso precisa ser tratado na implementação futura. Corrigi no rascunho duas datas obrigatórias, a afirmação prematura de cobrança na confirmação e a referência de que o anexo não havia chegado. **Nenhum código funcional, migração ou preço foi alterado. Aprovação do fluxo:** pendente.
+- **Autor:** Codex. **Verificação:** `git diff --check`, `npm run check` (typecheck e build) passaram para o CSS; a proposta de fluxo depende das decisões da Pati.

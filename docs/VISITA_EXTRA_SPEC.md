@@ -36,7 +36,7 @@ Os valores entre `{}` vêm do contrato configurado do cliente (ver seção 6), n
 - Campo de **observações** (opcional) — é onde ele sinaliza, por exemplo, se quer insistir numa segunda-feira.
 - Checkbox de **ciente**: campo de texto livre onde o cliente digita o nome completo por extenso para confirmar. Texto ao lado:
   > "Declaro que estou ciente dos valores acima, incluindo eventuais custos adicionais de deslocamento e alimentação, que serão lançados na fatura do mês de uso desta visita."
-- Botão de envio só habilita com pelo menos 1 data válida preenchida e o ciente confirmado.
+- Botão de envio só habilita com as 2 datas válidas preenchidas e o ciente confirmado.
 
 ## 5. Validações (client-side + repetidas no backend/RLS)
 
@@ -71,17 +71,35 @@ Isso é o que a Pati descreveu na abertura da conversa: "vai entrar algumas ques
    - Aceita uma das novas datas → confirma, vira compromisso na agenda.
    - Recusa as duas → devolve uma nova sugestão de data para a Pati, reabrindo a avaliação (o ciclo do passo 3 se repete).
 5. Em qualquer tela de "não deu match ainda" (recusa, contraproposta), o tom é leve e tranquilizador, mantendo a identidade da Pati — ex.: "Opa, essa data não encaixou na minha agenda 🙂 Mas vai dar tudo certo, só mais um ajuste!" — nunca um erro seco.
-6. Ao confirmar, o valor da visita (+ hora extra se aplicável) entra automaticamente no relatório/fatura do mês de uso. Deslocamento e alimentação entram **depois**, quando a Pati anexar o comprovante — não no momento da confirmação.
+6. Ao confirmar, registrar o valor aceito e a competência prevista, sem emitir cobrança por uma visita que ainda não ocorreu. Após a realização, conciliar valor fixo, hora adicional previamente aceita e despesas comprovadas no relatório/faturamento segundo o ciclo financeiro aprovado pela Pati.
 
 ## 8. Em aberto — bloqueadores reais (preciso de você aqui, Pati)
 
 Isso eu não posso decidir sozinho, preciso do dado ou da decisão:
 
-1. **Valor da taxa de visita (`visit_flat_fee`) e da hora extra (`visit_extra_hour_rate`)** — você mencionou que ia anexar o modelo de contrato com esses valores; ainda não chegou. Preciso disso antes de definir os defaults do sistema (mesmo sendo configurável por cliente, precisa de um valor-base pra novos cadastros).
+1. **Valor da taxa de visita (`visit_flat_fee`) e da hora extra (`visit_extra_hour_rate`)** — a minuta foi anexada e conferida: informa mensalidade e ativação, mas não esses valores. Precisamos das tarifas específicas antes de exibi-las ao cliente; não é necessário inventar um default para novos contratos.
 2. **Comprovação do seu próprio deslocamento** — você mesma colocou em aberto ("não sei como a gente pode fazer isso no caso"). Minha sugestão, pra você validar: você anexa o comprovante (nota fiscal/recibo) manualmente depois da visita, igual faria com Uber do cliente, e o valor entra como um lançamento avulso na fatura do mês — sem fluxo automático de "solicitação" nesse caso, porque é custo seu, não do cliente. Confirma se é assim ou se você tem outra ideia?
 
 Fora esses dois pontos, o fluxo acima está fechado o suficiente pra eu começar a desenhar as telas assim que você validar. Não vou tocar em código antes disso.
 
 ## 9. Fora de escopo desta spec
 
-- O bug do degradê do sidebar no modo dia (perfis admin e cliente) foi reportado na mesma mensagem, mas ela pediu para desconsiderar por enquanto — tratado à parte quando ela pedir.
+- O bug do degradê do sidebar no modo dia (perfis admin e cliente) foi reportado na mesma mensagem e tratado à parte por Codex.
+
+## 10. Complemento Codex — conferência da minuta e do fluxo existente (28/09/2026)
+
+**Autoria deste complemento: Codex. Aprovação: pendente.** A Pati pediu também a correção do sidebar no tema dia nesta mensagem; ela foi tratada separadamente no CSS. Este complemento não implementa a visita.
+
+**Minuta anexada:** `22-CALI-RH-Minuta-de-Prestac-a-o-de-Servic-os-CALI-PARTNER-CONTRATANTE-.pdf` foi conferida. A cláusula 5.4 prevê orçamento específico para visita, horas adicionais e deslocamento; 5.2 evita execução/cobrança extra automática sem alinhamento; 5.5 prevê aceite eletrônico inequívoco; 8.1, VI exclui visita não prevista. Os R$ 3.910,00 da mensalidade e R$ 782,00 da ativação **não são preço de visita**. A minuta não informa taxa para 4h, hora excedente ou km. Corrige a seção 8: o anexo chegou, mas esses valores não constam nele.
+
+**Diferenças no agendamento atual:** `/cliente/cronograma` e `/admin/calendario` já usam `scheduling_requests`, duas opções, contraproposta, ciência de cobrança e evento confirmado. O texto atual para adicional presencial menciona **1h30, deslocamento incluído e taxa de cancelamento de 20%**. Essas regras divergem da visita nova e precisam ser substituídas **nesse fluxo**, com migração segura, sem herdar a multa de 20% por engano. A opção 2 deveria ser obrigatória para a visita extra conforme pedido da Pati; a seção 4 hoje permite apenas uma.
+
+**Ajustes recomendados para fechar a regra antes de implementar:**
+
+1. Na aba do contrato do cliente, configurar valor fixo até 4h, preço e fração da hora adicional, método de deslocamento e eventual limite de alimentação, além de visitas inclusas. Não habilitar pedido adicional com preço ausente. Cada pedido guarda a versão do preço/termos aceitos; alterações futuras não mudam o passado. Mostrar preço, despesas variáveis e ciclo financeiro ao cliente antes de pedir nome completo, checkbox, usuário e data/hora da ciência.
+2. Validar datas/horários e autoridade também no servidor, no fuso de Brasília. Segunda-feira é **exceção solicitável**, com indicação própria e análise da Pati, sem tarifa automática. Duração proposta até 4h precisa terminar até 16h (último início às 12h). Se ultrapassar 4h na execução, pedir aceite do excedente antes de cobrá-lo. Cada contraproposta preserva histórico e não reserva agenda. Um evento único nasce somente da confirmação, com verificação de conflito.
+3. Deslocamento: Uber/táxi com recibo; para veículo próprio, combinar **R$/km, origem, destino, rota/distância documentada e eventual teto** antes da ciência, ou desabilitar essa modalidade até definição. Alimentação por nota fiscal, conforme limites acordados. Anexar comprovantes e discriminar despesas posteriormente.
+4. Registrar o valor fixo e a competência no pedido confirmado, mas **não afirmar que a fatura já foi emitida** nem cobrar serviço só por solicitar. Após realização, registrar horas efetivas, excedente aceito e despesas comprovadas e então conciliar com o financeiro. A frase “fatura do mês de uso” da seção 7 precisa distinguir competência e emissão: recomendação é competência no mês da visita e emissão no ciclo seguinte, sujeita à decisão da Pati.
+5. Especificar se “48 horas úteis” significa **dois dias úteis** ou 48 horas corridas dentro do expediente (mais de uma semana); são regras muito diferentes. Decidir também política de cancelamento após confirmação e arredondamento do excedente. Não transportar automaticamente os 20% atuais.
+
+**Estados propostos:** Aguardando análise → Confirmada; ou Aguardando cliente após justificativa e duas novas opções → Confirmada ou Aguardando análise com duas contrapropostas do cliente; Encerrada com motivo; Realizada após registro. Cliente e admin veem o mesmo status e recebem notificação após cada transição confirmada. A agenda e o lançamento financeiro precisam ser idempotentes para não duplicar eventos nem cobrança. Visita extra deve ser separada da franquia de encontros e das horas mensais, salvo regra contratual expressa.

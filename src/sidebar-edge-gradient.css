@@ -10,6 +10,20 @@ html[data-workspace-theme='night'] .app-shell .sidebar {
   color: #fffaf7 !important;
 }
 
+/* No rail estreito, o ângulo diagonal deslocava o dourado para fora da área
+   visível. O tema dia usa um eixo vertical, igual no menu aberto e fechado. */
+html[data-workspace-theme='day'] .app-shell .sidebar,
+html[data-workspace-theme='day'] .app-shell .sidebar:hover,
+html[data-workspace-theme='day'] .app-shell .sidebar:focus-within,
+html[data-workspace-theme='day'] .app-shell .sidebar.pinned {
+  background-color: #5a1e2d !important;
+  background-image: linear-gradient(to bottom, #632437 0%, #5a1e2d 36%, #765038 68%, #a77b42 100%) !important;
+  background-repeat: no-repeat !important;
+  background-position: left top !important;
+  background-size: 100% 100% !important;
+  color: #fffaf7 !important;
+}
+
 @media (min-width: 861px) {
   .app-shell .sidebar,
   .app-shell .sidebar:not(:hover):not(:focus-within):not(.pinned),
