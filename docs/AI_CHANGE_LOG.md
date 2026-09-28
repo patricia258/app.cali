@@ -308,3 +308,20 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Pedido:** Pati mostrou três molduras diferentes e definiu a foto central da Patrícia como padrão exato de formato/cor para foto do cliente e logo da empresa; a logo deve preencher a moldura. Print das 17h46. **Autor:** Codex; **aprovação do resultado:** aguardando avaliação.
 - **Alteração visual:** as três posições usam o mesmo quadrado de 38px, raio de 10px, borda dourada `#B58C52` e fundo escuro da foto central, inclusive no tema dia/noite. Removi as regras que deixavam o cliente com fundo azulado e a logo em fundo claro com imagem reduzida por `contain`/padding. A borda fica acima da imagem para evitar que um zoom salvo esconda a moldura.
 - **Logo:** o card prioriza `companies.logo_workspace_url`, versão quadrada já preparada para preencher a moldura, com fallback para `logo_url`. A URL privada é resolvida pelo mesmo utilitário usado na biblioteca de relatórios. Os demais lugares que exibem a logo não foram alterados. **Arquivos:** `src/client-home-v5.css`, `src/pages/client/ClientDashboard.tsx` e este registro.
+
+---
+
+## 2026-09-28 — Claude (Visita Extra: respostas da Pati aos 5 bloqueadores)
+
+- **Superfície/escopo:** Workspace (`app.cali`). Planejamento — nenhum código de produto alterado.
+- **Pedido:** Pati respondeu por áudio aos 5 bloqueadores registrados na seção 8 de `docs/VISITA_EXTRA_SPEC.md`.
+- **Decisões registradas em `docs/VISITA_EXTRA_SPEC.md` (seção 8 revisada):**
+  1. R$ 800,00/4h é valor único para todos os planos (CALI Partner e CALI Full) — ela cogitou R$ 980,00 para o CALI Full e decidiu não diferenciar.
+  2. Estacionamento/alimentação: comprovação por nota fiscal, anexada por ela após a visita, como prestação de contas — confirmado. Quilometragem de carro próprio segue **em aberto** (ela não sabe ainda como quer documentar).
+  3. "Solicitar visita extra" é só para visitas além do incluso no contrato. Ela revelou um recurso novo e **ainda não desenhado**: agenda fixa recorrente mensal para o CALI Full (1–2 datas fixas por mês, definidas em kickoff, ajustáveis na plataforma quando caem em fim de semana). Registrado como fora do escopo desta spec, precisa de desenho próprio.
+  4. "48h" simplificado para 48 horas corridas (não "úteis"), contadas do envio do pedido.
+  5. Mantém taxa de 20% para cancelamento sem aviso/justificativa; com aviso prévio ou motivo justificado (saúde, força maior) não cobra, avaliação manual dela. Precisa aparecer no app (copy de abertura + texto do ciente). Timing exato de faturamento (competência vs. fatura seguinte) não foi respondido explicitamente — seguimos a recomendação original (concilia no ciclo da visita) até ela dizer o contrário.
+- **Atualizações no documento:** seções 3 (copy de abertura), 4 (texto do ciente), 5 (validação de antecedência), 6 (configuração por contrato) e 7 (fluxo admin, novo passo de cancelamento) ajustadas para refletir essas decisões. Seção 8 reescrita como "decisões + pendências menores" em vez de bloqueadores abertos.
+- **Entrega:** commit nesta entrada, em `main`. Sem alteração de código de produto; `npm run check` não se aplica (só markdown).
+- **Aprovação:** Pati respondeu por áudio (28/09/2026). Pendências menores antes de codar: modelo de km/deslocamento (item 2) e confirmação do timing fino de faturamento (item 5). O recurso de agenda fixa mensal do CALI Full (item 3) é uma spec separada, ainda não iniciada.
+- **Limites:** Nenhuma tela, rota, tabela ou RPC foi criada ou alterada. Este registro documenta só as decisões de negócio.
