@@ -184,3 +184,13 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Aprovação:** mudanças solicitadas pela Pati; composição final `aguardando avaliação`.
 
 ---
+
+## 2026-09-28 — Codex (relatórios no top bar do cliente)
+
+- **Escopo:** top bar compartilhado por todas as rotas do cliente e remoção do atalho isolado no fim da home `/cliente`. Os cards de documentos e ocorrências não foram alterados; a Pati quer revisá-los depois.
+- **Mudança:** atalho com desenho de documento em dourado, dica “Relatórios” ao passar o mouse ou focar pelo teclado, nome acessível para leitores de tela e bolha numérica quando há relatórios disponíveis. O contador acompanha a lista da própria página de relatórios: estados `sent`/`published`, filtrados pela empresa do cliente; atualiza em tempo real e quando a janela volta ao foco. O acesso à página pela sidebar permanece.
+- **Consistência:** a resposta rápida “Relatórios” do chat da home passa a contar os mesmos estados da lista, para não divergir do top bar. Sem relatório, o ícone permanece visível, sem bolha. Falha na consulta não se transforma em zero exibido.
+- **Arquivos:** `src/components/WorkspaceShell.tsx`, `src/pages/client/ClientDashboard.tsx`, `src/main.tsx`, `src/client-reports-top-shortcut.css` e este registro. Nenhum fluxo de criação, publicação ou permissão foi alterado.
+- **Aprovação:** solicitado pela Pati em 28/09/2026; resultado `aguardando avaliação`.
+
+---

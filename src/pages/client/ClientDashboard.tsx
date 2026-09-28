@@ -155,7 +155,7 @@ export function ClientDashboard() {
         supabase.from('companies').select('id,display_name,logo_url,service_type,service_plan,start_date,end_date,monthly_hours_contracted,show_hours_to_client').eq('id', companyId).single(),
         loadClientDashboardReality(companyId),
         supabase.from('events').select('id,title,starts_at,mode,meeting_url').eq('company_id', companyId).eq('visibility', 'client').is('cancelled_at', null).gte('starts_at', nowIso).order('starts_at').limit(3),
-        supabase.from('reports').select('id').eq('company_id', companyId).not('published_at', 'is', null),
+        supabase.from('reports').select('id').eq('company_id', companyId).in('status', ['sent', 'published']),
         supabase.rpc('get_client_account_contact'),
         supabase.from('files').select('id,title,updated_at', { count: 'exact' }).eq('company_id', companyId).eq('client_visible', true).eq('status', 'published').order('updated_at', { ascending: false }).limit(1),
         supabase.from('account_records').select('id', { count: 'exact', head: true }).eq('company_id', companyId).eq('visibility', 'client').eq('record_type', 'occurrence').in('workflow_status', ['open', 'in_progress', 'waiting_client']),
@@ -371,8 +371,6 @@ export function ClientDashboard() {
           {data.events.length ? <div className="client-agenda-timeline">{data.events.map((event) => { const date = formatEventDate(event.starts_at); return <div className="client-agenda-step" key={event.id}><time dateTime={event.starts_at}><strong>{date.day}</strong><span>{date.month}</span><small>{date.time}</small></time><i aria-hidden="true" /><div><strong>{event.title}</strong>{event.mode && <p>{event.mode === 'in_person' ? 'Presencial' : event.mode === 'remote' || event.mode === 'online' ? 'Online' : event.mode}</p>}</div>{event.meeting_url && <a href={event.meeting_url} target="_blank" rel="noreferrer" aria-label={`Abrir reunião: ${event.title}`}><ArrowUpRight size={17} /></a>}</div>; })}</div> : <div className="client-empty-inline"><CalendarDays size={18} />Nenhum compromisso futuro publicado para sua empresa.</div>}
         </section>
       </div>
-
-      <Link to="/cliente/relatorios" className="client-home-reports-link"><span><strong>{data.reportCount}</strong> {data.reportCount === 1 ? 'relatório publicado' : 'relatórios publicados'}</span><span>Ver relatórios <ChevronRight size={16} /></span></Link>
 
       {!chatOpen && <button className="patricia-float" type="button" onClick={() => { setChatSent(false); setAssistantReply(''); setChatOpen(true); }} aria-label="Fale com a Pati" title="Fale com a Pati">
         <span className="patricia-float-art patricia-portrait-slot"><video src={patiWaveVideo} poster={patiWavePoster} muted loop autoPlay playsInline preload="metadata" aria-hidden="true" /></span><span>Fale com a Pati</span>
