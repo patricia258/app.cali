@@ -136,3 +136,12 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Aprovação:** solicitado pela Pati em 28/09/2026; `aguardando avaliação`. Não confundir a referência MatDash com aprovação final da adaptação.
 
 ---
+## 2026-09-28 — Codex (carregamento e cores secundárias do cliente)
+
+- **Escopo:** correção do carregamento interno do Workspace e apresentação da linha do tempo “Em movimento” em `/cliente`, após avaliação da Pati. O carregamento é um padrão compartilhado por admin e cliente; a mesma correção foi aplicada nos dois perfis. A linha do tempo da home do cliente não possui uma réplica do mesmo componente no admin.
+- **Causa e mudança do carregamento:** `.data-loading` mostrava simultaneamente dois pseudoelementos, e `.cali-symbol-loading` mostrava até três ícones. Agora a Lima e a folha ocupam exatamente a mesma posição e alternam suavemente, uma por vez, nos estados internos. O carregamento da rota já tinha sobreposição e mantém esse comportamento. Removido `loading-brand-standard.css`, um estilo antigo concorrente, e sua importação de `main.tsx`.
+- **Linha do tempo:** grades verticais mais visíveis entre as datas; cápsulas com cores secundárias relacionadas aos estados reais, sem mudar rótulos nem dados. Cartela proposta e usos em `docs/CALI_SECONDARY_PALETTE.md`; sem cor como único sinal de status. Mantida a apresentação compacta no celular.
+- **Arquivos:** `src/loading-illustrations-final.css`, `src/loading-brand-standard.css` (removido), `src/main.tsx`, `src/client-home-v5.css`, `docs/CALI_SECONDARY_PALETTE.md`, este registro.
+- **Aprovação:** Pati pediu a correção e aceitou receber uma proposta de cores; a escolha visual final segue `aguardando avaliação`. Não confundir o pedido com aprovação do resultado.
+
+---

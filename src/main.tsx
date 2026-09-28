@@ -23,7 +23,6 @@ import './brand-experience.css';
 import './brand-experience-v2.css';
 import './menu-brand-final.css';
 import './theme-system.css';
-import './loading-brand-standard.css';
 import './modal-standard-v2.css';
 import './modal-system-v3.css';
 import './workspace-typography-connect.css';

@@ -82,7 +82,18 @@ html[data-workspace-theme='night'] .client-home-v3 .client-home-reports-link {
 .client-delivery-track {
   position: relative;
   height: 75px;
-  background: repeating-linear-gradient(90deg, transparent 0, transparent calc(50% - 1px), color-mix(in srgb, var(--client-gold) 17%, transparent) 50%);
+  border-left: 1px solid color-mix(in srgb, var(--client-gold) 28%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--client-gold) 28%, transparent);
+  background: linear-gradient(90deg,
+    transparent calc(25% - .5px),
+    color-mix(in srgb, var(--client-gold) 28%, transparent) 25%,
+    transparent calc(25% + .5px),
+    transparent calc(50% - .5px),
+    color-mix(in srgb, var(--client-gold) 28%, transparent) 50%,
+    transparent calc(50% + .5px),
+    transparent calc(75% - .5px),
+    color-mix(in srgb, var(--client-gold) 28%, transparent) 75%,
+    transparent calc(75% + .5px));
 }
 .client-delivery-marker {
   position: absolute;
@@ -99,12 +110,13 @@ html[data-workspace-theme='night'] .client-home-v3 .client-home-reports-link {
   font-weight: 750;
   white-space: nowrap;
 }
-.client-delivery-marker.status-in_progress,
-.client-delivery-marker.status-internal_review,
-.client-delivery-marker.status-adjustment_requested,
-.client-delivery-marker.status-rebriefing { background: var(--client-bordeaux); border-color: var(--client-bordeaux); color: #fff; }
-.client-delivery-marker.status-approved { background: #3f7258; border-color: #3f7258; color: #fff; }
-.client-delivery-marker.status-client_review { background: var(--client-gold); border-color: var(--client-gold); color: #291b1c; }
+.client-delivery-marker.status-in_progress { background: var(--client-bordeaux); border-color: var(--client-bordeaux); color: #fff; }
+.client-delivery-marker.status-internal_review { background: #617987; border-color: #617987; color: #fff; }
+.client-delivery-marker.status-adjustment_requested { background: #B46D5C; border-color: #B46D5C; color: #fff; }
+.client-delivery-marker.status-rebriefing { background: #806176; border-color: #806176; color: #fff; }
+.client-delivery-marker.status-standby { background: #8B786E; border-color: #8B786E; color: #fff; }
+.client-delivery-marker.status-approved { background: #567B66; border-color: #567B66; color: #fff; }
+.client-delivery-marker.status-client_review { background: #D8B674; border-color: #D8B674; color: #291b1c; }
 .client-delivery-undated { display: inline-block; margin: 27px 0 0 10px; color: var(--muted-foreground); font-size: 11px; }
 .client-delivery-axis {
   display: grid;
