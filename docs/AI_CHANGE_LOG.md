@@ -245,3 +245,12 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Autor:** Codex. **Aprovação:** regra dos dados reais e escopo visual solicitados pela Pati; resultado do sidebar `aguardando avaliação`.
 
 ---
+
+---
+## 2026-09-28 — Codex (biblioteca de relatórios do cliente)
+
+- **Pedido:** simplificar `/cliente/relatorios` segundo os dois prints da Pati das 13h49–13h50, com logo real da empresa, menos informações, estados coloridos e uma única ação para ler/obter PDF. Aprovação da composição: `aguardando avaliação`.
+- **Interface:** a tabela horizontal de seis colunas virou lista de relatórios expansível, com logo da empresa em moldura quadrada suave, título e período, tipo e versão, marcadores de “Novo/Visualizado” e “Ciência pendente/registrada”. Detalhes exibem apenas protocolo, envio e data de ciência quando existente. Não se mostram contadores de acessos, datas de cada abertura nem botão de ciência já registrada ao cliente. Layout responsivo e modo noite.
+- **Ações:** “Ver relatório” abre a rota existente de leitura em outra aba; a barra dessa rota oferece “Imprimir / salvar PDF”, reunindo leitura e obtenção do arquivo. O botão “Registrar ciência” só aparece enquanto pendente; RPC de abertura e RPC de ciência existentes foram preservados. A rota de impressão continua registrando o evento PDF no banco. A janela de impressão não abre automaticamente nesse fluxo. “Voltar” na rota do cliente agora aponta explicitamente para a lista de relatórios, inclusive quando a rota foi aberta em aba nova.
+- **Limite de verificação:** build e revisão do código; o travamento relatado após logout/abertura não pôde ser reproduzido sem a sessão autenticada da cliente. O novo fluxo evita a impressão automática e uma navegação de retorno sem histórico, duas fontes possíveis de confusão, sem afirmar que eram a causa observada.
+- **Arquivos:** `src/pages/client/ClientReportsPageV5.tsx`, `src/pages/reports/ReportPrintPageV17.tsx`, `src/client-reports-list-v64.css`, `src/main.tsx` e este registro. **Autor:** Codex.

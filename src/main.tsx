@@ -49,6 +49,7 @@ import './workspace-conversations-responsive-v63.css';
 import './client-reports-top-shortcut.css';
 import './client-document-brand-cover.css';
 import './sidebar-edge-gradient.css';
+import './client-reports-list-v64.css';
 
 function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
   return <AppErrorBoundary>{children}</AppErrorBoundary>;
