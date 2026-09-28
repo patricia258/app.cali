@@ -34,6 +34,13 @@ Registro contínuo, por ordem cronológica, de toda mudança feita por qualquer 
 
 Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão) que exista replicada nos diferentes perfis (admin e cliente) precisa ser aplicado de forma **idêntica** nos dois lados — mesma regra, mesmo comportamento. Não vale corrigir só a versão do admin e deixar a do cliente com o bug antigo (ou vice-versa). Antes de marcar uma correção como concluída, checar explicitamente se existe uma versão da mesma tela/componente no outro perfil e replicar lá também, ou registrar por que não se aplica (ex.: a tela só existe em um dos perfis).
 
+## Regra permanente (Pati, 28/09/2026 — modais e day/night)
+
+Duas regras técnicas, pro handoff entre Claude e Codex, a partir do bug encontrado no modal "Despesas de visitas extras":
+
+1. **Todo modal/dialog de tela cheia (`position:fixed` cobrindo o backdrop) precisa ser renderizado via `createPortal(..., document.body)` em React** (ou equivalente, anexado direto ao `<body>`, se for código vanilla). `.topbar` tem `backdrop-filter: blur(...)`, e qualquer ancestral com `backdrop-filter`/`filter`/`transform` vira o "containing block" de um descendente `position:fixed` — ou seja, se o modal for renderizado como filho de algo dentro do topbar (ex.: ao lado do botão que o abre), ele para de se posicionar em relação à tela inteira e quebra (fica descentralizado, cortado, com blur no lugar errado). O componente `ExtraVisitRequest.tsx` já fazia isso certo (comentário no CSS registra o motivo); `ExtraVisitExpenses.tsx` não fazia — corrigido nesta entrada.
+2. **Um modal com fundo de cor fixa (não muda entre dia/noite) não deve ter o texto dependendo de variável de tema** (`var(--theme-text)` etc.) — o texto dele deve ser uma cor fixa própria, compatível com aquele fundo específico, senão corre o risco de ficar ilegível (ex.: texto escuro sobre fundo bordô) dependendo do que a página ao redor está fazendo. Elementos com fundo adaptável (`var(--theme-surface)`) continuam usando as variáveis normalmente — a regra vale só pra fundo fixo.
+
 ---
 
 ## 2026-09-26 — Claude
@@ -373,4 +380,17 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **3) Botão "Despesas das visitas" saiu do topo do Calendário e foi para a página de Clientes** (`/admin/clientes`) — ela achou o botão grande demais no topbar do Calendário. E o modal foi **redesenhado do zero**: antes usava o mesmo estilo "quente" (creme/dourado, serifada) do modal do cliente, o que destoava do resto do admin; agora usa CSS próprio (`extra-visit-expenses.css`) no padrão neutro do admin (cores de `--theme-surface`/`--theme-text`, sans-serif, cantos e sombras iguais aos outros modais do sistema).
 - **Arquivos:** `src/components/ExtraVisitRequest.tsx`, `src/components/extra-visit-request.css`, `src/components/ExtraVisitExpenses.tsx`, `src/components/extra-visit-expenses.css` (novo), `src/components/WorkspaceShell.tsx`, `src/lib/schedulingRequestsRuntimeV65.ts`.
 - **Verificação:** `npm run check` (typecheck + build) passou. Sem navegador nesta sessão — nada verificado visualmente; ela precisa conferir ao vivo, principalmente a gaveta lateral do admin (é a peça nova mais arriscada visualmente).
+- **Autor:** Claude. **Aprovação:** pendente da revisão visual da Pati.
+
+---
+
+## 2026-09-28 — Claude (Visita Extra: 3ª rodada — bug de posicionamento/cor no modal de despesas, redundância na gaveta admin)
+
+- **Pedido:** Pati testou de novo (prints do modal "Despesas de visitas extras" e da gaveta admin) e trouxe 4 pontos.
+- **1) Bug de posicionamento + cor achado e corrigido:** o modal "Despesas de visitas extras" (`ExtraVisitExpenses.tsx`) não usava `createPortal` como o modal irmão (`ExtraVisitRequest.tsx`) já usava — renderizava como filho do botão que fica dentro do topbar, e o topbar tem `backdrop-filter: blur(...)` (`src/styles.css`), que vira o "containing block" de qualquer `position:fixed` descendente. Resultado: o modal parava de se centralizar em relação à tela inteira, ficava cortado/deslocado, com blur no lugar errado — exatamente o sintoma que ela reportou (parte da tela sem blur, modal não centralizado). Corrigido: o modal agora é portado para `document.body`, igual ao componente irmão, com o mesmo scroll-lock (`extra-visit-open`). Registrei essa causa como **regra permanente** no topo deste arquivo, porque é um erro fácil de repetir em qualquer modal novo — vale tanto para mim quanto para o Codex.
+- **2) Cor de texto em fundo fixo:** registrei também como regra permanente que um modal com fundo de cor fixa (não muda dia/noite) precisa de cor de texto fixa própria, nunca depender de `var(--theme-text)` — evita o texto ilegível que ela viu.
+- **3) Redundância na gaveta do admin:** os dois horários propostos apareciam duas vezes — uma vez como "chips" informativos e de novo dentro do texto dos botões "Confirmar opção · ...". Removi os chips duplicados para pedidos com status `submitted`/`reschedule_review` (só nesse caso havia duplicação; mantive os chips onde não há repetição, ex.: `client_review`).
+- **4) Visual "amontoado" da gaveta:** cada pedido agora tem cartão próprio (borda, cantos arredondados, fundo levemente diferenciado, espaçamento interno entre título/fatos/observações/ações), em vez de tudo grudado na lateral. Comprovantes de despesa (quando houver mais de um) agora aparecem como linhas separadas por divisórias, com nome da despesa, valor e link "Ver comprovante" bem distintos — igual uma linha de prestação de contas.
+- **Arquivos:** `src/components/ExtraVisitExpenses.tsx`, `src/components/extra-visit-expenses.css`, `src/lib/schedulingRequestsRuntimeV65.ts`, `docs/AI_CHANGE_LOG.md` (regra permanente).
+- **Verificação:** `npm run check` (typecheck + build) passou. Sem navegador nesta sessão — a causa do bug de posicionamento foi encontrada por inspeção de código (containing block do `backdrop-filter`), não por reprodução visual; ela precisa confirmar ao vivo que sumiu.
 - **Autor:** Claude. **Aprovação:** pendente da revisão visual da Pati.

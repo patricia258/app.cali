@@ -20,9 +20,13 @@
 .extra-visit-expenses-modal footer button{min-height:38px;padding:0 16px;border:1px solid var(--theme-line,#ded5cf);border-radius:11px;background:var(--theme-surface,#fff);color:var(--theme-text,#2b2b2b);font-weight:700;cursor:pointer}
 .extra-visit-expenses-modal footer button[type=submit]{border-color:#5A1E2D;background:#5A1E2D;color:#fff}
 .extra-visit-expenses-modal footer button:disabled{opacity:.5;cursor:not-allowed}
-.extra-visit-expenses-list{display:grid;gap:7px;margin-top:16px;padding-top:14px;border-top:1px solid var(--theme-line,#eee6e0)}
-.extra-visit-expenses-list>strong{font-size:10px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:var(--theme-muted,#776b65)}
-.extra-visit-expenses-list>button{justify-self:start;border:0;background:none;color:#5A1E2D;font:700 12px/1.4 inherit;text-decoration:underline;cursor:pointer;padding:0}
+.extra-visit-expenses-list{display:grid;gap:0;margin-top:16px;padding-top:14px;border-top:1px solid var(--theme-line,#eee6e0)}
+.extra-visit-expenses-list>strong{display:block;margin-bottom:8px;font-size:10px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:var(--theme-muted,#776b65)}
+.extra-visit-expenses-item{display:flex;align-items:center;gap:10px;width:100%;padding:10px 4px;border:0;border-top:1px solid var(--theme-line,#eee6e0);background:none;color:var(--theme-text,#2b2b2b);font:inherit;font-size:12px;cursor:pointer;text-align:left}
+.extra-visit-expenses-item:first-child{border-top:0}
+.extra-visit-expenses-item>span{flex:1;font-weight:700}
+.extra-visit-expenses-item>strong{color:#5A1E2D;font-size:12px}
+.extra-visit-expenses-item>em{font-style:normal;font-size:10px;color:var(--theme-muted,#776b65);text-decoration:underline;white-space:nowrap}
 html[data-workspace-theme='night'] .extra-visit-expenses-trigger{background:#2c2024;border-color:#554047;color:#eee3e6}
 html[data-workspace-theme='night'] .extra-visit-expenses-modal{background:#241a1e;border-color:#4b373e;color:#f2e8ea}
 html[data-workspace-theme='night'] .extra-visit-expenses-modal>header{border-color:#4b373e}
