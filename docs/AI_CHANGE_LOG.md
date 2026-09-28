@@ -1,5 +1,14 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-09-28 — Codex (modal da visita extra)
+
+- **Pedido:** Pati mostrou o modal abrindo com o topo fora da tela e pediu centralização, fundo desfocado e conteúdo sem rolagem sempre que possível.
+- **Ajuste:** `ExtraVisitRequest.tsx` agora renderiza o overlay no `document.body`, fora do topbar que usa `backdrop-filter`; bloqueia a rolagem da página enquanto está aberto e organiza condições, datas e ciência em três etapas curtas. `extra-visit-request.css` centraliza o painel no viewport, mantém blur atrás e oferece rolagem interna somente em telas excepcionalmente baixas. O aceite e as validações continuam iguais.
+- **Verificação:** typecheck/build e revisão estática. O navegador automatizado local não tinha binário Chromium disponível para teste visual nesta sessão; aguarda conferência no ambiente autenticado.
+- **Autoria/aprovação:** Codex; ajuste solicitado pela Pati, visual final `aguardando avaliação`.
+
+---
+
 ## 2026-09-28 — Codex (implementação da visita extra)
 
 - **Escopo:** Workspace, agenda do cliente e calendário administrativo, com migrações Supabase. Pedido explícito da Pati: “você vai codar”, após aprovar as regras documentadas por Claude em `docs/VISITA_EXTRA_SPEC.md`.
