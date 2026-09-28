@@ -344,3 +344,20 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Entrega:** commit nesta entrada, em `main`. Sem alteração de código de produto; `npm run check` não se aplica (só markdown).
 - **Aprovação:** Pati respondeu por áudio (28/09/2026). Pendências menores antes de codar: modelo de km/deslocamento (item 2) e confirmação do timing fino de faturamento (item 5). O recurso de agenda fixa mensal do CALI Full (item 3) é uma spec separada, ainda não iniciada.
 - **Limites:** Nenhuma tela, rota, tabela ou RPC foi criada ou alterada. Este registro documenta só as decisões de negócio.
+
+---
+
+## 2026-09-28 — Claude (Visita Extra: ajustes de review da Pati no fluxo já implementado pelo Codex)
+
+- **Contexto:** Codex já implementou o fluxo completo de "Solicitar visita extra" (commits `331773e`, `02c5f7b`, `86bf03e`) — modal de 3 passos no cliente (`src/components/ExtraVisitRequest.tsx`), RPCs e migrations (`supabase/migrations/20260928223*.sql`), e cartão no painel admin (`src/lib/schedulingRequestsRuntimeV65.ts`). A Pati testou ao vivo em `app.calirh.com` e deu retorno detalhado por áudio, com prints do fluxo cliente e do painel admin.
+- **Achado confirmado (preocupação dela sobre "fontes"):** o valor de R$ 800,00 está **hardcoded** (`FEE = 'R$ 800,00'` no componente e `extra_visit_fee_cents=80000` na função SQL), não lido de um campo configurável por contrato como a seção 6 da spec pedia. Bate com o valor que ela autorizou, então funcionalmente correto agora — mas é uma simplificação arquitetural que ela precisa saber que existe, para o dia em que um cliente precisar de valor diferente.
+- **Ajustes aplicados (pedidos explícitos dela):**
+  1. A frase "Esse tempo é 100% dedicado à sua empresa..." (passo 1) agora tem ícone de alerta e moldura própria (`.extra-visit-highlight`), separada da lista de condições.
+  2. O card de revisão do passo 3 não repete mais "R$ 800,00 por até 4 horas" (já dito no passo 1) — mostra só "Visita presencial extra" + as datas escolhidas.
+  3. Campo de nome no "ciente" não exige mais bater exatamente com o nome cadastrado no perfil — só pede nome completo (2+ palavras, 5+ caracteres) e o checkbox marcado. Isso valia tanto no client-side quanto na função SQL (`create_extra_visit_request_v1`); nova migration `20260928224000_extra_visit_ack_name_free_text.sql` substitui a checagem de igualdade exata por essa validação mais permissiva.
+  4. Texto do "ciente" reescrito com tom mais humano sobre justificativa de cancelamento: reconhece que eventualidades acontecem, pede aviso com antecedência e motivo, e só então explica quando a taxa de 20% se aplica.
+  5. **Painel admin redesenhado só para o cartão de visita extra:** a Pati achou a exibição desorganizada (badges soltos + parágrafo corrido). Troquei por um bloco distinto (`.scheduling-v65-extra`) com ícone de alerta, título, selo de valor destacado e uma mini-tabela de fatos (Ciência / Despesas / No-show-cancelamento) em vez de texto corrido. Os pedidos de agenda comuns (reunião virtual, visita presencial normal) não foram alterados — a mudança é específica de `request.extra_visit`.
+- **Arquivos:** `src/components/ExtraVisitRequest.tsx`, `src/components/extra-visit-request.css`, `src/lib/schedulingRequestsRuntimeV65.ts`, `supabase/migrations/20260928224000_extra_visit_ack_name_free_text.sql`.
+- **Verificação:** `npm run check` (typecheck + build) passou. Sem acesso a navegador/dispositivo nesta sessão — nada foi verificado visualmente; a Pati precisa conferir ao vivo.
+- **Autor:** Claude, em cima do código do Codex — nenhuma reestruturação do fluxo em si, só os pontos que ela apontou.
+- **Aprovação:** pendente da revisão visual da Pati.
