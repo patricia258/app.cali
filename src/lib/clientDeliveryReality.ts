@@ -404,6 +404,7 @@ export function subscribeClientDeliveryReality(companyId: string, onChange: () =
     'files',
     'hour_entries',
     'nps_responses',
+    'account_record_feedback',
     'events',
     'reports',
     'account_records',
