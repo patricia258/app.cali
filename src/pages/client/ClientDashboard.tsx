@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowUpRight, CalendarDays, CheckCircle2, ChevronRight,
-  Leaf, ListChecks, Loader2, MessageCircle, Minus, Send,
+  Leaf, Loader2, MessageCircle, Minus, Send,
   Sparkles, Star, X,
 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
@@ -171,7 +171,7 @@ export function ClientDashboard() {
           start_date: project.startDate,
           target_end_date: project.targetEndDate,
         })),
-        deliverables: deliveryReality.deliverables.filter((item) => item.status !== 'cancelled').map((item) => ({
+        deliverables: deliveryReality.deliverables.map((item) => ({
           id: item.id,
           title: item.title,
           status: item.status,
@@ -194,7 +194,8 @@ export function ClientDashboard() {
   }
 
   const activeProject = data.projects.find((project) => !['completed', 'cancelled'].includes(project.status)) || data.projects[0] || null;
-  const projectDeliverables = activeProject ? data.deliverables.filter((item) => item.project_id === activeProject.id) : data.deliverables;
+  const cycleDeliverables = activeProject ? data.deliverables.filter((item) => item.project_id === activeProject.id) : data.deliverables;
+  const projectDeliverables = cycleDeliverables.filter((item) => item.status !== 'cancelled');
   const visibleDeliverables = [...projectDeliverables].sort((a, b) => {
     const aDate = deliveryDate(a.due_at)?.getTime() ?? Infinity;
     const bDate = deliveryDate(b.due_at)?.getTime() ?? Infinity;
@@ -202,6 +203,14 @@ export function ClientDashboard() {
   }).slice(0, 4);
   const timeline = deliveryTimeline(visibleDeliverables);
   const approvedCount = projectDeliverables.filter((item) => item.status === 'approved').length;
+  const pendingCount = projectDeliverables.length - approvedCount;
+  const cancelledCount = cycleDeliverables.length - projectDeliverables.length;
+  const cycleTotal = cycleDeliverables.length;
+  const cycleBreakdown = [
+    { label: 'Aprovadas', count: approvedCount, color: '#367B60' },
+    { label: 'Pendentes', count: pendingCount, color: '#E3A536' },
+    { label: 'Canceladas', count: cancelledCount, color: '#B84D51' },
+  ];
   const projectCompletionPct = projectDeliverables.length ? Math.round(approvedCount / projectDeliverables.length * 100) : 0;
   const deliveryStages = [
     { label: 'Não iniciadas', count: projectDeliverables.filter((item) => item.status === 'not_started').length },
@@ -213,7 +222,6 @@ export function ClientDashboard() {
   const highestStageCount = Math.max(1, ...deliveryStages.map((stage) => stage.count));
   const waiting = data.deliverables.filter((item) => item.status === 'client_review');
   const activeDeliverables = data.deliverables.filter((item) => !closedStatuses.has(item.status));
-  const movingCount = projectDeliverables.filter((item) => ['in_progress', 'internal_review', 'client_review', 'adjustment_requested', 'rebriefing'].includes(item.status)).length;
   const showHours = Boolean(data.company?.show_hours_to_client);
   const contractedMinutes = showHours ? Number(data.company?.monthly_hours_contracted || 0) * 60 : 0;
   const packageName = planLabel(data.company?.service_plan) || planLabel(data.company?.service_type) || 'Contratação CALI';
@@ -294,10 +302,16 @@ export function ClientDashboard() {
 
       <section className="client-executive-grid">
         <article className="executive-card project-card">
-          <div className="metric-icon"><ListChecks size={18} /></div><span>Entregas do ciclo</span>
-          <strong>{projectDeliverables.length}</strong>
-          <div className="delivery-status-line"><b>{approvedCount}</b> aprovadas <i /> <b>{movingCount}</b> em movimento</div>
-          <p>{waiting.length ? `${waiting.length} aguardando sua validação.` : 'Nenhuma validação pendente agora.'}</p>
+          <div className="client-cycle-summary">
+            <div className="client-cycle-copy"><span>Entregas do ciclo</span><strong>{cycleTotal}</strong><small>{cycleTotal === 1 ? 'entrega no projeto atual' : 'entregas no projeto atual'}</small></div>
+            <div className="client-cycle-donut" role="img" aria-label={cycleBreakdown.map((item) => `${item.count} ${item.label.toLowerCase()}`).join(', ')}>
+              <svg viewBox="0 0 100 100" aria-hidden="true">
+                <circle className="client-cycle-track" cx="50" cy="50" r="40" fill="none" pathLength="100" />
+                {cycleTotal > 0 && cycleBreakdown.map((item, index) => item.count > 0 && <circle key={item.label} cx="50" cy="50" r="40" fill="none" pathLength="100" stroke={item.color} strokeDasharray={`${item.count / cycleTotal * 100} 100`} strokeDashoffset={-cycleBreakdown.slice(0, index).reduce((sum, previous) => sum + previous.count, 0) / cycleTotal * 100} />)}
+              </svg>
+            </div>
+          </div>
+          <div className="client-cycle-legend">{cycleBreakdown.map((item) => <div key={item.label}><i style={{ backgroundColor: item.color }} /><span>{item.label}</span><strong>{item.count}</strong></div>)}</div>
         </article>
 
         <article className="executive-card nps-card client-perception-card">

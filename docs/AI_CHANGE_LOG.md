@@ -163,3 +163,13 @@ Qualquer ajuste visual/funcional feito numa "view" (tela, componente ou padrão)
 - **Aprovação:** Pati pediu estes ajustes; resultado visual novo `aguardando avaliação`.
 
 ---
+
+## 2026-09-28 — Codex (distribuição das entregas do ciclo)
+
+- **Escopo:** indicador “Entregas do ciclo” na home `/cliente`. Print 1 era a apresentação atual; print 2 do MatDash foi referência de hierarquia e gráfico de rosca, adaptados aos dados e à cartela CALI.
+- **Mudança:** total do projeto em destaque, gráfico de rosca e legenda com quantidades reais de aprovadas, pendentes e canceladas. “Pendentes” inclui todos os estados que ainda não foram aprovados ou cancelados, como não iniciadas, em andamento e aguardando validação. Cores secundárias aprovadas: sálvia, âmbar e coral, com rótulos e números sempre visíveis. Estado vazio recebe apenas o anel neutro.
+- **Dados:** `loadClientDashboardReality` já retorna entregas canceladas visíveis ao cliente; a home deixava de recebê-las por um filtro local. Agora elas entram apenas no total/distribuição do novo indicador. Lista, cronograma e percentual de conclusão continuam ignorando cancelamentos como antes; os estados e fluxos de aprovação não mudaram.
+- **Arquivos:** `src/pages/client/ClientDashboard.tsx`, `src/client-home-v5.css` e este registro.
+- **Aprovação:** solicitado pela Pati em 28/09/2026; resultado visual `aguardando avaliação`.
+
+---
