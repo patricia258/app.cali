@@ -16,7 +16,7 @@ type Report={
   ackProtocol?:string|null;approvedAt?:string|null;openCount:number;firstOpenedAt?:string|null;
   lastOpenedAt?:string|null;pdfCount:number;
 };
-type Company={name:string;logoUrl?:string|null};
+type Company={name:string;logoUrl?:string|null;workspaceLogo?:boolean};
 
 function rowToReport(row:any):Report{
   return{
@@ -43,7 +43,6 @@ function periodLabel(type:ReportType,start:string){
     ?new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'}).format(new Date(year,month-1,1))
     :`${Math.floor((month-1)/3)+1}º trimestre de ${year}`;
 }
-function typeLabel(type:ReportType){return type==='quarterly'?'Trimestral':'Mensal';}
 function formatDateTime(value?:string|null){
   if(!value)return'—';
   const date=new Date(value);
@@ -58,6 +57,7 @@ export function ClientReportsPageV5(){
   const[loading,setLoading]=useState(true);
   const[error,setError]=useState('');
   const[expanded,setExpanded]=useState<Set<string>>(()=>new Set());
+  const[periodFilter,setPeriodFilter]=useState('');
   const[ackOpen,setAckOpen]=useState(false);
   const[acknowledging,setAcknowledging]=useState(false);
 
@@ -79,14 +79,15 @@ export function ClientReportsPageV5(){
       const companyId=profile.data?.company_id;
       if(!companyId)throw new Error('Empresa vinculada ao acesso não encontrada.');
       const[companyResult,reportResult]=await Promise.all([
-        supabase.from('companies').select('display_name,logo_url').eq('id',companyId).maybeSingle(),
+        supabase.from('companies').select('display_name,logo_url,logo_workspace_url').eq('id',companyId).maybeSingle(),
         supabase.from('reports').select('id,title,report_type,period_start,period_end,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,published_at,sent_at,version,approval_identity_snapshot,acknowledgement_identity_snapshot,acknowledged_at,acknowledgement_protocol,approved_at,client_open_count,client_first_opened_at,client_last_opened_at,client_pdf_count').eq('company_id',companyId).in('status',['sent','published']).order('period_start',{ascending:false}).order('version',{ascending:false})
       ]);
       if(companyResult.error)throw companyResult.error;
       if(reportResult.error)throw reportResult.error;
       const companyName=companyResult.data?.display_name||'Empresa';
       setCompany({name:companyName,logoUrl:null});
-      void resolveWorkspaceMedia(companyResult.data?.logo_url,86400,true).then((logoUrl)=>setCompany({name:companyName,logoUrl}));
+      const workspaceLogo=Boolean(companyResult.data?.logo_workspace_url);
+      void resolveWorkspaceMedia(companyResult.data?.logo_workspace_url||companyResult.data?.logo_url,86400,true).then((logoUrl)=>setCompany({name:companyName,logoUrl,workspaceLogo}));
       const next=(reportResult.data||[]).map(rowToReport);
       setReports(next);
       const queryId=new URLSearchParams(window.location.search).get('report')||'';
@@ -111,6 +112,8 @@ export function ClientReportsPageV5(){
   }
 
   const selected=useMemo(()=>reports.find((item)=>item.id===selectedId)||null,[reports,selectedId]);
+  const periods=useMemo(()=>[...new Map(reports.map((report)=>[`${report.reportType}:${report.periodStart.slice(0,7)}`,periodLabel(report.reportType,report.periodStart)])).entries()],[reports]);
+  const visibleReports=useMemo(()=>periodFilter?reports.filter((report)=>`${report.reportType}:${report.periodStart.slice(0,7)}`===periodFilter):reports,[reports,periodFilter]);
 
   function toggleDetails(id:string){
     setExpanded((current)=>{
@@ -151,17 +154,16 @@ export function ClientReportsPageV5(){
     {!reports.length
         ?<div className="panel client-reports-v56-empty"><FileText size={28}/><strong>Nenhum relatório foi liberado ainda.</strong><p>Quando a CALI enviar um fechamento, ele ficará disponível aqui.</p></div>
         :<section className="client-report-library-v56 client-report-library-v57 client-report-library-v58">
-          <div className="client-report-library-head-v58"><div><span>RELATÓRIOS</span><strong>{reports.length} {reports.length===1?'relatório disponível':'relatórios disponíveis'}</strong></div></div>
+          <div className="client-report-library-head-v58"><div><span>RELATÓRIOS</span><strong>{reports.length} {reports.length===1?'relatório disponível':'relatórios disponíveis'}</strong></div><label className="client-report-period-filter-v65"><span>Período</span><select value={periodFilter} onChange={(event)=>setPeriodFilter(event.target.value)}><option value="">Todos os períodos</option>{periods.map(([value,label])=><option value={value} key={value}>{label}</option>)}</select></label></div>
           <div className="client-report-list-v64">
-            {reports.map((report)=>{
+            {!visibleReports.length?<p className="client-report-filter-empty-v65">Nenhum relatório neste período.</p>:visibleReports.map((report)=>{
                 const isExpanded=expanded.has(report.id);
                 const viewed=Boolean(report.openCount||report.acknowledgedAt);
                 return <article className={`client-report-entry-v64${!viewed?' unread':''}`} key={report.id}>
                   <div className="client-report-entry-main-v64">
                     <button type="button" className="client-report-expand-v64" onClick={()=>toggleDetails(report.id)} aria-expanded={isExpanded} aria-controls={`report-detail-${report.id}`} aria-label={`${isExpanded?'Recolher':'Mostrar'} detalhes de ${report.title}`}><ChevronDown size={18}/></button>
-                    <div className="client-report-brand-v64" aria-hidden="true">{company?.logoUrl?<img src={company.logoUrl} alt=""/>:<span>{company?.name?.slice(0,1)||'C'}</span>}</div>
-                    <div className="client-report-identification-v64"><strong>{report.title}</strong><span>{company?.name||'Empresa'} · {periodLabel(report.reportType,report.periodStart)}</span></div>
-                    <div className="client-report-meta-v64"><span>{typeLabel(report.reportType)}</span><span>v{report.version}</span></div>
+                    <div className="client-report-brand-v64" aria-hidden="true">{company?.logoUrl?<img className={company.workspaceLogo?'workspace-logo':''} src={company.logoUrl} alt=""/>:<span>{company?.name?.slice(0,1)||'C'}</span>}</div>
+                    <div className="client-report-identification-v64"><strong>{report.title}</strong><span>{report.title.toLocaleLowerCase('pt-BR').includes(periodLabel(report.reportType,report.periodStart).toLocaleLowerCase('pt-BR'))?'':`${periodLabel(report.reportType,report.periodStart)} · `}Protocolo {report.protocol}</span></div>
                     <div className="client-report-statuses-v64" aria-label="Situação do relatório">
                       <span className={`client-report-status-v64 ${viewed?'viewed':'unread'}`}>{viewed?'Visualizado':'Novo'}</span>
                       <span className={`client-report-status-v64 ${report.acknowledgedAt?'acknowledged':'pending'}`}>{report.acknowledgedAt?'Ciência registrada':'Ciência pendente'}</span>

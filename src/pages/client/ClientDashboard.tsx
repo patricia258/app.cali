@@ -23,7 +23,7 @@ type Company = {
   monthly_hours_contracted?: number | null;
   show_hours_to_client?: boolean | null;
 };
-type Profile = { full_name: string; company_id: string; avatar_url?: string | null };
+type Profile = { full_name: string; company_id: string; avatar_url?: string | null; avatar_position_x?: number | null; avatar_position_y?: number | null; avatar_zoom?: number | null };
 type Project = { id: string; name: string; status: string; start_date?: string | null; target_end_date?: string | null };
 type Deliverable = { id: string; title: string; status: string; due_at?: string | null; project_id?: string | null };
 type EventItem = { id: string; title: string; starts_at: string; mode?: string | null; meeting_url?: string | null };
@@ -174,7 +174,7 @@ export function ClientDashboard() {
       const userId = user?.id;
       if (!userId) throw new Error('Sessão do cliente não encontrada.');
 
-      const profileResult = await supabase.from('profiles').select('full_name,company_id,avatar_url').eq('id', userId).maybeSingle();
+      const profileResult = await supabase.from('profiles').select('full_name,company_id,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom').eq('id', userId).maybeSingle();
       if (profileResult.error) throw profileResult.error;
       const companyId = profileResult.data?.company_id;
       if (!companyId) throw new Error('Este acesso ainda não está vinculado a uma empresa.');
@@ -418,8 +418,8 @@ export function ClientDashboard() {
         <article className="client-service-card occurrences">
           {latestOccurrence && <span className={`client-occurrence-badge status-${occurrenceStatus}`}>{occurrenceStatusText[occurrenceStatus] || 'Em acompanhamento'}</span>}
           <div className="client-occurrence-people" aria-label="Contatos da empresa e da CALI">
-            <span className="client-occurrence-avatar">{data.profile?.avatar_url ? <img src={data.profile.avatar_url} alt={data.profile.full_name} /> : firstName(data.profile?.full_name).charAt(0)}</span>
-            <span className="client-occurrence-avatar">{data.contact?.avatar_url ? <img src={data.contact.avatar_url} alt={contactName} /> : contactName.charAt(0)}</span>
+            <span className="client-occurrence-avatar">{data.profile?.avatar_url ? <img src={data.profile.avatar_url} alt={data.profile.full_name} style={{ objectPosition: `${Number(data.profile.avatar_position_x ?? 50)}% ${Number(data.profile.avatar_position_y ?? 50)}%`, transform: `scale(${Number(data.profile.avatar_zoom ?? 1)})` }} /> : firstName(data.profile?.full_name).charAt(0)}</span>
+            <span className="client-occurrence-avatar">{data.contact?.avatar_url ? <img src={data.contact.avatar_url} alt={contactName} style={{ objectPosition: `${Number(data.contact.avatar_position_x ?? 50)}% ${Number(data.contact.avatar_position_y ?? 50)}%`, transform: `scale(${Number(data.contact.avatar_zoom ?? 1)})` }} /> : contactName.charAt(0)}</span>
             <span className="client-occurrence-avatar company">{data.company?.logo_url ? <img src={data.company.logo_url} alt={data.company.display_name} /> : 'C'}</span>
           </div>
           <span className="client-service-kicker">OCORRÊNCIA MAIS RECENTE</span>

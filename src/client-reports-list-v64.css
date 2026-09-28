@@ -7,7 +7,7 @@
 .client-report-entry-v64.unread { box-shadow: inset 3px 0 #d7a94f; }
 .client-report-entry-main-v64 {
   display: grid;
-  grid-template-columns: 34px 54px minmax(190px, 1fr) auto minmax(205px, auto);
+  grid-template-columns: 34px 44px minmax(190px, 1fr) minmax(205px, auto);
   align-items: center;
   gap: 16px;
   padding: 20px 24px;
@@ -22,16 +22,19 @@
 .client-report-expand-v64[aria-expanded="true"] svg { transform: rotate(180deg); }
 .client-report-expand-v64 svg { transition: transform .2s ease; }
 .client-report-brand-v64 {
-  width: 54px; height: 54px; display: grid; place-items: center; overflow: hidden;
+  width: 44px; height: 44px; display: grid; place-items: center; overflow: hidden;
   border: 1px solid rgba(181, 140, 82, .42); border-radius: 12px;
   background: #fffdfa; color: #5a1e2d; font: 600 24px Georgia, serif;
 }
-.client-report-brand-v64 img { display: block; width: 100%; height: 100%; padding: 7px; object-fit: contain; }
+.client-report-brand-v64 img { display: block; width: 100%; height: 100%; padding: 0; object-fit: contain; }
+.client-report-brand-v64 img.workspace-logo { object-fit: cover; }
 .client-report-identification-v64 { min-width: 0; display: grid; gap: 5px; }
 .client-report-identification-v64 strong { color: var(--theme-text, #5a1e2d); font-size: 16px; line-height: 1.25; overflow-wrap: anywhere; }
 .client-report-identification-v64 span { color: var(--theme-muted, #756c66); font-size: 13px; line-height: 1.35; }
-.client-report-meta-v64 { display: flex; gap: 6px; color: var(--theme-muted, #756c66); font-size: 12px; white-space: nowrap; }
-.client-report-meta-v64 span + span::before { content: '·'; margin-right: 6px; }
+.client-report-identification-v64 span { overflow-wrap: anywhere; }
+.client-report-period-filter-v65 { display: flex; align-items: center; gap: 10px; color: var(--theme-muted, #756c66); font-size: 12px; font-weight: 750; }
+.client-report-period-filter-v65 select { min-height: 38px; max-width: 210px; padding: 8px 34px 8px 12px; border: 1px solid var(--theme-line, #e7dbd2); border-radius: 9px; background: var(--theme-surface, #fffdfa); color: var(--theme-text, #5a1e2d); font: inherit; cursor: pointer; }
+.client-report-filter-empty-v65 { margin: 0; padding: 28px 24px; color: var(--theme-muted, #756c66); font-size: 14px; }
 .client-report-statuses-v64 { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 7px; }
 .client-report-status-v64 { display: inline-flex; align-items: center; min-height: 29px; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .client-report-status-v64.viewed { background: #e2f0e7; color: #276343; }
@@ -70,15 +73,17 @@ html[data-workspace-theme="night"] .client-report-view-v64 { background: #b58c52
 html[data-workspace-theme="night"] .client-report-ack-v64 { border-color: rgba(231,198,111,.45); color: #f7f3ee; }
 
 @media(max-width: 920px) {
-  .client-report-entry-main-v64 { grid-template-columns: 34px 54px minmax(0,1fr); gap: 11px; padding: 16px; }
-  .client-report-meta-v64 { grid-column: 3; }
+  .client-report-entry-main-v64 { grid-template-columns: 34px 44px minmax(0,1fr); gap: 11px; padding: 16px; }
   .client-report-statuses-v64 { grid-column: 3; justify-content: flex-start; }
   .client-report-detail-v64 { margin: 0 16px 16px 16px; }
 }
 @media(max-width: 600px) {
-  .client-report-entry-main-v64 { grid-template-columns: 28px 48px minmax(0,1fr); gap: 8px; padding: 16px 12px; }
+  .client-report-entry-main-v64 { grid-template-columns: 28px 40px minmax(0,1fr); gap: 8px; padding: 16px 12px; }
   .client-report-expand-v64 { width: 28px; }
-  .client-report-brand-v64 { width: 48px; height: 48px; }
+  .client-report-brand-v64 { width: 40px; height: 40px; }
+  .client-report-library-head-v58 { align-items: stretch; }
+  .client-report-period-filter-v65 { justify-content: space-between; }
+  .client-report-period-filter-v65 select { max-width: min(65vw, 210px); }
   .client-report-identification-v64 strong { font-size: 14px; }
   .client-report-identification-v64 span { font-size: 12px; }
   .client-report-detail-v64 { margin: 0 12px 14px; padding: 14px; flex-direction: column; align-items: stretch; gap: 14px; }

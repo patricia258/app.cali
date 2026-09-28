@@ -37,12 +37,12 @@
 .client-service-card a { display: inline-flex; align-items: center; gap: 3px; margin-top: auto; color: var(--client-bordeaux); font-size: 11px; font-weight: 800; text-decoration: none; }
 .client-service-card a:hover,.client-service-card a:focus-visible { text-decoration: underline; }
 .client-home-v3 .client-home-service-grid > .client-service-card.occurrences { display: flex; flex-direction: column; align-items: start; padding: 20px 22px; background: color-mix(in srgb,var(--theme-surface) 96%,#3D7793 4%) !important; }
-.client-occurrence-people { display: flex; align-items: center; margin: 0 0 9px; }
-.client-occurrence-avatar { display: grid; place-items: center; width: 38px; height: 38px; flex: 0 0 38px; margin-right: -7px; overflow: hidden; border: 2px solid var(--theme-surface); border-radius: 11px !important; background: #e9d4c2; color: var(--client-bordeaux); font-size: 12px; font-weight: 800; }
+.client-occurrence-people { display: flex; align-items: center; gap: 7px; margin: 0 0 9px; }
+.client-occurrence-avatar { display: grid; place-items: center; width: 38px; height: 38px; flex: 0 0 38px; margin: 0; overflow: hidden; border: 1px solid rgba(181,140,82,.6); border-radius: 10px !important; background: #e9d4c2; color: var(--client-bordeaux); font-size: 12px; font-weight: 800; }
 .client-occurrence-avatar:nth-child(2) { background: #d9e8e9; }
-.client-occurrence-avatar.company { background: #f3ece3; margin-left: 8px; border-color: var(--theme-surface); }
-.client-home-v3 .client-occurrence-avatar img { display: block; width: 100% !important; height: 100% !important; border-radius: 9px !important; object-fit: cover !important; }
-.client-home-v3 .client-occurrence-avatar.company img { object-fit: contain !important; transform: scale(1.65); }
+.client-occurrence-avatar.company { background: #f3ece3; }
+.client-home-v3 .client-occurrence-avatar img { display: block; width: 100% !important; height: 100% !important; border-radius: 0 !important; object-fit: cover !important; }
+.client-home-v3 .client-occurrence-avatar.company img { object-fit: contain !important; transform: none; padding: 2px; }
 .client-occurrence-badge { position: absolute; top: 20px; right: 20px; padding: 6px 9px; border-radius: 8px; background: #d9e9f0; color: #2c5970; font-size: 10px; font-weight: 800; }
 .client-occurrence-badge.status-waiting_client { background: #fff0c9; color: #68430c; }
 .client-occurrence-badge.status-completed { background: #dcefe2; color: #285e40; }
