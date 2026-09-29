@@ -501,3 +501,101 @@ html[data-workspace-theme='night'] .calendar-detail-footer { background: #21191d
   .calendar-attendee-list > div { grid-template-columns: 8px 1fr auto; }
   .calendar-attendee-list small { grid-column: 2 / -1; }
 }
+
+/* A semana é a área principal; mês e filtros acompanham sem comprimir os eventos. */
+.calendar-page-v2 .calendar-page-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px !important;
+}
+.calendar-page-v2 .calendar-primary-panel { width: 100%; min-width: 0; }
+.calendar-page-v2 .calendar-side-column {
+  display: grid;
+  grid-template-columns: minmax(270px, 340px) minmax(0, 1fr);
+  width: 100%;
+  gap: 16px !important;
+  margin: 0;
+}
+.calendar-page-v2 .calendar-side-column .calendar-mini-card,
+.calendar-page-v2 .calendar-side-column .calendar-filter-card { padding: 16px 20px !important; }
+.calendar-page-v2 .calendar-side-column .calendar-mini-grid button { height: 31px; }
+.calendar-page-v2 .calendar-side-column .calendar-type-filter-list {
+  grid-template-columns: repeat(3, minmax(150px, 1fr));
+  gap: 6px 12px !important;
+}
+.calendar-page-v2 .calendar-side-column .calendar-type-filter-list button {
+  min-height: 38px !important;
+  gap: 9px;
+  padding-inline: 10px !important;
+}
+.calendar-page-v2 .calendar-side-column .calendar-type-filter-list button strong {
+  min-width: 0;
+  font-size: 12px !important;
+  line-height: 1.25;
+  overflow-wrap: normal;
+}
+.calendar-page-v2 .calendar-main-toolbar { gap: 12px 20px; }
+.calendar-page-v2 .calendar-toolbar-filters { flex: 1 1 540px; min-width: 0; }
+.calendar-page-v2 .calendar-search { flex: 1 1 245px; min-width: 245px; }
+.calendar-page-v2 .calendar-search input { width: 100%; }
+.calendar-page-v2 .calendar-week-view {
+  grid-template-columns: 58px repeat(7, minmax(125px, 1fr));
+  min-width: 1000px;
+}
+.calendar-page-v2 .calendar-week-all-day-label { justify-content: center; padding: 4px 2px; font-size: 10px; text-align: center; }
+.calendar-page-v2 .calendar-week-axis span { right: 8px; transform: translateY(5px); font-size: 11px; }
+.calendar-page-v2 .calendar-week-event {
+  padding: 5px 8px;
+  border-radius: 7px;
+  box-shadow: 0 1px 2px #23121926;
+}
+.calendar-page-v2 .calendar-week-event.is-workspace,
+.calendar-page-v2 .calendar-week-all-day-event.is-workspace {
+  background: color-mix(in srgb, var(--event-color) 17%, var(--theme-surface));
+  color: var(--theme-text);
+}
+.calendar-page-v2 .calendar-week-event.is-google { box-shadow: 0 2px 5px #2312193b; }
+.calendar-page-v2 .calendar-week-event strong { line-height: 1.2; }
+
+/* O detalhe do Google cabe no conteúdo e deixa as ações próximas ao título. */
+.calendar-detail-modal:has(.calendar-google-detail) {
+  min-height: 0 !important;
+  height: auto !important;
+  width: min(600px, calc(100vw - 24px)) !important;
+}
+.calendar-detail-modal:has(.calendar-google-detail) .calendar-detail-heading {
+  padding: 22px 64px 15px 24px !important;
+  gap: 12px;
+}
+.calendar-detail-modal:has(.calendar-google-detail) .calendar-detail-heading h2 {
+  font-size: clamp(19px, 2vw, 24px) !important;
+  overflow-wrap: anywhere;
+}
+.calendar-detail-modal:has(.calendar-google-detail) .calendar-detail-company-mark {
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 12px !important;
+}
+.calendar-detail-modal:has(.calendar-google-detail) .calendar-google-actions {
+  justify-content: flex-end;
+  padding: 10px 24px 0 !important;
+}
+.calendar-detail-modal:has(.calendar-google-detail) .calendar-detail-body {
+  flex: none !important;
+  display: block;
+  min-height: 0 !important;
+  padding: 12px 24px 18px !important;
+}
+.calendar-detail-modal:has(.calendar-google-detail) .calendar-google-detail { gap: 12px; padding: 0; }
+.calendar-detail-modal:has(.calendar-google-detail) .calendar-detail-footer { padding: 10px 24px !important; }
+
+@media (max-width: 1100px) {
+  .calendar-page-v2 .calendar-side-column .calendar-type-filter-list { grid-template-columns: repeat(2, minmax(145px, 1fr)); }
+}
+@media (max-width: 700px) {
+  .calendar-page-v2 .calendar-side-column { grid-template-columns: 1fr; }
+  .calendar-page-v2 .calendar-side-column .calendar-type-filter-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .calendar-page-v2 .calendar-search { min-width: 0; }
+  .calendar-detail-modal:has(.calendar-google-detail) { max-height: calc(100dvh - 24px) !important; }
+}
