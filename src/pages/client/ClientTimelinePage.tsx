@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowUpRight, CalendarDays, Clock3, FileCheck2, Loader2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { ArrowUpRight, CalendarDays, Clock3, FileCheck2, Loader2, X } from 'lucide-react';
 import { ClientGoogleCalendarPanel } from '../../components/ClientGoogleCalendarPanel';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
@@ -134,6 +135,8 @@ export function ClientTimelinePage() {
   const [attendeeStatus, setAttendeeStatus] = useState<Record<string, AttendeeStatus>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedItem, setSelectedItem] = useState<TimelineItem | null>(null);
+  useEffect(() => { if (!selectedItem) return; const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setSelectedItem(null); }; window.addEventListener('keydown', close); return () => window.removeEventListener('keydown', close); }, [selectedItem]);
 
   useEffect(() => { void load(); }, []);
 
@@ -306,13 +309,6 @@ export function ClientTimelinePage() {
             </div>
 
             {items.length ? <div className="client-agenda-table">
-              <div className="client-agenda-columns" aria-hidden="true">
-                <span>Data / hora</span>
-                <span>Tipo</span>
-                <span>Item</span>
-                <span>Status</span>
-                <span>Detalhes</span>
-              </div>
               <div className="client-agenda-body">
                 {items.map((item) => {
                   const inviteStatus = item.kind === 'event' ? attendeeStatus[item.sourceId] : undefined;
@@ -328,8 +324,8 @@ export function ClientTimelinePage() {
                     <div className="client-agenda-detail" data-label="Detalhes">
                       {item.detailLabel && <strong>{item.detailLabel}</strong>}
                       {item.secondaryDetail && <small>{item.secondaryDetail}</small>}
-                      {item.meetingUrl && <a href={item.meetingUrl} target="_blank" rel="noreferrer">Abrir Meet <ArrowUpRight size={14} /></a>}
                     </div>
+                    <button className="client-agenda-open" type="button" onClick={() => setSelectedItem(item)} aria-label={`Ver detalhes de ${item.title}`}>Ver detalhes <ArrowUpRight size={15}/></button>
                   </article>;
                 })}
               </div>
@@ -337,6 +333,7 @@ export function ClientTimelinePage() {
           </section>
         </>}
       </section>
+      {selectedItem && createPortal(<div className="client-agenda-detail-backdrop" onMouseDown={event => { if (event.currentTarget === event.target) setSelectedItem(null); }}><section className="client-agenda-detail-modal" role="dialog" aria-modal="true" aria-labelledby="client-agenda-detail-title"><header><div><small>{selectedItem.typeLabel} · {selectedItem.statusLabel}</small><h2 id="client-agenda-detail-title">{selectedItem.title}</h2></div><button type="button" onClick={() => setSelectedItem(null)} aria-label="Fechar"><X size={19}/></button></header><div className="client-agenda-detail-body"><div><span>Quando</span><strong>{selectedItem.kind === 'request' ? selectedItem.timeLabel : `${selectedItem.dateLabel} · ${selectedItem.timeLabel}`}</strong></div><div><span>Estado</span><strong>{selectedItem.statusLabel}</strong></div>{selectedItem.detailLabel && <div><span>Formato</span><strong>{selectedItem.detailLabel}</strong></div>}{selectedItem.secondaryDetail && <div className="full"><span>{selectedItem.kind === 'request' ? 'Datas sugeridas' : 'Local'}</span><strong>{selectedItem.secondaryDetail}</strong></div>}{selectedItem.meetingUrl && <a href={selectedItem.meetingUrl} target="_blank" rel="noopener noreferrer">Abrir Google Meet <ArrowUpRight size={16}/></a>}{selectedItem.kind === 'request' && <a href="#scheduling-v65-client-host" onClick={() => setSelectedItem(null)}>Acompanhar pedido <ArrowUpRight size={16}/></a>}</div></section></div>,document.body)}
     </Shell>
   );
 }

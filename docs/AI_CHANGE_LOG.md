@@ -1,5 +1,16 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-09-29 — Codex (revisão da visita extra, calendário e agenda)
+
+- **Pedido e aprovação:** observações da Pati nos prints das 21h23–22h01 de 28/09. Ela solicitou alterações; resultado visual ainda `aguardando avaliação`.
+- **Visual e copy:** contraste explícito entre fundo e texto/ícones nos modos dia e noite; cabeçalho da visita usa Inter, branco sobre bordô e folha CALI. Condições terminam em “Vamos prosseguir?”. Campos separados de endereço, empresa, anexo opcional e justificativa para segunda-feira; confirmação mostra dia da semana e horários destacados. Botões do topbar menores e coerentes com o Workspace.
+- **Admin:** botão de solicitações só no calendário, painel com blur e entrada suave, um pedido por vez com paginação; capa com logo, solicitante, status, local clicável, anexos e ações existentes. Gastos da visita em linhas repetíveis (deslocamento, estacionamento, alimentação e horas adicionais), com comprovante opcional. Para horas adicionais, exige quantidade e referência do orçamento aprovado. Protocolo em cada linha e auditoria interna.
+- **Cliente:** agenda em cartões compactos com botão “Ver detalhes” explícito; modal legível e responsivo. Comprovantes e protocolos das despesas ficam no histórico da visita. Relatório executivo mostra visitas concluídas e despesas da competência numa página para conciliação (não gera fatura).
+- **Banco e arquivos:** `src/components/ExtraVisitRequest.tsx`, `ExtraVisitExpenses.tsx`, estilos correspondentes, `src/lib/schedulingRequestsRuntimeV65.ts`, `src/pages/client/ClientTimelinePage.tsx`, `src/client-timeline-v3.css`, `src/components/reports/ExecutiveReportPaperV17.tsx`, migração `20260929012000_extra_visit_ux_evidence.sql`. A migração cria anexo privado por pedido, flexibiliza comprovante de despesa, registra protocolo e auditoria, restringe as funções a usuários autenticados. Aplicada ao Supabase e confirmada por consulta de catálogo; `npm run check` validado. Fluxo real autenticado e aparência em navegador seguem para conferência após deploy.
+- **Handoff:** regra permanente de contraste: fundo claro → texto/ícone escuro; fundo escuro → texto/ícone claro, em ambos os temas e perfis. FAQ contextual por pacote registrado em `docs/VISITA_EXTRA_SPEC.md` como item aberto para especificação. Carro próprio (R$/km), aprovação formal de horas adicionais e emissão de fatura continuam fora deste fluxo; não confundir registro de conciliação com cobrança automática.
+
+---
+
 ## 2026-09-28 — Codex (modal da visita extra)
 
 - **Pedido:** Pati mostrou o modal abrindo com o topo fora da tela e pediu centralização, fundo desfocado e conteúdo sem rolagem sempre que possível.
