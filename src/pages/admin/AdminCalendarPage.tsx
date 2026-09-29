@@ -667,13 +667,13 @@ export function AdminCalendarPage() {
 
             {view === 'agenda' && <div className="calendar-agenda-view">
               {monthAgenda.map((event) => (
-                <button key={event.id} className="calendar-agenda-row" onClick={() => setSelectedEvent(event)}>
+                <button key={event.id} className={`calendar-agenda-row ${event.sourceType === 'request_preview' ? 'is-preview' : ''}`} onClick={() => setSelectedEvent(event)}>
                   <div className="calendar-agenda-date"><strong>{new Date(event.startsAt).getDate()}</strong><span>{months[new Date(event.startsAt).getMonth()].slice(0, 3).toUpperCase()}</span></div>
                   <span className="calendar-event-bar" style={{ background: event.color }} />
                   <div className="calendar-agenda-copy">
-                    <span>{calendarTypeMeta[event.type].label} · {formatCalendarTime(event.startsAt)}</span>
+                    <span>{event.sourceType === 'request_preview' ? `Prévia ${event.previewOption} · solicitação em análise` : calendarTypeMeta[event.type].label} · {formatCalendarTime(event.startsAt)}</span>
                     <strong>{event.title}</strong>
-                    <small>{event.company || 'CALI'}{event.visibility === 'client' ? ' · cliente vê' : ' · interno'}{eventProtocol(event) ? ` · ${eventProtocol(event)}` : ''}</small>
+                    <small>{event.company || 'CALI'}{event.sourceType === 'request_preview' ? ' · ainda não confirmado' : event.visibility === 'client' ? ' · cliente vê' : ' · interno'}{eventProtocol(event) ? ` · ${eventProtocol(event)}` : ''}</small>
                   </div>
                   <span className="calendar-agenda-mode">{event.mode === 'in_person' ? <MapPin size={15} /> : <Video size={15} />}{event.mode === 'in_person' ? 'Presencial' : event.mode === 'remote' ? 'Remoto' : 'Prazo'}</span>
                 </button>
