@@ -1,11 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { CalendarPlus, Paperclip, X } from 'lucide-react';
+import { Building2, CalendarPlus, Mic2, Paperclip, UserRound, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import './extra-visit-request.css';
 
 const FEE = 'R$ 800,00';
 type Slot = { date: string; time: string };
+type SlotSelection = Slot & { duration?: number };
 type MeetingMode = 'visit' | 'online';
 const emptySlot = (): Slot => ({ date: '', time: '' });
 const weekday = (slot: Slot) => slot.date && slot.time ? new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).format(new Date(`${slot.date}T${slot.time}:00-03:00`)) : '';
@@ -44,7 +45,8 @@ export function ExtraVisitRequest() {
   const [availability, setAvailability] = useState<'idle'|'checking'|'checked'|'unavailable'>('idle');
   const [busySlots, setBusySlots] = useState<boolean[]>([]);
   const [considerBusy, setConsiderBusy] = useState(false);
-  useEffect(()=>{const openChooser=()=>{setMode(null);setStep(0);setOpen(true)};window.addEventListener('cali:open-papo-request',openChooser);return()=>window.removeEventListener('cali:open-papo-request',openChooser)},[]);
+  const [prefill, setPrefill] = useState<SlotSelection | null>(null);
+  useEffect(()=>{const openChooser=(event:Event)=>{const slot=(event as CustomEvent<SlotSelection>).detail;setPrefill(slot?.date&&slot?.time?slot:null);setMode(null);setStep(0);setOpen(true)};window.addEventListener('cali:open-papo-request',openChooser);return()=>window.removeEventListener('cali:open-papo-request',openChooser)},[]);
   useEffect(() => {
     if (!open) return;
     const previousOverflow = document.body.style.overflow;
@@ -58,7 +60,7 @@ export function ExtraVisitRequest() {
   useEffect(() => { if (!open || !supabase) return; let live = true; (async () => { const { data: auth } = await supabase.auth.getUser(); if (!auth.user) return; const { data: profile } = await supabase.from('profiles').select('company_id').eq('id', auth.user.id).maybeSingle(); if (!profile?.company_id) return; const { data: companyData } = await supabase.from('companies').select('id,display_name').eq('id', profile.company_id).maybeSingle(); if (live && companyData) setCompany({ id: companyData.id, name: companyData.display_name }); })(); return () => { live = false; }; }, [open]);
   const hasMonday = slots.some(slot => slot.date && new Date(`${slot.date}T12:00:00-03:00`).getUTCDay() === 1);
   const address = `${street.trim()}, ${number.trim()} · ${district.trim()} · ${city.trim()} · CEP ${zip.trim()}`;
-  function selectMode(next:MeetingMode){setMode(next);setTitle(next==='visit'?'Visita presencial extra':'Reunião online extra');setSlots([emptySlot(),emptySlot()]);setDuration(60);setAck(false);setAckName('');setError('');setAvailability('idle');setBusySlots([]);setConsiderBusy(false);setStep(1);}
+  function selectMode(next:MeetingMode){setMode(next);setTitle(next==='visit'?'Visita presencial extra':'Reunião online extra');setSlots([prefill || emptySlot(),emptySlot()]);setDuration(next==='online'&&prefill?.duration?[30,45,60,90].reduce((closest,option)=>Math.abs(option-prefill.duration!)<Math.abs(closest-prefill.duration!)?option:closest,60):60);setAck(false);setAckName('');setError('');setAvailability('idle');setBusySlots([]);setConsiderBusy(false);setStep(1);}
   function validateDetails() {
     if (!mode) return 'Escolha o formato do encontro.';
     if (title.trim().length < 2) return 'Informe o assunto do encontro.';
@@ -108,12 +110,12 @@ export function ExtraVisitRequest() {
     setOpen(false); window.location.assign('/cliente/cronograma');
   }
   return <>
-    <button className="extra-visit-top-action" type="button" aria-label="Agende aqui um papo com a Pati" title="Agende aqui um papo com a Pati" onClick={() => { setMode(null); setStep(0); setOpen(true); }}><CalendarPlus size={17}/><span>Agende aqui um papo com a Pati</span></button>
+    <button className="extra-visit-top-action" type="button" aria-label="Agende aqui um papo com a Pati" data-tooltip="Agende aqui um papo com a Pati" onClick={() => { setPrefill(null); setMode(null); setStep(0); setOpen(true); }}><CalendarPlus size={21}/><span>Agende aqui um papo com a Pati</span></button>
     {open && createPortal(<div className="extra-visit-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setOpen(false); }}>
       <section className="extra-visit-dialog" role="dialog" aria-modal="true" aria-labelledby="extra-visit-heading">
         <header><div className="extra-visit-heading-copy"><small>{step===0?'AGENDA COM A PATI':`${mode==='visit'?'VISITA PRESENCIAL':'PAPO ONLINE'} · ${step===1?'CONDIÇÕES':step===2?'AGENDAMENTO':'CONFIRMAÇÃO'} · ${step} DE 3`}</small><h2 id="extra-visit-heading">{step===0?'Que tipo de papo você deseja?':step === 1 ? mode==='visit' ? 'Que legal que você quer uma visita presencial minha! Vamos lá?' : 'Vamos marcar um papo online?' : step === 2 ? 'Vamos encontrar uma data?' : 'Tá quase acabando. Vamos confirmar seu pedido?'}</h2></div><button type="button" className="extra-visit-close" aria-label="Fechar" onClick={() => setOpen(false)}><X size={20}/></button>{step <= 1 && <img className="extra-visit-leaf" src="/brand/cali-oak-mark-light.svg" alt="" aria-hidden="true"/>}</header>
         <form onSubmit={submit}>
-          {step===0 ? <div className="extra-visit-choice"><p>Este espaço é para encontros <strong>além dos agendamentos mensais do seu contrato</strong>. Os encontros incluídos continuam sendo organizados por mim.</p><div><button type="button" onClick={()=>selectMode('visit')}><span>Visita presencial na sede</span><small>Quero conversar pessoalmente na minha empresa.</small></button><button type="button" onClick={()=>selectMode('online')}><span>Bate-papo online</span><small>Quero uma reunião por vídeo.</small></button></div></div> : step === 1 && mode==='visit' ? <><div className="extra-visit-terms"><p><strong>Atenção para as condições:</strong></p><ul>
+          {step===0 ? <div className="extra-visit-choice"><p>Este espaço é para encontros <strong>além dos agendamentos mensais do seu contrato</strong>. Os encontros incluídos continuam sendo organizados por mim.</p><div><button type="button" onClick={()=>selectMode('visit')}><Building2 className="extra-visit-choice-icon" size={27} aria-hidden="true"/><span>Visita presencial na sede</span><small>Quero conversar pessoalmente na minha empresa.</small></button><button type="button" onClick={()=>selectMode('online')}><span className="extra-visit-choice-icon extra-visit-online-icon" aria-hidden="true"><UserRound size={22}/><Mic2 size={16}/></span><span>Bate-papo online</span><small>Quero uma reunião por vídeo.</small></button></div></div> : step === 1 && mode==='visit' ? <><div className="extra-visit-terms"><p><strong>Atenção para as condições:</strong></p><ul>
             <li>Eu analiso sua solicitação em até <strong>48 horas corridas</strong>. Proponha dois horários com essa antecedência.</li>
             <li>A visita extra custa <strong>{FEE} por até 4 horas</strong>. Se precisarmos de mais tempo, envio um orçamento para você aprovar antes de continuar.</li>
             <li>Atendo de segunda a sexta, entre 9h e 16h. Segunda costuma estar fechada; se precisar desse dia, me conte nas observações que eu avalio.</li>
