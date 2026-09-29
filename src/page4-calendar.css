@@ -638,3 +638,23 @@ html[data-workspace-theme='night'] .calendar-detail-refined.is-negative .calenda
 html[data-workspace-theme='night'] .calendar-detail-refined.is-pending .calendar-detail-heading { background: linear-gradient(115deg,#45351f,#35291e) !important; }
 html[data-workspace-theme='night'] .calendar-detail-refined .calendar-detail-heading :is(h2,p,.section-kicker) { color: #fff5ee !important; }
 html[data-workspace-theme='night'] .calendar-detail-refined .calendar-detail-heading .section-kicker { color: #f0cf93 !important; }
+
+/* A grade compartilha uma linguagem leve nos dois perfis. */
+.calendar-page-v2 .calendar-week-event,
+.calendar-page-v2 .calendar-week-all-day-event {
+  border-width: 1px 1px 1px 2px;
+  box-shadow: none;
+}
+.calendar-page-v2 .calendar-week-event.is-google {
+  border-color: color-mix(in srgb, var(--event-color) 55%, transparent);
+  box-shadow: none;
+}
+.calendar-page-v2 .calendar-week-event.is-preview,
+.calendar-page-v2 .calendar-event-chip.is-preview {
+  border-width: 1px 1px 1px 2px !important;
+  border-style: dashed !important;
+  background: color-mix(in srgb, #fff0d7 72%, var(--theme-surface)) !important;
+}
+html[data-workspace-theme='night'] .calendar-page-v2 .calendar-week-event.is-preview {
+  background: #45351f !important;
+}
