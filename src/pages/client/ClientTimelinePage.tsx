@@ -434,7 +434,7 @@ export function ClientTimelinePage() {
   return (
     <Shell role="client">
       <section className="page client-timeline-v2 client-timeline-v3 client-timeline-v4">
-        <details className="client-google-settings"><summary><CalendarDays size={19} aria-hidden="true"/><span><strong>Conecte sua agenda Google</strong><small>Acompanhe os compromissos da CALI na sua agenda e veja seus eventos pessoais aqui. O filtro “Minha agenda Google” controla a visualização nesta tela.</small></span><span className="client-google-settings-action">Ver integração</span></summary><ClientGoogleCalendarPanel /></details>
+        <details className="client-google-settings"><summary><CalendarDays size={19} aria-hidden="true"/><span><strong>Integração com Google Agenda</strong><small>Veja seus eventos pessoais junto aos compromissos da CALI. Você escolhe o que exibir pelo filtro da agenda.</small></span><span className="client-google-settings-action">Ver integração</span></summary><ClientGoogleCalendarPanel /></details>
 
         {error && <div className="inline-notice">{error}</div>}
         {loading ? <div className="data-loading"><Loader2 className="spin" size={20} />Carregando sua agenda…</div> : <>
