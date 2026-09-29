@@ -59,7 +59,12 @@ Deno.serve(async (request) => {
       const slots = body?.slots;
       if (!Array.isArray(slots) || slots.length < 1 || slots.length > 2) return reply({ error: 'invalid_slots' }, 400);
       const parsed = slots.map((slot: any) => ({ start: new Date(slot.startsAt).getTime(), end: new Date(slot.endsAt).getTime() }));
-      if (parsed.some((slot: any) => !Number.isFinite(slot.start) || !Number.isFinite(slot.end) || slot.end <= slot.start || slot.start < Date.now() || slot.end > Date.now() + 180 * 86400000)) return reply({ error: 'invalid_slots' }, 400);
+      if (parsed.some((slot: any) => !Number.isFinite(slot.start) || !Number.isFinite(slot.end) || slot.end <= slot.start || slot.start < Date.now() + 48 * 3600000 || slot.end > Date.now() + 180 * 86400000 || ![30,45,60,90,240].includes((slot.end-slot.start)/60000))) return reply({ error: 'invalid_slots' }, 400);
+      const { count, error: countError } = await db.from('activity_log').select('id', { count: 'exact', head: true }).eq('actor_user_id', auth.user.id).eq('event_type', 'client_calendar_availability_checked').gte('created_at', new Date(Date.now()-3600000).toISOString());
+      if (countError) throw countError;
+      if ((count || 0) >= 45) return reply({ error: 'availability_limit' }, 429);
+      const { error: auditError } = await db.from('activity_log').insert({ company_id: profile.company_id, actor_user_id: auth.user.id, event_type: 'client_calendar_availability_checked', entity_type: 'calendar', metadata: { slots: slots.map((slot: any) => ({ startsAt: slot.startsAt, endsAt: slot.endsAt })) } });
+      if (auditError) throw auditError;
       const min = new Date(Math.min(...parsed.map((slot: any) => slot.start))).toISOString();
       const max = new Date(Math.max(...parsed.map((slot: any) => slot.end))).toISOString();
       const busy: { start: number; end: number }[] = [];
