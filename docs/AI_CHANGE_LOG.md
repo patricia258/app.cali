@@ -478,3 +478,13 @@ Duas regras técnicas, pro handoff entre Claude e Codex, a partir do bug encontr
 - **Autor:** Codex. **Aprovação visual:** aguardando conferência da Pati. **Limites:** sem QA autenticado de navegador; confirmar a sincronização do cancelamento com Google Calendar e o envio de e-mail pelo processamento existente. A agenda fixa mensal do CALI Full continua em desenho separado.
 
 ---
+
+## 2026-09-29 — Codex (mesma grade semanal para calendário admin e cliente)
+
+- **Pedido:** Pati mostrou o calendário administrativo aparecendo por um instante sem CSS (em blocos), bordas de eventos pesadas e um calendário do cliente com estrutura e descrição diferentes. O administrativo é o padrão visual aprovado para replicar no cliente, preservando permissão e dados de cada perfil.
+- **Alteração:** o CSS base dos dois calendários passa a carregar na entrada do app, antes da primeira renderização da rota. A semana do cliente usa as mesmas peças de grade do administrador: eixo de 07h a 19h, altura de 64px por hora, cabeçalho de dia, faixa de dia inteiro, cartões com título, horário e origem/situação. Solicitações extras permanecem como prévias; recusadas em vermelho, confirmadas em verde; Google preserva a cor da agenda. O cliente continua vendo só seus dados e ações autorizados. Bordas e sombras do administrador foram suavizadas, inclusive nas prévias.
+- **Arquivos:** `src/App.tsx`, `src/page4-calendar.css`, `src/client-timeline-v3.css`, `src/pages/client/ClientTimelinePage.tsx`.
+- **Verificação:** `npm run check` passou (TypeScript e build). Sem sessão autenticada dos dois perfis neste ambiente; checagem visual ao vivo e mobile permanece necessária.
+- **Autor:** Codex. **Aprovação:** aguardando avaliação da Pati.
+
+---
