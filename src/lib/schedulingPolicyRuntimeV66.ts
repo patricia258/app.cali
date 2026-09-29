@@ -92,7 +92,7 @@ function planDescription(a:AgendaCompliance){ if(a.plan==='partner') return '1 e
 async function decorateClient(){
   if(!supabase || location.pathname!=='/cliente/cronograma' || clientComplianceLoading) return;
   const host=document.getElementById('scheduling-v65-client-host'); const panel=host?.querySelector<HTMLElement>('.scheduling-v65-panel'); if(!host||!panel) return;
-  panel.classList.add('scheduling-v66-contract-card');
+  if (!panel.classList.contains('compact')) panel.classList.add('scheduling-v66-contract-card');
   clientComplianceLoading=true;
   try{
     const {start,end}=monthRange();
@@ -102,6 +102,7 @@ async function decorateClient(){
     ]);
     if(agendaError) throw agendaError; if(reqError) throw reqError;
     const a=(agenda||{}) as AgendaCompliance; clientRequests=new Map(((reqs||[]) as SchedulingRequestV66[]).map(r=>[r.id,r]));
+    if (panel.classList.contains('compact')) { decorateClientRequestCards(); return; }
     panel.querySelector('.scheduling-v66-contract-summary')?.remove(); panel.querySelector('.scheduling-v66-alert')?.remove();
     const head=panel.querySelector('.scheduling-v65-head');
     const required=Number(a.requiredTotal||a.sessionsPerMonth||0), occurred=Number(a.occurredCount||0), notOccurred=Number(a.notOccurredCount||0), scheduled=Number(a.scheduledCount||0), pending=Number(a.pendingOutcomeCount||0), extras=Number(a.extraCount||0);

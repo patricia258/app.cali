@@ -201,7 +201,7 @@ async function renderClient() {
   let host = document.getElementById('scheduling-v65-client-host');
   document.querySelectorAll<HTMLElement>('[id="scheduling-v65-client-host"]').forEach((node, index) => { if (index > 0) node.remove(); });
   if (!host) { host = document.createElement('div'); host.id = 'scheduling-v65-client-host'; anchor.insertAdjacentElement('afterend', host); }
-  host.innerHTML = '<section class="scheduling-v65-panel"><div class="scheduling-v65-empty">Carregando solicitações de agenda…</div></section>';
+  host.innerHTML = '';
   try {
     const { data: userData, error: userError } = await supabase.auth.getUser(); if (userError) throw userError;
     const userId = userData.user?.id; if (!userId) throw new Error('Sessão do cliente não encontrada.');
@@ -215,8 +215,9 @@ async function renderClient() {
     if (companyResult.error) throw companyResult.error; if (requestResult.error) throw requestResult.error;
     const company = companyResult.data as Company; const requests = (requestResult.data || []) as SchedulingRequest[]; clientContext = { company, requests }; clientExpenses = (expenseResult.data || []) as ExtraExpense[];
     const active = requests.filter((request) => ADMIN_PENDING_STATUSES.has(request.status) || (request.extra_visit && ['confirmed','completed','not_occurred'].includes(request.status)));
-    host.innerHTML = `<section class="scheduling-v65-panel"><div class="scheduling-v65-head"><div><span class="scheduling-v65-kicker">AGENDA COM A CALI</span><h2>Reunião online</h2><p>Os encontros do seu pacote são organizados pela CALI. Se quiser pedir outra reunião, veja as condições antes de enviar sua sugestão.</p></div><button type="button" class="scheduling-v65-button primary" data-scheduling-client-new>Solicitar reunião online</button></div>${active.length ? `<div class="scheduling-v65-list">${active.map(renderClientRequest).join('')}</div>` : '<div class="scheduling-v65-empty">Você não tem solicitações de horário em análise neste momento.</div>'}</section>`;
-    for(const request of active.filter(row=>row.online_extra_requested)){const card=host.querySelector<HTMLElement>(`[data-scheduling-request-card="${CSS.escape(request.id)}"]`);const top=card?.querySelector('.scheduling-v65-request-copy');if(!top)continue;const box=document.createElement('div');box.className='scheduling-v65-note';box.innerHTML=request.online_extra_quote_cents?`<strong>Orçamento da reunião extra: R$ ${(request.online_extra_quote_cents/100).toFixed(2).replace('.',',')}</strong><p>${esc(request.billing_notice||'')}</p>${request.online_extra_quote_accepted_at?'<span>Aceito por você.</span>':`<button type="button" class="scheduling-v65-button primary" data-online-extra-accept-quote="${esc(request.id)}">Aceitar orçamento</button>`}`:'<strong>Orçamento em preparo pela CALI. Nenhuma cobrança foi feita.</strong>';top.appendChild(box);}
+    const actionNeeded=active.filter(request=>request.status==='client_review'||(request.online_extra_requested&&request.online_extra_quote_cents&&!request.online_extra_quote_accepted_at));
+    host.innerHTML=actionNeeded.length?`<section class="scheduling-v65-panel compact"><div class="scheduling-v65-head"><div><span class="scheduling-v65-kicker">SUA RESPOSTA</span><h2>Você tem ${actionNeeded.length===1?'um pedido':'pedidos'} para conferir</h2></div></div><div class="scheduling-v65-list">${actionNeeded.map(renderClientRequest).join('')}</div></section>`:'';
+    for(const request of actionNeeded.filter(row=>row.online_extra_requested)){const card=host.querySelector<HTMLElement>(`[data-scheduling-request-card="${CSS.escape(request.id)}"]`);const top=card?.querySelector('.scheduling-v65-request-copy');if(!top)continue;const box=document.createElement('div');box.className='scheduling-v65-note';box.innerHTML=request.online_extra_quote_cents?`<strong>Orçamento da reunião extra: R$ ${(request.online_extra_quote_cents/100).toFixed(2).replace('.',',')}</strong><p>${esc(request.billing_notice||'')}</p>${request.online_extra_quote_accepted_at?'<span>Aceito por você.</span>':`<button type="button" class="scheduling-v65-button primary" data-online-extra-accept-quote="${esc(request.id)}">Aceitar orçamento</button>`}`:'<strong>Orçamento em preparo pela CALI. Nenhuma cobrança foi feita.</strong>';top.appendChild(box);}
   } catch (error) {
     host.innerHTML = `<section class="scheduling-v65-panel"><div class="scheduling-v65-empty">${esc(errorText(error))}</div></section>`;
   } finally { clientRenderInFlight = false; }
@@ -369,7 +370,7 @@ async function handleClick(event: MouseEvent) {
   if (target.closest('[data-scheduling-admin-float-toggle]')) { event.preventDefault(); toggleAdminDrawer(); return; }
   if (target.closest('[data-scheduling-admin-drawer-close]')) { event.preventDefault(); closeAdminDrawer(); return; }
   if (target.id === 'scheduling-v65-admin-drawer-backdrop') { closeAdminDrawer(); return; }
-  if (target.closest('[data-scheduling-client-new]')) { event.preventDefault(); openClientForm(); return; }
+  if (target.closest('[data-scheduling-client-new]')) { event.preventDefault(); window.dispatchEvent(new Event('cali:open-papo-request')); return; }
   const accept = target.closest<HTMLElement>('[data-scheduling-client-accept]');
   if (accept) {
     event.preventDefault(); if (!clientContext) return;

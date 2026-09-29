@@ -46,6 +46,7 @@ type ClientSchedulingRequest = {
   created_at?: string | null;
   selected_slot?: Slot | null;
   extra_visit?: boolean | null;
+  online_extra_requested?: boolean | null;
   purpose?: string | null;
   location?: string | null;
   admin_note?: string | null;
@@ -224,7 +225,7 @@ export function ClientTimelinePage() {
           .order('due_at'),
         supabase
           .from('scheduling_requests')
-          .select('id,title,status,request_mode,requested_slots,admin_proposed_slots,selected_slot,billable_extra,urgency_level,created_at,extra_visit,purpose,location,admin_note,client_note,confirmed_event_id,extra_visit_change_reason,extra_visit_previous_slot,extra_visit_cancellation_fee_cents,extra_visit_cancellation_note')
+          .select('id,title,status,request_mode,requested_slots,admin_proposed_slots,selected_slot,billable_extra,urgency_level,created_at,extra_visit,online_extra_requested,purpose,location,admin_note,client_note,confirmed_event_id,extra_visit_change_reason,extra_visit_previous_slot,extra_visit_cancellation_fee_cents,extra_visit_cancellation_note')
           .eq('company_id', companyId)
           .order('created_at', { ascending: false }).limit(100),
         supabase.rpc('client_meeting_records_v1'),
@@ -240,7 +241,7 @@ export function ClientTimelinePage() {
       const nextEvents = (eventResult.data || []) as ClientEvent[];
       setEvents(nextEvents);
       setDeliverables((deliverableResult.data || []) as ClientDeliverable[]);
-      setRequests(((requestResult.data || []) as ClientSchedulingRequest[]).filter(request => request.extra_visit || ['submitted','client_review','reschedule_review'].includes(request.status)));
+      setRequests(((requestResult.data || []) as ClientSchedulingRequest[]).filter(request => request.extra_visit || (request.online_extra_requested && !['confirmed','completed'].includes(request.status)) || ['submitted','client_review','reschedule_review'].includes(request.status)));
       setMeetingRecords(Object.fromEntries(((recordResult.data || []) as MeetingRecord[]).map(row => [row.event_id,row])));
       setAgendaChanges((changeResult.data || []) as AgendaChange[]);
       setLoading(false);
@@ -317,7 +318,7 @@ export function ClientTimelinePage() {
         state: dateState(at),
         dateLabel: confirmed ? formatDay(at) : negative ? 'Histórico' : 'Em análise',
         timeLabel: confirmed ? formatTime(at) : slots.length ? `${slots.length} ${slots.length === 1 ? 'opção' : 'opções'}` : 'Horário pendente',
-        typeLabel: request.extra_visit ? 'Visita extra' : 'Solicitação',
+        typeLabel: request.extra_visit ? 'Visita extra' : request.online_extra_requested ? 'Papo online extra' : 'Solicitação',
         statusLabel: requestStatusText(request.status),
         detailLabel: `${request.request_mode === 'in_person' ? 'Presencial' : 'Online'}${request.extra_visit ? ' · extra' : request.billable_extra ? ' · adicional' : ''}`,
         secondaryDetail: optionsText(slots) || request.admin_note || undefined,

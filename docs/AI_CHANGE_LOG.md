@@ -21,6 +21,15 @@
 
 ---
 
+## 2026-09-29 — Codex (entrada única para agendamentos adicionais)
+
+- **Pedido da Pati:** reaproveitar o botão do topbar, amarelo nos temas dia e noite, com o texto “Agende aqui um papo com a Pati”. A primeira tela escolhe visita presencial na sede ou bate-papo online e explica que o espaço é só para encontros fora da agenda mensal incluída. Cada caminho mostra suas condições antes de pedir duas datas, seguido da revisão e da ciência. Remover a faixa grande “Agenda com a CALI / Reunião online” do Planejamento.
+- **Entrega:** `ExtraVisitRequest` agora oferece escolha de formato e usa a mesma moldura e transição para as três etapas de cada caminho. A visita conserva R$ 800/4h, endereço, segunda-feira sob análise, despesas e sua RPC. O online permite duração de 30–90 minutos, duas opções até as 16h, informa que orçamento e aceite vêm antes da confirmação e registra nome completo e ciência em `client_request_online_extra_v2`. A RPC antiga `v1` deixou de ser executável diretamente pelo cliente. O card de origem da reunião online foi retirado; uma faixa compacta só aparece quando existe orçamento ou proposta de horário esperando resposta, para não esconder a ação necessária. Histórico geral de pedidos continua na agenda do cliente; encontros confirmados ficam como eventos para consulta da transcrição.
+- **Arquivos:** `src/components/ExtraVisitRequest.tsx`, `src/components/extra-visit-request.css`, `src/lib/schedulingRequestsRuntimeV65.ts`, `src/lib/schedulingPolicyRuntimeV66.ts`, `src/pages/client/ClientTimelinePage.tsx`, `supabase/migrations/20260929130000_online_extra_unified_request.sql`.
+- **Autor:** Codex. **Aprovação:** aguardando conferência visual da Pati, sobretudo no celular. **Verificações:** `npm run check` passou; schema/RPC/permissões consultados no Supabase. Nenhum preço de reunião online foi presumido. **Separação importante para Claude:** Partner e Full têm encontros contratuais organizados pela CALI; este botão cria apenas pedidos adicionais.
+
+---
+
 ## 2026-09-28 — Codex (modal da visita extra)
 
 - **Pedido:** Pati mostrou o modal abrindo com o topo fora da tela e pediu centralização, fundo desfocado e conteúdo sem rolagem sempre que possível.

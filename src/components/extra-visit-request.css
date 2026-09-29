@@ -31,3 +31,17 @@ html[data-workspace-theme='night'] .extra-visit-go{color:#f0c67f}
 .top-actions .extra-visit-top-action{min-height:38px;padding:0 12px;border:1px solid #d4bd9b;border-radius:10px;background:color-mix(in srgb,#b58c52 9%,var(--theme-surface,#fff));color:var(--theme-text,#302a28);font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:700;box-shadow:none;transition:background .2s ease,border-color .2s ease}
 .top-actions .extra-visit-top-action:hover,.top-actions .extra-visit-top-action:focus-visible{border-color:#b58c52;background:color-mix(in srgb,#b58c52 18%,var(--theme-surface,#fff))}
 html[data-workspace-theme='night'] .top-actions .extra-visit-top-action{background:#312329;border-color:#856547;color:#f3e6d0}
+
+/* Um único convite no topo, com contraste fixo nos dois temas. */
+.top-actions .extra-visit-top-action,html[data-workspace-theme='night'] .top-actions .extra-visit-top-action{background:#f2ce75;border:1px solid #c79b4c;color:#48212b;font-weight:800;box-shadow:0 3px 11px rgba(90,30,45,.12)}
+.top-actions .extra-visit-top-action:hover,.top-actions .extra-visit-top-action:focus-visible,html[data-workspace-theme='night'] .top-actions .extra-visit-top-action:hover{background:#ffe19a;border-color:#a77632;color:#48212b;transform:translateY(-1px)}
+.extra-visit-choice>p{margin:0 0 17px;color:#563f3e;font-size:14px;line-height:1.5}
+.extra-visit-choice>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.extra-visit-choice>div>button{display:grid;gap:7px;min-height:112px;padding:18px;border:1px solid #dcc5ad;border-radius:13px;background:#fffaf4;color:#5a1e2d;text-align:left;cursor:pointer;transition:transform .25s ease,border-color .25s ease,background .25s ease}
+.extra-visit-choice>div>button:hover,.extra-visit-choice>div>button:focus-visible{transform:translateY(-3px);border-color:#b58c52;background:#fff1d3}
+.extra-visit-choice button span{font-size:18px;font-weight:800}.extra-visit-choice button small{font-size:12px;line-height:1.35;color:#6e5954}
+html[data-workspace-theme='night'] .extra-visit-choice>p{color:#f4e9e1}html[data-workspace-theme='night'] .extra-visit-choice>div>button{background:#362b2b;border-color:#8b7054;color:#f8e9d3}html[data-workspace-theme='night'] .extra-visit-choice>div>button:hover{background:#48352b}html[data-workspace-theme='night'] .extra-visit-choice button small{color:#ead6c4}
+#scheduling-v65-client-host .scheduling-v65-panel.compact{margin:12px 0!important;border:1px solid #dfc7a1!important;border-left:3px solid #b58c52!important;border-radius:13px!important;background:var(--theme-surface,#fff)!important;box-shadow:none!important}
+#scheduling-v65-client-host .scheduling-v65-panel.compact .scheduling-v65-head{padding:13px 16px!important}
+#scheduling-v65-client-host .scheduling-v65-panel.compact .scheduling-v65-list{display:grid!important;padding:10px 16px 16px!important}
+@media(max-width:600px){.extra-visit-choice>div{grid-template-columns:1fr}.extra-visit-choice>div>button{min-height:85px;padding:13px}.extra-visit-choice button span{font-size:16px}}
