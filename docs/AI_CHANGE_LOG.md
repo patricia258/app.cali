@@ -1,5 +1,14 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-09-29 — Codex (agenda Google e horários ocupados)
+
+- **Pedido da Pati:** mostrar no calendário administrativo os compromissos da agenda real do Google Workspace. Avisar ao cliente que uma opção está ocupada, sem impedir pedido de análise excepcional. Bloquear envio duplicado de horários pendentes da mesma empresa.
+- **Implementação:** a reconexão Google solicita leitura. A função protegida consulta todas as agendas da conta administrativa; títulos e detalhes são visíveis só à administradora, e clientes recebem apenas um indicador de ocupado. A agenda administrativa lê o mês e os meses adjacentes ao abrir, atualiza a cada cinco minutos enquanto a tela está aberta e não duplica eventos CALI já vinculados ao Google. Horários ocupados exigem confirmação específica no modal; a decisão final continua com a Pati. Uma trava transacional no banco bloqueia pedidos pendentes sobrepostos da mesma empresa.
+- **Arquivos:** `supabase/functions/google-calendar-oauth/index.ts`, `supabase/functions/workspace-google-calendar-read/index.ts`, `src/pages/admin/AdminCalendarPage.tsx`, `src/components/ExtraVisitRequest.tsx`, `src/components/extra-visit-request.css`, `supabase/migrations/20260929152000_scheduling_duplicate_pending_slots.sql`.
+- **Autor:** Codex. **Aprovação:** aguardando conferência visual da Pati. **Ativação:** `patricia@calirh.com` estava conectada com permissão antiga. É necessário usar **Autorizar leitura da agenda** e aceitar a nova permissão na conta Google. Antes disso o produto sinaliza que não conferiu a disponibilidade. Não guarda detalhes pessoais do Google no banco; a leitura ocorre sob demanda e a cada cinco minutos na tela do calendário.
+
+---
+
 ## 2026-09-29 — Codex (revisão da visita extra, calendário e agenda)
 
 - **Pedido e aprovação:** observações da Pati nos prints das 21h23–22h01 de 28/09. Ela solicitou alterações; resultado visual ainda `aguardando avaliação`.

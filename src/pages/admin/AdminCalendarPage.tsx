@@ -139,6 +139,8 @@ function eventProtocol(event: WorkspaceCalendarEvent) {
 export function AdminCalendarPage() {
   const today = useMemo(() => new Date(), []);
   const [events, setEvents] = useState<WorkspaceCalendarEvent[]>(previewCalendarEvents);
+  const [googleEvents, setGoogleEvents] = useState<WorkspaceCalendarEvent[]>([]);
+  const [googleReadStatus, setGoogleReadStatus] = useState<'loading'|'ready'|'reconnect'|'unavailable'>('loading');
   const [companies, setCompanies] = useState<CompanyOption[]>(fallbackCompanies);
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12));
   const [view, setView] = useState<CalendarView>('month');
@@ -160,6 +162,37 @@ export function AdminCalendarPage() {
   const [historyOutcome, setHistoryOutcome] = useState('all');
 
   useEffect(() => { void loadCalendar(); }, []);
+  useEffect(() => {
+    if (!supabase) return;
+    let active = true;
+    const refresh = async () => {
+      const start = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1);
+      // Query each month separately: the Google endpoint limits each request to 62 days.
+      const ranges = [0,1,2].map(offset => {
+        const first=new Date(start.getFullYear(),start.getMonth()+offset,1),last=new Date(start.getFullYear(),start.getMonth()+offset+1,1);
+        const local=(day:Date)=>`${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-01T00:00:00-03:00`;
+        return {start:new Date(local(first)).toISOString(),end:new Date(local(last)).toISOString()};
+      });
+      const results = await Promise.all(ranges.map(range => supabase!.functions.invoke('workspace-google-calendar-read',{body:{action:'events',...range}})));
+      if (!active) return;
+      if (results.some(result=>result.error || result.data?.state!=='checked')) {
+        setGoogleEvents([]);
+        setGoogleReadStatus(results.some(result=>result.data?.state==='reconnect_required')?'reconnect':'unavailable');
+        return;
+      }
+      const seen = new Set<string>();
+      const external:WorkspaceCalendarEvent[] = results.flatMap(result=>(result.data.events||[]).flatMap((row:any)=>{
+        const id=`google:${row.calendarId}:${row.id}`;
+        if(seen.has(id)) return [];
+        seen.add(id);
+        const allDay=Boolean(row.allDay);
+        return [{id,title:row.title,startsAt:allDay?`${row.start}T12:00:00-03:00`:row.start,endsAt:allDay?`${row.end}T12:00:00-03:00`:row.end,allDay,type:'other',color:'#8D7354',location:row.location,description:row.description,googleEventId:row.id,googleHtmlLink:row.htmlLink,visibility:'internal',attendees:[],sourceType:'google',synthetic:true} as WorkspaceCalendarEvent];
+      }));
+      setGoogleEvents(external);setGoogleReadStatus('ready');
+    };
+    void refresh();const timer=window.setInterval(()=>void refresh(),5*60*1000);
+    return ()=>{active=false;window.clearInterval(timer)};
+  },[cursor.getFullYear(),cursor.getMonth()]);
   useEffect(() => { const refresh = () => void loadCalendar(); window.addEventListener('cali-calendar-record-updated', refresh); return () => window.removeEventListener('cali-calendar-record-updated', refresh); }, []);
 
   useEffect(() => {
@@ -259,13 +292,13 @@ export function AdminCalendarPage() {
     }
   }
 
-  const visibleEvents = useMemo(() => events.filter((event) => {
+  const visibleEvents = useMemo(() => [...events,...googleEvents.filter(google=>!events.some(local=>local.googleEventId===google.googleEventId))].filter((event) => {
     if (event.cancelledAt) return false;
     if (companyFilter !== 'all' && event.companyId !== companyFilter) return false;
     if (!activeTypes.has(event.type)) return false;
     if (query && !`${event.title} ${event.company || ''} ${calendarTypeMeta[event.type]?.label || ''} ${eventProtocol(event) || ''}`.toLowerCase().includes(query.toLowerCase())) return false;
     return true;
-  }), [events, companyFilter, activeTypes, query]);
+  }), [events, googleEvents, companyFilter, activeTypes, query]);
 
   const eventsByDate = useMemo(() => {
     const map = new Map<string, WorkspaceCalendarEvent[]>();
@@ -486,13 +519,14 @@ export function AdminCalendarPage() {
           <div className="calendar-workspace-icon"><Cloud size={21} /></div>
           <div>
             <strong>Google Workspace</strong>
-            <p>{calendarConnection === 'connected'
-              ? 'Calendário conectado. Os eventos podem seguir para sincronização e usar Google Meet.'
+            <p>{googleReadStatus==='ready' ? 'Suas agendas Google aparecem aqui. Atualização automática a cada 5 minutos.' : googleReadStatus==='reconnect' ? 'Reconecte sua conta Google para autorizar a leitura das suas agendas.' : googleReadStatus==='unavailable' ? 'Não consegui ler suas agendas Google agora. Seus eventos CALI continuam visíveis.' : calendarConnection === 'connected'
+              ? 'Conferindo os compromissos da sua agenda Google…'
               : 'A agenda CALI já funciona. A conexão OAuth com o Google Workspace será ativada sem criar uma agenda paralela à sua.'}</p>
           </div>
           <span className={`calendar-connection-status ${calendarConnection === 'connected' ? 'connected' : ''}`}>
-            {calendarConnection === 'connected' ? <><Check size={14} />Conectado</> : 'Não conectado'}
+            {googleReadStatus==='ready'?<><Check size={14}/>Sincronizado</>:googleReadStatus==='reconnect'?'Autorizar leitura':calendarConnection === 'connected' ? <><Check size={14} />Conectado</> : 'Não conectado'}
           </span>
+          {googleReadStatus==='reconnect' && <button type="button" className="google-calendar-runtime-button primary" onClick={async()=>{if(!supabase)return;const {data,error}=await supabase.functions.invoke('google-calendar-oauth',{body:{action:'authorize',companyId:null}});if(error||!data?.url)return;window.location.assign(data.url)}}>Autorizar leitura da agenda</button>}
         </section>
 
         <section className="calendar-main-toolbar">
@@ -660,7 +694,7 @@ export function AdminCalendarPage() {
           <div className="calendar-detail-heading">
             <div className="calendar-detail-company-mark">{selectedEvent.companyLogo ? <img src={selectedEvent.companyLogo} alt="" /> : getCompanyMark(selectedEvent.company)}</div>
             <div>
-              <span className="section-kicker">{calendarTypeMeta[selectedEvent.type].label} · {selectedEvent.cancelledAt?'Cancelado':meetingOutcomes[selectedEvent.id]?.outcome==='occurred'?'Realizado':meetingOutcomes[selectedEvent.id]?.outcome==='not_occurred'?'Não realizado':selectedEvent.attendees.some(attendee=>attendee.status==='declined')?'Não confirmado':selectedEvent.attendees.some(attendee=>attendee.status==='accepted')?'Confirmado':'Aguardando confirmação'}</span>
+              <span className="section-kicker">{selectedEvent.sourceType==='google'?'AGENDA GOOGLE':calendarTypeMeta[selectedEvent.type].label} · {selectedEvent.sourceType==='google'?'Compromisso pessoal':selectedEvent.cancelledAt?'Cancelado':meetingOutcomes[selectedEvent.id]?.outcome==='occurred'?'Realizado':meetingOutcomes[selectedEvent.id]?.outcome==='not_occurred'?'Não realizado':selectedEvent.attendees.some(attendee=>attendee.status==='declined')?'Não confirmado':selectedEvent.attendees.some(attendee=>attendee.status==='accepted')?'Confirmado':'Aguardando confirmação'}</span>
               <h2>{selectedEvent.title}</h2>
               <p>{selectedEvent.company || 'CALI'} · {selectedEvent.visibility === 'client' ? 'visível para o cliente' : 'interno'}</p>
               {eventProtocol(selectedEvent) && <span className="calendar-protocol-badge">{selectedEvent.synthetic ? 'Protocolo de origem' : 'Protocolo'} · {eventProtocol(selectedEvent)}</span>}
@@ -669,15 +703,15 @@ export function AdminCalendarPage() {
           <div className="calendar-detail-body">
             <div className="calendar-detail-facts">
               <article><Clock3 size={17} /><span>Quando</span><strong>{formatCalendarDate(selectedEvent.startsAt)} · {selectedEvent.allDay ? 'Dia inteiro' : formatCalendarTime(selectedEvent.startsAt)}</strong></article>
-              <article>{selectedEvent.mode === 'in_person' ? <MapPin size={17} /> : <Video size={17} />}<span>Formato</span><strong>{selectedEvent.mode === 'in_person' ? 'Presencial' : selectedEvent.mode === 'remote' ? 'Remoto' : 'Prazo automático'}</strong></article>
+              <article>{selectedEvent.mode === 'in_person' ? <MapPin size={17} /> : <Video size={17} />}<span>Formato</span><strong>{selectedEvent.sourceType==='google'?'Agenda Google':selectedEvent.mode === 'in_person' ? 'Presencial' : selectedEvent.mode === 'remote' ? 'Remoto' : 'Prazo automático'}</strong></article>
               <article><Users size={17} /><span>Convidados</span><strong>{selectedEvent.attendees.length ? `${selectedEvent.attendees.length} convidado(s)` : selectedEvent.visibility === 'client' ? 'Cliente relacionado' : 'Somente CALI'}</strong></article>
             </div>
             {selectedEvent.description && <section className="calendar-detail-description"><strong>Contexto</strong><p>{selectedEvent.description}</p></section>}
-            {selectedEvent.synthetic && <div className="calendar-auto-source"><CalendarDays size={18} /><div><strong>Prazo automático</strong><p>Este item vem do deadline de um entregável. Para alterar a data, edite o entregável de origem — o calendário será atualizado sem duplicar cadastro.</p></div></div>}
+            {selectedEvent.synthetic && <div className="calendar-auto-source"><CalendarDays size={18} /><div><strong>{selectedEvent.sourceType==='google'?'Compromisso do Google':'Prazo automático'}</strong><p>{selectedEvent.sourceType==='google'?'Para alterar este compromisso, abra a agenda Google. Ele aparece aqui apenas para consulta.':'Este item vem do deadline de um entregável. Para alterar a data, edite o entregável de origem — o calendário será atualizado sem duplicar cadastro.'}</p></div></div>}
             {!!selectedEvent.attendees.length && <section className="calendar-attendee-list"><strong>Convidados</strong>{selectedEvent.attendees.map((attendee, index) => <div key={`${attendee.email}-${index}`}><span className={`attendee-status ${attendee.status}`} /><span>{attendee.name}</span><small>{attendee.email}</small><b>{attendee.status === 'accepted' ? 'Aceito' : attendee.status === 'declined' ? 'Recusado' : attendee.status === 'tentative' ? 'Talvez' : 'Pendente'}</b></div>)}</section>}
             {showCancel && !selectedEvent.synthetic && <section className="calendar-cancel-box"><strong>Cancelar compromisso</strong><p>O motivo fica registrado. Quando a régua de notificações estiver ativada, ele também poderá compor a comunicação aos participantes.</p><textarea value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} rows={2} placeholder="Motivo do cancelamento" /><div><button className="secondary" onClick={() => setShowCancel(false)}>Voltar</button><button className="primary danger-action" disabled={!cancelReason.trim()} onClick={() => void cancelEvent()}>Confirmar cancelamento</button></div></section>}
           </div>
-          <div className="calendar-detail-footer calendar-detail-actions"><div className="calendar-detail-primary-actions">{!selectedEvent.synthetic && !selectedEvent.cancelledAt && <button className="secondary edit-event-action" onClick={() => openEditEvent(selectedEvent)}><Pencil size={16} />Editar ou remarcar</button>}{selectedEvent.meetingUrl && !selectedEvent.cancelledAt && <button className="primary" onClick={() => window.open(selectedEvent.meetingUrl!, '_blank', 'noopener,noreferrer')}><Video size={16} />Abrir Meet</button>}</div><div className="calendar-detail-secondary-actions"><button className="secondary" onClick={() => window.open(googleCalendarTemplate(selectedEvent), '_blank', 'noopener,noreferrer')}><ExternalLink size={16} />Google Agenda</button><button className="secondary" onClick={() => downloadCalendarIcs(selectedEvent)}><Download size={16} />ICS</button>{!selectedEvent.synthetic && !selectedEvent.cancelledAt && !showCancel && <button className="secondary danger-soft" onClick={() => setShowCancel(true)}>Cancelar</button>}</div></div>
+          <div className="calendar-detail-footer calendar-detail-actions"><div className="calendar-detail-primary-actions">{!selectedEvent.synthetic && !selectedEvent.cancelledAt && <button className="secondary edit-event-action" onClick={() => openEditEvent(selectedEvent)}><Pencil size={16} />Editar ou remarcar</button>}{selectedEvent.meetingUrl && !selectedEvent.cancelledAt && <button className="primary" onClick={() => window.open(selectedEvent.meetingUrl!, '_blank', 'noopener,noreferrer')}><Video size={16} />Abrir Meet</button>}</div><div className="calendar-detail-secondary-actions"><button className="secondary" onClick={() => window.open(selectedEvent.sourceType==='google'&&selectedEvent.googleHtmlLink?selectedEvent.googleHtmlLink:googleCalendarTemplate(selectedEvent), '_blank', 'noopener,noreferrer')}><ExternalLink size={16} />Google Agenda</button><button className="secondary" onClick={() => downloadCalendarIcs(selectedEvent)}><Download size={16} />ICS</button>{!selectedEvent.synthetic && !selectedEvent.cancelledAt && !showCancel && <button className="secondary danger-soft" onClick={() => setShowCancel(true)}>Cancelar</button>}</div></div>
         </section>
       </div>}
     </Shell>

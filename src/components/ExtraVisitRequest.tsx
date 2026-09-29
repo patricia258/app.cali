@@ -41,6 +41,9 @@ export function ExtraVisitRequest() {
   const [ack, setAck] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [availability, setAvailability] = useState<'idle'|'checking'|'checked'|'unavailable'>('idle');
+  const [busySlots, setBusySlots] = useState<boolean[]>([]);
+  const [considerBusy, setConsiderBusy] = useState(false);
   useEffect(()=>{const openChooser=()=>{setMode(null);setStep(0);setOpen(true)};window.addEventListener('cali:open-papo-request',openChooser);return()=>window.removeEventListener('cali:open-papo-request',openChooser)},[]);
   useEffect(() => {
     if (!open) return;
@@ -55,7 +58,7 @@ export function ExtraVisitRequest() {
   useEffect(() => { if (!open || !supabase) return; let live = true; (async () => { const { data: auth } = await supabase.auth.getUser(); if (!auth.user) return; const { data: profile } = await supabase.from('profiles').select('company_id').eq('id', auth.user.id).maybeSingle(); if (!profile?.company_id) return; const { data: companyData } = await supabase.from('companies').select('id,display_name').eq('id', profile.company_id).maybeSingle(); if (live && companyData) setCompany({ id: companyData.id, name: companyData.display_name }); })(); return () => { live = false; }; }, [open]);
   const hasMonday = slots.some(slot => slot.date && new Date(`${slot.date}T12:00:00-03:00`).getUTCDay() === 1);
   const address = `${street.trim()}, ${number.trim()} · ${district.trim()} · ${city.trim()} · CEP ${zip.trim()}`;
-  function selectMode(next:MeetingMode){setMode(next);setTitle(next==='visit'?'Visita presencial extra':'Reunião online extra');setSlots([emptySlot(),emptySlot()]);setDuration(60);setAck(false);setAckName('');setError('');setStep(1);}
+  function selectMode(next:MeetingMode){setMode(next);setTitle(next==='visit'?'Visita presencial extra':'Reunião online extra');setSlots([emptySlot(),emptySlot()]);setDuration(60);setAck(false);setAckName('');setError('');setAvailability('idle');setBusySlots([]);setConsiderBusy(false);setStep(1);}
   function validateDetails() {
     if (!mode) return 'Escolha o formato do encontro.';
     if (title.trim().length < 2) return 'Informe o assunto do encontro.';
@@ -63,13 +66,26 @@ export function ExtraVisitRequest() {
     if (mode==='visit' && hasMonday && mondayReason.trim().length < 5) return 'Conte por que precisa de uma segunda-feira para eu avaliar a agenda.';
     return validateSlot(slots[0],mode,mode==='visit'?240:duration) || validateSlot(slots[1],mode,mode==='visit'?240:duration) || (slots[0].date === slots[1].date && slots[0].time === slots[1].time ? 'Escolha duas opções diferentes.' : null);
   }
-  function updateSlot(index: 0 | 1, key: keyof Slot, value: string) { setSlots(current => { const next: [Slot, Slot] = [{ ...current[0] }, { ...current[1] }]; next[index][key] = value; return next; }); }
+  function updateSlot(index: 0 | 1, key: keyof Slot, value: string) { setAvailability('idle');setBusySlots([]);setConsiderBusy(false);setSlots(current => { const next: [Slot, Slot] = [{ ...current[0] }, { ...current[1] }]; next[index][key] = value; return next; }); }
+  async function checkAvailability() {
+    if (!supabase) { setAvailability('unavailable'); return []; }
+    setAvailability('checking');
+    const proposed = slots.map(slot => { const start = new Date(`${slot.date}T${slot.time}:00-03:00`); return { startsAt: start.toISOString(), endsAt: new Date(start.getTime()+(mode==='visit'?240:duration)*60000).toISOString() }; });
+    try {
+      const { data, error } = await supabase.functions.invoke('workspace-google-calendar-read', { body: { action: 'availability', slots: proposed } });
+      if (error || data?.state !== 'checked' || !Array.isArray(data.slots)) throw error || new Error('Agenda indisponível');
+      const busy = data.slots.map((item: { busy: boolean }) => Boolean(item.busy));
+      setBusySlots(busy); setAvailability('checked'); return busy;
+    } catch { setAvailability('unavailable'); return []; }
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const issue = validateDetails();
     if (issue) return setError(issue);
     if (!ack || ackName.trim().length < 5) return setError('Digite seu nome completo e confirme sua ciência.');
     if (!supabase) return setError('Conexão indisponível. Tente novamente.');
+    const latestBusy = await checkAvailability();
+    if (latestBusy.some(Boolean) && !considerBusy) return setError('Há um compromisso em um dos horários. Marque a opção de análise mesmo assim ou escolha outra data.');
     setError(''); setSaving(true);
     const requestedSlots = slots.map(slot => {
       const start = new Date(`${slot.date}T${slot.time}:00-03:00`);
@@ -110,8 +126,10 @@ export function ExtraVisitRequest() {
           {mode==='visit' && hasMonday && <label className="extra-visit-monday">Por que a segunda-feira é importante?<textarea value={mondayReason} onChange={e => setMondayReason(e.target.value)} required minLength={5} placeholder="Conte o contexto para eu avaliar uma exceção."/></label>}
           <p className="extra-visit-hours">{mode==='visit'?'Horários: terça a sexta, início entre 9h e 12h (até 16h). Segunda-feira: mediante avaliação, sem taxa adicional.':'Horários: segunda a sexta, entre 9h e 16h. Envie duas opções para eu avaliar.'}</p>
           {error && <p className="extra-visit-error" role="alert">{error}</p>}
-          <footer><button type="button" onClick={() => { setError(''); setStep(1); }}>Voltar</button><button type="button" className="extra-visit-next" onClick={event => { const form = event.currentTarget.form; if (!form?.reportValidity()) return; const issue = validateDetails(); if (issue) return setError(issue); setError(''); setStep(3); }}>Revisar pedido →</button></footer></> : <>
+          <footer><button type="button" onClick={() => { setError(''); setStep(1); }}>Voltar</button><button type="button" className="extra-visit-next" onClick={async event => { const form = event.currentTarget.form; if (!form?.reportValidity()) return; const issue = validateDetails(); if (issue) return setError(issue); setError(''); await checkAvailability(); setStep(3); }}>Revisar pedido →</button></footer></> : <>
           <div className="extra-visit-review"><strong>{title}</strong><span>{company?.name} · {mode==='online'?'Online':'Presencial'}</span><div>{slots.map((slot,index) => <p key={index}><small>Opção {index + 1}</small><b>{weekday(slot)}</b></p>)}</div>{mode==='visit' && hasMonday && <small>Segunda-feira: sujeita à confirmação da CALI.</small>}{mode==='online'&&<small>Duração prevista: {duration} minutos. Valor sujeito a orçamento e aceite.</small>}</div>
+          {availability==='checked' && busySlots.some(Boolean) && <div className="extra-visit-availability" role="status"><strong>Já tenho um compromisso {busySlots.filter(Boolean).length===2?'nos dois horários':'em uma das opções'}.</strong><p>Posso avaliar sua solicitação mesmo assim. Nenhuma data fica confirmada até eu responder.</p><label><input type="checkbox" checked={considerBusy} onChange={event=>setConsiderBusy(event.target.checked)}/><span>Quero que a Pati avalie esses horários mesmo assim.</span></label></div>}
+          {availability==='unavailable' && <p className="extra-visit-availability">Não consegui consultar minha agenda agora. Você pode enviar as opções; vou conferir antes de confirmar.</p>}
           <div className="extra-visit-consent"><label>Seu nome completo<input autoComplete="name" value={ackName} onChange={e => setAckName(e.target.value)} required/></label><label className="extra-visit-check"><input type="checkbox" checked={ack} onChange={e => setAck(e.target.checked)}/><span>{mode==='visit'?'Estou ciente do valor da visita de até 4 horas, das despesas comprovadas à parte e do orçamento prévio para horas adicionais. Entendemos que eventualidades podem impedir a visita — se algo acontecer, avise com antecedência e conte o motivo. Sem aviso ou justificativa, aplica-se uma taxa de 20%; com aviso ou motivo justificado, não há cobrança.':'Entendi que este papo online é adicional ao meu contrato. Vou receber o orçamento para aprovar antes da confirmação; enviar este pedido não gera cobrança.'}</span></label></div>
           {error && <p className="extra-visit-error" role="alert">{error}</p>}
           <footer><button type="button" onClick={() => { setError(''); setStep(2); }}>Voltar</button><button type="submit" disabled={saving || !ack}>{saving ? 'Enviando…' : 'Enviar para análise'}</button></footer></>}
