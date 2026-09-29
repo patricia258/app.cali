@@ -1,5 +1,13 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-09-29 — Codex (respiro e legibilidade do calendário administrativo)
+
+- **Pedido da Pati:** os prints das 13h32–13h36 mostram semana estreita, filtros e busca truncados, legendas e horários apertados, eventos sobrepostos com texto ilegível e detalhe Google com espaço e ícones mal distribuídos. O calendário semanal é a prioridade visual.
+- **Ajuste:** a semana usa toda a largura disponível; mini mês e tipos de evento ficam abaixo, em cartões proporcionais com rótulos legíveis. Busca ganha largura mínima; eixo de horas não invade “Dia inteiro”. Eventos do Workspace recebem fundo opaco na sobreposição e os do Google escolhem texto claro/escuro pela luminosidade da cor efetiva. Detalhe Google usa ícone de agenda, título com quebra de linha e ações próximas ao conteúdo, sem altura vazia forçada.
+- **Arquivos:** `src/page4-calendar.css`, `src/pages/admin/AdminCalendarPage.tsx`. **Autoria:** Codex. **Aprovação:** aguardando conferência visual da Pati nos modos dia/noite e em telas menores. **Verificação:** `npm run check` passou; não houve alteração de dados, sincronização ou regras da agenda. Não usar o antigo layout de lateral estreita como referência em novos ajustes.
+
+---
+
 ## 2026-09-29 — Codex (agenda compacta, detalhe e semana do cliente)
 
 - **Pedido da Pati:** remover dois cards enormes (alterações e histórico de reuniões); mostrar próximos compromissos em carrossel acima dos filtros; reduzir mini calendário e tipos; empilhar eventos sobrepostos; respeitar a cor escolhida no Google; detalhe de evento enxuto, em português, com horário, anotações e endereço clicável. No perfil do cliente, abrir por semana, permitir escolher o que ver e reduzir cards grandes.
