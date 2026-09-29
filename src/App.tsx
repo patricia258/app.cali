@@ -3,6 +3,9 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute, WorkspaceRouteLoader } from './components/ProtectedRoute';
 import { Shell, WorkspaceFrame } from './components/WorkspaceShell';
 import { useLocation } from 'react-router-dom';
+// The two calendars need their layout CSS before the first route paint.
+import './page4-calendar.css';
+import './client-timeline-v3.css';
 
 const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));

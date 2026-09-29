@@ -23,6 +23,7 @@ export type WorkspaceCalendarEvent = {
   project?: string | null;
   type: CalendarEventType;
   color: string;
+  textColor?: string;
   startsAt: string;
   endsAt?: string | null;
   allDay: boolean;
@@ -32,11 +33,14 @@ export type WorkspaceCalendarEvent = {
   description?: string | null;
   visibility: CalendarVisibility;
   attendees: CalendarAttendee[];
-  sourceType: 'manual' | 'deliverable' | 'project' | 'google';
+  sourceType: 'manual' | 'deliverable' | 'project' | 'google' | 'request_preview';
+  previewStatus?: string | null;
+  previewOption?: number;
   sourceEntityId?: string | null;
   sourceProtocol?: string | null;
   googleEventId?: string | null;
   googleHtmlLink?: string | null;
+  organizer?: string | null;
   meetSpaceName?: string | null;
   reminderMinutes?: number;
   autoTranscription?: boolean;

@@ -35,3 +35,13 @@ html[data-workspace-theme='night'] .extra-visit-expenses-fields input,html[data-
 html[data-workspace-theme='night'] .extra-visit-expenses-modal footer button{background:#2c2024;border-color:#554047;color:#eee3e6}
 html[data-workspace-theme='night'] .extra-visit-expenses-modal footer button[type=submit]{background:#7a2942;border-color:#7a2942;color:#fff}
 @media(max-width:600px){.extra-visit-expenses-backdrop{padding:8px}.extra-visit-expenses-modal{max-height:96vh;border-radius:16px}.extra-visit-expenses-modal form,.extra-visit-expenses-modal>header{padding-left:15px;padding-right:15px}.extra-visit-expenses-fields{grid-template-columns:1fr}.extra-visit-expenses-fields .full{grid-column:auto}}
+.extra-visit-expenses-modal{width:min(740px,96vw)}
+.extra-visit-expense-lines{display:grid;gap:11px;margin-top:14px}.extra-visit-expense-line{padding:14px;border:1px solid var(--theme-line,#ded5cf);border-radius:13px;background:var(--theme-surface-soft,#faf7f5)}
+.extra-visit-expense-line-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:var(--theme-text,#2b2b2b);font-size:13px}.extra-visit-expense-line-head button{display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--theme-line,#ded5cf);border-radius:9px;background:transparent;color:var(--theme-text,#2b2b2b);cursor:pointer}
+.extra-visit-add-line{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:9px 12px;border:1px dashed #b58c52;border-radius:10px;background:transparent;color:var(--theme-text,#2b2b2b);font:700 12px Inter,sans-serif;cursor:pointer}
+.extra-visit-expenses-notice{padding:10px;border:1px solid #a8c4a6;border-radius:9px;background:#e9f4e8;color:#23532e;font-size:12px}
+.extra-visit-expenses-item small{display:block;color:var(--theme-muted,#786d67);font-size:10px}.extra-visit-expenses-item button{border:0;background:none;color:#7b3447;text-decoration:underline;cursor:pointer}
+html[data-workspace-theme='night'] .extra-visit-expense-line{background:#2b2024;border-color:#523d44}html[data-workspace-theme='night'] .extra-visit-expenses-item button{color:#e6c17b}
+.top-actions .extra-visit-expenses-trigger{min-height:38px;padding:0 11px;border-radius:10px;border-color:#d6c8b8;background:var(--theme-surface,#fff);color:var(--theme-text,#302a28);font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:700;box-shadow:none}
+.top-actions .extra-visit-expenses-trigger:hover{border-color:#b58c52;background:color-mix(in srgb,#b58c52 9%,var(--theme-surface,#fff));color:var(--theme-text,#302a28)}
+@media(max-width:950px){.top-actions .extra-visit-expenses-trigger span{display:none}.top-actions .extra-visit-expenses-trigger{width:38px;justify-content:center;padding:0}}

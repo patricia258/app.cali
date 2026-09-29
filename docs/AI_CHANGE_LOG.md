@@ -1,5 +1,80 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-09-29 — Codex (prévias de agenda, recusa e contraste noite)
+
+- **Pedido da Pati:** os prints das 14h04–14h07 mostram o modo noite com contraste falho, uma solicitação reduzida a “2 opções”, recusa chamada “não confirmado”, prazo de entregável sem projeto e necessidade de ver as duas datas propostas como simulação na agenda administrativa e do cliente.
+- **Implementação:** cada opção pendente aparece em sua data e duração reais, com título, etiqueta de prévia extra e borda pontilhada. A prévia informa que não confirma nem reserva a agenda; não participa dos indicadores de compromissos nem do carrossel administrativo. A agenda administrativa consulta pedidos reais e atualiza ao receber mudança no Supabase. A recusa recebe texto “Recusado”, estado vermelho e datas riscadas no cliente; a ação administrativa pede justificativa com o verbo “Recusar”. O prazo de entregável mostra seu projeto quando cadastrado. Contraste do modo noite foi definido explicitamente para eventos e cabeçalhos dos detalhes.
+- **Arquivos:** `src/domain/calendar.ts`, `src/pages/admin/AdminCalendarPage.tsx`, `src/pages/client/ClientTimelinePage.tsx`, `src/page4-calendar.css`, `src/client-timeline-v3.css`, `src/lib/schedulingRequestsRuntimeV65.ts`, `src/components/AgendaChangeInbox.tsx`.
+- **Autor:** Codex. **Aprovação:** aguardando conferência da Pati nas contas reais. **Verificação:** `npm run check` passou. As prévias são calculadas a partir de `scheduling_requests`; nenhum evento foi criado, confirmado ou cobrado por esta mudança. Respeitar o contraste dia/noite também em futuros modais e estados.
+
+---
+
+## 2026-09-29 — Codex (respiro e legibilidade do calendário administrativo)
+
+- **Pedido da Pati:** os prints das 13h32–13h36 mostram semana estreita, filtros e busca truncados, legendas e horários apertados, eventos sobrepostos com texto ilegível e detalhe Google com espaço e ícones mal distribuídos. O calendário semanal é a prioridade visual.
+- **Ajuste:** a semana usa toda a largura disponível; mini mês e tipos de evento ficam abaixo, em cartões proporcionais com rótulos legíveis. Busca ganha largura mínima; eixo de horas não invade “Dia inteiro”. Eventos do Workspace recebem fundo opaco na sobreposição e os do Google escolhem texto claro/escuro pela luminosidade da cor efetiva. Detalhe Google usa ícone de agenda, título com quebra de linha e ações próximas ao conteúdo, sem altura vazia forçada.
+- **Arquivos:** `src/page4-calendar.css`, `src/pages/admin/AdminCalendarPage.tsx`. **Autoria:** Codex. **Aprovação:** aguardando conferência visual da Pati nos modos dia/noite e em telas menores. **Verificação:** `npm run check` passou; não houve alteração de dados, sincronização ou regras da agenda. Não usar o antigo layout de lateral estreita como referência em novos ajustes.
+
+---
+
+## 2026-09-29 — Codex (agenda compacta, detalhe e semana do cliente)
+
+- **Pedido da Pati:** remover dois cards enormes (alterações e histórico de reuniões); mostrar próximos compromissos em carrossel acima dos filtros; reduzir mini calendário e tipos; empilhar eventos sobrepostos; respeitar a cor escolhida no Google; detalhe de evento enxuto, em português, com horário, anotações e endereço clicável. No perfil do cliente, abrir por semana, permitir escolher o que ver e reduzir cards grandes.
+- **Implementação:** alterações de reuniões ficam em botão compacto com contador, abrindo o mesmo fluxo de análise; histórico passa a botão/modal com os filtros e transcrições preservados. Os próximos compromissos formam carrossel horizontal. O painel Google e a lateral foram compactados. Eventos sobrepostos usam leve deslocamento na mesma coluna para manter cada faixa clicável. A API prioriza a cor específica do evento Google e deduplica cópias preferindo a que guarda essa cor. O detalhe pessoal abre em formato de linhas, com edição direcionada ao Google, compartilhamento por e-mail, data/horário em pt-BR, notas e mapa clicável; não foi criada exclusão falsa sem permissão de escrita.
+- **Cliente:** a navegação passa a chamar “Agenda e Planejamento”; visão semanal e lista com filtros para reuniões, solicitações, prazos e, opcionalmente, compromissos da própria conta Google conectada. Consulta desses compromissos é protegida por JWT e verifica usuário e empresa, sem revelar a agenda da administradora. O painel de conexão fica recolhível; métricas compactas e detalhe com linhas mais claras. Eventos simultâneos na semana do cliente ficam levemente deslocados e clicáveis; cores claras do Google recebem texto escuro para manter contraste. A grade semanal do cliente também tem eixo de horas visível.
+- **Arquivos:** `src/components/AgendaChangeInbox.tsx`, `src/components/agenda-change-inbox.css`, `src/pages/admin/AdminCalendarPage.tsx`, `src/page4-calendar.css`, `src/pages/client/ClientTimelinePage.tsx`, `src/client-timeline-v3.css`, `src/components/WorkspaceShell.tsx`, `src/domain/calendar.ts`, `supabase/functions/workspace-google-calendar-read/index.ts`.
+- **Autor:** Codex. **Aprovação:** aguardando avaliação visual da Pati. **Verificação:** `npm run check` passou; Edge Function versão 4 ativa. Teste visual com conta Google autenticada ainda pendente. A conexão Google do cliente pode exigir nova autorização de leitura se tiver sido feita com escopo antigo.
+
+---
+
+## 2026-09-29 — Codex (visão semanal do calendário administrativo)
+
+- **Pedido da Pati:** abrir o calendário pela semana, distinguir os eventos importados do Google dos criados no Workspace, reproduzir as cores do Google e fazer cada bloco ocupar exatamente sua duração (por exemplo, 10h–10h30), inclusive quando há eventos simultâneos.
+- **Implementação:** grade semanal posicionada por minuto, com largura dividida entre compromissos sobrepostos, faixa separada para dia inteiro e rótulo de origem. Eventos Google usam a cor do próprio evento ou da agenda por meio da API Colors; eventos internos mantêm a identidade CALI. A visualização mensal continua disponível. Contraste calculado para fundo claro/escuro. A função de leitura mantém a verificação JWT e não expõe títulos aos clientes.
+- **Arquivos:** `src/pages/admin/AdminCalendarPage.tsx`, `src/page4-calendar.css`, `src/domain/calendar.ts`, `supabase/functions/workspace-google-calendar-read/index.ts`.
+- **Autor:** Codex. **Aprovação:** aguardando conferência visual da Pati. **Validação:** `npm run check` passou; função Edge implantada (versão 3). Conferência visual autenticada com eventos reais ainda pendente.
+
+---
+
+## 2026-09-29 — Codex (agenda Google e horários ocupados)
+
+- **Pedido da Pati:** mostrar no calendário administrativo os compromissos da agenda real do Google Workspace. Avisar ao cliente que uma opção está ocupada, sem impedir pedido de análise excepcional. Bloquear envio duplicado de horários pendentes da mesma empresa.
+- **Implementação:** a reconexão Google solicita leitura. A função protegida consulta todas as agendas da conta administrativa; títulos e detalhes são visíveis só à administradora, e clientes recebem apenas um indicador de ocupado. A agenda administrativa lê o mês e os meses adjacentes ao abrir, atualiza a cada cinco minutos enquanto a tela está aberta e não duplica eventos CALI já vinculados ao Google. Horários ocupados exigem confirmação específica no modal; a decisão final continua com a Pati. Uma trava transacional no banco bloqueia pedidos pendentes sobrepostos da mesma empresa.
+- **Arquivos:** `supabase/functions/google-calendar-oauth/index.ts`, `supabase/functions/workspace-google-calendar-read/index.ts`, `src/pages/admin/AdminCalendarPage.tsx`, `src/components/ExtraVisitRequest.tsx`, `src/components/extra-visit-request.css`, `supabase/migrations/20260929152000_scheduling_duplicate_pending_slots.sql`.
+- **Autor:** Codex. **Aprovação:** aguardando conferência visual da Pati. **Ativação:** `patricia@calirh.com` estava conectada com permissão antiga. É necessário usar **Autorizar leitura da agenda** e aceitar a nova permissão na conta Google. Antes disso o produto sinaliza que não conferiu a disponibilidade. Não guarda detalhes pessoais do Google no banco; a leitura ocorre sob demanda e a cada cinco minutos na tela do calendário.
+
+---
+
+## 2026-09-29 — Codex (revisão da visita extra, calendário e agenda)
+
+- **Pedido e aprovação:** observações da Pati nos prints das 21h23–22h01 de 28/09. Ela solicitou alterações; resultado visual ainda `aguardando avaliação`.
+- **Visual e copy:** contraste explícito entre fundo e texto/ícones nos modos dia e noite; cabeçalho da visita usa Inter, branco sobre bordô e folha CALI. Condições terminam em “Vamos prosseguir?”. Campos separados de endereço, empresa, anexo opcional e justificativa para segunda-feira; confirmação mostra dia da semana e horários destacados. Botões do topbar menores e coerentes com o Workspace.
+- **Admin:** botão de solicitações só no calendário, painel com blur e entrada suave, um pedido por vez com paginação; capa com logo, solicitante, status, local clicável, anexos e ações existentes. Gastos da visita em linhas repetíveis (deslocamento, estacionamento, alimentação e horas adicionais), com comprovante opcional. Para horas adicionais, exige quantidade e referência do orçamento aprovado. Protocolo em cada linha e auditoria interna.
+- **Cliente:** agenda em cartões compactos com botão “Ver detalhes” explícito; modal legível e responsivo. Comprovantes e protocolos das despesas ficam no histórico da visita. Relatório executivo mostra visitas concluídas e despesas da competência numa página para conciliação (não gera fatura).
+- **Banco e arquivos:** `src/components/ExtraVisitRequest.tsx`, `ExtraVisitExpenses.tsx`, estilos correspondentes, `src/lib/schedulingRequestsRuntimeV65.ts`, `src/pages/client/ClientTimelinePage.tsx`, `src/client-timeline-v3.css`, `src/components/reports/ExecutiveReportPaperV17.tsx`, migração `20260929012000_extra_visit_ux_evidence.sql`. A migração cria anexo privado por pedido, flexibiliza comprovante de despesa, registra protocolo e auditoria, restringe as funções a usuários autenticados. Aplicada ao Supabase e confirmada por consulta de catálogo; `npm run check` validado. Fluxo real autenticado e aparência em navegador seguem para conferência após deploy.
+- **Handoff:** regra permanente de contraste: fundo claro → texto/ícone escuro; fundo escuro → texto/ícone claro, em ambos os temas e perfis. FAQ contextual por pacote registrado em `docs/VISITA_EXTRA_SPEC.md` como item aberto para especificação. Carro próprio (R$/km), aprovação formal de horas adicionais e emissão de fatura continuam fora deste fluxo; não confundir registro de conciliação com cobrança automática.
+
+---
+
+## 2026-09-29 — Codex (reuniões, transcrições e detalhe da agenda)
+
+- **Pedido:** botões “Solicitar visita presencial” e “Solicitar reunião online”, deixando as condições de cobrança dentro do respectivo pedido. Reorganizar o detalhe do evento no administrador com estados por cor e ações agrupadas. Consultar reuniões online/presenciais por período e resultado; disponibilizar transcrição no histórico com aviso automático por e-mail ao cliente.
+- **Implementação:** o pedido de reunião iniciado pelo cliente é classificado como adicional e requer orçamento informado pela CALI e aceito pelo cliente antes da confirmação; os encontros incluídos no Partner/Full continuam organizados pela CALI. Não foi presumido um preço fixo para reunião online. No cliente, reagendamento/cancelamento abre um alerta separado, com justificativa e duas datas, e entra em análise; o evento ordinário fica intacto até a decisão. A visita extra mantém seu histórico específico e agora exige 48 horas úteis para as datas de reagendamento, enquanto a primeira solicitação mantém 48 horas corridas.
+- **Administrador:** seção recolhível de histórico com filtros por mês, formato e situação, incluindo canceladas e não realizadas. Modal de detalhe com cabeçalho verde, amarelo ou vermelho conforme estado e duas áreas de ações. Registro e anexo de transcrição continuam no detalhe do encontro. Ao salvar um novo link ou anexo, trigger cria notificação para cada usuário ativo da conta e aciona o hook existente de e-mail; atualizações apenas da observação não repetem o aviso.
+- **Arquivos:** `src/components/ExtraVisitRequest.tsx`, `src/lib/schedulingRequestsRuntimeV65.ts`, `src/lib/schedulingPolicyRuntimeV66.ts`, `src/lib/schedulingPostConfirmationV69.ts`, `src/pages/admin/AdminCalendarPage.tsx`, `src/pages/client/ClientTimelinePage.tsx`, CSS relacionados e `supabase/migrations/20260929040000_agenda_changes_and_meeting_records.sql`.
+- **Autor:** Codex. **Aprovação:** pendente de conferência da Pati. **Regra para Claude e Codex:** em ambos os temas, texto/ícones devem ter contraste legível; dados de agenda e histórico vêm do Supabase, não de mock. Evitar mexer nos componentes citados sem ler esta entrada e a migration. **Em aberto:** desenho próprio da agenda fixa mensal CALI Full, quilometragem de carro próprio e timing fino do faturamento; orçamento de reunião online é individual.
+
+---
+
+## 2026-09-29 — Codex (entrada única para agendamentos adicionais)
+
+- **Pedido da Pati:** reaproveitar o botão do topbar, amarelo nos temas dia e noite, com o texto “Agende aqui um papo com a Pati”. A primeira tela escolhe visita presencial na sede ou bate-papo online e explica que o espaço é só para encontros fora da agenda mensal incluída. Cada caminho mostra suas condições antes de pedir duas datas, seguido da revisão e da ciência. Remover a faixa grande “Agenda com a CALI / Reunião online” do Planejamento.
+- **Entrega:** `ExtraVisitRequest` agora oferece escolha de formato e usa a mesma moldura e transição para as três etapas de cada caminho. A visita conserva R$ 800/4h, endereço, segunda-feira sob análise, despesas e sua RPC. O online permite duração de 30–90 minutos, duas opções até as 16h, informa que orçamento e aceite vêm antes da confirmação e registra nome completo e ciência em `client_request_online_extra_v2`. A RPC antiga `v1` deixou de ser executável diretamente pelo cliente. O card de origem da reunião online foi retirado; uma faixa compacta só aparece quando existe orçamento ou proposta de horário esperando resposta, para não esconder a ação necessária. Histórico geral de pedidos continua na agenda do cliente; encontros confirmados ficam como eventos para consulta da transcrição.
+- **Arquivos:** `src/components/ExtraVisitRequest.tsx`, `src/components/extra-visit-request.css`, `src/lib/schedulingRequestsRuntimeV65.ts`, `src/lib/schedulingPolicyRuntimeV66.ts`, `src/pages/client/ClientTimelinePage.tsx`, `supabase/migrations/20260929130000_online_extra_unified_request.sql`.
+- **Autor:** Codex. **Aprovação:** aguardando conferência visual da Pati, sobretudo no celular. **Verificações:** `npm run check` passou; schema/RPC/permissões consultados no Supabase. Nenhum preço de reunião online foi presumido. **Separação importante para Claude:** Partner e Full têm encontros contratuais organizados pela CALI; este botão cria apenas pedidos adicionais.
+
+---
+
 ## 2026-09-28 — Codex (modal da visita extra)
 
 - **Pedido:** Pati mostrou o modal abrindo com o topo fora da tela e pediu centralização, fundo desfocado e conteúdo sem rolagem sempre que possível.
@@ -408,3 +483,25 @@ Duas regras técnicas, pro handoff entre Claude e Codex, a partir do bug encontr
   1. Permitir que o decisor (usuário cliente) troque a própria logo e o nome da empresa pelo portal do cliente — hoje essa edição só existe no admin (`AdminClientsPageV3.tsx`).
   2. Investigar e corrigir a divergência entre o nome do decisor cadastrado em `companies`/`client_invites` e o nome no perfil dele (`profiles`) — a Pati notou que estão diferentes em pelo menos um cliente; precisa mapear onde cada um é editado antes de decidir qual é a fonte da verdade.
 - **Autor:** Claude. **Aprovação:** pendente da confirmação visual da Pati (troca de logo) e de decisão sobre os dois itens de handoff acima.
+
+---
+
+## 2026-09-29 — Codex (histórico, alteração de visita extra e agenda contratual)
+
+- **Pedido da Pati:** exibir ao cliente os dados que ele preencheu e os pedidos recusados; permitir cancelamento e reagendamento com justificativa antes e depois da confirmação; remover a sobreposição de dois modais; identificar a visita e a data nas notificações; colorir o card inteiro conforme o estado; transferir a configuração de agenda contratual do Calendário para os dados do cliente.
+- **Cliente:** `/cliente/cronograma` mantém todas as visitas extras no histórico, inclusive recusadas e canceladas. O modal único mostra datas, endereço, objetivo, resposta da CALI e motivo da alteração. Cancelar ou sugerir duas novas datas exige justificativa e mostra o aviso sobre avaliação manual de eventual taxa. Cards confirmados ficam verdes, em análise amarelos, recusados/cancelados vermelhos, com contraste nos temas dia e noite. O modal antigo de detalhes de eventos da agenda deixa de ser aberto sobre o novo.
+- **Admin:** alterações do cliente chegam como notificação e aparecem para avaliação no Calendário. A decisão da taxa de 20% é manual e justificada; pedidos não confirmados antes da alteração não podem receber a taxa. A aba **Agenda do contrato** fica dentro da conta específica em `/admin/clientes`; o botão e modal antigos foram removidos do Calendário.
+- **Dados:** migration `20260929030000_extra_visit_client_changes.sql` cria RPCs com verificação de perfil, empresa e estado, guarda motivo, data antiga e histórico, cancela o evento vinculado e registra log/notificações. A notificação histórica genérica da visita recusada foi atualizada no banco. Relatório executivo inclui a taxa somente quando aprovada pela CALI, sem lançamento automático por pedido do cliente.
+- **Autor:** Codex. **Aprovação visual:** aguardando conferência da Pati. **Limites:** sem QA autenticado de navegador; confirmar a sincronização do cancelamento com Google Calendar e o envio de e-mail pelo processamento existente. A agenda fixa mensal do CALI Full continua em desenho separado.
+
+---
+
+## 2026-09-29 — Codex (mesma grade semanal para calendário admin e cliente)
+
+- **Pedido:** Pati mostrou o calendário administrativo aparecendo por um instante sem CSS (em blocos), bordas de eventos pesadas e um calendário do cliente com estrutura e descrição diferentes. O administrativo é o padrão visual aprovado para replicar no cliente, preservando permissão e dados de cada perfil.
+- **Alteração:** o CSS base dos dois calendários passa a carregar na entrada do app, antes da primeira renderização da rota. A semana do cliente usa as mesmas peças de grade do administrador: eixo de 07h a 19h, altura de 64px por hora, cabeçalho de dia, faixa de dia inteiro, cartões com título, horário e origem/situação. Solicitações extras permanecem como prévias; recusadas em vermelho, confirmadas em verde; Google preserva a cor da agenda. O cliente continua vendo só seus dados e ações autorizados. Bordas e sombras do administrador foram suavizadas, inclusive nas prévias.
+- **Arquivos:** `src/App.tsx`, `src/page4-calendar.css`, `src/client-timeline-v3.css`, `src/pages/client/ClientTimelinePage.tsx`.
+- **Verificação:** `npm run check` passou (TypeScript e build). Sem sessão autenticada dos dois perfis neste ambiente; checagem visual ao vivo e mobile permanece necessária.
+- **Autor:** Codex. **Aprovação:** aguardando avaliação da Pati.
+
+---
