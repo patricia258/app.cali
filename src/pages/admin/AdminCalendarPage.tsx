@@ -232,6 +232,12 @@ export function AdminCalendarPage() {
     return ()=>{active=false;window.clearInterval(timer)};
   },[cursor.getFullYear(),cursor.getMonth()]);
   useEffect(() => { const refresh = () => void loadCalendar(); window.addEventListener('cali-calendar-record-updated', refresh); return () => window.removeEventListener('cali-calendar-record-updated', refresh); }, []);
+  useEffect(() => {
+    if (!supabase) return;
+    const client = supabase;
+    const channel = client.channel('admin-calendar-scheduling-preview').on('postgres_changes', { event: '*', schema: 'cali_workspace', table: 'scheduling_requests' }, () => { void loadCalendar(); }).subscribe();
+    return () => { void client.removeChannel(channel); };
+  }, []);
 
   useEffect(() => {
     const active = editorOpen || Boolean(selectedEvent);
@@ -242,17 +248,20 @@ export function AdminCalendarPage() {
   async function loadCalendar() {
     if (!supabase) { setLoading(false); return; }
     try {
-      const [{ data: companyRows }, { data: eventRows }, { data: attendeeRows }, { data: deadlineRows }, { data: connectionRows }] = await Promise.all([
+      const [{ data: companyRows }, { data: eventRows }, { data: attendeeRows }, { data: deadlineRows }, { data: connectionRows }, { data: requestRows }, { data: projectRows }] = await Promise.all([
         supabase.from('companies').select('id, display_name, logo_url').neq('status', 'archived').order('display_name'),
         supabase.from('events').select('id,protocol,title,company_id,project_id,event_type,color_hex,starts_at,ends_at,all_day,mode,location,meeting_url,description,visibility,source_type,source_entity_id,google_event_id,sync_status,cancelled_at').order('starts_at'),
         supabase.from('event_attendees').select('id,event_id,name,email,status,response_note').order('created_at'),
         supabase.from('deliverables').select('id, company_id, project_id, title, due_at, status, protocol').not('due_at', 'is', null).order('due_at'),
         supabase.from('calendar_connections').select('id, status').eq('provider', 'google').eq('status', 'connected').limit(1),
+        supabase.from('scheduling_requests').select('id,company_id,title,status,request_mode,requested_slots,admin_proposed_slots,purpose,location,extra_visit,online_extra_requested').in('status', ['submitted','client_review','reschedule_review']).order('created_at', { ascending: false }).limit(100),
+        supabase.from('projects').select('id,name'),
       ]);
 
       const options: CompanyOption[] = (companyRows || []).map((row: any) => ({ id: row.id, name: row.display_name, logoUrl: row.logo_url }));
       if (options.length) setCompanies(options);
       const companyMap = new Map(options.map((company) => [company.id, company]));
+      const projectMap = new Map((projectRows || []).map((project: any) => [project.id, project.name]));
       const attendeeMap = new Map<string, any[]>();
       (attendeeRows || []).forEach((row: any) => {
         const list = attendeeMap.get(row.event_id) || [];
@@ -308,6 +317,7 @@ export function AdminCalendarPage() {
           company: companyMap.get(row.company_id)?.name || null,
           companyLogo: companyMap.get(row.company_id)?.logoUrl,
           projectId: row.project_id,
+          project: projectMap.get(row.project_id),
           type: 'deadline',
           color: calendarTypeMeta.deadline.color,
           startsAt: row.due_at,
@@ -321,7 +331,18 @@ export function AdminCalendarPage() {
           synthetic: true,
         }));
 
-      setEvents([...manual, ...deadlines].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()));
+      const previews: WorkspaceCalendarEvent[] = (requestRows || []).flatMap((row: any) => {
+        const slots = row.status === 'client_review' && Array.isArray(row.admin_proposed_slots) && row.admin_proposed_slots.length ? row.admin_proposed_slots : row.requested_slots;
+        return (Array.isArray(slots) ? slots : []).filter((slot: any) => slot?.startsAt).slice(0, 2).map((slot: any, index: number) => ({
+          id: `request-preview-${row.id}-${index}`, title: row.title || (row.request_mode === 'in_person' ? 'Visita presencial' : 'Reunião online'),
+          companyId: row.company_id, company: companyMap.get(row.company_id)?.name || null, companyLogo: companyMap.get(row.company_id)?.logoUrl,
+          type: 'meeting' as const, color: '#A66A37', startsAt: slot.startsAt, endsAt: slot.endsAt || null, allDay: false,
+          mode: row.request_mode, location: row.location, description: row.purpose,
+          visibility: 'internal' as const, attendees: [], sourceType: 'request_preview' as const,
+          sourceEntityId: row.id, previewStatus: row.status, previewOption: index + 1, synthetic: true,
+        }));
+      });
+      setEvents([...manual, ...deadlines, ...previews].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()));
       setCalendarConnection(connectionRows?.length ? 'connected' : 'not_connected');
     } catch (error) {
       console.error('Falha ao carregar calendário', error);
@@ -350,11 +371,11 @@ export function AdminCalendarPage() {
   }, [visibleEvents]);
 
   const upcoming = useMemo(() => visibleEvents
-    .filter((event) => new Date(event.startsAt).getTime() >= new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime())
+    .filter((event) => event.sourceType !== 'request_preview' && new Date(event.startsAt).getTime() >= new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime())
     .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())
     .slice(0, 5), [visibleEvents, today]);
 
-  const meetingHistory = useMemo(() => events.filter(event => event.type === 'meeting' && (event.cancelledAt || new Date(event.startsAt).getTime() < Date.now()))
+  const meetingHistory = useMemo(() => events.filter(event => event.sourceType !== 'request_preview' && event.type === 'meeting' && (event.cancelledAt || new Date(event.startsAt).getTime() < Date.now()))
     .filter(event => companyFilter === 'all' || event.companyId === companyFilter)
     .filter(event => !historyMonth || formDate(event.startsAt).slice(0,7) === historyMonth)
     .filter(event => historyMode === 'all' || event.mode === historyMode)
@@ -609,10 +630,10 @@ export function AdminCalendarPage() {
                       <button className="calendar-day-number" onClick={() => { setCursor(date); if (dayEvents.length === 0) openCreateForDate(date); }}>{date.getDate()}</button>
                       <div className="calendar-cell-events">
                         {dayEvents.slice(0, 3).map((event) => (
-                          <button key={event.id} className={`calendar-event-chip type-${event.type} ${event.sourceType === 'google' ? 'is-google' : 'is-workspace'}`} style={eventStyle(event)} title={`${event.sourceType === 'google' ? 'Google Agenda' : 'Workspace'} · ${event.title}`} onClick={(click) => { click.stopPropagation(); setSelectedEvent(event); }}>
+                          <button key={event.id} className={`calendar-event-chip type-${event.type} ${event.sourceType === 'google' ? 'is-google' : 'is-workspace'} ${event.sourceType === 'request_preview' ? 'is-preview' : ''}`} style={eventStyle(event)} title={`${event.sourceType === 'request_preview' ? 'Prévia em análise' : event.sourceType === 'google' ? 'Google Agenda' : 'Workspace'} · ${event.title}`} onClick={(click) => { click.stopPropagation(); setSelectedEvent(event); }}>
                             <span className="calendar-event-dot" />
                             {!event.allDay && <time>{formatCalendarTime(event.startsAt)}</time>}
-                            <strong>{event.title}</strong>
+                            <strong>{event.sourceType === 'request_preview' ? `Prévia ${event.previewOption} · ${event.title}` : event.title}</strong>
                           </button>
                         ))}
                         {dayEvents.length > 3 && <button className="calendar-more-events" onClick={() => { setCursor(date); setView('agenda'); }}>+{dayEvents.length - 3} eventos</button>}
@@ -637,8 +658,8 @@ export function AdminCalendarPage() {
               {weekDates.map(date => <div key={`lane-${dateKey(date)}`} className="calendar-week-lane" style={{ height: hours.length * HOUR_HEIGHT }}>
                 {hours.map(hour => <div key={hour} className="calendar-week-hour-hit" style={{ top: (hour - WEEK_START_HOUR) * HOUR_HEIGHT, height: HOUR_HEIGHT }} onDoubleClick={() => openCreateForDate(date,hour)} />)}
                 {weekEventLayout(eventsByDate.get(dateKey(date)) || []).map(({ event, top, height, column, columns }) =>
-                  <button key={event.id} className={`calendar-week-event ${event.sourceType === 'google' ? 'is-google' : 'is-workspace'} ${height < 36 ? 'is-compact' : ''}`} style={{ ...eventStyle(event), top, height: Math.max(3,height - 2), left: Math.min(column*11,33), width: `calc(100% - ${Math.min(column*11,33)}px)`, zIndex: columns+column }} title={`${event.sourceType === 'google' ? 'Google Agenda' : 'Workspace'} · ${formatCalendarTime(event.startsAt)}–${formatCalendarTime(event.endsAt)} · ${event.title}`} onClick={() => setSelectedEvent(event)}>
-                    <strong>{event.title}</strong><time>{formatCalendarTime(event.startsAt)}{event.endsAt ? `–${formatCalendarTime(event.endsAt)}` : ''}</time><small>{event.sourceType === 'google' ? 'Google' : 'Workspace'}</small>
+                  <button key={event.id} className={`calendar-week-event ${event.sourceType === 'google' ? 'is-google' : 'is-workspace'} ${event.sourceType === 'request_preview' ? 'is-preview' : ''} ${height < 36 ? 'is-compact' : ''}`} style={{ ...eventStyle(event), top, height: Math.max(3,height - 2), left: Math.min(column*11,33), width: `calc(100% - ${Math.min(column*11,33)}px)`, zIndex: columns+column }} title={`${event.sourceType === 'request_preview' ? 'Prévia em análise' : event.sourceType === 'google' ? 'Google Agenda' : 'Workspace'} · ${formatCalendarTime(event.startsAt)}–${formatCalendarTime(event.endsAt)} · ${event.title}`} onClick={() => setSelectedEvent(event)}>
+                    <strong>{event.title}</strong><time>{formatCalendarTime(event.startsAt)}{event.endsAt ? `–${formatCalendarTime(event.endsAt)}` : ''}</time><small>{event.sourceType === 'request_preview' ? `Prévia ${event.previewOption} · não confirmado` : event.sourceType === 'google' ? 'Google' : 'Workspace'}</small>
                   </button>
                 )}
               </div>)}
@@ -738,7 +759,7 @@ export function AdminCalendarPage() {
           <div className="calendar-detail-heading">
             <div className="calendar-detail-company-mark">{selectedEvent.sourceType === 'google' ? <CalendarDays size={22} aria-hidden="true" /> : selectedEvent.companyLogo ? <img src={selectedEvent.companyLogo} alt="" /> : getCompanyMark(selectedEvent.company)}</div>
             <div>
-              <span className="section-kicker">{selectedEvent.sourceType==='google'?'AGENDA GOOGLE':calendarTypeMeta[selectedEvent.type].label} · {selectedEvent.sourceType==='google'?'Compromisso pessoal':selectedEvent.cancelledAt?'Cancelado':meetingOutcomes[selectedEvent.id]?.outcome==='occurred'?'Realizado':meetingOutcomes[selectedEvent.id]?.outcome==='not_occurred'?'Não realizado':selectedEvent.attendees.some(attendee=>attendee.status==='declined')?'Não confirmado':selectedEvent.attendees.some(attendee=>attendee.status==='accepted')?'Confirmado':'Aguardando confirmação'}</span>
+              <span className="section-kicker">{selectedEvent.sourceType==='request_preview'?'SOLICITAÇÃO EXTRA':selectedEvent.sourceType==='google'?'AGENDA GOOGLE':calendarTypeMeta[selectedEvent.type].label} · {selectedEvent.sourceType==='request_preview'?'Prévia em análise':selectedEvent.sourceType==='google'?'Compromisso pessoal':selectedEvent.cancelledAt?'Cancelado':meetingOutcomes[selectedEvent.id]?.outcome==='occurred'?'Realizado':meetingOutcomes[selectedEvent.id]?.outcome==='not_occurred'?'Não realizado':selectedEvent.attendees.some(attendee=>attendee.status==='declined')?'Recusado':selectedEvent.attendees.some(attendee=>attendee.status==='accepted')?'Confirmado':'Aguardando confirmação'}</span>
               <h2>{selectedEvent.title}</h2>
               <p>{selectedEvent.company || 'CALI'} · {selectedEvent.visibility === 'client' ? 'visível para o cliente' : 'interno'}</p>
               {eventProtocol(selectedEvent) && <span className="calendar-protocol-badge">{selectedEvent.synthetic ? 'Protocolo de origem' : 'Protocolo'} · {eventProtocol(selectedEvent)}</span>}
@@ -746,7 +767,7 @@ export function AdminCalendarPage() {
           </div>
           {selectedEvent.sourceType==='google' && <div className="calendar-google-actions"><button type="button" title="Editar no Google Agenda" aria-label="Editar no Google Agenda" onClick={()=>window.open(selectedEvent.googleHtmlLink||googleCalendarTemplate(selectedEvent),'_blank','noopener,noreferrer')}><Pencil size={18}/></button><button type="button" title="Compartilhar por e-mail" aria-label="Compartilhar por e-mail" onClick={()=>window.location.assign(`mailto:?subject=${encodeURIComponent(selectedEvent.title)}&body=${encodeURIComponent(`${selectedEvent.title}\n${formatCalendarDate(selectedEvent.startsAt)} · ${formatCalendarTime(selectedEvent.startsAt)}${selectedEvent.endsAt?`–${formatCalendarTime(selectedEvent.endsAt)}`:''}\n${selectedEvent.googleHtmlLink||''}`)}`)}><Mail size={18}/></button><button type="button" title="Abrir mais opções no Google Agenda" aria-label="Abrir mais opções no Google Agenda" onClick={()=>window.open(selectedEvent.googleHtmlLink||googleCalendarTemplate(selectedEvent),'_blank','noopener,noreferrer')}><ExternalLink size={18}/></button></div>}
           <div className="calendar-detail-body">
-            {selectedEvent.sourceType==='google' ? <div className="calendar-google-detail">
+            {selectedEvent.sourceType==='request_preview' ? <div className="calendar-preview-detail"><strong>Opção {selectedEvent.previewOption} · {formatCalendarDate(selectedEvent.startsAt)} · {formatCalendarTime(selectedEvent.startsAt)}–{formatCalendarTime(selectedEvent.endsAt)}</strong><p>Prévia de horário solicitado. Ainda não foi confirmada, não reserva a agenda e não entra na contagem dos compromissos.</p>{selectedEvent.company && <p>Cliente: {selectedEvent.company}</p>}{selectedEvent.description && <p>Objetivo: {selectedEvent.description}</p>}</div> : selectedEvent.sourceType==='google' ? <div className="calendar-google-detail">
               <div><Clock3 size={18}/><span><strong>{new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'America/Sao_Paulo'}).format(new Date(selectedEvent.startsAt))}</strong><small>{selectedEvent.allDay?'Dia inteiro':`${formatCalendarTime(selectedEvent.startsAt)} – ${formatCalendarTime(selectedEvent.endsAt)}`}</small></span></div>
               {selectedEvent.description && <div><FileText size={18}/><span><strong>Anotações</strong><small>{selectedEvent.description}</small></span></div>}
               {selectedEvent.location && <div><MapPin size={18}/><span><strong>Local</strong><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedEvent.location)}`} target="_blank" rel="noopener noreferrer">{selectedEvent.location} <ExternalLink size={13}/></a></span></div>}
@@ -759,12 +780,12 @@ export function AdminCalendarPage() {
               <article><Users size={17} /><span>Convidados</span><strong>{selectedEvent.attendees.length ? `${selectedEvent.attendees.length} convidado(s)` : selectedEvent.visibility === 'client' ? 'Cliente relacionado' : 'Somente CALI'}</strong></article>
             </div>
             {selectedEvent.description && <section className="calendar-detail-description"><strong>Contexto</strong><p>{selectedEvent.description}</p></section>}
-            {selectedEvent.synthetic && <div className="calendar-auto-source"><CalendarDays size={18} /><div><strong>Prazo automático</strong><p>Este item vem do prazo de um entregável. Para alterar a data, edite o entregável de origem.</p></div></div>}
+            {selectedEvent.synthetic && <div className="calendar-auto-source"><CalendarDays size={18} /><div><strong>Prazo do entregável</strong><p>{selectedEvent.company ? `${selectedEvent.company} · ` : ''}{selectedEvent.project ? `${selectedEvent.project} · ` : ''}{selectedEvent.title.replace(/ · prazo$/,'')}. A data vem do entregável de origem.</p></div></div>}
             {!!selectedEvent.attendees.length && <section className="calendar-attendee-list"><strong>Convidados</strong>{selectedEvent.attendees.map((attendee, index) => <div key={`${attendee.email}-${index}`}><span className={`attendee-status ${attendee.status}`} /><span>{attendee.name}</span><small>{attendee.email}</small><b>{attendee.status === 'accepted' ? 'Aceito' : attendee.status === 'declined' ? 'Recusado' : attendee.status === 'tentative' ? 'Talvez' : 'Pendente'}</b></div>)}</section>}
             {showCancel && !selectedEvent.synthetic && <section className="calendar-cancel-box"><strong>Cancelar compromisso</strong><p>O motivo fica registrado. Quando a régua de notificações estiver ativada, ele também poderá compor a comunicação aos participantes.</p><textarea value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} rows={2} placeholder="Motivo do cancelamento" /><div><button className="secondary" onClick={() => setShowCancel(false)}>Voltar</button><button className="primary danger-action" disabled={!cancelReason.trim()} onClick={() => void cancelEvent()}>Confirmar cancelamento</button></div></section>}
             </>}
           </div>
-          <div className="calendar-detail-footer calendar-detail-actions"><div className="calendar-detail-primary-actions">{!selectedEvent.synthetic && !selectedEvent.cancelledAt && <button className="secondary edit-event-action" onClick={() => openEditEvent(selectedEvent)}><Pencil size={16} />Editar ou remarcar</button>}{selectedEvent.meetingUrl && !selectedEvent.cancelledAt && <button className="primary" onClick={() => window.open(selectedEvent.meetingUrl!, '_blank', 'noopener,noreferrer')}><Video size={16} />Abrir Meet</button>}</div><div className="calendar-detail-secondary-actions">{selectedEvent.sourceType!=='google'&&<button className="secondary" onClick={() => window.open(googleCalendarTemplate(selectedEvent), '_blank', 'noopener,noreferrer')}><ExternalLink size={16} />Google Agenda</button>}<button className="secondary" onClick={() => downloadCalendarIcs(selectedEvent)}><Download size={16} />ICS</button>{!selectedEvent.synthetic && !selectedEvent.cancelledAt && !showCancel && <button className="secondary danger-soft" onClick={() => setShowCancel(true)}>Cancelar</button>}</div></div>
+          {selectedEvent.sourceType !== 'request_preview' && <div className="calendar-detail-footer calendar-detail-actions"><div className="calendar-detail-primary-actions">{!selectedEvent.synthetic && !selectedEvent.cancelledAt && <button className="secondary edit-event-action" onClick={() => openEditEvent(selectedEvent)}><Pencil size={16} />Editar ou remarcar</button>}{selectedEvent.meetingUrl && !selectedEvent.cancelledAt && <button className="primary" onClick={() => window.open(selectedEvent.meetingUrl!, '_blank', 'noopener,noreferrer')}><Video size={16} />Abrir Meet</button>}</div><div className="calendar-detail-secondary-actions">{selectedEvent.sourceType!=='google'&&<button className="secondary" onClick={() => window.open(googleCalendarTemplate(selectedEvent), '_blank', 'noopener,noreferrer')}><ExternalLink size={16} />Google Agenda</button>}<button className="secondary" onClick={() => downloadCalendarIcs(selectedEvent)}><Download size={16} />ICS</button>{!selectedEvent.synthetic && !selectedEvent.cancelledAt && !showCancel && <button className="secondary danger-soft" onClick={() => setShowCancel(true)}>Cancelar</button>}</div></div>}
         </section>
       </div>}
     </Shell>
