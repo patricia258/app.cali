@@ -95,7 +95,11 @@ function defaultForm(date = dateKey(new Date())): CreateEventForm {
 function eventStyle(event: WorkspaceCalendarEvent) {
   const hex = /^#[0-9a-f]{6}$/i.test(event.color) ? event.color : '#8D7354';
   const [red, green, blue] = [1,3,5].map(index => parseInt(hex.slice(index,index+2),16));
-  const foreground = /^#[0-9a-f]{6}$/i.test(event.textColor || '') ? event.textColor : (red * .299 + green * .587 + blue * .114 > 160 ? '#30232a' : '#ffffff');
+  const luminance = [red, green, blue].map(channel => {
+    const value = channel / 255;
+    return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4;
+  }).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
+  const foreground = luminance > .18 ? '#30232a' : '#ffffff';
   return { '--event-color': hex, '--event-soft': `${hex}18`, '--event-foreground': foreground } as React.CSSProperties;
 }
 
@@ -732,7 +736,7 @@ export function AdminCalendarPage() {
           <button className="modal-close" onClick={() => { setSelectedEvent(null); setShowCancel(false); setCancelReason(''); }} aria-label="Fechar"><X size={20} /></button>
           <div className="calendar-detail-accent" style={{ background: selectedEvent.color }} />
           <div className="calendar-detail-heading">
-            <div className="calendar-detail-company-mark">{selectedEvent.companyLogo ? <img src={selectedEvent.companyLogo} alt="" /> : getCompanyMark(selectedEvent.company)}</div>
+            <div className="calendar-detail-company-mark">{selectedEvent.sourceType === 'google' ? <CalendarDays size={22} aria-hidden="true" /> : selectedEvent.companyLogo ? <img src={selectedEvent.companyLogo} alt="" /> : getCompanyMark(selectedEvent.company)}</div>
             <div>
               <span className="section-kicker">{selectedEvent.sourceType==='google'?'AGENDA GOOGLE':calendarTypeMeta[selectedEvent.type].label} · {selectedEvent.sourceType==='google'?'Compromisso pessoal':selectedEvent.cancelledAt?'Cancelado':meetingOutcomes[selectedEvent.id]?.outcome==='occurred'?'Realizado':meetingOutcomes[selectedEvent.id]?.outcome==='not_occurred'?'Não realizado':selectedEvent.attendees.some(attendee=>attendee.status==='declined')?'Não confirmado':selectedEvent.attendees.some(attendee=>attendee.status==='accepted')?'Confirmado':'Aguardando confirmação'}</span>
               <h2>{selectedEvent.title}</h2>
