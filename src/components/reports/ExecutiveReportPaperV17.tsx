@@ -139,10 +139,13 @@ export function ExecutiveReportPaperV17({ company, snapshot, editor, reportType,
       const companyResult = await supabase.from('companies').select('logo_url').eq('id', row.company_id).maybeSingle();
       if (!cancelled && !companyResult.error && companyResult.data?.logo_url) logoUrl = await resolveWorkspaceMedia(companyResult.data.logo_url, 86400, true);
       if (!cancelled) setCanonical({ approvalIdentity: row.approval_identity_snapshot || null, acknowledgementIdentity: row.acknowledgement_identity_snapshot || null, approvedAt: row.approved_at || null, acknowledgedAt: row.acknowledged_at || null, acknowledgementProtocol: row.acknowledgement_protocol || null, logoUrl: logoUrl || null });
-      const visitsResult = await supabase.from('scheduling_requests').select('id,title,status,extra_visit_fee_cents').eq('company_id',row.company_id).eq('extra_visit',true).gte('extra_visit_billing_period',row.period_start).lte('extra_visit_billing_period',row.period_end);
+      const visitsResult = await supabase.from('scheduling_requests').select('id,title,status,extra_visit_fee_cents,extra_visit_cancellation_fee_cents').eq('company_id',row.company_id).eq('extra_visit',true).gte('extra_visit_billing_period',row.period_start).lte('extra_visit_billing_period',row.period_end);
       if (cancelled || visitsResult.error) return;
       const visits = visitsResult.data || [];
       const costs: VisitCost[] = visits.filter(visit => visit.status === 'completed').map(visit => ({ id:`visit-${visit.id}`, label:`${visit.title} · visita de até 4h`, amountCents:Number(visit.extra_visit_fee_cents || 80000), protocol:visit.id.slice(0,8).toUpperCase() }));
+      for (const visit of visits) {
+        if (Number(visit.extra_visit_cancellation_fee_cents || 0) > 0) costs.push({ id:`visit-change-${visit.id}`, label:`${visit.title} · alteração avaliada pela CALI`, amountCents:Number(visit.extra_visit_cancellation_fee_cents), protocol:visit.id.slice(0,8).toUpperCase() });
+      }
       if (visits.length) {
         let query = supabase.from('extra_visit_expenses').select('id,request_id,expense_kind,amount_cents,protocol,created_at,hours_quantity').in('request_id',visits.map(visit => visit.id));
         if (row.approved_at) query = query.lte('created_at',row.approved_at);

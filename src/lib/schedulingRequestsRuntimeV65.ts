@@ -21,6 +21,10 @@ type SchedulingRequest = {
   extra_visit_ack_name?: string | null;
   extra_visit_cancellation_fee_cents?: number | null;
   extra_visit_cancellation_note?: string | null;
+  extra_visit_change_reason?: string | null;
+  extra_visit_change_kind?: string | null;
+  extra_visit_previous_slot?: Slot | null;
+  extra_visit_change_was_confirmed?: boolean | null;
   billing_notice?: string | null;
   billing_acknowledged_at?: string | null;
   reschedule_count?: number | null;
@@ -282,11 +286,11 @@ async function renderAdmin() {
       adminAttachments = (files.data || []) as RequestAttachment[];
     }
     const pendingCount = requests.filter((request) => ADMIN_PENDING_STATUSES.has(request.status)).length;
-    const extraOutcomes = requests.filter(request => request.extra_visit && request.status === 'not_occurred');
+    const extraOutcomes = requests.filter(request => request.extra_visit && ['cancelled','reschedule_review','confirmed','completed'].includes(request.status) && request.extra_visit_change_reason);
     if (float) { float.hidden = pendingCount === 0; const badge = float.querySelector('.scheduling-v65-float-badge'); if (badge) badge.textContent = String(pendingCount); }
     if (pendingCount === 0) closeAdminDrawer();
     if (drawerBody) { adminRequestIndex = Math.min(adminRequestIndex, Math.max(0, active.length - 1)); renderAdminDrawerItems(active); }
-    if (host) host.innerHTML = `<section class="scheduling-v65-panel scheduling-v65-admin-config"><div class="scheduling-v65-head"><div><span class="scheduling-v65-kicker">CONFIGURAÇÃO</span><h2>Agenda do contrato</h2><p>Defina quantas visitas presenciais estão incluídas por mês para cada cliente.</p></div><button type="button" class="scheduling-v65-button" data-scheduling-admin-contract>Configurar encontros do contrato</button></div></section>${extraOutcomes.length ? `<section class="scheduling-v65-panel"><div class="scheduling-v65-head"><div><span class="scheduling-v65-kicker">DECISÃO MANUAL</span><h2>Visitas extras não realizadas</h2><p>A taxa de 20% depende da sua avaliação do aviso e da justificativa.</p></div></div><div class="scheduling-v65-list">${extraOutcomes.map(request => `<article class="scheduling-v65-request"><strong>${esc(companyFor(request.company_id)?.display_name || 'Cliente')} · ${esc(request.title)}</strong><p>${request.extra_visit_cancellation_fee_cents == null ? 'Avalie se houve ausência ou cancelamento sem aviso e sem justificativa.' : `Decisão registrada: ${request.extra_visit_cancellation_fee_cents ? 'R$ 160,00' : 'sem taxa'} · ${esc(request.extra_visit_cancellation_note || '')}`}</p><div class="scheduling-v65-actions"><button type="button" class="scheduling-v65-button" data-extra-cancel-id="${esc(request.id)}">${request.extra_visit_cancellation_fee_cents == null ? 'Registrar decisão' : 'Rever decisão'}</button></div></article>`).join('')}</div></section>` : ''}`;
+    if (host) host.innerHTML = extraOutcomes.length ? `<section class="scheduling-v65-panel"><div class="scheduling-v65-head"><div><span class="scheduling-v65-kicker">ALTERAÇÕES DO CLIENTE</span><h2>Condições para avaliar</h2><p>A justificativa e a antecedência orientam a decisão sobre a taxa.</p></div></div><div class="scheduling-v65-list">${extraOutcomes.map(request => `<article class="scheduling-v65-request"><div><strong>${esc(companyFor(request.company_id)?.display_name || 'Cliente')} · ${esc(request.title)}</strong><p>${request.extra_visit_change_kind === 'cancel' ? 'Cancelamento' : 'Reagendamento'} · ${esc(request.extra_visit_previous_slot ? formatSlot(request.extra_visit_previous_slot as Slot) : 'data anterior não registrada')}</p><p>Cliente: ${esc(request.extra_visit_change_reason)}</p><p>${request.extra_visit_cancellation_fee_cents == null ? 'Taxa aguardando sua decisão.' : request.extra_visit_cancellation_fee_cents ? 'Taxa de R$ 160,00 registrada.' : 'Sem taxa.'}</p></div><div class="scheduling-v65-actions"><button type="button" class="scheduling-v65-button" data-extra-change-decision="${esc(request.id)}">${request.extra_visit_cancellation_fee_cents == null ? 'Avaliar taxa' : 'Rever decisão'}</button></div></article>`).join('')}</div></section>` : '';
   } catch (error) { if (drawerBody) drawerBody.innerHTML = `<div class="scheduling-v65-empty">${esc(errorText(error))}</div>`; if (host) host.innerHTML = `<section class="scheduling-v65-panel"><div class="scheduling-v65-empty">${esc(errorText(error))}</div></section>`; } finally { adminRenderInFlight = false; }
 }
 function companyFor(id: string) { return adminContext?.companies.find((company) => company.id === id) || null; }
@@ -331,10 +335,6 @@ function openAdminDecline(request: SchedulingRequest) {
 function openOutcome(request: SchedulingRequest) {
   const includedFixed = request.request_mode === 'in_person' && !request.billable_extra;
   openModal('Registrar não ocorrência', 'HISTÓRICO DA AGENDA', `<form class="scheduling-v65-form" id="scheduling-admin-outcome-form" data-request-id="${esc(request.id)}" data-event-id="${esc(request.confirmed_event_id || '')}"><div class="scheduling-v65-grid"><label class="scheduling-v65-field"><span>Motivo</span><select name="reason" required><option value="">Selecione</option><option value="client">Cliente</option><option value="cali">CALI</option><option value="external">Fator externo</option><option value="health">Saúde</option><option value="travel_vacation">Viagem / férias</option><option value="other">Outro</option></select></label><label class="scheduling-v65-field"><span>Reposição</span><select name="justified"><option value="true">Com justificativa</option><option value="false">Sem justificativa</option></select></label><label class="scheduling-v65-field full"><span>Justificativa / registro</span><textarea name="note" required placeholder="Registre o que impediu a realização."></textarea></label><label class="scheduling-v65-ack full" data-scheduling-convert-wrap hidden><input type="checkbox" name="convertVirtual"/> <span>Converter a reposição desta visita presencial em reunião virtual.</span></label></div><div class="scheduling-v65-policy"><strong>${includedFixed ? 'Visita fixa incluída' : 'Regra de reposição'}</strong>${includedFixed ? `Com justificativa, a visita pode ser reagendada até 2 vezes. Esta solicitação já utilizou ${Number(request.reschedule_count || 0)} reagendamento(s). Sem justificativa, a visita não é reposta e não acumula para o mês seguinte.` : 'Com justificativa, o compromisso pode voltar para análise de agenda. Sem justificativa, a não ocorrência fica encerrada no histórico.'}</div><div class="scheduling-v65-error"></div><div class="scheduling-v65-modal-actions"><button type="button" class="scheduling-v65-button" data-scheduling-close>Cancelar</button><button type="submit" class="scheduling-v65-button danger">Registrar não ocorrência</button></div></form>`);
-}
-function openContractConfig() {
-  if (!adminContext) return;
-  openModal('Visitas presenciais do contrato', 'REGRA DO CLIENTE', `<form class="scheduling-v65-form" id="scheduling-contract-form"><div class="scheduling-v65-grid"><label class="scheduling-v65-field full"><span>Cliente</span><select name="companyId" required>${adminContext.companies.map((company) => `<option value="${esc(company.id)}" data-count="${Number(company.onsite_visits_included_per_month || 0)}">${esc(company.display_name)}</option>`).join('')}</select></label><label class="scheduling-v65-field"><span>Visitas presenciais incluídas por mês</span><input type="number" name="count" min="0" max="12" value="${Number(adminContext.companies[0]?.onsite_visits_included_per_month || 0)}" required/></label></div><div class="scheduling-v65-policy"><strong>Regra aplicada automaticamente</strong>Quando a quantidade incluída do mês já tiver sido utilizada, a próxima visita presencial será apresentada ao cliente como adicional, com cobrança no mês subsequente e taxa de deslocamento. A visita incluída não é cumulativa.</div><div class="scheduling-v65-error"></div><div class="scheduling-v65-modal-actions"><button type="button" class="scheduling-v65-button" data-scheduling-close>Cancelar</button><button type="submit" class="scheduling-v65-button primary">Salvar regra</button></div></form>`);
 }
 
 async function rpc(name: string, args: Record<string, unknown>) { if (!supabase) throw new Error('Supabase indisponível.'); const { data, error } = await supabase.rpc(name, args); if (error) throw error; return data as any; }
@@ -386,7 +386,12 @@ async function handleClick(event: MouseEvent) {
   const decline = target.closest<HTMLElement>('[data-scheduling-admin-decline]'); if (decline) { event.preventDefault(); const req = requestAdmin(String(decline.dataset.schedulingAdminDecline || '')); if (req) openAdminDecline(req); return; }
   const occurred = target.closest<HTMLElement>('[data-scheduling-admin-occurred]'); if (occurred) { event.preventDefault(); const req = requestAdmin(String(occurred.dataset.schedulingAdminOccurred || '')); if (!req?.confirmed_event_id || !window.confirm('Confirmar que este compromisso foi realizado?')) return; try { await rpc('admin_mark_scheduling_event_outcome_v1', { p_event_id: req.confirmed_event_id, p_outcome: 'occurred', p_reason_category: null, p_justified: false, p_note: '', p_convert_to_virtual: false }); toast('Compromisso registrado como realizado.'); await renderAdmin(); } catch (error) { toast(errorText(error), 'error'); } return; }
   const noShow = target.closest<HTMLElement>('[data-scheduling-admin-no-show]'); if (noShow) { event.preventDefault(); const req = requestAdmin(String(noShow.dataset.schedulingAdminNoShow || '')); if (req) openOutcome(req); return; }
-  if (target.closest('[data-scheduling-admin-contract]')) { event.preventDefault(); openContractConfig(); return; }
+
+  const changeDecision = target.closest<HTMLElement>('[data-extra-change-decision]'); if (changeDecision) {
+    event.preventDefault(); const id = String(changeDecision.dataset.extraChangeDecision || '');
+    const request = requestAdmin(id); if (!request) return;
+    openModal('Condição da alteração', 'DECISÃO DA CALI', `<form class="scheduling-v65-form" id="extra-visit-change-decision-form" data-request-id="${esc(id)}"><p>Motivo do cliente: ${esc(request.extra_visit_change_reason || '')}</p><div class="scheduling-v65-mode"><label><input type="radio" name="charge" value="false" checked/> Não cobrar</label>${request.extra_visit_change_was_confirmed ? '<label><input type="radio" name="charge" value="true"/> Cobrar R$ 160,00</label>' : '<p>Pedido alterado antes da confirmação: sem taxa.</p>'}</div><label class="scheduling-v65-field"><span>Motivo da decisão</span><textarea name="note" required minlength="5" placeholder="Registre o aviso, a antecedência e a sua avaliação."></textarea></label><div class="scheduling-v65-error"></div><div class="scheduling-v65-modal-actions"><button type="button" class="scheduling-v65-button" data-scheduling-close>Voltar</button><button type="submit" class="scheduling-v65-button primary">Enviar decisão</button></div></form>`); return;
+  }
   const cancellation = target.closest<HTMLElement>('[data-extra-cancel-id]'); if (cancellation) {
     event.preventDefault(); const id = String(cancellation.dataset.extraCancelId || '');
     openModal('Decisão sobre a visita não realizada', 'AVALIAÇÃO MANUAL', `<form class="scheduling-v65-form" id="extra-visit-cancellation-form" data-request-id="${esc(id)}"><p>Avalie se houve aviso ou uma justificativa. A taxa de 20% corresponde a R$ 160,00.</p><div class="scheduling-v65-mode"><label><input type="radio" name="charge" value="false" checked/> Isentar · com aviso ou justificativa</label><label><input type="radio" name="charge" value="true"/> Cobrar R$ 160,00 · sem aviso nem justificativa</label></div><label class="scheduling-v65-field"><span>Motivo da decisão</span><textarea name="note" required minlength="5" placeholder="Registre o aviso, a justificativa ou a ausência sem aviso."></textarea></label><div class="scheduling-v65-error"></div><div class="scheduling-v65-modal-actions"><button type="button" class="scheduling-v65-button" data-scheduling-close>Voltar</button><button type="submit" class="scheduling-v65-button primary">Registrar decisão</button></div></form>`);
@@ -396,6 +401,11 @@ async function handleClick(event: MouseEvent) {
 
 async function handleSubmit(event: SubmitEvent) {
   const form = event.target as HTMLFormElement | null; if (!form) return;
+  if (form.id === 'extra-visit-change-decision-form') {
+    event.preventDefault(); const fd = new FormData(form), charge = fd.get('charge') === 'true';
+    try { await rpc('admin_decide_extra_visit_change_v2', { p_request_id: String(form.dataset.requestId || ''), p_charge: charge, p_note: String(fd.get('note') || '') }); closeModal(); toast('Decisão registrada e cliente notificado.'); await renderAdmin(); }
+    catch (error) { setModalError(errorText(error)); } return;
+  }
   if (form.id === 'extra-visit-cancellation-form') {
     event.preventDefault(); const fd = new FormData(form), charge = fd.get('charge') === 'true';
     try { await rpc('admin_set_extra_visit_cancellation_v1', { p_request_id: String(form.dataset.requestId || ''), p_charge: charge, p_note: String(fd.get('note') || '') }); closeModal(); toast(charge ? 'Taxa de R$ 160,00 registrada.' : 'Isenção registrada.'); await renderAdmin(); }
@@ -432,14 +442,12 @@ async function handleSubmit(event: SubmitEvent) {
     event.preventDefault(); const fd = new FormData(form), reason = String(fd.get('reason') || ''), justified = String(fd.get('justified') || 'false') === 'true', note = String(fd.get('note') || ''), convert = Boolean(fd.get('convertVirtual')); if (!reason || note.trim().length < 3) { setModalError('Selecione o motivo e registre uma justificativa breve.'); return; }
     try { const result = await rpc('admin_mark_scheduling_event_outcome_v1', { p_event_id: String(form.dataset.eventId || ''), p_outcome: 'not_occurred', p_reason_category: reason, p_justified: justified, p_note: note, p_convert_to_virtual: convert }); closeModal(); toast(result?.replacement_allowed ? 'Não ocorrência registrada. A solicitação voltou para análise de agenda.' : 'Não ocorrência registrada no histórico.'); await renderAdmin(); } catch (error) { setModalError(errorText(error)); } return;
   }
-  if (form.id === 'scheduling-contract-form') {
-    event.preventDefault(); if (!supabase) return; const fd = new FormData(form), companyId = String(fd.get('companyId') || ''), count = Math.max(0, Math.min(12, Number(fd.get('count') || 0))); const { error } = await supabase.from('companies').update({ onsite_visits_included_per_month: count }).eq('id', companyId); if (error) { setModalError(error.message); return; } closeModal(); toast('Regra de visitas do contrato atualizada.'); await renderAdmin(); return;
-  }
+
 }
 function handleChange(event: Event) {
   const target = event.target as HTMLInputElement | HTMLSelectElement | null; if (!target) return;
   if (target.closest('#scheduling-client-form') && ['mode', 'date1'].includes(target.name)) updateClientFormPolicy();
-  if (target.closest('#scheduling-contract-form') && target.name === 'companyId' && adminContext) { const company = adminContext.companies.find((item) => item.id === target.value); const count = modal?.querySelector<HTMLInputElement>('input[name="count"]'); if (count) count.value = String(Number(company?.onsite_visits_included_per_month || 0)); }
+
   if (target.closest('#scheduling-admin-outcome-form') && target.name === 'reason') { const wrap = modal?.querySelector<HTMLElement>('[data-scheduling-convert-wrap]'); if (wrap) wrap.hidden = target.value !== 'travel_vacation'; }
 }
 

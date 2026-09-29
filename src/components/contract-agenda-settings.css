@@ -1,0 +1,2 @@
+.contract-agenda-settings .contract-agenda-rule{padding:13px;border:1px solid var(--theme-line,#ddd4ce);border-left:3px solid #b58c52;border-radius:10px;background:var(--theme-surface-soft,#faf7f5);color:var(--theme-text,#2b2b2b);font-size:13px;line-height:1.5}
+.contract-agenda-settings .contract-agenda-save{width:max-content;min-height:40px;padding:0 16px;border:0;border-radius:10px;background:#5a1e2d;color:#fff;font:700 13px Inter,system-ui,sans-serif;cursor:pointer}

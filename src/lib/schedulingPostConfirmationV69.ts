@@ -123,11 +123,7 @@ function renderClientCalendar(table:HTMLElement){
 }
 
 function openClientEvent(eventId:string){
-  const e=clientEvents.find(x=>x.id===eventId); if(!e) return;
-  document.getElementById('v69-client-event-modal')?.remove(); const wrap=document.createElement('div');wrap.id='v69-client-event-modal';wrap.className='v69-modal-backdrop';
-  const mode=e.mode==='in_person'?'Presencial':'Online'; const place=e.mode==='in_person'?(e.location||'Endereço a confirmar'):'Google Meet';
-  wrap.innerHTML=`<section class="v69-modal" role="dialog" aria-modal="true"><div class="v69-modal-head"><div><span>COMPROMISSO CONFIRMADO</span><h3>${esc(e.title)}</h3><p>${esc(e.protocol||'Agenda CALI')}</p></div><button class="v69-modal-close" data-v69-close>×</button></div><div class="v69-modal-body"><div class="v69-facts"><div class="v69-fact"><span>Quando</span><strong>${esc(fmtLong(e.starts_at))}</strong></div><div class="v69-fact"><span>Formato</span><strong>${esc(mode)}</strong></div><div class="v69-fact"><span>${e.mode==='in_person'?'Local':'Acesso'}</span><strong>${esc(place)}</strong></div><div class="v69-fact"><span>Status</span><strong>Confirmado</strong></div></div>${e.description?`<div class="v69-fact"><span>Contexto</span><strong>${esc(e.description)}</strong></div>`:''}<div class="v69-modal-actions">${e.meeting_url?`<a href="${esc(e.meeting_url)}" target="_blank" rel="noreferrer">Abrir Google Meet</a>`:''}${e.google_html_link?`<a href="${esc(e.google_html_link)}" target="_blank" rel="noreferrer">Ver no Google Calendar</a>`:''}</div></div></section>`;
-  document.body.appendChild(wrap);
+  window.dispatchEvent(new CustomEvent('cali:open-agenda-event',{detail:{eventId}}));
 }
 
 async function cleanAdminRequests(){
@@ -183,7 +179,7 @@ function onClick(event:MouseEvent){
   const month=target.closest<HTMLElement>('[data-v69-month]');if(month){clientCursor=new Date(clientCursor.getFullYear(),clientCursor.getMonth()+Number(month.dataset.v69Month||0),1,12);const table=document.querySelector<HTMLElement>('.client-agenda-table');if(table)renderClientCalendar(table);return;}
   if(target.closest('[data-v69-today]')){clientCursor=new Date();const table=document.querySelector<HTMLElement>('.client-agenda-table');if(table)renderClientCalendar(table);return;}
   const open=target.closest<HTMLElement>('[data-v69-open-event]');if(open){openClientEvent(open.dataset.v69OpenEvent||'');return;}
-  const row=target.closest<HTMLElement>('.client-agenda-row.event');if(row?.dataset.v69EventId){openClientEvent(row.dataset.v69EventId);return;}
+  const row=target.closest<HTMLElement>('.client-agenda-row.event');if(!target.closest('.client-agenda-open') && row?.dataset.v69EventId){openClientEvent(row.dataset.v69EventId);return;}
   const section=target.closest<HTMLElement>('.v69-admin-outcome');if(section){if(target.closest('[data-v69-occurred]'))outcomeForm(section,'occurred');if(target.closest('[data-v69-no-show]'))outcomeForm(section,'not_occurred');if(target.closest('[data-v69-submit-occurred]'))void submitOutcome(section,true);if(target.closest('[data-v69-submit-no-show]'))void submitOutcome(section,false);if(target.closest('[data-v69-save-transcription]'))void saveTranscription(section);return;}
   if(location.pathname==='/admin/calendario') window.setTimeout(()=>void decorateAdminModal(),120);
   if(location.pathname==='/cliente/cronograma') window.setTimeout(()=>void refreshSchedulingPostConfirmationV69(),500);
