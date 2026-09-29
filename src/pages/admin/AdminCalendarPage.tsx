@@ -259,7 +259,7 @@ export function AdminCalendarPage() {
         supabase.from('event_attendees').select('id,event_id,name,email,status,response_note').order('created_at'),
         supabase.from('deliverables').select('id, company_id, project_id, title, due_at, status, protocol').not('due_at', 'is', null).order('due_at'),
         supabase.from('calendar_connections').select('id, status').eq('provider', 'google').eq('status', 'connected').limit(1),
-        supabase.from('scheduling_requests').select('id,company_id,title,status,request_mode,requested_slots,admin_proposed_slots,purpose,location,extra_visit,online_extra_requested').in('status', ['submitted','client_review','reschedule_review']).order('created_at', { ascending: false }).limit(100),
+        supabase.from('scheduling_requests').select('id,company_id,title,status,request_mode,requested_slots,admin_proposed_slots,purpose,location,extra_visit,online_extra_requested').in('status', ['submitted','reschedule_review']).order('created_at', { ascending: false }).limit(100),
         supabase.from('projects').select('id,name'),
       ]);
 
@@ -341,7 +341,7 @@ export function AdminCalendarPage() {
         }));
 
       const previews: WorkspaceCalendarEvent[] = (requestRows || []).flatMap((row: any) => {
-        const slots = row.status === 'client_review' && Array.isArray(row.admin_proposed_slots) && row.admin_proposed_slots.length ? row.admin_proposed_slots : row.requested_slots;
+        const slots = row.requested_slots;
         return (Array.isArray(slots) ? slots : []).filter((slot: any) => slot?.startsAt).slice(0, 2).map((slot: any, index: number) => ({
           id: `request-preview-${row.id}-${index}`, title: row.title || (row.request_mode === 'in_person' ? 'Visita presencial' : 'Reunião online'),
           companyId: row.company_id, company: companyMap.get(row.company_id)?.name || null, companyLogo: companyMap.get(row.company_id)?.logoUrl,
