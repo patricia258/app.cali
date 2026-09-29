@@ -1,5 +1,14 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-09-29 — Codex (prévias de agenda, recusa e contraste noite)
+
+- **Pedido da Pati:** os prints das 14h04–14h07 mostram o modo noite com contraste falho, uma solicitação reduzida a “2 opções”, recusa chamada “não confirmado”, prazo de entregável sem projeto e necessidade de ver as duas datas propostas como simulação na agenda administrativa e do cliente.
+- **Implementação:** cada opção pendente aparece em sua data e duração reais, com título, etiqueta de prévia extra e borda pontilhada. A prévia informa que não confirma nem reserva a agenda; não participa dos indicadores de compromissos nem do carrossel administrativo. A agenda administrativa consulta pedidos reais e atualiza ao receber mudança no Supabase. A recusa recebe texto “Recusado”, estado vermelho e datas riscadas no cliente; a ação administrativa pede justificativa com o verbo “Recusar”. O prazo de entregável mostra seu projeto quando cadastrado. Contraste do modo noite foi definido explicitamente para eventos e cabeçalhos dos detalhes.
+- **Arquivos:** `src/domain/calendar.ts`, `src/pages/admin/AdminCalendarPage.tsx`, `src/pages/client/ClientTimelinePage.tsx`, `src/page4-calendar.css`, `src/client-timeline-v3.css`, `src/lib/schedulingRequestsRuntimeV65.ts`, `src/components/AgendaChangeInbox.tsx`.
+- **Autor:** Codex. **Aprovação:** aguardando conferência da Pati nas contas reais. **Verificação:** `npm run check` passou. As prévias são calculadas a partir de `scheduling_requests`; nenhum evento foi criado, confirmado ou cobrado por esta mudança. Respeitar o contraste dia/noite também em futuros modais e estados.
+
+---
+
 ## 2026-09-29 — Codex (respiro e legibilidade do calendário administrativo)
 
 - **Pedido da Pati:** os prints das 13h32–13h36 mostram semana estreita, filtros e busca truncados, legendas e horários apertados, eventos sobrepostos com texto ilegível e detalhe Google com espaço e ícones mal distribuídos. O calendário semanal é a prioridade visual.
