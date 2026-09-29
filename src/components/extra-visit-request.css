@@ -48,3 +48,14 @@ html[data-workspace-theme='night'] .extra-visit-choice>p{color:#f4e9e1}html[data
 .extra-visit-availability{margin:12px 0;padding:12px 14px;border:1px solid #c79b4c;border-radius:11px;background:#fff3d5;color:#4c302d;font-size:13px;line-height:1.45}
 .extra-visit-availability p{margin:4px 0 8px}.extra-visit-availability label{display:flex;gap:9px;align-items:flex-start;font-weight:700;cursor:pointer}.extra-visit-availability input{flex:none;width:18px;height:18px;accent-color:#5a1e2d}
 html[data-workspace-theme='night'] .extra-visit-availability{background:#3d3024;border-color:#a88852;color:#f8ead5}
+
+/* A ação permanece reconhecível no topo sem tomar o espaço da agenda. */
+.top-actions .extra-visit-top-action,html[data-workspace-theme='night'] .top-actions .extra-visit-top-action{position:relative;flex:none;width:42px;min-width:42px;height:42px;min-height:42px;padding:0;border-radius:11px;overflow:visible}
+.top-actions .extra-visit-top-action span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.top-actions .extra-visit-top-action::after{content:attr(data-tooltip);position:absolute;top:calc(100% + 9px);right:0;width:max-content;max-width:min(260px,85vw);padding:8px 11px;border-radius:9px;background:#5a1e2d;color:#fff;font:700 12px/1.2 Inter,system-ui,sans-serif;box-shadow:0 8px 22px #28151d44;opacity:0;pointer-events:none;transform:translateY(-5px);transition:opacity .2s ease,transform .2s ease;z-index:20}
+.top-actions .extra-visit-top-action:hover::after,.top-actions .extra-visit-top-action:focus-visible::after{opacity:1;transform:translateY(0)}
+.extra-visit-choice-icon{color:#a87437;flex:none}
+.extra-visit-online-icon{display:inline-flex;align-items:flex-end;height:27px}
+.extra-visit-choice>div>button{grid-template-columns:auto 1fr;column-gap:12px;align-content:center}
+.extra-visit-choice>div>button>small{grid-column:2}
+@media(max-width:600px){.top-actions .extra-visit-top-action,html[data-workspace-theme='night'] .top-actions .extra-visit-top-action{width:38px;min-width:38px;height:38px;min-height:38px}.extra-visit-choice>div>button{min-height:90px}}
