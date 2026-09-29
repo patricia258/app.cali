@@ -1,5 +1,15 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-09-29 — Codex (agenda compacta, detalhe e semana do cliente)
+
+- **Pedido da Pati:** remover dois cards enormes (alterações e histórico de reuniões); mostrar próximos compromissos em carrossel acima dos filtros; reduzir mini calendário e tipos; empilhar eventos sobrepostos; respeitar a cor escolhida no Google; detalhe de evento enxuto, em português, com horário, anotações e endereço clicável. No perfil do cliente, abrir por semana, permitir escolher o que ver e reduzir cards grandes.
+- **Implementação:** alterações de reuniões ficam em botão compacto com contador, abrindo o mesmo fluxo de análise; histórico passa a botão/modal com os filtros e transcrições preservados. Os próximos compromissos formam carrossel horizontal. O painel Google e a lateral foram compactados. Eventos sobrepostos usam leve deslocamento na mesma coluna para manter cada faixa clicável. A API prioriza a cor específica do evento Google e deduplica cópias preferindo a que guarda essa cor. O detalhe pessoal abre em formato de linhas, com edição direcionada ao Google, compartilhamento por e-mail, data/horário em pt-BR, notas e mapa clicável; não foi criada exclusão falsa sem permissão de escrita.
+- **Cliente:** a navegação passa a chamar “Agenda e Planejamento”; visão semanal e lista com filtros para reuniões, solicitações, prazos e, opcionalmente, compromissos da própria conta Google conectada. Consulta desses compromissos é protegida por JWT e verifica usuário e empresa, sem revelar a agenda da administradora. O painel de conexão fica recolhível; métricas compactas e detalhe com linhas mais claras.
+- **Arquivos:** `src/components/AgendaChangeInbox.tsx`, `src/components/agenda-change-inbox.css`, `src/pages/admin/AdminCalendarPage.tsx`, `src/page4-calendar.css`, `src/pages/client/ClientTimelinePage.tsx`, `src/client-timeline-v3.css`, `src/components/WorkspaceShell.tsx`, `src/domain/calendar.ts`, `supabase/functions/workspace-google-calendar-read/index.ts`.
+- **Autor:** Codex. **Aprovação:** aguardando avaliação visual da Pati. **Verificação:** `npm run check` passou; Edge Function versão 4 ativa. Teste visual com conta Google autenticada ainda pendente. A conexão Google do cliente pode exigir nova autorização de leitura se tiver sido feita com escopo antigo.
+
+---
+
 ## 2026-09-29 — Codex (visão semanal do calendário administrativo)
 
 - **Pedido da Pati:** abrir o calendário pela semana, distinguir os eventos importados do Google dos criados no Workspace, reproduzir as cores do Google e fazer cada bloco ocupar exatamente sua duração (por exemplo, 10h–10h30), inclusive quando há eventos simultâneos.

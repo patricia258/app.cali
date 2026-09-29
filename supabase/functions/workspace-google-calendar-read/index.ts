@@ -24,8 +24,11 @@ Deno.serve(async (request) => {
   let body: any;
   try { body = await request.json(); } catch { return reply({ error: 'invalid_body' }, 400); }
   const action = String(body?.action || '');
-  if (!['availability', 'events'].includes(action) || (action === 'events' && profile.role !== 'admin')) return reply({ error: 'access_denied' }, 403);
-  const { data: connection } = await db.from('calendar_connections').select('id,calendar_id,credential_key,user_id').eq('provider', 'google').eq('status', 'connected').eq('sync_enabled', true).eq('is_primary', true).is('company_id', null).in('user_id', (await db.from('profiles').select('id').eq('role', 'admin').eq('active', true)).data?.map((row: any) => row.id) || []).order('updated_at', { ascending: false }).limit(1).maybeSingle();
+  if (!['availability', 'events', 'client_events'].includes(action) || (action === 'events' && profile.role !== 'admin') || (action === 'client_events' && (profile.role !== 'client' || !profile.company_id))) return reply({ error: 'access_denied' }, 403);
+  const connectionQuery = db.from('calendar_connections').select('id,calendar_id,credential_key,user_id').eq('provider', 'google').eq('status', 'connected').eq('sync_enabled', true).eq('is_primary', true);
+  const { data: connection } = await (action === 'client_events'
+    ? connectionQuery.eq('user_id', auth.user.id).eq('company_id', profile.company_id).limit(1).maybeSingle()
+    : connectionQuery.is('company_id', null).in('user_id', (await db.from('profiles').select('id').eq('role', 'admin').eq('active', true)).data?.map((row: any) => row.id) || []).order('updated_at', { ascending: false }).limit(1).maybeSingle());
   if (!connection) return reply({ state: 'reconnect_required' });
   const { data: credential } = await db.from('google_calendar_credentials').select('credential_key,access_token,refresh_token,scope,expires_at').eq('credential_key', connection.credential_key).maybeSingle();
   if (!credential?.refresh_token) return reply({ state: 'reconnect_required' });
@@ -82,7 +85,7 @@ Deno.serve(async (request) => {
     }
     const start = new Date(body?.start || 0).getTime(), end = new Date(body?.end || 0).getTime();
     if (!Number.isFinite(start) || !Number.isFinite(end) || start >= end || end - start > 62 * 86400000) return reply({ error: 'invalid_range' }, 400);
-    const items: any[] = [], seen = new Set<string>();
+    const items: any[] = [], byIdentity = new Map<string, number>();
     const palette = await google('colors');
     for (const calendar of calendars) {
       let next = '';
@@ -93,16 +96,17 @@ Deno.serve(async (request) => {
         for (const entry of result.items || []) {
           if (entry.status === 'cancelled' || !entry.start) continue;
           const identity = `${entry.iCalUID || entry.id}:${entry.start.dateTime || entry.start.date}`;
-          if (seen.has(identity)) continue;
-          seen.add(identity);
           const eventColor = entry.colorId ? palette.event?.[entry.colorId] : null;
           const calendarColor = palette.calendar?.[calendar.colorId];
-          items.push({ id: entry.id, calendarId: calendar.id, title: entry.summary || 'Ocupado', start: entry.start.dateTime || entry.start.date, end: entry.end?.dateTime || entry.end?.date, allDay: Boolean(entry.start.date), location: entry.location || null, description: entry.description || null, htmlLink: entry.htmlLink || null, color: eventColor?.background || calendar.color || calendarColor?.background || '#8D7354', textColor: eventColor?.foreground || calendar.foreground || calendarColor?.foreground || null });
+          const mapped = { id: entry.id, calendarId: calendar.id, title: entry.summary || 'Ocupado', start: entry.start.dateTime || entry.start.date, end: entry.end?.dateTime || entry.end?.date, allDay: Boolean(entry.start.date), location: entry.location || null, description: entry.description || null, htmlLink: entry.htmlLink || null, color: eventColor?.background || calendar.color || calendarColor?.background || '#8D7354', textColor: eventColor?.foreground || calendar.foreground || calendarColor?.foreground || null, explicitColor: Boolean(eventColor), organizer: entry.organizer?.displayName || entry.organizer?.email || null, reminderMinutes: entry.reminders?.overrides?.find((reminder: any) => reminder.method === 'popup')?.minutes ?? null };
+          const previousIndex = byIdentity.get(identity);
+          if (previousIndex == null) { byIdentity.set(identity, items.length); items.push(mapped); }
+          else if (mapped.explicitColor && !items[previousIndex].explicitColor) items[previousIndex] = mapped;
         }
         next = result.nextPageToken || '';
       } while (next && items.length < 5000);
     }
-    return reply({ state: 'checked', events: items });
+    return reply({ state: 'checked', events: items.map(({ explicitColor, ...event }) => event) });
   } catch (error) {
     console.error('workspace-google-calendar-read', error);
     return reply({ error: 'calendar_unavailable' }, 502);

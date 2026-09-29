@@ -38,6 +38,7 @@ export type WorkspaceCalendarEvent = {
   sourceProtocol?: string | null;
   googleEventId?: string | null;
   googleHtmlLink?: string | null;
+  organizer?: string | null;
   meetSpaceName?: string | null;
   reminderMinutes?: number;
   autoTranscription?: boolean;

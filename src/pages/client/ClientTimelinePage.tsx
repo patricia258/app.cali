@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowUpRight, CalendarDays, Clock3, FileCheck2, Loader2, X } from 'lucide-react';
+import { ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Clock3, FileCheck2, Loader2, X } from 'lucide-react';
 import { ClientGoogleCalendarPanel } from '../../components/ClientGoogleCalendarPanel';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
@@ -61,7 +61,7 @@ type ClientSchedulingRequest = {
 type TimelineItem = {
   id: string;
   sourceId: string;
-  kind: 'event' | 'deadline' | 'request';
+  kind: 'event' | 'deadline' | 'request' | 'google';
   title: string;
   at: string;
   state: 'past' | 'today' | 'future';
@@ -74,6 +74,12 @@ type TimelineItem = {
   meetingUrl?: string | null;
   tone?: 'positive' | 'pending' | 'negative';
   request?: ClientSchedulingRequest;
+  endsAt?: string | null;
+  googleHtmlLink?: string | null;
+  description?: string | null;
+  color?: string | null;
+  textColor?: string | null;
+  allDay?: boolean;
 };
 
 type AttendeeStatus = 'pending' | 'accepted' | 'declined' | 'tentative';
@@ -170,9 +176,27 @@ export function ClientTimelinePage() {
   const [meetingRecords, setMeetingRecords] = useState<Record<string, MeetingRecord>>({});
   const [agendaChanges, setAgendaChanges] = useState<AgendaChange[]>([]);
   const [historyMonth, setHistoryMonth] = useState('');
+  const [agendaView, setAgendaView] = useState<'week'|'list'>('week');
+  const [weekCursor, setWeekCursor] = useState(() => new Date());
+  const [visibleKinds, setVisibleKinds] = useState<Set<TimelineItem['kind']>>(() => new Set(['event','request','deadline']));
+  const [personalGoogle, setPersonalGoogle] = useState<TimelineItem[]>([]);
+  const [personalGoogleNotice, setPersonalGoogleNotice] = useState('');
   useEffect(() => { if (!selectedItem) return; const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setSelectedItem(null); }; window.addEventListener('keydown', close); return () => window.removeEventListener('keydown', close); }, [selectedItem]);
 
   useEffect(() => { void load(); }, []);
+  useEffect(()=>{
+    if(!supabase||!visibleKinds.has('google')){setPersonalGoogle([]);setPersonalGoogleNotice('');return;}
+    let current=true;
+    const first=new Date(weekCursor.getFullYear(),weekCursor.getMonth(),weekCursor.getDate()-weekCursor.getDay());
+    const last=new Date(first.getFullYear(),first.getMonth(),first.getDate()+7);
+    void supabase.functions.invoke('workspace-google-calendar-read',{body:{action:'client_events',start:first.toISOString(),end:last.toISOString()}}).then(({data,error})=>{
+      if(!current)return;
+      if(error||data?.state!=='checked'){setPersonalGoogle([]);setPersonalGoogleNotice(data?.state==='reconnect_required'?'Conecte sua conta em “Integração com Google Calendar” para ver seus compromissos pessoais.':'Não foi possível consultar seus eventos do Google agora.');return;}
+      setPersonalGoogleNotice('');
+      setPersonalGoogle((data.events||[]).map((row:any):TimelineItem=>{const start=row.allDay?`${row.start}T12:00:00-03:00`:String(row.start);return {id:`personal-${row.calendarId}-${row.id}`,sourceId:String(row.id),kind:'google',title:String(row.title||'Compromisso'),at:start,endsAt:row.allDay?null:row.end,googleHtmlLink:row.htmlLink,description:row.description,secondaryDetail:row.location,color:/^#[0-9a-f]{6}$/i.test(row.color)?row.color:null,textColor:/^#[0-9a-f]{6}$/i.test(row.textColor)?row.textColor:null,allDay:Boolean(row.allDay),dateLabel:formatDay(start),timeLabel:row.allDay?'Dia inteiro':formatTime(start),state:dateState(start),typeLabel:'Google Agenda',statusLabel:'Compromisso pessoal',tone:'pending'}}));
+    });
+    return()=>{current=false};
+  },[weekCursor,visibleKinds]);
   useEffect(() => {
     if (!supabase) return;
     const client = supabase;
@@ -363,13 +387,18 @@ export function ClientTimelinePage() {
   const meetingHistory = items.filter(item => item.kind === 'event' && item.typeLabel === 'Reunião' && item.state === 'past').sort((a,b)=>new Date(b.at).getTime()-new Date(a.at).getTime());
   const nextMeeting = events.find((event) => !event.cancelled_at && new Date(event.starts_at).getTime() >= Date.now()) || null;
   const nextThirty = futureItems.filter((item) => new Date(item.at).getTime() <= Date.now() + 30 * 24 * 60 * 60 * 1000).length;
+  const weekStart = new Date(weekCursor.getFullYear(),weekCursor.getMonth(),weekCursor.getDate()-weekCursor.getDay());
+  const weekDays = Array.from({length:7},(_,index)=>new Date(weekStart.getFullYear(),weekStart.getMonth(),weekStart.getDate()+index));
+  const weekKey = (value:string|Date) => new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(value instanceof Date?value:new Date(value));
+  const filteredItems=[...items.filter(item=>visibleKinds.has(item.kind)),...(visibleKinds.has('google')?personalGoogle:[])].sort((a,b)=>new Date(a.at).getTime()-new Date(b.at).getTime());
+  const moveWeek=(offset:number)=>setWeekCursor(current=>new Date(current.getFullYear(),current.getMonth(),current.getDate()+offset*7));
 
   if(loading)return <Shell role="client"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando sua agenda…</section></Shell>;
 
   return (
     <Shell role="client">
       <section className="page client-timeline-v2 client-timeline-v3 client-timeline-v4">
-        <ClientGoogleCalendarPanel />
+        <details className="client-google-settings"><summary>Integração com Google Calendar</summary><ClientGoogleCalendarPanel /></details>
 
         {error && <div className="inline-notice">{error}</div>}
         {loading ? <div className="data-loading"><Loader2 className="spin" size={20} />Carregando sua agenda…</div> : <>
@@ -390,13 +419,17 @@ export function ClientTimelinePage() {
 
           <section className="panel client-real-timeline-panel client-agenda-panel">
             <div className="client-real-timeline-title">
-              <div><span>O QUE VEM AGORA</span><h2>Agenda compartilhada</h2></div>
+              <div><span>O QUE VEM AGORA</span><h2>Agenda e Planejamento</h2></div>
               <small>{futureCountText(futureItems.length)}</small>
             </div>
 
-            {items.length ? <div className="client-agenda-table">
+            <div className="client-agenda-view-controls"><div><button type="button" className={agendaView==='week'?'active':''} onClick={()=>setAgendaView('week')}>Semana</button><button type="button" className={agendaView==='list'?'active':''} onClick={()=>setAgendaView('list')}>Lista</button></div><fieldset><legend>Mostrar</legend>{([['event','Reuniões'],['request','Solicitações'],['deadline','Prazos'],['google','Minha agenda Google']] as const).map(([kind,label])=><label key={kind}><input type="checkbox" checked={visibleKinds.has(kind)} onChange={()=>setVisibleKinds(current=>{const next=new Set(current);if(next.has(kind))next.delete(kind);else next.add(kind);return next})}/>{label}</label>)}</fieldset></div>
+            {personalGoogleNotice&&<p className="client-google-week-notice" role="status">{personalGoogleNotice}</p>}
+            {agendaView==='week' && <><div className="client-week-navigation"><button type="button" onClick={()=>moveWeek(-1)} aria-label="Semana anterior"><ChevronLeft size={18}/></button><button type="button" onClick={()=>setWeekCursor(new Date())}>Hoje</button><button type="button" onClick={()=>moveWeek(1)} aria-label="Próxima semana"><ChevronRight size={18}/></button><strong>{new Intl.DateTimeFormat('pt-BR',{day:'numeric',month:'short'}).format(weekDays[0])} – {new Intl.DateTimeFormat('pt-BR',{day:'numeric',month:'short',year:'numeric'}).format(weekDays[6])}</strong></div><div className="client-week-scroller"><div className="client-week-grid">{weekDays.map(day=><div className="client-week-day" key={day.toISOString()}><h3>{new Intl.DateTimeFormat('pt-BR',{weekday:'short',day:'numeric',timeZone:'America/Sao_Paulo'}).format(day)}</h3><div className="client-week-lane">{filteredItems.filter(item=>weekKey(item.at)===weekKey(day)).map(item=>{const start=new Date(item.at);const hour=start.getHours()+start.getMinutes()/60;const matchingEvent=events.find(event=>event.id===item.sourceId);const end=item.endsAt?new Date(item.endsAt).getTime():matchingEvent?.ends_at?new Date(matchingEvent.ends_at).getTime():item.request?.selected_slot?.endsAt?new Date(item.request.selected_slot.endsAt).getTime():start.getTime()+30*60000;const duration=Math.max(15,Math.min(13*60,(end-start.getTime())/60000));const top=item.allDay?0:Math.max(0,(hour-7)*54);const foreground=item.textColor||'#ffffff';return <button type="button" key={item.id} className={`client-week-event ${item.kind} tone-${item.tone||'pending'}`} style={{top,height:item.allDay?26:Math.max(22,duration/60*54), ...(item.kind==='google'&&item.color?{'--personal-event-color':item.color,'--personal-event-foreground':foreground} as React.CSSProperties:{})}} onClick={()=>openItem(item)} title={`${item.title} · ${item.dateLabel} ${item.timeLabel}`}><strong>{item.title}</strong><small>{item.timeLabel}{(item.endsAt||matchingEvent?.ends_at)?`–${formatTime(item.endsAt||matchingEvent?.ends_at||'')}`:''}</small></button>})}</div></div>)}</div></div></>}
+
+            {agendaView==='list' && (filteredItems.length ? <div className="client-agenda-table">
               <div className="client-agenda-body">
-                {items.map((item) => {
+                {filteredItems.map((item) => {
                   const inviteStatus = item.kind === 'event' ? attendeeStatus[item.sourceId] : undefined;
                   const displayStatus = inviteStatus ? inviteText(inviteStatus) : item.statusLabel;
                   return <article key={item.id} className={`client-agenda-row ${item.kind} ${item.state} tone-${item.tone || 'pending'}`}>
@@ -415,7 +448,7 @@ export function ClientTimelinePage() {
                   </article>;
                 })}
               </div>
-            </div> : <div className="client-timeline-empty"><CalendarDays size={24} /><strong>Nada previsto por enquanto.</strong><p>Reuniões confirmadas, solicitações em análise e prazos publicados aparecerão aqui.</p></div>}
+            </div> : <div className="client-timeline-empty"><CalendarDays size={24} /><strong>Nada previsto por enquanto.</strong><p>Reuniões confirmadas, solicitações em análise e prazos publicados aparecerão aqui.</p></div>)}
           </section>
           <section className="panel client-meeting-history">
             <div className="client-real-timeline-title"><div><span>CONSULTAR ENCONTROS</span><h2>Histórico de reuniões</h2></div></div>
@@ -429,7 +462,7 @@ export function ClientTimelinePage() {
           <section className={`client-agenda-detail-modal tone-${selectedItem.tone || 'pending'}`} role="dialog" aria-modal="true" aria-labelledby="client-agenda-detail-title">
             <header><div><small>{selectedItem.typeLabel} · {selectedItem.statusLabel}</small><h2 id="client-agenda-detail-title">{selectedItem.title}</h2></div><button type="button" onClick={() => setSelectedItem(null)} aria-label="Fechar"><X size={19}/></button></header>
             <div className="client-agenda-detail-body">
-              {selectedItem.request ? <>
+              {selectedItem.kind==='google' ? <><div className="full"><span>Quando</span><strong>{new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'America/Sao_Paulo'}).format(new Date(selectedItem.at))} · {selectedItem.timeLabel}{selectedItem.endsAt?`–${formatTime(selectedItem.endsAt)}`:''}</strong></div>{selectedItem.description&&<div className="full"><span>Anotações</span><strong>{selectedItem.description}</strong></div>}{selectedItem.secondaryDetail&&<div className="full"><span>Local</span><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedItem.secondaryDetail)}`} target="_blank" rel="noopener noreferrer">{selectedItem.secondaryDetail} <ArrowUpRight size={15}/></a></div>}{selectedItem.googleHtmlLink&&<a href={selectedItem.googleHtmlLink} target="_blank" rel="noopener noreferrer">Abrir no Google Agenda <ArrowUpRight size={16}/></a>}</> : selectedItem.request ? <>
                 <div className="full"><span>{selectedItem.request.status === 'confirmed' ? 'Data confirmada' : 'Datas informadas'}</span><strong>{optionsText(requestSlots(selectedItem.request)) || 'Sem nova data definida'}</strong></div>
                 <div><span>Situação</span><strong>{selectedItem.statusLabel}</strong></div>
                 <div><span>Formato</span><strong>{selectedItem.detailLabel}</strong></div>

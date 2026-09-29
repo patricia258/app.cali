@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import {
   CalendarDays,
   Check,
@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Filter,
   FileText,
+  Mail,
   MapPin,
   Pencil,
   Plus,
@@ -191,6 +192,8 @@ export function AdminCalendarPage() {
   const [historyMonth, setHistoryMonth] = useState('');
   const [historyMode, setHistoryMode] = useState('all');
   const [historyOutcome, setHistoryOutcome] = useState('all');
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const upcomingRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { void loadCalendar(); }, []);
   useEffect(() => {
@@ -217,7 +220,7 @@ export function AdminCalendarPage() {
         if(seen.has(id)) return [];
         seen.add(id);
         const allDay=Boolean(row.allDay);
-        return [{id,title:row.title,startsAt:allDay?`${row.start}T12:00:00-03:00`:row.start,endsAt:allDay?`${row.end}T12:00:00-03:00`:row.end,allDay,type:'other',color:/^#[0-9a-f]{6}$/i.test(row.color)?row.color:'#8D7354',textColor:row.textColor,location:row.location,description:row.description,googleEventId:row.id,googleHtmlLink:row.htmlLink,visibility:'internal',attendees:[],sourceType:'google',synthetic:true} as WorkspaceCalendarEvent];
+        return [{id,title:row.title,startsAt:allDay?`${row.start}T12:00:00-03:00`:row.start,endsAt:allDay?`${row.end}T12:00:00-03:00`:row.end,allDay,type:'other',color:/^#[0-9a-f]{6}$/i.test(row.color)?row.color:'#8D7354',textColor:row.textColor,location:row.location,description:row.description,organizer:row.organizer,reminderMinutes:row.reminderMinutes,googleEventId:row.id,googleHtmlLink:row.htmlLink,visibility:'internal',attendees:[],sourceType:'google',synthetic:true} as WorkspaceCalendarEvent];
       }));
       setGoogleEvents(external);setGoogleReadStatus('ready');
     };
@@ -540,12 +543,11 @@ export function AdminCalendarPage() {
   return (
     <Shell role="admin">
       <section className="page calendar-page-v2">
-        <AgendaChangeInbox onDecision={()=>void loadCalendar()}/>
-        <details className="calendar-meeting-history" aria-label="Histórico de reuniões"><summary className="calendar-meeting-history-heading"><span><span className="section-kicker">AGENDA REALIZADA</span><strong>Histórico de reuniões</strong></span><span>Ver encontros e transcrições</span></summary><div className="calendar-meeting-history-filters"><label>Período<input type="month" value={historyMonth} onChange={event=>setHistoryMonth(event.target.value)}/></label><label>Formato<select value={historyMode} onChange={event=>setHistoryMode(event.target.value)}><option value="all">Todos</option><option value="remote">Online</option><option value="in_person">Presencial</option></select></label><label>Situação<select value={historyOutcome} onChange={event=>setHistoryOutcome(event.target.value)}><option value="all">Todas</option><option value="occurred">Realizada</option><option value="not_occurred">Não realizada</option><option value="cancelled">Cancelada</option><option value="pending">Sem registro</option></select></label></div><div className="calendar-meeting-history-list">{meetingHistory.length ? meetingHistory.slice(0,30).map(event=><button type="button" key={event.id} onClick={()=>{setShowCancel(false);setSelectedEvent(event)}}><span><strong>{event.title}</strong><small>{event.company || 'CALI'} · {formatCalendarDate(event.startsAt)} · {event.mode==='in_person'?'Presencial':'Online'}</small></span><b className={event.cancelledAt||meetingOutcomes[event.id]?.outcome==='not_occurred'?'negative':meetingOutcomes[event.id]?.outcome==='occurred'?'positive':'pending'}>{event.cancelledAt?'Cancelada':meetingOutcomes[event.id]?.outcome==='occurred'?'Realizada':meetingOutcomes[event.id]?.outcome==='not_occurred'?'Não realizada':'Sem registro'}</b>{meetingOutcomes[event.id]?.transcription_url && <FileText size={16} aria-label="Transcrição disponível"/>}</button>) : <p>Nenhuma reunião encontrada com esses filtros.</p>}</div></details>
         <div className="calendar-v2-actions">
           <button className="primary compact-action" onClick={() => openCreateForDate()}><Plus size={17} />Novo evento</button>
+          <AgendaChangeInbox onDecision={()=>void loadCalendar()}/>
+          <button className="calendar-history-trigger" type="button" onClick={()=>setHistoryOpen(true)}><FileText size={16}/>Histórico de reuniões</button>
         </div>
-
         <section className="calendar-workspace-strip">
           <div className="calendar-workspace-icon"><Cloud size={21} /></div>
           <div>
@@ -558,6 +560,11 @@ export function AdminCalendarPage() {
             {googleReadStatus==='ready'?<><Check size={14}/>Sincronizado</>:googleReadStatus==='reconnect'?'Autorizar leitura':calendarConnection === 'connected' ? <><Check size={14} />Conectado</> : 'Não conectado'}
           </span>
           {googleReadStatus==='reconnect' && <button type="button" className="google-calendar-runtime-button primary" onClick={async()=>{if(!supabase)return;const {data,error}=await supabase.functions.invoke('google-calendar-oauth',{body:{action:'authorize',companyId:null}});if(error||!data?.url)return;window.location.assign(data.url)}}>Autorizar leitura da agenda</button>}
+        </section>
+
+        <section className="calendar-upcoming-strip" aria-label="Próximos compromissos">
+          <div className="calendar-upcoming-strip-heading"><strong>Próximos compromissos</strong><div><button type="button" onClick={()=>upcomingRef.current?.scrollBy({left:-360,behavior:'smooth'})} aria-label="Compromissos anteriores"><ChevronLeft size={17}/></button><button type="button" onClick={()=>upcomingRef.current?.scrollBy({left:360,behavior:'smooth'})} aria-label="Próximos compromissos"><ChevronRight size={17}/></button></div></div>
+          <div className="calendar-upcoming-track" ref={upcomingRef}>{upcoming.map(event=><button key={event.id} type="button" onClick={()=>setSelectedEvent(event)} style={eventStyle(event)}><i/><span><strong>{event.title}</strong><small>{formatCalendarDate(event.startsAt)} · {formatCalendarTime(event.startsAt)}{event.endsAt?`–${formatCalendarTime(event.endsAt)}`:''}</small><em>{event.sourceType==='google'?'Google Agenda':'Workspace'}</em></span></button>)}{!upcoming.length&&<p>Sem compromissos futuros neste recorte.</p>}</div>
         </section>
 
         <section className="calendar-main-toolbar">
@@ -626,7 +633,7 @@ export function AdminCalendarPage() {
               {weekDates.map(date => <div key={`lane-${dateKey(date)}`} className="calendar-week-lane" style={{ height: hours.length * HOUR_HEIGHT }}>
                 {hours.map(hour => <div key={hour} className="calendar-week-hour-hit" style={{ top: (hour - WEEK_START_HOUR) * HOUR_HEIGHT, height: HOUR_HEIGHT }} onDoubleClick={() => openCreateForDate(date,hour)} />)}
                 {weekEventLayout(eventsByDate.get(dateKey(date)) || []).map(({ event, top, height, column, columns }) =>
-                  <button key={event.id} className={`calendar-week-event ${event.sourceType === 'google' ? 'is-google' : 'is-workspace'} ${height < 36 ? 'is-compact' : ''}`} style={{ ...eventStyle(event), top, height: Math.max(3,height - 2), left: `${column / columns * 100}%`, width: `${100 / columns}%` }} title={`${event.sourceType === 'google' ? 'Google Agenda' : 'Workspace'} · ${formatCalendarTime(event.startsAt)}–${formatCalendarTime(event.endsAt)} · ${event.title}`} onClick={() => setSelectedEvent(event)}>
+                  <button key={event.id} className={`calendar-week-event ${event.sourceType === 'google' ? 'is-google' : 'is-workspace'} ${height < 36 ? 'is-compact' : ''}`} style={{ ...eventStyle(event), top, height: Math.max(3,height - 2), left: Math.min(column*11,33), width: `calc(100% - ${Math.min(column*11,33)}px)`, zIndex: columns+column }} title={`${event.sourceType === 'google' ? 'Google Agenda' : 'Workspace'} · ${formatCalendarTime(event.startsAt)}–${formatCalendarTime(event.endsAt)} · ${event.title}`} onClick={() => setSelectedEvent(event)}>
                     <strong>{event.title}</strong><time>{formatCalendarTime(event.startsAt)}{event.endsAt ? `–${formatCalendarTime(event.endsAt)}` : ''}</time><small>{event.sourceType === 'google' ? 'Google' : 'Workspace'}</small>
                   </button>
                 )}
@@ -675,16 +682,14 @@ export function AdminCalendarPage() {
               </div>
             </section>
 
-            <section className="calendar-upcoming-card panel">
-              <div className="calendar-side-title"><CalendarDays size={17} /><strong>Próximos compromissos</strong></div>
-              <div className="calendar-upcoming-list">
-                {upcoming.map((event) => <button key={event.id} onClick={() => setSelectedEvent(event)}><span className="calendar-upcoming-color" style={{ background: event.color }} /><div><strong>{event.title}</strong><small>{formatCalendarDate(event.startsAt)} · {formatCalendarTime(event.startsAt)}</small><span>{event.company || 'CALI'}</span></div></button>)}
-                {!upcoming.length && <p>Nenhum compromisso neste recorte.</p>}
-              </div>
-            </section>
+
           </aside>
         </div>
       </section>
+
+      {historyOpen && <div className="modal-backdrop full-screen-modal calendar-modal-backdrop" onMouseDown={event=>{if(event.currentTarget===event.target)setHistoryOpen(false)}}><div className="calendar-history-dialog" role="dialog" aria-modal="true" aria-label="Histórico de reuniões"><button type="button" className="calendar-history-close" onClick={()=>setHistoryOpen(false)} aria-label="Fechar histórico"><X size={20}/></button>
+        <section className="calendar-meeting-history" aria-label="Histórico de reuniões"><div className="calendar-meeting-history-heading"><span><span className="section-kicker">AGENDA REALIZADA</span><strong>Histórico de reuniões</strong></span><span>Ver encontros e transcrições</span></div><div className="calendar-meeting-history-filters"><label>Período<input type="month" value={historyMonth} onChange={event=>setHistoryMonth(event.target.value)}/></label><label>Formato<select value={historyMode} onChange={event=>setHistoryMode(event.target.value)}><option value="all">Todos</option><option value="remote">Online</option><option value="in_person">Presencial</option></select></label><label>Situação<select value={historyOutcome} onChange={event=>setHistoryOutcome(event.target.value)}><option value="all">Todas</option><option value="occurred">Realizada</option><option value="not_occurred">Não realizada</option><option value="cancelled">Cancelada</option><option value="pending">Sem registro</option></select></label></div><div className="calendar-meeting-history-list">{meetingHistory.length ? meetingHistory.slice(0,30).map(event=><button type="button" key={event.id} onClick={()=>{setShowCancel(false);setSelectedEvent(event);setHistoryOpen(false)}}><span><strong>{event.title}</strong><small>{event.company || 'CALI'} · {formatCalendarDate(event.startsAt)} · {event.mode==='in_person'?'Presencial':'Online'}</small></span><b className={event.cancelledAt||meetingOutcomes[event.id]?.outcome==='not_occurred'?'negative':meetingOutcomes[event.id]?.outcome==='occurred'?'positive':'pending'}>{event.cancelledAt?'Cancelada':meetingOutcomes[event.id]?.outcome==='occurred'?'Realizada':meetingOutcomes[event.id]?.outcome==='not_occurred'?'Não realizada':'Sem registro'}</b>{meetingOutcomes[event.id]?.transcription_url && <FileText size={16} aria-label="Transcrição disponível"/>}</button>) : <p>Nenhuma reunião encontrada com esses filtros.</p>}</div></section>
+</div></div>}
 
       {editorOpen && <div className="modal-backdrop full-screen-modal calendar-modal-backdrop">
         <form className="modal-card calendar-event-modal" onSubmit={saveEvent} role="dialog" aria-modal="true">
@@ -735,18 +740,27 @@ export function AdminCalendarPage() {
               {eventProtocol(selectedEvent) && <span className="calendar-protocol-badge">{selectedEvent.synthetic ? 'Protocolo de origem' : 'Protocolo'} · {eventProtocol(selectedEvent)}</span>}
             </div>
           </div>
+          {selectedEvent.sourceType==='google' && <div className="calendar-google-actions"><button type="button" title="Editar no Google Agenda" aria-label="Editar no Google Agenda" onClick={()=>window.open(selectedEvent.googleHtmlLink||googleCalendarTemplate(selectedEvent),'_blank','noopener,noreferrer')}><Pencil size={18}/></button><button type="button" title="Compartilhar por e-mail" aria-label="Compartilhar por e-mail" onClick={()=>window.location.assign(`mailto:?subject=${encodeURIComponent(selectedEvent.title)}&body=${encodeURIComponent(`${selectedEvent.title}\n${formatCalendarDate(selectedEvent.startsAt)} · ${formatCalendarTime(selectedEvent.startsAt)}${selectedEvent.endsAt?`–${formatCalendarTime(selectedEvent.endsAt)}`:''}\n${selectedEvent.googleHtmlLink||''}`)}`)}><Mail size={18}/></button><button type="button" title="Abrir mais opções no Google Agenda" aria-label="Abrir mais opções no Google Agenda" onClick={()=>window.open(selectedEvent.googleHtmlLink||googleCalendarTemplate(selectedEvent),'_blank','noopener,noreferrer')}><ExternalLink size={18}/></button></div>}
           <div className="calendar-detail-body">
+            {selectedEvent.sourceType==='google' ? <div className="calendar-google-detail">
+              <div><Clock3 size={18}/><span><strong>{new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'America/Sao_Paulo'}).format(new Date(selectedEvent.startsAt))}</strong><small>{selectedEvent.allDay?'Dia inteiro':`${formatCalendarTime(selectedEvent.startsAt)} – ${formatCalendarTime(selectedEvent.endsAt)}`}</small></span></div>
+              {selectedEvent.description && <div><FileText size={18}/><span><strong>Anotações</strong><small>{selectedEvent.description}</small></span></div>}
+              {selectedEvent.location && <div><MapPin size={18}/><span><strong>Local</strong><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedEvent.location)}`} target="_blank" rel="noopener noreferrer">{selectedEvent.location} <ExternalLink size={13}/></a></span></div>}
+              <div><CalendarDays size={18}/><span><strong>Agenda Google</strong><small>{selectedEvent.organizer || 'Patrícia Lima'}</small></span></div>
+              {selectedEvent.reminderMinutes != null && <div><Clock3 size={18}/><span><strong>Lembrete</strong><small>{selectedEvent.reminderMinutes} minutos antes</small></span></div>}
+            </div> : <>
             <div className="calendar-detail-facts">
               <article><Clock3 size={17} /><span>Quando</span><strong>{formatCalendarDate(selectedEvent.startsAt)} · {selectedEvent.allDay ? 'Dia inteiro' : formatCalendarTime(selectedEvent.startsAt)}</strong></article>
-              <article>{selectedEvent.mode === 'in_person' ? <MapPin size={17} /> : <Video size={17} />}<span>Formato</span><strong>{selectedEvent.sourceType==='google'?'Agenda Google':selectedEvent.mode === 'in_person' ? 'Presencial' : selectedEvent.mode === 'remote' ? 'Remoto' : 'Prazo automático'}</strong></article>
+              <article>{selectedEvent.mode === 'in_person' ? <MapPin size={17} /> : <Video size={17} />}<span>Formato</span><strong>{selectedEvent.mode === 'in_person' ? 'Presencial' : selectedEvent.mode === 'remote' ? 'Remoto' : 'Prazo automático'}</strong></article>
               <article><Users size={17} /><span>Convidados</span><strong>{selectedEvent.attendees.length ? `${selectedEvent.attendees.length} convidado(s)` : selectedEvent.visibility === 'client' ? 'Cliente relacionado' : 'Somente CALI'}</strong></article>
             </div>
             {selectedEvent.description && <section className="calendar-detail-description"><strong>Contexto</strong><p>{selectedEvent.description}</p></section>}
-            {selectedEvent.synthetic && <div className="calendar-auto-source"><CalendarDays size={18} /><div><strong>{selectedEvent.sourceType==='google'?'Compromisso do Google':'Prazo automático'}</strong><p>{selectedEvent.sourceType==='google'?'Para alterar este compromisso, abra a agenda Google. Ele aparece aqui apenas para consulta.':'Este item vem do deadline de um entregável. Para alterar a data, edite o entregável de origem — o calendário será atualizado sem duplicar cadastro.'}</p></div></div>}
+            {selectedEvent.synthetic && <div className="calendar-auto-source"><CalendarDays size={18} /><div><strong>Prazo automático</strong><p>Este item vem do prazo de um entregável. Para alterar a data, edite o entregável de origem.</p></div></div>}
             {!!selectedEvent.attendees.length && <section className="calendar-attendee-list"><strong>Convidados</strong>{selectedEvent.attendees.map((attendee, index) => <div key={`${attendee.email}-${index}`}><span className={`attendee-status ${attendee.status}`} /><span>{attendee.name}</span><small>{attendee.email}</small><b>{attendee.status === 'accepted' ? 'Aceito' : attendee.status === 'declined' ? 'Recusado' : attendee.status === 'tentative' ? 'Talvez' : 'Pendente'}</b></div>)}</section>}
             {showCancel && !selectedEvent.synthetic && <section className="calendar-cancel-box"><strong>Cancelar compromisso</strong><p>O motivo fica registrado. Quando a régua de notificações estiver ativada, ele também poderá compor a comunicação aos participantes.</p><textarea value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} rows={2} placeholder="Motivo do cancelamento" /><div><button className="secondary" onClick={() => setShowCancel(false)}>Voltar</button><button className="primary danger-action" disabled={!cancelReason.trim()} onClick={() => void cancelEvent()}>Confirmar cancelamento</button></div></section>}
+            </>}
           </div>
-          <div className="calendar-detail-footer calendar-detail-actions"><div className="calendar-detail-primary-actions">{!selectedEvent.synthetic && !selectedEvent.cancelledAt && <button className="secondary edit-event-action" onClick={() => openEditEvent(selectedEvent)}><Pencil size={16} />Editar ou remarcar</button>}{selectedEvent.meetingUrl && !selectedEvent.cancelledAt && <button className="primary" onClick={() => window.open(selectedEvent.meetingUrl!, '_blank', 'noopener,noreferrer')}><Video size={16} />Abrir Meet</button>}</div><div className="calendar-detail-secondary-actions"><button className="secondary" onClick={() => window.open(selectedEvent.sourceType==='google'&&selectedEvent.googleHtmlLink?selectedEvent.googleHtmlLink:googleCalendarTemplate(selectedEvent), '_blank', 'noopener,noreferrer')}><ExternalLink size={16} />Google Agenda</button><button className="secondary" onClick={() => downloadCalendarIcs(selectedEvent)}><Download size={16} />ICS</button>{!selectedEvent.synthetic && !selectedEvent.cancelledAt && !showCancel && <button className="secondary danger-soft" onClick={() => setShowCancel(true)}>Cancelar</button>}</div></div>
+          <div className="calendar-detail-footer calendar-detail-actions"><div className="calendar-detail-primary-actions">{!selectedEvent.synthetic && !selectedEvent.cancelledAt && <button className="secondary edit-event-action" onClick={() => openEditEvent(selectedEvent)}><Pencil size={16} />Editar ou remarcar</button>}{selectedEvent.meetingUrl && !selectedEvent.cancelledAt && <button className="primary" onClick={() => window.open(selectedEvent.meetingUrl!, '_blank', 'noopener,noreferrer')}><Video size={16} />Abrir Meet</button>}</div><div className="calendar-detail-secondary-actions">{selectedEvent.sourceType!=='google'&&<button className="secondary" onClick={() => window.open(googleCalendarTemplate(selectedEvent), '_blank', 'noopener,noreferrer')}><ExternalLink size={16} />Google Agenda</button>}<button className="secondary" onClick={() => downloadCalendarIcs(selectedEvent)}><Download size={16} />ICS</button>{!selectedEvent.synthetic && !selectedEvent.cancelledAt && !showCancel && <button className="secondary danger-soft" onClick={() => setShowCancel(true)}>Cancelar</button>}</div></div>
         </section>
       </div>}
     </Shell>
