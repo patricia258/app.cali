@@ -110,7 +110,6 @@ type ClientRow = {
   history?: AccountHistory[];
 };
 
-type PortfolioMetrics = { active: number; joined: number; exited: number; net: number };
 type LifecycleState = { type: LifecycleAction; client: ClientRow } | null;
 
 type FormState = {
@@ -260,7 +259,6 @@ function Tabs<T extends string>({ value, onChange, items }: { value:T; onChange:
 export function AdminClientsPageV3() {
   const preview = sessionStorage.getItem('cali-preview-role') === 'admin';
   const [clients,setClients] = useState<ClientRow[]>(preview ? previewClients : []);
-  const [metrics,setMetrics] = useState<PortfolioMetrics>(preview ? {active:3,joined:2,exited:1,net:1} : {active:0,joined:0,exited:0,net:0});
   const [loading,setLoading] = useState(!preview);
   const [message,setMessage] = useState('');
   const [error,setError] = useState('');
@@ -297,7 +295,7 @@ export function AdminClientsPageV3() {
   async function loadClients() {
     if (preview || !supabase) return;
     setLoading(true); setError('');
-    const { start,next,startIso,nextIso } = monthBounds();
+    const { start,next } = monthBounds();
     const [companiesResult,invitesResult,profilesResult,hoursResult,npsResult,projectsResult,documentsResult,historyResult] = await Promise.all([
       supabase.from('companies').select('id,display_name,legal_name,logo_url,logo_workspace_url,status,created_at,closed_at,monthly_hours_contracted,decision_maker_title,service_type,service_plan,segment,drive_folder_url,start_date,end_date,auto_renew,address_street,address_number,address_neighborhood,address_city,address_state,has_branches,branches,contract_value,billing_frequency,payment_method,billing_status,billing_day,billing_due_rule,billing_lead_days,payment_notes,late_fee_percent,daily_interest_percent,contract_penalty_enabled,contract_penalty_text,termination_penalty_type,termination_penalty_value,termination_payment_days,termination_payment_rule,automation_enabled,welcome_email_enabled,due_reminder_enabled,overdue_email_enabled,overdue_email_after_days,extrajudicial_email_enabled,extrajudicial_after_days,birthday_email_enabled,termination_email_enabled,termination_signed_at,termination_payment_due_at,termination_penalty_amount,termination_balance_snapshot').order('created_at',{ascending:false}),
       supabase.from('client_invites').select('*').eq('is_primary',true),
@@ -323,8 +321,7 @@ export function AdminClientsPageV3() {
     const logoMap=new Map(logoRows);
     const readyRows=rows.map((row)=>({...row,logoUrl:logoMap.get(row.id)||''}));
     setClients(readyRows);
-    const active=companies.filter((item:any)=>item.status==='active').length,joined=companies.filter((item:any)=>item.created_at>=startIso&&item.created_at<nextIso).length,exited=companies.filter((item:any)=>item.closed_at&&item.closed_at>=startIso&&item.closed_at<nextIso).length;
-    setMetrics({active,joined,exited,net:joined-exited}); setLoading(false);
+    setLoading(false);
   }
   useEffect(()=>{ void loadClients(); },[]);
 
@@ -355,7 +352,7 @@ export function AdminClientsPageV3() {
     const newFields={ decisionBirthday:form.decisionBirthday,lateFeePercent:Number(form.lateFeePercent||0),dailyInterestPercent:Number(form.dailyInterestPercent||0),terminationPenaltyType:form.terminationPenaltyType,terminationPenaltyValue:Number(form.terminationPenaltyValue||0),terminationPaymentDays:Number(form.terminationPaymentDays||0),terminationPaymentRule:form.terminationPaymentRule };
     if(preview||!supabase){
       const client:ClientRow={id:`c-${Date.now()}`,name:form.company.trim(),legalName:form.legalName.trim(),logoUrl:logoFile?URL.createObjectURL(logoFile):'',status:'active',createdAt:new Date().toISOString(),contact:form.contact.trim(),email:form.email.trim(),decisionTitle:form.decisionTitle,decisionBirthday:form.decisionBirthday,phone:form.phone,whatsapp:form.whatsapp,service:form.service||'A definir',segment:segment||'—',contractedHours:contracted,hours:`0h / ${contracted||0}h`,usage:0,nps:'—',access:'Convite preparado',drive:'Não conectado',startDate:form.startDate,endDate:form.endDate,autoRenew:form.autoRenew,addressStreet:form.addressStreet,addressNumber:form.addressNumber,neighborhood:form.neighborhood,city:form.city,state:form.state,hasBranches:form.hasBranches,branches,contractValue:value||null,billingFrequency:form.billingFrequency,paymentMethod:form.paymentMethod,billingStatus:'A acompanhar',billingDay:form.billingDay?Number(form.billingDay):null,billingDueRule:form.billingDueRule,billingLeadDays:Number(form.billingLeadDays||3),financialNote:form.notes,lateFeePercent:newFields.lateFeePercent,dailyInterestPercent:newFields.dailyInterestPercent,penaltyEnabled:form.penaltyEnabled,penaltyText:form.penaltyText,terminationPenaltyType:newFields.terminationPenaltyType,terminationPenaltyValue:newFields.terminationPenaltyValue,terminationPaymentDays:newFields.terminationPaymentDays,terminationPaymentRule:newFields.terminationPaymentRule,automationEnabled:false,welcomeEmailEnabled:true,dueReminderEnabled:true,overdueEmailEnabled:true,overdueEmailAfterDays:1,extrajudicialEmailEnabled:false,birthdayEmailEnabled:false,terminationEmailEnabled:true,responsibilities:[],projects:[],documents:[contractFile?.name,addendumFile?.name].filter(Boolean) as string[],history:[{title:'Conta criada',detail:'Cadastro, contrato e acesso preparados',date:'agora'}]};
-      setClients((current)=>[client,...current]); setMetrics((current)=>({...current,active:current.active+1,joined:current.joined+1,net:current.net+1})); setMessage(`${client.name} foi cadastrado.`); setCreateOpen(false); setForm(emptyForm); openClient(client); return;
+      setClients((current)=>[client,...current]); setMessage(`${client.name} foi cadastrado.`); setCreateOpen(false); setForm(emptyForm); openClient(client); return;
     }
     setSaving(true);
     try{
@@ -414,7 +411,7 @@ export function AdminClientsPageV3() {
 
   return <Shell role="admin">
     <section className="page clients-page-v3">
-      <div className="clients-v3-actions"><span className="clients-v3-count">{metrics.active} {metrics.active===1?'cliente ativo':'clientes ativos'}</span><button className="primary" onClick={()=>{setForm(emptyForm);setRegistrationTab('data');setCreateOpen(true);}}><Plus size={18}/>Cadastrar cliente</button></div>
+      <div className="clients-v3-actions"><button className="primary" onClick={()=>{setForm(emptyForm);setRegistrationTab('data');setCreateOpen(true);}}><Plus size={18}/>Cadastrar cliente</button></div>
 
       {message&&<div className="inline-notice success"><CheckCircle2 size={18}/>{message}</div>}{error&&<div className="inline-notice">{error}</div>}
       <section className="panel data-panel client-list-panel"><div className="data-head client-data-head"><span>Cliente</span><span>Horas do ciclo</span><span>NPS</span><span>Acesso</span><span>Drive</span><span>Ações</span></div>{loading&&<div className="data-loading"><Loader2 className="spin"/>Carregando carteira…</div>}{clients.map((client)=><div className="client-data-row client-data-row-v2" key={client.id} role="button" tabIndex={0} onClick={()=>openClient(client)} onKeyDown={(e)=>{if(e.key==='Enter'||e.key===' ')openClient(client);}}><div className="client-identity"><div className="company-mark company-logo-slot">{client.logoUrl?<img src={client.logoUrl} alt={`Logo ${client.name}`}/>:client.name[0]}</div><div><strong>{client.name}</strong><span>{client.contact} · {client.email}</span><small>{client.service}</small></div></div><div className="hours-cell"><span>{client.hours}</span><Progress value={client.usage}/></div><strong className="nps-cell">{client.nps}</strong><span className={`status-pill ${client.status==='active'?'ok':client.status==='paused'?'warn':''}`}><Mail size={15}/>{statusLabel(client.status)}</span><span className={`status-pill ${client.drive==='Conectado'?'ok':''}`}><Cloud size={15}/>{client.drive}</span><div className="client-quick-actions" onClick={(e)=>e.stopPropagation()}><button title="Editar" onClick={()=>openClient(client,'data')}><Pencil size={16}/></button>{client.status==='paused'?<button title="Reativar" onClick={()=>requestLifecycle(client,'reactivate')}><RotateCcw size={16}/></button>:<button title="Bloquear" onClick={()=>requestLifecycle(client,'pause')}><PauseCircle size={16}/></button>}<button title="Arquivar" onClick={()=>requestLifecycle(client,'archive')}><Archive size={16}/></button><button title="Encerrar contrato" onClick={()=>requestLifecycle(client,'close')}><Ban size={16}/></button></div></div>)}</section>
