@@ -9,7 +9,7 @@ const PRESETS: Record<ImageUploadPreset, Preset> = {
   attachment: { maxSide: 2200, maxBytes: 2 * 1024 * 1024, quality: 0.84 },
 };
 
-const SUPPORTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml']);
+const SUPPORTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/avif']);
 const MAX_INPUT_BYTES = 12 * 1024 * 1024;
 
 function loadImage(file: Blob): Promise<HTMLImageElement> {
@@ -33,11 +33,12 @@ function extensionForType(type: string) {
   if (type === 'image/jpeg') return 'jpg';
   if (type === 'image/png') return 'png';
   if (type === 'image/svg+xml') return 'svg';
+  if (type === 'image/avif') return 'avif';
   return 'webp';
 }
 
 export async function optimizeImageForUpload(file: File, presetName: ImageUploadPreset) {
-  if (!SUPPORTED_TYPES.has(file.type)) throw new Error('Use uma imagem JPG, PNG, WEBP ou SVG.');
+  if (!SUPPORTED_TYPES.has(file.type)) throw new Error('Use uma imagem JPG, PNG, WEBP, AVIF ou SVG.');
   if (file.size > MAX_INPUT_BYTES) throw new Error('A imagem original deve ter no máximo 12 MB.');
 
   const preset = PRESETS[presetName];

@@ -505,3 +505,18 @@ Duas regras técnicas, pro handoff entre Claude e Codex, a partir do bug encontr
 - **Autor:** Codex. **Aprovação:** aguardando avaliação da Pati.
 
 ---
+
+---
+
+## 2026-09-29 — Claude (Bug real: upload de logo travava com .avif + erro invisível atrás do modal)
+
+- **Pedido:** Pati tentou trocar a logo de um cliente de teste (para conferir a correção anterior), clicou em "Salvar alterações" e o modal simplesmente não fechava nem mudava nada — sem mensagem, sem feedback.
+- **Causa raiz 1 (upload falhava de verdade):** o arquivo usado era `.avif` (`logotipo-abstrato-da-companhia_53876-120501.avif`). `optimizeImageForUpload()` (`src/lib/imageUpload.ts`) só aceitava `image/jpeg`, `image/png`, `image/webp` e `image/svg+xml` — qualquer outro tipo, incluindo AVIF, disparava `throw new Error('Use uma imagem JPG, PNG, WEBP ou SVG.')` antes mesmo de tentar o upload. Isso é pego pelo `catch` de `saveClient()`, que chama `setError(...)` e simplesmente não fecha o modal.
+- **Causa raiz 2 (por isso pareceu "travado", sem nenhum aviso):** a mensagem de erro é renderizada num `<div>` no corpo da página (`{error&&<div className="inline-notice">...`), mas o modal de gestão da conta é um overlay de tela cheia com `z-index:100` por cima de tudo — então a mensagem de erro **existia**, só que ficava escondida atrás do próprio modal. Resultado: clicar em salvar parecia não fazer nada.
+- **Correção:**
+  1. `src/lib/imageUpload.ts`: adicionado suporte a `image/avif` (aceito e mantido com extensão `.avif`; se precisar redimensionar/comprimir, o canvas converte para WEBP normalmente, igual já acontecia com os outros formatos).
+  2. `src/pages/admin/AdminClientsPageV3.tsx`: adicionado o mesmo aviso de erro **dentro do modal de Gestão da Conta**, logo acima do rodapé com os botões — agora qualquer falha ao salvar (logo em formato não suportado, erro de rede, etc.) aparece visível para quem está editando, sem precisar fechar o modal para ver.
+- **Arquivos:** `src/lib/imageUpload.ts`, `src/pages/admin/AdminClientsPageV3.tsx`.
+- **Verificação:** `npm run check` (typecheck + build) passou. Sem navegador nesta sessão — a causa foi confirmada pela mensagem de erro que o código gera para `.avif` batendo exatamente com o comportamento relatado (nada acontece, sem feedback); a Pati precisa testar de novo com a mesma imagem `.avif` e confirmar que agora sobe e a mensagem (se houver outro erro) aparece dentro do modal.
+- **Nota para o handoff:** essa classe de bug (erro real acontecendo mas escondido atrás de um modal de tela cheia) é fácil de repetir em qualquer outro modal do admin — vale revisar se existem outros modais que dependem só do aviso de página (`inline-notice` fora do modal) em vez de mostrar erro dentro de si mesmos.
+- **Autor:** Claude. **Aprovação:** pendente da confirmação da Pati.
