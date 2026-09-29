@@ -681,3 +681,34 @@ html[data-workspace-theme='night'] .calendar-week-selection{background:#755724d6
 .calendar-extra-fields summary{cursor:pointer;color:var(--theme-accent);font:700 12px Inter,system-ui,sans-serif}
 .calendar-extra-fields-content{display:grid;gap:10px;margin-top:12px}
 @media(max-width:700px){.calendar-event-modal{width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important}.calendar-event-modal .calendar-modal-heading{padding:15px 52px 10px 16px}.calendar-event-modal .calendar-modal-body{padding:12px 16px}.calendar-event-modal .calendar-modal-footer{padding:10px 16px}}
+
+/* Filtros de cliente e tipo no mesmo ponto, ao lado da busca. */
+.calendar-filter-control{position:relative;z-index:20;flex:0 0 auto}
+.calendar-filter-trigger{display:inline-flex;align-items:center;gap:8px;min-height:39px;padding:0 12px;border:1px solid var(--theme-line);border-radius:9px;background:var(--theme-surface);color:var(--theme-text);font:700 12px Inter,system-ui,sans-serif;cursor:pointer}
+.calendar-filter-trigger:hover,.calendar-filter-trigger.active{border-color:var(--theme-gold)}
+.calendar-filter-indicator{width:6px;height:6px;border-radius:50%;background:var(--theme-gold)}
+.calendar-filter-popover{position:absolute;top:calc(100% + 8px);right:0;z-index:30;width:min(390px,calc(100vw - 28px));box-sizing:border-box;padding:17px;border:1px solid var(--theme-line);border-radius:14px;background:var(--theme-surface);color:var(--theme-text);box-shadow:0 18px 48px #28141e35}
+.calendar-filter-popover-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font-size:14px}
+.calendar-filter-popover-head button{display:grid;place-items:center;width:29px;height:29px;border:1px solid var(--theme-line);border-radius:8px;background:transparent;color:var(--theme-text);cursor:pointer}
+.calendar-filter-popover label{display:grid;gap:6px;color:var(--theme-muted);font-size:11px;font-weight:700}
+.calendar-filter-popover select{width:100%;min-height:39px;padding:0 10px;border:1px solid var(--theme-line);border-radius:8px;background:var(--theme-surface);color:var(--theme-text)}
+.calendar-filter-caption{display:block;margin:17px 0 8px;font-size:11px}
+.calendar-filter-popover .calendar-type-filter-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.calendar-filter-popover .calendar-type-filter-list button{display:flex;align-items:center;gap:7px;min-height:36px;padding:6px 8px;border:1px solid var(--theme-line);border-radius:8px;background:var(--theme-surface-soft);color:var(--theme-text);cursor:pointer;opacity:.55;text-align:left}
+.calendar-filter-popover .calendar-type-filter-list button.active{opacity:1;border-color:color-mix(in srgb,var(--theme-gold) 45%,var(--theme-line))}
+.calendar-filter-popover .calendar-type-filter-list button>span{width:9px;height:9px;flex:0 0 9px;border-radius:50%}
+.calendar-filter-popover .calendar-type-filter-list button strong{flex:1;font-size:11px}
+.calendar-filter-popover .calendar-type-filter-list button small{font-size:10px;color:var(--theme-muted)}
+.calendar-filter-reset{margin-top:12px;padding:5px 0;border:0;background:transparent;color:var(--theme-accent);font-size:11px;font-weight:750;cursor:pointer}
+@media(max-width:700px){.calendar-filter-control{justify-self:start}.calendar-filter-popover{left:0;right:auto}.calendar-filter-popover .calendar-type-filter-list{grid-template-columns:1fr 1fr}}
+
+/* O detalhe administrativo conserva ações e convidados, com proporção próxima do cliente. */
+.calendar-detail-refined{width:min(720px,calc(100vw - 24px))!important;max-width:720px!important;max-height:min(86dvh,720px)!important;height:auto!important}
+.calendar-detail-refined .calendar-detail-heading{padding:17px 56px 14px 22px;gap:11px}
+.calendar-detail-refined .calendar-detail-company-mark{width:43px;height:43px;border-radius:11px}
+.calendar-detail-refined .calendar-detail-heading h2{font-size:1.2rem}
+.calendar-detail-refined .calendar-detail-body{padding:14px 22px;gap:9px}
+.calendar-detail-refined .calendar-detail-facts article{min-height:68px;padding:9px 11px}
+.calendar-detail-refined .calendar-detail-description,.calendar-detail-refined .calendar-attendee-list,.calendar-detail-refined .calendar-cancel-box{padding:11px 13px}
+.calendar-detail-refined .calendar-detail-actions{padding:10px 22px}
+@media(max-width:700px){.calendar-detail-refined{max-height:calc(100dvh - 20px)!important}.calendar-detail-refined .calendar-detail-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
