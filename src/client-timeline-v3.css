@@ -159,4 +159,6 @@ html[data-workspace-theme='night'] .client-request-preview-note svg{color:#e8bd7
 .client-google-settings>summary strong{font-size:14px;color:var(--theme-text)}
 .client-google-settings>summary small{font-size:11px;line-height:1.45;color:var(--theme-muted);font-weight:500}
 .client-google-settings-action{white-space:nowrap;color:var(--theme-accent);font-size:11px;font-weight:750}
+.client-google-settings[open]>summary small{display:none}
+.client-google-settings[open]>summary{min-height:48px;padding-block:10px}
 @media(max-width:650px){.client-google-settings>summary{align-items:flex-start;flex-wrap:wrap}.client-google-settings-action{margin-left:33px}}
