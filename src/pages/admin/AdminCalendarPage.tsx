@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import {
   CalendarDays,
   Check,
@@ -199,6 +199,9 @@ export function AdminCalendarPage() {
   const [historyOutcome, setHistoryOutcome] = useState('all');
   const [historyOpen, setHistoryOpen] = useState(false);
   const upcomingRef = useRef<HTMLDivElement>(null);
+  const selectionStart = useRef<{date:Date;minutes:number;pointerId:number;startY:number}|null>(null);
+  const lastHorizontalMove = useRef(0);
+  const [selectionPreview, setSelectionPreview] = useState<{date:string;top:number;height:number}|null>(null);
 
   useEffect(() => { void loadCalendar(); }, []);
   useEffect(() => {
@@ -398,17 +401,40 @@ export function AdminCalendarPage() {
     setCursor(next);
   }
 
-  function openCreateForDate(date?: Date, hour?: number) {
+  function openCreateForDate(date?: Date, minutes?: number, duration = 60) {
     const target = date || cursor;
     const next = defaultForm(dateKey(target));
     next.companyId = companies[0]?.id || 'aurora';
-    if (typeof hour === 'number') {
-      next.startTime = `${String(hour).padStart(2, '0')}:00`;
-      next.endTime = `${String(Math.min(hour + 1, 23)).padStart(2, '0')}:00`;
+    if (typeof minutes === 'number') {
+      next.startTime = `${String(Math.floor(minutes/60)).padStart(2, '0')}:${String(minutes%60).padStart(2, '0')}`;
+      const end=Math.min(minutes+duration,20*60);
+      next.endTime = `${String(Math.floor(end/60)).padStart(2, '0')}:${String(end%60).padStart(2, '0')}`;
     }
     setEditingEvent(null);
     setForm(next);
     setEditorOpen(true);
+  }
+
+  function startWeekSelection(date:Date,hour:number,event:ReactPointerEvent<HTMLDivElement>){
+    const minutes=hour*60+Math.min(45,Math.max(0,Math.floor((event.clientY-event.currentTarget.getBoundingClientRect().top)/16)*15));
+    selectionStart.current={date,minutes,pointerId:event.pointerId,startY:event.clientY};
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setSelectionPreview({date:dateKey(date),top:(minutes-7*60)/60*HOUR_HEIGHT,height:HOUR_HEIGHT/2});
+  }
+  function moveWeekSelection(event:ReactPointerEvent<HTMLDivElement>){
+    const start=selectionStart.current;if(!start||start.pointerId!==event.pointerId)return;
+    const duration=Math.max(30,Math.min(180,Math.ceil((event.clientY-start.startY)/16)*15));
+    setSelectionPreview({date:dateKey(start.date),top:(start.minutes-7*60)/60*HOUR_HEIGHT,height:duration/60*HOUR_HEIGHT});
+  }
+  function finishWeekSelection(event:ReactPointerEvent<HTMLDivElement>){
+    const start=selectionStart.current;if(!start||start.pointerId!==event.pointerId)return;
+    const duration=Math.max(30,Math.min(180,Math.ceil((event.clientY-start.startY)/16)*15));
+    selectionStart.current=null;setSelectionPreview(null);openCreateForDate(start.date,start.minutes,duration);
+  }
+  function scrollWeeks(event:ReactWheelEvent<HTMLDivElement>){
+    if(Math.abs(event.deltaX)<22||Math.abs(event.deltaX)<Math.abs(event.deltaY))return;
+    const element=event.currentTarget,atEdge=event.deltaX<0?element.scrollLeft<2:element.scrollLeft+element.clientWidth>=element.scrollWidth-2;
+    if(atEdge&&Date.now()-lastHorizontalMove.current>550){lastHorizontalMove.current=Date.now();navigatePeriod(event.deltaX>0?1:-1)}
   }
 
   function openEditEvent(event: WorkspaceCalendarEvent) {
@@ -650,7 +676,7 @@ export function AdminCalendarPage() {
               </div>
             </>}
 
-            {view === 'week' && <div className="calendar-week-scroller"><div className="calendar-week-view">
+            {view === 'week' && <div className="calendar-week-scroller" onWheel={scrollWeeks}><div className="calendar-week-view">
               <div className="calendar-week-corner" />
               {weekDates.map((date) => <div key={dateKey(date)} className={`calendar-week-day-head ${isSameDate(date, today) ? 'today' : ''}`}><span>{weekdays[date.getDay()]}</span><strong>{date.getDate()}</strong></div>)}
               <div className="calendar-week-all-day-label">Dia inteiro</div>
@@ -661,7 +687,8 @@ export function AdminCalendarPage() {
                 {hours.map(hour => <span key={hour} style={{ top: (hour - WEEK_START_HOUR) * HOUR_HEIGHT }}>{String(hour).padStart(2, '0')}:00</span>)}
               </div>
               {weekDates.map(date => <div key={`lane-${dateKey(date)}`} className="calendar-week-lane" style={{ height: hours.length * HOUR_HEIGHT }}>
-                {hours.map(hour => <div key={hour} className="calendar-week-hour-hit" style={{ top: (hour - WEEK_START_HOUR) * HOUR_HEIGHT, height: HOUR_HEIGHT }} onDoubleClick={() => openCreateForDate(date,hour)} />)}
+                {hours.map(hour => <div key={hour} className="calendar-week-hour-hit is-selectable" style={{ top: (hour - WEEK_START_HOUR) * HOUR_HEIGHT, height: HOUR_HEIGHT }} onPointerDown={event=>startWeekSelection(date,hour,event)} onPointerMove={moveWeekSelection} onPointerUp={finishWeekSelection} onPointerCancel={()=>{selectionStart.current=null;setSelectionPreview(null)}} title="Selecione um horário para criar um evento" />)}
+                {selectionPreview?.date===dateKey(date)&&<div className="calendar-week-selection" style={{top:selectionPreview.top,height:selectionPreview.height}}>Novo evento</div>}
                 {weekEventLayout(eventsByDate.get(dateKey(date)) || []).map(({ event, top, height, column, columns }) =>
                   <button key={event.id} className={`calendar-week-event ${event.sourceType === 'google' ? 'is-google' : 'is-workspace'} ${event.sourceType === 'request_preview' ? 'is-preview' : ''} ${height < 36 ? 'is-compact' : ''}`} style={{ ...eventStyle(event), top, height: Math.max(3,height - 2), left: Math.min(column*11,33), width: `calc(100% - ${Math.min(column*11,33)}px)`, zIndex: columns+column }} title={`${event.sourceType === 'request_preview' ? 'Prévia em análise' : event.sourceType === 'google' ? 'Google Agenda' : 'Workspace'} · ${formatCalendarTime(event.startsAt)}–${formatCalendarTime(event.endsAt)} · ${event.title}`} onClick={() => setSelectedEvent(event)}>
                     <strong>{event.title}</strong><time>{formatCalendarTime(event.startsAt)}{event.endsAt ? `–${formatCalendarTime(event.endsAt)}` : ''}</time><small>{event.sourceType === 'request_preview' ? `Prévia ${event.previewOption} · não confirmado` : event.sourceType === 'google' ? 'Google' : 'Workspace'}</small>
@@ -727,8 +754,7 @@ export function AdminCalendarPage() {
           <div className="calendar-modal-heading">
             <span className="section-kicker">{editingEvent ? 'EDITAR / REMARCAR' : 'NOVO EVENTO'}</span>
             <h2>{editingEvent ? 'Atualizar compromisso' : 'Adicionar ao calendário'}</h2>
-            <p>Crie o compromisso uma vez e defina quem deve enxergá-lo. A agenda CALI continua funcionando mesmo sem a conexão Google.</p>
-            <span className="calendar-modal-protocol">{editingEvent?.protocol ? `Protocolo ${editingEvent.protocol}` : 'O protocolo será gerado automaticamente ao salvar.'}</span>
+            {editingEvent?.protocol && <span className="calendar-modal-protocol">Protocolo {editingEvent.protocol}</span>}
           </div>
           <div className="calendar-modal-body">
             <label className="stacked-label calendar-title-field">Título<input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Ex.: reunião mensal de indicadores" /></label>
@@ -745,13 +771,17 @@ export function AdminCalendarPage() {
               <label className="stacked-label">Formato<select value={form.mode} onChange={(event) => setForm((current) => ({ ...current, mode: event.target.value as 'remote' | 'in_person' }))}><option value="remote">Remoto</option><option value="in_person">Presencial</option></select></label>
               <label className="stacked-label">Visibilidade<select value={form.visibility} onChange={(event) => setForm((current) => ({ ...current, visibility: event.target.value as 'internal' | 'client' }))}><option value="client">Compartilhar com cliente</option><option value="internal">Somente CALI</option></select></label>
             </div>}
-            <div className="calendar-event-form-grid">
+            <details className="calendar-extra-fields" key={editingEvent?.id||'new'} open={editingEvent?true:undefined}>
+              <summary>Local, link, convidados e descrição</summary>
+              <div className="calendar-extra-fields-content"><div className="calendar-event-form-grid">
               <label className="stacked-label">Local / sala<input value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value }))} placeholder={form.mode === 'remote' ? 'Google Meet' : 'Endereço ou sala'} /></label>
               <label className="stacked-label">Link da reunião<input value={form.meetingUrl} onChange={(event) => setForm((current) => ({ ...current, meetingUrl: event.target.value }))} placeholder="https://meet.google.com/..." /></label>
             </div>
             {form.mode === 'remote' && calendarConnection !== 'connected' && <div className="calendar-meet-helper">Você pode informar um Meet existente agora. Quando o Google Workspace estiver conectado por OAuth, a criação/sincronização de Meet poderá acontecer pela própria agenda.</div>}
             <label className="stacked-label">Convidados por e-mail<input value={form.attendeeEmails} onChange={(event) => setForm((current) => ({ ...current, attendeeEmails: event.target.value }))} placeholder="decisor@empresa.com.br, outra@empresa.com.br" /><small>Separe mais de um e-mail por vírgula.</small></label>
             <label className="stacked-label">Descrição<textarea value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} rows={3} placeholder="Contexto, objetivo ou preparação necessária" /></label>
+              </div>
+            </details>
           </div>
           <div className="calendar-modal-footer"><button type="button" className="secondary" onClick={closeEditor}>Cancelar</button><button className="primary" disabled={saving || !form.title.trim()} type="submit">{saving ? 'Salvando…' : editingEvent ? 'Salvar alterações' : 'Adicionar evento'}</button></div>
         </form>
