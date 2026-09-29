@@ -147,3 +147,16 @@ html[data-workspace-theme='night'] .client-agenda-panel .client-week-event.reque
 html[data-workspace-theme='night'] .client-week-selection{background:#765926aa;color:#fff4dd}
 .client-agenda-panel .client-week-event.is-google :is(strong,time,small),html[data-workspace-theme='night'] .client-agenda-panel .client-week-event.is-google :is(strong,time,small){color:var(--event-foreground)!important;opacity:1}
 @media(max-width:700px){.client-agenda-heading-actions{width:100%;justify-content:space-between}.client-agenda-heading-actions button{font-size:11px}.client-meeting-history-modal{padding:14px}}
+
+/* O aviso ocupa a largura do detalhe; a integração explica seu valor antes da conexão. */
+.client-agenda-detail-body .client-request-preview-note{grid-column:1/-1;width:100%;box-sizing:border-box;display:flex;align-items:center;gap:12px;margin:3px 0;padding:12px 14px}
+.client-request-preview-note svg{flex:0 0 20px;color:#9a6627}
+html[data-workspace-theme='night'] .client-request-preview-note svg{color:#e8bd73}
+.client-google-settings{margin:0 0 16px}
+.client-google-settings>summary{display:flex;align-items:center;gap:14px;width:100%;box-sizing:border-box;padding:15px 18px;min-height:76px;text-align:left;border-color:color-mix(in srgb,var(--theme-gold) 45%,var(--theme-line));background:color-mix(in srgb,var(--theme-gold) 7%,var(--theme-surface))}
+.client-google-settings>summary>svg{flex:0 0 auto;color:var(--theme-gold)}
+.client-google-settings>summary>span:nth-child(2){display:grid;gap:4px;flex:1;min-width:0}
+.client-google-settings>summary strong{font-size:14px;color:var(--theme-text)}
+.client-google-settings>summary small{font-size:11px;line-height:1.45;color:var(--theme-muted);font-weight:500}
+.client-google-settings-action{white-space:nowrap;color:var(--theme-accent);font-size:11px;font-weight:750}
+@media(max-width:650px){.client-google-settings>summary{align-items:flex-start;flex-wrap:wrap}.client-google-settings-action{margin-left:33px}}
