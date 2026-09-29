@@ -129,3 +129,21 @@ html[data-workspace-theme='night'] .client-agenda-panel .client-week-event.deadl
 html[data-workspace-theme='night'] .client-agenda-panel .client-week-event.request { background: #47341f; border-color: #d4a666; color: #fff2d9; }
 html[data-workspace-theme='night'] .client-agenda-panel .client-week-event.request.tone-negative { background: #512630; border-color: #dd8999; color: #fff0f2; }
 html[data-workspace-theme='night'] .client-agenda-panel .client-week-event.request.tone-positive { background: #213e2d; border-color: #76ba8b; color: #e9ffec; }
+
+/* A agenda é a primeira informação da página; o histórico abre sob demanda. */
+.client-agenda-panel{margin-top:8px}
+.client-agenda-heading-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.client-agenda-heading-actions button{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid var(--theme-line);border-radius:9px;background:var(--theme-surface);color:var(--theme-text);font:700 12px Inter,system-ui,sans-serif;cursor:pointer}
+.client-agenda-heading-actions button:hover{border-color:#b58c52;background:var(--theme-surface-soft)}
+.client-meeting-history-modal{position:relative;width:min(680px,calc(100vw - 24px));max-height:calc(100dvh - 30px);overflow:auto;margin:0;padding:20px;border:1px solid #b58c52;border-radius:16px;background:var(--theme-surface);color:var(--theme-text);box-shadow:0 24px 70px #2b172655;animation:clientAgendaRise .28s ease both}
+.client-meeting-history-close{position:absolute;top:16px;right:16px;display:grid;place-items:center;width:35px;height:35px;border:1px solid var(--theme-line);border-radius:9px;background:var(--theme-surface);color:var(--theme-text);cursor:pointer}
+.client-meeting-history-modal .client-real-timeline-title{padding-right:40px}
+.client-agenda-panel .calendar-week-all-day-label{justify-content:center;line-height:1.2;text-align:center;min-height:44px;padding:7px 3px}
+.client-agenda-panel .calendar-week-axis span{transform:translateY(8px);font-size:11px}
+.client-agenda-panel .calendar-week-hour-hit.is-selectable{cursor:crosshair;touch-action:pan-y}
+.client-agenda-panel .calendar-week-hour-hit.is-closed{background:color-mix(in srgb,var(--theme-line) 28%,transparent);cursor:not-allowed}
+.client-agenda-panel .client-week-lane.is-closed{background:color-mix(in srgb,var(--theme-line) 14%,var(--theme-surface-soft))}
+.client-week-selection{position:absolute;inset-inline:3px;z-index:4;display:grid;place-items:center;pointer-events:none;border:1px solid #ae7f3b;border-radius:7px;background:#f6d78aaa;color:#4f2631;font:700 11px Inter,system-ui,sans-serif}
+html[data-workspace-theme='night'] .client-week-selection{background:#765926aa;color:#fff4dd}
+.client-agenda-panel .client-week-event.is-google :is(strong,time,small),html[data-workspace-theme='night'] .client-agenda-panel .client-week-event.is-google :is(strong,time,small){color:var(--event-foreground)!important;opacity:1}
+@media(max-width:700px){.client-agenda-heading-actions{width:100%;justify-content:space-between}.client-agenda-heading-actions button{font-size:11px}.client-meeting-history-modal{padding:14px}}
