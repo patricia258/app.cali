@@ -599,3 +599,39 @@ html[data-workspace-theme='night'] .calendar-detail-footer { background: #21191d
   .calendar-page-v2 .calendar-search { min-width: 0; }
   .calendar-detail-modal:has(.calendar-google-detail) { max-height: calc(100dvh - 24px) !important; }
 }
+
+/* Datas propostas ocupam a grade como simulação, sem aparência de compromisso confirmado. */
+.calendar-page-v2 .calendar-week-event.is-preview,
+.calendar-page-v2 .calendar-event-chip.is-preview {
+  border: 1px dashed #a97546 !important;
+  border-left: 4px solid #a97546 !important;
+  background: #fff0d7 !important;
+  color: #573623 !important;
+  box-shadow: none;
+}
+.calendar-page-v2 .calendar-week-event.is-preview :is(strong,time,small),
+.calendar-page-v2 .calendar-event-chip.is-preview :is(strong,time) { color: inherit !important; opacity: 1; }
+.calendar-preview-detail { display: grid; gap: 10px; color: var(--theme-text); }
+.calendar-preview-detail strong { font-size: 15px; }
+.calendar-preview-detail p { margin: 0; font-size: 13px; line-height: 1.5; }
+
+/* Contraste explícito para a agenda no modo noite. */
+html[data-workspace-theme='night'] .calendar-page-v2 .calendar-week-event.is-workspace:not(.is-preview),
+html[data-workspace-theme='night'] .calendar-page-v2 .calendar-week-all-day-event.is-workspace {
+  background: #412d32 !important;
+  color: #fff5f1 !important;
+  border-color: #96716b !important;
+}
+html[data-workspace-theme='night'] .calendar-page-v2 .calendar-week-event.is-workspace :is(strong,time,small),
+html[data-workspace-theme='night'] .calendar-page-v2 .calendar-event-chip.is-workspace :is(strong,time) { color: inherit !important; }
+html[data-workspace-theme='night'] .calendar-page-v2 .calendar-week-event.is-preview,
+html[data-workspace-theme='night'] .calendar-page-v2 .calendar-event-chip.is-preview {
+  background: #45351f !important;
+  color: #fff1d7 !important;
+  border-color: #d9ab64 !important;
+}
+html[data-workspace-theme='night'] .calendar-detail-refined.is-positive .calendar-detail-heading { background: linear-gradient(115deg,#223d2d,#1c3025) !important; }
+html[data-workspace-theme='night'] .calendar-detail-refined.is-negative .calendar-detail-heading { background: linear-gradient(115deg,#542632,#3d1f28) !important; }
+html[data-workspace-theme='night'] .calendar-detail-refined.is-pending .calendar-detail-heading { background: linear-gradient(115deg,#45351f,#35291e) !important; }
+html[data-workspace-theme='night'] .calendar-detail-refined .calendar-detail-heading :is(h2,p,.section-kicker) { color: #fff5ee !important; }
+html[data-workspace-theme='night'] .calendar-detail-refined .calendar-detail-heading .section-kicker { color: #f0cf93 !important; }
