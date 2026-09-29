@@ -38,6 +38,7 @@ import {
   type WorkspaceCalendarEvent,
 } from '../../domain/calendar';
 import { supabase } from '../../lib/supabase';
+import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 
 type CompanyOption = { id: string; name: string; logoUrl?: string | null };
 type MeetingOutcome = { event_id: string; outcome: string; transcription_url?: string | null; transcription_attachment_name?: string | null };
@@ -249,7 +250,7 @@ export function AdminCalendarPage() {
     if (!supabase) { setLoading(false); return; }
     try {
       const [{ data: companyRows }, { data: eventRows }, { data: attendeeRows }, { data: deadlineRows }, { data: connectionRows }, { data: requestRows }, { data: projectRows }] = await Promise.all([
-        supabase.from('companies').select('id, display_name, logo_url').neq('status', 'archived').order('display_name'),
+        supabase.from('companies').select('id, display_name, logo_url, logo_workspace_url').neq('status', 'archived').order('display_name'),
         supabase.from('events').select('id,protocol,title,company_id,project_id,event_type,color_hex,starts_at,ends_at,all_day,mode,location,meeting_url,description,visibility,source_type,source_entity_id,google_event_id,sync_status,cancelled_at').order('starts_at'),
         supabase.from('event_attendees').select('id,event_id,name,email,status,response_note').order('created_at'),
         supabase.from('deliverables').select('id, company_id, project_id, title, due_at, status, protocol').not('due_at', 'is', null).order('due_at'),
@@ -258,7 +259,11 @@ export function AdminCalendarPage() {
         supabase.from('projects').select('id,name'),
       ]);
 
-      const options: CompanyOption[] = (companyRows || []).map((row: any) => ({ id: row.id, name: row.display_name, logoUrl: row.logo_url }));
+      const options: CompanyOption[] = await Promise.all((companyRows || []).map(async (row: any) => ({
+        id: row.id,
+        name: row.display_name,
+        logoUrl: await resolveWorkspaceMedia(row.logo_url || row.logo_workspace_url) || await resolveWorkspaceMedia(row.logo_workspace_url),
+      })));
       if (options.length) setCompanies(options);
       const companyMap = new Map(options.map((company) => [company.id, company]));
       const projectMap = new Map((projectRows || []).map((project: any) => [project.id, project.name]));
