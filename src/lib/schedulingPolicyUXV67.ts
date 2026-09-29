@@ -47,7 +47,7 @@ const STYLE = `
 #scheduling-v65-client-host .scheduling-v65-empty{display:none!important}
 #scheduling-v65-client-host .scheduling-v65-list{display:none!important;padding:0 18px 14px!important;border-top:1px solid rgba(90,30,45,.10)!important}
 #scheduling-v65-client-host .scheduling-v65-list:has([data-scheduling-client-accept]){display:block!important}
-#scheduling-v65-client-host .scheduling-v65-list:has([data-scheduling-client-accept])::before{content:'Resposta da CALI';display:block;padding:12px 0 3px;font-size:11px;line-height:1.2;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#5A1E2D}
+#scheduling-v65-client-host .scheduling-v65-list:has([data-scheduling-client-accept])::before{display:none}
 #scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-request{grid-template-columns:minmax(0,1fr) minmax(210px,260px)!important;gap:12px 18px!important;padding:8px 0 2px!important;border-top:0!important}
 #scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-request-top{margin-bottom:5px!important}
 #scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-request-top strong{font-size:14px!important}
@@ -98,7 +98,6 @@ const STYLE = `
 
 html[data-workspace-theme='night'] #scheduling-v65-client-host .scheduling-v65-panel{background:linear-gradient(135deg,#44361F 0%,#322719 100%)!important;border-color:#80662E!important;border-left-color:#D2A650!important}
 html[data-workspace-theme='night'] #scheduling-v65-client-host .scheduling-v65-list{border-top-color:rgba(216,177,92,.18)!important}
-html[data-workspace-theme='night'] #scheduling-v65-client-host .scheduling-v65-list:has([data-scheduling-client-accept])::before{color:#D2A650}
 html[data-workspace-theme='night'] #scheduling-v65-client-host .scheduling-v66-contract-summary>div:first-child{background:rgba(255,255,255,.05);border-color:rgba(216,177,92,.22)}
 html[data-workspace-theme='night'] .scheduling-v67-contract-help{background:#2b2024;border-color:#523d44;color:#d9cfc8}
 html[data-workspace-theme='night'] #scheduling-v65-admin-host .scheduling-v67-admin-note{background:rgba(181,140,82,.08);color:#d9cfc8}
