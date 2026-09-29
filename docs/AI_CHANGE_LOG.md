@@ -1,5 +1,14 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-09-29 — Codex (visão semanal do calendário administrativo)
+
+- **Pedido da Pati:** abrir o calendário pela semana, distinguir os eventos importados do Google dos criados no Workspace, reproduzir as cores do Google e fazer cada bloco ocupar exatamente sua duração (por exemplo, 10h–10h30), inclusive quando há eventos simultâneos.
+- **Implementação:** grade semanal posicionada por minuto, com largura dividida entre compromissos sobrepostos, faixa separada para dia inteiro e rótulo de origem. Eventos Google usam a cor do próprio evento ou da agenda por meio da API Colors; eventos internos mantêm a identidade CALI. A visualização mensal continua disponível. Contraste calculado para fundo claro/escuro. A função de leitura mantém a verificação JWT e não expõe títulos aos clientes.
+- **Arquivos:** `src/pages/admin/AdminCalendarPage.tsx`, `src/page4-calendar.css`, `src/domain/calendar.ts`, `supabase/functions/workspace-google-calendar-read/index.ts`.
+- **Autor:** Codex. **Aprovação:** aguardando conferência visual da Pati. **Validação:** `npm run check` passou; função Edge implantada (versão 3). Conferência visual autenticada com eventos reais ainda pendente.
+
+---
+
 ## 2026-09-29 — Codex (agenda Google e horários ocupados)
 
 - **Pedido da Pati:** mostrar no calendário administrativo os compromissos da agenda real do Google Workspace. Avisar ao cliente que uma opção está ocupada, sem impedir pedido de análise excepcional. Bloquear envio duplicado de horários pendentes da mesma empresa.

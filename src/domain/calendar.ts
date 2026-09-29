@@ -23,6 +23,7 @@ export type WorkspaceCalendarEvent = {
   project?: string | null;
   type: CalendarEventType;
   color: string;
+  textColor?: string;
   startsAt: string;
   endsAt?: string | null;
   allDay: boolean;

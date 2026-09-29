@@ -45,12 +45,12 @@ Deno.serve(async (request) => {
     return result;
   };
   try {
-    const calendars: string[] = [];
+    const calendars: { id: string; color: string; foreground: string; colorId: string }[] = [];
     let page = '';
     do {
       const params = new URLSearchParams({ maxResults: '250' }); if (page) params.set('pageToken', page);
       const list = await google(`users/me/calendarList?${params}`);
-      for (const item of list.items || []) if (item.id && !item.deleted) calendars.push(item.id);
+      for (const item of list.items || []) if (item.id && !item.deleted) calendars.push({ id: item.id, color: item.backgroundColor || '', foreground: item.foregroundColor || '', colorId: item.colorId || '' });
       page = list.nextPageToken || '';
     } while (page && calendars.length < 250);
     if (!calendars.length) return reply({ error: 'calendar_empty' }, 409);
@@ -69,7 +69,7 @@ Deno.serve(async (request) => {
       const max = new Date(Math.max(...parsed.map((slot: any) => slot.end))).toISOString();
       const busy: { start: number; end: number }[] = [];
       for (let i = 0; i < calendars.length; i += 50) {
-        const result = await google('freeBusy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ timeMin: min, timeMax: max, timeZone: 'America/Sao_Paulo', items: calendars.slice(i, i + 50).map(id => ({ id })) }) });
+        const result = await google('freeBusy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ timeMin: min, timeMax: max, timeZone: 'America/Sao_Paulo', items: calendars.slice(i, i + 50).map(calendar => ({ id: calendar.id })) }) });
         for (const entry of Object.values(result.calendars || {}) as any[]) {
           if (entry.errors?.length) throw new Error('calendar_unavailable');
           for (const interval of entry.busy || []) busy.push({ start: new Date(interval.start).getTime(), end: new Date(interval.end).getTime() });
@@ -83,18 +83,21 @@ Deno.serve(async (request) => {
     const start = new Date(body?.start || 0).getTime(), end = new Date(body?.end || 0).getTime();
     if (!Number.isFinite(start) || !Number.isFinite(end) || start >= end || end - start > 62 * 86400000) return reply({ error: 'invalid_range' }, 400);
     const items: any[] = [], seen = new Set<string>();
-    for (const calendarId of calendars) {
+    const palette = await google('colors');
+    for (const calendar of calendars) {
       let next = '';
       do {
         const params = new URLSearchParams({ timeMin: new Date(start).toISOString(), timeMax: new Date(end).toISOString(), singleEvents: 'true', maxResults: '250', showDeleted: 'false' });
         if (next) params.set('pageToken', next);
-        const result = await google(`calendars/${encodeURIComponent(calendarId)}/events?${params}`);
+        const result = await google(`calendars/${encodeURIComponent(calendar.id)}/events?${params}`);
         for (const entry of result.items || []) {
           if (entry.status === 'cancelled' || !entry.start) continue;
           const identity = `${entry.iCalUID || entry.id}:${entry.start.dateTime || entry.start.date}`;
           if (seen.has(identity)) continue;
           seen.add(identity);
-          items.push({ id: entry.id, calendarId, title: entry.summary || 'Ocupado', start: entry.start.dateTime || entry.start.date, end: entry.end?.dateTime || entry.end?.date, allDay: Boolean(entry.start.date), location: entry.location || null, description: entry.description || null, htmlLink: entry.htmlLink || null });
+          const eventColor = entry.colorId ? palette.event?.[entry.colorId] : null;
+          const calendarColor = palette.calendar?.[calendar.colorId];
+          items.push({ id: entry.id, calendarId: calendar.id, title: entry.summary || 'Ocupado', start: entry.start.dateTime || entry.start.date, end: entry.end?.dateTime || entry.end?.date, allDay: Boolean(entry.start.date), location: entry.location || null, description: entry.description || null, htmlLink: entry.htmlLink || null, color: eventColor?.background || calendar.color || calendarColor?.background || '#8D7354', textColor: eventColor?.foreground || calendar.foreground || calendarColor?.foreground || null });
         }
         next = result.nextPageToken || '';
       } while (next && items.length < 5000);

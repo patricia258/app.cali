@@ -67,6 +67,9 @@ const fallbackCompanies: CompanyOption[] = [
 const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const hours = Array.from({ length: 13 }, (_, index) => index + 7);
+const HOUR_HEIGHT = 64;
+const WEEK_START_HOUR = hours[0];
+const WEEK_END_HOUR = hours[hours.length - 1] + 1;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function defaultForm(date = dateKey(new Date())): CreateEventForm {
@@ -89,15 +92,43 @@ function defaultForm(date = dateKey(new Date())): CreateEventForm {
 }
 
 function eventStyle(event: WorkspaceCalendarEvent) {
-  return { '--event-color': event.color, '--event-soft': `${event.color}18` } as React.CSSProperties;
+  const hex = /^#[0-9a-f]{6}$/i.test(event.color) ? event.color : '#8D7354';
+  const [red, green, blue] = [1,3,5].map(index => parseInt(hex.slice(index,index+2),16));
+  const foreground = /^#[0-9a-f]{6}$/i.test(event.textColor || '') ? event.textColor : (red * .299 + green * .587 + blue * .114 > 160 ? '#30232a' : '#ffffff');
+  return { '--event-color': hex, '--event-soft': `${hex}18`, '--event-foreground': foreground } as React.CSSProperties;
 }
 
 function isSameDate(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
-function eventHour(event: WorkspaceCalendarEvent) {
-  return Number(new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', hour12: false, timeZone: 'America/Sao_Paulo' }).format(new Date(event.startsAt)));
+function weekMinute(value: string) {
+  const [hour, minute] = formTime(value).split(':').map(Number);
+  return hour * 60 + minute;
+}
+
+function weekEventLayout(events: WorkspaceCalendarEvent[]) {
+  type Placed = { event: WorkspaceCalendarEvent; start: number; end: number; column: number; columns: number };
+  const dayStart = WEEK_START_HOUR * 60, dayEnd = WEEK_END_HOUR * 60;
+  const sorted = events.filter(event => !event.allDay).map(event => {
+    const start = Math.max(dayStart, weekMinute(event.startsAt));
+    // The following day's endpoint is not an early-morning event on this day.
+    const rawEnd = !event.endsAt ? start + 30 : formDate(event.endsAt) === formDate(event.startsAt) ? weekMinute(event.endsAt) : dayEnd;
+    return { event, start, end: Math.min(dayEnd, Math.max(start + 1, rawEnd)) };
+  }).filter(item => weekMinute(item.event.startsAt) < dayEnd && item.end > dayStart).sort((a,b) => a.start - b.start || b.end - a.end);
+  const groups: Placed[][] = [];
+  let group: Placed[] = [], groupEnd = -1, active: Placed[] = [];
+  const flush = () => { if (group.length) { const columns = Math.max(...group.map(item => item.column)) + 1; group.forEach(item => item.columns = columns); groups.push(group); } group = []; active = []; };
+  sorted.forEach(item => {
+    if (group.length && item.start >= groupEnd) { flush(); groupEnd = -1; }
+    active = active.filter(placed => placed.end > item.start);
+    let column = 0;
+    while (active.some(placed => placed.column === column)) column++;
+    const placed = { ...item, column, columns: 1 };
+    group.push(placed); active.push(placed); groupEnd = Math.max(groupEnd, item.end);
+  });
+  flush();
+  return groups.flat().map(item => ({ ...item, top: (item.start - dayStart) / 60 * HOUR_HEIGHT, height: Math.max(3, (item.end - item.start) / 60 * HOUR_HEIGHT) }));
 }
 
 function getCompanyMark(company?: string | null) {
@@ -143,7 +174,7 @@ export function AdminCalendarPage() {
   const [googleReadStatus, setGoogleReadStatus] = useState<'loading'|'ready'|'reconnect'|'unavailable'>('loading');
   const [companies, setCompanies] = useState<CompanyOption[]>(fallbackCompanies);
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12));
-  const [view, setView] = useState<CalendarView>('month');
+  const [view, setView] = useState<CalendarView>('week');
   const [companyFilter, setCompanyFilter] = useState('all');
   const [query, setQuery] = useState('');
   const [activeTypes, setActiveTypes] = useState<Set<CalendarEventType>>(() => new Set(Object.keys(calendarTypeMeta) as CalendarEventType[]));
@@ -186,7 +217,7 @@ export function AdminCalendarPage() {
         if(seen.has(id)) return [];
         seen.add(id);
         const allDay=Boolean(row.allDay);
-        return [{id,title:row.title,startsAt:allDay?`${row.start}T12:00:00-03:00`:row.start,endsAt:allDay?`${row.end}T12:00:00-03:00`:row.end,allDay,type:'other',color:'#8D7354',location:row.location,description:row.description,googleEventId:row.id,googleHtmlLink:row.htmlLink,visibility:'internal',attendees:[],sourceType:'google',synthetic:true} as WorkspaceCalendarEvent];
+        return [{id,title:row.title,startsAt:allDay?`${row.start}T12:00:00-03:00`:row.start,endsAt:allDay?`${row.end}T12:00:00-03:00`:row.end,allDay,type:'other',color:/^#[0-9a-f]{6}$/i.test(row.color)?row.color:'#8D7354',textColor:row.textColor,location:row.location,description:row.description,googleEventId:row.id,googleHtmlLink:row.htmlLink,visibility:'internal',attendees:[],sourceType:'google',synthetic:true} as WorkspaceCalendarEvent];
       }));
       setGoogleEvents(external);setGoogleReadStatus('ready');
     };
@@ -567,7 +598,7 @@ export function AdminCalendarPage() {
                       <button className="calendar-day-number" onClick={() => { setCursor(date); if (dayEvents.length === 0) openCreateForDate(date); }}>{date.getDate()}</button>
                       <div className="calendar-cell-events">
                         {dayEvents.slice(0, 3).map((event) => (
-                          <button key={event.id} className={`calendar-event-chip type-${event.type}`} style={eventStyle(event)} onClick={(click) => { click.stopPropagation(); setSelectedEvent(event); }}>
+                          <button key={event.id} className={`calendar-event-chip type-${event.type} ${event.sourceType === 'google' ? 'is-google' : 'is-workspace'}`} style={eventStyle(event)} title={`${event.sourceType === 'google' ? 'Google Agenda' : 'Workspace'} · ${event.title}`} onClick={(click) => { click.stopPropagation(); setSelectedEvent(event); }}>
                             <span className="calendar-event-dot" />
                             {!event.allDay && <time>{formatCalendarTime(event.startsAt)}</time>}
                             <strong>{event.title}</strong>
@@ -585,16 +616,20 @@ export function AdminCalendarPage() {
             {view === 'week' && <div className="calendar-week-scroller"><div className="calendar-week-view">
               <div className="calendar-week-corner" />
               {weekDates.map((date) => <div key={dateKey(date)} className={`calendar-week-day-head ${isSameDate(date, today) ? 'today' : ''}`}><span>{weekdays[date.getDay()]}</span><strong>{date.getDate()}</strong></div>)}
-              {hours.map((hour) => <div className="calendar-week-row" key={hour} style={{ gridRow: hour - 5 }}>
-                <span className="calendar-hour-label">{String(hour).padStart(2, '0')}:00</span>
-                {weekDates.map((date) => {
-                  const dayEvents = (eventsByDate.get(dateKey(date)) || []).filter((event) => eventHour(event) === hour);
-                  return (
-                    <div key={dateKey(date)} className="calendar-week-slot" onDoubleClick={() => openCreateForDate(date, hour)}>
-                      {dayEvents.map((event) => <button key={event.id} className="calendar-week-event" style={eventStyle(event)} onClick={() => setSelectedEvent(event)}><time>{formatCalendarTime(event.startsAt)}</time><strong>{event.title}</strong><small>{event.company || 'CALI'}</small></button>)}
-                    </div>
-                  );
-                })}
+              <div className="calendar-week-all-day-label">Dia inteiro</div>
+              {weekDates.map(date => <div key={`all-${dateKey(date)}`} className="calendar-week-all-day">
+                {(eventsByDate.get(dateKey(date)) || []).filter(event => event.allDay).map(event => <button key={event.id} className={`calendar-week-all-day-event ${event.sourceType === 'google' ? 'is-google' : 'is-workspace'}`} style={eventStyle(event)} title={`${event.sourceType === 'google' ? 'Google Agenda' : 'Workspace'} · ${event.title}`} onClick={() => setSelectedEvent(event)}>{event.title}</button>)}
+              </div>)}
+              <div className="calendar-week-axis" style={{ height: hours.length * HOUR_HEIGHT }}>
+                {hours.map(hour => <span key={hour} style={{ top: (hour - WEEK_START_HOUR) * HOUR_HEIGHT }}>{String(hour).padStart(2, '0')}:00</span>)}
+              </div>
+              {weekDates.map(date => <div key={`lane-${dateKey(date)}`} className="calendar-week-lane" style={{ height: hours.length * HOUR_HEIGHT }}>
+                {hours.map(hour => <div key={hour} className="calendar-week-hour-hit" style={{ top: (hour - WEEK_START_HOUR) * HOUR_HEIGHT, height: HOUR_HEIGHT }} onDoubleClick={() => openCreateForDate(date,hour)} />)}
+                {weekEventLayout(eventsByDate.get(dateKey(date)) || []).map(({ event, top, height, column, columns }) =>
+                  <button key={event.id} className={`calendar-week-event ${event.sourceType === 'google' ? 'is-google' : 'is-workspace'} ${height < 36 ? 'is-compact' : ''}`} style={{ ...eventStyle(event), top, height: Math.max(3,height - 2), left: `${column / columns * 100}%`, width: `${100 / columns}%` }} title={`${event.sourceType === 'google' ? 'Google Agenda' : 'Workspace'} · ${formatCalendarTime(event.startsAt)}–${formatCalendarTime(event.endsAt)} · ${event.title}`} onClick={() => setSelectedEvent(event)}>
+                    <strong>{event.title}</strong><time>{formatCalendarTime(event.startsAt)}{event.endsAt ? `–${formatCalendarTime(event.endsAt)}` : ''}</time><small>{event.sourceType === 'google' ? 'Google' : 'Workspace'}</small>
+                  </button>
+                )}
               </div>)}
             </div></div>}
 
