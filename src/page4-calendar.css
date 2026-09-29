@@ -614,6 +614,9 @@ html[data-workspace-theme='night'] .calendar-detail-footer { background: #21191d
 .calendar-preview-detail { display: grid; gap: 10px; color: var(--theme-text); }
 .calendar-preview-detail strong { font-size: 15px; }
 .calendar-preview-detail p { margin: 0; font-size: 13px; line-height: 1.5; }
+.calendar-page-v2 .calendar-agenda-row.is-preview { padding-inline:12px; border:1px dashed #ba8a51; border-radius:10px; background:#fff8ea; }
+html[data-workspace-theme='night'] .calendar-page-v2 .calendar-agenda-row.is-preview { background:#3b3023; border-color:#c4a16a; color:#fff2d8; }
+html[data-workspace-theme='night'] .calendar-page-v2 .calendar-agenda-row.is-preview :is(strong,small,span) { color:inherit; }
 
 /* Contraste explícito para a agenda no modo noite. */
 html[data-workspace-theme='night'] .calendar-page-v2 .calendar-week-event.is-workspace:not(.is-preview),
