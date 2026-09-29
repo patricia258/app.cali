@@ -46,7 +46,7 @@ const STYLE = `
 #scheduling-v65-client-host .scheduling-v65-head p{display:none!important}
 #scheduling-v65-client-host .scheduling-v65-empty{display:none!important}
 #scheduling-v65-client-host .scheduling-v65-list{display:none!important;padding:0 18px 14px!important;border-top:1px solid rgba(90,30,45,.10)!important}
-#scheduling-v65-client-host .scheduling-v65-list:has([data-scheduling-client-accept]){display:block!important}
+#scheduling-v65-client-host .scheduling-v65-list:has([data-scheduling-client-accept]),#scheduling-v65-client-host .scheduling-v65-list:has([data-online-extra-accept-quote]){display:block!important}
 #scheduling-v65-client-host .scheduling-v65-list:has([data-scheduling-client-accept])::before{display:none}
 #scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-request{grid-template-columns:minmax(0,1fr) minmax(210px,260px)!important;gap:12px 18px!important;padding:8px 0 2px!important;border-top:0!important}
 #scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-request-top{margin-bottom:5px!important}
