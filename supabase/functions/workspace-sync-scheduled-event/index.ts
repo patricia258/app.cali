@@ -54,9 +54,16 @@ Deno.serve(async(req)=>{
   const googleBody:any={summary:event.title,description:event.description||undefined,location:event.location||undefined,attendees:emails.map((email:string)=>({email})),reminders:{useDefault:false,overrides:Number(event.reminder_minutes)>0?[{method:'popup',minutes:Number(event.reminder_minutes)}]:[]},extendedProperties:{private:{caliWorkspaceEventId:event.id,caliProtocol:event.protocol||'',caliSchedulingRequestId:event.source_entity_id||''}},start:{dateTime:event.starts_at,timeZone:tz},end:{dateTime:event.ends_at||event.starts_at,timeZone:tz}};
   if(event.mode==='remote'&&!event.meeting_url)googleBody.conferenceData={createRequest:{requestId:`cali-schedule-${event.id}-${Date.now()}`,conferenceSolutionKey:{type:'hangoutsMeet'}}};
   const calendarId=connection.calendar_id||'primary',base=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`,existing=event.google_event_id?String(event.google_event_id):'';
+  // ID estável para impedir cópias em tentativas simultâneas.
+  const stableId=`cali${String(event.id).replace(/-/g,'')}`;
+  if(!existing)googleBody.id=stableId;
   const url=existing?`${base}/${encodeURIComponent(existing)}?sendUpdates=all&conferenceDataVersion=1`:`${base}?sendUpdates=all&conferenceDataVersion=1`;
-  const response=await fetch(url,{method:existing?'PATCH':'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(googleBody)});
-  const result=await response.json().catch(()=>({}));
+  let response=await fetch(url,{method:existing?'PATCH':'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(googleBody)});
+  let result=await response.json().catch(()=>({}));
+  if(response.status===409&&!existing){
+    response=await fetch(`${base}/${stableId}`,{headers:{Authorization:`Bearer ${token}`}});
+    result=await response.json().catch(()=>({}));
+  }
   if(!response.ok){await service.from('events').update({sync_status:'error'}).eq('id',event.id);return json({error:'google_calendar_sync_failed',detail:result?.error?.message||response.status},500);}
   await service.from('events').update({google_calendar_id:calendarId,google_event_id:result.id||existing,google_html_link:result.htmlLink||event.google_html_link||null,meeting_url:result.hangoutLink||event.meeting_url||null,sync_status:'synced',updated_at:new Date().toISOString()}).eq('id',event.id);
   await service.from('calendar_connections').update({last_sync_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',connection.id);
