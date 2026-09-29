@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, FileText, Loader2, X } from 'lucide-react';
+import { AlertTriangle, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, FileText, Loader2, X } from 'lucide-react';
 import { ClientGoogleCalendarPanel } from '../../components/ClientGoogleCalendarPanel';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
@@ -434,7 +434,7 @@ export function ClientTimelinePage() {
   return (
     <Shell role="client">
       <section className="page client-timeline-v2 client-timeline-v3 client-timeline-v4">
-        <details className="client-google-settings"><summary>Integração com Google Calendar</summary><ClientGoogleCalendarPanel /></details>
+        <details className="client-google-settings"><summary><CalendarDays size={19} aria-hidden="true"/><span><strong>Conecte sua agenda Google</strong><small>Acompanhe os compromissos da CALI na sua agenda e veja seus eventos pessoais aqui. O filtro “Minha agenda Google” controla a visualização nesta tela.</small></span><span className="client-google-settings-action">Ver integração</span></summary><ClientGoogleCalendarPanel /></details>
 
         {error && <div className="inline-notice">{error}</div>}
         {loading ? <div className="data-loading"><Loader2 className="spin" size={20} />Carregando sua agenda…</div> : <>
@@ -524,7 +524,7 @@ export function ClientTimelinePage() {
                 <div className="full client-request-dates"><span>{selectedItem.request.status === 'confirmed' ? 'Data confirmada' : `Data proposta${selectedItem.requestOptionCount && selectedItem.requestOptionCount > 1 ? ` · opção ${selectedItem.requestOption}` : ''}`}</span><strong>{new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'America/Sao_Paulo'}).format(new Date(selectedItem.at))} · {selectedItem.timeLabel}</strong></div>
                 <div className="client-request-status"><span>Situação</span><strong>{selectedItem.statusLabel}</strong></div>
                 <div><span>Formato</span><strong>{selectedItem.detailLabel}</strong></div>
-                {!['confirmed','completed','declined','cancelled','not_occurred'].includes(selectedItem.request.status) && <p className="full client-request-preview-note">Esta data é apenas uma proposta em análise. Ainda não está confirmada nem reserva o horário.</p>}
+                {!['confirmed','completed','declined','cancelled','not_occurred'].includes(selectedItem.request.status) && <p className="full client-request-preview-note" role="status"><AlertTriangle size={20} aria-hidden="true"/><span>Esta data é apenas uma proposta em análise. Ainda não está confirmada nem reserva o horário.</span></p>}
                 {selectedItem.request.location && <div className="full"><span>Endereço</span><strong>{selectedItem.request.location}</strong></div>}
                 {selectedItem.request.purpose && <div className="full"><span>Objetivo informado</span><strong>{selectedItem.request.purpose}</strong></div>}
                 {selectedItem.request.admin_note && <div className="full"><span>Resposta da CALI</span><strong>{selectedItem.request.admin_note}</strong></div>}
