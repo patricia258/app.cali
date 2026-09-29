@@ -9,6 +9,7 @@ import {
   Download,
   ExternalLink,
   Filter,
+  FileText,
   MapPin,
   Pencil,
   Plus,
@@ -18,6 +19,7 @@ import {
   X,
 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
+import { AgendaChangeInbox } from '../../components/AgendaChangeInbox';
 import {
   calendarTypeMeta,
   dateKey,
@@ -37,6 +39,7 @@ import {
 import { supabase } from '../../lib/supabase';
 
 type CompanyOption = { id: string; name: string; logoUrl?: string | null };
+type MeetingOutcome = { event_id: string; outcome: string; transcription_url?: string | null; transcription_attachment_name?: string | null };
 
 type CreateEventForm = {
   title: string;
@@ -151,8 +154,13 @@ export function AdminCalendarPage() {
   const [showCancel, setShowCancel] = useState(false);
   const [calendarConnection, setCalendarConnection] = useState<'connected' | 'not_connected'>('not_connected');
   const [loading, setLoading] = useState(true);
+  const [meetingOutcomes, setMeetingOutcomes] = useState<Record<string, MeetingOutcome>>({});
+  const [historyMonth, setHistoryMonth] = useState('');
+  const [historyMode, setHistoryMode] = useState('all');
+  const [historyOutcome, setHistoryOutcome] = useState('all');
 
   useEffect(() => { void loadCalendar(); }, []);
+  useEffect(() => { const refresh = () => void loadCalendar(); window.addEventListener('cali-calendar-record-updated', refresh); return () => window.removeEventListener('cali-calendar-record-updated', refresh); }, []);
 
   useEffect(() => {
     const active = editorOpen || Boolean(selectedEvent);
@@ -165,7 +173,7 @@ export function AdminCalendarPage() {
     try {
       const [{ data: companyRows }, { data: eventRows }, { data: attendeeRows }, { data: deadlineRows }, { data: connectionRows }] = await Promise.all([
         supabase.from('companies').select('id, display_name, logo_url').neq('status', 'archived').order('display_name'),
-        supabase.from('events').select('id,protocol,title,company_id,project_id,event_type,color_hex,starts_at,ends_at,all_day,mode,location,meeting_url,description,visibility,source_type,source_entity_id,google_event_id,sync_status,cancelled_at').is('cancelled_at', null).order('starts_at'),
+        supabase.from('events').select('id,protocol,title,company_id,project_id,event_type,color_hex,starts_at,ends_at,all_day,mode,location,meeting_url,description,visibility,source_type,source_entity_id,google_event_id,sync_status,cancelled_at').order('starts_at'),
         supabase.from('event_attendees').select('id,event_id,name,email,status,response_note').order('created_at'),
         supabase.from('deliverables').select('id, company_id, project_id, title, due_at, status, protocol').not('due_at', 'is', null).order('due_at'),
         supabase.from('calendar_connections').select('id, status').eq('provider', 'google').eq('status', 'connected').limit(1),
@@ -213,6 +221,12 @@ export function AdminCalendarPage() {
         cancelledAt: row.cancelled_at,
         synthetic: false,
       }));
+      const meetingIds = manual.filter(event => event.type === 'meeting' && UUID_PATTERN.test(event.id)).map(event => event.id);
+      if (meetingIds.length) {
+        const { data: outcomes, error: outcomeError } = await supabase.from('event_outcomes').select('event_id,outcome,transcription_url,transcription_attachment_name').in('event_id', meetingIds);
+        if (outcomeError) throw outcomeError;
+        setMeetingOutcomes(Object.fromEntries(((outcomes || []) as MeetingOutcome[]).map(row => [row.event_id, row])));
+      } else setMeetingOutcomes({});
 
       const deadlines: WorkspaceCalendarEvent[] = (deadlineRows || [])
         .filter((row: any) => !['approved', 'cancelled'].includes(String(row.status)))
@@ -236,9 +250,7 @@ export function AdminCalendarPage() {
           synthetic: true,
         }));
 
-      if (manual.length || deadlines.length) {
-        setEvents([...manual, ...deadlines].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()));
-      }
+      setEvents([...manual, ...deadlines].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()));
       setCalendarConnection(connectionRows?.length ? 'connected' : 'not_connected');
     } catch (error) {
       console.error('Falha ao carregar calendário', error);
@@ -270,6 +282,13 @@ export function AdminCalendarPage() {
     .filter((event) => new Date(event.startsAt).getTime() >= new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime())
     .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())
     .slice(0, 5), [visibleEvents, today]);
+
+  const meetingHistory = useMemo(() => events.filter(event => event.type === 'meeting' && (event.cancelledAt || new Date(event.startsAt).getTime() < Date.now()))
+    .filter(event => companyFilter === 'all' || event.companyId === companyFilter)
+    .filter(event => !historyMonth || formDate(event.startsAt).slice(0,7) === historyMonth)
+    .filter(event => historyMode === 'all' || event.mode === historyMode)
+    .filter(event => historyOutcome === 'all' || (historyOutcome === 'cancelled' ? Boolean(event.cancelledAt) : historyOutcome === 'pending' ? !event.cancelledAt && !meetingOutcomes[event.id]?.outcome : meetingOutcomes[event.id]?.outcome === historyOutcome))
+    .sort((a,b) => new Date(b.startsAt).getTime() - new Date(a.startsAt).getTime()), [events,companyFilter,historyMonth,historyMode,historyOutcome,meetingOutcomes]);
 
   const monthDates = useMemo(() => monthCells(cursor), [cursor]);
   const weekDates = useMemo(() => weekCells(cursor), [cursor]);
@@ -457,6 +476,8 @@ export function AdminCalendarPage() {
   return (
     <Shell role="admin">
       <section className="page calendar-page-v2">
+        <AgendaChangeInbox onDecision={()=>void loadCalendar()}/>
+        <details className="calendar-meeting-history" aria-label="Histórico de reuniões"><summary className="calendar-meeting-history-heading"><span><span className="section-kicker">AGENDA REALIZADA</span><strong>Histórico de reuniões</strong></span><span>Ver encontros e transcrições</span></summary><div className="calendar-meeting-history-filters"><label>Período<input type="month" value={historyMonth} onChange={event=>setHistoryMonth(event.target.value)}/></label><label>Formato<select value={historyMode} onChange={event=>setHistoryMode(event.target.value)}><option value="all">Todos</option><option value="remote">Online</option><option value="in_person">Presencial</option></select></label><label>Situação<select value={historyOutcome} onChange={event=>setHistoryOutcome(event.target.value)}><option value="all">Todas</option><option value="occurred">Realizada</option><option value="not_occurred">Não realizada</option><option value="cancelled">Cancelada</option><option value="pending">Sem registro</option></select></label></div><div className="calendar-meeting-history-list">{meetingHistory.length ? meetingHistory.slice(0,30).map(event=><button type="button" key={event.id} onClick={()=>{setShowCancel(false);setSelectedEvent(event)}}><span><strong>{event.title}</strong><small>{event.company || 'CALI'} · {formatCalendarDate(event.startsAt)} · {event.mode==='in_person'?'Presencial':'Online'}</small></span><b className={event.cancelledAt||meetingOutcomes[event.id]?.outcome==='not_occurred'?'negative':meetingOutcomes[event.id]?.outcome==='occurred'?'positive':'pending'}>{event.cancelledAt?'Cancelada':meetingOutcomes[event.id]?.outcome==='occurred'?'Realizada':meetingOutcomes[event.id]?.outcome==='not_occurred'?'Não realizada':'Sem registro'}</b>{meetingOutcomes[event.id]?.transcription_url && <FileText size={16} aria-label="Transcrição disponível"/>}</button>) : <p>Nenhuma reunião encontrada com esses filtros.</p>}</div></details>
         <div className="calendar-v2-actions">
           <button className="primary compact-action" onClick={() => openCreateForDate()}><Plus size={17} />Novo evento</button>
         </div>
@@ -633,13 +654,13 @@ export function AdminCalendarPage() {
       </div>}
 
       {selectedEvent && <div className="modal-backdrop full-screen-modal calendar-modal-backdrop">
-        <section className="modal-card calendar-detail-modal" role="dialog" aria-modal="true">
+        <section className={`modal-card calendar-detail-modal calendar-detail-refined ${selectedEvent.cancelledAt || meetingOutcomes[selectedEvent.id]?.outcome==='not_occurred' || selectedEvent.attendees.some(attendee=>attendee.status==='declined')?'is-negative':meetingOutcomes[selectedEvent.id]?.outcome==='occurred' || selectedEvent.attendees.some(attendee=>attendee.status==='accepted')?'is-positive':'is-pending'}`} role="dialog" aria-modal="true">
           <button className="modal-close" onClick={() => { setSelectedEvent(null); setShowCancel(false); setCancelReason(''); }} aria-label="Fechar"><X size={20} /></button>
           <div className="calendar-detail-accent" style={{ background: selectedEvent.color }} />
           <div className="calendar-detail-heading">
             <div className="calendar-detail-company-mark">{selectedEvent.companyLogo ? <img src={selectedEvent.companyLogo} alt="" /> : getCompanyMark(selectedEvent.company)}</div>
             <div>
-              <span className="section-kicker">{calendarTypeMeta[selectedEvent.type].label}</span>
+              <span className="section-kicker">{calendarTypeMeta[selectedEvent.type].label} · {selectedEvent.cancelledAt?'Cancelado':meetingOutcomes[selectedEvent.id]?.outcome==='occurred'?'Realizado':meetingOutcomes[selectedEvent.id]?.outcome==='not_occurred'?'Não realizado':selectedEvent.attendees.some(attendee=>attendee.status==='declined')?'Não confirmado':selectedEvent.attendees.some(attendee=>attendee.status==='accepted')?'Confirmado':'Aguardando confirmação'}</span>
               <h2>{selectedEvent.title}</h2>
               <p>{selectedEvent.company || 'CALI'} · {selectedEvent.visibility === 'client' ? 'visível para o cliente' : 'interno'}</p>
               {eventProtocol(selectedEvent) && <span className="calendar-protocol-badge">{selectedEvent.synthetic ? 'Protocolo de origem' : 'Protocolo'} · {eventProtocol(selectedEvent)}</span>}
@@ -656,13 +677,7 @@ export function AdminCalendarPage() {
             {!!selectedEvent.attendees.length && <section className="calendar-attendee-list"><strong>Convidados</strong>{selectedEvent.attendees.map((attendee, index) => <div key={`${attendee.email}-${index}`}><span className={`attendee-status ${attendee.status}`} /><span>{attendee.name}</span><small>{attendee.email}</small><b>{attendee.status === 'accepted' ? 'Aceito' : attendee.status === 'declined' ? 'Recusado' : attendee.status === 'tentative' ? 'Talvez' : 'Pendente'}</b></div>)}</section>}
             {showCancel && !selectedEvent.synthetic && <section className="calendar-cancel-box"><strong>Cancelar compromisso</strong><p>O motivo fica registrado. Quando a régua de notificações estiver ativada, ele também poderá compor a comunicação aos participantes.</p><textarea value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} rows={2} placeholder="Motivo do cancelamento" /><div><button className="secondary" onClick={() => setShowCancel(false)}>Voltar</button><button className="primary danger-action" disabled={!cancelReason.trim()} onClick={() => void cancelEvent()}>Confirmar cancelamento</button></div></section>}
           </div>
-          <div className="calendar-detail-footer">
-            {!selectedEvent.synthetic && <button className="secondary edit-event-action" onClick={() => openEditEvent(selectedEvent)}><Pencil size={16} />Editar / remarcar</button>}
-            <button className="secondary" onClick={() => window.open(googleCalendarTemplate(selectedEvent), '_blank', 'noopener,noreferrer')}><ExternalLink size={16} />Google Calendar</button>
-            <button className="secondary" onClick={() => downloadCalendarIcs(selectedEvent)}><Download size={16} />Baixar .ics</button>
-            {selectedEvent.meetingUrl && <button className="primary" onClick={() => window.open(selectedEvent.meetingUrl!, '_blank', 'noopener,noreferrer')}><Video size={16} />Abrir Meet</button>}
-            {!selectedEvent.synthetic && !showCancel && <button className="secondary danger-soft" onClick={() => setShowCancel(true)}>Cancelar evento</button>}
-          </div>
+          <div className="calendar-detail-footer calendar-detail-actions"><div className="calendar-detail-primary-actions">{!selectedEvent.synthetic && !selectedEvent.cancelledAt && <button className="secondary edit-event-action" onClick={() => openEditEvent(selectedEvent)}><Pencil size={16} />Editar ou remarcar</button>}{selectedEvent.meetingUrl && !selectedEvent.cancelledAt && <button className="primary" onClick={() => window.open(selectedEvent.meetingUrl!, '_blank', 'noopener,noreferrer')}><Video size={16} />Abrir Meet</button>}</div><div className="calendar-detail-secondary-actions"><button className="secondary" onClick={() => window.open(googleCalendarTemplate(selectedEvent), '_blank', 'noopener,noreferrer')}><ExternalLink size={16} />Google Agenda</button><button className="secondary" onClick={() => downloadCalendarIcs(selectedEvent)}><Download size={16} />ICS</button>{!selectedEvent.synthetic && !selectedEvent.cancelledAt && !showCancel && <button className="secondary danger-soft" onClick={() => setShowCancel(true)}>Cancelar</button>}</div></div>
         </section>
       </div>}
     </Shell>

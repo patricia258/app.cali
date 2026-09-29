@@ -358,6 +358,36 @@
 .calendar-detail-footer button { min-height: 38px; padding: 0 12px; }
 .calendar-detail-footer .edit-event-action { margin-right: auto; }
 
+.calendar-meeting-history { margin: 22px 0; padding: 24px; border: 1px solid var(--theme-line); border-radius: 18px; background: var(--theme-surface); color: var(--theme-text); }
+.calendar-meeting-history-heading { display:flex; align-items:end; justify-content:space-between; gap:16px; }
+.calendar-meeting-history-heading h2 { margin: 5px 0 0; font-size: clamp(22px,2vw,29px); }
+.calendar-meeting-history-heading>span { color:var(--theme-muted); font-size:12px; }
+.calendar-meeting-history-heading { cursor:pointer; list-style:none; }.calendar-meeting-history-heading::-webkit-details-marker { display:none; }
+.calendar-meeting-history-heading>span:first-child { display:grid; gap:4px; }.calendar-meeting-history-heading strong { color:var(--theme-text); font-size:20px; }
+.calendar-meeting-history-heading>span:last-child { color:var(--theme-accent); font-weight:750; }
+.calendar-meeting-history-filters { display:flex; flex-wrap:wrap; gap:12px; margin:17px 0; }
+.calendar-meeting-history-filters label { display:grid; gap:5px; color:var(--theme-muted); font-size:12px; font-weight:700; }
+.calendar-meeting-history-filters input,.calendar-meeting-history-filters select { min-height:42px; padding:0 12px; border:1px solid var(--theme-line); border-radius:10px; background:var(--theme-surface); color:var(--theme-text); color-scheme:light; }
+.calendar-meeting-history-list { display:grid; gap:7px; max-height:310px; overflow:auto; }
+.calendar-meeting-history-list>button { width:100%; display:flex; align-items:center; gap:14px; padding:13px 15px; border:1px solid var(--theme-line); border-radius:11px; background:var(--theme-surface-muted); color:var(--theme-text); text-align:left; cursor:pointer; }
+.calendar-meeting-history-list>button:hover { border-color:var(--theme-gold); }
+.calendar-meeting-history-list>button>span { display:grid; gap:4px; flex:1; min-width:0; }
+.calendar-meeting-history-list strong { font-size:13px; }.calendar-meeting-history-list small { color:var(--theme-muted); font-size:11px; }
+.calendar-meeting-history-list b { padding:6px 9px; border-radius:8px; font-size:11px; white-space:nowrap; }
+.calendar-meeting-history-list b.positive { background:#e5f4e9;color:#23683d; }.calendar-meeting-history-list b.negative { background:#fbe9e5;color:#9c3e39; }.calendar-meeting-history-list b.pending { background:#f8efcf;color:#79571a; }
+.calendar-detail-refined { width:min(870px,calc(100vw - 28px)) !important; max-height:min(92dvh,830px) !important; overflow:hidden; }
+.calendar-detail-refined .calendar-detail-accent { display:none; }
+.calendar-detail-refined.is-positive .calendar-detail-heading { background:linear-gradient(115deg,#e8f4e9,#f6fbf5) !important; }
+.calendar-detail-refined.is-negative .calendar-detail-heading { background:linear-gradient(115deg,#f9e8e5,#fff5f2) !important; }
+.calendar-detail-refined.is-pending .calendar-detail-heading { background:linear-gradient(115deg,#f8efdc,#fff9ed) !important; }
+.calendar-detail-refined .calendar-detail-heading,.calendar-detail-refined .calendar-detail-heading h2,.calendar-detail-refined .calendar-detail-heading p,.calendar-detail-refined .section-kicker { color:#442b32 !important; }
+.calendar-detail-refined .calendar-detail-body { overflow:auto; }
+.calendar-detail-refined .calendar-detail-actions { display:grid; grid-template-columns:1fr auto; gap:12px; align-items:center; }
+.calendar-detail-primary-actions,.calendar-detail-secondary-actions { display:flex; flex-wrap:wrap; gap:7px; }
+.calendar-detail-refined .calendar-detail-primary-actions .edit-event-action { margin:0; }
+html[data-workspace-theme='night'] .calendar-meeting-history-filters input,html[data-workspace-theme='night'] .calendar-meeting-history-filters select { color-scheme:dark; }
+@media(max-width:700px){.calendar-meeting-history { padding:16px; }.calendar-detail-refined { width:calc(100vw - 18px) !important; height:auto !important; max-height:calc(100dvh - 18px) !important; }.calendar-detail-refined .calendar-detail-actions { grid-template-columns:1fr; }.calendar-detail-primary-actions,.calendar-detail-secondary-actions { justify-content:stretch; }.calendar-detail-actions button { flex:1; }.calendar-meeting-history-list>button { flex-wrap:wrap; }}
+
 /* Noite */
 html[data-workspace-theme='night'] .calendar-workspace-strip,
 html[data-workspace-theme='night'] .calendar-primary-panel,

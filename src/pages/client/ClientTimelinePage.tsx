@@ -21,7 +21,11 @@ type ClientEvent = {
   sync_status?: string | null;
   schedule_class?: string | null;
   billing_applies?: boolean | null;
+  source_type?: string | null;
+  cancelled_at?: string | null;
 };
+type MeetingRecord = { event_id: string; outcome: string; transcription_url?: string | null; transcription_note?: string | null; attachment_path?: string | null; attachment_name?: string | null };
+type AgendaChange = { id: string; event_id: string; action: string; reason: string; slots: Slot[]; status: string; decision_note?: string | null; created_at: string };
 
 type ClientDeliverable = {
   id: string;
@@ -89,6 +93,7 @@ function formatDay(value: string) {
 function formatTime(value: string) {
   return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).format(new Date(value));
 }
+function monthOf(value:string){const parts=new Intl.DateTimeFormat('en-US',{year:'numeric',month:'2-digit',timeZone:'America/Sao_Paulo'}).formatToParts(new Date(value));return `${parts.find(part=>part.type==='year')?.value}-${parts.find(part=>part.type==='month')?.value}`;}
 
 function statusText(status: string) {
   const map: Record<string, string> = {
@@ -160,6 +165,10 @@ export function ClientTimelinePage() {
   const [newSlots, setNewSlots] = useState([{ date: '', time: '' }, { date: '', time: '' }]);
   const [changeBusy, setChangeBusy] = useState(false);
   const [changeError, setChangeError] = useState('');
+  const [changeTarget, setChangeTarget] = useState<TimelineItem | null>(null);
+  const [meetingRecords, setMeetingRecords] = useState<Record<string, MeetingRecord>>({});
+  const [agendaChanges, setAgendaChanges] = useState<AgendaChange[]>([]);
+  const [historyMonth, setHistoryMonth] = useState('');
   useEffect(() => { if (!selectedItem) return; const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setSelectedItem(null); }; window.addEventListener('keydown', close); return () => window.removeEventListener('keydown', close); }, [selectedItem]);
 
   useEffect(() => { void load(); }, []);
@@ -177,6 +186,12 @@ export function ClientTimelinePage() {
       .slice(0, 6);
     await Promise.allSettled(candidates.map((event) => supabase!.functions.invoke('google-calendar-refresh-event', { body: { eventId: event.id } })));
   }
+  async function openMeetingFile(record: MeetingRecord) {
+    if (!supabase || !record.attachment_path) return;
+    const {data,error:failure}=await supabase.storage.from('cali-workspace-private').createSignedUrl(record.attachment_path,120);
+    if (failure || !data?.signedUrl) { setError('Não foi possível abrir o anexo da reunião.'); return; }
+    window.open(data.signedUrl,'_blank','noopener,noreferrer');
+  }
 
   async function load() {
     if (!supabase) return;
@@ -192,13 +207,12 @@ export function ClientTimelinePage() {
       const clientEmail = String(profile.data?.email || user?.email || '').trim().toLowerCase();
       if (!companyId) throw new Error('Este acesso ainda não está vinculado a uma empresa.');
 
-      const [eventResult, deliverableResult, requestResult] = await Promise.all([
+      const [eventResult, deliverableResult, requestResult, recordResult, changeResult] = await Promise.all([
         supabase
           .from('events')
-          .select('id,title,starts_at,ends_at,mode,location,meeting_url,description,event_type,sync_status,schedule_class,billing_applies')
+          .select('id,title,starts_at,ends_at,mode,location,meeting_url,description,event_type,sync_status,schedule_class,billing_applies,source_type,cancelled_at')
           .eq('company_id', companyId)
           .eq('visibility', 'client')
-          .is('cancelled_at', null)
           .order('starts_at'),
         supabase
           .from('deliverables')
@@ -213,16 +227,22 @@ export function ClientTimelinePage() {
           .select('id,title,status,request_mode,requested_slots,admin_proposed_slots,selected_slot,billable_extra,urgency_level,created_at,extra_visit,purpose,location,admin_note,client_note,confirmed_event_id,extra_visit_change_reason,extra_visit_previous_slot,extra_visit_cancellation_fee_cents,extra_visit_cancellation_note')
           .eq('company_id', companyId)
           .order('created_at', { ascending: false }).limit(100),
+        supabase.rpc('client_meeting_records_v1'),
+        supabase.from('agenda_change_requests').select('id,event_id,action,reason,slots,status,decision_note,created_at').eq('company_id',companyId).order('created_at',{ascending:false}).limit(100),
       ]);
 
       if (eventResult.error) throw eventResult.error;
       if (deliverableResult.error) throw deliverableResult.error;
       if (requestResult.error) throw requestResult.error;
+      if (recordResult.error) throw recordResult.error;
+      if (changeResult.error) throw changeResult.error;
 
       const nextEvents = (eventResult.data || []) as ClientEvent[];
       setEvents(nextEvents);
       setDeliverables((deliverableResult.data || []) as ClientDeliverable[]);
       setRequests(((requestResult.data || []) as ClientSchedulingRequest[]).filter(request => request.extra_visit || ['submitted','client_review','reschedule_review'].includes(request.status)));
+      setMeetingRecords(Object.fromEntries(((recordResult.data || []) as MeetingRecord[]).map(row => [row.event_id,row])));
+      setAgendaChanges((changeResult.data || []) as AgendaChange[]);
       setLoading(false);
 
       void refreshGoogleStatuses(nextEvents);
@@ -260,12 +280,12 @@ export function ClientTimelinePage() {
       state: dateState(event.starts_at),
       dateLabel: formatDay(event.starts_at),
       timeLabel: formatTime(event.starts_at),
-      typeLabel: 'Reunião',
-      statusLabel: 'Confirmado',
+      typeLabel: event.event_type==='meeting'?'Reunião':'Compromisso',
+      statusLabel: event.cancelled_at ? 'Cancelado' : 'Confirmado',
       detailLabel: event.mode === 'in_person' ? `Presencial${event.billing_applies ? ' · adicional' : ''}` : 'Online',
       secondaryDetail: event.mode === 'in_person' && event.location ? event.location : undefined,
       meetingUrl: event.meeting_url,
-      tone: 'positive',
+      tone: event.cancelled_at ? 'negative' : 'positive',
     }));
 
     const deadlineItems: TimelineItem[] = deliverables.map((deliverable) => ({
@@ -321,21 +341,26 @@ export function ClientTimelinePage() {
     return () => window.removeEventListener('cali:open-agenda-event', open);
   }, [items]);
 
-  function openItem(item: TimelineItem) { setChangeAction(null); setChangeError(''); setSelectedItem(item); }
+  function openItem(item: TimelineItem) { setChangeTarget(null); setChangeAction(null); setChangeError(''); setSelectedItem(item); }
+  function beginChange(action:'cancel'|'reschedule') { setChangeAction(action); setChangeTarget(selectedItem); setSelectedItem(null); setChangeError(''); setChangeReason(''); setNewSlots([{date:'',time:''},{date:'',time:''}]); }
   async function submitChange(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!supabase || !selectedItem?.request || !changeAction || changeReason.trim().length < 5) { setChangeError('Conte brevemente o motivo da alteração.'); return; }
+    if (!supabase || !changeTarget || !changeAction || changeReason.trim().length < 5) { setChangeError('Conte brevemente o motivo da alteração.'); return; }
     if (changeAction === 'reschedule' && newSlots.some(slot => !slot.date || !slot.time)) { setChangeError('Informe duas novas opções de data e horário.'); return; }
-    const slots = changeAction === 'reschedule' ? newSlots.map(slot => ({ startsAt: new Date(`${slot.date}T${slot.time}:00-03:00`).toISOString(), endsAt: new Date(new Date(`${slot.date}T${slot.time}:00-03:00`).getTime() + 4 * 3600000).toISOString() })) : [];
+    const originalDuration = changeTarget.kind === 'event' ? Math.max(30, (new Date(events.find(row=>row.id===changeTarget.sourceId)?.ends_at||'').getTime()-new Date(changeTarget.at).getTime())/60000 || 60) : 240;
+    const slots = changeAction === 'reschedule' ? newSlots.map(slot => ({ startsAt: new Date(`${slot.date}T${slot.time}:00-03:00`).toISOString(), endsAt: new Date(new Date(`${slot.date}T${slot.time}:00-03:00`).getTime() + originalDuration * 60000).toISOString() })) : [];
     setChangeBusy(true); setChangeError('');
-    const { error: changeFailure } = await supabase.rpc('client_change_extra_visit_v2', { p_request_id: selectedItem.request.id, p_action: changeAction, p_reason: changeReason.trim(), p_slots: changeAction === 'reschedule' ? slots : [] });
+    const { error: changeFailure } = changeTarget.request?.extra_visit
+      ? await supabase.rpc('client_change_extra_visit_v2', { p_request_id: changeTarget.request.id, p_action: changeAction, p_reason: changeReason.trim(), p_slots: slots })
+      : await supabase.rpc('client_request_agenda_change_v1', { p_event_id: changeTarget.sourceId, p_action: changeAction, p_reason: changeReason.trim(), p_slots: slots });
     if (changeFailure) setChangeError(changeFailure.message);
-    else { setSelectedItem(null); setChangeAction(null); setChangeReason(''); setNewSlots([{date:'',time:''},{date:'',time:''}]); await load(); }
+    else { setChangeTarget(null); setChangeAction(null); setChangeReason(''); setNewSlots([{date:'',time:''},{date:'',time:''}]); await load(); }
     setChangeBusy(false);
   }
 
-  const futureItems = items.filter((item) => item.state !== 'past' || item.kind === 'request');
-  const nextMeeting = events.find((event) => new Date(event.starts_at).getTime() >= Date.now()) || null;
+  const futureItems = items.filter((item) => (item.state !== 'past' || item.kind === 'request') && item.statusLabel !== 'Cancelado');
+  const meetingHistory = items.filter(item => item.kind === 'event' && item.typeLabel === 'Reunião' && item.state === 'past').sort((a,b)=>new Date(b.at).getTime()-new Date(a.at).getTime());
+  const nextMeeting = events.find((event) => !event.cancelled_at && new Date(event.starts_at).getTime() >= Date.now()) || null;
   const nextThirty = futureItems.filter((item) => new Date(item.at).getTime() <= Date.now() + 30 * 24 * 60 * 60 * 1000).length;
 
   if(loading)return <Shell role="client"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando sua agenda…</section></Shell>;
@@ -391,6 +416,11 @@ export function ClientTimelinePage() {
               </div>
             </div> : <div className="client-timeline-empty"><CalendarDays size={24} /><strong>Nada previsto por enquanto.</strong><p>Reuniões confirmadas, solicitações em análise e prazos publicados aparecerão aqui.</p></div>}
           </section>
+          <section className="panel client-meeting-history">
+            <div className="client-real-timeline-title"><div><span>CONSULTAR ENCONTROS</span><h2>Histórico de reuniões</h2></div></div>
+            <div className="client-meeting-history-controls"><label>Mês <input type="month" value={historyMonth} onChange={event=>setHistoryMonth(event.target.value)}/></label><button type="button" onClick={()=>setHistoryMonth('')}>Todos os períodos</button></div>
+            <div className="client-meeting-history-list">{meetingHistory.filter(item=>!historyMonth || monthOf(item.at)===historyMonth).map(item=><button type="button" key={item.id} onClick={()=>openItem(item)}><strong>{item.title}</strong><span>{item.dateLabel} · {item.timeLabel}</span><small>{meetingRecords[item.sourceId]?.outcome==='occurred' ? 'Realizada' : 'Registro pendente'}{meetingRecords[item.sourceId]?.transcription_url || meetingRecords[item.sourceId]?.attachment_path ? ' · Transcrição disponível' : ''}</small></button>)}{!meetingHistory.length&&<p>As reuniões realizadas aparecerão aqui.</p>}</div>
+          </section>
         </>}
       </section>
       {selectedItem && createPortal(
@@ -409,27 +439,25 @@ export function ClientTimelinePage() {
                 {selectedItem.request.extra_visit_cancellation_fee_cents != null && <div className="full"><span>Condição da alteração</span><strong>{selectedItem.request.extra_visit_cancellation_fee_cents ? 'Taxa de R$ 160,00 após avaliação da CALI.' : 'Sem taxa de alteração.'} {selectedItem.request.extra_visit_cancellation_note}</strong></div>}
                 {selectedItem.request.extra_visit && ['submitted','client_review','reschedule_review','confirmed'].includes(selectedItem.request.status) && <div className="full client-agenda-actions">
                   {selectedItem.request.status === 'client_review' && <a href="#scheduling-v65-client-host" onClick={() => setSelectedItem(null)}>Responder às datas da CALI <ArrowUpRight size={16}/></a>}
-                  <button type="button" onClick={() => { setChangeAction('reschedule'); setChangeError(''); }}>Reagendar visita</button>
-                  <button type="button" onClick={() => { setChangeAction('cancel'); setChangeError(''); }}>Cancelar visita</button>
+                  <button type="button" onClick={() => beginChange('reschedule')}>Reagendar visita</button>
+                  <button type="button" onClick={() => beginChange('cancel')}>Cancelar visita</button>
                 </div>}
-                {changeAction && selectedItem.request.extra_visit && <form className="client-visit-change-form full" onSubmit={submitChange}>
-                  <strong>{changeAction === 'cancel' ? 'Cancelar esta visita' : 'Sugerir novas datas'}</strong>
-                  <p>Conte o motivo. A CALI analisa a alteração e eventual taxa de R$ 160,00. Com antecedência, a taxa pode ser dispensada; pedidos no dia da visita podem gerar cobrança conforme a avaliação. Nada é cobrado automaticamente.</p>
-                  {changeAction === 'reschedule' && <div className="client-visit-change-slots">{newSlots.map((slot, index) => <fieldset key={index}><legend>Opção {index + 1}</legend><input aria-label={`Data da opção ${index + 1}`} type="date" required value={slot.date} onChange={event => setNewSlots(current => current.map((row, i) => i === index ? {...row,date:event.target.value} : row))}/><input aria-label={`Horário da opção ${index + 1}`} type="time" min="09:00" max="12:00" required value={slot.time} onChange={event => setNewSlots(current => current.map((row, i) => i === index ? {...row,time:event.target.value} : row))}/></fieldset>)}</div>}
-                  <label>Justificativa<textarea required minLength={5} value={changeReason} onChange={event => setChangeReason(event.target.value)} placeholder="O que mudou na sua agenda?"/></label>
-                  {changeError && <p className="client-visit-change-error" role="alert">{changeError}</p>}
-                  <div className="client-visit-change-buttons"><button type="button" onClick={() => setChangeAction(null)}>Voltar</button><button type="submit" disabled={changeBusy}>{changeBusy ? 'Enviando…' : 'Enviar à CALI'}</button></div>
-                </form>}
               </> : <>
                 <div><span>Quando</span><strong>{selectedItem.dateLabel} · {selectedItem.timeLabel}</strong></div>
                 <div><span>Estado</span><strong>{selectedItem.statusLabel}</strong></div>
                 {selectedItem.detailLabel && <div><span>Formato</span><strong>{selectedItem.detailLabel}</strong></div>}
                 {selectedItem.secondaryDetail && <div className="full"><span>Local</span><strong>{selectedItem.secondaryDetail}</strong></div>}
                 {selectedItem.meetingUrl && <a href={selectedItem.meetingUrl} target="_blank" rel="noopener noreferrer">Abrir Google Meet <ArrowUpRight size={16}/></a>}
+                {meetingRecords[selectedItem.sourceId]?.outcome==='occurred' && <div className="full"><span>Reunião realizada</span><strong>{meetingRecords[selectedItem.sourceId]?.transcription_note || 'O registro da reunião está disponível neste histórico.'}</strong></div>}
+                {meetingRecords[selectedItem.sourceId]?.transcription_url && <a href={meetingRecords[selectedItem.sourceId].transcription_url!} target="_blank" rel="noopener noreferrer">Ver transcrição <ArrowUpRight size={16}/></a>}
+                {meetingRecords[selectedItem.sourceId]?.attachment_path && <button className="client-meeting-file" type="button" onClick={()=>void openMeetingFile(meetingRecords[selectedItem.sourceId])}>Abrir anexo · {meetingRecords[selectedItem.sourceId].attachment_name}</button>}
+                {selectedItem.kind==='event' && selectedItem.typeLabel==='Reunião' && selectedItem.statusLabel!=='Cancelado' && new Date(selectedItem.at)>new Date() && !agendaChanges.some(row=>row.event_id===selectedItem.sourceId&&row.status==='pending') && <div className="full client-agenda-actions"><button type="button" onClick={()=>beginChange('reschedule')}>Pedir reagendamento</button><button type="button" onClick={()=>beginChange('cancel')}>Pedir cancelamento</button></div>}
+                {agendaChanges.filter(row=>row.event_id===selectedItem.sourceId).map(row=><div className="full" key={row.id}><span>{row.action==='reschedule'?'Reagendamento':'Cancelamento'} · {row.status==='pending'?'Em análise':row.status==='approved'?'Aprovado':'Não aprovado'}</span><strong>{row.reason}{row.decision_note ? ` · Resposta da CALI: ${row.decision_note}` : ''}</strong></div>)}
               </>}
             </div>
           </section>
         </div>, document.body)}
+      {changeTarget && changeAction && createPortal(<div className="client-agenda-detail-backdrop client-agenda-change-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget&&!changeBusy)setChangeTarget(null)}}><section className="client-agenda-change-modal" role="alertdialog" aria-modal="true" aria-labelledby="agenda-change-title"><header><div><small>{changeTarget.request?.extra_visit?'VISITA EXTRA':'REUNIÃO'}</small><h2 id="agenda-change-title">{changeAction==='cancel'?'Pedir cancelamento':'Sugerir novas datas'}</h2></div><button type="button" onClick={()=>setChangeTarget(null)} aria-label="Fechar"><X size={19}/></button></header><form className="client-visit-change-form" onSubmit={submitChange}><p><strong>{changeTarget.title}</strong> · {changeTarget.dateLabel} {changeTarget.timeLabel}</p><p>Conte o motivo para a CALI analisar. Uma taxa eventual depende da antecedência, da justificativa e das condições aceitas no seu contrato. Nada é cobrado automaticamente.</p>{changeAction==='reschedule'&&<><p>As novas opções precisam ter pelo menos 48 horas úteis de antecedência e ocorrer de segunda a sexta, entre 9h e 16h.</p><div className="client-visit-change-slots">{newSlots.map((slot,index)=><fieldset key={index}><legend>Opção {index+1}</legend><input aria-label={`Data da opção ${index+1}`} type="date" required value={slot.date} onChange={event=>setNewSlots(current=>current.map((row,i)=>i===index?{...row,date:event.target.value}:row))}/><input aria-label={`Horário da opção ${index+1}`} type="time" min="09:00" max={changeTarget.request?.extra_visit?'12:00':'16:00'} required value={slot.time} onChange={event=>setNewSlots(current=>current.map((row,i)=>i===index?{...row,time:event.target.value}:row))}/></fieldset>)}</div></>}<label>Justificativa<textarea required minLength={5} value={changeReason} onChange={event=>setChangeReason(event.target.value)} placeholder="O que mudou na sua agenda?"/></label>{changeError&&<p className="client-visit-change-error" role="alert">{changeError}</p>}<div className="client-visit-change-buttons"><button type="button" onClick={()=>setChangeTarget(null)}>Voltar</button><button type="submit" disabled={changeBusy}>{changeBusy?'Enviando…':'Confirmar pedido'}</button></div></form></section></div>,document.body)}
     </Shell>
   );
 }

@@ -11,6 +11,16 @@
 
 ---
 
+## 2026-09-29 — Codex (reuniões, transcrições e detalhe da agenda)
+
+- **Pedido:** botões “Solicitar visita presencial” e “Solicitar reunião online”, deixando as condições de cobrança dentro do respectivo pedido. Reorganizar o detalhe do evento no administrador com estados por cor e ações agrupadas. Consultar reuniões online/presenciais por período e resultado; disponibilizar transcrição no histórico com aviso automático por e-mail ao cliente.
+- **Implementação:** o pedido de reunião iniciado pelo cliente é classificado como adicional e requer orçamento informado pela CALI e aceito pelo cliente antes da confirmação; os encontros incluídos no Partner/Full continuam organizados pela CALI. Não foi presumido um preço fixo para reunião online. No cliente, reagendamento/cancelamento abre um alerta separado, com justificativa e duas datas, e entra em análise; o evento ordinário fica intacto até a decisão. A visita extra mantém seu histórico específico e agora exige 48 horas úteis para as datas de reagendamento, enquanto a primeira solicitação mantém 48 horas corridas.
+- **Administrador:** seção recolhível de histórico com filtros por mês, formato e situação, incluindo canceladas e não realizadas. Modal de detalhe com cabeçalho verde, amarelo ou vermelho conforme estado e duas áreas de ações. Registro e anexo de transcrição continuam no detalhe do encontro. Ao salvar um novo link ou anexo, trigger cria notificação para cada usuário ativo da conta e aciona o hook existente de e-mail; atualizações apenas da observação não repetem o aviso.
+- **Arquivos:** `src/components/ExtraVisitRequest.tsx`, `src/lib/schedulingRequestsRuntimeV65.ts`, `src/lib/schedulingPolicyRuntimeV66.ts`, `src/lib/schedulingPostConfirmationV69.ts`, `src/pages/admin/AdminCalendarPage.tsx`, `src/pages/client/ClientTimelinePage.tsx`, CSS relacionados e `supabase/migrations/20260929040000_agenda_changes_and_meeting_records.sql`.
+- **Autor:** Codex. **Aprovação:** pendente de conferência da Pati. **Regra para Claude e Codex:** em ambos os temas, texto/ícones devem ter contraste legível; dados de agenda e histórico vêm do Supabase, não de mock. Evitar mexer nos componentes citados sem ler esta entrada e a migration. **Em aberto:** desenho próprio da agenda fixa mensal CALI Full, quilometragem de carro próprio e timing fino do faturamento; orçamento de reunião online é individual.
+
+---
+
 ## 2026-09-28 — Codex (modal da visita extra)
 
 - **Pedido:** Pati mostrou o modal abrindo com o topo fora da tela e pediu centralização, fundo desfocado e conteúdo sem rolagem sempre que possível.

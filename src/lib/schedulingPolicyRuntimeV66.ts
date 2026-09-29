@@ -121,6 +121,7 @@ function decorateClientRequestCards(){
 
 async function previewClientPolicy(){
   const form=document.querySelector<HTMLFormElement>('#scheduling-client-form'); if(!form||!supabase) return;
+  if(form.dataset.onlineExtra==='1')return;
   let urgency=form.querySelector<HTMLSelectElement>('[name="urgency"]');
   if(!urgency){ const duration=form.querySelector<HTMLSelectElement>('[name="duration"]')?.closest('.scheduling-v65-field'); const label=document.createElement('label'); label.className='scheduling-v65-field'; label.innerHTML='<span>Grau de urgência</span><select name="urgency"><option value="regular">Sem urgência</option><option value="priority">Prioridade</option><option value="urgent">Urgente</option></select>'; duration?.insertAdjacentElement('afterend',label); urgency=label.querySelector('select')!; }
   const mode=String(new FormData(form).get('mode')||'remote'), date=String(new FormData(form).get('date1')||''), time=String(new FormData(form).get('time1')||'09:00'); const policy=form.querySelector<HTMLElement>('#scheduling-client-policy'); if(!policy) return;
@@ -134,7 +135,7 @@ async function submitClientV2(form:HTMLFormElement,event:Event){
   const fd=new FormData(form), mode=String(fd.get('mode')||'remote'), duration=Number(fd.get('duration')||60), date1=String(fd.get('date1')||''),time1=String(fd.get('time1')||''),date2=String(fd.get('date2')||''),time2=String(fd.get('time2')||''),urgency=String(fd.get('urgency')||'regular');
   if(!date1||!time1||(mode==='in_person'&&(!date2||!time2))){ const box=form.querySelector<HTMLElement>('.scheduling-v65-error'); if(box){box.textContent=mode==='in_person'?'Informe duas opções de data e horário para a visita presencial.':'Informe ao menos uma opção de data e horário.';box.classList.add('show');} return; }
   const slots=[makeSlot(date1,time1,duration)]; if(date2&&time2)slots.push(makeSlot(date2,time2,duration)); const ack=Boolean(fd.get('billingAck')); const button=form.querySelector<HTMLButtonElement>('button[type="submit"]'); if(button)button.disabled=true;
-  try{ await rpc('create_scheduling_request_v2',{p_mode:mode,p_title:String(fd.get('title')||''),p_purpose:String(fd.get('purpose')||''),p_location:String(fd.get('location')||''),p_requested_slots:slots,p_urgency:urgency,p_billing_acknowledged:ack}); closeModal(); toast('Solicitação enviada para análise da CALI.'); window.setTimeout(()=>location.reload(),650); }
+  try{ if(form.dataset.onlineExtra==='1') await rpc('client_request_online_extra_v1',{p_title:String(fd.get('title')||''),p_purpose:String(fd.get('purpose')||''),p_slots:slots}); else await rpc('create_scheduling_request_v2',{p_mode:mode,p_title:String(fd.get('title')||''),p_purpose:String(fd.get('purpose')||''),p_location:String(fd.get('location')||''),p_requested_slots:slots,p_urgency:urgency,p_billing_acknowledged:ack}); closeModal(); toast('Solicitação enviada para análise da CALI.'); window.setTimeout(()=>location.reload(),650); }
   catch(error:any){ const box=form.querySelector<HTMLElement>('.scheduling-v65-error'); if(box){box.textContent=error?.message||'Não foi possível enviar a solicitação.';box.classList.add('show');} if(button)button.disabled=false; }
 }
 
