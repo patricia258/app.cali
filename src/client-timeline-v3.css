@@ -91,3 +91,19 @@ html[data-workspace-theme='night'] .client-week-event.google{background:#24405a;
 .client-week-event.google{background:var(--personal-event-color,#5b83b7);border-color:var(--personal-event-color,#5b83b7);color:var(--personal-event-foreground,#fff)}
 html[data-workspace-theme='night'] .client-week-event.google{background:var(--personal-event-color,#5b83b7);color:var(--personal-event-foreground,#fff)}
 .client-week-grid{grid-template-columns:48px repeat(7,minmax(120px,1fr));min-width:888px}.client-week-axis{border-right:1px solid var(--theme-line);color:var(--theme-muted)}.client-week-axis h3{margin:0;padding:11px 2px;border-bottom:1px solid var(--theme-line);background:var(--theme-surface-soft);font-size:11px;text-align:center}.client-week-axis>div{position:relative;height:702px}.client-week-axis span{position:absolute;right:5px;transform:translateY(-7px);font-size:10px}
+
+.client-week-event.request { background:#fff0d7; border:1px dashed #ac7945; border-left:4px solid #ac7945; color:#513326; }
+.client-week-event.request.tone-negative { background:#fbe5e8; border-color:#b45768; color:#70293c; }
+.client-week-event.request.tone-positive { background:#e5f5e9; border-color:#3d8a5a; color:#225239; }
+.client-week-event.request.tone-negative :is(strong,small) { text-decoration:line-through; }
+.client-week-event.request small { line-height:1.25; white-space:normal; }
+.client-agenda-detail-body .client-request-preview-note { margin:2px 0; padding:10px 12px; border-radius:9px; background:#fff0d7; color:#563d28; font-size:12px; line-height:1.5; }
+.client-agenda-detail-modal.tone-negative .client-request-dates strong { text-decoration:line-through; text-decoration-thickness:1px; }
+.client-agenda-detail-modal.tone-negative:has(.client-request-dates) header h2 { text-decoration:line-through; text-decoration-thickness:1px; }
+.client-agenda-detail-modal:has(.client-request-dates) .client-agenda-detail-body>div:not(.client-request-status) strong { font-weight:550; }
+.client-agenda-detail-modal .client-request-status strong { font-size:15px; font-weight:800; }
+.client-timeline-v4 .client-agenda-row.request.tone-negative .client-agenda-date :is(strong,span) { text-decoration:line-through; }
+html[data-workspace-theme='night'] .client-week-event.request { background:#47341f; border-color:#d4a666; color:#fff2d9; }
+html[data-workspace-theme='night'] .client-week-event.request.tone-negative { background:#512630; border-color:#dd8999; color:#fff0f2; }
+html[data-workspace-theme='night'] .client-week-event.request.tone-positive { background:#213e2d; border-color:#76ba8b; color:#e9ffec; }
+html[data-workspace-theme='night'] .client-agenda-detail-body .client-request-preview-note { background:#45351f; color:#fff1d7; }
