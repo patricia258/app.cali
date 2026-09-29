@@ -183,6 +183,7 @@ export function AdminCalendarPage() {
   const [view, setView] = useState<CalendarView>('week');
   const [companyFilter, setCompanyFilter] = useState('all');
   const [query, setQuery] = useState('');
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [activeTypes, setActiveTypes] = useState<Set<CalendarEventType>>(() => new Set(Object.keys(calendarTypeMeta) as CalendarEventType[]));
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<WorkspaceCalendarEvent | null>(null);
@@ -632,10 +633,16 @@ export function AdminCalendarPage() {
           </div>
           <div className="calendar-toolbar-filters">
             <label className="calendar-search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar evento ou protocolo" /></label>
-            <select value={companyFilter} onChange={(event) => setCompanyFilter(event.target.value)} aria-label="Filtrar cliente">
-              <option value="all">Todos os clientes</option>
-              {companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}
-            </select>
+            <div className="calendar-filter-control">
+              <button type="button" className={`calendar-filter-trigger ${filtersOpen || companyFilter !== 'all' || activeTypes.size !== Object.keys(calendarTypeMeta).length ? 'active' : ''}`} aria-expanded={filtersOpen} aria-controls="calendar-filter-popover" onClick={() => setFiltersOpen(value => !value)}><Filter size={18} /> Filtros{companyFilter !== 'all' || activeTypes.size !== Object.keys(calendarTypeMeta).length ? <span className="calendar-filter-indicator" /> : null}</button>
+              {filtersOpen && <div id="calendar-filter-popover" className="calendar-filter-popover">
+                <div className="calendar-filter-popover-head"><strong>Filtrar agenda</strong><button type="button" onClick={() => setFiltersOpen(false)} aria-label="Fechar filtros"><X size={17}/></button></div>
+                <label>Cliente<select value={companyFilter} onChange={event => setCompanyFilter(event.target.value)}><option value="all">Todos os clientes</option>{companies.map(company => <option key={company.id} value={company.id}>{company.name}</option>)}</select></label>
+                <strong className="calendar-filter-caption">Tipos de evento</strong>
+                <div className="calendar-type-filter-list">{(Object.keys(calendarTypeMeta) as CalendarEventType[]).map(type => <button type="button" key={type} aria-pressed={activeTypes.has(type)} className={activeTypes.has(type) ? 'active' : ''} onClick={() => toggleType(type)}><span style={{ background: calendarTypeMeta[type].color }} /><strong>{calendarTypeMeta[type].label}</strong><small>{events.filter(event => event.type === type && !event.cancelledAt).length}</small></button>)}</div>
+                <button type="button" className="calendar-filter-reset" onClick={() => { setCompanyFilter('all'); setActiveTypes(new Set(Object.keys(calendarTypeMeta) as CalendarEventType[])); }}>Limpar filtros</button>
+              </div>}
+            </div>
             <div className="calendar-view-switch">
               {(['month', 'week', 'agenda'] as CalendarView[]).map((item) => (
                 <button key={item} className={view === item ? 'active' : ''} onClick={() => setView(item)}>
@@ -725,20 +732,6 @@ export function AdminCalendarPage() {
                 })}
               </div>
             </section>
-
-            <section className="calendar-filter-card panel">
-              <div className="calendar-side-title"><Filter size={17} /><strong>Tipos de evento</strong></div>
-              <div className="calendar-type-filter-list">
-                {(Object.keys(calendarTypeMeta) as CalendarEventType[]).map((type) => (
-                  <button key={type} className={activeTypes.has(type) ? 'active' : ''} onClick={() => toggleType(type)}>
-                    <span style={{ background: calendarTypeMeta[type].color }} />
-                    <strong>{calendarTypeMeta[type].label}</strong>
-                    <small>{events.filter((event) => event.type === type && !event.cancelledAt).length}</small>
-                  </button>
-                ))}
-              </div>
-            </section>
-
 
           </aside>
         </div>
