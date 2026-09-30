@@ -19,6 +19,7 @@ type ClientEvent = {
   description?: string | null;
   event_type?: string | null;
   sync_status?: string | null;
+  google_event_id?: string | null;
   schedule_class?: string | null;
   billing_applies?: boolean | null;
   source_type?: string | null;
@@ -238,7 +239,7 @@ export function ClientTimelinePage() {
       const [eventResult, deliverableResult, requestResult, recordResult, changeResult, projectResult] = await Promise.all([
         supabase
           .from('events')
-          .select('id,title,starts_at,ends_at,mode,location,meeting_url,description,event_type,sync_status,schedule_class,billing_applies,source_type,cancelled_at')
+          .select('id,title,starts_at,ends_at,mode,location,meeting_url,description,event_type,sync_status,google_event_id,schedule_class,billing_applies,source_type,cancelled_at')
           .eq('company_id', companyId)
           .eq('visibility', 'client')
           .order('starts_at'),
@@ -401,7 +402,7 @@ export function ClientTimelinePage() {
   const weekDays = Array.from({length:7},(_,index)=>new Date(weekStart.getFullYear(),weekStart.getMonth(),weekStart.getDate()+index));
   const weekKey = (value:string|Date) => new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(value instanceof Date?value:new Date(value));
   const inputDate = (value:Date) => `${value.getFullYear()}-${String(value.getMonth()+1).padStart(2,'0')}-${String(value.getDate()).padStart(2,'0')}`;
-  const filteredItems=[...items.filter(item=>visibleKinds.has(item.kind)),...(visibleKinds.has('google')?personalGoogle:[])].sort((a,b)=>new Date(a.at).getTime()-new Date(b.at).getTime());
+  const filteredItems=[...items.filter(item=>visibleKinds.has(item.kind)),...(visibleKinds.has('google')?personalGoogle.filter(personal=>!events.some(appointment=>!appointment.cancelled_at && (appointment.google_event_id===personal.sourceId || (appointment.title.trim().toLowerCase()===personal.title.trim().toLowerCase() && Math.abs(new Date(appointment.starts_at).getTime()-new Date(personal.at).getTime())<60000)))):[])].sort((a,b)=>new Date(a.at).getTime()-new Date(b.at).getTime());
   const moveWeek=(offset:number)=>setWeekCursor(current=>new Date(current.getFullYear(),current.getMonth(),current.getDate()+offset*7));
   function scrollWeeks(event:ReactWheelEvent<HTMLDivElement>){
     if(Math.abs(event.deltaX)<22||Math.abs(event.deltaX)<Math.abs(event.deltaY))return;
@@ -440,7 +441,7 @@ export function ClientTimelinePage() {
         {loading ? <div className="data-loading"><Loader2 className="spin" size={20} />Carregando sua agenda…</div> : <>
           <section className="panel client-real-timeline-panel client-agenda-panel">
             <div className="client-real-timeline-title">
-              <div><span>O QUE VEM AGORA</span><h2>Agenda e Planejamento</h2></div>
+              <div><span>O QUE VEM AGORA</span><h2>Calendário</h2></div>
               <div className="client-agenda-heading-actions"><small>{futureCountText(futureItems.filter(item=>item.kind!=='request'||['confirmed','completed'].includes(item.request?.status||'')).length)}</small><button type="button" onClick={()=>setHistoryOpen(true)}><FileText size={17}/> Histórico de reuniões</button></div>
             </div>
 
