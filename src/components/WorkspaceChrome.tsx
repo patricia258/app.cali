@@ -161,6 +161,8 @@ export function NotificationCenter({ role }: { role: Role }) {
       url += `${url.includes('?') ? '&' : '?'}deliverable=${encodeURIComponent(item.entity_id)}`;
     } else if (item.entity_type === 'project' && item.entity_id && !url.includes('project=')) {
       url += `${url.includes('?') ? '&' : '?'}project=${encodeURIComponent(item.entity_id)}`;
+    } else if (item.entity_type === 'scheduling_request' && item.entity_id && !url.includes('request=')) {
+      url += `${url.includes('?') ? '&' : '?'}request=${encodeURIComponent(item.entity_id)}`;
     }
     return url;
   }

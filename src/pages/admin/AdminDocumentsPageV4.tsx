@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
+import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 import { optimizeImageForUpload } from '../../lib/imageUpload';
 
 type CategorySlug = 'policy' | 'manual' | 'flow' | 'guide' | 'report' | 'onboarding' | 'deliverable' | 'schedule' | 'contract' | 'reference' | 'other';
@@ -195,7 +196,7 @@ export function AdminDocumentsPageV4() {
     setError('');
     try {
       const [companyResult, projectResult, deliverableResult, fileResult, ackResult, profileResult, commentResult, driveResult] = await Promise.all([
-        supabase.from('companies').select('id,display_name,logo_url').neq('status', 'closed').order('display_name'),
+        supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url').neq('status', 'closed').order('display_name'),
         supabase.from('projects').select('id,company_id,name').order('created_at', { ascending: false }),
         supabase.from('deliverables').select('id,company_id,project_id,title,status,is_document').order('created_at', { ascending: false }),
         supabase.from('files').select('id,company_id,project_id,deliverable_id,title,category,version_label,updated_at,published_at,drive_url,client_visible,source_type,protocol,document_kind,cover_storage_path,file_type,file_size_bytes,original_filename,requires_acknowledgement,status,storage_path,description,revision_of_id,workflow_origin,workflow_stage,valid_until').order('updated_at', { ascending: false }),
@@ -207,7 +208,11 @@ export function AdminDocumentsPageV4() {
       const failure = [companyResult.error, projectResult.error, deliverableResult.error, fileResult.error, ackResult.error, profileResult.error, commentResult.error, driveResult.error].find(Boolean);
       if (failure) throw failure;
 
-      const companyOptions: CompanyOption[] = (companyResult.data || []).map((row) => ({ id: row.id, name: row.display_name, logoUrl: row.logo_url }));
+      const companyOptions: CompanyOption[] = await Promise.all((companyResult.data || []).map(async (row) => ({
+        id: row.id,
+        name: row.display_name,
+        logoUrl: await resolveWorkspaceMedia(row.logo_url || row.logo_workspace_url) || await resolveWorkspaceMedia(row.logo_workspace_url),
+      })));
       const projectOptions: ProjectOption[] = (projectResult.data || []).map((row) => ({ id: row.id, companyId: row.company_id, name: row.name }));
       const deliverableOptions: DeliverableOption[] = (deliverableResult.data || []).map((row) => ({ id: row.id, companyId: row.company_id, projectId: row.project_id, title: row.title, status: row.status }));
       const profileOptions: ProfileOption[] = (profileResult.data || []).map((row) => ({ id: row.id, companyId: row.company_id, role: row.role, active: Boolean(row.active) }));

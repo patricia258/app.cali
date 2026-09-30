@@ -132,15 +132,15 @@ export function AdminReportsPageV17() {
     setLoadingBase(true); setError('');
     try {
       const [companyResult, reportResult] = await Promise.all([
-        supabase.from('companies').select('id,display_name,logo_url,service_type,service_plan').neq('status', 'closed').order('display_name'),
+        supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url,service_type,service_plan').neq('status', 'closed').order('display_name'),
         supabase.from('reports').select('id,company_id,title,report_type,period_start,period_end,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,updated_at,version,revision_parent_id,dismissed_alerts,internal_note,data_refreshed_at,review_started_at,approved_at,sent_at,sent_to').neq('status', 'archived').order('period_start', { ascending: false }).order('version', { ascending: false }),
       ]);
       if (companyResult.error) throw companyResult.error;
       if (reportResult.error) throw reportResult.error;
       const nextCompanies: Company[] = (companyResult.data || []).map((row: any) => ({ id: row.id, name: row.display_name, logoUrl: row.logo_url || '', serviceType: row.service_type, servicePlan: row.service_plan }));
-      const logoRows=await Promise.all(nextCompanies.map(async (company) => [company.id, await resolveWorkspaceMedia((companyResult.data || []).find((row: any) => row.id === company.id)?.logo_url, 86400, true)] as const));
+      const logoRows=await Promise.all(nextCompanies.map(async (company) => { const row=(companyResult.data || []).find((entry: any) => entry.id === company.id); return [company.id, await resolveWorkspaceMedia(row?.logo_url || row?.logo_workspace_url, 86400, true) || await resolveWorkspaceMedia(row?.logo_workspace_url, 86400, true)] as const; }));
       const logoMap=new Map(logoRows);
-      setCompanies(nextCompanies.map((company)=>({...company,logoUrl:logoMap.get(company.id)||company.logoUrl||''})));
+      setCompanies(nextCompanies.map((company)=>({...company,logoUrl:logoMap.get(company.id)||''})));
       setReports((reportResult.data || []).map(reportRow));
       if (!companyId && nextCompanies.length) setCompanyId(nextCompanies[0].id);
     } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar Relatórios.'); }

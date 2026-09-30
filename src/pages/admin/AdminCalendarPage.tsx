@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import {
   CalendarDays,
   Check,
@@ -38,6 +38,7 @@ import {
   type WorkspaceCalendarEvent,
 } from '../../domain/calendar';
 import { supabase } from '../../lib/supabase';
+import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 
 type CompanyOption = { id: string; name: string; logoUrl?: string | null };
 type MeetingOutcome = { event_id: string; outcome: string; transcription_url?: string | null; transcription_attachment_name?: string | null };
@@ -182,6 +183,7 @@ export function AdminCalendarPage() {
   const [view, setView] = useState<CalendarView>('week');
   const [companyFilter, setCompanyFilter] = useState('all');
   const [query, setQuery] = useState('');
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [activeTypes, setActiveTypes] = useState<Set<CalendarEventType>>(() => new Set(Object.keys(calendarTypeMeta) as CalendarEventType[]));
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<WorkspaceCalendarEvent | null>(null);
@@ -198,6 +200,9 @@ export function AdminCalendarPage() {
   const [historyOutcome, setHistoryOutcome] = useState('all');
   const [historyOpen, setHistoryOpen] = useState(false);
   const upcomingRef = useRef<HTMLDivElement>(null);
+  const selectionStart = useRef<{date:Date;minutes:number;pointerId:number;startY:number}|null>(null);
+  const lastHorizontalMove = useRef(0);
+  const [selectionPreview, setSelectionPreview] = useState<{date:string;top:number;height:number}|null>(null);
 
   useEffect(() => { void loadCalendar(); }, []);
   useEffect(() => {
@@ -224,7 +229,7 @@ export function AdminCalendarPage() {
         if(seen.has(id)) return [];
         seen.add(id);
         const allDay=Boolean(row.allDay);
-        return [{id,title:row.title,startsAt:allDay?`${row.start}T12:00:00-03:00`:row.start,endsAt:allDay?`${row.end}T12:00:00-03:00`:row.end,allDay,type:'other',color:/^#[0-9a-f]{6}$/i.test(row.color)?row.color:'#8D7354',textColor:row.textColor,location:row.location,description:row.description,organizer:row.organizer,reminderMinutes:row.reminderMinutes,googleEventId:row.id,googleHtmlLink:row.htmlLink,visibility:'internal',attendees:[],sourceType:'google',synthetic:true} as WorkspaceCalendarEvent];
+        return [{id,title:row.title,startsAt:allDay?`${row.start}T12:00:00-03:00`:row.start,endsAt:allDay?`${row.end}T12:00:00-03:00`:row.end,allDay,type:'other',color:/^#[0-9a-f]{6}$/i.test(row.color)?row.color:'#8D7354',textColor:row.textColor,location:row.location,description:row.description,organizer:row.organizer,reminderMinutes:row.reminderMinutes,meetingUrl:row.meetingUrl,attendees:(row.attendees||[]).map((guest:any)=>({name:String(guest.name||guest.email||'Convidado'),email:String(guest.email||''),status:guest.status==='accepted'?'accepted':guest.status==='declined'?'declined':guest.status==='tentative'?'tentative':'pending'})),googleEventId:row.id,googleHtmlLink:row.htmlLink,visibility:'internal',sourceType:'google',synthetic:true} as WorkspaceCalendarEvent];
       }));
       setGoogleEvents(external);setGoogleReadStatus('ready');
     };
@@ -249,16 +254,20 @@ export function AdminCalendarPage() {
     if (!supabase) { setLoading(false); return; }
     try {
       const [{ data: companyRows }, { data: eventRows }, { data: attendeeRows }, { data: deadlineRows }, { data: connectionRows }, { data: requestRows }, { data: projectRows }] = await Promise.all([
-        supabase.from('companies').select('id, display_name, logo_url').neq('status', 'archived').order('display_name'),
+        supabase.from('companies').select('id, display_name, logo_url, logo_workspace_url').neq('status', 'archived').order('display_name'),
         supabase.from('events').select('id,protocol,title,company_id,project_id,event_type,color_hex,starts_at,ends_at,all_day,mode,location,meeting_url,description,visibility,source_type,source_entity_id,google_event_id,sync_status,cancelled_at').order('starts_at'),
         supabase.from('event_attendees').select('id,event_id,name,email,status,response_note').order('created_at'),
         supabase.from('deliverables').select('id, company_id, project_id, title, due_at, status, protocol').not('due_at', 'is', null).order('due_at'),
         supabase.from('calendar_connections').select('id, status').eq('provider', 'google').eq('status', 'connected').limit(1),
-        supabase.from('scheduling_requests').select('id,company_id,title,status,request_mode,requested_slots,admin_proposed_slots,purpose,location,extra_visit,online_extra_requested').in('status', ['submitted','client_review','reschedule_review']).order('created_at', { ascending: false }).limit(100),
+        supabase.from('scheduling_requests').select('id,company_id,title,status,request_mode,requested_slots,admin_proposed_slots,purpose,location,extra_visit,online_extra_requested').in('status', ['submitted','reschedule_review']).order('created_at', { ascending: false }).limit(100),
         supabase.from('projects').select('id,name'),
       ]);
 
-      const options: CompanyOption[] = (companyRows || []).map((row: any) => ({ id: row.id, name: row.display_name, logoUrl: row.logo_url }));
+      const options: CompanyOption[] = await Promise.all((companyRows || []).map(async (row: any) => ({
+        id: row.id,
+        name: row.display_name,
+        logoUrl: await resolveWorkspaceMedia(row.logo_url || row.logo_workspace_url) || await resolveWorkspaceMedia(row.logo_workspace_url),
+      })));
       if (options.length) setCompanies(options);
       const companyMap = new Map(options.map((company) => [company.id, company]));
       const projectMap = new Map((projectRows || []).map((project: any) => [project.id, project.name]));
@@ -332,7 +341,7 @@ export function AdminCalendarPage() {
         }));
 
       const previews: WorkspaceCalendarEvent[] = (requestRows || []).flatMap((row: any) => {
-        const slots = row.status === 'client_review' && Array.isArray(row.admin_proposed_slots) && row.admin_proposed_slots.length ? row.admin_proposed_slots : row.requested_slots;
+        const slots = row.requested_slots;
         return (Array.isArray(slots) ? slots : []).filter((slot: any) => slot?.startsAt).slice(0, 2).map((slot: any, index: number) => ({
           id: `request-preview-${row.id}-${index}`, title: row.title || (row.request_mode === 'in_person' ? 'Visita presencial' : 'Reunião online'),
           companyId: row.company_id, company: companyMap.get(row.company_id)?.name || null, companyLogo: companyMap.get(row.company_id)?.logoUrl,
@@ -393,17 +402,40 @@ export function AdminCalendarPage() {
     setCursor(next);
   }
 
-  function openCreateForDate(date?: Date, hour?: number) {
+  function openCreateForDate(date?: Date, minutes?: number, duration = 60) {
     const target = date || cursor;
     const next = defaultForm(dateKey(target));
     next.companyId = companies[0]?.id || 'aurora';
-    if (typeof hour === 'number') {
-      next.startTime = `${String(hour).padStart(2, '0')}:00`;
-      next.endTime = `${String(Math.min(hour + 1, 23)).padStart(2, '0')}:00`;
+    if (typeof minutes === 'number') {
+      next.startTime = `${String(Math.floor(minutes/60)).padStart(2, '0')}:${String(minutes%60).padStart(2, '0')}`;
+      const end=Math.min(minutes+duration,20*60);
+      next.endTime = `${String(Math.floor(end/60)).padStart(2, '0')}:${String(end%60).padStart(2, '0')}`;
     }
     setEditingEvent(null);
     setForm(next);
     setEditorOpen(true);
+  }
+
+  function startWeekSelection(date:Date,hour:number,event:ReactPointerEvent<HTMLDivElement>){
+    const minutes=hour*60+Math.min(45,Math.max(0,Math.floor((event.clientY-event.currentTarget.getBoundingClientRect().top)/16)*15));
+    selectionStart.current={date,minutes,pointerId:event.pointerId,startY:event.clientY};
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setSelectionPreview({date:dateKey(date),top:(minutes-7*60)/60*HOUR_HEIGHT,height:HOUR_HEIGHT/2});
+  }
+  function moveWeekSelection(event:ReactPointerEvent<HTMLDivElement>){
+    const start=selectionStart.current;if(!start||start.pointerId!==event.pointerId)return;
+    const duration=Math.max(30,Math.min(180,Math.ceil((event.clientY-start.startY)/16)*15));
+    setSelectionPreview({date:dateKey(start.date),top:(start.minutes-7*60)/60*HOUR_HEIGHT,height:duration/60*HOUR_HEIGHT});
+  }
+  function finishWeekSelection(event:ReactPointerEvent<HTMLDivElement>){
+    const start=selectionStart.current;if(!start||start.pointerId!==event.pointerId)return;
+    const duration=Math.max(30,Math.min(180,Math.ceil((event.clientY-start.startY)/16)*15));
+    selectionStart.current=null;setSelectionPreview(null);openCreateForDate(start.date,start.minutes,duration);
+  }
+  function scrollWeeks(event:ReactWheelEvent<HTMLDivElement>){
+    if(Math.abs(event.deltaX)<22||Math.abs(event.deltaX)<Math.abs(event.deltaY))return;
+    const element=event.currentTarget,atEdge=event.deltaX<0?element.scrollLeft<2:element.scrollLeft+element.clientWidth>=element.scrollWidth-2;
+    if(atEdge&&Date.now()-lastHorizontalMove.current>550){lastHorizontalMove.current=Date.now();navigatePeriod(event.deltaX>0?1:-1)}
   }
 
   function openEditEvent(event: WorkspaceCalendarEvent) {
@@ -601,10 +633,16 @@ export function AdminCalendarPage() {
           </div>
           <div className="calendar-toolbar-filters">
             <label className="calendar-search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar evento ou protocolo" /></label>
-            <select value={companyFilter} onChange={(event) => setCompanyFilter(event.target.value)} aria-label="Filtrar cliente">
-              <option value="all">Todos os clientes</option>
-              {companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}
-            </select>
+            <div className="calendar-filter-control">
+              <button type="button" className={`calendar-filter-trigger ${filtersOpen || companyFilter !== 'all' || activeTypes.size !== Object.keys(calendarTypeMeta).length ? 'active' : ''}`} aria-expanded={filtersOpen} aria-controls="calendar-filter-popover" onClick={() => setFiltersOpen(value => !value)}><Filter size={18} /> Filtros{companyFilter !== 'all' || activeTypes.size !== Object.keys(calendarTypeMeta).length ? <span className="calendar-filter-indicator" /> : null}</button>
+              {filtersOpen && <div id="calendar-filter-popover" className="calendar-filter-popover">
+                <div className="calendar-filter-popover-head"><strong>Filtrar agenda</strong><button type="button" onClick={() => setFiltersOpen(false)} aria-label="Fechar filtros"><X size={17}/></button></div>
+                <label>Cliente<select value={companyFilter} onChange={event => setCompanyFilter(event.target.value)}><option value="all">Todos os clientes</option>{companies.map(company => <option key={company.id} value={company.id}>{company.name}</option>)}</select></label>
+                <strong className="calendar-filter-caption">Tipos de evento</strong>
+                <div className="calendar-type-filter-list">{(Object.keys(calendarTypeMeta) as CalendarEventType[]).map(type => <button type="button" key={type} aria-pressed={activeTypes.has(type)} className={activeTypes.has(type) ? 'active' : ''} onClick={() => toggleType(type)}><span style={{ background: calendarTypeMeta[type].color }} /><strong>{calendarTypeMeta[type].label}</strong><small>{events.filter(event => event.type === type && !event.cancelledAt).length}</small></button>)}</div>
+                <button type="button" className="calendar-filter-reset" onClick={() => { setCompanyFilter('all'); setActiveTypes(new Set(Object.keys(calendarTypeMeta) as CalendarEventType[])); }}>Limpar filtros</button>
+              </div>}
+            </div>
             <div className="calendar-view-switch">
               {(['month', 'week', 'agenda'] as CalendarView[]).map((item) => (
                 <button key={item} className={view === item ? 'active' : ''} onClick={() => setView(item)}>
@@ -645,7 +683,7 @@ export function AdminCalendarPage() {
               </div>
             </>}
 
-            {view === 'week' && <div className="calendar-week-scroller"><div className="calendar-week-view">
+            {view === 'week' && <div className="calendar-week-scroller" onWheel={scrollWeeks}><div className="calendar-week-view">
               <div className="calendar-week-corner" />
               {weekDates.map((date) => <div key={dateKey(date)} className={`calendar-week-day-head ${isSameDate(date, today) ? 'today' : ''}`}><span>{weekdays[date.getDay()]}</span><strong>{date.getDate()}</strong></div>)}
               <div className="calendar-week-all-day-label">Dia inteiro</div>
@@ -656,7 +694,8 @@ export function AdminCalendarPage() {
                 {hours.map(hour => <span key={hour} style={{ top: (hour - WEEK_START_HOUR) * HOUR_HEIGHT }}>{String(hour).padStart(2, '0')}:00</span>)}
               </div>
               {weekDates.map(date => <div key={`lane-${dateKey(date)}`} className="calendar-week-lane" style={{ height: hours.length * HOUR_HEIGHT }}>
-                {hours.map(hour => <div key={hour} className="calendar-week-hour-hit" style={{ top: (hour - WEEK_START_HOUR) * HOUR_HEIGHT, height: HOUR_HEIGHT }} onDoubleClick={() => openCreateForDate(date,hour)} />)}
+                {hours.map(hour => <div key={hour} className="calendar-week-hour-hit is-selectable" style={{ top: (hour - WEEK_START_HOUR) * HOUR_HEIGHT, height: HOUR_HEIGHT }} onPointerDown={event=>startWeekSelection(date,hour,event)} onPointerMove={moveWeekSelection} onPointerUp={finishWeekSelection} onPointerCancel={()=>{selectionStart.current=null;setSelectionPreview(null)}} title="Selecione um horário para criar um evento" />)}
+                {selectionPreview?.date===dateKey(date)&&<div className="calendar-week-selection" style={{top:selectionPreview.top,height:selectionPreview.height}}>Novo evento</div>}
                 {weekEventLayout(eventsByDate.get(dateKey(date)) || []).map(({ event, top, height, column, columns }) =>
                   <button key={event.id} className={`calendar-week-event ${event.sourceType === 'google' ? 'is-google' : 'is-workspace'} ${event.sourceType === 'request_preview' ? 'is-preview' : ''} ${height < 36 ? 'is-compact' : ''}`} style={{ ...eventStyle(event), top, height: Math.max(3,height - 2), left: Math.min(column*11,33), width: `calc(100% - ${Math.min(column*11,33)}px)`, zIndex: columns+column }} title={`${event.sourceType === 'request_preview' ? 'Prévia em análise' : event.sourceType === 'google' ? 'Google Agenda' : 'Workspace'} · ${formatCalendarTime(event.startsAt)}–${formatCalendarTime(event.endsAt)} · ${event.title}`} onClick={() => setSelectedEvent(event)}>
                     <strong>{event.title}</strong><time>{formatCalendarTime(event.startsAt)}{event.endsAt ? `–${formatCalendarTime(event.endsAt)}` : ''}</time><small>{event.sourceType === 'request_preview' ? `Prévia ${event.previewOption} · não confirmado` : event.sourceType === 'google' ? 'Google' : 'Workspace'}</small>
@@ -694,20 +733,6 @@ export function AdminCalendarPage() {
               </div>
             </section>
 
-            <section className="calendar-filter-card panel">
-              <div className="calendar-side-title"><Filter size={17} /><strong>Tipos de evento</strong></div>
-              <div className="calendar-type-filter-list">
-                {(Object.keys(calendarTypeMeta) as CalendarEventType[]).map((type) => (
-                  <button key={type} className={activeTypes.has(type) ? 'active' : ''} onClick={() => toggleType(type)}>
-                    <span style={{ background: calendarTypeMeta[type].color }} />
-                    <strong>{calendarTypeMeta[type].label}</strong>
-                    <small>{events.filter((event) => event.type === type && !event.cancelledAt).length}</small>
-                  </button>
-                ))}
-              </div>
-            </section>
-
-
           </aside>
         </div>
       </section>
@@ -722,8 +747,7 @@ export function AdminCalendarPage() {
           <div className="calendar-modal-heading">
             <span className="section-kicker">{editingEvent ? 'EDITAR / REMARCAR' : 'NOVO EVENTO'}</span>
             <h2>{editingEvent ? 'Atualizar compromisso' : 'Adicionar ao calendário'}</h2>
-            <p>Crie o compromisso uma vez e defina quem deve enxergá-lo. A agenda CALI continua funcionando mesmo sem a conexão Google.</p>
-            <span className="calendar-modal-protocol">{editingEvent?.protocol ? `Protocolo ${editingEvent.protocol}` : 'O protocolo será gerado automaticamente ao salvar.'}</span>
+            {editingEvent?.protocol && <span className="calendar-modal-protocol">Protocolo {editingEvent.protocol}</span>}
           </div>
           <div className="calendar-modal-body">
             <label className="stacked-label calendar-title-field">Título<input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Ex.: reunião mensal de indicadores" /></label>
@@ -740,13 +764,17 @@ export function AdminCalendarPage() {
               <label className="stacked-label">Formato<select value={form.mode} onChange={(event) => setForm((current) => ({ ...current, mode: event.target.value as 'remote' | 'in_person' }))}><option value="remote">Remoto</option><option value="in_person">Presencial</option></select></label>
               <label className="stacked-label">Visibilidade<select value={form.visibility} onChange={(event) => setForm((current) => ({ ...current, visibility: event.target.value as 'internal' | 'client' }))}><option value="client">Compartilhar com cliente</option><option value="internal">Somente CALI</option></select></label>
             </div>}
-            <div className="calendar-event-form-grid">
+            <details className="calendar-extra-fields" key={editingEvent?.id||'new'} open={editingEvent?true:undefined}>
+              <summary>Local, link, convidados e descrição</summary>
+              <div className="calendar-extra-fields-content"><div className="calendar-event-form-grid">
               <label className="stacked-label">Local / sala<input value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value }))} placeholder={form.mode === 'remote' ? 'Google Meet' : 'Endereço ou sala'} /></label>
               <label className="stacked-label">Link da reunião<input value={form.meetingUrl} onChange={(event) => setForm((current) => ({ ...current, meetingUrl: event.target.value }))} placeholder="https://meet.google.com/..." /></label>
             </div>
             {form.mode === 'remote' && calendarConnection !== 'connected' && <div className="calendar-meet-helper">Você pode informar um Meet existente agora. Quando o Google Workspace estiver conectado por OAuth, a criação/sincronização de Meet poderá acontecer pela própria agenda.</div>}
             <label className="stacked-label">Convidados por e-mail<input value={form.attendeeEmails} onChange={(event) => setForm((current) => ({ ...current, attendeeEmails: event.target.value }))} placeholder="decisor@empresa.com.br, outra@empresa.com.br" /><small>Separe mais de um e-mail por vírgula.</small></label>
             <label className="stacked-label">Descrição<textarea value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} rows={3} placeholder="Contexto, objetivo ou preparação necessária" /></label>
+              </div>
+            </details>
           </div>
           <div className="calendar-modal-footer"><button type="button" className="secondary" onClick={closeEditor}>Cancelar</button><button className="primary" disabled={saving || !form.title.trim()} type="submit">{saving ? 'Salvando…' : editingEvent ? 'Salvar alterações' : 'Adicionar evento'}</button></div>
         </form>
@@ -769,8 +797,10 @@ export function AdminCalendarPage() {
           <div className="calendar-detail-body">
             {selectedEvent.sourceType==='request_preview' ? <div className="calendar-preview-detail"><strong>Opção {selectedEvent.previewOption} · {formatCalendarDate(selectedEvent.startsAt)} · {formatCalendarTime(selectedEvent.startsAt)}–{formatCalendarTime(selectedEvent.endsAt)}</strong><p>Prévia de horário solicitado. Ainda não foi confirmada, não reserva a agenda e não entra na contagem dos compromissos.</p>{selectedEvent.company && <p>Cliente: {selectedEvent.company}</p>}{selectedEvent.description && <p>Objetivo: {selectedEvent.description}</p>}</div> : selectedEvent.sourceType==='google' ? <div className="calendar-google-detail">
               <div><Clock3 size={18}/><span><strong>{new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'America/Sao_Paulo'}).format(new Date(selectedEvent.startsAt))}</strong><small>{selectedEvent.allDay?'Dia inteiro':`${formatCalendarTime(selectedEvent.startsAt)} – ${formatCalendarTime(selectedEvent.endsAt)}`}</small></span></div>
+              {selectedEvent.meetingUrl && <div><Video size={18}/><span><strong>Google Meet</strong><a href={selectedEvent.meetingUrl} target="_blank" rel="noopener noreferrer">Entrar na reunião <ExternalLink size={13}/></a></span></div>}
               {selectedEvent.description && <div><FileText size={18}/><span><strong>Anotações</strong><small>{selectedEvent.description}</small></span></div>}
               {selectedEvent.location && <div><MapPin size={18}/><span><strong>Local</strong><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedEvent.location)}`} target="_blank" rel="noopener noreferrer">{selectedEvent.location} <ExternalLink size={13}/></a></span></div>}
+              {selectedEvent.attendees.length > 0 && <div><Users size={18}/><span><strong>Convidados</strong><small>{selectedEvent.attendees.map(guest=>`${guest.name}${guest.status==='accepted'?' · aceitou':guest.status==='declined'?' · recusou':guest.status==='tentative'?' · talvez':' · aguardando'}`).join(' · ')}</small></span></div>}
               <div><CalendarDays size={18}/><span><strong>Agenda Google</strong><small>{selectedEvent.organizer || 'Patrícia Lima'}</small></span></div>
               {selectedEvent.reminderMinutes != null && <div><Clock3 size={18}/><span><strong>Lembrete</strong><small>{selectedEvent.reminderMinutes} minutos antes</small></span></div>}
             </div> : <>

@@ -153,9 +153,9 @@ export function ClientDashboard() {
 
   useEffect(() => {
     let active = true;
-    const logo = data.company?.logo_workspace_url || data.company?.logo_url;
+    const logo = data.company?.logo_url || data.company?.logo_workspace_url;
     if (!logo) { setOccurrenceLogoUrl(''); return; }
-    void resolveWorkspaceMedia(logo, 86400).then((url) => { if (active) setOccurrenceLogoUrl(url); });
+    void resolveWorkspaceMedia(logo, 86400).then(async (url) => url || resolveWorkspaceMedia(data.company?.logo_workspace_url, 86400)).then((url) => { if (active) setOccurrenceLogoUrl(url); });
     return () => { active = false; };
   }, [data.company?.logo_workspace_url, data.company?.logo_url]);
 
@@ -352,7 +352,7 @@ export function ClientDashboard() {
         <aside className="contract-card" aria-label="Sua contratação">
           <div className="contract-card-head">
             <div className="contract-logo-frame">
-              {data.company?.logo_url ? <img src={data.company.logo_url} alt="" /> : <Sparkles size={18} />}
+              {occurrenceLogoUrl ? <img src={occurrenceLogoUrl} alt="" /> : <Sparkles size={18} />}
             </div>
             <div className="contract-main"><span>SUA CONTRATAÇÃO</span><strong>{packageName}</strong><small>{data.company?.display_name || 'Conta CALI'}</small></div>
           </div>

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Clock3, FileCheck2, Loader2, X } from 'lucide-react';
+import { AlertTriangle, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, FileText, Loader2, X } from 'lucide-react';
 import { ClientGoogleCalendarPanel } from '../../components/ClientGoogleCalendarPanel';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
@@ -19,6 +19,7 @@ type ClientEvent = {
   description?: string | null;
   event_type?: string | null;
   sync_status?: string | null;
+  google_event_id?: string | null;
   schedule_class?: string | null;
   billing_applies?: boolean | null;
   source_type?: string | null;
@@ -175,6 +176,10 @@ export function ClientTimelinePage() {
   const [meetingRecords, setMeetingRecords] = useState<Record<string, MeetingRecord>>({});
   const [agendaChanges, setAgendaChanges] = useState<AgendaChange[]>([]);
   const [historyMonth, setHistoryMonth] = useState('');
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const selectionStart = useRef<{day:string;minutes:number;pointerId:number;startY:number}|null>(null);
+  const lastHorizontalMove = useRef(0);
+  const [selectionPreview, setSelectionPreview] = useState<{day:string;top:number;height:number}|null>(null);
   const [agendaView, setAgendaView] = useState<'week'|'list'>('week');
   const [weekCursor, setWeekCursor] = useState(() => new Date());
   const [visibleKinds, setVisibleKinds] = useState<Set<TimelineItem['kind']>>(() => new Set(['event','request','deadline']));
@@ -234,7 +239,7 @@ export function ClientTimelinePage() {
       const [eventResult, deliverableResult, requestResult, recordResult, changeResult, projectResult] = await Promise.all([
         supabase
           .from('events')
-          .select('id,title,starts_at,ends_at,mode,location,meeting_url,description,event_type,sync_status,schedule_class,billing_applies,source_type,cancelled_at')
+          .select('id,title,starts_at,ends_at,mode,location,meeting_url,description,event_type,sync_status,google_event_id,schedule_class,billing_applies,source_type,cancelled_at')
           .eq('company_id', companyId)
           .eq('visibility', 'client')
           .order('starts_at'),
@@ -393,42 +398,51 @@ export function ClientTimelinePage() {
 
   const futureItems = items.filter((item) => (item.state !== 'past' || item.kind === 'request') && item.statusLabel !== 'Cancelado');
   const meetingHistory = items.filter(item => item.kind === 'event' && item.typeLabel === 'Reunião' && item.state === 'past').sort((a,b)=>new Date(b.at).getTime()-new Date(a.at).getTime());
-  const nextMeeting = events.find((event) => !event.cancelled_at && new Date(event.starts_at).getTime() >= Date.now()) || null;
-  const nextThirty = futureItems.filter((item) => (item.kind !== 'request' || ['confirmed','completed'].includes(item.request?.status || '')) && new Date(item.at).getTime() <= Date.now() + 30 * 24 * 60 * 60 * 1000).length;
   const weekStart = new Date(weekCursor.getFullYear(),weekCursor.getMonth(),weekCursor.getDate()-weekCursor.getDay());
   const weekDays = Array.from({length:7},(_,index)=>new Date(weekStart.getFullYear(),weekStart.getMonth(),weekStart.getDate()+index));
   const weekKey = (value:string|Date) => new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(value instanceof Date?value:new Date(value));
-  const filteredItems=[...items.filter(item=>visibleKinds.has(item.kind)),...(visibleKinds.has('google')?personalGoogle:[])].sort((a,b)=>new Date(a.at).getTime()-new Date(b.at).getTime());
+  const inputDate = (value:Date) => `${value.getFullYear()}-${String(value.getMonth()+1).padStart(2,'0')}-${String(value.getDate()).padStart(2,'0')}`;
+  const filteredItems=[...items.filter(item=>visibleKinds.has(item.kind)),...(visibleKinds.has('google')?personalGoogle.filter(personal=>!events.some(appointment=>!appointment.cancelled_at && (appointment.google_event_id===personal.sourceId || (appointment.title.trim().toLowerCase()===personal.title.trim().toLowerCase() && Math.abs(new Date(appointment.starts_at).getTime()-new Date(personal.at).getTime())<60000)))):[])].sort((a,b)=>new Date(a.at).getTime()-new Date(b.at).getTime());
   const moveWeek=(offset:number)=>setWeekCursor(current=>new Date(current.getFullYear(),current.getMonth(),current.getDate()+offset*7));
+  function scrollWeeks(event:ReactWheelEvent<HTMLDivElement>){
+    if(Math.abs(event.deltaX)<22||Math.abs(event.deltaX)<Math.abs(event.deltaY))return;
+    const element=event.currentTarget,atEdge=event.deltaX<0?element.scrollLeft<2:element.scrollLeft+element.clientWidth>=element.scrollWidth-2;
+    if(atEdge&&Date.now()-lastHorizontalMove.current>550){lastHorizontalMove.current=Date.now();moveWeek(event.deltaX>0?1:-1)}
+  }
+  function selectHourStart(day:Date,hour:number,event:ReactPointerEvent<HTMLDivElement>){
+    if(day.getDay()===0||day.getDay()===6||hour<9||hour>=16)return;
+    const minutes=hour*60+Math.min(45,Math.max(0,Math.floor((event.clientY-event.currentTarget.getBoundingClientRect().top)/16)*15));
+    const key=inputDate(day);
+    selectionStart.current={day:key,minutes,pointerId:event.pointerId,startY:event.clientY};
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setSelectionPreview({day:key,top:(minutes-7*60)/60*64,height:32});
+  }
+  function selectHourMove(event:ReactPointerEvent<HTMLDivElement>){
+    const start=selectionStart.current;if(!start||start.pointerId!==event.pointerId)return;
+    const elapsed=Math.max(30,Math.min(90,Math.ceil((event.clientY-start.startY)/16)*15));
+    setSelectionPreview({day:start.day,top:(start.minutes-7*60)/60*64,height:elapsed/60*64});
+  }
+  function selectHourEnd(event:ReactPointerEvent<HTMLDivElement>){
+    const start=selectionStart.current;if(!start||start.pointerId!==event.pointerId)return;
+    const elapsed=Math.max(30,Math.min(90,Math.ceil((event.clientY-start.startY)/16)*15));
+    selectionStart.current=null;setSelectionPreview(null);
+    const hours=Math.floor(start.minutes/60),minutes=start.minutes%60;
+    window.dispatchEvent(new CustomEvent('cali:open-papo-request',{detail:{date:start.day,time:`${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}`,duration:elapsed}}));
+  }
 
   if(loading)return <Shell role="client"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando sua agenda…</section></Shell>;
 
   return (
     <Shell role="client">
       <section className="page client-timeline-v2 client-timeline-v3 client-timeline-v4">
-        <details className="client-google-settings"><summary>Integração com Google Calendar</summary><ClientGoogleCalendarPanel /></details>
+        <details className="client-google-settings"><summary><CalendarDays size={19} aria-hidden="true"/><span><strong>Integração com Google Agenda</strong><small>Veja seus eventos pessoais junto aos compromissos da CALI. Você escolhe o que exibir pelo filtro da agenda.</small></span><span className="client-google-settings-action">Ver integração</span></summary><ClientGoogleCalendarPanel /></details>
 
         {error && <div className="inline-notice">{error}</div>}
         {loading ? <div className="data-loading"><Loader2 className="spin" size={20} />Carregando sua agenda…</div> : <>
-          <section className="client-timeline-summary">
-            <article>
-              <CalendarDays size={18} />
-              <div><span>PRÓXIMO COMPROMISSO</span><strong>{nextMeeting ? formatDay(nextMeeting.starts_at) : 'Sem agenda futura'}</strong><small>{nextMeeting ? `${nextMeeting.title} · ${formatTime(nextMeeting.starts_at)}` : 'Nenhuma reunião confirmada.'}</small></div>
-            </article>
-            <article>
-              <FileCheck2 size={18} />
-              <div><span>PRAZOS VISÍVEIS</span><strong>{deliverables.length}</strong><small>Entregas com data publicada.</small></div>
-            </article>
-            <article>
-              <Clock3 size={18} />
-              <div><span>PRÓXIMOS 30 DIAS</span><strong>{nextThirty}</strong><small>Compromissos confirmados e prazos. Propostas em análise não entram na contagem.</small></div>
-            </article>
-          </section>
-
           <section className="panel client-real-timeline-panel client-agenda-panel">
             <div className="client-real-timeline-title">
-              <div><span>O QUE VEM AGORA</span><h2>Agenda e Planejamento</h2></div>
-              <small>{futureCountText(futureItems.filter(item=>item.kind!=='request'||['confirmed','completed'].includes(item.request?.status||'')).length)}</small>
+              <div><span>O QUE VEM AGORA</span><h2>Calendário</h2></div>
+              <div className="client-agenda-heading-actions"><small>{futureCountText(futureItems.filter(item=>item.kind!=='request'||['confirmed','completed'].includes(item.request?.status||'')).length)}</small><button type="button" onClick={()=>setHistoryOpen(true)}><FileText size={17}/> Histórico de reuniões</button></div>
             </div>
 
             <div className="client-agenda-view-controls"><div><button type="button" className={agendaView==='week'?'active':''} onClick={()=>setAgendaView('week')}>Semana</button><button type="button" className={agendaView==='list'?'active':''} onClick={()=>setAgendaView('list')}>Lista</button></div><fieldset><legend>Mostrar</legend>{([['event','Reuniões'],['request','Solicitações'],['deadline','Prazos'],['google','Minha agenda Google']] as const).map(([kind,label])=><label key={kind}><input type="checkbox" checked={visibleKinds.has(kind)} onChange={()=>setVisibleKinds(current=>{const next=new Set(current);if(next.has(kind))next.delete(kind);else next.add(kind);return next})}/>{label}</label>)}</fieldset></div>
@@ -440,7 +454,7 @@ export function ClientTimelinePage() {
                 <button type="button" className="calendar-icon-button" onClick={()=>moveWeek(1)} aria-label="Próxima semana"><ChevronRight size={18}/></button>
                 <strong>{new Intl.DateTimeFormat('pt-BR',{day:'numeric',month:'short'}).format(weekDays[0])} — {new Intl.DateTimeFormat('pt-BR',{day:'numeric',month:'short',year:'numeric'}).format(weekDays[6])}</strong>
               </div>
-              <div className="calendar-week-scroller client-week-scroller"><div className="calendar-week-view client-week-grid">
+              <div className="calendar-week-scroller client-week-scroller" onWheel={scrollWeeks}><div className="calendar-week-view client-week-grid">
                 <div className="calendar-week-corner"/>
                 {weekDays.map(day=><div className="calendar-week-day-head" key={`head-${day.toISOString()}`}><span>{new Intl.DateTimeFormat('pt-BR',{weekday:'short',timeZone:'America/Sao_Paulo'}).format(day).replace('.','')}</span><strong>{new Intl.DateTimeFormat('pt-BR',{day:'numeric',timeZone:'America/Sao_Paulo'}).format(day)}</strong></div>)}
                 <div className="calendar-week-all-day-label">Dia inteiro</div>
@@ -448,8 +462,9 @@ export function ClientTimelinePage() {
                   {filteredItems.filter(item=>item.allDay&&weekKey(item.at)===weekKey(day)).map(item=><button type="button" className="calendar-week-all-day-event is-workspace" key={item.id} onClick={()=>openItem(item)}>{item.title}</button>)}
                 </div>)}
                 <div className="calendar-week-axis" style={{height:13*64}}>{Array.from({length:13},(_,index)=><span key={index} style={{top:index*64}}>{String(index+7).padStart(2,'0')}:00</span>)}</div>
-                {weekDays.map(day=><div className="calendar-week-lane client-week-lane" style={{height:13*64}} key={`lane-${day.toISOString()}`}>
-                  {Array.from({length:13},(_,index)=><div key={index} className="calendar-week-hour-hit" style={{top:index*64,height:64}}/>)}
+                {weekDays.map(day=><div className={`calendar-week-lane client-week-lane ${day.getDay()===0||day.getDay()===6?'is-closed':''}`} style={{height:13*64}} key={`lane-${day.toISOString()}`}>
+                  {Array.from({length:13},(_,index)=><div key={index} className={`calendar-week-hour-hit ${day.getDay()===0||day.getDay()===6||index+7<9||index+7>=16?'is-closed':'is-selectable'}`} style={{top:index*64,height:64}} onPointerDown={event=>selectHourStart(day,index+7,event)} onPointerMove={selectHourMove} onPointerUp={selectHourEnd} onPointerCancel={()=>{selectionStart.current=null;setSelectionPreview(null)}} title={day.getDay()===0||day.getDay()===6||index+7<9||index+7>=16?'Fora do horário de solicitações':'Selecione um horário para solicitar um encontro'}/>)}
+                  {selectionPreview?.day===inputDate(day)&&<div className="client-week-selection" style={{top:selectionPreview.top,height:selectionPreview.height}}>Horário selecionado</div>}
                   {filteredItems.filter(item=>!item.allDay&&weekKey(item.at)===weekKey(day)).map((item,index,dayItems)=>{
                     const start=new Date(item.at);
                     const hour=start.getHours()+start.getMinutes()/60;
@@ -460,7 +475,7 @@ export function ClientTimelinePage() {
                     const overlap=dayItems.slice(0,index).filter(other=>new Date(other.at).getTime()<end&&new Date(other.endsAt||events.find(event=>event.id===other.sourceId)?.ends_at||new Date(new Date(other.at).getTime()+30*60000)).getTime()>start.getTime()).length;
                     const offset=Math.min(overlap*11,33);
                     const rgb=item.color&&/^#[0-9a-f]{6}$/i.test(item.color)?[1,3,5].map(position=>parseInt(item.color!.slice(position,position+2),16)):null;
-                    const foreground=item.textColor||(rgb&&rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>160?'#30232a':'#ffffff');
+                    const foreground=rgb&&rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>150?'#30232a':'#ffffff';
                     const isPreview=item.kind==='request'&&!['confirmed','completed'].includes(item.request?.status||'');
                     const detail=item.kind==='request'?`${item.requestOptionCount&&item.requestOptionCount>1?`Opção ${item.requestOption} · `:''}${item.request?.extra_visit||item.request?.online_extra_requested?'Extra · ':''}${item.statusLabel}`:item.kind==='deadline'?`Prazo · ${item.detailLabel||item.statusLabel}`:item.kind==='google'?'Google Agenda':'Workspace';
                     return <button type="button" key={item.id} className={`calendar-week-event client-week-event ${item.kind} tone-${item.tone||'pending'} ${item.kind==='google'?'is-google':'is-workspace'} ${isPreview?'is-preview':''} ${duration<36?'is-compact':''}`} style={{top,height:Math.max(3,duration/60*64-2),left:offset,width:`calc(100% - ${offset}px)`,zIndex:1+overlap,...(item.kind==='google'&&item.color?{'--event-color':item.color,'--event-foreground':foreground} as React.CSSProperties:{})}} onClick={()=>openItem(item)} title={`${item.title} · ${item.dateLabel} ${item.timeLabel}`}>
@@ -494,13 +509,13 @@ export function ClientTimelinePage() {
               </div>
             </div> : <div className="client-timeline-empty"><CalendarDays size={24} /><strong>Nada previsto por enquanto.</strong><p>Reuniões confirmadas, solicitações em análise e prazos publicados aparecerão aqui.</p></div>)}
           </section>
-          <section className="panel client-meeting-history">
-            <div className="client-real-timeline-title"><div><span>CONSULTAR ENCONTROS</span><h2>Histórico de reuniões</h2></div></div>
-            <div className="client-meeting-history-controls"><label>Mês <input type="month" value={historyMonth} onChange={event=>setHistoryMonth(event.target.value)}/></label><button type="button" onClick={()=>setHistoryMonth('')}>Todos os períodos</button></div>
-            <div className="client-meeting-history-list">{meetingHistory.filter(item=>!historyMonth || monthOf(item.at)===historyMonth).map(item=><button type="button" key={item.id} onClick={()=>openItem(item)}><strong>{item.title}</strong><span>{item.dateLabel} · {item.timeLabel}</span><small>{meetingRecords[item.sourceId]?.outcome==='occurred' ? 'Realizada' : 'Registro pendente'}{meetingRecords[item.sourceId]?.transcription_url || meetingRecords[item.sourceId]?.attachment_path ? ' · Transcrição disponível' : ''}</small></button>)}{!meetingHistory.length&&<p>As reuniões realizadas aparecerão aqui.</p>}</div>
-          </section>
         </>}
       </section>
+      {historyOpen && createPortal(<div className="client-agenda-detail-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget)setHistoryOpen(false)}}><section className="panel client-meeting-history client-meeting-history-modal" role="dialog" aria-modal="true" aria-label="Histórico de reuniões"><button type="button" className="client-meeting-history-close" onClick={()=>setHistoryOpen(false)} aria-label="Fechar histórico"><X size={20}/></button>
+            <div className="client-real-timeline-title"><div><span>CONSULTAR ENCONTROS</span><h2>Histórico de reuniões</h2></div></div>
+            <div className="client-meeting-history-controls"><label>Mês <input type="month" value={historyMonth} onChange={event=>setHistoryMonth(event.target.value)}/></label><button type="button" onClick={()=>setHistoryMonth('')}>Todos os períodos</button></div>
+            <div className="client-meeting-history-list">{meetingHistory.filter(item=>!historyMonth || monthOf(item.at)===historyMonth).map(item=><button type="button" key={item.id} onClick={()=>{setHistoryOpen(false);openItem(item)}}><strong>{item.title}</strong><span>{item.dateLabel} · {item.timeLabel}</span><small>{meetingRecords[item.sourceId]?.outcome==='occurred' ? 'Realizada' : 'Registro pendente'}{meetingRecords[item.sourceId]?.transcription_url || meetingRecords[item.sourceId]?.attachment_path ? ' · Transcrição disponível' : ''}</small></button>)}{!meetingHistory.length&&<p>As reuniões realizadas aparecerão aqui.</p>}</div>
+          </section></div>,document.body)}
       {selectedItem && createPortal(
         <div className="client-agenda-detail-backdrop" onMouseDown={event => { if (event.currentTarget === event.target) setSelectedItem(null); }}>
           <section className={`client-agenda-detail-modal tone-${selectedItem.tone || 'pending'}`} role="dialog" aria-modal="true" aria-labelledby="client-agenda-detail-title">
@@ -510,7 +525,7 @@ export function ClientTimelinePage() {
                 <div className="full client-request-dates"><span>{selectedItem.request.status === 'confirmed' ? 'Data confirmada' : `Data proposta${selectedItem.requestOptionCount && selectedItem.requestOptionCount > 1 ? ` · opção ${selectedItem.requestOption}` : ''}`}</span><strong>{new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'America/Sao_Paulo'}).format(new Date(selectedItem.at))} · {selectedItem.timeLabel}</strong></div>
                 <div className="client-request-status"><span>Situação</span><strong>{selectedItem.statusLabel}</strong></div>
                 <div><span>Formato</span><strong>{selectedItem.detailLabel}</strong></div>
-                {!['confirmed','completed','declined','cancelled','not_occurred'].includes(selectedItem.request.status) && <p className="full client-request-preview-note">Esta data é apenas uma proposta em análise. Ainda não está confirmada nem reserva o horário.</p>}
+                {!['confirmed','completed','declined','cancelled','not_occurred'].includes(selectedItem.request.status) && <p className="full client-request-preview-note" role="status"><AlertTriangle size={20} aria-hidden="true"/><span>Esta data é apenas uma proposta em análise. Ainda não está confirmada nem reserva o horário.</span></p>}
                 {selectedItem.request.location && <div className="full"><span>Endereço</span><strong>{selectedItem.request.location}</strong></div>}
                 {selectedItem.request.purpose && <div className="full"><span>Objetivo informado</span><strong>{selectedItem.request.purpose}</strong></div>}
                 {selectedItem.request.admin_note && <div className="full"><span>Resposta da CALI</span><strong>{selectedItem.request.admin_note}</strong></div>}

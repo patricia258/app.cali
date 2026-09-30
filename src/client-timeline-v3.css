@@ -129,3 +129,36 @@ html[data-workspace-theme='night'] .client-agenda-panel .client-week-event.deadl
 html[data-workspace-theme='night'] .client-agenda-panel .client-week-event.request { background: #47341f; border-color: #d4a666; color: #fff2d9; }
 html[data-workspace-theme='night'] .client-agenda-panel .client-week-event.request.tone-negative { background: #512630; border-color: #dd8999; color: #fff0f2; }
 html[data-workspace-theme='night'] .client-agenda-panel .client-week-event.request.tone-positive { background: #213e2d; border-color: #76ba8b; color: #e9ffec; }
+
+/* A agenda é a primeira informação da página; o histórico abre sob demanda. */
+.client-agenda-panel{margin-top:8px}
+.client-agenda-heading-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.client-agenda-heading-actions button{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid var(--theme-line);border-radius:9px;background:var(--theme-surface);color:var(--theme-text);font:700 12px Inter,system-ui,sans-serif;cursor:pointer}
+.client-agenda-heading-actions button:hover{border-color:#b58c52;background:var(--theme-surface-soft)}
+.client-meeting-history-modal{position:relative;width:min(680px,calc(100vw - 24px));max-height:calc(100dvh - 30px);overflow:auto;margin:0;padding:20px;border:1px solid #b58c52;border-radius:16px;background:var(--theme-surface);color:var(--theme-text);box-shadow:0 24px 70px #2b172655;animation:clientAgendaRise .28s ease both}
+.client-meeting-history-close{position:absolute;top:16px;right:16px;display:grid;place-items:center;width:35px;height:35px;border:1px solid var(--theme-line);border-radius:9px;background:var(--theme-surface);color:var(--theme-text);cursor:pointer}
+.client-meeting-history-modal .client-real-timeline-title{padding-right:40px}
+.client-agenda-panel .calendar-week-all-day-label{justify-content:center;line-height:1.2;text-align:center;min-height:44px;padding:7px 3px}
+.client-agenda-panel .calendar-week-axis span{transform:translateY(8px);font-size:11px}
+.client-agenda-panel .calendar-week-hour-hit.is-selectable{cursor:crosshair;touch-action:pan-y}
+.client-agenda-panel .calendar-week-hour-hit.is-closed{background:color-mix(in srgb,var(--theme-line) 28%,transparent);cursor:not-allowed}
+.client-agenda-panel .client-week-lane.is-closed{background:color-mix(in srgb,var(--theme-line) 14%,var(--theme-surface-soft))}
+.client-week-selection{position:absolute;inset-inline:3px;z-index:4;display:grid;place-items:center;pointer-events:none;border:1px solid #ae7f3b;border-radius:7px;background:#f6d78aaa;color:#4f2631;font:700 11px Inter,system-ui,sans-serif}
+html[data-workspace-theme='night'] .client-week-selection{background:#765926aa;color:#fff4dd}
+.client-agenda-panel .client-week-event.is-google :is(strong,time,small),html[data-workspace-theme='night'] .client-agenda-panel .client-week-event.is-google :is(strong,time,small){color:var(--event-foreground)!important;opacity:1}
+@media(max-width:700px){.client-agenda-heading-actions{width:100%;justify-content:space-between}.client-agenda-heading-actions button{font-size:11px}.client-meeting-history-modal{padding:14px}}
+
+/* O aviso ocupa a largura do detalhe; a integração explica seu valor antes da conexão. */
+.client-agenda-detail-body .client-request-preview-note{grid-column:1/-1;width:100%;box-sizing:border-box;display:flex;align-items:center;gap:12px;margin:3px 0;padding:12px 14px}
+.client-request-preview-note svg{flex:0 0 20px;color:#9a6627}
+html[data-workspace-theme='night'] .client-request-preview-note svg{color:#e8bd73}
+.client-google-settings{margin:0 0 16px}
+.client-google-settings>summary{display:flex;align-items:center;gap:14px;width:100%;box-sizing:border-box;padding:15px 18px;min-height:76px;text-align:left;border-color:color-mix(in srgb,var(--theme-gold) 45%,var(--theme-line));background:color-mix(in srgb,var(--theme-gold) 7%,var(--theme-surface))}
+.client-google-settings>summary>svg{flex:0 0 auto;color:var(--theme-gold)}
+.client-google-settings>summary>span:nth-child(2){display:grid;gap:4px;flex:1;min-width:0}
+.client-google-settings>summary strong{font-size:14px;color:var(--theme-text)}
+.client-google-settings>summary small{font-size:11px;line-height:1.45;color:var(--theme-muted);font-weight:500}
+.client-google-settings-action{white-space:nowrap;color:var(--theme-accent);font-size:11px;font-weight:750}
+.client-google-settings[open]>summary small{display:none}
+.client-google-settings[open]>summary{min-height:48px;padding-block:10px}
+@media(max-width:650px){.client-google-settings>summary{align-items:flex-start;flex-wrap:wrap}.client-google-settings-action{margin-left:33px}}
