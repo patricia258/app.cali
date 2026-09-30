@@ -290,12 +290,24 @@
 
 .login-v2-footer-brand {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
   padding: 14px clamp(42px, 5.2vw, 82px);
   color: rgba(247,243,238,.58);
   font-size: .72rem;
   letter-spacing: .01em;
 }
+
+.login-v2-privacy-link {
+  color: rgba(247,243,238,.58);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+
+.login-v2-privacy-link:hover { color: rgba(247,243,238,.88); }
 
 .login-v2-footer-access {
   display: flex;
