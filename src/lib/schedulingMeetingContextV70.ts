@@ -53,18 +53,9 @@ function protocolFromClientModal(modal: HTMLElement) {
   return text.match(/CALI-EVT-[0-9-]+/i)?.[0] || '';
 }
 
-function protocolFromAdminModal(modal: HTMLElement) {
-  const text = modal.querySelector<HTMLElement>('.calendar-protocol-badge')?.textContent || '';
-  return text.match(/CALI-EVT-[0-9-]+/i)?.[0] || '';
-}
-
-function conciseDetail(extra: boolean, reason?: string | null, notice?: string | null) {
+function conciseDetail(extra: boolean) {
   if (!extra) return 'Este encontro faz parte da agenda contratual do período.';
-  const text = `${reason || ''} ${notice || ''}`.toLowerCase();
-  if (text.includes('20%') || text.includes('comprometimento')) {
-    return 'Visita adicional. Em caso de cancelamento após a confirmação, aplica-se taxa não reembolsável de 20% pelo comprometimento da agenda. Deslocamento incluso.';
-  }
-  return 'Visita adicional. Em caso de cancelamento após a confirmação, aplica-se taxa não reembolsável de 20% pelo comprometimento da agenda. Deslocamento incluso.';
+  return 'Se precisar cancelar ou remarcar, informe o motivo. A taxa de 20% pode ser aplicada em caso de ausência ou cancelamento sem aviso.';
 }
 
 async function conditionForProtocol(protocol: string): Promise<MeetingCondition | null> {
@@ -78,21 +69,10 @@ async function conditionForProtocol(protocol: string): Promise<MeetingCondition 
   if (event.source_type !== 'scheduling_request' && event.billing_applies === null) return null;
 
   const extra = Boolean(event.billing_applies);
-  let billingNotice: string | null = null;
-
-  if (event.source_type === 'scheduling_request' && event.source_entity_id) {
-    const { data: request } = await supabase
-      .from('scheduling_requests')
-      .select('billing_notice,billable_extra,meeting_entitlement')
-      .eq('id', event.source_entity_id)
-      .maybeSingle();
-    billingNotice = request?.billing_notice ? String(request.billing_notice).trim() : null;
-  }
-
   return {
     extra,
     label: extra ? 'Lembrete' : 'Agenda contratual',
-    detail: conciseDetail(extra, event.billing_reason, billingNotice),
+    detail: conciseDetail(extra),
   };
 }
 
@@ -149,21 +129,6 @@ async function decorateClientModal() {
   applyCondition(facts, condition);
 }
 
-async function decorateAdminModal() {
-  const modal = document.querySelector<HTMLElement>('.calendar-detail-modal');
-  if (!modal) return;
-  const facts = modal.querySelector<HTMLElement>('.calendar-detail-facts');
-  const protocol = protocolFromAdminModal(modal);
-  if (!facts || !protocol || facts.dataset.v70ResolvedProtocol === protocol) return;
-  facts.dataset.v70ResolvedProtocol = protocol;
-  const condition = await conditionForProtocol(protocol);
-  if (!condition) {
-    delete facts.dataset.v70ResolvedProtocol;
-    return;
-  }
-  applyCondition(facts, condition);
-}
-
 export async function refreshSchedulingMeetingContextV70() {
   if (decorating) return;
   if (location.pathname !== '/cliente/cronograma' && location.pathname !== '/admin/calendario') return;
@@ -173,7 +138,7 @@ export async function refreshSchedulingMeetingContextV70() {
       softenClientContractCopy();
       await decorateClientModal();
     }
-    if (location.pathname === '/admin/calendario') await decorateAdminModal();
+
   } finally {
     decorating = false;
   }
