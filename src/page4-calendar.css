@@ -716,3 +716,17 @@ html[data-workspace-theme='night'] .calendar-week-selection{background:#755724d6
 .calendar-detail-refined .calendar-detail-description,.calendar-detail-refined .calendar-attendee-list,.calendar-detail-refined .calendar-cancel-box{padding:11px 13px}
 .calendar-detail-refined .calendar-detail-actions{padding:10px 22px}
 @media(max-width:700px){.calendar-detail-refined{max-height:calc(100dvh - 20px)!important}.calendar-detail-refined .calendar-detail-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Detalhe do calendário: resumo operacional sem repetir condições comerciais no admin. */
+@media (min-width: 701px) {
+  .calendar-detail-refined:not(:has(.calendar-google-detail)) { width:min(760px,calc(100vw - 28px))!important; max-width:760px!important; }
+  .calendar-detail-refined .calendar-detail-actions { display:flex!important; flex-wrap:nowrap; gap:6px; align-items:center; justify-content:flex-end; overflow-x:auto; }
+  .calendar-detail-refined .calendar-detail-primary-actions,
+  .calendar-detail-refined .calendar-detail-secondary-actions { display:contents; }
+  .calendar-detail-refined .calendar-detail-actions button { flex:0 0 auto; min-height:36px; padding:0 9px; font-size:11px; white-space:nowrap; }
+}
+.calendar-detail-refined .calendar-detail-facts article { min-height:58px; padding:8px 11px; }
+.calendar-detail-refined .calendar-detail-facts { gap:7px; }
+.calendar-detail-refined .calendar-attendee-list { max-height:155px; overflow-y:auto; }
+.calendar-detail-refined .calendar-detail-description p { max-height:95px; overflow-y:auto; }
+.calendar-google-detail small { overflow-wrap:anywhere; }
