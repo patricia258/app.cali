@@ -16,6 +16,7 @@ A CALI Workspace não é um SaaS de RH para o cliente operar. É o ambiente comp
 - O cliente não cria senha: acesso por Magic Link/OTP do Supabase.
 - O isolamento entre empresas é obrigatório no banco por RLS; nunca apenas por filtro de interface.
 - Equipe da empresa e movimentações mensais são um novo escopo solicitado em 01/10/2026, separado dos usuários que têm login. Regras, fases e decisões em `docs/EQUIPE_EMPRESA_SPEC_2026-10-01.md`.
+- O contrato de consultoria não ativa o Workspace automaticamente. A empresa pode aderir ou não à plataforma mediante termo específico, antes do convite de acesso; a não adesão não interrompe o serviço contratado.
 
 ## Navegação
 
