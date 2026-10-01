@@ -3,6 +3,9 @@
 .profile-modal-v55 .profile-photo-workbench{min-height:150px!important;grid-template-columns:150px minmax(0,1fr)!important;margin-bottom:18px!important;padding:16px 20px!important}
 .profile-modal-v55 .profile-signature-clean{padding:20px!important;overflow:visible!important}
 .profile-modal-v55 .profile-signature-clean .profile-signature-heading-v55{margin-bottom:12px!important}
+.profile-modal-v55 .profile-signature-name{display:grid;gap:7px;margin-bottom:12px;color:#542d3b;font-size:12px;font-weight:700}
+.profile-modal-v55 .profile-signature-name input{min-height:43px;padding:9px 13px;border:1px solid rgba(90,30,45,.22);border-radius:10px;background:#fffdfa;color:#39282e;font:inherit;font-size:14px}
+.profile-modal-v55 .profile-signature-name input:focus-visible{outline:2px solid #b58c52;outline-offset:2px}
 .profile-modal-v55 .profile-signature-clean-preview{display:flex;align-items:center;justify-content:center;min-height:105px;padding:12px 18px;overflow:hidden;border:1px solid rgba(90,30,45,.18);border-radius:12px;background:#fffdfa;color:#5a1e2d}
 .profile-modal-v55 .profile-signature-clean-preview span{font-size:clamp(34px,4vw,52px)!important;line-height:1.25!important;white-space:normal;text-align:center;overflow-wrap:anywhere;color:#5a1e2d!important}
 .profile-modal-v55 .profile-signature-clean-preview img{max-width:100%;max-height:85px;object-fit:contain}
@@ -15,6 +18,8 @@ html[data-workspace-theme='night'] .account-decision-link{background:#302326;col
 .profile-modal-v55 .profile-signature-clean>small{display:block;color:#61575a!important;font-size:12px!important;line-height:1.45}
 html[data-workspace-theme='night'] .profile-modal-v55 .profile-company-affiliation{background:#302227;color:#f7eee7;border-color:rgba(229,189,119,.38)}
 html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-clean-preview{background:#f9f5f0;color:#5a1e2d;border-color:#cdbfae}
+html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-name{color:#f4eae1}
+html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-name input{background:#302326;color:#fff8f1;border-color:rgba(245,225,198,.36)}
 html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-clean-actions button,html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-clean-actions label{background:#2d2025;color:#fff8f1;border-color:rgba(245,225,198,.36)}
 html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-clean-actions .active{background:#e6bf78;color:#32171f;border-color:#e6bf78}
 html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-clean>small{color:#ddd0c8!important}
