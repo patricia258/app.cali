@@ -18,7 +18,7 @@ O parceiro interno exige migração de papel, atribuição explícita a empresas
 
 - **Cliente:** `Minha empresa > Equipe e movimentações`. No topo, mês de referência, total de pessoas ativas, entradas e saídas daquele mês e data da última confirmação. Abaixo, tabela com busca e agrupamento por departamento ou gestor. Uma ação principal: **Atualizar equipe**. Só aparece após adesão ao Workspace e assinatura do termo pela pessoa autorizada.
 - **Administradora:** aba `Equipe` dentro da conta selecionada em Clientes, com o mesmo quadro e histórico por mês. Mostrar quem enviou, quem confirmou e diferenças pendentes. Uma visão entre empresas pode vir depois, sem misturar dados de clientes.
-- **Dados da empresa:** razão social/nome, segmento, unidades, contato e plano devem reaproveitar o cadastro existente; evitar uma segunda fonte de verdade. O total de colaboradores mostrado nessa ficha vem da equipe ativa no mês confirmado, com indicação clara da referência.
+- **Dados da empresa:** razão social/nome, segmento, unidades, contato e plano devem reaproveitar o cadastro existente; evitar uma segunda fonte de verdade. **CNPJ e CEP da cliente ainda precisam ser verificados e acrescentados ao formulário atual**; o comprovante de CNPJ da CALI é da prestadora, não da empresa cliente. O total de colaboradores mostrado nessa ficha vem da equipe ativa no mês confirmado, com indicação clara da referência.
 
 ## 3. Cadastro mínimo de cada pessoa
 
@@ -60,6 +60,7 @@ Indicadores úteis, calculados do histórico confirmado: headcount e saldo de en
 1. Patrícia apresenta o Workspace; a empresa **opta por usar ou não**. Contratar CALI Partner/Full/Build não ativa uma conta por si só.
 2. Antes do primeiro convite, apresentar termo específico da plataforma à pessoa com poderes para aderir, em versão identificada. Registrar empresa, representante, versão, data/hora, aceite/assinatura e protocolo; entregar cópia. O conteúdo jurídico deve cobrir acessos, responsabilidades, dados de colaboradores, integrações, suporte e encerramento, com revisão profissional.
 3. Só após o termo, liberar convite e conta. Acesso de colaborador ao Workspace não nasce da importação da ficha; são cadastros distintos. Se a empresa recusar o Workspace, a consultoria continua conforme contrato pelos outros canais definidos.
+   **Implementação pendente:** auditar a RPC `create_client_account` chamada no cadastro atual e o registro relacionado em `client_invites`; separar criação da conta comercial de envio/ativação do acesso até existir aceite verificável do termo. Registrar o status `não oferecido / oferecido / aceito / recusado / encerrado` por empresa, sem presumir adesão pelo plano.
 4. Não presumir que consentimento individual seja sempre a base legal para dados de empregados. A base e os papéis de cada parte dependem da operação concreta e precisam ser revisados com jurídico. O contrato atual já fala genericamente em dados de empregados, mas não define a rotina mensal e a ficha detalhada.
 
 ## 7. Dados, segurança e implantação
