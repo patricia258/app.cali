@@ -47,9 +47,8 @@ p { font-size: 1rem; line-height: 1.65; margin: 0; color: var(--muted); }
 .sidebar-footer { margin-top: auto; padding: 18px 8px 0; border-top: 1px solid rgba(255,255,255,.14); display: grid; grid-template-columns: 38px 1fr 20px; align-items: center; gap: 10px; }
 .sidebar-footer strong { display: block; font-size: .84rem; }
 .sidebar-footer small { display: block; margin-top: 3px; color: rgba(255,255,255,.62); font-size: .72rem; }
-.sidebar-legal-link { padding: 10px 8px 4px; text-align: center; }
-.sidebar-legal-link a { font-size: .68rem; color: rgba(255,255,255,.45); text-decoration: underline; text-underline-offset: 2px; }
-.sidebar-legal-link a:hover { color: rgba(255,255,255,.75); }
+.profile-privacy-link { display: inline-flex; align-items: center; gap: 8px; width: fit-content; margin-top: 12px; color: var(--theme-text, #442b32); font-size: .78rem; text-decoration: underline; text-underline-offset: 3px; }
+.profile-privacy-link:hover { color: var(--theme-accent, #5a1e2d); }
 .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #f2e8dd; color: var(--burgundy); font-weight: 700; font-size: .76rem; }
 .avatar.large { width: 48px; height: 48px; }
 
