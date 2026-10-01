@@ -1,5 +1,15 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-10-01 — Codex (correção do perfil e vínculo após os cinco prints da Pati)
+
+- **Correção de escopo:** o exemplo MatDash era para a ficha do cliente em `Clientes`, não uma autorização para redesenhar livremente o perfil da pessoa. A versão anterior do perfil foi **reprovada**: abas quebradas, foto estreita, rolagem e assinatura duplicada. Não tratar a entrada anterior como aprovada.
+- **Perfil em ambos os papéis:** o modal sai da árvore do sidebar por portal, para impedir que as regras do menu deformem as abas e a foto. Abas horizontais, moldura contida e campos compactos no desktop; no celular o conteúdo pode rolar verticalmente quando a tela for pequena, para manter campos e ações acessíveis. Ajuste da foto permanece recolhido.
+- **Assinatura:** um único campo em fonte caligráfica, sem prévia gigante, lápis decorativo nem escolha de dez estilos. Assinaturas enviadas anteriormente continuam visíveis e podem voltar ao nome digitado; a alternativa de enviar imagem permanece discreta. O estilo gerado é caligráfico para ambos os perfis.
+- **Cliente:** faixa de identidade com logo real resolvida do Storage, nome da empresa e texto objetivo “Perfil cliente”. Na ficha administrativa do cliente, aviso de vínculo em título e apoio, sem indicar uma “gestão de acesso” inexistente nessa tela.
+- **Arquivos:** `src/components/DirectProfileControl.tsx`, `src/profile-correction-v67.css`, `src/main.tsx`, `src/pages/admin/AdminClientsPageV3.tsx`. **Autor:** Codex. **Aprovação:** aguardando Pati. **Validação:** `npm run check` passou; inspeção autenticada dia/noite e mobile ainda pendente. A política do Workspace segue sob redação do Cláudio, sem alteração neste commit.
+
+---
+
 ## 2026-10-01 — Codex (revisão visual do perfil após correção da Pati)
 
 - **Correção da Pati:** a revisão anterior resolveu a assinatura e os dados, mas não aplicou a estrutura visual dos prints do perfil. Os prints MatDash mostram agrupamento de foto e dados pessoais e navegação por áreas; a tela de termos foi referência apenas para a prévia caligráfica, sem copiar o texto ou inventar aceite.

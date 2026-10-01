@@ -1,8 +1,10 @@
 import { ChangeEvent, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import { Building2, Camera, Check, ChevronDown, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, ShieldCheck, Upload, UserRound, X } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { useWorkspaceAuth } from '../auth/WorkspaceAuthProvider';
 import { optimizeImageForUpload } from '../lib/imageUpload';
+import { resolveWorkspaceMedia } from '../lib/workspaceMedia';
 
 type Role='admin'|'client';
 type SignatureMode='generated'|'uploaded';
@@ -49,11 +51,12 @@ export function DirectProfileControl({role}:{role:Role}){
   const[profile,setProfile]=useState<ProfileData>(profileFallback[role]),[draft,setDraft]=useState<ProfileData>(profileFallback[role]);
   const[modalOpen,setModalOpen]=useState(false),[saving,setSaving]=useState(false),[message,setMessage]=useState('');
   const[companyName,setCompanyName]=useState('');
+  const[companyLogo,setCompanyLogo]=useState('');
   const[activeSection,setActiveSection]=useState<'details'|'signature'>('details');
   const[cropOpen,setCropOpen]=useState(false);
 
   useEffect(()=>{
-    setProfile(profileFallback[role]);setDraft(profileFallback[role]);setCompanyName('');
+    setProfile(profileFallback[role]);setDraft(profileFallback[role]);setCompanyName('');setCompanyLogo('');
     const cached=user?window.localStorage.getItem(`cali-workspace-profile-${user.id}`):null;
     if(cached){try{const raw=JSON.parse(cached);const parsed={...profileFallback[role],...raw,signature_style:safeSignatureStyle(raw?.signature_style)} as ProfileData;setProfile(parsed);setDraft(parsed);}catch{}}
     let mounted=true;
@@ -62,7 +65,7 @@ export function DirectProfileControl({role}:{role:Role}){
       if(!user||!mounted)return;
       const{data}=await supabase.from('profiles').select('company_id,full_name,email,job_title,phone,whatsapp,linkedin_url,instagram_url,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom,signature_mode,signature_url,signature_style').eq('id',user.id).single();
       if(!mounted||!data)return;
-      if(role==='client'&&data.company_id){const{data:company}=await supabase.from('companies').select('display_name').eq('id',data.company_id).single();if(mounted)setCompanyName(company?.display_name||'');}
+      if(role==='client'&&data.company_id){const{data:company}=await supabase.from('companies').select('display_name,logo_url,logo_workspace_url').eq('id',data.company_id).single();if(mounted){setCompanyName(company?.display_name||'');const logo=await resolveWorkspaceMedia(company?.logo_url||company?.logo_workspace_url);if(mounted)setCompanyLogo(logo);}}
       const next:ProfileData={
         full_name:data.full_name||profileFallback[role].full_name,
         email:data.email||user.email||profileFallback[role].email,
@@ -132,11 +135,11 @@ export function DirectProfileControl({role}:{role:Role}){
         <ChevronDown className="profile-edit-chevron" size={16}/>
       </button>
     </div>
-    {modalOpen?<div className="modal-backdrop chrome-modal-backdrop full-screen-modal" role="presentation">
+    {modalOpen?createPortal(<div className="modal-backdrop chrome-modal-backdrop full-screen-modal" role="presentation">
       <section className="modal-card profile-modal profile-modal-v2 profile-modal-v55 profile-account-v66" role="dialog" aria-modal="true" aria-label="Editar perfil">
         <button className="modal-close" type="button" onClick={()=>setModalOpen(false)} aria-label="Fechar"><X size={20}/></button>
         <header className="profile-account-header"><span className="section-kicker">SUA CONTA</span><h2>Meu perfil</h2><p>Seus dados e sua identidade nos registros da CALI.</p></header>
-        {role==='client'&&companyName?<div className="profile-company-affiliation"><Building2 size={18}/><span>Conta vinculada à <strong>{companyName}</strong></span></div>:null}
+        {role==='client'&&companyName?<div className="profile-company-affiliation"><span className="profile-company-mark">{companyLogo?<img src={companyLogo} alt={`Logo ${companyName}`}/>:<Building2 size={22}/>}</span><span><small>PERFIL CLIENTE</small><strong>{companyName}</strong><span>Seu acesso está vinculado a esta empresa.</span></span></div>:null}
         <nav className="profile-account-tabs" aria-label="Seções do perfil">
           <button type="button" className={activeSection==='details'?'active':''} aria-current={activeSection==='details'?'page':undefined} onClick={()=>setActiveSection('details')}><UserRound size={17}/>Dados pessoais</button>
           <button type="button" className={activeSection==='signature'?'active':''} aria-current={activeSection==='signature'?'page':undefined} onClick={()=>setActiveSection('signature')}><PenLine size={17}/>Assinatura</button>
@@ -151,22 +154,16 @@ export function DirectProfileControl({role}:{role:Role}){
           </section>
           <section className="profile-account-fields" aria-label="Dados pessoais e contato"><h3>Dados pessoais</h3><div className="form-grid profile-form-grid"><label className="stacked-label wide">Nome completo<input value={draft.full_name} onChange={(event)=>setDraft((current)=>({...current,full_name:event.target.value}))} autoComplete="name"/></label><label className="stacked-label">Cargo / função<input value={draft.job_title} onChange={(event)=>setDraft((current)=>({...current,job_title:event.target.value}))}/></label><label className="stacked-label">Telefone<input value={draft.phone} onChange={(event)=>setDraft((current)=>({...current,phone:event.target.value}))} inputMode="tel"/></label><label className="stacked-label"><span className="label-with-icon"><MessageCircle size={15}/>WhatsApp</span><input value={draft.whatsapp} onChange={(event)=>setDraft((current)=>({...current,whatsapp:event.target.value}))} inputMode="tel"/></label><label className="stacked-label"><span className="label-with-icon"><Linkedin size={15}/>LinkedIn</span><input value={draft.linkedin_url} onChange={(event)=>setDraft((current)=>({...current,linkedin_url:event.target.value}))}/></label><label className="stacked-label"><span className="label-with-icon"><Instagram size={15}/>Instagram</span><input value={draft.instagram_url} onChange={(event)=>setDraft((current)=>({...current,instagram_url:event.target.value}))}/></label><label className="stacked-label wide"><span className="label-with-icon"><Mail size={15}/>E-mail de acesso</span><input value={draft.email} disabled/></label></div></section>
         </div>:<section className="profile-signature-v55 profile-signature-v56 profile-signature-v59 profile-signature-clean">
-          <div className="profile-signature-heading-v55"><div><span>ASSINATURA</span><h3>Sua assinatura</h3><p>Seu nome aparece em um traço de assinatura. Você também pode enviar uma imagem.</p></div><PenLine size={21}/></div>
-          {draft.signature_mode==='generated'?<label className="profile-signature-name">Nome na assinatura<input value={draft.full_name} onChange={(event)=>setDraft((current)=>({...current,full_name:event.target.value}))} placeholder="Digite seu nome completo" autoComplete="name"/></label>:null}
-          <div className="profile-signature-clean-preview" aria-label="Prévia da assinatura">
-            {draft.signature_mode==='uploaded'&&draft.signature_url?<img src={draft.signature_url} alt="Assinatura enviada"/>:<span className="signature-style-calligraphic">{draft.full_name.trim()||'Seu nome'}</span>}
-          </div>
-          <div className="profile-signature-clean-actions">
-            <button type="button" className={draft.signature_mode==='generated'?'active':''} onClick={()=>setDraft((current)=>({...current,signature_mode:'generated',signature_style:'calligraphic'}))}>Usar nome digitado</button>
-            <label className={draft.signature_mode==='uploaded'?'active':''}><Upload size={15}/>Enviar assinatura<input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleSignature}/></label>
-          </div>
-          <small>Salvar o perfil não registra ciência. A confirmação de um documento ou relatório é feita separadamente.</small>
+          <div className="profile-signature-heading-v55"><div><span>ASSINATURA</span><h3>Sua assinatura</h3><p>Digite seu nome. Ele aparece abaixo com o mesmo traço de assinatura em todo o Workspace.</p></div></div>
+          {draft.signature_mode==='uploaded'&&draft.signature_url?<div className="profile-signature-uploaded"><img src={draft.signature_url} alt="Sua assinatura atual"/><button type="button" onClick={()=>setDraft((current)=>({...current,signature_mode:'generated',signature_style:'calligraphic'}))}>Usar meu nome digitado</button></div>:<label className="profile-signature-single-field"><span>Nome para assinatura</span><input className="signature-style-calligraphic" value={draft.full_name} onChange={(event)=>setDraft((current)=>({...current,full_name:event.target.value,signature_mode:'generated',signature_style:'calligraphic'}))} placeholder="Digite seu nome" autoComplete="name"/></label>}
+          <label className="profile-signature-upload-link"><Upload size={14}/>Prefiro enviar uma assinatura em imagem<input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleSignature}/></label>
+          <small>Esta é sua identidade visual. A ciência de documentos e relatórios é confirmada separadamente.</small>
         </section>}
         {activeSection==='details'?<div className="profile-live-actions">{(draft.whatsapp||draft.phone)?<a className="secondary" href={whatsappUrl(draft.whatsapp||draft.phone)} target="_blank" rel="noreferrer"><MessageCircle size={16}/>Abrir WhatsApp</a>:null}{draft.phone?<a className="secondary" href={`tel:${draft.phone.replace(/[^+\d]/g,'')}`}><Phone size={16}/>Ligar</a>:null}</div>:null}
         <a className="profile-privacy-link" href="https://calirh.com/privacidade.html" target="_blank" rel="noopener noreferrer"><ShieldCheck size={16}/>Política de privacidade do site, Mapa e Portal</a>
         {message?<div className="form-message">{message}</div>:null}
         <div className="modal-actions"><button type="button" className="profile-secondary-v56" onClick={()=>setModalOpen(false)}>Fechar</button><button type="button" className="profile-primary-v56" onClick={saveProfile} disabled={saving}>{saving?<Loader2 size={17} className="spin"/>:<Check size={17}/>} {saving?'Salvando…':'Salvar alterações'}</button></div>
       </section>
-    </div>:null}
+    </div>,document.body):null}
   </>;
 }
