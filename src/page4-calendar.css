@@ -730,3 +730,17 @@ html[data-workspace-theme='night'] .calendar-week-selection{background:#755724d6
 .calendar-detail-refined .calendar-attendee-list { max-height:155px; overflow-y:auto; }
 .calendar-detail-refined .calendar-detail-description p { max-height:95px; overflow-y:auto; }
 .calendar-google-detail small { overflow-wrap:anywhere; }
+
+/* O conteúdo longo do Google rola dentro do detalhe, sem cortar convidados nem ampliar o modal. */
+.calendar-detail-modal:has(.calendar-google-detail) { max-height:min(82dvh,620px)!important; }
+.calendar-detail-modal:has(.calendar-google-detail) .calendar-detail-body {
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+}
+.calendar-detail-modal:has(.calendar-google-detail) .calendar-google-detail { min-width:0; }
+.calendar-detail-modal:has(.calendar-google-detail) .calendar-google-detail > div { min-width:0; }
+@media (max-width:700px) {
+  .calendar-detail-modal:has(.calendar-google-detail) { max-height:calc(100dvh - 28px)!important; }
+}
