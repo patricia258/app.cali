@@ -3,6 +3,8 @@
 .profile-modal-v55.profile-account-v66::-webkit-scrollbar{display:none}
 .profile-account-v66 .profile-account-header{flex:none}
 .profile-account-v66 .profile-account-header h2{font-size:27px}
+.profile-account-v66 .profile-account-title-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px}
+.profile-account-v66 .profile-role-label{display:inline-flex;align-items:center;min-height:25px;padding:3px 9px;border:1px solid rgba(181,140,82,.4);border-radius:7px;background:#f5ede1;color:#5a1e2d;font-size:11px;font-weight:750;letter-spacing:.02em}
 .profile-account-v66 .profile-account-header p{margin-bottom:12px}
 .profile-account-v66 .profile-account-tabs{display:flex!important;flex-direction:row!important;align-items:center!important;flex:none!important;gap:4px!important;width:100%!important;margin:0 0 12px!important;padding:0!important;overflow:visible!important;min-height:42px!important}
 .profile-account-v66 .profile-account-tabs button{flex:0 0 auto!important;width:auto!important;min-height:42px!important;padding:7px 15px!important}
@@ -39,6 +41,7 @@
 .account-decision-link strong{display:block;margin-bottom:3px;font-size:14px;line-height:1.2}
 .account-decision-link p{margin:0;font-size:12px;line-height:1.5;color:#635150}
 html[data-workspace-theme='night'] .profile-account-v66 .profile-company-affiliation{background:linear-gradient(110deg,#35242a,#302428)}
+html[data-workspace-theme='night'] .profile-account-v66 .profile-role-label{background:#35242a;color:#f8ead7;border-color:rgba(218,185,131,.55)}
 html[data-workspace-theme='night'] .profile-account-v66 .profile-company-affiliation strong,html[data-workspace-theme='night'] .profile-account-v66 .profile-signature-single-field{color:#fff8f1}
 html[data-workspace-theme='night'] .profile-account-v66 .profile-company-affiliation>span:last-child>span,html[data-workspace-theme='night'] .account-decision-link p{color:#ddd0c8}
 html[data-workspace-theme='night'] .profile-account-v66 .profile-signature-single-field input{background:#f9f5f0;color:#5a1e2d;border-color:#cdbfae}

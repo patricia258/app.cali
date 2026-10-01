@@ -131,14 +131,14 @@ export function DirectProfileControl({role}:{role:Role}){
     <div className="profile-control profile-control-direct">
       <button className="profile-trigger profile-trigger-direct" type="button" onClick={openEditor} aria-label="Editar perfil" title="Editar perfil">
         <span className="profile-avatar">{avatar}</span>
-        <span className="profile-copy"><strong>{profile.full_name}</strong><small>{profile.job_title||(role==='admin'?'Admin CALI':'Acesso principal')}</small></span>
+        <span className="profile-copy"><strong>{profile.full_name}</strong><small>{role==='admin'?'Administradora geral':'Perfil cliente'}</small></span>
         <ChevronDown className="profile-edit-chevron" size={16}/>
       </button>
     </div>
     {modalOpen?createPortal(<div className="modal-backdrop chrome-modal-backdrop full-screen-modal" role="presentation">
       <section className="modal-card profile-modal profile-modal-v2 profile-modal-v55 profile-account-v66" role="dialog" aria-modal="true" aria-label="Editar perfil">
         <button className="modal-close" type="button" onClick={()=>setModalOpen(false)} aria-label="Fechar"><X size={20}/></button>
-        <header className="profile-account-header"><span className="section-kicker">SUA CONTA</span><h2>Meu perfil</h2><p>Seus dados e sua identidade nos registros da CALI.</p></header>
+        <header className="profile-account-header"><span className="section-kicker">SUA CONTA</span><div className="profile-account-title-row"><h2>Meu perfil</h2>{role==='admin'?<span className="profile-role-label">Administradora geral</span>:null}</div><p>Seus dados e sua identidade nos registros da CALI.</p></header>
         {role==='client'&&companyName?<div className="profile-company-affiliation"><span className="profile-company-mark">{companyLogo?<img src={companyLogo} alt={`Logo ${companyName}`}/>:<Building2 size={22}/>}</span><span><small>PERFIL CLIENTE</small><strong>{companyName}</strong><span>Seu acesso está vinculado a esta empresa.</span></span></div>:null}
         <nav className="profile-account-tabs" aria-label="Seções do perfil">
           <button type="button" className={activeSection==='details'?'active':''} aria-current={activeSection==='details'?'page':undefined} onClick={()=>setActiveSection('details')}><UserRound size={17}/>Dados pessoais</button>

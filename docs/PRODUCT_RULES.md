@@ -10,11 +10,12 @@ A CALI Workspace não é um SaaS de RH para o cliente operar. É o ambiente comp
 
 ## Acessos
 
-- Dois perfis na primeira versão: `admin` e `client`.
+- O banco atual tem dois papéis (`admin` e `client`). A expansão aprovada para desenho prevê **Administradora geral**, **Cliente principal** e **Parceiro CALI interno**; o terceiro ainda depende de migração e autorização no banco. Parceiro interno não é o plano comercial CALI Partner.
 - Patrícia Lima é a administradora da CALI.
 - Um único acesso principal ativo por empresa cliente.
 - O cliente não cria senha: acesso por Magic Link/OTP do Supabase.
 - O isolamento entre empresas é obrigatório no banco por RLS; nunca apenas por filtro de interface.
+- Equipe da empresa e movimentações mensais são um novo escopo solicitado em 01/10/2026, separado dos usuários que têm login. Regras, fases e decisões em `docs/EQUIPE_EMPRESA_SPEC_2026-10-01.md`.
 
 ## Navegação
 
