@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { Camera, Check, ChevronDown, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, Upload, X } from 'lucide-react';
+import { Camera, Check, ChevronDown, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, ShieldCheck, Upload, X } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { useWorkspaceAuth } from '../auth/WorkspaceAuthProvider';
 import { optimizeImageForUpload } from '../lib/imageUpload';
@@ -164,6 +164,7 @@ export function DirectProfileControl({role}:{role:Role}){
         </section>
 
         <div className="profile-live-actions">{(draft.whatsapp||draft.phone)?<a className="secondary" href={whatsappUrl(draft.whatsapp||draft.phone)} target="_blank" rel="noreferrer"><MessageCircle size={16}/>Abrir WhatsApp</a>:null}{draft.phone?<a className="secondary" href={`tel:${draft.phone.replace(/[^+\d]/g,'')}`}><Phone size={16}/>Ligar</a>:null}</div>
+        <a className="profile-privacy-link" href="https://calirh.com/privacidade.html" target="_blank" rel="noopener noreferrer"><ShieldCheck size={16}/>Privacidade e proteção de dados</a>
         {message?<div className="form-message">{message}</div>:null}
         <div className="modal-actions"><button type="button" className="profile-secondary-v56" onClick={()=>setModalOpen(false)}>Fechar</button><button type="button" className="profile-primary-v56" onClick={saveProfile} disabled={saving}>{saving?<Loader2 size={17} className="spin"/>:<Check size={17}/>} {saving?'Salvando…':'Salvar alterações'}</button></div>
       </section>
