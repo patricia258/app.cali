@@ -30,6 +30,8 @@ O parceiro interno exige migração de papel, atribuição explícita a empresas
 | Tipo de contratação; jornada semanal | Obrigatórios, com opções padronizadas e campo de observação quando necessário. |
 | Situação e data de referência | Ativo, afastado ou desligado; a data efetiva define o mês em que a mudança aparece. Não pedir diagnóstico ou motivo médico. |
 | Remuneração atual | Campo opcional solicitado e já decidido em planejamento anterior: visível para Patrícia e parceiro interno **atribuído a esta empresa**. Não mostrar ao cliente por padrão na tabela, nem incluí-lo em exportações gerais; definir com precisão o fluxo de envio e conferência do valor pelo representante autorizado. Última revisão salarial é opcional. |
+| Identificação de gênero | **Opcional e autodeclarada**, com `Feminino`, `Masculino`, `Outra identificação` (abre texto livre opcional) e `Prefiro não informar` (não abre campo). Uma ficha ainda não respondida permanece `Não informado`; não inferir pelo nome, aparência ou documento. Texto livre fica restrito à ficha, não em gráficos por categoria. A empresa pode importar `Não informado` e convidar a pessoa a declarar, quando houver canal apropriado; não adivinhar a resposta. |
+| Tem filhos? | **Opcional**, com `Sim`, `Não`, `Prefiro não informar` e estado `Não informado`. Não pedir nome, idade ou dados de filhos neste fluxo. A finalidade analítica e o acesso a essa informação individual exigem revisão antes da coleta real. |
 
 Sugestões úteis, também opcionais: unidade/localidade e modelo de trabalho, para análises por unidade e para não confundir departamento com local. Não coletar CPF, endereço pessoal, data de nascimento ou dados de saúde apenas para montar este quadro.
 
@@ -44,6 +46,10 @@ Sugestões úteis, também opcionais: unidade/localidade e modelo de trabalho, p
 
 Na tabela: colunas de pessoa, cargo, departamento, gestor, vínculo, jornada, admissão e situação; filtros por mês, departamento, gestor, situação e tipo de contrato. As movimentações ficam em uma aba/visão do mesmo contexto, com resumo de origem e destino. No mobile, cada linha vira um resumo expansível com as mesmas ações.
 
+**Colunas e retratos.** A referência visual enviada pela Pati em 01/10 usa avatar ao lado de nome, linha secundária e etiquetas de situação. A coluna `Pessoa` permanece visível; `Cargo`, `Departamento`, `Gestor` e `Situação` são a seleção inicial, e `Escolher colunas` permite mostrar/ocultar as demais sem perder os dados. Persistir a escolha por usuário e empresa; respeitar a mesma autorização no servidor, nas buscas e nas exportações. No desktop, manter nome fixo e usar deslocamento horizontal somente quando o usuário escolher mais colunas do que cabem; no celular, resumo e detalhes expansíveis. `Exportar PDF` terá modelo de relatório próprio em etapa posterior, com referência, filtros, cobertura e permissões; não exportar remuneração ou dados de gênero/família por acidente.
+
+O avatar usa a mesma moldura sutil da CALI e aceita foto autorizada. **Proposta para atender à escolha da Pati:** sem foto, ilustração adulta feminina quando `Feminino`, masculina quando `Masculino`, e figura neutra quando `Outra identificação`, `Prefiro não informar` ou `Não informado`; a pessoa pode substituir a ilustração. Como o avatar pode revelar a declaração a quem vê a lista, revisar permissões e oferecer avatar neutro independente do campo antes de ativar a associação automática. Nunca inferir identidade a partir do avatar.
+
 ## 5. Ficha individual e contexto de atuação
 
 Ao selecionar uma pessoa, abrir **um painel lateral** (no celular, uma folha de detalhes), sem tirar o usuário da lista:
@@ -54,6 +60,19 @@ Ao selecionar uma pessoa, abrir **um painel lateral** (no celular, uma folha de 
 - **Avaliações/convites:** registrar qual instrumento foi usado, data, status e link/arquivo, se o cliente autorizou a finalidade. E-mail profissional permite convite futuro, mas importar e-mail não dispara teste. Se a empresa já usa outra ferramenta, preferir vincular o registro ou importar somente os dados necessários, sem obrigá-la a preencher tudo de novo.
 
 Indicadores úteis, calculados do histórico confirmado: headcount e saldo de entradas/saídas, rotatividade voluntária e involuntária, tempo de permanência, promoções, transferências, distribuição por departamento/gestor e tipos de vínculo. Mostrar período e cobertura dos dados; sem mês confirmado, exibir `Dados ainda não enviados`, nunca zero fictício. Não transformar esse quadro em folha de pagamento ou controle operacional de DP.
+
+### Painel de People Analytics — proposta comercial a validar
+
+| Visualização | CALI Partner — base proposta | CALI Full — aprofundamento proposto |
+| --- | --- | --- |
+| Composição e evolução | Total ativo por mês, entradas, saídas, saldo, tempo de casa e composição por departamento/gestor. | Os mesmos dados com cortes por unidade, vínculo e coorte, quando a amostra permitir. |
+| Movimentações | Promoções, transferências e desligamentos no período, com definições claras. | Análise de mobilidade e rotatividade voluntária/involuntária por área e gestor, com leitura de tendência e contexto de atuação. |
+| Pessoas e condições | Cobertura dos dados opcionais, sem expor respostas individuais na visão analítica. | Indicadores agregados de identificação de gênero e parentalidade **somente após finalidade, base, transparência, acesso e tamanho mínimo do grupo serem aprovados**. Distribuição salarial, se aprovada, exige uma permissão separada; não entra automaticamente no painel do cliente. |
+| Entrega consultiva | Indicadores essenciais e sua definição. | Interpretação e ações ligadas às frentes do CALI Full, a definir comercialmente; acesso ao painel não é, por si, toda a diferença entre planos. |
+
+Essa matriz é **proposta, não regra de cobrança ou autorização implementada**. Confirmar com Pati o escopo contratual de cada pacote antes de bloquear ou revelar qualquer indicador. No Partner, mostrar uma chamada discreta `Conheça as análises do CALI Full`, explicando a frente adicional e levando a uma conversa; não mostrar números falsos, gráfico borrado com dados reais ou botão que ative o plano. CALI Build exige definição própria.
+
+Os prints de referência trazem linha/área suave, linha única e barras empilhadas. Aplicar a linguagem CALI (bordô, dourado, verde sálvia e azul petróleo) com legenda, período, unidade, fonte e tooltip legível nos temas dia/noite. Linha mensal representa pontos reais sem interpolação que invente valores intermediários; barras empilhadas só para categorias que somam o total. Comparação entre meses incompletos deve ser marcada, nunca exibida como queda real. Gênero e parentalidade: mostrar taxa de preenchimento, agrupar respostas pequenas/suprimir cortes reidentificáveis e não usar o dado para decisões individuais automatizadas.
 
 ## 6. Adesão ao Workspace e dados
 
@@ -68,6 +87,7 @@ Indicadores úteis, calculados do histórico confirmado: headcount e saldo de en
 - Tabelas por empresa para colaborador, versão mensal/importação e evento de movimentação, com autoria, data efetiva e trilha de auditoria. Importação deve ser idempotente pelo código interno + empresa + mês. Armazenar arquivo original em bucket privado somente se houver finalidade e prazo definidos; preferir processar, validar e descartar o arquivo após confirmação.
 - Políticas RLS no banco para separar empresas, com parceiro interno limitado por atribuição. Validar também Storage, RPCs, exportações e relatórios. O cliente não deve conseguir acessar outra empresa nem salários ocultos por consulta direta.
 - Rever aviso de privacidade, contrato/anexo de tratamento, retenção e permissões antes de receber a primeira planilha real. A política pública atual passou a mencionar dados de equipe em termos gerais, mas não descreve ainda este fluxo mensal e seus campos detalhados. Definir com assessoria jurídica os papéis e prazos, sem prometer exclusão automática inexistente.
+- **Antes de coletar gênero e parentalidade:** documentar a finalidade específica de cada campo, necessidade, base legal adequada, quem informa e quem enxerga, prazo, direito de correção e proteção contra usos discriminatórios. A adesão da empresa ao Workspace não equivale à declaração da pessoa. Não incluir esses campos no CSV obrigatório nem na primeira importação sem essa revisão. A LGPD exige finalidade/necessidade e veda tratamento discriminatório; a classificação e a base aplicável devem considerar o dado e o uso concreto.
 - Entrega por etapas: (a) termo e ativação opcional + matriz de acesso; (b) ficha, tabela e edição manual com RLS; (c) CSV com prévia e confirmação; (d) histórico/indicadores e convites a instrumentos. Testar com dados de ensaio isolados; nunca preencher com dados inventados na conta real.
 
 ## 8. Decisões restantes antes da implementação dos dados
@@ -77,5 +97,7 @@ Indicadores úteis, calculados do histórico confirmado: headcount e saldo de en
 3. A CALI aprova o envio mensal antes de ele se tornar vigente ou apenas recebe aviso e pode pedir correção?
 4. O representante que envia remuneração pode ver/revisar valores já enviados na própria conta? O planejamento anterior restringiu a visualização da coluna a Patrícia e parceiro interno, então o fluxo precisa evitar confirmação cega e exposição acidental.
 5. Quais instrumentos comportamentais serão oferecidos, por qual fornecedor e com qual autorização e retenção? Isso é uma etapa própria, não uma consequência automática de cadastrar o e-mail.
+6. Confirmar a matriz Partner/Full/Build de indicadores e entregas consultivas, incluindo se o cliente pode ver análises agregadas de gênero, parentalidade e remuneração. Fixar um limiar de tamanho/cobertura para cortes e o tratamento de grupos pequenos.
+7. Validar o texto de identificação de gênero com pessoas interessadas, a opção de avatar neutro e se `Tem filhos?` é necessário para um indicador específico antes de disponibilizar a coleta.
 
 **Critério de aceite:** um envio real de teste altera o quadro apenas da empresa correta; Pati e o cliente veem o mesmo mês confirmado; gestor/departamento agrupam corretamente; admissão, promoção, transferência e desligamento preservam histórico; linhas ausentes não geram desligamento; a permissão de parceiro não alcança outras empresas.
