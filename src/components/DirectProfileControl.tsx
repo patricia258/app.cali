@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { Camera, Check, ChevronDown, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, ShieldCheck, Upload, X } from 'lucide-react';
+import { Building2, Camera, Check, ChevronDown, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, ShieldCheck, Upload, X } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { useWorkspaceAuth } from '../auth/WorkspaceAuthProvider';
 import { optimizeImageForUpload } from '../lib/imageUpload';
@@ -30,7 +30,7 @@ const signatureStyles:SignatureOption[]=[
 const legacyStyleMap:Record<string,SignatureStyle>={classic:'heritage',fluid:'calligraphic',delicate:'contemporary',formal:'executive'};
 const profileFallback:Record<Role,ProfileData>={
   admin:{full_name:'Patrícia Lima',email:'patricia@calirh.com',job_title:'People Advisory Executive',phone:'',whatsapp:'',linkedin_url:'',instagram_url:'',avatar_url:'',avatar_position_x:50,avatar_position_y:50,avatar_zoom:1,signature_mode:'generated',signature_url:'',signature_style:'executive'},
-  client:{full_name:'Marina Costa',email:'marina@grupoaurora.com.br',job_title:'Decisora principal',phone:'',whatsapp:'',linkedin_url:'',instagram_url:'',avatar_url:'',avatar_position_x:50,avatar_position_y:50,avatar_zoom:1,signature_mode:'generated',signature_url:'',signature_style:'executive'},
+  client:{full_name:'',email:'',job_title:'',phone:'',whatsapp:'',linkedin_url:'',instagram_url:'',avatar_url:'',avatar_position_x:50,avatar_position_y:50,avatar_zoom:1,signature_mode:'generated',signature_url:'',signature_style:'calligraphic'},
 };
 
 function initials(name:string){return name.split(' ').filter(Boolean).slice(0,2).map((part)=>part[0]?.toUpperCase()).join('')||'C';}
@@ -48,17 +48,19 @@ export function DirectProfileControl({role}:{role:Role}){
   const { user } = useWorkspaceAuth();
   const[profile,setProfile]=useState<ProfileData>(profileFallback[role]),[draft,setDraft]=useState<ProfileData>(profileFallback[role]);
   const[modalOpen,setModalOpen]=useState(false),[saving,setSaving]=useState(false),[message,setMessage]=useState('');
-  const[signatureMenuOpen,setSignatureMenuOpen]=useState(false);
+  const[companyName,setCompanyName]=useState('');
 
   useEffect(()=>{
-    const cached=window.localStorage.getItem(`cali-workspace-profile-${role}`);
+    setProfile(profileFallback[role]);setDraft(profileFallback[role]);setCompanyName('');
+    const cached=user?window.localStorage.getItem(`cali-workspace-profile-${user.id}`):null;
     if(cached){try{const raw=JSON.parse(cached);const parsed={...profileFallback[role],...raw,signature_style:safeSignatureStyle(raw?.signature_style)} as ProfileData;setProfile(parsed);setDraft(parsed);}catch{}}
     let mounted=true;
     async function load(){
       if(!isSupabaseConfigured||!supabase)return;
       if(!user||!mounted)return;
-      const{data}=await supabase.from('profiles').select('full_name,email,job_title,phone,whatsapp,linkedin_url,instagram_url,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom,signature_mode,signature_url,signature_style').eq('id',user.id).single();
+      const{data}=await supabase.from('profiles').select('company_id,full_name,email,job_title,phone,whatsapp,linkedin_url,instagram_url,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom,signature_mode,signature_url,signature_style').eq('id',user.id).single();
       if(!mounted||!data)return;
+      if(role==='client'&&data.company_id){const{data:company}=await supabase.from('companies').select('display_name').eq('id',data.company_id).single();if(mounted)setCompanyName(company?.display_name||'');}
       const next:ProfileData={
         full_name:data.full_name||profileFallback[role].full_name,
         email:data.email||user.email||profileFallback[role].email,
@@ -71,15 +73,12 @@ export function DirectProfileControl({role}:{role:Role}){
     }
     void load();
     return()=>{mounted=false;};
-  },[role]);
+  },[role,user?.id]);
 
   useEffect(()=>{if(!modalOpen)return;document.body.classList.add('workspace-modal-open');return()=>document.body.classList.remove('workspace-modal-open');},[modalOpen]);
-  useEffect(()=>{if(!modalOpen)setSignatureMenuOpen(false);},[modalOpen]);
 
   const avatar=useMemo(()=>profile.avatar_url?<img src={profile.avatar_url} alt="" style={avatarStyle(profile)}/>:<span>{initials(profile.full_name)}</span>,[profile]);
-  const selectedSignatureStyle=useMemo(()=>signatureStyles.find((item)=>item.value===draft.signature_style)||signatureStyles[0],[draft.signature_style]);
-
-  function openEditor(){setDraft(profile);setMessage('');setSignatureMenuOpen(false);setModalOpen(true);}
+  function openEditor(){setDraft(profile);setMessage('');setModalOpen(true);}
   async function uploadImage(file:File,kind:'avatar'|'signature'){
     if(!supabase)return'';
     if(!user)return'';
@@ -97,14 +96,14 @@ export function DirectProfileControl({role}:{role:Role}){
   }
   async function handleSignature(event:ChangeEvent<HTMLInputElement>){
     const file=event.target.files?.[0];if(!file)return;setMessage('');
-    try{const url=await uploadImage(file,'signature');if(url){setDraft((current)=>({...current,signature_mode:'uploaded',signature_url:url}));setSignatureMenuOpen(false);}}
+    try{const url=await uploadImage(file,'signature');if(url)setDraft((current)=>({...current,signature_mode:'uploaded',signature_url:url}));}
     catch(error){setMessage(error instanceof Error?error.message:'Não consegui enviar a assinatura.');}
     event.target.value='';
   }
   async function saveProfile(){
     if(!draft.full_name.trim())return;
     setSaving(true);setMessage('');
-    const next={...draft,full_name:draft.full_name.trim(),linkedin_url:normalizeExternalUrl(draft.linkedin_url),instagram_url:normalizeExternalUrl(draft.instagram_url)};
+    const next={...draft,full_name:draft.full_name.trim(),signature_style:draft.signature_mode==='generated'?'calligraphic' as const:draft.signature_style,linkedin_url:normalizeExternalUrl(draft.linkedin_url),instagram_url:normalizeExternalUrl(draft.instagram_url)};
     try{
       const{data:sessionData}=supabase?await supabase.auth.getSession():{data:{session:null}} as const;
       const user=sessionData.session?.user;
@@ -117,7 +116,7 @@ export function DirectProfileControl({role}:{role:Role}){
         });
         if(error)throw error;
       }
-      window.localStorage.setItem(`cali-workspace-profile-${role}`,JSON.stringify(next));
+      if(user)window.localStorage.setItem(`cali-workspace-profile-${user.id}`,JSON.stringify(next));
       setProfile(next);setDraft(next);setModalOpen(false);
     }catch(error){setMessage(error instanceof Error?error.message:'Não foi possível salvar o perfil.');}
     finally{setSaving(false);}
@@ -134,37 +133,26 @@ export function DirectProfileControl({role}:{role:Role}){
     {modalOpen?<div className="modal-backdrop chrome-modal-backdrop full-screen-modal" role="presentation">
       <section className="modal-card profile-modal profile-modal-v2 profile-modal-v55" role="dialog" aria-modal="true" aria-label="Editar perfil">
         <button className="modal-close" type="button" onClick={()=>setModalOpen(false)} aria-label="Fechar"><X size={20}/></button>
-        <span className="section-kicker">SEU PERFIL</span><h2>Perfil e canais de contato</h2>
-        <p>Essas informações identificam você no Workspace. Sua assinatura também pode ser usada em registros formais de aprovação ou ciência.</p>
+        <span className="section-kicker">SUA CONTA</span><h2>Seu perfil</h2>
+        <p>Confira seus dados, sua foto e como você aparece nos registros da CALI.</p>
+        {role==='client'&&companyName?<div className="profile-company-affiliation"><Building2 size={18}/><span>Seu acesso está vinculado à <strong>{companyName}</strong>.</span></div>:null}
         <div className="profile-photo-workbench"><div className="profile-photo-stage"><span className="profile-avatar profile-avatar-editor large-editor-avatar">{draft.avatar_url?<img src={draft.avatar_url} alt="Prévia do perfil" style={avatarStyle(draft)}/>:<span>{initials(draft.full_name)}</span>}</span><label className="photo-upload-button"><Camera size={17}/>Escolher foto<input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleAvatar}/></label></div><div className={`profile-crop-controls ${draft.avatar_url?'':'disabled'}`}><label>Zoom<input type="range" min="1" max="3" step="0.05" value={draft.avatar_zoom} disabled={!draft.avatar_url} onChange={(event)=>setDraft((current)=>({...current,avatar_zoom:Number(event.target.value)}))}/></label><label>Horizontal<input type="range" min="0" max="100" value={draft.avatar_position_x} disabled={!draft.avatar_url} onChange={(event)=>setDraft((current)=>({...current,avatar_position_x:Number(event.target.value)}))}/></label><label>Vertical<input type="range" min="0" max="100" value={draft.avatar_position_y} disabled={!draft.avatar_url} onChange={(event)=>setDraft((current)=>({...current,avatar_position_y:Number(event.target.value)}))}/></label></div></div>
         <div className="form-grid profile-form-grid"><label className="stacked-label wide">Nome<input value={draft.full_name} onChange={(event)=>setDraft((current)=>({...current,full_name:event.target.value}))}/></label><label className="stacked-label">Cargo / função<input value={draft.job_title} onChange={(event)=>setDraft((current)=>({...current,job_title:event.target.value}))}/></label><label className="stacked-label">Telefone<input value={draft.phone} onChange={(event)=>setDraft((current)=>({...current,phone:event.target.value}))}/></label><label className="stacked-label"><span className="label-with-icon"><MessageCircle size={15}/>WhatsApp</span><input value={draft.whatsapp} onChange={(event)=>setDraft((current)=>({...current,whatsapp:event.target.value}))}/></label><label className="stacked-label"><span className="label-with-icon"><Linkedin size={15}/>LinkedIn</span><input value={draft.linkedin_url} onChange={(event)=>setDraft((current)=>({...current,linkedin_url:event.target.value}))}/></label><label className="stacked-label"><span className="label-with-icon"><Instagram size={15}/>Instagram</span><input value={draft.instagram_url} onChange={(event)=>setDraft((current)=>({...current,instagram_url:event.target.value}))}/></label><label className="stacked-label wide"><span className="label-with-icon"><Mail size={15}/>E-mail</span><input value={draft.email} disabled/></label></div>
 
-        <section className="profile-signature-v55 profile-signature-v56 profile-signature-v59">
-          <div className="profile-signature-heading-v55"><div><span>ASSINATURA</span><h3>Assinatura</h3><p>Use seu nome ou envie uma imagem própria.</p></div><PenLine size={21}/></div>
-          <div className="profile-signature-source-v59">
-            <button type="button" className={draft.signature_mode==='generated'?'active':''} onClick={()=>{setDraft((current)=>({...current,signature_mode:'generated'}));setSignatureMenuOpen(false);}}>Usar meu nome</button>
-            <label className={draft.signature_mode==='uploaded'?'active':''}><Upload size={14}/>Enviar imagem<input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleSignature}/></label>
+        <section className="profile-signature-v55 profile-signature-v56 profile-signature-v59 profile-signature-clean">
+          <div className="profile-signature-heading-v55"><div><span>ASSINATURA</span><h3>Sua assinatura</h3><p>Digite seu nome acima para ver como a assinatura aparecerá.</p></div><PenLine size={21}/></div>
+          <div className="profile-signature-clean-preview" aria-label="Prévia da assinatura">
+            {draft.signature_mode==='uploaded'&&draft.signature_url?<img src={draft.signature_url} alt="Assinatura enviada"/>:<span className="signature-style-calligraphic">{draft.full_name.trim()||'Seu nome'}</span>}
           </div>
-          {draft.signature_mode==='generated'?<div className="profile-signature-select-v59">
-            <span className="profile-signature-field-label-v59">Estilo da assinatura</span>
-            <button type="button" className="profile-signature-select-trigger-v59" aria-haspopup="listbox" aria-expanded={signatureMenuOpen} onClick={()=>setSignatureMenuOpen((open)=>!open)}>
-              <span className={`profile-signature-selected-mark-v59 signature-style-${draft.signature_style}`}>{draft.full_name||'Sua assinatura'}</span>
-              <span className="profile-signature-selected-copy-v59"><strong>{selectedSignatureStyle.label}</strong><small>{selectedSignatureStyle.hint}</small></span>
-              <ChevronDown size={18}/>
-            </button>
-            {signatureMenuOpen?<div className="profile-signature-options-v59" role="listbox" aria-label="Estilos de assinatura">
-              {signatureStyles.map((style)=><button type="button" role="option" aria-selected={draft.signature_style===style.value} key={style.value} className={draft.signature_style===style.value?'active':''} onClick={()=>{setDraft((current)=>({...current,signature_style:style.value,signature_mode:'generated'}));setSignatureMenuOpen(false);}}>
-                <span className={`profile-signature-option-mark-v59 signature-style-${style.value}`}>{draft.full_name||'Sua assinatura'}</span>
-                <span><strong>{style.label}</strong><small>{style.hint}</small></span>
-                {draft.signature_style===style.value?<Check size={16}/>:null}
-              </button>)}
-            </div>:null}
-          </div>:draft.signature_url?<div className="profile-signature-uploaded-preview-v59"><img src={draft.signature_url} alt="Prévia da assinatura enviada"/></div>:<div className="profile-signature-uploaded-empty-v59">Envie uma imagem da sua assinatura para usar nos registros.</div>}
-          <small>{role==='admin'?'A assinatura escolhida será congelada quando você aprovar um relatório.':'Ela só será usada quando você optar por registrar ciência em um documento.'}</small>
+          <div className="profile-signature-clean-actions">
+            <button type="button" className={draft.signature_mode==='generated'?'active':''} onClick={()=>setDraft((current)=>({...current,signature_mode:'generated',signature_style:'calligraphic'}))}>Usar nome digitado</button>
+            <label className={draft.signature_mode==='uploaded'?'active':''}><Upload size={15}/>Enviar assinatura<input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleSignature}/></label>
+          </div>
+          <small>Salvar o perfil não registra ciência. A confirmação de um documento ou relatório é feita separadamente.</small>
         </section>
 
         <div className="profile-live-actions">{(draft.whatsapp||draft.phone)?<a className="secondary" href={whatsappUrl(draft.whatsapp||draft.phone)} target="_blank" rel="noreferrer"><MessageCircle size={16}/>Abrir WhatsApp</a>:null}{draft.phone?<a className="secondary" href={`tel:${draft.phone.replace(/[^+\d]/g,'')}`}><Phone size={16}/>Ligar</a>:null}</div>
-        <a className="profile-privacy-link" href="https://calirh.com/privacidade.html" target="_blank" rel="noopener noreferrer"><ShieldCheck size={16}/>Privacidade e proteção de dados</a>
+        <a className="profile-privacy-link" href="https://calirh.com/privacidade.html" target="_blank" rel="noopener noreferrer"><ShieldCheck size={16}/>Política do site, Mapa e Portal</a>
         {message?<div className="form-message">{message}</div>:null}
         <div className="modal-actions"><button type="button" className="profile-secondary-v56" onClick={()=>setModalOpen(false)}>Fechar</button><button type="button" className="profile-primary-v56" onClick={saveProfile} disabled={saving}>{saving?<Loader2 size={17} className="spin"/>:<Check size={17}/>} {saving?'Salvando…':'Salvar alterações'}</button></div>
       </section>

@@ -175,7 +175,7 @@ export function LoginPage() {
         </form>
       </section>
 
-      <footer className="login-v2-footer-brand"><span>© 2026 CALI RH — HR FOR BUSINESS. Todos os direitos reservados.</span><a className="login-v2-privacy-link" href="https://calirh.com/privacidade.html" target="_blank" rel="noreferrer">Privacidade e proteção de dados</a></footer>
+      <footer className="login-v2-footer-brand"><span>© 2026 CALI RH — HR FOR BUSINESS. Todos os direitos reservados.</span><a className="login-v2-privacy-link" href="https://calirh.com/privacidade.html" target="_blank" rel="noreferrer">Política do site, Mapa e Portal</a></footer>
       <footer className="login-v2-footer-access">
         <div className="login-v2-footer-links">
           <a href="mailto:patricia@calirh.com"><Mail size={15} />patricia@calirh.com</a>

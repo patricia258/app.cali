@@ -1,0 +1,21 @@
+.profile-modal-v55 .profile-company-affiliation{display:flex;align-items:center;gap:10px;margin:0 0 20px;padding:12px 15px;border:1px solid rgba(181,140,82,.28);border-radius:12px;background:#f6eee2;color:#512838;font-size:13px;line-height:1.4}
+.profile-modal-v55 .profile-company-affiliation svg{color:#9b713e;flex:none}
+.profile-modal-v55 .profile-photo-workbench{min-height:150px!important;grid-template-columns:150px minmax(0,1fr)!important;margin-bottom:18px!important;padding:16px 20px!important}
+.profile-modal-v55 .profile-signature-clean{padding:20px!important;overflow:visible!important}
+.profile-modal-v55 .profile-signature-clean .profile-signature-heading-v55{margin-bottom:12px!important}
+.profile-modal-v55 .profile-signature-clean-preview{display:flex;align-items:center;justify-content:center;min-height:105px;padding:12px 18px;overflow:hidden;border:1px solid rgba(90,30,45,.18);border-radius:12px;background:#fffdfa;color:#5a1e2d}
+.profile-modal-v55 .profile-signature-clean-preview span{font-size:clamp(34px,4vw,52px)!important;line-height:1.25!important;white-space:normal;text-align:center;overflow-wrap:anywhere;color:#5a1e2d!important}
+.profile-modal-v55 .profile-signature-clean-preview img{max-width:100%;max-height:85px;object-fit:contain}
+.profile-modal-v55 .profile-signature-clean-actions{display:flex;flex-wrap:wrap;gap:10px;margin:13px 0 10px}
+.profile-modal-v55 .profile-signature-clean-actions button,.profile-modal-v55 .profile-signature-clean-actions label{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:8px 13px;border:1px solid rgba(90,30,45,.2);border-radius:10px;background:#fffdfa;color:#5a1e2d;font-family:inherit;font-size:12px;font-weight:600;line-height:1.2;cursor:pointer}
+.account-decision-link{grid-column:1/-1;padding:11px 14px;border:1px solid rgba(181,140,82,.33);border-radius:10px;background:#f8f1e8;color:#5a1e2d;font-size:12px;line-height:1.45}
+html[data-workspace-theme='night'] .account-decision-link{background:#302326;color:#f4eae1;border-color:rgba(230,191,120,.38)}
+.profile-modal-v55 .profile-signature-clean-actions .active{border-color:#5a1e2d;background:#5a1e2d;color:#fff}
+.profile-modal-v55 .profile-signature-clean-actions input{position:absolute;width:1px;height:1px;opacity:0}
+.profile-modal-v55 .profile-signature-clean>small{display:block;color:#61575a!important;font-size:12px!important;line-height:1.45}
+html[data-workspace-theme='night'] .profile-modal-v55 .profile-company-affiliation{background:#302227;color:#f7eee7;border-color:rgba(229,189,119,.38)}
+html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-clean-preview{background:#f9f5f0;color:#5a1e2d;border-color:#cdbfae}
+html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-clean-actions button,html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-clean-actions label{background:#2d2025;color:#fff8f1;border-color:rgba(245,225,198,.36)}
+html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-clean-actions .active{background:#e6bf78;color:#32171f;border-color:#e6bf78}
+html[data-workspace-theme='night'] .profile-modal-v55 .profile-signature-clean>small{color:#ddd0c8!important}
+@media(max-width:700px){.profile-modal-v55 .profile-photo-workbench{grid-template-columns:1fr!important}.profile-modal-v55 .profile-signature-clean-actions>*{flex:1 1 150px}.profile-modal-v55 .profile-company-affiliation{margin-bottom:16px}}

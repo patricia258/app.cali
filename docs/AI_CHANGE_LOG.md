@@ -1,5 +1,15 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-10-01 — Codex (perfil, decisor e auditoria de privacidade)
+
+- **Pedido da Pati:** deixar claro a que produto pertence a política publicada; revisar completude do Workspace; melhorar perfil em ambos os papéis, sobretudo a assinatura; vincular decisor cadastrado à pessoa que realmente acessa a empresa.
+- **Privacidade:** página pública de 21/08 cobre expressamente site, Mapa e Portal, sem inventário suficiente do app. O link no login e no perfil foi nomeado conforme seu escopo atual. `docs/WORKSPACE_PRIVACY_AUDIT_2026-10-01.md` lista lacunas de dados, retenção, terceiros e aceites. Revisão jurídica e inventário operacional continuam abertos; não apresentar a página como completa para o Workspace.
+- **Perfil:** assinatura reduzida a uma prévia caligráfica do nome digitado ou imagem enviada, sem seletor longo; agrupamento menor e contraste explícito nos temas. Salvar perfil não equivale a ciência de documento. O cliente vê a empresa à qual seu acesso está vinculado.
+- **Vínculo de dados:** após ativação, o perfil principal com mesmo par empresa/e-mail é fonte do nome, cargo e contatos; o convite continua sendo referência antes do acesso. Migração `20261001110000_primary_contact_profile_link.sql` sincroniza salvamento do próprio perfil e da ficha administrativa em uma RPC restrita ao admin; e-mail vinculado não muda por edição cadastral comum. O registro de teste divergente foi conciliado a partir do perfil real, sem apagar a conta. A tela administrativa indica o vínculo.
+- **Validação:** migração aplicada no projeto Supabase e divergência do cadastro principal reduzida de 1 para 0; `npm run check` passou. QA visual autenticado, tela pequena e aceite real de relatório ainda exigem conferência. **Autor:** Codex. **Aprovação visual:** aguardando Pati. Não alterar esse fluxo sem verificar os dois sentidos da sincronização e o convite pendente.
+
+---
+
 ## 2026-10-01 — Codex (detalhe do calendário, link de privacidade e revisão do handoff legal)
 
 - **Pedido da Pati:** convidados cortados no detalhe do calendário; modal com tamanho moderado; link de privacidade removido da barra lateral e colocado no perfil; leitura crítica do levantamento legal do Claude.
