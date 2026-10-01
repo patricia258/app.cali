@@ -1,5 +1,14 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-10-01 — Codex (revisão visual do perfil após correção da Pati)
+
+- **Correção da Pati:** a revisão anterior resolveu a assinatura e os dados, mas não aplicou a estrutura visual dos prints do perfil. Os prints MatDash mostram agrupamento de foto e dados pessoais e navegação por áreas; a tela de termos foi referência apenas para a prévia caligráfica, sem copiar o texto ou inventar aceite.
+- **Mudança:** modal de perfil comum a admin e cliente agora tem abas reais **Dados pessoais** e **Assinatura**. Foto e dados ficam em áreas lado a lado no desktop e empilhadas no celular. Zoom e posição da foto continuam disponíveis sob **Ajustar enquadramento**, sem ocupar a primeira tela. Assinatura fica em área própria com nome digitado e prévia. Mantidos os campos e a RPC existentes, sem criar funcionalidades fictícias de cobrança, notificações ou segurança a partir dos exemplos.
+- **Privacidade:** Claude está encarregado pela Pati da redação de uma política que cubra o Workspace. Este ajuste visual não altera a política pública. O link atual segue identificado como política do site, Mapa e Portal; aguardar o texto novo antes de afirmar que cobre o app.
+- **Arquivos:** `src/components/DirectProfileControl.tsx`, `src/profile-account-v66.css`, `src/main.tsx`. **Validação:** `npm run check` passou; inspeção visual com conta autenticada, modos dia/noite e celular ainda pendente. **Aprovação:** aguardando Pati. **Autor:** Codex.
+
+---
+
 ## 2026-10-01 — Codex (perfil, decisor e auditoria de privacidade)
 
 - **Pedido da Pati:** deixar claro a que produto pertence a política publicada; revisar completude do Workspace; melhorar perfil em ambos os papéis, sobretudo a assinatura; vincular decisor cadastrado à pessoa que realmente acessa a empresa.

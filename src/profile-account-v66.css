@@ -1,0 +1,43 @@
+/* Duas áreas reais do perfil, sem copiar funções não existentes do exemplo visual. */
+.profile-modal-v55.profile-account-v66{width:min(960px,calc(100vw - 40px))!important;max-width:960px!important;max-height:calc(100dvh - 40px)!important;padding:27px 32px 0!important}
+.profile-account-v66 .profile-account-header{padding-right:44px}
+.profile-account-v66 .profile-account-header h2{margin:4px 0;color:#51202f;font-size:30px;line-height:1.2}
+.profile-account-v66 .profile-account-header p{margin:4px 0 14px;color:#635a56;font-size:13px;line-height:1.5}
+.profile-account-v66 .profile-company-affiliation{margin-bottom:13px}
+.profile-account-v66 .profile-account-tabs{display:flex;gap:6px;margin:0 0 17px;border-bottom:1px solid rgba(90,30,45,.14)}
+.profile-account-v66 .profile-account-tabs button{display:inline-flex;align-items:center;gap:8px;min-height:43px;margin-bottom:-1px;padding:7px 14px;border:0;border-bottom:2px solid transparent;background:transparent;color:#65575a;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.profile-account-v66 .profile-account-tabs button.active{border-color:#b58c52;color:#5a1e2d}
+.profile-account-v66 .profile-account-tabs button:focus-visible,.profile-account-v66 .profile-account-crop-toggle:focus-visible{outline:2px solid #b58c52;outline-offset:2px}
+.profile-account-v66 .profile-account-details{display:grid;grid-template-columns:minmax(210px,.32fr) minmax(0,1fr);gap:17px;align-items:start}
+.profile-account-v66 .profile-account-photo,.profile-account-v66 .profile-account-fields{min-width:0;border:1px solid rgba(90,30,45,.11);border-radius:16px;background:#fffdfa;box-shadow:0 7px 24px rgba(54,28,34,.035)}
+.profile-account-v66 .profile-account-photo{display:flex;flex-direction:column;align-items:center;gap:8px;padding:22px 16px;text-align:center}
+.profile-account-v66 .profile-account-photo .large-editor-avatar{width:112px!important;height:112px!important;min-width:112px!important;min-height:112px!important;margin:0 0 4px!important;border-radius:24px!important;overflow:hidden}
+.profile-account-v66 .profile-account-photo strong{color:#51202f;font-size:15px}
+.profile-account-v66 .profile-account-photo p{margin:0 0 6px;color:#706662;font-size:12px;line-height:1.4}
+.profile-account-v66 .profile-account-photo .photo-upload-button{min-height:38px;padding:7px 12px;border-radius:10px}
+.profile-account-v66 .profile-account-crop-toggle{border:0;background:transparent;color:#6d3246;text-decoration:underline;font-size:12px;cursor:pointer}
+.profile-account-v66 .profile-account-crop{display:grid;gap:9px;width:100%;padding-top:8px;border-top:1px solid rgba(90,30,45,.12);text-align:left}
+.profile-account-v66 .profile-account-crop label{display:grid;gap:2px;color:#5b4c4f;font-size:11px}
+.profile-account-v66 .profile-account-crop input{width:100%;accent-color:#5a1e2d}
+.profile-account-v66 .profile-account-fields{padding:20px}
+.profile-account-v66 .profile-account-fields h3{margin:0 0 14px;color:#51202f;font-size:17px}
+.profile-account-v66 .profile-form-grid{gap:11px 14px!important}
+.profile-account-v66 .stacked-label{color:#493b3e!important;font-size:12px!important}
+.profile-account-v66 .stacked-label input{min-height:40px!important;padding:8px 11px!important;border-radius:9px!important}
+.profile-account-v66 .stacked-label input:disabled{color:#716766!important;background:#f5f0ea!important;opacity:1}
+.profile-account-v66 .profile-signature-clean{margin:0!important;min-height:350px;padding:22px!important;border-radius:16px!important;overflow:visible!important;background:#fffdfa!important}
+.profile-account-v66 .profile-signature-clean .profile-signature-heading-v55 h3{color:#51202f!important;font-size:20px!important}
+.profile-account-v66 .profile-signature-clean .profile-signature-heading-v55 p{color:#665b58!important;font-size:12px!important}
+.profile-account-v66 .profile-live-actions{margin:12px 0 0}
+.profile-account-v66 .profile-privacy-link{display:inline-flex;margin:16px 0;color:#6b3448;font-size:12px}
+html[data-workspace-theme='night'] .profile-account-v66 .profile-account-header h2,html[data-workspace-theme='night'] .profile-account-v66 .profile-account-photo strong,html[data-workspace-theme='night'] .profile-account-v66 .profile-account-fields h3,html[data-workspace-theme='night'] .profile-account-v66 .stacked-label{color:#fff8f1!important}
+html[data-workspace-theme='night'] .profile-account-v66 .profile-account-header p,html[data-workspace-theme='night'] .profile-account-v66 .profile-account-photo p{color:#d5c7c2!important}
+html[data-workspace-theme='night'] .profile-account-v66 .profile-account-photo,html[data-workspace-theme='night'] .profile-account-v66 .profile-account-fields,html[data-workspace-theme='night'] .profile-account-v66 .profile-signature-clean{border-color:rgba(247,243,238,.13)!important;background:#271c21!important}
+html[data-workspace-theme='night'] .profile-account-v66 .profile-account-tabs{border-color:rgba(247,243,238,.17)}
+html[data-workspace-theme='night'] .profile-account-v66 .profile-account-tabs button{color:#d5c7c2}
+html[data-workspace-theme='night'] .profile-account-v66 .profile-account-tabs button.active{color:#e6bf78}
+html[data-workspace-theme='night'] .profile-account-v66 .profile-account-crop label,html[data-workspace-theme='night'] .profile-account-v66 .profile-account-crop-toggle,html[data-workspace-theme='night'] .profile-account-v66 .profile-privacy-link{color:#ead1ae}
+html[data-workspace-theme='night'] .profile-account-v66 .stacked-label input:disabled{background:#33272a!important;color:#e0d3cc!important}
+html[data-workspace-theme='night'] .profile-account-v66 .profile-signature-clean .profile-signature-heading-v55 h3{color:#fff8f1!important}
+html[data-workspace-theme='night'] .profile-account-v66 .profile-signature-clean .profile-signature-heading-v55 p{color:#d8cbc6!important}
+@media(max-width:700px){.profile-modal-v55.profile-account-v66{width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;padding:23px 18px 0!important}.profile-account-v66 .profile-account-details{grid-template-columns:1fr}.profile-account-v66 .profile-account-photo{padding:15px;display:grid;grid-template-columns:78px 1fr;gap:4px 13px;text-align:left}.profile-account-v66 .profile-account-photo .large-editor-avatar{width:78px!important;height:78px!important;min-width:78px!important;min-height:78px!important;grid-row:1/4}.profile-account-v66 .profile-account-photo p{margin:0}.profile-account-v66 .profile-account-photo .photo-upload-button{width:max-content}.profile-account-v66 .profile-account-crop-toggle,.profile-account-v66 .profile-account-crop{grid-column:1/-1}.profile-account-v66 .profile-account-fields{padding:16px}.profile-account-v66 .profile-account-tabs button{flex:1;justify-content:center;padding-inline:8px}}

@@ -51,6 +51,7 @@ import './client-document-brand-cover.css';
 import './sidebar-edge-gradient.css';
 import './client-reports-list-v64.css';
 import './profile-account-clean-v65.css';
+import './profile-account-v66.css';
 
 function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
   return <AppErrorBoundary>{children}</AppErrorBoundary>;
