@@ -731,3 +731,10 @@ Duas regras técnicas, pro handoff entre Claude e Codex, a partir do bug encontr
 - **Banco:** migrações `20261002000902`, `20261002001125` e `20261002113600` aplicadas no CALI MAPA, schema `cali_workspace`; lembrete no terceiro dia útil pergunta pelo mês anterior e usa o e-mail configurado. Edições avulsas não dispensam a revisão mensal.
 - **Conferência:** RPC atual e anterior com lista vazia e criação/fechamento de vaga testadas com rollback; nenhuma linha de QA persistida; cron único. Compilação local verificada. E-mail real e UX autenticada ainda exigem QA sem avisar clientes reais.
 - **Autor:** Codex. **Aprovação visual:** pendente de Pati.
+
+### 2026-10-02 — Codex — Correções após teste da Equipe
+
+- Pati relatou importação CSV desaparecendo, etapa final de cadastro inacessível, avatar quebrado, colunas atrás da tabela e xadrez duplicado. Revi a versão atual do `main` depois da atualização de outro agente.
+- O modal de importação passa a ter estado de abertura próprio; erros de leitura permanecem visíveis. A etapa final explicita gênero/filhos e valida origem dos dados opcionais com mensagem, sem bloquear silenciosamente o botão. O seletor de colunas recebe camada superior, a tabela inicia com colunas essenciais e o xadrez local duplicado sai.
+- Os três avatares aprovados pela Pati são arquivos estáticos WebP no app, com seleção pelo campo de gênero já existente. CSV fictício de dez pessoas entregue separadamente à Pati; nenhum desses dados foi inserido no banco por esta rodada.
+- `npm run check` passou na cópia de trabalho. Aprovação visual e teste autenticado de importação continuam pendentes. Autor: Codex.

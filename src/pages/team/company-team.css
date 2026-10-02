@@ -155,3 +155,14 @@
 .team-table-wrap table{min-width:1080px}
 .team-column-menu{min-width:250px}
 .team-import-review strong{display:block;line-height:1.45}
+
+
+/* Equipe: uma única textura vem do layout global; menus permanecem sobre a tabela. */
+.company-team{background-image:none;background-color:transparent}
+.team-tools{position:relative;z-index:8}
+.team-column-wrapper{position:relative;z-index:9}
+.team-column-menu{z-index:10;box-shadow:0 18px 42px #1b0d19a8}
+.team-editor[data-step="4"] .team-optional{display:block;grid-column:1/-1}
+.team-editor[data-step="4"] .team-optional .team-fields{display:grid}
+.team-editor .team-optional{min-width:0}
+.team-avatar-image img{object-fit:cover}
