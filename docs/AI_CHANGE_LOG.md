@@ -697,3 +697,10 @@ Duas regras técnicas, pro handoff entre Claude e Codex, a partir do bug encontr
 - **Verificação:** `npm run check` e `git diff --check` passaram. Teste da RPC como administradora e cliente principal em transações revertidas; RLS privada negou leitura ao cliente; nenhuma linha de teste permaneceu. A conferência visual autenticada no navegador ainda depende do uso no app publicado.
 - **Pendências deliberadas:** termo específico e adesão opcional antes de convidar clientes; matriz do parceiro interno, finalidade jurídica dos campos opcionais e escopo comercial de People Analytics; modelo próprio de PDF, foto autorizada e convites a instrumentos. O código não cria acesso de parceiro nem envia e-mails/testes automaticamente.
 - **Autor:** Codex. **Aprovação:** implementação autorizada pela Pati; conferência visual e regras comerciais/jurídicas específicas ainda aguardam validação.
+### 2026-10-02 — Codex — Equipe mensal, vagas e modais
+
+- **Pedido/autorização:** Pati pediu cadastro que caiba na tela, planilha didática, revisão mensal sequencial, vagas com SLA e migrações oficiais. Implementado no perfil cliente e admin, sem dados fictícios.
+- **App:** modal de cadastro em cinco etapas acima da top bar; CSV com modelo destacado; revisão guiada de desligamentos, admissões, mudanças e vagas; indicadores de vagas. Interface dia/noite e responsiva. RPC transacional salva histórico; ausentes da planilha não são desligados.
+- **Banco:** migrações `20261002000902`, `20261002001125` e `20261002113600` aplicadas no CALI MAPA, schema `cali_workspace`; lembrete no terceiro dia útil pergunta pelo mês anterior e usa o e-mail configurado. Edições avulsas não dispensam a revisão mensal.
+- **Conferência:** RPC atual e anterior com lista vazia e criação/fechamento de vaga testadas com rollback; nenhuma linha de QA persistida; cron único. Compilação local verificada. E-mail real e UX autenticada ainda exigem QA sem avisar clientes reais.
+- **Autor:** Codex. **Aprovação visual:** pendente de Pati.

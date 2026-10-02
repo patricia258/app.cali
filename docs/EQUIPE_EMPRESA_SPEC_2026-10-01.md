@@ -94,6 +94,10 @@ Os prints de referência trazem linha/área suave, linha única e barras empilha
 
 ## 8. Decisões restantes antes da implementação dos dados
 
+### Revisão mensal entregue em 02/10/2026
+
+O terceiro dia útil gera lembrete no app e pelo mecanismo de e-mail do Workspace para revisar o mês anterior. O cliente principal ou admin confirma em cinco passos: saídas, admissões, mudanças, vagas e resumo. Vagas abertas passam de mês, encerram com data e alimentam o tempo médio de preenchimento. A confirmação transacional grava autoria, retratos e eventos; uma ficha editada fora da revisão não dispensa o lembrete. O CSV preserva pessoas ausentes. Retificação histórica além do mês anterior, termo de adesão e matriz comercial permanecem para definição.
+
 1. Quem no cliente pode confirmar o mês: somente o acesso principal ou acessos adicionais futuramente? Acesso do parceiro interno para editar equipe continua sem decisão explícita; por padrão, leitura.
 2. Qual dia do mês vence a atualização e qual mês de referência deve aparecer antes do primeiro envio?
 3. A CALI aprova o envio mensal antes de ele se tornar vigente ou apenas recebe aviso e pode pedir correção?
