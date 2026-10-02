@@ -1,5 +1,15 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-10-02 — Codex (refino da Equipe após teste real da Pati)
+
+- **Correções de fluxo:** a ficha de pessoa só é enviada na quinta etapa; Enter nas etapas anteriores não grava uma ficha incompleta. Código interno vazio gera identificador CALI único na conclusão, mantendo códigos informados pelo cliente. Senioridade em lista, departamento com sugestões previamente cadastradas, setor opcional, localidade explicada e liderança explicitamente marcada, com indicação na ficha e ao selecionar gestor direto.
+- **Revisão mensal:** cada etapa tem ilustração discreta e instrução com ação destacada; a última mostra data/hora da confirmação em São Paulo e mês de referência. Contratação na revisão também aceita código vazio com geração automática. Nenhuma etapa intermediária persiste dados.
+- **Histórico e indicadores:** a data da admissão/desligamento é a data efetiva registrada na ficha; a data de cadastro aparece separada como registro. Movimentação antiga cadastrada agora não infla entradas deste mês. Gráficos identificam período e quantidade; o ponto único fica centralizado. A ficha foi redesenhada como modal central contido, com avatar estilizado e molduras coerentes no dia/noite e mobile.
+- **Dados:** `team_members.is_leader` e `avatar_style` adicionados por migração; o ícone visual reflete a opção de gênero quando ela foi declarada com a confirmação exigida, enquanto gênero, filhos e remuneração permanecem na tabela privada. A RPC existente mantém a autorização e aceita os novos campos. Migração aplicada e colunas/função verificadas no Supabase oficial. Nenhuma ficha de cliente foi criada para teste.
+- **Arquivos:** `src/pages/team/CompanyTeamPage.tsx`, `src/pages/team/TeamMonthWizard.tsx`, `src/pages/team/company-team.css`, `supabase/migrations/20261002133000_team_leader_avatar.sql`. **Autor:** Codex. **Aprovação:** pendente do teste da Pati em ADM e cliente. **Validação:** `npm run check`, `git diff --check` e consultas de estrutura/função no Supabase; interação visual autenticada ainda pendente.
+
+---
+
 ## 2026-10-02 — Codex (identidade visual da Equipe para cliente e administrador)
 
 - **Pedido:** aplicar à nova página Equipe os quatro modelos visuais enviados por Pati em 02/10, sobretudo fonte, tamanho, estrutura de cards e modais, para que ela possa testar os fluxos já construídos.
