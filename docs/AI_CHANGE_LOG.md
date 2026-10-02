@@ -1,5 +1,13 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-10-02 — Codex (identidade visual da Equipe para cliente e administrador)
+
+- **Pedido:** aplicar à nova página Equipe os quatro modelos visuais enviados por Pati em 02/10, sobretudo fonte, tamanho, estrutura de cards e modais, para que ela possa testar os fluxos já construídos.
+- **Mudança visual:** títulos e números em Inter, sem serifas; fundo com grade e folha discreta; molduras finas, raios e espaçamento no padrão do Workspace; faixa mensal bordô com ação dourada; tabela, filtros e indicadores mais claros. Os modais de cadastro, planilha e revisão mensal compartilham cabeçalho bordô, hierarquia de texto, superfície e rodapé; ficam centralizados com rolagem restrita ao conteúdo quando a altura é curta. Ajustes responsivos e contraste explícito no modo noite. Aplicação no componente compartilhado pelos dois perfis.
+- **Escopo:** somente `src/pages/team/company-team.css`. Nenhuma alteração de lógica, dados, permissões ou Supabase. **Autor:** Codex. **Aprovação:** pendente de conferência visual da Pati em ADM e cliente. **Validação:** `npm run check` passou; QA visual autenticado e mobile em produção ainda dependem do teste com as contas reais.
+
+---
+
 ## 2026-10-01 — Codex (correção do perfil e vínculo após os cinco prints da Pati)
 
 - **Correção de escopo:** o exemplo MatDash era para a ficha do cliente em `Clientes`, não uma autorização para redesenhar livremente o perfil da pessoa. A versão anterior do perfil foi **reprovada**: abas quebradas, foto estreita, rolagem e assinatura duplicada. Não tratar a entrada anterior como aprovada.
