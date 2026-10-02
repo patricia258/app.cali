@@ -109,3 +109,5 @@ O terceiro dia útil gera lembrete no app e pelo mecanismo de e-mail do Workspac
 7. Validar o texto de identificação de gênero com pessoas interessadas, a opção de avatar neutro e se `Tem filhos?` é necessário para um indicador específico antes de disponibilizar a coleta.
 
 **Critério de aceite:** um envio real de teste altera o quadro apenas da empresa correta; Pati e o cliente veem o mesmo mês confirmado; gestor/departamento agrupam corretamente; admissão, promoção, transferência e desligamento preservam histórico; linhas ausentes não geram desligamento; a permissão de parceiro não alcança outras empresas.
+
+**Teste de 02/10, segunda rodada:** importação CSV fechava o modal antes da prévia; corrigida. Tabela inicial inclui colunas profissionais solicitadas, histórico detalha antes/depois e a ficha pode sair da equipe atual sem destruir meses anteriores. O desenho anterior foi substituído por monograma neutro. A planilha de 15 pessoas gerada para o teste tem o formato CSV antigo e não contém senioridade nem gênero; esses campos não são inventados. XLSX ainda não é aceito pelo importador.

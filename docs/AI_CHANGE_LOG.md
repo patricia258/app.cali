@@ -1,5 +1,14 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-10-02 — Codex (Equipe: importação e quadro após teste)
+
+- Corrigido o modal que se fechava ao selecionar CSV: a prévia e o botão de importação permanecem na tela, com nome do arquivo e erro visível. O modelo CSV inclui senioridade, setor, liderança, modelo e unidade, mantendo compatibilidade com o anterior.
+- Quadro mostra inicialmente cargo, senioridade, departamento, gestor direto, situação, contrato, jornada e admissão. O código fica na ficha; avatar criticado foi substituído por monograma neutro. Corrigido o contraste do subtítulo no cabeçalho bordô.
+- Histórico exibe antes/depois da mudança e indicadores explicam o mês de referência. Ficha pode ser removida da equipe atual com confirmação; a função preserva meses e movimentações anteriores. Desligamento real continua sendo outra operação. Banco: `20261002160000_team_archive_member.sql` aplicado e verificado no projeto oficial. Nenhuma pessoa foi removida por Codex.
+- **Autor:** Codex. **Aprovação:** aguardando teste da Pati em ADM e cliente. **Validação:** `npm run check`, estrutura e função no banco; upload autenticado da planilha dela ainda sem conferência visual.
+
+---
+
 ## 2026-10-02 — Codex (refino da Equipe após teste real da Pati)
 
 - **Correções de fluxo:** a ficha de pessoa só é enviada na quinta etapa; Enter nas etapas anteriores não grava uma ficha incompleta. Código interno vazio gera identificador CALI único na conclusão, mantendo códigos informados pelo cliente. Senioridade em lista, departamento com sugestões previamente cadastradas, setor opcional, localidade explicada e liderança explicitamente marcada, com indicação na ficha e ao selecionar gestor direto.

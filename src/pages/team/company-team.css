@@ -132,3 +132,14 @@
 .team-chart-period{margin-left:auto;color:var(--team-text);font-weight:650}
 [data-workspace-theme="night"] .team-stage-illustration{color:#e6bd7b}
 @media(max-width:600px){.team-stage-intro{min-height:0;gap:10px}.team-stage-illustration{width:58px;height:58px;border-radius:12px}.team-stage-illustration svg{width:31px;height:31px}.team-drawer{max-height:calc(100dvh - 16px);border-radius:16px}.team-drawer-head{padding:22px 62px 22px 18px}.team-drawer .team-facts{margin-inline:18px}.team-drawer h3,.team-drawer .team-history,.team-drawer .team-muted,.team-drawer .team-private{margin-left:18px;margin-right:18px}.team-drawer>.team-btn{margin-left:18px}.team-review-summary p:first-child{font-size:.78rem}}
+
+/* Refino do quadro, histórico e diálogos da Equipe. */
+.team-drawer-head div>span{display:block;color:#f3e7dd;line-height:1.45;margin-top:5px}
+.team-change-detail{display:block;color:var(--team-muted);font-size:.76rem;line-height:1.5;font-weight:500;margin-top:5px;overflow-wrap:anywhere}
+.team-movements .team-change-detail{margin:7px 0 0;color:var(--team-text)}
+.team-remove-link{display:block;margin:0 28px 26px;border:0;background:transparent;color:var(--team-muted);text-decoration:underline;text-underline-offset:3px;font:600 .77rem Inter,system-ui,sans-serif;cursor:pointer}
+.team-remove-link:hover{color:#a33b45}.team-confirm-remove{width:min(510px,100%)}.team-remove-copy{padding:24px 28px;color:var(--team-text);font-size:.87rem;line-height:1.55}.team-remove-copy p{margin:0 0 12px}.team-confirm-remove footer{display:flex;justify-content:flex-end;gap:10px}
+.team-avatar{font:700 1rem/1 "Playfair Display",Georgia,serif;letter-spacing:.01em;background:linear-gradient(145deg,#f6e9d4,#ecd4ad);color:#5a1e2d;border-color:#b58c52}
+.team-avatar.large,.team-drawer-head .team-avatar.large{font-size:1.5rem;color:#5a1e2d;background:linear-gradient(145deg,#f6e9d4,#ecd4ad)}
+.team-table-wrap td{padding:12px 12px}.team-table-wrap th{padding:13px 12px}
+.team-movements .team-section-note,.team-indicator-note{font-size:.82rem;line-height:1.5;color:var(--team-muted);margin:2px 0 14px}.team-indicator-note{grid-column:1/-1;margin:0}
