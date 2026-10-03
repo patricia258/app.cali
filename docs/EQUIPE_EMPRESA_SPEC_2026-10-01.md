@@ -1,5 +1,12 @@
 # Equipe da empresa e acessos · desenho inicial
 
+## Handoff · 03/10/2026 · Codex · refinamento visual aguardando conferência
+
+- Retirado o título grande “Equipe” da página. A identidade da empresa ganhou uma moldura discreta, logo maior e resolução de mídia privada pelo mesmo mecanismo usado nas outras telas; há inicial como fallback se o arquivo falhar.
+- A ficha da liderança mostra os liderados em tabela com pessoa, cargo/área, admissão, tempo de casa e situação. A última admissão aparece no resumo; não há segunda lista com os mesmos nomes. Vínculos anteriores ficam em tabela própria. A ficha amplia apenas nessa aba e mantém deslocamento horizontal na tabela em telas estreitas.
+- Ações da ficha têm altura compacta e contorno visível; o botão diz apenas “Arquivar ficha”, com a explicação abaixo. O período dos indicadores virou uma nota curta com referência em destaque e regra de data efetiva.
+- Sem alteração de banco, cálculo ou permissão. `npm run typecheck` e `npm run build` passaram. Ainda requer conferência autenticada com dados da empresa, em desktop e mobile, nos temas dia e noite. **Não aprovado pela Pati ainda.**
+
 ## Handoff · 03/10/2026 · Codex · aguardando conferência da Pati
 
 - Quadro geral: cabeçalho do cliente com logo/nome da empresa, mês ou intervalo de referência no canto direito, lembrete mensal compacto e indicadores concentrados na aba Indicadores.
