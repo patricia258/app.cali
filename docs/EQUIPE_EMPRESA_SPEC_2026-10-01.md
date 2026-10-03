@@ -1,5 +1,13 @@
 # Equipe da empresa e acessos · desenho inicial
 
+## Handoff · 03/10/2026 · Codex · aguardando conferência da Pati
+
+- Quadro geral: cabeçalho do cliente com logo/nome da empresa, mês ou intervalo de referência no canto direito, lembrete mensal compacto e indicadores concentrados na aba Indicadores.
+- Leitura em lista ou por liderança: os grupos usam `is_leader` e `manager_code` reais; pessoas sem gestor permanecem visíveis. A estrela junto ao avatar identifica líderes nas duas visualizações e na ficha.
+- Ficha do líder: abas Dados, Liderados e Histórico. Os liderados ativos são ordenados pela data de admissão crescente; a seção de desligados ou transferidos consulta o vínculo atual e os retratos mensais existentes. A ficha mostra tempo de casa calculado a partir das datas registradas.
+- Ações da ficha ficam na mesma linha no desktop e em duas colunas no mobile. Desligar abre confirmação antes do formulário; a gravação continua exigindo o salvamento explícito da ficha. Arquivar mantém a trilha histórica.
+- O filtro de período aplica o intervalo ao histórico e aos gráficos; o quadro mostra a posição do mês final. Não altera os dados nem as regras da RPC. Validação local: `npm run typecheck` e `npm run build` passaram. **A interação autenticada, os dados reais e o visual mobile/dia/noite ainda precisam da conferência da Pati; não registrar como aprovado.**
+
 **Pedido da Pati em 01/10/2026.** A página `Equipe e movimentações` foi implementada para administradora e cliente principal, com tabelas e políticas próprias no Supabase. Nenhum colaborador foi importado na implantação. O perfil de parceiro interno, o termo de adesão e a matriz comercial de indicadores ainda são projetos separados; o Workspace atual reconhece somente `admin` e `client` no banco.
 
 **Estado da entrega:** `/admin/equipe` e `/cliente/equipe` mostram a mesma equipe por empresa, com filtro de mês, busca, colunas configuráveis, ficha, edição, CSV com prévia, histórico e indicadores calculados de meses confirmados. Salvar usa RPC transacional `save_team_month_v1`; cliente principal só grava sua empresa, administradora pode selecionar empresas. Linhas ausentes do CSV não desligam pessoas. Dados opcionais de remuneração, gênero e filhos ficam em tabela restrita à administradora, sem exportação geral; o avatar derivado aparece na lista. O PDF atual usa impressão do navegador da tabela filtrada, até aprovação do modelo de relatório. A autenticação e o convite existentes não passaram a exigir o termo; a adesão formal permanece pendente e deve ser concluída antes de coleta real em escala.
