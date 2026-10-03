@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ArrowUpRight, Check, LockKeyhole, X } from 'lucide-react';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 import { Shell } from '../../components/WorkspaceShell';
 import { activeFront, coreFront, eligibleMode, loadContractFronts, planName, type CompanyPlan, type ContractedFront, type Front } from '../../lib/contractFronts';
 import { supabase } from '../../lib/supabase';
-import '../../contract-fronts.css';
 
 export function ClientFrontsPage(){
   const {user}=useWorkspaceAuth();
   const [company,setCompany]=useState<CompanyPlan|null>(null),[catalog,setCatalog]=useState<Front[]>([]),[contracts,setContracts]=useState<ContractedFront[]>([]);
   const [chosen,setChosen]=useState<Front|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState('');
+  useEffect(()=>{if(!chosen)return;document.body.classList.add('workspace-modal-open');const onKeyDown=(event:KeyboardEvent)=>{if(event.key==='Escape')setChosen(null);};window.addEventListener('keydown',onKeyDown);return()=>{document.body.classList.remove('workspace-modal-open');window.removeEventListener('keydown',onKeyDown);};},[chosen]);
   useEffect(()=>{let alive=true;async function load(){if(!supabase||!user){setLoading(false);return;}try{
     const profile=await supabase.from('profiles').select('company_id').eq('id',user.id).maybeSingle();
     if(profile.error||!profile.data?.company_id)throw new Error('Seu acesso ainda não está vinculado a uma empresa.');
@@ -28,6 +29,6 @@ export function ClientFrontsPage(){
       <section className="fronts-section"><div className="fronts-section-title"><h2>{plan.startsWith('build_')?'Em implantação':'Contratadas à parte'}</h2><span>{grouped.contracted.length} {grouped.contracted.length===1?'frente':'frentes'}</span></div>{grouped.contracted.length?<div className="fronts-grid">{grouped.contracted.map(({item,front})=><article className="fronts-card active" key={item.id}><span className="fronts-badge"><Check size={15}/>{item.mode==='build_assisted'?'Implantação assistida':item.mode==='slot_included'?'Slot incluído':'Contratada'}</span><h3>{front?.title}</h3><p>{item.scope_label||front?.description}</p></article>)}</div>:<div className="fronts-panel">{plan.startsWith('build_')?'A CALI ainda não registrou uma frente de implantação neste espaço.':'Nenhuma frente adicional registrada.'}</div>}</section>
       {grouped.possible.length>0&&<section className="fronts-section"><div className="fronts-section-title"><h2>Podemos conversar sobre</h2></div><div className="fronts-grid">{grouped.possible.map(front=><article className="fronts-card possible" key={front.code}><span className="fronts-badge"><LockKeyhole size={15}/>Fora do escopo atual</span><h3>{front.title}</h3><p>{front.description}</p><button type="button" onClick={()=>setChosen(front)}>Entender essa frente <ArrowUpRight size={16}/></button></article>)}</div></section>}
     </>}
-    {chosen&&<div className="fronts-dialog-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget)setChosen(null);}}><div className="fronts-dialog" role="dialog" aria-modal="true" aria-labelledby="front-dialog-title"><button type="button" className="fronts-close" onClick={()=>setChosen(null)} aria-label="Fechar"><X size={19}/></button><span className="section-kicker">CONVERSE COM A PATY</span><h2 id="front-dialog-title">{chosen.title}</h2><p>{chosen.description}</p><p>Esta frente depende de alinhamento de escopo e contrato. Podemos avaliar juntos o que faz sentido para sua empresa.</p><a className="fronts-primary" href={`https://wa.me/5541987791933?text=${encodeURIComponent(contact)}`} target="_blank" rel="noreferrer">Conversar no WhatsApp <ArrowUpRight size={16}/></a></div></div>}
+    {chosen&&createPortal(<div className="modal-backdrop full-screen-modal" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)setChosen(null);}}><section className="modal-card fronts-info-modal" role="dialog" aria-modal="true" aria-labelledby="front-dialog-title"><button type="button" className="modal-close" onClick={()=>setChosen(null)} aria-label="Fechar"><X size={19}/></button><span className="section-kicker">CONVERSE COM A PATY</span><h2 id="front-dialog-title">{chosen.title}</h2><p>{chosen.description}</p><p>Esta frente depende de alinhamento de escopo e contrato. Podemos avaliar juntos o que faz sentido para sua empresa.</p><a className="primary fronts-contact" href={`https://wa.me/5541987791933?text=${encodeURIComponent(contact)}`} target="_blank" rel="noreferrer">Conversar no WhatsApp <ArrowUpRight size={16}/></a></section></div>,document.body)}
   </div></Shell>;
 }

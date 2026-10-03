@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Plus, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { activeFront, coreFront, eligibleMode, loadContractFronts, planName, type CompanyPlan, type ContractedFront, type Front } from '../lib/contractFronts';
-import '../contract-fronts.css';
 
 export function ContractFrontsAdmin({company}:{company:CompanyPlan}) {
   const [catalog,setCatalog]=useState<Front[]>([]),[contracts,setContracts]=useState<ContractedFront[]>([]);

@@ -9,7 +9,7 @@
 - Partner: nenhuma frente adicional incluída; até uma frente recorrente paga por vez. Full: até uma frente adicional incluída e uma paga por vez. Atração e Seleção é por vaga identificada, para desenho e supervisão, sem sourcing operacional. Marca Empregadora e projetos pontuais não consomem esses slots.
 - Build Essencial: uma frente em implantação assistida por vez. Build Completo: várias. A configuração impede tratar Build como um plano recorrente com os slots do Partner/Full.
 - RLS: cliente lê somente a própria empresa; só administradora ativa ou encerra. O gatilho valida plano, elegibilidade e capacidade sob bloqueio da empresa. Mudança de plano com frente ativa exige encerrar essas ativações primeiro.
-- Cliente: nova página `Frentes`, com núcleo, frentes contratadas e opções ainda fora do escopo. Interesse abre contexto e WhatsApp com mensagem preenchida; não altera plano, não cobra e não cria pedido comercial no banco. Admin: aba `Frentes` na ficha da empresa para registrar o escopo contratado.
+- Cliente: página `Frentes` acessada pelo **botão do top bar**, com núcleo, frentes contratadas e opções ainda fora do escopo. Interesse abre o modal padrão do Workspace e WhatsApp com mensagem preenchida; não altera plano, não cobra e não cria pedido comercial no banco. Admin: aba `Frentes` na ficha da empresa para registrar o escopo contratado.
 
 ## Limites desta primeira entrega
 

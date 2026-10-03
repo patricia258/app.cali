@@ -1,5 +1,14 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-10-03 — Codex (ajuste estrutural de Frentes, após revisão da Pati)
+
+- **Pedido:** corrigir a camada visual e estrutural de Frentes sem alterar catálogo, slots, WhatsApp nem permissões. O resultado anterior ainda não estava aprovado.
+- “Entender essa frente” usa o overlay e card de `modal-system-v3.css` (`modal-backdrop full-screen-modal` / `modal-card`), aberto por portal, com `body.workspace-modal-open`, fechamento por Esc, botão ou fundo.
+- Removido `contract-fronts.css`. Estilos específicos foram consolidados em `workspace-system-v61.css`, com tokens `--theme-*` para dia e noite, sem duplicar paletas fixas. A entrada da página saiu do sidebar e passou a ser um botão no top bar do cliente; rota e lógica da página permanecem.
+- **Autor:** Codex. **Aprovação:** aguardando conferência da Pati. **Validação:** `npm run check` e `git diff --check` passaram. O servidor local abriu, mas a automação visual não estava instalada neste ambiente; dia/noite e mobile ainda requerem clique real. Nenhuma alteração no Supabase nesta rodada.
+
+---
+
 ## 2026-10-03 — Codex (pacotes e frentes contratuais)
 
 - **Fonte corrigida pela Pati:** `CALI Workspace — Pacotes, Frentes e Comportamento de Upsell.pdf`. O arquivo anterior não é a referência desta rodada.
