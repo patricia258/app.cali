@@ -738,3 +738,9 @@ Duas regras técnicas, pro handoff entre Claude e Codex, a partir do bug encontr
 - O modal de importação passa a ter estado de abertura próprio; erros de leitura permanecem visíveis. A etapa final explicita gênero/filhos e valida origem dos dados opcionais com mensagem, sem bloquear silenciosamente o botão. O seletor de colunas recebe camada superior, a tabela inicia com colunas essenciais e o xadrez local duplicado sai.
 - Os três avatares aprovados pela Pati são arquivos estáticos WebP no app, com seleção pelo campo de gênero já existente. CSV fictício de dez pessoas entregue separadamente à Pati; nenhum desses dados foi inserido no banco por esta rodada.
 - `npm run check` passou na cópia de trabalho. Aprovação visual e teste autenticado de importação continuam pendentes. Autor: Codex.
+
+### 2026-10-02 — Codex — Etapas explícitas e auditoria independente da Equipe
+
+- Pati informou que cadastrar/editar ainda fechava ou pulava a última etapa. Substituí a visibilidade frágil por posição CSS por `hidden` explícito em cada campo de cada etapa, mantive a etapa opcional própria e separei o botão de avançar do botão final de salvar.
+- Comando de auditoria diagnóstica para Cláudio em `docs/AUDITORIA_EQUIPE_PARA_CLAUDIO_2026-10-02.md`: ele deve comparar código/spec/fluxo, reproduzir e apontar evidências sem editar nem publicar.
+- `npm run check` passou. O navegador automatizado local não estava disponível; clique completo autenticado ainda **não** foi comprovado. Aprovação de Pati: pendente. Autor: Codex.
