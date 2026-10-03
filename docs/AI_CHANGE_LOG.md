@@ -1,5 +1,14 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-10-03 — Codex (pacotes e frentes contratuais)
+
+- **Fonte corrigida pela Pati:** `CALI Workspace — Pacotes, Frentes e Comportamento de Upsell.pdf`. O arquivo anterior não é a referência desta rodada.
+- Criado catálogo de frentes separado das frentes operacionais de projeto; ativação explícita por empresa com RLS e trava de slots Partner/Full/Build no banco. Migração `20261003170000_contract_fronts_v1.sql` aplicada no projeto oficial, com 15 itens de catálogo e **zero ativações de clientes**.
+- Admin configura a frente na ficha da empresa; cliente vê o núcleo do plano, o que foi contratado à parte e outras possibilidades com conversa consultiva por WhatsApp. Nenhum checkout ou upgrade automático. Planos Build entram no cadastro sem herdar a agenda fixa de Full.
+- **Autor:** Codex. **Aprovação:** aguardando Pati. **Verificação:** `npm run check`, catálogo/RLS e contador de ativações no banco; QA autenticado visual ainda pendente. Detalhes e limites em `FRONTES_CONTRATUAIS_2026-10-03.md`.
+
+---
+
 ## 2026-10-02 — Codex (Equipe: importação e quadro após teste)
 
 - Corrigido o modal que se fechava ao selecionar CSV: a prévia e o botão de importação permanecem na tela, com nome do arquivo e erro visível. O modelo CSV inclui senioridade, setor, liderança, modelo e unidade, mantendo compatibilidade com o anterior.
