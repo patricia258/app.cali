@@ -235,3 +235,22 @@
 .team-detail-actions .team-btn:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:700px){.team-heading{display:flex}.team-heading-actions{margin:0}.team-context{padding:13px}.team-report-section{padding-inline:16px}}
 @media(max-width:650px){.team-detail-actions .team-btn{white-space:normal}.team-report-intro{gap:18px;flex-wrap:wrap}}
+
+/* Faixa única: lembrete mensal e cadastros, com os filtros da mesma família visual. */
+.team-action-strip{display:flex;align-items:stretch;justify-content:flex-end;gap:12px;margin:0 0 17px}
+.team-action-strip .team-review-callout{flex:1 1 auto;min-width:0;margin:0;padding:11px 15px;gap:13px;border-radius:12px;box-shadow:none}
+.team-action-strip .team-review-callout strong{font-size:.94rem;margin:2px 0}
+.team-action-strip .team-review-callout p{font-size:.71rem;line-height:1.35}
+.team-action-strip .team-review-callout .team-eyebrow{font-size:.58rem}
+.team-action-strip .team-review-callout .team-btn{min-height:36px;padding:7px 11px;font-size:.75rem}
+.team-action-strip .team-heading-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex:none;flex-wrap:nowrap}
+.team-action-strip .team-heading-actions .team-btn{min-height:42px;padding:8px 12px;font-size:.78rem}
+.team-action-strip .team-heading-actions em{font-style:italic;font-weight:600}
+.team-company-identity>.team-company-logo{width:58px;height:58px;padding:0;overflow:hidden;border-radius:13px}
+.team-company-identity>.team-company-logo img{display:block;width:100%;height:100%;padding:0;object-fit:cover}
+.team-tools>.team-status-filter{min-width:185px}
+.team-tools>.team-status-filter svg{flex:none;color:var(--team-wine)}
+.team-tools>.team-status-filter select{width:100%;cursor:pointer}
+@media(max-width:1050px){.team-action-strip{flex-wrap:wrap}.team-action-strip .team-review-callout{flex-basis:100%}.team-action-strip .team-heading-actions{margin-left:auto}}
+@media(max-width:650px){.team-action-strip .team-heading-actions{width:100%;flex-wrap:wrap}.team-action-strip .team-heading-actions .team-btn{flex:1 1 180px}.team-action-strip .team-review-callout{flex-direction:column;align-items:flex-start}.team-action-strip .team-review-callout .team-btn{align-self:flex-start}}
+@media print{body.team-printing .team-action-strip{display:none!important}}

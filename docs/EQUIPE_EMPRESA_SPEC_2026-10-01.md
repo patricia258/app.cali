@@ -1,5 +1,12 @@
 # Equipe da empresa e acessos · desenho inicial
 
+## Handoff · 03/10/2026 · Codex · faixa de ações e filtros
+
+- O filtro de situação agora tem a mesma moldura e o mesmo ícone de filtro do seletor de áreas; continua filtrando pelas mesmas situações.
+- A identidade da empresa prefere `logo_workspace_url` e recorre à logo original se necessário. A moldura e a imagem ocupam a mesma área, sem acolchoamento duplicado.
+- O lembrete de revisão mensal e as ações de cadastrar via planilha/cadastrar colaborador compartilham uma única faixa no desktop. Os dois botões ficam à direita. Em telas estreitas a faixa quebra sem comprimir os controles.
+- Nenhuma regra mensal ou de cadastro foi alterada. `npm run typecheck` e `npm run build` passaram; conferir visual autenticado em dia/noite e mobile. **Ainda não aprovado pela Pati.**
+
 ## Handoff · 03/10/2026 · Codex · refinamento visual aguardando conferência
 
 - Retirado o título grande “Equipe” da página. A identidade da empresa ganhou uma moldura discreta, logo maior e resolução de mídia privada pelo mesmo mecanismo usado nas outras telas; há inicial como fallback se o arquivo falhar.
