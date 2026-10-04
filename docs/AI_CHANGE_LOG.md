@@ -1,5 +1,16 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-10-04 — Claude (ajuste visual de Frentes, pedido direto da Pati)
+
+- **Pedido:** Pati revisou a tela publicada por Codex (`decd455`) e pediu seis ajustes diretos a mim, sem passar por comando para o Codex desta vez: card do topo menor; ponto de entrada da barra superior mais identificável; núcleo do plano em uma única linha com cards mais detalhados; "Contratadas à parte" fora da página quando vazia; "Podemos conversar sobre" sem card uniforme; hover consistente; e separação dos dois números de WhatsApp (pessoal da Pati vs. administrativo).
+- **`ClientFrontsPage.tsx`:** hero reduzido e reescrito como saudação (`Olá, {empresa}!` + explicação do espaço, em vez do título genérico "Frentes de atuação"). "Já faz parte do seu plano" passa a rolar em uma única linha (`fronts-grid-row`), cards mais altos/largos, com rótulo "Núcleo {plano}". A seção "Contratadas à parte" some da página para Partner/Full (passa a viver só no atalho da barra superior); para Build ela continua inline como "Em implantação", porque ali é o conteúdo principal da tela, não um extra. "Podemos conversar sobre" agora agrupa por categoria do catálogo (recorrente/vaga/add-on/projeto), cada grupo com rótulo e ícone próprios, em vez de um grid uniforme.
+- **`WorkspaceShell.tsx`:** novo componente `ClientFrontsTopWidgets` substitui o link simples por um atalho com tooltip (`Frentes · {plano}`, mesmo padrão visual e `::after` do atalho de Relatórios) e, só quando a empresa tem frente contratada à parte (Partner/Full), um segundo botão com contador que abre um modal (`modal-system-v3`) listando essas frentes — sem precisar entrar na página.
+- **WhatsApp — dois números agora separados:** o CTA "Entender essa frente" (sinal de interesse/upgrade) passa a abrir no número administrativo **41 8787-9244** (`554187879244`), não mais no pessoal da Pati (41 98779-1933). Isso é intencional: upgrade, escopo e dúvidas administrativas vão para o ADM; contato direto com a Pati fica reservado para outros fluxos que pedem isso explicitamente. A mensagem/kicker do modal mudou de "Converse com a Paty" para "Fale com o time Cali" para não prometer a pessoa errada do outro lado.
+- **Não mudei:** catálogo, slots, RLS, migração e lógica de ativação continuam exatamente como o Codex implementou — nenhum dado ou regra de negócio foi tocado.
+- **Autor:** Claude. **Aprovação:** aguardando conferência visual da Pati (clique real, dia/noite e mobile). **Verificação:** `npm run check` e `git diff --check` passaram.
+
+
+
 ## 2026-10-03 — Codex (ajuste estrutural de Frentes, após revisão da Pati)
 
 - **Pedido:** corrigir a camada visual e estrutural de Frentes sem alterar catálogo, slots, WhatsApp nem permissões. O resultado anterior ainda não estava aprovado.
