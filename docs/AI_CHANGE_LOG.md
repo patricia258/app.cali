@@ -1,5 +1,14 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-10-04 — Claude (segunda rodada visual de Frentes: cor, conteúdo, layout)
+
+- **Pedido:** depois de ver a primeira rodada, a Pati pediu mais seis ajustes diretos: hero bordô sólida (dia e noite) com a folha da marca (`cali-lime-mark.svg`, já usada no menu/watermark) à direita; ícone de check verde abrindo "Já faz parte do seu plano"; cards do núcleo com degradê verde-claro, mais detalhe (tópicos) e um link no rodapé para falar com a Paty; "Podemos conversar sobre" com ícone de conversa, cards lado a lado em vez de empilhados por categoria, e degradê dourado; hover mudando de cor nos cards; destaque de palavras-chave nos tópicos.
+- **Conteúdo dos tópicos — limite assumido:** cada card agora mostra 2 linhas: a descrição oficial do catálogo (já existente) e uma segunda linha genérica de "como funciona nesse formato" (derivada da regra de modularidade da Matriz: Partner diagnostica+recomenda+desenha, Full diagnostica+desenha+implanta+acompanha, etc.). Não inventei exemplos específicos por frente — não tenho essa informação com segurança — e deixei um aviso no card ("peça pra Paty detalhar no WhatsApp") em vez de fabricar conteúdo comercial. Se a Pati mandar os exemplos reais por frente, eu insiro.
+- **Dois WhatsApp agora diferenciados dentro da própria página:** o link "fale com a Paty" nos cards do núcleo (pergunta sobre algo que já é do cliente) usa o número pessoal dela; o botão "Entender essa frente" (upsell) continua no ADM, como na rodada anterior.
+- **Layout "Podemos conversar sobre":** voltou a ser um grid único (lado a lado), sem seções separadas por categoria; cada card leva uma etiqueta pequena (`Núcleo CALI Full` / `Por vaga` / `Serviço avulso` / `Projeto pontual`) e os detalhes ficam num `<details>` (sanfona) pra não pesar visualmente.
+- **Não mudei:** catálogo, slots, RLS e migração continuam como o Codex implementou.
+- **Autor:** Claude. **Aprovação:** aguardando conferência visual da Pati. **Verificação:** `npm run check` e `git diff --check` passaram.
+
 ## 2026-10-04 — Claude (ajuste visual de Frentes, pedido direto da Pati)
 
 - **Pedido:** Pati revisou a tela publicada por Codex (`decd455`) e pediu seis ajustes diretos a mim, sem passar por comando para o Codex desta vez: card do topo menor; ponto de entrada da barra superior mais identificável; núcleo do plano em uma única linha com cards mais detalhados; "Contratadas à parte" fora da página quando vazia; "Podemos conversar sobre" sem card uniforme; hover consistente; e separação dos dois números de WhatsApp (pessoal da Pati vs. administrativo).

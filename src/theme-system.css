@@ -18,7 +18,9 @@ html[data-workspace-theme='day'] {
   --theme-accent: #5a1e2d;
   --theme-accent-soft: rgba(90,30,45,.08);
   --theme-gold: #b58c52;
+  --theme-gold-soft: rgba(181,140,82,.12);
   --theme-success: #356448;
+  --theme-success-soft: rgba(53,100,72,.10);
   --theme-danger: #8d463e;
 }
 
@@ -49,7 +51,9 @@ html[data-workspace-theme='night'] {
   --theme-accent: #d08a9d;
   --theme-accent-soft: rgba(208,138,157,.10);
   --theme-gold: #d1a45f;
+  --theme-gold-soft: rgba(209,164,95,.14);
   --theme-success: #87b99a;
+  --theme-success-soft: rgba(135,185,154,.14);
   --theme-danger: #d88f84;
 }
 
