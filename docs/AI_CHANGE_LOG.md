@@ -1,5 +1,13 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-10-04 — Codex (conteúdo e hierarquia comercial de Frentes)
+
+- **Pedido:** Pati rejeitou a repetição dos seis cards, o conteúdo raso e a uniformidade da área de ampliação. A página segue **pendente de aprovação visual**.
+- **Cliente:** hero bordô mais contido; atalho Frentes identificado por texto no top bar (ícone apenas no mobile); núcleo do plano em uma linha com setas e rolagem discreta. Cada frente agora explica um problema concreto e dois exemplos próprios. A orientação de modalidade do Partner/Full aparece uma vez ao final da seção; há um único contato com a Pati para o que já faz parte do plano.
+- **Possibilidades adicionais:** sanfona em duas colunas sem cards vazios esticados, com problema, exemplos e formato de contratação próprios. O botão de interesse abre o modal padrão; só o CTA final abre o WhatsApp administrativo. Frentes ativas, modalidades, números e elegibilidade não foram alterados.
+- **Conteúdo:** os exemplos são ilustrativos para explicar o catálogo, não novos entregáveis contratuais. Revisar com a Pati antes de tratar essa copy como descrição jurídica do escopo.
+- **Autor:** Codex. **Aprovação:** pendente da Pati. **Validação:** `npm run typecheck` e `npm run build` passaram no código da tela integrado a uma cópia local do app; QA autenticado em dia/noite/mobile ainda pendente.
+
 ## 2026-10-04 — Claude (terceira rodada visual de Frentes: padrões de referência)
 
 - **Pedido:** a Pati ainda não aprovou a página ("ainda não gostei"). Ela mandou três telas de referência — uma sanfona de "Dúvidas frequentes", os cards de comparação do próprio site da Azumi RH ("Atração de Talentos ou Hunting Executivo") e um grid de ícones "Para quem serve" — pedindo para usar como referência de **comportamento de layout**, não de cor (app.cali continua em bordô/dourado da Cali, nunca no azul/roxo da Azumi).

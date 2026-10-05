@@ -19,3 +19,7 @@
 - Sinal de interesse agregado para a administradora é backlog do PDF, seção 10. A conversa via WhatsApp ainda não registra intenção no banco.
 - Termo de adesão ao Workspace é decisão separada: nenhum plano autoriza coleta de dados pessoais automaticamente. A nova página não dispensa a formalização do acesso e da privacidade já descrita em `EQUIPE_EMPRESA_SPEC_2026-10-01.md`.
 - Validado por `npm run check` e estrutura/RLS no Supabase. Ainda falta clique autenticado real em dia/noite/mobile e confirmação do conteúdo e desenho pela Pati.
+
+## Revisão de conteúdo visual — 04/10/2026
+
+A página do cliente distingue o núcleo já incluído das possibilidades adicionais. Cada frente mostra um problema e dois exemplos específicos; os exemplos ilustram decisões ou situações possíveis e não ampliam o contrato. A modalidade Partner/Full é explicada uma vez, fora dos cards. O WhatsApp direto da Pati aparece apenas para dúvidas sobre o plano vigente; interesse em novas frentes segue para o administrativo após o modal padrão. A aprovação final do conteúdo e do visual continua pendente da Pati.
