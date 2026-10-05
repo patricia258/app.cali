@@ -1,5 +1,16 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-10-04 — Claude (terceira rodada visual de Frentes: padrões de referência)
+
+- **Pedido:** a Pati ainda não aprovou a página ("ainda não gostei"). Ela mandou três telas de referência — uma sanfona de "Dúvidas frequentes", os cards de comparação do próprio site da Azumi RH ("Atração de Talentos ou Hunting Executivo") e um grid de ícones "Para quem serve" — pedindo para usar como referência de **comportamento de layout**, não de cor (app.cali continua em bordô/dourado da Cali, nunca no azul/roxo da Azumi).
+- **"Já faz parte do seu plano" (`IncludedCard`):** passa a seguir o padrão do card de comparação da Azumi — etiqueta (`Núcleo {plano}`), título, primeira frase da descrição em destaque, checklist com ícone de check circular (reaproveitando `--theme-success`) com 2 itens (como a Cali atua nesse formato + cadência de acompanhamento), e botão CTA de largura total ("Falar sobre X") que abre o WhatsApp da Paty. Troquei o rodapé-link da rodada 2 pelo botão cheio, mais parecido com o CTA em pílula da referência.
+- **"Podemos conversar sobre" (`PossibleCard`):** passa a ser uma sanfona (`<details>`) no estilo "Dúvidas frequentes" da primeira referência — resumo com ícone de cadeado + título + chevron que gira ao abrir; ao expandir, mostra a etiqueta de categoria, a descrição em destaque e a linha de modalidade, com o botão "Entender essa frente" (ADM) dentro da resposta. Grid próprio (`fronts-faq-grid`), lado a lado, sem agrupar por categoria.
+- **Cards mais altos/largos** na linha de "Já faz parte" (`fronts-grid-row`), porque agora cada card carrega mais conteúdo (etiqueta + título + frase + checklist + botão) do que a versão anterior.
+- **Limpeza:** removi a regra `.fronts-card.possible` (degradê dourado) que ficou sem uso depois que "Podemos conversar sobre" passou a usar `.fronts-faq-card` em vez de `.fronts-card`.
+- **Conteúdo — mesmo limite assumido da rodada 2:** continuo sem inventar exemplos específicos por frente; o texto de cada card ainda é a descrição oficial do catálogo + a regra de modalidade da Matriz. Isto ainda não é uma aprovação de conteúdo final, só a estrutura visual pedida.
+- **Não mudei:** catálogo, slots, RLS, migração e os dois números de WhatsApp continuam como nas rodadas anteriores.
+- **Autor:** Claude. **Aprovação:** aguardando conferência da Pati — ela sinalizou explicitamente que ainda está iterando no design. **Verificação:** `npm run check` e `git diff --check` passaram.
+
 ## 2026-10-04 — Claude (segunda rodada visual de Frentes: cor, conteúdo, layout)
 
 - **Pedido:** depois de ver a primeira rodada, a Pati pediu mais seis ajustes diretos: hero bordô sólida (dia e noite) com a folha da marca (`cali-lime-mark.svg`, já usada no menu/watermark) à direita; ícone de check verde abrindo "Já faz parte do seu plano"; cards do núcleo com degradê verde-claro, mais detalhe (tópicos) e um link no rodapé para falar com a Paty; "Podemos conversar sobre" com ícone de conversa, cards lado a lado em vez de empilhados por categoria, e degradê dourado; hover mudando de cor nos cards; destaque de palavras-chave nos tópicos.
