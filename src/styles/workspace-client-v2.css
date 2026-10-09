@@ -38,6 +38,14 @@
 :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-deliverable-row-v33 { border-radius: 0 !important; background: var(--v2-surface) !important; box-shadow: none !important; border: 0 !important; border-bottom: 1px solid var(--v2-line) !important; }
 :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-deliverable-row-v33 .front-deliverable-open-v3 { padding-block: 13px !important; }
 :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-deliverable-row-v33:hover { background: var(--v2-soft) !important; }
+/* Entregáveis V2: mesma estrutura operacional, acabamento visual refinado. */
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-roadmap-table-v33 { border:1px solid var(--v2-line) !important; border-radius:10px !important; background:var(--v2-surface) !important; box-shadow:none !important; overflow:hidden; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-header-v33 { border-bottom:1px solid var(--v2-line) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-deliverable-row-v33:focus-within { background:var(--v2-soft) !important; outline:2px solid color-mix(in srgb,var(--v2-gold) 55%,transparent); outline-offset:-2px; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-deliverable-workspace-v33 { border-radius:12px !important; box-shadow:0 22px 80px #2f182644 !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-deliverable-workspace-v33 .deliverable-tabs-v2 { border-bottom:1px solid var(--v2-line) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-deliverable-workspace-v33 button:focus-visible { outline:2px solid var(--v2-gold); outline-offset:2px; }
+
 
 /* Document gallery: reference V2 proportions, real publication/Drive/acknowledgement actions. */
 :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-documents-v4 .drive-banner { padding: 16px 20px !important; border-radius: 9px !important; border: 1px solid color-mix(in srgb,var(--v2-gold) 40%,var(--v2-line)) !important; background: color-mix(in srgb,var(--v2-surface) 90%,var(--v2-gold)) !important; box-shadow: none !important; }
