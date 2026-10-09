@@ -1,79 +1,85 @@
 /* Administrative presentation maps the approved V2 to existing operational views. */
-.app-shell[data-workspace-role='admin'] :is(.overview-heading,.overview-actions,.clients-v3-actions,.projects-v3-actions,.documents-v4-actions,.reports-v17-actions,.satisfaction-v39-actions,.calendar-v2-actions) { margin-bottom: 16px !important; }
-.app-shell[data-workspace-role='admin'] :is(.overview-signal-strip,.project-kpis-v2,.satisfaction-kpis-v40) { border: 1px solid var(--v2-line) !important; border-radius: 9px !important; overflow: hidden; background: var(--v2-surface) !important; gap: 0 !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='admin'] :is(.signal-card,.project-kpis-v2 > article,.satisfaction-kpis-v40 > article) { background: transparent !important; border: 0 !important; border-right: 1px solid var(--v2-line) !important; border-radius: 0 !important; box-shadow: none !important; padding: 17px 20px !important; min-height: 0 !important; }
-.app-shell[data-workspace-role='admin'] .signal-card:last-child { border-right: 0 !important; }
-.app-shell[data-workspace-role='admin'] .signal-card > strong { font-size: 26px !important; }
-.app-shell[data-workspace-role='admin'] :is(.analytics-grid,.overview-lower-grid,.satisfaction-analysis-grid-v39,.satisfaction-secondary-grid-v40) { gap: 14px !important; margin-block: 16px !important; }
-.app-shell[data-workspace-role='admin'] :is(.chart-panel,.attention-panel,.agenda-overview-panel,.deadline-panel,.satisfaction-distribution-panel-v39,.satisfaction-trend-panel-v39,.satisfaction-client-ranking-v40,.satisfaction-source-panel-v40,.satisfaction-response-panel-v39) { padding: 19px 21px !important; }
-.app-shell[data-workspace-role='admin'] .chart-panel-title { margin-bottom: 16px !important; }
-.app-shell[data-workspace-role='admin'] .portfolio-table-panel { padding: 18px 20px !important; }
-.app-shell[data-workspace-role='admin'] .portfolio-table-row { padding-block: 13px !important; border-color: var(--v2-line) !important; background: transparent !important; font-size: 12px !important; }
-.app-shell[data-workspace-role='admin'] .portfolio-table-head { background: var(--v2-soft) !important; border-radius: 5px !important; font-size: 10px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .overview-heading { min-height: 0 !important; padding: 0 0 18px !important; border: 0 !important; border-bottom: 1px solid var(--v2-line) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; animation: none !important; align-items: flex-start !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .overview-heading::after { content: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .overview-heading p { font-size: 13px; color: var(--v2-muted); }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .overview-signal-strip .signal-card { animation: none !important; backdrop-filter: none !important; transform: none !important; color: var(--v2-text) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .overview-signal-strip .signal-card > :is(span,small) { color: var(--v2-muted) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .overview-signal-strip .signal-card > strong { color: var(--v2-text) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] :is(.overview-heading,.overview-actions,.clients-v3-actions,.projects-v3-actions,.documents-v4-actions,.reports-v17-actions,.satisfaction-v39-actions,.calendar-v2-actions) { margin-bottom: 16px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] :is(.overview-signal-strip,.project-kpis-v2,.satisfaction-kpis-v40) { border: 1px solid var(--v2-line) !important; border-radius: 9px !important; overflow: hidden; background: var(--v2-surface) !important; gap: 0 !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] :is(.signal-card,.project-kpis-v2 > article,.satisfaction-kpis-v40 > article) { background: transparent !important; border: 0 !important; border-right: 1px solid var(--v2-line) !important; border-radius: 0 !important; box-shadow: none !important; padding: 17px 20px !important; min-height: 0 !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .signal-card:last-child { border-right: 0 !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .signal-card > strong { font-size: 26px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] :is(.analytics-grid,.overview-lower-grid,.satisfaction-analysis-grid-v39,.satisfaction-secondary-grid-v40) { gap: 14px !important; margin-block: 16px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] :is(.chart-panel,.attention-panel,.agenda-overview-panel,.deadline-panel,.satisfaction-distribution-panel-v39,.satisfaction-trend-panel-v39,.satisfaction-client-ranking-v40,.satisfaction-source-panel-v40,.satisfaction-response-panel-v39) { padding: 19px 21px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .chart-panel-title { margin-bottom: 16px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .portfolio-table-panel { padding: 18px 20px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .portfolio-table-row { padding-block: 13px !important; border-color: var(--v2-line) !important; background: transparent !important; font-size: 12px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .portfolio-table-head { background: var(--v2-soft) !important; border-radius: 5px !important; font-size: 10px !important; }
 
 /* Accounts retain their management tabs, lifecycle controls and invitation forms. */
-.app-shell[data-workspace-role='admin'] .client-list-panel { padding: 0 !important; overflow-x: auto; }
-.app-shell[data-workspace-role='admin'] .client-data-head { padding: 12px 16px !important; background: var(--v2-soft) !important; color: var(--v2-muted) !important; font-size: 10px !important; }
-.app-shell[data-workspace-role='admin'] .client-data-row-v2 { padding: 14px 16px !important; border-bottom: 1px solid var(--v2-line) !important; background: var(--v2-surface) !important; box-shadow: none !important; border-radius: 0 !important; font-size: 12px !important; }
-.app-shell[data-workspace-role='admin'] .client-data-row-v2:hover { background: var(--v2-soft) !important; }
-.app-shell[data-workspace-role='admin'] .client-quick-actions button { border-radius: 6px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .client-list-panel { padding: 0 !important; overflow-x: auto; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .client-data-head { padding: 12px 16px !important; background: var(--v2-soft) !important; color: var(--v2-muted) !important; font-size: 10px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .client-data-row-v2 { padding: 14px 16px !important; border-bottom: 1px solid var(--v2-line) !important; background: var(--v2-surface) !important; box-shadow: none !important; border-radius: 0 !important; font-size: 12px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .client-data-row-v2:hover { background: var(--v2-soft) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .client-quick-actions button { border-radius: 6px !important; }
 
 /* Execution: preserve project summary, roadmap, kanban and timer affordances. */
-.app-shell[data-workspace-role='admin'] .project-tools-v2 { margin-block: 14px !important; }
-.app-shell[data-workspace-role='admin'] .project-hero-v2 { min-height: 0 !important; padding: 20px 24px !important; border-radius: 9px !important; box-shadow: none !important; background: linear-gradient(120deg,#5a1e2d,#703348) !important; }
-.app-shell[data-workspace-role='admin'] .project-hero-context h2 { font-size: 23px !important; }
-.app-shell[data-workspace-role='admin'] .project-tabs-v2 { border-bottom: 1px solid var(--v2-line) !important; padding: 0 !important; border-radius: 0 !important; background: transparent !important; gap: 22px !important; }
-.app-shell[data-workspace-role='admin'] .project-tabs-v2 button { padding: 13px 0 !important; font-size: 12px !important; border-radius: 0 !important; }
-.app-shell[data-workspace-role='admin'] .project-tabs-v2 button.active { background: transparent !important; color: var(--v2-accent) !important; border-bottom: 2px solid var(--v2-accent) !important; }
-.app-shell[data-workspace-role='admin'] :is(.roadmap-v2,.deliverable-list-v3,.project-history-v2) { padding: 18px !important; }
-.app-shell[data-workspace-role='admin'] :is(.front-deliverable-row-v3,.deliverable-list-row-v3) { background: var(--v2-surface) !important; border-radius: 0 !important; box-shadow: none !important; border: 0 !important; border-bottom: 1px solid var(--v2-line) !important; }
-.app-shell[data-workspace-role='admin'] :is(.front-deliverable-open-v3,.deliverable-list-open-v3) { padding-block: 13px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .project-tools-v2 { margin-block: 14px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .project-hero-v2 { min-height: 0 !important; padding: 20px 24px !important; border-radius: 9px !important; box-shadow: none !important; background: linear-gradient(120deg,#5a1e2d,#703348) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .project-hero-context h2 { font-size: 23px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .project-tabs-v2 { border-bottom: 1px solid var(--v2-line) !important; padding: 0 !important; border-radius: 0 !important; background: transparent !important; gap: 22px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .project-tabs-v2 button { padding: 13px 0 !important; font-size: 12px !important; border-radius: 0 !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .project-tabs-v2 button.active { background: transparent !important; color: var(--v2-accent) !important; border-bottom: 2px solid var(--v2-accent) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] :is(.roadmap-v2,.deliverable-list-v3,.project-history-v2) { padding: 18px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] :is(.front-deliverable-row-v3,.deliverable-list-row-v3) { background: var(--v2-surface) !important; border-radius: 0 !important; box-shadow: none !important; border: 0 !important; border-bottom: 1px solid var(--v2-line) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] :is(.front-deliverable-open-v3,.deliverable-list-open-v3) { padding-block: 13px !important; }
 
 /* Hours: timer remains distinct from the consultation ledger. */
-.app-shell[data-workspace-role='admin'] .hours-connect-card { padding: 18px 20px !important; }
-.app-shell[data-workspace-role='admin'] .hours-v13-section-head h2 { font-size: 14px !important; }
-.app-shell[data-workspace-role='admin'] .hours-v13-timer-row { padding: 13px !important; border-radius: 7px !important; background: var(--v2-soft) !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='admin'] .hours-v13-usage-name strong { font-size: 12px !important; }
-.app-shell[data-workspace-role='admin'] .hours-connect-table td { font-size: 12px !important; }
-.app-shell[data-workspace-role='admin'] .hours-connect-extract { padding: 0 !important; overflow: hidden; }
-.app-shell[data-workspace-role='admin'] .hours-v13-extract-head { padding: 16px 18px !important; }
-.app-shell[data-workspace-role='admin'] .hours-connect-filters { padding: 12px 18px !important; }
-.app-shell[data-workspace-role='admin'] .hours-connect-table-wrap { overflow-x: auto; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .hours-connect-card { padding: 18px 20px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .hours-v13-section-head h2 { font-size: 14px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .hours-v13-timer-row { padding: 13px !important; border-radius: 7px !important; background: var(--v2-soft) !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .hours-v13-usage-name strong { font-size: 12px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .hours-connect-table td { font-size: 12px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .hours-connect-extract { padding: 0 !important; overflow: hidden; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .hours-v13-extract-head { padding: 16px 18px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .hours-connect-filters { padding: 12px 18px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .hours-connect-table-wrap { overflow-x: auto; }
 
 /* Calendar selection, grid heights, event positions and integration controls are untouched. */
-.app-shell[data-workspace-role='admin'] :is(.calendar-workspace-strip,.calendar-upcoming-strip) { border-radius: 9px !important; min-height: 0 !important; padding: 14px 18px !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='admin'] .calendar-main-toolbar { padding: 12px 0 !important; background: transparent !important; border-radius: 0 !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='admin'] .calendar-primary-panel { padding: 0 !important; overflow: hidden; }
-.app-shell[data-workspace-role='admin'] .calendar-view-switch { border-radius: 7px !important; background: var(--v2-soft) !important; }
-.app-shell[data-workspace-role='admin'] .calendar-view-switch button { padding: 8px 10px !important; font-size: 11px !important; }
-.app-shell[data-workspace-role='admin'] .calendar-view-switch button.active { background: #5a1e2d !important; color: #fff !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] :is(.calendar-workspace-strip,.calendar-upcoming-strip) { border-radius: 9px !important; min-height: 0 !important; padding: 14px 18px !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .calendar-main-toolbar { padding: 12px 0 !important; background: transparent !important; border-radius: 0 !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .calendar-primary-panel { padding: 0 !important; overflow: hidden; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .calendar-view-switch { border-radius: 7px !important; background: var(--v2-soft) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .calendar-view-switch button { padding: 8px 10px !important; font-size: 11px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .calendar-view-switch button.active { background: #5a1e2d !important; color: #fff !important; }
 
-.app-shell[data-workspace-role='admin'] .document-toolbar-v4 { padding: 12px 14px !important; border: 1px solid var(--v2-line) !important; border-radius: 9px !important; background: var(--v2-surface) !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='admin'] .document-library-grid-v3 { gap: 15px !important; }
-.app-shell[data-workspace-role='admin'] .document-library-grid-v3 > article { border-radius: 9px !important; border-color: var(--v2-line) !important; background: var(--v2-surface) !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='admin'] .document-card-content-v3 { padding: 18px !important; }
-.app-shell[data-workspace-role='admin'] .document-card-content-v3 h3 { font-size: 15px !important; }
-.app-shell[data-workspace-role='admin'] .document-card-footer-v3 { padding: 12px 18px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .document-toolbar-v4 { padding: 12px 14px !important; border: 1px solid var(--v2-line) !important; border-radius: 9px !important; background: var(--v2-surface) !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .document-library-grid-v3 { gap: 15px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .document-library-grid-v3 > article { border-radius: 9px !important; border-color: var(--v2-line) !important; background: var(--v2-surface) !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .document-card-content-v3 { padding: 18px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .document-card-content-v3 h3 { font-size: 15px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .document-card-footer-v3 { padding: 12px 18px !important; }
 
 /* Executive report editor/paper remain separate: no changes to PDF styles. */
-.app-shell[data-workspace-role='admin'] :is(.portal-admin-head,.people-map-heading,.portal-proposal-editor-head) { margin-bottom: 18px !important; }
-.app-shell[data-workspace-role='admin'] :is(.portal-admin-toolbar,.people-map-toolbar) { padding: 12px 14px !important; border-radius: 9px !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='admin'] :is(.portal-admin-kpis,.people-map-kpis) { border: 1px solid var(--v2-line); border-radius: 9px !important; background: var(--v2-surface); gap: 0 !important; overflow: hidden; }
-.app-shell[data-workspace-role='admin'] :is(.portal-admin-kpis,.people-map-kpis) > article { padding: 16px 18px !important; border: 0 !important; border-right: 1px solid var(--v2-line) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='admin'] :is(.portal-admin-table-card,.people-map-table-panel) { padding: 0 !important; overflow-x: auto; }
-.app-shell[data-workspace-role='admin'] .portal-editor-section { padding: 20px !important; }
-.app-shell[data-workspace-role='admin'] .reports-v16-filters { padding: 0 !important; background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; backdrop-filter: none !important; }
-.app-shell[data-workspace-role='admin'] .reports-v16-filters :is(input,select) { height: 36px !important; border-radius: 7px !important; font-size: 12px !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='admin'] .reports-v16-toolbar { padding: 12px 16px !important; border-radius: 9px !important; background: var(--v2-surface) !important; box-shadow: none !important; backdrop-filter: none !important; animation: none !important; }
-.app-shell[data-workspace-role='admin'] .reports-v16-review-map { border-radius: 9px !important; padding: 16px 18px !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='admin'] .reports-v16-section { border-radius: 9px !important; background: var(--v2-surface) !important; border-color: var(--v2-line) !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='admin'] .reports-v16-section-heading h2 { font-size: 15px !important; }
-.app-shell[data-workspace-role='admin'] .satisfaction-filter-panel-v39 { padding: 14px 18px !important; }
-.app-shell[data-workspace-role='admin'] .satisfaction-period-tabs-v39 button { border-radius: 6px !important; padding: 8px 12px !important; font-size: 11px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] :is(.portal-admin-head,.people-map-heading,.portal-proposal-editor-head) { margin-bottom: 18px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] :is(.portal-admin-toolbar,.people-map-toolbar) { padding: 12px 14px !important; border-radius: 9px !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] :is(.portal-admin-kpis,.people-map-kpis) { border: 1px solid var(--v2-line); border-radius: 9px !important; background: var(--v2-surface); gap: 0 !important; overflow: hidden; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] :is(.portal-admin-kpis,.people-map-kpis) > article { padding: 16px 18px !important; border: 0 !important; border-right: 1px solid var(--v2-line) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] :is(.portal-admin-table-card,.people-map-table-panel) { padding: 0 !important; overflow-x: auto; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .portal-editor-section { padding: 20px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .reports-v16-filters { padding: 0 !important; background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; backdrop-filter: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .reports-v16-filters :is(input,select) { height: 36px !important; border-radius: 7px !important; font-size: 12px !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .reports-v16-toolbar { padding: 12px 16px !important; border-radius: 9px !important; background: var(--v2-surface) !important; box-shadow: none !important; backdrop-filter: none !important; animation: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .reports-v16-review-map { border-radius: 9px !important; padding: 16px 18px !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .reports-v16-section { border-radius: 9px !important; background: var(--v2-surface) !important; border-color: var(--v2-line) !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .reports-v16-section-heading h2 { font-size: 15px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .satisfaction-filter-panel-v39 { padding: 14px 18px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .satisfaction-period-tabs-v39 button { border-radius: 6px !important; padding: 8px 12px !important; font-size: 11px !important; }
 
 @media (max-width: 700px) {
-  .app-shell[data-workspace-role='admin'] :is(.chart-panel,.attention-panel,.agenda-overview-panel,.deadline-panel) { padding: 16px !important; }
-  .app-shell[data-workspace-role='admin'] .project-hero-v2 { padding: 18px !important; }
-  .app-shell[data-workspace-role='admin'] .project-tabs-v2 { overflow-x: auto; gap: 16px !important; flex-wrap: nowrap; }
-  .app-shell[data-workspace-role='admin'] .project-tabs-v2 button { white-space: nowrap; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] :is(.chart-panel,.attention-panel,.agenda-overview-panel,.deadline-panel) { padding: 16px !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .project-hero-v2 { padding: 18px !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .project-tabs-v2 { overflow-x: auto; gap: 16px !important; flex-wrap: nowrap; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .project-tabs-v2 button { white-space: nowrap; }
 }

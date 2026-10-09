@@ -213,12 +213,6 @@ body.workspace-modal-open .workspace-view {
   .sidebar.pinned {
     width: var(--sidebar-open) !important;
   }
-  .app-shell:has(.sidebar:hover) .main,
-  .app-shell:has(.sidebar:focus-within) .main,
-  .app-shell:has(.sidebar.pinned) .main {
-    margin-left: var(--sidebar-open) !important;
-    width: calc(100% - var(--sidebar-open)) !important;
-  }
 }
 .brand-full img {
   width: 140px !important;

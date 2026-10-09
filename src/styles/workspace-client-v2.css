@@ -1,98 +1,98 @@
 /* Client pages use the real ledger, calendar, records, team and delivery components. */
-.app-shell[data-workspace-role='client'] .client-home-intro { margin-bottom: 18px !important; gap: 18px !important; }
-.app-shell[data-workspace-role='client'] .client-home-intro h1 { margin: 0 !important; }
-.app-shell[data-workspace-role='client'] .client-home-contact { padding: 8px 12px !important; background: var(--v2-surface) !important; border: 1px solid var(--v2-line) !important; border-radius: 9px !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='client'] .contract-card { padding: 18px 22px !important; border-radius: 9px !important; min-height: 0 !important; background: linear-gradient(110deg,#5a1e2d,#713548) !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='client'] .client-executive-grid { margin: 14px 0 18px !important; background: var(--v2-surface) !important; border: 1px solid var(--v2-line) !important; border-radius: 9px !important; }
-.app-shell[data-workspace-role='client'] .client-executive-grid .executive-card { min-height: 126px !important; padding: 16px 18px !important; }
-.app-shell[data-workspace-role='client'] :is(.client-project-panel,.client-agenda-panel) { padding: 19px 21px !important; }
-.app-shell[data-workspace-role='client'] .client-home-lower-grid { gap: 14px !important; }
-.app-shell[data-workspace-role='client'] .client-home-service-grid { gap: 14px !important; margin-bottom: 18px !important; }
-.app-shell[data-workspace-role='client'] .client-home-service-grid .client-service-card { border-color: var(--v2-line) !important; border-radius: 9px !important; background: var(--v2-surface) !important; min-height: 148px !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='client'] .client-home-service-grid .client-service-card:hover { transform: translateY(-2px); }
-.app-shell[data-workspace-role='client'] .client-service-kicker { color: var(--v2-gold) !important; }
-.app-shell[data-workspace-role='client'] .client-agenda-step { min-height: 72px; }
-.app-shell[data-workspace-role='client'] .client-delivery-lane { min-height: 66px; border-color: var(--v2-line); }
-.app-shell[data-workspace-role='client'] .client-home-reports-link { border-radius: 7px !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-home-intro { margin-bottom: 18px !important; gap: 18px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-home-intro h1 { margin: 0 !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-home-contact { padding: 8px 12px !important; background: var(--v2-surface) !important; border: 1px solid var(--v2-line) !important; border-radius: 9px !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .contract-card { padding: 18px 22px !important; border-radius: 9px !important; min-height: 0 !important; background: linear-gradient(110deg,#5a1e2d,#713548) !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-executive-grid { margin: 14px 0 18px !important; background: var(--v2-surface) !important; border: 1px solid var(--v2-line) !important; border-radius: 9px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-executive-grid .executive-card { min-height: 126px !important; padding: 16px 18px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] :is(.client-project-panel,.client-agenda-panel) { padding: 19px 21px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-home-lower-grid { gap: 14px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-home-service-grid { gap: 14px !important; margin-bottom: 18px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-home-service-grid .client-service-card { border-color: var(--v2-line) !important; border-radius: 9px !important; background: var(--v2-surface) !important; min-height: 148px !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-home-service-grid .client-service-card:hover { transform: translateY(-2px); }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-service-kicker { color: var(--v2-gold) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-agenda-step { min-height: 72px; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-delivery-lane { min-height: 66px; border-color: var(--v2-line); }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-home-reports-link { border-radius: 7px !important; box-shadow: none !important; }
 
 /* Hours: compact statement, with existing totals, visibility and alerts intact. */
-.app-shell[data-workspace-role='client'] .client-hours-summary { padding: 20px 22px !important; background: var(--v2-surface) !important; color: var(--v2-text) !important; }
-.app-shell[data-workspace-role='client'] .client-hours-summary-top { margin-bottom: 18px !important; }
-.app-shell[data-workspace-role='client'] .client-hours-summary-top h2 { font-size: 20px !important; color: var(--v2-text) !important; margin-top: 5px; }
-.app-shell[data-workspace-role='client'] .client-hours-summary-top > div > span { color: var(--v2-muted) !important; font-size: 10px !important; }
-.app-shell[data-workspace-role='client'] .client-hours-metric-grid { gap: 0 !important; background: transparent !important; }
-.app-shell[data-workspace-role='client'] .client-hours-metric-grid > div { padding: 2px 24px 8px !important; border: 0 !important; border-left: 1px solid var(--v2-line) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='client'] .client-hours-metric-grid > div:first-child { padding-left: 0 !important; border-left: 0 !important; }
-.app-shell[data-workspace-role='client'] .client-hours-metric-grid strong { color: var(--v2-accent) !important; font-size: 28px !important; }
-.app-shell[data-workspace-role='client'] .client-hours-metric-grid span { color: var(--v2-muted) !important; font-size: 11px !important; }
-.app-shell[data-workspace-role='client'] .client-hours-progress { height: 6px !important; margin-top: 16px; background: var(--v2-line) !important; }
-.app-shell[data-workspace-role='client'] .client-hours-progress i:not(.critical) { background: #692e3e !important; }
-.app-shell[data-workspace-role='client'] .client-hours-filters { padding: 13px 0 !important; margin: 12px 0 !important; background: transparent !important; border: 0 !important; border-bottom: 1px solid var(--v2-line) !important; border-radius: 0 !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='client'] .client-hours-table-card { padding: 0 !important; overflow: hidden; }
-.app-shell[data-workspace-role='client'] .client-hours-table-wrap { overflow-x: auto; }
-.app-shell[data-workspace-role='client'] .client-hours-table td { font-size: 12px !important; }
-.app-shell[data-workspace-role='client'] .client-hours-detail > td { background: var(--v2-soft) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-summary { padding: 20px 22px !important; background: var(--v2-surface) !important; color: var(--v2-text) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-summary-top { margin-bottom: 18px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-summary-top h2 { font-size: 20px !important; color: var(--v2-text) !important; margin-top: 5px; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-summary-top > div > span { color: var(--v2-muted) !important; font-size: 10px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-metric-grid { gap: 0 !important; background: transparent !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-metric-grid > div { padding: 2px 24px 8px !important; border: 0 !important; border-left: 1px solid var(--v2-line) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-metric-grid > div:first-child { padding-left: 0 !important; border-left: 0 !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-metric-grid strong { color: var(--v2-accent) !important; font-size: 28px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-metric-grid span { color: var(--v2-muted) !important; font-size: 11px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-progress { height: 6px !important; margin-top: 16px; background: var(--v2-line) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-progress i:not(.critical) { background: #692e3e !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-filters { padding: 13px 0 !important; margin: 12px 0 !important; background: transparent !important; border: 0 !important; border-bottom: 1px solid var(--v2-line) !important; border-radius: 0 !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-table-card { padding: 0 !important; overflow: hidden; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-table-wrap { overflow-x: auto; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-table td { font-size: 12px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-detail > td { background: var(--v2-soft) !important; }
 
 /* Calendar: preserve week geometry and selection; reduce surrounding chrome. */
-.app-shell[data-workspace-role='client'] .client-google-settings { padding: 13px 16px !important; min-height: 0 !important; border-radius: 8px !important; background: var(--v2-surface) !important; border: 1px solid var(--v2-line) !important; box-shadow: none !important; margin-bottom: 16px !important; }
-.app-shell[data-workspace-role='client'] .client-real-timeline-panel { padding: 18px !important; }
-.app-shell[data-workspace-role='client'] .client-real-timeline-title { margin-bottom: 14px !important; }
-.app-shell[data-workspace-role='client'] .client-real-timeline-title h2 { font-size: 16px !important; }
-.app-shell[data-workspace-role='client'] .client-agenda-view-controls { border-radius: 6px !important; background: var(--v2-soft) !important; }
-.app-shell[data-workspace-role='client'] .client-agenda-view-controls button { padding: 7px 10px !important; font-size: 11px !important; border-radius: 5px !important; }
-.app-shell[data-workspace-role='client'] .client-agenda-view-controls button.active { background: #5a1e2d !important; color: #fff !important; }
-.app-shell[data-workspace-role='client'] .client-agenda-table { border-radius: 7px !important; }
-.app-shell[data-workspace-role='client'] .client-agenda-body { padding-block: 13px !important; border-color: var(--v2-line) !important; background: var(--v2-surface) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-google-settings { padding: 13px 16px !important; min-height: 0 !important; border-radius: 8px !important; background: var(--v2-surface) !important; border: 1px solid var(--v2-line) !important; box-shadow: none !important; margin-bottom: 16px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-real-timeline-panel { padding: 18px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-real-timeline-title { margin-bottom: 14px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-real-timeline-title h2 { font-size: 16px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-agenda-view-controls { border-radius: 6px !important; background: var(--v2-soft) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-agenda-view-controls button { padding: 7px 10px !important; font-size: 11px !important; border-radius: 5px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-agenda-view-controls button.active { background: #5a1e2d !important; color: #fff !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-agenda-table { border-radius: 7px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-agenda-body { padding-block: 13px !important; border-color: var(--v2-line) !important; background: var(--v2-surface) !important; }
 
 /* Delivery roadmap: real project picker, fronts, review/approval and chat stay mounted. */
-.app-shell[data-workspace-role='client'] .client-roadmap-actions-v34 { margin-bottom: 16px !important; }
-.app-shell[data-workspace-role='client'] .client-project-picker-v33 { min-height: 36px !important; border-radius: 7px !important; font-size: 12px !important; }
-.app-shell[data-workspace-role='client'] .client-roadmap-table-v33 { padding: 18px !important; }
-.app-shell[data-workspace-role='client'] .client-front-header-v33 { padding: 13px 0 !important; border-bottom: 1px solid var(--v2-line) !important; }
-.app-shell[data-workspace-role='client'] .client-front-header-v33 h3 { font-size: 14px !important; }
-.app-shell[data-workspace-role='client'] .client-front-deliverable-row-v33 { border-radius: 0 !important; background: var(--v2-surface) !important; box-shadow: none !important; border: 0 !important; border-bottom: 1px solid var(--v2-line) !important; }
-.app-shell[data-workspace-role='client'] .client-front-deliverable-row-v33 .front-deliverable-open-v3 { padding-block: 13px !important; }
-.app-shell[data-workspace-role='client'] .client-front-deliverable-row-v33:hover { background: var(--v2-soft) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-roadmap-actions-v34 { margin-bottom: 16px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-project-picker-v33 { min-height: 36px !important; border-radius: 7px !important; font-size: 12px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-roadmap-table-v33 { padding: 18px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-header-v33 { padding: 13px 0 !important; border-bottom: 1px solid var(--v2-line) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-header-v33 h3 { font-size: 14px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-deliverable-row-v33 { border-radius: 0 !important; background: var(--v2-surface) !important; box-shadow: none !important; border: 0 !important; border-bottom: 1px solid var(--v2-line) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-deliverable-row-v33 .front-deliverable-open-v3 { padding-block: 13px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-deliverable-row-v33:hover { background: var(--v2-soft) !important; }
 
 /* Document gallery: reference V2 proportions, real publication/Drive/acknowledgement actions. */
-.app-shell[data-workspace-role='client'] .client-documents-v4 .drive-banner { padding: 16px 20px !important; border-radius: 9px !important; border: 1px solid color-mix(in srgb,var(--v2-gold) 40%,var(--v2-line)) !important; background: color-mix(in srgb,var(--v2-surface) 90%,var(--v2-gold)) !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='client'] .client-doc-toolbar-v4 { padding: 13px 15px !important; border: 1px solid var(--v2-line); border-radius: 9px; background: var(--v2-surface); gap: 12px !important; margin: 16px 0 !important; }
-.app-shell[data-workspace-role='client'] .document-cards-v2 { grid-template-columns: repeat(3,minmax(0,1fr)) !important; gap: 15px !important; }
-.app-shell[data-workspace-role='client'] .document-card-v2 { border: 1px solid var(--v2-line) !important; border-radius: 10px !important; background: var(--v2-surface) !important; box-shadow: none !important; transform: none !important; }
-.app-shell[data-workspace-role='client'] .document-card-cover { height: 130px !important; min-height: 130px !important; border-radius: 0 !important; }
-.app-shell[data-workspace-role='client'] .document-card-body { padding: 18px !important; }
-.app-shell[data-workspace-role='client'] .document-card-body h3 { font-size: 15px !important; line-height: 1.4; }
-.app-shell[data-workspace-role='client'] .document-card-actions-v2 { display: flex !important; flex-wrap: wrap; gap: 8px !important; }
-.app-shell[data-workspace-role='client'] .document-card-actions-v2 button { flex: 1 1 100px; min-height: 34px !important; font-size: 11px !important; border-radius: 7px !important; }
-.app-shell[data-workspace-role='client'] .document-protocol { padding-block: 10px; margin-block: 10px; border-block: 1px solid var(--v2-line); color: var(--v2-accent); }
-.app-shell[data-workspace-role='client'] .client-document-validity-alert { border-radius: 8px !important; padding: 12px 16px !important; background: color-mix(in srgb,var(--v2-surface) 90%,var(--v2-gold)) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-documents-v4 .drive-banner { padding: 16px 20px !important; border-radius: 9px !important; border: 1px solid color-mix(in srgb,var(--v2-gold) 40%,var(--v2-line)) !important; background: color-mix(in srgb,var(--v2-surface) 90%,var(--v2-gold)) !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-doc-toolbar-v4 { padding: 13px 15px !important; border: 1px solid var(--v2-line); border-radius: 9px; background: var(--v2-surface); gap: 12px !important; margin: 16px 0 !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-cards-v2 { grid-template-columns: repeat(3,minmax(0,1fr)) !important; gap: 15px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-card-v2 { border: 1px solid var(--v2-line) !important; border-radius: 10px !important; background: var(--v2-surface) !important; box-shadow: none !important; transform: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-card-cover { height: 130px !important; min-height: 130px !important; border-radius: 0 !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-card-body { padding: 18px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-card-body h3 { font-size: 15px !important; line-height: 1.4; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-card-actions-v2 { display: flex !important; flex-wrap: wrap; gap: 8px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-card-actions-v2 button { flex: 1 1 100px; min-height: 34px !important; font-size: 11px !important; border-radius: 7px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-protocol { padding-block: 10px; margin-block: 10px; border-block: 1px solid var(--v2-line); color: var(--v2-accent); }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-document-validity-alert { border-radius: 8px !important; padding: 12px 16px !important; background: color-mix(in srgb,var(--v2-surface) 90%,var(--v2-gold)) !important; }
 
 /* Report library: preserve period, version, PDF, protocol, opening and acknowledgement. */
-.app-shell[data-workspace-role='client'] .client-report-library-head-v58 { padding: 0 0 15px !important; margin-bottom: 0 !important; border-bottom: 1px solid var(--v2-line); }
-.app-shell[data-workspace-role='client'] .client-report-list-v64 { border: 1px solid var(--v2-line) !important; border-radius: 9px !important; background: var(--v2-surface) !important; overflow: hidden; margin-top: 16px; }
-.app-shell[data-workspace-role='client'] .client-report-entry-main-v64 { min-height: 78px !important; padding: 14px 18px !important; background: var(--v2-surface) !important; border-color: var(--v2-line) !important; }
-.app-shell[data-workspace-role='client'] .client-report-identification-v64 strong { font-size: 14px !important; }
-.app-shell[data-workspace-role='client'] .client-report-detail-v64 { background: var(--v2-soft) !important; padding: 16px 18px !important; }
-.app-shell[data-workspace-role='client'] .client-report-actions-v64 { flex-wrap: wrap; gap: 8px !important; }
-.app-shell[data-workspace-role='client'] :is(.client-report-view-v64,.client-report-ack-v64) { padding: 9px 13px !important; border-radius: 7px !important; font-size: 11px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-report-library-head-v58 { padding: 0 0 15px !important; margin-bottom: 0 !important; border-bottom: 1px solid var(--v2-line); }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-report-list-v64 { border: 1px solid var(--v2-line) !important; border-radius: 9px !important; background: var(--v2-surface) !important; overflow: hidden; margin-top: 16px; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-report-entry-main-v64 { min-height: 78px !important; padding: 14px 18px !important; background: var(--v2-surface) !important; border-color: var(--v2-line) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-report-identification-v64 strong { font-size: 14px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-report-detail-v64 { background: var(--v2-soft) !important; padding: 16px 18px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-report-actions-v64 { flex-wrap: wrap; gap: 8px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] :is(.client-report-view-v64,.client-report-ack-v64) { padding: 9px 13px !important; border-radius: 7px !important; font-size: 11px !important; }
 
 /* Contract fronts retain their commercial content and all contextual overlays. */
-.app-shell[data-workspace-role='client'] .fronts-page { --front-radius: 9px; }
-.app-shell[data-workspace-role='client'] .fronts-hero.fronts-hero-compact { padding: 22px 24px !important; margin-bottom: 20px !important; border-radius: 9px !important; box-shadow: none !important; }
-.app-shell[data-workspace-role='client'] .fronts-hero h1 { font-size: 27px !important; }
-.app-shell[data-workspace-role='client'] :is(.fronts-card,.fronts-faq-card,.fronts-panel,.fronts-included-note) { border-radius: 9px !important; box-shadow: none !important; border-color: var(--v2-line) !important; }
-.app-shell[data-workspace-role='client'] .fronts-section-title h2 { font-size: 17px !important; }
-.app-shell[data-workspace-role='client'] .fronts-card h3 { font-size: 17px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .fronts-page { --front-radius: 9px; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .fronts-hero.fronts-hero-compact { padding: 22px 24px !important; margin-bottom: 20px !important; border-radius: 9px !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .fronts-hero h1 { font-size: 27px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] :is(.fronts-card,.fronts-faq-card,.fronts-panel,.fronts-included-note) { border-radius: 9px !important; box-shadow: none !important; border-color: var(--v2-line) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .fronts-section-title h2 { font-size: 17px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .fronts-card h3 { font-size: 17px !important; }
 
 @media (max-width: 1100px) {
-  .app-shell[data-workspace-role='client'] .document-cards-v2 { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-cards-v2 { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
 }
 @media (max-width: 700px) {
-  .app-shell[data-workspace-role='client'] .client-hours-metric-grid > div { padding-inline: 10px !important; }
-  .app-shell[data-workspace-role='client'] .client-hours-metric-grid strong { font-size: 23px !important; }
-  .app-shell[data-workspace-role='client'] .client-executive-grid .executive-card { padding: 15px !important; }
-  .app-shell[data-workspace-role='client'] .document-cards-v2 { grid-template-columns: 1fr !important; }
-  .app-shell[data-workspace-role='client'] .client-doc-toolbar-v4 { grid-template-columns: 1fr !important; }
-  .app-shell[data-workspace-role='client'] .client-real-timeline-panel { padding: 12px !important; }
-  .app-shell[data-workspace-role='client'] .client-report-actions-v64 > button { flex: 1 1 auto; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-metric-grid > div { padding-inline: 10px !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-metric-grid strong { font-size: 23px !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-executive-grid .executive-card { padding: 15px !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-cards-v2 { grid-template-columns: 1fr !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-doc-toolbar-v4 { grid-template-columns: 1fr !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-real-timeline-panel { padding: 12px !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-report-actions-v64 > button { flex: 1 1 auto; }
 }
