@@ -1,5 +1,13 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-10-09 — Codex — integração visual V2 no aplicativo oficial
+
+- Pedido: transportar a V2 aprovada para os fluxos reais, cliente primeiro e administradora depois, na branch `feat/client-visual-v2-inplace-20261008`, sem produção/merge.
+- Apresentação V2 no shell e módulos oficiais; tema noturno e todos os atalhos preservados. Seis arquivos CSS consolidados em dois, com conteúdo e ordem idênticos. Removidas 65 declarações de shell substituídas.
+- Integridade: 271 fontes operacionais comparadas com `7d817c3`, sem alterações além de imports CSS e marcadores de apresentação. Nenhuma alteração de banco/env/dados.
+- Verificações: `npm ci`, typecheck/build por módulo, `git diff --check` e `scripts/verify-v2-operation.cjs` passaram. Chromium local indisponível; instalação falhou. Teste de navegador preparado, ainda não aprovado.
+- Handoff e limites: `docs/VISUAL_V2_HOMOLOGACAO_2026-10-09.md`. Homologação visual e regressão autenticada pendentes; nenhum aceite presumido. Rollback por revert nesta branch.
+
 ## 2026-10-04 — Codex (conteúdo e hierarquia comercial de Frentes)
 
 - **Pedido:** Pati rejeitou a repetição dos seis cards, o conteúdo raso e a uniformidade da área de ampliação. A página segue **pendente de aprovação visual**.

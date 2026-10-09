@@ -1,0 +1,141 @@
+@import './workspace-client-v2.css';
+@import './workspace-admin-v2.css';
+@import './workspace-shared-modules-v2.css';
+
+/* CALI Workspace V2, integrated into the official shell.
+   Reference: patricia258/cali-workspace-v2@7c0a232. UI only; no data or permissions.
+   Page rules deliberately exclude report paper and portal-mounted workflow dialogs. */
+.app-shell[data-visual-system='v2'] {
+  --v2-canvas: #f7f3ee;
+  --v2-surface: #ffffff;
+  --v2-soft: #faf8f5;
+  --v2-line: #e9e0d8;
+  --v2-text: #322f2c;
+  --v2-muted: #746a64;
+  --v2-accent: #5a1e2d;
+  --v2-gold: #b58c52;
+  --ux-shell-rail: 68px;
+  --ux-shell-open: 194px;
+  --ux-canvas: var(--v2-canvas);
+  --ux-surface: var(--v2-surface);
+  --ux-line: var(--v2-line);
+  --ux-shadow-1: none;
+  --ux-shadow-2: 0 12px 36px #322f2c14;
+  min-height: 100dvh;
+  background: var(--v2-canvas) !important;
+  color: var(--v2-text);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+}
+html[data-workspace-theme='night'] .app-shell[data-visual-system='v2'] {
+  --v2-canvas: #201b1e;
+  --v2-surface: #2b2428;
+  --v2-soft: #322a2e;
+  --v2-line: #493a40;
+  --v2-text: #f7f3ee;
+  --v2-muted: #c8bbb3;
+  --v2-accent: #e5bbc6;
+  --v2-gold: #ddbb85;
+}
+.app-shell[data-visual-system='v2'] .main { min-width: 0; background: var(--v2-canvas) !important; }
+.app-shell[data-visual-system='v2'] .workspace-view {
+  min-width: 0;
+  background: var(--v2-canvas) !important;
+  background-image: none !important;
+}
+.app-shell[data-visual-system='v2'] .workspace-brand-watermarks { display: none; }
+.app-shell[data-visual-system='v2'] .topbar {
+  min-height: 61px !important;
+  height: auto !important;
+  top: 0 !important;
+  margin: 0 !important;
+  padding: 10px 28px !important;
+  gap: 16px;
+  background: var(--v2-surface) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--v2-line) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+.app-shell[data-visual-system='v2'] .topbar-context strong { font-size: 14px !important; color: var(--v2-text) !important; }
+.app-shell[data-visual-system='v2'] .topbar-context small { font-size: 9px !important; color: var(--v2-muted) !important; }
+.app-shell[data-visual-system='v2'] .top-actions { gap: 9px !important; flex-wrap: wrap; min-width: 0; }
+.app-shell[data-visual-system='v2'] .top-actions > .icon-button { width: 30px; height: 30px; border-radius: 7px; }
+.app-shell[data-visual-system='v2'] .workspace-view > :is(.page, .company-team, .fronts-page) {
+  width: min(1550px, 100%) !important;
+  max-width: 1550px !important;
+  margin: 0 auto !important;
+  padding: 26px 30px 72px !important;
+  color: var(--v2-text);
+}
+.app-shell[data-visual-system='v2'] .page :is(h1, h2, h3) { color: var(--v2-text); }
+.app-shell[data-visual-system='v2'] .page h1 { font-size: 29px !important; letter-spacing: -.035em; line-height: 1.2; }
+.app-shell[data-visual-system='v2'] .page :is(.panel-title h2, .section-head h2) { font-size: 14px !important; line-height: 1.4; }
+.app-shell[data-visual-system='v2'] .page :is(.panel, .hours-connect-card) {
+  border: 1px solid var(--v2-line) !important;
+  border-radius: 9px !important;
+  background: var(--v2-surface) !important;
+  box-shadow: none !important;
+}
+.app-shell[data-visual-system='v2'] .page :is(.primary, .secondary, .team-btn) {
+  min-height: 35px;
+  border-radius: 7px !important;
+  padding: 8px 12px;
+  font-size: 11px !important;
+  box-shadow: none !important;
+}
+.app-shell[data-visual-system='v2'] .page :is(.primary, .team-btn:not(.secondary)) { background: #5a1e2d; color: #fff; }
+.app-shell[data-visual-system='v2'] .page .secondary { background: var(--v2-surface); color: var(--v2-accent); border-color: var(--v2-line); }
+.app-shell[data-visual-system='v2'] .page :is(.search-box, .search-field) { border-radius: 7px !important; background: var(--v2-surface); border-color: var(--v2-line); }
+.app-shell[data-visual-system='v2'] .page :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']), select) { font-size: 12px; border-radius: 7px; }
+.app-shell[data-visual-system='v2'] .page :is(button, a, input, select, textarea):focus-visible { outline: 2px solid var(--v2-gold); outline-offset: 3px; }
+.app-shell[data-visual-system='v2'] .page :is(.section-kicker, .team-eyebrow) { font-size: 9px; letter-spacing: .12em; color: var(--v2-gold); }
+.app-shell[data-visual-system='v2'] .page table { font-size: 12px; }
+.app-shell[data-visual-system='v2'] .page table th { background: var(--v2-soft); color: var(--v2-muted); font-size: 10px; font-weight: 600; }
+.app-shell[data-visual-system='v2'] .page table :is(th, td) { padding-block: 12px; border-color: var(--v2-line); }
+.app-shell[data-visual-system='v2'] .page table tbody tr:hover { background: var(--v2-soft); }
+.app-shell[data-visual-system='v2'] .page .inline-notice { border-radius: 7px; font-size: 12px; }
+
+@media (min-width: 861px) {
+  .app-shell[data-visual-system='v2'] .sidebar,
+  .app-shell[data-visual-system='v2'] .sidebar:not(:hover):not(.pinned) {
+    inset: 0 auto 0 0 !important;
+    width: 68px !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    max-height: 100dvh !important;
+    padding: 12px 8px 10px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: linear-gradient(170deg, #682637, #4d1a29 62%, #391622) !important;
+  }
+  .app-shell[data-visual-system='v2'] .sidebar:hover,
+  .app-shell[data-visual-system='v2'] .sidebar:focus-within,
+  .app-shell[data-visual-system='v2'] .sidebar.pinned { width: 194px !important; box-shadow: 12px 0 28px #39162218 !important; }
+  .app-shell[data-visual-system='v2'] .sidebar nav { gap: 4px !important; }
+  .app-shell[data-visual-system='v2'] .sidebar nav a { height: 38px !important; min-height: 38px !important; max-height: 38px !important; flex-basis: 38px !important; border-radius: 7px !important; font-size: 12px !important; }
+  .app-shell[data-visual-system='v2'] .sidebar nav a.active { color: #fff !important; background: #ffffff26 !important; box-shadow: inset 2px 0 #dcb87b !important; }
+  .app-shell[data-visual-system='v2'] .sidebar nav a.active::before { content: none !important; }
+  .app-shell[data-visual-system='v2'] .main { margin-left: 68px !important; width: calc(100% - 68px) !important; max-width: calc(100% - 68px) !important; }
+}
+@media (max-width: 1024px) {
+  .app-shell[data-visual-system='v2'] .workspace-view > :is(.page, .company-team, .fronts-page) { padding: 22px 22px 60px !important; }
+  .app-shell[data-visual-system='v2'] .topbar { padding-inline: 20px !important; }
+}
+@media (max-width: 860px) {
+  .app-shell[data-visual-system='v2'] .main { margin-left: 0 !important; width: 100% !important; }
+  .app-shell[data-visual-system='v2'] .topbar { padding-left: 58px !important; }
+  .app-shell[data-visual-system='v2'] .sidebar.mobile-open { border-radius: 0 !important; inset: 0 auto 0 0 !important; height: 100dvh !important; }
+}
+@media (max-width: 600px) {
+  .app-shell[data-visual-system='v2'] .workspace-view > :is(.page, .company-team, .fronts-page) { padding: 18px 14px 60px !important; }
+  .app-shell[data-visual-system='v2'] .topbar { align-items: flex-start; padding-right: 12px !important; gap: 8px; }
+  .app-shell[data-visual-system='v2'] .top-actions { justify-content: flex-end; gap: 5px !important; }
+  .app-shell[data-visual-system='v2'] .page h1 { font-size: 25px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell[data-visual-system='v2'] .sidebar,
+  .app-shell[data-visual-system='v2'] .page { animation: none !important; transition: none !important; }
+}

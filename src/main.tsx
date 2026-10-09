@@ -53,6 +53,7 @@ import './client-reports-list-v64.css';
 import './profile-account-clean-v65.css';
 import './profile-account-v66.css';
 import './profile-correction-v67.css';
+import './styles/workspace-v2.css';
 
 function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
   return <AppErrorBoundary>{children}</AppErrorBoundary>;

@@ -16,36 +16,12 @@ body {
   background: var(--ux-canvas) !important;
 }
 
-.app-shell {
-  background:
-    radial-gradient(circle at 82% 6%, rgba(181, 140, 82, .13), transparent 26%),
-    radial-gradient(circle at 30% 34%, rgba(90, 30, 45, .055), transparent 31%),
-    linear-gradient(145deg, #f5f1ed 0%, #efe9e4 52%, #f7f4f0 100%) !important;
-}
-
 /* Sidebar: passa de uma chapa colada na borda para um plano próprio. */
 @media (min-width: 861px) {
   .sidebar,
   .sidebar:not(:hover):not(.pinned) {
-    inset: 12px auto 12px 12px !important;
-    width: 64px !important;
-    height: calc(100dvh - 24px) !important;
-    min-height: 0 !important;
-    max-height: none !important;
     padding: 12px 8px 10px !important;
-    border: 1px solid rgba(255, 255, 255, .13) !important;
-    border-radius: 23px !important;
-    background:
-      radial-gradient(circle at 22% 2%, rgba(181, 140, 82, .22), transparent 24%),
-      linear-gradient(165deg, #6b2639 0%, #531a2a 48%, #3f1421 100%) !important;
-    box-shadow: 0 18px 45px rgba(59, 20, 31, .22), inset 0 1px rgba(255, 255, 255, .08) !important;
     transition: width .18s cubic-bezier(.16, 1, .3, 1), box-shadow .16s ease !important;
-  }
-
-  .sidebar:hover,
-  .sidebar.pinned {
-    width: var(--ux-shell-open) !important;
-    box-shadow: 0 26px 70px rgba(59, 20, 31, .27), inset 0 1px rgba(255, 255, 255, .09) !important;
   }
 
   .sidebar:not(:hover):not(.pinned) .sidebar-top {
@@ -135,11 +111,6 @@ body {
     padding: 10px 0 2px !important;
     border-top: 1px solid rgba(255, 255, 255, .12) !important;
     background: transparent !important;
-  }
-
-  .main {
-    margin-left: var(--ux-shell-rail) !important;
-    width: calc(100% - var(--ux-shell-rail)) !important;
   }
 }
 
@@ -677,16 +648,7 @@ html[data-workspace-theme='night'] .satisfaction-table-v41 th { color: #e3b0bd !
 
 /* Topbar: superfície flutuante e contexto de navegação explícito. */
 .topbar {
-  top: 12px !important;
   z-index: 24 !important;
-  height: 66px !important;
-  margin: 12px 18px 0 14px !important;
-  padding: 0 16px 0 20px !important;
-  border: 1px solid rgba(90, 30, 45, .09) !important;
-  border-radius: 18px !important;
-  background: rgba(255, 253, 250, .79) !important;
-  backdrop-filter: blur(22px) saturate(1.25) !important;
-  box-shadow: 0 10px 30px rgba(51, 30, 35, .075), inset 0 1px rgba(255, 255, 255, .9) !important;
 }
 
 .topbar-context {
@@ -997,13 +959,6 @@ html[data-workspace-theme='night'] {
   --ux-shadow-2: 0 3px 6px rgba(0, 0, 0, .24), 0 26px 64px rgba(0, 0, 0, .3);
 }
 
-html[data-workspace-theme='night'] .app-shell {
-  background:
-    radial-gradient(circle at 82% 5%, rgba(181, 140, 82, .1), transparent 25%),
-    radial-gradient(circle at 28% 32%, rgba(125, 50, 72, .14), transparent 32%),
-    #160f12 !important;
-}
-
 html[data-workspace-theme='night'] .sidebar nav a:not(.active) {
   color: rgba(255, 247, 241, .88) !important;
 }
@@ -1049,8 +1004,6 @@ html[data-workspace-theme='night'] .sidebar nav a.active svg rect {
 
 html[data-workspace-theme='night'] .topbar {
   border-color: rgba(247, 243, 238, .09) !important;
-  background: rgba(34, 23, 27, .8) !important;
-  box-shadow: 0 12px 34px rgba(0, 0, 0, .22) !important;
 }
 
 html[data-workspace-theme='night'] .topbar-context strong,
@@ -1259,10 +1212,6 @@ html[data-workspace-theme='night'] .admin-overview-page .deadline-logo-v2 {
 }
 
 @media (max-width: 860px) {
-  .topbar {
-    top: 8px !important;
-    margin: 8px 10px 0 58px !important;
-  }
 
   .topbar-context small,
   .external-products-topnav {
@@ -1290,13 +1239,6 @@ html[data-workspace-theme='night'] .admin-overview-page .deadline-logo-v2 {
       height .18s cubic-bezier(.2, .75, .25, 1),
       border-radius .16s ease,
       box-shadow .16s ease !important;
-  }
-
-  .main {
-    transition:
-      margin-left .18s cubic-bezier(.2, .75, .25, 1),
-      width .18s cubic-bezier(.2, .75, .25, 1),
-      max-width .18s cubic-bezier(.2, .75, .25, 1) !important;
   }
 
   .sidebar:not(:hover):not(:focus-within):not(.pinned) nav a::after {
@@ -1529,23 +1471,6 @@ html[data-workspace-theme='night'] .records-v13-modal > footer { background: #21
 }
 
 @media (min-width: 861px) {
-  .sidebar:hover,
-  .sidebar:focus-within,
-  .sidebar.pinned {
-    inset: 14px auto 14px 14px !important;
-    width: var(--ux-shell-open) !important;
-    height: calc(100dvh - 28px) !important;
-    max-height: calc(100dvh - 28px) !important;
-    border-radius: 24px !important;
-    box-shadow: 0 24px 62px rgba(59, 20, 31, .28), inset 0 1px rgba(255, 255, 255, .08) !important;
-  }
-
-  .app-shell:has(.sidebar:hover) .main,
-  .app-shell:has(.sidebar:focus-within) .main {
-    margin-left: calc(var(--ux-shell-open) + 32px) !important;
-    width: calc(100% - var(--ux-shell-open) - 32px) !important;
-    max-width: calc(100% - var(--ux-shell-open) - 32px) !important;
-  }
 
   .sidebar:hover nav,
   .sidebar:focus-within nav,
@@ -1964,20 +1889,7 @@ html[data-workspace-theme='night'] .hours-connect .hours-connect-table th {
   .sidebar:hover,
   .sidebar:focus-within,
   .sidebar.pinned {
-    inset: 14px auto 24px 14px !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    border: 0 !important;
     outline: 0 !important;
-    box-shadow: 0 24px 62px rgba(59, 20, 31, .28) !important;
-  }
-
-  .main {
-    transition:
-      margin-left .18s cubic-bezier(.16, 1, .3, 1),
-      width .18s cubic-bezier(.16, 1, .3, 1),
-      max-width .18s cubic-bezier(.16, 1, .3, 1) !important;
   }
 
   .sidebar .nav-label,
@@ -2211,12 +2123,6 @@ html[data-workspace-theme='night'] .calendar-cancel-box { background: #241b1f !i
 }
 
 @media (min-width: 861px) {
-  .app-shell:has(.sidebar:hover) .main,
-  .app-shell:has(.sidebar:focus-within) .main {
-    margin-left: calc(var(--ux-shell-open) + 20px) !important;
-    width: calc(100% - var(--ux-shell-open) - 20px) !important;
-    max-width: calc(100% - var(--ux-shell-open) - 20px) !important;
-  }
 }
 
 .projects-flow-page {
@@ -2805,15 +2711,11 @@ html[data-workspace-theme='night'] .client-report-ack-note-v55 { border-color: r
    POLIMENTO FINAL · PERFIL, TOPBAR E IDENTIDADE DE PÁGINA
    ========================================================= */
 .topbar {
-  border: 0 !important;
   outline: 0 !important;
-  box-shadow: 0 12px 30px rgba(51, 30, 35, .07) !important;
 }
 
 html[data-workspace-theme='night'] .topbar {
-  border: 0 !important;
   outline: 0 !important;
-  box-shadow: 0 14px 32px rgba(0, 0, 0, .17) !important;
 }
 
 @media (min-width: 861px) {
@@ -2938,13 +2840,6 @@ html[data-workspace-theme='night'] .sidebar nav a.active svg * {
 @media (min-width: 861px) {
   .sidebar nav {
     margin-top: 12px !important;
-  }
-
-  .app-shell:has(.sidebar:hover) .main,
-  .app-shell:has(.sidebar:focus-within) .main {
-    margin-left: calc(var(--ux-shell-open) + 24px) !important;
-    width: calc(100% - var(--ux-shell-open) - 24px) !important;
-    max-width: calc(100% - var(--ux-shell-open) - 24px) !important;
   }
 }
 
@@ -3286,23 +3181,6 @@ html[data-workspace-theme='night'] .client-account-modal .account-modal-footer {
 :root { --ux-shell-open: 224px; }
 
 @media (min-width: 861px) {
-  .sidebar:hover,
-  .sidebar:focus-within,
-  .sidebar.pinned {
-    inset: 14px auto 14px 14px !important;
-    width: var(--ux-shell-open) !important;
-    height: calc(100dvh - 28px) !important;
-    max-height: calc(100dvh - 28px) !important;
-    border-radius: 24px !important;
-    box-shadow: 0 24px 62px rgba(59, 20, 31, .28), inset 0 1px rgba(255, 255, 255, .08) !important;
-  }
-
-  .app-shell:has(.sidebar:hover) .main,
-  .app-shell:has(.sidebar:focus-within) .main {
-    margin-left: calc(var(--ux-shell-open) + 32px) !important;
-    width: calc(100% - var(--ux-shell-open) - 32px) !important;
-    max-width: calc(100% - var(--ux-shell-open) - 32px) !important;
-  }
 
   .sidebar:hover nav,
   .sidebar:focus-within nav,
@@ -3442,13 +3320,6 @@ html[data-workspace-theme='night'] .projects-flow-page .project-kpis-v2 .project
       height .18s cubic-bezier(.2, .75, .25, 1),
       border-radius .16s ease,
       box-shadow .16s ease !important;
-  }
-
-  .main {
-    transition:
-      margin-left .18s cubic-bezier(.2, .75, .25, 1),
-      width .18s cubic-bezier(.2, .75, .25, 1),
-      max-width .18s cubic-bezier(.2, .75, .25, 1) !important;
   }
 
   .sidebar:not(:hover):not(:focus-within):not(.pinned) nav a::after {
