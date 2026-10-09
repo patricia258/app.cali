@@ -115,7 +115,11 @@ html[data-workspace-theme='night'] .client-home-v3 .executive-card {
 .client-home-v3 .executive-card:last-child,
 html[data-workspace-theme='day'] .client-home-v3 .executive-card:last-child { border-right: 0 !important; }
 .client-home-v3 .executive-card:hover { transform: translateY(-2px); box-shadow: none !important; }
+/* V2: identificação cromática discreta, sem acrescentar cartões ou alterar os dados. */
 .client-home-v3 .executive-card::before { display: none !important; }
+.client-home-v3 .client-executive-grid > .executive-card:nth-child(1) { border-top: 3px solid #36a67a !important; }
+.client-home-v3 .client-executive-grid > .executive-card:nth-child(2) { border-top: 3px solid #75acd0 !important; }
+.client-home-v3 .client-executive-grid > .executive-card:nth-child(3) { border-top: 3px solid #bd94d9 !important; }
 
 .client-home-v3 .project-card { display: flex; flex-direction: column; justify-content: center; gap: 14px; }
 .client-cycle-summary { display: grid; grid-template-columns: minmax(0, 1fr) 92px; align-items: center; gap: 8px; }
