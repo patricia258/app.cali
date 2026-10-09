@@ -117,9 +117,9 @@
   :root .app-shell[data-workspace-role='client'] .sidebar:hover,
   :root .app-shell[data-workspace-role='client'] .sidebar:focus-within,
   :root .app-shell[data-workspace-role='client'] .sidebar.hovered,
-  :root .app-shell[data-workspace-role='client'] .sidebar.pinned { width:68px !important;overflow:visible !important;padding:0 !important;box-shadow:none !important; }
+  :root .app-shell[data-workspace-role='client'] .sidebar.pinned { width:60px !important;overflow:visible !important;padding:0 !important;box-shadow:none !important; }
   :root .app-shell[data-workspace-role='client'] .sidebar-top { height:75px;min-height:75px;padding:0; }
-  :root .app-shell[data-workspace-role='client'] .sidebar nav { padding:20px 12px 8px !important;gap:5px !important;grid-auto-rows:38px !important;overflow:visible; }
+  :root .app-shell[data-workspace-role='client'] .sidebar nav { padding:20px 8px 8px !important;gap:5px !important;grid-auto-rows:38px !important;overflow:visible; }
   :root .app-shell[data-workspace-role='client'] .sidebar nav a { width:44px !important;min-height:38px !important;height:38px !important;max-height:38px !important;padding:0 !important;justify-content:center !important;overflow:visible !important;position:relative; }
   :root .app-shell[data-workspace-role='client'] .sidebar nav a .nav-label { position:absolute;left:49px;top:0;display:none !important;width:auto;min-width:150px;background:#fff;border:1px solid #e9e2db;border-radius:0 8px 8px 0;padding:12px;color:#352e2d;font-size:11px;white-space:nowrap;z-index:80;box-shadow:7px 12px 28px #40212d22; }
   :root .app-shell[data-workspace-role='client'] .sidebar nav a:hover .nav-label,
