@@ -43,6 +43,21 @@ no topo, com data, commits, verificação e pendências. Detalhe técnico e mapa
   saudação, contratação e colunas.
 - Nenhuma consulta, mutação, permissão ou política de banco alterada.
 
+### Divisão de trabalho combinada em 09/10
+- **Cliente:** continua nesta frente (arquivos `src/client-v2/**`, `src/pages/client/**`, e os ramos de cliente
+  em `src/pages/team/**` e `src/pages/records/**`).
+- **Administradora:** frente separada, sobre a referência administrativa da V2 (`AdminPreview.tsx` /
+  `admin-preview.css` do repositório `cali-workspace-v2`). Arquivos: `src/pages/admin/**`, o ramo de
+  administradora em `WorkspaceShell.tsx` e `src/styles/legacy/**`.
+- Arquivos compartilhados (`WorkspaceShell.tsx`, `CompanyTeamPage.tsx`, `WorkspaceRecordsPage.tsx`,
+  `WorkspaceChrome.tsx`, `DirectProfileControl.tsx`, `App.tsx`): alterar em commits pequenos e sincronizar
+  antes de começar, para não gerar conflito.
+- **Quem começar a administradora precisa partir desta branch já com os commits desta sessão.** Partir da
+  versão anterior recria as duas identidades visuais sobrepostas.
+- Método para a administradora: mesmo do cliente — gerar o CSS aprovado pelo script, compor o shell e as
+  páginas com as classes da referência, manter consultas e gravações, e retirar de `styles/legacy` as
+  folhas que deixarem de ser usadas. Ao final, `styles/legacy` deve deixar de existir.
+
 ### Pendências do cliente
 - Equipe: tabela ainda com colunas configuráveis; abas Estrutura, Movimentações e Indicadores, ficha e
   formulário de cadastro por alinhar.
