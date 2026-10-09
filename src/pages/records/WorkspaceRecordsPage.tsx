@@ -452,7 +452,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   const reopenPending = Boolean(selected && reopenByRecord[selected.id] === 'pending');
 
   function recordsTable(rows: AccountRecordRow[], emptyCopy: string) {
-    if (role === 'client') return <div className="wf-records"><div className="wf-record-row header"><span>Protocolo / Assunto</span><span>Tipo</span><span>Última atualização</span><span>Situação</span><span/></div>{rows.map(record=><div className="wf-record-row" key={record.id} role="button" tabIndex={0} onClick={() => void openRecord(record)} onKeyDown={event=>{if(event.target===event.currentTarget && (event.key==='Enter'||event.key===' ')){event.preventDefault();void openRecord(record)}}}><span><small>{record.protocol || '—'}</small><strong>{record.title}</strong>{record.summary && <small>{record.summary}</small>}</span><span>{typeLabels[record.type]}</span><span>{formatDateTime(record.lastActivityAt || record.occurredAt)}<small className="wf-record-message-count"><MessageCircle size={12}/> {messageCounts[record.id] || 0} mensagens</small></span><span><span className={`wf-tag ${record.workflowStatus==='completed'?'green':record.workflowStatus==='waiting_client'?'yellow':'neutral'}`}>{statusLabel(record.workflowStatus, role)}</span></span><button type="button" aria-label={`Abrir ${record.title}`} onClick={(event) => { event.stopPropagation(); void openRecord(record); }}><ChevronRight size={16}/></button></div>)}{!rows.length && <div className="wf-empty"><strong>Nenhuma ocorrência neste recorte.</strong><p>{emptyCopy}</p></div>}</div>;
+    if (role === 'client') return <div className="wf-records"><div className="wf-record-row header"><span>Protocolo / Assunto</span><span>Tipo</span><span>Última atualização</span><span>Situação</span><span/></div>{rows.map(record=><div className="wf-record-row" key={record.id} role="button" tabIndex={0} onClick={() => void openRecord(record)} onKeyDown={event=>{if(event.target===event.currentTarget && (event.key==='Enter'||event.key===' ')){event.preventDefault();void openRecord(record)}}}><span><small>{record.protocol || '—'}</small><strong>{record.title}</strong>{record.summary && <small>{record.summary}</small>}</span><span>{typeLabels[record.type]}</span><span>{formatDateTime(record.lastActivityAt || record.occurredAt)}<small className="wf-record-message-count"><MessageCircle size={12}/> {messageCounts[record.id] || 0} mensagens</small></span><span><span className={`wf-tag ${record.workflowStatus==='completed'?'green':record.workflowStatus==='waiting_client'?'yellow':record.workflowStatus==='cancelled'?'red':record.workflowStatus==='open'?'blue':'purple'}`}>{statusLabel(record.workflowStatus, role)}</span></span><button type="button" aria-label={`Abrir ${record.title}`} onClick={(event) => { event.stopPropagation(); void openRecord(record); }}><ChevronRight size={16}/></button></div>)}{!rows.length && <div className="wf-empty"><strong>Nenhuma ocorrência neste recorte.</strong><p>{emptyCopy}</p></div>}</div>;
     return <section className="records-v13-table-wrap panel">
       <table className="records-v13-table">
         <thead><tr>
@@ -477,7 +477,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
 
   return <Shell role={role}><div className={role==='client'?'v2-client-module':undefined}>
     <section className={role==='client'?'wf':'page records-v13'}>
-      {role==='client' && <div className="wf-head"><div><small>ÁREA DA EMPRESA / RELACIONAMENTO</small><h1>Ocorrências</h1><p>Solicitações, decisões e conversas em um só histórico.</p></div><button className="wf-primary" type="button" onClick={openNew}><Plus size={17}/>Nova ocorrência</button></div>}
+      {role==='client' && <div className="wf-head"><div><small>ÁREA DA EMPRESA / CANAL COM A CALI</small><h1>Ocorrências</h1><p>Uma conversa por assunto, com decisões e histórico no mesmo lugar.</p></div><button className="wf-primary" type="button" onClick={openNew}><Plus size={15}/> Nova ocorrência</button></div>}
       {role==='admin' && <div className="records-v13-actions">
         <button className="primary" type="button" onClick={openNew}><Plus size={17} />{role === 'admin' ? 'Novo registro' : 'Nova solicitação'}</button>
       </div>}
@@ -485,12 +485,22 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
       {notice && <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div>}
       {error && <div className="inline-notice"><AlertTriangle size={18} />{error}</div>}
 
-      <section className={role==='client'?'wf-controls':'records-v13-toolbar panel'}>
+      {role==='client' ? <>
+        <div className="wf-summary-inline"><span><strong>{records.length}</strong> {records.length===1?'registro':'registros'}</span><span><i className="wf-dot yellow"/>{records.filter(record=>record.workflowStatus==='waiting_client').length} aguardando você</span><span><i className="wf-dot purple"/>{records.filter(record=>record.workflowStatus==='open'||record.workflowStatus==='in_progress'||record.workflowStatus==='standby').length} em acompanhamento</span><span><i className="wf-dot green"/>{records.filter(record=>record.workflowStatus==='completed').length} {records.filter(record=>record.workflowStatus==='completed').length===1?'concluído':'concluídos'}</span></div>
+        <div className="wf-controls">
+          <div className="wf-segments">{([['all','Todas'],['waiting_client','Aguardando você'],['in_progress','Em acompanhamento'],['completed','Concluídas']] as [WorkflowStatus | 'all', string][]).map(([value,label])=><button type="button" key={value} className={statusFilter===value?'on':''} onClick={()=>setStatusFilter(value)}>{label}</button>)}</div>
+          <div className="wf-control-right">
+            <select className="wf-record-filter" aria-label="Tipo" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as RecordType | 'all')}><option value="all">Todos os tipos</option>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</select>
+            <select className="wf-record-filter" aria-label="Situação" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as WorkflowStatus | 'all')}><option value="all">Todas as situações</option>{(Object.keys(workflowLabels) as WorkflowStatus[]).map((status) => <option value={status} key={status}>{statusLabel(status, role)}</option>)}</select>
+            <Search size={14} /><input aria-label="Buscar ocorrências" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar ocorrência..." />
+          </div>
+        </div>
+      </> : <section className="records-v13-toolbar panel">
         {role === 'admin' && <label><span>Cliente</span><select value={companyId} onChange={(event) => void changeCompany(event.target.value)}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label>}
-        <label className={role==='client'?'wf-search':'records-v13-search'}><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar assunto ou protocolo" /></label>
+        <label className="records-v13-search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar assunto ou protocolo" /></label>
         <label><Filter size={15} /><select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as RecordType | 'all')}><option value="all">Todos os tipos</option>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</select></label>
         <label><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as WorkflowStatus | 'all')}><option value="all">Todos os status</option>{(Object.keys(workflowLabels) as WorkflowStatus[]).map((status) => <option value={status} key={status}>{statusLabel(status, role)}</option>)}</select></label>
-      </section>
+      </section>}
 
       {!archiveFilterSelected && <>
         <div className={role==='client'?'wf-group-head':'records-v27-group-heading'}><div><span>EM ACOMPANHAMENTO</span><strong>{role === 'admin' ? 'Abertos e em andamento' : 'Suas solicitações ativas'}</strong></div><b>{activeVisible.length}</b></div>
