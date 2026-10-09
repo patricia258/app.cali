@@ -14,6 +14,13 @@
 :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-progress i:not(.critical) { background: #692e3e !important; }
 :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-filters { padding: 13px 0 !important; margin: 12px 0 !important; background: transparent !important; border: 0 !important; border-bottom: 1px solid var(--v2-line) !important; border-radius: 0 !important; box-shadow: none !important; }
 :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-table-card { padding: 0 !important; overflow: hidden; }
+
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-v2 .hours-connect-card { border:1px solid var(--v2-line) !important; border-radius:10px !important; box-shadow:none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-v2 .client-hours-summary { border-top:3px solid var(--v2-gold) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-v2 .client-hours-alert { border-radius:8px !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-v2 .client-hours-table th { font-size:10px !important; letter-spacing:.055em; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-v2 .client-hours-row:focus-within { outline:2px solid var(--v2-gold); outline-offset:-2px; }
+
 :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-table-wrap { overflow-x: auto; }
 :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-table td { font-size: 12px !important; }
 :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-detail > td { background: var(--v2-soft) !important; }
