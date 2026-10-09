@@ -150,3 +150,16 @@ html[data-workspace-theme='night'] .app-shell[data-workspace-role='client'] .wor
  :root .app-shell[data-workspace-role='client'] .client-v2-workspace-label span { font-weight:400 !important; color:#918781 !important; letter-spacing:1px !important; }
  :root .app-shell[data-workspace-role='client'] .sidebar nav a.active { border-radius:7px !important; box-shadow:inset 2px 0 0 #dcb87b !important; }
 }
+
+/* Header de cliente reconstruído como composição V2, com as ações reais acessíveis. */
+:root .app-shell[data-workspace-role='client'] .client-v2-header-leading { display:flex;align-items:center;min-width:0; }
+:root .app-shell[data-workspace-role='client'] .client-v2-header-actions { gap:16px !important; }
+:root .app-shell[data-workspace-role='client'] .client-v2-tools { position:relative;flex:0 0 auto; }
+:root .app-shell[data-workspace-role='client'] .client-v2-tools > summary { list-style:none;display:grid;place-items:center;width:32px;height:32px;border-radius:8px;border:1px solid #ebe5df;background:#fff;color:#5a1e2d;cursor:pointer; }
+:root .app-shell[data-workspace-role='client'] .client-v2-tools > summary::-webkit-details-marker { display:none; }
+:root .app-shell[data-workspace-role='client'] .client-v2-tools[open] > summary { background:#f7f3ee;border-color:#b58c52; }
+:root .app-shell[data-workspace-role='client'] .client-v2-tools-panel { position:absolute;top:calc(100% + 10px);right:0;z-index:150;min-width:175px;padding:12px;background:#fff;border:1px solid #e9e3de;border-radius:9px;box-shadow:0 14px 40px #351b2826;display:flex;flex-direction:column;align-items:flex-start;gap:9px;color:#322f2c; }
+:root .app-shell[data-workspace-role='client'] .client-v2-tools-panel > span { font-size:10px;font-weight:700;color:#918781;letter-spacing:.04em; }
+:root .app-shell[data-workspace-role='client'] .client-v2-tools-panel .topbar-logout { display:flex;gap:10px;align-items:center;font-size:12px; }
+:root .app-shell[data-workspace-role='client'] .client-v2-tools-panel .topbar-logout span { display:inline !important; }
+@media(max-width:650px) { :root .app-shell[data-workspace-role='client'] .client-v2-header-actions { gap:7px !important; } :root .app-shell[data-workspace-role='client'] .client-v2-globalbar { padding-inline:13px !important; } }
