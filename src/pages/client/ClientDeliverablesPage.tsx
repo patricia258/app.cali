@@ -4,7 +4,6 @@ import {
   FileCheck2, FileText, FolderKanban, GitBranch, History, Loader2,
   MessageCircle, RefreshCw, Send, Star, X, Leaf, ChevronDown, ChevronRight,
 } from 'lucide-react';
-import '../../styles/client-modules.css';
 import { Shell } from '../../components/WorkspaceShell';
 import { demoDeliverables } from '../../data/demo';
 import {

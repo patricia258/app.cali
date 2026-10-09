@@ -332,13 +332,13 @@ export function ClientDashboard() {
     } finally { setSending(false); }
   }
 
-  if (loading) return <Shell role="client"><section className="cali-client-home"><div className="data-loading"><Loader2 className="spin" size={20} />Preparando sua área CALI…</div></section></Shell>;
+  if (loading) return <Shell role="client"><section className="client-home"><div className="data-loading"><Loader2 className="spin" size={20} />Preparando sua área CALI…</div></section></Shell>;
 
   const contactName = data.contact?.full_name || 'Patrícia Lima';
   const contactRole = data.contact?.job_title || 'People Advisory Executive';
 
   return <Shell role="client">
-    <section className="cali-client-home">
+    <section className="client-home">
       {error && <div className="inline-notice">{error}</div>}
 
       <div className="ch-content">

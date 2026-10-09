@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft, ArrowRight, ArrowUpRight, Check, ChevronDown, MessagesSquare, X } from 'lucide-react';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
-import '../../styles/client-modules.css';
 import { Shell } from '../../components/WorkspaceShell';
 import { activeFront, coreFront, eligibleMode, loadContractFronts, planName, type CompanyPlan, type ContractedFront, type Front, type Plan } from '../../lib/contractFronts';
 import { supabase } from '../../lib/supabase';

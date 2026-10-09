@@ -7,7 +7,6 @@ import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 import { supabase } from '../../lib/supabase';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 import './company-team.css';
-import '../../styles/client-modules.css';
 
 export type Member = { id:string; company_id:string; employee_code:string; full_name:string; work_email:string|null; work_phone:string|null; admission_date:string; job_title:string; seniority:string|null; department:string; team_area:string|null; manager_code:string|null; is_leader:boolean; employment_type:string; weekly_hours:number|null; work_model:string|null; location:string|null; avatar_style?:'female'|'male'|'neutral'; status:'active'|'leave'|'terminated'; leave_reason:string|null; leave_start_date:string|null; expected_return_date:string|null; termination_date:string|null; termination_initiative:string|null; termination_reason:string|null; notice_type:string|null; archived_at?:string|null };
 export type Vacancy={id:string;vacancy_code:string;title:string;department:string|null;opened_on:string;status:'open'|'filled'|'cancelled';closed_on:string|null};

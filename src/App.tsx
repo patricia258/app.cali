@@ -1,11 +1,9 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute, WorkspaceRouteLoader } from './components/ProtectedRoute';
 import { Shell, WorkspaceFrame } from './components/WorkspaceShell';
 import { useLocation } from 'react-router-dom';
-// The two calendars need their layout CSS before the first route paint.
-import './page4-calendar.css';
-import './styles/client-calendar.css';
+import { applyVisualSystem } from './client-v2/visualSystem';
 
 const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
@@ -147,6 +145,7 @@ function prefetchLikelyRoutes() {
 function AppRoutes() {
   useEffect(() => prefetchLikelyRoutes(), []);
   const { pathname } = useLocation();
+  useLayoutEffect(() => { void applyVisualSystem(pathname); }, [pathname]);
   const workspaceRole = pathname.startsWith('/cliente') ? 'client' : pathname.startsWith('/admin') ? 'admin' : null;
 
   const routes = (

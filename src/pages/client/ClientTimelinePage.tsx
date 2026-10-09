@@ -4,7 +4,6 @@ import { AlertTriangle, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, F
 import { ClientGoogleCalendarPanel } from '../../components/ClientGoogleCalendarPanel';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
-import '../../styles/client-modules.css';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 
 type Slot = { startsAt: string; endsAt?: string | null };

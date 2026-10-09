@@ -4,7 +4,6 @@ import {
   AlertTriangle, CalendarDays, CheckCircle2, ChevronRight, FileText, Filter,
   MessageCircle, Pencil, Plus, Search, Send, Trash2, X,
 } from 'lucide-react';
-import '../../styles/client-modules.css';
 import { Shell, type Role } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';

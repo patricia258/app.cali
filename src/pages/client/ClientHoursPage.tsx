@@ -2,7 +2,6 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Clock3 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
-import '../../styles/client-modules.css';
 
 type Project = { id: string; name: string };
 type Deliverable = { id: string; projectId?: string | null; title: string };

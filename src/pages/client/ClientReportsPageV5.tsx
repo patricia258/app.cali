@@ -3,7 +3,6 @@ import { CalendarDays, ChevronDown, FileText, ShieldCheck, X } from 'lucide-reac
 import { Shell } from '../../components/WorkspaceShell';
 import type { ReportIdentityV55 } from '../../components/reports/ReportValidationV55';
 import { supabase } from '../../lib/supabase';
-import '../../styles/client-modules.css';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 import { type ReportType } from '../../lib/reportComposition';
