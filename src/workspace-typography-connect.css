@@ -10,107 +10,107 @@
   --ws-font-2xl: 24px;
 }
 
-body,
-button,
-input,
-select,
-textarea { font-size: var(--ws-font-sm); }
+body:not(.v2-client-module):not(.v2-client-module *),
+button:not(.v2-client-module):not(.v2-client-module *),
+input:not(.v2-client-module):not(.v2-client-module *),
+select:not(.v2-client-module):not(.v2-client-module *),
+textarea:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-sm); }
 
-.page p,
-.modal-card p,
-.panel p,
-.data-panel p { font-size: var(--ws-font-sm); line-height: 1.55; }
+.page p:not(.v2-client-module):not(.v2-client-module *),
+.modal-card p:not(.v2-client-module):not(.v2-client-module *),
+.panel p:not(.v2-client-module):not(.v2-client-module *),
+.data-panel p:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-sm); line-height: 1.55; }
 
-.page small,
-.modal-card small,
-.panel small,
-.data-panel small,
-.field-helper,
-.eyebrow,
-.section-kicker { font-size: var(--ws-font-xs) !important; line-height: 1.4; }
+.page small:not(.v2-client-module):not(.v2-client-module *),
+.modal-card small:not(.v2-client-module):not(.v2-client-module *),
+.panel small:not(.v2-client-module):not(.v2-client-module *),
+.data-panel small:not(.v2-client-module):not(.v2-client-module *),
+.field-helper:not(.v2-client-module):not(.v2-client-module *),
+.eyebrow:not(.v2-client-module):not(.v2-client-module *),
+.section-kicker:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-xs) !important; line-height: 1.4; }
 
-.page label,
-.modal-card label,
-.stacked-label { font-size: var(--ws-font-sm); }
+.page label:not(.v2-client-module):not(.v2-client-module *),
+.modal-card label:not(.v2-client-module):not(.v2-client-module *),
+.stacked-label:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-sm); }
 
-.page input,
-.page select,
-.page textarea,
-.modal-card input,
-.modal-card select,
-.modal-card textarea { font-size: var(--ws-font-sm) !important; }
+.page input:not(.v2-client-module):not(.v2-client-module *),
+.page select:not(.v2-client-module):not(.v2-client-module *),
+.page textarea:not(.v2-client-module):not(.v2-client-module *),
+.modal-card input:not(.v2-client-module):not(.v2-client-module *),
+.modal-card select:not(.v2-client-module):not(.v2-client-module *),
+.modal-card textarea:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-sm) !important; }
 
-.page button,
-.modal-card button,
-.sidebar nav a,
-.topbar button { font-size: var(--ws-font-sm); }
+.page button:not(.v2-client-module):not(.v2-client-module *),
+.modal-card button:not(.v2-client-module):not(.v2-client-module *),
+.sidebar nav a:not(.v2-client-module):not(.v2-client-module *),
+.topbar button:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-sm); }
 
-.status-pill,
-.status-chip,
-.project-status-pill,
-.deliverable-status,
-.complexity-pill,
-.mc-chip { font-size: var(--ws-font-xs) !important; }
+.status-pill:not(.v2-client-module):not(.v2-client-module *),
+.status-chip:not(.v2-client-module):not(.v2-client-module *),
+.project-status-pill:not(.v2-client-module):not(.v2-client-module *),
+.deliverable-status:not(.v2-client-module):not(.v2-client-module *),
+.complexity-pill:not(.v2-client-module):not(.v2-client-module *),
+.mc-chip:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-xs) !important; }
 
-.page-heading h1 { font-size: clamp(30px, 3vw, 42px); }
-.modal-card h2 { font-size: clamp(20px, 2vw, 24px); line-height: 1.2; }
-.panel h2 { font-size: clamp(18px, 1.6vw, 22px); }
+.page-heading h1:not(.v2-client-module):not(.v2-client-module *) { font-size: clamp(30px, 3vw, 42px); }
+.modal-card h2:not(.v2-client-module):not(.v2-client-module *) { font-size: clamp(20px, 2vw, 24px); line-height: 1.2; }
+.panel h2:not(.v2-client-module):not(.v2-client-module *) { font-size: clamp(18px, 1.6vw, 22px); }
 
 /* Mantém protocolos e metadados compactos, mas legíveis. */
-.deliverable-code,
-.project-selector-card > div:nth-child(2) span,
-.deliverable-main > span,
-.roadmap-row-copy span,
-.project-kanban-card > span,
-.calendar-protocol,
-.document-protocol { font-size: var(--ws-font-xs) !important; }
+.deliverable-code:not(.v2-client-module):not(.v2-client-module *),
+.project-selector-card > div:nth-child(2) span:not(.v2-client-module):not(.v2-client-module *),
+.deliverable-main > span:not(.v2-client-module):not(.v2-client-module *),
+.roadmap-row-copy span:not(.v2-client-module):not(.v2-client-module *),
+.project-kanban-card > span:not(.v2-client-module):not(.v2-client-module *),
+.calendar-protocol:not(.v2-client-module):not(.v2-client-module *),
+.document-protocol:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-xs) !important; }
 
 /* Componentes antigos que haviam caído para 8–10px. */
-.project-kpi-grid article span,
-.project-kpi-grid article small,
-.project-search input,
-.project-portfolio-toolbar select,
-.project-selector-card > div:nth-child(2) strong,
-.project-selector-card > div:nth-child(2) small,
-.project-hero-main p,
-.project-hero-tags span,
-.project-progress-block > span,
-.project-hero-actions .secondary,
-.project-delay-banner strong,
-.project-rebriefing-banner strong,
-.project-delay-banner p,
-.project-rebriefing-banner p,
-.project-tabs button,
-.project-roadmap-header p,
-.roadmap-legend span,
-.roadmap-month-head > span,
-.roadmap-row-copy strong,
-.roadmap-row-copy small,
-.roadmap-bar b,
-.roadmap-deadline span,
-.roadmap-deadline small,
-.deliverable-toolbar > span,
-.deliverable-view-switch button,
-.deliverable-main strong,
-.deliverable-main small,
-.deliverable-task-progress span,
-.deliverable-hours span,
-.deliverable-date strong,
-.deliverable-hours small,
-.deliverable-date small,
-.project-kanban-column header strong,
-.project-kanban-column header span { font-size: var(--ws-font-xs) !important; }
+.project-kpi-grid article span:not(.v2-client-module):not(.v2-client-module *),
+.project-kpi-grid article small:not(.v2-client-module):not(.v2-client-module *),
+.project-search input:not(.v2-client-module):not(.v2-client-module *),
+.project-portfolio-toolbar select:not(.v2-client-module):not(.v2-client-module *),
+.project-selector-card > div:nth-child(2) strong:not(.v2-client-module):not(.v2-client-module *),
+.project-selector-card > div:nth-child(2) small:not(.v2-client-module):not(.v2-client-module *),
+.project-hero-main p:not(.v2-client-module):not(.v2-client-module *),
+.project-hero-tags span:not(.v2-client-module):not(.v2-client-module *),
+.project-progress-block > span:not(.v2-client-module):not(.v2-client-module *),
+.project-hero-actions .secondary:not(.v2-client-module):not(.v2-client-module *),
+.project-delay-banner strong:not(.v2-client-module):not(.v2-client-module *),
+.project-rebriefing-banner strong:not(.v2-client-module):not(.v2-client-module *),
+.project-delay-banner p:not(.v2-client-module):not(.v2-client-module *),
+.project-rebriefing-banner p:not(.v2-client-module):not(.v2-client-module *),
+.project-tabs button:not(.v2-client-module):not(.v2-client-module *),
+.project-roadmap-header p:not(.v2-client-module):not(.v2-client-module *),
+.roadmap-legend span:not(.v2-client-module):not(.v2-client-module *),
+.roadmap-month-head > span:not(.v2-client-module):not(.v2-client-module *),
+.roadmap-row-copy strong:not(.v2-client-module):not(.v2-client-module *),
+.roadmap-row-copy small:not(.v2-client-module):not(.v2-client-module *),
+.roadmap-bar b:not(.v2-client-module):not(.v2-client-module *),
+.roadmap-deadline span:not(.v2-client-module):not(.v2-client-module *),
+.roadmap-deadline small:not(.v2-client-module):not(.v2-client-module *),
+.deliverable-toolbar > span:not(.v2-client-module):not(.v2-client-module *),
+.deliverable-view-switch button:not(.v2-client-module):not(.v2-client-module *),
+.deliverable-main strong:not(.v2-client-module):not(.v2-client-module *),
+.deliverable-main small:not(.v2-client-module):not(.v2-client-module *),
+.deliverable-task-progress span:not(.v2-client-module):not(.v2-client-module *),
+.deliverable-hours span:not(.v2-client-module):not(.v2-client-module *),
+.deliverable-date strong:not(.v2-client-module):not(.v2-client-module *),
+.deliverable-hours small:not(.v2-client-module):not(.v2-client-module *),
+.deliverable-date small:not(.v2-client-module):not(.v2-client-module *),
+.project-kanban-column header strong:not(.v2-client-module):not(.v2-client-module *),
+.project-kanban-column header span:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-xs) !important; }
 
-.project-selector-card > div:nth-child(2) strong,
-.project-hero-main p,
-.project-delay-banner p,
-.project-rebriefing-banner p,
-.project-tabs button,
-.project-roadmap-header p,
-.roadmap-row-copy strong,
-.deliverable-main strong { font-size: var(--ws-font-sm) !important; }
+.project-selector-card > div:nth-child(2) strong:not(.v2-client-module):not(.v2-client-module *),
+.project-hero-main p:not(.v2-client-module):not(.v2-client-module *),
+.project-delay-banner p:not(.v2-client-module):not(.v2-client-module *),
+.project-rebriefing-banner p:not(.v2-client-module):not(.v2-client-module *),
+.project-tabs button:not(.v2-client-module):not(.v2-client-module *),
+.project-roadmap-header p:not(.v2-client-module):not(.v2-client-module *),
+.roadmap-row-copy strong:not(.v2-client-module):not(.v2-client-module *),
+.deliverable-main strong:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-sm) !important; }
 
 @media (max-width: 760px) {
-  body, button, input, select, textarea { font-size: 14px; }
-  .page-heading h1 { font-size: 30px; }
+  body:not(.v2-client-module):not(.v2-client-module *), button:not(.v2-client-module):not(.v2-client-module *), input:not(.v2-client-module):not(.v2-client-module *), select:not(.v2-client-module):not(.v2-client-module *), textarea:not(.v2-client-module):not(.v2-client-module *) { font-size: 14px; }
+  .page-heading h1:not(.v2-client-module):not(.v2-client-module *) { font-size: 30px; }
 }

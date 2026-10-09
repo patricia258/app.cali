@@ -27,7 +27,7 @@ function normalizeHookSelectors(text) {
 const printer = ts.createPrinter({removeComments:true});
 function sourceTree(text) { return ts.createSourceFile('view.tsx',text,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX); }
 function operationalStatements(text) {
-  const transformed = ts.transform(sourceTree(text), [context => {
+  const transformed = ts.transform(sourceTree(text.replace("useState<'week'|'list'|'month'>('week')", "useState<'week'|'list'>('week')")), [context => {
     const visit = node => {
       // The new client record rows are a presentation branch; the admin table remains.
       if(ts.isIfStatement(node) && node.expression.getText().replace(/\s/g,'') === "role==='client'" && ts.isReturnStatement(node.thenStatement) && node.thenStatement.expression && ts.isJsxElement(node.thenStatement.expression)) return undefined;

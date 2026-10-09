@@ -1,177 +1,62 @@
-/* Client pages use the real ledger, calendar, records, team and delivery components. */
-
-/* Hours: compact statement, with existing totals, visibility and alerts intact. */
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-summary { padding: 20px 22px !important; background: var(--v2-surface) !important; color: var(--v2-text) !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-summary-top { margin-bottom: 18px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-summary-top h2 { font-size: 20px !important; color: var(--v2-text) !important; margin-top: 5px; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-summary-top > div > span { color: var(--v2-muted) !important; font-size: 10px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-metric-grid { gap: 0 !important; background: transparent !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-metric-grid > div { padding: 2px 24px 8px !important; border: 0 !important; border-left: 1px solid var(--v2-line) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-metric-grid > div:first-child { padding-left: 0 !important; border-left: 0 !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-metric-grid strong { color: var(--v2-accent) !important; font-size: 28px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-metric-grid span { color: var(--v2-muted) !important; font-size: 11px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-progress { height: 6px !important; margin-top: 16px; background: var(--v2-line) !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-progress i:not(.critical) { background: #692e3e !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-filters { padding: 13px 0 !important; margin: 12px 0 !important; background: transparent !important; border: 0 !important; border-bottom: 1px solid var(--v2-line) !important; border-radius: 0 !important; box-shadow: none !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-table-card { padding: 0 !important; overflow: hidden; }
-
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-v2 .hours-connect-card { border:1px solid var(--v2-line) !important; border-radius:10px !important; box-shadow:none !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-v2 .client-hours-summary { border-top:3px solid var(--v2-gold) !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-v2 .client-hours-alert { border-radius:8px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-v2 .client-hours-table th { font-size:10px !important; letter-spacing:.055em; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-v2 .client-hours-row:focus-within { outline:2px solid var(--v2-gold); outline-offset:-2px; }
-
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-table-wrap { overflow-x: auto; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-table td { font-size: 12px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-detail > td { background: var(--v2-soft) !important; }
-
-/* Calendar: preserve week geometry and selection; reduce surrounding chrome. */
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-google-settings { padding: 13px 16px !important; min-height: 0 !important; border-radius: 8px !important; background: var(--v2-surface) !important; border: 1px solid var(--v2-line) !important; box-shadow: none !important; margin-bottom: 16px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-real-timeline-panel { padding: 18px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-real-timeline-title { margin-bottom: 14px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-real-timeline-title h2 { font-size: 16px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-agenda-view-controls { border-radius: 6px !important; background: var(--v2-soft) !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-agenda-view-controls button { padding: 7px 10px !important; font-size: 11px !important; border-radius: 5px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-agenda-view-controls button.active { background: #5a1e2d !important; color: #fff !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-agenda-table { border-radius: 7px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-agenda-body { padding-block: 13px !important; border-color: var(--v2-line) !important; background: var(--v2-surface) !important; }
-
-/* Delivery roadmap: real project picker, fronts, review/approval and chat stay mounted. */
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-roadmap-actions-v34 { margin-bottom: 16px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-project-picker-v33 { min-height: 36px !important; border-radius: 7px !important; font-size: 12px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-roadmap-table-v33 { padding: 18px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-header-v33 { padding: 13px 0 !important; border-bottom: 1px solid var(--v2-line) !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-header-v33 h3 { font-size: 14px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-deliverable-row-v33 { border-radius: 0 !important; background: var(--v2-surface) !important; box-shadow: none !important; border: 0 !important; border-bottom: 1px solid var(--v2-line) !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-deliverable-row-v33 .front-deliverable-open-v3 { padding-block: 13px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-deliverable-row-v33:hover { background: var(--v2-soft) !important; }
-/* Entregáveis V2: mesma estrutura operacional, acabamento visual refinado. */
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-roadmap-table-v33 { border:1px solid var(--v2-line) !important; border-radius:10px !important; background:var(--v2-surface) !important; box-shadow:none !important; overflow:hidden; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-header-v33 { border-bottom:1px solid var(--v2-line) !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-front-deliverable-row-v33:focus-within { background:var(--v2-soft) !important; outline:2px solid color-mix(in srgb,var(--v2-gold) 55%,transparent); outline-offset:-2px; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-deliverable-workspace-v33 { border-radius:12px !important; box-shadow:0 22px 80px #2f182644 !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-deliverable-workspace-v33 .deliverable-tabs-v2 { border-bottom:1px solid var(--v2-line) !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-deliverable-workspace-v33 button:focus-visible { outline:2px solid var(--v2-gold); outline-offset:2px; }
-
-
-/* Document gallery: reference V2 proportions, real publication/Drive/acknowledgement actions. */
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-documents-v4 .drive-banner { padding: 16px 20px !important; border-radius: 9px !important; border: 1px solid color-mix(in srgb,var(--v2-gold) 40%,var(--v2-line)) !important; background: color-mix(in srgb,var(--v2-surface) 90%,var(--v2-gold)) !important; box-shadow: none !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-doc-toolbar-v4 { padding: 13px 15px !important; border: 1px solid var(--v2-line); border-radius: 9px; background: var(--v2-surface); gap: 12px !important; margin: 16px 0 !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-cards-v2 { grid-template-columns: repeat(3,minmax(0,1fr)) !important; gap: 15px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-card-v2 { border: 1px solid var(--v2-line) !important; border-radius: 10px !important; background: var(--v2-surface) !important; box-shadow: none !important; transform: none !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-card-cover { height: 130px !important; min-height: 130px !important; border-radius: 0 !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-card-body { padding: 18px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-card-body h2 { font-size: 15px !important; line-height: 1.4 !important; letter-spacing: -.015em; margin: 11px 0 7px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-card-actions-v2 { display: flex !important; flex-wrap: wrap; gap: 8px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-card-actions-v2 button { flex: 1 1 100px; min-height: 44px !important; font-size: 12px !important; border-radius: 7px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-protocol { padding-block: 10px; margin-block: 10px; border-block: 1px solid var(--v2-line); color: var(--v2-accent); }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-document-validity-alert { border-radius: 8px !important; padding: 12px 16px !important; background: color-mix(in srgb,var(--v2-surface) 90%,var(--v2-gold)) !important; }
-
-/* Report library: preserve period, version, PDF, protocol, opening and acknowledgement. */
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-report-library-head-v58 { padding: 0 0 15px !important; margin-bottom: 0 !important; border-bottom: 1px solid var(--v2-line); }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-report-list-v64 { border: 1px solid var(--v2-line) !important; border-radius: 9px !important; background: var(--v2-surface) !important; overflow: hidden; margin-top: 16px; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-report-entry-main-v64 { min-height: 78px !important; padding: 14px 18px !important; background: var(--v2-surface) !important; border-color: var(--v2-line) !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-report-identification-v64 strong { font-size: 14px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-report-detail-v64 { background: var(--v2-soft) !important; padding: 16px 18px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-report-actions-v64 { flex-wrap: wrap; gap: 8px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] :is(.client-report-view-v64,.client-report-ack-v64) { padding: 9px 13px !important; border-radius: 7px !important; font-size: 11px !important; }
-
-/* Contract fronts retain their commercial content and all contextual overlays. */
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .fronts-page { --front-radius: 9px; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .fronts-hero.fronts-hero-compact { padding: 22px 24px !important; margin-bottom: 20px !important; border-radius: 9px !important; box-shadow: none !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .fronts-hero h1 { font-size: 27px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] :is(.fronts-card,.fronts-faq-card,.fronts-panel,.fronts-included-note) { border-radius: 9px !important; box-shadow: none !important; border-color: var(--v2-line) !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .fronts-section-title h2 { font-size: 17px !important; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .fronts-card h3 { font-size: 17px !important; }
-
-@media (max-width: 1100px) {
-  :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-cards-v2 { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+/* Canonical client shell from approved V2@7c0a232. Module views own their presentation. */
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .topbar.client-v2-globalbar{height:61px!important;min-height:61px!important;margin:0!important;padding:0 31px!important;background:var(--v2-surface)!important;border-bottom:1px solid var(--v2-line)!important;border-radius:0!important;box-shadow:none!important;display:flex;align-items:center;justify-content:space-between;gap:18px}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .workspace-view{padding:0!important}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .workspace-view:has(.cali-client-home){padding:26px 35px 0!important}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-header-leading{display:flex;align-items:center;gap:18px;min-width:0}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-workspace-label{font-size:12px;letter-spacing:1.5px;font-weight:700;color:#5a1e2d;white-space:nowrap}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-workspace-label>span{font-weight:400;letter-spacing:1px;color:#918781}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .top-actions.client-v2-header-actions{gap:16px!important;flex-wrap:nowrap;min-width:0}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-globalbar .profile-trigger-direct{display:flex;gap:8px;align-items:center;border:0;background:transparent;padding:0;color:#554b47}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-globalbar .profile-avatar{width:28px!important;height:28px!important;flex-basis:28px;border-radius:8px!important}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-globalbar .profile-copy{display:flex;flex-direction:column;font-size:11px}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-globalbar .profile-copy small{display:none}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-header-leading .extra-visit-top-action{display:flex;align-items:center;gap:8px;width:auto!important;min-width:0;height:32px!important;padding:8px 12px!important;background:#fff8ef!important;border:1px solid #e8ded4!important;box-shadow:none!important;border-radius:7px!important;color:#5a1e2d;font-size:10px;font-weight:600;white-space:nowrap}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-header-leading .extra-visit-top-action>span{display:inline!important;font-size:10px;white-space:nowrap}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-header-leading .extra-visit-top-action>svg{width:14px;height:14px}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-header-actions :is(.fronts-top-shortcut,.client-reports-top-shortcut,.fronts-extra-badge){height:30px!important;width:30px!important;min-height:30px!important;min-width:30px!important;border:0!important;background:transparent!important;box-shadow:none!important;padding:5px!important;border-radius:7px!important;color:#6b5456}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-header-actions .fronts-top-shortcut>span{display:none!important}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-tools{position:relative;flex:0 0 auto}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-tools>summary{list-style:none;display:grid;place-items:center;width:30px;height:30px;border-radius:7px;border:1px solid #ebe5df;background:white;color:#5a1e2d;cursor:pointer}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-tools>summary::-webkit-details-marker{display:none}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-tools[open]>summary{background:#f7f3ee;border-color:#b58c52}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-tools-panel{position:absolute;top:calc(100% + 10px);right:0;z-index:150;min-width:175px;padding:12px;background:var(--v2-surface);border:1px solid var(--v2-line);border-radius:9px;box-shadow:0 14px 40px #351b2826;display:flex;flex-direction:column;align-items:flex-start;gap:9px;color:var(--v2-text)}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-tools-panel>span{font-size:10px;font-weight:700;color:var(--v2-muted)}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-tools-panel .topbar-logout{display:flex;gap:10px;align-items:center;font-size:12px}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-tools-panel .topbar-logout span{display:inline!important}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-brand{display:flex;justify-content:center;align-items:center;height:68px;font-size:13px;font-weight:700;letter-spacing:1.5px;writing-mode:vertical-rl;transform:rotate(180deg);color:white;margin:auto}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-sidebar-bottom{margin-top:auto;padding:10px 7px 16px;display:flex;flex-direction:column;gap:10px;align-items:center}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-sidebar-rule{width:100%;height:1px;background:#a47763}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-sidebar-bottom a{width:42px;height:38px;display:grid;place-items:center;border-radius:7px;color:#f2dde2;text-decoration:none}
+:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-sidebar-bottom a:is(:hover,:focus-visible){background:#ffffff26;color:white}
+@media(min-width:851px){
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar,
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar:is(:hover,:focus-within,.hovered,.pinned){position:fixed;inset:0 auto 0 0!important;display:flex!important;flex-direction:column!important;width:56px!important;height:100dvh!important;min-height:0!important;max-height:100dvh!important;padding:0!important;border:0!important;border-radius:0!important;overflow:visible!important;box-shadow:none!important;background:linear-gradient(175deg,#5a1e2d 0%,#642a3b 42%,#785044 74%,#b58c52 100%)!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar .sidebar-top{height:68px!important;min-height:68px!important;padding:0!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar nav{display:flex!important;flex-direction:column!important;flex:0 1 auto;margin:0!important;padding:12px 7px 9px!important;gap:5px!important;overflow:visible!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar nav a{position:relative;display:flex!important;align-items:center;justify-content:center!important;width:42px!important;min-height:38px!important;height:38px!important;max-height:38px!important;padding:0!important;border-radius:7px!important;overflow:visible!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar nav a>svg{display:block!important;flex-shrink:0;width:16px!important;height:16px!important;stroke-width:1.55}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar nav a::after{content:none!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar nav a.active::before{content:none!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar nav a.active{color:white!important;background:#ffffff26!important;box-shadow:inset 2px 0 #dcb87b!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar nav a .nav-label{position:absolute;left:49px;top:0;display:none!important;width:auto;min-width:150px;background:white;border:1px solid #e9e2db;border-radius:0 8px 8px 0;padding:12px;color:#352e2d;font-size:11px;white-space:nowrap;z-index:80;box-shadow:7px 12px 28px #40212d22}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar nav a:is(:hover,:focus-visible) .nav-label{display:block!important;opacity:1!important;visibility:visible!important;transform:none!important}
 }
-@media (max-width: 700px) {
-  :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-metric-grid > div { padding-inline: 10px !important; }
-  :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-hours-metric-grid strong { font-size: 23px !important; }
-  :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .document-cards-v2 { grid-template-columns: 1fr !important; }
-  :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-doc-toolbar-v4 { grid-template-columns: 1fr !important; }
-  :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-real-timeline-panel { padding: 12px !important; }
-  :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-report-actions-v64 > button { flex: 1 1 auto; }
+@media(min-width:851px){:root .app-shell[data-visual-system='v2'][data-workspace-role='client']>main.main{margin-left:56px!important;width:calc(100% - 56px)!important;max-width:calc(100% - 56px)!important;flex-basis:calc(100% - 56px)!important}}
+@media(max-width:850px){
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client']>main.main{margin-left:0!important;width:100%!important;max-width:100%!important;flex-basis:100%!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar{position:fixed!important;inset:0 auto 0 -70px!important;width:65px!important;padding:0!important;height:100dvh!important;display:flex!important;flex-direction:column!important;background:linear-gradient(175deg,#5a1e2d 0%,#642a3b 42%,#785044 74%,#b58c52 100%)!important;transform:none!important;transition:left .2s;overflow:visible!important;border:0!important;border-radius:0!important;z-index:60!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar.mobile-open{left:0!important;width:58px!important;transform:none!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar-top{height:68px!important;min-height:68px!important;padding:0!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar nav{display:flex!important;flex-direction:column!important;padding:12px 7px 9px!important;margin:0!important;gap:5px!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar nav a{display:flex!important;justify-content:center!important;align-items:center!important;width:42px!important;height:38px!important;min-height:38px!important;padding:0!important;border-radius:7px!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar nav a .nav-label{display:none!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar nav a svg{width:16px!important;height:16px!important;flex-shrink:0}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar nav a.active{background:#ffffff26!important;color:white!important;box-shadow:inset 2px 0 #dcb87b!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar nav a:before,:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar nav a:after{content:none!important}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .sidebar-close{position:absolute;top:auto;bottom:90px;left:14px;width:30px;height:30px;background:transparent;border:0;color:white}
+ :root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .mobile-menu{height:30px!important;width:30px!important;left:12px!important;top:15px!important;border:0!important;background:transparent!important;box-shadow:none!important;color:#5a1e2d!important;z-index:62}
 }
-
-/* Client chrome uses the approved global header + module toolbar and a fixed rail. */
-:root .app-shell[data-workspace-role='client'] .client-v2-globalbar { height:61px !important; }
-:root .app-shell[data-workspace-role='client'] .client-v2-workspace-label { font-size:12px;letter-spacing:1.5px;color:#5a1e2d;font-weight:700;white-space:nowrap; }
-:root .app-shell[data-workspace-role='client'] .client-v2-workspace-label>span { font-weight:400;color:#918781;letter-spacing:1px; }
-:root .app-shell[data-workspace-role='client'] .client-v2-globalbar .profile-control-direct { width:auto; }
-:root .app-shell[data-workspace-role='client'] .client-v2-globalbar .profile-trigger-direct { display:flex;gap:8px;align-items:center;border:0;background:transparent;padding:0;color:#554b47; }
-:root .app-shell[data-workspace-role='client'] .client-v2-globalbar .profile-avatar { width:28px;height:28px;flex-basis:28px;border-radius:8px; }
-:root .app-shell[data-workspace-role='client'] .client-v2-globalbar .profile-copy { display:flex;flex-direction:column;font-size:11px; }
-:root .app-shell[data-workspace-role='client'] .client-v2-globalbar .profile-copy small { display:none; }
-:root .app-shell[data-workspace-role='client'] .client-v2-modulebar { height:70px;background:#ffffffed;border:1px solid #efe7df;border-radius:13px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;margin:26px 35px 20px;box-shadow:0 2px 14px #60402a06; }
-:root .app-shell[data-workspace-role='client'] .client-v2-modulebar .topbar-context-mark { height:35px;width:7px;border-radius:5px;background:linear-gradient(#5a1e2d,#c09257); }
-:root .app-shell[data-workspace-role='client'] .client-v2-modulebar .topbar-context { display:flex;align-items:center;gap:12px; }
-:root .app-shell[data-workspace-role='client'] .client-v2-modulebar .topbar-context small { font-size:9px;letter-spacing:1.4px;font-weight:800;color:#a37d50; }
-:root .app-shell[data-workspace-role='client'] .client-v2-modulebar .topbar-context strong { font-size:14px; }
-:root .app-shell[data-workspace-role='client'] .workspace-view:has(.cali-client-home) { padding:0 35px 0 !important;background:#faf7f3 !important; }
-:root .app-shell[data-workspace-role='client'] .client-v2-brand { display:flex;justify-content:center;align-items:center;height:68px;font-size:13px;font-weight:700;letter-spacing:1.5px;writing-mode:vertical-rl;transform:rotate(180deg);color:white;margin:auto; }
-@media(min-width:861px) {
-  :root .app-shell[data-workspace-role='client'] .sidebar,
-  :root .app-shell[data-workspace-role='client'] .sidebar:hover,
-  :root .app-shell[data-workspace-role='client'] .sidebar:focus-within,
-  :root .app-shell[data-workspace-role='client'] .sidebar.hovered,
-  :root .app-shell[data-workspace-role='client'] .sidebar.pinned { width:60px !important;overflow:visible !important;padding:0 !important;box-shadow:none !important; }
-  :root .app-shell[data-workspace-role='client'] .sidebar-top { height:75px;min-height:75px;padding:0; }
-  :root .app-shell[data-workspace-role='client'] .sidebar nav { padding:20px 8px 8px !important;gap:5px !important;grid-auto-rows:38px !important;overflow:visible; }
-  :root .app-shell[data-workspace-role='client'] .sidebar nav a { width:44px !important;min-height:38px !important;height:38px !important;max-height:38px !important;padding:0 !important;justify-content:center !important;overflow:visible !important;position:relative; }
-  :root .app-shell[data-workspace-role='client'] .sidebar nav a .nav-label { position:absolute;left:49px;top:0;display:none !important;width:auto;min-width:150px;background:#fff;border:1px solid #e9e2db;border-radius:0 8px 8px 0;padding:12px;color:#352e2d;font-size:11px;white-space:nowrap;z-index:80;box-shadow:7px 12px 28px #40212d22; }
-  :root .app-shell[data-workspace-role='client'] .sidebar nav a:hover .nav-label,
-  :root .app-shell[data-workspace-role='client'] .sidebar nav a:focus-visible .nav-label { display:block !important;opacity:1 !important;visibility:visible !important;transform:none !important; }
-}
-@media(max-width:1250px) {
-  :root .app-shell[data-workspace-role='client'] .client-v2-modulebar { margin-left:24px;margin-right:24px; }
-  :root .app-shell[data-workspace-role='client'] .workspace-view:has(.cali-client-home) { padding-left:24px !important;padding-right:24px !important; }
-}
-@media(max-width:860px) {
-  :root .app-shell[data-workspace-role='client'] .client-v2-modulebar { margin:25px 15px 20px;padding:0 10px; }
-  :root .app-shell[data-workspace-role='client'] .workspace-view:has(.cali-client-home) { padding-left:15px !important;padding-right:15px !important; }
-  :root .app-shell[data-workspace-role='client'] .client-v2-globalbar .profile-copy { display:none; }
-}
-@media(min-width:861px) {
-  :root .app-shell[data-workspace-role='client'] .sidebar { inset:0 auto 0 0 !important;height:100dvh !important;min-height:0 !important;max-height:100dvh !important;border:0 !important;border-radius:0 !important;background:linear-gradient(170deg,#682637 0%,#4d1a29 62%,#391622 100%) !important; }
-  :root .app-shell[data-workspace-role='client'] .sidebar nav a>svg { display:block !important;flex-shrink:0;width:16px !important;height:16px !important;stroke-width:1.55; }
-  :root .app-shell[data-workspace-role='client'] .sidebar nav a::after { content:none !important; }
-  :root .app-shell[data-workspace-role='client'] .sidebar nav a.active { color:#fff !important;background:#ffffff26 !important;box-shadow:inset 2px 0 #dcb87b !important; }
-}
-html[data-workspace-theme='night'] .app-shell[data-workspace-role='client'] .client-v2-modulebar { background:var(--v2-surface);border-color:var(--v2-line);color:var(--v2-text); }
-html[data-workspace-theme='night'] .app-shell[data-workspace-role='client'] .workspace-view:has(.cali-client-home) { background:var(--v2-canvas) !important; }
-
-/* Shell cliente: medidas e cores da V2 aprovada; ações oficiais continuam intactas. */
-@media (min-width:861px) {
- :root .app-shell[data-workspace-role='client'] .client-v2-globalbar { height:61px !important; min-height:61px !important; padding:0 31px !important; background:#fff !important; border-bottom:1px solid #e9e3de !important; box-shadow:none !important; }
- :root .app-shell[data-workspace-role='client'] .client-v2-workspace-label { font-size:12px !important; letter-spacing:1.5px !important; font-weight:700 !important; color:#5a1e2d !important; }
- :root .app-shell[data-workspace-role='client'] .client-v2-workspace-label span { font-weight:400 !important; color:#918781 !important; letter-spacing:1px !important; }
- :root .app-shell[data-workspace-role='client'] .sidebar nav a.active { border-radius:7px !important; box-shadow:inset 2px 0 0 #dcb87b !important; }
-}
-
-/* Header de cliente reconstruído como composição V2, com as ações reais acessíveis. */
-:root .app-shell[data-workspace-role='client'] .client-v2-header-leading { display:flex;align-items:center;min-width:0; }
-:root .app-shell[data-workspace-role='client'] .client-v2-header-actions { gap:16px !important; }
-:root .app-shell[data-workspace-role='client'] .client-v2-tools { position:relative;flex:0 0 auto; }
-:root .app-shell[data-workspace-role='client'] .client-v2-tools > summary { list-style:none;display:grid;place-items:center;width:32px;height:32px;border-radius:8px;border:1px solid #ebe5df;background:#fff;color:#5a1e2d;cursor:pointer; }
-:root .app-shell[data-workspace-role='client'] .client-v2-tools > summary::-webkit-details-marker { display:none; }
-:root .app-shell[data-workspace-role='client'] .client-v2-tools[open] > summary { background:#f7f3ee;border-color:#b58c52; }
-:root .app-shell[data-workspace-role='client'] .client-v2-tools-panel { position:absolute;top:calc(100% + 10px);right:0;z-index:150;min-width:175px;padding:12px;background:#fff;border:1px solid #e9e3de;border-radius:9px;box-shadow:0 14px 40px #351b2826;display:flex;flex-direction:column;align-items:flex-start;gap:9px;color:#322f2c; }
-:root .app-shell[data-workspace-role='client'] .client-v2-tools-panel > span { font-size:10px;font-weight:700;color:#918781;letter-spacing:.04em; }
-:root .app-shell[data-workspace-role='client'] .client-v2-tools-panel .topbar-logout { display:flex;gap:10px;align-items:center;font-size:12px; }
-:root .app-shell[data-workspace-role='client'] .client-v2-tools-panel .topbar-logout span { display:inline !important; }
-@media(max-width:650px) { :root .app-shell[data-workspace-role='client'] .client-v2-header-actions { gap:7px !important; } :root .app-shell[data-workspace-role='client'] .client-v2-globalbar { padding-inline:13px !important; } }
-
-/* Rodapé da navegação V2: acesso real a frentes, não botão fictício. */
-@media(min-width:861px) {
- :root .app-shell[data-workspace-role='client'] .sidebar { display:flex !important; flex-direction:column !important; }
- :root .app-shell[data-workspace-role='client'] .sidebar nav { flex:0 1 auto; }
- :root .app-shell[data-workspace-role='client'] .client-v2-sidebar-bottom { margin-top:auto;padding:10px 8px 16px;display:flex;flex-direction:column;gap:10px;align-items:center; }
- :root .app-shell[data-workspace-role='client'] .client-v2-sidebar-rule { width:100%;height:1px;background:#a47763; }
- :root .app-shell[data-workspace-role='client'] .client-v2-sidebar-bottom a { width:44px;height:38px;display:grid;place-items:center;border-radius:7px;color:#f2dde2;text-decoration:none; }
- :root .app-shell[data-workspace-role='client'] .client-v2-sidebar-bottom a:hover,
- :root .app-shell[data-workspace-role='client'] .client-v2-sidebar-bottom a:focus-visible { background:#ffffff26;color:#fff; }
-}
-@media(max-width:860px) { :root .app-shell[data-workspace-role='client'] .client-v2-sidebar-bottom { margin-top:auto;padding:12px; } :root .app-shell[data-workspace-role='client'] .client-v2-sidebar-rule { display:block;border-top:1px solid #a47763; } :root .app-shell[data-workspace-role='client'] .client-v2-sidebar-bottom a { display:flex;align-items:center;justify-content:center;min-height:40px;color:white; } }
+@media(max-width:1250px){:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .workspace-view:has(.cali-client-home){padding:26px 24px 0!important}}
+@media(max-width:850px){:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .workspace-view:has(.cali-client-home){padding:25px 15px 0!important}:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-globalbar .profile-copy{display:none}}
+@media(max-width:650px){:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .topbar.client-v2-globalbar{padding:0 12px 0 53px!important;gap:8px}:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .top-actions.client-v2-header-actions{gap:5px!important}:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-header-leading{gap:7px}:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-header-leading .extra-visit-top-action{width:30px!important;padding:5px!important}:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-header-leading .extra-visit-top-action>span{display:none!important}:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-workspace-label{font-size:10px;letter-spacing:.7px}:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-workspace-label>span{display:none}}
+@media(max-width:400px){:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .top-actions.client-v2-header-actions{gap:3px!important}:root .app-shell[data-visual-system='v2'][data-workspace-role='client'] .client-v2-header-leading{gap:4px}}

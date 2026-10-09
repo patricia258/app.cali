@@ -29,7 +29,7 @@ Horas conserva o filtro de contexto e expansão dos detalhes (ausentes na V2) de
 
 ## Limites de validação
 
-A referência foi aberta com acesso temporário oficial da Vercel, sem alterar proteção. O preview está autenticado em uma conta de cliente via o fluxo normal de e-mail e código. A comparação no navegador ainda será executada sobre o commit publicado. Testes de escrita devem ocorrer em isolamento comprovado; preview da aplicação não isola o banco de produção. Produção, RLS, Auth e integrações não recebem mudanças.
+A referência foi aberta com acesso temporário oficial da Vercel, sem alterar proteção. O preview está autenticado em uma conta de cliente via o fluxo normal de e-mail e código. A comparação autenticada inicial de Horas foi registrada; a revisão seguinte recebeu comparações locais em quatro larguras e ainda exige nova conferência autenticada após a publicação. Testes de escrita devem ocorrer em isolamento comprovado; preview da aplicação não isola o banco de produção. Produção, RLS, Auth e integrações não recebem mudanças.
 
 ## Controle dos vínculos no HTML
 
@@ -38,3 +38,17 @@ Conversas e aprovações usam runtimes com seletores DOM. O novo HTML utiliza `d
 Foram removidos os CSS exclusivos `client-deliverables-v31/v32/v33`, sem referências ativas após a substituição. Carregadores de Horas, Documentos, Ocorrências e Projetos do cliente passam a carregar o módulo visual V2; carregadores da administradora continuam iguais. Os callbacks do formulário mensal e dos cinco passos de cadastro permanecem inalterados.
 
 O modo noturno existente mantém a composição V2. Variáveis de cor conservam os valores exatos da referência no modo diurno. As cores noturnas são um encaixe funcional da aplicação oficial; não fazem parte do protótipo aprovado.
+
+## Evidências e limpeza da revisão de 09/10
+
+O cabeçalho secundário foi removido do JSX do cliente. Agendamento, frentes e relatórios foram acomodados na topbar principal, mantendo seus callbacks. A sidebar usa as medidas e o gradiente medidos na referência: 56 px no desktop e 58 px aberta no mobile. A topbar mede 61 px; em Horas a página começa em x=91/y=87 no viewport 1440 px. A tipografia genérica antiga foi excluída dos descendentes `.v2-client-module`, e foi eliminado o título genérico intermediário que ainda alterava margens/altura da V2. O cabeçalho de Horas passou a medir 69 px em ambos os renders locais, com fontes externas interceptadas igualmente.
+
+A visão mensal do calendário foi incorporada ao JSX V2, reaproveitando os mesmos eventos, filtros e `openItem`; conserva semana, lista e seleção horária. A única alteração na declaração de estado é a ampliação do tipo de apresentação `agendaView` com `month`, explicitamente normalizada pela guarda. Não há mudança em consultas/mutações.
+
+A suíte local exercita o provedor de autenticação da aplicação com sessão e respostas de backend simuladas; remove o bypass `cali-preview-role`. As capturas da referência são produzidas pelo código exato aprovado, no mesmo navegador e nas larguras 1440, 1280, 1024 e 390 px. Registra geometria e pares de capturas, com dados QA claramente identificados. Essa verificação não equivale a testar RLS ou persistência no banco real. Capturas ficam fora do repositório público.
+
+Interações verificadas localmente: abrir evento pela visão mensal; tentar comentário de documento e exibir falha simulada de gravação; inicializar ferramentas reais de anexo/link/emoji de conversa do entregável; abrir drawer de ocorrência; acessar o formulário de equipe; navegar pelo menu mobile; redirecionar cliente que tenta rota administrativa. Hover e foco da navegação também recebem capturas. Escritas permanecem bloqueadas no interceptor.
+
+A conferência autenticada inicial de Horas ocorreu antes desta revisão do cabeçalho, em 1363×936 px. A nova inspeção autenticada foi rejeitada pela revisão automática por limite de uso da conta. Não foi contornada. A última revisão publicada precisa de nova conferência autenticada quando o acesso estiver disponível.
+
+Pendências para homologação completa: fonte operacional de avisos institucionais não identificada; paridade dos estados secundários de perfil/notificações/canal e flyout de equipe; validação completa de CRUD, aprovação, ciência, anexos/Drive, exportações, persistência e isolamento em ambiente autorizado para escrita. A administradora não foi iniciada, conforme a ordem exigida. O aplicativo de produção, esquema/RLS/Auth e integrações não foram modificados, e não houve merge para a branch principal.
