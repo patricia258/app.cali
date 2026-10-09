@@ -5,7 +5,6 @@ import {
   MessageCircle, RefreshCw, Send, Star, X, Leaf, ChevronDown, ChevronRight,
 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
-import { demoDeliverables } from '../../data/demo';
 import {
   loadClientDeliveryReality,
   subscribeClientDeliveryReality,
@@ -88,80 +87,6 @@ function scoreReaction(score: number) {
   return { emoji: '🤩', title: 'Uau! Muito obrigada.', copy: 'Se quiser contar o que funcionou bem, vou adorar ler.' };
 }
 
-function previewReality(): ClientDeliveryReality {
-  const deliverables: ClientDeliveryItem[] = demoDeliverables.map((item, index) => ({
-    id: item.id,
-    companyId: 'preview-aurora',
-    projectId: 'preview-project',
-    projectName: 'Estruturação People',
-    projectStatus: 'active',
-    projectPlanningStatus: 'active',
-    protocol: item.code,
-    code: item.code,
-    title: item.title,
-    description: item.description,
-    status: item.status,
-    priority: 'normal',
-    complexity: index % 3 === 0 ? 'MC1' : index % 3 === 1 ? 'MC2' : 'MC3',
-    workstream: item.workstream,
-    workstreamId: `preview-front-${item.workstream}`,
-    roadmapMonthStart: Math.max(1, index + 1),
-    roadmapMonthEnd: Math.max(1, index + 1),
-    dueAt: new Date(Date.now() + (index + 2) * 86400000).toISOString(),
-    originalDueAt: null,
-    clientResponseDueAt: item.status === 'client_review' ? new Date(Date.now() + 2 * 86400000).toISOString() : null,
-    startedAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-    approvalRequestedAt: item.status === 'client_review' ? new Date().toISOString() : null,
-    clientResponseAt: null,
-    approvedAt: item.status === 'approved' ? new Date().toISOString() : null,
-    updatedAt: new Date().toISOString(),
-    adjustmentCount: 0,
-    rebriefingRequired: false,
-    isDocument: Boolean(item.isDocument),
-    finalDriveUrl: null,
-    visibleMinutes: null,
-    visibleTasks: [],
-    visibleTaskProgress: null,
-    document: null,
-    feedback: null,
-    latestAdjustment: null,
-    history: [],
-  }));
-  const grouped = Array.from(new Set(deliverables.map((item) => item.workstream || 'Frente CALI')));
-  const workstreams: ClientDeliveryWorkstream[] = grouped.map((name, index) => ({
-    id: `preview-front-${name}`,
-    companyId: 'preview-aurora',
-    projectId: 'preview-project',
-    protocol: `CALI-FRT-PREVIEW-${String(index + 1).padStart(2, '0')}`,
-    name,
-    objective: 'Frente compartilhada do cronograma CALI.',
-    monthStart: Math.min(...deliverables.filter((item) => item.workstream === name).map((item) => item.roadmapMonthStart || 1)),
-    monthEnd: Math.max(...deliverables.filter((item) => item.workstream === name).map((item) => item.roadmapMonthEnd || item.roadmapMonthStart || 1)),
-    status: 'active',
-    sortOrder: index + 1,
-  }));
-  const visible = deliverables.filter((item) => item.status !== 'cancelled');
-  const approved = visible.filter((item) => item.status === 'approved').length;
-  return {
-    company: { id: 'preview-aurora', displayName: 'Aurora Tech', monthlyHoursContracted: null, showHoursToClient: false },
-    projects: [{ id: 'preview-project', name: 'Estruturação People', status: 'active' }],
-    workstreams,
-    deliverables,
-    metrics: {
-      total: visible.length,
-      active: visible.filter((item) => item.status !== 'approved').length,
-      waitingClient: visible.filter((item) => item.status === 'client_review').length,
-      approved,
-      cancelled: 0,
-      overdue: 0,
-      completionPct: visible.length ? Math.round((approved / visible.length) * 100) : 0,
-      visibleMinutes: null,
-      averageDeliveryScore: null,
-      feedbackCount: 0,
-    },
-  };
-}
-
 function deriveFronts(reality: ClientDeliveryReality, projectId: string): ClientDeliveryWorkstream[] {
   const real = reality.workstreams.filter((front) => front.projectId === projectId && front.status !== 'cancelled');
   if (real.length) return real;
@@ -185,14 +110,12 @@ function deriveFronts(reality: ClientDeliveryReality, projectId: string): Client
 }
 
 export function ClientDeliverablesPage() {
-  const preview = sessionStorage.getItem('cali-preview-role') === 'client';
-  const previewData = useMemo(() => previewReality(), []);
   const refreshTimer = useRef<number | null>(null);
   const conversationRef = useRef<HTMLDivElement | null>(null);
 
-  const [companyId, setCompanyId] = useState(preview ? previewData.company.id : '');
-  const [reality, setReality] = useState<ClientDeliveryReality | null>(preview ? previewData : null);
-  const [projectId, setProjectId] = useState(preview ? previewData.projects[0]?.id || '' : '');
+  const [companyId, setCompanyId] = useState('');
+  const [reality, setReality] = useState<ClientDeliveryReality | null>(null);
+  const [projectId, setProjectId] = useState('');
   const [selectedId, setSelectedId] = useState('');
   const [projectTab, setProjectTab] = useState<'overview' | 'timeline' | 'deliverables'>('overview');
   const [expandedFronts, setExpandedFronts] = useState<Record<string, boolean>>({});
@@ -208,7 +131,7 @@ export function ClientDeliverablesPage() {
   const [npsComment, setNpsComment] = useState('');
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(!preview);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const selected = useMemo(() => reality?.deliverables.find((item) => item.id === selectedId) || null, [reality?.deliverables, selectedId]);
@@ -221,28 +144,27 @@ export function ClientDeliverablesPage() {
   const reaction = score ? scoreReaction(score) : null;
 
   useEffect(() => {
-    if (preview || !supabase) return;
+    if (!supabase) return;
     void bootstrap();
     return () => { if (refreshTimer.current) window.clearTimeout(refreshTimer.current); };
   }, []);
 
   useEffect(() => {
-    if (preview || !companyId) return;
+    if (!companyId) return;
     return subscribeClientDeliveryReality(companyId, () => {
       if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
       refreshTimer.current = window.setTimeout(() => void refreshReality(), 180);
     });
-  }, [companyId, preview]);
+  }, [companyId]);
 
   useEffect(() => {
     if (!selected) {
       setMessages([]);
       return;
     }
-    if (preview) return;
     void loadConversation(selected.id);
     return subscribeClientDeliverableConversation(selected.id, () => void loadConversation(selected.id, false));
-  }, [selected?.id, preview]);
+  }, [selected?.id]);
 
   useEffect(() => {
     if (!conversationRef.current) return;
@@ -297,7 +219,7 @@ export function ClientDeliverablesPage() {
   }
 
   async function refreshReality() {
-    if (preview || !companyId) return;
+    if (!companyId) return;
     try {
       applyReality(await loadClientDeliveryReality(companyId));
     } catch (requestError) {
@@ -306,7 +228,6 @@ export function ClientDeliverablesPage() {
   }
 
   async function loadConversation(deliverableId: string, showLoading = true) {
-    if (preview) return;
     if (showLoading) setConversationLoading(true);
     try {
       setMessages(await loadClientDeliverableConversation(deliverableId));
@@ -335,12 +256,8 @@ export function ClientDeliverablesPage() {
     setSendingMessage(true);
     setError('');
     try {
-      if (preview) {
-        setMessages((current) => [...current, { id: `preview-${Date.now()}`, deliverableId: selected.id, body, sourceActor: 'client', createdAt: new Date().toISOString() }]);
-      } else {
-        await sendClientDeliverableMessage(selected.id, body);
-        await loadConversation(selected.id, false);
-      }
+      await sendClientDeliverableMessage(selected.id, body);
+      await loadConversation(selected.id, false);
       setMessageDraft('');
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar a mensagem.');
@@ -354,12 +271,7 @@ export function ClientDeliverablesPage() {
     setSaving(true);
     setError('');
     try {
-      if (preview || !supabase) {
-        setAdjustmentOpen(false);
-        setAdjustmentText('');
-        setNotice('Seu pedido de ajuste foi registrado.');
-        return;
-      }
+      if (!supabase) throw new Error('Serviço indisponível. Tente novamente em instantes.');
       const result = await supabase.rpc('request_deliverable_adjustment', { p_deliverable_id: selected.id, p_reason: adjustmentText.trim(), p_impact_business_days: 0 });
       if (result.error) throw result.error;
       setNotice('Seu pedido de ajuste foi registrado e já está com a CALI.');
@@ -378,11 +290,7 @@ export function ClientDeliverablesPage() {
     setSaving(true);
     setError('');
     try {
-      if (preview || !supabase) {
-        setNpsOpen(false);
-        setNotice('Entrega aprovada. Sua avaliação também foi registrada.');
-        return;
-      }
+      if (!supabase) throw new Error('Serviço indisponível. Tente novamente em instantes.');
       const result = await supabase.rpc('client_approve_deliverable_with_feedback', { p_deliverable_id: selected.id, p_score: score, p_comment: npsComment.trim() || null });
       if (result.error) throw result.error;
       setNpsOpen(false);
@@ -398,7 +306,7 @@ export function ClientDeliverablesPage() {
   }
 
   async function openPublishedDocument(document: ClientPublishedDocument) {
-    if (preview || !supabase) return;
+    if (!supabase) return;
     if (document.storagePath) {
       const { data, error: signedError } = await supabase.storage.from('cali-workspace-private').createSignedUrl(document.storagePath, 300);
       if (signedError || !data?.signedUrl) { setError(signedError?.message || 'Não foi possível abrir o documento.'); return; }

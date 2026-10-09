@@ -31,12 +31,6 @@ const categoryOptions: Array<{ value: CategorySlug; label: string }> = [
   { value: 'schedule', label: 'Cronograma' }, { value: 'contract', label: 'Contrato' }, { value: 'reference', label: 'Referência' }, { value: 'other', label: 'Outro' },
 ];
 
-const previewDocuments: ClientDoc[] = [
-  { id: 'd1', companyId: 'preview-aurora', title: 'Estrutura de indicadores de People', category: 'deliverable', kind: 'Matriz', date: '28 ago 2026', version: 'v1.0', protocol: 'CALI-DOC-2026-000041', requiresAcknowledgement: true, description: 'Material consolidado para leitura e validação da liderança.' },
-  { id: 'd2', companyId: 'preview-aurora', title: 'Relatório Executivo · Julho', category: 'report', kind: 'Relatório', date: '01 ago 2026', version: 'final', protocol: 'CALI-DOC-2026-000032', requiresAcknowledgement: false },
-  { id: 'd3', companyId: 'preview-aurora', title: 'Cronograma aprovado · Ciclo 01', category: 'schedule', kind: 'Plano', date: '19 ago 2026', version: 'vigente', protocol: 'CALI-DOC-2026-000035', requiresAcknowledgement: true },
-];
-
 const categoryLabel = (value: CategorySlug) => categoryOptions.find((item) => item.value === value)?.label || 'Outro';
 
 function formatDate(value: string) {
@@ -53,8 +47,7 @@ function daysUntil(value?: string | null) {
 }
 
 export function ClientDocumentsPage() {
-  const preview = sessionStorage.getItem('cali-preview-role') === 'client';
-  const [documents, setDocuments] = useState<ClientDoc[]>(preview ? previewDocuments : []);
+  const [documents, setDocuments] = useState<ClientDoc[]>([]);
   const [companyBrand, setCompanyBrand] = useState({ name: 'sua empresa', logoUrl: '' });
   const [query, setQuery] = useState('');
   const [layout, setLayout] = useState<'covers' | 'list'>('covers');
@@ -62,8 +55,8 @@ export function ClientDocumentsPage() {
   const [driveConnection, setDriveConnection] = useState<DriveConnection | null>(null);
   const [driveConnecting, setDriveConnecting] = useState(false);
   const [syncByFile, setSyncByFile] = useState<Record<string, SyncState>>({});
-  const [acknowledged, setAcknowledged] = useState<string[]>(preview ? ['d1'] : []);
-  const [loading, setLoading] = useState(!preview);
+  const [acknowledged, setAcknowledged] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [commentDoc, setCommentDoc] = useState<ClientDoc | null>(null);
@@ -79,7 +72,7 @@ export function ClientDocumentsPage() {
   }), [documents, query, categoryFilter]);
 
   useEffect(() => {
-    if (preview || !supabase) return;
+    if (!supabase) return;
     void loadDocuments();
   }, []);
 
@@ -143,7 +136,7 @@ export function ClientDocumentsPage() {
   }), [documents]);
 
   async function markViewed(doc: ClientDoc) {
-    if (preview || !supabase) return;
+    if (!supabase) return;
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
     if (!userId) return;
@@ -157,7 +150,7 @@ export function ClientDocumentsPage() {
 
   async function openDocument(doc: ClientDoc) {
     await markViewed(doc);
-    if (preview || !supabase) return;
+    if (!supabase) return;
     if (doc.storagePath) {
       const { data, error: signedError } = await supabase.storage.from('cali-workspace-private').createSignedUrl(doc.storagePath, 300);
       if (signedError) { setError(signedError.message); return; }
@@ -169,10 +162,7 @@ export function ClientDocumentsPage() {
 
   async function acknowledgeDocument(doc: ClientDoc) {
     if (acknowledged.includes(doc.id)) return;
-    if (preview || !supabase) {
-      setAcknowledged((current) => [...current, doc.id]);
-      return;
-    }
+    if (!supabase) { setError('Serviço indisponível. Tente novamente em instantes.'); return; }
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
     if (!userId) return;
@@ -189,10 +179,7 @@ export function ClientDocumentsPage() {
   async function openComments(doc: ClientDoc) {
     setCommentDoc(doc);
     setComment('');
-    if (preview || !supabase) {
-      setComments([{ id: 'p1', body: 'Documento disponibilizado para sua análise. Se surgir algum ponto, registre por aqui para mantermos o contexto junto ao arquivo.', createdAt: '28 ago · 09:12', mine: false }]);
-      return;
-    }
+    if (!supabase) { setComments([]); setError('Serviço indisponível. Tente novamente em instantes.'); return; }
     setCommentLoading(true);
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
@@ -204,11 +191,7 @@ export function ClientDocumentsPage() {
 
   async function sendComment() {
     if (!commentDoc || !comment.trim()) return;
-    if (preview || !supabase) {
-      setComments((current) => [...current, { id: `c-${Date.now()}`, body: comment.trim(), createdAt: 'agora', mine: true }]);
-      setComment('');
-      return;
-    }
+    if (!supabase) { setError('Serviço indisponível. Tente novamente em instantes.'); return; }
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
     if (!userId) return;
@@ -219,10 +202,6 @@ export function ClientDocumentsPage() {
   }
 
   async function connectDrive() {
-    if (preview) {
-      setNotice('No ambiente de demonstração, a conexão com o Google Drive não é aberta.');
-      return;
-    }
     if (!supabase || driveConnecting) return;
     setDriveConnecting(true);
     setError('');
@@ -237,7 +216,7 @@ export function ClientDocumentsPage() {
   }
 
   async function requestDriveCopy(doc: ClientDoc) {
-    if (!driveConnection || !supabase || preview || !doc.storagePath) return;
+    if (!driveConnection || !supabase || !doc.storagePath) return;
     const existing = syncByFile[doc.id];
     if (existing?.status === 'synced' && existing.url) {
       window.open(existing.url, '_blank', 'noopener,noreferrer');
