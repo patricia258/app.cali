@@ -30,7 +30,7 @@ function isClientRoute() {
 }
 
 function drawer() {
-  return document.querySelector<HTMLElement>('.records-v13-drawer');
+  return document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"])");
 }
 
 function protocolFromDrawer(target: HTMLElement) {
@@ -168,7 +168,7 @@ function renderClientFeedbackHistory(target: HTMLElement, feedback: Feedback | n
 
   const locked = target.querySelector<HTMLElement>('.records-v27-chat-locked');
   if (locked?.parentElement) locked.parentElement.insertBefore(details, locked);
-  else target.querySelector('.records-v13-conversation')?.append(details);
+  else target.querySelector(":is(.records-v13-conversation,[data-v2-operation~=\"records-v13-conversation\"])")?.append(details);
 }
 
 async function enhance() {

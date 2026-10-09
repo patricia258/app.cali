@@ -116,8 +116,8 @@ function guardHistory(history: HTMLElement) {
     }
   }, { passive: true });
 
-  const drawer = history.closest('.records-v13-drawer');
-  const compose = drawer?.querySelector<HTMLElement>('.conversation-compose');
+  const drawer = history.closest(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"])");
+  const compose = drawer?.querySelector<HTMLElement>(":is(.conversation-compose,[data-v2-operation~=\"conversation-compose\"])");
   if (compose) {
     const releaseForOwnMessage = (event: Event) => {
       if (event.type === 'keydown') {
@@ -140,7 +140,7 @@ function guardHistory(history: HTMLElement) {
 }
 
 function scan() {
-  document.querySelectorAll<HTMLElement>('.records-v13-drawer .conversation-history').forEach(guardHistory);
+  document.querySelectorAll<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"]) :is(.conversation-history,[data-v2-operation~=\"conversation-history\"])").forEach(guardHistory);
 }
 
 export function installRecordsConversationScrollGuard() {

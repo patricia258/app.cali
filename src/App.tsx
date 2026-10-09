@@ -74,7 +74,7 @@ const AdminRecordsPage = lazy(async () => {
   return import('./pages/records/WorkspaceRecordsPage').then((m) => ({ default: m.AdminRecordsPage }));
 });
 const ClientRecordsPage = lazy(async () => {
-  await import('./styles/routes/records');
+  await import('./styles/routes/clientModules');
   return import('./pages/records/WorkspaceRecordsPage').then((m) => ({ default: m.ClientRecordsPage }));
 });
 const ClientDashboard = lazy(async () => {
@@ -86,15 +86,15 @@ const ClientTimelinePage = lazy(async () => {
   return import('./pages/client/ClientTimelinePage').then((m) => ({ default: m.ClientTimelinePage }));
 });
 const ClientDeliverablesPage = lazy(async () => {
-  await import('./styles/routes/clientDeliverables');
+  await import('./styles/routes/clientModules');
   return import('./pages/client/ClientDeliverablesPage').then((m) => ({ default: m.ClientDeliverablesPage }));
 });
 const ClientHoursPage = lazy(async () => {
-  await import('./styles/routes/hours');
+  await import('./styles/routes/clientModules');
   return import('./pages/client/ClientHoursPage').then((m) => ({ default: m.ClientHoursPage }));
 });
 const ClientDocumentsPage = lazy(async () => {
-  await import('./styles/routes/documents');
+  await import('./styles/routes/clientModules');
   return import('./pages/client/ClientDocumentsPage').then((m) => ({ default: m.ClientDocumentsPage }));
 });
 const ClientReportsPageV5 = lazy(() => import('./pages/client/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 })));

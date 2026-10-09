@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Cloud, ExternalLink, Eye, FileCheck2, FileText, Loader2, MessageSquare, Search, Send, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Cloud, ExternalLink, Eye, FileCheck2, FileText, MessageSquare, Search, Send, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
-import { ClientDocumentBrandCover } from '../../components/ClientDocumentBrandCover';
 import { supabase } from '../../lib/supabase';
+import '../../styles/client-modules.css';
 
 type CategorySlug = 'policy' | 'manual' | 'flow' | 'guide' | 'report' | 'onboarding' | 'deliverable' | 'schedule' | 'contract' | 'reference' | 'other';
 type ClientDoc = {
@@ -58,6 +58,7 @@ export function ClientDocumentsPage() {
   const [documents, setDocuments] = useState<ClientDoc[]>(preview ? previewDocuments : []);
   const [companyBrand, setCompanyBrand] = useState({ name: 'sua empresa', logoUrl: '' });
   const [query, setQuery] = useState('');
+  const [layout, setLayout] = useState<'covers' | 'list'>('covers');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [driveConnection, setDriveConnection] = useState<DriveConnection | null>(null);
   const [driveConnecting, setDriveConnecting] = useState(false);
@@ -263,67 +264,33 @@ export function ClientDocumentsPage() {
     return 'Salvando no Drive…';
   }
 
-  if (loading) return <Shell role="client"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando biblioteca…</section></Shell>;
+  if (loading) return <Shell role="client"><section className="v2-client-module data-loading" aria-live="polite" aria-busy="true">Carregando biblioteca…</section></Shell>;
 
-  return (
-    <Shell role="client">
-      <section className="page client-documents-v2 client-documents-v3 client-documents-v4">
-
-        {notice && <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div>}
-        {error && <div className="inline-notice">{error}</div>}
-
-        <section className={`drive-banner ${driveConnection ? 'connected' : 'not-configured'}`}>
-          <div className="drive-icon"><Cloud size={23} /></div>
-          <div><span className="client-drive-kicker-v52">SEU ARQUIVO, NO SEU DRIVE</span><strong>{driveConnection ? 'Drive da sua empresa conectado' : 'Leve suas versões aprovadas para o Drive da sua empresa'}</strong><p>{driveConnection ? `${driveConnection.accountEmail || 'Conta Google conectada'}. Documentos aprovados continuam no Workspace e você escolhe quais versões copiar para o Drive da empresa.` : 'Conecte a conta Google da sua empresa. Depois, cada documento aprovado pela CALI pode ser salvo no Drive da empresa com um clique.'}</p></div>
-          <div className="client-drive-actions-v52">{driveConnection && <span className="client-drive-connected-v3"><CheckCircle2 size={15} />Conectado</span>}<button type="button" className="client-drive-action-v52" disabled={driveConnecting} onClick={() => void connectDrive()}><Cloud size={16} />{driveConnecting ? 'Abrindo Google…' : driveConnection ? 'Trocar conta' : 'Conectar meu Drive'}</button></div>
-        </section>
-
-        {validityAlerts.length > 0 && <section className="client-document-validity-alert" role="status"><AlertTriangle size={21} /><div><strong>{validityAlerts.some((doc) => (daysUntil(doc.validUntil) ?? 1) < 0) ? 'Há documentos com revisão vencida ou próxima.' : 'Há documentos próximos da revisão.'}</strong><p>{validityAlerts.length === 1 ? 'A validade deste documento se aproxima. Planeje a revisão para manter a documentação vigente e reduzir riscos trabalhistas e de auditoria.' : `${validityAlerts.length} documentos precisam de atenção. A ausência de revisão pode aumentar o risco trabalhista e o passivo em auditorias.`}</p></div></section>}
-
-        <div className="client-doc-toolbar-v3 client-doc-toolbar-v4">
-          <div className="client-doc-toolbar-copy-v4"><span>ACERVO DISPONÍVEL</span><strong>{filtered.length} {filtered.length === 1 ? 'documento' : 'documentos'}</strong><small>Use a busca ou filtre por categoria.</small></div>
-          <label className="search-box client-doc-search"><Search size={18} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nome, tipo ou protocolo" /></label>
-          <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} aria-label="Filtrar documentos por categoria"><option value="all">Todas as categorias</option>{categories.map((value) => <option key={value} value={value}>{categoryLabel(value)}</option>)}</select>
-        </div>
-
-        {loading && <div className="data-loading"><Loader2 className="spin" size={20} />Carregando biblioteca…</div>}
-        {!loading && filtered.length === 0 && <div className="panel data-empty"><strong>Nenhum documento encontrado.</strong><span>{documents.length ? 'Ajuste a busca ou o filtro.' : 'Assim que a CALI publicar uma versão final para você, ela aparecerá aqui.'}</span></div>}
-        <section className="document-cards document-cards-v2">
-          {filtered.map((doc) => {
-            const isAcknowledged = acknowledged.includes(doc.id);
-            const syncState = syncByFile[doc.id];
-            const syncLocked = syncState?.status === 'pending' || syncState?.status === 'processing';
-            return (
-              <article className="document-card document-card-v2" key={doc.id}>
-                <div className="document-card-cover"><ClientDocumentBrandCover companyId={doc.companyId} companyName={companyBrand.name} logoUrl={companyBrand.logoUrl} /></div>
-                <div className="document-card-body">
-                  <div className="document-card-tags"><span>{categoryLabel(doc.category)}</span><span>{doc.kind}</span>{isAcknowledged && <span className="ack-tag"><CheckCircle2 size={13} />Ciência registrada</span>}</div>
-                  <h2>{doc.title}</h2>
-                  {doc.description && <p className="client-document-context-v3">{doc.description}</p>}
-                  <p>{doc.date} · {doc.version}</p>
-                  <div className={`client-document-validity ${doc.validUntil && ((daysUntil(doc.validUntil) ?? 999) <= 60) ? 'attention' : ''}`}><AlertTriangle size={14} />{doc.validUntil ? <>Validade / próxima revisão: {formatDate(doc.validUntil)}{(daysUntil(doc.validUntil) ?? 999) < 0 ? ' · vencida' : ''}</> : 'Validade / próxima revisão: não definida'}</div>
-                  <small className="document-protocol">{doc.protocol}</small>
-                  <div className="document-card-actions document-card-actions-v2">
-                    <button className="secondary" onClick={() => void openDocument(doc)}><Eye size={17} />Abrir</button>
-                    <button className="secondary" onClick={() => void openComments(doc)}><MessageSquare size={17} />Comentar</button>
-                    {doc.requiresAcknowledgement && <button className={`secondary ${isAcknowledged ? 'acknowledged' : ''}`} disabled={isAcknowledged} onClick={() => void acknowledgeDocument(doc)}>{isAcknowledged ? <><CheckCircle2 size={17} />Ciente</> : <><FileCheck2 size={17} />Registrar ciência</>}</button>}
-                    {driveConnection && doc.storagePath && <button className={`secondary ${syncState?.status === 'synced' ? 'acknowledged' : ''}`} disabled={Boolean(syncLocked)} onClick={() => void requestDriveCopy(doc)}>{syncState?.status === 'synced' ? <ExternalLink size={17} /> : <Cloud size={17} />}{driveActionLabel(syncState)}</button>}
-                  </div>
-                </div>
-              </article>
-            );
-          })}
-        </section>
-      </section>
-
-      {commentDoc && <div className="modal-backdrop workspace-modal-backdrop" role="presentation">
-        <section className="modal-card document-comment-modal" role="dialog" aria-modal="true" aria-label={`Comentários de ${commentDoc.title}`}>
-          <button type="button" className="modal-close" onClick={() => setCommentDoc(null)} aria-label="Fechar"><X size={20} /></button>
-          <span className="section-kicker">COMENTÁRIOS DO DOCUMENTO</span><h2>{commentDoc.title}</h2><p className="comment-protocol">{commentDoc.protocol}</p>
-          <div className="document-comment-list">{commentLoading ? <div className="data-loading"><Loader2 className="spin" size={18} />Carregando…</div> : comments.map((item) => <div className={item.mine ? 'mine' : ''} key={item.id}><p>{item.body}</p><small>{item.createdAt}</small></div>)}</div>
-          <div className="document-comment-composer"><textarea rows={3} value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Escreva um comentário sobre este documento…" /><button className="primary" disabled={!comment.trim()} onClick={() => void sendComment()}><Send size={16} />Enviar comentário</button></div>
-        </section>
-      </div>}
-    </Shell>
-  );
+  return <Shell role="client"><section className="v2-client-module"><div className="wf">
+    <div className="wf-head"><div><small>ÁREA DA EMPRESA / ACERVO</small><h1>Documentos</h1><p>Entregáveis com capa, versões, protocolo e acompanhamento.</p></div></div>
+    {notice && <div className="inline-notice success" role="status"><CheckCircle2 size={18}/>{notice}</div>}
+    {error && <div className="inline-notice" role="alert">{error}</div>}
+    <section className="wf-doc-drive"><Cloud size={23}/><div><strong>{driveConnection ? 'Drive da sua empresa conectado' : 'Leve suas versões aprovadas para o Drive da sua empresa'}</strong><p>{driveConnection ? `${driveConnection.accountEmail || 'Conta Google conectada'}. Você escolhe quais versões copiar para o Drive da empresa.` : 'Conecte a conta Google da sua empresa para salvar as versões aprovadas.'}</p></div><button type="button" className="wf-outline" disabled={driveConnecting} onClick={() => void connectDrive()}>{driveConnecting ? 'Abrindo Google…' : driveConnection ? 'Trocar conta' : 'Conectar meu Drive'}</button></section>
+    {validityAlerts.length > 0 && <div className="inline-notice" role="status"><AlertTriangle size={18}/>{validityAlerts.length} {validityAlerts.length === 1 ? 'documento com revisão vencida ou próxima.' : 'documentos com revisão vencida ou próxima.'}</div>}
+    <div className="wf-doc-toolbar"><strong>{filtered.length} {filtered.length === 1 ? 'documento' : 'documentos'}</strong><label><Search size={14}/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nome, tipo ou protocolo" aria-label="Buscar documentos"/></label><select className="wf-doc-filter" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} aria-label="Filtrar documentos por categoria"><option value="all">Todas as categorias</option>{categories.map((value) => <option key={value} value={value}>{categoryLabel(value)}</option>)}</select><div className="wf-segments" aria-label="Exibição do acervo"><button type="button" className={layout === 'covers' ? 'on' : ''} onClick={()=>setLayout('covers')}>Capas</button><button type="button" className={layout === 'list' ? 'on' : ''} onClick={()=>setLayout('list')}>Lista</button></div></div>
+    {filtered.length === 0 && <div className="wf-empty"><strong>Nenhum documento encontrado.</strong><p>{documents.length ? 'Ajuste a busca ou o filtro.' : 'Assim que a CALI publicar uma versão final para você, ela aparecerá aqui.'}</p></div>}
+    <section className={layout === 'covers' ? 'wf-doc-gallery' : 'wf-records v2-doc-list'}>
+      {filtered.map((doc) => {
+        const isAcknowledged = acknowledged.includes(doc.id);
+        const syncState = syncByFile[doc.id];
+        const syncLocked = syncState?.status === 'pending' || syncState?.status === 'processing';
+        const tone = doc.category === 'deliverable' ? 'doc-deliverable' : doc.category === 'report' ? 'doc-executive' : 'doc-work';
+        return <article className={layout === 'covers' ? `wf-doc-cover ${tone}` : `wf-doc-list-entry ${tone}`} key={doc.id}>
+          {layout === 'covers' && <button type="button" className="wf-doc-art" aria-label={`Abrir ${doc.title}`} onClick={() => void openDocument(doc)}><span><FileText size={38}/><b>CALI</b></span></button>}
+          <div className="wf-doc-content"><span className={`wf-doc-label ${tone}`}>{categoryLabel(doc.category)}</span><h2>{doc.title}</h2>{doc.description && <p>{doc.description}</p>}<p>{doc.date} · {doc.version} · {doc.kind}</p><p>{doc.validUntil ? <>Validade / próxima revisão: {formatDate(doc.validUntil)}{(daysUntil(doc.validUntil) ?? 999) < 0 ? ' · vencida' : ''}</> : 'Validade / próxima revisão: não definida'}</p><strong className="wf-doc-protocol">{doc.protocol}</strong>
+            <div className="wf-doc-actions"><button type="button" onClick={() => void openDocument(doc)}><Eye size={14}/> Abrir</button><button type="button" onClick={() => void openComments(doc)}><MessageSquare size={14}/> Comentar</button>
+              {doc.requiresAcknowledgement && <button type="button" disabled={isAcknowledged} onClick={() => void acknowledgeDocument(doc)}>{isAcknowledged ? <><CheckCircle2 size={14}/>Ciente</> : <><FileCheck2 size={14}/>Registrar ciência</>}</button>}
+              {driveConnection && doc.storagePath && <button type="button" disabled={Boolean(syncLocked)} onClick={() => void requestDriveCopy(doc)}>{syncState?.status === 'synced' ? <ExternalLink size={14}/> : <Cloud size={14}/>} {driveActionLabel(syncState)}</button>}
+            </div>
+          </div>
+        </article>;
+      })}
+    </section>
+    {commentDoc && <div className="wf-overlay" role="presentation"><section className="wf-modal wf-create" role="dialog" aria-modal="true" aria-label={`Comentários de ${commentDoc.title}`}><div className="wf-modal-header"><span>COMENTÁRIOS DO DOCUMENTO</span><button type="button" onClick={() => setCommentDoc(null)} aria-label="Fechar"><X size={20}/></button></div><h2>{commentDoc.title}</h2><p>{commentDoc.protocol}</p><div className="wf-thread">{commentLoading ? <div className="data-loading" aria-live="polite" aria-busy="true">Carregando…</div> : comments.map((item) => <div className={item.mine ? 'wf-bubble sent' : 'wf-bubble received'} key={item.id}><p>{item.body}</p><small>{item.createdAt}</small></div>)}</div><div className="wf-compose"><textarea rows={3} value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Escreva um comentário sobre este documento…" aria-label="Comentário"/><div><button className="wf-primary" disabled={!comment.trim()} onClick={() => void sendComment()}><Send size={16}/>Enviar comentário</button></div></div></section></div>}
+  </div></section></Shell>;
 }

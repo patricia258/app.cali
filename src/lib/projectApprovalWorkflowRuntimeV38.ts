@@ -17,7 +17,7 @@ function formatDate(value?:string|null){if(!value)return'A definir';const d=new 
 function formatDateTime(value?:string|null){if(!value)return'—';const d=new Date(value);return Number.isNaN(d.getTime())?'—':new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(d).replace('.','');}
 function escapeHtml(value=''){return value.replace(/[&<>'"]/g,(ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]||ch));}
 function projectProtocolFromAdmin(){const text=document.querySelector<HTMLElement>('.project-hero-v2 > div:first-of-type > span')?.textContent||'';return text.match(/CALI-PRJ-[A-Z0-9-]+/i)?.[0]||'';}
-function currentClientProjectId(){return document.querySelector<HTMLSelectElement>('.client-project-picker-v33 select')?.value||'';}
+function currentClientProjectId(){return document.querySelector<HTMLSelectElement>(":is(.client-project-picker-v33,[data-v2-operation~=\"client-project-picker-v33\"]) select")?.value||'';}
 function closeWorkflowModal(){document.querySelector('.workflow-dialog-backdrop-v38')?.remove();}
 function showError(message:string){
   document.querySelector('.workflow-toast-v40')?.remove();
@@ -178,7 +178,7 @@ function clientApprovalDialog(ctx:Context){
 
 function clientReviewPanel(ctx:Context){
   document.querySelector('.client-project-empty-v38')?.remove();
-  const table=document.querySelector<HTMLElement>('.client-roadmap-table-v33');const heading=document.querySelector<HTMLElement>('.client-roadmap-heading-v33');if(!table||!heading)return;
+  const table=document.querySelector<HTMLElement>(":is(.client-roadmap-table-v33,[data-v2-operation~=\"client-roadmap-table-v33\"])");const heading=document.querySelector<HTMLElement>(":is(.client-roadmap-heading-v33,[data-v2-operation~=\"client-roadmap-heading-v33\"])");if(!table||!heading)return;
   const existing=document.querySelector<HTMLElement>('.client-project-review-v38');
   if(!['client_review','adjustment_requested'].includes(ctx.project.planning_status)){existing?.remove();return;}
   const current=ctx.reviews.find((review)=>review.status==='pending'||review.status==='adjustment_requested');if(!current){existing?.remove();return;}
@@ -195,7 +195,7 @@ function clientReviewPanel(ctx:Context){
 
 function clientEmptyState(){
   document.querySelector('.client-project-review-v38')?.remove();
-  if(document.querySelector('.client-roadmap-table-v33')||document.querySelector('.client-project-empty-v38'))return;const heading=document.querySelector<HTMLElement>('.client-roadmap-heading-v33');if(!heading)return;const empty=document.createElement('section');empty.className='client-project-empty-v38';empty.innerHTML='<span>NENHUM CRONOGRAMA COMPARTILHADO</span><h2>Não há projeto aguardando sua validação agora.</h2><p>Rascunhos internos da CALI não aparecem nesta área. Quando um cronograma estiver pronto para sua revisão, ele será disponibilizado aqui e você receberá uma notificação.</p>';heading.insertAdjacentElement('afterend',empty);
+  if(document.querySelector(":is(.client-roadmap-table-v33,[data-v2-operation~=\"client-roadmap-table-v33\"])")||document.querySelector('.client-project-empty-v38'))return;const heading=document.querySelector<HTMLElement>(":is(.client-roadmap-heading-v33,[data-v2-operation~=\"client-roadmap-heading-v33\"])");if(!heading)return;const empty=document.createElement('section');empty.className='client-project-empty-v38';empty.innerHTML='<span>NENHUM CRONOGRAMA COMPARTILHADO</span><h2>Não há projeto aguardando sua validação agora.</h2><p>Rascunhos internos da CALI não aparecem nesta área. Quando um cronograma estiver pronto para sua revisão, ele será disponibilizado aqui e você receberá uma notificação.</p>';heading.insertAdjacentElement('afterend',empty);
 }
 
 async function scan(){

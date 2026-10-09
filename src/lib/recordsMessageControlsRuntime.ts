@@ -43,7 +43,7 @@ function parseBody(body: string) {
 }
 
 function nudgeConversation() {
-  const history = document.querySelector<HTMLElement>('.records-v13-drawer .conversation-history');
+  const history = document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"]) :is(.conversation-history,[data-v2-operation~=\"conversation-history\"])");
   if (!history) return;
   history.dataset.recordsSignature = '';
   const marker = document.createElement('i');
@@ -176,8 +176,8 @@ async function subscribe(recordId: string) {
 
 async function sync() {
   if (busy || !supabase || !pageRole()) return;
-  const drawer = document.querySelector<HTMLElement>('.records-v13-drawer');
-  const history = drawer?.querySelector<HTMLElement>('.conversation-history');
+  const drawer = document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"])");
+  const history = drawer?.querySelector<HTMLElement>(":is(.conversation-history,[data-v2-operation~=\"conversation-history\"])");
   const protocol = drawer?.querySelector<HTMLElement>('.section-kicker')?.textContent?.trim() || '';
   if (!drawer || !history || !protocol.startsWith('CALI-REG-')) return;
   busy = true;

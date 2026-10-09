@@ -300,7 +300,7 @@ function applyProfileImage(image: HTMLImageElement, profile: ProfileMedia) {
 function decorateConversation() {
   const fallbackAdmin = readAdminProfile();
 
-  document.querySelectorAll<HTMLElement>('.conversation-list-v2 article').forEach((article) => {
+  document.querySelectorAll<HTMLElement>(":is(.conversation-list-v2,[data-v2-operation~=\"conversation-list-v2\"]) article").forEach((article) => {
     const frame = article.querySelector<HTMLElement>('.conversation-avatar-v2');
     if (!frame || !isSimpleFrame(frame)) return;
     const authorText = article.querySelector('header strong')?.textContent || '';

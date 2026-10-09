@@ -160,7 +160,7 @@ function identityFor(message: MessageRow, identities: Awaited<ReturnType<typeof 
 
 async function renderConversation(recordId: string, companyId: string, role: WorkspaceRole) {
   if (!supabase) return;
-  const history = document.querySelector<HTMLElement>('.records-v13-drawer .conversation-history');
+  const history = document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"]) :is(.conversation-history,[data-v2-operation~=\"conversation-history\"])");
   if (!history) return;
   const [messageResult, identities] = await Promise.all([
     supabase.from('account_record_messages').select('id,record_id,author_id,author_role,body,visibility,created_at').eq('record_id', recordId).is('deleted_at', null).order('created_at'),
@@ -305,7 +305,7 @@ async function sendRichMessage(recordId: string, textarea: HTMLTextAreaElement, 
 }
 
 function enhanceComposer(recordId: string, companyId: string) {
-  const compose = document.querySelector<HTMLElement>('.records-v13-drawer .conversation-compose');
+  const compose = document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"]) :is(.conversation-compose,[data-v2-operation~=\"conversation-compose\"])");
   const textarea = compose?.querySelector<HTMLTextAreaElement>('textarea');
   const sendButton = compose?.querySelector<HTMLButtonElement>('button.primary');
   if (!compose || !textarea || !sendButton) return;
@@ -376,7 +376,7 @@ function subscribeConversation(recordId: string) {
 async function enhanceDrawer(force = false) {
   if (enhancing || !supabase) return;
   const role = pageRole();
-  const drawer = document.querySelector<HTMLElement>('.records-v13-drawer');
+  const drawer = document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"])");
   if (!role || !drawer) return;
   enhancing = true;
   try {

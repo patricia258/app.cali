@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, F
 import { ClientGoogleCalendarPanel } from '../../components/ClientGoogleCalendarPanel';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
+import '../../styles/client-modules.css';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 
 type Slot = { startsAt: string; endsAt?: string | null };
@@ -434,26 +435,29 @@ export function ClientTimelinePage() {
 
   return (
     <Shell role="client">
-      <section className="page client-timeline-v2 client-timeline-v3 client-timeline-v4">
+      <section className="v2-client-module"><div className="wf">
+        <div className="wf-head"><div><small>ÁREA DA EMPRESA / AGENDA COMPARTILHADA</small><h1>Calendário</h1><p>Compromissos, entregas e validações da assessoria.</p></div><button type="button" className="wf-primary" onClick={()=>window.dispatchEvent(new CustomEvent('cali:open-papo-request'))}>Solicitar agendamento</button></div>
         <details className="client-google-settings"><summary><CalendarDays size={19} aria-hidden="true"/><span><strong>Integração com Google Agenda</strong><small>Veja seus eventos pessoais junto aos compromissos da CALI. Você escolhe o que exibir pelo filtro da agenda.</small></span><span className="client-google-settings-action">Ver integração</span></summary><ClientGoogleCalendarPanel /></details>
 
         {error && <div className="inline-notice">{error}</div>}
         {loading ? <div className="data-loading"><Loader2 className="spin" size={20} />Carregando sua agenda…</div> : <>
-          <section className="panel client-real-timeline-panel client-agenda-panel">
-            <div className="client-real-timeline-title">
-              <div><span>O QUE VEM AGORA</span><h2>Calendário</h2></div>
+          <section className="wf-calendar-module">
+            <div className="wf-controls">
+              <strong>Agenda da parceria</strong>
               <div className="client-agenda-heading-actions"><small>{futureCountText(futureItems.filter(item=>item.kind!=='request'||['confirmed','completed'].includes(item.request?.status||'')).length)}</small><button type="button" onClick={()=>setHistoryOpen(true)}><FileText size={17}/> Histórico de reuniões</button></div>
             </div>
 
-            <div className="client-agenda-view-controls"><div><button type="button" className={agendaView==='week'?'active':''} onClick={()=>setAgendaView('week')}>Semana</button><button type="button" className={agendaView==='list'?'active':''} onClick={()=>setAgendaView('list')}>Lista</button></div><fieldset><legend>Mostrar</legend>{([['event','Reuniões'],['request','Solicitações'],['deadline','Prazos'],['google','Minha agenda Google']] as const).map(([kind,label])=><label key={kind}><input type="checkbox" checked={visibleKinds.has(kind)} onChange={()=>setVisibleKinds(current=>{const next=new Set(current);if(next.has(kind))next.delete(kind);else next.add(kind);return next})}/>{label}</label>)}</fieldset></div>
+            <div className="wf-controls"><div><button type="button" className={agendaView==='week'?'active':''} onClick={()=>setAgendaView('week')}>Semana</button><button type="button" className={agendaView==='list'?'active':''} onClick={()=>setAgendaView('list')}>Lista</button></div><fieldset><legend>Mostrar</legend>{([['event','Reuniões'],['request','Solicitações'],['deadline','Prazos'],['google','Minha agenda Google']] as const).map(([kind,label])=><label key={kind}><input type="checkbox" checked={visibleKinds.has(kind)} onChange={()=>setVisibleKinds(current=>{const next=new Set(current);if(next.has(kind))next.delete(kind);else next.add(kind);return next})}/>{label}</label>)}</fieldset></div>
             {personalGoogleNotice&&<p className="client-google-week-notice" role="status">{personalGoogleNotice}</p>}
             {agendaView==='week' && <>
-              <div className="client-week-navigation calendar-navigation">
+              <div className="wf-controls">
                 <button type="button" className="calendar-icon-button" onClick={()=>moveWeek(-1)} aria-label="Semana anterior"><ChevronLeft size={18}/></button>
                 <button type="button" className="secondary calendar-today-button" onClick={()=>setWeekCursor(new Date())}>Hoje</button>
                 <button type="button" className="calendar-icon-button" onClick={()=>moveWeek(1)} aria-label="Próxima semana"><ChevronRight size={18}/></button>
                 <strong>{new Intl.DateTimeFormat('pt-BR',{day:'numeric',month:'short'}).format(weekDays[0])} — {new Intl.DateTimeFormat('pt-BR',{day:'numeric',month:'short',year:'numeric'}).format(weekDays[6])}</strong>
               </div>
+              <div className="wf-calendar"><aside className="wf-cal-label v2-burgundy-calendar"><strong>SEMANA DE ACOMPANHAMENTO</strong><span>{new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'}).format(weekCursor)}</span><div className="wf-cal-legend"><span><i className="purple"/>Reunião</span><span><i className="green"/>Entrega</span><span><i className="yellow"/>Solicitação</span><span><i className="blue"/>Google Agenda</span></div><div className="v2-agenda-summary"><div><small>COMPROMISSOS NO PERÍODO</small><strong>{filteredItems.filter(item=>weekDays.some(day=>weekKey(item.at)===weekKey(day))).length}</strong><span>eventos, entregas e solicitações</span></div></div></aside><div className="wf-calendar-grid">{weekDays.map(day=><div className="wf-cal-day" key={day.toISOString()}><div className={`wf-day-head ${weekKey(day)===weekKey(new Date())?'today':''}`}><strong>{new Intl.DateTimeFormat('pt-BR',{weekday:'short',day:'2-digit',month:'short'}).format(day)}</strong>{weekKey(day)===weekKey(new Date())&&<span>HOJE</span>}</div><div className="wf-event-list">{filteredItems.filter(item=>weekKey(item.at)===weekKey(day)).map(item=><button type="button" key={item.id} className={`wf-event ${item.kind==='event'?'purple':item.kind==='deadline'?'green':item.kind==='google'?'blue':'yellow'}`} onClick={()=>openItem(item)}><time>{item.timeLabel}</time><strong>{item.title}</strong><small>{item.statusLabel}</small></button>)}</div></div>)}</div></div>
+              <details className="wf-hour-selection"><summary>Selecionar horário para solicitar um encontro</summary><p>Segunda a sexta, entre 9h e 16h. A seleção abre o pedido de agendamento para análise da CALI.</p>
               <div className="calendar-week-scroller client-week-scroller" onWheel={scrollWeeks}><div className="calendar-week-view client-week-grid">
                 <div className="calendar-week-corner"/>
                 {weekDays.map(day=><div className="calendar-week-day-head" key={`head-${day.toISOString()}`}><span>{new Intl.DateTimeFormat('pt-BR',{weekday:'short',timeZone:'America/Sao_Paulo'}).format(day).replace('.','')}</span><strong>{new Intl.DateTimeFormat('pt-BR',{day:'numeric',timeZone:'America/Sao_Paulo'}).format(day)}</strong></div>)}
@@ -483,44 +487,44 @@ export function ClientTimelinePage() {
                     </button>;
                   })}
                 </div>)}
-              </div></div>
+              </div></div></details>
             </>}
 
-            {agendaView==='list' && (filteredItems.length ? <div className="client-agenda-table">
-              <div className="client-agenda-body">
+            {agendaView==='list' && (filteredItems.length ? <div className="wf-agenda-list">
+              <div className="wf-agenda-list-body">
                 {filteredItems.map((item) => {
                   const inviteStatus = item.kind === 'event' ? attendeeStatus[item.sourceId] : undefined;
                   const displayStatus = inviteStatus ? inviteText(inviteStatus) : item.statusLabel;
-                  return <article key={item.id} className={`client-agenda-row ${item.kind} ${item.state} tone-${item.tone || 'pending'}`}>
-                    <div className="client-agenda-date" data-label="Data / hora">
+                  return <article key={item.id} className={`wf-agenda-row ${item.kind} ${item.state} tone-${item.tone || 'pending'}`}>
+                    <div className="wf-agenda-date" data-label="Data / hora">
                       <strong>{item.dateLabel}</strong>
                       <span>{item.timeLabel}</span>
                     </div>
-                    <div className="client-agenda-type" data-label="Tipo">{item.typeLabel}</div>
-                    <div className="client-agenda-item" data-label="Item"><strong>{item.title}</strong></div>
-                    <div className="client-agenda-status" data-label="Status"><span>{displayStatus}</span></div>
-                    <div className="client-agenda-detail" data-label="Detalhes">
+                    <div className="wf-agenda-kind" data-label="Tipo">{item.typeLabel}</div>
+                    <div className="wf-agenda-item" data-label="Item"><strong>{item.title}</strong></div>
+                    <div className="wf-agenda-status" data-label="Status"><span>{displayStatus}</span></div>
+                    <div className="wf-agenda-detail" data-label="Detalhes">
                       {item.detailLabel && <strong>{item.detailLabel}</strong>}
                       {item.secondaryDetail && <small>{item.secondaryDetail}</small>}
                     </div>
-                    <button className="client-agenda-open" type="button" onClick={() => openItem(item)} aria-label={`Ver detalhes de ${item.title}`}>Ver detalhes <ArrowUpRight size={15}/></button>
+                    <button className="wf-agenda-open" type="button" onClick={() => openItem(item)} aria-label={`Ver detalhes de ${item.title}`}>Ver detalhes <ArrowUpRight size={15}/></button>
                   </article>;
                 })}
               </div>
-            </div> : <div className="client-timeline-empty"><CalendarDays size={24} /><strong>Nada previsto por enquanto.</strong><p>Reuniões confirmadas, solicitações em análise e prazos publicados aparecerão aqui.</p></div>)}
+            </div> : <div className="wf-empty"><CalendarDays size={24} /><strong>Nada previsto por enquanto.</strong><p>Reuniões confirmadas, solicitações em análise e prazos publicados aparecerão aqui.</p></div>)}
           </section>
         </>}
-      </section>
-      {historyOpen && createPortal(<div className="client-agenda-detail-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget)setHistoryOpen(false)}}><section className="panel client-meeting-history client-meeting-history-modal" role="dialog" aria-modal="true" aria-label="Histórico de reuniões"><button type="button" className="client-meeting-history-close" onClick={()=>setHistoryOpen(false)} aria-label="Fechar histórico"><X size={20}/></button>
-            <div className="client-real-timeline-title"><div><span>CONSULTAR ENCONTROS</span><h2>Histórico de reuniões</h2></div></div>
-            <div className="client-meeting-history-controls"><label>Mês <input type="month" value={historyMonth} onChange={event=>setHistoryMonth(event.target.value)}/></label><button type="button" onClick={()=>setHistoryMonth('')}>Todos os períodos</button></div>
-            <div className="client-meeting-history-list">{meetingHistory.filter(item=>!historyMonth || monthOf(item.at)===historyMonth).map(item=><button type="button" key={item.id} onClick={()=>{setHistoryOpen(false);openItem(item)}}><strong>{item.title}</strong><span>{item.dateLabel} · {item.timeLabel}</span><small>{meetingRecords[item.sourceId]?.outcome==='occurred' ? 'Realizada' : 'Registro pendente'}{meetingRecords[item.sourceId]?.transcription_url || meetingRecords[item.sourceId]?.attachment_path ? ' · Transcrição disponível' : ''}</small></button>)}{!meetingHistory.length&&<p>As reuniões realizadas aparecerão aqui.</p>}</div>
+      </div></section>
+      {historyOpen && createPortal(<div className="v2-client-module wf-agenda-overlay" onMouseDown={event=>{if(event.target===event.currentTarget)setHistoryOpen(false)}}><section className="wf-modal wf-agenda-modal" role="dialog" aria-modal="true" aria-label="Histórico de reuniões"><button type="button" className="wf-agenda-close" onClick={()=>setHistoryOpen(false)} aria-label="Fechar histórico"><X size={20}/></button>
+            <div className="wf-head"><div><span>CONSULTAR ENCONTROS</span><h2>Histórico de reuniões</h2></div></div>
+            <div className="wf-controls"><label>Mês <input type="month" value={historyMonth} onChange={event=>setHistoryMonth(event.target.value)}/></label><button type="button" onClick={()=>setHistoryMonth('')}>Todos os períodos</button></div>
+            <div className="wf-history-list">{meetingHistory.filter(item=>!historyMonth || monthOf(item.at)===historyMonth).map(item=><button type="button" key={item.id} onClick={()=>{setHistoryOpen(false);openItem(item)}}><strong>{item.title}</strong><span>{item.dateLabel} · {item.timeLabel}</span><small>{meetingRecords[item.sourceId]?.outcome==='occurred' ? 'Realizada' : 'Registro pendente'}{meetingRecords[item.sourceId]?.transcription_url || meetingRecords[item.sourceId]?.attachment_path ? ' · Transcrição disponível' : ''}</small></button>)}{!meetingHistory.length&&<p>As reuniões realizadas aparecerão aqui.</p>}</div>
           </section></div>,document.body)}
       {selectedItem && createPortal(
-        <div className="client-agenda-detail-backdrop" onMouseDown={event => { if (event.currentTarget === event.target) setSelectedItem(null); }}>
-          <section className={`client-agenda-detail-modal tone-${selectedItem.tone || 'pending'}`} role="dialog" aria-modal="true" aria-labelledby="client-agenda-detail-title">
+        <div className="v2-client-module wf-agenda-overlay" onMouseDown={event => { if (event.currentTarget === event.target) setSelectedItem(null); }}>
+          <section className={`wf-modal wf-agenda-modal tone-${selectedItem.tone || 'pending'}`} role="dialog" aria-modal="true" aria-labelledby="client-agenda-detail-title">
             <header><div><small>{selectedItem.typeLabel} · {selectedItem.statusLabel}</small><h2 id="client-agenda-detail-title">{selectedItem.title}</h2></div><button type="button" onClick={() => setSelectedItem(null)} aria-label="Fechar"><X size={19}/></button></header>
-            <div className="client-agenda-detail-body">
+            <div className="wf-agenda-modal-body">
               {selectedItem.kind==='google' ? <><div className="full"><span>Quando</span><strong>{new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'America/Sao_Paulo'}).format(new Date(selectedItem.at))} · {selectedItem.timeLabel}{selectedItem.endsAt?`–${formatTime(selectedItem.endsAt)}`:''}</strong></div>{selectedItem.description&&<div className="full"><span>Anotações</span><strong>{selectedItem.description}</strong></div>}{selectedItem.secondaryDetail&&<div className="full"><span>Local</span><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedItem.secondaryDetail)}`} target="_blank" rel="noopener noreferrer">{selectedItem.secondaryDetail} <ArrowUpRight size={15}/></a></div>}{selectedItem.googleHtmlLink&&<a href={selectedItem.googleHtmlLink} target="_blank" rel="noopener noreferrer">Abrir no Google Agenda <ArrowUpRight size={16}/></a>}</> : selectedItem.request ? <>
                 <div className="full client-request-dates"><span>{selectedItem.request.status === 'confirmed' ? 'Data confirmada' : `Data proposta${selectedItem.requestOptionCount && selectedItem.requestOptionCount > 1 ? ` · opção ${selectedItem.requestOption}` : ''}`}</span><strong>{new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'America/Sao_Paulo'}).format(new Date(selectedItem.at))} · {selectedItem.timeLabel}</strong></div>
                 <div className="client-request-status"><span>Situação</span><strong>{selectedItem.statusLabel}</strong></div>
@@ -551,7 +555,7 @@ export function ClientTimelinePage() {
             </div>
           </section>
         </div>, document.body)}
-      {changeTarget && changeAction && createPortal(<div className="client-agenda-detail-backdrop client-agenda-change-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget&&!changeBusy)setChangeTarget(null)}}><section className="client-agenda-change-modal" role="alertdialog" aria-modal="true" aria-labelledby="agenda-change-title"><header><div><small>{changeTarget.request?.extra_visit?'VISITA EXTRA':'REUNIÃO'}</small><h2 id="agenda-change-title">{changeAction==='cancel'?'Pedir cancelamento':'Sugerir novas datas'}</h2></div><button type="button" onClick={()=>setChangeTarget(null)} aria-label="Fechar"><X size={19}/></button></header><form className="client-visit-change-form" onSubmit={submitChange}><p><strong>{changeTarget.title}</strong> · {changeTarget.dateLabel} {changeTarget.timeLabel}</p><p>Conte o motivo para a CALI analisar. Uma taxa eventual depende da antecedência, da justificativa e das condições aceitas no seu contrato. Nada é cobrado automaticamente.</p>{changeAction==='reschedule'&&<><p>As novas opções precisam ter pelo menos 48 horas úteis de antecedência e ocorrer de segunda a sexta, entre 9h e 16h.</p><div className="client-visit-change-slots">{newSlots.map((slot,index)=><fieldset key={index}><legend>Opção {index+1}</legend><input aria-label={`Data da opção ${index+1}`} type="date" required value={slot.date} onChange={event=>setNewSlots(current=>current.map((row,i)=>i===index?{...row,date:event.target.value}:row))}/><input aria-label={`Horário da opção ${index+1}`} type="time" min="09:00" max={changeTarget.request?.extra_visit?'12:00':'16:00'} required value={slot.time} onChange={event=>setNewSlots(current=>current.map((row,i)=>i===index?{...row,time:event.target.value}:row))}/></fieldset>)}</div></>}<label>Justificativa<textarea required minLength={5} value={changeReason} onChange={event=>setChangeReason(event.target.value)} placeholder="O que mudou na sua agenda?"/></label>{changeError&&<p className="client-visit-change-error" role="alert">{changeError}</p>}<div className="client-visit-change-buttons"><button type="button" onClick={()=>setChangeTarget(null)}>Voltar</button><button type="submit" disabled={changeBusy}>{changeBusy?'Enviando…':'Confirmar pedido'}</button></div></form></section></div>,document.body)}
+      {changeTarget && changeAction && createPortal(<div className="v2-client-module wf-agenda-overlay wf-agenda-change-overlay" onMouseDown={event=>{if(event.target===event.currentTarget&&!changeBusy)setChangeTarget(null)}}><section className="wf-modal wf-create" role="alertdialog" aria-modal="true" aria-labelledby="agenda-change-title"><header><div><small>{changeTarget.request?.extra_visit?'VISITA EXTRA':'REUNIÃO'}</small><h2 id="agenda-change-title">{changeAction==='cancel'?'Pedir cancelamento':'Sugerir novas datas'}</h2></div><button type="button" onClick={()=>setChangeTarget(null)} aria-label="Fechar"><X size={19}/></button></header><form className="wf-create-form" onSubmit={submitChange}><p><strong>{changeTarget.title}</strong> · {changeTarget.dateLabel} {changeTarget.timeLabel}</p><p>Conte o motivo para a CALI analisar. Uma taxa eventual depende da antecedência, da justificativa e das condições aceitas no seu contrato. Nada é cobrado automaticamente.</p>{changeAction==='reschedule'&&<><p>As novas opções precisam ter pelo menos 48 horas úteis de antecedência e ocorrer de segunda a sexta, entre 9h e 16h.</p><div className="wf-change-slots">{newSlots.map((slot,index)=><fieldset key={index}><legend>Opção {index+1}</legend><input aria-label={`Data da opção ${index+1}`} type="date" required value={slot.date} onChange={event=>setNewSlots(current=>current.map((row,i)=>i===index?{...row,date:event.target.value}:row))}/><input aria-label={`Horário da opção ${index+1}`} type="time" min="09:00" max={changeTarget.request?.extra_visit?'12:00':'16:00'} required value={slot.time} onChange={event=>setNewSlots(current=>current.map((row,i)=>i===index?{...row,time:event.target.value}:row))}/></fieldset>)}</div></>}<label>Justificativa<textarea required minLength={5} value={changeReason} onChange={event=>setChangeReason(event.target.value)} placeholder="O que mudou na sua agenda?"/></label>{changeError&&<p className="client-visit-change-error" role="alert">{changeError}</p>}<div className="v2-dialog-actions"><button type="button" onClick={()=>setChangeTarget(null)}>Voltar</button><button type="submit" disabled={changeBusy}>{changeBusy?'Enviando…':'Confirmar pedido'}</button></div></form></section></div>,document.body)}
     </Shell>
   );
 }

@@ -4,6 +4,7 @@ import {
   AlertTriangle, CalendarDays, CheckCircle2, ChevronRight, FileText, Filter,
   MessageCircle, Pencil, Plus, Search, Send, Trash2, X,
 } from 'lucide-react';
+import '../../styles/client-modules.css';
 import { Shell, type Role } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
@@ -452,6 +453,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   const reopenPending = Boolean(selected && reopenByRecord[selected.id] === 'pending');
 
   function recordsTable(rows: AccountRecordRow[], emptyCopy: string) {
+    if (role === 'client') return <div className="wf-records"><div className="wf-record-row header"><span>Protocolo / Assunto</span><span>Tipo</span><span>Última atualização</span><span>Situação</span><span/></div>{rows.map(record=><div className="wf-record-row" key={record.id} role="button" tabIndex={0} onClick={() => void openRecord(record)} onKeyDown={event=>{if(event.target===event.currentTarget && (event.key==='Enter'||event.key===' ')){event.preventDefault();void openRecord(record)}}}><span><small>{record.protocol || '—'}</small><strong>{record.title}</strong>{record.summary && <small>{record.summary}</small>}</span><span>{typeLabels[record.type]}</span><span>{formatDateTime(record.lastActivityAt || record.occurredAt)}<small className="wf-record-message-count"><MessageCircle size={12}/> {messageCounts[record.id] || 0} mensagens</small></span><span><span className={`wf-tag ${record.workflowStatus==='completed'?'green':record.workflowStatus==='waiting_client'?'yellow':'neutral'}`}>{statusLabel(record.workflowStatus, role)}</span></span><button type="button" aria-label={`Abrir ${record.title}`} onClick={(event) => { event.stopPropagation(); void openRecord(record); }}><ChevronRight size={16}/></button></div>)}{!rows.length && <div className="wf-empty"><strong>Nenhuma ocorrência neste recorte.</strong><p>{emptyCopy}</p></div>}</div>;
     return <section className="records-v13-table-wrap panel">
       <table className="records-v13-table">
         <thead><tr>
@@ -474,45 +476,46 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
     </section>;
   }
 
-  return <Shell role={role}>
-    <section className="page records-v13">
-      <div className="records-v13-actions">
+  return <Shell role={role}><div className={role==='client'?'v2-client-module':undefined}>
+    <section className={role==='client'?'wf':'page records-v13'}>
+      {role==='client' && <div className="wf-head"><div><small>ÁREA DA EMPRESA / RELACIONAMENTO</small><h1>Ocorrências</h1><p>Solicitações, decisões e conversas em um só histórico.</p></div><button className="wf-primary" type="button" onClick={openNew}><Plus size={17}/>Nova ocorrência</button></div>}
+      {role==='admin' && <div className="records-v13-actions">
         <button className="primary" type="button" onClick={openNew}><Plus size={17} />{role === 'admin' ? 'Novo registro' : 'Nova solicitação'}</button>
-      </div>
+      </div>}
 
       {notice && <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div>}
       {error && <div className="inline-notice"><AlertTriangle size={18} />{error}</div>}
 
-      <section className="records-v13-toolbar panel">
+      <section className={role==='client'?'wf-controls':'records-v13-toolbar panel'}>
         {role === 'admin' && <label><span>Cliente</span><select value={companyId} onChange={(event) => void changeCompany(event.target.value)}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label>}
-        <label className="records-v13-search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar assunto ou protocolo" /></label>
+        <label className={role==='client'?'wf-search':'records-v13-search'}><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar assunto ou protocolo" /></label>
         <label><Filter size={15} /><select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as RecordType | 'all')}><option value="all">Todos os tipos</option>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</select></label>
         <label><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as WorkflowStatus | 'all')}><option value="all">Todos os status</option>{(Object.keys(workflowLabels) as WorkflowStatus[]).map((status) => <option value={status} key={status}>{statusLabel(status, role)}</option>)}</select></label>
       </section>
 
       {!archiveFilterSelected && <>
-        <div className="records-v27-group-heading"><div><span>EM ACOMPANHAMENTO</span><strong>{role === 'admin' ? 'Abertos e em andamento' : 'Suas solicitações ativas'}</strong></div><b>{activeVisible.length}</b></div>
+        <div className={role==='client'?'wf-group-head':'records-v27-group-heading'}><div><span>EM ACOMPANHAMENTO</span><strong>{role === 'admin' ? 'Abertos e em andamento' : 'Suas solicitações ativas'}</strong></div><b>{activeVisible.length}</b></div>
         {recordsTable(activeVisible, role === 'admin' ? 'Altere os filtros ou adicione um novo registro.' : 'Quando precisar falar com a CALI, sua solicitação aparecerá aqui com todo o histórico.')}
       </>}
 
       {archivedVisible.length > 0 && <>
-        <div className="records-v27-group-heading archived"><div><span>HISTÓRICO</span><strong>Finalizados, cancelados e em stand by</strong></div><b>{archivedVisible.length}</b></div>
+        <div className={role==='client'?'wf-group-head archived':'records-v27-group-heading archived'}><div><span>HISTÓRICO</span><strong>Finalizados, cancelados e em stand by</strong></div><b>{archivedVisible.length}</b></div>
         {recordsTable(archivedVisible, 'Os registros encerrados e em stand by ficam preservados aqui para consulta.')}
       </>}
     </section>
 
-    {conversationOpen && selected && <div className="records-v13-drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setConversationOpen(false); }}>
-      <aside className="records-v13-drawer records-v27-drawer" role="dialog" aria-modal="true" aria-label={selected.title}>
+    {conversationOpen && selected && <div className={role==='client'?'wf-overlay':'records-v13-drawer-backdrop'} onMouseDown={(event) => { if (event.target === event.currentTarget) setConversationOpen(false); }}>
+      <aside className={role==='client'?'wf-record-drawer':'records-v13-drawer records-v27-drawer'} data-v2-operation={role==='client'?'records-v13-drawer':undefined} role="dialog" aria-modal="true" aria-label={selected.title}>
         <header>
           <div><span className="section-kicker">{selected.protocol || 'MEMÓRIA DA CONTA'}</span><h2>{selected.title}</h2><p>{role === 'admin' ? companyMap.get(selected.companyId) || '' : typeLabels[selected.type]}{role === 'admin' ? ` · ${typeLabels[selected.type]}` : ''}</p></div>
           <button type="button" className="drawer-close" onClick={() => setConversationOpen(false)}><X size={20} /></button>
         </header>
-        <div className="records-v13-drawer-meta">
+        <div className={role==='client'?'wf-drawer-meta':'records-v13-drawer-meta'}>
           <span className={`record-status status-${selected.workflowStatus || 'memory'}`}>{statusLabel(selected.workflowStatus, role)}</span>
           <span>Atualizado {formatDateTime(selected.lastActivityAt || selected.occurredAt)}</span>
           {selected.requiresAction && role === 'admin' && <strong>Ação necessária</strong>}
         </div>
-        <section className="records-v25-ops" aria-label="Resumo do atendimento" />
+        {role==='client'?<details className="wf-story-compact"><summary>Contexto e acompanhamento</summary><section className="records-v25-ops" aria-label="Resumo do atendimento" /></details>:<section className="records-v25-ops" aria-label="Resumo do atendimento" />}
 
         {role === 'client' && selected.workflowStatus === 'completed' && (feedbackThanks || !feedbackByRecord[selected.id]) && <div className="records-v27-feedback-overlay">
           <section className="records-v27-feedback-card">
@@ -538,9 +541,9 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
           </section>
         </div>}
 
-        {selected.workflowStatus ? <div className="records-v13-conversation">
-          <div className="conversation-history" aria-live="polite" />
-          {!clientConversationLocked && !['completed', 'cancelled'].includes(selected.workflowStatus) && <div className="conversation-compose">
+        {selected.workflowStatus ? <div className={role==='client'?'wf-record-conversation':'records-v13-conversation'} data-v2-operation={role==='client'?'records-v13-conversation':undefined}>
+          <div className={role==='client'?'wf-thread':'conversation-history'} data-v2-operation={role==='client'?'conversation-history':undefined} aria-live="polite" />
+          {!clientConversationLocked && !['completed', 'cancelled'].includes(selected.workflowStatus) && <div className={role==='client'?'wf-compose':'conversation-compose'} data-v2-operation={role==='client'?'conversation-compose':undefined}>
             <div className="records-chat-runtime-pending-host" />
             <div className="records-chat-runtime-tools-host" />
             <textarea rows={3} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder={role === 'admin' ? 'Responder ao cliente…' : 'Responder à Patrícia…'} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} />
@@ -550,7 +553,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
             <div><span>CONVERSA ENCERRADA</span><strong>{selected.workflowStatus === 'standby' ? 'Esta solicitação está em stand by.' : selected.workflowStatus === 'cancelled' ? 'Esta solicitação foi cancelada.' : 'Esta solicitação foi finalizada.'}</strong><p>O histórico continua disponível, mas novas mensagens só são liberadas depois que a CALI aprovar a reabertura. O tempo já consumido permanece contabilizado e não é devolvido ao saldo de horas.</p></div>
             <button className="secondary" type="button" disabled={reopenSaving || reopenPending} onClick={() => void requestReopen()}>{reopenPending ? 'Reabertura solicitada' : reopenSaving ? 'Enviando…' : 'Solicitar reabertura'}</button>
           </div>}
-        </div> : <div className="records-v13-memory-detail">
+        </div> : <div className={role==='client'?'wf-memory-detail':'records-v13-memory-detail'}>
           <div><span>Contexto</span><p>{selected.summary || 'Sem resumo registrado.'}</p></div>
           {selected.decisions.length > 0 && <div><span>Decisões</span><ul>{selected.decisions.map((item) => <li key={item}>{item}</li>)}</ul></div>}
           {selected.attentionPoints.length > 0 && <div><span>Pontos de atenção</span><ul>{selected.attentionPoints.map((item) => <li key={item}>{item}</li>)}</ul></div>}
@@ -573,20 +576,20 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
       </aside>
     </div>}
 
-    {editorOpen && <div className="modal-backdrop workspace-modal-backdrop records-v13-modal-backdrop"><form className="modal-card records-v13-modal" onSubmit={save} role="dialog" aria-modal="true">
+    {editorOpen && <div className={role==='client'?'wf-overlay':'modal-backdrop workspace-modal-backdrop records-v13-modal-backdrop'}><form className={role==='client'?'wf-modal wf-create':'modal-card records-v13-modal'} onSubmit={save} role="dialog" aria-modal="true">
       <button className="modal-close" type="button" onClick={() => setEditorOpen(false)}><X size={20} /></button>
       <header>
         <span className="section-kicker">{editing ? 'CONTEXTO CONSULTIVO' : role === 'admin' ? 'NOVO REGISTRO' : 'NOVA SOLICITAÇÃO'}</span>
         <h2>{editing ? 'Enriquecer memória da conta' : role === 'admin' ? 'Registrar contexto' : 'Falar com a CALI'}</h2>
         <p>{editing ? 'Aqui entram interpretação, decisões e contexto para relatório. A conversa original permanece intacta.' : role === 'admin' ? 'Registre um fato consultivo ou abra uma interação com o cliente.' : 'Conte o que aconteceu ou o que você precisa. Depois do envio, a conversa continua no histórico.'}</p>
       </header>
-      <div className="records-v13-form">
+      <div className={role==='client'?'wf-create-form':'records-v13-form'}>
         {role === 'admin' && <div className="records-v13-grid three">
           <label className="stacked-label">Cliente<select value={form.companyId} onChange={(event) => setForm((current) => ({ ...current, companyId: event.target.value, projectId: '', eventId: '' }))}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label>
           <label className="stacked-label">Projeto<select value={form.projectId} onChange={(event) => setForm((current) => ({ ...current, projectId: event.target.value }))}><option value="">Sem projeto específico</option>{projects.filter((project) => project.companyId === form.companyId).map((project) => <option value={project.id} key={project.id}>{project.name}</option>)}</select></label>
           <label className="stacked-label">Reunião do calendário<select value={form.eventId} onChange={(event) => selectEvent(event.target.value)}><option value="">Sem evento vinculado</option>{events.filter((item) => item.companyId === form.companyId).map((item) => <option value={item.id} key={item.id}>{formatDateTime(item.startsAt)} · {item.title}</option>)}</select></label>
         </div>}
-        <div className={`records-v13-grid ${role === 'admin' ? 'three' : 'two'}`}>
+        <div className={role==='client'?'wf-form-grid':`records-v13-grid ${role === 'admin' ? 'three' : 'two'}`}>
           <label className="stacked-label">Tipo<select value={form.type} onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as RecordType }))}>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</select></label>
           <label className="stacked-label">Data e horário<input type="datetime-local" value={form.occurredAt} onChange={(event) => setForm((current) => ({ ...current, occurredAt: event.target.value }))} /></label>
           {role === 'admin' && <label className="stacked-label">Impacto<select value={form.impactLevel} onChange={(event) => setForm((current) => ({ ...current, impactLevel: event.target.value as FormState['impactLevel'] }))}><option value="low">Baixo</option><option value="medium">Médio</option><option value="high">Alto</option><option value="critical">Crítico</option></select></label>}
@@ -610,7 +613,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
       </div>
       <footer><button className="secondary" type="button" onClick={() => setEditorOpen(false)}>Cancelar</button><button className="primary" type="submit" disabled={saving || !form.title.trim() || !form.companyId}>{saving ? 'Salvando…' : editing ? 'Salvar contexto' : role === 'client' ? 'Enviar à CALI' : 'Salvar registro'}</button></footer>
     </form></div>}
-  </Shell>;
+  </div></Shell>;
 }
 
 export function AdminRecordsPage() { return <WorkspaceRecordsPage role="admin" />; }

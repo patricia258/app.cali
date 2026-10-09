@@ -2,16 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle, ArrowRight, CalendarDays, Check, CheckCircle2, Circle,
   FileCheck2, FileText, FolderKanban, GitBranch, History, Loader2,
-  MessageCircle, RefreshCw, Send, Star, X,
+  MessageCircle, RefreshCw, Send, Star, X, Leaf, ChevronDown, ChevronRight,
 } from 'lucide-react';
+import '../../styles/client-modules.css';
 import { Shell } from '../../components/WorkspaceShell';
-import '../../page5-projects.css';
-import '../../page5-projects-flow-v2.css';
-import '../../page5-projects-polish-v3.css';
-import '../../projects-planning-intelligence-v36.css';
-import '../../project-approval-workflow-v38.css';
-import '../../project-approval-rules-v39.css';
-import '../../project-client-portfolio-v39.css';
 import { demoDeliverables } from '../../data/demo';
 import {
   loadClientDeliveryReality,
@@ -201,6 +195,8 @@ export function ClientDeliverablesPage() {
   const [reality, setReality] = useState<ClientDeliveryReality | null>(preview ? previewData : null);
   const [projectId, setProjectId] = useState(preview ? previewData.projects[0]?.id || '' : '');
   const [selectedId, setSelectedId] = useState('');
+  const [projectTab, setProjectTab] = useState<'overview' | 'timeline' | 'deliverables'>('overview');
+  const [expandedFronts, setExpandedFronts] = useState<Record<string, boolean>>({});
   const [detailTab, setDetailTab] = useState<DetailTab>('overview');
   const [messages, setMessages] = useState<ClientDeliverableMessage[]>([]);
   const [messageDraft, setMessageDraft] = useState('');
@@ -416,89 +412,71 @@ export function ClientDeliverablesPage() {
   if(loading)return <Shell role="client"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando cronograma…</section></Shell>;
 
   return <Shell role="client">
-    <section className="page client-roadmap-page-v33 client-roadmap-page-v34">
-      {reality && reality.projects.length > 1 && <div className="client-roadmap-actions-v34"><label className="client-project-picker-v33"><span>Projeto</span><select value={project?.id || ''} onChange={(event) => { setProjectId(event.target.value); closeDeliverable(); }}>{reality.projects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label></div>}
-
-      {notice && <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div>}
-      {error && <div className="inline-notice"><AlertTriangle size={18} />{error}</div>}
-      {loading && <div className="data-loading"><Loader2 className="spin" size={20} />Carregando cronograma…</div>}
-
-      {!loading && reality && project && <section className="roadmap-v2 panel client-roadmap-table-v33">
-        <header>
-          <div><span className="section-kicker">SEQUÊNCIA DE IMPLANTAÇÃO</span><h2>Frentes do cronograma</h2><p>M1, M2, M3… representam meses. MC1, MC2 e MC3 representam complexidade do material, não prazo.</p></div>
-          <div className="mc-legend"><span>MC1</span><span>MC2</span><span>MC3</span></div>
-        </header>
-        <div className="roadmap-months-v2"><span>Frente / entregáveis</span>{months.map((month) => <b key={month}>M{month}</b>)}</div>
-        <div className="front-list-v2">
-          {fronts.length ? fronts.map((front, index) => {
-            const items = projectDeliverables.filter((item) => item.workstreamId === front.id || item.workstream === front.name);
-            return <section className="front-section-v2" key={front.id}>
-              <div className="front-header-v2 client-front-header-v33">
-                <img src={index % 2 ? '/brand/cali-lime-mark.svg' : '/brand/cali-oak-mark.svg'} alt="" />
-                <div className="front-copy-v2"><span>{front.protocol || project.protocol || 'FRENTE CALI'}</span><strong>{front.name}</strong><p>{front.objective || 'Frente compartilhada do cronograma CALI.'}</p></div>
-                <div className="front-monthbar-v2" style={{ '--months': months.length } as any}>{months.map((month) => <i key={month} />)}<b style={{ gridColumn: `${front.monthStart || 1} / ${Math.min(months.length + 1, (front.monthEnd || front.monthStart || 1) + 1)}` }}>M{front.monthStart || 1}{front.monthEnd && front.monthEnd !== front.monthStart ? `–M${front.monthEnd}` : ''}</b></div>
-                <span className="client-front-count-v33">{items.length} {items.length === 1 ? 'entregável' : 'entregáveis'}</span>
-              </div>
-              <div className="front-deliverables-v2 front-deliverables-v3">
-                {items.length ? items.map((item) => <div className="front-deliverable-row-v3 client-front-deliverable-row-v33" key={item.id}>
-                  <button className="front-deliverable-open-v3" onClick={() => openDeliverable(item)}>
-                    {item.isDocument ? <FileText size={18} /> : <FolderKanban size={18} />}
-                    <span><small>{item.protocol || item.code || 'ENTREGÁVEL'}</small><strong>{item.title}</strong></span>
-                    <b className={`mc-chip ${(item.complexity || 'MC1').toLowerCase()}`}>{item.complexity || 'MC1'}</b>
-                  </button>
-                  <span className={`client-readonly-status-v33 ${statusTone[item.status]}`}><i />{statusLabel[item.status]}</span>
-                  <time>{formatDate(item.dueAt)}</time>
-                  <button className="row-arrow-v3" onClick={() => openDeliverable(item)} aria-label={`Abrir ${item.title}`}><ArrowRight size={17} /></button>
-                </div>) : <div className="front-empty-v2">Nenhum entregável compartilhado nesta frente ainda.</div>}
-              </div>
-            </section>;
-          }) : <div className="front-empty-v2">O cronograma ainda não possui frentes compartilhadas.</div>}
-        </div>
-      </section>}
+    <section className="v2-client-module" data-v2-operation="client-roadmap-page-v33">
+      <div className="v4-projects">
+        <div className="page-head" data-v2-operation="client-roadmap-heading-v33"><div><div className="eyebrow">ÁREA DA EMPRESA / EXECUÇÃO</div><h1>Projetos<span className="title-dot">.</span></h1><p>Execução, planejamento e acompanhamento da assessoria em um só lugar.</p></div></div>
+        {reality && project && <div className="dv-toolbar"><label data-v2-operation="client-project-picker-v33"><strong>Projeto · </strong><select aria-label="Projeto" value={project?.id || ''} onChange={(event) => { setProjectId(event.target.value); closeDeliverable(); }}>{reality.projects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><span>{project.protocol || reality.company.displayName}</span></div>}
+        {notice && <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div>}
+        {error && <div className="inline-notice"><AlertTriangle size={18} />{error}</div>}
+        {reality && project && <div data-v2-operation="client-roadmap-table-v33">
+          <div className="v2-project-tabs" role="tablist" aria-label="Seções do projeto">{([['overview','Visão do projeto'],['timeline','Cronograma'],['deliverables','Entregáveis']] as const).map(([id,label])=><button key={id} role="tab" aria-selected={projectTab===id} className={projectTab===id?'current':''} onClick={()=>setProjectTab(id)}>{label}</button>)}</div>
+          {projectTab==='overview' && <div className="v4-project-overview">
+            <section className="v4-project-summary"><div className="v4-project-heading"><div><small>PROJETO COMPARTILHADO</small><h2>{project.name}</h2><p>{reality.company.displayName} · {project.protocol || 'Assessoria CALI'}</p></div><span className="chip neutral">{project.planningStatus==='client_review'?'Cronograma em validação':project.status==='active'?'Em andamento':project.status}</span></div><div className="v4-project-stats"><div><strong>{fronts.length}</strong><span>Frentes contratadas</span></div><div><strong>{projectDeliverables.length}</strong><span>Entregáveis previstos</span></div><div><strong>{projectDeliverables.filter(item=>item.status==='client_review').length}</strong><span>Aguardando cliente</span></div><div><strong>{projectDeliverables.filter(item=>item.status==='approved').length}</strong><span>Entregáveis concluídos</span></div></div><div className="v4-project-objective"><strong>Frentes do projeto</strong><p>{fronts.map(front=>front.name).join(' · ') || 'Nenhuma frente compartilhada ainda.'}</p></div></section>
+            <div className="v4-project-two"><section className="v4-project-editorial"><small>ACOMPANHAMENTO EXECUTIVO</small><h3>O que aconteceu e o que vem agora</h3>{[...projectDeliverables].sort((a,b)=>Date.parse(b.updatedAt)-Date.parse(a.updatedAt)).slice(0,3).map(item=><div className="v4-project-event" key={item.id}><span className={`v4-event-icon ${item.status==='approved'?'positive':item.status==='client_review'?'attention':'future'}`}><CalendarDays size={17}/></span><div><strong>{item.title}</strong><small>{statusLabel[item.status]}</small></div><time>{formatDate(item.updatedAt)}</time></div>)}<button className="v4-inline-action" onClick={()=>setProjectTab('timeline')}>Consultar planejamento completo <ArrowRight size={15}/></button></section>
+            <aside className="v4-project-action"><small>PRECISA DA SUA ATENÇÃO</small>{projectDeliverables.some(item=>item.status==='client_review') ? <><h3>{projectDeliverables.find(item=>item.status==='client_review')!.title}</h3><p>Há uma validação pendente. Sua análise define se seguimos para publicação ou para uma nova versão.</p><div className="v4-action-footer"><span>{formatDate(projectDeliverables.find(item=>item.status==='client_review')!.clientResponseDueAt)}</span><button onClick={()=>openDeliverable(projectDeliverables.find(item=>item.status==='client_review')!)}>Abrir entrega e conversa <ArrowRight size={14}/></button></div></> : <><h3>Nenhuma validação pendente</h3><p>Consulte o planejamento e acompanhe as entregas compartilhadas.</p><div className="v4-action-footer"><button onClick={()=>setProjectTab('deliverables')}>Consultar entregáveis <ArrowRight size={14}/></button></div></>}</aside></div>
+          </div>}
+          {projectTab==='timeline' && <div className="v4-project-schedule"><div className="v4-schedule-head"><div><small>PLANEJAMENTO COMPARTILHADO</small><h2>Cronograma do ciclo</h2><p>Prazos e marcos das entregas compartilhadas.</p></div><button className="outline-button" onClick={()=>setProjectTab('deliverables')}>Consultar entregáveis <ArrowRight size={14}/></button></div><div className="v4-schedule-months">{months.map(month=><div key={month}><b>M{month}</b></div>)}</div><div className="v4-schedule-body">{[...projectDeliverables].sort((a,b)=>(a.dueAt?Date.parse(a.dueAt):Infinity)-(b.dueAt?Date.parse(b.dueAt):Infinity)).map(item=><div className="v4-schedule-row" key={item.id}><div className="v4-schedule-date"><b>{roadmapLabel(item)}</b><span>{item.dueAt?new Date(item.dueAt).getDate():'—'}</span></div><div className={`v4-schedule-mark ${item.status==='approved'?'positive':item.status==='client_review'?'attention':'future'}`}/><div><span className="v4-schedule-kind">{statusLabel[item.status]} · {item.complexity || 'MC1'}</span><h3>{item.title}</h3><p>{formatDate(item.dueAt)} · {item.workstream || 'Frente CALI'}</p><button onClick={() => openDeliverable(item)}>Ver entregável associado <ArrowRight size={13}/></button></div></div>)}</div><div className="v4-schedule-note">M1, M2, M3… representam meses. MC1, MC2 e MC3 representam complexidade do material, não prazo.</div></div>}
+          {projectTab==='deliverables' && <div className="dv"><header><div><small>ÁREA DA EMPRESA / PROJETOS</small><h1>Entregáveis</h1><p>Frentes contratadas, cronograma, arquivos e decisões em um só fluxo.</p></div></header>{fronts.length ? fronts.map(front=>{
+            const items=projectDeliverables.filter(item=>item.workstreamId===front.id || item.workstream===front.name);
+            const expanded=expandedFronts[front.id]!==false;
+            return <section className="dv-project" key={front.id}><div className="dv-project-title"><button type="button" className="dv-front-title dv-front-toggle" aria-expanded={expanded} onClick={()=>setExpandedFronts(current=>({...current,[front.id]:!expanded}))}><span className="dv-front-logo"><Leaf size={18}/></span><span className="dv-front-text"><small>{front.protocol || project.protocol || 'FRENTE CALI'}</small><strong>{front.name}</strong><em>{front.objective || `Frente contratada · clique para ${expanded?'recolher':'visualizar'} entregáveis`}</em></span>{expanded?<ChevronDown size={15}/>:<ChevronRight size={15}/>}</button><div className="dv-months" style={{gridTemplateColumns:`repeat(${months.length},minmax(25px,1fr))`}}>{months.map(month=><span key={month} className={month>=(front.monthStart||1)&&month<=(front.monthEnd||front.monthStart||1)?'current':''}>M{month}</span>)}</div><span className="dv-count">{items.length} {items.length===1?'entregável':'entregáveis'}</span></div>{expanded && (items.length ? items.map(item=><button className="dv-row" key={item.id} onClick={() => openDeliverable(item)} aria-label={`Abrir ${item.title}`}><span className="dv-square">{item.isDocument?<FileText size={16}/>:<FolderKanban size={16}/>}</span><span className="dv-title"><strong>{item.title}</strong><small>{item.protocol || item.code || 'ENTREGÁVEL'} · {item.complexity || 'MC1'}</small></span><span className={`dv-status ${item.status==='client_review'?'d0':item.status==='not_started'?'d2':''}`}>{statusLabel[item.status]}</span><span>{formatDate(item.dueAt)}</span><ArrowRight size={15}/></button>) : <p className="wf-empty">Nenhum entregável compartilhado nesta frente ainda.</p>)}</section>;
+          }):<p className="wf-empty">O cronograma ainda não possui frentes compartilhadas.</p>}</div>}
+        </div>}
+      </div>
     </section>
 
-    {selected && <div className="modal-backdrop full-screen-modal">
-      <section className="modal-card deliverable-workspace-modal-v2 client-deliverable-workspace-v33">
-        <header className="deliverable-workspace-header-v2">
-          <div className="deliverable-big-icon">{selected.isDocument ? <FileText size={25} /> : <FolderKanban size={25} />}</div>
-          <div className="deliverable-title-v2"><span className="section-kicker">{selected.protocol || selected.code || 'ENTREGÁVEL'}</span><h2>{selected.title}</h2><p>{selected.workstream || 'Frente CALI'} · {selected.complexity || 'MC1'} · {roadmapLabel(selected)}</p></div>
-          <div className="deliverable-head-actions-v2"><span className={`status-chip-v3 ${statusTone[selected.status]}`}>{statusLabel[selected.status]}</span><button className="modal-close-static" onClick={closeDeliverable}><X size={23} /></button></div>
+    {selected && <div className="v2-client-module v2-client-dialog"><div className="dv-overlay">
+      <section className="dv-modal" role="dialog" aria-modal="true" aria-label={selected.title} data-v2-operation="deliverable-workspace-modal-v2">
+        <header data-v2-operation="deliverable-workspace-header-v2">
+
+          <div data-v2-operation="deliverable-title-v2"><span className="section-kicker">{selected.protocol || selected.code || 'ENTREGÁVEL'}</span><h2>{selected.title}</h2><p>{selected.workstream || 'Frente CALI'} · {selected.complexity || 'MC1'} · {roadmapLabel(selected)}</p></div>
+          <div className="dv-head-actions"><span className={`status-chip-v3 ${statusTone[selected.status]}`}>{statusLabel[selected.status]}</span><button aria-label="Fechar entrega" onClick={closeDeliverable}><X size={23} /></button></div>
         </header>
 
-        <nav className="deliverable-tabs-v2">{(['overview', 'tasks', 'conversation', 'history'] as DetailTab[]).map((tab) => <button key={tab} className={detailTab === tab ? 'active' : ''} onClick={() => setDetailTab(tab)}>{tab === 'overview' ? 'Visão geral' : tab === 'tasks' ? `Etapas (${selected.visibleTasks.length})` : tab === 'conversation' ? `Conversa (${messages.length})` : 'Histórico'}</button>)}</nav>
+        <nav aria-label="Detalhes da entrega">{(['overview', 'tasks', 'conversation', 'history'] as DetailTab[]).map((tab) => <button key={tab} className={detailTab === tab ? 'selected' : ''} onClick={() => setDetailTab(tab)}>{tab === 'overview' ? 'Visão geral' : tab === 'tasks' ? `Etapas (${selected.visibleTasks.length})` : tab === 'conversation' ? `Conversa (${messages.length})` : 'Histórico'}</button>)}</nav>
 
-        <div className="deliverable-workspace-scroll-v2">
+        <div className="dv-modal-content">
           {detailTab === 'overview' && <>
-            <div className="deliverable-summary-lines-v2 client-summary-lines-v33">
-              <div><CalendarDays size={19} /><span>Deadline</span><strong>{formatDate(selected.dueAt)}</strong>{selected.originalDueAt && <small>Original: {formatDate(selected.originalDueAt)}</small>}</div>
-              <div><RefreshCw size={19} /><span>Atualizado</span><strong>{formatDateTime(selected.updatedAt)}</strong><small>{statusLabel[selected.status]}</small></div>
-              <div><CheckCircle2 size={19} /><span>Etapas</span><strong>{selected.visibleTasks.filter((task) => ['done', 'completed'].includes(task.status)).length}/{selected.visibleTasks.length}</strong><small>compartilhadas</small></div>
-              <div><GitBranch size={19} /><span>Frente</span><strong>{selected.workstream || 'Frente CALI'}</strong><small>{roadmapLabel(selected)}</small></div>
+            <div className="dv-summary">
+              <span><CalendarDays size={19} />Prazo<b>{formatDate(selected.dueAt)}</b>{selected.originalDueAt && <small>Original: {formatDate(selected.originalDueAt)}</small>}</span>
+              <span><RefreshCw size={19} />Atualizado<b>{formatDateTime(selected.updatedAt)}</b><small>{statusLabel[selected.status]}</small></span>
+              <span><CheckCircle2 size={19} />Etapas<b>{selected.visibleTasks.filter((task) => ['done', 'completed'].includes(task.status)).length}/{selected.visibleTasks.length}</b><small>compartilhadas</small></span>
+              <span><GitBranch size={19} />Frente<b>{selected.workstream || 'Frente CALI'}</b><small>{roadmapLabel(selected)}</small></span>
             </div>
 
-            {selected.status === 'client_review' && <div className="deliverable-warning-v2 client-action-warning-v33"><AlertTriangle size={18} /><div><strong>Sua validação é necessária</strong><p>{selected.clientResponseDueAt ? `Revise esta entrega e responda até ${formatDateTime(selected.clientResponseDueAt)}.` : 'Revise esta entrega e escolha entre aprovar ou solicitar ajuste.'}</p></div></div>}
-            {selected.status === 'adjustment_requested' && <div className="deliverable-warning-v2 client-adjustment-note-v33"><RefreshCw size={18} /><div><strong>Seu ajuste está com a CALI</strong><p>{selected.latestAdjustment?.reason || 'A nova versão voltará para sua validação assim que estiver pronta.'}</p></div></div>}
+            {selected.status === 'client_review' && <div className="dv-next-action"><AlertTriangle size={18} /><div><strong>Sua validação é necessária</strong><p>{selected.clientResponseDueAt ? `Revise esta entrega e responda até ${formatDateTime(selected.clientResponseDueAt)}.` : 'Revise esta entrega e escolha entre aprovar ou solicitar ajuste.'}</p></div></div>}
+            {selected.status === 'adjustment_requested' && <div className="dv-next-action"><RefreshCw size={18} /><div><strong>Seu ajuste está com a CALI</strong><p>{selected.latestAdjustment?.reason || 'A nova versão voltará para sua validação assim que estiver pronta.'}</p></div></div>}
 
-            <section className="deliverable-description-v2 client-description-v33">
+            <section className="dv-overview-copy">
               <div><strong>Sobre esta entrega</strong><span className={`mc-chip ${(selected.complexity || 'MC1').toLowerCase()}`}>{selected.complexity || 'MC1'}</span></div>
               <p>{complexityCopy[selected.complexity || 'MC1'] || 'Complexidade definida pela CALI conforme volume de análise e dependências.'}</p>
               {selected.description && <p>{selected.description}</p>}
             </section>
 
-            {selected.isDocument && <section className="client-file-strip-v33"><FileText size={20} /><div><span>ARQUIVO DA ENTREGA</span><strong>{selected.document ? selected.document.title : 'Ainda não publicado'}</strong><p>{selected.document ? `Publicado em ${formatDateTime(selected.document.publishedAt)}.` : 'Quando a versão compartilhável estiver pronta, ela aparecerá aqui e também na Biblioteca.'}</p></div>{selected.document && <button className="secondary" onClick={() => void openPublishedDocument(selected.document!)}>Abrir</button>}</section>}
+            {selected.isDocument && <section className="dv-file"><FileText size={20} /><div><span>ARQUIVO DA ENTREGA</span><strong>{selected.document ? selected.document.title : 'Ainda não publicado'}</strong><p>{selected.document ? `Publicado em ${formatDateTime(selected.document.publishedAt)}.` : 'Quando a versão compartilhável estiver pronta, ela aparecerá aqui e também na Biblioteca.'}</p></div>{selected.document && <button className="secondary" onClick={() => void openPublishedDocument(selected.document!)}>Abrir</button>}</section>}
 
-            {selected.feedback && <section className="client-feedback-strip-v33"><span>{scoreReaction(selected.feedback.score).emoji}</span><div><small>SUA AVALIAÇÃO</small><strong>{selected.feedback.score}/5</strong><p>{selected.feedback.comment || 'Sem comentário adicional.'}</p></div></section>}
+            {selected.feedback && <section className="dv-file"><span>{scoreReaction(selected.feedback.score).emoji}</span><div><small>SUA AVALIAÇÃO</small><strong>{selected.feedback.score}/5</strong><p>{selected.feedback.comment || 'Sem comentário adicional.'}</p></div></section>}
           </>}
 
-          {detailTab === 'tasks' && <section className="tasks-pane-v2 client-tasks-pane-v33">
+          {detailTab === 'tasks' && <section className="dv-tasks">
             <header><div><strong>Etapas compartilhadas</strong><p>Aqui aparecem somente as etapas que a CALI definiu como visíveis para você.</p></div></header>
-            <div className="client-task-columns-v33"><span>Etapa</span><span>Status</span><span>Prazo</span></div>
-            <div className="client-task-list-v33">{selected.visibleTasks.length ? selected.visibleTasks.map((task) => <article key={task.id} className={['done', 'completed'].includes(task.status) ? 'done' : ''}><span className="client-task-check-v33">{['done', 'completed'].includes(task.status) ? <Check size={15} /> : <Circle size={12} />}</span><div><small>{task.protocol || 'ETAPA'}</small><strong>{task.title}</strong></div><span>{taskStatusLabel[task.status] || task.status}</span><time>{formatDate(task.dueAt)}</time></article>) : <div className="empty-inline-v2">Nenhuma etapa foi compartilhada para esta entrega.</div>}</div>
+            <div className="dv-task-columns"><span>Etapa</span><span>Status</span><span>Prazo</span></div>
+            <div className="dv-steps">{selected.visibleTasks.length ? selected.visibleTasks.map((task) => <article key={task.id} className={['done', 'completed'].includes(task.status) ? 'done' : ''}><span className="dv-step-mark">{['done', 'completed'].includes(task.status) ? <Check size={15} /> : <Circle size={12} />}</span><div><small>{task.protocol || 'ETAPA'}</small><strong>{task.title}</strong></div><span>{taskStatusLabel[task.status] || task.status}</span><time>{formatDate(task.dueAt)}</time></article>) : <div className="empty-inline-v2">Nenhuma etapa foi compartilhada para esta entrega.</div>}</div>
           </section>}
 
-          {detailTab === 'conversation' && <section className="conversation-pane-v2 client-conversation-pane-v33">
-            <div className="conversation-list-v2 client-conversation-list-v33 workspace-chat-list" ref={conversationRef} aria-live="polite" />
-            <div className="conversation-composer-v2 workspace-chat-compose">
+          {detailTab === 'conversation' && <section className="dv-conversation" data-v2-operation="conversation-pane-v2">
+            <div className="dv-chat workspace-chat-list" data-v2-operation="conversation-list-v2" ref={conversationRef} aria-live="polite" />
+            <div className="dv-reply-fixed workspace-chat-compose" data-v2-operation="conversation-composer-v2">
               <div className="workspace-chat-runtime-pending-host" />
               <div className="workspace-chat-runtime-tools-host" />
               <textarea rows={3} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder="Escreva uma mensagem sobre esta entrega…" onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void sendMessage(); }} />
@@ -506,21 +484,21 @@ export function ClientDeliverablesPage() {
             </div>
           </section>}
 
-          {detailTab === 'history' && <section className="deliverable-history-v2"><header><History size={20} /><div><strong>Histórico do entregável</strong><p>As mudanças relevantes desta entrega ficam preservadas aqui.</p></div></header>{selected.history.length ? selected.history.map((item) => <article key={item.id}><i /><div><strong>{statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}</strong><p>{item.fromStatus ? `${statusLabel[item.fromStatus as ClientDeliveryStatus] || item.fromStatus} → ${statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}` : 'Status registrado.'}</p><small>{formatDateTime(item.createdAt)}</small></div></article>) : <div className="empty-inline-v2">Ainda não há movimentações registradas.</div>}</section>}
+          {detailTab === 'history' && <section className="dv-history-list"><header><History size={20} /><div><strong>Histórico do entregável</strong><p>As mudanças relevantes desta entrega ficam preservadas aqui.</p></div></header>{selected.history.length ? selected.history.map((item) => <article key={item.id}><i /><div><strong>{statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}</strong><p>{item.fromStatus ? `${statusLabel[item.fromStatus as ClientDeliveryStatus] || item.fromStatus} → ${statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}` : 'Status registrado.'}</p><small>{formatDateTime(item.createdAt)}</small></div></article>) : <div className="empty-inline-v2">Ainda não há movimentações registradas.</div>}</section>}
         </div>
 
-        {detailTab !== 'conversation' && <footer className="deliverable-actions-v2 client-deliverable-actions-v33">
-          <div className="deliverable-actions-left-v2"><span className={`client-footer-status-v33 ${statusTone[selected.status]}`}><i />{statusLabel[selected.status]}</span></div>
-          <div className="deliverable-actions-right-v2">
+        {detailTab !== 'conversation' && <footer className="dv-actions">
+          <div className="dv-action-status"><span className={`client-footer-status-v33 ${statusTone[selected.status]}`}><i />{statusLabel[selected.status]}</span></div>
+          <div className="dv-action-buttons">
             {selected.status === 'client_review' && <><button className="secondary" onClick={() => { setAdjustmentText(''); setAdjustmentOpen(true); }}><RefreshCw size={16} />Solicitar ajuste</button><button className="primary" onClick={() => { setScore(0); setNpsComment(''); setNpsOpen(true); }}><FileCheck2 size={16} />Aprovar entrega</button></>}
             {selected.status !== 'client_review' && <button className="secondary" onClick={() => setDetailTab('conversation')}><MessageCircle size={16} />Conversar sobre esta entrega</button>}
           </div>
         </footer>}
       </section>
-    </div>}
+    </div></div>}
 
-    {adjustmentOpen && selected && <div className="modal-backdrop workspace-modal-backdrop"><section className="modal-card client-delivery-modal" role="dialog" aria-modal="true"><button className="modal-close" type="button" onClick={() => setAdjustmentOpen(false)}><X size={20} /></button><span className="section-kicker">SOLICITAR AJUSTE</span><h2>O que precisa ser revisto?</h2><p>Descreva o ponto que precisa mudar. O pedido fica vinculado a <strong>{selected.protocol || selected.title}</strong>.</p><textarea value={adjustmentText} onChange={(event) => setAdjustmentText(event.target.value)} placeholder="Ex.: precisamos separar este indicador por unidade antes da validação final." rows={5} autoFocus /><div className="modal-actions"><button className="secondary" onClick={() => setAdjustmentOpen(false)}>Cancelar</button><button className="primary" disabled={saving || adjustmentText.trim().length < 3} onClick={() => void submitAdjustment()}>{saving ? 'Registrando…' : 'Enviar ajuste'}</button></div></section></div>}
+    {adjustmentOpen && selected && <div className="v2-client-module v2-client-dialog"><div className="wf-overlay"><section className="wf-modal wf-create" role="dialog" aria-modal="true"><button className="modal-close" type="button" onClick={() => setAdjustmentOpen(false)}><X size={20} /></button><span className="section-kicker">SOLICITAR AJUSTE</span><h2>O que precisa ser revisto?</h2><p>Descreva o ponto que precisa mudar. O pedido fica vinculado a <strong>{selected.protocol || selected.title}</strong>.</p><textarea value={adjustmentText} onChange={(event) => setAdjustmentText(event.target.value)} placeholder="Ex.: precisamos separar este indicador por unidade antes da validação final." rows={5} autoFocus /><div className="v2-dialog-actions"><button className="secondary" onClick={() => setAdjustmentOpen(false)}>Cancelar</button><button className="primary" disabled={saving || adjustmentText.trim().length < 3} onClick={() => void submitAdjustment()}>{saving ? 'Registrando…' : 'Enviar ajuste'}</button></div></section></div></div>}
 
-    {npsOpen && selected && <div className="modal-backdrop workspace-modal-backdrop"><section className="modal-card client-delivery-modal client-delivery-rating-modal" role="dialog" aria-modal="true"><button className="modal-close" type="button" onClick={() => setNpsOpen(false)}><X size={20} /></button><span className="section-kicker">APROVAÇÃO DA ENTREGA</span><h2>Como foi esta entrega?</h2><p>Escolha sua nota, revise e só depois confirme.</p><div className="client-delivery-rating-row">{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" className={score === value ? 'selected' : ''} onClick={() => setScore(value)}><Star size={21} fill={score === value ? 'currentColor' : 'none'} /><span>{value}</span></button>)}</div>{reaction && <div className={`client-delivery-score-reaction score-${score}`}><span>{reaction.emoji}</span><div><strong>{reaction.title}</strong><p>{reaction.copy}</p></div></div>}{score > 0 && <label className="stacked-label">{npsCommentRequired ? 'O que podemos melhorar?' : 'Quer contar mais alguma coisa?'}<textarea value={npsComment} onChange={(event) => setNpsComment(event.target.value)} rows={4} placeholder={npsCommentRequired ? 'Sua justificativa ajuda a CALI a entender exatamente o que precisa melhorar.' : 'Opcional — deixe um comentário se quiser.'} /></label>}<button className="primary full" disabled={saving || score === 0 || (npsCommentRequired && npsComment.trim().length < 3)} onClick={() => void submitNps()}>{saving ? 'Confirmando…' : 'Confirmar aprovação e avaliação'}</button></section></div>}
+    {npsOpen && selected && <div className="v2-client-module v2-client-dialog"><div className="wf-overlay"><section className="wf-modal wf-create v2-rating" role="dialog" aria-modal="true"><button className="modal-close" type="button" onClick={() => setNpsOpen(false)}><X size={20} /></button><span className="section-kicker">APROVAÇÃO DA ENTREGA</span><h2>Como foi esta entrega?</h2><p>Escolha sua nota, revise e só depois confirme.</p><div className="client-delivery-rating-row">{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" className={score === value ? 'selected' : ''} onClick={() => setScore(value)}><Star size={21} fill={score === value ? 'currentColor' : 'none'} /><span>{value}</span></button>)}</div>{reaction && <div className={`client-delivery-score-reaction score-${score}`}><span>{reaction.emoji}</span><div><strong>{reaction.title}</strong><p>{reaction.copy}</p></div></div>}{score > 0 && <label className="stacked-label">{npsCommentRequired ? 'O que podemos melhorar?' : 'Quer contar mais alguma coisa?'}<textarea value={npsComment} onChange={(event) => setNpsComment(event.target.value)} rows={4} placeholder={npsCommentRequired ? 'Sua justificativa ajuda a CALI a entender exatamente o que precisa melhorar.' : 'Opcional — deixe um comentário se quiser.'} /></label>}<button className="primary full" disabled={saving || score === 0 || (npsCommentRequired && npsComment.trim().length < 3)} onClick={() => void submitNps()}>{saving ? 'Confirmando…' : 'Confirmar aprovação e avaliação'}</button></section></div></div>}
   </Shell>;
 }

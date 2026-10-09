@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, ChevronDown, ChevronRight, Clock3, Loader2 } from 'lucide-react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, Clock3 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
+import '../../styles/client-modules.css';
 
 type Project = { id: string; name: string };
 type Deliverable = { id: string; projectId?: string | null; title: string };
@@ -179,57 +180,36 @@ export function ClientHoursPage() {
   }
 
   if (loading) {
-    return <Shell role="client"><section className="page client-hours-connect"><div className="data-loading"><Loader2 className="spin" size={20} />Carregando horas…</div></section></Shell>;
+    return <Shell role="client"><section className="v2-client-module"><div className="data-loading" aria-live="polite" aria-busy="true">Carregando horas…</div></section></Shell>;
   }
 
   return <Shell role="client">
-    <section className="page client-hours-connect client-hours-v2">
-      {error && <div className="inline-notice"><AlertTriangle size={18} />{error}</div>}
-
-      {summary && !summary.visible ? <><section className="hours-connect-card client-hours-disabled"><Clock3 size={24} /><div><strong>A visualização de horas não está habilitada para este mês.</strong><p>Os meses já liberados continuam disponíveis para consulta. Selecione outro mês abaixo.</p><label className="client-hours-disabled-month"><span>Consultar mês</span><input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></label></div></section></> : summary && <>
-        <section className="hours-connect-card client-hours-summary client-hours-summary-gold">
-          {alertTone === 'critical' && <div className="client-hours-alert critical"><AlertTriangle size={18} /><span>{alertText}</span></div>}
-          <div className="client-hours-summary-top">
-            <div><span>Horas do mês</span><h2>{monthLabel(period)}</h2></div>
-            <div className="client-hours-summary-state"><Clock3 size={17} /><span>{percentage}% utilizado</span></div>
-          </div>
-          <div className="client-hours-metric-grid">
-            <div><span>Consumidas</span><strong>{formatMinutes(summary.consumedMinutes)}</strong></div>
-            <div><span>Contratadas</span><strong>{summary.contractedHours ? `${summary.contractedHours}h` : '—'}</strong></div>
-            <div className={summary.overMinutes > 0 ? 'over' : ''}><span>{summary.overMinutes > 0 ? 'Excedentes' : 'Disponíveis'}</span><strong>{summary.overMinutes > 0 ? formatMinutes(summary.overMinutes) : formatMinutes(summary.remainingMinutes)}</strong></div>
-          </div>
-          <div className="client-hours-progress"><i className={alertTone} style={{ width: `${percentage}%` }} /></div>
-          {alertText && alertTone !== 'critical' && <p className={`client-hours-alert-text ${alertTone}`}>{alertText}</p>}
-        </section>
-
-        <div className="client-hours-filters">
-          <div className="client-hours-filter-copy"><span>REGISTROS COMPARTILHADOS</span><strong>Detalhamento do período</strong><small>{filteredEntries.length} {filteredEntries.length === 1 ? 'registro visível' : 'registros visíveis'}</small></div>
-          <label><span>Mês</span><input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></label>
-          <label><span>Contexto</span><select value={contextFilter} onChange={(event) => setContextFilter(event.target.value as ContextFilter)}><option value="all">Todos</option><option value="deliverable">Entregável</option><option value="project">Projeto</option><option value="interaction">Interação</option></select></label>
-        </div>
-
-        {filteredEntries.length === 0 ? <section className="hours-connect-card client-hours-empty"><Clock3 size={24} /><p>Nenhum registro de horas neste período.</p></section> : <>
-          <section className="hours-connect-card client-hours-table-card">
-            <div className="client-hours-table-wrap"><table className="client-hours-table"><thead><tr><th className="expand" /><th>Data</th><th>Horário</th><th>Duração</th><th>Atividade</th><th>Projeto</th><th>Origem</th></tr></thead><tbody>{filteredEntries.map((entry) => {
-              const open = Boolean(expanded[entry.id]);
-              const context = contextOf(entry);
-              const project = entry.projectId ? projectMap.get(entry.projectId) || '—' : '—';
-              const deliverable = entry.deliverableId ? deliverableMap.get(entry.deliverableId) || '—' : '—';
-              return <>
-                <tr key={entry.id} className="client-hours-row" onClick={() => setExpanded((current) => ({ ...current, [entry.id]: !current[entry.id] }))}><td className="expand">{open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</td><td>{dateLabel(entry.workDate)}</td><td>{timeLabel(entry.startedAt)}–{timeLabel(entry.endedAt)}</td><td><strong>{formatMinutes(entry.minutes)}</strong></td><td className="action">{entry.description}</td><td><span>{project}</span>{deliverable !== '—' && <small>{deliverable}</small>}</td><td>{sourceLabel(entry.sourceType)}</td></tr>
-                {open && <tr className="client-hours-detail"><td colSpan={7}><div><strong>Detalhes:</strong><span>{entry.description}</span>{entry.category && <em>Natureza: {entry.category}</em>}</div></td></tr>}
-              </>;
-            })}</tbody></table></div>
+    <section className="v2-client-module">
+      <header className="page-head"><div><div className="eyebrow">CONTA / ACOMPANHAMENTO EXECUTIVO</div><h1>Horas<span className="title-dot">.</span></h1><p>Onde a assessoria investiu tempo, o que foi realizado e o saldo do ciclo.</p></div></header>
+      {error && <div className="inline-notice" role="alert"><AlertTriangle size={18} />{error}</div>}
+      {summary && !summary.visible ? <section className="wf-empty"><Clock3 size={24} /><strong>A visualização de horas não está habilitada para este mês.</strong><p>Os meses já liberados continuam disponíveis para consulta. Selecione outro mês abaixo.</p><label><span>Consultar mês</span><input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></label></section> : summary && <>
+        <div className="hours-context"><span className="plan-mark">{monthLabel(period)}</span><input className="v2-hours-month" aria-label="Consultar mês" type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /><span className="hours-context-end"><Clock3 size={14}/> Visibilidade contratual habilitada</span></div>
+        <div className="hours-ledger">
+          <section className="ledger-main">
+            {alertText && <div className={`inline-notice ${alertTone}`} role="status"><AlertTriangle size={18}/>{alertText}</div>}
+            <div className="ledger-summary"><div><span>Contratadas</span><strong>{summary.contractedHours ? `${summary.contractedHours}h` : '—'}</strong></div><div><span>Utilizadas</span><strong>{formatMinutes(summary.consumedMinutes)}</strong></div><div><span>{summary.overMinutes > 0 ? 'Excedentes' : 'Disponíveis'}</span><strong>{summary.overMinutes > 0 ? formatMinutes(summary.overMinutes) : formatMinutes(summary.remainingMinutes)}</strong></div></div>
+            <div className="ledger-progress" role="progressbar" aria-label="Consumo das horas contratadas" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentage}><span style={{ width: `${percentage}%` }}/></div>
+            <div className="ledger-header"><h2>Registro de atuação</h2><span>{filteredEntries.length} {filteredEntries.length === 1 ? 'atividade neste período' : 'atividades neste período'}</span><label className="ledger-filter">Contexto<select value={contextFilter} onChange={(event) => setContextFilter(event.target.value as ContextFilter)}><option value="all">Todos</option><option value="deliverable">Entregável</option><option value="project">Projeto</option><option value="interaction">Interação</option></select></label></div>
+            {filteredEntries.length === 0 ? <div className="wf-empty">Nenhum registro de horas neste período.</div> : <div className="ledger-table">
+              <div className="ledger-row ledger-heading"><span>Data</span><span>Atuação / contexto</span><span>Origem</span><span>Duração</span></div>
+              {filteredEntries.map((entry) => {
+                const open = Boolean(expanded[entry.id]);
+                const context = contextOf(entry);
+                const project = entry.projectId ? projectMap.get(entry.projectId) || '—' : '—';
+                const deliverable = entry.deliverableId ? deliverableMap.get(entry.deliverableId) || '—' : '—';
+                return <Fragment key={entry.id}><button type="button" className="ledger-row" aria-expanded={open} aria-controls={`hour-detail-${entry.id}`} onClick={() => setExpanded((current) => ({ ...current, [entry.id]: !current[entry.id] }))}>
+                  <span className="ledger-date">{dateLabel(entry.workDate)}</span><span className="ledger-title"><strong>{entry.description}</strong><small>{project}{deliverable !== '—' ? ` · ${deliverable}` : ''}</small></span><span><span className="chip neutral">{sourceLabel(entry.sourceType)}</span></span><strong>{formatMinutes(entry.minutes)}</strong>
+                </button>{open && <div className="ledger-entry-detail" id={`hour-detail-${entry.id}`}><strong>Detalhes: {entry.description}</strong><span>{contextLabel(context)} · {project}{deliverable !== '—' ? ` · ${deliverable}` : ''}</span><span>Horário: {timeLabel(entry.startedAt)}–{timeLabel(entry.endedAt)} · Origem: {sourceLabel(entry.sourceType)}</span>{entry.category && <span>Natureza: {entry.category}</span>}</div>}</Fragment>;
+              })}
+            </div>}
           </section>
-
-          <div className="client-hours-mobile">{filteredEntries.map((entry) => {
-            const open = Boolean(expanded[entry.id]);
-            const context = contextOf(entry);
-            const project = entry.projectId ? projectMap.get(entry.projectId) || '—' : '—';
-            const deliverable = entry.deliverableId ? deliverableMap.get(entry.deliverableId) || '—' : '—';
-            return <article className="hours-connect-card" key={entry.id}><button type="button" onClick={() => setExpanded((current) => ({ ...current, [entry.id]: !current[entry.id] }))}><div><span>{dateLabel(entry.workDate)} · {timeLabel(entry.startedAt)}–{timeLabel(entry.endedAt)}</span><strong>{formatMinutes(entry.minutes)}</strong></div><h3>{entry.description}</h3><p>{project}{deliverable !== '—' ? ` · ${deliverable}` : ''}</p><footer><span className={`client-hours-context ${context}`}>{contextLabel(context)}</span><span>{sourceLabel(entry.sourceType)}</span>{open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</footer>{open && entry.category && <aside>{entry.category}</aside>}</button></article>;
-          })}</div>
-        </>}
+          <aside className="ledger-side"><div className="side-title">COMO LER ESTE EXTRATO</div><h2>Tempo dedicado a decisões que importam.</h2><p>As horas registram atividades executadas pela CALI. Você acompanha o que foi feito, sem editar os lançamentos.</p><div className="side-rule"/><span className="side-title">CONTEXTO DOS REGISTROS</span><div className="distribution"><span>Período</span><strong>{monthLabel(period)}</strong></div><div className="distribution"><span>Consumo mensal</span><strong>{summary.usagePercent === null ? '—' : `${summary.usagePercent}%`}</strong></div><div className="side-foot">Dados dos registros compartilhados pela CALI. Os filtros alteram o detalhamento; o consumo representa todo o mês.</div></aside>
+        </div>
       </>}
     </section>
   </Shell>;

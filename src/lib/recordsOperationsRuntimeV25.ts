@@ -82,7 +82,7 @@ async function deleteUnopened(record: RecordRow, button: HTMLButtonElement) {
     alert(error.message || 'Não foi possível excluir esta solicitação.');
     return;
   }
-  document.querySelector<HTMLButtonElement>('.records-v13-drawer .drawer-close')?.click();
+  document.querySelector<HTMLButtonElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"]) .drawer-close")?.click();
   window.setTimeout(() => location.reload(), 120);
 }
 async function renderClientDelete(record: RecordRow, host: HTMLElement) {
@@ -228,7 +228,7 @@ async function enhance() {
   if (busy || !supabase) return;
   const currentRole = role();
   if (!currentRole) return;
-  const drawer = document.querySelector<HTMLElement>('.records-v13-drawer');
+  const drawer = document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"])");
   if (!drawer) return;
   const protocol = currentProtocol(drawer);
   if (!protocol.startsWith('CALI-REG-')) return;
