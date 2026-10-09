@@ -56,15 +56,21 @@ uma prop opcional `trigger` (apresentação do gatilho); a administradora não a
 | `NoticesView` | — | Sem fonte de dados oficial: card vazio na home, sem item de menu |
 | — | `ClientFrontsPage` | Acesso pelo rodapé da sidebar, pela barra da home e pelo menu de conta |
 
-## 5. Diferenças em relação ao protótipo que são intencionais
+## 5. Decisões da proprietária (09/10) e diferenças restantes
 
-- **Busca global** e **“Abrir backoffice Admin”** da topbar: são demonstrações sem função no oficial; não foram
-  reproduzidas. No lugar do atalho fica o agendamento real “Agende aqui um papo com a Pati”.
-- **Avisos**: não existe tabela/consulta oficial; nenhum aviso fictício foi criado.
-- **Menu de conta**: recebe Frentes, Relatórios (com contagem), tema e saída, que não têm lugar próprio na V2.
-- **Faixa “entrega aguarda sua validação”** na home e medidor de avaliação: estados reais ausentes no protótipo.
-- **Tema noturno**: a V2 aprovada é somente diurna. O alternador continua disponível, mas as cores noturnas do
-  cliente ainda não foram recriadas sobre o CSS literal — decisão pendente (manter noturno ou só diurno).
+- **Topbar e sidebar seguem a V2 por inteiro.** Agendamento, Frentes e Relatórios saíram da topbar: o
+  agendamento abre por “Solicitar agendamento” no Calendário, Frentes pela barra da Visão Geral, Relatórios
+  pela sidebar.
+- **Cliente somente diurno.** O alternador de tema foi retirado do cliente e as rotas `/cliente` sempre
+  resolvem para o tema diurno. A administradora mantém o comportamento atual até ser migrada.
+- **Busca da topbar** funciona como localizador de módulos (⌘/Ctrl+K); não pesquisa conteúdo.
+- **“Abrir backoffice Admin”** do protótipo não se aplica ao papel cliente e não foi reproduzido.
+- **Avisos**: item de menu e página na composição aprovada, com estado vazio; não existe origem de dados
+  oficial e nenhum aviso fictício foi criado.
+- **Escudo no rodapé da sidebar**: no protótipo é um aviso de ambiente de testes; aqui abre a política de
+  privacidade já existente.
+- **Administradora**: seguirá a mesma identidade, sobre a referência administrativa da V2 e alinhada às
+  funções administrativas; ainda não iniciada.
 
 ## 6. Verificação realizada
 
