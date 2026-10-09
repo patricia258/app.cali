@@ -819,3 +819,14 @@ Duas regras técnicas, pro handoff entre Claude e Codex, a partir do bug encontr
 - Pati informou que cadastrar/editar ainda fechava ou pulava a última etapa. Substituí a visibilidade frágil por posição CSS por `hidden` explícito em cada campo de cada etapa, mantive a etapa opcional própria e separei o botão de avançar do botão final de salvar.
 - Comando de auditoria diagnóstica para Cláudio em `docs/AUDITORIA_EQUIPE_PARA_CLAUDIO_2026-10-02.md`: ele deve comparar código/spec/fluxo, reproduzir e apontar evidências sem editar nem publicar.
 - `npm run check` passou. O navegador automatizado local não estava disponível; clique completo autenticado ainda **não** foi comprovado. Aprovação de Pati: pendente. Autor: Codex.
+
+## 2026-10-09 — Correção estrutural do início cliente V2
+
+- Substituído o JSX da home antiga pela composição `ch-*` da referência aprovada, mantendo as consultas, estados, cálculos, callbacks e RPC de envio oficiais.
+- Incluídos Quadro de Avisos, Mini Equipe e Próxima Decisão; agenda na coluna lateral acima da decisão e Em Movimento na coluna maior.
+- Mini Equipe consulta apenas campos profissionais já existentes em `team_members`, com empresa proveniente do dashboard autenticado, RLS intacta e paginação. Sem dados privados, salários ou novos campos de banco.
+- Dependências: não encontrada fonte oficial de comunicados/ciência; data de nascimento ausente no cadastro profissional. Estados vazios explícitos, sem importar dados fictícios da V2.
+- Cabeçalho cliente dividido em barra global e barra do módulo; perfil movido para o topo, preservando editor e ações. Rail cliente fixo; administradora não refatorada nesta etapa.
+- Estilos antigos da home substituídos e 97 seletores comprovadamente sem uso removidos de três arquivos compartilhados. Não removidos serviços ou funcionalidades.
+- Guard de regressão atualizado para permitir refatoração JSX e comparar declarações operacionais via AST, além de todos os bindings anteriores de ação, valor, navegação e progresso. Não substitui E2E autenticado.
+- Compilação e TypeScript aprovados antes da revisão visual. Equivalência visual e testes com sessão real permanecem pendentes até a comparação da prévia e autenticação.

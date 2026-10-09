@@ -104,8 +104,8 @@ html[data-workspace-theme='night'] .app-shell[data-visual-system='v2'][data-work
 :root .app-shell[data-visual-system='v2'][data-workspace-role] .document-comment-list { border-radius: 7px !important; background: var(--v2-soft) !important; }
 
 @media (min-width: 861px) {
-  :root .app-shell[data-visual-system='v2'][data-workspace-role] .sidebar,
-  :root .app-shell[data-visual-system='v2'][data-workspace-role] .sidebar:not(:hover):not(:focus-within):not(.pinned):not(.hovered) {
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar,
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar:not(:hover):not(:focus-within):not(.pinned):not(.hovered) {
     inset: 0 auto 0 0 !important;
     width: 56px !important;
     height: 100dvh !important;
@@ -117,16 +117,16 @@ html[data-workspace-theme='night'] .app-shell[data-visual-system='v2'][data-work
     box-shadow: none !important;
     background: linear-gradient(175deg,#5a1e2d 0%,#642a3b 42%,#785044 74%,#b58c52 100%) !important;
   }
-  :root .app-shell[data-visual-system='v2'][data-workspace-role] .sidebar:hover,
-  :root .app-shell[data-visual-system='v2'][data-workspace-role] .sidebar:focus-within,
-  :root .app-shell[data-visual-system='v2'][data-workspace-role] .sidebar.pinned,
-  :root .app-shell[data-visual-system='v2'][data-workspace-role] .sidebar.hovered { width: 194px !important; box-shadow: 12px 0 28px #39162218 !important; }
-  :root .app-shell[data-visual-system='v2'][data-workspace-role] .sidebar nav { gap: 4px !important; grid-auto-rows: 38px !important; }
-  :root .app-shell[data-visual-system='v2'][data-workspace-role] .sidebar nav a > svg { display: block !important; flex-shrink: 0; width: 16px !important; height: 16px !important; stroke-width: 1.55; }
-  :root .app-shell[data-visual-system='v2'][data-workspace-role] .sidebar nav a::after { content: none !important; }
-  :root .app-shell[data-visual-system='v2'][data-workspace-role] .sidebar nav a { height: 38px !important; min-height: 38px !important; max-height: 38px !important; flex-basis: 38px !important; border-radius: 7px !important; font-size: 12px !important; }
-  :root .app-shell[data-visual-system='v2'][data-workspace-role] .sidebar nav a.active { color: #fff !important; background: #ffffff26 !important; box-shadow: inset 2px 0 #dcb87b !important; }
-  :root .app-shell[data-visual-system='v2'][data-workspace-role] .sidebar nav a.active::before { content: none !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar:hover,
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar:focus-within,
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar.pinned,
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar.hovered { width: 194px !important; box-shadow: 12px 0 28px #39162218 !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar nav { gap: 4px !important; grid-auto-rows: 38px !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar nav a > svg { display: block !important; flex-shrink: 0; width: 16px !important; height: 16px !important; stroke-width: 1.55; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar nav a::after { content: none !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar nav a { height: 38px !important; min-height: 38px !important; max-height: 38px !important; flex-basis: 38px !important; border-radius: 7px !important; font-size: 12px !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar nav a.active { color: #fff !important; background: #ffffff26 !important; box-shadow: inset 2px 0 #dcb87b !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar nav a.active::before { content: none !important; }
   :root .app-shell[data-visual-system='v2'][data-workspace-role] .main { margin-left: 56px !important; width: calc(100% - 56px) !important; max-width: calc(100% - 56px) !important; flex-basis: calc(100% - 56px) !important; }
 }
 @media (max-width: 1024px) {
@@ -136,7 +136,7 @@ html[data-workspace-theme='night'] .app-shell[data-visual-system='v2'][data-work
 @media (max-width: 860px) {
   :root .app-shell[data-visual-system='v2'][data-workspace-role] .main { margin-left: 0 !important; width: 100% !important; }
   :root .app-shell[data-visual-system='v2'][data-workspace-role] .topbar { padding-left: 58px !important; }
-  :root .app-shell[data-visual-system='v2'][data-workspace-role] .sidebar.mobile-open { border-radius: 0 !important; inset: 0 auto 0 0 !important; height: 100dvh !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar.mobile-open { border-radius: 0 !important; inset: 0 auto 0 0 !important; height: 100dvh !important; }
 }
 @media (max-width: 600px) {
   :root .app-shell[data-visual-system='v2'][data-workspace-role] .workspace-view > :is(.page, .company-team, .fronts-page) { padding: 18px 14px 60px !important; }
@@ -145,6 +145,6 @@ html[data-workspace-theme='night'] .app-shell[data-visual-system='v2'][data-work
   :root .app-shell[data-visual-system='v2'][data-workspace-role] .page h1 { font-size: 25px !important; }
 }
 @media (prefers-reduced-motion: reduce) {
-  :root .app-shell[data-visual-system='v2'][data-workspace-role] .sidebar,
-  :root .app-shell[data-visual-system='v2'][data-workspace-role] .page { animation: none !important; transition: none !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar,
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .page { animation: none !important; transition: none !important; }
 }
