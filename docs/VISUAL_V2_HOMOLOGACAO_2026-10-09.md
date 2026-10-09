@@ -2,6 +2,16 @@
 
 Autor: Codex · 09/10/2026 · aprovação: aguardando homologação da Pati.
 
+## Correção de status após conferência com a Pati
+
+**Integração visual parcial; refação completa não concluída nem aprovada.** A Pati informou que não conseguia reconhecer a V2 na prévia. A entrega anterior aplicou principalmente estilos ao shell e módulos existentes, preservando demasiadamente a composição antiga. Os checks de código e build não demonstram fidelidade à V2 e não autorizam chamar a migração visual de completa.
+
+A comparação direta do início revelou: painéis executivos unidos e faixas coloridas, tipografia/proporções diferentes, sidebar baseado no primeiro CSS da referência e não no acabamento final, ausência dos blocos de avisos/equipe do protótipo. O link enviado abriu o login anterior; o modo de prévia sem sessão ainda não mostra dados reais do início. Captura da referência em `docs/visual-v2/referencia-aprovada.jpg`; a captura da integração anterior não sincronizou e foi omitida.
+
+Nesta correção, apenas apresentação: três painéis independentes, tipografia e proporções de contrato/contato/documento/agenda conforme o início V2, fundo quadriculado discreto, rail de 56 px e gradiente final bordô/dourado da referência. A expansão e ações do menu oficial permanecem. Nenhuma nova query, mock ou operação foi inserida.
+
+**Diferenças ainda pendentes:** V2 tem flyout de navegação e uma barra global de busca demonstrativa; o aplicativo continua com os controles oficiais. Blocos de avisos e equipe do início não têm equivalentes carregados pelo dashboard oficial atual. Transplantá-los com os mocks do protótipo não é uma integração válida; requer mapear fontes e ações reais em escopo próprio. A composição das demais páginas ainda requer revisão direta com a referência. Preservação de fonte operacional não equivale à certificação de todos os estados e fluxos.
+
 Repositório oficial: `patricia258/app.cali`. Branch: `feat/client-visual-v2-inplace-20261008`.
 Base: `7d817c3d64e3839eb10475233b4e43b92a9914cb`.
 Referência: `patricia258/cali-workspace-v2@7c0a2323bb221cfd61c0a8ed4ced8670c05cce78`, incluindo o handoff de 08/10.
