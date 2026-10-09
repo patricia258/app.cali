@@ -55,7 +55,7 @@ no topo, com data, commits, verificação e pendências. Detalhe técnico e mapa
 ### Pontos de atenção antes de publicar no oficial
 - A branch também contém a reestilização da administradora feita nas tentativas anteriores
   (`styles/workspace-admin-v2.css`). Publicar a branch muda a aparência da administradora.
-- `ProtectedRoute`/`LoginPage` mantêm um atalho de entrada sem login (`cali-preview-role`) que funciona em
-  `localhost` e em endereços `*.vercel.app`, não em app.calirh.com. Recomenda-se removê-lo junto com a
-  migração da administradora, que ainda o utiliza.
+- Entrada sem login removida (decisão da proprietária em 09/10: nada oficial entra sem login): `ProtectedRoute`
+  exige sessão em qualquer endereço e a tela de login não oferece mais “Prévia de desenvolvimento”. Restam
+  leituras mortas de `cali-preview-role` em páginas da administradora, a limpar na migração dela.
 - Reversão: `main` permanece no commit `a04c056`; voltar é reverter o merge.
