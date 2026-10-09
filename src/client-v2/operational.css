@@ -258,9 +258,6 @@ html[data-workspace-ui='client-v2'] .ch-company-logo img{max-width:100%;max-heig
 html[data-workspace-ui='client-v2'] .ch-no-rating svg{width:52px;display:block}
 html[data-workspace-ui='client-v2'] .ch-event-link{margin-left:auto;color:#5a1e2d;display:grid;place-items:center}
 html[data-workspace-ui='client-v2'] .ch-chat-send{justify-content:flex-end}
-/* Agendamento extra: ação real no lugar do atalho de demonstração da topbar. */
-html[data-workspace-ui='client-v2'] .top-left .extra-visit-top-action{border:1px solid #e9d9ce;background:#fff8f0;color:#5a1e2d;border-radius:7px;padding:8px 10px;display:inline-flex;align-items:center;gap:7px;font-size:10px;font-weight:700;cursor:pointer;height:auto;min-height:0;box-shadow:none;line-height:normal}
-html[data-workspace-ui='client-v2'] .top-left .extra-visit-top-action svg{width:13px;height:13px}
 
 /* ==== Superfícies operacionais compartilhadas (notificações, conta, diálogos) ====
    Os componentes oficiais são os mesmos da administradora; aqui recebem os valores dos
@@ -287,15 +284,6 @@ html[data-workspace-ui='client-v2']{
   .notification-empty strong{font-size:12px;color:#514542}
   .notification-empty span{font-size:10px;line-height:1.5}
 
-  .v2-profile-links{display:flex;flex-direction:column;border-top:1px solid #efeae7}
-  .v2-profile-links :is(a,button){display:flex;align-items:center;gap:9px;border:0;background:none;padding:11px 0;color:#5a1e2d;font-weight:600;font-size:11px;width:100%;text-align:left;position:relative;box-shadow:none;height:auto;border-radius:0}
-  .v2-profile-links :is(a,button)+:is(a,button){border-top:1px solid #efeae7}
-  .v2-profile-links svg{width:15px;height:15px;color:#a0766f}
-  .v2-profile-links span{font-size:11px;color:inherit}
-  .v2-profile-links .client-reports-top-shortcut::after{content:'Relatórios'}
-  .v2-profile-links .workspace-theme-toggle::after{content:'Alternar tema dia/noite'}
-  .v2-profile-links :is(.client-reports-top-count,.fronts-extra-count){margin-left:auto;order:3;background:#f6edf0;color:#6e3645;border-radius:5px;padding:3px 7px;font-size:10px}
-  .v2-profile-links .fronts-extra-badge::after{content:'Contratadas à parte'}
 
   :is(.modal-backdrop,.extra-visit-backdrop){position:fixed;inset:0;z-index:110;background:#241b2066;display:flex;align-items:center;justify-content:center;padding:18px}
   .modal-card{position:relative;background:#fff;border-radius:13px;width:min(680px,100%);max-height:calc(100vh - 36px);overflow-y:auto;overscroll-behavior:contain;box-shadow:0 25px 70px #0003;padding:22px 25px;color:#322f2c;font-size:12px}
@@ -340,7 +328,6 @@ html[data-workspace-ui='client-v2']{
   .profile-avatar img{object-position:var(--avatar-x,50%) var(--avatar-y,50%);transform:scale(var(--avatar-zoom,1))}
   @media(max-width:650px){.profile-account-details{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.notification-panel{right:-60px}}
 }
-html[data-workspace-ui='client-v2'] .v2-profile-links :is(a,button){justify-content:flex-start}
 /* Calendário: filtro real por tipo (seleção múltipla) no lugar do seletor único do protótipo. */
 html[data-workspace-ui='client-v2']{
   .wf-control-right>small{font-size:10px;color:#998c83;margin-right:6px}
@@ -361,3 +348,18 @@ html[data-workspace-ui='client-v2']{
   .client-google-settings>summary svg{width:15px;height:15px;color:#a38571}
   .client-google-settings-action{color:#5a1e2d;font-weight:700}
 }
+/* Topbar aprovada: o agendamento abre pelas ações das páginas; o botão próprio do componente não aparece. */
+html[data-workspace-ui='client-v2']{
+  .main>.extra-visit-top-action{display:none}
+  button.global-search{cursor:pointer;font:inherit;font-size:11px;text-align:left}
+  .global-search input{border:0;background:transparent;outline:0;font:inherit;color:#322f2c;width:100%;min-width:0;padding:0}
+  .v2-search-results{left:0;right:auto;min-width:100%;gap:0;padding:6px 13px 12px}
+  .v2-search-results button:first-child{border-top:0}
+  .notice-empty{display:flex;flex-direction:column;align-items:center;gap:8px;background:#fff;border:1px solid #e9e0d8;border-radius:10px;padding:46px 25px}
+  .notice-empty strong{font-size:13px;color:#3e3533}
+  .notice-empty p{margin:0;font-size:11px}
+}
+/* Campo padrão aprovado (.enh-form) para formulários oficiais que não definem o próprio. */
+:where(html[data-workspace-ui='client-v2'] [role='dialog']) :where(input:not([type='checkbox'],[type='radio'],[type='range'],[type='file']),select,textarea){padding:11px;border:1px solid #e7dbd2;border-radius:7px;background:#fff;font:inherit;color:inherit}
+:where(html[data-workspace-ui='client-v2'] [role='dialog']) :where(label){font-size:11px;font-weight:600}
+html[data-workspace-ui='client-v2'] .notification-button>svg{width:17px;height:17px}

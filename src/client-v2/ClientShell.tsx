@@ -2,9 +2,9 @@
    .app > aside.sidebar + main.main > header.topbar + .content.
    Apenas apresentação: sessão, notificações, perfil, frentes e agendamento chegam prontos
    dos componentes operacionais oficiais. */
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ArrowRight, BriefcaseBusiness, CalendarDays, ChevronDown, ChevronRight, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Menu, MessageCircleMore, Users, X, type LucideIcon } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ArrowRight, BriefcaseBusiness, CalendarDays, ChevronDown, ChevronRight, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Users, X, type LucideIcon } from 'lucide-react';
 import { DirectProfileControl } from '../components/DirectProfileControl';
 import './v2.generated.css';
 import './operational.css';
@@ -19,36 +19,52 @@ export const clientNavigation: NavItem[] = [
   { label: 'Documentos', href: '/cliente/documentos', icon: FolderOpen },
   { label: 'Relatórios', href: '/cliente/relatorios', icon: FileBarChart2 },
   { label: 'Projetos', href: '/cliente/entregaveis', icon: BriefcaseBusiness },
+  { label: 'Avisos', href: '/cliente/avisos', icon: Megaphone },
 ];
+// Destinos da busca: os módulos do menu e a página de frentes (acessível pela Visão Geral).
+const searchDestinations = [...clientNavigation.map(({ label, href }) => ({ label, href })), { label: 'Frentes contratadas', href: '/cliente/frentes' }];
+const privacyPolicyUrl = 'https://calirh.com/privacidade.html';
 
 type Props = {
   children: ReactNode;
-  /** Agendamento extra (botão e fluxo oficiais). */
+  /** Fluxo oficial de agendamento: permanece montado para atender aos pedidos abertos pelas páginas. */
   scheduling: ReactNode;
   notifications: ReactNode;
-  /** Atalhos oficiais sem lugar próprio na V2, acomodados no menu de conta. */
-  accountLinks: ReactNode;
-  themeToggle: ReactNode;
   bridges: ReactNode;
   onLogout: () => void;
 };
 
-export function ClientShell({ children, scheduling, notifications, accountLinks, themeToggle, bridges, onLogout }: Props) {
+export function ClientShell({ children, scheduling, notifications, bridges, onLogout }: Props) {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const [mobileNav, setMobileNav] = useState(false);
   const [profileMenu, setProfileMenu] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [term, setTerm] = useState('');
   const profileRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const results = useMemo(() => {
+    const wanted = term.trim().toLocaleLowerCase('pt-BR');
+    return wanted ? searchDestinations.filter(item => item.label.toLocaleLowerCase('pt-BR').includes(wanted)) : searchDestinations;
+  }, [term]);
 
-  useEffect(() => { setMobileNav(false); setProfileMenu(false); }, [pathname]);
+  useEffect(() => { setMobileNav(false); setProfileMenu(false); setSearching(false); setTerm(''); }, [pathname]);
   useEffect(() => {
-    if (!profileMenu) return;
+    const shortcut = (event: KeyboardEvent) => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setSearching(true); } };
+    document.addEventListener('keydown', shortcut);
+    return () => document.removeEventListener('keydown', shortcut);
+  }, []);
+  useEffect(() => {
+    if (!profileMenu && !searching) return;
     const close = (event: MouseEvent | KeyboardEvent) => {
-      if (event instanceof KeyboardEvent ? event.key === 'Escape' : !profileRef.current?.contains(event.target as Node)) setProfileMenu(false);
+      if (event instanceof KeyboardEvent) { if (event.key === 'Escape') { setProfileMenu(false); setSearching(false); } return; }
+      if (!profileRef.current?.contains(event.target as Node)) setProfileMenu(false);
+      if (!searchRef.current?.contains(event.target as Node)) setSearching(false);
     };
     document.addEventListener('mousedown', close);
     document.addEventListener('keydown', close);
     return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', close); };
-  }, [profileMenu]);
+  }, [profileMenu, searching]);
 
   const isActive = (href: string) => pathname === href || (href !== '/cliente' && pathname.startsWith(`${href}/`));
 
@@ -56,14 +72,20 @@ export function ClientShell({ children, scheduling, notifications, accountLinks,
     <aside className={'sidebar ' + (mobileNav ? 'mobile-open' : '')} aria-label="Menu lateral CALI">
       <div className="brand"><span className="brand-word">CALI</span></div>
       <nav aria-label="Navegação principal">{clientNavigation.map(({ label, href, icon: Icon }) => <Link key={href} to={href} className={'nav-link ' + (isActive(href) ? 'active' : '')} title={label} aria-label={label} aria-current={isActive(href) ? 'page' : undefined}><Icon size={17} strokeWidth={1.6} /></Link>)}</nav>
-      <div className="sidebar-bottom"><span className="gold-rule" /><Link className={'nav-link ' + (pathname === '/cliente/frentes' ? 'active' : '')} to="/cliente/frentes" title="Frentes contratadas" aria-label="Frentes contratadas"><BriefcaseBusiness size={17} strokeWidth={1.6} /></Link></div>
+      <div className="sidebar-bottom"><span className="gold-rule" /><a className="nav-link" href={privacyPolicyUrl} target="_blank" rel="noopener noreferrer" title="Política de privacidade" aria-label="Política de privacidade"><ShieldCheck size={17} /></a></div>
     </aside>
     {bridges}
     <main className="main">
       <header className="topbar">
         <button className="mobile-menu" onClick={() => setMobileNav(!mobileNav)} aria-label={mobileNav ? 'Fechar menu' : 'Abrir menu'} aria-expanded={mobileNav}>{mobileNav ? <X size={19} /> : <Menu size={19} />}</button>
-        <div className="top-left"><span className="workspace-label">CALI <span>WORKSPACE</span></span>{scheduling}</div>
+        <div className="top-left"><span className="workspace-label">CALI <span>WORKSPACE</span></span></div>
         <div className="top-actions">
+          <div className="profile-holder" ref={searchRef}>
+            {searching
+              ? <label className="global-search"><Search size={15} /><input autoFocus value={term} onChange={event => setTerm(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && results[0]) navigate(results[0].href); }} placeholder="Buscar no Workspace" aria-label="Buscar no Workspace" /></label>
+              : <button type="button" className="global-search" onClick={() => setSearching(true)}><Search size={15} /><span>Buscar no Workspace</span><kbd>⌘ K</kbd></button>}
+            {searching && <div className="profile-dropdown v2-search-results" role="listbox" aria-label="Resultados">{results.length ? results.map(item => <button key={item.href} role="option" aria-selected={false} onClick={() => navigate(item.href)}>{item.label} <ChevronRight size={14} /></button>) : <span>Nenhum módulo encontrado.</span>}</div>}
+          </div>
           <div className="profile-holder">{notifications}</div>
           <div className="profile-holder" ref={profileRef}>
             <DirectProfileControl role="client" trigger={({ profile, avatar, companyName, openEditor }) => <>
@@ -72,13 +94,13 @@ export function ClientShell({ children, scheduling, notifications, accountLinks,
                 <div className="v2-profile-head"><span className="avatar small">{avatar}</span><span><strong>{profile.full_name}</strong><small>{profile.job_title || 'Perfil cliente'}</small></span></div>
                 <div className="v2-profile-meta">{companyName && <span>Empresa <b>{companyName}</b></span>}<span>Acesso <b>Cliente</b></span></div>
                 <button role="menuitem" onClick={() => { setProfileMenu(false); openEditor(); }}>Ver meu perfil <ChevronRight size={14} /></button>
-                <div className="v2-profile-links">{accountLinks}{themeToggle}</div>
                 <button role="menuitem" onClick={() => { setProfileMenu(false); onLogout(); }}>Sair <ArrowRight size={14} /></button>
               </div>}
             </>} />
           </div>
         </div>
       </header>
+      {scheduling}
       <div className="content">{children}</div>
     </main>
   </div>;

@@ -1,3 +1,4 @@
+import { usesClientV2 } from '../client-v2/routes';
 export type WorkspaceTheme = 'day' | 'night';
 
 type ThemeOverride = {
@@ -50,6 +51,8 @@ function readThemeOverride(now = Date.now()): ThemeOverride | null {
 }
 
 export function resolveWorkspaceTheme(date = new Date()): WorkspaceTheme {
+  // A interface V2 aprovada do cliente é somente diurna.
+  if (typeof window !== 'undefined' && usesClientV2(window.location.pathname)) return 'day';
   if (typeof window === 'undefined') return scheduledWorkspaceTheme(date);
   return readThemeOverride(date.getTime())?.theme ?? scheduledWorkspaceTheme(date);
 }

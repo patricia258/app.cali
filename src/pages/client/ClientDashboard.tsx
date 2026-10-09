@@ -418,7 +418,7 @@ export function ClientDashboard() {
 
       <div className="ch-home-spotlight">
         <section className="ch-bulletin ch-bulletin-v4" aria-labelledby="home-notices-title">
-          <div className="ch-bulletin-heading"><div><small>QUADRO DE AVISOS · CALI</small><h3 id="home-notices-title">Avisos da sua parceria</h3><p>Informações importantes para acompanhar e dar ciência.</p></div><button type="button" className="ch-link" disabled aria-describedby="home-notices-dependency">Ver mural completo <ArrowUpRight size={15} /></button></div>
+          <div className="ch-bulletin-heading"><div><small>QUADRO DE AVISOS · CALI</small><h3 id="home-notices-title">Avisos da sua parceria</h3><p>Informações importantes para acompanhar e dar ciência.</p></div><Link className="ch-link" to="/cliente/avisos">Ver mural completo <ArrowRight size={15} /></Link></div>
           <div className="ch-bulletin-grid"><article className="ch-bulletin-item ch-bulletin-empty"><div className="ch-bulletin-meta"><span className="ch-bulletin-label">COMUNICADOS</span><strong>Nenhum comunicado disponível</strong><span className="ch-bulletin-author">Ainda não há avisos disponíveis para esta conta.</span></div><div className="ch-bulletin-picture ch-empty-picture"><MessageCircle size={25} /></div><div className="ch-bulletin-foot"><span id="home-notices-dependency">Mural em preparação.</span></div></article></div>
         </section>
         <ClientHomeTeam key={data.company?.id || 'unavailable'} companyId={data.company?.id} />
