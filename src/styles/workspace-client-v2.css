@@ -125,3 +125,5 @@
   :root .app-shell[data-workspace-role='client'] .sidebar nav a::after { content:none !important; }
   :root .app-shell[data-workspace-role='client'] .sidebar nav a.active { color:#fff !important;background:#ffffff26 !important;box-shadow:inset 2px 0 #dcb87b !important; }
 }
+html[data-workspace-theme='night'] .app-shell[data-workspace-role='client'] .client-v2-modulebar { background:var(--v2-surface);border-color:var(--v2-line);color:var(--v2-text); }
+html[data-workspace-theme='night'] .app-shell[data-workspace-role='client'] .workspace-view:has(.cali-client-home) { background:var(--v2-canvas) !important; }

@@ -830,3 +830,9 @@ Duas regras técnicas, pro handoff entre Claude e Codex, a partir do bug encontr
 - Estilos antigos da home substituídos e 97 seletores comprovadamente sem uso removidos de três arquivos compartilhados. Não removidos serviços ou funcionalidades.
 - Guard de regressão atualizado para permitir refatoração JSX e comparar declarações operacionais via AST, além de todos os bindings anteriores de ação, valor, navegação e progresso. Não substitui E2E autenticado.
 - Compilação e TypeScript aprovados antes da revisão visual. Equivalência visual e testes com sessão real permanecem pendentes até a comparação da prévia e autenticação.
+
+### Validação da etapa estrutural — impedimento real
+
+Referência executada em 1363 × 936 e medidas salvas no relatório. Commit estrutural `823cce7` publicado como preview READY. Na autenticação real, o navegador recebeu tomada de controle pelo usuário na etapa OTP; o estado final é desconhecido. A revisão automática rejeitou a leitura da página e a inspeção sem navegação. Sem contorno do bloqueio, sem captura da integração nova e sem declarar equivalência visual. Demais páginas cliente e testes de operação real permanecem pendentes; administradora não avançada.
+
+Ajustes de apresentação posteriores: zeros sem sessão substituídos por indisponibilidade, botão do mural desabilitado com descrição, tema noturno oficial preservado. Nenhuma alteração em serviços ou callbacks.

@@ -1,74 +1,93 @@
-# CALI Workspace — integração visual V2
+# CALI Workspace — migração visual V2, homologação
 
-Autor: Codex · 09/10/2026 · aprovação: aguardando homologação da Pati.
+## Estado atual
 
-## Correção de status após conferência com a Pati
+**Parcial e bloqueada na validação visual. Nenhuma página certificada como equivalente à V2.** A home foi refatorada estruturalmente nesta etapa. A experiência completa do cliente ainda não está concluída. A administradora não recebe novas refações antes da comprovação do cliente.
 
-**Integração visual parcial; refação completa não concluída nem aprovada.** A Pati informou que não conseguia reconhecer a V2 na prévia. A entrega anterior aplicou principalmente estilos ao shell e módulos existentes, preservando demasiadamente a composição antiga. Os checks de código e build não demonstram fidelidade à V2 e não autorizam chamar a migração visual de completa.
+- Oficial: `patricia258/app.cali`.
+- Branch: `feat/client-visual-v2-inplace-20261008`.
+- Base operacional: `7d817c3d64e3839eb10475233b4e43b92a9914cb`.
+- Referência aprovada: `patricia258/cali-workspace-v2@7c0a2323bb221cfd61c0a8ed4ced8670c05cce78`.
+- Primeira etapa estrutural: commit `823cce7ab1c04d843d21bfbcc83caf8d351b9935`, Vercel `dpl_612cyfWyHB7nwRAut9yitTXQGqSM`, **READY**, `target: null`.
+- Prévia estável da branch, aberta e verificada no navegador: https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login
 
-A comparação direta do início revelou: painéis executivos unidos e faixas coloridas, tipografia/proporções diferentes, sidebar baseado no primeiro CSS da referência e não no acabamento final, ausência dos blocos de avisos/equipe do protótipo. O link enviado abriu o login anterior; o modo de prévia sem sessão ainda não mostra dados reais do início. Captura da referência em `docs/visual-v2/referencia-aprovada.jpg`; a captura da integração anterior não sincronizou e foi omitida.
+O link estável acompanha os próximos commits de homologação; READY certifica publicação/build, não equivalência visual ou regressão funcional.
 
-Nesta correção, apenas apresentação: três painéis independentes, tipografia e proporções de contrato/contato/documento/agenda conforme o início V2, fundo quadriculado discreto, rail de 56 px e gradiente final bordô/dourado da referência. A expansão e ações do menu oficial permanecem. Nenhuma nova query, mock ou operação foi inserida.
+## Alterações da página inicial
 
-Preview da primeira correção de fidelidade: https://app-cali-fnmbann7n-cali11.vercel.app/cliente , commit `2e44af0388c1230c477d860996a6088c6c2690df`, deployment `dpl_2mfQdHhJDvr5haFdgo2KBLqXtSk7`, **READY**, preview. Para a leitura visual sem login do aplicativo, usar a opção “Cliente” em “Prévia de desenvolvimento” no login. Esse modo já existia e não certifica dados reais nem permissões.
+O JSX antigo foi substituído em lugar, sem uma implementação paralela. Composição e classes derivadas do `ClientHome.tsx` e `client-home.css` aprovados:
 
-Verificações desta correção: `npm run check`, integridade das 271 fontes operacionais e `git diff --check` passaram. No navegador desktop: início renderizado, rail/margem de 56 px e ausência de overflow horizontal (scrollWidth = viewport = 1363 px). Captura do resultado em `docs/visual-v2/inicio-corrigido.jpg`. “Sessão do cliente não encontrada” permanece como limite do modo de prévia, sem esconder o erro nem inserir valores de demonstração.
+- Saudação e responsável CALI, contratação, três painéis executivos independentes.
+- Quadro de Avisos à esquerda, Mini Equipe à direita.
+- Documento e ocorrência mais recentes.
+- Em Movimento na coluna maior; Agenda Compartilhada acima de Próxima Decisão na lateral.
+- Janela e botão “Fale com a Pati”, mantendo tipos de mensagem, respostas automáticas, validação, envio e confirmação reais.
+- Cabeçalho global separado da barra de módulo, rail cliente de 56 px; editor de perfil no topo. Agendamento, frentes, relatórios, tema, notificações, logout e bridges permanecem disponíveis.
 
-**Diferenças ainda pendentes:** V2 tem flyout de navegação e uma barra global de busca demonstrativa; o aplicativo continua com os controles oficiais. Blocos de avisos e equipe do início não têm equivalentes carregados pelo dashboard oficial atual. Transplantá-los com os mocks do protótipo não é uma integração válida; requer mapear fontes e ações reais em escopo próprio. A composição das demais páginas ainda requer revisão direta com a referência. Preservação de fonte operacional não equivale à certificação de todos os estados e fluxos.
+Estados sem informação exibem indisponibilidade/ausência, sem trazer exemplos fictícios da V2 nem transformar falta de sessão em contagens reais.
 
-Repositório oficial: `patricia258/app.cali`. Branch: `feat/client-visual-v2-inplace-20261008`.
-Base: `7d817c3d64e3839eb10475233b4e43b92a9914cb`.
-Referência: `patricia258/cali-workspace-v2@7c0a2323bb221cfd61c0a8ed4ced8670c05cce78`, incluindo o handoff de 08/10.
+## Fontes e dependências
 
-## Escopo e decisões
+| Bloco | Origem oficial | Limite |
+|---|---|---|
+| Contratação, métricas, documentos, ocorrências, agenda, projeto | Consultas e cálculos anteriores do dashboard | Ainda sem comprovação autenticada nesta execução |
+| Próxima Decisão | Primeira entrega real em `client_review`, acesso aos entregáveis | Estado vazio se não houver validação pendente |
+| Mini Equipe | Leitura de `team_members`, empresa do dashboard autenticado, paginação de 500 | Seleção apenas de id/nome/área/admissão/status/categoria do afastamento/arquivamento; RLS intacta |
+| Férias/afastamentos | `status` + categoria `leave_reason` já existentes | Sem informações médicas ou dados privados |
+| Aniversário de empresa | `admission_date`, mês/ano em São Paulo | Somente datas existentes |
+| Aniversário pessoal | Nenhuma data de nascimento no cadastro profissional auditado | Estado explícito indisponível; nenhum novo campo criado |
+| Avisos e ciência | Não encontrada fonte/módulo persistido no oficial | Card vazio, mural indisponível; sem consulta inventada, ciência fictícia ou escrita de banco |
 
-- Aplicar a identidade V2 aos componentes oficiais; não importar o protótipo nem seus dados fictícios.
-- Shell contínuo com navegação bordô compacta, topbar branco, superfícies editoriais e tabelas densas. Todos os atalhos e rotas continuam disponíveis.
-- Manter o modo noturno oficial: a limitação diurna do protótipo não autoriza remover uma funcionalidade existente.
-- Cliente: início, calendário, equipe, entregáveis, horas, ocorrências, documentos, relatórios e frentes. Administradora: visão geral, clientes, equipe, projetos, horas, calendário, ocorrências, documentos, relatórios, satisfação, propostas e Mapa de People.
-- As telas executam as mesmas queries, cálculos, filtros, ações, permissões e integrações. Sem mudanças em Auth, RLS, SQL, funções, storage, histórico, dados ou envio de mensagens.
-- Não modificar relatórios de headcount nem os componentes de papel/PDF.
-- Home e calendário consolidados mantendo conteúdo e ordem anteriores: seis arquivos de versões substituídos por dois canônicos. Removidas 65 declarações antigas de geometria/superfície do shell substituídas pela V2.
-- Conferência no navegador identificou regras antigas que alteravam o fundo e deslocavam o conteúdo na expansão do menu. Removido `sidebar-edge-gradient.css`, seu import e 24 regras substituídas de geometria/dashboard. Escopo V2 reforçado contra estilos de módulos; estado `.hovered` preservado. Dashboard sem hero decorativo e sem card de métrica destacado artificialmente. Modais dentro do shell recebem a superfície V2, conservando seus controles e dimensões operacionais.
-- Não excluir componentes históricos sem auditar dependências. Ausência de rota isoladamente não prova ausência de uso.
+## Comparação visual
 
-## Arquivos
+A V2 foi executada no deployment aprovado e observada em viewport **1363 × 936**. Referência salva em `docs/visual-v2/inicio-v2-referencia-20261009.jpg`.
 
-`src/styles/workspace-v2.css`, `workspace-client-v2.css`, `workspace-admin-v2.css` e `workspace-shared-modules-v2.css` fornecem a apresentação V2. Marcadores no shell limitam os estilos ao Workspace. `src/styles/client-home.css` e `client-calendar.css` substituem as versões consolidadas. Imports atualizados em `main.tsx`, `App.tsx` e `styles/routes/clientExperience.ts`.
+Medidas observadas no estado demonstrativo aprovado:
 
-## Validação executada
+| Elemento | x / y | largura × altura (px) |
+|---|---|---|
+| Barra do módulo | 91 / 87 | 1222 × 70 |
+| Saudação | 100 / 185 | 1204 × 84,84 |
+| Contratação | 98 / 287,84 | 1208 × 148 |
+| Indicadores | 98 / 448,84 | 1208 × 142,89 |
+| Avisos + Mini Equipe | 98 / 608,73 | 1208 × 383 |
+| Documentos + ocorrências | 98 / 1008,73 | 1208 × 160 |
+| Em Movimento + lateral | 98 / 1181,73 | 1208 × 344,09 |
 
-- `npm ci`: concluído.
-- `npm run check`: typecheck e build passaram na base e após cliente, administradora e consolidação.
-- `node scripts/verify-v2-operation.cjs`: passou. Compara 271 arquivos operacionais TS/TSX/SQL com a base; permite somente imports de CSS e dois atributos visuais do shell. Confirma conteúdo/ordem dos estilos consolidados e analisa a sintaxe CSS.
-- `git diff --check`: passou.
-- Queries, handlers, condições de permissão, campos, cálculos e integrações permanecem na fonte original. Nenhuma escrita em dados foi necessária.
-- Build final após a correção do shell: `npm run check` passou novamente; integridade operacional e `git diff --check` também passaram.
-- Navegador remoto, desktop de 1363 × 936: dashboard administrativo, horas diurno/noturno e shell da equipe conferidos na build corrigida. Sem overflow horizontal nesses estados; margem principal 68 px e fundo bordô V2 mantidos entre rotas. A equipe permaneceu carregando na prévia sem sessão real: dados e ações desse módulo não certificados.
-- Acervo cliente: três documentos do modo de prévia já existente, busca reduzindo a lista para um documento e abertura/fechamento do comentário conferidos sem envio. Início cliente apresentou “Sessão do cliente não encontrada”, impedindo validar dados reais. Não foram criados dados de demonstração no aplicativo nem um novo modo de acesso.
+**A nova integração não foi capturada após o deploy.** O login real ofereceu e-mail/código de uso único; o e-mail foi submetido pela entrada segura. Na etapa seguinte, o navegador retornou `declined: user_took_over`. O estado final da sessão é desconhecido.
 
-## Impedimentos e validações pendentes
+A revisão automática bloqueou a leitura da página e também a tentativa de inspeção sem navegação, alegando risco de perder o estado após a tomada de controle pelo usuário. Não foram usadas novas abas, comandos indiretos, armazenamento de sessão ou outro contorno. Retomar a leitura da página requer liberação desse bloqueio.
 
-`scripts/verify-visual-v2.cjs` prepara um teste sintético das 21 rotas principais em 1440/1280/1024/390 px e screenshots noturnos. Intercepta requisições externas e bloqueia escritas. A execução inicial foi impedida pela ausência do Chromium; sua instalação retornou ZIP inválido/vazio. **Não contar esse teste como aprovado.**
+Não há comparação lado a lado válida entre o novo commit e a V2. As capturas anteriores `inicio-corrigido.jpg`/`referencia-aprovada.jpg` documentam apenas a etapa anterior de CSS e **não são prova deste JSX**.
 
-Ainda não certificados: fidelidade visual de todos os estados com dados, overflow/contraste por largura, teclado/foco em overlays e regressão autenticada ponta a ponta. Antes da liberação, conferir em contas de teste:
+## Verificações
 
-- Login/recuperação, sessão expirada, papéis e isolamento de empresas.
-- Horas: timer/manual, alertas, filtros, visibilidade mensal.
-- Entregáveis: aceite, ajuste, avaliação, tarefas, anexos e chat.
-- Ocorrências: criar, responder, encerrar, avaliar e reabrir.
-- Equipe: importação, edição, confirmação mensal e histórico.
-- Calendar/Meet: remarcação, cancelamento e convites.
-- Documentos: arquivos, comentários, ciência e Drive.
-- Relatórios: filtros, versões, publicação, ciência e PDF.
-- Propostas/Mapa: edição, revisão, geração e envio.
+- `npm run check`: TypeScript e Vite build aprovados na etapa estrutural; repetidos após ajustes finais de estados vazios/tema.
+- `node scripts/verify-v2-operation.cjs`: 271 fontes operacionais auditadas com a base. Para os dois arquivos com JSX refatorado, compara via AST todas as declarações fora da apresentação e exige cada binding anterior de ação, valor, navegação e progresso. Demais TS/TSX/SQL existentes continuam iguais, salvo imports/atributos visuais previamente autorizados.
+- `git diff --check`: aprovado.
+- CSS canônico analisado com PostCSS; quatro versões antigas da home continuam removidas. A composição antiga foi retirada do dashboard e 97 seletores sem uso removidos de arquivos compartilhados.
+- Revisão React: hooks fora de condicionais, limpeza de leitura assíncrona, chave por empresa para evitar exibição transitória da equipe anterior, navegação/labels/controles reais preservados. Não introduzidas bibliotecas de interface nem alterações de dependências.
 
-## Deploy e rollback
+Essas verificações certificam build e preservação de código/bindings; **não substituem teste funcional autenticado**. Nenhuma funcionalidade existente foi removida do código, mas preservação integral em execução ainda exige regressão.
 
-Somente preview no projeto oficial Vercel `app-cali`, equipe `team_PwR4i7JBjPTWvWZobaKnMIng`, projeto `prj_dFMrnb5zqYA8iCvcN4w0mFLb9Lrh`. Não alterar domínio, produção, principal ou configurações de backend. Preview de código não significa banco isolado; esta rodada não executa ações autenticadas com efeitos externos para teste.
+## Próximas páginas e critérios
 
-Build integrada: `4ec52f706240d8c4341ebfeebd817ff3e3a6ccd2`. Deployment `dpl_49kucZ3koCKhLc4KfukqiwCY2raL`, estado **READY**, ambiente preview (`target: null`), branch solicitada, repositório oficial confirmado pela Vercel.
+| Página | Situação desta etapa |
+|---|---|
+| Início | Estrutura refatorada; comparação e operação autenticada bloqueadas |
+| Calendário | Estrutura oficial preservada; transporte JSX V2 e comparação ainda pendentes |
+| Equipe, estrutura, movimentações e indicadores | Idem; depende de sessão real para renderizar todos os estados |
+| Horas | Idem, incluindo meses com visibilidade diferente |
+| Ocorrências e conversas | Idem, incluindo formulários, anexos e histórico |
+| Projetos, frentes, cronograma e entregáveis | Idem, incluindo aceite/ajuste/subtarefas/histórico |
+| Documentos | Idem, incluindo versões, ciência, comentários e Drive |
+| Relatórios | Idem, incluindo período, versões, ciência e PDF |
+| Administradora | Não iniciar nova refação antes de comprovar todo o cliente |
 
-URL imutável para homologação: https://app-cali-e7hy87t4u-cali11.vercel.app/login . A proteção de acesso da Vercel permanece habilitada. Alias da branch: https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app . Não confundir acesso de prévia existente com login/validação de permissões.
+Antes de declarar qualquer página concluída: executar os dois aplicativos em viewport e estado equivalentes; capturar e comparar; corrigir diferenças; testar filtros, formulários, teclado/foco, permissões e fluxos com conta apropriada. A prévia sem sessão e os dados fictícios da referência não certificam isolamento entre empresas.
 
-Rollback: reverter o commit desta rodada nesta mesma branch, restaurando arquivos e imports. Sem migrações de banco ou novos envs. READY indica build publicado, não aceite funcional/visual.
+O teste sintético `scripts/verify-visual-v2.cjs` da etapa anterior não foi executado: instalação do Chromium falhou com arquivo inválido/vazio. Não contá-lo como teste aprovado.
+
+## Restrições respeitadas
+
+Somente preview na branch solicitada e no projeto oficial Vercel. Sem merge em principal, publicação em produção, novo aplicativo, alteração de banco/RLS/Auth/integrações, envio de mensagens de teste ou mudança de dados/históricos. A prévia não garante banco isolado; testes de escrita não serão tratados como seguros somente por estarem em um deployment preview.

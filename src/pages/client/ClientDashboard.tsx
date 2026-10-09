@@ -376,20 +376,20 @@ export function ClientDashboard() {
       <section className="ch-three">
         <article className="ch-surface ch-deliveries"><h3>Entregas do ciclo</h3>
           <div className="ch-delivery-inside">
-            <div className="ch-cycle-copy"><strong className="ch-big">{cycleTotal}</strong><p>{cycleTotal === 1 ? 'entrega no projeto atual' : 'entregas no projeto atual'}</p></div>
+            <div className="ch-cycle-copy"><strong className="ch-big">{data.company ? cycleTotal : '—'}</strong><p>{cycleTotal === 1 ? 'entrega no projeto atual' : 'entregas no projeto atual'}</p></div>
             <div className="ch-donut ch-real-donut" role="img" aria-label={cycleBreakdown.map((item) => `${item.count} ${item.label.toLowerCase()}`).join(', ')}>
               <svg viewBox="0 0 100 100" aria-hidden="true">
                 <circle className="ch-cycle-track" cx="50" cy="50" r="40" fill="none" pathLength="100" />
                 {cycleTotal > 0 && cycleBreakdown.map((item, index) => item.count > 0 && <circle key={item.label} cx="50" cy="50" r="40" fill="none" pathLength="100" stroke={item.color} strokeDasharray={`${item.count / cycleTotal * 100} 100`} strokeDashoffset={-cycleBreakdown.slice(0, index).reduce((sum, previous) => sum + previous.count, 0) / cycleTotal * 100} />)}
-              </svg><span className="ch-donut-value">{cycleTotal ? Math.round(approvedCount / cycleTotal * 100) : 0}%</span>
+              </svg><span className="ch-donut-value">{data.company ? `${cycleTotal ? Math.round(approvedCount / cycleTotal * 100) : 0}%` : '—'}</span>
             </div>
-          <div className="ch-legend">{cycleBreakdown.map((item) => <div key={item.label}><i style={{ backgroundColor: item.color }} /><span>{item.label}</span><strong>{item.count}</strong></div>)}</div></div>
+          <div className="ch-legend">{cycleBreakdown.map((item) => <div key={item.label}><i style={{ backgroundColor: item.color }} /><span>{item.label}</span><strong>{data.company ? item.count : '—'}</strong></div>)}</div></div>
         </article>
 
         <article className="ch-surface ch-feeling">
           <div className="ch-perception-copy">
             <h3>Percepção do trabalho <span>· mês atual</span></h3>
-            <div className="ch-perception-detail"><i><Star size={18} /></i><div><strong>{data.npsCount} {data.npsCount === 1 ? 'avaliação recebida' : 'avaliações recebidas'}</strong><small>da sua empresa</small></div></div>
+            <div className="ch-perception-detail"><i><Star size={18} /></i><div><strong>{data.company ? data.npsCount : '—'} {data.npsCount === 1 ? 'avaliação recebida' : 'avaliações recebidas'}</strong><small>da sua empresa</small></div></div>
             <div className="ch-perception-detail"><i><CheckCircle2 size={18} /></i><div><strong>{data.nps == null ? 'Aguardando a primeira' : 'Média das avaliações'}</strong><small>{data.nps == null ? 'De entregas ou ocorrências' : 'Entregas e ocorrências avaliadas'}</small></div></div>
           </div>
           <div className="ch-no-rating" role="img" aria-label={data.nps == null ? 'Ainda sem avaliação das entregas' : `Nota média ${data.nps.toFixed(1)} de 5, em ${data.npsCount} avaliações`}>
@@ -405,8 +405,8 @@ export function ClientDashboard() {
         <article className="ch-surface ch-completion">
           <div className="ch-completion-copy">
             <h3>Conclusão do trabalho <span>· mês atual</span></h3>
-            <strong>{data.completionPct}%</strong>
-            <p>{work?.completed || 0} de {work?.total || 0} {work?.total === 1 ? 'atividade concluída' : 'atividades concluídas'} entre entregas e ocorrências</p>
+            <strong>{work ? `${data.completionPct}%` : '—'}</strong>
+            <p>{work?.completed ?? '—'} de {work?.total ?? '—'} {work?.total === 1 ? 'atividade concluída' : 'atividades concluídas'} entre entregas e ocorrências</p>
             {data.unlinkedHourEntries > 0 && <small>{data.unlinkedHourEntries} {data.unlinkedHourEntries === 1 ? 'lançamento de horas sem vínculo' : 'lançamentos de horas sem vínculo'} com uma atividade</small>}
           </div>
           <div className="ch-color-bars" role="img" aria-label={deliveryStages.map((stage) => `${stage.label}: ${stage.count}`).join('; ')}>
@@ -417,8 +417,8 @@ export function ClientDashboard() {
 
       <div className="ch-home-spotlight">
         <section className="ch-bulletin ch-bulletin-v4" aria-labelledby="home-notices-title">
-          <div className="ch-bulletin-heading"><div><small>QUADRO DE AVISOS · CALI</small><h3 id="home-notices-title">Avisos da sua parceria</h3><p>Informações importantes para acompanhar e dar ciência.</p></div><span className="ch-dependency">Mural ainda sem integração</span></div>
-          <div className="ch-bulletin-grid"><article className="ch-bulletin-item ch-bulletin-empty"><div className="ch-bulletin-meta"><span className="ch-bulletin-label">COMUNICADOS</span><strong>Nenhum comunicado disponível</strong><span className="ch-bulletin-author">A aplicação oficial ainda não possui uma fonte de avisos.</span></div><div className="ch-bulletin-picture ch-empty-picture"><MessageCircle size={25} /></div><div className="ch-bulletin-foot"><span>Leitura e ciência aguardam integração.</span></div></article></div>
+          <div className="ch-bulletin-heading"><div><small>QUADRO DE AVISOS · CALI</small><h3 id="home-notices-title">Avisos da sua parceria</h3><p>Informações importantes para acompanhar e dar ciência.</p></div><button type="button" className="ch-link" disabled aria-describedby="home-notices-dependency">Ver mural completo <ArrowUpRight size={15} /></button></div>
+          <div className="ch-bulletin-grid"><article className="ch-bulletin-item ch-bulletin-empty"><div className="ch-bulletin-meta"><span className="ch-bulletin-label">COMUNICADOS</span><strong>Nenhum comunicado disponível</strong><span className="ch-bulletin-author">Ainda não há avisos disponíveis para esta conta.</span></div><div className="ch-bulletin-picture ch-empty-picture"><MessageCircle size={25} /></div><div className="ch-bulletin-foot"><span id="home-notices-dependency">Mural em preparação.</span></div></article></div>
         </section>
         <ClientHomeTeam key={data.company?.id || 'unavailable'} companyId={data.company?.id} />
       </div>

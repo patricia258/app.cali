@@ -127,3 +127,11 @@
 .cali-client-home .ch-send-button:disabled { opacity:.4; }
 .cali-client-home .inline-notice { margin:0 7px 12px; }
 .cali-client-home .ch-real-donut .ch-donut-value { position:absolute;inset:11px; }
+.cali-client-home .ch-link:disabled { opacity:.55;cursor:not-allowed; }
+/* Preserve the official day/night control without changing the approved light layout. */
+html[data-workspace-theme='night'] .cali-client-home { background-color:var(--v2-canvas);color:var(--v2-text); }
+html[data-workspace-theme='night'] .cali-client-home :is(.ch-surface,.ch-bulletin,.ch-team-panel,.ch-bulletin-item,.ch-executive,.ch-chat,.ch-chat-window-actions button) { background:var(--v2-surface);border-color:var(--v2-line);color:var(--v2-text); }
+html[data-workspace-theme='night'] .cali-client-home :is(.ch-team-milestones>div,.ch-empty-picture,.ch-chat-quick,.ch-chat-kinds,.ch-gantt-header) { background:var(--v2-soft);color:var(--v2-muted); }
+html[data-workspace-theme='night'] .cali-client-home :is(.ch-surface h3,.ch-bulletin-meta strong,.ch-team-person,.ch-team-overview b,.ch-gantt-row,.ch-chat textarea) { color:var(--v2-text); }
+html[data-workspace-theme='night'] .cali-client-home .ch-link { color:var(--v2-accent); }
+html[data-workspace-theme='night'] .cali-client-home .ch-donut-value { background:var(--v2-surface); }
