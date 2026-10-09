@@ -6,6 +6,8 @@
 - Apresentação V2 no shell e módulos oficiais; tema noturno e todos os atalhos preservados. Seis arquivos CSS consolidados em dois, com conteúdo e ordem idênticos. Removidas 65 declarações de shell substituídas.
 - Integridade: 271 fontes operacionais comparadas com `7d817c3`, sem alterações além de imports CSS e marcadores de apresentação. Nenhuma alteração de banco/env/dados.
 - Verificações: `npm ci`, typecheck/build por módulo, `git diff --check` e `scripts/verify-v2-operation.cjs` passaram. Chromium local indisponível; instalação falhou. Teste de navegador preparado, ainda não aprovado.
+- Conferência remota encontrou conflito do shell expandido: removido o CSS antigo de gradiente/geometria e 24 regras substituídas; escopo V2 corrigido. Build/check e integridade passaram novamente. Desktop: dashboard, horas dia/noite e documentos com busca/modal conferidos. Equipe sem sessão permaneceu carregando.
+- Preview READY do commit `4ec52f7`: https://app-cali-e7hy87t4u-cali11.vercel.app/login . Sem produção ou merge.
 - Handoff e limites: `docs/VISUAL_V2_HOMOLOGACAO_2026-10-09.md`. Homologação visual e regressão autenticada pendentes; nenhum aceite presumido. Rollback por revert nesta branch.
 
 ## 2026-10-04 — Codex (conteúdo e hierarquia comercial de Frentes)
