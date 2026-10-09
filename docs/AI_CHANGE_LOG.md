@@ -1,5 +1,13 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-10-09 — Codex — correção de fidelidade e de status da entrega
+
+- Feedback da Pati: não reconheceu a V2 na integração. A entrega anterior foi descrita como mais concluída do que a verificação visual permitia. Status corrigido: integração parcial; refação completa não homologada.
+- Comparação direta com a V2 revelou painéis unidos, faixa cromática, proporções e acabamento do menu diferentes; ausência de avisos/equipe do protótipo no início oficial. Login anterior e prévia sem sessão também impediram uma leitura clara.
+- Primeira correção: início do cliente com três painéis separados, contrato/contato/documento/agenda nas proporções V2; sidebar de 56 px e gradiente final da referência. Somente CSS; as 271 fontes operacionais continuam idênticas à base após normalização dos marcadores/imports.
+- `npm run check`, guard de integridade e `git diff --check` passaram. Desktop sem overflow no início conferido. Preview READY: https://app-cali-fnmbann7n-cali11.vercel.app/cliente . Commit de código `2e44af0`. Capturas e limites no handoff.
+- Restante da composição V2, estados reais e regressão autenticada permanecem pendentes. Nenhuma produção/merge/dados alterados.
+
 ## 2026-10-09 — Codex — integração visual V2 no aplicativo oficial
 
 - Pedido: transportar a V2 aprovada para os fluxos reais, cliente primeiro e administradora depois, na branch `feat/client-visual-v2-inplace-20261008`, sem produção/merge.

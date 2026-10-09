@@ -10,6 +10,10 @@ A comparação direta do início revelou: painéis executivos unidos e faixas co
 
 Nesta correção, apenas apresentação: três painéis independentes, tipografia e proporções de contrato/contato/documento/agenda conforme o início V2, fundo quadriculado discreto, rail de 56 px e gradiente final bordô/dourado da referência. A expansão e ações do menu oficial permanecem. Nenhuma nova query, mock ou operação foi inserida.
 
+Preview da primeira correção de fidelidade: https://app-cali-fnmbann7n-cali11.vercel.app/cliente , commit `2e44af0388c1230c477d860996a6088c6c2690df`, deployment `dpl_2mfQdHhJDvr5haFdgo2KBLqXtSk7`, **READY**, preview. Para a leitura visual sem login do aplicativo, usar a opção “Cliente” em “Prévia de desenvolvimento” no login. Esse modo já existia e não certifica dados reais nem permissões.
+
+Verificações desta correção: `npm run check`, integridade das 271 fontes operacionais e `git diff --check` passaram. No navegador desktop: início renderizado, rail/margem de 56 px e ausência de overflow horizontal (scrollWidth = viewport = 1363 px). Captura do resultado em `docs/visual-v2/inicio-corrigido.jpg`. “Sessão do cliente não encontrada” permanece como limite do modo de prévia, sem esconder o erro nem inserir valores de demonstração.
+
 **Diferenças ainda pendentes:** V2 tem flyout de navegação e uma barra global de busca demonstrativa; o aplicativo continua com os controles oficiais. Blocos de avisos e equipe do início não têm equivalentes carregados pelo dashboard oficial atual. Transplantá-los com os mocks do protótipo não é uma integração válida; requer mapear fontes e ações reais em escopo próprio. A composição das demais páginas ainda requer revisão direta com a referência. Preservação de fonte operacional não equivale à certificação de todos os estados e fluxos.
 
 Repositório oficial: `patricia258/app.cali`. Branch: `feat/client-visual-v2-inplace-20261008`.
