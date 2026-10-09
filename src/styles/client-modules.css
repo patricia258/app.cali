@@ -70,7 +70,7 @@
 .v2-client-module .wf-report-selection button span{display:block;font-size:10px;margin-top:5px}
 .v2-client-module .wf-report-side .wf-outline{background:var(--v2-surface-fff,#fff);color:var(--v2-text-5a1e2d,#5a1e2d);margin-top:10px;display:inline-flex}
 @media(max-width:1250px){.v2-client-module{padding:26px 24px 60px}}
-@media(max-width:850px){.v2-client-module{padding:25px 15px} .v2-client-module .hours-context{flex-wrap:wrap} .v2-client-module .ledger-header{flex-wrap:wrap;gap:10px}}
+@media(max-width:850px){.v2-client-module{padding:26px 15px} .v2-client-module .hours-context{flex-wrap:wrap} .v2-client-module .ledger-header{flex-wrap:wrap;gap:10px}}
 
 /* Exact approved project and deliverable rules. */
 

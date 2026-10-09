@@ -9,7 +9,7 @@
 
 /* Escala global de leitura: nenhum conteúdo operacional depende de microtipografia. */
 body{font-size:var(--ws-type-body)}
-button,input,select,textarea{font-size:var(--ws-type-body)!important}
+:is(button,input,select,textarea):not(.v2-client-module *):not(.client-v2-globalbar *){font-size:var(--ws-type-body)!important}
 .page :where(.eyebrow,.section-kicker){font-size:var(--ws-type-meta)!important}
 .page :where(.page-heading h1){font-size:var(--ws-type-page)!important;line-height:1.05!important}
 .page :where(table th){font-size:var(--ws-type-meta)!important}
