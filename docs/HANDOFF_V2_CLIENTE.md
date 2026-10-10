@@ -129,6 +129,16 @@ a ficha da pessoa abre em gaveta lateral. Ambos funcionam e ficam para os ajuste
   Observação da proprietária: as abas do protótipo (Visão geral, Movimentações, Vínculos) ainda não estão
   100% aprovadas.
 
+### 10/10 — quarta rodada de ajustes da proprietária
+- **Regras gerais registradas:** barras de rolagem nunca aparentes (a rolagem continua funcionando);
+  avisos e notas sempre no fim da página, afastados do último cartão; nada de botões, campos ou fontes
+  do formato anterior dentro dos diálogos.
+- Ficha da pessoa: “Tempo de casa” virou uma etiqueta discreta; Histórico em linha do tempo alinhada à
+  esquerda; botões de rodapé com os valores exatos de `.enh-person footer button`.
+- Meu perfil: cabeçalho e ações fixos, conteúdo rolando por dentro; botões de foto no formato aprovado.
+- Assinatura: um título só, campo, envio de imagem e nota cada um em sua linha. A proprietária ainda não
+  bateu o martelo sobre o desenho final desta aba.
+
 ### Administradora — decisão da proprietária em 09/10 e plano
 Regra: a identidade é a V2 aprovada do cliente; **nenhum dado, campo, função ou fluxo do administrador
 oficial muda**. O protótipo em `cali-workspace-v2@feat/admin-v2-design-prototype-20261009` é só referência
