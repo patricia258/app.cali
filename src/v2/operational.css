@@ -753,3 +753,44 @@ html[data-workspace-ui='v2']{
   html[data-workspace-ui='v2'] body .report-print-v16-stage.report-print-v16-stage{width:210mm!important;max-width:210mm!important;overflow:hidden!important}
   html[data-workspace-ui='v2'] :is(.app,.main,.content,.v2-client-module,.wf,.wf-report-layout,.v2-report-stage,.report-print-v16-page){display:block!important;position:static!important;width:auto!important;max-width:none!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;overflow:visible!important;background:#fff!important;filter:none!important;opacity:1!important;box-shadow:none!important}
 }
+/* Frentes (10/10): página calma e inteira à vista — sem carrossel, sem faixa bordô, cartões compactos em
+   grade; "outras possibilidades" em duas colunas que não se esticam uma pela outra. */
+html[data-workspace-ui='v2'] .v2-client-module{
+  .v2-fronts-head-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .v2-fronts-section{margin:0 0 26px}
+  .v2-fronts-section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+  .v2-fronts-section-title h2{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin:0;color:#322f2c}
+  .v2-fronts-section-title>span{font-size:10px;color:#998c83}
+  .v2-fronts-section-icon{color:#3f976e;width:16px;height:16px}
+  .v2-fronts-section-icon-gold{color:#b58c52}
+  .v2-fronts-grid.v2-fronts-included{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;overflow:visible;padding:0;scroll-snap-type:none}
+  .v2-fronts-included .v2-fronts-card{min-width:0;width:auto;flex:none;display:grid;grid-template-columns:auto 1fr;column-gap:10px;row-gap:6px;align-content:start;padding:16px;background:#fff;border:1px solid #e9e0d8;border-top:1px solid #e9e0d8;border-radius:10px;box-shadow:none}
+  .v2-fronts-included .v2-fronts-card-number{grid-row:1;width:22px;height:22px;border-radius:6px;background:#e8f7ef;color:#308564;display:grid;place-items:center;margin:0}
+  .v2-fronts-included .v2-fronts-card-number svg{width:13px;height:13px}
+  .v2-fronts-included .v2-fronts-card h3{grid-column:2;align-self:center;font-size:13px;font-weight:600;margin:0;color:#3e3533;line-height:1.3}
+  .v2-fronts-included .v2-fronts-card>:not(.v2-fronts-card-number,h3){grid-column:1/-1}
+  .v2-fronts-card-lead{font-size:11px;line-height:1.55;color:#82786f;margin:0}
+  .v2-fronts-examples-label{font-size:9px;letter-spacing:1.3px;font-weight:700;color:#a5866b;text-transform:uppercase;margin-top:4px}
+  .v2-fronts-examples{margin:0;padding-left:15px;display:flex;flex-direction:column;gap:4px;font-size:11px;line-height:1.5;color:#655b57}
+  .v2-fronts-faq-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;align-items:start}
+  .v2-fronts-faq-card{background:#fff;border:1px solid #e9e0d8;border-top:1px solid #e9e0d8;border-radius:10px;box-shadow:none;overflow:hidden}
+  .v2-fronts-faq-card[open]{border-color:#dcc9b2}
+  .v2-fronts-faq-card>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;cursor:pointer;list-style:none;font-size:12px;font-weight:600;color:#3e3533}
+  .v2-fronts-faq-card>summary::-webkit-details-marker{display:none}
+  .v2-fronts-faq-chevron{color:#b5a49b;transition:transform .18s;flex:none;width:16px;height:16px}
+  .v2-fronts-faq-card[open] .v2-fronts-faq-chevron{transform:rotate(180deg)}
+  .v2-fronts-faq-answer{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:0 16px 16px}
+  .v2-fronts-card-eyebrow{font-size:9px;letter-spacing:1.3px;font-weight:700;color:#a5866b;text-transform:uppercase}
+  .v2-fronts-faq-problem,.v2-fronts-availability{margin:0;font-size:11px;line-height:1.55;color:#82786f}
+  .v2-fronts-cta-ghost{display:inline-flex;align-items:center;gap:7px;border:1px solid #e7ddd5;background:#fff;color:#5a1e2d;border-radius:7px;font-size:11px;font-weight:600;padding:9px 12px;margin-top:4px}
+  .v2-fronts-panel{background:#fff;border:1px solid #e9e0d8;border-radius:10px;padding:16px;font-size:11px;color:#82786f}
+  @media(max-width:1100px){.v2-fronts-grid.v2-fronts-included{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media(max-width:700px){.v2-fronts-grid.v2-fronts-included,.v2-fronts-faq-grid{grid-template-columns:1fr}}
+}
+/* Impressão do relatório: cada parte termina onde o conteúdo termina. Com altura mínima de uma folha, uma
+   parte que passava poucos milímetros gerava uma página só com o fundo. */
+@media print{
+  html[data-workspace-ui='v2'] body .report-print-v16-stage .reports-v16-paper.reports-v16-paper{display:block!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;padding-bottom:16mm!important}
+  html[data-workspace-ui='v2'] body .report-print-v16-stage .reports-v16-paper.reports-v16-paper:last-child{break-after:auto!important;page-break-after:auto!important}
+  html[data-workspace-ui='v2'],html[data-workspace-ui='v2'] body,html[data-workspace-ui='v2'] #root{background:#fffdf9!important}
+}

@@ -222,6 +222,15 @@ a ficha da pessoa abre em gaveta lateral. Ambos funcionam e ficam para os ajuste
 - **A limpar na migração da administradora:** `reports-v3` a `reports-v15` são de telas que não existem mais
   no fluxo atual (V17) e ainda são carregadas por `styles/routes/reports`.
 
+### 10/10 — páginas em branco na impressão e página de Frentes
+- Impressão: cada parte do documento tinha altura fixa de uma folha (297 mm). Quando o conteúdo passava disso,
+  transbordava para uma página só com o fundo — e, na rota antiga, o excedente era cortado. Na impressão a
+  parte agora cresce com o conteúdo e a última não força quebra. Verificado com relatório de teste longo:
+  3 páginas, todas com texto, pelos dois caminhos (antes: página vazia num caminho e texto cortado no outro).
+- Frentes: sem carrossel (as frentes incluídas ficam em grade de três colunas, todas à vista), cartões
+  compactos, sem a faixa bordô; “Falar com a Pati” foi para o cabeçalho, ao lado do plano. “Outras
+  possibilidades” em duas colunas que não se esticam quando um item é aberto.
+
 ## Pendências que dependem da proprietária (consolidado em 10/10)
 Itens pedidos que **não foram feitos porque exigem mudança no banco ou decisão**:
 1. **Avisos (Quadro de Avisos):** não existe tabela de comunicados. Falta criar a tabela, a ciência por
