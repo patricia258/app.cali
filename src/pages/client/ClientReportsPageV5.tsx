@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CalendarDays, ChevronDown, FileText, ShieldCheck, X } from 'lucide-react';
+import { CalendarDays, ChevronRight, FileText, Printer, ShieldCheck, X } from 'lucide-react';
+import { ExecutiveReportPaperV17 } from '../../components/reports/ExecutiveReportPaperV17';
+import type { DeliveryPerformanceRow } from '../../lib/reportV14';
 import { Shell } from '../../components/WorkspaceShell';
 import type { ReportIdentityV55 } from '../../components/reports/ReportValidationV55';
 import { supabase } from '../../lib/supabase';
@@ -56,7 +58,8 @@ export function ClientReportsPageV5(){
   const[selectedId,setSelectedId]=useState('');
   const[loading,setLoading]=useState(true);
   const[error,setError]=useState('');
-  const[expanded,setExpanded]=useState<Set<string>>(()=>new Set());
+  const[view,setView]=useState<'current'|'list'>('current');
+  const[revealed,setRevealed]=useState<Set<string>>(()=>new Set());
   const[periodFilter,setPeriodFilter]=useState('');
   const[ackOpen,setAckOpen]=useState(false);
   const[acknowledging,setAcknowledging]=useState(false);
@@ -115,13 +118,6 @@ export function ClientReportsPageV5(){
   const periods=useMemo(()=>[...new Map(reports.map((report)=>[`${report.reportType}:${report.periodStart.slice(0,7)}`,periodLabel(report.reportType,report.periodStart)])).entries()],[reports]);
   const visibleReports=useMemo(()=>periodFilter?reports.filter((report)=>`${report.reportType}:${report.periodStart.slice(0,7)}`===periodFilter):reports,[reports,periodFilter]);
 
-  function toggleDetails(id:string){
-    setExpanded((current)=>{
-      const next=new Set(current);
-      next.has(id)?next.delete(id):next.add(id);
-      return next;
-    });
-  }
   function noteReportOpened(report:Report){
     setSelectedId(report.id);
     void recordOpen(report.id);
@@ -149,25 +145,27 @@ export function ClientReportsPageV5(){
 
   if(loading) return <Shell role="client"><section className="v2-client-module data-loading" aria-live="polite" aria-busy="true">Carregando leitura executiva…</section></Shell>;
 
+  // O relatório mais recente abre a página. Enquanto o cliente não o visualiza, ele fica desfocado atrás do
+  // convite; "Visualizar" registra a abertura (record_report_client_event_v55) e libera a leitura.
+  const gated=Boolean(selected&&!selected.openCount&&!revealed.has(selected.id));
+  const openReport=(report:Report)=>{setRevealed((current)=>new Set(current).add(report.id));noteReportOpened(report);};
+  const paper=selected&&selected.snapshot?<ExecutiveReportPaperV17 company={{name:company?.name||'Empresa',logoUrl:company?.logoUrl||null}} snapshot={selected.snapshot} editor={{summary:selected.summary,movements:selected.movements.join('\n'),decisions:selected.decisions.join('\n'),risks:selected.risks.join('\n'),nextSteps:selected.nextSteps.join('\n')}} reportType={selected.reportType} periodName={periodLabel(selected.reportType,selected.periodStart)} protocol={selected.protocol} deliveries={Array.isArray((selected.snapshot as any)?.deliveryPerformanceV14)?(selected.snapshot as any).deliveryPerformanceV14 as DeliveryPerformanceRow[]:[]} approvalIdentity={selected.approvalIdentity} acknowledgementIdentity={selected.ackIdentity} approvedAt={selected.approvedAt} acknowledgedAt={selected.acknowledgedAt} acknowledgementProtocol={selected.ackProtocol}/>:null;
+
   return <Shell role="client"><section className="v2-client-module"><div className="wf">
     <div className="wf-head"><div><small>ÁREA DA EMPRESA / LEITURA EXECUTIVA</small><h1>Relatórios</h1><p>Fatos, evolução e encaminhamentos — não apenas gráficos.</p></div></div>
     {error?<div className="inline-notice" role="alert">{error}</div>:null}
-    <div className="wf-controls"><strong>Fechamento do ciclo</strong><label className="wf-control-right"><CalendarDays size={14}/><span>Período</span><select value={periodFilter} onChange={(event)=>setPeriodFilter(event.target.value)}><option value="">Todos os períodos</option>{periods.map(([value,label])=><option value={value} key={value}>{label}</option>)}</select></label></div>
-    {!reports.length ? <div className="wf-empty"><FileText size={28}/><strong>Nenhum relatório foi liberado ainda.</strong><p>Quando a CALI enviar um fechamento, ele ficará disponível aqui.</p></div> : <>
-      <div className="wf-report-selection" aria-label="Leituras disponíveis">{visibleReports.map(report=><button type="button" key={report.id} className={selectedId===report.id?'selected':''} onClick={()=>setSelectedId(report.id)}><strong>{report.title}</strong><span>{periodLabel(report.reportType,report.periodStart)} · v{report.version}</span></button>)}</div>
-      {(() => {
-        const reading=visibleReports.find(item=>item.id===selectedId)||visibleReports[0];
-        return reading ? <div className="wf-report-layout"><section className="wf-report-paper"><span>LEITURA EXECUTIVA · {periodLabel(reading.reportType,reading.periodStart)}</span><h2>{reading.title}</h2><p>{reading.summary || 'O resumo executivo não foi informado nesta versão.'}</p>
-          {([['01','Evidências e entregas',reading.movements],['02','Decisões necessárias',reading.decisions],['03','Pontos de atenção',reading.risks],['04','Próximos passos',reading.nextSteps]] as const).map(([n,title,items])=>items.length>0?<div className="wf-report-section" key={n}><h3>{n} · {title}</h3>{items.map((item,i)=><p key={i}>{item}</p>)}</div>:null)}
-          <p>O relatório completo reúne os indicadores, as evidências e os registros desta publicação.</p><a className="wf-primary" href={`/cliente/relatorios/impressao/${reading.id}`} target="_blank" rel="noopener noreferrer" onClick={()=>noteReportOpened(reading)}>Ver relatório completo / PDF</a>
-        </section><aside className="wf-report-side v2-burgundy-aside"><h3>Sobre a leitura</h3><p>{company?.name || 'Sua empresa'}</p><ul><li>Versão {reading.version}</li><li>Protocolo {reading.protocol}</li><li>Disponível desde {formatDateTime(reading.sentAt||reading.publishedAt)}</li><li>{reading.acknowledgedAt ? `Ciência em ${formatDateTime(reading.acknowledgedAt)}` : 'Ciência ainda não registrada'}</li></ul></aside></div> : <p className="wf-empty">Nenhum relatório neste período.</p>;
-      })()}
-      <section className="wf-records"><div className="wf-controls"><strong>Versões, acesso e ciência</strong><span>{visibleReports.length} {visibleReports.length===1?'relatório':'relatórios'}</span></div>{visibleReports.map((report)=>{
-        const isExpanded=expanded.has(report.id);
-        const viewed=Boolean(report.openCount||report.acknowledgedAt);
-        return <article className="wf-report-version" key={report.id}><div className="wf-report-version-head"><button type="button" className="wf-inline" onClick={()=>toggleDetails(report.id)} aria-expanded={isExpanded} aria-controls={`report-detail-${report.id}`} aria-label={`${isExpanded?'Recolher':'Mostrar'} detalhes de ${report.title}`}><ChevronDown size={18}/></button><div><strong>{report.title}</strong><small>{periodLabel(report.reportType,report.periodStart)} · v{report.version} · {report.protocol}</small></div><span className={`wf-tag ${viewed?'green':'blue'}`}>{viewed?'Visualizado':'Novo'}</span><span className={`wf-tag ${report.acknowledgedAt?'green':'yellow'}`}>{report.acknowledgedAt?'Ciência registrada':'Ciência pendente'}</span></div>{isExpanded?<div id={`report-detail-${report.id}`} className="wf-report-version-detail"><p>Disponível desde {formatDateTime(report.sentAt||report.publishedAt)}{report.acknowledgedAt?` · Ciência em ${formatDateTime(report.acknowledgedAt)}`:''}</p><div className="wf-modal-actions"><a className="wf-primary" href={`/cliente/relatorios/impressao/${report.id}`} target="_blank" rel="noopener noreferrer" onClick={()=>noteReportOpened(report)}>Ver relatório</a>{!report.acknowledgedAt?<button type="button" className="wf-outline" onClick={()=>requestAcknowledge(report)}>Registrar ciência</button>:null}</div></div>:null}</article>;
-      })}</section>
-    </>}
+    <div className="wf-controls"><div className="wf-segments" role="tablist" aria-label="Relatórios"><button type="button" role="tab" aria-selected={view==='current'} className={view==='current'?'on':''} onClick={()=>setView('current')}>Leitura</button><button type="button" role="tab" aria-selected={view==='list'} className={view==='list'?'on':''} onClick={()=>setView('list')}>Todos os relatórios</button></div>{view==='current'&&selected?<strong>{periodLabel(selected.reportType,selected.periodStart)} · v{selected.version}{selected.id===reports[0]?.id?' · mais recente':''}</strong>:null}{view==='list'?<label className="wf-control-right"><CalendarDays size={15}/><span>Período</span><select value={periodFilter} onChange={(event)=>setPeriodFilter(event.target.value)} aria-label="Filtrar período"><option value="">Todos os períodos</option>{periods.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>:null}</div>
+    {!reports.length?<div className="wf-empty"><FileText size={24}/><strong>Nenhum relatório disponível ainda.</strong><p>Quando a CALI publicar um fechamento, ele aparecerá aqui.</p></div>:null}
+    {view==='current'&&selected?<div className="wf-report-layout">
+      <div className={`v2-report-stage${gated?' gated':''}`}>
+        <div className="v2-report-paper" aria-hidden={gated||undefined}>{paper||<article className="wf-report-paper"><span>LEITURA EXECUTIVA · {periodLabel(selected.reportType,selected.periodStart)}</span><h2>{selected.title}</h2><p>{selected.summary||'Resumo executivo não informado.'}</p></article>}</div>
+        {gated?<div className="v2-report-invite" role="dialog" aria-label="Novo relatório disponível"><FileText size={22}/><small>NOVO RELATÓRIO DISPONÍVEL</small><h2>{periodLabel(selected.reportType,selected.periodStart)}</h2><p>{selected.title}. Deseja ver agora?</p><button type="button" className="wf-primary" onClick={()=>openReport(selected)}>Visualizar relatório</button></div>:null}
+      </div>
+      <aside className="wf-report-side v2-burgundy-aside"><h3>Sobre a leitura</h3><p>{company?.name||'Empresa'}</p><ul><li>Versão {selected.version}</li><li>Protocolo {selected.protocol}</li><li>Disponível desde {formatDateTime(selected.sentAt||selected.publishedAt)}</li><li>{selected.acknowledgedAt?`Ciência em ${formatDateTime(selected.acknowledgedAt)}`:'Ciência ainda não registrada'}</li></ul>
+        {!gated?<div className="v2-report-actions">{!selected.acknowledgedAt?<button type="button" className="v2-report-ack" onClick={()=>requestAcknowledge(selected)}><ShieldCheck size={14}/> Dar ciência</button>:null}<a className="v2-report-print" href={`/cliente/relatorios/impressao/${encodeURIComponent(selected.id)}`}><Printer size={14}/> Imprimir / salvar PDF</a></div>:null}
+      </aside>
+    </div>:null}
+    {view==='list'&&reports.length?<div className="wf-records v2-report-list"><div className="wf-record-row header"><span>Relatório</span><span>Período</span><span>Publicação</span><span>Situação</span><span/></div>{visibleReports.map((report)=><button type="button" className="wf-record-row" key={report.id} onClick={()=>{setSelectedId(report.id);setView('current');}}><span><small>{report.protocol}</small><strong>{report.title}</strong></span><span>{periodLabel(report.reportType,report.periodStart)} · v{report.version}</span><span>{formatDateTime(report.sentAt||report.publishedAt)}</span><span className="v2-report-tags"><span className={`wf-tag ${report.openCount?'green':'blue'}`}>{report.openCount?'Visualizado':'Novo'}</span><span className={`wf-tag ${report.acknowledgedAt?'green':'yellow'}`}>{report.acknowledgedAt?'Ciência registrada':'Ciência pendente'}</span></span><ChevronRight size={14}/></button>)}{!visibleReports.length?<div className="wf-empty">Nenhum relatório neste período.</div>:null}</div>:null}
     {ackOpen&&selected?<div className="wf-overlay" role="presentation"><section className="wf-modal" role="dialog" aria-modal="true" aria-label="Registrar ciência"><div className="wf-modal-header"><span>CIÊNCIA DA LEITURA</span><button type="button" onClick={()=>setAckOpen(false)} aria-label="Fechar"><X size={20}/></button></div><h2>Registrar ciência deste fechamento?</h2><p>Este registro é opcional. Ele confirma que você teve ciência desta versão e não representa concordância ou aprovação do conteúdo.</p><div className="wf-info"><ShieldCheck size={18}/><span>Sua identidade e a assinatura configurada no perfil serão registradas com data, hora e protocolo.</span></div>{error?<p className="inline-notice" role="alert">{error}</p>:null}<div className="wf-modal-actions"><button className="wf-outline" type="button" onClick={()=>setAckOpen(false)}>Agora não</button><button className="wf-primary" type="button" disabled={acknowledging} onClick={()=>void acknowledge()}>{acknowledging?'Registrando…':'Registrar ciência'}</button></div></section></div>:null}
   </div></section></Shell>;
 }

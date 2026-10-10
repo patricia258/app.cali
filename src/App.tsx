@@ -95,7 +95,11 @@ const ClientDocumentsPage = lazy(async () => {
   await import('./styles/routes/clientModules');
   return import('./pages/client/ClientDocumentsPage').then((m) => ({ default: m.ClientDocumentsPage }));
 });
-const ClientReportsPageV5 = lazy(() => import('./pages/client/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 })));
+// O relatório é lido no próprio documento oficial (papel), que tem folhas de estilo próprias.
+const ClientReportsPageV5 = lazy(async () => {
+  await import('./styles/routes/reports');
+  return import('./pages/client/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 }));
+});
 const CompanyTeamPage = lazy(() => import('./pages/team/CompanyTeamPage').then((m) => ({ default: m.CompanyTeamPage })));
 const ClientNoticesPage = lazy(() => import('./pages/client/ClientNoticesPage').then((m) => ({ default: m.ClientNoticesPage })));
 const ClientFrontsPage = lazy(() => import('./pages/client/ClientFrontsPage').then((m) => ({ default: m.ClientFrontsPage })));

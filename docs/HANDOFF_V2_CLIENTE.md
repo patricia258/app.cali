@@ -196,6 +196,40 @@ a ficha da pessoa abre em gaveta lateral. Ambos funcionam e ficam para os ajuste
 - **Pendência da administradora:** o mesmo aviso de 60 dias precisa aparecer para a administradora, na
   página de Documentos dela; fica para a migração dessa página.
 
+### 10/10 — nona rodada: Relatórios em página única
+- A página abre no relatório mais recente, lido no próprio documento oficial (`ExecutiveReportPaperV17`,
+  o mesmo da impressão), com o cartão “Sobre a leitura” ao lado.
+- Relatório ainda não visualizado aparece desfocado atrás do convite “Novo relatório disponível”;
+  “Visualizar relatório” registra a abertura (`record_report_client_event_v55`, evento `opened`) e libera a
+  leitura. Depois de aberto, o cartão lateral mostra **Dar ciência** (`acknowledge_report_v55`, com a mesma
+  confirmação de antes) e **Imprimir / salvar PDF**.
+- Aba “Todos os relatórios”: lista com período, publicação e situação (novo/visualizado, ciência); escolher um
+  relatório o abre na mesma leitura. Filtro de período mantido nessa aba.
+- Página de impressão (`/cliente/relatorios/impressao/:id`) passou a usar o shell aprovado; antes aparecia
+  com a topbar quebrada porque misturava o shell novo com as folhas anteriores.
+- As folhas do documento (`styles/routes/reports`) são carregadas na página de Relatórios do cliente. Medido:
+  não alteram as demais telas depois de visitadas.
+
+## Pendências que dependem da proprietária (consolidado em 10/10)
+Itens pedidos que **não foram feitos porque exigem mudança no banco ou decisão**:
+1. **Avisos (Quadro de Avisos):** não existe tabela de comunicados. Falta criar a tabela, a ciência por
+   usuário, as regras de acesso por empresa e a tela de publicação na administradora.
+2. **Documentos — coautores e data de revisão separada da validade:** hoje há uma única data
+   (`files.valid_until`) e nenhum campo de coautores. Falta criar os campos e incluí-los no cadastro da
+   administradora. “Elaborado por” mostra “CALI · Assessoria”.
+3. **Documentos — aviso de 60 dias para a administradora:** depende da migração da página de Documentos dela.
+4. **Horas — marcos de 50% e 70% visíveis na administradora:** o cliente já vê o aviso; a visão administrativa
+   da distribuição fica para a migração da administradora (avaliar a tabela `hour_alerts`).
+5. **Rotatividade (Equipe → Indicadores):** fórmula provisória (saídas do mês ÷ quadro ativo). A regra oficial
+   precisa ser definida.
+6. **Assinatura (Meu perfil):** layout organizado, desenho final ainda não decidido.
+7. **Ficha da pessoa:** abas do protótipo (Visão geral, Movimentações, Vínculos) ainda não aprovadas; a ficha
+   usa as abas oficiais.
+8. **Empresa e usuário de teste** para validar gravações com sessão real (nenhum fluxo de escrita foi testado
+   contra o banco).
+9. **Calendário:** a escolha de horário clicando na grade foi retirada do cliente a pedido; o pedido de
+   encontro segue pelo botão “Solicitar agendamento”.
+
 ### Administradora — decisão da proprietária em 09/10 e plano
 Regra: a identidade é a V2 aprovada do cliente; **nenhum dado, campo, função ou fluxo do administrador
 oficial muda**. O protótipo em `cali-workspace-v2@feat/admin-v2-design-prototype-20261009` é só referência
