@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { ArrowRight, CalendarDays, ChevronRight, CircleAlert, Clock3, Download, MessageSquareText, Plus, X } from "lucide-react";
+import { ArrowRight, Building2, CalendarDays, ChevronRight, CircleAlert, Clock3, Download, MessageSquareText, Plus, X } from "lucide-react";
 import { Shell } from "../../components/WorkspaceShell";
 import { supabase } from "../../lib/supabase";
 import { resolveWorkspaceMedia } from "../../lib/workspaceMedia";
@@ -459,7 +459,7 @@ function ExportOverview({ data }: { data: DashboardData }) {
 }
 
 export function AdminDashboard() {
-  const [data, setData] = useState<DashboardData>({
+  const [loaded, setData] = useState<DashboardData>({
     companies: [],
     projects: [],
     deliverables: [],
@@ -468,6 +468,17 @@ export function AdminDashboard() {
     satisfaction: emptySatisfaction,
   });
   const [loading, setLoading] = useState(true);
+  const [account, setAccount] = useState("all");
+  const [monthOffset, setMonthOffset] = useState(0);
+  // Recorte por conta: tudo o que a página mostra passa por aqui; a exportação tem o próprio recorte.
+  const data = useMemo<DashboardData>(() => account === "all" ? loaded : {
+    ...loaded,
+    companies: loaded.companies.filter((item) => item.id === account),
+    projects: loaded.projects.filter((item) => item.companyId === account),
+    deliverables: loaded.deliverables.filter((item) => item.companyId === account),
+    entries: loaded.entries.filter((item) => item.companyId === account),
+    events: loaded.events.filter((item) => item.companyId === account),
+  }, [loaded, account]);
 
   useEffect(() => {
     let cancelled = false;
@@ -641,10 +652,21 @@ export function AdminDashboard() {
   }, []);
 
   const companyMap = useMemo(
-    () => new Map(data.companies.map((item) => [item.id, item])),
-    [data.companies],
+    () => new Map(loaded.companies.map((item) => [item.id, item])),
+    [loaded.companies],
   );
-  const currentPeriod = monthBounds();
+  const monthOptions = useMemo(() => Array.from({ length: 12 }, (_, offset) => {
+    const date = new Date(new Date().getFullYear(), new Date().getMonth() - offset, 1);
+    const label = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(date);
+    return { offset, label: label.charAt(0).toUpperCase() + label.slice(1) };
+  }), []);
+  const currentPeriod = useMemo(() => {
+    const now = new Date();
+    return {
+      start: new Date(now.getFullYear(), now.getMonth() - monthOffset, 1).toISOString().slice(0, 10),
+      next: new Date(now.getFullYear(), now.getMonth() - monthOffset + 1, 1).toISOString().slice(0, 10),
+    };
+  }, [monthOffset]);
   const currentEntries = useMemo(
     () =>
       data.entries.filter(
@@ -684,10 +706,13 @@ export function AdminDashboard() {
       return map;
     }, {}),
   ).sort((a, b) => b[1] - a[1]);
-  const deadlines = data.deliverables
+  // Prazos vencidos ou dos próximos 7 dias sobem para as prioridades; os seguintes ficam em "Próximos prazos" (sem repetir).
+  const soonLimit = new Date(Date.now() + 7 * 86400000).toISOString();
+  const byDue = pendingDeliverables
     .filter((item) => item.dueAt)
-    .sort((a, b) => String(a.dueAt).localeCompare(String(b.dueAt)))
-    .slice(0, 5);
+    .sort((a, b) => String(a.dueAt).localeCompare(String(b.dueAt)));
+  const dueSoon = byDue.filter((item) => String(item.dueAt) <= soonLimit).slice(0, 4);
+  const deadlines = byDue.filter((item) => !dueSoon.includes(item)).slice(0, 5);
   const npsMonths = (data.satisfaction.monthly || []).map((item) => ({
     label: new Intl.DateTimeFormat("pt-BR", { month: "short" })
       .format(new Date(`${item.month}T12:00:00`))
@@ -695,7 +720,16 @@ export function AdminDashboard() {
       .replace(/^./, (x) => x.toUpperCase()),
     average: Number(item.average || 0),
   }));
-  const actions = [
+  const actions: { icon: JSX.Element; title: string; detail: string; helper: string; href: string; date?: string; overdue?: boolean }[] = [
+    ...dueSoon.map((item) => ({
+      icon: <Clock3 size={20} />,
+      title: item.title,
+      detail: loaded.companies.find((company) => company.id === item.companyId)?.name || "Cliente",
+      helper: statusNames[item.status] || item.status,
+      href: "/admin/projetos",
+      date: dateLabel(item.dueAt),
+      overdue: String(item.dueAt) < new Date().toISOString(),
+    })),
     ...data.projects
       .filter((item) => item.planningStatus === "client_review")
       .slice(0, 1)
@@ -751,7 +785,7 @@ export function AdminDashboard() {
   const metrics = [
     { label: "Contas ativas", value: String(data.companies.length), tone: "green", helper: data.companies.length ? "clientes com ciclo aberto" : "Nenhuma conta ativa", href: "/admin/clientes" },
     { label: "Ações pendentes", value: String(actions.length), tone: "amber", helper: actions.length ? "precisam de acompanhamento" : "Nenhuma ação crítica", href: "/admin/projetos" },
-    { label: "Horas no mês", value: formatHours(totalMinutes), tone: "blue", helper: totalContracted ? `${Math.round((totalMinutes / 60 / totalContracted) * 100)}% das ${totalContracted}h contratadas` : "Sem horas contratadas registradas", href: "/admin/horas" },
+    { label: monthOffset ? `Horas em ${monthOptions[monthOffset].label.split(" ")[0].toLowerCase()}` : "Horas no mês", value: formatHours(totalMinutes), tone: "blue", helper: totalContracted ? `${Math.round((totalMinutes / 60 / totalContracted) * 100)}% das ${totalContracted}h contratadas` : "Sem horas contratadas registradas", href: "/admin/horas" },
     { label: "NPS atual", value: average == null ? "—" : `${average}/5`, tone: "purple", helper: data.satisfaction.total ? `${data.satisfaction.total} avaliações registradas · escala 1–5` : "Nenhuma avaliação registrada", href: "/admin/satisfacao" },
   ];
 
@@ -764,9 +798,15 @@ export function AdminDashboard() {
             <div className="ap-title-actions"><Link className="ap-primary" to="/admin/clientes"><Plus size={15} /> Cadastrar cliente</Link></div>
           </div>
 
+          <div className="ap-filters">
+            <label><Building2 size={14} /><select aria-label="Conta" value={account} onChange={(event) => setAccount(event.target.value)}><option value="all">Todas as contas</option>{loaded.companies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+            <label><CalendarDays size={14} /><select aria-label="Mês das horas" value={monthOffset} onChange={(event) => setMonthOffset(Number(event.target.value))}>{monthOptions.map((item) => <option key={item.offset} value={item.offset}>{item.label}</option>)}</select></label>
+            <span>O mês muda as horas; agenda e prazos mostram sempre o que vem pela frente.</span>
+          </div>
+
           <section className="ap-overview-hero">
             <div><small>CALI · OPERAÇÃO</small><h2>{greeting()}, Patrícia.</h2><p>O que precisa de decisão agora, quais contas merecem atenção e como cada ciclo está avançando.</p></div>
-            <ExportOverview data={data} />
+            <ExportOverview data={loaded} />
           </section>
 
           <div className="ap-metrics" aria-label="Sinais reais da operação">
@@ -776,7 +816,7 @@ export function AdminDashboard() {
           <div className="ap-grid-two">
             <section className="ap-pane">
               <div className="ap-pane-head"><h2>Prioridades de hoje</h2><Link to="/admin/projetos">Abrir acompanhamento <ArrowRight size={14} /></Link></div>
-              {actions.length ? actions.map((action, index) => <Link className="ap-activity" key={`${action.title}-${action.detail}`} to={action.href}><span className="ap-index">{String(index + 1).padStart(2, "0")}</span><span><strong>{action.title}</strong><small>{action.detail} · {action.helper}</small></span><ChevronRight size={14} /></Link>) : <p className="v2-admin-empty">A operação não tem pendências críticas no momento.</p>}
+              {actions.length ? actions.map((action, index) => <Link className="ap-activity" key={`${action.title}-${action.detail}`} to={action.href}><span className="ap-index">{String(index + 1).padStart(2, "0")}</span><span><strong>{action.title}</strong><small>{action.detail} · {action.helper}</small></span>{action.date && <span className={`ap-status ${action.overdue ? "red" : "amber"}`}>{action.overdue ? `Venceu ${action.date}` : action.date}</span>}<ChevronRight size={14} /></Link>) : <p className="v2-admin-empty">A operação não tem pendências críticas no momento.</p>}
             </section>
             <section className="ap-pane">
               <div className="ap-pane-head"><h2>Agenda da CALI</h2><Link to="/admin/calendario">Ver calendário <ArrowRight size={14} /></Link></div>

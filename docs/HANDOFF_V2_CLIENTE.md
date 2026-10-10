@@ -287,6 +287,12 @@ A proprietária mostrou a Visão geral do protótipo (`?area=admin`) como base e
 - Para não repetir: "Pontos de atenção" do protótipo mostra o mesmo que "Prioridades de hoje" e não entrou; a tabela antiga da carteira repetia horas e próximo prazo e saiu.
 - "Quadro de avisos" segue fora até existir o backend de Avisos.
 
+### 10/10 — Visão geral da administradora: filtros e prioridades com prazo (aprovado pela proprietária)
+
+- Filtros no topo: conta (todas ou uma) e mês (atual e 11 anteriores). A conta recorta tudo o que a página mostra; o mês muda apenas as horas (indicador, consumo por cliente, alerta de 80%). Agenda e prazos mostram sempre o que vem pela frente; NPS não é recortado por mês. A exportação mantém o recorte próprio.
+- Prioridades de hoje: além dos alertas (cronograma aguardando cliente, ajuste solicitado, horas ≥ 80%), entram até 4 entregáveis não concluídos vencidos ou com prazo nos próximos 7 dias, com etiqueta de data. Esses itens **não** aparecem em "Próximos prazos", que lista os seguintes.
+- "Próximos prazos" passou a considerar só entregáveis ainda não aprovados.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
