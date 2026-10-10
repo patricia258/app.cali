@@ -69,6 +69,39 @@ no topo, com data, commits, verificação e pendências. Detalhe técnico e mapa
 - Envio ao GitHub: a máquina não guarda credencial da conta `patricia258`. O envio é feito com um token
   pessoal copiado pela proprietária no momento do push.
 
+### Auditoria final do cliente (09/10)
+Folhas de estilo ainda carregadas nas rotas `/cliente`, medidas no navegador:
+- `client-v2/v2.generated.css`, `client-v2/operational.css`, `client-v2/calendar.css` — a interface V2.
+  `calendar.css` perdeu 221 de 332 regras, que citavam classes inexistentes no código.
+- `components/extra-visit-request.css` — diálogo de agendamento (componente oficial).
+- **Sobras a eliminar na migração da administradora, por serem compartilhadas com ela:**
+  `pages/team/company-team.css` (ficha, cadastro e assistente mensal de Equipe),
+  `records-v28-closure-experience.css` e `records-v30-final-polish.css` (encerramento de ocorrência),
+  `client-approval-highlight-v50.css` e `hours-company-logo-v41.css` (blocos inseridos por runtimes),
+  `components/extra-visit-expenses.css` (importado pelo shell compartilhado).
+- Diálogos conferidos abrindo um a um: cadastro e ficha de pessoa, nova ocorrência, conversa, comentário de
+  documento, agendamento, histórico de reuniões, detalhe de entregável. Todos renderizam sem erro; os que
+  vêm de componentes compartilhados (ficha, cadastro, encerramento) ainda usam a folha própria listada acima
+  e recebem o padrão aprovado junto com a administradora.
+- Runtimes que inserem HTML nas páginas (`src/lib/*Runtime*.ts`, 65 arquivos) continuam ativos e são a
+  principal dívida técnica: escrevem marcação fora do React. Substituí-los por componentes é trabalho da
+  etapa da administradora, módulo a módulo.
+
+### Administradora — decisão da proprietária em 09/10 e plano
+Regra: a identidade é a V2 aprovada do cliente; **nenhum dado, campo, função ou fluxo do administrador
+oficial muda**. O protótipo em `cali-workspace-v2@feat/admin-v2-design-prototype-20261009` é só referência
+de direção, não especificação. Ordem de trabalho:
+1. Shell: mesma sidebar e topbar do cliente, com os menus da administradora (Visão geral, Clientes, Equipe,
+   Projetos, Horas, Calendário, Ocorrências, Documentos, Relatórios, NPS & satisfação, Propostas, Mapa de
+   People), timers ativos e despesas de visita preservados.
+2. Diálogos, gavetas, tabelas, abas, filtros e formulários no padrão aprovado (`.enh-*`, `.wf-*`,
+   `.data-grid`, `.section-tabs`, `.toolbar`).
+3. Páginas, uma por vez, na ordem de uso: Visão geral, Clientes, Projetos, Horas, Calendário, Ocorrências,
+   Documentos, Relatórios, Equipe, Satisfação, Propostas, Mapa de People.
+4. A cada página migrada, retirar de `src/styles/legacy` as folhas que deixarem de ser usadas; ao final a
+   pasta deixa de existir e os runtimes de DOM viram componentes.
+5. Teste com sessão real, depois merge na `main`.
+
 ### Pendências do cliente
 - Equipe: tabela do diretório ainda com colunas configuráveis (a V2 tem seis fixas); ficha da pessoa em
   gaveta lateral (a V2 mostra um diálogo central); revisão fina do formulário de cadastro em cinco passos.
