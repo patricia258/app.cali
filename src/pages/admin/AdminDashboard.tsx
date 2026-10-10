@@ -775,11 +775,11 @@ export function AdminDashboard() {
 
           <div className="ap-grid-two">
             <section className="ap-pane">
-              <div className="ap-pane-head"><h2>{actions.length ? `${actions.length} ponto${actions.length === 1 ? "" : "s"} para agir` : "Nada crítico agora"}</h2><Link to="/admin/projetos">Abrir acompanhamento <ArrowRight size={14} /></Link></div>
+              <div className="ap-pane-head"><h2>Prioridades de hoje</h2><Link to="/admin/projetos">Abrir acompanhamento <ArrowRight size={14} /></Link></div>
               {actions.length ? actions.map((action, index) => <Link className="ap-activity" key={`${action.title}-${action.detail}`} to={action.href}><span className="ap-index">{String(index + 1).padStart(2, "0")}</span><span><strong>{action.title}</strong><small>{action.detail} · {action.helper}</small></span><ChevronRight size={14} /></Link>) : <p className="v2-admin-empty">A operação não tem pendências críticas no momento.</p>}
             </section>
             <section className="ap-pane">
-              <div className="ap-pane-head"><h2>Próximos compromissos</h2><Link to="/admin/calendario">Ver calendário <ArrowRight size={14} /></Link></div>
+              <div className="ap-pane-head"><h2>Agenda da CALI</h2><Link to="/admin/calendario">Ver calendário <ArrowRight size={14} /></Link></div>
               {events.length ? events.map((event) => <Link className="ap-time-line" key={event.id} to="/admin/calendario"><time>{dateLabel(event.startsAt)} · {eventTime(event.startsAt)}</time><i className={eventTone[event.type]} /><span><strong>{event.title}</strong><small>{companyMap.get(event.companyId)?.name || "Cliente"} · {eventKind[event.type]}</small></span><ChevronRight size={14} /></Link>) : <p className="v2-admin-empty">Nenhum compromisso nos próximos 15 dias.</p>}
             </section>
           </div>
@@ -816,23 +816,22 @@ export function AdminDashboard() {
           </div>
 
           <section className="ap-pane ap-full">
-            <div className="ap-pane-head"><h2>Clientes em andamento</h2><Link to="/admin/clientes">Gestão completa <ArrowRight size={14} /></Link></div>
-            {data.companies.length ? <div className="ap-client-data v2-admin-portfolio">
-              <div className="ap-client-data-head"><span>Cliente / serviço</span><span>Próximo passo</span><span>Horas</span><span>NPS</span><span>Projetos</span><span /></div>
+            <div className="ap-pane-head"><h2>Carteira de clientes</h2><Link to="/admin/clientes">Todas as contas <ArrowRight size={14} /></Link></div>
+            {data.companies.length ? <div className="ap-account-grid">
               {data.companies.map((client) => {
                 const minutes = minutesByCompany.get(client.id) || 0;
-                const usage = client.contracted ? Math.round((minutes / 60 / client.contracted) * 100) : 0;
                 const projects = data.projects.filter((item) => item.companyId === client.id);
                 const nps = data.satisfaction.recent.find((item) => item.company === client.name)?.score;
-                const next = pendingDeliverables.find((item) => item.companyId === client.id);
-                return <div className="ap-client-data-row" key={client.id}>
-                  <div className="ap-client-info"><span className="ap-hour-logo">{client.logoUrl ? <img src={client.logoUrl} alt="" /> : client.mark}</span><span><strong>{client.name}</strong><small>{client.service}</small></span></div>
-                  <div className="ap-client-contact"><strong>{next?.title || "Sem pendência"}</strong><small>{next ? "Acompanhar" : "Operação em dia"}</small></div>
-                  <div className="ap-client-contact"><strong>{client.contracted ? `${usage}%` : "—"}</strong><small>{formatHours(minutes)}{client.contracted ? ` / ${client.contracted}h` : ""}</small></div>
-                  <div className="ap-client-contact"><strong>{nps == null ? "—" : nps.toFixed(1).replace(".", ",")}</strong></div>
-                  <div className="ap-client-contact"><strong>{projects.length}</strong><small>{projects[0]?.name || "Sem projeto ativo"}</small></div>
-                  <Link className="ap-outline" to="/admin/clientes">Abrir conta <ChevronRight size={14} /></Link>
-                </div>;
+                const open = pendingDeliverables.filter((item) => item.companyId === client.id);
+                const state = open.some((item) => item.status === "adjustment_requested") ? ["Ajuste solicitado", "red"]
+                  : open.some((item) => item.status === "client_review") || projects.some((item) => item.planningStatus === "client_review") ? ["Aguardando cliente", "red"]
+                  : !projects.length ? ["Sem projeto ativo", "purple"]
+                  : open.length ? ["Em execução", "amber"] : ["Em dia", "green"];
+                return <Link className="ap-client" key={client.id} to="/admin/clientes">
+                  <span className="ap-client-brand">{client.logoUrl ? <img src={client.logoUrl} alt="" /> : client.mark}</span>
+                  <div><strong>{client.name}</strong><small>{[client.service, `${formatHours(minutes)}${client.contracted ? ` / ${client.contracted}h` : ""}`, `${projects.length} ${projects.length === 1 ? "projeto" : "projetos"}`, nps == null ? "" : `NPS ${nps.toFixed(1).replace(".", ",")}`].filter(Boolean).join(" · ")}</small></div>
+                  <span className={`ap-status ${state[1]}`}>{state[0]}</span><ArrowRight size={15} />
+                </Link>;
               })}
             </div> : <p className="v2-admin-empty">Nenhum cliente ativo encontrado.</p>}
           </section>

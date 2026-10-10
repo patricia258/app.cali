@@ -278,6 +278,15 @@ Como a migração da administradora acontece:
 - Não testado: impressão do PDF da exportação em janela nova e qualquer gravação contra o banco real.
 - Próximas páginas, nesta ordem: Clientes, Projetos, Horas, Calendário, Ocorrências, Documentos, Relatórios, NPS & satisfação, Equipe (admin), Propostas, Mapa de People.
 
+### 10/10 — Visão geral da administradora alinhada ao protótipo revisado pela proprietária
+
+A proprietária mostrou a Visão geral do protótipo (`?area=admin`) como base e avisou: barra lateral e barra superior do oficial estão aprovadas (não mudar); o protótipo não está 100% aprovado; não repetir informação.
+
+- Blocos na ordem do protótipo: Prioridades de hoje, Agenda da CALI, Consumo de horas por cliente, Status dos entregáveis, NPS e satisfação, Próximos prazos, Carteira de clientes.
+- Carteira virou cartões (logo, nome, serviço · horas · projetos · NPS, situação). A situação é calculada dos dados reais: Ajuste solicitado, Aguardando cliente, Sem projeto ativo, Em execução, Em dia.
+- Para não repetir: "Pontos de atenção" do protótipo mostra o mesmo que "Prioridades de hoje" e não entrou; a tabela antiga da carteira repetia horas e próximo prazo e saiu.
+- "Quadro de avisos" segue fora até existir o backend de Avisos.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

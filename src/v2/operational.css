@@ -882,3 +882,7 @@ html[data-workspace-ui='v2'] .overview-export-actions button{font:inherit;font-s
 html[data-workspace-ui='v2'] .overview-export-actions button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
 html[data-workspace-ui='v2'] .overview-export-filters select{font:inherit;font-size:12px;border:1px solid #dfd3ca;border-radius:8px;background:#fff;padding:9px 12px;color:#322f2c;min-width:190px}
 html[data-workspace-ui='v2'] .overview-export-close{border:1px solid #ecded5;background:#fff;border-radius:8px;padding:8px;display:grid;place-items:center;cursor:pointer;color:#322f2c}
+.v2-admin-page .ap-client-brand{overflow:hidden;flex-shrink:0}
+.v2-admin-page .ap-client-brand img{width:100%;height:100%;object-fit:contain}
+.v2-admin-page .ap-client>div{min-width:0}
+.v2-admin-page .ap-client small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
