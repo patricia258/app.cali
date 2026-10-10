@@ -826,3 +826,32 @@ html[data-workspace-ui='v2']{
   }
 }
 @media(max-width:760px){html[data-workspace-ui='v2'] .ch-project{overflow:hidden}}
+
+/* Diálogo do entregável — composição aprovada (quatro abas) */
+.v2-client-module .dv-pane{display:contents}
+.v2-client-module .dv-modal header small .section-kicker{display:inline;font:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}
+.v2-client-module .dv-modal .dv-conversation{display:contents}
+.v2-client-module .dv-chat :is(.workspace-chat-line){max-width:75%}
+.v2-client-module .dv-chat .workspace-chat-head{display:contents!important}
+.v2-client-module .dv-chat .workspace-chat-head strong{font-size:11px}
+.v2-client-module .dv-chat .workspace-chat-bubble{display:flex!important;flex-direction:column!important;align-items:flex-start!important;text-align:left}
+.v2-client-module .dv-chat .workspace-chat-line.mine{flex-direction:row!important}
+.v2-client-module .dv-chat .workspace-chat-head strong{order:1}
+.v2-client-module .dv-chat .workspace-chat-bubble>:not(.workspace-chat-head){order:2}
+.v2-client-module .dv-modal header small{font-size:10px;letter-spacing:1.2px;color:#af8f72}
+.v2-client-module .dv-chat .workspace-chat-bubble p{font-size:12px;line-height:1.5;margin:0 0 10px}
+.v2-client-module .dv-chat .workspace-chat-head time{order:3;font-size:9px;color:#978579}
+.v2-client-module .dv-chat .workspace-chat-empty{margin:auto;font-size:12px;color:#8c7e74}
+.v2-client-module .dv-reply-fixed{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px 12px}
+.v2-client-module .dv-reply-fixed .workspace-chat-runtime-pending-host{grid-column:1/-1}
+.v2-client-module .dv-reply-fixed .workspace-chat-runtime-pending-host:empty,.v2-client-module .dv-reply-fixed .workspace-chat-runtime-pending-host:has(.workspace-chat-pending[style*="none"]){display:none}
+.v2-client-module .dv-reply-fixed textarea{grid-column:1;grid-row:2;width:100%;box-sizing:border-box;font-size:12px}
+.v2-client-module .dv-reply-fixed .workspace-chat-send-actions{grid-column:2;grid-row:2;margin:0}
+.v2-client-module .dv-reply-fixed .workspace-chat-runtime-tools-host{grid-column:1/-1;grid-row:3}
+.v2-client-module .dv-reply-fixed .workspace-chat-runtime-tools-host:empty{display:none}
+.v2-client-module .dv-reply-fixed .workspace-chat-tools button{background:#fffaf7;color:inherit;border:1px solid #e6d9ce;padding:5px 7px;font-size:12px}
+.v2-client-module .dv-reply-fixed .workspace-chat-emoji-picker button{border:0;background:none}
+.v2-client-module .dv-modal footer .dv-secondary{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:11px;padding:10px 14px}
+.v2-client-module .dv-modal footer .dv-action-buttons{margin-left:auto}
+.v2-client-module .dv-modal footer .dv-action-buttons .dv-converse-bottom{margin-left:0}
+.v2-client-module .dv-chat .workspace-chat-head strong{color:#322f2c}

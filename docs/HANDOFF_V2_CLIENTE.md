@@ -251,6 +251,17 @@ a ficha da pessoa abre em gaveta lateral. Ambos funcionam e ficam para os ajuste
   (`src/lib/*Runtime*.ts`), as consultas repetidas de perfil/empresa em cada página e o próprio ambiente de
   prévia da Vercel.
 
+### 10/10 — diálogo do entregável igual ao V2 (quatro abas)
+
+Pedido da proprietária: o diálogo aberto em Projetos → Entregáveis deve ser exatamente o do V2 nas abas Visão geral, Etapas, Conversas e Histórico.
+
+- `ClientDeliverablesPage.tsx`: cabeçalho (protocolo · complexidade, título, frente · ciclo), abas com os nomes do V2, resumo em quatro colunas (Prazo, Situação, Versão, Frente de atuação), "Sobre esta entrega", arquivo publicado com botão Abrir, "O que precisa acontecer agora"; Etapas com andamento, barra e lista numerada; Histórico com introdução e linha do tempo; Conversas com balões e campo fixo acima do rodapé.
+- Funções oficiais mantidas: Solicitar ajuste, Aprovar entrega (com avaliação), envio de mensagem, anexo, link e emoji, abertura do arquivo publicado. O prazo original, quando diferente, aparece em "Sobre esta entrega".
+- Atenção técnica: os runtimes da conversa (`deliverableChatStandardRuntimeV35` e afins) procuram a lista e o campo **dentro** de `[data-v2-operation~="conversation-pane-v2"]`, como descendente do diálogo. O invólucro `.dv-pane` (display: contents) existe só para isso — não remover. O protocolo precisa continuar sozinho em `span.section-kicker` dentro de `deliverable-title-v2`.
+- Os runtimes injetam regras com `!important` nos balões; as regras do diálogo em `operational.css` (bloco "Diálogo do entregável") usam `!important` nos três pontos necessários.
+- Conferência: `~/CALI/qa/dv.cjs` fotografa as quatro abas no oficial e no V2 lado a lado. Varredura do cliente: 105 verificações, 0 apontamentos. `npm run check` passou.
+- Não testado: envio real de mensagem, aprovação e pedido de ajuste contra o banco (o ambiente de conferência bloqueia gravações).
+
 ## Pendências que dependem da proprietária (consolidado em 10/10)
 Itens pedidos que **não foram feitos porque exigem mudança no banco ou decisão**:
 1. **Avisos (Quadro de Avisos):** não existe tabela de comunicados. Falta criar a tabela, a ciência por

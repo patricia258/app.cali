@@ -1,9 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  AlertTriangle, ArrowRight, CalendarDays, Check, CheckCircle2, Circle,
-  FileCheck2, FileText, FolderKanban, GitBranch, History, Loader2,
-  MessageCircle, RefreshCw, Send, Star, X, ChevronDown, ChevronRight,
-} from 'lucide-react';
+import { AlertCircle, AlertTriangle, ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileCheck2, FileText, FolderKanban, History, Leaf, Loader2, MessageCircle, RefreshCw, Star, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import {
   loadClientDeliveryReality,
@@ -49,7 +45,7 @@ const statusTone: Record<ClientDeliveryStatus, string> = {
 };
 
 const taskStatusLabel: Record<string, string> = {
-  todo: 'A fazer', in_progress: 'Em andamento', doing: 'Em andamento',
+  todo: 'A fazer', not_started: 'Pendente', pending: 'Pendente', in_progress: 'Em andamento', doing: 'Em andamento',
   done: 'Concluída', completed: 'Concluída', standby: 'Em espera', cancelled: 'Cancelada',
 };
 
@@ -345,62 +341,62 @@ export function ClientDeliverablesPage() {
     {selected && <div className="v2-client-module v2-client-dialog"><div className="dv-overlay">
       <section className="dv-modal" role="dialog" aria-modal="true" aria-label={selected.title} data-v2-operation="deliverable-workspace-modal-v2">
         <header data-v2-operation="deliverable-workspace-header-v2">
-
-          <div data-v2-operation="deliverable-title-v2"><span className="section-kicker">{selected.protocol || selected.code || 'ENTREGÁVEL'}</span><h2>{selected.title}</h2><p>{selected.workstream || 'Frente CALI'} · {selected.complexity || 'MC1'} · {roadmapLabel(selected)}</p></div>
-          <div className="dv-head-actions"><span className={`status-chip-v3 ${statusTone[selected.status]}`}>{statusLabel[selected.status]}</span><button aria-label="Fechar entrega" onClick={closeDeliverable}><X size={23} /></button></div>
+          <div data-v2-operation="deliverable-title-v2"><small><span className="section-kicker">{selected.protocol || selected.code || 'ENTREGÁVEL'}</span> · {selected.complexity || 'MC1'}</small><h2>{selected.title}</h2><p>{selected.workstream || 'Frente CALI'} · {roadmapLabel(selected)}</p></div>
+          <button aria-label="Fechar entrega" onClick={closeDeliverable}><X size={18} /></button>
         </header>
 
-        <nav aria-label="Detalhes da entrega">{(['overview', 'tasks', 'conversation', 'history'] as DetailTab[]).map((tab) => <button key={tab} className={detailTab === tab ? 'selected' : ''} onClick={() => setDetailTab(tab)}>{tab === 'overview' ? 'Visão geral' : tab === 'tasks' ? `Etapas (${selected.visibleTasks.length})` : tab === 'conversation' ? `Conversa (${messages.length})` : 'Histórico'}</button>)}</nav>
+        <nav aria-label="Detalhes da entrega">{(['overview', 'tasks', 'conversation', 'history'] as DetailTab[]).map((tab) => <button key={tab} className={detailTab === tab ? 'selected' : ''} onClick={() => setDetailTab(tab)}>{tab === 'overview' ? 'Visão geral' : tab === 'tasks' ? 'Etapas' : tab === 'conversation' ? 'Conversas' : 'Histórico'}</button>)}</nav>
 
+        {/* Os runtimes da conversa procuram a lista e o campo de resposta dentro de "conversation-pane-v2"; este invólucro (display: contents) reúne a área rolável e o campo fixo sem alterar a composição aprovada. */}
+        <div className="dv-pane" data-v2-operation="conversation-pane-v2">
         <div className="dv-modal-content">
           {detailTab === 'overview' && <>
             <div className="dv-summary">
-              <span><CalendarDays size={19} />Prazo<b>{formatDate(selected.dueAt)}</b>{selected.originalDueAt && <small>Original: {formatDate(selected.originalDueAt)}</small>}</span>
-              <span><RefreshCw size={19} />Atualizado<b>{formatDateTime(selected.updatedAt)}</b><small>{statusLabel[selected.status]}</small></span>
-              <span><CheckCircle2 size={19} />Etapas<b>{selected.visibleTasks.filter((task) => ['done', 'completed'].includes(task.status)).length}/{selected.visibleTasks.length}</b><small>compartilhadas</small></span>
-              <span><GitBranch size={19} />Frente<b>{selected.workstream || 'Frente CALI'}</b><small>{roadmapLabel(selected)}</small></span>
+              <span><Clock3 size={14} /> Prazo <b>{formatDate(selected.dueAt)}</b></span>
+              <span><CheckCircle2 size={14} /> Situação <b>{statusLabel[selected.status]}</b></span>
+              <span><FileText size={14} /> Versão <b>{selected.document?.versionLabel || '—'}</b></span>
+              <span><Leaf size={14} /> Frente de atuação <b>{selected.workstream || 'Frente CALI'}</b></span>
             </div>
-
-            {selected.status === 'client_review' && <div className="dv-next-action"><AlertTriangle size={18} /><div><strong>Sua validação é necessária</strong><p>{selected.clientResponseDueAt ? `Revise esta entrega e responda até ${formatDateTime(selected.clientResponseDueAt)}.` : 'Revise esta entrega e escolha entre aprovar ou solicitar ajuste.'}</p></div></div>}
-            {selected.status === 'adjustment_requested' && <div className="dv-next-action"><RefreshCw size={18} /><div><strong>Seu ajuste está com a CALI</strong><p>{selected.latestAdjustment?.reason || 'A nova versão voltará para sua validação assim que estiver pronta.'}</p></div></div>}
-
-            <section className="dv-overview-copy">
-              <div><strong>Sobre esta entrega</strong><span className={`mc-chip ${(selected.complexity || 'MC1').toLowerCase()}`}>{selected.complexity || 'MC1'}</span></div>
-              <p>{complexityCopy[selected.complexity || 'MC1'] || 'Complexidade definida pela CALI conforme volume de análise e dependências.'}</p>
-              {selected.description && <p>{selected.description}</p>}
-            </section>
-
-            {selected.isDocument && <section className="dv-file"><FileText size={20} /><div><span>ARQUIVO DA ENTREGA</span><strong>{selected.document ? selected.document.title : 'Ainda não publicado'}</strong><p>{selected.document ? `Publicado em ${formatDateTime(selected.document.publishedAt)}.` : 'Quando a versão compartilhável estiver pronta, ela aparecerá aqui e também na Biblioteca.'}</p></div>{selected.document && <button className="secondary" onClick={() => void openPublishedDocument(selected.document!)}>Abrir</button>}</section>}
-
-            {selected.feedback && <section className="dv-file"><span>{scoreReaction(selected.feedback.score).emoji}</span><div><small>SUA AVALIAÇÃO</small><strong>{selected.feedback.score}/5</strong><p>{selected.feedback.comment || 'Sem comentário adicional.'}</p></div></section>}
+            <div className="dv-overview-copy"><h3>Sobre esta entrega</h3>{selected.description && <p>{selected.description}</p>}<p>{complexityCopy[selected.complexity || 'MC1'] || 'Complexidade definida pela CALI conforme volume de análise e dependências.'}</p>{selected.originalDueAt && selected.originalDueAt !== selected.dueAt && <p>Prazo original: {formatDate(selected.originalDueAt)}.</p>}</div>
+            {selected.isDocument && <div className="dv-file"><FileText size={20} /><div><strong>{selected.document ? selected.document.title : 'Arquivo ainda não publicado'}</strong><small>{selected.document ? `${selected.document.versionLabel ? `Versão ${selected.document.versionLabel} · ` : ''}publicado em ${formatDateTime(selected.document.publishedAt)}` : 'Quando a versão compartilhável estiver pronta, ela aparecerá aqui e em Documentos.'}</small></div>{selected.document ? <button type="button" className="dv-file-open" onClick={() => void openPublishedDocument(selected.document!)}>Abrir</button> : <span className="dv-file-status">{statusLabel[selected.status]}</span>}</div>}
+            {selected.feedback && <div className="dv-file"><Star size={20} /><div><strong>Sua avaliação: {selected.feedback.score}/5</strong><small>{selected.feedback.comment || 'Sem comentário adicional.'}</small></div></div>}
+            {selected.status === 'client_review' && <div className="dv-next-action"><AlertCircle size={16} /><div><strong>O que precisa acontecer agora</strong><p>{selected.clientResponseDueAt ? `Revise esta entrega e responda até ${formatDateTime(selected.clientResponseDueAt)}.` : 'Revise esta entrega e escolha entre aprovar ou solicitar ajuste.'}</p></div></div>}
+            {selected.status === 'adjustment_requested' && <div className="dv-next-action"><AlertCircle size={16} /><div><strong>Seu ajuste está com a CALI</strong><p>{selected.latestAdjustment?.reason || 'A nova versão voltará para sua validação assim que estiver pronta.'}</p></div></div>}
           </>}
 
-          {detailTab === 'tasks' && <section className="dv-tasks">
-            <header><div><strong>Etapas compartilhadas</strong><p>Aqui aparecem somente as etapas que a CALI definiu como visíveis para você.</p></div></header>
-            <div className="dv-task-columns"><span>Etapa</span><span>Status</span><span>Prazo</span></div>
-            <div className="dv-steps">{selected.visibleTasks.length ? selected.visibleTasks.map((task) => <article key={task.id} className={['done', 'completed'].includes(task.status) ? 'done' : ''}><span className="dv-step-mark">{['done', 'completed'].includes(task.status) ? <Check size={15} /> : <Circle size={12} />}</span><div><small>{task.protocol || 'ETAPA'}</small><strong>{task.title}</strong></div><span>{taskStatusLabel[task.status] || task.status}</span><time>{formatDate(task.dueAt)}</time></article>) : <div className="empty-inline-v2">Nenhuma etapa foi compartilhada para esta entrega.</div>}</div>
-          </section>}
+          {detailTab === 'tasks' && (() => { const done = selected.visibleTasks.filter((task) => ['done', 'completed'].includes(task.status)); const total = selected.visibleTasks.length; const current = selected.visibleTasks.find((task) => !['done', 'completed'].includes(task.status)); const percent = total ? Math.round(done.length / total * 100) : 0; return <>
+            <div className="dv-progress-head"><div><small>ANDAMENTO DA ENTREGA</small><h3>{total ? `${done.length} de ${total} ${total === 1 ? 'etapa concluída' : 'etapas concluídas'}` : 'Nenhuma etapa compartilhada'}</h3><p>{current ? `Etapa atual: ${current.title}` : total ? 'Todas as etapas compartilhadas foram concluídas.' : 'Aqui aparecem as etapas que a CALI define como visíveis para você.'}</p></div><b>{total ? `${percent}%` : '—'}</b></div>
+            <div className="dv-progress-track"><span style={{ width: `${percent}%` }} /></div>
+            {total > 0 && <div className="dv-steps">{selected.visibleTasks.map((task, index) => { const isDone = ['done', 'completed'].includes(task.status); const isCurrent = task.id === current?.id; return <div className={'dv-step ' + (isCurrent ? 'current' : '')} key={task.id}><span className={'dv-step-mark ' + (isDone ? 'done' : '')}>{isDone ? <Check size={15} /> : String(index + 1).padStart(2, '0')}</span><div><strong>{task.title}</strong><p>{[task.protocol, task.dueAt ? `prazo ${formatDate(task.dueAt)}` : ''].filter(Boolean).join(' · ') || 'Etapa compartilhada pela CALI'}</p></div><span className={'dv-step-state ' + (isCurrent ? 'attention' : '')}>{taskStatusLabel[task.status] || task.status}</span></div>; })}</div>}
+            <div className="dv-next-action"><AlertCircle size={16} /><div><strong>Próxima ação</strong><p>{selected.status === 'client_review' ? 'Revisar a entrega e registrar sua devolutiva: aprovar, pedir ajuste ou conversar.' : 'Acompanhar o andamento e conversar com a CALI se precisar.'}</p></div><button type="button" onClick={() => setDetailTab('conversation')}>Conversar <ArrowRight size={13} /></button></div>
+          </>; })()}
 
-          {detailTab === 'conversation' && <section className="dv-conversation" data-v2-operation="conversation-pane-v2">
+          {detailTab === 'conversation' && <section className="dv-conversation">
             <div className="dv-chat workspace-chat-list" data-v2-operation="conversation-list-v2" ref={conversationRef} aria-live="polite" />
-            <div className="dv-reply-fixed workspace-chat-compose" data-v2-operation="conversation-composer-v2">
-              <div className="workspace-chat-runtime-pending-host" />
-              <div className="workspace-chat-runtime-tools-host" />
-              <textarea rows={3} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder="Escreva uma mensagem sobre esta entrega…" onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void sendMessage(); }} />
-              <div className="workspace-chat-send-actions"><button className="primary" onClick={() => void sendMessage()} disabled={sendingMessage || !messageDraft.trim()}>{sendingMessage ? <Loader2 className="spin" size={16} /> : <Send size={16} />}Enviar</button></div>
-            </div>
           </section>}
 
-          {detailTab === 'history' && <section className="dv-history-list"><header><History size={20} /><div><strong>Histórico do entregável</strong><p>As mudanças relevantes desta entrega ficam preservadas aqui.</p></div></header>{selected.history.length ? selected.history.map((item) => <article key={item.id}><i /><div><strong>{statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}</strong><p>{item.fromStatus ? `${statusLabel[item.fromStatus as ClientDeliveryStatus] || item.fromStatus} → ${statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}` : 'Status registrado.'}</p><small>{formatDateTime(item.createdAt)}</small></div></article>) : <div className="empty-inline-v2">Ainda não há movimentações registradas.</div>}</section>}
+          {detailTab === 'history' && <>
+            <div className="dv-history-intro"><History size={19} /><div><strong>Histórico da entrega</strong><p>Registro cronológico de mudanças de situação, validações e decisões — diferente das mensagens da conversa.</p></div></div>
+            {selected.history.length ? <div className="dv-history-list">{selected.history.map((item) => <div className="dv-history-row" key={item.id}><span className={'dv-history-dot ' + (item.toStatus === 'approved' ? 'green' : item.toStatus === 'client_review' || item.toStatus === 'adjustment_requested' ? 'gold' : 'neutral')} /><div><time>{formatDateTime(item.createdAt)}</time><strong>{statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}</strong><p>{item.fromStatus ? `${statusLabel[item.fromStatus as ClientDeliveryStatus] || item.fromStatus} → ${statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}` : 'Situação registrada.'}</p></div></div>)}</div> : <p className="dv-history-footnote">Ainda não há movimentações registradas para esta entrega.</p>}
+          </>}
         </div>
 
-        {detailTab !== 'conversation' && <footer className="dv-actions">
-          <div className="dv-action-status"><span className={`client-footer-status-v33 ${statusTone[selected.status]}`}><i />{statusLabel[selected.status]}</span></div>
+        {detailTab === 'conversation' && <div className="dv-reply dv-reply-fixed workspace-chat-compose" data-v2-operation="conversation-composer-v2">
+          <div className="workspace-chat-runtime-pending-host" />
+          <div className="workspace-chat-runtime-tools-host" />
+          <textarea value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder="Escreva sua mensagem sobre esta entrega..." onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void sendMessage(); }} />
+          <div className="workspace-chat-send-actions"><button className="primary" onClick={() => void sendMessage()} disabled={sendingMessage || !messageDraft.trim()}>{sendingMessage ? <Loader2 className="spin" size={14} /> : null}Enviar <ArrowRight size={14} /></button></div>
+        </div>}
+
+        </div>
+
+        <footer className="dv-actions">
+          <span>{statusLabel[selected.status]}{selected.updatedAt ? ` · atualizado em ${formatDateTime(selected.updatedAt)}` : ''}</span>
           <div className="dv-action-buttons">
-            {selected.status === 'client_review' && <><button className="secondary" onClick={() => { setAdjustmentText(''); setAdjustmentOpen(true); }}><RefreshCw size={16} />Solicitar ajuste</button><button className="primary" onClick={() => { setScore(0); setNpsComment(''); setNpsOpen(true); }}><FileCheck2 size={16} />Aprovar entrega</button></>}
-            {selected.status !== 'client_review' && <button className="secondary" onClick={() => setDetailTab('conversation')}><MessageCircle size={16} />Conversar sobre esta entrega</button>}
+            {selected.status === 'client_review' && <><button className="dv-secondary" onClick={() => { setAdjustmentText(''); setAdjustmentOpen(true); }}><RefreshCw size={14} /> Solicitar ajuste</button><button className="dv-converse-bottom" onClick={() => { setScore(0); setNpsComment(''); setNpsOpen(true); }}><FileCheck2 size={14} /> Aprovar entrega</button></>}
+            {selected.status !== 'client_review' && detailTab === 'overview' && <button className="dv-converse-bottom" onClick={() => setDetailTab('conversation')}><MessageCircle size={14} /> Conversar sobre esta entrega <ArrowRight size={14} /></button>}
           </div>
-        </footer>}
+        </footer>
       </section>
     </div></div>}
 
