@@ -474,3 +474,61 @@ html[data-workspace-ui='v2'] .v2-team-overlay .wf-modal{
 }
 html[data-workspace-ui='v2'] .v2-team-overlay .wf-modal .team-review-body{padding:18px 25px 20px}
 html[data-workspace-ui='v2'] .v2-team-overlay .wf-modal .team-step-track{margin-bottom:14px}
+/* Cadastro em formulário único: seções com título, rolagem interna e rodapé fixo. */
+html[data-workspace-ui='v2'] .v2-team-overlay .v2-team-editor{
+  display:flex;flex-direction:column;max-height:calc(100vh - 36px);overflow:hidden;width:min(760px,100%);
+  &>header,&>footer{flex:none}
+  .team-fields{overflow-y:auto;align-content:start}
+  .team-section-title{grid-column:1/-1;margin:10px 0 0;padding-top:14px;border-top:1px solid #efe7e1;font-size:13px;font-weight:600;color:#5a1e2d}
+  .team-section-title:first-child{margin-top:0;padding-top:0;border-top:0}
+  .team-optional{flex:none;max-height:38vh;overflow-y:auto;padding:14px 25px 4px;border-top:1px solid #efe7e1}
+  .team-optional>strong{font-size:13px;color:#5a1e2d}
+  .team-optional>p{margin:4px 0 0;font-size:11px;color:#95877f}
+  .team-optional .team-fields{padding:12px 0 16px;overflow:visible}
+  .team-fields [hidden]{display:none}
+}
+/* Indicadores: os blocos empilhados nunca se tocam. */
+html[data-workspace-ui='v2'] .indicator-page .indicator-extra{margin-bottom:16px}
+html[data-workspace-ui='v2'] .indicator-page .indicators-body{margin-top:16px}
+html[data-workspace-ui='v2'] .indicator-page .ie-insights{margin-top:16px}
+/* Ficha da pessoa em diálogo central (.enh-person), no lugar da gaveta lateral. */
+html[data-workspace-ui='v2'] .v2-person-sheet{
+  .enh-person-header>:first-child{width:65px;height:65px;border-radius:8px;overflow:hidden;flex:none}
+  .enh-person-header>:first-child :is(img,svg){width:100%;height:100%;object-fit:cover;display:block}
+  .v2-person-tabs button{border:0;background:none;padding:0 0 12px;margin-bottom:-13px;color:inherit;font:inherit;display:inline-flex;align-items:center;gap:6px;border-bottom:2px solid transparent;cursor:pointer}
+  .v2-person-tabs button.active{color:#5a1e2d;font-weight:700;border-bottom-color:#5a1e2d}
+  .v2-person-tabs button span{background:#f6edf0;color:#6e3645;border-radius:5px;padding:2px 6px;font-size:10px}
+  .v2-person-indicators{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin:4px 25px 0}
+  .v2-person-indicators>div{display:flex;flex-direction:column;gap:8px;padding:12px;background:#faf5f1;border:1px solid #e8ddd5;border-radius:7px}
+  .v2-person-indicators span{font-size:10px;color:#99887b}
+  .v2-person-indicators strong{font-size:16px;color:#5a1e2d}
+  .v2-person-facts>div>span{font-size:10px;color:#978981}
+  :is(.team-exit-card,.team-report-section,.team-detail-history,.team-private){margin:6px 25px 16px;font-size:11px;color:#655b57}
+  .team-exit-card{padding:13px;background:#fbecee;border-radius:8px;color:#7a4450}
+  .team-exit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+  .team-history{border-left:1px solid #d8c7b8;padding-left:16px;display:flex;flex-direction:column;gap:14px}
+  .team-history strong{font-size:12px;color:#3e3533}
+  .team-report-table{width:100%;border-collapse:collapse}
+  .team-report-table :is(th,td){text-align:left;padding:10px 8px;border-top:1px solid #eee6dd;font-size:11px}
+  .team-report-table th{background:#f7f1eb;color:#9e9086;font-weight:500;border-top:0}
+  .team-report-person,.team-report-open{border:0;background:none;padding:0;color:#5a1e2d;font:inherit;font-weight:600;display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+  .v2-person-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;padding:18px 25px;border-top:1px solid #eee5df}
+  .v2-person-actions .team-btn{border:1px solid #ded0c7;padding:10px 14px;background:#fff;border-radius:7px;color:#5a1e2d;display:inline-flex;gap:7px;align-items:center;font-size:12px;font-weight:600}
+  .v2-person-actions .team-btn:not(.secondary,.team-danger){background:#5a1e2d;color:#fff;border-color:#5a1e2d}
+  .v2-person-actions .team-btn.team-danger{color:#b05165;border-color:#f3d5db;background:#fff}
+  .v2-person-actions~p,.team-muted{margin:0 25px 18px;font-size:10px;color:#9a8c82}
+}
+html[data-workspace-ui='v2'] .v2-team-overlay .v2-team-editor{
+  &>.team-fields{flex:1 1 auto;min-height:0;grid-auto-rows:auto}
+  .team-fields label{height:auto;max-height:none;position:static}
+  .team-fields label>*{position:static}
+}
+html[data-workspace-ui='v2'] .v2-team-overlay .v2-team-editor .team-fields label{min-height:min-content}
+html[data-workspace-ui='v2'] .v2-team-overlay .v2-team-editor{
+  &>.team-fields{grid-auto-rows:max-content}
+  .team-fields label{display:block;min-height:0}
+  .team-fields label>:is(input,select,textarea){display:block;margin-top:7px}
+  .team-fields label>small{display:block;margin-top:4px}
+}
+html[data-workspace-ui='v2'] .v2-team-overlay .v2-team-editor .team-fields label:has(>input[type='checkbox']){display:flex;align-items:center;gap:8px;align-self:end;padding-bottom:11px}
+html[data-workspace-ui='v2'] .v2-team-overlay .v2-team-editor .team-fields label>input[type='checkbox']{margin:0;accent-color:#5a1e2d;width:15px;height:15px;flex:none}

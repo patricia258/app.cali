@@ -118,6 +118,17 @@ a ficha da pessoa abre em gaveta lateral. Ambos funcionam e ficam para os ajuste
 - Diálogos de Equipe (cadastro, planilha, atualização mensal, confirmações): cabeçalho, fechar, corpo e
   rodapé alinhados no padrão aprovado de diálogo.
 
+### 10/10 — terceira rodada de ajustes da proprietária (Equipe)
+- Regra registrada: **cartões nunca se tocam** — espaçamento mínimo e bordas alinhadas em toda tela.
+  Indicadores: 16 px entre os blocos empilhados.
+- Cadastro de colaborador no cliente: as cinco etapas viraram **um único formulário** em seções
+  (Identificação, Área e liderança, Vínculo e jornada, Situação, dados opcionais), com as mesmas validações
+  antes de salvar e os mesmos campos condicionais. A administradora mantém as cinco etapas até ser migrada.
+- Ficha da pessoa: sai a gaveta lateral, entra o diálogo central aprovado (`.enh-person`), com as abas
+  oficiais Dados / Liderados / Histórico e as ações de sempre (férias, desligar, editar, arquivar).
+  Observação da proprietária: as abas do protótipo (Visão geral, Movimentações, Vínculos) ainda não estão
+  100% aprovadas.
+
 ### Administradora — decisão da proprietária em 09/10 e plano
 Regra: a identidade é a V2 aprovada do cliente; **nenhum dado, campo, função ou fluxo do administrador
 oficial muda**. O protótipo em `cali-workspace-v2@feat/admin-v2-design-prototype-20261009` é só referência
