@@ -396,3 +396,17 @@ html[data-workspace-ui='client-v2'] .v2-team-table td:last-child button{border:0
 html[data-workspace-ui='client-v2'] .v2-team-flow{margin-top:14px}
 html[data-workspace-ui='client-v2'] .v2-team-flow .area-row strong{min-width:64px;white-space:nowrap;text-align:right}
 html[data-workspace-ui='client-v2'] .sidebar-flyout .flyout-link{text-decoration:none}
+/* Documentos: a terceira ação real (ciência/Drive) ocupa a própria linha sob as duas aprovadas. */
+html[data-workspace-ui='client-v2']{
+  .wf-doc-actions{flex-wrap:wrap}
+  .wf-doc-actions :is(button,a){flex:1 1 calc(50% - 5px);display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+  .wf-doc-actions :is(button,a):nth-child(n+3){flex-basis:100%}
+  /* Relatórios: seleção de publicação e versões no ritmo dos painéis aprovados. */
+  .wf-report-selection{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+  .wf-report-selection button{border:1px solid #e9ded6;background:#fff;border-radius:8px;padding:9px 12px;text-align:left;display:flex;flex-direction:column;gap:3px;font-size:11px;color:#655b57}
+  .wf-report-selection button :is(strong,b){color:#3e3533;font-size:11px}
+  .wf-report-selection button:is(.active,.on,[aria-pressed='true'],[aria-current='true']){border-color:#b58c52;background:#fff8f0}
+  .wf-report-version{background:#fff;border:1px solid #e9e0d8;border-radius:10px;margin-top:12px;overflow:hidden}
+  .wf-report-version-head{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid #f0e7e1;font-size:11px}
+  .wf-report-version-detail{padding:12px 16px;font-size:11px;color:#655b57}
+}
