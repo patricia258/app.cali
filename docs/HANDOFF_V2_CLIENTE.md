@@ -210,6 +210,18 @@ a ficha da pessoa abre em gaveta lateral. Ambos funcionam e ficam para os ajuste
 - As folhas do documento (`styles/routes/reports`) são carregadas na página de Relatórios do cliente. Medido:
   não alteram as demais telas depois de visitadas.
 
+### 10/10 — impressão do relatório
+- “Imprimir / salvar PDF” na página de Relatórios abre a caixa de impressão do navegador ali mesmo, sem
+  segunda página, e registra o evento `pdf_opened`. A rota `/cliente/relatorios/impressao/:id` continua
+  existindo para links diretos.
+- **Causa da página em branco:** as folhas de versões antigas do relatório (`reports-v7/v8/v9.css`) escondem
+  tudo na impressão com `body *{visibility:hidden!important}`; quem reexibia o documento era uma folha do
+  conjunto anterior, que o cliente não carrega mais. O bloco de impressão de `v2/operational.css` devolve a
+  visibilidade ao documento, achata o shell e fixa o palco em 210 mm. Verificado gerando o PDF: 2 páginas com
+  conteúdo, na largura inteira, pelos dois caminhos.
+- **A limpar na migração da administradora:** `reports-v3` a `reports-v15` são de telas que não existem mais
+  no fluxo atual (V17) e ainda são carregadas por `styles/routes/reports`.
+
 ## Pendências que dependem da proprietária (consolidado em 10/10)
 Itens pedidos que **não foram feitos porque exigem mudança no banco ou decisão**:
 1. **Avisos (Quadro de Avisos):** não existe tabela de comunicados. Falta criar a tabela, a ciência por

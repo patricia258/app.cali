@@ -148,6 +148,17 @@ export function ClientReportsPageV5(){
   // O relatório mais recente abre a página. Enquanto o cliente não o visualiza, ele fica desfocado atrás do
   // convite; "Visualizar" registra a abertura (record_report_client_event_v55) e libera a leitura.
   const gated=Boolean(selected&&!selected.openCount&&!revealed.has(selected.id));
+  // Imprime daqui mesmo: abre a caixa de impressão do navegador com o documento desta página e registra
+  // o evento de PDF, como fazia a página de impressão separada.
+  const printReport=async(report:Report)=>{
+    const previous=document.title;
+    document.title=`Relatório CALI RH - ${company?.name||'Empresa'} - ${periodLabel(report.reportType,report.periodStart)}`;
+    if(supabase)void supabase.rpc('record_report_client_event_v55',{p_report_id:report.id,p_event_type:'pdf_opened'});
+    await Promise.all(Array.from(document.images).map((image)=>image.complete?Promise.resolve():new Promise<void>((resolve)=>{image.addEventListener('load',()=>resolve(),{once:true});image.addEventListener('error',()=>resolve(),{once:true});})));
+    try{await document.fonts?.ready;}catch{/* navegador sem FontFaceSet */}
+    window.print();
+    document.title=previous;
+  };
   const openReport=(report:Report)=>{setRevealed((current)=>new Set(current).add(report.id));noteReportOpened(report);};
   const paper=selected&&selected.snapshot?<ExecutiveReportPaperV17 company={{name:company?.name||'Empresa',logoUrl:company?.logoUrl||null}} snapshot={selected.snapshot} editor={{summary:selected.summary,movements:selected.movements.join('\n'),decisions:selected.decisions.join('\n'),risks:selected.risks.join('\n'),nextSteps:selected.nextSteps.join('\n')}} reportType={selected.reportType} periodName={periodLabel(selected.reportType,selected.periodStart)} protocol={selected.protocol} deliveries={Array.isArray((selected.snapshot as any)?.deliveryPerformanceV14)?(selected.snapshot as any).deliveryPerformanceV14 as DeliveryPerformanceRow[]:[]} approvalIdentity={selected.approvalIdentity} acknowledgementIdentity={selected.ackIdentity} approvedAt={selected.approvedAt} acknowledgedAt={selected.acknowledgedAt} acknowledgementProtocol={selected.ackProtocol}/>:null;
 
@@ -158,11 +169,11 @@ export function ClientReportsPageV5(){
     {!reports.length?<div className="wf-empty"><FileText size={24}/><strong>Nenhum relatório disponível ainda.</strong><p>Quando a CALI publicar um fechamento, ele aparecerá aqui.</p></div>:null}
     {view==='current'&&selected?<div className="wf-report-layout">
       <div className={`v2-report-stage${gated?' gated':''}`}>
-        <div className="v2-report-paper" aria-hidden={gated||undefined}>{paper||<article className="wf-report-paper"><span>LEITURA EXECUTIVA · {periodLabel(selected.reportType,selected.periodStart)}</span><h2>{selected.title}</h2><p>{selected.summary||'Resumo executivo não informado.'}</p></article>}</div>
+        <div className="v2-report-paper report-print-v16-stage" aria-hidden={gated||undefined}>{paper||<article className="wf-report-paper"><span>LEITURA EXECUTIVA · {periodLabel(selected.reportType,selected.periodStart)}</span><h2>{selected.title}</h2><p>{selected.summary||'Resumo executivo não informado.'}</p></article>}</div>
         {gated?<div className="v2-report-invite" role="dialog" aria-label="Novo relatório disponível"><FileText size={22}/><small>NOVO RELATÓRIO DISPONÍVEL</small><h2>{periodLabel(selected.reportType,selected.periodStart)}</h2><p>{selected.title}. Deseja ver agora?</p><button type="button" className="wf-primary" onClick={()=>openReport(selected)}>Visualizar relatório</button></div>:null}
       </div>
       <aside className="wf-report-side v2-burgundy-aside"><h3>Sobre a leitura</h3><p>{company?.name||'Empresa'}</p><ul><li>Versão {selected.version}</li><li>Protocolo {selected.protocol}</li><li>Disponível desde {formatDateTime(selected.sentAt||selected.publishedAt)}</li><li>{selected.acknowledgedAt?`Ciência em ${formatDateTime(selected.acknowledgedAt)}`:'Ciência ainda não registrada'}</li></ul>
-        {!gated?<div className="v2-report-actions">{!selected.acknowledgedAt?<button type="button" className="v2-report-ack" onClick={()=>requestAcknowledge(selected)}><ShieldCheck size={14}/> Dar ciência</button>:null}<a className="v2-report-print" href={`/cliente/relatorios/impressao/${encodeURIComponent(selected.id)}`}><Printer size={14}/> Imprimir / salvar PDF</a></div>:null}
+        {!gated?<div className="v2-report-actions">{!selected.acknowledgedAt?<button type="button" className="v2-report-ack" onClick={()=>requestAcknowledge(selected)}><ShieldCheck size={14}/> Dar ciência</button>:null}<button type="button" className="v2-report-print" onClick={()=>void printReport(selected)}><Printer size={14}/> Imprimir / salvar PDF</button></div>:null}
       </aside>
     </div>:null}
     {view==='list'&&reports.length?<div className="wf-records v2-report-list"><div className="wf-record-row header"><span>Relatório</span><span>Período</span><span>Publicação</span><span>Situação</span><span/></div>{visibleReports.map((report)=><button type="button" className="wf-record-row" key={report.id} onClick={()=>{setSelectedId(report.id);setView('current');}}><span><small>{report.protocol}</small><strong>{report.title}</strong></span><span>{periodLabel(report.reportType,report.periodStart)} · v{report.version}</span><span>{formatDateTime(report.sentAt||report.publishedAt)}</span><span className="v2-report-tags"><span className={`wf-tag ${report.openCount?'green':'blue'}`}>{report.openCount?'Visualizado':'Novo'}</span><span className={`wf-tag ${report.acknowledgedAt?'green':'yellow'}`}>{report.acknowledgedAt?'Ciência registrada':'Ciência pendente'}</span></span><ChevronRight size={14}/></button>)}{!visibleReports.length?<div className="wf-empty">Nenhum relatório neste período.</div>:null}</div>:null}

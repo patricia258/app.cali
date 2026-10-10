@@ -740,4 +740,16 @@ html[data-workspace-ui='v2']{
   .report-print-v16-state{display:flex;flex-direction:column;align-items:center;gap:10px;padding:46px 25px;background:#fff;border:1px solid #e9e0d8;border-radius:10px;color:#82786f;font-size:11px}
   @media(max-width:980px){.wf-report-side.v2-burgundy-aside{position:static}}
 }
-@media print{html[data-workspace-ui='v2'] :is(.sidebar,.topbar,.report-print-v16-toolbar){display:none}html[data-workspace-ui='v2'] .content{padding:0}}
+/* Impressão do relatório a partir do shell aprovado: some tudo que não é o documento e o shell deixa de
+   limitar altura e largura, para as regras A4 do próprio documento valerem. */
+@media print{
+  html[data-workspace-ui='v2'] :is(.sidebar,.topbar,.wf-head,.wf-controls,.wf-report-side,.report-print-v16-toolbar,.v2-report-invite,.inline-notice,.ch-chat-trigger,.toast){display:none!important}
+  html[data-workspace-ui='v2'],html[data-workspace-ui='v2'] body,html[data-workspace-ui='v2'] #root{height:auto!important;min-height:0!important;overflow:visible!important;background:#fff!important}
+  /* Folhas de versões antigas do relatório escondem tudo na impressão (body *{visibility:hidden}); o
+     documento atual volta a ficar visível. */
+  html[data-workspace-ui='v2'] body :is(.report-print-v16-stage,.report-print-v16-stage *){visibility:visible!important}
+  /* O palco do documento ocupa exatamente a largura A4 e corta o ornamento que passa da borda; sem isso o
+     navegador reduz a página inteira para caber. */
+  html[data-workspace-ui='v2'] body .report-print-v16-stage.report-print-v16-stage{width:210mm!important;max-width:210mm!important;overflow:hidden!important}
+  html[data-workspace-ui='v2'] :is(.app,.main,.content,.v2-client-module,.wf,.wf-report-layout,.v2-report-stage,.report-print-v16-page){display:block!important;position:static!important;width:auto!important;max-width:none!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;overflow:visible!important;background:#fff!important;filter:none!important;opacity:1!important;box-shadow:none!important}
+}
