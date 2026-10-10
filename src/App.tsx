@@ -77,7 +77,7 @@ const ClientRecordsPage = lazy(async () => {
 });
 const ClientDashboard = lazy(async () => {
   await import('./styles/routes/clientExperience');
-  return import('./styles/routes/overview').then(() => import('./pages/client/ClientDashboard')).then((m) => ({ default: m.ClientDashboard }));
+  return import('./pages/client/ClientDashboard').then((m) => ({ default: m.ClientDashboard }));
 });
 const ClientTimelinePage = lazy(async () => {
   await import('./styles/routes/clientExperience');
