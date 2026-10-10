@@ -58,13 +58,26 @@ no topo, com data, commits, verificação e pendências. Detalhe técnico e mapa
   páginas com as classes da referência, manter consultas e gravações, e retirar de `styles/legacy` as
   folhas que deixarem de ser usadas. Ao final, `styles/legacy` deve deixar de existir.
 
+### Continuação em 09/10 (depois do primeiro envio ao GitHub)
+- Equipe: Movimentações, Estrutura (organograma por área com painel de exploração) e Indicadores (quatro
+  cartões, evolução, composição por área, entradas e saídas) na composição aprovada; menu lateral do módulo
+  com links `?aba=diretorio|estrutura|movimentacoes|indicadores`.
+- Documentos e Relatórios: linha de ações e painéis de versões no ritmo aprovado.
+- Telas estreitas: nenhuma das 10 rotas estoura a largura em 390 ou 1024 px.
+- Identidade dos commits desta pasta: `CALI RH <patricia@calirh.com>` (a configuração global da máquina
+  apontava para outra empresa; não usar).
+- Envio ao GitHub: a máquina não guarda credencial da conta `patricia258`. O envio é feito com um token
+  pessoal copiado pela proprietária no momento do push.
+
 ### Pendências do cliente
-- Equipe: tabela ainda com colunas configuráveis; abas Estrutura, Movimentações e Indicadores, ficha e
-  formulário de cadastro por alinhar.
-- Acerto fino em Relatórios, Documentos, Projetos e Frentes; campos de alguns diálogos.
-- Larguras 1280, 1024 e 390 px; fluxos de gravação com sessão real.
-- Avisos: não existe origem de dados no banco; a página mostra estado vazio. Ligar exige criar a tabela e
-  a publicação pela administradora (mudança de banco, precisa de autorização).
+- Equipe: tabela do diretório ainda com colunas configuráveis (a V2 tem seis fixas); ficha da pessoa em
+  gaveta lateral (a V2 mostra um diálogo central); revisão fina do formulário de cadastro em cinco passos.
+- Projetos: o aviso “itens do cronograma interrompidos” aparece mesmo com zero itens — conferir com sessão real.
+- Conferência visual tela a tela em 390 px (só o estouro de largura foi medido).
+- Fluxos de gravação com sessão real, numa empresa de teste.
+- Avisos: não existe origem de dados no banco; a página mostra estado vazio. Ligar exige criar tabela,
+  ciência por usuário, regras de acesso por empresa e a publicação pela administradora (mudança de banco,
+  precisa de autorização).
 - `scripts/verify-v2-operation.cjs` precisa ser reescrito para a nova estrutura.
 
 ### Pontos de atenção antes de publicar no oficial
