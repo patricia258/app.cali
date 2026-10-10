@@ -855,3 +855,30 @@ html[data-workspace-ui='v2']{
 .v2-client-module .dv-modal footer .dv-action-buttons{margin-left:auto}
 .v2-client-module .dv-modal footer .dv-action-buttons .dv-converse-bottom{margin-left:0}
 .v2-client-module .dv-chat .workspace-chat-head strong{color:#322f2c}
+
+/* ---- Administradora na identidade V2 ---- */
+/* O protótipo traz o próprio shell (.ap-app); nas páginas oficiais o shell é o WorkspaceShellV2, então
+   .ap-app passa a ser só o escopo das regras da página. */
+.app[data-workspace-role='admin'] .ap-app.v2-admin-page{display:block;min-height:0;background:none}
+.app[data-workspace-role='admin'] .v2-admin-page .ap-content{padding:0;max-width:none;margin:0}
+.v2-admin-page a{text-decoration:none}
+.v2-admin-page .ap-pane-head a{color:#6b293e;display:flex;align-items:center;gap:7px;font-size:11px}
+.v2-admin-page .ap-hour-logo{overflow:hidden;flex-shrink:0}
+.v2-admin-page .ap-hour-logo img{width:100%;height:100%;object-fit:contain;border-radius:7px}
+.v2-admin-page .v2-admin-empty{margin:0;padding:26px 4px 8px;color:#978980;font-size:12px}
+.v2-admin-page .ap-hour-client.warn .ap-hour-track i{background:#b58c52}
+.v2-admin-page .ap-hour-client.critical .ap-hour-track i{background:#b7495d}
+.v2-admin-page .v2-admin-nps-bars{margin-bottom:22px}
+.v2-admin-page .v2-admin-nps-bars span{position:relative}
+.v2-admin-page .v2-admin-nps-bars em{position:absolute;top:100%;left:50%;transform:translateX(-50%);padding-top:7px;font-style:normal;font-size:9px;color:#978980}
+.v2-admin-page .v2-admin-portfolio .ap-outline{justify-self:end}
+.ap-app.v2-admin-page :is(.ap-grid-two,.ap-exec-grid){margin:0 0 16px;gap:16px}
+.ap-app.v2-admin-page :is(.ap-grid-two,.ap-exec-grid)>.ap-pane{margin-bottom:0}
+.ap-app.v2-admin-page .ap-client-data{scrollbar-width:none}
+.ap-app.v2-admin-page .ap-client-data::-webkit-scrollbar{display:none}
+/* Exportação da Visão geral: o documento mantém a própria folha; só os controles do diálogo seguem o padrão V2. */
+html[data-workspace-ui='v2'] .overview-export-actions{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:15px 27px;border-top:1px solid #efe4dc}
+html[data-workspace-ui='v2'] .overview-export-actions button{font:inherit;font-size:11px;font-weight:700;padding:10px 14px;border-radius:7px;border:1px solid #dec9c3;background:#fff;color:#5a1e2d;cursor:pointer}
+html[data-workspace-ui='v2'] .overview-export-actions button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] .overview-export-filters select{font:inherit;font-size:12px;border:1px solid #dfd3ca;border-radius:8px;background:#fff;padding:9px 12px;color:#322f2c;min-width:190px}
+html[data-workspace-ui='v2'] .overview-export-close{border:1px solid #ecded5;background:#fff;border-radius:8px;padding:8px;display:grid;place-items:center;cursor:pointer;color:#322f2c}

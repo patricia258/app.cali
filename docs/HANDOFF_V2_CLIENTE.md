@@ -262,6 +262,22 @@ Pedido da proprietária: o diálogo aberto em Projetos → Entregáveis deve ser
 - Conferência: `~/CALI/qa/dv.cjs` fotografa as quatro abas no oficial e no V2 lado a lado. Varredura do cliente: 105 verificações, 0 apontamentos. `npm run check` passou.
 - Não testado: envio real de mensagem, aprovação e pedido de ajuste contra o banco (o ambiente de conferência bloqueia gravações).
 
+### 10/10 — administradora: shell V2 e Visão geral (primeira página migrada)
+
+Como a migração da administradora acontece:
+
+- **Página a página.** `src/v2/routes.ts` tem a lista `migratedAdminRoutes`; só as rotas listadas usam a V2 (hoje: `/admin`). As demais continuam com o shell e as folhas anteriores até serem migradas — ao navegar entre uma página migrada e uma não migrada o visual muda; isso some quando a última página entrar na lista. `usesClientV2` passou a se chamar `usesV2`.
+- **Shell.** `AdminShell` em `src/v2/WorkspaceShellV2.tsx`: mesma barra lateral e barra superior do cliente, com os menus oficiais da administradora (Visão geral, Clientes, Equipe, Projetos, Horas, Calendário, Ocorrências, Documentos, Relatórios, NPS & satisfação). Propostas e Mapa de People ficam na barra superior. Timer global, despesas de visita, notificações, perfil e sair continuam os componentes oficiais.
+- **Estilo.** `scripts/port-v2-css.cjs` agora também copia `admin-preview.css` e `project-admin-dialogs.css` da branch `feat/admin-v2-design-prototype-20261009` do repositório V2 (regras `.ap-*`). Nas páginas oficiais o invólucro é `<div className="ap-app v2-admin-page">`; os ajustes ficam no bloco "Administradora na identidade V2" de `operational.css`.
+- **Visão geral (`AdminDashboard.tsx`).** Mesmos dados e consultas de antes (contas, ações pendentes, horas do mês, NPS, consumo por cliente, status dos entregáveis, compromissos de 15 dias, próximos prazos, carteira com horas/projetos/NPS/próximo passo, exportação em PDF). Os dados de demonstração (`createPreviewDashboardData`, modo `cali-preview-role`) foram removidos da página.
+- **Decisões tomadas que a proprietária precisa confirmar:**
+  1. O mini calendário do mês, o botão "Cores" e a alternância Mês/Semana do bloco de agenda saíram da Visão geral. As cores escolhidas ali não eram salvas e a visão Semana só mostrava um aviso; a lista de compromissos e o link para o Calendário permanecem.
+  2. As páginas migradas da administradora ficam só no tema dia (a V2 não tem tema noturno); o botão de tema continua nas páginas ainda não migradas.
+  3. O bloco "Quadro de avisos" do protótipo não entrou: depende do backend de Avisos (ver pendências).
+- Conferência: `/admin` em 1440, 1024 e 768 sem rolagem horizontal; diálogo de exportação abre com o documento; `/admin/clientes` segue no visual anterior, funcionando. `npm run check` passou; varredura do cliente 105/0.
+- Não testado: impressão do PDF da exportação em janela nova e qualquer gravação contra o banco real.
+- Próximas páginas, nesta ordem: Clientes, Projetos, Horas, Calendário, Ocorrências, Documentos, Relatórios, NPS & satisfação, Equipe (admin), Propostas, Mapa de People.
+
 ## Pendências que dependem da proprietária (consolidado em 10/10)
 Itens pedidos que **não foram feitos porque exigem mudança no banco ou decisão**:
 1. **Avisos (Quadro de Avisos):** não existe tabela de comunicados. Falta criar a tabela, a ciência por

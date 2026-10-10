@@ -5,7 +5,7 @@
    dos componentes operacionais oficiais. */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, BriefcaseBusiness, CalendarDays, CalendarPlus, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Users, X, type LucideIcon } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, Building2, CalendarDays, CalendarPlus, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Star, Target, Users, X, type LucideIcon } from 'lucide-react';
 import { DirectProfileControl } from '../components/DirectProfileControl';
 import './v2.generated.css';
 import './operational.css';
@@ -21,6 +21,24 @@ export const clientNavigation: NavItem[] = [
   { label: 'Relatórios', href: '/cliente/relatorios', icon: FileBarChart2 },
   { label: 'Projetos', href: '/cliente/entregaveis', icon: BriefcaseBusiness },
   { label: 'Avisos', href: '/cliente/avisos', icon: Megaphone },
+];
+/* Menus oficiais da administradora, na mesma barra lateral. Propostas e Mapa de People são produtos
+   integrados e ficam na barra superior, como no protótipo. */
+export const adminNavigation: NavItem[] = [
+  { label: 'Visão geral', href: '/admin', icon: LayoutDashboard },
+  { label: 'Clientes', href: '/admin/clientes', icon: Building2 },
+  { label: 'Equipe', href: '/admin/equipe', icon: Users },
+  { label: 'Projetos', href: '/admin/projetos', icon: BriefcaseBusiness },
+  { label: 'Horas', href: '/admin/horas', icon: Clock3 },
+  { label: 'Calendário', href: '/admin/calendario', icon: CalendarDays },
+  { label: 'Ocorrências', href: '/admin/registros', icon: MessageCircleMore },
+  { label: 'Documentos', href: '/admin/documentos', icon: FolderOpen },
+  { label: 'Relatórios', href: '/admin/relatorios', icon: FileBarChart2 },
+  { label: 'NPS & satisfação', href: '/admin/satisfacao', icon: Star },
+];
+export const adminProducts: NavItem[] = [
+  { label: 'Propostas', href: '/admin/propostas', icon: BriefcaseBusiness },
+  { label: 'Mapa de People', href: '/admin/mapa-de-people', icon: Target },
 ];
 const teamAreas = [['diretorio', 'Diretório'], ['estrutura', 'Estrutura organizacional'], ['movimentacoes', 'Movimentações'], ['indicadores', 'Indicadores']] as const;
 const privacyPolicyUrl = 'https://calirh.com/privacidade.html';
@@ -41,7 +59,7 @@ type Props = {
 
 export function WorkspaceShellV2({ role, navigation, extras, children, scheduling, notifications, bridges, onLogout }: Props) {
   const home = role === 'admin' ? '/admin' : '/cliente';
-  const searchDestinations = useMemo(() => [...navigation.map(({ label, href }) => ({ label, href })), ...(role === 'client' ? [{ label: 'Frentes contratadas', href: '/cliente/frentes' }] : [])], [navigation, role]);
+  const searchDestinations = useMemo(() => [...navigation.map(({ label, href }) => ({ label, href })), ...(role === 'client' ? [{ label: 'Frentes contratadas', href: '/cliente/frentes' }] : adminProducts.map(({ label, href }) => ({ label, href })))], [navigation, role]);
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const [mobileNav, setMobileNav] = useState(false);
@@ -97,6 +115,7 @@ export function WorkspaceShellV2({ role, navigation, extras, children, schedulin
             <Link aria-label="Abrir agenda" title="Abrir agenda" className="ch-tool gold" to="/cliente/cronograma"><CalendarPlus size={17} /></Link>
             <Link className="ch-tool pill" to="/cliente/frentes"><BriefcaseBusiness size={17} /> Frentes</Link>
           </div>}
+          {role === 'admin' && <div className="ch-tools v2-top-tools">{adminProducts.map(({ label, href, icon: Icon }) => <Link key={href} className="ch-tool pill" to={href}><Icon size={17} /> {label}</Link>)}</div>}
           <div className="profile-holder" ref={searchRef}>
             {searching
               ? <label className="global-search"><Search size={15} /><input autoFocus value={term} onChange={event => setTerm(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && results[0]) navigate(results[0].href); }} placeholder="Buscar no Workspace" aria-label="Buscar no Workspace" /></label>
@@ -127,4 +146,9 @@ export function WorkspaceShellV2({ role, navigation, extras, children, schedulin
 /** Shell do cliente: a navegação aprovada, sem controles extras. */
 export function ClientShell(props: Omit<Props, 'role' | 'navigation' | 'extras'>) {
   return <WorkspaceShellV2 role="client" navigation={clientNavigation} {...props} />;
+}
+
+/** Shell da administradora: os menus oficiais dela e os controles operacionais (timer, despesas de visita). */
+export function AdminShell(props: Omit<Props, 'role' | 'navigation' | 'scheduling'>) {
+  return <WorkspaceShellV2 role="admin" navigation={adminNavigation} {...props} />;
 }

@@ -1,27 +1,7 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { createPortal } from "react-dom";
-import {
-  ArrowUpRight,
-  Building2,
-  CalendarRange,
-  ChevronRight,
-  CircleAlert,
-  Clock3,
-  ListChecks,
-  MessageSquareText,
-  Minus,
-  Palette,
-  Plus,
-  Star,
-  X,
-} from "lucide-react";
-import {
-  DonutChart,
-  HorizontalBars,
-  InteractiveTrendChart,
-  MiniCalendar,
-} from "../../components/DataViz";
+import { ArrowRight, CalendarDays, ChevronRight, CircleAlert, Clock3, Download, MessageSquareText, Plus, X } from "lucide-react";
 import { Shell } from "../../components/WorkspaceShell";
 import { supabase } from "../../lib/supabase";
 import { resolveWorkspaceMedia } from "../../lib/workspaceMedia";
@@ -90,68 +70,6 @@ const emptySatisfaction: Satisfaction = {
   recent: [],
 };
 
-function createPreviewDashboardData(): DashboardData {
-  const now = new Date();
-  const isoInDays = (days: number) => {
-    const date = new Date(now);
-    date.setDate(date.getDate() + days);
-    return date.toISOString();
-  };
-  const workDate = now.toISOString().slice(0, 10);
-  const monthKey = (offset: number) =>
-    new Date(now.getFullYear(), now.getMonth() + offset, 1)
-      .toISOString()
-      .slice(0, 10);
-
-  return {
-    companies: [
-      { id: "preview-aurora", name: "Grupo Aurora", service: "CALI Partner", contracted: 30, mark: "GA" },
-      { id: "preview-novatech", name: "Novatech", service: "CALI Full", contracted: 40, mark: "N" },
-      { id: "preview-studio", name: "Studio Norte", service: "Projeto de Estruturação", contracted: 20, mark: "SN" },
-      { id: "preview-horizonte", name: "Clínica Horizonte", service: "CALI Partner", contracted: 24, mark: "CH" },
-    ],
-    projects: [
-      { id: "project-aurora", companyId: "preview-aurora", name: "Rituais de gestão", planningStatus: "client_review", status: "in_progress" },
-      { id: "project-novatech", companyId: "preview-novatech", name: "Arquitetura de liderança", planningStatus: "approved", status: "in_progress" },
-      { id: "project-studio", companyId: "preview-studio", name: "Estruturação do RH", planningStatus: "approved", status: "in_progress" },
-      { id: "project-horizonte", companyId: "preview-horizonte", name: "Indicadores de People", planningStatus: "approved", status: "in_progress" },
-    ],
-    deliverables: [
-      { id: "deliverable-1", companyId: "preview-aurora", projectId: "project-aurora", title: "Guia de rituais de liderança", status: "client_review", dueAt: isoInDays(2) },
-      { id: "deliverable-2", companyId: "preview-novatech", projectId: "project-novatech", title: "Matriz de responsabilidades", status: "adjustment_requested", dueAt: isoInDays(4) },
-      { id: "deliverable-3", companyId: "preview-studio", projectId: "project-studio", title: "Plano de estruturação do RH", status: "in_progress", dueAt: isoInDays(6) },
-      { id: "deliverable-4", companyId: "preview-horizonte", projectId: "project-horizonte", title: "Painel de indicadores", status: "approved", dueAt: isoInDays(8) },
-      { id: "deliverable-5", companyId: "preview-aurora", projectId: "project-aurora", title: "Caderno do comitê mensal", status: "internal_review", dueAt: isoInDays(10) },
-      { id: "deliverable-6", companyId: "preview-novatech", projectId: "project-novatech", title: "Trilha de desenvolvimento", status: "approved", dueAt: isoInDays(12) },
-    ],
-    entries: [
-      { companyId: "preview-aurora", minutes: 1420, workDate },
-      { companyId: "preview-novatech", minutes: 1970, workDate },
-      { companyId: "preview-studio", minutes: 685, workDate },
-      { companyId: "preview-horizonte", minutes: 850, workDate },
-    ],
-    events: [
-      { id: "event-1", companyId: "preview-aurora", title: "Comitê executivo · Grupo Aurora", startsAt: isoInDays(2), type: "meeting" },
-      { id: "event-2", companyId: "preview-novatech", title: "Validação da matriz · Novatech", startsAt: isoInDays(4), type: "validation" },
-      { id: "event-3", companyId: "preview-studio", title: "Entrega do plano · Studio Norte", startsAt: isoInDays(7), type: "deadline" },
-    ],
-    satisfaction: {
-      average: 4.8,
-      total: 28,
-      distribution: { "3": 1, "4": 5, "5": 22 },
-      monthly: [-5, -4, -3, -2, -1, 0].map((offset, index) => ({
-        month: monthKey(offset),
-        average: [4.4, 4.6, 4.5, 4.8, 4.7, 4.8][index],
-        count: [3, 4, 4, 5, 6, 6][index],
-      })),
-      recent: [
-        { score: 5, company: "Grupo Aurora", protocol: "NPS-028", title: "Ciclo mensal", createdAt: isoInDays(-3) },
-        { score: 5, company: "Clínica Horizonte", protocol: "NPS-027", title: "Entrega de indicadores", createdAt: isoInDays(-8) },
-        { score: 4, company: "Novatech", protocol: "NPS-026", title: "Encontro de liderança", createdAt: isoInDays(-14) },
-      ],
-    },
-  };
-}
 const statusNames: Record<string, string> = {
   approved: "Aprovados",
   in_progress: "Em andamento",
@@ -190,15 +108,6 @@ function dateLabel(value?: string | null) {
         .format(date)
         .replace(".", "");
 }
-function TrendBadge({ children }: { children: string }) {
-  return (
-    <em className="signal-trend neutral">
-      <Minus size={13} />
-      {children}
-    </em>
-  );
-}
-
 type ExportRange = "month" | "quarter" | "year";
 
 function overviewExportBounds(range: ExportRange) {
@@ -329,13 +238,7 @@ function ExportOverview({ data }: { data: DashboardData }) {
   }
   return (
     <>
-      <button
-        className="secondary export-trigger"
-        type="button"
-        onClick={() => setOpen(true)}
-      >
-        Exportar <span aria-hidden="true">⌄</span>
-      </button>
+      <button type="button" onClick={() => setOpen(true)}><Download size={15} /> Exportar</button>
       {open && createPortal((
         <div
           className="overview-export-backdrop"
@@ -556,40 +459,20 @@ function ExportOverview({ data }: { data: DashboardData }) {
 }
 
 export function AdminDashboard() {
-  const [agendaMode, setAgendaMode] = useState<"month" | "week">("month");
-  const [showColors, setShowColors] = useState(false);
-  const [eventColors, setEventColors] = useState({
-    meeting: "#6b2135",
-    validation: "#B58C52",
-    deadline: "#9a5b40",
+  const [data, setData] = useState<DashboardData>({
+    companies: [],
+    projects: [],
+    deliverables: [],
+    entries: [],
+    events: [],
+    satisfaction: emptySatisfaction,
   });
-  const previewMode =
-    typeof window !== "undefined" &&
-    window.sessionStorage.getItem("cali-preview-role") === "admin";
-  const [data, setData] = useState<DashboardData>(() =>
-    previewMode
-      ? createPreviewDashboardData()
-      : {
-          companies: [],
-          projects: [],
-          deliverables: [],
-          entries: [],
-          events: [],
-          satisfaction: emptySatisfaction,
-        },
-  );
-  const [loading, setLoading] = useState(!previewMode);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     let refreshTimer = 0;
     async function load() {
-      if (previewMode) {
-        setData(createPreviewDashboardData());
-        setLoading(false);
-        return;
-      }
-
       if (!supabase) {
         setLoading(false);
         return;
@@ -805,19 +688,13 @@ export function AdminDashboard() {
     .filter((item) => item.dueAt)
     .sort((a, b) => String(a.dueAt).localeCompare(String(b.dueAt)))
     .slice(0, 5);
-  const npsSeries = [
-    {
-      name: "CALI",
-      color: "#B58C52",
-      values: (data.satisfaction.monthly || []).map((item) => item.average),
-    },
-  ];
-  const periodLabels = (data.satisfaction.monthly || []).map((item) =>
-    new Intl.DateTimeFormat("pt-BR", { month: "short" })
+  const npsMonths = (data.satisfaction.monthly || []).map((item) => ({
+    label: new Intl.DateTimeFormat("pt-BR", { month: "short" })
       .format(new Date(`${item.month}T12:00:00`))
       .replace(".", "")
       .replace(/^./, (x) => x.toUpperCase()),
-  );
+    average: Number(item.average || 0),
+  }));
   const actions = [
     ...data.projects
       .filter((item) => item.planningStatus === "client_review")
@@ -860,447 +737,107 @@ export function AdminDashboard() {
       })),
   ];
   const events = data.events.slice(0, 5);
-  const monthName = new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(
-    new Date(),
-  );
+  const average = data.satisfaction.average == null ? null : data.satisfaction.average.toFixed(1).replace(".", ",");
+  const donutTotal = statusData.reduce((sum, [, value]) => sum + value, 0);
+  let donutCursor = 0;
+  const donutStops = statusData.map(([, value], index) => {
+    const from = donutCursor;
+    donutCursor += donutTotal ? (value / donutTotal) * 100 : 0;
+    return `${tones[index % tones.length]} ${from}% ${donutCursor}%`;
+  });
+  const eventTone = { meeting: "purple", validation: "", deadline: "blue" } as const;
+  const eventKind = { meeting: "Reunião", validation: "Validação", deadline: "Prazo" } as const;
+  const eventTime = (value: string) => new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+  const metrics = [
+    { label: "Contas ativas", value: String(data.companies.length), tone: "green", helper: data.companies.length ? "clientes com ciclo aberto" : "Nenhuma conta ativa", href: "/admin/clientes" },
+    { label: "Ações pendentes", value: String(actions.length), tone: "amber", helper: actions.length ? "precisam de acompanhamento" : "Nenhuma ação crítica", href: "/admin/projetos" },
+    { label: "Horas no mês", value: formatHours(totalMinutes), tone: "blue", helper: totalContracted ? `${Math.round((totalMinutes / 60 / totalContracted) * 100)}% das ${totalContracted}h contratadas` : "Sem horas contratadas registradas", href: "/admin/horas" },
+    { label: "NPS atual", value: average == null ? "—" : `${average}/5`, tone: "purple", helper: data.satisfaction.total ? `${data.satisfaction.total} avaliações registradas · escala 1–5` : "Nenhuma avaliação registrada", href: "/admin/satisfacao" },
+  ];
 
   return (
     <Shell role="admin">
-      <section className="page admin-overview-page">
-        <div className="page-heading overview-heading">
-          <div>
-            <div className="eyebrow">CALI · OPERAÇÃO</div>
-            <h1>{greeting()}, Patrícia.</h1>
-            <p>
-              O que precisa de decisão agora, quais contas merecem atenção e
-              como cada ciclo está avançando.
-            </p>
+      <div className="ap-app v2-admin-page">
+        <div className="ap-content">
+          <div className="ap-title">
+            <div><small>BACKOFFICE / CALI RH</small><h1>Visão geral<span>.</span></h1><p>Onde estão as decisões, entregas e contas que precisam da CALI hoje.</p></div>
+            <div className="ap-title-actions"><Link className="ap-primary" to="/admin/clientes"><Plus size={15} /> Cadastrar cliente</Link></div>
           </div>
-          <div className="overview-actions compact-overview-actions">
+
+          <section className="ap-overview-hero">
+            <div><small>CALI · OPERAÇÃO</small><h2>{greeting()}, Patrícia.</h2><p>O que precisa de decisão agora, quais contas merecem atenção e como cada ciclo está avançando.</p></div>
             <ExportOverview data={data} />
-            <Link
-              className="primary compact-primary-action"
-              to="/admin/clientes"
-            >
-              <Plus size={16} />
-              Cadastrar cliente
-            </Link>
-          </div>
-        </div>
-        <section
-          className="overview-signal-strip"
-          aria-label="Sinais reais da operação"
-        >
-          <div className="signal-card">
-            <span>Contas ativas</span>
-            <strong>{loading ? "—" : data.companies.length}</strong>
-            <small>
-              {data.companies.length
-                ? "clientes com ciclo aberto"
-                : "Nenhuma conta ativa"}
-            </small>
-            <TrendBadge>período atual</TrendBadge>
-            <i>
-              <Building2 size={22} />
-            </i>
-          </div>
-          <div className="signal-card">
-            <span>Ações pendentes</span>
-            <strong>{loading ? "—" : actions.length}</strong>
-            <small>
-              {actions.length
-                ? "precisam de acompanhamento"
-                : "Nenhuma ação crítica"}
-            </small>
-            <TrendBadge>base real</TrendBadge>
-            <i>
-              <ListChecks size={22} />
-            </i>
-          </div>
-          <div className="signal-card">
-            <span>Horas no mês</span>
-            <strong>{loading ? "—" : formatHours(totalMinutes)}</strong>
-            <small>
-              {totalContracted
-                ? `${Math.round((totalMinutes / 60 / totalContracted) * 100)}% das ${totalContracted}h contratadas`
-                : "Sem horas contratadas registradas"}
-            </small>
-            <TrendBadge>período atual</TrendBadge>
-            <i>
-              <Clock3 size={22} />
-            </i>
-          </div>
-          <div className="signal-card">
-            <span>NPS atual</span>
-            <strong>
-              {loading
-                ? "—"
-                : data.satisfaction.average == null
-                  ? "—"
-                  : data.satisfaction.average.toFixed(1).replace(".", ",")}
-            </strong>
-            <small>
-              {data.satisfaction.total
-                ? `${data.satisfaction.total} avaliações registradas`
-                : "Nenhuma avaliação registrada"}
-            </small>
-            <TrendBadge>escala 1–5</TrendBadge>
-            <i>
-              <Star size={22} />
-            </i>
-          </div>
-        </section>
-        <div className="analytics-grid analytics-primary">
-          <section className="panel chart-panel hours-chart-panel">
-            <div className="panel-title chart-panel-title">
-              <div>
-                <span className="section-kicker">CONSUMO DE HORAS</span>
-                <h2>Quem está mais perto do limite do ciclo</h2>
-              </div>
-              <Link to="/admin/horas">
-                Detalhar horas <ChevronRight size={16} />
-              </Link>
-            </div>
-            <HorizontalBars
-              data={data.companies.map((item) => {
-                const value = (minutesByCompany.get(item.id) || 0) / 60;
-                const pct = item.contracted
-                  ? Math.round((value / item.contracted) * 100)
-                  : 0;
-                return {
-                  label: item.name,
-                  logoUrl: item.logoUrl,
-                  logoText: item.mark,
-                  value,
-                  max: item.contracted,
-                  helper: item.contracted
-                    ? `${Math.max(0, item.contracted - value)
-                        .toFixed(1)
-                        .replace(".", ",")}h restantes`
-                    : "Sem limite de ciclo",
-                  tone: pct >= 90 ? "critical" : pct >= 75 ? "warn" : "normal",
-                };
-              })}
-            />
           </section>
-          <section className="panel chart-panel deliverable-chart-panel">
-            <div className="panel-title chart-panel-title">
-              <div>
-                <span className="section-kicker">ENTREGÁVEIS</span>
-                <h2>Status atual</h2>
-              </div>
-              <Link to="/admin/projetos">Abrir projetos</Link>
-            </div>
-            {statusData.length ? (
-              <DonutChart
-                centerValue={String(data.deliverables.length)}
-                centerLabel="no portfólio"
-                data={statusData.map(([label, value], index) => ({
-                  label: statusNames[label] || label,
-                  value,
-                  color: tones[index % tones.length],
-                }))}
-              />
-            ) : (
-              <div className="dashboard-empty">
-                Ainda não há entregáveis para consolidar.
-              </div>
-            )}
-          </section>
-        </div>
-        <div className="analytics-grid analytics-secondary">
-          <section className="panel chart-panel nps-chart-panel">
-            <div className="panel-title chart-panel-title">
-              <div>
-                <span className="section-kicker">NPS / SATISFAÇÃO</span>
-                <h2>Evolução das avaliações</h2>
-              </div>
-              <div className="metric-inline">
-                <Star size={17} />
-                {data.satisfaction.average == null
-                  ? "—"
-                  : data.satisfaction.average.toFixed(1).replace(".", ",")}
-              </div>
-            </div>
-            {periodLabels.length > 1 ? (
-              <InteractiveTrendChart labels={periodLabels} series={npsSeries} />
-            ) : (
-              <div className="dashboard-empty">
-                As avaliações reais aparecerão aqui conforme forem registradas.
-              </div>
-            )}
-          </section>
-          <section className="panel attention-panel">
-            <div className="panel-title">
-              <div>
-                <span className="section-kicker">ATENÇÃO AGORA</span>
-                <h2>
-                  {actions.length
-                    ? `${actions.length} ponto${actions.length === 1 ? "" : "s"} para agir`
-                    : "Nada crítico agora"}
-                </h2>
-              </div>
-              <span className="count">{actions.length}</span>
-            </div>
-            {actions.length ? (
-              actions.map((action) => (
-                <div
-                  className="action-row"
-                  key={`${action.title}-${action.detail}`}
-                >
-                  <div className="status-icon warn">{action.icon}</div>
-                  <div>
-                    <strong>{action.title}</strong>
-                    <p>{action.detail}</p>
-                    <small>{action.helper}</small>
-                  </div>
-                  <Link className="ghost" to={action.href}>
-                    Abrir <ChevronRight size={17} />
-                  </Link>
-                </div>
-              ))
-            ) : (
-              <div className="dashboard-empty">
-                A operação não tem pendências críticas no momento.
-              </div>
-            )}
-          </section>
-        </div>
-        <div className="overview-lower-grid agenda-deadline-grid">
-          <section className="panel agenda-overview-panel">
-            <div className="panel-title agenda-panel-head">
-              <div>
-                <span className="section-kicker">AGENDA</span>
-                <h2>Próximos compromissos</h2>
-              </div>
-              <div className="agenda-head-actions">
-                <div className="view-toggle">
-                  <button
-                    className={agendaMode === "month" ? "active" : ""}
-                    onClick={() => setAgendaMode("month")}
-                  >
-                    Mês
-                  </button>
-                  <button
-                    className={agendaMode === "week" ? "active" : ""}
-                    onClick={() => setAgendaMode("week")}
-                  >
-                    Semana
-                  </button>
-                </div>
-                <button
-                  className={`agenda-color-button ${showColors ? "active" : ""}`}
-                  onClick={() => setShowColors((value) => !value)}
-                >
-                  <Palette size={15} />
-                  Cores
-                </button>
-                <Link to="/admin/calendario">Calendário completo</Link>
-              </div>
-            </div>
-            {showColors && (
-              <div className="event-color-editor">
-                {(["meeting", "validation", "deadline"] as const).map(
-                  (type) => (
-                    <label key={type}>
-                      <span style={{ background: eventColors[type] }} />
-                      {type === "meeting"
-                        ? "Reunião"
-                        : type === "validation"
-                          ? "Validação"
-                          : "Deadline"}
-                      <input
-                        type="color"
-                        value={eventColors[type]}
-                        onChange={(e) =>
-                          setEventColors((current) => ({
-                            ...current,
-                            [type]: e.target.value,
-                          }))
-                        }
-                      />
-                    </label>
-                  ),
-                )}
-              </div>
-            )}
-            <div className="agenda-overview-content">
-              {agendaMode === "month" ? (
-                <MiniCalendar
-                  monthLabel={
-                    monthName.charAt(0).toUpperCase() + monthName.slice(1)
-                  }
-                  activeDay={new Date().getDate()}
-                  markers={events.map((event) => ({
-                    day: new Date(event.startsAt).getDate(),
-                    color: eventColors[event.type],
-                    label: event.title,
-                  }))}
-                />
-              ) : (
-                <div className="dashboard-empty">
-                  A visão semanal detalhada está disponível no calendário
-                  completo.
-                </div>
-              )}
-              <div className="agenda-timeline">
-                {events.length ? (
-                  events.map((event) => (
-                    <div
-                      className="agenda-line"
-                      key={event.id}
-                      style={
-                        {
-                          "--event-color": eventColors[event.type],
-                        } as CSSProperties
-                      }
-                    >
-                      <span>{dateLabel(event.startsAt)}</span>
-                      <strong>{event.title}</strong>
-                      <small>
-                        {companyMap.get(event.companyId)?.name || "Cliente"}
-                      </small>
-                    </div>
-                  ))
-                ) : (
-                  <div className="dashboard-empty">
-                    Nenhum compromisso nos próximos 15 dias.
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
-          <section className="panel deadline-panel deadline-panel-v2">
-            <div className="panel-title">
-              <div>
-                <span className="section-kicker">DEADLINES</span>
-                <h2>Próximos prazos</h2>
-              </div>
-              <CalendarRange size={20} />
-            </div>
-            <div className="deadline-list-v2">
-              {deadlines.length ? (
-                deadlines.map((item) => (
-                  <div className="deadline-row-v2" key={item.id}>
-                    <span className="deadline-logo-v2">
-                      {companyMap.get(item.companyId)?.logoUrl ? (
-                        <img
-                          src={companyMap.get(item.companyId)?.logoUrl}
-                          alt=""
-                        />
-                      ) : (
-                        companyMap.get(item.companyId)?.mark || "C"
-                      )}
-                    </span>
-                    <div className="deadline-main-v2">
-                      <p>{item.title}</p>
-                      <div>
-                        <strong>
-                          {companyMap.get(item.companyId)?.name || "Cliente"}
-                        </strong>
-                        <span>{statusNames[item.status] || item.status}</span>
-                      </div>
-                    </div>
-                    <div className="deadline-time-v2">
-                      <strong>{dateLabel(item.dueAt)}</strong>
-                      <span>Prazo</span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="dashboard-empty">Nenhum prazo registrado.</div>
-              )}
-            </div>
-          </section>
-        </div>
-        <section className="panel portfolio-table-panel">
-          <div className="panel-title">
-            <div>
-              <span className="section-kicker">CARTEIRA</span>
-              <h2>Clientes em andamento</h2>
-            </div>
-            <Link to="/admin/clientes">
-              Gestão completa <ArrowUpRight size={16} />
-            </Link>
+
+          <div className="ap-metrics" aria-label="Sinais reais da operação">
+            {metrics.map((metric) => <Link className={`ap-metric ${metric.tone}`} key={metric.label} to={metric.href}><small>{metric.label}</small><strong>{loading ? "—" : metric.value}</strong><span>{metric.helper}</span></Link>)}
           </div>
-          {data.companies.length ? (
-            <>
-              <div className="portfolio-table-head">
-                <span>Cliente / serviço</span>
-                <span>Horas</span>
-                <span>Projetos</span>
-                <span>NPS</span>
-                <span>Próximo passo</span>
-                <span />
-              </div>
+
+          <div className="ap-grid-two">
+            <section className="ap-pane">
+              <div className="ap-pane-head"><h2>{actions.length ? `${actions.length} ponto${actions.length === 1 ? "" : "s"} para agir` : "Nada crítico agora"}</h2><Link to="/admin/projetos">Abrir acompanhamento <ArrowRight size={14} /></Link></div>
+              {actions.length ? actions.map((action, index) => <Link className="ap-activity" key={`${action.title}-${action.detail}`} to={action.href}><span className="ap-index">{String(index + 1).padStart(2, "0")}</span><span><strong>{action.title}</strong><small>{action.detail} · {action.helper}</small></span><ChevronRight size={14} /></Link>) : <p className="v2-admin-empty">A operação não tem pendências críticas no momento.</p>}
+            </section>
+            <section className="ap-pane">
+              <div className="ap-pane-head"><h2>Próximos compromissos</h2><Link to="/admin/calendario">Ver calendário <ArrowRight size={14} /></Link></div>
+              {events.length ? events.map((event) => <Link className="ap-time-line" key={event.id} to="/admin/calendario"><time>{dateLabel(event.startsAt)} · {eventTime(event.startsAt)}</time><i className={eventTone[event.type]} /><span><strong>{event.title}</strong><small>{companyMap.get(event.companyId)?.name || "Cliente"} · {eventKind[event.type]}</small></span><ChevronRight size={14} /></Link>) : <p className="v2-admin-empty">Nenhum compromisso nos próximos 15 dias.</p>}
+            </section>
+          </div>
+
+          <div className="ap-exec-grid">
+            <section className="ap-pane ap-exec-hours">
+              <div className="ap-pane-head"><h2>Consumo de horas por cliente</h2><Link to="/admin/horas">Detalhar horas <ArrowRight size={14} /></Link></div>
+              {data.companies.length ? data.companies.map((item) => {
+                const minutes = minutesByCompany.get(item.id) || 0;
+                const pct = item.contracted ? Math.round((minutes / 60 / item.contracted) * 100) : 0;
+                const left = item.contracted ? `${Math.max(0, item.contracted - minutes / 60).toFixed(1).replace(".", ",")}h restantes` : "Sem limite de ciclo";
+                return <Link className={`ap-hour-client ${pct >= 90 ? "critical" : pct >= 75 ? "warn" : ""}`} key={item.id} to="/admin/horas"><span className="ap-hour-logo">{item.logoUrl ? <img src={item.logoUrl} alt="" /> : item.mark}</span><span className="ap-hour-main"><strong>{item.name}</strong><small>{formatHours(minutes)}{item.contracted ? ` / ${item.contracted}h` : ""} · {left}</small><span className="ap-hour-track"><i style={{ width: `${Math.min(100, pct)}%` }} /></span></span><b>{item.contracted ? `${pct}%` : "—"}</b></Link>;
+              }) : <p className="v2-admin-empty">Nenhum cliente ativo encontrado.</p>}
+            </section>
+            <section className="ap-pane ap-exec-status">
+              <div className="ap-pane-head"><h2>Status dos entregáveis</h2><Link to="/admin/projetos">Abrir projetos <ArrowRight size={14} /></Link></div>
+              {statusData.length ? <>
+                <div className="ap-exec-donut" role="img" aria-label={statusData.map(([label, value]) => `${statusNames[label] || label}: ${value}`).join(", ")} style={{ background: `conic-gradient(${donutStops.join(",")})` }}><div><strong>{data.deliverables.length}</strong><small>no portfólio</small></div></div>
+                <div className="ap-exec-legend">{statusData.map(([label, value], index) => <span key={label}><i style={{ background: tones[index % tones.length] }} />{statusNames[label] || label} <strong>{value}</strong></span>)}</div>
+              </> : <p className="v2-admin-empty">Ainda não há entregáveis para consolidar.</p>}
+            </section>
+          </div>
+
+          <div className="ap-exec-grid">
+            <section className="ap-pane">
+              <div className="ap-pane-head"><h2>NPS e satisfação</h2><Link to="/admin/satisfacao">Ver avaliações <ArrowRight size={14} /></Link></div>
+              <div className="ap-exec-nps"><strong>{average ?? "—"}<span>/5</span></strong><div><b>{data.satisfaction.total ? `${data.satisfaction.total} avaliações registradas` : "Nenhuma avaliação registrada"}</b><small>Escala de satisfação de 1 a 5 · evolução mensal das avaliações.</small></div></div>
+              {npsMonths.length > 1 ? <div className="ap-exec-nps-bars v2-admin-nps-bars">{npsMonths.map((month, index) => <span key={index} style={{ height: `${Math.max(4, month.average * 16)}%` }} title={`${month.label}: ${month.average.toFixed(1).replace(".", ",")}/5`}><em>{month.label}</em></span>)}</div> : <p className="v2-admin-empty">As avaliações reais aparecerão aqui conforme forem registradas.</p>}
+            </section>
+            <section className="ap-pane">
+              <div className="ap-pane-head"><h2>Próximos prazos</h2><Link to="/admin/projetos">Ver cronograma <ArrowRight size={14} /></Link></div>
+              {deadlines.length ? deadlines.map((item) => <Link className="ap-deadline" key={item.id} to="/admin/projetos"><CalendarDays size={16} /><span><strong>{item.title}</strong><small>{companyMap.get(item.companyId)?.name || "Cliente"} · {statusNames[item.status] || item.status}</small></span><b>{dateLabel(item.dueAt)}</b></Link>) : <p className="v2-admin-empty">Nenhum prazo registrado.</p>}
+            </section>
+          </div>
+
+          <section className="ap-pane ap-full">
+            <div className="ap-pane-head"><h2>Clientes em andamento</h2><Link to="/admin/clientes">Gestão completa <ArrowRight size={14} /></Link></div>
+            {data.companies.length ? <div className="ap-client-data v2-admin-portfolio">
+              <div className="ap-client-data-head"><span>Cliente / serviço</span><span>Próximo passo</span><span>Horas</span><span>NPS</span><span>Projetos</span><span /></div>
               {data.companies.map((client) => {
-                const value = (minutesByCompany.get(client.id) || 0) / 60;
-                const usage = client.contracted
-                  ? Math.round((value / client.contracted) * 100)
-                  : 0;
-                const project = data.projects.find(
-                  (item) => item.companyId === client.id,
-                );
-                const nps = data.satisfaction.recent.find(
-                  (item) => item.company === client.name,
-                )?.score;
-                const next = pendingDeliverables.find(
-                  (item) => item.companyId === client.id,
-                );
-                return (
-                  <div className="portfolio-table-row" key={client.id}>
-                    <div className="client-identity compact-client">
-                      <div className="company-mark">
-                        {client.logoUrl ? (
-                          <img src={client.logoUrl} alt="" />
-                        ) : (
-                          client.mark
-                        )}
-                      </div>
-                      <div>
-                        <strong>{client.name}</strong>
-                        <small>{client.service}</small>
-                      </div>
-                    </div>
-                    <div className="portfolio-hours">
-                      <strong>{client.contracted ? `${usage}%` : "—"}</strong>
-                      <span>
-                        {formatHours(minutesByCompany.get(client.id) || 0)}
-                        {client.contracted ? ` / ${client.contracted}h` : ""}
-                      </span>
-                    </div>
-                    <div className="portfolio-deadline">
-                      <strong>
-                        {
-                          data.projects.filter(
-                            (item) => item.companyId === client.id,
-                          ).length
-                        }
-                      </strong>
-                      <span>{project?.name || "Sem projeto ativo"}</span>
-                    </div>
-                    <div className="metric-inline">
-                      <Star size={16} />
-                      {nps == null ? "—" : nps.toFixed(1).replace(".", ",")}
-                    </div>
-                    <div className="portfolio-next">
-                      <strong>{next?.title || "Sem pendência"}</strong>
-                      <span>{next ? "Acompanhar" : "Operação em dia"}</span>
-                    </div>
-                    <Link className="ghost" to="/admin/clientes">
-                      Abrir conta <ChevronRight size={16} />
-                    </Link>
-                  </div>
-                );
+                const minutes = minutesByCompany.get(client.id) || 0;
+                const usage = client.contracted ? Math.round((minutes / 60 / client.contracted) * 100) : 0;
+                const projects = data.projects.filter((item) => item.companyId === client.id);
+                const nps = data.satisfaction.recent.find((item) => item.company === client.name)?.score;
+                const next = pendingDeliverables.find((item) => item.companyId === client.id);
+                return <div className="ap-client-data-row" key={client.id}>
+                  <div className="ap-client-info"><span className="ap-hour-logo">{client.logoUrl ? <img src={client.logoUrl} alt="" /> : client.mark}</span><span><strong>{client.name}</strong><small>{client.service}</small></span></div>
+                  <div className="ap-client-contact"><strong>{next?.title || "Sem pendência"}</strong><small>{next ? "Acompanhar" : "Operação em dia"}</small></div>
+                  <div className="ap-client-contact"><strong>{client.contracted ? `${usage}%` : "—"}</strong><small>{formatHours(minutes)}{client.contracted ? ` / ${client.contracted}h` : ""}</small></div>
+                  <div className="ap-client-contact"><strong>{nps == null ? "—" : nps.toFixed(1).replace(".", ",")}</strong></div>
+                  <div className="ap-client-contact"><strong>{projects.length}</strong><small>{projects[0]?.name || "Sem projeto ativo"}</small></div>
+                  <Link className="ap-outline" to="/admin/clientes">Abrir conta <ChevronRight size={14} /></Link>
+                </div>;
               })}
-            </>
-          ) : (
-            <div className="dashboard-empty">
-              Nenhum cliente ativo encontrado.
-            </div>
-          )}
-        </section>
-      </section>
+            </div> : <p className="v2-admin-empty">Nenhum cliente ativo encontrado.</p>}
+          </section>
+        </div>
+      </div>
     </Shell>
   );
 }
