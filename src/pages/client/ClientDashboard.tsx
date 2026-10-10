@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Activity, ArrowRight, ArrowUpRight, BriefcaseBusiness, CircleHelp, ClipboardCheck, Clock3, CalendarDays, CalendarPlus, Check, CheckCircle2, ChevronRight, FileText,
+  Activity, ArrowRight, ArrowUpRight, CircleHelp, ClipboardCheck, Clock3, CalendarDays, Check, CheckCircle2, ChevronRight, FileText,
   Leaf, Loader2, MessageCircle, Minus, Send,
   Star, X,
 } from 'lucide-react';
@@ -70,6 +70,8 @@ type DashboardData = {
   occurrenceLoadError: boolean;
 };
 
+// Cores aprovadas das etiquetas de prazo, por situação real da entrega (sem tom = creme, em andamento).
+const milestoneTone: Record<string, string> = { approved: 'green', client_review: 'purple', internal_review: 'purple', not_started: 'red', adjustment_requested: 'red', rebriefing: 'red' };
 const statusLabel: Record<string, string> = {
   not_started: 'Não iniciado', in_progress: 'Em andamento', standby: 'Em espera',
   internal_review: 'Revisão CALI', client_review: 'Aguardando sua validação',
@@ -341,10 +343,6 @@ export function ClientDashboard() {
     <section className="client-home">
       {error && <div className="inline-notice">{error}</div>}
 
-      <div className="ch-toolbar"><div className="ch-area"><span className="ch-area-mark" /><span><small>ÁREA DA EMPRESA</small><strong>Início</strong></span></div><div className="ch-tools">
-        <Link aria-label="Abrir agenda" title="Abrir agenda" className="ch-tool gold" to="/cliente/cronograma"><CalendarPlus size={17} /></Link>
-        <Link className="ch-tool pill" to="/cliente/frentes"><BriefcaseBusiness size={17} /> Frentes</Link>
-      </div></div>
       <div className="ch-content">
       <div className="ch-greeting">
         <div><span className="ch-overline">SUA PARCERIA COM A CALI</span><h1>Olá, {data.profile?.full_name ? firstName(data.profile.full_name) : 'seja bem-vinda'}.</h1><p>Veja o que aconteceu e o que vem a seguir na sua assessoria.</p></div>
@@ -460,7 +458,7 @@ export function ClientDashboard() {
               return <div className="ch-gantt-row" key={deliverable.id}>
                 <div className="ch-delivery-name"><strong>{deliverable.title}</strong><small>{statusLabel[deliverable.status] || deliverable.status}</small></div>
                 <div className="ch-gantt-track" aria-hidden="true">
-                  {due && timeline ? <span className={`ch-milestone status-${deliverable.status}`} style={{ left: `${position}%` }}>{formatDate(deliverable.due_at)}</span> : <span className="ch-undated">Prazo a definir</span>}
+                  {due && timeline ? <span className={`ch-milestone ${milestoneTone[deliverable.status] || ''} status-${deliverable.status}`} style={{ left: `${position}%` }}>{formatDate(deliverable.due_at)}</span> : <span className="ch-undated">Prazo a definir</span>}
                 </div>
                 <span className="ch-mobile-date">{formatDate(deliverable.due_at)}</span>
               </div>;

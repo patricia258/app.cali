@@ -1,4 +1,4 @@
-import { usesClientV2 } from '../client-v2/routes';
+import { usesClientV2 } from '../v2/routes';
 export type WorkspaceTheme = 'day' | 'night';
 
 type ThemeOverride = {

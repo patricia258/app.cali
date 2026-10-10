@@ -3,7 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute, WorkspaceRouteLoader } from './components/ProtectedRoute';
 import { Shell, WorkspaceFrame } from './components/WorkspaceShell';
 import { useLocation } from 'react-router-dom';
-import { applyVisualSystem } from './client-v2/visualSystem';
+import { applyVisualSystem } from './v2/visualSystem';
 
 const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));

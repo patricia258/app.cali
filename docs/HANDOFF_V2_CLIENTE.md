@@ -98,6 +98,17 @@ Revisão visual tela a tela (10 rotas) e diálogo a diálogo (8) a 1440 px. Corr
 Observado e não alterado: o diálogo de agendamento usa a folha própria do componente (cabeçalho bordô);
 a ficha da pessoa abre em gaveta lateral. Ambos funcionam e ficam para os ajustes pontuais da proprietária.
 
+## 10/10/2026 — ajustes pedidos pela proprietária depois de ver o link de homologação
+1. Visão Geral: a capa do documento mais recente (logo da empresa) estourava o cartão — a folha da capa só
+   existia no conjunto anterior. Capa contida na miniatura aprovada.
+2. Visão Geral: etiquetas de prazo de “Em movimento” com as cores aprovadas, por situação real da entrega
+   (creme em andamento, bordô não iniciada/ajuste, lilás em validação, verde aprovada).
+3. Visão Geral: barra “Área da empresa / Início” retirada; agenda e Frentes foram para a topbar.
+4. Equipe: “Cadastrar todos via planilha” ao lado de “Adicionar pessoa”, no cabeçalho.
+5. Equipe → Estrutura: painel da área completo como na V2 — quatro números (ativos, entradas e saídas no
+   mês de referência, permanência média), tabela de colaboradores, “Exibir desligamentos na estrutura” e os
+   cartões de pessoas. Linha do organograma liga apenas as áreas existentes. Filtros mantidos.
+
 ### Administradora — decisão da proprietária em 09/10 e plano
 Regra: a identidade é a V2 aprovada do cliente; **nenhum dado, campo, função ou fluxo do administrador
 oficial muda**. O protótipo em `cali-workspace-v2@feat/admin-v2-design-prototype-20261009` é só referência

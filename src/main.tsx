@@ -9,7 +9,7 @@ import { initializeWorkspaceTheme, startWorkspaceThemeClock } from './lib/worksp
 import { startIdentityMediaRuntime } from './lib/identityMediaRuntime';
 import { installNotificationExperienceRuntime } from './lib/notificationExperienceRuntime';
 import { installCompanyWorkspaceIdentityRuntimeV39 } from './lib/companyWorkspaceIdentityRuntimeV39';
-import { applyVisualSystem } from './client-v2/visualSystem';
+import { applyVisualSystem } from './v2/visualSystem';
 
 function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
   return <AppErrorBoundary>{children}</AppErrorBoundary>;

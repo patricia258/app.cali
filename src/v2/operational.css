@@ -434,3 +434,24 @@ html[data-workspace-ui='v2'] .v2-team-overlay .v2-team-editor{
 /* Detalhe do entregável: ações do cabeçalho (fechar) à direita do título, como no diálogo aprovado. */
 html[data-workspace-ui='v2'] .dv-modal>header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
 html[data-workspace-ui='v2'] .dv-modal>header .dv-head-actions{display:flex;align-items:center;gap:8px;flex:none}
+/* Ajustes pedidos pela proprietária em 10/10. */
+html[data-workspace-ui='v2']{
+  /* Capa de documento com o logo da empresa dentro da miniatura aprovada. */
+  .client-document-brand-cover{display:grid;place-items:center;width:100%;height:100%;padding:12px;color:#5a1e2d}
+  .client-document-brand-cover img{display:block;max-width:86%;max-height:126px;width:auto;height:auto;object-fit:contain}
+  .ch-doc-thumb{width:105px;flex:none;overflow:hidden}
+  .ch-doc-thumb .client-document-brand-cover{padding:8px}
+  .ch-doc-thumb .client-document-brand-cover img{max-height:84px}
+  /* Agenda e Frentes na topbar. */
+  .v2-top-tools{display:flex;align-items:center;gap:8px}
+  .v2-team-page-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  /* Organograma: a linha liga só as áreas existentes. */
+  .v2-org-areas[data-count='1']{grid-template-columns:minmax(150px,25%);justify-content:center}
+  .v2-org-areas[data-count='2']{grid-template-columns:repeat(2,minmax(150px,25%));justify-content:center}
+  .v2-org-areas[data-count='3']{grid-template-columns:repeat(3,minmax(150px,25%));justify-content:center}
+  .v2-org-areas[data-count='1']:before{display:none}
+  .v2-org-areas[data-count='2']:before{left:37.5%;right:37.5%}
+  .v2-org-areas[data-count='3']:before{left:25%;right:25%}
+  .enh-team-row .enh-pill{justify-self:start}
+  @media(max-width:950px){.v2-org-areas[data-count]{grid-template-columns:repeat(2,minmax(140px,1fr))}.v2-top-tools .ch-tool.pill{display:none}}
+}

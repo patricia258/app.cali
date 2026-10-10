@@ -8,7 +8,7 @@ import { nextThemeBoundary, resolveWorkspaceTheme, setManualWorkspaceTheme, work
 import { activeFront, loadContractFronts, planName, type CompanyPlan, type ContractedFront, type Front } from '../lib/contractFronts';
 import { NotificationCenter } from './WorkspaceChrome';
 import { DirectProfileControl } from './DirectProfileControl';
-import { ClientShell } from '../client-v2/ClientShell';
+import { ClientShell } from '../v2/WorkspaceShellV2';
 import { GlobalTimerBar } from './GlobalTimerBar';
 import { ProjectTimerBridge } from './ProjectTimerBridge';
 import { ProjectDeliveryHistoryBridge } from './ProjectDeliveryHistoryBridge';

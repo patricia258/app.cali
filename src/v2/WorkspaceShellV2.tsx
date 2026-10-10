@@ -5,7 +5,7 @@
    dos componentes operacionais oficiais. */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, BriefcaseBusiness, CalendarDays, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Users, X, type LucideIcon } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, CalendarDays, CalendarPlus, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Users, X, type LucideIcon } from 'lucide-react';
 import { DirectProfileControl } from '../components/DirectProfileControl';
 import './v2.generated.css';
 import './operational.css';
@@ -93,6 +93,10 @@ export function WorkspaceShellV2({ role, navigation, extras, children, schedulin
         <button className="mobile-menu" onClick={() => setMobileNav(!mobileNav)} aria-label={mobileNav ? 'Fechar menu' : 'Abrir menu'} aria-expanded={mobileNav}>{mobileNav ? <X size={19} /> : <Menu size={19} />}</button>
         <div className="top-left"><span className="workspace-label">CALI <span>WORKSPACE</span></span></div>
         <div className="top-actions">
+          {role === 'client' && <div className="ch-tools v2-top-tools">
+            <Link aria-label="Abrir agenda" title="Abrir agenda" className="ch-tool gold" to="/cliente/cronograma"><CalendarPlus size={17} /></Link>
+            <Link className="ch-tool pill" to="/cliente/frentes"><BriefcaseBusiness size={17} /> Frentes</Link>
+          </div>}
           <div className="profile-holder" ref={searchRef}>
             {searching
               ? <label className="global-search"><Search size={15} /><input autoFocus value={term} onChange={event => setTerm(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && results[0]) navigate(results[0].href); }} placeholder="Buscar no Workspace" aria-label="Buscar no Workspace" /></label>
