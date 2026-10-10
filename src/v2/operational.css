@@ -411,8 +411,9 @@ html[data-workspace-ui='v2']{
   .client-lifecycle-banner-v44 strong{font-size:13px;color:#3e3533}
   .client-lifecycle-banner-v44 p{margin:0;font-size:11px;line-height:1.5}
 }
-/* Cadastro de colaborador (cinco passos) no padrão aprovado de diálogo e formulário (.enh-profile/.enh-form). */
-html[data-workspace-ui='v2'] .v2-team-overlay .v2-team-editor{
+/* Diálogos de Equipe (cadastro em cinco passos, planilha, revisão mensal, desligamento) no padrão aprovado
+   de diálogo e formulário (.enh-profile/.enh-form). */
+html[data-workspace-ui='v2'] .v2-team-overlay .wf-modal{
   width:min(680px,100%);padding:0;
   &>header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;border-bottom:1px solid #eee5df;padding:18px 25px}
   &>header>div{display:flex;flex-direction:column;gap:4px}
@@ -455,3 +456,21 @@ html[data-workspace-ui='v2']{
   .enh-team-row .enh-pill{justify-self:start}
   @media(max-width:950px){.v2-org-areas[data-count]{grid-template-columns:repeat(2,minmax(140px,1fr))}.v2-top-tools .ch-tool.pill{display:none}}
 }
+/* Cadastro por planilha: introdução, três passos, modelo e envio alinhados dentro do diálogo. */
+html[data-workspace-ui='v2'] .v2-team-overlay .wf-modal{
+  .team-import-body{display:flex;flex-direction:column;gap:16px;padding:18px 25px 20px}
+  .team-import-intro{display:flex;align-items:flex-start;gap:12px;padding:13px;background:#faf3ed;color:#896e60;border-radius:8px}
+  .team-import-intro svg{flex:none;width:18px;height:18px;color:#753a4b;margin-top:1px}
+  .team-import-intro p{margin:0;font-size:11px;line-height:1.6}
+  .team-import-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .team-import-steps>div{display:flex;flex-direction:column;gap:6px;padding:12px;background:#fff;border:1px solid #e8ddd5;border-radius:7px;font-size:11px;color:#655b57}
+  .team-import-steps>div :is(strong,b,span:first-child){font-size:13px;color:#5a1e2d;font-weight:700}
+  .team-download{align-self:flex-start;border:1px solid #ded0c7;padding:10px 14px;background:#fff;border-radius:7px;color:#5a1e2d;display:inline-flex;gap:7px;align-items:center;font-size:12px;font-weight:600}
+  .team-file{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:22px;border:1px dashed #d6b9ae;border-radius:9px;background:#fffdfb;color:#5a1e2d;font-size:11px;font-weight:600;cursor:pointer;text-align:center}
+  .team-file input{display:none}
+  .team-file svg{width:22px;height:22px}
+  .team-inline-error{margin:0 25px;padding:11px 13px;background:#fbecee;color:#b05165;border-radius:8px;font-size:11px}
+  @media(max-width:650px){.team-import-steps{grid-template-columns:1fr}}
+}
+html[data-workspace-ui='v2'] .v2-team-overlay .wf-modal .team-review-body{padding:18px 25px 20px}
+html[data-workspace-ui='v2'] .v2-team-overlay .wf-modal .team-step-track{margin-bottom:14px}

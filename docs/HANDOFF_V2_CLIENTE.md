@@ -109,6 +109,15 @@ a ficha da pessoa abre em gaveta lateral. Ambos funcionam e ficam para os ajuste
    mês de referência, permanência média), tabela de colaboradores, “Exibir desligamentos na estrutura” e os
    cartões de pessoas. Linha do organograma liga apenas as áreas existentes. Filtros mantidos.
 
+### 10/10 — segunda rodada de ajustes da proprietária (Equipe)
+- Indicadores: incluídos os blocos de `IndicatorExtras` da V2 que faltavam — três cartões (rotatividade,
+  permanência média, movimentações internas), “Movimento do quadro” com alternância quadro/entradas-saídas e
+  mês selecionável, e “Tempo de permanência” por faixa com filtro por área. Tudo com dados reais.
+  **Rotatividade usa uma fórmula provisória (saídas do mês ÷ quadro ativo do mês)**; a regra oficial de
+  turnover continua pendente de aprovação, como registra o handoff mestre da V2.
+- Diálogos de Equipe (cadastro, planilha, atualização mensal, confirmações): cabeçalho, fechar, corpo e
+  rodapé alinhados no padrão aprovado de diálogo.
+
 ### Administradora — decisão da proprietária em 09/10 e plano
 Regra: a identidade é a V2 aprovada do cliente; **nenhum dado, campo, função ou fluxo do administrador
 oficial muda**. O protótipo em `cali-workspace-v2@feat/admin-v2-design-prototype-20261009` é só referência
