@@ -278,6 +278,10 @@ Como a migração da administradora acontece:
 - Não testado: impressão do PDF da exportação em janela nova e qualquer gravação contra o banco real.
 - Próximas páginas, nesta ordem: Clientes, Projetos, Horas, Calendário, Ocorrências, Documentos, Relatórios, NPS & satisfação, Equipe (admin), Propostas, Mapa de People.
 
+### Link de homologação (o mesmo para cliente e administradora)
+
+`https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
+
 ## Pendências que dependem da proprietária (consolidado em 10/10)
 Itens pedidos que **não foram feitos porque exigem mudança no banco ou decisão**:
 1. **Avisos (Quadro de Avisos):** não existe tabela de comunicados. Falta criar a tabela, a ciência por
