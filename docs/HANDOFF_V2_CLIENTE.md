@@ -166,6 +166,18 @@ a ficha da pessoa abre em gaveta lateral. Ambos funcionam e ficam para os ajuste
   online). Bordas esquerda e direita de todas as linhas coincidem; empresa como campo de leitura no padrão
   `.enh-fields`; opções de data no padrão `.enh-kpis`. Sem rolagem.
 
+### 10/10 — sétima rodada: conversa da ocorrência igual à gaveta aprovada
+- Cabeçalho “OCORRÊNCIA · protocolo”, etiqueta de situação colorida + tipo + atualização, “Contexto inicial ·
+  ver detalhes”, título “Conversa e encaminhamentos”, balões (CALI à esquerda em creme, cliente à direita em
+  rosado, foto e nome no topo, horário embaixo) e resposta no rodapé com “Anexar” e “Enviar”.
+- Mantidos: link e emoji ao lado de “Anexar”, anexos pendentes, bloqueio de conversa encerrada, pedido de
+  reabertura e avaliação do atendimento.
+- **Atenção para qualquer mudança nesta gaveta:** os runtimes de conversa
+  (`recordsExperienceRuntimeV2`, `recordsMessageControlsRuntime`, `recordsOperationsRuntimeV25`,
+  `recordsClosure*`) identificam o registro lendo o texto do elemento `.section-kicker` e exigem que comece
+  por `CALI-REG-`. O protocolo precisa continuar sozinho dentro desse elemento, senão mensagens e
+  ferramentas não carregam.
+
 ### Administradora — decisão da proprietária em 09/10 e plano
 Regra: a identidade é a V2 aprovada do cliente; **nenhum dado, campo, função ou fluxo do administrador
 oficial muda**. O protótipo em `cali-workspace-v2@feat/admin-v2-design-prototype-20261009` é só referência

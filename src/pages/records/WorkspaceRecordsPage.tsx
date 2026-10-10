@@ -516,15 +516,15 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
     {conversationOpen && selected && <div className={role==='client'?'wf-overlay':'records-v13-drawer-backdrop'} onMouseDown={(event) => { if (event.target === event.currentTarget) setConversationOpen(false); }}>
       <aside className={role==='client'?'wf-record-drawer':'records-v13-drawer records-v27-drawer'} data-v2-operation={role==='client'?'records-v13-drawer':undefined} role="dialog" aria-modal="true" aria-label={selected.title}>
         <header>
-          <div><span className="section-kicker">{selected.protocol || 'MEMÓRIA DA CONTA'}</span><h2>{selected.title}</h2><p>{role === 'admin' ? companyMap.get(selected.companyId) || '' : typeLabels[selected.type]}{role === 'admin' ? ` · ${typeLabels[selected.type]}` : ''}</p></div>
-          <button type="button" className="drawer-close" onClick={() => setConversationOpen(false)}><X size={20} /></button>
+          {role === 'client' ? <div><small>OCORRÊNCIA{selected.protocol ? ' · ' : ''}<span className="section-kicker">{selected.protocol || ''}</span></small><h2>{selected.title}</h2></div> : <div><span className="section-kicker">{selected.protocol || 'MEMÓRIA DA CONTA'}</span><h2>{selected.title}</h2><p>{companyMap.get(selected.companyId) || ''} · {typeLabels[selected.type]}</p></div>}
+          <button type="button" className="drawer-close" aria-label="Fechar" onClick={() => setConversationOpen(false)}><X size={role === 'client' ? 18 : 20} /></button>
         </header>
         <div className={role==='client'?'wf-drawer-meta':'records-v13-drawer-meta'}>
-          <span className={`record-status status-${selected.workflowStatus || 'memory'}`}>{statusLabel(selected.workflowStatus, role)}</span>
+          {role === 'client' ? <><span className={`wf-tag ${selected.workflowStatus==='completed'?'green':selected.workflowStatus==='waiting_client'?'yellow':selected.workflowStatus==='cancelled'?'red':selected.workflowStatus==='open'?'blue':'purple'}`}>{statusLabel(selected.workflowStatus, role)}</span><span>{typeLabels[selected.type]}</span></> : <span className={`record-status status-${selected.workflowStatus || 'memory'}`}>{statusLabel(selected.workflowStatus, role)}</span>}
           <span>Atualizado {formatDateTime(selected.lastActivityAt || selected.occurredAt)}</span>
           {selected.requiresAction && role === 'admin' && <strong>Ação necessária</strong>}
         </div>
-        {role==='client'?<details className="wf-story-compact"><summary>Contexto e acompanhamento</summary><section className="records-v25-ops" aria-label="Resumo do atendimento" /></details>:<section className="records-v25-ops" aria-label="Resumo do atendimento" />}
+        {role==='client'?<details className="wf-story wf-story-compact"><summary>Contexto inicial · ver detalhes</summary><section className="records-v25-ops" aria-label="Resumo do atendimento" /></details>:<section className="records-v25-ops" aria-label="Resumo do atendimento" />}
 
         {role === 'client' && selected.workflowStatus === 'completed' && (feedbackThanks || !feedbackByRecord[selected.id]) && <div className="records-v27-feedback-overlay">
           <section className="records-v27-feedback-card">
@@ -551,12 +551,14 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
         </div>}
 
         {selected.workflowStatus ? <div className={role==='client'?'wf-record-conversation':'records-v13-conversation'} data-v2-operation={role==='client'?'records-v13-conversation':undefined}>
+          {role==='client' && <h3 className="wf-thread-title">Conversa e encaminhamentos</h3>}
           <div className={role==='client'?'wf-thread':'conversation-history'} data-v2-operation={role==='client'?'conversation-history':undefined} aria-live="polite" />
           {!clientConversationLocked && !['completed', 'cancelled'].includes(selected.workflowStatus) && <div className={role==='client'?'wf-compose':'conversation-compose'} data-v2-operation={role==='client'?'conversation-compose':undefined}>
+            {role==='client' && <label className="wf-compose-label" htmlFor="wf-answer">Responder nesta ocorrência</label>}
             <div className="records-chat-runtime-pending-host" />
             <div className="records-chat-runtime-tools-host" />
-            <textarea rows={3} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder={role === 'admin' ? 'Responder ao cliente…' : 'Responder à Patrícia…'} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} />
-            <button className="primary" type="button" disabled={sendingMessage || !messageDraft.trim()} onClick={() => void sendMessage()}><Send size={16} />{sendingMessage ? 'Enviando…' : 'Enviar'}</button>
+            <textarea id={role==='client'?'wf-answer':undefined} rows={3} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder={role === 'admin' ? 'Responder ao cliente…' : 'Escreva sua mensagem para a CALI…'} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} />
+            <button className="primary" type="button" disabled={sendingMessage || !messageDraft.trim()} onClick={() => void sendMessage()}><Send size={role==='client'?14:16} />{sendingMessage ? 'Enviando…' : 'Enviar'}</button>
           </div>}
           {clientConversationLocked && <div className="records-v27-chat-locked">
             <div><span>CONVERSA ENCERRADA</span><strong>{selected.workflowStatus === 'standby' ? 'Esta solicitação está em stand by.' : selected.workflowStatus === 'cancelled' ? 'Esta solicitação foi cancelada.' : 'Esta solicitação foi finalizada.'}</strong><p>O histórico continua disponível, mas novas mensagens só são liberadas depois que a CALI aprovar a reabertura. O tempo já consumido permanece contabilizado e não é devolvido ao saldo de horas.</p></div>

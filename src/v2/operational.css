@@ -651,3 +651,44 @@ html[data-workspace-ui='v2']{
 /* A moldura aprovada vence a regra do runtime de identidade, que força 14 px com !important em qualquer
    tamanho (num avatar de 27 px isso vira um círculo). Único uso de !important nesta folha, por esse motivo. */
 html[data-workspace-ui='v2'] :is(.profile-person-frame-v47,img.profile-person-image-v47,.profile-canonical-v47){border-radius:7px!important}
+/* Conversa da ocorrência exatamente como a gaveta aprovada (.wf-record-drawer): balões com foto e nome no
+   topo, texto e horário embaixo; CALI à esquerda (creme), cliente à direita (rosado); resposta no rodapé.
+   As mensagens e as ferramentas continuam vindo dos runtimes oficiais — aqui só muda a apresentação. */
+html[data-workspace-ui='v2'] .wf-record-drawer{
+  .drawer-close{background:#faf6f3;border:1px solid #ece4dd;border-radius:7px;display:grid;place-items:center;width:30px;height:30px;color:#6b4d4a;padding:0;flex:none}
+  .wf-record-conversation{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+  .wf-thread-title{flex:none;font-size:12px;margin:15px 24px 6px;color:#322f2c;font-weight:700}
+  .wf-thread{padding:14px 24px 18px}
+  .records-chat-line{position:relative;display:block;max-width:89%;margin:0 0 14px;padding:0;background:none;border:0}
+  .records-chat-line.mine{margin-left:auto}
+  .records-chat-bubble{display:flex;flex-direction:column;border:1px solid #ebe3dc;padding:14px;border-radius:10px;background:#faf7f4;max-width:none;width:auto;box-shadow:none;margin:0}
+  .records-chat-line.mine .records-chat-bubble{background:#f6edf0;border-color:#eddce2}
+  .records-chat-head{display:contents}
+  .records-chat-head strong{order:0;display:block;min-height:27px;line-height:27px;padding-left:34px;font-size:10px;color:#6e3645;font-weight:700}
+  .records-chat-bubble>p,.records-chat-bubble>:not(.records-chat-head){order:1}
+  .records-chat-bubble>p{font-size:11px;line-height:1.6;margin:7px 0;color:#322f2c}
+  .records-chat-head time{order:2;font-size:9px;color:#a19a92}
+  .records-chat-avatar{position:absolute;top:15px;left:15px;width:27px;height:27px;margin:0;border:0;background-color:#f2dfa4;background-size:cover;color:#5a1e2d;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;overflow:hidden}
+  .records-chat-line:not(.mine) .records-chat-avatar{background-color:#5a1e2d;color:#fff}
+  .wf-compose{display:grid;grid-template-columns:1fr auto;grid-template-areas:'label label' 'pending pending' 'text text' 'tools send';column-gap:12px;row-gap:0;align-items:center}
+  .wf-compose-label{grid-area:label;display:block;font-weight:700;font-size:11px;margin:0 0 9px}
+  .wf-compose .records-chat-runtime-pending-host{grid-area:pending}
+  .wf-compose textarea{grid-area:text;height:68px;resize:vertical}
+  .wf-compose .records-chat-runtime-tools-host{grid-area:tools;margin-top:8px;position:relative}
+  .wf-compose .records-chat-tools{display:flex;align-items:center;gap:8px;margin:0;padding:0;border:0;background:none}
+  .wf-compose .records-chat-tools>button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid #e7ddd5;background:#fff;color:#5a1e2d;border-radius:7px;font-size:12px;line-height:1;padding:8px;min-width:0;width:auto;height:auto;box-shadow:none}
+  .wf-compose .records-chat-tools>button[title='Anexar arquivo']::after{content:'Anexar';font-size:11px;font-weight:600}
+  .wf-compose .records-chat-emoji-picker{position:absolute;left:0;bottom:calc(100% + 8px);display:flex;flex-wrap:wrap;gap:4px;max-width:240px;padding:8px;background:#fff;border:1px solid #ebe0d8;border-radius:9px;box-shadow:0 12px 30px #34202121;z-index:5}
+  .wf-compose .records-chat-emoji-picker[hidden]{display:none}
+  .wf-compose .records-chat-emoji-picker button{border:0;background:none;padding:4px;font-size:15px;border-radius:5px}
+  .wf-compose>button.primary{grid-area:send;justify-self:end;margin-top:8px;display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid #5a1e2d;background:#5a1e2d;color:#fff;border-radius:7px;font-size:11px;font-weight:600;padding:10px 13px;width:auto;height:auto;box-shadow:none}
+  .wf-compose>button.primary:disabled{opacity:.4;cursor:not-allowed}
+  .records-v27-chat-locked{flex:none;border-top:1px solid #eee7e1;padding:18px 24px 20px;display:flex;flex-direction:column;gap:12px;font-size:11px;color:#655b57}
+  .records-v27-chat-locked span{font-size:9px;letter-spacing:1.3px;font-weight:700;color:#a4836f}
+  .records-v27-chat-locked strong{display:block;font-size:12px;color:#322f2c;margin:4px 0}
+  .records-v27-chat-locked p{margin:0;line-height:1.6}
+  .records-v27-chat-locked button{align-self:flex-start;border:1px solid #e7ddd5;background:#fff;color:#5a1e2d;border-radius:7px;font-size:11px;font-weight:600;padding:10px 13px}
+}
+html[data-workspace-ui='v2'] .wf-record-drawer header small .section-kicker{display:inline;font:inherit;letter-spacing:inherit;color:inherit}
+/* Mesma exceção do runtime de identidade: ele fixa posição e tamanho das fotos de conversa com !important. */
+html[data-workspace-ui='v2'] .wf-record-drawer .records-chat-avatar{position:absolute!important;top:15px!important;left:15px!important;width:27px!important;height:27px!important;min-width:0!important;margin:0!important}
