@@ -4,7 +4,7 @@ import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
 
 type Project = { id: string; name: string };
-type Deliverable = { id: string; projectId?: string | null; title: string };
+type Deliverable = { id: string; projectId?: string | null; title: string; workstream?: string | null };
 type ContextFilter = 'all' | 'deliverable' | 'project' | 'interaction';
 type SourceType = 'timer' | 'manual' | 'calendar' | 'interaction';
 
@@ -117,7 +117,7 @@ export function ClientHoursPage() {
       const [summaryResult, projectResult, deliverableResult, entryResult] = await Promise.all([
         supabase.rpc('get_client_hours_summary', { p_period_start: start, p_period_end: end }),
         supabase.from('projects').select('id,name').eq('company_id', companyId).neq('status', 'cancelled').order('name'),
-        supabase.from('deliverables').select('id,project_id,title').eq('company_id', companyId).eq('client_visible', true).neq('status', 'cancelled').order('title'),
+        supabase.from('deliverables').select('id,project_id,title,workstream').eq('company_id', companyId).eq('client_visible', true).neq('status', 'cancelled').order('title'),
         supabase.from('hour_entries').select('id,project_id,deliverable_id,work_date,minutes,description,category,source_type,started_at,ended_at').eq('company_id', companyId).gte('work_date', start).lte('work_date', end).eq('client_visible', true).order('work_date', { ascending: false }).order('created_at', { ascending: false }),
       ]);
       if (summaryResult.error) throw summaryResult.error;
@@ -135,7 +135,7 @@ export function ClientHoursPage() {
         usagePercent: raw.usagePercent === null || raw.usagePercent === undefined ? null : Number(raw.usagePercent),
       });
       setProjects((projectResult.data || []).map((row: any) => ({ id: row.id, name: row.name })));
-      setDeliverables((deliverableResult.data || []).map((row: any) => ({ id: row.id, projectId: row.project_id, title: row.title })));
+      setDeliverables((deliverableResult.data || []).map((row: any) => ({ id: row.id, projectId: row.project_id, title: row.title, workstream: row.workstream || null })));
       setEntries((entryResult.data || []).map((row: any) => ({
         id: row.id,
         projectId: row.project_id,
@@ -157,25 +157,34 @@ export function ClientHoursPage() {
 
   const projectMap = useMemo(() => new Map(projects.map((item) => [item.id, item.name])), [projects]);
   const deliverableMap = useMemo(() => new Map(deliverables.map((item) => [item.id, item.title])), [deliverables]);
+  // Frente de cada lançamento: a do entregável vinculado; sem vínculo, fica em "Assessoria geral".
+  const frontMap = useMemo(() => new Map(deliverables.map((item) => [item.id, item.workstream || null])), [deliverables]);
+  const frontOf = (entry: Entry) => (entry.deliverableId ? frontMap.get(entry.deliverableId) : null) || 'Assessoria geral';
+  const frontTones = ['purple', 'blue', 'green', 'gold'];
+  const fronts = useMemo(() => {
+    const totals = new Map<string, number>();
+    entries.forEach((entry) => totals.set(frontOf(entry), (totals.get(frontOf(entry)) || 0) + entry.minutes));
+    const all = [...totals.values()].reduce((sum, value) => sum + value, 0);
+    return [...totals.entries()].sort((a, b) => b[1] - a[1]).map(([name, minutes], index) => ({ name, minutes, share: all ? Math.round(minutes / all * 100) : 0, tone: frontTones[index % frontTones.length] }));
+  }, [entries, frontMap]);
+  const toneOf = (name: string) => fronts.find((item) => item.name === name)?.tone || 'gold';
   const filteredEntries = useMemo(() => entries.filter((entry) => contextFilter === 'all' || contextOf(entry) === contextFilter), [entries, contextFilter]);
 
   const percentage = summary?.usagePercent === null || summary?.usagePercent === undefined
     ? 0
     : Math.min(100, Math.max(0, summary.usagePercent));
 
+  // Avisos de andamento do mês: informam o avanço do consumo, sem tom de bloqueio.
   let alertText = '';
   let alertTone = '';
-  if (summary?.usagePercent !== null && summary?.usagePercent !== undefined) {
-    if (summary.usagePercent >= 100) {
-      alertText = 'Pacote mensal totalmente consumido. Entre em contato com a CALI para alinharmos a continuidade.';
-      alertTone = 'critical';
-    } else if (summary.usagePercent >= 50) {
-      alertText = 'Atenção: você já utilizou 50% ou mais do pacote mensal.';
-      alertTone = 'warning';
-    } else if (summary.usagePercent >= 40) {
-      alertText = 'O consumo está se aproximando de 50% do pacote mensal.';
-      alertTone = 'warning';
-    }
+  const usage = summary?.usagePercent;
+  if (usage !== null && usage !== undefined) {
+    const shown = Math.round(usage);
+    if (usage >= 100) { alertText = `As horas contratadas deste mês foram totalmente utilizadas (${shown}%). Vamos alinhar juntos a continuidade.`; alertTone = 'critical'; }
+    else if (usage >= 70) { alertText = `Já utilizamos ${shown}% das horas deste mês. Seguimos avançando — vale combinar as prioridades para o restante do ciclo.`; alertTone = 'warning'; }
+    else if (usage >= 65) { alertText = `Estamos nos aproximando de 70% das horas deste mês (${shown}%).`; alertTone = 'warning'; }
+    else if (usage >= 50) { alertText = `Chegamos à metade das horas deste mês (${shown}%). O trabalho está avançando.`; alertTone = 'info'; }
+    else if (usage >= 45) { alertText = `Estamos nos aproximando de 50% das horas deste mês (${shown}%).`; alertTone = 'info'; }
   }
 
   if (loading) {
@@ -187,27 +196,27 @@ export function ClientHoursPage() {
       <header className="page-head"><div><div className="eyebrow">CONTA / ACOMPANHAMENTO EXECUTIVO</div><h1>Horas<span className="title-dot">.</span></h1><p>Onde a assessoria investiu tempo, o que foi realizado e o saldo do ciclo.</p></div></header>
       {error && <div className="inline-notice" role="alert"><AlertTriangle size={18} />{error}</div>}
       {summary && !summary.visible ? <section className="wf-empty"><Clock3 size={24} /><strong>A visualização de horas não está habilitada para este mês.</strong><p>Os meses já liberados continuam disponíveis para consulta. Selecione outro mês abaixo.</p><label><span>Consultar mês</span><input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></label></section> : summary && <>
+        {alertText && <div className={`v2-hours-notice ${alertTone}`} role="status"><Clock3 size={16}/><span>{alertText}</span></div>}
         <div className="hours-context"><span className="plan-mark">Período</span><input className="v2-hours-month" aria-label="Consultar mês" type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /><span className="hours-context-end"><Clock3 size={14}/> Visibilidade contratual habilitada</span></div>
         <div className="hours-ledger">
           <section className="ledger-main">
-            {alertText && <div className={`inline-notice ${alertTone}`} role="status"><AlertTriangle size={18}/>{alertText}</div>}
             <div className="ledger-summary"><div><span>Contratadas</span><strong>{summary.contractedHours ? <>{summary.contractedHours}h <small>{Number.isInteger(summary.contractedHours) ? '00m' : ''}</small></> : '—'}</strong></div><div><span>Utilizadas</span><strong>{((formatted) => { const [hours, minutes] = formatted.split(' '); return hours.endsWith('h') ? <>{hours.padStart(3, '0')} <small>{minutes?.replace('min', 'm') || '00m'}</small></> : <>00h <small>{hours.replace('min', 'm').padStart(3, '0')}</small></>; })(formatMinutes(summary.consumedMinutes))}</strong></div><div><span>{summary.overMinutes > 0 ? 'Excedentes' : 'Disponíveis'}</span><strong>{((formatted) => { const [hours, minutes] = formatted.split(' '); return hours.endsWith('h') ? <>{hours.padStart(3, '0')} <small>{minutes?.replace('min', 'm') || '00m'}</small></> : <>00h <small>{hours.replace('min', 'm').padStart(3, '0')}</small></>; })(summary.overMinutes > 0 ? formatMinutes(summary.overMinutes) : formatMinutes(summary.remainingMinutes))}</strong></div></div>
             <div className="ledger-progress" role="progressbar" aria-label="Consumo das horas contratadas" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentage}><span style={{ width: `${percentage}%` }}/></div>
             <div className="ledger-header"><h2>Registro de atuação</h2><span>{filteredEntries.length} {filteredEntries.length === 1 ? 'atividade neste período' : 'atividades neste período'}</span><label className="ledger-filter">Contexto<select value={contextFilter} onChange={(event) => setContextFilter(event.target.value as ContextFilter)}><option value="all">Todos</option><option value="deliverable">Entregável</option><option value="project">Projeto</option><option value="interaction">Interação</option></select></label></div>
             {filteredEntries.length === 0 ? <div className="wf-empty">Nenhum registro de horas neste período.</div> : <div className="ledger-table">
-              <div className="ledger-row ledger-heading"><span>Data</span><span>Atuação / contexto</span><span>Origem</span><span>Duração</span></div>
+              <div className="ledger-row ledger-heading"><span>Data</span><span>Atuação / contexto</span><span>Frente</span><span>Duração</span></div>
               {filteredEntries.map((entry) => {
                 const open = Boolean(expanded[entry.id]);
                 const context = contextOf(entry);
                 const project = entry.projectId ? projectMap.get(entry.projectId) || '—' : '—';
                 const deliverable = entry.deliverableId ? deliverableMap.get(entry.deliverableId) || '—' : '—';
                 return <Fragment key={entry.id}><button type="button" className="ledger-row" aria-expanded={open} aria-controls={`hour-detail-${entry.id}`} onClick={() => setExpanded((current) => ({ ...current, [entry.id]: !current[entry.id] }))}>
-                  <span className="ledger-date">{dateLabel(entry.workDate)}</span><span className="ledger-title"><strong>{entry.description}</strong><small>{project}{deliverable !== '—' ? ` · ${deliverable}` : ''}</small></span><span><span className="chip neutral">{sourceLabel(entry.sourceType)}</span></span><strong>{formatMinutes(entry.minutes)}</strong>
+                  <span className="ledger-date">{dateLabel(entry.workDate)}</span><span className="ledger-title"><strong>{entry.description}</strong><small>{project}{deliverable !== '—' ? ` · ${deliverable}` : ''}</small></span><span><span className={`chip v2-front-tag v2-front-${toneOf(frontOf(entry))}`}>{frontOf(entry)}</span></span><strong>{formatMinutes(entry.minutes)}</strong>
                 </button>{open && <div className="ledger-entry-detail" id={`hour-detail-${entry.id}`}><strong>Detalhes: {entry.description}</strong><span>{contextLabel(context)} · {project}{deliverable !== '—' ? ` · ${deliverable}` : ''}</span><span>Horário: {timeLabel(entry.startedAt)}–{timeLabel(entry.endedAt)} · Origem: {sourceLabel(entry.sourceType)}</span>{entry.category && <span>Natureza: {entry.category}</span>}</div>}</Fragment>;
               })}
             </div>}
           </section>
-          <aside className="ledger-side"><div className="side-title">COMO LER ESTE EXTRATO</div><h2>Tempo dedicado a decisões que importam.</h2><p>As horas registram atividades executadas pela CALI. Você acompanha o que foi feito, sem editar os lançamentos.</p><div className="side-rule"/><span className="side-title">CONTEXTO DOS REGISTROS</span><div className="distribution"><span>Período</span><strong>{monthLabel(period)}</strong></div><div className="distribution"><span>Consumo mensal</span><strong>{summary.usagePercent === null ? '—' : `${summary.usagePercent}%`}</strong></div><div className="side-foot">Dados dos registros compartilhados pela CALI. Os filtros alteram o detalhamento; o consumo representa todo o mês.</div></aside>
+          <aside className="ledger-side"><div className="side-title">COMO LER ESTE EXTRATO</div><h2>Tempo dedicado a decisões que importam.</h2><p>As horas registram atividades executadas pela CALI. Você acompanha o que foi feito, sem editar os lançamentos.</p><div className="side-rule"/><span className="side-title">DISTRIBUIÇÃO POR FRENTE</span>{fronts.length ? fronts.map((item) => <div key={item.name} className="distribution"><span><i className={`v2-front-dot ${item.tone}`}/>{item.name}</span><strong>{item.share}%</strong></div>) : <div className="distribution"><span>Sem lançamentos neste mês</span><strong>—</strong></div>}<div className="distribution"><span>Consumo mensal</span><strong>{summary.usagePercent === null ? '—' : `${summary.usagePercent}%`}</strong></div><div className="side-foot">Dados dos registros compartilhados pela CALI. Os filtros alteram o detalhamento; o consumo representa todo o mês.</div></aside>
         </div>
       </>}
     </section>

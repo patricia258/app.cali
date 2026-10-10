@@ -460,37 +460,6 @@ export function ClientTimelinePage() {
             })()}
             {agendaView==='week' && (()=>{ const weekColumns=weekDays.filter(day=>(day.getDay()!==0&&day.getDay()!==6)||filteredItems.some(item=>weekKey(item.at)===weekKey(day))); const weekDayLabel=(day:Date)=>{const name=new Intl.DateTimeFormat('pt-BR',{weekday:'short'}).format(day).replace('.','');return `${name.charAt(0).toUpperCase()}${name.slice(1)} ${String(day.getDate()).padStart(2,'0')}`}; return <>
               <div className="wf-calendar"><aside className="wf-cal-label v2-burgundy-calendar"><strong>SEMANA DE ACOMPANHAMENTO</strong><span>{new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'}).format(weekCursor)}</span><div className="wf-cal-legend"><span><i className="purple"/>Reunião</span><span><i className="green"/>Entrega</span><span><i className="yellow"/>Solicitação</span><span><i className="blue"/>Google Agenda</span></div><div className="v2-agenda-summary"><div><small>COMPROMISSOS NO PERÍODO</small><strong>{filteredItems.filter(item=>weekDays.some(day=>weekKey(item.at)===weekKey(day))).length}</strong><span>eventos, entregas e solicitações</span></div></div></aside><div className="wf-calendar-grid" style={weekColumns.length!==5?{gridTemplateColumns:`repeat(${weekColumns.length},minmax(0,1fr))`}:undefined}>{weekColumns.map(day=><div className="wf-cal-day" key={day.toISOString()}><div className={`wf-day-head ${weekKey(day)===weekKey(new Date())?'today':''}`}><strong>{weekDayLabel(day)}</strong>{weekKey(day)===weekKey(new Date())&&<span>HOJE</span>}</div><div className="wf-event-list">{filteredItems.filter(item=>weekKey(item.at)===weekKey(day)).map(item=><button type="button" key={item.id} className={`wf-event ${item.kind==='event'?'purple':item.kind==='deadline'?'green':item.kind==='google'?'blue':'yellow'}`} onClick={()=>openItem(item)}><time>{item.timeLabel}</time><strong>{item.title}</strong><small>{item.statusLabel}</small></button>)}</div></div>)}</div></div>
-              <details className="wf-hour-selection"><summary>Selecionar horário para solicitar um encontro</summary><p>Segunda a sexta, entre 9h e 16h. A seleção abre o pedido de agendamento para análise da CALI.</p>
-              <div className="calendar-week-scroller client-week-scroller" onWheel={scrollWeeks}><div className="calendar-week-view client-week-grid">
-                <div className="calendar-week-corner"/>
-                {weekDays.map(day=><div className="calendar-week-day-head" key={`head-${day.toISOString()}`}><span>{new Intl.DateTimeFormat('pt-BR',{weekday:'short',timeZone:'America/Sao_Paulo'}).format(day).replace('.','')}</span><strong>{new Intl.DateTimeFormat('pt-BR',{day:'numeric',timeZone:'America/Sao_Paulo'}).format(day)}</strong></div>)}
-                <div className="calendar-week-all-day-label">Dia inteiro</div>
-                {weekDays.map(day=><div className="calendar-week-all-day" key={`all-${day.toISOString()}`}>
-                  {filteredItems.filter(item=>item.allDay&&weekKey(item.at)===weekKey(day)).map(item=><button type="button" className="calendar-week-all-day-event is-workspace" key={item.id} onClick={()=>openItem(item)}>{item.title}</button>)}
-                </div>)}
-                <div className="calendar-week-axis" style={{height:13*64}}>{Array.from({length:13},(_,index)=><span key={index} style={{top:index*64}}>{String(index+7).padStart(2,'0')}:00</span>)}</div>
-                {weekDays.map(day=><div className={`calendar-week-lane client-week-lane ${day.getDay()===0||day.getDay()===6?'is-closed':''}`} style={{height:13*64}} key={`lane-${day.toISOString()}`}>
-                  {Array.from({length:13},(_,index)=><div key={index} className={`calendar-week-hour-hit ${day.getDay()===0||day.getDay()===6||index+7<9||index+7>=16?'is-closed':'is-selectable'}`} style={{top:index*64,height:64}} onPointerDown={event=>selectHourStart(day,index+7,event)} onPointerMove={selectHourMove} onPointerUp={selectHourEnd} onPointerCancel={()=>{selectionStart.current=null;setSelectionPreview(null)}} title={day.getDay()===0||day.getDay()===6||index+7<9||index+7>=16?'Fora do horário de solicitações':'Selecione um horário para solicitar um encontro'}/>)}
-                  {selectionPreview?.day===inputDate(day)&&<div className="client-week-selection" style={{top:selectionPreview.top,height:selectionPreview.height}}>Horário selecionado</div>}
-                  {filteredItems.filter(item=>!item.allDay&&weekKey(item.at)===weekKey(day)).map((item,index,dayItems)=>{
-                    const start=new Date(item.at);
-                    const hour=start.getHours()+start.getMinutes()/60;
-                    const matchingEvent=events.find(event=>event.id===item.sourceId);
-                    const end=item.endsAt?new Date(item.endsAt).getTime():matchingEvent?.ends_at?new Date(matchingEvent.ends_at).getTime():item.request?.selected_slot?.endsAt?new Date(item.request.selected_slot.endsAt).getTime():start.getTime()+30*60000;
-                    const duration=Math.max(15,Math.min(13*60,(end-start.getTime())/60000));
-                    const top=Math.max(0,(hour-7)*64);
-                    const overlap=dayItems.slice(0,index).filter(other=>new Date(other.at).getTime()<end&&new Date(other.endsAt||events.find(event=>event.id===other.sourceId)?.ends_at||new Date(new Date(other.at).getTime()+30*60000)).getTime()>start.getTime()).length;
-                    const offset=Math.min(overlap*11,33);
-                    const rgb=item.color&&/^#[0-9a-f]{6}$/i.test(item.color)?[1,3,5].map(position=>parseInt(item.color!.slice(position,position+2),16)):null;
-                    const foreground=rgb&&rgb[0]*.299+rgb[1]*.587+rgb[2]*.114>150?'#30232a':'#ffffff';
-                    const isPreview=item.kind==='request'&&!['confirmed','completed'].includes(item.request?.status||'');
-                    const detail=item.kind==='request'?`${item.requestOptionCount&&item.requestOptionCount>1?`Opção ${item.requestOption} · `:''}${item.request?.extra_visit||item.request?.online_extra_requested?'Extra · ':''}${item.statusLabel}`:item.kind==='deadline'?`Prazo · ${item.detailLabel||item.statusLabel}`:item.kind==='google'?'Google Agenda':'Workspace';
-                    return <button type="button" key={item.id} className={`calendar-week-event client-week-event ${item.kind} tone-${item.tone||'pending'} ${item.kind==='google'?'is-google':'is-workspace'} ${isPreview?'is-preview':''} ${duration<36?'is-compact':''}`} style={{top,height:Math.max(3,duration/60*64-2),left:offset,width:`calc(100% - ${offset}px)`,zIndex:1+overlap,...(item.kind==='google'&&item.color?{'--event-color':item.color,'--event-foreground':foreground} as React.CSSProperties:{})}} onClick={()=>openItem(item)} title={`${item.title} · ${item.dateLabel} ${item.timeLabel}`}>
-                      <strong>{item.title}</strong><time>{item.timeLabel}{item.endsAt?`–${formatTime(item.endsAt)}`:''}</time><small>{detail}</small>
-                    </button>;
-                  })}
-                </div>)}
-              </div></div></details>
               <div className="wf-footnote">Este calendário mostra compromissos e entregas da CALI, não jornadas de ponto, férias ou escala de colaboradores.</div>
             </>; })()}
 

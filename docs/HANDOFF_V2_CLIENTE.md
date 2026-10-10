@@ -139,6 +139,24 @@ a ficha da pessoa abre em gaveta lateral. Ambos funcionam e ficam para os ajuste
 - Assinatura: um título só, campo, envio de imagem e nota cada um em sua linha. A proprietária ainda não
   bateu o martelo sobre o desenho final desta aba.
 
+### 10/10 — quinta rodada de ajustes da proprietária
+- **Padrão de moldura (regra geral):** toda foto de pessoa e todo logo usa moldura quadrada com cantos
+  arredondados (raio 7 px). Nunca circular. Vale para topbar, menu de conta, ficha, perfil, cartões da
+  Visão Geral, conversa e qualquer tela nova, cliente ou administradora.
+- Horas: coluna “Frente” no extrato com etiqueta colorida; painel lateral “Distribuição por frente” com a
+  bolinha da cor de cada frente e o percentual; a origem do lançamento continua no detalhe da linha.
+  A frente vem do entregável vinculado (`deliverables.workstream`, coluna acrescentada à leitura já
+  existente); lançamentos sem entregável aparecem como “Assessoria geral”.
+- Horas: aviso de andamento do mês no topo da página, sem tom de bloqueio — perto de 50% (≥45%), 50%,
+  perto de 70% (≥65%), 70% e 100%. Pedido futuro da proprietária: enxergar esses marcos na administradora
+  para analisar a distribuição (já existe a tabela `hour_alerts`; avaliar na migração da administradora).
+- Agenda com a Pati (encontro extra): diálogo no formato novo, com herói bordô e ícones ilustrativos; o
+  passo de endereço e datas cabe numa visualização só, sem rolagem. Lógica e campos inalterados.
+- Calendário: removido do cliente o bloco “Selecionar horário para solicitar um encontro”. Era a grade de
+  horas do calendário anterior, que as tentativas passadas tinham guardado num bloco recolhível; ficou sem
+  estilo quando o CSS anterior saiu do cliente. O pedido de encontro continua pelo botão “Solicitar
+  agendamento”. A seleção de horário clicando na grade deixou de existir no cliente.
+
 ### Administradora — decisão da proprietária em 09/10 e plano
 Regra: a identidade é a V2 aprovada do cliente; **nenhum dado, campo, função ou fluxo do administrador
 oficial muda**. O protótipo em `cali-workspace-v2@feat/admin-v2-design-prototype-20261009` é só referência
