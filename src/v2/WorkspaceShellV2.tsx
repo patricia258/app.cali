@@ -79,7 +79,7 @@ export function WorkspaceShellV2({ role, navigation, extras, children, schedulin
 
   return <div className="app" data-workspace-role={role}>
     <aside onMouseLeave={() => setTeamFlyout(false)} className={'sidebar ' + (mobileNav ? 'mobile-open' : '')} aria-label="Menu lateral CALI">
-      <div className="brand"><span className="brand-word">CALI</span></div>
+      <div className="brand"><span className="v2-brand-mark oak" role="img" aria-label="CALI"/></div>
       <nav aria-label="Navegação principal">{navigation.map(({ label, href, icon: Icon }) => <Link key={href} to={href} onMouseEnter={() => setTeamFlyout(role === 'client' && href === '/cliente/equipe')} onFocus={() => setTeamFlyout(role === 'client' && href === '/cliente/equipe')} className={'nav-link ' + (isActive(href) ? 'active' : '')} title={label} aria-label={label} aria-current={isActive(href) ? 'page' : undefined}><Icon size={17} strokeWidth={1.6} /></Link>)}</nav>
       <div className="sidebar-bottom"><span className="gold-rule" /><a className="nav-link" href={privacyPolicyUrl} target="_blank" rel="noopener noreferrer" title="Política de privacidade" aria-label="Política de privacidade"><ShieldCheck size={17} /></a></div>
       {teamFlyout && <div className="sidebar-flyout" onMouseEnter={() => setTeamFlyout(true)}>

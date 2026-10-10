@@ -231,6 +231,26 @@ a ficha da pessoa abre em gaveta lateral. Ambos funcionam e ficam para os ajuste
   compactos, sem a faixa bordô; “Falar com a Pati” foi para o cabeçalho, ao lado do plano. “Outras
   possibilidades” em duas colunas que não se esticam quando um item é aberto.
 
+### 10/10 — marca e varredura de fechamento do cliente
+- Sidebar: a folha oficial (`/brand/cali-oak-mark.svg`) no lugar da palavra CALI. Projetos → Entregáveis: cada
+  frente mostra a folha ou a lima (`cali-lime-mark.svg`), alternando, como no aplicativo oficial. **Regra da
+  proprietária: essas marcas são obrigatórias nesses lugares.**
+- Varredura automática (`scripts/v2-client-sweep.cjs`, dados fictícios em `scripts/v2-qa-fixtures.cjs`):
+  35 telas, abas e diálogos do cliente em 1440, 1024 e 390 px = 105 verificações. Procura botões e campos
+  sem estilo, cartões colados ou sobrepostos, molduras redondas, diálogo fora da tela, estouro de largura e
+  erros de execução. Primeira passada: 4 apontamentos (botão sem estilo no histórico de reuniões, frentes de
+  Projetos coladas, estouro de 3 a 5 px no celular na Visão Geral e na busca). Corrigidos; segunda passada:
+  **0 apontamentos**.
+- Como rodar a varredura: `VITE_SUPABASE_URL=https://qa-isolated.invalid` em `.env.local`, `npx vite --host
+  127.0.0.1 --port 5173`, e `node scripts/v2-client-sweep.cjs` com `playwright-core` instalado e o Chrome do
+  sistema. Todas as respostas de backend são simuladas; nada sai da máquina.
+- **O que a varredura não cobre:** fidelidade fina de cada tela à V2 (isso foi feito por comparação com os
+  prints da proprietária), dados reais com textos longos e listas grandes, e qualquer gravação no banco.
+- Observação da proprietária: achou o aplicativo “um pouquinho lento” no link de homologação. Não medido.
+  Suspeitos a investigar com dados reais: os 65 runtimes que observam e reescrevem a página
+  (`src/lib/*Runtime*.ts`), as consultas repetidas de perfil/empresa em cada página e o próprio ambiente de
+  prévia da Vercel.
+
 ## Pendências que dependem da proprietária (consolidado em 10/10)
 Itens pedidos que **não foram feitos porque exigem mudança no banco ou decisão**:
 1. **Avisos (Quadro de Avisos):** não existe tabela de comunicados. Falta criar a tabela, a ciência por

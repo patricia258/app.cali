@@ -794,3 +794,35 @@ html[data-workspace-ui='v2'] .v2-client-module{
   html[data-workspace-ui='v2'] body .report-print-v16-stage .reports-v16-paper.reports-v16-paper:last-child{break-after:auto!important;page-break-after:auto!important}
   html[data-workspace-ui='v2'],html[data-workspace-ui='v2'] body,html[data-workspace-ui='v2'] #root{background:#fffdf9!important}
 }
+/* Marca: a folha (carvalho) e a lima oficiais, em máscara para herdar a cor do lugar onde aparecem.
+   Sidebar: a folha no lugar da palavra CALI (a topbar já diz CALI WORKSPACE). Projetos: folha e lima se
+   alternam entre as frentes, como no aplicativo oficial. */
+html[data-workspace-ui='v2']{
+  .v2-brand-mark{display:block;background:currentColor;-webkit-mask:url('/brand/cali-oak-mark.svg') center/contain no-repeat;mask:url('/brand/cali-oak-mark.svg') center/contain no-repeat}
+  .v2-brand-mark.lime{-webkit-mask-image:url('/brand/cali-lime-mark.svg');mask-image:url('/brand/cali-lime-mark.svg')}
+  .sidebar .brand .v2-brand-mark{width:30px;height:30px;color:#fff}
+  .dv-front-logo .v2-brand-mark{width:20px;height:20px;color:#5a1e2d}
+}
+/* Varredura de 10/10: os quatro apontamentos encontrados em 105 verificações. */
+html[data-workspace-ui='v2']{
+  /* frentes de Projetos nunca coladas */
+  .dv-project+.dv-project{margin-top:14px}
+  /* histórico de reuniões: controles do diálogo no formato aprovado */
+  .wf-modal .wf-controls{flex-wrap:wrap}
+  .wf-modal .wf-controls label{display:inline-flex;align-items:center;gap:8px;font-size:11px;color:#655b57}
+  .wf-modal .wf-controls input{border:1px solid #e7ddd5;background:#fff;border-radius:7px;padding:7px 9px;font:inherit;color:#322f2c}
+  .wf-modal .wf-controls button{display:inline-flex;align-items:center;gap:7px;border:1px solid #e7ddd5;background:#fff;color:#5a1e2d;border-radius:7px;font-size:11px;font-weight:600;padding:8px 11px}
+  .wf-history-list{display:flex;flex-direction:column;gap:8px}
+  .wf-history-list>button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;text-align:left;border:1px solid #eee5dd;background:#fff;border-radius:7px;padding:12px 13px;font-size:11px;color:#655b57}
+  .wf-history-list>button strong{color:#3e3533;font-size:12px}
+}
+@media(max-width:760px){
+  html[data-workspace-ui='v2']{
+    .v2-top-tools{gap:6px}
+    .v2-top-tools .ch-tool.gold{display:none}
+    .v2-top-tools .ch-tool.pill{display:inline-flex;font-size:0;gap:0;padding:8px;min-width:0}
+    .top-actions{gap:8px;min-width:0}
+    .v2-search-results{left:auto;right:0;min-width:0;width:min(260px,calc(100vw - 24px))}
+  }
+}
+@media(max-width:760px){html[data-workspace-ui='v2'] .ch-project{overflow:hidden}}
