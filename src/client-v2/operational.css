@@ -393,3 +393,6 @@ html[data-workspace-ui='client-v2'] .v2-team-table td:last-child button{border:0
     .v2-team-action-strip{flex-wrap:wrap}
   }
 }
+html[data-workspace-ui='client-v2'] .v2-team-flow{margin-top:14px}
+html[data-workspace-ui='client-v2'] .v2-team-flow .area-row strong{min-width:64px;white-space:nowrap;text-align:right}
+html[data-workspace-ui='client-v2'] .sidebar-flyout .flyout-link{text-decoration:none}

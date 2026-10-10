@@ -4,7 +4,7 @@
    dos componentes operacionais oficiais. */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, BriefcaseBusiness, CalendarDays, ChevronDown, ChevronRight, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Users, X, type LucideIcon } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, CalendarDays, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Users, X, type LucideIcon } from 'lucide-react';
 import { DirectProfileControl } from '../components/DirectProfileControl';
 import './v2.generated.css';
 import './operational.css';
@@ -23,6 +23,7 @@ export const clientNavigation: NavItem[] = [
 ];
 // Destinos da busca: os módulos do menu e a página de frentes (acessível pela Visão Geral).
 const searchDestinations = [...clientNavigation.map(({ label, href }) => ({ label, href })), { label: 'Frentes contratadas', href: '/cliente/frentes' }];
+const teamAreas = [['diretorio', 'Diretório'], ['estrutura', 'Estrutura organizacional'], ['movimentacoes', 'Movimentações'], ['indicadores', 'Indicadores']] as const;
 const privacyPolicyUrl = 'https://calirh.com/privacidade.html';
 
 type Props = {
@@ -35,9 +36,11 @@ type Props = {
 };
 
 export function ClientShell({ children, scheduling, notifications, bridges, onLogout }: Props) {
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const [mobileNav, setMobileNav] = useState(false);
+  const [teamFlyout, setTeamFlyout] = useState(false);
+  const teamTab = pathname === '/cliente/equipe' ? new URLSearchParams(search).get('aba') || 'diretorio' : null;
   const [profileMenu, setProfileMenu] = useState(false);
   const [searching, setSearching] = useState(false);
   const [term, setTerm] = useState('');
@@ -48,7 +51,7 @@ export function ClientShell({ children, scheduling, notifications, bridges, onLo
     return wanted ? searchDestinations.filter(item => item.label.toLocaleLowerCase('pt-BR').includes(wanted)) : searchDestinations;
   }, [term]);
 
-  useEffect(() => { setMobileNav(false); setProfileMenu(false); setSearching(false); setTerm(''); }, [pathname]);
+  useEffect(() => { setMobileNav(false); setProfileMenu(false); setSearching(false); setTerm(''); setTeamFlyout(false); }, [pathname, search]);
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setSearching(true); } };
     document.addEventListener('keydown', shortcut);
@@ -69,10 +72,14 @@ export function ClientShell({ children, scheduling, notifications, bridges, onLo
   const isActive = (href: string) => pathname === href || (href !== '/cliente' && pathname.startsWith(`${href}/`));
 
   return <div className="app" data-workspace-role="client">
-    <aside className={'sidebar ' + (mobileNav ? 'mobile-open' : '')} aria-label="Menu lateral CALI">
+    <aside onMouseLeave={() => setTeamFlyout(false)} className={'sidebar ' + (mobileNav ? 'mobile-open' : '')} aria-label="Menu lateral CALI">
       <div className="brand"><span className="brand-word">CALI</span></div>
-      <nav aria-label="Navegação principal">{clientNavigation.map(({ label, href, icon: Icon }) => <Link key={href} to={href} className={'nav-link ' + (isActive(href) ? 'active' : '')} title={label} aria-label={label} aria-current={isActive(href) ? 'page' : undefined}><Icon size={17} strokeWidth={1.6} /></Link>)}</nav>
+      <nav aria-label="Navegação principal">{clientNavigation.map(({ label, href, icon: Icon }) => <Link key={href} to={href} onMouseEnter={() => setTeamFlyout(href === '/cliente/equipe')} onFocus={() => setTeamFlyout(href === '/cliente/equipe')} className={'nav-link ' + (isActive(href) ? 'active' : '')} title={label} aria-label={label} aria-current={isActive(href) ? 'page' : undefined}><Icon size={17} strokeWidth={1.6} /></Link>)}</nav>
       <div className="sidebar-bottom"><span className="gold-rule" /><a className="nav-link" href={privacyPolicyUrl} target="_blank" rel="noopener noreferrer" title="Política de privacidade" aria-label="Política de privacidade"><ShieldCheck size={17} /></a></div>
+      {teamFlyout && <div className="sidebar-flyout" onMouseEnter={() => setTeamFlyout(true)}>
+        <div className="flyout-heading"><strong>Equipe</strong><span className="flyout-context">Áreas do módulo</span></div>
+        {teamAreas.map(([id, label]) => <Link key={id} className={'flyout-link ' + (teamTab === id ? 'selected' : '')} to={`/cliente/equipe?aba=${id}`}><span>{label}</span>{teamTab === id ? <CheckCircle2 size={14} /> : <ChevronRight size={13} />}</Link>)}
+      </div>}
     </aside>
     {bridges}
     <main className="main">
