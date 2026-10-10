@@ -178,6 +178,24 @@ a ficha da pessoa abre em gaveta lateral. Ambos funcionam e ficam para os ajuste
   por `CALI-REG-`. O protocolo precisa continuar sozinho dentro desse elemento, senão mensagens e
   ferramentas não carregam.
 
+### 10/10 — oitava rodada: nova ocorrência e documentos
+- Nova ocorrência: diálogo no formulário aprovado (`.wf-modal` + `.wf-form`) — “NOVA OCORRÊNCIA”, “O que você
+  precisa acompanhar?”, Tipo de ocorrência, Assunto, Descreva a situação. O campo oficial “Data e horário”
+  foi mantido ao lado do tipo. Mesmo envio e mesmas validações.
+- Documentos, visualização Lista: linhas aprovadas (título, tipo, data, etiqueta de situação, seta) com a
+  borda colorida por categoria.
+- Documentos, ficha de informações (abre pela capa ou pela linha da lista): tipo, versão, publicação,
+  validade / próxima revisão, prazo restante, elaboração e ciência; ações Fechar, Comentar, Registrar ciência
+  e **Abrir documento**, que abre o arquivo em nova aba (o botão “Abrir” do cartão também).
+- Aviso de validade: um único aviso no formato aprovado quando há documento vencido ou com validade nos
+  próximos 60 dias; a mesma informação aparece como etiqueta na lista e na ficha.
+- **Pendências que dependem de banco (não feitas):** o cadastro de documentos só guarda uma data
+  (`files.valid_until`, usada como validade e próxima revisão) e quem enviou (`uploaded_by`). Não existem
+  campos para **coautores** nem para **data de revisão separada da validade**; “Elaborado por” mostra
+  “CALI · Assessoria”. Criar esses campos exige migração e ajuste no cadastro da administradora.
+- **Pendência da administradora:** o mesmo aviso de 60 dias precisa aparecer para a administradora, na
+  página de Documentos dela; fica para a migração dessa página.
+
 ### Administradora — decisão da proprietária em 09/10 e plano
 Regra: a identidade é a V2 aprovada do cliente; **nenhum dado, campo, função ou fluxo do administrador
 oficial muda**. O protótipo em `cali-workspace-v2@feat/admin-v2-design-prototype-20261009` é só referência

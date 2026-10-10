@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import {
+import { ArrowRight,
   AlertTriangle, CalendarDays, CheckCircle2, ChevronRight, FileText, Filter,
   MessageCircle, Pencil, Plus, Search, Send, Trash2, X,
 } from 'lucide-react';
@@ -588,25 +588,31 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
     </div>}
 
     {editorOpen && <div className={role==='client'?'wf-overlay':'modal-backdrop workspace-modal-backdrop records-v13-modal-backdrop'}><form className={role==='client'?'wf-modal wf-create':'modal-card records-v13-modal'} onSubmit={save} role="dialog" aria-modal="true">
+      {role === 'client' ? <>
+        <div className="wf-modal-header"><span>NOVA OCORRÊNCIA</span><button type="button" onClick={() => setEditorOpen(false)} aria-label="Fechar"><X size={17} /></button></div>
+        <h2>O que você precisa acompanhar?</h2>
+        <p>Registre o contexto de forma objetiva. A equipe CALI avaliará e conduzirá os próximos passos conforme o serviço contratado.</p>
+      </> : <>
       <button className="modal-close" type="button" onClick={() => setEditorOpen(false)}><X size={20} /></button>
       <header>
         <span className="section-kicker">{editing ? 'CONTEXTO CONSULTIVO' : role === 'admin' ? 'NOVO REGISTRO' : 'NOVA SOLICITAÇÃO'}</span>
         <h2>{editing ? 'Enriquecer memória da conta' : role === 'admin' ? 'Registrar contexto' : 'Falar com a CALI'}</h2>
         <p>{editing ? 'Aqui entram interpretação, decisões e contexto para relatório. A conversa original permanece intacta.' : role === 'admin' ? 'Registre um fato consultivo ou abra uma interação com o cliente.' : 'Conte o que aconteceu ou o que você precisa. Depois do envio, a conversa continua no histórico.'}</p>
       </header>
-      <div className={role==='client'?'wf-create-form':'records-v13-form'}>
+      </>}
+      <div className={role==='client'?'wf-form':'records-v13-form'}>
         {role === 'admin' && <div className="records-v13-grid three">
           <label className="stacked-label">Cliente<select value={form.companyId} onChange={(event) => setForm((current) => ({ ...current, companyId: event.target.value, projectId: '', eventId: '' }))}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label>
           <label className="stacked-label">Projeto<select value={form.projectId} onChange={(event) => setForm((current) => ({ ...current, projectId: event.target.value }))}><option value="">Sem projeto específico</option>{projects.filter((project) => project.companyId === form.companyId).map((project) => <option value={project.id} key={project.id}>{project.name}</option>)}</select></label>
           <label className="stacked-label">Reunião do calendário<select value={form.eventId} onChange={(event) => selectEvent(event.target.value)}><option value="">Sem evento vinculado</option>{events.filter((item) => item.companyId === form.companyId).map((item) => <option value={item.id} key={item.id}>{formatDateTime(item.startsAt)} · {item.title}</option>)}</select></label>
         </div>}
         <div className={role==='client'?'wf-form-grid':`records-v13-grid ${role === 'admin' ? 'three' : 'two'}`}>
-          <label className="stacked-label">Tipo<select value={form.type} onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as RecordType }))}>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</select></label>
+          <label className="stacked-label">{role === 'client' ? 'Tipo de ocorrência' : 'Tipo'}<select value={form.type} onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as RecordType }))}>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</select></label>
           <label className="stacked-label">Data e horário<input type="datetime-local" value={form.occurredAt} onChange={(event) => setForm((current) => ({ ...current, occurredAt: event.target.value }))} /></label>
           {role === 'admin' && <label className="stacked-label">Impacto<select value={form.impactLevel} onChange={(event) => setForm((current) => ({ ...current, impactLevel: event.target.value as FormState['impactLevel'] }))}><option value="low">Baixo</option><option value="medium">Médio</option><option value="high">Alto</option><option value="critical">Crítico</option></select></label>}
         </div>
-        <label className="stacked-label">Título<input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder={role === 'admin' ? 'Ex.: Reunião mensal / mudança de prioridade' : 'Ex.: Dúvida sobre o projeto / mudança na equipe'} /></label>
-        <label className="stacked-label">{role === 'admin' ? 'Contexto / registro' : 'Mensagem / contexto'}<textarea rows={4} value={form.summary} onChange={(event) => setForm((current) => ({ ...current, summary: event.target.value }))} placeholder="Descreva com clareza o que aconteceu ou o que precisa ser acompanhado." /></label>
+        <label className="stacked-label">{role === 'client' ? 'Assunto' : 'Título'}<input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder={role === 'admin' ? 'Ex.: Reunião mensal / mudança de prioridade' : 'Ex.: Revisão de responsabilidades'} /></label>
+        <label className="stacked-label">{role === 'admin' ? 'Contexto / registro' : 'Descreva a situação'}<textarea rows={4} value={form.summary} onChange={(event) => setForm((current) => ({ ...current, summary: event.target.value }))} placeholder={role === 'admin' ? 'Descreva com clareza o que aconteceu ou o que precisa ser acompanhado.' : 'Qual é o contexto, o que mudou e qual apoio você precisa?'} /></label>
         {role === 'admin' && <>
           <label className="stacked-label">Pessoas envolvidas<input value={form.participants} onChange={(event) => setForm((current) => ({ ...current, participants: event.target.value }))} placeholder="Nome ou e-mail, separados por vírgula" /></label>
           <label className="stacked-label">Transcrição / notas completas<textarea rows={7} value={form.transcript} onChange={(event) => setForm((current) => ({ ...current, transcript: event.target.value }))} placeholder="Fonte completa para a leitura executiva, quando houver." /></label>
@@ -622,7 +628,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
           </div>
         </>}
       </div>
-      <footer><button className="secondary" type="button" onClick={() => setEditorOpen(false)}>Cancelar</button><button className="primary" type="submit" disabled={saving || !form.title.trim() || !form.companyId}>{saving ? 'Salvando…' : editing ? 'Salvar contexto' : role === 'client' ? 'Enviar à CALI' : 'Salvar registro'}</button></footer>
+      {role === 'client' ? <div className="wf-modal-actions"><button type="button" onClick={() => setEditorOpen(false)}>Cancelar</button><button className="wf-primary" type="submit" disabled={saving || !form.title.trim() || !form.companyId}>{saving ? 'Enviando…' : <>Registrar ocorrência <ArrowRight size={14} /></>}</button></div> : <footer><button className="secondary" type="button" onClick={() => setEditorOpen(false)}>Cancelar</button><button className="primary" type="submit" disabled={saving || !form.title.trim() || !form.companyId}>{saving ? 'Salvando…' : editing ? 'Salvar contexto' : 'Salvar registro'}</button></footer>}
     </form></div>}
   </div></Shell>;
 }

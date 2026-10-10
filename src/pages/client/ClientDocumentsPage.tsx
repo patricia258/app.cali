@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Cloud, ExternalLink, Eye, FileCheck2, FileText, MessageSquare, Search, Send, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ChevronRight, Cloud, ExternalLink, Eye, FileCheck2, FileText, MessageSquare, Search, Send, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
 
@@ -51,6 +51,7 @@ export function ClientDocumentsPage() {
   const [companyBrand, setCompanyBrand] = useState({ name: 'sua empresa', logoUrl: '' });
   const [query, setQuery] = useState('');
   const [layout, setLayout] = useState<'covers' | 'list'>('covers');
+  const [detailDoc, setDetailDoc] = useState<ClientDoc | null>(null);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [driveConnection, setDriveConnection] = useState<DriveConnection | null>(null);
   const [driveConnecting, setDriveConnecting] = useState(false);
@@ -129,11 +130,6 @@ export function ClientDocumentsPage() {
     setSyncByFile(nextSync);
     setLoading(false);
   }
-
-  const validityAlerts = useMemo(() => documents.filter((doc) => {
-    const days = daysUntil(doc.validUntil);
-    return days !== null && days <= 60;
-  }), [documents]);
 
   async function markViewed(doc: ClientDoc) {
     if (!supabase) return;
@@ -244,22 +240,34 @@ export function ClientDocumentsPage() {
 
   if (loading) return <Shell role="client"><section className="v2-client-module data-loading" aria-live="polite" aria-busy="true">Carregando biblioteca…</section></Shell>;
 
+  // Situação exibida na lista e na ficha: validade primeiro, depois ciência.
+  const docState = (doc: ClientDoc) => {
+    const left = daysUntil(doc.validUntil);
+    if (left != null && left < 0) return { tone: 'red', label: 'Validade vencida' };
+    if (left != null && left <= 60) return { tone: 'yellow', label: left === 0 ? 'Vence hoje' : `Vence em ${left} ${left === 1 ? 'dia' : 'dias'}` };
+    if (doc.requiresAcknowledgement && !acknowledged.includes(doc.id)) return { tone: 'yellow', label: 'Aguardando ciência' };
+    if (doc.requiresAcknowledgement) return { tone: 'green', label: 'Ciente' };
+    return { tone: 'green', label: 'Disponível' };
+  };
+  const overdue = documents.filter((doc) => { const left = daysUntil(doc.validUntil); return left != null && left < 0; });
+  const expiring = documents.filter((doc) => { const left = daysUntil(doc.validUntil); return left != null && left >= 0 && left <= 60; });
   return <Shell role="client"><section className="v2-client-module"><div className="wf">
     <div className="wf-head"><div><small>ÁREA DA EMPRESA / ACERVO</small><h1>Documentos</h1><p>Entregáveis com capa, versões, protocolo e acompanhamento.</p></div></div>
     {notice && <div className="inline-notice success" role="status"><CheckCircle2 size={18}/>{notice}</div>}
     {error && <div className="inline-notice" role="alert">{error}</div>}
     <section className="wf-doc-drive"><Cloud size={23}/><div><strong>{driveConnection ? 'Drive da sua empresa conectado' : 'Leve suas versões aprovadas para o Drive da sua empresa'}</strong><p>{driveConnection ? `${driveConnection.accountEmail || 'Conta Google conectada'}. Você escolhe quais versões copiar para o Drive da empresa.` : 'Conecte a conta Google da sua empresa para salvar as versões aprovadas.'}</p></div><button type="button" className="wf-outline" disabled={driveConnecting} onClick={() => void connectDrive()}>{driveConnecting ? 'Abrindo Google…' : driveConnection ? 'Trocar conta' : 'Conectar meu Drive'}</button></section>
-    {validityAlerts.length > 0 && <div className="inline-notice" role="status"><AlertTriangle size={18}/>{validityAlerts.length} {validityAlerts.length === 1 ? 'documento com revisão vencida ou próxima.' : 'documentos com revisão vencida ou próxima.'}</div>}
     <div className="wf-doc-toolbar"><strong>{filtered.length} {filtered.length === 1 ? 'documento' : 'documentos'}</strong><label><Search size={14}/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nome, tipo ou protocolo" aria-label="Buscar documentos"/></label><select className="wf-doc-filter" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} aria-label="Filtrar documentos por categoria"><option value="all">Todas as categorias</option>{categories.map((value) => <option key={value} value={value}>{categoryLabel(value)}</option>)}</select><div className="wf-segments" aria-label="Exibição do acervo"><button type="button" className={layout === 'covers' ? 'on' : ''} onClick={()=>setLayout('covers')}>Capas</button><button type="button" className={layout === 'list' ? 'on' : ''} onClick={()=>setLayout('list')}>Lista</button></div></div>
     {filtered.length === 0 && <div className="wf-empty"><strong>Nenhum documento encontrado.</strong><p>{documents.length ? 'Ajuste a busca ou o filtro.' : 'Assim que a CALI publicar uma versão final para você, ela aparecerá aqui.'}</p></div>}
-    <section className={layout === 'covers' ? 'wf-doc-gallery' : 'wf-records v2-doc-list'}>
+    {(expiring.length > 0 || overdue.length > 0) && <div className={`v2-hours-notice ${overdue.length ? 'critical' : 'warning'}`} role="status"><AlertTriangle size={16}/><span>{[overdue.length ? `${overdue.length} ${overdue.length === 1 ? 'documento está com a validade vencida' : 'documentos estão com a validade vencida'}` : '', expiring.length ? `${expiring.length} ${expiring.length === 1 ? 'documento tem' : 'documentos têm'} validade ou revisão prevista nos próximos 60 dias` : ''].filter(Boolean).join(' · ')}.</span></div>}
+    {layout === 'list' && filtered.length > 0 && <div className="wf-records v2-doc-list">{filtered.map((doc) => { const tone = doc.category === 'deliverable' ? 'doc-deliverable' : doc.category === 'report' ? 'doc-executive' : 'doc-work'; const state = docState(doc); return <button type="button" className={`wf-record-row ${tone}`} key={doc.id} onClick={() => setDetailDoc(doc)}><strong>{doc.title}</strong><span>{categoryLabel(doc.category)}</span><span>{doc.date}</span><span className={`wf-tag ${state.tone}`}>{state.label}</span><ChevronRight size={14}/></button>; })}</div>}
+    {layout === 'covers' && <section className="wf-doc-gallery">
       {filtered.map((doc) => {
         const isAcknowledged = acknowledged.includes(doc.id);
         const syncState = syncByFile[doc.id];
         const syncLocked = syncState?.status === 'pending' || syncState?.status === 'processing';
         const tone = doc.category === 'deliverable' ? 'doc-deliverable' : doc.category === 'report' ? 'doc-executive' : 'doc-work';
         return <article className={layout === 'covers' ? `wf-doc-cover ${tone}` : `wf-doc-list-entry ${tone}`} key={doc.id}>
-          {layout === 'covers' && <button type="button" className="wf-doc-art" aria-label={`Abrir ${doc.title}`} onClick={() => void openDocument(doc)}><span><FileText size={38}/><b>CALI</b></span></button>}
+          {layout === 'covers' && <button type="button" className="wf-doc-art" aria-label={`Ver informações de ${doc.title}`} onClick={() => setDetailDoc(doc)}><span><FileText size={38}/><b>CALI</b></span></button>}
           <div className="wf-doc-content"><span className={`wf-doc-label ${tone}`}>{categoryLabel(doc.category)}</span><h2>{doc.title}</h2>{doc.description && <p>{doc.description}</p>}<p>{doc.date} · {doc.version} · {doc.kind}</p><p>{doc.validUntil ? <>Validade / próxima revisão: {formatDate(doc.validUntil)}{(daysUntil(doc.validUntil) ?? 999) < 0 ? ' · vencida' : ''}</> : 'Validade / próxima revisão: não definida'}</p><strong className="wf-doc-protocol">{doc.protocol}</strong>
             <div className="wf-doc-actions"><button type="button" onClick={() => void openDocument(doc)}><Eye size={14}/> Abrir</button><button type="button" onClick={() => void openComments(doc)}><MessageSquare size={14}/> Comentar</button>
               {doc.requiresAcknowledgement && <button type="button" disabled={isAcknowledged} onClick={() => void acknowledgeDocument(doc)}>{isAcknowledged ? <><CheckCircle2 size={14}/>Ciente</> : <><FileCheck2 size={14}/>Registrar ciência</>}</button>}
@@ -268,7 +276,23 @@ export function ClientDocumentsPage() {
           </div>
         </article>;
       })}
-    </section>
+    </section>}
+    {detailDoc && (() => { const doc = detailDoc; const state = docState(doc); const left = daysUntil(doc.validUntil); const isAcknowledged = acknowledged.includes(doc.id); return <div className="wf-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetailDoc(null); }}><section className="wf-modal v2-doc-sheet" role="dialog" aria-modal="true" aria-label={`Informações de ${doc.title}`}>
+      <div className="wf-modal-header"><span>DOCUMENTO{doc.protocol ? ` · ${doc.protocol}` : ''}</span><button type="button" onClick={() => setDetailDoc(null)} aria-label="Fechar"><X size={17}/></button></div>
+      <h2>{doc.title}</h2>
+      {doc.description && <p>{doc.description}</p>}
+      <span className={`wf-tag ${state.tone}`}>{state.label}</span>
+      <div className="wf-modal-grid">
+        <span>Tipo <strong>{categoryLabel(doc.category)}{doc.kind ? ` · ${doc.kind}` : ''}</strong></span>
+        <span>Versão <strong>{doc.version || '—'}</strong></span>
+        <span>Publicado em <strong>{doc.date}</strong></span>
+        <span>Validade / próxima revisão <strong>{doc.validUntil ? formatDate(doc.validUntil) : 'Não definida'}</strong></span>
+        <span>Prazo <strong>{left == null ? '—' : left < 0 ? `Vencida há ${Math.abs(left)} ${Math.abs(left) === 1 ? 'dia' : 'dias'}` : left === 0 ? 'Vence hoje' : `${left} ${left === 1 ? 'dia restante' : 'dias restantes'}`}</strong></span>
+        <span>Elaborado por <strong>CALI · Assessoria</strong></span>
+        {doc.requiresAcknowledgement && <span>Ciência <strong>{isAcknowledged ? 'Registrada' : 'Pendente'}</strong></span>}
+      </div>
+      <div className="wf-modal-actions"><button type="button" onClick={() => setDetailDoc(null)}>Fechar</button><button type="button" className="wf-outline" onClick={() => { setDetailDoc(null); void openComments(doc); }}><MessageSquare size={14}/> Comentar</button>{doc.requiresAcknowledgement && !isAcknowledged && <button type="button" className="wf-outline" onClick={() => void acknowledgeDocument(doc)}><FileCheck2 size={14}/> Registrar ciência</button>}<button type="button" className="wf-primary" onClick={() => void openDocument(doc)}><ExternalLink size={14}/> Abrir documento</button></div>
+    </section></div>; })()}
     {commentDoc && <div className="wf-overlay" role="presentation"><section className="wf-modal wf-create" role="dialog" aria-modal="true" aria-label={`Comentários de ${commentDoc.title}`}><div className="wf-modal-header"><span>COMENTÁRIOS DO DOCUMENTO</span><button type="button" onClick={() => setCommentDoc(null)} aria-label="Fechar"><X size={20}/></button></div><h2>{commentDoc.title}</h2><p>{commentDoc.protocol}</p><div className="wf-thread">{commentLoading ? <div className="data-loading" aria-live="polite" aria-busy="true">Carregando…</div> : comments.map((item) => <div className={item.mine ? 'wf-bubble sent' : 'wf-bubble received'} key={item.id}><p>{item.body}</p><small>{item.createdAt}</small></div>)}</div><div className="wf-compose"><textarea rows={3} value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Escreva um comentário sobre este documento…" aria-label="Comentário"/><div><button className="wf-primary" disabled={!comment.trim()} onClick={() => void sendComment()}><Send size={16}/>Enviar comentário</button></div></div></section></div>}
   </div></section></Shell>;
 }

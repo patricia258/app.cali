@@ -692,3 +692,19 @@ html[data-workspace-ui='v2'] .wf-record-drawer{
 html[data-workspace-ui='v2'] .wf-record-drawer header small .section-kicker{display:inline;font:inherit;letter-spacing:inherit;color:inherit}
 /* Mesma exceção do runtime de identidade: ele fixa posição e tamanho das fotos de conversa com !important. */
 html[data-workspace-ui='v2'] .wf-record-drawer .records-chat-avatar{position:absolute!important;top:15px!important;left:15px!important;width:27px!important;height:27px!important;min-width:0!important;margin:0!important}
+/* Nova ocorrência no formulário aprovado (.wf-form): tipo e data lado a lado, assunto e situação em linha. */
+html[data-workspace-ui='v2'] .wf-modal.wf-create{
+  .wf-form{display:flex;flex-direction:column;gap:15px}
+  .wf-form .wf-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+  .wf-form label{display:flex;flex-direction:column;gap:7px;color:#665751;font-weight:600;font-size:11px;margin:0}
+  .wf-form :is(input,select,textarea){border:1px solid #e9e0d8;background:#fff;border-radius:8px;padding:11px;font:11px Inter,system-ui,sans-serif;outline-color:#b58c52;width:100%;color:#322f2c;min-height:0;height:auto}
+  .wf-form textarea{height:100px;resize:vertical}
+  @media(max-width:650px){.wf-form .wf-form-grid{grid-template-columns:1fr}}
+}
+/* Documentos: ficha de informações e botão secundário do rodapé no formato aprovado. */
+html[data-workspace-ui='v2']{
+  .v2-doc-sheet{width:min(620px,100%)}
+  .v2-doc-sheet .wf-modal-grid{margin:18px 0 0}
+  .wf-modal-actions .wf-outline{padding:10px 13px}
+  .v2-doc-list .wf-record-row{cursor:pointer}
+}
