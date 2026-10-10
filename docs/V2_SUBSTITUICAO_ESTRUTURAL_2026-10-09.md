@@ -22,10 +22,10 @@ anterior e passa a usar o CSS da V2 literalmente.
 
 | Peça | Papel |
 |---|---|
-| `scripts/port-v2-css.cjs` | Gera `src/client-v2/v2.generated.css` a partir do repositório aprovado, byte a byte e na ordem de cascata do bundle de referência, apenas envolvendo as regras no escopo `html[data-workspace-ui='client-v2']`. Não editar o arquivo gerado. |
-| `src/client-v2/ClientShell.tsx` | Composição aprovada `.app > .sidebar + .main > .topbar + .content`. Recebe prontos os componentes operacionais (sessão, notificações, perfil, frentes, agendamento, bridges). |
-| `src/client-v2/operational.css` | Encaixes: estilos de elementos que existem no oficial e não no protótipo, com os valores dos padrões aprovados. Não redefine regras da V2. |
-| `src/client-v2/visualSystem.ts` | Garante uma única implementação visual no documento: V2 nas rotas `/cliente`; folhas anteriores na landing, login, administradora e papel de impressão de relatório. |
+| `scripts/port-v2-css.cjs` | Gera `src/v2/v2.generated.css` a partir do repositório aprovado, byte a byte e na ordem de cascata do bundle de referência, apenas envolvendo as regras no escopo `html[data-workspace-ui='v2']`. Não editar o arquivo gerado. |
+| `src/v2/ClientShell.tsx` | Composição aprovada `.app > .sidebar + .main > .topbar + .content`. Recebe prontos os componentes operacionais (sessão, notificações, perfil, frentes, agendamento, bridges). |
+| `src/v2/operational.css` | Encaixes: estilos de elementos que existem no oficial e não no protótipo, com os valores dos padrões aprovados. Não redefine regras da V2. |
+| `src/v2/visualSystem.ts` | Garante uma única implementação visual no documento: V2 nas rotas `/cliente`; folhas anteriores na landing, login, administradora e papel de impressão de relatório. |
 | `src/styles/legacy/index.ts` | As 45 folhas globais anteriores, na ordem original, montadas somente fora do cliente. Serão removidas quando a administradora for migrada. |
 
 Nenhuma consulta, mutação, permissão, rota ou runtime operacional foi alterado. `DirectProfileControl` ganhou

@@ -22,10 +22,10 @@ no topo, com data, commits, verificação e pendências. Detalhe técnico e mapa
 
 ### O que mudou
 1. **Uma só identidade visual no cliente.** As rotas `/cliente` usam o CSS da V2 gerado literalmente do
-   repositório aprovado (`scripts/port-v2-css.cjs` → `src/client-v2/v2.generated.css`) e não carregam mais
+   repositório aprovado (`scripts/port-v2-css.cjs` → `src/v2/v2.generated.css`) e não carregam mais
    nenhuma das 45 folhas anteriores. Essas folhas ficam em `src/styles/legacy`, montadas só na landing, login,
    administradora e impressão de relatório.
-2. **Shell do cliente** (`src/client-v2/ClientShell.tsx`): topbar e sidebar da V2 por inteiro — marca, busca
+2. **Shell do cliente** (`src/v2/ClientShell.tsx`): topbar e sidebar da V2 por inteiro — marca, busca
    de módulos (⌘/Ctrl+K), notificações, menu de conta; 9 itens de menu incluindo Avisos.
 3. **Páginas alinhadas ao JSX aprovado:** Visão Geral, Calendário, Ocorrências, diretório de Equipe.
 4. **Decisões da proprietária aplicadas:** cliente somente diurno (alternador removido); botões remanejados
@@ -44,7 +44,7 @@ no topo, com data, commits, verificação e pendências. Detalhe técnico e mapa
 - Nenhuma consulta, mutação, permissão ou política de banco alterada.
 
 ### Divisão de trabalho combinada em 09/10
-- **Cliente:** continua nesta frente (arquivos `src/client-v2/**`, `src/pages/client/**`, e os ramos de cliente
+- **Cliente:** continua nesta frente (arquivos `src/v2/**`, `src/pages/client/**`, e os ramos de cliente
   em `src/pages/team/**` e `src/pages/records/**`).
 - **Administradora:** frente separada, sobre a referência administrativa da V2 (`AdminPreview.tsx` /
   `admin-preview.css` do repositório `cali-workspace-v2`). Arquivos: `src/pages/admin/**`, o ramo de
@@ -71,7 +71,7 @@ no topo, com data, commits, verificação e pendências. Detalhe técnico e mapa
 
 ### Auditoria final do cliente (09/10)
 Folhas de estilo ainda carregadas nas rotas `/cliente`, medidas no navegador:
-- `client-v2/v2.generated.css`, `client-v2/operational.css`, `client-v2/calendar.css` — a interface V2.
+- `v2/v2.generated.css`, `v2/operational.css`, `v2/calendar.css` — a interface V2.
   `calendar.css` perdeu 221 de 332 regras, que citavam classes inexistentes no código.
 - `components/extra-visit-request.css` — diálogo de agendamento (componente oficial).
 - **Sobras a eliminar na migração da administradora, por serem compartilhadas com ela:**
@@ -86,6 +86,17 @@ Folhas de estilo ainda carregadas nas rotas `/cliente`, medidas no navegador:
 - Runtimes que inserem HTML nas páginas (`src/lib/*Runtime*.ts`, 65 arquivos) continuam ativos e são a
   principal dívida técnica: escrevem marcação fora do React. Substituí-los por componentes é trabalho da
   etapa da administradora, módulo a módulo.
+
+### Pente fino do cliente (09/10, a pedido da proprietária)
+Revisão visual tela a tela (10 rotas) e diálogo a diálogo (8) a 1440 px. Corrigido:
+- Equipe: as colunas do diretório voltavam ao conjunto antigo depois de carregar; agora abrem nas aprovadas.
+- Equipe: cadastro de colaborador com campos, cabeçalho, fechar e rodapé no padrão de diálogo aprovado.
+- Horas: rótulo do mês duplicado na faixa de contexto.
+- Relatórios: lista de versões com espaçamento e etiquetas de estado coloridas.
+- Projetos: seletor de projeto e aviso de execução (inserido por runtime) no padrão aprovado; cabeçalho do
+  detalhe do entregável com o fechar à direita.
+Observado e não alterado: o diálogo de agendamento usa a folha própria do componente (cabeçalho bordô);
+a ficha da pessoa abre em gaveta lateral. Ambos funcionam e ficam para os ajustes pontuais da proprietária.
 
 ### Administradora — decisão da proprietária em 09/10 e plano
 Regra: a identidade é a V2 aprovada do cliente; **nenhum dado, campo, função ou fluxo do administrador

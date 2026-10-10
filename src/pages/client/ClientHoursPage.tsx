@@ -187,7 +187,7 @@ export function ClientHoursPage() {
       <header className="page-head"><div><div className="eyebrow">CONTA / ACOMPANHAMENTO EXECUTIVO</div><h1>Horas<span className="title-dot">.</span></h1><p>Onde a assessoria investiu tempo, o que foi realizado e o saldo do ciclo.</p></div></header>
       {error && <div className="inline-notice" role="alert"><AlertTriangle size={18} />{error}</div>}
       {summary && !summary.visible ? <section className="wf-empty"><Clock3 size={24} /><strong>A visualização de horas não está habilitada para este mês.</strong><p>Os meses já liberados continuam disponíveis para consulta. Selecione outro mês abaixo.</p><label><span>Consultar mês</span><input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></label></section> : summary && <>
-        <div className="hours-context"><span className="plan-mark">{monthLabel(period)}</span><input className="v2-hours-month" aria-label="Consultar mês" type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /><span className="hours-context-end"><Clock3 size={14}/> Visibilidade contratual habilitada</span></div>
+        <div className="hours-context"><span className="plan-mark">Período</span><input className="v2-hours-month" aria-label="Consultar mês" type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /><span className="hours-context-end"><Clock3 size={14}/> Visibilidade contratual habilitada</span></div>
         <div className="hours-ledger">
           <section className="ledger-main">
             {alertText && <div className={`inline-notice ${alertTone}`} role="status"><AlertTriangle size={18}/>{alertText}</div>}

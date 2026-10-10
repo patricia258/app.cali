@@ -16,7 +16,7 @@ export function preloadLegacyStyles() {
 export async function applyVisualSystem(pathname: string) {
   const root = document.documentElement;
   if (usesClientV2(pathname)) {
-    root.dataset.workspaceUi = 'client-v2';
+    root.dataset.workspaceUi = 'v2';
     applyWorkspaceTheme('day');
     if (legacy) (await legacy).unmountLegacyStyles();
     return;

@@ -1,4 +1,5 @@
-/* Shell do cliente na composição aprovada da V2 (cali-workspace-v2/src/main.tsx):
+/* Shell do Workspace na composição aprovada da V2 (cali-workspace-v2/src/main.tsx), usado pelo
+   cliente e, página a página, pela administradora com os menus dela:
    .app > aside.sidebar + main.main > header.topbar + .content.
    Apenas apresentação: sessão, notificações, perfil, frentes e agendamento chegam prontos
    dos componentes operacionais oficiais. */
@@ -21,21 +22,26 @@ export const clientNavigation: NavItem[] = [
   { label: 'Projetos', href: '/cliente/entregaveis', icon: BriefcaseBusiness },
   { label: 'Avisos', href: '/cliente/avisos', icon: Megaphone },
 ];
-// Destinos da busca: os módulos do menu e a página de frentes (acessível pela Visão Geral).
-const searchDestinations = [...clientNavigation.map(({ label, href }) => ({ label, href })), { label: 'Frentes contratadas', href: '/cliente/frentes' }];
 const teamAreas = [['diretorio', 'Diretório'], ['estrutura', 'Estrutura organizacional'], ['movimentacoes', 'Movimentações'], ['indicadores', 'Indicadores']] as const;
 const privacyPolicyUrl = 'https://calirh.com/privacidade.html';
 
+type ShellRole = 'admin' | 'client';
 type Props = {
+  role: ShellRole;
+  navigation: NavItem[];
+  /** Controles operacionais próprios do papel (timers ativos, despesas de visita). */
+  extras?: ReactNode;
   children: ReactNode;
   /** Fluxo oficial de agendamento: permanece montado para atender aos pedidos abertos pelas páginas. */
-  scheduling: ReactNode;
+  scheduling?: ReactNode;
   notifications: ReactNode;
   bridges: ReactNode;
   onLogout: () => void;
 };
 
-export function ClientShell({ children, scheduling, notifications, bridges, onLogout }: Props) {
+export function WorkspaceShellV2({ role, navigation, extras, children, scheduling, notifications, bridges, onLogout }: Props) {
+  const home = role === 'admin' ? '/admin' : '/cliente';
+  const searchDestinations = useMemo(() => [...navigation.map(({ label, href }) => ({ label, href })), ...(role === 'client' ? [{ label: 'Frentes contratadas', href: '/cliente/frentes' }] : [])], [navigation, role]);
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const [mobileNav, setMobileNav] = useState(false);
@@ -49,7 +55,7 @@ export function ClientShell({ children, scheduling, notifications, bridges, onLo
   const results = useMemo(() => {
     const wanted = term.trim().toLocaleLowerCase('pt-BR');
     return wanted ? searchDestinations.filter(item => item.label.toLocaleLowerCase('pt-BR').includes(wanted)) : searchDestinations;
-  }, [term]);
+  }, [term, searchDestinations]);
 
   useEffect(() => { setMobileNav(false); setProfileMenu(false); setSearching(false); setTerm(''); setTeamFlyout(false); }, [pathname, search]);
   useEffect(() => {
@@ -69,12 +75,12 @@ export function ClientShell({ children, scheduling, notifications, bridges, onLo
     return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', close); };
   }, [profileMenu, searching]);
 
-  const isActive = (href: string) => pathname === href || (href !== '/cliente' && pathname.startsWith(`${href}/`));
+  const isActive = (href: string) => pathname === href || (href !== home && pathname.startsWith(`${href}/`));
 
-  return <div className="app" data-workspace-role="client">
+  return <div className="app" data-workspace-role={role}>
     <aside onMouseLeave={() => setTeamFlyout(false)} className={'sidebar ' + (mobileNav ? 'mobile-open' : '')} aria-label="Menu lateral CALI">
       <div className="brand"><span className="brand-word">CALI</span></div>
-      <nav aria-label="Navegação principal">{clientNavigation.map(({ label, href, icon: Icon }) => <Link key={href} to={href} onMouseEnter={() => setTeamFlyout(href === '/cliente/equipe')} onFocus={() => setTeamFlyout(href === '/cliente/equipe')} className={'nav-link ' + (isActive(href) ? 'active' : '')} title={label} aria-label={label} aria-current={isActive(href) ? 'page' : undefined}><Icon size={17} strokeWidth={1.6} /></Link>)}</nav>
+      <nav aria-label="Navegação principal">{navigation.map(({ label, href, icon: Icon }) => <Link key={href} to={href} onMouseEnter={() => setTeamFlyout(role === 'client' && href === '/cliente/equipe')} onFocus={() => setTeamFlyout(role === 'client' && href === '/cliente/equipe')} className={'nav-link ' + (isActive(href) ? 'active' : '')} title={label} aria-label={label} aria-current={isActive(href) ? 'page' : undefined}><Icon size={17} strokeWidth={1.6} /></Link>)}</nav>
       <div className="sidebar-bottom"><span className="gold-rule" /><a className="nav-link" href={privacyPolicyUrl} target="_blank" rel="noopener noreferrer" title="Política de privacidade" aria-label="Política de privacidade"><ShieldCheck size={17} /></a></div>
       {teamFlyout && <div className="sidebar-flyout" onMouseEnter={() => setTeamFlyout(true)}>
         <div className="flyout-heading"><strong>Equipe</strong><span className="flyout-context">Áreas do módulo</span></div>
@@ -93,13 +99,14 @@ export function ClientShell({ children, scheduling, notifications, bridges, onLo
               : <button type="button" className="global-search" onClick={() => setSearching(true)}><Search size={15} /><span>Buscar no Workspace</span><kbd>⌘ K</kbd></button>}
             {searching && <div className="profile-dropdown v2-search-results" role="listbox" aria-label="Resultados">{results.length ? results.map(item => <button key={item.href} role="option" aria-selected={false} onClick={() => navigate(item.href)}>{item.label} <ChevronRight size={14} /></button>) : <span>Nenhum módulo encontrado.</span>}</div>}
           </div>
+          {extras}
           <div className="profile-holder">{notifications}</div>
           <div className="profile-holder" ref={profileRef}>
-            <DirectProfileControl role="client" trigger={({ profile, avatar, companyName, openEditor }) => <>
+            <DirectProfileControl role={role} trigger={({ profile, avatar, companyName, openEditor }) => <>
               <button aria-expanded={profileMenu} aria-haspopup="menu" onClick={() => setProfileMenu(!profileMenu)} className="profile"><span className="avatar small">{avatar}</span><span>{profile.full_name}</span><ChevronDown size={13} /></button>
               {profileMenu && <div className="profile-dropdown v2-profile" role="menu">
-                <div className="v2-profile-head"><span className="avatar small">{avatar}</span><span><strong>{profile.full_name}</strong><small>{profile.job_title || 'Perfil cliente'}</small></span></div>
-                <div className="v2-profile-meta">{companyName && <span>Empresa <b>{companyName}</b></span>}<span>Acesso <b>Cliente</b></span></div>
+                <div className="v2-profile-head"><span className="avatar small">{avatar}</span><span><strong>{profile.full_name}</strong><small>{profile.job_title || (role === 'admin' ? 'Administradora geral' : 'Perfil cliente')}</small></span></div>
+                <div className="v2-profile-meta">{companyName && <span>Empresa <b>{companyName}</b></span>}<span>Acesso <b>{role === 'admin' ? 'Administradora' : 'Cliente'}</b></span></div>
                 <button role="menuitem" onClick={() => { setProfileMenu(false); openEditor(); }}>Ver meu perfil <ChevronRight size={14} /></button>
                 <button role="menuitem" onClick={() => { setProfileMenu(false); onLogout(); }}>Sair <ArrowRight size={14} /></button>
               </div>}
@@ -111,4 +118,9 @@ export function ClientShell({ children, scheduling, notifications, bridges, onLo
       <div className="content">{children}</div>
     </main>
   </div>;
+}
+
+/** Shell do cliente: a navegação aprovada, sem controles extras. */
+export function ClientShell(props: Omit<Props, 'role' | 'navigation' | 'extras'>) {
+  return <WorkspaceShellV2 role="client" navigation={clientNavigation} {...props} />;
 }
