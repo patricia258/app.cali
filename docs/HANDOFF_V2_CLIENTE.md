@@ -157,6 +157,15 @@ a ficha da pessoa abre em gaveta lateral. Ambos funcionam e ficam para os ajuste
   estilo quando o CSS anterior saiu do cliente. O pedido de encontro continua pelo botão “Solicitar
   agendamento”. A seleção de horário clicando na grade deixou de existir no cliente.
 
+### 10/10 — sexta rodada de ajustes da proprietária
+- Moldura de foto na topbar continuava redonda: `src/lib/identityMediaRuntime.ts` injeta
+  `border-radius:14px!important` em qualquer foto de perfil, o que num avatar de 27 px vira círculo. A folha
+  V2 passa a vencer essa regra (único `!important` de `operational.css`). **Ao migrar a administradora,
+  corrigir o runtime na origem** em vez de sobrescrever.
+- Agenda com a Pati, passo de datas: grade de quatro colunas com ordem fixa nos dois modos (visita e
+  online). Bordas esquerda e direita de todas as linhas coincidem; empresa como campo de leitura no padrão
+  `.enh-fields`; opções de data no padrão `.enh-kpis`. Sem rolagem.
+
 ### Administradora — decisão da proprietária em 09/10 e plano
 Regra: a identidade é a V2 aprovada do cliente; **nenhum dado, campo, função ou fluxo do administrador
 oficial muda**. O protótipo em `cali-workspace-v2@feat/admin-v2-design-prototype-20261009` é só referência
