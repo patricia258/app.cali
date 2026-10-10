@@ -886,3 +886,93 @@ html[data-workspace-ui='v2'] .overview-export-close{border:1px solid #ecded5;bac
 .v2-admin-page .ap-client-brand img{width:100%;height:100%;object-fit:contain}
 .v2-admin-page .ap-client>div{min-width:0}
 .v2-admin-page .ap-client small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---- Administradora · Contas e clientes: campos oficiais dentro dos diálogos aprovados ---- */
+.v2-admin-page :is(.ap-client-image,.ap-company-logo,.ap-client-brand,.ap-hour-logo){overflow:hidden}
+.v2-admin-page :is(.ap-client-image,.ap-company-logo) img{width:100%;height:100%;object-fit:contain}
+.v2-admin-page .ap-client-data-row[role='button']{cursor:pointer}
+.v2-admin-page .ap-state-pill:is(.paused,.archived){background:#fff2dc;border-color:#f0dfc0;color:#97672f}
+.v2-admin-page .ap-state-pill.closed{background:#fae9e9;border-color:#f0d5d8;color:#b7495d}
+.v2-admin-page .ap-account-pills span:first-child:is(.paused,.archived){background:#fff2dc;border-color:#f0dfc0;color:#97672f}
+.v2-admin-page .ap-account-pills span:first-child.closed{background:#fae9e9;border-color:#f0d5d8;color:#b7495d}
+.v2-admin-page .ap-client-data,.v2-admin-page :is(.ap-registration-content,.ap-account-body){scrollbar-width:none}
+.v2-admin-page :is(.ap-client-data,.ap-registration-content,.ap-account-body)::-webkit-scrollbar{display:none}
+.v2-admin-page .v2-admin-notice{display:flex;align-items:center;gap:8px;margin:16px 0 0;padding:12px 16px;border:1px solid #f0d5d8;background:#fdf3f3;color:#9d4b64;border-radius:9px;font-size:12px}
+.v2-admin-page .v2-admin-notice.ok{border-color:#d6e8dd;background:#f1f8f3;color:#42785a}
+.v2-admin-page .ap-accounts-empty.data-loading{display:flex;align-items:center;gap:8px}
+/* campos */
+.v2-admin-form .account-tab-pane{display:block}
+.v2-admin-form .account-pane-heading{border:1px solid #e9ddd4;border-radius:10px;background:#fbf7f4;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:14px;color:#5a1e2d}
+.v2-admin-form .account-pane-heading>div{display:flex;flex-direction:column;gap:4px}
+.v2-admin-form .account-pane-heading strong{font-size:13px;color:#322f2c}
+.v2-admin-form .account-pane-heading span{font-size:11px;color:#9a8c83}
+.v2-admin-form .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px;align-items:start}
+.v2-admin-form .form-grid>.wide{grid-column:1/-1}
+.v2-admin-form .stacked-label{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:700;color:#322f2c;min-width:0}
+.v2-admin-form :is(input:not([type='checkbox']):not([type='radio']):not([type='file']),select,textarea){width:100%;box-sizing:border-box;min-height:43px;padding:10px 12px;border:1px solid #e5d8d0;background:#fff;border-radius:7px;color:#322f2c;font:inherit;font-weight:400;font-size:12px}
+.v2-admin-form textarea{min-height:86px;resize:vertical}
+.v2-admin-form :is(.field-helper,.stacked-label small){font-size:10px;font-weight:400;color:#9a8c83}
+.v2-admin-form .derived-field{display:flex;flex-direction:column;gap:6px;font-size:11px}
+.v2-admin-form .derived-field span{font-weight:700}
+.v2-admin-form .derived-field strong{min-height:43px;display:flex;align-items:center;padding:0 12px;border:1px dashed #e5d8d0;border-radius:7px;background:#fbf7f4;font-size:12px;font-weight:600;color:#5a1e2d}
+.v2-admin-form .check-line{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid #e9ddd4;border-radius:9px;background:#fff;font-size:11px;cursor:pointer}
+.v2-admin-form .check-line input{margin-top:2px;accent-color:#5a1e2d}
+.v2-admin-form .check-line span{display:flex;flex-direction:column;gap:3px}
+.v2-admin-form .check-line small{color:#9a8c83;font-weight:400}
+.v2-admin-form .inline-days{display:flex;align-items:center;gap:8px}
+.v2-admin-form .label-with-icon{display:inline-flex;align-items:center;gap:6px}
+.v2-admin-form :is(.logo-registration-row,.contact-action-row){display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:4px 0 14px;font-size:11px;color:#9a8c83}
+.v2-admin-form .company-logo-editor{height:46px;width:46px;display:grid;place-items:center;flex:0 0 auto;background:#f2e8e0;border:1px solid #e0cdc1;border-radius:7px;color:#5a1e2d;overflow:hidden}
+.v2-admin-form .company-logo-editor img{width:100%;height:100%;object-fit:contain}
+.v2-admin-form :is(.secondary,.ghost-action,.account-decision-link){display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid #e5d8d0;border-radius:7px;padding:10px 12px;color:#5a1e2d;font:inherit;font-size:11px;font-weight:600;cursor:pointer;text-decoration:none}
+.v2-admin-form .primary{display:inline-flex;align-items:center;gap:7px;background:#5a1e2d;border:1px solid #5a1e2d;border-radius:7px;padding:10px 13px;color:#fff;font:inherit;font-size:11px;font-weight:600;cursor:pointer}
+.v2-admin-form label:is(.secondary,.account-upload-card) input[type='file']{display:none}
+.v2-admin-form :is(.account-summary-strip,.termination-projection,.communication-grid,.document-upload-grid){display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:0 0 14px}
+.v2-admin-form :is(.account-summary-strip,.termination-projection)>div,.v2-admin-form :is(.account-upload-card,.account-operation-card,.automation-master,.automation-preview,.billing-flow-preview){border:1px solid #e9ddd4;border-radius:9px;background:#fff;padding:13px 15px;display:flex;flex-direction:column;gap:6px;font-size:11px;min-width:0}
+.v2-admin-form :is(.account-summary-strip,.termination-projection) span{color:#9a8c83;font-size:10px}
+.v2-admin-form :is(.account-summary-strip,.termination-projection) strong{font-size:14px;color:#5a1e2d}
+.v2-admin-form :is(.account-project-list,.account-history-list,.email-template-list){display:flex;flex-direction:column;margin:0;padding:0;list-style:none}
+.v2-admin-form :is(.account-project-list,.account-history-list,.email-template-list)>*{display:flex;align-items:center;gap:12px;padding:13px 2px;border-bottom:1px solid #f0e8e1;font-size:12px}
+.v2-admin-form .account-history-list>div>div{flex:1}
+.v2-admin-form .account-history-list p{margin:3px 0 0;color:#92847b;font-size:11px}
+.v2-admin-form .account-history-list time{color:#978579;font-size:10px;white-space:nowrap}
+.v2-admin-form .history-dot{width:9px;height:9px;border-radius:50%;background:#bd996a;flex-shrink:0}
+.v2-admin-form .account-detail-title{font-size:13px;margin:16px 0 8px}
+.ap-app.v2-admin-page .ap-status-confirm input[type='date']{height:43px;border:1px solid #e5d8d0;border-radius:9px;padding:0 12px;font:inherit;font-weight:400}
+.ap-app.v2-admin-page .ap-status-confirm .termination-projection{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ap-app.v2-admin-page .ap-status-confirm .termination-projection>div{border:1px solid #e9ddd4;border-radius:9px;padding:11px;display:flex;flex-direction:column;gap:5px;font-size:10px;color:#9a8c83}
+.ap-app.v2-admin-page .ap-status-confirm .termination-projection strong{font-size:13px;color:#5a1e2d}
+@media(max-width:700px){.v2-admin-form .form-grid{grid-template-columns:1fr}}
+.ap-app.v2-admin-page :is(input,select,textarea):focus-visible{outline:2px solid #b58c52;outline-offset:1px}
+/* abas com composição própria */
+.v2-admin-form :is(.automation-master,.communication-grid>label){flex-direction:row;align-items:flex-start;gap:10px;cursor:pointer}
+.v2-admin-form .communication-grid>label{border:1px solid #e9ddd4;border-radius:9px;background:#fff;padding:13px 15px;display:flex;font-size:11px;min-width:0}
+.v2-admin-form :is(.automation-master,.communication-grid>label)>input{margin-top:2px;accent-color:#5a1e2d;flex-shrink:0}
+.v2-admin-form :is(.automation-master,.communication-grid>label)>span{display:flex;flex-direction:column;gap:4px;min-width:0}
+.v2-admin-form :is(.automation-master,.communication-grid) small{color:#9a8c83;font-weight:400;font-size:10px;line-height:1.5}
+.v2-admin-form .automation-master{margin-bottom:12px}
+.v2-admin-form .communication-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.v2-admin-form input.inline-days{display:inline-block;width:46px!important;min-height:26px!important;padding:2px 6px!important;text-align:center;margin:0 3px}
+.v2-admin-form .email-template-list>*{gap:10px;font-size:11px}
+.v2-admin-form .account-upload-card{gap:10px}
+.v2-admin-form .account-upload-card>div{display:flex;flex-direction:column;gap:3px}
+.v2-admin-form .account-upload-card>div span{color:#9a8c83;font-size:10px}
+.v2-admin-form .account-upload-card>label{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid #e5d8d0;border-radius:7px;padding:9px 12px;color:#5a1e2d;font-weight:600;cursor:pointer}
+.v2-admin-form .account-upload-card>label input{display:none}
+.v2-admin-form .account-operation-card{margin-bottom:14px}
+.v2-admin-form .account-detail-title{display:flex;align-items:center;gap:8px;margin:0 0 4px}
+.v2-admin-form .account-project-list li{justify-content:space-between}
+.v2-admin-form .account-project-list small{color:#9a8c83}
+.v2-admin-form .contact-action-row a{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid #e5d8d0;border-radius:7px;padding:9px 12px;color:#5a1e2d;font-weight:600;text-decoration:none}
+.v2-admin-form .contract-agenda-rule{margin:0;padding:12px 15px;border:1px solid #f0dfc0;background:#fffaf1;border-radius:9px;font-size:11px;line-height:1.6;color:#7a5a2c}
+.v2-admin-form :is(.fronts-error,.contract-agenda-settings>p){color:#b7495d;font-size:11px}
+.v2-admin-form .fronts-success{color:#42785a;font-size:11px}
+.v2-admin-form .fronts-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #e9ddd4;border-radius:9px;background:#fff;padding:13px 15px;font-size:12px;margin-bottom:12px}
+.v2-admin-form .fronts-note{font-size:11px;color:#9a8c83;margin:0 0 12px}
+.v2-admin-form .fronts-active-list{display:flex;flex-direction:column;margin:0 0 14px;padding:0;list-style:none}
+.v2-admin-form .fronts-active-list>*{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 2px;border-bottom:1px solid #f0e8e1;font-size:12px}
+.v2-admin-form .fronts-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px;align-items:end}
+.v2-admin-form .fronts-form label{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:700}
+.v2-admin-form :is(.fronts-primary,.contract-agenda-save){justify-self:start;display:inline-flex;align-items:center;gap:7px;background:#5a1e2d;border:1px solid #5a1e2d;border-radius:7px;padding:10px 13px;color:#fff;font:inherit;font-size:11px;font-weight:600;cursor:pointer;margin-top:14px}
+.v2-admin-form .fronts-close{background:#fff;border:1px solid #e5d8d0;border-radius:7px;padding:7px 10px;color:#9d4b64;font:inherit;font-size:11px;cursor:pointer}
+.ap-app.v2-admin-page .ap-registration-modal{height:min(830px,calc(100dvh - 40px))}

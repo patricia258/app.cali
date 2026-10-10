@@ -293,6 +293,21 @@ A proprietária mostrou a Visão geral do protótipo (`?area=admin`) como base e
 - Prioridades de hoje: além dos alertas (cronograma aguardando cliente, ajuste solicitado, horas ≥ 80%), entram até 4 entregáveis não concluídos vencidos ou com prazo nos próximos 7 dias, com etiqueta de data. Esses itens **não** aparecem em "Próximos prazos", que lista os seguintes.
 - "Próximos prazos" passou a considerar só entregáveis ainda não aprovados.
 
+### 10/10 — administradora: Contas e clientes (segunda página migrada)
+
+A proprietária informou que "Contas e clientes" do protótipo está 100% aprovada, com uma exceção: os motivos de bloquear, arquivar e encerrar abriam em painel lateral e devem abrir em diálogo central na identidade aprovada.
+
+- `/admin/clientes` entrou em `migratedAdminRoutes`. `AdminClientsPageV3.tsx`: lista (`ap-client-data`) com filtro de situação e busca; "Nova conta" (`ap-registration-modal`, 4 etapas); gestão da conta (`ap-account-modal`, 8 abas: Dados cadastrais, Contrato, Frentes, Agenda do contrato, Financeiro, Operação, Comunicações, Histórico); motivo de bloquear/arquivar/encerrar/reativar em diálogo central (`ap-status-confirm`), com data do distrato e projeção financeira no encerramento.
+- Todos os campos, cálculos e gravações são os de antes; só a moldura mudou. Os campos internos mantêm as classes oficiais (`stacked-label`, `form-grid`, `check-line`…) e recebem o visual pelo escopo `.v2-admin-form` em `operational.css`. `ContractFrontsAdmin` e `ContractAgendaSettings` não foram alterados, só estilizados por esse escopo.
+- Removidos: dados de demonstração da página (`previewClients`, modo `cali-preview-role`) e as folhas `page2-client-management.css`, `page2-account-tabs.css`, `page2-client-management-v3.css` com `styles/routes/clients.ts`.
+- Diferenças em relação ao protótipo, por serem regra do sistema oficial:
+  1. Ações da linha: Editar, Bloquear (ou Reativar), Arquivar, Encerrar. O protótipo tem "Pausar" e "Bloquear" separados; no oficial existe um só estado (bloqueado).
+  2. Filtro de situação: Ativo, Bloqueado, Arquivado, Encerrado (os estados reais). O protótipo lista Standby, Inativo e Cancelado, que não existem no banco.
+  3. Cadastro sem a etapa "Decisores e acessos": vários decisores/acessos por empresa exigem mudança de banco e de permissões (ver `HANDOFF_ADMIN_CLIENTES_DECISORES_2026-10-10.md` no repositório V2). Hoje a lista mostra o decisor principal e a situação do acesso dele.
+- Conferência: `scripts/v2-admin-clients-check.cjs` abre cadastro (4 etapas), gestão (8 abas) e os diálogos de motivo. `npm run check` passou; varredura do cliente 105/0.
+- Não testado: gravações (cadastrar, salvar, bloquear, arquivar, encerrar, enviar logo e documentos) contra o banco real.
+- Pendência técnica: `dashboard-overview-live.css` ainda é carregada na Visão geral só por causa do documento de exportação; podar para as regras `.overview-export-*`.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

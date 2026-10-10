@@ -15,7 +15,6 @@ const AdminDashboard = lazy(async () => {
   return import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard }));
 });
 const AdminClientsPageV3 = lazy(async () => {
-  await import('./styles/routes/clients');
   return import('./pages/admin/AdminClientsPageV3').then((m) => ({ default: m.AdminClientsPageV3 }));
 });
 const AdminProposalsPageV2 = lazy(async () => {

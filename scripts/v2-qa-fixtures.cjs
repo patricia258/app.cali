@@ -57,6 +57,11 @@ tables.deliverable_status_history=[{ id:'qa-h1', deliverable_id:dvId, company_id
 tables.deliverable_adjustments=[];
 tables.files.push({ id:'qa-file-dv', company_id:companyId, deliverable_id:dvId, title:'Arquivo QA da entrega · PDF', storage_path:'qa/x.pdf', drive_url:null, version_label:'1.0', published_at:'2026-10-08T13:00:00Z', updated_at:'2026-10-08T13:00:00Z', status:'published', client_visible:true });
 tables.comments=[{ id:'qa-c-1', company_id:companyId, target_id:dvId, target_type:'deliverable', author_user_id:userId, body:'Mensagem QA do cliente pedindo uma revisão na atribuição.', client_visible:true, source_actor:'client', created_at:'2026-10-08T13:12:00Z' },{ id:'qa-c-2', company_id:companyId, target_id:dvId, target_type:'deliverable', author_user_id:'admin-qa', body:'Resposta QA da CALI: vamos revisar e registrar na próxima versão.', client_visible:true, source_actor:'admin', created_at:'2026-10-08T13:25:00Z' }];
+// QA_ADMIN_CLIENTS: second fictitious account and primary contact
+Object.assign(company,{ segment:'Tecnologia', contract_value:5800, billing_frequency:'monthly', payment_method:'pix', billing_day:10, address_city:'Cidade QA', address_state:'PR', created_at:now });
+if (role === 'admin') tables.companies.push({ ...company, id:'11111111-1111-4111-8111-222222222222', display_name:'Segunda Empresa QA', legal_name:'Segunda QA Ltda', status:'paused', service_plan:'full', monthly_hours_contracted:30, logo_url:null, logo_workspace_url:null, drive_folder_url:'https://example.invalid/x' });
+tables.client_invites=[{ id:'qa-inv', company_id:companyId, is_primary:true, email:'decisor@example.invalid', full_name:'Decisora QA', job_title:'Diretoria', phone:'', whatsapp:'' }];
+tables.nps_responses=[]; tables.account_documents=[]; tables.activity_log=[{ company_id:companyId, event_type:'account_created', metadata:{}, created_at:now }];
 const readRpcs = {
   get_client_hours_summary: { visible: true, contractedHours: 20, consumedMinutes: 90, remainingMinutes: 1110, overMinutes: 0, usagePercent: 7.5 },
   client_meeting_records_v1: [],
