@@ -117,6 +117,28 @@ function emptyForm(companyId = ''): FormState {
   return { title: '', companyId, projectId: '', deliverableId: '', category: 'deliverable', kind: 'Entregável', version: 'v1.0', description: '', publish: false, requiresAcknowledgement: false, sourceMode: 'upload', driveUrl: '', revisionOfId: '', validUntil: '' };
 }
 
+/* Capa automática: o logo no centro e o fundo na cor do próprio fundo da imagem, para parecer uma peça só. */
+function AutoCover({ logo, name }: { logo: string; name: string }) {
+  const [background, setBackground] = useState('');
+  useEffect(() => {
+    let active = true; setBackground('');
+    const probe = new Image();
+    probe.crossOrigin = 'anonymous';
+    probe.onload = () => {
+      try {
+        const canvas = document.createElement('canvas'); canvas.width = probe.naturalWidth; canvas.height = probe.naturalHeight;
+        const context = canvas.getContext('2d'); if (!context || !canvas.width || !canvas.height) return;
+        context.drawImage(probe, 0, 0);
+        const [r, g, b, alpha] = context.getImageData(Math.min(2, canvas.width - 1), Math.min(2, canvas.height - 1), 1, 1).data;
+        if (active) setBackground(alpha < 16 ? '#ffffff' : `rgb(${r}, ${g}, ${b})`);
+      } catch { /* sem leitura da imagem, fica o fundo padrão */ }
+    };
+    probe.src = logo;
+    return () => { active = false; };
+  }, [logo]);
+  return <span className="v2-doc-autocover" style={background ? { background } : undefined}><img src={logo} alt={`Logo de ${name}`} /></span>;
+}
+
 export function AdminDocumentsPageV4() {
   const preview = sessionStorage.getItem('cali-preview-role') === 'admin';
   const [docs, setDocs] = useState<DocumentRow[]>([]);
@@ -414,6 +436,15 @@ export function AdminDocumentsPageV4() {
 
   const tagTone = (stage: string) => stage === 'published' ? 'green' : stage === 'ready_to_publish' ? 'blue' : stage === 'archived' ? 'red' : stage === 'awaiting_final_file' ? 'yellow' : 'purple';
   const validity = (doc: DocumentRow) => doc.validUntil ? doc.validUntil.split('-').reverse().join('/') : 'não definida';
+  // Projeto e entregável aparecem uma vez só: o entregável some quando já é o próprio título do documento.
+  const same = (a?: string | null, b?: string | null) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
+  const contextLine = (doc: DocumentRow) => [doc.project ? `Projeto ${doc.project}` : 'Sem projeto vinculado', doc.deliverable && !same(doc.deliverable, doc.title) ? `Entregável ${doc.deliverable}` : ''].filter(Boolean).join(' · ');
+  const reviewInfo = (value?: string | null) => {
+    if (!value) return { date: 'Não definida', note: '', tone: 'muted' };
+    const days = Math.round((new Date(`${value}T12:00:00`).getTime() - Date.now()) / 86400000);
+    const note = days < 0 ? `vencida há ${-days} ${-days === 1 ? 'dia' : 'dias'}` : days === 0 ? 'vence hoje' : `faltam ${days} ${days === 1 ? 'dia' : 'dias'}`;
+    return { date: value.split('-').reverse().join('/'), note, tone: days < 0 ? 'late' : days <= 60 ? 'soon' : '' };
+  };
 
   return (
     <Shell role="admin">
@@ -438,20 +469,26 @@ export function AdminDocumentsPageV4() {
 
         {filtered.length === 0 && <div className="wf-empty"><strong>{docs.length ? 'Nenhum documento neste filtro.' : 'A biblioteca está pronta.'}</strong><p>{docs.length ? 'Ajuste os filtros.' : 'As prévias surgirão automaticamente quando um entregável marcado como “Gera documento” for criado.'}</p></div>}
 
-        {layout === 'covers' && filtered.length > 0 && <section className="wf-doc-gallery document-library-grid-v3">
+        {layout === 'covers' && filtered.length > 0 && <section className="wf-doc-gallery v2-doc-gallery">
           {filtered.map((doc) => {
             const pending = Math.max(0, doc.expectedAcknowledgements - doc.acknowledgements);
             const needsFile = doc.workflowStage === 'preparation' || doc.workflowStage === 'awaiting_final_file';
-            return <article className={`wf-doc-cover doc-work document-library-card-v3 status-${doc.status} stage-${doc.workflowStage}`} key={doc.id}>
-              <button type="button" className={`wf-doc-art document-card-preview-v3 ${doc.coverUrl ? 'has-cover' : ''}`} aria-label={`Ver detalhes de ${doc.title}`} onClick={() => void loadComments(doc)}>{doc.coverUrl ? <img src={doc.coverUrl} alt="" /> : <span><b>CALI</b></span>}</button>
-              <div className="wf-doc-content document-card-content-v3">
+            const review = reviewInfo(doc.validUntil);
+            return <article className={`wf-doc-cover doc-work v2-doc-card status-${doc.status} stage-${doc.workflowStage}`} key={doc.id}>
+              <div className="v2-doc-art-wrap">
+                <button type="button" className={`wf-doc-art ${doc.coverUrl ? 'has-cover' : ''}`} aria-label={`Ver detalhes de ${doc.title}`} onClick={() => void loadComments(doc)}>{doc.coverUrl ? <img src={doc.coverUrl} alt="" /> : doc.companyLogo ? <AutoCover logo={doc.companyLogo} name={doc.company} /> : <span><b>CALI</b></span>}</button>
                 <div className="v2-doc-tags"><span className={`wf-tag ${tagTone(doc.workflowStage)}`}>{stageLabel(doc.workflowStage)}</span><span className="wf-doc-label doc-work">{categoryLabel(doc.category)}</span></div>
+              </div>
+              <div className="wf-doc-content">
                 <h2>{doc.title}</h2>
-                <div className="document-client-line-v3 v2-doc-client"><span className="document-client-logo-v3">{doc.companyLogo ? <img src={doc.companyLogo} alt="" /> : <span>{doc.company.slice(0, 1).toUpperCase()}</span>}</span><div><strong>{doc.company}</strong><small>{doc.project || 'Sem projeto'}{doc.deliverable ? ` · ${doc.deliverable}` : ''}</small></div></div>
-                <p>Versão {doc.version} · {sourceLabel(doc.sourceType)} · atualizado {formatDateTime(doc.updatedAt)}</p>
-                <p className={doc.validUntil ? '' : 'v2-doc-muted'}>Validade / próxima revisão: {validity(doc)}</p>
-                <strong className="wf-doc-protocol">{doc.protocol || '—'}</strong>
-                <div className="v2-doc-metrics"><span><Eye size={12} />{doc.views} {doc.views === 1 ? 'visualização' : 'visualizações'}</span>{doc.requiresAcknowledgement && <span className={pending > 0 ? 'pending' : 'done'}><ShieldCheck size={12} />{doc.acknowledgements}{doc.expectedAcknowledgements ? `/${doc.expectedAcknowledgements}` : ''} ciências</span>}<span><MessageSquare size={12} />{doc.comments}</span></div>
+                <div className="v2-doc-client"><span className="v2-doc-client-logo">{doc.companyLogo ? <img src={doc.companyLogo} alt="" /> : <span>{doc.company.slice(0, 1).toUpperCase()}</span>}</span><div><strong>{doc.company}</strong><small>{contextLine(doc)}</small></div></div>
+                <dl className="v2-doc-facts">
+                  <div><dt>Versão</dt><dd>{doc.version}</dd></div>
+                  <div><dt>Origem</dt><dd>{sourceLabel(doc.sourceType)}</dd></div>
+                  <div><dt>Atualizado em</dt><dd>{formatDateTime(doc.updatedAt)}</dd></div>
+                  <div className={review.tone}><dt>Validade / revisão</dt><dd>{review.date}{review.note && <small>{review.note}</small>}</dd></div>
+                </dl>
+                <div className="v2-doc-foot"><strong className="wf-doc-protocol">{doc.protocol || 'Sem protocolo'}</strong><div className="v2-doc-metrics"><span title="Visualizações"><Eye size={12} />{doc.views}</span>{doc.requiresAcknowledgement && <span className={pending > 0 ? 'pending' : 'done'} title="Ciências registradas"><ShieldCheck size={12} />{doc.acknowledgements}{doc.expectedAcknowledgements ? `/${doc.expectedAcknowledgements}` : ''}</span>}<span title="Comentários"><MessageSquare size={12} />{doc.comments}</span></div></div>
                 <div className="wf-doc-actions">{needsFile && <button type="button" className="v2-doc-primary" onClick={() => completeDocument(doc)}><Upload size={13} /> Completar</button>}<button type="button" onClick={() => void openDocument(doc)} disabled={!doc.storagePath && !doc.driveUrl}><ExternalLink size={13} /> Abrir</button><button type="button" onClick={() => void loadComments(doc)}>Detalhes</button></div>
               </div>
             </article>;
@@ -463,10 +500,10 @@ export function AdminDocumentsPageV4() {
           {filtered.map((doc) => { const pending = Math.max(0, doc.expectedAcknowledgements - doc.acknowledgements); return <div className="wf-record-row" key={doc.id} role="button" tabIndex={0} onClick={() => void loadComments(doc)} onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); void loadComments(doc); } }}>
             <span className="v2-record-logo">{doc.companyLogo ? <img src={doc.companyLogo} alt="" /> : <span aria-hidden="true">{doc.company.slice(0, 1).toUpperCase()}</span>}</span>
             <span><small>{doc.protocol || '—'}</small><strong>{doc.title}</strong><small>Versão {doc.version} · {sourceLabel(doc.sourceType)}</small></span>
-            <span className="v2-record-author"><strong>{doc.company}</strong><small>{doc.project || 'Sem projeto'}{doc.deliverable ? ` · ${doc.deliverable}` : ''}</small></span>
+            <span className="v2-record-author"><strong>{doc.company}</strong><small>{contextLine(doc)}</small></span>
             <span>{categoryLabel(doc.category)}</span>
             <span><span className={`wf-tag ${tagTone(doc.workflowStage)}`}>{stageLabel(doc.workflowStage)}</span></span>
-            <span>{validity(doc)}</span>
+            <span className={`v2-doc-review ${reviewInfo(doc.validUntil).tone}`}>{reviewInfo(doc.validUntil).date}{reviewInfo(doc.validUntil).note && <small>{reviewInfo(doc.validUntil).note}</small>}</span>
             <span className="v2-doc-metrics"><span><Eye size={12} />{doc.views}</span>{doc.requiresAcknowledgement && <span className={pending > 0 ? 'pending' : 'done'}><ShieldCheck size={12} />{doc.acknowledgements}{doc.expectedAcknowledgements ? `/${doc.expectedAcknowledgements}` : ''}</span>}<span><MessageSquare size={12} />{doc.comments}</span></span>
             <button type="button" aria-label={`Abrir detalhes de ${doc.title}`} onClick={(event) => { event.stopPropagation(); void loadComments(doc); }}><ChevronRight size={16} /></button>
           </div>; })}

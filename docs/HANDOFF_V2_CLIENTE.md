@@ -573,6 +573,14 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - As folhas antigas (`styles/routes/documents`) deixaram de ser carregadas no carregador da página da administradora em `App.tsx` (o do cliente não foi tocado). As classes usadas por `documentsIdentityRuntimeV42` (capa automática com o logo da empresa) foram mantidas e reestilizadas.
 - Conferido no QA: capas, lista, novo documento, detalhes, 390 px sem estouro, cliente intacto. **Não conferido com dados reais:** envio de arquivo/capa, link do Drive, publicar/arquivar, nova versão, capas reais e a faixa com o Drive conectado.
 
+### 2026-10-11 — Documentos: cartão objetivo e compacto; Ocorrências: ações em uma linha
+
+- **Cartão de documento (administradora)**: etiquetas de etapa e categoria sobre a capa, no canto superior direito; capa mais baixa (112 px); uma linha de contexto sem repetição (`contextLine`: "Projeto X" e, só se for diferente do título, "Entregável Y"); dados com rótulo em grade 2×2 (Versão, Origem, Atualizado em, Validade / revisão com contagem "faltam N dias" / "vencida há N dias", âmbar até 60 dias, vermelho vencida); protocolo e contadores na mesma linha. A lista usa a mesma linha de contexto e a mesma contagem.
+- As classes-gancho de `documentsIdentityRuntimeV42` saíram do cartão da administradora (o módulo injetava a linha "PROJETO …" repetida e a capa com moldura). A capa automática agora é `AutoCover` na própria página: logo central e fundo na cor do canto da imagem do logo (lida por canvas; se a leitura falhar, fica o creme padrão).
+- **Cliente** (`ClientDocumentsPage.tsx`): a linha "data · versão · tipo" não repete o tipo quando ele é igual à categoria da etiqueta.
+- **Ocorrências**: ações do rodapé do painel em uma linha quando cabem (telas a partir de ~1560 px); em telas menores o grupo de situação fica numa linha e "Salvar na memória da conta" desce.
+- **Não conferido com dados reais:** cor de fundo com logos reais (depende de o armazenamento liberar a leitura da imagem), cartão do cliente com dados reais.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
