@@ -2380,3 +2380,32 @@ html[data-workspace-ui='v2'] .wf-record-drawer .records-message-meta-extra em{fo
 .v2-admin-reports .reports-v16-preview-document .reports-v16-paper small{font-size:12px!important}
 .v2-admin-reports .reports-v16-preview-document .profile-person-image-v47{border-radius:14px!important}
 .v2-admin-reports .reports-v16-preview-document .reports-v16-paper h1{font-size:29px!important}
+
+/* Relatórios — ajustes após a revisão: trilha e filtros sem sobreposição, números sem serifa, complementos compactos, histórico arejado */
+.v2-admin-reports .wf-controls.v2-report-controls{flex-wrap:wrap!important;row-gap:12px}
+.v2-admin-reports .v2-report-stages{flex:0 0 auto}
+.v2-admin-reports .v2-report-stages li+li::before{width:18px;margin:0 8px}
+.v2-admin-reports .v2-report-controls .reports-v16-filters{margin-left:auto!important}
+.v2-admin-reports .reports-admin-v16 :is(strong,b,span,h1,h2,h3,dd,dt,small,p,td,th,button,label,input,select,textarea){font-family:Inter,system-ui,sans-serif!important}
+.v2-admin-reports .reports-v16-review-stats strong{font-size:22px!important;font-weight:600!important;line-height:1!important;color:#5a1e2d!important}
+.v2-admin-reports .reports-v16-fact-grid strong{font-size:22px!important;font-weight:600!important;color:#5a1e2d!important}
+.v2-admin-reports .reports-v16-section-heading>span{font-size:11px!important;font-weight:700!important;color:#b58c52!important;letter-spacing:.06em}
+.v2-admin-reports .reports-v21-manual-item{padding:12px!important;border-radius:9px!important}
+.v2-admin-reports .reports-v21-manual-grid{gap:10px 12px!important}
+.v2-admin-reports .reports-v21-manual-section label{gap:5px!important;font-size:9.5px!important;font-weight:700!important;letter-spacing:.06em!important;color:#857870!important}
+.v2-admin-reports .reports-v21-manual-section :is(input,select){height:36px!important;min-height:0!important;padding:0 10px!important;border:1px solid #e5d8d0!important;border-radius:7px!important;background-color:#fff!important;font-size:12px!important;font-weight:400!important;color:#322f2c!important;box-shadow:none!important}
+.v2-admin-reports .reports-v21-manual-section textarea{padding:9px 10px!important;border:1px solid #e5d8d0!important;border-radius:7px!important;font-size:12px!important}
+.v2-admin-reports .reports-v21-manual-section button.secondary{display:inline-flex;align-items:center;gap:6px;padding:8px 12px!important;border:1px solid #dec9c3!important;border-radius:7px!important;background:#fff!important;color:#5a1e2d!important;font-size:11px!important;font-weight:700!important;min-height:0!important;height:auto!important}
+.v2-admin-reports .reports-v21-manual-group-head strong{font-size:13px!important}
+.v2-admin-reports .reports-v16-history-table>div{grid-template-columns:minmax(0,1.4fr) 70px minmax(0,1.6fr) minmax(0,.9fr) 130px!important;align-items:center!important;gap:16px!important}
+.v2-admin-reports .reports-v16-history-table>div>span:nth-child(3){display:flex!important;align-items:center;flex-wrap:wrap;gap:6px 10px;min-width:0}
+.v2-admin-reports .reports-v16-history-table>div:not(.head)>span:nth-child(3)>*{display:inline-flex;align-items:center;margin:0!important;padding:3px 8px;border-radius:5px;background:#f6f0eb;color:#67574c;font-size:10px!important;font-weight:600;white-space:nowrap}
+.v2-admin-reports .reports-v16-history-table>div>span.actions{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+/* sino com aviso: destaque quando há notificação não lida */
+html[data-workspace-ui='v2'] .notification-button:has(.notification-count){border-color:#5a1e2d!important;background:#f6edf0!important;color:#5a1e2d!important;box-shadow:0 0 0 3px #5a1e2d14}
+html[data-workspace-ui='v2'] .notification-button:has(.notification-count) svg{animation:v2-bell-ring 2.8s ease-in-out infinite;transform-origin:50% 10%}
+html[data-workspace-ui='v2'] .notification-button .notification-count{top:-6px!important;right:-6px!important;min-width:19px!important;height:19px!important;padding:0 5px!important;border:2px solid #fff;border-radius:10px!important;background:#b7495d!important;font-size:10px!important;font-weight:800!important}
+@keyframes v2-bell-ring{0%,86%,100%{transform:rotate(0)}89%{transform:rotate(11deg)}92%{transform:rotate(-9deg)}95%{transform:rotate(6deg)}98%{transform:rotate(-3deg)}}
+@media(prefers-reduced-motion:reduce){html[data-workspace-ui='v2'] .notification-button:has(.notification-count) svg{animation:none}}
+/* troca de página: o carregador fica só na área de conteúdo; menu e topo continuam na tela */
+html[data-workspace-ui='v2'] .main .cali-route-loading{position:relative!important;inset:auto!important;width:auto!important;height:auto!important;min-height:calc(100dvh - 140px)!important;background:transparent!important;z-index:auto!important}

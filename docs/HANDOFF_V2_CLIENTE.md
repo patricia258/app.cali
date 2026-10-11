@@ -672,6 +672,15 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - Conferido no QA com relatório simulado (prévia, em revisão, aprovado), diálogo de ignorar alerta, 390 px sem estouro. **Não conferido:** diálogo "Enviar ao cliente" aberto (o botão não apareceu na simulação), criar fechamento, aprovar, enviar, nova versão, autosave, relatório trimestral e com dados reais (papel completo com entregas, horas e NPS).
 - Com isso, das pendências da lista consolidada, o item B5 (Relatórios) passa a "feito, sem teste real".
 
+### 2026-10-11 — Relatórios (revisão da Patricia), fonte dos documentos, sino e troca de página
+
+- **Relatórios**: trilha e filtros não se sobrepõem mais (a linha quebra quando não cabe); números e títulos da bancada sem serifa (Inter); "Complementar dados do relatório" com campos de 36 px e rótulos menores; histórico com a coluna Status larga e os avisos (Enviado, Visualizado, Ciência) como etiquetas lado a lado.
+- **Fonte dos documentos — mudança pedida pela Patricia**: `src/report-paper-fonts-v2.css` (importado em `styles/routes/reports.ts`) troca a família de fonte do papel do relatório executivo para Inter, em todo o papel — prévia, página de impressão (PDF) e leitura do cliente. Só a família muda. **A partir daqui o papel deixa de ser idêntico ao de antes, de propósito**; a medição de "zero diferenças" vale só até o commit anterior. Conferido no QA: nenhum elemento com serifa e sem estouro da página no relatório simulado. **Não conferido:** relatório real completo (quebras de linha e de página com muito texto) e o PDF impresso.
+- **Ainda com as fontes antigas (serifa):** PDF/prévia de proposta (`portal-proposal-preview.css`, páginas A4 de altura fixa — trocar a fonte pode empurrar texto para fora da página; precisa de teste com proposta real) e o relatório do Mapa de People (é do site `mapa.calirh.com`, fora deste repositório).
+- **Sino de notificações**: com aviso não lido o botão ganha contorno e fundo bordô claro, o contador fica maior e o sino balança de leve a cada ~3 s (respeita "reduzir movimento"). O QA não tem notificação não lida — não conferido visualmente.
+- **Troca de página "tudo branco"**: o carregador de troca de página (`.cali-route-loading`) era de tela cheia e cobria menu e topo. Dentro da moldura V2 ele agora ocupa só a área de conteúdo. A moldura já era persistente (`WorkspaceFrame`). Não reproduzido no QA com o carregador de rota em si; conferir no link.
+- **Usuário interno da CALI**: ainda não existe onde criar. Hoje `is_admin()` reconhece só `patricia@calirh.com`. É o bloco "usuários internos" das pendências (B6).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
