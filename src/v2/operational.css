@@ -2425,3 +2425,13 @@ html[data-workspace-ui='v2'] .main .cali-route-loading{position:relative!importa
 .v2-admin-reports .reports-v16-alert-list article>div:last-child{display:flex;align-items:center;gap:8px;flex:none}
 .v2-admin-reports .reports-v16-alert-list article>div:last-child :is(a,button){display:inline-flex;align-items:center;padding:8px 12px;border:1px solid #dec9c3;border-radius:7px;background:#fff;color:#5a1e2d;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;cursor:pointer}
 .v2-admin-reports .reports-v16-alert-list article>div:last-child button:disabled{opacity:.45;cursor:not-allowed}
+
+/* Alertas da conferência: cor de atenção (âmbar) e de correção obrigatória (vermelho) — cartão de alerta nunca é neutro */
+.v2-admin-reports .reports-v16-alert-list article.tone-attention{border-color:#ecd9b0!important;border-left:4px solid #d2a851!important;background:#fff8ea!important}
+.v2-admin-reports .reports-v16-alert-list article.tone-attention>div:first-child>strong{background:#f6e3b8;color:#7d5a1c}
+.v2-admin-reports .reports-v16-alert-list article.tone-critical{border-color:#ecd0d5!important;border-left:4px solid #b7495d!important;background:#fdf1f2!important}
+.v2-admin-reports .reports-v16-alert-list article.tone-critical>div:first-child>strong{background:#f6d5da;color:#9c2f43}
+.v2-admin-reports .reports-v16-alert-list article.tone-dismissed{border-left:4px solid #d9cdc4!important;background:#faf7f4!important}
+.v2-admin-reports .reports-v16-alert-list article.tone-dismissed>div:first-child>strong{background:#efe7df;color:#857870}
+.v2-admin-reports .reports-v16-alert-list article p{max-width:820px;line-height:1.5}
+.v2-admin-reports .reports-v16-alert-section .reports-v16-section-heading p{color:#97672f!important;font-weight:600}

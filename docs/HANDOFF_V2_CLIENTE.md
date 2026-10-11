@@ -687,6 +687,12 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Respiros**: "Planejado x realizado" fica 22 px abaixo da linha; a caixa de alerta da conferência tem 14–18 px de margem interna, "ATENÇÃO" como etiqueta e a ação ("Abrir Registros", "Ignorar com justificativa") como botão.
 - Pendente de esclarecimento: a Patricia enviou um print de Ocorrências (1 com ação necessária) sem texto — perguntar o que ela quer ali (provável: o sino não acende quando há ocorrência com ação necessária; hoje o sino só reflete a tabela de notificações).
 
+### 2026-10-11 — Alertas da conferência do relatório: texto claro e cor de atenção
+
+- A Patricia não entendeu o alerta "Há agenda no período, mas nenhuma memória consultiva registrada" nem por que o botão a levava para Ocorrências. Todos os alertas de `src/lib/reportV14.ts` foram reescritos no formato "o que foi encontrado → o que fazer → onde" e os botões dizem a ação ("Registrar em Ocorrências", "Definir prazo em Projetos", "Conferir em Horas"…). Os `id` dos alertas não mudaram (as justificativas de "ignorar" já gravadas continuam valendo). Esses textos são só da bancada; não entram no PDF.
+- Cartão de alerta com cor: âmbar para "Atenção", vermelho para "Precisa corrigir", cinza para "Ignorado" (`tone-attention / tone-critical / tone-dismissed`). Regra dela, para qualquer alerta do sistema: cartão de atenção nunca fica em cor neutra.
+- **Publicação no oficial**: ela perguntou se já dá para aplicar. NÃO foi publicado — falta o "pode publicar no oficial" explícito. Recomendação dada: antes, um roteiro curto de teste no link de homologação com dados reais (ver resposta na conversa).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
