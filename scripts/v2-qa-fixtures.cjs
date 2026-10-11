@@ -61,6 +61,8 @@ tables.comments=[{ id:'qa-c-1', company_id:companyId, target_id:dvId, target_typ
 Object.assign(company,{ segment:'Tecnologia', contract_value:5800, billing_frequency:'monthly', payment_method:'pix', billing_day:10, address_city:'Cidade QA', address_state:'PR', created_at:now });
 if (role === 'admin') tables.companies.push({ ...company, id:'11111111-1111-4111-8111-222222222222', display_name:'Segunda Empresa QA', legal_name:'Segunda QA Ltda', status:'paused', service_plan:'full', monthly_hours_contracted:30, logo_url:null, logo_workspace_url:null, drive_folder_url:'https://example.invalid/x' });
 tables.client_invites=[{ id:'qa-inv', company_id:companyId, is_primary:true, email:'decisor@example.invalid', full_name:'Decisora QA', job_title:'Diretoria', phone:'', whatsapp:'' }];
+// QA_EXTRA_INVITE
+tables.client_invites[0].active=true; tables.client_invites.push({ id:'qa-inv2', company_id:companyId, is_primary:false, active:true, email:'acesso@example.invalid', full_name:'Acesso QA', job_title:'Gestão', phone:'', access_role:'decision_maker', platform_access:true });
 tables.nps_responses=[]; tables.account_documents=[]; tables.activity_log=[{ company_id:companyId, event_type:'account_created', metadata:{}, created_at:now }];
 const readRpcs = {
   get_client_hours_summary: { visible: true, contractedHours: 20, consumedMinutes: 90, remainingMinutes: 1110, overMinutes: 0, usagePercent: 7.5 },

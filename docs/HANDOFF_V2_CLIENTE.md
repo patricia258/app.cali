@@ -325,6 +325,18 @@ Mudanças de banco propostas, **aguardando "pode aplicar"**:
 1. Situação "Pausado" separada de "Bloqueado": novo valor em `companies_status_check` (ex.: `blocked`), mantendo `paused` como pausa. Falta a proprietária definir a diferença prática (o cliente pausado continua entrando?).
 2. Acessos adicionais: coluna de papel em `client_invites` (principal / decisor adicional / acesso adicional), limite de 4 acessos ativos por empresa e função para a administradora criar/remover convites; revisar o gatilho de aceite do convite e as políticas de RLS antes.
 
+### 10/10 — banco: Bloqueado, papéis de acesso e campos do cadastro (APLICADO em produção, com "pode aplicar" da proprietária)
+
+Migração `supabase/migrations/20261010230000_account_blocked_status_access_roles_contract_fields.sql`, aplicada no projeto `kqtbfeeqbcllwvlkbrkq`. Só acrescenta; nenhum dado existente foi alterado além de marcar o convite principal como `primary`.
+
+- `companies.status` passou a aceitar `blocked`; colunas `blocked_at`, `blocked_reason`. **Pausado** (`paused`) = contrato em espera, cliente continua entrando; **Bloqueado** (`blocked`) = perfis do cliente desativados. Confirmado pela proprietária.
+- `companies`: `contract_type`, `contract_model`, `payment_term_days`, `document_notes`, `document_owner`. O link do Drive usa a coluna que já existia (`drive_folder_url`).
+- `client_invites`: `access_role` (`primary` / `decision_maker` / `additional`), `platform_access`, e gatilho `client_invites_limit` que recusa o 5º acesso ativo da empresa.
+- Um convite **não cria login**: não existe gatilho de aceite no banco. Criar o usuário de cada acesso continua sendo um passo manual da CALI.
+- Atenção: a versão em produção (`main`) ainda chama `paused` de "Bloqueado" e desativa os perfis ao pausar. Isso só muda quando esta branch for publicada.
+
+No app (`AdminClientsPageV3.tsx`): ações Pausar e Bloquear separadas (lista, rodapé da gestão, diálogo de motivo com a explicação de cada uma), filtro com Pausado e Bloqueado, campos novos no cadastro e na gestão (Contrato, Modelo, Prazo para pagamento, Link do Drive, Responsável e Observação documental), decisores/acessos adicionais gravados em `client_invites` no cadastro e editáveis em Gestão da conta → Dados cadastrais. Não testado contra o banco real.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

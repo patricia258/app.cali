@@ -998,3 +998,5 @@ html[data-workspace-ui='v2'] .overview-export-close{border:1px solid #ecded5;bac
 html[data-workspace-ui='v2'] .v2-client-module .wf-form label.wf-access-ack{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:9px;text-align:left}
 html[data-workspace-ui='v2'] .v2-client-module .wf-form label.wf-access-ack input{width:auto!important;min-height:0!important;margin:0;flex:0 0 auto}
 html[data-workspace-ui='v2'] .v2-client-module .wf-modal:has(.wf-access-terms) textarea{height:64px}
+.v2-admin-form .v2-admin-subheading{margin-top:22px}
+.v2-admin-page .ap-state-pill.blocked,.v2-admin-page .ap-account-pills span:first-child.blocked{background:#fae9e9;border-color:#f0d5d8;color:#b7495d}

@@ -12,7 +12,7 @@ const single=(r.headers()['accept']||'').includes('vnd.pgrst.object');return rou
 const p=await c.newPage();p.on('pageerror',e=>console.log('PAGEERR',e.message));await p.goto('http://127.0.0.1:5173/admin/clientes');await p.waitForTimeout(2200);
 const shot=n=>p.screenshot({path:path.join(out,n+'.png')});
 await p.getByRole('button',{name:'Nova conta'}).click();await p.waitForTimeout(400);
-for(const[i,t]of ['Dados cadastrais','Contrato','Financeiro','Documentos'].entries()){await p.locator('.ap-registration-tabs button',{hasText:t}).click();await p.waitForTimeout(250);await shot('novo-'+(i+1));}
+for(const[i,t]of ['Dados cadastrais','Decisores e acessos','Contrato','Financeiro','Documentos'].entries()){await p.locator('.ap-registration-tabs button',{hasText:t}).click();await p.waitForTimeout(250);if(i===1){await p.getByRole('button',{name:'Adicionar decisor ou acesso'}).click();await p.waitForTimeout(150);}await shot('novo-'+(i+1));}if(process.env.ONLY==='novo'){await b.close();return;}
 await p.getByRole('button',{name:'Fechar cadastro'}).click();await p.locator('.ap-client-data-row').first().click();await p.waitForTimeout(500);
 for(const[i,t]of ['Dados cadastrais','Contrato','Frentes','Agenda do contrato','Financeiro','Operação','Comunicações','Histórico'].entries()){await p.locator('.ap-account-tabs button',{hasText:t}).first().click();await p.waitForTimeout(700);await shot('conta-'+(i+1));}
 await p.locator('.ap-account-danger button',{hasText:'Encerrar contrato'}).click();await p.waitForTimeout(400);await shot('motivo-encerrar');
