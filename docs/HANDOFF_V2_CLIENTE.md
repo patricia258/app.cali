@@ -407,6 +407,15 @@ App (`CompanyTeamPage.tsx`, Equipe → Indicadores):
 - Sem remuneração nem dados restritos (a tabela restrita tem gatilho de auditoria; não foi usada).
 - Para remover: apagar as linhas de `team_changes`, `team_month_snapshots`, `team_months`, `team_month_metrics`, `team_members` com esse `company_id` e depois a linha de `companies`. Só com pedido da proprietária.
 
+### 11/10 — ajustes da proprietária nos Indicadores
+
+- Diálogo "Dados do mês": estava sem respiro lateral e cortado; agora tem cabeçalho fixo, corpo rolável com margem e rodapé fixo.
+- Indicadores essenciais deixaram de ser três fileiras de cartões: quatro números do topo, uma fileira com cinco cartões (rotatividade, permanência, movimentações internas, absenteísmo, clima), uma faixa "Dados de <mês>" com o botão de lançar/editar e o painel **Evolução dos indicadores essenciais** — gráfico de até 12 meses confirmados com seletor (quadro ativo, admissões, desligamentos, rotatividade, absenteísmo, eNPS), mês de referência em bordô e mês comparado em dourado.
+- Sem mês de comparação confirmado, aparece um aviso único ao lado de "Comparar com" (antes repetia em todos os cartões). O comparativo volta para "Mês anterior" ao trocar de empresa.
+- O lembrete "Hora de atualizar o quadro!" aparece **só para o cliente** (é ele quem alimenta o quadro). Consequência: a administradora não abre mais o assistente mensal por ali.
+- O assistente "O que mudou neste mês?" (`TeamMonthWizard.tsx`) usa sempre o diálogo V2.
+- Pedidos registrados, não construídos: (1) gerar relatório/PDF organizado da visão de Indicadores; (2) no futuro, leitura de diagnóstico automática da empresa a partir desses dados; (3) a proprietária ainda acha a tela com cartões demais — revisar a hierarquia visual junto com o relatório.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

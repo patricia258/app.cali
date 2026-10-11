@@ -1077,3 +1077,29 @@ html[data-workspace-ui='v2'] .extra-visit-expenses-item button{border:0;backgrou
 .v2-client-module .v2-pa-panel{min-width:0}
 .v2-client-module .v2-pa-panel .area-row{grid-template-columns:minmax(0,150px) minmax(0,1fr) auto}
 .v2-client-module .v2-pa-panel .area-row strong{white-space:nowrap;text-align:right}
+/* Indicadores essenciais: cartões em uma fileira, faixa de dados do mês e gráfico com seletor */
+.v2-client-module .ie-insights.v2-five{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:1180px){.v2-client-module .ie-insights.v2-five{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){.v2-client-module .ie-insights.v2-five{grid-template-columns:1fr}}
+.v2-client-module .v2-month-strip{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:16px 0;padding:12px 16px;border:1px solid #e9dbd0;border-radius:10px;background:#fff;font-size:11px;color:#8c7e74}
+.v2-client-module .v2-month-strip strong{color:#5a1e2d}
+.v2-client-module .v2-ess-chart{margin-bottom:16px;min-width:0}
+.v2-client-module .v2-ess-chart>header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.v2-client-module .v2-ess-chart h3{margin:0 0 4px;font-size:15px}
+.v2-client-module .v2-ess-chart header p{margin:0;font-size:11px;color:#8c7e74}
+.v2-client-module .v2-ess-chart .mini-chart>div.now>span:not(.chart-number){background:#5a1e2d}
+.v2-client-module .v2-ess-chart .mini-chart>div.cmp>span:not(.chart-number){background:#b58c52}
+.v2-client-module .v2-ess-chart .mini-chart>div:not(.now):not(.cmp)>span:not(.chart-number){background:#dccdc3}
+.v2-client-module .v2-ess-legend{display:flex;align-items:center;gap:8px;margin:10px 0 0;font-size:10px;color:#978579}
+.v2-client-module .v2-ess-legend i{width:9px;height:9px;border-radius:2px;display:inline-block;margin-left:8px}
+.v2-client-module .v2-ess-legend i:first-child{margin-left:0}
+.v2-client-module .v2-ess-legend i.now{background:#5a1e2d}
+.v2-client-module .v2-ess-legend i.cmp{background:#b58c52}
+.v2-client-module .v2-compare small{font-size:10px;color:#978579}
+/* Diálogo "Dados do mês": cabeçalho fixo, corpo rolável com respiro, rodapé fixo */
+html[data-workspace-ui='v2'] .v2-team-overlay .wf-modal.v2-month-form{display:flex;flex-direction:column;max-height:calc(100dvh - 36px);overflow:hidden;width:min(680px,100%)}
+html[data-workspace-ui='v2'] .v2-team-overlay .v2-month-form>.wf-form{padding:18px 25px 20px;overflow-y:auto;scrollbar-width:none;min-height:0}
+html[data-workspace-ui='v2'] .v2-team-overlay .v2-month-form>.wf-form::-webkit-scrollbar{display:none}
+html[data-workspace-ui='v2'] .v2-team-overlay .v2-month-form>footer{display:flex;justify-content:flex-end;gap:10px;padding:14px 25px;border-top:1px solid #eee5df;flex-shrink:0}
+.v2-client-module .v2-ess-chart{padding:20px 22px;background:#fff;border:1px solid #e9dbd0;border-radius:10px}
+.v2-client-module .v2-ess-chart .ie-switch{flex-wrap:wrap}
