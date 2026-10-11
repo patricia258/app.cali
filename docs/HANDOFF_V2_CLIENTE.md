@@ -384,6 +384,12 @@ Divisão aprovada pela proprietária. Em Equipe → Indicadores (`CompanyTeamPag
 - A trava é de apresentação: os dados são da própria empresa e continuam chegando ao navegador. Se um dia o módulo precisar esconder dados de fato, a regra tem de ir para o banco.
 - Usuários internos (Administradora / Parceiro): a proprietária decidiu fazer **dentro desta construção da administradora**, em bloco próprio (plano descrito acima).
 
+### 10/10 (noite) — indicadores essenciais com comparativo; cartão do People Analytics como frente adicional
+
+- Equipe → Indicadores: seletor "Comparar com" (mês anterior, mesmo mês do ano anterior ou qualquer mês confirmado). Quadro ativo, admissões, desligamentos, variação líquida, rotatividade e movimentações internas mostram a variação em relação ao mês escolhido; os três primeiros mostram também uma série curta dos últimos meses confirmados (mês atual em bordô, mês comparado em dourado). Sem mês confirmado na referência, o cartão diz isso em vez de inventar número. Permanência média não tem comparativo (é calculada na data de hoje, não há histórico guardado).
+- O cartão sobre os gráficos travados passou a apresentar o People Analytics como **frente adicional**, com o texto do catálogo de frentes, e leva para `/cliente/frentes` ("Conhecer esta frente") e para Ocorrências.
+- Pendente (pedido da proprietária): criar onde os dados que faltam são inseridos — absenteísmo e clima fazem parte dos "Indicadores essenciais" prometidos no catálogo de frentes e ainda não têm entrada de dados. Proposta em discussão: lançamento mensal por empresa (planilha ou formulário), com tabela nova no banco.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

@@ -1049,3 +1049,18 @@ html[data-workspace-ui='v2'] .extra-visit-expenses-item button{border:0;backgrou
 .v2-client-module .v2-module-lock p{margin:0 0 6px;font-size:12px;line-height:1.6;color:#8c7e74}
 .v2-client-module .v2-module-lock a{text-decoration:none;display:inline-flex;align-items:center;gap:8px}
 .v2-client-module .v2-module-blur{filter:blur(7px);opacity:.55;pointer-events:none;user-select:none}
+/* Indicadores essenciais: comparativo e série curta */
+.v2-client-module .indicator-page .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.v2-client-module .v2-compare{display:inline-flex;align-items:center;gap:9px;font-size:11px;color:#8c7e74;margin:0}
+.v2-client-module .v2-compare select{border:1px solid #e5d9d0;border-radius:7px;background:#fff;color:#5a1e2d;font:inherit;font-weight:700;padding:7px 10px}
+.v2-client-module .v2-delta{display:inline-flex;align-items:center;gap:5px;font-style:normal;font-size:10px;font-weight:700;padding:4px 8px;border-radius:5px;background:#f4eee8;color:#857870;margin:2px 0}
+.v2-client-module .v2-delta.up{background:#e8f2fa;color:#3e83aa}
+.v2-client-module .v2-delta.down{background:#f1eaff;color:#8055a5}
+.v2-client-module .v2-spark{display:flex;align-items:flex-end;gap:3px;height:26px;margin:6px 0 2px}
+.v2-client-module .v2-spark i{flex:1;max-width:12px;border-radius:2px 2px 0 0;background:#e3d6cc}
+.v2-client-module .v2-spark i.cmp{background:#b58c52}
+.v2-client-module .v2-spark i.now{background:#5a1e2d}
+.v2-client-module .v2-module-lock ul{margin:0;padding-left:16px;font-size:12px;line-height:1.7;color:#665751}
+.v2-client-module .v2-module-lock-actions{display:flex;gap:10px;flex-wrap:wrap}
+.v2-client-module .v2-module-lock{width:min(520px,calc(100% - 32px))}
+.v2-client-module .v2-delta{align-self:flex-start;width:fit-content}

@@ -64,6 +64,9 @@ tables.client_invites=[{ id:'qa-inv', company_id:companyId, is_primary:true, ema
 // QA_EXTRA_INVITE
 tables.client_invites[0].active=true; tables.client_invites.push({ id:'qa-inv2', company_id:companyId, is_primary:false, active:true, email:'acesso@example.invalid', full_name:'Acesso QA', job_title:'Gestão', phone:'', access_role:'decision_maker', platform_access:true });
 tables.nps_responses=[]; tables.account_documents=[]; tables.activity_log=[{ company_id:companyId, event_type:'account_created', metadata:{}, created_at:now }];
+// QA_PREV_MONTH: a confirmed previous month so comparisons have a reference
+tables.team_months.push({ reference_month:'2026-09-01', confirmed_at:now, revision:1 });
+tables.team_month_snapshots.push(...tables.team_members.slice(0,4).map(m=>({ reference_month:'2026-09-01', member_id:m.id, status:'active', department:m.department, job_title:m.job_title, admission_date:m.admission_date })));
 const readRpcs = {
   get_client_hours_summary: { visible: true, contractedHours: 20, consumedMinutes: 90, remainingMinutes: 1110, overMinutes: 0, usagePercent: 7.5 },
   client_meeting_records_v1: [],
