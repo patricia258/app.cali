@@ -2325,3 +2325,8 @@ html[data-workspace-ui='v2'] .people-map-send-modal footer{display:flex;justify-
 .v2-admin-nps .v2-nps-follow-dialog footer button{font:inherit;font-size:11px;font-weight:700;cursor:pointer}
 .v2-admin-nps .v2-nps-follow-dialog footer .v2-nps-remove{margin-right:auto;background:#fff!important;color:#b7495d!important;border-color:#ecd0d5}
 .v2-admin-nps .v2-nps-follow-error{color:#b7495d}
+
+/* "editada" (e os controles da mensagem) no canto superior direito do balão — vale para cliente e administradora */
+html[data-workspace-ui='v2'] .wf-record-drawer .records-chat-bubble{position:relative}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-message-meta-extra{position:absolute!important;top:13px;right:12px;display:inline-flex;align-items:center;gap:8px;margin:0!important;font-size:9px!important;color:#a19a92!important;line-height:1}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-message-meta-extra em{font-style:normal;padding:3px 6px;border-radius:4px;background:#ffffffb3;color:#a19a92;letter-spacing:.02em}

@@ -621,6 +621,49 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - **Satisfação — tratativa** (banco aplicado; a Patricia concordou com a proposta): migração `20261011200000_satisfaction_followups.sql` cria `cali_workspace.satisfaction_followups` (origem + id da avaliação, empresa, tema, anotação, quem e quando; RLS só administradora). Na página: botão "Marcar como tratada" nas notas de 1 a 3, diálogo com tema e anotação (dá para editar e remover), "X de Y já tratadas" no indicador e os temas mais frequentes no painel de distribuição.
 - Conferido no QA com dados simulados. **Não conferido com dados reais:** gravação da tratativa, PDF real no quadro, relatório do Mapa.
 
+### 2026-10-11 — PENDÊNCIAS E INCERTEZAS (lista consolidada a pedido da Patricia)
+
+Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados reais até aqui. Atualizar esta lista a cada rodada.
+
+**A. Erros meus corrigidos nesta data (para não repetir)**
+- Tela do PDF arquivado da proposta quebrou no link de homologação (menu antigo sem estilo). Causa: a moldura do Workspace é persistente (`WorkspaceFrame`) e não se redesenhava quando a página optava pela V2 em tempo de execução; eu tinha conferido só o conteúdo, não a moldura. Correção: evento `cali:v2-routes-changed` + redesenho em `WorkspaceChrome`. Conferido no QA olhando a captura inteira. **Falta confirmar com um PDF real.**
+- Cronômetro sumiu do topo do painel de Ocorrências por causa de um `z-index` que eu mesmo coloquei no cabeçalho; corrigido.
+- "editada" aparecia embaixo da foto na conversa do cliente: a regra que a leva para o canto superior direito estava só no painel da administradora; agora vale para os dois.
+
+**B. Não resolvido / causa não confirmada**
+1. **"Gerar relatório" do Mapa pede login em `mapa.calirh.com`** e não aceita a senha. Hipótese (não confirmada): o site do Mapa só reconhece `app.calirh.com` como origem da sessão; no link de homologação cai no login. O código do site do Mapa não está neste repositório. Teste que decide: clicar no oficial. A senha do Mapa é de outro sistema.
+2. **Foto da Paula (cliente) não aparece no chat de Ocorrências.** Reproduzido: perfil com foto cadastrada cujo arquivo não abre no navegador. Mitigado: aparecem as iniciais. Causa real no cadastro (formato, arquivo ausente, tamanho) não confirmada — a leitura de dados reais não foi autorizada. Teste: reenviar a foto em JPG/PNG.
+3. **Editor e prévia de rascunho de proposta continuam no visual antigo.** Motivo medido: a moldura V2 altera o documento que vira PDF (204 elementos). Para migrar: isolar o CSS do documento da proposta (como já é o papel do relatório executivo) e repetir a medição até o hash ficar igual.
+4. **Revisão em página do Mapa** (`/admin/mapa-de-people/revisao`) continua no visual antigo (a lista abre a revisão em diálogo, já no padrão).
+5. **Relatórios da administradora** ainda não migrado (plano abaixo).
+6. **Usuários internos (Administradora / Parceiro)** — bloco combinado, ainda não iniciado; exige plano de banco mostrado antes de aplicar.
+
+**C. Aplicado no banco de produção nesta data (com autorização da Patricia)**
+- `20261011180000_timer_discard_sessions_under_30s.sql` — sessão de cronômetro com menos de 30 s não gera lançamento. **Não testado com sessão real depois de aplicado.** Lançamentos antigos de 1 minuto não foram apagados.
+- `20261011200000_satisfaction_followups.sql` — tabela de tratativa das notas baixas. Autorização: ela respondeu "concordo com a sua sugestão" à proposta que descrevia a tabela (não usou a frase "pode aplicar"; registrar que foi interpretação minha). **Gravação não testada com dados reais.**
+
+**D. Feito, mas sem teste com dados reais** (o QA usa dados simulados e bloqueia gravações)
+- Agenda: exclusão de evento de ponta a ponta; "Registro do encontro" e linha Google/Lembrete em evento real; formulário Aconteceu / Não aconteceu.
+- Ocorrências: mudanças de situação; envio de mensagem/anexo; editar/excluir mensagem (o QA não mostra os controles); cronômetro em andamento; avaliação do cliente (envio e agradecimento); pedido e aprovação de reabertura; lista com muitas empresas; nomes em "Aberta por"; logos reais; velocidade das fotos.
+- Documentos: envio de arquivo/capa; link do Drive; publicar / tornar interno / arquivar / nova versão; cor de fundo da capa automática com logos reais (depende de o armazenamento liberar a leitura da imagem); cartão do cliente com dados reais.
+- Satisfação: taxa de resposta e variação por empresa (sem base no QA); tratativa.
+- Propostas e Mapa: tudo com dados simulados — gravar status/cadastro/nota, arquivar, CSV, envio de relatório.
+- Carregamento padrão: Visão geral da administradora e Frentes do cliente não têm tela de espera (mostram traços); as outras 14 rotas V2 foram conferidas com rede lenta.
+
+**E. Limitações conhecidas / dívidas técnicas**
+- Em Ocorrências "Todas as empresas", a contagem de mensagens lê todas as mensagens de uma vez (limite padrão de 1000 linhas): trocar por contagem agregada quando o volume crescer.
+- Aviso de sessão curta descartada só existe no cronômetro de Ocorrências; falta em Horas e em projetos.
+- `alert`/`confirm` nativos restantes: erro de exclusão e "Desconectar" no módulo do Google; excluir mensagem em Ocorrências (`confirm`); erros do cronômetro (`alert`).
+- Folhas de estilo antigas ainda carregadas em rotas V2 (registros, satisfação, mapa, calendário `page4-calendar.css`); regras sem uso em `operational.css` (`.v2-admin-cal-aside/-mini/-count`); ramos `v1` em `CompanyTeamPage`.
+- Módulos automáticos que só enfeitavam a tabela antiga de Ocorrências (`decorateTable`) e o cartão antigo de Documentos (`documentsIdentityRuntimeV42`) deixaram de agir na administradora — podem ser removidos.
+- Nome da página: menu diz "Satisfação"; a rota continua `/admin/satisfacao` e a tabela `nps_responses` guarda as notas de entregável.
+
+**F. Plano para Relatórios da administradora** (`AdminReportsPageV17.tsx`, 415 linhas, 20 folhas de estilo próprias)
+- A página é uma bancada: empresa e período → fatos automáticos (bloqueados) → curadoria de demandas e decisões → leitura executiva → conferência e alertas → criar fechamento oficial → aprovar → enviar ao cliente (Workspace e e-mail) → histórico e versões, com a prévia do papel (`ExecutiveReportPaperV17`).
+- Risco principal: o papel do relatório é o que vira PDF. Antes de qualquer troca, tirar a "impressão digital" do papel (mesmo método usado na proposta: posição + estilos calculados de cada elemento) com um relatório simulado; depois da troca o hash tem de ser idêntico. O papel já roda em rota V2 na impressão e no cliente, o que indica que é isolado — confirmar com a medição.
+- Passos: (1) simulação no QA das três funções `build_report_intelligence_snapshot`, `build_report_monthly_series`, `report_generation_readiness_v61` e da tabela `reports`; (2) impressão digital do papel; (3) moldura V2: título, seleção de empresa/período em linha, etapas do fechamento como trilha, painéis no padrão; (4) diálogos (enviar ao cliente, ignorar alerta, nota interna) no padrão; (5) nova medição do papel; (6) conferência de que nenhum campo, alerta ou ação saiu.
+- Nada do conteúdo do relatório, dos cálculos ou do PDF deve mudar.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
