@@ -1002,7 +1002,41 @@ html[data-workspace-ui='v2'] .v2-client-module .wf-modal:has(.wf-access-terms) t
 .v2-admin-page .ap-state-pill.blocked,.v2-admin-page .ap-account-pills span:first-child.blocked{background:#fae9e9;border-color:#f0d5d8;color:#b7495d}
 /* Equipe (administradora): a mesma tela do cliente, com o filtro de empresa */
 .v2-client-module .context-strip .v2-team-company{display:inline-flex;align-items:center;gap:9px;font-size:11px;color:#8c7e74;margin:0}
-.v2-client-module .context-strip .v2-team-company>:first-child{width:26px;height:26px;border-radius:7px;overflow:hidden;flex-shrink:0}
 .v2-client-module .context-strip .v2-team-company select{border:1px solid #e5d9d0;border-radius:7px;background:#fff;color:#5a1e2d;font:inherit;font-weight:700;padding:7px 10px;max-width:240px}
 .v2-client-module .team-private{margin-top:14px;border:1px solid #f0dfc0;background:#fffaf1;border-radius:9px;padding:12px 14px;font-size:11px;color:#7a5a2c}
 .v2-client-module .team-private p{margin:4px 0 0}
+/* Ficha da pessoa: as etiquetas não encostam na linha das abas */
+html[data-workspace-ui='v2'] .v2-person-sheet .v2-person-indicators{margin:16px 25px 6px}
+/* Despesas das visitas extras (administradora) no padrão dos diálogos V2 */
+html[data-workspace-ui='v2'] .extra-visit-expenses-trigger{display:inline-flex;align-items:center;gap:8px;height:auto;padding:9px 13px;border:1px solid #e5dbd5;border-radius:7px;background:#fff;color:#5a1e2d;font:inherit;font-size:11px;font-weight:600;cursor:pointer;box-shadow:none}
+html[data-workspace-ui='v2'] .extra-visit-expenses-modal{width:min(720px,100%);max-height:min(760px,calc(100dvh - 40px));display:flex;flex-direction:column;border-radius:12px;font-size:12px;color:#322f2c;overflow:hidden;padding:0}
+html[data-workspace-ui='v2'] .extra-visit-expenses-modal>header{padding:22px 27px 16px;margin:0;background:linear-gradient(90deg,#fffaf6,#f8ecd9);border:0;display:flex;align-items:center;justify-content:space-between}
+html[data-workspace-ui='v2'] .extra-visit-expenses-modal>header small{font-size:10px;letter-spacing:1.2px;color:#af8f72;font-weight:700}
+html[data-workspace-ui='v2'] .extra-visit-expenses-modal>header h2{font-size:21px;margin:7px 0 0}
+html[data-workspace-ui='v2'] .extra-visit-expenses-modal>header button{background:#fff;border:1px solid #ecded5;border-radius:8px;padding:8px;width:auto;height:auto;display:grid;place-items:center;color:#322f2c;cursor:pointer}
+html[data-workspace-ui='v2'] .extra-visit-expenses-modal>form{padding:18px 27px 0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:14px;min-height:0}
+html[data-workspace-ui='v2'] .extra-visit-expenses-modal>form::-webkit-scrollbar{display:none}
+html[data-workspace-ui='v2'] .extra-visit-expenses-modal>form>p{margin:0;font-size:12px;line-height:1.6;color:#8c7e74}
+html[data-workspace-ui='v2'] .extra-visit-expenses-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+html[data-workspace-ui='v2'] .extra-visit-expenses-fields .full{grid-column:1/-1}
+html[data-workspace-ui='v2'] .extra-visit-expenses-fields label{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:#322f2c;margin:0}
+html[data-workspace-ui='v2'] .extra-visit-expenses-fields :is(input,select,textarea){width:100%;box-sizing:border-box;min-height:40px;height:auto;padding:9px 12px;border:1px solid #e5d8d0;border-radius:7px;background:#fff;font:inherit;font-weight:400;font-size:12px;color:#322f2c}
+html[data-workspace-ui='v2'] .extra-visit-expenses-fields textarea{min-height:64px;resize:vertical}
+html[data-workspace-ui='v2'] .extra-visit-expense-lines{display:flex;flex-direction:column;gap:12px}
+html[data-workspace-ui='v2'] .extra-visit-expense-line{border:1px solid #e9ddd4;border-radius:9px;background:#fdfaf7;padding:14px 16px;margin:0}
+html[data-workspace-ui='v2'] .extra-visit-expense-line-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:12px}
+html[data-workspace-ui='v2'] .extra-visit-expense-line-head button{border:0;background:none;color:#9d4b64;cursor:pointer;padding:4px}
+html[data-workspace-ui='v2'] .extra-visit-add-line{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;border:1px solid #dec9c3;border-style:solid;border-radius:7px;background:#fff;color:#5a1e2d;padding:9px 13px;font:inherit;font-size:11px;font-weight:700;cursor:pointer;margin:0}
+html[data-workspace-ui='v2'] .extra-visit-expenses-note{margin:10px 0 0!important;font-size:11px!important;line-height:1.6;color:#9a8c83!important}
+html[data-workspace-ui='v2'] :is(.extra-visit-expenses-error,.extra-visit-expenses-notice){margin:0;font-size:11px}
+html[data-workspace-ui='v2'] .extra-visit-expenses-error{color:#b7495d}
+html[data-workspace-ui='v2'] .extra-visit-expenses-notice{color:#42785a}
+html[data-workspace-ui='v2'] .extra-visit-expenses-modal footer{position:sticky;bottom:0;display:flex;justify-content:flex-end;gap:10px;margin:6px -27px 0;padding:14px 27px;border-top:1px solid #efe4dc;background:#fff}
+html[data-workspace-ui='v2'] .extra-visit-expenses-modal footer button{padding:10px 14px;border:1px solid #dec9c3;border-radius:7px;background:#fff;color:#5a1e2d;font:inherit;font-size:11px;font-weight:700;cursor:pointer;height:auto;min-height:0}
+html[data-workspace-ui='v2'] .extra-visit-expenses-modal footer button[type='submit']{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] .extra-visit-expenses-modal footer button:disabled{opacity:.45;cursor:not-allowed}
+html[data-workspace-ui='v2'] .extra-visit-expenses-list{display:flex;flex-direction:column;gap:0;padding-bottom:18px;font-size:12px}
+html[data-workspace-ui='v2'] .extra-visit-expenses-item{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid #f0e8e1}
+html[data-workspace-ui='v2'] .extra-visit-expenses-item>span{flex:1;display:flex;flex-direction:column;gap:3px}
+html[data-workspace-ui='v2'] .extra-visit-expenses-item small{color:#9a8c83;font-size:10px}
+html[data-workspace-ui='v2'] .extra-visit-expenses-item button{border:0;background:none;color:#6b293e;font:inherit;font-size:11px;cursor:pointer}

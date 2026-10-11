@@ -355,6 +355,26 @@ Pedido da proprietária: a Equipe da administradora é a mesma tela aprovada do 
 - **Boas-vindas / primeiro acesso guiado:** não encontrado no código do app oficial (nem tela, nem tour). A aba Comunicações grava a opção de e-mail de boas-vindas, mas não foi localizado no repositório o serviço que envia a fila `communication_outbox`.
 - Valor do acesso adicional definido pela proprietária: R$ 59,00/mês por acesso (texto em Ocorrências → Solicitar acesso).
 
+### 10/10 (noite) — ajustes pedidos e decisões da proprietária
+
+Feito:
+- **Despesas das visitas extras** (`ExtraVisitExpenses.tsx`): botão do topo virou "Despesas"; "Adicionar linha" fica acima e a linha nova entra no topo (as preenchidas descem); o aviso sobre carro próprio foi para depois das linhas, com respiro; botões no tamanho padrão dos diálogos V2. Regras em `operational.css` (bloco "Despesas das visitas extras").
+- **Ficha da pessoa:** etiquetas (tempo de casa, identificação de gênero) com respiro em relação à linha das abas.
+- **Equipe (administradora):** o filtro é só "Empresa" + caixa de seleção, sem a miniatura do logo.
+- **Solicitar acesso:** valor definido em **R$ 59,90/mês por acesso**. Limite é sempre 4 acessos por empresa (não existe pacote de 5).
+
+Decisões registradas, **não construídas**:
+- **Boas-vindas e primeiro acesso.** Fluxo desejado: conta criada → algumas horas depois ou no dia seguinte a pessoa recebe um e-mail de boas-vindas com o link do primeiro acesso → no primeiro acesso aparece a experiência de boas-vindas (menu interativo). Hoje nada disso existe: a pessoa só entra se souber o endereço e pedir o código. Ao construir: fila de envio com atraso, modelo do e-mail, marca de "primeiro acesso concluído" por perfil, e o termo de adesão previsto no handoff mestre do V2 (onboarding da conta).
+- **Usuários internos da CALI.** A proprietária quer criar, numa tela da administradora, pessoas internas escolhendo o perfil: **Administradora** ou **Parceiro**. Ela deu "pode aplicar", mas **não foi aplicado**: é mudança de permissão em todas as tabelas e precisa de um bloco próprio. O que envolve:
+  1. hoje `is_admin()` reconhece só `patricia@calirh.com`; passar a reconhecer uma lista de administradoras;
+  2. novo papel `partner` em `profiles.role` e tabela de atribuição parceiro → empresas;
+  3. regra já escrita em `docs/EQUIPE_EMPRESA_SPEC_2026-10-01.md`: o parceiro vê somente as empresas atribuídas (projetos, ocorrências, calendário, ficha de pessoas e remuneração dessas empresas) e não vê contratos nem financeiro;
+  4. revisar políticas de RLS, funções (RPC), Storage, exportações e relatórios para o papel novo, com teste de isolamento empresa A × B;
+  5. a função de login `workspace-access` só cria perfis de cliente; precisa aceitar convites internos;
+  6. tela "Equipe CALI / Acessos internos" na administradora.
+- **Indicadores por plano (módulos).** Regra oficial (`docs/PRODUCT_RULES.md`): CALI Partner = leitura mensal de indicadores-chave; CALI Full = People Analytics nível 3. O catálogo de frentes já tem `people_analytics` (núcleo do Full, contratável à parte no Partner). Pedido: o cliente vê só o que contratou; o restante aparece esfumado, com chamada para contratar. A administradora vê tudo.
+- **Estrutura de People Analytics** enviada pela proprietária (planilha `People_Analytics_Estrutura_de_Indicadores.xlsx`, 42 indicadores): três camadas — Básico (18), Tático (11), Estratégico (13); três visões — Panorama (6 a 8 números para diretoria, trimestral), Gestão (12 a 18, mensal, com filtro por área), Analítica (catálogo completo); seletor de período no topo (Mês / Quarter / YTD / 12M); todo número com comparação (mês anterior, ano anterior, meta) e gráfico conforme a família (linha para evolução, barras horizontais ordenadas para áreas, empilhadas 100% para composição, Pareto para motivos, funil para recrutamento). Boa parte depende de dados que o Workspace ainda não recebe: folha e custo, ponto/absenteísmo/horas extras, recrutamento (vagas e funil), desempenho, clima/eNPS, receita.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

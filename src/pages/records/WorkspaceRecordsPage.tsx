@@ -667,7 +667,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
         <div className="wf-access-terms"><strong>Antes de solicitar</strong><ul>
           <li>Cada empresa pode ter até 4 acessos ao CALI Workspace.</li>
           <li>Todos os acessos veem as mesmas informações da empresa: projetos, entregáveis, horas, documentos, relatórios, ocorrências e equipe. Não há níveis de permissão diferentes.</li>
-          <li>O acesso adicional é contratado à parte: R$ 59,00 por mês, por acesso. Inclui login individual, histórico de registros, acompanhamento das entregas e das informações da agenda de People, suporte ao uso da plataforma e manutenção contínua.</li>
+          <li>O acesso adicional é contratado à parte: R$ 59,90 por mês, por acesso. Inclui login individual, histórico de registros, acompanhamento das entregas e das informações da agenda de People, suporte ao uso da plataforma e manutenção contínua.</li>
           <li>A CALI confirma o valor e o início da cobrança nesta ocorrência antes de liberar o acesso; nada é cobrado sem a sua confirmação.</li>
           <li>A pessoa indicada recebe um convite por e-mail. A empresa responde por quem indica e avisa a CALI quando o acesso precisar ser encerrado.</li>
           <li>Os dados informados são usados somente para criar e administrar o acesso, conforme a Política de Privacidade.</li>
