@@ -651,19 +651,7 @@ export function AdminCalendarPage() {
         </section>
 
         <div className="calendar-page-layout">
-          <aside className="wf-cal-label v2-burgundy-calendar v2-admin-cal-aside"><strong>{view==='week'?'SEMANA DE ACOMPANHAMENTO':view==='month'?'MARCO DO MÊS':'LISTA DO MÊS'}</strong><span>{months[cursor.getMonth()]} de {cursor.getFullYear()}</span>
-            <div className="v2-admin-cal-legend">{(Object.keys(calendarTypeMeta) as CalendarEventType[]).filter(type=>activeTypes.has(type)).map(type=><span key={type}><i style={{background:calendarTypeMeta[type].color}}/>{calendarTypeMeta[type].label}</span>)}<span><i className="google"/>Google Agenda</span></div>
-            <div className="calendar-mini-card v2-admin-cal-mini"><div className="calendar-mini-title"><strong>{months[cursor.getMonth()]}</strong><span>{cursor.getFullYear()}</span></div>
-              <div className="calendar-mini-weekdays">{weekdays.map((day) => <span key={day}>{day.slice(0, 1)}</span>)}</div>
-              <div className="calendar-mini-grid">
-                {miniDates.map((date) => {
-                  const dayEvents = eventsByDate.get(dateKey(date)) || [];
-                  return <button key={dateKey(date)} className={`${date.getMonth() !== cursor.getMonth() ? 'outside' : ''} ${isSameDate(date, today) ? 'today' : ''} ${isSameDate(date, cursor) ? 'selected' : ''}`} onClick={() => setCursor(date)}><span>{date.getDate()}</span>{dayEvents.length > 0 && <i style={{ background: dayEvents[0].color }} />}</button>;
-                })}
-              </div>
-            </div>
-            <div className="v2-admin-cal-count"><small>COMPROMISSOS NO PERÍODO</small><b>{view==='week'?weekDates.reduce((sum,date)=>sum+(eventsByDate.get(dateKey(date))||[]).length,0):monthAgenda.length}</b><em>eventos, prazos e solicitações</em></div>
-          </aside>
+          <div className="v2-admin-cal-foot"><div className="v2-admin-cal-legend">{(Object.keys(calendarTypeMeta) as CalendarEventType[]).filter(type=>activeTypes.has(type)).map(type=><span key={type}><i style={{background:calendarTypeMeta[type].color}}/>{calendarTypeMeta[type].label}</span>)}<span><i className="google"/>Google Agenda</span></div><span className="v2-admin-cal-total"><b>{view==='week'?weekDates.reduce((sum,date)=>sum+(eventsByDate.get(dateKey(date))||[]).length,0):monthAgenda.length}</b> compromissos no período</span></div>
           <section className="calendar-primary-panel panel">
             {view === 'month' && <>
               <div className="calendar-weekday-head">{weekdays.map((day) => <span key={day}>{day}</span>)}</div>

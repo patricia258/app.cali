@@ -509,6 +509,12 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - **Semana**: eventos com 3–4 px de respiro em cada lado da coluna (não encostam mais no evento do dia vizinho).
 - Conferido no QA com eventos Google simulados. **Não conferido com dados reais:** exclusão de ponta a ponta (precisa da conta Google conectada). Ainda restam `alert`/`confirm` nativos no módulo do Google para erro de exclusão e desconectar.
 
+### 2026-10-11 — Agenda da administradora: coluna lateral removida (pedido da Patricia)
+
+- Saiu a coluna bordô (legenda, mini calendário e contador) porque apertava o calendário e deixava a letra dos compromissos minúscula. O calendário ocupa a largura toda.
+- A legenda de cores e o total de compromissos do período foram para uma linha única no rodapé do calendário (`v2-admin-cal-foot`). O mini calendário saiu; a navegação segue pelas setas, "Hoje" e as visões Semana/Mês/Lista.
+- Letra maior nos compromissos nas três visões (semana 12 px, mês 11,5 px, lista 13 px). As regras antigas `.v2-admin-cal-aside/-mini/-count` em `operational.css` ficaram sem uso — limpar depois.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
