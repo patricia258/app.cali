@@ -1,8 +1,10 @@
 /* 2026-10-11 · pedido da Patricia: os documentos usam a mesma fonte do Workspace (Inter), sem serifa.
    Só a família da fonte muda; campos, tamanhos, cores e posições do relatório continuam os mesmos.
    Vale para a prévia, para a página de impressão (PDF) e para a leitura do cliente. A logo é imagem e não muda. */
-.reports-v16-paper.reports-v16-paper,
-.reports-v16-paper.reports-v16-paper *,
-html .reports-v16-document .reports-v16-paper :is(h1, h2, h3, h4, strong, b, span, p, small) {
+/* Especificidade alta de propósito: as folhas antigas marcam vários números e títulos com serifa usando !important. */
+html .reports-v16-paper.reports-v16-paper.reports-v16-paper.reports-v16-paper,
+html .reports-v16-paper.reports-v16-paper.reports-v16-paper.reports-v16-paper *,
+html .reports-v16-paper.reports-v16-paper.reports-v16-paper.reports-v16-paper *::before,
+html .reports-v16-paper.reports-v16-paper.reports-v16-paper.reports-v16-paper *::after {
   font-family: Inter, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif !important;
 }

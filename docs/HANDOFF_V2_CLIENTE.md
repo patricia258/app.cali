@@ -681,6 +681,12 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Troca de página "tudo branco"**: o carregador de troca de página (`.cali-route-loading`) era de tela cheia e cobria menu e topo. Dentro da moldura V2 ele agora ocupa só a área de conteúdo. A moldura já era persistente (`WorkspaceFrame`). Não reproduzido no QA com o carregador de rota em si; conferir no link.
 - **Usuário interno da CALI**: ainda não existe onde criar. Hoje `is_admin()` reconhece só `patricia@calirh.com`. É o bloco "usuários internos" das pendências (B6).
 
+### 2026-10-11 — Relatórios: serifa restante no papel e respiros
+
+- **Serifa que restou no papel** (ex.: "0/5" de Entregas previstas): as folhas antigas marcam vários números com serifa usando `!important` e seletor mais forte. `report-paper-fonts-v2.css` agora usa especificidade alta (classe repetida 4×) e cobre também `::before/::after`. Conferido no QA com um relatório simulado mais completo (103 elementos, com métricas de entrega): nenhum elemento fora de Inter; altura do papel igual com a fonte antiga e com a nova (1149 px de conteúdo nos dois casos).
+- **Respiros**: "Planejado x realizado" fica 22 px abaixo da linha; a caixa de alerta da conferência tem 14–18 px de margem interna, "ATENÇÃO" como etiqueta e a ação ("Abrir Registros", "Ignorar com justificativa") como botão.
+- Pendente de esclarecimento: a Patricia enviou um print de Ocorrências (1 com ação necessária) sem texto — perguntar o que ela quer ali (provável: o sino não acende quando há ocorrência com ação necessária; hoje o sino só reflete a tabela de notificações).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
