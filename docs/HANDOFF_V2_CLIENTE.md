@@ -693,6 +693,14 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - Cartão de alerta com cor: âmbar para "Atenção", vermelho para "Precisa corrigir", cinza para "Ignorado" (`tone-attention / tone-critical / tone-dismissed`). Regra dela, para qualquer alerta do sistema: cartão de atenção nunca fica em cor neutra.
 - **Publicação no oficial**: ela perguntou se já dá para aplicar. NÃO foi publicado — falta o "pode publicar no oficial" explícito. Recomendação dada: antes, um roteiro curto de teste no link de homologação com dados reais (ver resposta na conversa).
 
+### 2026-10-11 — PUBLICADO NO OFICIAL
+
+- A Patricia fez o roteiro de teste no link de homologação e autorizou: "já fiz tudo isso por isso pode publicar".
+- `feat/client-visual-v2-inplace-20261008` foi mesclado em `main` com commit de merge `b2a6c09` (sem reescrever histórico; `main` não tinha nada novo) e enviado. `app.calirh.com` passa a servir a interface V2 para cliente e administradora.
+- Para voltar atrás, se preciso: `git revert -m 1 b2a6c09` em `main` (as mudanças de banco não voltam com isso e não precisam: são aditivas).
+- Primeiros testes no oficial: "Gerar relatório" do Mapa (pendência B1), PDF de relatório com a fonte nova, cronômetro com menos de 30 s.
+- O trabalho continua neste mesmo ramo; novas publicações só com novo "pode publicar".
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
