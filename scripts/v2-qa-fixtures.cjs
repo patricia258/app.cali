@@ -67,6 +67,8 @@ tables.nps_responses=[]; tables.account_documents=[]; tables.activity_log=[{ com
 // QA_PREV_MONTH: a confirmed previous month so comparisons have a reference
 tables.team_months.push({ reference_month:'2026-09-01', confirmed_at:now, revision:1 });
 tables.team_month_snapshots.push(...tables.team_members.slice(0,4).map(m=>({ reference_month:'2026-09-01', member_id:m.id, status:'active', department:m.department, job_title:m.job_title, admission_date:m.admission_date })));
+// QA_METRICS: fictitious monthly data
+tables.team_month_metrics=[{ reference_month:'2026-09-01', planned_hours:700, absence_medical_hours:14, absence_leave_hours:0, absence_unjustified_hours:4, absence_accident_hours:0, overtime_hours:12, hour_bank_balance:30, approved_headcount:{ 'Operações':3, 'Pessoas':2 }, enps_score:38, climate_score:7.4, climate_participation:80, notes:null },{ reference_month:'2026-10-01', planned_hours:880, absence_medical_hours:20, absence_leave_hours:8, absence_unjustified_hours:6, absence_accident_hours:2, overtime_hours:18, hour_bank_balance:42, approved_headcount:{ 'Operações':4, 'Pessoas':2 }, enps_score:46, climate_score:7.9, climate_participation:86, notes:null }];
 const readRpcs = {
   get_client_hours_summary: { visible: true, contractedHours: 20, consumedMinutes: 90, remainingMinutes: 1110, overMinutes: 0, usagePercent: 7.5 },
   client_meeting_records_v1: [],

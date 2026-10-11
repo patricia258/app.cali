@@ -390,6 +390,23 @@ Divisão aprovada pela proprietária. Em Equipe → Indicadores (`CompanyTeamPag
 - O cartão sobre os gráficos travados passou a apresentar o People Analytics como **frente adicional**, com o texto do catálogo de frentes, e leva para `/cliente/frentes` ("Conhecer esta frente") e para Ocorrências.
 - Pendente (pedido da proprietária): criar onde os dados que faltam são inseridos — absenteísmo e clima fazem parte dos "Indicadores essenciais" prometidos no catálogo de frentes e ainda não têm entrada de dados. Proposta em discussão: lançamento mensal por empresa (planilha ou formulário), com tabela nova no banco.
 
+### 11/10 — dados do mês (absenteísmo, horas extras, quadro aprovado, clima) e empresa fictícia de demonstração
+
+Banco (APLICADO, com autorização da proprietária): `supabase/migrations/20261011010000_team_month_metrics.sql` cria `cali_workspace.team_month_metrics` — uma linha por empresa e mês com horas previstas, horas de ausência por motivo (atestado, licença, falta injustificada, acidente), horas extras, saldo do banco de horas, quadro aprovado por área (JSON área → posições), eNPS, nota de clima e participação. Leitura e gravação por `can_access_company` (administradora e cliente da própria empresa).
+
+App (`CompanyTeamPage.tsx`, Equipe → Indicadores):
+- Cartão **Dados do mês** com "Lançar dados do mês" / "Editar lançamento" (diálogo `v2-month-form`), para administradora e cliente.
+- Indicadores essenciais novos (todo cliente vê): **Absenteísmo** (ausências ÷ horas previstas) e **Sinais de clima** (eNPS / nota), com comparativo.
+- People Analytics (Full, frente contratada ou administradora): absenteísmo por motivo, absenteísmo e horas extras mês a mês, quadro aprovado × ocupado por área, desligamentos em 12 meses por iniciativa e motivo. Motivo e iniciativa do desligamento já existiam no cadastro (`termination_initiative`, `termination_reason`).
+- Ainda sem entrada de dados: folha e custo, receita, recrutamento, desempenho, treinamento, sucessão, SST detalhado.
+
+**Empresa fictícia no banco real** (pedido da proprietária, para ver o relatório completo na administradora):
+- `Empresa Demonstração (fictícia)`, id `1b9ff082-cde9-4fb5-8feb-2ffb1f44eaa0`, plano CALI Full, 28 pessoas fictícias (24 ativas, 4 desligadas), 12 meses confirmados (nov/2025 a out/2026), 37 movimentações e 12 lançamentos mensais. Todos os nomes trazem "(fictícia/fictício)".
+- **Não tem convite nem usuário**: ninguém consegue entrar como cliente dessa empresa.
+- Ela aparece também no app oficial (`app.calirh.com`) para a administradora e entra nas contagens da Visão geral (contas ativas, horas contratadas).
+- Sem remuneração nem dados restritos (a tabela restrita tem gatilho de auditoria; não foi usada).
+- Para remover: apagar as linhas de `team_changes`, `team_month_snapshots`, `team_months`, `team_month_metrics`, `team_members` com esse `company_id` e depois a linha de `companies`. Só com pedido da proprietária.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
