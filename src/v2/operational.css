@@ -2303,3 +2303,25 @@ html[data-workspace-ui='v2'] .people-map-send-modal h2{margin:0;font-size:21px;c
 html[data-workspace-ui='v2'] .people-map-send-modal p{margin:0;font-size:12px;color:#89796f}
 html[data-workspace-ui='v2'] .people-map-send-close{position:absolute;top:16px;right:16px;display:grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid #e5d9d0;border-radius:7px;background:#fff;color:#5a1e2d;cursor:pointer}
 html[data-workspace-ui='v2'] .people-map-send-modal footer{display:flex;justify-content:flex-end;gap:8px;padding:0!important;border:0!important;background:none!important}
+
+/* Visualizador do PDF oficial (proposta arquivada): só a moldura; o arquivo não é tocado */
+.v2-admin-pdfview .wf-head{align-items:flex-start}
+.v2-admin-pdfview .v2-pdf-frame{height:calc(100dvh - 210px);min-height:520px;border:1px solid #e9dbd0;border-radius:10px;background:#fff;overflow:hidden}
+.v2-admin-pdfview .v2-pdf-frame iframe{display:block;width:100%;height:100%;border:0}
+
+/* Satisfação — tratativa das notas baixas e temas */
+.v2-admin-nps .v2-nps-score{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.v2-admin-nps .v2-nps-follow{padding:4px 8px;border:1px dashed #dec9c3;border-radius:5px;background:#fff;color:#5a1e2d;font:inherit;font-size:9.5px;font-weight:700;white-space:nowrap;cursor:pointer}
+.v2-admin-nps .v2-nps-follow.done{border-style:solid;border-color:#cfe9da;background:#e6f6ec;color:#31805a}
+.v2-admin-nps .v2-nps-themes{display:flex;flex-direction:column;gap:9px;margin-top:auto;padding-top:14px;border-top:1px solid #f1e9e2}
+.v2-admin-nps .v2-nps-themes>small{font-size:9px;letter-spacing:1.2px;color:#ad8259}
+.v2-admin-nps .v2-nps-themes>div{display:flex;flex-wrap:wrap;gap:6px}
+.v2-admin-nps .v2-nps-themes span{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:5px;background:#f6f0eb;color:#67574c;font-size:10px}
+.v2-admin-nps .v2-nps-themes span b{color:#5a1e2d}
+.v2-admin-nps .v2-nps-follow-dialog select{height:40px;border:1px solid #e5d8d0;border-radius:9px;padding:0 12px;background:#fff;font:inherit;font-weight:400}
+.v2-admin-nps .v2-nps-follow-dialog textarea{font:inherit;font-weight:400}
+.v2-admin-nps .v2-nps-follow-dialog p{margin:0 0 6px;font-size:12px}
+.v2-admin-nps .v2-nps-follow-dialog .v2-nps-quote{padding:9px 11px;border-left:3px solid #e3c9a6;background:#fffaf1;color:#67574c;font-style:italic}
+.v2-admin-nps .v2-nps-follow-dialog footer button{font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+.v2-admin-nps .v2-nps-follow-dialog footer .v2-nps-remove{margin-right:auto;background:#fff!important;color:#b7495d!important;border-color:#ecd0d5}
+.v2-admin-nps .v2-nps-follow-error{color:#b7495d}

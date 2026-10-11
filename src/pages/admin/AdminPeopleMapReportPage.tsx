@@ -38,10 +38,10 @@ export function AdminPeopleMapReportPage() {
 
   return (
     <div style={{ height: '100vh', overflow: 'hidden', background: '#EFE8DF', color: '#F7F3EE', fontFamily: 'Inter, Arial, sans-serif' }}>
-      <header style={{ height: 58, position: 'relative', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, padding: '0 24px', background: '#242122', boxShadow: '0 8px 24px rgba(43,43,43,.12)' }}>
+      <header style={{ height: 58, position: 'relative', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18, padding: '0 24px', background: 'linear-gradient(90deg,#fffaf6,#f8ecd9)', borderBottom: '1px solid #eadfd6' }}>
         <div style={{ minWidth: 0 }}>
-          <strong style={{ display: 'block', color: '#B58C52', fontSize: 12, letterSpacing: '.14em', textTransform: 'uppercase' }}>CALI · Mapa de People</strong>
-          <span style={{ display: 'block', marginTop: 2, color: 'rgba(247,243,238,.68)', fontSize: 11 }}>Relatório oficial integrado ao Workspace</span>
+          <strong style={{ display: 'block', color: '#B58C52', fontSize: 9, fontWeight: 800, letterSpacing: '.14em', textTransform: 'uppercase' }}>Backoffice / Mapa de People</strong>
+          <span style={{ display: 'block', marginTop: 4, color: '#5A1E2D', fontSize: 14, fontWeight: 700 }}>Relatório oficial</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflowX: 'auto' }}>
           <button type="button" onClick={() => navigate('/admin/mapa-de-people')} style={secondaryButtonStyle}><ArrowLeft size={16}/>Painel do Mapa</button>
@@ -79,13 +79,13 @@ export function AdminPeopleMapReportPage() {
 
 const secondaryButtonStyle = {
   minHeight: 34,
-  border: '1px solid rgba(247,243,238,.25)',
-  background: 'transparent',
-  color: '#F7F3EE',
-  borderRadius: 999,
-  padding: '8px 14px',
+  border: '1px solid #dec9c3',
+  background: '#fff',
+  color: '#5A1E2D',
+  borderRadius: 7,
+  padding: '9px 13px',
   textDecoration: 'none',
-  font: '600 12px/1 Inter, Arial, sans-serif',
+  font: '700 11px/1.2 Inter, Arial, sans-serif',
   display: 'inline-flex',
   alignItems: 'center',
   gap: 7,
@@ -95,8 +95,7 @@ const secondaryButtonStyle = {
 
 const primaryButtonStyle = {
   ...secondaryButtonStyle,
-  background: '#B58C52',
-  borderColor: '#B58C52',
-  color: '#3E1520',
-  fontWeight: 800,
+  background: '#5A1E2D',
+  borderColor: '#5A1E2D',
+  color: '#fff',
 } as const;

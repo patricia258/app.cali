@@ -612,6 +612,15 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - **Ainda no visual antigo** (não estão em `migratedAdminRoutes`): editor e prévia de proposta (`/admin/propostas/:id/editar`, `/admin/propostas/proposta/:id`), revisão em página e relatório do Mapa (`/admin/mapa-de-people/revisao`, `/relatorio/:id`) e Relatórios.
 - Conferido no QA com dados simulados (o QA não lê o Portal nem o Mapa reais), 1440 e 390 px. **Não conferido com dados reais:** gravações (status, cadastro, nota, arquivar), CSV, envio de relatório.
 
+### 2026-10-11 — PDF de proposta arquivado na moldura nova, relatório do Mapa, tratativa de notas baixas
+
+- **PDF oficial arquivado da proposta** (`/admin/propostas/proposta/:id` quando `pdf_path` existe): `AdminProposalPreviewPageV3` passou a usar a moldura V2 (título, Propostas / Criar nova versão / Abrir PDF original e o arquivo num quadro). O PDF não é tocado.
+- **A prévia do rascunho e o editor de proposta continuam nas folhas antigas, de propósito.** A rota é a mesma, então a escolha é feita em tempo de execução (`markRuntimeV2` em `src/v2/routes.ts`). Medição feita com a prévia de rascunho: trocar a moldura alterava 204 elementos do documento (títulos de 29 px para 45 px, espaçamentos, cores) — isto é, mudaria o PDF gerado. Com a solução atual a impressão digital do documento é idêntica à de antes (mesmo hash). Para migrar essas telas será preciso primeiro isolar o CSS do documento.
+- **Relatório do Mapa** (`AdminPeopleMapReportPage`): só a barra do topo mudou (creme, botões no padrão). O relatório é a página oficial de `mapa.calirh.com` dentro de um quadro; nada nele foi alterado.
+- **"Gerar relatório" pedindo login no Mapa**: não investigado até o fim. O botão abre `mapa.calirh.com/relatorio.html?...&workspace=1`, que pede a sessão à janela do Workspace (`mapaAuthBridge`). Hipótese: o site do Mapa só aceita o endereço oficial `app.calirh.com` como origem, então no link de homologação cai na tela de login. O código do site do Mapa não está neste repositório; confirmar no oficial.
+- **Satisfação — tratativa** (banco aplicado; a Patricia concordou com a proposta): migração `20261011200000_satisfaction_followups.sql` cria `cali_workspace.satisfaction_followups` (origem + id da avaliação, empresa, tema, anotação, quem e quando; RLS só administradora). Na página: botão "Marcar como tratada" nas notas de 1 a 3, diálogo com tema e anotação (dá para editar e remover), "X de Y já tratadas" no indicador e os temas mais frequentes no painel de distribuição.
+- Conferido no QA com dados simulados. **Não conferido com dados reais:** gravação da tratativa, PDF real no quadro, relatório do Mapa.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

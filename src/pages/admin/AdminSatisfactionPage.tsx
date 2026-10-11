@@ -24,6 +24,11 @@ type SatisfactionRow = {
 };
 
 type PeriodPreset='30'|'90'|'180'|'365'|'all';
+// Tratativa das notas baixas (tabela satisfaction_followups, só administradora).
+type Followup={theme:string|null;note:string|null;handledAt:string};
+const THEMES:[string,string][]=[['prazo','Prazo'],['qualidade','Qualidade da entrega'],['comunicacao','Comunicação'],['atendimento','Atendimento'],['outro','Outro']];
+const themeLabel=(value?:string|null)=>THEMES.find(([key])=>key===value)?.[1]||'Sem tema';
+const followKey=(row:{sourceType:string;id:string})=>`${row.sourceType}:${row.id}`;
 
 function formatDate(value:string){const date=new Date(value);return Number.isNaN(date.getTime())?'—':new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(date).replace('.','');}
 function scoreLabel(score:number){return score<=2?'Crítica':score===3?'Neutra':score===4?'Positiva':'Excelente';}
@@ -41,6 +46,10 @@ export function AdminSatisfactionPage(){
   const [from,setFrom]=useState('');
   const [to,setTo]=useState('');
   // Solicitações finalizadas (visíveis ao cliente): denominador da taxa de resposta.
+  const [followups,setFollowups]=useState<Record<string,Followup>>({});
+  const [editing,setEditing]=useState<SatisfactionRow|null>(null);
+  const [draft,setDraft]=useState({theme:'',note:''});
+  const [savingFollow,setSavingFollow]=useState(false);
   const [closedRecords,setClosedRecords]=useState<{companyId:string;closedAt:string}[]>([]);
 
   async function load(){
@@ -54,6 +63,8 @@ export function AdminSatisfactionPage(){
         responderAvatarResolved:await resolveCompanyAsset(row.responderAvatar||''),
       })));
       setRows(hydrated);
+      const follow=await supabase.from('satisfaction_followups').select('source_type,response_id,theme,note,handled_at');
+      if(!follow.error)setFollowups(Object.fromEntries((follow.data||[]).map((row:any)=>[`${row.source_type}:${row.response_id}`,{theme:row.theme,note:row.note,handledAt:row.handled_at}])));
       const closed=await supabase.from('account_records').select('company_id,closed_at,last_activity_at').eq('workflow_status','completed').eq('visibility','client');
       if(!closed.error)setClosedRecords((closed.data||[]).map((row:any)=>({companyId:row.company_id,closedAt:row.closed_at||row.last_activity_at})).filter((row)=>row.closedAt));
     }catch(requestError){setError(requestError instanceof Error?requestError.message:'Não foi possível carregar as avaliações.');}
@@ -121,6 +132,32 @@ export function AdminSatisfactionPage(){
 
   const sourceSeries=useMemo(()=>['deliverable','record'].map((value)=>({key:value,label:value==='deliverable'?'Entregáveis':'Ocorrências / solicitações',count:periodFiltered.filter((row)=>row.sourceType===value).length})),[periodFiltered]);
 
+  const lowRows=useMemo(()=>filtered.filter((row)=>row.score<=3),[filtered]);
+  const handledCount=lowRows.filter((row)=>followups[followKey(row)]).length;
+  const themeSeries=useMemo(()=>{
+    const map=new Map<string,number>();
+    lowRows.forEach((row)=>{const item=followups[followKey(row)];if(item)map.set(item.theme||'',(map.get(item.theme||'')||0)+1);});
+    return Array.from(map.entries()).sort((a,b)=>b[1]-a[1]);
+  },[lowRows,followups]);
+
+  function openFollowup(row:SatisfactionRow){const current=followups[followKey(row)];setDraft({theme:current?.theme||'',note:current?.note||''});setError('');setEditing(row);}
+  async function saveFollowup(){
+    if(!supabase||!editing)return;setSavingFollow(true);
+    const result=await supabase.from('satisfaction_followups').upsert({source_type:editing.sourceType,response_id:editing.id,company_id:editing.companyId,theme:draft.theme||null,note:draft.note.trim()||null},{onConflict:'source_type,response_id'}).select('theme,note,handled_at').maybeSingle();
+    setSavingFollow(false);
+    if(result.error){setError(result.error.message);return;}
+    setFollowups((current)=>({...current,[followKey(editing)]:{theme:result.data?.theme??(draft.theme||null),note:result.data?.note??(draft.note.trim()||null),handledAt:result.data?.handled_at||new Date().toISOString()}}));
+    setEditing(null);
+  }
+  async function removeFollowup(){
+    if(!supabase||!editing)return;setSavingFollow(true);
+    const result=await supabase.from('satisfaction_followups').delete().eq('source_type',editing.sourceType).eq('response_id',editing.id);
+    setSavingFollow(false);
+    if(result.error){setError(result.error.message);return;}
+    setFollowups((current)=>{const next={...current};delete next[followKey(editing)];return next;});
+    setEditing(null);
+  }
+
   function selectPreset(value:PeriodPreset){setPeriod(value);setFrom('');setTo('');}
 
   const tone=(value:number)=>value<=2?'red':value===3?'yellow':value===4?'blue':'green';
@@ -146,11 +183,11 @@ export function AdminSatisfactionPage(){
       <article><i><MessageSquareText size={16}/></i><span>Base do período</span><strong>{metrics.total}</strong><em>{metrics.total===1?'avaliação registrada':'avaliações registradas'}</em></article>
       <article className={responseRate.pct!=null&&responseRate.pct<30?'weak':''}><i><Clock3 size={16}/></i><span>Taxa de resposta</span><strong>{responseRate.pct==null?'—':`${responseRate.pct}%`}</strong><em>{responseRate.finished?`${responseRate.answered} de ${responseRate.finished} solicitações finalizadas${responseRate.pct!=null&&responseRate.pct<30?' · sinal fraco':''}`:'sem solicitações finalizadas no período'}</em></article>
       <article><i><UserRound size={16}/></i><span>Feedback qualitativo</span><strong>{metrics.total?Math.round(metrics.comments/metrics.total*100):0}%</strong><em>{metrics.comments} com comentário</em></article>
-      <article className={metrics.attention?'attention':''}><i><CalendarRange size={16}/></i><span>Pedem atenção</span><strong>{metrics.attention}</strong><em>notas de 1 a 3 · ação CALI</em></article>
+      <article className={metrics.attention?'attention':''}><i><CalendarRange size={16}/></i><span>Pedem atenção</span><strong>{metrics.attention}</strong><em>{metrics.attention?`${handledCount} de ${metrics.attention} já tratadas`:'notas de 1 a 3 · ação CALI'}</em></article>
     </section>
 
     <div className="v2-nps-grid">
-      <section className="v2-nps-panel"><header><div><small>DISTRIBUIÇÃO</small><h2>Como as notas estão concentradas</h2></div></header><div className="v2-nps-dist">{metrics.distribution.slice().reverse().map((item)=>{const pct=metrics.total?Math.round(item.count/metrics.total*100):0;return <div key={item.score}><span>{item.score}/5</span><div><i className={tone(item.score)} style={{width:`${pct}%`}}/></div><strong>{item.count}</strong><small>{pct}%</small></div>;})}</div></section>
+      <section className="v2-nps-panel"><header><div><small>DISTRIBUIÇÃO</small><h2>Como as notas estão concentradas</h2></div></header><div className="v2-nps-dist">{metrics.distribution.slice().reverse().map((item)=>{const pct=metrics.total?Math.round(item.count/metrics.total*100):0;return <div key={item.score}><span>{item.score}/5</span><div><i className={tone(item.score)} style={{width:`${pct}%`}}/></div><strong>{item.count}</strong><small>{pct}%</small></div>;})}</div><div className="v2-nps-themes"><small>TEMAS NAS NOTAS BAIXAS TRATADAS</small>{themeSeries.length?<div>{themeSeries.map(([key,count])=><span key={key||'none'}>{themeLabel(key)} <b>{count}</b></span>)}</div>:<p className="v2-nps-empty">{lowRows.length?'Marque as notas de 1 a 3 como tratadas, com um tema, para ver aqui o que mais se repete.':'Nenhuma nota de 1 a 3 no recorte.'}</p>}</div></section>
       <section className="v2-nps-panel"><header><div><small>EVOLUÇÃO</small><h2>Satisfação ao longo do tempo</h2></div><span>média mensal · 1–5</span></header>{monthSeries.length>1?<div className="v2-nps-line"><svg viewBox="0 0 620 220" role="img" aria-label="Evolução mensal da satisfação"><line x1="38" y1="20" x2="38" y2="185"/><line x1="38" y1="185" x2="600" y2="185"/>{[1,2,3,4,5].map((value)=><text key={value} x="8" y={190-(value-1)*41}>{value}</text>)}<polyline points={monthSeries.map((item,index)=>`${x(index)},${y(item.average)}`).join(' ')} fill="none"/>{monthSeries.map((item,index)=><g key={item.key}><circle cx={x(index)} cy={y(item.average)} r="4.5"/><text className="line-value" x={x(index)} y={y(item.average)-9}>{item.average.toFixed(1).replace('.',',')}</text><text className="line-label" x={x(index)} y="207">{item.label}</text></g>)}</svg></div>:<p className="v2-nps-empty">São necessárias pelo menos duas referências mensais para mostrar uma tendência.</p>}</section>
       <section className="v2-nps-panel"><header><div><small>RECORTE POR EMPRESA</small><h2>Onde a percepção está concentrada</h2></div><BarChart3 size={16}/></header>{companySeries.length?<div className="v2-nps-rank">{companySeries.map((item)=><div key={item.id}><div><strong>{item.name}</strong><small>{item.count} {item.count===1?'avaliação':'avaliações'} · média {item.average.toFixed(1).replace('.',',')}{(()=>{const before=previousAverage.get(item.id);if(before==null)return null;const delta=item.average-before;if(Math.abs(delta)<0.05)return <b className="flat"> · estável</b>;return <b className={delta<0?'down':'up'}> · {delta<0?'▼':'▲'} {Math.abs(delta).toFixed(1).replace('.',',')} vs período anterior</b>;})()}</small></div><div><i style={{width:`${Math.max(8,item.average/5*100)}%`}}/></div></div>)}</div>:<p className="v2-nps-empty">Sem avaliações no recorte.</p>}</section>
       <section className="v2-nps-panel"><header><div><small>ORIGEM DA AVALIAÇÃO</small><h2>De onde o feedback está vindo</h2></div><Clock3 size={16}/></header><div className="v2-nps-source">{sourceSeries.map((item)=><div key={item.key}><span>{item.label}</span><strong>{item.count}</strong><div><i style={{width:`${periodFiltered.length?item.count/periodFiltered.length*100:0}%`}}/></div></div>)}</div></section>
@@ -164,7 +201,7 @@ export function AdminSatisfactionPage(){
         return <div className="wf-record-row" key={`${row.sourceType}-${row.id}`}>
           <span className="v2-record-logo">{row.companyLogoResolved?<img src={row.companyLogoResolved} alt=""/>:<span aria-hidden="true">{initials(row.company)}</span>}</span>
           <span className="v2-record-author"><strong>{row.company}</strong><small>{row.responderName||'Cliente'}</small></span>
-          <span><span className={`wf-tag ${tone(row.score)}`}>{row.score}/5 · {scoreLabel(row.score)}</span></span>
+          <span className="v2-nps-score"><span className={`wf-tag ${tone(row.score)}`}>{row.score}/5 · {scoreLabel(row.score)}</span>{row.score<=3&&(followups[followKey(row)]?<button type="button" className="v2-nps-follow done" title={followups[followKey(row)].note||'Sem anotação'} onClick={()=>openFollowup(row)}>Tratada · {themeLabel(followups[followKey(row)].theme)}</button>:<button type="button" className="v2-nps-follow" onClick={()=>openFollowup(row)}>Marcar como tratada</button>)}</span>
           <span className="v2-nps-comment"><strong>{row.title||'Avaliação do cliente'}</strong><small>{row.comment?.trim()||'Sem comentário adicional.'}</small></span>
           <span><time>{formatDate(row.createdAt)}</time></span>
           <span>{sourceLabel(row.sourceType)}</span>
@@ -174,5 +211,13 @@ export function AdminSatisfactionPage(){
     </div>:<div className="wf-empty"><strong>Nenhuma avaliação encontrada com os filtros atuais.</strong><p>Amplie o período ou limpe os filtros.</p></div>}
 
     <p className="v2-nps-note">A avaliação nasce quando o cliente aprova um entregável ou quando uma solicitação visível a ele é finalizada. As duas origens são reunidas aqui sem misturar o contexto de cada uma. A taxa de resposta considera só as solicitações: no entregável a nota faz parte da aprovação.</p>
-  </div></div></div></Shell>;
+  </div></div>
+  {editing&&<div className="ap-pd-overlay" onMouseDown={(event)=>{if(event.target===event.currentTarget)setEditing(null);}}><section className="ap-status-confirm v2-nps-follow-dialog" role="dialog" aria-modal="true" aria-label="Tratativa da avaliação">
+    <div><small>SATISFAÇÃO · NOTA {editing.score}/5</small><h2>{followups[followKey(editing)]?'Tratativa registrada':'Marcar como tratada'}</h2><p>{editing.company} · {editing.responderName||'Cliente'} · {editing.title||'Avaliação do cliente'}</p>{editing.comment?.trim()&&<p className="v2-nps-quote">“{editing.comment.trim()}”</p>}</div>
+    <label>Tema do comentário<select value={draft.theme} onChange={(event)=>setDraft((current)=>({...current,theme:event.target.value}))}><option value="">Sem tema</option>{THEMES.map(([key,label])=><option value={key} key={key}>{label}</option>)}</select></label>
+    <label>O que foi feito<textarea value={draft.note} onChange={(event)=>setDraft((current)=>({...current,note:event.target.value}))} placeholder="Ex.: liguei em 12/10 e alinhamos novo prazo."/></label>
+    {error&&<small className="v2-nps-follow-error">{error}</small>}
+    <footer>{followups[followKey(editing)]&&<button type="button" className="v2-nps-remove" disabled={savingFollow} onClick={()=>void removeFollowup()}>Remover marcação</button>}<button type="button" onClick={()=>setEditing(null)}>Voltar</button><button type="button" disabled={savingFollow} onClick={()=>void saveFollowup()}>{savingFollow?'Salvando…':'Salvar'}</button></footer>
+  </section></div>}
+  </div></Shell>;
 }
