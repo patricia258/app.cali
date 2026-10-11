@@ -19,7 +19,8 @@ alter table cali_workspace.companies
 
 -- 3) Decisores e acessos: papel da pessoa e limite de 4 acessos por empresa.
 --    Todos os acessos têm a mesma visão; o papel é apenas informativo.
---    Um convite não libera acesso sozinho: a criação do acesso continua sendo feita pela CALI.
+--    ATENÇÃO: a função workspace-access cria o perfil de qualquer convite com active = true quando a pessoa pede
+--    o código de acesso. Por isso o app grava active = platform_access.
 alter table cali_workspace.client_invites
   add column if not exists access_role text not null default 'additional'
     check (access_role = any (array['primary','decision_maker','additional'])),

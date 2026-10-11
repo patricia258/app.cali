@@ -302,7 +302,7 @@ export function AdminClientsPageV3() {
     const { start,next } = monthBounds();
     const [companiesResult,invitesResult,profilesResult,hoursResult,npsResult,projectsResult,documentsResult,historyResult] = await Promise.all([
       supabase.from('companies').select('id,display_name,legal_name,logo_url,logo_workspace_url,status,created_at,closed_at,monthly_hours_contracted,decision_maker_title,service_type,service_plan,segment,drive_folder_url,start_date,end_date,auto_renew,address_street,address_number,address_neighborhood,address_city,address_state,has_branches,branches,contract_value,billing_frequency,payment_method,billing_status,billing_day,billing_due_rule,billing_lead_days,payment_notes,late_fee_percent,daily_interest_percent,contract_penalty_enabled,contract_penalty_text,termination_penalty_type,termination_penalty_value,termination_payment_days,termination_payment_rule,automation_enabled,welcome_email_enabled,due_reminder_enabled,overdue_email_enabled,overdue_email_after_days,extrajudicial_email_enabled,extrajudicial_after_days,birthday_email_enabled,termination_email_enabled,termination_signed_at,termination_payment_due_at,termination_penalty_amount,termination_balance_snapshot,contract_type,contract_model,payment_term_days,document_notes,document_owner').order('created_at',{ascending:false}),
-      supabase.from('client_invites').select('*').eq('active',true),
+      supabase.from('client_invites').select('*'),
       supabase.from('profiles').select('id,company_id,email,full_name,job_title,phone,whatsapp,is_primary,active,role').eq('role','client'),
       supabase.from('hour_entries').select('company_id,minutes').gte('work_date',start).lt('work_date',next),
       supabase.from('nps_responses').select('company_id,score'),
@@ -314,7 +314,7 @@ export function AdminClientsPageV3() {
     const companies:any[] = companiesResult.data || [], invites:any[] = invitesResult.data || [], profiles:any[] = profilesResult.data || [], hourRows:any[] = hoursResult.data || [], npsRows:any[] = npsResult.data || [], projectRows:any[] = projectsResult.data || [], documentRows:any[] = documentsResult.data || [], historyRows:any[] = historyResult.data || [];
     const rows:ClientRow[] = companies.map((item:any) => {
       const invite = invites.find((entry:any) => entry.company_id === item.id && entry.is_primary);
-      const extras:ExtraPerson[] = invites.filter((entry:any) => entry.company_id === item.id && !entry.is_primary).map((entry:any) => ({id:entry.id,name:entry.full_name||'',job:entry.job_title||'',email:entry.email||'',phone:entry.phone||entry.whatsapp||'',access:entry.platform_access!==false,role:roleFromDb(entry.access_role)}));
+      const extras:ExtraPerson[] = invites.filter((entry:any) => entry.company_id === item.id && !entry.is_primary).map((entry:any) => ({id:entry.id,name:entry.full_name||'',job:entry.job_title||'',email:entry.email||'',phone:entry.phone||entry.whatsapp||'',access:Boolean(entry.active)&&entry.platform_access!==false,role:roleFromDb(entry.access_role)}));
       const profile = profiles.find((entry:any) => entry.company_id === item.id && entry.is_primary && invite && String(entry.email).trim().toLowerCase()===String(invite.email).trim().toLowerCase());
       const consumed = hourRows.filter((entry:any) => entry.company_id===item.id).reduce((total:number,entry:any)=>total+Number(entry.minutes||0),0);
       const contracted = Number(item.monthly_hours_contracted || 0), scores = npsRows.filter((entry:any)=>entry.company_id===item.id).map((entry:any)=>Number(entry.score));
@@ -352,16 +352,25 @@ export function AdminClientsPageV3() {
     const {data:sessionData}=await supabase.auth.getSession(); const {error}=await supabase.from('account_documents').insert({company_id:companyId,document_type:type,title:type==='contract'?'Contrato assinado':'Aditivo contratual',document_date:documentDate||null,storage_path:path,client_visible:true,created_by:sessionData.session?.user.id??null}); if(error) throw error;
   }
 
-  // Decisores e acessos adicionais ficam em client_invites (is_primary = false). O banco limita a 4 acessos ativos por empresa.
+  // Decisores e acessos adicionais ficam em client_invites (is_primary = false).
+  // ATENÇÃO: a função de login (workspace-access) cria o acesso de qualquer convite com active = true assim que a pessoa
+  // pede o código. Por isso "Liberar acesso à plataforma" grava active; sem a marcação a pessoa fica só registrada.
+  // O banco limita a 4 convites ativos por empresa. Ao tirar o acesso ou remover a pessoa, o perfil dela é desativado.
   async function saveExtraAccesses(companyId:string,people:ExtraPerson[],previous:ExtraPerson[]) {
     if(!supabase)return;
     const valid=people.filter((person)=>person.name.trim()&&person.email.trim());
-    const removed=previous.filter((old)=>old.id&&!valid.some((person)=>person.id===old.id));
-    for(const person of removed){const {error}=await supabase.from('client_invites').update({active:false}).eq('id',person.id!);if(error)throw error;}
+    const revoke=async(email:string)=>{const {error}=await supabase!.from('profiles').update({active:false}).eq('company_id',companyId).eq('role','client').eq('is_primary',false).eq('email',email.trim().toLowerCase());if(error)throw error;};
+    for(const old of previous.filter((item)=>item.id&&!valid.some((person)=>person.id===item.id))){
+      const {error}=await supabase.from('client_invites').delete().eq('id',old.id!).eq('is_primary',false);if(error)throw error;
+      await revoke(old.email);
+    }
     for(const person of valid){
-      const row={company_id:companyId,full_name:person.name.trim(),email:person.email.trim().toLowerCase(),job_title:person.job.trim()||null,phone:person.phone.trim()||null,access_role:roleToDb(person.role),platform_access:person.access,is_primary:false,active:true};
+      const row={company_id:companyId,full_name:person.name.trim(),email:person.email.trim().toLowerCase(),job_title:person.job.trim()||null,phone:person.phone.trim()||null,access_role:roleToDb(person.role),platform_access:person.access,is_primary:false,active:person.access};
       const {error}=person.id?await supabase.from('client_invites').update(row).eq('id',person.id):await supabase.from('client_invites').upsert(row,{onConflict:'company_id,email'});
       if(error)throw error;
+      const before=previous.find((item)=>item.id===person.id);
+      if(!person.access)await revoke(person.email);
+      if(before&&before.email.trim().toLowerCase()!==row.email)await revoke(before.email);
     }
   }
 
@@ -445,7 +454,7 @@ export function AdminClientsPageV3() {
           <div className="ap-client-data-head"><span>Cliente / contrato</span><span>Decisor e acesso</span><span>Horas do ciclo</span><span>NPS</span><span>Situação / Drive</span><span>Ações</span></div>
           {visibleClients.map((client)=><div className="ap-client-data-row" key={client.id} role="button" tabIndex={0} onClick={()=>openClient(client)} onKeyDown={(e)=>{if(e.target===e.currentTarget&&(e.key==='Enter'||e.key===' '))openClient(client);}}>
             <div className="ap-client-info"><span className="ap-client-image">{client.logoUrl?<img src={client.logoUrl} alt={`Logo ${client.name}`}/>:initials(client.name)}</span><span><strong>{client.name}</strong><small>{client.service}</small></span></div>
-            <div className="ap-client-contact"><strong>{client.contact}</strong><small>{[client.decisionTitle,'decisor principal'].filter(Boolean).join(' · ')}</small><small>{1+(client.extraAccesses?.length||0)} acesso(s) · principal: {client.access.toLowerCase()}</small></div>
+            <div className="ap-client-contact"><strong>{client.contact}</strong><small>{[client.decisionTitle,'decisor principal'].filter(Boolean).join(' · ')}</small><small>{1+(client.extraAccesses||[]).filter((person)=>person.access).length} acesso(s) habilitado(s) · principal: {client.access.toLowerCase()}</small></div>
             <div className="ap-client-usage"><strong>{client.hours}</strong><span><i style={{width:`${client.usage}%`}}/></span></div>
             <div className="ap-client-nps">{client.nps}</div>
             <div className="ap-client-state"><span className={`ap-state-pill ${client.status}`}>{statusLabel(client.status)}</span><small>Drive {client.drive.toLowerCase()}</small></div>
@@ -491,7 +500,7 @@ export function AdminClientsPageV3() {
           <label className="ap-decision-check"><input type="checkbox" checked={person.access} onChange={(e)=>setExtraPeople((list)=>list.map((item,n)=>n===index?{...item,access:e.target.checked}:item))}/>Liberar acesso à plataforma</label>
         </div></section>)}
         {extraPeople.length<maxExtraPeople&&<button type="button" className="ap-outline" onClick={()=>setExtraPeople((list)=>[...list,{name:'',job:'',email:'',phone:'',access:true,role:'Decisor adicional'}])}><Plus size={14}/> Adicionar decisor ou acesso</button>}
-        <p className="v2-admin-hint">Até 4 acessos por empresa, todos com a mesma visão. O cadastro registra a pessoa; a criação do acesso de cada uma continua sendo feita pela CALI.</p>
+        <p className="v2-admin-hint">Até 4 acessos por empresa, todos com a mesma visão. Com "Liberar acesso à plataforma" marcado, a pessoa já consegue entrar: basta informar o e-mail na tela de acesso e digitar o código que recebe. Sem a marcação, ela fica apenas registrada como decisora.</p>
       </div></>}
       {registrationTab==='contract'&&<><div className="ap-registration-hint">Configuração contratual e vigência</div><div className="ap-registration-fields">
         <label><span>Início</span><input type="date" value={form.startDate} onChange={(e)=>patchForm({startDate:e.target.value})}/></label>

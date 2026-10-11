@@ -332,7 +332,7 @@ Migração `supabase/migrations/20261010230000_account_blocked_status_access_rol
 - `companies.status` passou a aceitar `blocked`; colunas `blocked_at`, `blocked_reason`. **Pausado** (`paused`) = contrato em espera, cliente continua entrando; **Bloqueado** (`blocked`) = perfis do cliente desativados. Confirmado pela proprietária.
 - `companies`: `contract_type`, `contract_model`, `payment_term_days`, `document_notes`, `document_owner`. O link do Drive usa a coluna que já existia (`drive_folder_url`).
 - `client_invites`: `access_role` (`primary` / `decision_maker` / `additional`), `platform_access`, e gatilho `client_invites_limit` que recusa o 5º acesso ativo da empresa.
-- Um convite **não cria login**: não existe gatilho de aceite no banco. Criar o usuário de cada acesso continua sendo um passo manual da CALI.
+- **Correção (10/10, mesma data):** a afirmação anterior de que um convite não cria login estava errada. A função `workspace-access` (Edge Function publicada no Supabase, fora do repositório) cria usuário e perfil para **qualquer convite com `active = true`** quando a pessoa pede o código na tela de acesso. Por isso o app grava `active = platform_access`: sem "Liberar acesso à plataforma" a pessoa fica só registrada. Remover a pessoa apaga o convite e desativa o perfil dela. Nenhum acesso adicional havia sido criado no banco antes da correção.
 - Atenção: a versão em produção (`main`) ainda chama `paused` de "Bloqueado" e desativa os perfis ao pausar. Isso só muda quando esta branch for publicada.
 
 No app (`AdminClientsPageV3.tsx`): ações Pausar e Bloquear separadas (lista, rodapé da gestão, diálogo de motivo com a explicação de cada uma), filtro com Pausado e Bloqueado, campos novos no cadastro e na gestão (Contrato, Modelo, Prazo para pagamento, Link do Drive, Responsável e Observação documental), decisores/acessos adicionais gravados em `client_invites` no cadastro e editáveis em Gestão da conta → Dados cadastrais. Não testado contra o banco real.
@@ -346,6 +346,14 @@ Pedido da proprietária: a Equipe da administradora é a mesma tela aprovada do 
 - O que continua exclusivo da administradora: remuneração e dados restritos no cadastro e na ficha, identificação de gênero na ficha, colunas padrão completas.
 - Pendência de limpeza: os ramos do visual anterior ficaram desligados por `const v1=false` no arquivo. Removê-los (e as folhas `team-*` que só eles usam) numa passada própria, com a tela conferida antes e depois.
 - Conferência com dados fictícios: quatro abas e "Adicionar pessoa" abrem sem erro, sem rolagem horizontal em 1440. `npm run check` passou; varredura do cliente 105/0. Não testado contra o banco real.
+
+### Como nasce um acesso hoje (levantado em 10/10)
+
+- **Cliente:** não há tela de "criar acesso" nem e-mail de convite. O acesso existe quando há um convite ativo em `client_invites` (criado em Clientes → Nova conta, ou nos acessos adicionais). A pessoa entra em `/login`, informa o e-mail e recebe o código de 6 dígitos (Resend, remetente patricia@calirh.com). No primeiro código a função `workspace-access` cria o usuário e o perfil.
+- **Administradora:** está fixa no banco: `cali_workspace.is_admin()` compara o e-mail do login com `patricia@calirh.com`. Não é possível criar outra administradora geral pela tela; exige mudar essa função (usada nas políticas de acesso de todas as tabelas).
+- **Partner com visão própria:** não existe. `profiles.role` só aceita `admin` e `client`.
+- **Boas-vindas / primeiro acesso guiado:** não encontrado no código do app oficial (nem tela, nem tour). A aba Comunicações grava a opção de e-mail de boas-vindas, mas não foi localizado no repositório o serviço que envia a fila `communication_outbox`.
+- Valor do acesso adicional definido pela proprietária: R$ 59,00/mês por acesso (texto em Ocorrências → Solicitar acesso).
 
 ### Link de homologação (o mesmo para cliente e administradora)
 
