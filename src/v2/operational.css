@@ -1252,3 +1252,65 @@ html[data-workspace-ui='v2'] .v2-team-overlay .v2-month-form>footer{display:flex
 .ap-app.v2-admin-page .ap-pane-head .deliverable-toolbar-v2 button{display:inline-flex;align-items:center;gap:6px;background:#fff;border:0;padding:9px 10px;font-size:10px;color:#897a71}
 .ap-app.v2-admin-page .ap-pane-head .deliverable-toolbar-v2 button.on{background:#5a1e2d;color:#fff}
 .ap-app.v2-admin-page .kanban-v2{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(190px,1fr)}
+
+/* ---- Módulos automáticos (Projetos, timer, travas): as cores vinham do tema anterior; no V2 as variáveis recebem a paleta aprovada ---- */
+html[data-workspace-ui='v2']{--theme-page:#f7f3ee;--theme-page-2:#f7f3ee;--theme-surface:#fff;--theme-surface-soft:#fbf7f4;--theme-surface-muted:#f4eee8;--theme-text:#322f2c;--theme-muted:#857870;--theme-line:#e9dbd0;--theme-line-strong:#dec9c3;--theme-elevated-shadow:0 20px 80px #1d111344;--theme-input:#fff;--theme-input-border:#e5d8d0;--theme-accent:#5a1e2d;--theme-accent-soft:#f8ecef;--theme-gold:#b58c52;--theme-gold-soft:#fffaf1;--theme-success:#42785a;--theme-success-soft:#eaf3ed;--theme-danger:#b7495d}
+/* janelas criadas pelos módulos: mesma moldura dos diálogos V2 */
+html[data-workspace-ui='v2'] :is(.project-lifecycle-backdrop-v44,.project-client-modal-backdrop-v39,.workflow-dialog-backdrop-v38){position:fixed;inset:0;z-index:985;background:#171017a8;backdrop-filter:blur(4px);display:grid;place-items:center;padding:18px}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38){width:min(680px,100%);max-height:calc(100dvh - 36px);display:flex;flex-direction:column;overflow:hidden;background:#fffdfb;border:1px solid #e5d9d0;border-radius:16px;box-shadow:0 24px 95px #28172440;color:#302b29;font:12px Inter,system-ui,sans-serif;padding:0}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38)>header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:22px 29px 16px;background:linear-gradient(90deg,#fffaf6,#f8ecd9);border:0;margin:0}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38)>header :is(span,small):not([class]){font-size:10px;letter-spacing:1.2px;color:#af8f72;font-weight:800;text-transform:uppercase}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38) h2{font-size:21px;margin:6px 0 0;color:#322f2c;font-weight:700;letter-spacing:-.3px}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-close-v44,.project-client-modal-close-v39,.workflow-dialog-close-v38){background:#fff;border:1px solid #ecded5;border-radius:8px;width:34px;height:34px;display:grid;place-items:center;color:#322f2c;cursor:pointer;font-size:16px;line-height:1;flex-shrink:0;position:static}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-body-v44,.workflow-dialog-body-v38,.project-client-project-list-v39){padding:20px 29px;overflow-y:auto;scrollbar-width:none;min-height:0;display:flex;flex-direction:column;gap:14px}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-body-v44,.workflow-dialog-body-v38,.project-client-project-list-v39)::-webkit-scrollbar{display:none}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38)>footer,html[data-workspace-ui='v2'] .workflow-dialog-v38 footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:14px 29px;border-top:1px solid #ede3dd;background:#fffdfb;margin:0;font-size:10px;color:#978980}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38)>footer>span{margin-right:auto}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38) footer button,html[data-workspace-ui='v2'] .workflow-dialog-v38 :is(button.primary,button.secondary){padding:10px 14px;border-radius:7px;border:1px solid #dec9c3;background:#fff;color:#5a1e2d;font:inherit;font-size:11px;font-weight:700;cursor:pointer;height:auto;min-height:0;box-shadow:none}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38) button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.workflow-dialog-v38) button:disabled{opacity:.45;cursor:not-allowed}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-field-v44,.workflow-dialog-body-v38 label){display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:700;color:#322f2c;margin:0}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.workflow-dialog-v38) :is(input:not([type='checkbox']):not([type='radio']),select,textarea){width:100%;box-sizing:border-box;min-height:42px;padding:10px 12px;border:1px solid #e5d8d0;border-radius:7px;background:#fff;color:#322f2c;font:inherit;font-weight:400;font-size:12px}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.workflow-dialog-v38) textarea{min-height:84px;resize:vertical}
+html[data-workspace-ui='v2'] .project-lifecycle-action-grid-v44{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+html[data-workspace-ui='v2'] .project-lifecycle-action-grid-v44>label{display:flex;flex-direction:column;gap:5px;padding:13px 14px;border:1px solid #e9ddd4;border-radius:9px;background:#fff;cursor:pointer;font-size:11px}
+html[data-workspace-ui='v2'] .project-lifecycle-action-grid-v44>label.active{border-color:#5a1e2d;box-shadow:inset 3px 0 #5a1e2d;background:#fdfaf7}
+html[data-workspace-ui='v2'] .project-lifecycle-action-grid-v44 input{position:absolute;opacity:0;pointer-events:none}
+html[data-workspace-ui='v2'] .project-lifecycle-action-grid-v44 strong{font-size:12px;color:#322f2c}
+html[data-workspace-ui='v2'] .project-lifecycle-action-grid-v44 small{font-size:10px;line-height:1.5;color:#857870;font-weight:400}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-note-v44,.workflow-help-v38,.workflow-complexity-note-v39,.workflow-approval-summary-v38,.workflow-request-v38,.workflow-request-detail-v39){padding:12px 15px;border:1px solid #f0dfc0;background:#fffaf1;border-radius:9px;font-size:11px;line-height:1.6;color:#7a5a2c;margin:0}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-danger-v44,.workflow-help-v38.danger){display:flex;align-items:center;gap:10px;padding:12px 15px;border:1px solid #f0d5d8;background:#fdf3f3;border-radius:9px;font-size:11px;color:#9d4b64;font-weight:600}
+html[data-workspace-ui='v2'] .project-lifecycle-current-v44{font-size:11px;color:#857870}
+html[data-workspace-ui='v2'] .project-client-modal-identity-v39{display:flex;align-items:center;gap:12px}
+html[data-workspace-ui='v2'] .project-client-modal-identity-v39 .project-client-logo-v39{width:46px;height:46px;border-radius:7px;border:1px solid #e0cdc1;background:#f2e8e0;overflow:hidden;display:grid;place-items:center;flex-shrink:0}
+html[data-workspace-ui='v2'] .project-client-modal-identity-v39 img{width:100%;height:100%;object-fit:contain}
+html[data-workspace-ui='v2'] .project-client-project-card-v39{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#fff;border:1px solid #eee2d9;border-radius:9px;padding:14px;color:#554744;cursor:pointer;font:inherit}
+html[data-workspace-ui='v2'] .project-client-project-card-v39.selected{border-color:#5a1e2d;box-shadow:inset 3px 0 #5a1e2d}
+html[data-workspace-ui='v2'] .project-client-project-card-v39>div:first-child{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+html[data-workspace-ui='v2'] .project-client-project-card-v39 strong{font-size:13px;color:#322f2c}
+html[data-workspace-ui='v2'] .project-client-project-card-v39 small{font-size:10px;color:#a39790}
+html[data-workspace-ui='v2'] .project-client-project-meta-v39{display:flex;gap:10px;flex-wrap:wrap;font-size:10px;color:#857870}
+html[data-workspace-ui='v2'] .project-client-project-status-v39{display:inline-block;padding:6px 8px;border-radius:5px;font-size:10px;font-weight:600;white-space:nowrap;background:#fff4e4;color:#9a672d}
+html[data-workspace-ui='v2'] .project-client-project-status-v39:is(.status-approved,.status-active){background:#e6f6ec;color:#31805a}
+html[data-workspace-ui='v2'] .project-client-project-status-v39.status-draft{background:#f1eaff;color:#8055a5}
+html[data-workspace-ui='v2'] .workflow-toast-v40{position:fixed;right:24px;bottom:24px;z-index:1200;padding:12px 16px;border-radius:9px;border:1px solid #d6e8dd;background:#f1f8f3;color:#42785a;font:600 12px Inter,system-ui,sans-serif;box-shadow:0 18px 60px #28172426}
+html[data-workspace-ui='v2'] .workflow-toast-v40.error{border-color:#f0d5d8;background:#fdf3f3;color:#9d4b64}
+/* faixas e ações inseridas na página */
+.v2-admin-page :is(.project-review-banner-v38,.project-lifecycle-banner-v44){display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 16px;padding:13px 16px;border:1px solid #f0dfc0;background:#fffaf1;border-radius:10px;color:#7a5a2c;font-size:12px}
+.v2-admin-page :is(.project-review-banner-v38,.project-lifecycle-banner-v44) p{margin:3px 0 0;font-size:11px}
+.v2-admin-page :is(.project-review-banner-v38,.project-lifecycle-banner-v44) button{border-radius:7px;border:1px solid #dec9c3;background:#fff;color:#5a1e2d;padding:9px 13px;font:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.v2-admin-page .project-lifecycle-banner-v44:is([data-state='suspended'],[data-state='cancelled']){border-color:#f0d5d8;background:#fdf3f3;color:#9d4b64}
+.v2-admin-page .project-forecast-v36{display:flex;gap:22px;flex-wrap:wrap;margin-top:10px}
+.v2-admin-page .project-forecast-v36>div{display:flex;flex-direction:column;gap:3px}
+.v2-admin-page .project-forecast-v36 span{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#a39790;font-weight:700}
+.v2-admin-page .project-forecast-v36 strong{font-size:12px;color:#5a1e2d}
+.v2-admin-page :is(.front-admin-actions-v38,.draft-row-actions-v36){display:inline-flex;align-items:center;gap:6px}
+.v2-admin-page :is(.front-admin-actions-v38 button,.quick-icon-v36){width:30px;height:30px;display:grid;place-items:center;border:1px solid #e5d8d0;border-radius:7px;background:#fff;color:#5a1e2d;cursor:pointer;padding:0}
+.v2-admin-page .quick-icon-v36.danger{color:#b7495d}
+.v2-admin-page .front-deliverable-row-v3.draft-editable-v36{grid-template-columns:minmax(0,2.4fr) 70px minmax(150px,1fr) 100px 30px auto}
+.v2-admin-page .front-collapse-trigger-v46{cursor:pointer}
+.v2-admin-page .roadmap-help-trigger-v40{width:26px;height:26px;border-radius:7px;border:1px solid #e5d8d0;background:#fff;color:#5a1e2d;cursor:pointer;position:relative;font-weight:700}
+.v2-admin-page .roadmap-help-popover-v40{display:none;position:absolute;right:0;top:32px;z-index:5;width:260px;text-align:left;background:#fff;border:1px solid #e9dbd0;border-radius:9px;padding:12px;box-shadow:0 18px 60px #28172426;font-size:11px;font-weight:400;color:#665751}
+.v2-admin-page .roadmap-help-trigger-v40.open .roadmap-help-popover-v40{display:flex;flex-direction:column;gap:6px}
+.v2-admin-page .roadmap-help-popover-v40 i{font-style:normal}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38) [hidden]{display:none!important}

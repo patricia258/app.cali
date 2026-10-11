@@ -432,6 +432,16 @@ O que falta (ETAPA 2), **não conferido**:
 - O protótipo escolhe o projeto por uma caixa de seleção e muda o status do projeto por outra; no oficial isso é feito pela faixa de clientes e pelo "Gerenciar" dos módulos. Unificar exige reescrever esses módulos em React.
 - Nenhuma gravação testada contra o banco real.
 
+### 11/10 — Projetos da administradora, ETAPA 2: janelas e faixas dos módulos no padrão V2
+
+- Causa do "vidro transparente": os módulos de Projetos (e outros componentes operacionais) pintam com as variáveis `--theme-*` do tema anterior, que não existiam no V2. `operational.css` agora define essas variáveis com a paleta aprovada dentro de `html[data-workspace-ui='v2']`. Isso também alcança componentes do cliente que usavam essas variáveis.
+- Mesma moldura dos diálogos V2 (cabeçalho em degradê claro, corpo rolável, rodapé com botões padrão) para: **Gerenciar projeto** (`project-lifecycle-dialog-v44/v45`), **Projetos da conta** (`project-client-modal-v39`) e as janelas de aprovação/ajuste de cronograma (`workflow-dialog-v38/v39`). Campos ocultos pelos módulos (`hidden`) continuam ocultos.
+- Estilizados na página: faixa de clientes, previsão (meta desejada / previsão CALI), faixas de revisão e de ciclo de vida, ações da frente e dos entregáveis em rascunho, ajuda "como ler o cronograma", avisos (`workflow-toast-v40`).
+- Conferido com dados fictícios em três estados do cronograma (rascunho, em revisão do cliente, aprovado): "Gerenciar projeto" e "Projetos da conta" abertos e fotografados.
+- **Não foi possível abrir no teste** (dependem de pedidos reais do cliente): janelas de aprovação/ajuste de cronograma e as faixas de revisão. Receberam a moldura por regra geral, sem conferência visual.
+- Continua diferente do protótipo: escolher o projeto e mudar o status por caixas de seleção no topo. No oficial isso é a faixa de clientes + "Gerenciar projeto".
+- Fixtures de teste: `QA_PLAN=draft|client_review|approved` muda o estado do cronograma fictício.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
