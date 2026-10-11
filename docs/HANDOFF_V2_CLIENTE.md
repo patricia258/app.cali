@@ -558,6 +558,12 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - **Avaliação do atendimento (cliente)**: o cartão criado por `recordsClosureExperienceRuntimeV29` aparecia cobrindo a página inteira, com título em fonte antiga. Agora fica dentro do painel da ocorrência (cabeçalho com o X continua visível), no padrão novo: nota 1–5, mensagem conforme a nota, comentário opcional (4–5) ou obrigatório (1–3), "Enviar avaliação". `.wf-record-drawer` passou a ser `position:relative`.
 - **Não conferido com dados reais:** envio da avaliação, tela de agradecimento, diálogo de pedido de reabertura (mesmo módulo, só recebeu os estilos de botão).
 
+### 2026-10-11 — Ocorrências: correções após teste da Patricia com dados reais
+
+- **Cronômetro sumiu do topo do painel**: efeito colateral do ajuste anterior (cabeçalho com fundo e `z-index` para ficar acima do cartão de avaliação). A etiqueta do cronômetro agora tem `z-index` maior. Conferido no QA com `elementFromPoint`.
+- **Cancelar/Salvar da edição de mensagem não fechavam** (`recordsMessageControlsRuntime.ts`): dependiam de a conversa ser relida, mas `recordsExperienceRuntimeV2.enhance` ignora a releitura enquanto o painel está marcado `data-records-rich`. Agora Cancelar devolve o texto na hora, Salvar aplica o texto novo e fecha, e `nudgeConversation()` limpa a marca para a releitura acontecer (vale também para Excluir).
+- **Foto do cliente em branco no chat**: causa NÃO confirmada (a leitura dos dados reais não foi autorizada nesta sessão). Pelo código, o quadrado fica vazio quando a foto existe mas a imagem ainda não baixou ou o link assinado falhou; hipótese mais provável: arquivo de foto grande. Mitigação: o quadrado tem cor de fundo enquanto a imagem não chega. Próximo passo se continuar: conferir tamanho do arquivo da foto e considerar miniatura.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

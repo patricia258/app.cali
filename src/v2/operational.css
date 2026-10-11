@@ -1920,3 +1920,11 @@ html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-thanks{display:flex;
 html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-thanks-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:8px;background:#e6f6ec;color:#31805a;font-size:16px;font-weight:700}
 html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-thanks button{margin-top:6px}
 html[data-workspace-ui='v2'] .wf-record-drawer>header{position:relative;z-index:7;background:#fff}
+
+/* painel da ocorrência: o cronômetro fica acima do cabeçalho (que ganhou fundo próprio) */
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer{z-index:8}
+/* sem foto disponível, a conversa mostra as iniciais no quadrado — nunca um espaço em branco */
+html[data-workspace-ui='v2'] .wf-record-drawer .records-chat-avatar{border-radius:7px!important;background-color:#5a1e2d;color:#fff!important;font-size:10px!important;font-weight:700;line-height:1;text-indent:0!important;opacity:1!important;visibility:visible!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-chat-line.mine .records-chat-avatar{background-color:#f2dfa4;color:#5a1e2d!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-chat-avatar.identity-media-empty{display:inline-flex!important;color:#fff!important;font-size:10px!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-chat-line.mine .records-chat-avatar.identity-media-empty{color:#5a1e2d!important}

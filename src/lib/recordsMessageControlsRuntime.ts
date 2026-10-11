@@ -46,6 +46,9 @@ function nudgeConversation() {
   const history = document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"]) :is(.conversation-history,[data-v2-operation~=\"conversation-history\"])");
   if (!history) return;
   history.dataset.recordsSignature = '';
+  // O módulo da conversa só relê as mensagens quando o painel não está marcado como pronto.
+  const panel = history.closest<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"])");
+  if (panel) delete panel.dataset.recordsRich;
   const marker = document.createElement('i');
   marker.hidden = true;
   history.append(marker);
@@ -72,7 +75,9 @@ async function editMessage(message: MessageRow, bubble: HTMLElement) {
   save.type = 'button';
   save.className = 'primary';
   save.textContent = 'Salvar';
-  cancel.onclick = () => { nudgeConversation(); };
+  // Cancelar devolve o texto na hora, sem depender da releitura da conversa.
+  const closeEditor = () => { if (currentBody) editor.replaceWith(currentBody); else editor.remove(); };
+  cancel.onclick = () => { closeEditor(); nudgeConversation(); };
   save.onclick = async () => {
     const text = textarea.value.trim();
     if (!text && !parsed.tokens.length) return;
@@ -81,6 +86,8 @@ async function editMessage(message: MessageRow, bubble: HTMLElement) {
       const body = [text, parsed.tokens.join('\n')].filter(Boolean).join('\n');
       const result = await supabase!.rpc('edit_account_record_message', { p_message_id: message.id, p_body: body });
       if (result.error) throw result.error;
+      if (currentBody) currentBody.textContent = text;
+      closeEditor();
       nudgeConversation();
       window.setTimeout(schedule, 120);
     } catch (error) {
