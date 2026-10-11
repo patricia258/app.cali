@@ -595,16 +595,17 @@ export function AdminCalendarPage() {
     })
     .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
 
-  if (loading) return <Shell role="admin"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando agenda…</section></Shell>;
+  if (loading) return <Shell role="admin"><div className="ap-app v2-admin-page"><div className="ap-content"><p className="v2-admin-empty data-loading" aria-live="polite" aria-busy="true">Carregando agenda…</p></div></div></Shell>;
 
   return (
     <Shell role="admin">
-      <section className="page calendar-page-v2">
-        <div className="calendar-v2-actions">
-          <button className="primary compact-action" onClick={() => openCreateForDate()}><Plus size={17} />Novo evento</button>
+      <div className="ap-app v2-admin-page v2-admin-calendar"><div className="ap-content">
+      <section className="calendar-page-v2">
+        <div className="ap-title"><div><small>BACKOFFICE / CALI RH</small><h1>Agenda da CALI<span>.</span></h1><p>Reuniões, validações, prazos e a sua agenda Google em uma visão única.</p></div><div className="ap-title-actions calendar-v2-actions">
           <AgendaChangeInbox onDecision={()=>void loadCalendar()}/>
-          <button className="calendar-history-trigger" type="button" onClick={()=>setHistoryOpen(true)}><FileText size={16}/>Histórico de reuniões</button>
-        </div>
+          <button className="ap-outline calendar-history-trigger" type="button" onClick={()=>setHistoryOpen(true)}><FileText size={15}/> Histórico de reuniões</button>
+          <button className="ap-primary" onClick={() => openCreateForDate()}><Plus size={15} /> Novo evento</button>
+        </div></div>
         <section className="calendar-workspace-strip">
           <div className="calendar-workspace-icon"><Cloud size={21} /></div>
           <div>
@@ -619,17 +620,19 @@ export function AdminCalendarPage() {
           {googleReadStatus==='reconnect' && <button type="button" className="google-calendar-runtime-button primary" onClick={async()=>{if(!supabase)return;const {data,error}=await supabase.functions.invoke('google-calendar-oauth',{body:{action:'authorize',companyId:null}});if(error||!data?.url)return;window.location.assign(data.url)}}>Autorizar leitura da agenda</button>}
         </section>
 
-        <section className="calendar-upcoming-strip" aria-label="Próximos compromissos">
-          <div className="calendar-upcoming-strip-heading"><strong>Próximos compromissos</strong><div><button type="button" onClick={()=>upcomingRef.current?.scrollBy({left:-360,behavior:'smooth'})} aria-label="Compromissos anteriores"><ChevronLeft size={17}/></button><button type="button" onClick={()=>upcomingRef.current?.scrollBy({left:360,behavior:'smooth'})} aria-label="Próximos compromissos"><ChevronRight size={17}/></button></div></div>
-          <div className="calendar-upcoming-track" ref={upcomingRef}>{upcoming.map(event=><button key={event.id} type="button" onClick={()=>setSelectedEvent(event)} style={eventStyle(event)}><i/><span><strong>{event.title}</strong><small>{formatCalendarDate(event.startsAt)} · {formatCalendarTime(event.startsAt)}{event.endsAt?`–${formatCalendarTime(event.endsAt)}`:''}</small><em>{event.sourceType==='google'?'Google Agenda':'Workspace'}</em></span></button>)}{!upcoming.length&&<p>Sem compromissos futuros neste recorte.</p>}</div>
-        </section>
-
         <section className="calendar-main-toolbar">
+          <div className="calendar-view-switch">
+              {(['week', 'month', 'agenda'] as CalendarView[]).map((item) => (
+                <button key={item} className={view === item ? 'active' : ''} onClick={() => setView(item)}>
+                  {item === 'month' ? 'Mês' : item === 'week' ? 'Semana' : 'Lista'}
+                </button>
+              ))}
+            </div>
           <div className="calendar-navigation">
-            <button className="calendar-icon-button" onClick={() => navigatePeriod(-1)} aria-label="Período anterior"><ChevronLeft size={18} /></button>
-            <button className="secondary calendar-today-button" onClick={() => setCursor(new Date())}>Hoje</button>
-            <button className="calendar-icon-button" onClick={() => navigatePeriod(1)} aria-label="Próximo período"><ChevronRight size={18} /></button>
+            <button className="calendar-icon-button" onClick={() => navigatePeriod(-1)} aria-label="Período anterior"><ChevronLeft size={16} /></button>
             <strong>{cursorLabel}</strong>
+            <button className="calendar-icon-button" onClick={() => navigatePeriod(1)} aria-label="Próximo período"><ChevronRight size={16} /></button>
+            <button className="secondary calendar-today-button" onClick={() => setCursor(new Date())}>Hoje</button>
           </div>
           <div className="calendar-toolbar-filters">
             <label className="calendar-search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar evento ou protocolo" /></label>
@@ -643,17 +646,24 @@ export function AdminCalendarPage() {
                 <button type="button" className="calendar-filter-reset" onClick={() => { setCompanyFilter('all'); setActiveTypes(new Set(Object.keys(calendarTypeMeta) as CalendarEventType[])); }}>Limpar filtros</button>
               </div>}
             </div>
-            <div className="calendar-view-switch">
-              {(['month', 'week', 'agenda'] as CalendarView[]).map((item) => (
-                <button key={item} className={view === item ? 'active' : ''} onClick={() => setView(item)}>
-                  {item === 'month' ? 'Mês' : item === 'week' ? 'Semana' : 'Agenda'}
-                </button>
-              ))}
-            </div>
+            
           </div>
         </section>
 
         <div className="calendar-page-layout">
+          <aside className="wf-cal-label v2-burgundy-calendar v2-admin-cal-aside"><strong>{view==='week'?'SEMANA DE ACOMPANHAMENTO':view==='month'?'MARCO DO MÊS':'LISTA DO MÊS'}</strong><span>{months[cursor.getMonth()]} de {cursor.getFullYear()}</span>
+            <div className="v2-admin-cal-legend">{(Object.keys(calendarTypeMeta) as CalendarEventType[]).filter(type=>activeTypes.has(type)).map(type=><span key={type}><i style={{background:calendarTypeMeta[type].color}}/>{calendarTypeMeta[type].label}</span>)}<span><i className="google"/>Google Agenda</span></div>
+            <div className="calendar-mini-card v2-admin-cal-mini"><div className="calendar-mini-title"><strong>{months[cursor.getMonth()]}</strong><span>{cursor.getFullYear()}</span></div>
+              <div className="calendar-mini-weekdays">{weekdays.map((day) => <span key={day}>{day.slice(0, 1)}</span>)}</div>
+              <div className="calendar-mini-grid">
+                {miniDates.map((date) => {
+                  const dayEvents = eventsByDate.get(dateKey(date)) || [];
+                  return <button key={dateKey(date)} className={`${date.getMonth() !== cursor.getMonth() ? 'outside' : ''} ${isSameDate(date, today) ? 'today' : ''} ${isSameDate(date, cursor) ? 'selected' : ''}`} onClick={() => setCursor(date)}><span>{date.getDate()}</span>{dayEvents.length > 0 && <i style={{ background: dayEvents[0].color }} />}</button>;
+                })}
+              </div>
+            </div>
+            <div className="v2-admin-cal-count"><small>COMPROMISSOS NO PERÍODO</small><b>{view==='week'?weekDates.reduce((sum,date)=>sum+(eventsByDate.get(dateKey(date))||[]).length,0):monthAgenda.length}</b><em>eventos, prazos e solicitações</em></div>
+          </aside>
           <section className="calendar-primary-panel panel">
             {view === 'month' && <>
               <div className="calendar-weekday-head">{weekdays.map((day) => <span key={day}>{day}</span>)}</div>
@@ -721,19 +731,7 @@ export function AdminCalendarPage() {
             </div>}
           </section>
 
-          <aside className="calendar-side-column">
-            <section className="calendar-mini-card panel">
-              <div className="calendar-mini-title"><strong>{months[cursor.getMonth()]}</strong><span>{cursor.getFullYear()}</span></div>
-              <div className="calendar-mini-weekdays">{weekdays.map((day) => <span key={day}>{day.slice(0, 1)}</span>)}</div>
-              <div className="calendar-mini-grid">
-                {miniDates.map((date) => {
-                  const dayEvents = eventsByDate.get(dateKey(date)) || [];
-                  return <button key={dateKey(date)} className={`${date.getMonth() !== cursor.getMonth() ? 'outside' : ''} ${isSameDate(date, today) ? 'today' : ''} ${isSameDate(date, cursor) ? 'selected' : ''}`} onClick={() => setCursor(date)}><span>{date.getDate()}</span>{dayEvents.length > 0 && <i style={{ background: dayEvents[0].color }} />}</button>;
-                })}
-              </div>
-            </section>
 
-          </aside>
         </div>
       </section>
 
@@ -818,6 +816,7 @@ export function AdminCalendarPage() {
           {selectedEvent.sourceType !== 'request_preview' && <div className="calendar-detail-footer calendar-detail-actions"><div className="calendar-detail-primary-actions">{!selectedEvent.synthetic && !selectedEvent.cancelledAt && <button className="secondary edit-event-action" onClick={() => openEditEvent(selectedEvent)}><Pencil size={16} />Editar ou remarcar</button>}{selectedEvent.meetingUrl && !selectedEvent.cancelledAt && <button className="primary" onClick={() => window.open(selectedEvent.meetingUrl!, '_blank', 'noopener,noreferrer')}><Video size={16} />Abrir Meet</button>}</div><div className="calendar-detail-secondary-actions">{selectedEvent.sourceType!=='google'&&<button className="secondary" onClick={() => window.open(googleCalendarTemplate(selectedEvent), '_blank', 'noopener,noreferrer')}><ExternalLink size={16} />Google Agenda</button>}<button className="secondary" onClick={() => downloadCalendarIcs(selectedEvent)}><Download size={16} />ICS</button>{!selectedEvent.synthetic && !selectedEvent.cancelledAt && !showCancel && <button className="secondary danger-soft" onClick={() => setShowCancel(true)}>Cancelar</button>}</div></div>}
         </section>
       </div>}
+      </div></div>
     </Shell>
   );
 }

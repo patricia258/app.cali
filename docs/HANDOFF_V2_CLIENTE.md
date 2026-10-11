@@ -489,6 +489,18 @@ Regra da proprietária, repetida com exemplos: **controles do mesmo grupo ficam 
 - Equipe (administradora): a faixa "Dados do mês / Lançar dados do mês" aparece **só para o cliente**; quem alimenta é o cliente.
 - Ao entregar qualquer tela: conferir cada botão com ícone, cada barra de ferramentas e cada cabeçalho; elementos inseridos pelos módulos automáticos precisam de regra explícita de alinhamento.
 
+### 11/10 — administradora: Agenda da CALI (sexta página migrada)
+
+Pedido: replicar o comportamento do calendário do cliente, lembrando que a conta da proprietária é conectada ao Google Agenda nos dois sentidos.
+
+- `/admin/calendario` entrou em `migratedAdminRoutes`. `AdminCalendarPage.tsx` reorganizado na composição do cliente: título com "Alterações de reuniões", "Histórico de reuniões" e "Novo evento"; faixa do Google; linha de controle (Semana / Mês / Lista, navegação, Hoje, busca e Filtros); corpo com a **faixa bordô** à esquerda (título da visão, mês, legenda dos tipos + Google Agenda, mini calendário e contagem do período) e a visão à direita.
+- As três visões são as do calendário oficial (semana com grade de horas e arraste para criar, mês, lista) — a grade de horas foi mantida na administradora porque os horários do Google Agenda ocupam a agenda. A visão padrão continua a que o componente já usava.
+- Integração com Google intacta: `calendar-workspace-strip`, `calendar-connection-status` e os diálogos (`calendar-event-modal`, `calendar-detail-modal` e filhos) são os pontos lidos por `googleCalendarRuntime`, `calendarSyncGuard` e pelos módulos de agendamento; não foram alterados.
+- Saiu o carrossel "Próximos compromissos" (a visão Lista mostra os mesmos itens) e a coluna lateral do mini calendário (foi para a faixa bordô).
+- A folha `page4-calendar.css` continua carregada nesta rota para as visões e os diálogos; as cores vêm das variáveis de tema já mapeadas para a paleta V2. Regras de ajuste em `operational.css`, bloco "Agenda da CALI" (algumas com `!important` por causa da folha antiga).
+- Conferido com dados fictícios: semana, mês e diálogo "Novo evento". `npm run check` passou; varredura do cliente 105/0.
+- Não conferido: sincronização real com o Google (o teste não tem credenciais), diálogo de detalhe de evento, histórico de reuniões e caixa de alterações abertos.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

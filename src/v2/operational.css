@@ -1531,3 +1531,73 @@ html[data-workspace-ui='v2'] :is(.timer-finalize-dialog,.ap-status-confirm,.ap-p
 .ap-app.v2-admin-page .ap-accounts-filters :is(select,.ap-search){height:40px;box-sizing:border-box;margin:0}
 .ap-app.v2-admin-page .ap-accounts-filters .ap-search{display:flex;align-items:center;gap:8px}
 @media(max-width:760px){.ap-app.v2-admin-page .ap-pane-head{flex-wrap:wrap}.ap-app.v2-admin-page .ap-accounts-filters{flex-wrap:wrap}}
+
+/* ---- Administradora · Agenda da CALI (composição do calendário do cliente; visões e diálogos do calendário oficial) ---- */
+.v2-admin-calendar .calendar-page-v2{display:block;padding:0;margin:0}
+.v2-admin-calendar .ap-title-actions :is(button,.agenda-change-trigger){white-space:nowrap}
+.v2-admin-calendar .ap-title-actions>*:not(.ap-primary):not(.ap-outline) button,.v2-admin-calendar .ap-title-actions>button:not(.ap-primary):not(.ap-outline){border-radius:7px;border:1px solid #ead9ce;padding:10px 13px;background:#fff;color:#603144;display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;height:auto;box-shadow:none}
+.v2-admin-calendar .calendar-workspace-strip{display:flex;align-items:center;gap:12px;margin:0 0 16px;padding:14px 18px;border:1px solid #e3c9a6;border-radius:10px;background:#fffaf1;color:#665751;font-size:12px;box-shadow:none}
+.v2-admin-calendar .calendar-workspace-strip>div:nth-child(2){flex:1;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;min-width:0}
+.v2-admin-calendar .calendar-workspace-strip strong{color:#322f2c;font-size:12px}
+.v2-admin-calendar .calendar-workspace-strip p{margin:0;font-size:11px;color:#857870}
+.v2-admin-calendar .calendar-workspace-icon{width:30px;height:30px;display:grid;place-items:center;border-radius:7px;background:#f4e6d2;color:#8a5a2b;flex-shrink:0}
+.v2-admin-calendar .calendar-connection-status{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:5px;background:#fff2dc;color:#97672f;font-size:10px;font-weight:700;white-space:nowrap}
+.v2-admin-calendar .calendar-connection-status.connected{background:#e6f6ec;color:#31805a}
+.v2-admin-calendar .calendar-workspace-strip button{border-radius:7px;border:1px solid #5a1e2d;background:#5a1e2d;color:#fff;padding:9px 13px;font:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.v2-admin-calendar .calendar-main-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 16px;padding:12px 14px;background:#fff;border:1px solid #e9dbd0;border-radius:10px;box-shadow:none}
+.v2-admin-calendar .calendar-view-switch{display:inline-flex;align-items:center;gap:2px;padding:4px;border-radius:8px;background:#f6f0eb;border:0}
+.v2-admin-calendar .calendar-view-switch button{border:0;background:none;border-radius:6px;padding:8px 13px;font:inherit;font-size:11px;color:#857870;cursor:pointer;box-shadow:none;height:auto}
+.v2-admin-calendar .calendar-view-switch button.active{background:#fff;color:#322f2c;font-weight:700;box-shadow:0 1px 3px #0000000f}
+.v2-admin-calendar .calendar-navigation{display:inline-flex;align-items:center;gap:8px}
+.v2-admin-calendar .calendar-navigation strong{font-size:12px;min-width:150px;text-align:center}
+.v2-admin-calendar :is(.calendar-icon-button,.calendar-today-button){height:34px;min-width:34px;display:inline-grid;place-items:center;border:1px solid #e5d9d0;border-radius:7px;background:#fff;color:#5a1e2d;font:inherit;font-size:11px;font-weight:700;cursor:pointer;padding:0 10px;box-shadow:none}
+.v2-admin-calendar .calendar-toolbar-filters{display:inline-flex;align-items:center;gap:10px;margin-left:auto;flex-wrap:nowrap}
+.v2-admin-calendar .calendar-search{display:flex;align-items:center;gap:7px;height:36px;padding:0 10px;border:1px solid #e5d9d0;border-radius:7px;background:#fff;color:#978980;min-width:230px;margin:0}
+.v2-admin-calendar .calendar-search input{border:0;outline:0;background:transparent;font:inherit;font-size:11px;color:#67574c;width:100%;min-height:0;padding:0}
+.v2-admin-calendar .calendar-filter-control{position:relative}
+.v2-admin-calendar .calendar-filter-trigger{height:36px;display:inline-flex;align-items:center;gap:7px;border:1px solid #e5d9d0;border-radius:7px;background:#fff;color:#5a1e2d;padding:0 12px;font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+.v2-admin-calendar .calendar-filter-trigger.active{border-color:#5a1e2d}
+.v2-admin-calendar .calendar-page-layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:0;border:1px solid #e9dbd0;border-radius:12px;overflow:hidden;background:#fff;align-items:stretch}
+.v2-admin-calendar .calendar-primary-panel{border:0;border-radius:0;box-shadow:none;margin:0;padding:0;min-width:0;background:#fff}
+.v2-admin-calendar .v2-admin-cal-aside{border:0;gap:16px;padding:24px 18px}
+.v2-admin-calendar .v2-admin-cal-aside>span{text-transform:lowercase}
+.v2-admin-calendar .v2-admin-cal-legend{display:flex;flex-direction:column;gap:9px;font-size:11px}
+.v2-admin-calendar .v2-admin-cal-legend span{display:flex;align-items:center;gap:9px;font-weight:400}
+.v2-admin-calendar .v2-admin-cal-legend i{width:8px;height:8px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 1px #ffffff55}
+.v2-admin-calendar .v2-admin-cal-legend i.google{background:#72b2d6}
+.v2-admin-calendar .v2-admin-cal-mini{background:#ffffff14;border:1px solid #ffffff2e;border-radius:9px;padding:12px 10px;box-shadow:none;margin:0}
+.v2-admin-calendar .v2-admin-cal-mini .calendar-mini-title{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;font-size:11px}
+.v2-admin-calendar .v2-admin-cal-mini :is(.calendar-mini-weekdays,.calendar-mini-grid){display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.v2-admin-calendar .v2-admin-cal-mini .calendar-mini-weekdays span{font-size:8px;opacity:.7}
+.v2-admin-calendar .v2-admin-cal-mini .calendar-mini-grid button{position:relative;height:24px;border:0;border-radius:6px;background:none;color:#fff9f3;font:inherit;font-size:10px;cursor:pointer;padding:0}
+.v2-admin-calendar .v2-admin-cal-mini .calendar-mini-grid button.outside{opacity:.4}
+.v2-admin-calendar .v2-admin-cal-mini .calendar-mini-grid button.today{background:#ffffff33;font-weight:700}
+.v2-admin-calendar .v2-admin-cal-mini .calendar-mini-grid button.selected{background:#fff;color:#5a1e2d!important;font-weight:700}
+.v2-admin-calendar .v2-admin-cal-mini .calendar-mini-grid button.selected span{color:#5a1e2d!important}
+.v2-admin-calendar .v2-admin-cal-mini .calendar-mini-grid button i{position:absolute;left:50%;bottom:2px;width:4px;height:4px;border-radius:50%;transform:translateX(-50%);background:#e3bf7b!important}
+.v2-admin-calendar .v2-admin-cal-count{margin-top:auto;padding-top:16px;border-top:1px solid #ffffff40;display:flex;flex-direction:column;gap:6px}
+.v2-admin-calendar .v2-admin-cal-count small{font-size:9px;letter-spacing:1.2px;opacity:.85}
+.v2-admin-calendar .v2-admin-cal-count b{font-size:26px;color:#fff}
+.v2-admin-calendar .v2-admin-cal-count em{font-style:normal;font-size:10px;opacity:.9}
+@media(max-width:900px){.v2-admin-calendar .calendar-page-layout{grid-template-columns:1fr}.v2-admin-calendar .calendar-toolbar-filters{margin-left:0;flex-wrap:wrap}}
+.ap-app.v2-admin-calendar .calendar-page-layout{display:grid!important;grid-template-columns:230px minmax(0,1fr)!important;gap:0!important;align-items:stretch!important}
+.ap-app.v2-admin-calendar .calendar-page-layout>.v2-admin-cal-aside{grid-column:1;grid-row:1}
+.ap-app.v2-admin-calendar .calendar-page-layout>.calendar-primary-panel{grid-column:2;grid-row:1;border:0!important;border-radius:0!important;box-shadow:none!important;margin:0!important}
+.ap-app.v2-admin-calendar .calendar-workspace-strip{background:#fffaf1!important;border:1px solid #e3c9a6!important;box-shadow:none!important;color:#665751!important;border-radius:10px!important}
+.ap-app.v2-admin-calendar .calendar-workspace-strip :is(strong){color:#322f2c!important}
+.ap-app.v2-admin-calendar .calendar-workspace-icon{background:#f4e6d2!important;color:#8a5a2b!important}
+.ap-app.v2-admin-calendar .calendar-main-toolbar{background:#fff!important;border:1px solid #e9dbd0!important;border-radius:10px!important;box-shadow:none!important;padding:12px 14px!important}
+.ap-app.v2-admin-calendar .calendar-search{flex:0 1 260px;min-width:200px}
+@media(max-width:900px){.ap-app.v2-admin-calendar .calendar-page-layout{grid-template-columns:1fr!important}.ap-app.v2-admin-calendar .calendar-page-layout>:is(.v2-admin-cal-aside,.calendar-primary-panel){grid-column:1;grid-row:auto}}
+/* diálogos do calendário (evento, detalhe, histórico): botões e cabeçalho no padrão V2 */
+.v2-admin-calendar :is(.calendar-modal-footer,.calendar-detail-footer,.calendar-detail-actions,.calendar-detail-primary-actions,.calendar-detail-secondary-actions,.calendar-cancel-box,.calendar-google-actions,.calendar-meeting-history) button:not(.calendar-history-close):not(.calendar-icon-button){display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;border-radius:7px;border:1px solid #dec9c3;background:#fff;color:#5a1e2d;font:inherit;font-size:11px;font-weight:700;cursor:pointer;height:auto;min-height:0;box-shadow:none;line-height:1.2}
+.v2-admin-calendar :is(.calendar-modal-footer,.calendar-detail-footer,.calendar-detail-actions,.calendar-detail-primary-actions,.calendar-cancel-box,.calendar-google-actions) button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+.v2-admin-calendar :is(.calendar-modal-footer,.calendar-detail-footer,.calendar-cancel-box) button:is(.danger,.danger-button,.danger-text){color:#b7495d}
+.v2-admin-calendar :is(.calendar-modal-footer,.calendar-detail-footer) button:disabled{opacity:.45;cursor:not-allowed}
+.v2-admin-calendar :is(.calendar-modal-footer,.calendar-detail-footer){display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.v2-admin-calendar :is(.calendar-event-modal,.calendar-detail-modal,.calendar-history-dialog){border-radius:14px;border:1px solid #e5d9d0;box-shadow:0 24px 95px #28172440}
+.v2-admin-calendar :is(.calendar-modal-heading,.calendar-detail-heading){background:linear-gradient(90deg,#fffaf6,#f8ecd9)}
+.v2-admin-calendar :is(.calendar-event-modal,.calendar-detail-modal) :is(input:not([type='checkbox']):not([type='color']),select,textarea){border:1px solid #e5d8d0;border-radius:7px;background:#fff;font:inherit;font-size:12px;color:#322f2c}
+.v2-admin-calendar .calendar-filter-popover{background:#fff;border:1px solid #e9dbd0;border-radius:10px;box-shadow:0 18px 60px #28172426}
+.v2-admin-calendar .calendar-filter-popover button{font:inherit;font-size:11px;cursor:pointer}
+.ap-app.v2-admin-calendar :is(.calendar-modal-footer,.calendar-detail-footer,.calendar-detail-actions,.calendar-detail-primary-actions,.calendar-cancel-box,.calendar-google-actions) button.primary.primary:not(.calendar-history-close):not(.calendar-icon-button){background:#5a1e2d;border-color:#5a1e2d;color:#fff}
