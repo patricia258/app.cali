@@ -1729,3 +1729,36 @@ html[data-workspace-ui='v2'] :is(.timer-finalize-dialog,.ap-status-confirm,.ap-p
 .ap-app.v2-admin-calendar .calendar-agenda-mode{display:inline-flex;align-items:center;gap:6px;font-size:11px!important}
 /* linha de ações do evento Google: respiro igual em cima e embaixo (a folha antiga zerava o de baixo) */
 .ap-app.v2-admin-calendar .calendar-detail-modal.calendar-detail-modal:has(.calendar-google-detail) .calendar-google-actions{padding:14px 24px!important;margin:0!important;justify-content:flex-start!important;flex-shrink:0}
+/* Detalhe do evento — convidados, registro do encontro e linha do Google (blocos criados pelos módulos automáticos) no padrão novo */
+.ap-app.v2-admin-calendar .calendar-attendee-list{display:flex!important;flex-direction:column;gap:0!important;padding:13px 15px 5px!important}
+.ap-app.v2-admin-calendar .calendar-attendee-list>strong{display:block;margin:0 0 4px!important;font-size:9px!important;font-weight:700!important;letter-spacing:.1em;text-transform:uppercase;color:#9a8c83!important}
+.ap-app.v2-admin-calendar .calendar-attendee-list>div{display:grid!important;grid-template-columns:8px minmax(0,1fr) minmax(0,1.3fr) auto;align-items:center;gap:10px!important;margin:0!important;padding:10px 0!important;border:0!important;border-top:1px solid #f1e9e2!important;background:none!important;border-radius:0!important}
+.ap-app.v2-admin-calendar .calendar-attendee-list>div:first-of-type{border-top:0!important}
+.ap-app.v2-admin-calendar .calendar-attendee-list .attendee-status{width:8px;height:8px;border-radius:50%;background:#c9bcb3}
+.ap-app.v2-admin-calendar .calendar-attendee-list .attendee-status.accepted{background:#31805a}
+.ap-app.v2-admin-calendar .calendar-attendee-list .attendee-status.declined{background:#b7495d}
+.ap-app.v2-admin-calendar .calendar-attendee-list .attendee-status.tentative{background:#c79a4b}
+.ap-app.v2-admin-calendar .calendar-attendee-list>div>span:nth-child(2){font-size:12px!important;font-weight:700!important;color:#322f2c!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ap-app.v2-admin-calendar .calendar-attendee-list small{margin:0!important;font-size:11px!important;color:#857870!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left}
+.ap-app.v2-admin-calendar .calendar-attendee-list b{padding:4px 8px;border-radius:5px;background:#f6f0eb;color:#857870;font-size:9px!important;font-weight:700!important;letter-spacing:.04em;white-space:nowrap}
+.ap-app.v2-admin-calendar .calendar-attendee-list>div:has(.attendee-status.accepted) b{background:#e6f6ec;color:#31805a}
+.ap-app.v2-admin-calendar .calendar-attendee-list>div:has(.attendee-status.declined) b{background:#fbe9ec;color:#b7495d}
+.ap-app.v2-admin-calendar .calendar-attendee-list>div:has(.attendee-status.tentative) b{background:#fff2dc;color:#97672f}
+.ap-app.v2-admin-calendar .v69-admin-outcome{display:flex;flex-direction:column;gap:10px;margin:0!important;padding:13px 15px!important;border:1px solid #efe7df!important;border-radius:10px!important;background:#fffdfb!important;color:#67574c!important}
+.ap-app.v2-admin-calendar .v69-admin-outcome-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ap-app.v2-admin-calendar .v69-admin-outcome-head strong{font-size:12px!important;font-weight:700;color:#322f2c!important}
+.ap-app.v2-admin-calendar .v69-admin-outcome-head span{padding:4px 8px;border-radius:5px;background:#f6f0eb;color:#857870!important;font-size:9px!important;font-weight:700;letter-spacing:.04em;white-space:nowrap}
+.ap-app.v2-admin-calendar .v69-admin-outcome-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0!important}
+.ap-app.v2-admin-calendar .v69-admin-outcome-actions>span{font-size:11px!important;color:#857870!important}
+.ap-app.v2-admin-calendar .v69-admin-outcome button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:0!important;height:auto;padding:10px 14px!important;border:1px solid #dec9c3!important;border-radius:7px!important;background:#fff!important;color:#5a1e2d!important;font:inherit;font-size:11px!important;font-weight:700!important;line-height:1.2;cursor:pointer;justify-self:start}
+.ap-app.v2-admin-calendar .v69-admin-outcome button.primary{background:#5a1e2d!important;border-color:#5a1e2d!important;color:#fff!important}
+.ap-app.v2-admin-calendar .v69-outcome-form{display:grid;gap:8px;margin:0!important;padding-top:12px;border-top:1px solid #f1e9e2}
+.ap-app.v2-admin-calendar .v69-outcome-form label{font-size:10px!important;font-weight:700!important;color:#67574c!important}
+.ap-app.v2-admin-calendar .v69-outcome-form :is(select,input:not([type='file']):not([type='checkbox'])){height:38px;padding:0 11px!important;border:1px solid #e5d8d0!important;border-radius:7px!important;background:#fff!important;font-size:12px!important;color:#322f2c!important}
+.ap-app.v2-admin-calendar .v69-outcome-form textarea{min-height:76px;padding:10px 11px!important;border:1px solid #e5d8d0!important;border-radius:7px!important;background:#fff!important;font-size:12px!important;color:#322f2c!important}
+.ap-app.v2-admin-calendar .v69-outcome-form input[type='file']{padding:8px 0!important;border:0!important;background:none!important;font-size:11px!important}
+.ap-app.v2-admin-calendar .google-calendar-runtime-event-meta{display:flex!important;align-items:center;gap:8px 18px!important;flex-wrap:wrap;margin:0!important;padding:11px 15px!important;border:1px solid #efe7df!important;border-radius:10px!important;background:#fffdfb!important;font-size:11px!important;color:#857870!important}
+.ap-app.v2-admin-calendar .google-calendar-runtime-event-meta strong{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9a8c83!important}
+.ap-app.v2-admin-calendar :is(.calendar-modal-body,.calendar-detail-body)>*{flex-shrink:0}
+.ap-app.v2-admin-calendar :is(.calendar-event-modal,.calendar-detail-modal,.calendar-history-dialog){max-height:92dvh!important}
+.ap-app.v2-admin-calendar .calendar-detail-modal .calendar-detail-body.calendar-detail-body{max-height:none!important;flex:1 1 auto!important}

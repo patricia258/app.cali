@@ -519,6 +519,12 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 
 - A folha antiga (`page4-calendar.css`, regra com `:has(.calendar-google-detail)`) zerava o respiro de baixo da linha de ações. Regra mais específica em `operational.css` devolve 14 px em cima e embaixo. Lição: nos diálogos da agenda, conferir a medida real até a linha divisória, não só o CSS escrito — há regras antigas com `:has` e `!important`.
 
+### 2026-10-11 — Agenda: convidados, registro do encontro e linha do Google no padrão novo
+
+- Blocos do detalhe do evento que ainda estavam no visual antigo: lista de convidados (`calendar-attendee-list`), "Registro do encontro" (`v69-admin-outcome`, criado por `schedulingPostConfirmationV69.ts`) e a linha Google/Lembrete (`google-calendar-runtime-event-meta`). Só CSS; situação vira etiqueta, botões e campos no padrão.
+- O diálogo cresce até 92% da altura da tela antes de rolar e os blocos não encolhem mais.
+- Conferido com marcação simulada; **não conferido com evento real** (os dois últimos blocos dependem de dados reais e do Google conectado), nem o formulário "Aconteceu / Não aconteceu" aberto.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
