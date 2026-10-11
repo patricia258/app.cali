@@ -115,7 +115,7 @@ export function WorkspaceShellV2({ role, navigation, extras, children, schedulin
             <Link aria-label="Abrir agenda" title="Abrir agenda" className="ch-tool gold" to="/cliente/cronograma"><CalendarPlus size={17} /></Link>
             <Link className="ch-tool pill" to="/cliente/frentes"><BriefcaseBusiness size={17} /> Frentes</Link>
           </div>}
-          {role === 'admin' && <div className="ch-tools v2-top-tools">{adminProducts.map(({ label, href, icon: Icon }) => <Link key={href} className="ch-tool pill" to={href}><Icon size={17} /> {label}</Link>)}</div>}
+          {role === 'admin' && <div className="ch-tools v2-top-tools">{adminProducts.map(({ label, href, icon: Icon }) => <Link key={href} className="ch-tool v2-top-icon" to={href} title={label} aria-label={label}><Icon size={17} /></Link>)}</div>}
           <div className="profile-holder" ref={searchRef}>
             {searching
               ? <label className="global-search"><Search size={15} /><input autoFocus value={term} onChange={event => setTerm(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && results[0]) navigate(results[0].href); }} placeholder="Buscar no Workspace" aria-label="Buscar no Workspace" /></label>

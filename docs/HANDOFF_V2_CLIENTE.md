@@ -470,6 +470,15 @@ Pedidos dela, print a print, e o que foi feito em `AdminProjectsPageV3.tsx`:
 - Conferido com dados fictícios: página, três diálogos, botões de auditoria (editar/excluir lançamento e "Auditoria") inseridos. `npm run check` passou; varredura do cliente 105/0.
 - Não conferido: timer em andamento (sem timer no teste), janelas da auditoria abertas, gravações contra o banco real.
 
+### 11/10 — Horas: ajustes da proprietária (timers em destaque, encerramento, densidade)
+
+- **Timer no diálogo do entregável** (`project-header-timer.active`) e **na barra superior** (`global-timer-chip`): passam a ser um bloco bordô com relógio branco e controles claros, para se destacarem. O chip da barra superior usa estilos em linha no componente; as regras em `operational.css` usam `!important` por isso.
+- **Propostas e Mapa de People** na barra superior da administradora viraram botões só com ícone (rótulo no `title`/`aria-label`), para não disputar espaço com o timer.
+- **Confirmação de encerramento** (`TimerFinalizationDialog`, classes `timer-finalize-*`): estava sem estilo no V2 e empurrava a página; agora é um diálogo central no padrão `ap-status-confirm`, nas duas etapas.
+- **Densidade da página de Horas**: "Consumo por cliente" em cartões compactos (grade), ordenados pelo maior uso, com busca, filtro "Acima de 80%" e os 8 primeiros visíveis até "Ver todas"; "Registros de atuação" mostra 15 por vez com "Mostrar mais".
+- Fixtures: `QA_MANY=1` cria 30 contas, 40 lançamentos e um timer ativo para revisar densidade.
+- Não conferido visualmente: o chip do timer na barra superior e o timer ativo no cabeçalho do entregável (o teste não reproduz o timer global), e a confirmação de encerramento aberta.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

@@ -1460,3 +1460,55 @@ html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-m
 .v2-admin-hours :is(.hours-v13-start-footer,.hours-connect-form-actions){display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px}
 .v2-admin-hours .hours-connect-form-actions{justify-content:flex-end;margin-top:4px}
 @media(max-width:900px){.v2-admin-hours :is(.hours-v13-timer-row,.hours-v13-usage-list>article){grid-template-columns:36px minmax(0,1fr) auto}.v2-admin-hours .hours-v13-usage-bar{grid-column:1/-1}}
+
+/* ---- Timer em destaque (cabeçalho do entregável e barra superior) e confirmação de encerramento ---- */
+html[data-workspace-ui='v2'] .v2-top-icon{width:38px;height:38px;display:grid;place-items:center;border:1px solid #e5dbd5;border-radius:8px;background:#fff;color:#5a1e2d}
+html[data-workspace-ui='v2'] .project-header-timer.active{display:inline-flex;align-items:center;gap:10px;background:#5a1e2d;color:#fff;border-radius:9px;padding:6px 7px 6px 13px;box-shadow:0 6px 18px #5a1e2d40}
+html[data-workspace-ui='v2'] .project-header-timer.active .project-header-timer-label{color:#f1d9c4;font-size:10px;letter-spacing:.04em;display:inline-flex;align-items:center;gap:6px}
+html[data-workspace-ui='v2'] .project-header-timer.active .project-timer-live{color:#fff;font:700 14px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em}
+html[data-workspace-ui='v2'] .project-header-timer.active .project-timer-controls{display:inline-flex;gap:5px}
+html[data-workspace-ui='v2'] .project-header-timer.active .project-timer-controls button{width:30px;height:30px;display:grid;place-items:center;border:1px solid #ffffff55;border-radius:7px;background:#ffffff1f;color:#fff;cursor:pointer;padding:0}
+html[data-workspace-ui='v2'] .project-header-timer.active .project-timer-controls button.stop{background:#fff;border-color:#fff;color:#b7495d}
+html[data-workspace-ui='v2'] .task-inline-timer .project-timer-live{font:700 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:#5a1e2d}
+html[data-workspace-ui='v2'] .topbar .global-timer-chip{background:#5a1e2d!important;border-color:#5a1e2d!important;color:#fff!important;border-radius:9px!important;box-shadow:0 6px 18px #5a1e2d33}
+html[data-workspace-ui='v2'] .topbar .global-timer-chip :is(.global-timer-copy,.global-timer-copy *,.global-timer-origin){color:#fff!important}
+html[data-workspace-ui='v2'] .topbar .global-timer-chip .global-timer-clock{color:#fff!important;font-weight:700!important;font-size:13px!important}
+html[data-workspace-ui='v2'] .topbar .global-timer-chip .global-timer-control{background:#ffffff1f!important;border:1px solid #ffffff55!important;color:#fff!important;border-radius:7px!important}
+html[data-workspace-ui='v2'] .topbar .global-timer-chip .global-timer-control.stop{background:#fff!important;border-color:#fff!important;color:#b7495d!important}
+html[data-workspace-ui='v2'] .topbar .global-timer-chip .global-timer-logo{border-radius:7px!important;background:#fff!important}
+html[data-workspace-ui='v2'] .topbar .global-timers-mark{color:#5a1e2d}
+html[data-workspace-ui='v2'] .timer-finalize-backdrop{position:fixed;inset:0;z-index:1300;background:#171017a8;backdrop-filter:blur(4px);display:grid;place-items:center;padding:18px}
+html[data-workspace-ui='v2'] .timer-finalize-dialog{position:relative;width:min(520px,96vw);background:#fffdfb;border:1px solid #eadfd6;border-radius:14px;padding:26px;box-shadow:0 20px 80px #1d111344;display:flex;flex-direction:column;gap:12px;font:12px Inter,system-ui,sans-serif;color:#302b29}
+html[data-workspace-ui='v2'] .timer-finalize-x{position:absolute;top:18px;right:18px;width:34px;height:34px;display:grid;place-items:center;border:1px solid #ecded5;border-radius:8px;background:#fff;color:#322f2c;cursor:pointer}
+html[data-workspace-ui='v2'] .timer-finalize-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:9px;background:#f8ecef;color:#5a1e2d}
+html[data-workspace-ui='v2'] .timer-finalize-icon.danger{background:#fdf3f3;color:#b7495d}
+html[data-workspace-ui='v2'] .timer-finalize-dialog .section-kicker{font-size:10px;letter-spacing:.12em;color:#b58c52;font-weight:800}
+html[data-workspace-ui='v2'] .timer-finalize-dialog h2{font-size:22px;margin:0;color:#5a1e2d}
+html[data-workspace-ui='v2'] .timer-finalize-dialog p{margin:0;line-height:1.6;color:#665751}
+html[data-workspace-ui='v2'] .timer-finalize-warning{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid #f0dfc0;background:#fffaf1;border-radius:9px;color:#7a5a2c;line-height:1.55}
+html[data-workspace-ui='v2'] .timer-finalize-warning.danger{border-color:#f0d5d8;background:#fdf3f3;color:#9d4b64}
+html[data-workspace-ui='v2'] .timer-finalize-warning svg{flex-shrink:0;margin-top:1px}
+html[data-workspace-ui='v2'] .timer-finalize-note{font-size:11px;color:#857870!important}
+html[data-workspace-ui='v2'] .timer-finalize-dialog footer{display:flex;justify-content:flex-end;gap:10px;margin-top:6px}
+html[data-workspace-ui='v2'] .timer-finalize-dialog footer button{padding:11px 15px;border-radius:7px;border:1px solid #e7dcd4;background:#fff;color:#5a1e2d;font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+html[data-workspace-ui='v2'] .timer-finalize-dialog footer button:last-child{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] .timer-finalize-dialog footer button:disabled{opacity:.45;cursor:not-allowed}
+/* Horas: consumo em cartões compactos, pensado para dezenas de contas */
+.v2-admin-hours .v2-hours-usage-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.v2-admin-hours .v2-hours-usage-tools .v2-admin-search{display:flex;align-items:center;gap:6px;border:1px solid #e7ddd5;border-radius:7px;background:#fff;padding:0 10px;min-width:200px;color:#978980}
+.v2-admin-hours .v2-hours-chip{border:1px solid #e7ddd5;border-radius:7px;background:#fff;color:#857870;padding:9px 11px;font:inherit;font-size:11px;font-weight:600;cursor:pointer}
+.v2-admin-hours .v2-hours-chip.on{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+.v2-admin-hours .hours-v13-usage-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;margin-top:16px}
+.v2-admin-hours .hours-v13-usage-list>article{display:grid;grid-template-columns:36px minmax(0,1fr) auto;grid-template-areas:"logo name value" "bar bar bar" "vis vis vis";gap:10px 12px;align-items:center;padding:14px;border:1px solid #eee2d9;border-radius:9px;background:#fff}
+.v2-admin-hours .hours-v13-usage-list>article>.hours-v13-logo{grid-area:logo}
+.v2-admin-hours .hours-v13-usage-list>article>.hours-v13-usage-name{grid-area:name}
+.v2-admin-hours .hours-v13-usage-list>article>.hours-v13-usage-name strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v2-admin-hours .hours-v13-usage-list>article>.hours-v13-usage-value{grid-area:value}
+.v2-admin-hours .hours-v13-usage-list>article>.hours-v13-usage-value small{display:none}
+.v2-admin-hours .hours-v13-usage-list>article>.hours-v13-usage-bar{grid-area:bar}
+.v2-admin-hours .hours-v13-usage-list>article>.v2-hours-visibility{grid-area:vis;justify-self:start}
+.v2-admin-hours .v2-hours-more{display:block;margin:14px auto 0;border:1px solid #ead9ce;border-radius:7px;background:#fff;color:#603144;padding:9px 14px;font:inherit;font-size:11px;font-weight:600;cursor:pointer}
+.ap-app.v2-admin-hours .ap-pane-head .v2-hours-usage-tools{flex-direction:row;align-items:center}
+.ap-app.v2-admin-hours .ap-pane-head .v2-hours-usage-tools .v2-admin-search input{border:0;outline:0;background:transparent;font:inherit;font-size:11px;color:#67574c;padding:10px 4px;width:100%;min-height:0}
+.ap-app.v2-admin-hours .ap-pane-head .v2-hours-chip{display:inline-flex;border:1px solid #e7ddd5;border-radius:7px;background:#fff;color:#857870;padding:9px 11px;font-size:11px;font-weight:600}
+.ap-app.v2-admin-hours .ap-pane-head .v2-hours-chip.on{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
