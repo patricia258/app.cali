@@ -501,6 +501,14 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - Conferido com dados fictícios: semana, mês e diálogo "Novo evento". `npm run check` passou; varredura do cliente 105/0.
 - Não conferido: sincronização real com o Google (o teste não tem credenciais), diálogo de detalhe de evento, histórico de reuniões e caixa de alterações abertos.
 
+### 2026-10-11 — Agenda da administradora: ajustes após a revisão da Patricia
+
+- **Botões do evento Google** (antes três ícones minúsculos sem texto): agora "Editar no Google", "Enviar por e-mail" e "Abrir no Google Agenda", com ícone + texto na mesma linha.
+- **Diálogos da agenda no padrão novo** (detalhe do evento, novo/editar evento, histórico de reuniões, caixa de cancelamento): cabeçalho creme com chamada dourada e título bordô, botão fechar quadrado, resumo Quando/Formato/Convidados em faixa única (como o resumo do entregável), campos de 38 px, rodapé padrão. Só CSS em `src/v2/operational.css`; todas as classes usadas pelos módulos automáticos foram mantidas.
+- **Excluir evento**: `deleteEvent()` em `src/lib/googleCalendarRuntime.ts` usava `window.prompt` + `window.confirm` do navegador. Agora abre `askDeleteReason()` — diálogo `ap-status-confirm` com motivo obrigatório e botão "Excluir definitivamente". A chamada `delete_event` é a mesma.
+- **Semana**: eventos com 3–4 px de respiro em cada lado da coluna (não encostam mais no evento do dia vizinho).
+- Conferido no QA com eventos Google simulados. **Não conferido com dados reais:** exclusão de ponta a ponta (precisa da conta Google conectada). Ainda restam `alert`/`confirm` nativos no módulo do Google para erro de exclusão e desconectar.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

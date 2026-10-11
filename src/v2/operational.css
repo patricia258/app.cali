@@ -1601,3 +1601,105 @@ html[data-workspace-ui='v2'] :is(.timer-finalize-dialog,.ap-status-confirm,.ap-p
 .v2-admin-calendar .calendar-filter-popover{background:#fff;border:1px solid #e9dbd0;border-radius:10px;box-shadow:0 18px 60px #28172426}
 .v2-admin-calendar .calendar-filter-popover button{font:inherit;font-size:11px;cursor:pointer}
 .ap-app.v2-admin-calendar :is(.calendar-modal-footer,.calendar-detail-footer,.calendar-detail-actions,.calendar-detail-primary-actions,.calendar-cancel-box,.calendar-google-actions) button.primary.primary:not(.calendar-history-close):not(.calendar-icon-button){background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+
+/* Agenda da administradora — diálogos no padrão novo (cabeçalho creme, resumo em faixa, campos e rodapé aprovados) */
+.ap-app.v2-admin-calendar :is(.calendar-event-modal,.calendar-detail-modal){display:flex!important;flex-direction:column;width:min(680px,100%)!important;max-height:92dvh;padding:0!important;overflow:hidden;background:#fff!important;color:#332b29;font-size:12px}
+.ap-app.v2-admin-calendar :is(.calendar-modal-heading,.calendar-detail-heading){display:flex!important;align-items:center;gap:14px;margin:0!important;padding:20px 64px 18px 24px!important;border-bottom:1px solid #eadfd6;background:linear-gradient(90deg,#fffaf6,#f8ecd9)!important}
+.ap-app.v2-admin-calendar .calendar-modal-heading{flex-direction:column;align-items:flex-start;gap:6px}
+.ap-app.v2-admin-calendar :is(.calendar-modal-heading,.calendar-detail-heading,.calendar-meeting-history-heading) .section-kicker{display:block;margin:0!important;font-size:9px!important;font-weight:800!important;letter-spacing:.14em!important;text-transform:uppercase;color:#b58c52!important}
+.ap-app.v2-admin-calendar :is(.calendar-modal-heading,.calendar-detail-heading) h2{margin:6px 0 0!important;font-size:20px!important;line-height:1.2!important;font-weight:700!important;color:#5a1e2d!important;letter-spacing:0!important}
+.ap-app.v2-admin-calendar .calendar-modal-heading h2{margin:0!important}
+.ap-app.v2-admin-calendar .calendar-detail-heading p{margin:5px 0 0!important;font-size:11px!important;color:#857870!important}
+.ap-app.v2-admin-calendar .calendar-detail-heading>div:last-child{min-width:0}
+.ap-app.v2-admin-calendar .calendar-detail-company-mark{width:44px!important;height:44px!important;flex-shrink:0;display:grid;place-items:center;border-radius:7px!important;border:1px solid #eadfd6!important;background:#fff!important;color:#5a1e2d!important;font-size:12px;font-weight:800;overflow:hidden;box-shadow:none!important}
+.ap-app.v2-admin-calendar .calendar-detail-company-mark img{width:100%;height:100%;object-fit:contain;border-radius:0}
+.ap-app.v2-admin-calendar .calendar-protocol-badge{display:inline-flex!important;align-items:center;margin:9px 0 0!important;padding:4px 8px!important;border:0!important;border-radius:5px!important;background:#f4e6d2!important;color:#8a5a2b!important;font-size:9px!important;font-weight:700!important;letter-spacing:.04em}
+.ap-app.v2-admin-calendar :is(.calendar-event-modal,.calendar-detail-modal)>.modal-close,.ap-app.v2-admin-calendar .calendar-history-close{position:absolute!important;top:16px!important;right:18px!important;width:32px!important;height:32px!important;display:grid!important;place-items:center;padding:0!important;border:1px solid #e5d9d0!important;border-radius:7px!important;background:#fff!important;color:#5a1e2d!important;box-shadow:none!important;cursor:pointer;z-index:3}
+.ap-app.v2-admin-calendar :is(.modal-close,.calendar-history-close) svg{width:16px;height:16px}
+.ap-app.v2-admin-calendar .calendar-detail-accent{height:4px!important;flex-shrink:0}
+.ap-app.v2-admin-calendar :is(.calendar-modal-body,.calendar-detail-body){flex:1;min-height:0;overflow-y:auto;display:flex!important;flex-direction:column;gap:14px!important;padding:20px 24px!important;margin:0!important;scrollbar-width:none}
+.ap-app.v2-admin-calendar :is(.calendar-modal-body,.calendar-detail-body)::-webkit-scrollbar{display:none}
+.ap-app.v2-admin-calendar :is(.calendar-modal-body,.calendar-detail-body)>*{margin:0!important}
+.ap-app.v2-admin-calendar :is(.calendar-modal-footer,.calendar-detail-footer){margin:0!important;padding:14px 24px!important;border-top:1px solid #eadfd6!important;background:#fffdfb!important;min-height:58px}
+.ap-app.v2-admin-calendar .calendar-detail-footer{justify-content:space-between}
+.ap-app.v2-admin-calendar :is(.calendar-detail-primary-actions,.calendar-detail-secondary-actions){display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0!important}
+.ap-app.v2-admin-calendar .calendar-detail-secondary-actions{margin-left:auto!important}
+.ap-app.v2-admin-calendar .calendar-detail-footer button svg{width:14px;height:14px;flex-shrink:0}
+.ap-app.v2-admin-calendar .calendar-detail-footer button.danger-soft{color:#b7495d;border-color:#ecd0d5}
+.ap-app.v2-admin-calendar .calendar-cancel-box button.danger-action.danger-action{background:#b7495d!important;border-color:#b7495d!important;color:#fff!important}
+/* resumo do evento em uma faixa única, como o resumo do entregável */
+.ap-app.v2-admin-calendar .calendar-detail-facts{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0!important;border:1px solid #efe7df;border-radius:10px;background:#fff;overflow:hidden}
+.ap-app.v2-admin-calendar .calendar-detail-facts article{display:grid!important;grid-template-columns:auto minmax(0,1fr);align-items:center;column-gap:7px;row-gap:7px;margin:0!important;padding:13px 15px!important;border:0!important;border-right:1px solid #efe7df!important;border-radius:0!important;background:none!important;box-shadow:none!important;min-width:0}
+.ap-app.v2-admin-calendar .calendar-detail-facts article:last-child{border-right:0!important}
+.ap-app.v2-admin-calendar .calendar-detail-facts article svg{width:14px;height:14px;color:#b58c52}
+.ap-app.v2-admin-calendar .calendar-detail-facts article span{font-size:9px!important;font-weight:700!important;letter-spacing:.1em;text-transform:uppercase;color:#9a8c83!important}
+.ap-app.v2-admin-calendar .calendar-detail-facts article strong{grid-column:1/-1;font-size:12px!important;font-weight:700!important;color:#322f2c!important;line-height:1.35;overflow-wrap:anywhere}
+.ap-app.v2-admin-calendar :is(.calendar-detail-description,.calendar-auto-source,.calendar-preview-detail,.calendar-attendee-list,.calendar-cancel-box,.calendar-google-detail){border:1px solid #efe7df!important;border-radius:10px!important;background:#fffdfb!important;padding:13px 15px!important;box-shadow:none!important;font-size:11px!important;color:#67574c!important;line-height:1.5}
+.ap-app.v2-admin-calendar :is(.calendar-detail-description,.calendar-auto-source,.calendar-preview-detail,.calendar-attendee-list,.calendar-cancel-box) :is(strong,h3,h4){font-size:11px!important;color:#322f2c!important;font-weight:700!important}
+.ap-app.v2-admin-calendar :is(.calendar-detail-description,.calendar-auto-source,.calendar-preview-detail,.calendar-cancel-box) :is(p,small){margin:4px 0 0!important;font-size:11px!important;color:#857870!important}
+.ap-app.v2-admin-calendar .calendar-detail-description>:is(span,small):first-child{display:block;font-size:9px!important;font-weight:700!important;letter-spacing:.1em;text-transform:uppercase;color:#9a8c83!important}
+.ap-app.v2-admin-calendar .calendar-auto-source{display:flex!important;align-items:center;gap:11px}
+.ap-app.v2-admin-calendar .calendar-auto-source svg{width:16px;height:16px;color:#b58c52;flex-shrink:0}
+.ap-app.v2-admin-calendar .calendar-cancel-box{display:flex!important;flex-direction:column;gap:10px;background:#fff8f8!important;border-color:#ecd0d5!important}
+.ap-app.v2-admin-calendar .calendar-cancel-box textarea{width:100%;min-height:80px;padding:10px 12px;resize:vertical}
+.ap-app.v2-admin-calendar .calendar-cancel-box>div:last-child{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.ap-app.v2-admin-calendar .calendar-google-detail{display:flex!important;flex-direction:column;gap:0;padding:2px 15px!important}
+.ap-app.v2-admin-calendar .calendar-google-detail>div{display:flex!important;align-items:flex-start;gap:11px;padding:11px 0!important;margin:0!important;border:0!important;border-bottom:1px solid #f1e9e2!important;background:none!important}
+.ap-app.v2-admin-calendar .calendar-google-detail>div:last-child{border-bottom:0!important}
+.ap-app.v2-admin-calendar .calendar-google-detail>div>svg{width:15px;height:15px;margin-top:1px;color:#b58c52;flex-shrink:0}
+.ap-app.v2-admin-calendar .calendar-google-detail>div>span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.ap-app.v2-admin-calendar .calendar-google-detail strong{font-size:12px!important;color:#322f2c!important}
+.ap-app.v2-admin-calendar .calendar-google-detail :is(small,a){font-size:11px!important;color:#857870!important;overflow-wrap:anywhere}
+.ap-app.v2-admin-calendar .calendar-google-detail a{display:inline-flex;align-items:center;gap:5px;color:#5a1e2d!important;font-weight:700}
+/* ações do evento vindo do Google: três botões com texto, em uma linha */
+.ap-app.v2-admin-calendar .calendar-google-actions{position:static!important;display:flex!important;align-items:center;justify-content:flex-start!important;gap:8px;flex-wrap:wrap;margin:0!important;padding:12px 24px!important;border-bottom:1px solid #f1e9e2;background:#fff!important}
+.ap-app.v2-admin-calendar .calendar-google-actions button{width:auto!important;height:auto!important;white-space:nowrap}
+.ap-app.v2-admin-calendar .calendar-google-actions button svg{width:15px;height:15px;flex-shrink:0}
+/* formulário de evento */
+.ap-app.v2-admin-calendar .calendar-event-modal :is(.stacked-label,.calendar-meeting-history-filters label){display:flex!important;flex-direction:column;gap:6px!important;margin:0!important;font-size:10px!important;font-weight:700!important;letter-spacing:.02em;color:#67574c!important;min-width:0}
+.ap-app.v2-admin-calendar .calendar-event-modal .stacked-label small{font-weight:400;font-size:10px;color:#9a8c83}
+.ap-app.v2-admin-calendar .calendar-event-modal :is(input:not([type='checkbox']):not([type='color']),select){height:38px!important;min-height:0!important;padding:0 11px!important;width:100%;box-shadow:none!important;font-weight:400!important}
+.ap-app.v2-admin-calendar .calendar-event-modal textarea{min-height:76px;padding:10px 11px!important;width:100%;resize:vertical;box-shadow:none!important;font-weight:400!important}
+.ap-app.v2-admin-calendar .calendar-event-modal :is(input,select,textarea):focus{outline:0;border-color:#5a1e2d!important}
+.ap-app.v2-admin-calendar .calendar-event-form-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px 14px!important}
+.ap-app.v2-admin-calendar .calendar-color-input{height:38px!important;width:100%!important;padding:4px!important;border:1px solid #e5d8d0!important;border-radius:7px!important;background:#fff!important;cursor:pointer}
+.ap-app.v2-admin-calendar .calendar-all-day{display:inline-flex!important;align-items:center;gap:8px;font-size:11px!important;font-weight:600!important;color:#322f2c!important}
+.ap-app.v2-admin-calendar .calendar-event-modal input[type='checkbox']{width:15px;height:15px;margin:0;accent-color:#5a1e2d;flex-shrink:0}
+.ap-app.v2-admin-calendar .calendar-extra-fields{border:1px solid #efe7df!important;border-radius:10px!important;background:#fffdfb!important;padding:0!important}
+.ap-app.v2-admin-calendar .calendar-extra-fields summary{padding:12px 14px;font-size:11px!important;font-weight:700!important;color:#5a1e2d!important;cursor:pointer}
+.ap-app.v2-admin-calendar .calendar-extra-fields-content{display:flex;flex-direction:column;gap:12px;padding:2px 14px 14px!important}
+.ap-app.v2-admin-calendar .calendar-meet-helper{border:0!important;border-radius:7px!important;background:#fbf4ea!important;padding:9px 11px!important;font-size:10px!important;color:#8a5a2b!important;line-height:1.5}
+.ap-app.v2-admin-calendar .google-calendar-runtime-form-settings{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px 14px!important;align-items:end!important}
+.ap-app.v2-admin-calendar .google-calendar-runtime-transcription{display:flex!important;align-items:center!important;gap:10px!important;min-height:38px;margin:0!important;padding:8px 11px!important;border:1px solid #efe7df!important;border-radius:7px!important;background:#fffdfb!important;font-size:10px!important;color:#857870!important;line-height:1.4}
+.ap-app.v2-admin-calendar .google-calendar-runtime-transcription strong{font-size:11px!important;color:#322f2c!important}
+.ap-app.v2-admin-calendar .google-calendar-runtime-transcription br{display:none}
+.ap-app.v2-admin-calendar .google-calendar-runtime-transcription span{display:flex;flex-direction:column;gap:2px}
+/* histórico de reuniões */
+.ap-app.v2-admin-calendar .calendar-history-dialog{position:relative;display:flex;flex-direction:column;width:min(760px,100%)!important;max-height:92dvh;padding:0!important;overflow:hidden;background:#fff!important}
+.ap-app.v2-admin-calendar .calendar-meeting-history{display:flex!important;flex-direction:column;min-height:0;margin:0!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important}
+.ap-app.v2-admin-calendar .calendar-meeting-history-heading{display:flex!important;flex-direction:column;align-items:flex-start;gap:5px;margin:0!important;padding:20px 64px 18px 24px!important;border-bottom:1px solid #eadfd6;background:linear-gradient(90deg,#fffaf6,#f8ecd9)}
+.ap-app.v2-admin-calendar .calendar-meeting-history-heading>span:first-child{display:flex;flex-direction:column;gap:6px}
+.ap-app.v2-admin-calendar .calendar-meeting-history-heading strong{font-size:20px!important;color:#5a1e2d!important;line-height:1.2}
+.ap-app.v2-admin-calendar .calendar-meeting-history-heading>span:last-child{font-size:11px!important;color:#857870!important}
+.ap-app.v2-admin-calendar .calendar-meeting-history-filters{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0!important;padding:16px 24px!important;border-bottom:1px solid #f1e9e2}
+.ap-app.v2-admin-calendar .calendar-meeting-history-filters label{display:flex;flex-direction:column;gap:6px;font-size:10px;font-weight:700;color:#67574c}
+.ap-app.v2-admin-calendar .calendar-meeting-history-filters :is(input,select){height:38px;padding:0 11px;border:1px solid #e5d8d0;border-radius:7px;background:#fff;font:inherit;font-size:12px;font-weight:400;color:#322f2c;width:100%}
+.ap-app.v2-admin-calendar .calendar-meeting-history-list{display:flex!important;flex-direction:column;gap:8px;margin:0!important;padding:16px 24px 22px!important;overflow-y:auto;scrollbar-width:none}
+.ap-app.v2-admin-calendar .calendar-meeting-history-list::-webkit-scrollbar{display:none}
+.ap-app.v2-admin-calendar .calendar-meeting-history-list>button{display:flex!important;align-items:center;justify-content:space-between;gap:14px;width:100%;padding:12px 14px!important;border:1px solid #efe7df!important;border-radius:9px!important;background:#fff!important;text-align:left;font-weight:400!important}
+.ap-app.v2-admin-calendar .calendar-meeting-history-list>button:hover{border-color:#dec9c3!important;background:#fffdfb!important}
+.ap-app.v2-admin-calendar .calendar-meeting-history-list>button>span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.ap-app.v2-admin-calendar .calendar-meeting-history-list>button strong{font-size:12px;color:#322f2c}
+.ap-app.v2-admin-calendar .calendar-meeting-history-list>button small{font-size:10px;font-weight:400;color:#857870}
+.ap-app.v2-admin-calendar .calendar-meeting-history-list>button b{flex-shrink:0;padding:4px 8px;border-radius:5px;background:#f6f0eb;color:#857870;font-size:9px;font-weight:700;letter-spacing:.04em}
+.ap-app.v2-admin-calendar .calendar-meeting-history-list>button b.positive{background:#e6f6ec;color:#31805a}
+.ap-app.v2-admin-calendar .calendar-meeting-history-list>button b.negative{background:#fbe9ec;color:#b7495d}
+.ap-app.v2-admin-calendar .calendar-meeting-history-list>:not(button){font-size:11px;color:#857870}
+@media(max-width:640px){.ap-app.v2-admin-calendar :is(.calendar-detail-facts,.calendar-event-form-grid,.google-calendar-runtime-form-settings,.calendar-meeting-history-filters){grid-template-columns:1fr!important}.ap-app.v2-admin-calendar .calendar-detail-facts article{border-right:0!important;border-bottom:1px solid #efe7df!important}.ap-app.v2-admin-calendar .calendar-detail-facts article:last-child{border-bottom:0!important}}
+/* confirmação de exclusão (criada fora da página pelo módulo do Google) */
+.calendar-delete-confirm-v2{z-index:1200;font:12px Inter,system-ui,sans-serif}
+.calendar-delete-confirm-v2 .ap-status-confirm small{font-size:9px}
+.calendar-delete-confirm-v2 .ap-status-confirm p{margin:0 0 6px;font-size:12px;line-height:1.5}
+.calendar-delete-confirm-v2 .ap-status-confirm textarea{font:inherit;font-weight:400}
+.calendar-delete-confirm-v2 .ap-status-confirm footer button{font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+.calendar-delete-confirm-v2 .ap-status-confirm footer button[data-confirm]{background:#b7495d;border-color:#b7495d;color:#fff}
