@@ -11,13 +11,9 @@ if(!['GET','HEAD'].includes(r.method()))return route.fulfill({status:403,headers
 const single=(r.headers()['accept']||'').includes('vnd.pgrst.object');return route.fulfill({headers:{...cors,'content-range':`0-${Math.max(0,rows.length-1)}/${rows.length}`},json:single?rows[0]??null:rows});});
 const p=await c.newPage();p.on('pageerror',e=>console.log('PAGEERR',e.message));await p.goto('http://127.0.0.1:5173/admin/projetos');await p.waitForTimeout(2500);
 const shot=(n,full)=>p.screenshot({path:path.join(out,'proj-'+n+'.png'),fullPage:!!full});
-await p.locator('.ap-project-tabs button',{hasText:'Cronograma'}).click();await p.waitForTimeout(900);await shot('cronograma',true);
-await p.locator('.ap-project-tabs button',{hasText:'Entregáveis'}).click();await p.waitForTimeout(500);await shot('lista',true);
-await p.locator('.deliverable-toolbar-v2 button',{hasText:'Kanban'}).click();await p.waitForTimeout(400);await shot('kanban',true);
-await p.locator('.ap-project-tabs button',{hasText:'Histórico'}).click();await p.waitForTimeout(700);await shot('historico',true);
-await p.locator('.ap-project-tabs button',{hasText:'Entregáveis'}).click();await p.locator('.deliverable-toolbar-v2 button',{hasText:'Lista'}).click();await p.locator('.deliverable-list-open-v3').nth(2).click();await p.waitForTimeout(900);await shot('dlg-1');
-for(const[i,t]of ['Subtarefas','Conversa','Histórico'].entries()){await p.locator('.deliverable-tabs-v2 button',{hasText:t}).click();await p.waitForTimeout(t==='Conversa'?1500:400);await shot('dlg-'+(i+2));}
-console.log(JSON.stringify(await p.evaluate(()=>({chat:document.querySelectorAll('.workspace-chat-line').length,tools:!!document.querySelector('.workspace-chat-tools'),head:[...document.querySelectorAll('.deliverable-head-actions-v2 *')].map(e=>e.className.toString().slice(0,30)).slice(0,6)}))));
-await p.locator('.deliverable-head-actions-v2 .ap-pd-close').click();await p.getByRole('button',{name:'Novo projeto'}).click();await p.waitForTimeout(600);await shot('novo-projeto');
-await p.locator('.project-modal-v2 .ap-pd-close').click();await p.getByRole('button',{name:'Novo entregável'}).click();await p.waitForTimeout(500);await shot('novo-entregavel');
+await shot('cronograma',true);
+await p.locator('.ap-project-tabs button',{hasText:'Entregáveis'}).click();await p.waitForTimeout(900);await p.locator('.front-collapse-trigger-v46').first().click().catch(()=>{});await p.waitForTimeout(400);await shot('lista',true);
+await p.locator('.front-deliverable-open-v3').first().click();await p.waitForTimeout(900);await shot('dlg-1');
+for(const[i,t]of ['Etapas','Conversas','Histórico'].entries()){await p.locator('.deliverable-tabs-v2 button',{hasText:t}).click();await p.waitForTimeout(t==='Conversas'?1500:400);await shot('dlg-'+(i+2));}
+console.log(JSON.stringify(await p.evaluate(()=>({chat:document.querySelectorAll('.workspace-chat-line').length,tools:!!document.querySelector('.workspace-chat-tools'),hero:[...document.querySelectorAll('.project-hero-buttons button')].map(b=>b.textContent.trim()),strip:getComputedStyle(document.querySelector('.project-client-strip-v39')||document.body).display}))));
 await b.close();})().catch(e=>{console.error(e);process.exit(1)});

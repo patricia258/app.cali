@@ -1314,3 +1314,65 @@ html[data-workspace-ui='v2'] .workflow-toast-v40.error{border-color:#f0d5d8;back
 .v2-admin-page .roadmap-help-trigger-v40.open .roadmap-help-popover-v40{display:flex;flex-direction:column;gap:6px}
 .v2-admin-page .roadmap-help-popover-v40 i{font-style:normal}
 html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38) [hidden]{display:none!important}
+
+/* ---- Projetos (admin), revisão da proprietária em 11/10: filtros compactos, cartão bordô, cronograma em linha do tempo ---- */
+.v2-admin-page [hidden]{display:none!important}
+.v2-admin-page :is(.project-client-strip-v39,.project-account-navigator-v36){display:none!important}
+.v2-admin-page .v2-admin-project-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.v2-admin-page .v2-admin-project-bar>label{display:inline-flex;align-items:center;gap:9px;font-size:11px;color:#8c7e74;margin:0}
+.v2-admin-page .v2-admin-project-bar>label select{border:1px solid #e5d9d0;border-radius:7px;background:#fff;color:#5a1e2d;font:inherit;font-weight:700;padding:9px 10px;max-width:280px}
+.v2-admin-page .v2-admin-project-bar .ap-filters{margin:0 0 0 auto;flex-wrap:nowrap}
+.v2-admin-page .v2-admin-project-bar .v2-admin-search{flex:0 0 230px;min-width:0}
+.v2-admin-page .v2-admin-project-results{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;font-size:11px;color:#857870}
+.v2-admin-page .v2-admin-project-results button{display:inline-flex;align-items:center;gap:8px;border:1px solid #eadfd5;border-radius:7px;background:#fff;padding:8px 10px;font:inherit;font-size:11px;color:#554744;cursor:pointer}
+.v2-admin-page .v2-admin-project-results button.current{border-color:#5a1e2d}
+.ap-app.v2-admin-page .v2-admin-hero{background:linear-gradient(120deg,#582031,#6d2c40 62%,#8a5a4a);border:0;color:#fff;padding:24px 28px;border-radius:12px}
+.ap-app.v2-admin-page .v2-admin-hero>div:first-child>span{color:#e9cbb9;font-size:10px;letter-spacing:.6px}
+.ap-app.v2-admin-page .v2-admin-hero h2{color:#fff;font-size:24px;margin:4px 0 2px}
+.ap-app.v2-admin-page .v2-admin-hero .v2-hero-service{font-style:normal;font-size:12px;color:#f1e2e5}
+/* o módulo de prazos reescreve este parágrafo com início e meta; as datas ficam uma única vez, nas etiquetas e na previsão */
+.ap-app.v2-admin-page .v2-admin-hero>div:first-child>p{display:none}
+.ap-app.v2-admin-page .v2-admin-hero .project-rule-tags span{border-color:#ffffff40;background:#ffffff1a;color:#fff}
+.ap-app.v2-admin-page .v2-admin-hero:has(.project-forecast-v36) .v2-hero-meta{display:none}
+.ap-app.v2-admin-page .v2-admin-hero .project-forecast-v36{margin-top:14px;gap:26px}
+.ap-app.v2-admin-page .v2-admin-hero .project-forecast-v36 span{color:#e9cbb9}
+.ap-app.v2-admin-page .v2-admin-hero .project-forecast-v36 strong{color:#fff;font-size:14px}
+.ap-app.v2-admin-page .v2-admin-hero .project-progress-v2 strong{color:#fff;font-size:26px}
+.ap-app.v2-admin-page .v2-admin-hero .project-progress-v2 span{color:#f1e2e5}
+.ap-app.v2-admin-page .v2-admin-hero .project-progress-v2>div{background:#ffffff33}
+.ap-app.v2-admin-page .v2-admin-hero .project-progress-v2 i{background:#e3bf7b}
+.ap-app.v2-admin-page .v2-admin-hero .project-hero-buttons :is(button,.light-button){background:#ffffff14;border-color:#ffffff66;color:#fff}
+.v2-admin-page .v2-admin-timeline .ch-gantt-row{cursor:pointer;font:inherit;padding:0}
+.v2-admin-page .v2-admin-timeline .ch-gantt-track{position:relative;min-height:48px}
+.v2-admin-page .v2-admin-timeline .ch-gantt-foot>span:empty{display:none}
+/* diálogo do entregável da administradora: mesmo desenho do diálogo aprovado do cliente, com os controles de gestão */
+.v2-admin-page .v2-admin-dv .dv-modal{width:min(900px,100%)}
+.v2-admin-page .v2-admin-dv .dv-pane{display:contents}
+.v2-admin-page .v2-admin-dv .dv-modal nav button{cursor:pointer}
+.v2-admin-page .v2-admin-dv .deliverable-head-actions-v2 .modal-close-static{background:#fff;border:1px solid #ecded5;border-radius:8px;padding:8px;display:grid;place-items:center;cursor:pointer}
+.v2-admin-page .v2-admin-dv .dv-modal header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.v2-admin-page .v2-admin-dv .v2-dv-task-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0;font-size:11px;color:#8c7e74}
+.v2-admin-page .v2-admin-dv .dv-step{width:100%;box-sizing:border-box}
+.v2-admin-page .v2-admin-dv .dv-step-mark{border:0;cursor:pointer;font:inherit;font-weight:700}
+.v2-admin-page .v2-admin-dv .dv-step small{font-size:9px;color:#a39790}
+.v2-admin-page .v2-admin-dv .dv-step.done strong{color:#857870}
+.v2-admin-page .v2-admin-dv .v2-pd-inline-form{display:flex;flex-direction:column;gap:12px;margin:14px 0}
+.v2-admin-page .v2-admin-dv .v2-pd-inline-form label{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:700}
+.v2-admin-page .v2-admin-dv .v2-pd-inline-form :is(input:not([type='checkbox']),textarea){border:1px solid #dfd3ca;border-radius:8px;padding:10px 12px;font:inherit;font-weight:400;font-size:12px;background:#fff}
+.v2-admin-page .v2-admin-dv .v2-dv-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;align-items:end}
+.v2-admin-page .v2-admin-dv label.v2-dv-check{flex-direction:row;align-items:center;gap:8px;padding-bottom:10px}
+.v2-admin-page .v2-admin-dv .dv-actions{flex-wrap:wrap;gap:10px}
+.v2-admin-page .v2-admin-dv :is(.deliverable-actions-left-v2,.deliverable-actions-right-v2){display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.v2-admin-page .v2-admin-dv .deliverable-actions-right-v2{margin-left:auto}
+.v2-admin-page .v2-admin-dv .dv-actions .danger-text{color:#b7495d}
+.v2-admin-page .v2-admin-dv .dv-actions button:disabled{opacity:.4;cursor:not-allowed}
+.v2-admin-page .v2-admin-dv .dv-reply-fixed>.conversation-channels-v2{grid-column:1/-1;grid-row:1;justify-self:start}
+.v2-admin-page .v2-admin-dv .dv-reply-fixed .conversation-channels-v2 button{background:#fff;color:#897a71;border:0;padding:8px 10px;font-size:10px}
+.v2-admin-page .v2-admin-dv .dv-reply-fixed .conversation-channels-v2 button.on{background:#5a1e2d;color:#fff}
+.v2-admin-page .v2-admin-dv .dv-reply-fixed textarea{grid-row:3}
+.v2-admin-page .v2-admin-dv .dv-reply-fixed .workspace-chat-send-actions{grid-row:3;display:flex;gap:8px}
+.v2-admin-page .v2-admin-dv .dv-reply-fixed .workspace-chat-runtime-tools-host{grid-row:4}
+.v2-admin-page .v2-admin-dv .dv-chat .workspace-chat-line.internal .workspace-chat-bubble{background:#fffaf1;border-color:#f0dfc0}
+.v2-admin-page .v2-admin-dv :is(.v2-dv-task-bar,.v2-pd-inline-actions) .dv-secondary{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #dec9c3;border-radius:7px;color:#5a1e2d;padding:9px 13px;font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+.v2-admin-page .v2-admin-dv .v2-pd-inline-actions .dv-converse-bottom{display:inline-flex;align-items:center;gap:8px;background:#5a1e2d;color:#fff;border:1px solid #5a1e2d;padding:9px 13px;border-radius:7px;font:inherit;font-weight:700;font-size:11px;cursor:pointer}
+.v2-admin-page .v2-admin-dv .v2-pd-inline-actions button:disabled{opacity:.45}

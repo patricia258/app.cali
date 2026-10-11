@@ -442,6 +442,19 @@ O que falta (ETAPA 2), **não conferido**:
 - Continua diferente do protótipo: escolher o projeto e mudar o status por caixas de seleção no topo. No oficial isso é a faixa de clientes + "Gerenciar projeto".
 - Fixtures de teste: `QA_PLAN=draft|client_review|approved` muda o estado do cronograma fictício.
 
+### 11/10 — Projetos da administradora: revisão da proprietária aplicada
+
+Pedidos dela, print a print, e o que foi feito em `AdminProjectsPageV3.tsx`:
+- **Sem os quatro cartões de indicadores** (ocupavam espaço e não são úteis agora). O elemento `project-kpis-v2` fica oculto porque um módulo atualiza a contagem.
+- **Seleção compacta, como na Equipe:** "Empresa" + "Projeto" em caixas de seleção (o projeto mostra mês/ano de início), filtro de status e busca pequena na mesma linha. A faixa "Contas ativas" e o navegador de contas dos módulos ficam ocultos por CSS; os botões `project-selector-v2` continuam no DOM, ocultos, porque os módulos e a ponte de histórico leem o projeto ativo por eles.
+- **Cartão do projeto em bordô**, com situação, andamento e ações. Datas uma única vez: etiqueta "Início" + "Meta desejada" e "Previsão CALI" (do módulo de prazos). O parágrafo que o módulo reescrevia com início/meta fica oculto, para não haver datas repetidas ou divergentes.
+- **Aba "Visão do projeto" removida.**
+- **Cronograma** virou linha do tempo (mesmo componente visual do "Em movimento" da home do cliente, classes `ch-gantt`): cada entrega no ponto do período em que está prevista.
+- **Entregáveis** passou a mostrar frentes com seus entregáveis (acordeão) e a alternância Lista / Kanban. A lista plana foi retirada.
+- **Diálogo do entregável** no mesmo desenho aprovado do cliente (`dv-modal`): Visão geral, Etapas (andamento, barra, etapas numeradas), Conversas (balões e campo fixo embaixo, com os canais Cliente / Interno) e Histórico (introdução + linha do tempo). Controles de gestão no rodapé. Os encaixes dos módulos foram mantidos (`conversation-pane-v2` no invólucro `dv-pane`, `task-list-v2 article`, `deliverable-head-actions-v2`, etc.).
+- Conferido com dados fictícios nos estados rascunho e aprovado: módulos continuam inserindo "Gerenciar projeto", timer, chat e previsão. `npm run check` passou; varredura do cliente 105/0.
+- Não incluído: filtro "Ativos / Inativos" de contas (o tipo de projeto no app não traz a situação da conta; hoje o filtro de status do cronograma cobre encerrados).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
