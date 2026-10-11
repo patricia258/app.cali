@@ -461,6 +461,15 @@ Pedidos dela, print a print, e o que foi feito em `AdminProjectsPageV3.tsx`:
 - **Cliente (`ClientDeliverablesPage.tsx`)**: a pedido dela, as abas passaram a ser **Cronograma** (linha do tempo `ch-gantt`, igual à da administradora), **Entregáveis** (sem mudança) e **Histórico** (mudanças de situação das entregas do projeto, vindas de `deliverable_status_history`). Saíram "Visão do projeto" e o cronograma em lista. O aviso de validação pendente ("Há uma validação aguardando você") ficou acima do conteúdo, porque era a única chamada para a ação do cliente na aba removida.
 - Varredura do cliente 105/0 (inclui 390 px); `npm run check` passou.
 
+### 11/10 — administradora: Horas e contratos (quinta página migrada)
+
+- `/admin/horas` entrou em `migratedAdminRoutes`. `AdminHoursPageV3.tsx` na composição do protótipo: título com mês de referência, "Lançamento manual", "Interação externa" e "Iniciar timer"; três indicadores (capacidade contratada, utilizadas, disponíveis); "Em andamento" (timers ativos, quando houver); "Consumo por cliente"; "Registros de atuação" (filtros, tabela com detalhe, exportar CSV).
+- Mudanças de composição: iniciar timer, lançamento manual e interação externa abrem em **diálogos** (`ap-pd-modal`) em vez de blocos na página; a seção "Visibilidade para clientes" virou um botão em cada linha do consumo ("Visível ao cliente" / "Oculto ao cliente"), com a mesma confirmação.
+- Pontos de encaixe mantidos (auditoria de lançamentos em `OperationalSafetyBridgeV2`, ciclo de vida dos timers em `HoursLifecycleBridge`, logos em `hoursCompanyLogoRuntimeV41`): `hours-connect`, `hours-connect-period input`, `hours-v13-timer-row`, `hours-v13-timer-actions .primary`, `hours-v13-usage-list > article`, `hours-v13-logo`, `hours-v13-usage-name strong`, `hours-v13-extract-head`, `hours-connect-filters select`, `hours-connect-table`, `tr.hours-connect-detail`.
+- Removido o carregador `styles/routes/hours.ts` (folhas `hours-v12/v13/v14/final-responsive/client-portfolio-v40` não são mais carregadas na rota).
+- Conferido com dados fictícios: página, três diálogos, botões de auditoria (editar/excluir lançamento e "Auditoria") inseridos. `npm run check` passou; varredura do cliente 105/0.
+- Não conferido: timer em andamento (sem timer no teste), janelas da auditoria abertas, gravações contra o banco real.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

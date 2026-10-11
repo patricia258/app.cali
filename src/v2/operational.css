@@ -1390,3 +1390,73 @@ html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-m
 .ap-app.v2-admin-page .v2-admin-hero .v2-admin-project-side>.status-chip{position:absolute;top:22px;right:26px}
 .v2-client-module .v2-project-timeline,.v2-admin-page .v2-admin-timeline{min-width:0;overflow:hidden}
 @media(max-width:700px){.v2-client-module .v2-project-timeline .ch-gantt-header span:not(:first-child),.v2-client-module .v2-project-timeline .ch-gantt-foot{display:none}.v2-client-module .v2-project-timeline :is(.ch-gantt-header,.ch-gantt-row){grid-template-columns:minmax(0,1fr) auto}.v2-client-module .v2-project-timeline .ch-gantt-track{background:none;min-width:110px}.v2-client-module .v2-project-timeline .ch-milestone{position:static;transform:none;display:inline-block}}
+
+/* ---- Administradora · Horas e contratos ---- */
+.v2-admin-hours .hours-connect-period{gap:8px;padding:6px 11px;cursor:pointer}
+.v2-admin-hours .hours-connect-period input{border:0;background:transparent;font:inherit;font-weight:600;color:#603144;outline:0}
+.v2-admin-hours .ap-pane-head>div{display:flex;flex-direction:column;gap:4px}
+.v2-admin-hours .ap-pane-head .secondary{display:inline-flex;align-items:center;gap:7px;border:1px solid #ead9ce;border-radius:7px;background:#fff;color:#603144;padding:9px 12px;font:inherit;font-size:11px;font-weight:600;cursor:pointer;margin-left:8px}
+.v2-admin-hours .hours-v13-extract-head{flex-wrap:wrap}
+.v2-admin-hours .hours-v13-extract-head>div{flex:1;min-width:240px}
+.v2-admin-hours :is(.hours-v13-timer-list,.hours-v13-usage-list){display:flex;flex-direction:column}
+.v2-admin-hours :is(.hours-v13-timer-row,.hours-v13-usage-list>article){display:grid;grid-template-columns:36px minmax(160px,1.1fr) minmax(200px,2fr) auto auto;align-items:center;gap:14px;padding:14px 2px;border-bottom:1px solid #f0e8e1}
+.v2-admin-hours .hours-v13-timer-row{grid-template-columns:36px minmax(0,1fr) auto auto}
+.v2-admin-hours .hours-v13-logo{width:36px;height:36px;display:grid;place-items:center;background:#f5ebe5;border:1px solid #e9dad0;border-radius:7px;color:#5a1e2d;font-weight:800;font-size:11px;overflow:hidden}
+.v2-admin-hours .hours-v13-logo img{width:100%;height:100%;object-fit:contain}
+.v2-admin-hours :is(.hours-v13-usage-name,.hours-v13-timer-context,.hours-v13-usage-value,.hours-v13-clock){display:flex;flex-direction:column;gap:3px;min-width:0}
+.v2-admin-hours :is(.hours-v13-usage-name,.hours-v13-timer-context) strong{font-size:12px}
+.v2-admin-hours :is(.hours-v13-usage-list,.hours-v13-timer-list) small,.v2-admin-hours .hours-v13-timer-context>span{font-size:10px;color:#a39790}
+.v2-admin-hours .hours-v13-usage-bar>div{height:7px;border-radius:5px;background:#f1e9e2;overflow:hidden;margin-bottom:5px}
+.v2-admin-hours .hours-v13-usage-bar i{display:block;height:100%;background:#8a4b60;border-radius:5px}
+.v2-admin-hours .hours-v13-usage-bar i.warning{background:#b58c52}
+.v2-admin-hours .hours-v13-usage-bar i.critical{background:#b7495d}
+.v2-admin-hours .hours-v13-usage-value{align-items:flex-end;text-align:right}
+.v2-admin-hours .hours-v13-usage-value strong,.v2-admin-hours .hours-v13-clock strong{font-size:14px;color:#5a1e2d}
+.v2-admin-hours .v2-hours-visibility{display:inline-flex;align-items:center;gap:6px;border:1px solid #eadfd5;border-radius:6px;background:#fbf7f4;color:#857870;padding:6px 9px;font:inherit;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap}
+.v2-admin-hours .v2-hours-visibility.on{background:#eaf3ed;border-color:#d6e8dd;color:#42785a}
+.v2-admin-hours .hours-v13-timer-actions{display:flex;gap:8px}
+.v2-admin-hours :is(.hours-v13-timer-actions,.hours-connect-form-actions,.hours-v13-start-footer) button{display:inline-flex;align-items:center;gap:7px;border:1px solid #dec9c3;border-radius:7px;background:#fff;color:#5a1e2d;padding:9px 13px;font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+.v2-admin-hours :is(.hours-v13-timer-actions,.hours-connect-form-actions,.hours-v13-start-footer) button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+.v2-admin-hours button:disabled{opacity:.45;cursor:not-allowed}
+.v2-admin-hours .hours-connect-filters{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:14px 0;color:#978980}
+.v2-admin-hours .hours-connect-filters select{border:1px solid #e7ddd5;border-radius:7px;background:#fff;color:#67574c;font:inherit;font-size:11px;padding:9px 10px}
+.v2-admin-hours .hours-connect-clear{border:0;background:none;color:#6b293e;font:inherit;font-size:11px;cursor:pointer}
+.v2-admin-hours .hours-connect-table-wrap{overflow-x:auto;scrollbar-width:none;border:1px solid #e9dfd8;border-radius:9px}
+.v2-admin-hours .hours-connect-table-wrap::-webkit-scrollbar{display:none}
+.v2-admin-hours .hours-connect-table{width:100%;border-collapse:collapse;font-size:11px;min-width:860px}
+.v2-admin-hours .hours-connect-table th{background:#faf7f4;color:#988980;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.045em;text-align:left;padding:13px 12px}
+.v2-admin-hours .hours-connect-table td{padding:13px 12px;border-top:1px solid #f0e8e1;vertical-align:middle;color:#554744}
+.v2-admin-hours .hours-connect-table :is(th,td).right{text-align:right}
+.v2-admin-hours .hours-connect-table tr.clickable{cursor:pointer}
+.v2-admin-hours .hours-connect-table .expand{width:26px;color:#8a4b60}
+.v2-admin-hours .hours-v13-context{display:flex;flex-direction:column;gap:3px}
+.v2-admin-hours .hours-v13-context small{font-size:10px;color:#a39790}
+.v2-admin-hours .hours-connect-type{display:inline-block;padding:5px 8px;border-radius:5px;font-size:10px;font-weight:600;background:#f1eaff;color:#8055a5}
+.v2-admin-hours .hours-connect-type.manual{background:#fff2dc;color:#97672f}
+.v2-admin-hours .hours-connect-type.interaction{background:#e8f2fa;color:#3e83aa}
+.v2-admin-hours .hours-connect-type.calendar{background:#e6f6ec;color:#31805a}
+.v2-admin-hours .hours-connect-detail td{background:#fbf7f4}
+.v2-admin-hours .hours-connect-detail td>div{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.v2-admin-hours .hours-connect-detail span{display:flex;flex-direction:column;gap:3px;font-size:11px}
+.v2-admin-hours .hours-connect-detail strong{font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:#a39790}
+.v2-admin-hours .hours-connect-no-data{display:flex;flex-direction:column;align-items:center;gap:6px;padding:34px 12px;color:#978980;font-size:12px}
+.v2-admin-hours .hours-connect-no-data p{margin:0;font-size:11px}
+.v2-admin-hours .hours-audit-open{order:3}
+/* diálogos de horas */
+.v2-admin-hours .v2-hours-dialog{width:min(760px,100%)}
+.v2-admin-hours :is(.hours-v13-start-grid,.hours-connect-form){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px;align-items:start}
+.v2-admin-hours :is(.hours-v13-start-grid,.hours-connect-form) .wide,.v2-admin-hours .hours-v13-description{grid-column:1/-1}
+.v2-admin-hours .hours-connect-field{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:700;color:#322f2c;min-width:0}
+.v2-admin-hours .hours-connect-field em{font-style:normal;font-weight:400;color:#a39790}
+.v2-admin-hours .hours-connect-field small{font-weight:400;font-size:10px;color:#857870}
+.v2-admin-hours .hours-connect-field small.error{color:#b7495d}
+.v2-admin-hours .hours-connect-field :is(input,select,textarea){width:100%;box-sizing:border-box;min-height:42px;padding:10px 12px;border:1px solid #e5d8d0;border-radius:7px;background:#fff;color:#322f2c;font:inherit;font-weight:400;font-size:12px}
+.v2-admin-hours .hours-connect-field textarea{min-height:76px;resize:vertical}
+.v2-admin-hours .hours-connect-channels{display:flex;gap:6px;flex-wrap:wrap}
+.v2-admin-hours .hours-connect-channels button{border:1px solid #e8dbd1;border-radius:6px;background:#fff;color:#86766b;padding:8px 10px;font:inherit;font-size:10px;cursor:pointer}
+.v2-admin-hours .hours-connect-channels button.active{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+.v2-admin-hours .hours-v13-visible{display:inline-flex;align-items:center;gap:8px;font-size:11px;color:#665751;cursor:pointer}
+.v2-admin-hours .hours-v13-visible input{accent-color:#5a1e2d}
+.v2-admin-hours :is(.hours-v13-start-footer,.hours-connect-form-actions){display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px}
+.v2-admin-hours .hours-connect-form-actions{justify-content:flex-end;margin-top:4px}
+@media(max-width:900px){.v2-admin-hours :is(.hours-v13-timer-row,.hours-v13-usage-list>article){grid-template-columns:36px minmax(0,1fr) auto}.v2-admin-hours .hours-v13-usage-bar{grid-column:1/-1}}

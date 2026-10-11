@@ -34,7 +34,6 @@ const AdminProjectsGatePage = lazy(async () => {
   return import('./pages/admin/AdminProjectsGatePage').then((m) => ({ default: m.AdminProjectsGatePage }));
 });
 const AdminHoursPageV3 = lazy(async () => {
-  await import('./styles/routes/hours');
   return import('./pages/admin/AdminHoursPageV3').then((m) => ({ default: m.AdminHoursPageV3 }));
 });
 const AdminCalendarPage = lazy(async () => {
