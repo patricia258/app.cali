@@ -564,6 +564,15 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - **Cancelar/Salvar da edição de mensagem não fechavam** (`recordsMessageControlsRuntime.ts`): dependiam de a conversa ser relida, mas `recordsExperienceRuntimeV2.enhance` ignora a releitura enquanto o painel está marcado `data-records-rich`. Agora Cancelar devolve o texto na hora, Salvar aplica o texto novo e fecha, e `nudgeConversation()` limpa a marca para a releitura acontecer (vale também para Excluir).
 - **Foto do cliente em branco no chat**: causa NÃO confirmada (a leitura dos dados reais não foi autorizada nesta sessão). Pelo código, o quadrado fica vazio quando a foto existe mas a imagem ainda não baixou ou o link assinado falhou; hipótese mais provável: arquivo de foto grande. Mitigação: o quadrado tem cor de fundo enquanto a imagem não chega. Próximo passo se continuar: conferir tamanho do arquivo da foto e considerar miniatura.
 
+### 2026-10-11 — Administradora V2: Documentos
+
+- `/admin/documentos` entrou em `migratedAdminRoutes`. `AdminDocumentsPageV4.tsx` usa a composição do cliente (`wf-head`, faixa `wf-doc-drive`, barra `wf-doc-toolbar`, galeria `wf-doc-gallery` de capas) dentro de `ap-app v2-admin-page v2-admin-docs v2-client-module`.
+- Próprio da CALI, mantido: Adicionar via Drive / Adicionar documento, situação do armazenamento, filtros Empresa / Etapa / Categoria + busca, etapa do fluxo como etiqueta, empresa com logo + projeto/entregável, versão, origem, validade, protocolo, visualizações / ciências / comentários, Completar / Abrir / Detalhes.
+- Novo: visão **Lista** (uma linha por documento, com logo, empresa, categoria, etapa, validade e acompanhamento) para quando o acervo crescer; a galeria passou a encaixar 4 capas por linha em tela grande.
+- Diálogos "Novo documento / Completar / Nova versão" e "Detalhes" (ações Publicar, Tornar interno, Nova versão, Arquivar e conversa do documento) no padrão novo, só por CSS (`.v2-admin-docs .modal-card …`); a marcação e as funções não mudaram.
+- As folhas antigas (`styles/routes/documents`) deixaram de ser carregadas no carregador da página da administradora em `App.tsx` (o do cliente não foi tocado). As classes usadas por `documentsIdentityRuntimeV42` (capa automática com o logo da empresa) foram mantidas e reestilizadas.
+- Conferido no QA: capas, lista, novo documento, detalhes, 390 px sem estouro, cliente intacto. **Não conferido com dados reais:** envio de arquivo/capa, link do Drive, publicar/arquivar, nova versão, capas reais e a faixa com o Drive conectado.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

@@ -41,7 +41,7 @@ const AdminCalendarPage = lazy(async () => {
   return import('./pages/admin/AdminCalendarPage').then((m) => ({ default: m.AdminCalendarPage }));
 });
 const AdminDocumentsPageV4 = lazy(async () => {
-  await import('./styles/routes/documents');
+  // Página na composição V2: as folhas antigas de documentos não são mais carregadas aqui.
   return import('./pages/admin/AdminDocumentsPageV4').then((m) => ({ default: m.AdminDocumentsPageV4 }));
 });
 const AdminReportsPageV17 = lazy(async () => {

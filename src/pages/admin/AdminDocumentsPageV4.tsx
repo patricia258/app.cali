@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Archive, CheckCircle2, Cloud, ExternalLink, Eye, FileCheck2, FileClock, FileText,
-  FolderOpen, ImagePlus, Layers3, Link2, Loader2, MessageSquare, Plus, Search, Send,
+  ChevronRight, FolderOpen, ImagePlus, Layers3, Link2, Loader2, MessageSquare, Plus, Search, Send,
   ShieldCheck, Upload, X,
 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
@@ -131,6 +131,7 @@ export function AdminDocumentsPageV4() {
   const [notice, setNotice] = useState('');
 
   const [search, setSearch] = useState('');
+  const [layout, setLayout] = useState<'covers' | 'list'>('covers');
   const [companyFilter, setCompanyFilter] = useState('all');
   const [stageFilter, setStageFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -409,49 +410,68 @@ export function AdminDocumentsPageV4() {
     setCommentText(''); await loadComments(detailDoc); await loadDocuments();
   }
 
-  if(loading)return <Shell role="admin"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando biblioteca…</section></Shell>;
+  if(loading)return <Shell role="admin"><section className="v2-client-module data-loading" aria-live="polite" aria-busy="true">Carregando biblioteca…</section></Shell>;
+
+  const tagTone = (stage: string) => stage === 'published' ? 'green' : stage === 'ready_to_publish' ? 'blue' : stage === 'archived' ? 'red' : stage === 'awaiting_final_file' ? 'yellow' : 'purple';
+  const validity = (doc: DocumentRow) => doc.validUntil ? doc.validUntil.split('-').reverse().join('/') : 'não definida';
 
   return (
     <Shell role="admin">
-      <section className="page documents-admin-page documents-admin-v3 documents-admin-v4">
-        <div className="documents-heading-actions-v3 documents-v4-actions"><button className="secondary" type="button" onClick={() => openNewDocument('drive')}><Link2 size={17} />Adicionar via Drive</button><button className="primary" type="button" onClick={() => openNewDocument('upload')}><Plus size={18} />Adicionar documento</button></div>
+      <div className="ap-app v2-admin-page v2-admin-docs v2-client-module"><div className="ap-content"><div className="wf documents-admin-v4">
+        <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Documentos</h1><p>Acervo de todas as contas: prévias, arquivos finais, versões, publicação e ciência.</p></div><div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => openNewDocument('drive')}><Link2 size={15} /> Adicionar via Drive</button><button className="wf-primary" type="button" onClick={() => openNewDocument('upload')}><Plus size={15} /> Adicionar documento</button></div></div>
 
-        {notice && <div className="inline-notice success"><CheckCircle2 size={19} />{notice}</div>}
+        {notice && <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div>}
         {error && !editorOpen && <div className="inline-notice">{error}</div>}
 
-        <section className={`document-drive-strip-v3 document-workspace-status-v4 ${driveConnection ? 'connected' : ''}`}>
-          <div className="document-drive-mark-v3"><Cloud size={19} /></div><div><strong>{driveConnection ? 'Arquivo interno da CALI' : 'Armazenamento dos documentos'}</strong><span>{driveConnection ? `${driveConnection.accountEmail || 'Conta CALI'}${driveConnection.rootFolderName ? ` · ${driveConnection.rootFolderName}` : ''} · fonte operacional` : 'A CALI organiza a versão de trabalho aqui. Depois da aprovação, o documento fica disponível para ser salvo no Drive da empresa cliente.'}</span></div>{driveConnection && <span className="document-drive-status-v3"><CheckCircle2 size={15} />Conectado</span>}
+        <section className={`wf-doc-drive v2-doc-storage ${driveConnection ? 'connected' : ''}`}>
+          <div><strong>{driveConnection ? 'Arquivo interno da CALI' : 'Armazenamento dos documentos'}</strong><p>{driveConnection ? `${driveConnection.accountEmail || 'Conta CALI'}${driveConnection.rootFolderName ? ` · ${driveConnection.rootFolderName}` : ''} · fonte operacional` : 'A CALI organiza a versão de trabalho aqui. Depois da aprovação, o documento fica disponível para ser salvo no Drive da empresa cliente.'}</p></div>{driveConnection && <span className="wf-tag green"><CheckCircle2 size={12} /> Conectado</span>}
         </section>
 
-        <div className="document-toolbar document-toolbar-v3 document-toolbar-v4">
-          <label className="search-box document-search-v3"><Search size={18} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar documento, cliente, projeto, entregável ou protocolo" /></label>
-          <select value={companyFilter} onChange={(event) => setCompanyFilter(event.target.value)}><option value="all">Todos os clientes</option>{companies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
-          <select value={stageFilter} onChange={(event) => setStageFilter(event.target.value)}><option value="all">Todas as etapas</option><option value="preparation">Em preparação</option><option value="awaiting_final_file">Aguardando arquivo final</option><option value="ready_to_publish">Pronto para publicar</option><option value="published">Publicado</option><option value="archived">Arquivado</option></select>
-          <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}><option value="all">Todas as categorias</option>{categoryOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
+        <div className="wf-doc-toolbar v2-doc-toolbar">
+          <strong>{filtered.length} {filtered.length === 1 ? 'documento' : 'documentos'}</strong>
+          <select className="wf-doc-filter" aria-label="Empresa" value={companyFilter} onChange={(event) => setCompanyFilter(event.target.value)}><option value="all">Todas as empresas</option>{companies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
+          <select className="wf-doc-filter" aria-label="Etapa" value={stageFilter} onChange={(event) => setStageFilter(event.target.value)}><option value="all">Todas as etapas</option><option value="preparation">Em preparação</option><option value="awaiting_final_file">Aguardando arquivo final</option><option value="ready_to_publish">Pronto para publicar</option><option value="published">Publicado</option><option value="archived">Arquivado</option></select>
+          <select className="wf-doc-filter" aria-label="Categoria" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}><option value="all">Todas as categorias</option>{categoryOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
+          <label><Search size={14} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar documento, empresa, projeto ou protocolo" aria-label="Buscar documentos" /></label>
+          <div className="wf-segments" aria-label="Exibição do acervo"><button type="button" className={layout === 'covers' ? 'on' : ''} onClick={() => setLayout('covers')}>Capas</button><button type="button" className={layout === 'list' ? 'on' : ''} onClick={() => setLayout('list')}>Lista</button></div>
         </div>
 
-        {loading && <section className="panel data-loading"><Loader2 className="spin" size={20} />Carregando biblioteca…</section>}
-        {!loading && filtered.length === 0 && <section className="panel document-empty-v3"><FolderOpen size={30} /><div><strong>{docs.length ? 'Nenhum documento neste filtro.' : 'A biblioteca está pronta.'}</strong><span>{docs.length ? 'Ajuste os filtros.' : 'As prévias surgirão automaticamente quando um entregável marcado como “Gera documento” for criado.'}</span></div></section>}
+        {filtered.length === 0 && <div className="wf-empty"><strong>{docs.length ? 'Nenhum documento neste filtro.' : 'A biblioteca está pronta.'}</strong><p>{docs.length ? 'Ajuste os filtros.' : 'As prévias surgirão automaticamente quando um entregável marcado como “Gera documento” for criado.'}</p></div>}
 
-        {!loading && filtered.length > 0 && <section className="document-library-grid-v3">
+        {layout === 'covers' && filtered.length > 0 && <section className="wf-doc-gallery document-library-grid-v3">
           {filtered.map((doc) => {
             const pending = Math.max(0, doc.expectedAcknowledgements - doc.acknowledgements);
             const needsFile = doc.workflowStage === 'preparation' || doc.workflowStage === 'awaiting_final_file';
-            return <article className={`document-library-card-v3 status-${doc.status} stage-${doc.workflowStage}`} key={doc.id}>
-              <div className={`document-card-preview-v3 ${doc.coverUrl ? 'has-cover' : ''}`}>{doc.coverUrl ? <img src={doc.coverUrl} alt="" /> : <div><FileText size={34} /><span>{doc.kind}</span></div>}<span className={`document-status-flag-v3 ${doc.workflowStage}`}>{stageLabel(doc.workflowStage)}</span></div>
-              <div className="document-card-content-v3">
-                <div className="document-card-tags-v3"><span>{categoryLabel(doc.category)}</span><span>{doc.version}</span><span>{sourceLabel(doc.sourceType)}</span></div>
+            return <article className={`wf-doc-cover doc-work document-library-card-v3 status-${doc.status} stage-${doc.workflowStage}`} key={doc.id}>
+              <button type="button" className={`wf-doc-art document-card-preview-v3 ${doc.coverUrl ? 'has-cover' : ''}`} aria-label={`Ver detalhes de ${doc.title}`} onClick={() => void loadComments(doc)}>{doc.coverUrl ? <img src={doc.coverUrl} alt="" /> : <span><b>CALI</b></span>}</button>
+              <div className="wf-doc-content document-card-content-v3">
+                <div className="v2-doc-tags"><span className={`wf-tag ${tagTone(doc.workflowStage)}`}>{stageLabel(doc.workflowStage)}</span><span className="wf-doc-label doc-work">{categoryLabel(doc.category)}</span></div>
                 <h2>{doc.title}</h2>
-                <div className="document-client-line-v3"><span className="document-client-logo-v3">{doc.companyLogo ? <img src={doc.companyLogo} alt="" /> : <span>{doc.company.slice(0, 1).toUpperCase()}</span>}</span><div><strong>{doc.company}</strong><small>{doc.project || 'Sem projeto'}{doc.deliverable ? ` · ${doc.deliverable}` : ''}</small></div></div>
-                <span className="document-protocol-v3">{doc.protocol}</span>
-                <span className={`document-validity-v4 ${doc.validUntil ? '' : 'not-defined'}`}>{doc.validUntil ? `Validade / revisão: ${doc.validUntil.split('-').reverse().join('/')}` : 'Validade / revisão: não definida'}</span>
-                <div className="document-card-metrics-v3"><span><Eye size={14} />{doc.views} visualizaç{doc.views === 1 ? 'ão' : 'ões'}</span>{doc.requiresAcknowledgement && <span className={pending > 0 ? 'pending' : 'done'}><ShieldCheck size={14} />{doc.acknowledgements}{doc.expectedAcknowledgements ? `/${doc.expectedAcknowledgements}` : ''} ciências</span>}<span><MessageSquare size={14} />{doc.comments}</span></div>
-                <div className="document-card-footer-v3"><small>Atualizado {formatDateTime(doc.updatedAt)}</small><div>{needsFile && <button className="primary document-complete-cta-v4" type="button" onClick={() => completeDocument(doc)}><Upload size={15} />Completar</button>}<button className="secondary" type="button" onClick={() => void openDocument(doc)} disabled={!doc.storagePath && !doc.driveUrl}><ExternalLink size={15} />Abrir</button><button className="secondary" type="button" onClick={() => void loadComments(doc)}>Detalhes</button></div></div>
+                <div className="document-client-line-v3 v2-doc-client"><span className="document-client-logo-v3">{doc.companyLogo ? <img src={doc.companyLogo} alt="" /> : <span>{doc.company.slice(0, 1).toUpperCase()}</span>}</span><div><strong>{doc.company}</strong><small>{doc.project || 'Sem projeto'}{doc.deliverable ? ` · ${doc.deliverable}` : ''}</small></div></div>
+                <p>Versão {doc.version} · {sourceLabel(doc.sourceType)} · atualizado {formatDateTime(doc.updatedAt)}</p>
+                <p className={doc.validUntil ? '' : 'v2-doc-muted'}>Validade / próxima revisão: {validity(doc)}</p>
+                <strong className="wf-doc-protocol">{doc.protocol || '—'}</strong>
+                <div className="v2-doc-metrics"><span><Eye size={12} />{doc.views} {doc.views === 1 ? 'visualização' : 'visualizações'}</span>{doc.requiresAcknowledgement && <span className={pending > 0 ? 'pending' : 'done'}><ShieldCheck size={12} />{doc.acknowledgements}{doc.expectedAcknowledgements ? `/${doc.expectedAcknowledgements}` : ''} ciências</span>}<span><MessageSquare size={12} />{doc.comments}</span></div>
+                <div className="wf-doc-actions">{needsFile && <button type="button" className="v2-doc-primary" onClick={() => completeDocument(doc)}><Upload size={13} /> Completar</button>}<button type="button" onClick={() => void openDocument(doc)} disabled={!doc.storagePath && !doc.driveUrl}><ExternalLink size={13} /> Abrir</button><button type="button" onClick={() => void loadComments(doc)}>Detalhes</button></div>
               </div>
             </article>;
           })}
         </section>}
-      </section>
+
+        {layout === 'list' && filtered.length > 0 && <div className="wf-records v2-admin-doc-list">
+          <div className="wf-record-row header"><span/><span>Documento / Protocolo</span><span>Empresa / Projeto</span><span>Categoria</span><span>Etapa</span><span>Validade</span><span>Acompanhamento</span><span/></div>
+          {filtered.map((doc) => { const pending = Math.max(0, doc.expectedAcknowledgements - doc.acknowledgements); return <div className="wf-record-row" key={doc.id} role="button" tabIndex={0} onClick={() => void loadComments(doc)} onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); void loadComments(doc); } }}>
+            <span className="v2-record-logo">{doc.companyLogo ? <img src={doc.companyLogo} alt="" /> : <span aria-hidden="true">{doc.company.slice(0, 1).toUpperCase()}</span>}</span>
+            <span><small>{doc.protocol || '—'}</small><strong>{doc.title}</strong><small>Versão {doc.version} · {sourceLabel(doc.sourceType)}</small></span>
+            <span className="v2-record-author"><strong>{doc.company}</strong><small>{doc.project || 'Sem projeto'}{doc.deliverable ? ` · ${doc.deliverable}` : ''}</small></span>
+            <span>{categoryLabel(doc.category)}</span>
+            <span><span className={`wf-tag ${tagTone(doc.workflowStage)}`}>{stageLabel(doc.workflowStage)}</span></span>
+            <span>{validity(doc)}</span>
+            <span className="v2-doc-metrics"><span><Eye size={12} />{doc.views}</span>{doc.requiresAcknowledgement && <span className={pending > 0 ? 'pending' : 'done'}><ShieldCheck size={12} />{doc.acknowledgements}{doc.expectedAcknowledgements ? `/${doc.expectedAcknowledgements}` : ''}</span>}<span><MessageSquare size={12} />{doc.comments}</span></span>
+            <button type="button" aria-label={`Abrir detalhes de ${doc.title}`} onClick={(event) => { event.stopPropagation(); void loadComments(doc); }}><ChevronRight size={16} /></button>
+          </div>; })}
+        </div>}
+      </div></div>
 
       {editorOpen && <div className="modal-backdrop workspace-modal-backdrop" role="presentation"><section className="modal-card document-create-modal document-create-modal-v3" role="dialog" aria-modal="true">
         <header className="document-modal-header"><div><span className="section-kicker">{editorMode === 'complete' ? 'COMPLETAR PRÉVIA' : editorMode === 'revision' ? 'NOVA VERSÃO' : 'NOVO DOCUMENTO'}</span><h2>{editorMode === 'complete' ? 'Adicionar o arquivo final sem perder o vínculo' : editorMode === 'revision' ? 'Criar nova versão sem sobrescrever a anterior' : 'Organizar documento no Workspace'}</h2><p>{editorMode === 'complete' ? `O protocolo ${editingDoc?.protocol} e os vínculos com cliente, projeto e entregável serão preservados.` : 'Arquivo, metadados e publicação ficam registrados no mesmo histórico.'}</p></div><button type="button" className="modal-close document-modal-close" onClick={() => setEditorOpen(false)}><X size={20} /></button></header>
@@ -488,6 +508,7 @@ export function AdminDocumentsPageV4() {
           <section className="document-comments-v3"><div className="document-comments-title-v3"><div><span className="section-kicker">CONVERSA DO DOCUMENTO</span><strong>{detailDoc.comments} comentários</strong></div><MessageSquare size={19} /></div><div className="document-comment-list-v3">{commentsLoading && <div className="data-loading"><Loader2 className="spin" size={17} />Carregando…</div>}{!commentsLoading && comments.length === 0 && <div className="document-comments-empty-v3">Ainda não há comentários.</div>}{comments.map((comment) => <div key={comment.id} className={comment.clientVisible ? '' : 'internal'}><p>{comment.body}</p><small>{comment.clientVisible ? 'Visível ao cliente' : 'Nota interna'} · {formatDateTime(comment.createdAt)}</small></div>)}</div><div className="document-comment-composer-v3"><textarea rows={3} value={commentText} onChange={(event) => setCommentText(event.target.value)} placeholder="Escreva uma observação..." /><div><label><input type="checkbox" checked={commentVisible} onChange={(event) => setCommentVisible(event.target.checked)} />Visível ao cliente</label><button className="primary" disabled={!commentText.trim()} onClick={() => void sendComment()}><Send size={15} />Enviar</button></div></div></section>
         </div>
       </section></div>}
+      </div>
     </Shell>
   );
 }
