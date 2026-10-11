@@ -5,6 +5,7 @@ import { ArrowRight,
   MessageCircle, Pencil, Plus, Search, Send, Trash2, X, UserPlus } from 'lucide-react';
 import { Shell, type Role } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
+import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 
 type RecordType =
@@ -51,7 +52,7 @@ type ConversationMessage = {
   createdAt: string;
 };
 
-type Company = { id: string; name: string };
+type Company = { id: string; name: string; logo?: string | null; logoFallback?: string | null };
 type Project = { id: string; companyId: string; name: string };
 type Event = { id: string; companyId?: string | null; title: string; startsAt: string; type: string; cancelledAt?: string | null };
 
@@ -151,6 +152,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   const [typeFilter, setTypeFilter] = useState<RecordType | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<WorkflowStatus | 'all'>('all');
   // Administradora: visão de todas as empresas, agrupamento e listas recolhíveis.
+  const [authors, setAuthors] = useState<Record<string, string>>({});
   const [groupBy, setGroupBy] = useState<'status' | 'company' | 'type' | 'none'>('status');
   const [actionOnly, setActionOnly] = useState(false);
   const [groupOpen, setGroupOpen] = useState<Record<string, boolean>>({});
@@ -212,10 +214,13 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
       if (!userId) throw new Error('Sessão não encontrada.');
       let resolvedCompanyId = '';
       if (role === 'admin') {
-        const companyResult = await supabase.from('companies').select('id,display_name').neq('status', 'archived').order('display_name');
+        const companyResult = await supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url').neq('status', 'archived').order('display_name');
         if (companyResult.error) throw companyResult.error;
-        const nextCompanies = (companyResult.data || []).map((row: any) => ({ id: row.id, name: row.display_name }));
+        const nextCompanies = (companyResult.data || []).map((row: any) => ({ id: row.id, name: row.display_name, logo: row.logo_workspace_url, logoFallback: row.logo_url }));
         setCompanies(nextCompanies);
+        // Quem abriu cada ocorrência (nome do login) — a RLS decide o que a administradora enxerga.
+        const authorResult = await supabase.from('profiles').select('id,full_name');
+        if (!authorResult.error) setAuthors(Object.fromEntries((authorResult.data || []).map((row: any) => [row.id, row.full_name || ''])));
         resolvedCompanyId = companyId || 'all';
       } else {
         const profileResult = await supabase.from('profiles').select('company_id').eq('id', userId).maybeSingle();
@@ -276,6 +281,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   }
 
   const companyMap = useMemo(() => new Map(companies.map((item) => [item.id, item.name])), [companies]);
+  const companyById = useMemo(() => new Map(companies.map((item) => [item.id, item])), [companies]);
   const visible = useMemo(() => records.filter((record) => {
     if (typeFilter !== 'all' && record.type !== typeFilter) return false;
     if (statusFilter !== 'all' && record.workflowStatus !== statusFilter) return false;
@@ -504,7 +510,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   const reopenPending = Boolean(selected && reopenByRecord[selected.id] === 'pending');
 
   function recordsTable(rows: AccountRecordRow[], emptyCopy: string) {
-    return <div className={`wf-records ${role==='admin'?'v2-admin-records-list':''}`}><div className="wf-record-row header"><span>Protocolo / Assunto</span><span>Tipo</span><span>Última atualização</span><span>Situação</span><span/></div>{rows.map(record=><div className="wf-record-row" key={record.id} role="button" tabIndex={0} onClick={() => void openRecord(record)} onKeyDown={event=>{if(event.target===event.currentTarget && (event.key==='Enter'||event.key===' ')){event.preventDefault();void openRecord(record)}}}><span><small>{record.protocol || '—'}{role==='admin' && companyId==='all' && groupBy!=='company' && <em className="v2-record-company-name">{companyMap.get(record.companyId) || ''}</em>}{role==='admin' && record.requiresAction && <b className="v2-record-action">Ação necessária</b>}</small><strong>{record.title}</strong>{record.summary && <small>{record.summary}</small>}</span><span>{typeLabels[record.type]}</span><span>{formatDateTime(record.lastActivityAt || record.occurredAt)}<small className="wf-record-message-count"><MessageCircle size={12}/> {messageCounts[record.id] || 0} mensagens</small></span><span><span className={`wf-tag ${record.workflowStatus==='completed'?'green':record.workflowStatus==='waiting_client'?'yellow':record.workflowStatus==='cancelled'?'red':record.workflowStatus==='open'?'blue':'purple'}`}>{statusLabel(record.workflowStatus, role)}</span></span><button type="button" aria-label={`Abrir ${record.title}`} onClick={(event) => { event.stopPropagation(); void openRecord(record); }}><ChevronRight size={16}/></button></div>)}{!rows.length && <div className="wf-empty"><strong>Nenhuma ocorrência neste recorte.</strong><p>{emptyCopy}</p></div>}</div>;
+    return <div className={`wf-records ${role==='admin'?'v2-admin-records-list':''}`}><div className="wf-record-row header">{role==='admin' && <span/>}<span>Protocolo / Assunto</span>{role==='admin' && <span>Aberta por</span>}<span>Tipo</span><span>Última atualização</span><span>Situação</span><span/></div>{rows.map(record=><div className="wf-record-row" key={record.id} role="button" tabIndex={0} onClick={() => void openRecord(record)} onKeyDown={event=>{if(event.target===event.currentTarget && (event.key==='Enter'||event.key===' ')){event.preventDefault();void openRecord(record)}}}>{role==='admin' && <RecordCompanyLogo company={companyById.get(record.companyId)} />}<span><small>{record.protocol || '—'}{role==='admin' && companyId==='all' && groupBy!=='company' && <em className="v2-record-company-name">{companyMap.get(record.companyId) || ''}</em>}{role==='admin' && record.requiresAction && <b className="v2-record-action">Ação necessária</b>}</small><strong>{record.title}</strong>{record.summary && <small>{record.summary}</small>}</span>{role==='admin' && <span className="v2-record-author">{record.sourceActor==='client' ? <><strong>{(record.createdBy && authors[record.createdBy]) || 'Cliente'}</strong><small>Cliente</small></> : <><strong>{(record.createdBy && authors[record.createdBy]) || 'CALI'}</strong><small>{record.sourceActor==='calendar'?'CALI · pela agenda':record.sourceActor==='import'?'CALI · importado':'CALI'}</small></>}</span>}<span>{typeLabels[record.type]}</span><span>{formatDateTime(record.lastActivityAt || record.occurredAt)}<small className="wf-record-message-count"><MessageCircle size={12}/> {messageCounts[record.id] || 0} mensagens</small></span><span><span className={`wf-tag ${record.workflowStatus==='completed'?'green':record.workflowStatus==='waiting_client'?'yellow':record.workflowStatus==='cancelled'?'red':record.workflowStatus==='open'?'blue':'purple'}`}>{statusLabel(record.workflowStatus, role)}</span></span><button type="button" aria-label={`Abrir ${record.title}`} onClick={(event) => { event.stopPropagation(); void openRecord(record); }}><ChevronRight size={16}/></button></div>)}{!rows.length && <div className="wf-empty"><strong>Nenhuma ocorrência neste recorte.</strong><p>{emptyCopy}</p></div>}</div>;
   }
 
   return <Shell role={role}><div className={role==='client'?'v2-client-module':'ap-app v2-admin-page v2-admin-records v2-client-module'}><div className={role==='admin'?'ap-content':undefined} style={role==='admin'?undefined:{display:'contents'}}>
@@ -701,6 +707,12 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
       <div className="wf-modal-actions"><button type="button" onClick={() => setAccessOpen(false)}>Cancelar</button><button className="wf-primary" type="submit" disabled={saving || !access.ack || !access.name.trim() || !access.email.trim() || !companyId}>{saving ? 'Enviando…' : <>Enviar solicitação <ArrowRight size={14} /></>}</button></div>
     </form></div>}
   </div></Shell>;
+}
+
+function RecordCompanyLogo({ company }: { company?: Company }) {
+  const [src, setSrc] = useState('');
+  useEffect(() => { let active = true; setSrc(''); void resolveWorkspaceMedia(company?.logo || company?.logoFallback, 86400).then((value) => { if (active) setSrc(value || ''); }); return () => { active = false; }; }, [company?.logo, company?.logoFallback]);
+  return <span className="v2-record-logo" title={company?.name || ''}>{src ? <img src={src} alt={`Logo de ${company?.name || 'empresa'}`} onError={() => setSrc('')} /> : <span aria-hidden="true">{(company?.name || 'C').slice(0, 1)}</span>}</span>;
 }
 
 export function AdminRecordsPage() { return <WorkspaceRecordsPage role="admin" />; }

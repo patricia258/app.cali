@@ -192,6 +192,9 @@ async function renderAdminTimer(record: RecordRow, host: HTMLElement) {
   action.className = 'records-v25-timer-action';
   const clock = document.createElement('b');
   clock.textContent = data.timer ? formatLive(data.timer.started_at, Number(data.timer.paused_seconds || 0)) : formatMinutes(data.total);
+  // O número muda de sentido: parado = total já registrado (minutos); em andamento = sessão atual (hh:mm:ss).
+  clock.dataset.label = data.timer ? 'Sessão atual' : 'Total';
+  clock.title = data.timer ? `Sessão em andamento. Já registrados nesta ocorrência: ${formatMinutes(data.total)} em ${data.sessions} ${data.sessions === 1 ? 'sessão' : 'sessões'}. Ao pausar, a sessão entra no total.` : `${formatMinutes(data.total)} registrados em ${data.sessions} ${data.sessions === 1 ? 'sessão' : 'sessões'}.`;
   const button = document.createElement('button');
   button.type = 'button';
 

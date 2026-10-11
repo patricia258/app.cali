@@ -542,6 +542,14 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - Atenção: em "Todas as empresas" a contagem de mensagens lê todas as mensagens de uma vez (limite padrão de 1000 linhas do banco) — quando o volume crescer, trocar por contagem agregada.
 - Conferido no QA com 1 empresa/1 registro (dados de teste), 1440 e 390 px, cliente intacto. **Não conferido com dados reais:** muitas empresas/ocorrências, cronômetro em andamento, faixa de avaliação.
 
+### 2026-10-11 — Ocorrências da administradora: balões, botões de mensagem, cronômetro e colunas
+
+- **Balões**: os módulos limitavam o balão a 76% dentro de uma linha de 89% (ficava estreito). Agora a linha tem 89% do painel e o balão ocupa a linha toda; o da CALI encosta na direita, como no V2 do cliente.
+- **Editar/excluir mensagem** (`recordsMessageControlsRuntime.ts`): os caracteres "✎" e "×" viraram ícones de lápis e lixeira, sem moldura, no canto superior direito do balão; ganham fundo só ao passar o mouse.
+- **Cronômetro** (`recordsOperationsRuntimeV25.ts`): é o mesmo mecanismo de Horas (tabela `work_timers`, `start_account_record_timer` / `pause_work_timer`; ao pausar vira lançamento em `hour_entries`, em minutos). A confusão era de leitura: parado mostrava o total em minutos e, em andamento, a sessão atual em hh:mm:ss, sem dizer qual era qual. A etiqueta agora traz o rótulo "TOTAL" ou "SESSÃO ATUAL" e a dica do mouse explica os dois números. Nenhuma regra de contagem foi alterada.
+- **Lista**: primeira coluna com o logo da empresa (`RecordCompanyLogo`, via `resolveWorkspaceMedia`) e coluna "Aberta por" com o nome do login que criou o registro (`created_by` → `profiles.full_name`) e a origem (Cliente / CALI / CALI · pela agenda / importado).
+- **Não conferido com dados reais:** ícones de editar/excluir (o QA não os exibe), logos reais, nomes de quem abriu e o cronômetro em andamento.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
