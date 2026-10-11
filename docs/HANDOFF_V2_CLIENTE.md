@@ -515,6 +515,10 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - A legenda de cores e o total de compromissos do período foram para uma linha única no rodapé do calendário (`v2-admin-cal-foot`). O mini calendário saiu; a navegação segue pelas setas, "Hoje" e as visões Semana/Mês/Lista.
 - Letra maior nos compromissos nas três visões (semana 12 px, mês 11,5 px, lista 13 px). As regras antigas `.v2-admin-cal-aside/-mini/-count` em `operational.css` ficaram sem uso — limpar depois.
 
+### 2026-10-11 — Agenda: botões do evento Google colados na linha
+
+- A folha antiga (`page4-calendar.css`, regra com `:has(.calendar-google-detail)`) zerava o respiro de baixo da linha de ações. Regra mais específica em `operational.css` devolve 14 px em cima e embaixo. Lição: nos diálogos da agenda, conferir a medida real até a linha divisória, não só o CSS escrito — há regras antigas com `:has` e `!important`.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

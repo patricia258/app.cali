@@ -1727,3 +1727,5 @@ html[data-workspace-ui='v2'] :is(.timer-finalize-dialog,.ap-status-confirm,.ap-p
 .ap-app.v2-admin-calendar .calendar-agenda-copy strong{font-size:13px!important;line-height:1.3!important}
 .ap-app.v2-admin-calendar .calendar-agenda-copy small{font-size:11px!important;line-height:1.35!important}
 .ap-app.v2-admin-calendar .calendar-agenda-mode{display:inline-flex;align-items:center;gap:6px;font-size:11px!important}
+/* linha de ações do evento Google: respiro igual em cima e embaixo (a folha antiga zerava o de baixo) */
+.ap-app.v2-admin-calendar .calendar-detail-modal.calendar-detail-modal:has(.calendar-google-detail) .calendar-google-actions{padding:14px 24px!important;margin:0!important;justify-content:flex-start!important;flex-shrink:0}
