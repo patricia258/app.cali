@@ -1074,4 +1074,6 @@ html[data-workspace-ui='v2'] .extra-visit-expenses-item button{border:0;backgrou
 .v2-client-module .v2-month-form::-webkit-scrollbar{display:none}
 .v2-client-module .v2-month-form .team-section-title{margin:6px 0 0;font-size:12px;color:#5a1e2d}
 .v2-client-module .v2-month-form textarea{height:60px}
-.v2-client-module .v2-pa-panel .area-row strong{white-space:nowrap}
+.v2-client-module .v2-pa-panel{min-width:0}
+.v2-client-module .v2-pa-panel .area-row{grid-template-columns:minmax(0,150px) minmax(0,1fr) auto}
+.v2-client-module .v2-pa-panel .area-row strong{white-space:nowrap;text-align:right}
