@@ -525,6 +525,15 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - O diálogo cresce até 92% da altura da tela antes de rolar e os blocos não encolhem mais.
 - Conferido com marcação simulada; **não conferido com evento real** (os dois últimos blocos dependem de dados reais e do Google conectado), nem o formulário "Aconteceu / Não aconteceu" aberto.
 
+### 2026-10-11 — Administradora V2: Ocorrências
+
+- `/admin/registros` entrou em `migratedAdminRoutes`. `src/pages/records/WorkspaceRecordsPage.tsx` agora usa a MESMA composição do cliente para a administradora (cabeçalho, resumo em linha, segmentos + filtros em uma linha, lista `wf-records`, painel lateral `wf-record-drawer`, formulário `wf-modal`), dentro de `ap-app v2-admin-page v2-admin-records v2-client-module`.
+- Próprio da CALI, mantido: filtro Empresa (junto de Tipo/Situação/Busca), etiqueta "Ação necessária" na lista e no painel, contagem "com ação necessária", bloco de tempo de acompanhamento, rodapé com as ações de situação (Assumir, Aguardar cliente, Stand by, Finalizar, Reabrir), "Enriquecer memória" e Excluir, e todos os campos do formulário (Cliente, Projeto, Reunião do calendário, Tipo, Data, Impacto, Título, Contexto, Pessoas, Transcrição, Decisões, Pontos de atenção, Próximas ações, 3 opções).
+- A tabela antiga (`records-v13-table`) saiu. Os módulos automáticos que só enfeitavam a tabela (logo por linha em `recordsExperienceRuntimeV2.decorateTable`, `recordsExperienceRuntime` linha ~405) deixam de agir; os do painel continuam porque usam `data-v2-operation` e `.records-v13-drawer-actions` (classe mantida no rodapé).
+- Balões da conversa: os módulos pintavam bordô/dourado com `!important` só para a administradora; regras em `operational.css` igualam ao cliente (creme / rosado).
+- Conferido no QA: lista, painel com conversa, formulário, 390 px sem estouro, cliente intacto (105/0). **Não conferido com dados reais:** mudanças de situação, envio de mensagem/anexo, encerramento com avaliação, registro só de memória (sem conversa) e pedido de reabertura.
+- Pendente: folhas antigas de registros ainda são carregadas na rota; limpar depois.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

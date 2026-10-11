@@ -1762,3 +1762,31 @@ html[data-workspace-ui='v2'] :is(.timer-finalize-dialog,.ap-status-confirm,.ap-p
 .ap-app.v2-admin-calendar :is(.calendar-modal-body,.calendar-detail-body)>*{flex-shrink:0}
 .ap-app.v2-admin-calendar :is(.calendar-event-modal,.calendar-detail-modal,.calendar-history-dialog){max-height:92dvh!important}
 .ap-app.v2-admin-calendar .calendar-detail-modal .calendar-detail-body.calendar-detail-body{max-height:none!important;flex:1 1 auto!important}
+
+/* Ocorrências da administradora — mesma composição do cliente (lista, painel da conversa, formulário), com os campos e ações próprios da CALI */
+.v2-admin-records .wf-head{align-items:flex-start}
+.v2-admin-records .wf-dot.red{background:#b7495d}
+.v2-admin-records .v2-record-action,.v2-admin-record-drawer .v2-record-action{display:inline-flex;align-items:center;margin-left:8px;padding:3px 7px;border-radius:5px;background:#fbe9ec;color:#b7495d;font-size:9px;font-weight:700;letter-spacing:.04em;vertical-align:middle}
+.v2-admin-records .wf-control-right{flex-wrap:nowrap}
+.v2-admin-records .wf-record-filter.v2-record-company{max-width:210px;font-weight:600;color:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer header p{margin:6px 0 0;font-size:11px;color:#857870}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-chat-line .records-chat-bubble.records-chat-bubble{background:#faf7f4!important;border:1px solid #ebe3dc!important;border-radius:10px!important;color:#322f2c!important;box-shadow:none!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-chat-line.mine .records-chat-bubble.records-chat-bubble{background:#f6edf0!important;border-color:#eddce2!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-chat-bubble>p{font-size:11px!important;line-height:1.6!important;color:#322f2c!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-chat-head :is(strong,time){color:inherit}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0;padding:14px 24px;border-top:1px solid #eadfd6;background:#fffdfb}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions>div{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions button{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:auto;min-height:0;padding:10px 14px;border:1px solid #dec9c3;border-radius:7px;background:#fff;color:#5a1e2d;font:inherit;font-size:11px;font-weight:700;line-height:1.2;cursor:pointer;box-shadow:none}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions button.danger-text{color:#b7495d;border-color:#ecd0d5}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions button:disabled{opacity:.45;cursor:not-allowed}
+html[data-workspace-ui='v2'] .wf-modal.v2-admin-record-form{width:min(820px,100%)}
+html[data-workspace-ui='v2'] .v2-admin-record-form .wf-form-grid.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 14px}
+html[data-workspace-ui='v2'] .v2-admin-record-form .v2-record-options{display:flex;align-items:center;gap:10px 22px;flex-wrap:wrap;padding:12px 14px;border:1px solid #efe7df;border-radius:9px;background:#fffdfb}
+html[data-workspace-ui='v2'] .v2-admin-record-form .v2-record-options label{display:inline-flex;align-items:center;gap:8px;margin:0;font-size:11px;font-weight:600;color:#322f2c}
+html[data-workspace-ui='v2'] .v2-admin-record-form .v2-record-options input{width:15px;height:15px;margin:0;accent-color:#5a1e2d}
+@media(max-width:760px){html[data-workspace-ui='v2'] .v2-admin-record-form .wf-form-grid.three{grid-template-columns:1fr}.v2-admin-records .wf-control-right{flex-wrap:wrap}}
+html[data-workspace-ui='v2'] .wf-modal.v2-admin-record-form .wf-form .wf-form-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+html[data-workspace-ui='v2'] .wf-modal.v2-admin-record-form .wf-form .v2-record-options label{display:inline-flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;width:auto}
+html[data-workspace-ui='v2'] .wf-modal.v2-admin-record-form .wf-form .v2-record-options input{width:15px!important;height:15px!important;min-height:0!important;padding:0!important;flex:none}
+@media(max-width:760px){html[data-workspace-ui='v2'] .wf-modal.v2-admin-record-form .wf-form .wf-form-grid.three{grid-template-columns:1fr!important}}
