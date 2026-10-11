@@ -595,6 +595,14 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - Observação de conceito: a página chama "NPS", mas o que ela mede é satisfação por atendimento em escala 1–5 (avaliação ao aprovar entregável e ao finalizar solicitação). A tabela `nps_responses` (usada na Visão geral, Clientes e Relatórios) é outra fonte e não aparece nesta página.
 - Conferido no QA com 6 avaliações simuladas, 1440 e 390 px. **Não conferido com dados reais.**
 
+### 2026-10-11 — Cronômetro: sessões curtas descartadas (banco) e novos indicadores de satisfação
+
+- **Banco (aplicado com "pode aplicar" da Patricia)**: migração `20261011180000_timer_discard_sessions_under_30s.sql` — `cali_workspace.close_timer_session_at` agora descarta sessão com menos de 30 segundos: o cronômetro fica `status='discarded'`, `minutes=0`, sem lançamento em `hour_entries`, com registro `timer_session_discarded` em `activity_log`; devolve 0. A partir de 30 s nada mudou (arredonda para cima em minutos). Vale para todos os cronômetros (Horas, projetos/tarefas, ocorrências e fechamento por aprovação do cliente). Não foi testada com uma sessão real depois de aplicada.
+- **Tela**: em Ocorrências, pausar uma sessão com menos de 30 s mostra por 6 s o aviso "Sessão com menos de 30 segundos: não foi registrada." Os cronômetros de Horas e de projetos ainda não têm esse aviso.
+- **Satisfação** (`AdminSatisfactionPage.tsx`), só com dados que já existem: "Satisfeitos" (% de notas 4 e 5); "Taxa de resposta" (avaliações de solicitações ÷ solicitações finalizadas e visíveis ao cliente no período, com alerta "sinal fraco" abaixo de 30% — no entregável a nota é parte da aprovação, então lá é sempre 100%); variação da média por empresa contra o período anterior de mesmo tamanho (só nos períodos 30/90/180/365 dias). A nova leitura é `account_records` (concluídas, visibilidade cliente).
+- Pendente de decisão da Patricia: tempo de resposta às notas baixas e temas dos comentários (precisam de campos novos no banco) e o nome da página.
+- **Não conferido com dados reais:** taxa de resposta e variação por empresa (o QA não tem solicitações finalizadas nem período anterior).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

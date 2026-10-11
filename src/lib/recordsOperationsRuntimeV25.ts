@@ -150,8 +150,10 @@ async function startTimer(record: RecordRow, button: HTMLButtonElement) {
   window.dispatchEvent(new CustomEvent('cali:timers-changed'));
   schedule();
 }
-async function pauseTimer(timerId: string, button: HTMLButtonElement) {
+async function pauseTimer(timerId: string, button: HTMLButtonElement, startedAt?: string, pausedSeconds = 0) {
   if (!supabase) return;
+  // Regra do banco (2026-10-11): sessão com menos de 30 segundos é descartada, sem lançamento de horas.
+  const elapsed = startedAt ? Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000) - pausedSeconds : 999;
   button.disabled = true;
   const { error } = await supabase.rpc('pause_work_timer', { p_timer_id: timerId });
   button.disabled = false;
@@ -161,6 +163,12 @@ async function pauseTimer(timerId: string, button: HTMLButtonElement) {
   }
   window.dispatchEvent(new CustomEvent('cali:timers-changed'));
   schedule();
+  if (elapsed < 30) window.setTimeout(() => {
+    const card = document.querySelector<HTMLElement>('.records-v25-timer');
+    if (!card) return;
+    card.dataset.note = 'Sessão com menos de 30 segundos: não foi registrada.';
+    window.setTimeout(() => { delete card.dataset.note; }, 6000);
+  }, 500);
 }
 async function renderAdminTimer(record: RecordRow, host: HTMLElement) {
   const data = await timerData(record.id);
@@ -202,7 +210,7 @@ async function renderAdminTimer(record: RecordRow, host: HTMLElement) {
     card.classList.add('is-active');
     button.className = 'records-v25-timer-pause';
     button.textContent = 'Pausar e registrar';
-    button.onclick = () => void pauseTimer(data.timer!.id, button);
+    button.onclick = () => void pauseTimer(data.timer!.id, button, data.timer!.started_at, Number(data.timer!.paused_seconds || 0));
     ticker = window.setInterval(() => {
       if (document.body.contains(clock)) clock.textContent = formatLive(data.timer!.started_at, Number(data.timer!.paused_seconds || 0));
       else stopTicker();
