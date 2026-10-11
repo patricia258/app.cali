@@ -581,6 +581,13 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - **Ocorrências**: ações do rodapé do painel em uma linha quando cabem (telas a partir de ~1560 px); em telas menores o grupo de situação fica numa linha e "Salvar na memória da conta" desce.
 - **Não conferido com dados reais:** cor de fundo com logos reais (depende de o armazenamento liberar a leitura da imagem), cartão do cliente com dados reais.
 
+### 2026-10-11 — Ocorrências (rodapé em uma linha, foto que não abre), Documentos (arquivados fora da visão padrão) e diagnóstico do cronômetro
+
+- **Rodapé do painel de Ocorrências**: as quatro ações cabem em uma linha no painel de 515 px (fonte 10,5 px, respiro menor). Medido no QA com "Aguardar cliente / Stand by / Finalizar / Salvar na memória da conta".
+- **Foto do cliente em branco**: reproduzido no QA — quando o perfil tem foto cadastrada mas o arquivo não abre no navegador, o quadro ficava creme e sem iniciais (`color:transparent`). `identityMediaRuntime.applyMedia` agora testa a imagem e, se falhar, mostra as iniciais (`showInitialsFallback`, classe `identity-media-broken`). A causa no cadastro real (formato do arquivo, arquivo ausente) segue sem confirmação: a leitura de dados reais não foi autorizada.
+- **Documentos**: a visão padrão não mostra arquivados; eles aparecem só ao escolher "Arquivados (N)" no filtro de etapa. A opção padrão passou a se chamar "Em uso (sem arquivados)".
+- **Cronômetro "contando errado"** — diagnóstico, nada alterado: a função do banco `cali_workspace.close_timer_session_at` (usada por todos os cronômetros: Horas, projetos, ocorrências) grava `greatest(1, ceil(segundos/60))`, isto é, toda sessão é arredondada PARA CIMA e vale no mínimo 1 minuto. Um play de 1 segundo vira 1 minuto. Mudar essa regra é alteração de banco e de regra de cobrança de horas: aguarda decisão e "pode aplicar" da Patricia.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

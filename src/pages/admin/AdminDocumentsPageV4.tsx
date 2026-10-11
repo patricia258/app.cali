@@ -176,7 +176,8 @@ export function AdminDocumentsPageV4() {
     const haystack = `${doc.title} ${doc.company} ${doc.project || ''} ${doc.deliverable || ''} ${doc.protocol} ${categoryLabel(doc.category)} ${stageLabel(doc.workflowStage)}`.toLocaleLowerCase('pt-BR');
     if (search && !haystack.includes(search.toLocaleLowerCase('pt-BR'))) return false;
     if (companyFilter !== 'all' && doc.companyId !== companyFilter) return false;
-    if (stageFilter !== 'all' && doc.workflowStage !== stageFilter) return false;
+    // Arquivado fica fora da visão padrão; só aparece quando a etapa "Arquivados" é escolhida.
+    if (stageFilter === 'all' ? (doc.workflowStage === 'archived' || doc.status === 'archived') : doc.workflowStage !== stageFilter) return false;
     if (categoryFilter !== 'all' && doc.category !== categoryFilter) return false;
     return true;
   }), [docs, search, companyFilter, stageFilter, categoryFilter]);
@@ -461,7 +462,7 @@ export function AdminDocumentsPageV4() {
         <div className="wf-doc-toolbar v2-doc-toolbar">
           <strong>{filtered.length} {filtered.length === 1 ? 'documento' : 'documentos'}</strong>
           <select className="wf-doc-filter" aria-label="Empresa" value={companyFilter} onChange={(event) => setCompanyFilter(event.target.value)}><option value="all">Todas as empresas</option>{companies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
-          <select className="wf-doc-filter" aria-label="Etapa" value={stageFilter} onChange={(event) => setStageFilter(event.target.value)}><option value="all">Todas as etapas</option><option value="preparation">Em preparação</option><option value="awaiting_final_file">Aguardando arquivo final</option><option value="ready_to_publish">Pronto para publicar</option><option value="published">Publicado</option><option value="archived">Arquivado</option></select>
+          <select className="wf-doc-filter" aria-label="Etapa" value={stageFilter} onChange={(event) => setStageFilter(event.target.value)}><option value="all">Em uso (sem arquivados)</option><option value="preparation">Em preparação</option><option value="awaiting_final_file">Aguardando arquivo final</option><option value="ready_to_publish">Pronto para publicar</option><option value="published">Disponível ao cliente</option><option value="archived">Arquivados ({docs.filter((doc) => doc.workflowStage === 'archived' || doc.status === 'archived').length})</option></select>
           <select className="wf-doc-filter" aria-label="Categoria" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}><option value="all">Todas as categorias</option>{categoryOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
           <label><Search size={14} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar documento, empresa, projeto ou protocolo" aria-label="Buscar documentos" /></label>
           <div className="wf-segments" aria-label="Exibição do acervo"><button type="button" className={layout === 'covers' ? 'on' : ''} onClick={() => setLayout('covers')}>Capas</button><button type="button" className={layout === 'list' ? 'on' : ''} onClick={() => setLayout('list')}>Lista</button></div>

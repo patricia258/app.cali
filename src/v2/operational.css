@@ -2102,3 +2102,13 @@ html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions b
 .ap-app.v2-admin-docs .v2-doc-card .wf-doc-art>.v2-doc-autocover img{max-width:44%!important;max-height:76%!important;width:auto!important;height:auto!important}
 .ap-app.v2-admin-docs .v2-doc-card .wf-doc-art>span:not(.v2-doc-autocover){position:absolute;inset:0;display:grid;place-items:center}
 .ap-app.v2-admin-docs .v2-doc-card .wf-doc-content h2{margin:0!important;min-height:0!important}
+
+/* foto que não abre: iniciais no quadrado */
+html[data-workspace-ui='v2'] .records-chat-avatar.identity-media-broken{background:#5a1e2d!important;color:#fff!important;border-radius:7px!important}
+html[data-workspace-ui='v2'] .records-chat-line.mine .records-chat-avatar.identity-media-broken{background:#f2dfa4!important;color:#5a1e2d!important}
+html[data-workspace-ui='v2'] .records-chat-avatar.identity-media-broken::before{display:none!important}
+/* Ocorrências — as quatro ações do rodapé cabem em uma linha no painel de 515 px */
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions.v2-record-drawer-actions{flex-wrap:nowrap!important;gap:8px;padding:12px 16px}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions>div{flex-wrap:nowrap!important;gap:6px}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions button.v2-rda,html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions button{padding:9px 9px!important;font-size:10.5px!important;letter-spacing:0;white-space:nowrap}
+@media(max-width:480px){html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions.v2-record-drawer-actions{flex-wrap:wrap!important}}
