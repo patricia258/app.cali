@@ -7,7 +7,14 @@ const migratedAdminRoutes = new Set(['/admin', '/admin/clientes', '/admin/equipe
    que sai o PDF — medido em 2026-10-11: trocar a moldura mudava títulos e espaçamentos do documento. */
 const runtimeV2Paths = new Set<string>();
 const normalize = (pathname: string) => pathname.length > 1 ? pathname.replace(/\/$/, '') : pathname;
-export function markRuntimeV2(pathname: string) { runtimeV2Paths.add(normalize(pathname)); }
+export const RUNTIME_V2_EVENT = 'cali:v2-routes-changed';
+export function markRuntimeV2(pathname: string) {
+  const path = normalize(pathname);
+  if (runtimeV2Paths.has(path)) return;
+  runtimeV2Paths.add(path);
+  // A moldura do Workspace é persistente: avisa para ela se redesenhar com o layout V2.
+  window.dispatchEvent(new CustomEvent(RUNTIME_V2_EVENT));
+}
 const migratedAdminPrefixes: string[] = [];
 export function usesV2(pathname: string) {
   const path = pathname.length > 1 ? pathname.replace(/\/$/, '') : pathname;

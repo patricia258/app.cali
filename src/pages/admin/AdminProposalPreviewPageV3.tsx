@@ -54,14 +54,15 @@ export function AdminProposalPreviewPageV3(){
     }
   };
 
+  const archivedPdf=Boolean(proposal?.pdf_path);
+  useEffect(()=>{if(!archivedPdf)return;markRuntimeV2(window.location.pathname);void applyVisualSystem(window.location.pathname);},[archivedPdf]);
+
   if(loading)return <Shell role="admin"><section className="page"><div className="panel portal-admin-loading"><Loader2 className="spin"/>Carregando proposta…</div></section></Shell>;
   if(!proposal)return <Shell role="admin"><section className="page"><div className="inline-notice danger">{error||'Proposta não encontrada.'}</div></section></Shell>;
 
   if(!proposal.pdf_path)return <AdminProposalPreviewPageV2/>;
 
   // PDF oficial arquivado: só um visualizador em volta do arquivo — usa a moldura V2. A prévia do rascunho (acima) fica nas folhas antigas.
-  markRuntimeV2(window.location.pathname);
-  void applyVisualSystem(window.location.pathname);
 
   return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-proposals v2-admin-pdfview v2-client-module"><div className="ap-content"><div className="wf">
    <div className="wf-head"><div><small>PROPOSTAS / VERSÃO OFICIAL ARQUIVADA</small><h1>Proposta v{proposal.version} · {proposal.submission.company_name||proposal.submission.contact_name}</h1><p>Este é o PDF efetivamente salvo e enviado. O documento não é alterado pela plataforma.</p></div><div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={()=>navigate('/admin/propostas')}><ArrowLeft size={15}/> Propostas</button><button className="wf-secondary" type="button" onClick={()=>navigate(`/admin/propostas/${proposal.submission_id}/editar`)}><PencilLine size={15}/> Criar nova versão</button>{pdfUrl&&<button className="wf-primary" type="button" onClick={()=>window.open(pdfUrl,'_blank','noopener,noreferrer')}><ExternalLink size={15}/> Abrir PDF original</button>}</div></div>
