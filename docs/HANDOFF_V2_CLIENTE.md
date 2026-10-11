@@ -588,6 +588,13 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - **Documentos**: a visão padrão não mostra arquivados; eles aparecem só ao escolher "Arquivados (N)" no filtro de etapa. A opção padrão passou a se chamar "Em uso (sem arquivados)".
 - **Cronômetro "contando errado"** — diagnóstico, nada alterado: a função do banco `cali_workspace.close_timer_session_at` (usada por todos os cronômetros: Horas, projetos, ocorrências) grava `greatest(1, ceil(segundos/60))`, isto é, toda sessão é arredondada PARA CIMA e vale no mínimo 1 minuto. Um play de 1 segundo vira 1 minuto. Mudar essa regra é alteração de banco e de regra de cobrança de horas: aguarda decisão e "pode aplicar" da Patricia.
 
+### 2026-10-11 — Administradora V2: NPS & satisfação
+
+- `/admin/satisfacao` entrou em `migratedAdminRoutes`. `AdminSatisfactionPage.tsx` foi reescrita na composição V2 (`ap-app v2-admin-page v2-admin-nps v2-client-module`): título + Atualizar; filtros em uma linha (período 30/90/6m/12m/tudo, De/Até, Empresa, Origem, Nota); 4 indicadores (Índice de satisfação, Base do período, Feedback qualitativo, Pedem atenção); 4 painéis (distribuição das notas, evolução mensal, recorte por empresa, origem); lista de respostas com logo, quem avaliou, nota em etiqueta, comentário, data, origem e atalho para o registro.
+- Nenhum dado, filtro ou cálculo mudou; a fonte continua sendo a função `get_admin_satisfaction_responses_v39`.
+- Observação de conceito: a página chama "NPS", mas o que ela mede é satisfação por atendimento em escala 1–5 (avaliação ao aprovar entregável e ao finalizar solicitação). A tabela `nps_responses` (usada na Visão geral, Clientes e Relatórios) é outra fonte e não aparece nesta página.
+- Conferido no QA com 6 avaliações simuladas, 1440 e 390 px. **Não conferido com dados reais.**
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
