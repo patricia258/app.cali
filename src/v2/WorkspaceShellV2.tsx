@@ -34,7 +34,7 @@ export const adminNavigation: NavItem[] = [
   { label: 'Ocorrências', href: '/admin/registros', icon: MessageCircleMore },
   { label: 'Documentos', href: '/admin/documentos', icon: FolderOpen },
   { label: 'Relatórios', href: '/admin/relatorios', icon: FileBarChart2 },
-  { label: 'NPS & satisfação', href: '/admin/satisfacao', icon: Star },
+  { label: 'Satisfação', href: '/admin/satisfacao', icon: Star },
 ];
 export const adminProducts: NavItem[] = [
   { label: 'Propostas', href: '/admin/propostas', icon: BriefcaseBusiness },

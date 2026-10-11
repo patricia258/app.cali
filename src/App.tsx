@@ -18,7 +18,7 @@ const AdminClientsPageV3 = lazy(async () => {
   return import('./pages/admin/AdminClientsPageV3').then((m) => ({ default: m.AdminClientsPageV3 }));
 });
 const AdminProposalsPageV2 = lazy(async () => {
-  await import('./styles/routes/proposals');
+  // Lista na composição V2: as folhas antigas de propostas só entram no editor e na prévia.
   return import('./pages/admin/AdminProposalsPageV2').then((m) => ({ default: m.AdminProposalsPageV2 }));
 });
 const AdminProposalEditorPageV3 = lazy(async () => {

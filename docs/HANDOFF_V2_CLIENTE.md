@@ -603,6 +603,15 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - Pendente de decisão da Patricia: tempo de resposta às notas baixas e temas dos comentários (precisam de campos novos no banco) e o nome da página.
 - **Não conferido com dados reais:** taxa de resposta e variação por empresa (o QA não tem solicitações finalizadas nem período anterior).
 
+### 2026-10-11 — Administradora V2: Propostas e Mapa de People (listas) e nome "Satisfação"
+
+- **Satisfação**: o item do menu e o título deixaram de se chamar "NPS & satisfação" (decisão da Patricia; a página é de consulta).
+- **Propostas** (`/admin/propostas`, `AdminProposalsPageV2.tsx`): lista na composição V2 — título com Baixar CSV / Atualizar, faixa de 4 indicadores, filtros em linha (Serviço, Status, Ver arquivados, busca), lista `wf-records` com etiqueta de status e ações Abrir briefing / Arquivar. O painel lateral do briefing mantém a marcação (status, cadastro, briefing completo, nota interna, versões da proposta, histórico, Arquivar, Preparar proposta) e foi reestilizado por CSS. A folha antiga de propostas saiu do carregador da lista (continua no editor e na prévia).
+- **Mapa de People** (`/admin/mapa-de-people`, `AdminPeopleMapPageV2.tsx`): abas Respostas / Jornada e acessos como segmentos, indicadores, filtros em linha, listas `wf-records` (status continua editável na linha; Revisar abre o diálogo). Diálogos de revisão e de envio mantêm a marcação e a folha própria, com cabeçalho, botões e campos no padrão novo (regras em nível de página, pois os diálogos ficam fora do invólucro da página).
+- Peças comuns novas em `operational.css`: `.v2-kpi-strip`, `.v2-list-controls`, `.v2-row-actions`, `.v2-link-button`.
+- **Ainda no visual antigo** (não estão em `migratedAdminRoutes`): editor e prévia de proposta (`/admin/propostas/:id/editar`, `/admin/propostas/proposta/:id`), revisão em página e relatório do Mapa (`/admin/mapa-de-people/revisao`, `/relatorio/:id`) e Relatórios.
+- Conferido no QA com dados simulados (o QA não lê o Portal nem o Mapa reais), 1440 e 390 px. **Não conferido com dados reais:** gravações (status, cadastro, nota, arquivar), CSV, envio de relatório.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

@@ -128,7 +128,7 @@ export function AdminSatisfactionPage(){
   const y=(average:number)=>185-((average-1)/4)*165;
 
   return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-nps v2-client-module"><div className="ap-content"><div className="wf">
-    <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>NPS &amp; satisfação</h1><p>Como os clientes avaliam cada entrega aprovada e cada solicitação finalizada, de 1 a 5.</p></div><div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={()=>void load()} disabled={loading}><RefreshCw size={15}/> {loading?'Atualizando…':'Atualizar'}</button></div></div>
+    <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Satisfação</h1><p>Como os clientes avaliam cada entrega aprovada e cada solicitação finalizada, de 1 a 5.</p></div><div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={()=>void load()} disabled={loading}><RefreshCw size={15}/> {loading?'Atualizando…':'Atualizar'}</button></div></div>
     {error&&<div className="inline-notice">{error}</div>}
 
     <div className="wf-controls v2-nps-controls">
