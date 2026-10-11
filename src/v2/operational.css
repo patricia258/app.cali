@@ -2330,3 +2330,53 @@ html[data-workspace-ui='v2'] .people-map-send-modal footer{display:flex;justify-
 html[data-workspace-ui='v2'] .wf-record-drawer .records-chat-bubble{position:relative}
 html[data-workspace-ui='v2'] .wf-record-drawer .records-message-meta-extra{position:absolute!important;top:13px;right:12px;display:inline-flex;align-items:center;gap:8px;margin:0!important;font-size:9px!important;color:#a19a92!important;line-height:1}
 html[data-workspace-ui='v2'] .wf-record-drawer .records-message-meta-extra em{font-style:normal;padding:3px 6px;border-radius:4px;background:#ffffffb3;color:#a19a92;letter-spacing:.02em}
+
+/* Relatórios da administradora — moldura V2 (trilha do fechamento, filtros em linha). O papel do relatório não é tocado. */
+.v2-admin-reports .wf-head{align-items:flex-start}
+.v2-admin-reports .wf-controls.v2-report-controls{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:nowrap;margin-bottom:16px}
+.v2-admin-reports .v2-report-stages{display:flex;align-items:center;gap:0;margin:0;padding:0;list-style:none;min-width:0}
+.v2-admin-reports .v2-report-stages li{display:inline-flex;align-items:center;gap:8px;font-size:11px;color:#a8938f;white-space:nowrap}
+.v2-admin-reports .v2-report-stages li+li::before{content:'';width:26px;height:1px;margin:0 10px;background:#e2d5cb}
+.v2-admin-reports .v2-report-stages li b{display:grid;place-items:center;width:22px;height:22px;border:1px solid #e2d5cb;border-radius:6px;background:#fff;font-size:10px;font-weight:700;color:#a8938f}
+.v2-admin-reports .v2-report-stages li.done{color:#31805a}
+.v2-admin-reports .v2-report-stages li.done b{border-color:#cfe9da;background:#e6f6ec;color:#31805a}
+.v2-admin-reports .v2-report-stages li.current{color:#322f2c;font-weight:700}
+.v2-admin-reports .v2-report-stages li.current b{border-color:#5a1e2d;background:#5a1e2d;color:#fff}
+.v2-admin-reports .v2-report-controls .reports-v16-filters{display:flex!important;align-items:center;gap:10px;flex:none;margin:0!important;padding:0!important}
+.v2-admin-reports .v2-report-controls .reports-v16-filters label{display:inline-flex!important;flex-direction:row!important;align-items:center;gap:7px;margin:0!important;font-size:10px!important;font-weight:700!important;letter-spacing:0!important;text-transform:none!important;color:#67574c!important}
+.v2-admin-reports .v2-report-controls .reports-v16-filters :is(select,input){height:36px!important;min-height:0!important;width:auto;max-width:220px;padding:0 10px!important;border:1px solid #e5d9d0!important;border-radius:7px!important;background-color:#fff!important;font:inherit!important;font-size:11px!important;font-weight:400!important;color:#322f2c!important;box-shadow:none!important}
+.v2-admin-reports .reports-v16-section-heading h2{font-size:15px!important;line-height:1.3!important;letter-spacing:0!important}
+.v2-admin-reports .reports-v16-review-map h2{font-size:17px!important;line-height:1.3!important;letter-spacing:0!important}
+@media(max-width:1180px){.v2-admin-reports .wf-controls.v2-report-controls{flex-wrap:wrap}.v2-admin-reports .v2-report-stages{flex-wrap:wrap;row-gap:8px}}
+@media(max-width:640px){.v2-admin-reports .v2-report-controls .reports-v16-filters{flex-wrap:wrap;width:100%}.v2-admin-reports .v2-report-stages li+li::before{width:10px;margin:0 6px}}
+/* diálogos de Relatórios */
+.v2-admin-reports .modal-backdrop{position:fixed;inset:0;z-index:980;display:grid;place-items:center;padding:18px;background:#171017a8;backdrop-filter:blur(4px)}
+.v2-admin-reports .modal-card:is(.reports-v16-small-modal,.reports-v16-send-modal){position:relative;display:flex;flex-direction:column;gap:13px;width:min(540px,100%);max-height:92dvh;overflow-y:auto;padding:26px;border:1px solid #eadfd6;border-radius:14px;background:#fffdfb;box-shadow:0 20px 80px #1d111344;font:12px Inter,system-ui,sans-serif;color:#332b29;scrollbar-width:none}
+.v2-admin-reports .modal-card .section-kicker{display:block;font-size:9px;font-weight:800;letter-spacing:.14em;color:#b58c52}
+.v2-admin-reports .modal-card:is(.reports-v16-small-modal,.reports-v16-send-modal) h2{margin:0;font-size:21px;line-height:1.25;color:#5a1e2d}
+.v2-admin-reports .modal-card:is(.reports-v16-small-modal,.reports-v16-send-modal) p{margin:0;font-size:12px;line-height:1.5;color:#89796f}
+.v2-admin-reports .modal-card .modal-close{position:absolute;top:16px;right:16px;display:grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid #e5d9d0;border-radius:7px;background:#fff;color:#5a1e2d;cursor:pointer}
+.v2-admin-reports .modal-card:is(.reports-v16-small-modal,.reports-v16-send-modal) label{display:flex;flex-direction:column;gap:7px;font-size:11px;font-weight:700;color:#67574c}
+.v2-admin-reports .modal-card:is(.reports-v16-small-modal,.reports-v16-send-modal) :is(textarea,input[type='text']){width:100%;box-sizing:border-box;border:1px solid #e5d8d0;border-radius:9px;padding:11px 12px;background:#fff;font:inherit;font-weight:400;color:#322f2c;outline:0}
+.v2-admin-reports .modal-card:is(.reports-v16-small-modal,.reports-v16-send-modal) input[type='text']{height:40px;padding:0 12px}
+.v2-admin-reports .reports-v16-send-channels{display:flex;gap:10px;flex-wrap:wrap}
+.v2-admin-reports .reports-v16-send-channels label{flex-direction:row!important;align-items:center;gap:8px!important;padding:9px 12px;border:1px solid #efe7df;border-radius:8px;background:#fff;font-weight:600!important}
+.v2-admin-reports .reports-v16-send-channels input{width:15px;height:15px;margin:0;accent-color:#5a1e2d}
+.v2-admin-reports .modal-card:is(.reports-v16-small-modal,.reports-v16-send-modal) footer{display:flex;justify-content:flex-end;gap:10px;margin-top:4px}
+.v2-admin-reports .modal-card button:is(.primary,.secondary){display:inline-flex;align-items:center;justify-content:center;gap:7px;height:auto;padding:10px 14px;border:1px solid #dec9c3;border-radius:7px;background:#fff;color:#5a1e2d;font:inherit;font-size:11px;font-weight:700;line-height:1.2;cursor:pointer;box-shadow:none}
+.v2-admin-reports .modal-card button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+.v2-admin-reports .modal-card button:disabled{opacity:.45;cursor:not-allowed}
+/* prévia do relatório: só a moldura; o papel herda exatamente o que herdava antes (10pt) para ficar igual ao PDF */
+.v2-admin-reports .modal-card.reports-v16-preview-modal{display:flex;flex-direction:column;width:min(1320px,100%);height:94dvh;max-height:94dvh;padding:0;overflow:hidden;border:1px solid #e8ded6;border-radius:14px;background:#fff;box-shadow:0 25px 85px #2418234a}
+.v2-admin-reports .reports-v16-preview-toolbar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:16px 22px;border-bottom:1px solid #eadfd6;background:linear-gradient(90deg,#fffaf6,#f8ecd9);font:12px Inter,system-ui,sans-serif}
+.v2-admin-reports .reports-v16-preview-toolbar>div:first-child{display:flex;flex-direction:column;gap:4px;min-width:0}
+.v2-admin-reports .reports-v16-preview-toolbar strong{font-size:15px;color:#5a1e2d}
+.v2-admin-reports .reports-v16-preview-toolbar span{font-size:11px;color:#857870}
+.v2-admin-reports .reports-v16-preview-toolbar>div:last-child{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.v2-admin-reports .reports-v16-preview-document{flex:1;min-height:0;overflow:auto;font-size:13.3333px;scrollbar-width:none}
+.v2-admin-reports .reports-v16-preview-document::-webkit-scrollbar{display:none}
+.v2-admin-reports .reports-v16-preview-document .reports-v19-client.profile-person-frame-v47{border-radius:14px!important}
+/* as folhas antigas forçavam 12 px nos <small> do papel e 14 px no canto da logo; a prévia repete isso para ficar idêntica ao PDF (medido) */
+.v2-admin-reports .reports-v16-preview-document .reports-v16-paper small{font-size:12px!important}
+.v2-admin-reports .reports-v16-preview-document .profile-person-image-v47{border-radius:14px!important}
+.v2-admin-reports .reports-v16-preview-document .reports-v16-paper h1{font-size:29px!important}
