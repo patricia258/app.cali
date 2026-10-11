@@ -1040,3 +1040,12 @@ html[data-workspace-ui='v2'] .extra-visit-expenses-item{display:flex;align-items
 html[data-workspace-ui='v2'] .extra-visit-expenses-item>span{flex:1;display:flex;flex-direction:column;gap:3px}
 html[data-workspace-ui='v2'] .extra-visit-expenses-item small{color:#9a8c83;font-size:10px}
 html[data-workspace-ui='v2'] .extra-visit-expenses-item button{border:0;background:none;color:#6b293e;font:inherit;font-size:11px;cursor:pointer}
+/* Módulo não contratado: conteúdo esfumado com chamada para contratar */
+.v2-client-module .v2-module-gate{position:relative}
+.v2-client-module .v2-module-gate.locked>.ie-charts{filter:blur(7px);opacity:.55;pointer-events:none;user-select:none}
+.v2-client-module .v2-module-lock{position:absolute;z-index:2;top:48px;left:50%;transform:translateX(-50%);width:min(440px,calc(100% - 32px));background:#fff;border:1px solid #e9dbd0;border-radius:10px;padding:22px 24px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;box-shadow:0 18px 60px #28172426}
+.v2-client-module .v2-module-lock small{font-size:10px;letter-spacing:1.2px;color:#af8f72;font-weight:700}
+.v2-client-module .v2-module-lock strong{font-size:15px;color:#322f2c}
+.v2-client-module .v2-module-lock p{margin:0 0 6px;font-size:12px;line-height:1.6;color:#8c7e74}
+.v2-client-module .v2-module-lock a{text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.v2-client-module .v2-module-blur{filter:blur(7px);opacity:.55;pointer-events:none;user-select:none}

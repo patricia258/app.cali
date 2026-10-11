@@ -375,6 +375,15 @@ Decisões registradas, **não construídas**:
 - **Indicadores por plano (módulos).** Regra oficial (`docs/PRODUCT_RULES.md`): CALI Partner = leitura mensal de indicadores-chave; CALI Full = People Analytics nível 3. O catálogo de frentes já tem `people_analytics` (núcleo do Full, contratável à parte no Partner). Pedido: o cliente vê só o que contratou; o restante aparece esfumado, com chamada para contratar. A administradora vê tudo.
 - **Estrutura de People Analytics** enviada pela proprietária (planilha `People_Analytics_Estrutura_de_Indicadores.xlsx`, 42 indicadores): três camadas — Básico (18), Tático (11), Estratégico (13); três visões — Panorama (6 a 8 números para diretoria, trimestral), Gestão (12 a 18, mensal, com filtro por área), Analítica (catálogo completo); seletor de período no topo (Mês / Quarter / YTD / 12M); todo número com comparação (mês anterior, ano anterior, meta) e gráfico conforme a família (linha para evolução, barras horizontais ordenadas para áreas, empilhadas 100% para composição, Pareto para motivos, funil para recrutamento). Boa parte depende de dados que o Workspace ainda não recebe: folha e custo, ponto/absenteísmo/horas extras, recrutamento (vagas e funil), desempenho, clima/eNPS, receita.
 
+### 10/10 (noite) — indicadores por plano: módulo People Analytics travado para quem não contratou
+
+Divisão aprovada pela proprietária. Em Equipe → Indicadores (`CompanyTeamPage.tsx`):
+- Todos os clientes veem os sete números (quadro ativo, admissões, desligamentos, variação líquida, rotatividade, permanência média, movimentações internas).
+- Os gráficos (movimento do quadro, tempo de permanência, evolução, composição por área) só ficam legíveis quando `analytics` é verdadeiro: plano `full`, **ou** frente `people_analytics` ativa em `company_fronts`, **ou** administradora. Para os demais aparecem esfumados (`v2-module-gate locked`, `v2-module-blur`, com `inert`) e um cartão "People Analytics" com botão para falar com a CALI.
+- O mesmo padrão (`v2-module-gate` + `v2-module-lock`) deve ser reutilizado em outros módulos vendidos à parte.
+- A trava é de apresentação: os dados são da própria empresa e continuam chegando ao navegador. Se um dia o módulo precisar esconder dados de fato, a regra tem de ir para o banco.
+- Usuários internos (Administradora / Parceiro): a proprietária decidiu fazer **dentro desta construção da administradora**, em bloco próprio (plano descrito acima).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
