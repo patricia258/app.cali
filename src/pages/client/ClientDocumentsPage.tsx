@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, CheckCircle2, ChevronRight, Cloud, ExternalLink, Eye, FileCheck2, FileText, MessageSquare, Search, Send, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
+import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
+import { DocumentAutoCover } from '../../components/DocumentAutoCover';
 
 type CategorySlug = 'policy' | 'manual' | 'flow' | 'guide' | 'report' | 'onboarding' | 'deliverable' | 'schedule' | 'contract' | 'reference' | 'other';
 type ClientDoc = {
@@ -99,7 +101,7 @@ export function ClientDocumentsPage() {
     }
     if (filesResult.data?.[0]?.company_id) {
       const companyResult = await supabase.from('companies').select('display_name,logo_url').eq('id', filesResult.data[0].company_id).maybeSingle();
-      if (companyResult.data) setCompanyBrand({ name: companyResult.data.display_name || 'sua empresa', logoUrl: companyResult.data.logo_url || '' });
+      if (companyResult.data) setCompanyBrand({ name: companyResult.data.display_name || 'sua empresa', logoUrl: (await resolveWorkspaceMedia(companyResult.data.logo_url, 86400)) || '' });
     }
     const rows = await Promise.all((filesResult.data ?? []).map(async (item) => ({
       id: item.id,
@@ -251,7 +253,7 @@ export function ClientDocumentsPage() {
   };
   const overdue = documents.filter((doc) => { const left = daysUntil(doc.validUntil); return left != null && left < 0; });
   const expiring = documents.filter((doc) => { const left = daysUntil(doc.validUntil); return left != null && left >= 0 && left <= 60; });
-  return <Shell role="client"><section className="v2-client-module"><div className="wf">
+  return <Shell role="client"><section className="v2-client-module v2-client-docs"><div className="wf">
     <div className="wf-head"><div><small>ÁREA DA EMPRESA / ACERVO</small><h1>Documentos</h1><p>Entregáveis com capa, versões, protocolo e acompanhamento.</p></div></div>
     {notice && <div className="inline-notice success" role="status"><CheckCircle2 size={18}/>{notice}</div>}
     {error && <div className="inline-notice" role="alert">{error}</div>}
@@ -266,9 +268,22 @@ export function ClientDocumentsPage() {
         const syncState = syncByFile[doc.id];
         const syncLocked = syncState?.status === 'pending' || syncState?.status === 'processing';
         const tone = doc.category === 'deliverable' ? 'doc-deliverable' : doc.category === 'report' ? 'doc-executive' : 'doc-work';
-        return <article className={layout === 'covers' ? `wf-doc-cover ${tone}` : `wf-doc-list-entry ${tone}`} key={doc.id}>
-          {layout === 'covers' && <button type="button" className="wf-doc-art" aria-label={`Ver informações de ${doc.title}`} onClick={() => setDetailDoc(doc)}><span><FileText size={38}/><b>CALI</b></span></button>}
-          <div className="wf-doc-content"><span className={`wf-doc-label ${tone}`}>{categoryLabel(doc.category)}</span><h2>{doc.title}</h2>{doc.description && <p>{doc.description}</p>}<p>{[doc.date, `versão ${String(doc.version).replace(/^v/i, '')}`, doc.kind.trim().toLowerCase() === categoryLabel(doc.category).trim().toLowerCase() ? '' : doc.kind].filter(Boolean).join(' · ')}</p><p>{doc.validUntil ? <>Validade / próxima revisão: {formatDate(doc.validUntil)}{(daysUntil(doc.validUntil) ?? 999) < 0 ? ' · vencida' : ''}</> : 'Validade / próxima revisão: não definida'}</p><strong className="wf-doc-protocol">{doc.protocol}</strong>
+        const left = daysUntil(doc.validUntil);
+        const review = !doc.validUntil ? { date: 'Não definida', note: '', tone: 'muted' } : { date: formatDate(doc.validUntil), note: left == null ? '' : left < 0 ? `vencida há ${-left} ${-left === 1 ? 'dia' : 'dias'}` : left === 0 ? 'vence hoje' : `faltam ${left} ${left === 1 ? 'dia' : 'dias'}`, tone: left != null && left < 0 ? 'late' : left != null && left <= 60 ? 'soon' : '' };
+        const kindLabel = doc.kind.trim().toLowerCase() === categoryLabel(doc.category).trim().toLowerCase() ? '' : doc.kind;
+        return <article className={`wf-doc-cover v2-doc-card ${tone}`} key={doc.id}>
+          <div className="v2-doc-art-wrap">
+            <button type="button" className={`wf-doc-art ${doc.coverUrl ? 'has-cover' : ''}`} aria-label={`Ver informações de ${doc.title}`} onClick={() => setDetailDoc(doc)}>{doc.coverUrl ? <img src={doc.coverUrl} alt="" /> : companyBrand.logoUrl ? <DocumentAutoCover logo={companyBrand.logoUrl} name={companyBrand.name} /> : <span><FileText size={30}/><b>CALI</b></span>}</button>
+            <div className="v2-doc-tags"><span className={`wf-doc-label ${tone}`}>{categoryLabel(doc.category)}</span>{isAcknowledged && <span className="wf-tag green">Ciente</span>}</div>
+          </div>
+          <div className="wf-doc-content"><h2>{doc.title}</h2>{doc.description && <p>{doc.description}</p>}
+            <dl className="v2-doc-facts">
+              <div><dt>Versão</dt><dd>{String(doc.version).replace(/^v/i, '')}</dd></div>
+              <div><dt>{kindLabel ? 'Tipo' : 'Categoria'}</dt><dd>{kindLabel || categoryLabel(doc.category)}</dd></div>
+              <div><dt>Publicado em</dt><dd>{doc.date}</dd></div>
+              <div className={review.tone}><dt>Validade / revisão</dt><dd>{review.date}{review.note && <small>{review.note}</small>}</dd></div>
+            </dl>
+            <div className="v2-doc-foot"><strong className="wf-doc-protocol">{doc.protocol || 'Sem protocolo'}</strong></div>
             <div className="wf-doc-actions"><button type="button" onClick={() => void openDocument(doc)}><Eye size={14}/> Abrir</button><button type="button" onClick={() => void openComments(doc)}><MessageSquare size={14}/> Comentar</button>
               {doc.requiresAcknowledgement && <button type="button" disabled={isAcknowledged} onClick={() => void acknowledgeDocument(doc)}>{isAcknowledged ? <><CheckCircle2 size={14}/>Ciente</> : <><FileCheck2 size={14}/>Registrar ciência</>}</button>}
               {driveConnection && doc.storagePath && <button type="button" disabled={Boolean(syncLocked)} onClick={() => void requestDriveCopy(doc)}>{syncState?.status === 'synced' ? <ExternalLink size={14}/> : <Cloud size={14}/>} {driveActionLabel(syncState)}</button>}
