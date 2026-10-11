@@ -337,6 +337,16 @@ Migração `supabase/migrations/20261010230000_account_blocked_status_access_rol
 
 No app (`AdminClientsPageV3.tsx`): ações Pausar e Bloquear separadas (lista, rodapé da gestão, diálogo de motivo com a explicação de cada uma), filtro com Pausado e Bloqueado, campos novos no cadastro e na gestão (Contrato, Modelo, Prazo para pagamento, Link do Drive, Responsável e Observação documental), decisores/acessos adicionais gravados em `client_invites` no cadastro e editáveis em Gestão da conta → Dados cadastrais. Não testado contra o banco real.
 
+### 10/10 — administradora: Equipe (terceira página migrada)
+
+Pedido da proprietária: a Equipe da administradora é a mesma tela aprovada do cliente; a única diferença é o filtro de empresa. Dados de empresas diferentes nunca se misturam.
+
+- `/admin/equipe` entrou em `migratedAdminRoutes`. `CompanyTeamPage.tsx` passou a usar para a administradora os mesmos ramos visuais do cliente (Diretório, Estrutura, Movimentações, Indicadores, colunas, exportação, planilha, cadastro em formulário único, ficha em diálogo central).
+- Filtro de empresa no início da faixa de contexto. A página carrega **uma empresa por vez** (`companyId`); não existe visão somada.
+- O que continua exclusivo da administradora: remuneração e dados restritos no cadastro e na ficha, identificação de gênero na ficha, colunas padrão completas.
+- Pendência de limpeza: os ramos do visual anterior ficaram desligados por `const v1=false` no arquivo. Removê-los (e as folhas `team-*` que só eles usam) numa passada própria, com a tela conferida antes e depois.
+- Conferência com dados fictícios: quatro abas e "Adicionar pessoa" abrem sem erro, sem rolagem horizontal em 1440. `npm run check` passou; varredura do cliente 105/0. Não testado contra o banco real.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

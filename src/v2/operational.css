@@ -1000,3 +1000,9 @@ html[data-workspace-ui='v2'] .v2-client-module .wf-form label.wf-access-ack inpu
 html[data-workspace-ui='v2'] .v2-client-module .wf-modal:has(.wf-access-terms) textarea{height:64px}
 .v2-admin-form .v2-admin-subheading{margin-top:22px}
 .v2-admin-page .ap-state-pill.blocked,.v2-admin-page .ap-account-pills span:first-child.blocked{background:#fae9e9;border-color:#f0d5d8;color:#b7495d}
+/* Equipe (administradora): a mesma tela do cliente, com o filtro de empresa */
+.v2-client-module .context-strip .v2-team-company{display:inline-flex;align-items:center;gap:9px;font-size:11px;color:#8c7e74;margin:0}
+.v2-client-module .context-strip .v2-team-company>:first-child{width:26px;height:26px;border-radius:7px;overflow:hidden;flex-shrink:0}
+.v2-client-module .context-strip .v2-team-company select{border:1px solid #e5d9d0;border-radius:7px;background:#fff;color:#5a1e2d;font:inherit;font-weight:700;padding:7px 10px;max-width:240px}
+.v2-client-module .team-private{margin-top:14px;border:1px solid #f0dfc0;background:#fffaf1;border-radius:9px;padding:12px 14px;font-size:11px;color:#7a5a2c}
+.v2-client-module .team-private p{margin:4px 0 0}
