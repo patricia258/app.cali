@@ -479,6 +479,16 @@ Pedidos dela, print a print, e o que foi feito em `AdminProjectsPageV3.tsx`:
 - Fixtures: `QA_MANY=1` cria 30 contas, 40 lançamentos e um timer ativo para revisar densidade.
 - Não conferido visualmente: o chip do timer na barra superior e o timer ativo no cabeçalho do entregável (o teste não reproduz o timer global), e a confirmação de encerramento aberta.
 
+### 11/10 — alinhamento (regra permanente) e faixa "Dados do mês"
+
+Regra da proprietária, repetida com exemplos: **controles do mesmo grupo ficam numa única linha e centrados na vertical** — ícone e rótulo do botão, texto e botões do timer, seletor e busca. Nada torto, nada quebrando para a linha de baixo, nada amassado.
+
+- Timer do cabeçalho do entregável e chip do timer na barra superior: todos os itens com `inline-flex; align-items:center; line-height:1` e alturas iguais (30 px). O ícone de cronômetro solto ao lado do chip (`global-timers-mark`) foi ocultado.
+- Botões com ícone nos rodapés de diálogo (`timer-finalize-dialog`, `ap-status-confirm`, `ap-pd-footer`, `dv-actions`): `inline-flex` centrado.
+- Contas e clientes: filtro de status e busca na mesma linha, mesma altura (40 px).
+- Equipe (administradora): a faixa "Dados do mês / Lançar dados do mês" aparece **só para o cliente**; quem alimenta é o cliente.
+- Ao entregar qualquer tela: conferir cada botão com ícone, cada barra de ferramentas e cada cabeçalho; elementos inseridos pelos módulos automáticos precisam de regra explícita de alinhamento.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

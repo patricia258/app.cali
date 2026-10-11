@@ -1512,3 +1512,22 @@ html[data-workspace-ui='v2'] .timer-finalize-dialog footer button:disabled{opaci
 .ap-app.v2-admin-hours .ap-pane-head .v2-hours-usage-tools .v2-admin-search input{border:0;outline:0;background:transparent;font:inherit;font-size:11px;color:#67574c;padding:10px 4px;width:100%;min-height:0}
 .ap-app.v2-admin-hours .ap-pane-head .v2-hours-chip{display:inline-flex;border:1px solid #e7ddd5;border-radius:7px;background:#fff;color:#857870;padding:9px 11px;font-size:11px;font-weight:600}
 .ap-app.v2-admin-hours .ap-pane-head .v2-hours-chip.on{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+
+/* ---- Alinhamento (regra permanente da proprietária): controles do mesmo grupo na mesma linha e centrados na vertical ---- */
+html[data-workspace-ui='v2'] .project-header-timer.active,html[data-workspace-ui='v2'] .project-header-timer.active :is(.project-header-timer-label,.project-timer-live,.project-timer-controls){display:inline-flex;align-items:center;line-height:1}
+html[data-workspace-ui='v2'] .project-header-timer.active .project-timer-live{height:30px}
+html[data-workspace-ui='v2'] .project-header-timer.active .project-header-timer-label svg{flex-shrink:0}
+html[data-workspace-ui='v2'] .deliverable-head-actions-v2{display:flex;align-items:center;gap:10px}
+html[data-workspace-ui='v2'] .topbar .global-timers-mark{display:none!important}
+html[data-workspace-ui='v2'] .topbar :is(.global-timers,.global-timers-primary){display:flex!important;align-items:center!important}
+html[data-workspace-ui='v2'] .topbar .global-timer-chip{display:inline-flex!important;align-items:center!important;gap:8px!important;height:40px!important;padding:5px 6px 5px 5px!important}
+html[data-workspace-ui='v2'] .topbar .global-timer-chip :is(.global-timer-copy,.global-timer-clock,.global-timer-origin){display:inline-flex!important;align-items:center!important;line-height:1!important;margin:0!important}
+html[data-workspace-ui='v2'] .topbar .global-timer-chip .global-timer-control{width:30px!important;height:30px!important;display:grid!important;place-items:center!important;flex-shrink:0}
+html[data-workspace-ui='v2'] .topbar .global-timer-chip .global-timer-logo{width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important}
+html[data-workspace-ui='v2'] :is(.timer-finalize-dialog,.ap-status-confirm,.ap-pd-footer,.dv-actions) footer button,html[data-workspace-ui='v2'] :is(.ap-pd-footer,.dv-actions) button,html[data-workspace-ui='v2'] .timer-finalize-dialog footer button{display:inline-flex;align-items:center;justify-content:center;gap:8px;line-height:1.2}
+html[data-workspace-ui='v2'] :is(.timer-finalize-dialog,.ap-status-confirm,.ap-pd-footer,.dv-actions) button svg{flex-shrink:0}
+.ap-app.v2-admin-page .ap-pane-head{flex-wrap:nowrap}
+.ap-app.v2-admin-page .ap-accounts-filters{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:10px}
+.ap-app.v2-admin-page .ap-accounts-filters :is(select,.ap-search){height:40px;box-sizing:border-box;margin:0}
+.ap-app.v2-admin-page .ap-accounts-filters .ap-search{display:flex;align-items:center;gap:8px}
+@media(max-width:760px){.ap-app.v2-admin-page .ap-pane-head{flex-wrap:wrap}.ap-app.v2-admin-page .ap-accounts-filters{flex-wrap:wrap}}
