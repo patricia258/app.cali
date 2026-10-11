@@ -986,3 +986,15 @@ html[data-workspace-ui='v2'] .overview-export-close{border:1px solid #ecded5;bac
 .ap-app.v2-admin-page .ap-registration-fields .ap-decision-check input{width:auto;min-height:0}
 .ap-app.v2-admin-page .v2-admin-hint{margin:18px 0 0;font-size:11px;line-height:1.6;color:#9a8c83}
 .ap-app.v2-admin-page .ap-registration-modal footer>span{min-width:0}
+/* Ocorrências · solicitar acesso adicional */
+.v2-client-module .v2-head-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.v2-client-module .wf-head .wf-secondary{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #dec9c3;border-radius:7px;color:#5a1e2d;padding:10px 14px;font-weight:700;font-size:11px;cursor:pointer}
+.v2-client-module .wf-access-terms{border:1px solid #f0dfc0;background:#fffaf1;border-radius:9px;padding:14px 16px;font-size:11px;line-height:1.6;color:#665751}
+.v2-client-module .wf-access-terms strong{display:block;margin-bottom:6px;color:#5a1e2d;font-size:12px}
+.v2-client-module .wf-access-terms ul{margin:0;padding-left:16px;display:flex;flex-direction:column;gap:4px}
+.v2-client-module .wf-form label.wf-access-ack{flex-direction:row;align-items:center;gap:9px;cursor:pointer}
+.v2-client-module .wf-form label.wf-access-ack input{width:auto;min-height:0;accent-color:#5a1e2d}
+.v2-client-module .wf-access-error{margin:0;color:#b7495d;font-size:11px}
+html[data-workspace-ui='v2'] .v2-client-module .wf-form label.wf-access-ack{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:9px;text-align:left}
+html[data-workspace-ui='v2'] .v2-client-module .wf-form label.wf-access-ack input{width:auto!important;min-height:0!important;margin:0;flex:0 0 auto}
+html[data-workspace-ui='v2'] .v2-client-module .wf-modal:has(.wf-access-terms) textarea{height:64px}

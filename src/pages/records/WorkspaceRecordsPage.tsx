@@ -2,8 +2,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ArrowRight,
   AlertTriangle, CalendarDays, CheckCircle2, ChevronRight, FileText, Filter,
-  MessageCircle, Pencil, Plus, Search, Send, Trash2, X,
-} from 'lucide-react';
+  MessageCircle, Pencil, Plus, Search, Send, Trash2, X, UserPlus } from 'lucide-react';
 import { Shell, type Role } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
@@ -83,6 +82,7 @@ const typeLabels: Record<RecordType, string> = {
 };
 const clientTypes: RecordType[] = ['occurrence', 'people_movement', 'leadership', 'request', 'context_change', 'other'];
 const adminTypes = Object.keys(typeLabels) as RecordType[];
+const emptyAccess = { name: '', job: '', email: '', phone: '', notes: '', ack: false };
 const conversationalTypes = new Set<RecordType>(['occurrence', 'request', 'context_change', 'other']);
 const archivedStatuses = new Set<WorkflowStatus>(['standby', 'completed', 'cancelled']);
 
@@ -151,6 +151,8 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   const [typeFilter, setTypeFilter] = useState<RecordType | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<WorkflowStatus | 'all'>('all');
   const [form, setForm] = useState<FormState>(() => emptyForm(role));
+  const [accessOpen, setAccessOpen] = useState(false);
+  const [access, setAccess] = useState(emptyAccess);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<AccountRecordRow | null>(null);
   const [selected, setSelected] = useState<AccountRecordRow | null>(null);
@@ -276,6 +278,32 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   const activeVisible = useMemo(() => visible.filter((record) => !record.workflowStatus || !archivedStatuses.has(record.workflowStatus)), [visible]);
   const archivedVisible = useMemo(() => visible.filter((record) => Boolean(record.workflowStatus && archivedStatuses.has(record.workflowStatus))), [visible]);
 
+  // Pedido de acesso adicional: vira uma ocorrência do tipo "solicitação", com os dados da pessoa e a ciência das condições.
+  async function requestAccess(event: FormEvent) {
+    event.preventDefault();
+    if (!supabase || !companyId || !access.ack || !access.name.trim() || !access.email.trim()) return;
+    setSaving(true); setError('');
+    try {
+      const userResult = await supabase.auth.getUser();
+      if (userResult.error) throw userResult.error;
+      const now = new Date();
+      const body = ['Solicitação de acesso adicional ao CALI Workspace.', '', `Nome: ${access.name.trim()}`, `Cargo: ${access.job.trim() || 'não informado'}`, `E-mail: ${access.email.trim().toLowerCase()}`, `Telefone: ${access.phone.trim() || 'não informado'}`, access.notes.trim() ? `Observações: ${access.notes.trim()}` : '', '', `Ciência das condições registrada em ${formatDateTime(now.toISOString())}.`].filter((line, index, all) => line || all[index - 1]).join('\n');
+      const result = await supabase.from('account_records').insert({
+        company_id: companyId, record_type: 'request', title: `Solicitação de acesso adicional — ${access.name.trim()}`.slice(0, 180), occurred_at: now.toISOString(),
+        visibility: 'client', source_actor: 'client', participants: [], summary: body, decisions: [], attention_points: [], next_actions: [],
+        impact_level: emptyForm(role).impactLevel, include_in_report: false, requires_action: true, created_by: userResult.data.user?.id || null,
+        workflow_status: 'open', last_activity_at: now.toISOString(), updated_at: now.toISOString(),
+      }).select('id').single();
+      if (result.error) throw result.error;
+      const messageResult = await supabase.rpc('post_account_record_message', { p_record_id: result.data.id, p_body: body, p_internal: false });
+      if (messageResult.error) throw messageResult.error;
+      setAccessOpen(false); setAccess(emptyAccess);
+      setNotice('Solicitação de acesso enviada à CALI.');
+      await loadContext(companyId);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar a solicitação.');
+    } finally { setSaving(false); }
+  }
   function openNew() {
     setEditing(null);
     setForm({ ...emptyForm(role), companyId });
@@ -477,7 +505,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
 
   return <Shell role={role}><div className={role==='client'?'v2-client-module':undefined}>
     <section className={role==='client'?'wf':'page records-v13'}>
-      {role==='client' && <div className="wf-head"><div><small>ÁREA DA EMPRESA / CANAL COM A CALI</small><h1>Ocorrências</h1><p>Uma conversa por assunto, com decisões e histórico no mesmo lugar.</p></div><button className="wf-primary" type="button" onClick={openNew}><Plus size={15}/> Nova ocorrência</button></div>}
+      {role==='client' && <div className="wf-head"><div><small>ÁREA DA EMPRESA / CANAL COM A CALI</small><h1>Ocorrências</h1><p>Uma conversa por assunto, com decisões e histórico no mesmo lugar.</p></div><div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => { setAccess(emptyAccess); setError(''); setAccessOpen(true); }}><UserPlus size={15}/> Solicitar acesso</button><button className="wf-primary" type="button" onClick={openNew}><Plus size={15}/> Nova ocorrência</button></div></div>}
       {role==='admin' && <div className="records-v13-actions">
         <button className="primary" type="button" onClick={openNew}><Plus size={17} />{role === 'admin' ? 'Novo registro' : 'Nova solicitação'}</button>
       </div>}
@@ -629,6 +657,31 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
         </>}
       </div>
       {role === 'client' ? <div className="wf-modal-actions"><button type="button" onClick={() => setEditorOpen(false)}>Cancelar</button><button className="wf-primary" type="submit" disabled={saving || !form.title.trim() || !form.companyId}>{saving ? 'Enviando…' : <>Registrar ocorrência <ArrowRight size={14} /></>}</button></div> : <footer><button className="secondary" type="button" onClick={() => setEditorOpen(false)}>Cancelar</button><button className="primary" type="submit" disabled={saving || !form.title.trim() || !form.companyId}>{saving ? 'Salvando…' : editing ? 'Salvar contexto' : 'Salvar registro'}</button></footer>}
+    </form></div>}
+
+    {accessOpen && role === 'client' && <div className="wf-overlay"><form className="wf-modal wf-create" onSubmit={requestAccess} role="dialog" aria-modal="true" aria-label="Solicitar acesso adicional">
+      <div className="wf-modal-header"><span>SOLICITAR ACESSO</span><button type="button" onClick={() => setAccessOpen(false)} aria-label="Fechar"><X size={17} /></button></div>
+      <h2>Incluir mais uma pessoa no Workspace</h2>
+      <p>Indique quem deve receber acesso. A CALI confirma as condições nesta ocorrência e libera o convite.</p>
+      <div className="wf-form">
+        <div className="wf-access-terms"><strong>Antes de solicitar</strong><ul>
+          <li>Cada empresa pode ter até 4 acessos ao CALI Workspace.</li>
+          <li>Todos os acessos veem as mesmas informações da empresa: projetos, entregáveis, horas, documentos, relatórios, ocorrências e equipe. Não há níveis de permissão diferentes.</li>
+          <li>O acesso adicional é contratado à parte. O valor e a forma de cobrança serão informados pela CALI nesta ocorrência antes da liberação; nada é cobrado sem a sua confirmação.</li>
+          <li>A pessoa indicada recebe um convite por e-mail. A empresa responde por quem indica e avisa a CALI quando o acesso precisar ser encerrado.</li>
+          <li>Os dados informados são usados somente para criar e administrar o acesso, conforme a Política de Privacidade.</li>
+        </ul></div>
+        <div className="wf-form-grid">
+          <label>Nome completo<input value={access.name} onChange={(event) => setAccess((current) => ({ ...current, name: event.target.value }))} required /></label>
+          <label>Cargo<input value={access.job} onChange={(event) => setAccess((current) => ({ ...current, job: event.target.value }))} /></label>
+          <label>E-mail<input type="email" value={access.email} onChange={(event) => setAccess((current) => ({ ...current, email: event.target.value }))} required /></label>
+          <label>Telefone / WhatsApp<input value={access.phone} onChange={(event) => setAccess((current) => ({ ...current, phone: event.target.value }))} /></label>
+        </div>
+        <label>Observações<textarea value={access.notes} onChange={(event) => setAccess((current) => ({ ...current, notes: event.target.value }))} placeholder="Algo que a CALI precise saber sobre este acesso" /></label>
+        <label className="wf-access-ack"><input type="checkbox" checked={access.ack} onChange={(event) => setAccess((current) => ({ ...current, ack: event.target.checked }))} /><span>Li e estou ciente das condições acima.</span></label>
+        {error && <p className="wf-access-error">{error}</p>}
+      </div>
+      <div className="wf-modal-actions"><button type="button" onClick={() => setAccessOpen(false)}>Cancelar</button><button className="wf-primary" type="submit" disabled={saving || !access.ack || !access.name.trim() || !access.email.trim() || !companyId}>{saving ? 'Enviando…' : <>Enviar solicitação <ArrowRight size={14} /></>}</button></div>
     </form></div>}
   </div></Shell>;
 }

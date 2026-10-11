@@ -308,6 +308,23 @@ A proprietária informou que "Contas e clientes" do protótipo está 100% aprova
 - Não testado: gravações (cadastrar, salvar, bloquear, arquivar, encerrar, enviar logo e documentos) contra o banco real.
 - Pendência técnica: `dashboard-overview-live.css` ainda é carregada na Visão geral só por causa do documento de exportação; podar para as regras `.overview-export-*`.
 
+### 10/10 — Nova conta no padrão do protótipo, acessos e "Solicitar acesso"
+
+Orientação da proprietária: nas telas aprovadas é copiar o padrão desenhado, sem "design parecido"; liberdade criativa só quando ela disser.
+
+- **Nova conta** (`AdminClientsPageV3.tsx`): refeita com a marcação do protótipo (`ap-registration-hint`, `ap-registration-fields`, `ap-decision-*`), 5 etapas: Dados cadastrais, Decisores e acessos, Contrato, Financeiro, Documentos. Todos os campos oficiais continuam (inclusive multa de encerramento, regra de vencimento, filiais, logo, contrato e aditivo com data).
+- **Decisores e acessos:** o decisor principal grava como antes. Decisores/acessos adicionais (até 3, total de 4 por empresa, todos com a mesma visão) têm os campos na tela mas **ainda não são gravados** — há um aviso na própria etapa. Depende da mudança de banco abaixo.
+- **Solicitar acesso (cliente):** botão em Ocorrências, ao lado de "Nova ocorrência". Diálogo com as condições, ciência obrigatória e campos (nome, cargo, e-mail, telefone/WhatsApp, observações). Vira uma ocorrência do tipo `request` com os dados e a data da ciência; sem mudança de banco. O texto das condições é rascunho: **valor do acesso adicional ainda não definido** pela proprietária.
+- Campos do protótipo que não existem no oficial e não entraram (precisam de coluna nova): tipo de contrato, modelo, prazo para pagamento (financeiro), link do Drive, observação documental, responsável documental.
+
+Supabase: acesso confirmado ao projeto `kqtbfeeqbcllwvlkbrkq` (leitura do esquema feita; nada alterado). O que existe hoje:
+- `companies.status` aceita só `active`, `paused`, `closed`, `archived`. No app, `paused` aparece como "Bloqueado" e desativa os perfis da empresa.
+- `client_invites` já aceita mais de um convite por empresa (único por empresa + e-mail, com `is_primary`); não há limite de quantidade nem papel (decisor/acesso).
+
+Mudanças de banco propostas, **aguardando "pode aplicar"**:
+1. Situação "Pausado" separada de "Bloqueado": novo valor em `companies_status_check` (ex.: `blocked`), mantendo `paused` como pausa. Falta a proprietária definir a diferença prática (o cliente pausado continua entrando?).
+2. Acessos adicionais: coluna de papel em `client_invites` (principal / decisor adicional / acesso adicional), limite de 4 acessos ativos por empresa e função para a administradora criar/remover convites; revisar o gatilho de aceite do convite e as políticas de RLS antes.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
