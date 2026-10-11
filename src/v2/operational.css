@@ -1376,3 +1376,17 @@ html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-m
 .v2-admin-page .v2-admin-dv :is(.v2-dv-task-bar,.v2-pd-inline-actions) .dv-secondary{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #dec9c3;border-radius:7px;color:#5a1e2d;padding:9px 13px;font:inherit;font-size:11px;font-weight:700;cursor:pointer}
 .v2-admin-page .v2-admin-dv .v2-pd-inline-actions .dv-converse-bottom{display:inline-flex;align-items:center;gap:8px;background:#5a1e2d;color:#fff;border:1px solid #5a1e2d;padding:9px 13px;border-radius:7px;font:inherit;font-weight:700;font-size:11px;cursor:pointer}
 .v2-admin-page .v2-admin-dv .v2-pd-inline-actions button:disabled{opacity:.45}
+/* Projetos (cliente): cronograma em linha do tempo e histórico, como na administradora */
+.v2-client-module .v2-project-timeline{background:#fff;border:1px solid #e9dbd0;border-radius:10px;padding:23px}
+.v2-client-module .v2-project-timeline-head small{font-size:10px;letter-spacing:.12em;color:#a77e52;font-weight:800}
+.v2-client-module .v2-project-timeline-head h2{font-size:15px;margin:3px 0}
+.v2-client-module .v2-project-timeline-head p{margin:0;font-size:11px;color:#978980}
+.v2-client-module .v2-project-timeline .ch-gantt-row{cursor:pointer;font:inherit;padding:0}
+.v2-client-module .v2-project-timeline .ch-gantt-track{position:relative;min-height:48px}
+.v2-client-module .v2-project-attention{margin-bottom:16px}
+/* Projetos (admin): moldura do status do tamanho da caixa; situação do projeto no canto do cartão */
+.v2-admin-page .inline-status-select-v3{width:fit-content;max-width:100%;justify-self:start}
+.ap-app.v2-admin-page .v2-admin-hero{position:relative}
+.ap-app.v2-admin-page .v2-admin-hero .v2-admin-project-side>.status-chip{position:absolute;top:22px;right:26px}
+.v2-client-module .v2-project-timeline,.v2-admin-page .v2-admin-timeline{min-width:0;overflow:hidden}
+@media(max-width:700px){.v2-client-module .v2-project-timeline .ch-gantt-header span:not(:first-child),.v2-client-module .v2-project-timeline .ch-gantt-foot{display:none}.v2-client-module .v2-project-timeline :is(.ch-gantt-header,.ch-gantt-row){grid-template-columns:minmax(0,1fr) auto}.v2-client-module .v2-project-timeline .ch-gantt-track{background:none;min-width:110px}.v2-client-module .v2-project-timeline .ch-milestone{position:static;transform:none;display:inline-block}}

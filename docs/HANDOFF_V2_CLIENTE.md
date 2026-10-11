@@ -455,6 +455,12 @@ Pedidos dela, print a print, e o que foi feito em `AdminProjectsPageV3.tsx`:
 - Conferido com dados fictícios nos estados rascunho e aprovado: módulos continuam inserindo "Gerenciar projeto", timer, chat e previsão. `npm run check` passou; varredura do cliente 105/0.
 - Não incluído: filtro "Ativos / Inativos" de contas (o tipo de projeto no app não traz a situação da conta; hoje o filtro de status do cronograma cobre encerrados).
 
+### 11/10 — Projetos aprovado pela proprietária; cliente com as mesmas abas
+
+- A proprietária aprovou Projetos da administradora ("super aprovado"). Dois ajustes aplicados: a moldura do seletor de situação fica do tamanho da caixa; a etiqueta de situação do projeto vai para o canto superior direito do cartão bordô.
+- **Cliente (`ClientDeliverablesPage.tsx`)**: a pedido dela, as abas passaram a ser **Cronograma** (linha do tempo `ch-gantt`, igual à da administradora), **Entregáveis** (sem mudança) e **Histórico** (mudanças de situação das entregas do projeto, vindas de `deliverable_status_history`). Saíram "Visão do projeto" e o cronograma em lista. O aviso de validação pendente ("Há uma validação aguardando você") ficou acima do conteúdo, porque era a única chamada para a ação do cliente na aba removida.
+- Varredura do cliente 105/0 (inclui 390 px); `npm run check` passou.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
