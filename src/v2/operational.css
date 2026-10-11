@@ -1103,3 +1103,152 @@ html[data-workspace-ui='v2'] .v2-team-overlay .v2-month-form>.wf-form::-webkit-s
 html[data-workspace-ui='v2'] .v2-team-overlay .v2-month-form>footer{display:flex;justify-content:flex-end;gap:10px;padding:14px 25px;border-top:1px solid #eee5df;flex-shrink:0}
 .v2-client-module .v2-ess-chart{padding:20px 22px;background:#fff;border:1px solid #e9dbd0;border-radius:10px}
 .v2-client-module .v2-ess-chart .ie-switch{flex-wrap:wrap}
+
+/* ---- Administradora · Projetos e entregáveis (composição do protótipo com os encaixes dos módulos automáticos) ---- */
+.v2-admin-page article.ap-metric{cursor:default}
+.v2-admin-page .ap-filters .v2-admin-search{flex:1;min-width:240px}
+.v2-admin-page .ap-filters .v2-admin-search input{border:0;outline:0;background:transparent;width:100%;padding:10px 5px;font:inherit;font-size:11px;color:#67574c}
+.v2-admin-page .v2-admin-project-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:16px}
+.v2-admin-page .v2-admin-project-list>button{display:flex;align-items:center;gap:10px;text-align:left;background:#fff;border:1px solid #eee2d9;border-radius:9px;padding:13px;color:#554744;cursor:pointer;min-width:0}
+.v2-admin-page .v2-admin-project-list>button.active{border-color:#5a1e2d;box-shadow:inset 3px 0 #5a1e2d}
+.v2-admin-page .v2-admin-project-list>button>span:nth-child(2){flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
+.v2-admin-page .v2-admin-project-list small{font-size:9px;letter-spacing:.6px;color:#a39790}
+.v2-admin-page .v2-admin-project-list strong{font-size:12px}
+.v2-admin-page .v2-admin-project-list em{font-style:normal;font-size:10px;color:#a39790;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v2-admin-page .project-client-mark{width:35px;height:35px;background:#f7eee8;display:grid;place-items:center;color:#653042;font-weight:700;border-radius:7px;flex-shrink:0}
+.v2-admin-page .ap-project-context{margin-bottom:16px;align-items:center}
+.v2-admin-page .ap-project-context>div:first-child{display:flex;flex-direction:column;gap:2px}
+.v2-admin-page .ap-project-context>div:first-child>span{font-size:10px;color:#978980;order:-1}
+.v2-admin-page .project-rule-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.v2-admin-page .project-rule-tags span{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid #eadfd5;border-radius:6px;background:#fbf7f4;font-size:10px;color:#857870}
+.v2-admin-page .v2-admin-project-side{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.v2-admin-page .project-progress-v2{display:flex;flex-direction:column;gap:3px;min-width:110px}
+.v2-admin-page .project-progress-v2 strong{font-size:20px;color:#5a1e2d}
+.v2-admin-page .project-progress-v2 span{font-size:10px;color:#978980}
+.v2-admin-page .project-progress-v2>div{height:6px;border-radius:4px;background:#f1e9e2;overflow:hidden}
+.v2-admin-page .project-progress-v2 i{display:block;height:100%;background:#5a1e2d}
+.v2-admin-page .project-hero-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.v2-admin-page .project-hero-buttons :is(button,.light-button){border-radius:7px;border:1px solid #ead9ce;padding:10px 13px;background:#fff;color:#603144;display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:11px;font-weight:600;white-space:nowrap;cursor:pointer}
+.v2-admin-page .project-impact-note{align-items:flex-start;margin:0 0 16px;border-color:#f0dfc0;background:#fffaf1;color:#7a5a2c}
+.v2-admin-page .project-impact-note p{margin:3px 0 0;font-size:11px}
+.v2-admin-page .ap-project-tabs{margin-bottom:16px}
+.v2-admin-page .ap-project-overview{display:flex;flex-direction:column;gap:16px}
+.v2-admin-page .ap-project-overview .ap-exec-grid{margin:0}
+.v2-admin-page .ap-pane-head small{font-size:10px;letter-spacing:.12em;color:#a77e52;font-weight:800}
+.v2-admin-page .ap-pane-head p{margin:4px 0 0;font-size:11px;color:#978980}
+.v2-admin-page .ap-pane-head>div{display:flex;flex-direction:column;gap:3px}
+.v2-admin-page .ap-admin-roadmap .ap-project-months{grid-template-columns:repeat(var(--m,8),minmax(48px,1fr))}
+.v2-admin-page .front-list-v2{display:flex;flex-direction:column;gap:14px}
+.v2-admin-page .ap-roadmap-front{border:1px solid #eadfd5;border-radius:10px;overflow:hidden;background:#fff}
+.v2-admin-page .front-header-v2{display:grid;grid-template-columns:34px minmax(180px,1.2fr) minmax(200px,1.6fr) auto;align-items:center;gap:14px;padding:14px 16px;background:#fbf7f3;width:auto;border:0}
+.v2-admin-page .front-header-v2>img{width:28px;height:28px;object-fit:contain}
+.v2-admin-page .front-copy-v2{display:flex;flex-direction:column;gap:3px;min-width:0}
+.v2-admin-page .front-copy-v2>span{font-size:9px;letter-spacing:.6px;color:#a39790}
+.v2-admin-page .front-copy-v2>strong{font-size:13px}
+.v2-admin-page .front-copy-v2>p{margin:0;font-size:10px;color:#978980}
+.v2-admin-page .front-monthbar-v2{display:grid;grid-template-columns:repeat(var(--months,8),minmax(0,1fr));gap:3px;position:relative;align-items:center}
+.v2-admin-page .front-monthbar-v2>i{grid-row:1;height:22px;border-radius:4px;background:#f1e9e2}
+.v2-admin-page .front-monthbar-v2>b{grid-row:1;height:22px;border-radius:4px;background:#5a1e2d;color:#fff;font-size:9px;display:grid;place-items:center;z-index:1}
+.v2-admin-page .front-monthbar-v2>i:nth-of-type(1){grid-column:1}
+.v2-admin-page .ap-roadmap-list{padding:0 16px 6px}
+.v2-admin-page :is(.ap-roadmap-head,.ap-roadmap-row){display:grid;grid-template-columns:minmax(0,2.4fr) 70px minmax(150px,1fr) 100px 30px;align-items:center;gap:12px}
+.v2-admin-page .ap-roadmap-head{padding:12px 0 8px;font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#988980}
+.v2-admin-page .ap-roadmap-row{padding:11px 0;border-top:1px solid #f0e8e1;width:auto;background:none}
+.v2-admin-page .ap-roadmap-delivery{display:flex;align-items:center;gap:10px;background:none;border:0;text-align:left;color:#392f2a;cursor:pointer;min-width:0;padding:0;font:inherit}
+.v2-admin-page .ap-roadmap-delivery>span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.v2-admin-page .ap-roadmap-delivery strong{font-size:12px}
+.v2-admin-page .ap-roadmap-delivery small{font-size:9px;color:#a39790}
+.v2-admin-page .ap-roadmap-row time,.v2-admin-page .ap-project-delivery-row time{font-size:11px;color:#b58c52;font-weight:800;white-space:nowrap}
+.v2-admin-page .row-arrow-v3{border:0;background:none;color:#8a4b60;cursor:pointer;display:grid;place-items:center;padding:4px}
+.v2-admin-page .mc-chip{display:inline-flex;justify-content:center;padding:4px 7px;border-radius:5px;background:#f4eee8;color:#75604f;font-size:10px;font-weight:700;width:fit-content}
+.v2-admin-page .inline-status-select-v3{display:inline-flex;align-items:center;gap:6px;padding:0 8px;border:1px solid #eadfd5;border-radius:6px;background:#fff;min-width:0}
+.v2-admin-page .inline-status-select-v3 select{border:0;background:transparent;font:inherit;font-size:11px;font-weight:600;color:#5a1e2d;padding:7px 2px;max-width:100%;outline:0}
+.v2-admin-page .status-dot-v3{width:7px;height:7px;border-radius:50%;background:#b58c52;flex-shrink:0}
+.v2-admin-page .status-approved .status-dot-v3{background:#3caf80}
+.v2-admin-page .status-progress .status-dot-v3,.v2-admin-page .status-review .status-dot-v3{background:#7aafcd}
+.v2-admin-page :is(.status-cancelled,.status-rebriefing) .status-dot-v3{background:#b7495d}
+.v2-admin-page .status-neutral .status-dot-v3{background:#c9bcb2}
+.v2-admin-page .ap-project-delivery-row{display:grid;grid-template-columns:minmax(0,2.4fr) 60px minmax(150px,1fr) 90px 60px 100px 30px;gap:12px;font-size:11px}
+.v2-admin-page .deliverable-list-open-v3{display:flex;align-items:center;gap:10px;background:none;border:0;text-align:left;color:#392f2a;cursor:pointer;min-width:0;padding:0;font:inherit}
+.v2-admin-page .deliverable-list-open-v3>span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.v2-admin-page .deliverable-list-open-v3>svg{color:#8a4b60;flex-shrink:0}
+.v2-admin-page .kanban-v2{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:16px;overflow-x:auto;scrollbar-width:none}
+.v2-admin-page .kanban-v2>div{background:#fbf7f3;border:1px solid #eadfd5;border-radius:9px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.v2-admin-page .kanban-v2 header{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:2px 2px 4px}
+.v2-admin-page .kanban-v2 header span{color:#978980}
+.v2-admin-page .kanban-v2>div>button{display:flex;flex-direction:column;gap:5px;text-align:left;background:#fff;border:1px solid #eee2d9;border-radius:8px;padding:11px;cursor:pointer;color:#392f2a;font:inherit}
+.v2-admin-page .kanban-v2 button small{font-size:9px;color:#a39790}
+.v2-admin-page .kanban-v2 button strong{font-size:12px}
+.v2-admin-page .kanban-v2 button p{margin:0;font-size:10px;color:#978980}
+.v2-admin-page .kanban-v2 button footer{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.v2-admin-page .kanban-v2 time{font-size:10px;color:#b58c52;font-weight:800}
+/* diálogos */
+.v2-admin-page .ap-pd-modal.v2-pd-narrow{width:min(640px,100%)}
+.v2-admin-page .ap-pd-overlay.v2-pd-top{z-index:990}
+.v2-admin-page .ap-pd-modal :is(input,select,textarea){font:inherit;font-size:12px}
+.v2-admin-page .ap-pd-subhead>div{display:flex;flex-direction:column;gap:3px}
+.v2-admin-page .ap-pd-subhead span{font-size:10px;color:#978980}
+.v2-admin-page .front-draft-row{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(0,1.3fr) auto auto 30px;gap:8px;align-items:center}
+.v2-admin-page .front-draft-row :is(input){min-height:40px;border:1px solid #e5d8d0;border-radius:7px;padding:8px 10px;background:#fff;width:100%;box-sizing:border-box}
+.v2-admin-page .front-draft-row label{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#857870;white-space:nowrap}
+.v2-admin-page .front-draft-row label input{width:56px}
+.v2-admin-page .ap-pd-footer>div{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.v2-admin-page .deliverable-actions-v2{flex-wrap:wrap}
+.v2-admin-page .deliverable-actions-v2 .danger-text{color:#b7495d}
+.v2-admin-page .deliverable-actions-v2 button:disabled{opacity:.4;cursor:not-allowed}
+.v2-admin-page .deliverable-head-actions-v2{display:flex;align-items:center;gap:10px}
+.v2-admin-page .deliverable-title-v2 .section-kicker{display:inline;font:inherit;letter-spacing:inherit;color:inherit}
+.v2-admin-page .ap-pd-statgrid span{font-size:10px;color:#978980}
+.v2-admin-page .v2-pd-inline-form{margin-top:16px;padding:14px 16px;border:1px solid #eadfd5;border-radius:9px;background:#fbf7f4}
+.v2-admin-page .v2-pd-inline-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.v2-admin-page .task-list-v2{display:flex;flex-direction:column}
+.v2-admin-page .task-list-v2 article{display:grid;grid-template-columns:26px minmax(0,1fr) 90px 90px 80px;gap:12px;align-items:center;padding:12px 2px;border-top:1px solid #f0e8e1;font-size:11px}
+.v2-admin-page .task-list-v2 article>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.v2-admin-page .task-list-v2 small{font-size:9px;color:#a39790}
+.v2-admin-page .task-list-v2 p{margin:0;font-size:10px;color:#978980}
+.v2-admin-page .task-list-v2 em{font-style:normal;font-size:10px;color:#857870}
+.v2-admin-page .task-list-v2 .done strong{text-decoration:line-through;color:#978980}
+.v2-admin-page .task-check-v2{width:22px;height:22px;border:1px solid #d9c9be;border-radius:6px;background:#fff;display:grid;place-items:center;color:#fff;cursor:pointer;padding:0}
+.v2-admin-page .done .task-check-v2{background:#5a1e2d;border-color:#5a1e2d}
+.v2-admin-page .deliverable-history-v2 article{display:flex;gap:12px;padding:12px 2px;border-top:1px solid #f0e8e1}
+.v2-admin-page .deliverable-history-v2 article>i{width:9px;height:9px;border-radius:50%;background:#bd996a;margin-top:4px;flex-shrink:0}
+.v2-admin-page .deliverable-history-v2 p{margin:3px 0;font-size:11px;color:#857870}
+.v2-admin-page .deliverable-history-v2 small{font-size:10px;color:#978579}
+.v2-admin-page .v2-pd-work .conversation-pane-v2{display:flex;flex-direction:column;gap:14px;min-height:300px}
+.v2-admin-page .v2-pd-work .conversation-list-v2{flex:1;min-height:180px}
+.v2-admin-page .v2-pd-work .conversation-composer-v2{display:flex;flex-direction:column;gap:10px;margin:0}
+.v2-admin-page .v2-pd-work .conversation-composer-v2 textarea{min-height:70px;border:1px solid #dfd3ca;border-radius:8px;padding:12px;resize:vertical}
+.v2-admin-page .v2-pd-work .conversation-channels-v2{align-self:flex-start}
+.v2-admin-page .v2-pd-work .workspace-chat-send-actions{display:flex;justify-content:flex-end;gap:8px}
+.v2-admin-page .locked-v2{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#42785a}
+/* Projetos: cabeçalho da frente em grade, acordeão do módulo de ciclo de vida, timers injetados e conversa */
+.ap-app.v2-admin-page .ap-roadmap-front-header.front-header-v2{display:grid;grid-template-columns:34px minmax(180px,1.1fr) minmax(220px,1.8fr) auto;gap:14px;cursor:pointer}
+.ap-app.v2-admin-page .front-section-v2.collapsed-v46>.front-deliverables-v2{display:none}
+.ap-app.v2-admin-page .front-section-v2.expanded-v46>.front-deliverables-v2{display:block}
+.v2-admin-page :is(.project-header-timer-start,.task-inline-timer,.task-inline-timer button,.project-header-timer button){display:inline-flex;align-items:center;gap:6px;border:1px solid #dec9c3;border-radius:7px;background:#fff;color:#5a1e2d;padding:7px 10px;font:inherit;font-size:10px;font-weight:700;cursor:pointer;box-shadow:none}
+.v2-admin-page .task-inline-timer{border:0;padding:0;background:none}
+.v2-admin-page :is(.project-header-timer-start,.task-inline-timer button):disabled,.v2-admin-page .project-work-closed{opacity:.5;cursor:default}
+.v2-admin-page .project-header-timer{display:inline-flex;align-items:center;gap:8px;order:-1}
+.v2-admin-page .project-header-timer-label{font-size:10px;color:#857870}
+.v2-admin-page .project-timer-live{font-size:11px;font-weight:700;color:#5a1e2d}
+.v2-admin-page .task-list-v2 article{grid-template-columns:26px minmax(0,1fr) 90px 100px 80px auto}
+.ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2{display:grid!important;grid-template-columns:minmax(0,1fr) auto;gap:10px 12px;align-items:end;margin:0;padding:14px 0 0;border-top:1px solid #efe4dc}
+.ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2>.conversation-channels-v2{grid-column:1/-1;justify-self:start}
+.ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2>.workspace-chat-runtime-pending-host{grid-column:1/-1}
+.ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2>.workspace-chat-runtime-pending-host:empty{display:none}
+.ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2>textarea{grid-column:1;grid-row:3;width:100%;box-sizing:border-box;min-height:70px;max-height:120px}
+.ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2>.workspace-chat-send-actions{grid-column:2;grid-row:3;margin:0}
+.ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2>.workspace-chat-runtime-tools-host{grid-column:1/-1;grid-row:4;justify-self:start}
+.ap-app.v2-admin-page .v2-pd-work .conversation-channels-v2 button{background:#fff;color:#897a71}
+.ap-app.v2-admin-page .v2-pd-work .conversation-channels-v2 button.on{background:#5a1e2d;color:#fff}
+.ap-app.v2-admin-page .v2-pd-work .conversation-list-v2{display:flex;flex-direction:column;gap:14px}
+.ap-app.v2-admin-page .v2-pd-work .workspace-chat-line.internal .workspace-chat-bubble{background:#fffaf1;border-color:#f0dfc0}
+.v2-admin-page .project-client-strip-v39{background:#fff;border:1px solid #e9dbd0;border-radius:10px;box-shadow:none;margin-bottom:16px}
+.v2-admin-page .front-draft-row select{min-height:40px;border:1px solid #e5d8d0;border-radius:7px;padding:8px 10px;background:#fff;width:100%;box-sizing:border-box;font:inherit;font-size:12px}
+.v2-admin-page .project-modal-v2 :is(.planning-helper-v36,.front-window-helper-v36,.project-forecast-v36,.deadline-intelligence-v36){margin:8px 0 12px;font-size:11px;line-height:1.6;color:#857870}
+.v2-admin-page .project-modal-v2 .front-drafts-v2{margin:14px 0}
+.ap-app.v2-admin-page .ap-project-delivery-row.deliverable-list-row-v3{display:grid;grid-template-columns:minmax(0,2.4fr) 60px minmax(160px,1fr) 90px 60px 110px 30px;gap:12px;align-items:center}
+.ap-app.v2-admin-page .ap-pane-head .deliverable-toolbar-v2{display:flex;flex-direction:row;flex-wrap:nowrap}
+.ap-app.v2-admin-page .ap-pane-head .deliverable-toolbar-v2 button{display:inline-flex;align-items:center;gap:6px;background:#fff;border:0;padding:9px 10px;font-size:10px;color:#897a71}
+.ap-app.v2-admin-page .ap-pane-head .deliverable-toolbar-v2 button.on{background:#5a1e2d;color:#fff}
+.ap-app.v2-admin-page .kanban-v2{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(190px,1fr)}

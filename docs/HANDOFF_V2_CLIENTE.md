@@ -416,6 +416,22 @@ App (`CompanyTeamPage.tsx`, Equipe → Indicadores):
 - O assistente "O que mudou neste mês?" (`TeamMonthWizard.tsx`) usa sempre o diálogo V2.
 - Pedidos registrados, não construídos: (1) gerar relatório/PDF organizado da visão de Indicadores; (2) no futuro, leitura de diagnóstico automática da empresa a partir desses dados; (3) a proprietária ainda acha a tela com cartões demais — revisar a hierarquia visual junto com o relatório.
 
+### 11/10 — administradora: Projetos e entregáveis (quarta página migrada, ETAPA 1)
+
+Projetos é a página mais instrumentada do sistema. Além do React (`AdminProjectsPageV3.tsx`), seis módulos automáticos e três pontes inserem partes da tela procurando classes específicas (cerca de 170 KB de código): carteira por cliente (`projectsClientPortfolioRuntimeV39`), inteligência de prazos e catálogo de frentes (`projectsPlanningIntelligenceRuntimeV36`), aprovação de cronograma (`projectApprovalWorkflowRuntimeV38`, `projectApprovalRulesRuntimeV39`), ciclo de vida do projeto (`projectExecutionLifecycleRuntimeV44`, `projectLifecycleRecalcUxV45`), timer (`ProjectTimerBridge`, `GlobalTimerBar`), histórico de entregas (`ProjectDeliveryHistoryBridge`) e travas operacionais (`OperationalSafetyBridgeV2`).
+
+O que foi feito:
+- `/admin/projetos` entrou em `migratedAdminRoutes`. A página foi reescrita na composição do protótipo (título com Nova frente / Novo entregável / Novo projeto; quatro indicadores; busca e filtro; contexto do projeto selecionado; abas **Visão do projeto** (nova), **Cronograma**, **Entregáveis** (lista e kanban) e **Histórico**; diálogos `ap-pd-modal` para projeto, frente, entregável e gestão do entregável; confirmação de status e exclusão em `ap-status-confirm`).
+- **As classes antigas foram mantidas ao lado das novas** em cada ponto de encaixe (`projects-flow-page`, `project-kpis-v2`, `project-tools-v2`, `project-selector-v2`, `project-hero-v2 > div > span` com o protocolo, `project-hero-buttons`, `roadmap-v2`, `front-section-v2 / front-header-v2 / front-copy-v2 / front-monthbar-v2 / front-deliverables-v2`, `front-deliverable-row-v3`, `deliverable-list-row-v3`, `kanban-v2`, `project-history-v2`, `project-modal-v2`, `deliverable-workspace-modal-v2` e filhos). Há um comentário no arquivo. Não remover sem migrar o módulo correspondente.
+- Saíram as folhas `page5-projects*.css` e, do carregador da rota, as folhas de chat/horas antigas. **Continuam carregadas** as folhas dos módulos (`projects-planning-intelligence-v36`, `project-approval-workflow-v38`, `project-approval-rules-v39`, `project-client-portfolio-v39`, `admin-projects-stability-v62`), porque estilizam o que eles inserem.
+- O "Histórico do projeto" tinha três itens fixos de exemplo; foram removidos. O conteúdo vem da ponte de histórico de entregas quando há dados.
+- Conferido com dados fictícios (`scripts/v2-admin-projects-check.cjs`): os módulos continuam inserindo a faixa de clientes, o catálogo de frentes no novo projeto, o timer no cabeçalho e nas subtarefas, e o chat com canais Cliente/Interno. `npm run check` passou; varredura do cliente 105/0.
+
+O que falta (ETAPA 2), **não conferido**:
+- Diálogos e faixas criados pelos módulos ainda estão no visual anterior: revisão/aprovação de cronograma (`workflow-dialog-v38/v39`, `project-review-banner-v38`), gerenciar ciclo de vida (`project-lifecycle-dialog-v44/v45`, botão "Gerenciar"), projetos por cliente (`project-client-modal-v39`), avisos (`workflow-toast-v40`), ações da frente em rascunho (`front-admin-actions-v38`). Só aparecem com dados reais em certos estados (rascunho, em revisão do cliente, pausado).
+- O protótipo escolhe o projeto por uma caixa de seleção e muda o status do projeto por outra; no oficial isso é feito pela faixa de clientes e pelo "Gerenciar" dos módulos. Unificar exige reescrever esses módulos em React.
+- Nenhuma gravação testada contra o banco real.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
