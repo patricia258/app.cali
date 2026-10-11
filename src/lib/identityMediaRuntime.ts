@@ -189,6 +189,18 @@ function clearIdentity(frame: HTMLElement) {
   frame.style.removeProperty('--profile-zoom');
 }
 
+const brokenMedia = new Set<string>();
+function showInitialsFallback(frame: HTMLElement) {
+  frame.classList.remove('identity-media-person', 'profile-canonical-v47');
+  frame.classList.add('identity-media-frame', 'identity-media-empty', 'identity-media-broken');
+  ['--identity-image', '--profile-image'].forEach((name) => frame.style.removeProperty(name));
+  frame.style.backgroundImage = 'none';
+  if (!frame.textContent?.trim()) {
+    const name = frame.closest('.records-chat-line,article')?.querySelector('.records-chat-head strong, header strong')?.textContent || '';
+    frame.textContent = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() || '').join('') || '•';
+  }
+}
+
 function applyMedia(frame: HTMLElement, src: string, kind: 'person' | 'company', profile?: ProfileMedia) {
   if (!src || !isSimpleFrame(frame)) return;
   const x = Number(profile?.avatar_position_x ?? 50);
@@ -206,6 +218,12 @@ function applyMedia(frame: HTMLElement, src: string, kind: 'person' | 'company',
   frame.style.setProperty('--identity-size', kind === 'person' ? `${zoom * 100}%` : 'cover');
 
   if (kind === 'person') {
+    // Se o arquivo da foto não abre no navegador (formato não suportado, arquivo ausente), volta para as iniciais
+    // em vez de deixar o quadrado vazio.
+    if (brokenMedia.has(src)) { showInitialsFallback(frame); return; }
+    const probe = new Image();
+    probe.onerror = () => { brokenMedia.add(src); if (frame.dataset.identitySrc === src) showInitialsFallback(frame); };
+    probe.src = src;
     frame.classList.add('profile-canonical-v47');
     frame.style.setProperty('--profile-image', `url("${src.replace(/"/g, '\\"')}")`);
     frame.style.setProperty('--profile-position', `${x}% ${y}%`);
@@ -300,7 +318,7 @@ function applyProfileImage(image: HTMLImageElement, profile: ProfileMedia) {
 function decorateConversation() {
   const fallbackAdmin = readAdminProfile();
 
-  document.querySelectorAll<HTMLElement>('.conversation-list-v2 article').forEach((article) => {
+  document.querySelectorAll<HTMLElement>(":is(.conversation-list-v2,[data-v2-operation~=\"conversation-list-v2\"]) article").forEach((article) => {
     const frame = article.querySelector<HTMLElement>('.conversation-avatar-v2');
     if (!frame || !isSimpleFrame(frame)) return;
     const authorText = article.querySelector('header strong')?.textContent || '';
@@ -331,6 +349,8 @@ function decorateRecordsConversation() {
       applyMedia(frame, profile.avatar_url, 'person', profile);
       return;
     }
+    // Enquanto os perfis ainda carregam, mantém a foto ou a inicial que a conversa já montou (antes ficava em branco).
+    if (!profilesLoaded) return;
     clearIdentity(frame);
     hideInitial(frame);
   });
@@ -512,10 +532,14 @@ async function loadProfiles(force = false) {
       .from('profiles')
       .select('id,full_name,role,company_id,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom')
       .eq('active', true);
-    const loaded = await Promise.all(((data || []) as ProfileMedia[]).map(async (item) => ({
-      ...item,
-      avatar_url: await resolvePrivateMedia(item.avatar_url),
-    })));
+    // Cada foto entra assim que fica pronta, em vez de esperar a de todos os usuários ativos.
+    const loaded: ProfileMedia[] = [];
+    await Promise.all(((data || []) as ProfileMedia[]).map(async (item) => {
+      const resolved = { ...item, avatar_url: await resolvePrivateMedia(item.avatar_url) };
+      loaded.push(resolved);
+      profiles = [...profiles.filter((profile) => profile.id !== resolved.id), resolved];
+      scheduleDecorate();
+    }));
     profiles = loaded;
     if (!profiles.some((profile) => profile.role === 'admin') && location.pathname.startsWith('/cliente/')) {
       const contact = await supabase.rpc('get_client_account_contact');

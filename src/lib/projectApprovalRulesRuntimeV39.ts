@@ -11,7 +11,7 @@ let installed=false,timer=0,busy=false;
 
 function formatDate(value?:string|null){if(!value)return'A definir';const d=new Date(value.length===10?`${value}T12:00:00`:value);return Number.isNaN(d.getTime())?'A definir':new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',year:'numeric'}).format(d).replace('.','');}
 function escapeHtml(value:unknown){return String(value??'').replace(/[&<>"']/g,(ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]||ch));}
-function currentClientProjectId(){return document.querySelector<HTMLSelectElement>('.client-project-picker-v33 select')?.value||'';}
+function currentClientProjectId(){return document.querySelector<HTMLSelectElement>(":is(.client-project-picker-v33,[data-v2-operation~=\"client-project-picker-v33\"]) select")?.value||'';}
 function adminProtocol(){const text=document.querySelector<HTMLElement>('.project-hero-v2 > div:first-of-type > span')?.textContent||'';return text.match(/CALI-PRJ-[A-Z0-9-]+/i)?.[0]||'';}
 function closeDialog(){document.querySelector('.workflow-dialog-backdrop-v39')?.remove();}
 function alertError(message:string){window.alert(message);}

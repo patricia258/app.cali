@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowUpRight, CalendarDays, CheckCircle2, ChevronRight, FileText,
+  Activity, ArrowRight, ArrowUpRight, CircleHelp, ClipboardCheck, Clock3, CalendarDays, Check, CheckCircle2, ChevronRight, FileText,
   Leaf, Loader2, MessageCircle, Minus, Send,
-  Sparkles, Star, X,
+  Star, X,
 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
+import { ClientHomeTeam } from '../../components/ClientHomeTeam';
 import { ClientDocumentBrandCover } from '../../components/ClientDocumentBrandCover';
 import { loadClientDashboardReality, subscribeClientDeliveryReality } from '../../lib/clientDeliveryReality';
 import { supabase } from '../../lib/supabase';
@@ -69,6 +70,8 @@ type DashboardData = {
   occurrenceLoadError: boolean;
 };
 
+// Cores aprovadas das etiquetas de prazo, por situação real da entrega (sem tom = creme, em andamento).
+const milestoneTone: Record<string, string> = { approved: 'green', client_review: 'purple', internal_review: 'purple', not_started: 'red', adjustment_requested: 'red', rebriefing: 'red' };
 const statusLabel: Record<string, string> = {
   not_started: 'Não iniciado', in_progress: 'Em andamento', standby: 'Em espera',
   internal_review: 'Revisão CALI', client_review: 'Aguardando sua validação',
@@ -331,170 +334,177 @@ export function ClientDashboard() {
     } finally { setSending(false); }
   }
 
-  if (loading) return <Shell role="client"><section className="page client-home-v2"><div className="data-loading"><Loader2 className="spin" size={20} />Preparando sua área CALI…</div></section></Shell>;
+  if (loading) return <Shell role="client"><section className="client-home"><div className="data-loading"><Loader2 className="spin" size={20} />Preparando sua área CALI…</div></section></Shell>;
 
   const contactName = data.contact?.full_name || 'Patrícia Lima';
   const contactRole = data.contact?.job_title || 'People Advisory Executive';
 
   return <Shell role="client">
-    <section className="page client-home-v2 client-home-v3">
+    <section className="client-home">
       {error && <div className="inline-notice">{error}</div>}
 
-      <div className="client-home-greeting client-home-intro">
-        <h1>Olá, {firstName(data.profile?.full_name)}.</h1>
-        <div className="patricia-identity-card client-home-contact">
-          <div className="patricia-photo-wrap">{data.contact?.avatar_url ? <img src={data.contact.avatar_url} alt={contactName} style={{ objectPosition: `${Number(data.contact.avatar_position_x || 50)}% ${Number(data.contact.avatar_position_y || 50)}%`, transform: `scale(${Number(data.contact.avatar_zoom || 1)})` }} /> : <span>PL</span>}</div>
-          <div><span>RESPONSÁVEL EXECUTIVA DA CONTA</span><strong>{contactName}</strong><em>{contactRole}</em></div>
+      <div className="ch-content">
+      <div className="ch-greeting">
+        <div><span className="ch-overline">SUA PARCERIA COM A CALI</span><h1>Olá, {data.profile?.full_name ? firstName(data.profile.full_name) : 'seja bem-vinda'}.</h1><p>Veja o que aconteceu e o que vem a seguir na sua assessoria.</p></div>
+        <div className="ch-executive">
+          <div className="ch-executive-photo">{data.contact?.avatar_url ? <img src={data.contact.avatar_url} alt={contactName} style={{ objectPosition: `${Number(data.contact.avatar_position_x || 50)}% ${Number(data.contact.avatar_position_y || 50)}%`, transform: `scale(${Number(data.contact.avatar_zoom || 1)})` }} /> : contactName.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')}</div>
+          <div><small>RESPONSÁVEL EXECUTIVA DA CONTA</small><strong>{contactName}</strong><span>{contactRole}</span></div>
         </div>
       </div>
 
-      <div className="client-home-top-grid">
-        <aside className="contract-card" aria-label="Sua contratação">
-          <div className="contract-card-head">
-            <div className="contract-logo-frame">
-              {occurrenceLogoUrl ? <img src={occurrenceLogoUrl} alt="" /> : <Sparkles size={18} />}
+      <div className="ch-contract-wrap">
+        <aside className="ch-contract" aria-label="Sua contratação">
+          <div className="ch-contract-top"><div className="ch-contract-name">
+            <div className="ch-company-logo">
+              {occurrenceLogoUrl ? <img src={occurrenceLogoUrl} alt="" /> : <>{(data.company?.display_name || 'C').trim().charAt(0).toUpperCase()}<span>·</span></>}
             </div>
-            <div className="contract-main"><span>SUA CONTRATAÇÃO</span><strong>{packageName}</strong><small>{data.company?.display_name || 'Conta CALI'}</small></div>
+            <div className="ch-contract-main"><small>SUA CONTRATAÇÃO</small><h2>{packageName}</h2><span>{data.company?.display_name || 'Conta CALI'}</span></div>
           </div>
-          <div className="contract-card-hours">
+          <div className="ch-contract-figures">
             {showHours && data.contractedHours > 0 ? <>
-              <div className="contract-hours-stat"><strong>{formatHours(data.minutes)}</strong><span>consumidas no mês · {hoursPercentage}%</span></div>
-              <div className="contract-hours-stat"><strong>{data.contractedHours}h</strong><span>contratadas no mês</span></div>
-            </> : showHours ? <div className="contract-hours-stat wide"><strong>{formatHours(data.minutes)}</strong><span>consumidas no mês · franquia não definida</span></div> : <div className="contract-hours-stat wide"><strong>{data.hoursLoadError ? 'Indisponível' : activeProject ? 'Ativo' : 'Em preparação'}</strong><span>{data.hoursLoadError ? 'horas do mês' : 'ciclo atual'}</span></div>}
+              <div className="ch-contract-stat"><strong>{formatHours(data.minutes)}</strong><span>consumidas no mês · {hoursPercentage}%</span></div>
+              <div className="ch-contract-stat"><strong>{data.contractedHours}h</strong><span>contratadas no mês</span></div>
+            </> : showHours ? <div className="ch-contract-stat wide"><strong>{formatHours(data.minutes)}</strong><span>consumidas no mês · franquia não definida</span></div> : <div className="ch-contract-stat wide"><strong>{data.hoursLoadError ? 'Indisponível' : activeProject ? 'Ativo' : 'Em preparação'}</strong><span>{data.hoursLoadError ? 'horas do mês' : 'ciclo atual'}</span></div>}
           </div>
-          {contractedMinutes > 0 && <div className="contract-hours-progress" role="progressbar" aria-label="Horas consumidas neste mês" aria-valuemin={0} aria-valuemax={contractedMinutes} aria-valuenow={Math.min(contractedMinutes, data.minutes)} aria-valuetext={`${formatHours(data.minutes)} de ${data.contractedHours} horas, ${hoursPercentage}%`}>
-            <div className="contract-hours-scale"><span>0h</span><span>50%</span><span>{data.contractedHours}h</span></div>
-            <div className="contract-hours-track"><div className="contract-hours-fill" style={{ clipPath: `inset(0 ${100 - hoursProgress}% 0 0)` }} /><i aria-hidden="true" /></div>
+          </div>
+          {contractedMinutes > 0 && <div className="ch-contract-progress" role="progressbar" aria-label="Horas consumidas neste mês" aria-valuemin={0} aria-valuemax={contractedMinutes} aria-valuenow={Math.min(contractedMinutes, data.minutes)} aria-valuetext={`${formatHours(data.minutes)} de ${data.contractedHours} horas, ${hoursPercentage}%`}>
+            <div className="ch-progress-line"><span style={{ width: `${hoursProgress}%` }} /></div><div className="ch-progress-scale"><span>0h</span><span>50%</span><span>{data.contractedHours}h</span></div>
           </div>}
         </aside>
 
       </div>
-      {waiting.length > 0 && <Link to="/cliente/entregaveis" className="client-home-validation">{waiting.length} {waiting.length === 1 ? 'entrega aguarda' : 'entregas aguardam'} sua validação <ChevronRight size={15} /></Link>}
+      {waiting.length > 0 && <Link to="/cliente/entregaveis" className="ch-validation">{waiting.length} {waiting.length === 1 ? 'entrega aguarda' : 'entregas aguardam'} sua validação <ChevronRight size={15} /></Link>}
 
-      <section className="client-executive-grid">
-        <article className="executive-card project-card">
-          <div className="client-cycle-summary">
-            <div className="client-cycle-copy"><span>Entregas do ciclo</span><strong>{cycleTotal}</strong><small>{cycleTotal === 1 ? 'entrega no projeto atual' : 'entregas no projeto atual'}</small></div>
-            <div className="client-cycle-donut" role="img" aria-label={cycleBreakdown.map((item) => `${item.count} ${item.label.toLowerCase()}`).join(', ')}>
+      <section className="ch-three">
+        <article className="ch-surface ch-deliveries"><h3>Entregas do ciclo</h3>
+          <div className="ch-delivery-inside">
+            <div className="ch-cycle-copy"><strong className="ch-big">{data.company ? cycleTotal : '—'}</strong><p>{cycleTotal === 1 ? 'entrega no projeto atual' : 'entregas no projeto atual'}</p></div>
+            <div className="ch-donut ch-real-donut" role="img" aria-label={cycleBreakdown.map((item) => `${item.count} ${item.label.toLowerCase()}`).join(', ')}>
               <svg viewBox="0 0 100 100" aria-hidden="true">
-                <circle className="client-cycle-track" cx="50" cy="50" r="40" fill="none" pathLength="100" />
+                <circle className="ch-cycle-track" cx="50" cy="50" r="40" fill="none" pathLength="100" />
                 {cycleTotal > 0 && cycleBreakdown.map((item, index) => item.count > 0 && <circle key={item.label} cx="50" cy="50" r="40" fill="none" pathLength="100" stroke={item.color} strokeDasharray={`${item.count / cycleTotal * 100} 100`} strokeDashoffset={-cycleBreakdown.slice(0, index).reduce((sum, previous) => sum + previous.count, 0) / cycleTotal * 100} />)}
-              </svg>
+              </svg><span className="ch-donut-value">{data.company ? `${cycleTotal ? Math.round(approvedCount / cycleTotal * 100) : 0}%` : '—'}</span>
+            </div>
+          <div className="ch-legend">{cycleBreakdown.map((item, index) => <span key={item.label}><i className={['green', 'yellow', 'red'][index]} /> {item.label} <b>{data.company ? item.count : '—'}</b></span>)}</div></div>
+        </article>
+
+        <article className="ch-surface ch-feeling"><h3>Percepção do trabalho <span>· mês atual</span></h3>
+          <div className="ch-feeling-inner">
+            <div><p><Star size={17} color="#bb5372" /> <strong>{data.company ? data.npsCount : '—'} {data.npsCount === 1 ? 'avaliação recebida' : 'avaliações recebidas'}</strong></p><p><Check size={17} color="#1b927f" /> {data.nps == null ? 'Aguardando a primeira' : 'Média das avaliações'}</p></div>
+            <div className="ch-no-rating" role="img" aria-label={data.nps == null ? 'Ainda sem avaliação das entregas' : `Nota média ${data.nps.toFixed(1)} de 5, em ${data.npsCount} avaliações`}>
+              {data.nps != null && <svg viewBox="0 0 180 102" aria-hidden="true">
+                <defs><linearGradient id="ch-perception-gradient"><stop offset="0%" stopColor="#D85C73" /><stop offset="50%" stopColor="#E3A536" /><stop offset="100%" stopColor="#2BAFA8" /></linearGradient></defs>
+                <path className="ch-gauge-track" d="M 15 90 A 75 75 0 0 1 165 90" fill="none" pathLength="100" />
+                <path className="ch-gauge-fill" d="M 15 90 A 75 75 0 0 1 165 90" fill="none" pathLength="100" strokeDasharray={`${Math.max(0, Math.min(100, data.nps / 5 * 100))} 100`} />
+              </svg>}
+              <strong>{data.nps == null ? '—' : data.nps.toFixed(1)}</strong><small>{data.nps == null ? 'Sem nota' : 'de 5 pontos'}</small>
             </div>
           </div>
-          <div className="client-cycle-legend">{cycleBreakdown.map((item) => <div key={item.label}><i style={{ backgroundColor: item.color }} /><span>{item.label}</span><strong>{item.count}</strong></div>)}</div>
+          <small className="ch-subnote">{data.nps == null ? 'De entregas ou ocorrências' : 'Entregas e ocorrências avaliadas'}</small>
         </article>
 
-        <article className="executive-card nps-card client-perception-card">
-          <div className="client-perception-copy">
-            <span>Percepção do trabalho · mês atual</span>
-            <div className="client-perception-detail"><i><Star size={18} /></i><div><strong>{data.npsCount} {data.npsCount === 1 ? 'avaliação recebida' : 'avaliações recebidas'}</strong><small>da sua empresa</small></div></div>
-            <div className="client-perception-detail"><i><CheckCircle2 size={18} /></i><div><strong>{data.nps == null ? 'Aguardando a primeira' : 'Média das avaliações'}</strong><small>{data.nps == null ? 'De entregas ou ocorrências' : 'Entregas e ocorrências avaliadas'}</small></div></div>
+        <article className="ch-surface ch-completion"><h3>Conclusão do trabalho <span>· mês atual</span></h3>
+          <div className="ch-complete-line"><strong className="ch-big">{work ? `${data.completionPct}%` : '—'}</strong>
+            <div className="ch-color-bars" role="img" aria-label={deliveryStages.map((stage) => `${stage.label}: ${stage.count}`).join('; ')}>
+              {deliveryStages.map((stage) => <i key={stage.label} title={`${stage.label}: ${stage.count}`} />)}
+            </div>
           </div>
-          <div className="client-perception-gauge" role="img" aria-label={data.nps == null ? 'Ainda sem avaliação das entregas' : `Nota média ${data.nps.toFixed(1)} de 5, em ${data.npsCount} avaliações`}>
-            <svg viewBox="0 0 180 102" aria-hidden="true">
-              <defs><linearGradient id="client-perception-gradient"><stop offset="0%" stopColor="#D85C73" /><stop offset="50%" stopColor="#E3A536" /><stop offset="100%" stopColor="#2BAFA8" /></linearGradient></defs>
-              <path className="client-perception-gauge-track" d="M 15 90 A 75 75 0 0 1 165 90" fill="none" pathLength="100" />
-              {data.nps != null && <path className="client-perception-gauge-fill" d="M 15 90 A 75 75 0 0 1 165 90" fill="none" pathLength="100" strokeDasharray={`${Math.max(0, Math.min(100, data.nps / 5 * 100))} 100`} />}
-            </svg>
-            <div><strong>{data.nps == null ? '—' : data.nps.toFixed(1)}</strong><small>{data.nps == null ? 'Sem nota' : 'de 5 pontos'}</small></div>
-          </div>
-        </article>
-
-        <article className="executive-card quality-card">
-          <div className="client-completion-copy">
-            <span>Conclusão do trabalho · mês atual</span>
-            <strong>{data.completionPct}%</strong>
-            <p>{work?.completed || 0} de {work?.total || 0} {work?.total === 1 ? 'atividade concluída' : 'atividades concluídas'} entre entregas e ocorrências</p>
-            {data.unlinkedHourEntries > 0 && <small>{data.unlinkedHourEntries} {data.unlinkedHourEntries === 1 ? 'lançamento de horas sem vínculo' : 'lançamentos de horas sem vínculo'} com uma atividade</small>}
-          </div>
-          <div className="client-completion-bars" role="img" aria-label={deliveryStages.map((stage) => `${stage.label}: ${stage.count}`).join('; ')}>
-            {deliveryStages.map((stage, index) => <span key={stage.label} className={`client-completion-bar stage-${index + 1}${stage.count ? '' : ' is-empty'}`} style={{ height: stage.count ? `${Math.max(25, stage.count / highestStageCount * 100)}%` : '4px' }} title={`${stage.label}: ${stage.count}`} />)}
-          </div>
+          <p>{work?.completed ?? '—'} de {work?.total ?? '—'} {work?.total === 1 ? 'atividade concluída' : 'atividades concluídas'} entre entregas e ocorrências.</p>
+          {data.unlinkedHourEntries > 0 && <small className="ch-subnote">{data.unlinkedHourEntries} {data.unlinkedHourEntries === 1 ? 'lançamento de horas sem vínculo' : 'lançamentos de horas sem vínculo'} com uma atividade</small>}
         </article>
       </section>
 
-      <section className="client-home-service-grid" aria-label="Atualizações da conta">
-        <article className="client-service-card documents">
-          <div className="client-service-cover">
-            {data.latestDocument ? <ClientDocumentBrandCover companyId={data.company?.id || ''} companyName={data.company?.display_name || 'sua empresa'} logoUrl={data.company?.logo_url} compact /> : <div className="client-service-empty-cover"><FileText size={26} /></div>}
+      <div className="ch-home-spotlight">
+        <section className="ch-bulletin ch-bulletin-v4" aria-labelledby="home-notices-title">
+          <div className="ch-bulletin-heading"><div><small>QUADRO DE AVISOS · CALI</small><h3 id="home-notices-title">Avisos da sua parceria</h3><p>Informações importantes para acompanhar e dar ciência.</p></div><Link className="ch-link" to="/cliente/avisos">Ver mural completo <ArrowRight size={15} /></Link></div>
+          <div className="ch-bulletin-grid"><article className="ch-bulletin-item ch-bulletin-empty"><div className="ch-bulletin-meta"><span className="ch-bulletin-label">COMUNICADOS</span><strong>Nenhum comunicado disponível</strong><span className="ch-bulletin-author">Ainda não há avisos disponíveis para esta conta.</span></div><div className="ch-bulletin-picture ch-empty-picture"><MessageCircle size={25} /></div><div className="ch-bulletin-foot"><span id="home-notices-dependency">Mural em preparação.</span></div></article></div>
+        </section>
+        <ClientHomeTeam key={data.company?.id || 'unavailable'} companyId={data.company?.id} />
+      </div>
+
+      <section className="ch-mid" aria-label="Atualizações da conta">
+        <article className="ch-surface ch-recent-document">
+          <div className="ch-doc-thumb">
+            {data.latestDocument ? <ClientDocumentBrandCover companyId={data.company?.id || ''} companyName={data.company?.display_name || 'sua empresa'} logoUrl={data.company?.logo_url} compact /> : <div className="ch-doc-empty"><FileText size={26} /></div>}
           </div>
-          <div className="client-service-content">
-            <span className="client-service-kicker">DOCUMENTO MAIS RECENTE</span>
-            <strong>{data.latestDocument?.title || (data.documentCount == null ? 'Documentos indisponíveis agora' : 'Nenhum documento publicado')}</strong>
+          <div className="ch-document-copy">
+            <small className="ch-kicker">DOCUMENTO MAIS RECENTE</small>
+            <h3>{data.latestDocument?.title || (data.documentCount == null ? 'Documentos indisponíveis agora' : 'Nenhum documento publicado')}</h3>
             {data.latestDocument && <p>Atualizado em {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(data.latestDocument.updated_at)).replace('.', '')}</p>}
-            <Link to="/cliente/documentos">{data.latestDocument ? 'Ver documento e acervo' : 'Ver documentos'} <ChevronRight size={15} /></Link>
+            <Link className="ch-link" to="/cliente/documentos">{data.latestDocument ? 'Ver documento e acervo' : 'Ver documentos'} <ChevronRight size={15} /></Link>
           </div>
         </article>
-        <article className="client-service-card occurrences">
-          {latestOccurrence && <span className={`client-occurrence-badge status-${occurrenceStatus}`}>{occurrenceStatusText[occurrenceStatus] || 'Em acompanhamento'}</span>}
-          <div className="client-occurrence-people" aria-label="Contatos da empresa e da CALI">
-            <span className="client-occurrence-avatar">{data.profile?.avatar_url ? <img src={data.profile.avatar_url} alt={data.profile.full_name} style={{ objectPosition: `${Number(data.profile.avatar_position_x ?? 50)}% ${Number(data.profile.avatar_position_y ?? 50)}%`, transform: `scale(${Number(data.profile.avatar_zoom ?? 1)})` }} /> : firstName(data.profile?.full_name).charAt(0)}</span>
-            <span className="client-occurrence-avatar">{data.contact?.avatar_url ? <img src={data.contact.avatar_url} alt={contactName} style={{ objectPosition: `${Number(data.contact.avatar_position_x ?? 50)}% ${Number(data.contact.avatar_position_y ?? 50)}%`, transform: `scale(${Number(data.contact.avatar_zoom ?? 1)})` }} /> : contactName.charAt(0)}</span>
-            <span className="client-occurrence-avatar company">{occurrenceLogoUrl ? <img src={occurrenceLogoUrl} alt={data.company?.display_name || 'Empresa'} /> : 'C'}</span>
+        <article className="ch-surface ch-recent-case">
+          <div className="ch-avatars" aria-label="Contatos da empresa e da CALI">
+            <span className="ch-avatar">{data.profile?.avatar_url ? <img src={data.profile.avatar_url} alt={data.profile.full_name} style={{ objectPosition: `${Number(data.profile.avatar_position_x ?? 50)}% ${Number(data.profile.avatar_position_y ?? 50)}%`, transform: `scale(${Number(data.profile.avatar_zoom ?? 1)})` }} /> : firstName(data.profile?.full_name).charAt(0)}</span>
+            <span className="ch-avatar">{data.contact?.avatar_url ? <img src={data.contact.avatar_url} alt={contactName} style={{ objectPosition: `${Number(data.contact.avatar_position_x ?? 50)}% ${Number(data.contact.avatar_position_y ?? 50)}%`, transform: `scale(${Number(data.contact.avatar_zoom ?? 1)})` }} /> : contactName.charAt(0)}</span>
+            <span className="ch-avatar company">{occurrenceLogoUrl ? <img src={occurrenceLogoUrl} alt={data.company?.display_name || 'Empresa'} /> : 'C'}</span>
           </div>
-          <span className="client-service-kicker">OCORRÊNCIA MAIS RECENTE</span>
-          <strong>{latestOccurrence?.title || (data.occurrenceLoadError ? 'Ocorrências indisponíveis agora' : 'Nenhuma ocorrência registrada')}</strong>
+          {latestOccurrence && <span className={`ch-tag amber status-${occurrenceStatus}`}>{occurrenceStatusText[occurrenceStatus] || 'Em acompanhamento'}</span>}
+          <small className="ch-kicker">OCORRÊNCIA MAIS RECENTE</small>
+          <h3>{latestOccurrence?.title || (data.occurrenceLoadError ? 'Ocorrências indisponíveis agora' : 'Nenhuma ocorrência registrada')}</h3>
           {latestOccurrence ? <p>{occurrenceDays === 0 ? 'Registrada hoje' : `Registrada há ${occurrenceDays} ${occurrenceDays === 1 ? 'dia' : 'dias'}`} · {data.openOccurrenceCount ?? '—'} em aberto</p> : <p>{data.occurrenceLoadError ? 'Acesse a página de registros para tentar novamente.' : 'Os registros compartilhados aparecerão aqui.'}</p>}
-          <Link to={latestOccurrence ? `/cliente/registros?record=${encodeURIComponent(latestOccurrence.id)}` : '/cliente/registros'}>{latestOccurrence ? 'Abrir ocorrência' : 'Ver ocorrências'} <ChevronRight size={15} /></Link>
+          <Link className="ch-link" to={latestOccurrence ? `/cliente/registros?record=${encodeURIComponent(latestOccurrence.id)}` : '/cliente/registros'}>{latestOccurrence ? 'Abrir ocorrência' : 'Ver ocorrências'} <ChevronRight size={15} /></Link>
         </article>
       </section>
 
-      <div className="client-home-lower-grid">
-        <section className="panel client-project-panel">
-          <div className="panel-title"><div><span className="section-kicker">EM MOVIMENTO</span><h2>{activeProject?.name || 'Projeto atual'}</h2></div><Link to="/cliente/entregaveis">Ver projeto</Link></div>
-          {visibleDeliverables.length ? <div className="client-delivery-schedule" aria-label="Prazos e andamento das entregas">
-            <div className="client-delivery-lanes">{visibleDeliverables.map((deliverable) => {
+      <div className="ch-bottom">
+        <section className="ch-surface ch-project">
+          <div className="ch-card-head"><div><small className="ch-kicker">EM MOVIMENTO</small><h3>{activeProject?.name || 'Projeto atual'}</h3></div><Link className="ch-link" to="/cliente/entregaveis">Ver projeto <ArrowRight size={14} /></Link></div>
+          {visibleDeliverables.length ? <div className="ch-gantt" aria-label="Prazos e andamento das entregas"><div className="ch-gantt-header"><span>ENTREGA / STATUS</span><span>INÍCIO</span><span>MEIO</span><span>CONCLUSÃO</span></div>
+            <div className="ch-gantt-lanes">{visibleDeliverables.map((deliverable) => {
               const due = deliveryDate(deliverable.due_at);
               const position = due && timeline ? Math.max(12, Math.min(88, (due.getTime() - timeline.start) / timeline.span * 100)) : 50;
-              return <div className="client-delivery-lane" key={deliverable.id}>
-                <div className="client-delivery-name"><strong>{deliverable.title}</strong><small>{statusLabel[deliverable.status] || deliverable.status}</small></div>
-                <div className="client-delivery-track" aria-hidden="true">
-                  {due && timeline ? <span className={`client-delivery-marker status-${deliverable.status}`} style={{ left: `${position}%` }}>{formatDate(deliverable.due_at)}</span> : <span className="client-delivery-undated">Prazo a definir</span>}
+              return <div className="ch-gantt-row" key={deliverable.id}>
+                <div className="ch-delivery-name"><strong>{deliverable.title}</strong><small>{statusLabel[deliverable.status] || deliverable.status}</small></div>
+                <div className="ch-gantt-track" aria-hidden="true">
+                  {due && timeline ? <span className={`ch-milestone ${milestoneTone[deliverable.status] || ''} status-${deliverable.status}`} style={{ left: `${position}%` }}>{formatDate(deliverable.due_at)}</span> : <span className="ch-undated">Prazo a definir</span>}
                 </div>
-                <span className="client-delivery-mobile-date">{formatDate(deliverable.due_at)}</span>
+                <span className="ch-mobile-date">{formatDate(deliverable.due_at)}</span>
               </div>;
             })}</div>
-            {timeline && <div className="client-delivery-axis" aria-hidden="true"><span />{timeline.ticks.map((tick) => <time key={tick}>{formatDate(new Date(tick).toISOString())}</time>)}</div>}
-          </div> : <div className="client-empty-inline">Quando a CALI abrir as primeiras entregas deste projeto, elas aparecerão aqui.</div>}
+            {timeline && <div className="ch-gantt-foot" aria-hidden="true"><span />{timeline.ticks.map((tick) => <time key={tick}>{formatDate(new Date(tick).toISOString())}</time>)}</div>}
+          </div> : <div className="ch-empty">Quando a CALI abrir as primeiras entregas deste projeto, elas aparecerão aqui.</div>}
         </section>
 
-        <section className="panel client-agenda-panel">
-          <div className="panel-title"><div><span className="section-kicker">PRÓXIMOS PASSOS</span><h2>Agenda compartilhada</h2></div><Link to="/cliente/cronograma">Abrir</Link></div>
-          {data.events.length ? <div className="client-agenda-timeline">{data.events.map((event) => { const date = formatEventDate(event.starts_at); return <div className="client-agenda-step" key={event.id}><time dateTime={event.starts_at}><strong>{date.day}</strong><span>{date.month}</span><small>{date.time}</small></time><i aria-hidden="true" /><div><strong>{event.title}</strong>{event.mode && <p>{event.mode === 'in_person' ? 'Presencial' : event.mode === 'remote' || event.mode === 'online' ? 'Online' : event.mode}</p>}</div>{event.meeting_url && <a href={event.meeting_url} target="_blank" rel="noreferrer" aria-label={`Abrir reunião: ${event.title}`}><ArrowUpRight size={17} /></a>}</div>; })}</div> : <div className="client-empty-inline"><CalendarDays size={18} />Nenhum compromisso futuro publicado para sua empresa.</div>}
+        <div className="ch-side-stack"><section className="ch-surface ch-next">
+          <div className="ch-card-head"><div><small className="ch-kicker">PRÓXIMOS PASSOS</small><h3>Agenda compartilhada</h3></div><Link className="ch-link" to="/cliente/cronograma">Abrir <ArrowRight size={13} /></Link></div>
+          {data.events.length ? <div className="ch-events">{data.events.map((event) => { const date = formatEventDate(event.starts_at); const mode = event.mode === 'in_person' ? 'Presencial' : event.mode === 'remote' || event.mode === 'online' ? 'Online' : event.mode; return <div className="ch-event" key={event.id}><div className="ch-event-date"><strong>{date.day}</strong><small>{date.month}</small></div><span className="ch-event-dot" /><div><strong>{event.title}</strong><small><time dateTime={event.starts_at}>{date.time}</time>{mode ? ` · ${mode}` : ''}</small></div>{event.meeting_url && <a className="ch-event-link" href={event.meeting_url} target="_blank" rel="noreferrer" aria-label={`Abrir reunião: ${event.title}`}><ArrowUpRight size={17} /></a>}</div>; })}</div> : <div className="ch-empty"><CalendarDays size={18} />Nenhum compromisso futuro publicado para sua empresa.</div>}
         </section>
-      </div>
-
-      {!chatOpen && <button className="patricia-float" type="button" onClick={() => { setChatSent(false); setAssistantReply(''); setChatOpen(true); }} aria-label="Fale com a Pati" title="Fale com a Pati">
-        <span className="patricia-float-art patricia-portrait-slot"><video src={patiWaveVideo} poster={patiWavePoster} muted loop autoPlay playsInline preload="metadata" aria-hidden="true" /></span><span>Fale com a Pati</span>
-      </button>}
-    </section>
-
-    {chatOpen && <aside className="client-chat-panel client-chat-floating" role="dialog" aria-label="Fale com a Pati">
-      <div className="client-chat-window-actions">
-        <button onClick={() => setChatOpen(false)} aria-label="Minimizar"><Minus size={17} /></button>
-        <button onClick={() => { setChatOpen(false); setAssistantReply(''); setChatSent(false); }} aria-label="Fechar"><X size={17} /></button>
-      </div>
-      <div className="client-chat-brand"><div className="chat-lime patricia-portrait-slot"><video src={patiWaveVideo} poster={patiWavePoster} muted loop autoPlay playsInline preload="metadata" aria-hidden="true" /></div><div><span>CANAL DIRETO CALI</span><strong>Fale com a Pati</strong><small>{contactRole}</small></div></div>
-      <p className="chat-intro">Use este canal para consultar informações da sua conta ou enviar algo que precise de acompanhamento da CALI.</p>
-
-      <div className="chat-auto-block">
-        <span>POSSO RESPONDER AGORA</span>
-        <div className="chat-auto-actions"><button onClick={() => quickAnswer('next_event')}>Próxima reunião</button>{showHours && <button onClick={() => quickAnswer('hours')}>Horas do ciclo</button>}<button onClick={() => quickAnswer('validation')}>Validações</button><button onClick={() => quickAnswer('reports')}>Relatórios</button></div>
-        {assistantReply && <div className="chat-auto-reply"><Leaf size={15} /><p>{assistantReply}</p></div>}
-      </div>
-
-      {chatSent ? <div className="chat-success compact"><CheckCircle2 size={22} /><strong>Mensagem registrada.</strong><p>Ela entrou em Registros/Ocorrências da conta e gerou uma notificação no administrativo.</p><button onClick={() => { setChatSent(false); setAssistantReply(''); }}>Enviar outra mensagem</button></div> : <>
-        <div className="chat-kind-tabs" role="group" aria-label="Tipo da mensagem">
-          <button className={chatKind === 'question' ? 'active' : ''} onClick={() => setChatKind('question')}>Dúvida</button>
-          <button className={chatKind === 'context_change' ? 'active' : ''} onClick={() => setChatKind('context_change')}>Mudança de contexto</button>
-          <button className={chatKind === 'request' ? 'active' : ''} onClick={() => setChatKind('request')}>Solicitação</button>
-          <button className={chatKind === 'occurrence' ? 'active' : ''} onClick={() => setChatKind('occurrence')}>Ocorrência</button>
+        <section className="ch-surface ch-cycle-next"><div className="ch-card-head"><h3>Próxima decisão</h3>{waiting.length > 0 && <span className="ch-tag lilac">Em validação</span>}</div><p>{waiting[0]?.title || 'Nenhuma entrega aguardando sua validação.'}</p>{waiting.length > 0 && <Link className="ch-link" to="/cliente/entregaveis">Consultar contexto <ArrowRight size={13} /></Link>}</section>
         </div>
-        <label>Sua mensagem<textarea rows={4} value={chatText} onChange={(event) => setChatText(event.target.value)} placeholder="Escreva aqui. Isso ficará registrado na sua conta CALI." /></label>
-        <button className="chat-send" disabled={!chatText.trim() || sending} onClick={() => void sendMessage()}>{sending ? <Loader2 className="spin" size={17} /> : <Send size={17} />}Enviar para a Pati</button>
-        <div className="chat-note"><MessageCircle size={15} />Respostas automáticas usam apenas dados reais. Questões estratégicas ficam registradas para a Pati.</div>
-      </>}
+      </div>
+      </div>
+
+      {!chatOpen && <button className="ch-chat-trigger" type="button" onClick={() => { setChatSent(false); setAssistantReply(''); setChatOpen(true); }} aria-label="Fale com a Pati" title="Fale com a Pati">
+        <span className="ch-chat-portrait"><video src={patiWaveVideo} poster={patiWavePoster} muted loop autoPlay playsInline preload="metadata" aria-hidden="true" /></span> Fale com a Pati <MessageCircle size={15} />
+      </button>}
+
+    {chatOpen && <aside className="ch-chat" role="dialog" aria-label="Fale com a Pati">
+      <div className="ch-chat-top"><span className="ch-chat-portrait"><video src={patiWaveVideo} poster={patiWavePoster} muted loop autoPlay playsInline preload="metadata" aria-hidden="true" /></span><div><small>CANAL DIRETO CALI</small><strong>Fale com a Pati</strong><span>{contactRole}</span></div>
+        <button title="Minimizar" onClick={() => setChatOpen(false)} aria-label="Minimizar"><Minus size={15} /></button>
+        <button title="Fechar" onClick={() => { setChatOpen(false); setAssistantReply(''); setChatSent(false); }} aria-label="Fechar"><X size={16} /></button>
+      </div>
+      <div className="ch-chat-body">
+        <p>Use este canal para consultar informações da sua conta ou enviar algo que precise de acompanhamento da CALI.</p>
+        <div className="ch-chat-quick"><small>POSSO RESPONDER AGORA</small>
+          <div><button onClick={() => quickAnswer('next_event')}><CalendarDays size={13} /> Próxima reunião</button>{showHours && <button onClick={() => quickAnswer('hours')}><Clock3 size={13} /> Horas do ciclo</button>}<button onClick={() => quickAnswer('validation')}><ClipboardCheck size={13} /> Validações</button><button onClick={() => quickAnswer('reports')}><Activity size={13} /> Relatórios</button></div>
+          {assistantReply && <div className="ch-auto-reply"><Leaf size={15} /><p>{assistantReply}</p></div>}
+        </div>
+        {chatSent ? <div className="ch-chat-success"><CheckCircle2 size={22} /><strong>Mensagem registrada.</strong><p>Ela entrou em Registros/Ocorrências da conta e gerou uma notificação no administrativo.</p><button onClick={() => { setChatSent(false); setAssistantReply(''); }}>Enviar outra mensagem</button></div> : <>
+          <div className="ch-chat-kinds" role="group" aria-label="Tipo da mensagem">
+            <button className={chatKind === 'question' ? 'selected' : ''} onClick={() => setChatKind('question')}>Dúvida</button>
+            <button className={chatKind === 'context_change' ? 'selected' : ''} onClick={() => setChatKind('context_change')}>Mudança de contexto</button>
+            <button className={chatKind === 'request' ? 'selected' : ''} onClick={() => setChatKind('request')}>Solicitação</button>
+            <button className={chatKind === 'occurrence' ? 'selected' : ''} onClick={() => setChatKind('occurrence')}>Ocorrência</button>
+          </div>
+          <label htmlFor="ch-message">Sua mensagem</label>
+          <textarea id="ch-message" value={chatText} onChange={(event) => setChatText(event.target.value)} placeholder="Escreva aqui. Isso ficará registrado na sua conta CALI." />
+          <div className="ch-chat-send"><button disabled={!chatText.trim() || sending} onClick={() => void sendMessage()}>{sending ? <Loader2 className="spin" size={13} /> : <Send size={13} />} Enviar para a Pati</button></div>
+          <div className="ch-chat-note"><CircleHelp size={13} /> Respostas automáticas usam apenas dados reais. Questões estratégicas ficam registradas para a Pati.</div>
+        </>}
+      </div>
     </aside>}
+    </section>
   </Shell>;
 }

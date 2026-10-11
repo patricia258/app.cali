@@ -30,7 +30,7 @@ function formatDate(value?: string | null) {
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(date).replace('.', '');
 }
-function drawer() { return document.querySelector<HTMLElement>('.records-v13-drawer'); }
+function drawer() { return document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"])"); }
 function protocolFromDrawer(target: HTMLElement) { return target.querySelector<HTMLElement>('.section-kicker')?.textContent?.trim() || ''; }
 function statusLabel(status?: string | null) {
   if (status === 'completed') return 'Finalizada';
@@ -251,7 +251,7 @@ function renderAdminFeedback(target: HTMLElement, ctx: Context) {
   card.append(score, copy);
   const host = target.querySelector<HTMLElement>('.records-v25-ops');
   if (host) host.append(card);
-  else target.querySelector('.records-v13-conversation')?.before(card);
+  else target.querySelector(":is(.records-v13-conversation,[data-v2-operation~=\"records-v13-conversation\"])")?.before(card);
 }
 
 function summaryCell(label: string, value: string) {
@@ -349,7 +349,7 @@ function renderAdminPendingBanner(target: HTMLElement, ctx: Context) {
   banner.append(copy, review);
   const host = target.querySelector<HTMLElement>('.records-v25-ops');
   if (host) host.prepend(banner);
-  else target.querySelector('.records-v13-conversation')?.before(banner);
+  else target.querySelector(":is(.records-v13-conversation,[data-v2-operation~=\"records-v13-conversation\"])")?.before(banner);
 }
 function renderAdminReopen(target: HTMLElement, ctx: Context) {
   if (!ctx.reopen) {

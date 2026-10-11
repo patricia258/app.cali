@@ -158,7 +158,26 @@ async function enhanceOpenEventModal() {
 
 async function connect() { const button = document.querySelector<HTMLButtonElement>('[data-google-calendar-connect],[data-google-calendar-reconnect]'); if (button) { button.disabled = true; button.textContent = 'Abrindo Google...'; } try { const data = await invoke({ action: 'authorize', companyId: null }); if (!data?.url) throw new Error('URL de autorização não recebida'); window.location.assign(data.url); } catch (error) { alert(`Não foi possível iniciar a autorização do Google.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); if (button) { button.disabled = false; button.textContent = 'Conectar Google Calendar'; } } }
 async function disconnect() { if (!confirm('Desconectar este Google Calendar do CALI Workspace? Os eventos já criados no Google não serão apagados automaticamente.')) return; try { await invoke({ action: 'disconnect', companyId: null }); connectionCache = null; connectionCacheAt = 0; lastRenderKey = ''; document.querySelector<HTMLElement>('.google-calendar-runtime-actions')?.removeAttribute('data-google-connection-ready'); await renderConnection(); } catch (error) { alert(`Não foi possível desconectar.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); } }
-async function deleteEvent(eventId: string) { const reason = window.prompt('Por que você está excluindo este evento?\n\nO evento será removido do Workspace e do Google Calendar. Uma cópia completa ficará preservada na auditoria.'); if (!reason?.trim()) return; if (!window.confirm('Tem certeza que deseja excluir definitivamente este evento da agenda operacional?\n\nOs convidados receberão a atualização do Google quando aplicável.')) return; try { await invoke({ action: 'delete_event', eventId, reason: reason.trim() }); window.location.reload(); } catch (error) { alert(`Não foi possível excluir o evento.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); } }
+/* Confirmação de exclusão no padrão dos diálogos do Workspace (antes eram duas janelas nativas do navegador). */
+function askDeleteReason(): Promise<string | null> {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'ap-pd-overlay calendar-delete-confirm-v2';
+    overlay.innerHTML = '<section class="ap-status-confirm" role="alertdialog" aria-modal="true" aria-label="Excluir evento"><div><small>AGENDA · EXCLUIR EVENTO</small><h2>Excluir este evento?</h2><p>O evento será removido do Workspace e do Google Agenda. Os convidados recebem a atualização do Google quando aplicável.</p><p>Uma cópia completa fica preservada na auditoria.</p></div><label>Motivo da exclusão<textarea placeholder="Registre o motivo"></textarea></label><footer><button type="button" data-cancel>Voltar</button><button type="button" data-confirm disabled>Excluir definitivamente</button></footer></section>';
+    const field = overlay.querySelector('textarea') as HTMLTextAreaElement;
+    const confirmButton = overlay.querySelector('[data-confirm]') as HTMLButtonElement;
+    const finish = (value: string | null) => { document.removeEventListener('keydown', onKey, true); overlay.remove(); resolve(value); };
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') { event.stopPropagation(); finish(null); } };
+    field.addEventListener('input', () => { confirmButton.disabled = field.value.trim().length < 3; });
+    overlay.querySelector('[data-cancel]')?.addEventListener('click', () => finish(null));
+    confirmButton.addEventListener('click', () => finish(field.value.trim()));
+    overlay.addEventListener('mousedown', (event) => { if (event.target === overlay) finish(null); });
+    document.addEventListener('keydown', onKey, true);
+    document.body.append(overlay);
+    field.focus();
+  });
+}
+async function deleteEvent(eventId: string) { const reason = await askDeleteReason(); if (!reason) return; try { await invoke({ action: 'delete_event', eventId, reason: reason.trim() }); window.location.reload(); } catch (error) { alert(`Não foi possível excluir o evento.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); } }
 
 function scheduleEnhance(delay = 80) { if (!isWorkspaceRoute('/admin/calendario', '/cliente/cronograma')) return; if (enhanceTimer) window.clearTimeout(enhanceTimer); enhanceTimer = window.setTimeout(() => { if (!isCalendar() || !isWorkspaceRoute('/admin/calendario', '/cliente/cronograma')) { uninstallRealtime(); return; } ensureStyle(); void renderConnection(); void enhanceEditorModal(); void enhanceOpenEventModal(); installRealtime(); }, delay); }
 function addedRelevantNode(node: Node) { if (!(node instanceof Element)) return false; return node.matches('.calendar-workspace-strip,.calendar-event-modal,.calendar-detail-modal') || Boolean(node.querySelector('.calendar-workspace-strip,.calendar-event-modal,.calendar-detail-modal')); }

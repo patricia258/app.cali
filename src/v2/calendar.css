@@ -1,0 +1,75 @@
+/* Consolidated operational styles. Original source order preserved. */.client-real-timeline-title{display:flex;align-items:end;justify-content:space-between;gap:20px;padding:22px 24px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,color-mix(in srgb,var(--ct-bordeaux) 5%,var(--theme-surface,#fffdf9)),color-mix(in srgb,var(--ct-gold) 6%,var(--theme-surface,#fffdf9)))}.client-real-timeline-title span{font-size:9px;letter-spacing:.14em;font-weight:900;color:var(--ct-gold)}.client-real-timeline-title h2{margin:4px 0 0;font-size:25px}.client-real-timeline-title small{font-size:11px;color:var(--muted-foreground);font-weight:700}[data-workspace-theme='night'] .client-real-timeline-title{background:linear-gradient(135deg,rgba(90,30,45,.24),rgba(181,140,82,.09))}@media(max-width:620px){.client-real-timeline-title{align-items:flex-start;flex-direction:column}}
+.client-google-panel{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;margin:0 0 18px;padding:16px 18px;border:1px solid color-mix(in srgb,#B58C52 28%,var(--theme-line));border-radius:18px;background:linear-gradient(135deg,color-mix(in srgb,#B58C52 6%,var(--theme-surface)),color-mix(in srgb,#5A1E2D 3%,var(--theme-surface)));box-shadow:0 10px 28px rgba(49,31,25,.045)}
+.client-google-panel.connected{border-color:color-mix(in srgb,#5A1E2D 20%,#B58C52 30%)}
+.client-google-icon{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:color-mix(in srgb,#5A1E2D 8%,var(--theme-surface));color:#5A1E2D;border:1px solid color-mix(in srgb,#5A1E2D 14%,var(--theme-line))}
+.client-google-copy{min-width:0}.client-google-copy>span{display:block;font-size:9px;letter-spacing:.13em;font-weight:900;color:#B58C52}.client-google-copy>strong{display:block;margin:4px 0 3px;font-size:14px;color:var(--theme-text)}.client-google-copy>p{margin:0;max-width:760px;font-size:10px;line-height:1.45;color:var(--theme-muted)}.client-google-error{display:block;margin-top:5px;color:#9a3f4e;font-size:9px}
+.client-google-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}.client-google-actions button,.client-google-status{min-height:34px;border-radius:10px;padding:0 11px;display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:9px;font-weight:800;white-space:nowrap}.client-google-actions button{border:1px solid var(--theme-line);background:var(--theme-surface);color:var(--theme-text);cursor:pointer}.client-google-actions button.connect{background:#5A1E2D;border-color:#5A1E2D;color:#fff}.client-google-actions button.disconnect{color:#8d3d4d}.client-google-actions button:disabled{opacity:.48;cursor:default}.client-google-status{border:1px solid rgba(67,123,85,.2);background:rgba(67,123,85,.08);color:#437b55}
+
+/* Agenda compartilhada: uma linha = um item, sem repetição de etiquetas */
+.client-agenda-table{width:100%}
+.client-agenda-row{display:grid;grid-template-columns:118px 105px minmax(220px,1.25fr) 165px minmax(210px,.9fr);gap:14px;align-items:center}
+.client-agenda-row{min-height:58px;padding:11px 0;border-bottom:1px solid var(--theme-line,#eee6e0)}
+.client-agenda-row:last-child{border-bottom:0}
+.client-agenda-row.request{margin:4px -8px;padding:10px 8px;border-bottom:0;border-radius:10px;background:color-mix(in srgb,#B58C52 7%,var(--theme-surface,#fff))}
+.client-agenda-row.past{opacity:.64}
+.client-agenda-date{display:flex;flex-direction:column;min-width:0}
+.client-agenda-date strong{font-size:12px;line-height:1.2;color:var(--theme-text,#2b2b2b)}
+.client-agenda-date span{margin-top:2px;font-size:10px;font-weight:700;color:var(--theme-muted,#776b65)}
+.client-agenda-item{min-width:0}.client-agenda-item strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;line-height:1.25;color:var(--theme-text,#2b2b2b)}
+.client-agenda-status{display:flex;align-items:center;gap:7px;min-width:0;font-size:11px;font-weight:800;color:var(--theme-text,#2b2b2b)}
+.client-agenda-status span{display:flex;align-items:center;gap:6px}.client-agenda-status span:before{content:'';width:6px;height:6px;border-radius:50%;flex:0 0 auto;background:#B58C52}
+.client-agenda-row.event .client-agenda-status span:before{background:#5A1E2D}
+.client-agenda-row.deadline .client-agenda-status span:before{background:#B58C52}
+.client-agenda-row.request .client-agenda-status span:before{background:#B58C52}
+
+html[data-workspace-theme='night'] .client-google-panel{background:linear-gradient(135deg,rgba(181,140,82,.08),rgba(90,30,45,.16));border-color:rgba(181,140,82,.25)}html[data-workspace-theme='night'] .client-google-icon{background:#2b2024;border-color:#4a373e;color:#d8ad67}html[data-workspace-theme='night'] .client-google-actions button{background:#271d21;border-color:#4c3940;color:#e9dee1}html[data-workspace-theme='night'] .client-google-actions button.connect{background:#7a2942;border-color:#7a2942;color:#fff}html[data-workspace-theme='night'] .client-agenda-row{border-color:#403137}html[data-workspace-theme='night'] .client-agenda-row.request{background:rgba(181,140,82,.08)}
+
+@media(max-width:1050px){.client-agenda-row{grid-template-columns:100px 90px minmax(180px,1.1fr) 145px minmax(160px,.8fr);gap:10px}}
+@media(max-width:900px){.client-google-panel{grid-template-columns:auto minmax(0,1fr)}.client-google-actions{grid-column:2;justify-content:flex-start}.client-agenda-row{grid-template-columns:105px minmax(0,1fr) 150px;gap:8px 14px;padding:13px 0}.client-agenda-date{grid-column:1;grid-row:1/3}.client-agenda-item{grid-column:2;grid-row:2}.client-agenda-status{grid-column:3;grid-row:1}.client-agenda-row.request{margin:4px -6px;padding:11px 6px}}
+@media(max-width:620px){.client-google-panel{grid-template-columns:1fr}.client-google-icon{width:40px;height:40px}.client-google-actions{grid-column:1;justify-content:flex-start}.client-google-actions button,.client-google-status{width:auto}.client-agenda-row{display:grid;grid-template-columns:92px minmax(0,1fr);gap:6px 10px;padding:12px 0}.client-agenda-date{grid-column:1;grid-row:1/5}.client-agenda-item,.client-agenda-status{grid-column:2;grid-row:auto}.client-agenda-item strong{white-space:normal}.client-agenda-status{font-size:10px}.client-agenda-row.request{margin:3px -5px;padding:10px 5px}}
+/* Agenda: cards compactos com uma ação explícita e detalhes acessíveis. */
+.client-agenda-open{grid-column:5;grid-row:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:37px;padding:8px 11px;border:1px solid #b58c52;border-radius:9px;background:#fffaf0;color:#5a1e2d;font:700 12px Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.client-agenda-open:hover,.client-agenda-open:focus-visible{background:#5a1e2d;color:#fff}
+.client-agenda-detail-backdrop{position:fixed;inset:0;z-index:12050;display:grid;place-items:center;padding:16px;background:rgba(29,12,19,.62);backdrop-filter:blur(8px)}
+@keyframes clientAgendaRise{from{opacity:0;transform:translateY(22px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}html[data-workspace-theme='night'] .client-agenda-open{background:#382629;color:#f2d49a;border-color:#88683f}
+@media(max-width:1100px){.client-agenda-open{grid-column:4}}
+@media(max-width:650px){.client-agenda-open{grid-column:2;grid-row:3;justify-self:start}}
+
+/* Solicitações: o estado colore todo o card, mantendo leitura nos dois temas. */
+.client-agenda-actions{display:flex!important;gap:8px;flex-wrap:wrap}.client-agenda-actions button,.client-agenda-actions a{border:1px solid #b58c52;border-radius:10px;background:#fffaf1;color:#5a1e2d;padding:10px 14px;font:700 13px Inter,system-ui,sans-serif;cursor:pointer;text-decoration:none}
+html[data-workspace-theme='night'] .client-agenda-actions button,html[data-workspace-theme='night'] .client-agenda-actions a{background:#35272b;color:#f6e8cf;border-color:#8d704a}
+@media(max-width:620px){.client-agenda-actions button,.client-agenda-actions a{flex:1 1 100%;text-align:center}}
+
+/* Planejamento: semana e filtros da agenda do cliente. */
+.client-google-settings{margin:0 0 12px}.client-google-settings>summary{display:inline-flex;align-items:center;min-height:34px;padding:0 11px;border:1px solid var(--theme-line);border-radius:9px;background:var(--theme-surface);color:var(--theme-text);font:700 12px Inter,system-ui,sans-serif;cursor:pointer}.client-google-settings[open] .client-google-panel{margin-top:10px}
+.client-week-scroller{overflow-x:auto}.client-week-grid{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));min-width:840px;border-top:1px solid var(--theme-line)}.client-week-lane{position:relative;height:702px;background:repeating-linear-gradient(to bottom,transparent 0,transparent 53px,var(--theme-line) 53px,var(--theme-line) 54px)}.client-week-event{position:absolute;left:3px;right:3px;z-index:1;display:grid;align-content:start;gap:2px;width:calc(100% - 6px);overflow:hidden;padding:5px;border:1px solid #bdac9c;border-left:3px solid #5a1e2d;border-radius:6px;background:#f5e8ed;color:#40202c;text-align:left;cursor:pointer}.client-week-event strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}.client-week-event small{font-size:10px}.client-week-event.request{border-left-color:#b58c52;background:#fcf1d6}.client-week-event.deadline{border-left-color:#8c6a3f;background:#f5efe2}.client-week-event:hover,.client-week-event:focus-visible{z-index:5;box-shadow:0 5px 15px #331c2240}html[data-workspace-theme='night'] .client-week-event{background:#51303c;color:#fbecef}html[data-workspace-theme='night'] .client-week-event.request{background:#544423;color:#fff2d0}html[data-workspace-theme='night'] .client-week-event.deadline{background:#493b2a;color:#f4e9d5}
+.client-google-week-notice{margin:8px 18px;color:var(--theme-muted);font-size:12px}.client-week-event.google{border-left-color:#5b83b7;background:#dcebf9;color:#18344e}
+html[data-workspace-theme='night'] .client-week-event.google{background:#24405a;color:#e6f5ff}
+/* O detalhe usa linhas legíveis, sem um cartão para cada informação. */
+.client-week-event.google{background:var(--personal-event-color,#5b83b7);border-color:var(--personal-event-color,#5b83b7);color:var(--personal-event-foreground,#fff)}
+html[data-workspace-theme='night'] .client-week-event.google{background:var(--personal-event-color,#5b83b7);color:var(--personal-event-foreground,#fff)}
+.client-week-grid{grid-template-columns:48px repeat(7,minmax(120px,1fr));min-width:888px}
+
+.client-week-event.request { background:#fff0d7; border:1px dashed #ac7945; border-left:4px solid #ac7945; color:#513326; }
+.client-week-event.request small { line-height:1.25; white-space:normal; }
+html[data-workspace-theme='night'] .client-week-event.request { background:#47341f; border-color:#d4a666; color:#fff2d9; }
+
+/* Mesma grade semanal e mesma hierarquia visual da agenda administrativa. */
+
+/* A agenda é a primeira informação da página; o histórico abre sob demanda. */
+.client-week-selection{position:absolute;inset-inline:3px;z-index:4;display:grid;place-items:center;pointer-events:none;border:1px solid #ae7f3b;border-radius:7px;background:#f6d78aaa;color:#4f2631;font:700 11px Inter,system-ui,sans-serif}
+html[data-workspace-theme='night'] .client-week-selection{background:#765926aa;color:#fff4dd}
+
+/* O aviso ocupa a largura do detalhe; a integração explica seu valor antes da conexão. */
+.client-request-preview-note svg{flex:0 0 20px;color:#9a6627}
+html[data-workspace-theme='night'] .client-request-preview-note svg{color:#e8bd73}
+.client-google-settings{margin:0 0 16px}
+.client-google-settings>summary{display:flex;align-items:center;gap:14px;width:100%;box-sizing:border-box;padding:15px 18px;min-height:76px;text-align:left;border-color:color-mix(in srgb,var(--theme-gold) 45%,var(--theme-line));background:color-mix(in srgb,var(--theme-gold) 7%,var(--theme-surface))}
+.client-google-settings>summary>svg{flex:0 0 auto;color:var(--theme-gold)}
+.client-google-settings>summary>span:nth-child(2){display:grid;gap:4px;flex:1;min-width:0}
+.client-google-settings>summary strong{font-size:14px;color:var(--theme-text)}
+.client-google-settings>summary small{font-size:11px;line-height:1.45;color:var(--theme-muted);font-weight:500}
+.client-google-settings-action{white-space:nowrap;color:var(--theme-accent);font-size:11px;font-weight:750}
+.client-google-settings[open]>summary small{display:none}
+.client-google-settings[open]>summary{min-height:48px;padding-block:10px}
+@media(max-width:650px){.client-google-settings>summary{align-items:flex-start;flex-wrap:wrap}.client-google-settings-action{margin-left:33px}}

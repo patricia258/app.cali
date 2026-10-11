@@ -1,11 +1,9 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute, WorkspaceRouteLoader } from './components/ProtectedRoute';
 import { Shell, WorkspaceFrame } from './components/WorkspaceShell';
 import { useLocation } from 'react-router-dom';
-// The two calendars need their layout CSS before the first route paint.
-import './page4-calendar.css';
-import './client-timeline-v3.css';
+import { applyVisualSystem } from './v2/visualSystem';
 
 const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
@@ -17,11 +15,10 @@ const AdminDashboard = lazy(async () => {
   return import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard }));
 });
 const AdminClientsPageV3 = lazy(async () => {
-  await import('./styles/routes/clients');
   return import('./pages/admin/AdminClientsPageV3').then((m) => ({ default: m.AdminClientsPageV3 }));
 });
 const AdminProposalsPageV2 = lazy(async () => {
-  await import('./styles/routes/proposals');
+  // Lista na composição V2: as folhas antigas de propostas só entram no editor e na prévia.
   return import('./pages/admin/AdminProposalsPageV2').then((m) => ({ default: m.AdminProposalsPageV2 }));
 });
 const AdminProposalEditorPageV3 = lazy(async () => {
@@ -37,7 +34,6 @@ const AdminProjectsGatePage = lazy(async () => {
   return import('./pages/admin/AdminProjectsGatePage').then((m) => ({ default: m.AdminProjectsGatePage }));
 });
 const AdminHoursPageV3 = lazy(async () => {
-  await import('./styles/routes/hours');
   return import('./pages/admin/AdminHoursPageV3').then((m) => ({ default: m.AdminHoursPageV3 }));
 });
 const AdminCalendarPage = lazy(async () => {
@@ -45,7 +41,7 @@ const AdminCalendarPage = lazy(async () => {
   return import('./pages/admin/AdminCalendarPage').then((m) => ({ default: m.AdminCalendarPage }));
 });
 const AdminDocumentsPageV4 = lazy(async () => {
-  await import('./styles/routes/documents');
+  // Página na composição V2: as folhas antigas de documentos não são mais carregadas aqui.
   return import('./pages/admin/AdminDocumentsPageV4').then((m) => ({ default: m.AdminDocumentsPageV4 }));
 });
 const AdminReportsPageV17 = lazy(async () => {
@@ -74,31 +70,36 @@ const AdminRecordsPage = lazy(async () => {
   return import('./pages/records/WorkspaceRecordsPage').then((m) => ({ default: m.AdminRecordsPage }));
 });
 const ClientRecordsPage = lazy(async () => {
-  await import('./styles/routes/records');
+  await import('./styles/routes/clientModules');
   return import('./pages/records/WorkspaceRecordsPage').then((m) => ({ default: m.ClientRecordsPage }));
 });
 const ClientDashboard = lazy(async () => {
   await import('./styles/routes/clientExperience');
-  return import('./styles/routes/overview').then(() => import('./pages/client/ClientDashboard')).then((m) => ({ default: m.ClientDashboard }));
+  return import('./pages/client/ClientDashboard').then((m) => ({ default: m.ClientDashboard }));
 });
 const ClientTimelinePage = lazy(async () => {
   await import('./styles/routes/clientExperience');
   return import('./pages/client/ClientTimelinePage').then((m) => ({ default: m.ClientTimelinePage }));
 });
 const ClientDeliverablesPage = lazy(async () => {
-  await import('./styles/routes/clientDeliverables');
+  await import('./styles/routes/clientModules');
   return import('./pages/client/ClientDeliverablesPage').then((m) => ({ default: m.ClientDeliverablesPage }));
 });
 const ClientHoursPage = lazy(async () => {
-  await import('./styles/routes/hours');
+  await import('./styles/routes/clientModules');
   return import('./pages/client/ClientHoursPage').then((m) => ({ default: m.ClientHoursPage }));
 });
 const ClientDocumentsPage = lazy(async () => {
-  await import('./styles/routes/documents');
+  await import('./styles/routes/clientModules');
   return import('./pages/client/ClientDocumentsPage').then((m) => ({ default: m.ClientDocumentsPage }));
 });
-const ClientReportsPageV5 = lazy(() => import('./pages/client/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 })));
+// O relatório é lido no próprio documento oficial (papel), que tem folhas de estilo próprias.
+const ClientReportsPageV5 = lazy(async () => {
+  await import('./styles/routes/reports');
+  return import('./pages/client/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 }));
+});
 const CompanyTeamPage = lazy(() => import('./pages/team/CompanyTeamPage').then((m) => ({ default: m.CompanyTeamPage })));
+const ClientNoticesPage = lazy(() => import('./pages/client/ClientNoticesPage').then((m) => ({ default: m.ClientNoticesPage })));
 const ClientFrontsPage = lazy(() => import('./pages/client/ClientFrontsPage').then((m) => ({ default: m.ClientFrontsPage })));
 const ReportPrintPageV17 = lazy(async () => {
   await import('./styles/routes/reports');
@@ -147,6 +148,7 @@ function prefetchLikelyRoutes() {
 function AppRoutes() {
   useEffect(() => prefetchLikelyRoutes(), []);
   const { pathname } = useLocation();
+  useLayoutEffect(() => { void applyVisualSystem(pathname); }, [pathname]);
   const workspaceRole = pathname.startsWith('/cliente') ? 'client' : pathname.startsWith('/admin') ? 'admin' : null;
 
   const routes = (
@@ -179,6 +181,7 @@ function AppRoutes() {
         <Route path="/cliente" element={<ProtectedRoute role="client"><ClientDashboard/></ProtectedRoute>}/>
         <Route path="/cliente/cronograma" element={<ProtectedRoute role="client"><ClientTimelinePage/></ProtectedRoute>}/>
         <Route path="/cliente/equipe" element={<ProtectedRoute role="client"><CompanyTeamPage role="client"/></ProtectedRoute>}/>
+        <Route path="/cliente/avisos" element={<ProtectedRoute role="client"><ClientNoticesPage/></ProtectedRoute>}/>
         <Route path="/cliente/frentes" element={<ProtectedRoute role="client"><ClientFrontsPage/></ProtectedRoute>}/>
         <Route path="/cliente/entregaveis" element={<ProtectedRoute role="client"><ClientDeliverablesPage/></ProtectedRoute>}/>
         <Route path="/cliente/horas" element={<ProtectedRoute role="client"><ClientHoursPage/></ProtectedRoute>}/>

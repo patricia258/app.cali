@@ -111,7 +111,7 @@ async function selectedClientProject():Promise<ProjectRow|null>{
   const profile=await supabase.from('profiles').select('company_id').eq('id',uid).maybeSingle();
   const companyId=profile.data?.company_id;
   if(!companyId)return null;
-  const selected=document.querySelector<HTMLSelectElement>('.client-project-picker-v33 select')?.value||'';
+  const selected=document.querySelector<HTMLSelectElement>(":is(.client-project-picker-v33,[data-v2-operation~=\"client-project-picker-v33\"]) select")?.value||'';
   const result=await supabase.from('projects').select('id,protocol,company_id,name,planning_status,status,execution_status,start_date,target_end_date,roadmap_end_date,lifecycle_reason,lifecycle_resume_date,lifecycle_updated_at').eq('company_id',companyId).neq('planning_status','draft').order('created_at',{ascending:false});
   if(result.error||!result.data?.length)return null;
   if(selected)return(result.data.find((row:any)=>row.id===selected)||result.data[0])as ProjectRow;
@@ -172,7 +172,7 @@ function renderAdminBanner(ctx:Context){
 }
 
 function renderClientBanner(ctx:Context){
-  const heading=document.querySelector<HTMLElement>('.client-roadmap-heading-v33');
+  const heading=document.querySelector<HTMLElement>(":is(.client-roadmap-heading-v33,[data-v2-operation~=\"client-roadmap-heading-v33\"])");
   if(!heading)return;
   const holds=activeHolds(ctx);
   const state=ctx.project.execution_status;
@@ -198,7 +198,7 @@ function renderClientBanner(ctx:Context){
 function frontStorageKey(section:HTMLElement){
   const protocol=section.querySelector<HTMLElement>('.front-copy-v2>span')?.textContent?.trim()||'front';
   const name=section.querySelector<HTMLElement>('.front-copy-v2>strong')?.textContent?.trim()||'';
-  const project=pageIsClient()?document.querySelector<HTMLSelectElement>('.client-project-picker-v33 select')?.value||'client':protocolFromHero()||'admin';
+  const project=pageIsClient()?document.querySelector<HTMLSelectElement>(":is(.client-project-picker-v33,[data-v2-operation~=\"client-project-picker-v33\"]) select")?.value||'client':protocolFromHero()||'admin';
   return `cali-front-expanded-v46:${location.pathname}:${project}:${protocol}:${name}`;
 }
 
@@ -246,7 +246,7 @@ function waitForStatusSelect(timeout=1600){
   return new Promise<HTMLSelectElement|null>((resolve)=>{
     const started=Date.now();
     const check=()=>{
-      const select=document.querySelector<HTMLSelectElement>('.deliverable-workspace-modal-v2 .inline-status-select-v3 select');
+      const select=document.querySelector<HTMLSelectElement>(":is(.deliverable-workspace-modal-v2,[data-v2-operation~=\"deliverable-workspace-modal-v2\"]) .inline-status-select-v3 select");
       if(select){resolve(select);return;}
       if(Date.now()-started>=timeout){resolve(null);return;}
       window.setTimeout(check,30);
@@ -266,7 +266,7 @@ async function applyKanbanDrop(card:HTMLButtonElement,targetStatus:KanbanStatus)
   setter?.call(select,targetStatus);
   select.dispatchEvent(new Event('change',{bubbles:true}));
   if(!['adjustment_requested','rebriefing'].includes(targetStatus)){
-    window.setTimeout(()=>document.querySelector<HTMLButtonElement>('.deliverable-workspace-modal-v2 .modal-close-static')?.click(),180);
+    window.setTimeout(()=>document.querySelector<HTMLButtonElement>(":is(.deliverable-workspace-modal-v2,[data-v2-operation~=\"deliverable-workspace-modal-v2\"]) .modal-close-static")?.click(),180);
   }
 }
 
@@ -358,13 +358,13 @@ function schedule(force=false){
 function relevantMutation(mutation:MutationRecord){
   const added=Array.from(mutation.addedNodes).some((node)=>{
     if(!(node instanceof Element))return false;
-    return node.matches('.project-hero-v2,.kanban-v2,.front-section-v2,.client-roadmap-heading-v33,.client-project-picker-v33')||
-      Boolean(node.querySelector?.('.project-hero-v2,.kanban-v2,.front-section-v2,.client-roadmap-heading-v33,.client-project-picker-v33'));
+    return node.matches(".project-hero-v2,.kanban-v2,.front-section-v2,:is(.client-roadmap-heading-v33,[data-v2-operation~=\"client-roadmap-heading-v33\"]),:is(.client-project-picker-v33,[data-v2-operation~=\"client-project-picker-v33\"])")||
+      Boolean(node.querySelector?.(".project-hero-v2,.kanban-v2,.front-section-v2,:is(.client-roadmap-heading-v33,[data-v2-operation~=\"client-roadmap-heading-v33\"]),:is(.client-project-picker-v33,[data-v2-operation~=\"client-project-picker-v33\"])"));
   });
   if(added)return true;
   const target=mutation.target instanceof Element?mutation.target:null;
   if(target?.closest('.project-lifecycle-banner-v44,.client-lifecycle-banner-v44,.project-lifecycle-backdrop-v44'))return false;
-  return Boolean(target?.closest('.projects-flow-page,.client-roadmap-page-v33'));
+  return Boolean(target?.closest(".projects-flow-page,:is(.client-roadmap-page-v33,[data-v2-operation~=\"client-roadmap-page-v33\"])"));
 }
 
 export function installProjectExecutionLifecycleRuntimeV44(){
@@ -377,6 +377,6 @@ export function installProjectExecutionLifecycleRuntimeV44(){
   window.addEventListener('focus',()=>schedule(true));
   window.addEventListener('popstate',()=>schedule(true));
   document.addEventListener('change',(event)=>{
-    if((event.target as Element)?.closest?.('.client-project-picker-v33'))schedule(true);
+    if((event.target as Element)?.closest?.(":is(.client-project-picker-v33,[data-v2-operation~=\"client-project-picker-v33\"])"))schedule(true);
   },true);
 }

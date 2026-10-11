@@ -3,13 +3,6 @@ import { Navigate } from 'react-router-dom';
 import { useWorkspaceAuth } from '../auth/WorkspaceAuthProvider';
 import type { Role } from './WorkspaceShell';
 
-function previewBypassAllowed() {
-  const hostname = window.location.hostname;
-  return hostname === 'localhost'
-    || hostname === '127.0.0.1'
-    || hostname.endsWith('.vercel.app');
-}
-
 export function WorkspaceRouteLoader() {
   return (
     <main className="route-loading cali-route-loading" aria-live="polite" aria-busy="true">
@@ -24,10 +17,6 @@ export function WorkspaceRouteLoader() {
 
 export function ProtectedRoute({ role, children }: { role: Role; children: ReactNode }) {
   const auth = useWorkspaceAuth();
-  const previewRole = sessionStorage.getItem('cali-preview-role') as Role | null;
-
-  if (previewBypassAllowed() && previewRole === role) return <>{children}</>;
-  if (!previewBypassAllowed()) sessionStorage.removeItem('cali-preview-role');
 
   if (!auth.ready) return <WorkspaceRouteLoader />;
 

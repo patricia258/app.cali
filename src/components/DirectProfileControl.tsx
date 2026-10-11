@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { ChangeEvent, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Building2, Camera, Check, ChevronDown, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, ShieldCheck, Upload, UserRound, X } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
@@ -46,7 +46,8 @@ function safeSignatureStyle(value:unknown):SignatureStyle{
   return signatureStyles.some((item)=>item.value===raw)?raw as SignatureStyle:'executive';
 }
 
-export function DirectProfileControl({role}:{role:Role}){
+type ProfileTrigger=(context:{profile:ProfileData;avatar:ReactNode;companyName:string;openEditor:()=>void})=>ReactNode;
+export function DirectProfileControl({role,trigger}:{role:Role;trigger?:ProfileTrigger}){
   const { user } = useWorkspaceAuth();
   const[profile,setProfile]=useState<ProfileData>(profileFallback[role]),[draft,setDraft]=useState<ProfileData>(profileFallback[role]);
   const[modalOpen,setModalOpen]=useState(false),[saving,setSaving]=useState(false),[message,setMessage]=useState('');
@@ -128,13 +129,13 @@ export function DirectProfileControl({role}:{role:Role}){
   }
 
   return <>
-    <div className="profile-control profile-control-direct">
+    {trigger?trigger({profile,avatar,companyName:companyName||'',openEditor}):<div className="profile-control profile-control-direct">
       <button className="profile-trigger profile-trigger-direct" type="button" onClick={openEditor} aria-label="Editar perfil" title="Editar perfil">
         <span className="profile-avatar">{avatar}</span>
         <span className="profile-copy"><strong>{profile.full_name}</strong><small>{role==='admin'?'Administradora geral':'Perfil cliente'}</small></span>
         <ChevronDown className="profile-edit-chevron" size={16}/>
       </button>
-    </div>
+    </div>}
     {modalOpen?createPortal(<div className="modal-backdrop chrome-modal-backdrop full-screen-modal" role="presentation">
       <section className="modal-card profile-modal profile-modal-v2 profile-modal-v55 profile-account-v66" role="dialog" aria-modal="true" aria-label="Editar perfil">
         <button className="modal-close" type="button" onClick={()=>setModalOpen(false)} aria-label="Fechar"><X size={20}/></button>

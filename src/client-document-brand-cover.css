@@ -14,9 +14,4 @@
   object-fit: contain !important;
   background: transparent !important;
 }
-.client-service-card .client-document-brand-cover { min-height: 190px; padding: 10px; }
-.client-service-card .client-document-brand-cover img { width: min(94%, 210px) !important; height: min(88%, 145px) !important; transform: scale(1.2); }
 html[data-workspace-theme='night'] .client-document-brand-cover { color: #5a1e2d; }
-@media(max-width:700px) {
-  .client-service-card .client-document-brand-cover { min-height: 154px; }
-}

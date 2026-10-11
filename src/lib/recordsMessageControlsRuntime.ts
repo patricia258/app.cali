@@ -43,9 +43,12 @@ function parseBody(body: string) {
 }
 
 function nudgeConversation() {
-  const history = document.querySelector<HTMLElement>('.records-v13-drawer .conversation-history');
+  const history = document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"]) :is(.conversation-history,[data-v2-operation~=\"conversation-history\"])");
   if (!history) return;
   history.dataset.recordsSignature = '';
+  // O módulo da conversa só relê as mensagens quando o painel não está marcado como pronto.
+  const panel = history.closest<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"])");
+  if (panel) delete panel.dataset.recordsRich;
   const marker = document.createElement('i');
   marker.hidden = true;
   history.append(marker);
@@ -72,7 +75,9 @@ async function editMessage(message: MessageRow, bubble: HTMLElement) {
   save.type = 'button';
   save.className = 'primary';
   save.textContent = 'Salvar';
-  cancel.onclick = () => { nudgeConversation(); };
+  // Cancelar devolve o texto na hora, sem depender da releitura da conversa.
+  const closeEditor = () => { if (currentBody) editor.replaceWith(currentBody); else editor.remove(); };
+  cancel.onclick = () => { closeEditor(); nudgeConversation(); };
   save.onclick = async () => {
     const text = textarea.value.trim();
     if (!text && !parsed.tokens.length) return;
@@ -81,6 +86,8 @@ async function editMessage(message: MessageRow, bubble: HTMLElement) {
       const body = [text, parsed.tokens.join('\n')].filter(Boolean).join('\n');
       const result = await supabase!.rpc('edit_account_record_message', { p_message_id: message.id, p_body: body });
       if (result.error) throw result.error;
+      if (currentBody) currentBody.textContent = text;
+      closeEditor();
       nudgeConversation();
       window.setTimeout(schedule, 120);
     } catch (error) {
@@ -141,13 +148,13 @@ function decorateMessage(line: HTMLElement, message: MessageRow, reactions: Reac
     controls.className = 'records-message-admin-controls';
     const edit = document.createElement('button');
     edit.type = 'button';
-    edit.textContent = '✎';
+    edit.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>';
     edit.title = 'Editar mensagem';
     edit.setAttribute('aria-label', 'Editar mensagem');
     edit.onclick = (event) => { event.stopPropagation(); void editMessage(message, bubble); };
     const remove = document.createElement('button');
     remove.type = 'button';
-    remove.textContent = '×';
+    remove.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>';
     remove.title = 'Excluir mensagem';
     remove.setAttribute('aria-label', 'Excluir mensagem');
     remove.onclick = (event) => { event.stopPropagation(); void deleteMessage(message); };
@@ -176,8 +183,8 @@ async function subscribe(recordId: string) {
 
 async function sync() {
   if (busy || !supabase || !pageRole()) return;
-  const drawer = document.querySelector<HTMLElement>('.records-v13-drawer');
-  const history = drawer?.querySelector<HTMLElement>('.conversation-history');
+  const drawer = document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"])");
+  const history = drawer?.querySelector<HTMLElement>(":is(.conversation-history,[data-v2-operation~=\"conversation-history\"])");
   const protocol = drawer?.querySelector<HTMLElement>('.section-kicker')?.textContent?.trim() || '';
   if (!drawer || !history || !protocol.startsWith('CALI-REG-')) return;
   busy = true;

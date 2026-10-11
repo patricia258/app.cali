@@ -502,10 +502,6 @@ body[data-workspace-theme='night'] .external-products-topnav a {
     background-image: linear-gradient(rgba(88,27,36,.72),rgba(88,27,36,.72)),url('/brand/cali-sidebar-pattern.webp') !important;
     background-repeat:no-repeat,no-repeat !important; background-position:center,center !important; background-size:cover,cover !important;
   }
-  .app-shell:has(.sidebar.hovered) .main {
-    flex-basis: calc(100vw - var(--sidebar-open)) !important; width: calc(100vw - var(--sidebar-open)) !important;
-    max-width: calc(100vw - var(--sidebar-open)) !important; margin-left: var(--sidebar-open) !important;
-  }
   .sidebar.hovered > * { position:relative !important; z-index:1 !important; }
   .sidebar.hovered .brand-full { display:flex !important; width:100% !important; min-height:72px !important; height:72px !important; padding:2px 0 0 !important; align-items:center !important; justify-content:center !important; }
   .sidebar.hovered .brand-compact-slide { display:none !important; }

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Cloud, ExternalLink, Eye, FileCheck2, FileText, Loader2, MessageSquare, Search, Send, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ChevronRight, Cloud, ExternalLink, Eye, FileCheck2, FileText, MessageSquare, Search, Send, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
-import { ClientDocumentBrandCover } from '../../components/ClientDocumentBrandCover';
 import { supabase } from '../../lib/supabase';
+import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
+import { DocumentAutoCover } from '../../components/DocumentAutoCover';
 
 type CategorySlug = 'policy' | 'manual' | 'flow' | 'guide' | 'report' | 'onboarding' | 'deliverable' | 'schedule' | 'contract' | 'reference' | 'other';
 type ClientDoc = {
@@ -32,12 +33,6 @@ const categoryOptions: Array<{ value: CategorySlug; label: string }> = [
   { value: 'schedule', label: 'Cronograma' }, { value: 'contract', label: 'Contrato' }, { value: 'reference', label: 'Referência' }, { value: 'other', label: 'Outro' },
 ];
 
-const previewDocuments: ClientDoc[] = [
-  { id: 'd1', companyId: 'preview-aurora', title: 'Estrutura de indicadores de People', category: 'deliverable', kind: 'Matriz', date: '28 ago 2026', version: 'v1.0', protocol: 'CALI-DOC-2026-000041', requiresAcknowledgement: true, description: 'Material consolidado para leitura e validação da liderança.' },
-  { id: 'd2', companyId: 'preview-aurora', title: 'Relatório Executivo · Julho', category: 'report', kind: 'Relatório', date: '01 ago 2026', version: 'final', protocol: 'CALI-DOC-2026-000032', requiresAcknowledgement: false },
-  { id: 'd3', companyId: 'preview-aurora', title: 'Cronograma aprovado · Ciclo 01', category: 'schedule', kind: 'Plano', date: '19 ago 2026', version: 'vigente', protocol: 'CALI-DOC-2026-000035', requiresAcknowledgement: true },
-];
-
 const categoryLabel = (value: CategorySlug) => categoryOptions.find((item) => item.value === value)?.label || 'Outro';
 
 function formatDate(value: string) {
@@ -54,16 +49,17 @@ function daysUntil(value?: string | null) {
 }
 
 export function ClientDocumentsPage() {
-  const preview = sessionStorage.getItem('cali-preview-role') === 'client';
-  const [documents, setDocuments] = useState<ClientDoc[]>(preview ? previewDocuments : []);
+  const [documents, setDocuments] = useState<ClientDoc[]>([]);
   const [companyBrand, setCompanyBrand] = useState({ name: 'sua empresa', logoUrl: '' });
   const [query, setQuery] = useState('');
+  const [layout, setLayout] = useState<'covers' | 'list'>('covers');
+  const [detailDoc, setDetailDoc] = useState<ClientDoc | null>(null);
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [driveConnection, setDriveConnection] = useState<DriveConnection | null>(null);
   const [driveConnecting, setDriveConnecting] = useState(false);
   const [syncByFile, setSyncByFile] = useState<Record<string, SyncState>>({});
-  const [acknowledged, setAcknowledged] = useState<string[]>(preview ? ['d1'] : []);
-  const [loading, setLoading] = useState(!preview);
+  const [acknowledged, setAcknowledged] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [commentDoc, setCommentDoc] = useState<ClientDoc | null>(null);
@@ -79,7 +75,7 @@ export function ClientDocumentsPage() {
   }), [documents, query, categoryFilter]);
 
   useEffect(() => {
-    if (preview || !supabase) return;
+    if (!supabase) return;
     void loadDocuments();
   }, []);
 
@@ -105,7 +101,7 @@ export function ClientDocumentsPage() {
     }
     if (filesResult.data?.[0]?.company_id) {
       const companyResult = await supabase.from('companies').select('display_name,logo_url').eq('id', filesResult.data[0].company_id).maybeSingle();
-      if (companyResult.data) setCompanyBrand({ name: companyResult.data.display_name || 'sua empresa', logoUrl: companyResult.data.logo_url || '' });
+      if (companyResult.data) setCompanyBrand({ name: companyResult.data.display_name || 'sua empresa', logoUrl: (await resolveWorkspaceMedia(companyResult.data.logo_url, 86400)) || '' });
     }
     const rows = await Promise.all((filesResult.data ?? []).map(async (item) => ({
       id: item.id,
@@ -137,13 +133,8 @@ export function ClientDocumentsPage() {
     setLoading(false);
   }
 
-  const validityAlerts = useMemo(() => documents.filter((doc) => {
-    const days = daysUntil(doc.validUntil);
-    return days !== null && days <= 60;
-  }), [documents]);
-
   async function markViewed(doc: ClientDoc) {
-    if (preview || !supabase) return;
+    if (!supabase) return;
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
     if (!userId) return;
@@ -157,7 +148,7 @@ export function ClientDocumentsPage() {
 
   async function openDocument(doc: ClientDoc) {
     await markViewed(doc);
-    if (preview || !supabase) return;
+    if (!supabase) return;
     if (doc.storagePath) {
       const { data, error: signedError } = await supabase.storage.from('cali-workspace-private').createSignedUrl(doc.storagePath, 300);
       if (signedError) { setError(signedError.message); return; }
@@ -169,10 +160,7 @@ export function ClientDocumentsPage() {
 
   async function acknowledgeDocument(doc: ClientDoc) {
     if (acknowledged.includes(doc.id)) return;
-    if (preview || !supabase) {
-      setAcknowledged((current) => [...current, doc.id]);
-      return;
-    }
+    if (!supabase) { setError('Serviço indisponível. Tente novamente em instantes.'); return; }
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
     if (!userId) return;
@@ -189,10 +177,7 @@ export function ClientDocumentsPage() {
   async function openComments(doc: ClientDoc) {
     setCommentDoc(doc);
     setComment('');
-    if (preview || !supabase) {
-      setComments([{ id: 'p1', body: 'Documento disponibilizado para sua análise. Se surgir algum ponto, registre por aqui para mantermos o contexto junto ao arquivo.', createdAt: '28 ago · 09:12', mine: false }]);
-      return;
-    }
+    if (!supabase) { setComments([]); setError('Serviço indisponível. Tente novamente em instantes.'); return; }
     setCommentLoading(true);
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
@@ -204,11 +189,7 @@ export function ClientDocumentsPage() {
 
   async function sendComment() {
     if (!commentDoc || !comment.trim()) return;
-    if (preview || !supabase) {
-      setComments((current) => [...current, { id: `c-${Date.now()}`, body: comment.trim(), createdAt: 'agora', mine: true }]);
-      setComment('');
-      return;
-    }
+    if (!supabase) { setError('Serviço indisponível. Tente novamente em instantes.'); return; }
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
     if (!userId) return;
@@ -219,10 +200,6 @@ export function ClientDocumentsPage() {
   }
 
   async function connectDrive() {
-    if (preview) {
-      setNotice('No ambiente de demonstração, a conexão com o Google Drive não é aberta.');
-      return;
-    }
     if (!supabase || driveConnecting) return;
     setDriveConnecting(true);
     setError('');
@@ -237,7 +214,7 @@ export function ClientDocumentsPage() {
   }
 
   async function requestDriveCopy(doc: ClientDoc) {
-    if (!driveConnection || !supabase || preview || !doc.storagePath) return;
+    if (!driveConnection || !supabase || !doc.storagePath) return;
     const existing = syncByFile[doc.id];
     if (existing?.status === 'synced' && existing.url) {
       window.open(existing.url, '_blank', 'noopener,noreferrer');
@@ -263,67 +240,74 @@ export function ClientDocumentsPage() {
     return 'Salvando no Drive…';
   }
 
-  if (loading) return <Shell role="client"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando biblioteca…</section></Shell>;
+  if (loading) return <Shell role="client"><section className="v2-client-module data-loading" aria-live="polite" aria-busy="true">Carregando biblioteca…</section></Shell>;
 
-  return (
-    <Shell role="client">
-      <section className="page client-documents-v2 client-documents-v3 client-documents-v4">
-
-        {notice && <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div>}
-        {error && <div className="inline-notice">{error}</div>}
-
-        <section className={`drive-banner ${driveConnection ? 'connected' : 'not-configured'}`}>
-          <div className="drive-icon"><Cloud size={23} /></div>
-          <div><span className="client-drive-kicker-v52">SEU ARQUIVO, NO SEU DRIVE</span><strong>{driveConnection ? 'Drive da sua empresa conectado' : 'Leve suas versões aprovadas para o Drive da sua empresa'}</strong><p>{driveConnection ? `${driveConnection.accountEmail || 'Conta Google conectada'}. Documentos aprovados continuam no Workspace e você escolhe quais versões copiar para o Drive da empresa.` : 'Conecte a conta Google da sua empresa. Depois, cada documento aprovado pela CALI pode ser salvo no Drive da empresa com um clique.'}</p></div>
-          <div className="client-drive-actions-v52">{driveConnection && <span className="client-drive-connected-v3"><CheckCircle2 size={15} />Conectado</span>}<button type="button" className="client-drive-action-v52" disabled={driveConnecting} onClick={() => void connectDrive()}><Cloud size={16} />{driveConnecting ? 'Abrindo Google…' : driveConnection ? 'Trocar conta' : 'Conectar meu Drive'}</button></div>
-        </section>
-
-        {validityAlerts.length > 0 && <section className="client-document-validity-alert" role="status"><AlertTriangle size={21} /><div><strong>{validityAlerts.some((doc) => (daysUntil(doc.validUntil) ?? 1) < 0) ? 'Há documentos com revisão vencida ou próxima.' : 'Há documentos próximos da revisão.'}</strong><p>{validityAlerts.length === 1 ? 'A validade deste documento se aproxima. Planeje a revisão para manter a documentação vigente e reduzir riscos trabalhistas e de auditoria.' : `${validityAlerts.length} documentos precisam de atenção. A ausência de revisão pode aumentar o risco trabalhista e o passivo em auditorias.`}</p></div></section>}
-
-        <div className="client-doc-toolbar-v3 client-doc-toolbar-v4">
-          <div className="client-doc-toolbar-copy-v4"><span>ACERVO DISPONÍVEL</span><strong>{filtered.length} {filtered.length === 1 ? 'documento' : 'documentos'}</strong><small>Use a busca ou filtre por categoria.</small></div>
-          <label className="search-box client-doc-search"><Search size={18} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nome, tipo ou protocolo" /></label>
-          <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} aria-label="Filtrar documentos por categoria"><option value="all">Todas as categorias</option>{categories.map((value) => <option key={value} value={value}>{categoryLabel(value)}</option>)}</select>
-        </div>
-
-        {loading && <div className="data-loading"><Loader2 className="spin" size={20} />Carregando biblioteca…</div>}
-        {!loading && filtered.length === 0 && <div className="panel data-empty"><strong>Nenhum documento encontrado.</strong><span>{documents.length ? 'Ajuste a busca ou o filtro.' : 'Assim que a CALI publicar uma versão final para você, ela aparecerá aqui.'}</span></div>}
-        <section className="document-cards document-cards-v2">
-          {filtered.map((doc) => {
-            const isAcknowledged = acknowledged.includes(doc.id);
-            const syncState = syncByFile[doc.id];
-            const syncLocked = syncState?.status === 'pending' || syncState?.status === 'processing';
-            return (
-              <article className="document-card document-card-v2" key={doc.id}>
-                <div className="document-card-cover"><ClientDocumentBrandCover companyId={doc.companyId} companyName={companyBrand.name} logoUrl={companyBrand.logoUrl} /></div>
-                <div className="document-card-body">
-                  <div className="document-card-tags"><span>{categoryLabel(doc.category)}</span><span>{doc.kind}</span>{isAcknowledged && <span className="ack-tag"><CheckCircle2 size={13} />Ciência registrada</span>}</div>
-                  <h2>{doc.title}</h2>
-                  {doc.description && <p className="client-document-context-v3">{doc.description}</p>}
-                  <p>{doc.date} · {doc.version}</p>
-                  <div className={`client-document-validity ${doc.validUntil && ((daysUntil(doc.validUntil) ?? 999) <= 60) ? 'attention' : ''}`}><AlertTriangle size={14} />{doc.validUntil ? <>Validade / próxima revisão: {formatDate(doc.validUntil)}{(daysUntil(doc.validUntil) ?? 999) < 0 ? ' · vencida' : ''}</> : 'Validade / próxima revisão: não definida'}</div>
-                  <small className="document-protocol">{doc.protocol}</small>
-                  <div className="document-card-actions document-card-actions-v2">
-                    <button className="secondary" onClick={() => void openDocument(doc)}><Eye size={17} />Abrir</button>
-                    <button className="secondary" onClick={() => void openComments(doc)}><MessageSquare size={17} />Comentar</button>
-                    {doc.requiresAcknowledgement && <button className={`secondary ${isAcknowledged ? 'acknowledged' : ''}`} disabled={isAcknowledged} onClick={() => void acknowledgeDocument(doc)}>{isAcknowledged ? <><CheckCircle2 size={17} />Ciente</> : <><FileCheck2 size={17} />Registrar ciência</>}</button>}
-                    {driveConnection && doc.storagePath && <button className={`secondary ${syncState?.status === 'synced' ? 'acknowledged' : ''}`} disabled={Boolean(syncLocked)} onClick={() => void requestDriveCopy(doc)}>{syncState?.status === 'synced' ? <ExternalLink size={17} /> : <Cloud size={17} />}{driveActionLabel(syncState)}</button>}
-                  </div>
-                </div>
-              </article>
-            );
-          })}
-        </section>
-      </section>
-
-      {commentDoc && <div className="modal-backdrop workspace-modal-backdrop" role="presentation">
-        <section className="modal-card document-comment-modal" role="dialog" aria-modal="true" aria-label={`Comentários de ${commentDoc.title}`}>
-          <button type="button" className="modal-close" onClick={() => setCommentDoc(null)} aria-label="Fechar"><X size={20} /></button>
-          <span className="section-kicker">COMENTÁRIOS DO DOCUMENTO</span><h2>{commentDoc.title}</h2><p className="comment-protocol">{commentDoc.protocol}</p>
-          <div className="document-comment-list">{commentLoading ? <div className="data-loading"><Loader2 className="spin" size={18} />Carregando…</div> : comments.map((item) => <div className={item.mine ? 'mine' : ''} key={item.id}><p>{item.body}</p><small>{item.createdAt}</small></div>)}</div>
-          <div className="document-comment-composer"><textarea rows={3} value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Escreva um comentário sobre este documento…" /><button className="primary" disabled={!comment.trim()} onClick={() => void sendComment()}><Send size={16} />Enviar comentário</button></div>
-        </section>
-      </div>}
-    </Shell>
-  );
+  // Situação exibida na lista e na ficha: validade primeiro, depois ciência.
+  const docState = (doc: ClientDoc) => {
+    const left = daysUntil(doc.validUntil);
+    if (left != null && left < 0) return { tone: 'red', label: 'Validade vencida' };
+    if (left != null && left <= 60) return { tone: 'yellow', label: left === 0 ? 'Vence hoje' : `Vence em ${left} ${left === 1 ? 'dia' : 'dias'}` };
+    if (doc.requiresAcknowledgement && !acknowledged.includes(doc.id)) return { tone: 'yellow', label: 'Aguardando ciência' };
+    if (doc.requiresAcknowledgement) return { tone: 'green', label: 'Ciente' };
+    return { tone: 'green', label: 'Disponível' };
+  };
+  const overdue = documents.filter((doc) => { const left = daysUntil(doc.validUntil); return left != null && left < 0; });
+  const expiring = documents.filter((doc) => { const left = daysUntil(doc.validUntil); return left != null && left >= 0 && left <= 60; });
+  return <Shell role="client"><section className="v2-client-module v2-client-docs"><div className="wf">
+    <div className="wf-head"><div><small>ÁREA DA EMPRESA / ACERVO</small><h1>Documentos</h1><p>Entregáveis com capa, versões, protocolo e acompanhamento.</p></div></div>
+    {notice && <div className="inline-notice success" role="status"><CheckCircle2 size={18}/>{notice}</div>}
+    {error && <div className="inline-notice" role="alert">{error}</div>}
+    <section className="wf-doc-drive"><Cloud size={23}/><div><strong>{driveConnection ? 'Drive da sua empresa conectado' : 'Leve suas versões aprovadas para o Drive da sua empresa'}</strong><p>{driveConnection ? `${driveConnection.accountEmail || 'Conta Google conectada'}. Você escolhe quais versões copiar para o Drive da empresa.` : 'Conecte a conta Google da sua empresa para salvar as versões aprovadas.'}</p></div><button type="button" className="wf-outline" disabled={driveConnecting} onClick={() => void connectDrive()}>{driveConnecting ? 'Abrindo Google…' : driveConnection ? 'Trocar conta' : 'Conectar meu Drive'}</button></section>
+    <div className="wf-doc-toolbar"><strong>{filtered.length} {filtered.length === 1 ? 'documento' : 'documentos'}</strong><label><Search size={14}/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nome, tipo ou protocolo" aria-label="Buscar documentos"/></label><select className="wf-doc-filter" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} aria-label="Filtrar documentos por categoria"><option value="all">Todas as categorias</option>{categories.map((value) => <option key={value} value={value}>{categoryLabel(value)}</option>)}</select><div className="wf-segments" aria-label="Exibição do acervo"><button type="button" className={layout === 'covers' ? 'on' : ''} onClick={()=>setLayout('covers')}>Capas</button><button type="button" className={layout === 'list' ? 'on' : ''} onClick={()=>setLayout('list')}>Lista</button></div></div>
+    {filtered.length === 0 && <div className="wf-empty"><strong>Nenhum documento encontrado.</strong><p>{documents.length ? 'Ajuste a busca ou o filtro.' : 'Assim que a CALI publicar uma versão final para você, ela aparecerá aqui.'}</p></div>}
+    {(expiring.length > 0 || overdue.length > 0) && <div className={`v2-hours-notice ${overdue.length ? 'critical' : 'warning'}`} role="status"><AlertTriangle size={16}/><span>{[overdue.length ? `${overdue.length} ${overdue.length === 1 ? 'documento está com a validade vencida' : 'documentos estão com a validade vencida'}` : '', expiring.length ? `${expiring.length} ${expiring.length === 1 ? 'documento tem' : 'documentos têm'} validade ou revisão prevista nos próximos 60 dias` : ''].filter(Boolean).join(' · ')}.</span></div>}
+    {layout === 'list' && filtered.length > 0 && <div className="wf-records v2-doc-list">{filtered.map((doc) => { const tone = doc.category === 'deliverable' ? 'doc-deliverable' : doc.category === 'report' ? 'doc-executive' : 'doc-work'; const state = docState(doc); return <button type="button" className={`wf-record-row ${tone}`} key={doc.id} onClick={() => setDetailDoc(doc)}><strong>{doc.title}</strong><span>{categoryLabel(doc.category)}</span><span>{doc.date}</span><span className={`wf-tag ${state.tone}`}>{state.label}</span><ChevronRight size={14}/></button>; })}</div>}
+    {layout === 'covers' && <section className="wf-doc-gallery">
+      {filtered.map((doc) => {
+        const isAcknowledged = acknowledged.includes(doc.id);
+        const syncState = syncByFile[doc.id];
+        const syncLocked = syncState?.status === 'pending' || syncState?.status === 'processing';
+        const tone = doc.category === 'deliverable' ? 'doc-deliverable' : doc.category === 'report' ? 'doc-executive' : 'doc-work';
+        const left = daysUntil(doc.validUntil);
+        const review = !doc.validUntil ? { date: 'Não definida', note: '', tone: 'muted' } : { date: formatDate(doc.validUntil), note: left == null ? '' : left < 0 ? `vencida há ${-left} ${-left === 1 ? 'dia' : 'dias'}` : left === 0 ? 'vence hoje' : `faltam ${left} ${left === 1 ? 'dia' : 'dias'}`, tone: left != null && left < 0 ? 'late' : left != null && left <= 60 ? 'soon' : '' };
+        const kindLabel = doc.kind.trim().toLowerCase() === categoryLabel(doc.category).trim().toLowerCase() ? '' : doc.kind;
+        return <article className={`wf-doc-cover v2-doc-card ${tone}`} key={doc.id}>
+          <div className="v2-doc-art-wrap">
+            <button type="button" className={`wf-doc-art ${doc.coverUrl ? 'has-cover' : ''}`} aria-label={`Ver informações de ${doc.title}`} onClick={() => setDetailDoc(doc)}>{doc.coverUrl ? <img src={doc.coverUrl} alt="" /> : companyBrand.logoUrl ? <DocumentAutoCover logo={companyBrand.logoUrl} name={companyBrand.name} /> : <span><FileText size={30}/><b>CALI</b></span>}</button>
+            <div className="v2-doc-tags"><span className={`wf-doc-label ${tone}`}>{categoryLabel(doc.category)}</span>{isAcknowledged && <span className="wf-tag green">Ciente</span>}</div>
+          </div>
+          <div className="wf-doc-content"><h2>{doc.title}</h2>{doc.description && <p>{doc.description}</p>}
+            <dl className="v2-doc-facts">
+              <div><dt>Versão</dt><dd>{String(doc.version).replace(/^v/i, '')}</dd></div>
+              <div><dt>{kindLabel ? 'Tipo' : 'Categoria'}</dt><dd>{kindLabel || categoryLabel(doc.category)}</dd></div>
+              <div><dt>Publicado em</dt><dd>{doc.date}</dd></div>
+              <div className={review.tone}><dt>Validade / revisão</dt><dd>{review.date}{review.note && <small>{review.note}</small>}</dd></div>
+            </dl>
+            <div className="v2-doc-foot"><strong className="wf-doc-protocol">{doc.protocol || 'Sem protocolo'}</strong></div>
+            <div className="wf-doc-actions"><button type="button" onClick={() => void openDocument(doc)}><Eye size={14}/> Abrir</button><button type="button" onClick={() => void openComments(doc)}><MessageSquare size={14}/> Comentar</button>
+              {doc.requiresAcknowledgement && <button type="button" disabled={isAcknowledged} onClick={() => void acknowledgeDocument(doc)}>{isAcknowledged ? <><CheckCircle2 size={14}/>Ciente</> : <><FileCheck2 size={14}/>Registrar ciência</>}</button>}
+              {driveConnection && doc.storagePath && <button type="button" disabled={Boolean(syncLocked)} onClick={() => void requestDriveCopy(doc)}>{syncState?.status === 'synced' ? <ExternalLink size={14}/> : <Cloud size={14}/>} {driveActionLabel(syncState)}</button>}
+            </div>
+          </div>
+        </article>;
+      })}
+    </section>}
+    {detailDoc && (() => { const doc = detailDoc; const state = docState(doc); const left = daysUntil(doc.validUntil); const isAcknowledged = acknowledged.includes(doc.id); return <div className="wf-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetailDoc(null); }}><section className="wf-modal v2-doc-sheet" role="dialog" aria-modal="true" aria-label={`Informações de ${doc.title}`}>
+      <div className="wf-modal-header"><span>DOCUMENTO{doc.protocol ? ` · ${doc.protocol}` : ''}</span><button type="button" onClick={() => setDetailDoc(null)} aria-label="Fechar"><X size={17}/></button></div>
+      <h2>{doc.title}</h2>
+      {doc.description && <p>{doc.description}</p>}
+      <span className={`wf-tag ${state.tone}`}>{state.label}</span>
+      <div className="wf-modal-grid">
+        <span>Tipo <strong>{categoryLabel(doc.category)}{doc.kind ? ` · ${doc.kind}` : ''}</strong></span>
+        <span>Versão <strong>{doc.version || '—'}</strong></span>
+        <span>Publicado em <strong>{doc.date}</strong></span>
+        <span>Validade / próxima revisão <strong>{doc.validUntil ? formatDate(doc.validUntil) : 'Não definida'}</strong></span>
+        <span>Prazo <strong>{left == null ? '—' : left < 0 ? `Vencida há ${Math.abs(left)} ${Math.abs(left) === 1 ? 'dia' : 'dias'}` : left === 0 ? 'Vence hoje' : `${left} ${left === 1 ? 'dia restante' : 'dias restantes'}`}</strong></span>
+        <span>Elaborado por <strong>CALI · Assessoria</strong></span>
+        {doc.requiresAcknowledgement && <span>Ciência <strong>{isAcknowledged ? 'Registrada' : 'Pendente'}</strong></span>}
+      </div>
+      <div className="wf-modal-actions"><button type="button" onClick={() => setDetailDoc(null)}>Fechar</button><button type="button" className="wf-outline" onClick={() => { setDetailDoc(null); void openComments(doc); }}><MessageSquare size={14}/> Comentar</button>{doc.requiresAcknowledgement && !isAcknowledged && <button type="button" className="wf-outline" onClick={() => void acknowledgeDocument(doc)}><FileCheck2 size={14}/> Registrar ciência</button>}<button type="button" className="wf-primary" onClick={() => void openDocument(doc)}><ExternalLink size={14}/> Abrir documento</button></div>
+    </section></div>; })()}
+    {commentDoc && <div className="wf-overlay" role="presentation"><section className="wf-modal wf-create" role="dialog" aria-modal="true" aria-label={`Comentários de ${commentDoc.title}`}><div className="wf-modal-header"><span>COMENTÁRIOS DO DOCUMENTO</span><button type="button" onClick={() => setCommentDoc(null)} aria-label="Fechar"><X size={20}/></button></div><h2>{commentDoc.title}</h2><p>{commentDoc.protocol}</p><div className="wf-thread">{commentLoading ? <div className="data-loading" aria-live="polite" aria-busy="true">Carregando…</div> : comments.map((item) => <div className={item.mine ? 'wf-bubble sent' : 'wf-bubble received'} key={item.id}><p>{item.body}</p><small>{item.createdAt}</small></div>)}</div><div className="wf-compose"><textarea rows={3} value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Escreva um comentário sobre este documento…" aria-label="Comentário"/><div><button className="wf-primary" disabled={!comment.trim()} onClick={() => void sendComment()}><Send size={16}/>Enviar comentário</button></div></div></section></div>}
+  </div></section></Shell>;
 }

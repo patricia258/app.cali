@@ -1,5 +1,23 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-10-09 — Codex — correção de fidelidade e de status da entrega
+
+- Feedback da Pati: não reconheceu a V2 na integração. A entrega anterior foi descrita como mais concluída do que a verificação visual permitia. Status corrigido: integração parcial; refação completa não homologada.
+- Comparação direta com a V2 revelou painéis unidos, faixa cromática, proporções e acabamento do menu diferentes; ausência de avisos/equipe do protótipo no início oficial. Login anterior e prévia sem sessão também impediram uma leitura clara.
+- Primeira correção: início do cliente com três painéis separados, contrato/contato/documento/agenda nas proporções V2; sidebar de 56 px e gradiente final da referência. Somente CSS; as 271 fontes operacionais continuam idênticas à base após normalização dos marcadores/imports.
+- `npm run check`, guard de integridade e `git diff --check` passaram. Desktop sem overflow no início conferido. Preview READY: https://app-cali-fnmbann7n-cali11.vercel.app/cliente . Commit de código `2e44af0`. Capturas e limites no handoff.
+- Restante da composição V2, estados reais e regressão autenticada permanecem pendentes. Nenhuma produção/merge/dados alterados.
+
+## 2026-10-09 — Codex — integração visual V2 no aplicativo oficial
+
+- Pedido: transportar a V2 aprovada para os fluxos reais, cliente primeiro e administradora depois, na branch `feat/client-visual-v2-inplace-20261008`, sem produção/merge.
+- Apresentação V2 no shell e módulos oficiais; tema noturno e todos os atalhos preservados. Seis arquivos CSS consolidados em dois, com conteúdo e ordem idênticos. Removidas 65 declarações de shell substituídas.
+- Integridade: 271 fontes operacionais comparadas com `7d817c3`, sem alterações além de imports CSS e marcadores de apresentação. Nenhuma alteração de banco/env/dados.
+- Verificações: `npm ci`, typecheck/build por módulo, `git diff --check` e `scripts/verify-v2-operation.cjs` passaram. Chromium local indisponível; instalação falhou. Teste de navegador preparado, ainda não aprovado.
+- Conferência remota encontrou conflito do shell expandido: removido o CSS antigo de gradiente/geometria e 24 regras substituídas; escopo V2 corrigido. Build/check e integridade passaram novamente. Desktop: dashboard, horas dia/noite e documentos com busca/modal conferidos. Equipe sem sessão permaneceu carregando.
+- Preview READY do commit `4ec52f7`: https://app-cali-e7hy87t4u-cali11.vercel.app/login . Sem produção ou merge.
+- Handoff e limites: `docs/VISUAL_V2_HOMOLOGACAO_2026-10-09.md`. Homologação visual e regressão autenticada pendentes; nenhum aceite presumido. Rollback por revert nesta branch.
+
 ## 2026-10-04 — Codex (conteúdo e hierarquia comercial de Frentes)
 
 - **Pedido:** Pati rejeitou a repetição dos seis cards, o conteúdo raso e a uniformidade da área de ampliação. A página segue **pendente de aprovação visual**.
@@ -801,3 +819,20 @@ Duas regras técnicas, pro handoff entre Claude e Codex, a partir do bug encontr
 - Pati informou que cadastrar/editar ainda fechava ou pulava a última etapa. Substituí a visibilidade frágil por posição CSS por `hidden` explícito em cada campo de cada etapa, mantive a etapa opcional própria e separei o botão de avançar do botão final de salvar.
 - Comando de auditoria diagnóstica para Cláudio em `docs/AUDITORIA_EQUIPE_PARA_CLAUDIO_2026-10-02.md`: ele deve comparar código/spec/fluxo, reproduzir e apontar evidências sem editar nem publicar.
 - `npm run check` passou. O navegador automatizado local não estava disponível; clique completo autenticado ainda **não** foi comprovado. Aprovação de Pati: pendente. Autor: Codex.
+
+## 2026-10-09 — Correção estrutural do início cliente V2
+
+- Substituído o JSX da home antiga pela composição `ch-*` da referência aprovada, mantendo as consultas, estados, cálculos, callbacks e RPC de envio oficiais.
+- Incluídos Quadro de Avisos, Mini Equipe e Próxima Decisão; agenda na coluna lateral acima da decisão e Em Movimento na coluna maior.
+- Mini Equipe consulta apenas campos profissionais já existentes em `team_members`, com empresa proveniente do dashboard autenticado, RLS intacta e paginação. Sem dados privados, salários ou novos campos de banco.
+- Dependências: não encontrada fonte oficial de comunicados/ciência; data de nascimento ausente no cadastro profissional. Estados vazios explícitos, sem importar dados fictícios da V2.
+- Cabeçalho cliente dividido em barra global e barra do módulo; perfil movido para o topo, preservando editor e ações. Rail cliente fixo; administradora não refatorada nesta etapa.
+- Estilos antigos da home substituídos e 97 seletores comprovadamente sem uso removidos de três arquivos compartilhados. Não removidos serviços ou funcionalidades.
+- Guard de regressão atualizado para permitir refatoração JSX e comparar declarações operacionais via AST, além de todos os bindings anteriores de ação, valor, navegação e progresso. Não substitui E2E autenticado.
+- Compilação e TypeScript aprovados antes da revisão visual. Equivalência visual e testes com sessão real permanecem pendentes até a comparação da prévia e autenticação.
+
+### Validação da etapa estrutural — impedimento real
+
+Referência executada em 1363 × 936 e medidas salvas no relatório. Commit estrutural `823cce7` publicado como preview READY. Na autenticação real, o navegador recebeu tomada de controle pelo usuário na etapa OTP; o estado final é desconhecido. A revisão automática rejeitou a leitura da página e a inspeção sem navegação. Sem contorno do bloqueio, sem captura da integração nova e sem declarar equivalência visual. Demais páginas cliente e testes de operação real permanecem pendentes; administradora não avançada.
+
+Ajustes de apresentação posteriores: zeros sem sessão substituídos por indisponibilidade, botão do mural desabilitado com descrição, tema noturno oficial preservado. Nenhuma alteração em serviços ou callbacks.

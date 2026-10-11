@@ -20,15 +20,6 @@
     transform: none !important;
   }
 
-  .app-shell:has(.sidebar:hover) .main,
-  .app-shell:has(.sidebar:focus-within) .main,
-  .app-shell:has(.sidebar.pinned) .main {
-    flex-basis: calc(100vw - var(--sidebar-open)) !important;
-    width: calc(100vw - var(--sidebar-open)) !important;
-    max-width: calc(100vw - var(--sidebar-open)) !important;
-    margin-left: var(--sidebar-open) !important;
-  }
-
   .workspace-view {
     width: 100% !important;
     max-width: 100% !important;

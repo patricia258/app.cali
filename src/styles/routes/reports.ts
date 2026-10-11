@@ -22,3 +22,4 @@ import '../../report-client-flow-v56.css';
 import '../../reports-pdf-polish-v54.css';
 
 export {};
+import '../../report-paper-fonts-v2.css';

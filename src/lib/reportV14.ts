@@ -140,11 +140,11 @@ export function buildReportAlertsV14(snapshot: IntelligenceSnapshot, rows: Deliv
     alerts.push({
       id: `deadline-missing:${item.deliverable_id}`,
       severity: 'warning',
-      title: `${item.title} está sem deadline`,
-      detail: 'Sem uma data prevista, o Workspace não consegue calcular aderência ao prazo para este entregável.',
+      title: `${item.title} está sem prazo definido`,
+      detail: 'Defina a data de entrega deste entregável em Projetos. Sem a data não dá para calcular a aderência ao prazo, e o relatório não pode ser fechado.',
       blocking: true,
       source: 'deadline',
-      actionLabel: 'Abrir Projetos',
+      actionLabel: 'Definir prazo em Projetos',
       actionHref: '/admin/projetos',
     });
   });
@@ -154,11 +154,11 @@ export function buildReportAlertsV14(snapshot: IntelligenceSnapshot, rows: Deliv
     alerts.push({
       id: `deadline-late:${item.deliverable_id}`,
       severity: days >= 5 ? 'critical' : 'warning',
-      title: `${item.title} foi concluído após o prazo`,
-      detail: `O fechamento ocorreu ${days} dia(s) útil(eis) depois do deadline. Revise se o contexto do desvio está claro antes de aprovar o relatório.`,
+      title: `${item.title} foi concluído depois do prazo`,
+      detail: `A entrega fechou ${days} dia(s) útil(eis) depois do prazo. Explique o motivo na leitura executiva, ou confira em Projetos se a data está certa, antes de aprovar.`,
       blocking: days >= 5,
       source: 'deadline',
-      actionLabel: 'Revisar origem',
+      actionLabel: 'Conferir em Projetos',
       actionHref: '/admin/projetos',
     });
   });
@@ -168,11 +168,11 @@ export function buildReportAlertsV14(snapshot: IntelligenceSnapshot, rows: Deliv
     alerts.push({
       id: 'approval:pending',
       severity: 'info',
-      title: `${validationCount} entregável(is) ainda em validação`,
-      detail: 'A aprovação do cliente ainda não foi registrada para todos os itens em validação. Isso não impede o fechamento, mas merece conferência.',
+      title: `${validationCount} entregável(is) aguardando a aprovação do cliente`,
+      detail: 'O cliente ainda não aprovou esses itens. Isso não impede o fechamento; vale lembrar o cliente ou citar o ponto na leitura executiva.',
       blocking: false,
       source: 'approval',
-      actionLabel: 'Ver Projetos',
+      actionLabel: 'Ver em Projetos',
       actionHref: '/admin/projetos',
     });
   }
@@ -184,11 +184,11 @@ export function buildReportAlertsV14(snapshot: IntelligenceSnapshot, rows: Deliv
     alerts.push({
       id: 'hours:over-capacity',
       severity: pct >= 125 ? 'critical' : 'warning',
-      title: `Consumo de horas em ${pct}% da capacidade`,
-      detail: `${formatHoursV14(snapshot.hours.consumedMinutes)} registrados para ${contracted}h previstas no período. O dado é automático e deve ser corrigido na origem caso esteja incorreto.`,
+      title: `Horas do período em ${pct}% do contratado`,
+      detail: `Foram registradas ${formatHoursV14(snapshot.hours.consumedMinutes)} para ${contracted}h contratadas. O relatório lê esse número sozinho: se algum lançamento estiver errado, corrija em Horas.`,
       blocking: false,
       source: 'hours',
-      actionLabel: 'Abrir Horas',
+      actionLabel: 'Conferir em Horas',
       actionHref: '/admin/horas',
     });
   }
@@ -202,10 +202,10 @@ export function buildReportAlertsV14(snapshot: IntelligenceSnapshot, rows: Deliv
         id: `dependency:${item.protocol || index}:${item.title}`,
         severity: impact >= 5 ? 'critical' : 'warning',
         title: item.title || 'Dependência crítica do ciclo',
-        detail: impact ? `Dependência com impacto de ${impact} dia(s) útil(eis) no fluxo.` : clean(item.detail) || 'Dependência que pode alterar a continuidade do ciclo.',
+        detail: impact ? `Esta dependência já atrasou o andamento em ${impact} dia(s) útil(eis). Confira em Projetos se foi resolvida ou cite-a na leitura executiva.` : clean(item.detail) || 'Dependência que pode alterar a continuidade do ciclo.',
         blocking: impact >= 5,
         source: 'dependency',
-        actionLabel: 'Ver origem',
+        actionLabel: 'Ver em Projetos',
         actionHref: '/admin/projetos',
       });
     });
@@ -214,11 +214,11 @@ export function buildReportAlertsV14(snapshot: IntelligenceSnapshot, rows: Deliv
     alerts.push({
       id: 'memory:no-records',
       severity: 'info',
-      title: 'Há agenda no período, mas nenhuma memória consultiva registrada',
-      detail: 'Reuniões sem registro não alimentam decisões, riscos ou contexto estratégico do relatório.',
+      title: `${snapshot.events.count === 1 ? 'Houve 1 reunião' : `Houve ${snapshot.events.count} reuniões`} no período e nada foi registrado em Ocorrências`,
+      detail: 'A agenda tem compromisso neste período, mas não existe registro do que foi tratado. Em Ocorrências, crie um “Novo registro” do tipo Reunião com as decisões e os pontos de atenção, para que entrem no relatório. Se não houver nada a registrar, ignore este aviso com uma justificativa.',
       blocking: false,
       source: 'memory',
-      actionLabel: 'Abrir Registros',
+      actionLabel: 'Registrar em Ocorrências',
       actionHref: '/admin/registros',
     });
   }
@@ -227,8 +227,8 @@ export function buildReportAlertsV14(snapshot: IntelligenceSnapshot, rows: Deliv
     alerts.push({
       id: 'feedback:not-collected',
       severity: 'info',
-      title: 'Nenhum feedback foi registrado no período',
-      detail: 'O relatório pode ser aprovado sem NPS. A seção de percepção simplesmente não será exibida ao cliente.',
+      title: 'Nenhuma avaliação do cliente no período',
+      detail: 'Nenhum entregável ou solicitação foi avaliado pelo cliente neste período. O relatório pode ser aprovado assim: a parte de percepção do cliente apenas não aparece.',
       blocking: false,
       source: 'feedback',
     });

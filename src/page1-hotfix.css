@@ -2,12 +2,6 @@
 
 /* O menu expandido não pode cobrir o conteúdo. */
 @media (min-width: 861px) {
-  .app-shell:has(.sidebar:hover) .main,
-  .app-shell:has(.sidebar:focus-within) .main,
-  .app-shell:has(.sidebar.pinned) .main {
-    margin-left: var(--sidebar-open);
-    width: calc(100% - var(--sidebar-open));
-  }
 
   .sidebar:hover,
   .sidebar:focus-within,

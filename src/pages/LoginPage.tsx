@@ -23,7 +23,6 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const validEmail = useMemo(() => email.includes('@') && email.includes('.'), [email]);
   const validCode = useMemo(() => /^\d{6}$/.test(code), [code]);
-  const previewEnabled = window.location.hostname.endsWith('.vercel.app');
 
   useEffect(() => {
     if (!supabase) return;
@@ -47,10 +46,6 @@ export function LoginPage() {
     resumeExistingSession();
     return () => { active = false; };
   }, [navigate]);
-
-  function enterPreview(role: 'admin' | 'client') {
-    sessionStorage.setItem('cali-preview-role', role);
-  }
 
   async function requestCode(event?: FormEvent) {
     event?.preventDefault();
@@ -164,14 +159,6 @@ export function LoginPage() {
             <div className="login-v2-message login-v2-message-success"><CheckCircle2 size={18} />Código enviado. Confira seu e-mail.</div>
           )}
           {error && <div className="login-v2-message">{error}</div>}
-
-          {previewEnabled && (
-            <div className="demo-links login-v2-demo-links">
-              <span>Prévia de desenvolvimento</span>
-              <Link to="/admin" onClick={() => enterPreview('admin')}>Patrícia</Link>
-              <Link to="/cliente" onClick={() => enterPreview('client')}>Cliente</Link>
-            </div>
-          )}
         </form>
       </section>
 

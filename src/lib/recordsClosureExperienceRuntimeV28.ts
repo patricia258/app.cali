@@ -31,7 +31,7 @@ function formatDate(value?: string | null) {
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(date).replace('.', '');
 }
-function drawer() { return document.querySelector<HTMLElement>('.records-v13-drawer'); }
+function drawer() { return document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"])"); }
 function protocolFromDrawer(target: HTMLElement) { return target.querySelector<HTMLElement>('.section-kicker')?.textContent?.trim() || ''; }
 function statusLabel(status?: string | null) {
   if (status === 'completed') return 'Finalizada';
@@ -228,7 +228,7 @@ function renderAdminFeedback(target: HTMLElement, ctx: Context) {
   card.innerHTML = `<div class="records-v28-admin-score"><span>${emojiForScore(ctx.feedback.score)}</span><strong>${ctx.feedback.score}<small>/5</small></strong></div><div><span class="records-v28-kicker">AVALIAÇÃO DO CLIENTE</span><strong>${messageForScore(ctx.feedback.score).title}</strong><p>${ctx.feedback.comment ? ctx.feedback.comment : 'O cliente não deixou comentário adicional.'}</p><small>Registrada ${formatDate(ctx.feedback.created_at)}</small></div>`;
   const host = target.querySelector<HTMLElement>('.records-v25-ops');
   if (host) host.append(card);
-  else target.querySelector('.records-v13-conversation')?.before(card);
+  else target.querySelector(":is(.records-v13-conversation,[data-v2-operation~=\"records-v13-conversation\"])")?.before(card);
 }
 
 function showAdminReopenOverlay(target: HTMLElement, ctx: Context) {
@@ -310,7 +310,7 @@ function renderAdminPendingBanner(target: HTMLElement, ctx: Context) {
   banner.append(review);
   const host = target.querySelector<HTMLElement>('.records-v25-ops');
   if (host) host.prepend(banner);
-  else target.querySelector('.records-v13-conversation')?.before(banner);
+  else target.querySelector(":is(.records-v13-conversation,[data-v2-operation~=\"records-v13-conversation\"])")?.before(banner);
 }
 
 function renderAdminReopen(target: HTMLElement, ctx: Context) {

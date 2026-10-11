@@ -41,8 +41,8 @@ function bind(list: HTMLElement) {
   observer.observe(list, { childList: true, subtree: false });
   observers.set(list, observer);
 
-  const pane = list.closest('.conversation-pane-v2');
-  const compose = pane?.querySelector<HTMLElement>('.conversation-composer-v2');
+  const pane = list.closest(":is(.conversation-pane-v2,[data-v2-operation~=\"conversation-pane-v2\"])");
+  const compose = pane?.querySelector<HTMLElement>(":is(.conversation-composer-v2,[data-v2-operation~=\"conversation-composer-v2\"])");
   if (compose) {
     const beforeSend = (event: Event) => {
       if (event.type === 'keydown') {
