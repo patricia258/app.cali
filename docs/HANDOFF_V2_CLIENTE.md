@@ -534,6 +534,14 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - Conferido no QA: lista, painel com conversa, formulário, 390 px sem estouro, cliente intacto (105/0). **Não conferido com dados reais:** mudanças de situação, envio de mensagem/anexo, encerramento com avaliação, registro só de memória (sem conversa) e pedido de reabertura.
 - Pendente: folhas antigas de registros ainda são carregadas na rota; limpar depois.
 
+### 2026-10-11 — Ocorrências da administradora: revisão da Patricia (lista escalável e painel)
+
+- **Lista** (`WorkspaceRecordsPage.tsx`, só administradora): Empresa agora abre em **"Todas as empresas"** (`companyId === 'all'`; `loadContext` lê sem filtro de empresa via `scoped()`, a RLS continua valendo; o realtime fica sem filtro nesse modo). Filtros todos em listas suspensas numa linha: Empresa, Situação, Tipo, **Agrupar por** (situação / empresa / tipo / sem agrupamento), botão "Só com ação necessária" e busca (também por nome da empresa). Saíram os segmentos, que repetiam o filtro de situação.
+- **Grupos recolhíveis** (`adminGroups`): cada grupo tem cabeçalho com contagem e "N com ação necessária"; históricos (stand by, finalizadas, canceladas, memória) começam fechados; 8 linhas por grupo + "Mostrar mais". Ordem dentro do grupo: ação necessária primeiro, depois a mais recente. Na visão de todas as empresas a linha mostra a etiqueta da empresa.
+- **Painel**: o cronômetro de acompanhamento virou etiqueta compacta no canto superior direito (tempo + Iniciar/Pausar/Encerrado), como o das tarefas; o bloco grande saiu de cima da conversa. A avaliação do cliente virou faixa de uma linha. Só CSS sobre o que `recordsOperationsRuntimeV25` e `recordsClosureExperienceRuntimeV28/29` criam; o texto "N min registrados · N sessões" do bloco antigo não aparece mais (o total continua na etiqueta).
+- Atenção: em "Todas as empresas" a contagem de mensagens lê todas as mensagens de uma vez (limite padrão de 1000 linhas do banco) — quando o volume crescer, trocar por contagem agregada.
+- Conferido no QA com 1 empresa/1 registro (dados de teste), 1440 e 390 px, cliente intacto. **Não conferido com dados reais:** muitas empresas/ocorrências, cronômetro em andamento, faixa de avaliação.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

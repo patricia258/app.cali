@@ -1790,3 +1790,57 @@ html[data-workspace-ui='v2'] .wf-modal.v2-admin-record-form .wf-form .wf-form-gr
 html[data-workspace-ui='v2'] .wf-modal.v2-admin-record-form .wf-form .v2-record-options label{display:inline-flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;width:auto}
 html[data-workspace-ui='v2'] .wf-modal.v2-admin-record-form .wf-form .v2-record-options input{width:15px!important;height:15px!important;min-height:0!important;padding:0!important;flex:none}
 @media(max-width:760px){html[data-workspace-ui='v2'] .wf-modal.v2-admin-record-form .wf-form .wf-form-grid.three{grid-template-columns:1fr!important}}
+
+/* Ocorrências da administradora — filtros em listas suspensas, grupos recolhíveis e cronômetro compacto no topo do painel */
+.v2-admin-records .wf-controls.v2-record-controls{display:flex;align-items:center;gap:10px;flex-wrap:nowrap}
+.v2-admin-records .v2-record-controls .wf-record-filter{height:36px;min-width:0;flex:0 1 190px;border:1px solid #e5d9d0;border-radius:7px;background-color:#fff;padding:0 28px 0 11px;font:inherit;font-size:11px;color:#322f2c}
+.v2-admin-records .v2-record-controls .wf-record-filter.v2-record-company{flex:0 1 220px;max-width:none}
+.v2-admin-records .v2-record-toggle{flex:none;display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;border:1px solid #e5d9d0;border-radius:7px;background:#fff;color:#67574c;font:inherit;font-size:11px;font-weight:600;white-space:nowrap;cursor:pointer}
+.v2-admin-records .v2-record-toggle.on{border-color:#b7495d;background:#fbe9ec;color:#b7495d}
+.v2-admin-records .v2-record-search{flex:1 1 200px;min-width:160px;display:flex;align-items:center;gap:7px;height:36px;margin:0 0 0 auto;padding:0 11px;border:1px solid #e5d9d0;border-radius:7px;background:#fff;color:#9a8c83}
+.v2-admin-records .v2-record-search input{flex:1;min-width:0;border:0;outline:0;background:none;padding:0;font:inherit;font-size:11px;color:#322f2c}
+.v2-admin-records .v2-record-groups{display:flex;flex-direction:column;gap:14px;margin-top:16px}
+.v2-admin-records .v2-record-group{border:1px solid #e9dbd0;border-radius:10px;background:#fff;overflow:hidden}
+.v2-admin-records .v2-record-group-head{display:flex;align-items:center;gap:12px;width:100%;padding:13px 16px;border:0;background:#fffdfb;font:inherit;text-align:left;cursor:pointer}
+.v2-admin-records .v2-record-group.open .v2-record-group-head{border-bottom:1px solid #efe7df}
+.v2-admin-records .v2-record-group-chevron{display:grid;place-items:center;width:24px;height:24px;border-radius:6px;background:#f6f0eb;color:#5a1e2d;flex:none}
+.v2-admin-records .v2-record-group-title{display:flex;flex-direction:column;gap:3px;min-width:0;margin-right:auto}
+.v2-admin-records .v2-record-group-title small{font-size:9px;letter-spacing:1.2px;color:#ad8259}
+.v2-admin-records .v2-record-group-title strong{font-size:13px;font-weight:600;color:#322f2c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v2-admin-records .v2-record-group-head .v2-record-action{margin:0}
+.v2-admin-records .v2-record-group-count{flex:none;min-width:30px;text-align:center;padding:5px 9px;border:1px solid #e7d7c8;border-radius:7px;background:#f2e9e2;color:#6d404c;font-size:11px}
+.v2-admin-records .v2-record-group .wf-records{border:0;border-radius:0;box-shadow:none;margin:0}
+.v2-admin-records .v2-record-company-name{display:inline-flex;align-items:center;margin-left:8px;padding:3px 7px;border-radius:5px;background:#f4e6d2;color:#8a5a2b;font-size:9px;font-style:normal;font-weight:700;letter-spacing:.02em;vertical-align:middle}
+.v2-admin-records .v2-record-more{display:block;width:100%;padding:11px 16px;border:0;border-top:1px solid #efe7df;background:#fffdfb;color:#5a1e2d;font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+@media(max-width:1100px){.v2-admin-records .wf-controls.v2-record-controls{flex-wrap:wrap}.v2-admin-records .v2-record-search{margin-left:0}}
+/* painel: cronômetro como etiqueta no canto superior direito (igual ao das tarefas), sem tirar espaço da conversa */
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-ops{margin:0!important;padding:0!important;border:0!important;background:none!important;display:block}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer{position:absolute!important;top:18px;right:62px;z-index:2;display:inline-flex!important;align-items:center;gap:0;margin:0!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;width:auto!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-copy{display:none!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action{display:inline-flex!important;flex-direction:row-reverse;align-items:center;gap:0;margin:0!important;border:1px solid #dec9c3;border-radius:7px;background:#fff;overflow:hidden;height:32px}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action b{display:inline-flex;align-items:center;height:100%;padding:0 11px;font-size:12px!important;font-weight:700;color:#5a1e2d!important;font-variant-numeric:tabular-nums;white-space:nowrap}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button{display:inline-flex!important;align-items:center;gap:7px;height:100%!important;min-height:0!important;padding:0 12px!important;border:0!important;border-radius:0!important;background:#5a1e2d!important;color:#fff!important;font:inherit;font-size:11px!important;font-weight:700!important;white-space:nowrap;cursor:pointer;box-shadow:none!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button::before{content:'';width:0;height:0;border-left:7px solid currentColor;border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button.records-v25-timer-pause::before{width:7px;height:9px;border:0;border-left:2.5px solid currentColor;border-right:2.5px solid currentColor;box-sizing:border-box}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button:disabled{background:#f6f0eb!important;color:#9a8c83!important;cursor:default}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button:disabled::before{display:none}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer.is-active .records-v25-timer-action{border-color:#5a1e2d}
+/* avaliação do cliente: uma faixa compacta */
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-feedback{display:flex!important;align-items:center;gap:12px;margin:12px 24px 0!important;padding:10px 14px!important;border:1px solid #efe7df!important;border-radius:9px!important;background:#fffdfb!important;box-shadow:none!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-score{display:inline-flex;align-items:center;gap:6px;flex:none}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-score span{font-size:18px}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-score strong{font-size:16px!important;color:#322f2c}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-score strong small{font-size:10px;color:#9a8c83}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-feedback>div:last-child{display:flex;flex-direction:column;gap:2px;min-width:0}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-feedback .records-v28-kicker{font-size:9px!important;font-weight:700;letter-spacing:.1em;color:#b58c52!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-feedback :is(div:last-child>strong){font-size:11px!important;color:#322f2c}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-feedback :is(p,div:last-child>small){margin:0!important;font-size:10px!important;color:#857870!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer{right:66px;top:24px}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button{font-size:0!important;gap:0}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button::after{content:'Iniciar';margin-left:7px;font-size:11px;font-weight:700}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button.records-v25-timer-pause::after{content:'Pausar'}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button:disabled::after{content:'Encerrado';margin-left:0}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer>header>div{min-width:0}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer>header h2{margin-top:22px!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer>header>div{flex:1 1 auto}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer>header small{display:block;padding-right:165px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

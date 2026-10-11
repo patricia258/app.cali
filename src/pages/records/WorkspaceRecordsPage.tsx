@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ArrowRight,
-  AlertTriangle, CalendarDays, CheckCircle2, ChevronRight, FileText, Filter,
+  AlertTriangle, CalendarDays, CheckCircle2, ChevronDown, ChevronRight, FileText, Filter,
   MessageCircle, Pencil, Plus, Search, Send, Trash2, X, UserPlus } from 'lucide-react';
 import { Shell, type Role } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
@@ -150,6 +150,11 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<RecordType | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<WorkflowStatus | 'all'>('all');
+  // Administradora: visão de todas as empresas, agrupamento e listas recolhíveis.
+  const [groupBy, setGroupBy] = useState<'status' | 'company' | 'type' | 'none'>('status');
+  const [actionOnly, setActionOnly] = useState(false);
+  const [groupOpen, setGroupOpen] = useState<Record<string, boolean>>({});
+  const [groupLimit, setGroupLimit] = useState<Record<string, number>>({});
   const [form, setForm] = useState<FormState>(() => emptyForm(role));
   const [accessOpen, setAccessOpen] = useState(false);
   const [access, setAccess] = useState(emptyAccess);
@@ -189,7 +194,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
     const client = supabase;
     const channel = client
       .channel(`records-v27-${companyId}-${role}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'cali_workspace', table: 'account_records', filter: `company_id=eq.${companyId}` }, (payload) => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'cali_workspace', table: 'account_records', ...(companyId === 'all' ? {} : { filter: `company_id=eq.${companyId}` }) }, (payload) => {
         const next = mapRecord(payload.new);
         setRecords((current) => current.map((record) => record.id === next.id ? next : record));
         setSelected((current) => current?.id === next.id ? next : current);
@@ -211,7 +216,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
         if (companyResult.error) throw companyResult.error;
         const nextCompanies = (companyResult.data || []).map((row: any) => ({ id: row.id, name: row.display_name }));
         setCompanies(nextCompanies);
-        resolvedCompanyId = companyId || nextCompanies[0]?.id || '';
+        resolvedCompanyId = companyId || 'all';
       } else {
         const profileResult = await supabase.from('profiles').select('company_id').eq('id', userId).maybeSingle();
         if (profileResult.error) throw profileResult.error;
@@ -226,11 +231,13 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
 
   async function loadContext(targetCompanyId: string) {
     if (!supabase || !targetCompanyId) return;
+    // 'all' (só administradora) lê as ocorrências de todas as empresas; a RLS continua valendo.
+    const scoped = (builder: any) => targetCompanyId === 'all' ? builder : builder.eq('company_id', targetCompanyId);
     const [recordResult, countResult, feedbackResult, reopenResult] = await Promise.all([
-      supabase.from('account_records').select('id,company_id,project_id,event_id,protocol,record_type,title,occurred_at,visibility,source_actor,participants,summary,transcript,decisions,attention_points,next_actions,impact_level,include_in_report,requires_action,created_by,created_at,workflow_status,last_activity_at,closed_at').eq('company_id', targetCompanyId).order('last_activity_at', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false }),
-      supabase.from('account_record_messages').select('id,record_id').eq('company_id', targetCompanyId).is('deleted_at', null),
-      supabase.from('account_record_feedback').select('record_id,score').eq('company_id', targetCompanyId),
-      supabase.from('account_record_reopen_requests').select('record_id,status,requested_at').eq('company_id', targetCompanyId).eq('status', 'pending').order('requested_at', { ascending: false }),
+      scoped(supabase.from('account_records').select('id,company_id,project_id,event_id,protocol,record_type,title,occurred_at,visibility,source_actor,participants,summary,transcript,decisions,attention_points,next_actions,impact_level,include_in_report,requires_action,created_by,created_at,workflow_status,last_activity_at,closed_at')).order('last_activity_at', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false }),
+      scoped(supabase.from('account_record_messages').select('id,record_id')).is('deleted_at', null),
+      scoped(supabase.from('account_record_feedback').select('record_id,score')),
+      scoped(supabase.from('account_record_reopen_requests').select('record_id,status,requested_at')).eq('status', 'pending').order('requested_at', { ascending: false }),
     ]);
     if (recordResult.error) throw recordResult.error;
     if (countResult.error) throw countResult.error;
@@ -249,8 +256,8 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
 
     if (role === 'admin') {
       const [projectResult, eventResult] = await Promise.all([
-        supabase.from('projects').select('id,company_id,name').eq('company_id', targetCompanyId).neq('status', 'cancelled').order('name'),
-        supabase.from('events').select('id,company_id,title,starts_at,event_type,cancelled_at').eq('company_id', targetCompanyId).is('cancelled_at', null).order('starts_at', { ascending: false }),
+        scoped(supabase.from('projects').select('id,company_id,name')).neq('status', 'cancelled').order('name'),
+        scoped(supabase.from('events').select('id,company_id,title,starts_at,event_type,cancelled_at')).is('cancelled_at', null).order('starts_at', { ascending: false }),
       ]);
       if (projectResult.error) throw projectResult.error;
       if (eventResult.error) throw eventResult.error;
@@ -272,11 +279,28 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   const visible = useMemo(() => records.filter((record) => {
     if (typeFilter !== 'all' && record.type !== typeFilter) return false;
     if (statusFilter !== 'all' && record.workflowStatus !== statusFilter) return false;
-    if (query && !`${record.title} ${record.summary || ''} ${record.protocol || ''} ${typeLabels[record.type]} ${record.workflowStatus ? workflowLabels[record.workflowStatus] : ''}`.toLowerCase().includes(query.toLowerCase())) return false;
+    if (actionOnly && !record.requiresAction) return false;
+    if (query && !`${record.title} ${record.summary || ''} ${record.protocol || ''} ${companyMap.get(record.companyId) || ''} ${typeLabels[record.type]} ${record.workflowStatus ? workflowLabels[record.workflowStatus] : ''}`.toLowerCase().includes(query.toLowerCase())) return false;
     return true;
-  }), [records, typeFilter, statusFilter, query]);
+  }), [records, typeFilter, statusFilter, query, actionOnly, companyMap]);
   const activeVisible = useMemo(() => visible.filter((record) => !record.workflowStatus || !archivedStatuses.has(record.workflowStatus)), [visible]);
   const archivedVisible = useMemo(() => visible.filter((record) => Boolean(record.workflowStatus && archivedStatuses.has(record.workflowStatus))), [visible]);
+  const adminGroups = useMemo(() => {
+    if (role !== 'admin') return [];
+    const time = (record: AccountRecordRow) => new Date(record.lastActivityAt || record.occurredAt).getTime() || 0;
+    const sorted = [...visible].sort((a, b) => Number(b.requiresAction) - Number(a.requiresAction) || time(b) - time(a));
+    const isArchived = (record: AccountRecordRow) => Boolean(record.workflowStatus && archivedStatuses.has(record.workflowStatus));
+    const make = (key: string, kicker: string, label: string, rows: AccountRecordRow[], closed = false) => ({ key: `${groupBy}:${key}`, kicker, label, rows, closed, action: rows.filter((record) => record.requiresAction).length });
+    if (groupBy === 'none') return [make('all', 'TODAS', 'Ocorrências no recorte', sorted)];
+    if (groupBy === 'status') {
+      const order: [WorkflowStatus | 'memory', string, string, boolean][] = [['open', 'AGUARDAM A CALI', 'Abertas', false], ['in_progress', 'EM ATENDIMENTO', 'Em andamento', false], ['waiting_client', 'COM O CLIENTE', 'Aguardando cliente', false], ['memory', 'MEMÓRIA DA CONTA', 'Registros consultivos', true], ['standby', 'HISTÓRICO', 'Em stand by', true], ['completed', 'HISTÓRICO', 'Finalizadas', true], ['cancelled', 'HISTÓRICO', 'Canceladas', true]];
+      return order.map(([status, kicker, label, closed]) => make(status, kicker, label, sorted.filter((record) => (record.workflowStatus || 'memory') === status), closed)).filter((group) => group.rows.length);
+    }
+    const buckets = new Map<string, AccountRecordRow[]>();
+    for (const record of sorted) { const key = groupBy === 'company' ? record.companyId : record.type; buckets.set(key, [...(buckets.get(key) || []), record]); }
+    return [...buckets.entries()].map(([key, rows]) => make(key, groupBy === 'company' ? 'EMPRESA' : 'TIPO', groupBy === 'company' ? (companyMap.get(key) || 'Empresa sem nome') : typeLabels[key as RecordType], rows, rows.every(isArchived)))
+      .sort((a, b) => b.action - a.action || b.rows.filter((record) => !isArchived(record)).length - a.rows.filter((record) => !isArchived(record)).length || a.label.localeCompare(b.label));
+  }, [role, visible, groupBy, companyMap]);
 
   // Pedido de acesso adicional: vira uma ocorrência do tipo "solicitação", com os dados da pessoa e a ciência das condições.
   async function requestAccess(event: FormEvent) {
@@ -306,7 +330,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   }
   function openNew() {
     setEditing(null);
-    setForm({ ...emptyForm(role), companyId });
+    setForm({ ...emptyForm(role), companyId: companyId === 'all' ? (companies[0]?.id || '') : companyId });
     setEditorOpen(true);
   }
   function openFromEvent(event: Event) {
@@ -480,7 +504,7 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
   const reopenPending = Boolean(selected && reopenByRecord[selected.id] === 'pending');
 
   function recordsTable(rows: AccountRecordRow[], emptyCopy: string) {
-    return <div className={`wf-records ${role==='admin'?'v2-admin-records-list':''}`}><div className="wf-record-row header"><span>Protocolo / Assunto</span><span>Tipo</span><span>Última atualização</span><span>Situação</span><span/></div>{rows.map(record=><div className="wf-record-row" key={record.id} role="button" tabIndex={0} onClick={() => void openRecord(record)} onKeyDown={event=>{if(event.target===event.currentTarget && (event.key==='Enter'||event.key===' ')){event.preventDefault();void openRecord(record)}}}><span><small>{record.protocol || '—'}{role==='admin' && record.requiresAction && <b className="v2-record-action">Ação necessária</b>}</small><strong>{record.title}</strong>{record.summary && <small>{record.summary}</small>}</span><span>{typeLabels[record.type]}</span><span>{formatDateTime(record.lastActivityAt || record.occurredAt)}<small className="wf-record-message-count"><MessageCircle size={12}/> {messageCounts[record.id] || 0} mensagens</small></span><span><span className={`wf-tag ${record.workflowStatus==='completed'?'green':record.workflowStatus==='waiting_client'?'yellow':record.workflowStatus==='cancelled'?'red':record.workflowStatus==='open'?'blue':'purple'}`}>{statusLabel(record.workflowStatus, role)}</span></span><button type="button" aria-label={`Abrir ${record.title}`} onClick={(event) => { event.stopPropagation(); void openRecord(record); }}><ChevronRight size={16}/></button></div>)}{!rows.length && <div className="wf-empty"><strong>Nenhuma ocorrência neste recorte.</strong><p>{emptyCopy}</p></div>}</div>;
+    return <div className={`wf-records ${role==='admin'?'v2-admin-records-list':''}`}><div className="wf-record-row header"><span>Protocolo / Assunto</span><span>Tipo</span><span>Última atualização</span><span>Situação</span><span/></div>{rows.map(record=><div className="wf-record-row" key={record.id} role="button" tabIndex={0} onClick={() => void openRecord(record)} onKeyDown={event=>{if(event.target===event.currentTarget && (event.key==='Enter'||event.key===' ')){event.preventDefault();void openRecord(record)}}}><span><small>{record.protocol || '—'}{role==='admin' && companyId==='all' && groupBy!=='company' && <em className="v2-record-company-name">{companyMap.get(record.companyId) || ''}</em>}{role==='admin' && record.requiresAction && <b className="v2-record-action">Ação necessária</b>}</small><strong>{record.title}</strong>{record.summary && <small>{record.summary}</small>}</span><span>{typeLabels[record.type]}</span><span>{formatDateTime(record.lastActivityAt || record.occurredAt)}<small className="wf-record-message-count"><MessageCircle size={12}/> {messageCounts[record.id] || 0} mensagens</small></span><span><span className={`wf-tag ${record.workflowStatus==='completed'?'green':record.workflowStatus==='waiting_client'?'yellow':record.workflowStatus==='cancelled'?'red':record.workflowStatus==='open'?'blue':'purple'}`}>{statusLabel(record.workflowStatus, role)}</span></span><button type="button" aria-label={`Abrir ${record.title}`} onClick={(event) => { event.stopPropagation(); void openRecord(record); }}><ChevronRight size={16}/></button></div>)}{!rows.length && <div className="wf-empty"><strong>Nenhuma ocorrência neste recorte.</strong><p>{emptyCopy}</p></div>}</div>;
   }
 
   return <Shell role={role}><div className={role==='client'?'v2-client-module':'ap-app v2-admin-page v2-admin-records v2-client-module'}><div className={role==='admin'?'ap-content':undefined} style={role==='admin'?undefined:{display:'contents'}}>
@@ -493,25 +517,45 @@ export function WorkspaceRecordsPage({ role }: { role: Role }) {
 
       <>
         <div className="wf-summary-inline"><span><strong>{records.length}</strong> {records.length===1?'registro':'registros'}</span><span><i className="wf-dot yellow"/>{records.filter(record=>record.workflowStatus==='waiting_client').length} {role==='admin'?'aguardando cliente':'aguardando você'}</span><span><i className="wf-dot purple"/>{records.filter(record=>record.workflowStatus==='open'||record.workflowStatus==='in_progress'||record.workflowStatus==='standby').length} em acompanhamento</span><span><i className="wf-dot green"/>{records.filter(record=>record.workflowStatus==='completed').length} {records.filter(record=>record.workflowStatus==='completed').length===1?'concluído':'concluídos'}</span>{role==='admin' && <span><i className="wf-dot red"/>{records.filter(record=>record.requiresAction).length} com ação necessária</span>}</div>
-        <div className="wf-controls">
-          <div className="wf-segments">{([['all','Todas'],['waiting_client',role==='admin'?'Aguardando cliente':'Aguardando você'],['in_progress','Em acompanhamento'],['completed','Concluídas']] as [WorkflowStatus | 'all', string][]).map(([value,label])=><button type="button" key={value} className={statusFilter===value?'on':''} onClick={()=>setStatusFilter(value)}>{label}</button>)}</div>
+        {role==='admin' ? <div className="wf-controls v2-record-controls">
+          <select className="wf-record-filter v2-record-company" aria-label="Empresa" value={companyId} onChange={(event) => void changeCompany(event.target.value)}><option value="all">Todas as empresas</option>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select>
+          <select className="wf-record-filter" aria-label="Situação" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as WorkflowStatus | 'all')}><option value="all">Todas as situações</option>{(Object.keys(workflowLabels) as WorkflowStatus[]).map((status) => <option value={status} key={status}>{statusLabel(status, role)}</option>)}</select>
+          <select className="wf-record-filter" aria-label="Tipo" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as RecordType | 'all')}><option value="all">Todos os tipos</option>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</select>
+          <select className="wf-record-filter" aria-label="Agrupar por" value={groupBy} onChange={(event) => setGroupBy(event.target.value as typeof groupBy)}><option value="status">Agrupar por situação</option><option value="company">Agrupar por empresa</option><option value="type">Agrupar por tipo</option><option value="none">Sem agrupamento</option></select>
+          <button type="button" className={`v2-record-toggle ${actionOnly?'on':''}`} aria-pressed={actionOnly} onClick={() => setActionOnly((current) => !current)}><i className="wf-dot red"/>Só com ação necessária</button>
+          <label className="v2-record-search"><Search size={14} /><input aria-label="Buscar ocorrências" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar assunto, protocolo ou empresa" /></label>
+        </div> : <div className="wf-controls">
+          <div className="wf-segments">{([['all','Todas'],['waiting_client','Aguardando você'],['in_progress','Em acompanhamento'],['completed','Concluídas']] as [WorkflowStatus | 'all', string][]).map(([value,label])=><button type="button" key={value} className={statusFilter===value?'on':''} onClick={()=>setStatusFilter(value)}>{label}</button>)}</div>
           <div className="wf-control-right">
-            {role==='admin' && <select className="wf-record-filter v2-record-company" aria-label="Empresa" value={companyId} onChange={(event) => void changeCompany(event.target.value)}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select>}
             <select className="wf-record-filter" aria-label="Tipo" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as RecordType | 'all')}><option value="all">Todos os tipos</option>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</select>
             <select className="wf-record-filter" aria-label="Situação" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as WorkflowStatus | 'all')}><option value="all">Todas as situações</option>{(Object.keys(workflowLabels) as WorkflowStatus[]).map((status) => <option value={status} key={status}>{statusLabel(status, role)}</option>)}</select>
             <Search size={14} /><input aria-label="Buscar ocorrências" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar ocorrência..." />
           </div>
-        </div>
+        </div>}
       </>
 
+      {role==='admin' ? <div className="v2-record-groups">
+        {adminGroups.map((group) => { const open = groupOpen[group.key] ?? !group.closed; const limit = groupLimit[group.key] || 8; return <section className={`v2-record-group ${open?'open':''}`} key={group.key}>
+          <button type="button" className="v2-record-group-head" aria-expanded={open} onClick={() => setGroupOpen((current) => ({ ...current, [group.key]: !open }))}>
+            <span className="v2-record-group-chevron">{open ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}</span>
+            <span className="v2-record-group-title"><small>{group.kicker}</small><strong>{group.label}</strong></span>
+            {group.action > 0 && <b className="v2-record-action">{group.action} com ação necessária</b>}
+            <b className="v2-record-group-count">{group.rows.length}</b>
+          </button>
+          {open && recordsTable(group.rows.slice(0, limit), '')}
+          {open && group.rows.length > limit && <button type="button" className="v2-record-more" onClick={() => setGroupLimit((current) => ({ ...current, [group.key]: limit + 20 }))}>Mostrar mais {Math.min(20, group.rows.length - limit)} de {group.rows.length - limit}</button>}
+        </section>; })}
+        {!adminGroups.length && <div className="wf-empty"><strong>Nenhuma ocorrência neste recorte.</strong><p>Altere os filtros ou adicione um novo registro.</p></div>}
+      </div> : <>
       {!archiveFilterSelected && <>
-        <div className="wf-group-head"><div><span>EM ACOMPANHAMENTO</span><strong>{role === 'admin' ? 'Abertos e em andamento' : 'Suas solicitações ativas'}</strong></div><b>{activeVisible.length}</b></div>
-        {recordsTable(activeVisible, role === 'admin' ? 'Altere os filtros ou adicione um novo registro.' : 'Quando precisar falar com a CALI, sua solicitação aparecerá aqui com todo o histórico.')}
+        <div className="wf-group-head"><div><span>EM ACOMPANHAMENTO</span><strong>Suas solicitações ativas</strong></div><b>{activeVisible.length}</b></div>
+        {recordsTable(activeVisible, 'Quando precisar falar com a CALI, sua solicitação aparecerá aqui com todo o histórico.')}
       </>}
 
       {archivedVisible.length > 0 && <>
         <div className="wf-group-head archived"><div><span>HISTÓRICO</span><strong>Finalizados, cancelados e em stand by</strong></div><b>{archivedVisible.length}</b></div>
         {recordsTable(archivedVisible, 'Os registros encerrados e em stand by ficam preservados aqui para consulta.')}
+      </>}
       </>}
     </section>
     </div>
