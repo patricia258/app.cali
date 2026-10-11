@@ -550,6 +550,14 @@ Pedido: replicar o comportamento do calendário do cliente, lembrando que a cont
 - **Lista**: primeira coluna com o logo da empresa (`RecordCompanyLogo`, via `resolveWorkspaceMedia`) e coluna "Aberta por" com o nome do login que criou o registro (`created_by` → `profiles.full_name`) e a origem (Cliente / CALI / CALI · pela agenda / importado).
 - **Não conferido com dados reais:** ícones de editar/excluir (o QA não os exibe), logos reais, nomes de quem abriu e o cronômetro em andamento.
 
+### 2026-10-11 — Carregamento padrão, fotos do chat, edição de mensagem e avaliação do cliente
+
+- **Carregamento padrão (lima + folha da marca, pequenas e suaves)**: as regras só existiam nas folhas antigas (`loading-illustrations-final.css`), que não entram nas rotas V2 — por isso as páginas novas mostravam texto ou, em Ocorrências, três bolas. Agora `operational.css` define o padrão para `.data-loading`, `.cali-symbol-loading`, `.team-loading` e para o carregador de entrada (`.cali-route-loading`). Conferido com rede lenta nas 16 rotas V2 (7 da administradora, 9 do cliente): 14 mostram o padrão; Visão geral da administradora e Frentes do cliente não têm tela de espera (mostram a página com traços no lugar dos números). Ocorrências passou a usar `data-loading` como as outras.
+- **Fotos no chat de Ocorrências** (`identityMediaRuntime.ts`): o módulo assinava a foto de TODOS os perfis ativos antes de mostrar qualquer uma e, enquanto isso, apagava a foto/inicial que a conversa já tinha montado (ficava em branco). Agora cada foto entra assim que fica pronta e nada é apagado antes de os perfis terminarem de carregar. Não medido com dados reais.
+- **Editar mensagem**: o campo ocupa a largura toda do balão, com Cancelar/Salvar alinhados à direita.
+- **Avaliação do atendimento (cliente)**: o cartão criado por `recordsClosureExperienceRuntimeV29` aparecia cobrindo a página inteira, com título em fonte antiga. Agora fica dentro do painel da ocorrência (cabeçalho com o X continua visível), no padrão novo: nota 1–5, mensagem conforme a nota, comentário opcional (4–5) ou obrigatório (1–3), "Enviar avaliação". `.wf-record-drawer` passou a ser `position:relative`.
+- **Não conferido com dados reais:** envio da avaliação, tela de agradecimento, diálogo de pedido de reabertura (mesmo módulo, só recebeu os estilos de botão).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

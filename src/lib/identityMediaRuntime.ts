@@ -331,6 +331,8 @@ function decorateRecordsConversation() {
       applyMedia(frame, profile.avatar_url, 'person', profile);
       return;
     }
+    // Enquanto os perfis ainda carregam, mantém a foto ou a inicial que a conversa já montou (antes ficava em branco).
+    if (!profilesLoaded) return;
     clearIdentity(frame);
     hideInitial(frame);
   });
@@ -512,10 +514,14 @@ async function loadProfiles(force = false) {
       .from('profiles')
       .select('id,full_name,role,company_id,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom')
       .eq('active', true);
-    const loaded = await Promise.all(((data || []) as ProfileMedia[]).map(async (item) => ({
-      ...item,
-      avatar_url: await resolvePrivateMedia(item.avatar_url),
-    })));
+    // Cada foto entra assim que fica pronta, em vez de esperar a de todos os usuários ativos.
+    const loaded: ProfileMedia[] = [];
+    await Promise.all(((data || []) as ProfileMedia[]).map(async (item) => {
+      const resolved = { ...item, avatar_url: await resolvePrivateMedia(item.avatar_url) };
+      loaded.push(resolved);
+      profiles = [...profiles.filter((profile) => profile.id !== resolved.id), resolved];
+      scheduleDecorate();
+    }));
     profiles = loaded;
     if (!profiles.some((profile) => profile.role === 'admin') && location.pathname.startsWith('/cliente/')) {
       const contact = await supabase.rpc('get_client_account_contact');

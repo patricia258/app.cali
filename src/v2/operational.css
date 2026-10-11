@@ -1867,3 +1867,56 @@ html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action{h
 html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-chat-bubble{position:relative}
 html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-message-meta-extra{position:absolute;top:13px;right:12px;margin:0;font-size:9px;color:#a19a92}
 html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-message-meta-extra em{font-style:normal}
+
+/* Carregamento padrão do Workspace (combinado com a Patricia): a lima e a folha da marca, pequenas e suaves, alternando.
+   Vale para todo aviso de carregamento das páginas V2 — o texto fica só para leitores de tela. */
+html[data-workspace-ui='v2'] :is(.data-loading,.cali-symbol-loading,.team-loading,.people-map-loading,.portal-admin-loading){position:relative!important;display:block!important;min-height:140px!important;margin:0;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;color:transparent!important;font-size:0!important;line-height:0!important;overflow:hidden}
+html[data-workspace-ui='v2'] :is(.page,.v2-client-module,.wf,section).data-loading:not(.panel),html[data-workspace-ui='v2'] .cali-symbol-loading{min-height:46vh!important}
+html[data-workspace-ui='v2'] :is(.data-loading,.cali-symbol-loading,.team-loading,.people-map-loading,.portal-admin-loading)>*{display:none!important}
+html[data-workspace-ui='v2'] :is(.data-loading,.cali-symbol-loading,.team-loading,.people-map-loading,.portal-admin-loading)::before,html[data-workspace-ui='v2'] :is(.data-loading,.cali-symbol-loading,.team-loading,.people-map-loading,.portal-admin-loading)::after{content:'';position:absolute;top:50%;left:50%;width:34px;height:34px;margin:-17px 0 0 -17px;opacity:0;-webkit-mask:center/contain no-repeat;mask:center/contain no-repeat}
+html[data-workspace-ui='v2'] :is(.data-loading,.cali-symbol-loading,.team-loading,.people-map-loading,.portal-admin-loading)::before{background:#5a1e2d;-webkit-mask-image:url('/brand/cali-lime-mark.svg');mask-image:url('/brand/cali-lime-mark.svg');animation:v2-loading-lime 2.4s ease-in-out infinite}
+html[data-workspace-ui='v2'] :is(.data-loading,.cali-symbol-loading,.team-loading,.people-map-loading,.portal-admin-loading)::after{background:#b58c52;-webkit-mask-image:url('/brand/cali-oak-mark.svg');mask-image:url('/brand/cali-oak-mark.svg');animation:v2-loading-oak 2.4s ease-in-out infinite}
+@keyframes v2-loading-lime{0%,8%{opacity:0;transform:scale(.9) rotate(-5deg)}18%,44%{opacity:.7;transform:none}54%,100%{opacity:0;transform:scale(.94) rotate(3deg)}}
+@keyframes v2-loading-oak{0%,46%{opacity:0;transform:scale(.9) rotate(4deg)}58%,84%{opacity:.7;transform:none}94%,100%{opacity:0;transform:scale(.94) rotate(-3deg)}}
+@media(prefers-reduced-motion:reduce){html[data-workspace-ui='v2'] :is(.data-loading,.cali-symbol-loading,.team-loading,.people-map-loading,.portal-admin-loading)::before{animation:none;opacity:.7}html[data-workspace-ui='v2'] :is(.data-loading,.cali-symbol-loading,.team-loading,.people-map-loading,.portal-admin-loading)::after{animation:none}}
+/* carregamento de entrada/troca de página */
+html[data-workspace-ui='v2'] .cali-route-loading{position:fixed;inset:0;display:grid;place-items:center;background:#f7f3ee;z-index:2147483000}
+html[data-workspace-ui='v2'] .cali-loading-illustrations{position:relative;width:34px;height:34px}
+html[data-workspace-ui='v2'] .cali-loading-mark{position:absolute;inset:0;display:block;opacity:0;filter:none}
+html[data-workspace-ui='v2'] .cali-loading-lime{background:#5a1e2d;-webkit-mask:url('/brand/cali-lime-mark.svg') center/contain no-repeat;mask:url('/brand/cali-lime-mark.svg') center/contain no-repeat;animation:v2-loading-lime 2.4s ease-in-out infinite}
+html[data-workspace-ui='v2'] .cali-loading-oak{background:#b58c52;-webkit-mask:url('/brand/cali-oak-mark.svg') center/contain no-repeat;mask:url('/brand/cali-oak-mark.svg') center/contain no-repeat;animation:v2-loading-oak 2.4s ease-in-out infinite}
+html[data-workspace-ui='v2'] .cali-route-loading .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+/* edição de mensagem dentro do balão: campo na largura toda */
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-inline-edit{order:1;display:flex;flex-direction:column;gap:10px;width:100%;margin:8px 0 6px}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-inline-edit textarea{display:block;width:100%!important;max-width:none!important;min-height:96px;box-sizing:border-box;padding:10px 12px;border:1px solid #e5d8d0;border-radius:7px;background:#fff;font:inherit;font-size:12px;line-height:1.55;color:#322f2c;resize:vertical;outline:0;box-shadow:none}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-inline-edit textarea:focus{border-color:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-inline-edit-actions{display:flex;justify-content:flex-end;gap:8px}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-inline-edit-actions button{display:inline-flex;align-items:center;justify-content:center;height:auto;min-height:0;padding:9px 14px;border:1px solid #dec9c3;border-radius:7px;background:#fff;color:#5a1e2d;font:inherit;font-size:11px;font-weight:700;line-height:1.2;cursor:pointer;box-shadow:none}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-inline-edit-actions button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+
+/* Avaliação do atendimento (cliente) e diálogos de encerramento/reabertura criados pelos módulos: dentro do painel da ocorrência, no padrão novo */
+html[data-workspace-ui='v2'] .wf-record-drawer{position:relative}
+html[data-workspace-ui='v2'] .wf-record-drawer :is(.records-v28-feedback-overlay,.records-v29-feedback-overlay){position:absolute!important;inset:0!important;z-index:6;display:grid!important;place-items:center;padding:24px!important;margin:0!important;background:#fffdfbeb!important;backdrop-filter:blur(3px)}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-feedback-card{width:min(430px,100%)!important;margin:0!important;padding:24px!important;border:1px solid #eadfd6!important;border-radius:14px!important;background:#fff!important;box-shadow:0 20px 70px #28172426!important;display:flex;flex-direction:column;gap:10px;font-family:Inter,system-ui,sans-serif}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-kicker{font-size:9px!important;font-weight:800!important;letter-spacing:.14em!important;color:#b58c52!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-feedback-card h3{margin:0!important;font-family:inherit!important;font-size:19px!important;font-weight:700!important;line-height:1.25!important;color:#5a1e2d!important;letter-spacing:0!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-feedback-card p{margin:0!important;font-size:11px!important;line-height:1.55!important;color:#857870!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-score-grid{display:grid!important;grid-template-columns:repeat(5,1fr)!important;gap:8px!important;margin:8px 0 0!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-score-button{height:46px!important;min-height:0!important;padding:0!important;border:1px solid #e5d9d0!important;border-radius:8px!important;background:#fff!important;color:#5a1e2d!important;font:inherit;font-size:15px!important;font-weight:700!important;cursor:pointer;box-shadow:none!important;transition:background .15s,color .15s,border-color .15s}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-score-button:hover{border-color:#5a1e2d!important;background:#f6edf0!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-score-button.selected{background:#5a1e2d!important;border-color:#5a1e2d!important;color:#fff!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-score-response:not([hidden]){display:flex;flex-direction:column;gap:10px;margin-top:6px;padding-top:14px;border-top:1px solid #f1e9e2}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-score-message{display:flex;align-items:center;gap:10px;padding:0!important;border:0!important;background:none!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-score-message>span:first-child{font-size:24px;line-height:1}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-score-message strong{display:block;font-size:12px!important;color:#322f2c!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-score-response label{display:flex;flex-direction:column;gap:6px;font-size:10px;font-weight:700;color:#67574c}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-score-response textarea{width:100%;min-height:84px;box-sizing:border-box;padding:10px 12px;border:1px solid #e5d8d0;border-radius:7px;background:#fff;font:inherit;font-size:12px;font-weight:400;color:#322f2c;resize:vertical;outline:0}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-score-response textarea:focus{border-color:#5a1e2d}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-actions{display:flex;justify-content:flex-end;gap:8px;margin:0!important}
+html[data-workspace-ui='v2'] .wf-record-drawer :is(.records-v28-actions,.records-v28-thanks) button{display:inline-flex;align-items:center;justify-content:center;height:auto!important;min-height:0!important;padding:10px 15px!important;border:1px solid #dec9c3!important;border-radius:7px!important;background:#fff!important;color:#5a1e2d!important;font:inherit;font-size:11px!important;font-weight:700!important;cursor:pointer;box-shadow:none!important}
+html[data-workspace-ui='v2'] .wf-record-drawer :is(.records-v28-actions,.records-v28-thanks) button.primary{background:#5a1e2d!important;border-color:#5a1e2d!important;color:#fff!important}
+html[data-workspace-ui='v2'] .wf-record-drawer :is(.records-v28-actions,.records-v28-thanks) button:disabled{opacity:.45;cursor:not-allowed}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-thanks{display:flex;flex-direction:column;align-items:flex-start;gap:9px}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-thanks-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:8px;background:#e6f6ec;color:#31805a;font-size:16px;font-weight:700}
+html[data-workspace-ui='v2'] .wf-record-drawer .records-v28-thanks button{margin-top:6px}
+html[data-workspace-ui='v2'] .wf-record-drawer>header{position:relative;z-index:7;background:#fff}
