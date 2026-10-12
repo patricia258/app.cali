@@ -145,6 +145,7 @@ export type StaffRecordsScope = { companies: Company[] };
 export function StaffRecordsPage({ companies }: StaffRecordsScope) { return <WorkspaceRecordsPage role="admin" staff={{ companies }} />; }
 export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: StaffRecordsScope }) {
   const { user } = useWorkspaceAuth();
+  const [staffPhotos, setStaffPhotos] = useState<Record<string, string>>({});
   const [staffInternal, setStaffInternal] = useState(false); const [staffTimer, setStaffTimer] = useState<{ id: string; startedAt: string } | null>(null); const [, staffTick] = useState(0); const [closeRequested, setCloseRequested] = useState<Record<string, boolean>>({});
   useEffect(() => { if (!staffTimer) return; const timer = window.setInterval(() => staffTick((value) => value + 1), 1000); return () => window.clearInterval(timer); }, [staffTimer]);
   const [searchParams] = useSearchParams();
@@ -185,6 +186,8 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState('');
+  /* Avisos de confirmação aparecem num cartão flutuante e somem sozinhos. */
+  useEffect(() => { if (!notice) return; const timer = window.setTimeout(() => setNotice(''), 4500); return () => window.clearTimeout(timer); }, [notice]);
   const [error, setError] = useState('');
 
   useEffect(() => { void load(); }, []);
@@ -224,8 +227,9 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
       let resolvedCompanyId = '';
       if (staff) {
         setCompanies(staff.companies);
-        const authorResult = await supabase.from('profiles').select('id,full_name');
-        if (!authorResult.error) setAuthors(Object.fromEntries((authorResult.data || []).map((row: any) => [row.id, row.full_name || ''])));
+        const [authorResult, adminResult] = await Promise.all([supabase.from('profiles').select('id,full_name,avatar_url'), supabase.rpc('staff_admin_contacts')]);
+        const people = [...((authorResult.data || []) as any[]), ...((adminResult.data || []) as any[])];
+        if (!authorResult.error) { setAuthors(Object.fromEntries(people.map((row: any) => [row.id, row.full_name || '']))); void Promise.all(people.filter((row) => row.avatar_url).map(async (row) => [row.id, (await resolveWorkspaceMedia(row.avatar_url, 3600)) || ''] as [string, string])).then((list) => setStaffPhotos(Object.fromEntries(list.filter(([, url]) => url)))); }
         const pending = await supabase.from('staff_review_requests').select('entity_id').eq('kind', 'record_close').eq('status', 'pending');
         setCloseRequested(Object.fromEntries(((pending.data || []) as any[]).map((row) => [row.entity_id, true])));
         resolvedCompanyId = companyId || 'all';
@@ -563,11 +567,11 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
       {role==='client' && <div className="wf-head"><div><small>ÁREA DA EMPRESA / CANAL COM A CALI</small><h1>Ocorrências</h1><p>Uma conversa por assunto, com decisões e histórico no mesmo lugar.</p></div><div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => { setAccess(emptyAccess); setError(''); setAccessOpen(true); }}><UserPlus size={15}/> Solicitar acesso</button><button className="wf-primary" type="button" onClick={openNew}><Plus size={15}/> Nova ocorrência</button></div></div>}
       {role==='admin' && <div className="wf-head"><div><small>{staff ? 'EQUIPE CALI / OCORRÊNCIAS' : 'BACKOFFICE / CALI RH'}</small><h1>Ocorrências</h1><p>{staff ? 'Solicitações das empresas que você atende. O cliente vê o seu nome na resposta; o encerramento passa pela Patricia.' : 'Solicitações dos clientes e memória consultiva de cada conta, com histórico no mesmo lugar.'}</p></div>{!staff && <div className="v2-head-actions"><button className="wf-primary" type="button" onClick={openNew}><Plus size={15}/> Novo registro</button></div>}</div>}
 
-      {notice && <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div>}
+      {notice && <div className="inline-notice success v2-toast" role="status"><CheckCircle2 size={18} /><span>{notice}</span></div>}
       {error && <div className="inline-notice"><AlertTriangle size={18} />{error}</div>}
 
       <>
-        <div className="wf-summary-inline"><span><strong>{records.length}</strong> {records.length===1?'registro':'registros'}</span><span><i className="wf-dot yellow"/>{records.filter(record=>record.workflowStatus==='waiting_client').length} {role==='admin'?'aguardando cliente':'aguardando você'}</span><span><i className="wf-dot purple"/>{records.filter(record=>record.workflowStatus==='open'||record.workflowStatus==='in_progress'||record.workflowStatus==='standby').length} em acompanhamento</span><span><i className="wf-dot green"/>{records.filter(record=>record.workflowStatus==='completed').length} {records.filter(record=>record.workflowStatus==='completed').length===1?'concluído':'concluídos'}</span>{role==='admin' && <span><i className="wf-dot red"/>{records.filter(record=>record.requiresAction).length} com ação necessária</span>}</div>
+        <div className="wf-summary-inline"><span><strong>{records.length}</strong> {records.length===1?'registro':'registros'}</span><span><i className="wf-dot yellow"/>{records.filter(record=>record.workflowStatus==='waiting_client').length} {role==='admin'?'aguardando cliente':'aguardando você'}</span><span><i className="wf-dot purple"/>{records.filter(record=>record.workflowStatus==='open'||record.workflowStatus==='in_progress'||record.workflowStatus==='standby').length} em acompanhamento</span><span><i className="wf-dot green"/>{records.filter(record=>record.workflowStatus==='completed').length} {records.filter(record=>record.workflowStatus==='completed').length===1?'concluído':'concluídos'}</span></div>
         {role==='admin' ? <div className="wf-controls v2-record-controls">
           <select className="wf-record-filter v2-record-company" aria-label="Empresa" value={companyId} onChange={(event) => void changeCompany(event.target.value)}><option value="all">Todas as empresas</option>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select>
           <select className="wf-record-filter" aria-label="Situação" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as WorkflowStatus | 'all')}><option value="all">Todas as situações</option>{(Object.keys(workflowLabels) as WorkflowStatus[]).map((status) => <option value={status} key={status}>{statusLabel(status, role)}</option>)}</select>
@@ -590,7 +594,6 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
           <button type="button" className="v2-record-group-head" aria-expanded={open} onClick={() => setGroupOpen((current) => ({ ...current, [group.key]: !open }))}>
             <span className="v2-record-group-chevron">{open ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}</span>
             <span className="v2-record-group-title"><small>{group.kicker}</small><strong>{group.label}</strong></span>
-            {group.action > 0 && <b className="v2-record-action">{group.action} com ação necessária</b>}
             <b className="v2-record-group-count">{group.rows.length}</b>
           </button>
           {open && recordsTable(group.rows.slice(0, limit), '')}
@@ -651,14 +654,15 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
 
         {selected.workflowStatus ? <div className="wf-record-conversation" data-v2-operation="records-v13-conversation">
           <h3 className="wf-thread-title">Conversa e encaminhamentos</h3>
-          {staff ? <div className="wf-thread v2-staff-thread" aria-live="polite">{messages.length ? messages.map((message) => { const mine = message.authorId === user?.id; const name = message.authorId ? authors[message.authorId] || (message.authorRole === 'client' ? 'Cliente' : 'CALI') : 'Sistema'; return <div key={message.id} className={`conversation-line records-chat-line role-${message.authorRole} ${mine ? 'mine' : 'other'} ${message.visibility === 'internal' ? 'internal-note' : ''}`}>{!mine && <span className="records-chat-avatar identity-media-frame identity-media-empty identity-media-broken">{name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')}</span>}<div className="conversation-bubble records-chat-bubble"><div className="records-chat-head"><strong>{name}{message.visibility === 'internal' ? ' · nota interna' : ''}</strong><time>{formatDateTime(message.createdAt)}</time></div><p>{message.body}</p></div>{mine && <span className="records-chat-avatar identity-media-frame identity-media-empty identity-media-broken">{name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')}</span>}</div>; }) : <p className="v2-staff-thread-empty">Ainda não há mensagens nesta conversa.</p>}</div>
+          {staff ? <div className="wf-thread v2-staff-thread" aria-live="polite">{messages.length ? messages.map((message) => { const mine = message.authorId === user?.id; const name = message.authorId ? authors[message.authorId] || (message.authorRole === 'client' ? 'Cliente' : 'CALI') : 'Sistema'; return <div key={message.id} className={`conversation-line records-chat-line role-${message.authorRole} ${mine ? 'mine' : 'other'} ${message.visibility === 'internal' ? 'internal-note' : ''}`}>{!mine && <span className="v2-chat-photo">{message.authorId && staffPhotos[message.authorId] ? <img src={staffPhotos[message.authorId]} alt="" /> : name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')}</span>}<div className="conversation-bubble records-chat-bubble"><div className="records-chat-head"><strong>{name}{message.visibility === 'internal' ? ' · nota interna' : ''}</strong><time>{formatDateTime(message.createdAt)}</time></div><p>{message.body}</p></div>{mine && <span className="v2-chat-photo">{message.authorId && staffPhotos[message.authorId] ? <img src={staffPhotos[message.authorId]} alt="" /> : name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')}</span>}</div>; }) : <p className="v2-staff-thread-empty">Ainda não há mensagens nesta conversa.</p>}</div>
           : <div className="wf-thread" data-v2-operation="conversation-history" aria-live="polite" />}
           {!clientConversationLocked && !['completed', 'cancelled'].includes(selected.workflowStatus) && <div className="wf-compose" data-v2-operation="conversation-compose">
-            <div className={`wf-compose-label ${staff ? 'v2-staff-compose-head' : ''}`}><label htmlFor="wf-answer">{staff && staffInternal ? 'Nota interna para a Patricia' : role==='admin'?'Responder ao cliente':'Responder nesta ocorrência'}</label>{staff && <span className="v2-staff-compose-mode" role="tablist" aria-label="Para quem"><button type="button" role="tab" aria-selected={!staffInternal} className={!staffInternal ? 'on' : ''} onClick={() => setStaffInternal(false)}>Cliente</button><button type="button" role="tab" aria-selected={staffInternal} className={staffInternal ? 'on' : ''} onClick={() => setStaffInternal(true)}>Interno</button></span>}</div>
+            <div className={`wf-compose-label ${staff ? 'v2-staff-compose-head' : ''}`}><label htmlFor="wf-answer">{staff && staffInternal ? 'Nota interna para a Patricia' : role==='admin'?'Responder ao cliente':'Responder nesta ocorrência'}</label></div>
             <div className="records-chat-runtime-pending-host" />
             <div className="records-chat-runtime-tools-host" />
             <textarea id="wf-answer" rows={3} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder={staff && staffInternal ? 'Só a Patricia vê esta nota…' : role === 'admin' ? 'Responder ao cliente…' : 'Escreva sua mensagem para a CALI…'} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} />
-            <button className="primary" type="button" disabled={sendingMessage || !messageDraft.trim()} onClick={() => void sendMessage()}><Send size={14} />{sendingMessage ? 'Enviando…' : 'Enviar'}</button>
+            {staff ? <div className="v2-staff-compose-actions"><span className="v2-staff-compose-mode" role="tablist" aria-label="Para quem"><button type="button" role="tab" aria-selected={!staffInternal} className={!staffInternal ? 'on' : ''} onClick={() => setStaffInternal(false)}>Cliente</button><button type="button" role="tab" aria-selected={staffInternal} className={staffInternal ? 'on' : ''} onClick={() => setStaffInternal(true)}>Interno</button></span><button className="primary" type="button" disabled={sendingMessage || !messageDraft.trim()} onClick={() => void sendMessage()}><Send size={14} />{sendingMessage ? 'Enviando…' : 'Enviar'}</button></div>
+            : <button className="primary" type="button" disabled={sendingMessage || !messageDraft.trim()} onClick={() => void sendMessage()}><Send size={14} />{sendingMessage ? 'Enviando…' : 'Enviar'}</button>}
           </div>}
           {clientConversationLocked && <div className="records-v27-chat-locked">
             <div><span>CONVERSA ENCERRADA</span><strong>{selected.workflowStatus === 'standby' ? 'Esta solicitação está em stand by.' : selected.workflowStatus === 'cancelled' ? 'Esta solicitação foi cancelada.' : 'Esta solicitação foi finalizada.'}</strong><p>O histórico continua disponível, mas novas mensagens só são liberadas depois que a CALI aprovar a reabertura. O tempo já consumido permanece contabilizado e não é devolvido ao saldo de horas.</p></div>

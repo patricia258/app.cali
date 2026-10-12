@@ -978,6 +978,16 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Limites conhecidos:** quando o cliente responde, o aviso vai só para a administradora (o Partner vê na lista, sem sino); cronômetro do Partner não aparece no topo dele (só dentro da ocorrência); horas aprovadas não ficam ligadas à ocorrência no lançamento oficial (o protocolo vai na descrição).
 - **Não verificado:** nenhuma gravação com conta real (responder, mudar situação, pedir encerramento, cronômetro) — o simulador bloqueia gravações. Primeiro teste real é o da Patricia com o João.
 
+### 2026-10-13 (4) — Ocorrências: retorno da Patricia (chat, espaço, aviso, redundância) — homologação
+
+- **Chat no padrão do chat dos projetos** (administradora, cliente e Partner): foto FORA do balão, nome em caixa normal, texto e hora dentro; balão ajusta à mensagem (máx. 78%). **Causa das fotos que não apareciam** (queixa antiga dela): a foto ficava posicionada por cima do balão; nas mensagens de quem não é o autor o balão era desenhado depois e cobria a foto. Com a foto fora do balão isso acaba. (Regras em `operational.css`, bloco "Ocorrências — chat no padrão do chat dos projetos".)
+- **Mais espaço para a conversa:** cabeçalho, faixa de situação, campo de resposta e rodapé mais baixos; ferramentas e "Enviar" na mesma linha. Área da conversa passou de ~516 px para ~575 px numa tela de 1000 px de altura.
+- **Partner:** "Cliente / Interno" foi para o lado do "Enviar"; mensagens mostram foto real de quem escreveu; a administradora aparece com nome e foto (função nova `staff_admin_contacts`, migração `20261013160000`).
+- **Aviso de confirmação** ("Sessão com menos de 30 segundos…", "Status atualizado…") virou cartão flutuante no canto inferior direito que some em 4,5 s — vale para os três perfis nesta página.
+- **Redundância:** saíram "N com ação necessária" do resumo do topo e do cabeçalho do grupo; ficam a etiqueta na linha e o filtro "Só com ação necessária".
+- **Erro meu corrigido antes de enviar:** ao tirar a contagem repetida deixei a página de Ocorrências sem compilar; descobri porque o comando de verificação que eu vinha usando (`tsc -p .`) não checava nada — o certo é `tsc -p tsconfig.app.json` ou `npm run check`.
+- **Não verificado:** fotos reais (só dados fictícios); gravações do Partner seguem sem teste real.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
