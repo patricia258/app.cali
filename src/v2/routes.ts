@@ -1,7 +1,7 @@
 /* Rotas que usam a interface V2: todas as do cliente (incluindo a impressão do relatório, cujo papel
    traz as próprias folhas de estilo) e as da administradora já migradas. A administradora entra
    página a página — acrescente a rota aqui somente quando a página estiver na composição V2. */
-const migratedAdminRoutes = new Set(['/admin', '/admin/clientes', '/admin/equipe', '/admin/projetos', '/admin/horas', '/admin/calendario', '/admin/registros', '/admin/documentos', '/admin/satisfacao', '/admin/propostas', '/admin/mapa-de-people', '/admin/relatorios', '/admin/avisos']);
+const migratedAdminRoutes = new Set(['/admin', '/admin/clientes', '/admin/equipe', '/admin/projetos', '/admin/horas', '/admin/calendario', '/admin/registros', '/admin/documentos', '/admin/satisfacao', '/admin/propostas', '/admin/mapa-de-people', '/admin/relatorios', '/admin/avisos', '/admin/auditoria']);
 /* Páginas que só sabem em tempo de execução se usam a moldura V2. Ex.: a rota da proposta serve tanto o PDF
    oficial arquivado (moldura V2) quanto a prévia do rascunho, que continua nas folhas antigas porque é dela
    que sai o PDF — medido em 2026-10-11: trocar a moldura mudava títulos e espaçamentos do documento. */

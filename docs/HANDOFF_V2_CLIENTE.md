@@ -830,6 +830,14 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Auditoria (ela perguntou se existe):** existe parcial — histórico de alterações de equipe, de horas (edição/exclusão com motivo), de status de entregáveis e log de atividades. Não há uma tela única de auditoria. Sugestão a discutir: página "Auditoria" na administradora reunindo quem fez o quê e quando.
 - **Não verificado:** gravação real em `welcome_views` com usuário de verdade (o ambiente de teste bloqueia gravações).
 
+### 2026-10-12 (5) — página Auditoria (administradora) — só homologação
+
+- Nova rota `/admin/auditoria` (`src/pages/admin/AdminAuditPage.tsx`), item "Auditoria" no menu da administradora. Só leitura; **nenhuma mudança no banco**.
+- Junta em uma lista por dia: `activity_log`, `team_changes`, `team_private_audit`, `deliverable_status_history`, `project_lifecycle_events`, `report_client_events` (400 mais recentes de cada). Traduz cada evento para frase em português; esconde diagnósticos técnicos (`preview_*`).
+- Filtros: período, empresa, área, pessoa, busca. Indicadores: registros, pessoas que agiram, ações sensíveis.
+- **Limites conhecidos:** não registra o que o sistema hoje não grava (ex.: edição de cadastro de cliente, publicação de aviso, criação/edição de documento além de publicar/arquivar, login por senha). Para cobrir isso seria preciso passar a gravar esses eventos (mudança de banco/gatilhos). Eventos sem tradução aparecem com o nome técnico na área "Outros".
+- **Não verificado:** com dados reais (leitura de linhas de produção não é permitida ao assistente); Patricia confere na homologação.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
