@@ -3031,3 +3031,15 @@ html[data-workspace-ui='v2'] .wf-record-drawer.v2-admin-record-drawer .wf-thread
 html[data-workspace-ui='v2'] .wf-record-drawer .v2-staff-compose-actions>*{margin-top:0!important;margin-bottom:0!important;align-self:center}
 html[data-workspace-ui='v2'] .wf-record-drawer .v2-staff-compose-actions .v2-staff-compose-mode{height:36px;align-items:stretch}
 html[data-workspace-ui='v2'] .wf-record-drawer .v2-staff-compose-actions .v2-staff-compose-mode button{display:inline-flex;align-items:center}
+/* Balões menores, na escala do resto da plataforma (pedido de 2026-10-13). */
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-line{gap:10px!important;margin:0 0 10px!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread :is(.records-chat-avatar,.v2-chat-photo){width:34px!important;height:34px!important;min-width:34px!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-bubble{padding:10px 14px!important;gap:3px!important;border-radius:10px!important;max-width:min(74%,480px)!important}
+html[data-workspace-ui='v2'] .wf-record-drawer.v2-admin-record-drawer .wf-thread .records-chat-line .records-chat-bubble{max-width:min(74%,480px)!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-head strong{font-size:12px!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-bubble>p{font-size:12px!important;line-height:1.5!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-head time{margin:2px 0 0!important}
+/* Projetos da Equipe CALI: mesma tela; o que é de gestão fica oculto e a conversa segue o padrão do chat dos projetos. */
+html[data-workspace-ui='v2'] .v2-staff-projects [hidden]{display:none!important}
+html[data-workspace-ui='v2'] .v2-staff-project-chat .workspace-chat-avatar.v2-chat-photo{display:grid;place-items:center;overflow:hidden;font-size:11px;font-weight:700;color:#5a1e2d;background:#f3ece6}
+html[data-workspace-ui='v2'] .v2-staff-project-chat .workspace-chat-avatar.v2-chat-photo img{width:100%;height:100%;object-fit:cover;display:block}

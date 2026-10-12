@@ -988,6 +988,15 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Erro meu corrigido antes de enviar:** ao tirar a contagem repetida deixei a página de Ocorrências sem compilar; descobri porque o comando de verificação que eu vinha usando (`tsc -p .`) não checava nada — o certo é `tsc -p tsconfig.app.json` ou `npm run check`.
 - **Não verificado:** fotos reais (só dados fictícios); gravações do Partner seguem sem teste real.
 
+### 2026-10-13 (5) — Balões menores; Partner, página por página: 3) Projetos (homologação)
+
+- **Ocorrências:** balões do chat reduzidos (texto 12 px, foto 34 px, balão até 74% / 480 px) nos três perfis.
+- **Projetos do Partner:** usa a MESMA `AdminProjectsPageV3` em modo `staff` (`StaffProjectsPage`, rota `/equipe/projetos`): cabeçalho do projeto, Cronograma, Entregáveis (Lista e Kanban), Histórico e a gaveta do entregável. Ocultos para ele: Nova frente / Novo entregável / Novo projeto, botões do projeto (Enviar cronograma, Adicionar frente), "+ Entregável", Nova etapa, Editar, Excluir, Ajuste, Cancelar entregável, Anexar. Situação: só Não iniciado / Em andamento / Standby / Revisão interna (travada quando está com o cliente, aprovada ou cancelada). "Enviar ao cliente" virou **"Enviar para aprovação da Patricia"** (entregável vai para Revisão interna e entra na fila dela). Conversa com canal Cliente / Interno desenhada pela própria página, com foto e nome. Cronômetro real; ao parar, o tempo vai para aprovação. Etapas: pode marcar feita / não feita.
+- **Banco aplicado (acréscimo)** — `20261013180000_staff_partner_projects.sql`: `partner_change_deliverable_status`, `partner_request_deliverable_review`, `partner_post_deliverable_comment` (cliente ou interno; interno avisa a administradora no sino), `partner_start_deliverable_timer`, `partner_toggle_task`. Nenhuma função dela alterada.
+- **Lado dela:** aprovar um "Entregável" da fila agora ENVIA ao cliente de verdade (`change_deliverable_status → client_review`); devolver mantém em Revisão interna.
+- **Limites conhecidos:** os módulos automáticos de Projetos (inteligência de prazos, ciclo de vida/"Gerenciar projeto", aprovação de cronograma, carteira) só rodam em `/admin/projetos` — o Partner não tem esses recursos; horas por entregável mostram só as dele; sem anexos na conversa.
+- **Não verificado:** tudo com conta real; visual da gaveta do entregável do Partner conferido só por estrutura (máquina de teste lenta nesta rodada — load 16–23 — e alguns testes de tela deram tempo esgotado antes de passar).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
