@@ -99,7 +99,8 @@ const ClientReportsPageV5 = lazy(async () => {
   return import('./pages/client/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 }));
 });
 const CompanyTeamPage = lazy(() => import('./pages/team/CompanyTeamPage').then((m) => ({ default: m.CompanyTeamPage })));
-const ClientNoticesPage = lazy(() => import('./pages/client/ClientNoticesPage').then((m) => ({ default: m.ClientNoticesPage })));
+const ClientNoticesPage = lazy(() => import('./pages/notices/NoticesBoard').then((m) => ({ default: m.ClientNoticesPage })));
+const AdminNoticesPage = lazy(() => import('./pages/notices/NoticesBoard').then((m) => ({ default: m.AdminNoticesPage })));
 const ClientFrontsPage = lazy(() => import('./pages/client/ClientFrontsPage').then((m) => ({ default: m.ClientFrontsPage })));
 const ReportPrintPageV17 = lazy(async () => {
   await import('./styles/routes/reports');
@@ -173,6 +174,7 @@ function AppRoutes() {
         <Route path="/admin/documentos" element={<ProtectedRoute role="admin"><AdminDocumentsPageV4/></ProtectedRoute>}/>
         <Route path="/admin/relatorios/impressao/:reportId" element={<ProtectedRoute role="admin"><ReportPrintPageV17 role="admin"/></ProtectedRoute>}/>
         <Route path="/admin/relatorios" element={<ProtectedRoute role="admin"><AdminReportsPageV17/></ProtectedRoute>}/>
+        <Route path="/admin/avisos" element={<ProtectedRoute role="admin"><AdminNoticesPage/></ProtectedRoute>}/>
         <Route path="/admin/satisfacao" element={<ProtectedRoute role="admin"><AdminSatisfactionPage/></ProtectedRoute>}/>
         <Route path="/admin/mapa-de-people" element={<ProtectedRoute role="admin"><AdminPeopleMapPageV2/></ProtectedRoute>}/>
         <Route path="/admin/mapa-de-people/revisao" element={<ProtectedRoute role="admin"><AdminPeopleMapReviewPage/></ProtectedRoute>}/>

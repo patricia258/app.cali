@@ -701,6 +701,15 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - Primeiros testes no oficial: "Gerar relatório" do Mapa (pendência B1), PDF de relatório com a fonte nova, cronômetro com menos de 30 s.
 - O trabalho continua neste mesmo ramo; novas publicações só com novo "pode publicar".
 
+### 2026-10-11 — Quadro de Avisos (cliente e administradora)
+
+- Pedido da Patricia depois da publicação: a página de comunicados tinha ficado de fora. Plano apresentado na conversa (tabelas, quem publica, sem e-mail, agenda numa 2ª etapa) e aprovado com "show, manda bala!" — registrado como autorização para o banco (interpretação minha; ela não usou a frase "pode aplicar").
+- **Banco (aplicado)**: `20261011220000_notices_board.sql` — `notices` (protocolo AV-AAAA-NNNN, categoria, título, texto, data, horário, abrangência, capa, público `all|selected`, situação), `notice_targets`, `notice_acknowledgements`, `notice_comments`; função `can_read_notice`; RLS: administradora publica e vê tudo, cliente lê os avisos da própria empresa, registra a própria ciência e comenta pela própria empresa; função `notify_notice` (cria as notificações do sino para os clientes ativos que recebem o aviso); política de leitura do armazenamento para `notices/…` (capas visíveis a qualquer usuário logado; envio só pela administradora, pela política que já existia).
+- **Telas**: `src/pages/notices/NoticesBoard.tsx` (substitui `ClientNoticesPage.tsx`) na composição aprovada da V2 (`notice-*`). Cliente (`/cliente/avisos`): mural, filtro por categoria, "Estou ciente", comentários, abre direto pelo sino (`?aviso=`). Administradora (`/admin/avisos`, novo item "Avisos" no menu, em `migratedAdminRoutes`): Mural e "Gerenciar publicações" (lista, editar, arquivar / publicar de novo, ver arquivados), "Novo comunicado" (categoria, título, data, horário, abrangência, quem recebe, capa, mensagem), detalhe com ciências registradas e comentários.
+- Regra dos comentários: a resposta da CALI é gravada para a empresa que comentou (seletor quando mais de uma comentou), assim empresas diferentes não veem comentários umas das outras.
+- Fora desta etapa: aviso com data aparecer na Agenda do cliente; e-mail.
+- Conferido no QA com avisos simulados: mural (cliente e administradora), gerenciar, novo comunicado com empresas escolhidas, detalhe, 390 px. **Nada foi gravado no banco real ainda**: publicar, capa (envio e leitura pelo cliente), ciência, comentário, resposta e o sino precisam do primeiro teste real. Não publicado no oficial.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
