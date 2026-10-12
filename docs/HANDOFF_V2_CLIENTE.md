@@ -766,6 +766,13 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Não verificado / em aberto:** tudo conferido só com dados de teste (2 meses, 5 pessoas) — falta ver com empresa real de muitos meses; a queixa "dei enter e não mudou, depois mudou" no campo de período não foi reproduzida; "Evolução dos indicadores essenciais" (acima do People Analytics) continua com 12 meses fixos; custo de horas extras não existe no banco (precisa de campo novo, com aprovação); filtro único por área/gestor/localidade, Pareto e 24 meses por área seguem pendentes.
 - **Publicação:** só homologação. Oficial segue em `987048e`.
 
+### 2026-10-11 (noite, 2) — ajustes pedidos antes da 3ª publicação
+
+- Pizzas: rosca maior, centralizada na altura do cartão, legenda na largura toda (sem sobra à direita e embaixo); no centro, ao passar o mouse, aparece percentual + valor (o nome não cabe e ficava cortado).
+- Aviso do calendário: etiqueta da categoria sobre a capa (canto superior direito) e respiro igual entre capa, título, texto e dados.
+- **PENDÊNCIA (Patricia vai pensar antes):** exportar os Indicadores / People Analytics em **relatório PDF**. Falta decidir o agrupamento (por seção? por período? com as "Leituras"?). Não começar sem ela definir.
+- **Publicado no oficial** com autorização dela ("pode publicar") — 3ª publicação: People Analytics didático + ajustes acima.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

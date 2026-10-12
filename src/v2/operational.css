@@ -2593,3 +2593,22 @@ html[data-workspace-ui='v2'] .v2-client-module .context-strip .v2-team-period-sw
 html[data-workspace-ui='v2'] .v2-client-module .context-strip .v2-team-period-switch button{white-space:nowrap}
 html[data-workspace-ui='v2'] .v2-client-module .context-strip .v2-team-reference{flex:none;white-space:nowrap}
 html[data-workspace-ui='v2'] .v2-client-module .context-strip .context-end{min-width:0;white-space:nowrap}
+/* Pizza ocupa a moldura: rosca maior, centralizada na altura do cartão, legenda na largura toda. */
+html[data-workspace-ui='v2'] .pa-pie{flex:1;gap:26px;padding:4px 6px}
+html[data-workspace-ui='v2'] .pa-pie svg{width:156px;height:156px}
+html[data-workspace-ui='v2'] .pa-pie ul{max-width:none;gap:0}
+html[data-workspace-ui='v2'] .pa-pie li{grid-template-columns:10px minmax(0,1fr) auto 42px;gap:10px;padding:9px 8px;font-size:12px;border-bottom:1px solid #f4ede7;border-radius:0}
+html[data-workspace-ui='v2'] .pa-pie li:last-child{border-bottom:0}
+html[data-workspace-ui='v2'] .pa-pie li.on{border-radius:6px}
+html[data-workspace-ui='v2'] .pa-pie li i{width:10px;height:10px}
+html[data-workspace-ui='v2'] .pa-pie li em{font-size:12px}
+html[data-workspace-ui='v2'] .pa-pie svg text.sub{font-size:2.7px}
+@media(max-width:560px){html[data-workspace-ui='v2'] .pa-pie{gap:14px;padding:0}html[data-workspace-ui='v2'] .pa-pie ul{width:100%}html[data-workspace-ui='v2'] .pa-pie svg{width:132px;height:132px}}
+/* Aviso do calendário: etiqueta sobre a capa e respiro igual entre os blocos. */
+html[data-workspace-ui='v2'] .v2-notice-calendar .notice-dialog-body{display:flex;flex-direction:column;gap:12px;padding:16px;position:relative}
+html[data-workspace-ui='v2'] .v2-notice-calendar .notice-dialog-body>*{margin:0}
+html[data-workspace-ui='v2'] .v2-notice-calendar .notice-detail-cover{margin:0}
+html[data-workspace-ui='v2'] .v2-notice-calendar .notice-dialog-body .notice-category{align-self:flex-start}
+html[data-workspace-ui='v2'] .v2-notice-calendar .notice-dialog-body:has(>.notice-detail-cover) .notice-category{position:absolute;top:26px;right:26px;box-shadow:0 2px 8px #19070a33}
+html[data-workspace-ui='v2'] .v2-notice-calendar .notice-dialog-body h2{margin:2px 0 -4px}
+html[data-workspace-ui='v2'] .v2-notice-calendar .notice-dialog-body dl{margin:2px 0 0;padding:12px 14px;gap:12px 14px}

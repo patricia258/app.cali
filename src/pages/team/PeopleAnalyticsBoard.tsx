@@ -51,7 +51,7 @@ function Pie({ slices, unit = 'pessoas', empty }: { slices: [string, number][]; 
       <circle cx="21" cy="21" r="15.915" fill="none" stroke="#f3ece6" strokeWidth="7" />
       {data.map(([label, value], index) => { const share = value / total * 100; const node = <circle key={label} cx="21" cy="21" r="15.915" fill="none" stroke={COLORS[index % COLORS.length]} strokeWidth={hover === index ? 8.6 : 7} opacity={hover == null || hover === index ? 1 : .35} strokeDasharray={`${share} ${100 - share}`} strokeDashoffset={25 - offset} onMouseEnter={() => setHover(index)} />; offset += share; return node; })}
       <text x="21" y="20.4" textAnchor="middle">{shown ? `${Math.round(shown[1] / total * 100)}%` : num(total)}</text>
-      <text x="21" y="25.2" textAnchor="middle" className="sub">{shown ? shown[0].slice(0, 18) : unit}</text>
+      <text x="21" y="25.2" textAnchor="middle" className="sub">{shown ? `${num(shown[1], unit === 'horas' ? 1 : 0)} ${unit}` : unit}</text>
     </svg>
     <ul>{data.map(([label, value], index) => <li key={label} className={hover === index ? 'on' : ''} onMouseEnter={() => setHover(index)}><i style={{ background: COLORS[index % COLORS.length] }} /><span>{label}</span><b>{num(value, unit === 'horas' ? 1 : 0)}</b><em>{Math.round(value / total * 100)}%</em></li>)}</ul>
   </div>;
