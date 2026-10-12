@@ -4,7 +4,7 @@
    vai para o cliente passa pela administradora: horas e materiais entram em filas de aprovação. */
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, BriefcaseBusiness, Building2, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, LogOut, Megaphone, MessageCircleMore, Send, SendHorizontal, Users, X } from 'lucide-react';
+import { ArrowRight, Bell, BriefcaseBusiness, Play, Square, Building2, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, LogOut, Megaphone, MessageCircleMore, Send, SendHorizontal, Users, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 import { WelcomeTour, type WelcomeStep } from '../../v2/WelcomeTour';
@@ -40,6 +40,16 @@ function useMe() {
   return { me, error };
 }
 
+type Notice = { id: string; title: string; body: string | null; action_url: string | null; created_at: string };
+function StaffBell({ me }: { me: Me }) {
+  const [items, setItems] = useState<Notice[]>([]); const [open, setOpen] = useState(false); const key = `cali:staff-bell-seen:${me.id}`; const [seen, setSeen] = useState(() => { try { return localStorage.getItem(key) || ''; } catch { return ''; } });
+  useEffect(() => { let alive = true; const load = async () => { if (!supabase) return; const result = await supabase.from('notifications').select('id,title,body,action_url,created_at').eq('user_id', me.id).order('created_at', { ascending: false }).limit(15); if (alive && !result.error) setItems((result.data || []) as Notice[]); }; void load(); const timer = window.setInterval(load, 60000); return () => { alive = false; window.clearInterval(timer); }; }, [me.id]);
+  const fresh = items.filter((item) => item.created_at > seen).length;
+  const toggle = () => { const next = !open; setOpen(next); if (next && items[0]) { try { localStorage.setItem(key, items[0].created_at); } catch { /* segue */ } setSeen(items[0].created_at); } };
+  return <span className="v2-staff-bell"><button type="button" className={'notification-button ' + (fresh ? 'has-new' : '')} onClick={toggle} aria-label={fresh ? `${fresh} avisos novos` : 'Avisos'} aria-expanded={open}><Bell size={17} />{fresh > 0 && <b>{fresh}</b>}</button>
+    {open && <div className="v2-staff-bell-list" role="menu"><strong>Retornos da Patricia</strong>{items.length ? items.map((item) => <Link key={item.id} to={item.action_url && item.action_url.startsWith('/equipe') ? item.action_url : '/equipe'} onClick={() => setOpen(false)}><span>{item.title}</span>{item.body && <small>{item.body}</small>}<em>{moment(item.created_at)}</em></Link>) : <p>Nenhum aviso por enquanto.</p>}</div>}</span>;
+}
+
 function Frame({ me, children }: { me: Me; children: ReactNode }) {
   const { pathname } = useLocation(); const navigate = useNavigate();
   const has = (key: string) => me.modules.includes(key);
@@ -50,7 +60,7 @@ function Frame({ me, children }: { me: Me; children: ReactNode }) {
       <nav aria-label="Navegação principal">{nav.filter((item) => item[3]).map(([href, label, Icon]) => <Link key={href} to={href} className={'nav-link ' + (pathname === href ? 'active' : '')} title={label} aria-label={label}><Icon size={17} /></Link>)}</nav>
       <div className="sidebar-bottom"><span className="gold-rule" /><button type="button" className="nav-link v2-staff-logout" onClick={() => void logout()} title="Sair" aria-label="Sair"><LogOut size={17} /></button></div>
     </aside>
-    <main className="main"><header className="topbar"><div className="top-left"><strong className="v2-staff-brand">CALI <span>WORKSPACE · EQUIPE</span></strong></div><div className="top-actions"><span className="v2-staff-me"><span className="avatar small">{initials(me.name)}</span><span><strong>{me.name}</strong><small>Partner · Equipe CALI</small></span></span></div></header>
+    <main className="main"><header className="topbar"><div className="top-left"><strong className="v2-staff-brand">CALI <span>WORKSPACE · EQUIPE</span></strong></div><div className="top-actions"><StaffBell me={me} /><span className="v2-staff-me"><span className="avatar small">{initials(me.name)}</span><span><strong>{me.name}</strong><small>Partner · Equipe CALI</small></span></span></div></header>
       <div className="content"><div className="v2-client-module v2-staff-area">{children}</div></div>
     </main>
     <WelcomeTour steps={welcomeSteps} />
@@ -82,15 +92,31 @@ const browse: Record<string, BrowseConfig> = {
   avisos: { eyebrow: 'EQUIPE CALI / AVISOS', title: 'Avisos', text: 'Comunicados publicados para as suas empresas.', empty: 'Nenhum comunicado publicado.', load: async () => { const result = await supabase!.from('notices').select('id,title,protocol,category,status,published_at').order('published_at', { ascending: false }).limit(100); return result.error ? null : (result.data as any[]).map((row) => ({ id: row.id, company_id: null, title: row.title, sub: String(row.protocol || ''), tag: label({ feriado: 'Feriado', atendimento: 'Atendimento', comunicado: 'Comunicado' }, row.category), when: row.published_at })); } },
   pessoas: { eyebrow: 'EQUIPE CALI / EQUIPE DO CLIENTE', title: 'Equipe do cliente', text: 'O quadro de pessoas das suas empresas. Dados salariais não aparecem aqui.', empty: 'Nenhuma pessoa cadastrada nas suas empresas.', load: async () => { const result = await supabase!.from('team_members').select('id,company_id,full_name,job_title,department,status,admission_date').is('archived_at', null).order('full_name').limit(1000); return result.error ? null : (result.data as any[]).map((row) => ({ id: row.id, company_id: row.company_id, title: row.full_name, sub: [row.job_title, row.department].filter(Boolean).join(' · '), tag: label(STATUS, row.status), when: row.admission_date })); } },
 };
+function PublishNotice({ me, onDone }: { me: Me; onDone: () => void }) {
+  const [open, setOpen] = useState(false); const [draft, setDraft] = useState({ category: 'comunicado', title: '', body: '', date: '', companies: [] as string[] }); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [done, setDone] = useState('');
+  async function save(event: FormEvent) { event.preventDefault(); if (!supabase) return; if (!draft.companies.length) { setError('Escolha pelo menos uma empresa.'); return; } if (!draft.title.trim() || !draft.body.trim()) { setError('Escreva o título e a mensagem.'); return; }
+    setBusy(true); setError(''); const result = await supabase.rpc('partner_publish_notice', { p_category: draft.category, p_title: draft.title.trim(), p_body: draft.body.trim(), p_companies: draft.companies, p_date: draft.date || null, p_time: null, p_coverage: null }); setBusy(false);
+    if (result.error) { setError('Não foi possível publicar. Tente de novo.'); return; } setDraft({ category: 'comunicado', title: '', body: '', date: '', companies: [] }); setOpen(false); setDone('Comunicado publicado. As empresas escolhidas foram avisadas e a Patricia também.'); onDone(); }
+  if (!open) return <div className="v2-staff-publish-bar">{done && <div className="inline-notice v2-staff-done" role="status">{done}</div>}<button type="button" className="wf-primary" onClick={() => { setDone(''); setOpen(true); }}>Novo comunicado</button></div>;
+  return <form className="panel v2-staff-hours" onSubmit={save}><h3>Novo comunicado</h3><p>Sai em nome da CALI e chega no sino e no e-mail das empresas escolhidas. Revise antes de publicar: não passa por aprovação.</p>
+    <div className="v2-staff-fields three"><label>Tipo<select className="wf-record-filter" value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value })}><option value="comunicado">Comunicado</option><option value="atendimento">Atendimento</option><option value="feriado">Feriado</option></select></label><label>Título<input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} /></label><label>Data do aviso (opcional)<input type="date" value={draft.date} onChange={(event) => setDraft({ ...draft, date: event.target.value })} /></label></div>
+    <div className="v2-staff-fields one"><label>Mensagem<textarea rows={4} value={draft.body} onChange={(event) => setDraft({ ...draft, body: event.target.value })} /></label></div>
+    <fieldset className="v2-staff-targets"><legend>Para quais empresas</legend><div className="v2-staff-checks">{me.companies.map((item) => <label key={item.id}><input type="checkbox" checked={draft.companies.includes(item.id)} onChange={() => setDraft({ ...draft, companies: draft.companies.includes(item.id) ? draft.companies.filter((id) => id !== item.id) : [...draft.companies, item.id] })} /><span>{item.display_name}</span></label>)}</div></fieldset>
+    {error && <div className="inline-notice v2-staff-error" role="alert">{error}</div>}
+    <div className="v2-staff-submit"><button type="button" className="wf-secondary" onClick={() => setOpen(false)}>Cancelar</button><button type="submit" className="wf-primary" disabled={busy}>{busy ? 'Publicando…' : 'Publicar comunicado'}</button></div></form>;
+}
+
 function Browse({ me, kind }: { me: Me; kind: string }) {
   const config = browse[kind]; const [rows, setRows] = useState<BrowseRow[] | null>(null); const [failed, setFailed] = useState(false); const [company, setCompany] = useState(''); const [query, setQuery] = useState('');
-  useEffect(() => { let alive = true; setRows(null); setFailed(false); void config.load().then((data) => { if (!alive) return; if (data) setRows(data); else setFailed(true); }); return () => { alive = false; }; }, [kind]);
+  const [version, setVersion] = useState(0);
+  useEffect(() => { let alive = true; setRows(null); setFailed(false); void config.load().then((data) => { if (!alive) return; if (data) setRows(data); else setFailed(true); }); return () => { alive = false; }; }, [kind, version]);
   const companyName = new Map(me.companies.map((item) => [item.id, item.display_name])); const text = query.trim().toLocaleLowerCase('pt-BR');
   const visible = (rows || []).filter((row) => (!company || row.company_id === company) && (!text || `${row.title} ${row.sub}`.toLocaleLowerCase('pt-BR').includes(text)));
   return <><Head eyebrow={config.eyebrow} title={config.title} text={config.text} />
+    {kind === 'avisos' && <PublishNotice me={me} onDone={() => setVersion((value) => value + 1)} />}
     <div className="toolbar"><CompanySelect me={me} value={company} onChange={setCompany} all /><input className="v2-staff-search" placeholder="Buscar" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Buscar" /></div>
     {failed ? <div className="inline-notice">Não foi possível carregar. Recarregue a página; se continuar, fale com a Patricia.</div> : !rows ? <div className="data-loading">Carregando…</div> : visible.length ? <div className="wf-records v2-staff-browse">{visible.map((row) => <div className="wf-record-row" key={row.id}><div><strong>{row.title}</strong><small>{[row.company_id ? companyName.get(row.company_id) : '', row.sub].filter(Boolean).join(' · ') || '—'}</small></div><span className="wf-tag">{row.tag}</span><small>{row.when ? dayLabel(row.when) : '—'}</small></div>)}</div> : <div className="empty">{config.empty}</div>}
-    <p className="soft-note">Tela de consulta. Você vê, mas não altera por aqui.</p></>;
+    <p className="soft-note">{kind === 'avisos' ? 'Você publica comunicados para as suas empresas; os já publicados aparecem na lista.' : 'Tela de consulta. Você vê, mas não altera por aqui.'}</p></>;
 }
 
 type RecordRow = { id: string; company_id: string; protocol: string | null; title: string; summary: string | null; workflow_status: string | null; last_activity_at: string | null; created_at: string };
@@ -118,6 +144,11 @@ function Records({ me }: { me: Me }) {
 type HourRow = { id: string; company_id: string; work_date: string; minutes: number; description: string; justification: string; status: string; decision_note: string | null; created_at: string };
 function Hours({ me }: { me: Me }) {
   const [rows, setRows] = useState<HourRow[]>([]); const [draft, setDraft] = useState({ company: '', date: new Date().toISOString().slice(0, 10), hours: '1', minutes: '0', description: '', justification: '' }); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [done, setDone] = useState('');
+  const timerKey = `cali:staff-timer:${me.id}`; const [startedAt, setStartedAt] = useState<number | null>(() => { try { const raw = Number(localStorage.getItem(timerKey) || 0); return raw > 0 ? raw : null; } catch { return null; } }); const [, tick] = useState(0);
+  useEffect(() => { if (!startedAt) return; const timer = window.setInterval(() => tick((value) => value + 1), 1000); return () => window.clearInterval(timer); }, [startedAt]);
+  const elapsed = startedAt ? Math.max(0, Math.floor((Date.now() - startedAt) / 1000)) : 0;
+  function startTimer() { const now = Date.now(); try { localStorage.setItem(timerKey, String(now)); } catch { /* segue */ } setStartedAt(now); setDone(''); }
+  function stopTimer() { if (!startedAt) return; const minutes = Math.max(1, Math.round((Date.now() - startedAt) / 60000)); const from = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(startedAt)); const to = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date()); try { localStorage.removeItem(timerKey); } catch { /* segue */ } setStartedAt(null); setDraft((current) => ({ ...current, hours: String(Math.floor(minutes / 60)), minutes: String(minutes % 60), justification: current.justification || `Tempo medido no cronômetro, das ${from} às ${to}` })); }
   async function load() { if (!supabase) return; const result = await supabase.from('staff_hour_submissions').select('id,company_id,work_date,minutes,description,justification,status,decision_note,created_at').order('created_at', { ascending: false }).limit(100); if (!result.error) setRows((result.data || []) as HourRow[]); }
   useEffect(() => { void load(); }, []);
   async function save(event: FormEvent) { event.preventDefault(); if (!supabase) return; const total = Number(draft.hours || 0) * 60 + Number(draft.minutes || 0); setDone('');
@@ -126,6 +157,7 @@ function Hours({ me }: { me: Me }) {
     if (result.error) { setError('Não foi possível enviar o lançamento. Tente de novo.'); return; } setDraft({ ...draft, description: '', justification: '' }); setDone('Lançamento enviado para a Patricia aprovar.'); void load(); }
   const companyName = new Map(me.companies.map((item) => [item.id, item.display_name])); const tone: Record<string, [string, string]> = { pending: ['wait', 'Aguardando aprovação'], approved: ['ok', 'Aprovado'], rejected: ['bad', 'Recusado'] };
   return <><Head eyebrow="EQUIPE CALI / HORAS" title="Horas" text="Lance o tempo trabalhado com uma justificativa. Só entra no relatório do cliente depois que a Patricia aprovar." />
+    <div className="v2-staff-timer"><div><small>CRONÔMETRO</small><strong>{startedAt ? `${String(Math.floor(elapsed / 3600)).padStart(2, '0')}:${String(Math.floor(elapsed % 3600 / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}` : '00:00:00'}</strong><span>{startedAt ? 'Contando. Ao parar, o tempo vai para o lançamento abaixo.' : 'Inicie ao começar o trabalho; ao parar, o tempo preenche o lançamento.'}</span></div>{startedAt ? <button type="button" className="wf-secondary" onClick={stopTimer}><Square size={14} /> Parar</button> : <button type="button" className="wf-primary" onClick={startTimer}><Play size={14} /> Iniciar</button>}</div>
     <form className="panel v2-staff-hours" onSubmit={save}><h3>Novo lançamento</h3>
       <div className="v2-staff-fields three"><label>Empresa<CompanySelect me={me} value={draft.company} onChange={(value) => setDraft({ ...draft, company: value })} /></label><label>Data<input type="date" value={draft.date} max={new Date().toISOString().slice(0, 10)} onChange={(event) => setDraft({ ...draft, date: event.target.value })} /></label><label>Duração<span className="v2-staff-duration"><input type="number" min="0" max="24" value={draft.hours} onChange={(event) => setDraft({ ...draft, hours: event.target.value })} aria-label="Horas" /> h <input type="number" min="0" max="59" step="5" value={draft.minutes} onChange={(event) => setDraft({ ...draft, minutes: event.target.value })} aria-label="Minutos" /> min</span></label></div>
       <div className="v2-staff-fields"><label>O que foi feito<input value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} placeholder="Ex.: revisão da política de férias" /></label><label>Justificativa do lançamento manual<input value={draft.justification} onChange={(event) => setDraft({ ...draft, justification: event.target.value })} placeholder="Ex.: reunião presencial, sem cronômetro" /></label></div>
