@@ -946,6 +946,28 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Não verificado:** logo real carregando para o João (depende do teste dela); números com dados reais.
 - **Próximas páginas (ordem sugerida):** Ocorrências → Projetos → Horas → Calendário → Documentos → Relatórios → Equipe do cliente.
 
+### 2026-10-13 (2) — REGRAS DO PARTNER DITADAS PELA PATRICIA (Projetos, Horas, Ocorrências, sessão) + o que já foi feito
+
+**Regras (palavras dela, organizadas). Valem como especificação das próximas páginas:**
+- **Princípio:** o Partner usa AS MESMAS páginas dela (mesmo layout, lista e Kanban, gaveta do entregável, etc.), com limitações. "Por enquanto é tudo centralizado": o que encerra ou vai ao cliente como decisão passa por ela.
+- **Projetos / entregáveis:** vê igual a ela (Cronograma, Entregáveis em Lista e Kanban, Histórico). Na gaveta: conversa com o CLIENTE (pode — ela voltou atrás e liberou) e conversa INTERNA (ele ↔ ela); pode mudar a situação, EXCETO a que envia ao cliente; tem "Iniciar timer".
+- **Horas:** vê o consumo do cliente (quanto tem e quanto usou) e o histórico; NÃO vê as horas da administradora ("ele não viu do ADM, mas o ADM vê tudo"); não exclui; pode editar hora dele com justificativa (vai para a auditoria); lançamento manual e interação externa existem para ele, mas em vez de registrar vão PARA APROVAÇÃO dela.
+- **Ocorrências:** conversa com o cliente; o botão dele NÃO é "Finalizar": é "Enviar para aprovação da Patricia".
+- **Sessão e cronômetro:** registrar horário de entrada e de saída; se ele esqueceu um cronômetro ligado: (a) ao clicar em Sair, avisar e só deixar sair depois de pausar/revisar; (b) se fechou a aba, no dia seguinte ele recebe aviso de pendência e pode corrigir manualmente; (c) a plataforma deve parar sozinha por inatividade longa (não deixar rodar a noite inteira); (d) e-mail automático para o Partner E para ela.
+- **Erro que ela achou na administradora:** cronômetro iniciado na ocorrência não aparecia no topo.
+
+**Feito nesta rodada (homologação):**
+- Cronômetro de ocorrência agora aparece no topo também dentro de Ocorrências (`GlobalTimerBar.contextIsVisible`: a regra que o escondia nessa página saiu). Observação: com a gaveta da ocorrência aberta, ela cobre o lado direito do topo; o cronômetro aparece ao fechar.
+- Entrada/saída do Partner: `20261013110000_staff_session_log.sql` (função `staff_log_session`, grava em `activity_log`). A área do Partner registra a entrada (1 vez por sessão do navegador) e a saída ao clicar em Sair. Equipe CALI mostra "Último acesso" e "Saiu …"; Auditoria traduz os dois eventos. Fechar a aba sem clicar em Sair não gera saída (por isso "Sem saída registrada depois").
+- Privacidade das horas: `20261013113000_staff_hours_privacy.sql` — a política de leitura do Partner em `hour_entries` (criada por mim na etapa 2) passou a mostrar só os lançamentos DELE; o consumo por empresa vem da função nova `partner_hours_summary` (só totais). Painel dele usa essa função.
+
+**PLANO das páginas reais (cada item exige alterar funções em uso → fazer um por vez, com conta Partner de teste):**
+1. **Ocorrências** — reaproveitar `WorkspaceRecordsPage` em modo equipe: lista com filtros/grupos, gaveta igual; liberar para o Partner as funções `post_account_record_message`, `mark_account_record_opened`, cronômetro da ocorrência, "Aguardar cliente"/"Stand by"; trocar "Finalizar" por "Enviar para aprovação da Patricia" (fila `staff_review_requests`, tipo novo `record_close`); esconder "Salvar na memória da conta" se ela não liberar.
+2. **Projetos** — reaproveitar a página da administradora: leitura por `projects_workspace_snapshot` (hoje só admin) e gaveta do entregável; liberar mudança de situação menos `client_review`/envio; conversas cliente e interna; cronômetro.
+3. **Horas** — mesma página, com: consumo por cliente (totais), "Registros de atuação" só dele, sem excluir, editar com justificativa, "Lançamento manual" e "Interação externa" indo para `staff_hour_submissions`; cronômetro real (tabela `work_timers`) no lugar do cronômetro local atual.
+4. **Sessão/cronômetro esquecido** — depende do item 3 (cronômetro real): bloqueio no Sair, rotina diária de pendência, parada por inatividade, e-mails para os dois.
+- Decisão técnica necessária antes do item 1: como as ~55 funções checam `is_admin()`, criar `cali_workspace.is_staff_for(company_id, module)` e trocar a checagem função por função (só nas que o Partner pode usar), mantendo `is_admin()` nas demais.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

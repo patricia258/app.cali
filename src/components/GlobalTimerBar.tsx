@@ -24,7 +24,7 @@ function initials(name:string){return name.trim().split(/\s+/).slice(0,2).map(p=
 function normalize(value?:string|null){return(value||'').replace(/\s+/g,' ').trim().toLocaleLowerCase('pt-BR');}
 function contextIsVisible(timer:TimerRow,pathname:string){
   if(pathname.startsWith('/admin/horas'))return true;
-  if(timer.accountRecordId&&pathname.startsWith('/admin/registros'))return true;
+  // O cronômetro de ocorrência aparece no topo também dentro de Ocorrências (pedido da proprietária em 2026-10-13).
   return false;
 }
 function findOriginButton(deliverableName:string){const title=normalize(deliverableName);return Array.from(document.querySelectorAll<HTMLButtonElement>('.front-deliverable-open-v3,.deliverable-list-open-v3,button')).find(b=>{const t=normalize(b.textContent);return t===title||t.includes(title);})||null;}

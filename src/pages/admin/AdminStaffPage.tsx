@@ -25,11 +25,12 @@ type Pending = { id: string; kind: 'hours' | 'review'; staff_user_id: string; co
 type Decision = { item: Pending; approve: boolean; note: string };
 const REVIEW_KINDS: Record<string, string> = { report: 'Relatório', deliverable: 'Entrega', document: 'Documento', notice: 'Comunicado', other: 'Outro' };
 const blank = (): Draft => ({ id: null, email: '', full_name: '', modules: ['records', 'projects', 'hours'], companies: [], active: true });
+const momentLabel = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)).replace('.', '');
 const dayLabel = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso));
 
 export function AdminStaffPage() {
   const [staff, setStaff] = useState<Staff[]>([]); const [companies, setCompanies] = useState<Company[]>([]); const [assigned, setAssigned] = useState<Record<string, string[]>>({});
-  const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [draft, setDraft] = useState<Draft | null>(null); const [saving, setSaving] = useState(false); const [formError, setFormError] = useState(''); const [pending, setPending] = useState<Pending[]>([]); const [decision, setDecision] = useState<Decision | null>(null); const [deciding, setDeciding] = useState(false); const [decisionError, setDecisionError] = useState(''); const [invite, setInvite] = useState<{ name: string; email: string; sent: boolean } | null>(null); const [inviting, setInviting] = useState('');
+  const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [draft, setDraft] = useState<Draft | null>(null); const [saving, setSaving] = useState(false); const [formError, setFormError] = useState(''); const [pending, setPending] = useState<Pending[]>([]); const [decision, setDecision] = useState<Decision | null>(null); const [deciding, setDeciding] = useState(false); const [decisionError, setDecisionError] = useState(''); const [sessions, setSessions] = useState<Record<string, { in?: string; out?: string }>>({}); const [invite, setInvite] = useState<{ name: string; email: string; sent: boolean } | null>(null); const [inviting, setInviting] = useState('');
 
   async function load() {
     if (!supabase) return; setLoading(true); setError('');
@@ -40,6 +41,8 @@ export function AdminStaffPage() {
     ]);
     if (people.error || firms.error || links.error) setError('Não foi possível carregar a Equipe CALI. Clique em "Tentar de novo".');
     else { setStaff((people.data || []) as Staff[]); setCompanies((firms.data || []) as Company[]); const map: Record<string, string[]> = {}; (links.data || []).forEach((row: any) => (map[row.staff_id] ||= []).push(row.company_id)); setAssigned(map); }
+    const ids = ((people.data || []) as Staff[]).map((item) => item.user_id).filter(Boolean) as string[];
+    if (ids.length) { const log = await supabase.from('activity_log').select('actor_user_id,event_type,created_at').in('actor_user_id', ids).in('event_type', ['workspace_access_code_verified', 'staff_session_started', 'staff_session_ended']).order('created_at', { ascending: false }).limit(400); const map: Record<string, { in?: string; out?: string }> = {}; ((log.data || []) as any[]).forEach((row) => { const entry = (map[row.actor_user_id] ||= {}); if (row.event_type === 'staff_session_ended') { entry.out ||= row.created_at; } else { entry.in ||= row.created_at; } }); setSessions(map); }
     const [hours, reviews] = await Promise.all([
       supabase.from('staff_hour_submissions').select('id,staff_user_id,company_id,work_date,minutes,description,justification,created_at').eq('status', 'pending').order('created_at'),
       supabase.from('staff_review_requests').select('id,staff_user_id,company_id,kind,title,note,created_at').eq('status', 'pending').order('created_at'),
@@ -108,6 +111,7 @@ export function AdminStaffPage() {
       <div><strong>{person.full_name}</strong><small>{person.email}</small></div>
       <div><small>Empresas</small><span>{(assigned[person.id] || []).map((id) => companyName.get(id)).filter(Boolean).join(', ') || 'Nenhuma'}</span></div>
       <div><small>Módulos</small><span>{person.modules.map((key) => moduleName.get(key) || key).join(', ') || 'Nenhum'}</span></div>
+      <div><small>Último acesso</small><span>{person.user_id && sessions[person.user_id]?.in ? momentLabel(sessions[person.user_id].in!) : 'Ainda não entrou'}</span><small>{person.user_id && sessions[person.user_id]?.out && sessions[person.user_id].out! > (sessions[person.user_id].in || '') ? `Saiu ${momentLabel(sessions[person.user_id].out!)}` : person.user_id && sessions[person.user_id]?.in ? 'Sem saída registrada depois' : ''}</small></div>
       <div><small>Situação</small><span className={`wf-tag ${!person.active ? 'off' : person.accepted_at ? 'ok' : 'wait'}`}>{!person.active ? 'Desativada' : person.accepted_at ? `Ativa desde ${dayLabel(person.accepted_at)}` : 'Cadastro preparado'}</span></div>
       <span className="v2-staff-row-actions"><button type="button" className="v2-row-icon" disabled={inviting === person.id || !person.active} title="Enviar convite de acesso" aria-label={`Enviar convite para ${person.full_name}`} onClick={() => void sendInvite(person)}><Mail size={15} /></button><button type="button" className="v2-row-icon" title="Editar" aria-label={`Editar ${person.full_name}`} onClick={() => { setFormError(''); setDraft({ id: person.id, email: person.email, full_name: person.full_name, modules: person.modules, companies: assigned[person.id] || [], active: person.active }); }}><Pencil size={15} /></button></span>
     </div>)}</div> : <div className="v2-staff-empty"><strong>Nenhuma pessoa cadastrada na Equipe CALI.</strong><p>Clique em “Adicionar pessoa” para preparar o cadastro do seu Partner.</p></div>}

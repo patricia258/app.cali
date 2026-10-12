@@ -2959,3 +2959,5 @@ html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client{min-width:0}
 html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client>div{min-width:0;flex:1}
 html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:640px){html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client{flex-wrap:wrap}html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client small{white-space:normal}}
+.v2-admin-staff .v2-staff-list .wf-record-row{grid-template-columns:38px minmax(0,1.1fr) minmax(0,1.2fr) minmax(0,1.5fr) minmax(0,1fr) minmax(0,.9fr) auto}
+@media(max-width:1100px){.v2-admin-staff .v2-staff-list .wf-record-row{grid-template-columns:38px minmax(0,1fr) auto}.v2-admin-staff .v2-staff-list .wf-record-row>div:nth-of-type(n+2){grid-column:2}}

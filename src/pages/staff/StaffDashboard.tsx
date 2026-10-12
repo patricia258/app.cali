@@ -34,7 +34,7 @@ export function StaffDashboard({ me }: { me: Me }) {
       has('projects') ? db.from('deliverables').select('id,company_id,title,status,due_at').is('cancelled_at', null).limit(500) : empty,
       has('calendar') ? db.from('events').select('id,company_id,title,starts_at,event_type').is('cancelled_at', null).gte('starts_at', now.toISOString()).order('starts_at').limit(6) : empty,
       has('records') ? db.from('account_records').select('id,company_id,title,workflow_status,last_activity_at').eq('visibility', 'client').order('last_activity_at', { ascending: false, nullsFirst: false }).limit(200) : empty,
-      has('hours') ? db.from('hour_entries').select('company_id,minutes').gte('work_date', monthStart).limit(5000) : empty,
+      has('hours') ? db.rpc('partner_hours_summary', { p_month: monthStart }) : empty,
       db.from('staff_hour_submissions').select('id').eq('status', 'pending'),
       db.from('staff_review_requests').select('id').eq('status', 'pending'),
     ]);
