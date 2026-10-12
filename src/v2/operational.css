@@ -2778,3 +2778,51 @@ html[data-workspace-ui='v2'] .v2-notice-reactions button i{font-style:normal}
 .v2-admin-audit .v2-audit-trail dt{font-size:10px;color:#8c7e74;margin-bottom:4px}
 .v2-admin-audit .v2-audit-trail dd{margin:0;font-size:13px;font-weight:700;color:#322f2c;overflow-wrap:anywhere}
 @media(max-width:860px){.v2-admin-audit .v2-audit-trail{grid-template-columns:1fr}.v2-admin-audit .v2-audit-trail>button{grid-column:1;grid-row:auto;justify-self:start}.v2-admin-audit .v2-audit-trail dl{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Equipe CALI (administradora): perfis, lista e formulário do Partner. */
+.v2-admin-staff .v2-staff-profiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px}
+.v2-admin-staff .v2-staff-profiles article{background:#fff;border:1px solid #e9dfd8;border-top:3px solid #5a1e2d;border-radius:9px;padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.v2-admin-staff .v2-staff-profiles article+article{border-top-color:#b58c52}
+.v2-admin-staff .v2-staff-profiles small{font-size:10px;letter-spacing:1.2px;font-weight:800;color:#af8f72}
+.v2-admin-staff .v2-staff-profiles strong{font-size:14px;color:#322f2c}
+.v2-admin-staff .v2-staff-profiles p{margin:0;font-size:12px;line-height:1.55;color:#8c7e74}
+.v2-admin-staff .v2-staff-list .wf-record-row{grid-template-columns:38px minmax(0,1.2fr) minmax(0,1.3fr) minmax(0,1.6fr) minmax(0,1fr) 34px;align-items:center;gap:14px;cursor:default}
+.v2-admin-staff .v2-staff-list .wf-record-row>div{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:11px;color:#322f2c}
+.v2-admin-staff .v2-staff-list .wf-record-row strong{font-size:12px}
+.v2-admin-staff .v2-staff-list .wf-record-row small{font-size:10px;color:#96867c}
+.v2-admin-staff .v2-staff-list .avatar{width:34px;height:34px;border-radius:7px;background:#f3ece6;color:#5a1e2d;display:grid;place-items:center;font-size:11px;font-weight:700}
+.v2-admin-staff .v2-staff-list .wf-tag{align-self:flex-start}
+.v2-admin-staff .v2-staff-list .wf-tag.ok{background:#e6f6ec;color:#31805a}
+.v2-admin-staff .v2-staff-list .wf-tag.wait{background:#fff4de;color:#9b6c21}
+.v2-admin-staff .v2-staff-list .wf-tag.off{background:#f1ece8;color:#8c7e74}
+.v2-admin-staff .v2-row-icon{width:32px;height:32px;display:grid;place-items:center;border:1px solid #e5d9d0;border-radius:7px;background:#fff;color:#5a1e2d;cursor:pointer}
+.v2-admin-staff .v2-staff-empty{padding:28px;border:1px dashed #e0d3c9;border-radius:9px;background:#fff;text-align:center;display:flex;flex-direction:column;gap:6px}
+.v2-admin-staff .v2-staff-empty strong{font-size:13px;color:#322f2c}
+.v2-admin-staff .v2-staff-empty p{margin:0;font-size:12px;color:#8c7e74}
+.v2-admin-staff .v2-staff-stage{margin-top:18px;background:#fffaf1;border:1px solid #ecd9b0;color:#7a5a2c;line-height:1.55}
+html[data-workspace-ui='v2'] .wf-modal.v2-staff-form{width:min(620px,100%);max-height:92dvh;display:flex;flex-direction:column;padding:0;overflow:hidden;background:#fffdfb;border-radius:12px}
+html[data-workspace-ui='v2'] .v2-staff-form>header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:18px 22px;border-bottom:1px solid #eee2db}
+html[data-workspace-ui='v2'] .v2-staff-form>header small{font-size:10px;letter-spacing:1.2px;font-weight:800;color:#af8f72}
+html[data-workspace-ui='v2'] .v2-staff-form>header h2{margin:5px 0 0;font-size:18px;color:#322f2c}
+html[data-workspace-ui='v2'] .v2-staff-form>header button{display:grid;place-items:center;width:30px;height:30px;border:1px solid #ecded5;border-radius:7px;background:#fff;color:#322f2c;flex:none}
+html[data-workspace-ui='v2'] .v2-staff-body{padding:18px 22px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;min-height:0;scrollbar-width:none}
+html[data-workspace-ui='v2'] .v2-staff-body::-webkit-scrollbar{display:none}
+html[data-workspace-ui='v2'] .v2-staff-body>*{flex-shrink:0}
+html[data-workspace-ui='v2'] .v2-staff-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+html[data-workspace-ui='v2'] .v2-staff-fields label{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:700;color:#322f2c}
+html[data-workspace-ui='v2'] .v2-staff-fields input{height:40px;padding:0 12px;border:1px solid #e5d8d0;border-radius:7px;background:#fff;font:inherit;font-size:12px;font-weight:400;color:#322f2c;min-width:0}
+html[data-workspace-ui='v2'] .v2-staff-fields input:disabled{background:#f7f3ee;color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-body fieldset{margin:0;padding:0;border:0;min-width:0;display:flex;flex-direction:column;gap:8px}
+html[data-workspace-ui='v2'] .v2-staff-body legend{padding:0;margin-bottom:8px;font-size:11px;font-weight:700;color:#322f2c}
+html[data-workspace-ui='v2'] .v2-staff-checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+html[data-workspace-ui='v2'] .v2-staff-checks label,html[data-workspace-ui='v2'] .v2-staff-active{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;border:1px solid #eadfd8;border-radius:8px;background:#fff;font-size:12px;color:#322f2c;cursor:pointer;min-width:0}
+html[data-workspace-ui='v2'] .v2-staff-checks label:has(input:checked){border-color:#5a1e2d;background:#fbf5f6}
+html[data-workspace-ui='v2'] .v2-staff-checks input,html[data-workspace-ui='v2'] .v2-staff-active input{margin:2px 0 0;accent-color:#5a1e2d;flex:none}
+html[data-workspace-ui='v2'] .v2-staff-checks span{display:flex;flex-direction:column;gap:3px;min-width:0}
+html[data-workspace-ui='v2'] .v2-staff-checks small{font-size:10px;line-height:1.45;color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-error{background:#fdf3f3;border:1px solid #f0d5d8;color:#9d4b64}
+html[data-workspace-ui='v2'] .v2-staff-form>footer{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:14px 22px;border-top:1px solid #ece1da}
+@media(max-width:860px){.v2-admin-staff .v2-staff-profiles,html[data-workspace-ui='v2'] .v2-staff-fields,html[data-workspace-ui='v2'] .v2-staff-checks{grid-template-columns:1fr}.v2-admin-staff .v2-staff-list .wf-record-row{grid-template-columns:38px minmax(0,1fr) 34px}.v2-admin-staff .v2-staff-list .wf-record-row>div:nth-of-type(n+2){grid-column:2}}
+html[data-workspace-ui='v2'] .v2-staff-form>footer button{height:38px;padding:0 15px;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+html[data-workspace-ui='v2'] .v2-staff-form>footer .wf-secondary{border:1px solid #dec9c3;background:#fff;color:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-staff-form>footer .wf-primary{border:1px solid #5a1e2d;background:#5a1e2d;color:#fff}
+.v2-admin-staff .v2-staff-stage{padding:13px 16px;border-radius:9px;font-size:12px}

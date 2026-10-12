@@ -5,7 +5,7 @@
    dos componentes operacionais oficiais. */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, BriefcaseBusiness, Building2, CalendarDays, CalendarPlus, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileBarChart2, FolderOpen, History, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Star, Target, Users, X, type LucideIcon } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, Building2, CalendarDays, CalendarPlus, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileBarChart2, FolderOpen, History, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Star, UserCog, Target, Users, X, type LucideIcon } from 'lucide-react';
 import { DirectProfileControl } from '../components/DirectProfileControl';
 import { WelcomeTour, WELCOME_OPEN_EVENT } from './WelcomeTour';
 import './v2.generated.css';
@@ -37,6 +37,7 @@ export const adminNavigation: NavItem[] = [
   { label: 'Relatórios', href: '/admin/relatorios', icon: FileBarChart2 },
   { label: 'Satisfação', href: '/admin/satisfacao', icon: Star },
   { label: 'Avisos', href: '/admin/avisos', icon: Megaphone },
+  { label: 'Equipe CALI', href: '/admin/equipe-cali', icon: UserCog },
   { label: 'Auditoria', href: '/admin/auditoria', icon: History },
 ];
 export const adminProducts: NavItem[] = [

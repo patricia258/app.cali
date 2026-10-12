@@ -868,6 +868,20 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Padrões que assumi e ela precisa confirmar:** Partner lê Relatórios mas não aprova nem envia ao cliente; lê Avisos mas não publica; não vê Satisfação; não cadastra nem edita cliente/contrato.
 - **Risco:** não há banco de teste separado (homologação e oficial usam o mesmo). Etapas 1 e 2 são aditivas e não mudam o que ela e o cliente veem hoje; a etapa 3 mexe em funções em uso e é a que pede mais cuidado.
 
+### 2026-10-12 (9) — Partner: regras da Patricia, ETAPA 1 aplicada no banco, tela "Equipe CALI" (homologação)
+
+- **Regras dela (12/10, palavras dela resumidas):** o Partner é "um fantasma": o cliente contrata a Patricia e é ela quem está à frente. Partner faz o operacional interno, nos módulos e empresas atribuídos. Pode: responder ocorrências; publicar comunicados; criar agendamentos (em nome dela, sem ele participar); preparar relatórios e pôr a contribuição dele — mas envia para ELA, só ela aprova e envia ao cliente; entregável só vai ao cliente depois de ela aprovar; horas manuais com justificativa, ela aprova antes de entrar no relatório de horas; acessa e gera Mapa de People; vê o pacote contratado (Partner/Full/Build). Não pode: Propostas, Auditoria, dados salariais, valores. O cliente pode ver que "o João / a Luana" respondeu um assunto, mas não que participa de decisões. Módulo "Equipe CALI" não fica dentro de Clientes.
+- **Autorização:** "pode começar assim, pelo que você projetou das etapas" → interpretei como "pode aplicar" para a etapa 1 e seguir etapa a etapa mostrando o resultado.
+- **ETAPA 1 aplicada em produção** — `20261012150000_staff_partner_base.sql`: `profiles.role` passa a aceitar `partner` (único ajuste em regra existente); tabelas novas `staff_members` (e-mail, nome, módulos, ativo, user_id) e `staff_company_assignments`; funções novas `is_partner()` e `partner_can_access(company_id, module)`; RLS: só a administradora gerencia, a pessoa lê a própria ficha. `is_admin()` intacta. **Ninguém ganha acesso com isso**: o login (função `workspace-access`) só cria perfis a partir de `client_invites`.
+- **Tela (só homologação):** `/admin/equipe-cali`, item "Equipe CALI" no menu. Explica os dois perfis; lista e formulário (nome, e-mail, empresas, 9 módulos, ativar/desativar). Aviso âmbar no fim: acesso do Partner ainda não liberado.
+- **PRÓXIMAS ETAPAS (não iniciadas):**
+  - 2: políticas NOVAS de leitura para o Partner (por empresa + módulo), sem tocar nas atuais.
+  - 3: escrita — ocorrências, cronômetro, horas com justificativa e situação "aguardando aprovação"; relatório/entrega "enviar para a Patricia"; exige alterar funções em uso.
+  - 4: login do Partner — alterar a função `workspace-access` para aceitar `staff_members` e criar perfil `partner`; `ProtectedRoute`/`LoginPage` hoje mandam quem não é admin para `/cliente` (precisa de rota e menu do Partner ANTES de ligar o login); e-mail "Bem-vinda(o) à equipe CALI" + apresentação inicial.
+  - 5: fila "Para aprovar" da Patricia (horas, relatórios, entregas) e identificação do Partner na Auditoria.
+  - Ponto a decidir com ela: como o Partner aparece para o cliente nas respostas de ocorrência (nome dele ou "Equipe CALI").
+- **Não verificado:** gravação real do cadastro na tela (QA bloqueia gravações).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
