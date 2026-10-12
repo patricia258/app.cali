@@ -882,6 +882,16 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
   - Ponto a decidir com ela: como o Partner aparece para o cliente nas respostas de ocorrência (nome dele ou "Equipe CALI").
 - **Não verificado:** gravação real do cadastro na tela (QA bloqueia gravações).
 
+### 2026-10-12 (10) — Partner ETAPA 2 (leitura) aplicada no banco
+
+- **Autorização:** "pode seguir com a etapa 2" e "pode ver o nome dele" (nas respostas de ocorrência o cliente vê o nome do Partner).
+- **Aplicado em produção** — `20261012170000_staff_partner_read.sql`: 42 políticas NOVAS `<tabela>_partner_read`, todas só de leitura, por empresa atribuída + módulo (ocorrências, projetos/entregas, horas, calendário, documentos, relatórios, avisos, equipe do cliente; cronômetro só o próprio; contatos das empresas atribuídas). Funções novas `partner_has_module()` e `partner_companies()` (lista de empresas SEM valores de contrato/cobrança). Nenhuma política existente foi alterada.
+- **Sem política para o Partner (de propósito):** `companies` direto, `billing_records`, `extra_visit_expenses`, `scheduling_requests` (tem taxas), `nps_responses`, `satisfaction_followups`, `activity_log`, `team_member_private`, `team_private_audit`, `client_invites`, `communication_*`.
+- **Efeito hoje:** nenhum — ainda não existe perfil Partner nem login dele. Para administradora e cliente as regras antigas continuam valendo (as novas se somam e dão "não" para quem não é Partner).
+- **Observação de processo:** a gravação do arquivo desta migração pelo terminal foi barrada pelo controle automático do aplicativo; o arquivo foi criado pela ferramenta de escrita e a aplicação feita pela ferramenta de migração do Supabase, com a autorização dela acima.
+- **Não verificado:** leitura real com uma conta Partner (não existe ainda); impacto de desempenho das políticas somadas (esperado desprezível: a checagem "é Partner?" roda uma vez por consulta).
+- **Patricia não achou a tela "Equipe CALI":** ela está só na homologação (`/admin/equipe-cali`), não no oficial.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
