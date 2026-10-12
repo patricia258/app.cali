@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Archive, ArrowRight, CalendarDays, Check, MessageCircle, Megaphone, Pencil, Plus, RotateCcw, Send, X } from 'lucide-react';
 import { Shell, type Role } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
@@ -249,3 +249,24 @@ function NoticesBoard({ role }: { role: Role }) {
 
 export function ClientNoticesPage() { return <NoticesBoard role="client" />; }
 export function AdminNoticesPage() { return <NoticesBoard role="admin" />; }
+
+/* Visão geral do cliente: os dois avisos mais recentes da empresa (bloco "Quadro de avisos" aprovado na V2). */
+export function ClientHomeNotices() {
+  const [items, setItems] = useState<{ id: string; category: Category; title: string; publishedAt: string; coverUrl: string; acked: boolean }[] | null>(null);
+  useEffect(() => { let active = true; void (async () => {
+    if (!supabase) return;
+    const { data: session } = await supabase.auth.getSession();
+    const uid = session.session?.user?.id || '';
+    const [noticeResult, ackResult] = await Promise.all([
+      supabase.from('notices').select('id,category,title,cover_path,published_at').eq('status', 'published').order('published_at', { ascending: false }).limit(2),
+      supabase.from('notice_acknowledgements').select('notice_id').eq('user_id', uid),
+    ]);
+    if (!active) return;
+    if (noticeResult.error) { setItems([]); return; }
+    const acked = new Set((ackResult.data || []).map((row: any) => row.notice_id));
+    const rows = await Promise.all((noticeResult.data || []).map(async (row: any) => ({ id: row.id, category: row.category as Category, title: row.title, publishedAt: row.published_at, coverUrl: row.cover_path ? (await resolveWorkspaceMedia(row.cover_path, 86400)) || '' : '', acked: acked.has(row.id) })));
+    if (active) setItems(rows);
+  })(); return () => { active = false; }; }, []);
+  if (!items?.length) return <div className="ch-bulletin-grid"><article className="ch-bulletin-item ch-bulletin-empty"><div className="ch-bulletin-meta"><span className="ch-bulletin-label">COMUNICADOS</span><strong>Nenhum comunicado disponível</strong><span className="ch-bulletin-author">{items ? 'Quando a CALI publicar um aviso para a sua empresa, ele aparece aqui.' : 'Carregando avisos…'}</span></div><div className="ch-bulletin-picture ch-empty-picture"><MessageCircle size={25} /></div><div className="ch-bulletin-foot"><span>Mural da parceria</span></div></article></div>;
+  return <div className="ch-bulletin-grid">{items.map((item) => <Link key={item.id} className="ch-bulletin-item v2-bulletin-link" to={`/cliente/avisos?aviso=${item.id}`}><div className="ch-bulletin-meta"><span className="ch-bulletin-label">{categoryLabel(item.category).toUpperCase()}</span><strong>{item.title}</strong><span className="ch-bulletin-author">CALI · Assessoria · {formatDay(item.publishedAt)}</span></div><div className={`ch-bulletin-picture ${item.coverUrl ? '' : 'ch-empty-picture'}`} style={item.coverUrl ? { backgroundImage: `url("${item.coverUrl}")` } : undefined}>{!item.coverUrl && <Megaphone size={25} />}</div><div className="ch-bulletin-foot"><span><MessageCircle size={13} /> Ver comunicado</span><span><Check size={13} /> {item.acked ? 'Ciente registrado' : 'Dar ciência'}</span></div></Link>)}</div>;
+}
