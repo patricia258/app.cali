@@ -296,6 +296,8 @@ function profileForNearbyText(image: HTMLImageElement) {
 }
 
 function applyProfileImage(image: HTMLImageElement, profile: ProfileMedia) {
+  // Capas de aviso não são foto de pessoa, mesmo quando o nome de alguém aparece perto (comentários do comunicado).
+  if (image.closest('.notice-cover,.notice-dialog,.notice-item,.v2-welcome')) return;
   if (!profile.avatar_url || image.closest('.profile-avatar-editor.large-editor-avatar')) return;
   const x = Number(profile.avatar_position_x ?? 50);
   const y = Number(profile.avatar_position_y ?? 50);
