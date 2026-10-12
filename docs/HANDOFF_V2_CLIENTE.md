@@ -854,6 +854,64 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Trilha por item (só homologação):** na Auditoria, clicar no protocolo abre a trilha daquele item (entrega, ocorrência, projeto, relatório, documento, compromisso, aviso): cartão com tipo, protocolo, nº de movimentações, primeira e última data e quem participou, e a lista só daquele item (ignora os filtros). Também há "Agrupar por protocolo", com botão "Ver trilha completa" em cada grupo.
 - **Limites:** a trilha usa os 400 registros mais recentes de cada fonte (item muito antigo pode vir incompleto); mensagens do chat da ocorrência e lançamentos de horas ligados ao item ainda não entram na trilha; nome/título do item não aparece, só tipo e protocolo.
 
+### 2026-10-12 (8) — 10ª publicação (trilha da Auditoria) e PLANO do perfil Partner (nada aplicado)
+
+- **Publicado no oficial** (autorizado): trilha por item na Auditoria. Oficial em `cbd3d4d`.
+- **Partner — decisões da Patricia (12/10):** módulo "Equipe CALI" dentro de uma página existente do menu da administradora; convite por e-mail com mensagem de boas-vindas à equipe CALI e a mesma apresentação inicial; dois perfis (Administradora = a dela, completo; Partner). Partner: vê só as empresas atribuídas; NÃO acessa Propostas, Auditoria, dados salariais nem valores; PODE acessar e gerar Mapa de People; pode lançar horas manualmente com justificativa, e o lançamento precisa da aprovação dela antes de entrar no relatório de horas; vê informações contratuais do pacote (Partner / Full / Build), sem detalhes sensíveis.
+- **Situação técnica encontrada (leitura do banco):** `cali_workspace.is_admin()` é o e-mail `patricia@calirh.com` fixo; `profiles.role` só aceita `admin` e `client`; 58 políticas e 55 funções dependem da checagem de administradora. Ou seja: Partner não é "um campo a mais", é um perfil novo de permissão.
+- **Plano em etapas (cada uma só com "pode aplicar" dela):**
+  1. **Base no banco (aditivo + 1 ajuste):** aceitar `partner` em `profiles.role` (ajuste de regra existente); tabela nova `staff_company_assignments (user_id, company_id)`; funções novas `is_partner()` e `partner_can_access(company_id)`. `is_admin()` NÃO muda — continua só ela.
+  2. **Leitura do Partner:** políticas NOVAS (somadas, sem alterar as atuais) dando leitura das empresas atribuídas em: empresas (sem valores), equipe (sem dados restritos), projetos/entregas, ocorrências, calendário, documentos, avisos, horas. Sem política para propostas, auditoria, financeiro, `team_member_private`, satisfação.
+  3. **Escrita do Partner:** ocorrências (responder), cronômetro e horas manuais com justificativa obrigatória; campo novo de situação no lançamento ("aguardando aprovação" → aprovado/recusado por ela); só aprovado entra no relatório de horas. Exige alterar funções existentes de horas/cronômetro → testar com conta Partner de teste antes de publicar.
+  4. **Telas:** aba "Equipe CALI" (convidar, atribuir empresas, desativar); menu reduzido do Partner; fila "Horas para aprovar" para ela; e-mail e apresentação de boas-vindas da equipe.
+  5. **Auditoria:** passa a distinguir Patricia × Partner (já mostra "Quem").
+- **Padrões que assumi e ela precisa confirmar:** Partner lê Relatórios mas não aprova nem envia ao cliente; lê Avisos mas não publica; não vê Satisfação; não cadastra nem edita cliente/contrato.
+- **Risco:** não há banco de teste separado (homologação e oficial usam o mesmo). Etapas 1 e 2 são aditivas e não mudam o que ela e o cliente veem hoje; a etapa 3 mexe em funções em uso e é a que pede mais cuidado.
+
+### 2026-10-12 (9) — Partner: regras da Patricia, ETAPA 1 aplicada no banco, tela "Equipe CALI" (homologação)
+
+- **Regras dela (12/10, palavras dela resumidas):** o Partner é "um fantasma": o cliente contrata a Patricia e é ela quem está à frente. Partner faz o operacional interno, nos módulos e empresas atribuídos. Pode: responder ocorrências; publicar comunicados; criar agendamentos (em nome dela, sem ele participar); preparar relatórios e pôr a contribuição dele — mas envia para ELA, só ela aprova e envia ao cliente; entregável só vai ao cliente depois de ela aprovar; horas manuais com justificativa, ela aprova antes de entrar no relatório de horas; acessa e gera Mapa de People; vê o pacote contratado (Partner/Full/Build). Não pode: Propostas, Auditoria, dados salariais, valores. O cliente pode ver que "o João / a Luana" respondeu um assunto, mas não que participa de decisões. Módulo "Equipe CALI" não fica dentro de Clientes.
+- **Autorização:** "pode começar assim, pelo que você projetou das etapas" → interpretei como "pode aplicar" para a etapa 1 e seguir etapa a etapa mostrando o resultado.
+- **ETAPA 1 aplicada em produção** — `20261012150000_staff_partner_base.sql`: `profiles.role` passa a aceitar `partner` (único ajuste em regra existente); tabelas novas `staff_members` (e-mail, nome, módulos, ativo, user_id) e `staff_company_assignments`; funções novas `is_partner()` e `partner_can_access(company_id, module)`; RLS: só a administradora gerencia, a pessoa lê a própria ficha. `is_admin()` intacta. **Ninguém ganha acesso com isso**: o login (função `workspace-access`) só cria perfis a partir de `client_invites`.
+- **Tela (só homologação):** `/admin/equipe-cali`, item "Equipe CALI" no menu. Explica os dois perfis; lista e formulário (nome, e-mail, empresas, 9 módulos, ativar/desativar). Aviso âmbar no fim: acesso do Partner ainda não liberado.
+- **PRÓXIMAS ETAPAS (não iniciadas):**
+  - 2: políticas NOVAS de leitura para o Partner (por empresa + módulo), sem tocar nas atuais.
+  - 3: escrita — ocorrências, cronômetro, horas com justificativa e situação "aguardando aprovação"; relatório/entrega "enviar para a Patricia"; exige alterar funções em uso.
+  - 4: login do Partner — alterar a função `workspace-access` para aceitar `staff_members` e criar perfil `partner`; `ProtectedRoute`/`LoginPage` hoje mandam quem não é admin para `/cliente` (precisa de rota e menu do Partner ANTES de ligar o login); e-mail "Bem-vinda(o) à equipe CALI" + apresentação inicial.
+  - 5: fila "Para aprovar" da Patricia (horas, relatórios, entregas) e identificação do Partner na Auditoria.
+  - Ponto a decidir com ela: como o Partner aparece para o cliente nas respostas de ocorrência (nome dele ou "Equipe CALI").
+- **Não verificado:** gravação real do cadastro na tela (QA bloqueia gravações).
+
+### 2026-10-12 (10) — Partner ETAPA 2 (leitura) aplicada no banco
+
+- **Autorização:** "pode seguir com a etapa 2" e "pode ver o nome dele" (nas respostas de ocorrência o cliente vê o nome do Partner).
+- **Aplicado em produção** — `20261012170000_staff_partner_read.sql`: 42 políticas NOVAS `<tabela>_partner_read`, todas só de leitura, por empresa atribuída + módulo (ocorrências, projetos/entregas, horas, calendário, documentos, relatórios, avisos, equipe do cliente; cronômetro só o próprio; contatos das empresas atribuídas). Funções novas `partner_has_module()` e `partner_companies()` (lista de empresas SEM valores de contrato/cobrança). Nenhuma política existente foi alterada.
+- **Sem política para o Partner (de propósito):** `companies` direto, `billing_records`, `extra_visit_expenses`, `scheduling_requests` (tem taxas), `nps_responses`, `satisfaction_followups`, `activity_log`, `team_member_private`, `team_private_audit`, `client_invites`, `communication_*`.
+- **Efeito hoje:** nenhum — ainda não existe perfil Partner nem login dele. Para administradora e cliente as regras antigas continuam valendo (as novas se somam e dão "não" para quem não é Partner).
+- **Observação de processo:** a gravação do arquivo desta migração pelo terminal foi barrada pelo controle automático do aplicativo; o arquivo foi criado pela ferramenta de escrita e a aplicação feita pela ferramenta de migração do Supabase, com a autorização dela acima.
+- **Não verificado:** leitura real com uma conta Partner (não existe ainda); impacto de desempenho das políticas somadas (esperado desprezível: a checagem "é Partner?" roda uma vez por consulta).
+- **Patricia não achou a tela "Equipe CALI":** ela está só na homologação (`/admin/equipe-cali`), não no oficial.
+
+### 2026-10-12 (11) — Partner: etapa 3a no banco, área do Partner e fila de aprovação (homologação); LOGIN AINDA DESLIGADO
+
+- **Autorização:** "pode seguir para a próxima etapa, quando acabarmos eu valido e publicamos".
+- **Banco aplicado (só acréscimo)** — `20261012190000_staff_partner_write_queues.sql`: política nova para o Partner responder ocorrências (`account_record_messages_partner_insert`, autor = ele, lado CALI); tabelas novas `staff_hour_submissions` (horas com justificativa, pendente/aprovado/recusado) e `staff_review_requests` (relatório/entrega/documento/comunicado enviado para a Patricia); função nova `admin_decide_staff_hours` — ao aprovar, cria o lançamento oficial pela função existente `add_manual_hour_entry` (nota interna com o nome de quem lançou e a justificativa; oculto do cliente por padrão). **Nenhuma função ou política existente foi alterada** — por isso o Partner NÃO grava direto em horas, relatórios ou entregas.
+- **Tela (só homologação):**
+  - `/equipe` — área do Partner com moldura própria (`src/pages/staff/StaffWorkspace.tsx`): Início (empresas e módulos), Ocorrências (ler e responder), Horas (lançar com justificativa + situação), Enviar para aprovação. Boas-vindas próprias ("Boas-vindas à Equipe CALI", 6 passos, moldura do vídeo).
+  - `/admin/equipe-cali` — bloco âmbar "Para você aprovar" (horas e materiais) com Aprovar / Recusar / Devolver e motivo obrigatório na recusa.
+  - Perfil `partner` reconhecido no login, no retorno de autenticação e nas rotas protegidas (vai para `/equipe`).
+- **O QUE FALTA PARA O PARTNER ENTRAR:** publicar a nova versão da função de login `workspace-access`. O arquivo está pronto em `supabase/functions/workspace-access/index.ts` (versão 6 de produção + trechos marcados "PARTNER": aceita e-mail de `staff_members`, cria perfil `partner`, bloqueia cadastro desativado, envia e-mail "Boas-vindas à Equipe CALI" no 1º acesso). **NÃO publicada**: essa função é a porta de entrada de TODOS (Patricia e clientes); pedi confirmação explícita dela antes. Ordem segura: publicar o site no oficial primeiro (senão um Partner que entrasse pelo oficial cairia na tela de cliente, vazia) e só então a função.
+- **Fora desta entrega (etapa 3b):** Partner editar entregas, relatórios, documentos, comunicados e agenda dentro do sistema (hoje ele prepara fora e "envia para aprovação"); cronômetro do Partner; telas de leitura dos demais módulos na área dele; notificação no sino quando há item para aprovar; Partner identificado por nome na Auditoria.
+- **Não verificado:** nada disto com conta real — gravações (resposta de ocorrência, horas, envio, decisão) só no simulador, que bloqueia gravações.
+
+### 2026-10-12 (12) — Partner: consulta dos módulos, aviso no sino, auditoria — login CONTINUA desligado
+
+- Patricia respondeu "siga para a próxima etapa" sem a frase pedida para o login ("pode publicar e ligar o login do Partner"). **Interpretação minha:** seguir com o desenvolvimento; NÃO publiquei o site nem a função de login `workspace-access`.
+- **Banco aplicado (acréscimo):** `20261012210000_staff_submission_notifications.sql` — função + 2 gatilhos nas tabelas novas das filas: quando o Partner envia horas ou material, a administradora recebe notificação no sino ("Horas para aprovar · Nome" / "Material para aprovar · Nome"), com link para `/admin/equipe-cali`. Se o aviso falhar, o envio não é perdido.
+- **Área do Partner (homologação):** telas de consulta, só leitura, para os módulos liberados — Projetos e entregas, Calendário, Documentos, Relatórios, Avisos, Equipe do cliente (filtro por empresa + busca). Menu mostra só os módulos liberados.
+- **Auditoria:** eventos "Aprovou/Recusou horas lançadas pela Equipe CALI" traduzidos; o nome do Partner aparece em "Quem" (vem do perfil).
+- **Ainda fora (etapa 3b):** Partner publicar comunicado e criar agendamento direto (ela autorizou; exige política de escrita em `notices`/`events` e ajuste em `notify_notice`); editar entregas/relatórios/documentos no sistema; cronômetro do Partner; sino na área do Partner (retorno das decisões hoje aparece nas listas "Meus lançamentos" / "Meus envios").
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

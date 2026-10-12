@@ -1,3 +1,4 @@
+import { homeOf, type Role as AccessRole } from '../auth/WorkspaceAuthProvider';
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
@@ -70,7 +71,7 @@ export function AuthCallbackPage() {
       }
 
       const role = profile.role as Role;
-      setDestination(role === 'admin' ? '/admin' : '/cliente');
+      setDestination(homeOf(profile.role as AccessRole));
     }
 
     resolveProfile();

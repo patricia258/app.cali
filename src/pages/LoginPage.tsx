@@ -1,3 +1,4 @@
+import { homeOf } from '../auth/WorkspaceAuthProvider';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -40,7 +41,7 @@ export function LoginPage() {
         .maybeSingle();
 
       if (!active || profileError || !profile?.active) return;
-      navigate(profile.role === 'admin' ? '/admin' : '/cliente', { replace: true });
+      navigate(homeOf(profile.role), { replace: true });
     }
 
     resumeExistingSession();
@@ -77,7 +78,7 @@ export function LoginPage() {
       setLoading(true);
       const { data, error: authError } = await verifyAccessCode(email.trim(), code);
       if (authError) throw authError;
-      navigate(data?.role === 'admin' ? '/admin' : '/cliente', { replace: true });
+      navigate(homeOf(data?.role), { replace: true });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Código inválido ou expirado.');
     } finally {

@@ -1,7 +1,11 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
-import type { Role } from '../components/WorkspaceShell';
+import type { Role as ShellRole } from '../components/WorkspaceShell';
+
+/* Perfis de acesso: administradora, cliente e Partner (equipe CALI, área própria em /equipe). */
+export type Role = ShellRole | 'partner';
+export const homeOf = (role: Role | null | undefined) => role === 'admin' ? '/admin' : role === 'partner' ? '/equipe' : '/cliente';
 
 type AuthState = {
   ready: boolean;

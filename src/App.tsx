@@ -101,6 +101,8 @@ const ClientReportsPageV5 = lazy(async () => {
 const CompanyTeamPage = lazy(() => import('./pages/team/CompanyTeamPage').then((m) => ({ default: m.CompanyTeamPage })));
 const ClientNoticesPage = lazy(() => import('./pages/notices/NoticesBoard').then((m) => ({ default: m.ClientNoticesPage })));
 const AdminAuditPage = lazy(() => import('./pages/admin/AdminAuditPage').then((m) => ({ default: m.AdminAuditPage })));
+const AdminStaffPage = lazy(() => import('./pages/admin/AdminStaffPage').then((m) => ({ default: m.AdminStaffPage })));
+const StaffWorkspace = lazy(() => import('./pages/staff/StaffWorkspace').then((m) => ({ default: m.StaffWorkspace })));
 const AdminNoticesPage = lazy(() => import('./pages/notices/NoticesBoard').then((m) => ({ default: m.AdminNoticesPage })));
 const ClientFrontsPage = lazy(() => import('./pages/client/ClientFrontsPage').then((m) => ({ default: m.ClientFrontsPage })));
 const ReportPrintPageV17 = lazy(async () => {
@@ -176,6 +178,7 @@ function AppRoutes() {
         <Route path="/admin/relatorios/impressao/:reportId" element={<ProtectedRoute role="admin"><ReportPrintPageV17 role="admin"/></ProtectedRoute>}/>
         <Route path="/admin/relatorios" element={<ProtectedRoute role="admin"><AdminReportsPageV17/></ProtectedRoute>}/>
         <Route path="/admin/auditoria" element={<ProtectedRoute role="admin"><AdminAuditPage/></ProtectedRoute>}/>
+        <Route path="/admin/equipe-cali" element={<ProtectedRoute role="admin"><AdminStaffPage/></ProtectedRoute>}/>
         <Route path="/admin/avisos" element={<ProtectedRoute role="admin"><AdminNoticesPage/></ProtectedRoute>}/>
         <Route path="/admin/satisfacao" element={<ProtectedRoute role="admin"><AdminSatisfactionPage/></ProtectedRoute>}/>
         <Route path="/admin/mapa-de-people" element={<ProtectedRoute role="admin"><AdminPeopleMapPageV2/></ProtectedRoute>}/>
@@ -193,6 +196,7 @@ function AppRoutes() {
         <Route path="/cliente/documentos" element={<ProtectedRoute role="client"><ClientDocumentsPage/></ProtectedRoute>}/>
         <Route path="/cliente/relatorios/impressao/:reportId" element={<ProtectedRoute role="client"><ReportPrintPageV17 role="client"/></ProtectedRoute>}/>
         <Route path="/cliente/relatorios" element={<ProtectedRoute role="client"><ClientReportsPageV5/></ProtectedRoute>}/>
+        <Route path="/equipe/*" element={<StaffWorkspace/>}/>
         <Route path="*" element={<Navigate to="/" replace/>}/>
       </Routes>
     </Suspense>

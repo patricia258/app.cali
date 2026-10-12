@@ -9,7 +9,7 @@ import { supabase } from '../lib/supabase';
 
 export const WELCOME_OPEN_EVENT = 'cali:welcome-open';
 type Step = { href?: string; label: string; title: string; text: string };
-const steps: Step[] = [
+const clientSteps: Step[] = [
   { label: 'BOAS-VINDAS', title: 'Que bom ter você aqui', text: 'Este é o espaço da sua empresa com a CALI. Tudo o que fazemos juntos fica aqui, em um só lugar. Assista ao vídeo e depois veja, em um minuto, o que cada parte do menu faz.' },
   { href: '/cliente', label: 'VISÃO GERAL', title: 'O resumo do que importa agora', text: 'Mostra o que precisa da sua atenção, os próximos compromissos e os últimos avisos. É a primeira tela ao entrar.' },
   { href: '/cliente/equipe', label: 'EQUIPE', title: 'As pessoas da sua empresa', text: 'O quadro de colaboradores. Uma vez por mês você confirma quem entrou, quem saiu e o que mudou. É isso que alimenta os indicadores.' },
@@ -23,7 +23,9 @@ const steps: Step[] = [
   { label: 'TUDO PRONTO', title: 'Pode começar', text: 'O sino no topo avisa quando houver novidade. Para rever esta apresentação, abra o menu do seu perfil e clique em "Rever apresentação".' },
 ];
 
-export function WelcomeTour() {
+export type WelcomeStep = Step;
+export function WelcomeTour({ steps: custom }: { steps?: Step[] } = {}) {
+  const steps = custom || clientSteps;
   const { user } = useWorkspaceAuth();
   const key = user?.id ? `cali:welcome-seen:${user.id}` : '';
   const [index, setIndex] = useState<number | null>(null);
