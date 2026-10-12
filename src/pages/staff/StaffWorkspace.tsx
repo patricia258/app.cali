@@ -11,7 +11,9 @@ import { type WelcomeStep } from '../../v2/WelcomeTour';
 import { WorkspaceShellV2 } from '../../v2/WorkspaceShellV2';
 import { StaffNoticesPage } from '../notices/NoticesBoard';
 import { StaffDashboard } from './StaffDashboard';
+import { StaffRecordsPage } from '../records/WorkspaceRecordsPage';
 import '../../v2/v2.generated.css';
+import '../../styles/routes/records';
 import '../../v2/operational.css';
 
 type Company = { id: string; display_name: string; service_plan: string | null; monthly_hours_contracted: number | null; logo_workspace_url: string | null; logo_url: string | null };
@@ -54,7 +56,7 @@ function StaffBell({ me }: { me: Me }) {
 function Frame({ me, children }: { me: Me; children: ReactNode }) {
   const navigate = useNavigate(); const { pathname } = useLocation(); const has = (key: string) => me.modules.includes(key);
   /* A Visão geral usa a composição da administradora (.content > .ap-app), sem invólucro, para herdar as mesmas regras, inclusive no celular. */
-  const plain = pathname.replace(/\/$/, '') === '/equipe';
+  const plain = ['/equipe', '/equipe/ocorrencias'].includes(pathname.replace(/\/$/, ''));
   const nav = ([['/equipe', 'Visão geral', LayoutDashboard, true], ['/equipe/pessoas', 'Equipe', Users, has('team')], ['/equipe/projetos', 'Projetos', BriefcaseBusiness, has('projects')], ['/equipe/horas', 'Horas', Clock3, has('hours')], ['/equipe/calendario', 'Calendário', CalendarDays, has('calendar')], ['/equipe/ocorrencias', 'Ocorrências', MessageCircleMore, has('records')], ['/equipe/documentos', 'Documentos', FolderOpen, has('documents')], ['/equipe/relatorios', 'Relatórios', FileBarChart2, has('reports')], ['/equipe/avisos', 'Avisos', Megaphone, has('notices')], ['/equipe/aprovacoes', 'Enviar para a Patricia', Send, true]] as [string, string, typeof Clock3, boolean][]).filter((item) => item[3]).map(([href, label, icon]) => ({ href, label, icon }));
   /* Entrada e saída ficam registradas para a administradora (função staff_log_session). */
   useEffect(() => { try { if (sessionStorage.getItem('cali:staff-session') === me.id) return; sessionStorage.setItem('cali:staff-session', me.id); } catch { /* segue */ } void supabase?.rpc('staff_log_session', { p_event: 'staff_session_started' }); }, [me.id]);
@@ -110,28 +112,6 @@ function Browse({ me, kind }: { me: Me; kind: string }) {
     <div className="toolbar"><CompanySelect me={me} value={company} onChange={setCompany} all /><input className="v2-staff-search" placeholder="Buscar" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Buscar" /></div>
     {failed ? <div className="inline-notice">Não foi possível carregar. Recarregue a página; se continuar, fale com a Patricia.</div> : !rows ? <div className="data-loading">Carregando…</div> : visible.length ? <div className="wf-records v2-staff-browse">{visible.map((row) => <div className="wf-record-row" key={row.id}><div><strong>{row.title}</strong><small>{[row.company_id ? companyName.get(row.company_id) : '', row.sub].filter(Boolean).join(' · ') || '—'}</small></div><span className="wf-tag">{row.tag}</span><small>{row.when ? dayLabel(row.when) : '—'}</small></div>)}</div> : <div className="empty">{config.empty}</div>}
     <p className="soft-note">{kind === 'avisos' ? 'Você publica comunicados para as suas empresas; os já publicados aparecem na lista.' : 'Tela de consulta. Você vê, mas não altera por aqui.'}</p></>;
-}
-
-type RecordRow = { id: string; company_id: string; protocol: string | null; title: string; summary: string | null; workflow_status: string | null; last_activity_at: string | null; created_at: string };
-type Message = { id: string; record_id: string; author_id: string | null; author_role: string; body: string; visibility: string | null; created_at: string; deleted_at: string | null };
-function Records({ me }: { me: Me }) {
-  const [rows, setRows] = useState<RecordRow[]>([]); const [company, setCompany] = useState(''); const [active, setActive] = useState<RecordRow | null>(null); const [messages, setMessages] = useState<Message[]>([]); const [names, setNames] = useState<Record<string, string>>({});
-  const [text, setText] = useState(''); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [loading, setLoading] = useState(true);
-  useEffect(() => { (async () => { if (!supabase) return; const result = await supabase.from('account_records').select('id,company_id,protocol,title,summary,workflow_status,last_activity_at,created_at').eq('visibility', 'client').order('last_activity_at', { ascending: false, nullsFirst: false }).limit(200); if (result.error) setError('Não foi possível carregar as ocorrências.'); else setRows((result.data || []) as RecordRow[]); const people = await supabase.from('profiles').select('id,full_name'); setNames(Object.fromEntries(((people.data || []) as any[]).map((item) => [item.id, item.full_name]))); setLoading(false); })(); }, []);
-  async function open(row: RecordRow) { setActive(row); setText(''); setMessages([]); if (!supabase) return; const result = await supabase.from('account_record_messages').select('id,record_id,author_id,author_role,body,visibility,created_at,deleted_at').eq('record_id', row.id).order('created_at'); setMessages(((result.data || []) as Message[]).filter((item) => !item.deleted_at && item.visibility !== 'internal')); }
-  async function send(event: FormEvent) { event.preventDefault(); if (!supabase || !active || !text.trim()) return; setBusy(true); setError(''); const result = await supabase.from('account_record_messages').insert({ record_id: active.id, company_id: active.company_id, author_id: me.id, author_role: 'admin', body: text.trim(), visibility: 'client' }).select('id,record_id,author_id,author_role,body,visibility,created_at,deleted_at').single(); setBusy(false); if (result.error) { setError('Não foi possível enviar a resposta. Tente de novo.'); return; } setMessages((list) => [...list, result.data as Message]); setText(''); }
-  const companyName = useMemo(() => new Map(me.companies.map((item) => [item.id, item.display_name])), [me]);
-  const visible = rows.filter((row) => !company || row.company_id === company);
-  const status: Record<string, string> = { open: 'Aberta', in_progress: 'Em andamento', waiting_client: 'Aguardando cliente', closed: 'Encerrada', reopened: 'Reaberta' };
-  return <><Head eyebrow="EQUIPE CALI / OCORRÊNCIAS" title="Ocorrências" text="Dúvidas e pedidos das suas empresas. O cliente vê o seu nome na resposta." />
-    <div className="toolbar"><CompanySelect me={me} value={company} onChange={setCompany} all /></div>
-    {error && <div className="inline-notice">{error}</div>}
-    {loading ? <div className="data-loading">Carregando ocorrências…</div> : visible.length ? <div className="wf-records v2-staff-records">{visible.map((row) => <button type="button" className="wf-record-row" key={row.id} onClick={() => void open(row)}><div><strong>{row.title}</strong><small>{row.protocol || 'Sem protocolo'} · {companyName.get(row.company_id) || 'Empresa'}</small></div><span className="wf-tag">{status[row.workflow_status || ''] || row.workflow_status || 'Aberta'}</span><small>{moment(row.last_activity_at || row.created_at)}</small><ArrowRight size={15} /></button>)}</div> : <div className="empty">Nenhuma ocorrência nas suas empresas.</div>}
-    {active && <div className="wf-overlay" onMouseDown={() => setActive(null)}><section className="wf-modal v2-staff-form v2-staff-chat" role="dialog" aria-modal="true" aria-label="Ocorrência" onMouseDown={(event) => event.stopPropagation()}>
-      <header><div><small>{active.protocol || 'OCORRÊNCIA'} · {companyName.get(active.company_id)}</small><h2>{active.title}</h2></div><button type="button" onClick={() => setActive(null)} aria-label="Fechar"><X size={16} /></button></header>
-      <div className="v2-staff-body">{active.summary && <p className="v2-staff-summary">{active.summary}</p>}{messages.map((item) => <div key={item.id} className={'v2-staff-msg ' + (item.author_role === 'client' ? 'client' : 'cali')}><strong>{item.author_id ? names[item.author_id] || (item.author_role === 'client' ? 'Cliente' : 'CALI') : 'Sistema'}</strong><p>{item.body}</p><small>{moment(item.created_at)}</small></div>)}{!messages.length && <p className="v2-staff-summary">Ainda não há mensagens nesta conversa.</p>}</div>
-      <form className="v2-staff-reply" onSubmit={send}><input placeholder="Escrever resposta ao cliente…" value={text} onChange={(event) => setText(event.target.value)} /><button type="submit" className="wf-primary" disabled={busy || !text.trim()} aria-label="Enviar resposta"><SendHorizontal size={15} /></button></form>
-    </section></div>}</>;
 }
 
 type HourRow = { id: string; company_id: string; work_date: string; minutes: number; description: string; justification: string; status: string; decision_note: string | null; created_at: string };
@@ -190,7 +170,7 @@ export function StaffWorkspace() {
   if (!me) return <div className="v2-client-module"><div className="data-loading">Carregando o seu espaço…</div></div>;
   return <Frame me={me}><Routes>
     <Route index element={<StaffDashboard me={me} />} />
-    <Route path="ocorrencias" element={me.modules.includes('records') ? <Records me={me} /> : <Navigate to="/equipe" replace />} />
+    <Route path="ocorrencias" element={me.modules.includes('records') ? <StaffRecordsPage companies={me.companies.map((item) => ({ id: item.id, name: item.display_name, logo: item.logo_workspace_url, logoFallback: item.logo_url }))} /> : <Navigate to="/equipe" replace />} />
     <Route path="horas" element={me.modules.includes('hours') ? <Hours me={me} /> : <Navigate to="/equipe" replace />} />
     {([['projetos', 'projects'], ['calendario', 'calendar'], ['documentos', 'documents'], ['relatorios', 'reports'], ['pessoas', 'team']] as [string, string][]).map(([path, module]) => <Route key={path} path={path} element={me.modules.includes(module) ? <Browse me={me} kind={path} /> : <Navigate to="/equipe" replace />} />)}
     <Route path="avisos" element={me.modules.includes('notices') ? <StaffNotices me={me} /> : <Navigate to="/equipe" replace />} />

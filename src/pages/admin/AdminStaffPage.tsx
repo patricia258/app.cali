@@ -21,9 +21,9 @@ export const STAFF_MODULES: [string, string, string][] = [
   ['team', 'Equipe do cliente', 'Ver o quadro de pessoas, sem dados salariais'],
   ['people_map', 'Mapa de People', 'Acessar e gerar o Mapa'],
 ];
-type Pending = { id: string; kind: 'hours' | 'review'; staff_user_id: string; company_id: string; title: string; detail: string; meta: string; created_at: string };
+type Pending = { id: string; kind: 'hours' | 'review'; reviewKind?: string; entityId?: string | null; staff_user_id: string; company_id: string; title: string; detail: string; meta: string; created_at: string };
 type Decision = { item: Pending; approve: boolean; note: string };
-const REVIEW_KINDS: Record<string, string> = { report: 'Relatório', deliverable: 'Entrega', document: 'Documento', notice: 'Comunicado', other: 'Outro' };
+const REVIEW_KINDS: Record<string, string> = { report: 'Relatório', deliverable: 'Entrega', document: 'Documento', notice: 'Comunicado', other: 'Outro', record_close: 'Encerrar ocorrência' };
 const blank = (): Draft => ({ id: null, email: '', full_name: '', modules: ['records', 'projects', 'hours'], companies: [], active: true });
 const momentLabel = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)).replace('.', '');
 const dayLabel = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso));
@@ -45,11 +45,11 @@ export function AdminStaffPage() {
     if (ids.length) { const log = await supabase.from('activity_log').select('actor_user_id,event_type,created_at').in('actor_user_id', ids).in('event_type', ['workspace_access_code_verified', 'staff_session_started', 'staff_session_ended']).order('created_at', { ascending: false }).limit(400); const map: Record<string, { in?: string; out?: string }> = {}; ((log.data || []) as any[]).forEach((row) => { const entry = (map[row.actor_user_id] ||= {}); if (row.event_type === 'staff_session_ended') { entry.out ||= row.created_at; } else { entry.in ||= row.created_at; } }); setSessions(map); }
     const [hours, reviews] = await Promise.all([
       supabase.from('staff_hour_submissions').select('id,staff_user_id,company_id,work_date,minutes,description,justification,created_at').eq('status', 'pending').order('created_at'),
-      supabase.from('staff_review_requests').select('id,staff_user_id,company_id,kind,title,note,created_at').eq('status', 'pending').order('created_at'),
+      supabase.from('staff_review_requests').select('id,staff_user_id,company_id,kind,entity_id,title,note,created_at').eq('status', 'pending').order('created_at'),
     ]);
     setPending([
       ...((hours.data || []) as any[]).map((row) => ({ id: row.id, kind: 'hours' as const, staff_user_id: row.staff_user_id, company_id: row.company_id, title: `${Math.floor(row.minutes / 60)}h${String(row.minutes % 60).padStart(2, '0')} · ${row.description}`, detail: `Justificativa: ${row.justification}`, meta: `Horas de ${dayLabel(row.work_date + 'T12:00:00')}`, created_at: row.created_at })),
-      ...((reviews.data || []) as any[]).map((row) => ({ id: row.id, kind: 'review' as const, staff_user_id: row.staff_user_id, company_id: row.company_id, title: row.title, detail: row.note || 'Sem recado.', meta: REVIEW_KINDS[row.kind] || row.kind, created_at: row.created_at })),
+      ...((reviews.data || []) as any[]).map((row) => ({ id: row.id, kind: 'review' as const, staff_user_id: row.staff_user_id, company_id: row.company_id, reviewKind: row.kind, entityId: row.entity_id, title: row.title, detail: row.kind === 'record_close' ? (row.note || 'A pessoa considera esta ocorrência resolvida e pede o encerramento.') : (row.note || 'Sem recado.'), meta: REVIEW_KINDS[row.kind] || row.kind, created_at: row.created_at })),
     ].sort((a, b) => a.created_at.localeCompare(b.created_at)));
     setLoading(false);
   }
@@ -58,6 +58,11 @@ export function AdminStaffPage() {
     if (!decision.approve && !decision.note.trim()) { setDecisionError('Escreva o motivo para a pessoa saber o que ajustar.'); return; }
     setDeciding(true); setDecisionError('');
     const { data: session } = await supabase.auth.getUser();
+    // Encerramento de ocorrência pedido pela Equipe CALI: aprovar = finalizar de verdade (função da administradora).
+    if (decision.approve && decision.item.reviewKind === 'record_close' && decision.item.entityId) {
+      const closing = await supabase.rpc('set_account_record_status', { p_record_id: decision.item.entityId, p_status: 'completed' });
+      if (closing.error) { setDeciding(false); setDecisionError(closing.error.message || 'Não foi possível finalizar a ocorrência.'); return; }
+    }
     const result = decision.item.kind === 'hours'
       ? await supabase.rpc('admin_decide_staff_hours', { p_submission_id: decision.item.id, p_approve: decision.approve, p_note: decision.note.trim() || null })
       : await supabase.from('staff_review_requests').update({ status: decision.approve ? 'approved' : 'returned', decided_by: session.user?.id || null, decided_at: new Date().toISOString(), decision_note: decision.note.trim() || null }).eq('id', decision.item.id);
@@ -127,7 +132,7 @@ export function AdminStaffPage() {
     {decision && <div className="wf-overlay" onMouseDown={() => setDecision(null)}><form className="wf-modal v2-staff-form v2-staff-decision" role="dialog" aria-modal="true" aria-label="Decisão" onSubmit={decide} onMouseDown={(event) => event.stopPropagation()}>
       <header><div><small>{decision.item.meta.toUpperCase()}</small><h2>{decision.approve ? 'Aprovar' : decision.item.kind === 'hours' ? 'Recusar lançamento' : 'Devolver para ajuste'}</h2></div><button type="button" onClick={() => setDecision(null)} aria-label="Fechar"><X size={16} /></button></header>
       <div className="v2-staff-body"><div className="v2-staff-decision-item"><strong>{decision.item.title}</strong><small>{decision.item.detail}</small></div>
-        <p className="v2-staff-decision-effect">{decision.approve ? (decision.item.kind === 'hours' ? 'Ao aprovar, as horas entram no controle de horas da empresa como lançamento manual, com o nome de quem lançou e a justificativa guardados na nota interna. Elas ficam ocultas do cliente até você marcar como visíveis em Horas.' : 'Ao aprovar, a pessoa é avisada de que o material está liberado. O envio ao cliente continua sendo feito por você.') : 'A pessoa verá o seu motivo e poderá corrigir e enviar de novo.'}</p>
+        <p className="v2-staff-decision-effect">{decision.approve ? (decision.item.kind === 'hours' ? 'Ao aprovar, as horas entram no controle de horas da empresa como lançamento manual, com o nome de quem lançou e a justificativa guardados na nota interna. Elas ficam ocultas do cliente até você marcar como visíveis em Horas.' : decision.item.reviewKind === 'record_close' ? 'Ao aprovar, a ocorrência é finalizada agora e o cliente é avisado, como quando você clica em Finalizar.' : 'Ao aprovar, a pessoa é avisada de que o material está liberado. O envio ao cliente continua sendo feito por você.') : decision.item.reviewKind === 'record_close' ? 'A ocorrência continua aberta e a pessoa verá o seu motivo.' : 'A pessoa verá o seu motivo e poderá corrigir e enviar de novo.'}</p>
         <div className="v2-staff-fields one"><label>{decision.approve ? 'Recado (opcional)' : 'Motivo (obrigatório)'}<input value={decision.note} onChange={(event) => setDecision({ ...decision, note: event.target.value })} autoFocus /></label></div>
         {decisionError && <div className="inline-notice v2-staff-error" role="alert">{decisionError}</div>}</div>
       <footer><button type="button" className="wf-secondary" onClick={() => setDecision(null)}>Cancelar</button><button type="submit" className="wf-primary" disabled={deciding}>{deciding ? 'Registrando…' : decision.approve ? 'Aprovar' : decision.item.kind === 'hours' ? 'Recusar' : 'Devolver'}</button></footer>

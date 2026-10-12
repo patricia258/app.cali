@@ -2961,3 +2961,24 @@ html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client small{display:block;
 @media(max-width:640px){html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client{flex-wrap:wrap}html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client small{white-space:normal}}
 .v2-admin-staff .v2-staff-list .wf-record-row{grid-template-columns:38px minmax(0,1.1fr) minmax(0,1.2fr) minmax(0,1.5fr) minmax(0,1fr) minmax(0,.9fr) auto}
 @media(max-width:1100px){.v2-admin-staff .v2-staff-list .wf-record-row{grid-template-columns:38px minmax(0,1fr) auto}.v2-admin-staff .v2-staff-list .wf-record-row>div:nth-of-type(n+2){grid-column:2}}
+/* Ocorrências da Equipe CALI: mesma tela da administradora, com cronômetro próprio, escolha Cliente/Interno e encerramento por aprovação. */
+html[data-workspace-ui='v2'] .v2-staff-record-timer{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border:1px solid #5a1e2d;border-radius:8px;background:#5a1e2d;color:#fff;font:inherit;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:pointer;flex:none;margin-left:auto;position:relative;z-index:8}
+html[data-workspace-ui='v2'] .v2-staff-record-timer.on{background:#fff;color:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-staff-compose-mode{align-self:flex-start;margin:0 0 4px}
+html[data-workspace-ui='v2'] .v2-staff-thread .records-chat-avatar{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:7px;background:#f3ece6;color:#5a1e2d;font-size:11px;font-weight:700}
+html[data-workspace-ui='v2'] .v2-staff-thread .internal-note .records-chat-bubble{background:#fffaf1;border-color:#ecd9b0}
+html[data-workspace-ui='v2'] .v2-staff-thread-empty{margin:0;font-size:12px;color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-closed-note{font-size:12px;color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-record-actions .status-actions{flex-wrap:nowrap}
+html[data-workspace-ui='v2'] .wf-record-drawer>header>button.v2-staff-record-timer{width:auto;min-width:0;height:38px;padding:0 14px;display:inline-flex;align-items:center;gap:8px;border:1px solid #5a1e2d;border-radius:8px;background:#5a1e2d;color:#fff;font-size:12px;font-weight:700;position:static;margin:0 10px 0 auto;flex:none}
+html[data-workspace-ui='v2'] .wf-record-drawer>header>button.v2-staff-record-timer.on{background:#fff;color:#5a1e2d}
+html[data-workspace-ui='v2'] .wf-record-drawer>header:has(.v2-staff-record-timer){display:flex;align-items:flex-start;gap:0}
+html[data-workspace-ui='v2'] .wf-record-drawer>header:has(.v2-staff-record-timer)>div{flex:1;min-width:0}
+html[data-workspace-ui='v2'] .wf-record-drawer>header:has(.v2-staff-record-timer)>.drawer-close{position:static;flex:none}
+html[data-workspace-ui='v2'] .v2-staff-compose-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+html[data-workspace-ui='v2'] .v2-staff-compose-head label{font:inherit;color:inherit}
+html[data-workspace-ui='v2'] .v2-staff-compose-mode{display:inline-flex;border:1px solid #e7ddd5;border-radius:7px;overflow:hidden;background:#fff;margin:0;width:auto}
+html[data-workspace-ui='v2'] .v2-staff-compose-mode button{border:0;background:#fff;padding:6px 12px;font:inherit;font-size:11px;font-weight:600;color:#8b7f77;cursor:pointer;width:auto;height:auto;border-radius:0}
+html[data-workspace-ui='v2'] .v2-staff-compose-mode button.on{background:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] .wf-record-drawer>header:has(.v2-staff-record-timer)>div>small{white-space:normal;overflow:visible;display:block;line-height:1.5}
+html[data-workspace-ui='v2'] .v2-staff-thread .records-chat-avatar{color:#5a1e2d!important}
