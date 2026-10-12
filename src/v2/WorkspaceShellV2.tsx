@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, BriefcaseBusiness, Building2, CalendarDays, CalendarPlus, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Star, Target, Users, X, type LucideIcon } from 'lucide-react';
 import { DirectProfileControl } from '../components/DirectProfileControl';
+import { WelcomeTour, WELCOME_LIVE, WELCOME_OPEN_EVENT } from './WelcomeTour';
 import './v2.generated.css';
 import './operational.css';
 
@@ -132,6 +133,7 @@ export function WorkspaceShellV2({ role, navigation, extras, children, schedulin
                 <div className="v2-profile-head"><span className="avatar small">{avatar}</span><span><strong>{profile.full_name}</strong><small>{profile.job_title || (role === 'admin' ? 'Administradora geral' : 'Perfil cliente')}</small></span></div>
                 <div className="v2-profile-meta">{companyName && <span>Empresa <b>{companyName}</b></span>}<span>Acesso <b>{role === 'admin' ? 'Administradora' : 'Cliente'}</b></span></div>
                 <button role="menuitem" onClick={() => { setProfileMenu(false); openEditor(); }}>Ver meu perfil <ChevronRight size={14} /></button>
+                {role === 'client' && WELCOME_LIVE && <button role="menuitem" onClick={() => { setProfileMenu(false); window.dispatchEvent(new Event(WELCOME_OPEN_EVENT)); }}>Rever apresentação <ChevronRight size={14} /></button>}
                 <button role="menuitem" onClick={() => { setProfileMenu(false); onLogout(); }}>Sair <ArrowRight size={14} /></button>
               </div>}
             </>} />
@@ -141,6 +143,7 @@ export function WorkspaceShellV2({ role, navigation, extras, children, schedulin
       {scheduling}
       <div className="content">{children}</div>
     </main>
+    {role === 'client' && <WelcomeTour />}
   </div>;
 }
 
