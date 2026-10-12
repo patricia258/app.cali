@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { RefreshCw, Search } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Search } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
 
@@ -28,12 +28,13 @@ const statusLabels: Record<string, string> = { not_started: 'Não iniciada', in_
 const fieldLabels: Record<string, string> = { salary: 'remuneração', salary_review_date: 'data de revisão salarial', gender: 'gênero', gender_detail: 'gênero (detalhe)', has_children: 'filhos' };
 const text = (value: unknown) => typeof value === 'string' || typeof value === 'number' ? String(value) : '';
 const day = (iso: string) => new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(iso));
+const shortDay = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).format(new Date(iso));
 const hour = (iso: string) => new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
 
 export function AdminAuditPage() {
   const [rows, setRows] = useState<Row[]>([]); const [names, setNames] = useState<Record<string, string>>({}); const [companies, setCompanies] = useState<{ id: string; display_name: string }[]>([]);
   const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [partial, setPartial] = useState<string[]>([]);
-  const [company, setCompany] = useState(''); const [area, setArea] = useState(''); const [actor, setActor] = useState(''); const [period, setPeriod] = useState('30'); const [search, setSearch] = useState(''); const [shown, setShown] = useState(60);
+  const [company, setCompany] = useState(''); const [area, setArea] = useState(''); const [actor, setActor] = useState(''); const [period, setPeriod] = useState('30'); const [search, setSearch] = useState(''); const [shown, setShown] = useState(60); const [grouping, setGrouping] = useState<'day' | 'protocol'>('day'); const [trail, setTrail] = useState(''); const [kinds, setKinds] = useState<Record<string, string>>({});
 
   async function load() {
     if (!supabase) return; setLoading(true); setError('');
@@ -50,7 +51,7 @@ export function AdminAuditPage() {
         get('pessoas', 'profiles', 'id,full_name', 'full_name'), get('empresas', 'companies', 'id,display_name', 'display_name'), get('equipe (nomes)', 'team_members', 'id,full_name', 'full_name'),
         ...['account_records', 'deliverables', 'events', 'files', 'reports', 'projects', 'notices'].map((table) => get('protocolos', table, 'id,protocol', 'id')),
       ]);
-      const protocolOf = new Map<string, string>(); protocolSources.flat().forEach((item) => { if (item.protocol) protocolOf.set(item.id, item.protocol); });
+      const protocolOf = new Map<string, string>(); const kindOf: Record<string, string> = {}; const kindLabels = ['Ocorrência', 'Entrega', 'Compromisso', 'Documento', 'Relatório', 'Projeto', 'Aviso']; protocolSources.forEach((list, position) => list.forEach((item) => { if (item.protocol) { protocolOf.set(item.id, item.protocol); kindOf[item.protocol] = kindLabels[position]; } })); setKinds(kindOf);
       const reasonText = (value: unknown) => ({ under_30_seconds: '' } as Record<string, string>)[text(value)] ?? text(value);
       const member = new Map(members.map((item) => [item.id, item.full_name as string]));
       const out: Row[] = [];
@@ -65,14 +66,18 @@ export function AdminAuditPage() {
     } catch (err) { setError(err instanceof Error ? err.message : 'Não foi possível carregar a auditoria.'); } finally { setLoading(false); }
   }
   useEffect(() => { void load(); }, []);
-  useEffect(() => { setShown(60); }, [company, area, actor, period, search]);
+  useEffect(() => { setShown(60); }, [company, area, actor, period, search, grouping, trail]);
 
   const companyName = useMemo(() => new Map(companies.map((item) => [item.id, item.display_name])), [companies]);
   const who = (id: string | null) => id ? names[id] || 'Usuário sem nome no perfil' : 'Sistema';
-  const filtered = useMemo(() => { const since = period === 'all' ? '' : new Date(Date.now() - Number(period) * 86400000).toISOString(); const query = search.trim().toLocaleLowerCase('pt-BR'); return rows.filter((row) => (!company || row.company === company) && (!area || row.area === area) && (!actor || (row.actor || 'system') === actor) && (!since || row.at >= since) && (!query || `${row.action} ${row.detail} ${row.protocol} ${who(row.actor)} ${companyName.get(row.company || '') || ''}`.toLocaleLowerCase('pt-BR').includes(query))); }, [rows, company, area, actor, period, search, names, companyName]);
+  const filtered = useMemo(() => { const since = period === 'all' ? '' : new Date(Date.now() - Number(period) * 86400000).toISOString(); const query = search.trim().toLocaleLowerCase('pt-BR'); return rows.filter((row) => trail ? row.protocol === trail : (!company || row.company === company) && (!area || row.area === area) && (!actor || (row.actor || 'system') === actor) && (!since || row.at >= since) && (!query || `${row.action} ${row.detail} ${row.protocol} ${who(row.actor)} ${companyName.get(row.company || '') || ''}`.toLocaleLowerCase('pt-BR').includes(query))); }, [rows, company, area, actor, period, search, names, companyName, trail]);
   const actors = useMemo(() => [...new Set(rows.map((row) => row.actor || 'system'))].map((id) => [id, id === 'system' ? 'Sistema' : who(id)] as [string, string]).sort((a, b) => a[1].localeCompare(b[1], 'pt-BR')), [rows, names]);
-  const visible = filtered.slice(0, shown);
-  const groups = visible.reduce<{ day: string; items: Row[] }[]>((list, row) => { const label = day(row.at); const last = list[list.length - 1]; if (last && last.day === label) last.items.push(row); else list.push({ day: label, items: [row] }); return list; }, []);
+  const byProtocol = grouping === 'protocol' && !trail;
+  const ordered = byProtocol ? (() => { const latest = new Map<string, string>(); filtered.forEach((row) => { const key = row.protocol || ''; if (!latest.has(key)) latest.set(key, row.at); }); return filtered.slice().sort((a, b) => (a.protocol ? 0 : 1) - (b.protocol ? 0 : 1) || (latest.get(b.protocol) || '').localeCompare(latest.get(a.protocol) || '') || b.at.localeCompare(a.at)); })() : filtered;
+  const visible = ordered.slice(0, shown);
+  const groups = visible.reduce<{ day: string; protocol: string; items: Row[] }[]>((list, row) => { const label = byProtocol ? (row.protocol ? `${kinds[row.protocol] || 'Item'} · ${row.protocol}` : 'Sem protocolo (acessos, cronômetro, equipe)') : day(row.at); const last = list[list.length - 1]; if (last && last.day === label) last.items.push(row); else list.push({ day: label, protocol: byProtocol ? row.protocol : '', items: [row] }); return list; }, []);
+  const trailPeople = [...new Set(filtered.map((row) => who(row.actor)))];
+  const openTrail = (protocol: string) => { setTrail(protocol); window.scrollTo({ top: 0 }); };
   const people = new Set(filtered.map((row) => row.actor || 'system')).size; const sensitive = filtered.filter((row) => /Excluiu|restrito|descartada|Recolheu|Cancelou/.test(row.action)).length;
 
   return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-audit v2-client-module"><div className="ap-content"><div className="wf">
@@ -84,9 +89,11 @@ export function AdminAuditPage() {
       <select className="wf-record-filter" aria-label="Empresa" value={company} onChange={(event) => setCompany(event.target.value)}><option value="">Todas as empresas</option>{companies.map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}</select>
       <select className="wf-record-filter" aria-label="Área" value={area} onChange={(event) => setArea(event.target.value)}><option value="">Todas as áreas</option>{AREAS.map((item) => <option key={item}>{item}</option>)}</select>
       <select className="wf-record-filter" aria-label="Quem" value={actor} onChange={(event) => setActor(event.target.value)}><option value="">Todas as pessoas</option>{actors.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select>
+      <select className="wf-record-filter" aria-label="Agrupar por" value={grouping} onChange={(event) => setGrouping(event.target.value as 'day' | 'protocol')}><option value="day">Agrupar por dia</option><option value="protocol">Agrupar por protocolo</option></select>
       <label className="v2-audit-search"><Search size={14} /><input placeholder="Buscar ação, pessoa, protocolo ou detalhe" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
     </div>
-    {loading ? <div className="data-loading">Carregando auditoria…</div> : groups.length ? <div className="v2-audit-list">{groups.map((group) => <section key={group.day}><h2>{group.day}</h2><div className="wf-records">{group.items.map((row) => <div className="wf-record-row" key={row.id}><time>{hour(row.at)}</time><span className={`wf-tag v2-audit-area a-${AREAS.indexOf(row.area)}`}>{row.area}</span><div><strong>{row.action}</strong>{row.detail && <small>{row.detail}</small>}</div><span className="v2-audit-who"><small>Protocolo</small>{row.protocol || '—'}</span><span className="v2-audit-who"><small>Quem</small>{who(row.actor)}</span><span className="v2-audit-who"><small>Empresa</small>{row.company ? companyName.get(row.company) || '—' : '—'}</span></div>)}</div></section>)}{filtered.length > shown && <button type="button" className="wf-secondary v2-audit-more" onClick={() => setShown(shown + 60)}>Mostrar mais ({filtered.length - shown} restantes)</button>}</div> : <div className="v2-audit-empty">Nenhum registro neste recorte. Amplie o período ou limpe os filtros.</div>}
+    {trail && <section className="v2-audit-trail"><div><small>TRILHA DO ITEM · {(kinds[trail] || 'Item').toUpperCase()}</small><h2>{trail}</h2><p>Tudo o que foi registrado sobre este item, do mais recente ao mais antigo. Os filtros acima ficam suspensos enquanto a trilha está aberta.</p></div><dl><div><dt>Movimentações</dt><dd>{filtered.length}</dd></div><div><dt>Primeira</dt><dd>{filtered.length ? shortDay(filtered[filtered.length - 1].at) : '—'}</dd></div><div><dt>Última</dt><dd>{filtered.length ? shortDay(filtered[0].at) : '—'}</dd></div><div><dt>Quem participou</dt><dd>{trailPeople.join(', ') || '—'}</dd></div></dl><button type="button" className="wf-secondary" onClick={() => setTrail('')}><ArrowLeft size={14} /> Voltar para a lista</button></section>}
+    {loading ? <div className="data-loading">Carregando auditoria…</div> : groups.length ? <div className="v2-audit-list">{groups.map((group) => <section key={group.day}><h2>{group.day}{byProtocol && group.protocol && <button type="button" className="v2-audit-open" onClick={() => openTrail(group.protocol)}>Ver trilha completa</button>}</h2><div className="wf-records">{group.items.map((row) => <div className="wf-record-row" key={row.id}><time>{byProtocol || trail ? <>{shortDay(row.at)}<br /></> : null}{hour(row.at)}</time><span className={`wf-tag v2-audit-area a-${AREAS.indexOf(row.area)}`}>{row.area}</span><div><strong>{row.action}</strong>{row.detail && <small>{row.detail}</small>}</div><span className="v2-audit-who"><small>Protocolo</small>{row.protocol ? <button type="button" className="v2-audit-protocol" title="Ver tudo o que aconteceu com este item" onClick={() => openTrail(row.protocol)}>{row.protocol}</button> : '—'}</span><span className="v2-audit-who"><small>Quem</small>{who(row.actor)}</span><span className="v2-audit-who"><small>Empresa</small>{row.company ? companyName.get(row.company) || '—' : '—'}</span></div>)}</div></section>)}{filtered.length > shown && <button type="button" className="wf-secondary v2-audit-more" onClick={() => setShown(shown + 60)}>Mostrar mais ({filtered.length - shown} restantes)</button>}</div> : <div className="v2-audit-empty">Nenhum registro neste recorte. Amplie o período ou limpe os filtros.</div>}
     {partial.length > 0 && <div className="inline-notice v2-audit-partial"><strong>Auditoria incompleta:</strong> não foi possível ler {partial.join(', ')}. O restante aparece normalmente. Clique em “Atualizar”; se continuar, avise o suporte técnico.</div>}
     <p className="soft-note v2-audit-note">A lista mostra os {LIMIT} registros mais recentes de cada fonte (acessos, horas, relatórios, agenda, documentos, ocorrências, equipe e projetos). Diagnósticos técnicos do sistema não aparecem.</p>
   </div></div></div></Shell>;
