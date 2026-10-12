@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, BriefcaseBusiness, Building2, CalendarDays, CalendarPlus, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileBarChart2, FolderOpen, History, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Star, UserCog, Target, Users, X, type LucideIcon } from 'lucide-react';
 import { DirectProfileControl } from '../components/DirectProfileControl';
-import { WelcomeTour, WELCOME_OPEN_EVENT } from './WelcomeTour';
+import { WelcomeTour, WELCOME_OPEN_EVENT, type WelcomeStep } from './WelcomeTour';
 import './v2.generated.css';
 import './operational.css';
 
@@ -47,8 +47,10 @@ export const adminProducts: NavItem[] = [
 const teamAreas = [['diretorio', 'Diretório'], ['estrutura', 'Estrutura organizacional'], ['movimentacoes', 'Movimentações'], ['indicadores', 'Indicadores']] as const;
 const privacyPolicyUrl = 'https://calirh.com/privacidade.html';
 
-type ShellRole = 'admin' | 'client';
+type ShellRole = 'admin' | 'client' | 'partner';
 type Props = {
+  /** Passos da apresentação inicial quando o papel tem roteiro próprio (Partner). */
+  welcomeSteps?: WelcomeStep[];
   role: ShellRole;
   navigation: NavItem[];
   /** Controles operacionais próprios do papel (timers ativos, despesas de visita). */
@@ -61,9 +63,9 @@ type Props = {
   onLogout: () => void;
 };
 
-export function WorkspaceShellV2({ role, navigation, extras, children, scheduling, notifications, bridges, onLogout }: Props) {
-  const home = role === 'admin' ? '/admin' : '/cliente';
-  const searchDestinations = useMemo(() => [...navigation.map(({ label, href }) => ({ label, href })), ...(role === 'client' ? [{ label: 'Frentes contratadas', href: '/cliente/frentes' }] : adminProducts.map(({ label, href }) => ({ label, href })))], [navigation, role]);
+export function WorkspaceShellV2({ role, navigation, extras, children, scheduling, notifications, bridges, onLogout, welcomeSteps }: Props) {
+  const home = role === 'admin' ? '/admin' : role === 'partner' ? '/equipe' : '/cliente';
+  const searchDestinations = useMemo(() => [...navigation.map(({ label, href }) => ({ label, href })), ...(role === 'client' ? [{ label: 'Frentes contratadas', href: '/cliente/frentes' }] : role === 'partner' ? [] : adminProducts.map(({ label, href }) => ({ label, href })))], [navigation, role]);
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const [mobileNav, setMobileNav] = useState(false);
@@ -129,13 +131,13 @@ export function WorkspaceShellV2({ role, navigation, extras, children, schedulin
           {extras}
           <div className="profile-holder">{notifications}</div>
           <div className="profile-holder" ref={profileRef}>
-            <DirectProfileControl role={role} trigger={({ profile, avatar, companyName, openEditor }) => <>
+            <DirectProfileControl role={role === 'partner' ? 'client' : role} trigger={({ profile, avatar, companyName, openEditor }) => <>
               <button aria-expanded={profileMenu} aria-haspopup="menu" onClick={() => setProfileMenu(!profileMenu)} className="profile"><span className="avatar small">{avatar}</span><span>{profile.full_name}</span><ChevronDown size={13} /></button>
               {profileMenu && <div className="profile-dropdown v2-profile" role="menu">
-                <div className="v2-profile-head"><span className="avatar small">{avatar}</span><span><strong>{profile.full_name}</strong><small>{profile.job_title || (role === 'admin' ? 'Administradora geral' : 'Perfil cliente')}</small></span></div>
-                <div className="v2-profile-meta">{companyName && <span>Empresa <b>{companyName}</b></span>}<span>Acesso <b>{role === 'admin' ? 'Administradora' : 'Cliente'}</b></span></div>
+                <div className="v2-profile-head"><span className="avatar small">{avatar}</span><span><strong>{profile.full_name}</strong><small>{profile.job_title || (role === 'admin' ? 'Administradora geral' : role === 'partner' ? 'Partner · Equipe CALI' : 'Perfil cliente')}</small></span></div>
+                <div className="v2-profile-meta">{companyName && <span>Empresa <b>{companyName}</b></span>}<span>Acesso <b>{role === 'admin' ? 'Administradora' : role === 'partner' ? 'Partner · Equipe CALI' : 'Cliente'}</b></span></div>
                 <button role="menuitem" onClick={() => { setProfileMenu(false); openEditor(); }}>Ver meu perfil <ChevronRight size={14} /></button>
-                {role === 'client' && <button role="menuitem" onClick={() => { setProfileMenu(false); window.dispatchEvent(new Event(WELCOME_OPEN_EVENT)); }}>Rever apresentação <ChevronRight size={14} /></button>}
+                {role !== 'admin' && <button role="menuitem" onClick={() => { setProfileMenu(false); window.dispatchEvent(new Event(WELCOME_OPEN_EVENT)); }}>Rever apresentação <ChevronRight size={14} /></button>}
                 <button role="menuitem" onClick={() => { setProfileMenu(false); onLogout(); }}>Sair <ArrowRight size={14} /></button>
               </div>}
             </>} />
@@ -146,6 +148,7 @@ export function WorkspaceShellV2({ role, navigation, extras, children, schedulin
       <div className="content">{children}</div>
     </main>
     {role === 'client' && <WelcomeTour />}
+    {role === 'partner' && <WelcomeTour steps={welcomeSteps} />}
   </div>;
 }
 

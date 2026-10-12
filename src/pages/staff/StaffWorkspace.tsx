@@ -3,11 +3,13 @@
    O Partner vê só as empresas e módulos atribuídos (regras no banco, migrações 20261012150000/170000/190000) e tudo que
    vai para o cliente passa pela administradora: horas e materiais entram em filas de aprovação. */
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
-import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, Bell, BriefcaseBusiness, Play, Square, Building2, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, LogOut, Megaphone, MessageCircleMore, Send, SendHorizontal, Users, X } from 'lucide-react';
+import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { ArrowRight, Bell, BriefcaseBusiness, Play, Square, Building2, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, SendHorizontal, Users, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
-import { WelcomeTour, type WelcomeStep } from '../../v2/WelcomeTour';
+import { type WelcomeStep } from '../../v2/WelcomeTour';
+import { WorkspaceShellV2 } from '../../v2/WorkspaceShellV2';
+import { StaffNoticesPage } from '../notices/NoticesBoard';
 import '../../v2/v2.generated.css';
 import '../../v2/operational.css';
 
@@ -21,10 +23,10 @@ const duration = (minutes: number) => `${Math.floor(minutes / 60)}h${String(minu
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('');
 const welcomeSteps: WelcomeStep[] = [
   { label: 'BOAS-VINDAS À EQUIPE CALI', title: 'Que bom ter você no time', text: 'Este é o seu espaço de trabalho na CALI. Aqui você atende as empresas que foram atribuídas a você, sempre em nome da CALI.' },
-  { href: '/equipe', label: 'INÍCIO', title: 'Suas empresas e seus módulos', text: 'Mostra as empresas que você atende e o que está liberado para você em cada uma.' },
+  { href: '/equipe', label: 'VISÃO GERAL', title: 'Suas empresas e seus módulos', text: 'Mostra as empresas que você atende e o que está liberado para você em cada uma.' },
   { href: '/equipe/ocorrencias', label: 'OCORRÊNCIAS', title: 'Responder dúvidas e pedidos', text: 'As conversas das suas empresas. O cliente vê o seu nome na resposta, então escreva com o cuidado de quem fala pela CALI.' },
   { href: '/equipe/horas', label: 'HORAS', title: 'Registrar o tempo trabalhado', text: 'Lance as horas com uma justificativa. Elas só entram no relatório do cliente depois que a Patricia aprovar.' },
-  { href: '/equipe/aprovacoes', label: 'ENVIAR PARA APROVAÇÃO', title: 'Tudo que vai ao cliente passa pela Patricia', text: 'Relatório, entrega ou documento pronto? Envie por aqui. Você acompanha se foi aprovado ou devolvido com orientação.' },
+  { href: '/equipe/aprovacoes', label: 'ENVIAR PARA A PATRICIA', title: 'Tudo que vai ao cliente passa por ela', text: 'Relatório, entrega ou documento pronto? Envie por aqui. Você acompanha se foi aprovado ou devolvido com orientação.' },
   { label: 'TUDO PRONTO', title: 'Pode começar', text: 'Em caso de dúvida sobre o que pode ou não fazer, fale com a Patricia antes de responder ao cliente.' },
 ];
 
@@ -51,20 +53,11 @@ function StaffBell({ me }: { me: Me }) {
 }
 
 function Frame({ me, children }: { me: Me; children: ReactNode }) {
-  const { pathname } = useLocation(); const navigate = useNavigate();
-  const has = (key: string) => me.modules.includes(key);
-  const nav = [['/equipe', 'Início', LayoutDashboard, true], ['/equipe/ocorrencias', 'Ocorrências', MessageCircleMore, has('records')], ['/equipe/projetos', 'Projetos e entregas', BriefcaseBusiness, has('projects')], ['/equipe/horas', 'Horas', Clock3, has('hours')], ['/equipe/calendario', 'Calendário', CalendarDays, has('calendar')], ['/equipe/documentos', 'Documentos', FolderOpen, has('documents')], ['/equipe/relatorios', 'Relatórios', FileBarChart2, has('reports')], ['/equipe/avisos', 'Avisos', Megaphone, has('notices')], ['/equipe/pessoas', 'Equipe do cliente', Users, has('team')], ['/equipe/aprovacoes', 'Enviar para aprovação', Send, true]] as [string, string, typeof Clock3, boolean][];
+  const navigate = useNavigate(); const has = (key: string) => me.modules.includes(key);
+  const nav = ([['/equipe', 'Visão geral', LayoutDashboard, true], ['/equipe/pessoas', 'Equipe', Users, has('team')], ['/equipe/projetos', 'Projetos', BriefcaseBusiness, has('projects')], ['/equipe/horas', 'Horas', Clock3, has('hours')], ['/equipe/calendario', 'Calendário', CalendarDays, has('calendar')], ['/equipe/ocorrencias', 'Ocorrências', MessageCircleMore, has('records')], ['/equipe/documentos', 'Documentos', FolderOpen, has('documents')], ['/equipe/relatorios', 'Relatórios', FileBarChart2, has('reports')], ['/equipe/avisos', 'Avisos', Megaphone, has('notices')], ['/equipe/aprovacoes', 'Enviar para a Patricia', Send, true]] as [string, string, typeof Clock3, boolean][]).filter((item) => item[3]).map(([href, label, icon]) => ({ href, label, icon }));
   async function logout() { await supabase?.auth.signOut(); navigate('/login', { replace: true }); }
-  return <div className="app" data-workspace-role="partner">
-    <aside className="sidebar" aria-label="Menu lateral CALI"><div className="brand"><span className="v2-brand-mark oak" role="img" aria-label="CALI" /></div>
-      <nav aria-label="Navegação principal">{nav.filter((item) => item[3]).map(([href, label, Icon]) => <Link key={href} to={href} className={'nav-link ' + (pathname === href ? 'active' : '')} title={label} aria-label={label}><Icon size={17} /></Link>)}</nav>
-      <div className="sidebar-bottom"><span className="gold-rule" /><button type="button" className="nav-link v2-staff-logout" onClick={() => void logout()} title="Sair" aria-label="Sair"><LogOut size={17} /></button></div>
-    </aside>
-    <main className="main"><header className="topbar"><div className="top-left"><strong className="v2-staff-brand">CALI <span>WORKSPACE · EQUIPE</span></strong></div><div className="top-actions"><StaffBell me={me} /><span className="v2-staff-me"><span className="avatar small">{initials(me.name)}</span><span><strong>{me.name}</strong><small>Partner · Equipe CALI</small></span></span></div></header>
-      <div className="content"><div className="v2-client-module v2-staff-area">{children}</div></div>
-    </main>
-    <WelcomeTour steps={welcomeSteps} />
-  </div>;
+  /* Mesma moldura da administradora e do cliente (topo, busca, sino, menu do perfil com "Ver meu perfil" e "Sair"). */
+  return <WorkspaceShellV2 role="partner" navigation={nav} notifications={<StaffBell me={me} />} bridges={null} onLogout={() => void logout()} welcomeSteps={welcomeSteps}><div className="v2-client-module v2-staff-area">{children}</div></WorkspaceShellV2>;
 }
 
 function Head({ eyebrow, title, text, action }: { eyebrow: string; title: string; text: string; action?: ReactNode }) {
@@ -73,7 +66,7 @@ function Head({ eyebrow, title, text, action }: { eyebrow: string; title: string
 const CompanySelect = ({ me, value, onChange, all }: { me: Me; value: string; onChange: (value: string) => void; all?: boolean }) => <select className="wf-record-filter" aria-label="Empresa" value={value} onChange={(event) => onChange(event.target.value)}>{all && <option value="">Todas as minhas empresas</option>}{!all && <option value="">Escolha a empresa</option>}{me.companies.map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}</select>;
 
 function Home({ me }: { me: Me }) {
-  return <><Head eyebrow="EQUIPE CALI / INÍCIO" title={`Olá, ${me.name.split(' ')[0]}`} text="Estas são as empresas que você atende e o que está liberado para você." />
+  return <><Head eyebrow="EQUIPE CALI / VISÃO GERAL" title={`Olá, ${me.name.split(' ')[0]}`} text="Estas são as empresas que você atende e o que está liberado para você." />
     <div className="v2-staff-cards">{me.companies.map((item) => <article key={item.id}><span className="avatar"><Building2 size={16} /></span><div><strong>{item.display_name}</strong><small>{PLAN[String(item.service_plan || '').toLowerCase()] || item.service_plan || 'Pacote não informado'}{item.monthly_hours_contracted ? ` · ${item.monthly_hours_contracted}h contratadas por mês` : ''}</small></div></article>)}{!me.companies.length && <div className="empty">Nenhuma empresa atribuída a você ainda. Fale com a Patricia.</div>}</div>
     <section className="panel v2-staff-modules"><h3>O que você pode fazer</h3><p>Módulos liberados pela Patricia. Tudo que vai para o cliente passa pela aprovação dela.</p><div>{me.modules.map((key) => <span className="wf-tag" key={key}>{MODULES[key] || key}</span>)}{!me.modules.length && <small>Nenhum módulo liberado ainda.</small>}</div></section>
     <p className="soft-note">Projetos, calendário, documentos, relatórios, avisos e equipe do cliente estão disponíveis para consulta. Para alterar algo que vai ao cliente, prepare o material e use “Enviar para aprovação”.</p></>;
@@ -92,28 +85,32 @@ const browse: Record<string, BrowseConfig> = {
   avisos: { eyebrow: 'EQUIPE CALI / AVISOS', title: 'Avisos', text: 'Comunicados publicados para as suas empresas.', empty: 'Nenhum comunicado publicado.', load: async () => { const result = await supabase!.from('notices').select('id,title,protocol,category,status,published_at').order('published_at', { ascending: false }).limit(100); return result.error ? null : (result.data as any[]).map((row) => ({ id: row.id, company_id: null, title: row.title, sub: String(row.protocol || ''), tag: label({ feriado: 'Feriado', atendimento: 'Atendimento', comunicado: 'Comunicado' }, row.category), when: row.published_at })); } },
   pessoas: { eyebrow: 'EQUIPE CALI / EQUIPE DO CLIENTE', title: 'Equipe do cliente', text: 'O quadro de pessoas das suas empresas. Dados salariais não aparecem aqui.', empty: 'Nenhuma pessoa cadastrada nas suas empresas.', load: async () => { const result = await supabase!.from('team_members').select('id,company_id,full_name,job_title,department,status,admission_date').is('archived_at', null).order('full_name').limit(1000); return result.error ? null : (result.data as any[]).map((row) => ({ id: row.id, company_id: row.company_id, title: row.full_name, sub: [row.job_title, row.department].filter(Boolean).join(' · '), tag: label(STATUS, row.status), when: row.admission_date })); } },
 };
-function PublishNotice({ me, onDone }: { me: Me; onDone: () => void }) {
-  const [open, setOpen] = useState(false); const [draft, setDraft] = useState({ category: 'comunicado', title: '', body: '', date: '', companies: [] as string[] }); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [done, setDone] = useState('');
+function StaffNotices({ me }: { me: Me }) {
+  const [open, setOpen] = useState(false); const [version, setVersion] = useState(0); const [draft, setDraft] = useState({ category: 'comunicado', title: '', body: '', date: '', companies: [] as string[] }); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [done, setDone] = useState('');
   async function save(event: FormEvent) { event.preventDefault(); if (!supabase) return; if (!draft.companies.length) { setError('Escolha pelo menos uma empresa.'); return; } if (!draft.title.trim() || !draft.body.trim()) { setError('Escreva o título e a mensagem.'); return; }
     setBusy(true); setError(''); const result = await supabase.rpc('partner_publish_notice', { p_category: draft.category, p_title: draft.title.trim(), p_body: draft.body.trim(), p_companies: draft.companies, p_date: draft.date || null, p_time: null, p_coverage: null }); setBusy(false);
-    if (result.error) { setError('Não foi possível publicar. Tente de novo.'); return; } setDraft({ category: 'comunicado', title: '', body: '', date: '', companies: [] }); setOpen(false); setDone('Comunicado publicado. As empresas escolhidas foram avisadas e a Patricia também.'); onDone(); }
-  if (!open) return <div className="v2-staff-publish-bar">{done && <div className="inline-notice v2-staff-done" role="status">{done}</div>}<button type="button" className="wf-primary" onClick={() => { setDone(''); setOpen(true); }}>Novo comunicado</button></div>;
-  return <form className="panel v2-staff-hours" onSubmit={save}><h3>Novo comunicado</h3><p>Sai em nome da CALI e chega no sino e no e-mail das empresas escolhidas. Revise antes de publicar: não passa por aprovação.</p>
-    <div className="v2-staff-fields three"><label>Tipo<select className="wf-record-filter" value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value })}><option value="comunicado">Comunicado</option><option value="atendimento">Atendimento</option><option value="feriado">Feriado</option></select></label><label>Título<input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} /></label><label>Data do aviso (opcional)<input type="date" value={draft.date} onChange={(event) => setDraft({ ...draft, date: event.target.value })} /></label></div>
-    <div className="v2-staff-fields one"><label>Mensagem<textarea rows={4} value={draft.body} onChange={(event) => setDraft({ ...draft, body: event.target.value })} /></label></div>
-    <fieldset className="v2-staff-targets"><legend>Para quais empresas</legend><div className="v2-staff-checks">{me.companies.map((item) => <label key={item.id}><input type="checkbox" checked={draft.companies.includes(item.id)} onChange={() => setDraft({ ...draft, companies: draft.companies.includes(item.id) ? draft.companies.filter((id) => id !== item.id) : [...draft.companies, item.id] })} /><span>{item.display_name}</span></label>)}</div></fieldset>
-    {error && <div className="inline-notice v2-staff-error" role="alert">{error}</div>}
-    <div className="v2-staff-submit"><button type="button" className="wf-secondary" onClick={() => setOpen(false)}>Cancelar</button><button type="submit" className="wf-primary" disabled={busy}>{busy ? 'Publicando…' : 'Publicar comunicado'}</button></div></form>;
+    if (result.error) { setError('Não foi possível publicar. Tente de novo.'); return; } setDraft({ category: 'comunicado', title: '', body: '', date: '', companies: [] }); setOpen(false); setDone('Comunicado publicado. As empresas escolhidas foram avisadas e a Patricia também.'); setVersion((value) => value + 1); }
+  return <>{done && <div className="inline-notice v2-staff-done" role="status">{done}</div>}
+    <StaffNoticesPage key={version} onCompose={() => { setDone(''); setError(''); setOpen(true); }} />
+    {open && <div className="wf-overlay" onMouseDown={() => setOpen(false)}><form className="wf-modal v2-staff-form" role="dialog" aria-modal="true" aria-label="Novo comunicado" onSubmit={save} onMouseDown={(event) => event.stopPropagation()}>
+      <header><div><small>QUADRO DE AVISOS · EQUIPE CALI</small><h2>Novo comunicado</h2></div><button type="button" onClick={() => setOpen(false)} aria-label="Fechar"><X size={16} /></button></header>
+      <div className="v2-staff-body">
+        <p className="v2-staff-summary">Sai em nome da CALI e chega no sino e no e-mail das empresas escolhidas. Não passa por aprovação: revise antes de publicar.</p>
+        <div className="v2-staff-fields"><label>Tipo<select value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value })}><option value="comunicado">Comunicado</option><option value="atendimento">Atendimento</option><option value="feriado">Feriado</option></select></label><label>Data do aviso (opcional)<input type="date" value={draft.date} onChange={(event) => setDraft({ ...draft, date: event.target.value })} /></label></div>
+        <div className="v2-staff-fields one"><label>Título<input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} autoFocus /></label><label>Mensagem<textarea rows={4} value={draft.body} onChange={(event) => setDraft({ ...draft, body: event.target.value })} /></label></div>
+        <fieldset><legend>Para quais empresas</legend><div className="v2-staff-checks">{me.companies.map((item) => <label key={item.id}><input type="checkbox" checked={draft.companies.includes(item.id)} onChange={() => setDraft({ ...draft, companies: draft.companies.includes(item.id) ? draft.companies.filter((id) => id !== item.id) : [...draft.companies, item.id] })} /><span>{item.display_name}</span></label>)}</div></fieldset>
+        {error && <div className="inline-notice v2-staff-error" role="alert">{error}</div>}
+      </div>
+      <footer><button type="button" className="wf-secondary" onClick={() => setOpen(false)}>Cancelar</button><button type="submit" className="wf-primary" disabled={busy}>{busy ? 'Publicando…' : 'Publicar comunicado'}</button></footer>
+    </form></div>}</>;
 }
 
 function Browse({ me, kind }: { me: Me; kind: string }) {
   const config = browse[kind]; const [rows, setRows] = useState<BrowseRow[] | null>(null); const [failed, setFailed] = useState(false); const [company, setCompany] = useState(''); const [query, setQuery] = useState('');
-  const [version, setVersion] = useState(0);
-  useEffect(() => { let alive = true; setRows(null); setFailed(false); void config.load().then((data) => { if (!alive) return; if (data) setRows(data); else setFailed(true); }); return () => { alive = false; }; }, [kind, version]);
+  useEffect(() => { let alive = true; setRows(null); setFailed(false); void config.load().then((data) => { if (!alive) return; if (data) setRows(data); else setFailed(true); }); return () => { alive = false; }; }, [kind]);
   const companyName = new Map(me.companies.map((item) => [item.id, item.display_name])); const text = query.trim().toLocaleLowerCase('pt-BR');
   const visible = (rows || []).filter((row) => (!company || row.company_id === company) && (!text || `${row.title} ${row.sub}`.toLocaleLowerCase('pt-BR').includes(text)));
   return <><Head eyebrow={config.eyebrow} title={config.title} text={config.text} />
-    {kind === 'avisos' && <PublishNotice me={me} onDone={() => setVersion((value) => value + 1)} />}
     <div className="toolbar"><CompanySelect me={me} value={company} onChange={setCompany} all /><input className="v2-staff-search" placeholder="Buscar" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Buscar" /></div>
     {failed ? <div className="inline-notice">Não foi possível carregar. Recarregue a página; se continuar, fale com a Patricia.</div> : !rows ? <div className="data-loading">Carregando…</div> : visible.length ? <div className="wf-records v2-staff-browse">{visible.map((row) => <div className="wf-record-row" key={row.id}><div><strong>{row.title}</strong><small>{[row.company_id ? companyName.get(row.company_id) : '', row.sub].filter(Boolean).join(' · ') || '—'}</small></div><span className="wf-tag">{row.tag}</span><small>{row.when ? dayLabel(row.when) : '—'}</small></div>)}</div> : <div className="empty">{config.empty}</div>}
     <p className="soft-note">{kind === 'avisos' ? 'Você publica comunicados para as suas empresas; os já publicados aparecem na lista.' : 'Tela de consulta. Você vê, mas não altera por aqui.'}</p></>;
@@ -168,7 +165,7 @@ function Hours({ me }: { me: Me }) {
 }
 
 type ReviewRow = { id: string; company_id: string; kind: string; title: string; note: string | null; status: string; decision_note: string | null; created_at: string };
-const KINDS: Record<string, string> = { report: 'Relatório', deliverable: 'Entrega', document: 'Documento', notice: 'Comunicado', other: 'Outro' };
+const KINDS: Record<string, string> = { deliverable: 'Entrega de projeto', report: 'Relatório', document: 'Documento', other: 'Pedido de agendamento ou outro assunto' };
 function Reviews({ me }: { me: Me }) {
   const [rows, setRows] = useState<ReviewRow[]>([]); const [draft, setDraft] = useState({ company: '', kind: 'deliverable', title: '', note: '' }); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [done, setDone] = useState('');
   async function load() { if (!supabase) return; const result = await supabase.from('staff_review_requests').select('id,company_id,kind,title,note,status,decision_note,created_at').order('created_at', { ascending: false }).limit(100); if (!result.error) setRows((result.data || []) as ReviewRow[]); }
@@ -177,8 +174,9 @@ function Reviews({ me }: { me: Me }) {
     setBusy(true); setError(''); const result = await supabase.from('staff_review_requests').insert({ staff_user_id: me.id, company_id: draft.company, kind: draft.kind, title: draft.title.trim(), note: draft.note.trim() || null }); setBusy(false);
     if (result.error) { setError('Não foi possível enviar. Tente de novo.'); return; } setDraft({ ...draft, title: '', note: '' }); setDone('Enviado para a Patricia.'); void load(); }
   const companyName = new Map(me.companies.map((item) => [item.id, item.display_name])); const tone: Record<string, [string, string]> = { pending: ['wait', 'Aguardando a Patricia'], approved: ['ok', 'Aprovado'], returned: ['bad', 'Devolvido para ajuste'] };
-  return <><Head eyebrow="EQUIPE CALI / APROVAÇÃO" title="Enviar para aprovação" text="Relatório, entrega, documento ou comunicado pronto? Envie para a Patricia. Só ela aprova e envia ao cliente." />
-    <form className="panel v2-staff-hours" onSubmit={save}><h3>Novo envio</h3>
+  return <><Head eyebrow="EQUIPE CALI / APROVAÇÃO" title="Enviar para a Patricia" text="Tudo que vai para o cliente passa pela Patricia antes. Use esta tela quando terminar um trabalho e ele precisar da aprovação dela." />
+    <div className="v2-staff-steps"><article><b>1</b><div><strong>Você termina o trabalho</strong><small>Um relatório, uma entrega, um documento ou um pedido de agendamento.</small></div></article><article><b>2</b><div><strong>Avisa a Patricia por aqui</strong><small>Diga de qual empresa é, o que é e onde ela encontra o material.</small></div></article><article><b>3</b><div><strong>Ela aprova ou devolve</strong><small>Você recebe o retorno no sino. Se aprovar, é ela quem envia ao cliente.</small></div></article></div>
+    <form className="panel v2-staff-hours" onSubmit={save}><h3>O que você está enviando</h3>
       <div className="v2-staff-fields three"><label>Empresa<CompanySelect me={me} value={draft.company} onChange={(value) => setDraft({ ...draft, company: value })} /></label><label>O que é<select className="wf-record-filter" value={draft.kind} onChange={(event) => setDraft({ ...draft, kind: event.target.value })}>{Object.entries(KINDS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label><label>Título<input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder="Ex.: Relatório de outubro" /></label></div>
       <div className="v2-staff-fields one"><label>Recado para a Patricia (opcional)<input value={draft.note} onChange={(event) => setDraft({ ...draft, note: event.target.value })} placeholder="Onde está o material e o que ela precisa olhar" /></label></div>
       {error && <div className="inline-notice v2-staff-error" role="alert">{error}</div>}{done && <div className="inline-notice v2-staff-done" role="status">{done}</div>}
@@ -198,7 +196,8 @@ export function StaffWorkspace() {
     <Route index element={<Home me={me} />} />
     <Route path="ocorrencias" element={me.modules.includes('records') ? <Records me={me} /> : <Navigate to="/equipe" replace />} />
     <Route path="horas" element={me.modules.includes('hours') ? <Hours me={me} /> : <Navigate to="/equipe" replace />} />
-    {([['projetos', 'projects'], ['calendario', 'calendar'], ['documentos', 'documents'], ['relatorios', 'reports'], ['avisos', 'notices'], ['pessoas', 'team']] as [string, string][]).map(([path, module]) => <Route key={path} path={path} element={me.modules.includes(module) ? <Browse me={me} kind={path} /> : <Navigate to="/equipe" replace />} />)}
+    {([['projetos', 'projects'], ['calendario', 'calendar'], ['documentos', 'documents'], ['relatorios', 'reports'], ['pessoas', 'team']] as [string, string][]).map(([path, module]) => <Route key={path} path={path} element={me.modules.includes(module) ? <Browse me={me} kind={path} /> : <Navigate to="/equipe" replace />} />)}
+    <Route path="avisos" element={me.modules.includes('notices') ? <StaffNotices me={me} /> : <Navigate to="/equipe" replace />} />
     <Route path="aprovacoes" element={<Reviews me={me} />} />
     <Route path="*" element={<Navigate to="/equipe" replace />} />
   </Routes></Frame>;

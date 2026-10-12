@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Check, Pencil, Plus, Undo2, X } from 'lucide-react';
+import { Check, Mail, Pencil, Plus, Undo2, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
 
@@ -29,7 +29,7 @@ const dayLabel = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-dig
 
 export function AdminStaffPage() {
   const [staff, setStaff] = useState<Staff[]>([]); const [companies, setCompanies] = useState<Company[]>([]); const [assigned, setAssigned] = useState<Record<string, string[]>>({});
-  const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [draft, setDraft] = useState<Draft | null>(null); const [saving, setSaving] = useState(false); const [formError, setFormError] = useState(''); const [pending, setPending] = useState<Pending[]>([]); const [decision, setDecision] = useState<Decision | null>(null); const [deciding, setDeciding] = useState(false); const [decisionError, setDecisionError] = useState('');
+  const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [draft, setDraft] = useState<Draft | null>(null); const [saving, setSaving] = useState(false); const [formError, setFormError] = useState(''); const [pending, setPending] = useState<Pending[]>([]); const [decision, setDecision] = useState<Decision | null>(null); const [deciding, setDeciding] = useState(false); const [decisionError, setDecisionError] = useState(''); const [invite, setInvite] = useState<{ name: string; email: string; sent: boolean } | null>(null); const [inviting, setInviting] = useState('');
 
   async function load() {
     if (!supabase) return; setLoading(true); setError('');
@@ -64,6 +64,15 @@ export function AdminStaffPage() {
   }
   useEffect(() => { void load(); }, []);
 
+  /* Convite: tenta o envio automático (função workspace-staff-invite). Se ela não responder, mostra o convite pronto
+     para a administradora enviar pelo próprio e-mail — a pessoa nunca fica sem saber como entrar. */
+  async function sendInvite(person: { id: string; full_name: string; email: string }) {
+    if (!supabase) return; setInviting(person.id);
+    let sent = false;
+    try { const result = await supabase.functions.invoke('workspace-staff-invite', { body: { staffId: person.id } }); sent = !result.error && (result.data as any)?.ok === true; } catch { sent = false; }
+    setInviting(''); setInvite({ name: person.full_name, email: person.email, sent });
+  }
+  const inviteText = (name: string, email: string) => `Olá, ${name.split(' ')[0]}!\n\nVocê agora faz parte da Equipe CALI e já tem acesso ao CALI Workspace.\n\nComo entrar:\n1. Abra https://app.calirh.com/login\n2. Informe este e-mail: ${email}\n3. Digite o código de 6 números que chega em seguida na sua caixa de entrada. Não há senha.\n\nNo primeiro acesso você verá uma apresentação rápida do que cada parte faz.\n\nQualquer dúvida, fale comigo.\nPatricia · CALI RH`;
   const toggle = (list: string[], value: string) => list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
   async function save(event: FormEvent) {
     event.preventDefault(); if (!supabase || !draft) return;
@@ -79,7 +88,7 @@ export function AdminStaffPage() {
       const before = draft.id ? assigned[draft.id] || [] : []; const add = draft.companies.filter((item) => !before.includes(item)); const remove = before.filter((item) => !draft.companies.includes(item));
       if (add.length) { const result = await supabase.from('staff_company_assignments').insert(add.map((company_id) => ({ staff_id: id, company_id }))); if (result.error) throw result.error; }
       if (remove.length) { const result = await supabase.from('staff_company_assignments').delete().eq('staff_id', id).in('company_id', remove); if (result.error) throw result.error; }
-      setDraft(null); await load();
+      const created = !draft.id; setDraft(null); await load(); if (created && id) void sendInvite({ id, full_name: name, email });
     } catch (err) { const message = String((err as any)?.message || ''); setFormError(/duplicate|unique/i.test(message) ? 'Já existe uma pessoa cadastrada com este e-mail.' : 'Não foi possível salvar. Tente de novo.'); } finally { setSaving(false); }
   }
   const companyName = new Map(companies.map((item) => [item.id, item.display_name]));
@@ -100,10 +109,17 @@ export function AdminStaffPage() {
       <div><small>Empresas</small><span>{(assigned[person.id] || []).map((id) => companyName.get(id)).filter(Boolean).join(', ') || 'Nenhuma'}</span></div>
       <div><small>Módulos</small><span>{person.modules.map((key) => moduleName.get(key) || key).join(', ') || 'Nenhum'}</span></div>
       <div><small>Situação</small><span className={`wf-tag ${!person.active ? 'off' : person.accepted_at ? 'ok' : 'wait'}`}>{!person.active ? 'Desativada' : person.accepted_at ? `Ativa desde ${dayLabel(person.accepted_at)}` : 'Cadastro preparado'}</span></div>
-      <button type="button" className="v2-row-icon" aria-label={`Editar ${person.full_name}`} onClick={() => { setFormError(''); setDraft({ id: person.id, email: person.email, full_name: person.full_name, modules: person.modules, companies: assigned[person.id] || [], active: person.active }); }}><Pencil size={15} /></button>
+      <span className="v2-staff-row-actions"><button type="button" className="v2-row-icon" disabled={inviting === person.id || !person.active} title="Enviar convite de acesso" aria-label={`Enviar convite para ${person.full_name}`} onClick={() => void sendInvite(person)}><Mail size={15} /></button><button type="button" className="v2-row-icon" title="Editar" aria-label={`Editar ${person.full_name}`} onClick={() => { setFormError(''); setDraft({ id: person.id, email: person.email, full_name: person.full_name, modules: person.modules, companies: assigned[person.id] || [], active: person.active }); }}><Pencil size={15} /></button></span>
     </div>)}</div> : <div className="v2-staff-empty"><strong>Nenhuma pessoa cadastrada na Equipe CALI.</strong><p>Clique em “Adicionar pessoa” para preparar o cadastro do seu Partner.</p></div>}
-    <div className="inline-notice v2-staff-stage"><strong>Como a pessoa entra:</strong> depois de cadastrada aqui, ela acessa o endereço do Workspace, informa o e-mail e recebe um código, igual aos clientes. No primeiro acesso ela vê as boas-vindas da Equipe CALI. Para tirar o acesso, edite a pessoa e desmarque “Cadastro ativo”.</div>
+    <div className="inline-notice v2-staff-stage"><strong>Como a pessoa entra:</strong> ao salvar o cadastro, ela recebe um convite por e-mail com o endereço do Workspace. Lá ela informa o e-mail e recebe um código, igual aos clientes. Para reenviar o convite, use o ícone de carta na linha da pessoa. No primeiro acesso ela vê as boas-vindas da Equipe CALI. Para tirar o acesso, edite a pessoa e desmarque “Cadastro ativo”.</div>
 
+    {invite && <div className="wf-overlay" onMouseDown={() => setInvite(null)}><section className="wf-modal v2-staff-form v2-staff-decision" role="dialog" aria-modal="true" aria-label="Convite" onMouseDown={(event) => event.stopPropagation()}>
+      <header><div><small>CONVITE DE ACESSO</small><h2>{invite.sent ? 'Convite enviado' : 'Envie o convite'}</h2></div><button type="button" onClick={() => setInvite(null)} aria-label="Fechar"><X size={16} /></button></header>
+      <div className="v2-staff-body">{invite.sent
+        ? <p className="v2-staff-decision-effect"><strong>{invite.name}</strong> recebeu um e-mail em <strong>{invite.email}</strong> com o endereço do Workspace e o passo a passo para entrar com código.</p>
+        : <><div className="inline-notice v2-staff-stage"><strong>O envio automático não funcionou agora.</strong> O cadastro está salvo e a pessoa já consegue entrar. Envie o convite abaixo pelo seu e-mail ou copie o texto.</div><pre className="v2-staff-invite-text">{inviteText(invite.name, invite.email)}</pre></>}</div>
+      <footer>{!invite.sent && <><button type="button" className="wf-secondary" onClick={() => { void navigator.clipboard?.writeText(inviteText(invite.name, invite.email)); }}>Copiar texto</button><a className="wf-primary" href={`mailto:${invite.email}?subject=${encodeURIComponent('Você faz parte da Equipe CALI: seu acesso ao Workspace')}&body=${encodeURIComponent(inviteText(invite.name, invite.email))}`}>Abrir no meu e-mail</a></>}{invite.sent && <button type="button" className="wf-primary" onClick={() => setInvite(null)}>Fechar</button>}</footer>
+    </section></div>}
     {decision && <div className="wf-overlay" onMouseDown={() => setDecision(null)}><form className="wf-modal v2-staff-form v2-staff-decision" role="dialog" aria-modal="true" aria-label="Decisão" onSubmit={decide} onMouseDown={(event) => event.stopPropagation()}>
       <header><div><small>{decision.item.meta.toUpperCase()}</small><h2>{decision.approve ? 'Aprovar' : decision.item.kind === 'hours' ? 'Recusar lançamento' : 'Devolver para ajuste'}</h2></div><button type="button" onClick={() => setDecision(null)} aria-label="Fechar"><X size={16} /></button></header>
       <div className="v2-staff-body"><div className="v2-staff-decision-item"><strong>{decision.item.title}</strong><small>{decision.item.detail}</small></div>

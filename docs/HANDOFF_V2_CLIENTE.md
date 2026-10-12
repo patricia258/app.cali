@@ -925,6 +925,18 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
   - Cronômetro do Partner é local (não aparece para a Patricia enquanto roda; só o lançamento enviado).
 - **Como testar o Partner (para ela):** Equipe CALI → Adicionar pessoa (e-mail que ela controle, empresas, módulos) → abrir o Workspace em janela anônima → entrar com esse e-mail → código chega por e-mail → cai em `/equipe`.
 
+### 2026-10-12 (14) — Partner: retorno do 1º teste real da Patricia (no oficial) — correções só na homologação
+
+- **Ela testou com conta real:** cadastrou "João" e entrou em `app.calirh.com/equipe` — login do Partner FUNCIONA (código chegou, área abriu, empresas e módulos corretos). Login dela também segue funcionando (ela navegou no admin).
+- **Queixas dela:** (1) a pessoa não recebeu e-mail ao ser cadastrada; (2) Partner sem acesso ao perfil; (3) "Sair" em lugar diferente; (4) telas pobres — "tem que ser os nossos módulos, a nossa página, o mais parecido possível com o meu de administrador, respeitando as limitações dele"; (5) não entendeu "Enviar para aprovação".
+- **Feito (homologação):**
+  - Partner agora usa a MESMA moldura oficial (`WorkspaceShellV2`, papel `partner`): topo, busca, sino, menu do perfil com "Ver meu perfil" (edita nome, foto, contatos pela função `update_my_profile`), "Rever apresentação" e "Sair". Menu lateral na mesma ordem e nomes do da administradora.
+  - Avisos do Partner = o mural oficial (`NoticesBoard` em modo `staff`: cartões com capa, etiqueta, detalhe; sem ciência/comentário/reação; botão "Novo comunicado" abre diálogo no padrão).
+  - "Enviar para aprovação" virou "Enviar para a Patricia", com 3 passos explicando para que serve e tipos mais claros.
+  - Convite: ao salvar o cadastro (e pelo ícone de carta na linha), tenta envio automático; se falhar, mostra o convite pronto com "Abrir no meu e-mail" e "Copiar texto".
+- **NÃO FUNCIONOU:** publicar a função nova `workspace-staff-invite` (envio automático do convite) — o Supabase devolveu "internal error" duas vezes. O código está em `supabase/functions/workspace-staff-invite/index.ts`. Enquanto não publicar, a tela cai no convite manual. Tentar de novo em outra sessão (ou pelo painel/CLI do Supabase).
+- **AINDA FALTA para a paridade que ela pediu (tela por tela):** Ocorrências (hoje lista + diálogo simples; o painel da administradora depende de funções que só ela pode chamar), Projetos, Horas, Calendário, Documentos, Relatórios e Equipe do cliente ainda são listas simples de consulta. Caminho: uma página por vez, reaproveitando o componente da administradora com um modo "equipe" (como foi feito em Avisos) e liberando no banco só o que o Partner pode fazer.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
