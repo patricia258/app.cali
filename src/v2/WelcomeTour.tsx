@@ -7,6 +7,9 @@ import { ArrowLeft, ArrowRight, Play, X } from 'lucide-react';
 import { useWorkspaceAuth } from '../auth/WorkspaceAuthProvider';
 
 export const WELCOME_OPEN_EVENT = 'cali:welcome-open';
+/* Enquanto o vídeo não chega, a apresentação fica só na homologação; no oficial ela não abre sozinha nem aparece no menu.
+   Para liberar no oficial: trocar para `true`. */
+export const WELCOME_LIVE = typeof window !== 'undefined' && window.location.hostname !== 'app.calirh.com';
 type Step = { href?: string; label: string; title: string; text: string };
 const steps: Step[] = [
   { label: 'BOAS-VINDAS', title: 'Que bom ter você aqui', text: 'Este é o espaço da sua empresa com a CALI. Tudo o que fazemos juntos fica aqui, em um só lugar. Assista ao vídeo e depois veja, em um minuto, o que cada parte do menu faz.' },
@@ -26,7 +29,7 @@ export function WelcomeTour() {
   const { user } = useWorkspaceAuth();
   const key = user?.id ? `cali:welcome-seen:${user.id}` : '';
   const [index, setIndex] = useState<number | null>(null);
-  useEffect(() => { if (!key) return; try { if (!localStorage.getItem(key)) setIndex(0); } catch { /* sem armazenamento: não insiste */ } }, [key]);
+  useEffect(() => { if (!key || !WELCOME_LIVE) return; try { if (!localStorage.getItem(key)) setIndex(0); } catch { /* sem armazenamento: não insiste */ } }, [key]);
   useEffect(() => { const open = () => setIndex(0); window.addEventListener(WELCOME_OPEN_EVENT, open); return () => window.removeEventListener(WELCOME_OPEN_EVENT, open); }, []);
   const step = index == null ? null : steps[index];
   useEffect(() => {

@@ -817,6 +817,10 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
   - Falta: o vídeo (arquivo/link) e onde hospedar.
   - QA: `probe.cjs` e `sweep.cjs` marcam a apresentação como vista para não cobrir as telas.
 
+### 2026-10-12 (3) — 7ª publicação: transições; boas-vindas seguras no oficial
+
+- Patricia respondeu só "publique", sem dizer se as boas-vindas iam junto. **Interpretação minha:** publiquei as transições e deixei as boas-vindas desligadas no oficial (`WELCOME_LIVE` em `src/v2/WelcomeTour.tsx` é falso quando o endereço é `app.calirh.com`), para nenhum cliente ver "vídeo em breve". Na homologação continua aparecendo. Para liberar no oficial: `WELCOME_LIVE = true` e nova publicação.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
