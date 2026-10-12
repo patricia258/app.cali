@@ -207,7 +207,7 @@ function NoticesBoard({ role }: { role: Role }) {
     {toolbar}
     {visible.length ? (admin && view === 'manage' ? manage : feed) : empty}
 
-    {active && <div className="notice-overlay" onMouseDown={closeDetail}><section className="notice-dialog" role="dialog" aria-modal="true" aria-label="Comunicado" onMouseDown={(event) => event.stopPropagation()}>
+    {active && <div className="notice-overlay" onMouseDown={closeDetail}><section className="notice-dialog v2-notice-detail" role="dialog" aria-modal="true" aria-label="Comunicado" onMouseDown={(event) => event.stopPropagation()}>
       <header><span>COMUNICADO · {active.protocol}</span><button type="button" onClick={closeDetail} aria-label="Fechar"><X size={19} /></button></header>
       <div className="notice-dialog-body">
         {active.coverUrl && <img className="notice-detail-cover" src={active.coverUrl} alt="" />}

@@ -773,6 +773,11 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **PENDÊNCIA (Patricia vai pensar antes):** exportar os Indicadores / People Analytics em **relatório PDF**. Falta decidir o agrupamento (por seção? por período? com as "Leituras"?). Não começar sem ela definir.
 - **Publicado no oficial** com autorização dela ("pode publicar") — 3ª publicação: People Analytics didático + ajustes acima.
 
+### 2026-10-11 (noite, 3) — comunicado aberto no Quadro de Avisos, compacto
+
+- Patricia: o cartão do comunicado aberto (cliente e admin) estava "absurdamente grande" e com rolagem. Eu tinha reduzido só o do calendário. Agora `.v2-notice-detail` tem 480 px (era 740), capa de 124 px com a etiqueta por cima, textos e rodapé compactos; cabe inteiro na tela e a barra de rolagem fica oculta (muitos comentários rolam por dentro, sem barra).
+- Só na homologação; **não publicado** (aguarda novo "pode publicar"). Oficial em `a70a797`.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
