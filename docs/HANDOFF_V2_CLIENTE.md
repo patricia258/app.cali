@@ -744,6 +744,35 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Aviso na Agenda**: clicar num aviso (administradora ou cliente) abre um cartão próprio (`NoticeCalendarCard`) com a capa, a categoria, o texto, data/horário/abrangência e o botão "Abrir no Quadro de Avisos", que leva ao comunicado específico (`/admin/avisos?aviso=` ou `/cliente/avisos?aviso=`). Antes abria o diálogo de evento com textos de prazo de entregável, que não se aplicavam.
 - Conferido no QA: cartão abre nas duas agendas com o link certo e o conteúdo. Capa real não conferida (o QA não tem imagem).
 
+### 2026-10-11 — Segunda publicação no oficial e People Analytics (planilha atualizada)
+
+- **Publicado no oficial** (autorização: "as coisas ali em cima, pode publicar sim"): merge `987048e` em `main` — Quadro de Avisos completo (mural, gerenciar, agenda, Visão geral, e-mail), cartão do aviso na agenda, página sem efeito elástico. Para desfazer: `git revert -m 1 987048e`.
+- **Planilha "People Analytics — Estrutura de Indicadores (1).xlsx"** (nova versão enviada pela Patricia): ganhou as abas "Demografia e Movimento" (25 indicadores) e "Movimento do Quadro (layout)" (filtro único, cards de topo, gráficos de movimento, composição da população, ordem de leitura). Ela pediu gráficos de pizza.
+- **Feito nesta rodada (só homologação)** em `CompanyTeamPage.tsx`, dentro do bloco People Analytics da aba Indicadores (vale para administradora e para o cliente com o módulo):
+  - "Movimento do quadro em {mês}": início do mês → admissões → desligamentos → fim do mês, com o saldo acumulado do ano.
+  - Pizzas (`PiePanel`, anel em SVG com legenda, quantidade e %): Tipo de contrato, Modelo de trabalho, Tempo de casa (faixas), Jornada semanal, Liderança, Gênero e Mães e pais (os dois últimos usam `team_member_private`; mostram aviso quando a empresa não tem o dado).
+  - Cartão âmbar listando o que a planilha pede e o cadastro ainda não tem.
+- **Da planilha, ainda NÃO feito**: filtro único no topo com Área / Gestor / Localidade / Tipo de contrato; cards de topo com as três comparações juntas; movimentação mês a mês (24 meses) com saldo acumulado; saldo por área e por gestor (barras divergentes); Pareto de motivos; localização (mapa por UF); nível hierárquico. **Sem dado no cadastro** (precisa de campos novos em `team_members` / `team_member_private`, com autorização): data de nascimento (faixa etária, idade média, renovação geracional), filhos por faixa de idade, PcD e cotas, cor/raça, nível hierárquico formal, custo por perfil. Indicadores táticos e estratégicos de recrutamento, desempenho, treinamento, SST, receita e EBITDA continuam sem fonte de dados.
+- Conferido no QA com a empresa de teste (5 pessoas): 7 pizzas, cascata, 390 px sem estouro, cliente sem o módulo continua com o bloco desfocado. A cascata usa o histórico de mudanças; na empresa de teste o número não fecha (4 → 5 sem admissão registrada) porque os dados simulados não têm a mudança correspondente — conferir com a empresa de demonstração real.
+
+### 2026-10-11 (noite) — People Analytics didático + aviso do calendário menor
+
+- **Pedido da Patricia:** gráficos estáticos, sem resultado (média, taxa, total), sem período próprio, "Movimento do mês" misturado com o período, tempo de permanência feio, composição por área em pizza, "Evolução do quadro" repetido, quadro aprovado × ocupado incompreensível, desligamentos com número minúsculo; e o modal do aviso no calendário "enorme".
+- **Feito:** novo `src/pages/team/PeopleAnalyticsBoard.tsx` (`PeopleAnalyticsPeriod` e `PeopleAnalyticsMonth`), usado por `CompanyTeamPage.tsx` no lugar dos painéis antigos. Cada cartão tem: o que mostra, faixa de resultados em destaque, gráfico que responde ao mouse e frase de "Leitura". Gráficos de evolução têm seletor próprio (3/6/12/24 meses, todo o histórico, ou período da página). Duas seções visivelmente separadas: "Evolução no período" (faixa vinho) e "Retrato do mês" (faixa clara).
+- **Fórmulas:** turnover do período = desligamentos ÷ quadro médio dos meses do período; saldo = admissões − desligamentos; absenteísmo médio = média dos percentuais mensais; tempo médio de casa pela data de admissão até o mês de referência.
+- **Removidos da tela (nenhum dado apagado do banco):** "Evolução do quadro" (repetia o "Quadro ativo"), pizza "Jornada semanal", menção ao banco de horas em Horas extras. `hour_bank_balance` e `weekly_hours` continuam sendo gravados.
+- **Erro corrigido:** no modo Período o seletor Mês/Período encolhia para 2 px e o nome da empresa saía da faixa; agora a faixa quebra linha.
+- **Aviso no calendário:** cartão de 420 px (era 740), capa de 112 px, texto limitado a 5 linhas.
+- **Não verificado / em aberto:** tudo conferido só com dados de teste (2 meses, 5 pessoas) — falta ver com empresa real de muitos meses; a queixa "dei enter e não mudou, depois mudou" no campo de período não foi reproduzida; "Evolução dos indicadores essenciais" (acima do People Analytics) continua com 12 meses fixos; custo de horas extras não existe no banco (precisa de campo novo, com aprovação); filtro único por área/gestor/localidade, Pareto e 24 meses por área seguem pendentes.
+- **Publicação:** só homologação. Oficial segue em `987048e`.
+
+### 2026-10-11 (noite, 2) — ajustes pedidos antes da 3ª publicação
+
+- Pizzas: rosca maior, centralizada na altura do cartão, legenda na largura toda (sem sobra à direita e embaixo); no centro, ao passar o mouse, aparece percentual + valor (o nome não cabe e ficava cortado).
+- Aviso do calendário: etiqueta da categoria sobre a capa (canto superior direito) e respiro igual entre capa, título, texto e dados.
+- **PENDÊNCIA (Patricia vai pensar antes):** exportar os Indicadores / People Analytics em **relatório PDF**. Falta decidir o agrupamento (por seção? por período? com as "Leituras"?). Não começar sem ela definir.
+- **Publicado no oficial** com autorização dela ("pode publicar") — 3ª publicação: People Analytics didático + ajustes acima.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
