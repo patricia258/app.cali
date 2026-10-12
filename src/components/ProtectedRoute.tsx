@@ -1,7 +1,6 @@
 import { type ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useWorkspaceAuth } from '../auth/WorkspaceAuthProvider';
-import type { Role } from './WorkspaceShell';
+import { homeOf, useWorkspaceAuth, type Role } from '../auth/WorkspaceAuthProvider';
 
 export function WorkspaceRouteLoader() {
   return (
@@ -23,7 +22,7 @@ export function ProtectedRoute({ role, children }: { role: Role; children: React
   if (!auth.user || !auth.active || !auth.role) return <Navigate to="/login" replace />;
 
   if (auth.role !== role) {
-    return <Navigate to={auth.role === 'admin' ? '/admin' : '/cliente'} replace />;
+    return <Navigate to={homeOf(auth.role)} replace />;
   }
 
   return <>{children}</>;

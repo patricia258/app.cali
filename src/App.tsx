@@ -102,6 +102,7 @@ const CompanyTeamPage = lazy(() => import('./pages/team/CompanyTeamPage').then((
 const ClientNoticesPage = lazy(() => import('./pages/notices/NoticesBoard').then((m) => ({ default: m.ClientNoticesPage })));
 const AdminAuditPage = lazy(() => import('./pages/admin/AdminAuditPage').then((m) => ({ default: m.AdminAuditPage })));
 const AdminStaffPage = lazy(() => import('./pages/admin/AdminStaffPage').then((m) => ({ default: m.AdminStaffPage })));
+const StaffWorkspace = lazy(() => import('./pages/staff/StaffWorkspace').then((m) => ({ default: m.StaffWorkspace })));
 const AdminNoticesPage = lazy(() => import('./pages/notices/NoticesBoard').then((m) => ({ default: m.AdminNoticesPage })));
 const ClientFrontsPage = lazy(() => import('./pages/client/ClientFrontsPage').then((m) => ({ default: m.ClientFrontsPage })));
 const ReportPrintPageV17 = lazy(async () => {
@@ -195,6 +196,7 @@ function AppRoutes() {
         <Route path="/cliente/documentos" element={<ProtectedRoute role="client"><ClientDocumentsPage/></ProtectedRoute>}/>
         <Route path="/cliente/relatorios/impressao/:reportId" element={<ProtectedRoute role="client"><ReportPrintPageV17 role="client"/></ProtectedRoute>}/>
         <Route path="/cliente/relatorios" element={<ProtectedRoute role="client"><ClientReportsPageV5/></ProtectedRoute>}/>
+        <Route path="/equipe/*" element={<StaffWorkspace/>}/>
         <Route path="*" element={<Navigate to="/" replace/>}/>
       </Routes>
     </Suspense>

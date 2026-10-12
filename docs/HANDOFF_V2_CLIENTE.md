@@ -892,6 +892,18 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Não verificado:** leitura real com uma conta Partner (não existe ainda); impacto de desempenho das políticas somadas (esperado desprezível: a checagem "é Partner?" roda uma vez por consulta).
 - **Patricia não achou a tela "Equipe CALI":** ela está só na homologação (`/admin/equipe-cali`), não no oficial.
 
+### 2026-10-12 (11) — Partner: etapa 3a no banco, área do Partner e fila de aprovação (homologação); LOGIN AINDA DESLIGADO
+
+- **Autorização:** "pode seguir para a próxima etapa, quando acabarmos eu valido e publicamos".
+- **Banco aplicado (só acréscimo)** — `20261012190000_staff_partner_write_queues.sql`: política nova para o Partner responder ocorrências (`account_record_messages_partner_insert`, autor = ele, lado CALI); tabelas novas `staff_hour_submissions` (horas com justificativa, pendente/aprovado/recusado) e `staff_review_requests` (relatório/entrega/documento/comunicado enviado para a Patricia); função nova `admin_decide_staff_hours` — ao aprovar, cria o lançamento oficial pela função existente `add_manual_hour_entry` (nota interna com o nome de quem lançou e a justificativa; oculto do cliente por padrão). **Nenhuma função ou política existente foi alterada** — por isso o Partner NÃO grava direto em horas, relatórios ou entregas.
+- **Tela (só homologação):**
+  - `/equipe` — área do Partner com moldura própria (`src/pages/staff/StaffWorkspace.tsx`): Início (empresas e módulos), Ocorrências (ler e responder), Horas (lançar com justificativa + situação), Enviar para aprovação. Boas-vindas próprias ("Boas-vindas à Equipe CALI", 6 passos, moldura do vídeo).
+  - `/admin/equipe-cali` — bloco âmbar "Para você aprovar" (horas e materiais) com Aprovar / Recusar / Devolver e motivo obrigatório na recusa.
+  - Perfil `partner` reconhecido no login, no retorno de autenticação e nas rotas protegidas (vai para `/equipe`).
+- **O QUE FALTA PARA O PARTNER ENTRAR:** publicar a nova versão da função de login `workspace-access`. O arquivo está pronto em `supabase/functions/workspace-access/index.ts` (versão 6 de produção + trechos marcados "PARTNER": aceita e-mail de `staff_members`, cria perfil `partner`, bloqueia cadastro desativado, envia e-mail "Boas-vindas à Equipe CALI" no 1º acesso). **NÃO publicada**: essa função é a porta de entrada de TODOS (Patricia e clientes); pedi confirmação explícita dela antes. Ordem segura: publicar o site no oficial primeiro (senão um Partner que entrasse pelo oficial cairia na tela de cliente, vazia) e só então a função.
+- **Fora desta entrega (etapa 3b):** Partner editar entregas, relatórios, documentos, comunicados e agenda dentro do sistema (hoje ele prepara fora e "envia para aprovação"); cronômetro do Partner; telas de leitura dos demais módulos na área dele; notificação no sino quando há item para aprovar; Partner identificado por nome na Auditoria.
+- **Não verificado:** nada disto com conta real — gravações (resposta de ocorrência, horas, envio, decisão) só no simulador, que bloqueia gravações.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

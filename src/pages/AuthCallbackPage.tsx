@@ -70,7 +70,7 @@ export function AuthCallbackPage() {
       }
 
       const role = profile.role as Role;
-      setDestination(role === 'admin' ? '/admin' : '/cliente');
+      setDestination(role === 'admin' ? '/admin' : role === 'partner' ? '/equipe' : '/cliente');
     }
 
     resolveProfile();

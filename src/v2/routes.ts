@@ -18,5 +18,5 @@ export function markRuntimeV2(pathname: string) {
 const migratedAdminPrefixes: string[] = [];
 export function usesV2(pathname: string) {
   const path = pathname.length > 1 ? pathname.replace(/\/$/, '') : pathname;
-  return path === '/cliente' || path.startsWith('/cliente/') || migratedAdminRoutes.has(path) || migratedAdminPrefixes.some((prefix) => path.startsWith(prefix)) || runtimeV2Paths.has(path);
+  return path === '/cliente' || path.startsWith('/cliente/') || path === '/equipe' || path.startsWith('/equipe/') || migratedAdminRoutes.has(path) || migratedAdminPrefixes.some((prefix) => path.startsWith(prefix)) || runtimeV2Paths.has(path);
 }

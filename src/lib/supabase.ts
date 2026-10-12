@@ -115,7 +115,7 @@ export const supabase = workspaceSupabase
     })
   : null;
 
-type AccessResponse = { ok?: boolean; error?: string; token_hash?: string; role?: 'admin' | 'client'; challenge?: string };
+type AccessResponse = { ok?: boolean; error?: string; token_hash?: string; role?: 'admin' | 'client' | 'partner'; challenge?: string };
 
 async function workspaceAccessRequest(body: Record<string, unknown>) {
   if (!isSupabaseConfigured) {
