@@ -778,6 +778,26 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - Patricia: o cartão do comunicado aberto (cliente e admin) estava "absurdamente grande" e com rolagem. Eu tinha reduzido só o do calendário. Agora `.v2-notice-detail` tem 480 px (era 740), capa de 124 px com a etiqueta por cima, textos e rodapé compactos; cabe inteiro na tela e a barra de rolagem fica oculta (muitos comentários rolam por dentro, sem barra).
 - Só na homologação; **não publicado** (aguarda novo "pode publicar"). Oficial em `a70a797`.
 
+### 2026-10-11 (noite, 4) — 4ª publicação, fundo quadriculado, transições, varredura
+
+- **Publicado no oficial** (autorizado: "pode publicar"): comunicado compacto. Oficial em `b57808a`.
+- **Só na homologação (aguarda "pode publicar"):**
+  - Fundo quadriculado claro em todas as páginas V2 (cliente e admin), aplicado em `.app>.main` (mesmo desenho da Visão geral).
+  - Transições suaves só com CSS: página sobe de leve ao abrir (`v2-rise`, 0,28 s), diálogos surgem (`v2-pop`), gaveta de ocorrência desliza (`v2-slide`). Respeita "reduzir movimento" do sistema. Sem biblioteca.
+- **Varredura do Supabase (somente leitura):**
+  - Migrações de 11/10 (timer 30 s, satisfaction_followups, notices_board, notices_email) constam como aplicadas.
+  - 4 funções `public.workspace_mapa_people_*` aparecem no alerta "executável sem login", mas todas conferem por dentro se quem chama é `patricia@calirh.com` e recusam os demais — não estão abertas. Atenção: esse e-mail está fixo no código da função; quando existir o bloco de usuários internos (Administradora/Parceiro), essas funções precisam mudar.
+  - 6 tabelas com RLS ligado e sem política (credenciais do Google, segredos, códigos de acesso, lembretes): é o esperado — ficam inacessíveis pelo app, só o servidor lê.
+  - Pendentes de decisão dela (mexem em segurança/config, não apliquei): ligar "proteção contra senha vazada" no Auth; mover extensão `pg_net` do schema public.
+  - Armazenamento: fotos de perfil são leves (média 61 KB, maior 345 KB) — o tamanho não explica foto lenta.
+- **Fotos "não carregando direito" no oficial:** NÃO diagnosticado. Falta ela dizer em qual tela e de quem (print). Hipóteses a testar: link assinado renovado a cada sessão (sem cache do navegador entre sessões); foto marcada como quebrada na 1ª falha sem nova tentativa (`brokenMedia` em `identityMediaRuntime.ts`).
+- **Pente fino do código:** NÃO feito nesta rodada (é trabalho grande; fazer em sessão própria: ramos `v1` desligados em `CompanyTeamPage.tsx`, folhas de estilo legadas, runtimes que injetam DOM).
+- **PLANO — Boas-vindas no primeiro acesso (pedido dela, ainda sem construir):**
+  1. Tela de boas-vindas em tela cheia no 1º login do cliente, com o vídeo dela ("clique aqui para assistir") e botão "Começar".
+  2. Em seguida, tour guiado: destaque de cada item do menu com 1 frase do que faz (Visão geral, Equipe, Horas, Calendário, Ocorrências, Documentos, Relatórios, Frentes, Avisos), com Avançar / Pular.
+  3. Botão para rever depois (menu do perfil → "Rever apresentação").
+  - Precisa dela: o vídeo (arquivo ou link), os textos de cada passo, e autorização de banco para 1 campo novo que guarda "já viu a apresentação" por usuário.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

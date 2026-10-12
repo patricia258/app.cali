@@ -2634,3 +2634,17 @@ html[data-workspace-ui='v2'] .v2-notice-detail>footer .notice-ack{padding:8px 11
 html[data-workspace-ui='v2'] .v2-notice-detail>footer :is(input,textarea){font-size:12px;padding:8px 10px;min-width:0}
 html[data-workspace-ui='v2'] .v2-notice-detail .notice-comment{padding:10px 12px}
 html[data-workspace-ui='v2'] .v2-notice-detail .notice-comment p{font-size:12px;margin:4px 0}
+/* Fundo quadriculado claro em todas as páginas do Workspace (cliente e administradora), igual ao da Visão geral. */
+html[data-workspace-ui='v2'] .app>.main{background-image:linear-gradient(rgba(150,119,93,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(150,119,93,.05) 1px,transparent 1px);background-size:25px 25px}
+/* Transições suaves: a página sobe de leve ao abrir, os diálogos surgem com suavidade. Só CSS, sem atrasar o conteúdo. */
+@media(prefers-reduced-motion:no-preference){
+  @keyframes v2-rise{from{opacity:0;translate:0 10px}to{opacity:1;translate:0 0}}
+  @keyframes v2-fade{from{opacity:0}to{opacity:1}}
+  @keyframes v2-pop{from{opacity:0;translate:0 14px;scale:.985}to{opacity:1;translate:0 0;scale:1}}
+  @keyframes v2-slide{from{opacity:0;translate:28px 0}to{opacity:1;translate:0 0}}
+  html[data-workspace-ui='v2'] .main>.content>*{animation:v2-rise .28s cubic-bezier(.2,.7,.2,1) backwards}
+  html[data-workspace-ui='v2'] :is(.wf-overlay,.notice-overlay,.ap-pd-overlay){animation:v2-fade .18s ease-out backwards}
+  html[data-workspace-ui='v2'] :is(.wf-overlay>.wf-modal,.notice-overlay>.notice-dialog,.ap-pd-overlay>*){animation:v2-pop .24s cubic-bezier(.2,.7,.2,1) backwards}
+  html[data-workspace-ui='v2'] .wf-record-drawer{animation:v2-slide .26s cubic-bezier(.2,.7,.2,1) backwards}
+  html[data-workspace-ui='v2'] :is(.pa-card,.panel,.wf-record-row,.notice-item){transition:box-shadow .18s ease,border-color .18s ease}
+}
