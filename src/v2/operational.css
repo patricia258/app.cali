@@ -2762,3 +2762,19 @@ html[data-workspace-ui='v2'] .v2-notice-reactions button b{font-size:11px}
 html[data-workspace-ui='v2'] .v2-notice-reactions button i{font-style:normal}
 .v2-admin-audit .v2-audit-list .wf-record-row{grid-template-columns:46px 96px minmax(0,2.2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)}
 @media(max-width:860px){.v2-admin-audit .v2-audit-list .wf-record-row{grid-template-columns:46px minmax(0,1fr)}}
+/* Auditoria: trilha de um item (tudo sobre um protocolo) e agrupamento por protocolo. */
+.v2-admin-audit .v2-audit-protocol{border:0;background:none;padding:0;font:inherit;font-size:11px;font-weight:700;color:#5a1e2d;text-align:left;text-decoration:underline;text-decoration-color:#d9c9c0;text-underline-offset:3px;cursor:pointer;overflow-wrap:anywhere}
+.v2-admin-audit .v2-audit-protocol:hover{text-decoration-color:#5a1e2d}
+.v2-admin-audit .v2-audit-list h2{display:flex;align-items:center;gap:12px}
+.v2-admin-audit .v2-audit-open{border:1px solid #e5d9d0;border-radius:6px;background:#fff;padding:5px 9px;font:inherit;font-size:10px;font-weight:700;letter-spacing:0;color:#5a1e2d;cursor:pointer}
+.v2-admin-audit .v2-audit-list time{line-height:1.5}
+.v2-admin-audit .v2-audit-trail{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:14px 24px;margin-top:16px;padding:18px 20px;border:1px solid #e9dfd8;border-left:4px solid #5a1e2d;border-radius:10px;background:#fff}
+.v2-admin-audit .v2-audit-trail small{font-size:10px;letter-spacing:1.2px;font-weight:800;color:#af8f72}
+.v2-admin-audit .v2-audit-trail h2{margin:5px 0;font-size:18px;color:#322f2c;overflow-wrap:anywhere}
+.v2-admin-audit .v2-audit-trail p{margin:0;font-size:12px;line-height:1.55;color:#8c7e74}
+.v2-admin-audit .v2-audit-trail>button{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;grid-column:2;grid-row:1}
+.v2-admin-audit .v2-audit-trail dl{grid-column:1/-1;margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,140px)) minmax(0,1fr);gap:10px}
+.v2-admin-audit .v2-audit-trail dl>div{background:#faf6f2;border-radius:8px;padding:10px 12px;min-width:0}
+.v2-admin-audit .v2-audit-trail dt{font-size:10px;color:#8c7e74;margin-bottom:4px}
+.v2-admin-audit .v2-audit-trail dd{margin:0;font-size:13px;font-weight:700;color:#322f2c;overflow-wrap:anywhere}
+@media(max-width:860px){.v2-admin-audit .v2-audit-trail{grid-template-columns:1fr}.v2-admin-audit .v2-audit-trail>button{grid-column:1;grid-row:auto;justify-self:start}.v2-admin-audit .v2-audit-trail dl{grid-template-columns:repeat(2,minmax(0,1fr))}}

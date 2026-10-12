@@ -848,6 +848,12 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Usuários internos da CALI (como cadastrar o Partner):** hoje não existe tela. Proposta registrada na resposta à Patricia (ver conversa de 12/10): página "Equipe CALI" na administradora, convite por e-mail, perfis Administradora e Partner, escopo por empresa. Mexe em auth/permissões → só com aprovação dela depois de ver o plano.
 - **Não verificado:** gravação real de reação; recarga automática após publicação.
 
+### 2026-10-12 (7) — 9ª publicação; Auditoria com trilha por item — trilha só na homologação
+
+- **Publicado no oficial** (autorizado: "o resto já pode publicar"): Auditoria, reações, capa do comunicado, recarga automática. Oficial em `1d4ad9f`.
+- **Trilha por item (só homologação):** na Auditoria, clicar no protocolo abre a trilha daquele item (entrega, ocorrência, projeto, relatório, documento, compromisso, aviso): cartão com tipo, protocolo, nº de movimentações, primeira e última data e quem participou, e a lista só daquele item (ignora os filtros). Também há "Agrupar por protocolo", com botão "Ver trilha completa" em cada grupo.
+- **Limites:** a trilha usa os 400 registros mais recentes de cada fonte (item muito antigo pode vir incompleto); mensagens do chat da ocorrência e lançamentos de horas ligados ao item ainda não entram na trilha; nome/título do item não aparece, só tipo e protocolo.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
