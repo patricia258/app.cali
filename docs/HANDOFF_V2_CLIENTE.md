@@ -912,6 +912,19 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Auditoria:** eventos "Aprovou/Recusou horas lançadas pela Equipe CALI" traduzidos; o nome do Partner aparece em "Quem" (vem do perfil).
 - **Ainda fora (etapa 3b):** Partner publicar comunicado e criar agendamento direto (ela autorizou; exige política de escrita em `notices`/`events` e ajuste em `notify_notice`); editar entregas/relatórios/documentos no sistema; cronômetro do Partner; sino na área do Partner (retorno das decisões hoje aparece nas listas "Meus lançamentos" / "Meus envios").
 
+### 2026-10-12 (13) — LOGIN DO PARTNER LIGADO; 11ª e 12ª publicações; sino, cronômetro e comunicados do Partner
+
+- **Autorização (palavras dela):** "pode aplicar tudo o que ainda falta, inclusive publicar e etc".
+- **11ª publicação** (`d9296a5`): Equipe CALI, área do Partner, filas de aprovação. Em seguida, **função `workspace-access` publicada (versão 7)** — código em `supabase/functions/workspace-access/index.ts`. Teste rápido após publicar: pedido de código para e-mail inexistente → `{ok:true}`; verificação inválida → "Código inválido ou expirado" (400); OPTIONS 200. **Não testado:** entrada real da Patricia, de um cliente e de um Partner (depende deles). Se o login falhar para alguém: republicar a versão 6 (o código original está no histórico desta conversa e é o arquivo atual sem os trechos "PARTNER").
+- **Banco aplicado (acréscimo)** — `20261012230000_staff_partner_notices_and_decisions.sql`: função `partner_publish_notice` (Partner publica comunicado só para empresas atribuídas, com módulo Avisos; sai como "CALI · Assessoria"; clientes avisados no sino + e-mail; administradora avisada no sino; registro na auditoria) e gatilhos `notify_staff_decision` (Partner é avisado quando ela aprova/recusa/devolve).
+- **Área do Partner:** sino "Retornos da Patricia" (lido/não lido guardado no navegador); cronômetro em Horas (local, no navegador: ao parar preenche duração e justificativa do lançamento, que segue para aprovação); "Novo comunicado" em Avisos.
+- **12ª publicação:** itens acima.
+- **AINDA NÃO FEITO (dos itens que ela mandou aplicar):**
+  - **Agendamento direto pelo Partner:** a agenda é ligada à conta Google da Patricia e às funções de sincronização; criar compromisso em nome dela exige mexer nessas funções. Hoje ele pede por "Enviar para aprovação" (tipo Outro).
+  - **Editar entregas, relatórios e documentos dentro do sistema:** exige alterar funções em uso (55 dependem da checagem de administradora). Hoje: prepara fora e envia pela fila.
+  - Cronômetro do Partner é local (não aparece para a Patricia enquanto roda; só o lançamento enviado).
+- **Como testar o Partner (para ela):** Equipe CALI → Adicionar pessoa (e-mail que ela controle, empresas, módulos) → abrir o Workspace em janela anônima → entrar com esse e-mail → código chega por e-mail → cai em `/equipe`.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
