@@ -2648,3 +2648,29 @@ html[data-workspace-ui='v2'] .app>.main{background-image:linear-gradient(rgba(15
   html[data-workspace-ui='v2'] .wf-record-drawer{animation:v2-slide .26s cubic-bezier(.2,.7,.2,1) backwards}
   html[data-workspace-ui='v2'] :is(.pa-card,.panel,.wf-record-row,.notice-item){transition:box-shadow .18s ease,border-color .18s ease}
 }
+/* Avisos: uma etiqueta só — a que fica sobre a capa, com a cor da categoria. */
+html[data-workspace-ui='v2'] .notice-cover-tag{background:#f5effb;color:#7b56a0;box-shadow:0 2px 8px #19070a2e}
+html[data-workspace-ui='v2'] .notice-cover-tag.feriado{background:#fff4de;color:#9b6c21}
+html[data-workspace-ui='v2'] .notice-cover-tag.atendimento{background:#eaf5fa;color:#34799a}
+/* Projetos (cliente): cartão "cronograma para aprovação" — pede ação, então é âmbar. */
+html[data-workspace-ui='v2'] .client-project-review-v38{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px 24px;margin:0 0 18px;padding:18px 20px;border:1px solid #ecd9b0;border-left:4px solid #d9a441;background:#fffaf1;border-radius:10px;color:#5d4a2c}
+html[data-workspace-ui='v2'] .client-review-copy-v38{min-width:0;display:flex;flex-direction:column;gap:5px}
+html[data-workspace-ui='v2'] .client-review-copy-v38>span{font-size:10px;letter-spacing:1.2px;font-weight:800;color:#a66a00;text-transform:uppercase}
+html[data-workspace-ui='v2'] .client-review-copy-v38 h2{margin:0;font-size:16px;font-weight:700;color:#322f2c}
+html[data-workspace-ui='v2'] .client-review-copy-v38 p{margin:0;font-size:12px;line-height:1.55;color:#6f5c45}
+html[data-workspace-ui='v2'] .client-review-actions-v38{display:flex;align-items:center;gap:10px;justify-self:end}
+html[data-workspace-ui='v2'] .client-review-actions-v38 button{padding:10px 14px;border-radius:7px;border:1px solid #dec9c3;background:#fff;color:#5a1e2d;font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+html[data-workspace-ui='v2'] .client-review-actions-v38 button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] .client-review-actions-v38>span{font-size:11px;color:#8c7e74}
+html[data-workspace-ui='v2'] .client-review-metrics-v38{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+html[data-workspace-ui='v2'] .client-review-metrics-v38>div{background:#fff;border:1px solid #f0e3c8;border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+html[data-workspace-ui='v2'] .client-review-metrics-v38 span{font-size:10px;color:#8c7e74}
+html[data-workspace-ui='v2'] .client-review-metrics-v38 strong{font-size:15px;color:#322f2c}
+html[data-workspace-ui='v2'] .client-review-request-v38{grid-column:1/-1;display:flex;flex-direction:column;gap:5px;background:#fff;border:1px solid #f0e3c8;border-radius:8px;padding:12px 14px;font-size:12px}
+html[data-workspace-ui='v2'] .client-review-request-v38>span{font-size:10px;color:#a66a00;font-weight:700}
+html[data-workspace-ui='v2'] .client-review-request-v38 em{font-style:normal;font-size:11px;color:#6f5c45}
+html[data-workspace-ui='v2'] .client-review-request-v38 p{margin:0;color:#6f5c45}
+@media(max-width:760px){html[data-workspace-ui='v2'] .client-project-review-v38{grid-template-columns:1fr}html[data-workspace-ui='v2'] .client-review-actions-v38{justify-self:start;flex-wrap:wrap}html[data-workspace-ui='v2'] .client-review-metrics-v38{grid-template-columns:repeat(2,minmax(0,1fr))}}
+html[data-workspace-ui='v2'] .client-review-actions-v38{grid-column:2;grid-row:1}
+html[data-workspace-ui='v2'] .client-review-metrics-v38{grid-row:2}
+@media(max-width:760px){html[data-workspace-ui='v2'] .client-review-actions-v38{grid-column:1;grid-row:3}}

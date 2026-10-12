@@ -798,6 +798,15 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
   3. Botão para rever depois (menu do perfil → "Rever apresentação").
   - Precisa dela: o vídeo (arquivo ou link), os textos de cada passo, e autorização de banco para 1 campo novo que guarda "já viu a apresentação" por usuário.
 
+### 2026-10-12 — 5ª publicação; projetos (aprovação de cronograma) e etiquetas dos avisos
+
+- **Publicado no oficial** (autorizado): fundo quadriculado + transições. Oficial em `5c0d3d0`.
+- **Só na homologação (aguarda "pode publicar"):**
+  - Modais de cronograma (`workflow-dialog-v38`, usados por "Enviar lembrete ao cliente", "Solicitar ajuste", "Aprovar cronograma", editar/excluir frente): os runtimes V38/V39 agora montam `<header>` com rótulo + título à esquerda e X à direita (antes o X ficava solto no canto e o título colado na borda).
+  - Cliente → Projetos: cartão "Cronograma para aprovação" (`client-project-review-v38`) não tinha estilo V2 (texto solto). Agora é cartão âmbar com 4 dados rotulados e botões à direita. Vale também para "Ajuste em análise".
+  - Avisos: no cartão com capa fica só a etiqueta sobre a foto, colorida pela categoria; a segunda etiqueta saiu. Sem capa, a etiqueta continua ao lado do autor.
+- **Não verificado:** fluxo real de lembrete (envio, sino, e-mail) — testado só visualmente com dados fictícios. Patricia confirmou que o lembrete chegou no sino do cliente no oficial.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

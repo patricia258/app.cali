@@ -180,7 +180,7 @@ function NoticesBoard({ role }: { role: Role }) {
   const feed = <div className="notice-list notice-feed">{visible.map((item) => <article key={item.id} className={`notice-item ${item.category}`} tabIndex={0} onClick={() => { setActiveId(item.id); setCommentText(''); }} onKeyDown={(event) => { if (event.key === 'Enter' && event.target === event.currentTarget) { setActiveId(item.id); setCommentText(''); } }}>
     {item.coverUrl && <div className="notice-cover"><img src={item.coverUrl} alt="" /><span className={`notice-cover-tag ${item.category}`}>{categoryLabel(item.category)}</span></div>}
     <div className="notice-item-main">
-      <div className="notice-item-top"><span className="notice-author-mark">C</span><span><strong>CALI · Assessoria</strong><small>{formatDay(item.publishedAt)} · {item.protocol}</small></span><span className={`notice-category ${item.category}`}>{categoryLabel(item.category)}</span></div>
+      <div className="notice-item-top"><span className="notice-author-mark">C</span><span><strong>CALI · Assessoria</strong><small>{formatDay(item.publishedAt)} · {item.protocol}</small></span>{!item.coverUrl && <span className={`notice-category ${item.category}`}>{categoryLabel(item.category)}</span>}</div>
       <h2>{item.title}</h2><p>{item.body}</p>
       {item.date && <div className="notice-calendar-link"><CalendarDays size={14} /><strong>{formatDay(item.date)}</strong>{item.time && <span>· {item.time}</span>}{item.coverage && <span>· {item.coverage}</span>}</div>}
       <div className="notice-actions">{admin
