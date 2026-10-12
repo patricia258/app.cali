@@ -1,15 +1,13 @@
 /* Boas-vindas no primeiro acesso do cliente: tela com o vídeo da Patricia (por ora só a moldura) e, na sequência,
-   o que cada item do menu faz. Sem banco por enquanto: "já viu" fica guardado no navegador, por usuário
-   (cali:welcome-seen:<id>). Quando houver autorização de banco, trocar por um campo no perfil para valer em qualquer aparelho.
+   o que cada item do menu faz. "Já viu" fica na tabela cali_workspace.welcome_views (vale em qualquer aparelho) e, como atalho, no navegador
+   (cali:welcome-seen:<id>).
    Reabre por evento: window.dispatchEvent(new Event('cali:welcome-open')). */
 import { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, Play, X } from 'lucide-react';
 import { useWorkspaceAuth } from '../auth/WorkspaceAuthProvider';
+import { supabase } from '../lib/supabase';
 
 export const WELCOME_OPEN_EVENT = 'cali:welcome-open';
-/* Enquanto o vídeo não chega, a apresentação fica só na homologação; no oficial ela não abre sozinha nem aparece no menu.
-   Para liberar no oficial: trocar para `true`. */
-export const WELCOME_LIVE = typeof window !== 'undefined' && window.location.hostname !== 'app.calirh.com';
 type Step = { href?: string; label: string; title: string; text: string };
 const steps: Step[] = [
   { label: 'BOAS-VINDAS', title: 'Que bom ter você aqui', text: 'Este é o espaço da sua empresa com a CALI. Tudo o que fazemos juntos fica aqui, em um só lugar. Assista ao vídeo e depois veja, em um minuto, o que cada parte do menu faz.' },
@@ -29,7 +27,17 @@ export function WelcomeTour() {
   const { user } = useWorkspaceAuth();
   const key = user?.id ? `cali:welcome-seen:${user.id}` : '';
   const [index, setIndex] = useState<number | null>(null);
-  useEffect(() => { if (!key || !WELCOME_LIVE) return; try { if (!localStorage.getItem(key)) setIndex(0); } catch { /* sem armazenamento: não insiste */ } }, [key]);
+  useEffect(() => {
+    if (!key || !user?.id) return; let alive = true;
+    try { if (localStorage.getItem(key)) return; } catch { return; /* sem armazenamento: não insiste */ }
+    void (async () => {
+      const result = supabase ? await supabase.from('welcome_views').select('user_id').eq('user_id', user.id).limit(1) : null;
+      if (!alive) return;
+      if (result && !result.error && (result.data || []).length) { try { localStorage.setItem(key, 'db'); } catch { /* segue */ } return; }
+      setIndex(0);
+    })();
+    return () => { alive = false; };
+  }, [key, user?.id]);
   useEffect(() => { const open = () => setIndex(0); window.addEventListener(WELCOME_OPEN_EVENT, open); return () => window.removeEventListener(WELCOME_OPEN_EVENT, open); }, []);
   const step = index == null ? null : steps[index];
   useEffect(() => {
@@ -38,7 +46,7 @@ export function WelcomeTour() {
     return () => document.querySelectorAll('.v2-tour-focus').forEach((node) => node.classList.remove('v2-tour-focus'));
   }, [step]);
   if (index == null || !step) return null;
-  const close = () => { try { if (key) localStorage.setItem(key, new Date().toISOString()); } catch { /* segue */ } setIndex(null); };
+  const close = () => { try { if (key) localStorage.setItem(key, new Date().toISOString()); } catch { /* segue */ } if (supabase && user?.id) void supabase.from('welcome_views').upsert({ user_id: user.id }, { onConflict: 'user_id', ignoreDuplicates: true }).then(() => undefined); setIndex(null); };
   const last = index === steps.length - 1;
   return <div className="v2-welcome-overlay"><section className="v2-welcome" role="dialog" aria-modal="true" aria-label="Apresentação do CALI Workspace" key={index}>
     <header><span>{step.label}</span><button type="button" onClick={close} aria-label="Fechar apresentação"><X size={16} /></button></header>

@@ -821,6 +821,15 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 
 - Patricia respondeu só "publique", sem dizer se as boas-vindas iam junto. **Interpretação minha:** publiquei as transições e deixei as boas-vindas desligadas no oficial (`WELCOME_LIVE` em `src/v2/WelcomeTour.tsx` é falso quando o endereço é `app.calirh.com`), para nenhum cliente ver "vídeo em breve". Na homologação continua aparecendo. Para liberar no oficial: `WELCOME_LIVE = true` e nova publicação.
 
+### 2026-10-12 (4) — 8ª publicação: boas-vindas liberadas, modal de aprovação didático, tabela welcome_views
+
+- **Autorizações dela nesta data (palavras dela):** "pode liberar as boas-vindas e publicar"; "Eu já autorizei se mexer no banco, criar, não excluir nada, se não for necessário". Interpretação minha: posso criar estruturas novas no banco sem pedir "pode aplicar" a cada vez, sempre dizendo o que criei; alterar/apagar o que existe, RLS de tabelas existentes, auth e integrações continuam pedindo aprovação.
+- **Banco (aplicado em produção):** `20261012100000_welcome_views.sql` — tabela nova `cali_workspace.welcome_views (user_id, seen_at)`, RLS: cada pessoa lê/insere só a própria linha. Nada existente foi alterado.
+- **Boas-vindas:** liberadas no oficial (saiu a trava `WELCOME_LIVE`). "Já viu" agora vale em qualquer aparelho (tabela) + atalho no navegador. Vídeo ainda é só a moldura.
+- **Modal "Aprovar cronograma" (cliente):** nome do projeto como título, frase única do que a aprovação significa, "Início planejado" e "Conclusão prevista" em dois quadros com rótulo em cima, e lista "O que acontece depois de aprovar". O mesmo estilo de quadros vale para "Enviar lembrete" (Projeto / Resposta prevista).
+- **Auditoria (ela perguntou se existe):** existe parcial — histórico de alterações de equipe, de horas (edição/exclusão com motivo), de status de entregáveis e log de atividades. Não há uma tela única de auditoria. Sugestão a discutir: página "Auditoria" na administradora reunindo quem fez o quê e quando.
+- **Não verificado:** gravação real em `welcome_views` com usuário de verdade (o ambiente de teste bloqueia gravações).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
