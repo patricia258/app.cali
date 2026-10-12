@@ -1,6 +1,6 @@
 // CALI Workspace — acesso por código (cliente, administradora e, a partir desta versão, Partner da Equipe CALI).
-// VERSÃO PREPARADA, AINDA NÃO PUBLICADA NO SUPABASE (2026-10-12): é a versão 6 em produção + os trechos marcados
-// com "PARTNER". Nada muda para quem já entra hoje: os trechos novos só rodam quando o e-mail está em staff_members.
+// Publicada em 2026-10-12 com autorização da proprietária: versão 6 + os trechos marcados com "PARTNER".
+// Nada muda para quem já entrava: os trechos novos só rodam quando o e-mail está em staff_members.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 
