@@ -937,6 +937,15 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **NÃO FUNCIONOU:** publicar a função nova `workspace-staff-invite` (envio automático do convite) — o Supabase devolveu "internal error" duas vezes. O código está em `supabase/functions/workspace-staff-invite/index.ts`. Enquanto não publicar, a tela cai no convite manual. Tentar de novo em outra sessão (ou pelo painel/CLI do Supabase).
 - **AINDA FALTA para a paridade que ela pediu (tela por tela):** Ocorrências (hoje lista + diálogo simples; o painel da administradora depende de funções que só ela pode chamar), Projetos, Horas, Calendário, Documentos, Relatórios e Equipe do cliente ainda são listas simples de consulta. Caminho: uma página por vez, reaproveitando o componente da administradora com um modo "equipe" (como foi feito em Avisos) e liberando no banco só o que o Partner pode fazer.
 
+### 2026-10-13 — Partner, página por página: 1) Visão geral (homologação)
+
+- **Pedido dela:** "vamos fazer passo a passo, página por página"; começar pelo painel dele; tem que ver o logo da empresa; "o layout, a estrutura não está alinhada agora".
+- **Feito:** `src/pages/staff/StaffDashboard.tsx` — mesma composição e mesmas classes da Visão geral da administradora (`.content > .ap-app.v2-admin-page > .ap-content`): título com ação, saudação, 4 indicadores (empresas, ocorrências em aberto, entregas em andamento, aguardando a Patricia), Prioridades de hoje, Agenda, Consumo de horas por empresa (com logo), Status das entregas (rosca), Suas empresas (com logo, pacote e situação) e módulos liberados. Blocos só aparecem se o módulo estiver liberado.
+- **Alinhamento medido contra a tela dela:** título em x=91→1405, y=87 no computador e x=15→375 no celular — idêntico à Visão geral da administradora. Para isso as regras de página da administradora passaram a valer também para o papel `partner` (`.app:is([data-workspace-role='admin'],[data-workspace-role='partner'])`), e a Visão geral do Partner é renderizada sem invólucro extra.
+- **Banco aplicado (acréscimo)** — `20261013090000_staff_partner_brand_logos.sql`: política nova de LEITURA no armazenamento para o Partner ver o logo (`<empresa>/brand/`) só das empresas atribuídas.
+- **Não verificado:** logo real carregando para o João (depende do teste dela); números com dados reais.
+- **Próximas páginas (ordem sugerida):** Ocorrências → Projetos → Horas → Calendário → Documentos → Relatórios → Equipe do cliente.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

@@ -3,20 +3,19 @@
    O Partner vê só as empresas e módulos atribuídos (regras no banco, migrações 20261012150000/170000/190000) e tudo que
    vai para o cliente passa pela administradora: horas e materiais entram em filas de aprovação. */
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
-import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
-import { ArrowRight, Bell, BriefcaseBusiness, Play, Square, Building2, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, SendHorizontal, Users, X } from 'lucide-react';
+import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { ArrowRight, Bell, BriefcaseBusiness, Play, Square, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, SendHorizontal, Users, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 import { type WelcomeStep } from '../../v2/WelcomeTour';
 import { WorkspaceShellV2 } from '../../v2/WorkspaceShellV2';
 import { StaffNoticesPage } from '../notices/NoticesBoard';
+import { StaffDashboard } from './StaffDashboard';
 import '../../v2/v2.generated.css';
 import '../../v2/operational.css';
 
 type Company = { id: string; display_name: string; service_plan: string | null; monthly_hours_contracted: number | null; logo_workspace_url: string | null; logo_url: string | null };
 type Me = { id: string; name: string; modules: string[]; companies: Company[] };
-const MODULES: Record<string, string> = { records: 'Ocorrências', projects: 'Projetos e entregas', hours: 'Horas', calendar: 'Calendário', documents: 'Documentos', reports: 'Relatórios', notices: 'Avisos', team: 'Equipe do cliente', people_map: 'Mapa de People' };
-const PLAN: Record<string, string> = { partner: 'CALI Partner', full: 'CALI Full', build: 'CALI Build' };
 const moment = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
 const dayLabel = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${iso.slice(0, 10)}T12:00:00`));
 const duration = (minutes: number) => `${Math.floor(minutes / 60)}h${String(minutes % 60).padStart(2, '0')}`;
@@ -53,24 +52,19 @@ function StaffBell({ me }: { me: Me }) {
 }
 
 function Frame({ me, children }: { me: Me; children: ReactNode }) {
-  const navigate = useNavigate(); const has = (key: string) => me.modules.includes(key);
+  const navigate = useNavigate(); const { pathname } = useLocation(); const has = (key: string) => me.modules.includes(key);
+  /* A Visão geral usa a composição da administradora (.content > .ap-app), sem invólucro, para herdar as mesmas regras, inclusive no celular. */
+  const plain = pathname.replace(/\/$/, '') === '/equipe';
   const nav = ([['/equipe', 'Visão geral', LayoutDashboard, true], ['/equipe/pessoas', 'Equipe', Users, has('team')], ['/equipe/projetos', 'Projetos', BriefcaseBusiness, has('projects')], ['/equipe/horas', 'Horas', Clock3, has('hours')], ['/equipe/calendario', 'Calendário', CalendarDays, has('calendar')], ['/equipe/ocorrencias', 'Ocorrências', MessageCircleMore, has('records')], ['/equipe/documentos', 'Documentos', FolderOpen, has('documents')], ['/equipe/relatorios', 'Relatórios', FileBarChart2, has('reports')], ['/equipe/avisos', 'Avisos', Megaphone, has('notices')], ['/equipe/aprovacoes', 'Enviar para a Patricia', Send, true]] as [string, string, typeof Clock3, boolean][]).filter((item) => item[3]).map(([href, label, icon]) => ({ href, label, icon }));
   async function logout() { await supabase?.auth.signOut(); navigate('/login', { replace: true }); }
   /* Mesma moldura da administradora e do cliente (topo, busca, sino, menu do perfil com "Ver meu perfil" e "Sair"). */
-  return <WorkspaceShellV2 role="partner" navigation={nav} notifications={<StaffBell me={me} />} bridges={null} onLogout={() => void logout()} welcomeSteps={welcomeSteps}><div className="v2-client-module v2-staff-area">{children}</div></WorkspaceShellV2>;
+  return <WorkspaceShellV2 role="partner" navigation={nav} notifications={<StaffBell me={me} />} bridges={null} onLogout={() => void logout()} welcomeSteps={welcomeSteps}>{plain ? children : <div className="v2-client-module v2-staff-area">{children}</div>}</WorkspaceShellV2>;
 }
 
 function Head({ eyebrow, title, text, action }: { eyebrow: string; title: string; text: string; action?: ReactNode }) {
   return <div className="page-head"><div><div className="eyebrow">{eyebrow}</div><h1>{title}<span className="title-dot">.</span></h1><p>{text}</p></div>{action}</div>;
 }
 const CompanySelect = ({ me, value, onChange, all }: { me: Me; value: string; onChange: (value: string) => void; all?: boolean }) => <select className="wf-record-filter" aria-label="Empresa" value={value} onChange={(event) => onChange(event.target.value)}>{all && <option value="">Todas as minhas empresas</option>}{!all && <option value="">Escolha a empresa</option>}{me.companies.map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}</select>;
-
-function Home({ me }: { me: Me }) {
-  return <><Head eyebrow="EQUIPE CALI / VISÃO GERAL" title={`Olá, ${me.name.split(' ')[0]}`} text="Estas são as empresas que você atende e o que está liberado para você." />
-    <div className="v2-staff-cards">{me.companies.map((item) => <article key={item.id}><span className="avatar"><Building2 size={16} /></span><div><strong>{item.display_name}</strong><small>{PLAN[String(item.service_plan || '').toLowerCase()] || item.service_plan || 'Pacote não informado'}{item.monthly_hours_contracted ? ` · ${item.monthly_hours_contracted}h contratadas por mês` : ''}</small></div></article>)}{!me.companies.length && <div className="empty">Nenhuma empresa atribuída a você ainda. Fale com a Patricia.</div>}</div>
-    <section className="panel v2-staff-modules"><h3>O que você pode fazer</h3><p>Módulos liberados pela Patricia. Tudo que vai para o cliente passa pela aprovação dela.</p><div>{me.modules.map((key) => <span className="wf-tag" key={key}>{MODULES[key] || key}</span>)}{!me.modules.length && <small>Nenhum módulo liberado ainda.</small>}</div></section>
-    <p className="soft-note">Projetos, calendário, documentos, relatórios, avisos e equipe do cliente estão disponíveis para consulta. Para alterar algo que vai ao cliente, prepare o material e use “Enviar para aprovação”.</p></>;
-}
 
 /* Consulta (somente leitura) dos módulos liberados. O banco só devolve o que é das empresas atribuídas. */
 type BrowseRow = { id: string; company_id: string | null; title: string; sub: string; tag: string; when: string | null };
@@ -193,7 +187,7 @@ export function StaffWorkspace() {
   if (error) return <div className="v2-client-module v2-staff-fail"><div className="inline-notice">{error}</div></div>;
   if (!me) return <div className="v2-client-module"><div className="data-loading">Carregando o seu espaço…</div></div>;
   return <Frame me={me}><Routes>
-    <Route index element={<Home me={me} />} />
+    <Route index element={<StaffDashboard me={me} />} />
     <Route path="ocorrencias" element={me.modules.includes('records') ? <Records me={me} /> : <Navigate to="/equipe" replace />} />
     <Route path="horas" element={me.modules.includes('hours') ? <Hours me={me} /> : <Navigate to="/equipe" replace />} />
     {([['projetos', 'projects'], ['calendario', 'calendar'], ['documentos', 'documents'], ['relatorios', 'reports'], ['pessoas', 'team']] as [string, string][]).map(([path, module]) => <Route key={path} path={path} element={me.modules.includes(module) ? <Browse me={me} kind={path} /> : <Navigate to="/equipe" replace />} />)}

@@ -859,8 +859,8 @@ html[data-workspace-ui='v2']{
 /* ---- Administradora na identidade V2 ---- */
 /* O protótipo traz o próprio shell (.ap-app); nas páginas oficiais o shell é o WorkspaceShellV2, então
    .ap-app passa a ser só o escopo das regras da página. */
-.app[data-workspace-role='admin'] .ap-app.v2-admin-page{display:block;min-height:0;background:none}
-.app[data-workspace-role='admin'] .v2-admin-page .ap-content{padding:0;max-width:none;margin:0}
+.app:is([data-workspace-role='admin'],[data-workspace-role='partner']) .ap-app.v2-admin-page{display:block;min-height:0;background:none}
+.app:is([data-workspace-role='admin'],[data-workspace-role='partner']) .v2-admin-page .ap-content{padding:0;max-width:none;margin:0}
 .v2-admin-page a{text-decoration:none}
 .v2-admin-page .ap-pane-head a{color:#6b293e;display:flex;align-items:center;gap:7px;font-size:11px}
 .v2-admin-page .ap-hour-logo{overflow:hidden;flex-shrink:0}
@@ -2947,3 +2947,15 @@ html[data-workspace-ui='v2'] .v2-staff-form .v2-staff-fields select{height:40px;
 .v2-admin-staff .v2-row-icon:disabled{opacity:.45;cursor:not-allowed}
 html[data-workspace-ui='v2'] .v2-staff-invite-text{margin:0;padding:12px 14px;border-radius:8px;background:#faf6f2;font:inherit;font-size:12px;line-height:1.6;color:#322f2c;white-space:pre-wrap}
 html[data-workspace-ui='v2'] .v2-staff-form>footer a.wf-primary{height:38px;padding:0 15px;display:inline-flex;align-items:center;border-radius:7px;border:1px solid #5a1e2d;background:#5a1e2d;color:#fff;font-size:12px;font-weight:700;text-decoration:none}
+/* Visão geral do Partner: a página usa a composição da administradora; a área não acrescenta espaçamento próprio. */
+html[data-workspace-ui='v2'] .v2-staff-area:has(>.v2-staff-dashboard){display:block}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-overview-hero{min-height:0}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .v2-staff-count{font-size:11px;color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .v2-staff-scope-tags{display:flex;flex-wrap:wrap;gap:8px;padding-top:4px}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-time-line>i{background:#a484d7}
+html[data-workspace-ui='v2'] .v2-staff-area>.ap-app>.ap-content{padding:0;max-width:none}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-account-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr))}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client{min-width:0}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client>div{min-width:0;flex:1}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:640px){html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client{flex-wrap:wrap}html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client small{white-space:normal}}
