@@ -46,7 +46,7 @@ function decorateRoadmapLegend(){
 function dialog(title:string,kicker:string,body:string,footer:string){
   closeWorkflowModal();
   const overlay=document.createElement('div');overlay.className='workflow-dialog-backdrop-v38';
-  overlay.innerHTML=`<section class="workflow-dialog-v38" role="dialog" aria-modal="true"><button class="workflow-dialog-close-v38" type="button" aria-label="Fechar">×</button><span>${escapeHtml(kicker)}</span><h2>${escapeHtml(title)}</h2><div class="workflow-dialog-body-v38">${body}</div><footer>${footer}</footer></section>`;
+  overlay.innerHTML=`<section class="workflow-dialog-v38" role="dialog" aria-modal="true"><header><div><span>${escapeHtml(kicker)}</span><h2>${escapeHtml(title)}</h2></div><button class="workflow-dialog-close-v38" type="button" aria-label="Fechar">×</button></header><div class="workflow-dialog-body-v38">${body}</div><footer>${footer}</footer></section>`;
   overlay.querySelector('.workflow-dialog-close-v38')?.addEventListener('click',closeWorkflowModal);
   overlay.addEventListener('click',(event)=>{if(event.target===overlay)closeWorkflowModal();});
   document.body.append(overlay);return overlay;
