@@ -807,6 +807,16 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
   - Avisos: no cartão com capa fica só a etiqueta sobre a foto, colorida pela categoria; a segunda etiqueta saiu. Sem capa, a etiqueta continua ao lado do autor.
 - **Não verificado:** fluxo real de lembrete (envio, sino, e-mail) — testado só visualmente com dados fictícios. Patricia confirmou que o lembrete chegou no sino do cliente no oficial.
 
+### 2026-10-12 (2) — 6ª publicação; transições refeitas; boas-vindas do primeiro acesso
+
+- **Publicado no oficial** (autorizado): modais de cronograma, cartão de aprovação do cliente, etiqueta única nos avisos. Oficial em `1b157b2`.
+- **Transições — Patricia não viu efeito** ("você ignorou?"). Causa: a 1ª versão animava só o invólucro da página, que entra junto com o "carregando"; quando o conteúdo chegava, aparecia seco. **2ª versão (só homologação):** cada bloco da página sobe em sequência quando aparece (`v2-block`, 0,46 s, atraso de 0,05 s por bloco), inclusive depois do carregamento e ao trocar de aba; todos os diálogos/gavetas (lista completa de overlays do V2 + runtimes) surgem com `v2-fade` + `v2-pop`. Conferido por `document.getAnimations()` numa navegação pelo menu.
+- **Boas-vindas (só homologação):** `src/v2/WelcomeTour.tsx`, montado no shell do cliente. 11 passos: boas-vindas com moldura do vídeo ("em breve"), um passo por item do menu (item fica destacado no menu lateral) e fechamento. Pular / Voltar / Avançar. "Rever apresentação" no menu do perfil. Textos são proposta minha — ela revisa.
+  - **Sem banco:** "já viu" fica no navegador (`cali:welcome-seen:<id do usuário>`). Limitação: em outro aparelho/navegador aparece de novo. Trocar por campo no perfil quando ela autorizar o banco.
+  - **Atenção antes de publicar:** ao publicar, TODOS os clientes atuais verão a apresentação uma vez, com a moldura "vídeo em breve". Decidir com ela se publica já ou só com o vídeo.
+  - Falta: o vídeo (arquivo/link) e onde hospedar.
+  - QA: `probe.cjs` e `sweep.cjs` marcam a apresentação como vista para não cobrir as telas.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

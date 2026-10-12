@@ -2674,3 +2674,41 @@ html[data-workspace-ui='v2'] .client-review-request-v38 p{margin:0;color:#6f5c45
 html[data-workspace-ui='v2'] .client-review-actions-v38{grid-column:2;grid-row:1}
 html[data-workspace-ui='v2'] .client-review-metrics-v38{grid-row:2}
 @media(max-width:760px){html[data-workspace-ui='v2'] .client-review-actions-v38{grid-column:1;grid-row:3}}
+/* Transições (2ª versão): os BLOCOS da página sobem em sequência quando aparecem (inclusive depois do carregamento),
+   e todo diálogo/gaveta surge com suavidade. A 1ª versão animava só o invólucro da página, que aparece junto com o
+   "carregando" — por isso quase não se via. */
+@media(prefers-reduced-motion:no-preference){
+  @keyframes v2-block{from{opacity:0;translate:0 16px}to{opacity:1;translate:0 0}}
+  html[data-workspace-ui='v2'] .main>.content>*{animation:none}
+  html[data-workspace-ui='v2'] :is(.main>.content>*>*,.ap-content>.wf>*){animation:v2-block .46s cubic-bezier(.2,.7,.2,1) backwards}
+  html[data-workspace-ui='v2'] :is(.main>.content>*>*,.ap-content>.wf>*):nth-child(2){animation-delay:.05s}
+  html[data-workspace-ui='v2'] :is(.main>.content>*>*,.ap-content>.wf>*):nth-child(3){animation-delay:.1s}
+  html[data-workspace-ui='v2'] :is(.main>.content>*>*,.ap-content>.wf>*):nth-child(4){animation-delay:.15s}
+  html[data-workspace-ui='v2'] :is(.main>.content>*>*,.ap-content>.wf>*):nth-child(5){animation-delay:.2s}
+  html[data-workspace-ui='v2'] :is(.main>.content>*>*,.ap-content>.wf>*):nth-child(n+6){animation-delay:.25s}
+  html[data-workspace-ui='v2'] .main>.content>.ap-app>.ap-content{animation:none}
+  html[data-workspace-ui='v2'][data-workspace-ui] :is(.modal-backdrop,.ap-account-overlay,.ap-overlay,.ap-pd-overlay,.ap-profile-overlay,.ap-registration-overlay,.ch-overlay,.drawer-backdrop,.dv-overlay,.enh-overlay,.extra-visit-backdrop,.notice-overlay,.project-client-modal-backdrop-v39,.timer-finalize-backdrop,.portal-admin-drawer-backdrop,.v2-fronts-overlay,.v2-team-overlay,.wf-agenda-overlay,.wf-overlay,.workflow-dialog-backdrop-v38,.project-lifecycle-backdrop-v44){animation:v2-fade .22s ease-out backwards;animation-delay:0s}
+  html[data-workspace-ui='v2'][data-workspace-ui] :is(.modal-backdrop,.ap-account-overlay,.ap-overlay,.ap-pd-overlay,.ap-profile-overlay,.ap-registration-overlay,.ch-overlay,.drawer-backdrop,.dv-overlay,.enh-overlay,.extra-visit-backdrop,.notice-overlay,.project-client-modal-backdrop-v39,.timer-finalize-backdrop,.portal-admin-drawer-backdrop,.v2-fronts-overlay,.v2-team-overlay,.wf-agenda-overlay,.wf-overlay,.workflow-dialog-backdrop-v38,.project-lifecycle-backdrop-v44)>*{animation:v2-pop .34s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:0s}
+  @keyframes v2-pop{from{opacity:0;translate:0 22px;scale:.97}to{opacity:1;translate:0 0;scale:1}}
+}
+/* Boas-vindas / apresentação do primeiro acesso (cliente). O menu lateral fica visível para o item ser destacado. */
+html[data-workspace-ui='v2'] .v2-welcome-overlay{position:fixed;inset:0;z-index:995;display:grid;place-items:center;padding:18px;background:#20151d73;backdrop-filter:blur(2px);animation:v2-fade .22s ease-out backwards}
+html[data-workspace-ui='v2'] .v2-welcome{width:min(460px,100%);background:#fffdfb;border:1px solid #e5d9d0;border-radius:12px;box-shadow:0 24px 80px #28172440;display:flex;flex-direction:column;overflow:hidden;animation:v2-pop .34s cubic-bezier(.2,.7,.2,1) backwards}
+html[data-workspace-ui='v2'] .v2-welcome>header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid #eee2db}
+html[data-workspace-ui='v2'] .v2-welcome>header span{font-size:10px;letter-spacing:1.4px;font-weight:800;color:#af8f72}
+html[data-workspace-ui='v2'] .v2-welcome>header button{display:grid;place-items:center;width:28px;height:28px;border:1px solid #ecded5;border-radius:7px;background:#fff;color:#322f2c}
+html[data-workspace-ui='v2'] .v2-welcome-body{padding:18px;display:flex;flex-direction:column;gap:10px;min-height:128px}
+html[data-workspace-ui='v2'] .v2-welcome-body h2{margin:0;font-size:18px;line-height:1.3;font-weight:700;color:#322f2c}
+html[data-workspace-ui='v2'] .v2-welcome-body p{margin:0;font-size:13px;line-height:1.6;color:#655a55}
+html[data-workspace-ui='v2'] .v2-welcome-video{aspect-ratio:16/9;border-radius:9px;background:linear-gradient(135deg,#5a1e2d,#7a3346);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;margin-bottom:4px}
+html[data-workspace-ui='v2'] .v2-welcome-video span{width:54px;height:54px;border-radius:50%;background:#ffffff26;border:1px solid #ffffff59;display:grid;place-items:center;color:#fff}
+html[data-workspace-ui='v2'] .v2-welcome-video small{font-size:11px;color:#eadfd8}
+html[data-workspace-ui='v2'] .v2-welcome>footer{display:flex;align-items:center;gap:8px;padding:12px 18px;border-top:1px solid #ece1da}
+html[data-workspace-ui='v2'] .v2-welcome-dots{display:flex;align-items:center;gap:4px;margin-right:auto}
+html[data-workspace-ui='v2'] .v2-welcome-dots i{width:6px;height:6px;border-radius:50%;background:#e6d9cf}
+html[data-workspace-ui='v2'] .v2-welcome-dots i.on{width:16px;border-radius:3px;background:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-welcome-skip{border:0;background:none;padding:8px 6px;font:inherit;font-size:11px;color:#8c7e74;cursor:pointer}
+html[data-workspace-ui='v2'] .v2-welcome>footer :is(.outline-button,.primary-button){display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+html[data-workspace-ui='v2'] .sidebar nav a.v2-tour-focus{position:relative;z-index:996;background:#fff;color:#5a1e2d;border-radius:9px;box-shadow:0 0 0 3px #d6e36a,0 8px 24px #19070a55}
+html[data-workspace-ui='v2'] .app:has(.v2-welcome-overlay) .sidebar{z-index:996}
+@media(max-width:560px){html[data-workspace-ui='v2'] .v2-welcome>footer{flex-wrap:wrap}html[data-workspace-ui='v2'] .v2-welcome-dots{width:100%;margin-bottom:4px}}
