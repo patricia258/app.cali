@@ -38,6 +38,7 @@ import {
   type WorkspaceCalendarEvent,
 } from '../../domain/calendar';
 import { supabase } from '../../lib/supabase';
+import { NoticeCalendarCard } from '../notices/NoticesBoard';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 
 type CompanyOption = { id: string; name: string; logoUrl?: string | null };
@@ -775,7 +776,8 @@ export function AdminCalendarPage() {
         </form>
       </div>}
 
-      {selectedEvent && <div className="modal-backdrop full-screen-modal calendar-modal-backdrop">
+      {selectedEvent && selectedEvent.id.startsWith('notice:') && <NoticeCalendarCard noticeId={selectedEvent.id.slice(7)} href={`/admin/avisos?aviso=${selectedEvent.id.slice(7)}`} onClose={() => setSelectedEvent(null)} />}
+      {selectedEvent && !selectedEvent.id.startsWith('notice:') && <div className="modal-backdrop full-screen-modal calendar-modal-backdrop">
         <section className={`modal-card calendar-detail-modal calendar-detail-refined ${selectedEvent.cancelledAt || meetingOutcomes[selectedEvent.id]?.outcome==='not_occurred' || selectedEvent.attendees.some(attendee=>attendee.status==='declined')?'is-negative':meetingOutcomes[selectedEvent.id]?.outcome==='occurred' || selectedEvent.attendees.some(attendee=>attendee.status==='accepted')?'is-positive':'is-pending'}`} role="dialog" aria-modal="true">
           <button className="modal-close" onClick={() => { setSelectedEvent(null); setShowCancel(false); setCancelReason(''); }} aria-label="Fechar"><X size={20} /></button>
           <div className="calendar-detail-accent" style={{ background: selectedEvent.color }} />

@@ -738,6 +738,12 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 
 **Ideias registradas, não pedidas**: e-mail de boas-vindas / primeiro acesso; inteligência de diagnóstico e relatório de indicadores; entrada de dados de folha, recrutamento, desempenho e treinamento; coautores e data de revisão de documentos.
 
+### 2026-10-11 — Página "solta" ao rolar e aviso aberto pela Agenda
+
+- **Página balançando / faixa clara no topo**: era o efeito elástico do navegador ao rolar além do fim (o documento inteiro, com menu e topo, deslocava). `html` e `body` na V2 agora têm `overscroll-behavior:none` e `overflow-x:clip`. Conferido só o valor aplicado (`none`); o efeito em si depende do trackpad e não é reproduzível no QA — confirmar com a Patricia.
+- **Aviso na Agenda**: clicar num aviso (administradora ou cliente) abre um cartão próprio (`NoticeCalendarCard`) com a capa, a categoria, o texto, data/horário/abrangência e o botão "Abrir no Quadro de Avisos", que leva ao comunicado específico (`/admin/avisos?aviso=` ou `/cliente/avisos?aviso=`). Antes abria o diálogo de evento com textos de prazo de entregável, que não se aplicavam.
+- Conferido no QA: cartão abre nas duas agendas com o link certo e o conteúdo. Capa real não conferida (o QA não tem imagem).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { AlertTriangle, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, FileText, Loader2, Plus, SlidersHorizontal, X } from 'lucide-react';
 import { ClientGoogleCalendarPanel } from '../../components/ClientGoogleCalendarPanel';
 import { Shell } from '../../components/WorkspaceShell';
+import { NoticeCalendarCard } from '../notices/NoticesBoard';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 
@@ -388,7 +389,8 @@ export function ClientTimelinePage() {
     return () => window.removeEventListener('cali:open-agenda-event', open);
   }, [items]);
 
-  function openItem(item: TimelineItem) { setChangeTarget(null); setChangeAction(null); setChangeError(''); setSelectedItem(item); }
+  const [noticeOpen, setNoticeOpen] = useState<string | null>(null);
+  function openItem(item: TimelineItem) { if (item.id.startsWith('notice-')) { setNoticeOpen(String(item.sourceId)); return; } setChangeTarget(null); setChangeAction(null); setChangeError(''); setSelectedItem(item); }
   function beginChange(action:'cancel'|'reschedule') { setChangeAction(action); setChangeTarget(selectedItem); setSelectedItem(null); setChangeError(''); setChangeReason(''); setNewSlots([{date:'',time:''},{date:'',time:''}]); }
   async function submitChange(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -538,6 +540,7 @@ export function ClientTimelinePage() {
           </section>
         </div>, document.body)}
       {changeTarget && changeAction && createPortal(<div className="v2-client-module wf-agenda-overlay wf-agenda-change-overlay" onMouseDown={event=>{if(event.target===event.currentTarget&&!changeBusy)setChangeTarget(null)}}><section className="wf-modal wf-create" role="alertdialog" aria-modal="true" aria-labelledby="agenda-change-title"><header><div><small>{changeTarget.request?.extra_visit?'VISITA EXTRA':'REUNIÃO'}</small><h2 id="agenda-change-title">{changeAction==='cancel'?'Pedir cancelamento':'Sugerir novas datas'}</h2></div><button type="button" onClick={()=>setChangeTarget(null)} aria-label="Fechar"><X size={19}/></button></header><form className="wf-create-form" onSubmit={submitChange}><p><strong>{changeTarget.title}</strong> · {changeTarget.dateLabel} {changeTarget.timeLabel}</p><p>Conte o motivo para a CALI analisar. Uma taxa eventual depende da antecedência, da justificativa e das condições aceitas no seu contrato. Nada é cobrado automaticamente.</p>{changeAction==='reschedule'&&<><p>As novas opções precisam ter pelo menos 48 horas úteis de antecedência e ocorrer de segunda a sexta, entre 9h e 16h.</p><div className="wf-change-slots">{newSlots.map((slot,index)=><fieldset key={index}><legend>Opção {index+1}</legend><input aria-label={`Data da opção ${index+1}`} type="date" required value={slot.date} onChange={event=>setNewSlots(current=>current.map((row,i)=>i===index?{...row,date:event.target.value}:row))}/><input aria-label={`Horário da opção ${index+1}`} type="time" min="09:00" max={changeTarget.request?.extra_visit?'12:00':'16:00'} required value={slot.time} onChange={event=>setNewSlots(current=>current.map((row,i)=>i===index?{...row,time:event.target.value}:row))}/></fieldset>)}</div></>}<label>Justificativa<textarea required minLength={5} value={changeReason} onChange={event=>setChangeReason(event.target.value)} placeholder="O que mudou na sua agenda?"/></label>{changeError&&<p className="client-visit-change-error" role="alert">{changeError}</p>}<div className="v2-dialog-actions"><button type="button" onClick={()=>setChangeTarget(null)}>Voltar</button><button type="submit" disabled={changeBusy}>{changeBusy?'Enviando…':'Confirmar pedido'}</button></div></form></section></div>,document.body)}
+      {noticeOpen && <NoticeCalendarCard noticeId={noticeOpen} href={`/cliente/avisos?aviso=${noticeOpen}`} onClose={() => setNoticeOpen(null)} />}
     </Shell>
   );
 }

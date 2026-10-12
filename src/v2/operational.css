@@ -2455,3 +2455,11 @@ html[data-workspace-ui='v2'] .v2-notice-targets{flex-shrink:0;min-height:46px}
 html[data-workspace-ui='v2'] .notice-dialog-body>*{flex-shrink:0}
 html[data-workspace-ui='v2'] .notice-write select{flex:none;max-width:170px;height:38px;border:1px solid #e5d8d0;border-radius:7px;background:#fff;padding:0 8px;font:inherit;font-size:11px;color:#322f2c}
 html[data-workspace-ui='v2'] .v2-notice-noreply{flex:1;font-size:11px}
+
+/* A página não "balança": sem efeito elástico ao rolar além do fim (para cima, para baixo ou para os lados) */
+html[data-workspace-ui='v2'],html[data-workspace-ui='v2'] body{overscroll-behavior:none;overflow-x:clip}
+html[data-workspace-ui='v2'] body{background:#f7f3ee}
+/* Aviso aberto pela Agenda */
+html[data-workspace-ui='v2'] .v2-notice-calendar{z-index:990}
+html[data-workspace-ui='v2'] .v2-notice-calendar footer{justify-content:flex-end;gap:10px}
+html[data-workspace-ui='v2'] .v2-notice-calendar footer .notice-main-button{text-decoration:none}

@@ -270,3 +270,27 @@ export function ClientHomeNotices() {
   if (!items?.length) return <div className="ch-bulletin-grid"><article className="ch-bulletin-item ch-bulletin-empty"><div className="ch-bulletin-meta"><span className="ch-bulletin-label">COMUNICADOS</span><strong>Nenhum comunicado disponível</strong><span className="ch-bulletin-author">{items ? 'Quando a CALI publicar um aviso para a sua empresa, ele aparece aqui.' : 'Carregando avisos…'}</span></div><div className="ch-bulletin-picture ch-empty-picture"><MessageCircle size={25} /></div><div className="ch-bulletin-foot"><span>Mural da parceria</span></div></article></div>;
   return <div className="ch-bulletin-grid">{items.map((item) => <Link key={item.id} className="ch-bulletin-item v2-bulletin-link" to={`/cliente/avisos?aviso=${item.id}`}><div className="ch-bulletin-meta"><span className="ch-bulletin-label">{categoryLabel(item.category).toUpperCase()}</span><strong>{item.title}</strong><span className="ch-bulletin-author">CALI · Assessoria · {formatDay(item.publishedAt)}</span></div><div className={`ch-bulletin-picture ${item.coverUrl ? '' : 'ch-empty-picture'}`} style={item.coverUrl ? { backgroundImage: `url("${item.coverUrl}")` } : undefined}>{!item.coverUrl && <Megaphone size={25} />}</div><div className="ch-bulletin-foot"><span><MessageCircle size={13} /> Ver comunicado</span><span><Check size={13} /> {item.acked ? 'Ciente registrado' : 'Dar ciência'}</span></div></Link>)}</div>;
 }
+
+/* Aviso aberto a partir da Agenda (cliente ou administradora): capa, texto e o atalho para o comunicado no mural. */
+export function NoticeCalendarCard({ noticeId, href, onClose }: { noticeId: string; href: string; onClose: () => void }) {
+  const [notice, setNotice] = useState<{ protocol: string; category: Category; title: string; body: string; date: string | null; time: string | null; coverage: string | null; coverUrl: string } | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => { let active = true; setFailed(false); void (async () => {
+    if (!supabase) return;
+    const result = await supabase.from('notices').select('protocol,category,title,body,notice_date,time_label,coverage,cover_path').eq('id', noticeId).limit(1);
+    const row: any = (result.data || [])[0];
+    if (!active) return;
+    if (!row) { setFailed(true); return; }
+    const coverUrl = row.cover_path ? (await resolveWorkspaceMedia(row.cover_path, 86400)) || '' : '';
+    if (active) setNotice({ protocol: row.protocol, category: row.category, title: row.title, body: row.body || '', date: row.notice_date, time: row.time_label, coverage: row.coverage, coverUrl });
+  })(); return () => { active = false; }; }, [noticeId]);
+  return <div className="notice-overlay v2-notice-calendar" onMouseDown={onClose}><section className="notice-dialog" role="dialog" aria-modal="true" aria-label="Aviso da CALI" onMouseDown={(event) => event.stopPropagation()}>
+    <header><span>AVISO DA CALI{notice ? ` · ${notice.protocol}` : ''}</span><button type="button" onClick={onClose} aria-label="Fechar"><X size={19} /></button></header>
+    {notice ? <div className="notice-dialog-body">
+      {notice.coverUrl && <img className="notice-detail-cover" src={notice.coverUrl} alt="" />}
+      <span className={`notice-category ${notice.category}`}>{categoryLabel(notice.category)}</span><h2>{notice.title}</h2><p>{notice.body}</p>
+      <dl>{notice.date && <div><dt>Data</dt><dd>{formatDay(notice.date)}</dd></div>}{notice.time && <div><dt>Horário</dt><dd>{notice.time}</dd></div>}{notice.coverage && <div><dt>Abrangência</dt><dd>{notice.coverage}</dd></div>}<div><dt>Publicado por</dt><dd>CALI · Assessoria</dd></div></dl>
+    </div> : <div className="notice-dialog-body">{failed ? <p className="notice-muted">Não foi possível carregar este aviso agora. Abra o Quadro de Avisos para ver o comunicado.</p> : <div className="data-loading">Carregando aviso…</div>}</div>}
+    <footer><button type="button" onClick={onClose}>Fechar</button><Link className="notice-main-button v2-link-button" to={href}>Abrir no Quadro de Avisos <ArrowRight size={15} /></Link></footer>
+  </section></div>;
+}
