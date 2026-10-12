@@ -2723,3 +2723,42 @@ html[data-workspace-ui='v2'] .workflow-after-v50{display:flex;flex-direction:col
 html[data-workspace-ui='v2'] .workflow-after-v50 strong{font-size:12px;color:#322f2c}
 html[data-workspace-ui='v2'] .workflow-after-v50 ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;line-height:1.5}
 @media(max-width:520px){html[data-workspace-ui='v2'] .workflow-dialog-v38 .workflow-approval-summary-v38{grid-template-columns:1fr}}
+/* Auditoria (administradora): lista única, só consulta. */
+.v2-admin-audit .v2-list-controls{flex-wrap:wrap}
+.v2-admin-audit .v2-audit-search{flex:1 1 220px;display:flex;align-items:center;gap:8px;height:36px;padding:0 11px;border:1px solid #e5d9d0;border-radius:7px;background:#fff;color:#96867c;min-width:0}
+.v2-admin-audit .v2-audit-search input{flex:1;min-width:0;border:0;outline:0;background:none;font:inherit;font-size:11px;color:#322f2c}
+.v2-admin-audit .v2-audit-list{display:flex;flex-direction:column;gap:18px;margin-top:16px}
+.v2-admin-audit .v2-audit-list h2{margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:.4px;color:#8c7e74;text-transform:capitalize}
+.v2-admin-audit .v2-audit-list .wf-record-row{grid-template-columns:46px 96px minmax(0,2.4fr) minmax(0,1fr) minmax(0,1fr);align-items:center;gap:14px;cursor:default}
+.v2-admin-audit .v2-audit-list time{font-size:11px;font-weight:700;color:#5a1e2d}
+.v2-admin-audit .v2-audit-list .wf-record-row>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.v2-admin-audit .v2-audit-list .wf-record-row strong{font-size:12px;color:#322f2c}
+.v2-admin-audit .v2-audit-list .wf-record-row small{font-size:10px;color:#96867c;overflow-wrap:anywhere}
+.v2-admin-audit .v2-audit-who{display:flex;flex-direction:column;gap:3px;min-width:0;font-size:11px;color:#322f2c;overflow:hidden;text-overflow:ellipsis}
+.v2-admin-audit .v2-audit-area{justify-self:start;background:#f3ece6;color:#67574c}
+.v2-admin-audit .v2-audit-area.a-0{background:#eaf5fa;color:#34799a}
+.v2-admin-audit .v2-audit-area.a-1{background:#fff4de;color:#9b6c21}
+.v2-admin-audit .v2-audit-area.a-2{background:#f5effb;color:#7b56a0}
+.v2-admin-audit .v2-audit-area.a-3{background:#e6f6ec;color:#31805a}
+.v2-admin-audit .v2-audit-area.a-6{background:#f6edf0;color:#5a1e2d}
+.v2-admin-audit .v2-audit-more{align-self:center}
+.v2-admin-audit .v2-audit-empty{margin-top:16px;padding:28px;border:1px dashed #e0d3c9;border-radius:9px;background:#fff;font-size:12px;color:#8c7e74;text-align:center}
+.v2-admin-audit .v2-audit-partial{margin-top:18px;background:#fffaf1;border:1px solid #ecd9b0;color:#7a5a2c}
+.v2-admin-audit .v2-audit-note{margin-top:18px}
+@media(max-width:860px){.v2-admin-audit .v2-audit-list .wf-record-row{grid-template-columns:46px minmax(0,1fr);row-gap:8px}.v2-admin-audit .v2-audit-list .wf-record-row>div,.v2-admin-audit .v2-audit-who{grid-column:2}}
+.v2-admin-audit .v2-audit-list h2{text-transform:none}
+.v2-admin-audit .v2-audit-list h2::first-letter{text-transform:uppercase}
+/* Comunicado aberto: a capa é imagem do aviso (o módulo de fotos de perfil não mexe nela) e tem altura fixa. */
+html[data-workspace-ui='v2'] .v2-notice-detail img.notice-detail-cover{height:124px!important;width:100%!important;object-fit:cover!important;transform:none!important;border-radius:7px!important}
+html[data-workspace-ui='v2'] .v2-notice-calendar img.notice-detail-cover{height:112px!important;width:100%!important;object-fit:cover!important;transform:none!important;border-radius:7px!important}
+html[data-workspace-ui='v2'] .v2-notice-detail{max-height:min(90dvh,720px)}
+/* Reações do comunicado. */
+html[data-workspace-ui='v2'] .v2-notice-reactions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+html[data-workspace-ui='v2'] .v2-notice-reactions button{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 11px;border:1px solid #e7ddd5;border-radius:16px;background:#fff;font:inherit;font-size:11px;color:#67574c;cursor:pointer;transition:transform .12s ease,background .12s ease,border-color .12s ease}
+html[data-workspace-ui='v2'] .v2-notice-reactions button:hover{transform:translateY(-1px);border-color:#d9c9c0}
+html[data-workspace-ui='v2'] .v2-notice-reactions button.on{background:#f6edf0;border-color:#5a1e2d;color:#5a1e2d;font-weight:700}
+html[data-workspace-ui='v2'] .v2-notice-reactions button span{font-size:15px;line-height:1}
+html[data-workspace-ui='v2'] .v2-notice-reactions button b{font-size:11px}
+html[data-workspace-ui='v2'] .v2-notice-reactions button i{font-style:normal}
+.v2-admin-audit .v2-audit-list .wf-record-row{grid-template-columns:46px 96px minmax(0,2.2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:860px){.v2-admin-audit .v2-audit-list .wf-record-row{grid-template-columns:46px minmax(0,1fr)}}

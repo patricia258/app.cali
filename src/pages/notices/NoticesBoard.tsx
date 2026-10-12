@@ -27,6 +27,8 @@ const formatMoment = (value: string) => new Date(value).toLocaleString('pt-BR', 
 const today = () => new Date().toISOString().slice(0, 10);
 const emptyDraft = (): Draft => ({ id: null, category: 'comunicado', title: '', body: '', date: today(), time: '', coverage: 'Nacional', audience: 'all', targets: [], coverPath: null });
 
+const REACTIONS: [string, string, string][] = [['like', '👍', 'Curti'], ['love', '❤️', 'Amei'], ['clap', '👏', 'Parabéns']];
+
 function NoticesBoard({ role }: { role: Role }) {
   const admin = role === 'admin';
   const [searchParams, setSearchParams] = useSearchParams();
@@ -34,6 +36,7 @@ function NoticesBoard({ role }: { role: Role }) {
   const [targets, setTargets] = useState<Record<string, string[]>>({});
   const [acks, setAcks] = useState<Ack[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [reactions, setReactions] = useState<{ noticeId: string; userId: string; reaction: string }[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [names, setNames] = useState<Record<string, string>>({});
   const [me, setMe] = useState<{ id: string; companyId: string | null }>({ id: '', companyId: null });
@@ -59,11 +62,12 @@ function NoticesBoard({ role }: { role: Role }) {
       const uid = session.session?.user?.id || '';
       const profile = uid ? await supabase.from('profiles').select('company_id').eq('id', uid).maybeSingle() : { data: null };
       setMe({ id: uid, companyId: admin ? null : (profile.data as any)?.company_id || null });
-      const [noticeResult, targetResult, ackResult, commentResult] = await Promise.all([
+      const [noticeResult, targetResult, ackResult, commentResult, reactionResult] = await Promise.all([
         supabase.from('notices').select('id,protocol,category,title,body,notice_date,time_label,coverage,cover_path,audience,status,published_at').order('published_at', { ascending: false }),
         supabase.from('notice_targets').select('notice_id,company_id'),
         supabase.from('notice_acknowledgements').select('notice_id,user_id,company_id,acknowledged_at'),
         supabase.from('notice_comments').select('id,notice_id,company_id,author_user_id,author_role,body,created_at').order('created_at'),
+        supabase.from('notice_reactions').select('notice_id,user_id,reaction'),
       ]);
       if (noticeResult.error) throw noticeResult.error;
       const rows = await Promise.all((noticeResult.data || []).map(async (row: any): Promise<Notice> => ({
@@ -75,6 +79,7 @@ function NoticesBoard({ role }: { role: Role }) {
       const targetMap: Record<string, string[]> = {};
       for (const row of targetResult.data || []) (targetMap[(row as any).notice_id] ||= []).push((row as any).company_id);
       setTargets(targetMap);
+      setReactions(((reactionResult.error ? [] : reactionResult.data) || []).map((row: any) => ({ noticeId: row.notice_id, userId: row.user_id, reaction: row.reaction })));
       setAcks((ackResult.data || []).map((row: any) => ({ noticeId: row.notice_id, userId: row.user_id, companyId: row.company_id, at: row.acknowledged_at })));
       setComments((commentResult.data || []).map((row: any) => ({ id: row.id, noticeId: row.notice_id, companyId: row.company_id, authorId: row.author_user_id, authorRole: row.author_role, body: row.body, createdAt: row.created_at })));
       const people = await supabase.from('profiles').select('id,full_name');
@@ -102,6 +107,16 @@ function NoticesBoard({ role }: { role: Role }) {
 
   function closeDetail() { setActiveId(null); setCommentText(''); setReplyCompany(''); if (searchParams.get('aviso')) { const next = new URLSearchParams(searchParams); next.delete('aviso'); setSearchParams(next, { replace: true }); } }
 
+  const myReaction = (id: string) => reactions.find((item) => item.noticeId === id && item.userId === me.id)?.reaction || '';
+  async function react(item: Notice, reaction: string) {
+    if (!supabase || !me.id) return; const current = myReaction(item.id); const previous = reactions;
+    setReactions((list) => [...list.filter((row) => !(row.noticeId === item.id && row.userId === me.id)), ...(current === reaction ? [] : [{ noticeId: item.id, userId: me.id, reaction }])]);
+    const result = current === reaction
+      ? await supabase.from('notice_reactions').delete().eq('notice_id', item.id).eq('user_id', me.id)
+      : await supabase.from('notice_reactions').upsert({ notice_id: item.id, user_id: me.id, company_id: me.companyId, reaction }, { onConflict: 'notice_id,user_id' });
+    if (result.error) { setReactions(previous); setError('Não foi possível registrar a reação. Tente de novo.'); }
+  }
+  const reactionBar = (item: Notice) => <div className="v2-notice-reactions" role="group" aria-label="Reagir ao comunicado">{REACTIONS.map(([key, emoji, label]) => { const count = reactions.filter((row) => row.noticeId === item.id && row.reaction === key).length; return <button type="button" key={key} className={myReaction(item.id) === key ? 'on' : ''} aria-pressed={myReaction(item.id) === key} title={label} onClick={(event) => { event.stopPropagation(); void react(item, key); }}><span aria-hidden="true">{emoji}</span>{count > 0 && <b>{count}</b>}<i>{label}</i></button>; })}</div>;
   async function toggleAck(item: Notice) {
     if (!supabase || admin || !me.id) return;
     const done = iAcked(item.id);
@@ -213,6 +228,7 @@ function NoticesBoard({ role }: { role: Role }) {
         {active.coverUrl && <img className="notice-detail-cover" src={active.coverUrl} alt="" />}
         <span className={`notice-category ${active.category}`}>{categoryLabel(active.category)}</span><h2>{active.title}</h2><p>{active.body}</p>
         <dl>{active.date && <div><dt>Data</dt><dd>{formatDay(active.date)}</dd></div>}{active.time && <div><dt>Horário</dt><dd>{active.time}</dd></div>}{active.coverage && <div><dt>Abrangência</dt><dd>{active.coverage}</dd></div>}<div><dt>Publicado por</dt><dd>CALI · Assessoria</dd></div>{admin && <div><dt>Quem recebe</dt><dd>{audienceLabel(active)}</dd></div>}</dl>
+        {reactionBar(active)}
         {admin && <><h3>Ciências registradas</h3>{acksOf(active.id).length ? <div className="v2-notice-acks">{acksOf(active.id).map((ack) => <span key={ack.userId}><Check size={12} />{names[ack.userId] || 'Cliente'}{ack.companyId ? ` · ${companyName.get(ack.companyId) || ''}` : ''}<small>{formatMoment(ack.at)}</small></span>)}</div> : <p className="notice-muted">Ninguém registrou ciência ainda.</p>}</>}
         <h3>Comentários</h3>
         {!commentsOf(active.id).length && <p className="notice-muted">Nenhum comentário ainda.</p>}
