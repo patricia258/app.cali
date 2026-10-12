@@ -904,6 +904,14 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Fora desta entrega (etapa 3b):** Partner editar entregas, relatórios, documentos, comunicados e agenda dentro do sistema (hoje ele prepara fora e "envia para aprovação"); cronômetro do Partner; telas de leitura dos demais módulos na área dele; notificação no sino quando há item para aprovar; Partner identificado por nome na Auditoria.
 - **Não verificado:** nada disto com conta real — gravações (resposta de ocorrência, horas, envio, decisão) só no simulador, que bloqueia gravações.
 
+### 2026-10-12 (12) — Partner: consulta dos módulos, aviso no sino, auditoria — login CONTINUA desligado
+
+- Patricia respondeu "siga para a próxima etapa" sem a frase pedida para o login ("pode publicar e ligar o login do Partner"). **Interpretação minha:** seguir com o desenvolvimento; NÃO publiquei o site nem a função de login `workspace-access`.
+- **Banco aplicado (acréscimo):** `20261012210000_staff_submission_notifications.sql` — função + 2 gatilhos nas tabelas novas das filas: quando o Partner envia horas ou material, a administradora recebe notificação no sino ("Horas para aprovar · Nome" / "Material para aprovar · Nome"), com link para `/admin/equipe-cali`. Se o aviso falhar, o envio não é perdido.
+- **Área do Partner (homologação):** telas de consulta, só leitura, para os módulos liberados — Projetos e entregas, Calendário, Documentos, Relatórios, Avisos, Equipe do cliente (filtro por empresa + busca). Menu mostra só os módulos liberados.
+- **Auditoria:** eventos "Aprovou/Recusou horas lançadas pela Equipe CALI" traduzidos; o nome do Partner aparece em "Quem" (vem do perfil).
+- **Ainda fora (etapa 3b):** Partner publicar comunicado e criar agendamento direto (ela autorizou; exige política de escrita em `notices`/`events` e ajuste em `notify_notice`); editar entregas/relatórios/documentos no sistema; cronômetro do Partner; sino na área do Partner (retorno das decisões hoje aparece nas listas "Meus lançamentos" / "Meus envios").
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

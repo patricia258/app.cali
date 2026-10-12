@@ -2895,3 +2895,6 @@ html[data-workspace-ui='v2'] .v2-staff-area .panel{padding:18px 20px;background:
 .v2-admin-staff .v2-staff-queue .wf-record-row{grid-template-columns:176px minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) auto}
 .v2-admin-staff .v2-staff-queue .wf-record-row>div.v2-staff-queue-actions{flex-direction:row;align-items:center;gap:8px}
 @media(max-width:860px){.v2-admin-staff .v2-staff-queue .wf-record-row{grid-template-columns:1fr}}
+html[data-workspace-ui='v2'] .v2-staff-browse .wf-record-row{display:grid;grid-template-columns:minmax(0,1fr) auto 110px;align-items:center;gap:14px;cursor:default}
+html[data-workspace-ui='v2'] .v2-staff-search{flex:1;min-width:0;max-width:320px;height:40px;padding:0 12px;border:1px solid #e5d9d0;border-radius:7px;background:#fff;font:inherit;font-size:12px;color:#322f2c}
+@media(max-width:860px){html[data-workspace-ui='v2'] .v2-staff-browse .wf-record-row{grid-template-columns:minmax(0,1fr) auto}html[data-workspace-ui='v2'] .v2-staff-browse .wf-record-row>small{display:none}html[data-workspace-ui='v2'] .v2-staff-area .toolbar{flex-wrap:wrap}}
