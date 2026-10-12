@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { AlertTriangle, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, FileText, Loader2, Plus, SlidersHorizontal, X } from 'lucide-react';
 import { ClientGoogleCalendarPanel } from '../../components/ClientGoogleCalendarPanel';
 import { Shell } from '../../components/WorkspaceShell';
+import { NoticeCalendarCard } from '../notices/NoticesBoard';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 
@@ -184,6 +185,15 @@ export function ClientTimelinePage() {
   const [weekCursor, setWeekCursor] = useState(() => new Date());
   const [visibleKinds, setVisibleKinds] = useState<Set<TimelineItem['kind']>>(() => new Set(['event','request','deadline']));
   const [personalGoogle, setPersonalGoogle] = useState<TimelineItem[]>([]);
+  // Avisos da CALI com data (feriado, atendimento) entram na agenda como informação de dia inteiro.
+  const [noticeItems, setNoticeItems] = useState<TimelineItem[]>([]);
+  useEffect(() => { let active = true; void (async () => {
+    if (!supabase) return;
+    const result = await supabase.from('notices').select('id,category,title,body,notice_date,time_label,coverage').eq('status', 'published').not('notice_date', 'is', null);
+    if (!active || result.error) return;
+    const tone: Record<string, string> = { feriado: '#C79A4B', atendimento: '#5E93BF', comunicado: '#8A6FB0' };
+    setNoticeItems((result.data || []).map((row: any): TimelineItem => { const start = `${row.notice_date}T12:00:00-03:00`; return { id: `notice-${row.id}`, sourceId: String(row.id), kind: 'google', title: `Aviso · ${row.title}`, at: start, endsAt: null, description: row.body, secondaryDetail: [row.time_label, row.coverage].filter(Boolean).join(' · ') || undefined, color: tone[row.category] || '#8A6FB0', textColor: '#ffffff', allDay: true, dateLabel: formatDay(start), timeLabel: row.time_label || 'Dia inteiro', state: dateState(start), typeLabel: 'Aviso da CALI', statusLabel: 'Aviso da CALI', tone: 'pending' } as TimelineItem; }));
+  })(); return () => { active = false; }; }, []);
   const [personalGoogleNotice, setPersonalGoogleNotice] = useState('');
   useEffect(() => { if (!selectedItem) return; const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setSelectedItem(null); }; window.addEventListener('keydown', close); return () => window.removeEventListener('keydown', close); }, [selectedItem]);
 
@@ -379,7 +389,8 @@ export function ClientTimelinePage() {
     return () => window.removeEventListener('cali:open-agenda-event', open);
   }, [items]);
 
-  function openItem(item: TimelineItem) { setChangeTarget(null); setChangeAction(null); setChangeError(''); setSelectedItem(item); }
+  const [noticeOpen, setNoticeOpen] = useState<string | null>(null);
+  function openItem(item: TimelineItem) { if (item.id.startsWith('notice-')) { setNoticeOpen(String(item.sourceId)); return; } setChangeTarget(null); setChangeAction(null); setChangeError(''); setSelectedItem(item); }
   function beginChange(action:'cancel'|'reschedule') { setChangeAction(action); setChangeTarget(selectedItem); setSelectedItem(null); setChangeError(''); setChangeReason(''); setNewSlots([{date:'',time:''},{date:'',time:''}]); }
   async function submitChange(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -402,7 +413,7 @@ export function ClientTimelinePage() {
   const weekDays = Array.from({length:7},(_,index)=>new Date(weekStart.getFullYear(),weekStart.getMonth(),weekStart.getDate()+index));
   const weekKey = (value:string|Date) => new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(value instanceof Date?value:new Date(value));
   const inputDate = (value:Date) => `${value.getFullYear()}-${String(value.getMonth()+1).padStart(2,'0')}-${String(value.getDate()).padStart(2,'0')}`;
-  const filteredItems=[...items.filter(item=>visibleKinds.has(item.kind)),...(visibleKinds.has('google')?personalGoogle.filter(personal=>!events.some(appointment=>!appointment.cancelled_at && (appointment.google_event_id===personal.sourceId || (appointment.title.trim().toLowerCase()===personal.title.trim().toLowerCase() && Math.abs(new Date(appointment.starts_at).getTime()-new Date(personal.at).getTime())<60000)))):[])].sort((a,b)=>new Date(a.at).getTime()-new Date(b.at).getTime());
+  const filteredItems=[...items.filter(item=>visibleKinds.has(item.kind)),...noticeItems,...(visibleKinds.has('google')?personalGoogle.filter(personal=>!events.some(appointment=>!appointment.cancelled_at && (appointment.google_event_id===personal.sourceId || (appointment.title.trim().toLowerCase()===personal.title.trim().toLowerCase() && Math.abs(new Date(appointment.starts_at).getTime()-new Date(personal.at).getTime())<60000)))):[])].sort((a,b)=>new Date(a.at).getTime()-new Date(b.at).getTime());
   const moveWeek=(offset:number)=>setWeekCursor(current=>new Date(current.getFullYear(),current.getMonth(),current.getDate()+offset*7));
   function scrollWeeks(event:ReactWheelEvent<HTMLDivElement>){
     if(Math.abs(event.deltaX)<22||Math.abs(event.deltaX)<Math.abs(event.deltaY))return;
@@ -529,6 +540,7 @@ export function ClientTimelinePage() {
           </section>
         </div>, document.body)}
       {changeTarget && changeAction && createPortal(<div className="v2-client-module wf-agenda-overlay wf-agenda-change-overlay" onMouseDown={event=>{if(event.target===event.currentTarget&&!changeBusy)setChangeTarget(null)}}><section className="wf-modal wf-create" role="alertdialog" aria-modal="true" aria-labelledby="agenda-change-title"><header><div><small>{changeTarget.request?.extra_visit?'VISITA EXTRA':'REUNIÃO'}</small><h2 id="agenda-change-title">{changeAction==='cancel'?'Pedir cancelamento':'Sugerir novas datas'}</h2></div><button type="button" onClick={()=>setChangeTarget(null)} aria-label="Fechar"><X size={19}/></button></header><form className="wf-create-form" onSubmit={submitChange}><p><strong>{changeTarget.title}</strong> · {changeTarget.dateLabel} {changeTarget.timeLabel}</p><p>Conte o motivo para a CALI analisar. Uma taxa eventual depende da antecedência, da justificativa e das condições aceitas no seu contrato. Nada é cobrado automaticamente.</p>{changeAction==='reschedule'&&<><p>As novas opções precisam ter pelo menos 48 horas úteis de antecedência e ocorrer de segunda a sexta, entre 9h e 16h.</p><div className="wf-change-slots">{newSlots.map((slot,index)=><fieldset key={index}><legend>Opção {index+1}</legend><input aria-label={`Data da opção ${index+1}`} type="date" required value={slot.date} onChange={event=>setNewSlots(current=>current.map((row,i)=>i===index?{...row,date:event.target.value}:row))}/><input aria-label={`Horário da opção ${index+1}`} type="time" min="09:00" max={changeTarget.request?.extra_visit?'12:00':'16:00'} required value={slot.time} onChange={event=>setNewSlots(current=>current.map((row,i)=>i===index?{...row,time:event.target.value}:row))}/></fieldset>)}</div></>}<label>Justificativa<textarea required minLength={5} value={changeReason} onChange={event=>setChangeReason(event.target.value)} placeholder="O que mudou na sua agenda?"/></label>{changeError&&<p className="client-visit-change-error" role="alert">{changeError}</p>}<div className="v2-dialog-actions"><button type="button" onClick={()=>setChangeTarget(null)}>Voltar</button><button type="submit" disabled={changeBusy}>{changeBusy?'Enviando…':'Confirmar pedido'}</button></div></form></section></div>,document.body)}
+      {noticeOpen && <NoticeCalendarCard noticeId={noticeOpen} href={`/cliente/avisos?aviso=${noticeOpen}`} onClose={() => setNoticeOpen(null)} />}
     </Shell>
   );
 }

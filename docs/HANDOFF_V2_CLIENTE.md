@@ -693,6 +693,57 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - Cartão de alerta com cor: âmbar para "Atenção", vermelho para "Precisa corrigir", cinza para "Ignorado" (`tone-attention / tone-critical / tone-dismissed`). Regra dela, para qualquer alerta do sistema: cartão de atenção nunca fica em cor neutra.
 - **Publicação no oficial**: ela perguntou se já dá para aplicar. NÃO foi publicado — falta o "pode publicar no oficial" explícito. Recomendação dada: antes, um roteiro curto de teste no link de homologação com dados reais (ver resposta na conversa).
 
+### 2026-10-11 — PUBLICADO NO OFICIAL
+
+- A Patricia fez o roteiro de teste no link de homologação e autorizou: "já fiz tudo isso por isso pode publicar".
+- `feat/client-visual-v2-inplace-20261008` foi mesclado em `main` com commit de merge `b2a6c09` (sem reescrever histórico; `main` não tinha nada novo) e enviado. `app.calirh.com` passa a servir a interface V2 para cliente e administradora.
+- Para voltar atrás, se preciso: `git revert -m 1 b2a6c09` em `main` (as mudanças de banco não voltam com isso e não precisam: são aditivas).
+- Primeiros testes no oficial: "Gerar relatório" do Mapa (pendência B1), PDF de relatório com a fonte nova, cronômetro com menos de 30 s.
+- O trabalho continua neste mesmo ramo; novas publicações só com novo "pode publicar".
+
+### 2026-10-11 — Quadro de Avisos (cliente e administradora)
+
+- Pedido da Patricia depois da publicação: a página de comunicados tinha ficado de fora. Plano apresentado na conversa (tabelas, quem publica, sem e-mail, agenda numa 2ª etapa) e aprovado com "show, manda bala!" — registrado como autorização para o banco (interpretação minha; ela não usou a frase "pode aplicar").
+- **Banco (aplicado)**: `20261011220000_notices_board.sql` — `notices` (protocolo AV-AAAA-NNNN, categoria, título, texto, data, horário, abrangência, capa, público `all|selected`, situação), `notice_targets`, `notice_acknowledgements`, `notice_comments`; função `can_read_notice`; RLS: administradora publica e vê tudo, cliente lê os avisos da própria empresa, registra a própria ciência e comenta pela própria empresa; função `notify_notice` (cria as notificações do sino para os clientes ativos que recebem o aviso); política de leitura do armazenamento para `notices/…` (capas visíveis a qualquer usuário logado; envio só pela administradora, pela política que já existia).
+- **Telas**: `src/pages/notices/NoticesBoard.tsx` (substitui `ClientNoticesPage.tsx`) na composição aprovada da V2 (`notice-*`). Cliente (`/cliente/avisos`): mural, filtro por categoria, "Estou ciente", comentários, abre direto pelo sino (`?aviso=`). Administradora (`/admin/avisos`, novo item "Avisos" no menu, em `migratedAdminRoutes`): Mural e "Gerenciar publicações" (lista, editar, arquivar / publicar de novo, ver arquivados), "Novo comunicado" (categoria, título, data, horário, abrangência, quem recebe, capa, mensagem), detalhe com ciências registradas e comentários.
+- Regra dos comentários: a resposta da CALI é gravada para a empresa que comentou (seletor quando mais de uma comentou), assim empresas diferentes não veem comentários umas das outras.
+- Fora desta etapa: aviso com data aparecer na Agenda do cliente; e-mail.
+- Conferido no QA com avisos simulados: mural (cliente e administradora), gerenciar, novo comunicado com empresas escolhidas, detalhe, 390 px. **Nada foi gravado no banco real ainda**: publicar, capa (envio e leitura pelo cliente), ciência, comentário, resposta e o sino precisam do primeiro teste real. Não publicado no oficial.
+
+### 2026-10-11 — Quadro de Avisos, 2ª etapa: Agenda, Visão geral, e-mail — e PENDÊNCIAS REVISADAS
+
+- **Agenda**: aviso publicado com data aparece como informação de dia inteiro na agenda da administradora (`AdminCalendarPage`, `noticeEvents`, título "Aviso · …", cor por categoria, sem edição) e na do cliente (`ClientTimelinePage`, `noticeItems`, rótulo "Aviso da CALI"). Não bloqueia horário nem cria compromisso; arquivar o aviso tira da agenda.
+- **Visão geral do cliente**: o bloco "Quadro de avisos" (que mostrava "Mural em preparação") agora lista os 2 avisos mais recentes da empresa com capa, categoria e situação da ciência (`ClientHomeNotices`), abrindo o comunicado.
+- **E-mail (banco aplicado a pedido dela)**: `20261011230000_notices_email_notification.sql` — a notificação do aviso nasce com `email_required = true`; o gatilho e a função de e-mail que já existiam (`notifications_email_dispatch` → `workspace-notification-email-hook`, Resend, modelo padrão "ATUALIZAÇÃO DO WORKSPACE" com botão "Abrir no Workspace") fazem o envio. Um e-mail por aviso e por usuário cliente ativo das empresas escolhidas. O botão do e-mail abre `app.calirh.com/cliente/avisos?aviso=…` — **enquanto o Quadro de Avisos não for publicado no oficial, esse link cai na página antiga (vazia)**.
+- O aviso de teste da Patricia ("Dia das Crianças", AV-2026-0001, todas as empresas) gerou 1 notificação de sino, para 1 empresa; foi criado antes do e-mail estar ligado, então não gerou e-mail.
+- Conferido no QA com avisos simulados: agenda da administradora (mês), agenda do cliente, bloco da Visão geral. **Não conferido de verdade:** envio do e-mail, sino do cliente, capa vista pelo cliente.
+
+#### Pendências — situação em 2026-10-11 à noite (substitui a lista consolidada anterior)
+
+**Aguardando no ramo de homologação (ainda NÃO publicado no oficial):** Quadro de Avisos inteiro (telas, agenda, Visão geral). As tabelas e o e-mail já existem no banco, que é o mesmo do oficial.
+
+**Não resolvido / causa não confirmada**
+1. "Gerar relatório" do Mapa pedindo login em `mapa.calirh.com` — testar agora no oficial; hipótese: o site do Mapa só aceita `app.calirh.com` como origem.
+2. Foto de cliente que não abre no chat (mitigado com iniciais) — causa no cadastro não confirmada.
+3. Editor e prévia de rascunho de proposta no visual antigo e com a fonte antiga (isolamento do CSS do documento + teste com proposta real).
+4. Revisão em página do Mapa (`/admin/mapa-de-people/revisao`) no visual antigo; relatório do Mapa com a fonte antiga (site externo).
+5. Usuários internos (Administradora / Parceiro) — não iniciado; hoje só `patricia@calirh.com` é administradora.
+6. Print de Ocorrências sem texto (sino × "ação necessária") — a Patricia não respondeu o que queria ali.
+
+**Banco aplicado em 2026-10-11 (tudo aditivo)**: campos de conta/acessos e `team_month_metrics` (manhã); `timer_discard_sessions_under_30s`; `satisfaction_followups`; `notices_board`; `notices_email_notification`. Autorizações de `satisfaction_followups` e `notices_board` foram dadas por concordância com a proposta ("concordo", "manda bala"), sem a frase "pode aplicar".
+
+**Feito sem teste com dados reais** (o QA simula e bloqueia gravações): gravações de Agenda, Ocorrências, Documentos, Satisfação (tratativa), Propostas, Mapa, Relatórios (criar fechamento, aprovar, enviar, trimestral, PDF com a fonte nova e relatório completo), Avisos (publicar com capa, ciência, comentário, resposta, sino, e-mail), cronômetro com menos de 30 s, sino destacado, troca de página sem "piscar".
+
+**Dívidas técnicas**: contagem de mensagens em "Todas as empresas" (limite de 1000 linhas); aviso de sessão curta só em Ocorrências; `alert/confirm` nativos restantes (Google, excluir mensagem, cronômetro); folhas antigas ainda carregadas em rotas V2 e regras sem uso em `operational.css`; ramos `v1` em `CompanyTeamPage`; módulos que só enfeitavam telas antigas; avisos na agenda não respeitam o filtro de tipos da administradora (entram como "Outro").
+
+**Ideias registradas, não pedidas**: e-mail de boas-vindas / primeiro acesso; inteligência de diagnóstico e relatório de indicadores; entrada de dados de folha, recrutamento, desempenho e treinamento; coautores e data de revisão de documentos.
+
+### 2026-10-11 — Página "solta" ao rolar e aviso aberto pela Agenda
+
+- **Página balançando / faixa clara no topo**: era o efeito elástico do navegador ao rolar além do fim (o documento inteiro, com menu e topo, deslocava). `html` e `body` na V2 agora têm `overscroll-behavior:none` e `overflow-x:clip`. Conferido só o valor aplicado (`none`); o efeito em si depende do trackpad e não é reproduzível no QA — confirmar com a Patricia.
+- **Aviso na Agenda**: clicar num aviso (administradora ou cliente) abre um cartão próprio (`NoticeCalendarCard`) com a capa, a categoria, o texto, data/horário/abrangência e o botão "Abrir no Quadro de Avisos", que leva ao comunicado específico (`/admin/avisos?aviso=` ou `/cliente/avisos?aviso=`). Antes abria o diálogo de evento com textos de prazo de entregável, que não se aplicavam.
+- Conferido no QA: cartão abre nas duas agendas com o link certo e o conteúdo. Capa real não conferida (o QA não tem imagem).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

@@ -38,6 +38,7 @@ import {
   type WorkspaceCalendarEvent,
 } from '../../domain/calendar';
 import { supabase } from '../../lib/supabase';
+import { NoticeCalendarCard } from '../notices/NoticesBoard';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 
 type CompanyOption = { id: string; name: string; logoUrl?: string | null };
@@ -177,6 +178,15 @@ export function AdminCalendarPage() {
   const today = useMemo(() => new Date(), []);
   const [events, setEvents] = useState<WorkspaceCalendarEvent[]>(previewCalendarEvents);
   const [googleEvents, setGoogleEvents] = useState<WorkspaceCalendarEvent[]>([]);
+  // Avisos publicados com data aparecem na agenda como informação de dia inteiro (não bloqueiam horário).
+  const [noticeEvents, setNoticeEvents] = useState<WorkspaceCalendarEvent[]>([]);
+  useEffect(() => { let active = true; void (async () => {
+    if (!supabase) return;
+    const result = await supabase.from('notices').select('id,protocol,category,title,body,notice_date,time_label,coverage').eq('status', 'published').not('notice_date', 'is', null);
+    if (!active || result.error) return;
+    const tone: Record<string, string> = { feriado: '#C79A4B', atendimento: '#5E93BF', comunicado: '#8A6FB0' };
+    setNoticeEvents((result.data || []).map((row: any): WorkspaceCalendarEvent => ({ id: `notice:${row.id}`, title: `Aviso · ${row.title}`, company: 'Quadro de Avisos', type: 'other', color: tone[row.category] || '#8A6FB0', textColor: '#ffffff', startsAt: `${row.notice_date}T12:00:00-03:00`, endsAt: `${row.notice_date}T12:00:00-03:00`, allDay: true, description: [row.time_label, row.coverage, row.body].filter(Boolean).join(' · '), visibility: 'client', attendees: [], sourceType: 'manual', sourceProtocol: row.protocol, synthetic: true } as WorkspaceCalendarEvent)));
+  })(); return () => { active = false; }; }, []);
   const [googleReadStatus, setGoogleReadStatus] = useState<'loading'|'ready'|'reconnect'|'unavailable'>('loading');
   const [companies, setCompanies] = useState<CompanyOption[]>(fallbackCompanies);
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12));
@@ -360,13 +370,13 @@ export function AdminCalendarPage() {
     }
   }
 
-  const visibleEvents = useMemo(() => [...events,...googleEvents.filter(google=>!events.some(local=>local.googleEventId===google.googleEventId))].filter((event) => {
+  const visibleEvents = useMemo(() => [...events,...noticeEvents,...googleEvents.filter(google=>!events.some(local=>local.googleEventId===google.googleEventId))].filter((event) => {
     if (event.cancelledAt) return false;
-    if (companyFilter !== 'all' && event.companyId !== companyFilter) return false;
+    if (companyFilter !== 'all' && event.companyId !== companyFilter && !event.id.startsWith('notice:')) return false;
     if (!activeTypes.has(event.type)) return false;
     if (query && !`${event.title} ${event.company || ''} ${calendarTypeMeta[event.type]?.label || ''} ${eventProtocol(event) || ''}`.toLowerCase().includes(query.toLowerCase())) return false;
     return true;
-  }), [events, googleEvents, companyFilter, activeTypes, query]);
+  }), [events, noticeEvents, googleEvents, companyFilter, activeTypes, query]);
 
   const eventsByDate = useMemo(() => {
     const map = new Map<string, WorkspaceCalendarEvent[]>();
@@ -766,7 +776,8 @@ export function AdminCalendarPage() {
         </form>
       </div>}
 
-      {selectedEvent && <div className="modal-backdrop full-screen-modal calendar-modal-backdrop">
+      {selectedEvent && selectedEvent.id.startsWith('notice:') && <NoticeCalendarCard noticeId={selectedEvent.id.slice(7)} href={`/admin/avisos?aviso=${selectedEvent.id.slice(7)}`} onClose={() => setSelectedEvent(null)} />}
+      {selectedEvent && !selectedEvent.id.startsWith('notice:') && <div className="modal-backdrop full-screen-modal calendar-modal-backdrop">
         <section className={`modal-card calendar-detail-modal calendar-detail-refined ${selectedEvent.cancelledAt || meetingOutcomes[selectedEvent.id]?.outcome==='not_occurred' || selectedEvent.attendees.some(attendee=>attendee.status==='declined')?'is-negative':meetingOutcomes[selectedEvent.id]?.outcome==='occurred' || selectedEvent.attendees.some(attendee=>attendee.status==='accepted')?'is-positive':'is-pending'}`} role="dialog" aria-modal="true">
           <button className="modal-close" onClick={() => { setSelectedEvent(null); setShowCancel(false); setCancelReason(''); }} aria-label="Fechar"><X size={20} /></button>
           <div className="calendar-detail-accent" style={{ background: selectedEvent.color }} />
