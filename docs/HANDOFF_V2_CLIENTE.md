@@ -854,6 +854,20 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Trilha por item (só homologação):** na Auditoria, clicar no protocolo abre a trilha daquele item (entrega, ocorrência, projeto, relatório, documento, compromisso, aviso): cartão com tipo, protocolo, nº de movimentações, primeira e última data e quem participou, e a lista só daquele item (ignora os filtros). Também há "Agrupar por protocolo", com botão "Ver trilha completa" em cada grupo.
 - **Limites:** a trilha usa os 400 registros mais recentes de cada fonte (item muito antigo pode vir incompleto); mensagens do chat da ocorrência e lançamentos de horas ligados ao item ainda não entram na trilha; nome/título do item não aparece, só tipo e protocolo.
 
+### 2026-10-12 (8) — 10ª publicação (trilha da Auditoria) e PLANO do perfil Partner (nada aplicado)
+
+- **Publicado no oficial** (autorizado): trilha por item na Auditoria. Oficial em `cbd3d4d`.
+- **Partner — decisões da Patricia (12/10):** módulo "Equipe CALI" dentro de uma página existente do menu da administradora; convite por e-mail com mensagem de boas-vindas à equipe CALI e a mesma apresentação inicial; dois perfis (Administradora = a dela, completo; Partner). Partner: vê só as empresas atribuídas; NÃO acessa Propostas, Auditoria, dados salariais nem valores; PODE acessar e gerar Mapa de People; pode lançar horas manualmente com justificativa, e o lançamento precisa da aprovação dela antes de entrar no relatório de horas; vê informações contratuais do pacote (Partner / Full / Build), sem detalhes sensíveis.
+- **Situação técnica encontrada (leitura do banco):** `cali_workspace.is_admin()` é o e-mail `patricia@calirh.com` fixo; `profiles.role` só aceita `admin` e `client`; 58 políticas e 55 funções dependem da checagem de administradora. Ou seja: Partner não é "um campo a mais", é um perfil novo de permissão.
+- **Plano em etapas (cada uma só com "pode aplicar" dela):**
+  1. **Base no banco (aditivo + 1 ajuste):** aceitar `partner` em `profiles.role` (ajuste de regra existente); tabela nova `staff_company_assignments (user_id, company_id)`; funções novas `is_partner()` e `partner_can_access(company_id)`. `is_admin()` NÃO muda — continua só ela.
+  2. **Leitura do Partner:** políticas NOVAS (somadas, sem alterar as atuais) dando leitura das empresas atribuídas em: empresas (sem valores), equipe (sem dados restritos), projetos/entregas, ocorrências, calendário, documentos, avisos, horas. Sem política para propostas, auditoria, financeiro, `team_member_private`, satisfação.
+  3. **Escrita do Partner:** ocorrências (responder), cronômetro e horas manuais com justificativa obrigatória; campo novo de situação no lançamento ("aguardando aprovação" → aprovado/recusado por ela); só aprovado entra no relatório de horas. Exige alterar funções existentes de horas/cronômetro → testar com conta Partner de teste antes de publicar.
+  4. **Telas:** aba "Equipe CALI" (convidar, atribuir empresas, desativar); menu reduzido do Partner; fila "Horas para aprovar" para ela; e-mail e apresentação de boas-vindas da equipe.
+  5. **Auditoria:** passa a distinguir Patricia × Partner (já mostra "Quem").
+- **Padrões que assumi e ela precisa confirmar:** Partner lê Relatórios mas não aprova nem envia ao cliente; lê Avisos mas não publica; não vê Satisfação; não cadastra nem edita cliente/contrato.
+- **Risco:** não há banco de teste separado (homologação e oficial usam o mesmo). Etapas 1 e 2 são aditivas e não mudam o que ela e o cliente veem hoje; a etapa 3 mexe em funções em uso e é a que pede mais cuidado.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
