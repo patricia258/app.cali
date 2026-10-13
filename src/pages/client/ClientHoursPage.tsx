@@ -1,4 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
+import { capacityOf, capacityMessages, minutesLabel, percentLabel } from '../../lib/capacity';
+import { CapacityBar } from '../../v2/CapacityBar';
 import { AlertTriangle, Clock3 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
@@ -163,6 +165,7 @@ export function ClientHoursPage() {
   const toneOf = (name: string) => fronts.find((item) => item.name === name)?.tone || 'gold';
   const filteredEntries = useMemo(() => entries.filter((entry) => contextFilter === 'all' || contextOf(entry) === contextFilter), [entries, contextFilter]);
 
+  const capacity = capacityOf(summary?.contractedHours, summary?.consumedMinutes);
   const percentage = summary?.usagePercent === null || summary?.usagePercent === undefined
     ? 0
     : Math.min(100, Math.max(0, summary.usagePercent));
@@ -173,11 +176,9 @@ export function ClientHoursPage() {
   const usage = summary?.usagePercent;
   if (usage !== null && usage !== undefined) {
     const shown = Math.round(usage);
-    if (usage >= 100) { alertText = `As horas contratadas deste mês foram totalmente utilizadas (${shown}%). Vamos alinhar juntos a continuidade.`; alertTone = 'critical'; }
-    else if (usage >= 70) { alertText = `Já utilizamos ${shown}% das horas deste mês. Seguimos avançando — vale combinar as prioridades para o restante do ciclo.`; alertTone = 'warning'; }
-    else if (usage >= 65) { alertText = `Estamos nos aproximando de 70% das horas deste mês (${shown}%).`; alertTone = 'warning'; }
-    else if (usage >= 50) { alertText = `Chegamos à metade das horas deste mês (${shown}%). O trabalho está avançando.`; alertTone = 'info'; }
-    else if (usage >= 45) { alertText = `Estamos nos aproximando de 50% das horas deste mês (${shown}%).`; alertTone = 'info'; }
+    if (usage > 100) { alertText = capacityMessages.excess; alertTone = 'critical'; }
+    else if (usage >= 100) { alertText = capacityMessages.full; alertTone = 'critical'; }
+    else if (usage >= 75) { alertText = capacityMessages.attention; alertTone = 'warning'; }
   }
 
   if (loading) {
@@ -193,8 +194,8 @@ export function ClientHoursPage() {
         <div className="hours-context"><span className="plan-mark">Período</span><input className="v2-hours-month" aria-label="Consultar mês" type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /><span className="hours-context-end"><Clock3 size={14}/> Visibilidade contratual habilitada</span></div>
         <div className="hours-ledger">
           <section className="ledger-main">
-            <div className="ledger-summary"><div><span>Contratadas</span><strong>{summary.contractedHours ? <>{summary.contractedHours}h <small>{Number.isInteger(summary.contractedHours) ? '00m' : ''}</small></> : '—'}</strong></div><div><span>Utilizadas</span><strong>{((formatted) => { const [hours, minutes] = formatted.split(' '); return hours.endsWith('h') ? <>{hours.padStart(3, '0')} <small>{minutes?.replace('min', 'm') || '00m'}</small></> : <>00h <small>{hours.replace('min', 'm').padStart(3, '0')}</small></>; })(formatMinutes(summary.consumedMinutes))}</strong></div><div><span>{summary.overMinutes > 0 ? 'Excedentes' : 'Disponíveis'}</span><strong>{((formatted) => { const [hours, minutes] = formatted.split(' '); return hours.endsWith('h') ? <>{hours.padStart(3, '0')} <small>{minutes?.replace('min', 'm') || '00m'}</small></> : <>00h <small>{hours.replace('min', 'm').padStart(3, '0')}</small></>; })(summary.overMinutes > 0 ? formatMinutes(summary.overMinutes) : formatMinutes(summary.remainingMinutes))}</strong></div></div>
-            <div className="ledger-progress" role="progressbar" aria-label="Consumo das horas contratadas" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentage}><span style={{ width: `${percentage}%` }}/></div>
+            <div className="ledger-summary"><div><span>Contratadas</span><strong>{summary.contractedHours ? <>{summary.contractedHours}h <small>{Number.isInteger(summary.contractedHours) ? '00m' : ''}</small></> : '—'}</strong></div><div><span>Utilizadas</span><strong>{((formatted) => { const [hours, minutes] = formatted.split(' '); return hours.endsWith('h') ? <>{hours.padStart(3, '0')} <small>{minutes?.replace('min', 'm') || '00m'}</small></> : <>00h <small>{hours.replace('min', 'm').padStart(3, '0')}</small></>; })(formatMinutes(summary.consumedMinutes))}</strong></div><div className={capacity.excessMinutes > 0 ? 'v2-excess-on' : ''}><span>Excedentes</span><strong>{capacity.excessMinutes > 0 ? minutesLabel(capacity.excessMinutes) : '0h'}</strong><small className="v2-card-foot">{capacity.excessMinutes > 0 ? `${percentLabel(capacity.excessPercent)} acima do contratado` : `Saldo do mês: ${minutesLabel(capacity.balanceMinutes)}`}</small></div></div>
+            <div className="v2-cap-wrap"><CapacityBar capacity={capacity} /></div>
             <div className="ledger-header"><h2>Onde o tempo foi investido</h2><span>{filteredRows.length} {filteredRows.length === 1 ? 'item neste período' : 'itens neste período'}</span><label className="ledger-filter">Tipo<select value={contextFilter} onChange={(event) => setContextFilter(event.target.value as ContextFilter)}><option value="all">Todos</option><option value="deliverable">Entregáveis e subtarefas</option><option value="project">Projeto</option><option value="interaction">Ocorrências e outras</option></select></label></div>
             {filteredRows.length === 0 ? <div className="wf-empty">Nenhum registro de horas neste período.</div> : <div className="ledger-table v2-ledger-v2">
               <div className="ledger-row ledger-heading"><span>Projeto</span><span>Tarefa</span><span>Tipo</span><span>Frente</span><span>Protocolo</span><span>Duração</span></div>
@@ -203,7 +204,7 @@ export function ClientHoursPage() {
               </div>)}
             </div>}
           </section>
-          <aside className="ledger-side"><div className="side-title">COMO LER ESTE EXTRATO</div><h2>Tempo dedicado a decisões que importam.</h2><p>As horas registram atividades executadas pela CALI. Você acompanha o que foi feito, sem editar os lançamentos.</p><div className="side-rule"/><span className="side-title">DISTRIBUIÇÃO POR FRENTE</span>{fronts.length ? fronts.map((item) => <div key={item.name} className="distribution"><span><i className={`v2-front-dot ${item.tone}`}/>{item.name}</span><strong>{item.share}%</strong></div>) : <div className="distribution"><span>Sem lançamentos neste mês</span><strong>—</strong></div>}<div className="distribution"><span>Consumo mensal</span><strong>{summary.usagePercent === null ? '—' : `${summary.usagePercent}%`}</strong></div><div className="side-foot">Todo o tempo dedicado à sua empresa entra no consumo. O extrato mostra em quê foi investido, somado por item.</div></aside>
+          <aside className="ledger-side"><div className="side-title">COMO LER ESTE EXTRATO</div><h2>Tempo dedicado a decisões que importam.</h2><p>As horas registram atividades executadas pela CALI. Você acompanha o que foi feito, sem editar os lançamentos.</p><div className="side-rule"/><span className="side-title">DISTRIBUIÇÃO POR FRENTE</span>{fronts.length ? fronts.map((item) => <div key={item.name} className="distribution"><span><i className={`v2-front-dot ${item.tone}`}/>{item.name}</span><strong>{item.share}%</strong></div>) : <div className="distribution"><span>Sem lançamentos neste mês</span><strong>—</strong></div>}<div className="distribution"><span>Consumo mensal</span><strong>{percentLabel(capacity.usagePercent)}</strong></div><div className="side-foot">Todo o tempo dedicado à sua empresa entra no consumo. O extrato mostra em quê foi investido, somado por item.</div></aside>
         </div>
       </>}
     </section>

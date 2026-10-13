@@ -153,6 +153,7 @@ export function WorkspaceShellV2({ role, navigation, extras, children, schedulin
                 <div className="v2-profile-meta">{companyName && <span>Empresa <b>{companyName}</b></span>}<span>Acesso <b>{role === 'admin' ? 'Administradora' : role === 'partner' ? 'Partner · Equipe CALI' : 'Cliente'}</b></span></div>
                 <button role="menuitem" onClick={() => { setProfileMenu(false); openEditor(); }}>Ver meu perfil <ChevronRight size={14} /></button>
                 {role !== 'admin' && <button role="menuitem" onClick={() => { setProfileMenu(false); window.dispatchEvent(new Event(WELCOME_OPEN_EVENT)); }}>Rever apresentação <ChevronRight size={14} /></button>}
+                {role === 'client' && <button role="menuitem" onClick={() => { setProfileMenu(false); navigate('/cliente/ajuda'); }}>Dúvidas frequentes <ChevronRight size={14} /></button>}
                 <button role="menuitem" onClick={() => { setProfileMenu(false); void requestLogout(); }}>Sair <ArrowRight size={14} /></button>
               </div>}
             </>} />

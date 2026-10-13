@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { capacityOf } from '../../lib/capacity';
+import { CapacityBar } from '../../v2/CapacityBar';
 import { ClientHomeNotices } from '../notices/NoticesBoard';
 import { Link } from 'react-router-dom';
 import {
@@ -369,7 +371,7 @@ export function ClientDashboard() {
           </div>
           </div>
           {contractedMinutes > 0 && <div className="ch-contract-progress" role="progressbar" aria-label="Horas consumidas neste mês" aria-valuemin={0} aria-valuemax={contractedMinutes} aria-valuenow={Math.min(contractedMinutes, data.minutes)} aria-valuetext={`${formatHours(data.minutes)} de ${data.contractedHours} horas, ${hoursPercentage}%`}>
-            <div className="ch-progress-line"><span style={{ width: `${hoursProgress}%` }} /></div><div className="ch-progress-scale"><span>0h</span><span>50%</span><span>{data.contractedHours}h</span></div>
+            <div className="v2-cap-home"><CapacityBar dark capacity={capacityOf(data.contractedHours, data.minutes)} /></div>
           </div>}
         </aside>
 

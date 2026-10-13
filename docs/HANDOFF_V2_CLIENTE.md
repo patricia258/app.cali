@@ -1217,6 +1217,21 @@ NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINIS
 - Falta: pedido de ajuste formal do cliente na subtarefa (hoje ele escreve na conversa); renomear documento liberado; capa da pasta; pasta na página Documentos da administradora; os 3 itens do documento de complexidade (dependências, impacto de atraso, histórico da estimativa); calendário do cliente; Documentos/Relatórios/Equipe do Partner.
 - NÃO testado com gravação real.
 
+### 2026-10-13 — POLÍTICA DE CAPACIDADE MENSAL (documento da proprietária) — plano e fase 1 (homologação)
+
+Documento colado por ela: "Política de capacidade mensal, alertas, excedentes e FAQ do cliente" (9 seções). Regra dela: NÃO considerar concluído só por melhoria visual; excedente nunca gera cobrança, suspensão, upgrade nem alteração contratual automática.
+
+FASE 1 — FEITA (homologação):
+- §2 cálculo único em `src/lib/capacity.ts` (`capacityOf`, `minutesLabel`, `percentLabel`, `capacityMessages` com os textos oficiais de 75%, 100% e 1ª ocorrência). Percentual não é limitado a 100%; percentual excedente calculado.
+- §3 barra única `src/v2/CapacityBar.tsx` (verde→amarelo→laranja→vermelho; marcas 0/50/75/100; excedente em faixa vermelha À PARTE, sem comprimir a escala; texto + ícone de alerta) na Home e em Horas do cliente. Cartões: Contratadas, Utilizadas, Excedentes (destaque vermelho suave só com excedente; sem excedente mostra "0h" e o saldo).
+- Avisos da página de Horas do cliente trocados pelos textos oficiais (75%, 100%, excedente); saíram os avisos de 45/50/65/70%.
+- §8 FAQ: `ClientFaqPage.tsx` em `/cliente/ajuda` (menu do perfil › "Dúvidas frequentes"), pesquisável, por assunto, perguntas expansíveis, 11 perguntas com o texto do documento.
+
+FASE 2 — A FAZER (banco): §4 alertas automáticos de 75% e 100%, uma vez por marco/cliente/mês, idempotentes e consolidados quando um lançamento cruza os dois; §5 ocorrências de excedente por mês (1ª, 2ª, 3ª com textos oficiais, janela configurável — proposta 6 meses, a validar com ela), 3ª gera pendência "Avaliar adequação de capacidade"; marcar o histórico existente como já tratado para NÃO disparar avisos retroativos.
+FASE 3 — A FAZER: §6 painel administrativo (ritmo de consumo, dias restantes, histórico mensal, meses com excedente, alertas comunicados, decisões); §7 relatório mensal com o bloco de capacidade e o texto-base; §9 validação com os 12 cenários.
+
+Pendência operacional: o lançamento de teste de 10h01 continua no extrato da Company IN e faz o cliente ver 118% — ela precisa corrigir em Horas › Editar.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

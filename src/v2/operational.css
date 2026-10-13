@@ -3533,3 +3533,36 @@ html[data-workspace-ui='v2'] .dv-row.dv-subrow:hover{background:#fbf7f4}
 .v2-stm-approve button.primary{background:#356448;border-color:#356448;color:#fff}
 .v2-stm-client .v2-subtask-chat{margin-top:20px}
 .v2-stm-notice{margin:14px 0 0;padding:10px 13px;border:1px solid #efc9a0;border-left:4px solid #d98a2b;border-radius:9px;background:#fff7ea;color:#6b4310;font-size:12px;font-weight:600}
+/* Barra de capacidade mensal (política de 2026-10-13): verde → amarelo → laranja → vermelho; excedente em faixa à parte. */
+.v2-cap{--cap-ink:#2b2b2b;--cap-soft:#8a7c74;--cap-track:#efe7e0;display:flex;flex-direction:column;gap:6px;width:100%}
+.v2-cap.dark{--cap-ink:#fff;--cap-soft:rgba(255,255,255,.78);--cap-track:rgba(255,255,255,.2)}
+.v2-cap-row{display:grid;grid-template-columns:minmax(0,1fr) 14%;gap:4px;align-items:center}
+.v2-cap-track{position:relative;height:10px;border-radius:6px 0 0 6px;background:var(--cap-track);overflow:hidden}
+.v2-cap-fill{position:absolute;inset:0 auto 0 0;overflow:hidden;border-radius:6px 0 0 6px}
+.v2-cap-fill i{display:block;height:100%;background:linear-gradient(90deg,#3f8f5f 0%,#3f8f5f 35%,#e0b93a 62%,#e08a2b 82%,#c94a3a 100%)}
+.v2-cap-track b{position:absolute;top:0;bottom:0;width:1.5px;background:rgba(255,255,255,.75);transform:translateX(-50%)}
+.v2-cap-over{position:relative;height:10px;border-radius:0 6px 6px 0;background:repeating-linear-gradient(135deg,var(--cap-track) 0 5px,transparent 5px 9px);border-left:2px solid var(--cap-ink);overflow:hidden}
+.v2-cap-over span{position:absolute;inset:0 auto 0 0;background:#c0392b}
+.v2-cap-scale{position:relative;height:14px;width:86%;font-size:10px;color:var(--cap-soft)}
+.v2-cap-scale span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.v2-cap-scale span:first-child{transform:none}
+.v2-cap-scale span:last-child{transform:translateX(-100%)}
+.v2-cap-read{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--cap-soft)}
+.v2-cap-read strong{font-size:13px;color:var(--cap-ink)}
+.v2-cap-read em{display:inline-flex;align-items:center;gap:5px;font-style:normal;font-weight:700;color:#b23b3b}
+.v2-cap.dark .v2-cap-read em{color:#ffd0c7}
+/* Cartões de horas: o de excedentes só fica em destaque quando há excedente. */
+html[data-workspace-ui='v2'] .ledger-summary>div.v2-excess-on{background:#fdf1f1;box-shadow:inset 0 3px 0 #c94a3a}
+html[data-workspace-ui='v2'] .ledger-summary>div.v2-excess-on strong{color:#a03535}
+html[data-workspace-ui='v2'] .ledger-summary>div small.v2-card-foot{display:block;margin-top:6px;font-size:11px;font-weight:500;color:#8a7c74}
+html[data-workspace-ui='v2'] .v2-cap-wrap{margin:14px 0 6px}
+/* FAQ do cliente. */
+html[data-workspace-ui='v2'] .v2-faq-search{display:flex;align-items:center;gap:9px;max-width:460px;height:42px;padding:0 13px;margin:0 0 18px;border:1px solid #dfd3ca;border-radius:10px;background:#fff}
+html[data-workspace-ui='v2'] .v2-faq-search input{flex:1;border:0;outline:none;background:transparent;font:inherit;font-size:13px}
+html[data-workspace-ui='v2'] .v2-faq-group{margin:0 0 18px;padding:6px 18px;border:1px solid #eadfd5;border-radius:12px;background:#fff}
+html[data-workspace-ui='v2'] .v2-faq-group>h2{margin:14px 0 6px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a8773f}
+html[data-workspace-ui='v2'] .v2-faq-item{border-top:1px solid #f0e8e1}
+html[data-workspace-ui='v2'] .v2-faq-item:first-of-type{border-top:0}
+html[data-workspace-ui='v2'] .v2-faq-item>button{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;padding:14px 0;border:0;background:none;font:inherit;font-size:13.5px;font-weight:700;color:#2b2b2b;text-align:left;cursor:pointer}
+html[data-workspace-ui='v2'] .v2-faq-item>p{margin:0 0 16px;max-width:820px;font-size:13px;line-height:1.6;color:#5f5650}
+html[data-workspace-ui='v2'] .v2-faq-empty{font-size:13px;color:#8a7c74}
