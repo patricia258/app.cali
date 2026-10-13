@@ -1021,6 +1021,21 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Subtarefas (etapas) do Partner:** pode criar ("Nova etapa" → pedido de autorização) e, ao marcar como concluída, vira pedido "Concluir etapa" para ela; aprovado, a etapa fica concluída. Ele não reabre.
 - **NÃO FEITO nesta rodada (ela pediu):** página de Horas do Partner; anexos na conversa dele.
 
+### 2026-10-14 (2) — Partner, página por página: 4) Horas (homologação)
+
+- **Autorização:** "prossiga".
+- **Tela:** o Partner usa a MESMA `AdminHoursPageV3` em modo `staff` (`StaffHoursPage`, rota `/equipe/horas`), alinhada igual (x=91, y=87): indicadores, Consumo por cliente, cronômetros ativos, Registros de atuação, e os três botões (Lançamento manual, Interação externa, Iniciar timer).
+  - **Consumo por cliente:** total da empresa vindo de `partner_hours_summary` (inclui as horas de todos, mas só o número); sem o botão "Visível/Oculto ao cliente".
+  - **Registros de atuação:** só os lançamentos DELE (fila `staff_hour_submissions`), cada um com a situação — Aguardando a Patricia / Aprovado / Recusado — e a resposta dela no detalhe. Ele não vê os lançamentos da administradora.
+  - **Cronômetro:** `partner_start_timer` (projeto e entregável opcionais para ele); só "Encerrar" (sem pausar/retomar); ao encerrar vai para aprovação.
+  - **Lançamento manual e interação externa:** mesmos formulários; em vez de registrar, viram pedido para ela. Sem a opção "Compartilhável no extrato do cliente".
+  - **Editar:** botão "Editar" nos lançamentos que ainda aguardam aprovação, com motivo obrigatório (`partner_edit_hour_submission`; o motivo entra na justificativa e na auditoria como "Equipe CALI editou um lançamento antes da aprovação"). Depois de decidido por ela, não edita. **Excluir: não existe para ele.**
+- **Banco aplicado (acréscimo):** `20261014120000_staff_partner_hours.sql` — funções `partner_start_timer` e `partner_edit_hour_submission`. Nada dela alterado.
+- **Auditoria:** traduzidos "Cronômetro pausado sozinho por inatividade" e a edição de lançamento da equipe.
+- **Limites:** horas aprovadas viram lançamento oficial criado pela administradora (o Partner continua vendo o item dele como "Aprovado" na fila); exportar CSV exporta só os dele; sem pausar/retomar cronômetro para ele.
+- **Não verificado:** nenhuma gravação com conta real.
+- **Ainda falta do Partner:** anexos na conversa; Calendário, Documentos, Relatórios e Equipe do cliente continuam como listas simples de consulta; recursos automáticos de Projetos.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

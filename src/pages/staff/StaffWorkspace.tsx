@@ -4,7 +4,7 @@
    vai para o cliente passa pela administradora: horas e materiais entram em filas de aprovação. */
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, Bell, BriefcaseBusiness, Play, Square, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, SendHorizontal, Users, X } from 'lucide-react';
+import { ArrowRight, Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, SendHorizontal, Users, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 import { type WelcomeStep } from '../../v2/WelcomeTour';
@@ -13,6 +13,7 @@ import { StaffNoticesPage } from '../notices/NoticesBoard';
 import { StaffDashboard } from './StaffDashboard';
 import { StaffRecordsPage } from '../records/WorkspaceRecordsPage';
 import { StaffProjectsPage } from '../admin/AdminProjectsPageV3';
+import { StaffHoursPage } from '../admin/AdminHoursPageV3';
 import '../../v2/v2.generated.css';
 import '../../styles/routes/records';
 import '../../styles/routes/projects';
@@ -58,7 +59,7 @@ function StaffBell({ me }: { me: Me }) {
 function Frame({ me, children }: { me: Me; children: ReactNode }) {
   const navigate = useNavigate(); const { pathname } = useLocation(); const has = (key: string) => me.modules.includes(key);
   /* A Visão geral usa a composição da administradora (.content > .ap-app), sem invólucro, para herdar as mesmas regras, inclusive no celular. */
-  const plain = ['/equipe', '/equipe/ocorrencias', '/equipe/projetos', '/equipe/avisos'].includes(pathname.replace(/\/$/, ''));
+  const plain = ['/equipe', '/equipe/ocorrencias', '/equipe/projetos', '/equipe/avisos', '/equipe/horas'].includes(pathname.replace(/\/$/, ''));
   const nav = ([['/equipe', 'Visão geral', LayoutDashboard, true], ['/equipe/pessoas', 'Equipe', Users, has('team')], ['/equipe/projetos', 'Projetos', BriefcaseBusiness, has('projects')], ['/equipe/horas', 'Horas', Clock3, has('hours')], ['/equipe/calendario', 'Calendário', CalendarDays, has('calendar')], ['/equipe/ocorrencias', 'Ocorrências', MessageCircleMore, has('records')], ['/equipe/documentos', 'Documentos', FolderOpen, has('documents')], ['/equipe/relatorios', 'Relatórios', FileBarChart2, has('reports')], ['/equipe/avisos', 'Avisos', Megaphone, has('notices')], ['/equipe/aprovacoes', 'Aguardando a Patricia', Send, true]] as [string, string, typeof Clock3, boolean][]).filter((item) => item[3]).map(([href, label, icon]) => ({ href, label, icon }));
   /* Entrada e saída ficam registradas para a administradora (função staff_log_session). */
   useEffect(() => { try { if (sessionStorage.getItem('cali:staff-session') === me.id) return; sessionStorage.setItem('cali:staff-session', me.id); } catch { /* segue */ } void supabase?.rpc('staff_log_session', { p_event: 'staff_session_started' }); }, [me.id]);
@@ -117,32 +118,6 @@ function Browse({ me, kind }: { me: Me; kind: string }) {
     <p className="soft-note">{kind === 'avisos' ? 'Você publica comunicados para as suas empresas; os já publicados aparecem na lista.' : 'Tela de consulta. Você vê, mas não altera por aqui.'}</p></>;
 }
 
-type HourRow = { id: string; company_id: string; work_date: string; minutes: number; description: string; justification: string; status: string; decision_note: string | null; created_at: string };
-function Hours({ me }: { me: Me }) {
-  const [rows, setRows] = useState<HourRow[]>([]); const [draft, setDraft] = useState({ company: '', date: new Date().toISOString().slice(0, 10), hours: '1', minutes: '0', description: '', justification: '' }); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [done, setDone] = useState('');
-  const timerKey = `cali:staff-timer:${me.id}`; const [startedAt, setStartedAt] = useState<number | null>(() => { try { const raw = Number(localStorage.getItem(timerKey) || 0); return raw > 0 ? raw : null; } catch { return null; } }); const [, tick] = useState(0);
-  useEffect(() => { if (!startedAt) return; const timer = window.setInterval(() => tick((value) => value + 1), 1000); return () => window.clearInterval(timer); }, [startedAt]);
-  const elapsed = startedAt ? Math.max(0, Math.floor((Date.now() - startedAt) / 1000)) : 0;
-  function startTimer() { const now = Date.now(); try { localStorage.setItem(timerKey, String(now)); } catch { /* segue */ } setStartedAt(now); setDone(''); }
-  function stopTimer() { if (!startedAt) return; const minutes = Math.max(1, Math.round((Date.now() - startedAt) / 60000)); const from = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(startedAt)); const to = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date()); try { localStorage.removeItem(timerKey); } catch { /* segue */ } setStartedAt(null); setDraft((current) => ({ ...current, hours: String(Math.floor(minutes / 60)), minutes: String(minutes % 60), justification: current.justification || `Tempo medido no cronômetro, das ${from} às ${to}` })); }
-  async function load() { if (!supabase) return; const result = await supabase.from('staff_hour_submissions').select('id,company_id,work_date,minutes,description,justification,status,decision_note,created_at').order('created_at', { ascending: false }).limit(100); if (!result.error) setRows((result.data || []) as HourRow[]); }
-  useEffect(() => { void load(); }, []);
-  async function save(event: FormEvent) { event.preventDefault(); if (!supabase) return; const total = Number(draft.hours || 0) * 60 + Number(draft.minutes || 0); setDone('');
-    if (!draft.company) { setError('Escolha a empresa.'); return; } if (!(total > 0 && total <= 1440)) { setError('Informe uma duração entre 1 minuto e 24 horas.'); return; } if (draft.description.trim().length < 3) { setError('Descreva o que foi feito.'); return; } if (draft.justification.trim().length < 10) { setError('Escreva a justificativa (pelo menos 10 caracteres): por que este lançamento é manual.'); return; }
-    setBusy(true); setError(''); const result = await supabase.from('staff_hour_submissions').insert({ staff_user_id: me.id, company_id: draft.company, work_date: draft.date, minutes: total, description: draft.description.trim(), justification: draft.justification.trim() }); setBusy(false);
-    if (result.error) { setError('Não foi possível enviar o lançamento. Tente de novo.'); return; } setDraft({ ...draft, description: '', justification: '' }); setDone('Lançamento enviado para a Patricia aprovar.'); void load(); }
-  const companyName = new Map(me.companies.map((item) => [item.id, item.display_name])); const tone: Record<string, [string, string]> = { pending: ['wait', 'Aguardando aprovação'], approved: ['ok', 'Aprovado'], rejected: ['bad', 'Recusado'] };
-  return <><Head eyebrow="EQUIPE CALI / HORAS" title="Horas" text="Lance o tempo trabalhado com uma justificativa. Só entra no relatório do cliente depois que a Patricia aprovar." />
-    <div className="v2-staff-timer"><div><small>CRONÔMETRO</small><strong>{startedAt ? `${String(Math.floor(elapsed / 3600)).padStart(2, '0')}:${String(Math.floor(elapsed % 3600 / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}` : '00:00:00'}</strong><span>{startedAt ? 'Contando. Ao parar, o tempo vai para o lançamento abaixo.' : 'Inicie ao começar o trabalho; ao parar, o tempo preenche o lançamento.'}</span></div>{startedAt ? <button type="button" className="wf-secondary" onClick={stopTimer}><Square size={14} /> Parar</button> : <button type="button" className="wf-primary" onClick={startTimer}><Play size={14} /> Iniciar</button>}</div>
-    <form className="panel v2-staff-hours" onSubmit={save}><h3>Novo lançamento</h3>
-      <div className="v2-staff-fields three"><label>Empresa<CompanySelect me={me} value={draft.company} onChange={(value) => setDraft({ ...draft, company: value })} /></label><label>Data<input type="date" value={draft.date} max={new Date().toISOString().slice(0, 10)} onChange={(event) => setDraft({ ...draft, date: event.target.value })} /></label><label>Duração<span className="v2-staff-duration"><input type="number" min="0" max="24" value={draft.hours} onChange={(event) => setDraft({ ...draft, hours: event.target.value })} aria-label="Horas" /> h <input type="number" min="0" max="59" step="5" value={draft.minutes} onChange={(event) => setDraft({ ...draft, minutes: event.target.value })} aria-label="Minutos" /> min</span></label></div>
-      <div className="v2-staff-fields"><label>O que foi feito<input value={draft.description} onChange={(event) => setDraft({ ...draft, description: event.target.value })} placeholder="Ex.: revisão da política de férias" /></label><label>Justificativa do lançamento manual<input value={draft.justification} onChange={(event) => setDraft({ ...draft, justification: event.target.value })} placeholder="Ex.: reunião presencial, sem cronômetro" /></label></div>
-      {error && <div className="inline-notice v2-staff-error" role="alert">{error}</div>}{done && <div className="inline-notice v2-staff-done" role="status">{done}</div>}
-      <div className="v2-staff-submit"><button type="submit" className="wf-primary" disabled={busy}>{busy ? 'Enviando…' : 'Enviar para aprovação'}</button></div></form>
-    <div className="section-head"><h2>Meus lançamentos</h2></div>
-    {rows.length ? <div className="wf-records v2-staff-sent">{rows.map((row) => <div className="wf-record-row" key={row.id}><time>{dayLabel(row.work_date)}</time><strong>{duration(row.minutes)}</strong><div><strong>{row.description}</strong><small>{companyName.get(row.company_id) || 'Empresa'} · {row.justification}{row.decision_note ? ` · Retorno: ${row.decision_note}` : ''}</small></div><span className={`wf-tag ${tone[row.status]?.[0] || ''}`}>{tone[row.status]?.[1] || row.status}</span></div>)}</div> : <div className="empty">Você ainda não enviou lançamentos.</div>}</>;
-}
-
 /* Acompanhamento do que foi enviado para a Patricia. O envio acontece dentro de cada tela (entregável, ocorrência, horas,
    alteração em projeto); aqui a pessoa só acompanha a resposta. */
 type ReviewRow = { id: string; company_id: string; kind: string; title: string; note: string | null; status: string; decision_note: string | null; created_at: string };
@@ -170,7 +145,7 @@ export function StaffWorkspace() {
   return <Frame me={me}><Routes>
     <Route index element={<StaffDashboard me={me} />} />
     <Route path="ocorrencias" element={me.modules.includes('records') ? <StaffRecordsPage companies={me.companies.map((item) => ({ id: item.id, name: item.display_name, logo: item.logo_workspace_url, logoFallback: item.logo_url }))} /> : <Navigate to="/equipe" replace />} />
-    <Route path="horas" element={me.modules.includes('hours') ? <Hours me={me} /> : <Navigate to="/equipe" replace />} />
+    <Route path="horas" element={me.modules.includes('hours') ? <StaffHoursPage companies={me.companies} /> : <Navigate to="/equipe" replace />} />
     {([['calendario', 'calendar'], ['documentos', 'documents'], ['relatorios', 'reports'], ['pessoas', 'team']] as [string, string][]).map(([path, module]) => <Route key={path} path={path} element={me.modules.includes(module) ? <Browse me={me} kind={path} /> : <Navigate to="/equipe" replace />} />)}
     <Route path="projetos" element={me.modules.includes('projects') ? <StaffProjectsPage companies={me.companies} /> : <Navigate to="/equipe" replace />} />
     <Route path="avisos" element={me.modules.includes('notices') ? <StaffNotices me={me} /> : <Navigate to="/equipe" replace />} />

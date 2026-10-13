@@ -3060,3 +3060,11 @@ html[data-workspace-ui='v2'] .v2-staff-projects .kanban-v2>div>button[draggable=
 /* Conferência antes de sair com cronômetro ligado (alerta: âmbar). */
 html[data-workspace-ui='v2'] .v2-exit-guard{z-index:1250}
 html[data-workspace-ui='v2'] .v2-exit-alert{margin:0;padding:12px 14px;border:1px solid #ecd9b0;border-radius:9px;background:#fff6e3;color:#7a5a2c;font-size:12px;line-height:1.5}
+/* Horas da Equipe CALI: mesma tela; sem visibilidade para o cliente; situação da aprovação em cada lançamento. */
+html[data-workspace-ui='v2'] .v2-staff-hours-page :is(.v2-hours-visibility,.hours-v13-visible){display:none!important}
+html[data-workspace-ui='v2'] .v2-staff-hours-page [hidden]{display:none!important}
+html[data-workspace-ui='v2'] .v2-staff-hour-status{display:inline-block;margin-left:8px;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap}
+html[data-workspace-ui='v2'] .v2-staff-hour-status.pending{background:#fff4de;color:#9b6c21}
+html[data-workspace-ui='v2'] .v2-staff-hour-status.approved{background:#e6f6ec;color:#31805a}
+html[data-workspace-ui='v2'] .v2-staff-hour-status.rejected{background:#fdecee;color:#b7495d}
+html[data-workspace-ui='v2'] .v2-staff-hour-edit{display:inline-flex;align-items:center;gap:5px;margin-left:8px;padding:4px 8px;border:1px solid #e5d9d0;border-radius:6px;background:#fff;color:#5a1e2d;font:inherit;font-size:10px;font-weight:700;cursor:pointer;vertical-align:middle}
