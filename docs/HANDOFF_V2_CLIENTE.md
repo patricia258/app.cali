@@ -1065,6 +1065,14 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - Regra da Patricia: o Partner precisa pausar e continuar depois; encerrar a tarefa não é dele. O `partner_stop_timer` já fazia isso (grava a sessão, envia para aprovação, não bloqueia nada) — igual ao "Pausar" da administradora (`pause_work_timer`). Só o nome estava errado: trocado para "Pausar" no entregável, na barra do topo, em Ocorrências e em Horas. O Partner não tem "Finalizar definitivamente".
 - Pedidos em aberto: calendário do CLIENTE com a mesma aparência do da administradora (sem criar evento); decidir quais eventos o Partner vê.
 
+### 2026-10-13 — Depois do teste real da Patricia: nome do Partner, anexo clicável, evento visível ou não para a equipe
+
+- BUG encontrado no teste: o cliente via "Patrícia Lima" (nome e foto) nas mensagens do João. Causa: os runtimes de conversa (entregáveis V35, ocorrências V1/V2) só conheciam a administradora e os clientes. Agora carregam também a Equipe CALI pela função nova `staff_identities()` (só nome e foto). Vale para cliente e administradora, em Projetos e Ocorrências.
+- Anexo do Partner: passou a usar o MESMO formato do padrão (`[[arquivo|nome|caminho|tipo|tamanho]]`, pasta `deliverable-chat/<empresa>/<entregável>/<usuário>/`), então sai como botão clicável para todos. Políticas novas de envio e leitura para o Partner nessa pasta. A política `…partner_deliverable_insert` e a função `partner_attach_deliverable_file` de horas antes ficaram sem uso (não removidas). A mensagem de teste antiga "Anexo: …docx" continua como texto.
+- Agenda: coluna `events.staff_visible` (padrão true) + campo "Equipe CALI: pode ver / não mostrar" no formulário de evento da administradora; `events_partner_read` respeita a opção. Migration `20261014210000`.
+- Conferido: `npm run check` ok; varredura 105 · 0. NÃO testado com gravação real.
+- Próximos: calendário do cliente com a mesma grade; Documentos, Relatórios e Equipe do cliente do Partner.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

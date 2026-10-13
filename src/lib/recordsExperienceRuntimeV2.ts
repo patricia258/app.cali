@@ -33,7 +33,9 @@ async function identities(r:Role,companyId:string){const map=new Map<string,Iden
 }else{
   const self=uid?await supabase.from('profiles').select('id,full_name,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom').eq('id',uid).maybeSingle():{data:null};
   const contact=await supabase.rpc('get_client_account_contact');if(self.data){client=await hydrateIdentity(self.data as Identity);if(client.id)map.set(String(client.id),client);}const c=Array.isArray(contact.data)?contact.data[0]:contact.data;if(c)admin=await hydrateIdentity(c as Identity);
-}return{map,admin,client};}
+}
+  try{const st=await supabase.rpc('staff_identities');for(const p of await Promise.all(((st.data||[]) as Identity[]).map(hydrateIdentity)))if(p.id&&!map.has(String(p.id)))map.set(String(p.id),p);}catch{}
+  return{map,admin,client};}
 function who(m:Msg,ids:Awaited<ReturnType<typeof identities>>){if(m.author_id&&ids.map.has(m.author_id))return ids.map.get(m.author_id)!;if(m.author_role==='admin')return ids.admin;if(m.author_role==='client')return ids.client;return{full_name:'CALI RH'};}
 function pinLatest(history:HTMLElement){window.requestAnimationFrame(()=>{if(document.body.contains(history))history.scrollTop=history.scrollHeight;});window.setTimeout(()=>{if(document.body.contains(history))history.scrollTop=history.scrollHeight;},190);}
 

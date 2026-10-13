@@ -148,6 +148,7 @@ async function loadIdentities(role: WorkspaceRole, companyId: string) {
     const contact = Array.isArray(contactResult.data) ? contactResult.data[0] : contactResult.data;
     if (contact) adminFallback = contact as RecordIdentity;
   }
+  try { const staffResult = await supabase.rpc('staff_identities'); for (const row of ((staffResult.data || []) as RecordIdentity[])) if ((row as any).id && !byId.has(String((row as any).id))) byId.set(String((row as any).id), row); } catch { /* sem a função, mantém o padrão */ }
   return { byId, adminFallback, clientFallback };
 }
 

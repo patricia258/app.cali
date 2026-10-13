@@ -54,6 +54,7 @@ type CreateEventForm = {
   endTime: string;
   allDay: boolean;
   visibility: 'internal' | 'client';
+  staffVisible: boolean;
   mode: 'remote' | 'in_person';
   location: string;
   meetingUrl: string;
@@ -86,6 +87,7 @@ function defaultForm(date = dateKey(new Date())): CreateEventForm {
     endTime: '10:00',
     allDay: false,
     visibility: 'client',
+    staffVisible: true,
     mode: 'remote',
     location: 'Google Meet',
     meetingUrl: '',
@@ -162,6 +164,7 @@ function formFromEvent(event: WorkspaceCalendarEvent): CreateEventForm {
     endTime: formTime(event.endsAt || event.startsAt),
     allDay: event.allDay,
     visibility: event.visibility,
+    staffVisible: true,
     mode: event.mode || 'remote',
     location: event.location || '',
     meetingUrl: event.meetingUrl || '',
@@ -180,6 +183,7 @@ const CalendarFrame = ({ staff, children }: { staff?: boolean; children: ReactNo
 export const StaffCalendarPage = () => <AdminCalendarPage staff />;
 export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
   const [staffNotice, setStaffNotice] = useState('');
+  const staffHiddenRef = useRef<Set<string>>(new Set());
   useEffect(() => { if (!staffNotice) return; const timer = window.setTimeout(() => setStaffNotice(''), 4200); return () => window.clearTimeout(timer); }, [staffNotice]);
   async function staffSubmitChange(action: string, title: string, payload: Record<string, unknown>, companyId: string) {
     if (!supabase) return false;
@@ -278,7 +282,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
     try {
       const [{ data: companyRows }, { data: eventRows }, { data: attendeeRows }, { data: deadlineRows }, { data: connectionRows }, { data: requestRows }, { data: projectRows }] = await Promise.all([
         staff ? supabase.rpc('partner_companies') : supabase.from('companies').select('id, display_name, logo_url, logo_workspace_url').neq('status', 'archived').order('display_name'),
-        supabase.from('events').select('id,protocol,title,company_id,project_id,event_type,color_hex,starts_at,ends_at,all_day,mode,location,meeting_url,description,visibility,source_type,source_entity_id,google_event_id,sync_status,cancelled_at').order('starts_at'),
+        supabase.from('events').select('staff_visible,id,protocol,title,company_id,project_id,event_type,color_hex,starts_at,ends_at,all_day,mode,location,meeting_url,description,visibility,source_type,source_entity_id,google_event_id,sync_status,cancelled_at').order('starts_at'),
         supabase.from('event_attendees').select('id,event_id,name,email,status,response_note').order('created_at'),
         supabase.from('deliverables').select('id, company_id, project_id, title, due_at, status, protocol').not('due_at', 'is', null).order('due_at'),
         supabase.from('calendar_connections').select('id, status').eq('provider', 'google').eq('status', 'connected').limit(1),
@@ -301,6 +305,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
         attendeeMap.set(row.event_id, list);
       });
 
+      staffHiddenRef.current = new Set((eventRows || []).filter((row: any) => row.staff_visible === false).map((row: any) => row.id));
       const manual: WorkspaceCalendarEvent[] = (eventRows || []).map((row: any) => ({
         id: row.id,
         protocol: row.protocol,
@@ -467,7 +472,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
     setShowCancel(false);
     setCancelReason('');
     setEditingEvent(event);
-    setForm(formFromEvent(event));
+    setForm({ ...formFromEvent(event), staffVisible: !staffHiddenRef.current.has(event.id) });
     setEditorOpen(true);
   }
 
@@ -512,6 +517,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
       meeting_url: form.meetingUrl || null,
       description: form.description || null,
       visibility: form.visibility,
+      staff_visible: form.staffVisible,
       timezone: 'America/Sao_Paulo',
       source_type: 'manual',
       sync_status: calendarConnection === 'connected' ? 'pending' : 'local',
@@ -783,6 +789,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
               <label className="stacked-label">Término<input type="time" value={form.endTime} onChange={(event) => setForm((current) => ({ ...current, endTime: event.target.value }))} /></label>
               <label className="stacked-label">Formato<select value={form.mode} onChange={(event) => setForm((current) => ({ ...current, mode: event.target.value as 'remote' | 'in_person' }))}><option value="remote">Remoto</option><option value="in_person">Presencial</option></select></label>
               <label className="stacked-label">Visibilidade<select value={form.visibility} onChange={(event) => setForm((current) => ({ ...current, visibility: event.target.value as 'internal' | 'client' }))}><option value="client">Compartilhar com cliente</option><option value="internal">Somente CALI</option></select></label>
+              {!staff && <label className="stacked-label">Equipe CALI<select value={form.staffVisible ? 'yes' : 'no'} onChange={(event) => setForm((current) => ({ ...current, staffVisible: event.target.value === 'yes' }))}><option value="yes">Pode ver este evento</option><option value="no">Não mostrar para a equipe</option></select></label>}
             </div>}
             <details className="calendar-extra-fields" key={editingEvent?.id||'new'} open={editingEvent?true:undefined}>
               <summary>Local, link, convidados e descrição</summary>
