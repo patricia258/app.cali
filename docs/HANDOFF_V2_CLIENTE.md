@@ -1315,6 +1315,30 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
 - DRIVE DO CLIENTE (pedido dela: pensar em como isso fica salvo no Drive dele): hoje a cópia para o Drive é por documento (`requestDriveCopy`). Falta: ao salvar um documento de pasta, criar no Drive do cliente uma pasta com o nome do entregável e gravar cada parte dentro; ou um botão "Salvar a pasta no meu Drive". Verificar a função de borda do Drive antes de prometer.
 - Lembrete dela: não esquecer a lista de pendências, em especial as DEPENDÊNCIAS do cliente no entregável (documento de complexidade, item 4) e os itens 5 e 6.
 
+### 2026-10-13 — Publicação 25; REGRA: arquivo de conversa NÃO é documento
+
+- PUBLICAÇÃO 25 no oficial (`16173d9`): pasta de entregável no modelo A em Documentos do cliente.
+- REGRA DITADA POR ELA: "Documento é a finalização ou algo referente ao entregável ou à subtarefa. Não é um documento compartilhado no chat." O chat é comunicação (prévias, ajustes, aprovações). Só vira documento o que for marcado como entrega final e liberado por ela.
+- ACHADO: no teste dela apareceu em Documentos do cliente o arquivo "Apresentacao_Comercial_Prado_Financas.docx", que o João mandou pelo chat. Causa: a primeira versão do anexo do Partner (`partner_attach_deliverable_file`, abandonada no mesmo dia) inseria o arquivo em `files` como publicado. Há exatamente 1 registro assim (conferido por contagem). Permissão de executar a função retirada (migration `20261017090000`). O REGISTRO continua lá — arquivar/retirar depende da aprovação dela (pedido feito).
+- A mensagem de teste antiga "Arquivo enviado. Anexo: …docx" é texto (formato anterior) e não é clicável; os anexos enviados depois da correção são clicáveis em todas as conversas.
+
+### 2026-10-13 — Documentos em pasta: ajustes do cliente + mesma organização para administradora e Equipe CALI
+
+- Cliente (`ClientDocumentsPage.tsx`): dentro da pasta, botão "Documentos" e cabeçalho da pasta na MESMA linha (sem repetir o nome no caminho); ações "Abrir" e "Confirmar" lado a lado ("Confirmado" depois); título em até 2 linhas sem vazar; cartão de pasta com a logo do cliente no centro, ícone de pasta no canto superior esquerdo e etiqueta "Pasta" no direito; contador "N pastas · N documentos"; filtro com a opção "Pastas"; a mensagem "Nenhum documento encontrado" só aparece quando não há pasta nem documento.
+- Administradora (`AdminDocumentsPageV4.tsx`): pasta = entregável com subtarefas ou com mais de um documento; abre em Lista por padrão; colunas Protocolo/Documento, Empresa/Projeto, Etapa, Validade, Entregue em, Acompanhamento. Entrar na pasta mostra só os documentos dela.
+- Equipe CALI: `/equipe/documentos` passou a usar a mesma página (`StaffDocumentsPage`, modo consulta: sem criar, completar, publicar, arquivar ou comentar; clicar abre o arquivo). Política nova de leitura no armazenamento `documents/<empresa>/` (migração `20261017120000_partner_documents_storage_read`, só acréscimo, aplicada).
+- Dado: o registro de teste do chat que aparecia como documento na Company IN foi ARQUIVADO com autorização da proprietária (status `archived`, `client_visible=false`; nada apagado).
+- Não verificado com conta real: abertura de arquivo pelo Partner (depende da política nova) e pasta com dados reais na tela da administradora.
+
+### 2026-10-13 — Dependências do cliente no entregável + histórico do prazo (regra de complexidade, itens 4 a 6)
+
+- Banco (só acréscimo, aplicado): tabelas `deliverable_client_dependencies` e `deliverable_due_revisions`; funções `partner_add_dependency` e `partner_receive_dependency`. Migração `20261017150000_deliverable_client_dependencies_and_due_revisions`.
+  ATENÇÃO: já existia a tabela `deliverable_dependencies` (entregável depende de entregável, vazia e sem uso no código). Não foi tocada; por isso a tabela nova tem "client" no nome.
+- Tela: `src/pages/admin/DeliverableDependencies.tsx`, montada na Visão geral do entregável (administradora e Equipe CALI) e no detalhe da entrega do cliente (só leitura).
+- Regras: dependência = o que o cliente precisa enviar/aprovar + data limite. Passou da data sem receber → alerta vermelho para as três visões. NADA é reprogramado sozinho: a administradora clica em "Reprogramar prazo"; o sistema sugere prazo atual + dias de atraso + remobilização (MC1 0, MC2 +1, MC3 +2 dias úteis), ela ajusta, escreve a justificativa (o cliente vê) e escolhe quais entregas seguintes da mesma frente andam junto. Cada mudança grava uma linha no histórico do prazo. Equipe CALI registra e marca recebido, mas não reprograma.
+- Limites conhecidos: mudar o prazo pelo formulário "Editar" do entregável ainda NÃO grava no histórico; o cliente não recebe aviso no sino quando uma dependência é criada; "entregas seguintes" = mesma frente com prazo igual ou posterior (não usa a tabela antiga de dependência entre entregáveis).
+- Não verificado com gravação real: registrar, receber e reprogramar (o ambiente de teste bloqueia escrita). Só a leitura foi conferida por imagem.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
