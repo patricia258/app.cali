@@ -19,6 +19,7 @@ export type ClientVisibleTask = {
   dueAt?: string | null;
   startedAt?: string | null;
   completedAt?: string | null;
+  complexity?: string | null;
 };
 
 export type ClientPublishedDocument = {
@@ -173,7 +174,7 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
       .order('sort_order')
       .order('created_at'),
     supabase.from('deliverable_tasks')
-      .select('id,deliverable_id,protocol,title,status,due_at,started_at,completed_at,sort_order')
+      .select('id,deliverable_id,protocol,title,status,due_at,started_at,completed_at,sort_order,complexity')
       .eq('company_id', companyId)
       .eq('client_visible', true)
       .order('sort_order'),
@@ -256,6 +257,7 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
       dueAt: row.due_at,
       startedAt: row.started_at,
       completedAt: row.completed_at,
+      complexity: row.complexity || null,
     });
     tasksByDeliverable.set(row.deliverable_id, list);
   }
