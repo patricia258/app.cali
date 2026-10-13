@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ArrowRight,
+import { Paperclip, ArrowRight,
   AlertTriangle, CalendarDays, CheckCircle2, ChevronDown, ChevronRight, FileText, Filter,
   MessageCircle, Pencil, Plus, Search, Send, Trash2, X, UserPlus } from 'lucide-react';
 import { Shell, type Role } from '../../components/WorkspaceShell';
@@ -146,6 +146,7 @@ export function StaffRecordsPage({ companies }: StaffRecordsScope) { return <Wor
 export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: StaffRecordsScope }) {
   const { user } = useWorkspaceAuth();
   const [staffPhotos, setStaffPhotos] = useState<Record<string, string>>({});
+  const [staffFile, setStaffFile] = useState<File | null>(null); const staffFileInput = useRef<HTMLInputElement | null>(null);
   const [staffInternal, setStaffInternal] = useState(false); const [staffTimer, setStaffTimer] = useState<{ id: string; startedAt: string } | null>(null); const [, staffTick] = useState(0); const [closeRequested, setCloseRequested] = useState<Record<string, boolean>>({});
   useEffect(() => { if (!staffTimer) return; const timer = window.setInterval(() => staffTick((value) => value + 1), 1000); return () => window.clearInterval(timer); }, [staffTimer]);
   const [searchParams] = useSearchParams();
@@ -451,13 +452,26 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
     if (staff) void staffLoadTimer(record.id);
   }
 
+  async function staffOpenAttachment(path: string) { if (!supabase) return; const { data, error: signError } = await supabase.storage.from('cali-workspace-private').createSignedUrl(path, 300); if (signError || !data?.signedUrl) { setError('Não foi possível abrir este anexo agora.'); return; } window.open(data.signedUrl, '_blank', 'noopener,noreferrer'); }
   async function sendMessage() {
-    if (!supabase || !selected || !messageDraft.trim()) return;
+    if (!supabase || !selected || (!messageDraft.trim() && !(staff && staffFile))) return;
     setSendingMessage(true); setError('');
     try {
-      const result = await supabase.rpc(staff ? 'partner_post_record_message' : 'post_account_record_message', { p_record_id: selected.id, p_body: messageDraft.trim(), p_internal: staff ? staffInternal : false });
+      let token = '';
+      if (staff && staffFile) {
+        const allowed = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
+        if (!allowed.includes(staffFile.type)) throw new Error('Use PDF, imagem, Word, Excel ou PowerPoint.');
+        if (staffFile.size > 10 * 1024 * 1024) throw new Error('O anexo pode ter até 10 MB.');
+        const { data: auth } = await supabase.auth.getUser();
+        const safeName = staffFile.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').slice(0, 90) || 'arquivo';
+        const path = `records/${selected.companyId}/${selected.id}/${auth.user?.id}/${Date.now()}-${safeName}`;
+        const upload = await supabase.storage.from('cali-workspace-private').upload(path, staffFile, { contentType: staffFile.type, upsert: false });
+        if (upload.error) throw new Error('Não foi possível anexar o arquivo. A mensagem não foi enviada.');
+        token = `[[arquivo|${encodeURIComponent(staffFile.name)}|${encodeURIComponent(path)}|${encodeURIComponent(staffFile.type)}|${staffFile.size}]]`;
+      }
+      const result = await supabase.rpc(staff ? 'partner_post_record_message' : 'post_account_record_message', { p_record_id: selected.id, p_body: [messageDraft.trim(), token].filter(Boolean).join('\n'), p_internal: staff ? staffInternal : false });
       if (result.error) throw result.error;
-      setMessageDraft('');
+      setMessageDraft(''); setStaffFile(null);
       const nextStatus = (result.data as any)?.workflow_status as WorkflowStatus | undefined;
       if (nextStatus) setSelected((current) => current ? { ...current, workflowStatus: nextStatus, lastActivityAt: new Date().toISOString(), requiresAction: role === 'client' } : current);
       await openRecord({ ...(selected as AccountRecordRow), workflowStatus: nextStatus || selected.workflowStatus, lastActivityAt: new Date().toISOString() });
@@ -485,7 +499,7 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
     if (staffTimer) {
       const result = await supabase.rpc('partner_stop_timer', { p_timer_id: staffTimer.id, p_description: null });
       if (result.error) { setError(result.error.message || 'Não foi possível pausar o cronômetro.'); return; }
-      setStaffTimer(null); setNotice((result.data as any)?.discarded ? 'Sessão com menos de 30 segundos: não foi registrada.' : `Sessão de ${(result.data as any)?.minutes} min enviada para aprovação. Dê play para continuar depois.`);
+      setStaffTimer(null); setNotice((result.data as any)?.discarded ? 'Sessão com menos de 30 segundos: não foi registrada.' : `Sessão de ${(result.data as any)?.minutes} min registrada. Dê play para continuar depois.`);
     } else {
       const result = await supabase.rpc('partner_start_record_timer', { p_record_id: selected.id });
       if (result.error) { setError(result.error.message || 'Não foi possível iniciar o cronômetro.'); return; }
@@ -654,14 +668,14 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
 
         {selected.workflowStatus ? <div className="wf-record-conversation" data-v2-operation="records-v13-conversation">
           <h3 className="wf-thread-title">Conversa e encaminhamentos</h3>
-          {staff ? <div className="wf-thread v2-staff-thread" aria-live="polite">{messages.length ? messages.map((message) => { const mine = message.authorId === user?.id; const name = message.authorId ? authors[message.authorId] || (message.authorRole === 'client' ? 'Cliente' : 'CALI') : 'Sistema'; return <div key={message.id} className={`conversation-line records-chat-line role-${message.authorRole} ${mine ? 'mine' : 'other'} ${message.visibility === 'internal' ? 'internal-note' : ''}`}>{!mine && <span className="v2-chat-photo">{message.authorId && staffPhotos[message.authorId] ? <img src={staffPhotos[message.authorId]} alt="" /> : name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')}</span>}<div className="conversation-bubble records-chat-bubble"><div className="records-chat-head"><strong>{name}{message.visibility === 'internal' ? ' · nota interna' : ''}</strong><time>{formatDateTime(message.createdAt)}</time></div><p>{message.body}</p></div>{mine && <span className="v2-chat-photo">{message.authorId && staffPhotos[message.authorId] ? <img src={staffPhotos[message.authorId]} alt="" /> : name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')}</span>}</div>; }) : <p className="v2-staff-thread-empty">Ainda não há mensagens nesta conversa.</p>}</div>
+          {staff ? <div className="wf-thread v2-staff-thread" aria-live="polite">{messages.length ? messages.map((message) => { const mine = message.authorId === user?.id; const name = message.authorId ? authors[message.authorId] || (message.authorRole === 'client' ? 'Cliente' : 'CALI') : 'Sistema'; return <div key={message.id} className={`conversation-line records-chat-line role-${message.authorRole} ${mine ? 'mine' : 'other'} ${message.visibility === 'internal' ? 'internal-note' : ''}`}>{!mine && <span className="v2-chat-photo">{message.authorId && staffPhotos[message.authorId] ? <img src={staffPhotos[message.authorId]} alt="" /> : name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')}</span>}<div className="conversation-bubble records-chat-bubble"><div className="records-chat-head"><strong>{name}{message.visibility === 'internal' ? ' · nota interna' : ''}</strong><time>{formatDateTime(message.createdAt)}</time></div>{(() => { const files: { name: string; path: string; size: number }[] = []; const clean = message.body.replace(/\[\[arquivo\|([^|]+)\|([^|]+)\|([^|]+)\|(\d+)\]\]/g, (_all: string, n: string, filePath: string, _type: string, size: string) => { try { files.push({ name: decodeURIComponent(n), path: decodeURIComponent(filePath), size: Number(size || 0) }); } catch { files.push({ name: n, path: filePath, size: Number(size || 0) }); } return ''; }).trim(); return <>{clean && <p>{clean}</p>}{files.length > 0 && <div className="records-chat-attachments">{files.map((file) => <button key={file.path} type="button" className="records-chat-attachment" onClick={() => void staffOpenAttachment(file.path)}><span>📎</span><span><strong>{file.name}</strong><small>{file.size ? `${Math.max(1, Math.round(file.size / 1024))} KB` : 'arquivo'}</small></span></button>)}</div>}</>; })()}</div>{mine && <span className="v2-chat-photo">{message.authorId && staffPhotos[message.authorId] ? <img src={staffPhotos[message.authorId]} alt="" /> : name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')}</span>}</div>; }) : <p className="v2-staff-thread-empty">Ainda não há mensagens nesta conversa.</p>}</div>
           : <div className="wf-thread" data-v2-operation="conversation-history" aria-live="polite" />}
           {!clientConversationLocked && !['completed', 'cancelled'].includes(selected.workflowStatus) && <div className="wf-compose" data-v2-operation="conversation-compose">
             <div className={`wf-compose-label ${staff ? 'v2-staff-compose-head' : ''}`}><label htmlFor="wf-answer">{staff && staffInternal ? 'Nota interna para a Patricia' : role==='admin'?'Responder ao cliente':'Responder nesta ocorrência'}</label></div>
             <div className="records-chat-runtime-pending-host" />
             <div className="records-chat-runtime-tools-host" />
             <textarea id="wf-answer" rows={3} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder={staff && staffInternal ? 'Só a Patricia vê esta nota…' : role === 'admin' ? 'Responder ao cliente…' : 'Escreva sua mensagem para a CALI…'} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} />
-            {staff ? <div className="v2-staff-compose-actions"><span className="v2-staff-compose-mode" role="tablist" aria-label="Para quem"><button type="button" role="tab" aria-selected={!staffInternal} className={!staffInternal ? 'on' : ''} onClick={() => setStaffInternal(false)}>Cliente</button><button type="button" role="tab" aria-selected={staffInternal} className={staffInternal ? 'on' : ''} onClick={() => setStaffInternal(true)}>Interno</button></span><button className="primary" type="button" disabled={sendingMessage || !messageDraft.trim()} onClick={() => void sendMessage()}><Send size={14} />{sendingMessage ? 'Enviando…' : 'Enviar'}</button></div>
+            {staff ? <div className="v2-staff-compose-actions"><span className="v2-staff-compose-mode" role="tablist" aria-label="Para quem"><button type="button" role="tab" aria-selected={!staffInternal} className={!staffInternal ? 'on' : ''} onClick={() => setStaffInternal(false)}>Cliente</button><button type="button" role="tab" aria-selected={staffInternal} className={staffInternal ? 'on' : ''} onClick={() => setStaffInternal(true)}>Interno</button></span><input ref={staffFileInput} type="file" hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.docx,.xlsx,.pptx" onChange={(event) => { setStaffFile(event.target.files?.[0] || null); event.target.value = ''; }} /><button className="secondary v2-staff-attach" type="button" title={staffFile ? 'Clique para trocar o arquivo' : 'PDF, imagem, Word, Excel ou PowerPoint, até 10 MB'} onClick={() => staffFileInput.current?.click()}><Paperclip size={14} /><span>{staffFile ? staffFile.name : 'Anexar'}</span></button><button className="primary" type="button" disabled={sendingMessage || (!messageDraft.trim() && !staffFile)} onClick={() => void sendMessage()}><Send size={14} />{sendingMessage ? 'Enviando…' : 'Enviar'}</button></div>
             : <button className="primary" type="button" disabled={sendingMessage || !messageDraft.trim()} onClick={() => void sendMessage()}><Send size={14} />{sendingMessage ? 'Enviando…' : 'Enviar'}</button>}
           </div>}
           {clientConversationLocked && <div className="records-v27-chat-locked">

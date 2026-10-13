@@ -1073,6 +1073,62 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - Conferido: `npm run check` ok; varredura 105 · 0. NÃO testado com gravação real.
 - Próximos: calendário do cliente com a mesma grade; Documentos, Relatórios e Equipe do cliente do Partner.
 
+### 2026-10-13 — Publicação 14 e anexos nas conversas (três perfis)
+
+- Publicação 14 no oficial (`fc71afb`), aprovada pela Patricia.
+- Conferência de permissões de arquivo (bucket `cali-workspace-private`):
+  - Entregável (`deliverable-chat/<empresa>/<entregável>/<usuário>/`): administradora sempre pôde; o CLIENTE não tinha política de envio nem de leitura (o clipe falhava) — criadas `…client_chat_insert` e `…client_chat_select`; Partner já tinha desde a migration 20261014210000.
+  - Ocorrências (`records/<empresa>/<ocorrência>/<usuário>/`): administradora e cliente JÁ tinham anexo (runtime V2: até 5 arquivos, 10 MB cada; PDF, imagem, Word, Excel, PowerPoint). Correção de registro: eu havia dito à Patricia que não existia. Faltava só o Partner — criadas `…partner_records_insert/select` e o botão "Anexar" no modo equipe de `WorkspaceRecordsPage.tsx` (1 arquivo por mensagem, 10 MB).
+  - Migration `20261014230000`, já aplicada (o banco é o mesmo do oficial: a permissão do cliente vale desde já).
+- NÃO testado com envio real em nenhum dos três perfis.
+- Próximo: calendário do cliente com a mesma grade da administradora, sem criar evento.
+
+### 2026-10-13 — Conversas: botões "Anexar" e "Link" com nome; fim das caixas nativas do navegador
+
+- A Patricia clicou na corrente (link) achando que era anexo: abriu o `prompt()` nativo ("app.calirh.com diz…"). Corrigido em `deliverableChatStandardRuntimeV35.ts` e `recordsExperienceRuntimeV2.ts`: `prompt` → `askWorkspaceLink()` e `alert` → `workspaceChatAlert()` (novo `src/lib/workspaceChatDialogs.ts`); botões com rótulo "Anexar" e "Link" (CSS em `operational.css`). Vale para administradora, cliente e, nas telas com runtime, todos os perfis.
+- Conferido: `npm run check` ok; varredura 105 · 0; diálogo testado direto na página (o runtime de conversa não monta no ambiente de QA).
+
+### 2026-10-13 — Depois do teste da Patricia: cronômetro do Partner sem aprovação, extrato de Horas refeito, play na etapa
+
+- REGRA NOVA (Patricia): "o play com o timer rodando eu não tenho que aprovar; o que eu aprovo são lançamentos manuais". `partner_stop_timer` e a rotina de inatividade passam a gravar a sessão do Partner direto em `hour_entries` (como o cronômetro dela; `client_visible=false`, `created_by` = Partner). Lançamento manual e interação externa continuam em `staff_hour_submissions`.
+- Cronômetro que rodou 10h (01:15–11:15): a rotina `close_stale_timers` só agia depois do primeiro sinal de presença, e os inícios pelo entregável/ocorrência não marcavam presença. Agora, sem sinal, conta a partir do início (`coalesce(last_seen_at, started_at)`). Vale para Partner e administradora.
+- Horas (administradora e Partner): tabela com Cliente, Contrato, Data, Contexto (subtarefa na segunda linha), Início, Fim, Total, Tipo, Atividade (antes "Natureza") e Editar; bolinha âmbar "Aguardando aprovação" só em lançamento manual pendente. Editar: administradora altera direto (registro `hour_entry_edited`); Partner edita sessão dele por `partner_edit_hour_entry` (motivo obrigatório, avisa a administradora) ou lançamento pendente pelo fluxo antigo.
+- Projetos (Partner): play/pausar dentro de cada etapa (`partner_start_timer` com `p_task_id`).
+- Avisos do Partner: títulos por tipo ("Pedido aprovado", "Lançamento de horas aprovado"…), com o nome do item e link para a tela certa; sino confere a cada 20 s e ao voltar para a aba, e as telas de Horas e Projetos recarregam quando chega aviso novo.
+- Ocorrências: painel lateral 600 px (antes 515).
+- Explicado à Patricia, sem mudança: o cliente só soma horas marcadas "visível ao cliente" (`get_client_hours_summary`), por isso o painel dele mostra menos que o dela. Criar etapa pelo Partner continua pedindo aprovação.
+- Migration `20261015090000` (já aplicada). O lançamento de 10h01 aprovado no teste continua no extrato da Company IN — ela corrige em Horas › Editar.
+- NÃO testado com gravação real.
+
+### 2026-10-13 — UPGRADE DO ENTREGÁVEL (entregável = pasta com subtarefas) — plano e fase 1
+
+Pedido da Patricia: o entregável (ex.: Kit da marca) se desdobra em SUBTAREFAS (Logo, Voz, Manifesto), cada uma com prazo, cronômetro, notas, conversa, anexos e aprovação própria; o entregável vira uma pasta.
+Decisões dela: (1) o cliente aprova subtarefa separadamente; o prazo da subtarefa nunca passa do prazo do entregável; (2) HORAS DO CLIENTE: todo tempo conta no consumo; cliente vê total e "em quê" (por entregável/ocorrência), nunca dia/hora/sessão; "visível ao cliente" passa a controlar só se o item aparece com nome (senão soma em "Outras atividades da assessoria") — AINDA NÃO FEITO; (3) Partner cria subtarefa direto; (4) Partner só tem Pausar; o Stop (finalizar) só aparece para ele depois que ela aprovar a tarefa — AINDA NÃO FEITO.
+
+Fases: 1) cabeçalho + notas (FEITA, homologação); 2) aba Subtarefas com painel próprio (notas, cronômetro, conversa, anexos); 3) aba Arquivos (pasta) + envio/aprovação de subtarefa; 4) visão do cliente. Depois: horas do cliente (regra 2) e calendário do cliente.
+
+Fase 1 entregue: status com cor forte e cronômetro no cabeçalho nos dois perfis (`v2-head-timer` no modo equipe; rodapé sem timer); "Etapas" → "Subtarefas"; campo "Notas internas" na Visão geral (tabela nova `deliverable_notes`, só administradora; Partner por `partner_get/save_deliverable_notes` — as notas NÃO ficam em `deliverables` porque o cliente lê essa tabela); Partner cria subtarefa direto (`partner_create_task`), com a regra do prazo; linha da subtarefa da administradora em 4 colunas. Migration `20261015120000` (aplicada).
+NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINISTRADORA não puderam ser vistos no ambiente de teste (o runtime de timer dela não monta lá).
+
+### 2026-10-13 — Upgrade do entregável, fase 2: subtarefa com painel próprio
+
+- Aprovado pela Patricia na fase 1 e virou PADRÃO: status com cor forte no cabeçalho e cronômetro verde quando ligado. Ajustes pedidos: a situação saiu do rodapé e o chip do cabeçalho é o próprio seletor colorido (`v2-head-status`), nos dois perfis; cronômetro ligado da administradora (ProjectTimerBridge) recebeu o mesmo verde por CSS; notas dizem onde ficam e a hora em que foram salvas.
+- Lista de entregáveis: subtarefas aparecem ABAIXO do entregável, em árvore (`v2-subtask-tree`), como ela pediu ("igual um organograma"); clicar abre o entregável na aba Subtarefas.
+- Aba Subtarefas: clicar na subtarefa abre o painel logo abaixo (`src/pages/admin/SubtaskPanel.tsx`): notas internas da subtarefa, conversa da equipe (interna) com anexo clicável, e lista "Arquivos da subtarefa". Tabelas novas `task_notes` e `task_messages` (administradora total; Partner lê mensagens e grava por `partner_save_task_notes` / `partner_post_task_message`). Cliente NÃO lê nada disso ainda. Migration `20261015150000` (aplicada).
+- A tabela `comments` não aceita `target_type='task'` (constraint), por isso a conversa da subtarefa tem tabela própria.
+- Falta: fase 3 (aba Arquivos do entregável + enviar subtarefa para aprovação; Stop do Partner só após aprovação), fase 4 (cliente), horas do cliente, calendário do cliente.
+- NÃO testado com gravação real.
+
+### 2026-10-13 — Entregável: ajustes depois do teste da fase 2
+
+- NOTAS viraram registros (`NoteLog.tsx`, tabela `note_entries`): escreve, clica "Adicionar nota" e ela entra na lista com autor e hora. Vale no entregável (Visão geral) e na subtarefa. O campo único anterior confundia ("não vi para onde foi"); o que estava salvo foi copiado como primeiro registro. Tabelas `deliverable_notes`/`task_notes` ficaram sem uso (não removidas).
+- SUBTAREFAS em tabela (`v2-st-table`): seta para abrir, nome, complexidade, situação selecionável e colorida (A fazer / Em andamento / Concluída — o banco usa `todo/doing/done`), prazo, cronômetro. Saíram o número colado na moldura e o rótulo "Em foco". Formulário igual ao do entregável: título, complexidade, prazo (limitado ao do entregável), descrição, visível para o cliente, entrega documental; saiu "Estimativa de horas". Colunas novas `deliverable_tasks.complexity` e `is_document`.
+- Árvore na lista de entregáveis com as mesmas colunas (nome, complexidade, situação, prazo); clicar já abre a subtarefa.
+- CRONÔMETRO NO TOPO: mostra só o nome do que está rodando (subtarefa, entregável ou ocorrência), nos dois perfis (`StaffTimerBar` e `GlobalTimerBar`; a empresa fica na linha de baixo quando há espaço).
+- Criar entregável: a caixa de explicação da complexidade ganhou respiro.
+- PERGUNTA EM ABERTO para ela: "Mês inicial / Mês final" do entregável (posição no cronograma da frente, M1…Mn) — manter, renomear ou tirar.
+- Migration `20261015180000` (aplicada). NÃO testado com gravação real; a linha da subtarefa na tela da ADMINISTRADORA (com o Timer dela) não pôde ser vista no ambiente de teste.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
