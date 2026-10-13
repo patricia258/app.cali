@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Paperclip, Send } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { NoteLog } from './NoteLog';
 
 type Message = { id: string; author_user_id: string | null; author_role: string; body: string; created_at: string };
 type FileToken = { name: string; path: string; size: number };
@@ -12,7 +13,6 @@ const when = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit',
 function parse(body: string) { const files: FileToken[] = []; const clean = body.replace(TOKEN, (_all, name, path, _type, size) => { try { files.push({ name: decodeURIComponent(name), path: decodeURIComponent(path), size: Number(size || 0) }); } catch { files.push({ name, path, size: Number(size || 0) }); } return ''; }).trim(); return { clean, files }; }
 
 export function SubtaskPanel({ task, deliverableId, companyId, staff, onNotice }: { task: { id: string; title: string; description?: string | null }; deliverableId: string; companyId: string; staff: boolean; onNotice: (message: string) => void }) {
-  const [notes, setNotes] = useState(''); const [savedNotes, setSavedNotes] = useState(''); const [notesAt, setNotesAt] = useState(''); const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]); const [names, setNames] = useState<Record<string, string>>({}); const [me, setMe] = useState('');
   const [text, setText] = useState(''); const [file, setFile] = useState<File | null>(null); const [sending, setSending] = useState(false); const fileInput = useRef<HTMLInputElement | null>(null);
 
@@ -20,18 +20,12 @@ export function SubtaskPanel({ task, deliverableId, companyId, staff, onNotice }
   useEffect(() => { if (!supabase) return; let alive = true; const db = supabase;
     void (async () => {
       const { data: auth } = await db.auth.getUser(); if (!alive) return; setMe(auth.user?.id || '');
-      const body = staff ? String((await db.rpc('partner_get_task_notes', { p_task_id: task.id })).data || '') : String((await db.from('task_notes').select('body').eq('task_id', task.id).maybeSingle()).data?.body || '');
-      if (!alive) return; setNotes(body); setSavedNotes(body);
       const team = await db.rpc('staff_identities'); if (alive) setNames(Object.fromEntries((((team.data || []) as any[])).map((row) => [row.id, row.full_name])));
       await loadMessages();
     })();
     const timer = window.setInterval(() => void loadMessages(), 20000);
     return () => { alive = false; window.clearInterval(timer); };
   }, [task.id, staff]);
-
-  async function saveNotes() { if (!supabase || busy) return; setBusy(true); const { data: auth } = await supabase.auth.getUser();
-    const result = staff ? await supabase.rpc('partner_save_task_notes', { p_task_id: task.id, p_notes: notes }) : await supabase.from('task_notes').upsert({ task_id: task.id, company_id: companyId, body: notes.trim() || null, updated_by: auth.user?.id || null, updated_at: new Date().toISOString() }, { onConflict: 'task_id' });
-    setBusy(false); if (result.error) { onNotice('Não foi possível salvar as notas. Tente de novo.'); return; } setSavedNotes(notes); setNotesAt(new Date().toISOString()); }
 
   async function send() { if (!supabase || sending || (!text.trim() && !file)) return; setSending(true);
     try {
@@ -58,9 +52,7 @@ export function SubtaskPanel({ task, deliverableId, companyId, staff, onNotice }
   return <div className="v2-subtask-panel" onClick={(event) => event.stopPropagation()}>
     {task.description && <p className="v2-subtask-about">{task.description}</p>}
     <div className="v2-subtask-cols">
-      <section className="v2-subtask-notes"><div className="v2-subtask-head"><h4>Notas da subtarefa</h4><button type="button" className="dv-secondary" disabled={busy || notes === savedNotes} onClick={() => void saveNotes()}>{busy ? 'Salvando…' : notes === savedNotes ? 'Salvo' : 'Salvar notas'}</button></div>
-        <textarea rows={6} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Anotações, fontes e referências desta subtarefa. O cliente não vê." />
-        <small>{notesAt ? `Salvo às ${new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(notesAt))}. ` : ''}Ficam guardadas nesta subtarefa.</small>
+      <section className="v2-subtask-notes"><NoteLog deliverableId={deliverableId} taskId={task.id} companyId={companyId} staff={staff} title="Notas da subtarefa" hint="Internas. O cliente não vê." onNotice={onNotice} />
         {files.length > 0 && <div className="v2-subtask-files"><h4>Arquivos da subtarefa</h4>{files.map((item) => <button key={item.path} type="button" className="workspace-chat-attachment" onClick={() => void openFile(item.path)}><span>📎</span><span><strong>{item.name}</strong><small>{item.size ? `${Math.max(1, Math.round(item.size / 1024))} KB` : 'arquivo'}</small></span></button>)}</div>}
       </section>
       <section className="v2-subtask-chat"><div className="v2-subtask-head"><h4>Conversa da equipe</h4><small>Interna · {messages.length} {messages.length === 1 ? 'mensagem' : 'mensagens'}</small></div>

@@ -1119,6 +1119,16 @@ NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINIS
 - Falta: fase 3 (aba Arquivos do entregável + enviar subtarefa para aprovação; Stop do Partner só após aprovação), fase 4 (cliente), horas do cliente, calendário do cliente.
 - NÃO testado com gravação real.
 
+### 2026-10-13 — Entregável: ajustes depois do teste da fase 2
+
+- NOTAS viraram registros (`NoteLog.tsx`, tabela `note_entries`): escreve, clica "Adicionar nota" e ela entra na lista com autor e hora. Vale no entregável (Visão geral) e na subtarefa. O campo único anterior confundia ("não vi para onde foi"); o que estava salvo foi copiado como primeiro registro. Tabelas `deliverable_notes`/`task_notes` ficaram sem uso (não removidas).
+- SUBTAREFAS em tabela (`v2-st-table`): seta para abrir, nome, complexidade, situação selecionável e colorida (A fazer / Em andamento / Concluída — o banco usa `todo/doing/done`), prazo, cronômetro. Saíram o número colado na moldura e o rótulo "Em foco". Formulário igual ao do entregável: título, complexidade, prazo (limitado ao do entregável), descrição, visível para o cliente, entrega documental; saiu "Estimativa de horas". Colunas novas `deliverable_tasks.complexity` e `is_document`.
+- Árvore na lista de entregáveis com as mesmas colunas (nome, complexidade, situação, prazo); clicar já abre a subtarefa.
+- CRONÔMETRO NO TOPO: mostra só o nome do que está rodando (subtarefa, entregável ou ocorrência), nos dois perfis (`StaffTimerBar` e `GlobalTimerBar`; a empresa fica na linha de baixo quando há espaço).
+- Criar entregável: a caixa de explicação da complexidade ganhou respiro.
+- PERGUNTA EM ABERTO para ela: "Mês inicial / Mês final" do entregável (posição no cronograma da frente, M1…Mn) — manter, renomear ou tirar.
+- Migration `20261015180000` (aplicada). NÃO testado com gravação real; a linha da subtarefa na tela da ADMINISTRADORA (com o Timer dela) não pôde ser vista no ambiente de teste.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
