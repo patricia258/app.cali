@@ -1129,6 +1129,19 @@ NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINIS
 - PERGUNTA EM ABERTO para ela: "Mês inicial / Mês final" do entregável (posição no cronograma da frente, M1…Mn) — manter, renomear ou tirar.
 - Migration `20261015180000` (aplicada). NÃO testado com gravação real; a linha da subtarefa na tela da ADMINISTRADORA (com o Timer dela) não pôde ser vista no ambiente de teste.
 
+### 2026-10-13 — Publicação 15 e subtarefa com modal próprio
+
+- PUBLICAÇÃO 15 no oficial (`61497fb`), a pedido da Patricia ("tem alguma coisa que você pode já subir?"): tudo até o commit `3ff7af0` (Horas com início/fim e editar, cronômetro do Partner direto, anexos/link nas conversas, entregável com status no cabeçalho, notas como registros, subtarefas em tabela).
+- Depois da publicação (só homologação):
+  - SUBTAREFA COM MODAL PRÓPRIO (`SubtaskModal` em `SubtaskPanel.tsx`), no desenho do entregável: situação colorida selecionável + cronômetro no cabeçalho; abas Visão geral (cards, descrição, notas), Conversas (equipe, com anexo) e Arquivos. Saiu o painel dentro da aba ("fica tudo muito aglomerado").
+  - SITUAÇÕES DA SUBTAREFA iguais às do entregável: Não iniciado, Em andamento, Stand by, Revisão interna/"Revisão da Patricia"; só para a administradora: Com o cliente, Aprovado, Concluída. Constraint `deliverable_tasks_status_check` ampliada. `partner_set_task_status` recusa concluir/enviar ao cliente e avisa a administradora quando ele manda para revisão. ATENÇÃO: no oficial (código da Publicação 15) o Partner ainda vê a opção "Concluída", que agora devolve "Somente a Patricia pode…" até a próxima publicação.
+  - Cronômetro da subtarefa também para a administradora dentro do modal/linha (`start_work_timer` com `p_task_id`, pausa por `pause_work_timer`).
+  - Tabela de subtarefas sem moldura por fora; árvore na lista de entregáveis alinhada às MESMAS colunas do entregável (CSS subgrid), com complexidade, situação colorida e prazo.
+  - NOTAS: editar e excluir (administradora qualquer nota; Partner só as dele — `partner_edit_note`, `partner_delete_note`).
+  - "Mês inicial / Mês final" saíram do formulário do entregável (ela autorizou); o mês do cronograma é calculado do prazo a partir do início do projeto. Na FRENTE os campos continuam (frente não tem prazo).
+- Migration `20261015210000` (aplicada). NÃO testado com gravação real; modal conferido só no perfil Partner com dados fictícios.
+- Falta: conversa/aprovação da subtarefa com o CLIENTE, aba Arquivos do entregável, Stop do Partner após aprovação, horas do cliente, calendário do cliente.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

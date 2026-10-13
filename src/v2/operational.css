@@ -3290,3 +3290,71 @@ html[data-workspace-ui='v2'] .v2-notelog-empty{margin:0;font-size:12px;color:#8a
 /* Criar entregável: a explicação da complexidade não encosta nos campos de cima nem no rodapé. */
 html[data-workspace-ui='v2'] .simple-project-modal-v2 .complexity-note-v2{margin:16px 0 18px!important}
 html[data-workspace-ui='v2'] .v2-admin-page .v2-st-table.dv-steps :is(.v2-st-head,.v2-st-row.dv-step){grid-template-columns:34px minmax(0,1fr) 96px 168px 118px 150px!important}
+/* Subtarefas: sem moldura por fora da tabela; cada linha é o próprio cartão. */
+html[data-workspace-ui='v2'] .v2-admin-page .dv-steps.v2-st-table{border:0!important;padding:0!important;background:transparent!important;box-shadow:none!important;margin-top:14px}
+html[data-workspace-ui='v2'] .v2-st-head{padding:0 16px 2px!important}
+html[data-workspace-ui='v2'] .v2-st-status{background:#6d5a8c}
+html[data-workspace-ui='v2'] .v2-st-status.blue{background:#2f6fa8}
+html[data-workspace-ui='v2'] .v2-st-status.amber{background:#d98a2b}
+html[data-workspace-ui='v2'] .v2-st-status.green{background:#356448}
+html[data-workspace-ui='v2'] .v2-st-status.red{background:#b23b3b}
+html[data-workspace-ui='v2'] .v2-st-status.gray,html[data-workspace-ui='v2'] .v2-head-status.gray{background:#7d726b}
+html[data-workspace-ui='v2'] .v2-st-status select:disabled{opacity:1}
+/* Árvore na lista de entregáveis: a subtarefa segue as MESMAS colunas do entregável (nome, complexidade, situação, prazo). */
+html[data-workspace-ui='v2'] .front-deliverable-row-v3>.v2-subtask-tree{display:grid!important;grid-template-columns:subgrid;grid-column:1/-1;padding-left:0!important;margin:8px 0 2px;row-gap:6px}
+html[data-workspace-ui='v2'] .front-deliverable-row-v3>.v2-subtask-tree>.v2-subtask-node{display:grid!important;grid-template-columns:subgrid!important;grid-column:1/-1;padding:9px 0!important;gap:0;column-gap:inherit;align-items:center;border:0;border-radius:9px;background:#faf5f1}
+html[data-workspace-ui='v2'] .v2-subtask-node::before,html[data-workspace-ui='v2'] .v2-subtask-node>i{display:none}
+html[data-workspace-ui='v2'] .v2-subtask-name{position:relative;display:flex!important;flex-direction:row!important;align-items:center;gap:10px;min-width:0;padding-left:46px}
+html[data-workspace-ui='v2'] .v2-subtask-name::before{content:'';position:absolute;left:24px;top:-16px;width:14px;height:calc(50% + 16px);border-left:1.5px solid #d9c7ba;border-bottom:1.5px solid #d9c7ba;border-bottom-left-radius:8px}
+html[data-workspace-ui='v2'] .v2-subtask-name>i{display:none}
+html[data-workspace-ui='v2'] .v2-subtask-name>span{display:flex;flex-direction:column;min-width:0}
+html[data-workspace-ui='v2'] .v2-subtask-node .mc-chip,html[data-workspace-ui='v2'] .v2-subtask-node .v2-st-muted{justify-self:start}
+html[data-workspace-ui='v2'] .v2-subtask-chip{justify-self:start;display:inline-flex;align-items:center;height:28px;padding:0 11px;border-radius:8px;font-style:normal;font-size:11px!important;font-weight:800!important;color:#fff!important;background:#6d5a8c}
+html[data-workspace-ui='v2'] .v2-subtask-chip.blue{background:#2f6fa8}
+html[data-workspace-ui='v2'] .v2-subtask-chip.amber{background:#d98a2b}
+html[data-workspace-ui='v2'] .v2-subtask-chip.green{background:#356448}
+html[data-workspace-ui='v2'] .v2-subtask-chip.red{background:#b23b3b}
+html[data-workspace-ui='v2'] .v2-subtask-chip.gray{background:#7d726b}
+html[data-workspace-ui='v2'] .v2-subtask-node time{font-size:12px;font-weight:700;color:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-subtask-arrow{justify-self:center;color:#8a4b60}
+/* Modal da subtarefa: mesmo desenho do entregável. */
+.v2-stm-overlay{position:fixed;inset:0;z-index:1300;display:grid;place-items:center;padding:20px;background:rgba(43,24,30,.46)}
+.v2-stm{width:min(900px,100%);max-height:min(88vh,760px);display:flex;flex-direction:column;background:#fff;border-radius:14px;box-shadow:0 28px 70px rgba(43,24,30,.3);overflow:hidden;font-family:Inter,system-ui,sans-serif;color:#2b2b2b}
+.v2-stm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:24px 28px 22px;background:linear-gradient(120deg,#fdf6ee,#f8ece6)}
+.v2-stm-head small{display:block;font-size:10px;letter-spacing:.14em;font-weight:700;color:#a8773f}
+.v2-stm-head h2{margin:6px 0 4px;font-size:21px;font-weight:800}
+.v2-stm-head p{margin:0;font-size:12.5px;color:#5f5650}
+.v2-stm-actions{display:flex;align-items:center;gap:10px;flex:none}
+.v2-stm-actions .v2-head-status{order:0;gap:8px}
+.v2-stm-actions .v2-head-status i{width:7px;height:7px;border-radius:50%;background:#fff}
+.v2-stm-actions .v2-task-timer{height:40px!important;margin:0!important}
+.v2-stm-actions .modal-close-static{width:40px;height:40px;display:grid;place-items:center;border:1px solid #eadfd5;border-radius:9px;background:#fff;color:#2b2b2b;cursor:pointer}
+.v2-stm-tabs{display:flex;gap:22px;padding:0 28px;border-bottom:1px solid #eee4dc}
+.v2-stm-tabs button{padding:14px 0 12px;border:0;border-bottom:2px solid transparent;background:none;font:inherit;font-size:12.5px;color:#7d726b;cursor:pointer}
+.v2-stm-tabs button.selected{color:#5a1e2d;font-weight:700;border-bottom-color:#5a1e2d}
+.v2-stm-body{padding:22px 28px 26px;overflow-y:auto;scrollbar-width:none}
+.v2-stm-body::-webkit-scrollbar{display:none}
+.v2-stm-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid #eadfd5;border-radius:10px;overflow:hidden}
+.v2-stm-cards span{display:flex;flex-direction:column;gap:6px;padding:14px 16px;font-size:11px;color:#8a7c74;border-left:1px solid #eadfd5}
+.v2-stm-cards span:first-child{border-left:0}
+.v2-stm-cards b{font-size:13.5px;color:#5a1e2d}
+.v2-stm-about{margin-top:20px}
+.v2-stm-about h3,.v2-stm-files h3{margin:0 0 6px;font-size:14px}
+.v2-stm-about p{margin:0;font-size:13px;line-height:1.55;color:#5f5650;white-space:pre-wrap}
+.v2-stm .v2-subtask-chat{display:flex;flex-direction:column;gap:12px}
+.v2-stm .v2-subtask-thread{max-height:320px}
+@media(max-width:720px){.v2-stm-head{flex-direction:column}.v2-stm-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Notas: editar e excluir. */
+html[data-workspace-ui='v2'] .v2-notelog-tools{margin-left:auto;display:inline-flex;gap:6px}
+html[data-workspace-ui='v2'] .v2-notelog-tools button{display:grid;place-items:center;width:26px;height:26px;padding:0;border:1px solid #e6d9ce;border-radius:7px;background:#fff;color:#7a4a58;cursor:pointer}
+html[data-workspace-ui='v2'] .v2-notelog-list li>div:first-child{align-items:center!important}
+html[data-workspace-ui='v2'] .v2-notelog-edit,html[data-workspace-ui='v2'] .v2-notelog-confirm{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+html[data-workspace-ui='v2'] .v2-notelog-edit textarea{width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid #dfd3ca;border-radius:8px;font:inherit;font-size:12.5px}
+html[data-workspace-ui='v2'] :is(.v2-notelog-edit,.v2-notelog-confirm)>span:last-child{display:flex;justify-content:flex-end;gap:8px}
+html[data-workspace-ui='v2'] .v2-notelog-confirm>span:first-child{font-size:12px;font-weight:600;color:#8a2f2f}
+html[data-workspace-ui='v2'] :is(.v2-notelog-edit,.v2-notelog-confirm) button{height:30px;padding:0 12px;border:1px solid #dfd3ca;border-radius:8px;background:#fff;color:#5a1e2d;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer}
+html[data-workspace-ui='v2'] :is(.v2-notelog-edit,.v2-notelog-confirm) button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] .v2-notelog-confirm button.danger{background:#b23b3b;border-color:#b23b3b;color:#fff}
+.v2-stm-actions>.v2-head-status{order:1!important}
+.v2-stm-actions>.v2-task-timer{order:2!important}
+.v2-stm-actions>.modal-close-static{order:3!important}
