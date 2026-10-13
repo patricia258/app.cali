@@ -1036,6 +1036,15 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Não verificado:** nenhuma gravação com conta real.
 - **Ainda falta do Partner:** anexos na conversa; Calendário, Documentos, Relatórios e Equipe do cliente continuam como listas simples de consulta; recursos automáticos de Projetos.
 
+### 2026-10-13 (noite) — Partner: textos sem redundância, reações, Nova etapa, alinhamentos
+
+- Textos do perfil Partner reescritos (painel, boas-vindas, Ocorrências, Projetos, Horas, Avisos): a regra de aprovação aparece uma vez só, na página "Aprovações" (antes "Aguardando a Patricia") e na boas-vindas.
+- Avisos do Partner: reações liberadas como no cliente. Banco (só acréscimo, já aplicado): políticas `notice_reactions_partner_read` e `notice_reactions_partner_insert` — migration `20261014150000_staff_partner_notice_reactions.sql`.
+- Entregável (Partner): botão "Nova etapa" voltou a aparecer (estava oculto por engano); etiqueta do topo mostra "Revisão da Patricia"; rodapé com botões e seletor na mesma altura.
+- Cabeçalho das páginas `.ap-title`: botões de ação numa linha só, mesma altura (Horas).
+- Conferido: `npm run check` ok; varredura 105 · 0; telas do Partner com dados fictícios. Nenhuma gravação real testada.
+- Continua pendente no Partner: anexos nas conversas; Calendário, Documentos, Relatórios e Equipe do cliente ainda são listas simples de leitura; função de convite por e-mail não publicada.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

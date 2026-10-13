@@ -56,20 +56,20 @@ export function StaffDashboard({ me }: { me: Me }) {
   let cursor = 0; const donutStops = statusData.map(([, value], index) => { const from = cursor; cursor += value / Math.max(1, deliverables.length) * 100; return `${tones[index % tones.length]} ${from}% ${cursor}%`; });
   const waiting = pendingHours + pendingReviews;
   const metrics = [
-    { label: 'Empresas que você atende', value: String(me.companies.length), helper: me.companies.length === 1 ? 'empresa atribuída pela Patricia' : 'empresas atribuídas pela Patricia', tone: 'green', href: '/equipe' },
+    { label: 'Empresas', value: String(me.companies.length), helper: me.companies.slice(0, 2).map((c) => c.display_name).join(' · ') + (me.companies.length > 2 ? ` · +${me.companies.length - 2}` : ''), tone: 'green', href: '/equipe' },
     ...(has('records') ? [{ label: 'Ocorrências em aberto', value: String(openRecords.length), helper: 'aguardando resposta ou acompanhamento', tone: 'amber', href: '/equipe/ocorrencias' }] : []),
     ...(has('projects') ? [{ label: 'Entregas em andamento', value: String(open.length), helper: `${deliverables.length} no total das suas empresas`, tone: 'blue', href: '/equipe/projetos' }] : []),
-    { label: 'Aguardando a Patricia', value: String(waiting), helper: `${pendingHours} ${pendingHours === 1 ? 'lançamento de horas' : 'lançamentos de horas'} · ${pendingReviews} ${pendingReviews === 1 ? 'material' : 'materiais'}`, tone: 'purple', href: '/equipe/aprovacoes' },
+    { label: 'Aguardando aprovação', value: String(waiting), helper: `${pendingHours} ${pendingHours === 1 ? 'lançamento de horas' : 'lançamentos de horas'} · ${pendingReviews} ${pendingReviews === 1 ? 'material' : 'materiais'}`, tone: 'purple', href: '/equipe/aprovacoes' },
   ];
 
   return <div className="ap-app v2-admin-page v2-staff-dashboard"><div className="ap-content">
     <div className="ap-title">
-      <div><small>EQUIPE CALI / VISÃO GERAL</small><h1>Visão geral<span>.</span></h1><p>O que as suas empresas precisam hoje e o que está com a Patricia para aprovar.</p></div>
-      <div className="ap-title-actions"><Link className="ap-outline" to="/equipe/aprovacoes"><Send size={15} /> Ver o que aguarda a Patricia</Link></div>
+      <div><small>EQUIPE CALI / VISÃO GERAL</small><h1>Visão geral<span>.</span></h1><p>Prioridades, agenda e consumo de horas.</p></div>
+      <div className="ap-title-actions"><Link className="ap-outline" to="/equipe/aprovacoes"><Send size={15} /> Ver aprovações</Link></div>
     </div>
 
     <section className="ap-overview-hero">
-      <div><small>CALI · EQUIPE</small><h2>{greeting()}, {me.name.split(' ')[0]}.</h2><p>Você atua em nome da CALI nas empresas abaixo. O que vai para o cliente passa pela Patricia antes.</p></div>
+      <div><small>CALI · EQUIPE</small><h2>{greeting()}, {me.name.split(' ')[0]}.</h2><p>Veja o que precisa de você hoje.</p></div>
     </section>
 
     <div className="ap-metrics" aria-label="Sinais do seu trabalho">
@@ -106,7 +106,7 @@ export function StaffDashboard({ me }: { me: Me }) {
     </div>}
 
     <section className="ap-pane ap-full">
-      <div className="ap-pane-head"><h2>Suas empresas</h2><span className="v2-staff-count">{me.companies.length} {me.companies.length === 1 ? 'empresa atribuída' : 'empresas atribuídas'}</span></div>
+      <div className="ap-pane-head"><h2>Suas empresas</h2></div>
       {me.companies.length ? <div className="ap-account-grid">{me.companies.map((client) => { const mine = open.filter((item) => item.company_id === client.id); const talk = openRecords.filter((item) => item.company_id === client.id).length; const state = mine.some((item) => item.status === 'adjustment_requested') ? ['Ajuste solicitado', 'red'] : mine.some((item) => item.status === 'client_review') ? ['Aguardando cliente', 'red'] : talk ? [`${talk} ${talk === 1 ? 'ocorrência aberta' : 'ocorrências abertas'}`, 'amber'] : mine.length ? ['Em execução', 'amber'] : ['Em dia', 'green'];
         return <Link className="ap-client" key={client.id} to={has('projects') ? '/equipe/projetos' : '/equipe'}><span className="ap-client-brand">{logos[client.id] ? <img src={logos[client.id]} alt="" /> : mark(client.display_name)}</span><div><strong>{client.display_name}</strong><small>{[PLAN[String(client.service_plan || '').toLowerCase()] || client.service_plan, client.monthly_hours_contracted ? `${client.monthly_hours_contracted}h por mês` : '', has('projects') ? `${mine.length} ${mine.length === 1 ? 'entrega em andamento' : 'entregas em andamento'}` : ''].filter(Boolean).join(' · ')}</small></div><span className={`ap-status ${state[1]}`}>{state[0]}</span><ArrowRight size={15} /></Link>; })}</div> : <p className="v2-admin-empty">Nenhuma empresa atribuída a você ainda. Fale com a Patricia.</p>}
     </section>

@@ -3068,3 +3068,17 @@ html[data-workspace-ui='v2'] .v2-staff-hour-status.pending{background:#fff4de;co
 html[data-workspace-ui='v2'] .v2-staff-hour-status.approved{background:#e6f6ec;color:#31805a}
 html[data-workspace-ui='v2'] .v2-staff-hour-status.rejected{background:#fdecee;color:#b7495d}
 html[data-workspace-ui='v2'] .v2-staff-hour-edit{display:inline-flex;align-items:center;gap:5px;margin-left:8px;padding:4px 8px;border:1px solid #e5d9d0;border-radius:6px;background:#fff;color:#5a1e2d;font:inherit;font-size:10px;font-weight:700;cursor:pointer;vertical-align:middle}
+/* Avisos da Equipe CALI: reações liberadas, como no cliente. */
+html[data-workspace-ui='v2'] .v2-notice-staff .v2-notice-reactions{pointer-events:auto}
+html[data-workspace-ui='v2'] .v2-notice-staff .v2-notice-reactions button:not(:has(b)){display:inline-flex}
+/* Cabeçalho das páginas no padrão .ap-title: os botões ficam numa linha só, alinhados ao título. */
+html[data-workspace-ui='v2'] .v2-admin-page .ap-title{align-items:center;gap:20px}
+html[data-workspace-ui='v2'] .v2-admin-page .ap-title>div:first-child{min-width:0;flex:1 1 320px}
+html[data-workspace-ui='v2'] .v2-admin-page .ap-title-actions{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;flex:none}
+html[data-workspace-ui='v2'] .v2-admin-page .ap-title-actions>*{flex:none;white-space:nowrap}
+@media(max-width:1100px){html[data-workspace-ui='v2'] .v2-admin-page .ap-title-actions{flex-wrap:wrap}}
+/* Rodapé do entregável: botões e seletor de situação com a mesma altura, na mesma linha. */
+html[data-workspace-ui='v2'] .dv-modal .dv-actions :is(.deliverable-actions-left-v2,.deliverable-actions-right-v2){display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+html[data-workspace-ui='v2'] .dv-modal .dv-actions :is(button.dv-secondary,.inline-status-select-v3,button.dv-converse-bottom){height:40px;min-height:40px;box-sizing:border-box;display:inline-flex;align-items:center;margin:0}
+html[data-workspace-ui='v2'] .dv-modal .dv-actions .inline-status-select-v3 select{height:100%}
+html[data-workspace-ui='v2'] .v2-admin-page .ap-title-actions>:is(button,a,label,input,.ap-month,select){height:40px;min-height:40px;box-sizing:border-box}
