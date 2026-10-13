@@ -4,7 +4,7 @@
    vai para o cliente passa pela administradora: horas e materiais entram em filas de aprovação. */
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, SendHorizontal, Users, X } from 'lucide-react';
+import { ArrowRight, Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, SendHorizontal, Square, Users, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 import { type WelcomeStep } from '../../v2/WelcomeTour';
@@ -50,6 +50,17 @@ function useMe() {
 }
 
 type Notice = { id: string; title: string; body: string | null; action_url: string | null; created_at: string };
+// Cronômetro ligado, sempre à vista na barra do topo (como o da administradora). Parar envia o tempo para aprovação.
+function StaffTimerBar({ me }: { me: Me }) {
+  const [timers, setTimers] = useState<{ id: string; company_id: string; started_at: string; paused_seconds: number | null; description: string | null }[]>([]);
+  const [now, setNow] = useState(Date.now()); const [busy, setBusy] = useState(''); const [notice, setNotice] = useState('');
+  const load = async () => { if (!supabase) return; const result = await supabase.from('work_timers').select('id,company_id,started_at,paused_seconds,description').eq('user_id', me.id).eq('status', 'active').order('started_at'); if (!result.error) setTimers((result.data as any) || []); };
+  useEffect(() => { void load(); const refresh = window.setInterval(() => void load(), 8000); const tick = window.setInterval(() => setNow(Date.now()), 1000); return () => { window.clearInterval(refresh); window.clearInterval(tick); }; }, [me.id]);
+  useEffect(() => { if (!notice) return; const timer = window.setTimeout(() => setNotice(''), 4200); return () => window.clearTimeout(timer); }, [notice]);
+  const stop = async (id: string) => { if (!supabase) return; setBusy(id); const result = await supabase.rpc('partner_stop_timer', { p_timer_id: id }); setBusy(''); setNotice(result.error ? 'Não foi possível parar o cronômetro. Tente de novo.' : (result.data as any)?.discarded ? 'Cronômetro descartado: menos de 30 segundos.' : 'Tempo enviado para aprovação.'); await load(); window.dispatchEvent(new Event('cali-staff-timer-changed')); };
+  const clock = (timer: { started_at: string; paused_seconds: number | null }) => { const total = Math.max(0, Math.floor((now - new Date(timer.started_at).getTime()) / 1000) - (timer.paused_seconds || 0)); return `${String(Math.floor(total / 3600)).padStart(2, '0')}:${String(Math.floor((total % 3600) / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`; };
+  return <>{timers.length > 0 && <div className="v2-staff-timers" aria-label="Cronômetros ligados">{timers.map((timer) => <article key={timer.id} className="v2-staff-timer"><Clock3 size={15} /><div><strong>{clock(timer)}</strong><small>{timer.description || me.companies.find((item) => item.id === timer.company_id)?.display_name || 'Atuação'}</small></div><button type="button" disabled={busy === timer.id} onClick={() => void stop(timer.id)}><Square size={12} /> Parar</button></article>)}</div>}{notice && <div className="inline-notice success v2-toast" role="status"><span>{notice}</span></div>}</>;
+}
 function StaffBell({ me }: { me: Me }) {
   const [items, setItems] = useState<Notice[]>([]); const [open, setOpen] = useState(false); const key = `cali:staff-bell-seen:${me.id}`; const [seen, setSeen] = useState(() => { try { return localStorage.getItem(key) || ''; } catch { return ''; } });
   useEffect(() => { let alive = true; const load = async () => { if (!supabase) return; const result = await supabase.from('notifications').select('id,title,body,action_url,created_at').eq('user_id', me.id).order('created_at', { ascending: false }).limit(15); if (alive && !result.error) setItems((result.data || []) as Notice[]); }; void load(); const timer = window.setInterval(load, 60000); return () => { alive = false; window.clearInterval(timer); }; }, [me.id]);
@@ -68,7 +79,7 @@ function Frame({ me, children }: { me: Me; children: ReactNode }) {
   useEffect(() => { try { if (sessionStorage.getItem('cali:staff-session') === me.id) return; sessionStorage.setItem('cali:staff-session', me.id); } catch { /* segue */ } void supabase?.rpc('staff_log_session', { p_event: 'staff_session_started' }); }, [me.id]);
   async function logout() { try { await supabase?.rpc('staff_log_session', { p_event: 'staff_session_ended' }); sessionStorage.removeItem('cali:staff-session'); } catch { /* a saída não pode ficar presa ao registro */ } await supabase?.auth.signOut(); navigate('/login', { replace: true }); }
   /* Mesma moldura da administradora e do cliente (topo, busca, sino, menu do perfil com "Ver meu perfil" e "Sair"). */
-  return <WorkspaceShellV2 role="partner" navigation={nav} notifications={<StaffBell me={me} />} bridges={null} onLogout={() => void logout()} welcomeSteps={welcomeSteps}>{plain ? children : <div className="v2-client-module v2-staff-area">{children}</div>}</WorkspaceShellV2>;
+  return <WorkspaceShellV2 role="partner" navigation={nav} extras={<StaffTimerBar me={me} />} notifications={<StaffBell me={me} />} bridges={null} onLogout={() => void logout()} welcomeSteps={welcomeSteps}>{plain ? children : <div className="v2-client-module v2-staff-area">{children}</div>}</WorkspaceShellV2>;
 }
 
 function Head({ eyebrow, title, text, action }: { eyebrow: string; title: string; text: string; action?: ReactNode }) {

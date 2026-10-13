@@ -1051,6 +1051,15 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - Calendário do Partner agora é a página da administradora em modo equipe (`StaffCalendarPage`): só eventos e prazos das empresas atribuídas; sem agenda Google, sem histórico de reuniões, sem caixa de remarcações. Criar, alterar e cancelar evento viram pedido (`staff_review_requests`, kind `change`, ações `event_create`, `event_update`, `event_cancel`), aplicados com o acesso dela em "Equipe CALI". Sem mudança no banco.
 - Não testado com gravação real. Pendente no Partner: anexos nas conversas; Documentos, Relatórios e Equipe do cliente.
 
+### 2026-10-13 — Partner: cronômetro no entregável e no topo, recolher frente, anexos, formulário de etapa
+
+- Formulário "Nova etapa": o rótulo "Descrição" deixou de ter moldura própria (vale para administradora e Partner).
+- Partner, entregável: botão "Iniciar/Parar timer" visível no rodapé (estava escondido por um estilo feito para a ponte de timer da administradora); rodapé em uma linha; botão "Enviar para aprovação".
+- Partner, topo: `StaffTimerBar` (em `StaffWorkspace.tsx`) mostra o cronômetro ligado em qualquer página, com "Parar" (envia o tempo para aprovação). Partner não tem pausa — só parar.
+- Partner, Entregáveis: clicar na folha da frente recolhe/abre a lista (em React; a administradora recebe isso do runtime V44).
+- Partner, anexos na conversa do entregável: vão direto (decisão da Patricia). Banco, só acréscimo, já aplicado: política `cali_workspace_private_partner_deliverable_insert` (envio só em `<empresa>/deliverables/`) e função `partner_attach_deliverable_file` — migration `20261014180000`. Ocorrências não têm anexo nem para a administradora; não foi criado.
+- Conferido: `npm run check` ok; varredura 105 · 0; telas com dados fictícios. Envio real de arquivo NÃO testado.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

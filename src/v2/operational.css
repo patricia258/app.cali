@@ -3082,3 +3082,27 @@ html[data-workspace-ui='v2'] .dv-modal .dv-actions :is(.deliverable-actions-left
 html[data-workspace-ui='v2'] .dv-modal .dv-actions :is(button.dv-secondary,.inline-status-select-v3,button.dv-converse-bottom){height:40px;min-height:40px;box-sizing:border-box;display:inline-flex;align-items:center;margin:0}
 html[data-workspace-ui='v2'] .dv-modal .dv-actions .inline-status-select-v3 select{height:100%}
 html[data-workspace-ui='v2'] .v2-admin-page .ap-title-actions>:is(button,a,label,input,.ap-month,select){height:40px;min-height:40px;box-sizing:border-box}
+/* Equipe CALI — Projetos: recolher a frente (a administradora recebe isto do runtime da rota dela) e cronômetro no entregável. */
+html[data-workspace-ui='v2'] .v2-staff-projects .front-header-v2>img.front-collapse-trigger-v46{cursor:pointer;transition:transform .18s ease}
+html[data-workspace-ui='v2'] .v2-staff-projects .front-header-v2>img.front-collapse-trigger-v46:hover{transform:scale(1.05)}
+html[data-workspace-ui='v2'] .v2-staff-projects .front-section-v2.front-collapsed-v46>.front-deliverables-v2{display:none!important}
+html[data-workspace-ui='v2'] .v2-staff-projects .front-section-v2.front-collapsed-v46>.front-header-v2{border-bottom:0}
+html[data-workspace-ui='v2'] .v2-staff-projects .deliverable-actions-right-v2>.timer-button-v2{display:inline-flex!important}
+/* Cronômetro ligado na barra do topo (Equipe CALI). */
+html[data-workspace-ui='v2'] .v2-staff-timers{display:flex;align-items:center;gap:8px;min-width:0}
+html[data-workspace-ui='v2'] .v2-staff-timer{display:flex;align-items:center;gap:9px;height:40px;padding:0 6px 0 11px;border:1px solid #cfe3d6;border-radius:10px;background:#f1f8f3;color:#2c5a3f;min-width:0}
+html[data-workspace-ui='v2'] .v2-staff-timer>div{display:flex;flex-direction:column;min-width:0;line-height:1.15}
+html[data-workspace-ui='v2'] .v2-staff-timer strong{font-size:12px;font-variant-numeric:tabular-nums}
+html[data-workspace-ui='v2'] .v2-staff-timer small{font-size:10px;color:#5d7a68;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html[data-workspace-ui='v2'] .v2-staff-timer button{display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 10px;border:0;border-radius:7px;background:#356448;color:#fff;font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+html[data-workspace-ui='v2'] .v2-staff-timer button:disabled{opacity:.6;cursor:default}
+@media(max-width:850px){html[data-workspace-ui='v2'] .v2-staff-timer small{display:none}}
+/* Formulário de etapa: o rótulo "Descrição" não é uma moldura; só o campo tem borda. Vale para administradora e Equipe CALI. */
+html[data-workspace-ui='v2'] .v2-pd-inline-form.task-form-v2>label{border:0!important;padding:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important;height:auto!important;min-height:0!important;display:flex;flex-direction:column;gap:6px}
+html[data-workspace-ui='v2'] .v2-pd-inline-form.task-form-v2>label>textarea{width:100%;box-sizing:border-box;resize:vertical}
+html[data-workspace-ui='v2'] .v2-staff-projects .dv-modal .dv-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap}
+html[data-workspace-ui='v2'] .v2-staff-projects .dv-modal .dv-actions :is(.deliverable-actions-left-v2,.deliverable-actions-right-v2){flex-wrap:nowrap;margin:0}
+html[data-workspace-ui='v2'] .v2-staff-projects .dv-modal .dv-actions :is(button,.inline-status-select-v3){white-space:nowrap;flex:none}
+@media(max-width:900px){html[data-workspace-ui='v2'] .v2-staff-projects .dv-modal .dv-actions,html[data-workspace-ui='v2'] .v2-staff-projects .dv-modal .dv-actions :is(.deliverable-actions-left-v2,.deliverable-actions-right-v2){flex-wrap:wrap}}
+html[data-workspace-ui='v2'] .topbar .v2-staff-timer strong{color:#234a33!important;font-size:13px!important;letter-spacing:0!important;text-transform:none!important}
+html[data-workspace-ui='v2'] .topbar .v2-staff-timer small{color:#5d7a68!important;letter-spacing:0!important;text-transform:none!important;font-weight:500!important}
