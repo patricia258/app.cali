@@ -1197,6 +1197,16 @@ NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINIS
 - FALTA nesta frente: a MESMA visualização de pasta para administradora e Partner em Documentos (hoje eles usam a aba Arquivos do entregável e da subtarefa); aprovação/ciência por documento dentro da pasta; capa da pasta; entrega final do próprio entregável (sem subtarefa) pelo mesmo botão.
 - NÃO testado com gravação real. Atenção: publicar um arquivo dispara o aviso de documento novo ao cliente (gatilho existente `notify_file_movement`).
 
+### 2026-10-13 — Publicação 19 e fechamento da pasta (homologação)
+
+- PUBLICAÇÃO 19 no oficial (`8e461bc`), aprovada por ela: entrega em pasta 1ª versão.
+- Depois, só na homologação:
+  - Aba Arquivos do ENTREGÁVEL (`DeliverableFiles.tsx`) virou a visão de pasta da administradora e do Partner: mesmas partes que o cliente vê (uma por subtarefa + a conversa do entregável), cada arquivo com estado e ações. Partner: "Propor como entrega final". Administradora: "Liberar para o cliente", "Recusar", "Suspender" e "Excluir" (retira o documento da pasta do cliente; o arquivo continua na conversa). Vale também para entregável SEM subtarefa (grupo principal, `task_id` nulo).
+  - Cliente, dentro da pasta: "Confirmar recebimento" por documento (usa `document_acknowledgements`, já existente); depois mostra "Recebimento confirmado".
+  - Subtarefa aprovada/concluída mostra "Encerrada" no lugar do play (regra dela: Partner só tem Pausar; encerrar é dela). Não há botão de Stop para o Partner.
+- Ainda falta nesta frente: renomear/editar o documento liberado; capa da pasta; a pasta dentro da página Documentos da administradora (hoje fica na aba Arquivos do entregável); cliente abrir a subtarefa e conversar por ela.
+- NÃO testado com gravação real.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
