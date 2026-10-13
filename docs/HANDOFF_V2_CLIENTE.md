@@ -1142,6 +1142,14 @@ NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINIS
 - Migration `20261015210000` (aplicada). NÃO testado com gravação real; modal conferido só no perfil Partner com dados fictícios.
 - Falta: conversa/aprovação da subtarefa com o CLIENTE, aba Arquivos do entregável, Stop do Partner após aprovação, horas do cliente, calendário do cliente.
 
+### 2026-10-13 — Subtarefa: ajustes do modal, complexidade com cor e visão do cliente
+
+- Modal da subtarefa: o do entregável fica oculto enquanto ele está aberto (`hidden` no overlay) e há "← Voltar para <entregável>"; conversa no padrão dos outros chats (foto fora do balão, via `staff_identities` + `staff_admin_contacts`/perfil da administradora) e botão "Anexar" no padrão.
+- Complexidade com cor em todo o Workspace: MC1 verde, MC2 amarelo, MC3 vermelho (`.mc-chip`), com legenda explicando cada uma nos formulários de entregável e de subtarefa (`ComplexityLegend`) e dica ao passar o mouse.
+- Lista de entregáveis (administradora/Partner): a subtarefa perdeu a faixa colorida; ficou só a linha de ligação.
+- CLIENTE (`ClientDeliverablesPage.tsx`): saiu a aba "Etapas" do entregável; complexidade virou coluna com explicação ao passar o mouse; subtarefas marcadas "visível para o cliente" aparecem abaixo do entregável (nome, complexidade, situação em linguagem do cliente, prazo). O cliente ainda NÃO abre a subtarefa nem conversa/aprova nela — próxima etapa.
+- NÃO testado com gravação real; no ambiente de teste não havia subtarefa visível ao cliente para ver a linha dele.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
