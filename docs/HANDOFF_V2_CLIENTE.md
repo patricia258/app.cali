@@ -1315,6 +1315,13 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
 - DRIVE DO CLIENTE (pedido dela: pensar em como isso fica salvo no Drive dele): hoje a cópia para o Drive é por documento (`requestDriveCopy`). Falta: ao salvar um documento de pasta, criar no Drive do cliente uma pasta com o nome do entregável e gravar cada parte dentro; ou um botão "Salvar a pasta no meu Drive". Verificar a função de borda do Drive antes de prometer.
 - Lembrete dela: não esquecer a lista de pendências, em especial as DEPENDÊNCIAS do cliente no entregável (documento de complexidade, item 4) e os itens 5 e 6.
 
+### 2026-10-13 — Publicação 25; REGRA: arquivo de conversa NÃO é documento
+
+- PUBLICAÇÃO 25 no oficial (`16173d9`): pasta de entregável no modelo A em Documentos do cliente.
+- REGRA DITADA POR ELA: "Documento é a finalização ou algo referente ao entregável ou à subtarefa. Não é um documento compartilhado no chat." O chat é comunicação (prévias, ajustes, aprovações). Só vira documento o que for marcado como entrega final e liberado por ela.
+- ACHADO: no teste dela apareceu em Documentos do cliente o arquivo "Apresentacao_Comercial_Prado_Financas.docx", que o João mandou pelo chat. Causa: a primeira versão do anexo do Partner (`partner_attach_deliverable_file`, abandonada no mesmo dia) inseria o arquivo em `files` como publicado. Há exatamente 1 registro assim (conferido por contagem). Permissão de executar a função retirada (migration `20261017090000`). O REGISTRO continua lá — arquivar/retirar depende da aprovação dela (pedido feito).
+- A mensagem de teste antiga "Arquivo enviado. Anexo: …docx" é texto (formato anterior) e não é clicável; os anexos enviados depois da correção são clicáveis em todas as conversas.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
