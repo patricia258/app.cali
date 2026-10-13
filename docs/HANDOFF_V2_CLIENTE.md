@@ -1110,6 +1110,15 @@ Fases: 1) cabeçalho + notas (FEITA, homologação); 2) aba Subtarefas com paine
 Fase 1 entregue: status com cor forte e cronômetro no cabeçalho nos dois perfis (`v2-head-timer` no modo equipe; rodapé sem timer); "Etapas" → "Subtarefas"; campo "Notas internas" na Visão geral (tabela nova `deliverable_notes`, só administradora; Partner por `partner_get/save_deliverable_notes` — as notas NÃO ficam em `deliverables` porque o cliente lê essa tabela); Partner cria subtarefa direto (`partner_create_task`), com a regra do prazo; linha da subtarefa da administradora em 4 colunas. Migration `20261015120000` (aplicada).
 NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINISTRADORA não puderam ser vistos no ambiente de teste (o runtime de timer dela não monta lá).
 
+### 2026-10-13 — Upgrade do entregável, fase 2: subtarefa com painel próprio
+
+- Aprovado pela Patricia na fase 1 e virou PADRÃO: status com cor forte no cabeçalho e cronômetro verde quando ligado. Ajustes pedidos: a situação saiu do rodapé e o chip do cabeçalho é o próprio seletor colorido (`v2-head-status`), nos dois perfis; cronômetro ligado da administradora (ProjectTimerBridge) recebeu o mesmo verde por CSS; notas dizem onde ficam e a hora em que foram salvas.
+- Lista de entregáveis: subtarefas aparecem ABAIXO do entregável, em árvore (`v2-subtask-tree`), como ela pediu ("igual um organograma"); clicar abre o entregável na aba Subtarefas.
+- Aba Subtarefas: clicar na subtarefa abre o painel logo abaixo (`src/pages/admin/SubtaskPanel.tsx`): notas internas da subtarefa, conversa da equipe (interna) com anexo clicável, e lista "Arquivos da subtarefa". Tabelas novas `task_notes` e `task_messages` (administradora total; Partner lê mensagens e grava por `partner_save_task_notes` / `partner_post_task_message`). Cliente NÃO lê nada disso ainda. Migration `20261015150000` (aplicada).
+- A tabela `comments` não aceita `target_type='task'` (constraint), por isso a conversa da subtarefa tem tabela própria.
+- Falta: fase 3 (aba Arquivos do entregável + enviar subtarefa para aprovação; Stop do Partner só após aprovação), fase 4 (cliente), horas do cliente, calendário do cliente.
+- NÃO testado com gravação real.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
