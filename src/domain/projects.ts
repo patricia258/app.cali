@@ -73,7 +73,7 @@ export const complexityMeta: Record<MaterialComplexity, { label: string; descrip
   MC3: { label: 'MC3 · Alta', minDays: 90, maxDays: 120, description: 'Materiais estratégicos de maior abrangência, com múltiplos desdobramentos, participação de diferentes áreas e lideranças, dependências técnicas e diversas etapas de validação.' },
 };
 export const complexityRange = (code: string) => { const meta = (complexityMeta as Record<string, { minDays: number; maxDays: number }>)[code]; return meta ? `${meta.minDays} a ${meta.maxDays} dias corridos` : ''; };
-export const complexityClientNote = 'O prazo informado representa uma estimativa média de desenvolvimento, considerando a complexidade técnica, a abrangência da entrega e as etapas de construção e validação. A conclusão poderá ocorrer antecipadamente. O cronograma está sujeito a ajustes conforme a disponibilidade das informações, a participação dos envolvidos e o tempo de resposta e aprovação do cliente.';
+export const complexityClientNote = 'Prazo estimado, que pode ser antecipado. O cronograma se ajusta conforme a disponibilidade das informações, a participação dos envolvidos e o tempo de resposta e aprovação.';
 
 export const caliWorkstreams = [
   'Liderança',
