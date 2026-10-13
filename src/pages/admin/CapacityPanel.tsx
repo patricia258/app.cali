@@ -7,10 +7,22 @@ import { supabase } from '../../lib/supabase';
 import { capacityOf, minutesLabel, percentLabel } from '../../lib/capacity';
 
 type Row = { company_id: string; contracted_minutes: number; used_minutes: number; excess_months: number; window_months: number; paused: boolean; events: string[] };
+type History = { month: string; contracted_minutes: number; used_minutes: number };
+type Review = { id: string; company_id: string; analysis: string; decision: string; communicated: boolean; created_at: string };
+const decisionLabel: Record<string, string> = { monitor: 'Manter e acompanhar', reprioritize: 'Reorganizar prioridades', reschedule: 'Reprogramar atividades', complement: 'Contratação complementar', capacity_change: 'Propor alteração de capacidade' };
+const monthShort = (iso: string) => new Intl.DateTimeFormat('pt-BR', { month: 'short', year: '2-digit' }).format(new Date(`${String(iso).slice(0, 10)}T12:00:00`)).replace('.', '');
 const eventLabel: Record<string, string> = { m75: 'aviso de 75%', m100: 'aviso de 100%', excess: 'aviso de excedente', tolerance: 'alerta de tolerância (110%)', review: 'pendência de adequação' };
 
 export function CapacityPanel({ month, companies, onNotice }: { month: string; companies: { id: string; name: string }[]; onNotice: (message: string) => void }) {
   const [rows, setRows] = useState<Row[]>([]); const [busy, setBusy] = useState(''); const [confirming, setConfirming] = useState('');
+  const [openId, setOpenId] = useState(''); const [history, setHistory] = useState<History[]>([]); const [reviews, setReviews] = useState<Review[]>([]);
+  const [draft, setDraft] = useState({ analysis: '', decision: 'monitor', communicated: false });
+  async function openDetail(companyId: string) { if (openId === companyId) { setOpenId(''); return; } setOpenId(companyId); setHistory([]); setDraft({ analysis: '', decision: 'monitor', communicated: false }); if (!supabase) return;
+    const [past, notes] = await Promise.all([supabase.rpc('admin_capacity_history', { p_company_id: companyId, p_month: `${month}-01` }), supabase.from('capacity_reviews').select('id,company_id,analysis,decision,communicated,created_at').eq('company_id', companyId).order('created_at', { ascending: false }).limit(5)]);
+    if (!past.error) setHistory((past.data || []) as History[]); if (!notes.error) setReviews((notes.data || []) as Review[]); }
+  async function saveReview(companyId: string) { if (!supabase || busy || draft.analysis.trim().length < 3) return; setBusy(companyId); const { data: auth } = await supabase.auth.getUser();
+    const result = await supabase.from('capacity_reviews').insert({ company_id: companyId, month: `${month}-01`, analysis: draft.analysis.trim(), decision: draft.decision, communicated: draft.communicated, created_by: auth.user?.id || null }).select('id,company_id,analysis,decision,communicated,created_at').single();
+    setBusy(''); if (result.error) { onNotice('Não foi possível registrar a avaliação. Tente de novo.'); return; } setReviews((current) => [result.data as Review, ...current]); setDraft({ analysis: '', decision: 'monitor', communicated: false }); onNotice('Avaliação registrada. Nada foi alterado no contrato.'); }
   const monthStart = `${month}-01`;
   async function load() { if (!supabase) return; const result = await supabase.rpc('admin_capacity_overview', { p_month: monthStart }); if (!result.error) setRows((result.data || []) as Row[]); }
   useEffect(() => { void load(); }, [month]);
@@ -41,7 +53,15 @@ export function CapacityPanel({ month, companies, onNotice }: { month: string; c
           ? <><em><PauseCircle size={14} /> Pausada até o próximo mês</em><button type="button" disabled={busy === row.company_id} onClick={() => void resume(row)}><PlayCircle size={14} /> Retomar</button></>
           : confirming === row.company_id ? <><em>Pausar as atividades desta empresa até o próximo mês?</em><button type="button" onClick={() => setConfirming('')}>Voltar</button><button type="button" className="primary" disabled={busy === row.company_id} onClick={() => void pause(row)}>Sim, pausar</button></>
           : overTolerance ? <><em className="alert"><AlertTriangle size={14} /> Passou da tolerância de 10%</em><button type="button" className="primary" onClick={() => setConfirming(row.company_id)}><PauseCircle size={14} /> Pausar até o próximo mês</button></>
-          : capacity.level === 'excess' ? <button type="button" onClick={() => setConfirming(row.company_id)}><PauseCircle size={14} /> Pausar até o próximo mês</button> : null}</div>
+          : capacity.level === 'excess' ? <button type="button" onClick={() => setConfirming(row.company_id)}><PauseCircle size={14} /> Pausar até o próximo mês</button> : null}<button type="button" aria-expanded={openId === row.company_id} onClick={() => void openDetail(row.company_id)}>{openId === row.company_id ? 'Fechar' : 'Histórico e avaliação'}</button></div>
+        {openId === row.company_id && <div className="v2-capadmin-detail">
+          <div><h4>Consumo nos últimos {row.window_months} meses</h4>{history.length ? <ul className="v2-capadmin-history">{history.map((item) => { const cap = capacityOf(item.contracted_minutes / 60, item.used_minutes); const value = cap.usagePercent || 0; return <li key={item.month} className={cap.excessMinutes > 0 ? 'over' : ''}><span>{monthShort(item.month)}</span><i><b style={{ width: `${Math.min(100, value)}%` }} /></i><strong>{cap.level === 'none' ? '—' : percentLabel(cap.usagePercent)}</strong><em>{cap.level === 'none' ? 'sem capacidade definida' : `${minutesLabel(cap.usedMinutes)} de ${minutesLabel(cap.contractedMinutes)}${cap.excessMinutes > 0 ? ` · +${minutesLabel(cap.excessMinutes)}` : ''}`}</em></li>; })}</ul> : <p className="v2-capadmin-empty">Carregando histórico…</p>}</div>
+          <div><h4>Avaliação de adequação de capacidade</h4><p className="v2-capadmin-empty">Registre a sua análise e o encaminhamento. Isto não altera contrato, cobrança nem atendimento.</p>
+            <label>Análise<textarea rows={3} value={draft.analysis} onChange={(event) => setDraft({ ...draft, analysis: event.target.value })} placeholder="O que explica o consumo e o que foi conversado." /></label>
+            <div className="v2-capadmin-formrow"><label>Encaminhamento<select value={draft.decision} onChange={(event) => setDraft({ ...draft, decision: event.target.value })}>{Object.entries(decisionLabel).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label className="check"><input type="checkbox" checked={draft.communicated} onChange={(event) => setDraft({ ...draft, communicated: event.target.checked })} /> Já comunicado ao cliente</label><button type="button" className="primary" disabled={busy === row.company_id || draft.analysis.trim().length < 3} onClick={() => void saveReview(row.company_id)}>Registrar avaliação</button></div>
+            {reviews.length > 0 && <ul className="v2-capadmin-reviews">{reviews.map((review) => <li key={review.id}><strong>{decisionLabel[review.decision] || review.decision}</strong><time>{new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(review.created_at)).replace('.', '')}{review.communicated ? ' · comunicado ao cliente' : ' · ainda não comunicado'}</time><p>{review.analysis}</p></li>)}</ul>}
+          </div>
+        </div>}
       </article>; })}</div>
     <p className="v2-capadmin-foot">Excedente não gera cobrança, suspensão automática nem mudança de contrato. A pausa é uma decisão sua e vale só até o fim do mês.</p>
   </section>;
