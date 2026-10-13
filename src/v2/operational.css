@@ -3450,3 +3450,17 @@ html[data-workspace-ui='v2'] .v2-mc-range{display:flex;align-items:center;flex-w
 html[data-workspace-ui='v2'] .v2-mc-range.outside{color:#8a5a12;font-weight:700}
 html[data-workspace-ui='v2'] .v2-mc-range button{height:26px;padding:0 10px;border:1px solid #dfd3ca;border-radius:7px;background:#fff;color:#5a1e2d;font:inherit;font-size:11px;font-weight:700;cursor:pointer}
 html[data-workspace-ui='v2'] .v2-mc-clientnote{margin:12px 0 0;font-size:11.5px;line-height:1.55;color:#7d726b}
+/* Entregável com subtarefas: lista recolhível (todos os perfis). */
+html[data-workspace-ui='v2'] .v2-subtask-toggle{grid-column:1/-1;justify-self:start;display:inline-flex;align-items:center;gap:7px;height:28px;margin-left:34px;padding:0 11px;border:1px solid #e6d9ce;border-radius:8px;background:#fff;color:#5a1e2d;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer}
+html[data-workspace-ui='v2'] :is(.v2-subtask-toggle,.dv-subtoggle) small{font-size:10.5px;font-weight:500;color:#9a8d85}
+html[data-workspace-ui='v2'] .dv-row.dv-subtoggle{justify-content:flex-start;gap:7px;padding:8px 19px 8px 70px;background:#fdfaf7;border-bottom:1px dashed #eee4dd;font-size:11.5px;font-weight:700;color:#5a1e2d;cursor:pointer}
+/* Aba Arquivos do entregável. */
+html[data-workspace-ui='v2'] .v2-dfiles{display:flex;flex-direction:column;gap:16px}
+html[data-workspace-ui='v2'] .v2-dfiles-head{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:10px;background:#fbf7f4;color:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-dfiles-head strong{font-size:13.5px}
+html[data-workspace-ui='v2'] .v2-dfiles-head p{margin:3px 0 0;font-size:12px;color:#7d726b}
+html[data-workspace-ui='v2'] .v2-dfiles-group{padding:14px 16px;border:1px solid #eadfd5;border-radius:10px;background:#fff}
+html[data-workspace-ui='v2'] .v2-dfiles-group h4{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px;margin:0 0 10px;font-size:13px;color:#2b2b2b}
+html[data-workspace-ui='v2'] .v2-dfiles-group h4 small{font-size:10.5px;font-weight:500;color:#9a8d85}
+html[data-workspace-ui='v2'] .v2-dfiles-list{display:flex;flex-wrap:wrap;gap:8px}
+html[data-workspace-ui='v2'] .v2-dfiles-empty{margin:0;font-size:12px;color:#8a7c74}
