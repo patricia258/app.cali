@@ -14,6 +14,8 @@ import { StaffDashboard } from './StaffDashboard';
 import { StaffRecordsPage } from '../records/WorkspaceRecordsPage';
 import { StaffProjectsPage } from '../admin/AdminProjectsPageV3';
 import { StaffHoursPage } from '../admin/AdminHoursPageV3';
+import '../../styles/routes/calendar';
+import { StaffCalendarPage } from '../admin/AdminCalendarPage';
 import '../../v2/v2.generated.css';
 import '../../styles/routes/records';
 import '../../styles/routes/projects';
@@ -60,7 +62,7 @@ function StaffBell({ me }: { me: Me }) {
 function Frame({ me, children }: { me: Me; children: ReactNode }) {
   const navigate = useNavigate(); const { pathname } = useLocation(); const has = (key: string) => me.modules.includes(key);
   /* A Visão geral usa a composição da administradora (.content > .ap-app), sem invólucro, para herdar as mesmas regras, inclusive no celular. */
-  const plain = ['/equipe', '/equipe/ocorrencias', '/equipe/projetos', '/equipe/avisos', '/equipe/horas'].includes(pathname.replace(/\/$/, ''));
+  const plain = ['/equipe', '/equipe/ocorrencias', '/equipe/projetos', '/equipe/avisos', '/equipe/horas', '/equipe/calendario'].includes(pathname.replace(/\/$/, ''));
   const nav = ([['/equipe', 'Visão geral', LayoutDashboard, true], ['/equipe/pessoas', 'Equipe', Users, has('team')], ['/equipe/projetos', 'Projetos', BriefcaseBusiness, has('projects')], ['/equipe/horas', 'Horas', Clock3, has('hours')], ['/equipe/calendario', 'Calendário', CalendarDays, has('calendar')], ['/equipe/ocorrencias', 'Ocorrências', MessageCircleMore, has('records')], ['/equipe/documentos', 'Documentos', FolderOpen, has('documents')], ['/equipe/relatorios', 'Relatórios', FileBarChart2, has('reports')], ['/equipe/avisos', 'Avisos', Megaphone, has('notices')], ['/equipe/aprovacoes', 'Aprovações', Send, true]] as [string, string, typeof Clock3, boolean][]).filter((item) => item[3]).map(([href, label, icon]) => ({ href, label, icon }));
   /* Entrada e saída ficam registradas para a administradora (função staff_log_session). */
   useEffect(() => { try { if (sessionStorage.getItem('cali:staff-session') === me.id) return; sessionStorage.setItem('cali:staff-session', me.id); } catch { /* segue */ } void supabase?.rpc('staff_log_session', { p_event: 'staff_session_started' }); }, [me.id]);
@@ -146,8 +148,9 @@ export function StaffWorkspace() {
   return <Frame me={me}><Routes>
     <Route index element={<StaffDashboard me={me} />} />
     <Route path="ocorrencias" element={me.modules.includes('records') ? <StaffRecordsPage companies={me.companies.map((item) => ({ id: item.id, name: item.display_name, logo: item.logo_workspace_url, logoFallback: item.logo_url }))} /> : <Navigate to="/equipe" replace />} />
+    <Route path="calendario" element={me.modules.includes('calendar') ? <StaffCalendarPage /> : <Navigate to="/equipe" replace />} />
     <Route path="horas" element={me.modules.includes('hours') ? <StaffHoursPage companies={me.companies} /> : <Navigate to="/equipe" replace />} />
-    {([['calendario', 'calendar'], ['documentos', 'documents'], ['relatorios', 'reports'], ['pessoas', 'team']] as [string, string][]).map(([path, module]) => <Route key={path} path={path} element={me.modules.includes(module) ? <Browse me={me} kind={path} /> : <Navigate to="/equipe" replace />} />)}
+    {([['documentos', 'documents'], ['relatorios', 'reports'], ['pessoas', 'team']] as [string, string][]).map(([path, module]) => <Route key={path} path={path} element={me.modules.includes(module) ? <Browse me={me} kind={path} /> : <Navigate to="/equipe" replace />} />)}
     <Route path="projetos" element={me.modules.includes('projects') ? <StaffProjectsPage companies={me.companies} /> : <Navigate to="/equipe" replace />} />
     <Route path="avisos" element={me.modules.includes('notices') ? <StaffNotices me={me} /> : <Navigate to="/equipe" replace />} />
     <Route path="aprovacoes" element={<Reviews me={me} />} />

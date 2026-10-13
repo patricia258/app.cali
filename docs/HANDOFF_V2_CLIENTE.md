@@ -1045,6 +1045,12 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - Conferido: `npm run check` ok; varredura 105 · 0; telas do Partner com dados fictícios. Nenhuma gravação real testada.
 - Continua pendente no Partner: anexos nas conversas; Calendário, Documentos, Relatórios e Equipe do cliente ainda são listas simples de leitura; função de convite por e-mail não publicada.
 
+### 2026-10-13 — Publicação 13 e Calendário do Partner
+
+- Publicação 13 no oficial (`a340158`), aprovada pela Patricia: tudo do perfil Partner até aqui, pausa automática de cronômetro esquecido, reações.
+- Calendário do Partner agora é a página da administradora em modo equipe (`StaffCalendarPage`): só eventos e prazos das empresas atribuídas; sem agenda Google, sem histórico de reuniões, sem caixa de remarcações. Criar, alterar e cancelar evento viram pedido (`staff_review_requests`, kind `change`, ações `event_create`, `event_update`, `event_cancel`), aplicados com o acesso dela em "Equipe CALI". Sem mudança no banco.
+- Não testado com gravação real. Pendente no Partner: anexos nas conversas; Documentos, Relatórios e Equipe do cliente.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
