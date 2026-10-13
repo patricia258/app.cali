@@ -1060,6 +1060,11 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - Partner, anexos na conversa do entregável: vão direto (decisão da Patricia). Banco, só acréscimo, já aplicado: política `cali_workspace_private_partner_deliverable_insert` (envio só em `<empresa>/deliverables/`) e função `partner_attach_deliverable_file` — migration `20261014180000`. Ocorrências não têm anexo nem para a administradora; não foi criado.
 - Conferido: `npm run check` ok; varredura 105 · 0; telas com dados fictícios. Envio real de arquivo NÃO testado.
 
+### 2026-10-13 — Partner: "Pausar" no lugar de "Parar"
+
+- Regra da Patricia: o Partner precisa pausar e continuar depois; encerrar a tarefa não é dele. O `partner_stop_timer` já fazia isso (grava a sessão, envia para aprovação, não bloqueia nada) — igual ao "Pausar" da administradora (`pause_work_timer`). Só o nome estava errado: trocado para "Pausar" no entregável, na barra do topo, em Ocorrências e em Horas. O Partner não tem "Finalizar definitivamente".
+- Pedidos em aberto: calendário do CLIENTE com a mesma aparência do da administradora (sem criar evento); decidir quais eventos o Partner vê.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

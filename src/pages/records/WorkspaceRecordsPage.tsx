@@ -484,8 +484,8 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
     if (!supabase || !selected || !staff) return; setError('');
     if (staffTimer) {
       const result = await supabase.rpc('partner_stop_timer', { p_timer_id: staffTimer.id, p_description: null });
-      if (result.error) { setError(result.error.message || 'Não foi possível parar o cronômetro.'); return; }
-      setStaffTimer(null); setNotice((result.data as any)?.discarded ? 'Sessão com menos de 30 segundos: não foi registrada.' : `Tempo enviado para a Patricia aprovar (${(result.data as any)?.minutes} min).`);
+      if (result.error) { setError(result.error.message || 'Não foi possível pausar o cronômetro.'); return; }
+      setStaffTimer(null); setNotice((result.data as any)?.discarded ? 'Sessão com menos de 30 segundos: não foi registrada.' : `Sessão de ${(result.data as any)?.minutes} min enviada para aprovação. Dê play para continuar depois.`);
     } else {
       const result = await supabase.rpc('partner_start_record_timer', { p_record_id: selected.id });
       if (result.error) { setError(result.error.message || 'Não foi possível iniciar o cronômetro.'); return; }
@@ -618,7 +618,7 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
       <aside className={`wf-record-drawer ${role==='admin'?'v2-admin-record-drawer':''}`} data-v2-operation="records-v13-drawer" role="dialog" aria-modal="true" aria-label={selected.title}>
         <header>
           <div><small>{role==='admin'?'REGISTRO':'OCORRÊNCIA'}{selected.protocol ? ' · ' : ''}<span className="section-kicker">{selected.protocol || ''}</span></small><h2>{selected.title}</h2>{role==='admin' && <p>{companyMap.get(selected.companyId) || ''}</p>}</div>
-          {staff && selected.workflowStatus && !['completed', 'cancelled'].includes(selected.workflowStatus) && <button type="button" className={`v2-staff-record-timer ${staffTimer ? 'on' : ''}`} onClick={() => void staffToggleTimer()}>{staffTimer ? <><span aria-hidden="true">❚❚</span> Parar · {(() => { const total = Math.max(0, Math.floor((Date.now() - new Date(staffTimer.startedAt).getTime()) / 1000)); return `${String(Math.floor(total / 3600)).padStart(2, '0')}:${String(Math.floor(total % 3600 / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`; })()}</> : <><span aria-hidden="true">▶</span> Iniciar</>}</button>}
+          {staff && selected.workflowStatus && !['completed', 'cancelled'].includes(selected.workflowStatus) && <button type="button" className={`v2-staff-record-timer ${staffTimer ? 'on' : ''}`} onClick={() => void staffToggleTimer()}>{staffTimer ? <><span aria-hidden="true">❚❚</span> Pausar · {(() => { const total = Math.max(0, Math.floor((Date.now() - new Date(staffTimer.startedAt).getTime()) / 1000)); return `${String(Math.floor(total / 3600)).padStart(2, '0')}:${String(Math.floor(total % 3600 / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`; })()}</> : <><span aria-hidden="true">▶</span> Iniciar</>}</button>}
           <button type="button" className="drawer-close" aria-label="Fechar" onClick={() => setConversationOpen(false)}><X size={18} /></button>
         </header>
         <div className="wf-drawer-meta">

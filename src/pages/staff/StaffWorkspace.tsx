@@ -4,7 +4,7 @@
    vai para o cliente passa pela administradora: horas e materiais entram em filas de aprovação. */
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, SendHorizontal, Square, Users, X } from 'lucide-react';
+import { ArrowRight, Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, Pause, SendHorizontal, Users, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 import { type WelcomeStep } from '../../v2/WelcomeTour';
@@ -50,16 +50,16 @@ function useMe() {
 }
 
 type Notice = { id: string; title: string; body: string | null; action_url: string | null; created_at: string };
-// Cronômetro ligado, sempre à vista na barra do topo (como o da administradora). Parar envia o tempo para aprovação.
+// Cronômetro ligado, sempre à vista na barra do topo (como o da administradora). Pausar grava a sessão e envia o tempo para aprovação; a tarefa continua aberta.
 function StaffTimerBar({ me }: { me: Me }) {
   const [timers, setTimers] = useState<{ id: string; company_id: string; started_at: string; paused_seconds: number | null; description: string | null }[]>([]);
   const [now, setNow] = useState(Date.now()); const [busy, setBusy] = useState(''); const [notice, setNotice] = useState('');
   const load = async () => { if (!supabase) return; const result = await supabase.from('work_timers').select('id,company_id,started_at,paused_seconds,description').eq('user_id', me.id).eq('status', 'active').order('started_at'); if (!result.error) setTimers((result.data as any) || []); };
   useEffect(() => { void load(); const refresh = window.setInterval(() => void load(), 8000); const tick = window.setInterval(() => setNow(Date.now()), 1000); return () => { window.clearInterval(refresh); window.clearInterval(tick); }; }, [me.id]);
   useEffect(() => { if (!notice) return; const timer = window.setTimeout(() => setNotice(''), 4200); return () => window.clearTimeout(timer); }, [notice]);
-  const stop = async (id: string) => { if (!supabase) return; setBusy(id); const result = await supabase.rpc('partner_stop_timer', { p_timer_id: id }); setBusy(''); setNotice(result.error ? 'Não foi possível parar o cronômetro. Tente de novo.' : (result.data as any)?.discarded ? 'Cronômetro descartado: menos de 30 segundos.' : 'Tempo enviado para aprovação.'); await load(); window.dispatchEvent(new Event('cali-staff-timer-changed')); };
+  const stop = async (id: string) => { if (!supabase) return; setBusy(id); const result = await supabase.rpc('partner_stop_timer', { p_timer_id: id }); setBusy(''); setNotice(result.error ? 'Não foi possível pausar o cronômetro. Tente de novo.' : (result.data as any)?.discarded ? 'Cronômetro descartado: menos de 30 segundos.' : 'Sessão enviada para aprovação. Dê play para continuar depois.'); await load(); window.dispatchEvent(new Event('cali-staff-timer-changed')); };
   const clock = (timer: { started_at: string; paused_seconds: number | null }) => { const total = Math.max(0, Math.floor((now - new Date(timer.started_at).getTime()) / 1000) - (timer.paused_seconds || 0)); return `${String(Math.floor(total / 3600)).padStart(2, '0')}:${String(Math.floor((total % 3600) / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`; };
-  return <>{timers.length > 0 && <div className="v2-staff-timers" aria-label="Cronômetros ligados">{timers.map((timer) => <article key={timer.id} className="v2-staff-timer"><Clock3 size={15} /><div><strong>{clock(timer)}</strong><small>{timer.description || me.companies.find((item) => item.id === timer.company_id)?.display_name || 'Atuação'}</small></div><button type="button" disabled={busy === timer.id} onClick={() => void stop(timer.id)}><Square size={12} /> Parar</button></article>)}</div>}{notice && <div className="inline-notice success v2-toast" role="status"><span>{notice}</span></div>}</>;
+  return <>{timers.length > 0 && <div className="v2-staff-timers" aria-label="Cronômetros ligados">{timers.map((timer) => <article key={timer.id} className="v2-staff-timer"><Clock3 size={15} /><div><strong>{clock(timer)}</strong><small>{timer.description || me.companies.find((item) => item.id === timer.company_id)?.display_name || 'Atuação'}</small></div><button type="button" disabled={busy === timer.id} onClick={() => void stop(timer.id)}><Pause size={12} /> Pausar</button></article>)}</div>}{notice && <div className="inline-notice success v2-toast" role="status"><span>{notice}</span></div>}</>;
 }
 function StaffBell({ me }: { me: Me }) {
   const [items, setItems] = useState<Notice[]>([]); const [open, setOpen] = useState(false); const key = `cali:staff-bell-seen:${me.id}`; const [seen, setSeen] = useState(() => { try { return localStorage.getItem(key) || ''; } catch { return ''; } });
