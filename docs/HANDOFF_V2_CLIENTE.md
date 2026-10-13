@@ -1232,6 +1232,17 @@ FASE 3 — A FAZER: §6 painel administrativo (ritmo de consumo, dias restantes,
 
 Pendência operacional: o lançamento de teste de 10h01 continua no extrato da Company IN e faz o cliente ver 118% — ela precisa corrigir em Horas › Editar.
 
+### 2026-10-13 — Capacidade mensal: modelo de layout e REGRAS NOVAS ditadas por ela
+
+- Layout: ela mandou um modelo ("Horas do mês": plano · mês, percentual grande, barra com zona "Excedente", três cartões, aviso com "Não há cobrança adicional ou alteração automática do contrato"). Implementado como `CapacityCard` (em `src/v2/CapacityBar.tsx`) na página Horas do cliente; a Home continua com o herói próprio e a mesma barra.
+- REGRAS DITADAS (ainda NÃO implementadas — fase 2):
+  - Vigência mínima: CALI Partner 8 meses; CALI Full 12 meses; depois vira contrato por tempo indeterminado (ela vai explicar o resto).
+  - Janela de recorrência = o período do contrato (8 ou 12 meses), não 6 meses.
+  - Não pode ultrapassar mais de 3 vezes: na 3ª, rever o pacote ("senão eu vou ficar trabalhando de graça"). As horas excedentes NÃO são descontadas do mês seguinte (não está em contrato).
+  - Tolerância de até 10% acima. Ao chegar a 110%: PAUSA até renovar o mês seguinte.
+- CONFLITO A RESOLVER COM ELA antes de construir: a pausa em 110% contradiz o documento que ela mesma colou (sem suspensão automática; FAQ "A CALI deixa de trabalhar quando as horas acabam? Não existe suspensão automática"). Perguntado: a pausa é automática (bloqueia cronômetro/lançamento) ou é um alerta para ela decidir? E os textos do FAQ/avisos precisam mudar.
+- Company IN / outubro é só teste (ela confirmou); não é pendência.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
