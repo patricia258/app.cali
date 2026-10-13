@@ -3641,3 +3641,6 @@ html[data-workspace-ui='v2'] .v2-capadmin-reviews time{margin-left:8px;font-size
 html[data-workspace-ui='v2'] .v2-capadmin-reviews p{margin:4px 0 0;font-size:12px;line-height:1.5;color:#3d3531;white-space:pre-wrap}
 @media(max-width:980px){html[data-workspace-ui='v2'] .v2-capadmin-detail{grid-template-columns:1fr}}
 .reports-v12-capacity-note{margin:10px 0 0;font-size:11.5px;line-height:1.55;color:#5f5650}
+/* Lista de subtarefas dentro do entregável: sem cronômetro (o play fica dentro da própria subtarefa). */
+html[data-workspace-ui='v2'] .v2-admin-page .v2-st-table.dv-steps :is(.v2-st-head,.v2-st-row.dv-step){grid-template-columns:34px minmax(0,1fr) 110px 190px 130px!important}
+html[data-workspace-ui='v2'] .v2-st-row>:is(.task-inline-timer,.project-timer-controls){display:none!important}

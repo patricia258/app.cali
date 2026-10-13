@@ -1279,6 +1279,33 @@ Pendência operacional: o lançamento de teste de 10h01 continua no extrato da C
 - Autorizado usar a Company IN como empresa de TESTE para lançar horas e validar os cenários de capacidade (75%, 100%, 118%, três meses com excedente, correção retroativa, aditivo, troca de mês, notificação duplicada).
 - Ela tem muitos microajustes guardados; quer primeiro FINALIZAR as frentes abertas, principalmente o perfil Partner.
 
+### 2026-10-13 — CORREÇÃO: bloco de capacidade no relatório estava na versão errada
+
+- ERRO MEU: na fase 3 editei `ExecutiveReportPaperV12.tsx`, que NÃO está em uso (as rotas usam `ReportPrintPageV17` → `ExecutiveReportPaperV17.tsx`). O que foi dito à Patricia como "entrou no relatório" não tinha entrado. A edição no V12 ficou (inofensiva).
+- Corrigido no V17 (homologação), seção "Capacidade contratada": percentual com uma casa e sem teto; com excedente, bloco oficial (excedente em horas e %, 1ª/2ª/3ª ocorrência, texto-base da leitura executiva); "Histórico de utilização" mês a mês dentro da vigência (Partner 8, Full 12, demais 6), tirado de `snapshot.previousReports` — pedido dela ("relatório de setembro tantos %, outubro tantos %"); na 3ª ocorrência, recomendação de avaliar o pacote, sujeita à avaliação da CALI. Saíram os dois avisos antigos baseados em 5% e em "dois fechamentos consecutivos" (`capacitySignalV15`/`upgradeRecommendation`), que contradiziam a política nova.
+- NÃO verificado na tela: o ambiente de teste não tem relatório de impressão. O histórico depende de `previousReports` vir preenchido no relatório real.
+- PEDIDO DELA: revisitar o que foi combinado e ainda está pendente — ver lista consolidada na resposta desta data (Partner: Documentos/Relatórios/Equipe, convite; pasta em Documentos da administradora; renomear/capa; ajuste formal na subtarefa; complexidade itens 4–6; calendário do cliente; validação da capacidade na Company IN).
+
+### 2026-10-13 — Documentos em pasta: ajustes e briefing; PENDÊNCIA DE SEGURANÇA DA PLATAFORMA
+
+- Lista de subtarefas dentro do entregável: saiu a coluna Cronômetro e os botões "Iniciar"/"Timer" (o play fica dentro da subtarefa); o Timer injetado pela ponte da administradora nessa linha foi ocultado por CSS.
+- Cliente › Documentos: o documento do próprio entregável entra DENTRO da pasta (antes aparecia solto na grade de capas).
+- Ela NÃO gostou do layout da pasta (fechada e aberta) e vai pedir ajuda a outra IA para redesenhar. Briefing completo em `docs/DOCUMENTOS_PASTA_BRIEF.md` (ideia, perfis, regras, o que existe, o que não agradou, perguntas em aberto, padrões visuais). Três sugestões visuais foram mostradas a ela na conversa.
+
+#### PENDÊNCIA (não esquecer) — REVISÃO DE SEGURANÇA DA PLATAFORMA, como um responsável de TI faria
+Pedido dela: levantar tudo o que a plataforma precisa ter de segurança, inclusive o que "ninguém imagina". Ainda NÃO feito. Roteiro:
+1. Supabase — banco: revisar TODAS as políticas RLS tabela a tabela (cliente só a própria empresa; Partner só empresas atribuídas e módulos liberados; nada aberto a `anon`); conferir funções SECURITY DEFINER (search_path fixo, checagem de papel no início, `revoke` de `public`/`anon`); rodar os advisors de segurança e de desempenho; índices das chaves usadas nas políticas.
+2. Supabase — acesso: proteção contra senha vazada (pendente de decisão), política de senha, expiração de sessão, MFA para a administradora, limite de tentativas de login, e-mails de convite/recuperação, URLs de redirecionamento permitidas.
+3. Supabase — arquivos: políticas do bucket privado por pasta e por perfil; links assinados de curta duração; tipos e tamanho de arquivo validados também no servidor; nenhum bucket público.
+4. Supabase — funções de borda: quais exigem login; segredos só em variáveis de ambiente; CORS; validação de entrada; `pg_net` (pendente de decisão).
+5. Chaves e segredos: nada sensível no repositório nem no navegador (só a chave pública); rotação de chaves; quem tem acesso ao painel do Supabase, da Vercel e ao GitHub (contas, 2FA, menor privilégio); token do GitHub no Keychain.
+6. Vercel: proteção das prévias de homologação (hoje a homologação usa o MESMO banco do oficial), domínios, cabeçalhos de segurança (CSP, HSTS, X-Frame-Options, Referrer-Policy), variáveis por ambiente, logs.
+7. Aplicação: nenhuma rota oficial sem login; dados sensíveis (salário, valores, propostas) nunca chegam ao navegador de quem não pode ver; mensagens de erro sem detalhe interno; proteção contra envio em massa.
+8. Dados pessoais (LGPD): o que é guardado, por quanto tempo, quem acessa, como exportar/excluir a pedido, registro de consentimento, termos e política de privacidade.
+9. Continuidade: backup do banco e teste de restauração, ponto de recuperação, plano se a conta principal for perdida, monitoramento e alertas de erro, trilha de auditoria (quem fez o quê).
+10. Ambiente separado de teste: avaliar um banco próprio para homologação, para testes nunca tocarem dados reais.
+Entrega esperada: relatório com o que está certo, o que está em risco (por gravidade) e o que fazer, antes de qualquer mudança — mexer em RLS, auth e integrações exige a aprovação dela.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
