@@ -1358,6 +1358,14 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
 - Conversa da subtarefa do cliente: faltava o estilo do balão fora de `.v2-client-module` (mensagens saíam cruas no oficial). Corrigido com regras em `.v2-stm-client`.
 - Cartão "Revise e confirme o cronograma": virou cartão de atenção baixo (âmbar), sem a arte e sem os quatro quadros; os números ficam numa linha. NÃO conferido por imagem: o painel é montado por runtime que não sobe no ambiente de teste.
 
+### 2026-10-13 — Publicação 27 + mapa de ação e reação (primeira passada)
+
+- **Publicação 27** (`d0e346c`) no oficial: agenda do cliente na grade da CALI, avaliação em destaque, conversa e pedido de ajuste na subtarefa, cartão do cronograma.
+- Mapa completo em `docs/MAPA_ACAO_REACAO.md` (levantado lendo gatilhos e funções; NADA conferido com conta real ainda).
+- Avisos novos, já ativos no banco (migração `20261018090000_action_reaction_notifications`, só acréscimo): dependência registrada → cliente (sino + e-mail); prazo reprogramado → cliente (sino + e-mail); subtarefa em "Aguardando o cliente" → cliente (sino + e-mail); cliente confirma recebimento → administradora (sino). Todos engolem o próprio erro para nunca travar a gravação.
+- Tela (só homologação): mudar o prazo pelo "Editar" do entregável grava no histórico do prazo (fora de rascunho), o que também dispara o aviso de prazo reprogramado.
+- Links: o gatilho `notifications_contextual_urls_v1` já completa o endereço com a entrega/projeto; documentos e relatórios ainda abrem a página geral.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
