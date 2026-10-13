@@ -1083,6 +1083,11 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - NÃO testado com envio real em nenhum dos três perfis.
 - Próximo: calendário do cliente com a mesma grade da administradora, sem criar evento.
 
+### 2026-10-13 — Conversas: botões "Anexar" e "Link" com nome; fim das caixas nativas do navegador
+
+- A Patricia clicou na corrente (link) achando que era anexo: abriu o `prompt()` nativo ("app.calirh.com diz…"). Corrigido em `deliverableChatStandardRuntimeV35.ts` e `recordsExperienceRuntimeV2.ts`: `prompt` → `askWorkspaceLink()` e `alert` → `workspaceChatAlert()` (novo `src/lib/workspaceChatDialogs.ts`); botões com rótulo "Anexar" e "Link" (CSS em `operational.css`). Vale para administradora, cliente e, nas telas com runtime, todos os perfis.
+- Conferido: `npm run check` ok; varredura 105 · 0; diálogo testado direto na página (o runtime de conversa não monta no ambiente de QA).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
