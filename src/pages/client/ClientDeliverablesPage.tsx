@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { complexityMeta, complexityRange, complexityClientNote } from '../../domain/projects';
 import { AlertCircle, AlertTriangle, ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileCheck2, FileText, FolderKanban, History, Leaf, Loader2, MessageCircle, RefreshCw, Star, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import {
@@ -49,12 +50,8 @@ const taskStatusLabel: Record<string, string> = {
   done: 'Concluída', completed: 'Concluída', standby: 'Em espera', cancelled: 'Cancelada',
 };
 
-const complexityCopy: Record<string, string> = {
-  MC1: 'Construção mais direta, com menor volume de análise e dependências.',
-  MC2: 'Exige diagnóstico, cruzamento de informações e validações relevantes.',
-  MC3: 'Material denso, com maior profundidade, dependências e impacto estratégico.',
-};
-const complexityDays: Record<string, string> = { MC1: 'Referência de produção: 3 dias úteis.', MC2: 'Referência de produção: 5 dias úteis.', MC3: 'Referência de produção: 8 dias úteis.' };
+const complexityCopy: Record<string, string> = { MC1: complexityMeta.MC1.description, MC2: complexityMeta.MC2.description, MC3: complexityMeta.MC3.description };
+const complexityDays: Record<string, string> = { MC1: `Prazo estimado: ${complexityRange('MC1')}.`, MC2: `Prazo estimado: ${complexityRange('MC2')}.`, MC3: `Prazo estimado: ${complexityRange('MC3')}.` };
 
 function formatDate(value?: string | null) {
   if (!value) return 'A definir';
@@ -355,7 +352,7 @@ export function ClientDeliverablesPage() {
               <span><FileText size={14} /> Versão <b>{selected.document?.versionLabel || '—'}</b></span>
               <span><Leaf size={14} /> Frente de atuação <b>{selected.workstream || 'Frente CALI'}</b></span>
             </div>
-            <div className="dv-overview-copy"><h3>Sobre esta entrega</h3>{selected.description && <p>{selected.description}</p>}<div className={`v2-mc-card ${(selected.complexity || 'MC1').toLowerCase()}`}><b className={`mc-chip ${(selected.complexity || 'MC1').toLowerCase()}`}>{selected.complexity || 'MC1'}</b><div><strong>{complexityCopy[selected.complexity || 'MC1'] || 'Complexidade definida pela CALI conforme volume de análise e dependências.'}</strong><span>{complexityDays[selected.complexity || 'MC1'] || ''}</span></div></div>{selected.originalDueAt && selected.originalDueAt !== selected.dueAt && <p>Prazo original: {formatDate(selected.originalDueAt)}.</p>}</div>
+            <div className="dv-overview-copy"><h3>Sobre esta entrega</h3>{selected.description && <p>{selected.description}</p>}<div className={`v2-mc-card ${(selected.complexity || 'MC1').toLowerCase()}`}><b className={`mc-chip ${(selected.complexity || 'MC1').toLowerCase()}`}>{selected.complexity || 'MC1'}</b><div><strong>{complexityCopy[selected.complexity || 'MC1'] || 'Complexidade definida pela CALI conforme volume de análise e dependências.'}</strong><span>{complexityDays[selected.complexity || 'MC1'] || ''}</span></div></div><p className="v2-mc-clientnote">{complexityClientNote}</p>{selected.originalDueAt && selected.originalDueAt !== selected.dueAt && <p>Prazo original: {formatDate(selected.originalDueAt)}.</p>}</div>
             {selected.isDocument && <div className="dv-file"><FileText size={20} /><div><strong>{selected.document ? selected.document.title : 'Arquivo ainda não publicado'}</strong><small>{selected.document ? `${selected.document.versionLabel ? `Versão ${selected.document.versionLabel} · ` : ''}publicado em ${formatDateTime(selected.document.publishedAt)}` : 'Quando a versão compartilhável estiver pronta, ela aparecerá aqui e em Documentos.'}</small></div>{selected.document ? <button type="button" className="dv-file-open" onClick={() => void openPublishedDocument(selected.document!)}>Abrir</button> : <span className="dv-file-status">{statusLabel[selected.status]}</span>}</div>}
             {selected.feedback && <div className="dv-file"><Star size={20} /><div><strong>Sua avaliação: {selected.feedback.score}/5</strong><small>{selected.feedback.comment || 'Sem comentário adicional.'}</small></div></div>}
             {selected.status === 'client_review' && <div className="dv-next-action"><AlertCircle size={16} /><div><strong>O que precisa acontecer agora</strong><p>{selected.clientResponseDueAt ? `Revise esta entrega e responda até ${formatDateTime(selected.clientResponseDueAt)}.` : 'Revise esta entrega e escolha entre aprovar ou solicitar ajuste.'}</p></div></div>}

@@ -1166,6 +1166,14 @@ NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINIS
 - Anexos nas conversas: cartão compacto (clipe, nome em uma linha, tamanho) em todas as conversas e perfis.
 - Migration `20261016090000` (aplicada). NÃO testado com gravação real.
 
+### 2026-10-13 — Publicação 17 e regra oficial de complexidade
+
+- PUBLICAÇÃO 17 no oficial (`dd92ed4`), aprovada por ela.
+- Depois, só na homologação: REGRA OFICIAL DE COMPLEXIDADE (documento colado pela Patricia): MC1 Baixa 30–45, MC2 Média 60–75, MC3 Alta 90–120 dias corridos, com as descrições oficiais — `complexityMeta`, `complexityRange`, `complexityClientNote` em `src/domain/projects.ts`; resumo em `docs/CALI_PROJECT_REFERENCES.md`.
+  - Feito (itens 1, 2, 3 e 7 do documento + nota ao cliente + distinção M × MC): ao escolher a complexidade no "Criar entregável" aparece a faixa estimada em datas, com botão "Usar <data>"; data fora da faixa é aceita com aviso âmbar; legenda mostra faixa e descrição das três e a frase "MC é a complexidade… M1, M2, M3 são os meses do roadmap"; bloco de complexidade do entregável mostra "Prazo estimado: N a M dias corridos"; o cliente lê o texto oficial e a nota oficial de estimativa.
+  - NÃO feito ainda (itens 4, 5 e 6): registro estruturado das dependências do cliente; reprogramação das entregas dependentes quando uma pendência do cliente atrasa; guardar a estimativa inicial e as revisões de prazo com justificativa no histórico. Hoje existem `originalDueAt`, `clientDelayBusinessDays` e o histórico de situação — verificar o que já cobre antes de criar.
+  - O runtime antigo `projectsPlanningIntelligenceRuntimeV36` (3/5/8 dias úteis) procura campos "Deadline"/"Mês inicial" que não existem mais no formulário; está inerte. Não removido.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

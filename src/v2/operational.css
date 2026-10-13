@@ -3442,3 +3442,11 @@ html[data-workspace-ui='v2'] :is(.records-chat-attachment,.workspace-chat-attach
 html[data-workspace-ui='v2'] :is(.records-chat-attachment,.workspace-chat-attachment) small{font-size:10px;color:#8a7c74}
 html[data-workspace-ui='v2'] .dv-row.dv-head .dv-square{width:36px!important;min-width:36px;flex:none}
 html[data-workspace-ui='v2'] .dv-row.dv-head .dv-mc{padding-left:0;margin-left:8px}
+/* Complexidade — regra oficial (2026-10-13): faixa estimada, aviso de fora da faixa e nota ao cliente. */
+html[data-workspace-ui='v2'] .v2-mc-legend li>span{display:flex;flex-direction:column;gap:2px}
+html[data-workspace-ui='v2'] .v2-mc-legend li>span>strong{font-size:11.5px;color:#2b2b2b}
+html[data-workspace-ui='v2'] .v2-mc-legend li.v2-mc-foot{display:block;opacity:1;padding-top:8px;border-top:1px solid #f0e8e1;font-size:11px;color:#8a7c74}
+html[data-workspace-ui='v2'] .v2-mc-range{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:6px;font-size:11px;font-weight:500;color:#6b5f58}
+html[data-workspace-ui='v2'] .v2-mc-range.outside{color:#8a5a12;font-weight:700}
+html[data-workspace-ui='v2'] .v2-mc-range button{height:26px;padding:0 10px;border:1px solid #dfd3ca;border-radius:7px;background:#fff;color:#5a1e2d;font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+html[data-workspace-ui='v2'] .v2-mc-clientnote{margin:12px 0 0;font-size:11.5px;line-height:1.55;color:#7d726b}

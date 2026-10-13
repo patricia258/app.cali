@@ -65,11 +65,15 @@ export const deliverableLabels: Record<DeliverableStatus, string> = {
   cancelled: 'Cancelado',
 };
 
-export const complexityMeta: Record<MaterialComplexity, { label: string; description: string }> = {
-  MC1: { label: 'MC1 · Baixa', description: 'Construção mais direta, com menor volume de análise e dependências.' },
-  MC2: { label: 'MC2 · Média', description: 'Exige diagnóstico, cruzamento de informações e validações relevantes.' },
-  MC3: { label: 'MC3 · Alta', description: 'Material denso, com maior profundidade, dependências e impacto estratégico.' },
+/** Regra oficial da CALI (documento da proprietária, 2026-10-13). MC = complexidade do entregável; NÃO confundir com
+ *  M1, M2, M3…, que são os meses/momentos do roadmap. A faixa é referência de planejamento, nunca prazo contratual. */
+export const complexityMeta: Record<MaterialComplexity, { label: string; description: string; minDays: number; maxDays: number }> = {
+  MC1: { label: 'MC1 · Baixa', minDays: 30, maxDays: 45, description: 'Materiais de construção mais direta, com menor volume de informações, poucas dependências e menor número de pessoas envolvidas.' },
+  MC2: { label: 'MC2 · Média', minDays: 60, maxDays: 75, description: 'Materiais que exigem análises mais aprofundadas, cruzamento de dados, participação de diferentes responsáveis e etapas de construção e validação.' },
+  MC3: { label: 'MC3 · Alta', minDays: 90, maxDays: 120, description: 'Materiais estratégicos de maior abrangência, com múltiplos desdobramentos, participação de diferentes áreas e lideranças, dependências técnicas e diversas etapas de validação.' },
 };
+export const complexityRange = (code: string) => { const meta = (complexityMeta as Record<string, { minDays: number; maxDays: number }>)[code]; return meta ? `${meta.minDays} a ${meta.maxDays} dias corridos` : ''; };
+export const complexityClientNote = 'O prazo informado representa uma estimativa média de desenvolvimento, considerando a complexidade técnica, a abrangência da entrega e as etapas de construção e validação. A conclusão poderá ocorrer antecipadamente. O cronograma está sujeito a ajustes conforme a disponibilidade das informações, a participação dos envolvidos e o tempo de resposta e aprovação do cliente.';
 
 export const caliWorkstreams = [
   'Liderança',
