@@ -1279,6 +1279,13 @@ Pendência operacional: o lançamento de teste de 10h01 continua no extrato da C
 - Autorizado usar a Company IN como empresa de TESTE para lançar horas e validar os cenários de capacidade (75%, 100%, 118%, três meses com excedente, correção retroativa, aditivo, troca de mês, notificação duplicada).
 - Ela tem muitos microajustes guardados; quer primeiro FINALIZAR as frentes abertas, principalmente o perfil Partner.
 
+### 2026-10-13 — CORREÇÃO: bloco de capacidade no relatório estava na versão errada
+
+- ERRO MEU: na fase 3 editei `ExecutiveReportPaperV12.tsx`, que NÃO está em uso (as rotas usam `ReportPrintPageV17` → `ExecutiveReportPaperV17.tsx`). O que foi dito à Patricia como "entrou no relatório" não tinha entrado. A edição no V12 ficou (inofensiva).
+- Corrigido no V17 (homologação), seção "Capacidade contratada": percentual com uma casa e sem teto; com excedente, bloco oficial (excedente em horas e %, 1ª/2ª/3ª ocorrência, texto-base da leitura executiva); "Histórico de utilização" mês a mês dentro da vigência (Partner 8, Full 12, demais 6), tirado de `snapshot.previousReports` — pedido dela ("relatório de setembro tantos %, outubro tantos %"); na 3ª ocorrência, recomendação de avaliar o pacote, sujeita à avaliação da CALI. Saíram os dois avisos antigos baseados em 5% e em "dois fechamentos consecutivos" (`capacitySignalV15`/`upgradeRecommendation`), que contradiziam a política nova.
+- NÃO verificado na tela: o ambiente de teste não tem relatório de impressão. O histórico depende de `previousReports` vir preenchido no relatório real.
+- PEDIDO DELA: revisitar o que foi combinado e ainda está pendente — ver lista consolidada na resposta desta data (Partner: Documentos/Relatórios/Equipe, convite; pasta em Documentos da administradora; renomear/capa; ajuste formal na subtarefa; complexidade itens 4–6; calendário do cliente; validação da capacidade na Company IN).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
