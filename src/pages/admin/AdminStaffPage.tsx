@@ -37,6 +37,19 @@ async function applyStaffChange(payload: any): Promise<string | null> {
   else if (payload.action === 'deliverable_cancel') error = (await db.rpc('change_deliverable_status', { p_deliverable_id: payload.id, p_status: 'cancelled', p_note: payload.reason })).error;
   else if (payload.action === 'task_create') error = (await db.from('deliverable_tasks').insert(payload.row)).error;
   else if (payload.action === 'task_complete') error = (await db.from('deliverable_tasks').update({ status: 'done', completed_at: new Date().toISOString() }).eq('id', payload.id)).error;
+  else if (payload.action === 'event_create' || payload.action === 'event_update') {
+    const { data: auth } = await db.auth.getUser();
+    const saved = payload.action === 'event_update' && payload.id
+      ? await db.from('events').update(payload.event).eq('id', payload.id).select('id').single()
+      : await db.from('events').insert({ ...payload.event, sync_status: 'local', created_by: auth.user?.id || null }).select('id').single();
+    error = saved.error;
+    const emails = (payload.attendees || []) as string[];
+    if (!error && saved.data?.id && emails.length) {
+      if (payload.action === 'event_update') await db.from('event_attendees').delete().eq('event_id', saved.data.id);
+      error = (await db.from('event_attendees').insert(emails.map((email) => ({ event_id: saved.data.id, company_id: payload.event.company_id || null, name: email.split('@')[0], email, attendee_type: payload.event.visibility === 'client' ? 'client' : 'external', status: 'pending' })))).error;
+    }
+  }
+  else if (payload.action === 'event_cancel') error = (await db.from('events').update({ cancelled_at: new Date().toISOString(), cancellation_reason: payload.reason }).eq('id', payload.id)).error;
   else return 'Tipo de alteração desconhecido.';
   return error ? (error.message || 'Não foi possível aplicar a alteração.') : null;
 }

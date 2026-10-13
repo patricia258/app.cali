@@ -1045,6 +1045,34 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - Conferido: `npm run check` ok; varredura 105 · 0; telas do Partner com dados fictícios. Nenhuma gravação real testada.
 - Continua pendente no Partner: anexos nas conversas; Calendário, Documentos, Relatórios e Equipe do cliente ainda são listas simples de leitura; função de convite por e-mail não publicada.
 
+### 2026-10-13 — Publicação 13 e Calendário do Partner
+
+- Publicação 13 no oficial (`a340158`), aprovada pela Patricia: tudo do perfil Partner até aqui, pausa automática de cronômetro esquecido, reações.
+- Calendário do Partner agora é a página da administradora em modo equipe (`StaffCalendarPage`): só eventos e prazos das empresas atribuídas; sem agenda Google, sem histórico de reuniões, sem caixa de remarcações. Criar, alterar e cancelar evento viram pedido (`staff_review_requests`, kind `change`, ações `event_create`, `event_update`, `event_cancel`), aplicados com o acesso dela em "Equipe CALI". Sem mudança no banco.
+- Não testado com gravação real. Pendente no Partner: anexos nas conversas; Documentos, Relatórios e Equipe do cliente.
+
+### 2026-10-13 — Partner: cronômetro no entregável e no topo, recolher frente, anexos, formulário de etapa
+
+- Formulário "Nova etapa": o rótulo "Descrição" deixou de ter moldura própria (vale para administradora e Partner).
+- Partner, entregável: botão "Iniciar/Parar timer" visível no rodapé (estava escondido por um estilo feito para a ponte de timer da administradora); rodapé em uma linha; botão "Enviar para aprovação".
+- Partner, topo: `StaffTimerBar` (em `StaffWorkspace.tsx`) mostra o cronômetro ligado em qualquer página, com "Parar" (envia o tempo para aprovação). Partner não tem pausa — só parar.
+- Partner, Entregáveis: clicar na folha da frente recolhe/abre a lista (em React; a administradora recebe isso do runtime V44).
+- Partner, anexos na conversa do entregável: vão direto (decisão da Patricia). Banco, só acréscimo, já aplicado: política `cali_workspace_private_partner_deliverable_insert` (envio só em `<empresa>/deliverables/`) e função `partner_attach_deliverable_file` — migration `20261014180000`. Ocorrências não têm anexo nem para a administradora; não foi criado.
+- Conferido: `npm run check` ok; varredura 105 · 0; telas com dados fictícios. Envio real de arquivo NÃO testado.
+
+### 2026-10-13 — Partner: "Pausar" no lugar de "Parar"
+
+- Regra da Patricia: o Partner precisa pausar e continuar depois; encerrar a tarefa não é dele. O `partner_stop_timer` já fazia isso (grava a sessão, envia para aprovação, não bloqueia nada) — igual ao "Pausar" da administradora (`pause_work_timer`). Só o nome estava errado: trocado para "Pausar" no entregável, na barra do topo, em Ocorrências e em Horas. O Partner não tem "Finalizar definitivamente".
+- Pedidos em aberto: calendário do CLIENTE com a mesma aparência do da administradora (sem criar evento); decidir quais eventos o Partner vê.
+
+### 2026-10-13 — Depois do teste real da Patricia: nome do Partner, anexo clicável, evento visível ou não para a equipe
+
+- BUG encontrado no teste: o cliente via "Patrícia Lima" (nome e foto) nas mensagens do João. Causa: os runtimes de conversa (entregáveis V35, ocorrências V1/V2) só conheciam a administradora e os clientes. Agora carregam também a Equipe CALI pela função nova `staff_identities()` (só nome e foto). Vale para cliente e administradora, em Projetos e Ocorrências.
+- Anexo do Partner: passou a usar o MESMO formato do padrão (`[[arquivo|nome|caminho|tipo|tamanho]]`, pasta `deliverable-chat/<empresa>/<entregável>/<usuário>/`), então sai como botão clicável para todos. Políticas novas de envio e leitura para o Partner nessa pasta. A política `…partner_deliverable_insert` e a função `partner_attach_deliverable_file` de horas antes ficaram sem uso (não removidas). A mensagem de teste antiga "Anexo: …docx" continua como texto.
+- Agenda: coluna `events.staff_visible` (padrão true) + campo "Equipe CALI: pode ver / não mostrar" no formulário de evento da administradora; `events_partner_read` respeita a opção. Migration `20261014210000`.
+- Conferido: `npm run check` ok; varredura 105 · 0. NÃO testado com gravação real.
+- Próximos: calendário do cliente com a mesma grade; Documentos, Relatórios e Equipe do cliente do Partner.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

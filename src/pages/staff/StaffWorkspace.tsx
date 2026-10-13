@@ -4,7 +4,7 @@
    vai para o cliente passa pela administradora: horas e materiais entram em filas de aprovação. */
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, SendHorizontal, Users, X } from 'lucide-react';
+import { ArrowRight, Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, Pause, SendHorizontal, Users, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 import { type WelcomeStep } from '../../v2/WelcomeTour';
@@ -14,6 +14,8 @@ import { StaffDashboard } from './StaffDashboard';
 import { StaffRecordsPage } from '../records/WorkspaceRecordsPage';
 import { StaffProjectsPage } from '../admin/AdminProjectsPageV3';
 import { StaffHoursPage } from '../admin/AdminHoursPageV3';
+import '../../styles/routes/calendar';
+import { StaffCalendarPage } from '../admin/AdminCalendarPage';
 import '../../v2/v2.generated.css';
 import '../../styles/routes/records';
 import '../../styles/routes/projects';
@@ -48,6 +50,17 @@ function useMe() {
 }
 
 type Notice = { id: string; title: string; body: string | null; action_url: string | null; created_at: string };
+// Cronômetro ligado, sempre à vista na barra do topo (como o da administradora). Pausar grava a sessão e envia o tempo para aprovação; a tarefa continua aberta.
+function StaffTimerBar({ me }: { me: Me }) {
+  const [timers, setTimers] = useState<{ id: string; company_id: string; started_at: string; paused_seconds: number | null; description: string | null }[]>([]);
+  const [now, setNow] = useState(Date.now()); const [busy, setBusy] = useState(''); const [notice, setNotice] = useState('');
+  const load = async () => { if (!supabase) return; const result = await supabase.from('work_timers').select('id,company_id,started_at,paused_seconds,description').eq('user_id', me.id).eq('status', 'active').order('started_at'); if (!result.error) setTimers((result.data as any) || []); };
+  useEffect(() => { void load(); const refresh = window.setInterval(() => void load(), 8000); const tick = window.setInterval(() => setNow(Date.now()), 1000); return () => { window.clearInterval(refresh); window.clearInterval(tick); }; }, [me.id]);
+  useEffect(() => { if (!notice) return; const timer = window.setTimeout(() => setNotice(''), 4200); return () => window.clearTimeout(timer); }, [notice]);
+  const stop = async (id: string) => { if (!supabase) return; setBusy(id); const result = await supabase.rpc('partner_stop_timer', { p_timer_id: id }); setBusy(''); setNotice(result.error ? 'Não foi possível pausar o cronômetro. Tente de novo.' : (result.data as any)?.discarded ? 'Cronômetro descartado: menos de 30 segundos.' : 'Sessão enviada para aprovação. Dê play para continuar depois.'); await load(); window.dispatchEvent(new Event('cali-staff-timer-changed')); };
+  const clock = (timer: { started_at: string; paused_seconds: number | null }) => { const total = Math.max(0, Math.floor((now - new Date(timer.started_at).getTime()) / 1000) - (timer.paused_seconds || 0)); return `${String(Math.floor(total / 3600)).padStart(2, '0')}:${String(Math.floor((total % 3600) / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`; };
+  return <>{timers.length > 0 && <div className="v2-staff-timers" aria-label="Cronômetros ligados">{timers.map((timer) => <article key={timer.id} className="v2-staff-timer"><Clock3 size={15} /><div><strong>{clock(timer)}</strong><small>{timer.description || me.companies.find((item) => item.id === timer.company_id)?.display_name || 'Atuação'}</small></div><button type="button" disabled={busy === timer.id} onClick={() => void stop(timer.id)}><Pause size={12} /> Pausar</button></article>)}</div>}{notice && <div className="inline-notice success v2-toast" role="status"><span>{notice}</span></div>}</>;
+}
 function StaffBell({ me }: { me: Me }) {
   const [items, setItems] = useState<Notice[]>([]); const [open, setOpen] = useState(false); const key = `cali:staff-bell-seen:${me.id}`; const [seen, setSeen] = useState(() => { try { return localStorage.getItem(key) || ''; } catch { return ''; } });
   useEffect(() => { let alive = true; const load = async () => { if (!supabase) return; const result = await supabase.from('notifications').select('id,title,body,action_url,created_at').eq('user_id', me.id).order('created_at', { ascending: false }).limit(15); if (alive && !result.error) setItems((result.data || []) as Notice[]); }; void load(); const timer = window.setInterval(load, 60000); return () => { alive = false; window.clearInterval(timer); }; }, [me.id]);
@@ -60,13 +73,13 @@ function StaffBell({ me }: { me: Me }) {
 function Frame({ me, children }: { me: Me; children: ReactNode }) {
   const navigate = useNavigate(); const { pathname } = useLocation(); const has = (key: string) => me.modules.includes(key);
   /* A Visão geral usa a composição da administradora (.content > .ap-app), sem invólucro, para herdar as mesmas regras, inclusive no celular. */
-  const plain = ['/equipe', '/equipe/ocorrencias', '/equipe/projetos', '/equipe/avisos', '/equipe/horas'].includes(pathname.replace(/\/$/, ''));
+  const plain = ['/equipe', '/equipe/ocorrencias', '/equipe/projetos', '/equipe/avisos', '/equipe/horas', '/equipe/calendario'].includes(pathname.replace(/\/$/, ''));
   const nav = ([['/equipe', 'Visão geral', LayoutDashboard, true], ['/equipe/pessoas', 'Equipe', Users, has('team')], ['/equipe/projetos', 'Projetos', BriefcaseBusiness, has('projects')], ['/equipe/horas', 'Horas', Clock3, has('hours')], ['/equipe/calendario', 'Calendário', CalendarDays, has('calendar')], ['/equipe/ocorrencias', 'Ocorrências', MessageCircleMore, has('records')], ['/equipe/documentos', 'Documentos', FolderOpen, has('documents')], ['/equipe/relatorios', 'Relatórios', FileBarChart2, has('reports')], ['/equipe/avisos', 'Avisos', Megaphone, has('notices')], ['/equipe/aprovacoes', 'Aprovações', Send, true]] as [string, string, typeof Clock3, boolean][]).filter((item) => item[3]).map(([href, label, icon]) => ({ href, label, icon }));
   /* Entrada e saída ficam registradas para a administradora (função staff_log_session). */
   useEffect(() => { try { if (sessionStorage.getItem('cali:staff-session') === me.id) return; sessionStorage.setItem('cali:staff-session', me.id); } catch { /* segue */ } void supabase?.rpc('staff_log_session', { p_event: 'staff_session_started' }); }, [me.id]);
   async function logout() { try { await supabase?.rpc('staff_log_session', { p_event: 'staff_session_ended' }); sessionStorage.removeItem('cali:staff-session'); } catch { /* a saída não pode ficar presa ao registro */ } await supabase?.auth.signOut(); navigate('/login', { replace: true }); }
   /* Mesma moldura da administradora e do cliente (topo, busca, sino, menu do perfil com "Ver meu perfil" e "Sair"). */
-  return <WorkspaceShellV2 role="partner" navigation={nav} notifications={<StaffBell me={me} />} bridges={null} onLogout={() => void logout()} welcomeSteps={welcomeSteps}>{plain ? children : <div className="v2-client-module v2-staff-area">{children}</div>}</WorkspaceShellV2>;
+  return <WorkspaceShellV2 role="partner" navigation={nav} extras={<StaffTimerBar me={me} />} notifications={<StaffBell me={me} />} bridges={null} onLogout={() => void logout()} welcomeSteps={welcomeSteps}>{plain ? children : <div className="v2-client-module v2-staff-area">{children}</div>}</WorkspaceShellV2>;
 }
 
 function Head({ eyebrow, title, text, action }: { eyebrow: string; title: string; text: string; action?: ReactNode }) {
@@ -146,8 +159,9 @@ export function StaffWorkspace() {
   return <Frame me={me}><Routes>
     <Route index element={<StaffDashboard me={me} />} />
     <Route path="ocorrencias" element={me.modules.includes('records') ? <StaffRecordsPage companies={me.companies.map((item) => ({ id: item.id, name: item.display_name, logo: item.logo_workspace_url, logoFallback: item.logo_url }))} /> : <Navigate to="/equipe" replace />} />
+    <Route path="calendario" element={me.modules.includes('calendar') ? <StaffCalendarPage /> : <Navigate to="/equipe" replace />} />
     <Route path="horas" element={me.modules.includes('hours') ? <StaffHoursPage companies={me.companies} /> : <Navigate to="/equipe" replace />} />
-    {([['calendario', 'calendar'], ['documentos', 'documents'], ['relatorios', 'reports'], ['pessoas', 'team']] as [string, string][]).map(([path, module]) => <Route key={path} path={path} element={me.modules.includes(module) ? <Browse me={me} kind={path} /> : <Navigate to="/equipe" replace />} />)}
+    {([['documentos', 'documents'], ['relatorios', 'reports'], ['pessoas', 'team']] as [string, string][]).map(([path, module]) => <Route key={path} path={path} element={me.modules.includes(module) ? <Browse me={me} kind={path} /> : <Navigate to="/equipe" replace />} />)}
     <Route path="projetos" element={me.modules.includes('projects') ? <StaffProjectsPage companies={me.companies} /> : <Navigate to="/equipe" replace />} />
     <Route path="avisos" element={me.modules.includes('notices') ? <StaffNotices me={me} /> : <Navigate to="/equipe" replace />} />
     <Route path="aprovacoes" element={<Reviews me={me} />} />

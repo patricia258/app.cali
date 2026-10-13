@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
+import { FormEvent, type ReactNode, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import {
   CalendarDays,
   Check,
@@ -54,6 +54,7 @@ type CreateEventForm = {
   endTime: string;
   allDay: boolean;
   visibility: 'internal' | 'client';
+  staffVisible: boolean;
   mode: 'remote' | 'in_person';
   location: string;
   meetingUrl: string;
@@ -86,6 +87,7 @@ function defaultForm(date = dateKey(new Date())): CreateEventForm {
     endTime: '10:00',
     allDay: false,
     visibility: 'client',
+    staffVisible: true,
     mode: 'remote',
     location: 'Google Meet',
     meetingUrl: '',
@@ -162,6 +164,7 @@ function formFromEvent(event: WorkspaceCalendarEvent): CreateEventForm {
     endTime: formTime(event.endsAt || event.startsAt),
     allDay: event.allDay,
     visibility: event.visibility,
+    staffVisible: true,
     mode: event.mode || 'remote',
     location: event.location || '',
     meetingUrl: event.meetingUrl || '',
@@ -174,7 +177,21 @@ function eventProtocol(event: WorkspaceCalendarEvent) {
   return event.protocol || event.sourceProtocol || null;
 }
 
-export function AdminCalendarPage() {
+// Mesma página para a Equipe CALI (Partner): só as empresas dele, sem a agenda Google da administradora;
+// criar, alterar ou cancelar vira pedido para a Patricia aprovar.
+const CalendarFrame = ({ staff, children }: { staff?: boolean; children: ReactNode }) => staff ? <>{children}</> : <Shell role="admin">{children}</Shell>;
+export const StaffCalendarPage = () => <AdminCalendarPage staff />;
+export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
+  const [staffNotice, setStaffNotice] = useState('');
+  const staffHiddenRef = useRef<Set<string>>(new Set());
+  useEffect(() => { if (!staffNotice) return; const timer = window.setTimeout(() => setStaffNotice(''), 4200); return () => window.clearTimeout(timer); }, [staffNotice]);
+  async function staffSubmitChange(action: string, title: string, payload: Record<string, unknown>, companyId: string) {
+    if (!supabase) return false;
+    const { data: auth } = await supabase.auth.getUser();
+    const { error } = await supabase.from('staff_review_requests').insert({ staff_user_id: auth.user?.id, company_id: companyId, kind: 'change', title: title.slice(0, 200), payload: { action, ...payload } });
+    setStaffNotice(error ? 'Não foi possível enviar o pedido. Tente de novo.' : 'Pedido enviado. Vale depois da aprovação.');
+    return !error;
+  }
   const today = useMemo(() => new Date(), []);
   const [events, setEvents] = useState<WorkspaceCalendarEvent[]>(previewCalendarEvents);
   const [googleEvents, setGoogleEvents] = useState<WorkspaceCalendarEvent[]>([]);
@@ -216,7 +233,7 @@ export function AdminCalendarPage() {
 
   useEffect(() => { void loadCalendar(); }, []);
   useEffect(() => {
-    if (!supabase) return;
+    if (!supabase || staff) return;
     let active = true;
     const refresh = async () => {
       const start = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1);
@@ -264,8 +281,8 @@ export function AdminCalendarPage() {
     if (!supabase) { setLoading(false); return; }
     try {
       const [{ data: companyRows }, { data: eventRows }, { data: attendeeRows }, { data: deadlineRows }, { data: connectionRows }, { data: requestRows }, { data: projectRows }] = await Promise.all([
-        supabase.from('companies').select('id, display_name, logo_url, logo_workspace_url').neq('status', 'archived').order('display_name'),
-        supabase.from('events').select('id,protocol,title,company_id,project_id,event_type,color_hex,starts_at,ends_at,all_day,mode,location,meeting_url,description,visibility,source_type,source_entity_id,google_event_id,sync_status,cancelled_at').order('starts_at'),
+        staff ? supabase.rpc('partner_companies') : supabase.from('companies').select('id, display_name, logo_url, logo_workspace_url').neq('status', 'archived').order('display_name'),
+        supabase.from('events').select('staff_visible,id,protocol,title,company_id,project_id,event_type,color_hex,starts_at,ends_at,all_day,mode,location,meeting_url,description,visibility,source_type,source_entity_id,google_event_id,sync_status,cancelled_at').order('starts_at'),
         supabase.from('event_attendees').select('id,event_id,name,email,status,response_note').order('created_at'),
         supabase.from('deliverables').select('id, company_id, project_id, title, due_at, status, protocol').not('due_at', 'is', null).order('due_at'),
         supabase.from('calendar_connections').select('id, status').eq('provider', 'google').eq('status', 'connected').limit(1),
@@ -288,6 +305,7 @@ export function AdminCalendarPage() {
         attendeeMap.set(row.event_id, list);
       });
 
+      staffHiddenRef.current = new Set((eventRows || []).filter((row: any) => row.staff_visible === false).map((row: any) => row.id));
       const manual: WorkspaceCalendarEvent[] = (eventRows || []).map((row: any) => ({
         id: row.id,
         protocol: row.protocol,
@@ -454,7 +472,7 @@ export function AdminCalendarPage() {
     setShowCancel(false);
     setCancelReason('');
     setEditingEvent(event);
-    setForm(formFromEvent(event));
+    setForm({ ...formFromEvent(event), staffVisible: !staffHiddenRef.current.has(event.id) });
     setEditorOpen(true);
   }
 
@@ -499,12 +517,21 @@ export function AdminCalendarPage() {
       meeting_url: form.meetingUrl || null,
       description: form.description || null,
       visibility: form.visibility,
+      staff_visible: form.staffVisible,
       timezone: 'America/Sao_Paulo',
       source_type: 'manual',
       sync_status: calendarConnection === 'connected' ? 'pending' : 'local',
     };
 
     try {
+      if (staff) {
+        if (!form.companyId) { setStaffNotice('Escolha a empresa do evento.'); return; }
+        const when = `${form.date.split('-').reverse().join('/')}${form.allDay ? '' : ` às ${form.startTime}`}`;
+        const { sync_status: _sync, ...row } = eventPayload;
+        const ok = await staffSubmitChange(editingEvent ? 'event_update' : 'event_create', `${editingEvent ? 'Alterar evento' : 'Novo evento'}: ${form.title.trim()} · ${when}`, { id: editingEvent?.id || null, event: row, attendees: attendeeEmails }, form.companyId);
+        if (ok) closeEditor();
+        return;
+      }
       if (supabase && isRealCompany && isRealEvent && editingEvent) {
         const { error } = await supabase.from('events').update(eventPayload).eq('id', editingEvent.id);
         if (error) throw error;
@@ -576,7 +603,9 @@ export function AdminCalendarPage() {
   async function cancelEvent() {
     if (!selectedEvent || selectedEvent.synthetic || !cancelReason.trim()) return;
     try {
-      if (supabase && UUID_PATTERN.test(selectedEvent.id)) {
+      if (staff) {
+        if (selectedEvent.companyId) await staffSubmitChange('event_cancel', `Cancelar evento: ${selectedEvent.title}`, { id: selectedEvent.id, reason: cancelReason.trim() }, selectedEvent.companyId);
+      } else if (supabase && UUID_PATTERN.test(selectedEvent.id)) {
         await supabase.from('events').update({ cancelled_at: new Date().toISOString(), cancellation_reason: cancelReason.trim() }).eq('id', selectedEvent.id);
         await loadCalendar();
       } else {
@@ -605,18 +634,19 @@ export function AdminCalendarPage() {
     })
     .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
 
-  if (loading) return <Shell role="admin"><div className="ap-app v2-admin-page"><div className="ap-content"><p className="v2-admin-empty data-loading" aria-live="polite" aria-busy="true">Carregando agenda…</p></div></div></Shell>;
+  if (loading) return <CalendarFrame staff={staff}><div className="ap-app v2-admin-page"><div className="ap-content"><p className="v2-admin-empty data-loading" aria-live="polite" aria-busy="true">Carregando agenda…</p></div></div></CalendarFrame>;
 
   return (
-    <Shell role="admin">
-      <div className="ap-app v2-admin-page v2-admin-calendar"><div className="ap-content">
+    <CalendarFrame staff={staff}>
+      <div className={`ap-app v2-admin-page v2-admin-calendar${staff ? ' v2-staff-calendar' : ''}`}><div className="ap-content">
+      {staffNotice && <div className="inline-notice success v2-toast" role="status"><Check size={18} /><span>{staffNotice}</span></div>}
       <section className="calendar-page-v2">
-        <div className="ap-title"><div><small>BACKOFFICE / CALI RH</small><h1>Agenda da CALI<span>.</span></h1><p>Reuniões, validações, prazos e a sua agenda Google em uma visão única.</p></div><div className="ap-title-actions calendar-v2-actions">
-          <AgendaChangeInbox onDecision={()=>void loadCalendar()}/>
-          <button className="ap-outline calendar-history-trigger" type="button" onClick={()=>setHistoryOpen(true)}><FileText size={15}/> Histórico de reuniões</button>
+        <div className="ap-title"><div><small>{staff ? 'EQUIPE CALI / CALENDÁRIO' : 'BACKOFFICE / CALI RH'}</small><h1>{staff ? 'Calendário' : 'Agenda da CALI'}<span>.</span></h1><p>{staff ? 'Reuniões, validações e prazos das empresas que você atende.' : 'Reuniões, validações, prazos e a sua agenda Google em uma visão única.'}</p></div><div className="ap-title-actions calendar-v2-actions">
+          {!staff && <AgendaChangeInbox onDecision={()=>void loadCalendar()}/>}
+          {!staff && <button className="ap-outline calendar-history-trigger" type="button" onClick={()=>setHistoryOpen(true)}><FileText size={15}/> Histórico de reuniões</button>}
           <button className="ap-primary" onClick={() => openCreateForDate()}><Plus size={15} /> Novo evento</button>
         </div></div>
-        <section className="calendar-workspace-strip">
+        <section className="calendar-workspace-strip" hidden={Boolean(staff)}>
           <div className="calendar-workspace-icon"><Cloud size={21} /></div>
           <div>
             <strong>Google Workspace</strong>
@@ -661,7 +691,7 @@ export function AdminCalendarPage() {
         </section>
 
         <div className="calendar-page-layout">
-          <div className="v2-admin-cal-foot"><div className="v2-admin-cal-legend">{(Object.keys(calendarTypeMeta) as CalendarEventType[]).filter(type=>activeTypes.has(type)).map(type=><span key={type}><i style={{background:calendarTypeMeta[type].color}}/>{calendarTypeMeta[type].label}</span>)}<span><i className="google"/>Google Agenda</span></div><span className="v2-admin-cal-total"><b>{view==='week'?weekDates.reduce((sum,date)=>sum+(eventsByDate.get(dateKey(date))||[]).length,0):monthAgenda.length}</b> compromissos no período</span></div>
+          <div className="v2-admin-cal-foot"><div className="v2-admin-cal-legend">{(Object.keys(calendarTypeMeta) as CalendarEventType[]).filter(type=>activeTypes.has(type)).map(type=><span key={type}><i style={{background:calendarTypeMeta[type].color}}/>{calendarTypeMeta[type].label}</span>)}<span hidden={Boolean(staff)}><i className="google"/>Google Agenda</span></div><span className="v2-admin-cal-total"><b>{view==='week'?weekDates.reduce((sum,date)=>sum+(eventsByDate.get(dateKey(date))||[]).length,0):monthAgenda.length}</b> compromissos no período</span></div>
           <section className="calendar-primary-panel panel">
             {view === 'month' && <>
               <div className="calendar-weekday-head">{weekdays.map((day) => <span key={day}>{day}</span>)}</div>
@@ -759,6 +789,7 @@ export function AdminCalendarPage() {
               <label className="stacked-label">Término<input type="time" value={form.endTime} onChange={(event) => setForm((current) => ({ ...current, endTime: event.target.value }))} /></label>
               <label className="stacked-label">Formato<select value={form.mode} onChange={(event) => setForm((current) => ({ ...current, mode: event.target.value as 'remote' | 'in_person' }))}><option value="remote">Remoto</option><option value="in_person">Presencial</option></select></label>
               <label className="stacked-label">Visibilidade<select value={form.visibility} onChange={(event) => setForm((current) => ({ ...current, visibility: event.target.value as 'internal' | 'client' }))}><option value="client">Compartilhar com cliente</option><option value="internal">Somente CALI</option></select></label>
+              {!staff && <label className="stacked-label">Equipe CALI<select value={form.staffVisible ? 'yes' : 'no'} onChange={(event) => setForm((current) => ({ ...current, staffVisible: event.target.value === 'yes' }))}><option value="yes">Pode ver este evento</option><option value="no">Não mostrar para a equipe</option></select></label>}
             </div>}
             <details className="calendar-extra-fields" key={editingEvent?.id||'new'} open={editingEvent?true:undefined}>
               <summary>Local, link, convidados e descrição</summary>
@@ -772,7 +803,7 @@ export function AdminCalendarPage() {
               </div>
             </details>
           </div>
-          <div className="calendar-modal-footer"><button type="button" className="secondary" onClick={closeEditor}>Cancelar</button><button className="primary" disabled={saving || !form.title.trim()} type="submit">{saving ? 'Salvando…' : editingEvent ? 'Salvar alterações' : 'Adicionar evento'}</button></div>
+          <div className="calendar-modal-footer"><button type="button" className="secondary" onClick={closeEditor}>Cancelar</button><button className="primary" disabled={saving || !form.title.trim()} type="submit">{saving ? 'Salvando…' : staff ? 'Enviar para aprovação da Patricia' : editingEvent ? 'Salvar alterações' : 'Adicionar evento'}</button></div>
         </form>
       </div>}
 
@@ -816,6 +847,6 @@ export function AdminCalendarPage() {
         </section>
       </div>}
       </div></div>
-    </Shell>
+    </CalendarFrame>
   );
 }
