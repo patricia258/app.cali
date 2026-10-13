@@ -3157,3 +3157,26 @@ html[data-workspace-ui='v2'] .v2-task-timer:disabled{opacity:.45;cursor:default}
 html[data-workspace-ui='v2'] .v2-staff-decision .v2-staff-fields:has(input[type='time']){grid-template-columns:repeat(3,minmax(0,1fr))}
 html[data-workspace-ui='v2'] .v2-staff-projects .dv-step:has(.v2-task-timer){grid-template-columns:auto minmax(0,1fr) auto auto!important;align-items:center}
 html[data-workspace-ui='v2'] .v2-staff-projects .dv-step .v2-task-timer{margin-right:14px}
+/* Entregável — fase 1 do upgrade (2026-10-13): status com cor forte e cronômetro em cima, nos dois perfis; notas internas. */
+html[data-workspace-ui='v2'] .deliverable-head-actions-v2{display:flex!important;align-items:center!important;gap:10px!important}
+html[data-workspace-ui='v2'] .v2-admin-page .deliverable-head-actions-v2>.status-chip-v3{display:inline-flex!important;align-items:center;height:34px;padding:0 14px;border-radius:9px;font-size:12px;font-weight:800;letter-spacing:.01em;border:1px solid transparent;order:1;white-space:nowrap}
+html[data-workspace-ui='v2'] .v2-admin-page .deliverable-head-actions-v2>.status-chip-v3.blue{background:#2f6fa8;color:#fff;border-color:#2f6fa8}
+html[data-workspace-ui='v2'] .v2-admin-page .deliverable-head-actions-v2>.status-chip-v3.amber{background:#d98a2b;color:#fff;border-color:#d98a2b}
+html[data-workspace-ui='v2'] .v2-admin-page .deliverable-head-actions-v2>.status-chip-v3.green{background:#356448;color:#fff;border-color:#356448}
+html[data-workspace-ui='v2'] .v2-admin-page .deliverable-head-actions-v2>.status-chip-v3.red{background:#b23b3b;color:#fff;border-color:#b23b3b}
+html[data-workspace-ui='v2'] .v2-admin-page .deliverable-head-actions-v2>.status-chip-v3.purple{background:#6d5a8c;color:#fff;border-color:#6d5a8c}
+html[data-workspace-ui='v2'] .deliverable-head-actions-v2>:is(.project-header-timer,.v2-head-timer){order:2}
+html[data-workspace-ui='v2'] .deliverable-head-actions-v2>.modal-close-static{order:3}
+html[data-workspace-ui='v2'] .v2-head-timer{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 14px;border:1px solid #dfd3ca;border-radius:9px;background:#fff;color:#5a1e2d;font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+html[data-workspace-ui='v2'] .v2-head-timer.on{background:#356448;border-color:#356448;color:#fff}
+html[data-workspace-ui='v2'] .v2-head-timer:disabled{opacity:.45;cursor:default}
+html[data-workspace-ui='v2'] .v2-staff-projects .deliverable-actions-right-v2>.timer-button-v2{display:none!important}
+html[data-workspace-ui='v2'] .v2-dv-notes{margin-top:22px;padding:16px 18px;border:1px solid #eadfd5;border-radius:10px;background:#fbf7f4}
+html[data-workspace-ui='v2'] .v2-dv-notes .v2-dv-notes-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px}
+html[data-workspace-ui='v2'] .v2-dv-notes h3{margin:0;font-size:14px}
+html[data-workspace-ui='v2'] .v2-dv-notes .v2-dv-notes-head p{margin:3px 0 0;font-size:11px;color:#8a7c74}
+html[data-workspace-ui='v2'] .v2-dv-notes textarea{width:100%;box-sizing:border-box;min-height:110px;padding:12px 13px;border:1px solid #dfd3ca;border-radius:9px;background:#fff;font:inherit;font-size:13px;line-height:1.5;resize:vertical}
+html[data-workspace-ui='v2'] .v2-dv-notes .dv-secondary{height:36px;flex:none}
+/* Linha da subtarefa com o cronômetro da administradora: quatro colunas, botão encostado à direita com respiro. */
+html[data-workspace-ui='v2'] .v2-admin-page .dv-step:has(.task-inline-timer){grid-template-columns:auto minmax(0,1fr) auto auto!important;align-items:center}
+html[data-workspace-ui='v2'] .v2-admin-page .dv-step .task-inline-timer{margin-right:14px;justify-self:end}

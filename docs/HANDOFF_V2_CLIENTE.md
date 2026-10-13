@@ -1100,6 +1100,16 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - Migration `20261015090000` (já aplicada). O lançamento de 10h01 aprovado no teste continua no extrato da Company IN — ela corrige em Horas › Editar.
 - NÃO testado com gravação real.
 
+### 2026-10-13 — UPGRADE DO ENTREGÁVEL (entregável = pasta com subtarefas) — plano e fase 1
+
+Pedido da Patricia: o entregável (ex.: Kit da marca) se desdobra em SUBTAREFAS (Logo, Voz, Manifesto), cada uma com prazo, cronômetro, notas, conversa, anexos e aprovação própria; o entregável vira uma pasta.
+Decisões dela: (1) o cliente aprova subtarefa separadamente; o prazo da subtarefa nunca passa do prazo do entregável; (2) HORAS DO CLIENTE: todo tempo conta no consumo; cliente vê total e "em quê" (por entregável/ocorrência), nunca dia/hora/sessão; "visível ao cliente" passa a controlar só se o item aparece com nome (senão soma em "Outras atividades da assessoria") — AINDA NÃO FEITO; (3) Partner cria subtarefa direto; (4) Partner só tem Pausar; o Stop (finalizar) só aparece para ele depois que ela aprovar a tarefa — AINDA NÃO FEITO.
+
+Fases: 1) cabeçalho + notas (FEITA, homologação); 2) aba Subtarefas com painel próprio (notas, cronômetro, conversa, anexos); 3) aba Arquivos (pasta) + envio/aprovação de subtarefa; 4) visão do cliente. Depois: horas do cliente (regra 2) e calendário do cliente.
+
+Fase 1 entregue: status com cor forte e cronômetro no cabeçalho nos dois perfis (`v2-head-timer` no modo equipe; rodapé sem timer); "Etapas" → "Subtarefas"; campo "Notas internas" na Visão geral (tabela nova `deliverable_notes`, só administradora; Partner por `partner_get/save_deliverable_notes` — as notas NÃO ficam em `deliverables` porque o cliente lê essa tabela); Partner cria subtarefa direto (`partner_create_task`), com a regra do prazo; linha da subtarefa da administradora em 4 colunas. Migration `20261015120000` (aplicada).
+NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINISTRADORA não puderam ser vistos no ambiente de teste (o runtime de timer dela não monta lá).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
