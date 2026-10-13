@@ -1181,6 +1181,12 @@ NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINIS
 - Pedido dela para o ritmo: juntar etapas pequenas numa rodada só.
 - NÃO testado com arquivos reais (no ambiente de teste a pasta aparece vazia).
 
+### 2026-10-13 — Coluna "Subtarefas" e Publicação 18
+
+- O botão de recolher virou a coluna "Subtarefas" na linha do entregável, entre Entregável e Complexidade (sem o texto "clique para recolher"); "—" quando não há subtarefa. Grade de 6 colunas `v2-rm-6` (administradora/Partner); `dv-subcol` no cliente.
+- PUBLICAÇÃO 18 (aprovada: "Pode publicar. Primeiro vamos ajustar algumas coisas"): regra oficial de complexidade, subtarefas recolhíveis, aba Arquivos, coluna Subtarefas.
+- PRÓXIMA ETAPA definida por ela — ENTREGA EM FORMATO DE PASTA: um entregável com desdobramentos (ex.: Kit de marca = logo, manifesto, brand, conteúdo) chega ao cliente, na página Documentos, como uma PASTA; ao clicar, ele vê os documentos de cada desdobramento. A CALI vê a mesma visualização, com poder de criar, excluir, editar e suspender. Ainda não construído. Ver `ClientDocumentsPage` / tabela `files` (já tem `deliverable_id`; falta `task_id`).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
