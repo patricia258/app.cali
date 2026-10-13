@@ -1166,6 +1166,27 @@ NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINIS
 - Anexos nas conversas: cartão compacto (clipe, nome em uma linha, tamanho) em todas as conversas e perfis.
 - Migration `20261016090000` (aplicada). NÃO testado com gravação real.
 
+### 2026-10-13 — Publicação 17 e regra oficial de complexidade
+
+- PUBLICAÇÃO 17 no oficial (`dd92ed4`), aprovada por ela.
+- Depois, só na homologação: REGRA OFICIAL DE COMPLEXIDADE (documento colado pela Patricia): MC1 Baixa 30–45, MC2 Média 60–75, MC3 Alta 90–120 dias corridos, com as descrições oficiais — `complexityMeta`, `complexityRange`, `complexityClientNote` em `src/domain/projects.ts`; resumo em `docs/CALI_PROJECT_REFERENCES.md`.
+  - Feito (itens 1, 2, 3 e 7 do documento + nota ao cliente + distinção M × MC): ao escolher a complexidade no "Criar entregável" aparece a faixa estimada em datas, com botão "Usar <data>"; data fora da faixa é aceita com aviso âmbar; legenda mostra faixa e descrição das três e a frase "MC é a complexidade… M1, M2, M3 são os meses do roadmap"; bloco de complexidade do entregável mostra "Prazo estimado: N a M dias corridos"; o cliente lê o texto oficial e a nota oficial de estimativa.
+  - NÃO feito ainda (itens 4, 5 e 6): registro estruturado das dependências do cliente; reprogramação das entregas dependentes quando uma pendência do cliente atrasa; guardar a estimativa inicial e as revisões de prazo com justificativa no histórico. Hoje existem `originalDueAt`, `clientDelayBusinessDays` e o histórico de situação — verificar o que já cobre antes de criar.
+  - O runtime antigo `projectsPlanningIntelligenceRuntimeV36` (3/5/8 dias úteis) procura campos "Deadline"/"Mês inicial" que não existem mais no formulário; está inerte. Não removido.
+
+### 2026-10-13 — Subtarefas recolhíveis e aba Arquivos do entregável (homologação)
+
+- Entregável com subtarefas vira lista recolhível em todos os perfis: botão "N subtarefas · clique para recolher/mostrar" (`v2-subtask-toggle` na administradora/Partner; `dv-subtoggle` no cliente). Começa aberto.
+- Aba "Arquivos" no entregável (`DeliverableFiles.tsx`): reúne os anexos da conversa do entregável e da conversa de cada subtarefa, agrupados; abre por link temporário. Só leitura. Administradora e Partner (o cliente ainda não tem essa aba).
+- Pedido dela para o ritmo: juntar etapas pequenas numa rodada só.
+- NÃO testado com arquivos reais (no ambiente de teste a pasta aparece vazia).
+
+### 2026-10-13 — Coluna "Subtarefas" e Publicação 18
+
+- O botão de recolher virou a coluna "Subtarefas" na linha do entregável, entre Entregável e Complexidade (sem o texto "clique para recolher"); "—" quando não há subtarefa. Grade de 6 colunas `v2-rm-6` (administradora/Partner); `dv-subcol` no cliente.
+- PUBLICAÇÃO 18 (aprovada: "Pode publicar. Primeiro vamos ajustar algumas coisas"): regra oficial de complexidade, subtarefas recolhíveis, aba Arquivos, coluna Subtarefas.
+- PRÓXIMA ETAPA definida por ela — ENTREGA EM FORMATO DE PASTA: um entregável com desdobramentos (ex.: Kit de marca = logo, manifesto, brand, conteúdo) chega ao cliente, na página Documentos, como uma PASTA; ao clicar, ele vê os documentos de cada desdobramento. A CALI vê a mesma visualização, com poder de criar, excluir, editar e suspender. Ainda não construído. Ver `ClientDocumentsPage` / tabela `files` (já tem `deliverable_id`; falta `task_id`).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

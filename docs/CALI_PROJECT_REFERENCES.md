@@ -75,7 +75,8 @@ Os dois pedidos de ajuste acima pertencem à **fase de aprovação do cronograma
 - `roadmap_end_date` representa **Previsão CALI**, recalculada a partir das deadlines dos entregáveis vigentes.
 - Sem entregáveis suficientes, a interface deve dizer `Previsão em construção` em vez de inventar uma data final.
 - O sistema deve avisar quando a previsão calculada ultrapassar a meta desejada.
-- Baseline inicial e explícito para sugestão de produção por complexidade: MC1 = 3 dias úteis; MC2 = 5 dias úteis; MC3 = 8 dias úteis. É uma regra de planejamento assistido, não uma redefinição do significado de MC.
+- **REGRA OFICIAL (documento da proprietária, 2026-10-13) — substitui o baseline abaixo:** MC1 Baixa = 30 a 45 dias corridos; MC2 Média = 60 a 75; MC3 Alta = 90 a 120. Ao escolher a complexidade o app mostra a faixa; a administradora pode marcar data dentro ou fora dela; é referência de planejamento, nunca prazo contratual; entrega antecipada não muda a classificação. M1, M2, M3 = meses do roadmap, nunca confundir com MC1–MC3. Texto ao cliente em `complexityClientNote` (`src/domain/projects.ts`).
+- (Histórico, superado) Baseline inicial e explícito para sugestão de produção por complexidade: MC1 = 3 dias úteis; MC2 = 5 dias úteis; MC3 = 8 dias úteis. É uma regra de planejamento assistido, não uma redefinição do significado de MC.
 - O prazo sugerido continua editável pela Patrícia.
 - Atraso do cliente nunca aprova automaticamente. Ele gera aviso, histórico e deslocamento das próximas deadlines quando a regra operacional aplicável exigir esse impacto.
 - Baseline inicial de remobilização após atraso: MC1 = 0 dia adicional; MC2 = +1 dia útil; MC3 = +2 dias úteis, além do atraso efetivo. Manter essa regra transparente e revisável.
