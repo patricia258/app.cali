@@ -925,6 +925,126 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
   - Cronômetro do Partner é local (não aparece para a Patricia enquanto roda; só o lançamento enviado).
 - **Como testar o Partner (para ela):** Equipe CALI → Adicionar pessoa (e-mail que ela controle, empresas, módulos) → abrir o Workspace em janela anônima → entrar com esse e-mail → código chega por e-mail → cai em `/equipe`.
 
+### 2026-10-12 (14) — Partner: retorno do 1º teste real da Patricia (no oficial) — correções só na homologação
+
+- **Ela testou com conta real:** cadastrou "João" e entrou em `app.calirh.com/equipe` — login do Partner FUNCIONA (código chegou, área abriu, empresas e módulos corretos). Login dela também segue funcionando (ela navegou no admin).
+- **Queixas dela:** (1) a pessoa não recebeu e-mail ao ser cadastrada; (2) Partner sem acesso ao perfil; (3) "Sair" em lugar diferente; (4) telas pobres — "tem que ser os nossos módulos, a nossa página, o mais parecido possível com o meu de administrador, respeitando as limitações dele"; (5) não entendeu "Enviar para aprovação".
+- **Feito (homologação):**
+  - Partner agora usa a MESMA moldura oficial (`WorkspaceShellV2`, papel `partner`): topo, busca, sino, menu do perfil com "Ver meu perfil" (edita nome, foto, contatos pela função `update_my_profile`), "Rever apresentação" e "Sair". Menu lateral na mesma ordem e nomes do da administradora.
+  - Avisos do Partner = o mural oficial (`NoticesBoard` em modo `staff`: cartões com capa, etiqueta, detalhe; sem ciência/comentário/reação; botão "Novo comunicado" abre diálogo no padrão).
+  - "Enviar para aprovação" virou "Enviar para a Patricia", com 3 passos explicando para que serve e tipos mais claros.
+  - Convite: ao salvar o cadastro (e pelo ícone de carta na linha), tenta envio automático; se falhar, mostra o convite pronto com "Abrir no meu e-mail" e "Copiar texto".
+- **NÃO FUNCIONOU:** publicar a função nova `workspace-staff-invite` (envio automático do convite) — o Supabase devolveu "internal error" duas vezes. O código está em `supabase/functions/workspace-staff-invite/index.ts`. Enquanto não publicar, a tela cai no convite manual. Tentar de novo em outra sessão (ou pelo painel/CLI do Supabase).
+- **AINDA FALTA para a paridade que ela pediu (tela por tela):** Ocorrências (hoje lista + diálogo simples; o painel da administradora depende de funções que só ela pode chamar), Projetos, Horas, Calendário, Documentos, Relatórios e Equipe do cliente ainda são listas simples de consulta. Caminho: uma página por vez, reaproveitando o componente da administradora com um modo "equipe" (como foi feito em Avisos) e liberando no banco só o que o Partner pode fazer.
+
+### 2026-10-13 — Partner, página por página: 1) Visão geral (homologação)
+
+- **Pedido dela:** "vamos fazer passo a passo, página por página"; começar pelo painel dele; tem que ver o logo da empresa; "o layout, a estrutura não está alinhada agora".
+- **Feito:** `src/pages/staff/StaffDashboard.tsx` — mesma composição e mesmas classes da Visão geral da administradora (`.content > .ap-app.v2-admin-page > .ap-content`): título com ação, saudação, 4 indicadores (empresas, ocorrências em aberto, entregas em andamento, aguardando a Patricia), Prioridades de hoje, Agenda, Consumo de horas por empresa (com logo), Status das entregas (rosca), Suas empresas (com logo, pacote e situação) e módulos liberados. Blocos só aparecem se o módulo estiver liberado.
+- **Alinhamento medido contra a tela dela:** título em x=91→1405, y=87 no computador e x=15→375 no celular — idêntico à Visão geral da administradora. Para isso as regras de página da administradora passaram a valer também para o papel `partner` (`.app:is([data-workspace-role='admin'],[data-workspace-role='partner'])`), e a Visão geral do Partner é renderizada sem invólucro extra.
+- **Banco aplicado (acréscimo)** — `20261013090000_staff_partner_brand_logos.sql`: política nova de LEITURA no armazenamento para o Partner ver o logo (`<empresa>/brand/`) só das empresas atribuídas.
+- **Não verificado:** logo real carregando para o João (depende do teste dela); números com dados reais.
+- **Próximas páginas (ordem sugerida):** Ocorrências → Projetos → Horas → Calendário → Documentos → Relatórios → Equipe do cliente.
+
+### 2026-10-13 (2) — REGRAS DO PARTNER DITADAS PELA PATRICIA (Projetos, Horas, Ocorrências, sessão) + o que já foi feito
+
+**Regras (palavras dela, organizadas). Valem como especificação das próximas páginas:**
+- **Princípio:** o Partner usa AS MESMAS páginas dela (mesmo layout, lista e Kanban, gaveta do entregável, etc.), com limitações. "Por enquanto é tudo centralizado": o que encerra ou vai ao cliente como decisão passa por ela.
+- **Projetos / entregáveis:** vê igual a ela (Cronograma, Entregáveis em Lista e Kanban, Histórico). Na gaveta: conversa com o CLIENTE (pode — ela voltou atrás e liberou) e conversa INTERNA (ele ↔ ela); pode mudar a situação, EXCETO a que envia ao cliente; tem "Iniciar timer".
+- **Horas:** vê o consumo do cliente (quanto tem e quanto usou) e o histórico; NÃO vê as horas da administradora ("ele não viu do ADM, mas o ADM vê tudo"); não exclui; pode editar hora dele com justificativa (vai para a auditoria); lançamento manual e interação externa existem para ele, mas em vez de registrar vão PARA APROVAÇÃO dela.
+- **Ocorrências:** conversa com o cliente; o botão dele NÃO é "Finalizar": é "Enviar para aprovação da Patricia".
+- **Sessão e cronômetro:** registrar horário de entrada e de saída; se ele esqueceu um cronômetro ligado: (a) ao clicar em Sair, avisar e só deixar sair depois de pausar/revisar; (b) se fechou a aba, no dia seguinte ele recebe aviso de pendência e pode corrigir manualmente; (c) a plataforma deve parar sozinha por inatividade longa (não deixar rodar a noite inteira); (d) e-mail automático para o Partner E para ela.
+- **Erro que ela achou na administradora:** cronômetro iniciado na ocorrência não aparecia no topo.
+
+**Feito nesta rodada (homologação):**
+- Cronômetro de ocorrência agora aparece no topo também dentro de Ocorrências (`GlobalTimerBar.contextIsVisible`: a regra que o escondia nessa página saiu). Observação: com a gaveta da ocorrência aberta, ela cobre o lado direito do topo; o cronômetro aparece ao fechar.
+- Entrada/saída do Partner: `20261013110000_staff_session_log.sql` (função `staff_log_session`, grava em `activity_log`). A área do Partner registra a entrada (1 vez por sessão do navegador) e a saída ao clicar em Sair. Equipe CALI mostra "Último acesso" e "Saiu …"; Auditoria traduz os dois eventos. Fechar a aba sem clicar em Sair não gera saída (por isso "Sem saída registrada depois").
+- Privacidade das horas: `20261013113000_staff_hours_privacy.sql` — a política de leitura do Partner em `hour_entries` (criada por mim na etapa 2) passou a mostrar só os lançamentos DELE; o consumo por empresa vem da função nova `partner_hours_summary` (só totais). Painel dele usa essa função.
+
+**PLANO das páginas reais (cada item exige alterar funções em uso → fazer um por vez, com conta Partner de teste):**
+1. **Ocorrências** — reaproveitar `WorkspaceRecordsPage` em modo equipe: lista com filtros/grupos, gaveta igual; liberar para o Partner as funções `post_account_record_message`, `mark_account_record_opened`, cronômetro da ocorrência, "Aguardar cliente"/"Stand by"; trocar "Finalizar" por "Enviar para aprovação da Patricia" (fila `staff_review_requests`, tipo novo `record_close`); esconder "Salvar na memória da conta" se ela não liberar.
+2. **Projetos** — reaproveitar a página da administradora: leitura por `projects_workspace_snapshot` (hoje só admin) e gaveta do entregável; liberar mudança de situação menos `client_review`/envio; conversas cliente e interna; cronômetro.
+3. **Horas** — mesma página, com: consumo por cliente (totais), "Registros de atuação" só dele, sem excluir, editar com justificativa, "Lançamento manual" e "Interação externa" indo para `staff_hour_submissions`; cronômetro real (tabela `work_timers`) no lugar do cronômetro local atual.
+4. **Sessão/cronômetro esquecido** — depende do item 3 (cronômetro real): bloqueio no Sair, rotina diária de pendência, parada por inatividade, e-mails para os dois.
+- Decisão técnica necessária antes do item 1: como as ~55 funções checam `is_admin()`, criar `cali_workspace.is_staff_for(company_id, module)` e trocar a checagem função por função (só nas que o Partner pode usar), mantendo `is_admin()` nas demais.
+
+### 2026-10-13 (3) — Partner, página por página: 2) Ocorrências (homologação)
+
+- **Autorização:** "show. pode seguir" (sobre o plano das páginas reais; assumi Aguardar cliente e Stand by liberados e "Salvar na memória da conta" não, como avisado a ela).
+- **Tela:** o Partner usa a MESMA `WorkspaceRecordsPage` da administradora em modo `staff` (`StaffRecordsPage`): mesmos filtros, grupos, lista com logo e gaveta. Diferenças: sem "Novo registro", sem memória interna da conta (só conversas com o cliente), sem enriquecer/excluir; cabeçalho da gaveta com cronômetro próprio; campo de resposta com escolha **Cliente / Interno** (nota interna vai para ela, com aviso no sino); rodapé com Assumir / Aguardar cliente / Stand by / Retomar e **"Enviar para aprovação da Patricia"** no lugar de Finalizar (depois de pedir, "Aguardando a Patricia"). Encerrada: "Só a Patricia pode reabrir".
+- **Conversa:** no modo `staff` as mensagens são desenhadas pela própria página (mesma estrutura/classes dos balões), porque os módulos automáticos da conversa só rodam em `/admin/registros` e `/cliente/registros` e chamam funções exclusivas da administradora. Consequência: Partner ainda NÃO tem anexos, link, emoji, reações, editar/apagar mensagem.
+- **Banco aplicado (acréscimo)** — `20261013140000_staff_partner_records.sql`: funções novas `partner_post_record_message`, `partner_set_record_status` (só in_progress / waiting_client / standby; nunca em ocorrência encerrada), `partner_request_record_close` (fila `staff_review_requests`, tipo novo `record_close`), `partner_start_record_timer` (cria `work_timers` de verdade → a administradora enxerga) e `partner_stop_timer` (tempo < 30 s descartado; senão vira `staff_hour_submissions` para aprovação, nunca lançamento direto). Nenhuma função dela foi alterada.
+- **Lado dela:** em Equipe CALI → "Para você aprovar" aparece "Encerrar ocorrência"; aprovar chama a função dela `set_account_record_status(completed)` (cliente é avisado como no Finalizar); devolver mantém aberta.
+- **Limites conhecidos:** quando o cliente responde, o aviso vai só para a administradora (o Partner vê na lista, sem sino); cronômetro do Partner não aparece no topo dele (só dentro da ocorrência); horas aprovadas não ficam ligadas à ocorrência no lançamento oficial (o protocolo vai na descrição).
+- **Não verificado:** nenhuma gravação com conta real (responder, mudar situação, pedir encerramento, cronômetro) — o simulador bloqueia gravações. Primeiro teste real é o da Patricia com o João.
+
+### 2026-10-13 (4) — Ocorrências: retorno da Patricia (chat, espaço, aviso, redundância) — homologação
+
+- **Chat no padrão do chat dos projetos** (administradora, cliente e Partner): foto FORA do balão, nome em caixa normal, texto e hora dentro; balão ajusta à mensagem (máx. 78%). **Causa das fotos que não apareciam** (queixa antiga dela): a foto ficava posicionada por cima do balão; nas mensagens de quem não é o autor o balão era desenhado depois e cobria a foto. Com a foto fora do balão isso acaba. (Regras em `operational.css`, bloco "Ocorrências — chat no padrão do chat dos projetos".)
+- **Mais espaço para a conversa:** cabeçalho, faixa de situação, campo de resposta e rodapé mais baixos; ferramentas e "Enviar" na mesma linha. Área da conversa passou de ~516 px para ~575 px numa tela de 1000 px de altura.
+- **Partner:** "Cliente / Interno" foi para o lado do "Enviar"; mensagens mostram foto real de quem escreveu; a administradora aparece com nome e foto (função nova `staff_admin_contacts`, migração `20261013160000`).
+- **Aviso de confirmação** ("Sessão com menos de 30 segundos…", "Status atualizado…") virou cartão flutuante no canto inferior direito que some em 4,5 s — vale para os três perfis nesta página.
+- **Redundância:** saíram "N com ação necessária" do resumo do topo e do cabeçalho do grupo; ficam a etiqueta na linha e o filtro "Só com ação necessária".
+- **Erro meu corrigido antes de enviar:** ao tirar a contagem repetida deixei a página de Ocorrências sem compilar; descobri porque o comando de verificação que eu vinha usando (`tsc -p .`) não checava nada — o certo é `tsc -p tsconfig.app.json` ou `npm run check`.
+- **Não verificado:** fotos reais (só dados fictícios); gravações do Partner seguem sem teste real.
+
+### 2026-10-13 (5) — Balões menores; Partner, página por página: 3) Projetos (homologação)
+
+- **Ocorrências:** balões do chat reduzidos (texto 12 px, foto 34 px, balão até 74% / 480 px) nos três perfis.
+- **Projetos do Partner:** usa a MESMA `AdminProjectsPageV3` em modo `staff` (`StaffProjectsPage`, rota `/equipe/projetos`): cabeçalho do projeto, Cronograma, Entregáveis (Lista e Kanban), Histórico e a gaveta do entregável. Ocultos para ele: Nova frente / Novo entregável / Novo projeto, botões do projeto (Enviar cronograma, Adicionar frente), "+ Entregável", Nova etapa, Editar, Excluir, Ajuste, Cancelar entregável, Anexar. Situação: só Não iniciado / Em andamento / Standby / Revisão interna (travada quando está com o cliente, aprovada ou cancelada). "Enviar ao cliente" virou **"Enviar para aprovação da Patricia"** (entregável vai para Revisão interna e entra na fila dela). Conversa com canal Cliente / Interno desenhada pela própria página, com foto e nome. Cronômetro real; ao parar, o tempo vai para aprovação. Etapas: pode marcar feita / não feita.
+- **Banco aplicado (acréscimo)** — `20261013180000_staff_partner_projects.sql`: `partner_change_deliverable_status`, `partner_request_deliverable_review`, `partner_post_deliverable_comment` (cliente ou interno; interno avisa a administradora no sino), `partner_start_deliverable_timer`, `partner_toggle_task`. Nenhuma função dela alterada.
+- **Lado dela:** aprovar um "Entregável" da fila agora ENVIA ao cliente de verdade (`change_deliverable_status → client_review`); devolver mantém em Revisão interna.
+- **Limites conhecidos:** os módulos automáticos de Projetos (inteligência de prazos, ciclo de vida/"Gerenciar projeto", aprovação de cronograma, carteira) só rodam em `/admin/projetos` — o Partner não tem esses recursos; horas por entregável mostram só as dele; sem anexos na conversa.
+- **Não verificado:** tudo com conta real; visual da gaveta do entregável do Partner conferido só por estrutura (máquina de teste lenta nesta rodada — load 16–23 — e alguns testes de tela deram tempo esgotado antes de passar).
+
+### 2026-10-13 (6) — Projetos: retorno da Patricia (menu lateral, alerta do timer, cartão e Kanban do Partner, alterações por autorização) — homologação
+
+- **"Buraco" no menu lateral** (todos os perfis, com diálogo aberto e página rolada): o menu era "grudado" (sticky) com altura da tela; com a rolagem travada pelo diálogo sobrava um vão embaixo. Agora é fixo de cima a baixo (`.app>.sidebar` fixed; `.main` com margem de 56 px). Conteúdo continua começando em x=91, como antes.
+- **Aviso de outro cronômetro na mesma empresa** (cabeçalho do entregável): era um texto solto + botão "Empresa com timer ativo". Agora é um selo âmbar "Já há um cronômetro ligado nesta empresa", com explicação ao passar o mouse/clicar: só um cronômetro por empresa; pare o que está no topo para iniciar outro.
+- **REGRA NOVA dela para o Partner:** o cartão do projeto dele é igual ao dela, só sem "Gerenciar projeto"; "tudo o que ele criar, alterar ou tentar excluir, só pode fazer se EU autorizar". → Voltaram para ele: Nova frente, Novo entregável, Novo projeto, Adicionar frente, "+ Entregável", Editar, Excluir, Nova etapa, Cancelar entregável. Nenhum grava direto: cada um vira um pedido na fila dela (`staff_review_requests`, tipo novo `change`, com o conteúdo em `payload`). Em Equipe CALI → "Para você aprovar" aparece "Alteração em projeto" dizendo o que acontece se aprovar; ao aprovar, a alteração é aplicada COM O ACESSO DELA (`applyStaffChange` em `AdminStaffPage.tsx`). Continuam fora para ele: "Enviar ao cliente" (cronograma e entregável), "Gerenciar projeto", Ajuste, Anexar.
+- **Banco aplicado:** `20261013210000_staff_change_requests.sql` — coluna `payload jsonb` e tipo `change` na fila da Equipe CALI (tabela criada por mim; nada dela alterado).
+- **Kanban do Partner:** a diferença era que o Kanban dela recebe o layout (colunas de 244 px, rolagem lateral, arrastar) de um módulo automático que só roda em `/admin/projetos`. Repliquei o layout para ele e liguei o arrastar entre as situações permitidas; a coluna "Revisão interna" aparece para ele como **"Revisão da Patricia"**. Colunas "Aguardando cliente", "Ajuste solicitado", "Rebriefing" e "Aprovado" ficam visíveis mas ele não move para elas.
+- **Não verificado:** arrastar no Kanban e os pedidos de alteração com conta real; aplicação da alteração do lado dela (cada tipo: projeto, frente, entregável criar/editar/excluir/cancelar, etapa) — nenhum executado de verdade.
+- **Ainda pendente do que ela mandou prosseguir:** anexos na conversa do Partner; recursos automáticos de Projetos para ele (prazos, aprovação de cronograma); página de Horas; cronômetro esquecido.
+
+### 2026-10-14 — Cronômetro esquecido (todos), Avisos do Partner, "Aguardando a Patricia", subtarefas — homologação
+
+- **Fato que ela trouxe:** um cronômetro DELA (ocorrência CALI-REG-2026-000004) rodou 16h37–23h32 (6h56) porque ela saiu sem pausar; ao voltar, nenhum aviso. Ela quer a regra do cronômetro esquecido valendo também para a administradora.
+- **Cronômetro esquecido — feito:**
+  - **Banco aplicado** — `20261014090000_timer_inactivity_guard.sql`: coluna nova `work_timers.last_seen_at` (nula por padrão); função `touch_my_timers()` (sinal de presença); função `close_stale_timers()` + rotina agendada `workspace-timer-inactivity-guard` (a cada 10 min): cronômetro ativo há 30 min sem sinal é PAUSADO, contando só até o último sinal. Administradora: usa a função dela `close_timer_session_at` (vira lançamento normal). Partner: vira `staff_hour_submissions` para aprovação. Aviso no sino + e-mail para a pessoa; se for Partner, também para a administradora. Registro na auditoria (`timer_auto_paused_inactivity`).
+  - **Trava de segurança:** a rotina só age em cronômetro que já recebeu algum sinal. Como o oficial ainda não envia o sinal (só a homologação), nenhum cronômetro do oficial é pausado até a publicação.
+  - **Site:** `src/lib/timerPresence.ts` envia o sinal a cada 2 min enquanto houver atividade (mouse/teclado nos últimos 5 min e aba visível), para administradora e Partner. Ao clicar em **Sair** com cronômetro ligado aparece o diálogo "Você está com cronômetro ligado" (Voltar ao trabalho / Pausar e sair).
+  - **O lançamento de 6h56 dela NÃO foi alterado** (não mexo em dado dela): ela corrige em Horas → editar.
+  - **Não verificado:** a rotina rodando de verdade (precisa de um cronômetro real com sinal e 30 min de espera); e-mail do aviso.
+- **Avisos do Partner:** estava estreito e centralizado porque faltava o invólucro da página da administradora. Agora mede igual à dela (x=126→1370, y=114). Capa do segundo aviso em branco no print dela: não reproduzido aqui.
+- **"Enviar para a Patricia" (tela solta):** ela não entendeu e quer o envio DENTRO das ações. A tela virou **"Aguardando a Patricia"**: só acompanhamento (o que está aguardando e o que ela respondeu, incluindo horas, encerramentos, entregáveis e alterações). O formulário solto saiu. Botão do painel virou "Ver o que aguarda a Patricia".
+- **Subtarefas (etapas) do Partner:** pode criar ("Nova etapa" → pedido de autorização) e, ao marcar como concluída, vira pedido "Concluir etapa" para ela; aprovado, a etapa fica concluída. Ele não reabre.
+- **NÃO FEITO nesta rodada (ela pediu):** página de Horas do Partner; anexos na conversa dele.
+
+### 2026-10-14 (2) — Partner, página por página: 4) Horas (homologação)
+
+- **Autorização:** "prossiga".
+- **Tela:** o Partner usa a MESMA `AdminHoursPageV3` em modo `staff` (`StaffHoursPage`, rota `/equipe/horas`), alinhada igual (x=91, y=87): indicadores, Consumo por cliente, cronômetros ativos, Registros de atuação, e os três botões (Lançamento manual, Interação externa, Iniciar timer).
+  - **Consumo por cliente:** total da empresa vindo de `partner_hours_summary` (inclui as horas de todos, mas só o número); sem o botão "Visível/Oculto ao cliente".
+  - **Registros de atuação:** só os lançamentos DELE (fila `staff_hour_submissions`), cada um com a situação — Aguardando a Patricia / Aprovado / Recusado — e a resposta dela no detalhe. Ele não vê os lançamentos da administradora.
+  - **Cronômetro:** `partner_start_timer` (projeto e entregável opcionais para ele); só "Encerrar" (sem pausar/retomar); ao encerrar vai para aprovação.
+  - **Lançamento manual e interação externa:** mesmos formulários; em vez de registrar, viram pedido para ela. Sem a opção "Compartilhável no extrato do cliente".
+  - **Editar:** botão "Editar" nos lançamentos que ainda aguardam aprovação, com motivo obrigatório (`partner_edit_hour_submission`; o motivo entra na justificativa e na auditoria como "Equipe CALI editou um lançamento antes da aprovação"). Depois de decidido por ela, não edita. **Excluir: não existe para ele.**
+- **Banco aplicado (acréscimo):** `20261014120000_staff_partner_hours.sql` — funções `partner_start_timer` e `partner_edit_hour_submission`. Nada dela alterado.
+- **Auditoria:** traduzidos "Cronômetro pausado sozinho por inatividade" e a edição de lançamento da equipe.
+- **Limites:** horas aprovadas viram lançamento oficial criado pela administradora (o Partner continua vendo o item dele como "Aprovado" na fila); exportar CSV exporta só os dele; sem pausar/retomar cronômetro para ele.
+- **Não verificado:** nenhuma gravação com conta real.
+- **Ainda falta do Partner:** anexos na conversa; Calendário, Documentos, Relatórios e Equipe do cliente continuam como listas simples de consulta; recursos automáticos de Projetos.
+
+### 2026-10-13 (noite) — Partner: textos sem redundância, reações, Nova etapa, alinhamentos
+
+- Textos do perfil Partner reescritos (painel, boas-vindas, Ocorrências, Projetos, Horas, Avisos): a regra de aprovação aparece uma vez só, na página "Aprovações" (antes "Aguardando a Patricia") e na boas-vindas.
+- Avisos do Partner: reações liberadas como no cliente. Banco (só acréscimo, já aplicado): políticas `notice_reactions_partner_read` e `notice_reactions_partner_insert` — migration `20261014150000_staff_partner_notice_reactions.sql`.
+- Entregável (Partner): botão "Nova etapa" voltou a aparecer (estava oculto por engano); etiqueta do topo mostra "Revisão da Patricia"; rodapé com botões e seletor na mesma altura.
+- Cabeçalho das páginas `.ap-title`: botões de ação numa linha só, mesma altura (Horas).
+- Conferido: `npm run check` ok; varredura 105 · 0; telas do Partner com dados fictícios. Nenhuma gravação real testada.
+- Continua pendente no Partner: anexos nas conversas; Calendário, Documentos, Relatórios e Equipe do cliente ainda são listas simples de leitura; função de convite por e-mail não publicada.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

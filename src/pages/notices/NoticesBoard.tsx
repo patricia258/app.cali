@@ -29,7 +29,8 @@ const emptyDraft = (): Draft => ({ id: null, category: 'comunicado', title: '', 
 
 const REACTIONS: [string, string, string][] = [['like', '👍', 'Curti'], ['love', '❤️', 'Amei'], ['clap', '👏', 'Parabéns']];
 
-function NoticesBoard({ role }: { role: Role }) {
+/* `staff`: o Partner (Equipe CALI) vê o mesmo mural, sem ciência/comentário/reação, e publica pelo botão do topo. */
+function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => void } }) {
   const admin = role === 'admin';
   const [searchParams, setSearchParams] = useSearchParams();
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -186,9 +187,10 @@ function NoticesBoard({ role }: { role: Role }) {
     setNotices((current) => current.map((notice) => notice.id === item.id ? { ...notice, status } : notice));
   }
 
+  if (loading && staff) return <section className="v2-client-module data-loading" aria-live="polite" aria-busy="true">Carregando avisos…</section>;
   if (loading) return <Shell role={role}><section className="v2-client-module data-loading" aria-live="polite" aria-busy="true">Carregando avisos…</section></Shell>;
 
-  const head = <div className="notice-title"><div><small>{admin ? 'BACKOFFICE / COMUNICAÇÃO' : 'ÁREA DA EMPRESA / COMUNICAÇÃO'}</small><h1>Quadro de Avisos<span>.</span></h1><p>{admin ? 'Comunicados da CALI para as empresas clientes: feriados, atendimento e informações da parceria.' : 'Comunicados da parceria, datas importantes e informações de atendimento.'}</p></div>{admin && <button className="notice-main-button" type="button" onClick={() => openCompose()}><Plus size={16} /> Novo comunicado</button>}</div>;
+  const head = <div className="notice-title"><div><small>{admin ? 'BACKOFFICE / COMUNICAÇÃO' : staff ? 'EQUIPE CALI / COMUNICAÇÃO' : 'ÁREA DA EMPRESA / COMUNICAÇÃO'}</small><h1>Quadro de Avisos<span>.</span></h1><p>{admin ? 'Comunicados da CALI para as empresas clientes: feriados, atendimento e informações da parceria.' : staff ? 'Comunicados publicados para as empresas que você atende.' : 'Comunicados da parceria, datas importantes e informações de atendimento.'}</p></div>{(admin || staff) && <button className="notice-main-button" type="button" onClick={() => staff ? staff.onCompose() : openCompose()}><Plus size={16} /> Novo comunicado</button>}</div>;
 
   const toolbar = <div className="notice-toolbar"><div className="notice-filters">{admin && <><button type="button" className={view === 'mural' ? 'active' : ''} onClick={() => setView('mural')}>Mural</button><button type="button" className={view === 'manage' ? 'active' : ''} onClick={() => setView('manage')}>Gerenciar publicações</button><i className="v2-notice-sep" /></>}<button type="button" className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>Todos</button>{CATEGORIES.map(([key, label]) => <button type="button" key={key} className={filter === key ? 'active' : ''} onClick={() => setFilter(key)}>{label}</button>)}{admin && view === 'manage' && <button type="button" className={showArchived ? 'active' : ''} onClick={() => setShowArchived((current) => !current)}>{showArchived ? 'Vendo arquivados' : 'Ver arquivados'}</button>}</div><span>{visible.length} {visible.length === 1 ? 'publicação' : 'publicações'}</span></div>;
 
@@ -216,7 +218,7 @@ function NoticesBoard({ role }: { role: Role }) {
 
   const empty = <div className="empty notice-empty"><Megaphone size={22} /><strong>{admin ? (view === 'manage' && showArchived ? 'Nenhum comunicado arquivado.' : 'Nenhum comunicado publicado.') : 'Nenhum comunicado publicado.'}</strong><p>{admin ? 'Use “Novo comunicado” para avisar as empresas sobre feriados, atendimento e novidades.' : 'Quando a CALI publicar um aviso para a sua empresa, ele aparecerá aqui.'}</p></div>;
 
-  const page = <div className={`notice-page ${admin ? 'v2-notice-admin' : ''}`}>
+  const page = <div className={`notice-page ${admin ? 'v2-notice-admin' : ''} ${staff ? 'v2-notice-staff' : ''}`}>
     {head}
     {error && !draft && <div className="inline-notice">{error}</div>}
     {toolbar}
@@ -260,11 +262,13 @@ function NoticesBoard({ role }: { role: Role }) {
     </form></div>}
   </div>;
 
+  if (staff) return page;
   return <Shell role={role}>{admin ? <div className="ap-app v2-admin-page v2-admin-notices"><div className="ap-content">{page}</div></div> : page}</Shell>;
 }
 
 export function ClientNoticesPage() { return <NoticesBoard role="client" />; }
 export function AdminNoticesPage() { return <NoticesBoard role="admin" />; }
+export function StaffNoticesPage({ onCompose }: { onCompose: () => void }) { return <NoticesBoard role="client" staff={{ onCompose }} />; }
 
 /* Visão geral do cliente: os dois avisos mais recentes da empresa (bloco "Quadro de avisos" aprovado na V2). */
 export function ClientHomeNotices() {

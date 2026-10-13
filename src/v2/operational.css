@@ -859,8 +859,8 @@ html[data-workspace-ui='v2']{
 /* ---- Administradora na identidade V2 ---- */
 /* O protótipo traz o próprio shell (.ap-app); nas páginas oficiais o shell é o WorkspaceShellV2, então
    .ap-app passa a ser só o escopo das regras da página. */
-.app[data-workspace-role='admin'] .ap-app.v2-admin-page{display:block;min-height:0;background:none}
-.app[data-workspace-role='admin'] .v2-admin-page .ap-content{padding:0;max-width:none;margin:0}
+.app:is([data-workspace-role='admin'],[data-workspace-role='partner']) .ap-app.v2-admin-page{display:block;min-height:0;background:none}
+.app:is([data-workspace-role='admin'],[data-workspace-role='partner']) .v2-admin-page .ap-content{padding:0;max-width:none;margin:0}
 .v2-admin-page a{text-decoration:none}
 .v2-admin-page .ap-pane-head a{color:#6b293e;display:flex;align-items:center;gap:7px;font-size:11px}
 .v2-admin-page .ap-hour-logo{overflow:hidden;flex-shrink:0}
@@ -2929,3 +2929,156 @@ html[data-workspace-ui='v2'] .v2-staff-targets legend{padding:0;margin-bottom:8p
 html[data-workspace-ui='v2'] .v2-staff-submit{gap:10px}
 html[data-workspace-ui='v2'] .v2-staff-submit button,html[data-workspace-ui='v2'] .v2-staff-publish-bar button{height:38px;padding:0 15px;display:inline-flex;align-items:center;border-radius:7px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 html[data-workspace-ui='v2'] .v2-staff-submit .wf-secondary{border:1px solid #dec9c3;background:#fff;color:#5a1e2d}
+/* Partner na moldura oficial: mural de avisos sem ações de cliente; passos da tela "Enviar para a Patricia". */
+html[data-workspace-ui='v2'] .v2-notice-staff .v2-notice-detail>footer{display:none}
+html[data-workspace-ui='v2'] .v2-notice-staff .v2-notice-reactions{pointer-events:none}
+html[data-workspace-ui='v2'] .v2-notice-staff .v2-notice-reactions button:not(:has(b)){display:none}
+html[data-workspace-ui='v2'] .v2-notice-staff .notice-actions>button:first-child{display:none}
+html[data-workspace-ui='v2'] .v2-staff-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+html[data-workspace-ui='v2'] .v2-staff-steps article{display:flex;align-items:flex-start;gap:12px;background:#fff;border:1px solid #e9dfd8;border-radius:9px;padding:14px 16px;min-width:0}
+html[data-workspace-ui='v2'] .v2-staff-steps b{flex:none;width:26px;height:26px;border-radius:7px;background:#5a1e2d;color:#fff;display:grid;place-items:center;font-size:12px}
+html[data-workspace-ui='v2'] .v2-staff-steps article>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+html[data-workspace-ui='v2'] .v2-staff-steps strong{font-size:13px;color:#322f2c}
+html[data-workspace-ui='v2'] .v2-staff-steps small{font-size:11px;line-height:1.5;color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-form .v2-staff-fields select{height:40px;padding:0 11px;border:1px solid #e5d8d0;border-radius:7px;background:#fff;font:inherit;font-size:12px;font-weight:400;color:#322f2c}
+@media(max-width:860px){html[data-workspace-ui='v2'] .v2-staff-steps{grid-template-columns:1fr}}
+.v2-admin-staff .v2-staff-list .wf-record-row{grid-template-columns:38px minmax(0,1.2fr) minmax(0,1.3fr) minmax(0,1.6fr) minmax(0,1fr) auto}
+.v2-admin-staff .v2-staff-row-actions{display:inline-flex;align-items:center;gap:8px}
+.v2-admin-staff .v2-row-icon:disabled{opacity:.45;cursor:not-allowed}
+html[data-workspace-ui='v2'] .v2-staff-invite-text{margin:0;padding:12px 14px;border-radius:8px;background:#faf6f2;font:inherit;font-size:12px;line-height:1.6;color:#322f2c;white-space:pre-wrap}
+html[data-workspace-ui='v2'] .v2-staff-form>footer a.wf-primary{height:38px;padding:0 15px;display:inline-flex;align-items:center;border-radius:7px;border:1px solid #5a1e2d;background:#5a1e2d;color:#fff;font-size:12px;font-weight:700;text-decoration:none}
+/* Visão geral do Partner: a página usa a composição da administradora; a área não acrescenta espaçamento próprio. */
+html[data-workspace-ui='v2'] .v2-staff-area:has(>.v2-staff-dashboard){display:block}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-overview-hero{min-height:0}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .v2-staff-count{font-size:11px;color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .v2-staff-scope-tags{display:flex;flex-wrap:wrap;gap:8px;padding-top:4px}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-time-line>i{background:#a484d7}
+html[data-workspace-ui='v2'] .v2-staff-area>.ap-app>.ap-content{padding:0;max-width:none}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-account-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr))}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client{min-width:0}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client>div{min-width:0;flex:1}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:640px){html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client{flex-wrap:wrap}html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client small{white-space:normal}}
+.v2-admin-staff .v2-staff-list .wf-record-row{grid-template-columns:38px minmax(0,1.1fr) minmax(0,1.2fr) minmax(0,1.5fr) minmax(0,1fr) minmax(0,.9fr) auto}
+@media(max-width:1100px){.v2-admin-staff .v2-staff-list .wf-record-row{grid-template-columns:38px minmax(0,1fr) auto}.v2-admin-staff .v2-staff-list .wf-record-row>div:nth-of-type(n+2){grid-column:2}}
+/* Ocorrências da Equipe CALI: mesma tela da administradora, com cronômetro próprio, escolha Cliente/Interno e encerramento por aprovação. */
+html[data-workspace-ui='v2'] .v2-staff-record-timer{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border:1px solid #5a1e2d;border-radius:8px;background:#5a1e2d;color:#fff;font:inherit;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:pointer;flex:none;margin-left:auto;position:relative;z-index:8}
+html[data-workspace-ui='v2'] .v2-staff-record-timer.on{background:#fff;color:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-staff-compose-mode{align-self:flex-start;margin:0 0 4px}
+html[data-workspace-ui='v2'] .v2-staff-thread .records-chat-avatar{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:7px;background:#f3ece6;color:#5a1e2d;font-size:11px;font-weight:700}
+html[data-workspace-ui='v2'] .v2-staff-thread .internal-note .records-chat-bubble{background:#fffaf1;border-color:#ecd9b0}
+html[data-workspace-ui='v2'] .v2-staff-thread-empty{margin:0;font-size:12px;color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-closed-note{font-size:12px;color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-record-actions .status-actions{flex-wrap:nowrap}
+html[data-workspace-ui='v2'] .wf-record-drawer>header>button.v2-staff-record-timer{width:auto;min-width:0;height:38px;padding:0 14px;display:inline-flex;align-items:center;gap:8px;border:1px solid #5a1e2d;border-radius:8px;background:#5a1e2d;color:#fff;font-size:12px;font-weight:700;position:static;margin:0 10px 0 auto;flex:none}
+html[data-workspace-ui='v2'] .wf-record-drawer>header>button.v2-staff-record-timer.on{background:#fff;color:#5a1e2d}
+html[data-workspace-ui='v2'] .wf-record-drawer>header:has(.v2-staff-record-timer){display:flex;align-items:flex-start;gap:0}
+html[data-workspace-ui='v2'] .wf-record-drawer>header:has(.v2-staff-record-timer)>div{flex:1;min-width:0}
+html[data-workspace-ui='v2'] .wf-record-drawer>header:has(.v2-staff-record-timer)>.drawer-close{position:static;flex:none}
+html[data-workspace-ui='v2'] .v2-staff-compose-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+html[data-workspace-ui='v2'] .v2-staff-compose-head label{font:inherit;color:inherit}
+html[data-workspace-ui='v2'] .v2-staff-compose-mode{display:inline-flex;border:1px solid #e7ddd5;border-radius:7px;overflow:hidden;background:#fff;margin:0;width:auto}
+html[data-workspace-ui='v2'] .v2-staff-compose-mode button{border:0;background:#fff;padding:6px 12px;font:inherit;font-size:11px;font-weight:600;color:#8b7f77;cursor:pointer;width:auto;height:auto;border-radius:0}
+html[data-workspace-ui='v2'] .v2-staff-compose-mode button.on{background:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] .wf-record-drawer>header:has(.v2-staff-record-timer)>div>small{white-space:normal;overflow:visible;display:block;line-height:1.5}
+html[data-workspace-ui='v2'] .v2-staff-thread .records-chat-avatar{color:#5a1e2d!important}
+/* Ocorrências — chat no padrão do chat dos projetos (pedido de 2026-10-13): foto FORA do balão, nome em caixa normal,
+   texto e hora dentro. Antes a foto ficava por baixo do balão nas mensagens de quem não é o autor, e sumia. */
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-line{display:flex!important;align-items:flex-start!important;gap:12px!important;position:relative!important;width:100%!important;max-width:none!important;margin:0 0 14px!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-line.mine{justify-content:flex-end!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread :is(.records-chat-avatar,.v2-chat-photo){position:static!important;inset:auto!important;transform:none!important;width:40px!important;height:40px!important;min-width:40px!important;flex:none!important;margin:0!important;border-radius:7px!important;overflow:hidden!important;display:grid!important;place-items:center!important;background-color:#f3ece6;color:#5a1e2d;font-size:11px;font-weight:700;opacity:1!important;visibility:visible!important;z-index:1}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .v2-chat-photo img{width:100%;height:100%;object-fit:cover;display:block}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-bubble{display:flex!important;flex-direction:column!important;gap:4px!important;width:auto!important;max-width:min(78%,560px)!important;min-width:0!important;margin:0!important;padding:13px 17px!important;border:1px solid #eadfd8!important;border-radius:12px!important;background:#f8f3ef!important;color:#322f2c!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-line.mine .records-chat-bubble{background:#f7e3d6!important;border-color:#eed3c2!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-line.internal-note .records-chat-bubble{background:#fffaf1!important;border-color:#ecd9b0!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-head{display:contents!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-head strong{order:1;margin:0!important;padding:0!important;font-size:13px!important;font-weight:700!important;letter-spacing:0!important;text-transform:none!important;color:#322f2c!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-bubble>p{order:2;margin:0!important;font-size:13px!important;line-height:1.55!important;color:#322f2c!important;overflow-wrap:anywhere}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-bubble>:not(.records-chat-head):not(p){order:3}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-head time{order:4;margin:4px 0 0!important;padding:0!important;font-size:10px!important;color:#96867c!important}
+/* Mais espaço para a conversa: cabeçalho, campo de resposta e rodapé mais baixos. */
+html[data-workspace-ui='v2'] .wf-record-drawer>header{padding:18px 24px 14px!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-drawer-meta{padding:10px 24px!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:8px 10px!important;align-items:center!important;padding:12px 24px 14px!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>:is(.wf-compose-label,.records-chat-runtime-pending-host,textarea,.v2-staff-compose-actions){grid-column:1/-1!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>.records-chat-runtime-pending-host:empty{display:none!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>textarea{min-height:52px!important;height:52px;margin:0!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>.records-chat-runtime-tools-host{grid-column:1!important;grid-row:4!important;margin:0!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>button.primary{grid-column:2!important;grid-row:4!important;justify-self:end!important;margin:0!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .v2-staff-compose-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px}
+html[data-workspace-ui='v2'] .wf-record-drawer .v2-staff-compose-actions .v2-staff-compose-mode{margin:0}
+html[data-workspace-ui='v2'] .wf-record-drawer .v2-record-drawer-actions{padding:12px 20px!important}
+/* Aviso de confirmação: cartão flutuante que some sozinho (não empurra a página). */
+html[data-workspace-ui='v2'] .inline-notice.v2-toast{position:fixed;right:24px;bottom:24px;z-index:1300;display:inline-flex;align-items:center;gap:10px;width:auto;max-width:min(420px,calc(100vw - 48px));margin:0;padding:12px 16px;border:1px solid #d6e8dd;border-radius:10px;background:#f1f8f3;color:#2f6b4b;font-size:12px;font-weight:600;line-height:1.45;box-shadow:0 18px 60px #28172426;animation:v2-pop .24s cubic-bezier(.2,.7,.2,1) backwards}
+html[data-workspace-ui='v2'] .inline-notice.v2-toast svg{flex:none}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread :is(.records-chat-avatar,.v2-chat-photo){position:relative!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>.wf-compose-label{order:1}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>.records-chat-runtime-pending-host{order:2}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>textarea{order:3}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>.records-chat-runtime-tools-host{order:4;grid-row:auto!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>button.primary{order:5;grid-row:auto!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>.v2-staff-compose-actions{order:5}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-line{flex-direction:row!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-bubble{flex:0 1 auto!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>.wf-compose-label{margin:0!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>.records-chat-runtime-pending-host:not(:has(*)){display:none!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose{grid-template-rows:none!important;grid-template-areas:none!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>*{grid-area:auto!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>:is(.wf-compose-label,.records-chat-runtime-pending-host,textarea,.v2-staff-compose-actions){grid-column:1/-1!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>.records-chat-runtime-tools-host{grid-column:1!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-compose>button.primary{grid-column:2!important}
+html[data-workspace-ui='v2'] .wf-record-drawer.v2-admin-record-drawer .wf-thread .records-chat-line .records-chat-bubble{width:auto!important;max-width:min(78%,560px)!important;flex:0 1 auto!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .v2-staff-compose-actions>*{margin-top:0!important;margin-bottom:0!important;align-self:center}
+html[data-workspace-ui='v2'] .wf-record-drawer .v2-staff-compose-actions .v2-staff-compose-mode{height:36px;align-items:stretch}
+html[data-workspace-ui='v2'] .wf-record-drawer .v2-staff-compose-actions .v2-staff-compose-mode button{display:inline-flex;align-items:center}
+/* Balões menores, na escala do resto da plataforma (pedido de 2026-10-13). */
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-line{gap:10px!important;margin:0 0 10px!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread :is(.records-chat-avatar,.v2-chat-photo){width:34px!important;height:34px!important;min-width:34px!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-bubble{padding:10px 14px!important;gap:3px!important;border-radius:10px!important;max-width:min(74%,480px)!important}
+html[data-workspace-ui='v2'] .wf-record-drawer.v2-admin-record-drawer .wf-thread .records-chat-line .records-chat-bubble{max-width:min(74%,480px)!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-head strong{font-size:12px!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-bubble>p{font-size:12px!important;line-height:1.5!important}
+html[data-workspace-ui='v2'] .wf-record-drawer .wf-thread .records-chat-head time{margin:2px 0 0!important}
+/* Projetos da Equipe CALI: mesma tela; o que é de gestão fica oculto e a conversa segue o padrão do chat dos projetos. */
+html[data-workspace-ui='v2'] .v2-staff-projects [hidden]{display:none!important}
+html[data-workspace-ui='v2'] .v2-staff-project-chat .workspace-chat-avatar.v2-chat-photo{display:grid;place-items:center;overflow:hidden;font-size:11px;font-weight:700;color:#5a1e2d;background:#f3ece6}
+html[data-workspace-ui='v2'] .v2-staff-project-chat .workspace-chat-avatar.v2-chat-photo img{width:100%;height:100%;object-fit:cover;display:block}
+/* Menu lateral fixo na altura da tela (antes ficava um "buraco" embaixo quando um diálogo abria com a página rolada). */
+@media(min-width:851px){
+  html[data-workspace-ui='v2'] .app>.sidebar{position:fixed;top:0;bottom:0;left:0;height:auto;min-height:100dvh}
+  html[data-workspace-ui='v2'] .app>.main{margin-left:56px;width:calc(100% - 56px)}
+}
+/* Aviso de cronômetro já ligado na mesma empresa: é um alerta, então tem cara de alerta (âmbar). */
+html[data-workspace-ui='v2'] .project-timer-company-busy{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border:1px solid #ecd9b0;border-radius:8px;background:#fff6e3;color:#8a5a00;font:inherit;font-size:12px;font-weight:700;white-space:nowrap;cursor:help}
+html[data-workspace-ui='v2'] .project-timer-message.project-timer-message-floating{display:inline-flex;align-items:center;max-width:380px;padding:9px 12px;border:1px solid #ecd9b0;border-radius:8px;background:#fffaf1;color:#7a5a2c;font-size:11px;line-height:1.45;font-weight:600}
+/* Kanban da Equipe CALI: mesmas colunas de 244 px e rolagem lateral do Kanban da administradora; cartões arrastáveis. */
+html[data-workspace-ui='v2'] .v2-staff-projects .kanban-v2{display:flex!important;flex-wrap:nowrap!important;gap:10px!important;overflow-x:auto!important;overflow-y:hidden!important;padding-bottom:4px!important;scrollbar-width:none}
+html[data-workspace-ui='v2'] .v2-staff-projects .kanban-v2::-webkit-scrollbar{display:none}
+html[data-workspace-ui='v2'] .v2-staff-projects .kanban-v2>div{flex:0 0 244px!important;min-width:244px!important}
+html[data-workspace-ui='v2'] .v2-staff-projects .kanban-v2>div>button[draggable='true']{cursor:grab}
+@media(max-width:720px){html[data-workspace-ui='v2'] .v2-staff-projects .kanban-v2>div{flex-basis:220px!important;min-width:220px!important}}
+/* Conferência antes de sair com cronômetro ligado (alerta: âmbar). */
+html[data-workspace-ui='v2'] .v2-exit-guard{z-index:1250}
+html[data-workspace-ui='v2'] .v2-exit-alert{margin:0;padding:12px 14px;border:1px solid #ecd9b0;border-radius:9px;background:#fff6e3;color:#7a5a2c;font-size:12px;line-height:1.5}
+/* Horas da Equipe CALI: mesma tela; sem visibilidade para o cliente; situação da aprovação em cada lançamento. */
+html[data-workspace-ui='v2'] .v2-staff-hours-page :is(.v2-hours-visibility,.hours-v13-visible){display:none!important}
+html[data-workspace-ui='v2'] .v2-staff-hours-page [hidden]{display:none!important}
+html[data-workspace-ui='v2'] .v2-staff-hour-status{display:inline-block;margin-left:8px;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap}
+html[data-workspace-ui='v2'] .v2-staff-hour-status.pending{background:#fff4de;color:#9b6c21}
+html[data-workspace-ui='v2'] .v2-staff-hour-status.approved{background:#e6f6ec;color:#31805a}
+html[data-workspace-ui='v2'] .v2-staff-hour-status.rejected{background:#fdecee;color:#b7495d}
+html[data-workspace-ui='v2'] .v2-staff-hour-edit{display:inline-flex;align-items:center;gap:5px;margin-left:8px;padding:4px 8px;border:1px solid #e5d9d0;border-radius:6px;background:#fff;color:#5a1e2d;font:inherit;font-size:10px;font-weight:700;cursor:pointer;vertical-align:middle}
+/* Avisos da Equipe CALI: reações liberadas, como no cliente. */
+html[data-workspace-ui='v2'] .v2-notice-staff .v2-notice-reactions{pointer-events:auto}
+html[data-workspace-ui='v2'] .v2-notice-staff .v2-notice-reactions button:not(:has(b)){display:inline-flex}
+/* Cabeçalho das páginas no padrão .ap-title: os botões ficam numa linha só, alinhados ao título. */
+html[data-workspace-ui='v2'] .v2-admin-page .ap-title{align-items:center;gap:20px}
+html[data-workspace-ui='v2'] .v2-admin-page .ap-title>div:first-child{min-width:0;flex:1 1 320px}
+html[data-workspace-ui='v2'] .v2-admin-page .ap-title-actions{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;flex:none}
+html[data-workspace-ui='v2'] .v2-admin-page .ap-title-actions>*{flex:none;white-space:nowrap}
+@media(max-width:1100px){html[data-workspace-ui='v2'] .v2-admin-page .ap-title-actions{flex-wrap:wrap}}
+/* Rodapé do entregável: botões e seletor de situação com a mesma altura, na mesma linha. */
+html[data-workspace-ui='v2'] .dv-modal .dv-actions :is(.deliverable-actions-left-v2,.deliverable-actions-right-v2){display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+html[data-workspace-ui='v2'] .dv-modal .dv-actions :is(button.dv-secondary,.inline-status-select-v3,button.dv-converse-bottom){height:40px;min-height:40px;box-sizing:border-box;display:inline-flex;align-items:center;margin:0}
+html[data-workspace-ui='v2'] .dv-modal .dv-actions .inline-status-select-v3 select{height:100%}
+html[data-workspace-ui='v2'] .v2-admin-page .ap-title-actions>:is(button,a,label,input,.ap-month,select){height:40px;min-height:40px;box-sizing:border-box}
