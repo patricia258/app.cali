@@ -1155,6 +1155,17 @@ NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINIS
 - Aprovada pela Patricia ("pode publicar tudo o que está pendente de subir"): subtarefa com modal próprio e situações do entregável, notas com editar/excluir, mês do cronograma pelo prazo, complexidade com cor/legenda, cliente sem aba Etapas e com subtarefas e coluna de complexidade.
 - Junto: dica da complexidade aparece na hora (`data-tip`, sem o atraso do `title` nativo) e bloco `v2-mc-card` em "Sobre esta entrega", na cor da categoria e com explicação didática (administradora, Partner e cliente).
 
+### 2026-10-13 — Horas do cliente (regra nova), situações uniformes, ajustes de subtarefa e anexos — Publicação 17
+
+- HORAS DO CLIENTE: `get_client_hours_summary` passa a somar TODO o tempo (sai o filtro `client_visible`) — função existente alterada, regra aprovada por ela. Nova `get_client_hours_breakdown` devolve o consumo somado por item (tipo, projeto, tarefa, protocolo, frente, minutos); o que não é "visível ao cliente" vira "Outras atividades da assessoria". `ClientHoursPage.tsx`: colunas Projeto, Tarefa, Tipo, Frente, Protocolo, Duração; sem data, sem horário, sem detalhe por sessão. Fixture de QA acrescentada em `~/CALI/qa/fixtures.cjs`.
+- COMPLEXIDADE: as linhas "Na prática…" que eu tinha escrito saíram. Texto oficial = `complexityMeta` em `src/domain/projects.ts`; a segunda linha agora é a referência documentada em `docs/CALI_PROJECT_REFERENCES.md` (MC1 3, MC2 5, MC3 8 dias úteis). O cliente passou a usar o mesmo texto da administradora. Não há no repositório outro "documento oficial" de MC — se ela tiver um externo, pedir.
+- SITUAÇÃO DA SUBTAREFA no mesmo formato da do entregável (seletor branco com ponto), na lista e dentro do entregável, e selecionável direto na lista (`SubtaskStatusSelect`). Cabeçalhos coloridos (padrão aprovado) continuam.
+- Sem a borda amarela de foco em seletores e abas ao clicar.
+- Modal da subtarefa: "Voltar para o entregável" com cara de botão; protocolo e complexidade na mesma linha de "Subtarefa de …".
+- Cliente: cabeçalho das colunas na lista de entregáveis (Entregável, Complexidade, Situação, Prazo).
+- Anexos nas conversas: cartão compacto (clipe, nome em uma linha, tamanho) em todas as conversas e perfis.
+- Migration `20261016090000` (aplicada). NÃO testado com gravação real.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

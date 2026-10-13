@@ -3405,3 +3405,40 @@ html[data-workspace-ui='v2'] .v2-mc-card>div{display:flex;flex-direction:column;
 html[data-workspace-ui='v2'] .v2-mc-card strong{font-size:13px;color:#2b2b2b}
 html[data-workspace-ui='v2'] .v2-mc-card span{font-size:12px;line-height:1.5;color:#5f5650}
 html[data-workspace-ui='v2'] .v2-mc-card .mc-chip{flex:none;cursor:default}
+/* Modal da subtarefa: voltar com cara de botão; protocolo na mesma linha de "Subtarefa de…". */
+.v2-stm-back{height:34px;padding:0 13px!important;margin:0 0 14px!important;border:1px solid #dfd3ca!important;border-radius:9px;background:#fff!important;text-decoration:none!important}
+.v2-stm-back:hover{background:#fbf7f4!important}
+.v2-stm-head h2{margin:0 0 6px!important}
+.v2-stm-line{display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin:0}
+.v2-stm-line small{display:inline!important;font-size:10.5px!important;letter-spacing:.12em!important;font-weight:700!important;color:#a8773f!important}
+/* Situação da subtarefa igual à do entregável (lista e tabela). */
+html[data-workspace-ui='v2'] .v2-subtask-node .inline-status-select-v3,html[data-workspace-ui='v2'] .v2-st-row .inline-status-select-v3{justify-self:start}
+/* Sem a borda amarela de foco ao clicar em seletores e abas (pedido de 2026-10-13); o teclado continua com realce discreto. */
+html[data-workspace-ui='v2'] :is(select,button,[role='button'],[role='tab'],summary,a):focus:not(:focus-visible){outline:none!important;box-shadow:none}
+html[data-workspace-ui='v2'] select:focus,html[data-workspace-ui='v2'] select:focus-visible{outline:none!important;box-shadow:none!important}
+html[data-workspace-ui='v2'] :is(.inline-status-select-v3,.v2-head-status):focus-within{outline:none!important;box-shadow:none!important}
+html[data-workspace-ui='v2'] :is(.deliverable-tabs-v2,.v2-stm-tabs,.v2-project-tabs) button:focus,html[data-workspace-ui='v2'] :is(.deliverable-tabs-v2,.v2-stm-tabs,.v2-project-tabs) button:focus-visible{outline:none!important;box-shadow:none!important}
+/* Cliente: cabeçalho das colunas da lista de entregáveis. */
+html[data-workspace-ui='v2'] .dv-row.dv-head{background:#faf7f4;padding-top:9px;padding-bottom:9px;cursor:default;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#988980}
+html[data-workspace-ui='v2'] .dv-row.dv-head .dv-square{visibility:hidden;height:0}
+html[data-workspace-ui='v2'] .dv-row.dv-head .dv-status{background:transparent!important;color:inherit!important;border:0!important;padding:0!important;font:inherit;text-align:center}
+html[data-workspace-ui='v2'] .dv-row.dv-head .dv-mc{width:auto;min-width:52px;margin-right:6px;text-align:left}
+html[data-workspace-ui='v2'] .dv-row .dv-mc{width:96px!important;text-align:left}
+html[data-workspace-ui='v2'] .dv-row b.dv-mc.mc-chip{width:auto!important;margin-right:50px}
+/* Cliente: extrato de horas por item (projeto, tarefa, tipo, frente, protocolo, duração). */
+html[data-workspace-ui='v2'] .v2-ledger-v2 .ledger-row{display:grid!important;grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) 110px minmax(0,1.1fr) 170px 90px!important;align-items:center;column-gap:14px;cursor:default;text-align:left}
+html[data-workspace-ui='v2'] .v2-ledger-v2 .ledger-row>strong:last-child,html[data-workspace-ui='v2'] .v2-ledger-v2 .ledger-heading>span:last-child{text-align:right}
+html[data-workspace-ui='v2'] .v2-ledger-v2 .ledger-project{font-size:12px;color:#5f5650}
+html[data-workspace-ui='v2'] .v2-ledger-v2 .ledger-protocol{font-size:10.5px;color:#9a8d85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[data-workspace-ui='v2'] .v2-ledger-kind{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 9px;border-radius:7px;font-size:10.5px;font-weight:700;background:#f1ebe6;color:#5f5650;justify-self:start}
+html[data-workspace-ui='v2'] .v2-ledger-kind.k-entregavel{background:#e6eef7;color:#2c5a86}
+html[data-workspace-ui='v2'] .v2-ledger-kind.k-subtarefa{background:#ece8f4;color:#57467a}
+html[data-workspace-ui='v2'] .v2-ledger-kind.k-ocorrencia{background:#fdf0cc;color:#7a5606}
+/* Anexo nas conversas: cartão pequeno, com clipe, nome em uma linha e tamanho (todas as conversas e perfis). */
+html[data-workspace-ui='v2'] :is(.records-chat-attachments,.workspace-chat-attachments){display:flex;flex-direction:column;align-items:flex-start;gap:6px;margin-top:8px}
+html[data-workspace-ui='v2'] :is(.records-chat-attachment,.workspace-chat-attachment){display:inline-flex!important;flex-direction:row!important;align-items:center!important;gap:9px;max-width:min(300px,100%);width:auto!important;padding:8px 12px!important;border:1px solid #e6d9ce!important;border-radius:9px!important;background:#fffaf7!important;color:#2b2b2b!important;font:inherit;text-align:left!important;cursor:pointer;box-shadow:none!important}
+html[data-workspace-ui='v2'] :is(.records-chat-attachment,.workspace-chat-attachment)>span:last-child{display:flex;flex-direction:column;gap:1px;min-width:0}
+html[data-workspace-ui='v2'] :is(.records-chat-attachment,.workspace-chat-attachment) strong{display:block;max-width:230px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[data-workspace-ui='v2'] :is(.records-chat-attachment,.workspace-chat-attachment) small{font-size:10px;color:#8a7c74}
+html[data-workspace-ui='v2'] .dv-row.dv-head .dv-square{width:36px!important;min-width:36px;flex:none}
+html[data-workspace-ui='v2'] .dv-row.dv-head .dv-mc{padding-left:0;margin-left:8px}
