@@ -1264,6 +1264,14 @@ Pendência operacional: o lançamento de teste de 10h01 continua no extrato da C
 - Horas do cliente: respiro no cartão "Horas do mês"; saiu a linha "plano · mês" (o período já está acima); aviso de excedente padrão, sem valores: "O consumo está acima do contratado. Vamos acompanhar juntos a demanda do período e avaliar se é necessário reorganizar as prioridades. Manteremos a comunicação." + rodapé em itálico menor "Não há cobrança adicional ou alteração automática de contrato." (a frase de 2ª/3ª ocorrência continua entrando no meio quando for o caso).
 - Publicado com autorização dela ("pode continuar publicando o que já tiver pronto"): painel de capacidade da administradora, ocorrência/pausa no cartão do cliente, FAQ ajustado.
 
+### 2026-10-13 — Publicação 22 feita; capacidade mensal fase 3 (homologação)
+
+- PUBLICAÇÃO 22 no oficial (`1b7a208`).
+- Fase 3 (homologação): no painel de capacidade da administradora, botão "Histórico e avaliação" por empresa → consumo mês a mês na vigência do pacote (`admin_capacity_history`) e registro da avaliação de adequação (análise, encaminhamento, "já comunicado ao cliente") em `capacity_reviews`, com as últimas avaliações listadas. Nada altera contrato.
+- Relatório (`ExecutiveReportPaperV12.tsx`, seção "Horas e aderência do pacote"): com excedente, mostra o excedente em horas e em % e o texto-base oficial da leitura executiva. O percentual passou a ter uma casa decimal. NÃO entra ainda o número da ocorrência nem a recomendação da 3ª ocorrência (o relatório não carrega esse dado).
+- Migration `20261016210000` (aplicada).
+- AINDA FALTA da política: validação dos 12 cenários com dados reais (§9); modo escuro e celular; ocorrência/recomendação no relatório; aviso à equipe ao dar play em empresa pausada (se ela quiser).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

@@ -115,7 +115,8 @@ export function ExecutiveReportPaperV12({ company, snapshot, editor, reportType,
       </div>
       {contractedMinutes > 0 && <>
         <div className="reports-v12-usage-track"><i style={{ width: `${clamp(usagePct)}%` }} /></div>
-        <div className={`reports-v12-usage-note ${usagePct > 100 ? 'critical' : usagePct >= 85 ? 'watch' : ''}`}><strong>{Math.round(usagePct)}% consumido</strong><span>{usagePct > 100 ? `A carga foi superada em ${hoursLabelFromMinutes(Math.abs(balanceMinutes))}.` : `${hoursLabelFromMinutes(Math.max(0, balanceMinutes))} permanecem disponíveis no período.`}</span></div>
+        <div className={`reports-v12-usage-note ${usagePct > 100 ? 'critical' : usagePct >= 85 ? 'watch' : ''}`}><strong>{String(Math.round(usagePct * 10) / 10).replace('.', ',')}% consumido</strong><span>{usagePct > 100 ? `Excedente de ${hoursLabelFromMinutes(Math.abs(balanceMinutes))} (${String(Math.round((usagePct - 100) * 10) / 10).replace('.', ',')}% acima do contratado).` : `${hoursLabelFromMinutes(Math.max(0, balanceMinutes))} permanecem disponíveis no período.`}</span></div>
+        {usagePct > 100 && <p className="reports-v12-capacity-note">A utilização da capacidade mensal superou o volume inicialmente contratado. O consumo adicional está registrado no acompanhamento da operação. A CALI avaliará, em conjunto com a liderança, a distribuição das demandas e a necessidade de adequação das prioridades ou da capacidade para os próximos ciclos.</p>}
       </>}
       {hourGroups.length > 0 && <div className="reports-v12-hour-distribution">
         <div className="reports-v12-distribution-bar">{hourGroups.map((group, index) => <i key={group.label} className={`part p${index % 6}`} style={{ width: `${group.percent}%` }} />)}</div>
