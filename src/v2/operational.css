@@ -3594,3 +3594,20 @@ html[data-workspace-ui='v2'] .v2-capcard-alert small{display:block;margin-top:6p
 html[data-workspace-ui='v2'] .v2-capcard-none{margin:0;font-size:13px;color:#8a7c74}
 @media(max-width:640px){html[data-workspace-ui='v2'] .v2-capcard-stats{grid-template-columns:1fr}}
 html[data-workspace-ui='v2'] .ledger-main>.v2-capcard{border:0;border-radius:0;padding:4px 0 10px;background:transparent;margin-bottom:18px;border-bottom:1px solid #eee4dc}
+/* Painel de capacidade mensal da administradora. */
+html[data-workspace-ui='v2'] .v2-capadmin-list{display:flex;flex-direction:column;gap:10px}
+html[data-workspace-ui='v2'] .v2-capadmin-row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.5fr) auto;align-items:center;gap:18px;padding:14px 16px;border:1px solid #efd58b;border-left:4px solid #d9a514;border-radius:10px;background:#fffdf6}
+html[data-workspace-ui='v2'] .v2-capadmin-row.red{border-color:#eebcbc;border-left-color:#c0392b;background:#fef8f7}
+html[data-workspace-ui='v2'] .v2-capadmin-main{display:flex;flex-direction:column;gap:3px;min-width:0}
+html[data-workspace-ui='v2'] .v2-capadmin-main strong{font-size:13.5px}
+html[data-workspace-ui='v2'] .v2-capadmin-main span{font-size:12px;color:#5f5650}
+html[data-workspace-ui='v2'] .v2-capadmin-facts{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:#7d726b}
+html[data-workspace-ui='v2'] .v2-capadmin-facts .warn{color:#8a5a12;font-weight:700}
+html[data-workspace-ui='v2'] .v2-capadmin-facts .bad{color:#a03535;font-weight:700}
+html[data-workspace-ui='v2'] .v2-capadmin-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+html[data-workspace-ui='v2'] .v2-capadmin-actions em{display:inline-flex;align-items:center;gap:6px;font-style:normal;font-size:11.5px;font-weight:700;color:#5f5650}
+html[data-workspace-ui='v2'] .v2-capadmin-actions em.alert{color:#a03535}
+html[data-workspace-ui='v2'] .v2-capadmin-actions button{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border:1px solid #dfd3ca;border-radius:8px;background:#fff;color:#5a1e2d;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+html[data-workspace-ui='v2'] .v2-capadmin-actions button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] .v2-capadmin-foot{margin:12px 0 0;font-size:11px;color:#8a7c74}
+@media(max-width:980px){html[data-workspace-ui='v2'] .v2-capadmin-row{grid-template-columns:1fr}html[data-workspace-ui='v2'] .v2-capadmin-actions{justify-content:flex-start}}
