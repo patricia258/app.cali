@@ -1272,6 +1272,13 @@ Pendência operacional: o lançamento de teste de 10h01 continua no extrato da C
 - Migration `20261016210000` (aplicada).
 - AINDA FALTA da política: validação dos 12 cenários com dados reais (§9); modo escuro e celular; ocorrência/recomendação no relatório; aviso à equipe ao dar play em empresa pausada (se ela quiser).
 
+### 2026-10-13 — Publicação 23 e decisões de escopo
+
+- PUBLICAÇÃO 23 (aprovada: "pode publicar isso tudo"): capacidade mensal fase 3 (histórico mensal, avaliação de adequação, bloco no relatório).
+- DECISÕES DELA: NÃO haverá modo escuro. Celular NÃO é prioridade agora — fica registrado aqui para depois; não conferir nem citar como pendência nas entregas.
+- Autorizado usar a Company IN como empresa de TESTE para lançar horas e validar os cenários de capacidade (75%, 100%, 118%, três meses com excedente, correção retroativa, aditivo, troca de mês, notificação duplicada).
+- Ela tem muitos microajustes guardados; quer primeiro FINALIZAR as frentes abertas, principalmente o perfil Partner.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
