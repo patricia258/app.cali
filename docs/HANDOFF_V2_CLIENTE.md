@@ -1207,6 +1207,16 @@ NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINIS
 - Ainda falta nesta frente: renomear/editar o documento liberado; capa da pasta; a pasta dentro da página Documentos da administradora (hoje fica na aba Arquivos do entregável); cliente abrir a subtarefa e conversar por ela.
 - NÃO testado com gravação real.
 
+### 2026-10-13 — Publicação 20 e subtarefa com o cliente (homologação)
+
+- PUBLICAÇÃO 20 no oficial (`4fa1102`), aprovada por ela: pasta completa na aba Arquivos, cliente confirma recebimento, subtarefa encerrada.
+- Depois, só na homologação — SUBTAREFA COM O CLIENTE:
+  - Modal da subtarefa (CALI): conversa com dois canais, "Equipe (interna)" e "Cliente" (o segundo só quando a subtarefa é visível ao cliente). Mensagem no canal Cliente avisa o cliente (sino e e-mail) pelo gatilho novo `task_messages_notify`.
+  - Cliente (`ClientSubtaskModal.tsx`): clicar na subtarefa da lista abre a parte dele — situação, prazo, documentos entregues, conversa com a CALI (com anexo) e, quando a situação é "Com o cliente", o botão "Aprovar esta parte" (com confirmação) → `client_approve_task` muda para Aprovado e avisa a administradora.
+  - Banco: política `task_messages_client_read`; funções `client_post_task_message`, `client_approve_task`, `client_visible_task`; `partner_post_task_message` com `p_client_visible`. Migration `20261016150000` (aplicada).
+- Falta: pedido de ajuste formal do cliente na subtarefa (hoje ele escreve na conversa); renomear documento liberado; capa da pasta; pasta na página Documentos da administradora; os 3 itens do documento de complexidade (dependências, impacto de atraso, histórico da estimativa); calendário do cliente; Documentos/Relatórios/Equipe do Partner.
+- NÃO testado com gravação real.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

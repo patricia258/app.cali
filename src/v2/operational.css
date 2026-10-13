@@ -3516,3 +3516,20 @@ html[data-workspace-ui='v2'] .v2-task-closed{display:inline-flex;align-items:cen
 html[data-workspace-ui='v2'] .v2-folder-doc{display:inline-flex;align-items:center;gap:10px}
 html[data-workspace-ui='v2'] .v2-folder-ack{height:32px;padding:0 12px;border:1px solid #dfd3ca;border-radius:8px;background:#fff;color:#5a1e2d;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap}
 html[data-workspace-ui='v2'] .v2-folder-ok{font-style:normal;font-size:11px;font-weight:700;color:#356448;white-space:nowrap}
+/* Conversa da subtarefa: canal Equipe / Cliente. */
+.v2-stm-channel{display:inline-flex;padding:3px;border:1px solid #e6d9ce;border-radius:9px;background:#fff}
+.v2-stm-channel button{height:30px;padding:0 13px;border:0;border-radius:7px;background:transparent;color:#5a1e2d;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer}
+.v2-stm-channel button.on{background:#5a1e2d;color:#fff}
+.v2-stm-channel button:disabled{opacity:.4;cursor:default}
+/* Subtarefa do cliente. */
+html[data-workspace-ui='v2'] .dv-row.dv-subrow{cursor:pointer}
+html[data-workspace-ui='v2'] .dv-row.dv-subrow:hover{background:#fbf7f4}
+.v2-stm-client .v2-stm-actions .dv-status{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 14px;border-radius:9px;font-size:12px;font-weight:700;white-space:nowrap;width:auto!important}
+.v2-stm-cards.v2-stm-cards-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.v2-stm-client .v2-subtask-files{flex-direction:row;flex-wrap:wrap;gap:8px;margin:14px 0 0}
+.v2-stm-approve{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:16px 0 0;padding:14px 16px;border:1px solid #efd58b;border-left:4px solid #d9a514;border-radius:10px;background:#fff9e8;font-size:12.5px;color:#5f4a12}
+.v2-stm-approve>span:last-child{display:flex;gap:8px}
+.v2-stm-approve button{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid #dfd3ca;border-radius:9px;background:#fff;color:#5a1e2d;font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.v2-stm-approve button.primary{background:#356448;border-color:#356448;color:#fff}
+.v2-stm-client .v2-subtask-chat{margin-top:20px}
+.v2-stm-notice{margin:14px 0 0;padding:10px 13px;border:1px solid #efc9a0;border-left:4px solid #d98a2b;border-radius:9px;background:#fff7ea;color:#6b4310;font-size:12px;font-weight:600}
