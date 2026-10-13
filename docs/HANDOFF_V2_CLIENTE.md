@@ -1330,6 +1330,15 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
 - Dado: o registro de teste do chat que aparecia como documento na Company IN foi ARQUIVADO com autorização da proprietária (status `archived`, `client_visible=false`; nada apagado).
 - Não verificado com conta real: abertura de arquivo pelo Partner (depende da política nova) e pasta com dados reais na tela da administradora.
 
+### 2026-10-13 — Dependências do cliente no entregável + histórico do prazo (regra de complexidade, itens 4 a 6)
+
+- Banco (só acréscimo, aplicado): tabelas `deliverable_client_dependencies` e `deliverable_due_revisions`; funções `partner_add_dependency` e `partner_receive_dependency`. Migração `20261017150000_deliverable_client_dependencies_and_due_revisions`.
+  ATENÇÃO: já existia a tabela `deliverable_dependencies` (entregável depende de entregável, vazia e sem uso no código). Não foi tocada; por isso a tabela nova tem "client" no nome.
+- Tela: `src/pages/admin/DeliverableDependencies.tsx`, montada na Visão geral do entregável (administradora e Equipe CALI) e no detalhe da entrega do cliente (só leitura).
+- Regras: dependência = o que o cliente precisa enviar/aprovar + data limite. Passou da data sem receber → alerta vermelho para as três visões. NADA é reprogramado sozinho: a administradora clica em "Reprogramar prazo"; o sistema sugere prazo atual + dias de atraso + remobilização (MC1 0, MC2 +1, MC3 +2 dias úteis), ela ajusta, escreve a justificativa (o cliente vê) e escolhe quais entregas seguintes da mesma frente andam junto. Cada mudança grava uma linha no histórico do prazo. Equipe CALI registra e marca recebido, mas não reprograma.
+- Limites conhecidos: mudar o prazo pelo formulário "Editar" do entregável ainda NÃO grava no histórico; o cliente não recebe aviso no sino quando uma dependência é criada; "entregas seguintes" = mesma frente com prazo igual ou posterior (não usa a tabela antiga de dependência entre entregáveis).
+- Não verificado com gravação real: registrar, receber e reprogramar (o ambiente de teste bloqueia escrita). Só a leitura foi conferida por imagem.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
