@@ -99,6 +99,7 @@ const ClientReportsPageV5 = lazy(async () => {
   return import('./pages/client/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 }));
 });
 const CompanyTeamPage = lazy(() => import('./pages/team/CompanyTeamPage').then((m) => ({ default: m.CompanyTeamPage })));
+const ClientFaqPage = lazy(() => import('./pages/client/ClientFaqPage').then((m) => ({ default: m.ClientFaqPage })));
 const ClientNoticesPage = lazy(() => import('./pages/notices/NoticesBoard').then((m) => ({ default: m.ClientNoticesPage })));
 const AdminAuditPage = lazy(() => import('./pages/admin/AdminAuditPage').then((m) => ({ default: m.AdminAuditPage })));
 const AdminStaffPage = lazy(() => import('./pages/admin/AdminStaffPage').then((m) => ({ default: m.AdminStaffPage })));
@@ -189,6 +190,7 @@ function AppRoutes() {
         <Route path="/cliente/cronograma" element={<ProtectedRoute role="client"><ClientTimelinePage/></ProtectedRoute>}/>
         <Route path="/cliente/equipe" element={<ProtectedRoute role="client"><CompanyTeamPage role="client"/></ProtectedRoute>}/>
         <Route path="/cliente/avisos" element={<ProtectedRoute role="client"><ClientNoticesPage/></ProtectedRoute>}/>
+        <Route path="/cliente/ajuda" element={<ProtectedRoute role="client"><ClientFaqPage/></ProtectedRoute>}/>
         <Route path="/cliente/frentes" element={<ProtectedRoute role="client"><ClientFrontsPage/></ProtectedRoute>}/>
         <Route path="/cliente/entregaveis" element={<ProtectedRoute role="client"><ClientDeliverablesPage/></ProtectedRoute>}/>
         <Route path="/cliente/horas" element={<ProtectedRoute role="client"><ClientHoursPage/></ProtectedRoute>}/>

@@ -1207,6 +1207,42 @@ NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINIS
 - Ainda falta nesta frente: renomear/editar o documento liberado; capa da pasta; a pasta dentro da página Documentos da administradora (hoje fica na aba Arquivos do entregável); cliente abrir a subtarefa e conversar por ela.
 - NÃO testado com gravação real.
 
+### 2026-10-13 — Publicação 20 e subtarefa com o cliente (homologação)
+
+- PUBLICAÇÃO 20 no oficial (`4fa1102`), aprovada por ela: pasta completa na aba Arquivos, cliente confirma recebimento, subtarefa encerrada.
+- Depois, só na homologação — SUBTAREFA COM O CLIENTE:
+  - Modal da subtarefa (CALI): conversa com dois canais, "Equipe (interna)" e "Cliente" (o segundo só quando a subtarefa é visível ao cliente). Mensagem no canal Cliente avisa o cliente (sino e e-mail) pelo gatilho novo `task_messages_notify`.
+  - Cliente (`ClientSubtaskModal.tsx`): clicar na subtarefa da lista abre a parte dele — situação, prazo, documentos entregues, conversa com a CALI (com anexo) e, quando a situação é "Com o cliente", o botão "Aprovar esta parte" (com confirmação) → `client_approve_task` muda para Aprovado e avisa a administradora.
+  - Banco: política `task_messages_client_read`; funções `client_post_task_message`, `client_approve_task`, `client_visible_task`; `partner_post_task_message` com `p_client_visible`. Migration `20261016150000` (aplicada).
+- Falta: pedido de ajuste formal do cliente na subtarefa (hoje ele escreve na conversa); renomear documento liberado; capa da pasta; pasta na página Documentos da administradora; os 3 itens do documento de complexidade (dependências, impacto de atraso, histórico da estimativa); calendário do cliente; Documentos/Relatórios/Equipe do Partner.
+- NÃO testado com gravação real.
+
+### 2026-10-13 — POLÍTICA DE CAPACIDADE MENSAL (documento da proprietária) — plano e fase 1 (homologação)
+
+Documento colado por ela: "Política de capacidade mensal, alertas, excedentes e FAQ do cliente" (9 seções). Regra dela: NÃO considerar concluído só por melhoria visual; excedente nunca gera cobrança, suspensão, upgrade nem alteração contratual automática.
+
+FASE 1 — FEITA (homologação):
+- §2 cálculo único em `src/lib/capacity.ts` (`capacityOf`, `minutesLabel`, `percentLabel`, `capacityMessages` com os textos oficiais de 75%, 100% e 1ª ocorrência). Percentual não é limitado a 100%; percentual excedente calculado.
+- §3 barra única `src/v2/CapacityBar.tsx` (verde→amarelo→laranja→vermelho; marcas 0/50/75/100; excedente em faixa vermelha À PARTE, sem comprimir a escala; texto + ícone de alerta) na Home e em Horas do cliente. Cartões: Contratadas, Utilizadas, Excedentes (destaque vermelho suave só com excedente; sem excedente mostra "0h" e o saldo).
+- Avisos da página de Horas do cliente trocados pelos textos oficiais (75%, 100%, excedente); saíram os avisos de 45/50/65/70%.
+- §8 FAQ: `ClientFaqPage.tsx` em `/cliente/ajuda` (menu do perfil › "Dúvidas frequentes"), pesquisável, por assunto, perguntas expansíveis, 11 perguntas com o texto do documento.
+
+FASE 2 — A FAZER (banco): §4 alertas automáticos de 75% e 100%, uma vez por marco/cliente/mês, idempotentes e consolidados quando um lançamento cruza os dois; §5 ocorrências de excedente por mês (1ª, 2ª, 3ª com textos oficiais, janela configurável — proposta 6 meses, a validar com ela), 3ª gera pendência "Avaliar adequação de capacidade"; marcar o histórico existente como já tratado para NÃO disparar avisos retroativos.
+FASE 3 — A FAZER: §6 painel administrativo (ritmo de consumo, dias restantes, histórico mensal, meses com excedente, alertas comunicados, decisões); §7 relatório mensal com o bloco de capacidade e o texto-base; §9 validação com os 12 cenários.
+
+Pendência operacional: o lançamento de teste de 10h01 continua no extrato da Company IN e faz o cliente ver 118% — ela precisa corrigir em Horas › Editar.
+
+### 2026-10-13 — Capacidade mensal: modelo de layout e REGRAS NOVAS ditadas por ela
+
+- Layout: ela mandou um modelo ("Horas do mês": plano · mês, percentual grande, barra com zona "Excedente", três cartões, aviso com "Não há cobrança adicional ou alteração automática do contrato"). Implementado como `CapacityCard` (em `src/v2/CapacityBar.tsx`) na página Horas do cliente; a Home continua com o herói próprio e a mesma barra.
+- REGRAS DITADAS (ainda NÃO implementadas — fase 2):
+  - Vigência mínima: CALI Partner 8 meses; CALI Full 12 meses; depois vira contrato por tempo indeterminado (ela vai explicar o resto).
+  - Janela de recorrência = o período do contrato (8 ou 12 meses), não 6 meses.
+  - Não pode ultrapassar mais de 3 vezes: na 3ª, rever o pacote ("senão eu vou ficar trabalhando de graça"). As horas excedentes NÃO são descontadas do mês seguinte (não está em contrato).
+  - Tolerância de até 10% acima. Ao chegar a 110%: PAUSA até renovar o mês seguinte.
+- CONFLITO A RESOLVER COM ELA antes de construir: a pausa em 110% contradiz o documento que ela mesma colou (sem suspensão automática; FAQ "A CALI deixa de trabalhar quando as horas acabam? Não existe suspensão automática"). Perguntado: a pausa é automática (bloqueia cronômetro/lançamento) ou é um alerta para ela decidir? E os textos do FAQ/avisos precisam mudar.
+- Company IN / outubro é só teste (ela confirmou); não é pendência.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
