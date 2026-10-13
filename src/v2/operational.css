@@ -3508,3 +3508,11 @@ html[data-workspace-ui='v2'] .v2-folder-item-name small{font-size:11px;color:#8a
 html[data-workspace-ui='v2'] .v2-folder-docs{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
 html[data-workspace-ui='v2'] .v2-folder-docs .workspace-chat-attachment{margin:0!important}
 html[data-workspace-ui='v2'] .v2-folder-wait{font-size:11px;font-weight:700;color:#8a5a12}
+.v2-final-actions em{font-style:normal;font-size:11.5px;font-weight:700;color:#8a2f2f;align-self:center}
+.v2-final-actions button.danger{background:#b23b3b;border-color:#b23b3b;color:#fff}
+html[data-workspace-ui='v2'] .v2-dfiles .v2-stm-filelist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+html[data-workspace-ui='v2'] .v2-dfiles .v2-stm-filelist li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:14px;padding:10px 12px;border:1px solid #f0e8e1;border-radius:10px;background:#fdfaf7}
+html[data-workspace-ui='v2'] .v2-task-closed{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 11px;border-radius:8px;background:#eef5f0;color:#356448;font-size:11px;font-weight:700;white-space:nowrap}
+html[data-workspace-ui='v2'] .v2-folder-doc{display:inline-flex;align-items:center;gap:10px}
+html[data-workspace-ui='v2'] .v2-folder-ack{height:32px;padding:0 12px;border:1px solid #dfd3ca;border-radius:8px;background:#fff;color:#5a1e2d;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+html[data-workspace-ui='v2'] .v2-folder-ok{font-style:normal;font-size:11px;font-weight:700;color:#356448;white-space:nowrap}
