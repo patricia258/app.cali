@@ -1187,6 +1187,16 @@ NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINIS
 - PUBLICAÇÃO 18 (aprovada: "Pode publicar. Primeiro vamos ajustar algumas coisas"): regra oficial de complexidade, subtarefas recolhíveis, aba Arquivos, coluna Subtarefas.
 - PRÓXIMA ETAPA definida por ela — ENTREGA EM FORMATO DE PASTA: um entregável com desdobramentos (ex.: Kit de marca = logo, manifesto, brand, conteúdo) chega ao cliente, na página Documentos, como uma PASTA; ao clicar, ele vê os documentos de cada desdobramento. A CALI vê a mesma visualização, com poder de criar, excluir, editar e suspender. Ainda não construído. Ver `ClientDocumentsPage` / tabela `files` (já tem `deliverable_id`; falta `task_id`).
 
+### 2026-10-13 — Entrega em formato de pasta, 1ª versão (homologação)
+
+- Decisões dela: o Partner PROPÕE o arquivo final e só ela libera; o cliente vê a pasta desde o início, com as partes "em produção".
+- Subtarefa › Arquivos (`SubtaskPanel.tsx`): cada arquivo anexado na conversa da subtarefa mostra o estado (Arquivo de trabalho / Aguardando liberação da Patricia / Liberado ao cliente / Suspenso) e os botões: Partner "Propor como entrega final" (`partner_propose_final_file` → linha em `files` como rascunho, não visível); administradora "Liberar para o cliente" (publica em `files` com `task_id`), "Recusar", "Suspender".
+- Cliente › Documentos (`ClientDocumentsPage.tsx`): seção "Pastas de entregáveis" — uma pasta por entregável que tenha subtarefas visíveis ao cliente, com "N de M entregues"; dentro, cada subtarefa com o documento liberado ou "Em produção". Documento de subtarefa não aparece solto na grade de capas.
+- Banco: `files.task_id`, política `files_partner_task_read`, função acima. Migration `20261016120000` (aplicada).
+- Nota do prazo ao cliente encurtada, pequena e em itálico com asterisco (`complexityClientNote`) — texto reescrito por mim a pedido dela; o do documento oficial era mais longo.
+- FALTA nesta frente: a MESMA visualização de pasta para administradora e Partner em Documentos (hoje eles usam a aba Arquivos do entregável e da subtarefa); aprovação/ciência por documento dentro da pasta; capa da pasta; entrega final do próprio entregável (sem subtarefa) pelo mesmo botão.
+- NÃO testado com gravação real. Atenção: publicar um arquivo dispara o aviso de documento novo ao cliente (gatilho existente `notify_file_movement`).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

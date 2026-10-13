@@ -3472,3 +3472,39 @@ html[data-workspace-ui='v2'] .v2-rm-6>.v2-subtask-tree{margin-top:10px!important
 html[data-workspace-ui='v2'] .dv-row .dv-subcol{flex:none;width:138px;text-align:left;color:#b5a79d}
 html[data-workspace-ui='v2'] .dv-row.dv-head .dv-subcol{color:inherit}
 html[data-workspace-ui='v2'] .dv-subbtn{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border:1px solid #e6d9ce;border-radius:8px;background:#fff;color:#5a1e2d;font-size:11.5px;font-weight:700;white-space:nowrap;cursor:pointer}
+/* Cliente: nota do prazo estimado, pequena e em itálico. */
+html[data-workspace-ui='v2'] .v2-mc-clientnote{margin:8px 0 0!important;font-size:10.5px!important;font-style:italic;line-height:1.45;color:#9a8d85!important}
+/* Entrega final dentro da subtarefa. */
+.v2-stm-fileshint{margin:0 0 12px;font-size:12px;color:#7d726b}
+.v2-stm-filelist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.v2-stm-filelist li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:14px;padding:10px 12px;border:1px solid #eadfd5;border-radius:10px;background:#fff}
+.v2-stm-filelist .workspace-chat-attachment{margin:0!important;justify-self:start}
+.v2-final-state{font-size:11px;font-weight:700;color:#8a7c74;white-space:nowrap}
+.v2-final-state.s-published{color:#356448}
+.v2-final-state.s-draft{color:#8a5a12}
+.v2-final-state.s-archived{color:#a03535}
+.v2-final-actions{display:flex;gap:8px}
+.v2-final-actions button{height:32px;padding:0 12px;border:1px solid #dfd3ca;border-radius:8px;background:#fff;color:#5a1e2d;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.v2-final-actions button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+.v2-final-actions button:disabled{opacity:.5;cursor:default}
+/* Cliente — Documentos: pastas de entregáveis. */
+html[data-workspace-ui='v2'] .v2-folders{margin:0 0 22px}
+html[data-workspace-ui='v2'] .v2-folders h2{margin:0;font-size:15px}
+html[data-workspace-ui='v2'] .v2-folders>p{margin:4px 0 14px;font-size:12px;color:#7d726b}
+html[data-workspace-ui='v2'] .v2-folder-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;align-items:start}
+html[data-workspace-ui='v2'] .v2-folder{border:1px solid #eadfd5;border-radius:12px;background:#fff;overflow:hidden}
+html[data-workspace-ui='v2'] .v2-folder.open{grid-column:1/-1}
+html[data-workspace-ui='v2'] .v2-folder-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;width:100%;padding:16px 18px;border:0;background:linear-gradient(120deg,#fdf6ee,#f8ece6);color:#5a1e2d;font:inherit;text-align:left;cursor:pointer}
+html[data-workspace-ui='v2'] .v2-folder-head span{display:flex;flex-direction:column;gap:2px;min-width:0}
+html[data-workspace-ui='v2'] .v2-folder-head strong{font-size:14px;color:#2b2b2b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html[data-workspace-ui='v2'] .v2-folder-head small{font-size:10.5px;color:#9a8d85}
+html[data-workspace-ui='v2'] .v2-folder-head em{font-style:normal;font-size:11px;font-weight:700;white-space:nowrap}
+html[data-workspace-ui='v2'] .v2-folder-items{list-style:none;margin:0;padding:8px 18px 14px}
+html[data-workspace-ui='v2'] .v2-folder-items li{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;padding:12px 0;border-top:1px solid #f0e8e1}
+html[data-workspace-ui='v2'] .v2-folder-items li:first-child{border-top:0}
+html[data-workspace-ui='v2'] .v2-folder-item-name{display:flex;flex-direction:column;gap:2px}
+html[data-workspace-ui='v2'] .v2-folder-item-name strong{font-size:13px}
+html[data-workspace-ui='v2'] .v2-folder-item-name small{font-size:11px;color:#8a7c74}
+html[data-workspace-ui='v2'] .v2-folder-docs{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+html[data-workspace-ui='v2'] .v2-folder-docs .workspace-chat-attachment{margin:0!important}
+html[data-workspace-ui='v2'] .v2-folder-wait{font-size:11px;font-weight:700;color:#8a5a12}

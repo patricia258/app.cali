@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, ChevronRight, Cloud, ExternalLink, Eye, FileCheck2, FileText, MessageSquare, Search, Send, X } from 'lucide-react';
+import { FolderOpen, AlertTriangle, CheckCircle2, ChevronRight, Cloud, ExternalLink, Eye, FileCheck2, FileText, MessageSquare, Search, Send, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
@@ -50,6 +50,8 @@ function daysUntil(value?: string | null) {
 
 export function ClientDocumentsPage() {
   const [documents, setDocuments] = useState<ClientDoc[]>([]);
+  const [folders, setFolders] = useState<{ id: string; title: string; protocol: string | null; items: { id: string; title: string; status: string }[] }[]>([]);
+  const [openFolder, setOpenFolder] = useState<string | null>(null);
   const [companyBrand, setCompanyBrand] = useState({ name: 'sua empresa', logoUrl: '' });
   const [query, setQuery] = useState('');
   const [layout, setLayout] = useState<'covers' | 'list'>('covers');
@@ -68,7 +70,7 @@ export function ClientDocumentsPage() {
   const [commentLoading, setCommentLoading] = useState(false);
 
   const categories = useMemo(() => Array.from(new Set(documents.map((doc) => doc.category))), [documents]);
-  const filtered = useMemo(() => documents.filter((doc) => {
+  const filtered = useMemo(() => documents.filter((doc) => !(doc as any).taskId).filter((doc) => {
     const matchQuery = `${doc.title} ${categoryLabel(doc.category)} ${doc.kind} ${doc.protocol}`.toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR'));
     const matchCategory = categoryFilter === 'all' || doc.category === categoryFilter;
     return matchQuery && matchCategory;
@@ -90,7 +92,7 @@ export function ClientDocumentsPage() {
     setLoading(true);
     setError('');
     const [filesResult, ackResult, driveStatusResult] = await Promise.all([
-      supabase.from('files').select('id,company_id,title,category,document_kind,version_label,protocol,storage_path,drive_url,requires_acknowledgement,description,updated_at,status,client_visible,valid_until').eq('client_visible', true).eq('status', 'published').order('updated_at', { ascending: false }),
+      supabase.from('files').select('deliverable_id,task_id,id,company_id,title,category,document_kind,version_label,protocol,storage_path,drive_url,requires_acknowledgement,description,updated_at,status,client_visible,valid_until').eq('client_visible', true).eq('status', 'published').order('updated_at', { ascending: false }),
       supabase.from('document_acknowledgements').select('file_id,acknowledged_at'),
       supabase.functions.invoke('google-drive-oauth', { body: { action: 'status' } }),
     ]);
@@ -117,7 +119,15 @@ export function ClientDocumentsPage() {
       requiresAcknowledgement: Boolean(item.requires_acknowledgement),
       description: item.description,
       validUntil: item.valid_until,
+      deliverableId: (item as any).deliverable_id || null,
+      taskId: (item as any).task_id || null,
     })));
+    const [taskResult, deliverableResult] = await Promise.all([
+      supabase.from('deliverable_tasks').select('id,deliverable_id,title,status,sort_order').eq('client_visible', true).order('sort_order'),
+      supabase.from('deliverables').select('id,title,protocol'),
+    ]);
+    const folderTasks = (taskResult.data || []) as any[]; const names = new Map(((deliverableResult.data || []) as any[]).map((row) => [row.id, row]));
+    setFolders([...new Set(folderTasks.map((row) => row.deliverable_id))].filter((id) => names.has(id)).map((id) => ({ id, title: names.get(id).title, protocol: names.get(id).protocol || null, items: folderTasks.filter((row) => row.deliverable_id === id).map((row) => ({ id: row.id, title: row.title, status: row.status })) })));
     setDocuments(rows);
     setAcknowledged((ackResult.data ?? []).filter((item) => item.acknowledged_at).map((item) => item.file_id));
 
@@ -258,6 +268,11 @@ export function ClientDocumentsPage() {
     {notice && <div className="inline-notice success" role="status"><CheckCircle2 size={18}/>{notice}</div>}
     {error && <div className="inline-notice" role="alert">{error}</div>}
     <section className="wf-doc-drive"><Cloud size={23}/><div><strong>{driveConnection ? 'Drive da sua empresa conectado' : 'Leve suas versões aprovadas para o Drive da sua empresa'}</strong><p>{driveConnection ? `${driveConnection.accountEmail || 'Conta Google conectada'}. Você escolhe quais versões copiar para o Drive da empresa.` : 'Conecte a conta Google da sua empresa para salvar as versões aprovadas.'}</p></div><button type="button" className="wf-outline" disabled={driveConnecting} onClick={() => void connectDrive()}>{driveConnecting ? 'Abrindo Google…' : driveConnection ? 'Trocar conta' : 'Conectar meu Drive'}</button></section>
+    {folders.length > 0 && <section className="v2-folders" aria-label="Pastas de entregáveis"><h2>Pastas de entregáveis</h2><p>Cada pasta reúne os documentos de um entregável, por parte entregue.</p>
+      <div className="v2-folder-grid">{folders.map((folder) => { const done = folder.items.filter((item) => documents.some((doc) => (doc as any).taskId === item.id)).length; const open = openFolder === folder.id; return <article key={folder.id} className={`v2-folder ${open ? 'open' : ''}`}>
+        <button type="button" className="v2-folder-head" aria-expanded={open} onClick={() => setOpenFolder(open ? null : folder.id)}><FolderOpen size={22} /><span><strong>{folder.title}</strong><small>{folder.protocol || 'ENTREGÁVEL'}</small></span><em>{done} de {folder.items.length} {folder.items.length === 1 ? 'entregue' : 'entregues'}</em></button>
+        {open && <ul className="v2-folder-items">{folder.items.map((item) => { const docs = documents.filter((doc) => (doc as any).taskId === item.id); return <li key={item.id}><span className="v2-folder-item-name"><strong>{item.title}</strong><small>{docs.length ? `${docs.length} ${docs.length === 1 ? 'documento' : 'documentos'}` : 'Em produção'}</small></span>{docs.length ? <span className="v2-folder-docs">{docs.map((doc) => <button key={doc.id} type="button" className="workspace-chat-attachment" onClick={() => void openDocument(doc)}><span>📎</span><span><strong>{doc.title}</strong><small>{doc.date}</small></span></button>)}</span> : <span className="v2-folder-wait">Ainda sem documento</span>}</li>; })}</ul>}
+      </article>; })}</div></section>}
     <div className="wf-doc-toolbar"><strong>{filtered.length} {filtered.length === 1 ? 'documento' : 'documentos'}</strong><label><Search size={14}/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nome, tipo ou protocolo" aria-label="Buscar documentos"/></label><select className="wf-doc-filter" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} aria-label="Filtrar documentos por categoria"><option value="all">Todas as categorias</option>{categories.map((value) => <option key={value} value={value}>{categoryLabel(value)}</option>)}</select><div className="wf-segments" aria-label="Exibição do acervo"><button type="button" className={layout === 'covers' ? 'on' : ''} onClick={()=>setLayout('covers')}>Capas</button><button type="button" className={layout === 'list' ? 'on' : ''} onClick={()=>setLayout('list')}>Lista</button></div></div>
     {filtered.length === 0 && <div className="wf-empty"><strong>Nenhum documento encontrado.</strong><p>{documents.length ? 'Ajuste a busca ou o filtro.' : 'Assim que a CALI publicar uma versão final para você, ela aparecerá aqui.'}</p></div>}
     {(expiring.length > 0 || overdue.length > 0) && <div className={`v2-hours-notice ${overdue.length ? 'critical' : 'warning'}`} role="status"><AlertTriangle size={16}/><span>{[overdue.length ? `${overdue.length} ${overdue.length === 1 ? 'documento está com a validade vencida' : 'documentos estão com a validade vencida'}` : '', expiring.length ? `${expiring.length} ${expiring.length === 1 ? 'documento tem' : 'documentos têm'} validade ou revisão prevista nos próximos 60 dias` : ''].filter(Boolean).join(' · ')}.</span></div>}
