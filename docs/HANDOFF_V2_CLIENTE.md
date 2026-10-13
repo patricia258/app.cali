@@ -1150,6 +1150,11 @@ NÃO testado com gravação real; o cabeçalho e a linha de subtarefa da ADMINIS
 - CLIENTE (`ClientDeliverablesPage.tsx`): saiu a aba "Etapas" do entregável; complexidade virou coluna com explicação ao passar o mouse; subtarefas marcadas "visível para o cliente" aparecem abaixo do entregável (nome, complexidade, situação em linguagem do cliente, prazo). O cliente ainda NÃO abre a subtarefa nem conversa/aprova nela — próxima etapa.
 - NÃO testado com gravação real; no ambiente de teste não havia subtarefa visível ao cliente para ver a linha dele.
 
+### 2026-10-13 — Publicação 16
+
+- Aprovada pela Patricia ("pode publicar tudo o que está pendente de subir"): subtarefa com modal próprio e situações do entregável, notas com editar/excluir, mês do cronograma pelo prazo, complexidade com cor/legenda, cliente sem aba Etapas e com subtarefas e coluna de complexidade.
+- Junto: dica da complexidade aparece na hora (`data-tip`, sem o atraso do `title` nativo) e bloco `v2-mc-card` em "Sobre esta entrega", na cor da categoria e com explicação didática (administradora, Partner e cliente).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

@@ -3393,3 +3393,15 @@ html[data-workspace-ui='v2'] .dv-row.dv-subrow .dv-title strong{font-size:12.5px
 .v2-stm .workspace-chat-attachment strong{font-size:12px}
 .v2-stm .workspace-chat-attachment small{font-size:10px;color:#8a7c74}
 html[data-workspace-ui='v2'] .dv-row .dv-status{flex:none;width:132px;box-sizing:border-box;text-align:center;justify-content:center}
+/* Explicação da complexidade aparece na hora ao passar o mouse (sem a espera do navegador). */
+html[data-workspace-ui='v2'] .mc-chip[data-tip]{position:relative}
+html[data-workspace-ui='v2'] .mc-chip[data-tip]:not([data-tip='']):hover::after{content:attr(data-tip);position:absolute;left:0;top:calc(100% + 7px);z-index:60;width:max-content;max-width:280px;padding:9px 12px;border:1px solid #e6d9ce;border-radius:9px;background:#fff;color:#2b2b2b;box-shadow:0 10px 26px rgba(43,24,30,.16);font-size:11.5px;font-weight:500;line-height:1.45;text-align:left;white-space:normal;pointer-events:none}
+/* Complexidade em destaque dentro do entregável, na cor da categoria. */
+html[data-workspace-ui='v2'] .v2-mc-card{display:flex;align-items:flex-start;gap:14px;margin-top:12px;padding:14px 16px;border:1px solid #eadfd5;border-left-width:4px;border-radius:10px;background:#fbf7f4}
+html[data-workspace-ui='v2'] .v2-mc-card.mc1{background:#f1f8f3;border-color:#b9dcc5;border-left-color:#356448}
+html[data-workspace-ui='v2'] .v2-mc-card.mc2{background:#fff9e8;border-color:#efd58b;border-left-color:#d9a514}
+html[data-workspace-ui='v2'] .v2-mc-card.mc3{background:#fdf1f1;border-color:#eebcbc;border-left-color:#b23b3b}
+html[data-workspace-ui='v2'] .v2-mc-card>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+html[data-workspace-ui='v2'] .v2-mc-card strong{font-size:13px;color:#2b2b2b}
+html[data-workspace-ui='v2'] .v2-mc-card span{font-size:12px;line-height:1.5;color:#5f5650}
+html[data-workspace-ui='v2'] .v2-mc-card .mc-chip{flex:none;cursor:default}
