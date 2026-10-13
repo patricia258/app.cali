@@ -1350,6 +1350,14 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
   4. Seis tabelas com proteção ligada e sem regra (credenciais e códigos): é o comportamento desejado, ninguém lê pela API.
 - Não verificado com gravação real: enviar o pedido de ajuste.
 
+### 2026-10-13 — Prioridade nova (administradora e cliente primeiro) + rodada do cliente
+
+- Ordem de trabalho definida pela proprietária: 1) administradora, 2) cliente, 3) Partner (espera). Foco: ação gerar a reação correta entre administradora e cliente (aviso, e-mail, tela certa).
+- Agenda do cliente (`ClientTimelinePage.tsx`): Semana e Mês usam a MESMA grade da agenda da CALI (classes `calendar-week-*` / `calendar-month-*` de `page4-calendar.css`, envoltas em `.v2-client-cal`), com legenda e total no rodapé. Sem criar evento na grade; clicar abre o item. Prazos vão na faixa "Dia inteiro". A lista e os filtros não mudaram.
+- Avaliação do atendimento (ocorrência, visão do cliente): cartão fixo com emoji e nota grandes; verde para 4–5, amarelo para 3, laranja para 1–2 (`recordsClosureFinalPolishV30.ts` + `.v2-rating-card`). A frase "Você não deixou comentário adicional" saiu.
+- Conversa da subtarefa do cliente: faltava o estilo do balão fora de `.v2-client-module` (mensagens saíam cruas no oficial). Corrigido com regras em `.v2-stm-client`.
+- Cartão "Revise e confirme o cronograma": virou cartão de atenção baixo (âmbar), sem a arte e sem os quatro quadros; os números ficam numa linha. NÃO conferido por imagem: o painel é montado por runtime que não sobe no ambiente de teste.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
