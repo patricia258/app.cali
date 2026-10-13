@@ -1339,6 +1339,17 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
 - Limites conhecidos: mudar o prazo pelo formulário "Editar" do entregável ainda NÃO grava no histórico; o cliente não recebe aviso no sino quando uma dependência é criada; "entregas seguintes" = mesma frente com prazo igual ou posterior (não usa a tabela antiga de dependência entre entregáveis).
 - Não verificado com gravação real: registrar, receber e reprogramar (o ambiente de teste bloqueia escrita). Só a leitura foi conferida por imagem.
 
+### 2026-10-13 — Publicação 26 + pedido de ajuste do cliente na subtarefa + primeira leitura de segurança
+
+- **Publicação 26** (`b82dd14`) no oficial: Documentos em pasta para os três perfis e dependências do cliente no entregável.
+- Pedido de ajuste na subtarefa (só homologação): botão "Pedir ajuste" ao lado de "Aprovar esta parte" em `ClientSubtaskModal.tsx`; função nova `client_request_task_adjustment` (migração `20261017180000`, só acréscimo, aplicada). A subtarefa volta para "Em andamento", o pedido entra na conversa da subtarefa como "Pedido de ajuste: …", grava no histórico e avisa a administradora. NÃO conta no limite de ajustes do entregável (decisão pendente da proprietária).
+- Segurança, leitura do conselheiro do Supabase (nada alterado, depende de aprovação):
+  1. Quatro funções `public.workspace_*mapa_people*` podem ser CHAMADAS sem login, mas todas conferem por dentro se quem chama é patricia@calirh.com e recusam o resto. Sem vazamento; recomendação: tirar a permissão de chamada de quem não está logado.
+  2. Proteção contra senha vazada desligada no login (liga no painel do Supabase, Authentication → Passwords).
+  3. Extensão `pg_net` no esquema público (baixo risco; mover exige cuidado com integrações).
+  4. Seis tabelas com proteção ligada e sem regra (credenciais e códigos): é o comportamento desejado, ninguém lê pela API.
+- Não verificado com gravação real: enviar o pedido de ajuste.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
