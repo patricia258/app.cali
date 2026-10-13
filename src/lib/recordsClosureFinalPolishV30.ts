@@ -145,26 +145,29 @@ function renderClientFeedbackHistory(target: HTMLElement, feedback: Feedback | n
   if (existing?.dataset.signature === signature) return;
   existing?.remove();
 
-  const details = document.createElement('details');
-  details.className = 'records-v30-client-feedback-history';
+  // Cartão fixo (sem abrir/fechar), com a nota em destaque e a cor conforme o resultado: verde, amarelo ou laranja.
+  const details = document.createElement('div');
+  details.className = `records-v30-client-feedback-history v2-rating-card ${feedback.score >= 4 ? 'good' : feedback.score === 3 ? 'neutral' : 'low'}`;
   details.dataset.signature = signature;
 
-  const summary = document.createElement('summary');
-  const left = document.createElement('span');
-  left.className = 'records-v30-client-feedback-label';
-  left.textContent = 'Sua avaliação deste atendimento';
-  const score = document.createElement('strong');
-  score.textContent = `${emoji(feedback.score)} ${feedback.score}/5`;
-  summary.append(left, score);
+  const score = document.createElement('div');
+  score.className = 'v2-rating-score';
+  const face = document.createElement('span');
+  face.textContent = emoji(feedback.score);
+  const value = document.createElement('strong');
+  value.textContent = `${feedback.score}/5`;
+  score.append(face, value);
 
   const body = document.createElement('div');
-  body.className = 'records-v30-client-feedback-body';
-  const comment = document.createElement('p');
-  comment.textContent = feedback.comment?.trim() || 'Você não deixou comentário adicional.';
+  body.className = 'v2-rating-body';
+  const left = document.createElement('span');
+  left.textContent = 'Sua avaliação deste atendimento';
+  body.append(left);
+  if (feedback.comment?.trim()) { const comment = document.createElement('p'); comment.textContent = feedback.comment.trim(); body.append(comment); }
   const date = document.createElement('small');
-  date.textContent = `Avaliação registrada em ${formatDateTime(feedback.created_at)}.`;
-  body.append(comment, date);
-  details.append(summary, body);
+  date.textContent = `Registrada em ${formatDateTime(feedback.created_at)}`;
+  body.append(date);
+  details.append(score, body);
 
   const locked = target.querySelector<HTMLElement>('.records-v27-chat-locked');
   if (locked?.parentElement) locked.parentElement.insertBefore(details, locked);

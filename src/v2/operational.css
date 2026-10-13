@@ -3743,3 +3743,67 @@ html[data-workspace-ui='v2'] .v2-deps-revs time{color:#8a7c74}
 html[data-workspace-ui='v2'] .v2-deps-revs strong{color:#2b2b2b}
 html[data-workspace-ui='v2'] .v2-deps-revs p{grid-column:2/-1;margin:0;line-height:1.5}
 @media(max-width:820px){html[data-workspace-ui='v2'] .v2-deps-list li,html[data-workspace-ui='v2'] .v2-deps-revs li,html[data-workspace-ui='v2'] .v2-deps-plan{grid-template-columns:1fr}html[data-workspace-ui='v2'] .v2-deps-new{flex-wrap:wrap}}
+
+/* Pedido de ajuste do cliente na subtarefa. */
+html[data-workspace-ui='v2'] .v2-stm-approve.adjusting{flex-direction:column;align-items:stretch}
+html[data-workspace-ui='v2'] .v2-stm-approve.adjusting label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;font-weight:700;color:#2b2b2b}
+html[data-workspace-ui='v2'] .v2-stm-approve.adjusting textarea{box-sizing:border-box;width:100%;padding:10px 12px;border:1px solid #dfd3ca;border-radius:9px;background:#fff;font:inherit;font-size:12.5px;font-weight:400;line-height:1.45;resize:vertical}
+html[data-workspace-ui='v2'] .v2-stm-approve.adjusting>span{align-self:flex-end}
+html[data-workspace-ui='v2'] .v2-stm-approve>span>button{display:inline-flex;align-items:center;gap:6px}
+
+/* Avaliação do atendimento vista pelo cliente: nota em destaque, cor conforme o resultado. */
+html[data-workspace-ui='v2'] .records-v30-client-feedback-history.v2-rating-card{display:flex!important;align-items:center;gap:18px;margin:16px 0!important;padding:16px 20px!important;border:1px solid #cfe3d5!important;border-left:4px solid #356448!important;border-radius:12px!important;background:#eef7f0!important;box-shadow:none!important}
+html[data-workspace-ui='v2'] .v2-rating-card.neutral{border-color:#f2dfb8!important;border-left-color:#d9a514!important;background:#fff8e6!important}
+html[data-workspace-ui='v2'] .v2-rating-card.low{border-color:#f3d2b5!important;border-left-color:#d9772b!important;background:#fff1e4!important}
+html[data-workspace-ui='v2'] .v2-rating-score{display:flex;align-items:center;gap:10px;flex:none}
+html[data-workspace-ui='v2'] .v2-rating-score span{font-size:34px;line-height:1}
+html[data-workspace-ui='v2'] .v2-rating-score strong{font-size:26px;font-weight:800;color:#24523a;letter-spacing:-.02em}
+html[data-workspace-ui='v2'] .v2-rating-card.neutral .v2-rating-score strong{color:#8a5a12}
+html[data-workspace-ui='v2'] .v2-rating-card.low .v2-rating-score strong{color:#a04e12}
+html[data-workspace-ui='v2'] .v2-rating-body{display:flex;flex-direction:column;gap:4px;min-width:0}
+html[data-workspace-ui='v2'] .v2-rating-body>span{font-size:13px;font-weight:700;color:#2b2b2b}
+html[data-workspace-ui='v2'] .v2-rating-body p{margin:0;font-size:12.5px;line-height:1.5;color:#3d3531;overflow-wrap:anywhere}
+html[data-workspace-ui='v2'] .v2-rating-body small{font-size:11px;color:#7d726b}
+/* Conversa da subtarefa vista pelo cliente: mesmo formato das outras conversas (foto, nome, hora e balão). */
+html[data-workspace-ui='v2'] .v2-stm-client .v2-subtask-thread{display:flex;flex-direction:column;gap:10px;padding:6px 2px}
+html[data-workspace-ui='v2'] .v2-stm-client .workspace-chat-line{width:auto!important;max-width:78%;align-self:flex-start}
+html[data-workspace-ui='v2'] .v2-stm-client .workspace-chat-line.mine{align-self:flex-end}
+html[data-workspace-ui='v2'] .v2-stm-client .workspace-chat-bubble{min-width:0;padding:10px 14px;border:1px solid #eee1db;border-radius:10px;background:#faf4f1;overflow-wrap:anywhere}
+html[data-workspace-ui='v2'] .v2-stm-client .mine .workspace-chat-bubble{background:#f7e7d2}
+html[data-workspace-ui='v2'] .v2-stm-client .workspace-chat-head{display:flex;align-items:baseline;gap:10px}
+html[data-workspace-ui='v2'] .v2-stm-client .workspace-chat-head strong{font-size:12px;color:#2b2b2b}
+html[data-workspace-ui='v2'] .v2-stm-client .workspace-chat-head time{font-size:10px;color:#9a8d85}
+html[data-workspace-ui='v2'] .v2-stm-client .workspace-chat-bubble p{margin:4px 0 0;font-size:12.5px;line-height:1.5;color:#3d3531;white-space:pre-wrap}
+html[data-workspace-ui='v2'] .v2-stm-client .workspace-chat-avatar{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:#f3ece6;color:#5a1e2d;font-size:11px;font-weight:700}
+/* Cronograma aguardando aprovação do cliente: cartão de atenção, baixo e leve (sem arte, sem quadros de números). */
+html[data-workspace-ui='v2'] .client-project-review-v38.client_review{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-areas:"copy actions" "metrics actions"!important;align-items:center;gap:6px 24px!important;padding:16px 20px!important;border:1px solid #f2dfb8!important;border-left:4px solid #d9a514!important;border-radius:12px!important;background:#fff8e6!important;box-shadow:none!important}
+html[data-workspace-ui='v2'] .client-project-review-v38.client_review::before,html[data-workspace-ui='v2'] .client-project-review-v38.client_review::after{display:none!important}
+html[data-workspace-ui='v2'] .client-project-review-v38.client_review .client-review-copy-v38{grid-area:copy;gap:3px!important}
+html[data-workspace-ui='v2'] .client-project-review-v38.client_review .client-review-copy-v38>span{font-size:10px!important;color:#8a5a12!important}
+html[data-workspace-ui='v2'] .client-project-review-v38.client_review .client-review-copy-v38>span::after,html[data-workspace-ui='v2'] .client-project-review-v38.client_review .client-review-copy-v38 h2::after,html[data-workspace-ui='v2'] .client-project-review-v38.client_review .client-review-copy-v38 p::after{content:none!important}
+html[data-workspace-ui='v2'] .client-project-review-v38.client_review .client-review-copy-v38 h2{font-size:15px!important;font-weight:700!important;letter-spacing:0!important;color:#2b2b2b!important}
+html[data-workspace-ui='v2'] .client-project-review-v38.client_review .client-review-copy-v38 p{font-size:12px!important;line-height:1.5!important;color:#6b5330!important;max-width:none!important}
+html[data-workspace-ui='v2'] .client-project-review-v38.client_review .client-review-metrics-v38{grid-area:metrics;grid-column:auto!important;display:flex!important;flex-wrap:wrap;gap:4px 18px!important}
+html[data-workspace-ui='v2'] .client-project-review-v38.client_review .client-review-metrics-v38>div{display:flex!important;align-items:baseline;gap:5px;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;min-height:0!important}
+html[data-workspace-ui='v2'] .client-project-review-v38.client_review .client-review-metrics-v38 span{font-size:11px!important;color:#8a7350!important;text-transform:none!important;letter-spacing:0!important}
+html[data-workspace-ui='v2'] .client-project-review-v38.client_review .client-review-metrics-v38 strong{font-size:12px!important;font-weight:700!important;color:#4a3a1c!important}
+html[data-workspace-ui='v2'] .client-project-review-v38.client_review .client-review-actions-v38{grid-area:actions;justify-self:end}
+html[data-workspace-ui='v2'] .client-project-review-v38.client_review .client-review-actions-v38 button{height:38px;padding:0 14px!important;box-shadow:none!important}
+@media(max-width:820px){html[data-workspace-ui='v2'] .client-project-review-v38.client_review{grid-template-columns:1fr!important;grid-template-areas:"copy" "metrics" "actions"!important}html[data-workspace-ui='v2'] .client-project-review-v38.client_review .client-review-actions-v38{justify-self:start}}
+
+/* Agenda do cliente com a mesma grade da agenda da CALI. */
+html[data-workspace-ui='v2'] .v2-client-cal{margin-top:16px;border:1px solid #eadfd5;border-radius:12px;background:#fff;overflow:hidden}
+html[data-workspace-ui='v2'] .v2-client-cal .calendar-week-scroller{overflow-x:auto;scrollbar-width:none}
+html[data-workspace-ui='v2'] .v2-client-cal .calendar-week-scroller::-webkit-scrollbar{display:none}
+html[data-workspace-ui='v2'] .v2-client-cal .calendar-week-hour-hit:hover{background:transparent}
+html[data-workspace-ui='v2'] .v2-client-cal .calendar-week-event{cursor:pointer;font:inherit}
+html[data-workspace-ui='v2'] .v2-client-cal .calendar-day-number{display:inline-grid;place-items:center;min-width:24px;height:24px;font-size:11.5px;font-weight:700;color:#5f5650;border-radius:7px}
+html[data-workspace-ui='v2'] .v2-client-cal .calendar-month-cell.today .calendar-day-number{background:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] .v2-client-cal-foot{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px 18px;border-top:1px solid #efe6de;font-size:11px;color:#67574c}
+html[data-workspace-ui='v2'] .v2-client-cal-legend{display:flex;flex-wrap:wrap;gap:8px 16px}
+html[data-workspace-ui='v2'] .v2-client-cal-legend span{display:inline-flex;align-items:center;gap:7px}
+html[data-workspace-ui='v2'] .v2-client-cal-legend i{width:8px;height:8px;border-radius:50%}
+html[data-workspace-ui='v2'] .v2-client-cal-foot b{font-size:13px;color:#2b2b2b;margin-right:4px}
+html[data-workspace-ui='v2'] .v2-client-cal .calendar-week-all-day-event{font:inherit;font-size:11px;font-weight:600}
+html[data-workspace-ui='v2'] .v2-client-cal .calendar-week-event strong{font-size:11px}
+html[data-workspace-ui='v2'] .v2-client-cal .calendar-week-event :is(time,small){font-size:10px}
