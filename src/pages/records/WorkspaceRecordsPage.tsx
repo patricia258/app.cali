@@ -499,7 +499,7 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
     if (staffTimer) {
       const result = await supabase.rpc('partner_stop_timer', { p_timer_id: staffTimer.id, p_description: null });
       if (result.error) { setError(result.error.message || 'Não foi possível pausar o cronômetro.'); return; }
-      setStaffTimer(null); setNotice((result.data as any)?.discarded ? 'Sessão com menos de 30 segundos: não foi registrada.' : `Sessão de ${(result.data as any)?.minutes} min enviada para aprovação. Dê play para continuar depois.`);
+      setStaffTimer(null); setNotice((result.data as any)?.discarded ? 'Sessão com menos de 30 segundos: não foi registrada.' : `Sessão de ${(result.data as any)?.minutes} min registrada. Dê play para continuar depois.`);
     } else {
       const result = await supabase.rpc('partner_start_record_timer', { p_record_id: selected.id });
       if (result.error) { setError(result.error.message || 'Não foi possível iniciar o cronômetro.'); return; }

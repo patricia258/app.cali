@@ -1088,6 +1088,18 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - A Patricia clicou na corrente (link) achando que era anexo: abriu o `prompt()` nativo ("app.calirh.com diz…"). Corrigido em `deliverableChatStandardRuntimeV35.ts` e `recordsExperienceRuntimeV2.ts`: `prompt` → `askWorkspaceLink()` e `alert` → `workspaceChatAlert()` (novo `src/lib/workspaceChatDialogs.ts`); botões com rótulo "Anexar" e "Link" (CSS em `operational.css`). Vale para administradora, cliente e, nas telas com runtime, todos os perfis.
 - Conferido: `npm run check` ok; varredura 105 · 0; diálogo testado direto na página (o runtime de conversa não monta no ambiente de QA).
 
+### 2026-10-13 — Depois do teste da Patricia: cronômetro do Partner sem aprovação, extrato de Horas refeito, play na etapa
+
+- REGRA NOVA (Patricia): "o play com o timer rodando eu não tenho que aprovar; o que eu aprovo são lançamentos manuais". `partner_stop_timer` e a rotina de inatividade passam a gravar a sessão do Partner direto em `hour_entries` (como o cronômetro dela; `client_visible=false`, `created_by` = Partner). Lançamento manual e interação externa continuam em `staff_hour_submissions`.
+- Cronômetro que rodou 10h (01:15–11:15): a rotina `close_stale_timers` só agia depois do primeiro sinal de presença, e os inícios pelo entregável/ocorrência não marcavam presença. Agora, sem sinal, conta a partir do início (`coalesce(last_seen_at, started_at)`). Vale para Partner e administradora.
+- Horas (administradora e Partner): tabela com Cliente, Contrato, Data, Contexto (subtarefa na segunda linha), Início, Fim, Total, Tipo, Atividade (antes "Natureza") e Editar; bolinha âmbar "Aguardando aprovação" só em lançamento manual pendente. Editar: administradora altera direto (registro `hour_entry_edited`); Partner edita sessão dele por `partner_edit_hour_entry` (motivo obrigatório, avisa a administradora) ou lançamento pendente pelo fluxo antigo.
+- Projetos (Partner): play/pausar dentro de cada etapa (`partner_start_timer` com `p_task_id`).
+- Avisos do Partner: títulos por tipo ("Pedido aprovado", "Lançamento de horas aprovado"…), com o nome do item e link para a tela certa; sino confere a cada 20 s e ao voltar para a aba, e as telas de Horas e Projetos recarregam quando chega aviso novo.
+- Ocorrências: painel lateral 600 px (antes 515).
+- Explicado à Patricia, sem mudança: o cliente só soma horas marcadas "visível ao cliente" (`get_client_hours_summary`), por isso o painel dele mostra menos que o dela. Criar etapa pelo Partner continua pedindo aprovação.
+- Migration `20261015090000` (já aplicada). O lançamento de 10h01 aprovado no teste continua no extrato da Company IN — ela corrige em Horas › Editar.
+- NÃO testado com gravação real.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
