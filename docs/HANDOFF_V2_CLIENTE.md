@@ -1306,6 +1306,15 @@ Pedido dela: levantar tudo o que a plataforma precisa ter de segurança, inclusi
 10. Ambiente separado de teste: avaliar um banco próprio para homologação, para testes nunca tocarem dados reais.
 Entrega esperada: relatório com o que está certo, o que está em risco (por gravidade) e o que fazer, antes de qualquer mudança — mexer em RLS, auth e integrações exige a aprovação dela.
 
+### 2026-10-13 — Publicação 24; pasta de documentos no modelo A (homologação)
+
+- PUBLICAÇÃO 24 no oficial (`53d04ed`): relatório V17 com capacidade e histórico; subtarefas sem cronômetro na lista; documento do entregável dentro da pasta.
+- ESCOLHA DELA para a pasta: modelo A (pasta com capa, partes em cartões), com alternância Capas/Lista como no Drive, e ENTRAR na pasta (ao clicar, vê só a pasta; volta pelo caminho). Receio dela: poluir a tela do cliente.
+- Feito no cliente (`ClientDocumentsPage.tsx`, homologação): a pasta é um cartão com capa na mesma grade dos documentos (ou uma linha, no modo Lista), sempre antes dos avulsos, com barra e "N de M entregues"; "Abrir pasta" entra na pasta — caminho "← Documentos › nome", cabeçalho com andamento e o seletor Capas/Lista; dentro, um cartão por parte (capa da empresa quando entregue; hachurado "Em produção" quando não) ou linhas (Nome, Situação, Entregue em, ações). Ações do cliente: Abrir e Confirmar recebimento. Com a pasta aberta, o resto da página some (classe `v2-in-folder`).
+- NÃO feito: a mesma tela para administradora e Partner dentro de Documentos (eles seguem pela aba Arquivos do entregável); renomear; capa própria da pasta.
+- DRIVE DO CLIENTE (pedido dela: pensar em como isso fica salvo no Drive dele): hoje a cópia para o Drive é por documento (`requestDriveCopy`). Falta: ao salvar um documento de pasta, criar no Drive do cliente uma pasta com o nome do entregável e gravar cada parte dentro; ou um botão "Salvar a pasta no meu Drive". Verificar a função de borda do Drive antes de prometer.
+- Lembrete dela: não esquecer a lista de pendências, em especial as DEPENDÊNCIAS do cliente no entregável (documento de complexidade, item 4) e os itens 5 e 6.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
