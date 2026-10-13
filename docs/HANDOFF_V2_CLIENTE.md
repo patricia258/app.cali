@@ -1007,6 +1007,20 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - **Não verificado:** arrastar no Kanban e os pedidos de alteração com conta real; aplicação da alteração do lado dela (cada tipo: projeto, frente, entregável criar/editar/excluir/cancelar, etapa) — nenhum executado de verdade.
 - **Ainda pendente do que ela mandou prosseguir:** anexos na conversa do Partner; recursos automáticos de Projetos para ele (prazos, aprovação de cronograma); página de Horas; cronômetro esquecido.
 
+### 2026-10-14 — Cronômetro esquecido (todos), Avisos do Partner, "Aguardando a Patricia", subtarefas — homologação
+
+- **Fato que ela trouxe:** um cronômetro DELA (ocorrência CALI-REG-2026-000004) rodou 16h37–23h32 (6h56) porque ela saiu sem pausar; ao voltar, nenhum aviso. Ela quer a regra do cronômetro esquecido valendo também para a administradora.
+- **Cronômetro esquecido — feito:**
+  - **Banco aplicado** — `20261014090000_timer_inactivity_guard.sql`: coluna nova `work_timers.last_seen_at` (nula por padrão); função `touch_my_timers()` (sinal de presença); função `close_stale_timers()` + rotina agendada `workspace-timer-inactivity-guard` (a cada 10 min): cronômetro ativo há 30 min sem sinal é PAUSADO, contando só até o último sinal. Administradora: usa a função dela `close_timer_session_at` (vira lançamento normal). Partner: vira `staff_hour_submissions` para aprovação. Aviso no sino + e-mail para a pessoa; se for Partner, também para a administradora. Registro na auditoria (`timer_auto_paused_inactivity`).
+  - **Trava de segurança:** a rotina só age em cronômetro que já recebeu algum sinal. Como o oficial ainda não envia o sinal (só a homologação), nenhum cronômetro do oficial é pausado até a publicação.
+  - **Site:** `src/lib/timerPresence.ts` envia o sinal a cada 2 min enquanto houver atividade (mouse/teclado nos últimos 5 min e aba visível), para administradora e Partner. Ao clicar em **Sair** com cronômetro ligado aparece o diálogo "Você está com cronômetro ligado" (Voltar ao trabalho / Pausar e sair).
+  - **O lançamento de 6h56 dela NÃO foi alterado** (não mexo em dado dela): ela corrige em Horas → editar.
+  - **Não verificado:** a rotina rodando de verdade (precisa de um cronômetro real com sinal e 30 min de espera); e-mail do aviso.
+- **Avisos do Partner:** estava estreito e centralizado porque faltava o invólucro da página da administradora. Agora mede igual à dela (x=126→1370, y=114). Capa do segundo aviso em branco no print dela: não reproduzido aqui.
+- **"Enviar para a Patricia" (tela solta):** ela não entendeu e quer o envio DENTRO das ações. A tela virou **"Aguardando a Patricia"**: só acompanhamento (o que está aguardando e o que ela respondeu, incluindo horas, encerramentos, entregáveis e alterações). O formulário solto saiu. Botão do painel virou "Ver o que aguarda a Patricia".
+- **Subtarefas (etapas) do Partner:** pode criar ("Nova etapa" → pedido de autorização) e, ao marcar como concluída, vira pedido "Concluir etapa" para ela; aprovado, a etapa fica concluída. Ele não reabre.
+- **NÃO FEITO nesta rodada (ela pediu):** página de Horas do Partner; anexos na conversa dele.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

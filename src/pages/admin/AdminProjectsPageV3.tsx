@@ -358,7 +358,7 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
     }catch(error){console.error(error);}finally{setSaving(false);}
   }
 
-  async function toggleTask(task:TaskItem){ const next=task.status==='done'?'todo':'done'; if(staff){ if(supabase&&isUuid(task.id)){ const {error}=await supabase.rpc('partner_toggle_task',{p_task_id:task.id}); if(error){ setStaffNotice(error.message||'Não foi possível atualizar a etapa.'); return; } } setTasks((c)=>c.map((t)=>t.id===task.id?{...t,status:next}:t)); return; } if(supabase&&isUuid(task.id)){await supabase.from('deliverable_tasks').update({status:next,completed_at:next==='done'?new Date().toISOString():null}).eq('id',task.id);} setTasks((c)=>c.map((t)=>t.id===task.id?{...t,status:next}:t)); }
+  async function toggleTask(task:TaskItem){ const next=task.status==='done'?'todo':'done'; if(staff){ if(task.status==='done'){ setStaffNotice('Etapa já concluída. Só a Patricia pode reabrir.'); return; } if(selectedDeliverable)await staffSubmitChange('task_complete',`Concluir etapa em ${selectedDeliverable.title}: ${task.title}`,{id:task.id},selectedProject.companyId); return; } if(supabase&&isUuid(task.id)){await supabase.from('deliverable_tasks').update({status:next,completed_at:next==='done'?new Date().toISOString():null}).eq('id',task.id);} setTasks((c)=>c.map((t)=>t.id===task.id?{...t,status:next}:t)); }
 
   async function staffLoadChat(deliverableId:string, channel:ConversationChannel){
     if(!supabase||!staff)return;

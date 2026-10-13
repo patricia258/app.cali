@@ -3057,3 +3057,6 @@ html[data-workspace-ui='v2'] .v2-staff-projects .kanban-v2::-webkit-scrollbar{di
 html[data-workspace-ui='v2'] .v2-staff-projects .kanban-v2>div{flex:0 0 244px!important;min-width:244px!important}
 html[data-workspace-ui='v2'] .v2-staff-projects .kanban-v2>div>button[draggable='true']{cursor:grab}
 @media(max-width:720px){html[data-workspace-ui='v2'] .v2-staff-projects .kanban-v2>div{flex-basis:220px!important;min-width:220px!important}}
+/* Conferência antes de sair com cronômetro ligado (alerta: âmbar). */
+html[data-workspace-ui='v2'] .v2-exit-guard{z-index:1250}
+html[data-workspace-ui='v2'] .v2-exit-alert{margin:0;padding:12px 14px;border:1px solid #ecd9b0;border-radius:9px;background:#fff6e3;color:#7a5a2c;font-size:12px;line-height:1.5}

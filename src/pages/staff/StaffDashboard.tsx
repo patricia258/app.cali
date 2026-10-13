@@ -65,7 +65,7 @@ export function StaffDashboard({ me }: { me: Me }) {
   return <div className="ap-app v2-admin-page v2-staff-dashboard"><div className="ap-content">
     <div className="ap-title">
       <div><small>EQUIPE CALI / VISÃO GERAL</small><h1>Visão geral<span>.</span></h1><p>O que as suas empresas precisam hoje e o que está com a Patricia para aprovar.</p></div>
-      <div className="ap-title-actions"><Link className="ap-primary" to="/equipe/aprovacoes"><Send size={15} /> Enviar para a Patricia</Link></div>
+      <div className="ap-title-actions"><Link className="ap-outline" to="/equipe/aprovacoes"><Send size={15} /> Ver o que aguarda a Patricia</Link></div>
     </div>
 
     <section className="ap-overview-hero">

@@ -24,7 +24,7 @@ export const STAFF_MODULES: [string, string, string][] = [
 type Pending = { id: string; kind: 'hours' | 'review'; reviewKind?: string; entityId?: string | null; payload?: any; staff_user_id: string; company_id: string; title: string; detail: string; meta: string; created_at: string };
 type Decision = { item: Pending; approve: boolean; note: string };
 const REVIEW_KINDS: Record<string, string> = { report: 'Relatório', deliverable: 'Entrega', document: 'Documento', notice: 'Comunicado', other: 'Outro', record_close: 'Encerrar ocorrência', change: 'Alteração em projeto' };
-const CHANGE_EFFECT: Record<string, string> = { project_create: 'o projeto é criado como rascunho, com as frentes informadas', front_create: 'a frente é criada no projeto', deliverable_create: 'o entregável é criado como “Não iniciado”', deliverable_update: 'o entregável é alterado com os novos dados', deliverable_delete: 'o entregável é excluído', deliverable_cancel: 'o entregável é cancelado, com o motivo informado', task_create: 'a etapa é criada no entregável' };
+const CHANGE_EFFECT: Record<string, string> = { project_create: 'o projeto é criado como rascunho, com as frentes informadas', front_create: 'a frente é criada no projeto', deliverable_create: 'o entregável é criado como “Não iniciado”', deliverable_update: 'o entregável é alterado com os novos dados', deliverable_delete: 'o entregável é excluído', deliverable_cancel: 'o entregável é cancelado, com o motivo informado', task_create: 'a etapa é criada no entregável', task_complete: 'a etapa é marcada como concluída' };
 /* Executa, com o acesso da administradora, a alteração que a Equipe CALI pediu. */
 async function applyStaffChange(payload: any): Promise<string | null> {
   if (!supabase || !payload?.action) return 'Pedido sem conteúdo para aplicar.';
@@ -36,6 +36,7 @@ async function applyStaffChange(payload: any): Promise<string | null> {
   else if (payload.action === 'deliverable_delete') error = (await db.from('deliverables').delete().eq('id', payload.id)).error;
   else if (payload.action === 'deliverable_cancel') error = (await db.rpc('change_deliverable_status', { p_deliverable_id: payload.id, p_status: 'cancelled', p_note: payload.reason })).error;
   else if (payload.action === 'task_create') error = (await db.from('deliverable_tasks').insert(payload.row)).error;
+  else if (payload.action === 'task_complete') error = (await db.from('deliverable_tasks').update({ status: 'done', completed_at: new Date().toISOString() }).eq('id', payload.id)).error;
   else return 'Tipo de alteração desconhecido.';
   return error ? (error.message || 'Não foi possível aplicar a alteração.') : null;
 }

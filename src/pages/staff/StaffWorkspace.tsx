@@ -29,7 +29,7 @@ const welcomeSteps: WelcomeStep[] = [
   { href: '/equipe', label: 'VISÃO GERAL', title: 'Suas empresas e seus módulos', text: 'Mostra as empresas que você atende e o que está liberado para você em cada uma.' },
   { href: '/equipe/ocorrencias', label: 'OCORRÊNCIAS', title: 'Responder dúvidas e pedidos', text: 'As conversas das suas empresas. O cliente vê o seu nome na resposta, então escreva com o cuidado de quem fala pela CALI.' },
   { href: '/equipe/horas', label: 'HORAS', title: 'Registrar o tempo trabalhado', text: 'Lance as horas com uma justificativa. Elas só entram no relatório do cliente depois que a Patricia aprovar.' },
-  { href: '/equipe/aprovacoes', label: 'ENVIAR PARA A PATRICIA', title: 'Tudo que vai ao cliente passa por ela', text: 'Relatório, entrega ou documento pronto? Envie por aqui. Você acompanha se foi aprovado ou devolvido com orientação.' },
+  { href: '/equipe/aprovacoes', label: 'AGUARDANDO A PATRICIA', title: 'Tudo que vai ao cliente passa por ela', text: 'O envio para aprovação é feito dentro de cada tela. Aqui você acompanha o que está aguardando e o que ela respondeu.' },
   { label: 'TUDO PRONTO', title: 'Pode começar', text: 'Em caso de dúvida sobre o que pode ou não fazer, fale com a Patricia antes de responder ao cliente.' },
 ];
 
@@ -58,8 +58,8 @@ function StaffBell({ me }: { me: Me }) {
 function Frame({ me, children }: { me: Me; children: ReactNode }) {
   const navigate = useNavigate(); const { pathname } = useLocation(); const has = (key: string) => me.modules.includes(key);
   /* A Visão geral usa a composição da administradora (.content > .ap-app), sem invólucro, para herdar as mesmas regras, inclusive no celular. */
-  const plain = ['/equipe', '/equipe/ocorrencias', '/equipe/projetos'].includes(pathname.replace(/\/$/, ''));
-  const nav = ([['/equipe', 'Visão geral', LayoutDashboard, true], ['/equipe/pessoas', 'Equipe', Users, has('team')], ['/equipe/projetos', 'Projetos', BriefcaseBusiness, has('projects')], ['/equipe/horas', 'Horas', Clock3, has('hours')], ['/equipe/calendario', 'Calendário', CalendarDays, has('calendar')], ['/equipe/ocorrencias', 'Ocorrências', MessageCircleMore, has('records')], ['/equipe/documentos', 'Documentos', FolderOpen, has('documents')], ['/equipe/relatorios', 'Relatórios', FileBarChart2, has('reports')], ['/equipe/avisos', 'Avisos', Megaphone, has('notices')], ['/equipe/aprovacoes', 'Enviar para a Patricia', Send, true]] as [string, string, typeof Clock3, boolean][]).filter((item) => item[3]).map(([href, label, icon]) => ({ href, label, icon }));
+  const plain = ['/equipe', '/equipe/ocorrencias', '/equipe/projetos', '/equipe/avisos'].includes(pathname.replace(/\/$/, ''));
+  const nav = ([['/equipe', 'Visão geral', LayoutDashboard, true], ['/equipe/pessoas', 'Equipe', Users, has('team')], ['/equipe/projetos', 'Projetos', BriefcaseBusiness, has('projects')], ['/equipe/horas', 'Horas', Clock3, has('hours')], ['/equipe/calendario', 'Calendário', CalendarDays, has('calendar')], ['/equipe/ocorrencias', 'Ocorrências', MessageCircleMore, has('records')], ['/equipe/documentos', 'Documentos', FolderOpen, has('documents')], ['/equipe/relatorios', 'Relatórios', FileBarChart2, has('reports')], ['/equipe/avisos', 'Avisos', Megaphone, has('notices')], ['/equipe/aprovacoes', 'Aguardando a Patricia', Send, true]] as [string, string, typeof Clock3, boolean][]).filter((item) => item[3]).map(([href, label, icon]) => ({ href, label, icon }));
   /* Entrada e saída ficam registradas para a administradora (função staff_log_session). */
   useEffect(() => { try { if (sessionStorage.getItem('cali:staff-session') === me.id) return; sessionStorage.setItem('cali:staff-session', me.id); } catch { /* segue */ } void supabase?.rpc('staff_log_session', { p_event: 'staff_session_started' }); }, [me.id]);
   async function logout() { try { await supabase?.rpc('staff_log_session', { p_event: 'staff_session_ended' }); sessionStorage.removeItem('cali:staff-session'); } catch { /* a saída não pode ficar presa ao registro */ } await supabase?.auth.signOut(); navigate('/login', { replace: true }); }
@@ -90,7 +90,8 @@ function StaffNotices({ me }: { me: Me }) {
   async function save(event: FormEvent) { event.preventDefault(); if (!supabase) return; if (!draft.companies.length) { setError('Escolha pelo menos uma empresa.'); return; } if (!draft.title.trim() || !draft.body.trim()) { setError('Escreva o título e a mensagem.'); return; }
     setBusy(true); setError(''); const result = await supabase.rpc('partner_publish_notice', { p_category: draft.category, p_title: draft.title.trim(), p_body: draft.body.trim(), p_companies: draft.companies, p_date: draft.date || null, p_time: null, p_coverage: null }); setBusy(false);
     if (result.error) { setError('Não foi possível publicar. Tente de novo.'); return; } setDraft({ category: 'comunicado', title: '', body: '', date: '', companies: [] }); setOpen(false); setDone('Comunicado publicado. As empresas escolhidas foram avisadas e a Patricia também.'); setVersion((value) => value + 1); }
-  return <>{done && <div className="inline-notice v2-staff-done" role="status">{done}</div>}
+  /* Mesma composição da página de Avisos da administradora (.content > .ap-app.v2-admin-notices > .ap-content). */
+  return <div className="ap-app v2-admin-page v2-admin-notices"><div className="ap-content">{done && <div className="inline-notice success v2-toast" role="status"><span>{done}</span></div>}
     <StaffNoticesPage key={version} onCompose={() => { setDone(''); setError(''); setOpen(true); }} />
     {open && <div className="wf-overlay" onMouseDown={() => setOpen(false)}><form className="wf-modal v2-staff-form" role="dialog" aria-modal="true" aria-label="Novo comunicado" onSubmit={save} onMouseDown={(event) => event.stopPropagation()}>
       <header><div><small>QUADRO DE AVISOS · EQUIPE CALI</small><h2>Novo comunicado</h2></div><button type="button" onClick={() => setOpen(false)} aria-label="Fechar"><X size={16} /></button></header>
@@ -102,7 +103,7 @@ function StaffNotices({ me }: { me: Me }) {
         {error && <div className="inline-notice v2-staff-error" role="alert">{error}</div>}
       </div>
       <footer><button type="button" className="wf-secondary" onClick={() => setOpen(false)}>Cancelar</button><button type="submit" className="wf-primary" disabled={busy}>{busy ? 'Publicando…' : 'Publicar comunicado'}</button></footer>
-    </form></div>}</>;
+    </form></div>}</div></div>;
 }
 
 function Browse({ me, kind }: { me: Me; kind: string }) {
@@ -142,25 +143,21 @@ function Hours({ me }: { me: Me }) {
     {rows.length ? <div className="wf-records v2-staff-sent">{rows.map((row) => <div className="wf-record-row" key={row.id}><time>{dayLabel(row.work_date)}</time><strong>{duration(row.minutes)}</strong><div><strong>{row.description}</strong><small>{companyName.get(row.company_id) || 'Empresa'} · {row.justification}{row.decision_note ? ` · Retorno: ${row.decision_note}` : ''}</small></div><span className={`wf-tag ${tone[row.status]?.[0] || ''}`}>{tone[row.status]?.[1] || row.status}</span></div>)}</div> : <div className="empty">Você ainda não enviou lançamentos.</div>}</>;
 }
 
+/* Acompanhamento do que foi enviado para a Patricia. O envio acontece dentro de cada tela (entregável, ocorrência, horas,
+   alteração em projeto); aqui a pessoa só acompanha a resposta. */
 type ReviewRow = { id: string; company_id: string; kind: string; title: string; note: string | null; status: string; decision_note: string | null; created_at: string };
-const KINDS: Record<string, string> = { deliverable: 'Entrega de projeto', report: 'Relatório', document: 'Documento', other: 'Pedido de agendamento ou outro assunto' };
+const KINDS: Record<string, string> = { deliverable: 'Entregável', report: 'Relatório', document: 'Documento', notice: 'Comunicado', other: 'Outro', record_close: 'Encerrar ocorrência', change: 'Alteração em projeto' };
 function Reviews({ me }: { me: Me }) {
-  const [rows, setRows] = useState<ReviewRow[]>([]); const [draft, setDraft] = useState({ company: '', kind: 'deliverable', title: '', note: '' }); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [done, setDone] = useState('');
-  async function load() { if (!supabase) return; const result = await supabase.from('staff_review_requests').select('id,company_id,kind,title,note,status,decision_note,created_at').order('created_at', { ascending: false }).limit(100); if (!result.error) setRows((result.data || []) as ReviewRow[]); }
-  useEffect(() => { void load(); }, []);
-  async function save(event: FormEvent) { event.preventDefault(); if (!supabase) return; setDone(''); if (!draft.company) { setError('Escolha a empresa.'); return; } if (draft.title.trim().length < 3) { setError('Diga o que você está enviando.'); return; }
-    setBusy(true); setError(''); const result = await supabase.from('staff_review_requests').insert({ staff_user_id: me.id, company_id: draft.company, kind: draft.kind, title: draft.title.trim(), note: draft.note.trim() || null }); setBusy(false);
-    if (result.error) { setError('Não foi possível enviar. Tente de novo.'); return; } setDraft({ ...draft, title: '', note: '' }); setDone('Enviado para a Patricia.'); void load(); }
-  const companyName = new Map(me.companies.map((item) => [item.id, item.display_name])); const tone: Record<string, [string, string]> = { pending: ['wait', 'Aguardando a Patricia'], approved: ['ok', 'Aprovado'], returned: ['bad', 'Devolvido para ajuste'] };
-  return <><Head eyebrow="EQUIPE CALI / APROVAÇÃO" title="Enviar para a Patricia" text="Tudo que vai para o cliente passa pela Patricia antes. Use esta tela quando terminar um trabalho e ele precisar da aprovação dela." />
-    <div className="v2-staff-steps"><article><b>1</b><div><strong>Você termina o trabalho</strong><small>Um relatório, uma entrega, um documento ou um pedido de agendamento.</small></div></article><article><b>2</b><div><strong>Avisa a Patricia por aqui</strong><small>Diga de qual empresa é, o que é e onde ela encontra o material.</small></div></article><article><b>3</b><div><strong>Ela aprova ou devolve</strong><small>Você recebe o retorno no sino. Se aprovar, é ela quem envia ao cliente.</small></div></article></div>
-    <form className="panel v2-staff-hours" onSubmit={save}><h3>O que você está enviando</h3>
-      <div className="v2-staff-fields three"><label>Empresa<CompanySelect me={me} value={draft.company} onChange={(value) => setDraft({ ...draft, company: value })} /></label><label>O que é<select className="wf-record-filter" value={draft.kind} onChange={(event) => setDraft({ ...draft, kind: event.target.value })}>{Object.entries(KINDS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label><label>Título<input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder="Ex.: Relatório de outubro" /></label></div>
-      <div className="v2-staff-fields one"><label>Recado para a Patricia (opcional)<input value={draft.note} onChange={(event) => setDraft({ ...draft, note: event.target.value })} placeholder="Onde está o material e o que ela precisa olhar" /></label></div>
-      {error && <div className="inline-notice v2-staff-error" role="alert">{error}</div>}{done && <div className="inline-notice v2-staff-done" role="status">{done}</div>}
-      <div className="v2-staff-submit"><button type="submit" className="wf-primary" disabled={busy}>{busy ? 'Enviando…' : 'Enviar para a Patricia'}</button></div></form>
-    <div className="section-head"><h2>Meus envios</h2></div>
-    {rows.length ? <div className="wf-records v2-staff-sent">{rows.map((row) => <div className="wf-record-row" key={row.id}><time>{moment(row.created_at)}</time><strong>{KINDS[row.kind] || row.kind}</strong><div><strong>{row.title}</strong><small>{companyName.get(row.company_id) || 'Empresa'}{row.note ? ` · ${row.note}` : ''}{row.decision_note ? ` · Retorno: ${row.decision_note}` : ''}</small></div><span className={`wf-tag ${tone[row.status]?.[0] || ''}`}>{tone[row.status]?.[1] || row.status}</span></div>)}</div> : <div className="empty">Você ainda não enviou nada para aprovação.</div>}</>;
+  const [rows, setRows] = useState<ReviewRow[] | null>(null); const [filter, setFilter] = useState<'pending' | 'all'>('pending');
+  useEffect(() => { void (async () => { if (!supabase) return; const [reviews, hours] = await Promise.all([
+    supabase.from('staff_review_requests').select('id,company_id,kind,title,note,status,decision_note,created_at').order('created_at', { ascending: false }).limit(200),
+    supabase.from('staff_hour_submissions').select('id,company_id,minutes,description,status,decision_note,created_at').order('created_at', { ascending: false }).limit(200)]);
+    setRows([...((reviews.data || []) as ReviewRow[]), ...((hours.data || []) as any[]).map((row) => ({ id: `h-${row.id}`, company_id: row.company_id, kind: 'hours', title: `${duration(row.minutes)} · ${row.description}`, note: null, status: row.status === 'rejected' ? 'returned' : row.status, decision_note: row.decision_note, created_at: row.created_at }))].sort((a, b) => b.created_at.localeCompare(a.created_at))); })(); }, []);
+  const companyName = new Map(me.companies.map((item) => [item.id, item.display_name])); const tone: Record<string, [string, string]> = { pending: ['wait', 'Aguardando a Patricia'], approved: ['ok', 'Aprovado'], returned: ['bad', 'Devolvido'] };
+  const visible = (rows || []).filter((row) => filter === 'all' || row.status === 'pending'); const waiting = (rows || []).filter((row) => row.status === 'pending').length;
+  return <><Head eyebrow="EQUIPE CALI / APROVAÇÕES" title="Aguardando a Patricia" text="Tudo o que você enviou para a Patricia aprovar. O envio é feito dentro de cada tela: no entregável, na ocorrência, nas horas ou ao criar e alterar algo em um projeto." />
+    <div className="toolbar"><div className="wf-segments"><button type="button" className={filter === 'pending' ? 'on' : ''} onClick={() => setFilter('pending')}>Aguardando ({waiting})</button><button type="button" className={filter === 'all' ? 'on' : ''} onClick={() => setFilter('all')}>Tudo</button></div></div>
+    {!rows ? <div className="data-loading">Carregando…</div> : visible.length ? <div className="wf-records v2-staff-sent">{visible.map((row) => <div className="wf-record-row" key={row.id}><time>{moment(row.created_at)}</time><strong>{row.kind === 'hours' ? 'Horas' : KINDS[row.kind] || row.kind}</strong><div><strong>{row.title}</strong><small>{[companyName.get(row.company_id) || 'Empresa', row.note, row.decision_note ? `Resposta da Patricia: ${row.decision_note}` : ''].filter(Boolean).join(' · ')}</small></div><span className={`wf-tag ${tone[row.status]?.[0] || ''}`}>{tone[row.status]?.[1] || row.status}</span></div>)}</div> : <div className="empty">{filter === 'pending' ? 'Nada aguardando a Patricia no momento.' : 'Você ainda não enviou nada para aprovação.'}</div>}</>;
 }
 
 export function StaffWorkspace() {

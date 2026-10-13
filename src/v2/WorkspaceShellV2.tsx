@@ -7,6 +7,8 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, BriefcaseBusiness, Building2, CalendarDays, CalendarPlus, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileBarChart2, FolderOpen, History, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Star, UserCog, Target, Users, X, type LucideIcon } from 'lucide-react';
 import { DirectProfileControl } from '../components/DirectProfileControl';
+import { supabase } from '../lib/supabase';
+import { startTimerPresence } from '../lib/timerPresence';
 import { WelcomeTour, WELCOME_OPEN_EVENT, type WelcomeStep } from './WelcomeTour';
 import './v2.generated.css';
 import './operational.css';
@@ -65,6 +67,19 @@ type Props = {
 
 export function WorkspaceShellV2({ role, navigation, extras, children, scheduling, notifications, bridges, onLogout, welcomeSteps }: Props) {
   const home = role === 'admin' ? '/admin' : role === 'partner' ? '/equipe' : '/cliente';
+  /* Cronômetro esquecido: presença enquanto a pessoa usa o Workspace e conferência antes de sair. */
+  const [exitTimers, setExitTimers] = useState<{ id: string; description: string | null; started_at: string }[] | null>(null); const [exitBusy, setExitBusy] = useState(false); const [exitError, setExitError] = useState('');
+  useEffect(() => { if (role !== 'client') startTimerPresence(); }, [role]);
+  async function requestLogout() {
+    if (role === 'client' || !supabase) { onLogout(); return; }
+    try { const { data: auth } = await supabase.auth.getUser(); const result = await supabase.from('work_timers').select('id,description,started_at').eq('user_id', auth.user?.id || '').eq('status', 'active'); if (!result.error && (result.data || []).length) { setExitError(''); setExitTimers(result.data as any[]); return; } } catch { /* sem conferência: segue a saída */ }
+    onLogout();
+  }
+  async function pauseAndLogout() {
+    if (!supabase || !exitTimers) return; setExitBusy(true); setExitError('');
+    for (const timer of exitTimers) { const result = role === 'partner' ? await supabase.rpc('partner_stop_timer', { p_timer_id: timer.id, p_description: null }) : await supabase.rpc('pause_work_timer', { p_timer_id: timer.id }); if (result.error) { setExitBusy(false); setExitError('Não foi possível pausar o cronômetro. Pause-o na tela e tente sair de novo.'); return; } }
+    setExitBusy(false); setExitTimers(null); onLogout();
+  }
   const searchDestinations = useMemo(() => [...navigation.map(({ label, href }) => ({ label, href })), ...(role === 'client' ? [{ label: 'Frentes contratadas', href: '/cliente/frentes' }] : role === 'partner' ? [] : adminProducts.map(({ label, href }) => ({ label, href })))], [navigation, role]);
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
@@ -138,7 +153,7 @@ export function WorkspaceShellV2({ role, navigation, extras, children, schedulin
                 <div className="v2-profile-meta">{companyName && <span>Empresa <b>{companyName}</b></span>}<span>Acesso <b>{role === 'admin' ? 'Administradora' : role === 'partner' ? 'Partner · Equipe CALI' : 'Cliente'}</b></span></div>
                 <button role="menuitem" onClick={() => { setProfileMenu(false); openEditor(); }}>Ver meu perfil <ChevronRight size={14} /></button>
                 {role !== 'admin' && <button role="menuitem" onClick={() => { setProfileMenu(false); window.dispatchEvent(new Event(WELCOME_OPEN_EVENT)); }}>Rever apresentação <ChevronRight size={14} /></button>}
-                <button role="menuitem" onClick={() => { setProfileMenu(false); onLogout(); }}>Sair <ArrowRight size={14} /></button>
+                <button role="menuitem" onClick={() => { setProfileMenu(false); void requestLogout(); }}>Sair <ArrowRight size={14} /></button>
               </div>}
             </>} />
           </div>
@@ -147,6 +162,13 @@ export function WorkspaceShellV2({ role, navigation, extras, children, schedulin
       {scheduling}
       <div className="content">{children}</div>
     </main>
+    {exitTimers && <div className="wf-overlay v2-exit-guard" role="presentation"><section className="wf-modal v2-staff-form v2-staff-decision" role="alertdialog" aria-modal="true" aria-label="Cronômetro ligado">
+      <header><div><small>ANTES DE SAIR</small><h2>Você está com cronômetro ligado</h2></div></header>
+      <div className="v2-staff-body"><div className="inline-notice v2-exit-alert"><strong>Se você sair agora sem pausar, o tempo continua contando.</strong> Pause para registrar só o que foi trabalhado.</div>
+        {exitTimers.map((timer) => <div className="v2-staff-decision-item" key={timer.id}><strong>{timer.description || 'Atuação em andamento'}</strong><small>Ligado desde {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(timer.started_at)).replace('.', '')}</small></div>)}
+        {exitError && <div className="inline-notice v2-staff-error" role="alert">{exitError}</div>}</div>
+      <footer><button type="button" className="wf-secondary" onClick={() => setExitTimers(null)}>Voltar ao trabalho</button><button type="button" className="wf-primary" disabled={exitBusy} onClick={() => void pauseAndLogout()}>{exitBusy ? 'Pausando…' : 'Pausar e sair'}</button></footer>
+    </section></div>}
     {role === 'client' && <WelcomeTour />}
     {role === 'partner' && <WelcomeTour steps={welcomeSteps} />}
   </div>;
