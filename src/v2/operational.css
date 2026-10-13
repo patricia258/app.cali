@@ -3611,3 +3611,8 @@ html[data-workspace-ui='v2'] .v2-capadmin-actions button{display:inline-flex;ali
 html[data-workspace-ui='v2'] .v2-capadmin-actions button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
 html[data-workspace-ui='v2'] .v2-capadmin-foot{margin:12px 0 0;font-size:11px;color:#8a7c74}
 @media(max-width:980px){html[data-workspace-ui='v2'] .v2-capadmin-row{grid-template-columns:1fr}html[data-workspace-ui='v2'] .v2-capadmin-actions{justify-content:flex-start}}
+/* Ajustes de 2026-10-13: respiro no cartão de Horas do cliente; rodapé do aviso em itálico e menor; destaque do percentual na Home. */
+html[data-workspace-ui='v2'] .ledger-main>.v2-capcard{padding:22px 4px 20px!important}
+html[data-workspace-ui='v2'] .v2-capcard-alert small{font-style:italic;font-size:11px!important}
+html[data-workspace-ui='v2'] .ch-contract-stat.v2-stat-over strong{color:#ffd0c7}
+html[data-workspace-ui='v2'] .v2-cap-home{margin-top:6px}

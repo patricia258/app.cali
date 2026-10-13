@@ -22,17 +22,17 @@ export function CapacityCard({ capacity, plan, month, occurrence, paused }: { ca
   const occurrenceText = occurrence === 1 ? 'Esta é a primeira ocorrência registrada.' : occurrence === 2 ? 'Esta é a segunda ocorrência no período acompanhado; a recorrência pode indicar a necessidade de rever o volume de horas.' : occurrence && occurrence >= 3 ? 'É a terceira ocorrência no período acompanhado; vamos avaliar juntos a adequação do pacote e as alternativas disponíveis.' : '';
   const level = capacity.level; const excess = capacity.excessMinutes > 0;
   const alert = level === 'excess'
-    ? { tone: 'red', title: 'A capacidade mensal foi ultrapassada.', text: `O consumo está ${minutesLabel(capacity.excessMinutes)} acima das ${minutesLabel(capacity.contractedMinutes)} contratadas. ${occurrenceText ? `${occurrenceText} ` : ''}Vamos acompanhar juntos a demanda do período e avaliar se será necessário reorganizar as prioridades.`, foot: 'Não há cobrança adicional ou alteração automática do contrato.' }
+    ? { tone: 'red', title: 'A capacidade mensal foi ultrapassada.', text: `O consumo está acima do contratado. ${occurrence && occurrence >= 2 ? `${occurrenceText} ` : ''}Vamos acompanhar juntos a demanda do período e avaliar se é necessário reorganizar as prioridades. Manteremos a comunicação.`, foot: 'Não há cobrança adicional ou alteração automática de contrato.' }
     : level === 'full' ? { tone: 'red', title: 'A capacidade mensal foi integralmente utilizada.', text: 'A CALI acompanhará as demandas previstas e alinhará com você as prioridades, necessidades adicionais e próximos encaminhamentos.', foot: '' }
     : level === 'attention' ? { tone: 'amber', title: 'Atenção ao consumo do mês.', text: 'A sua empresa já utilizou 75% da capacidade contratada para este mês. Ainda temos atividades previstas e, se necessário, podemos revisar juntos a ordem de prioridades.', foot: '' }
     : null;
   return <section className="v2-capcard" aria-label="Horas do mês">
-    <header><div><h2>Horas do mês</h2><p>{[plan, month].filter(Boolean).join(' · ')}</p></div></header>
+    <header><div><h2>Horas do mês</h2></div></header>
     {capacity.level === 'none' ? <p className="v2-capcard-none">Capacidade mensal ainda não definida no contrato.</p> : <>
       <p className="v2-capcard-pct"><strong>{percentLabel(capacity.usagePercent)}</strong><span>da capacidade mensal</span></p>
       <CapacityBar capacity={capacity} bare />
       <div className="v2-capcard-stats"><div><span>Contratadas</span><strong>{minutesLabel(capacity.contractedMinutes)}</strong></div><div><span>Utilizadas</span><strong>{minutesLabel(capacity.usedMinutes)}</strong></div><div className={excess ? 'on' : ''}><span>Excedentes</span><strong>{excess ? `+${minutesLabel(capacity.excessMinutes)}` : '0h'}</strong><small>{excess ? `${percentLabel(capacity.excessPercent)} acima do contratado` : `Saldo do mês: ${minutesLabel(capacity.balanceMinutes)}`}</small></div></div>
-      {paused && <div className="v2-capcard-alert red" role="status"><AlertTriangle size={18} /><div><strong>Atividades pausadas até a renovação do mês.</strong><p>A capacidade deste mês passou do limite de tolerância. A CALI retoma as atividades no início do próximo mês e fala com você sobre as prioridades.</p><small>Não há cobrança adicional ou alteração automática do contrato.</small></div></div>}
+      {paused && <div className="v2-capcard-alert red" role="status"><AlertTriangle size={18} /><div><strong>Atividades pausadas até a renovação do mês.</strong><p>A capacidade deste mês passou do limite de tolerância. A CALI retoma as atividades no início do próximo mês e fala com você sobre as prioridades.</p><small>Não há cobrança adicional ou alteração automática de contrato.</small></div></div>}
       {alert && <div className={`v2-capcard-alert ${alert.tone}`} role="status"><AlertTriangle size={18} /><div><strong>{alert.title}</strong><p>{alert.text}</p>{alert.foot && <small>{alert.foot}</small>}</div></div>}
     </>}
   </section>;
