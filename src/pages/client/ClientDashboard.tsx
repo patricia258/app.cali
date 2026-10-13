@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { capacityOf } from '../../lib/capacity';
+import { capacityOf, percentLabel } from '../../lib/capacity';
 import { CapacityBar } from '../../v2/CapacityBar';
 import { ClientHomeNotices } from '../notices/NoticesBoard';
 import { Link } from 'react-router-dom';
@@ -365,13 +365,14 @@ export function ClientDashboard() {
           </div>
           <div className="ch-contract-figures">
             {showHours && data.contractedHours > 0 ? <>
-              <div className="ch-contract-stat"><strong>{formatHours(data.minutes)}</strong><span>consumidas no mês · {hoursPercentage}%</span></div>
               <div className="ch-contract-stat"><strong>{data.contractedHours}h</strong><span>contratadas no mês</span></div>
+              <div className="ch-contract-stat"><strong>{formatHours(data.minutes)}</strong><span>consumidas no mês</span></div>
+              <div className={`ch-contract-stat ${capacityOf(data.contractedHours, data.minutes).excessMinutes > 0 ? 'v2-stat-over' : ''}`}><strong>{percentLabel(capacityOf(data.contractedHours, data.minutes).usagePercent)}</strong><span>utilizados</span></div>
             </> : showHours ? <div className="ch-contract-stat wide"><strong>{formatHours(data.minutes)}</strong><span>consumidas no mês · franquia não definida</span></div> : <div className="ch-contract-stat wide"><strong>{data.hoursLoadError ? 'Indisponível' : activeProject ? 'Ativo' : 'Em preparação'}</strong><span>{data.hoursLoadError ? 'horas do mês' : 'ciclo atual'}</span></div>}
           </div>
           </div>
           {contractedMinutes > 0 && <div className="ch-contract-progress" role="progressbar" aria-label="Horas consumidas neste mês" aria-valuemin={0} aria-valuemax={contractedMinutes} aria-valuenow={Math.min(contractedMinutes, data.minutes)} aria-valuetext={`${formatHours(data.minutes)} de ${data.contractedHours} horas, ${hoursPercentage}%`}>
-            <div className="v2-cap-home"><CapacityBar dark capacity={capacityOf(data.contractedHours, data.minutes)} /></div>
+            <div className="v2-cap-home"><CapacityBar dark bare capacity={capacityOf(data.contractedHours, data.minutes)} /></div>
           </div>}
         </aside>
 

@@ -1243,6 +1243,27 @@ Pendência operacional: o lançamento de teste de 10h01 continua no extrato da C
 - CONFLITO A RESOLVER COM ELA antes de construir: a pausa em 110% contradiz o documento que ela mesma colou (sem suspensão automática; FAQ "A CALI deixa de trabalhar quando as horas acabam? Não existe suspensão automática"). Perguntado: a pausa é automática (bloqueia cronômetro/lançamento) ou é um alerta para ela decidir? E os textos do FAQ/avisos precisam mudar.
 - Company IN / outubro é só teste (ela confirmou); não é pendência.
 
+### 2026-10-13 — Publicação 21 e capacidade mensal, fase 2 (homologação)
+
+- PUBLICAÇÃO 21 no oficial (`687b0d8`), aprovada por ela: subtarefa com o cliente e capacidade fase 1 (cartão "Horas do mês", barra, FAQ).
+- DECISÃO DELA sobre a pausa: NÃO é automática. Tolerância de 10%; ao passar de 110% o sistema avisa a administradora e ELA decide pausar até o mês seguinte. Janela de recorrência = vigência do pacote (Partner 8 meses, Full 12; demais 6). 3ª ocorrência = rever o pacote.
+- FASE 2 feita (banco aplicado, telas na homologação):
+  - Tabelas `capacity_events` (marco por empresa/mês: m75, m100, excess, tolerance, review — único por mês) e `capacity_pauses`.
+  - `evaluate_capacity(empresa, mês, avisar)`: registra os marcos novos e envia UMA comunicação ao cliente (a do marco mais alto: 75%, 100% ou ocorrência 1ª/2ª/3ª, textos oficiais, sino + e-mail) e UMA à administradora; 3ª ocorrência → "Avaliar adequação de capacidade"; ≥110% → "Limite de tolerância atingido". Gatilho `hour_entries_capacity_check` roda a cada lançamento e nunca bloqueia o lançamento.
+  - Ocorrências = meses com excedente CONFIRMADO, recalculados dos lançamentos reais dentro da janela (`capacity_excess_months`) — correção retroativa de horas muda a contagem.
+  - Implantação silenciosa: os marcos já atingidos no mês atual foram registrados sem avisar ninguém (conferido: 4 marcos, 0 notificações — todos da empresa de teste).
+  - Cliente: `get_client_capacity_status` → o cartão mostra "primeira/segunda/terceira ocorrência" e, se pausado, "Atividades pausadas até a renovação do mês". FAQ ajustado na resposta sobre parar de trabalhar (tolerância de 10% e pausa avisada).
+  - Administradora: `CapacityPanel.tsx` em Horas (`admin_capacity_overview`): empresas com ≥75%, consumo/saldo/excedente, ocorrência nº na vigência, ritmo estimado (marcado como estimativa), avisos já enviados ao cliente, botão "Pausar até o próximo mês" (com confirmação) e "Retomar".
+- A pausa hoje é um registro + aviso ao cliente; NÃO bloqueia cronômetro nem lançamento (decisão: nada automático). Avaliar com ela se quer um aviso para a equipe ao dar play em empresa pausada.
+- FALTA (fase 3): histórico mensal de consumo no painel; registro de análise/decisão/encaminhamento da pendência de adequação; bloco de capacidade no relatório mensal (§7); validação dos 12 cenários (§9) com dados reais; conferir modo escuro e celular.
+- Migration `20261016180000`. NÃO testado com lançamento real (nenhum aviso foi disparado de verdade).
+
+### 2026-10-13 — Publicação 22: capacidade fase 2 + ajustes de layout dela
+
+- Home do cliente: três números na ordem pedida — contratadas no mês, consumidas no mês, % utilizados — e só a barra com a escala (saiu a linha de leitura embaixo).
+- Horas do cliente: respiro no cartão "Horas do mês"; saiu a linha "plano · mês" (o período já está acima); aviso de excedente padrão, sem valores: "O consumo está acima do contratado. Vamos acompanhar juntos a demanda do período e avaliar se é necessário reorganizar as prioridades. Manteremos a comunicação." + rodapé em itálico menor "Não há cobrança adicional ou alteração automática de contrato." (a frase de 2ª/3ª ocorrência continua entrando no meio quando for o caso).
+- Publicado com autorização dela ("pode continuar publicando o que já tiver pronto"): painel de capacidade da administradora, ocorrência/pausa no cartão do cliente, FAQ ajustado.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

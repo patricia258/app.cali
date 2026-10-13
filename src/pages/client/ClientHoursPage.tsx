@@ -98,6 +98,7 @@ export function ClientHoursPage() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [rows, setRows] = useState<{ kind: string; project: string | null; title: string; protocol: string | null; front: string | null; minutes: number }[]>([]);
   const [planName, setPlanName] = useState('');
+  const [status, setStatus] = useState<{ occurrence: number; paused: boolean }>({ occurrence: 0, paused: false });
   const [contextFilter, setContextFilter] = useState<ContextFilter>('all');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
@@ -125,6 +126,7 @@ export function ClientHoursPage() {
         supabase.rpc('get_client_hours_breakdown', { p_period_start: start, p_period_end: end }),
       ]);
       if (summaryResult.error) throw summaryResult.error;
+      void supabase.rpc('get_client_capacity_status', { p_month: start }).then(({ data }) => setStatus({ occurrence: Number((data as any)?.occurrence || 0), paused: Boolean((data as any)?.paused) }));
       void supabase.from('companies').select('service_plan').eq('id', companyId).maybeSingle().then(({ data }) => { const plan = String((data as any)?.service_plan || ''); setPlanName(plan ? `CALI ${plan.charAt(0).toUpperCase()}${plan.slice(1)}` : ''); });
       if (projectResult.error) throw projectResult.error;
       if (deliverableResult.error) throw deliverableResult.error;
@@ -195,7 +197,7 @@ export function ClientHoursPage() {
         <div className="hours-context"><span className="plan-mark">Período</span><input className="v2-hours-month" aria-label="Consultar mês" type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /><span className="hours-context-end"><Clock3 size={14}/> Visibilidade contratual habilitada</span></div>
         <div className="hours-ledger">
           <section className="ledger-main">
-            <CapacityCard capacity={capacity} plan={planName} month={new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date(`${period}-15T12:00:00`)).replace(/^./, (c) => c.toUpperCase())} />
+            <CapacityCard capacity={capacity} plan={planName} occurrence={status.occurrence} paused={status.paused} month={new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date(`${period}-15T12:00:00`)).replace(/^./, (c) => c.toUpperCase())} />
             <div className="ledger-header"><h2>Onde o tempo foi investido</h2><span>{filteredRows.length} {filteredRows.length === 1 ? 'item neste período' : 'itens neste período'}</span><label className="ledger-filter">Tipo<select value={contextFilter} onChange={(event) => setContextFilter(event.target.value as ContextFilter)}><option value="all">Todos</option><option value="deliverable">Entregáveis e subtarefas</option><option value="project">Projeto</option><option value="interaction">Ocorrências e outras</option></select></label></div>
             {filteredRows.length === 0 ? <div className="wf-empty">Nenhum registro de horas neste período.</div> : <div className="ledger-table v2-ledger-v2">
               <div className="ledger-row ledger-heading"><span>Projeto</span><span>Tarefa</span><span>Tipo</span><span>Frente</span><span>Protocolo</span><span>Duração</span></div>

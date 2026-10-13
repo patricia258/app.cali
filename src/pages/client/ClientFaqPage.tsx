@@ -13,7 +13,7 @@ const FAQ: { topic: string; items: [string, string][] }[] = [
   { topic: 'Avisos de consumo', items: [
     ['O que acontece quando atingimos 75% da capacidade?', 'Você recebe um aviso preventivo para acompanhar o consumo do mês. É uma oportunidade para avaliar as atividades previstas e alinhar prioridades.'],
     ['E quando atingimos 100%?', 'O sistema informa que a capacidade mensal contratada foi integralmente utilizada. Isso não significa cancelamento automático das atividades, mas indica que novas necessidades precisam ser avaliadas conforme o planejamento e as condições contratadas.'],
-    ['A CALI deixa de trabalhar quando as horas acabam?', 'Não existe suspensão automática por atingir o limite. Entretanto, a capacidade mensal tem limites contratados, e a execução de atividades adicionais precisa ser avaliada e alinhada com a CALI. O alerta de consumo não constitui promessa de disponibilidade ilimitada.'],
+    ['A CALI deixa de trabalhar quando as horas acabam?', 'Não existe suspensão automática por atingir o limite. Entretanto, a capacidade mensal tem limites contratados: há uma tolerância de até 10% acima do contratado e, passando disso, a CALI pode pausar as atividades até a renovação do mês seguinte, sempre avisando você antes. O alerta de consumo não constitui promessa de disponibilidade ilimitada.'],
   ] },
   { topic: 'Excedentes e ajustes', items: [
     ['E se ultrapassarmos a quantidade de horas contratadas?', 'O excedente será registrado e sinalizado. A CALI avaliará o consumo, as prioridades e os possíveis encaminhamentos com a liderança. A ultrapassagem não gera, por si só, cobrança automática de horas adicionais.'],
