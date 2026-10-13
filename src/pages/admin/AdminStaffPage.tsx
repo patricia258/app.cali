@@ -21,9 +21,24 @@ export const STAFF_MODULES: [string, string, string][] = [
   ['team', 'Equipe do cliente', 'Ver o quadro de pessoas, sem dados salariais'],
   ['people_map', 'Mapa de People', 'Acessar e gerar o Mapa'],
 ];
-type Pending = { id: string; kind: 'hours' | 'review'; reviewKind?: string; entityId?: string | null; staff_user_id: string; company_id: string; title: string; detail: string; meta: string; created_at: string };
+type Pending = { id: string; kind: 'hours' | 'review'; reviewKind?: string; entityId?: string | null; payload?: any; staff_user_id: string; company_id: string; title: string; detail: string; meta: string; created_at: string };
 type Decision = { item: Pending; approve: boolean; note: string };
-const REVIEW_KINDS: Record<string, string> = { report: 'Relatório', deliverable: 'Entrega', document: 'Documento', notice: 'Comunicado', other: 'Outro', record_close: 'Encerrar ocorrência' };
+const REVIEW_KINDS: Record<string, string> = { report: 'Relatório', deliverable: 'Entrega', document: 'Documento', notice: 'Comunicado', other: 'Outro', record_close: 'Encerrar ocorrência', change: 'Alteração em projeto' };
+const CHANGE_EFFECT: Record<string, string> = { project_create: 'o projeto é criado como rascunho, com as frentes informadas', front_create: 'a frente é criada no projeto', deliverable_create: 'o entregável é criado como “Não iniciado”', deliverable_update: 'o entregável é alterado com os novos dados', deliverable_delete: 'o entregável é excluído', deliverable_cancel: 'o entregável é cancelado, com o motivo informado', task_create: 'a etapa é criada no entregável' };
+/* Executa, com o acesso da administradora, a alteração que a Equipe CALI pediu. */
+async function applyStaffChange(payload: any): Promise<string | null> {
+  if (!supabase || !payload?.action) return 'Pedido sem conteúdo para aplicar.';
+  const db = supabase; let error: any = null;
+  if (payload.action === 'project_create') { const created = await db.from('projects').insert(payload.project).select('id').single(); error = created.error; if (!error && created.data?.id && (payload.fronts || []).length) error = (await db.from('project_workstreams').insert((payload.fronts as any[]).map((front) => ({ ...front, company_id: payload.project.company_id, project_id: created.data.id })))).error; }
+  else if (payload.action === 'front_create') error = (await db.from('project_workstreams').insert(payload.row)).error;
+  else if (payload.action === 'deliverable_create') error = (await db.from('deliverables').insert(payload.row)).error;
+  else if (payload.action === 'deliverable_update') error = (await db.from('deliverables').update(payload.row).eq('id', payload.id)).error;
+  else if (payload.action === 'deliverable_delete') error = (await db.from('deliverables').delete().eq('id', payload.id)).error;
+  else if (payload.action === 'deliverable_cancel') error = (await db.rpc('change_deliverable_status', { p_deliverable_id: payload.id, p_status: 'cancelled', p_note: payload.reason })).error;
+  else if (payload.action === 'task_create') error = (await db.from('deliverable_tasks').insert(payload.row)).error;
+  else return 'Tipo de alteração desconhecido.';
+  return error ? (error.message || 'Não foi possível aplicar a alteração.') : null;
+}
 const blank = (): Draft => ({ id: null, email: '', full_name: '', modules: ['records', 'projects', 'hours'], companies: [], active: true });
 const momentLabel = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)).replace('.', '');
 const dayLabel = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso));
@@ -45,11 +60,11 @@ export function AdminStaffPage() {
     if (ids.length) { const log = await supabase.from('activity_log').select('actor_user_id,event_type,created_at').in('actor_user_id', ids).in('event_type', ['workspace_access_code_verified', 'staff_session_started', 'staff_session_ended']).order('created_at', { ascending: false }).limit(400); const map: Record<string, { in?: string; out?: string }> = {}; ((log.data || []) as any[]).forEach((row) => { const entry = (map[row.actor_user_id] ||= {}); if (row.event_type === 'staff_session_ended') { entry.out ||= row.created_at; } else { entry.in ||= row.created_at; } }); setSessions(map); }
     const [hours, reviews] = await Promise.all([
       supabase.from('staff_hour_submissions').select('id,staff_user_id,company_id,work_date,minutes,description,justification,created_at').eq('status', 'pending').order('created_at'),
-      supabase.from('staff_review_requests').select('id,staff_user_id,company_id,kind,entity_id,title,note,created_at').eq('status', 'pending').order('created_at'),
+      supabase.from('staff_review_requests').select('id,staff_user_id,company_id,kind,entity_id,title,note,payload,created_at').eq('status', 'pending').order('created_at'),
     ]);
     setPending([
       ...((hours.data || []) as any[]).map((row) => ({ id: row.id, kind: 'hours' as const, staff_user_id: row.staff_user_id, company_id: row.company_id, title: `${Math.floor(row.minutes / 60)}h${String(row.minutes % 60).padStart(2, '0')} · ${row.description}`, detail: `Justificativa: ${row.justification}`, meta: `Horas de ${dayLabel(row.work_date + 'T12:00:00')}`, created_at: row.created_at })),
-      ...((reviews.data || []) as any[]).map((row) => ({ id: row.id, kind: 'review' as const, staff_user_id: row.staff_user_id, company_id: row.company_id, reviewKind: row.kind, entityId: row.entity_id, title: row.title, detail: row.kind === 'record_close' ? (row.note || 'A pessoa considera esta ocorrência resolvida e pede o encerramento.') : (row.note || 'Sem recado.'), meta: REVIEW_KINDS[row.kind] || row.kind, created_at: row.created_at })),
+      ...((reviews.data || []) as any[]).map((row) => ({ id: row.id, kind: 'review' as const, staff_user_id: row.staff_user_id, company_id: row.company_id, reviewKind: row.kind, entityId: row.entity_id, payload: row.payload, title: row.title, detail: row.kind === 'change' ? `Se você aprovar, ${CHANGE_EFFECT[row.payload?.action] || 'a alteração é aplicada'}.${row.payload?.reason ? ` Motivo informado: ${row.payload.reason}` : ''}` : row.kind === 'record_close' ? (row.note || 'A pessoa considera esta ocorrência resolvida e pede o encerramento.') : (row.note || 'Sem recado.'), meta: REVIEW_KINDS[row.kind] || row.kind, created_at: row.created_at })),
     ].sort((a, b) => a.created_at.localeCompare(b.created_at)));
     setLoading(false);
   }
@@ -67,6 +82,11 @@ export function AdminStaffPage() {
     if (decision.approve && decision.item.reviewKind === 'deliverable' && decision.item.entityId) {
       const sending = await supabase.rpc('change_deliverable_status', { p_deliverable_id: decision.item.entityId, p_status: 'client_review', p_note: decision.note.trim() || 'Aprovado pela administradora e enviado ao cliente' });
       if (sending.error) { setDeciding(false); setDecisionError(sending.error.message || 'Não foi possível enviar o entregável ao cliente.'); return; }
+    }
+    // Alteração pedida pela Equipe CALI (criar, editar, excluir, cancelar): aprovar = aplicar agora, com o acesso dela.
+    if (decision.approve && decision.item.reviewKind === 'change') {
+      const failure = await applyStaffChange(decision.item.payload);
+      if (failure) { setDeciding(false); setDecisionError(failure); return; }
     }
     const result = decision.item.kind === 'hours'
       ? await supabase.rpc('admin_decide_staff_hours', { p_submission_id: decision.item.id, p_approve: decision.approve, p_note: decision.note.trim() || null })
@@ -137,7 +157,7 @@ export function AdminStaffPage() {
     {decision && <div className="wf-overlay" onMouseDown={() => setDecision(null)}><form className="wf-modal v2-staff-form v2-staff-decision" role="dialog" aria-modal="true" aria-label="Decisão" onSubmit={decide} onMouseDown={(event) => event.stopPropagation()}>
       <header><div><small>{decision.item.meta.toUpperCase()}</small><h2>{decision.approve ? 'Aprovar' : decision.item.kind === 'hours' ? 'Recusar lançamento' : 'Devolver para ajuste'}</h2></div><button type="button" onClick={() => setDecision(null)} aria-label="Fechar"><X size={16} /></button></header>
       <div className="v2-staff-body"><div className="v2-staff-decision-item"><strong>{decision.item.title}</strong><small>{decision.item.detail}</small></div>
-        <p className="v2-staff-decision-effect">{decision.approve ? (decision.item.kind === 'hours' ? 'Ao aprovar, as horas entram no controle de horas da empresa como lançamento manual, com o nome de quem lançou e a justificativa guardados na nota interna. Elas ficam ocultas do cliente até você marcar como visíveis em Horas.' : decision.item.reviewKind === 'record_close' ? 'Ao aprovar, a ocorrência é finalizada agora e o cliente é avisado, como quando você clica em Finalizar.' : decision.item.reviewKind === 'deliverable' && decision.item.entityId ? 'Ao aprovar, o entregável é enviado agora ao cliente para validação, como quando você clica em Enviar ao cliente.' : 'Ao aprovar, a pessoa é avisada de que o material está liberado. O envio ao cliente continua sendo feito por você.') : decision.item.reviewKind === 'record_close' ? 'A ocorrência continua aberta e a pessoa verá o seu motivo.' : 'A pessoa verá o seu motivo e poderá corrigir e enviar de novo.'}</p>
+        <p className="v2-staff-decision-effect">{decision.approve ? (decision.item.kind === 'hours' ? 'Ao aprovar, as horas entram no controle de horas da empresa como lançamento manual, com o nome de quem lançou e a justificativa guardados na nota interna. Elas ficam ocultas do cliente até você marcar como visíveis em Horas.' : decision.item.reviewKind === 'change' ? `Ao aprovar, ${CHANGE_EFFECT[decision.item.payload?.action] || 'a alteração é aplicada'} agora, como se você mesma tivesse feito.` : decision.item.reviewKind === 'record_close' ? 'Ao aprovar, a ocorrência é finalizada agora e o cliente é avisado, como quando você clica em Finalizar.' : decision.item.reviewKind === 'deliverable' && decision.item.entityId ? 'Ao aprovar, o entregável é enviado agora ao cliente para validação, como quando você clica em Enviar ao cliente.' : 'Ao aprovar, a pessoa é avisada de que o material está liberado. O envio ao cliente continua sendo feito por você.') : decision.item.reviewKind === 'record_close' ? 'A ocorrência continua aberta e a pessoa verá o seu motivo.' : 'A pessoa verá o seu motivo e poderá corrigir e enviar de novo.'}</p>
         <div className="v2-staff-fields one"><label>{decision.approve ? 'Recado (opcional)' : 'Motivo (obrigatório)'}<input value={decision.note} onChange={(event) => setDecision({ ...decision, note: event.target.value })} autoFocus /></label></div>
         {decisionError && <div className="inline-notice v2-staff-error" role="alert">{decisionError}</div>}</div>
       <footer><button type="button" className="wf-secondary" onClick={() => setDecision(null)}>Cancelar</button><button type="submit" className="wf-primary" disabled={deciding}>{deciding ? 'Registrando…' : decision.approve ? 'Aprovar' : decision.item.kind === 'hours' ? 'Recusar' : 'Devolver'}</button></footer>
