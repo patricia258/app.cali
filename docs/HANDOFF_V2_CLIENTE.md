@@ -1322,6 +1322,14 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
 - ACHADO: no teste dela apareceu em Documentos do cliente o arquivo "Apresentacao_Comercial_Prado_Financas.docx", que o João mandou pelo chat. Causa: a primeira versão do anexo do Partner (`partner_attach_deliverable_file`, abandonada no mesmo dia) inseria o arquivo em `files` como publicado. Há exatamente 1 registro assim (conferido por contagem). Permissão de executar a função retirada (migration `20261017090000`). O REGISTRO continua lá — arquivar/retirar depende da aprovação dela (pedido feito).
 - A mensagem de teste antiga "Arquivo enviado. Anexo: …docx" é texto (formato anterior) e não é clicável; os anexos enviados depois da correção são clicáveis em todas as conversas.
 
+### 2026-10-13 — Documentos em pasta: ajustes do cliente + mesma organização para administradora e Equipe CALI
+
+- Cliente (`ClientDocumentsPage.tsx`): dentro da pasta, botão "Documentos" e cabeçalho da pasta na MESMA linha (sem repetir o nome no caminho); ações "Abrir" e "Confirmar" lado a lado ("Confirmado" depois); título em até 2 linhas sem vazar; cartão de pasta com a logo do cliente no centro, ícone de pasta no canto superior esquerdo e etiqueta "Pasta" no direito; contador "N pastas · N documentos"; filtro com a opção "Pastas"; a mensagem "Nenhum documento encontrado" só aparece quando não há pasta nem documento.
+- Administradora (`AdminDocumentsPageV4.tsx`): pasta = entregável com subtarefas ou com mais de um documento; abre em Lista por padrão; colunas Protocolo/Documento, Empresa/Projeto, Etapa, Validade, Entregue em, Acompanhamento. Entrar na pasta mostra só os documentos dela.
+- Equipe CALI: `/equipe/documentos` passou a usar a mesma página (`StaffDocumentsPage`, modo consulta: sem criar, completar, publicar, arquivar ou comentar; clicar abre o arquivo). Política nova de leitura no armazenamento `documents/<empresa>/` (migração `20261017120000_partner_documents_storage_read`, só acréscimo, aplicada).
+- Dado: o registro de teste do chat que aparecia como documento na Company IN foi ARQUIVADO com autorização da proprietária (status `archived`, `client_visible=false`; nada apagado).
+- Não verificado com conta real: abertura de arquivo pelo Partner (depende da política nova) e pasta com dados reais na tela da administradora.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

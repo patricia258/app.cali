@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   Archive, CheckCircle2, Cloud, ExternalLink, Eye, FileCheck2, FileClock, FileText,
-  ChevronRight, FolderOpen, ImagePlus, Layers3, Link2, Loader2, MessageSquare, Plus, Search, Send,
+  ArrowLeft, ChevronRight, FolderOpen, ImagePlus, Layers3, Link2, Loader2, MessageSquare, Plus, Search, Send,
   ShieldCheck, Upload, X,
 } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
@@ -18,7 +18,7 @@ type EditorMode = 'new' | 'complete' | 'revision';
 
 type CompanyOption = { id: string; name: string; logoUrl?: string | null };
 type ProjectOption = { id: string; companyId: string; name: string };
-type DeliverableOption = { id: string; companyId: string; projectId?: string | null; title: string; status?: string | null };
+type DeliverableOption = { id: string; companyId: string; projectId?: string | null; title: string; status?: string | null; protocol?: string | null; parts?: number };
 type ProfileOption = { id: string; companyId?: string | null; role: string; active: boolean };
 type DriveConnection = { id: string; accountEmail?: string | null; rootFolderName?: string | null; lastSyncAt?: string | null; status: string };
 type FileComment = { id: string; body: string; clientVisible: boolean; createdAt: string };
@@ -118,7 +118,11 @@ function emptyForm(companyId = ''): FormState {
   return { title: '', companyId, projectId: '', deliverableId: '', category: 'deliverable', kind: 'Entregável', version: 'v1.0', description: '', publish: false, requiresAcknowledgement: false, sourceMode: 'upload', driveUrl: '', revisionOfId: '', validUntil: '' };
 }
 
-export function AdminDocumentsPageV4() {
+// Equipe CALI usa a mesma página, só para consulta: sem criar, publicar, arquivar ou comentar.
+const DocsFrame = ({ staff, children }: { staff?: boolean; children: ReactNode }) => staff ? <>{children}</> : <Shell role="admin">{children}</Shell>;
+export const StaffDocumentsPage = () => <AdminDocumentsPageV4 staff />;
+
+export function AdminDocumentsPageV4({ staff = false }: { staff?: boolean } = {}) {
   const preview = sessionStorage.getItem('cali-preview-role') === 'admin';
   const [docs, setDocs] = useState<DocumentRow[]>([]);
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
@@ -132,7 +136,8 @@ export function AdminDocumentsPageV4() {
   const [notice, setNotice] = useState('');
 
   const [search, setSearch] = useState('');
-  const [layout, setLayout] = useState<'covers' | 'list'>('covers');
+  const [layout, setLayout] = useState<'covers' | 'list'>('list');
+  const [openFolder, setOpenFolder] = useState<string | null>(null);
   const [companyFilter, setCompanyFilter] = useState('all');
   const [stageFilter, setStageFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -160,6 +165,16 @@ export function AdminDocumentsPageV4() {
     if (categoryFilter !== 'all' && doc.category !== categoryFilter) return false;
     return true;
   }), [docs, search, companyFilter, stageFilter, categoryFilter]);
+
+  // Pasta = entregável com subtarefas ou com mais de um documento. Os demais documentos seguem soltos.
+  const folderList = useMemo(() => {
+    const groups = new Map<string, DocumentRow[]>();
+    filtered.forEach((doc) => { if (doc.deliverableId) groups.set(doc.deliverableId, [...(groups.get(doc.deliverableId) || []), doc]); });
+    return [...groups.entries()].map(([id, items]) => ({ id, items, info: deliverables.find((item) => item.id === id) })).filter((group) => group.items.length > 1 || (group.info?.parts || 0) > 0);
+  }, [filtered, deliverables]);
+  const folderIds = useMemo(() => new Set(folderList.map((group) => group.id)), [folderList]);
+  const activeFolder = folderList.find((group) => group.id === openFolder) || null;
+  const shown = useMemo(() => activeFolder ? activeFolder.items : filtered.filter((doc) => !doc.deliverableId || !folderIds.has(doc.deliverableId)), [activeFolder, filtered, folderIds]);
 
   const stats = useMemo(() => ({
     preparation: docs.filter((doc) => doc.workflowStage === 'preparation').length,
@@ -198,16 +213,19 @@ export function AdminDocumentsPageV4() {
     setLoading(true);
     setError('');
     try {
-      const [companyResult, projectResult, deliverableResult, fileResult, ackResult, profileResult, commentResult, driveResult] = await Promise.all([
+      const [companyResult, projectResult, deliverableResult, fileResult, ackResult, profileResult, commentResult, driveResult, partResult] = await Promise.all([
         supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url').neq('status', 'closed').order('display_name'),
         supabase.from('projects').select('id,company_id,name').order('created_at', { ascending: false }),
-        supabase.from('deliverables').select('id,company_id,project_id,title,status,is_document').order('created_at', { ascending: false }),
+        supabase.from('deliverables').select('id,company_id,project_id,title,status,is_document,protocol').order('created_at', { ascending: false }),
         supabase.from('files').select('id,company_id,project_id,deliverable_id,title,category,version_label,updated_at,published_at,drive_url,client_visible,source_type,protocol,document_kind,cover_storage_path,file_type,file_size_bytes,original_filename,requires_acknowledgement,status,storage_path,description,revision_of_id,workflow_origin,workflow_stage,valid_until').order('updated_at', { ascending: false }),
         supabase.from('document_acknowledgements').select('file_id,status,viewed_at,acknowledged_at'),
         supabase.from('profiles').select('id,company_id,role,active').eq('active', true),
         supabase.from('comments').select('target_id').eq('target_type', 'file'),
         supabase.from('drive_connections').select('id,account_email,root_folder_name,last_sync_at,status').eq('owner_type', 'cali').eq('status', 'connected').order('updated_at', { ascending: false }).limit(1),
+        supabase.from('deliverable_tasks').select('deliverable_id'),
       ]);
+      const partCount = new Map<string, number>();
+      ((partResult.data || []) as { deliverable_id: string }[]).forEach((row) => partCount.set(row.deliverable_id, (partCount.get(row.deliverable_id) || 0) + 1));
       const failure = [companyResult.error, projectResult.error, deliverableResult.error, fileResult.error, ackResult.error, profileResult.error, commentResult.error, driveResult.error].find(Boolean);
       if (failure) throw failure;
 
@@ -217,7 +235,7 @@ export function AdminDocumentsPageV4() {
         logoUrl: await resolveWorkspaceMedia(row.logo_url || row.logo_workspace_url) || await resolveWorkspaceMedia(row.logo_workspace_url),
       })));
       const projectOptions: ProjectOption[] = (projectResult.data || []).map((row) => ({ id: row.id, companyId: row.company_id, name: row.name }));
-      const deliverableOptions: DeliverableOption[] = (deliverableResult.data || []).map((row) => ({ id: row.id, companyId: row.company_id, projectId: row.project_id, title: row.title, status: row.status }));
+      const deliverableOptions: DeliverableOption[] = (deliverableResult.data || []).map((row) => ({ id: row.id, companyId: row.company_id, projectId: row.project_id, title: row.title, status: row.status, protocol: (row as any).protocol || null, parts: partCount.get(row.id) || 0 }));
       const profileOptions: ProfileOption[] = (profileResult.data || []).map((row) => ({ id: row.id, companyId: row.company_id, role: row.role, active: Boolean(row.active) }));
       setCompanies(companyOptions); setProjects(projectOptions); setDeliverables(deliverableOptions); setProfiles(profileOptions); setDriveConnection((driveResult.data?.[0] as DriveConnection | undefined) || null);
 
@@ -412,7 +430,9 @@ export function AdminDocumentsPageV4() {
     setCommentText(''); await loadComments(detailDoc); await loadDocuments();
   }
 
-  if(loading)return <Shell role="admin"><section className="v2-client-module data-loading" aria-live="polite" aria-busy="true">Carregando biblioteca…</section></Shell>;
+  if(loading)return <DocsFrame staff={staff}><section className="v2-client-module data-loading" aria-live="polite" aria-busy="true">Carregando biblioteca…</section></DocsFrame>;
+  const openRow = (doc: DocumentRow) => staff ? openDocument(doc) : loadComments(doc);
+  const delivered = (doc: DocumentRow) => doc.publishedAt ? new Date(doc.publishedAt).toLocaleDateString('pt-BR') : '—';
 
   const tagTone = (stage: string) => stage === 'published' ? 'green' : stage === 'ready_to_publish' ? 'blue' : stage === 'archived' ? 'red' : stage === 'awaiting_final_file' ? 'yellow' : 'purple';
   const validity = (doc: DocumentRow) => doc.validUntil ? doc.validUntil.split('-').reverse().join('/') : 'não definida';
@@ -427,19 +447,22 @@ export function AdminDocumentsPageV4() {
   };
 
   return (
-    <Shell role="admin">
+    <DocsFrame staff={staff}>
       <div className="ap-app v2-admin-page v2-admin-docs v2-client-module"><div className="ap-content"><div className="wf documents-admin-v4">
-        <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Documentos</h1><p>Acervo de todas as contas: prévias, arquivos finais, versões, publicação e ciência.</p></div><div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => openNewDocument('drive')}><Link2 size={15} /> Adicionar via Drive</button><button className="wf-primary" type="button" onClick={() => openNewDocument('upload')}><Plus size={15} /> Adicionar documento</button></div></div>
+        <div className="wf-head"><div><small>{staff ? 'EQUIPE CALI / DOCUMENTOS' : 'BACKOFFICE / CALI RH'}</small><h1>Documentos</h1><p>{staff ? 'Documentos das empresas que você atende, organizados por pasta de entregável.' : 'Acervo de todas as contas: prévias, arquivos finais, versões, publicação e ciência.'}</p></div><div className="v2-head-actions" hidden={staff}><button className="wf-secondary" type="button" onClick={() => openNewDocument('drive')}><Link2 size={15} /> Adicionar via Drive</button><button className="wf-primary" type="button" onClick={() => openNewDocument('upload')}><Plus size={15} /> Adicionar documento</button></div></div>
 
         {notice && <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div>}
         {error && !editorOpen && <div className="inline-notice">{error}</div>}
 
-        <section className={`wf-doc-drive v2-doc-storage ${driveConnection ? 'connected' : ''}`}>
+        {!staff && <section className={`wf-doc-drive v2-doc-storage ${driveConnection ? 'connected' : ''}`}>
           <div><strong>{driveConnection ? 'Arquivo interno da CALI' : 'Armazenamento dos documentos'}</strong><p>{driveConnection ? `${driveConnection.accountEmail || 'Conta CALI'}${driveConnection.rootFolderName ? ` · ${driveConnection.rootFolderName}` : ''} · fonte operacional` : 'A CALI organiza a versão de trabalho aqui. Depois da aprovação, o documento fica disponível para ser salvo no Drive da empresa cliente.'}</p></div>{driveConnection && <span className="wf-tag green"><CheckCircle2 size={12} /> Conectado</span>}
-        </section>
+        </section>}
 
-        <div className="wf-doc-toolbar v2-doc-toolbar">
-          <strong>{filtered.length} {filtered.length === 1 ? 'documento' : 'documentos'}</strong>
+        {activeFolder && <div className="v2-fv-top"><button type="button" className="v2-fv-back" onClick={() => setOpenFolder(null)}><ArrowLeft size={14} /> Documentos</button>
+          <header className="v2-fv-head"><div><FolderOpen size={22} /><div><h2>{activeFolder.info?.title || activeFolder.items[0].deliverable || 'Entregável'}</h2><p>{[activeFolder.info?.protocol, activeFolder.items[0].company, `${activeFolder.items.length} ${activeFolder.items.length === 1 ? 'documento' : 'documentos'}`].filter(Boolean).join(' · ')}</p></div></div><div className="v2-fv-right"><div className="wf-segments" aria-label="Exibição da pasta"><button type="button" className={layout === 'covers' ? 'on' : ''} onClick={() => setLayout('covers')}>Capas</button><button type="button" className={layout === 'list' ? 'on' : ''} onClick={() => setLayout('list')}>Lista</button></div></div></header></div>}
+
+        <div className="wf-doc-toolbar v2-doc-toolbar" hidden={Boolean(activeFolder)}>
+          <strong>{[folderList.length ? `${folderList.length} ${folderList.length === 1 ? 'pasta' : 'pastas'}` : '', shown.length || !folderList.length ? `${shown.length} ${shown.length === 1 ? 'documento' : 'documentos'}` : ''].filter(Boolean).join(' · ')}</strong>
           <select className="wf-doc-filter" aria-label="Empresa" value={companyFilter} onChange={(event) => setCompanyFilter(event.target.value)}><option value="all">Todas as empresas</option>{companies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
           <select className="wf-doc-filter" aria-label="Etapa" value={stageFilter} onChange={(event) => setStageFilter(event.target.value)}><option value="all">Em uso (sem arquivados)</option><option value="preparation">Em preparação</option><option value="awaiting_final_file">Aguardando arquivo final</option><option value="ready_to_publish">Pronto para publicar</option><option value="published">Disponível ao cliente</option><option value="archived">Arquivados ({docs.filter((doc) => doc.workflowStage === 'archived' || doc.status === 'archived').length})</option></select>
           <select className="wf-doc-filter" aria-label="Categoria" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}><option value="all">Todas as categorias</option>{categoryOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select>
@@ -447,20 +470,27 @@ export function AdminDocumentsPageV4() {
           <div className="wf-segments" aria-label="Exibição do acervo"><button type="button" className={layout === 'covers' ? 'on' : ''} onClick={() => setLayout('covers')}>Capas</button><button type="button" className={layout === 'list' ? 'on' : ''} onClick={() => setLayout('list')}>Lista</button></div>
         </div>
 
-        {filtered.length === 0 && <div className="wf-empty"><strong>{docs.length ? 'Nenhum documento neste filtro.' : 'A biblioteca está pronta.'}</strong><p>{docs.length ? 'Ajuste os filtros.' : 'As prévias surgirão automaticamente quando um entregável marcado como “Gera documento” for criado.'}</p></div>}
+        {filtered.length === 0 && !activeFolder && <div className="wf-empty"><strong>{docs.length ? 'Nenhum documento neste filtro.' : 'A biblioteca está pronta.'}</strong><p>{docs.length ? 'Ajuste os filtros.' : 'As prévias surgirão automaticamente quando um entregável marcado como “Gera documento” for criado.'}</p></div>}
 
         {layout === 'covers' && filtered.length > 0 && <section className="wf-doc-gallery v2-doc-gallery">
-          {filtered.map((doc) => {
+          {!activeFolder && folderList.map((group) => { const first = group.items[0]; const live = group.items.filter((doc) => doc.workflowStage === 'published').length; return <article className="wf-doc-cover doc-work v2-doc-card v2-folder-card" key={`f:${group.id}`}>
+            <div className="v2-doc-art-wrap"><button type="button" className="wf-doc-art v2-folder-art" aria-label={`Abrir a pasta ${group.info?.title || ''}`} onClick={() => setOpenFolder(group.id)}>{first.companyLogo ? <AutoCover logo={first.companyLogo} name={first.company} /> : <span><b>CALI</b></span>}</button><span className="v2-folder-mark" aria-hidden="true"><FolderOpen size={18} /></span><div className="v2-doc-tags"><span className="wf-doc-label doc-work">Pasta</span></div></div>
+            <div className="wf-doc-content"><h2 title={group.info?.title || ''}>{group.info?.title || first.deliverable || 'Entregável'}</h2>
+              <div className="v2-doc-client"><span className="v2-doc-client-logo">{first.companyLogo ? <img src={first.companyLogo} alt="" /> : <span>{first.company.slice(0, 1).toUpperCase()}</span>}</span><div><strong>{first.company}</strong><small>{first.project ? `Projeto ${first.project}` : 'Sem projeto vinculado'}</small></div></div>
+              <div className="v2-doc-foot"><strong className="wf-doc-protocol">{group.info?.protocol || 'Sem protocolo'}</strong><small className="v2-folder-count">{live} de {group.items.length} {group.items.length === 1 ? 'disponível' : 'disponíveis'} ao cliente</small></div>
+              <button type="button" className="v2-folder-open" onClick={() => setOpenFolder(group.id)}>Abrir pasta <ChevronRight size={14} /></button></div>
+          </article>; })}
+          {shown.map((doc) => {
             const pending = Math.max(0, doc.expectedAcknowledgements - doc.acknowledgements);
             const needsFile = doc.workflowStage === 'preparation' || doc.workflowStage === 'awaiting_final_file';
             const review = reviewInfo(doc.validUntil);
             return <article className={`wf-doc-cover doc-work v2-doc-card status-${doc.status} stage-${doc.workflowStage}`} key={doc.id}>
               <div className="v2-doc-art-wrap">
-                <button type="button" className={`wf-doc-art ${doc.coverUrl ? 'has-cover' : ''}`} aria-label={`Ver detalhes de ${doc.title}`} onClick={() => void loadComments(doc)}>{doc.coverUrl ? <img src={doc.coverUrl} alt="" /> : doc.companyLogo ? <AutoCover logo={doc.companyLogo} name={doc.company} /> : <span><b>CALI</b></span>}</button>
+                <button type="button" className={`wf-doc-art ${doc.coverUrl ? 'has-cover' : ''}`} aria-label={`Ver detalhes de ${doc.title}`} onClick={() => void openRow(doc)}>{doc.coverUrl ? <img src={doc.coverUrl} alt="" /> : doc.companyLogo ? <AutoCover logo={doc.companyLogo} name={doc.company} /> : <span><b>CALI</b></span>}</button>
                 <div className="v2-doc-tags"><span className={`wf-tag ${tagTone(doc.workflowStage)}`}>{stageLabel(doc.workflowStage)}</span><span className="wf-doc-label doc-work">{categoryLabel(doc.category)}</span></div>
               </div>
               <div className="wf-doc-content">
-                <h2>{doc.title}</h2>
+                <h2 title={doc.title}>{doc.title}</h2>
                 <div className="v2-doc-client"><span className="v2-doc-client-logo">{doc.companyLogo ? <img src={doc.companyLogo} alt="" /> : <span>{doc.company.slice(0, 1).toUpperCase()}</span>}</span><div><strong>{doc.company}</strong><small>{contextLine(doc)}</small></div></div>
                 <dl className="v2-doc-facts">
                   <div><dt>Versão</dt><dd>{doc.version}</dd></div>
@@ -469,23 +499,33 @@ export function AdminDocumentsPageV4() {
                   <div className={review.tone}><dt>Validade / revisão</dt><dd>{review.date}{review.note && <small>{review.note}</small>}</dd></div>
                 </dl>
                 <div className="v2-doc-foot"><strong className="wf-doc-protocol">{doc.protocol || 'Sem protocolo'}</strong><div className="v2-doc-metrics"><span title="Visualizações"><Eye size={12} />{doc.views}</span>{doc.requiresAcknowledgement && <span className={pending > 0 ? 'pending' : 'done'} title="Ciências registradas"><ShieldCheck size={12} />{doc.acknowledgements}{doc.expectedAcknowledgements ? `/${doc.expectedAcknowledgements}` : ''}</span>}<span title="Comentários"><MessageSquare size={12} />{doc.comments}</span></div></div>
-                <div className="wf-doc-actions">{needsFile && <button type="button" className="v2-doc-primary" onClick={() => completeDocument(doc)}><Upload size={13} /> Completar</button>}<button type="button" onClick={() => void openDocument(doc)} disabled={!doc.storagePath && !doc.driveUrl}><ExternalLink size={13} /> Abrir</button><button type="button" onClick={() => void loadComments(doc)}>Detalhes</button></div>
+                <div className="wf-doc-actions">{needsFile && !staff && <button type="button" className="v2-doc-primary" onClick={() => completeDocument(doc)}><Upload size={13} /> Completar</button>}<button type="button" onClick={() => void openDocument(doc)} disabled={!doc.storagePath && !doc.driveUrl}><ExternalLink size={13} /> Abrir</button>{!staff && <button type="button" onClick={() => void loadComments(doc)}>Detalhes</button>}</div>
               </div>
             </article>;
           })}
         </section>}
 
         {layout === 'list' && filtered.length > 0 && <div className="wf-records v2-admin-doc-list">
-          <div className="wf-record-row header"><span/><span>Documento / Protocolo</span><span>Empresa / Projeto</span><span>Categoria</span><span>Etapa</span><span>Validade</span><span>Acompanhamento</span><span/></div>
-          {filtered.map((doc) => { const pending = Math.max(0, doc.expectedAcknowledgements - doc.acknowledgements); return <div className="wf-record-row" key={doc.id} role="button" tabIndex={0} onClick={() => void loadComments(doc)} onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); void loadComments(doc); } }}>
+          <div className="wf-record-row header"><span/><span>Protocolo / Documento</span><span>Empresa / Projeto</span><span>Etapa</span><span>Validade</span><span>Entregue em</span><span>Acompanhamento</span><span/></div>
+          {!activeFolder && folderList.map((group) => { const first = group.items[0]; const live = group.items.filter((doc) => doc.workflowStage === 'published'); const last = live.map((doc) => doc.publishedAt || '').sort().pop(); return <div className="wf-record-row v2-folder-row" key={`f:${group.id}`} role="button" tabIndex={0} onClick={() => setOpenFolder(group.id)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setOpenFolder(group.id); } }}>
+            <span className="v2-record-logo">{first.companyLogo ? <img src={first.companyLogo} alt="" /> : <span aria-hidden="true">{first.company.slice(0, 1).toUpperCase()}</span>}</span>
+            <span><small>{group.info?.protocol || '—'}</small><strong><FolderOpen size={15} /> {group.info?.title || first.deliverable || 'Entregável'}</strong><small>{group.items.length} {group.items.length === 1 ? 'documento' : 'documentos'}</small></span>
+            <span className="v2-record-author"><strong>{first.company}</strong><small>{first.project ? `Projeto ${first.project}` : 'Sem projeto vinculado'}</small></span>
+            <span><span className="wf-tag amber">Pasta</span></span>
+            <span>—</span>
+            <span>{last ? new Date(last).toLocaleDateString('pt-BR') : '—'}</span>
+            <span>{live.length} de {group.items.length} {group.items.length === 1 ? 'disponível' : 'disponíveis'}</span>
+            <ChevronRight size={16} />
+          </div>; })}
+          {shown.map((doc) => { const pending = Math.max(0, doc.expectedAcknowledgements - doc.acknowledgements); return <div className="wf-record-row" key={doc.id} role="button" tabIndex={0} onClick={() => void openRow(doc)} onKeyDown={(event) => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); void openRow(doc); } }}>
             <span className="v2-record-logo">{doc.companyLogo ? <img src={doc.companyLogo} alt="" /> : <span aria-hidden="true">{doc.company.slice(0, 1).toUpperCase()}</span>}</span>
-            <span><small>{doc.protocol || '—'}</small><strong>{doc.title}</strong><small>Versão {doc.version} · {sourceLabel(doc.sourceType)}</small></span>
-            <span className="v2-record-author"><strong>{doc.company}</strong><small>{contextLine(doc)}</small></span>
-            <span>{categoryLabel(doc.category)}</span>
+            <span><small>{doc.protocol || '—'}</small><strong title={doc.title}>{doc.title}</strong><small>{categoryLabel(doc.category)} · versão {String(doc.version).replace(/^v/i, '')}</small></span>
+            <span className="v2-record-author"><strong>{doc.company}</strong><small>{activeFolder ? (doc.project ? `Projeto ${doc.project}` : 'Sem projeto vinculado') : contextLine(doc)}</small></span>
             <span><span className={`wf-tag ${tagTone(doc.workflowStage)}`}>{stageLabel(doc.workflowStage)}</span></span>
             <span className={`v2-doc-review ${reviewInfo(doc.validUntil).tone}`}>{reviewInfo(doc.validUntil).date}{reviewInfo(doc.validUntil).note && <small>{reviewInfo(doc.validUntil).note}</small>}</span>
+            <span>{delivered(doc)}</span>
             <span className="v2-doc-metrics"><span><Eye size={12} />{doc.views}</span>{doc.requiresAcknowledgement && <span className={pending > 0 ? 'pending' : 'done'}><ShieldCheck size={12} />{doc.acknowledgements}{doc.expectedAcknowledgements ? `/${doc.expectedAcknowledgements}` : ''}</span>}<span><MessageSquare size={12} />{doc.comments}</span></span>
-            <button type="button" aria-label={`Abrir detalhes de ${doc.title}`} onClick={(event) => { event.stopPropagation(); void loadComments(doc); }}><ChevronRight size={16} /></button>
+            <button type="button" aria-label={`Abrir ${doc.title}`} onClick={(event) => { event.stopPropagation(); void openRow(doc); }}><ChevronRight size={16} /></button>
           </div>; })}
         </div>}
       </div></div>
@@ -526,6 +566,6 @@ export function AdminDocumentsPageV4() {
         </div>
       </section></div>}
       </div>
-    </Shell>
+    </DocsFrame>
   );
 }
