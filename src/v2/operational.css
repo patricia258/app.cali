@@ -3106,3 +3106,7 @@ html[data-workspace-ui='v2'] .v2-staff-projects .dv-modal .dv-actions :is(button
 @media(max-width:900px){html[data-workspace-ui='v2'] .v2-staff-projects .dv-modal .dv-actions,html[data-workspace-ui='v2'] .v2-staff-projects .dv-modal .dv-actions :is(.deliverable-actions-left-v2,.deliverable-actions-right-v2){flex-wrap:wrap}}
 html[data-workspace-ui='v2'] .topbar .v2-staff-timer strong{color:#234a33!important;font-size:13px!important;letter-spacing:0!important;text-transform:none!important}
 html[data-workspace-ui='v2'] .topbar .v2-staff-timer small{color:#5d7a68!important;letter-spacing:0!important;text-transform:none!important;font-weight:500!important}
+/* Equipe CALI — anexar na conversa da ocorrência: mesma linha e altura de Cliente/Interno e Enviar. */
+html[data-workspace-ui='v2'] .v2-staff-compose-actions .v2-staff-attach{display:inline-flex;align-items:center;gap:7px;height:36px;min-height:36px;box-sizing:border-box;padding:0 13px;max-width:220px;margin-left:auto}
+html[data-workspace-ui='v2'] .v2-staff-compose-actions .v2-staff-attach span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html[data-workspace-ui='v2'] .v2-staff-compose-actions .v2-staff-attach+.primary{margin-left:0}

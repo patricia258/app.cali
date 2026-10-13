@@ -1073,6 +1073,16 @@ Tudo o que não foi resolvido, não foi confirmado ou ficou sem teste com dados 
 - Conferido: `npm run check` ok; varredura 105 · 0. NÃO testado com gravação real.
 - Próximos: calendário do cliente com a mesma grade; Documentos, Relatórios e Equipe do cliente do Partner.
 
+### 2026-10-13 — Publicação 14 e anexos nas conversas (três perfis)
+
+- Publicação 14 no oficial (`fc71afb`), aprovada pela Patricia.
+- Conferência de permissões de arquivo (bucket `cali-workspace-private`):
+  - Entregável (`deliverable-chat/<empresa>/<entregável>/<usuário>/`): administradora sempre pôde; o CLIENTE não tinha política de envio nem de leitura (o clipe falhava) — criadas `…client_chat_insert` e `…client_chat_select`; Partner já tinha desde a migration 20261014210000.
+  - Ocorrências (`records/<empresa>/<ocorrência>/<usuário>/`): administradora e cliente JÁ tinham anexo (runtime V2: até 5 arquivos, 10 MB cada; PDF, imagem, Word, Excel, PowerPoint). Correção de registro: eu havia dito à Patricia que não existia. Faltava só o Partner — criadas `…partner_records_insert/select` e o botão "Anexar" no modo equipe de `WorkspaceRecordsPage.tsx` (1 arquivo por mensagem, 10 MB).
+  - Migration `20261014230000`, já aplicada (o banco é o mesmo do oficial: a permissão do cliente vale desde já).
+- NÃO testado com envio real em nenhum dos três perfis.
+- Próximo: calendário do cliente com a mesma grade da administradora, sem criar evento.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
