@@ -224,7 +224,7 @@ Deno.serve(async (request) => {
             const { data: company } = await workspace.from("companies")
               .select("display_name").eq("id", profile.company_id).maybeSingle();
             const html = renderApprovedClientEmail("welcome", {
-              nome_do_cliente: String(profile.full_name || "").trim().split(/\\s+/)[0] || "você",
+              nome_do_cliente: String(profile.full_name || "").trim().split(/\s+/)[0] || "você",
               empresa: String(company?.display_name || "sua empresa"),
               link: APP_URL + "/cliente",
               logo_workspace_url: APP_URL + "/brand/cali-workspace-transparent.svg",
