@@ -1409,6 +1409,14 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
 - **Resumo matinal de conversas para o cliente:** decidido que NÃO. A rotina `workspace-daily-chat-digest` continua pausada.
 - **Funções do Mapa People abertas a quem não está logado:** a proprietária não entendeu a pergunta; reexplicado. Nada alterado até ela responder.
 
+### 2026-10-14 — Cronômetro verde, Mapa People fechado, resposta em 72h e alerta de previsão
+
+- **Publicação 32** (`977e335`): cronômetro da administradora em verde, no padrão do Partner (topo conferido; o do entregável não monta no ambiente de teste).
+- **Mapa People:** com o "pode fechar" da proprietária, as quatro funções `public.workspace_*mapa_people*` não podem mais ser chamadas sem login.
+- **Prazo de resposta do cliente = 72 HORAS corridas** (não 3 dias úteis). Trocada a linha de cálculo do vencimento da validação do cronograma em `open_project_schedule_review_v38` e `admin_resolve_project_schedule_adjustment`: `now() + 24h x dias do projeto`. A coluna continua se chamando `client_response_business_days` (o nome ficou legado; o valor 3 = 72h). Rótulo na tela: "72h para o cliente responder". Migração `20261019120000`.
+  NÃO alterado: a janela de 3 dias úteis para pergunta sobre relatório (`reportWorkflowGovernanceV61.ts`) e os deslocamentos de prazo em dias úteis ao retomar projeto pausado. Confirmar com a proprietária se também viram horas corridas.
+- **Alerta "previsão depois da meta"** (cabeçalho do projeto): saiu do meio do cartão e foi para o lado direito, em âmbar, com texto que explica as duas datas e diz o que fazer (`projectsPlanningIntelligenceRuntimeV36.ts`).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
