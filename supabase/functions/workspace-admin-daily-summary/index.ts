@@ -7,7 +7,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const FROM_EMAIL = "CALI Workspace <patricia@calirh.com>";
+const FROM_EMAIL = "APP CALI RH <workspace@calirh.com>";
 const REPLY_TO = "patricia@calirh.com";
 const APP_URL = "https://app.calirh.com";
 const LOGO_URL = `${APP_URL}/brand/cali-workspace-transparent.svg`;
@@ -64,6 +64,9 @@ Deno.serve(async (req: Request) => {
     const { data: secretRow } = await ws.from("runtime_secrets").select("secret_value").eq("secret_key", "notification_email_hook").maybeSingle();
     if (!provided || !secretRow?.secret_value || provided !== secretRow.secret_value) return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), { status: 401, headers });
 
+    // Envio manual de teste não pode "gastar" a chave do dia, senão o envio automático das 19h seria descartado como repetido.
+    const source = String((await req.json().catch(() => ({})))?.source || "daily_cron");
+    const keySuffix = source === "daily_cron" ? "" : `-teste-${Date.now()}`;
     // Dia corrente no horário de Brasília (UTC-3, sem horário de verão).
     const day = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
     const from = `${day}T00:00:00-03:00`, to = `${day}T23:59:59-03:00`;
@@ -106,7 +109,7 @@ Deno.serve(async (req: Request) => {
     for (const admin of admins) {
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
-        headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-admin-summary-${admin.id}-${day}` },
+        headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-admin-summary-${admin.id}-${day}${keySuffix}` },
         body: JSON.stringify({ from: FROM_EMAIL, to: [String(admin.email).trim().toLowerCase()], reply_to: REPLY_TO, subject: `CALI Workspace · Resumo do dia · ${day.split("-").reverse().join("/")}`, html }),
       });
       if (!response.ok) { console.error("admin summary resend", response.status, await response.text()); continue; }
