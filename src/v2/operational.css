@@ -3822,3 +3822,7 @@ html[data-workspace-ui='v2'] .v2-client-cal .calendar-week-day-head{min-height:5
 .v2-mention-box small{font-size:10.5px;color:#8a7c74}
 html[data-workspace-ui='v2'] .notification-item.notification-kind-mention{border-left:4px solid #d9a514!important;background:#fff8e6!important}
 html[data-workspace-ui='v2'] .notification-item.notification-kind-mention .notification-visual{background:#d9a514!important;color:#fff!important}
+
+/* Pasta do entregável: nome que o cliente vê e campo de renomear. */
+html[data-workspace-ui='v2'] .v2-final-name{display:block;margin-top:2px;font-size:10.5px;font-weight:400;color:#7d726b}
+html[data-workspace-ui='v2'] .v2-final-rename{box-sizing:border-box;height:32px;min-width:220px;padding:0 10px;border:1px solid #dfd3ca;border-radius:8px;background:#fff;font:inherit;font-size:12px}

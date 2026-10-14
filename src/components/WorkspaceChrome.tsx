@@ -164,6 +164,11 @@ export function NotificationCenter({ role }: { role: Role }) {
       url += `${url.includes('?') ? '&' : '?'}project=${encodeURIComponent(item.entity_id)}`;
     } else if (item.entity_type === 'scheduling_request' && item.entity_id && !url.includes('request=')) {
       url += `${url.includes('?') ? '&' : '?'}request=${encodeURIComponent(item.entity_id)}`;
+    } else if (item.entity_type === 'file' && item.entity_id && !url.includes('documento=')) {
+      // Aviso de documento abre o próprio documento (ou a pasta dele), não só a página.
+      url += `${url.includes('?') ? '&' : '?'}documento=${encodeURIComponent(item.entity_id)}`;
+    } else if (item.entity_type === 'report' && item.entity_id && !url.includes('report=')) {
+      url += `${url.includes('?') ? '&' : '?'}report=${encodeURIComponent(item.entity_id)}`;
     }
     return url;
   }
