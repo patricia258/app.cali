@@ -34,7 +34,7 @@ function inviteHtml(name: string, email: string) {
 <p style="line-height:1.7;margin:0 0 22px">3. Digite o código de 6 números que chega em seguida na sua caixa de entrada. Não há senha.</p>
 <p style="margin:0"><a href="${APP_URL}/login" style="display:inline-block;background:#5A1E2D;color:#fff;text-decoration:none;font-weight:700;font-size:13px;padding:13px 20px;border-radius:8px">Abrir o CALI Workspace</a></p>
 <p style="font-size:11px;line-height:1.65;color:#7A6F72;margin:24px 0 0">Se você não esperava este convite, ignore esta mensagem.</p></td></tr>
-<tr><td bgcolor="#F7F3EE" style="padding:17px 28px;text-align:center;font-size:10px;color:#8D8184">CALI RH · HR for Business · calirh.com</td></tr>
+<tr><td bgcolor="#F7F3EE" style="padding:17px 28px;text-align:center;font-size:10px;color:#8D8184">CALI RH · HR for Business · calirh.com<br><span style="display:inline-block;padding-top:8px;font-size:11px;line-height:1.6">E-mail automático. Não responda a esta mensagem. Para falar com a CALI, acesse o <a href="${APP_URL}" style="color:#5A1E2D;text-decoration:underline">Workspace</a>.</span></td></tr>
 </table></td></tr></table></body></html>`;
 }
 

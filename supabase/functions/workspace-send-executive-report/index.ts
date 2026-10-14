@@ -97,7 +97,8 @@ function html(company: string, period: string, message: string, reportId: string
         <p style="font-size:15px;line-height:1.65;margin:0 0 24px">A leitura do período já está no CALI Workspace.</p>
         <div style="text-align:center;margin:0 0 24px"><a href="${esc(url)}" style="display:inline-block;background:#5A1E2D;color:#fff;text-decoration:none;font-size:14px;font-weight:700;padding:13px 22px;border-radius:999px">Abrir no Workspace</a></div>
         <div style="height:1px;background:#EAE1D8;margin-bottom:18px"></div>
-        <p style="font-size:12px;color:#8C807A;margin:0">CALI Workspace · Patrícia Lima · People Advisory Executive</p>
+        <p style="font-size:12px;color:#8C807A;margin:0"><strong>APP CALI Workspace</strong></p>
+        <p style="font-size:12px;line-height:1.6;color:#8C807A;margin:8px 0 0">E-mail automático. Não responda a esta mensagem. Para falar com a CALI, acesse o <a href="${APP_BASE}" style="color:#5A1E2D;text-decoration:underline">Workspace</a>.</p>
       </td></tr>
     </table>
   </td></tr></table></body></html>`;
