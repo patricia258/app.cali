@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { ArrowLeft, Clock3, FolderOpen, AlertTriangle, CheckCircle2, ChevronRight, Cloud, ExternalLink, Eye, FileCheck2, FileText, MessageSquare, Search, Send, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
@@ -83,6 +84,17 @@ export function ClientDocumentsPage() {
     if (!supabase) return;
     void loadDocuments();
   }, []);
+
+  // Chegando por um aviso (?documento=...): abre a pasta do documento ou a ficha dele, uma vez só.
+  const location = useLocation(); const openedFromLink = useRef('');
+  useEffect(() => {
+    const wanted = new URLSearchParams(location.search).get('documento') || '';
+    if (!wanted || openedFromLink.current === wanted || !documents.length) return;
+    const hit = documents.find((doc) => doc.id === wanted) as any; if (!hit) return;
+    openedFromLink.current = wanted;
+    const folder = folders.find((item) => item.id === hit.deliverableId || item.items.some((part) => part.id === hit.taskId));
+    if (folder) setOpenFolder(folder.id); else setDetailDoc(hit);
+  }, [location.search, documents, folders]);
 
   useEffect(() => {
     if (!commentDoc) return;

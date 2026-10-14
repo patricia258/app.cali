@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   Archive, CheckCircle2, Cloud, ExternalLink, Eye, FileCheck2, FileClock, FileText,
   ArrowLeft, ChevronRight, FolderOpen, ImagePlus, Layers3, Link2, Loader2, MessageSquare, Plus, Search, Send,
@@ -185,6 +186,15 @@ export function AdminDocumentsPageV4({ staff = false }: { staff?: boolean } = {}
 
   const formProjects = useMemo(() => projects.filter((item) => item.companyId === form.companyId), [projects, form.companyId]);
   const formDeliverables = useMemo(() => deliverables.filter((item) => item.companyId === form.companyId && (!form.projectId || item.projectId === form.projectId)), [deliverables, form.companyId, form.projectId]);
+
+  // Chegando por um aviso (?documento=...): abre os detalhes do documento, uma vez só.
+  const location = useLocation(); const openedFromLink = useRef('');
+  useEffect(() => {
+    const wanted = new URLSearchParams(location.search).get('documento') || '';
+    if (staff || !wanted || openedFromLink.current === wanted || !docs.length) return;
+    const hit = docs.find((doc) => doc.id === wanted); if (!hit) return;
+    openedFromLink.current = wanted; void loadComments(hit);
+  }, [location.search, docs]);
 
   useEffect(() => {
     const modalOpen = editorOpen || Boolean(detailDoc);

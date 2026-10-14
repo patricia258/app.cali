@@ -1396,6 +1396,12 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
 - Limites: o nome mencionado não ganha destaque dentro da mensagem (aparece como texto); duas pessoas com o mesmo nome completo na mesma conversa seriam avisadas as duas; o sino do Partner não tem o destaque visual.
 - Conferido por teste automático: a lista abre e escreve o nome. NÃO conferido com conta real: aviso e e-mail chegando.
 
+### 2026-10-13 — Publicação 29, aviso abre o item e renomear documento da pasta
+
+- **Publicação 29** (`addd244`) no oficial: menção com @ e resumo diário.
+- Aviso de documento e de relatório agora abre o próprio item: `WorkspaceChrome.notificationUrl` acrescenta `?documento=<id>` / `?report=<id>`; `ClientDocumentsPage` abre a pasta do documento (ou a ficha, se for solto) e `AdminDocumentsPageV4` abre os detalhes.
+- Pasta do entregável (aba Arquivos): a administradora vê "O cliente vê como: …" e tem o botão "Renomear" no documento proposto ou liberado (`DeliverableFiles.tsx`). Antes, o documento liberado herdava o nome do entregável ou da subtarefa sem como trocar.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
