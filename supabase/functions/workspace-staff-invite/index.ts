@@ -59,7 +59,7 @@ Deno.serve(async (request) => {
     const resend = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-staff-invite-${crypto.randomUUID()}` },
-      body: JSON.stringify({ from: "CALI Workspace <patricia@calirh.com>", to: [staff.email], reply_to: "patricia@calirh.com", subject: "Você faz parte da Equipe CALI — seu acesso ao Workspace", html: inviteHtml(staff.full_name, staff.email) }),
+      body: JSON.stringify({ from: "APP CALI RH <workspace@calirh.com>", to: [staff.email], reply_to: "patricia@calirh.com", subject: "Você faz parte da Equipe CALI — seu acesso ao Workspace", html: inviteHtml(staff.full_name, staff.email) }),
     });
     const result = await resend.json().catch(() => ({}));
     if (!resend.ok) throw new Error(`Resend ${resend.status}: ${JSON.stringify(result)}`);

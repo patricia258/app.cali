@@ -1423,6 +1423,14 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
 - Alerta "previsão depois da meta": a proprietária marcou o lugar certo no print — no ALTO do cabeçalho do projeto, à direita, ao lado da etiqueta de situação — e pediu texto menor. Agora é uma linha: "Previsão N dias úteis depois da meta · Antecipe prazos ou mude a meta." (posição absoluta no `.v2-admin-hero`; abaixo de 1180px volta ao fluxo).
 - **Sessão paralela autorizada:** outra sessão está criando e aplicando os layouts dos e-mails (commits `feat(email)`/`docs(email)` em `main`, pasta `docs/emails/` e funções `workspace-access` e `workspace-notification-email-hook`). A proprietária autorizou, desde que não mude o que esta sessão faz. Antes de publicar: sempre `git fetch` + juntar `origin/main` (nunca forçar).
 
+### 2026-10-14 — Remetente dos e-mails: APP CALI RH <workspace@calirh.com>
+
+- Decisão da proprietária: remetente "APP CALI RH" no endereço `workspace@calirh.com` (ela criou como e-mail secundário); respostas continuam indo para `patricia@calirh.com` (`reply_to` inalterado).
+- No REPOSITÓRIO a troca está feita nas seis funções de envio. IMPLANTADO no servidor só em `workspace-admin-daily-summary` (versão 2; teste real retornou 200, 1 destinatário, com o remetente novo aceito pelo Resend).
+- **FALTA IMPLANTAR** (o repositório já tem o remetente novo; basta reimplantar a partir da `main`): `workspace-notification-email-hook`, `workspace-access`, `workspace-staff-invite`, `workspace-send-executive-report`, `workspace-daily-chat-digest`. As duas primeiras estão sendo editadas pela sessão paralela de layouts; quem reimplantar deve partir da `main` atualizada para não desfazer o trabalho da outra.
+- Prazos em dias úteis da pergunta sobre relatório e da retomada de projeto pausado: a proprietária confirmou que estão certos; não mexer.
+- Foto do remetente: vem da conta Google do endereço, não do sistema.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

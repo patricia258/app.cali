@@ -4,7 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const FROM_EMAIL = "CALI Workspace <patricia@calirh.com>";
+const FROM_EMAIL = "APP CALI RH <workspace@calirh.com>";
 const REPLY_TO = "patricia@calirh.com";
 const APP_URL = "https://app.calirh.com";
 const LOGO_URL = `${APP_URL}/brand/cali-workspace-transparent.svg`;
