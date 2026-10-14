@@ -1454,6 +1454,13 @@ Não coberto pela simulação: 3ª ocorrência (`review`), pausa/retomada pela t
 - Campo "Seu nome completo" estreito: agora ocupa a linha inteira (até 460px) e a ciência fica abaixo (`.extra-visit-consent`). Não conferido por imagem (fluxo de 3 passos não montado no teste).
 - Papo online: proprietária quer valor definido; sugestões dadas na conversa, aguardando decisão.
 
+### 2026-10-14 — Papo online com valor fixo
+
+- Decisão da proprietária (opção 3): papo online = **R$ 200 por 1 hora** ou **R$ 300 por 1h30**. Durações de 30 e 45 minutos saíram da tela do cliente.
+- Cliente (`ExtraVisitRequest.tsx`): condições mostram o valor; a duração é escolhida com o preço ao lado; revisão e ciência citam o valor da duração escolhida.
+- Administradora (`schedulingRequestsRuntimeV65.ts`): o formulário de orçamento já abre com o valor da tabela pela duração pedida e o texto "Papo online de 1 hora/1h30, conforme a tabela da CALI." O fluxo continua o mesmo (CALI envia o orçamento, cliente aceita, CALI confirma); só deixou de ser surpresa para o cliente.
+- Não conferido por imagem (fluxo de 3 passos não montado no ambiente de teste).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
