@@ -49,7 +49,7 @@ function summaryHtml(dateLabel: string, blocks: Block[], totals: { client: numbe
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px">${sections}</table>
         <div style="text-align:center;margin:22px 0 18px"><a href="${APP_URL}/admin" style="display:inline-block;background:#5A1E2D;color:#fff;text-decoration:none;font-size:14px;font-weight:700;padding:13px 22px;border-radius:999px">Abrir o Workspace</a></div>
         <div style="height:1px;background:#EAE1D8;margin-bottom:16px"></div>
-        <p style="font-size:12px;color:#8C807A;margin:0">E-mail automático, enviado todo dia às 19h quando houve movimento. Não responda a esta mensagem.</p>
+        <p style="font-size:12px;line-height:1.6;color:#8C807A;margin:0">E-mail automático. Não responda a esta mensagem. Para falar com a CALI, acesse o <a href="${APP_URL}/admin" style="color:#5A1E2D;text-decoration:underline">Workspace</a>.</p>
       </td></tr>
     </table>
   </td></tr></table></body></html>`;

@@ -58,6 +58,7 @@ function digestHtml(name: string, companyLabel: string, totalMessages: number, t
         <div style="text-align:center;margin:26px 0 18px"><a href="${APP_URL}" style="display:inline-block;background:#5A1E2D;color:#fff;text-decoration:none;font-size:14px;font-weight:700;padding:13px 22px;border-radius:999px">Abrir CALI Workspace</a></div>
         <div style="height:1px;background:#EAE1D8;margin-bottom:16px"></div>
         <p style="font-size:12px;color:#8C807A;margin:0">Este é o resumo diário das conversas. Novas mensagens continuam chegando em tempo real dentro da plataforma, sem gerar um e-mail a cada resposta.</p>
+        <p style="font-size:12px;line-height:1.6;color:#8C807A;margin:10px 0 0">E-mail automático. Não responda a esta mensagem. Para falar com a CALI, acesse o <a href="${APP_URL}" style="color:#5A1E2D;text-decoration:underline">Workspace</a>.</p>
       </td></tr>
     </table>
   </td></tr></table></body></html>`;
