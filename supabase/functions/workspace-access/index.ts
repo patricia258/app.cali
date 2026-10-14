@@ -3,6 +3,7 @@
 // Nada muda para quem já entrava: os trechos novos só rodam quando o e-mail está em staff_members.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
+import { renderApprovedClientEmail } from "./approved-client-templates.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -188,7 +189,8 @@ Deno.serve(async (request) => {
       await workspace.from("workspace_access_codes").update({ used_at: new Date().toISOString(), attempts: nextAttempts }).eq("id", row.id);
       const profile = await resolveOrCreateProfile();
       if (!profile?.active) return json(request, { error: "Acesso não disponível." }, 403);
-      await workspace.from("client_invites").update({ accepted_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("email", email).eq("active", true).is("accepted_at", null);
+      // O convite do CLIENTE será marcado aceito somente após gerar a sessão;
+      // isso garante que as boas-vindas não saiam por uma tentativa incompleta.
 
       // PARTNER: primeiro acesso confirmado → marca a data e envia as boas-vindas (falha no e-mail não impede a entrada).
       if (profile.role === "partner") {
@@ -208,6 +210,41 @@ Deno.serve(async (request) => {
       if (error) throw error;
       const tokenHash = data.properties?.hashed_token;
       if (!tokenHash) throw new Error("Token de sessão ausente.");
+
+      // CLIENTE: mensagem de boas-vindas APROVADA, uma só vez no primeiro acesso válido.
+      // Não interfere no acesso se o serviço de e-mail estiver temporariamente indisponível.
+      if (profile.role === "client") {
+        try {
+          const { data: firstAccess, error: acceptError } = await workspace.from("client_invites")
+            .update({ accepted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+            .eq("email", email).eq("active", true).is("accepted_at", null)
+            .select("id");
+          if (acceptError) throw acceptError;
+          if ((firstAccess || []).length && RESEND_API_KEY) {
+            const { data: company } = await workspace.from("companies")
+              .select("display_name").eq("id", profile.company_id).maybeSingle();
+            const html = renderApprovedClientEmail("welcome", {
+              nome_do_cliente: String(profile.full_name || "").trim().split(/\\s+/)[0] || "você",
+              empresa: String(company?.display_name || "sua empresa"),
+              link: APP_URL + "/cliente",
+              logo_workspace_url: APP_URL + "/brand/cali-workspace-transparent.svg",
+              carvalho_url: APP_URL + "/brand/cali-oak-mark-light.svg",
+            });
+            const sent = await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-client-welcome-${profile.id}` },
+              body: JSON.stringify({
+                from: "CALI Workspace <patricia@calirh.com>", to: [email],
+                reply_to: "patricia@calirh.com",
+                subject: "APP CALI RH · Bem-vindo ao seu Workspace! 👋",
+                html,
+              }),
+            });
+            if (!sent.ok) console.error("workspace-access client welcome resend", sent.status, await sent.text());
+          }
+        } catch (welcomeError) { console.error("workspace-access client welcome", welcomeError); }
+      }
+
 
       await workspace.from("activity_log").insert({ actor_user_id: profile.id, company_id: profile.company_id || null, event_type: "workspace_access_code_verified", entity_type: "profile", entity_id: profile.id, metadata: { email, origin } });
       return json(request, { ok: true, token_hash: tokenHash, role: profile.role });
