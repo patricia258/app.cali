@@ -61,7 +61,7 @@ function shell(title: string, inner: string) {
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:auto;background:#fff;border:1px solid #EDE4DE;border-radius:16px;overflow:hidden">
 <tr><td bgcolor="#5A1E2D" style="padding:28px 32px;color:#F7F3EE;text-align:center"><div style="font-family:Georgia,serif;font-size:31px;letter-spacing:.16em">CALI</div><div style="font-size:10px;letter-spacing:.34em;margin-top:7px">WORKSPACE</div></td></tr>
 <tr><td style="padding:36px 34px">${inner}</td></tr>
-<tr><td bgcolor="#F7F3EE" style="padding:17px 28px;text-align:center;font-size:10px;color:#8D8184">CALI RH · HR for Business · calirh.com</td></tr>
+<tr><td bgcolor="#F7F3EE" style="padding:17px 28px;text-align:center;font-size:10px;color:#8D8184">CALI RH · HR for Business · calirh.com<br><span style="display:inline-block;padding-top:8px;font-size:11px;line-height:1.6">E-mail automático. Não responda a esta mensagem. Para falar com a CALI, acesse o <a href="${APP_URL}" style="color:#5A1E2D;text-decoration:underline">Workspace</a>.</span></td></tr>
 </table></td></tr></table></body></html>`;
 }
 function emailHtml(code: string, name: string | null | undefined) {
