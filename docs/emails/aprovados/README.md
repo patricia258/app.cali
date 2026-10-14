@@ -53,3 +53,14 @@ Cliente: rebriefing, entregável cancelado, subtarefa para aprovação, dependê
 **Integração:** os modelos HTML também estão no módulo `approved-client-templates.ts` da função `workspace-notification-email-hook`, preservando remetente `APP CALI RH <workspace@calirh.com>` e `reply_to: nao-responda@calirh.com`. Isso **não habilita sozinho** o envio de recibo inicial: a inserção de `scheduling_request` no banco atualmente é dirigida à administradora, e não existe evento de notificação ao cliente, nessa fase, que o hook possa usar sem nova regra. Não criar notificações adicionais nem modificar banco/telas por causa deste registro. O fluxo precisa de autorização específica para incorporar o disparo do recibo no evento correto.
 
 **Observação de consistência:** a tela do cliente tem tabela online fixa 1h/R$ 200 ou 1h30/R$ 300, mas a rotina `client_request_online_extra_v2` ainda aciona `client_request_online_extra_v1` que marca orçamento pendente; isso deve ser alinhado em uma alteração separada, sem modificar a regra comercial pelo e-mail.
+
+## Disparo dos comprovantes extras — implementação de 14/10/2026
+
+- Recibo exclusivo para o cliente solicitante, com `notification_type='scheduling_extra_request_receipt'`, `entity_type='scheduling_request'` e `entity_id` do pedido.
+- Registrado APÓS assinatura das condições nos RPCs `create_extra_visit_request_v1` e `client_request_online_extra_v2`, antes de retornarem sucesso.
+- Usa mecanismo existente `notifications_email_dispatch` → `workspace-notification-email-hook` → Resend com `emailed_at` e chave idempotente da notificação. Não cria nova fila, trigger ou destinatário administrativo.
+- Na reunião online, o valor é fixo e previamente aceito: 60 minutos R$ 200,00 (20000 centavos), 90 minutos R$ 300,00 (30000 centavos), registrado com consentimento do solicitante. Nenhuma cobrança é realizada pelo envio do pedido.
+- Os dois horários, assunto, objetivo, duração, nome de quem assinou e endereço da visita (quando informado) são lidos do pedido real no momento do e-mail. O formulário só envia dois horários; não inventar dados.
+- O HTML aprovado é preservado em `docs/emails/aprovados/cliente/`, e o módulo de templates contém cópia literal (somente correção de fechamento da tag strong do preço online).
+- **Não são cobertos:** novas opções, reagendamento, confirmação definitiva, cancelamento. Permanecem em revisão de layouts própria.
+- **Atenção ao legado:** o botão administrativo de orçamento manual online pode existir para outros fluxos; a nova solicitação assinada usa o valor fixo. Evitar registrar orçamento manual novo sobre uma solicitação já aceita.
