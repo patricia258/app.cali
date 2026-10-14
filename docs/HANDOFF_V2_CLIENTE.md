@@ -1381,6 +1381,14 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
 - **Layout dos e-mails:** a proprietária vai desenhar layout por layout com outra IA, só visual, sem tocar no sistema. O briefing está em `docs/EMAILS_LAYOUT_BRIEF.md`. Quando ela trouxer os layouts aprovados, aplicar nas funções de envio (`workspace-notification-email-hook`, `workspace-access`, `workspace-staff-invite`, `workspace-send-executive-report`, `workspace-daily-chat-digest`).
 - Pendente: resumo diário das 19h por e-mail para a administradora.
 
+### 2026-10-13 — Resumo diário da administradora (19h)
+
+- Função de borda nova `workspace-admin-daily-summary` (implantada, versão 1, autenticação pelo segredo do gancho) + `dispatch_admin_daily_summary()` + rotina `workspace-admin-daily-summary` às 22h UTC (19h de Brasília). Migração `20261018150000`.
+- Conteúdo: por cliente, "O cliente fez" (avisos que a administradora recebeu no dia) e "A CALI fez" (avisos que o cliente recebeu), mais as horas registradas no dia. Não envia quando não houve movimento. Layout provisório, a trocar pelo que a proprietária aprovar na frente de layouts.
+- Teste real: disparo manual em 13/10 às 21h20 retornou 200, 1 destinatário (2 ações de cliente, 4 da CALI, 10h35 registradas).
+- **Rotina das 08h `workspace-daily-chat-digest` PAUSADA** (cron removido; função intacta): com a conversa sem e-mail, ela passaria a mandar e-mail diário de conversa não lida para clientes. Decisão pendente da proprietária se quer religar.
+- Próximo: menção com @ nas conversas (sino + e-mail).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
