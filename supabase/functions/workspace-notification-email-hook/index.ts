@@ -99,12 +99,14 @@ Deno.serve(async (req: Request) => {
     if (profile.role === "client") {
       const type = String(notification.notification_type || "");
       const notificationTitle = String(notification.title || "");
-      let template: "schedule" | "schedule_reminder" | "project_complete" | "project_cancel" | "deliverable_review" | null = null;
+      let template: "schedule" | "schedule_reminder" | "project_complete" | "project_cancel" | "deliverable_review" | "task_review" | "client_dependency" | null = null;
       if (type === "project_schedule_review" || (type === "project" && notificationTitle === "Planejamento para sua validação")) template = "schedule";
       else if (type === "project_schedule_reminder") template = "schedule_reminder";
       else if ((type === "project_lifecycle" && notificationTitle === "Execução cancelada" && String(notification.body || "").startsWith("Projeto ")) || (type === "project" && notificationTitle === "Projeto cancelado")) template = "project_cancel";
       else if ((type === "project" || type === "project_status") && notificationTitle === "Projeto concluído") template = "project_complete";
       else if (type === "deliverable_status" && notificationTitle === "Sua validação é necessária") template = "deliverable_review";
+      else if (type === "task_client_review" && notificationTitle === "Uma parte da entrega aguarda a sua aprovação") template = "task_review";
+      else if (type === "client_dependency" && notificationTitle === "A CALI precisa de um retorno seu") template = "client_dependency";
 
       if (template && notification.entity_id) {
         try {
@@ -116,7 +118,44 @@ Deno.serve(async (req: Request) => {
             logo_workspace_url: LOGO_URL,
             carvalho_url: MARK_URL,
           };
-          if (template === "deliverable_review") {
+          // Os dois eventos guardam o ID do ENTREGÁVEL, não da subtarefa/dependência.
+          // Só usar o HTML personalizado quando os detalhes baterem EXATAMENTE com
+          // um único registro real; nunca adivinhar qual item originou o aviso.
+          if (template === "task_review") {
+            const { data: tasks, error: taskError } = await ws.from("deliverable_tasks")
+              .select("id,title").eq("deliverable_id", notification.entity_id)
+              .eq("company_id", notification.company_id)
+              .eq("status", "client_review").eq("client_visible", true);
+            if (taskError) throw taskError;
+            const matching = (tasks || []).filter((t) =>
+              (`“${t.title}” está pronta para você aprovar ou pedir ajuste.`).slice(0, 420) === notification.body
+            );
+            if (matching.length !== 1) throw new Error("Não foi possível identificar uma única subtarefa para o aviso.");
+            fields.subtarefa = String(matching[0].title);
+          } else if (template === "client_dependency") {
+            const [{ data: dependencies, error: dependencyError }, { data: delivery, error: deliveryError }] = await Promise.all([
+              ws.from("deliverable_client_dependencies").select("id,title,due_date")
+                .eq("deliverable_id", notification.entity_id).eq("company_id", notification.company_id)
+                .eq("status", "pending"),
+              ws.from("deliverables").select("title")
+                .eq("id", notification.entity_id).eq("company_id", notification.company_id).maybeSingle(),
+            ]);
+            if (dependencyError) throw dependencyError;
+            if (deliveryError) throw deliveryError;
+            if (!delivery?.title) throw new Error("Entregável da dependência não encontrado.");
+            const dueBR = (iso: string) => {
+              const parts = String(iso).split("-");
+              if (parts.length !== 3) throw new Error("Data da dependência inválida.");
+              return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            };
+            const matching = (dependencies || []).filter((d) =>
+              (`“${d.title}” até ${dueBR(d.due_date)}, para a entrega “${delivery.title}”.`).slice(0, 420) === notification.body
+            );
+            if (matching.length !== 1) throw new Error("Não foi possível identificar uma única dependência para o aviso.");
+            fields.pendencia = String(matching[0].title);
+            fields.entregavel = String(delivery.title);
+            fields.prazo = dueBR(matching[0].due_date);
+          } else if (template === "deliverable_review") {
             const { data: item, error: itemError } = await ws.from("deliverables").select("title").eq("id", notification.entity_id).eq("company_id", notification.company_id).maybeSingle();
             if (itemError) throw itemError;
             if (!item?.title) throw new Error("Entregável ausente para modelo de validação.");
@@ -135,6 +174,8 @@ Deno.serve(async (req: Request) => {
             project_complete: "Projeto concluído!",
             project_cancel: "Atualização no planejamento",
             deliverable_review: "Entrega para validação",
+            task_review: "Etapa para sua aprovação",
+            client_dependency: "Precisamos de um retorno seu",
           };
           outgoingSubject = ["APP CALI RH", companyName, titles[template]].join(" · ");
         } catch (templateError) {
