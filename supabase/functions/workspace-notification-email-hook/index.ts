@@ -108,7 +108,7 @@ Deno.serve(async (req: Request) => {
 
       if (template && notification.entity_id) {
         try {
-          const firstname = String(profile.full_name || "").trim().split(/\\s+/)[0] || "você";
+          const firstname = String(profile.full_name || "").trim().split(/\s+/)[0] || "você";
           const fields: Record<string, string> = {
             nome_do_cliente: firstname,
             empresa: companyName,
