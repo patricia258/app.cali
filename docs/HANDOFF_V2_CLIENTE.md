@@ -1374,6 +1374,13 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
 - **Pedidos ainda NÃO feitos:** (1) resumo diário por e-mail para a administradora às 19h, com layout próprio; (2) menção com @ nas conversas, com alerta especial; (3) revisar o layout dos e-mails. Já existe um resumo diário de conversas às 08h (`workspace-daily-chat-digest`), a avaliar se vira o das 19h.
 - Agenda do cliente: rótulo da hora não encosta mais em "Dia inteiro".
 
+### 2026-10-13 — Publicação 28, decisão da menção e frente de layout dos e-mails
+
+- **Publicação 28** (`c9d417d`) no oficial.
+- **Menção com @ (decisão):** é a ÚNICA mensagem de conversa que gera e-mail, além do sino. Mensagem sem @ continua só no sino. Ainda não construída. Ao construir: usar um tipo de aviso próprio (ex.: `chat_mention`) que NÃO esteja na lista do gatilho `notifications_chat_without_email`.
+- **Layout dos e-mails:** a proprietária vai desenhar layout por layout com outra IA, só visual, sem tocar no sistema. O briefing está em `docs/EMAILS_LAYOUT_BRIEF.md`. Quando ela trouxer os layouts aprovados, aplicar nas funções de envio (`workspace-notification-email-hook`, `workspace-access`, `workspace-staff-invite`, `workspace-send-executive-report`, `workspace-daily-chat-digest`).
+- Pendente: resumo diário das 19h por e-mail para a administradora.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
