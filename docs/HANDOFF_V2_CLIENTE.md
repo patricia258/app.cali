@@ -1389,6 +1389,13 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
 - **Rotina das 08h `workspace-daily-chat-digest` PAUSADA** (cron removido; função intacta): com a conversa sem e-mail, ela passaria a mandar e-mail diário de conversa não lida para clientes. Decisão pendente da proprietária se quer religar.
 - Próximo: menção com @ nas conversas (sino + e-mail).
 
+### 2026-10-13 — Menção com @ nas conversas
+
+- Banco (só acréscimo, aplicado; migração `20261018180000_chat_mentions`): `mention_candidates()` (quem o usuário logado pode mencionar), `notify_chat_mentions(...)` e gatilhos de inserção em `account_record_messages`, `comments` (entregável) e `task_messages`. A menção é o texto "@Nome Completo"; o banco compara com os nomes das pessoas daquela conversa (administradora, Equipe CALI atribuída à empresa, clientes da empresa quando a mensagem é visível ao cliente). Aviso `chat_mention`, relevância `critical`, COM e-mail (fica fora da lista do gatilho que desliga e-mail de conversa).
+- Tela: `src/lib/mentionRuntime.ts`, instalado em `main.tsx`. Um ouvinte global: em qualquer campo de conversa, digitar @ abre a lista (setas, Enter/Tab, Esc). Funciona em campo React e em campo montado por runtime. No sino, o aviso de menção tem faixa âmbar e ícone @ (`WorkspaceChrome.tsx`).
+- Limites: o nome mencionado não ganha destaque dentro da mensagem (aparece como texto); duas pessoas com o mesmo nome completo na mesma conversa seriam avisadas as duas; o sino do Partner não tem o destaque visual.
+- Conferido por teste automático: a lista abre e escreve o nome. NÃO conferido com conta real: aviso e e-mail chegando.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

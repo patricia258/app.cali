@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { Bell, CalendarDays, Camera, Check, ChevronDown, Clock3, FileText, FolderKanban, Instagram, Linkedin, Loader2, Mail, MessageCircle, Phone, UserRound, X } from 'lucide-react';
+import { Bell, CalendarDays, Camera, Check, ChevronDown, Clock3, FileText, FolderKanban, Instagram, Linkedin, Loader2, Mail, MessageCircle, Phone, UserRound, X, AtSign } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import type { Role } from './WorkspaceShell';
 
@@ -87,6 +87,7 @@ function relativeTime(value: string) {
 
 function notificationVisual(type?: string) {
   const value = String(type || '').toLowerCase();
+  if (/mention/.test(value)) return { kind: 'mention', icon: <AtSign size={18} /> };
   if (/report|document/.test(value)) return { kind: 'document', icon: <FileText size={18} /> };
   if (/hour|timer|capacity/.test(value)) return { kind: 'hours', icon: <Clock3 size={18} /> };
   if (/calendar|meeting|event/.test(value)) return { kind: 'calendar', icon: <CalendarDays size={18} /> };
