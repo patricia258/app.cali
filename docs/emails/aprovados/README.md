@@ -32,3 +32,11 @@ HTML fonte nesta pasta. Os módulos TypeScript são cópias literais desses seis
 
 ## Próximas revisões por perfil
 Cliente: rebriefing, entregável cancelado, subtarefa para aprovação, dependência do cliente, pendência atrasada, prazo reprogramado, documentos, relatório, agendamento, ocorrência, atualização de equipe, menções. Admin e Partner: após finalizar os clientes.
+
+## Regra oficial de remetente e rodapé — 13/10/2026
+
+- Remetente obrigatório: `APP CALI RH <workspace@calirh.com>`.
+- Resposta obrigatória: `nao-responda@calirh.com`.
+- Nenhum envio deve usar endereço pessoal da fundadora.
+- Todos os e-mails precisam exibir: **E-mail automático. Não responda a esta mensagem.** E indicar que o contato deve ocorrer pelo **Workspace**.
+- Os 12 layouts aprovados estão arquivados nesta pasta com a linha de rodapé. **Apenas oito** já estão associados a disparos operacionais no envio do Workspace; `pendencia-atraso-v1`, `prazo-reprogramado-v1`, `documento-final-v2` e `relatorio-mensal-v2` ficam preservados como **HTML aprovado, ainda sem implementação do layout**. Seu envio anterior não foi modificado nesta rodada.
