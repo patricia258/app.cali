@@ -1366,6 +1366,14 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
 - Tela (só homologação): mudar o prazo pelo "Editar" do entregável grava no histórico do prazo (fora de rascunho), o que também dispara o aviso de prazo reprogramado.
 - Links: o gatilho `notifications_contextual_urls_v1` já completa o endereço com a entrega/projeto; documentos e relatórios ainda abrem a página geral.
 
+### 2026-10-13 — Decisões sobre avisos e e-mails + publicação direta
+
+- **Publicação direta:** a proprietária dispensou a homologação a partir de agora ("já pode subir direto"). Continua valendo: `npm run check` + varredura 105·0 antes de cada publicação.
+- **Conversa não gera e-mail**, em nenhum sentido (ocorrência, entregável, subtarefa, comentário). Só o sino. Feito com um gatilho novo `notifications_chat_without_email` (antes de gravar o aviso). Antes disso, cada mensagem de ocorrência (`record_message`) saía por e-mail para os dois lados.
+- **Lembrete de dependência em atraso:** `dispatch_dependency_reminders()` todo dia 08h05 de Brasília (cron `workspace-dependency-reminders`): 1º dia de atraso e depois a cada 3 dias; cliente recebe sino + e-mail, administradora recebe sino. Coluna nova `last_reminded_at`. Migração `20261018120000`.
+- **Pedidos ainda NÃO feitos:** (1) resumo diário por e-mail para a administradora às 19h, com layout próprio; (2) menção com @ nas conversas, com alerta especial; (3) revisar o layout dos e-mails. Já existe um resumo diário de conversas às 08h (`workspace-daily-chat-digest`), a avaliar se vira o das 19h.
+- Agenda do cliente: rótulo da hora não encosta mais em "Dia inteiro".
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
