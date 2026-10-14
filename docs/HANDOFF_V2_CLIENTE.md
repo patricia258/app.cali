@@ -1448,6 +1448,12 @@ Não coberto pela simulação: 3ª ocorrência (`review`), pausa/retomada pela t
 - Pendente: confirmar se `nao-responda@calirh.com` existe no Google Workspace (se não existir, quem responder recebe um aviso de endereço inexistente; aceitável, mas a proprietária pode preferir criar o endereço e descartar o que chegar).
 - Continua faltando reimplantar as outras cinco funções a partir da `main` (sessão de layouts).
 
+### 2026-10-14 — Pedido de visita/papo online: consulta de agenda e campo do nome
+
+- "Não consegui consultar minha agenda agora": a conexão Google da administradora está ativa e o registro de auditoria da consulta foi gravado (14/10 11h17), então a falha vinha depois — na consulta de livre/ocupado do Google, que derrubava tudo se UMA agenda da lista (feriados, agendas de terceiros) respondesse com erro. `workspace-google-calendar-read` versão 6: agenda com erro é ignorada; se o Google inteiro falhar, a resposta usa só os compromissos do Workspace e devolve `google: false`. NÃO confirmado com um pedido real depois da correção.
+- Campo "Seu nome completo" estreito: agora ocupa a linha inteira (até 460px) e a ciência fica abaixo (`.extra-visit-consent`). Não conferido por imagem (fluxo de 3 passos não montado no teste).
+- Papo online: proprietária quer valor definido; sugestões dadas na conversa, aguardando decisão.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

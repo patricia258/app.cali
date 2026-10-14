@@ -71,17 +71,22 @@ Deno.serve(async (request) => {
       const min = new Date(Math.min(...parsed.map((slot: any) => slot.start))).toISOString();
       const max = new Date(Math.max(...parsed.map((slot: any) => slot.end))).toISOString();
       const busy: { start: number; end: number }[] = [];
-      for (let i = 0; i < calendars.length; i += 50) {
-        const result = await google('freeBusy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ timeMin: min, timeMax: max, timeZone: 'America/Sao_Paulo', items: calendars.slice(i, i + 50).map(calendar => ({ id: calendar.id })) }) });
-        for (const entry of Object.values(result.calendars || {}) as any[]) {
-          if (entry.errors?.length) throw new Error('calendar_unavailable');
-          for (const interval of entry.busy || []) busy.push({ start: new Date(interval.start).getTime(), end: new Date(interval.end).getTime() });
+      // Agendas assinadas (feriados, agendas de terceiros) podem não responder: são ignoradas, sem derrubar a consulta.
+      // Se o Google inteiro falhar, a resposta segue com os compromissos do próprio Workspace (google: false).
+      let googleOk = true;
+      try {
+        for (let i = 0; i < calendars.length; i += 50) {
+          const result = await google('freeBusy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ timeMin: min, timeMax: max, timeZone: 'America/Sao_Paulo', items: calendars.slice(i, i + 50).map(calendar => ({ id: calendar.id })) }) });
+          for (const entry of Object.values(result.calendars || {}) as any[]) {
+            if (entry.errors?.length) continue;
+            for (const interval of entry.busy || []) busy.push({ start: new Date(interval.start).getTime(), end: new Date(interval.end).getTime() });
+          }
         }
-      }
+      } catch (googleError) { googleOk = false; console.error('workspace-google-calendar-read freeBusy', googleError); }
       const { data: local, error } = await db.from('events').select('starts_at,ends_at').is('cancelled_at', null).lt('starts_at', max).gt('ends_at', min);
       if (error) throw error;
       for (const event of local || []) busy.push({ start: new Date(event.starts_at).getTime(), end: new Date(event.ends_at).getTime() });
-      return reply({ state: 'checked', slots: parsed.map((slot: any) => ({ busy: busy.some((period) => period.start < slot.end && period.end > slot.start) })) });
+      return reply({ state: 'checked', google: googleOk, slots: parsed.map((slot: any) => ({ busy: busy.some((period) => period.start < slot.end && period.end > slot.start) })) });
     }
     const start = new Date(body?.start || 0).getTime(), end = new Date(body?.end || 0).getTime();
     if (!Number.isFinite(start) || !Number.isFinite(end) || start >= end || end - start > 62 * 86400000) return reply({ error: 'invalid_range' }, 400);
