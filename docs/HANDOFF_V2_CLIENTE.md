@@ -1431,6 +1431,23 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
 - Prazos em dias úteis da pergunta sobre relatório e da retomada de projeto pausado: a proprietária confirmou que estão certos; não mexer.
 - Foto do remetente: vem da conta Google do endereço, não do sistema.
 
+### 2026-10-14 — Capacidade mensal validada por simulação (Company IN, mês fictício 03/2027, tudo desfeito)
+
+Simulação dentro de uma transação desfeita ao final (nenhum lançamento, evento, aviso ou e-mail ficou gravado). Contrato 15h.
+- 66,7% → nada. 76,7% → evento `m75`; cliente "Atenção ao consumo" e administradora "Capacidade em 75%".
+- 100% → `m100`; cliente "Capacidade integralmente utilizada"; administradora "Capacidade 100% utilizada".
+- 103,3% → `excess` como ocorrência nº 2 (a nº 1 é outubro/2026); cliente "nova ocorrência de excedente"; administradora "Excedente de horas".
+- 111,1% → `tolerance`; só a administradora ("Limite de tolerância atingido", com a orientação de decidir a pausa). Cliente não é avisado de novo.
+- Mais horas depois disso → nenhum aviso repetido (um por tipo, por mês).
+Não coberto pela simulação: 3ª ocorrência (`review`), pausa/retomada pela tela, o e-mail chegando de fato e os textos no relatório executivo.
+
+### 2026-10-14 — E-mails automáticos não aceitam resposta
+
+- Decisão da proprietária (substitui a anterior): mensagem automática não deve ser respondida. `reply_to` passou de `patricia@calirh.com` para `nao-responda@calirh.com` nas seis funções de envio (repositório). Implantado só em `workspace-admin-daily-summary` (versão 3), que também ganhou a linha "E-mail automático… Não responda a esta mensagem." no rodapé.
+- O botão "Responder" não pode ser removido do programa de e-mail de ninguém; o que se controla é para onde a resposta vai e o aviso no rodapé. Todo layout novo deve ter a linha de "não responda" e apontar para o Workspace.
+- Pendente: confirmar se `nao-responda@calirh.com` existe no Google Workspace (se não existir, quem responder recebe um aviso de endereço inexistente; aceitável, mas a proprietária pode preferir criar o endereço e descartar o que chegar).
+- Continua faltando reimplantar as outras cinco funções a partir da `main` (sessão de layouts).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
