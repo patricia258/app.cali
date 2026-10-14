@@ -41,3 +41,15 @@ Cliente: rebriefing, entregável cancelado, subtarefa para aprovação, dependê
 - Nenhum envio deve usar endereço pessoal da fundadora.
 - Todos os e-mails precisam exibir: **E-mail automático. Não responda a esta mensagem.** E indicar que o contato deve ocorrer pelo **Workspace**.
 - Os 12 layouts aprovados estão arquivados nesta pasta com a linha de rodapé. **Apenas oito** já estão associados a disparos operacionais no envio do Workspace; `pendencia-atraso-v1`, `prazo-reprogramado-v1`, `documento-final-v2` e `relatorio-mensal-v2` ficam preservados como **HTML aprovado, ainda sem implementação do layout**. Seu envio anterior não foi modificado nesta rodada.
+
+
+## Solicitações de agendamento extra — cliente (aprovadas 14/10/2026)
+
+| Modalidade | Modelo | Condições comunicadas | Arquivo |
+|---|---|---|---|
+| Visita presencial extra | V2 | R$ 800 por até 4 horas; despesas adicionais com comprovantes; 2 datas; sujeita a análise de agenda | visita-presencial-extra-solicitacao-v2.html |
+| Reunião online extra | V3 | R$ 200 por 1 hora ou R$ 300 por 1h30; valor da duração escolhida; 2 datas; sujeita a análise de agenda | reuniao-online-extra-solicitacao-v3.html |
+
+**Integração:** os modelos HTML também estão no módulo `approved-client-templates.ts` da função `workspace-notification-email-hook`, preservando remetente `APP CALI RH <workspace@calirh.com>` e `reply_to: nao-responda@calirh.com`. Isso **não habilita sozinho** o envio de recibo inicial: a inserção de `scheduling_request` no banco atualmente é dirigida à administradora, e não existe evento de notificação ao cliente, nessa fase, que o hook possa usar sem nova regra. Não criar notificações adicionais nem modificar banco/telas por causa deste registro. O fluxo precisa de autorização específica para incorporar o disparo do recibo no evento correto.
+
+**Observação de consistência:** a tela do cliente tem tabela online fixa 1h/R$ 200 ou 1h30/R$ 300, mas a rotina `client_request_online_extra_v2` ainda aciona `client_request_online_extra_v1` que marca orçamento pendente; isso deve ser alinhado em uma alteração separada, sem modificar a regra comercial pelo e-mail.
