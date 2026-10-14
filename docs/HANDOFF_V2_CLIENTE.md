@@ -1417,6 +1417,12 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
   NÃO alterado: a janela de 3 dias úteis para pergunta sobre relatório (`reportWorkflowGovernanceV61.ts`) e os deslocamentos de prazo em dias úteis ao retomar projeto pausado. Confirmar com a proprietária se também viram horas corridas.
 - **Alerta "previsão depois da meta"** (cabeçalho do projeto): saiu do meio do cartão e foi para o lado direito, em âmbar, com texto que explica as duas datas e diz o que fazer (`projectsPlanningIntelligenceRuntimeV36.ts`).
 
+### 2026-10-14 — Publicação 33, alerta de previsão reposicionado e sessão paralela de e-mails
+
+- **Publicação 33** (`9212242`) no oficial.
+- Alerta "previsão depois da meta": a proprietária marcou o lugar certo no print — no ALTO do cabeçalho do projeto, à direita, ao lado da etiqueta de situação — e pediu texto menor. Agora é uma linha: "Previsão N dias úteis depois da meta · Antecipe prazos ou mude a meta." (posição absoluta no `.v2-admin-hero`; abaixo de 1180px volta ao fluxo).
+- **Sessão paralela autorizada:** outra sessão está criando e aplicando os layouts dos e-mails (commits `feat(email)`/`docs(email)` em `main`, pasta `docs/emails/` e funções `workspace-access` e `workspace-notification-email-hook`). A proprietária autorizou, desde que não mude o que esta sessão faz. Antes de publicar: sempre `git fetch` + juntar `origin/main` (nunca forçar).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
