@@ -3812,3 +3812,13 @@ html[data-workspace-ui='v2'] .v2-client-cal .calendar-week-axis span{transform:t
 html[data-workspace-ui='v2'] .v2-client-cal .calendar-week-all-day-label{justify-content:flex-end;padding-right:8px;font-size:10.5px;font-weight:700;color:#8a7c74}
 html[data-workspace-ui='v2'] .v2-client-cal .calendar-week-view{grid-template-rows:54px auto auto}
 html[data-workspace-ui='v2'] .v2-client-cal .calendar-week-day-head{min-height:54px}
+
+/* Menção com @: lista de pessoas ao digitar e aviso destacado no sino. */
+.v2-mention-box{position:fixed;z-index:2147483000;width:280px;max-height:276px;overflow-y:auto;scrollbar-width:none;padding:6px;border:1px solid #e6d9ce;border-radius:12px;background:#fff;box-shadow:0 14px 34px rgba(43,24,30,.18);font-family:Inter,Arial,sans-serif}
+.v2-mention-box::-webkit-scrollbar{display:none}
+.v2-mention-box button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;min-height:44px;padding:6px 10px;border:0;border-radius:8px;background:transparent;text-align:left;font:inherit;cursor:pointer}
+.v2-mention-box button.on,.v2-mention-box button:hover{background:#f7ece6}
+.v2-mention-box strong{font-size:13px;color:#2b2b2b}
+.v2-mention-box small{font-size:10.5px;color:#8a7c74}
+html[data-workspace-ui='v2'] .notification-item.notification-kind-mention{border-left:4px solid #d9a514!important;background:#fff8e6!important}
+html[data-workspace-ui='v2'] .notification-item.notification-kind-mention .notification-visual{background:#d9a514!important;color:#fff!important}
