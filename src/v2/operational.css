@@ -3826,3 +3826,13 @@ html[data-workspace-ui='v2'] .notification-item.notification-kind-mention .notif
 /* Pasta do entregável: nome que o cliente vê e campo de renomear. */
 html[data-workspace-ui='v2'] .v2-final-name{display:block;margin-top:2px;font-size:10.5px;font-weight:400;color:#7d726b}
 html[data-workspace-ui='v2'] .v2-final-rename{box-sizing:border-box;height:32px;min-width:220px;padding:0 10px;border:1px solid #dfd3ca;border-radius:8px;background:#fff;font:inherit;font-size:12px}
+
+/* Cronômetro ligado da administradora no mesmo padrão aprovado do Partner: verde, e os botões dentro da moldura. */
+html[data-workspace-ui='v2'] .topbar .global-timer-chip{background:#356448!important;border-color:#356448!important;box-shadow:0 6px 18px #35644833!important}
+html[data-workspace-ui='v2'] .topbar .global-timer-chip .global-timer-control.stop{color:#24523a!important}
+html[data-workspace-ui='v2'] .project-header-timer.active{box-sizing:border-box!important;height:40px!important;padding:0 6px 0 13px!important;background:#356448!important;border:1px solid #356448!important;border-radius:9px!important;box-shadow:0 6px 18px #35644833!important;overflow:hidden}
+html[data-workspace-ui='v2'] .project-header-timer.active .project-header-timer-label{color:#e3f1e7!important}
+html[data-workspace-ui='v2'] .project-header-timer.active .project-timer-live{height:auto!important}
+html[data-workspace-ui='v2'] .project-header-timer.active .project-timer-controls{align-items:center!important;gap:5px!important}
+html[data-workspace-ui='v2'] .project-header-timer.active .project-timer-controls button{box-sizing:border-box!important;width:28px!important;height:28px!important;min-height:0!important;padding:0!important;margin:0!important}
+html[data-workspace-ui='v2'] .project-header-timer.active .project-timer-controls button.stop{color:#24523a!important}
