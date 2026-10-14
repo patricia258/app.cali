@@ -52,6 +52,11 @@
 
 - Convite (`workspace-staff-invite`), boas-vindas (`workspace-access`) e menções (`chat_mention`).
 
+
+## Modelos adicionais existentes no banco — relacionamento e financeiro
+
+A tabela `cali_workspace.communication_templates` contém **6 modelos habilitados** e separados dos e-mails de notificação: `birthday` (Feliz aniversário), `due_reminder` (Lembrete de vencimento), `extrajudicial` (Notificação extrajudicial), `overdue` (Pagamento em aberto), `termination` (Encerramento da relação contratual), `welcome` (Boas-vindas). A fila `communication_outbox` tem **0 registros** na auditoria. A existência e o estado `enabled=true` desses modelos **não comprovam disparo ativo**. Não foram alterados, nem devem ser confundidos com o e-mail aprovado de primeiro acesso (`workspace-access`).
+
 ## Regras de preservação
 
 - Mensagens comuns de conversa: apenas sininho, **não e-mail**; exceção: menção com @. Trigger ativo `notifications_chat_without_email`.
