@@ -14,6 +14,7 @@ Atualizado em 13/10/2026. Referência: aprovação da proprietária em conversa.
 | Entregável para validação | V2 (72 horas úteis) | deliverable_status "Sua validação é necessária" | entregavel-validacao-v2.html |
 | Subtarefa aguardando aprovação | V1 | task_client_review, identificação inequívoca da subtarefa | subtarefa-validacao-v1.html |
 | A CALI precisa de um retorno | V1 | client_dependency, identificação inequívoca da pendência e prazo real | solicitacao-retorno-v1.html |
+| Documento para ciência | V1 | document + arquivo publicado que exige ciência (somente evento já existente) | documento-ciencia-v1.html |
 
 HTML fonte nesta pasta. Os módulos TypeScript são cópias literais desses seis arquivos, usadas pelas duas Edge Functions de envio. **Não modificar textos/layouts aprovados sem aprovação nova.**
 

@@ -100,7 +100,7 @@ Deno.serve(async (req: Request) => {
     if (profile.role === "client") {
       const type = String(notification.notification_type || "");
       const notificationTitle = String(notification.title || "");
-      let template: "schedule" | "schedule_reminder" | "project_complete" | "project_cancel" | "deliverable_review" | "task_review" | "client_dependency" | null = null;
+      let template: "schedule" | "schedule_reminder" | "project_complete" | "project_cancel" | "deliverable_review" | "task_review" | "client_dependency" | "document_ack" | null = null;
       if (type === "project_schedule_review" || (type === "project" && notificationTitle === "Planejamento para sua validação")) template = "schedule";
       else if (type === "project_schedule_reminder") template = "schedule_reminder";
       else if ((type === "project_lifecycle" && notificationTitle === "Execução cancelada" && String(notification.body || "").startsWith("Projeto ")) || (type === "project" && notificationTitle === "Projeto cancelado")) template = "project_cancel";
@@ -108,6 +108,7 @@ Deno.serve(async (req: Request) => {
       else if (type === "deliverable_status" && notificationTitle === "Sua validação é necessária") template = "deliverable_review";
       else if (type === "task_client_review" && notificationTitle === "Uma parte da entrega aguarda a sua aprovação") template = "task_review";
       else if (type === "client_dependency" && notificationTitle === "A CALI precisa de um retorno seu") template = "client_dependency";
+      else if (type === "document" && notificationTitle === "Documento final disponível" && notification.entity_type === "file") template = "document_ack";
 
       if (template && notification.entity_id) {
         try {
@@ -122,7 +123,19 @@ Deno.serve(async (req: Request) => {
           // Os dois eventos guardam o ID do ENTREGÁVEL, não da subtarefa/dependência.
           // Só usar o HTML personalizado quando os detalhes baterem EXATAMENTE com
           // um único registro real; nunca adivinhar qual item originou o aviso.
-          if (template === "task_review") {
+          if (template === "document_ack") {
+            // Somente arquivos que EXIGEM ciência recebem o modelo de confirmação.
+            // A notificação e o requisito devem existir; não criamos novos disparos.
+            const { data: file, error: fileError } = await ws.from("files")
+              .select("title,requires_acknowledgement,client_visible,status")
+              .eq("id", notification.entity_id).eq("company_id", notification.company_id).maybeSingle();
+            if (fileError) throw fileError;
+            if (!file?.requires_acknowledgement || !file.client_visible ||
+                file.status !== "published" || !file.title) {
+              throw new Error("Documento não elegível para solicitação de ciência.");
+            }
+            fields.documento = String(file.title);
+          } else if (template === "task_review") {
             const { data: tasks, error: taskError } = await ws.from("deliverable_tasks")
               .select("id,title").eq("deliverable_id", notification.entity_id)
               .eq("company_id", notification.company_id)
@@ -177,6 +190,7 @@ Deno.serve(async (req: Request) => {
             deliverable_review: "Entrega para validação",
             task_review: "Etapa para sua aprovação",
             client_dependency: "Precisamos de um retorno seu",
+            document_ack: "Documento para sua ciência",
           };
           outgoingSubject = ["APP CALI RH", companyName, titles[template]].join(" · ");
         } catch (templateError) {
