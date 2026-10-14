@@ -1402,6 +1402,13 @@ Entrega esperada: relatório com o que está certo, o que está em risco (por gr
 - Aviso de documento e de relatório agora abre o próprio item: `WorkspaceChrome.notificationUrl` acrescenta `?documento=<id>` / `?report=<id>`; `ClientDocumentsPage` abre a pasta do documento (ou a ficha, se for solto) e `AdminDocumentsPageV4` abre os detalhes.
 - Pasta do entregável (aba Arquivos): a administradora vê "O cliente vê como: …" e tem o botão "Renomear" no documento proposto ou liberado (`DeliverableFiles.tsx`). Antes, o documento liberado herdava o nome do entregável ou da subtarefa sem como trocar.
 
+### 2026-10-14 — Decisões: limites de ajuste, resumo matinal e Publicação 30
+
+- **Publicação 30** (`2b764f6`) no oficial.
+- **Limite de ajustes:** subtarefa = 2 pedidos; entregável = 3 (já era o padrão em `projects.adjustment_limit`). Coluna nova `deliverable_tasks.adjustment_count`; `client_request_task_adjustment` recusa o 3º pedido e numera a mensagem ("Pedido de ajuste 1/2"). O cliente vê "Ajustes usados: n de 2" e o botão some no limite. Migração `20261019090000`.
+- **Resumo matinal de conversas para o cliente:** decidido que NÃO. A rotina `workspace-daily-chat-digest` continua pausada.
+- **Funções do Mapa People abertas a quem não está logado:** a proprietária não entendeu a pergunta; reexplicado. Nada alterado até ela responder.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
