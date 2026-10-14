@@ -8,7 +8,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const FROM_EMAIL = "APP CALI RH <workspace@calirh.com>";
-const REPLY_TO = "patricia@calirh.com";
+const REPLY_TO = "nao-responda@calirh.com";
 const APP_URL = "https://app.calirh.com";
 const LOGO_URL = `${APP_URL}/brand/cali-workspace-transparent.svg`;
 const headers = { "Content-Type": "application/json" };
@@ -49,7 +49,7 @@ function summaryHtml(dateLabel: string, blocks: Block[], totals: { client: numbe
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px">${sections}</table>
         <div style="text-align:center;margin:22px 0 18px"><a href="${APP_URL}/admin" style="display:inline-block;background:#5A1E2D;color:#fff;text-decoration:none;font-size:14px;font-weight:700;padding:13px 22px;border-radius:999px">Abrir o Workspace</a></div>
         <div style="height:1px;background:#EAE1D8;margin-bottom:16px"></div>
-        <p style="font-size:12px;color:#8C807A;margin:0">Enviado todo dia às 19h, quando houve movimento. CALI Workspace · Patrícia Lima · People Advisory Executive</p>
+        <p style="font-size:12px;color:#8C807A;margin:0">E-mail automático, enviado todo dia às 19h quando houve movimento. Não responda a esta mensagem.</p>
       </td></tr>
     </table>
   </td></tr></table></body></html>`;

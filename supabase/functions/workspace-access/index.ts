@@ -165,7 +165,7 @@ Deno.serve(async (request) => {
       const resend = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-code-${crypto.randomUUID()}` },
-        body: JSON.stringify({ from: "APP CALI RH <workspace@calirh.com>", to: [email], reply_to: "patricia@calirh.com", subject: "Seu código de acesso ao CALI Workspace", html: emailHtml(code, profile.full_name) }),
+        body: JSON.stringify({ from: "APP CALI RH <workspace@calirh.com>", to: [email], reply_to: "nao-responda@calirh.com", subject: "Seu código de acesso ao CALI Workspace", html: emailHtml(code, profile.full_name) }),
       });
       const emailResult = await resend.json().catch(() => ({}));
       if (!resend.ok) throw new Error(`Resend ${resend.status}: ${JSON.stringify(emailResult)}`);
@@ -200,7 +200,7 @@ Deno.serve(async (request) => {
             await fetch("https://api.resend.com/emails", {
               method: "POST",
               headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-staff-welcome-${profile.id}` },
-              body: JSON.stringify({ from: "APP CALI RH <workspace@calirh.com>", to: [email], reply_to: "patricia@calirh.com", subject: "Boas-vindas à Equipe CALI", html: staffWelcomeHtml(profile.full_name) }),
+              body: JSON.stringify({ from: "APP CALI RH <workspace@calirh.com>", to: [email], reply_to: "nao-responda@calirh.com", subject: "Boas-vindas à Equipe CALI", html: staffWelcomeHtml(profile.full_name) }),
             });
           }
         } catch (welcomeError) { console.error("workspace-access staff welcome", welcomeError); }
@@ -235,7 +235,7 @@ Deno.serve(async (request) => {
               headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-client-welcome-${profile.id}` },
               body: JSON.stringify({
                 from: "APP CALI RH <workspace@calirh.com>", to: [email],
-                reply_to: "patricia@calirh.com",
+                reply_to: "nao-responda@calirh.com",
                 subject: "APP CALI RH · Bem-vindo ao seu Workspace! 👋",
                 html,
               }),
