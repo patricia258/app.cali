@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
+import { renderApprovedClientEmail } from "./approved-client-templates.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -74,7 +75,7 @@ Deno.serve(async (req: Request) => {
     if (!notification.email_required || notification.emailed_at) return new Response(JSON.stringify({ ok: true, skipped: notification.emailed_at ? "already_sent" : "not_required" }), { headers });
 
     const [{ data: profile, error: profileError }, { data: company }] = await Promise.all([
-      ws.from("profiles").select("email,full_name,active").eq("id", notification.user_id).maybeSingle(),
+      ws.from("profiles").select("email,full_name,role,active").eq("id", notification.user_id).maybeSingle(),
       ws.from("companies").select("display_name").eq("id", notification.company_id).maybeSingle(),
     ]);
     if (profileError) throw profileError;
@@ -91,16 +92,68 @@ Deno.serve(async (req: Request) => {
     if (context?.type) subjectParts.push(context.type);
     subjectParts.push(notification.title);
     const subject = subjectParts.join(" · ");
+    // Somente eventos com correspondência CONFIRMADA usam HTML aprovado.
+    // Outros eventos, especialmente os administrativos, preservam integralmente o envio anterior.
+    let outgoingSubject = subject;
+    let outgoingHtml = html(notification.title, notification.body || "", url, companyName, context);
+    if (profile.role === "client") {
+      const type = String(notification.notification_type || "");
+      const notificationTitle = String(notification.title || "");
+      let template: "schedule" | "schedule_reminder" | "project_complete" | "project_cancel" | "deliverable_review" | null = null;
+      if (type === "project_schedule_review" || (type === "project" && notificationTitle === "Planejamento para sua validação")) template = "schedule";
+      else if (type === "project_schedule_reminder") template = "schedule_reminder";
+      else if ((type === "project_lifecycle" && notificationTitle === "Execução cancelada" && String(notification.body || "").startsWith("Projeto ")) || (type === "project" && notificationTitle === "Projeto cancelado")) template = "project_cancel";
+      else if ((type === "project" || type === "project_status") && notificationTitle === "Projeto concluído") template = "project_complete";
+      else if (type === "deliverable_status" && notificationTitle === "Sua validação é necessária") template = "deliverable_review";
+
+      if (template && notification.entity_id) {
+        try {
+          const firstname = String(profile.full_name || "").trim().split(/\\s+/)[0] || "você";
+          const fields: Record<string, string> = {
+            nome_do_cliente: firstname,
+            empresa: companyName,
+            link: url,
+            logo_workspace_url: LOGO_URL,
+            carvalho_url: MARK_URL,
+          };
+          if (template === "deliverable_review") {
+            const { data: item, error: itemError } = await ws.from("deliverables").select("title").eq("id", notification.entity_id).eq("company_id", notification.company_id).maybeSingle();
+            if (itemError) throw itemError;
+            if (!item?.title) throw new Error("Entregável ausente para modelo de validação.");
+            fields.entregavel = String(item.title);
+          } else {
+            const { data: project, error: projectError } = await ws.from("projects").select("name").eq("id", notification.entity_id).eq("company_id", notification.company_id).maybeSingle();
+            if (projectError) throw projectError;
+            if (!project?.name) throw new Error("Projeto ausente para modelo aprovado.");
+            fields.projeto = String(project.name);
+            fields.titulo_cronograma = "Cronograma de " + String(project.name);
+          }
+          outgoingHtml = renderApprovedClientEmail(template, fields);
+          const titles: Record<string, string> = {
+            schedule: "Cronograma para validação",
+            schedule_reminder: "Cronograma aguardando validação",
+            project_complete: "Projeto concluído!",
+            project_cancel: "Atualização no planejamento",
+            deliverable_review: "Entrega para validação",
+          };
+          outgoingSubject = ["APP CALI RH", companyName, titles[template]].join(" · ");
+        } catch (templateError) {
+          // O envio original permanece disponível mesmo em caso de falha de dados do modelo.
+          console.error("workspace-notification-email-hook approved template fallback", templateError);
+        }
+      }
+    }
+
 
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-notification-${notification.id}` },
-      body: JSON.stringify({ from: FROM_EMAIL, to: [String(profile.email).trim().toLowerCase()], reply_to: REPLY_TO, subject, html: html(notification.title, notification.body || "", url, companyName, context) }),
+      body: JSON.stringify({ from: FROM_EMAIL, to: [String(profile.email).trim().toLowerCase()], reply_to: REPLY_TO, subject: outgoingSubject, html: outgoingHtml }),
     });
     const text = await response.text();
     if (!response.ok) throw new Error(`Resend ${response.status}: ${text}`);
     await ws.from("notifications").update({ emailed_at: new Date().toISOString() }).eq("id", notification.id).is("emailed_at", null);
-    return new Response(JSON.stringify({ ok: true, to: profile.email, subject }), { headers });
+    return new Response(JSON.stringify({ ok: true, to: profile.email, subject: outgoingSubject }), { headers });
   } catch (error) {
     console.error("workspace-notification-email-hook", error);
     return new Response(JSON.stringify({ ok: false, error: error instanceof Error ? error.message : "unknown_error" }), { status: 500, headers });
