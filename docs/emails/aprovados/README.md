@@ -103,3 +103,10 @@ Não gera notificações duplicadas para propostas administrativas. Em outros pe
 - **Rebriefing V2:** `entregavel-rebriefing-v2.html`, notificação existente `deliverable_status` / `Rebriefing necessário`; exige entregável visível em rebriefing.
 - **Cancelamento V1:** `entregavel-cancelado-v1.html`, notificação existente `deliverable_status` / `Entregável cancelado`; inclui motivo de cancelamento efetivamente registrado.
 - Os demais status e regras de envio não foram alterados. Caso a referência não seja inequívoca, mantém o modelo anterior. Sender/reply-to e rodapé preservados.
+
+
+## Cliente — código de acesso V3 e ajuste registrado V1 (15/10/2026)
+
+- **Código V3:** `codigo-acesso-v3.html`. Renderizador `workspace-access/approved-code-v3.ts` utiliza apenas para `role='client'`. As regras existentes de código de 6 dígitos, validade 10 minutos, uso único e limitação de solicitações não foram alteradas. Admin/Partner preservam o HTML anterior; assunto novo somente para o Cliente.
+- **Ajuste registrado V1:** `ajuste-registrado-v1.html`. Evento `adjustment` existente, título `Ajuste registrado no projeto`, registro `deliverable_adjustment`. Confere solicitação de ajuste comum originada pela CALI, motivo da notificação, empresa e entregável visível; não cria disparos novos.
+- Remetente e reply_to novos preservados. Cópias HTML literais aprovadas, sem novas tabelas, fluxos de autenticação, gatilhos ou telas.
