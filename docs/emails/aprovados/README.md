@@ -117,3 +117,10 @@ Não gera notificações duplicadas para propostas administrativas. Em outros pe
 - **Papo online extra não confirmado V1:** `papo-online-extra-nao-confirmado-v1.html`. Evento `scheduling_response`, título `Solicitação de agenda respondida`, restrito a pedido online extra em estado `declined`, com duração e preço fixo aceitos conferidos no registro.
 - Sem notificações extras, triggers ou regras de cobrança. Não misturar recusa de pedido não confirmado com cancelamento de atendimento previamente confirmado.
 - Ambas as comunicações são idempotentes pelo envio original; remetente/reply-to e rodapé padrão preservados.
+
+
+## Administradora — cronograma aprovado e ajuste solicitado (15/10/2026)
+
+- **Cronograma aprovado V1:** `docs/emails/aprovados/administradora/cronograma-aprovado-v1.html`. Evento existente `project_schedule_approved` para usuário ativo com `role='admin'`. Mostra empresa, projeto e data de início que constava na notificação histórica de aprovação.
+- **Ajuste solicitado V1:** `docs/emails/aprovados/administradora/cronograma-ajuste-solicitado-v1.html`. Evento existente `project_schedule_adjustment`, relacionado a um registro de revisão respondida na mesma data, com ponto alvo, ação e justificativa informados pelo cliente.
+- HTML integralmente aprovado, copiado para `approved-admin-templates.ts`. Nenhum trigger, regra de negócio, destinatário, banco ou tela alterado. Outras notificações administrativas continuam no HTML anterior quando não correspondem com segurança. Remetente e reply-to oficiais preservados.
