@@ -1499,6 +1499,12 @@ Relatório: `docs/SEGURANCA_REVISAO_2026-10-15.md`. Autorização: "fazer tudo q
 
 - `PrivacyRequestsPanel.tsx` no topo da Auditoria (só aparece quando há pedido): tipo, quem, empresa, data, prazo de 15 dias (âmbar em aberto, vermelho vencido), "Responder". Função `admin_answer_data_subject_request` grava a resposta, fecha o pedido e avisa a pessoa (sino + e-mail). O aviso do pedido agora leva a `/admin/auditoria`. Auditoria ganhou rótulos para os três eventos de privacidade.
 
+### 2026-10-15 — Cadastro de cliente consertado + efeito colateral da segurança corrigido
+
+- **Cadastro de cliente falhava** ("Não foi possível cadastrar o cliente"): erro ANTIGO em `create_client_account` (gravava o histórico na coluna `action`; a correta é `event_type`). Corrigido trocando só essa linha; testado em simulação desfeita. A tela escondia o motivo porque erro do banco não é `Error` do JavaScript: `AdminClientsPageV3.tsx` agora mostra a mensagem real nos `catch`.
+- **Efeito colateral da revisão de segurança:** a regra de leitura de horas do cliente (`hours_client_select`) chama `client_hours_enabled_for_period`, que eu tinha fechado para usuário logado → tela de horas do cliente falhava ("permission denied"). Permissão devolvida. Conferido: nenhuma outra regra (RLS) ou função sem privilégio de dono usa as funções fechadas.
+- Acessos de teste para o desenvolvedor: orientação dada (apelido com "+" no e-mail para cliente e Partner na Company IN; administradora de teste NÃO criada — `is_admin()` é fixo no e-mail da proprietária e daria acesso a todos os dados reais).
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

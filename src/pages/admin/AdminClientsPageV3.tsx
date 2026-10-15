@@ -393,7 +393,7 @@ export function AdminClientsPageV3() {
       await saveExtraAccesses(id,extraPeople,[]);
       if(contractFile) await uploadDocument(id,contractFile,'contract',contractDate); if(addendumFile) await uploadDocument(id,addendumFile,'addendum',addendumDate);
       setCreateOpen(false); setForm(emptyForm); setLogoFile(null); setLogoPreview(''); setContractFile(null); setAddendumFile(null); setMessage(`${form.company.trim()} foi cadastrado.`); await loadClients();
-    }catch(err){setError(err instanceof Error?err.message:'Não foi possível cadastrar o cliente.');}finally{setSaving(false);}
+    }catch(err){/* O erro do banco não é um Error do JavaScript: sem isto a tela escondia o motivo real. */const reason=err instanceof Error?err.message:String((err as any)?.message||'');setError(reason?`Não foi possível cadastrar o cliente: ${reason}`:'Não foi possível cadastrar o cliente.');}finally{setSaving(false);}
   }
 
   async function saveClient() {
@@ -411,7 +411,7 @@ export function AdminClientsPageV3() {
       const {error:inviteError}=await supabase.rpc('update_primary_client_contact_v65',{p_company_id:next.id,p_full_name:next.contact,p_email:next.email,p_job_title:next.decisionTitle||null,p_phone:next.phone||null,p_whatsapp:next.whatsapp||null,p_birthday:next.decisionBirthday||null}); if(inviteError) throw inviteError;
       await saveExtraAccesses(next.id,next.extraAccesses||[],clients.find(client=>client.id===next.id)?.extraAccesses||[]);
       setManageOpen(false);setMessage(`Alterações de ${next.name} salvas.`);await loadClients();
-    }catch(err){setError(err instanceof Error?err.message:'Não foi possível salvar as alterações.');}finally{setSaving(false);}
+    }catch(err){setError(err instanceof Error?err.message:String((err as any)?.message||'Não foi possível salvar as alterações.'));}finally{setSaving(false);}
   }
 
   async function applyLifecycle() {
@@ -432,7 +432,7 @@ export function AdminClientsPageV3() {
       await supabase.from('activity_log').insert({company_id:lifecycle.client.id,event_type:`account_${lifecycle.type}`,entity_type:'company',entity_id:lifecycle.client.id,metadata:{reason:lifecycleReason||null,termination_date:lifecycle.type==='close'?lifecycleDate:null,penalty:projection?.penalty||null,due_date:projection?.dueDate||null}});
       if(lifecycle.type==='close'&&lifecycle.client.automationEnabled&&lifecycle.client.terminationEmailEnabled){await supabase.from('communication_outbox').insert({company_id:lifecycle.client.id,template_key:'termination',recipient_email:lifecycle.client.email,recipient_name:lifecycle.client.contact,subject:`CALI RH · encerramento contratual · ${lifecycle.client.name}`,status:'pending',scheduled_for:now,metadata:{termination_date:lifecycleDate,penalty:projection?.penalty||0,due_date:projection?.dueDate||null}});}
       setLifecycle(null);setMessage(`Status de ${lifecycle.client.name} atualizado.`);await loadClients();
-    }catch(err){setError(err instanceof Error?err.message:'Não foi possível atualizar a conta.');}finally{setSaving(false);}
+    }catch(err){setError(err instanceof Error?err.message:String((err as any)?.message||'Não foi possível atualizar a conta.'));}finally{setSaving(false);}
   }
 
   const registrationItems:Array<{id:RegistrationTab;label:string}>=[{id:'data',label:'Dados cadastrais'},{id:'access',label:'Decisores e acessos'},{id:'contract',label:'Contrato'},{id:'financial',label:'Financeiro'},{id:'documents',label:'Documentos'}];
