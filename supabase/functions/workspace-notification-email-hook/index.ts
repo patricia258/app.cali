@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { renderApprovedClientEmail } from "./approved-client-templates.ts";
+import { extraEmailFields } from "./extra-email-fields.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -100,7 +101,7 @@ Deno.serve(async (req: Request) => {
     if (profile.role === "client") {
       const type = String(notification.notification_type || "");
       const notificationTitle = String(notification.title || "");
-      let template: "schedule" | "schedule_reminder" | "project_complete" | "project_cancel" | "deliverable_review" | "task_review" | "client_dependency" | "document_ack" | "presential_extra_request_received" | "online_extra_request_received" | "presential_extra_confirmed" | "online_extra_confirmed" | null = null;
+      let template: "schedule" | "schedule_reminder" | "project_complete" | "project_cancel" | "deliverable_review" | "task_review" | "client_dependency" | "document_ack" | "presential_extra_request_received" | "online_extra_request_received" | "presential_extra_confirmed" | "online_extra_confirmed" | "extra_new_dates" | "extra_reschedule_requested" | null = null;
       if (type === "project_schedule_review" || (type === "project" && notificationTitle === "Planejamento para sua validação")) template = "schedule";
       else if (type === "project_schedule_reminder") template = "schedule_reminder";
       else if ((type === "project_lifecycle" && notificationTitle === "Execução cancelada" && String(notification.body || "").startsWith("Projeto ")) || (type === "project" && notificationTitle === "Projeto cancelado")) template = "project_cancel";
@@ -117,6 +118,8 @@ Deno.serve(async (req: Request) => {
                notificationTitle === "Pedido de reunião online extra recebido") template = "online_extra_request_received";
       else if (type === "scheduling_extra_confirmed" && notification.entity_type === "scheduling_request" && notificationTitle === "Visita presencial extra confirmada") template = "presential_extra_confirmed";
       else if (type === "scheduling_extra_confirmed" && notification.entity_type === "scheduling_request" && notificationTitle === "Reunião online extra confirmada") template = "online_extra_confirmed";
+      else if ((type === "scheduling_extra_new_dates" || (type === "scheduling_response" && ["A CALI respondeu sua solicitação","Novas datas para sua visita extra"].includes(notificationTitle))) && notification.entity_type === "scheduling_request") template = "extra_new_dates";
+      else if (type === "scheduling_extra_reschedule_requested" && notification.entity_type === "scheduling_request") template = "extra_reschedule_requested";
 
       if (template && notification.entity_id) {
         try {
@@ -132,7 +135,11 @@ Deno.serve(async (req: Request) => {
           // Só usar o HTML personalizado quando os detalhes baterem EXATAMENTE com
           // um único registro real; nunca adivinhar qual item originou o aviso.
           let safeHtmlBlocks: { bloco_observacoes?: string } = {};
-          if (template === "presential_extra_confirmed" || template === "online_extra_confirmed") {
+          if (template === "extra_new_dates" || template === "extra_reschedule_requested") {
+            const result = await extraEmailFields(ws, notification, template);
+            Object.assign(fields, result.fields);
+            Object.assign(safeHtmlBlocks, result.blocks);
+          } else if (template === "presential_extra_confirmed" || template === "online_extra_confirmed") {
             const { data: request, error: requestError } = await ws.from("scheduling_requests")
               .select("id,company_id,requested_by,status,confirmed_event_id,selected_slot,request_mode,title,location,extra_visit,extra_visit_fee_cents,online_extra_requested,online_extra_quote_cents,online_extra_quote_accepted_at")
               .eq("id", notification.entity_id).eq("company_id", notification.company_id)
@@ -312,6 +319,8 @@ Deno.serve(async (req: Request) => {
             online_extra_request_received: "Pedido de reunião online extra recebido",
             presential_extra_confirmed: "Visita extra confirmada",
             online_extra_confirmed: "Reunião online extra confirmada",
+            extra_new_dates: "Novos horários para seu atendimento extra",
+            extra_reschedule_requested: "Pedido de reagendamento da visita extra",
           };
           outgoingSubject = ["APP CALI RH", companyName, titles[template]].join(" · ");
         } catch (templateError) {

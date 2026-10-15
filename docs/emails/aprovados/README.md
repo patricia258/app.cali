@@ -72,3 +72,12 @@ Cliente: rebriefing, entregável cancelado, subtarefa para aprovação, dependê
 - A função `notify_confirmed_extra_request_v1` envia uma única notificação ao solicitante para qualquer confirmação de atendimento extra (CALI ou aceite de uma nova data). A notificação anterior de cliente na `admin_confirm_extra_visit_v1` é substituída para não enviar duplicado; avisos à administração preservados.
 - Os HTMLs são copiados integralmente para `approved-client-templates.ts`, com dados validados contra o evento de calendário.
 - Sem envio retroativo, sem alteração de valores ou regras de calendário; templates de novas datas e reagendamento seguem aguardando aprovação.
+
+## Novas datas e pedido de reagendamento de visita extra — aprovados 15/10/2026
+
+| Tipo | HTML aprovado | Disparo |
+|---|---|---|
+| CALI propõe 1–2 opções de data para extra | `extra-novas-datas-v1.html` | Aviso `scheduling_response` que já existe; apenas troca layout quando o pedido está `client_review` e modalidade é extra |
+| Cliente solicita reagendar visita extra previamente confirmada | `extra-reagendamento-solicitado-v1.html` | Novo aviso `scheduling_extra_reschedule_requested` apenas no evento `confirmed → reschedule_review` com motivo e duas datas reais |
+
+Não gera notificações duplicadas para propostas administrativas. Em outros pedidos, mantém o template existente. A confirmação de reagendamento definitivo continuará usando seu próprio e-mail já aprovado de confirmação, após aprovação de nova data no sistema. Remetente e rodapé preservados.
