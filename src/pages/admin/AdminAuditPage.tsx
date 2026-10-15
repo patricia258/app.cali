@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, RefreshCw, Search } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';
+import { PrivacyRequestsPanel } from './PrivacyRequestsPanel';
 
 /* Auditoria (só administradora): reúne em uma lista o que o sistema já registra — quem fez o quê, quando e em qual empresa.
    Só leitura; não cria registro novo. Fontes: activity_log, team_changes, team_private_audit, deliverable_status_history,
@@ -13,7 +14,7 @@ const AREAS: Area[] = ['Acesso', 'Horas', 'Relatórios', 'Agenda', 'Documentos',
 const LIMIT = 400;
 
 const activityLabels: Record<string, [Area, string]> = {
-  workspace_access_code_requested: ['Acesso', 'Pediu código de acesso'], workspace_access_code_verified: ['Acesso', 'Entrou com código de acesso'], workspace_access_requested: ['Acesso', 'Solicitou acesso ao Workspace'],
+  workspace_access_code_requested: ['Acesso', 'Pediu código de acesso'], privacy_request_created: ['Acesso', 'Fez um pedido de privacidade (LGPD)'], privacy_request_answered: ['Acesso', 'Respondeu um pedido de privacidade'], privacy_data_exported: ['Acesso', 'Baixou os próprios dados'], workspace_access_code_verified: ['Acesso', 'Entrou com código de acesso'], workspace_access_requested: ['Acesso', 'Solicitou acesso ao Workspace'],
   timer_started: ['Horas', 'Iniciou o cronômetro'], timer_paused: ['Horas', 'Pausou o cronômetro'], timer_session_paused: ['Horas', 'Pausou e registrou uma sessão'], timer_stopped: ['Horas', 'Finalizou o cronômetro'], timer_session_discarded: ['Horas', 'Sessão com menos de 30 segundos descartada'], hours_entry_deleted: ['Horas', 'Excluiu um lançamento de horas'], hours_entry_updated: ['Horas', 'Editou um lançamento de horas'],
   account_record_timer_started: ['Ocorrências', 'Iniciou o cronômetro em uma ocorrência'], account_record_feedback: ['Ocorrências', 'Cliente avaliou uma ocorrência'], client_unopened_record_deleted: ['Ocorrências', 'Cliente excluiu uma ocorrência ainda não aberta'],
   report_draft_generated: ['Relatórios', 'Gerou o rascunho do relatório'], report_review_saved: ['Relatórios', 'Salvou a revisão do relatório'], report_approved: ['Relatórios', 'Aprovou o relatório'], report_sent: ['Relatórios', 'Enviou o relatório ao cliente'], report_acknowledged: ['Relatórios', 'Cliente deu ciência do relatório'], report_withdrawn_for_correction: ['Relatórios', 'Recolheu o relatório para correção'], report_correction_started: ['Relatórios', 'Iniciou a correção do relatório'], report_test_reset: ['Relatórios', 'Reiniciou o relatório de teste'],
@@ -85,8 +86,9 @@ export function AdminAuditPage() {
   const people = new Set(filtered.map((row) => row.actor || 'system')).size; const sensitive = filtered.filter((row) => /Excluiu|restrito|descartada|Recolheu|Cancelou/.test(row.action)).length;
 
   return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-audit v2-client-module"><div className="ap-content"><div className="wf">
-    <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Auditoria</h1><p>Quem fez o quê, quando e em qual empresa. Tela só de consulta: nada aqui pode ser editado ou apagado.</p></div><div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</button></div></div>
+    <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Auditoria</h1><p>Quem fez o quê, quando e em qual empresa. O histórico não pode ser editado nem apagado; aqui você só responde os pedidos de privacidade.</p></div><div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</button></div></div>
     {error && <div className="inline-notice">{error}</div>}
+    <PrivacyRequestsPanel />
     <div className="v2-kpi-strip"><article><span>Registros no recorte</span><strong>{filtered.length}</strong><em>dos {rows.length} mais recentes carregados</em></article><article><span>Pessoas que agiram</span><strong>{people}</strong><em>inclui ações automáticas do sistema</em></article><article><span>Ações sensíveis</span><strong>{sensitive}</strong><em>exclusões, dados restritos, cancelamentos</em></article></div>
     <div className="wf-controls v2-list-controls">
       <select className="wf-record-filter" aria-label="Período" value={period} onChange={(event) => setPeriod(event.target.value)}><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="all">Todo o histórico carregado</option></select>

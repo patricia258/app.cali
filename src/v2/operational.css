@@ -3895,3 +3895,22 @@ html[data-workspace-ui='v2'] .v2-staff-browse .wf-record-row.is-link:hover{backg
 .profile-privacy-form label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;font-weight:700}
 .profile-privacy-form :is(select,textarea){box-sizing:border-box;padding:8px 10px;border:1px solid #dfd3ca;border-radius:8px;background:#fff;font:inherit;font-size:12.5px;font-weight:400}
 .profile-privacy-v2 small{color:#356448;font-weight:700}
+
+/* Auditoria: pedidos de privacidade (LGPD). */
+html[data-workspace-ui='v2'] .v2-privacy-panel{margin:0 0 18px;padding:16px 18px;border:1px solid #e8ddd4;border-radius:12px;background:#fff}
+html[data-workspace-ui='v2'] .v2-privacy-panel>header{display:flex;align-items:flex-start;gap:10px;color:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-privacy-panel h2{margin:0;font-size:15px;color:#2b2b2b}
+html[data-workspace-ui='v2'] .v2-privacy-panel header p{margin:3px 0 0;font-size:12px;color:#7d726b}
+html[data-workspace-ui='v2'] .v2-privacy-panel ul{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+html[data-workspace-ui='v2'] .v2-privacy-panel li{padding:12px 14px;border:1px solid #eadfd5;border-left:4px solid #b5a79d;border-radius:9px;font-size:12.5px;color:#3d3531}
+html[data-workspace-ui='v2'] .v2-privacy-panel li.open{border-left-color:#d9a514;background:#fff8e6}
+html[data-workspace-ui='v2'] .v2-privacy-panel li.late{border-left-color:#b3261e;background:#fdecea}
+html[data-workspace-ui='v2'] .v2-privacy-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px}
+html[data-workspace-ui='v2'] .v2-privacy-head span{font-size:11.5px;color:#7d726b}
+html[data-workspace-ui='v2'] .v2-privacy-panel li p{margin:6px 0 0;line-height:1.5;white-space:pre-wrap}
+html[data-workspace-ui='v2'] .v2-privacy-message{margin:10px 0 0;font-size:12px;font-weight:700;color:#356448}
+html[data-workspace-ui='v2'] .v2-privacy-form{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+html[data-workspace-ui='v2'] .v2-privacy-form textarea{box-sizing:border-box;padding:8px 10px;border:1px solid #dfd3ca;border-radius:8px;font:inherit;font-size:12.5px}
+html[data-workspace-ui='v2'] .v2-privacy-form span{display:flex;justify-content:flex-end;gap:8px}
+html[data-workspace-ui='v2'] :is(.v2-privacy-form button,.v2-privacy-reply){height:32px;margin-top:8px;padding:0 12px;border:1px solid #dfd3ca;border-radius:8px;background:#fff;color:#5a1e2d;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+html[data-workspace-ui='v2'] .v2-privacy-form button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
