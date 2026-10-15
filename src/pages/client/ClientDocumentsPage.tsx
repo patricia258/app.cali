@@ -61,6 +61,7 @@ export function ClientDocumentsPage() {
   const [driveConnection, setDriveConnection] = useState<DriveConnection | null>(null);
   const [driveConnecting, setDriveConnecting] = useState(false);
   const [syncByFile, setSyncByFile] = useState<Record<string, SyncState>>({});
+  const [folderSaving, setFolderSaving] = useState('');
   const [acknowledged, setAcknowledged] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -258,6 +259,17 @@ export function ClientDocumentsPage() {
     setNotice(`${doc.title} foi salvo no seu Google Drive.`);
   }
 
+  // Pasta inteira no Drive: "CALI Workspace / <entregável (protocolo)>" com todos os documentos liberados.
+  async function saveFolderToDrive(folderId: string, title: string) {
+    if (!driveConnection || !supabase || folderSaving) return;
+    setFolderSaving(folderId); setError('');
+    const { data, error: syncError } = await supabase.functions.invoke('google-drive-oauth', { body: { action: 'copy_folder', deliverableId: folderId } });
+    setFolderSaving('');
+    if (syncError || data?.error) { setError(data?.detail || 'Não foi possível salvar a pasta no seu Google Drive. Tente de novo.'); return; }
+    setNotice(data?.failed ? `${title}: ${data.copied} documento(s) salvo(s) no Drive; ${data.failed} não pôde(puderam) ser copiado(s).` : `${title} foi salva no seu Google Drive, na pasta CALI Workspace.`);
+    if (data?.url) window.open(data.url, '_blank', 'noopener,noreferrer');
+  }
+
   function driveActionLabel(state?: SyncState) {
     if (!state) return 'Salvar no meu Drive';
     if (state.status === 'synced') return 'Abrir no Drive';
@@ -289,7 +301,7 @@ export function ClientDocumentsPage() {
       const actions = (entry: typeof entries[number]) => entry.docs.length ? <div className="v2-fv-actions">{entry.docs.map((doc) => <span key={doc.id}><button type="button" className="v2-folder-ack" onClick={() => void openDocument(doc)}><Eye size={14} /> Abrir</button>{acknowledged.includes(doc.id) ? <em className="v2-folder-ok"><CheckCircle2 size={13} /> Confirmado</em> : <button type="button" className="v2-folder-ack" title="Confirmar o recebimento deste documento" onClick={() => void acknowledgeDocument(doc)}>Confirmar</button>}</span>)}</div> : null;
       return <section className="v2-fv" aria-label={`Pasta ${folder.title}`}>
         <div className="v2-fv-top"><button type="button" className="v2-fv-back" onClick={() => setOpenFolder(null)}><ArrowLeft size={14} /> Documentos</button>
-        <header className="v2-fv-head"><div><FolderOpen size={22} /><div><h2>{folder.title}</h2><p>{folder.protocol || 'ENTREGÁVEL'} · {done} de {entries.length} {entries.length === 1 ? 'entregue' : 'entregues'}</p></div></div><div className="v2-fv-right"><div className="v2-fv-bar" aria-hidden="true"><i style={{ width: `${pct}%` }} /></div><div className="wf-segments" aria-label="Exibição da pasta"><button type="button" className={layout === 'covers' ? 'on' : ''} onClick={() => setLayout('covers')}>Capas</button><button type="button" className={layout === 'list' ? 'on' : ''} onClick={() => setLayout('list')}>Lista</button></div></div></header></div>
+        <header className="v2-fv-head"><div><FolderOpen size={22} /><div><h2>{folder.title}</h2><p>{folder.protocol || 'ENTREGÁVEL'} · {done} de {entries.length} {entries.length === 1 ? 'entregue' : 'entregues'}</p></div></div><div className="v2-fv-right">{driveConnection && done > 0 && <button type="button" className="v2-fv-drive" disabled={folderSaving === folder.id} onClick={() => void saveFolderToDrive(folder.id, folder.title)}><Cloud size={14} /> {folderSaving === folder.id ? 'Salvando no Drive…' : 'Salvar pasta no Drive'}</button>}<div className="v2-fv-bar" aria-hidden="true"><i style={{ width: `${pct}%` }} /></div><div className="wf-segments" aria-label="Exibição da pasta"><button type="button" className={layout === 'covers' ? 'on' : ''} onClick={() => setLayout('covers')}>Capas</button><button type="button" className={layout === 'list' ? 'on' : ''} onClick={() => setLayout('list')}>Lista</button></div></div></header></div>
         {layout === 'covers' ? <div className="v2-fv-grid">{entries.map((entry) => <article key={entry.key} className={`v2-fv-card ${entry.docs.length ? '' : 'pending'}`}><div className="v2-fv-cover">{entry.docs.length ? (companyBrand.logoUrl ? <DocumentAutoCover logo={companyBrand.logoUrl} name={companyBrand.name} /> : <FileText size={28} />) : <Clock3 size={26} />}<span className={`wf-tag ${entry.docs.length ? 'green' : 'amber'}`}>{entry.docs.length ? 'Entregue' : 'Em produção'}</span></div><div className="v2-fv-body"><h3 title={entry.title}>{entry.title}</h3><small>{entry.docs.length ? `${entry.hint} · ${entry.docs[0].date}` : `${entry.hint} · ainda sem documento`}</small>{actions(entry)}</div></article>)}</div>
           : <div className="v2-fv-list"><div className="v2-fv-row head"><span>Nome</span><span>Situação</span><span>Entregue em</span><span /></div>{entries.map((entry) => <div key={entry.key} className={`v2-fv-row ${entry.docs.length ? '' : 'pending'}`}><span className="v2-fv-name">{entry.docs.length ? <FileText size={16} /> : <Clock3 size={16} />}<strong>{entry.title}</strong></span><span><span className={`wf-tag ${entry.docs.length ? 'green' : 'amber'}`}>{entry.docs.length ? 'Entregue' : 'Em produção'}</span></span><span>{entry.docs.length ? entry.docs[0].date : '—'}</span>{actions(entry) || <span />}</div>)}</div>}
       </section>; })()}
