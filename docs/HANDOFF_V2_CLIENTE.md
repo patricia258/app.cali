@@ -1523,6 +1523,18 @@ Relatório: `docs/SEGURANCA_REVISAO_2026-10-15.md`. Autorização: "fazer tudo q
 - Testado em simulação desfeita: Company IN → 49 tabelas, ~306 kB; quem não é administrador é bloqueado; `anon` sem acesso.
 - Ainda falta (depende do advogado definir prazos): rotina de eliminação depois do prazo de guarda e desativação automática do acesso no encerramento.
 
+### 2026-10-15 — Aceite dos termos no primeiro acesso (preparado, DESLIGADO)
+
+- `src/auth/TermsGate.tsx`: cliente (`ProtectedRoute`) e Equipe CALI (`StaffWorkspace`, depois das duas etapas) veem "Termos de uso e privacidade" com o texto, a caixa "Li e aceito…" e Continuar/Sair. Administração não passa por ele.
+- Desligado enquanto `TERMS_VERSION` estiver vazio. Para ligar: colar os textos aprovados pelo advogado em `TERMS_SECTIONS` e preencher a versão (ex.: `'2026-11'`). Nova versão = novo aceite de todos.
+- Registro: tabela `terms_acceptances` (usuário, versão, data, navegador), migração `20261021120000`; cada pessoa só grava e lê o próprio aceite; a administração lê todos.
+- Visual conferido ligando-o temporariamente no ambiente de teste.
+
+### Limpeza de código (aguarda liberação)
+
+- 63 arquivos que o app não usa mais (~1,7 MB): versões antigas das páginas de Relatórios (admin V3–V16 e cliente V1–V4), papéis V12/V14/V15/V16, CSS antigos de documentos/horas/projetos etc. Lista obtida por alcance de imports a partir de `src/main.tsx` (incluindo `?inline`).
+- A remoção foi bloqueada pelo classificador de permissões desta máquina ("Irreversible Local Destruction"), embora os arquivos fiquem no histórico do git. Aguarda a proprietária liberar.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

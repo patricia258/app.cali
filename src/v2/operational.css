@@ -3924,3 +3924,13 @@ html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-ok{color:#1f7
 html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-error{color:#b42318;font-weight:600}
 html[data-workspace-ui='v2'] .v2-company-export>button{flex:0 0 auto;border:1px solid #7a1f3d;background:#7a1f3d;color:#fff;border-radius:8px;padding:8px 16px;font:600 12px Inter,sans-serif;cursor:pointer}
 html[data-workspace-ui='v2'] .v2-company-export>button:disabled{opacity:.6;cursor:wait}
+
+/* Aceite dos termos no primeiro acesso (TermsGate; desligado até a revisão jurídica) */
+.v2-mfa-card.v2-terms-card{max-width:620px}
+.v2-terms-text{max-height:46vh;overflow-y:auto;scrollbar-width:none;border:1px solid #eee3dc;border-radius:10px;padding:14px 16px;background:#fcfaf8;font-size:13px;line-height:1.55;color:#4a3d42}
+.v2-terms-text::-webkit-scrollbar{display:none}
+.v2-terms-text h2{font-size:13px;margin:12px 0 4px;color:#2b2024}
+.v2-terms-text h2:first-child{margin-top:0}
+.v2-terms-text p{margin:0 0 8px}
+.v2-terms-check{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#2b2024;cursor:pointer}
+.v2-terms-check input{margin-top:2px;accent-color:#7a1f3d}
