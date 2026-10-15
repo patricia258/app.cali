@@ -1489,6 +1489,12 @@ Relatório: `docs/SEGURANCA_REVISAO_2026-10-15.md`. Autorização: "fazer tudo q
 - **Convite por e-mail:** `workspace-staff-invite` já está implantado (versão 2, pela sessão de e-mails).
 - A sessão de e-mails reimplantou também `workspace-access`, `workspace-send-executive-report`, `workspace-daily-chat-digest`, `workspace-notification-email-hook` (14/10) — o remetente novo deve estar valendo em todos; conferir com um envio real.
 
+### 2026-10-15 — Cabeçalhos confirmados no oficial + direitos do titular (LGPD) no perfil
+
+- Cabeçalhos de segurança conferidos em app.calirh.com (X-Frame-Options, CSP frame-ancestors, nosniff, Referrer-Policy, Permissions-Policy, HSTS): todos ativos.
+- Perfil (`DirectProfileControl.tsx`, vale para os três perfis): bloco "Privacidade e meus dados" com "Baixar meus dados" (arquivo JSON via `export_my_data()`: cadastro, avisos, mensagens escritas, ciências, ações e pedidos de privacidade; registra no histórico) e "Pedir acesso, correção ou exclusão" (`request_data_subject_right`, tabela nova `data_subject_requests`, aviso crítico + e-mail para a administradora, prazo de 15 dias). Exportação testada no banco com a conta da administradora (dentro de transação desfeita).
+- Falta: tela da administradora para responder os pedidos (hoje chegam por sino e e-mail); exclusão em si continua manual, decidida caso a caso.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
