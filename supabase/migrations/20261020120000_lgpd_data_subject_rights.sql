@@ -18,3 +18,6 @@ create policy data_subject_requests_own_read on cali_workspace.data_subject_requ
 grant select, insert, update, delete on cali_workspace.data_subject_requests to authenticated;
 -- Funções export_my_data() (volatile) e request_data_subject_right(text, text): ver definição aplicada no banco
 -- (migrações lgpd_data_subject_rights e lgpd_export_my_data_volatile de 15/10/2026).
+-- Complemento (15/10/2026): admin_answer_data_subject_request(uuid, text) grava a resposta, fecha o pedido e avisa quem pediu;
+-- o aviso do pedido para a administradora passou a apontar para /admin/auditoria. Definições aplicadas no banco
+-- (migração lgpd_answer_data_subject_request).

@@ -1495,6 +1495,10 @@ Relatório: `docs/SEGURANCA_REVISAO_2026-10-15.md`. Autorização: "fazer tudo q
 - Perfil (`DirectProfileControl.tsx`, vale para os três perfis): bloco "Privacidade e meus dados" com "Baixar meus dados" (arquivo JSON via `export_my_data()`: cadastro, avisos, mensagens escritas, ciências, ações e pedidos de privacidade; registra no histórico) e "Pedir acesso, correção ou exclusão" (`request_data_subject_right`, tabela nova `data_subject_requests`, aviso crítico + e-mail para a administradora, prazo de 15 dias). Exportação testada no banco com a conta da administradora (dentro de transação desfeita).
 - Falta: tela da administradora para responder os pedidos (hoje chegam por sino e e-mail); exclusão em si continua manual, decidida caso a caso.
 
+### 2026-10-15 — Resposta aos pedidos de privacidade
+
+- `PrivacyRequestsPanel.tsx` no topo da Auditoria (só aparece quando há pedido): tipo, quem, empresa, data, prazo de 15 dias (âmbar em aberto, vermelho vencido), "Responder". Função `admin_answer_data_subject_request` grava a resposta, fecha o pedido e avisa a pessoa (sino + e-mail). O aviso do pedido agora leva a `/admin/auditoria`. Auditoria ganhou rótulos para os três eventos de privacidade.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
