@@ -444,7 +444,7 @@ Deno.serve(async (req: Request) => {
         try{
           const details=await approvedAdminScheduleFields(ws, notification, key);
           const fields:Record<string,string>={
-            nome_da_administradora:String(profile.full_name||"").trim().split(/\\s+/)[0]||"Pati",
+            nome_da_administradora:String(profile.full_name||"").trim().split(" ")[0]||"Pati",
             empresa:companyName,link:url,logo_workspace_url:LOGO_URL,carvalho_url:MARK_URL,
             ...details,
           };
