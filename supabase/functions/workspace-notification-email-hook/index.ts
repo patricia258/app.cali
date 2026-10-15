@@ -118,7 +118,7 @@ Deno.serve(async (req: Request) => {
                notificationTitle === "Pedido de reunião online extra recebido") template = "online_extra_request_received";
       else if (type === "scheduling_extra_confirmed" && notification.entity_type === "scheduling_request" && notificationTitle === "Visita presencial extra confirmada") template = "presential_extra_confirmed";
       else if (type === "scheduling_extra_confirmed" && notification.entity_type === "scheduling_request" && notificationTitle === "Reunião online extra confirmada") template = "online_extra_confirmed";
-      else if (type === "scheduling_extra_new_dates" && notification.entity_type === "scheduling_request") template = "extra_new_dates";
+      else if ((type === "scheduling_extra_new_dates" || (type === "scheduling_response" && ["A CALI respondeu sua solicitação","Novas datas para sua visita extra"].includes(notificationTitle))) && notification.entity_type === "scheduling_request") template = "extra_new_dates";
       else if (type === "scheduling_extra_reschedule_requested" && notification.entity_type === "scheduling_request") template = "extra_reschedule_requested";
 
       if (template && notification.entity_id) {
