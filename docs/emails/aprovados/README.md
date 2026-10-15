@@ -81,3 +81,10 @@ Cliente: rebriefing, entregável cancelado, subtarefa para aprovação, dependê
 | Cliente solicita reagendar visita extra previamente confirmada | `extra-reagendamento-solicitado-v1.html` | Novo aviso `scheduling_extra_reschedule_requested` apenas no evento `confirmed → reschedule_review` com motivo e duas datas reais |
 
 Não gera notificações duplicadas para propostas administrativas. Em outros pedidos, mantém o template existente. A confirmação de reagendamento definitivo continuará usando seu próprio e-mail já aprovado de confirmação, após aprovação de nova data no sistema. Remetente e rodapé preservados.
+
+## Visita extra cancelada e reagendamento confirmado — aprovados (15/10/2026)
+
+- **Visita extra cancelada V2**: `extra-visita-cancelada-v2.html`. Conteúdo atualizado com condição de multa de 20% (R$ 160,00) somente após avaliação, sem cobrança por este e-mail. Notificação `scheduling_extra_cancelled` para visita presencial previamente confirmada, quando `confirmed -> cancelled`.
+- **Nova data da visita extra confirmada V1**: `extra-visita-reagendada-confirmada-v1.html`. Reaproveita notificação `scheduling_extra_confirmed`; reconhece campos da visita reagendada e usa a data antiga e a nova. Não gera aviso duplicado.
+- O código vigente contempla decisão de multa de 20% apenas na visita presencial, via função administrativa. Para online existe condição genérica de avaliação de cobrança, mas não há cálculo de 20% implementado. Não assumir que está ativo.
+- **Prazo de aviso para isenção:** pendente confirmação da proprietária; não confundir antecedência de solicitação (48h) com antecedência de cancelamento.
