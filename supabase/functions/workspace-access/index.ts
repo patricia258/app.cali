@@ -4,6 +4,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { renderApprovedClientEmail } from "./approved-client-templates.ts";
+import { renderClientCodeV3 } from "./approved-code-v3.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -165,7 +166,7 @@ Deno.serve(async (request) => {
       const resend = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-code-${crypto.randomUUID()}` },
-        body: JSON.stringify({ from: "APP CALI RH <workspace@calirh.com>", to: [email], reply_to: "nao-responda@calirh.com", subject: "Seu código de acesso ao CALI Workspace", html: emailHtml(code, profile.full_name) }),
+        body: JSON.stringify({ from: "APP CALI RH <workspace@calirh.com>", to: [email], reply_to: "nao-responda@calirh.com", subject: profile.role === "client" ? "APP CALI RH · Seu código para entrar" : "Seu código de acesso ao CALI Workspace", html: profile.role === "client" ? renderClientCodeV3(code, profile.full_name, APP_URL) : emailHtml(code, profile.full_name) }),
       });
       const emailResult = await resend.json().catch(() => ({}));
       if (!resend.ok) throw new Error(`Resend ${resend.status}: ${JSON.stringify(emailResult)}`);
