@@ -3,6 +3,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { renderApprovedClientEmail } from "./approved-client-templates.ts";
 import { extraEmailFields } from "./extra-email-fields.ts";
 import { cancelledVisitFields } from "./extra-cancellation-fields.ts";
+import { cancelledCalendarExtraFields, applyCancellationTerms } from "./calendar-extra-cancellation.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -122,6 +123,7 @@ Deno.serve(async (req: Request) => {
       else if ((type === "scheduling_extra_new_dates" || (type === "scheduling_response" && ["A CALI respondeu sua solicitação","Novas datas para sua visita extra"].includes(notificationTitle))) && notification.entity_type === "scheduling_request") template = "extra_new_dates";
       else if (type === "scheduling_extra_reschedule_requested" && notification.entity_type === "scheduling_request") template = "extra_reschedule_requested";
       else if (type === "scheduling_extra_cancelled" && notification.entity_type === "scheduling_request" && notificationTitle === "Visita extra cancelada") template = "presential_extra_cancelled";
+      else if (type === "calendar_update" && notification.entity_type === "event" && notificationTitle === "Evento cancelado") template = "presential_extra_cancelled";
 
       if (template && notification.entity_id) {
         try {
@@ -137,8 +139,15 @@ Deno.serve(async (req: Request) => {
           // Só usar o HTML personalizado quando os detalhes baterem EXATAMENTE com
           // um único registro real; nunca adivinhar qual item originou o aviso.
           let safeHtmlBlocks: { bloco_observacoes?: string } = {};
+          let calendarExtraTimely: boolean | null = null;
           if (template === "presential_extra_cancelled") {
-            Object.assign(fields, await cancelledVisitFields(ws, notification));
+            if (notification.entity_type === "event") {
+              const result = await cancelledCalendarExtraFields(ws, notification);
+              Object.assign(fields, result.fields);
+              calendarExtraTimely = result.timely;
+            } else {
+              Object.assign(fields, await cancelledVisitFields(ws, notification));
+            }
           } else if (template === "extra_new_dates" || template === "extra_reschedule_requested") {
             const result = await extraEmailFields(ws, notification, template);
             Object.assign(fields, result.fields);
@@ -321,6 +330,7 @@ Deno.serve(async (req: Request) => {
             fields.titulo_cronograma = "Cronograma de " + String(project.name);
           }
           outgoingHtml = renderApprovedClientEmail(template, fields, safeHtmlBlocks);
+          if (calendarExtraTimely !== null) outgoingHtml = applyCancellationTerms(outgoingHtml, calendarExtraTimely);
           const titles: Record<string, string> = {
             schedule: "Cronograma para validação",
             schedule_reminder: "Cronograma aguardando validação",
