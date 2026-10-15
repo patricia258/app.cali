@@ -6,6 +6,8 @@ import { cancelledVisitFields } from "./extra-cancellation-fields.ts";
 import { cancelledCalendarExtraFields, applyCancellationTerms } from "./calendar-extra-cancellation.ts";
 import { approvedClientContext } from "./approved-client-context.ts";
 import { declinedExtraFields } from "./declined-extra-fields.ts";
+import { renderAdminApprovedEmail } from "./approved-admin-templates.ts";
+import { approvedAdminScheduleFields } from "./approved-admin-context.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -428,6 +430,33 @@ Deno.serve(async (req: Request) => {
         }
       }
     }
+
+    // Modelo administrativo apenas para decisões reais do cliente sobre cronograma.
+    // Nenhum novo evento é criado. Falha de contexto mantém o HTML legado.
+    if (profile.role === "admin" && notification.entity_type === "project") {
+      const eventType=String(notification.notification_type||"");
+      const eventTitle=String(notification.title||"");
+      const key=eventType==="project_schedule_approved" && eventTitle==="Cronograma aprovado pelo cliente"
+        ? "project_schedule_approved"
+        : eventType==="project_schedule_adjustment" && eventTitle==="Ajuste solicitado no cronograma"
+          ? "project_schedule_adjustment" : null;
+      if(key){
+        try{
+          const details=await approvedAdminScheduleFields(ws, notification, key);
+          const fields:Record<string,string>={
+            nome_da_administradora:String(profile.full_name||"").trim().split(/\\s+/)[0]||"Pati",
+            empresa:companyName,link:url,logo_workspace_url:LOGO_URL,carvalho_url:MARK_URL,
+            ...details,
+          };
+          outgoingHtml=renderAdminApprovedEmail(key, fields);
+          outgoingSubject=["APP CALI RH",companyName,
+            key==="project_schedule_approved"?"Cronograma aprovado":"Ajuste solicitado no cronograma"].join(" · ");
+        }catch(err){
+          console.error("workspace admin approved template fallback",err);
+        }
+      }
+    }
+
 
 
     const response = await fetch("https://api.resend.com/emails", {
