@@ -49,6 +49,23 @@ Deno.serve(async(req)=>{
   async function credential(conn:any){const key=String(conn?.credential_key||'');if(!key)throw new Error('google_drive_credential_missing');const{data,error}=await db.from('google_calendar_credentials').select('*').eq('credential_key',key).maybeSingle();if(error||!data)throw new Error('google_drive_credential_missing');return data}
   async function validAccessToken(conn:any){const cred=await credential(conn);const expiry=cred.expires_at?new Date(cred.expires_at).getTime():0;if(cred.access_token&&expiry>Date.now()+60000)return String(cred.access_token);if(!cred.refresh_token)throw new Error('google_refresh_token_missing');const response=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:clientId,client_secret:clientSecret,refresh_token:cred.refresh_token,grant_type:'refresh_token'})});const data=await response.json();if(!response.ok||!data.access_token)throw new Error(`google_refresh_failed:${data.error||response.status}`);const expiresAt=new Date(Date.now()+Number(data.expires_in||3600)*1000).toISOString();await db.from('google_calendar_credentials').update({access_token:data.access_token,token_type:data.token_type||cred.token_type,scope:data.scope||cred.scope,expires_at:expiresAt,updated_at:new Date().toISOString()}).eq('credential_key',cred.credential_key);return String(data.access_token)}
   async function ensureRootFolder(conn:any,token:string){if(conn.root_folder_id){const check=await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(conn.root_folder_id)}?fields=id,name,trashed`,{headers:{Authorization:`Bearer ${token}`}});if(check.ok){const row=await check.json();if(row?.id&&!row?.trashed)return String(row.id)}}const create=await fetch('https://www.googleapis.com/drive/v3/files?fields=id,name',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({name:'CALI Workspace',mimeType:'application/vnd.google-apps.folder'})});const row=await create.json();if(!create.ok||!row?.id)throw new Error(`google_drive_folder_failed:${row?.error?.message||create.status}`);await db.from('drive_connections').update({root_folder_id:row.id,root_folder_name:'CALI Workspace',updated_at:new Date().toISOString()}).eq('id',conn.id);return String(row.id)}
+  // Pasta do entregável dentro de "CALI Workspace": criada uma vez e reaproveitada (o app só enxerga o que ele mesmo criou).
+  async function ensureChildFolder(token:string,parentId:string,name:string){const safe=name.replace(/[\\']/g,' ').trim().slice(0,180)||'Entregável';const q=encodeURIComponent(`name='${safe}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);const found=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,webViewLink)&pageSize=1`,{headers:{Authorization:`Bearer ${token}`}});if(found.ok){const rows=await found.json();if(rows?.files?.[0]?.id)return{id:String(rows.files[0].id),url:String(rows.files[0].webViewLink||`https://drive.google.com/drive/folders/${rows.files[0].id}`)}}const create=await fetch('https://www.googleapis.com/drive/v3/files?fields=id,webViewLink',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({name:safe,mimeType:'application/vnd.google-apps.folder',parents:[parentId]})});const row=await create.json();if(!create.ok||!row?.id)throw new Error(`google_drive_folder_failed:${row?.error?.message||create.status}`);return{id:String(row.id),url:String(row.webViewLink||`https://drive.google.com/drive/folders/${row.id}`)}}
+  async function deliverableFolderName(deliverableId:string){const{data}=await db.from('deliverables').select('title,protocol').eq('id',deliverableId).maybeSingle();return data?`${data.title}${data.protocol?` (${data.protocol})`:''}`:'Entregável'}
+  // Copia um documento liberado para o Drive do cliente; documento de entregável vai para a pasta do entregável.
+  async function copyOne(file:any,conn:any,token:string,rootId:string){
+    const{data:already}=await db.from('file_sync_jobs').select('id,status,external_url').eq('file_id',file.id).eq('connection_id',conn.id).eq('status','synced').order('updated_at',{ascending:false}).limit(1).maybeSingle();
+    if(already?.id)return{status:'synced',url:already.external_url};
+    const{data:job}=await db.from('file_sync_jobs').insert({file_id:file.id,company_id:companyId,connection_id:conn.id,status:'processing',requested_by:user.id,attempts:1}).select('id').single();
+    try{
+      const folderId=file.deliverable_id?(await ensureChildFolder(token,rootId,await deliverableFolderName(String(file.deliverable_id)))).id:rootId;
+      const{data:download,error:downloadError}=await serviceRoot.storage.from('cali-workspace-private').download(String(file.storage_path));if(downloadError||!download)throw new Error(`workspace_download_failed:${downloadError?.message||'arquivo indisponível'}`);
+      const mime=mimeFrom(file.file_type,file.original_filename||'');let name=String(file.original_filename||file.title||'Documento CALI').trim();if(!name.includes('.')&&extensionForMime(mime))name+=extensionForMime(mime);
+      const uploaded=await uploadFile(token,folderId,name,mime,await download.arrayBuffer());const url=uploaded.webViewLink||`https://drive.google.com/file/d/${uploaded.id}/view`;
+      if(job?.id)await db.from('file_sync_jobs').update({status:'synced',target_folder_id:folderId,external_file_id:uploaded.id,external_url:url,error_message:null,updated_at:new Date().toISOString()}).eq('id',job.id);
+      return{status:'synced',url,fileName:uploaded.name};
+    }catch(error){if(job?.id)await db.from('file_sync_jobs').update({status:'error',error_message:error instanceof Error?error.message:'unknown_error',updated_at:new Date().toISOString()}).eq('id',job.id);throw error}
+  }
   async function uploadFile(token:string,folderId:string,name:string,mime:string,bytes:ArrayBuffer){const boundary=`cali-${crypto.randomUUID()}`;const metadata=JSON.stringify({name,parents:[folderId]});const bodyBlob=new Blob([`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n--${boundary}\r\nContent-Type: ${mime}\r\n\r\n`,new Uint8Array(bytes),`\r\n--${boundary}--`],{type:`multipart/related; boundary=${boundary}`});const response=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':`multipart/related; boundary=${boundary}`},body:bodyBlob});const row=await response.json();if(!response.ok||!row?.id)throw new Error(`google_drive_upload_failed:${row?.error?.message||response.status}`);return row}
 
   try{
@@ -77,22 +94,27 @@ Deno.serve(async(req)=>{
     }
     if(action==='copy_file'){
       const fileId=String(body?.fileId||'');if(!fileId)return json({error:'missing_file_id'},400);
-      const{data:file,error:fileError}=await db.from('files').select('id,company_id,title,storage_path,drive_url,file_type,original_filename,status,client_visible').eq('id',fileId).maybeSingle();
+      const{data:file,error:fileError}=await db.from('files').select('id,company_id,deliverable_id,title,storage_path,drive_url,file_type,original_filename,status,client_visible').eq('id',fileId).maybeSingle();
       if(fileError||!file||String(file.company_id)!==companyId||file.status!=='published'||!file.client_visible)return json({error:'file_not_available'},404);
       if(!file.storage_path)return json({error:'workspace_file_required',detail:'Este arquivo está vinculado por link externo e não pode ser copiado automaticamente.'},409);
       const conn=await connection();if(!conn)return json({error:'drive_not_connected'},409);
-      const{data:already}=await db.from('file_sync_jobs').select('id,status,external_url').eq('file_id',fileId).eq('connection_id',conn.id).eq('status','synced').order('updated_at',{ascending:false}).limit(1).maybeSingle();
-      if(already?.id)return json({status:'synced',url:already.external_url});
-      const{data:job}=await db.from('file_sync_jobs').insert({file_id:fileId,company_id:companyId,connection_id:conn.id,status:'processing',requested_by:user.id,attempts:1}).select('id').single();
-      try{
-        const token=await validAccessToken(conn);const folderId=await ensureRootFolder(conn,token);
-        const{data:download,error:downloadError}=await serviceRoot.storage.from('cali-workspace-private').download(String(file.storage_path));if(downloadError||!download)throw new Error(`workspace_download_failed:${downloadError?.message||'arquivo indisponível'}`);
-        const mime=mimeFrom(file.file_type,file.original_filename||'');let name=String(file.original_filename||file.title||'Documento CALI').trim();if(!name.includes('.')&&extensionForMime(mime))name+=extensionForMime(mime);
-        const uploaded=await uploadFile(token,folderId,name,mime,await download.arrayBuffer());const url=uploaded.webViewLink||`https://drive.google.com/file/d/${uploaded.id}/view`;
-        if(job?.id)await db.from('file_sync_jobs').update({status:'synced',target_folder_id:folderId,external_file_id:uploaded.id,external_url:url,error_message:null,updated_at:new Date().toISOString()}).eq('id',job.id);
-        await db.from('drive_connections').update({last_sync_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',conn.id);
-        return json({status:'synced',url,fileName:uploaded.name});
-      }catch(error){if(job?.id)await db.from('file_sync_jobs').update({status:'error',error_message:error instanceof Error?error.message:'unknown_error',updated_at:new Date().toISOString()}).eq('id',job.id);throw error}
+      const token=await validAccessToken(conn);const rootId=await ensureRootFolder(conn,token);
+      const result=await copyOne(file,conn,token,rootId);
+      await db.from('drive_connections').update({last_sync_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',conn.id);
+      return json(result);
+    }
+    // Pasta inteira do entregável: cria "CALI Workspace / <entregável (protocolo)>" e copia todos os documentos liberados.
+    if(action==='copy_folder'){
+      const deliverableId=String(body?.deliverableId||'');if(!deliverableId)return json({error:'missing_deliverable_id'},400);
+      const{data:files,error:filesError}=await db.from('files').select('id,company_id,deliverable_id,title,storage_path,file_type,original_filename,status,client_visible').eq('deliverable_id',deliverableId).eq('company_id',companyId).eq('status','published').eq('client_visible',true);
+      if(filesError)throw filesError;
+      const copiable=(files||[]).filter((row:any)=>row.storage_path);if(!copiable.length)return json({error:'folder_empty',detail:'Ainda não há documento liberado nesta pasta.'},409);
+      const conn=await connection();if(!conn)return json({error:'drive_not_connected'},409);
+      const token=await validAccessToken(conn);const rootId=await ensureRootFolder(conn,token);
+      const folder=await ensureChildFolder(token,rootId,await deliverableFolderName(deliverableId));
+      let copied=0,failed=0;for(const file of copiable){try{await copyOne(file,conn,token,rootId);copied+=1}catch(error){console.error('google-drive-oauth copy_folder',error);failed+=1}}
+      await db.from('drive_connections').update({last_sync_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',conn.id);
+      return json({status:failed?'partial':'synced',url:folder.url,copied,failed});
     }
     if(action==='disconnect'){
       const conn=await connection();if(conn)await db.from('drive_connections').update({status:'revoked',updated_at:new Date().toISOString()}).eq('id',conn.id);return json({ok:true});

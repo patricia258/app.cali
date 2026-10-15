@@ -3867,3 +3867,7 @@ html[data-workspace-ui='v2'] .extra-visit-consent>label:not(.extra-visit-check) 
 .v2-mfa-primary:disabled{opacity:.45;cursor:default}
 .v2-mfa-leave{align-self:center;border:0;background:none;color:#7d726b;font:inherit;font-size:12px;text-decoration:underline;cursor:pointer}
 .v2-mfa-error{margin:0;padding:10px 12px;border:1px solid #f0c4c0;border-left:4px solid #b3261e;border-radius:8px;background:#fdecea;color:#7a1c16;font-size:12.5px}
+
+/* Pasta do cliente: salvar a pasta inteira no Google Drive. */
+html[data-workspace-ui='v2'] .v2-fv-drive{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid #dfd3ca;border-radius:9px;background:#fff;color:#5a1e2d;font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+html[data-workspace-ui='v2'] .v2-fv-drive:disabled{opacity:.5;cursor:default}

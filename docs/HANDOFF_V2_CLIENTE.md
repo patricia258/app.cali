@@ -1471,6 +1471,12 @@ Relatório: `docs/SEGURANCA_REVISAO_2026-10-15.md`. Autorização: "fazer tudo q
 - **LGPD:** documento para revisão com advogado em Claude Docs: https://claude.ai/code/artifact/3ebb5d2a-3bbb-42d8-b903-d1e7774c753c (política do app, termos, cláusula com clientes, plano de incidentes, prazos de guarda, registro das operações, pontos para o advogado).
 - **Pendente:** proteção contra senha vazada (painel; o login não usa senha, impacto baixo); `pg_net` no esquema público; backup do plano (conferir no painel); atualizar react-router para 7; aceite registrado no primeiro acesso; exportar/excluir dados pelo app.
 
+### 2026-10-15 — Capacidade (3ª ocorrência) e pasta inteira no Drive do cliente
+
+- **Capacidade, 3ª ocorrência:** simulação desfeita (nov e dez/2026, Company IN, 16h cada): novembro = excedente nº 2; dezembro = excedente nº 3 + evento `review`; administradora recebe "Avaliar adequação de capacidade"; cliente recebe "terceira ocorrência de excedente". Nada ficou gravado.
+- **Drive do cliente:** `google-drive-oauth` versão 2 (implantada). Documento de entregável agora vai para "CALI Workspace / <entregável (protocolo)>" (antes caía solto na pasta CALI Workspace); ação nova `copy_folder` copia todos os documentos liberados da pasta de uma vez, sem duplicar o que já foi copiado. Tela: botão "Salvar pasta no Drive" na pasta (só aparece com Drive conectado e ao menos um documento entregue). NÃO testado com Drive real.
+- Exportação dos Indicadores em PDF continua aguardando a proprietária definir o agrupamento (registro de 2026-10, "não começar sem ela definir").
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
