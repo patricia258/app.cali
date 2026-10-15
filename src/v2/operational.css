@@ -3874,3 +3874,10 @@ html[data-workspace-ui='v2'] .v2-fv-drive:disabled{opacity:.5;cursor:default}
 
 /* Nome mencionado com @ dentro das mensagens. */
 html[data-workspace-ui='v2'] .v2-mention{display:inline;padding:0 4px;border-radius:5px;background:#fbe7c6;color:#6b4a12;font-weight:700}
+
+/* Equipe do cliente vista pela Equipe CALI: só consulta (sem editar, afastar, desligar ou importar). */
+html[data-workspace-ui='v2'] .v2-team-staff :is(.team-btn:not(.team-download),.team-danger,.primary-button){display:none!important}
+body.v2-team-staff-mode .v2-person-sheet :is(.v2-person-actions,.team-btn:not(.team-download),.team-danger,.primary-button){display:none!important}
+html[data-workspace-ui='v2'] .v2-staff-bell-list a.is-mention{border-left:4px solid #d9a514;background:#fff8e6}
+html[data-workspace-ui='v2'] .v2-staff-browse .wf-record-row.is-link{cursor:pointer}
+html[data-workspace-ui='v2'] .v2-staff-browse .wf-record-row.is-link:hover{background:#fbf7f4}

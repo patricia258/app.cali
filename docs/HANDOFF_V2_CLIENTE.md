@@ -1481,6 +1481,14 @@ Relatório: `docs/SEGURANCA_REVISAO_2026-10-15.md`. Autorização: "fazer tudo q
 
 - `src/lib/mentionText.tsx`: reconhece "@" + até quatro palavras com inicial maiúscula (aceita da/de/do/das/dos/e no meio) e pinta em âmbar (`.v2-mention`). Aplicado nas conversas montadas por runtime (entregável V35 e ocorrências V2, via `linkify`) e nas em React (subtarefa da administradora/Partner e do cliente, entregável e ocorrências do Partner). E-mail tipo a@b.com não é confundido. Só aparência: quem recebe o aviso continua decidido no banco pelo nome completo.
 
+### 2026-10-15 — Partner: Equipe do cliente, Relatórios e menção no sino
+
+- **Equipe do cliente:** `/equipe/pessoas` usa a mesma `CompanyTeamPage` do cliente com `staff` (empresas pela função `partner_companies`, seletor de empresa, só consulta). Escondidos: importar planilha, adicionar pessoa, "Hora de atualizar o quadro" e as ações da ficha (editar, férias, desligar, arquivar; marca `v2-team-staff-mode` no corpo porque a ficha abre fora da página). Dados restritos (salário) nunca são carregados no modo Partner.
+- **Relatórios:** relatórios já enviados ao cliente abrem na versão impressa (`/equipe/relatorios/impressao/:id`, `ReportPrintPageV17 role="staff"`, página cheia); rascunhos continuam só na lista.
+- **Sino do Partner:** aviso de menção com faixa âmbar.
+- **Convite por e-mail:** `workspace-staff-invite` já está implantado (versão 2, pela sessão de e-mails).
+- A sessão de e-mails reimplantou também `workspace-access`, `workspace-send-executive-report`, `workspace-daily-chat-digest`, `workspace-notification-email-hook` (14/10) — o remetente novo deve estar valendo em todos; conferir com um envio real.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

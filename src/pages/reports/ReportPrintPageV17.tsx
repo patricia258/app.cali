@@ -9,7 +9,8 @@ import { type ReportEditor, type ReportType } from '../../lib/reportComposition'
 import { normalizeIntelligenceSnapshot, type IntelligenceSnapshot } from '../../lib/reportIntelligence';
 import type { DeliveryPerformanceRow } from '../../lib/reportV14';
 
-type Props = { role: 'admin' | 'client' };
+/* staff = Equipe CALI: só lê relatórios já enviados ao cliente, das empresas atribuídas a ela (a proteção por linha limita as empresas). */
+type Props = { role: 'admin' | 'client' | 'staff' };
 type Loaded = {
   company: { name: string; logoUrl?: string | null };
   snapshot: IntelligenceSnapshot;
@@ -131,7 +132,7 @@ export function ReportPrintPageV17({ role }: Props) {
         companyId = String(profile.data?.company_id || ''); if (!companyId) throw new Error('Empresa vinculada ao acesso não encontrada.');
       }
       let query = supabase.from('reports').select('id,company_id,report_type,period_start,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,version,approval_identity_snapshot,acknowledgement_identity_snapshot,approved_at,acknowledged_at,acknowledgement_protocol').eq('id', reportId);
-      if (role === 'client') query = query.eq('company_id', companyId).in('status', ['sent', 'published']); else query = query.neq('status', 'archived');
+      if (role === 'client') query = query.eq('company_id', companyId).in('status', ['sent', 'published']); else if (role === 'staff') query = query.in('status', ['sent', 'published']); else query = query.neq('status', 'archived');
       const reportResult = await query.maybeSingle(); if (reportResult.error) throw reportResult.error;
       const report = reportResult.data; if (!report) throw new Error('Relatório não encontrado ou não disponível para este acesso.');
       const snapshot = normalizeIntelligenceSnapshot(report.source_snapshot); if (!snapshot) throw new Error('A fotografia aprovada deste relatório não está disponível.');
@@ -146,7 +147,7 @@ export function ReportPrintPageV17({ role }: Props) {
   }
 
   if (loading) return <main className="report-print-v16-state"><Loader2 className="spin" size={22} />Preparando versão para impressão…</main>;
-  const goBack = () => role === 'client' ? navigate('/cliente/relatorios') : navigate(-1);
+  const goBack = () => role === 'client' ? navigate('/cliente/relatorios') : role === 'staff' ? navigate('/equipe/relatorios') : navigate(-1);
   if (error || !data) return <main className="report-print-v16-state error"><strong>Não foi possível abrir o relatório.</strong><p>{error}</p><button type="button" onClick={goBack}>Voltar</button></main>;
   return <main className="report-print-v16-page"><div className="report-print-v16-toolbar"><div><strong>Relatório executivo · v{data.version}</strong><span>{data.company.name} · {data.periodName}</span></div><div><button type="button" onClick={goBack}><ArrowLeft size={16} />Voltar</button><button className="primary" type="button" onClick={() => void prepareAndPrint(data)}><Printer size={16} />Imprimir / salvar PDF</button></div></div><div className="report-print-v16-stage"><ExecutiveReportPaperV17 company={data.company} snapshot={data.snapshot} editor={data.editor} reportType={data.reportType} periodName={data.periodName} protocol={data.protocol} deliveries={data.deliveries} approvalIdentity={data.approvalIdentity} acknowledgementIdentity={data.ackIdentity} approvedAt={data.approvedAt} acknowledgedAt={data.acknowledgedAt} acknowledgementProtocol={data.ackProtocol} /></div></main>;
 }
