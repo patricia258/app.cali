@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { homeOf, useWorkspaceAuth, type Role } from '../auth/WorkspaceAuthProvider';
+import { MfaGate } from '../auth/MfaGate';
 
 export function WorkspaceRouteLoader() {
   return (
@@ -25,5 +26,6 @@ export function ProtectedRoute({ role, children }: { role: Role; children: React
     return <Navigate to={homeOf(auth.role)} replace />;
   }
 
-  return <>{children}</>;
+  // Administradora passa pela verificação em duas etapas; cliente não.
+  return role === 'admin' ? <MfaGate>{children}</MfaGate> : <>{children}</>;
 }
