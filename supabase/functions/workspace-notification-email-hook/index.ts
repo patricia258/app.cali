@@ -4,6 +4,7 @@ import { renderApprovedClientEmail } from "./approved-client-templates.ts";
 import { extraEmailFields } from "./extra-email-fields.ts";
 import { cancelledVisitFields } from "./extra-cancellation-fields.ts";
 import { cancelledCalendarExtraFields, applyCancellationTerms } from "./calendar-extra-cancellation.ts";
+import { approvedClientContext } from "./approved-client-context.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -72,7 +73,7 @@ Deno.serve(async (req: Request) => {
     if (!/^[0-9a-f-]{36}$/i.test(notificationId)) return new Response(JSON.stringify({ ok: false, error: "invalid_notification" }), { status: 400, headers });
 
     const { data: notification, error: notificationError } = await ws.from("notifications")
-      .select("id,user_id,company_id,title,body,action_url,relevance,email_required,emailed_at,entity_type,entity_id,notification_type")
+      .select("id,user_id,company_id,title,body,action_url,relevance,email_required,emailed_at,entity_type,entity_id,notification_type,created_at")
       .eq("id", notificationId).maybeSingle();
     if (notificationError) throw notificationError;
     if (!notification) return new Response(JSON.stringify({ ok: false, error: "notification_not_found" }), { status: 404, headers });
@@ -103,7 +104,7 @@ Deno.serve(async (req: Request) => {
     if (profile.role === "client") {
       const type = String(notification.notification_type || "");
       const notificationTitle = String(notification.title || "");
-      let template: "schedule" | "schedule_reminder" | "project_complete" | "project_cancel" | "deliverable_review" | "task_review" | "client_dependency" | "document_ack" | "presential_extra_request_received" | "online_extra_request_received" | "presential_extra_confirmed" | "online_extra_confirmed" | "extra_new_dates" | "extra_reschedule_requested" | "presential_extra_cancelled" | "presential_extra_rescheduled" | null = null;
+      let template: "schedule" | "schedule_reminder" | "project_complete" | "project_cancel" | "deliverable_review" | "task_review" | "client_dependency" | "document_ack" | "presential_extra_request_received" | "online_extra_request_received" | "presential_extra_confirmed" | "online_extra_confirmed" | "extra_new_dates" | "extra_reschedule_requested" | "presential_extra_cancelled" | "presential_extra_rescheduled" | "record_status" | "record_reopen_decision" | "team_month_update" | "chat_mention" | null = null;
       if (type === "project_schedule_review" || (type === "project" && notificationTitle === "Planejamento para sua validação")) template = "schedule";
       else if (type === "project_schedule_reminder") template = "schedule_reminder";
       else if ((type === "project_lifecycle" && notificationTitle === "Execução cancelada" && String(notification.body || "").startsWith("Projeto ")) || (type === "project" && notificationTitle === "Projeto cancelado")) template = "project_cancel";
@@ -124,8 +125,13 @@ Deno.serve(async (req: Request) => {
       else if (type === "scheduling_extra_reschedule_requested" && notification.entity_type === "scheduling_request") template = "extra_reschedule_requested";
       else if (type === "scheduling_extra_cancelled" && notification.entity_type === "scheduling_request" && notificationTitle === "Visita extra cancelada") template = "presential_extra_cancelled";
       else if (type === "calendar_update" && notification.entity_type === "event" && notificationTitle === "Evento cancelado") template = "presential_extra_cancelled";
+      else if (type === "record_status" && notification.entity_type === "account_record" && notificationTitle === "Atualização na sua solicitação") template = "record_status";
+      else if (type === "record_reopen_decision" && notification.entity_type === "account_record" &&
+               ["Reabertura aprovada","Pedido de reabertura analisado"].includes(notificationTitle)) template = "record_reopen_decision";
+      else if (type === "team_month_update" && notification.entity_type === "team_month" && notificationTitle === "Hora de atualizar a equipe") template = "team_month_update";
+      else if (type === "chat_mention" && notificationTitle.endsWith(" mencionou você")) template = "chat_mention";
 
-      if (template && notification.entity_id) {
+      if (template && (notification.entity_id || template === "team_month_update")) {
         try {
           const firstname = String(profile.full_name || "").trim().split(/\s+/)[0] || "você";
           const fields: Record<string, string> = {
@@ -140,7 +146,9 @@ Deno.serve(async (req: Request) => {
           // um único registro real; nunca adivinhar qual item originou o aviso.
           let safeHtmlBlocks: { bloco_observacoes?: string } = {};
           let calendarExtraTimely: boolean | null = null;
-          if (template === "presential_extra_cancelled") {
+          if (template === "record_status" || template === "record_reopen_decision" || template === "team_month_update" || template === "chat_mention") {
+            Object.assign(fields, await approvedClientContext(ws, notification, template));
+          } else if (template === "presential_extra_cancelled") {
             if (notification.entity_type === "event") {
               const result = await cancelledCalendarExtraFields(ws, notification);
               Object.assign(fields, result.fields);
@@ -346,6 +354,10 @@ Deno.serve(async (req: Request) => {
             online_extra_confirmed: "Reunião online extra confirmada",
             presential_extra_cancelled: "Visita extra cancelada",
             presential_extra_rescheduled: "Nova data da visita extra confirmada",
+            record_status: "Atualização na ocorrência",
+            record_reopen_decision: "Resposta sobre reabertura",
+            team_month_update: "Revisão mensal da equipe",
+            chat_mention: fields.autor + " mencionou você",
             extra_new_dates: "Novos horários para seu atendimento extra",
             extra_reschedule_requested: "Pedido de reagendamento da visita extra",
           };
