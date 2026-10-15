@@ -1514,6 +1514,15 @@ Relatório: `docs/SEGURANCA_REVISAO_2026-10-15.md`. Autorização: "fazer tudo q
 - Conferido: nenhuma tela ou função de borda reconhece a administradora pelo e-mail fixo (só textos de exibição). A checagem dos registros criados foi bloqueada pelo classificador de permissões desta máquina ("Permission Grant"); confirmar com o primeiro login dele.
 - Para remover: tirar o e-mail de `is_admin()`, `profiles.active=false` e `staff_members.active=false`.
 
+### 2026-10-15 — Exportar dados da empresa (fim de contrato, LGPD)
+
+- Ficha do cliente → aba **Contrato** → bloco "Exportar dados da empresa" → botão **Exportar**.
+- Baixa dois arquivos: `…-dados.json` (função `admin_export_company_data`, só administração, migração `20261021090000`) e `…-documentos.html` (índice dos documentos com links de download válidos por 7 dias, bucket `cali-workspace-private`).
+- Ficam de fora: anotações internas (`deliverable_notes`, `task_notes`, `note_entries`), credenciais/conexões Google e Drive, fila de e-mails, notificações e controles da equipe CALI (`staff_*`).
+- Cada exportação gera `activity_log` `company_data_exported` (Auditoria: "Exportou os dados da empresa (fim de contrato)").
+- Testado em simulação desfeita: Company IN → 49 tabelas, ~306 kB; quem não é administrador é bloqueado; `anon` sem acesso.
+- Ainda falta (depende do advogado definir prazos): rotina de eliminação depois do prazo de guarda e desativação automática do acesso no encerramento.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

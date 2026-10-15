@@ -3914,3 +3914,13 @@ html[data-workspace-ui='v2'] .v2-privacy-form textarea{box-sizing:border-box;pad
 html[data-workspace-ui='v2'] .v2-privacy-form span{display:flex;justify-content:flex-end;gap:8px}
 html[data-workspace-ui='v2'] :is(.v2-privacy-form button,.v2-privacy-reply){height:32px;margin-top:8px;padding:0 12px;border:1px solid #dfd3ca;border-radius:8px;background:#fff;color:#5a1e2d;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 html[data-workspace-ui='v2'] .v2-privacy-form button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+
+/* Exportar dados da empresa (aba Contrato da ficha do cliente) */
+html[data-workspace-ui='v2'] .v2-admin-form .automation-preview.v2-company-export{flex-direction:row;align-items:center;gap:14px;margin-top:14px}
+html[data-workspace-ui='v2'] .v2-company-export>svg{flex:0 0 auto;color:#7a1f3d}
+html[data-workspace-ui='v2'] .v2-company-export>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+html[data-workspace-ui='v2'] .v2-company-export p{margin:0;line-height:1.45}
+html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-ok{color:#1f7a4d;font-weight:600}
+html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-error{color:#b42318;font-weight:600}
+html[data-workspace-ui='v2'] .v2-company-export>button{flex:0 0 auto;border:1px solid #7a1f3d;background:#7a1f3d;color:#fff;border-radius:8px;padding:8px 16px;font:600 12px Inter,sans-serif;cursor:pointer}
+html[data-workspace-ui='v2'] .v2-company-export>button:disabled{opacity:.6;cursor:wait}
