@@ -41,3 +41,43 @@ Cliente: rebriefing, entregável cancelado, subtarefa para aprovação, dependê
 - Nenhum envio deve usar endereço pessoal da fundadora.
 - Todos os e-mails precisam exibir: **E-mail automático. Não responda a esta mensagem.** E indicar que o contato deve ocorrer pelo **Workspace**.
 - Os 12 layouts aprovados estão arquivados nesta pasta com a linha de rodapé. **Apenas oito** já estão associados a disparos operacionais no envio do Workspace; `pendencia-atraso-v1`, `prazo-reprogramado-v1`, `documento-final-v2` e `relatorio-mensal-v2` ficam preservados como **HTML aprovado, ainda sem implementação do layout**. Seu envio anterior não foi modificado nesta rodada.
+
+
+## Solicitações de agendamento extra — cliente (aprovadas 14/10/2026)
+
+| Modalidade | Modelo | Condições comunicadas | Arquivo |
+|---|---|---|---|
+| Visita presencial extra | V2 | R$ 800 por até 4 horas; despesas adicionais com comprovantes; 2 datas; sujeita a análise de agenda | visita-presencial-extra-solicitacao-v2.html |
+| Reunião online extra | V3 | R$ 200 por 1 hora ou R$ 300 por 1h30; valor da duração escolhida; 2 datas; sujeita a análise de agenda | reuniao-online-extra-solicitacao-v3.html |
+
+**Integração:** os modelos HTML também estão no módulo `approved-client-templates.ts` da função `workspace-notification-email-hook`, preservando remetente `APP CALI RH <workspace@calirh.com>` e `reply_to: nao-responda@calirh.com`. Isso **não habilita sozinho** o envio de recibo inicial: a inserção de `scheduling_request` no banco atualmente é dirigida à administradora, e não existe evento de notificação ao cliente, nessa fase, que o hook possa usar sem nova regra. Não criar notificações adicionais nem modificar banco/telas por causa deste registro. O fluxo precisa de autorização específica para incorporar o disparo do recibo no evento correto.
+
+**Observação de consistência:** a tela do cliente tem tabela online fixa 1h/R$ 200 ou 1h30/R$ 300, mas a rotina `client_request_online_extra_v2` ainda aciona `client_request_online_extra_v1` que marca orçamento pendente; isso deve ser alinhado em uma alteração separada, sem modificar a regra comercial pelo e-mail.
+
+## Disparo dos comprovantes extras — implementação de 14/10/2026
+
+- Recibo exclusivo para o cliente solicitante, com `notification_type='scheduling_extra_request_receipt'`, `entity_type='scheduling_request'` e `entity_id` do pedido.
+- Registrado APÓS assinatura das condições nos RPCs `create_extra_visit_request_v1` e `client_request_online_extra_v2`, antes de retornarem sucesso.
+- Usa mecanismo existente `notifications_email_dispatch` → `workspace-notification-email-hook` → Resend com `emailed_at` e chave idempotente da notificação. Não cria nova fila, trigger ou destinatário administrativo.
+- Na reunião online, o valor é fixo e previamente aceito: 60 minutos R$ 200,00 (20000 centavos), 90 minutos R$ 300,00 (30000 centavos), registrado com consentimento do solicitante. Nenhuma cobrança é realizada pelo envio do pedido.
+- Os dois horários, assunto, objetivo, duração, nome de quem assinou e endereço da visita (quando informado) são lidos do pedido real no momento do e-mail. O formulário só envia dois horários; não inventar dados.
+- O HTML aprovado é preservado em `docs/emails/aprovados/cliente/`, e o módulo de templates contém cópia literal (somente correção de fechamento da tag strong do preço online).
+- **Não são cobertos:** novas opções, reagendamento, confirmação definitiva, cancelamento. Permanecem em revisão de layouts própria.
+- **Atenção ao legado:** o botão administrativo de orçamento manual online pode existir para outros fluxos; a nova solicitação assinada usa o valor fixo. Evitar registrar orçamento manual novo sobre uma solicitação já aceita.
+
+## Confirmação de atendimento extra — modelos aprovados (15/10/2026)
+
+- **Visita presencial extra V1:** `visita-extra-confirmada-v1.html`, evento `scheduling_extra_confirmed` somente quando `status` passa para `confirmed`, evento final e data selecionada estão registrados.
+- **Reunião online extra V1:** `reuniao-online-extra-confirmada-v1.html`, mesma regra, preço fixo aceito conforme duração (1 hora R$ 200 / 1h30 R$ 300).
+- A função `notify_confirmed_extra_request_v1` envia uma única notificação ao solicitante para qualquer confirmação de atendimento extra (CALI ou aceite de uma nova data). A notificação anterior de cliente na `admin_confirm_extra_visit_v1` é substituída para não enviar duplicado; avisos à administração preservados.
+- Os HTMLs são copiados integralmente para `approved-client-templates.ts`, com dados validados contra o evento de calendário.
+- Sem envio retroativo, sem alteração de valores ou regras de calendário; templates de novas datas e reagendamento seguem aguardando aprovação.
+
+## Novas datas e pedido de reagendamento de visita extra — aprovados 15/10/2026
+
+| Tipo | HTML aprovado | Disparo |
+|---|---|---|
+| CALI propõe 1–2 opções de data para extra | `extra-novas-datas-v1.html` | Aviso `scheduling_response` que já existe; apenas troca layout quando o pedido está `client_review` e modalidade é extra |
+| Cliente solicita reagendar visita extra previamente confirmada | `extra-reagendamento-solicitado-v1.html` | Novo aviso `scheduling_extra_reschedule_requested` apenas no evento `confirmed → reschedule_review` com motivo e duas datas reais |
+
+Não gera notificações duplicadas para propostas administrativas. Em outros pedidos, mantém o template existente. A confirmação de reagendamento definitivo continuará usando seu próprio e-mail já aprovado de confirmação, após aprovação de nova data no sistema. Remetente e rodapé preservados.

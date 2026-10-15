@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { renderApprovedClientEmail } from "./approved-client-templates.ts";
+import { extraEmailFields } from "./extra-email-fields.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -100,7 +101,7 @@ Deno.serve(async (req: Request) => {
     if (profile.role === "client") {
       const type = String(notification.notification_type || "");
       const notificationTitle = String(notification.title || "");
-      let template: "schedule" | "schedule_reminder" | "project_complete" | "project_cancel" | "deliverable_review" | "task_review" | "client_dependency" | "document_ack" | null = null;
+      let template: "schedule" | "schedule_reminder" | "project_complete" | "project_cancel" | "deliverable_review" | "task_review" | "client_dependency" | "document_ack" | "presential_extra_request_received" | "online_extra_request_received" | "presential_extra_confirmed" | "online_extra_confirmed" | "extra_new_dates" | "extra_reschedule_requested" | null = null;
       if (type === "project_schedule_review" || (type === "project" && notificationTitle === "Planejamento para sua validação")) template = "schedule";
       else if (type === "project_schedule_reminder") template = "schedule_reminder";
       else if ((type === "project_lifecycle" && notificationTitle === "Execução cancelada" && String(notification.body || "").startsWith("Projeto ")) || (type === "project" && notificationTitle === "Projeto cancelado")) template = "project_cancel";
@@ -109,6 +110,16 @@ Deno.serve(async (req: Request) => {
       else if (type === "task_client_review" && notificationTitle === "Uma parte da entrega aguarda a sua aprovação") template = "task_review";
       else if (type === "client_dependency" && notificationTitle === "A CALI precisa de um retorno seu") template = "client_dependency";
       else if (type === "document" && notificationTitle === "Documento final disponível" && notification.entity_type === "file") template = "document_ack";
+      else if (type === "scheduling_extra_request_receipt" &&
+               notification.entity_type === "scheduling_request" &&
+               notificationTitle === "Pedido de visita presencial extra recebido") template = "presential_extra_request_received";
+      else if (type === "scheduling_extra_request_receipt" &&
+               notification.entity_type === "scheduling_request" &&
+               notificationTitle === "Pedido de reunião online extra recebido") template = "online_extra_request_received";
+      else if (type === "scheduling_extra_confirmed" && notification.entity_type === "scheduling_request" && notificationTitle === "Visita presencial extra confirmada") template = "presential_extra_confirmed";
+      else if (type === "scheduling_extra_confirmed" && notification.entity_type === "scheduling_request" && notificationTitle === "Reunião online extra confirmada") template = "online_extra_confirmed";
+      else if ((type === "scheduling_extra_new_dates" || (type === "scheduling_response" && ["A CALI respondeu sua solicitação","Novas datas para sua visita extra"].includes(notificationTitle))) && notification.entity_type === "scheduling_request") template = "extra_new_dates";
+      else if (type === "scheduling_extra_reschedule_requested" && notification.entity_type === "scheduling_request") template = "extra_reschedule_requested";
 
       if (template && notification.entity_id) {
         try {
@@ -123,7 +134,120 @@ Deno.serve(async (req: Request) => {
           // Os dois eventos guardam o ID do ENTREGÁVEL, não da subtarefa/dependência.
           // Só usar o HTML personalizado quando os detalhes baterem EXATAMENTE com
           // um único registro real; nunca adivinhar qual item originou o aviso.
-          if (template === "document_ack") {
+          let safeHtmlBlocks: { bloco_observacoes?: string } = {};
+          if (template === "extra_new_dates" || template === "extra_reschedule_requested") {
+            const result = await extraEmailFields(ws, notification, template);
+            Object.assign(fields, result.fields);
+            Object.assign(safeHtmlBlocks, result.blocks);
+          } else if (template === "presential_extra_confirmed" || template === "online_extra_confirmed") {
+            const { data: request, error: requestError } = await ws.from("scheduling_requests")
+              .select("id,company_id,requested_by,status,confirmed_event_id,selected_slot,request_mode,title,location,extra_visit,extra_visit_fee_cents,online_extra_requested,online_extra_quote_cents,online_extra_quote_accepted_at")
+              .eq("id", notification.entity_id).eq("company_id", notification.company_id)
+              .eq("requested_by", notification.user_id).maybeSingle();
+            if (requestError) throw requestError;
+            if (!request || request.status !== "confirmed" || !request.confirmed_event_id ||
+                !request.selected_slot?.startsAt || !request.selected_slot?.endsAt) {
+              throw new Error("Agendamento extra ainda não confirmado ou sem horário final.");
+            }
+            const onSite = template === "presential_extra_confirmed";
+            if (onSite && (!request.extra_visit || request.request_mode !== "in_person" ||
+                request.extra_visit_fee_cents !== 80000 || !String(request.location || "").trim())) {
+              throw new Error("Visita presencial extra incompleta.");
+            }
+            if (!onSite && (!request.online_extra_requested || request.request_mode !== "remote" ||
+                !request.online_extra_quote_accepted_at)) {
+              throw new Error("Reunião extra sem valor aceito.");
+            }
+            const start = Date.parse(String(request.selected_slot.startsAt));
+            const end = Date.parse(String(request.selected_slot.endsAt));
+            const minutes = Math.round((end - start) / 60000);
+            if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start ||
+                (onSite && minutes !== 240) || (!onSite && ![60, 90].includes(minutes))) {
+              throw new Error("Duração ou horário confirmado incorreto.");
+            }
+            const { data: event, error: eventError } = await ws.from("events")
+              .select("id,starts_at,ends_at,source_entity_id").eq("id", request.confirmed_event_id)
+              .eq("company_id", notification.company_id).maybeSingle();
+            if (eventError) throw eventError;
+            if (!event || event.source_entity_id !== request.id ||
+                Date.parse(String(event.starts_at)) !== start ||
+                Date.parse(String(event.ends_at)) !== end) {
+              throw new Error("Evento na agenda não corresponde ao horário confirmado.");
+            }
+            const zone = "America/Sao_Paulo";
+            const dateFormatter = new Intl.DateTimeFormat("pt-BR",
+              { timeZone: zone, weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+            const timeFormatter = new Intl.DateTimeFormat("pt-BR",
+              { timeZone: zone, hour: "2-digit", minute: "2-digit", hour12: false });
+            fields.assunto = String(request.title);
+            fields.data = dateFormatter.format(new Date(start));
+            fields.horario_inicio = timeFormatter.format(new Date(start));
+            fields.horario_fim = timeFormatter.format(new Date(end));
+            if (onSite) {
+              fields.endereco = String(request.location);
+            } else {
+              const cents = minutes === 60 ? 20000 : 30000;
+              if (request.online_extra_quote_cents !== cents) {
+                throw new Error("Valor fixo do encontro não corresponde à duração.");
+              }
+              fields.duracao = minutes === 60 ? "1 hora" : "1h30";
+              fields.valor = cents === 20000 ? "R$ 200,00" : "R$ 300,00";
+            }
+          } else if (template === "presential_extra_request_received" || template === "online_extra_request_received") {
+            // A solicitação deve ser da mesma empresa e do próprio destinatário.
+            // Nunca combinar dados de duas solicitações ou usar preços não gravados.
+            const { data: request, error: requestError } = await ws.from("scheduling_requests")
+              .select("company_id,requested_by,title,purpose,location,request_mode,requested_slots,extra_visit,extra_visit_fee_cents,extra_visit_ack_name,online_extra_requested,online_extra_quote_cents,online_extra_quote_accepted_at,online_extra_request_ack_name")
+              .eq("id", notification.entity_id).eq("company_id", notification.company_id)
+              .eq("requested_by", notification.user_id).maybeSingle();
+            if (requestError) throw requestError;
+            if (!request || !Array.isArray(request.requested_slots) ||
+                request.requested_slots.length !== 2 || !request.title) {
+              throw new Error("Pedido extra indisponível ou com datas incompletas.");
+            }
+            const onSite = template === "presential_extra_request_received";
+            if (onSite && (!request.extra_visit || request.request_mode !== "in_person" ||
+                request.extra_visit_fee_cents !== 80000 || !request.extra_visit_ack_name)) {
+              throw new Error("Visita extra sem condições aceitas.");
+            }
+            if (!onSite && (!request.online_extra_requested || request.request_mode !== "remote" ||
+                !request.online_extra_request_ack_name || !request.online_extra_quote_accepted_at)) {
+              throw new Error("Reunião extra sem preço fixo aceito.");
+            }
+            const pairs = request.requested_slots.map((slot: {startsAt?:string;endsAt?:string}) => {
+              const start = Date.parse(String(slot?.startsAt || ""));
+              const end = Date.parse(String(slot?.endsAt || ""));
+              if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start)
+                throw new Error("Datas de reunião inválidas.");
+              return {start,minutes:Math.round((end-start)/60000)};
+            });
+            if (pairs[0].minutes !== pairs[1].minutes) throw new Error("Durações inconsistentes.");
+            const duration = pairs[0].minutes;
+            if (onSite && duration !== 240) throw new Error("Visita extra com duração diferente de 4 horas.");
+            if (!onSite && duration !== 60 && duration !== 90) throw new Error("Reunião extra sem duração tabelada.");
+            const formatter = new Intl.DateTimeFormat("pt-BR", {
+              timeZone:"America/Sao_Paulo", weekday:"long", day:"2-digit", month:"long",
+              year:"numeric", hour:"2-digit",minute:"2-digit",
+            });
+            fields.data_opcao_1 = formatter.format(new Date(pairs[0].start));
+            fields.data_opcao_2 = formatter.format(new Date(pairs[1].start));
+            fields.duracao = duration === 240 ? "Até 4 horas" : duration === 60 ? "1 hora" : "1h30";
+            fields.assunto = String(request.title);
+            fields.objetivo = String(request.purpose || "").trim() || "Não informado";
+            fields.nome_solicitante = String(onSite ? request.extra_visit_ack_name : request.online_extra_request_ack_name);
+            if (!onSite) {
+              const amount = duration === 60 ? 20000 : 30000;
+              if (request.online_extra_quote_cents !== amount)
+                throw new Error("Preço salvo não corresponde à duração escolhida.");
+              fields.valor = amount === 20000 ? "R$ 200,00" : "R$ 300,00";
+            }
+            // O endereço é dado adicional do formulário presencial, mas o modelo
+            // aprovado não possui um marcador próprio. Usar bloco opcional controlado.
+            const location = String(onSite ? request.location || "" : "").trim();
+            safeHtmlBlocks.bloco_observacoes = location
+              ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr><td style="padding:10px 14px;background:#F7F3EE;border:1px solid #E8DDD4"><strong style="color:#5A1E2D;font:700 11px/18px Arial,Helvetica,sans-serif">ENDEREÇO INFORMADO</strong><p style="margin:5px 0 0;color:#2B2B2B;font:13px/20px Arial,Helvetica,sans-serif">${esc(location)}</p></td></tr></table>`
+              : "";
+          } else if (template === "document_ack") {
             // Somente arquivos que EXIGEM ciência recebem o modelo de confirmação.
             // A notificação e o requisito devem existir; não criamos novos disparos.
             const { data: file, error: fileError } = await ws.from("files")
@@ -181,7 +305,7 @@ Deno.serve(async (req: Request) => {
             fields.projeto = String(project.name);
             fields.titulo_cronograma = "Cronograma de " + String(project.name);
           }
-          outgoingHtml = renderApprovedClientEmail(template, fields);
+          outgoingHtml = renderApprovedClientEmail(template, fields, safeHtmlBlocks);
           const titles: Record<string, string> = {
             schedule: "Cronograma para validação",
             schedule_reminder: "Cronograma aguardando validação",
@@ -191,6 +315,12 @@ Deno.serve(async (req: Request) => {
             task_review: "Etapa para sua aprovação",
             client_dependency: "Precisamos de um retorno seu",
             document_ack: "Documento para sua ciência",
+            presential_extra_request_received: "Pedido de visita extra recebido",
+            online_extra_request_received: "Pedido de reunião online extra recebido",
+            presential_extra_confirmed: "Visita extra confirmada",
+            online_extra_confirmed: "Reunião online extra confirmada",
+            extra_new_dates: "Novos horários para seu atendimento extra",
+            extra_reschedule_requested: "Pedido de reagendamento da visita extra",
           };
           outgoingSubject = ["APP CALI RH", companyName, titles[template]].join(" · ");
         } catch (templateError) {
