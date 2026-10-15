@@ -3871,3 +3871,6 @@ html[data-workspace-ui='v2'] .extra-visit-consent>label:not(.extra-visit-check) 
 /* Pasta do cliente: salvar a pasta inteira no Google Drive. */
 html[data-workspace-ui='v2'] .v2-fv-drive{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid #dfd3ca;border-radius:9px;background:#fff;color:#5a1e2d;font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
 html[data-workspace-ui='v2'] .v2-fv-drive:disabled{opacity:.5;cursor:default}
+
+/* Nome mencionado com @ dentro das mensagens. */
+html[data-workspace-ui='v2'] .v2-mention{display:inline;padding:0 4px;border-radius:5px;background:#fbe7c6;color:#6b4a12;font-weight:700}
