@@ -7,6 +7,7 @@ import { applyVisualSystem } from './v2/visualSystem';
 
 const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
+const LegalPage = lazy(() => import('./legal/LegalPage').then((m) => ({ default: m.LegalPage })));
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage').then((m) => ({ default: m.AuthCallbackPage })));
 const GoogleCalendarCallbackPage = lazy(() => import('./pages/GoogleCalendarCallbackPage').then((m) => ({ default: m.GoogleCalendarCallbackPage })));
 
@@ -162,6 +163,8 @@ function AppRoutes() {
       <Routes>
         <Route path="/" element={<LandingPage/>}/>
         <Route path="/login" element={<LoginPage/>}/>
+        <Route path="/privacidade" element={<LegalPage kind="privacy"/>}/>
+        <Route path="/termos" element={<LegalPage kind="terms"/>}/>
         <Route path="/auth/callback" element={<AuthCallbackPage/>}/>
         <Route path="/oauth/google/callback" element={<GoogleCalendarCallbackPage/>}/>
 

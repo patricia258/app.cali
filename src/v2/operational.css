@@ -3962,3 +3962,14 @@ html[data-workspace-ui='v2'] .pa-print-head{display:none}
   body.pa-printing :is(.pa-card,.panel,.metric-strip>div,.ie-insight,.v2-ess-chart,.pa-section-head){break-inside:avoid;page-break-inside:avoid}
   body.pa-printing .pa-reading{break-inside:avoid}
 }
+.v2-terms-text .v2-legal-doc{font-size:12.5px}
+.v2-terms-text .v2-legal-doc+.v2-legal-doc{margin-top:22px;padding-top:18px;border-top:1px solid #eee3dc}
+.v2-terms-text .v2-legal-doc h2{font-size:16px}
+.v2-terms-links{font-size:12px;color:#6b5d63;margin:0}
+.v2-terms-links a{color:#5a1e2d;font-weight:600}
+html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-to{display:flex;align-items:center;gap:10px;margin-top:4px;font-size:11px;font-weight:600;color:#3e3533}
+html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-to input{flex:1;min-width:0;max-width:360px;border:1px solid #e3d6cc;border-radius:7px;padding:7px 10px;font:400 12px Inter,sans-serif;background:#fff}
+
+/* Orientação sobre documentos clínicos junto de campos livres e anexos do cliente */
+.v2-sensitive-note{display:flex;align-items:center;gap:6px;margin:6px 0 0;font:400 11px/1.4 Inter,system-ui,sans-serif;color:#8a7a80}
+.v2-sensitive-note svg{flex:0 0 auto;color:#b0893f}

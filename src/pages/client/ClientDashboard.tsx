@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { SensitiveDataNote } from '../../components/SensitiveDataNote';
 import { capacityOf, percentLabel } from '../../lib/capacity';
 import { CapacityBar } from '../../v2/CapacityBar';
 import { ClientHomeNotices } from '../notices/NoticesBoard';
@@ -504,6 +505,7 @@ export function ClientDashboard() {
           </div>
           <label htmlFor="ch-message">Sua mensagem</label>
           <textarea id="ch-message" value={chatText} onChange={(event) => setChatText(event.target.value)} placeholder="Escreva aqui. Isso ficará registrado na sua conta CALI." />
+          <SensitiveDataNote />
           <div className="ch-chat-send"><button disabled={!chatText.trim() || sending} onClick={() => void sendMessage()}>{sending ? <Loader2 className="spin" size={13} /> : <Send size={13} />} Enviar para a Pati</button></div>
           <div className="ch-chat-note"><CircleHelp size={13} /> Respostas automáticas usam apenas dados reais. Questões estratégicas ficam registradas para a Pati.</div>
         </>}

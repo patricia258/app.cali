@@ -14,7 +14,7 @@ _Atualizado em 15/10/2026._
   Sem homologação separada (decisão da proprietária em 13/10). Nunca reescrever histórico (sem force-push).
 - **Outra sessão em paralelo** publica os layouts de e-mail (funções de borda de e-mail) direto em `main`;
   sempre `git fetch` + merge de `origin/main` antes de publicar.
-- **Última publicação:** 50 — indicadores em PDF.
+- **Última publicação:** 51 — textos jurídicos no app (desligados até o e-mail de privacidade), exportação com dados restritos separados e destinatário, aviso sobre documentos clínicos.
 - **Próximo no código:** atualização do react-router para v7 (grande; última da fila).
 - **Aguardando a proprietária:** relatório gerado para conferir o impresso
   com histórico de horas; opção de esconder só o link da reunião para o Partner; textos do advogado (liga o
@@ -1578,6 +1578,40 @@ Relatório: `docs/SEGURANCA_REVISAO_2026-10-15.md`. Autorização: "fazer tudo q
   cada seção do People Analytics começa em folha nova; cartões não são cortados entre folhas.
 - Conferido gerando o PDF no ambiente de teste: administração 7 folhas (Panorama · essenciais · Evolução no período ·
   Retrato do mês); cliente sem People Analytics 2 folhas.
+
+### 2026-10-15 — Textos jurídicos e checklist técnico (Publicação 51)
+
+Fonte: Google Docs da proprietária (Guia 1 e Guia 2, 15/10/2026). **Só a Política de Privacidade e os Termos de Uso
+entram no app.** Anexo de Tratamento de Dados, cláusula de encerramento, ajustes de contrato, regras internas de IA e o
+checklist do desenvolvedor são de uso interno: não copiar para o app nem para este repositório.
+
+- `src/legal/legalTexts.ts`: Política e Termos como aprovados; `LEGAL_VERSION = '2026-10-15'`; `PRIVACY_EMAIL` vazio
+  ⇒ tudo desligado (o texto tem o marcador "[e-mail de privacidade]"; a proprietária vai informar o e-mail).
+- `/privacidade` e `/termos` (públicas, `src/legal/LegalPage.tsx`); links no rodapé da entrada e em "Privacidade e
+  meus dados" no perfil — aparecem só quando ligado. `TermsGate` mostra os dois textos e grava o aceite (versão, data e
+  hora) em `terms_acceptances`.
+- **Para ligar:** preencher `PRIVACY_EMAIL` em `legalTexts.ts` e publicar. Mudou o texto ⇒ trocar `LEGAL_VERSION`.
+- Exportação da empresa (migração `20261021180000`): `admin_export_company_data(uuid, text)` exige "Entregar para";
+  `team_member_private` sai separado em `dados_restritos` com aviso; `activity_log` guarda destinatário e quantidade de
+  linhas restritas.
+- `SensitiveDataNote`: "Não inclua atestados, laudos, diagnósticos, CID ou exames…" na nova ocorrência e na conversa
+  da ocorrência (cliente), na parte do entregável (cliente) e na conversa com a Pati da visão geral.
+
+**Situação do checklist técnico (o que o código já cumpre / o que falta):**
+- Login: código por e-mail com 10 min de validade, 5 tentativas por código, 1 pedido a cada 2 min ✔. 2FA para
+  administração e Partner ✔. Permissões no banco (RLS) ✔. `team_member_private` só administração ✔.
+- Exportação individual (`export_my_data`) ✔ e da empresa ✔, com índice de documentos ✔, links de 7 dias (pode
+  gerar de novo dentro dos 45 dias) ✔, sem credenciais ✔, registro de quem pediu e para quem ✔.
+- Bloqueio de acesso no encerramento ✔ (Publicação 49), separado da eliminação ✔.
+- Google (corrigido nesta publicação): Agenda e Drive do cliente usam a MESMA credencial (`google_calendar_credentials`,
+  chave `usuário:empresa`). Antes: desconectar o Drive só marcava `revoked` e deixava o token válido; desconectar a
+  Agenda apagava a credencial que o Drive ainda usava. Agora cada lado revoga no Google e apaga a credencial só se o
+  outro não estiver conectado. Funções publicadas: `google-drive-oauth` v3, `google-calendar-oauth` v8. Eventos já
+  criados no Google e cópias no Drive do cliente continuam lá (o app avisa ao desconectar a Agenda).
+- **Falta:** rotina de eliminação/anonimização após 45 dias (banco + Storage + registro do que saiu) — aguarda decisão
+  sobre automática × botão; itens de painel/fornecedores
+  (membros e chaves do Supabase, DPAs, proteção de senha vazada, backups) — proprietária; IA — não há integração de IA
+  dentro do Workspace hoje.
 
 ### Link de homologação (o mesmo para cliente e administradora)
 

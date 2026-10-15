@@ -117,7 +117,13 @@ Deno.serve(async(req)=>{
       return json({status:failed?'partial':'synced',url:folder.url,copied,failed});
     }
     if(action==='disconnect'){
-      const conn=await connection();if(conn)await db.from('drive_connections').update({status:'revoked',updated_at:new Date().toISOString()}).eq('id',conn.id);return json({ok:true});
+      const conn=await connection();if(conn)await db.from('drive_connections').update({status:'revoked',updated_at:new Date().toISOString()}).eq('id',conn.id);
+      // Checklist de privacidade (15/10/2026): desconectar revoga o acesso no Google e apaga a credencial guardada,
+      // a não ser que a mesma credencial ainda sirva à agenda Google da pessoa.
+      const key=String(conn?.credential_key||'');
+      if(key){const{data:calendarUsing}=await db.from('calendar_connections').select('id').eq('credential_key',key).eq('status','connected').limit(1).maybeSingle();
+        if(!calendarUsing){const{data:cred}=await db.from('google_calendar_credentials').select('refresh_token,access_token').eq('credential_key',key).maybeSingle();const token=cred?.refresh_token||cred?.access_token;if(token)await fetch('https://oauth2.googleapis.com/revoke',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({token})}).catch(()=>null);await db.from('google_calendar_credentials').delete().eq('credential_key',key);}}
+      return json({ok:true});
     }
     return json({error:'unknown_action'},400);
   }catch(error){console.error('google-drive-oauth',error);return json({error:error instanceof Error?error.message:'unknown_error'},500)}
