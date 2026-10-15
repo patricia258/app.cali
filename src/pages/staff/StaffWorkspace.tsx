@@ -2,6 +2,7 @@
    (.app > aside.sidebar + main.main > header.topbar + .content). Não usa os módulos automáticos da administradora.
    O Partner vê só as empresas e módulos atribuídos (regras no banco, migrações 20261012150000/170000/190000) e tudo que
    vai para o cliente passa pela administradora: horas e materiais entram em filas de aprovação. */
+import { MfaGate } from '../../auth/MfaGate';
 import { StaffDocumentsPage } from '../admin/AdminDocumentsPageV4';
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
@@ -157,7 +158,7 @@ export function StaffWorkspace() {
   if (auth.role !== 'partner') return <Navigate to={auth.role === 'admin' ? '/admin' : '/cliente'} replace />;
   if (error) return <div className="v2-client-module v2-staff-fail"><div className="inline-notice">{error}</div></div>;
   if (!me) return <div className="v2-client-module"><div className="data-loading">Carregando o seu espaço…</div></div>;
-  return <Frame me={me}><Routes>
+  return <MfaGate><Frame me={me}><Routes>
     <Route index element={<StaffDashboard me={me} />} />
     <Route path="ocorrencias" element={me.modules.includes('records') ? <StaffRecordsPage companies={me.companies.map((item) => ({ id: item.id, name: item.display_name, logo: item.logo_workspace_url, logoFallback: item.logo_url }))} /> : <Navigate to="/equipe" replace />} />
     <Route path="calendario" element={me.modules.includes('calendar') ? <StaffCalendarPage /> : <Navigate to="/equipe" replace />} />
@@ -168,5 +169,5 @@ export function StaffWorkspace() {
     <Route path="avisos" element={me.modules.includes('notices') ? <StaffNotices me={me} /> : <Navigate to="/equipe" replace />} />
     <Route path="aprovacoes" element={<Reviews me={me} />} />
     <Route path="*" element={<Navigate to="/equipe" replace />} />
-  </Routes></Frame>;
+  </Routes></Frame></MfaGate>;
 }

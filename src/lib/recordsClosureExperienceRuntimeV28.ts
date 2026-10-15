@@ -20,6 +20,8 @@ let timer = 0;
 let busy = false;
 let dismissedAdminRequest = '';
 
+// Texto digitado por usuário nunca entra na tela como HTML (revisão de segurança de 15/10/2026).
+const safeHtml = (value: unknown) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 function currentRole(): Role | null {
   if (location.pathname.startsWith('/admin/registros')) return 'admin';
   if (location.pathname.startsWith('/cliente/registros')) return 'client';
@@ -225,7 +227,7 @@ function renderAdminFeedback(target: HTMLElement, ctx: Context) {
   if (!ctx.feedback) return;
   const card = document.createElement('section');
   card.className = `records-v28-admin-feedback score-${ctx.feedback.score}`;
-  card.innerHTML = `<div class="records-v28-admin-score"><span>${emojiForScore(ctx.feedback.score)}</span><strong>${ctx.feedback.score}<small>/5</small></strong></div><div><span class="records-v28-kicker">AVALIAÇÃO DO CLIENTE</span><strong>${messageForScore(ctx.feedback.score).title}</strong><p>${ctx.feedback.comment ? ctx.feedback.comment : 'O cliente não deixou comentário adicional.'}</p><small>Registrada ${formatDate(ctx.feedback.created_at)}</small></div>`;
+  card.innerHTML = `<div class="records-v28-admin-score"><span>${emojiForScore(ctx.feedback.score)}</span><strong>${ctx.feedback.score}<small>/5</small></strong></div><div><span class="records-v28-kicker">AVALIAÇÃO DO CLIENTE</span><strong>${messageForScore(ctx.feedback.score).title}</strong><p>${safeHtml(ctx.feedback.comment ? ctx.feedback.comment : 'O cliente não deixou comentário adicional.')}</p><small>Registrada ${formatDate(ctx.feedback.created_at)}</small></div>`;
   const host = target.querySelector<HTMLElement>('.records-v25-ops');
   if (host) host.append(card);
   else target.querySelector(":is(.records-v13-conversation,[data-v2-operation~=\"records-v13-conversation\"])")?.before(card);
@@ -240,7 +242,7 @@ function showAdminReopenOverlay(target: HTMLElement, ctx: Context) {
   card.className = 'records-v28-admin-reopen-card';
   const company = target.querySelector<HTMLElement>('header p')?.textContent?.split(' · ')[0]?.trim() || 'Cliente';
   const reason = ctx.reopen.reason?.trim() || 'Motivo não informado — este pedido foi criado antes da nova regra de justificativa obrigatória.';
-  card.innerHTML = `<span class="records-v28-kicker">PEDIDO DE REABERTURA</span><h3>O cliente quer retomar esta solicitação.</h3><div class="records-v28-reopen-summary"><div><span>Cliente</span><strong>${company}</strong></div><div><span>Protocolo</span><strong>${ctx.record.protocol || '—'}</strong></div><div><span>Status atual</span><strong>${statusLabel(ctx.record.workflow_status)}</strong></div><div><span>Solicitado</span><strong>${formatDate(ctx.reopen.requested_at)}</strong></div></div><div class="records-v28-reason-box"><span>JUSTIFICATIVA DO CLIENTE</span><p>${reason}</p></div>${ctx.feedback ? `<div class="records-v28-feedback-inline"><span>${emojiForScore(ctx.feedback.score)}</span><div><small>AVALIAÇÃO DESTA SOLICITAÇÃO</small><strong>${ctx.feedback.score}/5</strong><p>${ctx.feedback.comment || 'Sem comentário adicional.'}</p></div></div>` : ''}`;
+  card.innerHTML = `<span class="records-v28-kicker">PEDIDO DE REABERTURA</span><h3>O cliente quer retomar esta solicitação.</h3><div class="records-v28-reopen-summary"><div><span>Cliente</span><strong>${safeHtml(company)}</strong></div><div><span>Protocolo</span><strong>${safeHtml(ctx.record.protocol || '—')}</strong></div><div><span>Status atual</span><strong>${statusLabel(ctx.record.workflow_status)}</strong></div><div><span>Solicitado</span><strong>${formatDate(ctx.reopen.requested_at)}</strong></div></div><div class="records-v28-reason-box"><span>JUSTIFICATIVA DO CLIENTE</span><p>${safeHtml(reason)}</p></div>${ctx.feedback ? `<div class="records-v28-feedback-inline"><span>${emojiForScore(ctx.feedback.score)}</span><div><small>AVALIAÇÃO DESTA SOLICITAÇÃO</small><strong>${ctx.feedback.score}/5</strong><p>${safeHtml(ctx.feedback.comment || 'Sem comentário adicional.')}</p></div></div>` : ''}`;
   const label = document.createElement('label');
   label.textContent = 'Mensagem ao cliente';
   const note = document.createElement('textarea');

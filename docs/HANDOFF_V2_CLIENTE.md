@@ -1461,6 +1461,16 @@ Não coberto pela simulação: 3ª ocorrência (`review`), pausa/retomada pela t
 - Administradora (`schedulingRequestsRuntimeV65.ts`): o formulário de orçamento já abre com o valor da tabela pela duração pedida e o texto "Papo online de 1 hora/1h30, conforme a tabela da CALI." O fluxo continua o mesmo (CALI envia o orçamento, cliente aceita, CALI confirma); só deixou de ser surpresa para o cliente.
 - Não conferido por imagem (fluxo de 3 passos não montado no ambiente de teste).
 
+### 2026-10-15 — Revisão de segurança: correções aplicadas + documento de LGPD
+
+Relatório: `docs/SEGURANCA_REVISAO_2026-10-15.md`. Autorização: "fazer tudo que está no teu alcance".
+- **Banco:** nenhuma função de `cali_workspace` pode mais ser chamada sem login (antes ~130 podiam); oito funções internas sem conferência de quem chama ficaram só para o banco; `protocol_counters` com proteção por linha; funções novas nascem fechadas. A migração conferiu que as 126 funções usadas pelo app continuam liberadas para usuário logado. Migração `20261020090000`.
+- **Duas etapas (TOTP):** `src/auth/MfaGate.tsx` na frente da área da administradora (`ProtectedRoute`) e do Partner (`StaffWorkspace`). Primeiro acesso: QR code para Google/Microsoft Authenticator; depois, código de 6 dígitos uma vez por sessão. No banco, `is_admin()` e `is_partner()` só valem em sessão `aal2` quando a pessoa já tem fator cadastrado (`session_meets_mfa`). Erro do servidor não bloqueia a tela (o banco garante a regra). Recuperação: apagar o fator da pessoa em `auth.mfa_factors`. Migração `20261020093000`. NÃO testado com conta real; o ambiente de teste pula esta tela.
+- **Site:** cabeçalhos de segurança em `vercel.json` (não embutir em outro site, sniff, referência, permissões, HSTS).
+- **Tela:** texto de usuário passou a ser tratado antes de virar HTML em `recordsClosureExperienceRuntimeV28.ts` (arquivo sem uso hoje) e `schedulingPolicyRuntimeV66.ts` (nota de não ocorrência). Links de aviso não aceitam mais `//` nem `/\` no início (falha conhecida da biblioteca de rotas; a atualização para a versão 7 é mudança grande e ficou para depois).
+- **LGPD:** documento para revisão com advogado em Claude Docs: https://claude.ai/code/artifact/3ebb5d2a-3bbb-42d8-b903-d1e7774c753c (política do app, termos, cláusula com clientes, plano de incidentes, prazos de guarda, registro das operações, pontos para o advogado).
+- **Pendente:** proteção contra senha vazada (painel; o login não usa senha, impacto baixo); `pg_net` no esquema público; backup do plano (conferir no painel); atualizar react-router para 7; aceite registrado no primeiro acesso; exportar/excluir dados pelo app.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.

@@ -157,7 +157,8 @@ export function NotificationCenter({ role }: { role: Role }) {
   const unread = items.filter((item) => !item.read_at).length;
   function notificationUrl(item: NotificationItem) {
     let url = String(item.action_url || '').trim();
-    if (!url.startsWith('/')) return '';
+    // Só caminhos internos: barra dupla ou barra invertida no início levariam para outro site (falha conhecida da biblioteca de rotas).
+    if (!url.startsWith('/') || url.startsWith('//') || url.startsWith('/\\')) return '';
     if (item.entity_type === 'deliverable' && item.entity_id && !url.includes('deliverable=')) {
       url += `${url.includes('?') ? '&' : '?'}deliverable=${encodeURIComponent(item.entity_id)}`;
     } else if (item.entity_type === 'project' && item.entity_id && !url.includes('project=')) {
