@@ -1477,6 +1477,10 @@ Relatório: `docs/SEGURANCA_REVISAO_2026-10-15.md`. Autorização: "fazer tudo q
 - **Drive do cliente:** `google-drive-oauth` versão 2 (implantada). Documento de entregável agora vai para "CALI Workspace / <entregável (protocolo)>" (antes caía solto na pasta CALI Workspace); ação nova `copy_folder` copia todos os documentos liberados da pasta de uma vez, sem duplicar o que já foi copiado. Tela: botão "Salvar pasta no Drive" na pasta (só aparece com Drive conectado e ao menos um documento entregue). NÃO testado com Drive real.
 - Exportação dos Indicadores em PDF continua aguardando a proprietária definir o agrupamento (registro de 2026-10, "não começar sem ela definir").
 
+### 2026-10-15 — Nome mencionado em destaque nas mensagens
+
+- `src/lib/mentionText.tsx`: reconhece "@" + até quatro palavras com inicial maiúscula (aceita da/de/do/das/dos/e no meio) e pinta em âmbar (`.v2-mention`). Aplicado nas conversas montadas por runtime (entregável V35 e ocorrências V2, via `linkify`) e nas em React (subtarefa da administradora/Partner e do cliente, entregável e ocorrências do Partner). E-mail tipo a@b.com não é confundido. Só aparência: quem recebe o aviso continua decidido no banco pelo nome completo.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
