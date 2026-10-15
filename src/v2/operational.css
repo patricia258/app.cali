@@ -3934,3 +3934,31 @@ html[data-workspace-ui='v2'] .v2-company-export>button:disabled{opacity:.6;curso
 .v2-terms-text p{margin:0 0 8px}
 .v2-terms-check{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#2b2024;cursor:pointer}
 .v2-terms-check input{margin-top:2px;accent-color:#7a1f3d}
+
+/* Indicadores em PDF (Equipe → Indicadores → Baixar PDF, 15/10): por seção, com as Leituras. Some o que é controle
+   de tela (abas, seletores, botões, convite do People Analytics); cada seção do People Analytics começa em folha nova
+   e nenhum cartão é cortado entre folhas. */
+html[data-workspace-ui='v2'] .v2-pa-pdf{margin-left:12px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+html[data-workspace-ui='v2'] .pa-print-head{display:none}
+@media print{
+  @page{size:A4;margin:12mm}
+  body.pa-printing :is(.sidebar,.topbar,.page-head,.section-tabs,.context-strip,.v2-compare,.v2-month-strip,.ie-switch,.v2-module-gate.locked,.v2-module-blur,.v2-module-lock,.pa-missing,.team-alert,.ch-chat-trigger,.toast,.inline-notice,.v2-ess-legend){display:none!important}
+  body.pa-printing .pa-card header :is(select,button,label,[role=tablist]){display:none!important}
+  html[data-workspace-ui='v2']:has(body.pa-printing),body.pa-printing,body.pa-printing #root{height:auto!important;min-height:0!important;overflow:visible!important;background:#fff!important}
+  body.pa-printing :is(.app,.main,.content,.v2-client-module){display:block!important;position:static!important;width:auto!important;max-width:none!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;margin:0!important;padding:0!important;background:#fff!important}
+  body.pa-printing *{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-shadow:none!important}
+  body.pa-printing .pa-print-head{display:block;margin:0 0 14px;padding:0 0 10px;border-bottom:2px solid #5a1e2d}
+  body.pa-printing .pa-print-head small{font-size:8px;letter-spacing:1.4px;font-weight:700;color:#a5866b}
+  body.pa-printing .pa-print-head h1{font-size:20px;margin:4px 0 2px;color:#2b2024}
+  body.pa-printing .pa-print-head p{font-size:10px;margin:0;color:#6b5d63}
+  body.pa-printing .pa-print-ess{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  body.pa-printing .pa-print-ess .v2-ess-chart h3{font-size:12px}
+  body.pa-printing .pa-print-ess{break-before:page;page-break-before:always}
+  body.pa-printing .pa-print-ess>h2{grid-column:1/-1;font-size:15px;margin:0 0 2px;color:#2b2024}
+  body.pa-printing .pa-print-ess .v2-ess-chart{padding:12px 14px!important;margin:0!important}
+  body.pa-printing .pa-print-ess .mini-chart{height:150px!important;min-height:0!important}
+  body.pa-printing :is(.pa-hover,.pa-section-head p){display:none!important}
+  body.pa-printing .pa-section-head{break-before:page;page-break-before:always}
+  body.pa-printing :is(.pa-card,.panel,.metric-strip>div,.ie-insight,.v2-ess-chart,.pa-section-head){break-inside:avoid;page-break-inside:avoid}
+  body.pa-printing .pa-reading{break-inside:avoid}
+}
