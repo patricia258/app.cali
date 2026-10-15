@@ -88,3 +88,12 @@ Não gera notificações duplicadas para propostas administrativas. Em outros pe
 - **Nova data da visita extra confirmada V1**: `extra-visita-reagendada-confirmada-v1.html`. Reaproveita notificação `scheduling_extra_confirmed`; reconhece campos da visita reagendada e usa a data antiga e a nova. Não gera aviso duplicado.
 - O código vigente contempla decisão de multa de 20% apenas na visita presencial, via função administrativa. Para online existe condição genérica de avaliação de cobrança, mas não há cálculo de 20% implementado. Não assumir que está ativo.
 - **Prazo de aviso para isenção:** pendente confirmação da proprietária; não confundir antecedência de solicitação (48h) com antecedência de cancelamento.
+
+
+## Modelos de cliente — ocorrências, equipe e menções (aprovados 15/10/2026)
+- `ocorrencia-situacao-v1.html`: evento `record_status`; mostrar a situação textual que constava na notificação, não a situação corrente.
+- `ocorrencia-reabertura-v1.html`: `record_reopen_decision`; buscar a decisão formal e a justificativa específica daquele momento, inclusive quando recusada.
+- `equipe-atualizacao-mensal-v1.html`: `team_month_update`; referência mensal do lembrete, sem confundir com o mês corrente.
+- `mencao-conversa-v1.html`: `chat_mention`; enviar ao cliente mencionado com autor e trecho da notificação. **Mensagens comuns não geram e-mail.**
+- Todos os HTMLs são cópias literais dos aprovados. Não cria triggers, avisos, novos destinatários nem muda remetente ou reply_to.
+- Quando dados não permitem associar o registro original com segurança, a função mantém o layout genérico anterior; sem inventar decisões ou nomes.
