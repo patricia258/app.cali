@@ -1,4 +1,5 @@
 import { homeOf } from '../auth/WorkspaceAuthProvider';
+import { legalEnabled } from '../legal/legalTexts';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -173,7 +174,7 @@ export function LoginPage() {
         </form>
       </section>
 
-      <footer className="login-v2-footer-brand"><span>© 2026 CALI RH — HR FOR BUSINESS. Todos os direitos reservados.</span><a className="login-v2-privacy-link" href="https://calirh.com/privacidade.html" target="_blank" rel="noreferrer">Política do site, Mapa e Portal</a></footer>
+      <footer className="login-v2-footer-brand"><span>© 2026 CALI RH — HR FOR BUSINESS. Todos os direitos reservados.</span><span className="login-v2-legal-links">{legalEnabled()&&<><Link className="login-v2-privacy-link" to="/termos">Termos de Uso do Workspace</Link><Link className="login-v2-privacy-link" to="/privacidade">Privacidade do Workspace</Link></>}<a className="login-v2-privacy-link" href="https://calirh.com/privacidade.html" target="_blank" rel="noreferrer">Política do site, Mapa e Portal</a></span></footer>
       <footer className="login-v2-footer-access">
         <div className="login-v2-footer-links">
           <a href="mailto:patricia@calirh.com"><Mail size={15} />patricia@calirh.com</a>

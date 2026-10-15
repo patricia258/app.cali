@@ -1,6 +1,8 @@
 /* Fim de contrato (LGPD): baixa todos os dados de uma empresa para entregar ao cliente.
    Gera dois arquivos: os dados em JSON (função admin_export_company_data) e um índice dos documentos
-   com links de download válidos por 7 dias, para enviar ao cliente junto. */
+   com links de download válidos por 7 dias, para enviar ao cliente junto. Os dados restritos de colaboradores
+   (remuneração, gênero, filhos) saem separados em "dados_restritos"; quem recebe fica registrado na auditoria.
+   Dentro dos 45 dias depois do encerramento, dá para gerar de novo (links novos). */
 import { supabase } from '../../lib/supabase';
 
 const LINK_DAYS = 7;
@@ -15,9 +17,9 @@ function download(content: string, type: string, filename: string) {
 
 type DocRow = { title?: string; original_filename?: string; protocol?: string; storage_path?: string; created_at?: string; document_date?: string; drive_url?: string; external_url?: string };
 
-export async function exportCompanyData(companyId: string, companyName: string) {
+export async function exportCompanyData(companyId: string, companyName: string, recipient: string) {
   if (!supabase) throw new Error('Conexão indisponível.');
-  const result = await supabase.rpc('admin_export_company_data', { p_company_id: companyId });
+  const result = await supabase.rpc('admin_export_company_data', { p_company_id: companyId, p_recipient: recipient });
   if (result.error) throw new Error(result.error.message || 'Não foi possível gerar a exportação.');
   const payload = result.data as { exported_at: string; data: Record<string, unknown[]> };
   const today = new Date().toISOString().slice(0, 10);

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Building2, Camera, Check, ChevronDown, Download, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, ShieldCheck, Upload, UserRound, X } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { useWorkspaceAuth } from '../auth/WorkspaceAuthProvider';
+import { legalEnabled } from '../legal/legalTexts';
 import { optimizeImageForUpload } from '../lib/imageUpload';
 import { resolveWorkspaceMedia } from '../lib/workspaceMedia';
 
@@ -166,7 +167,7 @@ export function DirectProfileControl({role,trigger}:{role:Role;trigger?:ProfileT
         </section>}
         {activeSection==='details'?<div className="profile-live-actions">{(draft.whatsapp||draft.phone)?<a className="secondary" href={whatsappUrl(draft.whatsapp||draft.phone)} target="_blank" rel="noreferrer"><MessageCircle size={16}/>Abrir WhatsApp</a>:null}{draft.phone?<a className="secondary" href={`tel:${draft.phone.replace(/[^+\d]/g,'')}`}><Phone size={16}/>Ligar</a>:null}</div>:null}
         <section className="profile-privacy-v2" aria-label="Privacidade e meus dados">
-          <div><strong><ShieldCheck size={16}/>Privacidade e meus dados</strong><p>Você pode baixar uma cópia dos seus dados ou pedir acesso, correção ou exclusão. <a href="https://calirh.com/privacidade.html" target="_blank" rel="noopener noreferrer">Política de privacidade</a></p></div>
+          <div><strong><ShieldCheck size={16}/>Privacidade e meus dados</strong><p>Você pode baixar uma cópia dos seus dados ou pedir acesso, correção ou exclusão. {legalEnabled()?<><a href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</a> · <a href="/termos" target="_blank" rel="noopener">Termos de Uso</a></>:<a href="https://calirh.com/privacidade.html" target="_blank" rel="noopener noreferrer">Política de privacidade</a>}</p></div>
           {privacyForm?<div className="profile-privacy-form"><label>Tipo de pedido<select value={privacyForm.kind} onChange={(event)=>setPrivacyForm({...privacyForm,kind:event.target.value})}><option value="access">Acesso aos meus dados</option><option value="correction">Correção de dados</option><option value="deletion">Exclusão de dados</option><option value="other">Outro pedido</option></select></label><label>O que você precisa<textarea rows={3} maxLength={2000} value={privacyForm.details} onChange={(event)=>setPrivacyForm({...privacyForm,details:event.target.value})} placeholder="Descreva o pedido."/></label><span><button type="button" onClick={()=>setPrivacyForm(null)}>Cancelar</button><button type="button" className="primary" disabled={privacyBusy||privacyForm.details.trim().length<5} onClick={()=>void sendPrivacyRequest()}>{privacyBusy?'Enviando…':'Enviar pedido'}</button></span></div>
           :<span className="profile-privacy-actions"><button type="button" disabled={privacyBusy} onClick={()=>void downloadMyData()}><Download size={14}/>{privacyBusy?'Gerando…':'Baixar meus dados'}</button><button type="button" onClick={()=>{setPrivacyMessage('');setPrivacyForm({kind:'access',details:''});}}>Pedir acesso, correção ou exclusão</button></span>}
           {privacyMessage&&<small role="status">{privacyMessage}</small>}

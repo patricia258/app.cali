@@ -458,3 +458,4 @@
   .login-v2-submit { min-height: 47px; margin-top: 12px; }
   .login-v2-footer-brand,.login-v2-footer-access { padding-block: 5px; }
 }
+.login-v2-legal-links{display:inline-flex;gap:16px;flex-wrap:wrap;align-items:center}
