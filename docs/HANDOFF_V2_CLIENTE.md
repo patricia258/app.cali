@@ -14,10 +14,9 @@ _Atualizado em 15/10/2026._
   Sem homologação separada (decisão da proprietária em 13/10). Nunca reescrever histórico (sem force-push).
 - **Outra sessão em paralelo** publica os layouts de e-mail (funções de borda de e-mail) direto em `main`;
   sempre `git fetch` + merge de `origin/main` antes de publicar.
-- **Última publicação:** 49 — bloqueio do acesso do cliente no fim do contrato.
-- **Em andamento:** indicadores em PDF (agrupados por seção, com as Leituras — decisão da proprietária em 15/10).
-- **Depois:** atualização do react-router para v7 (grande; última da fila).
-- **Aguardando a proprietária:** agrupamento dos indicadores em PDF; relatório gerado para conferir o impresso
+- **Última publicação:** 50 — indicadores em PDF.
+- **Próximo no código:** atualização do react-router para v7 (grande; última da fila).
+- **Aguardando a proprietária:** relatório gerado para conferir o impresso
   com histórico de horas; opção de esconder só o link da reunião para o Partner; textos do advogado (liga o
   `TermsGate`); prazos de guarda (rotina de eliminação dos dados depois do fim do contrato). A proprietária vai mandar
   as respostas jurídicas. Opção de esconder só o link da reunião para o Partner: decidido não fazer agora.
@@ -1567,6 +1566,18 @@ Relatório: `docs/SEGURANCA_REVISAO_2026-10-15.md`. Autorização: "fazer tudo q
 - `LoginPage`: depois do código, se o perfil estiver inativo, sai e mostra "Seu acesso ao CALI Workspace está desativado…".
 - Janela de encerramento avisa que o acesso é bloqueado na hora e lembra de exportar os dados antes.
 - Partner: as atribuições a empresas encerradas não foram mexidas.
+
+### 2026-10-15 — Indicadores em PDF (Publicação 50)
+
+- Equipe → Indicadores → **Baixar PDF** (cliente, administração e Partner). Decisão da proprietária: por seção, com as Leituras.
+- `CompanyTeamPage.tsx`: `printIndicators()` liga `printingIndicators` (os seis indicadores essenciais saem um a um,
+  em grade 2×3, com o nome de cada um, em vez do seletor), põe `body.pa-printing` e chama `window.print()`;
+  `afterprint` desfaz. Cabeçalho só de impressão `.pa-print-head` (empresa, mês ou período, situação do mês, data).
+- `operational.css` (bloco "Indicadores em PDF"): A4, some o que é controle de tela (abas, seletores, botões,
+  dica de passar o mouse) e o que não foi contratado (blocos esfumados `.v2-module-gate.locked` e `.v2-module-blur`);
+  cada seção do People Analytics começa em folha nova; cartões não são cortados entre folhas.
+- Conferido gerando o PDF no ambiente de teste: administração 7 folhas (Panorama · essenciais · Evolução no período ·
+  Retrato do mês); cliente sem People Analytics 2 folhas.
 
 ### Link de homologação (o mesmo para cliente e administradora)
 
