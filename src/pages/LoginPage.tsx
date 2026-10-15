@@ -78,6 +78,16 @@ export function LoginPage() {
       setLoading(true);
       const { data, error: authError } = await verifyAccessCode(email.trim(), code);
       if (authError) throw authError;
+      // Acesso desativado (empresa encerrada, bloqueada ou arquivada, ou pessoa removida): explica em vez de voltar ao login sem aviso.
+      const user = supabase ? (await supabase.auth.getUser()).data.user : null;
+      if (supabase && user) {
+        const { data: profile, error: profileError } = await supabase.from('profiles').select('active').eq('id', user.id).maybeSingle();
+        if (!profileError && profile && !profile.active) {
+          await supabase.auth.signOut();
+          setCode('');
+          throw new Error('Seu acesso ao CALI Workspace está desativado. Se acha que é um engano, fale com a CALI RH.');
+        }
+      }
       navigate(homeOf(data?.role), { replace: true });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Código inválido ou expirado.');

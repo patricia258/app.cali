@@ -14,11 +14,13 @@ _Atualizado em 15/10/2026._
   Sem homologação separada (decisão da proprietária em 13/10). Nunca reescrever histórico (sem force-push).
 - **Outra sessão em paralelo** publica os layouts de e-mail (funções de borda de e-mail) direto em `main`;
   sempre `git fetch` + merge de `origin/main` antes de publicar.
-- **Última publicação:** 48 — limpeza de 63 arquivos não usados.
-- **Próximo no código:** atualização do react-router para v7 (grande; última da fila).
+- **Última publicação:** 49 — bloqueio do acesso do cliente no fim do contrato.
+- **Em andamento:** indicadores em PDF (agrupados por seção, com as Leituras — decisão da proprietária em 15/10).
+- **Depois:** atualização do react-router para v7 (grande; última da fila).
 - **Aguardando a proprietária:** agrupamento dos indicadores em PDF; relatório gerado para conferir o impresso
   com histórico de horas; opção de esconder só o link da reunião para o Partner; textos do advogado (liga o
-  `TermsGate`); prazos de guarda (rotina de eliminação e desativação automática no fim do contrato).
+  `TermsGate`); prazos de guarda (rotina de eliminação dos dados depois do fim do contrato). A proprietária vai mandar
+  as respostas jurídicas. Opção de esconder só o link da reunião para o Partner: decidido não fazer agora.
 
 ## 09/10/2026 — Claude (Opus 5.5), com Patricia
 
@@ -1553,6 +1555,18 @@ Relatório: `docs/SEGURANCA_REVISAO_2026-10-15.md`. Autorização: "fazer tudo q
   Depois da remoção, só `vite-env.d.ts` fica fora do grafo (é de tipos, fica).
 - `scripts/v2-operational-hooks.json`: tiradas as duas entradas de arquivos removidos.
 - Qualquer arquivo pode ser recuperado pelo histórico do git (commit "Limpeza: remove 63 arquivos não usados").
+
+### 2026-10-15 — Bloqueio do acesso do cliente no fim do contrato (Publicação 49)
+
+- Brecha encontrada: ao encerrar/bloquear/arquivar, a tela desativava os perfis de cliente, mas o login por código
+  (`workspace-access`) reativava o perfil se a pessoa ainda tinha convite ativo em `client_invites`.
+- Migração `20261021150000`: trigger `companies_cut_client_access` (status → closed/blocked/archived desativa todos os
+  perfis de cliente da empresa) e trigger `profiles_guard_closed_company` (perfil de cliente não fica ativo enquanto a
+  empresa estiver nesses status — vale para a função de borda também). Reativar a empresa pela tela continua funcionando.
+- Testado em simulação desfeita (Company IN): 1 ativo → encerrada 0 → tentativa via convite 0 → reativada 1.
+- `LoginPage`: depois do código, se o perfil estiver inativo, sai e mostra "Seu acesso ao CALI Workspace está desativado…".
+- Janela de encerramento avisa que o acesso é bloqueado na hora e lembra de exportar os dados antes.
+- Partner: as atribuições a empresas encerradas não foram mexidas.
 
 ### Link de homologação (o mesmo para cliente e administradora)
 
