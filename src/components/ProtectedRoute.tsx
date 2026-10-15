@@ -2,6 +2,7 @@ import { type ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { homeOf, useWorkspaceAuth, type Role } from '../auth/WorkspaceAuthProvider';
 import { MfaGate } from '../auth/MfaGate';
+import { TermsGate } from '../auth/TermsGate';
 
 export function WorkspaceRouteLoader() {
   return (
@@ -26,6 +27,6 @@ export function ProtectedRoute({ role, children }: { role: Role; children: React
     return <Navigate to={homeOf(auth.role)} replace />;
   }
 
-  // Administradora passa pela verificação em duas etapas; cliente não.
-  return role === 'admin' ? <MfaGate>{children}</MfaGate> : <>{children}</>;
+  // Administradora passa pela verificação em duas etapas; cliente aceita os termos (desligado até a revisão jurídica).
+  return role === 'admin' ? <MfaGate>{children}</MfaGate> : <TermsGate>{children}</TermsGate>;
 }
