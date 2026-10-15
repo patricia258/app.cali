@@ -1,0 +1,1 @@
+Dois modelos de email aprovados em 15/10/2026. Regra: 48 horas de antecedencia; multa de 20 por cento apenas apos avaliacao da CALI.
