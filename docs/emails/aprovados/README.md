@@ -97,3 +97,9 @@ Não gera notificações duplicadas para propostas administrativas. Em outros pe
 - `mencao-conversa-v1.html`: `chat_mention`; enviar ao cliente mencionado com autor e trecho da notificação. **Mensagens comuns não geram e-mail.**
 - Todos os HTMLs são cópias literais dos aprovados. Não cria triggers, avisos, novos destinatários nem muda remetente ou reply_to.
 - Quando dados não permitem associar o registro original com segurança, a função mantém o layout genérico anterior; sem inventar decisões ou nomes.
+
+## Entregáveis — modelos de cliente aprovados em 15/10/2026
+
+- **Rebriefing V2:** `entregavel-rebriefing-v2.html`, notificação existente `deliverable_status` / `Rebriefing necessário`; exige entregável visível em rebriefing.
+- **Cancelamento V1:** `entregavel-cancelado-v1.html`, notificação existente `deliverable_status` / `Entregável cancelado`; inclui motivo de cancelamento efetivamente registrado.
+- Os demais status e regras de envio não foram alterados. Caso a referência não seja inequívoca, mantém o modelo anterior. Sender/reply-to e rodapé preservados.
