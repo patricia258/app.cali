@@ -1505,6 +1505,15 @@ Relatório: `docs/SEGURANCA_REVISAO_2026-10-15.md`. Autorização: "fazer tudo q
 - **Efeito colateral da revisão de segurança:** a regra de leitura de horas do cliente (`hours_client_select`) chama `client_hours_enabled_for_period`, que eu tinha fechado para usuário logado → tela de horas do cliente falhava ("permission denied"). Permissão devolvida. Conferido: nenhuma outra regra (RLS) ou função sem privilégio de dono usa as funções fechadas.
 - Acessos de teste para o desenvolvedor: orientação dada (apelido com "+" no e-mail para cliente e Partner na Company IN; administradora de teste NÃO criada — `is_admin()` é fixo no e-mail da proprietária e daria acesso a todos os dados reais).
 
+### 2026-10-15 — Acessos do desenvolvedor (Felipe)
+
+- Pedido e autorização da proprietária: desenvolvedor de confiança felipesdl@outlook.com.
+- **Administrador geral:** e-mail incluído em `is_admin()`; conta + perfil `admin` criados no banco; passa pelas duas etapas. Avisos de administrador chegam no sino dele, SEM e-mail (trigger `notifications_secondary_admin_without_email`). O resumo das 19h (função de borda) envia para todos os perfis admin — provavelmente chega para ele também.
+- **Partner de teste:** felipesdl+partner@outlook.com, todos os módulos, só Company IN (conta é criada no primeiro login pelo fluxo normal).
+- **Cliente de teste:** a proprietária vai cadastrar felipesdl+cliente@outlook.com na Company IN pela tela (Decisores e acessos).
+- Conferido: nenhuma tela ou função de borda reconhece a administradora pelo e-mail fixo (só textos de exibição). A checagem dos registros criados foi bloqueada pelo classificador de permissões desta máquina ("Permission Grant"); confirmar com o primeiro login dele.
+- Para remover: tirar o e-mail de `is_admin()`, `profiles.active=false` e `staff_members.active=false`.
+
 ### Link de homologação (o mesmo para cliente e administradora)
 
 `https://app-cali-git-feat-client-visual-v2-inplace-20261008-cali11.vercel.app/login` — acompanha esta branch e usa o banco real. O que aparece depende do login: usuária cliente vê a área da empresa; a administradora vê `/admin`. Confirmado pela proprietária em 10/10: agenda da Visão geral sem mini calendário/cores/semana, e administradora só no tema dia.
