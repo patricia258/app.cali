@@ -1,12 +1,24 @@
-# Handoff — interface V2 no cliente do CALI Workspace
+# Handoff — CALI Workspace (app.calirh.com)
 
-Registro cronológico do que foi feito no repositório. Acrescentar uma entrada por sessão de trabalho,
-no topo, com data, commits, verificação e pendências. Detalhe técnico e mapa V2 → oficial em
-`docs/V2_SUBSTITUICAO_ESTRUTURAL_2026-10-09.md`.
+Registro do que está sendo feito no repositório, atualizado **a cada publicação** para o desenvolvedor acompanhar
+em tempo real. A seção "Em andamento agora" diz o que está aberto neste momento; as entradas datadas (no fim da
+parte cronológica, antes de "Pendências que dependem da proprietária") registram o que foi publicado.
+Detalhe técnico e mapa V2 → oficial em `docs/V2_SUBSTITUICAO_ESTRUTURAL_2026-10-09.md`.
 
-- Branch: `feat/client-visual-v2-inplace-20261008` (30+ commits à frente de `main`; `main` sem commits novos).
-- Referência visual: `patricia258/cali-workspace-v2@7c0a232`.
-- Produção (`main` → app.calirh.com): **não alterada** até esta data.
+## Em andamento agora
+
+_Atualizado em 15/10/2026._
+
+- **Como publicamos:** trabalho na branch `feat/client-visual-v2-inplace-20261008` → `npm run check` + varredura QA
+  (105 verificações, 0 apontamentos) → merge em `main` ("Publicação N — …") → Vercel publica em app.calirh.com.
+  Sem homologação separada (decisão da proprietária em 13/10). Nunca reescrever histórico (sem force-push).
+- **Outra sessão em paralelo** publica os layouts de e-mail (funções de borda de e-mail) direto em `main`;
+  sempre `git fetch` + merge de `origin/main` antes de publicar.
+- **Última publicação:** 48 — limpeza de 63 arquivos não usados.
+- **Próximo no código:** atualização do react-router para v7 (grande; última da fila).
+- **Aguardando a proprietária:** agrupamento dos indicadores em PDF; relatório gerado para conferir o impresso
+  com histórico de horas; opção de esconder só o link da reunião para o Partner; textos do advogado (liga o
+  `TermsGate`); prazos de guarda (rotina de eliminação e desativação automática no fim do contrato).
 
 ## 09/10/2026 — Claude (Opus 5.5), com Patricia
 
@@ -1530,10 +1542,17 @@ Relatório: `docs/SEGURANCA_REVISAO_2026-10-15.md`. Autorização: "fazer tudo q
 - Registro: tabela `terms_acceptances` (usuário, versão, data, navegador), migração `20261021120000`; cada pessoa só grava e lê o próprio aceite; a administração lê todos.
 - Visual conferido ligando-o temporariamente no ambiente de teste.
 
-### Limpeza de código (aguarda liberação)
+### 2026-10-15 — Limpeza de código (Publicação 48)
 
-- 63 arquivos que o app não usa mais (~1,7 MB): versões antigas das páginas de Relatórios (admin V3–V16 e cliente V1–V4), papéis V12/V14/V15/V16, CSS antigos de documentos/horas/projetos etc. Lista obtida por alcance de imports a partir de `src/main.tsx` (incluindo `?inline`).
-- A remoção foi bloqueada pelo classificador de permissões desta máquina ("Irreversible Local Destruction"), embora os arquivos fiquem no histórico do git. Aguarda a proprietária liberar.
+- Removidos 63 arquivos que o app não usava (~1,7 MB), com autorização da proprietária: páginas antigas de Relatórios
+  (admin V3–V16, cliente V1–V4, impressão V16), papéis executivos V12/V14/V15/V16, `DataViz`, `OperationalSafetyBridge` (V1),
+  runtimes antigos (`recordsExperienceRuntime` V1, `recordsClosureExperienceRuntimeV28`, `dashboardSatisfactionRuntimeV28`,
+  `deliverableChatFlickerGuardV36`, `notificationNavigationRuntime`, `reportsV14ClarityRuntime`), `data/demo.ts`,
+  `domain/reports.ts`/`types.ts`, `styles/routes/documents.ts`/`clientDeliverables.ts` e CSS antigos de documentos/horas/projetos.
+- Critério: arquivo não alcançável por import a partir de `src/main.tsx` (inclui `?inline` dos estilos legados).
+  Depois da remoção, só `vite-env.d.ts` fica fora do grafo (é de tipos, fica).
+- `scripts/v2-operational-hooks.json`: tiradas as duas entradas de arquivos removidos.
+- Qualquer arquivo pode ser recuperado pelo histórico do git (commit "Limpeza: remove 63 arquivos não usados").
 
 ### Link de homologação (o mesmo para cliente e administradora)
 

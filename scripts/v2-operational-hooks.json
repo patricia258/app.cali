@@ -59,7 +59,6 @@
     ]
   ],
   "files": [
-    "src/lib/recordsClosureExperienceRuntimeV28.ts",
     "src/lib/recordsClosureExperienceRuntimeV29.ts",
     "src/lib/recordsClosureFinalPolishV30.ts",
     "src/lib/recordsConversationScrollGuard.ts",
@@ -69,7 +68,6 @@
     "src/lib/recordsOperationsRuntimeV25.ts",
     "src/components/GlobalTimerBar.tsx",
     "src/components/ProjectTimerBridge.tsx",
-    "src/lib/deliverableChatFlickerGuardV36.ts",
     "src/lib/deliverableChatStandardRuntimeV35.ts",
     "src/lib/identityMediaRuntime.ts",
     "src/lib/projectApprovalRulesRuntimeV39.ts",
