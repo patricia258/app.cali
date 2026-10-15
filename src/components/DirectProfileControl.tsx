@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { Building2, Camera, Check, ChevronDown, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, ShieldCheck, Upload, UserRound, X } from 'lucide-react';
+import { Building2, Camera, Check, ChevronDown, Download, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, ShieldCheck, Upload, UserRound, X } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { useWorkspaceAuth } from '../auth/WorkspaceAuthProvider';
 import { optimizeImageForUpload } from '../lib/imageUpload';
@@ -52,6 +52,10 @@ export function DirectProfileControl({role,trigger}:{role:Role;trigger?:ProfileT
   const[profile,setProfile]=useState<ProfileData>(profileFallback[role]),[draft,setDraft]=useState<ProfileData>(profileFallback[role]);
   const[modalOpen,setModalOpen]=useState(false),[saving,setSaving]=useState(false),[message,setMessage]=useState('');
   const[companyName,setCompanyName]=useState('');
+  // Direitos do titular (LGPD, art. 18): baixar os próprios dados e pedir acesso, correção ou exclusão.
+  const[privacyBusy,setPrivacyBusy]=useState(false),[privacyForm,setPrivacyForm]=useState<{kind:string;details:string}|null>(null),[privacyMessage,setPrivacyMessage]=useState('');
+  async function downloadMyData(){if(!supabase||privacyBusy)return;setPrivacyBusy(true);setPrivacyMessage('');const result=await supabase.rpc('export_my_data');setPrivacyBusy(false);if(result.error){setPrivacyMessage('Não foi possível gerar o arquivo agora. Tente de novo.');return;}const blob=new Blob([JSON.stringify(result.data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`meus-dados-cali-workspace-${new Date().toISOString().slice(0,10)}.json`;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);setPrivacyMessage('Arquivo com os seus dados baixado.');}
+  async function sendPrivacyRequest(){if(!supabase||!privacyForm||privacyBusy||privacyForm.details.trim().length<5)return;setPrivacyBusy(true);const result=await supabase.rpc('request_data_subject_right',{p_kind:privacyForm.kind,p_details:privacyForm.details.trim()});setPrivacyBusy(false);if(result.error){setPrivacyMessage('Não foi possível enviar o pedido. Tente de novo.');return;}setPrivacyForm(null);setPrivacyMessage('Pedido enviado à CALI. A resposta chega em até 15 dias.');}
   const[companyLogo,setCompanyLogo]=useState('');
   const[activeSection,setActiveSection]=useState<'details'|'signature'>('details');
   const[cropOpen,setCropOpen]=useState(false);
@@ -161,7 +165,12 @@ export function DirectProfileControl({role,trigger}:{role:Role;trigger?:ProfileT
           <small>Esta é sua identidade visual. A ciência de documentos e relatórios é confirmada separadamente.</small>
         </section>}
         {activeSection==='details'?<div className="profile-live-actions">{(draft.whatsapp||draft.phone)?<a className="secondary" href={whatsappUrl(draft.whatsapp||draft.phone)} target="_blank" rel="noreferrer"><MessageCircle size={16}/>Abrir WhatsApp</a>:null}{draft.phone?<a className="secondary" href={`tel:${draft.phone.replace(/[^+\d]/g,'')}`}><Phone size={16}/>Ligar</a>:null}</div>:null}
-        <a className="profile-privacy-link" href="https://calirh.com/privacidade.html" target="_blank" rel="noopener noreferrer"><ShieldCheck size={16}/>Política de privacidade do site, Mapa e Portal</a>
+        <section className="profile-privacy-v2" aria-label="Privacidade e meus dados">
+          <div><strong><ShieldCheck size={16}/>Privacidade e meus dados</strong><p>Você pode baixar uma cópia dos seus dados ou pedir acesso, correção ou exclusão. <a href="https://calirh.com/privacidade.html" target="_blank" rel="noopener noreferrer">Política de privacidade</a></p></div>
+          {privacyForm?<div className="profile-privacy-form"><label>Tipo de pedido<select value={privacyForm.kind} onChange={(event)=>setPrivacyForm({...privacyForm,kind:event.target.value})}><option value="access">Acesso aos meus dados</option><option value="correction">Correção de dados</option><option value="deletion">Exclusão de dados</option><option value="other">Outro pedido</option></select></label><label>O que você precisa<textarea rows={3} maxLength={2000} value={privacyForm.details} onChange={(event)=>setPrivacyForm({...privacyForm,details:event.target.value})} placeholder="Descreva o pedido."/></label><span><button type="button" onClick={()=>setPrivacyForm(null)}>Cancelar</button><button type="button" className="primary" disabled={privacyBusy||privacyForm.details.trim().length<5} onClick={()=>void sendPrivacyRequest()}>{privacyBusy?'Enviando…':'Enviar pedido'}</button></span></div>
+          :<span className="profile-privacy-actions"><button type="button" disabled={privacyBusy} onClick={()=>void downloadMyData()}><Download size={14}/>{privacyBusy?'Gerando…':'Baixar meus dados'}</button><button type="button" onClick={()=>{setPrivacyMessage('');setPrivacyForm({kind:'access',details:''});}}>Pedir acesso, correção ou exclusão</button></span>}
+          {privacyMessage&&<small role="status">{privacyMessage}</small>}
+        </section>
         {message?<div className="form-message">{message}</div>:null}
         <div className="modal-actions"><button type="button" className="profile-secondary-v56" onClick={()=>setModalOpen(false)}>Fechar</button><button type="button" className="profile-primary-v56" onClick={saveProfile} disabled={saving}>{saving?<Loader2 size={17} className="spin"/>:<Check size={17}/>} {saving?'Salvando…':'Salvar alterações'}</button></div>
       </section>
