@@ -104,12 +104,16 @@ Deno.serve(async (req: Request) => {
     if (profile.role === "client") {
       const type = String(notification.notification_type || "");
       const notificationTitle = String(notification.title || "");
-      let template: "schedule" | "schedule_reminder" | "project_complete" | "project_cancel" | "deliverable_review" | "task_review" | "client_dependency" | "document_ack" | "presential_extra_request_received" | "online_extra_request_received" | "presential_extra_confirmed" | "online_extra_confirmed" | "extra_new_dates" | "extra_reschedule_requested" | "presential_extra_cancelled" | "presential_extra_rescheduled" | "record_status" | "record_reopen_decision" | "team_month_update" | "chat_mention" | null = null;
+      let template: "schedule" | "schedule_reminder" | "project_complete" | "project_cancel" | "deliverable_review" | "task_review" | "client_dependency" | "document_ack" | "presential_extra_request_received" | "online_extra_request_received" | "presential_extra_confirmed" | "online_extra_confirmed" | "extra_new_dates" | "extra_reschedule_requested" | "presential_extra_cancelled" | "presential_extra_rescheduled" | "record_status" | "record_reopen_decision" | "team_month_update" | "chat_mention" | "deliverable_rebriefing" | "deliverable_cancelled" | null = null;
       if (type === "project_schedule_review" || (type === "project" && notificationTitle === "Planejamento para sua validação")) template = "schedule";
       else if (type === "project_schedule_reminder") template = "schedule_reminder";
       else if ((type === "project_lifecycle" && notificationTitle === "Execução cancelada" && String(notification.body || "").startsWith("Projeto ")) || (type === "project" && notificationTitle === "Projeto cancelado")) template = "project_cancel";
       else if ((type === "project" || type === "project_status") && notificationTitle === "Projeto concluído") template = "project_complete";
       else if (type === "deliverable_status" && notificationTitle === "Sua validação é necessária") template = "deliverable_review";
+      else if (type === "deliverable_status" && notification.entity_type === "deliverable" &&
+               notificationTitle === "Rebriefing necessário") template = "deliverable_rebriefing";
+      else if (type === "deliverable_status" && notification.entity_type === "deliverable" &&
+               notificationTitle === "Entregável cancelado") template = "deliverable_cancelled";
       else if (type === "task_client_review" && notificationTitle === "Uma parte da entrega aguarda a sua aprovação") template = "task_review";
       else if (type === "client_dependency" && notificationTitle === "A CALI precisa de um retorno seu") template = "client_dependency";
       else if (type === "document" && notificationTitle === "Documento final disponível" && notification.entity_type === "file") template = "document_ack";
@@ -146,7 +150,26 @@ Deno.serve(async (req: Request) => {
           // um único registro real; nunca adivinhar qual item originou o aviso.
           let safeHtmlBlocks: { bloco_observacoes?: string } = {};
           let calendarExtraTimely: boolean | null = null;
-          if (template === "record_status" || template === "record_reopen_decision" || template === "team_month_update" || template === "chat_mention") {
+          if (template === "deliverable_rebriefing" || template === "deliverable_cancelled") {
+            const { data: item, error: itemError } = await ws.from("deliverables")
+              .select("id,title,status,client_visible,cancellation_reason")
+              .eq("id", notification.entity_id).eq("company_id", notification.company_id).maybeSingle();
+            if (itemError) throw itemError;
+            const required = template === "deliverable_rebriefing" ? "rebriefing" : "cancelled";
+            if (!item?.title || !item.client_visible || item.status !== required) {
+              throw new Error("Entregável não corresponde ao evento comunicado.");
+            }
+            const expectedPrefix = String(item.title) + " · ";
+            if (!String(notification.body || "").startsWith(expectedPrefix)) {
+              throw new Error("A notificação não corresponde ao título do entregável.");
+            }
+            fields.entregavel = String(item.title);
+            if (template === "deliverable_cancelled") {
+              const reason = String(item.cancellation_reason || "").trim();
+              if (!reason) throw new Error("Motivo de cancelamento não registrado.");
+              fields.motivo = reason;
+            }
+          } else if (template === "record_status" || template === "record_reopen_decision" || template === "team_month_update" || template === "chat_mention") {
             Object.assign(fields, await approvedClientContext(ws, notification, template));
           } else if (template === "presential_extra_cancelled") {
             if (notification.entity_type === "event") {
@@ -345,6 +368,8 @@ Deno.serve(async (req: Request) => {
             project_complete: "Projeto concluído!",
             project_cancel: "Atualização no planejamento",
             deliverable_review: "Entrega para validação",
+            deliverable_rebriefing: "Entrega em rebriefing",
+            deliverable_cancelled: "Entrega cancelada",
             task_review: "Etapa para sua aprovação",
             client_dependency: "Precisamos de um retorno seu",
             document_ack: "Documento para sua ciência",
