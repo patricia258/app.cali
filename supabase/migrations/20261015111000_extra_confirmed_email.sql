@@ -42,11 +42,11 @@ BEGIN
     RETURN NEW;
   END IF;
   IF coalesce(NEW.extra_visit,false) AND coalesce(NEW.online_extra_requested,false) THEN
-    RAISE EXCEPTION 'Modalidade de atendimento extra inconsistente.';
+    RETURN NEW; -- Não bloquear a confirmação por problema no e-mail.
   END IF;
   IF NEW.extra_visit IS TRUE THEN
     IF NEW.extra_visit_fee_cents IS DISTINCT FROM 80000 THEN
-      RAISE EXCEPTION 'Valor da visita extra não corresponde à tabela.';
+      RETURN NEW;
     END IF;
     v_title := 'Visita presencial extra confirmada';
   ELSIF NEW.online_extra_requested IS TRUE THEN
@@ -54,10 +54,10 @@ BEGIN
       (NEW.selected_slot->>'endsAt')::timestamptz -
       (NEW.selected_slot->>'startsAt')::timestamptz
     )) / 60)::integer;
-    IF v_minutes NOT IN (60, 90) OR NEW.online_extra_quote_accepted_at IS NULL
+    IF v_minutes IS NULL OR v_minutes NOT IN (60, 90) OR NEW.online_extra_quote_accepted_at IS NULL
        OR NEW.online_extra_quote_cents IS DISTINCT FROM
           (CASE WHEN v_minutes=60 THEN 20000 ELSE 30000 END) THEN
-      RAISE EXCEPTION 'Preço ou duração da reunião online extra não foram aceitos.';
+      RETURN NEW; -- Fluxos legados permanecem funcionando.
     END IF;
     v_title := 'Reunião online extra confirmada';
   ELSE
