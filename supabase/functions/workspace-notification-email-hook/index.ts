@@ -100,7 +100,7 @@ Deno.serve(async (req: Request) => {
     if (profile.role === "client") {
       const type = String(notification.notification_type || "");
       const notificationTitle = String(notification.title || "");
-      let template: "schedule" | "schedule_reminder" | "project_complete" | "project_cancel" | "deliverable_review" | "task_review" | "client_dependency" | "document_ack" | "presential_extra_request_received" | "online_extra_request_received" | null = null;
+      let template: "schedule" | "schedule_reminder" | "project_complete" | "project_cancel" | "deliverable_review" | "task_review" | "client_dependency" | "document_ack" | "presential_extra_request_received" | "online_extra_request_received" | "presential_extra_confirmed" | "online_extra_confirmed" | null = null;
       if (type === "project_schedule_review" || (type === "project" && notificationTitle === "Planejamento para sua validação")) template = "schedule";
       else if (type === "project_schedule_reminder") template = "schedule_reminder";
       else if ((type === "project_lifecycle" && notificationTitle === "Execução cancelada" && String(notification.body || "").startsWith("Projeto ")) || (type === "project" && notificationTitle === "Projeto cancelado")) template = "project_cancel";
@@ -115,6 +115,8 @@ Deno.serve(async (req: Request) => {
       else if (type === "scheduling_extra_request_receipt" &&
                notification.entity_type === "scheduling_request" &&
                notificationTitle === "Pedido de reunião online extra recebido") template = "online_extra_request_received";
+      else if (type === "scheduling_extra_confirmed" && notification.entity_type === "scheduling_request" && notificationTitle === "Visita presencial extra confirmada") template = "presential_extra_confirmed";
+      else if (type === "scheduling_extra_confirmed" && notification.entity_type === "scheduling_request" && notificationTitle === "Reunião online extra confirmada") template = "online_extra_confirmed";
 
       if (template && notification.entity_id) {
         try {
@@ -130,7 +132,61 @@ Deno.serve(async (req: Request) => {
           // Só usar o HTML personalizado quando os detalhes baterem EXATAMENTE com
           // um único registro real; nunca adivinhar qual item originou o aviso.
           let safeHtmlBlocks: { bloco_observacoes?: string } = {};
-          if (template === "presential_extra_request_received" || template === "online_extra_request_received") {
+          if (template === "presential_extra_confirmed" || template === "online_extra_confirmed") {
+            const { data: request, error: requestError } = await ws.from("scheduling_requests")
+              .select("id,company_id,requested_by,status,confirmed_event_id,selected_slot,request_mode,title,location,extra_visit,extra_visit_fee_cents,online_extra_requested,online_extra_quote_cents,online_extra_quote_accepted_at")
+              .eq("id", notification.entity_id).eq("company_id", notification.company_id)
+              .eq("requested_by", notification.user_id).maybeSingle();
+            if (requestError) throw requestError;
+            if (!request || request.status !== "confirmed" || !request.confirmed_event_id ||
+                !request.selected_slot?.startsAt || !request.selected_slot?.endsAt) {
+              throw new Error("Agendamento extra ainda não confirmado ou sem horário final.");
+            }
+            const onSite = template === "presential_extra_confirmed";
+            if (onSite && (!request.extra_visit || request.request_mode !== "in_person" ||
+                request.extra_visit_fee_cents !== 80000 || !String(request.location || "").trim())) {
+              throw new Error("Visita presencial extra incompleta.");
+            }
+            if (!onSite && (!request.online_extra_requested || request.request_mode !== "remote" ||
+                !request.online_extra_quote_accepted_at)) {
+              throw new Error("Reunião extra sem valor aceito.");
+            }
+            const start = Date.parse(String(request.selected_slot.startsAt));
+            const end = Date.parse(String(request.selected_slot.endsAt));
+            const minutes = Math.round((end - start) / 60000);
+            if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start ||
+                (onSite && minutes !== 240) || (!onSite && ![60, 90].includes(minutes))) {
+              throw new Error("Duração ou horário confirmado incorreto.");
+            }
+            const { data: event, error: eventError } = await ws.from("events")
+              .select("id,starts_at,ends_at,source_entity_id").eq("id", request.confirmed_event_id)
+              .eq("company_id", notification.company_id).maybeSingle();
+            if (eventError) throw eventError;
+            if (!event || event.source_entity_id !== request.id ||
+                Date.parse(String(event.starts_at)) !== start ||
+                Date.parse(String(event.ends_at)) !== end) {
+              throw new Error("Evento na agenda não corresponde ao horário confirmado.");
+            }
+            const zone = "America/Sao_Paulo";
+            const dateFormatter = new Intl.DateTimeFormat("pt-BR",
+              { timeZone: zone, weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+            const timeFormatter = new Intl.DateTimeFormat("pt-BR",
+              { timeZone: zone, hour: "2-digit", minute: "2-digit", hour12: false });
+            fields.assunto = String(request.title);
+            fields.data = dateFormatter.format(new Date(start));
+            fields.horario_inicio = timeFormatter.format(new Date(start));
+            fields.horario_fim = timeFormatter.format(new Date(end));
+            if (onSite) {
+              fields.endereco = String(request.location);
+            } else {
+              const cents = minutes === 60 ? 20000 : 30000;
+              if (request.online_extra_quote_cents !== cents) {
+                throw new Error("Valor fixo do encontro não corresponde à duração.");
+              }
+              fields.duracao = minutes === 60 ? "1 hora" : "1h30";
+              fields.valor = cents === 20000 ? "R$ 200,00" : "R$ 300,00";
+            }
+          } else if (template === "presential_extra_request_received" || template === "online_extra_request_received") {
             // A solicitação deve ser da mesma empresa e do próprio destinatário.
             // Nunca combinar dados de duas solicitações ou usar preços não gravados.
             const { data: request, error: requestError } = await ws.from("scheduling_requests")
@@ -254,6 +310,8 @@ Deno.serve(async (req: Request) => {
             document_ack: "Documento para sua ciência",
             presential_extra_request_received: "Pedido de visita extra recebido",
             online_extra_request_received: "Pedido de reunião online extra recebido",
+            presential_extra_confirmed: "Visita extra confirmada",
+            online_extra_confirmed: "Reunião online extra confirmada",
           };
           outgoingSubject = ["APP CALI RH", companyName, titles[template]].join(" · ");
         } catch (templateError) {

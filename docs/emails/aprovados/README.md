@@ -64,3 +64,11 @@ Cliente: rebriefing, entregável cancelado, subtarefa para aprovação, dependê
 - O HTML aprovado é preservado em `docs/emails/aprovados/cliente/`, e o módulo de templates contém cópia literal (somente correção de fechamento da tag strong do preço online).
 - **Não são cobertos:** novas opções, reagendamento, confirmação definitiva, cancelamento. Permanecem em revisão de layouts própria.
 - **Atenção ao legado:** o botão administrativo de orçamento manual online pode existir para outros fluxos; a nova solicitação assinada usa o valor fixo. Evitar registrar orçamento manual novo sobre uma solicitação já aceita.
+
+## Confirmação de atendimento extra — modelos aprovados (15/10/2026)
+
+- **Visita presencial extra V1:** `visita-extra-confirmada-v1.html`, evento `scheduling_extra_confirmed` somente quando `status` passa para `confirmed`, evento final e data selecionada estão registrados.
+- **Reunião online extra V1:** `reuniao-online-extra-confirmada-v1.html`, mesma regra, preço fixo aceito conforme duração (1 hora R$ 200 / 1h30 R$ 300).
+- A função `notify_confirmed_extra_request_v1` envia uma única notificação ao solicitante para qualquer confirmação de atendimento extra (CALI ou aceite de uma nova data). A notificação anterior de cliente na `admin_confirm_extra_visit_v1` é substituída para não enviar duplicado; avisos à administração preservados.
+- Os HTMLs são copiados integralmente para `approved-client-templates.ts`, com dados validados contra o evento de calendário.
+- Sem envio retroativo, sem alteração de valores ou regras de calendário; templates de novas datas e reagendamento seguem aguardando aprovação.
