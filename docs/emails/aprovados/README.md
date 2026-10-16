@@ -131,3 +131,9 @@ Não gera notificações duplicadas para propostas administrativas. Em outros pe
 - **Ajuste solicitado V1:** `administradora/entregavel-ajuste-solicitado-v1.html`. Aviso real `deliverable_status` / `Cliente solicitou ajuste`; mostra justificativa e solicitante somente quando existe registro único correspondente de `deliverable_adjustments` para cliente. Sem correspondência segura, preserva o envio anterior.
 - **Rebriefing:** evento próprio `Cliente solicitou rebriefing`; **não reutilizar** o HTML de ajuste. Aguardando modelo específico.
 - HTMLs literais aprovados, copiados para `approved-admin-templates.ts`. Nenhum trigger, banco ou regra de contratação alterados.
+
+## Administradora — rebriefing e reabertura (aprovados 15/10/2026)
+
+- **Rebriefing V1:** `administradora/entregavel-rebriefing-v1.html` para evento `deliverable_status` / `Cliente solicitou rebriefing`. Somente usa HTML novo se houver registro de rebriefing inequívoco e observação específica registrada; caso contrário, usa o e-mail anterior.
+- **Reabertura V1:** `administradora/ocorrencia-reabertura-v1.html` para evento `record_reopen_request` / `Solicitação de reabertura`, com motivo e solicitante conferidos contra o pedido de origem e texto do aviso.
+- HTMLs copiados literalmente, sem mudanças em gatilhos, destinatários, tabelas ou status. Não cria envio retroativo.
