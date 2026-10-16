@@ -4005,3 +4005,13 @@ html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-to input{flex
 html[data-workspace-ui='v2'] .reports-v16-toolbar button:disabled{opacity:.45;cursor:not-allowed;filter:saturate(.6)}
 html[data-workspace-ui='v2'] .reports-v16-toolbar .reports-v17-official-wait{color:#9a6b1f;font-weight:600}
 html[data-workspace-ui='v2'] .reports-v16-toolbar .reports-v17-toolbar-error{color:#b42318;font-weight:600}
+/* Eliminação dos dados (fim de contrato): aviso de alerta quando liberada. */
+html[data-workspace-ui='v2'] .v2-company-export.v2-company-elim{border-color:#eadfd6}
+html[data-workspace-ui='v2'] .v2-company-export.v2-company-elim>svg{color:#8a7a80}
+html[data-workspace-ui='v2'] .v2-company-export.v2-company-elim.is-due{background:#fff6f4;border:1px solid #f1c4bd;border-left:4px solid #b42318}
+html[data-workspace-ui='v2'] .v2-company-export.v2-company-elim.is-due>svg{color:#b42318}
+html[data-workspace-ui='v2'] .v2-company-export.v2-company-elim.is-due strong{color:#8f1d14}
+html[data-workspace-ui='v2'] .v2-company-export.v2-company-elim.is-due>button{background:#b42318;border-color:#b42318}
+html[data-workspace-ui='v2'] .v2-company-export.v2-company-elim.is-done>svg{color:#1f7a4d}
+html[data-workspace-ui='v2'] .ap-status-confirm footer button.danger:last-child{background:#b42318;border-color:#b42318}
+html[data-workspace-ui='v2'] .ap-status-confirm .v2-company-export-error{color:#b42318;font-weight:600;margin:0}
