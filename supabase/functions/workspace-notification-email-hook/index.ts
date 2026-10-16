@@ -8,6 +8,7 @@ import { approvedClientContext } from "./approved-client-context.ts";
 import { declinedExtraFields } from "./declined-extra-fields.ts";
 import { renderAdminApprovedEmail } from "./approved-admin-templates.ts";
 import { approvedAdminScheduleFields } from "./approved-admin-context.ts";
+import { approvedAdminDeliverableFields } from "./approved-admin-deliverable-context.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -458,6 +459,30 @@ Deno.serve(async (req: Request) => {
     }
 
 
+
+
+    if (profile.role === "admin" && notification.entity_type === "deliverable" &&
+        String(notification.notification_type || "") === "deliverable_status") {
+      const notificationTitle = String(notification.title || "");
+      const adminKey = notificationTitle === "Cliente aprovou um entregável" ? "deliverable_approved"
+        : notificationTitle === "Cliente solicitou ajuste" ? "deliverable_adjustment" : null;
+      // Rebriefing possui evento e sentido distintos: não reutilizar modelo de ajuste.
+      if (adminKey) {
+        try {
+          const details = await approvedAdminDeliverableFields(ws, notification, adminKey);
+          const fields: Record<string,string> = {
+            nome_da_administradora: String(profile.full_name || "").trim().split(/\s+/)[0] || "Pati",
+            empresa: companyName, link: url, logo_workspace_url: LOGO_URL, carvalho_url: MARK_URL,
+            ...details,
+          };
+          outgoingHtml = renderAdminApprovedEmail(adminKey, fields);
+          outgoingSubject = ["APP CALI RH", companyName,
+            adminKey === "deliverable_approved" ? "Entregável aprovado" : "Ajuste solicitado no entregável"].join(" · ");
+        } catch (err) {
+          console.error("workspace admin deliverable approved template fallback", err);
+        }
+      }
+    }
 
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
