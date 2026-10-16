@@ -14,7 +14,7 @@ _Atualizado em 15/10/2026._
   Sem homologação separada (decisão da proprietária em 13/10). Nunca reescrever histórico (sem force-push).
 - **Outra sessão em paralelo** publica os layouts de e-mail (funções de borda de e-mail) direto em `main`;
   sempre `git fetch` + merge de `origin/main` antes de publicar.
-- **Última publicação:** 56 — hero novo, fotos sem faixa bordô, telas do app atualizadas (sem duplicação) na página inicial.
+- **Última publicação:** 57 — ajustes de celular da página inicial, políticas no tema dia + política do site, entrada com rodapé enxuto, ajuda de acesso e animação.
 - Comercial (decisão de 15/10): horas Partner 10–15 e Full 20–25 aplicadas em `public.cali_pricing_rules` (também usada pelo Portal público). Valores continuam manuais: preço base e teto não foram mexidos.
 - **Aguardando liberação:** eliminação dos dados 45 dias após o encerramento — migração pronta e testada em simulação desfeita, em `docs/migracoes-pendentes/20261021210000_company_data_elimination.sql`, NÃO aplicada (o classificador de permissões desta máquina bloqueou). A tela só será feita depois de aplicada.
 - **Próximo no código:** atualização do react-router para v7 (grande; última da fila).
@@ -1678,6 +1678,24 @@ checklist do desenvolvedor são de uso interno: não copiar para o app nem para 
 - Telas do app repetidas: mesma duplicação Unicode das fotos (9 capturas × 2 nomes). Trocadas por 9 capturas NOVAS do
   visual V2, tiradas no ambiente de teste com dados fictícios renomeados para exemplo (Empresa Exemplo, Paula, Ana Souza…):
   `src/assets/workspace-screens/tela-01..09-*.jpg`. Rótulo 5 virou "Detalhe da entrega".
+
+### 2026-10-15 — Celular, políticas e entrada (Publicação 57)
+
+- Página inicial no celular: botões do hero lado a lado (cabem em 390px), provas do hero escondidas até 900px, setas do
+  carrossel de telas como círculos de 40px nas pontas (antes `flex:1` + raio 50% viravam ovais sobre as bolinhas).
+- Políticas: títulos ficavam brancos à noite (tema noturno das folhas antigas). `legal.css` força o tema dia.
+  Nova página `/politica-do-site` com a política do site, Mapa e Portal copiada fiel de calirh.com/privacidade.html
+  (21/08/2026) — `sitePolicy()` em `legalTexts.ts`; se o site mudar, atualizar aqui. Ela ainda cita patricia@calirh.com
+  como canal (o Workspace usa privacidade@calirh.com) — a proprietária decide se unifica.
+- Entrada: rodapé de uma linha (Termos · Privacidade · Site, Mapa e Portal · calirh.com) no lugar dos dois rodapés;
+  texto do painel não repete mais a lista; blocos sobem em cascata ao abrir; celular com painel compacto e página
+  rolando; "Trocar e-mail"/"Reenviar código" no padrão do app; "Não consigo acessar" abre ajuda (e-mail certo, spam,
+  remetente APP CALI RH, prazo do código, WhatsApp e e-mail da CALI com a mensagem pronta). Por segurança o login
+  continua sem dizer se um e-mail existe (evita descobrir quem é cliente); a mensagem diz "se estiver cadastrado".
+- PENDENTE (avaliado, não feito): código de acesso por WhatsApp. Exige conta WhatsApp Business API (Meta direto ou
+  provedor como Twilio/Zenvia), número verificado, modelo de mensagem de autenticação aprovado pela Meta, custo por
+  mensagem, telefone confirmado no perfil de cada pessoa e mudança na função `workspace-access` (envio + limite de
+  tentativas por telefone). Dá para fazer; precisa da conta e da decisão de custo.
 
 ### Link de homologação (o mesmo para cliente e administradora)
 

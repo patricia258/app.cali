@@ -165,6 +165,7 @@ function AppRoutes() {
         <Route path="/login" element={<LoginPage/>}/>
         <Route path="/privacidade" element={<LegalPage kind="privacy"/>}/>
         <Route path="/termos" element={<LegalPage kind="terms"/>}/>
+        <Route path="/politica-do-site" element={<LegalPage kind="site"/>}/>
         <Route path="/auth/callback" element={<AuthCallbackPage/>}/>
         <Route path="/oauth/google/callback" element={<GoogleCalendarCallbackPage/>}/>
 
