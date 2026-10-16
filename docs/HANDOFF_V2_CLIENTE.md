@@ -14,9 +14,9 @@ _Atualizado em 16/10/2026._
   Sem homologação separada (decisão da proprietária em 13/10). Nunca reescrever histórico (sem force-push).
 - **Outra sessão em paralelo** publica os layouts de e-mail (funções de borda de e-mail) direto em `main`;
   sempre `git fetch` + merge de `origin/main` antes de publicar.
-- **Última publicação:** 58 — política do site com canal privacidade@calirh.com (16/10).
+- **Última publicação:** 59 — botão de eliminação dos dados 45 dias após o encerramento (16/10).
 - Comercial (decisão de 15/10): horas Partner 10–15 e Full 20–25 aplicadas em `public.cali_pricing_rules` (também usada pelo Portal público). Valores continuam manuais: preço base e teto não foram mexidos.
-- **Aguardando liberação:** eliminação dos dados 45 dias após o encerramento — migração pronta e testada em simulação desfeita, em `docs/migracoes-pendentes/20261021210000_company_data_elimination.sql`, NÃO aplicada. A proprietária autorizou em 16/10, mas o classificador de permissões desta máquina bloqueou de novo; precisa de regra de permissão para `apply_migration` ou aplicar pelo painel do Supabase (SQL Editor). A tela só será feita depois de aplicada.
+- **Eliminação dos dados (fim de contrato) — publicada (59):** migração aplicada pela proprietária no SQL Editor em 16/10 (registrada em `supabase/migrations/20261021230000_company_data_elimination.sql`; cron `workspace-company-elimination-alerts` 11h10 UTC avisa a administração no dia 45). Tela: Clientes → ficha → aba Contrato, abaixo de Exportar. Encerrada há menos de 45 dias: mostra a data de liberação. Depois: aviso vermelho + "Eliminar dados" → diálogo com o nome da empresa para confirmar. `src/pages/admin/companyDataElimination.ts` apaga primeiro os arquivos (`admin_company_storage_objects`, buckets `cali-workspace-private` e `workspace-assets`) e depois chama `admin_eliminate_company_data`. Não testado com empresa real (nenhuma encerrada há 45 dias).
 - **Próximo no código:** atualização do react-router para v7 (grande; última da fila).
 - **16/10 — fora do app (registro para acompanhamento):**
   - Site (`patricia258/sitecali`): Sobre com os valores em roda giratória (card central em destaque, vira no
