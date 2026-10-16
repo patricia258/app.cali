@@ -384,7 +384,7 @@ export function LandingPage() {
                   heroScreenRef.current?.style.setProperty('--tilt-y', '0deg');
                 }}
               >
-                <img src="/landing/cali-workspace-login.svg?v=8" alt="Tela de acesso ao CALI Workspace" />
+                <img src="/landing/cali-workspace-login-v2.jpg?v=1" alt="Tela de acesso ao CALI Workspace" />
               </div>
             </div>
           </div>
