@@ -133,7 +133,9 @@ export function NotificationCenter({ role }: { role: Role }) {
       if (!user || !mounted) return;
       const { data } = await supabase.from('notifications').select('id,title,body,created_at,read_at,notification_type,entity_type,entity_id,action_url').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20);
       if (mounted && data) setItems(data as NotificationItem[]);
-      channel = supabase.channel(`workspace-notifications-${user.id}`).on('postgres_changes', { event: 'INSERT', schema: 'cali_workspace', table: 'notifications', filter: `user_id=eq.${user.id}` }, (payload) => {
+      if (!mounted) return;
+      // Nome único por montagem: um canal com o mesmo nome ainda aberto faria o .on() falhar ("after subscribe()").
+      channel = supabase.channel(`workspace-notifications-${user.id}-${Date.now()}`).on('postgres_changes', { event: 'INSERT', schema: 'cali_workspace', table: 'notifications', filter: `user_id=eq.${user.id}` }, (payload) => {
         if (!mounted) return;
         const next = payload.new as NotificationItem;
         setItems((current) => [next, ...current].slice(0, 20));
@@ -141,6 +143,7 @@ export function NotificationCenter({ role }: { role: Role }) {
         if (arrivalTimerRef.current) window.clearTimeout(arrivalTimerRef.current);
         arrivalTimerRef.current = window.setTimeout(() => setRecentId(''), 1400);
       }).subscribe();
+      if (!mounted && channel) { supabase.removeChannel(channel); channel = null; }
     }
     load();
     return () => { mounted = false; if (arrivalTimerRef.current) window.clearTimeout(arrivalTimerRef.current); if (channel && supabase) supabase.removeChannel(channel); };

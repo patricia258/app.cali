@@ -14,7 +14,8 @@ _Atualizado em 15/10/2026._
   Sem homologação separada (decisão da proprietária em 13/10). Nunca reescrever histórico (sem force-push).
 - **Outra sessão em paralelo** publica os layouts de e-mail (funções de borda de e-mail) direto em `main`;
   sempre `git fetch` + merge de `origin/main` antes de publicar.
-- **Última publicação:** 51 — textos jurídicos no app (desligados até o e-mail de privacidade), exportação com dados restritos separados e destinatário, aviso sobre documentos clínicos.
+- **Última publicação:** 52 — textos jurídicos LIGADOS (privacidade@calirh.com), confirmação do relatório com estilo, painel de satisfação consertado, aviso em tempo real do sino, arquivos antigos dão 404.
+- **Aguardando liberação:** eliminação dos dados 45 dias após o encerramento — migração pronta e testada em simulação desfeita, em `docs/migracoes-pendentes/20261021210000_company_data_elimination.sql`, NÃO aplicada (o classificador de permissões desta máquina bloqueou). A tela só será feita depois de aplicada.
 - **Próximo no código:** atualização do react-router para v7 (grande; última da fila).
 - **Aguardando a proprietária:** relatório gerado para conferir o impresso
   com histórico de horas; opção de esconder só o link da reunião para o Partner; textos do advogado (liga o
@@ -1612,6 +1613,22 @@ checklist do desenvolvedor são de uso interno: não copiar para o app nem para 
   sobre automática × botão; itens de painel/fornecedores
   (membros e chaves do Supabase, DPAs, proteção de senha vazada, backups) — proprietária; IA — não há integração de IA
   dentro do Workspace hoje.
+
+### 2026-10-15 — Relatório, satisfação, sino e textos jurídicos ligados (Publicação 52)
+
+- Relatórios (print da proprietária: caixa crua no rodapé ao clicar "Atualizar prévia"): `reportWorkflowGovernanceV61.ts`
+  cria `.v61-confirm-*`, `.reports-governance-v61` e a caixa de dúvida do cliente (`.client-report-question-modal-v61`),
+  mas os estilos estavam só em `workspace-system-v61.css`, folha antiga desligada nas telas V2. Portados para
+  `src/v2/operational.css` (bloco "Relatórios (15/10)"). Verificado montando a caixa no ambiente de teste.
+- `get_admin_satisfaction_overview` falhava sempre (400, "aggregate function calls cannot be nested") — migração
+  `20261021200000` agrupa por mês numa subconsulta. Testado em simulação desfeita: total 2, 6 meses.
+- Sino (`WorkspaceChrome.tsx`): canal realtime com nome único por montagem; fechava com erro "cannot add
+  postgres_changes callbacks … after subscribe()" quando a tela remontava rápido.
+- `vercel.json`: a regra de SPA não cobre mais `/assets/`; arquivo de versão antiga devolve 404 (antes vinha o HTML e
+  o navegador recusava o CSS), e o app recarrega sozinho pela regra `vite:preloadError`.
+- Textos jurídicos LIGADOS: `PRIVACY_EMAIL = 'privacidade@calirh.com'`; Termos item 14 reescrito ("o aplicativo
+  registra o aceite…", com autorização da proprietária). A partir desta publicação, cliente e Partner aceitam no
+  próximo acesso.
 
 ### Link de homologação (o mesmo para cliente e administradora)
 
