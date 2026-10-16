@@ -219,7 +219,7 @@ const STEPS = [
 
 const PACKAGE_FEATURES = {
   partner: [
-    '8 a 12h de dedicação por mês',
+    '10 a 15h de capacidade de referência por mês',
     '100% online',
     'Reunião mensal com founders, diretoria ou RH',
     'Indicadores, DHO e apoio a decisões críticas',
@@ -660,7 +660,7 @@ export function LandingPage() {
                 ter senioridade disponível nas decisões críticas.
               </p>
               <div className="lp-package-facts">
-                <span><strong>8–12h</strong><small>por mês</small></span>
+                <span><strong>10–15h</strong><small>referência / mês</small></span>
                 <span><strong>Online</strong><small>100%</small></span>
                 <span><strong>Mensal</strong><small>ritmo principal</small></span>
               </div>

@@ -14,8 +14,9 @@ _Atualizado em 15/10/2026._
   Sem homologação separada (decisão da proprietária em 13/10). Nunca reescrever histórico (sem force-push).
 - **Outra sessão em paralelo** publica os layouts de e-mail (funções de borda de e-mail) direto em `main`;
   sempre `git fetch` + merge de `origin/main` antes de publicar.
-- **Última publicação:** 53 — Portal/página inicial com os parâmetros comerciais de 15/10 (Full 20–25h, a partir de R$ 5.000; Build definido por proposta; acesso ao Workspace só para Partner, Full e Build).
-- **Aguardando a proprietária (comercial):** números da tabela `public.cali_pricing_rules` (usada também pelo Portal público portal.calirh.com, que não está neste repositório) — Full ainda 14–18h, base R$ 6.500, teto R$ 8.000; Build com horas e prazo mínimo fixos. Partner: página inicial diz 8–12h, o site calirh.com diz 10–15h.
+- **Última publicação:** 54 — botão de fechamento oficial explica quando libera; fotos repetidas do carrossel; horas Partner 10–15 e Full 20–25.
+- **Em andamento:** reforma visual da página inicial (app.calirh.com) e da tela de entrada na identidade do Workspace, SEM tirar transições, cascatas, carrosséis nem conteúdo (pedido da proprietária em 15/10).
+- Comercial (decisão de 15/10): horas Partner 10–15 e Full 20–25 aplicadas em `public.cali_pricing_rules` (também usada pelo Portal público). Valores continuam manuais: preço base e teto não foram mexidos.
 - **Aguardando liberação:** eliminação dos dados 45 dias após o encerramento — migração pronta e testada em simulação desfeita, em `docs/migracoes-pendentes/20261021210000_company_data_elimination.sql`, NÃO aplicada (o classificador de permissões desta máquina bloqueou). A tela só será feita depois de aplicada.
 - **Próximo no código:** atualização do react-router para v7 (grande; última da fila).
 - **Aguardando a proprietária:** relatório gerado para conferir o impresso
@@ -1641,6 +1642,18 @@ checklist do desenvolvedor são de uso interno: não copiar para o app nem para 
   nesta proposta"); `AdminProposalEditorPageV3.tsx` mostra "Capacidade definida nesta proposta" quando não há faixa.
 - NÃO alterado: `public.cali_pricing_rules` (preço base, teto, horas mín./máx., prazo mínimo) — muda o Portal público
   na hora; aguardando a proprietária confirmar os números.
+
+### 2026-10-15 — Fechamento oficial, carrossel e horas (Publicação 54)
+
+- "Criar fechamento oficial" não fazia nada: estava desabilitado de propósito (outubro tinha 16 de 20 dias de coleta;
+  libera em 20/10), mas o botão não parecia desabilitado e o erro aparecia no topo da página, fora da vista.
+  `AdminReportsPageV17.tsx`: a barra mostra "Fechamento oficial liberado em dd/mm/aaaa" e o erro ao lado dos botões;
+  CSS de botão desabilitado. Relatório de setembro (v3, enviado) já existe para a conferência do impresso.
+- Fotos repetidas na página inicial: as 4 capturas estavam no git com dois nomes Unicode (à composto e decomposto); no
+  Mac parecem um arquivo, no build da Vercel (Linux) viravam 8. Renomeadas para `cali-carrossel-01..05.png` (sem acento;
+  a antiga `azumirh-01.png` virou a 01). Mesma ordem de antes.
+- Horas: Partner 10–15 e Full 20–25 na página inicial, nas propostas e em `public.cali_pricing_rules`
+  (registro `20261021220000`); preços sem mudança.
 
 ### Link de homologação (o mesmo para cliente e administradora)
 
