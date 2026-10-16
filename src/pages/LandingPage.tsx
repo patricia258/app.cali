@@ -226,7 +226,8 @@ const PACKAGE_FEATURES = {
     '1 ajuste ou desenho de política/processo por mês',
   ],
   full: [
-    '14 a 18h de dedicação por mês',
+    '20 a 25h de capacidade de referência por mês',
+    'A partir de R$ 5.000/mês · capacidade e investimento definidos por proposta',
     '1 visita presencial fixa por mês',
     'Ritmo quinzenal com maior proximidade',
     'Cargos & Salários, People Analytics nível 3 e desenvolvimento',
@@ -642,7 +643,7 @@ export function LandingPage() {
           <div className="lp-section-heading lp-section-heading-centered" data-lp-reveal>
             <span className="lp-kicker">ASSESSORIA ESTRATÉGICA MENSAL</span>
             <h2>Dois formatos para momentos diferentes do negócio.</h2>
-            <p>O escopo acompanha a complexidade real da empresa e do momento.</p>
+            <p>O escopo acompanha a complexidade real da empresa e do momento: capacidade e investimento definidos por proposta. CALI Partner, CALI Full e CALI Build incluem acesso ao Workspace; projetos avulsos não geram acesso automático.</p>
           </div>
 
           <div className="lp-package-grid">
@@ -685,7 +686,7 @@ export function LandingPage() {
                 rota ou quando pessoas já são agenda central da diretoria.
               </p>
               <div className="lp-package-facts">
-                <span><strong>14–18h</strong><small>por mês</small></span>
+                <span><strong>20–25h</strong><small>referência / mês</small></span>
                 <span><strong>1 visita</strong><small>fixa / mês</small></span>
                 <span><strong>Quinzenal</strong><small>ritmo principal</small></span>
               </div>

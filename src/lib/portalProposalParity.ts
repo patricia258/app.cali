@@ -65,7 +65,7 @@ export function getProposalProfile(serviceSlug:string,packageCode:string,answers
       'O roadmap preserva as demais necessidades e define quando cada uma pode entrar sem sobrecarregar o ciclo.',
     ];
     return{solutionCopy:full?'RH estratégico sênior com maior cadência e até duas prioridades simultâneas, sem ampliar a estrutura fixa nem criar expectativa de dedicação integral.':'RH estratégico sênior, em formato fracionado, para organizar uma prioridade central por ciclo, qualificar decisões e criar uma rotina de leitura com a liderança.',operating:full?[
-      `Carga mensal contratada de ${monthlyHours||'14 a 18'} horas, incluindo encontros, análise, preparação e devolutivas.`,
+      `Carga mensal contratada de ${monthlyHours||'20 a 25'} horas, incluindo encontros, análise, preparação e devolutivas.`,
       'Encontros quinzenais com founders, diretoria ou liderança de RH.','Até duas prioridades simultâneas, definidas e revistas com a liderança.','Uma visita presencial por mês, com finalidade e agenda previamente definidas, conforme região e condições acordadas.','As horas e entregas do período não são cumulativas.',
     ]:[
       `Carga mensal contratada de ${monthlyHours||'8 a 12'} horas, incluindo encontros, análise, preparação e devolutivas.`,
@@ -86,13 +86,13 @@ export function getProposalProfile(serviceSlug:string,packageCode:string,answers
     return{
       solutionCopy:complete?'Estruturação assistida de uma agenda mais ampla de RH, organizada em ciclos conectados, com maior cadência de supervisão técnica e checkpoints executivos.':'Estruturação assistida de uma frente prioritária por ciclo: a CALI desenha o método, define critérios e revisa tecnicamente; o RH interno executa e implanta.',
       operating:complete?[
-        'Carga mensal contratada de '+(monthlyHours||'14 a 18')+' horas, incluindo análise, preparação, checkpoints, revisão técnica e devolutivas.',
+        (monthlyHours?'Carga mensal contratada de '+monthlyHours+' horas':'Capacidade mensal definida nesta proposta')+', incluindo análise, preparação, checkpoints, revisão técnica e devolutivas.',
         'Várias frentes relacionadas podem avançar em sequência ou, quando viável, de forma coordenada dentro do ciclo.',
         'Checkpoints semanais ou quinzenais são definidos conforme fase e capacidade real de implantação.',
         'Checkpoint executivo com a liderança responsável ou diretoria nos marcos que exigem decisão, aprovação ou remoção de impedimentos.',
         'Atuação 100% online por padrão; presença física é adicional e só entra quando contratada.',
       ]:[
-        'Carga mensal contratada de '+(monthlyHours||'8 a 12')+' horas, incluindo análise, preparação, checkpoints, revisão técnica e devolutivas.',
+        (monthlyHours?'Carga mensal contratada de '+monthlyHours+' horas':'Capacidade mensal definida nesta proposta')+', incluindo análise, preparação, checkpoints, revisão técnica e devolutivas.',
         'Uma frente prioritária por ciclo; as demais necessidades permanecem organizadas no roadmap.',
         'Checkpoints quinzenais ou mensais, ajustados ao ritmo de execução do responsável interno.',
         'A CALI revisa e corrige as entregas produzidas internamente antes dos principais marcos de implantação.',

@@ -14,7 +14,8 @@ _Atualizado em 15/10/2026._
   Sem homologação separada (decisão da proprietária em 13/10). Nunca reescrever histórico (sem force-push).
 - **Outra sessão em paralelo** publica os layouts de e-mail (funções de borda de e-mail) direto em `main`;
   sempre `git fetch` + merge de `origin/main` antes de publicar.
-- **Última publicação:** 52 — textos jurídicos LIGADOS (privacidade@calirh.com), confirmação do relatório com estilo, painel de satisfação consertado, aviso em tempo real do sino, arquivos antigos dão 404.
+- **Última publicação:** 53 — Portal/página inicial com os parâmetros comerciais de 15/10 (Full 20–25h, a partir de R$ 5.000; Build definido por proposta; acesso ao Workspace só para Partner, Full e Build).
+- **Aguardando a proprietária (comercial):** números da tabela `public.cali_pricing_rules` (usada também pelo Portal público portal.calirh.com, que não está neste repositório) — Full ainda 14–18h, base R$ 6.500, teto R$ 8.000; Build com horas e prazo mínimo fixos. Partner: página inicial diz 8–12h, o site calirh.com diz 10–15h.
 - **Aguardando liberação:** eliminação dos dados 45 dias após o encerramento — migração pronta e testada em simulação desfeita, em `docs/migracoes-pendentes/20261021210000_company_data_elimination.sql`, NÃO aplicada (o classificador de permissões desta máquina bloqueou). A tela só será feita depois de aplicada.
 - **Próximo no código:** atualização do react-router para v7 (grande; última da fila).
 - **Aguardando a proprietária:** relatório gerado para conferir o impresso
@@ -1629,6 +1630,17 @@ checklist do desenvolvedor são de uso interno: não copiar para o app nem para 
 - Textos jurídicos LIGADOS: `PRIVACY_EMAIL = 'privacidade@calirh.com'`; Termos item 14 reescrito ("o aplicativo
   registra o aceite…", com autorização da proprietária). A partir desta publicação, cliente e Partner aceitam no
   próximo acesso.
+
+### 2026-10-15 — Parâmetros comerciais na página inicial e nas propostas (Publicação 53)
+
+- Fonte: Guia 2, itens 6.1, 6.2 e 6.4 (uso interno). Só textos deste repositório:
+  `LandingPage.tsx` (Full 20–25h de referência, "a partir de R$ 5.000/mês · capacidade e investimento definidos por
+  proposta"; frase de acesso ao Workspace para Partner, Full e Build e não para avulsos);
+  `portalProposalConfig.ts` (Full `hoursRange '20 a 25'`, `suggestedHours 22`; Build sem faixa de horas);
+  `portalProposalParity.ts` (texto padrão do Full 20–25h; Build sem horas informadas = "Capacidade mensal definida
+  nesta proposta"); `AdminProposalEditorPageV3.tsx` mostra "Capacidade definida nesta proposta" quando não há faixa.
+- NÃO alterado: `public.cali_pricing_rules` (preço base, teto, horas mín./máx., prazo mínimo) — muda o Portal público
+  na hora; aguardando a proprietária confirmar os números.
 
 ### Link de homologação (o mesmo para cliente e administradora)
 
