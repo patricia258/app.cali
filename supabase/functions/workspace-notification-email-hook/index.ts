@@ -9,6 +9,7 @@ import { declinedExtraFields } from "./declined-extra-fields.ts";
 import { renderAdminApprovedEmail } from "./approved-admin-templates.ts";
 import { approvedAdminScheduleFields } from "./approved-admin-context.ts";
 import { approvedAdminDeliverableFields } from "./approved-admin-deliverable-context.ts";
+import { approvedAdminPendingFields } from "./approved-admin-pending-context.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -480,6 +481,30 @@ Deno.serve(async (req: Request) => {
             adminKey === "deliverable_approved" ? "Entregável aprovado" : "Ajuste solicitado no entregável"].join(" · ");
         } catch (err) {
           console.error("workspace admin deliverable approved template fallback", err);
+        }
+      }
+    }
+
+
+    if (profile.role === "admin") {
+      const type = String(notification.notification_type || "");
+      const heading = String(notification.title || "");
+      const key = type === "deliverable_status" && heading === "Cliente solicitou rebriefing" && notification.entity_type === "deliverable"
+        ? "deliverable_rebriefing" : type === "record_reopen_request" && heading === "Solicitação de reabertura" && notification.entity_type === "account_record"
+        ? "record_reopen_request" : null;
+      if (key) {
+        try {
+          const details = await approvedAdminPendingFields(ws, notification, key);
+          const fields: Record<string,string> = {
+            nome_da_administradora: String(profile.full_name || "").trim().split(/\s+/)[0] || "Pati",
+            empresa: companyName, link: url, logo_workspace_url: LOGO_URL, carvalho_url: MARK_URL,
+            ...details,
+          };
+          outgoingHtml = renderAdminApprovedEmail(key, fields);
+          outgoingSubject = ["APP CALI RH", companyName,
+            key === "deliverable_rebriefing" ? "Rebriefing solicitado" : "Solicitação de reabertura"].join(" · ");
+        } catch (err) {
+          console.error("workspace admin approved pending template fallback", err);
         }
       }
     }
