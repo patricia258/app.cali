@@ -14,7 +14,7 @@ _Atualizado em 15/10/2026._
   Sem homologação separada (decisão da proprietária em 13/10). Nunca reescrever histórico (sem force-push).
 - **Outra sessão em paralelo** publica os layouts de e-mail (funções de borda de e-mail) direto em `main`;
   sempre `git fetch` + merge de `origin/main` antes de publicar.
-- **Última publicação:** 55 — página inicial (app.calirh.com) e tela de entrada na identidade do Workspace.
+- **Última publicação:** 56 — hero novo, fotos sem faixa bordô, telas do app atualizadas (sem duplicação) na página inicial.
 - Comercial (decisão de 15/10): horas Partner 10–15 e Full 20–25 aplicadas em `public.cali_pricing_rules` (também usada pelo Portal público). Valores continuam manuais: preço base e teto não foram mexidos.
 - **Aguardando liberação:** eliminação dos dados 45 dias após o encerramento — migração pronta e testada em simulação desfeita, em `docs/migracoes-pendentes/20261021210000_company_data_elimination.sql`, NÃO aplicada (o classificador de permissões desta máquina bloqueou). A tela só será feita depois de aplicada.
 - **Próximo no código:** atualização do react-router para v7 (grande; última da fila).
@@ -1666,6 +1666,18 @@ checklist do desenvolvedor são de uso interno: não copiar para o app nem para 
   do app, fundo quadriculado como o canvas do app.
 - Imagem do topo da página inicial trocada pela captura da entrada nova (`public/landing/cali-workspace-login-v2.jpg`).
 - Conferido: desktop 1440 (topo, carrossel de telas, planos, rodapé) e celular 390 sem rolagem lateral.
+
+### 2026-10-15 — Hero, fotos e telas da página inicial (Publicação 56)
+
+- Hero (pedido: "sem graça, não gera impacto"): faixa bordô com grade sutil, título branco + linha dourada, frase de
+  apoio, segundo botão "Ver o app por dentro" (#workspace), três provas (Entregas, Horas, Documentos; somem no celular),
+  e no lugar da captura da entrada a tela real de Visão geral com dois cartões flutuantes ("1 entrega aguarda você",
+  "Horas do mês"). Mantidos: `data-lp-reveal` e a inclinação ao passar o mouse. Estilos em `site-identity-v2.css`.
+- Fotos com faixa bordô embaixo: `.lp-photo-slot img` antiga (do desenho da marca) deslocava a foto 12px; a foto agora
+  ocupa o quadro e sem escurecimento.
+- Telas do app repetidas: mesma duplicação Unicode das fotos (9 capturas × 2 nomes). Trocadas por 9 capturas NOVAS do
+  visual V2, tiradas no ambiente de teste com dados fictícios renomeados para exemplo (Empresa Exemplo, Paula, Ana Souza…):
+  `src/assets/workspace-screens/tela-01..09-*.jpg`. Rótulo 5 virou "Detalhe da entrega".
 
 ### Link de homologação (o mesmo para cliente e administradora)
 

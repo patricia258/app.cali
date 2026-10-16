@@ -103,7 +103,7 @@ const SCREEN_DESCRIPTIONS = [
   { label: 'Conversa com a Pati', description: 'Um canal direto para dúvidas e pedidos que precisam de acompanhamento.' },
   { label: 'Planejamento', description: 'Reuniões, prazos e próximos passos publicados em um lugar só.' },
   { label: 'Entregáveis', description: 'Cronograma para acompanhar, comentar e aprovar o que está sendo construído.' },
-  { label: 'Conversa na entrega', description: 'Ajustes e decisões registrados no contexto do entregável.' },
+  { label: 'Detalhe da entrega', description: 'Prazo, versão, arquivos e aprovação da entrega no mesmo lugar.' },
   { label: 'Horas do ciclo', description: 'Consumo e saldo do período com o detalhe do trabalho realizado.' },
   { label: 'Ocorrências', description: 'Solicitações e situações acompanhadas com status e histórico.' },
   { label: 'Histórico da solicitação', description: 'A conversa com a CALI permanece junto da solicitação.' },
@@ -361,9 +361,18 @@ export function LandingPage() {
           <div className="lp-hero-copy" data-lp-reveal="left">
             <span className="lp-eyebrow">CALI WORKSPACE</span>
             <h1>Acompanhe seus projetos <span>com o app da CALI.</span></h1>
-            <Link className="lp-hero-login" to="/login">
-              Entrar no Workspace <ArrowUpRight size={19} aria-hidden="true" />
-            </Link>
+            <p className="lp-hero-lead">Entregas, horas, agenda, documentos e decisões da sua empresa com a CALI, no mesmo lugar e com histórico.</p>
+            <div className="lp-hero-ctas">
+              <Link className="lp-hero-login" to="/login">
+                Entrar no Workspace <ArrowUpRight size={19} aria-hidden="true" />
+              </Link>
+              <a className="lp-hero-secondary" href="#workspace">Ver o app por dentro <ArrowRight size={17} aria-hidden="true" /></a>
+            </div>
+            <ul className="lp-hero-proof" aria-label="O que o Workspace reúne">
+              <li><strong>Entregas</strong><span>aprovação e histórico</span></li>
+              <li><strong>Horas</strong><span>consumo do ciclo</span></li>
+              <li><strong>Documentos</strong><span>versões aprovadas</span></li>
+            </ul>
           </div>
 
           <div className="lp-hero-product" data-lp-reveal="right">
@@ -384,7 +393,9 @@ export function LandingPage() {
                   heroScreenRef.current?.style.setProperty('--tilt-y', '0deg');
                 }}
               >
-                <img src="/landing/cali-workspace-login-v2.jpg?v=1" alt="Tela de acesso ao CALI Workspace" />
+                <img src={WORKSPACE_SCREEN_URLS[0] || '/landing/cali-workspace-login-v2.jpg?v=1'} alt="Visão geral do CALI Workspace" />
+                <div className="lp-hero-chip lp-hero-chip-a" aria-hidden="true"><span className="dot" /><div><small>VALIDAÇÃO</small><strong>1 entrega aguarda você</strong></div></div>
+                <div className="lp-hero-chip lp-hero-chip-b" aria-hidden="true"><div><small>HORAS DO MÊS</small><strong>1h30 de 20h</strong></div><i><b style={{ width: '18%' }} /></i></div>
               </div>
             </div>
           </div>
