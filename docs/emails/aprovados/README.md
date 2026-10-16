@@ -124,3 +124,10 @@ Não gera notificações duplicadas para propostas administrativas. Em outros pe
 - **Cronograma aprovado V1:** `docs/emails/aprovados/administradora/cronograma-aprovado-v1.html`. Evento existente `project_schedule_approved` para usuário ativo com `role='admin'`. Mostra empresa, projeto e data de início que constava na notificação histórica de aprovação.
 - **Ajuste solicitado V1:** `docs/emails/aprovados/administradora/cronograma-ajuste-solicitado-v1.html`. Evento existente `project_schedule_adjustment`, relacionado a um registro de revisão respondida na mesma data, com ponto alvo, ação e justificativa informados pelo cliente.
 - HTML integralmente aprovado, copiado para `approved-admin-templates.ts`. Nenhum trigger, regra de negócio, destinatário, banco ou tela alterado. Outras notificações administrativas continuam no HTML anterior quando não correspondem com segurança. Remetente e reply-to oficiais preservados.
+
+## Administradora — entregáveis (aprovados 15/10/2026)
+
+- **Entregável aprovado V1:** `administradora/entregavel-aprovado-v1.html`. Aviso real `deliverable_status` / `Cliente aprovou um entregável`, validado contra empresa, projeto, título, status e conteúdo da notificação. O evento original não registra o nome do aprovador; o modelo identifica o cliente sem inventar pessoa.
+- **Ajuste solicitado V1:** `administradora/entregavel-ajuste-solicitado-v1.html`. Aviso real `deliverable_status` / `Cliente solicitou ajuste`; mostra justificativa e solicitante somente quando existe registro único correspondente de `deliverable_adjustments` para cliente. Sem correspondência segura, preserva o envio anterior.
+- **Rebriefing:** evento próprio `Cliente solicitou rebriefing`; **não reutilizar** o HTML de ajuste. Aguardando modelo específico.
+- HTMLs literais aprovados, copiados para `approved-admin-templates.ts`. Nenhum trigger, banco ou regra de contratação alterados.
