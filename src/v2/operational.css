@@ -4001,3 +4001,7 @@ html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-to input{flex
 .client-report-question-modal-v61 .modal-actions button:last-child{border-color:#5a1e2d;background:#5a1e2d;color:#fff}
 .client-report-question-modal-v61 .modal-close{position:absolute;right:14px;top:14px;width:32px;height:32px;border:0;border-radius:8px;background:#f4efeb;color:#4c403b;font-size:20px;cursor:pointer}
 .client-report-question-v61{border-color:rgba(181,140,82,.55)!important;color:#765817!important}
+/* Relatórios: botão de fechamento oficial bloqueado precisa parecer bloqueado e dizer quando libera (15/10). */
+html[data-workspace-ui='v2'] .reports-v16-toolbar button:disabled{opacity:.45;cursor:not-allowed;filter:saturate(.6)}
+html[data-workspace-ui='v2'] .reports-v16-toolbar .reports-v17-official-wait{color:#9a6b1f;font-weight:600}
+html[data-workspace-ui='v2'] .reports-v16-toolbar .reports-v17-toolbar-error{color:#b42318;font-weight:600}

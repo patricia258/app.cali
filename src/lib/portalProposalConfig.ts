@@ -4,7 +4,7 @@ import { initialPackageFor, investmentContextFor, scopeDefaults } from './portal
 export type PackageMeta={code:string;label:string;description:string;minimumMonths:number;suggestedHours?:number;hoursRange?:string};
 export const PACKAGE_META:Record<string,PackageMeta[]>={
   'assessoria-estrategica':[
-    {code:'PARTNER',label:'CALI PARTNER',description:'Direção estratégica sênior para uma prioridade central por ciclo, com leitura de indicadores e apoio à decisão.',minimumMonths:8,suggestedHours:10,hoursRange:'8 a 12'},
+    {code:'PARTNER',label:'CALI PARTNER',description:'Direção estratégica sênior para uma prioridade central por ciclo, com leitura de indicadores e apoio à decisão.',minimumMonths:8,suggestedHours:12,hoursRange:'10 a 15'},
     {code:'FULL',label:'CALI FULL',description:'Maior cadência e até duas prioridades simultâneas, sem criar expectativa de RH interno em tempo integral.',minimumMonths:12,suggestedHours:22,hoursRange:'20 a 25'},
   ],
   'cali-build':[
