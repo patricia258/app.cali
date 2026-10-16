@@ -47,8 +47,10 @@ import s40 from '../../profile-account-clean-v65.css?inline';
 import s41 from '../../profile-account-v66.css?inline';
 import s42 from '../../profile-correction-v67.css?inline';
 import s43 from '../workspace-v2.css?inline';
+// Página inicial e entrada na identidade V2 (15/10/2026); por último para valer sobre as folhas acima.
+import s44 from '../../site-identity-v2.css?inline';
 
-const sheet = [calendar, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, s20, s21, s22, s23, s24, s25, s26, s27, s28, s29, s30, s31, s32, s33, s34, s35, s36, s37, s38, s39, s40, s41, s42, s43].join('\n');
+const sheet = [calendar, s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, s20, s21, s22, s23, s24, s25, s26, s27, s28, s29, s30, s31, s32, s33, s34, s35, s36, s37, s38, s39, s40, s41, s42, s43, s44].join('\n');
 const id = 'cali-legacy-styles';
 
 export function mountLegacyStyles() {

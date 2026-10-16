@@ -3,7 +3,10 @@ import { legalEnabled } from '../legal/legalTexts';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
+  CalendarDays,
   CheckCircle2,
+  FileText,
+  FolderKanban,
   ExternalLink,
   Instagram,
   KeyRound,
@@ -107,9 +110,14 @@ export function LoginPage() {
         <div className="login-v2-brand-inner">
           <img className="login-v2-logo" src="/brand/cali-workspace-transparent.svg" alt="CALI Workspace" />
           <div className="login-v2-copy">
-            <h1>O trabalho<br />continua aqui.</h1>
+            <h1>O trabalho<br />continua aqui<span className="login-v2-dot">.</span></h1>
             <span className="login-v2-rule" aria-hidden="true" />
             <p>Projetos, decisões, entregas, horas e documentos organizados no mesmo espaço entre a CALI e sua empresa.</p>
+            <ul className="login-v2-modules" aria-label="O que está no Workspace">
+              <li><FolderKanban size={16} aria-hidden="true" />Projetos, entregas e aprovações</li>
+              <li><CalendarDays size={16} aria-hidden="true" />Agenda, horas e capacidade</li>
+              <li><FileText size={16} aria-hidden="true" />Documentos e relatórios do ciclo</li>
+            </ul>
           </div>
           <div className="login-v2-signature">
             <span className="login-v2-gold-mark" aria-hidden="true"><Leaf size={30} /></span>
@@ -120,7 +128,8 @@ export function LoginPage() {
 
       <section className="login-v2-access">
         <form className="login-v2-card" onSubmit={step === 'email' ? requestCode : verifyCode}>
-          <span className="login-v2-kicker">ACESSO SEGURO</span>
+          <div className="login-v2-steps" aria-hidden="true"><span className="on" /><span className={step === 'code' ? 'on' : ''} /></div>
+          <span className="login-v2-kicker">{step === 'email' ? 'ACESSO SEGURO · ETAPA 1 DE 2' : 'ACESSO SEGURO · ETAPA 2 DE 2'}</span>
           <h2>{step === 'email' ? 'Entre no seu Workspace.' : 'Digite seu código.'}</h2>
           <p className="login-v2-card-copy">
             {step === 'email'

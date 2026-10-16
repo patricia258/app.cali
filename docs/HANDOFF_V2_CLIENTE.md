@@ -14,8 +14,7 @@ _Atualizado em 15/10/2026._
   Sem homologação separada (decisão da proprietária em 13/10). Nunca reescrever histórico (sem force-push).
 - **Outra sessão em paralelo** publica os layouts de e-mail (funções de borda de e-mail) direto em `main`;
   sempre `git fetch` + merge de `origin/main` antes de publicar.
-- **Última publicação:** 54 — botão de fechamento oficial explica quando libera; fotos repetidas do carrossel; horas Partner 10–15 e Full 20–25.
-- **Em andamento:** reforma visual da página inicial (app.calirh.com) e da tela de entrada na identidade do Workspace, SEM tirar transições, cascatas, carrosséis nem conteúdo (pedido da proprietária em 15/10).
+- **Última publicação:** 55 — página inicial (app.calirh.com) e tela de entrada na identidade do Workspace.
 - Comercial (decisão de 15/10): horas Partner 10–15 e Full 20–25 aplicadas em `public.cali_pricing_rules` (também usada pelo Portal público). Valores continuam manuais: preço base e teto não foram mexidos.
 - **Aguardando liberação:** eliminação dos dados 45 dias após o encerramento — migração pronta e testada em simulação desfeita, em `docs/migracoes-pendentes/20261021210000_company_data_elimination.sql`, NÃO aplicada (o classificador de permissões desta máquina bloqueou). A tela só será feita depois de aplicada.
 - **Próximo no código:** atualização do react-router para v7 (grande; última da fila).
@@ -1654,6 +1653,19 @@ checklist do desenvolvedor são de uso interno: não copiar para o app nem para 
   a antiga `azumirh-01.png` virou a 01). Mesma ordem de antes.
 - Horas: Partner 10–15 e Full 20–25 na página inicial, nas propostas e em `public.cali_pricing_rules`
   (registro `20261021220000`); preços sem mudança.
+
+### 2026-10-15 — Página inicial e entrada na identidade do Workspace (Publicação 55)
+
+- Pedido: alinhar a página inicial e a entrada ao design de dentro do app, SEM tirar transições, cascatas, carrosséis
+  nem conteúdo. Feito só com aparência, numa camada nova: `src/site-identity-v2.css`, carregada por último em
+  `styles/legacy/index.ts` (s44). Não altera `transform`, `opacity`, `animation` nem `transition`.
+- Página inicial (`.cali-landing`): títulos em Inter 700 (antes Playfair), kicker dourado 10,5px espaçado, botões e
+  barra de navegação com cantos de 9–14px (antes pílula), cartões com borda fina e sombra discreta.
+- Entrada (`LoginPage.tsx` + mesma folha): título em Inter com ponto dourado, lista "o que está no Workspace" (some no
+  celular), barra de etapas 1/2 e kicker "ETAPA 1 DE 2", cartão branco no padrão `v2-mfa-card`, campo e botão no padrão
+  do app, fundo quadriculado como o canvas do app.
+- Imagem do topo da página inicial trocada pela captura da entrada nova (`public/landing/cali-workspace-login-v2.jpg`).
+- Conferido: desktop 1440 (topo, carrossel de telas, planos, rodapé) e celular 390 sem rolagem lateral.
 
 ### Link de homologação (o mesmo para cliente e administradora)
 
