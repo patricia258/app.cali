@@ -10,6 +10,8 @@ import { renderAdminApprovedEmail } from "./approved-admin-templates.ts";
 import { approvedAdminScheduleFields } from "./approved-admin-context.ts";
 import { approvedAdminDeliverableFields } from "./approved-admin-deliverable-context.ts";
 import { approvedAdminPendingFields } from "./approved-admin-pending-context.ts";
+import { renderAdminNewEmail } from "./approved-admin-new-templates.ts";
+import { adminNewFields } from "./approved-admin-new-context.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -506,6 +508,22 @@ Deno.serve(async (req: Request) => {
         } catch (err) {
           console.error("workspace admin approved pending template fallback", err);
         }
+      }
+    }
+
+
+    if(profile.role==="admin"){
+      const t=String(notification.notification_type||"");
+      const key=t==="record_opened"&&notification.title==="Nova solicitação do cliente"&&notification.entity_type==="account_record"?"record_opened":
+        t==="scheduling_request"&&notification.title==="Nova solicitação de visita presencial"&&notification.entity_type==="scheduling_request"?"scheduling_request":null;
+      if(key){
+        try{
+          const extra=await adminNewFields(ws,notification,key);
+          const fields:Record<string,string>={nome_da_administradora:String(profile.full_name||"").trim().split(/\s+/)[0]||"Pati",
+             empresa:companyName,logo_workspace_url:LOGO_URL,carvalho_url:MARK_URL,link:url,...extra};
+          outgoingHtml=renderAdminNewEmail(key,fields);
+          outgoingSubject=["APP CALI RH",companyName,key==="record_opened"?"Nova solicitação do cliente":"Nova solicitação de visita presencial"].join(" · ");
+        }catch(e){console.error("Admin novo modelo: fallback legado",e)}
       }
     }
 
