@@ -14,7 +14,7 @@ _Atualizado em 16/10/2026._
   Sem homologação separada (decisão da proprietária em 13/10). Nunca reescrever histórico (sem force-push).
 - **Outra sessão em paralelo** publica os layouts de e-mail (funções de borda de e-mail) direto em `main`;
   sempre `git fetch` + merge de `origin/main` antes de publicar.
-- **Última publicação:** 57 — ajustes de celular da página inicial, políticas no tema dia + política do site, entrada com rodapé enxuto, ajuda de acesso e animação.
+- **Última publicação:** 58 — política do site com canal privacidade@calirh.com (16/10).
 - Comercial (decisão de 15/10): horas Partner 10–15 e Full 20–25 aplicadas em `public.cali_pricing_rules` (também usada pelo Portal público). Valores continuam manuais: preço base e teto não foram mexidos.
 - **Aguardando liberação:** eliminação dos dados 45 dias após o encerramento — migração pronta e testada em simulação desfeita, em `docs/migracoes-pendentes/20261021210000_company_data_elimination.sql`, NÃO aplicada. A proprietária autorizou em 16/10, mas o classificador de permissões desta máquina bloqueou de novo; precisa de regra de permissão para `apply_migration` ou aplicar pelo painel do Supabase (SQL Editor). A tela só será feita depois de aplicada.
 - **Próximo no código:** atualização do react-router para v7 (grande; última da fila).
