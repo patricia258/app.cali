@@ -137,3 +137,8 @@ Não gera notificações duplicadas para propostas administrativas. Em outros pe
 - **Rebriefing V1:** `administradora/entregavel-rebriefing-v1.html` para evento `deliverable_status` / `Cliente solicitou rebriefing`. Somente usa HTML novo se houver registro de rebriefing inequívoco e observação específica registrada; caso contrário, usa o e-mail anterior.
 - **Reabertura V1:** `administradora/ocorrencia-reabertura-v1.html` para evento `record_reopen_request` / `Solicitação de reabertura`, com motivo e solicitante conferidos contra o pedido de origem e texto do aviso.
 - HTMLs copiados literalmente, sem mudanças em gatilhos, destinatários, tabelas ou status. Não cria envio retroativo.
+
+## Administradora — novas solicitações (modelos 7 e 8 aprovados)
+- `administradora/nova-solicitacao-v1.html`: evento `record_opened`, para nova solicitação de cliente e origem `account_record`. Campos da solicitação original, com fallback legado se incompletos.
+- `administradora/nova-visita-v1.html`: evento `scheduling_request`, exclusivamente visita presencial e suas duas datas reais, antes de confirmação.
+- HTMLs preservados literalmente. Sem alterar destinatários, gatilhos, banco ou outros modelos aprovados.
