@@ -24,3 +24,14 @@
 .v2-legal-table th{text-align:left;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#8a7a80;padding:8px;border-bottom:1px solid #e8ddd4}
 .v2-legal-table td{padding:8px;border-bottom:1px solid #f1e9e3;vertical-align:top}
 @media (max-width:600px){.v2-legal-page>.v2-legal-doc{padding:22px 18px}}
+/* O tema noturno das folhas antigas pinta títulos de claro; os textos jurídicos ficam sempre no tema dia. */
+.v2-legal-page.v2-legal-page, .v2-legal-page .v2-legal-doc { background-color: inherit; }
+.v2-legal-page .v2-legal-doc.v2-legal-doc { background: #fff !important; }
+.v2-legal-page .v2-legal-doc :is(h2, h3, h4, strong) { color: #2b2024 !important; -webkit-text-fill-color: #2b2024 !important; }
+.v2-legal-doc.v2-legal-doc :is(p, li, td) { color: #3e3533 !important; -webkit-text-fill-color: #3e3533 !important; }
+.v2-legal-doc.v2-legal-doc th { color: #8a7a80 !important; }
+.v2-legal-page.v2-legal-page { background: #f7f3ee !important; color: #2b2024 !important; }
+.v2-legal-page .v2-legal-top nav a { color: #6b5d63 !important; }
+.v2-legal-page .v2-legal-top nav a.on { color: #5a1e2d !important; background: #fff !important; }
+.v2-legal-page .v2-legal-brand { color: #5a1e2d !important; }
+.v2-legal-page .v2-legal-foot { color: #8d8184 !important; }

@@ -1,17 +1,14 @@
 import { homeOf } from '../auth/WorkspaceAuthProvider';
-import { legalEnabled } from '../legal/legalTexts';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   CalendarDays,
+  LifeBuoy,
   CheckCircle2,
   FileText,
   FolderKanban,
-  ExternalLink,
-  Instagram,
   KeyRound,
   Leaf,
-  Linkedin,
   Mail,
   MessageCircle,
   Send,
@@ -25,6 +22,7 @@ export function LoginPage() {
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [error, setError] = useState('');
   const validEmail = useMemo(() => email.includes('@') && email.includes('.'), [email]);
   const validCode = useMemo(() => /^\d{6}$/.test(code), [code]);
@@ -112,7 +110,7 @@ export function LoginPage() {
           <div className="login-v2-copy">
             <h1>O trabalho<br />continua aqui<span className="login-v2-dot">.</span></h1>
             <span className="login-v2-rule" aria-hidden="true" />
-            <p>Projetos, decisões, entregas, horas e documentos organizados no mesmo espaço entre a CALI e sua empresa.</p>
+            <p>Acompanhe o ciclo, valide o que importa e decida com contexto, sem depender de e-mails e planilhas.</p>
             <ul className="login-v2-modules" aria-label="O que está no Workspace">
               <li><FolderKanban size={16} aria-hidden="true" />Projetos, entregas e aprovações</li>
               <li><CalendarDays size={16} aria-hidden="true" />Agenda, horas e capacidade</li>
@@ -134,7 +132,7 @@ export function LoginPage() {
           <p className="login-v2-card-copy">
             {step === 'email'
               ? 'Informe o e-mail cadastrado. Você receberá um código numérico de uso único, sem senha para memorizar.'
-              : <>Enviamos um código de 6 dígitos para <strong>{email}</strong>. Ele expira em 10 minutos e pode ser usado uma única vez.</>}
+              : <>Se <strong>{email}</strong> estiver cadastrado, enviamos um código de 6 dígitos. Ele expira em 10 minutos e pode ser usado uma única vez.</>}
           </p>
 
           {step === 'email' ? (
@@ -170,28 +168,43 @@ export function LoginPage() {
           </button>
 
           {step === 'code' && (
-            <div className="demo-links login-v2-demo-links">
+            <div className="login-v2-code-actions">
               <button type="button" onClick={() => { setStep('email'); setError(''); setSent(false); setCode(''); }}>Trocar e-mail</button>
               <button type="button" onClick={() => void requestCode()}>Reenviar código</button>
             </div>
           )}
 
           {sent && step === 'code' && (
-            <div className="login-v2-message login-v2-message-success"><CheckCircle2 size={18} />Código enviado. Confira seu e-mail.</div>
+            <div className="login-v2-message login-v2-message-success"><CheckCircle2 size={18} />O código costuma chegar em até 1 minuto. Não chegou? Veja o spam ou toque em “Não consigo acessar”.</div>
           )}
           {error && <div className="login-v2-message">{error}</div>}
+
+          <button type="button" className="login-v2-help-toggle" aria-expanded={helpOpen} onClick={() => setHelpOpen((open) => !open)}>
+            <LifeBuoy size={15} aria-hidden="true" />Não consigo acessar
+          </button>
+          {helpOpen && <div className="login-v2-help" role="region" aria-label="Ajuda para acessar">
+            <ol>
+              <li>Confira se o e-mail é o mesmo cadastrado pela sua empresa no Workspace.</li>
+              <li>Procure o código na caixa de spam ou promoções. O remetente é <strong>APP CALI RH</strong> (workspace@calirh.com).</li>
+              <li>O código vale 10 minutos. Para pedir outro, aguarde 2 minutos.</li>
+            </ol>
+            <p>Por segurança, o Workspace não informa se um e-mail está ou não cadastrado. Se continuar sem acesso, fale com a CALI:</p>
+            <div className="login-v2-help-actions">
+              <a href={`https://wa.me/5541987791933?text=${encodeURIComponent(`Olá, Patrícia. Não consigo acessar o CALI Workspace${email.trim() ? ` com o e-mail ${email.trim()}` : ''}.`)}`} target="_blank" rel="noreferrer"><MessageCircle size={15} aria-hidden="true" />WhatsApp</a>
+              <a href={`mailto:patricia@calirh.com?subject=${encodeURIComponent('Acesso ao CALI Workspace')}&body=${encodeURIComponent(`Não consigo acessar o CALI Workspace${email.trim() ? ` com o e-mail ${email.trim()}` : ''}.`)}`}><Mail size={15} aria-hidden="true" />E-mail</a>
+            </div>
+          </div>}
         </form>
       </section>
 
-      <footer className="login-v2-footer-brand"><span>© 2026 CALI RH — HR FOR BUSINESS. Todos os direitos reservados.</span><span className="login-v2-legal-links">{legalEnabled()&&<><Link className="login-v2-privacy-link" to="/termos">Termos de Uso do Workspace</Link><Link className="login-v2-privacy-link" to="/privacidade">Privacidade do Workspace</Link></>}<a className="login-v2-privacy-link" href="https://calirh.com/privacidade.html" target="_blank" rel="noreferrer">Política do site, Mapa e Portal</a></span></footer>
-      <footer className="login-v2-footer-access">
-        <div className="login-v2-footer-links">
-          <a href="mailto:patricia@calirh.com"><Mail size={15} />patricia@calirh.com</a>
-          <span><MessageCircle size={15} />WhatsApp</span>
-          <span><Linkedin size={15} />LinkedIn</span>
-          <span><Instagram size={15} />Instagram</span>
-        </div>
-        <div className="login-v2-site-link"><span>Visite nosso site</span><a href="https://calirh.com" target="_blank" rel="noreferrer">calirh.com <ExternalLink size={15} /></a></div>
+      <footer className="login-v2-footer-compact">
+        <span>© 2026 CALI RH</span>
+        <nav aria-label="Políticas e contato">
+          <Link to="/termos">Termos</Link>
+          <Link to="/privacidade">Privacidade</Link>
+          <Link to="/politica-do-site">Site, Mapa e Portal</Link>
+          <a href="https://calirh.com" target="_blank" rel="noreferrer">calirh.com</a>
+        </nav>
       </footer>
     </main>
   );
