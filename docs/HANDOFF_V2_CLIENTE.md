@@ -7,7 +7,7 @@ Detalhe técnico e mapa V2 → oficial em `docs/V2_SUBSTITUICAO_ESTRUTURAL_2026-
 
 ## Em andamento agora
 
-_Atualizado em 15/10/2026._
+_Atualizado em 16/10/2026._
 
 - **Como publicamos:** trabalho na branch `feat/client-visual-v2-inplace-20261008` → `npm run check` + varredura QA
   (105 verificações, 0 apontamentos) → merge em `main` ("Publicação N — …") → Vercel publica em app.calirh.com.
@@ -16,8 +16,16 @@ _Atualizado em 15/10/2026._
   sempre `git fetch` + merge de `origin/main` antes de publicar.
 - **Última publicação:** 57 — ajustes de celular da página inicial, políticas no tema dia + política do site, entrada com rodapé enxuto, ajuda de acesso e animação.
 - Comercial (decisão de 15/10): horas Partner 10–15 e Full 20–25 aplicadas em `public.cali_pricing_rules` (também usada pelo Portal público). Valores continuam manuais: preço base e teto não foram mexidos.
-- **Aguardando liberação:** eliminação dos dados 45 dias após o encerramento — migração pronta e testada em simulação desfeita, em `docs/migracoes-pendentes/20261021210000_company_data_elimination.sql`, NÃO aplicada (o classificador de permissões desta máquina bloqueou). A tela só será feita depois de aplicada.
+- **Aguardando liberação:** eliminação dos dados 45 dias após o encerramento — migração pronta e testada em simulação desfeita, em `docs/migracoes-pendentes/20261021210000_company_data_elimination.sql`, NÃO aplicada. A proprietária autorizou em 16/10, mas o classificador de permissões desta máquina bloqueou de novo; precisa de regra de permissão para `apply_migration` ou aplicar pelo painel do Supabase (SQL Editor). A tela só será feita depois de aplicada.
 - **Próximo no código:** atualização do react-router para v7 (grande; última da fila).
+- **16/10 — fora do app (registro para acompanhamento):**
+  - Site (`patricia258/sitecali`): Sobre com os valores em roda giratória (card central em destaque, vira no
+    hover/toque com frases-chave em negrito) — `261da43`; política do site com canal `privacidade@calirh.com` — `6cd24ad`.
+  - Portal (`patricia258/cali-portal`): card "Antes de continuar" (CALI Build e Solução Personalizada) virou a
+    primeira tela, sem parágrafo redundante e com negrito; durante o preenchimento o topo some
+    (`body.briefing-active`) e só aparecem as perguntas; obrigatório (*) e "Opcional" marcados em todos os forms.
+  - App: política do site em `/politica-do-site` também com `privacidade@calirh.com` (`src/legal/legalTexts.ts`).
+  - Código de acesso por WhatsApp: descartado pela proprietária (custo).
 - **Aguardando a proprietária:** relatório gerado para conferir o impresso
   com histórico de horas; opção de esconder só o link da reunião para o Partner; textos do advogado (liga o
   `TermsGate`); prazos de guarda (rotina de eliminação dos dados depois do fim do contrato). A proprietária vai mandar
@@ -1692,10 +1700,7 @@ checklist do desenvolvedor são de uso interno: não copiar para o app nem para 
   rolando; "Trocar e-mail"/"Reenviar código" no padrão do app; "Não consigo acessar" abre ajuda (e-mail certo, spam,
   remetente APP CALI RH, prazo do código, WhatsApp e e-mail da CALI com a mensagem pronta). Por segurança o login
   continua sem dizer se um e-mail existe (evita descobrir quem é cliente); a mensagem diz "se estiver cadastrado".
-- PENDENTE (avaliado, não feito): código de acesso por WhatsApp. Exige conta WhatsApp Business API (Meta direto ou
-  provedor como Twilio/Zenvia), número verificado, modelo de mensagem de autenticação aprovado pela Meta, custo por
-  mensagem, telefone confirmado no perfil de cada pessoa e mudança na função `workspace-access` (envio + limite de
-  tentativas por telefone). Dá para fazer; precisa da conta e da decisão de custo.
+- DESCARTADO (16/10, decisão da proprietária): código de acesso por WhatsApp — tem custo por mensagem; não fazer.
 
 ### Link de homologação (o mesmo para cliente e administradora)
 
