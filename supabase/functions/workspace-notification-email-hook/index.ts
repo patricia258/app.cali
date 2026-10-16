@@ -471,7 +471,7 @@ Deno.serve(async (req: Request) => {
         try {
           const details = await approvedAdminDeliverableFields(ws, notification, adminKey);
           const fields: Record<string,string> = {
-            nome_da_administradora: String(profile.full_name || "").trim().split(/\\s+/)[0] || "Pati",
+            nome_da_administradora: String(profile.full_name || "").trim().split(/\s+/)[0] || "Pati",
             empresa: companyName, link: url, logo_workspace_url: LOGO_URL, carvalho_url: MARK_URL,
             ...details,
           };
