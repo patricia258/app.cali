@@ -188,10 +188,9 @@ export function PublicFormPage() {
         </div>
       </div>}
       {phase === 'done' && form && <div className="cf-screen cf-center cf-enter cf-done">
-        <span className="cf-done-mark"><Check size={30} /></span>
-        <h1>Recebemos sua resposta</h1>
-        <p>{form.thank_you || 'Obrigada por dedicar seu tempo. A equipe CALI RH já recebeu suas respostas.'}</p>
-        {confirmation && <p className="cf-meta">Enviamos uma confirmação para o seu e-mail.</p>}
+        <span className="cf-done-mark"><img src="/brand/cali-oak-mark-light.svg" alt="" /></span>
+        <h1>Muito obrigado!</h1>
+        <p>Recebemos suas respostas e agradecemos a colaboração.</p>
       </div>}
     </main>
     {phase === 'questions' && <nav className="cf-nav" aria-label="Navegar entre perguntas">

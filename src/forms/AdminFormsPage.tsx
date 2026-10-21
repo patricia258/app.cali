@@ -66,7 +66,7 @@ export function AdminFormsPage() {
     let slug = base.length >= 3 ? base : `${base}-form`; let n = 2;
     while (taken.has(slug)) slug = `${base}-${n++}`.slice(0, 60);
     const questions: FormQuestion[] = [newQuestion('name'), newQuestion('email')];
-    const { data, error: insertError } = await supabase.from('forms').insert({ title, slug, questions, thank_you: 'Obrigada! Recebemos suas respostas e a equipe CALI RH vai analisá-las com cuidado.' }).select(FORM_FIELDS).single();
+    const { data, error: insertError } = await supabase.from('forms').insert({ title, slug, questions, thank_you: '' }).select(FORM_FIELDS).single();
     if (insertError || !data) { setCreating({ title, busy: false, error: errorText(insertError, 'Não foi possível criar o formulário.') }); return; }
     setForms((current) => [data as FormRecord, ...current]); setCreating(null); go((data as FormRecord).id);
   }
@@ -86,7 +86,7 @@ export function AdminFormsPage() {
       onSaved={(saved) => setForms((current) => current.map((item) => item.id === saved.id ? saved : item))}
       onDeleted={() => { setForms((current) => current.filter((item) => item.id !== open.id)); go(null); }} />
     : <>
-      <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Formulários</h1><p>Crie formulários com a identidade CALI, envie por link ou QR Code e veja todas as respostas reunidas aqui.</p></div>
+      <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Formulários</h1><p>Pesquisas, questionários, inscrições, levantamentos: crie qualquer formulário com a identidade CALI, envie por link ou QR Code e veja as respostas reunidas aqui.</p></div>
         <div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</button><button className="wf-primary" type="button" onClick={() => setCreating({ title: '', busy: false, error: '' })}><Plus size={15} /> Novo formulário</button></div></div>
       {error && <div className="inline-notice" role="alert">{error}</div>}
       <div className="wf-group-head"><div><span>FORMULÁRIOS</span><strong>Todos os formulários</strong></div><b>{forms.length}</b></div>
@@ -180,10 +180,10 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
         <header><small>APRESENTAÇÃO</small><h2>O que a pessoa vê ao abrir o link</h2></header>
         <div className="v2-forms-grid">
           <label className="wide"><span>Nome do formulário</span><input value={draft.title} maxLength={160} onChange={(event) => patch({ title: event.target.value })} /></label>
-          <label className="wide"><span>Texto de abertura <em>opcional</em></span><textarea rows={3} maxLength={1200} value={draft.description} placeholder="Ex.: Leva 3 minutos. Suas respostas ajudam a CALI a preparar a próxima etapa." onChange={(event) => patch({ description: event.target.value })} /></label>
+          <label className="wide"><span>Introdução <em>opcional · aparece na primeira tela, antes das perguntas</em></span><textarea rows={4} maxLength={1200} value={draft.description} placeholder="Ex.: Queremos entender como foi sua experiência. A participação é voluntária e leva cerca de 3 minutos." onChange={(event) => patch({ description: event.target.value })} /></label>
           <label><span>Link</span><div className="v2-forms-slug"><b>app.calirh.com/f/</b><input value={draft.slug} maxLength={60} onChange={(event) => patch({ slug: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-{2,}/g, '-') })} /></div></label>
           <label><span>Cliente <em>opcional</em></span><select value={draft.company_id || ''} onChange={(event) => patch({ company_id: event.target.value || null })}><option value="">Nenhum (uso geral)</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select></label>
-          <label className="wide"><span>Mensagem final</span><textarea rows={2} maxLength={600} value={draft.thank_you} onChange={(event) => patch({ thank_you: event.target.value })} /></label>
+          <label className="wide"><span>Mensagem do e-mail de confirmação <em>opcional</em></span><textarea rows={2} maxLength={600} value={draft.thank_you} placeholder="Ex.: Sua contribuição nos ajuda a tornar cada conversa mais clara." onChange={(event) => patch({ thank_you: event.target.value })} /></label>
           <label className="v2-forms-check wide"><input type="checkbox" checked={draft.confirm_email} onChange={(event) => patch({ confirm_email: event.target.checked })} /><span><strong>Enviar e-mail “Recebemos sua resposta”</strong><small>Vai para o e-mail informado na pergunta do tipo E-mail, com uma cópia das respostas.</small></span></label>
         </div>
       </section>

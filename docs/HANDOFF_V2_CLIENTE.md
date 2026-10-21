@@ -14,7 +14,7 @@ _Atualizado em 21/10/2026._
   Sem homologação separada (decisão da proprietária em 13/10). Nunca reescrever histórico (sem force-push).
 - **Outra sessão em paralelo** publica os layouts de e-mail (funções de borda de e-mail) direto em `main`;
   sempre `git fetch` + merge de `origin/main` antes de publicar.
-- **Última publicação:** 60 — CALI Forms: formulários próprios no app da administradora (21/10).
+- **Última publicação:** 61 — CALI Forms: tela final fixa (folha CALI, "Muito obrigado!"), campo Introdução; formulário "Sua experiência importa" criado como rascunho (21/10).
 - Comercial (decisão de 15/10): horas Partner 10–15 e Full 20–25 aplicadas em `public.cali_pricing_rules` (também usada pelo Portal público). Valores continuam manuais: preço base e teto não foram mexidos.
 - **Eliminação dos dados (fim de contrato) — publicada (59):** migração aplicada pela proprietária no SQL Editor em 16/10 (registrada em `supabase/migrations/20261021230000_company_data_elimination.sql`; cron `workspace-company-elimination-alerts` 11h10 UTC avisa a administração no dia 45). Tela: Clientes → ficha → aba Contrato, abaixo de Exportar. Encerrada há menos de 45 dias: mostra a data de liberação. Depois: aviso vermelho + "Eliminar dados" → diálogo com o nome da empresa para confirmar. `src/pages/admin/companyDataElimination.ts` apaga primeiro os arquivos (`admin_company_storage_objects`, buckets `cali-workspace-private` e `workspace-assets`) e depois chama `admin_eliminate_company_data`. Não testado com empresa real (nenhuma encerrada há 45 dias).
 - **CALI Forms (publicação 60, 21/10, autorizado pela proprietária):** formulários estilo Typeform com a identidade CALI.
