@@ -70,7 +70,7 @@ export function AdminFormsPage() {
     while (taken.has(slug)) slug = `${base}-${n++}`.slice(0, 60);
     const questions: FormQuestion[] = [newQuestion('name'), newQuestion('email')];
     const { data, error: insertError } = await supabase.from('forms').insert({ title, slug, questions, thank_you: '', category: creating.category.trim() || 'Formulário', audience: creating.audience }).select(FORM_FIELDS).single();
-    if (insertError || !data) { setCreating({ title, busy: false, error: errorText(insertError, 'Não foi possível criar o formulário.') }); return; }
+    if (insertError || !data) { setCreating({ ...creating, title, busy: false, error: errorText(insertError, 'Não foi possível criar o formulário.') }); return; }
     setForms((current) => [data as FormRecord, ...current]); setCreating(null); go((data as FormRecord).id);
   }
 
