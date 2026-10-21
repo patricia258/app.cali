@@ -78,6 +78,23 @@ async function directPublicRpc<T = unknown>(fn: string, args?: Record<string, un
   }
 }
 
+/** Chamada pública sem sessão (ex.: CALI Forms em /f/:slug). Só para funções liberadas ao papel anon. */
+export async function anonPublicRpc<T = unknown>(fn: string, args?: Record<string, unknown>): Promise<RpcResult<T>> {
+  try {
+    const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${encodeURIComponent(fn)}`, {
+      method: 'POST',
+      cache: 'no-store',
+      headers: { apikey: supabasePublishableKey, 'Content-Type': 'application/json', 'Accept-Profile': 'public', 'Content-Profile': 'public' },
+      body: JSON.stringify(args || {}),
+    });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) return { data: null, error: { message: (payload && (payload.message || payload.hint)) || 'Não foi possível concluir agora.' } };
+    return { data: payload as T, error: null };
+  } catch {
+    return { data: null, error: { message: 'Sem conexão. Confira a internet e tente de novo.' } };
+  }
+}
+
 export const publicSupabase = rawPublicSupabase
   ? new Proxy(rawPublicSupabase, {
       get(target, prop, receiver) {
