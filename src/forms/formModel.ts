@@ -17,6 +17,11 @@ export type FormQuestion = {
 };
 
 export type FormStatus = 'draft' | 'open' | 'closed';
+export type FormAudience = 'cali' | 'client';
+
+export const AUDIENCE_LABELS: Record<FormAudience, string> = { cali: 'Uso da CALI', client: 'Clientes' };
+
+export const CATEGORY_SUGGESTIONS = ['Questionário', 'Pesquisa de satisfação', 'Pesquisa de clima', 'NPS', 'Diagnóstico', 'Avaliação', 'Inscrição', 'Levantamento', 'Cadastro', 'Feedback'];
 
 export type FormRecord = {
   id: string;
@@ -28,6 +33,10 @@ export type FormRecord = {
   company_id: string | null;
   questions: FormQuestion[];
   confirm_email: boolean;
+  /** Aparece para quem responde, acima do título (ex.: Pesquisa de satisfação). */
+  category: string;
+  /** Organização interna: formulário da própria CALI ou feito para um cliente. */
+  audience: FormAudience;
   created_at: string;
   updated_at: string;
 };
@@ -103,4 +112,18 @@ export function formatAnswer(question: FormQuestion, value: unknown) {
   if (Array.isArray(value)) return value.join(', ');
   if (question.kind === 'date' && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value.split('-').reverse().join('/');
   return String(value);
+}
+
+const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
+
+/** Texto com marcação simples: **negrito**, *itálico*, __sublinhado__. Escapa o HTML antes de aplicar. */
+export function richTextHtml(value: string) {
+  return escapeHtml(value)
+    .replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__([^_\n]+?)__/g, '<u>$1</u>')
+    .replace(/(^|[^*])\*([^*\n]+?)\*/g, '$1<em>$2</em>');
+}
+
+export function stripRichText(value: string) {
+  return value.replace(/\*\*([^*\n]+?)\*\*/g, '$1').replace(/__([^_\n]+?)__/g, '$1').replace(/(^|[^*])\*([^*\n]+?)\*/g, '$1$2');
 }

@@ -3,17 +3,26 @@
   position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;background:var(--cf-paper);color:var(--cf-ink);
   font-family:Inter,system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
 .cali-form-page *{box-sizing:border-box}
-.cali-form-page::before{content:"";position:absolute;right:-180px;top:-180px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(181,140,82,.14),transparent 70%);pointer-events:none}
+.cali-form-page::before{content:"";position:absolute;right:-220px;top:-200px;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,rgba(181,140,82,.12),transparent 70%);pointer-events:none}
+/* Folha CALI pela metade no canto direito, em degradê bordô suave; sobe junto com o texto a cada tela. */
+.cali-form-page .cf-leaf{position:absolute;right:calc(min(720px,58vw) * -.42);top:52%;width:min(720px,58vw);aspect-ratio:1;z-index:0;pointer-events:none;
+  background:linear-gradient(200deg,rgba(90,30,45,.20) 0%,rgba(122,31,61,.12) 45%,rgba(181,140,82,.06) 100%);
+  -webkit-mask:url(/brand/cali-oak-mark.svg) center/contain no-repeat;mask:url(/brand/cali-oak-mark.svg) center/contain no-repeat;
+  transform:translateY(-50%) rotate(-8deg);animation:cf-leaf-rise 1.1s cubic-bezier(.2,.7,.2,1) both}
+.cali-form-page .cf-leaf-questions{opacity:.75}
+@keyframes cf-leaf-rise{from{opacity:0;transform:translateY(calc(-50% + 70px)) rotate(-2deg)}to{opacity:1;transform:translateY(-50%) rotate(-8deg)}}
+.cali-form-page .cf-leaf-questions{animation-name:cf-leaf-rise-soft}
+@keyframes cf-leaf-rise-soft{from{opacity:0;transform:translateY(calc(-50% + 70px)) rotate(-2deg)}to{opacity:.75;transform:translateY(-50%) rotate(-8deg)}}
 .cali-form-page .cf-progress{position:absolute;top:0;left:0;right:0;height:4px;background:rgba(90,30,45,.08);z-index:3}
 .cali-form-page .cf-progress i{display:block;height:100%;background:var(--cf-wine);transition:width .45s cubic-bezier(.2,.7,.2,1)}
 .cali-form-page .cf-top{padding:26px clamp(20px,5vw,56px) 0;z-index:2}
-.cali-form-page .cf-top img{height:34px;width:auto;display:block}
+.cali-form-page .cf-top img{height:48px;width:auto;display:block}
 .cali-form-page .cf-stage{flex:1;display:flex;align-items:center;justify-content:center;padding:24px clamp(20px,6vw,56px);overflow-y:auto;position:relative;z-index:2}
 .cali-form-page .cf-screen{width:100%;max-width:720px}
 .cali-form-page .cf-center{text-align:center;display:flex;flex-direction:column;align-items:center}
 .cali-form-page small{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--cf-gold);text-transform:uppercase}
 .cali-form-page h1{font-size:clamp(30px,5vw,46px);line-height:1.12;font-weight:700;letter-spacing:-.02em;color:var(--cf-wine);margin:12px 0 16px}
-.cali-form-page .cf-desc,.cali-form-page .cf-center p{font-size:clamp(16px,2.2vw,19px);line-height:1.6;color:var(--cf-muted);margin:0 0 8px;white-space:pre-line;max-width:620px}
+.cali-form-page .cf-desc,.cali-form-page .cf-center p{font-size:clamp(15px,1.7vw,17px);line-height:1.65;color:var(--cf-muted);margin:0 0 8px;white-space:pre-line;max-width:620px}
 .cali-form-page .cf-meta{font-size:13px;color:var(--cf-muted);margin-top:18px}
 .cali-form-page .cf-label{display:flex;gap:12px;align-items:flex-start}
 .cali-form-page .cf-num{display:inline-flex;align-items:center;gap:3px;min-width:26px;margin-top:7px;font-size:15px;font-weight:700;color:var(--cf-wine);flex:0 0 auto}
@@ -71,7 +80,8 @@
 @media (prefers-reduced-motion:reduce){.cali-form-page .cf-enter,.cali-form-page .cf-next,.cali-form-page .cf-back{animation:none}}
 @media (max-width:640px){
   .cali-form-page .cf-top{padding-top:20px}
-  .cali-form-page .cf-top img{height:26px}
+  .cali-form-page .cf-top img{height:36px}
+  .cali-form-page .cf-leaf{width:96vw;right:-44vw;top:70%}
   .cali-form-page .cf-stage{align-items:flex-start;padding-top:12vh;padding-bottom:110px}
   .cali-form-page .cf-label{gap:8px}
   .cali-form-page .cf-help,.cali-form-page .cf-text,.cali-form-page .cf-options,.cali-form-page .cf-scale-wrap,.cali-form-page .cf-actions,.cali-form-page .cf-error{margin-left:0}
@@ -85,3 +95,7 @@
 }
 .cali-form-page .cf-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .cali-form-page .cf-preview{padding:5px 11px;border-radius:999px;background:#FFF5E0;color:#7A5418;border:1px solid #F2DFB8;font-size:12px;font-weight:600}
+
+.cali-form-page .cf-desc strong,.cali-form-page .cf-help strong{color:var(--cf-ink);font-weight:700}
+.cali-form-page .cf-desc u,.cali-form-page .cf-help u{text-underline-offset:3px}
+@media (prefers-reduced-motion:reduce){.cali-form-page .cf-leaf{animation:none}}

@@ -126,3 +126,16 @@ language sql stable security definer set search_path to 'pg_catalog', 'cali_work
 $$;
 revoke all on function cali_workspace.admin_form_overview() from public, anon;
 grant execute on function cali_workspace.admin_form_overview() to authenticated;
+
+-- 21/10 (mesmo dia, aplicado como cali_forms_category_audience): categoria exibida ao respondente e público interno
+-- ("Uso da CALI" ou "Clientes"). A função pública passa a devolver a categoria.
+alter table cali_workspace.forms add column if not exists category text not null default 'Formulário' check (length(btrim(category)) between 1 and 40);
+alter table cali_workspace.forms add column if not exists audience text not null default 'cali' check (audience in ('cali', 'client'));
+create or replace function public.cali_form_public(p_slug text)
+returns jsonb language sql stable security definer set search_path to 'pg_catalog', 'cali_workspace' as $$
+  select jsonb_build_object('slug', f.slug, 'title', f.title, 'description', f.description, 'thank_you', f.thank_you,
+         'status', f.status, 'confirm_email', f.confirm_email, 'category', f.category,
+         'questions', case when f.status = 'open' then f.questions else '[]'::jsonb end)
+    from cali_workspace.forms f
+   where f.slug = lower(btrim(coalesce(p_slug, ''))) and f.status in ('open', 'closed');
+$$;

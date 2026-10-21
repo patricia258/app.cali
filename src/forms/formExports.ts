@@ -57,14 +57,14 @@ function wrap(context: CanvasRenderingContext2D, text: string, maxWidth: number,
 }
 
 /** Cartão 1080×1350 (formato de post/story) com a identidade CALI, o título, o QR Code e o link. */
-export async function downloadShareCard(title: string, url: string, filename: string) {
+export async function downloadShareCard(title: string, url: string, category: string, filename: string) {
   await document.fonts?.ready;
   const canvas = document.createElement('canvas'); canvas.width = 1080; canvas.height = 1350;
   const context = canvas.getContext('2d')!;
   context.fillStyle = '#5A1E2D'; context.fillRect(0, 0, 1080, 1350);
   context.fillStyle = 'rgba(255,255,255,.05)'; context.beginPath(); context.arc(1010, 120, 300, 0, Math.PI * 2); context.fill();
   try { const logo = await loadImage('/brand/cali-logo-light.svg'); const h = 64; context.drawImage(logo, 90, 90, (logo.width / logo.height) * h || 160, h); } catch { /* sem logo: segue só com o texto */ }
-  context.fillStyle = '#D9B98A'; context.font = '700 26px Inter, Arial, sans-serif'; context.fillText('FORMULÁRIO', 90, 250);
+  context.fillStyle = '#D9B98A'; context.font = '700 26px Inter, Arial, sans-serif'; context.fillText((category || 'Formulário').toUpperCase(), 90, 250);
   context.fillStyle = '#FFFFFF'; context.font = '400 66px Georgia, serif';
   wrap(context, title, 900, 3).forEach((line, index) => context.fillText(line, 90, 335 + index * 78));
   const qr = await loadImage(await qrDataUrl(url, 560));
