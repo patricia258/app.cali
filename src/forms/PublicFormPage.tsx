@@ -4,10 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent a
 import { useParams, useSearchParams } from 'react-router-dom';
 import { ArrowDown, ArrowRight, ArrowUp, Check, CornerDownLeft } from 'lucide-react';
 import { anonPublicRpc, supabase } from '../lib/supabase';
-import { type FormAnswer, type FormQuestion, isAnswerable, scaleRange, validateAnswer } from './formModel';
+import { type FormAnswer, type FormQuestion, isAnswerable, richTextHtml, scaleRange, validateAnswer } from './formModel';
 import './public-form.css';
 
-type PublicForm = { slug: string; title: string; description: string; thank_you: string; status: 'open' | 'closed'; confirm_email: boolean; questions: FormQuestion[] };
+type PublicForm = { slug: string; title: string; category?: string; description: string; thank_you: string; status: 'open' | 'closed'; confirm_email: boolean; questions: FormQuestion[] };
 type Phase = 'loading' | 'missing' | 'closed' | 'welcome' | 'questions' | 'sending' | 'done';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -33,7 +33,7 @@ export function PublicFormPage() {
       let data = published;
       // Prévia da administradora: lê também rascunho e encerrado (só funciona com a sessão dela; RLS barra os demais).
       if (preview && supabase) {
-        const own = await supabase.from('forms').select('slug,title,description,thank_you,status,confirm_email,questions').eq('slug', slug.toLowerCase()).maybeSingle();
+        const own = await supabase.from('forms').select('slug,title,description,thank_you,status,confirm_email,category,questions').eq('slug', slug.toLowerCase()).maybeSingle();
         if (own.data) data = { ...(own.data as PublicForm), status: 'open' };
       }
       if (!alive) return;
@@ -161,6 +161,7 @@ export function PublicFormPage() {
   }
 
   return <div className="cali-form-page">
+    <div className={`cf-leaf cf-leaf-${phase === 'welcome' || phase === 'loading' || phase === 'missing' || phase === 'closed' ? 'intro' : phase === 'done' ? 'done' : 'questions'}`} key={phase === 'sending' ? 'questions' : phase} aria-hidden="true" />
     <div className="cf-progress" aria-hidden="true"><i style={{ width: `${progress}%` }} /></div>
     <header className="cf-top"><img src="/brand/cali-rh-bordo.png" alt="CALI RH" />{preview && <span className="cf-preview">Prévia · as respostas não são salvas</span>}</header>
     <main className="cf-stage">
@@ -168,8 +169,8 @@ export function PublicFormPage() {
       {phase === 'missing' && <div className="cf-screen cf-center cf-enter"><small>CALI FORMS</small><h1>Formulário não encontrado</h1><p>Confira o link que você recebeu ou fale com a CALI RH.</p></div>}
       {phase === 'closed' && form && <div className="cf-screen cf-center cf-enter"><small>CALI FORMS</small><h1>{form.title}</h1><p>Este formulário não está mais recebendo respostas. Obrigada pelo interesse.</p></div>}
       {phase === 'welcome' && form && <div className="cf-screen cf-enter">
-        <small>CALI RH</small><h1>{form.title}</h1>
-        {form.description && <p className="cf-desc">{form.description}</p>}
+        <small>{form.category || 'Formulário'}</small><h1>{form.title}</h1>
+        {form.description && <p className="cf-desc" dangerouslySetInnerHTML={{ __html: richTextHtml(form.description) }} />}
         <div className="cf-actions"><button type="button" className="cf-primary" onClick={() => setPhase('questions')}>Começar <ArrowRight size={18} /></button><span className="cf-enter-hint">ou pressione <b>Enter <CornerDownLeft size={13} /></b></span></div>
         <p className="cf-meta">{answerable.length} {answerable.length === 1 ? 'pergunta' : 'perguntas'} · cerca de {Math.max(1, Math.round(answerable.length * 0.4))} min</p>
       </div>}
@@ -178,7 +179,7 @@ export function PublicFormPage() {
           {isAnswerable(question) && <span className="cf-num">{numberOf(question)}<ArrowRight size={14} /></span>}
           <h2>{question.label}{isAnswerable(question) && (question.required ? <em className="cf-req" aria-label="obrigatória">*</em> : <span className="cf-optional">Opcional</span>)}</h2>
         </div>
-        {question.help && <p className="cf-help">{question.help}</p>}
+        {question.help && <p className="cf-help" dangerouslySetInnerHTML={{ __html: richTextHtml(question.help) }} />}
         {renderInput(question)}
         {error && <p className="cf-error" role="alert">{error}</p>}
         {sendError && isLast && <p className="cf-error" role="alert">{sendError}</p>}

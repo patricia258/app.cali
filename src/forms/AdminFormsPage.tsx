@@ -1,20 +1,21 @@
 /* CALI Forms — área da administradora (/admin/formularios). Lista de formulários; ao abrir um, três abas:
    Perguntas (montar e publicar), Compartilhar (link, QR Code e cartão) e Respostas (tabela e Excel).
    Nada aqui aparece para o cliente: a rota e o menu são só da administradora. */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ArrowDown, ArrowLeft, ArrowUp, Copy, Download, ExternalLink, FileSpreadsheet, ListChecks, Plus, QrCode, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, Bold, Copy, Italic, Smile, Underline, Download, ExternalLink, FileSpreadsheet, ListChecks, Plus, QrCode, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { Shell } from '../components/WorkspaceShell';
 import { supabase } from '../lib/supabase';
 import { downloadQrPng, downloadShareCard, downloadXlsx, qrDataUrl } from './formExports';
-import { type FormQuestion, type FormRecord, type FormStatus, type QuestionKind, KIND_LABELS, KIND_ORDER, PUBLIC_FORM_BASE, STATUS_LABELS, formatAnswer, isAnswerable, newQuestion, questionId, slugify } from './formModel';
+import { type FormAudience, type FormQuestion, type FormRecord, type QuestionKind, AUDIENCE_LABELS, CATEGORY_SUGGESTIONS, KIND_LABELS, KIND_ORDER, PUBLIC_FORM_BASE, STATUS_LABELS, formatAnswer, isAnswerable, newQuestion, questionId, slugify } from './formModel';
 import './admin-forms.css';
 
 type Overview = Record<string, { responses: number; last: string | null }>;
 type ResponseRow = { id: string; answers: Record<string, unknown>; respondent_name: string | null; respondent_email: string | null; submitted_at: string; confirmation_sent_at: string | null };
 type Tab = 'questions' | 'share' | 'responses';
 
-const FORM_FIELDS = 'id,slug,title,description,thank_you,status,company_id,questions,confirm_email,created_at,updated_at';
+const FORM_FIELDS = 'id,slug,title,description,thank_you,status,company_id,questions,confirm_email,category,audience,created_at,updated_at';
+const EMOJIS = ['😊', '🙂', '🙏', '💬', '✨', '🌱', '🍂', '💡', '📌', '✅', '📝', '📊', '🤝', '❤️', '👏', '🎯', '⏱️', '🔒', '📅', '👉'];
 const dateTime = (value?: string | null) => value ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value)) : '—';
 const shortDate = (value?: string | null) => value ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(new Date(value)) : '—';
 const errorText = (err: unknown, fallback: string) => {
@@ -33,7 +34,8 @@ export function AdminFormsPage() {
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [creating, setCreating] = useState<{ title: string; busy: boolean; error: string } | null>(null);
+  const [creating, setCreating] = useState<{ title: string; category: string; audience: FormAudience; busy: boolean; error: string } | null>(null);
+  const [audienceFilter, setAudienceFilter] = useState<'all' | FormAudience>('all');
 
   async function load() {
     if (!supabase) return;
@@ -54,6 +56,7 @@ export function AdminFormsPage() {
   useEffect(() => { void load(); }, []);
 
   const open = forms.find((form) => form.id === openId) || null;
+  const visible = audienceFilter === 'all' ? forms : forms.filter((form) => form.audience === audienceFilter);
   const go = (id: string | null, nextTab: Tab = 'questions') => setParams(id ? { form: id, aba: nextTab } : {});
 
   async function create() {
@@ -66,7 +69,7 @@ export function AdminFormsPage() {
     let slug = base.length >= 3 ? base : `${base}-form`; let n = 2;
     while (taken.has(slug)) slug = `${base}-${n++}`.slice(0, 60);
     const questions: FormQuestion[] = [newQuestion('name'), newQuestion('email')];
-    const { data, error: insertError } = await supabase.from('forms').insert({ title, slug, questions, thank_you: '' }).select(FORM_FIELDS).single();
+    const { data, error: insertError } = await supabase.from('forms').insert({ title, slug, questions, thank_you: '', category: creating.category.trim() || 'Formulário', audience: creating.audience }).select(FORM_FIELDS).single();
     if (insertError || !data) { setCreating({ title, busy: false, error: errorText(insertError, 'Não foi possível criar o formulário.') }); return; }
     setForms((current) => [data as FormRecord, ...current]); setCreating(null); go((data as FormRecord).id);
   }
@@ -76,7 +79,7 @@ export function AdminFormsPage() {
     const taken = new Set(forms.map((item) => item.slug));
     let slug = `${form.slug}-copia`.slice(0, 60); let n = 2;
     while (taken.has(slug)) slug = `${form.slug}-copia-${n++}`.slice(0, 60);
-    const { data, error: insertError } = await supabase.from('forms').insert({ title: `${form.title} (cópia)`.slice(0, 160), slug, description: form.description, thank_you: form.thank_you, company_id: form.company_id, confirm_email: form.confirm_email, questions: form.questions.map((question) => ({ ...question, id: questionId() })) }).select(FORM_FIELDS).single();
+    const { data, error: insertError } = await supabase.from('forms').insert({ title: `${form.title} (cópia)`.slice(0, 160), slug, description: form.description, thank_you: form.thank_you, company_id: form.company_id, category: form.category, audience: form.audience, confirm_email: form.confirm_email, questions: form.questions.map((question) => ({ ...question, id: questionId() })) }).select(FORM_FIELDS).single();
     if (insertError || !data) { setError(errorText(insertError, 'Não foi possível duplicar.')); return; }
     setForms((current) => [data as FormRecord, ...current]); go((data as FormRecord).id);
   }
@@ -87,13 +90,14 @@ export function AdminFormsPage() {
       onDeleted={() => { setForms((current) => current.filter((item) => item.id !== open.id)); go(null); }} />
     : <>
       <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Formulários</h1><p>Pesquisas, questionários, inscrições, levantamentos: crie qualquer formulário com a identidade CALI, envie por link ou QR Code e veja as respostas reunidas aqui.</p></div>
-        <div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</button><button className="wf-primary" type="button" onClick={() => setCreating({ title: '', busy: false, error: '' })}><Plus size={15} /> Novo formulário</button></div></div>
+        <div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</button><button className="wf-primary" type="button" onClick={() => setCreating({ title: '', category: '', audience: 'cali', busy: false, error: '' })}><Plus size={15} /> Novo formulário</button></div></div>
       {error && <div className="inline-notice" role="alert">{error}</div>}
-      <div className="wf-group-head"><div><span>FORMULÁRIOS</span><strong>Todos os formulários</strong></div><b>{forms.length}</b></div>
-      {loading ? <div className="data-loading">Carregando formulários…</div> : forms.length ? <div className="wf-records v2-forms-list">
+      <div className="wf-controls v2-forms-filter"><div className="wf-segments">{([['all', 'Todos'], ['cali', AUDIENCE_LABELS.cali], ['client', AUDIENCE_LABELS.client]] as Array<['all' | FormAudience, string]>).map(([key, label]) => <button type="button" key={key} className={audienceFilter === key ? 'on' : ''} onClick={() => setAudienceFilter(key)}>{label} <b>{key === 'all' ? forms.length : forms.filter((form) => form.audience === key).length}</b></button>)}</div></div>
+      <div className="wf-group-head"><div><span>FORMULÁRIOS</span><strong>{audienceFilter === 'all' ? 'Todos os formulários' : audienceFilter === 'cali' ? 'Formulários da CALI' : 'Formulários para clientes'}</strong></div><b>{visible.length}</b></div>
+      {loading ? <div className="data-loading">Carregando formulários…</div> : visible.length ? <div className="wf-records v2-forms-list">
         <div className="wf-record-row header"><span>Formulário</span><span>Situação</span><span>Respostas</span><span>Última resposta</span><span>Atualizado</span><span /></div>
-        {forms.map((form) => <div className="wf-record-row" key={form.id} role="button" tabIndex={0} onClick={() => go(form.id)} onKeyDown={(event) => { if (event.key === 'Enter') go(form.id); }}>
-          <span className="v2-forms-name"><strong>{form.title}</strong><small>{PUBLIC_FORM_BASE.replace('https://', '')}{form.slug}{form.company_id ? ` · ${companies.find((company) => company.id === form.company_id)?.name || 'cliente'}` : ''}</small></span>
+        {visible.map((form) => <div className="wf-record-row" key={form.id} role="button" tabIndex={0} onClick={() => go(form.id)} onKeyDown={(event) => { if (event.key === 'Enter') go(form.id); }}>
+          <span className="v2-forms-name"><strong>{form.title}</strong><small><span className={`v2-forms-aud ${form.audience}`}>{form.audience === 'client' ? (companies.find((company) => company.id === form.company_id)?.name || 'Cliente') : 'CALI'}</span> {form.category} · {PUBLIC_FORM_BASE.replace('https://', '')}{form.slug}</small></span>
           <span><span className={`v2-forms-status ${form.status}`}>{STATUS_LABELS[form.status]}</span></span>
           <span className="v2-forms-count">{overview[form.id]?.responses || 0}</span>
           <span>{shortDate(overview[form.id]?.last)}</span>
@@ -106,6 +110,9 @@ export function AdminFormsPage() {
   {creating && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !creating.busy) setCreating(null); }}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Novo formulário">
     <div><small>CALI FORMS</small><h2>Novo formulário</h2><p>Começa como rascunho, já com as perguntas de nome e e-mail. Você monta o resto em seguida.</p></div>
     <label>Nome do formulário<input value={creating.title} maxLength={160} autoFocus placeholder="Ex.: Pesquisa de clima 2026" onChange={(event) => setCreating({ ...creating, title: event.target.value, error: '' })} onKeyDown={(event) => { if (event.key === 'Enter') void create(); }} /></label>
+    <label>Categoria (aparece para quem responde)<input list="cali-form-categories" value={creating.category} maxLength={40} placeholder="Ex.: Pesquisa de satisfação" onChange={(event) => setCreating({ ...creating, category: event.target.value })} /></label>
+    <label>Para quem<select value={creating.audience} onChange={(event) => setCreating({ ...creating, audience: event.target.value as FormAudience })}><option value="cali">Uso da CALI</option><option value="client">Clientes</option></select></label>
+    <datalist id="cali-form-categories">{CATEGORY_SUGGESTIONS.map((item) => <option key={item} value={item} />)}</datalist>
     {creating.error && <p className="v2-forms-error" role="alert">{creating.error}</p>}
     <footer><button type="button" disabled={creating.busy} onClick={() => setCreating(null)}>Cancelar</button><button type="button" disabled={creating.busy} onClick={() => void create()}>{creating.busy ? 'Criando…' : 'Criar formulário'}</button></footer>
   </section></div>}
@@ -148,7 +155,7 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
     const problem = problems(next);
     if (problem) { setNote({ text: problem, failed: true }); return; }
     setSaving(true); setNote(null);
-    const { data, error } = await supabase.from('forms').update({ title: next.title.trim(), slug: next.slug, description: next.description.trim(), thank_you: next.thank_you.trim(), status: next.status, company_id: next.company_id || null, confirm_email: next.confirm_email, questions: next.questions, updated_at: new Date().toISOString() }).eq('id', form.id).select(FORM_FIELDS).single();
+    const { data, error } = await supabase.from('forms').update({ title: next.title.trim(), slug: next.slug, description: next.description.trim(), thank_you: next.thank_you.trim(), status: next.status, category: next.category.trim() || 'Formulário', audience: next.audience, company_id: next.audience === 'client' ? next.company_id || null : null, confirm_email: next.confirm_email, questions: next.questions, updated_at: new Date().toISOString() }).eq('id', form.id).select(FORM_FIELDS).single();
     setSaving(false);
     if (error || !data) { setNote({ text: errorText(error, 'Não foi possível salvar.'), failed: true }); return; }
     setDraft(data as FormRecord); onSaved(data as FormRecord);
@@ -180,9 +187,11 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
         <header><small>APRESENTAÇÃO</small><h2>O que a pessoa vê ao abrir o link</h2></header>
         <div className="v2-forms-grid">
           <label className="wide"><span>Nome do formulário</span><input value={draft.title} maxLength={160} onChange={(event) => patch({ title: event.target.value })} /></label>
-          <label className="wide"><span>Introdução <em>opcional · aparece na primeira tela, antes das perguntas</em></span><textarea rows={4} maxLength={1200} value={draft.description} placeholder="Ex.: Queremos entender como foi sua experiência. A participação é voluntária e leva cerca de 3 minutos." onChange={(event) => patch({ description: event.target.value })} /></label>
+          <label><span>Categoria <em>aparece para quem responde, acima do título</em></span><input list="cali-form-categories-edit" value={draft.category} maxLength={40} placeholder="Ex.: Questionário" onChange={(event) => patch({ category: event.target.value })} /><datalist id="cali-form-categories-edit">{CATEGORY_SUGGESTIONS.map((item) => <option key={item} value={item} />)}</datalist></label>
+          <label><span>Para quem</span><select value={draft.audience} onChange={(event) => patch({ audience: event.target.value as FormAudience })}><option value="cali">Uso da CALI</option><option value="client">Clientes</option></select></label>
+          <div className="wide v2-forms-field"><span>Introdução <em>opcional · aparece na primeira tela, antes das perguntas</em></span><RichTextarea value={draft.description} maxLength={1200} rows={5} placeholder="Ex.: Queremos entender como foi sua experiência. A participação é voluntária e leva cerca de 3 minutos." onChange={(value) => patch({ description: value })} /></div>
           <label><span>Link</span><div className="v2-forms-slug"><b>app.calirh.com/f/</b><input value={draft.slug} maxLength={60} onChange={(event) => patch({ slug: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-{2,}/g, '-') })} /></div></label>
-          <label><span>Cliente <em>opcional</em></span><select value={draft.company_id || ''} onChange={(event) => patch({ company_id: event.target.value || null })}><option value="">Nenhum (uso geral)</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select></label>
+          {draft.audience === 'client' ? <label><span>Cliente <em>opcional</em></span><select value={draft.company_id || ''} onChange={(event) => patch({ company_id: event.target.value || null })}><option value="">Vários clientes / não vincular</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select></label> : <span />}
           <label className="wide"><span>Mensagem do e-mail de confirmação <em>opcional</em></span><textarea rows={2} maxLength={600} value={draft.thank_you} placeholder="Ex.: Sua contribuição nos ajuda a tornar cada conversa mais clara." onChange={(event) => patch({ thank_you: event.target.value })} /></label>
           <label className="v2-forms-check wide"><input type="checkbox" checked={draft.confirm_email} onChange={(event) => patch({ confirm_email: event.target.checked })} /><span><strong>Enviar e-mail “Recebemos sua resposta”</strong><small>Vai para o e-mail informado na pergunta do tipo E-mail, com uma cópia das respostas.</small></span></label>
         </div>
@@ -250,7 +259,7 @@ function SharePanel({ form, url, onOpen }: { form: FormRecord; url: string; onOp
         <p>Envie o link por e-mail ou WhatsApp. Para eventos, apresentações e materiais impressos, use o QR Code ou o cartão pronto para divulgar.</p>
         <div className="v2-forms-share-actions">
           <button type="button" className="wf-secondary" onClick={() => void downloadQrPng(url, `${fileBase}-qrcode.png`)}><QrCode size={15} /> Baixar QR Code</button>
-          <button type="button" className="wf-secondary" disabled={busy} onClick={() => { setBusy(true); void downloadShareCard(form.title, url, `${fileBase}-cartao.png`).finally(() => setBusy(false)); }}><Download size={15} /> {busy ? 'Gerando…' : 'Baixar cartão para divulgar'}</button>
+          <button type="button" className="wf-secondary" disabled={busy} onClick={() => { setBusy(true); void downloadShareCard(form.title, url, form.category, `${fileBase}-cartao.png`).finally(() => setBusy(false)); }}><Download size={15} /> {busy ? 'Gerando…' : 'Baixar cartão para divulgar'}</button>
           <a className="wf-secondary" href={`https://wa.me/?text=${encodeURIComponent(`${form.title}: ${url}`)}`} target="_blank" rel="noopener noreferrer"><ExternalLink size={15} /> Enviar no WhatsApp</a>
         </div>
       </div>
@@ -318,5 +327,36 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
       <dl>{columns.map((question) => <div key={question.id}><dt>{question.label}</dt><dd>{formatAnswer(question, selected.answers[question.id]) || '—'}</dd></div>)}</dl>
       <footer><button type="button" className="v2-forms-delete" disabled={deleting} onClick={() => void removeResponse(selected)}><Trash2 size={14} /> Apagar resposta</button><button type="button" onClick={() => setSelected(null)}>Fechar</button></footer>
     </section></div>}
+  </div>;
+}
+
+/** Caixa de texto com negrito, itálico, sublinhado e emoji. Guarda marcação simples (**, *, __) que a página pública converte. */
+function RichTextarea({ value, onChange, rows, maxLength, placeholder }: { value: string; onChange: (value: string) => void; rows: number; maxLength: number; placeholder?: string }) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  function apply(before: string, after = before) {
+    const area = ref.current; if (!area) return;
+    const { selectionStart: start, selectionEnd: end } = area;
+    const selected = value.slice(start, end) || 'texto';
+    const next = `${value.slice(0, start)}${before}${selected}${after}${value.slice(end)}`.slice(0, maxLength);
+    onChange(next);
+    requestAnimationFrame(() => { area.focus(); area.setSelectionRange(start + before.length, start + before.length + selected.length); });
+  }
+  function insert(text: string) {
+    const area = ref.current; const start = area?.selectionStart ?? value.length; const end = area?.selectionEnd ?? value.length;
+    onChange(`${value.slice(0, start)}${text}${value.slice(end)}`.slice(0, maxLength)); setEmojiOpen(false);
+    requestAnimationFrame(() => { area?.focus(); area?.setSelectionRange(start + text.length, start + text.length); });
+  }
+  return <div className="v2-forms-rich">
+    <div className="v2-forms-rich-bar" role="toolbar" aria-label="Formatação">
+      <button type="button" title="Negrito" aria-label="Negrito" onClick={() => apply('**')}><Bold size={14} /></button>
+      <button type="button" title="Itálico" aria-label="Itálico" onClick={() => apply('*')}><Italic size={14} /></button>
+      <button type="button" title="Sublinhado" aria-label="Sublinhado" onClick={() => apply('__')}><Underline size={14} /></button>
+      <span className="v2-forms-rich-sep" />
+      <button type="button" title="Emoji" aria-label="Emoji" aria-expanded={emojiOpen} onClick={() => setEmojiOpen((open) => !open)}><Smile size={14} /></button>
+      <small>Selecione o trecho e clique em B, I ou U</small>
+      {emojiOpen && <div className="v2-forms-emoji">{EMOJIS.map((emoji) => <button type="button" key={emoji} onClick={() => insert(emoji)}>{emoji}</button>)}</div>}
+    </div>
+    <textarea ref={ref} rows={rows} maxLength={maxLength} value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
   </div>;
 }
