@@ -1,6 +1,6 @@
 /* CALI Forms — página pública. Tudo dentro de .cali-form-page (a rota é pública e convive com as folhas antigas). */
 .cali-form-page{--cf-wine:#5A1E2D;--cf-wine-2:#7A1F3D;--cf-gold:#B58C52;--cf-ink:#2B2024;--cf-muted:#6B5D63;--cf-line:#E8DDD4;--cf-paper:#F7F3EE;
-  position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;background:var(--cf-paper);color:var(--cf-ink);
+  position:fixed;inset:0;z-index:1;color-scheme:light;display:flex;flex-direction:column;background:var(--cf-paper);color:var(--cf-ink);
   font-family:Inter,system-ui,-apple-system,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
 .cali-form-page *{box-sizing:border-box}
 .cali-form-page::before{content:"";position:absolute;right:-220px;top:-200px;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,rgba(181,140,82,.12),transparent 70%);pointer-events:none}
@@ -99,3 +99,17 @@
 .cali-form-page .cf-desc strong,.cali-form-page .cf-help strong{color:var(--cf-ink);font-weight:700}
 .cali-form-page .cf-desc u,.cali-form-page .cf-help u{text-underline-offset:3px}
 @media (prefers-reduced-motion:reduce){.cali-form-page .cf-leaf{animation:none}}
+
+/* Blindagem contra o tema noturno do app e folhas antigas: o formulário é sempre claro (classe dobrada vence
+   html[data-workspace-theme="night"] h1/h2/... !important). */
+.cali-form-page.cali-form-page h1{color:var(--cf-wine)!important}
+.cali-form-page.cali-form-page h2{color:var(--cf-ink)!important}
+.cali-form-page.cali-form-page small{color:var(--cf-gold)!important}
+.cali-form-page.cali-form-page :is(.cf-desc,.cf-help,.cf-center p,.cf-meta,.cf-enter-hint,.cf-hint,.cf-scale-labels,.cf-foot,.cf-foot a,.cf-nav span){color:var(--cf-muted)!important}
+.cali-form-page.cali-form-page :is(.cf-desc strong,.cf-help strong,.cf-enter-hint b){color:var(--cf-ink)!important}
+.cali-form-page.cali-form-page :is(.cf-num,.cf-req){color:var(--cf-wine)!important}
+.cali-form-page.cali-form-page .cf-text{background:transparent!important;color:var(--cf-wine)!important;-webkit-text-fill-color:var(--cf-wine);border:0!important;border-bottom:2px solid rgba(90,30,45,.25)!important;box-shadow:none!important;outline:none!important}
+.cali-form-page.cali-form-page .cf-text:focus{border-bottom-color:var(--cf-wine)!important}
+.cali-form-page.cali-form-page :is(.cf-options button,.cf-scale button):not(.on){background:rgba(255,255,255,.7)!important;color:var(--cf-wine)!important;border-color:rgba(90,30,45,.28)!important}
+.cali-form-page.cali-form-page :is(.cf-options button,.cf-scale button).on{background:var(--cf-wine)!important;color:#fff!important}
+.cali-form-page.cali-form-page :is(.cf-primary,.cf-nav button){background:var(--cf-wine)!important;color:#fff!important}
