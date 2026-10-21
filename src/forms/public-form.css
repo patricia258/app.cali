@@ -58,7 +58,8 @@
 .cali-form-page .cf-foot{position:absolute;left:clamp(20px,5vw,56px);bottom:26px;z-index:3;display:flex;gap:8px;font-size:12px;color:var(--cf-muted)}
 .cali-form-page .cf-foot a{color:var(--cf-muted);text-decoration:none}
 .cali-form-page .cf-foot a:hover{color:var(--cf-wine)}
-.cali-form-page .cf-done-mark{display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:var(--cf-wine);color:#fff;margin-bottom:6px}
+.cali-form-page .cf-done-mark{display:grid;place-items:center;width:84px;height:84px;border-radius:50%;background:var(--cf-wine);margin-bottom:10px;box-shadow:0 14px 34px rgba(90,30,45,.22)}
+.cali-form-page .cf-done-mark img{width:50px;height:50px;display:block}
 .cali-form-page .cf-spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(90,30,45,.15);border-top-color:var(--cf-wine);animation:cf-spin .8s linear infinite}
 .cali-form-page .cf-enter{animation:cf-rise .55s cubic-bezier(.2,.7,.2,1) both}
 .cali-form-page .cf-next{animation:cf-in-up .45s cubic-bezier(.2,.7,.2,1) both}
