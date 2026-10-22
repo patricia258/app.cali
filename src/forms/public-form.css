@@ -134,3 +134,4 @@
 .cali-form-page .cf-file-chosen button{display:grid;place-items:center;width:32px;height:32px;border:0;border-radius:8px;background:#F7F3EE;color:var(--cf-ink);cursor:pointer}
 .cali-form-page .cf-file .cf-error{margin-left:0}
 @media (max-width:640px){.cali-form-page .cf-file{margin-left:0}}
+.cali-form-page.cali-form-page :is(.cf-desc,.cf-help) a{color:var(--cf-wine)!important;font-weight:600;text-decoration:underline;text-underline-offset:3px;word-break:break-all}
