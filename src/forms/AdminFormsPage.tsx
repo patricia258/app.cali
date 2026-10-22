@@ -3,7 +3,7 @@
    Nada aqui aparece para o cliente: a rota e o menu são só da administradora. */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ArrowDown, ArrowLeft, ArrowUp, Bold, Check, Copy, Italic, Paperclip, Pencil, Smile, Underline, Download, ExternalLink, FileSpreadsheet, ListChecks, Plus, QrCode, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, Bold, Check, Copy, Italic, Paperclip, Pencil, Smile, Underline, X, Download, ExternalLink, FileSpreadsheet, ListChecks, Plus, QrCode, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { Shell } from '../components/WorkspaceShell';
 import { supabase } from '../lib/supabase';
 import { downloadQrPng, downloadShareCard, downloadXlsx, qrDataUrl } from './formExports';
@@ -285,6 +285,7 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
   const [deleting, setDeleting] = useState(false);
   const [noteFor, setNoteFor] = useState<{ row: ResponseRow; text: string; busy: boolean } | null>(null);
   const [toast, setToast] = useState('');
+  const [editing, setEditing] = useState<ResponseRow | null>(null);
   const columns = useMemo(() => form.questions.filter(isAnswerable), [form.questions]);
   const choiceColumns = useMemo(() => columns.filter((question) => ['single_choice', 'multi_choice', 'yes_no', 'scale'].includes(question.kind)), [columns]);
 
@@ -372,6 +373,7 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
       : <div className="v2-forms-table-wrap"><table className="v2-forms-table">
         <thead><tr>
           <th className="v2-forms-check-col"><input type="checkbox" aria-label="Selecionar todas" checked={allChecked} onChange={() => setSelected(allChecked ? new Set() : new Set(filtered.map((row) => row.id)))} /></th>
+          <th className="v2-forms-edit-col" aria-label="Editar" />
           <th className="v2-forms-date-col"><button type="button" onClick={() => sortBy('date')}>Data{sortMark('date')}</button></th>
           <th><button type="button" onClick={() => sortBy('contact')}>Contato{sortMark('contact')}</button></th>
           <th><button type="button" onClick={() => sortBy('note')}>Nota{sortMark('note')}</button></th>
@@ -379,12 +381,14 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
         </tr></thead>
         <tbody>{filtered.map((row) => <tr key={row.id} className={selected.has(row.id) ? 'is-selected' : ''}>
           <td className="v2-forms-check-col"><input type="checkbox" aria-label="Selecionar resposta" checked={selected.has(row.id)} onChange={() => toggle(row.id)} /></td>
+          <td className="v2-forms-edit-col"><button type="button" className="v2-forms-edit" title="Editar resposta" aria-label="Editar resposta" onClick={() => setEditing(row)}><Pencil size={13} /></button></td>
           <td className="v2-forms-date v2-forms-date-col">{dateTime(row.submitted_at)}</td>
           <td><label className={`v2-forms-contact${row.contacted_at ? ' done' : ''}`} title={row.contacted_at ? `Contato marcado em ${dateTime(row.contacted_at)}` : 'Marcar que entrei em contato'}><input type="checkbox" checked={Boolean(row.contacted_at)} onChange={(event) => void setContacted(row, event.target.checked)} />{row.contacted_at ? 'Contatado' : 'Pendente'}</label></td>
           <td><button type="button" className={`v2-forms-note${row.admin_note ? ' has' : ''}`} title={row.admin_note || 'Adicionar nota'} onClick={() => setNoteFor({ row, text: row.admin_note || '', busy: false })}><Pencil size={12} /> {row.admin_note ? (row.admin_note.length > 28 ? `${row.admin_note.slice(0, 28)}…` : row.admin_note) : 'Nota'}</button></td>
           {columns.map((question) => { const raw = row.answers[question.id]; const text = textOf(question, row); if (question.kind === 'file' && raw) return <td key={question.id}><FileLink value={String(raw)} /></td>; return <td key={question.id} className={text ? 'v2-forms-copy' : ''} title={text ? `${text}\n\nClique para copiar` : undefined} onClick={() => copy(text)}>{text || <span className="v2-forms-empty">—</span>}{text && <Copy size={12} className="v2-forms-copy-ico" aria-hidden="true" />}</td>; })}
         </tr>)}</tbody>
       </table></div>}
+    {editing && <EditResponse form={form} row={editing} onClose={() => setEditing(null)} onSaved={(saved) => { setRows((current) => current.map((item) => item.id === saved.id ? saved : item)); setEditing(null); flash('Resposta atualizada'); }} />}
     {toast && <div className="v2-forms-toast" role="status"><Check size={14} /> {toast}</div>}
     {noteFor && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !noteFor.busy) setNoteFor(null); }}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Nota interna">
       <div><small>NOTA INTERNA · SÓ VOCÊ VÊ</small><h2>{noteFor.row.respondent_name || 'Resposta'}</h2><p>{dateTime(noteFor.row.submitted_at)}{noteFor.row.respondent_email ? ` · ${noteFor.row.respondent_email}` : ''}</p></div>
@@ -445,4 +449,64 @@ function FileLink({ value }: { value: string }) {
     setBusy(false);
     if (data?.signedUrl && opened) opened.location.href = data.signedUrl; else opened?.close();
   }}><Paperclip size={13} /> {busy ? 'Abrindo…' : fileLabel(value)}</button>;
+}
+
+/** Edição pela administradora: completa ou corrige uma resposta (ex.: pitch e foto enviados por fora). */
+function EditResponse({ form, row, onClose, onSaved }: { form: FormRecord; row: ResponseRow; onClose: () => void; onSaved: (row: ResponseRow) => void }) {
+  const [answers, setAnswers] = useState<Record<string, unknown>>({ ...row.answers });
+  const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState('');
+  const [error, setError] = useState('');
+  const questions = form.questions.filter(isAnswerable);
+  const set = (id: string, value: unknown) => setAnswers((current) => { const next = { ...current }; if (value === '' || value === undefined || (Array.isArray(value) && !value.length)) delete next[id]; else next[id] = value; return next; });
+
+  async function attach(question: FormQuestion, file: File | undefined) {
+    if (!file || !supabase) return;
+    if (file.size > 25 * 1024 * 1024) { setError('O arquivo passa de 25 MB.'); return; }
+    setUploading(question.id); setError('');
+    const safe = file.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '-').slice(-80) || 'arquivo';
+    const path = `${form.id}/admin/${crypto.randomUUID()}/${Date.now()}-${safe}`;
+    const { error: uploadError } = await supabase.storage.from('cali-forms').upload(path, file, { contentType: file.type || undefined, upsert: false });
+    setUploading('');
+    if (uploadError) { setError(`Não foi possível anexar: ${uploadError.message}`); return; }
+    set(question.id, path);
+  }
+
+  async function save() {
+    if (!supabase) return;
+    setBusy(true); setError('');
+    const nameQuestion = questions.find((question) => question.kind === 'name');
+    const emailQuestion = questions.find((question) => question.kind === 'email');
+    const email = emailQuestion && typeof answers[emailQuestion.id] === 'string' ? String(answers[emailQuestion.id]).trim().toLowerCase() : row.respondent_email;
+    const name = nameQuestion && typeof answers[nameQuestion.id] === 'string' ? String(answers[nameQuestion.id]).trim() : row.respondent_name;
+    const respondent_name = row.respondent_name && name && row.respondent_name.startsWith(name) ? row.respondent_name : name || null;
+    const { data, error: saveError } = await supabase.from('form_responses').update({ answers, respondent_email: email || null, respondent_name }).eq('id', row.id).select('id,answers,respondent_name,respondent_email,submitted_at,confirmation_sent_at,contacted_at,admin_note').single();
+    setBusy(false);
+    if (saveError || !data) { setError(errorText(saveError, 'Não foi possível salvar.')); return; }
+    onSaved(data as ResponseRow);
+  }
+
+  function field(question: FormQuestion) {
+    const value = answers[question.id];
+    const text = typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+    switch (question.kind) {
+      case 'long_text': return <textarea rows={5} value={text} onChange={(event) => set(question.id, event.target.value)} />;
+      case 'single_choice': case 'yes_no': { const options = question.kind === 'yes_no' ? ['Sim', 'Não'] : question.options || []; return <select value={text} onChange={(event) => set(question.id, event.target.value)}><option value="">—</option>{[...options, ...(text && !options.includes(text) ? [text] : [])].map((option) => <option key={option}>{option}</option>)}</select>; }
+      case 'scale': return <select value={text} onChange={(event) => set(question.id, event.target.value === '' ? '' : Number(event.target.value))}><option value="">—</option>{scaleOptions(question).map((option) => <option key={option}>{option}</option>)}</select>;
+      case 'multi_choice': { const chosen = Array.isArray(value) ? value.map(String) : []; return <div className="v2-forms-edit-checks">{(question.options || []).map((option) => <label key={option}><input type="checkbox" checked={chosen.includes(option)} onChange={(event) => set(question.id, event.target.checked ? [...chosen, option] : chosen.filter((item) => item !== option))} />{option}</label>)}</div>; }
+      case 'file': return <div className="v2-forms-edit-file">{text ? <><FileLink value={text} /><button type="button" className="v2-forms-delete" onClick={() => set(question.id, '')}><Trash2 size={13} /> Remover</button></> : <span className="v2-forms-empty">Nenhum arquivo</span>}<label className="wf-secondary"><input type="file" hidden accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,video/*,audio/*" onChange={(event) => void attach(question, event.target.files?.[0])} />{uploading === question.id ? 'Anexando…' : text ? 'Trocar arquivo' : 'Anexar arquivo'}</label></div>;
+      case 'date': return <input type="date" value={text} onChange={(event) => set(question.id, event.target.value)} />;
+      case 'number': return <input inputMode="decimal" value={text} onChange={(event) => { const raw = event.target.value.replace(',', '.'); set(question.id, raw === '' ? '' : Number.isFinite(Number(raw)) ? Number(raw) : event.target.value); }} />;
+      default: return <input value={text} onChange={(event) => set(question.id, event.target.value)} />;
+    }
+  }
+
+  return <div className="ap-pd-overlay v2-forms-drawer-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onClose(); }}>
+    <aside className="v2-forms-drawer" role="dialog" aria-modal="true" aria-label="Editar resposta">
+      <header><div><small>EDITAR RESPOSTA · {dateTime(row.submitted_at)}</small><h2>{row.respondent_name || 'Resposta'}</h2><p>Complete ou corrija o que chegou por fora (texto, foto, arquivo). Fica registrado como resposta desta pessoa.</p></div><button type="button" aria-label="Fechar" onClick={onClose}><X size={18} /></button></header>
+      <div className="v2-forms-drawer-body">{questions.map((question) => <div className="v2-forms-edit-field" key={question.id}><span>{stripRichText(question.label)}</span>{field(question)}</div>)}</div>
+      {error && <p className="v2-forms-error" role="alert">{error}</p>}
+      <footer><button type="button" className="wf-secondary" disabled={busy} onClick={onClose}>Cancelar</button><button type="button" className="wf-primary" disabled={busy || Boolean(uploading)} onClick={() => void save()}>{busy ? 'Salvando…' : 'Salvar resposta'}</button></footer>
+    </aside>
+  </div>;
 }
