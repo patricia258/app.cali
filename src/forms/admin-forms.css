@@ -172,3 +172,31 @@ html[data-workspace-ui='v2'] .v2-forms-note.has{border-style:solid;color:var(--f
 html[data-workspace-ui='v2'] .v2-forms-note:hover{border-color:#5a1e2d;color:#5a1e2d}
 html[data-workspace-ui='v2'] .v2-forms-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:50;display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:999px;background:#2b2024;color:#fff;font:600 12px Inter,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.2);animation:v2-forms-toast .2s ease-out}
 @keyframes v2-forms-toast{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+/* Coluna de editar + colunas fixas à esquerda (caixa, editar, data) com sombra para separar do que rola. */
+html[data-workspace-ui='v2'] .v2-forms-table .v2-forms-edit-col{position:sticky;left:36px;z-index:2;width:34px;min-width:34px;max-width:34px;padding-left:2px!important;padding-right:2px!important;background:#fff}
+html[data-workspace-ui='v2'] .v2-forms-table th.v2-forms-edit-col{background:#fbf7f3;z-index:3}
+html[data-workspace-ui='v2'] .v2-forms-table .v2-forms-date-col{left:70px!important;box-shadow:6px 0 8px -6px rgba(43,32,36,.18)}
+html[data-workspace-ui='v2'] .v2-forms-table tbody tr.is-selected td.v2-forms-edit-col{background:#fff6f4!important}
+html[data-workspace-ui='v2'] .v2-forms-edit{display:grid;place-items:center;width:28px;height:28px;border:1px solid #eadfd6;border-radius:7px;background:#fff;color:#5a1e2d;cursor:pointer}
+html[data-workspace-ui='v2'] .v2-forms-edit:hover{border-color:#5a1e2d;background:#fbf7f3}
+/* Gaveta de edição: altura total, rola por dentro, nada cortado. */
+html[data-workspace-ui='v2'] .v2-forms-drawer-overlay{justify-content:flex-end!important;align-items:stretch!important;padding:0!important}
+html[data-workspace-ui='v2'] .v2-forms-drawer{width:min(560px,100vw);height:100vh;background:#fffdfb;border-left:1px solid #eadfd6;box-shadow:-20px 0 60px rgba(29,17,19,.18);display:flex;flex-direction:column;animation:v2-forms-drawer .22s ease-out}
+@keyframes v2-forms-drawer{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+html[data-workspace-ui='v2'] .v2-forms-drawer>header{display:flex;gap:12px;align-items:flex-start;padding:22px 24px 16px;border-bottom:1px solid #f0e7e0}
+html[data-workspace-ui='v2'] .v2-forms-drawer>header>div{flex:1}
+html[data-workspace-ui='v2'] .v2-forms-drawer>header small{font-size:10px;font-weight:700;letter-spacing:.12em;color:#b58c52}
+html[data-workspace-ui='v2'] .v2-forms-drawer>header h2{font-size:20px;color:#5a1e2d;margin:6px 0 4px}
+html[data-workspace-ui='v2'] .v2-forms-drawer>header p{margin:0;font-size:12px;color:#8c7e74;line-height:1.5}
+html[data-workspace-ui='v2'] .v2-forms-drawer>header button{display:grid;place-items:center;width:34px;height:34px;border:1px solid #eadfd6;border-radius:8px;background:#fff;cursor:pointer;color:#3e3533}
+html[data-workspace-ui='v2'] .v2-forms-drawer-body{flex:1;overflow-y:auto;padding:16px 24px;display:flex;flex-direction:column;gap:14px}
+html[data-workspace-ui='v2'] .v2-forms-edit-field>span{display:block;font-size:11px;font-weight:600;color:#3e3533;margin-bottom:6px}
+html[data-workspace-ui='v2'] .v2-forms-edit-field :is(input:not([type=checkbox]):not([type=file]),select,textarea){width:100%;border:1px solid #e3d6cc;border-radius:8px;padding:9px 11px;font:400 13px/1.45 Inter,sans-serif;color:#3e3533;background:#fff}
+html[data-workspace-ui='v2'] .v2-forms-edit-field :is(input,select,textarea):focus{outline:none;border-color:#5a1e2d;box-shadow:0 0 0 3px rgba(90,30,45,.08)}
+html[data-workspace-ui='v2'] .v2-forms-edit-checks{display:flex;flex-wrap:wrap;gap:6px 14px}
+html[data-workspace-ui='v2'] .v2-forms-edit-checks label{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#3e3533}
+html[data-workspace-ui='v2'] .v2-forms-edit-checks input{accent-color:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-forms-edit-file{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+html[data-workspace-ui='v2'] .v2-forms-edit-file label{cursor:pointer}
+html[data-workspace-ui='v2'] .v2-forms-drawer>.v2-forms-error{margin:0 24px 10px}
+html[data-workspace-ui='v2'] .v2-forms-drawer>footer{display:flex;justify-content:flex-end;gap:10px;padding:14px 24px;border-top:1px solid #f0e7e0;background:#fff}
