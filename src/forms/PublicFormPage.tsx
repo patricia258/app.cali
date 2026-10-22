@@ -213,7 +213,7 @@ export function PublicFormPage() {
         <div className="cf-actions"><button type="button" className="cf-primary" onClick={() => setPhase('questions')}>Começar <ArrowRight size={18} /></button><span className="cf-enter-hint">ou pressione <b>Enter <CornerDownLeft size={13} /></b></span></div>
         <p className="cf-meta">{answerable.length} {answerable.length === 1 ? 'pergunta' : 'perguntas'} · cerca de {Math.max(1, Math.round(answerable.length * 0.4))} min</p>
       </div>}
-      {(phase === 'questions' || phase === 'sending') && question && <div className={`cf-screen cf-q cf-${direction}`} key={question.id}>
+      {(phase === 'questions' || phase === 'sending') && question && <div className={`cf-screen cf-q cf-${direction}${question.kind === 'statement' ? ' cf-statement' : ''}`} key={question.id}>
         <div className="cf-label">
           {isAnswerable(question) && <span className="cf-num">{numberOf(question)}<ArrowRight size={14} /></span>}
           <h2>{question.label}{isAnswerable(question) && (question.required ? <em className="cf-req" aria-label="obrigatória">*</em> : <span className="cf-optional">Opcional</span>)}</h2>
