@@ -2,12 +2,12 @@
    Sem login. Lê e envia pelas funções públicas cali_form_public e cali_form_submit. */
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { ArrowDown, ArrowRight, ArrowUp, Check, CornerDownLeft } from 'lucide-react';
-import { anonPublicRpc, supabase } from '../lib/supabase';
-import { type FormAnswer, type FormQuestion, isAnswerable, richTextHtml, scaleRange, validateAnswer } from './formModel';
+import { ArrowDown, ArrowRight, ArrowUp, Check, CornerDownLeft, Paperclip, X } from 'lucide-react';
+import { anonPublicRpc, anonStorage, supabase } from '../lib/supabase';
+import { type FormAnswer, type FormQuestion, fileLabel, isAnswerable, nextQuestionIndex, richTextHtml, scaleRange, validateAnswer } from './formModel';
 import './public-form.css';
 
-type PublicForm = { slug: string; title: string; category?: string; description: string; thank_you: string; status: 'open' | 'closed'; confirm_email: boolean; questions: FormQuestion[] };
+type PublicForm = { id: string; slug: string; title: string; category?: string; description: string; thank_you: string; status: 'open' | 'closed'; confirm_email: boolean; questions: FormQuestion[] };
 type Phase = 'loading' | 'missing' | 'closed' | 'welcome' | 'questions' | 'sending' | 'done';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -20,6 +20,8 @@ export function PublicFormPage() {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState<'next' | 'back'>('next');
   const [answers, setAnswers] = useState<Record<string, FormAnswer>>({});
+  const [trail, setTrail] = useState<number[]>([]);
+  const [uploads, setUploads] = useState<Record<string, { busy: boolean; name: string; preview?: string; error?: string }>>({});
   const [error, setError] = useState('');
   const [sendError, setSendError] = useState('');
   const [confirmation, setConfirmation] = useState(false);
@@ -33,7 +35,7 @@ export function PublicFormPage() {
       let data = published;
       // Prévia da administradora: lê também rascunho e encerrado (só funciona com a sessão dela; RLS barra os demais).
       if (preview && supabase) {
-        const own = await supabase.from('forms').select('slug,title,description,thank_you,status,confirm_email,category,questions').eq('slug', slug.toLowerCase()).maybeSingle();
+        const own = await supabase.from('forms').select('id,slug,title,description,thank_you,status,confirm_email,category,questions').eq('slug', slug.toLowerCase()).maybeSingle();
         if (own.data) data = { ...(own.data as PublicForm), status: 'open' };
       }
       if (!alive) return;
@@ -60,24 +62,30 @@ export function PublicFormPage() {
     if (!form) return;
     if (preview) { setConfirmation(false); setPhase('done'); return; }
     setPhase('sending'); setSendError('');
-    const { data, error: rpcError } = await anonPublicRpc<{ ok: boolean; confirmation: boolean }>('cali_form_submit', { p_slug: form.slug, p_answers: answers });
+    const visited = [...trail, index].map((position) => questions[position]?.id).filter(Boolean) as string[];
+    const sent: Record<string, unknown> = Object.fromEntries(Object.entries(answers).filter(([id]) => visited.includes(id)));
+    sent.__visited = visited;
+    const { data, error: rpcError } = await anonPublicRpc<{ ok: boolean; confirmation: boolean }>('cali_form_submit', { p_slug: form.slug, p_answers: sent });
     if (rpcError || !data?.ok) { setSendError(rpcError?.message || 'Não foi possível enviar agora.'); setPhase('questions'); return; }
     setConfirmation(Boolean(data.confirmation)); setPhase('done');
-  }, [answers, form, preview]);
+  }, [answers, form, preview, trail, index, questions]);
 
   const goNext = useCallback(() => {
     if (!question) return;
     const problem = validateAnswer(question, answers[question.id]);
     if (problem) { setError(problem); return; }
+    if (uploads[question.id]?.busy) { setError('Aguarde terminar o envio do arquivo.'); return; }
     setError('');
-    if (index >= questions.length - 1) { void submit(); return; }
-    setDirection('next'); setIndex((current) => current + 1);
-  }, [answers, index, question, questions.length, submit]);
+    const next = nextQuestionIndex(questions, index, answers[question.id]);
+    if (next < 0) { void submit(); return; }
+    setTrail((current) => [...current, index]); setDirection('next'); setIndex(next);
+  }, [answers, index, question, questions, submit, uploads]);
 
   const goBack = useCallback(() => {
-    if (index === 0) return;
-    setError(''); setDirection('back'); setIndex((current) => current - 1);
-  }, [index]);
+    if (!trail.length) return;
+    const previous = trail[trail.length - 1];
+    setError(''); setDirection('back'); setTrail((current) => current.slice(0, -1)); setIndex(previous);
+  }, [trail]);
 
   function setAnswer(value: FormAnswer, autoAdvance = false) {
     if (!question) return;
@@ -85,9 +93,10 @@ export function PublicFormPage() {
     setError('');
     if (autoAdvance) {
       window.clearTimeout(advanceTimer.current);
+      const next = nextQuestionIndex(questions, index, value);
       advanceTimer.current = window.setTimeout(() => {
-        if (index >= questions.length - 1) return;
-        setDirection('next'); setIndex((current) => current + 1);
+        if (next < 0) return;
+        setTrail((current) => [...current, index]); setDirection('next'); setIndex(next);
       }, 380);
     }
   }
@@ -123,7 +132,22 @@ export function PublicFormPage() {
     if (event.key === 'Enter' && event.shiftKey) event.stopPropagation();
   }
 
-  const isLast = index >= questions.length - 1;
+  const isLast = question ? nextQuestionIndex(questions, index, answers[question.id]) < 0 : false;
+
+  async function chooseFile(item: FormQuestion, file: File | undefined) {
+    if (!file || !form) return;
+    if (file.size > 25 * 1024 * 1024) { setError('O arquivo passa de 25 MB. Envie um arquivo menor.'); return; }
+    const thumb = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined;
+    setError(''); setUploads((current) => ({ ...current, [item.id]: { busy: true, name: file.name, preview: thumb } }));
+    const safe = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '-').slice(-80) || 'arquivo';
+    const path = `${form.id}/${crypto.randomUUID()}/${Date.now()}-${safe}`;
+    if (!preview) {
+      const result = anonStorage ? await anonStorage.from('cali-forms').upload(path, file, { contentType: file.type || undefined, upsert: false }) : { error: { message: 'indisponível' } };
+      if (result.error) { setUploads((current) => ({ ...current, [item.id]: { busy: false, name: file.name, preview: thumb, error: 'Não foi possível enviar o arquivo. Tente de novo.' } })); return; }
+    }
+    setUploads((current) => ({ ...current, [item.id]: { busy: false, name: file.name, preview: thumb } }));
+    setAnswers((current) => ({ ...current, [item.id]: path }));
+  }
 
   function renderInput(item: FormQuestion) {
     const value = answers[item.id];
@@ -147,6 +171,21 @@ export function PublicFormPage() {
         return <div className="cf-scale-wrap"><div className="cf-scale" role="radiogroup" style={{ gridTemplateColumns: `repeat(${range.length}, minmax(0, 1fr))` }}>
           {range.map((number) => <button type="button" role="radio" aria-checked={value === number} key={number} className={value === number ? 'on' : ''} onClick={() => setAnswer(number, true)}>{number}</button>)}
         </div>{(item.minLabel || item.maxLabel) && <div className="cf-scale-labels"><span>{item.minLabel}</span><span>{item.maxLabel}</span></div>}</div>;
+      }
+      case 'file': {
+        const state = uploads[item.id];
+        const hasFile = typeof value === 'string' && value;
+        return <div className="cf-file">
+          {hasFile || state?.busy ? <div className={`cf-file-chosen${state?.busy ? ' busy' : ''}`}>
+            {state?.preview ? <img src={state.preview} alt="" /> : <span className="cf-file-icon"><Paperclip size={20} /></span>}
+            <span><strong>{state?.name || fileLabel(String(value))}</strong><small>{state?.busy ? 'Enviando…' : 'Arquivo pronto'}</small></span>
+            {!state?.busy && <button type="button" aria-label="Remover arquivo" onClick={() => { setAnswers((current) => { const next = { ...current }; delete next[item.id]; return next; }); setUploads((current) => { const next = { ...current }; delete next[item.id]; return next; }); }}><X size={16} /></button>}
+          </div> : <label className="cf-file-drop">
+            <input type="file" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,video/*,audio/*" onChange={(event) => void chooseFile(item, event.target.files?.[0])} />
+            <Paperclip size={22} /><strong>Escolher arquivo</strong><small>Foto, PDF, documento, áudio ou vídeo · até 25 MB</small>
+          </label>}
+          {state?.error && <p className="cf-error" role="alert">{state.error}</p>}
+        </div>;
       }
       case 'date':
         return <input ref={(node) => { inputRef.current = node; }} className="cf-text" type="date" value={text} onChange={(event) => setAnswer(event.target.value)} />;
@@ -196,7 +235,7 @@ export function PublicFormPage() {
     </main>
     {phase === 'questions' && <nav className="cf-nav" aria-label="Navegar entre perguntas">
       <span>{index + 1} de {questions.length}</span>
-      <button type="button" aria-label="Pergunta anterior" disabled={index === 0} onClick={goBack}><ArrowUp size={18} /></button>
+      <button type="button" aria-label="Pergunta anterior" disabled={!trail.length} onClick={goBack}><ArrowUp size={18} /></button>
       <button type="button" aria-label="Próxima pergunta" disabled={isLast} onClick={goNext}><ArrowDown size={18} /></button>
     </nav>}
     <footer className="cf-foot"><a href="https://calirh.com" target="_blank" rel="noopener noreferrer">CALI RH</a><span>·</span><a href="/privacidade" target="_blank" rel="noopener noreferrer">Privacidade</a></footer>

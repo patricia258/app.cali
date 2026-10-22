@@ -3,11 +3,11 @@
    Nada aqui aparece para o cliente: a rota e o menu são só da administradora. */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ArrowDown, ArrowLeft, ArrowUp, Bold, Copy, Italic, Smile, Underline, Download, ExternalLink, FileSpreadsheet, ListChecks, Plus, QrCode, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, Bold, Copy, Italic, Paperclip, Smile, Underline, Download, ExternalLink, FileSpreadsheet, ListChecks, Plus, QrCode, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { Shell } from '../components/WorkspaceShell';
 import { supabase } from '../lib/supabase';
 import { downloadQrPng, downloadShareCard, downloadXlsx, qrDataUrl } from './formExports';
-import { type FormAudience, type FormQuestion, type FormRecord, type QuestionKind, AUDIENCE_LABELS, CATEGORY_SUGGESTIONS, KIND_LABELS, KIND_ORDER, PUBLIC_FORM_BASE, STATUS_LABELS, formatAnswer, isAnswerable, stripRichText, newQuestion, questionId, slugify } from './formModel';
+import { type FormAudience, type FormQuestion, type FormRecord, type QuestionKind, AUDIENCE_LABELS, CATEGORY_SUGGESTIONS, KIND_LABELS, KIND_ORDER, PUBLIC_FORM_BASE, STATUS_LABELS, END_OF_FORM, choiceOptions, fileLabel, formatAnswer, isAnswerable, stripRichText, newQuestion, questionId, slugify } from './formModel';
 import './admin-forms.css';
 
 type Overview = Record<string, { responses: number; last: string | null }>;
@@ -144,14 +144,14 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
     if (next.status === 'open' && !next.questions.some(isAnswerable)) return 'Inclua ao menos uma pergunta antes de abrir para respostas.';
     const blank = next.questions.findIndex((question) => !question.label.trim());
     if (blank >= 0) return `A pergunta ${blank + 1} está sem texto.`;
-    const noOptions = next.questions.findIndex((question) => (question.kind === 'single_choice' || question.kind === 'multi_choice') && (question.options || []).filter((option) => option.trim()).length < 2);
-    if (noOptions >= 0) return `A pergunta ${noOptions + 1} precisa de ao menos duas opções.`;
+    const noOptions = next.questions.findIndex((question) => (question.kind === 'single_choice' || question.kind === 'multi_choice') && (question.options || []).filter((option) => option.trim()).length < (question.kind === 'single_choice' ? 1 : 2));
+    if (noOptions >= 0) return `A pergunta ${noOptions + 1} precisa de opções (escolha única: ao menos uma; múltipla: ao menos duas).`;
     return '';
   }
 
   async function save(override?: Partial<FormRecord>) {
     if (!supabase) return;
-    const next = { ...draft, ...override, questions: (override?.questions || draft.questions).map((question) => ({ ...question, label: question.label.trim(), options: question.options?.map((option) => option.trim()).filter(Boolean) })) };
+    const next = { ...draft, ...override, questions: (override?.questions || draft.questions).map((question) => { const options = question.options?.map((option) => option.trim()).filter(Boolean); const valid = question.kind === 'yes_no' ? ['Sim', 'Não'] : question.kind === 'single_choice' ? options || [] : []; const logic = (question.logic || []).filter((rule) => rule.goTo && valid.includes(rule.when)); return { ...question, label: question.label.trim(), options, logic: logic.length ? logic : undefined }; }) };
     const problem = problems(next);
     if (problem) { setNote({ text: problem, failed: true }); return; }
     setSaving(true); setNote(null);
@@ -203,7 +203,7 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
         <ol className="v2-forms-questions">{draft.questions.map((question, index) => <li key={question.id} className="v2-forms-q">
           <div className="v2-forms-q-head">
             <b>{index + 1}</b>
-            <select value={question.kind} aria-label="Tipo da pergunta" onChange={(event) => { const kind = event.target.value as QuestionKind; const fresh = newQuestion(kind); patchQuestion(question.id, { kind, options: question.options?.length ? question.options : fresh.options, scaleMin: fresh.scaleMin ?? question.scaleMin, scaleMax: fresh.scaleMax ?? question.scaleMax, minLabel: question.minLabel ?? fresh.minLabel, maxLabel: question.maxLabel ?? fresh.maxLabel, required: kind === 'statement' ? false : question.required }); }}>{KIND_ORDER.map((kind) => <option key={kind} value={kind}>{KIND_LABELS[kind]}</option>)}</select>
+            <select value={question.kind} aria-label="Tipo da pergunta" onChange={(event) => { const kind = event.target.value as QuestionKind; const fresh = newQuestion(kind); patchQuestion(question.id, { kind, options: question.options?.length ? question.options : fresh.options, scaleMin: fresh.scaleMin ?? question.scaleMin, scaleMax: fresh.scaleMax ?? question.scaleMax, minLabel: question.minLabel ?? fresh.minLabel, maxLabel: question.maxLabel ?? fresh.maxLabel, required: kind === 'statement' ? false : question.required, logic: kind === question.kind ? question.logic : undefined }); }}>{KIND_ORDER.map((kind) => <option key={kind} value={kind}>{KIND_LABELS[kind]}</option>)}</select>
             {question.kind !== 'statement' && <label className="v2-forms-required"><input type="checkbox" checked={Boolean(question.required)} onChange={(event) => patchQuestion(question.id, { required: event.target.checked })} /> Obrigatória</label>}
             <span className="v2-forms-q-tools">
               <button type="button" aria-label="Subir" disabled={index === 0} onClick={() => move(index, -1)}><ArrowUp size={15} /></button>
@@ -215,6 +215,10 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
           <input className="v2-forms-q-label" value={question.label} maxLength={400} placeholder={question.kind === 'statement' ? 'Texto que aparece na tela' : 'Escreva a pergunta'} onChange={(event) => patchQuestion(question.id, { label: event.target.value })} />
           <input className="v2-forms-q-help" value={question.help || ''} maxLength={400} placeholder="Explicação curta abaixo da pergunta (opcional)" onChange={(event) => patchQuestion(question.id, { help: event.target.value })} />
           {(question.kind === 'single_choice' || question.kind === 'multi_choice') && <label className="v2-forms-options"><span>Opções, uma por linha</span><textarea rows={Math.max(3, (question.options || []).length + 1)} value={(question.options || []).join('\n')} onChange={(event) => patchQuestion(question.id, { options: event.target.value.split('\n').slice(0, 26) })} /></label>}
+          {(question.kind === 'single_choice' || question.kind === 'yes_no') && choiceOptions(question).length > 0 && <details className="v2-forms-logic" open={Boolean(question.logic?.length)}>
+            <summary>Pergunta condicional <em>{question.logic?.length ? `${question.logic.length} regra(s)` : 'opcional · leva a pessoa para outra pergunta conforme a resposta'}</em></summary>
+            {choiceOptions(question).map((option) => { const rule = question.logic?.find((item) => item.when === option); return <label key={option}><span>Se responder <b>{option}</b>, ir para</span><select value={rule?.goTo || ''} onChange={(event) => { const others = (question.logic || []).filter((item) => item.when !== option); patchQuestion(question.id, { logic: event.target.value ? [...others, { when: option, goTo: event.target.value }] : others }); }}><option value="">a próxima pergunta</option>{draft.questions.slice(index + 1).map((target) => <option key={target.id} value={target.id}>{draft.questions.indexOf(target) + 1}. {stripRichText(target.label).slice(0, 70) || 'Pergunta sem texto'}</option>)}<option value={END_OF_FORM}>encerrar e enviar</option></select></label>; })}
+          </details>}
           {question.kind === 'scale' && <div className="v2-forms-scale">
             <label><span>De</span><select value={question.scaleMin ?? 0} onChange={(event) => patchQuestion(question.id, { scaleMin: Number(event.target.value) })}>{[0, 1].map((value) => <option key={value}>{value}</option>)}</select></label>
             <label><span>Até</span><select value={question.scaleMax ?? 10} onChange={(event) => patchQuestion(question.id, { scaleMax: Number(event.target.value) })}>{[3, 4, 5, 6, 7, 8, 9, 10].map((value) => <option key={value}>{value}</option>)}</select></label>
@@ -291,9 +295,13 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
     return rows.filter((row) => [row.respondent_name, row.respondent_email, ...columns.map((question) => formatAnswer(question, row.answers[question.id]))].join(' ').toLowerCase().includes(term));
   }, [rows, query, columns]);
 
-  function exportExcel() {
-    const header = ['Data', ...columns.map((question) => question.label)];
-    const body = filtered.map((row) => [dateTime(row.submitted_at), ...columns.map((question) => { const value = row.answers[question.id]; return typeof value === 'number' ? value : formatAnswer(question, value); })]);
+  async function exportExcel() {
+    const header = ['Data', ...columns.map((question) => stripRichText(question.label))];
+    // Arquivos saem como link: os do app valem 30 dias; os importados (Drive) seguem o link original.
+    const paths = filtered.flatMap((row) => columns.filter((question) => question.kind === 'file').map((question) => row.answers[question.id])).filter((value): value is string => typeof value === 'string' && !!value && !/^https?:/.test(value));
+    const links: Record<string, string> = {};
+    if (paths.length && supabase) { const signed = await supabase.storage.from('cali-forms').createSignedUrls(paths, 30 * 86400); for (const item of signed.data || []) if (item.path && item.signedUrl) links[item.path] = item.signedUrl; }
+    const body = filtered.map((row) => [dateTime(row.submitted_at), ...columns.map((question) => { const value = row.answers[question.id]; if (question.kind === 'file' && typeof value === 'string' && value) return /^https?:/.test(value) ? value : links[value] || value; return typeof value === 'number' ? value : formatAnswer(question, value); })]);
     downloadXlsx(`cali-forms-${form.slug}-respostas.xlsx`, form.title, header, body);
   }
 
@@ -311,7 +319,7 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
       <label className="v2-forms-search"><Search size={15} /><input value={query} placeholder="Buscar nas respostas" onChange={(event) => setQuery(event.target.value)} /></label>
       <span className="v2-forms-total">{filtered.length} de {rows.length}</span>
       <button type="button" className="wf-secondary" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> Atualizar</button>
-      <button type="button" className="wf-primary" disabled={!filtered.length} onClick={exportExcel}><FileSpreadsheet size={15} /> Exportar Excel</button>
+      <button type="button" className="wf-primary" disabled={!filtered.length} onClick={() => void exportExcel()}><FileSpreadsheet size={15} /> Exportar Excel</button>
     </div>
     {error && <div className="inline-notice" role="alert">{error}</div>}
     {loading ? <div className="data-loading">Carregando respostas…</div> : !rows.length ? <div className="wf-empty"><strong>Nenhuma resposta ainda.</strong><p>{form.status === 'open' ? 'Assim que alguém responder, aparece aqui.' : 'Abra o formulário para respostas e compartilhe o link.'}</p></div>
@@ -319,12 +327,12 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
         <thead><tr><th>Data</th>{columns.map((question) => <th key={question.id} title={question.label}>{question.label}</th>)}</tr></thead>
         <tbody>{filtered.map((row) => <tr key={row.id} tabIndex={0} onClick={() => setSelected(row)} onKeyDown={(event) => { if (event.key === 'Enter') setSelected(row); }}>
           <td className="v2-forms-date">{dateTime(row.submitted_at)}</td>
-          {columns.map((question) => <td key={question.id}>{formatAnswer(question, row.answers[question.id]) || <span className="v2-forms-empty">—</span>}</td>)}
+          {columns.map((question) => <td key={question.id}>{question.kind === 'file' && row.answers[question.id] ? <FileLink value={String(row.answers[question.id])} /> : formatAnswer(question, row.answers[question.id]) || <span className="v2-forms-empty">—</span>}</td>)}
         </tr>)}</tbody>
       </table></div>}
     {selected && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><section className="ap-status-confirm v2-forms-answer" role="dialog" aria-modal="true" aria-label="Resposta">
       <div><small>RESPOSTA · {dateTime(selected.submitted_at)}</small><h2>{selected.respondent_name || 'Resposta recebida'}</h2>{selected.respondent_email && <p>{selected.respondent_email}{selected.confirmation_sent_at ? ' · confirmação enviada' : ''}</p>}</div>
-      <dl>{columns.map((question) => <div key={question.id}><dt>{question.label}</dt><dd>{formatAnswer(question, selected.answers[question.id]) || '—'}</dd></div>)}</dl>
+      <dl>{columns.map((question) => <div key={question.id}><dt>{question.label}</dt><dd>{question.kind === 'file' && selected.answers[question.id] ? <FileLink value={String(selected.answers[question.id])} /> : formatAnswer(question, selected.answers[question.id]) || '—'}</dd></div>)}</dl>
       <footer><button type="button" className="v2-forms-delete" disabled={deleting} onClick={() => void removeResponse(selected)}><Trash2 size={14} /> Apagar resposta</button><button type="button" onClick={() => setSelected(null)}>Fechar</button></footer>
     </section></div>}
   </div>;
@@ -359,4 +367,17 @@ function RichTextarea({ value, onChange, rows, maxLength, placeholder }: { value
     </div>
     <textarea ref={ref} rows={rows} maxLength={maxLength} value={value} placeholder={placeholder} onChange={(event) => onChange(event.target.value)} />
   </div>;
+}
+
+/** Arquivo enviado numa resposta: link do Drive (importados) ou link temporário do armazenamento do app. */
+function FileLink({ value }: { value: string }) {
+  const [busy, setBusy] = useState(false);
+  if (/^https?:\/\//.test(value)) return <a className="v2-forms-file" href={value} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()}><Paperclip size={13} /> Abrir arquivo</a>;
+  return <button type="button" className="v2-forms-file" disabled={busy} onClick={async (event) => {
+    event.stopPropagation(); if (!supabase) return; setBusy(true);
+    const opened = window.open('', '_blank');
+    const { data } = await supabase.storage.from('cali-forms').createSignedUrl(value, 600);
+    setBusy(false);
+    if (data?.signedUrl && opened) opened.location.href = data.signedUrl; else opened?.close();
+  }}><Paperclip size={13} /> {busy ? 'Abrindo…' : fileLabel(value)}</button>;
 }

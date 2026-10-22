@@ -95,6 +95,9 @@ export async function anonPublicRpc<T = unknown>(fn: string, args?: Record<strin
   }
 }
 
+/** Armazenamento sem sessão: envio de arquivos do CALI Forms por quem responde (política só para formulário aberto). */
+export const anonStorage = rawPublicSupabase ? rawPublicSupabase.storage : null;
+
 export const publicSupabase = rawPublicSupabase
   ? new Proxy(rawPublicSupabase, {
       get(target, prop, receiver) {

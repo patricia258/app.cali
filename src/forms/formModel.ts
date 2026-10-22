@@ -1,7 +1,7 @@
 /* CALI Forms: modelo comum à tela da administradora e à página pública (/f/:slug). As perguntas ficam numa lista
    JSON no próprio formulário (cali_workspace.forms.questions); as respostas, por id de pergunta, em form_responses. */
 
-export type QuestionKind = 'name' | 'email' | 'phone' | 'short_text' | 'long_text' | 'single_choice' | 'multi_choice' | 'scale' | 'yes_no' | 'date' | 'number' | 'statement';
+export type QuestionKind = 'name' | 'email' | 'phone' | 'short_text' | 'long_text' | 'single_choice' | 'multi_choice' | 'scale' | 'yes_no' | 'date' | 'number' | 'file' | 'statement';
 
 export type FormQuestion = {
   id: string;
@@ -14,7 +14,11 @@ export type FormQuestion = {
   scaleMax?: number;
   minLabel?: string;
   maxLabel?: string;
+  /** Pergunta condicional: se a resposta for `when`, segue para a pergunta `goTo` (id) ou END_OF_FORM. */
+  logic?: Array<{ when: string; goTo: string }>;
 };
+
+export const END_OF_FORM = '__end';
 
 export type FormStatus = 'draft' | 'open' | 'closed';
 export type FormAudience = 'cali' | 'client';
@@ -55,10 +59,11 @@ export const KIND_LABELS: Record<QuestionKind, string> = {
   yes_no: 'Sim ou não',
   date: 'Data',
   number: 'Número',
+  file: 'Arquivo ou foto',
   statement: 'Texto informativo (sem resposta)',
 };
 
-export const KIND_ORDER: QuestionKind[] = ['name', 'email', 'phone', 'short_text', 'long_text', 'single_choice', 'multi_choice', 'scale', 'yes_no', 'date', 'number', 'statement'];
+export const KIND_ORDER: QuestionKind[] = ['name', 'email', 'phone', 'short_text', 'long_text', 'single_choice', 'multi_choice', 'scale', 'yes_no', 'date', 'number', 'file', 'statement'];
 
 export const STATUS_LABELS: Record<FormStatus, string> = { draft: 'Rascunho', open: 'Recebendo respostas', closed: 'Encerrado' };
 
@@ -107,8 +112,15 @@ export function validateAnswer(question: FormQuestion, value: FormAnswer | undef
   return '';
 }
 
+export function fileLabel(value: string) {
+  if (/^https?:\/\//.test(value)) return 'Arquivo enviado (link)';
+  const last = value.split('/').pop() || value;
+  return last.replace(/^\d{10,}-/, '');
+}
+
 export function formatAnswer(question: FormQuestion, value: unknown) {
   if (value === undefined || value === null || value === '') return '';
+  if (question.kind === 'file' && typeof value === 'string') return fileLabel(value);
   if (Array.isArray(value)) return value.join(', ');
   if (question.kind === 'date' && typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value.split('-').reverse().join('/');
   return String(value);
@@ -126,4 +138,20 @@ export function richTextHtml(value: string) {
 
 export function stripRichText(value: string) {
   return value.replace(/\*\*([^*\n]+?)\*\*/g, '$1').replace(/__([^_\n]+?)__/g, '$1').replace(/(^|[^*])\*([^*\n]+?)\*/g, '$1$2');
+}
+
+/** Próxima pergunta, respeitando a lógica condicional da atual. Devolve -1 para encerrar. */
+export function nextQuestionIndex(questions: FormQuestion[], index: number, answer: FormAnswer | undefined) {
+  const current = questions[index];
+  const rule = current?.logic?.find((item) => item.goTo && (Array.isArray(answer) ? answer.includes(item.when) : String(answer ?? '') === item.when));
+  if (rule) {
+    if (rule.goTo === END_OF_FORM) return -1;
+    const target = questions.findIndex((question) => question.id === rule.goTo);
+    if (target > index) return target;
+  }
+  return index + 1 < questions.length ? index + 1 : -1;
+}
+
+export function choiceOptions(question: FormQuestion) {
+  return question.kind === 'yes_no' ? ['Sim', 'Não'] : question.kind === 'single_choice' ? (question.options || []).filter((option) => option.trim()) : [];
 }
