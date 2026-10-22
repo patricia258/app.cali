@@ -128,12 +128,14 @@ export function formatAnswer(question: FormQuestion, value: unknown) {
 
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
 
-/** Texto com marcação simples: **negrito**, *itálico*, __sublinhado__. Escapa o HTML antes de aplicar. */
+/** Texto com marcação simples: **negrito**, *itálico*, __sublinhado__ e links. Escapa o HTML antes de aplicar. */
 export function richTextHtml(value: string) {
   return escapeHtml(value)
     .replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
     .replace(/__([^_\n]+?)__/g, '<u>$1</u>')
-    .replace(/(^|[^*])\*([^*\n]+?)\*/g, '$1<em>$2</em>');
+    .replace(/(^|[^*])\*([^*\n]+?)\*/g, '$1<em>$2</em>')
+    // Links digitados viram clicáveis (abrem em nova aba).
+    .replace(/(https?:\/\/[^\s<]+[^\s<.,;:!?)])/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
 }
 
 export function stripRichText(value: string) {
