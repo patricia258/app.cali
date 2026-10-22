@@ -21,6 +21,7 @@ const esc = (value: unknown) => String(value ?? "")
 function answerText(question: Question, value: unknown) {
   if (value === undefined || value === null || value === "") return "—";
   if (Array.isArray(value)) return value.join(", ");
+  if (question.kind === "file") return "Arquivo enviado";
   if (question.kind === "date" && typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value.split("-").reverse().join("/");
   return String(value);
 }
@@ -66,7 +67,7 @@ Deno.serve(async (req: Request) => {
     if (response.confirmation_sent_at || !response.respondent_email || !form?.confirm_email) return new Response(JSON.stringify({ ok: true, skipped: true }), { headers });
 
     const answers = (response.answers ?? {}) as Record<string, unknown>;
-    const rows = (form.questions ?? []).filter((question) => question.kind !== "statement").map((question, index) => `<tr><td style="padding:11px 14px;${index ? "border-top:1px solid #EFE6DF;" : ""}font-size:12px;color:#8C807A;width:42%;vertical-align:top">${esc(question.label)}</td><td style="padding:11px 14px;${index ? "border-top:1px solid #EFE6DF;" : ""}font-size:14px;color:#2B2B2B;vertical-align:top;white-space:pre-wrap">${esc(answerText(question, answers[question.id]))}</td></tr>`).join("");
+    const rows = (form.questions ?? []).filter((question) => question.kind !== "statement" && answers[question.id] !== undefined).map((question, index) => `<tr><td style="padding:11px 14px;${index ? "border-top:1px solid #EFE6DF;" : ""}font-size:12px;color:#8C807A;width:42%;vertical-align:top">${esc(question.label.replace(/\*\*|__|\*/g, ""))}</td><td style="padding:11px 14px;${index ? "border-top:1px solid #EFE6DF;" : ""}font-size:14px;color:#2B2B2B;vertical-align:top;white-space:pre-wrap">${esc(answerText(question, answers[question.id]))}</td></tr>`).join("");
 
     const sent = await fetch("https://api.resend.com/emails", {
       method: "POST",
