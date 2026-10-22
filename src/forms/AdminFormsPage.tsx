@@ -3,7 +3,7 @@
    Nada aqui aparece para o cliente: a rota e o menu são só da administradora. */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ArrowDown, ArrowLeft, ArrowUp, Bold, Copy, Italic, Paperclip, Smile, Underline, Download, ExternalLink, FileSpreadsheet, ListChecks, Plus, QrCode, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, Bold, Check, Copy, Italic, Paperclip, Pencil, Smile, Underline, Download, ExternalLink, FileSpreadsheet, ListChecks, Plus, QrCode, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { Shell } from '../components/WorkspaceShell';
 import { supabase } from '../lib/supabase';
 import { downloadQrPng, downloadShareCard, downloadXlsx, qrDataUrl } from './formExports';
@@ -11,7 +11,7 @@ import { type FormAudience, type FormQuestion, type FormRecord, type QuestionKin
 import './admin-forms.css';
 
 type Overview = Record<string, { responses: number; last: string | null }>;
-type ResponseRow = { id: string; answers: Record<string, unknown>; respondent_name: string | null; respondent_email: string | null; submitted_at: string; confirmation_sent_at: string | null };
+type ResponseRow = { id: string; answers: Record<string, unknown>; respondent_name: string | null; respondent_email: string | null; submitted_at: string; confirmation_sent_at: string | null; contacted_at: string | null; admin_note: string | null };
 type Tab = 'questions' | 'share' | 'responses';
 
 const FORM_FIELDS = 'id,slug,title,description,thank_you,status,company_id,questions,confirm_email,category,audience,created_at,updated_at';
@@ -95,9 +95,10 @@ export function AdminFormsPage() {
       <div className="wf-controls v2-forms-filter"><div className="wf-segments">{([['all', 'Todos'], ['cali', AUDIENCE_LABELS.cali], ['client', AUDIENCE_LABELS.client]] as Array<['all' | FormAudience, string]>).map(([key, label]) => <button type="button" key={key} className={audienceFilter === key ? 'on' : ''} onClick={() => setAudienceFilter(key)}>{label} <b>{key === 'all' ? forms.length : forms.filter((form) => form.audience === key).length}</b></button>)}</div></div>
       <div className="wf-group-head"><div><span>FORMULÁRIOS</span><strong>{audienceFilter === 'all' ? 'Todos os formulários' : audienceFilter === 'cali' ? 'Formulários da CALI' : 'Formulários para clientes'}</strong></div><b>{visible.length}</b></div>
       {loading ? <div className="data-loading">Carregando formulários…</div> : visible.length ? <div className="wf-records v2-forms-list">
-        <div className="wf-record-row header"><span>Formulário</span><span>Situação</span><span>Respostas</span><span>Última resposta</span><span>Atualizado</span><span /></div>
+        <div className="wf-record-row header"><span>Formulário</span><span>Para quem</span><span>Situação</span><span>Respostas</span><span>Última resposta</span><span>Atualizado</span><span /></div>
         {visible.map((form) => <div className="wf-record-row" key={form.id} role="button" tabIndex={0} onClick={() => go(form.id)} onKeyDown={(event) => { if (event.key === 'Enter') go(form.id); }}>
-          <span className="v2-forms-name"><strong>{form.title}</strong><small><span className={`v2-forms-aud ${form.audience}`}>{form.audience === 'client' ? (companies.find((company) => company.id === form.company_id)?.name || 'Cliente') : 'CALI'}</span> {form.category} · {PUBLIC_FORM_BASE.replace('https://', '')}{form.slug}</small></span>
+          <span className="v2-forms-name"><strong>{form.title}</strong><small>{PUBLIC_FORM_BASE.replace('https://', '')}{form.slug}</small></span>
+          <span><span className={`v2-forms-aud ${form.audience}`}>{form.audience === 'client' ? (companies.find((company) => company.id === form.company_id)?.name || 'Cliente') : 'CALI'}</span></span>
           <span><span className={`v2-forms-status ${form.status}`}>{STATUS_LABELS[form.status]}</span></span>
           <span className="v2-forms-count">{overview[form.id]?.responses || 0}</span>
           <span>{shortDate(overview[form.id]?.last)}</span>
@@ -276,66 +277,130 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
-  const [selected, setSelected] = useState<ResponseRow | null>(null);
+  const [contactFilter, setContactFilter] = useState<'all' | 'pending' | 'done'>('all');
+  const [answerFilter, setAnswerFilter] = useState('');
+  const [sort, setSort] = useState<{ key: string; dir: 1 | -1 }>({ key: 'date', dir: -1 });
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [noteFor, setNoteFor] = useState<{ row: ResponseRow; text: string; busy: boolean } | null>(null);
+  const [toast, setToast] = useState('');
   const columns = useMemo(() => form.questions.filter(isAnswerable), [form.questions]);
+  const choiceColumns = useMemo(() => columns.filter((question) => ['single_choice', 'multi_choice', 'yes_no', 'scale'].includes(question.kind)), [columns]);
 
   async function load() {
     if (!supabase) return;
     setLoading(true); setError('');
-    const { data, error: loadError } = await supabase.from('form_responses').select('id,answers,respondent_name,respondent_email,submitted_at,confirmation_sent_at').eq('form_id', form.id).order('submitted_at', { ascending: false }).limit(5000);
+    const { data, error: loadError } = await supabase.from('form_responses').select('id,answers,respondent_name,respondent_email,submitted_at,confirmation_sent_at,contacted_at,admin_note').eq('form_id', form.id).order('submitted_at', { ascending: false }).limit(5000);
     if (loadError) setError(errorText(loadError, 'Não foi possível carregar as respostas.')); else setRows((data || []) as ResponseRow[]);
-    setLoading(false);
+    setLoading(false); setSelected(new Set());
   }
   useEffect(() => { void load(); }, [form.id]);
 
+  const textOf = (question: FormQuestion, row: ResponseRow) => formatAnswer(question, row.answers[question.id]);
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
-    if (!term) return rows;
-    return rows.filter((row) => [row.respondent_name, row.respondent_email, ...columns.map((question) => formatAnswer(question, row.answers[question.id]))].join(' ').toLowerCase().includes(term));
-  }, [rows, query, columns]);
+    const [filterId, filterValue] = answerFilter ? answerFilter.split('::') : ['', ''];
+    const list = rows.filter((row) => {
+      if (contactFilter === 'pending' && row.contacted_at) return false;
+      if (contactFilter === 'done' && !row.contacted_at) return false;
+      if (filterId) { const value = row.answers[filterId]; if (Array.isArray(value) ? !value.map(String).includes(filterValue) : String(value ?? '') !== filterValue) return false; }
+      if (!term) return true;
+      return [row.respondent_name, row.respondent_email, row.admin_note, ...columns.map((question) => textOf(question, row))].join(' ').toLowerCase().includes(term);
+    });
+    const key = sort.key;
+    const valueOf = (row: ResponseRow): string | number => key === 'date' ? row.submitted_at : key === 'contact' ? (row.contacted_at || '') : key === 'note' ? (row.admin_note || '') : (() => { const question = columns.find((item) => item.id === key); const raw = row.answers[key]; return typeof raw === 'number' ? raw : question ? textOf(question, row) : ''; })();
+    return [...list].sort((a, b) => { const x = valueOf(a), y = valueOf(b); if (x === y) return 0; if (x === '' ) return 1; if (y === '') return -1; return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'pt-BR', { sensitivity: 'base' })) * sort.dir; });
+  }, [rows, query, columns, contactFilter, answerFilter, sort]);
+
+  function flash(message: string) { setToast(message); window.setTimeout(() => setToast((current) => current === message ? '' : current), 1800); }
+  function copy(text: string) { if (!text) return; void navigator.clipboard.writeText(text).then(() => flash(`Copiado: ${text.length > 40 ? `${text.slice(0, 40)}…` : text}`)); }
+  function sortBy(key: string) { setSort((current) => current.key === key ? { key, dir: current.dir === 1 ? -1 : 1 } : { key, dir: key === 'date' ? -1 : 1 }); }
+  const sortMark = (key: string) => sort.key === key ? (sort.dir === 1 ? ' ↑' : ' ↓') : '';
+  const allChecked = filtered.length > 0 && filtered.every((row) => selected.has(row.id));
+  function toggle(id: string) { setSelected((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; }); }
 
   async function exportExcel() {
-    const header = ['Data', ...columns.map((question) => stripRichText(question.label))];
+    const header = ['Data', ...columns.map((question) => stripRichText(question.label)), 'Contato', 'Nota interna'];
     // Arquivos saem como link: os do app valem 30 dias; os importados (Drive) seguem o link original.
     const paths = filtered.flatMap((row) => columns.filter((question) => question.kind === 'file').map((question) => row.answers[question.id])).filter((value): value is string => typeof value === 'string' && !!value && !/^https?:/.test(value));
     const links: Record<string, string> = {};
     if (paths.length && supabase) { const signed = await supabase.storage.from('cali-forms').createSignedUrls(paths, 30 * 86400); for (const item of signed.data || []) if (item.path && item.signedUrl) links[item.path] = item.signedUrl; }
-    const body = filtered.map((row) => [dateTime(row.submitted_at), ...columns.map((question) => { const value = row.answers[question.id]; if (question.kind === 'file' && typeof value === 'string' && value) return /^https?:/.test(value) ? value : links[value] || value; return typeof value === 'number' ? value : formatAnswer(question, value); })]);
+    const body = filtered.map((row) => [dateTime(row.submitted_at), ...columns.map((question) => { const value = row.answers[question.id]; if (question.kind === 'file' && typeof value === 'string' && value) return /^https?:/.test(value) ? value : links[value] || value; return typeof value === 'number' ? value : formatAnswer(question, value); }), row.contacted_at ? `Sim · ${dateTime(row.contacted_at)}` : 'Não', row.admin_note || '']);
     downloadXlsx(`cali-forms-${form.slug}-respostas.xlsx`, form.title, header, body);
   }
 
-  async function removeResponse(row: ResponseRow) {
-    if (!supabase || !window.confirm('Apagar esta resposta? Não dá para desfazer.')) return;
+  async function setContacted(row: ResponseRow, done: boolean) {
+    if (!supabase) return;
+    const contacted_at = done ? new Date().toISOString() : null;
+    setRows((current) => current.map((item) => item.id === row.id ? { ...item, contacted_at } : item));
+    const { error: updateError } = await supabase.from('form_responses').update({ contacted_at }).eq('id', row.id);
+    if (updateError) { setError(errorText(updateError, 'Não foi possível marcar o contato.')); setRows((current) => current.map((item) => item.id === row.id ? { ...item, contacted_at: row.contacted_at } : item)); }
+  }
+
+  async function saveNote() {
+    if (!supabase || !noteFor) return;
+    setNoteFor({ ...noteFor, busy: true });
+    const admin_note = noteFor.text.trim() || null;
+    const { error: updateError } = await supabase.from('form_responses').update({ admin_note }).eq('id', noteFor.row.id);
+    if (updateError) { setError(errorText(updateError, 'Não foi possível salvar a nota.')); setNoteFor({ ...noteFor, busy: false }); return; }
+    setRows((current) => current.map((item) => item.id === noteFor.row.id ? { ...item, admin_note } : item)); setNoteFor(null);
+  }
+
+  async function removeSelected() {
+    if (!supabase || !selected.size) return;
     setDeleting(true);
-    const { error: deleteError } = await supabase.from('form_responses').delete().eq('id', row.id);
-    setDeleting(false);
-    if (deleteError) { setError(errorText(deleteError, 'Não foi possível apagar.')); return; }
-    setRows((current) => current.filter((item) => item.id !== row.id)); setSelected(null);
+    const ids = [...selected];
+    const { error: deleteError } = await supabase.from('form_responses').delete().in('id', ids);
+    setDeleting(false); setConfirmDelete(false);
+    if (deleteError) { setError(errorText(deleteError, 'Não foi possível excluir.')); return; }
+    setRows((current) => current.filter((item) => !selected.has(item.id))); setSelected(new Set()); flash(`${ids.length} ${ids.length === 1 ? 'resposta excluída' : 'respostas excluídas'}`);
   }
 
   return <div className="v2-forms-responses">
     <div className="wf-controls v2-forms-controls">
       <label className="v2-forms-search"><Search size={15} /><input value={query} placeholder="Buscar nas respostas" onChange={(event) => setQuery(event.target.value)} /></label>
+      <select className="v2-forms-filter-select" aria-label="Contato" value={contactFilter} onChange={(event) => setContactFilter(event.target.value as typeof contactFilter)}><option value="all">Contato: todos</option><option value="pending">Ainda sem contato</option><option value="done">Já contatados</option></select>
+      {choiceColumns.length > 0 && <select className="v2-forms-filter-select" aria-label="Filtrar por resposta" value={answerFilter} onChange={(event) => setAnswerFilter(event.target.value)}><option value="">Filtrar por resposta</option>{choiceColumns.map((question) => <optgroup key={question.id} label={stripRichText(question.label).slice(0, 60)}>{(question.kind === 'yes_no' ? ['Sim', 'Não'] : question.kind === 'scale' ? scaleOptions(question) : question.options || []).map((option) => <option key={option} value={`${question.id}::${option}`}>{option}</option>)}</optgroup>)}</select>}
       <span className="v2-forms-total">{filtered.length} de {rows.length}</span>
       <button type="button" className="wf-secondary" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> Atualizar</button>
       <button type="button" className="wf-primary" disabled={!filtered.length} onClick={() => void exportExcel()}><FileSpreadsheet size={15} /> Exportar Excel</button>
     </div>
+    {selected.size > 0 && <div className="v2-forms-selbar" role="status"><strong>{selected.size} {selected.size === 1 ? 'resposta selecionada' : 'respostas selecionadas'}</strong><button type="button" className="v2-forms-delete" onClick={() => setConfirmDelete(true)}><Trash2 size={14} /> Excluir</button><button type="button" className="wf-secondary" onClick={() => setSelected(new Set())}>Limpar seleção</button></div>}
     {error && <div className="inline-notice" role="alert">{error}</div>}
     {loading ? <div className="data-loading">Carregando respostas…</div> : !rows.length ? <div className="wf-empty"><strong>Nenhuma resposta ainda.</strong><p>{form.status === 'open' ? 'Assim que alguém responder, aparece aqui.' : 'Abra o formulário para respostas e compartilhe o link.'}</p></div>
       : <div className="v2-forms-table-wrap"><table className="v2-forms-table">
-        <thead><tr><th>Data</th>{columns.map((question) => <th key={question.id} title={question.label}>{question.label}</th>)}</tr></thead>
-        <tbody>{filtered.map((row) => <tr key={row.id} tabIndex={0} onClick={() => setSelected(row)} onKeyDown={(event) => { if (event.key === 'Enter') setSelected(row); }}>
-          <td className="v2-forms-date">{dateTime(row.submitted_at)}</td>
-          {columns.map((question) => <td key={question.id}>{question.kind === 'file' && row.answers[question.id] ? <FileLink value={String(row.answers[question.id])} /> : formatAnswer(question, row.answers[question.id]) || <span className="v2-forms-empty">—</span>}</td>)}
+        <thead><tr>
+          <th className="v2-forms-check-col"><input type="checkbox" aria-label="Selecionar todas" checked={allChecked} onChange={() => setSelected(allChecked ? new Set() : new Set(filtered.map((row) => row.id)))} /></th>
+          <th className="v2-forms-date-col"><button type="button" onClick={() => sortBy('date')}>Data{sortMark('date')}</button></th>
+          <th><button type="button" onClick={() => sortBy('contact')}>Contato{sortMark('contact')}</button></th>
+          <th><button type="button" onClick={() => sortBy('note')}>Nota{sortMark('note')}</button></th>
+          {columns.map((question) => <th key={question.id} title={stripRichText(question.label)}><button type="button" onClick={() => sortBy(question.id)}>{stripRichText(question.label)}{sortMark(question.id)}</button></th>)}
+        </tr></thead>
+        <tbody>{filtered.map((row) => <tr key={row.id} className={selected.has(row.id) ? 'is-selected' : ''}>
+          <td className="v2-forms-check-col"><input type="checkbox" aria-label="Selecionar resposta" checked={selected.has(row.id)} onChange={() => toggle(row.id)} /></td>
+          <td className="v2-forms-date v2-forms-date-col">{dateTime(row.submitted_at)}</td>
+          <td><label className={`v2-forms-contact${row.contacted_at ? ' done' : ''}`} title={row.contacted_at ? `Contato marcado em ${dateTime(row.contacted_at)}` : 'Marcar que entrei em contato'}><input type="checkbox" checked={Boolean(row.contacted_at)} onChange={(event) => void setContacted(row, event.target.checked)} />{row.contacted_at ? 'Contatado' : 'Pendente'}</label></td>
+          <td><button type="button" className={`v2-forms-note${row.admin_note ? ' has' : ''}`} title={row.admin_note || 'Adicionar nota'} onClick={() => setNoteFor({ row, text: row.admin_note || '', busy: false })}><Pencil size={12} /> {row.admin_note ? (row.admin_note.length > 28 ? `${row.admin_note.slice(0, 28)}…` : row.admin_note) : 'Nota'}</button></td>
+          {columns.map((question) => { const raw = row.answers[question.id]; const text = textOf(question, row); if (question.kind === 'file' && raw) return <td key={question.id}><FileLink value={String(raw)} /></td>; return <td key={question.id} className={text ? 'v2-forms-copy' : ''} title={text ? `${text}\n\nClique para copiar` : undefined} onClick={() => copy(text)}>{text || <span className="v2-forms-empty">—</span>}{text && <Copy size={12} className="v2-forms-copy-ico" aria-hidden="true" />}</td>; })}
         </tr>)}</tbody>
       </table></div>}
-    {selected && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><section className="ap-status-confirm v2-forms-answer" role="dialog" aria-modal="true" aria-label="Resposta">
-      <div><small>RESPOSTA · {dateTime(selected.submitted_at)}</small><h2>{selected.respondent_name || 'Resposta recebida'}</h2>{selected.respondent_email && <p>{selected.respondent_email}{selected.confirmation_sent_at ? ' · confirmação enviada' : ''}</p>}</div>
-      <dl>{columns.map((question) => <div key={question.id}><dt>{question.label}</dt><dd>{question.kind === 'file' && selected.answers[question.id] ? <FileLink value={String(selected.answers[question.id])} /> : formatAnswer(question, selected.answers[question.id]) || '—'}</dd></div>)}</dl>
-      <footer><button type="button" className="v2-forms-delete" disabled={deleting} onClick={() => void removeResponse(selected)}><Trash2 size={14} /> Apagar resposta</button><button type="button" onClick={() => setSelected(null)}>Fechar</button></footer>
+    {toast && <div className="v2-forms-toast" role="status"><Check size={14} /> {toast}</div>}
+    {noteFor && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !noteFor.busy) setNoteFor(null); }}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Nota interna">
+      <div><small>NOTA INTERNA · SÓ VOCÊ VÊ</small><h2>{noteFor.row.respondent_name || 'Resposta'}</h2><p>{dateTime(noteFor.row.submitted_at)}{noteFor.row.respondent_email ? ` · ${noteFor.row.respondent_email}` : ''}</p></div>
+      <label>Nota<textarea rows={4} maxLength={2000} autoFocus value={noteFor.text} placeholder="Ex.: liguei em 22/10, confirmou presença." onChange={(event) => setNoteFor({ ...noteFor, text: event.target.value })} /></label>
+      <footer><button type="button" disabled={noteFor.busy} onClick={() => setNoteFor(null)}>Cancelar</button><button type="button" disabled={noteFor.busy} onClick={() => void saveNote()}>{noteFor.busy ? 'Salvando…' : 'Salvar nota'}</button></footer>
+    </section></div>}
+    {confirmDelete && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !deleting) setConfirmDelete(false); }}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Excluir respostas">
+      <div><small>CALI FORMS</small><h2>Excluir {selected.size === 1 ? 'resposta' : `${selected.size} respostas`}?</h2><p>{rows.filter((row) => selected.has(row.id)).slice(0, 4).map((row) => row.respondent_name || dateTime(row.submitted_at)).join(', ')}{selected.size > 4 ? ` e mais ${selected.size - 4}` : ''}. Não dá para desfazer.</p></div>
+      <footer><button type="button" disabled={deleting} onClick={() => setConfirmDelete(false)}>Cancelar</button><button type="button" className="danger" disabled={deleting} onClick={() => void removeSelected()}>{deleting ? 'Excluindo…' : 'Excluir'}</button></footer>
     </section></div>}
   </div>;
+}
+
+function scaleOptions(question: FormQuestion) {
+  const min = question.scaleMin ?? 0, max = question.scaleMax ?? 10;
+  return Array.from({ length: Math.max(0, max - min + 1) }, (_, index) => String(min + index));
 }
 
 /** Caixa de texto com negrito, itálico, sublinhado e emoji. Guarda marcação simples (**, *, __) que a página pública converte. */
