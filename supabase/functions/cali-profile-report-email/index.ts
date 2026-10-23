@@ -1,4 +1,4 @@
-// Perfil Comportamental CALI: envia ao respondente o relatório em PDF (anexo) e o link do relatório online.
+// Perfil Comportamental CALI: envia ao respondente o relatório em PDF (anexo). Sem link para ver na tela (decisão de 23/10).
 // Chamado só pelo banco (public.cali_profile_report_ready), com o segredo x-workspace-hook.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
@@ -22,7 +22,7 @@ const NAMES: Record<string, { name: string; line: string }> = {
 const esc = (value: unknown) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 const slug = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "perfil";
 
-function html(name: string, primary: string, secondary: string, mixed: boolean, url: string) {
+function html(name: string, primary: string, secondary: string, mixed: boolean) {
   const p = NAMES[primary], s = NAMES[secondary];
   const profile = mixed ? `perfil misto: ${esc(p.name)} e ${esc(s.name)}` : `${esc(p.name)}, com traço ${esc(s.name)}`;
   return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#F7F3EE;font-family:Arial,Helvetica,sans-serif;color:#2B2B2B">
@@ -36,8 +36,7 @@ function html(name: string, primary: string, secondary: string, mixed: boolean, 
         <h1 style="font-size:24px;line-height:1.25;color:#5A1E2D;margin:0 0 14px">Olá, ${esc(name.split(" ")[0])}. Seu relatório está pronto.</h1>
         <p style="font-size:15px;line-height:1.65;margin:0 0 18px">Obrigada por responder. Seu resultado: <strong>${profile}</strong>.</p>
         <div style="margin:0 0 22px;padding:16px 18px;border:1px solid #E8DDD4;border-left:4px solid #5A1E2D;border-radius:12px;background:#FBF7F3;font-size:14px;line-height:1.6">${esc(p.line)}</div>
-        <p style="font-size:14px;line-height:1.65;margin:0 0 22px">O relatório completo está em anexo, em PDF. Você também pode abri-lo pelo botão abaixo.</p>
-        <div style="text-align:center;margin:0 0 24px"><a href="${esc(url)}" style="display:inline-block;background:#5A1E2D;color:#fff;text-decoration:none;font-size:14px;font-weight:700;padding:13px 22px;border-radius:999px">Abrir meu relatório</a></div>
+        <p style="font-size:14px;line-height:1.65;margin:0 0 22px">O seu relatório completo está em anexo, em PDF. Guarde este e-mail: ele é a sua cópia.</p>
         <p style="font-size:12px;line-height:1.6;color:#8C807A;margin:0">Autoavaliação de preferências comportamentais de trabalho. Não é avaliação psicológica, não mede competência e não serve de base isolada para decisão de contratação. O resultado descreve como você se posiciona hoje e vale como leitura atual por 6 meses. Dúvidas, revisão ou exclusão dos seus dados: privacidade@calirh.com.</p>
       </td></tr>
       <tr><td style="padding:16px 30px;border-top:1px solid #EFE6DF;font-size:11px;color:#8C807A">E-mail automático da CALI RH. Não responda esta mensagem.</td></tr>
@@ -53,20 +52,19 @@ Deno.serve(async (req: Request) => {
     if (!provided || !secretRow?.secret_value || provided !== secretRow.secret_value) return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), { status: 401, headers });
     const { result_id } = await req.json().catch(() => ({}));
     if (!result_id) return new Response(JSON.stringify({ ok: false, error: "missing result_id" }), { status: 400, headers });
-    const { data: row } = await ws.from("profile_results").select("id,person_name,email,primary_style,secondary_style,mixed,access_token,report_path,report_emailed_at").eq("id", result_id).maybeSingle();
+    const { data: row } = await ws.from("profile_results").select("id,person_name,email,primary_style,secondary_style,mixed,report_path,report_emailed_at").eq("id", result_id).maybeSingle();
     if (!row || !row.report_path) return new Response(JSON.stringify({ ok: false, error: "not ready" }), { status: 404, headers });
     if (row.report_emailed_at) return new Response(JSON.stringify({ ok: true, skipped: true }), { headers });
     const file = await ws.storage.from("cali-profiles").download(row.report_path);
     if (file.error || !file.data) return new Response(JSON.stringify({ ok: false, error: "pdf" }), { status: 500, headers });
     const content = encodeBase64(new Uint8Array(await file.data.arrayBuffer()));
-    const url = `${APP_URL}/perfil/relatorio/${row.access_token}`;
     const sent = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         from: FROM_EMAIL, to: [row.email], reply_to: REPLY_TO,
         subject: "Seu Perfil Comportamental CALI",
-        html: html(row.person_name, row.primary_style, row.secondary_style, row.mixed, url),
+        html: html(row.person_name, row.primary_style, row.secondary_style, row.mixed),
         attachments: [{ filename: `perfil-comportamental-cali-${slug(row.person_name)}.pdf`, content }],
       }),
     });

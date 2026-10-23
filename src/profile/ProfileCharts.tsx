@@ -26,7 +26,7 @@ export function ProfileRadar({ natural, pressure, size = 260 }: { natural: Pcts;
 const BAND_SHADE: Record<Band, string> = { Baixo: '#F7F3EE', Moderado: '#F1EAE3', Alto: '#EADFD6', 'Muito alto': '#E2D3C7' };
 
 /** Barras por estilo com faixas de fundo, o intervalo provável (escore ± margem) e o rótulo honesto da faixa. */
-export function ProfileBandBars({ values, margin }: { values: Pcts; margin: number }) {
+export function ProfileBandBars({ values, margin, plain }: { values: Pcts; margin: number; plain?: boolean }) {
   return <div className="cpr-bars">
     {STYLES.map((style) => { const { lo, hi } = rangeOf(values[style], margin); return <div className="cpr-bar-row" key={style}>
       <span className="cpr-bar-name" style={{ color: STYLE_CONTENT[style].ink }}><b>{style}</b> {STYLE_CONTENT[style].name}</span>
@@ -36,19 +36,19 @@ export function ProfileBandBars({ values, margin }: { values: Pcts; margin: numb
         <em style={{ left: `calc(${values[style]}% - 5px)`, background: STYLE_CONTENT[style].color }} />
         <s style={{ left: '50%' }} />
       </div>
-      <span className="cpr-bar-value"><strong>{values[style]}</strong><small>{lo}–{hi} · {bandText(values[style], margin)}</small></span>
+      <span className="cpr-bar-value">{!plain && <strong>{values[style]}</strong>}<small>{plain ? '' : `${lo}–${hi} · `}{bandText(values[style], margin)}</small></span>
     </div>; })}
     <div className="cpr-bar-legend"><span>0</span><span>Baixo</span><span>Moderado</span><span>Alto</span><span>Muito alto</span><span>100</span></div>
   </div>;
 }
 
 /** Dia comum x semana difícil, lado a lado por estilo: cada leitura com a sua margem, sem subtrair uma da outra. */
-export function TwinBands({ natural, pressure, naturalMargin, pressureMargin }: { natural: Pcts; pressure: Pcts; naturalMargin: number; pressureMargin: number }) {
+export function TwinBands({ natural, pressure, naturalMargin, pressureMargin, plain }: { natural: Pcts; pressure: Pcts; naturalMargin: number; pressureMargin: number; plain?: boolean }) {
   const row = (value: number, margin: number, style: Style, dashed?: boolean) => { const { lo, hi } = rangeOf(value, margin); return <div className={`cpr-twin-bar${dashed ? ' dashed' : ''}`}>
     <b style={{ left: `${lo}%`, width: `${hi - lo}%`, background: STYLE_CONTENT[style].color }} /><em style={{ left: `calc(${value}% - 4px)`, background: STYLE_CONTENT[style].color }} /><s />
   </div>; };
   return <div className="cpr-twin">
-    <div className="cpr-twin-head"><span /><span>Dia comum <small>(18 blocos, ±{naturalMargin})</small></span><span>Semana difícil <small>(6 blocos, ±{pressureMargin})</small></span></div>
+    <div className="cpr-twin-head"><span /><span>Dia comum {!plain && <small>(18 blocos, ±{naturalMargin})</small>}</span><span>Semana difícil {!plain && <small>(6 blocos, ±{pressureMargin})</small>}</span></div>
     {STYLES.map((style) => <div className="cpr-twin-row" key={style}>
       <span className="cpr-bar-name" style={{ color: STYLE_CONTENT[style].ink }}><b>{style}</b> {STYLE_CONTENT[style].name}</span>
       <div>{row(natural[style], naturalMargin, style)}<small>{bandText(natural[style], naturalMargin)}</small></div>
