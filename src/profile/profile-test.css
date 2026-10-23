@@ -30,3 +30,52 @@
   .cali-form-page.cali-profile-test .cpt-row>span{grid-column:1/-1;font-size:16px}
   .cali-form-page.cali-profile-test .cpt-row button{min-width:0;width:100%}
 }
+/* Abertura */
+.cali-form-page.cali-profile-test .cpt-welcome h1{font-size:clamp(28px,4.2vw,42px)}
+.cali-form-page.cali-profile-test .cpt-welcome h1 span{font-size:.8em}
+.cali-form-page.cali-profile-test .cf-desc b,.cali-form-page.cali-profile-test .cpt-consent b{color:var(--cf-ink)!important;font-weight:700}
+.cali-form-page.cali-profile-test .cf-desc em,.cali-form-page.cali-profile-test .cpt-consent em{font-style:italic}
+.cali-form-page.cali-profile-test .cpt-facts{list-style:none;margin:18px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:720px}
+.cali-form-page.cali-profile-test .cpt-facts li{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.75);border:1px solid rgba(90,30,45,.14);font-size:14px;line-height:1.35;color:var(--cf-muted)}
+.cali-form-page.cali-profile-test .cpt-facts li svg{flex:0 0 auto;color:var(--cf-wine)}
+.cali-form-page.cali-profile-test .cpt-facts b{color:var(--cf-ink)}
+.cali-form-page.cali-profile-test .cpt-consent-wrap{display:flex;gap:14px;align-items:flex-start;margin-top:22px;max-width:720px}
+.cali-form-page.cali-profile-test .cpt-hands{display:grid;place-items:center;width:52px;height:52px;flex:0 0 auto;border-radius:50%;background:#F3E3E8;color:var(--cf-wine)}
+.cali-form-page.cali-profile-test .cpt-consent-wrap .cpt-consent{margin-top:0;flex:1}
+.cali-form-page.cali-profile-test .cpt-consent span{font-size:13.5px!important}
+.cali-form-page.cali-profile-test .cpt-agree{display:block;margin-top:8px;color:var(--cf-wine)!important}
+/* Introdução das partes */
+.cali-form-page.cali-profile-test .cpt-intro h2 em{font-style:normal;border-bottom:none;background:linear-gradient(transparent 62%,#F3E3E8 62%);color:var(--cf-wine)}
+.cali-form-page.cali-profile-test .cpt-howto{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start;margin-top:18px;padding:16px 18px;border:1px solid rgba(90,30,45,.14);border-radius:14px;background:rgba(255,255,255,.7);max-width:760px}
+.cali-form-page.cali-profile-test .cpt-howto>strong{grid-column:1/-1;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--cf-gold)}
+.cali-form-page.cali-profile-test .cpt-howto ol{margin:0;padding-left:20px;font-size:15px;line-height:1.75;color:var(--cf-muted)}
+.cali-form-page.cali-profile-test .cpt-howto b{color:var(--cf-ink)}
+.cali-form-page.cali-profile-test .cpt-howto .tag{display:inline-block;padding:0 8px;border-radius:6px;color:#fff!important;font-size:13px}
+.cali-form-page.cali-profile-test .cpt-howto .tag.mais{background:#4F7A5B}
+.cali-form-page.cali-profile-test .cpt-howto .tag.menos{background:#9E5B4A}
+.cali-form-page.cali-profile-test .cpt-example{display:flex;flex-direction:column;gap:6px}
+.cali-form-page.cali-profile-test .cpt-example>span{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--cf-muted)}
+.cali-form-page.cali-profile-test .cpt-example .cpt-row{padding:6px 6px 6px 10px;gap:5px}
+.cali-form-page.cali-profile-test .cpt-example .cpt-row>span{font-size:13px}
+.cali-form-page.cali-profile-test .cpt-example i{font-style:normal;padding:4px 8px;border-radius:7px;border:1px solid rgba(90,30,45,.22);background:#fff;font-size:11px;font-weight:600;color:var(--cf-wine)}
+.cali-form-page.cali-profile-test .cpt-example i.mais.on{background:#4F7A5B;border-color:#4F7A5B;color:#fff}
+.cali-form-page.cali-profile-test .cpt-example i.menos.on{background:#9E5B4A;border-color:#9E5B4A;color:#fff}
+/* Final */
+.cali-form-page.cali-profile-test .cpt-review{align-items:center}
+.cali-form-page.cali-profile-test .cpt-done{position:relative;display:grid;place-items:center;width:84px;height:84px;border-radius:50%;background:var(--cf-wine);color:#fff;margin-bottom:12px;box-shadow:0 14px 34px rgba(90,30,45,.22)}
+.cali-form-page.cali-profile-test .cpt-done::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(90,30,45,.35);animation:cpt-pulse 1.8s ease-out infinite}
+@keyframes cpt-pulse{0%{transform:scale(.9);opacity:1}100%{transform:scale(1.25);opacity:0}}
+.cali-form-page.cali-profile-test .cpt-review .cf-actions{justify-content:center}
+.cali-form-page.cali-profile-test .cpt-link{border:0;background:none;color:var(--cf-wine);font:600 15px Inter,sans-serif;text-decoration:underline;cursor:pointer;margin-top:8px}
+/* Prévia do relatório */
+.cpt-preview-report{position:fixed;inset:0;z-index:20;background:#F7F3EE;overflow:auto}
+.cpt-preview-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:#FFF5E0;border-bottom:1px solid #F2DFB8;color:#7A5418;font:600 13px Inter,sans-serif}
+.cpt-preview-bar button{border:0;border-radius:8px;padding:8px 12px;background:#5A1E2D;color:#fff;font:600 13px Inter,sans-serif;cursor:pointer}
+.cpt-preview-pages{padding:24px 12px;display:flex;justify-content:center}
+@media (max-width:640px){
+  .cali-form-page.cali-profile-test .cpt-facts{grid-template-columns:1fr}
+  .cali-form-page.cali-profile-test .cpt-howto{grid-template-columns:1fr}
+  .cali-form-page.cali-profile-test .cpt-consent-wrap{flex-direction:column}
+  .cali-form-page.cali-profile-test .cpt-hands{width:44px;height:44px}
+}
+@media (max-width:640px){.cali-form-page.cali-profile-test .cf-foot{display:none}}

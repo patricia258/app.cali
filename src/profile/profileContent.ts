@@ -239,9 +239,10 @@ export function combinationOf(primary: Style, secondary: Style) {
 
 export const BAND_EXPLAIN = 'Faixas: Baixo (0–39), Moderado (40–59), Alto (60–79), Muito alto (80–100). 50 significa ausência de preferência: a pessoa marcou esse estilo como "mais" e "menos" na mesma medida.';
 
-export const CONSENT_TEXT = 'Este é um levantamento de perfil comportamental, feito para apoiar conversas de desenvolvimento e decisões de gestão. Não é exame psicológico, não mede competência e não tem resposta certa. Suas respostas ficam registradas e são acessadas por quem conduz o processo. Você pode pedir acesso ao seu resultado e à explicação do método a qualquer momento.';
+/** Texto do consentimento (aceita **negrito** e *itálico*; a tela converte). */
+export const CONSENT_TEXT = 'Este é um levantamento de **perfil comportamental**, baseado na metodologia **DISC**. Ele mostra *as suas preferências de comportamento no trabalho* — **não é exame psicológico** e **não avalia competência nem desempenho**. **Não existe resposta certa ou errada**: quanto mais *espontâneo* você for, mais útil o resultado será para você. Suas respostas ficam **registradas com segurança** e são acessadas apenas por quem conduz o processo. Você pode pedir acesso ao seu resultado e à explicação do método **quando quiser**.';
 
 export const DISCLAIMER = 'Leitura comportamental de triagem. Não é diagnóstico psicológico, não mede competência, desempenho nem potencial e não substitui avaliação profissional. Não deve ser usada como critério único de decisão.';
 
-export const NATURAL_INSTRUCTION = 'Responda pensando em como você costuma agir no trabalho na maior parte do tempo. Não é como você gostaria de ser, nem como age em um dia atípico. Não existe resposta certa.';
-export const PRESSURE_INSTRUCTION = 'Agora pense em uma semana difícil, com cobrança e prazo curto. Responda estes blocos pensando em como você age nessa semana.';
+export const NATURAL_INSTRUCTION = 'Responda pensando em **como você costuma agir** no trabalho na maior parte do tempo. *Não* é como você gostaria de ser, nem como age em um dia fora do normal.';
+export const PRESSURE_INSTRUCTION = 'Todos temos semanas boas e semanas difíceis. Agora imagine uma semana com **mais cobrança** e **prazos apertados** — pode ser uma que você já viveu ou uma situação hipotética. Responda os próximos **6 blocos** pensando em como você **age ou agiria** nessa semana.';

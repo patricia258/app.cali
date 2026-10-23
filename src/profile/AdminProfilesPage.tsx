@@ -2,17 +2,19 @@
    Link livre (qualquer pessoa informa a empresa) ou link de uma empresa (vincula à ficha pelo e-mail corporativo). */
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Copy, ExternalLink, FileDown, Plus, QrCode, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { Copy, Download, ExternalLink, FileDown, Pencil, Plus, QrCode, RefreshCw, Search, Share2, Trash2 } from 'lucide-react';
 import { Shell } from '../components/WorkspaceShell';
 import { supabase } from '../lib/supabase';
-import { downloadQrPng } from '../forms/formExports';
+import { downloadQrPng, downloadShareCard, qrDataUrl } from '../forms/formExports';
 import { slugify } from '../forms/formModel';
 import { STYLES, adaptationLevel, type Scores, type Style } from './profileMethod';
 import { STYLE_CONTENT } from './profileContent';
 import '../forms/admin-forms.css';
 import './profile-admin.css';
 
-type LinkRow = { id: string; slug: string; title: string; company_id: string | null; purpose: string; status: 'open' | 'closed'; created_at: string };
+type LinkRow = { id: string; slug: string; title: string; company_id: string | null; company_label: string | null; purpose: string; status: 'open' | 'closed'; created_at: string };
+type LinkDraft = { id?: string; title: string; slug: string; mode: 'free' | 'company' | 'other'; company_id: string; company_label: string; purpose: string; status: 'open' | 'closed'; busy: boolean; error: string };
+const LINK_FIELDS = 'id,slug,title,company_id,company_label,purpose,status,created_at';
 type ResultRow = { id: string; link_id: string | null; company_id: string | null; company_name: string | null; team_member_id: string | null; person_name: string; email: string; job_title: string | null; primary_style: Style; secondary_style: Style; mixed: boolean; scores: Scores; created_at: string; client_visible: boolean; report_path: string | null; report_emailed_at: string | null };
 const PURPOSE: Record<string, string> = { selecao: 'Seleção', desenvolvimento: 'Desenvolvimento', diagnostico: 'Diagnóstico' };
 const BASE = 'https://app.calirh.com/perfil/';
@@ -28,14 +30,16 @@ export function AdminProfilesPage() {
   const [toast, setToast] = useState('');
   const [query, setQuery] = useState('');
   const [companyFilter, setCompanyFilter] = useState('');
-  const [creating, setCreating] = useState<{ title: string; company_id: string; purpose: string; busy: boolean; error: string } | null>(null);
+  const [editing, setEditing] = useState<LinkDraft | null>(null);
+  const [sharing, setSharing] = useState<LinkRow | null>(null);
+  const [qr, setQr] = useState('');
   const [removing, setRemoving] = useState<ResultRow | null>(null);
 
   async function load() {
     if (!supabase) return;
     setLoading(true); setError('');
     const [linkRows, resultRows, companyRows] = await Promise.all([
-      supabase.from('profile_links').select('id,slug,title,company_id,purpose,status,created_at').order('created_at', { ascending: false }),
+      supabase.from('profile_links').select(LINK_FIELDS).order('created_at', { ascending: false }),
       supabase.from('profile_results').select('id,link_id,company_id,company_name,team_member_id,person_name,email,job_title,primary_style,secondary_style,mixed,scores,created_at,client_visible,report_path,report_emailed_at').order('created_at', { ascending: false }).limit(2000),
       supabase.from('companies').select('id,display_name,status').order('display_name'),
     ]);
@@ -48,22 +52,36 @@ export function AdminProfilesPage() {
   useEffect(() => { void load(); }, []);
 
   const companyName = (id: string | null, fallback?: string | null) => (id && companies.find((company) => company.id === id)?.name) || fallback || 'Link livre';
+  const linkCompany = (link: LinkRow) => link.company_id ? companyName(link.company_id) : link.company_label ? `${link.company_label} (não cadastrada)` : 'Link livre';
   const flash = (message: string) => { setToast(message); window.setTimeout(() => setToast((current) => current === message ? '' : current), 2200); };
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
     return results.filter((row) => (!companyFilter || (companyFilter === 'livre' ? !row.company_id : row.company_id === companyFilter)) && (!term || [row.person_name, row.email, row.job_title, row.company_name, companyName(row.company_id)].join(' ').toLowerCase().includes(term)));
   }, [results, query, companyFilter, companies]);
 
-  async function createLink() {
-    if (!supabase || !creating) return;
-    const title = creating.title.trim() || 'Perfil Comportamental CALI';
-    const company = companies.find((item) => item.id === creating.company_id);
-    const slug = `${slugify(company?.name || 'perfil').slice(0, 40) || 'perfil'}-${Math.random().toString(36).slice(2, 6)}`;
-    setCreating({ ...creating, busy: true, error: '' });
-    const { data, error: insertError } = await supabase.from('profile_links').insert({ slug, title, company_id: creating.company_id || null, purpose: creating.purpose }).select('id,slug,title,company_id,purpose,status,created_at').single();
-    if (insertError || !data) { setCreating({ ...creating, busy: false, error: insertError?.message || 'Não foi possível criar.' }); return; }
-    setLinks((current) => [data as LinkRow, ...current]); setCreating(null); setTab('links'); flash('Link criado.');
+  function newDraft(): LinkDraft { return { title: 'Perfil Comportamental CALI', slug: '', mode: 'free', company_id: '', company_label: '', purpose: 'desenvolvimento', status: 'open', busy: false, error: '' }; }
+  function editDraft(link: LinkRow): LinkDraft { return { id: link.id, title: link.title, slug: link.slug, mode: link.company_id ? 'company' : link.company_label ? 'other' : 'free', company_id: link.company_id || '', company_label: link.company_label || '', purpose: link.purpose, status: link.status, busy: false, error: '' }; }
+
+  async function saveLink() {
+    if (!supabase || !editing) return;
+    const title = editing.title.trim() || 'Perfil Comportamental CALI';
+    if (editing.mode === 'company' && !editing.company_id) { setEditing({ ...editing, error: 'Escolha a empresa.' }); return; }
+    if (editing.mode === 'other' && !editing.company_label.trim()) { setEditing({ ...editing, error: 'Digite o nome da empresa.' }); return; }
+    const company = companies.find((item) => item.id === editing.company_id);
+    const base = slugify(editing.mode === 'company' ? company?.name || 'perfil' : editing.mode === 'other' ? editing.company_label : 'perfil').slice(0, 40) || 'perfil';
+    const slug = editing.slug.trim() ? slugify(editing.slug) : `${base}-${Math.random().toString(36).slice(2, 6)}`;
+    if (slug.length < 3) { setEditing({ ...editing, error: 'O endereço precisa de pelo menos 3 letras ou números.' }); return; }
+    const payload = { title, slug, purpose: editing.purpose, status: editing.status, company_id: editing.mode === 'company' ? editing.company_id : null, company_label: editing.mode === 'other' ? editing.company_label.trim() : null };
+    setEditing({ ...editing, busy: true, error: '' });
+    const request = editing.id ? supabase.from('profile_links').update(payload).eq('id', editing.id) : supabase.from('profile_links').insert(payload);
+    const { data, error: saveError } = await request.select(LINK_FIELDS).single();
+    if (saveError || !data) { setEditing({ ...editing, busy: false, error: /duplicate|unique/i.test(saveError?.message || '') ? 'Este endereço já está em uso. Escolha outro.' : saveError?.message || 'Não foi possível salvar.' }); return; }
+    const saved = data as LinkRow;
+    setLinks((current) => editing.id ? current.map((item) => item.id === saved.id ? saved : item) : [saved, ...current]);
+    setEditing(null); setTab('links'); flash(editing.id ? 'Link atualizado.' : 'Link criado.');
   }
+
+  useEffect(() => { if (sharing) void qrDataUrl(`${BASE}${sharing.slug}`, 480).then(setQr); else setQr(''); }, [sharing]);
 
   async function patchLink(link: LinkRow, status: LinkRow['status']) {
     if (!supabase) return;
@@ -103,7 +121,7 @@ export function AdminProfilesPage() {
 
   return <Shell role="admin"><div className="ap-app v2-admin-page v2-forms v2-client-module"><div className="ap-content"><div className="wf">
     <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Perfil comportamental</h1><p>Levantamento de perfil (base DISC, método CALI v1): link livre ou por empresa, relatório da pessoa por e-mail e relatório do avaliador aqui e na ficha do colaborador.</p></div>
-      <div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> Atualizar</button><button className="wf-primary" type="button" onClick={() => setCreating({ title: 'Perfil Comportamental CALI', company_id: '', purpose: 'desenvolvimento', busy: false, error: '' })}><Plus size={15} /> Novo link</button></div></div>
+      <div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> Atualizar</button><button className="wf-primary" type="button" onClick={() => setEditing(newDraft())}><Plus size={15} /> Novo link</button></div></div>
     {error && <div className="inline-notice" role="alert">{error}</div>}
     <div className="wf-segments v2-forms-tabs" role="tablist"><button type="button" className={tab === 'results' ? 'on' : ''} onClick={() => setTab('results')}>Resultados ({results.length})</button><button type="button" className={tab === 'links' ? 'on' : ''} onClick={() => setTab('links')}>Links ({links.length})</button></div>
 
@@ -136,26 +154,43 @@ export function AdminProfilesPage() {
       : <div className="v2-forms-table-wrap"><table className="v2-forms-table cpa-table"><thead><tr><th>Link</th><th>Empresa</th><th>Contexto</th><th>Situação</th><th>Respostas</th><th /></tr></thead><tbody>
         {links.map((link) => <tr key={link.id}>
           <td><span className="cpa-person"><strong>{link.title}</strong><small>{BASE.replace('https://', '')}{link.slug}</small></span></td>
-          <td>{companyName(link.company_id)}</td>
+          <td>{linkCompany(link)}</td>
           <td>{PURPOSE[link.purpose]}</td>
-          <td><button type="button" className={`v2-forms-status ${link.status === 'open' ? 'open' : 'closed'}`} onClick={() => void patchLink(link, link.status === 'open' ? 'closed' : 'open')} title="Clique para alternar">{link.status === 'open' ? 'Recebendo respostas' : 'Encerrado'}</button></td>
+          <td><button type="button" className={`v2-forms-status ${link.status === 'open' ? 'open' : 'closed'}`} onClick={() => void patchLink(link, link.status === 'open' ? 'closed' : 'open')} title="Clique para alternar">{link.status === 'open' ? 'Recebendo respostas' : 'Bloqueado'}</button></td>
           <td>{results.filter((row) => row.link_id === link.id).length}</td>
           <td className="cpa-actions">
-            <button type="button" className="wf-secondary" onClick={() => { void navigator.clipboard.writeText(`${BASE}${link.slug}`).then(() => flash('Link copiado.')); }}><Copy size={14} /> Copiar</button>
-            <button type="button" className="v2-forms-edit" aria-label="Baixar QR Code" title="Baixar QR Code" onClick={() => void downloadQrPng(`${BASE}${link.slug}`, `perfil-${link.slug}-qrcode.png`)}><QrCode size={14} /></button>
+            <button type="button" className="wf-secondary" onClick={() => setSharing(link)}><Share2 size={14} /> Compartilhar</button>
+            <button type="button" className="v2-forms-edit" aria-label="Editar link" title="Editar link" onClick={() => setEditing(editDraft(link))}><Pencil size={14} /></button>
             <a className="v2-forms-edit" href={`/perfil/${link.slug}?previa=1`} target="_blank" rel="noopener noreferrer" aria-label="Ver como respondente" title="Ver como respondente"><ExternalLink size={14} /></a>
           </td>
         </tr>)}
       </tbody></table></div>)}
   </div></div>
   {toast && <div className="v2-forms-toast" role="status">{toast}</div>}
-  {creating && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !creating.busy) setCreating(null); }}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Novo link">
-    <div><small>PERFIL COMPORTAMENTAL</small><h2>Novo link</h2><p>Sem empresa, o link é livre: a pessoa informa onde trabalha. Com empresa, o resultado entra na ficha do colaborador (pelo e-mail corporativo).</p></div>
-    <label>Título que a pessoa vê<input value={creating.title} maxLength={120} onChange={(event) => setCreating({ ...creating, title: event.target.value })} /></label>
-    <label>Empresa<select value={creating.company_id} onChange={(event) => setCreating({ ...creating, company_id: event.target.value })}><option value="">Link livre (sem empresa)</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select></label>
-    <label>Contexto de uso<select value={creating.purpose} onChange={(event) => setCreating({ ...creating, purpose: event.target.value })}><option value="desenvolvimento">Desenvolvimento</option><option value="selecao">Seleção</option><option value="diagnostico">Diagnóstico</option></select></label>
-    {creating.error && <p className="v2-forms-error" role="alert">{creating.error}</p>}
-    <footer><button type="button" disabled={creating.busy} onClick={() => setCreating(null)}>Cancelar</button><button type="button" disabled={creating.busy} onClick={() => void createLink()}>{creating.busy ? 'Criando…' : 'Criar link'}</button></footer>
+  {editing && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !editing.busy) setEditing(null); }}><section className="ap-status-confirm cpa-link-dialog" role="dialog" aria-modal="true" aria-label={editing.id ? 'Editar link' : 'Novo link'}>
+    <div><small>PERFIL COMPORTAMENTAL</small><h2>{editing.id ? 'Editar link' : 'Novo link'}</h2><p>Sem empresa, o link é livre e a pessoa informa onde trabalha. Com empresa cadastrada, o resultado entra na ficha do colaborador pelo e-mail corporativo.</p></div>
+    <label>Nome do link (aparece para a pessoa)<input value={editing.title} maxLength={120} onChange={(event) => setEditing({ ...editing, title: event.target.value })} /></label>
+    <label>Empresa<select value={editing.mode === 'company' ? editing.company_id : editing.mode} onChange={(event) => { const value = event.target.value; setEditing({ ...editing, mode: value === 'free' ? 'free' : value === 'other' ? 'other' : 'company', company_id: value === 'free' || value === 'other' ? '' : value, error: '' }); }}><option value="free">Link livre (a pessoa informa a empresa)</option><option value="other">Outra empresa (digitar o nome)</option><optgroup label="Empresas cadastradas">{companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</optgroup></select></label>
+    {editing.mode === 'other' && <label>Nome da empresa<input value={editing.company_label} maxLength={120} placeholder="Ex.: Padaria Bom Dia" onChange={(event) => setEditing({ ...editing, company_label: event.target.value, error: '' })} /></label>}
+    <label>Contexto de uso<select value={editing.purpose} onChange={(event) => setEditing({ ...editing, purpose: event.target.value })}><option value="desenvolvimento">Desenvolvimento</option><option value="selecao">Seleção</option><option value="diagnostico">Diagnóstico</option></select></label>
+    <label>Endereço do link<span className="cpa-slug"><b>app.calirh.com/perfil/</b><input value={editing.slug} maxLength={60} placeholder="gerado automaticamente" onChange={(event) => setEditing({ ...editing, slug: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-{2,}/g, '-') })} /></span></label>
+    <label>Situação<select value={editing.status} onChange={(event) => setEditing({ ...editing, status: event.target.value as LinkDraft['status'] })}><option value="open">Recebendo respostas</option><option value="closed">Bloqueado (não recebe mais respostas)</option></select></label>
+    {editing.id && editing.slug && links.find((item) => item.id === editing.id)?.slug !== slugify(editing.slug) && <p className="v2-forms-warn">Ao trocar o endereço, o link antigo para de funcionar.</p>}
+    {editing.error && <p className="v2-forms-error" role="alert">{editing.error}</p>}
+    <footer><button type="button" disabled={editing.busy} onClick={() => setEditing(null)}>Cancelar</button><button type="button" disabled={editing.busy} onClick={() => void saveLink()}>{editing.busy ? 'Salvando…' : editing.id ? 'Salvar' : 'Criar link'}</button></footer>
+  </section></div>}
+  {sharing && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setSharing(null); }}><section className="ap-status-confirm cpa-share" role="dialog" aria-modal="true" aria-label="Compartilhar link">
+    <div><small>COMPARTILHAR</small><h2>{sharing.title}</h2><p>{linkCompany(sharing)}{sharing.status === 'closed' ? ' · bloqueado: quem abrir verá que não recebe mais respostas' : ''}</p></div>
+    <div className="cpa-share-body">
+      <div className="cpa-qr">{qr ? <img src={qr} alt="QR Code do link" /> : <span>Gerando…</span>}</div>
+      <div className="cpa-share-actions">
+        <div className="v2-forms-link"><input readOnly value={`${BASE}${sharing.slug}`} onFocus={(event) => event.target.select()} /><button type="button" className="wf-primary" onClick={() => { void navigator.clipboard.writeText(`${BASE}${sharing.slug}`).then(() => flash('Link copiado.')); }}><Copy size={14} /> Copiar</button></div>
+        <button type="button" className="wf-secondary" onClick={() => void downloadQrPng(`${BASE}${sharing.slug}`, `perfil-${sharing.slug}-qrcode.png`)}><QrCode size={14} /> Baixar QR Code</button>
+        <button type="button" className="wf-secondary" onClick={() => void downloadShareCard({ title: sharing.title, category: 'Perfil comportamental', intro: 'Queremos conhecer mais sobre você: como decide, se comunica e reage no trabalho. São 24 blocos de 4 frases curtas, em média 8 a 10 minutos, e você recebe o seu relatório por e-mail.' }, `${BASE}${sharing.slug}`, `perfil-${sharing.slug}-cartao.png`)}><Download size={14} /> Baixar cartão para divulgar</button>
+        <a className="wf-secondary" href={`https://wa.me/?text=${encodeURIComponent(`${sharing.title}: ${BASE}${sharing.slug}`)}`} target="_blank" rel="noopener noreferrer"><ExternalLink size={14} /> Enviar no WhatsApp</a>
+      </div>
+    </div>
+    <footer><button type="button" onClick={() => setSharing(null)}>Fechar</button></footer>
   </section></div>}
   {removing && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setRemoving(null); }}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Excluir resultado">
     <div><small>PERFIL COMPORTAMENTAL</small><h2>Excluir resultado?</h2><p><strong>{removing.person_name}</strong> · {shortDate(removing.created_at)}. Apaga as respostas, os escores e o PDF. Não dá para desfazer.</p></div>
