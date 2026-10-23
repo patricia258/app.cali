@@ -32,8 +32,8 @@ export function TeamMemberProfiles({ memberId, admin }: { memberId: string; admi
   return <div className="team-profile-tab">{rows.map((row) => {
     const p = STYLE_CONTENT[row.primary_style], s = STYLE_CONTENT[row.secondary_style];
     return <article className="team-profile-card" key={row.id}>
-      <header><div><strong style={{ color: p.color }}>{row.mixed ? `${p.name} e ${s.name}` : `${p.name} com traço ${s.name}`}</strong><br /><small>{p.oneLiner}</small></div><small>{new Intl.DateTimeFormat('pt-BR').format(new Date(row.created_at))}</small></header>
-      <div className="tp-bars">{STYLES.map((style) => <Fragment key={style}><span style={{ color: STYLE_CONTENT[style].color, fontWeight: 600 }}>{STYLE_CONTENT[style].name}</span><div><i style={{ width: `${row.scores.natural[style].pct}%`, background: STYLE_CONTENT[style].color }} /></div><b title={bandOf(row.scores.natural[style].pct)}>{row.scores.natural[style].pct}</b></Fragment>)}</div>
+      <header><div><strong style={{ color: p.ink }}>{row.mixed ? `Perfil misto: ${p.name} e ${s.name}` : `${p.name}, com traço ${s.name}`}</strong><br /><small>{p.oneLiner}</small></div><small>{new Intl.DateTimeFormat('pt-BR').format(new Date(row.created_at))}</small></header>
+      <div className="tp-bars">{STYLES.map((style) => <Fragment key={style}><span style={{ color: STYLE_CONTENT[style].ink, fontWeight: 600 }}>{STYLE_CONTENT[style].name}</span><div><i style={{ width: `${row.scores.natural[style].pct}%`, background: STYLE_CONTENT[style].color }} /></div><b title={bandOf(row.scores.natural[style].pct)}>{row.scores.natural[style].pct}</b></Fragment>)}</div>
       <footer>
         <Link to={`/${admin ? 'admin' : 'cliente'}/perfil-comportamental/${row.id}`}><ExternalLink size={13} /> Abrir relatório</Link>
         {admin && <label><input type="checkbox" checked={row.client_visible} onChange={(event) => void toggle(row, event.target.checked)} /> Disponibilizar para o cliente</label>}

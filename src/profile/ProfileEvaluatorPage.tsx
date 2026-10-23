@@ -4,8 +4,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Download, Printer } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { EvaluatorReport, type ProfileResultView } from './ProfileReports';
+import { anonPublicRpc, supabase } from '../lib/supabase';
+import { EvaluatorReport, type ProfileBase, type ProfileResultView } from './ProfileReports';
 import type { RoleProfile } from './ProfileCharts';
 import type { Style } from './profileMethod';
 import { downloadBlob, fileSlug, pagesToPdf } from './profilePdf';
@@ -21,6 +21,7 @@ export function ProfileEvaluatorPage({ role }: { role: 'admin' | 'client' }) {
   const [team, setTeam] = useState<Array<{ primary_style: Style }>>([]);
   const [members, setMembers] = useState<Array<{ id: string; full_name: string; work_email: string | null }>>([]);
   const [missing, setMissing] = useState(false);
+  const [base, setBase] = useState<ProfileBase | null>(null);
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -30,6 +31,7 @@ export function ProfileEvaluatorPage({ role }: { role: 'admin' | 'client' }) {
   useEffect(() => {
     document.title = 'Perfil Comportamental · CALI RH';
     if (!supabase) return;
+    void anonPublicRpc<ProfileBase>('cali_profile_base', {}).then(({ data }) => { if (data) setBase(data); });
     void (async () => {
       const { data } = await supabase!.from('profile_results').select(FIELDS).eq('id', id).maybeSingle();
       if (!data) { setMissing(true); return; }
@@ -84,8 +86,8 @@ export function ProfileEvaluatorPage({ role }: { role: 'admin' | 'client' }) {
       <span className="cps-note">A matriz de papel (página 5) pode ser preenchida aqui mesmo: escolha o que a função pede em cada estilo. {row.email}</span>
     </div>}
     <main className="cps-report" style={{ zoom }}>
-      <EvaluatorReport result={row} team={team} editableRole={admin} onRoleChange={(roleProfile: RoleProfile) => void update({ role_profile: roleProfile }, 'Perfil da função salvo.')} />
+      <EvaluatorReport result={row} team={team} base={base} editableRole={admin} onRoleChange={(roleProfile: RoleProfile) => void update({ role_profile: roleProfile }, 'Perfil da função salvo.')} />
     </main>
-    <div className="cps-capture" ref={captureRef} aria-hidden="true"><EvaluatorReport result={row} team={team} /></div>
+    <div className="cps-capture" ref={captureRef} aria-hidden="true"><EvaluatorReport result={row} team={team} base={base} /></div>
   </div>;
 }

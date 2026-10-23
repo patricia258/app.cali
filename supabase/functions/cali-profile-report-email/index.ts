@@ -24,7 +24,7 @@ const slug = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").r
 
 function html(name: string, primary: string, secondary: string, mixed: boolean, url: string) {
   const p = NAMES[primary], s = NAMES[secondary];
-  const profile = mixed ? `Perfil misto ${esc(p.name)} e ${esc(s.name)}` : `${esc(p.name)}, com traço ${esc(s.name)}`;
+  const profile = mixed ? `perfil misto: ${esc(p.name)} e ${esc(s.name)}` : `${esc(p.name)}, com traço ${esc(s.name)}`;
   return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#F7F3EE;font-family:Arial,Helvetica,sans-serif;color:#2B2B2B">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:28px 14px">
     <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#fff;border:1px solid #E8DDD4;border-radius:18px;overflow:hidden">
@@ -34,11 +34,11 @@ function html(name: string, primary: string, secondary: string, mixed: boolean, 
       <tr><td style="padding:30px">
         <div style="font-size:10px;letter-spacing:.12em;color:#B58C52;font-weight:700;margin-bottom:8px">PERFIL COMPORTAMENTAL CALI</div>
         <h1 style="font-size:24px;line-height:1.25;color:#5A1E2D;margin:0 0 14px">Olá, ${esc(name.split(" ")[0])}. Seu relatório está pronto.</h1>
-        <p style="font-size:15px;line-height:1.65;margin:0 0 18px">Obrigada por responder. Seu perfil predominante é <strong>${profile}</strong>.</p>
+        <p style="font-size:15px;line-height:1.65;margin:0 0 18px">Obrigada por responder. Seu resultado: <strong>${profile}</strong>.</p>
         <div style="margin:0 0 22px;padding:16px 18px;border:1px solid #E8DDD4;border-left:4px solid #5A1E2D;border-radius:12px;background:#FBF7F3;font-size:14px;line-height:1.6">${esc(p.line)}</div>
         <p style="font-size:14px;line-height:1.65;margin:0 0 22px">O relatório completo está em anexo, em PDF. Você também pode abri-lo pelo botão abaixo.</p>
         <div style="text-align:center;margin:0 0 24px"><a href="${esc(url)}" style="display:inline-block;background:#5A1E2D;color:#fff;text-decoration:none;font-size:14px;font-weight:700;padding:13px 22px;border-radius:999px">Abrir meu relatório</a></div>
-        <p style="font-size:12px;line-height:1.6;color:#8C807A;margin:0">Leitura comportamental de triagem. Não é diagnóstico psicológico e não mede competência. Você pode pedir explicações sobre o método a qualquer momento: privacidade@calirh.com.</p>
+        <p style="font-size:12px;line-height:1.6;color:#8C807A;margin:0">Autoavaliação de preferências comportamentais de trabalho. Não é avaliação psicológica, não mede competência e não serve de base isolada para decisão de contratação. O resultado descreve como você se posiciona hoje e vale como leitura atual por 6 meses. Dúvidas, revisão ou exclusão dos seus dados: privacidade@calirh.com.</p>
       </td></tr>
       <tr><td style="padding:16px 30px;border-top:1px solid #EFE6DF;font-size:11px;color:#8C807A">E-mail automático da CALI RH. Não responda esta mensagem.</td></tr>
     </table></td></tr></table></body></html>`;

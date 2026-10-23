@@ -14,7 +14,7 @@ _Atualizado em 23/10/2026._
   Sem homologação separada (decisão da proprietária em 13/10). Nunca reescrever histórico (sem force-push).
 - **Outra sessão em paralelo** publica os layouts de e-mail (funções de borda de e-mail) direto em `main`;
   sempre `git fetch` + merge de `origin/main` antes de publicar.
-- **Última publicação:** 74 — Perfil comportamental: capa do PDF com a folha (PNG `public/brand/cali-cover-leaf.png`, html2canvas não desenha `mask`) e logo PNG com tamanho fixo (o SVG saía em tamanho natural no PDF do avaliador) (23/10); antes, 73 — Perfil comportamental: abertura com boas-vindas e destaques, consentimento técnico, "como responder" com exemplo, texto da semana difícil, final "Tudo respondido!", prévia mostra o relatório, editar link (nome, endereço, empresa digitada `company_label`, bloquear) e painel Compartilhar (23/10); antes, 72 — Perfil Comportamental CALI (base DISC, método cali-disc-v1) (23/10).
+- **Última publicação:** 75 — Perfil comportamental método cali-disc-v1.1 (parecer da proprietária): margem ±10/±18, faixa "no limite com", perfil misto abaixo de 10 pontos, pressão em níveis, base interna `cali_profile_base`, respondente em 8 páginas, avaliador em 9, cores DISC e personagens (23/10); antes, 74 — Perfil comportamental: capa do PDF com a folha (PNG `public/brand/cali-cover-leaf.png`, html2canvas não desenha `mask`) e logo PNG com tamanho fixo (o SVG saía em tamanho natural no PDF do avaliador) (23/10); antes, 73 — Perfil comportamental: abertura com boas-vindas e destaques, consentimento técnico, "como responder" com exemplo, texto da semana difícil, final "Tudo respondido!", prévia mostra o relatório, editar link (nome, endereço, empresa digitada `company_label`, bloquear) e painel Compartilhar (23/10); antes, 72 — Perfil Comportamental CALI (base DISC, método cali-disc-v1) (23/10).
 - Comercial (decisão de 15/10): horas Partner 10–15 e Full 20–25 aplicadas em `public.cali_pricing_rules` (também usada pelo Portal público). Valores continuam manuais: preço base e teto não foram mexidos.
 - **Eliminação dos dados (fim de contrato) — publicada (59):** migração aplicada pela proprietária no SQL Editor em 16/10 (registrada em `supabase/migrations/20261021230000_company_data_elimination.sql`; cron `workspace-company-elimination-alerts` 11h10 UTC avisa a administração no dia 45). Tela: Clientes → ficha → aba Contrato, abaixo de Exportar. Encerrada há menos de 45 dias: mostra a data de liberação. Depois: aviso vermelho + "Eliminar dados" → diálogo com o nome da empresa para confirmar. `src/pages/admin/companyDataElimination.ts` apaga primeiro os arquivos (`admin_company_storage_objects`, buckets `cali-workspace-private` e `workspace-assets`) e depois chama `admin_eliminate_company_data`. Não testado com empresa real (nenhuma encerrada há 45 dias).
 - **CALI Forms (publicação 60, 21/10, autorizado pela proprietária):** formulários estilo Typeform com a identidade CALI.
@@ -46,6 +46,14 @@ _Atualizado em 23/10/2026._
     (saía um retângulo inclinado); virou `<img class="cpr-cover-leaf">`. Logo da capa trocado de SVG para
     `cali-logo-light.png` com width/height fixos e regras blindadas (`.cali-profile-report.cali-profile-report …`).
     Pendente: parecer "Parecer_Relatorios_Perfil_Comportamental_v1" (itens 11–20) aguardando decisões da proprietária.
+  - Publicação 75 (23/10): parecer "Parecer_Relatorios_Perfil_Comportamental_v1" aplicado, menos o bloco de 3 (decisão da
+    proprietária: manter 4 frases com margem). Migração `20261023210000_cali_profile_margin_base.sql` (aplicada): misto < 10
+    pontos, `method_version` cali-disc-v1.1 (resultados antigos recalculados) e `public.cali_profile_base()` (agregado; distribuição
+    só a partir de 30 respostas). Front: `MARGIN`, `rangeOf`, `bandText`, `adaptationOf` em `profileMethod.ts`; textos novos em
+    `profileContent.ts` (forças com dono, custo, como é percebido, plano de 7 dias, CEO, perguntas com evidência, leitura de time por
+    concentração com mínimo de 5); personagens `public/brand/disc-{d,i,s,c}.png` (arte enviada pela proprietária). E-mail do
+    relatório reimplantado com a nova natureza do documento. Pendente: especificação "Prazos-Lembretes-Painel" (convites, lembretes,
+    validade de 6 meses, painel, diversidade) aguardando ordem da proprietária.
 - **Próximo no código:** atualização do react-router para v7 (grande; última da fila).
 - **16/10 — fora do app (registro para acompanhamento):**
   - Site (`patricia258/sitecali`): Sobre com os valores em roda giratória (card central em destaque, vira no

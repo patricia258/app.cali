@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Download } from 'lucide-react';
 import { anonPublicRpc, anonStorage } from '../lib/supabase';
-import { RespondentReport, type ProfileResultView } from './ProfileReports';
+import { RespondentReport, type ProfileBase, type ProfileResultView } from './ProfileReports';
 import { downloadBlob, fileSlug, pagesToPdf } from './profilePdf';
 import './profile-pages.css';
 
@@ -16,6 +16,7 @@ export function ProfileReportPage() {
   const fresh = useSearchParams()[0].get('novo') === '1';
   const [report, setReport] = useState<ReportPayload | null>(null);
   const [missing, setMissing] = useState(false);
+  const [base, setBase] = useState<ProfileBase | null>(null);
   const [mail, setMail] = useState<MailState>('idle');
   const [busy, setBusy] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -24,6 +25,7 @@ export function ProfileReportPage() {
 
   useEffect(() => {
     document.title = 'Perfil Comportamental · CALI RH';
+    void anonPublicRpc<ProfileBase>('cali_profile_base', {}).then(({ data }) => { if (data) setBase(data); });
     void anonPublicRpc<ReportPayload | null>('cali_profile_report', { p_token: token }).then(({ data }) => { if (data) setReport(data); else setMissing(true); });
   }, [token]);
 
@@ -69,7 +71,7 @@ export function ProfileReportPage() {
       <button type="button" className="cps-primary" disabled={busy} onClick={() => void download()}><Download size={16} /> {busy ? 'Gerando…' : 'Baixar PDF'}</button>
     </header>
     {fresh && <div className="cps-thanks"><strong>Obrigada, {report.person_name.split(' ')[0]}! Suas respostas foram registradas.</strong><span>Este é o seu relatório. Ele também chega por e-mail, em PDF.</span></div>}
-    <main className="cps-report" style={{ zoom }}><RespondentReport result={report} /></main>
-    <div className="cps-capture" ref={captureRef} aria-hidden="true"><RespondentReport result={report} /></div>
+    <main className="cps-report" style={{ zoom }}><RespondentReport result={report} base={base} /></main>
+    <div className="cps-capture" ref={captureRef} aria-hidden="true"><RespondentReport result={report} base={base} /></div>
   </div>;
 }

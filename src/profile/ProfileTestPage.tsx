@@ -140,7 +140,7 @@ export function ProfileTestPage() {
           <p className="cf-desc">Queremos <b>conhecer mais sobre você</b>: como você <b>decide</b>, como se <b>comunica</b> e como <b>reage</b> em diferentes situações do trabalho.</p>
           <ul className="cpt-facts">
             <li><LayoutList size={18} /><span><b>24 blocos</b> de 4 frases curtas</span></li>
-            <li><Clock3 size={18} /><span>Em média <b>8 a 10 minutos</b></span></li>
+            <li><Clock3 size={18} /><span>Em média <b>12 a 20 minutos</b></span></li>
             <li><Mail size={18} /><span>Ao final, você recebe o <b>seu relatório por e-mail</b></span></li>
           </ul>
           <div className="cpt-consent-wrap">
