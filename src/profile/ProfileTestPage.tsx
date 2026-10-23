@@ -1,9 +1,11 @@
 /* Perfil Comportamental CALI — teste público (/perfil/:slug), no formato do CALI Forms (uma tela por vez).
    Abertura + consentimento → identificação → 18 blocos (dia comum) → 6 blocos (semana difícil) → revisão sem prévia
-   do perfil → envio. O resultado só aparece depois do envio, no relatório (/perfil/relatorio/:token). */
-import { useEffect, useMemo, useState } from 'react';
+   do perfil → envio. Depois do envio, a pessoa só vê o agradecimento; o relatório chega por e-mail.
+   Com convite (?c=token): nome e e-mail vêm do convite, o prazo aparece em data, o progresso é registrado (bloco de
+   parada) e as respostas ficam guardadas no aparelho para retomar de onde parou. */
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, Clock3, Handshake, LayoutList, Mail } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CalendarClock, Check, Clock3, Handshake, LayoutList, Mail } from 'lucide-react';
 import { anonPublicRpc } from '../lib/supabase';
 import { blockItems, computeScores, NATURAL_BLOCKS, PRESSURE_BLOCKS, profileOf, type BlockAnswer, type Style } from './profileMethod';
 import { richTextHtml } from '../forms/formModel';
@@ -15,6 +17,16 @@ import './profile-test.css';
 type LinkInfo = { title: string; purpose: string; status: 'open' | 'closed'; company_name: string | null; has_company: boolean };
 type Step = { kind: 'welcome' } | { kind: 'identify' } | { kind: 'intro'; key: 'natural' | 'pressure' } | { kind: 'block'; key: 'natural' | 'pressure'; block: number; index: number; of: number } | { kind: 'review' };
 type Partial2 = { mais?: Style; menos?: Style };
+type InviteInfo = { state: 'created' | 'sent' | 'opened' | 'started' | 'completed' | 'expired' | 'declined'; person_name: string; email: string; slug: string; deadline_at: string | null; last_block: number | null };
+type Draft = { stepIndex: number; consent: boolean; person: { name: string; email: string; job: string; company: string }; natural: Record<number, Partial2>; pressure: Record<number, Partial2> };
+const deadlineLabel = (iso: string) => {
+  const date = new Date(iso);
+  const day = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Sao_Paulo' }).format(date);
+  const time = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).format(date).replace(':', 'h');
+  return `${day}, às ${time}`;
+};
+const readDraft = (key: string): Draft | null => { try { const raw = window.localStorage.getItem(key); return raw ? JSON.parse(raw) as Draft : null; } catch { return null; } };
+const writeDraft = (key: string, draft: Draft | null) => { try { if (draft) window.localStorage.setItem(key, JSON.stringify(draft)); else window.localStorage.removeItem(key); } catch { /* aparelho sem armazenamento: segue sem retomada */ } };
 
 const STEPS: Step[] = [
   { kind: 'welcome' }, { kind: 'identify' }, { kind: 'intro', key: 'natural' },
@@ -26,7 +38,12 @@ const STEPS: Step[] = [
 
 export function ProfileTestPage() {
   const { slug = '' } = useParams();
-  const preview = useSearchParams()[0].get('previa') === '1';
+  const [params] = useSearchParams();
+  const preview = params.get('previa') === '1';
+  const inviteToken = preview ? '' : (params.get('c') || '');
+  const draftKey = `cali-perfil:${inviteToken || slug}`;
+  const [invite, setInvite] = useState<InviteInfo | null>(null);
+  const progressSent = useRef(-1);
   const navigate = useNavigate();
   const [link, setLink] = useState<LinkInfo | null>(null);
   const [state, setState] = useState<'loading' | 'missing' | 'ready'>('loading');
@@ -42,8 +59,24 @@ export function ProfileTestPage() {
 
   useEffect(() => {
     document.title = 'Perfil Comportamental · CALI RH';
-    void anonPublicRpc<LinkInfo | null>('cali_profile_link', { p_slug: slug }).then(({ data }) => { if (data) { setLink(data); setState('ready'); } else setState('missing'); });
-  }, [slug]);
+    void (async () => {
+      const [linkResult, inviteResult] = await Promise.all([
+        anonPublicRpc<LinkInfo | null>('cali_profile_link', { p_slug: slug }),
+        inviteToken ? anonPublicRpc<InviteInfo | null>('cali_profile_invite_open', { p_token: inviteToken }) : Promise.resolve({ data: null }),
+      ]);
+      if (!linkResult.data || (inviteToken && (!inviteResult.data || inviteResult.data.slug !== slug))) { setState('missing'); return; }
+      const info = inviteResult.data as InviteInfo | null;
+      setLink(linkResult.data);
+      if (info) setInvite(info);
+      const draft = preview ? null : readDraft(draftKey);
+      if (draft && (!info || ['opened', 'started'].includes(info.state))) {
+        setConsent(draft.consent); setPerson(draft.person); setNatural(draft.natural || {}); setPressure(draft.pressure || {});
+        setStepIndex(Math.max(0, Math.min(STEPS.length - 1, draft.stepIndex || 0)));
+      }
+      if (info) setPerson((current) => ({ ...current, name: info.person_name, email: info.email }));
+      setState('ready');
+    })();
+  }, [slug, inviteToken]);
 
   const step = STEPS[stepIndex];
   const progress = Math.round((stepIndex / (STEPS.length - 1)) * 100);
@@ -51,6 +84,21 @@ export function ProfileTestPage() {
   const allDone = useMemo(() => Array.from({ length: NATURAL_BLOCKS }, (_, i) => i + 1).every((block) => complete(natural[block])) && PRESSURE_BLOCKS.every((block) => complete(pressure[block])), [natural, pressure]);
 
   useEffect(() => { document.querySelector('.cali-form-page .cf-stage')?.scrollTo({ top: 0 }); }, [stepIndex]);
+
+  const answered = useMemo(() => Object.values(natural).filter(complete).length + Object.values(pressure).filter(complete).length, [natural, pressure]);
+  const inviteOpen = !invite || ['opened', 'started', 'sent'].includes(invite.state);
+  // Retomada no mesmo aparelho: guarda o andamento a cada passo.
+  useEffect(() => {
+    if (state !== 'ready' || preview || !inviteOpen || stepIndex === 0) return;
+    writeDraft(draftKey, { stepIndex, consent, person, natural, pressure });
+  }, [state, stepIndex, consent, person, natural, pressure]);
+  // Convite: registra início e bloco de parada (para o lembrete de retomada e o indicador de abandono).
+  useEffect(() => {
+    if (!inviteToken || !invite || !inviteOpen || stepIndex < 2) return;
+    if (answered <= progressSent.current) return;
+    progressSent.current = answered;
+    void anonPublicRpc('cali_profile_invite_progress', { p_token: inviteToken, p_block: answered });
+  }, [answered, stepIndex, invite]);
 
   function go(delta: number) {
     setError(''); setDirection(delta > 0 ? 'next' : 'back');
@@ -61,9 +109,9 @@ export function ProfileTestPage() {
   function next() {
     if (step.kind === 'welcome' && !consent) { setError('Para continuar, marque que você leu e concorda.'); return; }
     if (step.kind === 'identify') {
-      if (person.name.trim().length < 2) { setError('Informe seu nome.'); return; }
+      if (!invite && person.name.trim().length < 2) { setError('Informe seu nome.'); return; }
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(person.email.trim())) { setError('Confira o e-mail: é para ele que vamos enviar o seu relatório.'); return; }
-      if (!link?.has_company && !person.company.trim()) { setError('Informe a empresa onde você trabalha.'); return; }
+      if (!invite && !link?.has_company && !person.company.trim()) { setError('Informe a empresa onde você trabalha.'); return; }
     }
     if (step.kind === 'block') {
       const answer = (step.key === 'natural' ? natural : pressure)[step.block];
@@ -99,11 +147,14 @@ export function ProfileTestPage() {
       return;
     }
     setSending(true); setError('');
-    const { data, error: rpcError } = await anonPublicRpc<{ id: string; token: string }>('cali_profile_submit', {
-      p_slug: slug, p_name: person.name.trim(), p_email: person.email.trim(), p_job_title: person.job.trim(), p_company_name: person.company.trim(),
-      p_answers: { natural: pack(natural, Array.from({ length: NATURAL_BLOCKS }, (_, i) => i + 1)), pressure: pack(pressure, PRESSURE_BLOCKS) }, p_consent: consent,
-    });
+    const answers = { natural: pack(natural, Array.from({ length: NATURAL_BLOCKS }, (_, i) => i + 1)), pressure: pack(pressure, PRESSURE_BLOCKS) };
+    const { data, error: rpcError } = inviteToken
+      ? await anonPublicRpc<{ id: string; token: string }>('cali_profile_submit_invite', { p_token: inviteToken, p_job_title: person.job.trim(), p_answers: answers, p_consent: consent })
+      : await anonPublicRpc<{ id: string; token: string }>('cali_profile_submit', {
+        p_slug: slug, p_name: person.name.trim(), p_email: person.email.trim(), p_job_title: person.job.trim(), p_company_name: person.company.trim(), p_answers: answers, p_consent: consent,
+      });
     if (rpcError || !data?.token) { setSending(false); setError(rpcError?.message || 'Não foi possível enviar agora. Tente de novo.'); return; }
+    writeDraft(draftKey, null);
     navigate(`/perfil/relatorio/${data.token}?novo=1`, { replace: true });
   }
 
@@ -133,7 +184,10 @@ export function ProfileTestPage() {
       {state === 'loading' && <div className="cf-screen cf-center"><span className="cf-spinner" aria-label="Carregando" /></div>}
       {state === 'missing' && <div className="cf-screen cf-center cf-enter"><small>PERFIL COMPORTAMENTAL</small><h1>Link não encontrado</h1><p>Confira o link que você recebeu ou fale com a CALI RH.</p></div>}
       {state === 'ready' && link?.status === 'closed' && <div className="cf-screen cf-center cf-enter"><small>PERFIL COMPORTAMENTAL</small><h1>{link.title}</h1><p>Este link não está mais recebendo respostas.</p></div>}
-      {state === 'ready' && link?.status === 'open' && <>
+      {state === 'ready' && link?.status === 'open' && invite && !inviteOpen && <div className="cf-screen cf-center cf-enter"><small>PERFIL COMPORTAMENTAL</small>
+        <h1>{invite.state === 'completed' ? 'Você já respondeu' : invite.state === 'expired' ? 'Este convite expirou' : invite.state === 'declined' ? 'Convite encerrado' : 'Convite ainda não liberado'}</h1>
+        <p>{invite.state === 'completed' ? 'Suas respostas foram registradas e o relatório foi enviado para o seu e-mail.' : invite.state === 'expired' ? `O prazo terminou ${invite.deadline_at ? deadlineLabel(invite.deadline_at) : ''}. Se ainda quiser responder, fale com quem enviou o convite.` : invite.state === 'declined' ? 'Você pediu para não participar. Se mudou de ideia, fale com quem enviou o convite.' : 'Este convite ainda não foi enviado. Aguarde o e-mail.'}</p></div>}
+      {state === 'ready' && link?.status === 'open' && inviteOpen && <>
         {step.kind === 'welcome' && <div className="cf-screen cf-enter cpt-welcome" key="welcome">
           <small>{link.title}{link.company_name ? ` · ${link.company_name}` : ''}</small>
           <h1>Boas-vindas ao nosso levantamento de perfil comportamental <span aria-hidden="true">🤍</span></h1>
@@ -142,6 +196,7 @@ export function ProfileTestPage() {
             <li><LayoutList size={18} /><span><b>24 blocos</b> de 4 frases curtas</span></li>
             <li><Clock3 size={18} /><span>Em média <b>12 a 20 minutos</b></span></li>
             <li><Mail size={18} /><span>Ao final, você recebe o <b>seu relatório por e-mail</b></span></li>
+            {invite?.deadline_at && <li><CalendarClock size={18} /><span>Responda até <b>{deadlineLabel(invite.deadline_at)}</b></span></li>}
           </ul>
           <div className="cpt-consent-wrap">
             <span className="cpt-hands" aria-hidden="true"><Handshake size={26} /></span>
@@ -153,10 +208,12 @@ export function ProfileTestPage() {
         {step.kind === 'identify' && <div className="cf-screen cf-enter cpt-identify" key="identify">
           <small>ANTES DE COMEÇAR</small>
           <h2>Quem está respondendo?</h2>
+          {invite ? <p className="cpt-company">Convite para <b>{invite.person_name}</b> · o relatório chega em <b>{invite.email}</b></p> : <>
           <label><span>Seu nome completo</span><input className="cf-text" value={person.name} autoComplete="name" onChange={(event) => setPerson({ ...person, name: event.target.value })} /></label>
           <label><span>Seu e-mail <em>o relatório chega aqui</em></span><input className="cf-text" type="email" autoComplete="email" value={person.email} onChange={(event) => setPerson({ ...person, email: event.target.value })} /></label>
+          </>}
           <label><span>Seu cargo <em>opcional</em></span><input className="cf-text" value={person.job} onChange={(event) => setPerson({ ...person, job: event.target.value })} /></label>
-          {link.has_company ? <p className="cpt-company">Empresa: <b>{link.company_name}</b></p> : <label><span>Empresa onde você trabalha</span><input className="cf-text" value={person.company} autoComplete="organization" onChange={(event) => setPerson({ ...person, company: event.target.value })} /></label>}
+          {link.has_company ? <p className="cpt-company">Empresa: <b>{link.company_name}</b></p> : invite ? null : <label><span>Empresa onde você trabalha</span><input className="cf-text" value={person.company} autoComplete="organization" onChange={(event) => setPerson({ ...person, company: event.target.value })} /></label>}
           {error && <p className="cf-error" role="alert">{error}</p>}
           <div className="cf-actions"><button type="button" className="cf-primary" onClick={next}>Continuar <ArrowRight size={18} /></button></div>
         </div>}
@@ -176,7 +233,7 @@ export function ProfileTestPage() {
           {allDone ? <>
             <span className="cpt-done"><Check size={34} /></span>
             <h1>Tudo respondido!</h1>
-            <p className="cf-desc">Pronto para enviar suas respostas? O seu relatório aparece logo depois e chega também por e-mail.</p>
+            <p className="cf-desc">Pronto para enviar suas respostas? O seu relatório chega por e-mail, em PDF, logo depois do envio.</p>
           </> : <>
             <h1>Falta pouco</h1>
             <p className="cf-desc">Ainda há bloco sem resposta. Volte e marque <b>Mais</b> e <b>Menos</b> nele.</p>
@@ -187,7 +244,7 @@ export function ProfileTestPage() {
         </div>}
       </>}
     </main>
-    {state === 'ready' && link?.status === 'open' && stepIndex > 0 && !previewResult && <nav className="cf-nav" aria-label="Navegar"><button type="button" aria-label="Voltar" onClick={() => go(-1)}><ArrowLeft size={18} /></button></nav>}
+    {state === 'ready' && link?.status === 'open' && inviteOpen && stepIndex > 0 && !previewResult && <nav className="cf-nav" aria-label="Navegar"><button type="button" aria-label="Voltar" onClick={() => go(-1)}><ArrowLeft size={18} /></button></nav>}
     <footer className="cf-foot"><a href="https://calirh.com" target="_blank" rel="noopener noreferrer">CALI RH</a><span>·</span><a href="/privacidade" target="_blank" rel="noopener noreferrer">Privacidade</a></footer>
   </div>
     {previewResult && <div className="cpt-preview-report"><div className="cpt-preview-bar"><span>Prévia do relatório da pessoa · nada foi salvo nem enviado</span><button type="button" onClick={() => setPreviewResult(null)}>Fechar prévia</button></div><div className="cpt-preview-pages" style={{ zoom: Math.min(1, (window.innerWidth - 24) / 794) }}><RespondentReport result={previewResult} /></div></div>}
