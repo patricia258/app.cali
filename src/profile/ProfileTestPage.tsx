@@ -3,9 +3,11 @@
    do perfil → envio. O resultado só aparece depois do envio, no relatório (/perfil/relatorio/:token). */
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Clock3, Handshake, LayoutList, Mail } from 'lucide-react';
 import { anonPublicRpc } from '../lib/supabase';
-import { blockItems, NATURAL_BLOCKS, PRESSURE_BLOCKS, type BlockAnswer, type Style } from './profileMethod';
+import { blockItems, computeScores, NATURAL_BLOCKS, PRESSURE_BLOCKS, profileOf, type BlockAnswer, type Style } from './profileMethod';
+import { richTextHtml } from '../forms/formModel';
+import { RespondentReport, type ProfileResultView } from './ProfileReports';
 import { CONSENT_TEXT, NATURAL_INSTRUCTION, PRESSURE_INSTRUCTION } from './profileContent';
 import '../forms/public-form.css';
 import './profile-test.css';
@@ -36,6 +38,7 @@ export function ProfileTestPage() {
   const [pressure, setPressure] = useState<Record<number, Partial2>>({});
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
+  const [previewResult, setPreviewResult] = useState<ProfileResultView | null>(null);
 
   useEffect(() => {
     document.title = 'Perfil Comportamental · CALI RH';
@@ -87,9 +90,15 @@ export function ProfileTestPage() {
 
   async function submit() {
     if (!allDone || sending) return;
-    if (preview) { setError('Prévia: nada é enviado. Para responder de verdade, abra o link sem "?previa=1".'); return; }
-    setSending(true); setError('');
     const pack = (source: Record<number, Partial2>, blocks: number[]): BlockAnswer[] => blocks.map((block) => ({ b: block, mais: source[block].mais!, menos: source[block].menos! }));
+    if (preview) {
+      // Prévia: calcula aqui mesmo e mostra o relatório da pessoa, sem gravar nada.
+      const scores = computeScores({ natural: pack(natural, Array.from({ length: NATURAL_BLOCKS }, (_, i) => i + 1)), pressure: pack(pressure, PRESSURE_BLOCKS) });
+      const profile = profileOf(scores);
+      setPreviewResult({ id: 'previa', person_name: person.name.trim() || 'Pessoa de teste', company_name: link?.company_name || person.company, job_title: person.job, created_at: new Date().toISOString(), scores, primary_style: profile.primary, secondary_style: profile.secondary, mixed: profile.mixed });
+      return;
+    }
+    setSending(true); setError('');
     const { data, error: rpcError } = await anonPublicRpc<{ id: string; token: string }>('cali_profile_submit', {
       p_slug: slug, p_name: person.name.trim(), p_email: person.email.trim(), p_job_title: person.job.trim(), p_company_name: person.company.trim(),
       p_answers: { natural: pack(natural, Array.from({ length: NATURAL_BLOCKS }, (_, i) => i + 1)), pressure: pack(pressure, PRESSURE_BLOCKS) }, p_consent: consent,
@@ -115,7 +124,8 @@ export function ProfileTestPage() {
     </div>;
   })() : null;
 
-  return <div className="cali-form-page cali-profile-test">
+  return <>
+  <div className="cali-form-page cali-profile-test">
     <div className="cf-leaf cf-leaf-intro" key={step.kind === 'block' ? 'b' : step.kind} aria-hidden="true" />
     <div className="cf-progress" aria-hidden="true"><i style={{ width: `${progress}%` }} /></div>
     <header className="cf-top"><img src="/brand/cali-rh-bordo.png" alt="CALI RH" />{preview && <span className="cf-preview">Prévia · nada é enviado</span>}</header>
@@ -124,13 +134,21 @@ export function ProfileTestPage() {
       {state === 'missing' && <div className="cf-screen cf-center cf-enter"><small>PERFIL COMPORTAMENTAL</small><h1>Link não encontrado</h1><p>Confira o link que você recebeu ou fale com a CALI RH.</p></div>}
       {state === 'ready' && link?.status === 'closed' && <div className="cf-screen cf-center cf-enter"><small>PERFIL COMPORTAMENTAL</small><h1>{link.title}</h1><p>Este link não está mais recebendo respostas.</p></div>}
       {state === 'ready' && link?.status === 'open' && <>
-        {step.kind === 'welcome' && <div className="cf-screen cf-enter" key="welcome">
-          <small>PERFIL COMPORTAMENTAL{link.company_name ? ` · ${link.company_name}` : ''}</small>
-          <h1>{link.title}</h1>
-          <p className="cf-desc">Um levantamento rápido de como você costuma agir no trabalho: como decide, se comunica e reage quando a semana aperta. São 24 blocos de 4 frases curtas e leva de 8 a 10 minutos. Ao final, você recebe o seu relatório por e-mail.</p>
-          <label className="cpt-consent"><input type="checkbox" checked={consent} onChange={(event) => { setConsent(event.target.checked); setError(''); }} /><span>{CONSENT_TEXT}</span></label>
+        {step.kind === 'welcome' && <div className="cf-screen cf-enter cpt-welcome" key="welcome">
+          <small>{link.title}{link.company_name ? ` · ${link.company_name}` : ''}</small>
+          <h1>Boas-vindas ao nosso levantamento de perfil comportamental <span aria-hidden="true">🤍</span></h1>
+          <p className="cf-desc">Queremos <b>conhecer mais sobre você</b>: como você <b>decide</b>, como se <b>comunica</b> e como <b>reage</b> em diferentes situações do trabalho.</p>
+          <ul className="cpt-facts">
+            <li><LayoutList size={18} /><span><b>24 blocos</b> de 4 frases curtas</span></li>
+            <li><Clock3 size={18} /><span>Em média <b>8 a 10 minutos</b></span></li>
+            <li><Mail size={18} /><span>Ao final, você recebe o <b>seu relatório por e-mail</b></span></li>
+          </ul>
+          <div className="cpt-consent-wrap">
+            <span className="cpt-hands" aria-hidden="true"><Handshake size={26} /></span>
+            <label className="cpt-consent"><input type="checkbox" checked={consent} onChange={(event) => { setConsent(event.target.checked); setError(''); }} /><span><span dangerouslySetInnerHTML={{ __html: richTextHtml(CONSENT_TEXT) }} /><b className="cpt-agree">Li e concordo em participar.</b></span></label>
+          </div>
           {error && <p className="cf-error" role="alert">{error}</p>}
-          <div className="cf-actions"><button type="button" className="cf-primary" onClick={next}>Começar <ArrowRight size={18} /></button></div>
+          <div className="cf-actions"><button type="button" className="cf-primary" onClick={next}>Vamos começar? <ArrowRight size={18} /></button></div>
         </div>}
         {step.kind === 'identify' && <div className="cf-screen cf-enter cpt-identify" key="identify">
           <small>ANTES DE COMEÇAR</small>
@@ -142,26 +160,36 @@ export function ProfileTestPage() {
           {error && <p className="cf-error" role="alert">{error}</p>}
           <div className="cf-actions"><button type="button" className="cf-primary" onClick={next}>Continuar <ArrowRight size={18} /></button></div>
         </div>}
-        {step.kind === 'intro' && <div className="cf-screen cf-enter" key={`intro-${step.key}`}>
-          <small>{step.key === 'natural' ? 'PARTE 1 DE 2 · DIA COMUM' : 'PARTE 2 DE 2 · SEMANA DIFÍCIL'}</small>
-          <h2>{step.key === 'natural' ? 'Pense em um dia comum de trabalho' : 'Agora, pense em uma semana difícil'}</h2>
-          <p className="cf-desc">{step.key === 'natural' ? NATURAL_INSTRUCTION : PRESSURE_INSTRUCTION}</p>
-          <p className="cf-desc">Em cada bloco, marque <b>Mais</b> na frase que mais combina com você e <b>Menos</b> na que menos combina. As outras duas ficam sem marcação.</p>
-          <div className="cf-actions"><button type="button" className="cf-primary" onClick={next}>{step.key === 'natural' ? 'Começar os blocos' : 'Continuar'} <ArrowRight size={18} /></button></div>
+        {step.kind === 'intro' && <div className="cf-screen cf-enter cpt-intro" key={`intro-${step.key}`}>
+          <small>{step.key === 'natural' ? 'PARTE 1 DE 2' : 'PARTE 2 DE 2'}</small>
+          <h2>{step.key === 'natural' ? <>Pense em um <em>dia comum</em> de trabalho</> : <>Agora, uma <em>semana mais puxada</em></>}</h2>
+          <p className="cf-desc" dangerouslySetInnerHTML={{ __html: richTextHtml(step.key === 'natural' ? NATURAL_INSTRUCTION : PRESSURE_INSTRUCTION) }} />
+          {step.key === 'natural' ? <div className="cpt-howto">
+            <strong>Como responder</strong>
+            <ol><li>Leia as <b>4 frases</b> do bloco.</li><li>Toque em <b className="tag mais">Mais</b> na frase que <b>mais combina</b> com você.</li><li>Toque em <b className="tag menos">Menos</b> na que <b>menos combina</b>.</li><li>As outras duas ficam <b>sem marcação</b>. Não existe resposta certa.</li></ol>
+            <div className="cpt-example" aria-hidden="true"><span>Exemplo</span><div className="cpt-row is-mais"><span>Gosto de metas difíceis</span><i className="mais on">Mais</i><i className="menos">Menos</i></div><div className="cpt-row"><span>Trabalho bem em grupo</span><i className="mais">Mais</i><i className="menos">Menos</i></div><div className="cpt-row is-menos"><span>Prefiro rotina previsível</span><i className="mais">Mais</i><i className="menos on">Menos</i></div></div>
+          </div> : <p className="cf-desc">É do mesmo jeito: <b>Mais</b> na que mais combina, <b>Menos</b> na que menos combina.</p>}
+          <div className="cf-actions"><button type="button" className="cf-primary" onClick={next}>{step.key === 'natural' ? 'Vamos começar?' : 'Continuar'} <ArrowRight size={18} /></button></div>
         </div>}
         {blockScreen}
-        {step.kind === 'review' && <div className="cf-screen cf-enter cpt-review" key="review">
-          <small>REVISÃO</small>
-          <h2>{allDone ? 'Tudo respondido' : 'Faltam alguns blocos'}</h2>
-          <p className="cf-desc">Se quiser, toque em um bloco para rever a resposta. O seu perfil aparece depois do envio, no relatório.</p>
-          <div className="cpt-chips"><span>Dia comum</span>{Array.from({ length: NATURAL_BLOCKS }, (_, i) => i + 1).map((block) => <button type="button" key={`n${block}`} className={complete(natural[block]) ? 'ok' : 'pending'} onClick={() => jump(STEPS.findIndex((item) => item.kind === 'block' && item.key === 'natural' && item.block === block))}>{block}</button>)}</div>
-          <div className="cpt-chips"><span>Semana difícil</span>{PRESSURE_BLOCKS.map((block, i) => <button type="button" key={`p${block}`} className={complete(pressure[block]) ? 'ok' : 'pending'} onClick={() => jump(STEPS.findIndex((item) => item.kind === 'block' && item.key === 'pressure' && item.block === block))}>{i + 1}</button>)}</div>
+        {step.kind === 'review' && !previewResult && <div className="cf-screen cf-center cf-enter cpt-review" key="review">
+          {allDone ? <>
+            <span className="cpt-done"><Check size={34} /></span>
+            <h1>Tudo respondido!</h1>
+            <p className="cf-desc">Pronto para enviar suas respostas? O seu relatório aparece logo depois e chega também por e-mail.</p>
+          </> : <>
+            <h1>Falta pouco</h1>
+            <p className="cf-desc">Ainda há bloco sem resposta. Volte e marque <b>Mais</b> e <b>Menos</b> nele.</p>
+            <button type="button" className="cpt-link" onClick={() => jump(STEPS.findIndex((item) => item.kind === 'block' && !complete((item.key === 'natural' ? natural : pressure)[item.block])))}>Ir para o bloco que falta</button>
+          </>}
           {error && <p className="cf-error" role="alert">{error}</p>}
-          <div className="cf-actions"><button type="button" className="cf-primary" disabled={!allDone || sending} onClick={() => void submit()}>{sending ? 'Enviando…' : <>Enviar respostas <Check size={18} /></>}</button></div>
+          <div className="cf-actions"><button type="button" className="cf-primary" disabled={!allDone || sending} onClick={() => void submit()}>{sending ? 'Enviando…' : preview ? <>Ver o relatório da prévia <Check size={18} /></> : <>Enviar respostas <Check size={18} /></>}</button></div>
         </div>}
       </>}
     </main>
-    {state === 'ready' && link?.status === 'open' && stepIndex > 0 && <nav className="cf-nav" aria-label="Navegar"><button type="button" aria-label="Voltar" onClick={() => go(-1)}><ArrowLeft size={18} /></button></nav>}
+    {state === 'ready' && link?.status === 'open' && stepIndex > 0 && !previewResult && <nav className="cf-nav" aria-label="Navegar"><button type="button" aria-label="Voltar" onClick={() => go(-1)}><ArrowLeft size={18} /></button></nav>}
     <footer className="cf-foot"><a href="https://calirh.com" target="_blank" rel="noopener noreferrer">CALI RH</a><span>·</span><a href="/privacidade" target="_blank" rel="noopener noreferrer">Privacidade</a></footer>
-  </div>;
+  </div>
+    {previewResult && <div className="cpt-preview-report"><div className="cpt-preview-bar"><span>Prévia do relatório da pessoa · nada foi salvo nem enviado</span><button type="button" onClick={() => setPreviewResult(null)}>Fechar prévia</button></div><div className="cpt-preview-pages" style={{ zoom: Math.min(1, (window.innerWidth - 24) / 794) }}><RespondentReport result={previewResult} /></div></div>}
+  </>;
 }

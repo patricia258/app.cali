@@ -27,3 +27,15 @@ html[data-workspace-ui='v2'] .cpa-table button.v2-forms-status{border:0;cursor:p
 .team-profile-card footer label{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#3e3533}
 .team-profile-card footer input{accent-color:#5a1e2d}
 .team-profile-empty{font-size:13px;color:#8c7e74}
+html[data-workspace-ui='v2'] .cpa-link-dialog{max-height:92vh;overflow:auto}
+html[data-workspace-ui='v2'] .cpa-slug{display:flex;align-items:center;border:1px solid #e3d6cc;border-radius:8px;background:#fbf7f3;overflow:hidden;font-weight:400}
+html[data-workspace-ui='v2'] .cpa-slug b{font-size:12px;font-weight:500;color:#8c7e74;padding:0 2px 0 10px;white-space:nowrap}
+html[data-workspace-ui='v2'] .cpa-slug input{flex:1;min-width:0;border:0!important;border-radius:0!important;background:#fff!important}
+html[data-workspace-ui='v2'] .cpa-share{width:min(640px,96vw)}
+html[data-workspace-ui='v2'] .cpa-share-body{display:flex;gap:18px;align-items:center}
+html[data-workspace-ui='v2'] .cpa-qr{flex:0 0 180px;height:180px;display:grid;place-items:center;border:1px solid #eadfd6;border-radius:12px;background:#fff;padding:8px}
+html[data-workspace-ui='v2'] .cpa-qr img{width:100%;height:100%;object-fit:contain}
+html[data-workspace-ui='v2'] .cpa-share-actions{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+html[data-workspace-ui='v2'] .cpa-share-actions a{text-decoration:none}
+@media (max-width:640px){html[data-workspace-ui='v2'] .cpa-share-body{flex-direction:column;align-items:stretch}html[data-workspace-ui='v2'] .cpa-qr{flex-basis:auto;height:auto;aspect-ratio:1;max-width:200px;margin:0 auto}}
+html[data-workspace-ui='v2'] .ap-status-confirm .cpa-slug input{flex:1 1 auto!important;width:auto!important;min-width:0;padding:10px 8px!important;font-size:13px!important}
