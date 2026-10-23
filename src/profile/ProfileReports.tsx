@@ -27,7 +27,8 @@ const pcts = (scores: Scores, key: 'natural' | 'pressure' | 'natural6') => Objec
 
 function Page({ children, number, total, title, cover }: { children: ReactNode; number: number; total: number; title: string; cover?: boolean }) {
   return <section className={`cpr-page${cover ? ' cpr-cover' : ''}`}>
-    {!cover && <header className="cpr-head"><img src="/brand/cali-rh-bordo.png" alt="CALI RH" /><span>{title}</span></header>}
+    {cover && <img className="cpr-cover-leaf" src="/brand/cali-cover-leaf.png" alt="" aria-hidden="true" width={720} height={720} />}
+    {!cover && <header className="cpr-head"><img src="/brand/cali-rh-bordo.png" alt="CALI RH" width={64} height={30} /><span>{title}</span></header>}
     <div className="cpr-body">{children}</div>
     {!cover && <footer className="cpr-foot"><span>CALI RH · HR for Business · calirh.com</span><span>{String(number).padStart(2, '0')} / {String(total).padStart(2, '0')}</span></footer>}
   </section>;
@@ -47,7 +48,7 @@ export function RespondentReport({ result }: { result: ProfileResultView }) {
   const title = 'Perfil Comportamental · seu relatório';
   return <div className="cali-profile-report">
     <Page number={1} total={total} title={title} cover>
-      <div className="cpr-cover-top"><img src="/brand/cali-logo-light.svg" alt="CALI RH" /><span>PERFIL COMPORTAMENTAL</span></div>
+      <div className="cpr-cover-top"><img className="cpr-cover-logo" src="/brand/cali-logo-light.png" alt="CALI RH" width={126} height={70} /><span>PERFIL COMPORTAMENTAL</span></div>
       <div className="cpr-cover-main">
         <small>RELATÓRIO PESSOAL</small>
         <h1>{result.person_name}</h1>
@@ -122,7 +123,7 @@ export function EvaluatorReport({ result, team, editableRole, onRoleChange }: { 
 
   return <div className="cali-profile-report">
     <Page number={1} total={total} title={title} cover>
-      <div className="cpr-cover-top"><img src="/brand/cali-logo-light.svg" alt="CALI RH" /><span>PERFIL COMPORTAMENTAL · AVALIADOR</span></div>
+      <div className="cpr-cover-top"><img className="cpr-cover-logo" src="/brand/cali-logo-light.png" alt="CALI RH" width={126} height={70} /><span>PERFIL COMPORTAMENTAL · AVALIADOR</span></div>
       <div className="cpr-cover-main">
         <small>RELATÓRIO PARA A LIDERANÇA · USO RESTRITO</small>
         <h1>{result.person_name}</h1>

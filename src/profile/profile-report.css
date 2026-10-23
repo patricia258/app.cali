@@ -4,7 +4,7 @@
 .cali-profile-report *{box-sizing:border-box}
 .cali-profile-report .cpr-page{position:relative;width:794px;height:1123px;background:var(--paper);box-shadow:0 10px 40px rgba(43,32,36,.12);display:flex;flex-direction:column;overflow:hidden;flex:0 0 auto}
 .cali-profile-report .cpr-head{display:flex;align-items:center;justify-content:space-between;padding:30px 56px 16px;border-bottom:1px solid var(--line)}
-.cali-profile-report .cpr-head img{height:30px;width:auto}
+.cali-profile-report.cali-profile-report .cpr-head img{display:block;width:64px!important;height:30px!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;object-fit:contain}
 .cali-profile-report .cpr-head span{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
 .cali-profile-report .cpr-body{flex:1;padding:26px 56px 18px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
 .cali-profile-report .cpr-foot{display:flex;justify-content:space-between;padding:14px 56px 24px;border-top:1px solid var(--line);font-size:9.5px;color:var(--muted)}
@@ -81,9 +81,9 @@
 .cali-profile-report .cpr-team i{display:block;height:100%}
 /* Capa */
 .cali-profile-report .cpr-cover{background:linear-gradient(150deg,#7A2840 0%,#5A1E2D 55%,#3A111C 100%);color:#fff;padding:64px 64px 48px;justify-content:space-between}
-.cali-profile-report .cpr-cover::before{content:"";position:absolute;right:-260px;top:120px;width:720px;height:720px;background:linear-gradient(200deg,rgba(217,185,138,.22),rgba(217,185,138,.04));-webkit-mask:url(/brand/cali-oak-mark.svg) center/contain no-repeat;mask:url(/brand/cali-oak-mark.svg) center/contain no-repeat;transform:rotate(-8deg)}
+.cali-profile-report.cali-profile-report .cpr-cover-leaf{position:absolute;right:-260px;top:120px;width:720px!important;height:720px!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;transform:rotate(-8deg);pointer-events:none;user-select:none}
 .cali-profile-report .cpr-cover-top{position:relative;display:flex;align-items:center;justify-content:space-between}
-.cali-profile-report .cpr-cover-top img{height:70px;width:auto}
+.cali-profile-report.cali-profile-report .cpr-cover-top img.cpr-cover-logo{display:block;width:126px!important;height:70px!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;object-fit:contain}
 .cali-profile-report .cpr-cover-top span{font-size:11px;font-weight:700;letter-spacing:.16em;color:#D9B98A}
 .cali-profile-report .cpr-cover-main{position:relative;display:flex;flex-direction:column;gap:12px}
 .cali-profile-report .cpr-cover-main small{font-size:11px;font-weight:700;letter-spacing:.16em;color:#D9B98A}
