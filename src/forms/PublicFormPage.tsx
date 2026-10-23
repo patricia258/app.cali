@@ -54,6 +54,7 @@ export function PublicFormPage() {
 
   useEffect(() => {
     if (phase !== 'questions') return;
+    document.querySelector('.cali-form-page .cf-stage')?.scrollTo({ top: 0 });
     const timer = window.setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 380);
     return () => window.clearTimeout(timer);
   }, [index, phase]);
