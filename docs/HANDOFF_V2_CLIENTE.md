@@ -7,14 +7,14 @@ Detalhe técnico e mapa V2 → oficial em `docs/V2_SUBSTITUICAO_ESTRUTURAL_2026-
 
 ## Em andamento agora
 
-_Atualizado em 21/10/2026._
+_Atualizado em 23/10/2026._
 
 - **Como publicamos:** trabalho na branch `feat/client-visual-v2-inplace-20261008` → `npm run check` + varredura QA
   (105 verificações, 0 apontamentos) → merge em `main` ("Publicação N — …") → Vercel publica em app.calirh.com.
   Sem homologação separada (decisão da proprietária em 13/10). Nunca reescrever histórico (sem force-push).
 - **Outra sessão em paralelo** publica os layouts de e-mail (funções de borda de e-mail) direto em `main`;
   sempre `git fetch` + merge de `origin/main` antes de publicar.
-- **Última publicação:** 71 — CALI Forms: texto do botão final e mensagem de sucesso por formulário (`submit_label`, `success_text`; migração `20261023120000_cali_forms_submit_success.sql`, aplicada); formulário de parceiros CommuniCALI atualizado (modalidades, contribuição, interesse, condição) (23/10); antes, 70 — CALI Forms: pergunta mais alta que a tela começa do topo e rola (antes cortava o título); antes, 69 — CALI Forms: etapas de triagem por formulário (`forms.stages`; `form_responses.stage`/`owner`, migração `20261023090000_cali_forms_pipeline.sql`, aplicada), filtro por situação, responsável na linha, pergunta de arquivo com opção "só PDF e imagens"; formulário "Faça parte da Rede de Parceiros CommuniCALI" criado como rascunho (23/10); antes, 68 — CALI Forms: lápis em cada resposta abre gaveta para a administradora completar/corrigir (texto e anexos; migração `20261022090000_cali_forms_admin_edit.sql`, aplicada) (22/10); antes, 67 — tela informativa do CALI Forms alinhada ao título; antes, 66 — links clicáveis nos textos do CALI Forms; antes, 65 — CALI Forms, respostas: clique copia o campo, seleção com exclusão em lote, ordenar por coluna, filtro por contato e por resposta, "Contatado/Pendente" e nota interna por resposta (colunas `contacted_at`, `admin_note`, migração `20261021260000_cali_forms_response_followup.sql`, aplicada); sem modal de resposta; lista com coluna "Para quem" (21/10).
+- **Última publicação:** 72 — Perfil Comportamental CALI (base DISC, método cali-disc-v1) (23/10).
 - Comercial (decisão de 15/10): horas Partner 10–15 e Full 20–25 aplicadas em `public.cali_pricing_rules` (também usada pelo Portal público). Valores continuam manuais: preço base e teto não foram mexidos.
 - **Eliminação dos dados (fim de contrato) — publicada (59):** migração aplicada pela proprietária no SQL Editor em 16/10 (registrada em `supabase/migrations/20261021230000_company_data_elimination.sql`; cron `workspace-company-elimination-alerts` 11h10 UTC avisa a administração no dia 45). Tela: Clientes → ficha → aba Contrato, abaixo de Exportar. Encerrada há menos de 45 dias: mostra a data de liberação. Depois: aviso vermelho + "Eliminar dados" → diálogo com o nome da empresa para confirmar. `src/pages/admin/companyDataElimination.ts` apaga primeiro os arquivos (`admin_company_storage_objects`, buckets `cali-workspace-private` e `workspace-assets`) e depois chama `admin_eliminate_company_data`. Não testado com empresa real (nenhuma encerrada há 45 dias).
 - **CALI Forms (publicação 60, 21/10, autorizado pela proprietária):** formulários estilo Typeform com a identidade CALI.
@@ -27,6 +27,21 @@ _Atualizado em 21/10/2026._
     `form_responses`; RLS só administradora; anônimo só pelas funções `public.cali_form_public` e `public.cali_form_submit`
     (valida obrigatórias/e-mail, limita volume). Confirmação por e-mail: função de borda `cali-forms-confirmation`
     (Resend, segredo `x-workspace-hook`, máx. 5 por endereço por dia). Código em `src/forms/`.
+- **Perfil Comportamental CALI (publicação 72, 23/10):** método dos documentos "Perfil-Comportamental_DISC-CALI_Revisao_v1" e
+  "_Banco-Perguntas_v1" (proprietária). Decisões: versão enxuta da pressão (18 blocos naturais + blocos 2,5,8,11,14,17 repetidos
+  "na semana difícil"), dois relatórios (respondente e avaliador), S = **Planejador** (escolha da proprietária), textos
+  dos perfis rascunhados por Claude para revisão (`src/profile/profileContent.ts`).
+  - Público: `/perfil/:slug` (teste no estilo CALI Forms, Mais/Menos, ordem embaralhada fixa, revisão sem prévia) →
+    `/perfil/relatorio/:token` (relatório do respondente; após o envio gera PDF no navegador com html2canvas+jsPDF,
+    sobe para o bucket privado `cali-profiles` e chama `cali_profile_report_ready`, que dispara a função de borda
+    `cali-profile-report-email` com o PDF em anexo).
+  - Administradora: `/admin/perfil-comportamental` (resultados e links; link livre ou de empresa; QR; liberar para o
+    cliente; excluir) e `/admin/perfil-comportamental/:id` (relatório do avaliador, 7 páginas, 4 gráficos, matriz de
+    papel editável, vínculo com a ficha). Ficha do colaborador (Equipe): aba "Perfil comportamental". Cliente vê só o
+    que foi liberado (`/cliente/perfil-comportamental/:id`, RLS `client_visible`).
+  - Banco (`supabase/migrations/20261023150000_cali_profile_assessment.sql`, aplicada): `profile_links`,
+    `profile_results` (respostas brutas por bloco + escores); cálculo oficial em `public.cali_profile_submit`
+    (espelhado em `src/profile/profileMethod.ts`). Vínculo automático à ficha pelo `team_members.work_email`.
 - **Próximo no código:** atualização do react-router para v7 (grande; última da fila).
 - **16/10 — fora do app (registro para acompanhamento):**
   - Site (`patricia258/sitecali`): Sobre com os valores em roda giratória (card central em destaque, vira no

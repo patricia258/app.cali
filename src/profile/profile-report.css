@@ -1,0 +1,103 @@
+/* Perfil Comportamental CALI — páginas A4 dos relatórios (tela, impressão e PDF). Tudo dentro de .cali-profile-report. */
+.cali-profile-report{--wine:#5A1E2D;--ink:#2B2B2B;--muted:#6B5D63;--line:#E8DDD4;--paper:#FFFFFF;--marfim:#F7F3EE;--gold:#B58C52;
+  display:flex;flex-direction:column;align-items:center;gap:22px;font-family:Inter,Arial,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+.cali-profile-report *{box-sizing:border-box}
+.cali-profile-report .cpr-page{position:relative;width:794px;height:1123px;background:var(--paper);box-shadow:0 10px 40px rgba(43,32,36,.12);display:flex;flex-direction:column;overflow:hidden;flex:0 0 auto}
+.cali-profile-report .cpr-head{display:flex;align-items:center;justify-content:space-between;padding:30px 56px 16px;border-bottom:1px solid var(--line)}
+.cali-profile-report .cpr-head img{height:30px;width:auto}
+.cali-profile-report .cpr-head span{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.cali-profile-report .cpr-body{flex:1;padding:26px 56px 18px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.cali-profile-report .cpr-foot{display:flex;justify-content:space-between;padding:14px 56px 24px;border-top:1px solid var(--line);font-size:9.5px;color:var(--muted)}
+.cali-profile-report .cpr-eyebrow{display:block;margin-top:6px;font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--gold)}
+.cali-profile-report h1{margin:0;font-size:40px;line-height:1.1;font-weight:700;letter-spacing:-.02em}
+.cali-profile-report h2{margin:0;font-size:28px;line-height:1.15;font-weight:700;letter-spacing:-.01em}
+.cali-profile-report .cpr-h2-sub{font-size:15px;font-weight:600;color:var(--muted)}
+.cali-profile-report p{margin:0;font-size:12.5px;line-height:1.6;color:var(--ink)}
+.cali-profile-report .cpr-lead{font-size:16px;font-weight:600;color:var(--wine)}
+.cali-profile-report .cpr-note{font-size:10.5px;line-height:1.55;color:var(--muted)}
+.cali-profile-report .cpr-sub{display:block;font-size:12px;margin:4px 0 6px;color:var(--ink)}
+.cali-profile-report .cpr-callout{padding:12px 16px;border:1px solid var(--line);border-left:4px solid var(--wine);border-radius:10px;background:#FBF7F3;font-size:12px;line-height:1.6}
+.cali-profile-report .cpr-callout.attention{border-left-color:var(--gold);background:#FBF5EA}
+.cali-profile-report .cpr-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cali-profile-report .cpr-card{padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:#FFFDFB}
+.cali-profile-report .cpr-card strong{display:block;font-size:13px;color:var(--wine);margin-bottom:4px}
+.cali-profile-report .cpr-card p{font-size:11.5px}
+.cali-profile-report .cpr-three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.cali-profile-report .cpr-three>div{padding:14px;border-radius:12px;background:var(--marfim)}
+.cali-profile-report .cpr-three strong{display:block;font-size:12px;color:var(--wine);margin-bottom:6px}
+.cali-profile-report .cpr-three p{font-size:11.5px}
+.cali-profile-report .cpr-list{margin:4px 0 0;padding-left:18px;font-size:12px;line-height:1.7}
+.cali-profile-report .cpr-list.good li::marker{color:#4F7A5B}
+.cali-profile-report .cpr-list.warn li::marker{color:var(--gold)}
+.cali-profile-report .cpr-tips{margin:4px 0 0;padding-left:20px;font-size:12.5px;line-height:1.7}
+.cali-profile-report .cpr-tips li{margin-bottom:4px}
+.cali-profile-report .cpr-dl{margin:0;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.cali-profile-report .cpr-dl>div{display:grid;grid-template-columns:130px 1fr;gap:12px;padding:10px 14px;border-top:1px solid #F1E9E2}
+.cali-profile-report .cpr-dl>div:first-child{border-top:0}
+.cali-profile-report .cpr-dl dt{font-size:11px;font-weight:700;color:var(--wine)}
+.cali-profile-report .cpr-dl dd{margin:0;font-size:12px;line-height:1.55}
+.cali-profile-report .cpr-disclaimer{margin-top:auto;padding:12px 14px;border-radius:10px;background:var(--marfim);font-size:10.5px;line-height:1.55;color:var(--muted)}
+.cali-profile-report .cpr-synthesis{margin:4px 0 6px;padding-left:20px;font-size:12.5px;line-height:1.65}
+.cali-profile-report .cpr-synthesis li{margin-bottom:6px}
+.cali-profile-report .cpr-readings{margin:2px 0 0;padding-left:18px;font-size:11.5px;line-height:1.6}
+.cali-profile-report .cpr-chart-row{display:flex;align-items:center;gap:22px}
+.cali-profile-report .cpr-chart-row>.cpr-bars{flex:1}
+.cali-profile-report .cpr-legend-box{flex:1;display:flex;flex-direction:column;gap:8px;font-size:12px}
+.cali-profile-report .cpr-legend-box i{display:inline-block;width:26px;height:0;margin-right:8px;vertical-align:middle;border-top:3px solid var(--wine)}
+.cali-profile-report .cpr-legend-box i.dash{border-top:3px dashed var(--gold)}
+/* Barras com faixas */
+.cali-profile-report .cpr-bars{display:flex;flex-direction:column;gap:9px}
+.cali-profile-report .cpr-bar-row,.cali-profile-report .cpr-adapt-row{display:grid;grid-template-columns:120px 1fr 74px;align-items:center;gap:10px}
+.cali-profile-report .cpr-bar-name{font-size:11.5px;font-weight:600}
+.cali-profile-report .cpr-bar-name b{display:inline-block;width:14px}
+.cali-profile-report .cpr-bar-track{position:relative;height:16px;border-radius:8px;overflow:hidden;background:var(--marfim)}
+.cali-profile-report .cpr-bar-track i{position:absolute;top:0;bottom:0}
+.cali-profile-report .cpr-bar-track em{position:absolute;left:0;top:4px;bottom:4px;border-radius:5px}
+.cali-profile-report .cpr-bar-track u{position:absolute;top:0;bottom:0;width:3px;margin-left:-1px;background:var(--gold)}
+.cali-profile-report .cpr-bar-track s{position:absolute;top:0;bottom:0;width:1px;background:rgba(43,32,36,.35)}
+.cali-profile-report .cpr-bar-value{display:flex;align-items:baseline;gap:6px}
+.cali-profile-report .cpr-bar-value strong{font-size:13px}
+.cali-profile-report .cpr-bar-value small{font-size:10px;color:var(--muted)}
+.cali-profile-report .cpr-bar-legend{display:grid;grid-template-columns:120px 39fr 20fr 20fr 21fr 74px;gap:0 10px;font-size:9px;color:var(--muted);padding-left:0}
+.cali-profile-report .cpr-bar-legend span:first-child{text-align:right;padding-right:2px;visibility:hidden}
+/* Mapa de adaptação */
+.cali-profile-report .cpr-adapt{display:flex;flex-direction:column;gap:9px}
+.cali-profile-report .cpr-adapt-head{display:grid;grid-template-columns:120px 1fr 1fr 74px;gap:10px;font-size:9.5px;color:var(--muted)}
+.cali-profile-report .cpr-adapt-head span:first-child{grid-column:2;text-align:left}
+.cali-profile-report .cpr-adapt-head span:last-child{grid-column:3;text-align:right}
+.cali-profile-report .cpr-adapt-track{position:relative;height:16px;border-radius:8px;background:var(--marfim)}
+.cali-profile-report .cpr-adapt-track s{position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:rgba(43,32,36,.4)}
+.cali-profile-report .cpr-adapt-track em{position:absolute;top:4px;bottom:4px;border-radius:5px}
+/* Tabelas */
+.cali-profile-report .cpr-matrix{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:11.5px}
+.cali-profile-report .cpr-matrix th{text-align:left;padding:8px 12px;background:var(--marfim);font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.cali-profile-report .cpr-matrix td{padding:8px 12px;border-top:1px solid #F1E9E2;vertical-align:top}
+.cali-profile-report .cpr-matrix tr.gap td{background:#FBF1EE}
+.cali-profile-report .cpr-matrix select{font:inherit;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.cali-profile-report .cpr-data td{font-variant-numeric:tabular-nums}
+.cali-profile-report .cpr-team{display:flex;flex-direction:column;gap:6px}
+.cali-profile-report .cpr-team>div{display:grid;grid-template-columns:110px 1fr 30px;align-items:center;gap:10px;font-size:11.5px;font-weight:600}
+.cali-profile-report .cpr-team>div>div{height:10px;border-radius:5px;background:var(--marfim);overflow:hidden}
+.cali-profile-report .cpr-team i{display:block;height:100%}
+/* Capa */
+.cali-profile-report .cpr-cover{background:linear-gradient(150deg,#7A2840 0%,#5A1E2D 55%,#3A111C 100%);color:#fff;padding:64px 64px 48px;justify-content:space-between}
+.cali-profile-report .cpr-cover::before{content:"";position:absolute;right:-260px;top:120px;width:720px;height:720px;background:linear-gradient(200deg,rgba(217,185,138,.22),rgba(217,185,138,.04));-webkit-mask:url(/brand/cali-oak-mark.svg) center/contain no-repeat;mask:url(/brand/cali-oak-mark.svg) center/contain no-repeat;transform:rotate(-8deg)}
+.cali-profile-report .cpr-cover-top{position:relative;display:flex;align-items:center;justify-content:space-between}
+.cali-profile-report .cpr-cover-top img{height:70px;width:auto}
+.cali-profile-report .cpr-cover-top span{font-size:11px;font-weight:700;letter-spacing:.16em;color:#D9B98A}
+.cali-profile-report .cpr-cover-main{position:relative;display:flex;flex-direction:column;gap:12px}
+.cali-profile-report .cpr-cover-main small{font-size:11px;font-weight:700;letter-spacing:.16em;color:#D9B98A}
+.cali-profile-report .cpr-cover-main h1{color:#fff;font-size:46px}
+.cali-profile-report .cpr-cover-main>p{color:rgba(255,255,255,.8);font-size:15px}
+.cali-profile-report .cpr-cover-profile{margin-top:26px;max-width:470px;padding:20px 24px;border-left:5px solid #D9B98A !important;border-radius:14px;background:rgba(255,255,255,.08);display:flex;flex-direction:column;gap:6px}
+.cali-profile-report .cpr-cover-profile span{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#D9B98A}
+.cali-profile-report .cpr-cover-profile strong{font-size:30px;color:#fff}
+.cali-profile-report .cpr-cover-profile em{font-style:normal;font-size:14px;color:rgba(255,255,255,.85);line-height:1.5}
+.cali-profile-report .cpr-cover-foot{position:relative;display:flex;justify-content:space-between;gap:24px;font-size:11px;color:rgba(255,255,255,.7)}
+@media print{
+  @page{size:A4;margin:0}
+  .cali-profile-report{gap:0}
+  .cali-profile-report .cpr-page{box-shadow:none;break-after:page;page-break-after:always}
+  .cali-profile-report .cpr-matrix select{border:0;appearance:none;-webkit-appearance:none;padding:0}
+}
+.cali-profile-report .cpr-cover>.cpr-body{padding:0;justify-content:space-between;gap:0;overflow:visible}
