@@ -45,6 +45,9 @@ export type FormRecord = {
   audience: FormAudience;
   /** Etapas de acompanhamento das respostas (triagem). Vazio: só Contato e Nota. */
   stages?: string[] | null;
+  /** Texto do botão final e mensagem da tela de sucesso (vazios = padrão). */
+  submit_label?: string | null;
+  success_text?: string | null;
   created_at: string;
   updated_at: string;
 };

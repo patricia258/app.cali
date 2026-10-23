@@ -7,7 +7,7 @@ import { anonPublicRpc, anonStorage, supabase } from '../lib/supabase';
 import { type FormAnswer, type FormQuestion, FILE_ACCEPT, FILE_HINT, fileLabel, isAnswerable, nextQuestionIndex, richTextHtml, scaleRange, validateAnswer } from './formModel';
 import './public-form.css';
 
-type PublicForm = { id: string; slug: string; title: string; category?: string; description: string; thank_you: string; status: 'open' | 'closed'; confirm_email: boolean; questions: FormQuestion[] };
+type PublicForm = { id: string; submit_label?: string | null; success_text?: string | null; slug: string; title: string; category?: string; description: string; thank_you: string; status: 'open' | 'closed'; confirm_email: boolean; questions: FormQuestion[] };
 type Phase = 'loading' | 'missing' | 'closed' | 'welcome' | 'questions' | 'sending' | 'done';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -35,7 +35,7 @@ export function PublicFormPage() {
       let data = published;
       // Prévia da administradora: lê também rascunho e encerrado (só funciona com a sessão dela; RLS barra os demais).
       if (preview && supabase) {
-        const own = await supabase.from('forms').select('id,slug,title,description,thank_you,status,confirm_email,category,questions').eq('slug', slug.toLowerCase()).maybeSingle();
+        const own = await supabase.from('forms').select('id,slug,title,description,thank_you,status,confirm_email,category,submit_label,success_text,questions').eq('slug', slug.toLowerCase()).maybeSingle();
         if (own.data) data = { ...(own.data as PublicForm), status: 'open' };
       }
       if (!alive) return;
@@ -225,14 +225,19 @@ export function PublicFormPage() {
         {error && <p className="cf-error" role="alert">{error}</p>}
         {sendError && isLast && <p className="cf-error" role="alert">{sendError}</p>}
         <div className="cf-actions">
-          <button type="button" className="cf-primary" disabled={phase === 'sending'} onClick={goNext}>{phase === 'sending' ? 'Enviando…' : isLast ? <>Enviar <Check size={18} /></> : question.kind === 'statement' ? <>Continuar <ArrowRight size={18} /></> : <>OK <Check size={18} /></>}</button>
+          <button type="button" className="cf-primary" disabled={phase === 'sending'} onClick={goNext}>{phase === 'sending' ? 'Enviando…' : isLast ? <>{form?.submit_label || 'Enviar'} <Check size={18} /></> : question.kind === 'statement' ? <>Continuar <ArrowRight size={18} /></> : <>OK <Check size={18} /></>}</button>
           {phase !== 'sending' && <span className="cf-enter-hint">pressione <b>Enter <CornerDownLeft size={13} /></b>{question.kind === 'long_text' && <> · <b>Shift + Enter</b> quebra linha</>}</span>}
         </div>
       </div>}
       {phase === 'done' && form && <div className="cf-screen cf-center cf-enter cf-done">
         <span className="cf-done-mark"><img src="/brand/cali-oak-mark-light.svg" alt="" /></span>
-        <h1>Muito obrigado!</h1>
-        <p>Recebemos suas respostas e agradecemos a colaboração.</p>
+        {(() => {
+          // Mensagem própria do formulário: a primeira frase curta vira o título; o resto, o texto.
+          const custom = form.success_text?.trim();
+          if (!custom) return <><h1>Muito obrigado!</h1><p>Recebemos suas respostas e agradecemos a colaboração.</p></>;
+          const match = custom.match(/^(.{4,70}?[!.?])\s+(.+)$/s);
+          return match ? <><h1>{match[1]}</h1><p>{match[2]}</p></> : <><h1>Muito obrigado!</h1><p>{custom}</p></>;
+        })()}
       </div>}
     </main>
     {phase === 'questions' && <nav className="cf-nav" aria-label="Navegar entre perguntas">

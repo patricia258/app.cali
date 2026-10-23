@@ -15,7 +15,7 @@ type ResponseRow = { id: string; answers: Record<string, unknown>; respondent_na
 const RESPONSE_FIELDS = 'id,answers,respondent_name,respondent_email,submitted_at,confirmation_sent_at,contacted_at,admin_note,stage,owner';
 type Tab = 'questions' | 'share' | 'responses';
 
-const FORM_FIELDS = 'id,slug,title,description,thank_you,status,company_id,questions,confirm_email,category,audience,stages,created_at,updated_at';
+const FORM_FIELDS = 'id,slug,title,description,thank_you,status,company_id,questions,confirm_email,category,audience,stages,submit_label,success_text,created_at,updated_at';
 const EMOJIS = ['😊', '🙂', '🙏', '💬', '✨', '🌱', '🍂', '💡', '📌', '✅', '📝', '📊', '🤝', '❤️', '👏', '🎯', '⏱️', '🔒', '📅', '👉'];
 const dateTime = (value?: string | null) => value ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value)) : '—';
 const shortDate = (value?: string | null) => value ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(new Date(value)) : '—';
@@ -80,7 +80,7 @@ export function AdminFormsPage() {
     const taken = new Set(forms.map((item) => item.slug));
     let slug = `${form.slug}-copia`.slice(0, 60); let n = 2;
     while (taken.has(slug)) slug = `${form.slug}-copia-${n++}`.slice(0, 60);
-    const { data, error: insertError } = await supabase.from('forms').insert({ title: `${form.title} (cópia)`.slice(0, 160), slug, description: form.description, thank_you: form.thank_you, company_id: form.company_id, category: form.category, audience: form.audience, stages: form.stages ?? null, confirm_email: form.confirm_email, questions: form.questions.map((question) => ({ ...question, id: questionId() })) }).select(FORM_FIELDS).single();
+    const { data, error: insertError } = await supabase.from('forms').insert({ title: `${form.title} (cópia)`.slice(0, 160), slug, description: form.description, thank_you: form.thank_you, company_id: form.company_id, category: form.category, audience: form.audience, stages: form.stages ?? null, submit_label: form.submit_label ?? null, success_text: form.success_text ?? null, confirm_email: form.confirm_email, questions: form.questions.map((question) => ({ ...question, id: questionId() })) }).select(FORM_FIELDS).single();
     if (insertError || !data) { setError(errorText(insertError, 'Não foi possível duplicar.')); return; }
     setForms((current) => [data as FormRecord, ...current]); go((data as FormRecord).id);
   }
@@ -157,7 +157,7 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
     const problem = problems(next);
     if (problem) { setNote({ text: problem, failed: true }); return; }
     setSaving(true); setNote(null);
-    const { data, error } = await supabase.from('forms').update({ title: next.title.trim(), slug: next.slug, description: next.description.trim(), thank_you: next.thank_you.trim(), status: next.status, category: next.category.trim() || 'Formulário', audience: next.audience, stages: (next.stages || []).map((item) => item.trim()).filter(Boolean).slice(0, 12).length ? (next.stages || []).map((item) => item.trim()).filter(Boolean).slice(0, 12) : null, company_id: next.audience === 'client' ? next.company_id || null : null, confirm_email: next.confirm_email, questions: next.questions, updated_at: new Date().toISOString() }).eq('id', form.id).select(FORM_FIELDS).single();
+    const { data, error } = await supabase.from('forms').update({ title: next.title.trim(), slug: next.slug, description: next.description.trim(), thank_you: next.thank_you.trim(), status: next.status, submit_label: next.submit_label?.trim() || null, success_text: next.success_text?.trim() || null, category: next.category.trim() || 'Formulário', audience: next.audience, stages: (next.stages || []).map((item) => item.trim()).filter(Boolean).slice(0, 12).length ? (next.stages || []).map((item) => item.trim()).filter(Boolean).slice(0, 12) : null, company_id: next.audience === 'client' ? next.company_id || null : null, confirm_email: next.confirm_email, questions: next.questions, updated_at: new Date().toISOString() }).eq('id', form.id).select(FORM_FIELDS).single();
     setSaving(false);
     if (error || !data) { setNote({ text: errorText(error, 'Não foi possível salvar.'), failed: true }); return; }
     setDraft(data as FormRecord); onSaved(data as FormRecord);
@@ -195,6 +195,8 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
           <label><span>Link</span><div className="v2-forms-slug"><b>app.calirh.com/f/</b><input value={draft.slug} maxLength={60} onChange={(event) => patch({ slug: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-{2,}/g, '-') })} /></div></label>
           {draft.audience === 'client' ? <label><span>Cliente <em>opcional</em></span><select value={draft.company_id || ''} onChange={(event) => patch({ company_id: event.target.value || null })}><option value="">Vários clientes / não vincular</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select></label> : <span />}
           <label className="wide"><span>Mensagem do e-mail de confirmação <em>opcional</em></span><textarea rows={2} maxLength={600} value={draft.thank_you} placeholder="Ex.: Sua contribuição nos ajuda a tornar cada conversa mais clara." onChange={(event) => patch({ thank_you: event.target.value })} /></label>
+          <label><span>Texto do botão final <em>opcional · padrão “Enviar”</em></span><input value={draft.submit_label || ''} maxLength={60} placeholder="Enviar" onChange={(event) => patch({ submit_label: event.target.value })} /></label>
+          <label><span>Mensagem de sucesso <em>opcional · padrão “Muito obrigado!”</em></span><textarea rows={2} maxLength={600} value={draft.success_text || ''} placeholder="Ex.: Recebemos sua proposta! Nossa equipe vai entrar em contato." onChange={(event) => patch({ success_text: event.target.value })} /></label>
           <label className="wide"><span>Etapas de acompanhamento <em>opcional · uma por linha; aparecem como “Situação” em cada resposta (triagem)</em></span><textarea rows={3} value={(draft.stages || []).join('\n')} placeholder={'Ex.:\nNovo\nEm análise\nAprovado'} onChange={(event) => patch({ stages: event.target.value.split('\n') })} /></label>
           <label className="v2-forms-check wide"><input type="checkbox" checked={draft.confirm_email} onChange={(event) => patch({ confirm_email: event.target.checked })} /><span><strong>Enviar e-mail “Recebemos sua resposta”</strong><small>Vai para o e-mail informado na pergunta do tipo E-mail, com uma cópia das respostas.</small></span></label>
         </div>
