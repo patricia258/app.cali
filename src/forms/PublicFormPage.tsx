@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent a
 import { useParams, useSearchParams } from 'react-router-dom';
 import { ArrowDown, ArrowRight, ArrowUp, Check, CornerDownLeft, Paperclip, X } from 'lucide-react';
 import { anonPublicRpc, anonStorage, supabase } from '../lib/supabase';
-import { type FormAnswer, type FormQuestion, fileLabel, isAnswerable, nextQuestionIndex, richTextHtml, scaleRange, validateAnswer } from './formModel';
+import { type FormAnswer, type FormQuestion, FILE_ACCEPT, FILE_HINT, fileLabel, isAnswerable, nextQuestionIndex, richTextHtml, scaleRange, validateAnswer } from './formModel';
 import './public-form.css';
 
 type PublicForm = { id: string; slug: string; title: string; category?: string; description: string; thank_you: string; status: 'open' | 'closed'; confirm_email: boolean; questions: FormQuestion[] };
@@ -137,6 +137,7 @@ export function PublicFormPage() {
   async function chooseFile(item: FormQuestion, file: File | undefined) {
     if (!file || !form) return;
     if (file.size > 25 * 1024 * 1024) { setError('O arquivo passa de 25 MB. Envie um arquivo menor.'); return; }
+    if (item.accept === 'images_pdf' && !(file.type.startsWith('image/') || file.type === 'application/pdf')) { setError('Envie um PDF ou uma imagem.'); return; }
     const thumb = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined;
     setError(''); setUploads((current) => ({ ...current, [item.id]: { busy: true, name: file.name, preview: thumb } }));
     const safe = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '-').slice(-80) || 'arquivo';
@@ -181,8 +182,8 @@ export function PublicFormPage() {
             <span><strong>{state?.name || fileLabel(String(value))}</strong><small>{state?.busy ? 'Enviando…' : 'Arquivo pronto'}</small></span>
             {!state?.busy && <button type="button" aria-label="Remover arquivo" onClick={() => { setAnswers((current) => { const next = { ...current }; delete next[item.id]; return next; }); setUploads((current) => { const next = { ...current }; delete next[item.id]; return next; }); }}><X size={16} /></button>}
           </div> : <label className="cf-file-drop">
-            <input type="file" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,video/*,audio/*" onChange={(event) => void chooseFile(item, event.target.files?.[0])} />
-            <Paperclip size={22} /><strong>Escolher arquivo</strong><small>Foto, PDF, documento, áudio ou vídeo · até 25 MB</small>
+            <input type="file" accept={FILE_ACCEPT[item.accept || 'any']} onChange={(event) => void chooseFile(item, event.target.files?.[0])} />
+            <Paperclip size={22} /><strong>Escolher arquivo</strong><small>{FILE_HINT[item.accept || 'any']}</small>
           </label>}
           {state?.error && <p className="cf-error" role="alert">{state.error}</p>}
         </div>;

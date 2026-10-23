@@ -200,3 +200,13 @@ html[data-workspace-ui='v2'] .v2-forms-edit-file{display:flex;align-items:center
 html[data-workspace-ui='v2'] .v2-forms-edit-file label{cursor:pointer}
 html[data-workspace-ui='v2'] .v2-forms-drawer>.v2-forms-error{margin:0 24px 10px}
 html[data-workspace-ui='v2'] .v2-forms-drawer>footer{display:flex;justify-content:flex-end;gap:10px;padding:14px 24px;border-top:1px solid #f0e7e0;background:#fff}
+/* Triagem: situação (cores em sequência) e responsável editável na própria linha. */
+html[data-workspace-ui='v2'] .v2-forms-stage{border:0;border-radius:999px;padding:4px 24px 4px 10px;font:600 11px Inter,sans-serif;cursor:pointer;background-color:#f1ece8;color:#5f544e}
+html[data-workspace-ui='v2'] .v2-forms-stage.s0{background-color:#e9f0f7;color:#2c5a85}
+html[data-workspace-ui='v2'] .v2-forms-stage.s1{background-color:#fff4de;color:#9b6c21}
+html[data-workspace-ui='v2'] .v2-forms-stage.s2{background-color:#f3e9ec;color:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-forms-stage.s3{background-color:#efe9f7;color:#5b3e8a}
+html[data-workspace-ui='v2'] .v2-forms-stage.s4,html[data-workspace-ui='v2'] .v2-forms-stage.s6{background-color:#e6f6ec;color:#31805a}
+html[data-workspace-ui='v2'] .v2-forms-stage.s5{background-color:#fbeae8;color:#9f1f14}
+html[data-workspace-ui='v2'] .v2-forms-owner{width:130px;border:1px dashed transparent;border-radius:7px;background:transparent;padding:4px 7px;font:500 12px Inter,sans-serif;color:var(--fm-ink)}
+html[data-workspace-ui='v2'] .v2-forms-owner:hover,html[data-workspace-ui='v2'] .v2-forms-owner:focus{border-color:#e3d6cc;background:#fff;outline:none}

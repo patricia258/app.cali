@@ -11,10 +11,11 @@ import { type FormAudience, type FormQuestion, type FormRecord, type QuestionKin
 import './admin-forms.css';
 
 type Overview = Record<string, { responses: number; last: string | null }>;
-type ResponseRow = { id: string; answers: Record<string, unknown>; respondent_name: string | null; respondent_email: string | null; submitted_at: string; confirmation_sent_at: string | null; contacted_at: string | null; admin_note: string | null };
+type ResponseRow = { id: string; answers: Record<string, unknown>; respondent_name: string | null; respondent_email: string | null; submitted_at: string; confirmation_sent_at: string | null; contacted_at: string | null; admin_note: string | null; stage: string | null; owner: string | null };
+const RESPONSE_FIELDS = 'id,answers,respondent_name,respondent_email,submitted_at,confirmation_sent_at,contacted_at,admin_note,stage,owner';
 type Tab = 'questions' | 'share' | 'responses';
 
-const FORM_FIELDS = 'id,slug,title,description,thank_you,status,company_id,questions,confirm_email,category,audience,created_at,updated_at';
+const FORM_FIELDS = 'id,slug,title,description,thank_you,status,company_id,questions,confirm_email,category,audience,stages,created_at,updated_at';
 const EMOJIS = ['😊', '🙂', '🙏', '💬', '✨', '🌱', '🍂', '💡', '📌', '✅', '📝', '📊', '🤝', '❤️', '👏', '🎯', '⏱️', '🔒', '📅', '👉'];
 const dateTime = (value?: string | null) => value ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value)) : '—';
 const shortDate = (value?: string | null) => value ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(new Date(value)) : '—';
@@ -79,7 +80,7 @@ export function AdminFormsPage() {
     const taken = new Set(forms.map((item) => item.slug));
     let slug = `${form.slug}-copia`.slice(0, 60); let n = 2;
     while (taken.has(slug)) slug = `${form.slug}-copia-${n++}`.slice(0, 60);
-    const { data, error: insertError } = await supabase.from('forms').insert({ title: `${form.title} (cópia)`.slice(0, 160), slug, description: form.description, thank_you: form.thank_you, company_id: form.company_id, category: form.category, audience: form.audience, confirm_email: form.confirm_email, questions: form.questions.map((question) => ({ ...question, id: questionId() })) }).select(FORM_FIELDS).single();
+    const { data, error: insertError } = await supabase.from('forms').insert({ title: `${form.title} (cópia)`.slice(0, 160), slug, description: form.description, thank_you: form.thank_you, company_id: form.company_id, category: form.category, audience: form.audience, stages: form.stages ?? null, confirm_email: form.confirm_email, questions: form.questions.map((question) => ({ ...question, id: questionId() })) }).select(FORM_FIELDS).single();
     if (insertError || !data) { setError(errorText(insertError, 'Não foi possível duplicar.')); return; }
     setForms((current) => [data as FormRecord, ...current]); go((data as FormRecord).id);
   }
@@ -156,7 +157,7 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
     const problem = problems(next);
     if (problem) { setNote({ text: problem, failed: true }); return; }
     setSaving(true); setNote(null);
-    const { data, error } = await supabase.from('forms').update({ title: next.title.trim(), slug: next.slug, description: next.description.trim(), thank_you: next.thank_you.trim(), status: next.status, category: next.category.trim() || 'Formulário', audience: next.audience, company_id: next.audience === 'client' ? next.company_id || null : null, confirm_email: next.confirm_email, questions: next.questions, updated_at: new Date().toISOString() }).eq('id', form.id).select(FORM_FIELDS).single();
+    const { data, error } = await supabase.from('forms').update({ title: next.title.trim(), slug: next.slug, description: next.description.trim(), thank_you: next.thank_you.trim(), status: next.status, category: next.category.trim() || 'Formulário', audience: next.audience, stages: (next.stages || []).map((item) => item.trim()).filter(Boolean).slice(0, 12).length ? (next.stages || []).map((item) => item.trim()).filter(Boolean).slice(0, 12) : null, company_id: next.audience === 'client' ? next.company_id || null : null, confirm_email: next.confirm_email, questions: next.questions, updated_at: new Date().toISOString() }).eq('id', form.id).select(FORM_FIELDS).single();
     setSaving(false);
     if (error || !data) { setNote({ text: errorText(error, 'Não foi possível salvar.'), failed: true }); return; }
     setDraft(data as FormRecord); onSaved(data as FormRecord);
@@ -194,6 +195,7 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
           <label><span>Link</span><div className="v2-forms-slug"><b>app.calirh.com/f/</b><input value={draft.slug} maxLength={60} onChange={(event) => patch({ slug: event.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-{2,}/g, '-') })} /></div></label>
           {draft.audience === 'client' ? <label><span>Cliente <em>opcional</em></span><select value={draft.company_id || ''} onChange={(event) => patch({ company_id: event.target.value || null })}><option value="">Vários clientes / não vincular</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select></label> : <span />}
           <label className="wide"><span>Mensagem do e-mail de confirmação <em>opcional</em></span><textarea rows={2} maxLength={600} value={draft.thank_you} placeholder="Ex.: Sua contribuição nos ajuda a tornar cada conversa mais clara." onChange={(event) => patch({ thank_you: event.target.value })} /></label>
+          <label className="wide"><span>Etapas de acompanhamento <em>opcional · uma por linha; aparecem como “Situação” em cada resposta (triagem)</em></span><textarea rows={3} value={(draft.stages || []).join('\n')} placeholder={'Ex.:\nNovo\nEm análise\nAprovado'} onChange={(event) => patch({ stages: event.target.value.split('\n') })} /></label>
           <label className="v2-forms-check wide"><input type="checkbox" checked={draft.confirm_email} onChange={(event) => patch({ confirm_email: event.target.checked })} /><span><strong>Enviar e-mail “Recebemos sua resposta”</strong><small>Vai para o e-mail informado na pergunta do tipo E-mail, com uma cópia das respostas.</small></span></label>
         </div>
       </section>
@@ -220,6 +222,7 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
             <summary>Pergunta condicional <em>{question.logic?.length ? `${question.logic.length} regra(s)` : 'opcional · leva a pessoa para outra pergunta conforme a resposta'}</em></summary>
             {choiceOptions(question).map((option) => { const rule = question.logic?.find((item) => item.when === option); return <label key={option}><span>Se responder <b>{option}</b>, ir para</span><select value={rule?.goTo || ''} onChange={(event) => { const others = (question.logic || []).filter((item) => item.when !== option); patchQuestion(question.id, { logic: event.target.value ? [...others, { when: option, goTo: event.target.value }] : others }); }}><option value="">a próxima pergunta</option>{draft.questions.slice(index + 1).map((target) => <option key={target.id} value={target.id}>{draft.questions.indexOf(target) + 1}. {stripRichText(target.label).slice(0, 70) || 'Pergunta sem texto'}</option>)}<option value={END_OF_FORM}>encerrar e enviar</option></select></label>; })}
           </details>}
+          {question.kind === 'file' && <label className="v2-forms-options"><span>Tipos de arquivo aceitos</span><select value={question.accept || 'any'} onChange={(event) => patchQuestion(question.id, { accept: event.target.value as FormQuestion['accept'] })}><option value="any">Foto, PDF, documentos, áudio e vídeo</option><option value="images_pdf">Só PDF e imagens</option></select></label>}
           {question.kind === 'scale' && <div className="v2-forms-scale">
             <label><span>De</span><select value={question.scaleMin ?? 0} onChange={(event) => patchQuestion(question.id, { scaleMin: Number(event.target.value) })}>{[0, 1].map((value) => <option key={value}>{value}</option>)}</select></label>
             <label><span>Até</span><select value={question.scaleMax ?? 10} onChange={(event) => patchQuestion(question.id, { scaleMax: Number(event.target.value) })}>{[3, 4, 5, 6, 7, 8, 9, 10].map((value) => <option key={value}>{value}</option>)}</select></label>
@@ -278,6 +281,8 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [contactFilter, setContactFilter] = useState<'all' | 'pending' | 'done'>('all');
+  const [stageFilter, setStageFilter] = useState('');
+  const stages = useMemo(() => (form.stages || []).filter(Boolean), [form.stages]);
   const [answerFilter, setAnswerFilter] = useState('');
   const [sort, setSort] = useState<{ key: string; dir: 1 | -1 }>({ key: 'date', dir: -1 });
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -292,7 +297,7 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
   async function load() {
     if (!supabase) return;
     setLoading(true); setError('');
-    const { data, error: loadError } = await supabase.from('form_responses').select('id,answers,respondent_name,respondent_email,submitted_at,confirmation_sent_at,contacted_at,admin_note').eq('form_id', form.id).order('submitted_at', { ascending: false }).limit(5000);
+    const { data, error: loadError } = await supabase.from('form_responses').select(RESPONSE_FIELDS).eq('form_id', form.id).order('submitted_at', { ascending: false }).limit(5000);
     if (loadError) setError(errorText(loadError, 'Não foi possível carregar as respostas.')); else setRows((data || []) as ResponseRow[]);
     setLoading(false); setSelected(new Set());
   }
@@ -305,14 +310,15 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
     const list = rows.filter((row) => {
       if (contactFilter === 'pending' && row.contacted_at) return false;
       if (contactFilter === 'done' && !row.contacted_at) return false;
+      if (stageFilter && (row.stage || stages[0] || '') !== stageFilter) return false;
       if (filterId) { const value = row.answers[filterId]; if (Array.isArray(value) ? !value.map(String).includes(filterValue) : String(value ?? '') !== filterValue) return false; }
       if (!term) return true;
       return [row.respondent_name, row.respondent_email, row.admin_note, ...columns.map((question) => textOf(question, row))].join(' ').toLowerCase().includes(term);
     });
     const key = sort.key;
-    const valueOf = (row: ResponseRow): string | number => key === 'date' ? row.submitted_at : key === 'contact' ? (row.contacted_at || '') : key === 'note' ? (row.admin_note || '') : (() => { const question = columns.find((item) => item.id === key); const raw = row.answers[key]; return typeof raw === 'number' ? raw : question ? textOf(question, row) : ''; })();
+    const valueOf = (row: ResponseRow): string | number => key === 'date' ? row.submitted_at : key === 'stage' ? stages.indexOf(row.stage || stages[0] || '') : key === 'owner' ? (row.owner || '') : key === 'contact' ? (row.contacted_at || '') : key === 'note' ? (row.admin_note || '') : (() => { const question = columns.find((item) => item.id === key); const raw = row.answers[key]; return typeof raw === 'number' ? raw : question ? textOf(question, row) : ''; })();
     return [...list].sort((a, b) => { const x = valueOf(a), y = valueOf(b); if (x === y) return 0; if (x === '' ) return 1; if (y === '') return -1; return (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'pt-BR', { sensitivity: 'base' })) * sort.dir; });
-  }, [rows, query, columns, contactFilter, answerFilter, sort]);
+  }, [rows, query, columns, contactFilter, answerFilter, sort, stageFilter, stages]);
 
   function flash(message: string) { setToast(message); window.setTimeout(() => setToast((current) => current === message ? '' : current), 1800); }
   function copy(text: string) { if (!text) return; void navigator.clipboard.writeText(text).then(() => flash(`Copiado: ${text.length > 40 ? `${text.slice(0, 40)}…` : text}`)); }
@@ -322,13 +328,20 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
   function toggle(id: string) { setSelected((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; }); }
 
   async function exportExcel() {
-    const header = ['Data', ...columns.map((question) => stripRichText(question.label)), 'Contato', 'Nota interna'];
+    const header = ['Data', ...(stages.length ? ['Situação', 'Responsável'] : []), ...columns.map((question) => stripRichText(question.label)), 'Contato', 'Nota interna'];
     // Arquivos saem como link: os do app valem 30 dias; os importados (Drive) seguem o link original.
     const paths = filtered.flatMap((row) => columns.filter((question) => question.kind === 'file').map((question) => row.answers[question.id])).filter((value): value is string => typeof value === 'string' && !!value && !/^https?:/.test(value));
     const links: Record<string, string> = {};
     if (paths.length && supabase) { const signed = await supabase.storage.from('cali-forms').createSignedUrls(paths, 30 * 86400); for (const item of signed.data || []) if (item.path && item.signedUrl) links[item.path] = item.signedUrl; }
-    const body = filtered.map((row) => [dateTime(row.submitted_at), ...columns.map((question) => { const value = row.answers[question.id]; if (question.kind === 'file' && typeof value === 'string' && value) return /^https?:/.test(value) ? value : links[value] || value; return typeof value === 'number' ? value : formatAnswer(question, value); }), row.contacted_at ? `Sim · ${dateTime(row.contacted_at)}` : 'Não', row.admin_note || '']);
+    const body = filtered.map((row) => [dateTime(row.submitted_at), ...(stages.length ? [row.stage || stages[0], row.owner || ''] : []), ...columns.map((question) => { const value = row.answers[question.id]; if (question.kind === 'file' && typeof value === 'string' && value) return /^https?:/.test(value) ? value : links[value] || value; return typeof value === 'number' ? value : formatAnswer(question, value); }), row.contacted_at ? `Sim · ${dateTime(row.contacted_at)}` : 'Não', row.admin_note || '']);
     downloadXlsx(`cali-forms-${form.slug}-respostas.xlsx`, form.title, header, body);
+  }
+
+  async function updateRow(row: ResponseRow, patch: Partial<Pick<ResponseRow, 'stage' | 'owner'>>) {
+    if (!supabase) return;
+    setRows((current) => current.map((item) => item.id === row.id ? { ...item, ...patch } : item));
+    const { error: updateError } = await supabase.from('form_responses').update(patch).eq('id', row.id);
+    if (updateError) { setError(errorText(updateError, 'Não foi possível salvar.')); setRows((current) => current.map((item) => item.id === row.id ? row : item)); }
   }
 
   async function setContacted(row: ResponseRow, done: boolean) {
@@ -361,6 +374,7 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
   return <div className="v2-forms-responses">
     <div className="wf-controls v2-forms-controls">
       <label className="v2-forms-search"><Search size={15} /><input value={query} placeholder="Buscar nas respostas" onChange={(event) => setQuery(event.target.value)} /></label>
+      {stages.length > 0 && <select className="v2-forms-filter-select" aria-label="Situação" value={stageFilter} onChange={(event) => setStageFilter(event.target.value)}><option value="">Situação: todas</option>{stages.map((item) => <option key={item}>{item}</option>)}</select>}
       <select className="v2-forms-filter-select" aria-label="Contato" value={contactFilter} onChange={(event) => setContactFilter(event.target.value as typeof contactFilter)}><option value="all">Contato: todos</option><option value="pending">Ainda sem contato</option><option value="done">Já contatados</option></select>
       {choiceColumns.length > 0 && <select className="v2-forms-filter-select" aria-label="Filtrar por resposta" value={answerFilter} onChange={(event) => setAnswerFilter(event.target.value)}><option value="">Filtrar por resposta</option>{choiceColumns.map((question) => <optgroup key={question.id} label={stripRichText(question.label).slice(0, 60)}>{(question.kind === 'yes_no' ? ['Sim', 'Não'] : question.kind === 'scale' ? scaleOptions(question) : question.options || []).map((option) => <option key={option} value={`${question.id}::${option}`}>{option}</option>)}</optgroup>)}</select>}
       <span className="v2-forms-total">{filtered.length} de {rows.length}</span>
@@ -375,6 +389,8 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
           <th className="v2-forms-check-col"><input type="checkbox" aria-label="Selecionar todas" checked={allChecked} onChange={() => setSelected(allChecked ? new Set() : new Set(filtered.map((row) => row.id)))} /></th>
           <th className="v2-forms-edit-col" aria-label="Editar" />
           <th className="v2-forms-date-col"><button type="button" onClick={() => sortBy('date')}>Data{sortMark('date')}</button></th>
+          {stages.length > 0 && <th><button type="button" onClick={() => sortBy('stage')}>Situação{sortMark('stage')}</button></th>}
+          {stages.length > 0 && <th><button type="button" onClick={() => sortBy('owner')}>Responsável{sortMark('owner')}</button></th>}
           <th><button type="button" onClick={() => sortBy('contact')}>Contato{sortMark('contact')}</button></th>
           <th><button type="button" onClick={() => sortBy('note')}>Nota{sortMark('note')}</button></th>
           {columns.map((question) => <th key={question.id} title={stripRichText(question.label)}><button type="button" onClick={() => sortBy(question.id)}>{stripRichText(question.label)}{sortMark(question.id)}</button></th>)}
@@ -383,6 +399,8 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
           <td className="v2-forms-check-col"><input type="checkbox" aria-label="Selecionar resposta" checked={selected.has(row.id)} onChange={() => toggle(row.id)} /></td>
           <td className="v2-forms-edit-col"><button type="button" className="v2-forms-edit" title="Editar resposta" aria-label="Editar resposta" onClick={() => setEditing(row)}><Pencil size={13} /></button></td>
           <td className="v2-forms-date v2-forms-date-col">{dateTime(row.submitted_at)}</td>
+          {stages.length > 0 && <td><select className={`v2-forms-stage s${Math.max(0, stages.indexOf(row.stage || stages[0]))}`} aria-label="Situação" value={row.stage || stages[0]} onChange={(event) => void updateRow(row, { stage: event.target.value })}>{stages.map((item) => <option key={item}>{item}</option>)}</select></td>}
+          {stages.length > 0 && <td><input className="v2-forms-owner" defaultValue={row.owner || ''} placeholder="Definir" maxLength={120} onBlur={(event) => { const owner = event.target.value.trim() || null; if (owner !== (row.owner || null)) void updateRow(row, { owner }); }} onKeyDown={(event) => { if (event.key === 'Enter') (event.target as HTMLInputElement).blur(); }} /></td>}
           <td><label className={`v2-forms-contact${row.contacted_at ? ' done' : ''}`} title={row.contacted_at ? `Contato marcado em ${dateTime(row.contacted_at)}` : 'Marcar que entrei em contato'}><input type="checkbox" checked={Boolean(row.contacted_at)} onChange={(event) => void setContacted(row, event.target.checked)} />{row.contacted_at ? 'Contatado' : 'Pendente'}</label></td>
           <td><button type="button" className={`v2-forms-note${row.admin_note ? ' has' : ''}`} title={row.admin_note || 'Adicionar nota'} onClick={() => setNoteFor({ row, text: row.admin_note || '', busy: false })}><Pencil size={12} /> {row.admin_note ? (row.admin_note.length > 28 ? `${row.admin_note.slice(0, 28)}…` : row.admin_note) : 'Nota'}</button></td>
           {columns.map((question) => { const raw = row.answers[question.id]; const text = textOf(question, row); if (question.kind === 'file' && raw) return <td key={question.id}><FileLink value={String(raw)} /></td>; return <td key={question.id} className={text ? 'v2-forms-copy' : ''} title={text ? `${text}\n\nClique para copiar` : undefined} onClick={() => copy(text)}>{text || <span className="v2-forms-empty">—</span>}{text && <Copy size={12} className="v2-forms-copy-ico" aria-hidden="true" />}</td>; })}
@@ -480,7 +498,7 @@ function EditResponse({ form, row, onClose, onSaved }: { form: FormRecord; row: 
     const email = emailQuestion && typeof answers[emailQuestion.id] === 'string' ? String(answers[emailQuestion.id]).trim().toLowerCase() : row.respondent_email;
     const name = nameQuestion && typeof answers[nameQuestion.id] === 'string' ? String(answers[nameQuestion.id]).trim() : row.respondent_name;
     const respondent_name = row.respondent_name && name && row.respondent_name.startsWith(name) ? row.respondent_name : name || null;
-    const { data, error: saveError } = await supabase.from('form_responses').update({ answers, respondent_email: email || null, respondent_name }).eq('id', row.id).select('id,answers,respondent_name,respondent_email,submitted_at,confirmation_sent_at,contacted_at,admin_note').single();
+    const { data, error: saveError } = await supabase.from('form_responses').update({ answers, respondent_email: email || null, respondent_name }).eq('id', row.id).select(RESPONSE_FIELDS).single();
     setBusy(false);
     if (saveError || !data) { setError(errorText(saveError, 'Não foi possível salvar.')); return; }
     onSaved(data as ResponseRow);

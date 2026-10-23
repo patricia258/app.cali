@@ -16,6 +16,8 @@ export type FormQuestion = {
   maxLabel?: string;
   /** Pergunta condicional: se a resposta for `when`, segue para a pergunta `goTo` (id) ou END_OF_FORM. */
   logic?: Array<{ when: string; goTo: string }>;
+  /** Pergunta de arquivo: 'images_pdf' aceita só PDF e imagens; padrão aceita também documentos, áudio e vídeo. */
+  accept?: 'images_pdf' | 'any';
 };
 
 export const END_OF_FORM = '__end';
@@ -41,6 +43,8 @@ export type FormRecord = {
   category: string;
   /** Organização interna: formulário da própria CALI ou feito para um cliente. */
   audience: FormAudience;
+  /** Etapas de acompanhamento das respostas (triagem). Vazio: só Contato e Nota. */
+  stages?: string[] | null;
   created_at: string;
   updated_at: string;
 };
@@ -111,6 +115,9 @@ export function validateAnswer(question: FormQuestion, value: FormAnswer | undef
   if (question.kind === 'phone' && typeof value === 'string' && value.replace(/\D/g, '').length < 8) return 'Confira o número digitado.';
   return '';
 }
+
+export const FILE_ACCEPT = { any: 'image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,video/*,audio/*', images_pdf: 'image/*,application/pdf' } as const;
+export const FILE_HINT = { any: 'Foto, PDF, documento, áudio ou vídeo · até 25 MB', images_pdf: 'PDF ou imagem · até 25 MB' } as const;
 
 export function fileLabel(value: string) {
   if (/^https?:\/\//.test(value)) return 'Arquivo enviado (link)';
