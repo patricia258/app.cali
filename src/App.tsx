@@ -14,6 +14,8 @@ const ProfileTestPage = lazy(() => import('./profile/ProfileTestPage').then((m) 
 const ProfileReportPage = lazy(() => import('./profile/ProfileReportPage').then((m) => ({ default: m.ProfileReportPage })));
 const ProfileEvaluatorPage = lazy(() => import('./profile/ProfileEvaluatorPage').then((m) => ({ default: m.ProfileEvaluatorPage })));
 const AdminProfilesPage = lazy(() => import('./profile/AdminProfilesPage').then((m) => ({ default: m.AdminProfilesPage })));
+const ProfileCampaignPage = lazy(() => import('./profile/ProfileCampaignPage').then((m) => ({ default: m.ProfileCampaignPage })));
+const ProfileOptOutPage = lazy(() => import('./profile/ProfileOptOutPage').then((m) => ({ default: m.ProfileOptOutPage })));
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage').then((m) => ({ default: m.AuthCallbackPage })));
 const GoogleCalendarCallbackPage = lazy(() => import('./pages/GoogleCalendarCallbackPage').then((m) => ({ default: m.GoogleCalendarCallbackPage })));
 
@@ -174,6 +176,7 @@ function AppRoutes() {
         <Route path="/politica-do-site" element={<LegalPage kind="site"/>}/>
         <Route path="/f/:slug" element={<PublicFormPage/>}/>
         <Route path="/perfil/relatorio/:token" element={<ProfileReportPage/>}/>
+        <Route path="/perfil/sair/:token" element={<ProfileOptOutPage/>}/>
         <Route path="/perfil/:slug" element={<ProfileTestPage/>}/>
         <Route path="/auth/callback" element={<AuthCallbackPage/>}/>
         <Route path="/oauth/google/callback" element={<GoogleCalendarCallbackPage/>}/>
@@ -198,6 +201,7 @@ function AppRoutes() {
         <Route path="/admin/mapa-de-people" element={<ProtectedRoute role="admin"><AdminPeopleMapPageV2/></ProtectedRoute>}/>
         <Route path="/admin/formularios" element={<ProtectedRoute role="admin"><AdminFormsPage/></ProtectedRoute>}/>
         <Route path="/admin/perfil-comportamental" element={<ProtectedRoute role="admin"><AdminProfilesPage/></ProtectedRoute>}/>
+        <Route path="/admin/perfil-comportamental/convites/:linkId" element={<ProtectedRoute role="admin"><ProfileCampaignPage/></ProtectedRoute>}/>
         <Route path="/admin/perfil-comportamental/:id" element={<ProtectedRoute role="admin"><ProfileEvaluatorPage role="admin"/></ProtectedRoute>}/>
         <Route path="/cliente/perfil-comportamental/:id" element={<ProtectedRoute role="client"><ProfileEvaluatorPage role="client"/></ProtectedRoute>}/>
         <Route path="/admin/mapa-de-people/revisao" element={<ProtectedRoute role="admin"><AdminPeopleMapReviewPage/></ProtectedRoute>}/>

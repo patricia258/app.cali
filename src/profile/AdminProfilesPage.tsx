@@ -2,7 +2,7 @@
    Link livre (qualquer pessoa informa a empresa) ou link de uma empresa (vincula à ficha pelo e-mail corporativo). */
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Copy, Download, ExternalLink, FileDown, Pencil, Plus, QrCode, RefreshCw, Search, Share2, Trash2 } from 'lucide-react';
+import { Copy, Download, ExternalLink, FileDown, Mail, Pencil, Plus, QrCode, RefreshCw, Search, Share2, Trash2 } from 'lucide-react';
 import { Shell } from '../components/WorkspaceShell';
 import { supabase } from '../lib/supabase';
 import { downloadQrPng, downloadShareCard, qrDataUrl } from '../forms/formExports';
@@ -132,13 +132,14 @@ export function AdminProfilesPage() {
         <span className="v2-forms-total">{filtered.length} de {results.length}</span>
       </div>
       {loading ? <div className="data-loading">Carregando…</div> : !results.length ? <div className="wf-empty"><strong>Nenhum resultado ainda.</strong><p>Crie um link em “Novo link” e envie para a pessoa responder.</p></div>
-        : <div className="v2-forms-table-wrap"><table className="v2-forms-table cpa-table"><thead><tr><th>Pessoa</th><th>Empresa</th><th>Perfil</th><th>Sob pressão</th><th>Data</th><th>Ficha</th><th>Cliente vê</th><th /></tr></thead><tbody>
+        : <div className="v2-forms-table-wrap"><table className="v2-forms-table cpa-table"><thead><tr><th>Pessoa</th><th>Empresa</th><th>Perfil</th><th>Sob pressão</th><th>Data</th><th>Validade</th><th>Ficha</th><th>Cliente vê</th><th /></tr></thead><tbody>
           {filtered.map((row) => <tr key={row.id}>
             <td><Link className="cpa-person" to={`/admin/perfil-comportamental/${row.id}`}><strong>{row.person_name}</strong><small>{[row.job_title, row.email].filter(Boolean).join(' · ')}</small></Link></td>
             <td>{companyName(row.company_id, row.company_name)}</td>
             <td>{profileChip(row)}</td>
             <td className="cpa-muted">{pressureOf(row)}</td>
             <td className="cpa-muted">{shortDate(row.created_at)}</td>
+            <td>{(() => { const until = new Date(row.created_at); until.setMonth(until.getMonth() + 6); return until.getTime() < Date.now() ? <span className="v2-forms-status closed">Vencido</span> : <span className="v2-forms-status open">Até {shortDate(until.toISOString())}</span>; })()}</td>
             <td>{row.company_id ? (row.team_member_id ? <span className="v2-forms-status open">Vinculada</span> : <span className="v2-forms-status draft">Sem vínculo</span>) : <span className="cpa-muted">—</span>}</td>
             <td>{row.company_id ? <input type="checkbox" className="cpa-toggle" aria-label="Disponibilizar para o cliente" checked={row.client_visible} onChange={(event) => void setVisible(row, event.target.checked)} /> : <span className="cpa-muted">—</span>}</td>
             <td className="cpa-actions">
@@ -159,6 +160,7 @@ export function AdminProfilesPage() {
           <td><button type="button" className={`v2-forms-status ${link.status === 'open' ? 'open' : 'closed'}`} onClick={() => void patchLink(link, link.status === 'open' ? 'closed' : 'open')} title="Clique para alternar">{link.status === 'open' ? 'Recebendo respostas' : 'Bloqueado'}</button></td>
           <td>{results.filter((row) => row.link_id === link.id).length}</td>
           <td className="cpa-actions">
+            <Link className="wf-secondary" to={`/admin/perfil-comportamental/convites/${link.id}`}><Mail size={14} /> Convites</Link>
             <button type="button" className="wf-secondary" onClick={() => setSharing(link)}><Share2 size={14} /> Compartilhar</button>
             <button type="button" className="v2-forms-edit" aria-label="Editar link" title="Editar link" onClick={() => setEditing(editDraft(link))}><Pencil size={14} /></button>
             <a className="v2-forms-edit" href={`/perfil/${link.slug}?previa=1`} target="_blank" rel="noopener noreferrer" aria-label="Ver como respondente" title="Ver como respondente"><ExternalLink size={14} /></a>
@@ -186,7 +188,7 @@ export function AdminProfilesPage() {
       <div className="cpa-share-actions">
         <div className="v2-forms-link"><input readOnly value={`${BASE}${sharing.slug}`} onFocus={(event) => event.target.select()} /><button type="button" className="wf-primary" onClick={() => { void navigator.clipboard.writeText(`${BASE}${sharing.slug}`).then(() => flash('Link copiado.')); }}><Copy size={14} /> Copiar</button></div>
         <button type="button" className="wf-secondary" onClick={() => void downloadQrPng(`${BASE}${sharing.slug}`, `perfil-${sharing.slug}-qrcode.png`)}><QrCode size={14} /> Baixar QR Code</button>
-        <button type="button" className="wf-secondary" onClick={() => void downloadShareCard({ title: sharing.title, category: 'Perfil comportamental', intro: 'Queremos conhecer mais sobre você: como decide, se comunica e reage no trabalho. São 24 blocos de 4 frases curtas, em média 8 a 10 minutos, e você recebe o seu relatório por e-mail.' }, `${BASE}${sharing.slug}`, `perfil-${sharing.slug}-cartao.png`)}><Download size={14} /> Baixar cartão para divulgar</button>
+        <button type="button" className="wf-secondary" onClick={() => void downloadShareCard({ title: sharing.title, category: 'Perfil comportamental', intro: 'Queremos conhecer mais sobre você: como decide, se comunica e reage no trabalho. São 24 blocos de 4 frases curtas, em média 12 a 20 minutos, e você recebe o seu relatório por e-mail.' }, `${BASE}${sharing.slug}`, `perfil-${sharing.slug}-cartao.png`)}><Download size={14} /> Baixar cartão para divulgar</button>
         <a className="wf-secondary" href={`https://wa.me/?text=${encodeURIComponent(`${sharing.title}: ${BASE}${sharing.slug}`)}`} target="_blank" rel="noopener noreferrer"><ExternalLink size={14} /> Enviar no WhatsApp</a>
       </div>
     </div>
