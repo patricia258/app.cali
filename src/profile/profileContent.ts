@@ -41,6 +41,10 @@ export type StyleContent = {
   };
   bandHigh: string; bandLow: string;
   pressureUp: string; pressureDown: string;
+  /** Dica prática para a semana difícil, conforme o estilo sobe ou desce sob pressão (relatório do respondente). */
+  pressureTipUp: string; pressureTipDown: string;
+  /** Que apoio pedir na semana difícil (relatório do respondente). */
+  askForHelp: string;
 };
 
 export const STYLE_CONTENT: Record<Style, StyleContent> = {
@@ -57,7 +61,7 @@ export const STYLE_CONTENT: Record<Style, StyleContent> = {
       ],
       contextStrength: { title: 'Firmeza quando é preciso', text: 'Mesmo sem ser o seu jeito principal, você consegue assumir a frente e decidir quando ninguém decide.' },
       cost: 'A mesma velocidade que destrava pode atropelar quem precisa de mais tempo ou de mais contexto.',
-      perceived: 'Quem trabalha com você costuma ver alguém objetivo, rápido e que não foge de conversa difícil, às vezes mais duro do que você pretende.',
+      perceived: 'Quem trabalha com você costuma ver alguém que assume responsabilidade, destrava as coisas e não foge de conversa difícil.',
       attention: { name: 'Pressa que atropela', text: 'Quando a velocidade vira prioridade, outras pessoas podem ficar para trás ou não se sentir ouvidas.', signal: 'Colegas param de discordar de você em reunião.' },
       decides: 'Você decide rápido e prefere corrigir depois a esperar demais. Informação suficiente, para você, costuma ser menos do que para os outros.',
       communicates: 'Você comunica de forma objetiva, sem rodeio. Ganha tempo, mas às vezes soa mais duro do que pretende.',
@@ -105,6 +109,9 @@ export const STYLE_CONTENT: Record<Style, StyleContent> = {
     },
     bandHigh: 'Busca controle do resultado e decide rápido; tende à impaciência com demora e consulta.', bandLow: 'Prefere decidir com consenso ou com mais informação; menos inclinação a disputar a liderança da situação.',
     pressureUp: 'Na semana difícil, assume o comando e acelera: tende a decidir sozinho e a cobrar mais duro.', pressureDown: 'Na semana difícil, recua da decisão: espera orientação ou mais informação antes de agir.',
+    pressureTipUp: 'Quando perceber que está decidindo tudo sozinho, escolha uma decisão pequena e passe para alguém do time ainda nesta semana.',
+    pressureTipDown: 'Se notar que está esperando orientação para agir, defina você mesmo o primeiro passo e avise quem precisa saber.',
+    askForHelp: 'Peça a alguém de confiança que revise as decisões que você tomou às pressas antes de elas virarem regra.',
   },
   I: {
     name: 'Comunicador', verb: 'conecta', verbLine: 'Conecta: aproxima pessoas, engaja e convence pela relação.',
@@ -119,7 +126,7 @@ export const STYLE_CONTENT: Record<Style, StyleContent> = {
       ],
       contextStrength: { title: 'Ponte entre pessoas', text: 'Mesmo sem ser o seu jeito principal, você consegue aproximar lados e animar o grupo quando o clima pede.' },
       cost: 'O entusiasmo que engaja pode deixar o fechamento, o registro e o detalhe para depois.',
-      perceived: 'Quem trabalha com você costuma ver alguém acessível, animado e bom de conversa, às vezes com mais compromissos do que consegue fechar.',
+      perceived: 'Quem trabalha com você costuma ver alguém acessível, que anima o grupo e conhece gente em todas as áreas.',
       attention: { name: 'Começar mais do que terminar', text: 'O entusiasmo com o novo pode deixar tarefas de fechamento e detalhes para depois.', signal: 'Prazos aceitos com animação começam a escorregar.' },
       decides: 'Você decide considerando as pessoas envolvidas e o clima. Às vezes decide pelo entusiasmo do momento e revê depois.',
       communicates: 'Você comunica com facilidade e calor. Fala bem em grupo e tende a preencher silêncios.',
@@ -167,6 +174,9 @@ export const STYLE_CONTENT: Record<Style, StyleContent> = {
     },
     bandHigh: 'Busca contato, influência e reconhecimento; tende a dispersar em rotina e detalhe.', bandLow: 'Mais reservado e seletivo nas relações; prefere convencer por fato a convencer por entusiasmo.',
     pressureUp: 'Na semana difícil, fala mais e busca apoio: tende a mobilizar pessoas, mas também a dispersar.', pressureDown: 'Na semana difícil, se recolhe: fica mais quieto e menos disponível para o time.',
+    pressureTipUp: 'Quando a agenda encher de conversas, reserve um horário fixo no dia só para fechar pendências.',
+    pressureTipDown: 'Se perceber que sumiu do time, mande uma atualização curta do que está fazendo, mesmo sem novidade.',
+    askForHelp: 'Peça a alguém do time que acompanhe os prazos com você e cobre o fechamento das pendências.',
   },
   S: {
     name: 'Planejador', verb: 'sustenta', verbLine: 'Sustenta: mantém o ritmo, cumpre o combinado e dá estabilidade ao time.',
@@ -181,7 +191,7 @@ export const STYLE_CONTENT: Record<Style, StyleContent> = {
       ],
       contextStrength: { title: 'Constância', text: 'Mesmo sem ser o seu jeito principal, você consegue sustentar uma rotina e cumprir o combinado quando o time precisa de previsibilidade.' },
       cost: 'A busca por harmonia pode fazer você guardar o que pensa e aceitar mais do que dá conta.',
-      perceived: 'Quem trabalha com você costuma ver alguém calmo, leal e que escuta, às vezes difícil de saber o que realmente pensa.',
+      perceived: 'Quem trabalha com você costuma ver alguém leal, paciente e que lembra do que cada pessoa precisa.',
       attention: { name: 'Guardar para não incomodar', text: 'Para evitar atrito, você pode deixar de dizer o que pensa ou aceitar mais do que dá conta.', signal: 'Você só fala do cansaço quando já está esgotado.' },
       decides: 'Você decide com calma e considerando o impacto nas pessoas. Prefere ter tempo e segurança antes de mudar o que funciona.',
       communicates: 'Você comunica de forma tranquila e cuidadosa. Escuta mais do que fala e evita confronto direto.',
@@ -229,6 +239,9 @@ export const STYLE_CONTENT: Record<Style, StyleContent> = {
     },
     bandHigh: 'Busca estabilidade, previsibilidade e harmonia; tende a evitar conflito e mudança brusca.', bandLow: 'Mais confortável com mudança e variedade; menor paciência com rotina e ritmo lento.',
     pressureUp: 'Na semana difícil, se apega ao combinado: busca rotina, evita conflito e pode resistir a mudanças.', pressureDown: 'Na semana difícil, perde a constância: fica mais reativo e menos paciente com o ritmo do grupo.',
+    pressureTipUp: 'Se estiver se apegando ao combinado antigo, pergunte o que mudou de prioridade antes de resistir à mudança.',
+    pressureTipDown: 'Quando a paciência acabar, faça uma pausa antes de responder e diga do que precisa para voltar ao seu ritmo.',
+    askForHelp: 'Peça ajuda antes de chegar ao limite: diga o que está pesando e o que pode sair da sua lista.',
   },
   C: {
     name: 'Analista', verb: 'confere', verbLine: 'Confere: busca critério, dado e qualidade antes de concordar.',
@@ -243,7 +256,7 @@ export const STYLE_CONTENT: Record<Style, StyleContent> = {
       ],
       contextStrength: { title: 'Cuidado com a qualidade', text: 'Mesmo sem ser o seu jeito principal, você consegue parar, conferir e organizar quando a entrega exige precisão.' },
       cost: 'A busca pelo certo pode atrasar entregas e deixar você exigente demais consigo e com os outros.',
-      perceived: 'Quem trabalha com você costuma ver alguém criterioso, organizado e confiável no detalhe, às vezes reservado ou crítico quando questiona.',
+      perceived: 'Quem trabalha com você costuma ver alguém em quem dá para confiar no detalhe e que pergunta o que ninguém perguntou.',
       attention: { name: 'Perfeição que atrasa', text: 'A busca pelo certo pode atrasar entregas e deixar você exigente demais consigo e com os outros.', signal: 'Entregas ficam "quase prontas" por dias.' },
       decides: 'Você decide com base em dado e critério. Prefere esperar a ter segurança do que decidir no escuro.',
       communicates: 'Você comunica de forma precisa e estruturada. Pode parecer reservado ou crítico quando questiona.',
@@ -291,6 +304,9 @@ export const STYLE_CONTENT: Record<Style, StyleContent> = {
     },
     bandHigh: 'Busca critério, precisão e controle de qualidade; tende ao perfeccionismo e à cautela.', bandLow: 'Mais confortável com improviso e informação incompleta; menor apego a regra e detalhe.',
     pressureUp: 'Na semana difícil, aumenta o controle: confere mais, pede mais dado e pode travar a decisão.', pressureDown: 'Na semana difícil, relaxa o padrão: aceita entregar com menos conferência para ganhar tempo.',
+    pressureTipUp: 'Se estiver conferindo pela terceira vez, defina um limite: entregue e anote o que fica para revisar depois.',
+    pressureTipDown: 'Quando cortar etapas para ganhar tempo, escolha a única conferência que não pode faltar e mantenha só ela.',
+    askForHelp: 'Peça a quem define as prioridades um prazo-limite para a revisão, e entregue quando ele chegar.',
   },
 };
 
@@ -315,7 +331,7 @@ export function profileName(primary: Style, secondary: Style, mixed: boolean) {
   return mixed ? `Perfil misto: ${p} e ${s}` : `${p}, com traço ${s}`;
 }
 
-export const BAND_EXPLAIN = 'Faixas: Baixo (0–39), Moderado (40–59), Alto (60–79), Muito alto (80–100). 50 é o ponto de equilíbrio: o estilo foi marcado como "mais" e como "menos" na mesma medida.';
+export const BAND_EXPLAIN = 'Faixas: Baixo (0–39), Moderado (40–59), Alto (60–79), Muito alto (80–100).';
 
 /** Natureza do documento (parecer, item 6): substitui "leitura de triagem / não é diagnóstico". */
 export const NATURE = 'Autoavaliação de preferências comportamentais de trabalho. Não é avaliação psicológica, não mede competência e não serve de base isolada para decisão de contratação.';
