@@ -9,7 +9,12 @@ export type Style = 'D' | 'I' | 'S' | 'C';
 export type Axis = 'Ritmo' | 'Relação' | 'Estrutura';
 export type Temperament = 'Colérico' | 'Sanguíneo' | 'Melancólico' | 'Fleumático';
 
-export const METHOD_VERSION = 'cali-disc-v1';
+export const METHOD_VERSION = 'cali-disc-v1.1';
+/** Margem de leitura (parecer de 23/10/2026): ±10 pontos na chave natural (18 blocos) e ±18 na chave sob pressão (6 blocos).
+    Diferença entre estilos só é tratada como real quando passa da margem. */
+export const MARGIN = { natural: 10, pressure: 18 } as const;
+/** Mudança sob pressão só é lida como mudança quando passa de 25 pontos (soma das incertezas das duas leituras de 6 blocos). */
+export const ADAPT_THRESHOLD = 25;
 export const STYLES: Style[] = ['D', 'I', 'S', 'C'];
 export const NATURAL_BLOCKS = 18;
 /** Blocos repetidos na chave "sob pressão" (versão enxuta): um a cada três, cobrindo o teste inteiro. */
@@ -87,16 +92,33 @@ export function bandOf(value: number): Band {
   return value >= 80 ? 'Muito alto' : value >= 60 ? 'Alto' : value >= 40 ? 'Moderado' : 'Baixo';
 }
 
-/** Perfil: predominante e secundário pela chave natural; diferença < 5 pontos = perfil misto (sem desempate). */
+/** Perfil: predominante e secundário pela chave natural; diferença menor que a margem (10 pontos) = perfil misto. */
 export function profileOf(scores: Pick<Scores, 'natural'>) {
   const ranked = [...STYLES].sort((a, b) => scores.natural[b].pct - scores.natural[a].pct);
   const [primary, secondary] = ranked;
-  const mixed = scores.natural[primary].pct - scores.natural[secondary].pct < 5;
+  const mixed = scores.natural[primary].pct - scores.natural[secondary].pct < MARGIN.natural;
   return { primary, secondary, mixed, ranked };
 }
 
-/** Leitura de adaptação: |diferença| a partir de 15 pontos já é mudança perceptível sob pressão. */
-export function adaptationLevel(delta: number) {
-  const size = Math.abs(delta);
-  return size >= 30 ? 'forte' : size >= 15 ? 'perceptível' : 'leve';
+/** Intervalo provável de um escore (escore ± margem, entre 0 e 100) e as faixas que ele toca. */
+export function rangeOf(value: number, margin: number) {
+  const lo = Math.max(0, value - margin), hi = Math.min(100, value + margin);
+  return { lo, hi, band: bandOf(value), loBand: bandOf(lo), hiBand: bandOf(hi) };
+}
+
+/** Faixa em texto, honesta com a margem: "Alto" ou "Moderado, no limite com Alto". */
+export function bandText(value: number, margin: number) {
+  const { band, loBand, hiBand } = rangeOf(value, margin);
+  const near = [...new Set([loBand, hiBand])].filter((item) => item !== band);
+  return near.length ? `${band}, no limite com ${near.join(' e ')}` : band;
+}
+
+/** Adaptação em níveis (nunca em pontos): estilos que mudam além do limite entre o dia comum e a semana difícil,
+    comparando os mesmos 6 blocos nas duas situações. */
+export function adaptationOf(scores: Pick<Scores, 'adaptation'>) {
+  const changed = STYLES.filter((style) => Math.abs(scores.adaptation[style]) >= ADAPT_THRESHOLD)
+    .sort((a, b) => Math.abs(scores.adaptation[b]) - Math.abs(scores.adaptation[a]))
+    .map((style) => ({ style, up: scores.adaptation[style] > 0 }));
+  const level = changed.length === 0 ? 'Muda pouco' : changed.length === 1 ? 'Muda em um estilo' : 'Muda em mais de um estilo';
+  return { level, changed };
 }

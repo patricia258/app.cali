@@ -7,7 +7,7 @@ import { Shell } from '../components/WorkspaceShell';
 import { supabase } from '../lib/supabase';
 import { downloadQrPng, downloadShareCard, qrDataUrl } from '../forms/formExports';
 import { slugify } from '../forms/formModel';
-import { STYLES, adaptationLevel, type Scores, type Style } from './profileMethod';
+import { adaptationOf, type Scores, type Style } from './profileMethod';
 import { STYLE_CONTENT } from './profileContent';
 import '../forms/admin-forms.css';
 import './profile-admin.css';
@@ -114,13 +114,13 @@ export function AdminProfilesPage() {
   }
 
   const profileChip = (row: ResultRow) => <span className="cpa-chips">
-    <span className="cpa-chip" style={{ background: STYLE_CONTENT[row.primary_style].soft, color: STYLE_CONTENT[row.primary_style].color }}>{STYLE_CONTENT[row.primary_style].name}</span>
-    <span className="cpa-chip ghost" style={{ color: STYLE_CONTENT[row.secondary_style].color }}>{row.mixed ? '= ' : '+ '}{STYLE_CONTENT[row.secondary_style].name}</span>
+    <span className="cpa-chip" style={{ background: STYLE_CONTENT[row.primary_style].soft, color: STYLE_CONTENT[row.primary_style].ink }}>{STYLE_CONTENT[row.primary_style].name}</span>
+    <span className="cpa-chip ghost" style={{ color: STYLE_CONTENT[row.secondary_style].ink }}>{row.mixed ? '= ' : '+ '}{STYLE_CONTENT[row.secondary_style].name}</span>
   </span>;
-  const pressureOf = (row: ResultRow) => { const style = [...STYLES].sort((a, b) => Math.abs(row.scores.adaptation[b]) - Math.abs(row.scores.adaptation[a]))[0]; const delta = row.scores.adaptation[style]; return `${STYLE_CONTENT[style].name} ${delta > 0 ? '+' : ''}${delta} · ${adaptationLevel(delta)}`; };
+  const pressureOf = (row: ResultRow) => { const { level, changed } = adaptationOf(row.scores); return changed.length ? `${level}: ${changed.map((item) => STYLE_CONTENT[item.style].name).join(', ')}` : level; };
 
   return <Shell role="admin"><div className="ap-app v2-admin-page v2-forms v2-client-module"><div className="ap-content"><div className="wf">
-    <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Perfil comportamental</h1><p>Levantamento de perfil (base DISC, método CALI v1): link livre ou por empresa, relatório da pessoa por e-mail e relatório do avaliador aqui e na ficha do colaborador.</p></div>
+    <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Perfil comportamental</h1><p>Levantamento de perfil (base DISC, método CALI v1.1): link livre ou por empresa, relatório da pessoa por e-mail e relatório do avaliador aqui e na ficha do colaborador.</p></div>
       <div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> Atualizar</button><button className="wf-primary" type="button" onClick={() => setEditing(newDraft())}><Plus size={15} /> Novo link</button></div></div>
     {error && <div className="inline-notice" role="alert">{error}</div>}
     <div className="wf-segments v2-forms-tabs" role="tablist"><button type="button" className={tab === 'results' ? 'on' : ''} onClick={() => setTab('results')}>Resultados ({results.length})</button><button type="button" className={tab === 'links' ? 'on' : ''} onClick={() => setTab('links')}>Links ({links.length})</button></div>
