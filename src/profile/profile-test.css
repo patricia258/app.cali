@@ -1,0 +1,32 @@
+/* Perfil Comportamental CALI — telas do teste (base: CALI Forms em ../forms/public-form.css). */
+.cali-form-page.cali-profile-test .cf-screen{max-width:760px}
+.cali-form-page.cali-profile-test h2 em{font-style:normal;color:var(--cf-wine);border-bottom:2px solid currentColor}
+.cali-form-page.cali-profile-test .cf-actions{margin-left:0}
+.cali-form-page.cali-profile-test .cf-error{margin-left:0}
+.cali-form-page.cali-profile-test .cpt-rows{display:flex;flex-direction:column;gap:10px;margin-top:24px}
+.cali-form-page.cali-profile-test .cpt-row{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:8px;padding:10px 10px 10px 16px;border:1px solid rgba(90,30,45,.22);border-radius:12px;background:rgba(255,255,255,.75);transition:border-color .15s,background .15s}
+.cali-form-page.cali-profile-test .cpt-row>span{font-size:17px;line-height:1.35;color:var(--cf-ink)}
+.cali-form-page.cali-profile-test .cpt-row.is-mais{border-color:#4F7A5B;background:#EEF5EF}
+.cali-form-page.cali-profile-test .cpt-row.is-menos{border-color:#B9897A;background:#FAF0EC}
+.cali-form-page.cali-profile-test .cpt-row button{min-width:72px;height:38px;border-radius:9px;border:1px solid rgba(90,30,45,.28);background:#fff;color:var(--cf-wine);font:600 14px Inter,system-ui,sans-serif;cursor:pointer}
+.cali-form-page.cali-profile-test .cpt-row button.mais[aria-pressed=true]{background:#4F7A5B;border-color:#4F7A5B;color:#fff}
+.cali-form-page.cali-profile-test .cpt-row button.menos[aria-pressed=true]{background:#9E5B4A;border-color:#9E5B4A;color:#fff}
+.cali-form-page.cali-profile-test .cpt-consent{display:flex;gap:12px;align-items:flex-start;margin-top:22px;padding:14px 16px;border:1px solid rgba(90,30,45,.2);border-radius:12px;background:rgba(255,255,255,.7);cursor:pointer;max-width:680px}
+.cali-form-page.cali-profile-test .cpt-consent input{margin-top:3px;width:18px;height:18px;accent-color:var(--cf-wine);flex:0 0 auto}
+.cali-form-page.cali-profile-test .cpt-consent span{font-size:14px;line-height:1.55;color:var(--cf-muted)}
+.cali-form-page.cali-profile-test .cpt-identify label{display:block;margin-top:22px}
+.cali-form-page.cali-profile-test .cpt-identify label>span{display:block;font-size:13px;font-weight:600;color:var(--cf-ink)}
+.cali-form-page.cali-profile-test .cpt-identify label>span em{font-style:normal;font-weight:500;color:var(--cf-muted);margin-left:6px}
+.cali-form-page.cali-profile-test .cpt-identify .cf-text{margin:6px 0 0;width:100%;font-size:20px}
+.cali-form-page.cali-profile-test .cpt-company{margin-top:22px;font-size:15px;color:var(--cf-muted)}
+.cali-form-page.cali-profile-test .cpt-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:18px}
+.cali-form-page.cali-profile-test .cpt-chips span{width:100%;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--cf-gold)}
+.cali-form-page.cali-profile-test .cpt-chips button{width:38px;height:34px;border-radius:8px;border:1px solid rgba(90,30,45,.22);background:#fff;font:600 13px Inter,sans-serif;cursor:pointer;color:var(--cf-wine)}
+.cali-form-page.cali-profile-test .cpt-chips button.ok{background:#EEF5EF;border-color:#B7D2BD;color:#3F6A4B}
+.cali-form-page.cali-profile-test .cpt-chips button.pending{background:#FAF0EC;border-color:#E2BFB3;color:#9E5B4A}
+.cali-form-page.cali-profile-test .cf-primary:disabled{opacity:.5;cursor:not-allowed}
+@media (max-width:640px){
+  .cali-form-page.cali-profile-test .cpt-row{grid-template-columns:1fr 1fr;padding:12px}
+  .cali-form-page.cali-profile-test .cpt-row>span{grid-column:1/-1;font-size:16px}
+  .cali-form-page.cali-profile-test .cpt-row button{min-width:0;width:100%}
+}

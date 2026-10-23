@@ -10,6 +10,10 @@ const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default:
 const LegalPage = lazy(() => import('./legal/LegalPage').then((m) => ({ default: m.LegalPage })));
 const PublicFormPage = lazy(() => import('./forms/PublicFormPage').then((m) => ({ default: m.PublicFormPage })));
 const AdminFormsPage = lazy(() => import('./forms/AdminFormsPage').then((m) => ({ default: m.AdminFormsPage })));
+const ProfileTestPage = lazy(() => import('./profile/ProfileTestPage').then((m) => ({ default: m.ProfileTestPage })));
+const ProfileReportPage = lazy(() => import('./profile/ProfileReportPage').then((m) => ({ default: m.ProfileReportPage })));
+const ProfileEvaluatorPage = lazy(() => import('./profile/ProfileEvaluatorPage').then((m) => ({ default: m.ProfileEvaluatorPage })));
+const AdminProfilesPage = lazy(() => import('./profile/AdminProfilesPage').then((m) => ({ default: m.AdminProfilesPage })));
 const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage').then((m) => ({ default: m.AuthCallbackPage })));
 const GoogleCalendarCallbackPage = lazy(() => import('./pages/GoogleCalendarCallbackPage').then((m) => ({ default: m.GoogleCalendarCallbackPage })));
 
@@ -169,6 +173,8 @@ function AppRoutes() {
         <Route path="/termos" element={<LegalPage kind="terms"/>}/>
         <Route path="/politica-do-site" element={<LegalPage kind="site"/>}/>
         <Route path="/f/:slug" element={<PublicFormPage/>}/>
+        <Route path="/perfil/relatorio/:token" element={<ProfileReportPage/>}/>
+        <Route path="/perfil/:slug" element={<ProfileTestPage/>}/>
         <Route path="/auth/callback" element={<AuthCallbackPage/>}/>
         <Route path="/oauth/google/callback" element={<GoogleCalendarCallbackPage/>}/>
 
@@ -191,6 +197,9 @@ function AppRoutes() {
         <Route path="/admin/satisfacao" element={<ProtectedRoute role="admin"><AdminSatisfactionPage/></ProtectedRoute>}/>
         <Route path="/admin/mapa-de-people" element={<ProtectedRoute role="admin"><AdminPeopleMapPageV2/></ProtectedRoute>}/>
         <Route path="/admin/formularios" element={<ProtectedRoute role="admin"><AdminFormsPage/></ProtectedRoute>}/>
+        <Route path="/admin/perfil-comportamental" element={<ProtectedRoute role="admin"><AdminProfilesPage/></ProtectedRoute>}/>
+        <Route path="/admin/perfil-comportamental/:id" element={<ProtectedRoute role="admin"><ProfileEvaluatorPage role="admin"/></ProtectedRoute>}/>
+        <Route path="/cliente/perfil-comportamental/:id" element={<ProtectedRoute role="client"><ProfileEvaluatorPage role="client"/></ProtectedRoute>}/>
         <Route path="/admin/mapa-de-people/revisao" element={<ProtectedRoute role="admin"><AdminPeopleMapReviewPage/></ProtectedRoute>}/>
         <Route path="/admin/mapa-de-people/relatorio/:id" element={<ProtectedRoute role="admin"><AdminPeopleMapReportPage/></ProtectedRoute>}/>
 

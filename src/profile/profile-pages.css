@@ -1,0 +1,37 @@
+/* Perfil Comportamental CALI — moldura das páginas públicas e do avaliador (teste, relatório). Sempre tema dia. */
+.cali-profile-shell{min-height:100vh;background:#F7F3EE;color:#2B2B2B;font-family:Inter,system-ui,sans-serif;color-scheme:light;padding-bottom:40px}
+.cali-profile-shell *{box-sizing:border-box}
+.cali-profile-shell .cps-bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:16px;padding:12px 24px;background:rgba(247,243,238,.94);backdrop-filter:blur(8px);border-bottom:1px solid #E8DDD4}
+.cali-profile-shell .cps-bar img{height:34px;width:auto}
+.cali-profile-shell .cps-bar-status{flex:1;font-size:13px;color:#6B5D63}
+.cali-profile-shell .cps-bar a,.cali-profile-shell .cps-back{display:inline-flex;align-items:center;gap:6px;color:#5A1E2D;font:600 13px Inter,sans-serif;text-decoration:none;background:none;border:0;cursor:pointer}
+.cali-profile-shell .cps-primary{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:0;border-radius:10px;background:#5A1E2D;color:#fff;font:700 13px Inter,sans-serif;cursor:pointer}
+.cali-profile-shell .cps-primary:disabled{opacity:.6;cursor:wait}
+.cali-profile-shell .cps-secondary{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid #E3D6CC;border-radius:10px;background:#fff;color:#5A1E2D;font:600 13px Inter,sans-serif;cursor:pointer}
+.cali-profile-shell .cps-thanks{max-width:794px;margin:20px auto 0;padding:16px 20px;border:1px solid #E8DDD4;border-left:4px solid #5A1E2D;border-radius:12px;background:#fff;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.cali-profile-shell .cps-thanks span{color:#6B5D63}
+.cali-profile-shell .cps-report{padding:24px 12px;display:flex;justify-content:center}
+.cali-profile-shell .cps-capture{position:absolute;left:-10000px;top:0;width:794px;pointer-events:none}
+.cali-profile-shell .cps-capture .cali-profile-report{gap:0}
+.cali-profile-shell .cps-capture .cpr-page{box-shadow:none}
+.cali-profile-shell .cps-empty{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px}
+.cali-profile-shell .cps-empty img{height:44px;width:auto;max-width:none}
+.cali-profile-shell .cps-empty h1{margin:0;font-size:28px;color:#5A1E2D}
+.cali-profile-shell .cps-empty p{margin:0;color:#6B5D63}
+.cali-profile-shell .cps-spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(90,30,45,.15);border-top-color:#5A1E2D;animation:cps-spin .8s linear infinite}
+@keyframes cps-spin{to{transform:rotate(360deg)}}
+.cali-profile-shell .cps-admin-tools{max-width:794px;margin:18px auto 0;display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 16px;border:1px solid #E8DDD4;border-radius:12px;background:#fff;font-size:13px}
+.cali-profile-shell .cps-admin-tools label{display:inline-flex;align-items:center;gap:8px}
+.cali-profile-shell .cps-admin-tools select{border:1px solid #E3D6CC;border-radius:8px;padding:7px 9px;font:500 13px Inter,sans-serif;background:#fff;max-width:280px}
+.cali-profile-shell .cps-admin-tools .cps-note{color:#6B5D63;font-size:12px;flex-basis:100%}
+.cali-profile-shell .cps-toggle{accent-color:#5A1E2D;width:16px;height:16px}
+@media print{
+  .cali-profile-shell{background:#fff;padding:0}
+  .cali-profile-shell .cps-bar,.cali-profile-shell .cps-thanks,.cali-profile-shell .cps-admin-tools,.cali-profile-shell .cps-capture{display:none!important}
+  .cali-profile-shell .cps-report{padding:0;zoom:1!important}
+}
+@media (max-width:640px){
+  .cali-profile-shell .cps-bar{padding:10px 14px;gap:10px;flex-wrap:wrap}
+  .cali-profile-shell .cps-bar-status{order:3;flex-basis:100%;font-size:12px}
+  .cali-profile-shell .cps-thanks{margin:14px 12px 0}
+}

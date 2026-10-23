@@ -54,7 +54,7 @@ export function resolveWorkspaceTheme(date = new Date()): WorkspaceTheme {
   // A interface V2 aprovada do cliente é somente diurna.
   if (typeof window !== 'undefined' && usesV2(window.location.pathname)) return 'day';
   // CALI Forms (/f/...) é público e tem identidade própria, sempre clara.
-  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/f/')) return 'day';
+  if (typeof window !== 'undefined' && (window.location.pathname.startsWith('/f/') || window.location.pathname.startsWith('/perfil/'))) return 'day';
   if (typeof window === 'undefined') return scheduledWorkspaceTheme(date);
   return readThemeOverride(date.getTime())?.theme ?? scheduledWorkspaceTheme(date);
 }

@@ -1,0 +1,29 @@
+/* Perfil Comportamental CALI — área da administradora (base: estilos do CALI Forms). */
+html[data-workspace-ui='v2'] .cpa-table td{white-space:nowrap}
+html[data-workspace-ui='v2'] .cpa-person{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:inherit}
+html[data-workspace-ui='v2'] .cpa-person strong{font-size:13px;color:#3e3533}
+html[data-workspace-ui='v2'] a.cpa-person:hover strong{color:#5a1e2d;text-decoration:underline}
+html[data-workspace-ui='v2'] .cpa-person small{font-size:11px;color:#8c7e74}
+html[data-workspace-ui='v2'] .cpa-chips{display:inline-flex;align-items:center;gap:6px}
+html[data-workspace-ui='v2'] .cpa-chip{display:inline-flex;padding:3px 10px;border-radius:999px;font:700 11px Inter,sans-serif}
+html[data-workspace-ui='v2'] .cpa-chip.ghost{padding:3px 4px;font-weight:600;background:none}
+html[data-workspace-ui='v2'] .cpa-muted{color:#8c7e74;font-size:12px}
+html[data-workspace-ui='v2'] .cpa-toggle{accent-color:#5a1e2d;width:16px;height:16px;cursor:pointer}
+html[data-workspace-ui='v2'] .cpa-actions{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+html[data-workspace-ui='v2'] .cpa-actions a.wf-secondary{text-decoration:none}
+html[data-workspace-ui='v2'] .cpa-actions a.v2-forms-edit{display:inline-grid;place-items:center;text-decoration:none}
+html[data-workspace-ui='v2'] .cpa-table button.v2-forms-status{border:0;cursor:pointer}
+/* Ficha do colaborador (Equipe): aba Perfil */
+.team-profile-tab{display:flex;flex-direction:column;gap:10px}
+.team-profile-card{display:flex;flex-direction:column;gap:8px;padding:14px 16px;border:1px solid #eadfd6;border-radius:12px;background:#fffdfb}
+.team-profile-card header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.team-profile-card header strong{font-size:15px}
+.team-profile-card header small{font-size:11px;color:#8c7e74}
+.team-profile-card .tp-bars{display:grid;grid-template-columns:90px 1fr 32px;gap:6px 10px;align-items:center;font-size:11px}
+.team-profile-card .tp-bars div{height:8px;border-radius:4px;background:#f3ece6;overflow:hidden}
+.team-profile-card .tp-bars i{display:block;height:100%}
+.team-profile-card footer{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.team-profile-card footer a{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:8px;background:#5a1e2d;color:#fff;font:600 12px Inter,sans-serif;text-decoration:none}
+.team-profile-card footer label{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#3e3533}
+.team-profile-card footer input{accent-color:#5a1e2d}
+.team-profile-empty{font-size:13px;color:#8c7e74}

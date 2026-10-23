@@ -5,7 +5,7 @@
    dos componentes operacionais oficiais. */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, BriefcaseBusiness, Building2, CalendarDays, CalendarPlus, CheckCircle2, ChevronDown, ChevronRight, ClipboardList, Clock3, FileBarChart2, FolderOpen, History, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Star, UserCog, Target, Users, X, type LucideIcon } from 'lucide-react';
+import { ArrowRight, BriefcaseBusiness, Building2, CalendarDays, CalendarPlus, CheckCircle2, ChevronDown, ChevronRight, ClipboardList, Clock3, Fingerprint, FileBarChart2, FolderOpen, History, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Star, UserCog, Target, Users, X, type LucideIcon } from 'lucide-react';
 import { DirectProfileControl } from '../components/DirectProfileControl';
 import { supabase } from '../lib/supabase';
 import { startTimerPresence } from '../lib/timerPresence';
@@ -46,6 +46,7 @@ export const adminProducts: NavItem[] = [
   { label: 'Propostas', href: '/admin/propostas', icon: BriefcaseBusiness },
   { label: 'Mapa de People', href: '/admin/mapa-de-people', icon: Target },
   { label: 'Formulários', href: '/admin/formularios', icon: ClipboardList },
+  { label: 'Perfil comportamental', href: '/admin/perfil-comportamental', icon: Fingerprint },
 ];
 const teamAreas = [['diretorio', 'Diretório'], ['estrutura', 'Estrutura organizacional'], ['movimentacoes', 'Movimentações'], ['indicadores', 'Indicadores']] as const;
 const privacyPolicyUrl = 'https://calirh.com/privacidade.html';
