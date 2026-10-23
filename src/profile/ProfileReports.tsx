@@ -3,7 +3,7 @@
    Regras de leitura: escore sempre com margem (±10 natural, ±18 semana difícil), faixa honesta ("no limite com"),
    adaptação em níveis (nunca em pontos) e o mesmo nome de perfil em todas as páginas. */
 import type { ReactNode } from 'react';
-import { adaptationOf, bandOf, bandText, blockItems, MARGIN, METHOD_VERSION, NATURAL_BLOCKS, PRESSURE_BLOCKS, rangeOf, STYLES, type Scores, type Style } from './profileMethod';
+import { adaptationOf, bandOf, bandText, MARGIN, METHOD_VERSION, NATURAL_BLOCKS, PRESSURE_BLOCKS, rangeOf, STYLES, type Scores, type Style } from './profileMethod';
 import { BAND_EXPLAIN, NATURE, STYLE_CONTENT, VALIDITY, combinationOf, profileName } from './profileContent';
 import { ProfileBandBars, ProfileRadar, RoleMatrix, TwinBands, type RoleProfile } from './ProfileCharts';
 import './profile-report.css';
@@ -58,7 +58,8 @@ function baseLine(base: ProfileBase | null | undefined, primary: Style) {
   return `A base interna da CALI tem ${base.n} respostas até hoje. ${share}% delas têm ${STYLE_CONTENT[primary].name} como estilo predominante.`;
 }
 
-export function RespondentReport({ result, base }: { result: ProfileResultView; base?: ProfileBase | null }) {
+/** `base` fica disponível para o avaliador; o relatório da pessoa não expõe método nem base (decisão da proprietária, 23/10). */
+export function RespondentReport({ result }: { result: ProfileResultView; base?: ProfileBase | null }) {
   const P = result.primary_style, S = result.secondary_style;
   const p = STYLE_CONTENT[P], s = STYLE_CONTENT[S];
   const natural = pcts(result.scores, 'natural');
@@ -66,10 +67,9 @@ export function RespondentReport({ result, base }: { result: ProfileResultView; 
   const adapt = adaptationOf(result.scores);
   const third = [...STYLES].filter((style) => style !== P && style !== S).sort((a, b) => natural[b] - natural[a])[0];
   const name = profileName(P, S, result.mixed);
-  const raw = result.scores.natural[P].raw;
   const combination = combinationOf(P, S);
   const plan = result.mixed ? [p.respondent.plan[0], p.respondent.plan[1], s.respondent.plan[0]] : p.respondent.plan;
-  const total = 8;
+  const total = 7;
   const title = 'Perfil Comportamental · seu relatório';
   return <div className="cali-profile-report">
     <Page number={1} total={total} title={title} cover>
@@ -89,31 +89,11 @@ export function RespondentReport({ result, base }: { result: ProfileResultView; 
       <p>O losango mostra o formato do seu perfil; as barras, a intensidade de cada estilo no seu dia a dia de trabalho.</p>
       <div className="cpr-chart-row"><ProfileRadar natural={natural} size={320} /><ul className="cpr-styles-line">{STYLES.map((style) => <li key={style}><b style={{ color: STYLE_CONTENT[style].ink }}>{style} · {STYLE_CONTENT[style].name}</b><span>{STYLE_CONTENT[style].verbLine}</span></li>)}</ul></div>
       <small className="cpr-eyebrow">INTENSIDADE, COM A MARGEM DE LEITURA</small>
-      <ProfileBandBars values={natural} margin={MARGIN.natural} />
-      <p className="cpr-note"><b>Como ler:</b> o ponto é o seu escore e a faixa colorida em volta, a margem de leitura. Quando ela cruza a fronteira entre duas faixas, aparece "no limite com". {BAND_EXPLAIN} Estilo baixo não é defeito: mostra o que você usa menos, não o que você não sabe fazer.</p>
+      <ProfileBandBars values={natural} margin={MARGIN.natural} plain />
+      <p className="cpr-note"><b>Como ler:</b> o ponto mostra onde você está e a faixa colorida em volta, a variação natural da leitura. Quando ela cruza a fronteira entre duas faixas, aparece "no limite com". {BAND_EXPLAIN} Estilo baixo não é defeito: mostra o que você usa menos, não o que você não sabe fazer.</p>
     </Page>
 
     <Page number={3} total={total} title={title}>
-      <small className="cpr-eyebrow">COMO SE CHEGOU AQUI</small>
-      <h2>De onde vem o seu resultado</h2>
-      <ol className="cpr-origin">
-        <li><b>O que você respondeu.</b> {NATURAL_BLOCKS} blocos com 4 frases cada, uma de cada estilo: {NATURAL_BLOCKS * 4} frases, {NATURAL_BLOCKS} de cada estilo. Depois, {PRESSURE_BLOCKS.length} desses blocos de novo, pensando em uma semana difícil.</li>
-        <li><b>Como cada marcação conta.</b> Em cada bloco, a frase que <b>mais</b> combina com você soma +1 ao estilo dela; a que <b>menos</b> combina soma −1. As outras duas ficam em 0.</li>
-        <li><b>Como vira a escala de 0 a 100.</b> Somando os {NATURAL_BLOCKS} blocos, cada estilo fica entre −{NATURAL_BLOCKS} e +{NATURAL_BLOCKS}; 50 é o equilíbrio entre "mais" e "menos". A conta é (saldo + {NATURAL_BLOCKS}) ÷ {NATURAL_BLOCKS * 2} × 100. No seu {p.name}: saldo {signed(raw)} → ({signed(raw)} + {NATURAL_BLOCKS}) ÷ {NATURAL_BLOCKS * 2} × 100 = <b>{natural[P]}</b>.</li>
-        <li><b>Por que quatro estilos e não um tipo.</b> Ninguém é um estilo só. O predominante é o mais alto; o secundário, o segundo.</li>
-        <li><b>A margem de leitura.</b> Um questionário curto tem imprecisão: ±{MARGIN.natural} pontos no dia comum e ±{MARGIN.pressure} na semana difícil (que tem só {PRESSURE_BLOCKS.length} blocos). Diferença menor que {MARGIN.natural} pontos entre dois estilos não é tratada como diferença: por isso, quando os dois maiores ficam a menos de {MARGIN.natural} pontos, o perfil é chamado de misto.</li>
-        <li><b>Comparado a quê.</b> As faixas seguem uma regra fixa do método, não uma comparação com outras pessoas: o resultado compara os seus quatro estilos entre si. {baseLine(base, P)}</li>
-      </ol>
-      <small className="cpr-eyebrow">EXEMPLO: COMO UM BLOCO É CONTADO</small>
-      <div className="cpr-block-demo">{blockItems(1).map((item) => { const mark = item.style === 'D' ? 'mais' : item.style === 'S' ? 'menos' : ''; return <div key={item.style} className={mark}>
-        <span>{item.text}</span><em>{mark === 'mais' ? 'Mais' : mark === 'menos' ? 'Menos' : ''}</em><b style={{ color: STYLE_CONTENT[item.style].ink }}>{item.style} {mark === 'mais' ? '+1' : mark === 'menos' ? '−1' : '0'}</b>
-      </div>; })}</div>
-      <Alert title="Perfil é preferência média, não teto.">Ele mostra o jeito que você prefere usar, não o único jeito que você sabe usar. Você muda quando a situação pede, e a sua própria semana difícil mostra isso (página 5).</Alert>
-      <small className="cpr-eyebrow">E SE VOCÊ NÃO SE RECONHECER?</small>
-      <p>Acontece, e tem explicação. As causas mais comuns: responder pensando em como gostaria de ser, e não em como costuma agir; estar em um período fora do normal (mudança de função, sobrecarga, férias); ou frases que pareceram iguais dentro do mesmo bloco. Leve o que não bateu para a conversa de devolutiva: a diferença entre o que você sente e o que o resultado mostra é, muitas vezes, a parte mais útil da leitura.</p>
-    </Page>
-
-    <Page number={4} total={total} title={title}>
       <small className="cpr-eyebrow">SEU PERFIL</small>
       <div className="cpr-profile-head"><Characters result={result} height={220} /><div><h2 style={{ color: p.ink }}>{name}</h2><p className="cpr-lead">Combinação {combination.name}</p><p>{combination.text}</p></div></div>
       <div className="cpr-grid2">
@@ -131,13 +111,13 @@ export function RespondentReport({ result, base }: { result: ProfileResultView; 
       <p className="cpr-note">Vocabulário de apoio: no jeito de agir, {p.name} lembra o temperamento {p.temperament.toLowerCase()} ({p.temperamentWords}). É só linguagem, não é nota.</p>
     </Page>
 
-    <Page number={5} total={total} title={title}>
+    <Page number={4} total={total} title={title}>
       <small className="cpr-eyebrow">DIA COMUM E SEMANA DIFÍCIL</small>
       <h2>{adapt.level} sob pressão</h2>
-      <TwinBands natural={natural} pressure={pressure} naturalMargin={MARGIN.natural} pressureMargin={MARGIN.pressure} />
+      <TwinBands natural={natural} pressure={pressure} naturalMargin={MARGIN.natural} pressureMargin={MARGIN.pressure} plain />
       <ul className="cpr-readings">{adapt.changed.length ? adapt.changed.map(({ style, up }) => <li key={style}><b style={{ color: STYLE_CONTENT[style].ink }}>{STYLE_CONTENT[style].name}:</b> {up ? STYLE_CONTENT[style].pressureUp : STYLE_CONTENT[style].pressureDown}</li>)
         : <li>O seu jeito de agir tende a ser parecido em dias comuns e em semanas difíceis: a pressão costuma intensificar o que você já faz.</li>}</ul>
-      <p className="cpr-note">Compare faixas, não números: a semana difícil tem só {PRESSURE_BLOCKS.length} blocos.</p>
+      <p className="cpr-note">Compare as faixas, não os números: a leitura da semana difícil é mais curta e serve como indicação.</p>
       <small className="cpr-eyebrow">NA PRÓXIMA SEMANA DIFÍCIL, EXPERIMENTE</small>
       <ul className="cpr-list good">{(adapt.changed.length ? adapt.changed : [{ style: P, up: true }]).map(({ style, up }) => <li key={style}>{up ? STYLE_CONTENT[style].pressureTipUp : STYLE_CONTENT[style].pressureTipDown}</li>)}</ul>
       <div className="cpr-callout"><b>Que apoio pedir.</b> {p.askForHelp}</div>
@@ -147,7 +127,7 @@ export function RespondentReport({ result, base }: { result: ProfileResultView; 
       </div>
     </Page>
 
-    <Page number={6} total={total} title={title}>
+    <Page number={5} total={total} title={title}>
       <small className="cpr-eyebrow">O QUE TE FAVORECE</small>
       <div className="cpr-grid2">
         {p.respondent.strengths.map((item) => <div className="cpr-card" key={item.title} style={{ borderTopColor: p.color }}><span className="cpr-tag" style={{ background: p.soft, color: p.ink }}>{p.name}</span><strong>{item.title}</strong><p>{item.example}</p></div>)}
@@ -168,20 +148,22 @@ export function RespondentReport({ result, base }: { result: ProfileResultView; 
       </dl>
     </Page>
 
-    <Page number={7} total={total} title={title}>
+    <Page number={6} total={total} title={title}>
       <small className="cpr-eyebrow">SEU PLANO DE 7 DIAS</small>
       <h2>Três ações para a próxima semana</h2>
-      <p>Escolha a semana, anote a data de início e volte a esta página no sétimo dia com a pergunta de retorno de cada ação.</p>
+      <p>Escolha a semana em que vai começar e, no sétimo dia, responda a pergunta de retorno de cada ação.</p>
       <ol className="cpr-plan">{plan.map((item, index) => <li key={item.action}>
         <span className="cpr-plan-n">{index + 1}</span>
-        <div><p><b>Cenário:</b> {item.scenario}, {item.action}</p><p className="cpr-plan-meta"><b>Prazo:</b> 7 dias · <b>Pergunta de retorno:</b> {item.question}</p>
-          <div className="cpr-plan-notes"><span>Comecei em ____/____</span><span>O que aconteceu:</span><i /><i /></div></div>
+        <div><p><b>Cenário:</b> {item.scenario}, {item.action}</p><p className="cpr-plan-meta"><b>Prazo:</b> 7 dias · <b>Pergunta de retorno:</b> {item.question}</p></div>
       </li>)}</ol>
+      <small className="cpr-eyebrow">E SE VOCÊ NÃO SE RECONHECER?</small>
+      <p>Acontece, e tem explicação: responder pensando em como gostaria de ser, e não em como costuma agir, ou estar em um período fora do normal (mudança de função, sobrecarga, férias). Leve o que não bateu para a conversa de devolutiva: muitas vezes é a parte mais útil da leitura.</p>
       <div className="cpr-offer"><b>Converse sobre o resultado.</b><p>Ler sozinho muda pouco; conversar muda mais. Peça uma devolutiva a quem enviou o link ou à CALI RH: em 30 minutos, você confere em que se reconhece (e em que não) e transforma o plano em combinados concretos.</p></div>
     </Page>
 
-    <Page number={8} total={total} title={title}>
+    <Page number={7} total={total} title={title}>
       <small className="cpr-eyebrow">LIMITES DESTA LEITURA</small>
+      <Alert title="Perfil é preferência média, não teto.">Ele mostra o jeito que você prefere usar, não o único jeito que você sabe usar. Você muda quando a situação pede, e a sua própria semana difícil mostra isso.</Alert>
       <Alert title="O que esta leitura não mede.">Competência, desempenho, potencial, inteligência, caráter ou valores. Também não diz se você é adequado a um cargo e não compara você com outras pessoas.</Alert>
       <small className="cpr-eyebrow">QUANDO RESPONDER DE NOVO</small>
       <p>{VALIDITY} Responda de novo se mudar de função, de empresa ou de liderança, ou depois de 6 meses: comparar dois momentos mostra o que mudou e o que ficou.</p>
@@ -329,11 +311,10 @@ export function EvaluatorReport({ result, team, base, editableRole, onRoleChange
 
     <Page number={7} total={total} title={title}>
       <small className="cpr-eyebrow">PERGUNTAS PARA A ENTREVISTA OU CONVERSA DE DESENVOLVIMENTO</small>
-      <p>Cada pergunta testa uma hipótese do relatório. Anote o que a pessoa conta na última coluna e compare com as outras duas: isso transforma opinião em verificação e protege o avaliador do próprio viés.</p>
-      <table className="cpr-matrix cpr-evidence"><thead><tr><th>Pergunta</th><th>Confirma a leitura</th><th>Contradiz a leitura</th><th>O que a pessoa contou</th></tr></thead><tbody>
-        {p.evaluator.interview.map((item) => <tr key={item.question}><td>{item.question}</td><td>{item.confirms}</td><td>{item.denies}</td><td className="cpr-write" /></tr>)}
+      <p>Cada pergunta testa uma hipótese do relatório. Compare o que a pessoa contar com as duas colunas: isso transforma opinião em verificação e protege o avaliador do próprio viés.</p>
+      <table className="cpr-matrix cpr-evidence"><thead><tr><th>Pergunta</th><th>Confirma a leitura</th><th>Contradiz a leitura</th></tr></thead><tbody>
+        {p.evaluator.interview.map((item) => <tr key={item.question}><td>{item.question}</td><td>{item.confirms}</td><td>{item.denies}</td></tr>)}
       </tbody></table>
-      <div className="cpr-summary-box"><b>Síntese da conversa</b><div><span>O que confirmou</span><i /></div><div><span>O que contradisse</span><i /></div><div><span>Próximo passo combinado</span><i /></div></div>
     </Page>
 
     <Page number={8} total={total} title={title}>

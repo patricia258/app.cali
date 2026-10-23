@@ -35,3 +35,16 @@
   .cali-profile-shell .cps-bar-status{order:3;flex-basis:100%;font-size:12px}
   .cali-profile-shell .cps-thanks{margin:14px 12px 0}
 }
+/* Agradecimento após o envio: a pessoa recebe o PDF por e-mail, sem ver o relatório na tela. */
+.cali-profile-shell .cps-done{max-width:520px;min-height:calc(100vh - 48px);margin:0 auto;padding:40px 22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;font-family:Inter,sans-serif}
+.cali-profile-shell .cps-done-logo{height:40px;width:auto;margin-bottom:18px}
+.cali-profile-shell .cps-done-mark{width:84px;height:84px;border-radius:50%;background:#5A1E2D;box-shadow:0 14px 34px rgba(90,30,45,.22);display:flex;align-items:center;justify-content:center}
+.cali-profile-shell .cps-done-mark img{width:50px;height:50px}
+.cali-profile-shell .cps-done-mark.working{animation:cps-pulse 1.6s ease-in-out infinite}
+@keyframes cps-pulse{0%,100%{box-shadow:0 0 0 0 rgba(90,30,45,.18)}50%{box-shadow:0 0 0 14px rgba(90,30,45,0)}}
+.cali-profile-shell .cps-done h1{margin:6px 0 0;font-size:30px;line-height:1.2;color:#5A1E2D}
+.cali-profile-shell .cps-done p{margin:0;font-size:16px;color:#2B2B2B}
+.cali-profile-shell .cps-done-status{display:flex;align-items:center;justify-content:center;gap:10px;max-width:440px;padding:14px 16px;border:1px solid #E8DDD4;border-radius:12px;background:#fff;font-size:14px;line-height:1.55;color:#6B5D63}
+.cali-profile-shell .cps-done-status:empty{display:none}
+.cali-profile-shell .cps-spinner.small{flex:0 0 18px;width:18px;height:18px;border-width:2px}
+.cali-profile-shell .cps-done small{margin-top:10px;font-size:12px;color:#8C807A}

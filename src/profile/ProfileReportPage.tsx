@@ -1,10 +1,11 @@
-/* Relatório do respondente (/perfil/relatorio/:token): abre pelo link do e-mail ou logo após o envio do teste.
-   Logo após o envio (?novo=1) gera o PDF no navegador, guarda no bucket privado e pede o e-mail com o anexo. */
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+/* Relatório do respondente (/perfil/relatorio/:token). A pessoa não vê o relatório na tela (decisão da proprietária, 23/10):
+   logo após o envio (?novo=1) o PDF é gerado fora da tela, guardado no bucket privado e enviado por e-mail; a página mostra só
+   o agradecimento. Aberta depois (link antigo de e-mail), oferece apenas o download do PDF. */
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Download } from 'lucide-react';
 import { anonPublicRpc, anonStorage } from '../lib/supabase';
-import { RespondentReport, type ProfileBase, type ProfileResultView } from './ProfileReports';
+import { RespondentReport, type ProfileResultView } from './ProfileReports';
 import { downloadBlob, fileSlug, pagesToPdf } from './profilePdf';
 import './profile-pages.css';
 
@@ -16,24 +17,15 @@ export function ProfileReportPage() {
   const fresh = useSearchParams()[0].get('novo') === '1';
   const [report, setReport] = useState<ReportPayload | null>(null);
   const [missing, setMissing] = useState(false);
-  const [base, setBase] = useState<ProfileBase | null>(null);
   const [mail, setMail] = useState<MailState>('idle');
   const [busy, setBusy] = useState(false);
-  const [zoom, setZoom] = useState(1);
   const captureRef = useRef<HTMLDivElement>(null);
   const started = useRef(false);
 
   useEffect(() => {
     document.title = 'Perfil Comportamental · CALI RH';
-    void anonPublicRpc<ProfileBase>('cali_profile_base', {}).then(({ data }) => { if (data) setBase(data); });
     void anonPublicRpc<ReportPayload | null>('cali_profile_report', { p_token: token }).then(({ data }) => { if (data) setReport(data); else setMissing(true); });
   }, [token]);
-
-  useLayoutEffect(() => {
-    const fit = () => setZoom(Math.min(1, (window.innerWidth - 24) / 794));
-    fit(); window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
-  }, []);
 
   // Logo após o envio: PDF → bucket privado → e-mail com anexo (uma vez só).
   useEffect(() => {
@@ -64,14 +56,25 @@ export function ProfileReportPage() {
   if (missing) return <div className="cali-profile-shell"><div className="cps-empty"><img src="/brand/cali-rh-bordo.png" alt="CALI RH" /><h1>Relatório não encontrado</h1><p>Confira o link recebido por e-mail ou fale com a CALI RH: privacidade@calirh.com.</p></div></div>;
   if (!report) return <div className="cali-profile-shell"><div className="cps-empty"><span className="cps-spinner" aria-label="Carregando" /></div></div>;
 
+  const first = report.person_name.split(' ')[0];
+  const sending = fresh && !report.has_pdf && (mail === 'idle' || mail === 'working');
+  const done = fresh && (mail === 'sent' || (report.has_pdf && mail === 'idle'));
+  const showDownload = !fresh || mail === 'failed';
   return <div className="cali-profile-shell">
-    <header className="cps-bar">
-      <img src="/brand/cali-rh-bordo.png" alt="CALI RH" />
-      <div className="cps-bar-status">{mail === 'working' ? 'Preparando seu PDF e enviando por e-mail…' : mail === 'sent' ? 'Enviamos o relatório em PDF para o seu e-mail.' : mail === 'failed' ? 'Não conseguimos enviar o e-mail agora. Baixe o PDF pelo botão ao lado.' : ''}</div>
-      <button type="button" className="cps-primary" disabled={busy} onClick={() => void download()}><Download size={16} /> {busy ? 'Gerando…' : 'Baixar PDF'}</button>
-    </header>
-    {fresh && <div className="cps-thanks"><strong>Obrigada, {report.person_name.split(' ')[0]}! Suas respostas foram registradas.</strong><span>Este é o seu relatório. Ele também chega por e-mail, em PDF.</span></div>}
-    <main className="cps-report" style={{ zoom }}><RespondentReport result={report} base={base} /></main>
-    <div className="cps-capture" ref={captureRef} aria-hidden="true"><RespondentReport result={report} base={base} /></div>
+    <div className="cps-done">
+      <img className="cps-done-logo" src="/brand/cali-rh-bordo.png" alt="CALI RH" />
+      <span className={`cps-done-mark${sending ? ' working' : ''}`} aria-hidden="true"><img src="/brand/cali-oak-mark-light.svg" alt="" /></span>
+      <h1>{fresh ? `Obrigada, ${first}!` : 'Seu Perfil Comportamental'}</h1>
+      {fresh && <p>Suas respostas foram registradas.</p>}
+      <div className="cps-done-status" role="status">
+        {sending && <><span className="cps-spinner small" /> Estamos preparando o seu relatório em PDF e enviando para o seu e-mail. Mantenha esta página aberta por alguns segundos.</>}
+        {done && 'Pronto! O seu relatório em PDF foi enviado para o seu e-mail. Se não encontrar, confira a caixa de spam. Pode fechar esta página.'}
+        {mail === 'failed' && 'Não conseguimos enviar o e-mail agora. Baixe o seu relatório pelo botão abaixo.'}
+        {!fresh && 'Baixe o seu relatório em PDF pelo botão abaixo.'}
+      </div>
+      {showDownload && <button type="button" className="cps-primary" disabled={busy} onClick={() => void download()}><Download size={16} /> {busy ? 'Gerando o PDF…' : 'Baixar PDF'}</button>}
+      <small>Dúvidas sobre o seu resultado ou seus dados: privacidade@calirh.com</small>
+    </div>
+    <div className="cps-capture" ref={captureRef} aria-hidden="true"><RespondentReport result={report} /></div>
   </div>;
 }
