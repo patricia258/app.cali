@@ -5,7 +5,7 @@
    parada) e as respostas ficam guardadas no aparelho para retomar de onde parou. */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CalendarClock, Check, Clock3, Handshake, LayoutList, Mail } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CalendarClock, Check, Handshake, LayoutList, Mail } from 'lucide-react';
 import { anonPublicRpc } from '../lib/supabase';
 import { blockItems, computeScores, NATURAL_BLOCKS, PRESSURE_BLOCKS, profileOf, type BlockAnswer, type Style } from './profileMethod';
 import { richTextHtml } from '../forms/formModel';
@@ -193,10 +193,9 @@ export function ProfileTestPage() {
           <h1>Boas-vindas ao nosso levantamento de perfil comportamental <span aria-hidden="true">🤍</span></h1>
           <p className="cf-desc">Queremos <b>conhecer mais sobre você</b>: como você <b>decide</b>, como se <b>comunica</b> e como <b>reage</b> em diferentes situações do trabalho.</p>
           <ul className="cpt-facts">
-            <li><LayoutList size={18} /><span><b>24 blocos</b> de 4 frases curtas</span></li>
-            <li><Clock3 size={18} /><span>Em média <b>12 a 20 minutos</b></span></li>
-            <li><Mail size={18} /><span>Ao final, você recebe o <b>seu relatório por e-mail</b></span></li>
-            {invite?.deadline_at && <li><CalendarClock size={18} /><span>Responda até <b>{deadlineLabel(invite.deadline_at)}</b></span></li>}
+            <li><LayoutList size={16} /><span><b>24 blocos</b> de 4 frases curtas, em média <b>12 a 20 minutos</b></span></li>
+            <li><Mail size={16} /><span>Ao final, você recebe o <b>seu relatório por e-mail</b></span></li>
+            {invite?.deadline_at && <li><CalendarClock size={16} /><span>Responda até <b>{deadlineLabel(invite.deadline_at)}</b></span></li>}
           </ul>
           <div className="cpt-consent-wrap">
             <span className="cpt-hands" aria-hidden="true"><Handshake size={26} /></span>

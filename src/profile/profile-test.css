@@ -35,10 +35,9 @@
 .cali-form-page.cali-profile-test .cpt-welcome h1 span{font-size:.8em}
 .cali-form-page.cali-profile-test .cf-desc b,.cali-form-page.cali-profile-test .cpt-consent b{color:var(--cf-ink)!important;font-weight:700}
 .cali-form-page.cali-profile-test .cf-desc em,.cali-form-page.cali-profile-test .cpt-consent em{font-style:italic}
-.cali-form-page.cali-profile-test .cpt-facts{list-style:none;margin:18px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:720px}
-.cali-form-page.cali-profile-test .cpt-facts li{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.75);border:1px solid rgba(90,30,45,.14);font-size:14px;line-height:1.35;color:var(--cf-muted)}
+.cali-form-page.cali-profile-test .cpt-facts{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;max-width:720px}
+.cali-form-page.cali-profile-test .cpt-facts li{display:flex;align-items:center;gap:10px;padding:0;border:0;background:none;font-size:15px;line-height:1.5;color:var(--cf-muted,#6B5D63)}
 .cali-form-page.cali-profile-test .cpt-facts li svg{flex:0 0 auto;color:var(--cf-wine)}
-.cali-form-page.cali-profile-test .cpt-facts:has(li:nth-child(4)){grid-template-columns:repeat(2,minmax(0,1fr))}
 .cali-form-page.cali-profile-test .cpt-facts b{color:var(--cf-ink)}
 .cali-form-page.cali-profile-test .cpt-consent-wrap{display:flex;gap:14px;align-items:flex-start;margin-top:22px;max-width:720px}
 .cali-form-page.cali-profile-test .cpt-hands{display:grid;place-items:center;width:52px;height:52px;flex:0 0 auto;border-radius:50%;background:#F3E3E8;color:var(--cf-wine)}
