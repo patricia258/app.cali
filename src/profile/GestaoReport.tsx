@@ -5,12 +5,14 @@
 import type { ReactNode } from 'react';
 import { STYLES, type Style } from './profileMethod';
 import { NATURE, STYLE_CONTENT } from './profileContent';
-import { Alert, Page } from './ProfileReports';
+import { Alert, Page, SignatureBlock, type ProfileSigner } from './ProfileReports';
 import './profile-report.css';
 
 export type GestaoData = {
   link_id: string; title: string; company: string | null; purpose: string;
   moment: string | null; sector: string | null; goal: string | null; released_at: string | null;
+  note: string | null; approved_at: string | null; protocol: string | null; signer: ProfileSigner | null;
+  company_id: string | null; has_account: boolean; sent_log: Array<{ at: string; name: string; email: string; protocol: string }>;
   n: number;
   invites: { sent: number; completed: number; declined: number; started: number; expired: number; median_minutes: number | null };
   dates: { min: string | null; max: string | null; method: string | null };
@@ -61,7 +63,9 @@ export function GestaoReport({ data }: { data: GestaoData }) {
   const readAt = data.dates.max ? day(data.dates.max) : '—';
   const validUntil = data.dates.min ? (() => { const date = new Date(data.dates.min); date.setMonth(date.getMonth() + 6); return date; })() : null;
   const current = validUntil ? validUntil.getTime() > Date.now() : false;
-  const total = !valid ? 2 : n >= MIN_CHART ? 5 : 4;
+  const total = !valid ? 2 : n >= MIN_CHART ? 6 : 5;
+  const protocol = data.approved_at ? data.protocol : null;
+  const draft = !data.approved_at;
   const title = `Relatório de gestão · ${data.company || data.title}`;
 
   const dist = data.dist;
@@ -113,7 +117,7 @@ export function GestaoReport({ data }: { data: GestaoData }) {
   </> : null;
 
   return <div className="cali-profile-report cali-gestao-report">
-    <Page number={1} total={total} title={title} cover>
+    <Page number={1} total={total} title={title} cover protocol={protocol}>
       <div className="cpr-cover-top"><img className="cpr-cover-logo" src="/brand/cali-logo-light.png" alt="CALI RH" width={126} height={70} /><span>RELATÓRIO DE GESTÃO</span></div>
       <div className="cpr-cover-main">
         <small>PERFIL COMPORTAMENTAL · LEITURA DO TIME</small>
@@ -129,7 +133,7 @@ export function GestaoReport({ data }: { data: GestaoData }) {
       <div className="cpr-cover-foot"><span>{data.moment ? `Momento: ${MOMENTS[data.moment] || data.moment}` : 'Uso restrito à liderança'}</span><span>{NATURE}</span></div>
     </Page>
 
-    <Page number={2} total={total} title={title}>
+    <Page number={2} total={total} title={title} protocol={protocol || (draft ? 'Rascunho: aguardando aprovação' : null)}>
       <small className="cpr-eyebrow">O QUE SABER EM 60 SEGUNDOS</small>
       <h2>As três manchetes</h2>
       {!valid ? <Alert title={`A leitura do time aparece a partir de ${MIN_READ} respostas.`}>Hoje são {n}. Com menos pessoas, qualquer número revelaria o perfil de alguém. Assim que o grupo completar {MIN_READ} respostas, as manchetes, o gráfico e as decisões aparecem aqui.</Alert>
@@ -144,7 +148,7 @@ export function GestaoReport({ data }: { data: GestaoData }) {
     </Page>
 
     {valid && dist && <>
-      <Page number={3} total={total} title={title}>
+      <Page number={3} total={total} title={title} protocol={protocol || (draft ? 'Rascunho: aguardando aprovação' : null)}>
         <small className="cpr-eyebrow">{n >= MIN_CHART ? 'O TIME EM UM GRÁFICO' : 'O TIME'}</small>
         <h2>Como este time está distribuído</h2>
         {n >= MIN_CHART ? <>
@@ -168,17 +172,23 @@ export function GestaoReport({ data }: { data: GestaoData }) {
         {n < MIN_CHART && configurationBlock}
       </Page>
 
-      {n >= MIN_CHART && <Page number={4} total={total} title={title}>
+      {n >= MIN_CHART && <Page number={4} total={total} title={title} protocol={protocol || (draft ? 'Rascunho: aguardando aprovação' : null)}>
         {configurationBlock}
       </Page>}
 
-      <Page number={total} total={total} title={title}>
+      <Page number={total - 1} total={total} title={title} protocol={protocol || (draft ? 'Rascunho: aguardando aprovação' : null)}>
         <small className="cpr-eyebrow">O QUE FAZER COM ISSO AGORA</small>
         <h2>Três decisões</h2>
         <ol className="cgr-decisions">{decisions.map((item, index) => <li key={index}><span>{index + 1}</span><div><b>{item.decision}</b><p><em>Dono sugerido:</em> {item.owner}</p><p><em>Pergunta de checagem:</em> {item.check}</p></div></li>)}</ol>
         <small className="cpr-eyebrow">NOTA DE MÉTODO</small>
         <p className="cpr-note">Autoavaliação de preferências comportamentais de trabalho (base DISC, método {data.dates.method || 'CALI'}), respondida por {n} {n === 1 ? 'pessoa' : 'pessoas'}{rate !== null ? ` (${rate}% dos convites)` : ''}. Leitura por faixa e por grupo: nenhum dado individual aparece aqui{n < MIN_CHART ? '; em grupos com menos de 15 pessoas a distribuição aparece em texto, sem número por estilo, para ninguém ser identificado' : ''}. Não serve para decidir contratação, promoção ou desligamento. {validUntil ? `Vale como leitura atual até ${day(validUntil.toISOString())}.` : ''}</p>
-        <div className="cgr-sign"><p>Leia este relatório como um retrato do time neste momento, não como nota de ninguém. O que pede mais cuidado é a concentração em {STYLE_CONTENT[top].name} e o comportamento nos picos de cobrança. Na nossa próxima conversa, vamos transformar as três decisões em combinados com dono e data.</p><b>CALI RH</b></div>
+
+      </Page>
+      <Page number={total} total={total} title={title} protocol={protocol || (draft ? 'Rascunho: aguardando aprovação' : null)}>
+        <small className="cpr-eyebrow">PARECER DA CALI</small>
+        <h2>O que eu destaco para esta liderança</h2>
+        <div className="cgr-note">{data.note?.trim() ? data.note.trim().split(/\n+/).map((line, index) => <p key={index}>{line}</p>) : <p className="cgr-note-empty">O parecer da CALI entra aqui antes da aprovação.</p>}</div>
+        <SignatureBlock signer={data.signer} protocol={protocol} date={data.approved_at} pending={draft} />
       </Page>
     </>}
   </div>;

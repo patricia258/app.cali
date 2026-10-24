@@ -36,7 +36,6 @@ export function TeamMemberProfiles({ memberId, admin }: { memberId: string; admi
       <div className="tp-bars">{STYLES.map((style) => <Fragment key={style}><span style={{ color: STYLE_CONTENT[style].ink, fontWeight: 600 }}>{STYLE_CONTENT[style].name}</span><div><i style={{ width: `${row.scores.natural[style].pct}%`, background: STYLE_CONTENT[style].color }} /></div><b title={bandOf(row.scores.natural[style].pct)}>{row.scores.natural[style].pct}</b></Fragment>)}</div>
       <footer>
         <Link to={`/${admin ? 'admin' : 'cliente'}/perfil-comportamental/${row.id}`}><ExternalLink size={13} /> Abrir relatório</Link>
-        {admin && <label><input type="checkbox" checked={row.client_visible} onChange={(event) => void toggle(row, event.target.checked)} /> Disponibilizar para o cliente</label>}
       </footer>
     </article>;
   })}</div>;

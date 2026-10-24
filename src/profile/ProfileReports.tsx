@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { adaptationOf, bandOf, bandText, MARGIN, METHOD_VERSION, NATURAL_BLOCKS, PRESSURE_BLOCKS, rangeOf, STYLES, type Scores, type Style } from './profileMethod';
 import { BAND_EXPLAIN, NATURE, STYLE_CONTENT, VALIDITY, combinationOf, profileName } from './profileContent';
 import { ProfileBandBars, ProfileRadar, RoleMatrix, TwinBands, type RoleProfile } from './ProfileCharts';
+import '../signature-professional-v59.css';
 import './profile-report.css';
 
 export type ProfileResultView = {
@@ -21,7 +22,11 @@ export type ProfileResultView = {
   mixed: boolean;
   method_version?: string;
   role_profile?: RoleProfile | null;
+  protocol?: string | null;
 };
+
+/** Responsável técnica que assina os relatórios (public.cali_profile_signer / snapshot da aprovação). */
+export type ProfileSigner = { full_name?: string; job_title?: string | null; avatar_url?: string | null; avatar_position_x?: number | null; avatar_position_y?: number | null; avatar_zoom?: number | null; signature_mode?: string | null; signature_url?: string | null; signature_style?: string | null };
 
 /** Base interna de comparação (public.cali_profile_base): total de respostas e, a partir do mínimo, a distribuição do predominante. */
 export type ProfileBase = { n: number; min: number; by_primary: Record<Style, number> | null };
@@ -32,12 +37,12 @@ const dateLabel = (value: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-
 const pcts = (scores: Scores, key: 'natural' | 'pressure' | 'natural6') => Object.fromEntries(STYLES.map((style) => [style, scores[key][style].pct])) as Record<Style, number>;
 const signed = (value: number) => (value > 0 ? `+${value}` : value < 0 ? `−${-value}` : '0');
 
-export function Page({ children, number, total, title, cover }: { children: ReactNode; number: number; total: number; title: string; cover?: boolean }) {
+export function Page({ children, number, total, title, cover, protocol }: { children: ReactNode; number: number; total: number; title: string; cover?: boolean; protocol?: string | null }) {
   return <section className={`cpr-page${cover ? ' cpr-cover' : ''}`}>
     {cover && <img className="cpr-cover-leaf" src="/brand/cali-cover-leaf.png" alt="" aria-hidden="true" width={720} height={720} />}
     {!cover && <header className="cpr-head"><img src="/brand/cali-rh-bordo.png" alt="CALI RH" width={64} height={30} /><span>{title}</span></header>}
     <div className="cpr-body">{children}</div>
-    {!cover && <footer className="cpr-foot"><span>CALI RH · HR for Business · calirh.com</span><span>{String(number).padStart(2, '0')} / {String(total).padStart(2, '0')}</span></footer>}
+    {!cover && <footer className="cpr-foot"><span>CALI RH · HR for Business · calirh.com{protocol ? (protocol.startsWith('CALI-') ? ` · Protocolo ${protocol}` : ` · ${protocol}`) : ''}</span><span>{String(number).padStart(2, '0')} / {String(total).padStart(2, '0')}</span></footer>}
   </section>;
 }
 
@@ -51,6 +56,24 @@ export function Alert({ title, children }: { title: string; children: ReactNode 
   return <div className="cpr-alert" role="note"><i aria-hidden="true">!</i><div><b>{title}</b><p>{children}</p></div></div>;
 }
 
+const signedAt = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).format(new Date(iso));
+
+/** Assinatura da responsável técnica: assinatura virtual, foto, nome, cargo, data e protocolo. `pending`: rascunho ainda não aprovado. */
+export function SignatureBlock({ signer, protocol, date, pending }: { signer?: ProfileSigner | null; protocol?: string | null; date?: string | null; pending?: boolean }) {
+  if (!signer?.full_name) return null;
+  const initials = signer.full_name.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+  return <div className={`cpr-sign${pending ? ' pending' : ''}`}>
+    <div className="cpr-sign-mark">{pending ? <span className="cpr-sign-pending">Aguardando aprovação</span>
+      : signer.signature_mode === 'uploaded' && signer.signature_url ? <img src={signer.signature_url} alt={`Assinatura de ${signer.full_name}`} crossOrigin="anonymous" />
+      : <span className={`report-signature-generated-v55 signature-style-${signer.signature_style || 'executive'}`}>{signer.full_name}</span>}</div>
+    <div className="cpr-sign-person">
+      <span className="cpr-sign-photo">{signer.avatar_url ? <img src={signer.avatar_url} alt="" crossOrigin="anonymous" style={{ objectPosition: `${signer.avatar_position_x ?? 50}% ${signer.avatar_position_y ?? 50}%` }} /> : <b>{initials}</b>}</span>
+      <span><strong>{signer.full_name}</strong><small>{signer.job_title || 'Responsável técnica'} · CALI RH</small></span>
+      <span className="cpr-sign-meta">{pending ? 'Rascunho: ainda sem protocolo' : <>{date ? `Assinado em ${signedAt(date)}` : ''}{protocol ? <b>Protocolo {protocol}</b> : null}</>}</span>
+    </div>
+  </div>;
+}
+
 function baseLine(base: ProfileBase | null | undefined, primary: Style) {
   if (!base) return 'A base interna da CALI está em formação.';
   if (!base.by_primary || base.n < base.min) return `A base interna da CALI tem ${base.n} ${base.n === 1 ? 'resposta' : 'respostas'} até hoje e está em formação. A partir de ${base.min} respostas, o relatório passa a mostrar quão comum é cada estilo predominante.`;
@@ -59,7 +82,7 @@ function baseLine(base: ProfileBase | null | undefined, primary: Style) {
 }
 
 /** `base` fica disponível para o avaliador; o relatório da pessoa não expõe método nem base (decisão da proprietária, 23/10). */
-export function RespondentReport({ result }: { result: ProfileResultView; base?: ProfileBase | null }) {
+export function RespondentReport({ result, signer }: { result: ProfileResultView; base?: ProfileBase | null; signer?: ProfileSigner | null }) {
   const P = result.primary_style, S = result.secondary_style;
   const p = STYLE_CONTENT[P], s = STYLE_CONTENT[S];
   const natural = pcts(result.scores, 'natural');
@@ -72,7 +95,7 @@ export function RespondentReport({ result }: { result: ProfileResultView; base?:
   const total = 7;
   const title = 'Perfil Comportamental · seu relatório';
   return <div className="cali-profile-report">
-    <Page number={1} total={total} title={title} cover>
+    <Page number={1} total={total} title={title} cover protocol={result.protocol}>
       <div className="cpr-cover-top"><img className="cpr-cover-logo" src="/brand/cali-logo-light.png" alt="CALI RH" width={126} height={70} /><span>PERFIL COMPORTAMENTAL</span></div>
       <div className="cpr-cover-main">
         <small>RELATÓRIO PESSOAL</small>
@@ -83,7 +106,7 @@ export function RespondentReport({ result }: { result: ProfileResultView; base?:
       <div className="cpr-cover-foot"><span>{dateLabel(result.created_at)}</span><span>{NATURE}</span></div>
     </Page>
 
-    <Page number={2} total={total} title={title}>
+    <Page number={2} total={total} title={title} protocol={result.protocol}>
       <small className="cpr-eyebrow">SEU RESULTADO</small>
       <h2>Seus quatro estilos</h2>
       <p>O losango mostra o formato do seu perfil; as barras, a intensidade de cada estilo no seu dia a dia de trabalho.</p>
@@ -93,7 +116,7 @@ export function RespondentReport({ result }: { result: ProfileResultView; base?:
       <p className="cpr-note"><b>Como ler:</b> o ponto mostra onde você está e a faixa colorida em volta, a variação natural da leitura. Quando ela cruza a fronteira entre duas faixas, aparece "no limite com". {BAND_EXPLAIN} Estilo baixo não é defeito: mostra o que você usa menos, não o que você não sabe fazer.</p>
     </Page>
 
-    <Page number={3} total={total} title={title}>
+    <Page number={3} total={total} title={title} protocol={result.protocol}>
       <small className="cpr-eyebrow">SEU PERFIL</small>
       <div className="cpr-profile-head"><Characters result={result} height={220} /><div><h2 style={{ color: p.ink }}>{name}</h2><p className="cpr-lead">Combinação {combination.name}</p><p>{combination.text}</p></div></div>
       <div className="cpr-grid2">
@@ -111,7 +134,7 @@ export function RespondentReport({ result }: { result: ProfileResultView; base?:
       <p className="cpr-note">Vocabulário de apoio: no jeito de agir, {p.name} lembra o temperamento {p.temperament.toLowerCase()} ({p.temperamentWords}). É só linguagem, não é nota.</p>
     </Page>
 
-    <Page number={4} total={total} title={title}>
+    <Page number={4} total={total} title={title} protocol={result.protocol}>
       <small className="cpr-eyebrow">DIA COMUM E SEMANA DIFÍCIL</small>
       <h2>{adapt.level} sob pressão</h2>
       <TwinBands natural={natural} pressure={pressure} naturalMargin={MARGIN.natural} pressureMargin={MARGIN.pressure} plain />
@@ -127,7 +150,7 @@ export function RespondentReport({ result }: { result: ProfileResultView; base?:
       </div>
     </Page>
 
-    <Page number={5} total={total} title={title}>
+    <Page number={5} total={total} title={title} protocol={result.protocol}>
       <small className="cpr-eyebrow">O QUE TE FAVORECE</small>
       <div className="cpr-grid2">
         {p.respondent.strengths.map((item) => <div className="cpr-card" key={item.title} style={{ borderTopColor: p.color }}><span className="cpr-tag" style={{ background: p.soft, color: p.ink }}>{p.name}</span><strong>{item.title}</strong><p>{item.example}</p></div>)}
@@ -148,7 +171,7 @@ export function RespondentReport({ result }: { result: ProfileResultView; base?:
       </dl>
     </Page>
 
-    <Page number={6} total={total} title={title}>
+    <Page number={6} total={total} title={title} protocol={result.protocol}>
       <small className="cpr-eyebrow">SEU PLANO DE 7 DIAS</small>
       <h2>Três ações para a próxima semana</h2>
       <p>Escolha a semana em que vai começar e, no sétimo dia, responda a pergunta de retorno de cada ação.</p>
@@ -161,7 +184,7 @@ export function RespondentReport({ result }: { result: ProfileResultView; base?:
       <div className="cpr-offer"><b>Converse sobre o resultado.</b><p>Ler sozinho muda pouco; conversar muda mais. Peça uma devolutiva a quem enviou o link ou à CALI RH: em 30 minutos, você confere em que se reconhece (e em que não) e transforma o plano em combinados concretos.</p></div>
     </Page>
 
-    <Page number={7} total={total} title={title}>
+    <Page number={7} total={total} title={title} protocol={result.protocol}>
       <small className="cpr-eyebrow">LIMITES DESTA LEITURA</small>
       <Alert title="Perfil é preferência média, não teto.">Ele mostra o jeito que você prefere usar, não o único jeito que você sabe usar. Você muda quando a situação pede, e a sua própria semana difícil mostra isso.</Alert>
       <Alert title="O que esta leitura não mede.">Competência, desempenho, potencial, inteligência, caráter ou valores. Também não diz se você é adequado a um cargo e não compara você com outras pessoas.</Alert>
@@ -171,15 +194,16 @@ export function RespondentReport({ result }: { result: ProfileResultView; base?:
       <dl className="cpr-dl">
         <div><dt>O que guardamos</dt><dd>Nome, e-mail, cargo, empresa (se informada), as suas marcações em cada bloco e os escores calculados.</dd></div>
         <div><dt>Para quê</dt><dd>Gerar e enviar o seu relatório e, quando o link veio de uma empresa, apoiar o desenvolvimento e a gestão do time.</dd></div>
-        <div><dt>Quem vê</dt><dd>Você e a CALI RH. A liderança da sua empresa só vê se o link veio dela e a CALI liberar o relatório do avaliador.</dd></div>
+        <div><dt>Quem vê</dt><dd>Você e a CALI RH. A liderança da sua empresa recebe só a leitura do grupo, sem o seu nome.</dd></div>
         <div><dt>Seus direitos</dt><dd>Pedir acesso, correção, revisão da leitura ou exclusão dos seus dados a qualquer momento: privacidade@calirh.com.</dd></div>
       </dl>
       <p className="cpr-note">Método {result.method_version || METHOD_VERSION} · CALI RH.</p>
+      <SignatureBlock signer={signer} protocol={result.protocol} date={result.created_at} />
     </Page>
   </div>;
 }
 
-export function EvaluatorReport({ result, team, base, editableRole, onRoleChange }: { result: ProfileResultView; team?: Array<{ primary_style: Style }>; base?: ProfileBase | null; editableRole?: boolean; onRoleChange?: (role: RoleProfile) => void }) {
+export function EvaluatorReport({ result, team, base, signer, editableRole, onRoleChange }: { result: ProfileResultView; team?: Array<{ primary_style: Style }>; base?: ProfileBase | null; signer?: ProfileSigner | null; editableRole?: boolean; onRoleChange?: (role: RoleProfile) => void }) {
   const P = result.primary_style, S = result.secondary_style;
   const p = STYLE_CONTENT[P], s = STYLE_CONTENT[S];
   const combo = combinationOf(P, S);
@@ -201,7 +225,7 @@ export function EvaluatorReport({ result, team, base, editableRole, onRoleChange
   const missing = STYLES.filter((style) => teamTotal && !teamCount[style]);
 
   return <div className="cali-profile-report">
-    <Page number={1} total={total} title={title} cover>
+    <Page number={1} total={total} title={title} cover protocol={result.protocol}>
       <div className="cpr-cover-top"><img className="cpr-cover-logo" src="/brand/cali-logo-light.png" alt="CALI RH" width={126} height={70} /><span>PERFIL COMPORTAMENTAL · AVALIADOR</span></div>
       <div className="cpr-cover-main">
         <small>RELATÓRIO PARA A LIDERANÇA · USO RESTRITO</small>
@@ -212,7 +236,7 @@ export function EvaluatorReport({ result, team, base, editableRole, onRoleChange
       <div className="cpr-cover-foot"><span>{dateLabel(result.created_at)} · Contexto: {PURPOSE[result.purpose || ''] || 'Não informado'}</span><span>Método {result.method_version || METHOD_VERSION}</span></div>
     </Page>
 
-    <Page number={2} total={total} title={title}>
+    <Page number={2} total={total} title={title} protocol={result.protocol}>
       <small className="cpr-eyebrow">ANTES DE DECIDIR</small>
       <h2>Três perguntas de gestão</h2>
       <div className="cpr-ceo">{p.evaluator.ceo.map((item, index) => <div key={item.ask}><span>{index + 1}</span><p>{item.reflection}</p><p><b>Pergunte:</b> {item.ask}</p></div>)}</div>
@@ -235,7 +259,7 @@ export function EvaluatorReport({ result, team, base, editableRole, onRoleChange
       </ol>
     </Page>
 
-    <Page number={3} total={total} title={title}>
+    <Page number={3} total={total} title={title} protocol={result.protocol}>
       <small className="cpr-eyebrow">PERFIL PREDOMINANTE E SECUNDÁRIO</small>
       <div className="cpr-profile-head"><Characters result={result} height={150} /><div><h2 style={{ color: p.ink }}>{name}</h2><p className="cpr-lead">Combinação {combo?.name} ({P}+{S})</p></div></div>
       <p>{combo?.text}</p>
@@ -252,7 +276,7 @@ export function EvaluatorReport({ result, team, base, editableRole, onRoleChange
       <p className="cpr-note">Temperamento é só linguagem de leitura, derivada do DISC: não tem base experimental, não é escore e não é rótulo da pessoa.</p>
     </Page>
 
-    <Page number={4} total={total} title={title}>
+    <Page number={4} total={total} title={title} protocol={result.protocol}>
       <small className="cpr-eyebrow">FAIXAS DE INTENSIDADE (DIA COMUM, {NATURAL_BLOCKS} BLOCOS, ±{MARGIN.natural})</small>
       <ProfileBandBars values={natural} margin={MARGIN.natural} />
       <ul className="cpr-readings">{STYLES.map((style) => { const band = bandOf(natural[style]); return <li key={style}><b style={{ color: STYLE_CONTENT[style].ink }}>{STYLE_CONTENT[style].name} · {bandText(natural[style], MARGIN.natural)}:</b> {band === 'Alto' || band === 'Muito alto' ? STYLE_CONTENT[style].bandHigh : band === 'Baixo' ? STYLE_CONTENT[style].bandLow : 'Uso situacional: aparece quando o contexto pede, sem ser o modo preferido.'}</li>; })}</ul>
@@ -264,7 +288,7 @@ export function EvaluatorReport({ result, team, base, editableRole, onRoleChange
         : <li>Pouca mudança: o comportamento tende a ser o mesmo em dias comuns e em semanas difíceis.</li>}</ul>
       <p className="cpr-note">Leitura indicativa, em níveis e nunca em pontos; o cálculo está no anexo (página 8).</p>    </Page>
 
-    <Page number={5} total={total} title={title}>
+    <Page number={5} total={total} title={title} protocol={result.protocol}>
       <small className="cpr-eyebrow">LEITURA DE PAPEL</small>
       {(editableRole || roleDefined) ? <RoleMatrix values={natural} margin={MARGIN.natural} role={role} editable={editableRole} onChange={onRoleChange} />
         : <p className="cpr-note">A matriz de papel aparece quando o avaliador define o que a função pede em cada estilo.</p>}
@@ -287,7 +311,7 @@ export function EvaluatorReport({ result, team, base, editableRole, onRoleChange
       </> : <p className="cpr-note">A leitura de time aparece a partir de {TEAM_MIN} pessoas da mesma empresa (proteção de privacidade). Hoje: {teamTotal}.</p>}
     </Page>
 
-    <Page number={6} total={total} title={title}>
+    <Page number={6} total={total} title={title} protocol={result.protocol}>
       <small className="cpr-eyebrow">COMO LIDERAR ESTA PESSOA</small>
       <dl className="cpr-dl">
         <div><dt>Comunicação</dt><dd>{p.evaluator.lead.comunicacao}</dd></div>
@@ -309,7 +333,7 @@ export function EvaluatorReport({ result, team, base, editableRole, onRoleChange
       </ol>
     </Page>
 
-    <Page number={7} total={total} title={title}>
+    <Page number={7} total={total} title={title} protocol={result.protocol}>
       <small className="cpr-eyebrow">PERGUNTAS PARA A ENTREVISTA OU CONVERSA DE DESENVOLVIMENTO</small>
       <p>Cada pergunta testa uma hipótese do relatório. Compare o que a pessoa contar com as duas colunas: isso transforma opinião em verificação e protege o avaliador do próprio viés.</p>
       <table className="cpr-matrix cpr-evidence"><thead><tr><th>Pergunta</th><th>Confirma a leitura</th><th>Contradiz a leitura</th></tr></thead><tbody>
@@ -317,7 +341,7 @@ export function EvaluatorReport({ result, team, base, editableRole, onRoleChange
       </tbody></table>
     </Page>
 
-    <Page number={8} total={total} title={title}>
+    <Page number={8} total={total} title={title} protocol={result.protocol}>
       <small className="cpr-eyebrow">ANEXO · MÉTODO E DADOS</small>
       <table className="cpr-matrix cpr-data"><thead><tr><th>Estilo</th><th>Saldo (−18 a +18)</th><th>Dia comum (±{MARGIN.natural})</th><th>Faixa</th><th>Semana difícil (±{MARGIN.pressure})</th></tr></thead><tbody>
         {STYLES.map((style) => { const n = rangeOf(natural[style], MARGIN.natural), pr = rangeOf(pressure[style], MARGIN.pressure); return <tr key={style}><td className="cpr-style-cell" style={{ color: STYLE_CONTENT[style].ink }}><b>{style}</b> {STYLE_CONTENT[style].name}</td><td>{signed(result.scores.natural[style].raw)}</td><td>{natural[style]} ({n.lo}–{n.hi})</td><td>{bandText(natural[style], MARGIN.natural)}</td><td>{bandText(pressure[style], MARGIN.pressure)} ({pr.lo}–{pr.hi})</td></tr>; })}
@@ -330,6 +354,7 @@ export function EvaluatorReport({ result, team, base, editableRole, onRoleChange
       </ul>
       <small className="cpr-eyebrow">PRIVACIDADE</small>
       <p className="cpr-note">Perfil comportamental de pessoa identificada é dado pessoal (LGPD, art. 5º e art. 12, § 2º). Use apenas para a finalidade declarada no convite, não compartilhe fora da liderança envolvida e garanta à pessoa acesso, revisão e exclusão (privacidade@calirh.com). {VALIDITY.replace('você se posiciona', 'a pessoa se posiciona')}</p>
+      <SignatureBlock signer={signer} protocol={result.protocol} date={result.created_at} />
     </Page>
   </div>;
 }

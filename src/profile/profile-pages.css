@@ -55,3 +55,11 @@
 .cali-profile-shell .cgp-tools select,.cali-profile-shell .cgp-tools input{width:100%;border:1px solid #E3D6CC;border-radius:8px;padding:8px 10px;font:500 13px Inter,sans-serif;background:#fff;max-width:none}
 .cali-profile-shell .cgp-actions{grid-column:1 / -1;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 @media (max-width:760px){.cali-profile-shell .cgp-tools{grid-template-columns:1fr}}
+.cali-profile-shell .cgp-tools .full,.cali-profile-shell .cgp-tools .cgp-step,.cali-profile-shell .cgp-tools .cgp-log{grid-column:1 / -1}
+.cali-profile-shell .cgp-tools textarea{width:100%;border:1px solid #E3D6CC;border-radius:8px;padding:10px 12px;font:400 13.5px/1.6 Inter,sans-serif;resize:vertical;background:#fff}
+.cali-profile-shell .cgp-tools label em{font-style:normal;font-weight:500;color:#8C807A;margin-left:6px}
+.cali-profile-shell .cgp-step{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding-top:12px;border-top:1px solid #F1E9E2;font:400 12.5px Inter,sans-serif;color:#6B5D63}
+.cali-profile-shell .cgp-step:first-child{padding-top:0;border-top:0}
+.cali-profile-shell .cgp-step b{font-size:13px;color:#5A1E2D}
+.cali-profile-shell .cgp-actions.cgp-left{justify-content:flex-start}
+.cali-profile-shell .cgp-log{margin:0;padding-left:18px;font-size:12px;line-height:1.6;color:#6B5D63}
