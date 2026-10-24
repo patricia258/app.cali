@@ -1,9 +1,11 @@
 // Perfil Comportamental CALI: convites e lembretes por e-mail (especificação "Prazos-Lembretes-Painel_v1").
 // Chamado só pelo banco (cali_workspace.profile_post_invite_email), com o segredo x-workspace-hook.
 // Tipos: invite, reminder1 (não abriu), reminder2 (parou no meio), reminder3 (último toque), focal_eve (véspera, pendentes),
-// focal_close (fechamento, taxa), renewal30/renewal0 (validade de 6 meses). Avisos à empresa trazem só estado, nunca respostas.
+// focal_close (fechamento, taxa), renewal30/renewal0 (validade de 6 meses), gestao_released (aviso a quem tem conta na empresa)
+// e gestao_pdf (PDF do relatório de gestão ao gestor, sem precisar de conta). Avisos à empresa trazem só estado, nunca respostas.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
+import { encodeBase64 } from "jsr:@std/encoding@1.0.5/base64";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -47,11 +49,11 @@ const button = (href: string, label: string) => `<div style="text-align:center;m
 const box = (html: string) => `<div style="margin:0 0 20px;padding:14px 18px;border:1px solid #E8DDD4;border-left:4px solid #5A1E2D;border-radius:12px;background:#FBF7F3;font-size:14px;line-height:1.6">${html}</div>`;
 const optOut = (token: string) => `Se não quiser participar, <a href="${APP_URL}/perfil/sair/${token}" style="color:#8C807A">clique aqui</a> e não enviaremos mais mensagens sobre este convite. E-mail automático da CALI RH.`;
 
-async function send(to: string, subject: string, html: string) {
+async function send(to: string, subject: string, html: string, attachments?: Array<{ filename: string; content: string }>) {
   const sent = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: FROM_EMAIL, to: [to], reply_to: REPLY_TO, subject, html }),
+    body: JSON.stringify({ from: FROM_EMAIL, to: [to], reply_to: REPLY_TO, subject, html, ...(attachments ? { attachments } : {}) }),
   });
   if (!sent.ok) throw new Error(`resend ${sent.status}`);
 }
@@ -67,7 +69,7 @@ Deno.serve(async (req: Request) => {
     const provided = req.headers.get("x-workspace-hook") ?? "";
     const { data: secretRow } = await ws.from("runtime_secrets").select("secret_value").eq("secret_key", "notification_email_hook").maybeSingle();
     if (!provided || !secretRow?.secret_value || provided !== secretRow.secret_value) return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), { status: 401, headers });
-    const payload = await req.json().catch(() => ({})) as { kind?: string; invite_id?: string; link_id?: string; deadline_at?: string; result_ids?: string[] };
+    const payload = await req.json().catch(() => ({})) as { kind?: string; invite_id?: string; link_id?: string; deadline_at?: string; result_ids?: string[]; name?: string; email?: string; path?: string };
     const kind = payload.kind || "";
 
     const linkOf = async (id: string) => {
@@ -159,6 +161,37 @@ Deno.serve(async (req: Request) => {
         + p("O resultado descreve como a pessoa se posiciona em um momento; contexto, papel e momento mudam a leitura. Por isso cada leitura vale 6 meses. Leituras vencidas continuam no histórico, mas não contam como leitura atual.", 13)
         + p("Para renovar, fale com a CALI RH: um novo ciclo mantém o histórico e permite comparar os dois momentos.", 13);
       await send(link.focal_email, subject, layout("PERFIL COMPORTAMENTAL CALI", title, body));
+      return new Response(JSON.stringify({ ok: true }), { headers });
+    }
+
+    if (kind === "gestao_released" || kind === "gestao_pdf") {
+      const { data: link } = await ws.from("profile_links").select("id,title,company_id,company_label,gestao_protocol").eq("id", payload.link_id).maybeSingle();
+      if (!link) return new Response(JSON.stringify({ ok: true, skipped: true }), { headers });
+      let company = link.company_label as string | null;
+      if (link.company_id) { const { data: c } = await ws.from("companies").select("display_name").eq("id", link.company_id).maybeSingle(); company = c?.display_name || company; }
+      const name = company || link.title;
+      const protocol = link.gestao_protocol ? `Protocolo ${esc(link.gestao_protocol)}.` : "";
+      if (kind === "gestao_released") {
+        const { data: people } = await ws.from("profiles").select("email,full_name,active").eq("company_id", link.company_id).eq("role", "client");
+        const url = `${APP_URL}/cliente/perfil-comportamental/gestao/${link.id}`;
+        for (const person of (people || []).filter((row) => row.email && row.active !== false)) {
+          const body = p(`O relatório de gestão do Perfil Comportamental de ${esc(name)} está disponível no seu aplicativo CALI. Ele mostra o time como conjunto, sem expor ninguém, e termina em três decisões para a liderança.`)
+            + button(url, "Abrir o relatório") + p(`${protocol} Recomendamos ler antes da nossa conversa de devolutiva.`, 13);
+          await send(person.email, `Relatório de gestão disponível · ${name}`, layout("RELATÓRIO DE GESTÃO", `Olá${person.full_name ? `, ${first(person.full_name)}` : ""}.`, body));
+        }
+        return new Response(JSON.stringify({ ok: true }), { headers });
+      }
+      const path = payload.path || "";
+      const file = await ws.storage.from("cali-profiles").download(path);
+      if (file.error || !file.data) return new Response(JSON.stringify({ ok: false, error: "pdf" }), { status: 500, headers });
+      const content = encodeBase64(new Uint8Array(await file.data.arrayBuffer()));
+      const to = payload.email || "";
+      const who = payload.name || "";
+      const body = p(`Segue, em anexo, o relatório de gestão do Perfil Comportamental de ${esc(name)}: o retrato do time como conjunto, sem expor ninguém, com três decisões para a liderança.`)
+        + box(`${protocol} Documento assinado pela responsável técnica da CALI RH.`) + p("Recomendamos ler antes da nossa conversa de devolutiva. Qualquer dúvida, fale com a CALI RH pelos canais de sempre.", 13);
+      const slugName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "empresa";
+      await send(to, `Relatório de gestão · Perfil Comportamental · ${name}`, layout("RELATÓRIO DE GESTÃO", `Olá${who ? `, ${first(who)}` : ""}.`, body),
+        [{ filename: `relatorio-gestao-${slugName}.pdf`, content }]);
       return new Response(JSON.stringify({ ok: true }), { headers });
     }
 

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Download } from 'lucide-react';
 import { anonPublicRpc, anonStorage } from '../lib/supabase';
-import { RespondentReport, type ProfileResultView } from './ProfileReports';
+import { RespondentReport, type ProfileResultView, type ProfileSigner } from './ProfileReports';
 import { downloadBlob, fileSlug, pagesToPdf } from './profilePdf';
 import './profile-pages.css';
 
@@ -19,17 +19,19 @@ export function ProfileReportPage() {
   const [missing, setMissing] = useState(false);
   const [mail, setMail] = useState<MailState>('idle');
   const [busy, setBusy] = useState(false);
+  const [signer, setSigner] = useState<ProfileSigner | null | undefined>(undefined);
   const captureRef = useRef<HTMLDivElement>(null);
   const started = useRef(false);
 
   useEffect(() => {
     document.title = 'Perfil Comportamental · CALI RH';
+    void anonPublicRpc<ProfileSigner | null>('cali_profile_signer', {}).then(({ data }) => setSigner(data || null));
     void anonPublicRpc<ReportPayload | null>('cali_profile_report', { p_token: token }).then(({ data }) => { if (data) setReport(data); else setMissing(true); });
   }, [token]);
 
   // Logo após o envio: PDF → bucket privado → e-mail com anexo (uma vez só).
   useEffect(() => {
-    if (!report || !fresh || report.has_pdf || started.current || !captureRef.current) return;
+    if (!report || signer === undefined || !fresh || report.has_pdf || started.current || !captureRef.current) return;
     started.current = true;
     setMail('working');
     void (async () => {
@@ -44,7 +46,7 @@ export function ProfileReportPage() {
         setMail(ready.data?.ok ? 'sent' : 'failed');
       } catch { setMail('failed'); }
     })();
-  }, [report, fresh, token]);
+  }, [report, signer, fresh, token]);
 
   async function download() {
     if (!report || !captureRef.current) return;
@@ -75,6 +77,6 @@ export function ProfileReportPage() {
       {showDownload && <button type="button" className="cps-primary" disabled={busy} onClick={() => void download()}><Download size={16} /> {busy ? 'Gerando o PDF…' : 'Baixar PDF'}</button>}
       <small>Dúvidas sobre o seu resultado ou seus dados: privacidade@calirh.com</small>
     </div>
-    <div className="cps-capture" ref={captureRef} aria-hidden="true"><RespondentReport result={report} /></div>
+    <div className="cps-capture" ref={captureRef} aria-hidden="true"><RespondentReport result={report} signer={signer} /></div>
   </div>;
 }
