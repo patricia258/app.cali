@@ -4,7 +4,7 @@
    Link livre (qualquer pessoa informa a empresa) ou link de uma empresa (vincula à ficha pelo e-mail corporativo). */
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown, ChevronRight, Copy, Download, ExternalLink, FileDown, Mail, Pencil, Plus, QrCode, RefreshCw, Search, Send, Share2, Trash2, X } from 'lucide-react';
+import { BarChart3, ChevronDown, ChevronRight, Copy, Download, ExternalLink, FileDown, Mail, Pencil, Plus, QrCode, RefreshCw, Search, Send, Share2, Trash2, X } from 'lucide-react';
 import { Shell } from '../components/WorkspaceShell';
 import { supabase } from '../lib/supabase';
 import { downloadQrPng, downloadShareCard, qrDataUrl } from '../forms/formExports';
@@ -233,6 +233,7 @@ export function AdminProfilesPage() {
           <td>{results.filter((row) => row.link_id === link.id).length}</td>
           <td className="cpa-actions">
             <Link className="wf-secondary" to={`/admin/perfil-comportamental/convites/${link.id}`}><Mail size={14} /> Convites</Link>
+            <Link className="wf-secondary" to={`/admin/perfil-comportamental/gestao/${link.id}`}><BarChart3 size={14} /> Relatório de gestão</Link>
             <button type="button" className="wf-secondary" onClick={() => setSharing(link)}><Share2 size={14} /> Compartilhar</button>
             <button type="button" className="v2-forms-edit" aria-label="Editar link" title="Editar link" onClick={() => setEditing(editDraft(link))}><Pencil size={14} /></button>
             <a className="v2-forms-edit" href={`/perfil/${link.slug}?previa=1`} target="_blank" rel="noopener noreferrer" aria-label="Ver como respondente" title="Ver como respondente"><ExternalLink size={14} /></a>

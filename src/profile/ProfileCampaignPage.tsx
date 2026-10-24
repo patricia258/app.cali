@@ -4,7 +4,7 @@
    Indicadores: resposta, abertura, conclusão, tempo mediano, expirados e bloco de abandono. Validade: 6 meses. */
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, CalendarClock, ExternalLink, RefreshCw, RotateCcw, Send, Trash2, UserPlus } from 'lucide-react';
+import { ArrowLeft, BarChart3, CalendarClock, ExternalLink, RefreshCw, RotateCcw, Send, Trash2, UserPlus } from 'lucide-react';
 import { Shell } from '../components/WorkspaceShell';
 import { supabase } from '../lib/supabase';
 import '../forms/admin-forms.css';
@@ -192,6 +192,7 @@ export function ProfileCampaignPage() {
       <div className="wf-head"><div><small>CONVITES · {company.toUpperCase()}</small><h1>{link.title}</h1>
         <p>Cada pessoa recebe um convite com prazo de {link.deadline_days} dias, até 3 lembretes automáticos (em dia útil, das 8h às 18h) e um link para sair. {link.focal_email ? `${link.focal_name || 'O ponto focal'} recebe a véspera e o fechamento.` : 'Cadastre um ponto focal para a empresa receber a véspera e o fechamento.'}</p></div>
         <div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => void load()}><RefreshCw size={15} /> Atualizar</button>
+          <Link className="wf-secondary" to={`/admin/perfil-comportamental/gestao/${link.id}`}><BarChart3 size={15} /> Relatório de gestão</Link>
           <button className="wf-primary" type="button" disabled={!queued.length || busy === 'send' || link.status !== 'open'} onClick={() => void sendQueued()}><Send size={15} /> {busy === 'send' ? 'Enviando…' : `Enviar convites${queued.length ? ` (${queued.length})` : ''}`}</button></div></div>
 
       <section className="cpc-metrics" aria-label="Indicadores">

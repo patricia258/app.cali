@@ -32,7 +32,7 @@ const dateLabel = (value: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-
 const pcts = (scores: Scores, key: 'natural' | 'pressure' | 'natural6') => Object.fromEntries(STYLES.map((style) => [style, scores[key][style].pct])) as Record<Style, number>;
 const signed = (value: number) => (value > 0 ? `+${value}` : value < 0 ? `−${-value}` : '0');
 
-function Page({ children, number, total, title, cover }: { children: ReactNode; number: number; total: number; title: string; cover?: boolean }) {
+export function Page({ children, number, total, title, cover }: { children: ReactNode; number: number; total: number; title: string; cover?: boolean }) {
   return <section className={`cpr-page${cover ? ' cpr-cover' : ''}`}>
     {cover && <img className="cpr-cover-leaf" src="/brand/cali-cover-leaf.png" alt="" aria-hidden="true" width={720} height={720} />}
     {!cover && <header className="cpr-head"><img src="/brand/cali-rh-bordo.png" alt="CALI RH" width={64} height={30} /><span>{title}</span></header>}
@@ -47,7 +47,7 @@ function Characters({ result, height }: { result: ProfileResultView; height: num
   return <div className="cpr-chars"><img src={`/brand/disc-pair-${pair}.png`} alt={`${STYLE_CONTENT[result.primary_style].name} e ${STYLE_CONTENT[result.secondary_style].name}`} height={height} style={{ height }} /></div>;
 }
 
-function Alert({ title, children }: { title: string; children: ReactNode }) {
+export function Alert({ title, children }: { title: string; children: ReactNode }) {
   return <div className="cpr-alert" role="note"><i aria-hidden="true">!</i><div><b>{title}</b><p>{children}</p></div></div>;
 }
 
