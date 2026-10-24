@@ -48,3 +48,10 @@
 .cali-profile-shell .cps-done-status:empty{display:none}
 .cali-profile-shell .cps-spinner.small{flex:0 0 18px;width:18px;height:18px;border-width:2px}
 .cali-profile-shell .cps-done small{margin-top:10px;font-size:12px;color:#8C807A}
+/* Relatório de gestão: personalização e liberação (administradora) */
+.cali-profile-shell .cps-admin-tools.cgp-tools{display:grid;grid-template-columns:200px 200px 1fr;gap:12px;align-items:end;text-align:left;justify-items:stretch}
+.cali-profile-shell .cgp-tools .cps-note{grid-column:1 / -1}
+.cali-profile-shell .cps-admin-tools.cgp-tools label{display:flex;flex-direction:column;align-items:stretch;text-align:left;gap:6px;font:600 12px Inter,sans-serif;color:#3e3533}
+.cali-profile-shell .cgp-tools select,.cali-profile-shell .cgp-tools input{width:100%;border:1px solid #E3D6CC;border-radius:8px;padding:8px 10px;font:500 13px Inter,sans-serif;background:#fff;max-width:none}
+.cali-profile-shell .cgp-actions{grid-column:1 / -1;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+@media (max-width:760px){.cali-profile-shell .cgp-tools{grid-template-columns:1fr}}

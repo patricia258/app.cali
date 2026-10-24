@@ -178,3 +178,56 @@
   .cali-profile-report .cpr-matrix select{border:0;appearance:none;-webkit-appearance:none;padding:0}
 }
 .cali-profile-report .cpr-cover>.cpr-body{padding:0;justify-content:space-between;gap:0;overflow:visible}
+/* Relatório de gestão */
+.cali-gestao-report .cgr-cover-stats{display:flex;gap:28px;margin-top:22px}
+.cali-gestao-report .cgr-cover-stats div{display:flex;flex-direction:column;gap:2px}
+.cali-gestao-report .cgr-cover-stats strong{font-size:30px;line-height:1.1;color:#fff}
+.cali-gestao-report .cgr-cover-stats span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#D9B98A}
+.cali-gestao-report .cgr-validity{align-self:flex-start;margin-top:18px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;font-size:12px;font-weight:600}
+.cali-gestao-report .cgr-validity.on{background:rgba(217,185,138,.22)}
+.cali-gestao-report .cgr-goal{font-size:14px}
+.cali-gestao-report .cgr-headline{display:flex;gap:22px;align-items:flex-start;padding:22px 24px;border:1px solid var(--line);border-left:5px solid var(--wine);border-radius:14px;background:#FFFDFB}
+.cali-gestao-report .cgr-headline>strong{flex:0 0 150px;font-size:34px;line-height:1.05;font-weight:800;color:var(--wine)}
+.cali-gestao-report .cgr-headline b{display:block;font-size:17px;line-height:1.35;color:var(--ink);margin-bottom:6px}
+.cali-gestao-report .cgr-headline p{font-size:13.5px}
+.cali-gestao-report .cgr-dist{display:flex;flex-direction:column;gap:20px;margin:6px 0}
+.cali-gestao-report .cgr-dist-row{display:grid;grid-template-columns:190px 1fr 120px;align-items:center;gap:14px}
+.cali-gestao-report .cgr-dist-row>span{display:flex;flex-direction:column;gap:2px;font-size:14px}
+.cali-gestao-report .cgr-dist-row small{font-size:11px;color:var(--muted)}
+.cali-gestao-report .cgr-dist-track{display:flex;height:26px;border-radius:13px;background:var(--marfim);overflow:hidden}
+.cali-gestao-report .cgr-dist-track i{display:block;height:100%}
+.cali-gestao-report .cgr-dist-track i.soft{opacity:.32}
+.cali-gestao-report .cgr-dist-row em{font-style:normal;font-size:13px;font-weight:600;color:var(--ink)}
+.cali-gestao-report .cgr-cover{display:inline-flex;padding:3px 10px;border-radius:999px;background:#FFF4DE;color:#9B6C21;font-size:11.5px;font-weight:700}
+.cali-gestao-report .cgr-cover.ok{background:#E6F6EC;color:#31805A}
+.cali-gestao-report .cgr-cover.gap{background:#FBE9E7;color:#B3261E}
+.cali-gestao-report .cgr-pressure{display:flex;height:22px;border-radius:11px;overflow:hidden;background:var(--marfim)}
+.cali-gestao-report .cgr-pressure i{display:block;height:100%}
+.cali-gestao-report .cgr-pressure .stable,.cali-gestao-report .cgr-pressure-legend .stable{background:#9FC3A9}
+.cali-gestao-report .cgr-pressure .one,.cali-gestao-report .cgr-pressure-legend .one{background:#E9C46A}
+.cali-gestao-report .cgr-pressure .many,.cali-gestao-report .cgr-pressure-legend .many{background:#C8553D}
+.cali-gestao-report .cgr-pressure-legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--muted)}
+.cali-gestao-report .cgr-pressure-legend span{display:inline-flex;align-items:center;gap:6px}
+.cali-gestao-report .cgr-pressure-legend i{display:inline-block;width:12px;height:12px;border-radius:3px}
+.cali-gestao-report .cgr-decisions{margin:4px 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:14px}
+.cali-gestao-report .cgr-decisions li{display:flex;gap:16px;padding:18px 20px;border:1px solid var(--line);border-radius:14px;background:#FFFDFB}
+.cali-gestao-report .cgr-decisions li>span{flex:0 0 34px;height:34px;border-radius:50%;background:var(--wine);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}
+.cali-gestao-report .cgr-decisions b{display:block;font-size:15px;line-height:1.4;margin-bottom:6px}
+.cali-gestao-report .cgr-decisions p{font-size:13px}
+.cali-gestao-report .cgr-decisions em{font-style:normal;font-weight:700;color:var(--wine)}
+.cali-gestao-report .cgr-sign{margin-top:6px;padding:18px 20px;border-radius:14px;background:var(--wine)}
+.cali-gestao-report .cgr-sign p{color:rgba(255,255,255,.9);font-size:13.5px}
+.cali-gestao-report .cgr-sign b{display:block;margin-top:10px;color:#D9B98A;font-size:12px;letter-spacing:.12em}
+.cali-gestao-report .cgr-bands{display:flex;flex-direction:column;gap:12px}
+.cali-gestao-report .cgr-band-row{display:grid;grid-template-columns:190px 1fr 120px;align-items:center;gap:14px;font-size:13px}
+.cali-gestao-report .cgr-band-row span{font-weight:700}
+.cali-gestao-report .cgr-band-row em{font-style:normal;font-size:12.5px;color:var(--muted)}
+.cali-gestao-report .cgr-band-track{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--marfim)}
+.cali-gestao-report .cgr-band-track i{display:block;height:100%}
+.cali-gestao-report .cgr-band-track .low,.cali-gestao-report .cgr-sw.low{background:#EFE6DE}
+.cali-gestao-report .cgr-band-track .mid,.cali-gestao-report .cgr-sw.mid{background:#D9C9BE}
+.cali-gestao-report .cgr-sw.high{background:#5A1E2D}
+.cali-gestao-report .cgr-headline{padding:26px 26px}
+.cali-gestao-report .cgr-headline>strong{flex-basis:170px;font-size:38px}
+.cali-gestao-report .cgr-headline b{font-size:18px}
+.cali-gestao-report .cgr-headline p{font-size:14px;line-height:1.65}
