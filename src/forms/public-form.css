@@ -141,3 +141,7 @@
 /* Pergunta mais alta que a tela (muitas opções): centraliza só quando cabe; senão começa do topo e rola inteira. */
 .cali-form-page .cf-stage{align-items:flex-start!important}
 .cali-form-page .cf-stage>.cf-screen{margin-top:auto;margin-bottom:auto;padding-bottom:72px}
+/* iPhone amplia a tela ao tocar num campo com letra menor que 16 px. A regra global do Workspace
+   (workspace-system-v61.css) força 14 px em todo campo; aqui o campo volta ao tamanho do desenho, nunca abaixo de 16 px. */
+.cali-form-page.cali-form-page :is(input,textarea,select){font-size:16px!important}
+.cali-form-page.cali-form-page .cf-text{font-size:max(16px,clamp(20px,3vw,26px))!important}
