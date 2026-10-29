@@ -14,6 +14,8 @@ type Overview = Record<string, { responses: number; last: string | null }>;
 type ResponseRow = { id: string; answers: Record<string, unknown>; respondent_name: string | null; respondent_email: string | null; submitted_at: string; confirmation_sent_at: string | null; contacted_at: string | null; admin_note: string | null; stage: string | null; owner: string | null };
 const RESPONSE_FIELDS = 'id,answers,respondent_name,respondent_email,submitted_at,confirmation_sent_at,contacted_at,admin_note,stage,owner';
 type Tab = 'questions' | 'share' | 'responses';
+type TrashRow = { id: string; kind: 'form' | 'responses'; form_title: string; responses: unknown[]; deleted_at: string };
+const TRASH_DAYS = 30;
 
 const FORM_FIELDS = 'id,slug,title,description,thank_you,status,company_id,questions,confirm_email,category,audience,stages,submit_label,success_text,created_at,updated_at';
 const EMOJIS = ['😊', '🙂', '🙏', '💬', '✨', '🌱', '🍂', '💡', '📌', '✅', '📝', '📊', '🤝', '❤️', '👏', '🎯', '⏱️', '🔒', '📅', '👉'];
@@ -36,20 +38,24 @@ export function AdminFormsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [creating, setCreating] = useState<{ title: string; category: string; audience: FormAudience; busy: boolean; error: string } | null>(null);
-  const [audienceFilter, setAudienceFilter] = useState<'all' | FormAudience>('all');
+  const [audienceFilter, setAudienceFilter] = useState<'all' | FormAudience | 'trash'>('all');
+  const [trash, setTrash] = useState<TrashRow[]>([]);
+  const [restoring, setRestoring] = useState('');
 
   async function load() {
     if (!supabase) return;
     setLoading(true); setError('');
     try {
-      const [list, counts, companyRows] = await Promise.all([
+      const [list, counts, companyRows, trashRows] = await Promise.all([
         supabase.from('forms').select(FORM_FIELDS).order('updated_at', { ascending: false }),
         supabase.rpc('admin_form_overview'),
         supabase.from('companies').select('id,display_name,status').order('display_name'),
+        supabase.from('forms_trash').select('id,kind,form_title,responses,deleted_at').is('restored_at', null).order('deleted_at', { ascending: false }),
       ]);
       if (list.error) throw list.error;
       setForms((list.data || []) as FormRecord[]);
       setOverview(Object.fromEntries(((counts.data || []) as Array<{ form_id: string; responses: number; last_response: string | null }>).map((row) => [row.form_id, { responses: Number(row.responses), last: row.last_response }])));
+      setTrash((trashRows.data || []) as TrashRow[]);
       setCompanies(((companyRows.data || []) as Array<{ id: string; display_name: string; status: string }>).filter((row) => row.status !== 'archived').map((row) => ({ id: row.id, name: row.display_name })));
     } catch (err) { setError(errorText(err, 'Não foi possível carregar os formulários.')); }
     finally { setLoading(false); }
@@ -58,6 +64,16 @@ export function AdminFormsPage() {
 
   const open = forms.find((form) => form.id === openId) || null;
   const visible = audienceFilter === 'all' ? forms : forms.filter((form) => form.audience === audienceFilter);
+
+  // Lixeira: formulário ou respostas excluídos ficam 30 dias e voltam com os mesmos dados (cali_forms_trash_restore).
+  async function restore(item: TrashRow) {
+    if (!supabase) return;
+    setRestoring(item.id); setError('');
+    const { error: restoreError } = await supabase.rpc('cali_forms_trash_restore', { p_id: item.id });
+    setRestoring('');
+    if (restoreError) { setError(errorText(restoreError, 'Não foi possível restaurar.')); return; }
+    setAudienceFilter('all'); await load();
+  }
   const go = (id: string | null, nextTab: Tab = 'questions') => setParams(id ? { form: id, aba: nextTab } : {});
 
   async function create() {
@@ -93,7 +109,20 @@ export function AdminFormsPage() {
       <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Formulários</h1><p>Pesquisas, questionários, inscrições, levantamentos: crie qualquer formulário com a identidade CALI, envie por link ou QR Code e veja as respostas reunidas aqui.</p></div>
         <div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</button><button className="wf-primary" type="button" onClick={() => setCreating({ title: '', category: '', audience: 'cali', busy: false, error: '' })}><Plus size={15} /> Novo formulário</button></div></div>
       {error && <div className="inline-notice" role="alert">{error}</div>}
-      <div className="wf-controls v2-forms-filter"><div className="wf-segments">{([['all', 'Todos'], ['cali', AUDIENCE_LABELS.cali], ['client', AUDIENCE_LABELS.client]] as Array<['all' | FormAudience, string]>).map(([key, label]) => <button type="button" key={key} className={audienceFilter === key ? 'on' : ''} onClick={() => setAudienceFilter(key)}>{label} <b>{key === 'all' ? forms.length : forms.filter((form) => form.audience === key).length}</b></button>)}</div></div>
+      <div className="wf-controls v2-forms-filter"><div className="wf-segments">{([['all', 'Todos'], ['cali', AUDIENCE_LABELS.cali], ['client', AUDIENCE_LABELS.client], ['trash', 'Lixeira']] as Array<['all' | FormAudience | 'trash', string]>).map(([key, label]) => <button type="button" key={key} className={audienceFilter === key ? 'on' : ''} onClick={() => setAudienceFilter(key)}>{label} <b>{key === 'all' ? forms.length : key === 'trash' ? trash.length : forms.filter((form) => form.audience === key).length}</b></button>)}</div></div>
+      {audienceFilter === 'trash' ? <>
+        <div className="wf-group-head"><div><span>LIXEIRA</span><strong>Excluídos nos últimos {TRASH_DAYS} dias</strong></div><b>{trash.length}</b></div>
+        {loading ? <div className="data-loading">Carregando…</div> : trash.length ? <div className="wf-records v2-forms-list v2-forms-trash">
+          <div className="wf-record-row header"><span>Formulário</span><span>O que foi excluído</span><span>Excluído em</span><span>Apagado de vez em</span><span /></div>
+          {trash.map((item) => <div className="wf-record-row" key={item.id}>
+            <span className="v2-forms-name"><strong>{item.form_title}</strong></span>
+            <span>{item.kind === 'form' ? `Formulário e ${item.responses.length} ${item.responses.length === 1 ? 'resposta' : 'respostas'}` : `${item.responses.length} ${item.responses.length === 1 ? 'resposta' : 'respostas'}`}</span>
+            <span>{dateTime(item.deleted_at)}</span>
+            <span>{shortDate(new Date(new Date(item.deleted_at).getTime() + TRASH_DAYS * 86400000).toISOString())}</span>
+            <span className="v2-forms-row-actions"><button type="button" className="wf-secondary" disabled={Boolean(restoring)} onClick={() => void restore(item)}><RefreshCw size={14} /> {restoring === item.id ? 'Restaurando…' : 'Restaurar'}</button></span>
+          </div>)}
+        </div> : <div className="wf-empty"><strong>A lixeira está vazia.</strong><p>Formulários e respostas excluídos ficam aqui por {TRASH_DAYS} dias e podem ser restaurados.</p></div>}
+      </> : <>
       <div className="wf-group-head"><div><span>FORMULÁRIOS</span><strong>{audienceFilter === 'all' ? 'Todos os formulários' : audienceFilter === 'cali' ? 'Formulários da CALI' : 'Formulários para clientes'}</strong></div><b>{visible.length}</b></div>
       {loading ? <div className="data-loading">Carregando formulários…</div> : visible.length ? <div className="wf-records v2-forms-list">
         <div className="wf-record-row header"><span>Formulário</span><span>Para quem</span><span>Situação</span><span>Respostas</span><span>Última resposta</span><span>Atualizado</span><span /></div>
@@ -107,6 +136,7 @@ export function AdminFormsPage() {
           <span className="v2-forms-row-actions"><button type="button" className="wf-secondary" onClick={(event) => { event.stopPropagation(); go(form.id, 'responses'); }}><ListChecks size={14} /> Respostas</button></span>
         </div>)}
       </div> : <div className="wf-empty"><strong>Nenhum formulário ainda.</strong><p>Clique em “Novo formulário” para criar o primeiro. Ele começa como rascunho: só recebe respostas depois que você abrir.</p></div>}
+      </>}
     </>}
   </div></div>
   {creating && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !creating.busy) setCreating(null); }}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Novo formulário">
@@ -126,6 +156,7 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
   const [saving, setSaving] = useState(false);
   const [note, setNote] = useState<{ text: string; failed?: boolean } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [typedName, setTypedName] = useState('');
   const dirty = JSON.stringify(draft) !== JSON.stringify(form);
   const url = `${PUBLIC_FORM_BASE}${form.slug}`;
 
@@ -247,8 +278,9 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
     {tab === 'responses' && <ResponsesPanel form={form} />}
 
     {confirmDelete && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) setConfirmDelete(false); }}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Excluir formulário">
-      <div><small>CALI FORMS</small><h2>Excluir formulário</h2><p><strong>{form.title}</strong></p><p>O link para de funcionar e {stats?.responses ? `as ${stats.responses} respostas recebidas são apagadas junto` : 'ele sai da lista'}. Não dá para desfazer. Se quiser só parar de receber respostas, use “Encerrar respostas”.</p></div>
-      <footer><button type="button" disabled={saving} onClick={() => setConfirmDelete(false)}>Cancelar</button><button type="button" className="danger" disabled={saving} onClick={() => void remove()}>{saving ? 'Excluindo…' : 'Excluir'}</button></footer>
+      <div><small>CALI FORMS</small><h2>Excluir formulário</h2><p><strong>{form.title}</strong></p><p>O link para de funcionar e {stats?.responses ? `as ${stats.responses} respostas saem junto` : 'ele sai da lista'}. Tudo fica na Lixeira por 30 dias e pode ser restaurado. Se quiser só parar de receber respostas, use “Encerrar respostas”.</p></div>
+      <label>Para confirmar, digite o nome do formulário<input value={typedName} autoComplete="off" placeholder={form.title} onChange={(event) => setTypedName(event.target.value)} /></label>
+      <footer><button type="button" disabled={saving} onClick={() => { setConfirmDelete(false); setTypedName(''); }}>Cancelar</button><button type="button" className="danger" disabled={saving || typedName.trim().toLowerCase() !== form.title.trim().toLowerCase()} onClick={() => void remove()}>{saving ? 'Excluindo…' : 'Excluir'}</button></footer>
     </section></div>}
   </>;
 }
@@ -416,7 +448,7 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
       <footer><button type="button" disabled={noteFor.busy} onClick={() => setNoteFor(null)}>Cancelar</button><button type="button" disabled={noteFor.busy} onClick={() => void saveNote()}>{noteFor.busy ? 'Salvando…' : 'Salvar nota'}</button></footer>
     </section></div>}
     {confirmDelete && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !deleting) setConfirmDelete(false); }}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Excluir respostas">
-      <div><small>CALI FORMS</small><h2>Excluir {selected.size === 1 ? 'resposta' : `${selected.size} respostas`}?</h2><p>{rows.filter((row) => selected.has(row.id)).slice(0, 4).map((row) => row.respondent_name || dateTime(row.submitted_at)).join(', ')}{selected.size > 4 ? ` e mais ${selected.size - 4}` : ''}. Não dá para desfazer.</p></div>
+      <div><small>CALI FORMS</small><h2>Excluir {selected.size === 1 ? 'resposta' : `${selected.size} respostas`}?</h2><p>{rows.filter((row) => selected.has(row.id)).slice(0, 4).map((row) => row.respondent_name || dateTime(row.submitted_at)).join(', ')}{selected.size > 4 ? ` e mais ${selected.size - 4}` : ''}. Ficam na Lixeira por 30 dias e podem ser restauradas.</p></div>
       <footer><button type="button" disabled={deleting} onClick={() => setConfirmDelete(false)}>Cancelar</button><button type="button" className="danger" disabled={deleting} onClick={() => void removeSelected()}>{deleting ? 'Excluindo…' : 'Excluir'}</button></footer>
     </section></div>}
   </div>;

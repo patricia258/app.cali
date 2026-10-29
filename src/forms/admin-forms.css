@@ -210,3 +210,11 @@ html[data-workspace-ui='v2'] .v2-forms-stage.s4,html[data-workspace-ui='v2'] .v2
 html[data-workspace-ui='v2'] .v2-forms-stage.s5{background-color:#fbeae8;color:#9f1f14}
 html[data-workspace-ui='v2'] .v2-forms-owner{width:130px;border:1px dashed transparent;border-radius:7px;background:transparent;padding:4px 7px;font:500 12px Inter,sans-serif;color:var(--fm-ink)}
 html[data-workspace-ui='v2'] .v2-forms-owner:hover,html[data-workspace-ui='v2'] .v2-forms-owner:focus{border-color:#e3d6cc;background:#fff;outline:none}
+/* Lixeira: cinco colunas, sem abrir ao clicar na linha. */
+html[data-workspace-ui='v2'] .v2-forms-trash .wf-record-row{grid-template-columns:minmax(240px,2fr) minmax(170px,1.2fr) 150px 140px 150px;cursor:default}
+html[data-workspace-ui='v2'] .v2-forms-trash .wf-record-row:not(.header):hover{background:transparent}
+@media (max-width:760px){
+  html[data-workspace-ui='v2'] .v2-forms-trash .wf-record-row{grid-template-columns:1fr auto}
+  html[data-workspace-ui='v2'] .v2-forms-trash .wf-record-row>span:nth-child(2){display:block;grid-column:1/-1;order:3;font-size:12px}
+  html[data-workspace-ui='v2'] .v2-forms-trash .wf-record-row>span:nth-child(5){display:flex}
+}
