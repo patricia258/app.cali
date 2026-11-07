@@ -836,3 +836,10 @@ Duas regras técnicas, pro handoff entre Claude e Codex, a partir do bug encontr
 Referência executada em 1363 × 936 e medidas salvas no relatório. Commit estrutural `823cce7` publicado como preview READY. Na autenticação real, o navegador recebeu tomada de controle pelo usuário na etapa OTP; o estado final é desconhecido. A revisão automática rejeitou a leitura da página e a inspeção sem navegação. Sem contorno do bloqueio, sem captura da integração nova e sem declarar equivalência visual. Demais páginas cliente e testes de operação real permanecem pendentes; administradora não avançada.
 
 Ajustes de apresentação posteriores: zeros sem sessão substituídos por indisponibilidade, botão do mural desabilitado com descrição, tema noturno oficial preservado. Nenhuma alteração em serviços ou callbacks.
+
+## 2026-11-07 · Codex · CommuniCALI e apresentação dos pacotes
+
+- Incluído o endereço oficial `https://comuni.calirh.com/` como CommuniCALI no menu público e no rodapé da LP do Workspace, em alinhamento com o site CALI.
+- Os cards CALI Partner e CALI Full foram recompostos com hierarquia mais simples: plano, duração, proposta de valor, capacidade mensal, itens distintivos e um CTA por card. Mantidos os prazos, capacidades, visita do Full, investimento mínimo publicado do Full e definição final por proposta. Nenhuma regra de acesso ou contratação foi alterada.
+- O acesso ao Workspace permanece explícito como benefício dos dois contratos; as frases repetidas nas listas foram removidas. Layout responsivo e preferência por movimento reduzido previstos no CSS da página.
+- `npm run check` passou. Revisão visual pela Pati: pendente. Autor: Codex.

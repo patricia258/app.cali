@@ -219,19 +219,17 @@ const STEPS = [
 
 const PACKAGE_FEATURES = {
   partner: [
-    '10 a 15h de capacidade de referência por mês',
-    '100% online',
     'Reunião mensal com founders, diretoria ou RH',
-    'Indicadores, DHO e apoio a decisões críticas',
+    'Indicadores, desenvolvimento e apoio às decisões críticas',
     '1 ajuste ou desenho de política/processo por mês',
+    'Acesso ao CALI Workspace durante o contrato',
   ],
   full: [
-    '20 a 25h de capacidade de referência por mês',
-    'A partir de R$ 5.000/mês · capacidade e investimento definidos por proposta',
     '1 visita presencial fixa por mês',
-    'Ritmo quinzenal com maior proximidade',
+    'Acompanhamento quinzenal com a liderança',
     'Cargos & Salários, People Analytics nível 3 e desenvolvimento',
     'Até 2 ajustes/processos por mês ou 1 projeto estrutural por trimestre',
+    'Acesso ao CALI Workspace durante o contrato',
   ],
 };
 
@@ -346,7 +344,7 @@ export function LandingPage() {
         <div className="lp-site-nav-shell">
           <a href="https://calirh.com" className="lp-site-brand" aria-label="CALI RH, ir para a página inicial"><img src="/brand/cali-logo-light.svg" alt="CALI RH" /></a>
           <nav className={`lp-site-nav-links ${menuOpen ? 'open' : ''}`} aria-label="Menu principal">
-            <a href="https://calirh.com">Início</a><a href="https://calirh.com/assessoria">Assessoria mensal</a><a href="https://calirh.com/projetos">Projetos e soluções</a><a href="https://calirh.com/sobre">A CALI</a>
+            <a href="https://calirh.com">Início</a><a href="https://calirh.com/assessoria">Assessoria mensal</a><a href="https://calirh.com/projetos">Projetos e soluções</a><a href="https://calirh.com/sobre">A CALI</a><a href="https://comuni.calirh.com/" target="_blank" rel="noopener noreferrer">CommuniCALI</a>
             <div className="lp-site-mobile-utility"><a href="https://portal.calirh.com">Portal CALI <ArrowUpRight size={16}/></a><Link to="/" onClick={() => setMenuOpen(false)}>CALI Workspace <ArrowUpRight size={16}/></Link><div className="lp-site-mobile-social"><a href="https://www.instagram.com/calirh_/" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><Instagram size={24}/></a><a href="https://www.linkedin.com/in/patriciaazumi/" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer"><Linkedin size={24}/></a><a href="mailto:patricia@calirh.com" aria-label="E-mail"><Mail size={24}/></a></div></div>
             <a className="lp-site-mobile-contact" href={WA_LINK} target="_blank" rel="noopener noreferrer">Fale com a Pati</a>
           </nav>
@@ -653,33 +651,26 @@ export function LandingPage() {
         <div className="lp-shell">
           <div className="lp-section-heading lp-section-heading-centered" data-lp-reveal>
             <span className="lp-kicker">ASSESSORIA ESTRATÉGICA MENSAL</span>
-            <h2>Dois formatos para momentos diferentes do negócio.</h2>
-            <p>O escopo acompanha a complexidade real da empresa e do momento: capacidade e investimento definidos por proposta. CALI Partner, CALI Full e CALI Build incluem acesso ao Workspace; projetos avulsos não geram acesso automático.</p>
+            <h2>Uma assessoria. Duas formas de estar perto.</h2>
+            <p>Escolha o ritmo de acompanhamento da sua empresa. O escopo e o investimento são definidos em proposta.</p>
           </div>
 
           <div className="lp-package-grid">
             <article className="lp-package-card" data-lp-reveal="left">
               <div className="lp-package-top">
                 <div>
-                  <small>CALI PARTNER</small>
-                  <h3>Direção estratégica periódica.</h3>
+                  <h3>CALI Partner</h3>
                 </div>
                 <span className="lp-term-badge">8 meses</span>
               </div>
-              <p className="lp-package-intro">
-                Para empresas que precisam organizar a agenda de pessoas, ganhar direção e
-                ter senioridade disponível nas decisões críticas.
-              </p>
-              <div className="lp-package-facts">
-                <span><strong>10–15h</strong><small>referência / mês</small></span>
-                <span><strong>Online</strong><small>100%</small></span>
-                <span><strong>Mensal</strong><small>ritmo principal</small></span>
-              </div>
+              <p className="lp-package-intro">Direção sênior para organizar prioridades e apoiar decisões de pessoas, com acompanhamento online.</p>
+              <div className="lp-package-capacity"><strong>10–15h</strong><span>de capacidade de referência por mês</span></div>
+              <p className="lp-package-price-note">Investimento definido em proposta.</p>
               <div className="lp-package-list">
                 {PACKAGE_FEATURES.partner.map((item) => <span key={item}><Check size={15} />{item}</span>)}
               </div>
-              <a className="lp-package-link" href="https://calirh.com" target="_blank" rel="noreferrer">
-                Conhecer a assessoria <ArrowRight size={16} />
+              <a className="lp-package-link" href="https://calirh.com/assessoria" target="_blank" rel="noopener noreferrer">
+                Conhecer o Partner <ArrowRight size={16} />
               </a>
             </article>
 
@@ -687,25 +678,18 @@ export function LandingPage() {
               <div className="lp-package-ribbon">MAIOR PROXIMIDADE</div>
               <div className="lp-package-top">
                 <div>
-                  <small>CALI FULL</small>
-                  <h3>Presença executiva mais próxima.</h3>
+                  <h3>CALI Full</h3>
                 </div>
                 <span className="lp-term-badge">12 meses</span>
               </div>
-              <p className="lp-package-intro">
-                Para momentos de maior complexidade: crescimento, reestruturação, mudança de
-                rota ou quando pessoas já são agenda central da diretoria.
-              </p>
-              <div className="lp-package-facts">
-                <span><strong>20–25h</strong><small>referência / mês</small></span>
-                <span><strong>1 visita</strong><small>fixa / mês</small></span>
-                <span><strong>Quinzenal</strong><small>ritmo principal</small></span>
-              </div>
+              <p className="lp-package-intro">Mais presença para decisões complexas, com ritmo quinzenal e uma visita presencial fixa por mês.</p>
+              <div className="lp-package-capacity"><strong>20–25h</strong><span>de capacidade de referência por mês</span></div>
+              <p className="lp-package-price-note">A partir de R$ 5.000/mês · investimento final em proposta.</p>
               <div className="lp-package-list">
                 {PACKAGE_FEATURES.full.map((item) => <span key={item}><Check size={15} />{item}</span>)}
               </div>
-              <a className="lp-package-link" href="https://calirh.com" target="_blank" rel="noreferrer">
-                Conhecer a assessoria <ArrowRight size={16} />
+              <a className="lp-package-link" href="https://calirh.com/assessoria" target="_blank" rel="noopener noreferrer">
+                Conhecer o Full <ArrowRight size={16} />
               </a>
             </article>
           </div>
@@ -734,7 +718,7 @@ export function LandingPage() {
       <footer className="lp-footer">
         <div className="lp-shell">
           <a href="https://calirh.com" aria-label="CALI RH, ir para o site"><img src="/brand/cali-logo-light.svg" alt="CALI RH" /></a>
-          <nav className="lp-footer-site-links" aria-label="Links CALI"><a href="https://calirh.com/assessoria">Assessoria mensal</a><a href="https://calirh.com/projetos">Projetos</a><a href="https://calirh.com/sobre">A CALI</a><a href="https://portal.calirh.com">Portal de propostas</a><Link to="/login">Acesso ao app</Link><a href="https://calirh.com/privacidade.html">Privacidade</a></nav>
+          <nav className="lp-footer-site-links" aria-label="Links CALI"><a href="https://calirh.com/assessoria">Assessoria mensal</a><a href="https://calirh.com/projetos">Projetos</a><a href="https://calirh.com/sobre">A CALI</a><a href="https://comuni.calirh.com/" target="_blank" rel="noopener noreferrer">CommuniCALI</a><a href="https://portal.calirh.com">Portal de propostas</a><Link to="/login">Acesso ao app</Link><a href="https://calirh.com/privacidade.html">Privacidade</a></nav>
           <div className="lp-footer-social"><a href="https://www.instagram.com/calirh_/" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><Instagram size={24}/></a><a href="https://www.linkedin.com/in/patriciaazumi/" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer"><Linkedin size={24}/></a><a href="mailto:patricia@calirh.com" aria-label="E-mail"><Mail size={24}/></a></div>
           <div className="lp-footer-copy">
             <span>© {new Date().getFullYear()} CALI RH · HRB — RH para o Negócio · Todos os direitos reservados.</span>
