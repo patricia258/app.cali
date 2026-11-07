@@ -837,9 +837,16 @@ Referência executada em 1363 × 936 e medidas salvas no relatório. Commit estr
 
 Ajustes de apresentação posteriores: zeros sem sessão substituídos por indisponibilidade, botão do mural desabilitado com descrição, tema noturno oficial preservado. Nenhuma alteração em serviços ou callbacks.
 
-## 2026-11-07 · Codex · CommuniCALI e apresentação dos pacotes
+## 2026-11-07 · Codex · ComuniCALI e apresentação dos pacotes
 
-- Incluído o endereço oficial `https://comuni.calirh.com/` como CommuniCALI no menu público e no rodapé da LP do Workspace, em alinhamento com o site CALI.
+- Incluído o endereço oficial `https://comuni.calirh.com/` como ComuniCALI no menu público e no rodapé da LP do Workspace, em alinhamento com o site CALI.
 - Os cards CALI Partner e CALI Full foram recompostos com hierarquia mais simples: plano, duração, proposta de valor, capacidade mensal, itens distintivos e um CTA por card. Mantidos os prazos, capacidades, visita do Full, investimento mínimo publicado do Full e definição final por proposta. Nenhuma regra de acesso ou contratação foi alterada.
 - O acesso ao Workspace permanece explícito como benefício dos dois contratos; as frases repetidas nas listas foram removidas. Layout responsivo e preferência por movimento reduzido previstos no CSS da página.
 - `npm run check` passou. Revisão visual pela Pati: pendente. Autor: Codex.
+
+## 2026-11-07 · Codex · correções solicitadas pela Pati
+
+- Nome corrigido para ComuniCALI no menu e rodapé; a grafia anterior foi rejeitada pela Pati.
+- Removido o valor explícito e o texto de investimento dos cards do Workspace. A legenda da capacidade mensal foi encurtada e deixou de quebrar em várias linhas no desktop.
+- Retirada a promessa de quantidade fixa de ajustes mensais. Políticas, processos e projetos passam a ser descritos conforme escopo e complexidade.
+- Revisão visual pela Pati: pendente. Autor: Codex.
