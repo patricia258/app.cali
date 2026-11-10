@@ -142,3 +142,9 @@ Não gera notificações duplicadas para propostas administrativas. Em outros pe
 - `administradora/nova-solicitacao-v1.html`: evento `record_opened`, para nova solicitação de cliente e origem `account_record`. Campos da solicitação original, com fallback legado se incompletos.
 - `administradora/nova-visita-v1.html`: evento `scheduling_request`, exclusivamente visita presencial e suas duas datas reais, antes de confirmação.
 - HTMLs preservados literalmente. Sem alterar destinatários, gatilhos, banco ou outros modelos aprovados.
+
+## Administradora — modelos 11 e 12 (aprovados, integração pendente)
+
+- **Mensagem em ocorrência V1:** `administradora/mensagem-ocorrencia-v1.html`, HTML aprovado. Evento candidato `record_message` com título `Nova mensagem do cliente`. O corpo do evento não necessariamente traz o texto da mensagem: obter conteúdo e autor apenas de uma mensagem específica inequívoca, sem escolher mensagem recente arbitrariamente. Nenhum disparo novo habilitado nesta rodada.
+- **Projeto atualizado pelo cliente V1:** `administradora/projeto-atualizado-v1.html`, HTML aprovado. O evento `project` / `Cliente atualizou o projeto` inclui também aprovação de planejamento, que já possui modelo próprio. Não duplicar nem substituir avisos aprovados; somente ativar quando o tipo de alteração for distinguível com segurança.
+- **Status de integração:** apenas HTML arquivado, nenhuma alteração no hook ou no disparo em produção. Aguardando confirmação da correspondência de dados, em conjunto com o desbloqueio do PR #95 (modelos 9 e 10).
