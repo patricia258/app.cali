@@ -142,3 +142,9 @@ Não gera notificações duplicadas para propostas administrativas. Em outros pe
 - `administradora/nova-solicitacao-v1.html`: evento `record_opened`, para nova solicitação de cliente e origem `account_record`. Campos da solicitação original, com fallback legado se incompletos.
 - `administradora/nova-visita-v1.html`: evento `scheduling_request`, exclusivamente visita presencial e suas duas datas reais, antes de confirmação.
 - HTMLs preservados literalmente. Sem alterar destinatários, gatilhos, banco ou outros modelos aprovados.
+
+## Administradora — modelos 9 e 10 aprovados (15/10/2026)
+
+- **Validação respondida V1:** `administradora/validacao-respondida-v1.html` — evento existente `review_response`. Usa status e observação da resposta com verificação temporal; caso sejam divergentes, preserva o e-mail anterior.
+- **Horário confirmado V1:** `administradora/horario-confirmado-v1.html` — evento existente `scheduling_confirmed` com referência a evento real. Mostra modalidade, horário e local/link quando disponíveis; senão mantém modelo anterior.
+- Não cria notificações, regras, disparos retroativos ou mudanças em modelos anteriores.

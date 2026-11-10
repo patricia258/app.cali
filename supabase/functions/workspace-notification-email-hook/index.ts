@@ -1,3 +1,5 @@
+import { renderAdminResponse } from "./approved-admin-response-templates.ts";
+import { approvedAdminResponseFields } from "./approved-admin-response-context.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { renderApprovedClientEmail } from "./approved-client-templates.ts";
@@ -525,6 +527,20 @@ Deno.serve(async (req: Request) => {
           outgoingSubject=["APP CALI RH",companyName,key==="record_opened"?"Nova solicitação do cliente":"Nova solicitação de visita presencial"].join(" · ");
         }catch(e){console.error("Admin novo modelo: fallback legado",e)}
       }
+    }
+
+
+    if(profile.role==="admin"){
+      const t=String(notification.notification_type||"");
+      const k=t==="review_response"&&notification.title==="Cliente respondeu uma validação"&&notification.entity_type==="project_review_request"?"review_response":
+        t==="scheduling_confirmed"&&notification.title==="Horário confirmado pelo cliente"&&notification.entity_type==="event"?"scheduling_confirmed":null;
+      if(k)try{
+        const context=await approvedAdminResponseFields(ws,notification,k);
+        const fields:Record<string,string>={nome_da_administradora:String(profile.full_name||"").trim().split(/\s+/)[0]||"Pati",
+          empresa:companyName,logo_workspace_url:LOGO_URL,carvalho_url:MARK_URL,link:url,...context};
+        outgoingHtml=renderAdminResponse(k,fields);
+        outgoingSubject=["APP CALI RH",companyName,k==="review_response"?"Resposta à validação":"Horário confirmado pelo cliente"].join(" · ");
+      }catch(error){console.error("admin response template fallback",error)}
     }
 
     const response = await fetch("https://api.resend.com/emails", {
