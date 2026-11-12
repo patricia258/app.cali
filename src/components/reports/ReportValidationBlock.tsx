@@ -48,7 +48,7 @@ function Party({label,identity,date,protocol,pending}:{label:string;identity?:Re
   </article>;
 }
 
-export function ReportValidationBlockV55({approvalIdentity,acknowledgementIdentity,approvedAt,acknowledgedAt,acknowledgementProtocol}:{approvalIdentity?:ReportIdentityV55|null;acknowledgementIdentity?:ReportIdentityV55|null;approvedAt?:string|null;acknowledgedAt?:string|null;acknowledgementProtocol?:string|null}){
+export function ReportValidationBlock({approvalIdentity,acknowledgementIdentity,approvedAt,acknowledgedAt,acknowledgementProtocol}:{approvalIdentity?:ReportIdentityV55|null;acknowledgementIdentity?:ReportIdentityV55|null;approvedAt?:string|null;acknowledgedAt?:string|null;acknowledgementProtocol?:string|null}){
   if(!approvalIdentity&&!acknowledgementIdentity)return null;
   return <section className="report-validation-v55 report-validation-document-v57">
     <div className="report-validation-head-v57"><span>REGISTRO DO DOCUMENTO</span><strong>Aprovação CALI e ciência do cliente</strong></div>

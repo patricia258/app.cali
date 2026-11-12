@@ -4,7 +4,7 @@
 
 **Minha conta e sino.** Admin, Cliente e Partner usam o shell autenticado. `/login` oferece ajuda antes da sessão.
 
-**Atual.** Shell organiza menus, atalhos, tour, sino e perfil por papel. Minha conta oferece edição do perfil, Termos, Privacidade, contato de acesso e links institucionais em Sobre a CALI. O Cliente registra e acompanha pedidos de dados próprios. Admin e Partner usam o canal institucional de privacidade. O atalho de ocorrência respeita a disponibilidade do módulo no shell. [Shell](../../src/components/workspace/WorkspaceShellV2.tsx) · [Minha conta](../../src/components/workspace/DirectProfileControl.tsx) · [Ajuda no login](../../src/modules/access/sign-in/LoginPage.tsx)
+**Atual.** Shell organiza menus, atalhos, tour, sino e perfil por papel. Minha conta oferece edição do perfil, Termos, Privacidade, contato de acesso e links institucionais em Sobre a CALI. O Cliente registra e acompanha pedidos de dados próprios. Admin e Partner usam o canal institucional de privacidade. O atalho de ocorrência respeita a disponibilidade do módulo no shell. [Shell](../../src/components/workspace/WorkspaceShellLayout.tsx) · [Minha conta](../../src/components/workspace/DirectProfileControl.tsx) · [Ajuda no login](../../src/modules/access/sign-in/LoginPage.tsx)
 
 **Dados e integrações.** Identidade e preferências do usuário, versão dos Termos, pedido de dados, notificação, destino, estado de leitura, empresa e público. Login e Minha conta usam o mesmo endereço institucional. [Contatos](../../src/domain/caliContacts.ts)
 

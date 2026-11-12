@@ -53,15 +53,15 @@ As folhas dos componentes usam utilitários para estrutura, dimensões, cores re
 | `privacy/SensitiveDataNote.tsx` | Galeria e unitário de orientação e ícone decorativo. |
 | `projects/DeliverableDependencies.tsx` | Fixtures de reprogramação Admin com justificativa e registro/recebimento por RPC do Partner. E2E `06-client-dependency-read-only` verifica atraso, histórico, escopo e leitura pelo Cliente. |
 | `modules/projects/components/ProjectDeliveryHistory.tsx` | E2E `06-project-delivery-performance-history` verifica prazo, aprovação, horas e exclusão de execução aberta. A suíte `project-history` verifica troca de projeto e atualização no intervalo. |
-| `reports/ExecutiveReportPaperV17.tsx` | Unitário do protocolo e ciência. E2E `12-report-print` valida impressão. |
+| `reports/ExecutiveReportPaper.tsx` | Unitário do protocolo e ciência. E2E `12-report-print` valida impressão. |
 | `reports/ReportManualComplementsPanel.tsx` | Fixture de inclusão, edição, total e remoção. Unitário de travamento da versão fechada. Persistência externa fora da fixture. |
-| `reports/ReportValidationV55.tsx` | Galeria com 14 estilos gerados, assinatura enviada, ciência pendente e protocolo. Unitário pelo papel do relatório. |
+| `reports/ReportValidationBlock.tsx` | Galeria com 14 estilos gerados, assinatura enviada, ciência pendente e protocolo. Unitário pelo papel do relatório. |
 | `workspace/DirectProfileControl.tsx` | E2E `profile-save-retry-and-reopen` e casos `account-*`. Comparação da conta aberta em quatro larguras. |
-| `workspace/OperationalSafetyBridgeV2.tsx` | E2E `hours-audit-edit-keeps-visible-entry`. Comparação de edição de horas com justificativa. |
+| `workspace/OperationalSafetyBridge.tsx` | E2E `hours-audit-edit-keeps-visible-entry`. Comparação de edição de horas com justificativa. |
 | `workspace/WelcomeTour.tsx` | Fixture de avanço, retorno, destaque, conclusão persistida e reabertura. Guardas de primeira entrada. |
 | `workspace/WorkspaceChrome.tsx` | E2E de destino, leitura, bloqueio de origem externa e troca de sessão com dois titulares. Comparação do sino. |
 | `workspace/WorkspaceShell.tsx` | Jornadas de entrada por papel e rotas diretas. Testes de barra global, notificações e pontes instaladas pelo shell. |
-| `workspace/WorkspaceShellV2.tsx` | Comparações de navegação e perfil. E2E de menu, troca de módulo e saída com timer ativo da sessão. |
+| `workspace/WorkspaceShellLayout.tsx` | Comparações de navegação e perfil. E2E de menu, troca de módulo e saída com timer ativo da sessão. |
 | `ds/useDialogFocus.ts` | Fixtures de diálogo sem ações, teclado aninhado e foco restaurado. |
 | `workspace/visualSystem.ts` | Exercitado no carregamento das rotas de ambos os shells. Teste de horário dos temas em `workspace-rules.test.mjs`. |
 

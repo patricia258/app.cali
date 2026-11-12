@@ -3,7 +3,7 @@ import { AlertTriangle } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { countAdminProjects } from '../../../api/projects/workspace';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
-import { AdminProjectsPageV3 } from '../../projects/AdminProjectsPageV3';
+import { AdminProjectsPage } from '../../projects/AdminProjectsPage';
 
 export function AdminProjectsGatePage() {
   const { user } = useWorkspaceAuth();
@@ -12,7 +12,7 @@ export function AdminProjectsGatePage() {
     queryFn: ({ signal }) => countAdminProjects(signal),
     gcTime: 0,
   });
-  if (projects.isSuccess) return <AdminProjectsPageV3 emptyPortfolio={projects.data === 0} />;
+  if (projects.isSuccess) return <AdminProjectsPage emptyPortfolio={projects.data === 0} />;
   if (projects.isPending) return <Shell role="admin"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando projetos…</section></Shell>;
 
   return (

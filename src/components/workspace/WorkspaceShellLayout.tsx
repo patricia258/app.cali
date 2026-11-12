@@ -73,7 +73,7 @@ type Props = {
   onLogout: () => void;
 };
 
-export function WorkspaceShellV2({ role, navigation, extras, children, scheduling, notifications, bridges, onLogout, welcomeSteps }: Props) {
+export function WorkspaceShellLayout({ role, navigation, extras, children, scheduling, notifications, bridges, onLogout, welcomeSteps }: Props) {
   const home = role === 'admin' ? '/admin' : role === 'partner' ? '/equipe' : '/cliente';
   /* Cronômetro esquecido: presença enquanto a pessoa usa o Workspace e conferência antes de sair. */
   const [exitTimers, setExitTimers] = useState<{ id: string; description: string | null; started_at: string }[] | null>(null); const [exitBusy, setExitBusy] = useState(false); const [exitError, setExitError] = useState('');
@@ -201,10 +201,10 @@ export function WorkspaceShellV2({ role, navigation, extras, children, schedulin
 
 /** Shell do cliente: a navegação aprovada, sem controles extras. */
 export function ClientShell(props: Omit<Props, 'role' | 'navigation' | 'extras'>) {
-  return <WorkspaceShellV2 role="client" navigation={clientNavigation} {...props} />;
+  return <WorkspaceShellLayout role="client" navigation={clientNavigation} {...props} />;
 }
 
 /** Shell da administradora: os menus oficiais dela e os controles operacionais (timer, despesas de visita). */
 export function AdminShell(props: Omit<Props, 'role' | 'navigation' | 'scheduling'>) {
-  return <WorkspaceShellV2 role="admin" navigation={adminNavigation} {...props} />;
+  return <WorkspaceShellLayout role="admin" navigation={adminNavigation} {...props} />;
 }

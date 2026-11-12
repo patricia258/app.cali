@@ -12,11 +12,11 @@ import { applyVisualSystem } from '../../../components/workspace/visualSystem';
 import { loadPortalProposal, sendPortalProposal, type PortalProposal, type PortalSubmission } from '../../../api/commercial/portal';
 import { createPortalProposalPdfUrl } from '../../../api/commercial/proposal-pdf';
 import { endWorkspaceSession, readWorkspaceSession } from '../../../api/access/session';
-import { AdminProposalPreviewPageV2 } from './AdminProposalPreviewPageV2';
+import { GeneratedProposalPreview } from './GeneratedProposalPreview';
 
 type FullProposal=PortalProposal&{submission:PortalSubmission};
 
-export function AdminProposalPreviewPageV3(){
+export function AdminProposalPreviewPage(){
   const { confirmDelivery, completeDelivery } = useMaterialDeliveryConfirmation();
   const [sending, setSending] = useState(false);
   const [sentMessage, setSentMessage] = useState('');
@@ -88,7 +88,7 @@ export function AdminProposalPreviewPageV3(){
   if(loading)return <Shell role="admin"><section className="page"><div className="panel portal-admin-loading"><Loader2 className="spin"/>Carregando proposta…</div></section></Shell>;
   if(!proposal)return <Shell role="admin"><section className="page"><InlineNotice tone="danger">{error||'Proposta não encontrada.'}</InlineNotice></section></Shell>;
 
-  if(!proposal.pdf_path)return <AdminProposalPreviewPageV2/>;
+  if(!proposal.pdf_path)return <GeneratedProposalPreview/>;
 
   // O PDF oficial arquivado abre no visualizador da moldura compacta.
 

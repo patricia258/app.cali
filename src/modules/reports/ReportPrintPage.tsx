@@ -91,7 +91,7 @@ function pinClientLogoForPrint(logoUrl?: string | null) {
   });
 }
 
-export function ReportPrintPageV17({ role }: Props) {
+export function ReportPrintPage({ role }: Props) {
   const { reportId } = useParams(), navigate = useNavigate();
   const [data, setData] = useState<Loaded | null>(null), [loading, setLoading] = useState(true), [error, setError] = useState('');
   const autoPrint = useMemo(() => new URLSearchParams(window.location.search).get('print') === '1', []);

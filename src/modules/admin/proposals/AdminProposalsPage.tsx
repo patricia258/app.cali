@@ -18,7 +18,7 @@ function prettyKey(key:string){const known:Record<string,string>={nome:'Seu nome
 function csvValue(value:unknown){const text=String(value??'');return `"${text.replace(/"/g,'""')}"`}
 function proposalActionLabel(latest?:PortalProposal){if(!latest)return'Preparar proposta';if(latest.status==='rascunho')return'Continuar rascunho';if(['enviada','aceita','recusada','expirada'].includes(latest.status))return'Criar nova versão';return'Continuar proposta'}
 
-export function AdminProposalsPageV2(){
+export function AdminProposalsPage(){
  const[data,setData]=useState<PortalData>(emptyData),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(''),[query,setQuery]=useState(''),[service,setService]=useState(''),[status,setStatus]=useState(''),[showArchived,setShowArchived]=useState(false),[selectedId,setSelectedId]=useState<string|null>(null),[notes,setNotes]=useState(''),[contact,setContact]=useState<ContactDraft>(emptyContact);
  async function load(){setLoading(true);setError('');try{setData(await loadPortalAdminData())}catch(e){setError(e instanceof Error?e.message:'Não foi possível carregar as oportunidades do Portal.')}finally{setLoading(false)}}
  useEffect(()=>{void load()},[]);

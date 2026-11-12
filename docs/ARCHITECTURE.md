@@ -38,6 +38,8 @@ tests/
 
 A página fica na raiz da pasta do fluxo. Peças exclusivas ficam em `components/` do fluxo. Componentes usados entre fluxos ficam em `src/components/<domínio>`. Uma implementação comum fica em seu domínio, por exemplo [Ocorrências](../src/modules/records) e [Agenda](../src/modules/calendar). Cada entrada preserva seu escopo por papel. Criar diretórios quando houver arquivos reais.
 
+Nomeie o arquivo e o componente principal pela função na interface, sem sufixos de revisão como `V2` ou `V17`. Use o papel ou o estado para distinguir variantes ativas. [AdminProposalPreviewPage](../src/modules/admin/proposals/AdminProposalPreviewPage.tsx) atende à rota e abre o PDF arquivado quando disponível. [GeneratedProposalPreview](../src/modules/admin/proposals/GeneratedProposalPreview.tsx) monta a prévia quando a proposta ainda não tem PDF arquivado. O [teste de arquitetura](../tests/unit/architecture.test.mjs) verifica os nomes dos arquivos de componentes e páginas.
+
 O CSS acompanha a página, o componente ou o fluxo que o usa. Um conjunto carregado em ordem usa o `styles.ts` do fluxo ou o manifesto do shell. CSS montado por um runtime fica ao lado do adaptador. Tokens, base e folhas transversais ficam em `src/styles`. A ordem da cascata é parte do contrato durante a migração. [Design system](DESIGN_SYSTEM.md)
 
 ## Hooks, estado e dependências

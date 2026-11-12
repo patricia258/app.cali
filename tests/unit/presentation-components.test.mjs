@@ -80,7 +80,7 @@ test('painel de complementos mostra total e impede edição em fechamento bloque
 
 test('papel do relatório mostra protocolo e diferencia ciência pendente de assinatura registrada', async (t) => {
   const http = await workspaceHttp(t);
-  const { ExecutiveReportPaperV17 } = await http.loadSource('components/reports/ExecutiveReportPaperV17.tsx');
+  const { ExecutiveReportPaper } = await http.loadSource('components/reports/ExecutiveReportPaper.tsx');
   const snapshot = normalizeIntelligenceSnapshot({
     companyId: 'qa', companyName: 'Empresa QA', generatedAt: '2026-11-30',
     period: { start: '2026-11-01', end: '2026-11-30', months: 1 },
@@ -93,12 +93,12 @@ test('papel do relatório mostra protocolo e diferencia ciência pendente de ass
     editor: { summary: '', movements: '', decisions: '', risks: '', nextSteps: '' },
     approvalIdentity: { full_name: 'Patrícia QA', signature_mode: 'generated', signature_style: 'personal' },
   };
-  const pending = render(ExecutiveReportPaperV17, props);
+  const pending = render(ExecutiveReportPaper, props);
   assert.match(pending, /Empresa QA/);
   assert.match(pending, /REL-QA-01/);
   assert.match(pending, /signature-style-personal">Patrícia QA/);
   assert.match(pending, /Aguardando ciência/);
-  const signed = render(ExecutiveReportPaperV17, {
+  const signed = render(ExecutiveReportPaper, {
     ...props,
     acknowledgementIdentity: { full_name: 'Cliente QA', signature_mode: 'uploaded', signature_url: '/fixture.png' },
     acknowledgementProtocol: 'CIE-QA-01',

@@ -646,7 +646,7 @@ html[data-workspace-ui='v2']{
 .v2-client-module .dv-chat .workspace-chat-head strong{color:#322f2c}
 
 /* ---- Administradora na identidade V2 ---- */
-/* O protótipo traz o próprio shell (.ap-app); nas páginas oficiais o shell é o WorkspaceShellV2, então
+/* O protótipo traz o próprio shell (.ap-app); nas páginas oficiais o shell é o WorkspaceShellLayout, então
    .ap-app passa a ser só o escopo das regras da página. */
 .app:is([data-workspace-role='admin'],[data-workspace-role='partner']) .ap-app.v2-admin-page{@apply tw:block tw:min-h-0;background:none}
 .app:is([data-workspace-role='admin'],[data-workspace-role='partner']) .v2-admin-page .ap-content{@apply tw:p-0 tw:max-w-none tw:m-0}

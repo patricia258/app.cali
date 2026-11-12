@@ -58,7 +58,7 @@ function formatDateTime(value?:string|null){
   return Number.isNaN(date.getTime())?'—':new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(date).replace('.','');
 }
 
-export function ClientReportsPageV5(){
+export function ClientReportsPage(){
   const { user } = useWorkspaceAuth();
   const queryClient = useQueryClient();
   const[reports,setReports]=useState<Report[]>([]);

@@ -15,7 +15,7 @@ import { WorkspaceRouteLoader } from '../../src/components/ds/WorkspaceRouteLoad
 import { CapacityBar, CapacityCard } from '../../src/components/hours/CapacityBar';
 import { DocumentAutoCover } from '../../src/components/documents/DocumentAutoCover';
 import { SensitiveDataNote } from '../../src/components/privacy/SensitiveDataNote';
-import { ReportValidationBlockV55, type ReportSignatureStyleV59 } from '../../src/components/reports/ReportValidationV55';
+import { ReportValidationBlock, type ReportSignatureStyleV59 } from '../../src/components/reports/ReportValidationBlock';
 import { capacityOf } from '../../src/lib/capacity';
 import '../../src/styles/tailwind.css';
 import '../../src/styles/theme-tokens.css';
@@ -122,7 +122,7 @@ export function VisualVariants() {
     <section aria-label="Assinaturas do relatório" className="fixture-visual-card">
       <h2>Assinaturas do relatório</h2>
       <div className="fixture-visual-columns">
-        {signatureStyles.map((signature_style) => <ReportValidationBlockV55
+        {signatureStyles.map((signature_style) => <ReportValidationBlock
           key={signature_style}
           approvalIdentity={{ full_name: 'Patrícia Costa', signature_style }}
           acknowledgementIdentity={signature_style === 'executive'

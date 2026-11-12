@@ -1,7 +1,7 @@
 import { skipToken, useQuery } from '@tanstack/react-query';
 import { readReportPaperIdentity, readReportVisitCosts } from '../../api/reports/paper';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
-import { ExecutiveReportPaperV17, type ExecutiveReportPaperProps } from './ExecutiveReportPaperV17';
+import { ExecutiveReportPaper, type ExecutiveReportPaperProps } from './ExecutiveReportPaper';
 
 export function WorkspaceExecutiveReportPaper(props: ExecutiveReportPaperProps) {
   const { user } = useWorkspaceAuth();
@@ -28,7 +28,7 @@ export function WorkspaceExecutiveReportPaper(props: ExecutiveReportPaperProps) 
     acknowledgementProtocol: canonical.acknowledgementProtocol,
   } : {};
 
-  return <ExecutiveReportPaperV17
+  return <ExecutiveReportPaper
     {...props}
     {...signatures}
     company={{ ...props.company, logoUrl: canonical?.logoUrl || props.company.logoUrl }}

@@ -26,17 +26,17 @@ function prefetchLikelyRoutes() {
     if (document.visibilityState !== 'visible') return;
     if (path.startsWith('/admin')) {
       void import('../modules/calendar/AdminCalendarPage');
-      void import('../modules/admin/reports/AdminReportsPageV17');
-      void import('../modules/admin/companies/AdminClientsPageV3');
+      void import('../modules/admin/reports/AdminReportsPage');
+      void import('../modules/admin/companies/AdminClientsPage');
       void import('../modules/admin/projects/AdminProjectsGatePage');
-      void import('../modules/hours/AdminHoursPageV3');
-      void import('../modules/documents/AdminDocumentsPageV4');
+      void import('../modules/hours/AdminHoursPage');
+      void import('../modules/documents/AdminDocumentsPage');
       return;
     }
 
     if (path.startsWith('/cliente')) {
       void import('../modules/client/timeline/ClientTimelinePage');
-      void import('../modules/client/reports/ClientReportsPageV5');
+      void import('../modules/client/reports/ClientReportsPage');
       void import('../modules/client/documents/ClientDocumentsPage');
       void import('../modules/client/hours/ClientHoursPage');
       void import('../modules/client/deliverables/ClientDeliverablesPage');

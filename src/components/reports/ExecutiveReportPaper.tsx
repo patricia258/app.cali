@@ -7,7 +7,7 @@ import { periodChangeSignalsV17 } from '../../lib/reportEditorialV17';
 import { augmentReportData, reportManualComplementsFromSnapshot, reportManualMinutes } from '../../lib/reportManualComplements';
 import type { ReportVisitCost } from '../../api/reports/paper';
 import type { ReportIdentityV55 } from '../../domain/report-identity';
-import { ReportValidationBlockV55 } from './ReportValidationV55';
+import { ReportValidationBlock } from './ReportValidationBlock';
 
 type Company = { name: string; logoUrl?: string | null };
 export type ExecutiveReportPaperProps = {
@@ -123,7 +123,7 @@ function attentionItems(snapshot: IntelligenceSnapshot, risks: string[]): Attent
   return [...dependencies, ...manual].slice(0, 3);
 }
 
-export function ExecutiveReportPaperV17({ company, snapshot, editor, reportType, periodName, protocol, deliveries, approvalIdentity, acknowledgementIdentity, approvedAt, acknowledgedAt, acknowledgementProtocol, visitCosts = [] }: ExecutiveReportPaperProps) {
+export function ExecutiveReportPaper({ company, snapshot, editor, reportType, periodName, protocol, deliveries, approvalIdentity, acknowledgementIdentity, approvedAt, acknowledgedAt, acknowledgementProtocol, visitCosts = [] }: ExecutiveReportPaperProps) {
   const manualComplements = reportManualComplementsFromSnapshot(snapshot);
   const manualMinutes = reportManualMinutes(manualComplements);
   const augmented = augmentReportData(snapshot, deliveries, manualComplements);
@@ -178,6 +178,6 @@ export function ExecutiveReportPaperV17({ company, snapshot, editor, reportType,
     </article> : null}
 
     {visitCosts.length ? <article className="reports-v16-paper reports-v19-paper reports-v19-visit-costs">{header('VISITAS EXTRAS')}<div className="reports-v16-page-two-title reports-v19-page-title"><span>REGISTROS DO PERÍODO</span><h1>Visitas e despesas vinculadas.</h1></div><table className="reports-v19-table"><thead><tr><th>Registro</th><th>Protocolo</th><th>Valor</th></tr></thead><tbody>{visitCosts.map(cost => <tr key={cost.id}><td><strong>{cost.label}</strong></td><td>{cost.protocol}</td><td>{(cost.amountCents/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td></tr>)}</tbody></table><p className="reports-v19-note">Valores registrados para conciliação. Comprovantes ficam no histórico da visita no Workspace; este relatório não emite fatura.</p><footer className="reports-v16-footer"><span>CALI Workspace · Patrícia Lima</span><span>{protocol}</span><b>{visitPage} / {totalPages}</b></footer></article> : null}
-    {hasValidation ? <article className="reports-v16-paper reports-v19-paper reports-v16-paper-signature">{header('REGISTRO DO DOCUMENTO')}<ReportValidationBlockV55 approvalIdentity={approvalIdentity} acknowledgementIdentity={acknowledgementIdentity} approvedAt={approvedAt} acknowledgedAt={acknowledgedAt} acknowledgementProtocol={acknowledgementProtocol} /><footer className="reports-v16-footer"><span>CALI Workspace · Patrícia Lima</span><span>{protocol}</span><b>{validationPage} / {totalPages}</b></footer></article> : null}
+    {hasValidation ? <article className="reports-v16-paper reports-v19-paper reports-v16-paper-signature">{header('REGISTRO DO DOCUMENTO')}<ReportValidationBlock approvalIdentity={approvalIdentity} acknowledgementIdentity={acknowledgementIdentity} approvedAt={approvedAt} acknowledgedAt={acknowledgedAt} acknowledgementProtocol={acknowledgementProtocol} /><footer className="reports-v16-footer"><span>CALI Workspace · Patrícia Lima</span><span>{protocol}</span><b>{validationPage} / {totalPages}</b></footer></article> : null}
   </div>;
 }

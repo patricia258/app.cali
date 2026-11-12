@@ -72,7 +72,7 @@ function EditorialField({ title, value, onChange, helper, rows = 5, locked }: { 
   return <div className="reports-v16-editor-field"><div><h3>{title}</h3><p>{helper}</p></div><textarea rows={rows} value={value} readOnly={locked} onChange={(event) => onChange(event.target.value)} /></div>;
 }
 
-export function AdminReportsPageV17() {
+export function AdminReportsPage() {
   const { confirmDelivery, completeDelivery } = useMaterialDeliveryConfirmation();
   const [searchParams] = useSearchParams();
   const deepLinkedReport = searchParams.get('report');

@@ -8,6 +8,8 @@
 - Siga o [plano de consolidação](docs/CONSOLIDATION_PLAN.md) na branch `codex/cali-consolidacao`. A conversa principal integra e revisa o trabalho de até três agentes.
 - Use o dump de estrutura do CALI MAPA como base de QA, aplique as migrations da branch no banco local isolado e valide com dados de teste. A restauração usa o dump como pré-requisito. Produção permanece separada.
 - Rode e registre todo o aceite local antes de publicar um Preview. O Preview usa backend e destinos de teste isolados.
+- Documente cada regra nova ou alterada no mesmo lote. Use [regras de produto](docs/PRODUCT_RULES.md), [contratos de dados](docs/DATA_CONTRACTS.md) ou [arquitetura](docs/ARCHITECTURE.md), conforme o assunto. Atualize as fichas de fluxo afetadas e vincule a prova de teste quando houver.
+- Nomeie arquivos e componentes de UI pela função. Use o papel ou o estado para distinguir variantes ativas. Sufixos de revisão como `V2` e `V17` ficam fora dos nomes de componentes e páginas.
 
 ## Comunicação
 

@@ -137,7 +137,7 @@ function Tabs<T extends string>({ value, onChange, items, className }: { value:T
   return <nav className={className} role="tablist">{items.map((item) => <button type="button" role="tab" aria-selected={value===item.id} className={value===item.id?'active':''} key={item.id} onClick={() => onChange(item.id)}>{item.label}</button>)}</nav>;
 }
 
-export function AdminClientsPageV3() {
+export function AdminClientsPage() {
 
   const [clients,setClients] = useState<ClientRow[]>([]);
   const [loading,setLoading] = useState(true);

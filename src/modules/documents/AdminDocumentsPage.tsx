@@ -60,9 +60,9 @@ function emptyForm(companyId = ''): FormState {
 
 // Equipe CALI usa a mesma página, só para consulta: sem criar, publicar, arquivar ou comentar.
 const DocsFrame = ({ staff, children }: { staff?: boolean; children: ReactNode }) => staff ? <>{children}</> : <Shell role="admin">{children}</Shell>;
-export const StaffDocumentsPage = () => <AdminDocumentsPageV4 staff />;
+export const StaffDocumentsPage = () => <AdminDocumentsPage staff />;
 
-export function AdminDocumentsPageV4({ staff = false }: { staff?: boolean } = {}) {
+export function AdminDocumentsPage({ staff = false }: { staff?: boolean } = {}) {
   const preview = sessionStorage.getItem('cali-preview-role') === 'admin';
   const [docs, setDocs] = useState<DocumentRow[]>([]);
   const [companies, setCompanies] = useState<CompanyOption[]>([]);

@@ -25,6 +25,12 @@ test('application navigation and cross-role flows retain their documented owners
   ]) assert.ok(existsSync(join(src, owner)), owner);
 });
 
+test('componentes e páginas usam nomes de arquivo por função', () => {
+  const files = ['components', 'modules'].flatMap((directory) => sourceFiles(join(src, directory)));
+  const versionedFiles = files.filter((file) => /v\d+\.tsx$/i.test(basename(file)));
+  assert.deepEqual(versionedFiles.map((file) => file.slice(src.length)), []);
+});
+
 test('custom hooks live in their own named files', () => {
   const violations = [];
   for (const file of sourceFiles(src)) {

@@ -64,8 +64,8 @@ function downloadCsv(rows:Entry[],companies:Map<string,Company>,projects:Map<str
 export type StaffHoursScope = { companies: StaffHoursCompany[] };
 function HoursFrame({ staff, children }: { staff:boolean; children:ReactNode }) { return staff ? <>{children}</> : <Shell role="admin">{children}</Shell>; }
 const staffStatusLabel: Record<string,string> = { pending:'Aguardando a Patricia', approved:'Aprovado', rejected:'Recusado' };
-export function StaffHoursPage({ companies }: StaffHoursScope) { return <AdminHoursPageV3 staff={{ companies }} />; }
-export function AdminHoursPageV3({ staff }: { staff?: StaffHoursScope } = {}){
+export function StaffHoursPage({ companies }: StaffHoursScope) { return <AdminHoursPage staff={{ companies }} />; }
+export function AdminHoursPage({ staff }: { staff?: StaffHoursScope } = {}){
   const [staffUsage,setStaffUsage]=useState<Record<string,number>>({}); useEffect(()=>{ if(!staff)return; const refresh=()=>void load(); window.addEventListener('cali:staff-refresh',refresh); window.addEventListener('cali-staff-timer-changed',refresh); return()=>{window.removeEventListener('cali:staff-refresh',refresh);window.removeEventListener('cali-staff-timer-changed',refresh);}; },[staff]);
   const [staffEdit,setStaffEdit]=useState<{id:string;kind:'submission'|'entry';date:string;start:string;end:string;minutes:string;description:string;reason:string}|null>(null);
   const [period,setPeriod]=useState(currentMonth());

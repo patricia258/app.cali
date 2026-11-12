@@ -196,7 +196,7 @@ function fileToBase64(file: File) {
   });
 }
 
-export function AdminPeopleMapPageV2() {
+export function AdminPeopleMapPage() {
   const { confirmDelivery, completeDelivery } = useMaterialDeliveryConfirmation();
   const [records, setRecords] = useState<MapaRecord[]>([]);
   const [journeys, setJourneys] = useState<JourneyRecord[]>([]);

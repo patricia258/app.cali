@@ -4,7 +4,7 @@
 
 **Horas e cronômetro.** Admin abre `/admin/horas`. Cliente acompanha consumo e saldo em `/cliente/horas`. Partner usa `/equipe/horas` e o cronômetro do shell, com alvo de trabalho atribuído.
 
-**Atual.** Timer global → alerta após 25 minutos sem presença → confirmação **Continuo aqui** ou pausa aos 30 minutos. A pausa mantém o trecho para justificativa. Escritores Partner encaminham o tempo à revisão. O extrato recebe o lançamento após aprovação Admin. [Horas Admin e Partner](../../src/modules/hours/AdminHoursPageV3.tsx) · [Presença e revisão](../../supabase/migrations/20261112150000_partner_timer_presence_and_review.sql) · [Aprovação](../../supabase/migrations/20261112150200_approve_partner_timer_hours.sql)
+**Atual.** Timer global → alerta após 25 minutos sem presença → confirmação **Continuo aqui** ou pausa aos 30 minutos. A pausa mantém o trecho para justificativa. Escritores Partner encaminham o tempo à revisão. O extrato recebe o lançamento após aprovação Admin. [Horas Admin e Partner](../../src/modules/hours/AdminHoursPage.tsx) · [Presença e revisão](../../supabase/migrations/20261112150000_partner_timer_presence_and_review.sql) · [Aprovação](../../supabase/migrations/20261112150200_approve_partner_timer_hours.sql)
 
 **Dados e integrações.** Empresa e ciclo, ator, alvo, início, pausa e tempo original, último sinal, justificativa, ajuste e decisão. Extrato e saldo somam lançamentos autorizados. Justificativa interna fica com a CALI. Alertas de consumo por ciclo usam 70%, 85% e 100% como parâmetros previstos.
 

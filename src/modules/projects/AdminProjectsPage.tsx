@@ -171,8 +171,8 @@ function StatusSelect({ item, onChange, compact=false }: { item:ProjectDeliverab
   </label>;
 }
 
-export function StaffProjectsPage({ companies }: StaffProjectsScope) { return <StaffModeContext.Provider value={true}><AdminProjectsPageV3 staff={{ companies }} /></StaffModeContext.Provider>; }
-export function AdminProjectsPageV3({ staff, emptyPortfolio = false }: { staff?: StaffProjectsScope; emptyPortfolio?: boolean } = {}) {
+export function StaffProjectsPage({ companies }: StaffProjectsScope) { return <StaffModeContext.Provider value={true}><AdminProjectsPage staff={{ companies }} /></StaffModeContext.Provider>; }
+export function AdminProjectsPage({ staff, emptyPortfolio = false }: { staff?: StaffProjectsScope; emptyPortfolio?: boolean } = {}) {
   useEffect(()=>{ if(!staff)return; const refresh=()=>void loadWorkspace(); window.addEventListener('cali:staff-refresh',refresh); return()=>window.removeEventListener('cali:staff-refresh',refresh); },[staff]);
   const [openTaskId,setOpenTaskId] = useState<string|null>(null); const [closedSubs,setClosedSubs] = useState<Record<string,boolean>>({});
   const [staffOpenFronts,setStaffOpenFronts] = useState<Record<string,boolean>>({});

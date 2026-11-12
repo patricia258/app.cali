@@ -24,47 +24,47 @@ const AdminDashboard = lazy(async () => {
   await import('../modules/admin/overview/styles');
   return import('../modules/admin/overview/AdminDashboard').then((m) => ({ default: m.AdminDashboard }));
 });
-const AdminClientsPageV3 = lazy(async () => {
-  return import('../modules/admin/companies/AdminClientsPageV3').then((m) => ({ default: m.AdminClientsPageV3 }));
+const AdminClientsPage = lazy(async () => {
+  return import('../modules/admin/companies/AdminClientsPage').then((m) => ({ default: m.AdminClientsPage }));
 });
-const AdminProposalsPageV2 = lazy(async () => {
+const AdminProposalsPage = lazy(async () => {
   // Lista na composição V2: as folhas antigas de propostas só entram no editor e na prévia.
-  return import('../modules/admin/proposals/AdminProposalsPageV2').then((m) => ({ default: m.AdminProposalsPageV2 }));
+  return import('../modules/admin/proposals/AdminProposalsPage').then((m) => ({ default: m.AdminProposalsPage }));
 });
-const AdminProposalEditorPageV3 = lazy(async () => {
+const AdminProposalEditorPage = lazy(async () => {
   await import('../modules/admin/proposals/document-styles');
-  return import('../modules/admin/proposals/AdminProposalEditorPageV3').then((m) => ({ default: m.AdminProposalEditorPageV3 }));
+  return import('../modules/admin/proposals/AdminProposalEditorPage').then((m) => ({ default: m.AdminProposalEditorPage }));
 });
-const AdminProposalPreviewPageV3 = lazy(async () => {
+const AdminProposalPreviewPage = lazy(async () => {
   await import('../modules/admin/proposals/document-styles');
-  return import('../modules/admin/proposals/AdminProposalPreviewPageV3').then((m) => ({ default: m.AdminProposalPreviewPageV3 }));
+  return import('../modules/admin/proposals/AdminProposalPreviewPage').then((m) => ({ default: m.AdminProposalPreviewPage }));
 });
 const AdminProjectsGatePage = lazy(async () => {
   await import('../modules/projects/styles');
   return import('../modules/admin/projects/AdminProjectsGatePage').then((m) => ({ default: m.AdminProjectsGatePage }));
 });
-const AdminHoursPageV3 = lazy(async () => {
-  return import('../modules/hours/AdminHoursPageV3').then((m) => ({ default: m.AdminHoursPageV3 }));
+const AdminHoursPage = lazy(async () => {
+  return import('../modules/hours/AdminHoursPage').then((m) => ({ default: m.AdminHoursPage }));
 });
 const AdminCalendarPage = lazy(async () => {
   await import('../modules/calendar/styles');
   return import('../modules/calendar/AdminCalendarPage').then((m) => ({ default: m.AdminCalendarPage }));
 });
-const AdminDocumentsPageV4 = lazy(async () => {
+const AdminDocumentsPage = lazy(async () => {
   // Página na composição V2: as folhas antigas de documentos não são mais carregadas aqui.
-  return import('../modules/documents/AdminDocumentsPageV4').then((m) => ({ default: m.AdminDocumentsPageV4 }));
+  return import('../modules/documents/AdminDocumentsPage').then((m) => ({ default: m.AdminDocumentsPage }));
 });
-const AdminReportsPageV17 = lazy(async () => {
+const AdminReportsPage = lazy(async () => {
   await import('../modules/reports/styles');
-  return import('../modules/admin/reports/AdminReportsPageV17').then((m) => ({ default: m.AdminReportsPageV17 }));
+  return import('../modules/admin/reports/AdminReportsPage').then((m) => ({ default: m.AdminReportsPage }));
 });
 const AdminSatisfactionPage = lazy(async () => {
   await import('../modules/admin/satisfaction/styles');
   return import('../modules/admin/satisfaction/AdminSatisfactionPage').then((m) => ({ default: m.AdminSatisfactionPage }));
 });
-const AdminPeopleMapPageV2 = lazy(async () => {
+const AdminPeopleMapPage = lazy(async () => {
   await import('../modules/admin/people-map/styles');
-  return import('../modules/admin/people-map/AdminPeopleMapPageV2').then((m) => ({ default: m.AdminPeopleMapPageV2 }));
+  return import('../modules/admin/people-map/AdminPeopleMapPage').then((m) => ({ default: m.AdminPeopleMapPage }));
 });
 const AdminPeopleMapReviewPage = lazy(async () => {
   await import('../modules/admin/people-map/styles');
@@ -100,9 +100,9 @@ const ClientDocumentsPage = lazy(async () => {
   return import('../modules/client/documents/ClientDocumentsPage').then((m) => ({ default: m.ClientDocumentsPage }));
 });
 // O relatório é lido no próprio documento oficial (papel), que tem folhas de estilo próprias.
-const ClientReportsPageV5 = lazy(async () => {
+const ClientReportsPage = lazy(async () => {
   await import('../modules/reports/styles');
-  return import('../modules/client/reports/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 }));
+  return import('../modules/client/reports/ClientReportsPage').then((m) => ({ default: m.ClientReportsPage }));
 });
 const CompanyTeamPage = lazy(() => import('../modules/team/CompanyTeamPage').then((m) => ({ default: m.CompanyTeamPage })));
 const ClientFaqPage = lazy(() => import('../modules/client/faq/ClientFaqPage').then((m) => ({ default: m.ClientFaqPage })));
@@ -112,9 +112,9 @@ const AdminStaffPage = lazy(() => import('../modules/admin/staff/AdminStaffPage'
 const StaffWorkspace = lazy(() => import('../modules/partner/StaffWorkspace').then((m) => ({ default: m.StaffWorkspace })));
 const AdminNoticesPage = lazy(() => import('../modules/notices/NoticesBoard').then((m) => ({ default: m.AdminNoticesPage })));
 const ClientFrontsPage = lazy(() => import('../modules/client/fronts/ClientFrontsPage').then((m) => ({ default: m.ClientFrontsPage })));
-const ReportPrintPageV17 = lazy(async () => {
+const ReportPrintPage = lazy(async () => {
   await import('../modules/reports/print-styles');
-  return import('../modules/reports/ReportPrintPageV17').then((m) => ({ default: m.ReportPrintPageV17 }));
+  return import('../modules/reports/ReportPrintPage').then((m) => ({ default: m.ReportPrintPage }));
 });
 
 
@@ -178,23 +178,23 @@ const routeTree = rootRoute.addChildren([
   defineRoute('/auth/callback', () => <AuthCallbackPage />),
   defineRoute('/oauth/google/callback', () => <GoogleCalendarCallbackPage />),
   defineRoute('/admin', () => <AdminDashboard />),
-  defineRoute('/admin/clientes', () => <AdminClientsPageV3 />),
+  defineRoute('/admin/clientes', () => <AdminClientsPage />),
   defineRoute('/admin/equipe', () => <CompanyTeamPage role="admin" />),
-  defineRoute('/admin/propostas', () => <AdminProposalsPageV2 />),
-  defineRoute('/admin/propostas/$submissionId/editar', () => <AdminProposalEditorPageV3 />),
-  defineRoute('/admin/propostas/proposta/$proposalId', () => <AdminProposalPreviewPageV3 />),
+  defineRoute('/admin/propostas', () => <AdminProposalsPage />),
+  defineRoute('/admin/propostas/$submissionId/editar', () => <AdminProposalEditorPage />),
+  defineRoute('/admin/propostas/proposta/$proposalId', () => <AdminProposalPreviewPage />),
   defineRoute('/admin/projetos', () => <AdminProjectsGatePage />),
-  defineRoute('/admin/horas', () => <AdminHoursPageV3 />),
+  defineRoute('/admin/horas', () => <AdminHoursPage />),
   defineRoute('/admin/calendario', () => <AdminCalendarPage />),
   defineRoute('/admin/registros', () => <AdminRecordsPage />),
-  defineRoute('/admin/documentos', () => <AdminDocumentsPageV4 />),
-  defineRoute('/admin/relatorios/impressao/$reportId', () => <ReportPrintPageV17 role="admin" />),
-  defineRoute('/admin/relatorios', () => <AdminReportsPageV17 />),
+  defineRoute('/admin/documentos', () => <AdminDocumentsPage />),
+  defineRoute('/admin/relatorios/impressao/$reportId', () => <ReportPrintPage role="admin" />),
+  defineRoute('/admin/relatorios', () => <AdminReportsPage />),
   defineRoute('/admin/auditoria', () => <AdminAuditPage />),
   defineRoute('/admin/equipe-cali', () => <AdminStaffPage />),
   defineRoute('/admin/avisos', () => <AdminNoticesPage />),
   defineRoute('/admin/satisfacao', () => <AdminSatisfactionPage />),
-  defineRoute('/admin/mapa-de-people', () => <AdminPeopleMapPageV2 />),
+  defineRoute('/admin/mapa-de-people', () => <AdminPeopleMapPage />),
   defineRoute('/admin/formularios', () => <AdminFormsPage />),
   defineRoute('/admin/perfil-comportamental', () => <AdminProfilesPage />),
   defineRoute('/admin/perfil-comportamental/gestao/$linkId', () => <GestaoPage role="admin" />),
@@ -214,8 +214,8 @@ const routeTree = rootRoute.addChildren([
   defineRoute('/cliente/horas', () => <ClientHoursPage />),
   defineRoute('/cliente/registros', () => <ClientRecordsPage />),
   defineRoute('/cliente/documentos', () => <ClientDocumentsPage />),
-  defineRoute('/cliente/relatorios/impressao/$reportId', () => <ReportPrintPageV17 role="client" />),
-  defineRoute('/cliente/relatorios', () => <ClientReportsPageV5 />),
+  defineRoute('/cliente/relatorios/impressao/$reportId', () => <ReportPrintPage role="client" />),
+  defineRoute('/cliente/relatorios', () => <ClientReportsPage />),
   staffRoutes,
 ]);
 

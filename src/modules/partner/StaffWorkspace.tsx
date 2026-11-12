@@ -5,11 +5,11 @@
 import { FilterSelect } from '../../components/ds/FilterSelect';
 import { InlineNotice } from '../../components/ds/InlineNotice';
 import { LoadingState } from '../../components/ds/LoadingState';
-import { ReportPrintPageV17 } from '../reports/ReportPrintPageV17';
+import { ReportPrintPage } from '../reports/ReportPrintPage';
 import { CompanyTeamPage } from '../team/CompanyTeamPage';
 import { MfaGate } from '../../auth/MfaGate';
 import { TermsGate } from '../../auth/TermsGate';
-import { StaffDocumentsPage } from '../documents/AdminDocumentsPageV4';
+import { StaffDocumentsPage } from '../documents/AdminDocumentsPage';
 import { createContext, useContext, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Outlet } from '@tanstack/react-router';
 import { Link } from '../../components/navigation/Link';
@@ -22,7 +22,7 @@ import { endWorkspaceSession } from '../../api/access/session';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
 import { RouteRuntimeManager } from '../../runtime/RouteRuntimeManager';
 import { type WelcomeStep } from '../../components/workspace/WelcomeTour';
-import { WorkspaceShellV2 } from '../../components/workspace/WorkspaceShellV2';
+import { WorkspaceShellLayout } from '../../components/workspace/WorkspaceShellLayout';
 import { StaffNotices } from './notices/StaffNotices';
 import { StaffTimerBar } from './timer/StaffTimerBar';
 import { StaffMaterials } from './materials/StaffMaterials';
@@ -30,8 +30,8 @@ import { StaffDashboard } from './home/StaffDashboard';
 import { usePartnerWorkspace } from './hooks/usePartnerWorkspace';
 import type { PartnerWorkspace } from '../../api/partner/workspace';
 import { StaffRecordsPage } from '../records/WorkspaceRecordsPage';
-import { StaffProjectsPage } from '../projects/AdminProjectsPageV3';
-import { StaffHoursPage } from '../hours/AdminHoursPageV3';
+import { StaffProjectsPage } from '../projects/AdminProjectsPage';
+import { StaffHoursPage } from '../hours/AdminHoursPage';
 import '../calendar/styles';
 import { StaffCalendarPage } from '../calendar/AdminCalendarPage';
 import '../../components/workspace/v2.generated.css';
@@ -90,7 +90,7 @@ function Frame({ me, children }: { me: PartnerWorkspace; children: ReactNode }) 
   useEffect(() => { try { if (sessionStorage.getItem('cali:staff-session') === me.id) return; sessionStorage.setItem('cali:staff-session', me.id); } catch { /* segue */ } void recordPartnerSession('staff_session_started'); }, [me.id]);
   async function logout() { try { await recordPartnerSession('staff_session_ended'); sessionStorage.removeItem('cali:staff-session'); } catch { /* a saída não pode ficar presa ao registro */ } await endWorkspaceSession(); navigate('/login', { replace: true }); }
   /* Mesma moldura da administradora e do cliente (topo, busca, sino, menu do perfil com "Ver meu perfil" e "Sair"). */
-  return <WorkspaceShellV2 role="partner" navigation={nav} extras={<StaffTimerBar me={me} />} notifications={<StaffBell me={me} />} bridges={null} onLogout={() => void logout()} welcomeSteps={welcomeSteps}>{plain ? children : <div className="v2-client-module v2-staff-area">{children}</div>}</WorkspaceShellV2>;
+  return <WorkspaceShellLayout role="partner" navigation={nav} extras={<StaffTimerBar me={me} />} notifications={<StaffBell me={me} />} bridges={null} onLogout={() => void logout()} welcomeSteps={welcomeSteps}>{plain ? children : <div className="v2-client-module v2-staff-area">{children}</div>}</WorkspaceShellLayout>;
 }
 
 function Head({ eyebrow, title, text, action }: { eyebrow: string; title: string; text: string; action?: ReactNode }) {
@@ -196,7 +196,7 @@ export function StaffWorkspaceSection({ section }: { section: StaffSection }) {
 }
 
 export function StaffPrint() {
-  return <ReportPrintPageV17 role="staff" />;
+  return <ReportPrintPage role="staff" />;
 }
 
 function AuthorizedStaffWorkspace() {

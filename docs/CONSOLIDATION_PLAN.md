@@ -43,6 +43,8 @@ O agente decide a implementação. Reduções de escopo e exceções aos critér
 
 O [mapa de arquitetura](ARCHITECTURE.md) define as pastas, os donos de código e as convenções para hooks, serviços, estado e estilos.
 
+Componentes e páginas usam nomes pela função. Cada lote atualiza o documento dono das regras de produto, contratos ou convenções que introduz ou altera, com o teste correspondente quando houver.
+
 ## Fontes de aceite
 
 - [Regras de produto](PRODUCT_RULES.md) define o comportamento e os públicos.
