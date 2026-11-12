@@ -2,7 +2,7 @@
    Um texto por perfil, usado no relatório do respondente (2ª pessoa, acolhedor) e no do avaliador (descritivo, orientado a decisão).
    Cada força tem dono (um estilo) e um comportamento que terceiros reconhecem. Temperamento entra só como vocabulário, nunca como nota.
    Cores: cartela DISC (D vermelho, I amarelo, S verde, C azul). `color` pinta barras e marcas; `ink` é a versão legível para texto. */
-import type { Style } from './profileMethod';
+export type Style = 'D' | 'I' | 'S' | 'C';
 
 export type StyleContent = {
   name: string;

@@ -157,7 +157,7 @@ export function ProfileTestPage() {
       });
     if (rpcError || !data?.token) { setSending(false); setError(rpcError?.message || 'Não foi possível enviar agora. Tente de novo.'); return; }
     writeDraft(draftKey, null);
-    navigate(`/perfil/relatorio/${data.token}?novo=1`, { replace: true });
+    navigate(`/perfil/relatorio/${data.token}`, { replace: true });
   }
 
   const blockScreen = step.kind === 'block' ? (() => {

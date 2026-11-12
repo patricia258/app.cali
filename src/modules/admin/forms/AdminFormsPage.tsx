@@ -69,7 +69,7 @@ export function AdminFormsPage() {
   async function restore(item: TrashRow) {
     if (!supabase) return;
     setRestoring(item.id); setError('');
-    const { error: restoreError } = await supabase.rpc('cali_forms_trash_restore', { p_id: item.id });
+    const { error: restoreError } = await supabase.schema('public').rpc('cali_forms_trash_restore', { p_id: item.id });
     setRestoring('');
     if (restoreError) { setError(errorText(restoreError, 'Não foi possível restaurar.')); return; }
     setAudienceFilter('all'); await load();

@@ -1,5 +1,5 @@
 /* CALI Forms — página pública (/f/:slug): uma pergunta por tela, no estilo Typeform, com a identidade CALI.
-   Sem login. Lê e envia pelas funções públicas cali_form_public e cali_form_submit. */
+   Sem login. Lê e envia pelas funções públicas de CALI Forms. */
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useParams } from '../../../hooks/useParams';
 import { useSearchParams } from '../../../hooks/useSearchParams';
@@ -12,6 +12,13 @@ type PublicForm = { id: string; submit_label?: string | null; success_text?: str
 type Phase = 'loading' | 'missing' | 'closed' | 'welcome' | 'questions' | 'sending' | 'done';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+async function submissionKey(formId: string, answers: Record<string, unknown>) {
+  const canonical = JSON.stringify(answers, Object.keys(answers).sort());
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonical));
+  const fingerprint = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+  return `cali-form-submission:${formId}:${fingerprint}`;
+}
 
 export function PublicFormPage() {
   const { slug = '' } = useParams();
@@ -28,6 +35,8 @@ export function PublicFormPage() {
   const [confirmation, setConfirmation] = useState(false);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const advanceTimer = useRef<number>();
+  const submitting = useRef(false);
+  const submissionIds = useRef(new Map<string, string>());
 
   useEffect(() => {
     document.title = 'CALI Forms';
@@ -61,15 +70,33 @@ export function PublicFormPage() {
   }, [index, phase]);
 
   const submit = useCallback(async () => {
-    if (!form) return;
+    if (!form || submitting.current) return;
     if (preview) { setConfirmation(false); setPhase('done'); return; }
+    submitting.current = true;
     setPhase('sending'); setSendError('');
     const visited = [...trail, index].map((position) => questions[position]?.id).filter(Boolean) as string[];
     const sent: Record<string, unknown> = Object.fromEntries(Object.entries(answers).filter(([id]) => visited.includes(id)));
     sent.__visited = visited;
-    const { data, error: rpcError } = await anonPublicRpc<{ ok: boolean; confirmation: boolean }>('cali_form_submit', { p_slug: form.slug, p_answers: sent });
-    if (rpcError || !data?.ok) { setSendError(rpcError?.message || 'Não foi possível enviar agora.'); setPhase('questions'); return; }
-    setConfirmation(Boolean(data.confirmation)); setPhase('done');
+    try {
+      const key = await submissionKey(form.id, sent);
+      let requestId = submissionIds.current.get(key);
+      try { requestId ||= sessionStorage.getItem(key) || undefined; } catch { /* retry em memória */ }
+      requestId ||= crypto.randomUUID();
+      submissionIds.current.set(key, requestId);
+      try { sessionStorage.setItem(key, requestId); } catch { /* retry em memória */ }
+      const { data, error: rpcError } = await anonPublicRpc<{ ok: boolean; confirmation: boolean }>('cali_form_submit', {
+        p_slug: form.slug, p_answers: sent, p_form_id: form.id, p_request_id: requestId,
+      });
+      if (rpcError || !data?.ok) throw new Error(rpcError?.message || 'Não foi possível enviar agora.');
+      submissionIds.current.delete(key);
+      try { sessionStorage.removeItem(key); } catch { /* storage indisponível */ }
+      setConfirmation(Boolean(data.confirmation)); setPhase('done');
+    } catch (requestError) {
+      setSendError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar agora.');
+      setPhase('questions');
+    } finally {
+      submitting.current = false;
+    }
   }, [answers, form, preview, trail, index, questions]);
 
   const goNext = useCallback(() => {

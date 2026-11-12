@@ -1,130 +1,283 @@
-import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
+import {
+  claimGoogleOAuth, finishGoogleOAuth, googleActor, googleFailure, GoogleIntegrationError,
+  googleOAuthToken, googleRequest, revokeUnusedGoogleCredential, startGoogleOAuth, withGoogleLease,
+} from '../_shared/google-integration.ts';
+import { calendarAccessToken } from '../_shared/google-calendar-events.ts';
 
-const corsHeaders={
-  'Access-Control-Allow-Origin':'*',
-  'Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods':'POST, OPTIONS',
-  'Content-Type':'application/json',
+const drive = 'https://www.googleapis.com/drive/v3/files';
+const fileFields = 'id,company_id,deliverable_id,title,storage_path,file_type,original_filename,status,client_visible,version_label,published_at,updated_at';
+const mimeByExtension: Record<string, string> = {
+  pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  txt: 'text/plain', csv: 'text/csv',
 };
-const encoder=new TextEncoder(),decoder=new TextDecoder();
-function json(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers:corsHeaders})}
-function env(name:string){return(Deno.env.get(name)||'').trim()}
-function base64url(bytes:Uint8Array){let binary='';for(const byte of bytes)binary+=String.fromCharCode(byte);return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/g,'')}
-function base64urlText(text:string){return base64url(encoder.encode(text))}
-function fromBase64url(value:string){const normalized=value.replace(/-/g,'+').replace(/_/g,'/');const pad=normalized.length%4?'='.repeat(4-normalized.length%4):'';const binary=atob(normalized+pad);return new Uint8Array([...binary].map(c=>c.charCodeAt(0)))}
-async function signState(payload:string,secret:string){const key=await crypto.subtle.importKey('raw',encoder.encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);return base64url(new Uint8Array(await crypto.subtle.sign('HMAC',key,encoder.encode(payload))))}
-async function safeEqual(a:string,b:string){const aa=encoder.encode(a),bb=encoder.encode(b);if(aa.length!==bb.length)return false;let diff=0;for(let i=0;i<aa.length;i++)diff|=aa[i]^bb[i];return diff===0}
-function credentialKey(userId:string,companyId:string){return`${userId}:${companyId}`}
-function mimeFrom(value:string|null|undefined,name:string){const raw=String(value||'').trim();if(raw.includes('/'))return raw;const ext=(name.split('.').pop()||raw).toLowerCase();const map:Record<string,string>={pdf:'application/pdf',png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation',txt:'text/plain',csv:'text/csv'};return map[ext]||'application/octet-stream'}
-function extensionForMime(mime:string){const map:Record<string,string>={'application/pdf':'.pdf','image/png':'.png','image/jpeg':'.jpg','image/webp':'.webp','application/vnd.openxmlformats-officedocument.wordprocessingml.document':'.docx','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':'.xlsx','application/vnd.openxmlformats-officedocument.presentationml.presentation':'.pptx','text/plain':'.txt','text/csv':'.csv'};return map[mime]||''}
+const uuid = (value: string) => /^[a-f0-9-]{36}$/.test(value);
+const fileUrl = (id: string) => 'https://drive.google.com/file/d/' + encodeURIComponent(id) + '/view';
+const folderUrl = (id: string) => 'https://drive.google.com/drive/folders/' + encodeURIComponent(id);
 
-Deno.serve(async(req)=>{
-  if(req.method==='OPTIONS')return new Response('ok',{headers:corsHeaders});
-  if(req.method!=='POST')return json({error:'method_not_allowed'},405);
+async function sourceVersion(file: Record<string, unknown>) {
+  const value = JSON.stringify([file.version_label, file.storage_path, file.published_at]);
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('');
+}
 
-  const clientId=env('GOOGLE_CLIENT_ID'),clientSecret=env('GOOGLE_CLIENT_SECRET'),redirectUri=env('GOOGLE_REDIRECT_URI');
-  const supabaseUrl=env('SUPABASE_URL'),anonKey=env('SUPABASE_ANON_KEY'),serviceKey=env('SUPABASE_SERVICE_ROLE_KEY');
-  const configured=Boolean(clientId&&clientSecret&&redirectUri);
-  let body:any={};try{body=await req.json()}catch{body={}}
-  const action=String(body?.action||'status');
-  if(action==='config')return json({configured,parts:{clientId:Boolean(clientId),clientSecret:Boolean(clientSecret),redirectUri:Boolean(redirectUri)}});
-  if(!configured)return json({error:'google_oauth_not_configured'},503);
+Deno.serve(async (request) => {
+  const config = googleRequest(request);
+  const rejection = config.reject();
+  if (rejection) return rejection;
+  const body = await request.json().catch(() => ({}));
+  const action = String(body?.action || 'status');
+  if (action === 'config') return config.json({
+    configured: config.configured,
+    parts: { clientId: Boolean(config.clientId), clientSecret: Boolean(config.clientSecret), redirectUri: Boolean(config.callback) },
+  });
+  if (!config.configured) return config.json({ error: 'google_oauth_not_configured' }, 503);
 
-  const authHeader=req.headers.get('Authorization')||'';
-  if(!authHeader)return json({error:'missing_authorization'},401);
-  const userClient=createClient(supabaseUrl,anonKey,{global:{headers:{Authorization:authHeader}}});
-  const{data:userData,error:userError}=await userClient.auth.getUser();
-  if(userError||!userData.user)return json({error:'invalid_session'},401);
-  const user=userData.user;
-  const serviceRoot=createClient(supabaseUrl,serviceKey,{auth:{persistSession:false}});
-  const db=serviceRoot.schema('cali_workspace');
-  const{data:profile,error:profileError}=await db.from('profiles').select('id,role,company_id,active').eq('id',user.id).maybeSingle();
-  if(profileError||!profile?.active)return json({error:'profile_not_available'},403);
-  if(profile.role!=='client'||!profile.company_id)return json({error:'client_drive_only'},403);
-  const companyId=String(profile.company_id);
+  try {
+    const actor = await googleActor(request);
+    const { db, profile, user, workspace } = actor;
+    if (profile.role !== 'client' || !profile.company_id) return config.json({ error: 'client_drive_only' }, 403);
+    const companyId = String(profile.company_id);
+    const key = 'drive:' + companyId;
+    async function connection(includeRevoked = false) {
+      let query = db.from('drive_connections').select('*').eq('owner_type', 'client').eq('company_id', companyId);
+      if (!includeRevoked) query = query.eq('status', 'connected');
+      const loaded = await query.order('updated_at', { ascending: false }).limit(1).maybeSingle();
+      if (loaded.error) throw new GoogleIntegrationError('drive_connection_unavailable', 503);
+      return loaded.data;
+    }
+    if (action === 'authorize') {
+      const attempt = await startGoogleOAuth(config, actor, 'drive', companyId);
+      const params = new URLSearchParams({
+        client_id: config.clientId, redirect_uri: attempt.redirect, response_type: 'code',
+        scope: 'openid email https://www.googleapis.com/auth/drive.file', access_type: 'offline',
+        include_granted_scopes: 'true', prompt: 'consent', state: attempt.state,
+        code_challenge: attempt.challenge, code_challenge_method: 'S256',
+      });
+      return config.json({ url: config.authorize(params) });
+    }
+    if (action === 'exchange') {
+      return await withGoogleLease(db, key, () => withGoogleLease(db, 'oauth:' + user.id, async () => {
+        const code = String(body.code || '');
+        const attempt = await claimGoogleOAuth(config, actor, 'drive', String(body.state || ''), code);
+        if ('receipt' in attempt) return config.json(attempt.receipt);
+        const credential = await googleOAuthToken(config, actor, 'drive', attempt, code);
+        const existing = await connection();
+        if (existing && (String(existing.account_email).toLowerCase() !== credential.account_email ||
+          existing.google_account_id && existing.google_account_id !== credential.provider_account_id)) {
+          throw new GoogleIntegrationError('google_account_mismatch', 409);
+        }
+        if (config.mode === 'test' && !config.driveRoot()) throw new GoogleIntegrationError('google_drive_target_not_configured', 503);
+        return config.json(await finishGoogleOAuth(actor, attempt.nonce, existing?.id || null, config.driveRoot() || null, credential));
+      }));
+    }
+    if (action === 'status') {
+      const conn = await connection();
+      const jobs = conn ? await db.from('file_sync_jobs').select('file_id,status,external_url,updated_at')
+        .eq('connection_id', conn.id).order('updated_at', { ascending: false }).limit(100) : { data: [] };
+      return config.json({
+        connected: Boolean(conn),
+        connection: conn ? { id: conn.id, accountEmail: conn.account_email, rootFolderName: conn.root_folder_name, status: conn.status } : null,
+        jobs: jobs.data || [],
+      });
+    }
+    if (action === 'disconnect') {
+      return await withGoogleLease(db, key, async () => {
+        const conn = await connection(true);
+        if (!conn) return config.json({ ok: true });
+        const disconnected = await db.from('drive_connections').update({ status: 'revoked', updated_at: new Date().toISOString() }).eq('id', conn.id);
+        if (disconnected.error) throw new GoogleIntegrationError('drive_connection_unavailable', 503);
+        if (conn.credential_key && conn.connected_by) {
+          await withGoogleLease(db, 'oauth:' + conn.connected_by, () => revokeUnusedGoogleCredential(config, actor, conn.credential_key));
+        }
+        return config.json({ ok: true });
+      });
+    }
+    if (!['copy_file', 'copy_folder'].includes(action)) return config.json({ error: 'unknown_action' }, 400);
 
-  async function makeState(){const obj={purpose:'drive',user_id:user.id,company_id:companyId,exp:Math.floor(Date.now()/1000)+600,nonce:crypto.randomUUID()};const payload=base64urlText(JSON.stringify(obj));return`${payload}.${await signState(payload,clientSecret)}`}
-  async function verifyState(state:string){const[payload,signature]=String(state||'').split('.');if(!payload||!signature)throw new Error('invalid_oauth_state');const expected=await signState(payload,clientSecret);if(!(await safeEqual(signature,expected)))throw new Error('invalid_oauth_state');const parsed=JSON.parse(decoder.decode(fromBase64url(payload)));if(parsed.purpose!=='drive'||parsed.user_id!==user.id||parsed.company_id!==companyId||Number(parsed.exp||0)<Math.floor(Date.now()/1000))throw new Error('expired_oauth_state');return parsed}
-  async function connection(){const{data}=await db.from('drive_connections').select('*').eq('owner_type','client').eq('company_id',companyId).eq('status','connected').order('updated_at',{ascending:false}).limit(1).maybeSingle();return data||null}
-  async function credential(conn:any){const key=String(conn?.credential_key||'');if(!key)throw new Error('google_drive_credential_missing');const{data,error}=await db.from('google_calendar_credentials').select('*').eq('credential_key',key).maybeSingle();if(error||!data)throw new Error('google_drive_credential_missing');return data}
-  async function validAccessToken(conn:any){const cred=await credential(conn);const expiry=cred.expires_at?new Date(cred.expires_at).getTime():0;if(cred.access_token&&expiry>Date.now()+60000)return String(cred.access_token);if(!cred.refresh_token)throw new Error('google_refresh_token_missing');const response=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:clientId,client_secret:clientSecret,refresh_token:cred.refresh_token,grant_type:'refresh_token'})});const data=await response.json();if(!response.ok||!data.access_token)throw new Error(`google_refresh_failed:${data.error||response.status}`);const expiresAt=new Date(Date.now()+Number(data.expires_in||3600)*1000).toISOString();await db.from('google_calendar_credentials').update({access_token:data.access_token,token_type:data.token_type||cred.token_type,scope:data.scope||cred.scope,expires_at:expiresAt,updated_at:new Date().toISOString()}).eq('credential_key',cred.credential_key);return String(data.access_token)}
-  async function ensureRootFolder(conn:any,token:string){if(conn.root_folder_id){const check=await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(conn.root_folder_id)}?fields=id,name,trashed`,{headers:{Authorization:`Bearer ${token}`}});if(check.ok){const row=await check.json();if(row?.id&&!row?.trashed)return String(row.id)}}const create=await fetch('https://www.googleapis.com/drive/v3/files?fields=id,name',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({name:'CALI Workspace',mimeType:'application/vnd.google-apps.folder'})});const row=await create.json();if(!create.ok||!row?.id)throw new Error(`google_drive_folder_failed:${row?.error?.message||create.status}`);await db.from('drive_connections').update({root_folder_id:row.id,root_folder_name:'CALI Workspace',updated_at:new Date().toISOString()}).eq('id',conn.id);return String(row.id)}
-  // Pasta do entregável dentro de "CALI Workspace": criada uma vez e reaproveitada (o app só enxerga o que ele mesmo criou).
-  async function ensureChildFolder(token:string,parentId:string,name:string){const safe=name.replace(/[\\']/g,' ').trim().slice(0,180)||'Entregável';const q=encodeURIComponent(`name='${safe}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);const found=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,webViewLink)&pageSize=1`,{headers:{Authorization:`Bearer ${token}`}});if(found.ok){const rows=await found.json();if(rows?.files?.[0]?.id)return{id:String(rows.files[0].id),url:String(rows.files[0].webViewLink||`https://drive.google.com/drive/folders/${rows.files[0].id}`)}}const create=await fetch('https://www.googleapis.com/drive/v3/files?fields=id,webViewLink',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({name:safe,mimeType:'application/vnd.google-apps.folder',parents:[parentId]})});const row=await create.json();if(!create.ok||!row?.id)throw new Error(`google_drive_folder_failed:${row?.error?.message||create.status}`);return{id:String(row.id),url:String(row.webViewLink||`https://drive.google.com/drive/folders/${row.id}`)}}
-  async function deliverableFolderName(deliverableId:string){const{data}=await db.from('deliverables').select('title,protocol').eq('id',deliverableId).maybeSingle();return data?`${data.title}${data.protocol?` (${data.protocol})`:''}`:'Entregável'}
-  // Copia um documento liberado para o Drive do cliente; documento de entregável vai para a pasta do entregável.
-  async function copyOne(file:any,conn:any,token:string,rootId:string){
-    const{data:already}=await db.from('file_sync_jobs').select('id,status,external_url').eq('file_id',file.id).eq('connection_id',conn.id).eq('status','synced').order('updated_at',{ascending:false}).limit(1).maybeSingle();
-    if(already?.id)return{status:'synced',url:already.external_url};
-    const{data:job}=await db.from('file_sync_jobs').insert({file_id:file.id,company_id:companyId,connection_id:conn.id,status:'processing',requested_by:user.id,attempts:1}).select('id').single();
-    try{
-      const folderId=file.deliverable_id?(await ensureChildFolder(token,rootId,await deliverableFolderName(String(file.deliverable_id)))).id:rootId;
-      const{data:download,error:downloadError}=await serviceRoot.storage.from('cali-workspace-private').download(String(file.storage_path));if(downloadError||!download)throw new Error(`workspace_download_failed:${downloadError?.message||'arquivo indisponível'}`);
-      const mime=mimeFrom(file.file_type,file.original_filename||'');let name=String(file.original_filename||file.title||'Documento CALI').trim();if(!name.includes('.')&&extensionForMime(mime))name+=extensionForMime(mime);
-      const uploaded=await uploadFile(token,folderId,name,mime,await download.arrayBuffer());const url=uploaded.webViewLink||`https://drive.google.com/file/d/${uploaded.id}/view`;
-      if(job?.id)await db.from('file_sync_jobs').update({status:'synced',target_folder_id:folderId,external_file_id:uploaded.id,external_url:url,error_message:null,updated_at:new Date().toISOString()}).eq('id',job.id);
-      return{status:'synced',url,fileName:uploaded.name};
-    }catch(error){if(job?.id)await db.from('file_sync_jobs').update({status:'error',error_message:error instanceof Error?error.message:'unknown_error',updated_at:new Date().toISOString()}).eq('id',job.id);throw error}
+    const fileId = String(body.fileId || '');
+    const deliverableId = String(body.deliverableId || '');
+    if (action === 'copy_file' ? !uuid(fileId) : !uuid(deliverableId)) {
+      return config.json({ error: action === 'copy_file' ? 'missing_file_id' : 'missing_deliverable_id' }, 400);
+    }
+    return await withGoogleLease(db, key, async renew => {
+      const conn = await connection();
+      if (!conn) return config.json({ error: 'drive_not_connected' }, 409);
+      let query = workspace.from('files').select(fileFields).eq('company_id', companyId).eq('status', 'published').eq('client_visible', true);
+      query = action === 'copy_file' ? query.eq('id', fileId) : query.eq('deliverable_id', deliverableId);
+      const visible = await query.order('id');
+      if (visible.error) throw new GoogleIntegrationError('file_not_available', 404);
+      if (action === 'copy_file' && !visible.data?.length) return config.json({ error: 'file_not_available' }, 404);
+      const files = (visible.data || []).filter(file => file.storage_path);
+      if (!files.length) return config.json({
+        error: action === 'copy_file' ? 'workspace_file_required' : 'folder_empty',
+        detail: action === 'copy_file' ? 'Este arquivo é um link externo.' : 'Ainda não há documento liberado nesta pasta.',
+      }, 409);
+
+      const token = await calendarAccessToken(config, db, { ...conn, user_id: conn.connected_by, provider_account_id: conn.google_account_id });
+      const authorization = { Authorization: 'Bearer ' + token };
+      const jsonHeaders = { ...authorization, 'Content-Type': 'application/json' };
+      const now = () => new Date().toISOString();
+
+      async function reserveId() {
+        const response = await config.fetch(drive + '/generateIds?count=1&space=drive', { headers: authorization });
+        const payload = await response.json().catch(() => ({}));
+        const id = payload.ids?.[0];
+        if (!response.ok || typeof id !== 'string' || !/^[A-Za-z0-9_-]+$/.test(id)) {
+          throw new GoogleIntegrationError('google_drive_reservation_failed', 502);
+        }
+        return id;
+      }
+      async function providerFile(id: string) {
+        const response = await config.fetch(drive + '/' + encodeURIComponent(id) + '?fields=id,name,trashed,mimeType,webViewLink,appProperties,parents', { headers: authorization });
+        if (response.status === 404) return null;
+        if (!response.ok) throw new GoogleIntegrationError('google_drive_read_failed', 502);
+        return response.json();
+      }
+      async function folder(folderKey: string, name: string, parent?: string) {
+        const fixed = folderKey === 'root' ? config.driveRoot() || conn.root_folder_id : null;
+        if (folderKey === 'root' && config.mode === 'test' && !config.driveRoot()) throw new GoogleIntegrationError('google_drive_target_not_configured', 503);
+        if (fixed) {
+          const found = await providerFile(fixed);
+          if (!found || found.trashed || found.mimeType && found.mimeType !== 'application/vnd.google-apps.folder') {
+            throw new GoogleIntegrationError('google_drive_target_unavailable', 409);
+          }
+          return String(found.id);
+        }
+        const receipt = await db.from('google_drive_folders').select('external_id')
+          .eq('connection_id', conn.id).eq('folder_key', folderKey).maybeSingle();
+        if (receipt.error) throw new GoogleIntegrationError('drive_receipt_unavailable', 503);
+        let id = receipt.data?.external_id;
+        if (!id && parent && folderKey.startsWith('deliverable:')) {
+          const previous = await db.from('file_sync_jobs').select('target_folder_id,files!inner(deliverable_id)')
+            .eq('connection_id', conn.id).eq('files.deliverable_id', folderKey.slice('deliverable:'.length))
+            .eq('status', 'synced').is('source_version', null).not('target_folder_id', 'is', null)
+            .order('updated_at', { ascending: false }).limit(1).maybeSingle();
+          if (previous.error) throw new GoogleIntegrationError('drive_receipt_unavailable', 503);
+          if (previous.data?.target_folder_id) {
+            const legacy = await providerFile(previous.data.target_folder_id);
+            if (legacy?.mimeType === 'application/vnd.google-apps.folder' && !legacy.trashed && legacy.parents?.includes(parent)) {
+              return String(legacy.id);
+            }
+          }
+        }
+        if (!id) {
+          id = await reserveId();
+          const reserved = await db.from('google_drive_folders').insert({ connection_id: conn.id, folder_key: folderKey, external_id: id });
+          if (reserved.error) throw new GoogleIntegrationError('drive_receipt_unavailable', 503);
+        }
+        let remote = await providerFile(id);
+        if (!remote) {
+          const created = await config.fetch(drive + '?fields=id,trashed,mimeType,appProperties,parents', {
+            method: 'POST', headers: jsonHeaders, body: JSON.stringify({
+              id, name, mimeType: 'application/vnd.google-apps.folder', ...(parent ? { parents: [parent] } : {}),
+              appProperties: { caliFolderKey: folderKey, caliConnectionId: conn.id },
+            }),
+          });
+          if (!created.ok && created.status !== 409) throw new GoogleIntegrationError('google_drive_folder_failed', 502);
+          remote = created.ok ? await created.json() : await providerFile(id);
+        }
+        if (!remote || remote.trashed || remote.appProperties?.caliConnectionId !== conn.id ||
+          remote.appProperties?.caliFolderKey !== folderKey || (parent && !remote.parents?.includes(parent))) {
+          throw new GoogleIntegrationError('google_drive_folder_mismatch', 409);
+        }
+        if (folderKey === 'root') {
+          const saved = await db.from('drive_connections').update({ root_folder_id: id, root_folder_name: name, updated_at: now() }).eq('id', conn.id);
+          if (saved.error) throw new GoogleIntegrationError('drive_receipt_unavailable', 503);
+        }
+        return String(id);
+      }
+      async function copy(file: typeof files[number], folderId: string) {
+        const version = await sourceVersion(file);
+        const found = await db.from('file_sync_jobs').select('id,status,external_url,external_file_id,attempts,created_at,source_version')
+          .eq('connection_id', conn.id).eq('file_id', file.id)
+          .or('source_version.eq.' + version + ',source_version.is.null').order('created_at', { ascending: false }).limit(10);
+        if (found.error) throw new GoogleIntegrationError('drive_receipt_unavailable', 503);
+        const jobs = found.data || [];
+        const legacy = jobs.find(row => row.source_version === null && row.status === 'synced' && Date.parse(row.created_at) >= Date.parse(file.updated_at));
+        let job = jobs.find(row => row.source_version === version);
+        if (!job && legacy) return { status: 'synced', url: legacy.external_url };
+        if (job?.status === 'synced') return { status: 'synced', url: job.external_url };
+        if (!job) {
+          const inserted = await db.from('file_sync_jobs').insert({
+            file_id: file.id, company_id: companyId, connection_id: conn.id, source_version: version,
+            status: 'processing', requested_by: user.id, attempts: 1, external_file_id: await reserveId(),
+          }).select('id,status,external_url,external_file_id,attempts,created_at,source_version').single();
+          if (inserted.error || !inserted.data) throw new GoogleIntegrationError('drive_receipt_unavailable', 503);
+          job = inserted.data;
+        } else {
+          const retry = await db.from('file_sync_jobs').update({ status: 'processing', attempts: job.attempts + 1, updated_at: now() }).eq('id', job.id);
+          if (retry.error) throw new GoogleIntegrationError('drive_receipt_unavailable', 503);
+        }
+        const id = job.external_file_id;
+        try {
+          let remote = await providerFile(id);
+          if (!remote) {
+            const document = await actor.client.storage.from('cali-workspace-private').download(file.storage_path);
+            if (document.error || !document.data) throw new GoogleIntegrationError('workspace_download_failed', 403);
+            let name = String(file.original_filename || file.title || 'Documento CALI').trim();
+            const extension = name.split('.').at(-1)?.toLowerCase() || '';
+            const mime = String(file.file_type || '').includes('/') ? file.file_type : mimeByExtension[extension] || 'application/octet-stream';
+            if (!name.includes('.')) {
+              const suffix = Object.keys(mimeByExtension).find(key => mimeByExtension[key] === mime);
+              if (suffix) name += '.' + suffix;
+            }
+            const boundary = 'cali-' + crypto.randomUUID();
+            const metadata = JSON.stringify({ id, name, parents: [folderId], appProperties: { caliFileId: file.id, caliSourceVersion: version } });
+            const requestBody = new Blob([
+              `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n--${boundary}\r\nContent-Type: ${mime}\r\n\r\n`,
+              document.data, `\r\n--${boundary}--`,
+            ]);
+            const uploaded = await config.fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink,appProperties,parents,trashed', {
+              method: 'POST', headers: { ...authorization, 'Content-Type': 'multipart/related; boundary=' + boundary }, body: requestBody,
+            });
+            if (!uploaded.ok && uploaded.status !== 409) throw new GoogleIntegrationError('google_drive_upload_failed', 502);
+            remote = uploaded.ok ? await uploaded.json() : await providerFile(id);
+          }
+          if (!remote || remote.trashed || remote.appProperties?.caliFileId !== file.id ||
+            remote.appProperties?.caliSourceVersion !== version || !remote.parents?.includes(folderId)) {
+            throw new GoogleIntegrationError('google_drive_file_mismatch', 409);
+          }
+          const url = fileUrl(id);
+          const synced = await db.from('file_sync_jobs').update({
+            status: 'synced', target_folder_id: folderId, external_url: url, error_message: null, updated_at: now(),
+          }).eq('id', job.id);
+          if (synced.error) throw new GoogleIntegrationError('drive_receipt_unavailable', 503);
+          return { status: 'synced', url, fileName: remote.name };
+        } catch (error) {
+          await db.from('file_sync_jobs').update({
+            status: 'error', error_message: error instanceof GoogleIntegrationError ? error.message : 'google_drive_upload_failed', updated_at: now(),
+          }).eq('id', job.id);
+          throw error;
+        }
+      }
+
+      const root = await folder('root', 'CALI Workspace');
+      const delivery = action === 'copy_folder' ? deliverableId : files[0].deliverable_id;
+      let target = root;
+      if (delivery) {
+        const named = await workspace.from('deliverables').select('title,protocol').eq('id', delivery).maybeSingle();
+        const name = named.data ? `${named.data.title}${named.data.protocol ? ' (' + named.data.protocol + ')' : ''}` : 'Entregável';
+        target = await folder('deliverable:' + delivery, name.slice(0, 180), root);
+      }
+      if (action === 'copy_file') {
+        const receipt = await copy(files[0], target);
+        await db.from('drive_connections').update({ last_sync_at: now(), updated_at: now() }).eq('id', conn.id);
+        return config.json(receipt);
+      }
+      let copied = 0;
+      let failed = 0;
+      for (const file of files) {
+        await renew();
+        try { await copy(file, target); copied++; }
+        catch { failed++; }
+      }
+      await db.from('drive_connections').update({ last_sync_at: now(), updated_at: now() }).eq('id', conn.id);
+      return config.json({ status: failed ? 'partial' : 'synced', url: folderUrl(target), copied, failed });
+    });
+  } catch (error) {
+    return googleFailure(config, error);
   }
-  async function uploadFile(token:string,folderId:string,name:string,mime:string,bytes:ArrayBuffer){const boundary=`cali-${crypto.randomUUID()}`;const metadata=JSON.stringify({name,parents:[folderId]});const bodyBlob=new Blob([`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n--${boundary}\r\nContent-Type: ${mime}\r\n\r\n`,new Uint8Array(bytes),`\r\n--${boundary}--`],{type:`multipart/related; boundary=${boundary}`});const response=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':`multipart/related; boundary=${boundary}`},body:bodyBlob});const row=await response.json();if(!response.ok||!row?.id)throw new Error(`google_drive_upload_failed:${row?.error?.message||response.status}`);return row}
-
-  try{
-    if(action==='authorize'){
-      const state=await makeState();
-      const params=new URLSearchParams({client_id:clientId,redirect_uri:redirectUri,response_type:'code',scope:'openid email https://www.googleapis.com/auth/drive.file',access_type:'offline',include_granted_scopes:'true',prompt:'consent',state});
-      return json({url:`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`});
-    }
-    if(action==='exchange'){
-      const code=String(body?.code||''),state=String(body?.state||'');if(!code||!state)return json({error:'missing_code_or_state'},400);await verifyState(state);
-      const tokenResponse=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:clientId,client_secret:clientSecret,code,redirect_uri:redirectUri,grant_type:'authorization_code'})});
-      const td=await tokenResponse.json();if(!tokenResponse.ok||!td.access_token)return json({error:'google_token_exchange_failed',detail:td.error_description||td.error||tokenResponse.status},400);
-      const uiResponse=await fetch('https://openidconnect.googleapis.com/v1/userinfo',{headers:{Authorization:`Bearer ${td.access_token}`}}),ui=await uiResponse.json();if(!uiResponse.ok||!ui.email)return json({error:'google_userinfo_failed'},400);
-      const key=credentialKey(user.id,companyId);const{data:existingCredential}=await db.from('google_calendar_credentials').select('refresh_token').eq('credential_key',key).maybeSingle();const refreshToken=td.refresh_token||existingCredential?.refresh_token||null;if(!refreshToken)return json({error:'google_refresh_token_missing',detail:'Revogue o acesso anterior do CALI Workspace na conta Google e conecte novamente.'},400);
-      const expiresAt=new Date(Date.now()+Number(td.expires_in||3600)*1000).toISOString();
-      await db.from('google_calendar_credentials').upsert({credential_key:key,user_id:user.id,company_id:companyId,account_email:ui.email,provider_account_id:ui.sub||null,access_token:td.access_token,refresh_token:refreshToken,token_type:td.token_type||'Bearer',scope:td.scope||'',expires_at:expiresAt,updated_at:new Date().toISOString()},{onConflict:'credential_key'});
-      const{data:existing}=await db.from('drive_connections').select('id').eq('owner_type','client').eq('company_id',companyId).order('updated_at',{ascending:false}).limit(1).maybeSingle();
-      const payload={company_id:companyId,owner_type:'client',account_email:ui.email,google_account_id:ui.sub||null,credential_key:key,status:'connected',connected_by:user.id,updated_at:new Date().toISOString()};
-      if(existing?.id)await db.from('drive_connections').update(payload).eq('id',existing.id);else await db.from('drive_connections').insert(payload);
-      return json({ok:true,purpose:'drive',accountEmail:ui.email});
-    }
-    if(action==='status'){
-      const conn=await connection();
-      const{data:jobs}=await db.from('file_sync_jobs').select('file_id,status,external_url,updated_at').eq('company_id',companyId).order('updated_at',{ascending:false}).limit(100);
-      return json({connected:Boolean(conn),connection:conn?{id:conn.id,accountEmail:conn.account_email,rootFolderName:conn.root_folder_name,status:conn.status}:null,jobs:jobs||[]});
-    }
-    if(action==='copy_file'){
-      const fileId=String(body?.fileId||'');if(!fileId)return json({error:'missing_file_id'},400);
-      const{data:file,error:fileError}=await db.from('files').select('id,company_id,deliverable_id,title,storage_path,drive_url,file_type,original_filename,status,client_visible').eq('id',fileId).maybeSingle();
-      if(fileError||!file||String(file.company_id)!==companyId||file.status!=='published'||!file.client_visible)return json({error:'file_not_available'},404);
-      if(!file.storage_path)return json({error:'workspace_file_required',detail:'Este arquivo está vinculado por link externo e não pode ser copiado automaticamente.'},409);
-      const conn=await connection();if(!conn)return json({error:'drive_not_connected'},409);
-      const token=await validAccessToken(conn);const rootId=await ensureRootFolder(conn,token);
-      const result=await copyOne(file,conn,token,rootId);
-      await db.from('drive_connections').update({last_sync_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',conn.id);
-      return json(result);
-    }
-    // Pasta inteira do entregável: cria "CALI Workspace / <entregável (protocolo)>" e copia todos os documentos liberados.
-    if(action==='copy_folder'){
-      const deliverableId=String(body?.deliverableId||'');if(!deliverableId)return json({error:'missing_deliverable_id'},400);
-      const{data:files,error:filesError}=await db.from('files').select('id,company_id,deliverable_id,title,storage_path,file_type,original_filename,status,client_visible').eq('deliverable_id',deliverableId).eq('company_id',companyId).eq('status','published').eq('client_visible',true);
-      if(filesError)throw filesError;
-      const copiable=(files||[]).filter((row:any)=>row.storage_path);if(!copiable.length)return json({error:'folder_empty',detail:'Ainda não há documento liberado nesta pasta.'},409);
-      const conn=await connection();if(!conn)return json({error:'drive_not_connected'},409);
-      const token=await validAccessToken(conn);const rootId=await ensureRootFolder(conn,token);
-      const folder=await ensureChildFolder(token,rootId,await deliverableFolderName(deliverableId));
-      let copied=0,failed=0;for(const file of copiable){try{await copyOne(file,conn,token,rootId);copied+=1}catch(error){console.error('google-drive-oauth copy_folder',error);failed+=1}}
-      await db.from('drive_connections').update({last_sync_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',conn.id);
-      return json({status:failed?'partial':'synced',url:folder.url,copied,failed});
-    }
-    if(action==='disconnect'){
-      const conn=await connection();if(conn)await db.from('drive_connections').update({status:'revoked',updated_at:new Date().toISOString()}).eq('id',conn.id);
-      // Checklist de privacidade (15/10/2026): desconectar revoga o acesso no Google e apaga a credencial guardada,
-      // a não ser que a mesma credencial ainda sirva à agenda Google da pessoa.
-      const key=String(conn?.credential_key||'');
-      if(key){const{data:calendarUsing}=await db.from('calendar_connections').select('id').eq('credential_key',key).eq('status','connected').limit(1).maybeSingle();
-        if(!calendarUsing){const{data:cred}=await db.from('google_calendar_credentials').select('refresh_token,access_token').eq('credential_key',key).maybeSingle();const token=cred?.refresh_token||cred?.access_token;if(token)await fetch('https://oauth2.googleapis.com/revoke',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({token})}).catch(()=>null);await db.from('google_calendar_credentials').delete().eq('credential_key',key);}}
-      return json({ok:true});
-    }
-    return json({error:'unknown_action'},400);
-  }catch(error){console.error('google-drive-oauth',error);return json({error:error instanceof Error?error.message:'unknown_error'},500)}
 });

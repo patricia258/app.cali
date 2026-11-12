@@ -1,59 +1,114 @@
-import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
+import {
+  claimGoogleOAuth, finishGoogleOAuth, googleActor, googleFailure, GoogleIntegrationError,
+  googleOAuthToken, googleRequest, revokeUnusedGoogleCredential, startGoogleOAuth, withGoogleLease,
+} from '../_shared/google-integration.ts';
+import { calendarConnection, calendarEvent, deleteCalendarEvent, syncCalendarEvent } from '../_shared/google-calendar-events.ts';
 
-const corsHeaders={ 'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type','Access-Control-Allow-Methods':'POST, OPTIONS','Content-Type':'application/json' };
-const encoder=new TextEncoder(),decoder=new TextDecoder();
-function json(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers:corsHeaders})}
-function env(name:string){return(Deno.env.get(name)||'').trim()}
-function base64url(bytes:Uint8Array){let binary='';for(const byte of bytes)binary+=String.fromCharCode(byte);return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/g,'')}
-function base64urlText(text:string){return base64url(encoder.encode(text))}
-function fromBase64url(value:string){const normalized=value.replace(/-/g,'+').replace(/_/g,'/');const pad=normalized.length%4?'='.repeat(4-normalized.length%4):'';const binary=atob(normalized+pad);return new Uint8Array([...binary].map(c=>c.charCodeAt(0)))}
-async function signState(payload:string,secret:string){const key=await crypto.subtle.importKey('raw',encoder.encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);return base64url(new Uint8Array(await crypto.subtle.sign('HMAC',key,encoder.encode(payload))))}
-async function safeEqual(a:string,b:string){const aa=encoder.encode(a),bb=encoder.encode(b);if(aa.length!==bb.length)return false;let diff=0;for(let i=0;i<aa.length;i++)diff|=aa[i]^bb[i];return diff===0}
-function credentialKey(userId:string,companyId:string|null){return`${userId}:${companyId||'self'}`}
-function meetingCodeFromUrl(url:string|null|undefined){const match=String(url||'').match(/meet\.google\.com\/([a-z0-9-]+)/i);return match?.[1]||null}
+Deno.serve(async (request) => {
+  const config = googleRequest(request);
+  const rejection = config.reject();
+  if (rejection) return rejection;
+  const body = await request.json().catch(() => ({}));
+  const action = String(body?.action || 'config');
+  const parts = { clientId: Boolean(config.clientId), clientSecret: Boolean(config.clientSecret), redirectUri: Boolean(config.callback) };
+  if (action === 'config') return config.json({ configured: config.configured, parts, redirectUri: config.callback?.href || null });
+  if (!config.configured) return config.json({ error: 'google_oauth_not_configured', parts }, 503);
 
-Deno.serve(async(req)=>{
- if(req.method==='OPTIONS')return new Response('ok',{headers:corsHeaders});if(req.method!=='POST')return json({error:'method_not_allowed'},405);
- const clientId=env('GOOGLE_CLIENT_ID'),clientSecret=env('GOOGLE_CLIENT_SECRET'),redirectUri=env('GOOGLE_REDIRECT_URI'),supabaseUrl=env('SUPABASE_URL'),anonKey=env('SUPABASE_ANON_KEY'),serviceKey=env('SUPABASE_SERVICE_ROLE_KEY');
- const configured=Boolean(clientId&&clientSecret&&redirectUri);let body:any={};try{body=await req.json()}catch{body={}}const action=String(body?.action||'config');
- if(action==='config')return json({configured,parts:{clientId:Boolean(clientId),clientSecret:Boolean(clientSecret),redirectUri:Boolean(redirectUri)},redirectUri:redirectUri||null});
- if(!configured)return json({error:'google_oauth_not_configured',parts:{clientId:Boolean(clientId),clientSecret:Boolean(clientSecret),redirectUri:Boolean(redirectUri)}},503);
- const authHeader=req.headers.get('Authorization')||'';if(!authHeader)return json({error:'missing_authorization'},401);
- const userClient=createClient(supabaseUrl,anonKey,{global:{headers:{Authorization:authHeader}}});const{data:userData,error:userError}=await userClient.auth.getUser();if(userError||!userData.user)return json({error:'invalid_session'},401);const user=userData.user;
- const service=createClient(supabaseUrl,serviceKey,{auth:{persistSession:false}}).schema('cali_workspace');const{data:profile,error:profileError}=await service.from('profiles').select('id, role, company_id, active').eq('id',user.id).maybeSingle();if(profileError||!profile?.active)return json({error:'profile_not_available'},403);
- const resolveCompany=(requested:unknown)=>profile.role==='admin'?(requested?String(requested):null):(profile.company_id?String(profile.company_id):null);
- async function makeState(companyId:string|null){const obj={user_id:user.id,company_id:companyId,exp:Math.floor(Date.now()/1000)+600,nonce:crypto.randomUUID()};const payload=base64urlText(JSON.stringify(obj));return`${payload}.${await signState(payload,clientSecret)}`}
- async function verifyState(state:string){const[payload,signature]=String(state||'').split('.');if(!payload||!signature)throw new Error('invalid_oauth_state');const expected=await signState(payload,clientSecret);if(!(await safeEqual(signature,expected)))throw new Error('invalid_oauth_state');const parsed=JSON.parse(decoder.decode(fromBase64url(payload)));if(parsed.user_id!==user.id||Number(parsed.exp||0)<Math.floor(Date.now()/1000))throw new Error('expired_oauth_state');if(profile.role!=='admin'&&parsed.company_id!==profile.company_id)throw new Error('company_scope_mismatch');return parsed as{user_id:string;company_id:string|null}}
- async function connectionQueryForUser(companyId:string|null){let q=service.from('calendar_connections').select('id').eq('user_id',user.id).eq('provider','google');q=companyId?q.eq('company_id',companyId):q.is('company_id',null);return await q.limit(1).maybeSingle()}
- async function loadConnectionForEvent(event:any){
-   // Regra de propriedade: compromisso criado no ADMIN usa a agenda Google do próprio admin
-   // como organizador, mesmo quando está vinculado a um cliente. O cliente recebe como convidado.
-   // A conexão Google da empresa/cliente só é usada quando a ação parte do perfil cliente.
-   let q=service.from('calendar_connections').select('*').eq('provider','google').eq('status','connected').eq('sync_enabled',true).eq('is_primary',true);
-   if(profile.role==='admin'){
-     q=q.eq('user_id',user.id).is('company_id',null);
-   }else{
-     q=q.eq('user_id',user.id);
-     q=profile.company_id?q.eq('company_id',profile.company_id):q.is('company_id',null);
-   }
-   const{data}=await q.order('updated_at',{ascending:false}).limit(1).maybeSingle();return data;
- }
- async function validAccessToken(connection:any){const key=String(connection?.credential_key||credentialKey(connection.user_id,connection.company_id||null));const{data:credential,error}=await service.from('google_calendar_credentials').select('*').eq('credential_key',key).maybeSingle();if(error||!credential)throw new Error('google_credential_not_found');const expiry=credential.expires_at?new Date(credential.expires_at).getTime():0;if(credential.access_token&&expiry>Date.now()+60000)return String(credential.access_token);if(!credential.refresh_token)throw new Error('google_refresh_token_missing');const refresh=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:clientId,client_secret:clientSecret,refresh_token:credential.refresh_token,grant_type:'refresh_token'})});const td=await refresh.json();if(!refresh.ok||!td.access_token)throw new Error(`google_refresh_failed:${td.error||refresh.status}`);const expiresAt=new Date(Date.now()+Number(td.expires_in||3600)*1000).toISOString();await service.from('google_calendar_credentials').update({access_token:td.access_token,token_type:td.token_type||credential.token_type,scope:td.scope||credential.scope,expires_at:expiresAt,updated_at:new Date().toISOString()}).eq('credential_key',key);return String(td.access_token)}
- async function enableMeetTranscription(token:string,meetingUrl:string|null|undefined){const code=meetingCodeFromUrl(meetingUrl);if(!code)return{enabled:false,reason:'meeting_code_missing',spaceName:null};const getResponse=await fetch(`https://meet.googleapis.com/v2/spaces/${encodeURIComponent(code)}`,{headers:{Authorization:`Bearer ${token}`}});const space=await getResponse.json().catch(()=>({}));if(!getResponse.ok||!space?.name)return{enabled:false,reason:space?.error?.message||`meet_space_${getResponse.status}`,spaceName:null};const patch=await fetch(`https://meet.googleapis.com/v2/${space.name}?updateMask=config.artifactConfig.transcriptionConfig.autoTranscriptionGeneration`,{method:'PATCH',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({config:{artifactConfig:{transcriptionConfig:{autoTranscriptionGeneration:'ON'}}}})});const result=await patch.json().catch(()=>({}));if(!patch.ok)return{enabled:false,reason:result?.error?.message||`meet_patch_${patch.status}`,spaceName:space.name};return{enabled:true,reason:null,spaceName:space.name}}
- async function loadEvent(eventId:string){const{data:event,error}=await service.from('events').select('*').eq('id',eventId).maybeSingle();if(error||!event)throw new Error('event_not_found');if(profile.role!=='admin'&&event.company_id!==profile.company_id)throw new Error('event_access_denied');return event}
- async function syncEvent(eventId:string){const event=await loadEvent(eventId);if(event.cancelled_at)return{status:'cancelled_local'};if(profile.role!=='admin'&&event.created_by!==user.id)return{status:'managed_by_cali'};if(event.source_type==='scheduling_request'&&!event.google_event_id)return{status:'deferred_to_scheduling_sync'};const connection=await loadConnectionForEvent(event);if(!connection){await service.from('events').update({sync_status:'local'}).eq('id',event.id);return{status:'no_google_connection'}}const token=await validAccessToken(connection);const{data:attendees}=await service.from('event_attendees').select('email').eq('event_id',event.id);const emails=(attendees||[]).map((r:any)=>String(r.email||'').trim()).filter(Boolean);const tz=event.timezone||'America/Sao_Paulo';const googleBody:any={summary:event.title,description:event.description||undefined,location:event.location||undefined,attendees:emails.map((email:string)=>({email})),reminders:{useDefault:false,overrides:Number(event.reminder_minutes)>0?[{method:'popup',minutes:Number(event.reminder_minutes)}]:[]},extendedProperties:{private:{caliWorkspaceEventId:event.id,caliProtocol:event.protocol||''}}};if(event.all_day){const startDate=String(event.starts_at).slice(0,10);const end=new Date(`${startDate}T12:00:00Z`);end.setUTCDate(end.getUTCDate()+1);googleBody.start={date:startDate};googleBody.end={date:end.toISOString().slice(0,10)}}else{googleBody.start={dateTime:event.starts_at,timeZone:tz};googleBody.end={dateTime:event.ends_at||event.starts_at,timeZone:tz}}if(event.mode==='remote'&&!event.meeting_url)googleBody.conferenceData={createRequest:{requestId:`cali-${event.id}-${Date.now()}`,conferenceSolutionKey:{type:'hangoutsMeet'}}};const calendarId=connection.calendar_id||'primary',base=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`,existingId=event.google_event_id?String(event.google_event_id):'',url=existingId?`${base}/${encodeURIComponent(existingId)}?sendUpdates=all&conferenceDataVersion=1`:`${base}?sendUpdates=all&conferenceDataVersion=1`;const stableId=`cali${String(event.id).replace(/-/g,'')}`;if(!existingId)googleBody.id=stableId;let response=await fetch(url,{method:existingId?'PATCH':'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(googleBody)});let result=await response.json().catch(()=>({}));if(response.status===409&&!existingId){response=await fetch(`${base}/${stableId}`,{headers:{Authorization:`Bearer ${token}`}});result=await response.json().catch(()=>({}));}if(!response.ok){await service.from('events').update({sync_status:'error'}).eq('id',event.id);throw new Error(`google_calendar_sync_failed:${result?.error?.message||response.status}`)}const meetingUrl=result.hangoutLink||event.meeting_url||null;let transcription:any={enabled:false,reason:null,spaceName:event.meet_space_name||null};if(event.mode==='remote'&&event.auto_transcription&&meetingUrl)transcription=await enableMeetTranscription(token,meetingUrl);await service.from('events').update({google_calendar_id:calendarId,google_event_id:result.id||existingId,google_html_link:result.htmlLink||event.google_html_link||null,meeting_url:meetingUrl,meet_space_name:transcription.spaceName||event.meet_space_name||null,sync_status:'synced',updated_at:new Date().toISOString()}).eq('id',event.id);await service.from('calendar_connections').update({last_sync_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',connection.id);return{status:'synced',googleEventId:result.id||existingId,googleHtmlLink:result.htmlLink||null,meetingUrl,accountEmail:connection.account_email,transcription}}
- async function deleteGoogleEvent(event:any,connection:any){if(!event.google_event_id||!connection)return;const token=await validAccessToken(connection),calendarId=event.google_calendar_id||connection.calendar_id||'primary';const response=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(event.google_event_id)}?sendUpdates=all`,{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});if(!response.ok&&response.status!==404&&response.status!==410)throw new Error(`google_calendar_delete_failed:${response.status}`)}
- try{
-  if(action==='authorize'){const companyId=resolveCompany(body?.companyId||null),state=await makeState(companyId),params=new URLSearchParams({client_id:clientId,redirect_uri:redirectUri,response_type:'code',scope:'openid email https://www.googleapis.com/auth/calendar.events.owned https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/meetings.space.settings',access_type:'offline',include_granted_scopes:'true',prompt:'consent',state});return json({url:`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`})}
-  if(action==='exchange'){const code=String(body?.code||''),state=String(body?.state||'');if(!code||!state)return json({error:'missing_code_or_state'},400);const parsed=await verifyState(state),companyId=parsed.company_id||null;const tokenResponse=await fetch('https://oauth2.googleapis.com/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:clientId,client_secret:clientSecret,code,redirect_uri:redirectUri,grant_type:'authorization_code'})});const td=await tokenResponse.json();if(!tokenResponse.ok||!td.access_token)return json({error:'google_token_exchange_failed',detail:td.error_description||td.error||tokenResponse.status},400);const uiResponse=await fetch('https://openidconnect.googleapis.com/v1/userinfo',{headers:{Authorization:`Bearer ${td.access_token}`}}),ui=await uiResponse.json();if(!uiResponse.ok||!ui.email)return json({error:'google_userinfo_failed'},400);const key=credentialKey(user.id,companyId);const{data:existingCredential}=await service.from('google_calendar_credentials').select('refresh_token').eq('credential_key',key).maybeSingle();const refreshToken=td.refresh_token||existingCredential?.refresh_token||null;if(!refreshToken)return json({error:'google_refresh_token_missing',detail:'Revogue o acesso anterior do CALI Workspace na conta Google e conecte novamente.'},400);const expiresAt=new Date(Date.now()+Number(td.expires_in||3600)*1000).toISOString();await service.from('google_calendar_credentials').upsert({credential_key:key,user_id:user.id,company_id:companyId,account_email:ui.email,provider_account_id:ui.sub||null,access_token:td.access_token,refresh_token:refreshToken,token_type:td.token_type||'Bearer',scope:td.scope||'',expires_at:expiresAt,updated_at:new Date().toISOString()},{onConflict:'credential_key'});const{data:existingConnection}=await connectionQueryForUser(companyId);const payload={user_id:user.id,company_id:companyId,provider:'google',account_email:ui.email,provider_account_id:ui.sub||null,calendar_id:'primary',credential_key:key,sync_enabled:true,status:'connected',is_primary:true,updated_at:new Date().toISOString()};if(existingConnection?.id)await service.from('calendar_connections').update(payload).eq('id',existingConnection.id);else await service.from('calendar_connections').insert(payload);return json({ok:true,accountEmail:ui.email,companyId})}
-  if(action==='sync_event'){const eventId=String(body?.eventId||'');if(!eventId)return json({error:'missing_event_id'},400);return json(await syncEvent(eventId))}
-  if(action==='cancel_event'){const eventId=String(body?.eventId||'');const event=await loadEvent(eventId);if(!event.google_event_id){await service.from('events').update({sync_status:'local'}).eq('id',event.id);return json({status:'not_synced'})}const connection=await loadConnectionForEvent(event);if(!connection)return json({status:'connection_missing'});await deleteGoogleEvent(event,connection);await service.from('events').update({sync_status:'cancelled_google',updated_at:new Date().toISOString()}).eq('id',event.id);return json({status:'cancelled_google'})}
-  if(action==='delete_event'){const eventId=String(body?.eventId||''),reason=String(body?.reason||'').trim();if(!eventId||reason.length<2)return json({error:'delete_reason_required'},400);const event=await loadEvent(eventId);const{data:attendees}=await service.from('event_attendees').select('*').eq('event_id',event.id);const connection=await loadConnectionForEvent(event);if(event.google_event_id&&connection)await deleteGoogleEvent(event,connection);await service.from('activity_log').insert({company_id:event.company_id||null,actor_user_id:user.id,event_type:'calendar_event_deleted',entity_type:'event',entity_id:event.id,metadata:{reason,event_snapshot:event,attendees_snapshot:attendees||[],google_deleted:Boolean(event.google_event_id&&connection)}});await service.from('event_attendees').delete().eq('event_id',event.id);const{error:deleteError}=await service.from('events').delete().eq('id',event.id);if(deleteError)throw deleteError;return json({status:'deleted'})}
-  if(action==='disconnect'){const companyId=resolveCompany(body?.companyId||null),key=credentialKey(user.id,companyId);
-   // A mesma credencial Google pode servir também ao Drive da empresa: só revoga e apaga se o Drive não estiver usando.
-   const{data:driveUsing}=await service.from('drive_connections').select('id').eq('credential_key',key).eq('status','connected').limit(1).maybeSingle();
-   if(!driveUsing){const{data:credential}=await service.from('google_calendar_credentials').select('refresh_token, access_token').eq('credential_key',key).maybeSingle();const token=credential?.refresh_token||credential?.access_token;if(token)await fetch('https://oauth2.googleapis.com/revoke',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({token})}).catch(()=>null);await service.from('google_calendar_credentials').delete().eq('credential_key',key);}
-   let q=service.from('calendar_connections').delete().eq('user_id',user.id).eq('provider','google');q=companyId?q.eq('company_id',companyId):q.is('company_id',null);await q;return json({ok:true})}
-  return json({error:'unknown_action'},400)
- }catch(error){console.error('google-calendar-oauth',error);return json({error:error instanceof Error?error.message:'unknown_error'},500)}
+  try {
+    const actor = await googleActor(request);
+    const { db, user, profile } = actor;
+    const companyId = profile.role === 'admin' ? body.companyId || null : profile.company_id;
+    if (companyId !== null && (typeof companyId !== 'string' || !/^[a-f0-9-]{36}$/.test(companyId))) {
+      return config.json({ error: 'invalid_company_id' }, 400);
+    }
+    if (action === 'authorize') {
+      const attempt = await startGoogleOAuth(config, actor, 'calendar', companyId);
+      const params = new URLSearchParams({
+        client_id: config.clientId, redirect_uri: attempt.redirect, response_type: 'code',
+        scope: 'openid email https://www.googleapis.com/auth/calendar.events.owned https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/meetings.space.settings',
+        access_type: 'offline', include_granted_scopes: 'true', prompt: 'consent', state: attempt.state,
+        code_challenge: attempt.challenge, code_challenge_method: 'S256',
+      });
+      return config.json({ url: config.authorize(params) });
+    }
+    if (action === 'exchange') {
+      return await withGoogleLease(db, 'oauth:' + user.id, async () => {
+        const code = String(body.code || '');
+        const attempt = await claimGoogleOAuth(config, actor, 'calendar', String(body.state || ''), code);
+        if ('receipt' in attempt) return config.json(attempt.receipt);
+        const credential = await googleOAuthToken(config, actor, 'calendar', attempt, code);
+        let query = db.from('calendar_connections').select('id,account_email,calendar_id,provider_account_id')
+          .eq('user_id', user.id).eq('provider', 'google');
+        query = attempt.company ? query.eq('company_id', attempt.company) : query.is('company_id', null);
+        const current = await query.limit(1).maybeSingle();
+        if (current.error) throw new GoogleIntegrationError('google_connection_unavailable', 503);
+        if (current.data?.account_email && (current.data.account_email.toLowerCase() !== credential.account_email ||
+          current.data.provider_account_id && current.data.provider_account_id !== credential.provider_account_id)) {
+          throw new GoogleIntegrationError('google_account_mismatch', 409);
+        }
+        const calendar = current.data?.calendar_id || 'primary';
+        config.assertCalendar(calendar);
+        return config.json(await finishGoogleOAuth(actor, attempt.nonce, current.data?.id || null, calendar, credential));
+      });
+    }
+    if (action === 'disconnect') {
+      return await withGoogleLease(db, 'oauth:' + user.id, async () => {
+        let query = db.from('calendar_connections').delete().eq('user_id', user.id).eq('provider', 'google');
+        query = companyId ? query.eq('company_id', companyId) : query.is('company_id', null);
+        const removed = await query;
+        if (removed.error) throw new GoogleIntegrationError('google_connection_unavailable', 503);
+        await revokeUnusedGoogleCredential(config, actor, `${user.id}:${companyId || 'self'}`);
+        return config.json({ ok: true });
+      });
+    }
+    if (!['sync_event', 'cancel_event', 'delete_event'].includes(action)) return config.json({ error: 'unknown_action' }, 400);
+    const id = String(body.eventId || '');
+    if (!/^[a-f0-9-]{36}$/.test(id)) return config.json({ error: 'missing_event_id' }, 400);
+    const reason = String(body.reason || '').trim();
+    if (action === 'delete_event' && reason.length < 2) return config.json({ error: 'delete_reason_required' }, 400);
+    return await withGoogleLease(db, 'calendar:' + id, async () => {
+      const event = await calendarEvent(actor, id);
+      if (profile.role !== 'admin' && event.created_by !== user.id) {
+        if (action === 'sync_event') return config.json({ status: 'managed_by_cali' });
+        throw new GoogleIntegrationError('event_access_denied', 403);
+      }
+      if (action === 'sync_event' && event.source_type === 'scheduling_request' && !event.google_event_id) {
+        return config.json({ status: 'deferred_to_scheduling_sync' });
+      }
+      const connection = event.source_type === 'scheduling_request'
+        ? await calendarConnection(db, event)
+        : await calendarConnection(db, event, user.id, profile.role === 'admin' ? null : profile.company_id);
+      if (action === 'sync_event') {
+        if (!connection) {
+          if (!event.google_event_id) await db.from('events').update({ sync_status: 'local' }).eq('id', event.id);
+          return config.json({ status: 'no_google_connection' });
+        }
+        return config.json(await syncCalendarEvent(config, db, event, connection));
+      }
+
+      if (!connection && event.google_event_id) return config.json({ status: 'connection_missing' }, 409);
+      if (connection) await deleteCalendarEvent(config, db, event, connection);
+      if (action === 'cancel_event') {
+        const status = connection ? 'cancelled_google' : 'local';
+        const changed = await db.from('events').update({ sync_status: status, updated_at: new Date().toISOString() }).eq('id', id);
+        if (changed.error) throw new GoogleIntegrationError('event_changed_retry', 409);
+        return config.json({ status: connection ? 'cancelled_google' : 'not_synced' });
+      }
+
+      const attendees = await db.from('event_attendees').select('*').eq('event_id', id);
+      if (attendees.error) throw new GoogleIntegrationError('event_attendees_unavailable', 503);
+      const audit = await db.from('activity_log').insert({
+        company_id: event.company_id || null, actor_user_id: user.id, event_type: 'calendar_event_deleted',
+        entity_type: 'event', entity_id: id, metadata: {
+          reason, event_snapshot: event, attendees_snapshot: attendees.data || [], google_deleted: Boolean(connection),
+        },
+      });
+      if (audit.error) throw new GoogleIntegrationError('event_audit_unavailable', 503);
+      const removed = await db.from('events').delete().eq('id', id);
+      if (removed.error) throw new GoogleIntegrationError('event_delete_failed', 503);
+      return config.json({ status: 'deleted' });
+    });
+  } catch (error) {
+    return googleFailure(config, error);
+  }
 });
