@@ -21,6 +21,14 @@ Configure a URL e a chave pública do Supabase de teste conforme [o exemplo de a
 3. Carregue dados sintéticos representativos do legado. Inclua empresa, acessos, IDs, estados, anexos, links emitidos e alterações equivalentes às da versão publicada.
 4. Verifique os alvos dos efeitos antes da execução. Registre revisão do app, schema e função Edge usados nas provas. Valide restauração e retorno à versão anterior quando houver alteração de dados.
 
+## Ambiente local desta consolidação
+
+O snapshot de 12/11/2026 contém a estrutura do CALI MAPA. A cópia de referência está em um container sem rede. Um segundo banco de trabalho recebe as migrations da branch e fixtures sintéticas de Admin, Partner e três Clientes em duas empresas. Os serviços de negócio ficam em uma rede Docker interna e o proxy publica somente endereços de loopback. O cron automático fica desativado.
+
+O app abre em `http://127.0.0.1:56430`, com API local em `http://127.0.0.1:56431` e captura de e-mail em `http://127.0.0.1:56432`. O diretório local ignorado `.cali-db-schema.local/qa` contém os comandos de retomada, o ambiente de teste e as provas. A Edge de acesso usa Mailpit no laboratório. O Admin sintético entra por uma adaptação local da lista de e-mails permitidos, com MFA e termos ativos. Auth e Storage usam histórico de inicialização dos serviços Docker locais. O Realtime inicializa seu schema gerenciado na cópia de QA e usa a publicação de tabelas do app restaurada. As contas, arquivos e senhas de teste são gerados localmente.
+
+O smoke de partida cobriu login por código, MFA, aceite e isolamento por empresa na API, no Storage e no Realtime. O aceite de todas as jornadas segue a [matriz local](CONSOLIDATION_ACCEPTANCE.md).
+
 ## Preview e corte
 
 O Preview usa a branch revisada, backend de homologação e credenciais e callbacks próprios. Depois de passar a validação local, confirme o commit, o ambiente Vercel, as rotas públicas e o login com contas autorizadas de teste. Registre URL e roteiro de aceite.
