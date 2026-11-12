@@ -1,6 +1,5 @@
-// CALI Workspace — acesso por código (cliente, administradora e, a partir desta versão, Partner da Equipe CALI).
-// Publicada em 2026-10-12 com autorização da proprietária: versão 6 + os trechos marcados com "PARTNER".
-// Nada muda para quem já entrava: os trechos novos só rodam quando o e-mail está em staff_members.
+import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
+// Acesso por código para Cliente, Admin e Partner.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { renderApprovedClientEmail } from "./approved-client-templates.ts";
@@ -8,19 +7,21 @@ import { renderClientCodeV3 } from "./approved-code-v3.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const PUBLIC_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const APP_URL = "https://app.calirh.com";
+const emailHtmlForEnvironment = (html: string) => html.replaceAll(APP_URL, deliveryAppOrigin);
 const ALLOWED_ORIGINS = new Set([
   APP_URL,
   "https://app-cali.vercel.app",
   "https://app-cali-cali11.vercel.app",
   "https://app-cali-git-main-cali11.vercel.app",
+  "https://staging.calirh.com",
+  ...(Deno.env.get("WORKSPACE_ACCESS_ALLOWED_ORIGINS") ?? "").split(",").map((value) => value.trim()).filter(Boolean),
 ]);
 
 function isAllowedOrigin(origin: string) {
-  return ALLOWED_ORIGINS.has(origin)
-    || /^https:\/\/[-a-z0-9]+\.vercel\.app$/i.test(origin)
-    || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
+  return ALLOWED_ORIGINS.has(origin);
 }
 function cors(request: Request) {
   const origin = request.headers.get("origin") ?? "";
@@ -32,17 +33,27 @@ function cors(request: Request) {
   };
 }
 function json(request: Request, body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...cors(request), "Content-Type": "application/json; charset=utf-8" } });
+  return new Response(JSON.stringify(body), { status, headers: {
+    ...cors(request), "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store",
+  } });
 }
 function safeName(name: string | null | undefined) {
   const first = String(name || "").trim().split(/\s+/)[0];
-  return first || "Olá";
+  return (first || "Olá").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
-function normalizeEmail(value: unknown) { return String(value || "").trim().toLowerCase(); }
+function normalizeEmail(value: unknown) { return typeof value === "string" ? value.trim().toLowerCase() : ""; }
 function randomCode() {
   const buffer = new Uint32Array(1);
-  crypto.getRandomValues(buffer);
+  do { crypto.getRandomValues(buffer); } while (buffer[0] >= 4_294_000_000);
   return String(buffer[0] % 1000000).padStart(6, "0");
+}
+function sessionIdOf(token: string) {
+  try {
+    const payload = token.split(".")[1].replaceAll("-", "+").replaceAll("_", "/");
+    const { session_id } = JSON.parse(atob(payload));
+    return typeof session_id === "string" && /^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i.test(session_id)
+      ? session_id : null;
+  } catch { return null; }
 }
 async function hashCode(email: string, code: string) {
   const bytes = new TextEncoder().encode(`${email}:${code}:${SERVICE_KEY}`);
@@ -75,132 +86,176 @@ function staffWelcomeHtml(name: string | null | undefined) {
 }
 
 Deno.serve(async (request) => {
-  if (request.method === "OPTIONS") return new Response("ok", { headers: cors(request) });
-  if (request.method !== "POST") return json(request, { error: "Método não permitido." }, 405);
   const origin = request.headers.get("origin") ?? "";
   if (!isAllowedOrigin(origin)) return json(request, { error: "Origem não autorizada." }, 403);
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(request) });
+  if (request.method !== "POST") return json(request, { error: "Método não permitido." }, 405);
 
+  const requested = { ok: true, challenge: "code" };
+  const invalid = { error: "Código inválido ou expirado." };
   try {
-    const body = await request.json().catch(() => ({}));
-    if (String(body.website ?? "").trim()) return json(request, { ok: true });
-    const action = String(body.action || "request");
-    const email = normalizeEmail(body.email);
-    if (!email || !email.includes("@")) return json(request, { ok: true });
+    const body = await request.json().catch(() => null);
+    const action = body?.action;
+    const email = normalizeEmail(body?.email);
+    if (body?.website) return json(request, requested);
+    if (action !== "request" && action !== "verify") return json(request, { error: "Ação inválida." }, 400);
+    if (email.length > 320 || !/^[^\s@]+@[^\s@]+$/.test(email)) {
+      return action === "request" ? json(request, requested) : json(request, invalid, 400);
+    }
+    if (!SUPABASE_URL || !SERVICE_KEY || !PUBLIC_KEY) throw new Error("Auth indisponível.");
 
-    const admin = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+    const clientOptions = { auth: { persistSession: false, autoRefreshToken: false } };
+    const admin = createClient(SUPABASE_URL, SERVICE_KEY, clientOptions);
     const workspace = admin.schema("cali_workspace");
 
+    async function findAuthUserId() {
+      const { data, error } = await workspace.rpc("workspace_auth_identity_v2", { p_email: email });
+      if (error) throw error;
+      return typeof data === "string" ? data : null;
+    }
+
     async function ensureAuthUser(fullName: string) {
-      let userId: string | null = null;
-      const created = await admin.auth.admin.createUser({ email, email_confirm: true, user_metadata: { full_name: fullName } });
-      if (created.data?.user?.id) userId = created.data.user.id;
-      if (!userId) {
-        const listed = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-        userId = listed.data.users.find((u) => normalizeEmail(u.email) === email)?.id || null;
-      }
+      const existing = await findAuthUserId();
+      if (existing) return existing;
+      await admin.auth.admin.createUser({ email, email_confirm: true, user_metadata: { full_name: fullName } });
+      const userId = await findAuthUserId();
+      if (!userId) throw new Error("Identidade Auth indisponível.");
       return userId;
     }
 
-    async function resolveOrCreateProfile() {
-      const { data: existingProfile, error: profileError } = await workspace.from("profiles").select("id,email,full_name,role,active,company_id").eq("email", email).maybeSingle();
-      if (profileError) throw profileError;
-      if (existingProfile?.active) {
-        // PARTNER: cadastro desativado na Equipe CALI deixa de entrar. Demais perfis seguem como sempre.
-        if (existingProfile.role === "partner") {
-          const { data: staff } = await workspace.from("staff_members").select("active").eq("email", email).maybeSingle();
-          if (!staff?.active) return null;
-        }
-        return existingProfile;
-      }
-
-      const { data: invite, error: inviteError } = await workspace.from("client_invites").select("id,company_id,email,full_name,is_primary,active,accepted_at").eq("email", email).eq("active", true).maybeSingle();
-      if (inviteError) throw inviteError;
-      if (invite) {
-        const userId = await ensureAuthUser(invite.full_name);
-        if (!userId) throw new Error("Não foi possível preparar o usuário convidado.");
-        const profilePayload = { id: userId, company_id: invite.company_id, email, full_name: invite.full_name, role: "client", is_primary: Boolean(invite.is_primary), active: true, updated_at: new Date().toISOString() };
-        const { error: upsertError } = await workspace.from("profiles").upsert(profilePayload, { onConflict: "id" });
-        if (upsertError) throw upsertError;
-        return { ...profilePayload };
-      }
-
-      // PARTNER: pessoa cadastrada pela administradora em Equipe CALI (sem empresa própria; as empresas vêm das atribuições).
-      const { data: staff, error: staffError } = await workspace.from("staff_members").select("id,email,full_name,active").eq("email", email).eq("active", true).maybeSingle();
-      if (staffError) throw staffError;
-      if (!staff) return null;
-      const staffUserId = await ensureAuthUser(staff.full_name);
-      if (!staffUserId) throw new Error("Não foi possível preparar o usuário da equipe.");
-      const staffProfile = { id: staffUserId, company_id: null, email, full_name: staff.full_name, role: "partner", is_primary: false, active: true, updated_at: new Date().toISOString() };
-      const { error: staffUpsertError } = await workspace.from("profiles").upsert(staffProfile, { onConflict: "id" });
-      if (staffUpsertError) throw staffUpsertError;
-      const { error: linkError } = await workspace.from("staff_members").update({ user_id: staffUserId, updated_at: new Date().toISOString() }).eq("id", staff.id);
-      if (linkError) throw linkError;
-      return { ...staffProfile };
+    async function readProfile(userId: string) {
+      const { data, error } = await workspace.from("profiles")
+        .select("id,email,full_name,role,active,company_id").eq("id", userId).maybeSingle();
+      if (error) throw error;
+      return data;
     }
 
-    if (action === "request") {
-      const profile = await resolveOrCreateProfile();
-      // Não revela se o e-mail existe ou foi convidado.
-      if (!profile) return json(request, { ok: true });
+    async function eligibleProfile(userId: string) {
+      const profile = await readProfile(userId);
+      if (!profile?.active || normalizeEmail(profile.email) !== email ||
+          !["admin", "client", "partner"].includes(profile.role)) return null;
+      const { data, error } = await workspace.rpc("workspace_login_eligible_v2", { p_user_id: userId });
+      if (error) throw error;
+      return data === true ? profile : null;
+    }
 
+    async function provisionInvitedProfile() {
+      const { data: invite, error: inviteError } = await workspace.from("client_invites")
+        .select("company_id,full_name,is_primary")
+        .eq("email", email).eq("active", true).eq("platform_access", true).maybeSingle();
+      if (inviteError) throw inviteError;
+      if (invite) {
+        const { data: company, error: companyError } = await workspace.from("companies")
+          .select("id").eq("id", invite.company_id).in("status", ["active", "paused"]).maybeSingle();
+        if (companyError) throw companyError;
+        if (!company) return null;
+        const userId = await ensureAuthUser(invite.full_name);
+        const { error } = await workspace.from("profiles").upsert({
+          id: userId, company_id: invite.company_id, email, full_name: invite.full_name,
+          role: "client", is_primary: Boolean(invite.is_primary), active: true,
+        }, { onConflict: "id", ignoreDuplicates: true });
+        if (error) throw error;
+        return eligibleProfile(userId);
+      }
+
+      const { data: staff, error: staffError } = await workspace.from("staff_members")
+        .select("id,full_name,user_id").eq("email", email).eq("active", true).maybeSingle();
+      if (staffError) throw staffError;
+      if (!staff) return null;
+
+      const userId = await ensureAuthUser(staff.full_name);
+      if (staff.user_id && staff.user_id !== userId) return null;
+      if (!staff.user_id) {
+        const { error } = await workspace.from("staff_members").update({ user_id: userId, updated_at: new Date().toISOString() })
+          .eq("id", staff.id).eq("active", true).is("user_id", null);
+        if (error) throw error;
+      }
+      const { error } = await workspace.from("profiles").upsert({
+        id: userId, company_id: null, email, full_name: staff.full_name, role: "partner", is_primary: false, active: true,
+      }, { onConflict: "id", ignoreDuplicates: true });
+      if (error) throw error;
+      return eligibleProfile(userId);
+    }
+
+    const identity = await findAuthUserId();
+    // Um convite legado pode criar o primeiro perfil. Perfil desativado exige liberação explícita.
+    const existingProfile = identity ? await readProfile(identity) : null;
+    const profile = existingProfile && identity
+      ? await eligibleProfile(identity)
+      : action === "request" ? await provisionInvitedProfile() : null;
+    if (action === "request") {
+      if (!profile) return json(request, requested);
+
+      if (!emailDestinationsAllowed([email])) return json(request, requested);
       if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY não configurada.");
       const code = randomCode();
       const codeHash = await hashCode(email, code);
       const requestedIp = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for") || null;
-      const { data: codeId, error: codeError } = await workspace.rpc("reserve_workspace_access_code", {
-        p_email: email,
-        p_code_hash: codeHash,
-        p_requested_ip: requestedIp,
+      const { data: codeId, error: codeError } = await workspace.rpc("reserve_workspace_access_code_v2", {
+        p_email: email, p_code_hash: codeHash, p_requested_ip: requestedIp, p_actor_id: profile.id,
       });
       if (codeError) throw codeError;
-      if (!codeId) return json(request, { error: "Um código já foi enviado. Aguarde 2 minutos antes de solicitar outro." }, 429);
+      if (!codeId) return json(request, requested);
 
       const resend = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-code-${codeId}` },
-        body: JSON.stringify({ from: "APP CALI RH <workspace@calirh.com>", to: [email], reply_to: "nao-responda@calirh.com", subject: profile.role === "client" ? "APP CALI RH · Seu código para entrar" : "Seu código de acesso ao CALI Workspace", html: profile.role === "client" ? renderClientCodeV3(code, profile.full_name, APP_URL) : emailHtml(code, profile.full_name) }),
+        body: JSON.stringify({ from: "APP CALI RH <workspace@calirh.com>", to: [email], reply_to: "nao-responda@calirh.com", subject: profile.role === "client" ? "APP CALI RH · Seu código para entrar" : "Seu código de acesso ao CALI Workspace", html: emailHtmlForEnvironment(profile.role === "client" ? renderClientCodeV3(code, profile.full_name, APP_URL) : emailHtml(code, profile.full_name)) }),
       });
       const emailResult = await resend.json().catch(() => ({}));
-      if (!resend.ok) throw new Error(`Resend ${resend.status}: ${JSON.stringify(emailResult)}`);
+      if (!resend.ok) throw new Error(`Falha na entrega do código. HTTP ${resend.status}.`);
+      const { data: delivered, error: deliveryError } = await workspace.rpc("confirm_workspace_access_code_delivery_v2", {
+        p_code_id: codeId, p_actor_id: profile.id,
+      });
+      if (deliveryError || delivered !== true) throw new Error("Não foi possível confirmar a entrega do código.");
 
       await workspace.from("activity_log").insert({ actor_user_id: profile.id, company_id: profile.company_id || null, event_type: "workspace_access_code_requested", entity_type: "profile", entity_id: profile.id, metadata: { email, email_id: emailResult.id ?? null, origin } });
-      return json(request, { ok: true, challenge: "code" });
+      return json(request, requested);
     }
 
     if (action === "verify") {
-      const code = String(body.code || "").replace(/\D/g, "").slice(0, 6);
-      if (code.length !== 6) return json(request, { error: "Código inválido ou expirado." }, 400);
+      const code = typeof body.code === "string" ? body.code.trim() : "";
+      if (!profile || !/^\d{6}$/.test(code)) return json(request, invalid, 400);
       const candidate = await hashCode(email, code);
-      const { data: consumed, error: consumeError } = await workspace.rpc("consume_workspace_access_code", {
-        p_email: email,
-        p_code_hash: candidate,
+      const { data: proof, error: consumeError } = await workspace.rpc("consume_workspace_access_code_v2", {
+        p_email: email, p_code_hash: candidate, p_actor_id: profile.id,
       });
       if (consumeError) throw consumeError;
-      if (consumed !== true) return json(request, { error: "Código inválido ou expirado." }, 400);
+      if (typeof proof !== "string") return json(request, invalid, 400);
 
-      const profile = await resolveOrCreateProfile();
-      if (!profile?.active) return json(request, { error: "Acesso não disponível." }, 403);
-      // O convite do CLIENTE será marcado aceito somente após gerar a sessão;
-      // isso garante que as boas-vindas não saiam por uma tentativa incompleta.
+      const { data: link, error: linkError } = await admin.auth.admin.generateLink({ type: "magiclink", email });
+      const tokenHash = link?.properties?.hashed_token;
+      if (linkError || !tokenHash) throw new Error("Sessão Auth indisponível.");
+
+      const authClient = createClient(SUPABASE_URL, PUBLIC_KEY, clientOptions);
+      const { data: auth, error: authError } = await authClient.auth.verifyOtp({ token_hash: tokenHash, type: "email" });
+      const session = auth.session;
+      const sessionId = session ? sessionIdOf(session.access_token) : null;
+      if (authError || !session || auth.user?.id !== profile.id || !sessionId) {
+        if (session) await authClient.auth.signOut({ scope: "local" });
+        return json(request, invalid, 400);
+      }
+      const { data: admitted, error: admissionError } = await workspace.rpc("admit_workspace_session_v2", {
+        p_authorization_id: proof, p_session_id: sessionId,
+      });
+      if (admissionError || admitted !== true) {
+        await authClient.auth.signOut({ scope: "local" });
+        return json(request, invalid, 400);
+      }
 
       // PARTNER: primeiro acesso confirmado → marca a data e envia as boas-vindas (falha no e-mail não impede a entrada).
       if (profile.role === "partner") {
         try {
           const { data: firstAccess } = await workspace.from("staff_members").update({ accepted_at: new Date().toISOString() }).eq("email", email).is("accepted_at", null).select("id");
-          if ((firstAccess || []).length && RESEND_API_KEY) {
+          if ((firstAccess || []).length && RESEND_API_KEY && emailDestinationsAllowed([email])) {
             await fetch("https://api.resend.com/emails", {
               method: "POST",
               headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-staff-welcome-${profile.id}` },
-              body: JSON.stringify({ from: "APP CALI RH <workspace@calirh.com>", to: [email], reply_to: "nao-responda@calirh.com", subject: "Boas-vindas à Equipe CALI", html: staffWelcomeHtml(profile.full_name) }),
+              body: JSON.stringify({ from: "APP CALI RH <workspace@calirh.com>", to: [email], reply_to: "nao-responda@calirh.com", subject: "Boas-vindas à Equipe CALI", html: emailHtmlForEnvironment(staffWelcomeHtml(profile.full_name)) }),
             });
           }
         } catch (welcomeError) { console.error("workspace-access staff welcome", welcomeError); }
       }
-
-      const { data, error } = await admin.auth.admin.generateLink({ type: "magiclink", email });
-      if (error) throw error;
-      const tokenHash = data.properties?.hashed_token;
-      if (!tokenHash) throw new Error("Token de sessão ausente.");
 
       // CLIENTE: mensagem de boas-vindas APROVADA, uma só vez no primeiro acesso válido.
       // Não interfere no acesso se o serviço de e-mail estiver temporariamente indisponível.
@@ -208,10 +263,10 @@ Deno.serve(async (request) => {
         try {
           const { data: firstAccess, error: acceptError } = await workspace.from("client_invites")
             .update({ accepted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-            .eq("email", email).eq("active", true).is("accepted_at", null)
+            .eq("email", email).eq("company_id", profile.company_id).eq("active", true).is("accepted_at", null)
             .select("id");
           if (acceptError) throw acceptError;
-          if ((firstAccess || []).length && RESEND_API_KEY) {
+          if ((firstAccess || []).length && RESEND_API_KEY && emailDestinationsAllowed([email])) {
             const { data: company } = await workspace.from("companies")
               .select("display_name").eq("id", profile.company_id).maybeSingle();
             const html = renderApprovedClientEmail("welcome", {
@@ -228,22 +283,26 @@ Deno.serve(async (request) => {
                 from: "APP CALI RH <workspace@calirh.com>", to: [email],
                 reply_to: "nao-responda@calirh.com",
                 subject: "APP CALI RH · Bem-vindo ao seu Workspace! 👋",
-                html,
+                html: emailHtmlForEnvironment(html),
               }),
             });
-            if (!sent.ok) console.error("workspace-access client welcome resend", sent.status, await sent.text());
+            if (!sent.ok) console.error("workspace-access client welcome resend", sent.status);
           }
         } catch (welcomeError) { console.error("workspace-access client welcome", welcomeError); }
       }
 
 
       await workspace.from("activity_log").insert({ actor_user_id: profile.id, company_id: profile.company_id || null, event_type: "workspace_access_code_verified", entity_type: "profile", entity_id: profile.id, metadata: { email, origin } });
-      return json(request, { ok: true, token_hash: tokenHash, role: profile.role });
+      return json(request, {
+        ok: true, role: profile.role,
+        session: { access_token: session.access_token, refresh_token: session.refresh_token },
+      });
     }
 
     return json(request, { error: "Ação inválida." }, 400);
   } catch (error) {
-    console.error("workspace-access", error);
+    const code = typeof error === "object" && error && "code" in error ? String(error.code) : "";
+    console.error("workspace-access failed", /^[a-zA-Z0-9_]{1,50}$/.test(code) ? code : "internal_error");
     return json(request, { error: "Não foi possível concluir o acesso agora. Tente novamente em instantes." }, 500);
   }
 });
