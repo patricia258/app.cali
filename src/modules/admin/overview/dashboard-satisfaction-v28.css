@@ -16,10 +16,10 @@
 .satisfaction-month-bar i{@apply tw:block;width:58%;min-height:3px;border-radius:6px 6px 0 0;background:linear-gradient(180deg,#B58C52,#5A1E2D)}
 .satisfaction-month>strong{@apply tw:text-cali-text tw:text-[10px]}
 .satisfaction-month>span{@apply tw:text-cali-muted tw:text-[8.5px]}
-.satisfaction-month>small{color:#B58C52;@apply tw:text-[8px]}
+.satisfaction-month>small{@apply tw:text-cali-gold;@apply tw:text-[8px]}
 .satisfaction-distribution{@apply tw:grid tw:gap-[8px]}
 .satisfaction-dist-row{@apply tw:grid;grid-template-columns:18px 1fr 24px;@apply tw:items-center tw:gap-[8px]}
-.satisfaction-dist-row>span{@apply tw:text-cali-text tw:text-[9.5px];font-weight:800;@apply tw:text-center}
+.satisfaction-dist-row>span{@apply tw:text-cali-text tw:text-[9.5px];@apply tw:font-extrabold;@apply tw:text-center}
 .satisfaction-dist-row>div{@apply tw:h-[8px] tw:rounded-[999px];background:color-mix(in srgb,var(--theme-line) 62%,transparent);@apply tw:overflow-hidden}
 .satisfaction-dist-row i{@apply tw:block tw:h-full;border-radius:inherit;background:#B58C52}
 .satisfaction-dist-row>strong{@apply tw:text-cali-muted tw:text-[9px] tw:text-right}
@@ -30,10 +30,10 @@
 .satisfaction-recent-score strong{@apply tw:text-cali-text tw:text-[10.5px]}
 .satisfaction-recent-copy{@apply tw:grid tw:gap-[1px] tw:min-w-0}
 .satisfaction-recent-copy>strong{@apply tw:text-cali-text tw:text-[10.5px]}
-.satisfaction-recent-copy>small{color:#B58C52;@apply tw:text-[8.5px] tw:whitespace-nowrap tw:overflow-hidden tw:text-ellipsis}
+.satisfaction-recent-copy>small{@apply tw:text-cali-gold;@apply tw:text-[8.5px] tw:whitespace-nowrap tw:overflow-hidden tw:text-ellipsis}
 .satisfaction-recent-copy>p{margin:2px 0 0;@apply tw:text-cali-muted tw:text-[9.5px];line-height:1.35;@apply tw:whitespace-nowrap tw:overflow-hidden tw:text-ellipsis}
 .satisfaction-recent-row>em{@apply tw:text-cali-muted tw:text-[8.5px] tw:not-italic tw:whitespace-nowrap}
-.satisfaction-recent-row:hover .satisfaction-recent-copy>strong{color:#5A1E2D}
+.satisfaction-recent-row:hover .satisfaction-recent-copy>strong{@apply tw:text-cali-brand}
 .satisfaction-empty{@apply tw:p-[14px];border:1px dashed var(--theme-line);@apply tw:rounded-[12px] tw:text-cali-muted tw:text-[10px] tw:text-center}
 .satisfaction-live-badge{@apply tw:gap-0!}
 [data-workspace-theme='night'] .satisfaction-recent-row:hover .satisfaction-recent-copy>strong{color:#F0D9DF}

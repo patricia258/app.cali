@@ -137,7 +137,7 @@
   @apply tw:grid! tw:place-items-center tw:m-0!;
   border: 1px solid color-mix(in srgb, #b58c52 32%, var(--theme-line));
   @apply tw:rounded-[13px];
-  color: #5a1e2d !important;
+  @apply tw:text-cali-brand!;
   background: color-mix(in srgb, #e7c66f 14%, var(--theme-surface));
 }
 .notification-head-title > div > strong { @apply tw:text-[.98rem]!; letter-spacing: -.015em; }
@@ -180,7 +180,7 @@
   @apply tw:w-[42px] tw:h-[42px] tw:grid tw:place-items-center;
   border: 1px solid color-mix(in srgb, #5a1e2d 11%, var(--theme-line));
   @apply tw:rounded-[13px];
-  color: #5a1e2d;
+  @apply tw:text-cali-brand;
   background: var(--theme-surface);
 }
 .notification-kind-document .notification-visual { color: #7a5930; background: color-mix(in srgb, #e7c66f 14%, var(--theme-surface)); }
@@ -297,7 +297,7 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
   border-bottom: 1px solid var(--theme-line);
 }
 .records-v13-drawer .records-v25-ops:empty { @apply tw:hidden; }
-.records-v13-drawer .records-v25-ops > :only-child { grid-column: 1 / -1; }
+.records-v13-drawer .records-v25-ops > :only-child { @apply tw:col-span-full; }
 .records-v13-drawer .records-v25-timer,
 .records-v13-drawer .records-v28-admin-feedback {
   @apply tw:min-w-0;
@@ -382,7 +382,7 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
   .deliverable-head-actions-v2 > button:not(.modal-close):not(.drawer-close) { @apply tw:hidden!; }
   .deliverable-workspace-tabs-v2 { @apply tw:overflow-x-auto; scrollbar-width: none; }
   .deliverable-workspace-tabs-v2::-webkit-scrollbar { @apply tw:hidden; }
-  .deliverable-workspace-tabs-v2 button { flex: 0 0 auto; @apply tw:min-w-max; padding-inline: 13px !important; }
+  .deliverable-workspace-tabs-v2 button { @apply tw:flex-none; @apply tw:min-w-max; padding-inline: 13px !important; }
 
   .workspace-chat-standard > header { padding: 0 2px 11px !important; }
   .workspace-chat-standard .client-conversation-title-v33 p { @apply tw:text-[10.5px]!; }

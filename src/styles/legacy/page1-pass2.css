@@ -56,7 +56,7 @@
   background: transparent;
   color: var(--muted);
   @apply tw:text-[.72rem];
-  font-weight: 700;
+  @apply tw:font-bold;
 }
 .view-toggle button.active { color: var(--burgundy); background: white; box-shadow: 0 2px 7px rgba(65,34,38,.07); }
 .agenda-color-button { @apply tw:inline-flex tw:items-center tw:gap-[6px]; border: 1px solid rgba(90,30,45,.1); }
@@ -92,13 +92,13 @@
   @apply tw:rounded-[14px];
   background: rgba(255,255,255,.5);
 }
-.week-calendar-head { grid-column: 1 / -1; @apply tw:flex tw:justify-between tw:mb-[10px]; }
+.week-calendar-head { @apply tw:col-span-full; @apply tw:flex tw:justify-between tw:mb-[10px]; }
 .week-calendar-head strong { @apply tw:text-[.9rem]; }
 .week-calendar-head span { color: var(--muted); @apply tw:text-[.72rem]; }
 .week-day { @apply tw:relative tw:min-h-[70px]; padding: 9px 4px; @apply tw:rounded-[10px] tw:flex tw:flex-col tw:items-center tw:gap-[7px]; border: 1px solid transparent; }
 .week-day span { font-size: .6rem; color: var(--muted); font-weight: 750; }
 .week-day strong { @apply tw:text-[.82rem]; }
-.week-day.active { color: #fff; background: var(--burgundy); }
+.week-day.active { @apply tw:text-white; background: var(--burgundy); }
 .week-day.active span { color: rgba(255,255,255,.72); }
 .week-day.has-event:not(.active) { border-color: rgba(90,30,45,.1); background: rgba(90,30,45,.025); }
 .week-day i { @apply tw:w-[7px] tw:h-[7px] tw:rounded-[50%] tw:block; }
@@ -114,12 +114,12 @@
   background: rgba(90,30,45,.08);
   color: var(--burgundy);
   border: 1px solid rgba(90,30,45,.10);
-  font-weight: 800;
+  @apply tw:font-extrabold;
 }
 .deadline-copy { @apply tw:min-w-0; }
-.deadline-copy p { margin: 0 0 3px; @apply tw:text-[.82rem]; font-weight: 700; }
+.deadline-copy p { margin: 0 0 3px; @apply tw:text-[.82rem]; @apply tw:font-bold; }
 .deadline-copy strong { @apply tw:inline; color: var(--graphite) !important; @apply tw:text-[.74rem]!; }
-.deadline-copy small { @apply tw:ml-[6px]; padding: 2px 6px; @apply tw:rounded-[999px]; background: rgba(181,140,82,.12); color: #79572a; @apply tw:text-[.66rem]; font-weight: 700; }
+.deadline-copy small { @apply tw:ml-[6px]; padding: 2px 6px; @apply tw:rounded-[999px]; background: rgba(181,140,82,.12); color: #79572a; @apply tw:text-[.66rem]; @apply tw:font-bold; }
 
 /* Perfil: foto grande, upload sem input nativo aparente e ajuste de enquadramento. */
 .profile-modal-v2 { width: min(720px, calc(100vw - 48px)); max-height: min(88vh, 850px); @apply tw:overflow-y-auto; padding: 34px 38px 30px; }
@@ -177,7 +177,7 @@
 .account-upload-card > div span { @apply tw:mt-[4px] tw:max-w-[280px] tw:overflow-hidden tw:whitespace-nowrap tw:text-ellipsis; color: var(--muted); @apply tw:text-[.67rem]; }
 .account-upload-card label { @apply tw:min-h-[34px]; padding: 0 10px; @apply tw:inline-flex tw:items-center tw:gap-[6px] tw:rounded-[9px]; background: rgba(90,30,45,.055); color: var(--burgundy); @apply tw:text-[.69rem]; font-weight: 750; @apply tw:cursor-pointer; }
 .account-upload-card label input { @apply tw:hidden; }
-.account-upload-card > input[type="date"] { grid-column: 1 / -1; @apply tw:min-h-[38px]; border: 1px solid rgba(90,30,45,.12); @apply tw:rounded-[9px]; padding: 0 10px; color: var(--graphite); background: rgba(250,248,245,.5); }
+.account-upload-card > input[type="date"] { @apply tw:col-span-full; @apply tw:min-h-[38px]; border: 1px solid rgba(90,30,45,.12); @apply tw:rounded-[9px]; padding: 0 10px; color: var(--graphite); background: rgba(250,248,245,.5); }
 .account-modal-footer { @apply tw:sticky tw:bottom-0; margin: 18px -38px 0; padding: 14px 38px 20px; border-top: 1px solid rgba(90,30,45,.08); background: rgba(255,253,249,.96); backdrop-filter: blur(14px); @apply tw:flex tw:gap-[20px] tw:items-center tw:justify-between; }
 .account-modal-footer p { max-width: 510px; color: var(--muted); @apply tw:text-[.69rem]; line-height: 1.45; }
 .account-modal-footer .modal-actions { @apply tw:m-0 tw:shrink-0; }

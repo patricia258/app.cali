@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CalendarCheck2, Clock3, History, TimerReset } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useLocation } from '../../hooks/useLocation';
@@ -12,6 +12,8 @@ type PerformanceRow={
   delivery_timing:'before_deadline'|'on_time'|'after_deadline'|'open';business_days_from_deadline?:number|null;
   start_timing:'started_early'|'started_on_time'|'started_late'|'unknown';business_days_from_original_deadline?:number|null;total_minutes:number;
 };
+const emptySelection = { protocol: null, target: null };
+const rowSelector = '.front-deliverable-row-v3,.deliverable-list-row-v3,.kanban-v2 button';
 
 function dateTime(value?:string|null){if(!value)return'—';return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(value));}
 function dateOnly(value?:string|null){if(!value)return'—';return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(`${value.slice(0,10)}T12:00:00`));}
@@ -20,17 +22,80 @@ function timingLabel(row:PerformanceRow){const d=Number(row.business_days_from_d
 function startLabel(status:PerformanceRow['start_timing']){return status==='started_early'?'Iniciado antes do planejado':status==='started_on_time'?'Iniciado na data planejada':status==='started_late'?'Iniciado depois do planejado':'Início planejado não definido';}
 
 export function ProjectDeliveryHistoryBridge({role}:{role:Role}){
-  const location=useLocation();const [rows,setRows]=useState<PerformanceRow[]>([]),[target,setTarget]=useState<HTMLElement|null>(null),[domVersion,setDomVersion]=useState(0);
-  const completed=useMemo(()=>rows.filter(r=>r.status==='approved'||Boolean(r.work_closed_at)).sort((a,b)=>new Date(b.completion_at||b.work_closed_at||0).getTime()-new Date(a.completion_at||a.work_closed_at||0).getTime()),[rows]);
+  const location = useLocation();
+  const enabled = role === 'admin' && location.pathname.startsWith('/admin/projetos');
+  const [{ protocol, target }, setSelection] = useState<{ protocol: string | null; target: HTMLElement | null }>(emptySelection);
+  const [performance, setPerformance] = useState<{ protocol: string; rows: PerformanceRow[] } | null>(null);
+  const completed = useMemo(() => (
+    performance?.protocol === protocol ? performance.rows : []
+  ).filter((row) => row.status === 'approved' || Boolean(row.work_closed_at))
+    .sort((left, right) => new Date(right.completion_at || right.work_closed_at || 0).getTime() - new Date(left.completion_at || left.work_closed_at || 0).getTime()), [performance, protocol]);
 
-  const load=useCallback(async()=>{if(role!=='admin'||!supabase||!location.pathname.startsWith('/admin/projetos')){setRows([]);return;}const active=document.querySelector<HTMLElement>('.project-selector-v2 > button.active');const protocol=active?.querySelector('small')?.textContent?.trim();setTarget(document.querySelector<HTMLElement>('.project-history-v2'));if(!protocol)return;const project=await supabase.from('projects').select('id').eq('protocol',protocol).maybeSingle();if(project.error||!project.data?.id)return;const result=await supabase.from('deliverable_delivery_performance').select('*').eq('project_id',project.data.id);if(result.error){console.error('Falha ao carregar desempenho de entregas',result.error);return;}setRows((result.data||[]) as PerformanceRow[]);},[role,location.pathname]);
+  useEffect(() => {
+    if (!enabled) {
+      setSelection(emptySelection);
+      return;
+    }
+    const root = document.getElementById('root');
+    if (!root) return;
+    const closedProtocols = completed.flatMap((row) => row.protocol ? [row.protocol] : []);
+    let frame = 0;
+    const syncProjectDom = () => {
+      frame = 0;
+      const nextProtocol = root.querySelector('.project-selector-v2 > button.active small')?.textContent?.trim() || null;
+      const nextTarget = root.querySelector<HTMLElement>('.project-history-v2');
+      setSelection((current) => current.protocol === nextProtocol && current.target === nextTarget
+        ? current : { protocol: nextProtocol, target: nextTarget });
+      for (const node of root.querySelectorAll<HTMLElement>(rowSelector)) {
+        const closed = nextProtocol === protocol && closedProtocols.some((entry) => node.textContent?.includes(entry));
+        if (node.classList.contains('work-history-hidden') !== closed) node.classList.toggle('work-history-hidden', closed);
+      }
+    };
+    const observer = new MutationObserver(() => {
+      if (!frame) frame = requestAnimationFrame(syncProjectDom);
+    });
+    syncProjectDom();
+    observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [enabled, protocol, completed]);
 
-  useEffect(()=>{void load();const id=window.setInterval(()=>void load(),10000);return()=>window.clearInterval(id);},[load]);
-  useEffect(()=>{if(role!=='admin'||!location.pathname.startsWith('/admin/projetos'))return;let scheduled=false;const obs=new MutationObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;setDomVersion(v=>v+1);});});obs.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});return()=>obs.disconnect();},[role,location.pathname]);
-  useEffect(()=>{void load();},[domVersion,load]);
+  useEffect(() => {
+    const client = supabase;
+    if (!enabled || !client || !protocol) return;
+    let active = true;
+    let busy = false;
+    let projectId: string | null = null;
+    const load = async () => {
+      if (busy) return;
+      busy = true;
+      try {
+        if (!projectId) {
+          const project = await client.from('projects').select('id').eq('protocol', protocol).maybeSingle();
+          if (!active || project.error || !project.data?.id) return;
+          projectId = project.data.id;
+        }
+        const result = await client.from('deliverable_delivery_performance').select('*').eq('project_id', projectId);
+        if (!active) return;
+        if (result.error) {
+          console.error('Falha ao carregar desempenho de entregas', result.error);
+          return;
+        }
+        setPerformance({ protocol, rows: (result.data || []) as PerformanceRow[] });
+      } finally {
+        busy = false;
+      }
+    };
+    void load();
+    const timer = window.setInterval(() => void load(), 10_000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [enabled, protocol]);
 
-  useEffect(()=>{const protocols=new Set(completed.map(r=>r.protocol).filter(Boolean) as string[]);const nodes=Array.from(document.querySelectorAll<HTMLElement>('.front-deliverable-row-v3,.deliverable-list-row-v3,.kanban-v2 button'));nodes.forEach(node=>{const text=node.textContent||'';const closed=Array.from(protocols).some(p=>text.includes(p));node.classList.toggle('work-history-hidden',closed);});},[completed,domVersion]);
-
-  if(role!=='admin'||!target||!completed.length)return null;
+  if(!enabled||!target?.isConnected||!completed.length)return null;
   return createPortal(<section className="project-delivery-history-v14"><header><div><History size={19}/><span><strong>Entregáveis concluídos</strong><small>Prazo planejado × execução real × aprovação do cliente</small></span></div><b>{completed.length}</b></header><div className="project-delivery-history-list">{completed.map(row=>{const approved=Boolean(row.approved_at);return <article key={row.deliverable_id}><div className="project-delivery-history-main"><span className={`delivery-timing-badge ${row.delivery_timing}`}>{timingLabel(row)}</span><small>{row.protocol||'Entregável'}</small><strong>{row.title}</strong><p>{approved?'Aprovado pelo cliente':'Execução encerrada pela CALI · aprovação do cliente pendente'}</p></div><div className="project-delivery-history-dates"><span><CalendarCheck2 size={15}/><em>Início planejado</em><strong>{dateOnly(row.planned_start_date)}</strong></span><span><TimerReset size={15}/><em>Início real</em><strong>{dateTime(row.actual_started_at)}</strong><small>{startLabel(row.start_timing)}</small></span><span><CalendarCheck2 size={15}/><em>Deadline</em><strong>{dateTime(row.effective_due_at)}</strong>{row.original_due_at&&row.original_due_at!==row.effective_due_at&&<small>Original: {dateTime(row.original_due_at)}</small>}</span><span><Clock3 size={15}/><em>{approved?'Aprovado em':'Execução encerrada'}</em><strong>{dateTime(row.completion_at||row.work_closed_at)}</strong><small>{hours(Number(row.total_minutes||0))} registrados</small></span></div></article>;})}</div></section>,target);
 }

@@ -1,4 +1,4 @@
-import { StrictMode, useRef, useState } from 'react';
+import { StrictMode, Suspense, lazy, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { WorkspaceAuthContext } from '../../src/auth/workspaceAuthContext';
 import { AppErrorBoundary } from '../../src/components/feedback/AppErrorBoundary';
@@ -17,6 +17,9 @@ import { LoadingState } from '../../src/components/ds/LoadingState';
 import { StatusBadge } from '../../src/components/ds/StatusBadge';
 import { WorkspaceRouteLoader } from '../../src/components/ds/WorkspaceRouteLoader';
 import { useDialogFocus } from '../../src/components/ds/useDialogFocus';
+import { DeliverableDependencies } from '../../src/components/projects/DeliverableDependencies';
+import { ReportManualComplementsPanel } from '../../src/components/reports/ReportManualComplementsPanel';
+import type { ReportManualComplements } from '../../src/lib/reportManualComplements';
 import { ExpensesFixture, NavigationFixture, RequestFixture } from './calendar-navigation-fixtures';
 
 function ControlsFixture() {
@@ -464,7 +467,29 @@ function WelcomeFixture() {
   );
 }
 
+function DependenciesFixture({ mode }: { mode: 'admin' | 'staff' }) {
+  const [notice, setNotice] = useState('');
+  return <>
+    <DeliverableDependencies
+      mode={mode}
+      companyId="qa-company"
+      deliverableId="qa-delivery"
+      title="Planejamento QA"
+      dueAt="2026-11-12"
+      complexity="MC2"
+      onNotice={setNotice}
+    />
+    <output>{notice}</output>
+  </>;
+}
+
+function ManualComplementsFixture() {
+  const [value, setValue] = useState<ReportManualComplements>({ deliveries: [], timeEntries: [] });
+  return <ReportManualComplementsPanel value={value} onChange={setValue} />;
+}
+
 const fixtures = {
+  variants: lazy(() => import('./visual-variants').then((module) => ({ default: module.VisualVariants }))),
   controls: ControlsFixture,
   tables: TablesFixture,
   states: StatesFixture,
@@ -482,6 +507,9 @@ const fixtures = {
   request: RequestFixture,
   expenses: ExpensesFixture,
   navigation: NavigationFixture,
+  dependencyAdmin: () => <DependenciesFixture mode="admin" />,
+  dependencyStaff: () => <DependenciesFixture mode="staff" />,
+  manualComplements: ManualComplementsFixture,
 };
 const name = (
   location.pathname === '/cliente/cronograma' ? 'request' : new URLSearchParams(location.search).get('fixture')
@@ -490,6 +518,6 @@ const Fixture = fixtures[name];
 if (!Fixture) throw new Error('Fixture desconhecida');
 createRoot(document.getElementById('fixture')!).render(
   <StrictMode>
-    <Fixture />
+    <Suspense fallback={null}><Fixture /></Suspense>
   </StrictMode>,
 );

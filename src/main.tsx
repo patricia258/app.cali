@@ -11,10 +11,8 @@ import './styles/tailwind.css';
 // Arquivo de uma versão anterior que não existe mais (aba aberta durante uma publicação): recarrega uma vez.
 window.addEventListener('vite:preloadError', (event) => { if (reloadOnceForNewVersion()) event.preventDefault(); });
 import { initializeWorkspaceTheme, startWorkspaceThemeClock } from './lib/workspaceTheme';
-import { startIdentityMediaRuntime } from './runtime/workspace/identityMediaRuntime';
 import { installNotificationExperienceRuntime } from './runtime/workspace/notificationExperienceRuntime';
 import { installMentionRuntime } from './runtime/workspace/mentionRuntime';
-import { installCompanyWorkspaceIdentityRuntimeV39 } from './runtime/workspace/companyWorkspaceIdentityRuntimeV39';
 import { applyVisualSystem } from './components/workspace/visualSystem';
 
 function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
@@ -23,10 +21,6 @@ function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
 
 initializeWorkspaceTheme();
 startWorkspaceThemeClock();
-window.setTimeout(() => {
-  startIdentityMediaRuntime();
-  installCompanyWorkspaceIdentityRuntimeV39();
-}, 900);
 installNotificationExperienceRuntime();
 installMentionRuntime();
 

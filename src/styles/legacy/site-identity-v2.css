@@ -24,7 +24,7 @@
 /* ---------- Página inicial: tipografia ---------- */
 .cali-landing :is(h1, h2, h3, h4) {
   font-family: Inter, system-ui, sans-serif !important;
-  font-weight: 700 !important;
+  @apply tw:font-bold!;
   letter-spacing: -0.025em !important;
 }
 .cali-landing .lp-hero-copy h1 { font-size: clamp(2.4rem, 4.6vw, 4rem) !important; line-height: 1.04 !important; }
@@ -32,14 +32,14 @@
 .cali-landing .lp-final-cta h2 { font-size: clamp(1.9rem, 3.4vw, 2.9rem) !important; line-height: 1.08 !important; }
 .cali-landing :is(.lp-audience-card, .lp-package-card) h3 { font-size: clamp(1.45rem, 2.2vw, 1.9rem) !important; line-height: 1.12 !important; }
 .cali-landing :is(.lp-module-card, .lp-steps article) h3 { font-size: 1.02rem !important; line-height: 1.25 !important; }
-.cali-landing :is(.lp-principles strong, .lp-screen-meta strong) { font-family: Inter, system-ui, sans-serif !important; font-weight: 700 !important; letter-spacing: -0.01em; }
+.cali-landing :is(.lp-principles strong, .lp-screen-meta strong) { font-family: Inter, system-ui, sans-serif !important; @apply tw:font-bold!; letter-spacing: -0.01em; }
 .cali-landing .lp-video-identity strong,
 .cali-landing .lp-pati-video strong { font-family: Inter, system-ui, sans-serif !important; }
 
 /* Kicker como no app: pequeno, espaçado, dourado. */
 .cali-landing :is(.lp-kicker, .lp-eyebrow) {
   @apply tw:text-[10.5px]!;
-  font-weight: 700 !important;
+  @apply tw:font-bold!;
   letter-spacing: 0.14em !important;
   color: var(--id-gold) !important;
 }
@@ -52,12 +52,12 @@
 .cali-landing .lp-site-nav-contact {
   border-radius: var(--id-radius-control) !important;
   font-family: Inter, system-ui, sans-serif !important;
-  font-weight: 600 !important;
+  @apply tw:font-semibold!;
   letter-spacing: 0 !important;
   box-shadow: none !important;
 }
 .cali-landing .lp-package-link,
-.cali-landing .lp-text-link { font-weight: 600 !important; letter-spacing: 0 !important; }
+.cali-landing .lp-text-link { @apply tw:font-semibold!; letter-spacing: 0 !important; }
 
 /* ---------- Página inicial: barra de navegação ---------- */
 .cali-landing .lp-site-nav-shell {
@@ -76,7 +76,7 @@
 .cali-landing .lp-package-card,
 .cali-landing .lp-audience-card { border: 1px solid var(--id-line) !important; }
 .cali-landing :is(.lp-package-facts, .lp-term-badge, .lp-package-ribbon, .lp-audience-icon, .lp-card-index) { border-radius: var(--id-radius-control) !important; }
-.cali-landing .lp-package-facts strong { font-family: Inter, system-ui, sans-serif !important; font-weight: 700 !important; }
+.cali-landing .lp-package-facts strong { font-family: Inter, system-ui, sans-serif !important; @apply tw:font-bold!; }
 .cali-landing .lp-photo-slot { box-shadow: 0 8px 24px rgba(39, 24, 28, 0.10) !important; }
 .cali-landing .lp-module-card { border-radius: 0 !important; }
 .cali-landing .lp-steps .lp-step-number,
@@ -89,7 +89,7 @@
 .login-v2 { background: var(--id-canvas) !important; }
 .login-v2 :is(h1, h2) {
   font-family: Inter, system-ui, sans-serif !important;
-  font-weight: 700 !important;
+  @apply tw:font-bold!;
   letter-spacing: -0.025em !important;
 }
 .login-v2 .login-v2-brand {
@@ -104,9 +104,9 @@
 .login-v2 .login-v2-modules li {
   @apply tw:flex tw:items-center tw:gap-[10px]; padding: 9px 12px;
   border: 1px solid rgba(247, 243, 238, 0.14); border-radius: var(--id-radius-control);
-  background: rgba(247, 243, 238, 0.06); color: rgba(247, 243, 238, 0.9); @apply tw:text-[13px]; font-weight: 500;
+  background: rgba(247, 243, 238, 0.06); color: rgba(247, 243, 238, 0.9); @apply tw:text-[13px]; @apply tw:font-medium;
 }
-.login-v2 .login-v2-modules svg { color: var(--id-gold-soft); flex: 0 0 auto; }
+.login-v2 .login-v2-modules svg { color: var(--id-gold-soft); @apply tw:flex-none; }
 
 .login-v2 .login-v2-access {
   background-color: var(--id-canvas) !important;
@@ -119,17 +119,17 @@
   @apply tw:rounded-[16px]!;
   box-shadow: 0 18px 40px rgba(61, 35, 42, 0.08) !important;
 }
-.login-v2 .login-v2-kicker { @apply tw:text-[10.5px]!; letter-spacing: 0.14em !important; color: var(--id-gold) !important; font-weight: 700 !important; }
+.login-v2 .login-v2-kicker { @apply tw:text-[10.5px]!; letter-spacing: 0.14em !important; color: var(--id-gold) !important; @apply tw:font-bold!; }
 .login-v2 .login-v2-card h2 { font-size: clamp(1.6rem, 2.4vw, 2rem) !important; line-height: 1.12 !important; color: var(--id-ink) !important; }
 .login-v2 .login-v2-card-copy { color: var(--id-muted) !important; @apply tw:text-[14px]!; line-height: 1.55 !important; }
-.login-v2 .login-v2-field > span { @apply tw:text-[12px]!; font-weight: 600 !important; color: var(--id-text) !important; letter-spacing: 0 !important; }
+.login-v2 .login-v2-field > span { @apply tw:text-[12px]!; @apply tw:font-semibold!; color: var(--id-text) !important; letter-spacing: 0 !important; }
 .login-v2 .login-v2-input-wrap { border-radius: var(--id-radius-control) !important; border: 1px solid #e3d6cc !important; background: #fff !important; box-shadow: none !important; }
 .login-v2 .login-v2-input-wrap:focus-within { border-color: var(--id-burgundy) !important; box-shadow: 0 0 0 3px rgba(90, 30, 45, 0.10) !important; }
 .login-v2 .login-v2-submit {
   border-radius: var(--id-radius-control) !important;
   background: var(--id-burgundy) !important;
   box-shadow: none !important;
-  font-weight: 600 !important;
+  @apply tw:font-semibold!;
   letter-spacing: 0 !important;
 }
 .login-v2 .login-v2-submit:disabled { background: #b9a2a8 !important; }
@@ -137,8 +137,8 @@
 .login-v2 .login-v2-steps { @apply tw:flex tw:gap-[6px]; margin: 0 0 14px; }
 .login-v2 .login-v2-steps span { @apply tw:h-[4px] tw:flex-1 tw:rounded-[99px]; background: #eee3dc; }
 .login-v2 .login-v2-steps span.on { background: var(--id-burgundy); }
-.cali-landing .lp-card-index { font-family: Inter, system-ui, sans-serif !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
-.cali-landing .lp-hero-login { border-radius: var(--id-radius-control) !important; font-family: Inter, system-ui, sans-serif !important; font-weight: 600 !important; letter-spacing: 0 !important; }
+.cali-landing .lp-card-index { font-family: Inter, system-ui, sans-serif !important; @apply tw:font-bold!; letter-spacing: -0.02em !important; }
+.cali-landing .lp-hero-login { border-radius: var(--id-radius-control) !important; font-family: Inter, system-ui, sans-serif !important; @apply tw:font-semibold!; letter-spacing: 0 !important; }
 @media (max-width: 760px) { .login-v2 .login-v2-modules { @apply tw:hidden; } }
 /* Fotos do carrossel: a foto ocupa o quadro inteiro (uma regra antiga do desenho da marca deslocava a imagem 12px e
    deixava uma faixa bordô embaixo) e sem o escurecimento por cima. */
@@ -149,7 +149,7 @@
 /* ---------- Hero (15/10): faixa bordô como os cartões de destaque do app, tela real da Visão geral e
    dois cartões flutuantes. A entrada em cascata (data-lp-reveal) e a inclinação ao passar o mouse continuam. ---------- */
 .cali-landing .lp-hero {
-  color: #f7f3ee !important;
+  @apply tw:text-cali-day-canvas!;
   background:
     radial-gradient(ellipse 50% 60% at 82% 38%, rgba(231, 198, 111, 0.16), transparent 72%),
     radial-gradient(ellipse 60% 70% at 8% 90%, rgba(181, 140, 82, 0.14), transparent 70%),
@@ -167,13 +167,13 @@
 .cali-landing .lp-hero-secondary {
   @apply tw:inline-flex tw:items-center tw:gap-[8px]; padding: 0 18px; @apply tw:min-h-[52px];
   border: 1px solid rgba(247, 243, 238, 0.28); border-radius: var(--id-radius-control);
-  color: #f7f3ee; font-weight: 600; text-decoration: none; transition: background .2s ease, border-color .2s ease;
+  @apply tw:text-cali-day-canvas; @apply tw:font-semibold; text-decoration: none; transition: background .2s ease, border-color .2s ease;
 }
 .cali-landing .lp-hero-secondary:hover { background: rgba(247, 243, 238, 0.08); border-color: rgba(247, 243, 238, 0.45); }
 .cali-landing .lp-hero-proof { list-style: none; @apply tw:p-0; margin: 34px 0 0; @apply tw:flex tw:gap-0 tw:flex-wrap; }
 .cali-landing .lp-hero-proof li { @apply tw:grid tw:gap-[2px]; padding: 0 22px; border-left: 1px solid rgba(247, 243, 238, 0.18); }
 .cali-landing .lp-hero-proof li:first-child { @apply tw:pl-0; border-left: 0; }
-.cali-landing .lp-hero-proof strong { color: #fffaf3; font-size: 0.95rem; font-weight: 700; }
+.cali-landing .lp-hero-proof strong { color: #fffaf3; font-size: 0.95rem; @apply tw:font-bold; }
 .cali-landing .lp-hero-proof span { color: rgba(247, 243, 238, 0.62); font-size: 0.8rem; }
 
 .cali-landing .lp-hero-screen-stage { @apply tw:relative; border-radius: var(--id-radius-card) !important; @apply tw:overflow-visible!; border: 1px solid rgba(247, 243, 238, 0.16) !important; box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.55), 0 12px 30px rgba(0, 0, 0, 0.18) !important; }
@@ -184,8 +184,8 @@
   box-shadow: 0 18px 40px rgba(20, 8, 12, 0.28); color: var(--id-ink); font-family: Inter, system-ui, sans-serif;
   animation: lp-hero-chip-float 6s ease-in-out infinite;
 }
-.cali-landing .lp-hero-chip small { @apply tw:block tw:text-[9.5px]; font-weight: 700; letter-spacing: 0.12em; color: var(--id-gold); }
-.cali-landing .lp-hero-chip strong { @apply tw:block tw:text-[13px]; font-weight: 700; @apply tw:mt-[2px]; }
+.cali-landing .lp-hero-chip small { @apply tw:block tw:text-[9.5px]; @apply tw:font-bold; letter-spacing: 0.12em; color: var(--id-gold); }
+.cali-landing .lp-hero-chip strong { @apply tw:block tw:text-[13px]; @apply tw:font-bold; @apply tw:mt-[2px]; }
 .cali-landing .lp-hero-chip .dot { @apply tw:w-[10px] tw:h-[10px] tw:rounded-[50%]; background: #e0a43a; box-shadow: 0 0 0 4px rgba(224, 164, 58, 0.2); }
 .cali-landing .lp-hero-chip-a { @apply tw:left-[-28px]; bottom: 18%; }
 .cali-landing .lp-hero-chip-b { right: -22px; top: 14%; @apply tw:flex-col tw:items-stretch tw:min-w-[170px]; animation-delay: -3s; }
@@ -202,11 +202,11 @@
 /* ---------- Entrada (15/10, rodada 2): rodapé de uma linha, ajuda de acesso, botões do código,
    entrada em cascata e celular. ---------- */
 .login-v2 .login-v2-footer-compact {
-  grid-column: 1 / -1; @apply tw:flex tw:items-center tw:justify-between tw:gap-[12px] tw:flex-wrap;
+  @apply tw:col-span-full; @apply tw:flex tw:items-center tw:justify-between tw:gap-[12px] tw:flex-wrap;
   padding: 10px 28px; border-top: 1px solid var(--id-line); background: #fffdfa; @apply tw:text-[12px]; color: var(--id-muted);
 }
 .login-v2 .login-v2-footer-compact nav { @apply tw:flex tw:gap-[16px] tw:flex-wrap; }
-.login-v2 .login-v2-footer-compact a { color: var(--id-muted); text-decoration: none; font-weight: 500; }
+.login-v2 .login-v2-footer-compact a { color: var(--id-muted); text-decoration: none; @apply tw:font-medium; }
 .login-v2 .login-v2-footer-compact a:hover { color: var(--id-burgundy); }
 
 .login-v2 .login-v2-code-actions { @apply tw:flex tw:gap-[8px] tw:mt-[12px] tw:p-0; border: 0; }
@@ -230,9 +230,9 @@
 .login-v2 .login-v2-help-actions a {
   @apply tw:flex-1 tw:inline-flex tw:items-center tw:justify-center tw:gap-[6px] tw:min-h-[36px];
   border-radius: var(--id-radius-control); border: 1px solid #e3d6cc; background: #fff; color: var(--id-burgundy);
-  font-weight: 600; text-decoration: none;
+  @apply tw:font-semibold; text-decoration: none;
 }
-.login-v2 .login-v2-help-actions a:first-child { background: var(--id-burgundy); border-color: var(--id-burgundy); color: #fff; }
+.login-v2 .login-v2-help-actions a:first-child { background: var(--id-burgundy); border-color: var(--id-burgundy); @apply tw:text-white; }
 
 /* Entrada em cascata: cada bloco sobe ao abrir a tela. */
 @keyframes login-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
@@ -280,5 +280,5 @@
 @media (max-width: 760px) {
   .cali-landing .lp-hero-ctas { @apply tw:flex-nowrap tw:gap-[8px] tw:w-full; }
   .cali-landing .lp-hero-ctas > * { flex: 1 1 0; @apply tw:min-w-0; max-width: 50%; @apply tw:box-border tw:min-h-[48px]!; padding: 6px 10px !important; @apply tw:justify-center! tw:text-center tw:text-[13px]!; line-height: 1.2 !important; @apply tw:whitespace-normal tw:gap-[6px]!; }
-  .cali-landing .lp-hero-ctas svg { @apply tw:w-[15px] tw:h-[15px]; flex: 0 0 auto; }
+  .cali-landing .lp-hero-ctas svg { @apply tw:w-[15px] tw:h-[15px]; @apply tw:flex-none; }
 }

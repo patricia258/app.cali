@@ -6,6 +6,10 @@
 @theme inline {
   --color-cali-brand: var(--cali-color-burgundy);
   --color-cali-gold: var(--cali-color-gold);
+  --color-cali-paper: var(--cali-color-paper);
+  --color-cali-ink: var(--cali-color-ink);
+  --color-cali-day-canvas: var(--cali-color-canvas);
+  --color-cali-day-muted: var(--cali-color-muted);
   --color-cali-canvas: var(--theme-page, var(--cali-color-canvas));
   --color-cali-surface: var(--theme-surface, var(--cali-color-paper));
   --color-cali-text: var(--theme-text, var(--cali-color-ink));

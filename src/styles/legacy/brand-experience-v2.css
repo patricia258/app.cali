@@ -16,7 +16,7 @@
   opacity: 1 !important;
   @apply tw:visible!;
   transform: none !important;
-  color: #f7f3ee !important;
+  @apply tw:text-cali-day-canvas!;
   @apply tw:items-center! tw:justify-center!;
 }
 
@@ -28,7 +28,7 @@
 
 .sidebar .brand-compact-slide .brand-compact-art {
   @apply tw:w-[42px]! tw:h-[42px]! tw:m-0!;
-  color: #f7f3ee !important;
+  @apply tw:text-cali-day-canvas!;
   @apply tw:bg-current!;
 }
 

@@ -5,8 +5,8 @@
 .project-account-navigator-v36{@apply tw:grid tw:gap-[12px];margin:12px 0 18px}
 .portfolio-head-v36{@apply tw:flex tw:items-center tw:justify-between tw:gap-[12px] tw:flex-wrap}
 .portfolio-tabs-v36{@apply tw:inline-flex tw:items-center tw:gap-[4px] tw:p-[4px];border:1px solid var(--theme-line);@apply tw:rounded-[13px];background:var(--theme-surface-soft)}
-.portfolio-tabs-v36 button{@apply tw:h-[34px];padding:0 14px;border:0;@apply tw:rounded-[9px];background:transparent;@apply tw:text-cali-muted;font:inherit;@apply tw:text-[11px];font-weight:800;@apply tw:cursor-pointer}
-.portfolio-tabs-v36 button.active{background:var(--theme-surface);color:#5A1E2D;box-shadow:0 3px 12px rgba(48,31,35,.08)}
+.portfolio-tabs-v36 button{@apply tw:h-[34px];padding:0 14px;border:0;@apply tw:rounded-[9px];background:transparent;@apply tw:text-cali-muted;font:inherit;@apply tw:text-[11px];@apply tw:font-extrabold;@apply tw:cursor-pointer}
+.portfolio-tabs-v36 button.active{background:var(--theme-surface);@apply tw:text-cali-brand;box-shadow:0 3px 12px rgba(48,31,35,.08)}
 .portfolio-head-v36>select{min-width:205px;@apply tw:h-[42px];padding:0 35px 0 13px;border:1px solid var(--theme-line);@apply tw:rounded-[12px];background:var(--theme-surface);@apply tw:text-cali-text;font:inherit;@apply tw:text-[12px]}
 .portfolio-groups-v36{@apply tw:grid tw:gap-[10px]}
 .portfolio-company-v36{@apply tw:grid;grid-template-columns:170px minmax(0,1fr);@apply tw:items-stretch;border:1px solid var(--theme-line);@apply tw:rounded-[15px];background:color-mix(in srgb,var(--theme-surface) 94%,var(--theme-surface-soft));@apply tw:overflow-hidden}
@@ -25,11 +25,11 @@
 .project-forecast-v36{@apply tw:flex tw:items-start tw:gap-[16px] tw:flex-wrap tw:mt-[13px] tw:pt-[12px];border-top:1px solid rgba(255,255,255,.17)}
 .project-forecast-v36>div{@apply tw:grid tw:gap-[2px];min-width:128px}
 .project-forecast-v36>div span{@apply tw:text-[9px]!;letter-spacing:.06em;@apply tw:uppercase;opacity:.74}
-.project-forecast-v36>div strong{@apply tw:text-[12px];color:#fff}
+.project-forecast-v36>div strong{@apply tw:text-[12px];@apply tw:text-white}
 .project-forecast-v36>p{flex:1 1 260px;@apply tw:m-0! tw:text-[10.5px]!;line-height:1.45!important;color:rgba(255,255,255,.77)!important}
 .project-forecast-v36 .forecast-impact-v36{padding:8px 10px;border:1px solid rgba(255,231,182,.28);@apply tw:rounded-[9px];background:rgba(255,236,195,.1);color:#fff5df!important}
 
-.planning-intelligence-modal-v36 .planning-helper-v36,.planning-front-modal-v36 .planning-helper-v36{@apply tw:block tw:mt-[5px] tw:text-[9.5px];line-height:1.4;@apply tw:text-cali-muted;font-weight:500}
+.planning-intelligence-modal-v36 .planning-helper-v36,.planning-front-modal-v36 .planning-helper-v36{@apply tw:block tw:mt-[5px] tw:text-[9.5px];line-height:1.4;@apply tw:text-cali-muted;@apply tw:font-medium}
 .front-draft-row .front-catalog-select-v36{min-width:225px;@apply tw:h-[46px];border:1px solid var(--theme-line);@apply tw:rounded-[8px];background:var(--theme-surface);padding:0 32px 0 10px;@apply tw:text-cali-text;font:inherit;@apply tw:text-[12px]}
 .front-draft-row .front-native-hidden-v36{@apply tw:hidden!}
 .front-draft-row input[data-front-native-v36="1"]:not(.front-native-hidden-v36){min-width:210px}
@@ -41,10 +41,10 @@
 .planning-front-modal-v36 input.front-native-hidden-v36{@apply tw:hidden!}
 
 .deadline-intelligence-v36{@apply tw:flex tw:items-center tw:justify-between tw:gap-[16px];margin:13px 0 3px;padding:13px 14px;border:1px solid color-mix(in srgb,#B58C52 38%,var(--theme-line));@apply tw:rounded-[13px];background:linear-gradient(135deg,color-mix(in srgb,#B58C52 9%,var(--theme-surface)),var(--theme-surface));box-shadow:0 5px 16px rgba(70,48,27,.04)}
-.deadline-intelligence-v36>div{@apply tw:grid tw:gap-[3px]}.deadline-intelligence-v36>div>span{@apply tw:text-[8.5px];font-weight:900;letter-spacing:.11em;color:#8f6b36}.deadline-intelligence-v36 strong{@apply tw:text-[12.5px] tw:text-cali-text}
+.deadline-intelligence-v36>div{@apply tw:grid tw:gap-[3px]}.deadline-intelligence-v36>div>span{@apply tw:text-[8.5px];@apply tw:font-black;letter-spacing:.11em;color:#8f6b36}.deadline-intelligence-v36 strong{@apply tw:text-[12.5px] tw:text-cali-text}
 .deadline-intelligence-v36 p{@apply tw:m-0 tw:text-[10px];line-height:1.45;@apply tw:text-cali-muted}
 .deadline-intelligence-v36 em{@apply tw:not-italic tw:text-[9.5px];font-weight:750;color:#9b3b50}
-.deadline-intelligence-v36>button{@apply tw:h-[38px];flex:0 0 auto;padding:0 12px;border:1px solid #7c3347;@apply tw:rounded-[10px];background:#5A1E2D;color:#fff;font:inherit;@apply tw:text-[10.5px];font-weight:800;@apply tw:cursor-pointer}
+.deadline-intelligence-v36>button{@apply tw:h-[38px];@apply tw:flex-none;padding:0 12px;border:1px solid #7c3347;@apply tw:rounded-[10px];background:#5A1E2D;@apply tw:text-white;font:inherit;@apply tw:text-[10.5px];@apply tw:font-extrabold;@apply tw:cursor-pointer}
 
 .roadmap-v2>header{@apply tw:relative}.roadmap-add-front-v36{@apply tw:self-start tw:ml-auto tw:whitespace-nowrap}
 .front-deliverable-row-v3.draft-editable-v36{grid-template-columns:minmax(0,1fr) auto auto auto auto!important}

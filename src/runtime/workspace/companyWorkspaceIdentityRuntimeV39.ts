@@ -1,14 +1,7 @@
 import { backfillWorkspaceLogos, loadCompanyLogoRegistry } from '../../lib/companyWorkspaceLogo';
-import { installHoursCompanyLogoRuntimeV41 } from '../hours/hoursCompanyLogoRuntimeV41';
 import { supabase } from '../../api/supabase';
 
-let installed = false;
-let observer: MutationObserver | null = null;
-let scanTimer = 0;
-let registryTimer = 0;
-let lastRegistryAt = 0;
-let registry = new Map<string, { resolved: string; id: string }>();
-let companyChannel: ReturnType<NonNullable<typeof supabase>['channel']> | null = null;
+type CompanyRegistry = Map<string, { resolved: string; id: string }>;
 
 const COMPANY_TILE_SELECTORS = [
   '.company-logo-slot',
@@ -46,7 +39,7 @@ function companyNameFromImage(image: HTMLImageElement) {
   return container?.querySelector<HTMLElement>('strong,h2,h3')?.textContent?.trim() || '';
 }
 
-function companyNameFromContext(tile: HTMLElement) {
+function companyNameFromContext(tile: HTMLElement, registry: CompanyRegistry) {
   const image = tile.querySelector<HTMLImageElement>('img');
   const imageName = image ? companyNameFromImage(image) : '';
   if (imageName) return imageName;
@@ -75,14 +68,6 @@ function companyNameFromContext(tile: HTMLElement) {
   return '';
 }
 
-async function refreshRegistry(force = false) {
-  if (document.visibilityState === 'hidden') return;
-  if (!force && Date.now() - lastRegistryAt < 2500) return;
-  lastRegistryAt = Date.now();
-  const loaded = await loadCompanyLogoRegistry();
-  registry = loaded.byName;
-}
-
 function applyResolvedTile(tile: HTMLElement, resolved: string) {
   tile.classList.add('workspace-company-logo-tile-v39');
   tile.dataset.companyLogoResolved = 'true';
@@ -105,10 +90,10 @@ function applyResolvedTile(tile: HTMLElement, resolved: string) {
   tile.style.textShadow = 'none';
 }
 
-function decorateTile(tile: HTMLElement) {
+function decorateTile(tile: HTMLElement, registry: CompanyRegistry) {
   if (isReportArea(tile)) return;
   tile.classList.add('workspace-company-logo-tile-v39');
-  const name = companyNameFromContext(tile);
+  const name = companyNameFromContext(tile, registry);
   if (!name) return;
   const entry = registry.get(key(name));
   const image = tile.querySelector<HTMLImageElement>('img');
@@ -119,47 +104,61 @@ function decorateTile(tile: HTMLElement) {
   applyResolvedTile(tile, entry.resolved);
 }
 
-function scan() {
-  window.clearTimeout(scanTimer);
-  scanTimer = window.setTimeout(async () => {
-    await refreshRegistry();
-    document.querySelectorAll<HTMLElement>(COMPANY_TILE_SELECTORS).forEach(decorateTile);
-  }, 70);
-}
+export function installCompanyWorkspaceIdentityRuntimeV39(signal: AbortSignal) {
+  if (signal.aborted) return;
+  const db = supabase;
+  const uploadTimers = new Set<number>();
+  let scanTimer = 0;
+  let registryTimer = 0;
+  let lastRegistryAt = 0;
+  let registry: CompanyRegistry = new Map();
 
-function watchLogoInputs() {
+  async function refreshRegistry(force = false) {
+    if (signal.aborted || document.visibilityState === 'hidden') return;
+    if (!force && Date.now() - lastRegistryAt < 2500) return;
+    lastRegistryAt = Date.now();
+    const loaded = await loadCompanyLogoRegistry(signal);
+    if (!signal.aborted) registry = loaded.byName;
+  }
+
+  function scan() {
+    if (signal.aborted) return;
+    window.clearTimeout(scanTimer);
+    scanTimer = window.setTimeout(async () => {
+      await refreshRegistry();
+      if (!signal.aborted) document.querySelectorAll<HTMLElement>(COMPANY_TILE_SELECTORS)
+        .forEach((tile) => decorateTile(tile, registry));
+    }, 70);
+  }
+
+  async function update(limit: number) {
+    await backfillWorkspaceLogos(limit, signal);
+    await refreshRegistry(true);
+    scan();
+  }
+
   document.addEventListener('change', (event) => {
     const target = event.target;
-    if (!(target instanceof HTMLInputElement) || target.type !== 'file') return;
-    if (!target.closest('.logo-upload-button')) return;
-    window.setTimeout(() => void backfillWorkspaceLogos(2), 2500);
-    window.setTimeout(() => void backfillWorkspaceLogos(2), 7000);
-  }, true);
-}
+    if (!(target instanceof HTMLInputElement) || target.type !== 'file' || !target.closest('.logo-upload-button')) return;
+    for (const delay of [2500, 7000]) {
+      const timer = window.setTimeout(() => {
+        uploadTimers.delete(timer);
+        void backfillWorkspaceLogos(2, signal);
+      }, delay);
+      uploadTimers.add(timer);
+    }
+  }, { capture: true, signal });
 
-async function startCompanyRealtime() {
-  if (!supabase || companyChannel) return;
-  companyChannel = supabase.channel('company-workspace-identity-v39')
+  const companyChannel = db?.channel('company-workspace-identity-v39')
     .on('postgres_changes', { event: '*', schema: 'cali_workspace', table: 'companies' }, () => {
+      if (signal.aborted) return;
       lastRegistryAt = 0;
       window.clearTimeout(registryTimer);
-      registryTimer = window.setTimeout(async () => {
-        await backfillWorkspaceLogos(2);
-        await refreshRegistry(true);
-        scan();
-      }, 700);
+      registryTimer = window.setTimeout(() => void update(2), 700);
     })
     .subscribe();
-}
-
-export function installCompanyWorkspaceIdentityRuntimeV39() {
-  if (installed || typeof window === 'undefined') return;
-  installed = true;
-  installHoursCompanyLogoRuntimeV41();
-  watchLogoInputs();
-  void startCompanyRealtime();
-  void backfillWorkspaceLogos(3).then(() => refreshRegistry(true)).then(scan);
-  observer = new MutationObserver((mutations) => {
+  void update(3);
+  const observer = new MutationObserver((mutations) => {
     if (mutations.every((mutation) => {
       const target = mutation.target instanceof Element ? mutation.target : null;
       return Boolean(target?.closest('.workspace-company-logo-tile-v39'));
@@ -169,7 +168,16 @@ export function installCompanyWorkspaceIdentityRuntimeV39() {
   observer.observe(document.body, { childList: true, subtree: true });
   window.addEventListener('focus', () => {
     lastRegistryAt = 0;
-    void backfillWorkspaceLogos(2).then(() => refreshRegistry(true)).then(scan);
-  });
+    void update(2);
+  }, { signal });
+  signal.addEventListener('abort', () => {
+    observer.disconnect();
+    window.clearTimeout(scanTimer);
+    window.clearTimeout(registryTimer);
+    for (const timer of uploadTimers) window.clearTimeout(timer);
+    uploadTimers.clear();
+    registry.clear();
+    if (db && companyChannel) void db.removeChannel(companyChannel);
+  }, { once: true });
   scan();
 }

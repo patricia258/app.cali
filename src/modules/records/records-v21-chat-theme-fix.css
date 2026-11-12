@@ -20,8 +20,8 @@
 }
 .records-v13-drawer .records-chat-line.role-admin .records-chat-bubble{
   background:#5A1E2D!important;
-  border-color:#5A1E2D!important;
-  color:#fff!important;
+  @apply tw:border-cali-brand!;
+  @apply tw:text-white!;
 }
 .records-v13-drawer .records-chat-line.role-client .records-chat-bubble{
   background:#F2D89D!important;
@@ -34,17 +34,17 @@
 .records-v13-drawer .conversation-compose textarea{
   background:#FFFDFC!important;
   border-color:#DCCFC4!important;
-  color:#2B2B2B!important;
+  @apply tw:text-cali-ink!;
 }
 .records-v13-drawer .records-chat-tools>button{
   background:#FFFDFC!important;
   border-color:#DED1C7!important;
-  color:#5A1E2D!important;
+  @apply tw:text-cali-brand!;
   @apply tw:text-[19px]!;
 }
 .records-v13-drawer .records-chat-tools>button:hover{
   background:#F6EBDD!important;
-  border-color:#B58C52!important;
+  @apply tw:border-cali-gold!;
 }
 .records-v13-drawer .records-chat-emoji-picker{
   @apply tw:z-10060!;
@@ -61,7 +61,7 @@
 
 [data-workspace-theme='night'] .records-v13-drawer{
   background:#1D1518!important;
-  color:#F7F3EE!important;
+  @apply tw:text-cali-day-canvas!;
 }
 [data-workspace-theme='night'] .records-v13-drawer>header,
 [data-workspace-theme='night'] .records-v13-drawer-meta,
@@ -77,7 +77,7 @@
 [data-workspace-theme='night'] .records-v13-drawer .records-chat-tools>button{
   background:#2A1D21!important;
   border-color:#4A343B!important;
-  color:#F7F3EE!important;
+  @apply tw:text-cali-day-canvas!;
 }
 [data-workspace-theme='night'] .records-v13-drawer .records-chat-emoji-picker{
   background:#2A1D21!important;

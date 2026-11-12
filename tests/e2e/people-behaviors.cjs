@@ -15,6 +15,43 @@ function endpoint(context, pathname, method, handler) {
 
 const cases = [
   {
+    id: '17-mapa-report-mobile-actions-and-iframe',
+    role: 'admin',
+    width: 390,
+    async run({ page, context, origin, snapshot }) {
+      const loads = [];
+      await context.route('https://mapa.calirh.com/relatorio.html?**', (route) => {
+        const url = new URL(route.request().url());
+        loads.push(Object.fromEntries(url.searchParams));
+        return route.fulfill({ contentType: 'text/html', body: `<!doctype html><meta charset="utf-8">
+          <h1 style="margin-top:70px">Relatório de Mapa QA</h1><p id="status"></p>
+          <script>window.addEventListener('message', (event) => {
+            if (event.data?.type === 'CALI_MAPA_PRINT_REQUEST') document.querySelector('#status').textContent = 'Impressão solicitada';
+          });</script>` });
+      });
+      await page.goto(origin + '/admin/mapa-de-people/relatorio/qa-map');
+      const frame = page.frameLocator('iframe[title="Mapa de People — Relatório oficial"]');
+      await frame.getByRole('heading', { name: 'Relatório de Mapa QA' }).waitFor();
+      const print = page.getByRole('button', { name: 'Imprimir / Salvar PDF' });
+      const refresh = page.getByRole('button', { name: 'Atualizar', exact: true });
+      const original = page.getByRole('link', { name: 'Abrir original' });
+      const back = page.getByRole('button', { name: 'Painel do Mapa' });
+      for (const action of [back, refresh, original, print]) {
+        const box = await action.boundingBox();
+        assert.ok(box && box.x >= 0 && box.x + box.width <= 390, 'Ação do relatório cortada em 390 px');
+      }
+      assert.equal(await original.getAttribute('href'), 'https://mapa.calirh.com/relatorio.html?id=qa-map');
+      await snapshot('relatorio-mobile');
+      await print.click();
+      await frame.getByText('Impressão solicitada').waitFor();
+      await refresh.click();
+      await frame.getByRole('heading', { name: 'Relatório de Mapa QA' }).waitFor();
+      assert.deepEqual(loads, ['0', '1'].map((v) => ({ id: 'qa-map', workspace: '1', v })));
+      await back.click();
+      await page.waitForURL((url) => url.pathname === '/admin/mapa-de-people');
+    },
+  },
+  {
     id: '08-team-private-fields-by-role',
     role: 'client',
     async run({ page, context, origin, openActor }) {

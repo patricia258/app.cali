@@ -17,7 +17,7 @@ html[data-workspace-theme='night'] select.people-map-status {
   @apply tw:rounded-[999px]!;
   border-width: 1px !important;
   border-style: solid !important;
-  font-weight: 800 !important;
+  @apply tw:font-extrabold!;
   line-height: 1.2 !important;
   color-scheme: dark !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='%23F7F3EE' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
@@ -63,7 +63,7 @@ html[data-workspace-theme='night'] .people-map-open {
   border: 1px solid rgba(208,138,157,.18) !important;
   @apply tw:rounded-[10px]!;
   padding: 8px 10px !important;
-  font-weight: 800 !important;
+  @apply tw:font-extrabold!;
   text-decoration: none !important;
 }
 html[data-workspace-theme='night'] .people-map-open:hover {
@@ -110,12 +110,12 @@ html[data-workspace-theme='night'] .people-map-open:hover {
   border:0 !important;
   @apply tw:rounded-[11px]!;
   background:#f0e9e2 !important;
-  color:#5a1e2d !important;
+  @apply tw:text-cali-brand!;
 }
 .people-map-email-form {@apply tw:grid tw:gap-[15px] tw:mb-[16px]}
 .people-map-email-form .stacked-label {@apply tw:grid tw:gap-[7px] tw:text-[.76rem];font-weight:750;color:#3a3033}
-.people-map-email-form .stacked-label > small {@apply tw:text-[.67rem];font-weight:500;line-height:1.4;color:#8e8184}
-.people-map-email-form .stacked-label em {@apply tw:not-italic;font-weight:500;color:#9e9093}
+.people-map-email-form .stacked-label > small {@apply tw:text-[.67rem];@apply tw:font-medium;line-height:1.4;color:#8e8184}
+.people-map-email-form .stacked-label em {@apply tw:not-italic;@apply tw:font-medium;color:#9e9093}
 .people-map-recipient-list {@apply tw:grid tw:gap-[7px]}
 .people-map-recipient-row {
   @apply tw:min-h-[44px] tw:grid;
@@ -133,20 +133,20 @@ html[data-workspace-theme='night'] .people-map-open:hover {
   border:0 !important;
   outline:0 !important;
   background:transparent !important;
-  color:#2b2b2b !important;
+  @apply tw:text-cali-ink!;
   @apply tw:text-[.79rem]!;
 }
 .people-map-recipient-row button {
   @apply tw:w-[32px] tw:h-[32px] tw:grid tw:place-items-center;border:0;@apply tw:rounded-[9px];background:transparent;color:#9a858b;@apply tw:p-0
 }
-.people-map-recipient-row button:hover {background:rgba(90,30,45,.07);color:#5a1e2d}
+.people-map-recipient-row button:hover {background:rgba(90,30,45,.07);@apply tw:text-cali-brand}
 .people-map-add-recipient {
   @apply tw:w-max tw:min-h-[34px] tw:inline-flex tw:items-center tw:gap-[6px];
   padding:0 10px;
   border:1px solid rgba(90,30,45,.16);
   @apply tw:rounded-[9px];
   background:#fffdf9;
-  color:#5a1e2d;
+  @apply tw:text-cali-brand;
   @apply tw:text-[.7rem];
   font-weight:750;
 }
@@ -157,7 +157,7 @@ html[data-workspace-theme='night'] .people-map-open:hover {
   background:rgba(90,30,45,.035);
   border:1px solid rgba(90,30,45,.08);
 }
-.people-map-email-subject span {@apply tw:text-[.62rem];letter-spacing:.08em;@apply tw:uppercase;color:#9b8d90;font-weight:800}
+.people-map-email-subject span {@apply tw:text-[.62rem];letter-spacing:.08em;@apply tw:uppercase;color:#9b8d90;@apply tw:font-extrabold}
 .people-map-email-subject strong {@apply tw:text-[.75rem];color:#514649;font-weight:650}
 .people-map-email-form textarea {
   @apply tw:w-full! tw:min-h-[82px]! tw:resize-y!;
@@ -165,7 +165,7 @@ html[data-workspace-theme='night'] .people-map-open:hover {
   border:1px solid #e6ddd4 !important;
   @apply tw:rounded-[11px]!;
   background:#fff !important;
-  color:#2b2b2b !important;
+  @apply tw:text-cali-ink!;
   @apply tw:text-[.78rem]!;
   line-height:1.5 !important;
   outline:0 !important;
@@ -181,19 +181,19 @@ html[data-workspace-theme='night'] .people-map-open:hover {
 html[data-workspace-theme='night'] .people-map-send-layer > .people-map-send-modal {
   background:#21191d !important;
   border-color:#49373e !important;
-  color:#f7f3ee !important;
+  @apply tw:text-cali-day-canvas!;
 }
 html[data-workspace-theme='night'] .people-map-send-modal > h2,
-html[data-workspace-theme='night'] .people-map-email-form .stacked-label {color:#f7f3ee !important}
+html[data-workspace-theme='night'] .people-map-email-form .stacked-label {@apply tw:text-cali-day-canvas!}
 html[data-workspace-theme='night'] .people-map-send-modal > p,
 html[data-workspace-theme='night'] .people-map-email-form .stacked-label > small {color:#bcaeb1 !important}
 html[data-workspace-theme='night'] .people-map-recipient-row,
 html[data-workspace-theme='night'] .people-map-email-form textarea {
   background:#1b1518 !important;
   border-color:#49373e !important;
-  color:#f7f3ee !important;
+  @apply tw:text-cali-day-canvas!;
 }
-html[data-workspace-theme='night'] .people-map-recipient-row input {color:#f7f3ee !important}
+html[data-workspace-theme='night'] .people-map-recipient-row input {@apply tw:text-cali-day-canvas!}
 html[data-workspace-theme='night'] .people-map-email-subject {background:#241b1f;border-color:#49373e}
 html[data-workspace-theme='night'] .people-map-email-subject strong {color:#e1d6d8}
 html[data-workspace-theme='night'] .people-map-add-recipient {background:#241b1f;color:#efcad3;border-color:#574149}
@@ -286,7 +286,7 @@ html[data-workspace-theme='night'] .sidebar.mobile-open {
   background-repeat: no-repeat,no-repeat !important;
   background-position: center center,center center !important;
   background-size: cover,cover !important;
-  color: #5a1e2d !important;
+  @apply tw:text-cali-brand!;
   border-right: 1px solid rgba(90,30,45,.12) !important;
   box-shadow: 16px 0 44px rgba(18,12,14,.18) !important;
 }
@@ -309,7 +309,7 @@ html[data-workspace-theme='night'] .sidebar nav a:hover,
 html[data-workspace-theme='night'] .sidebar nav a.active,
 html[data-workspace-theme='night'] .sidebar .sidebar-pin:hover,
 html[data-workspace-theme='night'] .sidebar .profile-trigger:hover {
-  color: #5a1e2d !important;
+  @apply tw:text-cali-brand!;
   background: rgba(90,30,45,.085) !important;
 }
 html[data-workspace-theme='night'] .sidebar nav a.active {
@@ -321,8 +321,8 @@ html[data-workspace-theme='night'] .sidebar .sidebar-pin {
 }
 html[data-workspace-theme='night'] .sidebar .brand-compact-slide,
 html[data-workspace-theme='night'] .sidebar .brand-compact-art {
-  color: #5a1e2d !important;
-  background-color: #5a1e2d !important;
+  @apply tw:text-cali-brand!;
+  @apply tw:bg-cali-brand!;
 }
 html[data-workspace-theme='night'] .sidebar .brand-full img {
   filter: brightness(0) saturate(100%) invert(17%) sepia(27%) saturate(2250%) hue-rotate(304deg) brightness(86%) contrast(94%) !important;
@@ -336,11 +336,11 @@ html[data-workspace-theme='night'] .sidebar .sidebar-footer-profile-only {
 }
 html[data-workspace-theme='night'] .sidebar .profile-avatar {
   background: #5a1e2d !important;
-  color: #f7f3ee !important;
+  @apply tw:text-cali-day-canvas!;
   border-color: rgba(90,30,45,.14) !important;
 }
 html[data-workspace-theme='night'] .sidebar .profile-copy strong {
-  color: #5a1e2d !important;
+  @apply tw:text-cali-brand!;
 }
 html[data-workspace-theme='night'] .sidebar .profile-copy small {
   color: #806a70 !important;

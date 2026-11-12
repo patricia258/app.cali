@@ -1,30 +1,30 @@
 import { supabase } from '../api/supabase';
 
 type CachedMedia = { url: string; expiresAt: number };
+type MediaSession = {
+  signal: AbortSignal;
+  signed: Map<string, CachedMedia>;
+  pending: Map<string, Promise<string>>;
+};
 
-const signedMediaCache = new Map<string, CachedMedia>();
-const pendingMedia = new Map<string, Promise<string>>();
-const STORAGE_KEY = 'cali-workspace-media-cache-v1';
+let active: MediaSession | null = null;
 
-function readStoredMedia(key: string) {
-  try {
-    const raw = window.sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Record<string, CachedMedia>;
-    return parsed[key] || null;
-  } catch {
-    return null;
-  }
+export function workspaceMediaSignal() {
+  return active?.signal;
 }
 
-function storeMedia(key: string, value: CachedMedia) {
+export function activateWorkspaceMedia(signal: AbortSignal) {
+  const scope: MediaSession = { signal, signed: new Map(), pending: new Map() };
+  active = scope;
+  signal.addEventListener('abort', () => {
+    scope.signed.clear();
+    scope.pending.clear();
+    if (active === scope) active = null;
+  }, { once: true });
   try {
-    const parsed = JSON.parse(window.sessionStorage.getItem(STORAGE_KEY) || '{}') as Record<string, CachedMedia>;
-    parsed[key] = value;
-    const live = Object.fromEntries(Object.entries(parsed).filter(([, item]) => item.expiresAt > Date.now() + 60_000));
-    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(live));
+    window.sessionStorage.removeItem('cali-workspace-media-cache-v1');
   } catch {
-    // O cache persistente é uma otimização; a imagem continua carregando sem ele.
+    // O navegador pode desabilitar sessionStorage.
   }
 }
 
@@ -48,15 +48,14 @@ export async function resolveWorkspaceMedia(raw?: string | null, expiresIn = 360
 
   const normalized = normalizePrivateMedia(raw);
   if (!normalized.startsWith('private:')) return raw;
+  const scope = active;
+  if (!scope || scope.signal.aborted) return '';
 
-  const cached = signedMediaCache.get(normalized) || readStoredMedia(normalized);
+  const cached = scope.signed.get(normalized);
   const now = Date.now();
-  if (!forceRefresh && cached && cached.expiresAt > now + 60_000) {
-    signedMediaCache.set(normalized, cached);
-    return cached.url;
-  }
+  if (!forceRefresh && cached && cached.expiresAt > now + 60_000) return cached.url;
 
-  const inFlight = pendingMedia.get(normalized);
+  const inFlight = scope.pending.get(normalized);
   if (inFlight) return inFlight;
 
   const path = normalized.slice('private:'.length);
@@ -65,8 +64,9 @@ export async function resolveWorkspaceMedia(raw?: string | null, expiresIn = 360
       .from('cali-workspace-private')
       .createSignedUrl(path, expiresIn);
 
+    if (active !== scope || scope.signal.aborted) return '';
     if (error || !data?.signedUrl) {
-      signedMediaCache.delete(normalized);
+      scope.signed.delete(normalized);
       return '';
     }
 
@@ -74,14 +74,13 @@ export async function resolveWorkspaceMedia(raw?: string | null, expiresIn = 360
       url: data.signedUrl,
       expiresAt: now + Math.max(60, expiresIn) * 1000,
     };
-    signedMediaCache.set(normalized, value);
-    storeMedia(normalized, value);
+    scope.signed.set(normalized, value);
     return data.signedUrl;
   })();
-  pendingMedia.set(normalized, request);
+  scope.pending.set(normalized, request);
   try {
     return await request;
   } finally {
-    pendingMedia.delete(normalized);
+    scope.pending.delete(normalized);
   }
 }

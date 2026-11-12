@@ -1,11 +1,14 @@
 import { Button } from '../components/ds/Button';
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { FileCheck2 } from 'lucide-react';
 import { confirmTermsAcceptance, readTermsState, type TermsState } from '../api/access/terms';
 import type { WorkspaceRole } from '../api/access/profile';
 import { supabase } from '../api/supabase';
 import { LegalDocument } from '../components/legal/LegalDocument';
 import { privacyPolicy, termsOfUse } from '../domain/legalTexts';
+import { activateWorkspaceMedia } from '../lib/workspaceMedia';
+import { installCompanyWorkspaceIdentityRuntimeV39 } from '../runtime/workspace/companyWorkspaceIdentityRuntimeV39';
+import { startIdentityMediaRuntime } from '../runtime/workspace/identityMediaRuntime';
 import { useWorkspaceAuth } from './hooks/useWorkspaceAuth';
 import '../components/legal/legal.css';
 
@@ -21,6 +24,26 @@ function TermsLoading() {
 async function leave() {
   if (supabase) await supabase.auth.signOut();
   window.location.assign('/login');
+}
+
+function AdmittedWorkspace({ actorId, children }: { actorId: string; children: ReactNode }) {
+  useLayoutEffect(() => {
+    const scope = new AbortController();
+    activateWorkspaceMedia(scope.signal);
+    const listener = supabase?.auth.onAuthStateChange((_event, session) => {
+      if (session?.user.id !== actorId) scope.abort();
+    });
+    const timer = window.setTimeout(() => {
+      startIdentityMediaRuntime(scope.signal);
+      installCompanyWorkspaceIdentityRuntimeV39(scope.signal);
+    }, 900);
+    return () => {
+      window.clearTimeout(timer);
+      listener?.data.subscription.unsubscribe();
+      scope.abort();
+    };
+  }, [actorId]);
+  return <>{children}</>;
 }
 
 function ActorTermsGate({ id, role, children }: {
@@ -84,7 +107,7 @@ function ActorTermsGate({ id, role, children }: {
     }
   }
 
-  if (state.kind === 'terms' && state.publication.accepted) return <>{children}</>;
+  if (id && state.kind === 'terms' && state.publication.accepted) return <AdmittedWorkspace actorId={id}>{children}</AdmittedWorkspace>;
   if (state.kind === 'checking') return <TermsLoading />;
   return <main className="v2-mfa">
     <section className="v2-mfa-card v2-terms-card" aria-labelledby="v2-terms-title">

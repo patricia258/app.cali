@@ -34,7 +34,7 @@
 #scheduling-v65-client-host .scheduling-v66-stat span{@apply tw:text-[11px]!}
 #scheduling-client-form .scheduling-v65-grid>div:empty{@apply tw:hidden!}
 #scheduling-client-form .scheduling-v65-field[data-v67-auto]{@apply tw:min-w-0}
-.scheduling-v67-contract-help{grid-column:1/-1;@apply tw:mt-0;padding:10px 12px;@apply tw:rounded-[10px];border:1px solid var(--theme-line,#ded5cf);background:var(--theme-surface-soft,#faf7f5);@apply tw:text-[13px];line-height:1.5;color:var(--theme-muted,#716660)}
+.scheduling-v67-contract-help{@apply tw:col-span-full;@apply tw:mt-0;padding:10px 12px;@apply tw:rounded-[10px];border:1px solid var(--theme-line,#ded5cf);background:var(--theme-surface-soft,#faf7f5);@apply tw:text-[13px];line-height:1.5;color:var(--theme-muted,#716660)}
 .scheduling-v67-contract-help strong{color:var(--theme-text,#2b2b2b)}
 #v66-contract-form input[readonly]{background:color-mix(in srgb,var(--theme-surface-soft,#faf7f5) 88%,#B58C52 12%);color:var(--theme-muted,#716660);@apply tw:cursor-default}
 
@@ -49,8 +49,8 @@
 #scheduling-v65-admin-host .scheduling-v65-contract{@apply tw:hidden!}
 #scheduling-v65-admin-host .scheduling-v67-admin-meta{@apply tw:flex tw:items-center tw:gap-[9px] tw:flex-wrap;margin:5px 0 6px!important}
 #scheduling-v65-admin-host .scheduling-v67-admin-meta .scheduling-v65-badge{@apply tw:hidden!}
-#scheduling-v65-admin-host .scheduling-v67-admin-format{@apply tw:text-[12px];font-weight:800;color:var(--theme-muted,#716660)}
-#scheduling-v65-admin-host .scheduling-v66-urgency-select{min-height:32px!important;padding:0 8px!important;@apply tw:text-[12px]!;font-weight:700!important}
+#scheduling-v65-admin-host .scheduling-v67-admin-format{@apply tw:text-[12px];@apply tw:font-extrabold;color:var(--theme-muted,#716660)}
+#scheduling-v65-admin-host .scheduling-v66-urgency-select{min-height:32px!important;padding:0 8px!important;@apply tw:text-[12px]!;@apply tw:font-bold!}
 #scheduling-v65-admin-host .scheduling-v67-admin-note{margin:7px 0 0;padding:7px 9px;border-left:2px solid #B58C52;border-radius:0 8px 8px 0;background:color-mix(in srgb,#B58C52 6%,var(--theme-surface,#fff));@apply tw:text-[12px];line-height:1.4;color:var(--theme-muted,#6f6460)}
 #scheduling-v65-admin-host .scheduling-v67-admin-note.billable{border-left-color:#5A1E2D;background:color-mix(in srgb,#5A1E2D 5%,var(--theme-surface,#fff));color:#71404b}
 #scheduling-v65-admin-host .scheduling-v65-actions{max-width:330px!important;@apply tw:gap-[6px]!}
@@ -67,5 +67,5 @@ html[data-workspace-theme='night'] .scheduling-v67-contract-help{background:#2b2
 html[data-workspace-theme='night'] #scheduling-v65-admin-host .scheduling-v67-admin-note{background:rgba(181,140,82,.08);color:#d9cfc8}
 html[data-workspace-theme='night'] #scheduling-v65-admin-host .scheduling-v67-admin-note.billable{background:rgba(90,30,45,.22);color:#ead8dd}
 @media(max-width:900px){#scheduling-v65-admin-host .scheduling-v65-request{grid-template-columns:1fr!important}#scheduling-v65-admin-host .scheduling-v65-actions{@apply tw:max-w-none!}}
-@media(max-width:760px){#scheduling-v65-client-host .scheduling-v66-contract-summary{grid-template-columns:1fr 1fr!important}#scheduling-v65-client-host .scheduling-v66-contract-summary>div:first-child{grid-column:1/-1!important}#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-request{grid-template-columns:1fr!important}#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-actions{@apply tw:max-w-none!}}
+@media(max-width:760px){#scheduling-v65-client-host .scheduling-v66-contract-summary{grid-template-columns:1fr 1fr!important}#scheduling-v65-client-host .scheduling-v66-contract-summary>div:first-child{@apply tw:col-span-full!}#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-request{grid-template-columns:1fr!important}#scheduling-v65-client-host .scheduling-v65-list .scheduling-v65-actions{@apply tw:max-w-none!}}
 @media(max-width:560px){.scheduling-v67-contract-help{@apply tw:text-[13px]}#scheduling-v65-client-host .scheduling-v66-contract-summary{grid-template-columns:1fr!important}#scheduling-v65-client-host .scheduling-v66-contract-summary>div:first-child{grid-column:1!important}}

@@ -10,7 +10,7 @@
 }
 
 .company-conversation-history summary {
-  font-weight: 700;
+  @apply tw:font-bold;
   @apply tw:cursor-pointer;
 }
 
@@ -45,7 +45,7 @@
   background: none;
   @apply tw:text-left;
   font: inherit;
-  font-weight: 700;
+  @apply tw:font-bold;
   @apply tw:text-cali-accent;
   text-decoration: underline;
   @apply tw:cursor-pointer;

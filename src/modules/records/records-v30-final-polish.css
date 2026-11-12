@@ -27,7 +27,7 @@
 }
 .records-v30-period-dates small{
   @apply tw:text-cali-muted tw:text-[8.5px];
-  font-weight:700;
+  @apply tw:font-bold;
 }
 .records-v30-period-dates strong{
   @apply tw:text-cali-text tw:text-[10.5px] tw:whitespace-nowrap;

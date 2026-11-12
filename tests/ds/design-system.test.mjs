@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 import loopback from '../e2e/loopback.cjs';
 import { registerCalendarNavigation, supabaseOrigin } from './calendar-navigation.mjs';
+import { registerDeliveryDependencies } from './delivery-dependencies.mjs';
 
 const { serve, denyProxy, defaultChrome, launchBrowser, closeBrowser } = loopback;
 const root = fileURLToPath(new URL('.', import.meta.url));
@@ -19,11 +21,13 @@ before(async () => {
   outDir = await mkdtemp(join(tmpdir(), 'cali-ds-'));
   await build({
     root,
+    publicDir: fileURLToPath(new URL('../../public', import.meta.url)),
     configFile: false,
     envDir: false,
     envPrefix: 'CALI_DS_FIXTURE_',
     logLevel: 'error',
     esbuild: { jsx: 'automatic' },
+    plugins: [tailwindcss()],
     define: {
       'process.env.NODE_ENV': JSON.stringify('development'),
       'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(supabaseOrigin),
@@ -61,7 +65,13 @@ function component(name, fixture, check, expectedError, setup) {
     t.after(() => context.close());
     await context.route(
       (url) => url.origin !== server.origin,
-      (route) => route.abort('blockedbyclient'),
+      (route) => {
+        if (new URL(route.request().url()).origin === 'https://fonts.googleapis.com'
+          && route.request().resourceType() === 'stylesheet') {
+          return route.fulfill({ status: 200, contentType: 'text/css', body: '/* Fontes externas desativadas */' });
+        }
+        return route.abort('blockedbyclient');
+      },
     );
     await context.routeWebSocket('**/*', (socket) => socket.close());
     const page = await context.newPage();
@@ -70,7 +80,12 @@ function component(name, fixture, check, expectedError, setup) {
     page.setDefaultTimeout(2500);
     const state = await setup?.(context, page, server.origin);
     await page.goto(server.origin + '/?fixture=' + encodeURIComponent(fixture), { waitUntil: 'domcontentloaded' });
-    await check(page, state);
+    try {
+      await check(page, state);
+    } catch (error) {
+      if (errors.length) throw new Error(errors.join('\n'), { cause: error });
+      throw error;
+    }
     assert.deepEqual(
       errors.filter((message) => !expectedError?.test(message)),
       [],
@@ -79,8 +94,125 @@ function component(name, fixture, check, expectedError, setup) {
 }
 
 registerCalendarNavigation((name, fixture, check, setup) => component(name, fixture, check, undefined, setup));
+registerDeliveryDependencies((name, fixture, check, setup) => component(name, fixture, check, undefined, setup));
 
 const focused = (locator) => locator.evaluate((element) => element === document.activeElement);
+
+component('ReportManualComplementsPanel · edição, total, estado concluído e remoção', 'manualComplements', async (page) => {
+  await page.getByText('Nenhum complemento manual', { exact: true }).waitFor();
+  const groups = page.locator('.reports-v21-manual-group');
+  const deliveries = groups.filter({ has: page.getByRole('heading', { name: 'Entregas / atividades', exact: true }) });
+  const hours = groups.filter({ has: page.getByRole('heading', { name: 'Tempo complementar', exact: true }) });
+  await deliveries.getByRole('button', { name: 'Adicionar', exact: true }).click();
+  assert.equal(await deliveries.getByLabel('Concluído em', { exact: true }).count(), 0);
+  await deliveries.getByLabel('Entregável / atividade', { exact: true }).fill('Revisão QA');
+  await deliveries.getByRole('combobox', { name: /^Status/ }).selectOption('completed');
+  await deliveries.getByLabel('Concluído em', { exact: true }).fill('2026-11-12');
+  await deliveries.getByLabel('Tempo aplicado (min)', { exact: true }).fill('50');
+  await hours.getByRole('button', { name: 'Adicionar', exact: true }).click();
+  await hours.getByLabel('Descrição', { exact: true }).fill('Apoio QA');
+  await hours.getByLabel('Tempo (min)', { exact: true }).fill('35');
+  await page.getByText('1h 25min complementados', { exact: true }).waitFor();
+  await deliveries.getByRole('button', { name: 'Remover complemento', exact: true }).click();
+  await page.getByText('35min complementados', { exact: true }).waitFor();
+  await hours.getByRole('button', { name: 'Remover complemento', exact: true }).click();
+  await page.getByText('Nenhum complemento manual', { exact: true }).waitFor();
+});
+
+for (const [viewport, width, height] of [
+  ['desktop', 1440, 960], ['notebook', 1280, 800], ['tablet', 768, 1024], ['mobile', 390, 844],
+]) {
+  for (const theme of ['day', 'night']) {
+    component(`Variantes visuais · ${viewport} · ${theme}`, 'variants', async (page) => {
+      await page.setViewportSize({ width, height });
+      const gallery = page.getByRole('main', { name: 'Variantes de componentes' });
+      await gallery.waitFor();
+      await page.evaluate((theme) => {
+        document.documentElement.dataset.workspaceUi = 'v2';
+        document.documentElement.dataset.workspaceTheme = theme;
+        document.documentElement.style.colorScheme = theme === 'night' ? 'dark' : 'light';
+      }, theme);
+      const actions = gallery.getByRole('region', { name: 'Ações', exact: true });
+      assert.equal(await actions.getByRole('button').count(), 13);
+      assert(await actions.getByRole('button', { name: 'Indisponível', exact: true }).isDisabled());
+      assert.equal(await actions.getByRole('button', { name: 'Salvando…', exact: true }).getAttribute('aria-busy'), 'true');
+      await actions.getByRole('button', { name: 'Fechar prévia', exact: true }).waitFor();
+      await gallery.getByRole('table', { name: 'Quadro da empresa', exact: true }).waitFor();
+      await gallery.getByRole('table', { name: 'Entregas da empresa', exact: true }).waitFor();
+      await gallery.getByRole('alert').getByText('Falha ao salvar', { exact: true }).waitFor();
+      const withoutContract = gallery.getByRole('group', { name: 'Sem capacidade', exact: true });
+      await withoutContract.getByText('Capacidade mensal ainda não definida no contrato.', { exact: true }).waitFor();
+      assert.equal(await withoutContract.getByRole('progressbar').count(), 0);
+      const over = gallery.getByRole('group', { name: 'Excedente e pausa', exact: true });
+      assert.equal(await over.getByRole('progressbar').getAttribute('aria-valuetext'), '122,5% utilizados, 2h 15min acima do contratado');
+      await over.getByText('Atividades pausadas até a renovação do mês.', { exact: true }).waitFor();
+      const cover = gallery.getByRole('img', { name: 'Logo de Empresa QA', exact: true });
+      await cover.waitFor();
+      await page.waitForFunction(() => document.querySelector('.fixture-visual .v2-doc-autocover')?.style.background === 'rgb(90, 30, 45)');
+      const signatures = gallery.getByRole('region', { name: 'Assinaturas do relatório', exact: true });
+      assert.equal(await signatures.locator('.report-signature-generated-v55').count(), 14);
+      await signatures.getByRole('img', { name: 'Assinatura de Pessoa QA', exact: true }).waitFor();
+      await signatures.getByText('QA-001', { exact: true }).waitFor();
+      assert.equal(await signatures.getByText('Aguardando ciência', { exact: true }).count(), 13);
+      const geometry = await gallery.evaluate((element) => ({
+        viewport: innerWidth,
+        pageWidth: document.documentElement.scrollWidth,
+        galleryWidth: Math.round(element.getBoundingClientRect().width),
+        background: getComputedStyle(element).backgroundColor,
+        theme: document.documentElement.dataset.workspaceTheme,
+      }));
+      assert.equal(geometry.pageWidth, geometry.viewport);
+      assert.equal(geometry.theme, theme);
+      const output = process.env.CALI_COMPONENT_VISUAL_OUTPUT;
+      const name = `${viewport}-${theme}`;
+      if (output) {
+        await mkdir(output, { recursive: true });
+        await gallery.screenshot({ path: join(output, name + '.png'), animations: 'disabled', caret: 'hide' });
+        await writeFile(join(output, name + '.json'), JSON.stringify(geometry, null, 2) + '\n');
+      }
+
+      const frameTrigger = gallery.getByRole('button', { name: 'Abrir diálogo', exact: true });
+      await frameTrigger.click();
+      const frame = gallery.getByRole('dialog', { name: 'Revisão de entrega', exact: true });
+      await frame.waitFor();
+      assert.equal(await frame.getAttribute('aria-modal'), 'true');
+      if (output) await page.screenshot({ path: join(output, name + '-dialog-frame.png'), animations: 'disabled', caret: 'hide' });
+      await page.keyboard.press('Escape');
+      await frame.waitFor({ state: 'hidden' });
+      assert(await focused(frameTrigger));
+
+      await gallery.getByRole('button', { name: 'Abrir formulário', exact: true }).click();
+      const form = gallery.getByRole('dialog', { name: 'Registrar revisão', exact: true });
+      const observation = form.getByRole('textbox', { name: 'Observação', exact: true });
+      await observation.waitFor();
+      assert(await focused(observation));
+      assert.equal(await observation.getAttribute('required'), '');
+      if (output) await page.screenshot({ path: join(output, name + '-dialog-form.png'), animations: 'disabled', caret: 'hide' });
+      await observation.fill('Revisão concluída');
+      await page.keyboard.press('Enter');
+      await form.waitFor({ state: 'hidden' });
+
+      await gallery.getByRole('button', { name: 'Carregar página', exact: true }).click();
+      const loader = page.getByRole('main').filter({ hasText: 'Carregando seu Workspace' });
+      await loader.waitFor();
+      assert.equal(await loader.getAttribute('aria-busy'), 'true');
+      const loaderMark = loader.locator('.cali-loading-lime');
+      await loaderMark.evaluate((element) => {
+        for (const animation of element.getAnimations()) {
+          animation.pause();
+          animation.currentTime = Number(animation.effect?.getComputedTiming().duration) * 0.3;
+        }
+      });
+      const art = await loaderMark.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { opacity: Number(style.opacity), mask: style.maskImage };
+      });
+      assert(art.opacity >= 0.5);
+      assert.match(art.mask, /cali-lime-mark/);
+      if (output) await page.screenshot({ path: join(output, name + '-route-loader.png'), caret: 'hide' });
+    });
+  }
+}
 
 component(
   'DialogFrame · Escape fecha botão DS com nome acessível personalizado e devolve foco',

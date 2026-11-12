@@ -29,6 +29,13 @@ const suites = [
   { name: 'page-behaviors' },
   { name: 'people-behaviors' },
   { name: 'workspace-components' },
+  { name: 'admin-company-panels' },
+  { name: 'project-components' },
+  { name: 'project-history-bridge' },
+  { name: 'agenda-components' },
+  { name: 'agenda-visits' },
+  { name: 'team-components' },
+  { name: 'hours-capacity' },
 ];
 
 function main() {

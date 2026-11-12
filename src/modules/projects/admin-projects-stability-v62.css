@@ -35,7 +35,7 @@
 .project-modal-v2 .front-draft-row input:focus,
 .deliverable-workspace-modal-v2 .task-form-v2 input:focus,
 .deliverable-workspace-modal-v2 .task-form-v2 textarea:focus {
-  border-color:#B58C52!important;
+  @apply tw:border-cali-gold!;
   box-shadow:0 0 0 3px color-mix(in srgb,#B58C52 15%,transparent)!important;
 }
 .project-modal-v2 .front-draft-row input::placeholder,
@@ -139,7 +139,7 @@
   box-shadow:0 12px 26px rgba(45,28,34,.09);
 }
 .projects-flow-page .project-client-card-v39.selected {
-  border-color:#B58C52;
+  @apply tw:border-cali-gold;
   box-shadow:inset 4px 0 0 #5A1E2D,0 10px 24px rgba(45,28,34,.08);
 }
 .projects-flow-page .project-client-logo-v39 {
@@ -161,7 +161,7 @@ html[data-workspace-theme='night'] .project-modal-v2 .front-draft-row input,
 html[data-workspace-theme='night'] .deliverable-workspace-modal-v2 .task-form-v2 input,
 html[data-workspace-theme='night'] .deliverable-workspace-modal-v2 .task-form-v2 textarea,
 html[data-workspace-theme='night'] .deliverable-workspace-modal-v2 .task-form-v2 > label {
-  color:#F7F3EE!important;
+  @apply tw:text-cali-day-canvas!;
   border-color:#4A343B!important;
   background:#2A1D21!important;
   color-scheme:dark;
@@ -180,7 +180,7 @@ html[data-workspace-theme='night'] .projects-flow-page .project-client-card-v39 
 }
 html[data-workspace-theme='night'] .projects-flow-page .project-client-card-v39:hover,
 html[data-workspace-theme='night'] .projects-flow-page .project-client-card-v39.selected {
-  border-color:#B58C52;
+  @apply tw:border-cali-gold;
 }
 
 @media(max-width:760px) {

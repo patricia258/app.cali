@@ -2,7 +2,7 @@
    estimado, ocorrências de excedente na vigência do pacote, avisos já enviados ao cliente e a decisão de pausar.
    A pausa NUNCA é automática: o sistema avisa ao passar de 110% e ela decide. Nada aqui cobra ou altera contrato. */
 import { Button } from '../../../components/ds/Button';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, PauseCircle, PlayCircle } from 'lucide-react';
 import { supabase } from '../../../api/supabase';
 import { capacityOf, minutesLabel, percentLabel } from '../../../lib/capacity';
@@ -15,27 +15,81 @@ const monthShort = (iso: string) => new Intl.DateTimeFormat('pt-BR', { month: 's
 const eventLabel: Record<string, string> = { m75: 'aviso de 75%', m100: 'aviso de 100%', excess: 'aviso de excedente', tolerance: 'alerta de tolerância (110%)', review: 'pendência de adequação' };
 
 export function CapacityPanel({ month, companies, onNotice }: { month: string; companies: { id: string; name: string }[]; onNotice: (message: string) => void }) {
-  const [rows, setRows] = useState<Row[]>([]); const [busy, setBusy] = useState(''); const [confirming, setConfirming] = useState('');
-  const [openId, setOpenId] = useState(''); const [history, setHistory] = useState<History[]>([]); const [reviews, setReviews] = useState<Review[]>([]);
+  const [overview, setOverview] = useState<{ month: string; rows: Row[] }>();
+  const [busy, setBusy] = useState(''); const [confirming, setConfirming] = useState('');
+  const [openId, setOpenId] = useState(''); const [history, setHistory] = useState<History[] | null>(null); const [reviews, setReviews] = useState<Review[]>([]);
   const [draft, setDraft] = useState({ analysis: '', decision: 'monitor', communicated: false });
-  async function openDetail(companyId: string) { if (openId === companyId) { setOpenId(''); return; } setOpenId(companyId); setHistory([]); setDraft({ analysis: '', decision: 'monitor', communicated: false }); if (!supabase) return;
-    const [past, notes] = await Promise.all([supabase.rpc('admin_capacity_history', { p_company_id: companyId, p_month: `${month}-01` }), supabase.from('capacity_reviews').select('id,company_id,analysis,decision,communicated,created_at').eq('company_id', companyId).order('created_at', { ascending: false }).limit(5)]);
-    if (!past.error) setHistory((past.data || []) as History[]); if (!notes.error) setReviews((notes.data || []) as Review[]); }
-  async function saveReview(companyId: string) { if (!supabase || busy || draft.analysis.trim().length < 3) return; setBusy(companyId); const { data: auth } = await supabase.auth.getUser();
-    const result = await supabase.from('capacity_reviews').insert({ company_id: companyId, month: `${month}-01`, analysis: draft.analysis.trim(), decision: draft.decision, communicated: draft.communicated, created_by: auth.user?.id || null }).select('id,company_id,analysis,decision,communicated,created_at').single();
-    setBusy(''); if (result.error) { onNotice('Não foi possível registrar a avaliação. Tente de novo.'); return; } setReviews((current) => [result.data as Review, ...current]); setDraft({ analysis: '', decision: 'monitor', communicated: false }); onNotice('Avaliação registrada. Nada foi alterado no contrato.'); }
+  const detailVersion = useRef(0);
+  const overviewVersion = useRef(0);
+
+  async function openDetail(companyId: string) {
+    const version = ++detailVersion.current;
+    if (openId === companyId) {
+      setOpenId('');
+      return;
+    }
+    setOpenId(companyId);
+    setHistory(null);
+    setReviews([]);
+    setDraft({ analysis: '', decision: 'monitor', communicated: false });
+    if (!supabase) return;
+
+    const [past, notes] = await Promise.all([
+      supabase.rpc('admin_capacity_history', { p_company_id: companyId, p_month: `${month}-01` }),
+      supabase.from('capacity_reviews').select('id,company_id,analysis,decision,communicated,created_at')
+        .eq('company_id', companyId).order('created_at', { ascending: false }).limit(5),
+    ]);
+    if (detailVersion.current !== version) return;
+    setHistory((past.data || []) as History[]);
+    if (!notes.error) setReviews((notes.data || []) as Review[]);
+    if (past.error || notes.error) onNotice('Não foi possível carregar todo o histórico de capacidade.');
+  }
+
+  async function saveReview(companyId: string) {
+    if (!supabase || busy || draft.analysis.trim().length < 3) return;
+    const version = detailVersion.current;
+    setBusy(companyId);
+    const { data: auth } = await supabase.auth.getUser();
+    const result = await supabase.from('capacity_reviews').insert({
+      company_id: companyId, month: `${month}-01`, analysis: draft.analysis.trim(),
+      decision: draft.decision, communicated: draft.communicated, created_by: auth.user?.id || null,
+    }).select('id,company_id,analysis,decision,communicated,created_at').single();
+    setBusy('');
+    if (result.error) {
+      onNotice('Não foi possível registrar a avaliação. Tente de novo.');
+      return;
+    }
+    if (detailVersion.current === version) {
+      setReviews((current) => [result.data as Review, ...current]);
+      setDraft({ analysis: '', decision: 'monitor', communicated: false });
+    }
+    onNotice('Avaliação registrada. Nada foi alterado no contrato.');
+  }
   const monthStart = `${month}-01`;
-  async function load() { if (!supabase) return; const result = await supabase.rpc('admin_capacity_overview', { p_month: monthStart }); if (!result.error) setRows((result.data || []) as Row[]); }
-  useEffect(() => { void load(); }, [month]);
-  async function pause(row: Row) { if (!supabase || busy) return; setBusy(row.company_id); const { data: auth } = await supabase.auth.getUser();
+  async function load() {
+    if (!supabase) return;
+    const version = ++overviewVersion.current;
+    const result = await supabase.rpc('admin_capacity_overview', { p_month: monthStart });
+    if (!result.error && overviewVersion.current === version) {
+      setOverview({ month: monthStart, rows: (result.data || []) as Row[] });
+    }
+  }
+  useEffect(() => {
+    setOpenId('');
+    setConfirming('');
+    void load();
+    return () => { detailVersion.current++; overviewVersion.current++; };
+  }, [month]);
+  async function pause(row: Row) { if (!supabase || busy) return; const version = overviewVersion.current; setBusy(row.company_id); const { data: auth } = await supabase.auth.getUser();
     const result = await supabase.from('capacity_pauses').upsert({ company_id: row.company_id, month: monthStart, paused_by: auth.user?.id || null, paused_at: new Date().toISOString(), resumed_at: null, resumed_by: null }, { onConflict: 'company_id,month' });
-    setBusy(''); setConfirming(''); if (result.error) { onNotice('Não foi possível registrar a pausa. Tente de novo.'); return; } onNotice('Atividades pausadas até o próximo mês. O cliente vê o aviso em Horas.'); await load(); }
-  async function resume(row: Row) { if (!supabase || busy) return; setBusy(row.company_id); const { data: auth } = await supabase.auth.getUser();
+    setBusy(''); if (overviewVersion.current === version) setConfirming(''); if (result.error) { onNotice('Não foi possível registrar a pausa. Tente de novo.'); return; } onNotice('Atividades pausadas até o próximo mês. O cliente vê o aviso em Horas.'); if (overviewVersion.current === version) await load(); }
+  async function resume(row: Row) { if (!supabase || busy) return; const version = overviewVersion.current; setBusy(row.company_id); const { data: auth } = await supabase.auth.getUser();
     const result = await supabase.from('capacity_pauses').update({ resumed_at: new Date().toISOString(), resumed_by: auth.user?.id || null }).eq('company_id', row.company_id).eq('month', monthStart);
-    setBusy(''); if (result.error) { onNotice('Não foi possível retomar. Tente de novo.'); return; } onNotice('Atividades retomadas.'); await load(); }
+    setBusy(''); if (result.error) { onNotice('Não foi possível retomar. Tente de novo.'); return; } onNotice('Atividades retomadas.'); if (overviewVersion.current === version) await load(); }
 
   const today = new Date(); const [year, monthIndex] = month.split('-').map(Number); const isCurrent = today.getFullYear() === year && today.getMonth() + 1 === monthIndex;
   const daysInMonth = new Date(year, monthIndex, 0).getDate(); const day = isCurrent ? today.getDate() : daysInMonth; const daysLeft = isCurrent ? daysInMonth - day : 0;
+  const rows = overview?.month === monthStart ? overview.rows : [];
   const list = rows.map((row) => ({ row, name: companies.find((company) => company.id === row.company_id)?.name || 'Cliente', capacity: capacityOf(row.contracted_minutes / 60, row.used_minutes) }))
     .filter((item) => item.capacity.level !== 'none' && ((item.capacity.usagePercent || 0) >= 75 || item.row.paused || item.row.excess_months > 0))
     .sort((a, b) => (b.capacity.usagePercent || 0) - (a.capacity.usagePercent || 0));
@@ -56,7 +110,7 @@ export function CapacityPanel({ month, companies, onNotice }: { month: string; c
           : overTolerance ? <><em className="alert"><AlertTriangle size={14} /> Passou da tolerância de 10%</em><Button type="button" variant="primary" onClick={() => setConfirming(row.company_id)}><PauseCircle size={14} /> Pausar até o próximo mês</Button></>
           : capacity.level === 'excess' ? <button type="button" onClick={() => setConfirming(row.company_id)}><PauseCircle size={14} /> Pausar até o próximo mês</button> : null}<button type="button" aria-expanded={openId === row.company_id} onClick={() => void openDetail(row.company_id)}>{openId === row.company_id ? 'Fechar' : 'Histórico e avaliação'}</button></div>
         {openId === row.company_id && <div className="v2-capadmin-detail">
-          <div><h4>Consumo nos últimos {row.window_months} meses</h4>{history.length ? <ul className="v2-capadmin-history">{history.map((item) => { const cap = capacityOf(item.contracted_minutes / 60, item.used_minutes); const value = cap.usagePercent || 0; return <li key={item.month} className={cap.excessMinutes > 0 ? 'over' : ''}><span>{monthShort(item.month)}</span><i><b style={{ width: `${Math.min(100, value)}%` }} /></i><strong>{cap.level === 'none' ? '—' : percentLabel(cap.usagePercent)}</strong><em>{cap.level === 'none' ? 'sem capacidade definida' : `${minutesLabel(cap.usedMinutes)} de ${minutesLabel(cap.contractedMinutes)}${cap.excessMinutes > 0 ? ` · +${minutesLabel(cap.excessMinutes)}` : ''}`}</em></li>; })}</ul> : <p className="v2-capadmin-empty">Carregando histórico…</p>}</div>
+          <div><h4>Consumo nos últimos {row.window_months} meses</h4>{history?.length ? <ul className="v2-capadmin-history">{history.map((item) => { const cap = capacityOf(item.contracted_minutes / 60, item.used_minutes); const value = cap.usagePercent || 0; return <li key={item.month} className={cap.excessMinutes > 0 ? 'over' : ''}><span>{monthShort(item.month)}</span><i><b style={{ width: `${Math.min(100, value)}%` }} /></i><strong>{cap.level === 'none' ? '—' : percentLabel(cap.usagePercent)}</strong><em>{cap.level === 'none' ? 'sem capacidade definida' : `${minutesLabel(cap.usedMinutes)} de ${minutesLabel(cap.contractedMinutes)}${cap.excessMinutes > 0 ? ` · +${minutesLabel(cap.excessMinutes)}` : ''}`}</em></li>; })}</ul> : <p className="v2-capadmin-empty">{history === null ? 'Carregando histórico…' : 'Nenhum histórico disponível neste período.'}</p>}</div>
           <div><h4>Avaliação de adequação de capacidade</h4><p className="v2-capadmin-empty">Registre a sua análise e o encaminhamento. Isto não altera contrato, cobrança nem atendimento.</p>
             <label>Análise<textarea rows={3} value={draft.analysis} onChange={(event) => setDraft({ ...draft, analysis: event.target.value })} placeholder="O que explica o consumo e o que foi conversado." /></label>
             <div className="v2-capadmin-formrow"><label>Encaminhamento<select value={draft.decision} onChange={(event) => setDraft({ ...draft, decision: event.target.value })}>{Object.entries(decisionLabel).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label className="check"><input type="checkbox" checked={draft.communicated} onChange={(event) => setDraft({ ...draft, communicated: event.target.checked })} /> Já comunicado ao cliente</label><Button type="button" variant="primary" disabled={busy === row.company_id || draft.analysis.trim().length < 3} onClick={() => void saveReview(row.company_id)}>Registrar avaliação</Button></div>

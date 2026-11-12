@@ -10,10 +10,12 @@
     "check": "npm run typecheck && npm run build",
     "test:smoke": "npm run check && npm test",
     "preview": "vite preview",
-    "test": "TSX_TSCONFIG_PATH=tsconfig.app.json node --import tsx --test 'tests/unit/**/*.test.mjs'",
+    "test": "TSX_TSCONFIG_PATH=tsconfig.app.json node --import tsx --test 'tests/unit/**/*.test.mjs' 'tests/visual/**/*.test.cjs'",
     "test:coverage": "TSX_TSCONFIG_PATH=tsconfig.app.json node --import tsx --test --experimental-test-coverage --test-coverage-include='src/**' --test-coverage-include='api/**' --test-coverage-include='supabase/functions/**' 'tests/unit/**/*.test.mjs'",
     "test:components": "node --test tests/ds/*.test.mjs",
     "test:e2e": "node tests/e2e/run.cjs",
+    "test:visual:pages": "node tests/visual/pages/run.cjs",
+    "test:visual:components": "node tests/ds/compare-components.mjs",
     "test:contracts": "bash tests/contracts/run-sql.sh && node --env-file .cali-db-schema.local/qa/stack.env tests/contracts/session-http.mjs && node --env-file .cali-db-schema.local/qa/stack.env tests/contracts/commercial-http.mjs",
     "test:local": "npm run check && npm test && npm run test:components && npm run test:e2e && npm run test:contracts"
   },

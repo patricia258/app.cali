@@ -49,15 +49,15 @@
 /* Contraste correto na prévia clara e nos avisos do admin. */
 .reports-v16-preview-modal .reports-v16-preview-toolbar{
   background:#FFFFFF!important;
-  color:#2B2B2B!important;
+  @apply tw:text-cali-ink!;
   border-bottom:1px solid #DED5D0!important;
 }
-.reports-v16-preview-modal .reports-v16-preview-toolbar strong{color:#5A1E2D!important}
+.reports-v16-preview-modal .reports-v16-preview-toolbar strong{@apply tw:text-cali-brand!}
 .reports-v16-preview-modal .reports-v16-preview-toolbar span{color:#6A5F59!important}
 .reports-admin-v16>.inline-notice:not(.success){
   background:#F7F3EE!important;
   border:1px solid #D7C6BD!important;
-  color:#5A1E2D!important;
+  @apply tw:text-cali-brand!;
 }
 .reports-admin-v16>.inline-notice:not(.success) svg{color:#8B4855!important}
 
@@ -71,7 +71,7 @@
   padding:5px 7px!important;
   @apply tw:rounded-[8px]! tw:cursor-pointer!;
 }
-.report-withdraw-v62-button.compact:hover{background:rgba(90,30,45,.08)!important;color:#5A1E2D!important}
+.report-withdraw-v62-button.compact:hover{background:rgba(90,30,45,.08)!important;@apply tw:text-cali-brand!}
 .report-withdraw-v62-modal{width:min(560px,calc(100vw - 32px))!important}
 .report-withdraw-v62-modal>p{margin:10px 0 16px!important;color:var(--text-secondary,#6b6060)!important;line-height:1.55!important}
 .report-withdraw-v62-note{
@@ -84,8 +84,8 @@
 }
 .report-withdraw-v62-note strong{@apply tw:text-[12px]!;letter-spacing:.06em!important;@apply tw:uppercase!;color:#8A693B!important}
 .report-withdraw-v62-note span{@apply tw:text-[13px]!;line-height:1.5!important;color:var(--text-secondary,#6b6060)!important}
-.report-withdraw-v62-reason{@apply tw:grid! tw:gap-[7px]! tw:text-[12px]!;font-weight:700!important;color:var(--text-primary,#2B2B2B)!important}
-.report-withdraw-v62-reason>span{font-weight:500!important;color:var(--text-muted,#8D8184)!important}
+.report-withdraw-v62-reason{@apply tw:grid! tw:gap-[7px]! tw:text-[12px]!;@apply tw:font-bold!;color:var(--text-primary,#2B2B2B)!important}
+.report-withdraw-v62-reason>span{@apply tw:font-medium!;color:var(--text-muted,#8D8184)!important}
 .report-withdraw-v62-reason textarea{
   @apply tw:w-full! tw:resize-y!;
   border:1px solid var(--border-subtle,#ded5d0)!important;
@@ -98,10 +98,10 @@
 .report-withdraw-v62-modal .danger{
   border:1px solid #7C2D3D!important;
   background:#7C2D3D!important;
-  color:#fff!important;
+  @apply tw:text-white!;
   @apply tw:rounded-[10px]!;
   padding:10px 15px!important;
-  font-weight:700!important;
+  @apply tw:font-bold!;
   @apply tw:cursor-pointer!;
 }
 .report-withdraw-v62-modal .danger:disabled{opacity:.6!important;@apply tw:cursor-wait!}
@@ -132,7 +132,7 @@
 .reports-v21-manual-grid{@apply tw:grid! tw:grid-cols-3! tw:gap-[10px]!}
 .reports-v21-manual-grid label{@apply tw:grid! tw:gap-[5px]! tw:min-w-0!}
 .reports-v21-manual-grid label.wide{grid-column:span 2!important}
-.reports-v21-manual-grid label>span{@apply tw:text-[11px]!;font-weight:700!important;color:var(--text-muted,#8b8180)!important;@apply tw:uppercase!;letter-spacing:.055em!important}
+.reports-v21-manual-grid label>span{@apply tw:text-[11px]!;@apply tw:font-bold!;color:var(--text-muted,#8b8180)!important;@apply tw:uppercase!;letter-spacing:.055em!important}
 .reports-v21-manual-grid input,.reports-v21-manual-grid select{@apply tw:w-full! tw:min-w-0!;border:1px solid var(--border-subtle,#ded5d0)!important;@apply tw:rounded-[9px]!;background:var(--surface-elevated,#fff)!important;color:var(--text-primary,#2b2b2b)!important;padding:9px 10px!important;font:500 13px/1.3 Inter,Arial,sans-serif!important}
 
 /* Leitura do PDF: mantém a hierarquia aprovada, mas evita microtexto recorrente. */
@@ -175,7 +175,7 @@
 
 /* Indicação discreta de origem manual no documento. */
 .reports-v21-manual-note{@apply tw:flex! tw:items-center!;gap:2mm!important;margin:2.5mm 0 0!important;color:#786C66!important;font:500 8pt/1.4 Inter,Arial,sans-serif!important}
-.reports-v21-manual-note strong{color:#5A1E2D!important;font-weight:700!important}
+.reports-v21-manual-note strong{@apply tw:text-cali-brand!;@apply tw:font-bold!}
 .reports-v19-paper .reports-v21-manual-tag{padding:.7mm 1.35mm!important;font-size:6.8pt!important;background:#FAF4E8!important;border-color:#D8BF94!important;color:#9A7441!important}
 .reports-v21-delivery-title{@apply tw:flex! tw:items-center!;gap:1.5mm!important;@apply tw:flex-wrap!}
 .reports-v21-delivery-title strong{@apply tw:inline!}

@@ -4,7 +4,7 @@
   @apply tw:grid tw:place-items-center tw:w-full tw:h-full;
   min-height: 154px;
   @apply tw:p-[16px];
-  color: #5a1e2d;
+  @apply tw:text-cali-brand;
 }
 .client-document-brand-cover img {
   @apply tw:block;
@@ -13,4 +13,4 @@
   @apply tw:object-contain!;
   background: transparent !important;
 }
-html[data-workspace-theme='night'] .client-document-brand-cover { color: #5a1e2d; }
+html[data-workspace-theme='night'] .client-document-brand-cover { @apply tw:text-cali-brand; }

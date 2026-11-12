@@ -57,7 +57,7 @@ html[data-workspace-theme='night'] .client-documents-v3 .drive-banner .drive-ico
   border-color:#614A2E!important;
   color:#E2B96D!important;
 }
-html[data-workspace-theme='night'] .client-documents-v3 .drive-banner strong{color:#F7F3EE!important}
+html[data-workspace-theme='night'] .client-documents-v3 .drive-banner strong{@apply tw:text-cali-day-canvas!}
 html[data-workspace-theme='night'] .client-documents-v3 .drive-banner p{color:#BFAFAB!important}
 html[data-workspace-theme='night'] .client-documents-v3 .client-drive-kicker-v52{color:#E2B96D!important}
 html[data-workspace-theme='night'] .client-documents-v3 .client-drive-action-v52{
@@ -76,15 +76,15 @@ html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-alert-section
 html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-history{
   background:#FFFDF9!important;
   border-color:#E8E0DA!important;
-  color:#2B2B2B!important;
+  @apply tw:text-cali-ink!;
 }
 html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-internal{
   background:#FAF7F4!important;
   border-color:#E8E0DA!important;
-  color:#2B2B2B!important;
+  @apply tw:text-cali-ink!;
 }
 html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-toolbar>div:first-child strong{
-  color:#5A1E2D!important;
+  @apply tw:text-cali-brand!;
 }
 html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-toolbar>div:first-child span{
   color:#756A64!important;
@@ -100,13 +100,13 @@ html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-section-headi
 }
 html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-capacity-admin-numbers strong,
 html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-internal summary{
-  color:#5A1E2D!important;
+  @apply tw:text-cali-brand!;
 }
 html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-text-field textarea,
 html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-internal textarea{
   background:#FFF!important;
   border-color:#E2D9D3!important;
-  color:#2B2B2B!important;
+  @apply tw:text-cali-ink!;
 }
 html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-text-field textarea[readonly],
 html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-internal textarea[readonly]{
@@ -132,7 +132,7 @@ html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-alert-list{
 }
 .calendar-workspace-strip .calendar-workspace-icon{
   background:#5A1E2D!important;
-  color:#FFF!important;
+  @apply tw:text-white!;
   border:1px solid rgba(90,30,45,.18)!important;
 }
 .calendar-workspace-strip strong{color:#342A22!important}
@@ -140,7 +140,7 @@ html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-alert-list{
 .calendar-workspace-strip .calendar-connection-status{
   background:rgba(255,255,255,.48)!important;
   border:1px solid rgba(90,30,45,.12)!important;
-  color:#5A1E2D!important;
+  @apply tw:text-cali-brand!;
 }
 .calendar-workspace-strip .calendar-connection-status.connected{color:#356448!important}
 .calendar-workspace-strip .google-calendar-runtime-detail{
@@ -149,17 +149,17 @@ html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-alert-list{
 .calendar-workspace-strip .google-calendar-runtime-button{
   background:rgba(255,253,249,.78)!important;
   border-color:rgba(90,30,45,.22)!important;
-  color:#5A1E2D!important;
+  @apply tw:text-cali-brand!;
   box-shadow:none!important;
 }
 .calendar-workspace-strip .google-calendar-runtime-button.primary{
   background:#5A1E2D!important;
-  border-color:#5A1E2D!important;
-  color:#FFF!important;
+  @apply tw:border-cali-brand!;
+  @apply tw:text-white!;
 }
 .calendar-workspace-strip .google-calendar-runtime-button:hover{filter:brightness(1.02)!important}
 
 @media(max-width:760px){
   .client-documents-v3 .drive-banner{grid-template-columns:44px minmax(0,1fr)!important;@apply tw:p-[16px]!}
-  .client-drive-actions-v52{grid-column:1/-1!important;@apply tw:justify-start!}
+  .client-drive-actions-v52{@apply tw:col-span-full!;@apply tw:justify-start!}
 }

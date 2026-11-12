@@ -14,6 +14,11 @@ begin
   perform set_config('request.jwt.claims',current_setting('qa.claims_client_a'),true);
   requester := auth.uid();
   begin
+    perform cali_workspace.client_request_online_extra_v1('Agenda QA','Pauta QA',slots);
+    raise exception 'Cliente contornou ciência e preço pelo RPC legado.';
+  exception when insufficient_privilege then null;
+  end;
+  begin
     perform cali_workspace.client_request_online_extra_v2('Agenda QA','Pauta QA',slots,'Pessoa Cliente',false);
     raise exception 'Pedido aceito sem ciência.';
   exception when raise_exception then

@@ -80,7 +80,7 @@ body.workspace-modal-open {
   @apply tw:flex! tw:flex-col! tw:overflow-hidden!;
 }
 .document-modal-header {
-  flex: 0 0 auto !important;
+  @apply tw:flex-none!;
   padding: 24px 76px 18px 28px !important;
 }
 .document-modal-scroll {
@@ -92,7 +92,7 @@ body.workspace-modal-open {
   padding: 22px 28px 26px !important;
 }
 .document-modal-footer {
-  flex: 0 0 auto !important;
+  @apply tw:flex-none!;
   @apply tw:w-full! tw:min-h-[68px]!;
   padding: 11px 28px !important;
   @apply tw:box-border!;
@@ -109,7 +109,7 @@ body.workspace-modal-open {
 }
 
 .compact-account-modal .account-modal-intro {
-  flex: 0 0 auto !important;
+  @apply tw:flex-none!;
   padding: 24px 76px 17px 28px !important;
   border-bottom: 0 !important;
 }
@@ -124,14 +124,14 @@ body.workspace-modal-open {
 }
 
 .account-management-header {
-  flex: 0 0 auto !important;
+  @apply tw:flex-none!;
   @apply tw:min-h-[110px]!;
   padding: 20px 82px 16px 28px !important;
 }
 
 /* Abas: mesma altura, tipografia e linha ativa. */
 .account-tabs-v3 {
-  flex: 0 0 auto !important;
+  @apply tw:flex-none!;
   @apply tw:min-h-[46px]!;
   padding: 0 28px !important;
   @apply tw:gap-[6px]!;
@@ -142,7 +142,7 @@ body.workspace-modal-open {
   padding: 0 11px !important;
   border-radius: 0 !important;
   @apply tw:text-[.76rem]!;
-  font-weight: 700 !important;
+  @apply tw:font-bold!;
 }
 
 /* Corpo interno é sempre a única região rolável. */
@@ -163,7 +163,7 @@ body.workspace-modal-open {
   @apply tw:gap-[5px]!;
   color: var(--graphite) !important;
   @apply tw:text-[.72rem]!;
-  font-weight: 700 !important;
+  @apply tw:font-bold!;
 }
 .modal-card .stacked-label input,
 .modal-card .stacked-label select,
@@ -225,7 +225,7 @@ body.workspace-modal-open {
 .document-modal-footer {
   @apply tw:relative!;
   inset: auto !important;
-  flex: 0 0 auto !important;
+  @apply tw:flex-none!;
   @apply tw:w-full! tw:m-0!;
   padding: 11px 28px !important;
   @apply tw:box-border!;
@@ -263,7 +263,7 @@ body.workspace-modal-open {
 .document-modal-footer .modal-actions {
   margin: 0 0 0 auto !important;
   @apply tw:p-0! tw:flex! tw:items-center! tw:gap-[9px]!;
-  flex: 0 0 auto !important;
+  @apply tw:flex-none!;
 }
 .management-danger-actions {
   @apply tw:m-0! tw:p-0! tw:flex! tw:items-center! tw:gap-[5px]! tw:min-w-0!;
@@ -289,7 +289,7 @@ body.workspace-modal-open {
 .modal-card .primary {
   border: 1px solid var(--burgundy) !important;
   background: var(--burgundy) !important;
-  color: #fff !important;
+  @apply tw:text-white!;
 }
 .modal-card .primary:disabled {
   opacity: .42 !important;

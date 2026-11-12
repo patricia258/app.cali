@@ -21,15 +21,15 @@
 .cali-form-page .cf-stage{@apply tw:flex-1 tw:flex tw:items-center tw:justify-center;padding:24px clamp(20px,6vw,56px);@apply tw:overflow-y-auto tw:relative tw:z-2}
 .cali-form-page .cf-screen{@apply tw:w-full tw:max-w-[720px]}
 .cali-form-page .cf-center{@apply tw:text-center tw:flex tw:flex-col tw:items-center}
-.cali-form-page small{@apply tw:text-[12px];font-weight:700;letter-spacing:.14em;color:var(--cf-gold);@apply tw:uppercase}
-.cali-form-page h1{font-size:clamp(30px,5vw,46px);line-height:1.12;font-weight:700;letter-spacing:-.02em;color:var(--cf-wine);margin:12px 0 16px}
+.cali-form-page small{@apply tw:text-[12px];@apply tw:font-bold;letter-spacing:.14em;color:var(--cf-gold);@apply tw:uppercase}
+.cali-form-page h1{font-size:clamp(30px,5vw,46px);line-height:1.12;@apply tw:font-bold;letter-spacing:-.02em;color:var(--cf-wine);margin:12px 0 16px}
 .cali-form-page .cf-desc,.cali-form-page .cf-center p{font-size:clamp(14px,1.25vw,16px);line-height:1.7;color:var(--cf-muted);margin:0 0 8px;@apply tw:whitespace-pre-line tw:max-w-[620px]}
 .cali-form-page .cf-meta{@apply tw:text-[13px];color:var(--cf-muted);@apply tw:mt-[18px]}
 .cali-form-page .cf-label{@apply tw:flex tw:gap-[12px] tw:items-start}
-.cali-form-page .cf-num{@apply tw:inline-flex tw:items-center tw:gap-[3px];min-width:26px;@apply tw:mt-[7px] tw:text-[15px];font-weight:700;color:var(--cf-wine);flex:0 0 auto}
-.cali-form-page h2{font-size:clamp(22px,3.4vw,30px);line-height:1.3;font-weight:600;letter-spacing:-.01em;color:var(--cf-ink);@apply tw:m-0 tw:whitespace-pre-line}
+.cali-form-page .cf-num{@apply tw:inline-flex tw:items-center tw:gap-[3px];min-width:26px;@apply tw:mt-[7px] tw:text-[15px];@apply tw:font-bold;color:var(--cf-wine);@apply tw:flex-none}
+.cali-form-page h2{font-size:clamp(22px,3.4vw,30px);line-height:1.3;@apply tw:font-semibold;letter-spacing:-.01em;color:var(--cf-ink);@apply tw:m-0 tw:whitespace-pre-line}
 .cali-form-page .cf-req{@apply tw:not-italic;color:var(--cf-wine-2);@apply tw:ml-[6px]}
-.cali-form-page .cf-optional{@apply tw:inline-block tw:align-middle tw:ml-[10px];padding:3px 9px;@apply tw:rounded-[999px];background:#EFE6DF;color:var(--cf-muted);@apply tw:text-[12px];font-weight:600;letter-spacing:0}
+.cali-form-page .cf-optional{@apply tw:inline-block tw:align-middle tw:ml-[10px];padding:3px 9px;@apply tw:rounded-[999px];background:#EFE6DF;color:var(--cf-muted);@apply tw:text-[12px];@apply tw:font-semibold;letter-spacing:0}
 .cali-form-page .cf-help{@apply tw:text-[16px];line-height:1.55;color:var(--cf-muted);margin:10px 0 0 38px;@apply tw:whitespace-pre-line}
 .cali-form-page .cf-text{@apply tw:block;width:calc(100% - 38px);margin:30px 0 0 38px;border:0;border-bottom:2px solid rgba(90,30,45,.25);background:transparent;padding:8px 0 10px;font:400 clamp(20px,3vw,26px)/1.4 Inter,system-ui,sans-serif;color:var(--cf-wine);outline:none;border-radius:0;transition:border-color .2s}
 .cali-form-page .cf-text::placeholder{color:rgba(90,30,45,.32)}
@@ -43,27 +43,27 @@
 .cali-form-page .cf-options-row button{@apply tw:w-auto}
 .cali-form-page .cf-options button:hover{background:#fff;border-color:var(--cf-wine)}
 .cali-form-page .cf-options button:active{transform:scale(.99)}
-.cali-form-page .cf-options button.on{background:var(--cf-wine);border-color:var(--cf-wine);color:#fff}
+.cali-form-page .cf-options button.on{background:var(--cf-wine);border-color:var(--cf-wine);@apply tw:text-white}
 .cali-form-page .cf-options button span{@apply tw:flex-1}
-.cali-form-page .cf-options kbd{@apply tw:inline-grid tw:place-items-center tw:w-[26px] tw:h-[26px] tw:rounded-[6px];border:1px solid currentColor;font:700 12px Inter,system-ui,sans-serif;opacity:.85;flex:0 0 auto}
+.cali-form-page .cf-options kbd{@apply tw:inline-grid tw:place-items-center tw:w-[26px] tw:h-[26px] tw:rounded-[6px];border:1px solid currentColor;font:700 12px Inter,system-ui,sans-serif;opacity:.85;@apply tw:flex-none}
 .cali-form-page .cf-scale-wrap{margin:28px 0 0 38px}
 .cali-form-page .cf-scale{@apply tw:grid tw:gap-[8px]}
 .cali-form-page .cf-scale button{@apply tw:h-[54px];border:1px solid rgba(90,30,45,.28);@apply tw:rounded-[10px];background:rgba(255,255,255,.7);color:var(--cf-wine);font:600 18px Inter,system-ui,sans-serif;@apply tw:cursor-pointer;transition:background .15s,border-color .15s}
 .cali-form-page .cf-scale button:hover{background:#fff;border-color:var(--cf-wine)}
-.cali-form-page .cf-scale button.on{background:var(--cf-wine);color:#fff;border-color:var(--cf-wine)}
+.cali-form-page .cf-scale button.on{background:var(--cf-wine);@apply tw:text-white;border-color:var(--cf-wine)}
 .cali-form-page .cf-scale-labels{@apply tw:flex tw:justify-between tw:gap-[16px] tw:mt-[10px] tw:text-[13px];color:var(--cf-muted)}
 .cali-form-page .cf-actions{@apply tw:flex tw:items-center tw:gap-[14px];margin:30px 0 0 38px;@apply tw:flex-wrap}
 .cali-form-page .cf-center .cf-actions,.cali-form-page .cf-enter>.cf-actions{@apply tw:ml-0}
-.cali-form-page .cf-primary{@apply tw:inline-flex tw:items-center tw:gap-[8px];padding:12px 22px;border:0;@apply tw:rounded-[10px];background:var(--cf-wine);color:#fff;font:700 17px Inter,system-ui,sans-serif;@apply tw:cursor-pointer;box-shadow:0 8px 22px rgba(90,30,45,.18);transition:background .15s,transform .1s}
+.cali-form-page .cf-primary{@apply tw:inline-flex tw:items-center tw:gap-[8px];padding:12px 22px;border:0;@apply tw:rounded-[10px];background:var(--cf-wine);@apply tw:text-white;font:700 17px Inter,system-ui,sans-serif;@apply tw:cursor-pointer;box-shadow:0 8px 22px rgba(90,30,45,.18);transition:background .15s,transform .1s}
 .cali-form-page .cf-primary:hover{background:var(--cf-wine-2)}
 .cali-form-page .cf-primary:active{transform:translateY(1px)}
 .cali-form-page .cf-primary:disabled{opacity:.6;@apply tw:cursor-wait}
 .cali-form-page .cf-enter-hint{@apply tw:text-[13px];color:var(--cf-muted)}
-.cali-form-page .cf-enter-hint b{@apply tw:inline-flex tw:items-center tw:gap-[3px];font-weight:700;color:var(--cf-ink)}
-.cali-form-page .cf-error{@apply tw:inline-flex;margin:16px 0 0 38px;padding:7px 12px;@apply tw:rounded-[8px];background:#FBEAE8;color:#9F1F14;@apply tw:text-[14px];font-weight:600}
+.cali-form-page .cf-enter-hint b{@apply tw:inline-flex tw:items-center tw:gap-[3px];@apply tw:font-bold;color:var(--cf-ink)}
+.cali-form-page .cf-error{@apply tw:inline-flex;margin:16px 0 0 38px;padding:7px 12px;@apply tw:rounded-[8px];background:#FBEAE8;color:#9F1F14;@apply tw:text-[14px];@apply tw:font-semibold}
 .cali-form-page .cf-nav{@apply tw:absolute;right:clamp(16px,4vw,40px);@apply tw:bottom-[20px] tw:z-3 tw:flex tw:items-center tw:gap-[6px]}
 .cali-form-page .cf-nav span{@apply tw:text-[12px];color:var(--cf-muted);@apply tw:mr-[6px]}
-.cali-form-page .cf-nav button{@apply tw:grid tw:place-items-center tw:w-[38px] tw:h-[38px];border:0;@apply tw:rounded-[8px];background:var(--cf-wine);color:#fff;@apply tw:cursor-pointer}
+.cali-form-page .cf-nav button{@apply tw:grid tw:place-items-center tw:w-[38px] tw:h-[38px];border:0;@apply tw:rounded-[8px];background:var(--cf-wine);@apply tw:text-white;@apply tw:cursor-pointer}
 .cali-form-page .cf-nav button:disabled{opacity:.35;@apply tw:cursor-default}
 .cali-form-page .cf-foot{@apply tw:absolute;left:clamp(20px,5vw,56px);bottom:26px;@apply tw:z-3 tw:flex tw:gap-[8px] tw:text-[12px];color:var(--cf-muted)}
 .cali-form-page .cf-foot a{color:var(--cf-muted);text-decoration:none}
@@ -95,9 +95,9 @@
   .cali-form-page .cf-nav{@apply tw:bottom-[18px]}
 }
 .cali-form-page .cf-top{@apply tw:flex tw:items-center tw:gap-[14px] tw:flex-wrap}
-.cali-form-page .cf-preview{padding:5px 11px;@apply tw:rounded-[999px];background:#FFF5E0;color:#7A5418;border:1px solid #F2DFB8;@apply tw:text-[12px];font-weight:600}
+.cali-form-page .cf-preview{padding:5px 11px;@apply tw:rounded-[999px];background:#FFF5E0;color:#7A5418;border:1px solid #F2DFB8;@apply tw:text-[12px];@apply tw:font-semibold}
 
-.cali-form-page .cf-desc strong,.cali-form-page .cf-help strong{color:var(--cf-ink);font-weight:700}
+.cali-form-page .cf-desc strong,.cali-form-page .cf-help strong{color:var(--cf-ink);@apply tw:font-bold}
 .cali-form-page .cf-desc u,.cali-form-page .cf-help u{text-underline-offset:3px}
 @media (prefers-reduced-motion:reduce){.cali-form-page .cf-leaf{animation:none}}
 
@@ -112,8 +112,8 @@
 .cali-form-page.cali-form-page .cf-text{background:transparent!important;color:var(--cf-wine)!important;-webkit-text-fill-color:var(--cf-wine);border:0!important;border-bottom:2px solid rgba(90,30,45,.25)!important;box-shadow:none!important;outline:none!important}
 .cali-form-page.cali-form-page .cf-text:focus{border-bottom-color:var(--cf-wine)!important}
 .cali-form-page.cali-form-page :is(.cf-options button,.cf-scale button):not(.on){background:rgba(255,255,255,.7)!important;color:var(--cf-wine)!important;border-color:rgba(90,30,45,.28)!important}
-.cali-form-page.cali-form-page :is(.cf-options button,.cf-scale button).on{background:var(--cf-wine)!important;color:#fff!important}
-.cali-form-page.cali-form-page :is(.cf-primary,.cf-nav button){background:var(--cf-wine)!important;color:#fff!important}
+.cali-form-page.cali-form-page :is(.cf-options button,.cf-scale button).on{background:var(--cf-wine)!important;@apply tw:text-white!}
+.cali-form-page.cali-form-page :is(.cf-primary,.cf-nav button){background:var(--cf-wine)!important;@apply tw:text-white!}
 
 /* Introdução: respeita as linhas digitadas (tela de abertura mais larga para não quebrar no meio no computador). */
 .cali-form-page .cf-screen.cf-enter:not(.cf-center){max-width:880px}
@@ -124,18 +124,18 @@
 .cali-form-page .cf-file-drop:hover{background:#fff;border-color:var(--cf-wine)}
 .cali-form-page .cf-file-drop input{@apply tw:absolute tw:w-[1px] tw:h-[1px];opacity:0;@apply tw:pointer-events-none}
 .cali-form-page .cf-file-drop strong{@apply tw:text-[16px]}
-.cali-form-page .cf-file-drop small{@apply tw:text-[12px]!;letter-spacing:0!important;@apply tw:normal-case!;font-weight:500!important;color:var(--cf-muted)!important}
+.cali-form-page .cf-file-drop small{@apply tw:text-[12px]!;letter-spacing:0!important;@apply tw:normal-case!;@apply tw:font-medium!;color:var(--cf-muted)!important}
 .cali-form-page .cf-file-chosen{@apply tw:flex tw:items-center tw:gap-[12px];padding:10px 12px;border:1px solid rgba(90,30,45,.28);@apply tw:rounded-[12px];background:#fff}
 .cali-form-page .cf-file-chosen.busy{opacity:.7}
 .cali-form-page .cf-file-chosen img{@apply tw:w-[52px] tw:h-[52px] tw:object-cover tw:rounded-[8px]}
 .cali-form-page .cf-file-icon{@apply tw:grid tw:place-items-center tw:w-[52px] tw:h-[52px] tw:rounded-[8px];background:#F3E9EC;color:var(--cf-wine)}
 .cali-form-page .cf-file-chosen>span:not(.cf-file-icon){@apply tw:flex-1 tw:min-w-0 tw:flex;@apply tw:flex-col tw:gap-[2px]}
 .cali-form-page .cf-file-chosen strong{@apply tw:text-[14px];color:var(--cf-ink);@apply tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap}
-.cali-form-page .cf-file-chosen small{@apply tw:text-[12px]!;letter-spacing:0!important;@apply tw:normal-case!;font-weight:500!important;color:var(--cf-muted)!important}
+.cali-form-page .cf-file-chosen small{@apply tw:text-[12px]!;letter-spacing:0!important;@apply tw:normal-case!;@apply tw:font-medium!;color:var(--cf-muted)!important}
 .cali-form-page .cf-file-chosen button{@apply tw:grid tw:place-items-center tw:w-[32px] tw:h-[32px];border:0;@apply tw:rounded-[8px];background:#F7F3EE;color:var(--cf-ink);@apply tw:cursor-pointer}
 .cali-form-page .cf-file .cf-error{@apply tw:ml-0}
 @media (max-width:640px){.cali-form-page .cf-file{@apply tw:ml-0}}
-.cali-form-page.cali-form-page :is(.cf-desc,.cf-help) a{color:var(--cf-wine)!important;font-weight:600;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.cali-form-page.cali-form-page :is(.cf-desc,.cf-help) a{color:var(--cf-wine)!important;@apply tw:font-semibold;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
 /* Tela informativa (sem número): texto e botão alinhados ao título. */
 .cali-form-page .cf-statement :is(.cf-help,.cf-actions,.cf-error){@apply tw:ml-0}
 .cali-form-page .cf-statement .cf-help{font-size:clamp(16px,1.6vw,18px);@apply tw:mt-[14px]}

@@ -32,7 +32,7 @@
 .reports-v15-internal{order:10;padding:22px 32px;border-top:1px solid #ece5df}
 .reports-v15-internal summary{font-size:0}
 .reports-v15-internal summary:before{content:'09';font-family:Georgia,'Times New Roman',serif;@apply tw:text-[15px];color:#9b7a83;@apply tw:mr-[14px]}
-.reports-v15-internal summary:after{content:'Adicionar nota interna';font-family:inherit;@apply tw:text-[12px];color:#5a1e2d;font-weight:800}
+.reports-v15-internal summary:after{content:'Adicionar nota interna';font-family:inherit;@apply tw:text-[12px];@apply tw:text-cali-brand;@apply tw:font-extrabold}
 .reports-v15-internal[open] summary:after{content:'Nota interna'}
 
 /* Histórico encerra o processo como etapa 10. */

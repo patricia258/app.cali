@@ -49,11 +49,11 @@
   padding: 0 5px;
   @apply tw:rounded-[999px] tw:grid tw:place-items-center;
   background: var(--burgundy);
-  color: white;
+  @apply tw:text-white;
   border: 2px solid var(--ivory);
   @apply tw:text-[.68rem];
   line-height: 1;
-  font-weight: 800;
+  @apply tw:font-extrabold;
   box-shadow: 0 4px 12px rgba(90,30,45,.18);
 }
 
@@ -93,7 +93,7 @@
   background: transparent;
   color: var(--burgundy);
   @apply tw:text-[.74rem];
-  font-weight: 700;
+  @apply tw:font-bold;
 }
 
 .notification-list {
@@ -222,7 +222,7 @@
   @apply tw:rounded-[10px];
   background: transparent;
   color: var(--graphite);
-  font-weight: 700;
+  @apply tw:font-bold;
   @apply tw:text-[.8rem];
 }
 
@@ -444,7 +444,7 @@
   fill: var(--graphite);
   font-family: Inter, sans-serif;
   @apply tw:text-[12px];
-  font-weight: 700;
+  @apply tw:font-bold;
 }
 
 .trend-labels {
@@ -492,7 +492,7 @@
 .mini-weekdays span {
   color: #9a918b;
   @apply tw:text-[.62rem];
-  font-weight: 700;
+  @apply tw:font-bold;
 }
 
 .mini-days span {
@@ -511,7 +511,7 @@
 
 .mini-days span.active {
   background: var(--burgundy);
-  color: white;
+  @apply tw:text-white;
   font-weight: 750;
 }
 
@@ -564,7 +564,7 @@
   }
 
   .bar-copy {
-    grid-column: 1 / -1;
+    @apply tw:col-span-full;
   }
 
   .bar-track {
@@ -572,7 +572,7 @@
   }
 
   .bar-row > small {
-    grid-column: 1 / -1;
+    @apply tw:col-span-full;
   }
 
   .donut-layout {

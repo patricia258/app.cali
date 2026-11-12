@@ -3,7 +3,7 @@
 .v69-facts[data-v70-condition]::after,
 .calendar-detail-facts[data-v70-condition]::after{
   content:attr(data-v70-condition-label) ': ' attr(data-v70-condition-detail);
-  grid-column:1 / -1;
+  @apply tw:col-span-full;
   @apply tw:w-full tw:box-border tw:block tw:min-h-0;
   padding:10px 14px;
   border:1px solid var(--theme-line,#e8dfd9);

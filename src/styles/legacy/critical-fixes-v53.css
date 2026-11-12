@@ -22,15 +22,15 @@ html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip
 html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip .google-calendar-runtime-detail{color:#5B4931!important}
 .calendar-page-v2 > .calendar-workspace-strip .calendar-workspace-icon,
 html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip .calendar-workspace-icon{
-  background:#5A1E2D!important;border-color:#5A1E2D!important;color:#FFF!important;
+  background:#5A1E2D!important;@apply tw:border-cali-brand!;@apply tw:text-white!;
 }
 .calendar-page-v2 > .calendar-workspace-strip .google-calendar-runtime-button,
 html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip .google-calendar-runtime-button{
-  background:#FFF8E6!important;border-color:rgba(90,30,45,.24)!important;color:#5A1E2D!important;
+  background:#FFF8E6!important;border-color:rgba(90,30,45,.24)!important;@apply tw:text-cali-brand!;
 }
 .calendar-page-v2 > .calendar-workspace-strip .google-calendar-runtime-button.primary,
 html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip .google-calendar-runtime-button.primary{
-  background:#5A1E2D!important;border-color:#5A1E2D!important;color:#FFF!important;
+  background:#5A1E2D!important;@apply tw:border-cali-brand!;@apply tw:text-white!;
 }
 html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip strong{color:#FFF8E6!important}
 html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip p,
@@ -44,7 +44,7 @@ html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-map{
   color:#30251E!important;
 }
 .reports-admin-v16 .reports-v16-review-map>div:first-child>span,
-html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-map>div:first-child>span{color:#5A1E2D!important}
+html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-map>div:first-child>span{@apply tw:text-cali-brand!}
 .reports-admin-v16 .reports-v16-review-map h2,
 html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-map h2{color:#30251E!important}
 .reports-admin-v16 .reports-v16-review-map p,
@@ -54,15 +54,15 @@ html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats 
   background:rgba(255,253,249,.74)!important;border-color:rgba(90,30,45,.12)!important;
 }
 .reports-admin-v16 .reports-v16-review-stats article:not(.attention) strong,
-html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats article:not(.attention) strong{color:#5A1E2D!important}
+html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats article:not(.attention) strong{@apply tw:text-cali-brand!}
 .reports-admin-v16 .reports-v16-review-stats article:not(.attention) span,
 html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats article:not(.attention) span{color:#5D4C3C!important}
 .reports-admin-v16 .reports-v16-review-stats article.attention,
-html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats article.attention{background:#5A1E2D!important;border-color:#5A1E2D!important}
+html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats article.attention{background:#5A1E2D!important;@apply tw:border-cali-brand!}
 .reports-admin-v16 .reports-v16-review-stats article.attention strong,
 .reports-admin-v16 .reports-v16-review-stats article.attention span,
 html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats article.attention strong,
-html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats article.attention span{color:#FFF!important}
+html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats article.attention span{@apply tw:text-white!}
 
 /* Tipografia: números e leituras do módulo não usam mais Georgia/Times/serif. */
 .reports-admin-v16 .reports-v16-review-stats strong,
@@ -81,8 +81,8 @@ html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats 
   font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
 }
 .reports-admin-v16 .reports-v16-fact-grid strong{font-weight:750!important;letter-spacing:-.025em!important}
-.reports-v16-paper .reports-v16-reading h1,.reports-v16-paper .reports-v16-page-two-title h1{font-weight:700!important;letter-spacing:-.035em!important}
-.reports-v16-paper .reports-v16-reading p{font-weight:400!important}
+.reports-v16-paper .reports-v16-reading h1,.reports-v16-paper .reports-v16-page-two-title h1{@apply tw:font-bold!;letter-spacing:-.035em!important}
+.reports-v16-paper .reports-v16-reading p{@apply tw:font-normal!}
 
 /* A versão ativa já aparece no topo; histórico mostra somente versões anteriores. */
 .reports-v16-history-table>div.active{@apply tw:hidden!}
@@ -95,19 +95,19 @@ html[data-workspace-theme='night'] .reports-v16-history-table:not(:has(>div:not(
 
 /* Prévia: o papel é um documento claro mesmo quando o Workspace está no modo noite. */
 html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper{
-  background:#FFF!important;color:#2B2B2B!important;color-scheme:light!important;
+  background:#FFF!important;@apply tw:text-cali-ink!;color-scheme:light!important;
 }
 html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper :where(p,span,small,td,li,blockquote){color:#5F5550!important}
-html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper :where(h1,h2,h3,h4,strong,b){color:#2B2B2B!important}
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper :where(h1,h2,h3,h4,strong,b){@apply tw:text-cali-ink!}
 html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-kicker,
 html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-section-head small,
-html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-page-two-title>span{color:#B58C52!important}
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-page-two-title>span{@apply tw:text-cali-gold!}
 html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-reading h1,
 html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-section-head h2,
 html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-metrics strong,
 html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-changes article>strong,
 html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-feedback strong,
-html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-footer b{color:#5A1E2D!important}
+html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-footer b{@apply tw:text-cali-brand!}
 html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-client-id small,
 html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-meta,
 html[data-workspace-theme='night'] .reports-v16-preview-modal .reports-v16-paper .reports-v16-metrics small,
@@ -127,22 +127,22 @@ html.report-print-v16-isolated #root,
 body.reports-v16-print-route,
 .report-print-v16-page,
 .report-print-v16-stage{
-  background:#FFF!important;color:#2B2B2B!important;color-scheme:light!important;
+  background:#FFF!important;@apply tw:text-cali-ink!;color-scheme:light!important;
 }
 html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper{
-  background:#FFF!important;color:#2B2B2B!important;color-scheme:light!important;
+  background:#FFF!important;@apply tw:text-cali-ink!;color-scheme:light!important;
 }
 html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper :where(p,span,small,td,li,blockquote){color:#5F5550!important}
-html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper :where(h1,h2,h3,h4,strong,b){color:#2B2B2B!important}
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper :where(h1,h2,h3,h4,strong,b){@apply tw:text-cali-ink!}
 html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-kicker,
 html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-section-head small,
-html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-page-two-title>span{color:#B58C52!important}
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-page-two-title>span{@apply tw:text-cali-gold!}
 html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-reading h1,
 html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-section-head h2,
 html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-metrics strong,
 html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-changes article>strong,
 html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-feedback strong,
-html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-footer b{color:#5A1E2D!important}
+html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-footer b{@apply tw:text-cali-brand!}
 html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-client-id small,
 html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-meta,
 html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .reports-v16-metrics small,

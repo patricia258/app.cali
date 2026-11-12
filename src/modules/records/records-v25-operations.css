@@ -36,7 +36,7 @@
   @apply tw:min-w-0 tw:grid tw:gap-[3px];
 }
 .records-v25-timer-copy>span{
-  color:#B58C52;
+  @apply tw:text-cali-gold;
   @apply tw:text-[9.5px];
   font-weight:850;
   letter-spacing:.09em;
@@ -50,7 +50,7 @@
 }
 .records-v25-timer-action{
   @apply tw:flex tw:items-center tw:gap-[10px];
-  flex:0 0 auto;
+  @apply tw:flex-none;
 }
 .records-v25-timer-action>b{
   min-width:76px;
@@ -64,13 +64,13 @@
   @apply tw:rounded-[10px];
   font:inherit;
   @apply tw:text-[10.5px];
-  font-weight:800;
+  @apply tw:font-extrabold;
   @apply tw:cursor-pointer;
 }
 .records-v25-timer-start{
   border:1px solid #5A1E2D;
   background:#5A1E2D;
-  color:#fff;
+  @apply tw:text-white;
 }
 .records-v25-timer-pause{
   border:1px solid color-mix(in srgb,#B58C52 55%,#5A1E2D);
@@ -99,7 +99,7 @@
   line-height:1.45;
 }
 .records-v25-delete-button{
-  flex:0 0 auto;
+  @apply tw:flex-none;
   @apply tw:min-h-[38px];
   padding:0 12px;
   border:1px solid rgba(164,71,82,.34);
@@ -108,7 +108,7 @@
   color:#A44752;
   font:inherit;
   @apply tw:text-[10.5px];
-  font-weight:800;
+  @apply tw:font-extrabold;
   @apply tw:cursor-pointer;
 }
 .records-v25-delete-button:hover{
@@ -131,7 +131,7 @@
   @apply tw:grid tw:gap-[3px];
 }
 .records-v27-group-heading span{
-  color:#B58C52;
+  @apply tw:text-cali-gold;
   @apply tw:text-[9px];
   font-weight:850;
   letter-spacing:.13em;
@@ -170,7 +170,7 @@
   @apply tw:min-w-0 tw:grid tw:gap-[4px];
 }
 .records-v27-chat-locked span{
-  color:#B58C52;
+  @apply tw:text-cali-gold;
   @apply tw:text-[9px];
   font-weight:850;
   letter-spacing:.11em;
@@ -184,7 +184,7 @@
   line-height:1.5;
 }
 .records-v27-chat-locked>button{
-  flex:0 0 auto;
+  @apply tw:flex-none;
   @apply tw:min-h-[40px] tw:whitespace-nowrap;
 }
 .records-v27-feedback-overlay{
@@ -210,7 +210,7 @@
   @apply tw:text-cali-text;
   font-family:Georgia,serif;
   @apply tw:text-[24px];
-  font-weight:400;
+  @apply tw:font-normal;
   line-height:1.15;
 }
 .records-v27-feedback-card>p,
@@ -231,16 +231,16 @@
   @apply tw:text-cali-text;
   font:inherit;
   @apply tw:text-[14px];
-  font-weight:800;
+  @apply tw:font-extrabold;
   @apply tw:cursor-pointer;
   transition:.16s ease;
 }
 .records-v27-score button:hover,
 .records-v27-score button.selected{
   transform:translateY(-1px);
-  border-color:#B58C52;
+  @apply tw:border-cali-gold;
   background:color-mix(in srgb,#B58C52 13%,var(--theme-surface));
-  color:#5A1E2D;
+  @apply tw:text-cali-brand;
 }
 .records-v27-score button:disabled{
   opacity:.55;
@@ -281,7 +281,7 @@
   color:#4E7B63;
 }
 .records-v27-feedback-thanks>span{
-  color:#B58C52;
+  @apply tw:text-cali-gold;
   @apply tw:text-[9px];
   font-weight:850;
   letter-spacing:.12em;

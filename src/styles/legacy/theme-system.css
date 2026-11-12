@@ -52,7 +52,7 @@ html[data-workspace-theme='night'] .sidebar {
   background:
     linear-gradient(180deg, rgba(255,255,255,.025), transparent 22%),
     #5a1e2d !important;
-  color: #fff !important;
+  @apply tw:text-white!;
   box-shadow: 16px 0 48px rgba(0,0,0,.22) !important;
 }
 
@@ -65,7 +65,7 @@ html[data-workspace-theme='night'] .sidebar .profile-trigger strong {
 html[data-workspace-theme='night'] .sidebar nav a:hover,
 html[data-workspace-theme='night'] .sidebar nav a.active,
 html[data-workspace-theme='night'] .sidebar .profile-trigger:hover {
-  color: #fff !important;
+  @apply tw:text-white!;
 }
 
 /* Topbar e controles globais. */
@@ -91,7 +91,7 @@ html[data-workspace-theme='night'] .light-button:hover {
 }
 html[data-workspace-theme='night'] .primary {
   background: #6a253a !important;
-  color: #fff !important;
+  @apply tw:text-white!;
   @apply tw:border-transparent!;
 }
 html[data-workspace-theme='night'] .primary:hover { background: #7a2d44 !important; }

@@ -12,7 +12,7 @@
 
 .material-review summary {
   @apply tw:cursor-pointer;
-  font-weight: 700;
+  @apply tw:font-bold;
 }
 
 .material-review-items {

@@ -44,6 +44,7 @@ const factor = {
   updated_at: '2026-10-15T00:00:00Z',
 };
 const challengeId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const replacementUser = { ...user, id: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee' };
 const challengePath = '/auth/v1/factors/' + factor.id + '/challenge';
 const verifyPath = '/auth/v1/factors/' + factor.id + '/verify';
 const readTermsPath = '/rest/v1/rpc/v2_read_terms_state';
@@ -57,6 +58,9 @@ const gateError = '.v2-mfa [role=alert]';
 const adminMarker = '#root .ap-app';
 const clientMarker = '#root h1';
 const b64 = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
+const isIdentityQuery = (url) =>
+  (url.pathname === '/rest/v1/companies' && url.searchParams.get('select') === 'display_name,logo_url,logo_workspace_url') ||
+  (url.pathname === '/rest/v1/profiles' && url.searchParams.get('select') === 'id,full_name,role,company_id,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom');
 
 const cases = [
   {
@@ -148,6 +152,7 @@ const cases = [
   },
   { id: 'terms:partner-legacy-confirm', role: 'partner', aal: 'aal2', expected: 'terms-confirm' },
   { id: 'terms:partner-legacy-accepted', role: 'partner', aal: 'aal2', accepted: true, expected: 'admitted' },
+  { id: 'terms:client-actor-replaced', role: 'client', accepted: true, expected: 'terms-actor-replaced' },
   { id: 'staff:aal1-enroll-before-private', role: 'partner', noFactors: true, expected: 'staff-mfa' },
   { id: 'staff:aal1-verify-before-private', role: 'partner', expected: 'staff-mfa' },
   {
@@ -178,8 +183,8 @@ const cases = [
   },
 ].filter((test) => !values.case || values.case.some((fragment) => test.id.includes(fragment)));
 
-function session(aal, factors, malformed = false, id = sessionId) {
-  const payload = { sub: user.id, session_id: id, exp: expiry, aud: 'authenticated', role: 'authenticated' };
+function session(aal, factors, malformed = false, id = sessionId, actor = user) {
+  const payload = { sub: actor.id, session_id: id, exp: expiry, aud: 'authenticated', role: 'authenticated' };
   if (aal !== null) payload.aal = aal;
   const accessToken = b64({ alg: 'HS256', typ: 'JWT' }) + '.' + b64(payload) + '.' + (malformed ? '*' : 'c2ln');
   return {
@@ -188,7 +193,7 @@ function session(aal, factors, malformed = false, id = sessionId) {
     expires_at: expiry,
     expires_in: 3600,
     token_type: 'bearer',
-    user: { ...user, factors },
+    user: { ...actor, factors },
   };
 }
 
@@ -214,6 +219,9 @@ async function mock(browser, origin, test) {
   let receiptConfirmed = false;
   const rows = structuredClone(tables);
   rows.profiles[0] = { ...rows.profiles[0], role: test.role };
+  if (test.expected === 'terms-actor-replaced') {
+    rows.profiles.push({ ...rows.profiles[0], id: replacementUser.id });
+  }
   rows.staff_members = [
     {
       id: 'qa-staff',
@@ -266,6 +274,7 @@ async function mock(browser, origin, test) {
         });
       }
       if (method === 'OPTIONS') return fulfill(204);
+      if (method === 'GET' && isIdentityQuery(url)) entry.identity = true;
       if (staffBoundary && url.pathname === '/rest/v1/reports' && url.searchParams.get('id') === 'eq.qa-report') {
         entry.printReport = true;
       }
@@ -317,10 +326,13 @@ async function mock(browser, origin, test) {
       if (url.pathname === readTermsPath) {
         if (test.termsReadError && test.role !== 'partner')
           return fulfill(503, { message: 'Falha leitura de termos simulada' });
+        const claims = test.expected === 'terms-actor-replaced'
+          ? JSON.parse(Buffer.from(request.headers().authorization.split('.')[1], 'base64url').toString('utf8'))
+          : null;
         return fulfill(200, {
           version: test.versionMismatch ? 'qa-versao-divergente' : termsVersion,
           contentHash: test.hashMismatch ? '0'.repeat(64) : termsHash,
-          accepted,
+          accepted: accepted && claims?.sub !== replacementUser.id,
         });
       }
       if (url.pathname === acceptTermsPath) {
@@ -411,11 +423,39 @@ async function assertAdmitted(page, test) {
   assert.equal(await page.locator('.v2-mfa:visible').count(), 0, 'Guarda ainda bloqueia o conteúdo');
 }
 
+async function waitForIdentityStartup(page) {
+  await page.evaluate(() => new Promise((resolve) => window.setTimeout(resolve, 1100)));
+}
+
+async function replaceSession(page, replacement) {
+  await page.evaluate(({ sessionKey, replacement }) => {
+    localStorage.setItem(sessionKey, JSON.stringify(replacement));
+    const channel = new BroadcastChannel(sessionKey);
+    channel.postMessage({ event: 'SIGNED_IN', session: replacement });
+    channel.close();
+  }, { sessionKey, replacement });
+}
+
+async function assertIdentitySuspended(page, requests, from) {
+  await page.evaluate(() => {
+    window.dispatchEvent(new Event('focus'));
+    window.dispatchEvent(new Event('cali-profile-updated'));
+  });
+  await waitForIdentityStartup(page);
+  assert(!requests.slice(from).some((entry) => entry.identity), 'Identidade consultada depois de perder a guarda');
+}
+
+const identityResponse = (page) => page.waitForResponse(
+  (response) => response.request().method() === 'GET' && isIdentityQuery(new URL(response.url())) && response.ok(),
+  { timeout },
+);
+
 async function verifyMfa(page, test, requests) {
   const input = page.getByLabel('Código do aplicativo');
   await input.waitFor({ timeout });
   await deniedByTerms(page, test.role);
   if (test.expected === 'staff-mfa') {
+    await waitForIdentityStartup(page);
     assert(!requests.some((entry) => entry.private), 'MFA pendente iniciou consultas privadas');
     assert(!recorded(requests, legacyTermsPath), 'Termos foram consultados antes do MFA');
   }
@@ -454,6 +494,8 @@ async function verifyTerms(page, test, requests) {
   const checkbox = page.getByRole('checkbox', { name: /Li e aceito/ });
   await checkbox.waitFor({ timeout });
   await deniedByTerms(page, test.role);
+  await waitForIdentityStartup(page);
+  assert(!requests.some((entry) => entry.identity), 'Termos pendentes iniciaram a identidade privada');
   const button = page.getByRole('button', { name: 'Continuar', exact: true });
   assert(await button.isDisabled(), 'Continuar habilitado antes do aceite explícito');
   await checkbox.check({ timeout });
@@ -477,7 +519,7 @@ async function verifyTerms(page, test, requests) {
     await page.locator(gateError).waitFor({ timeout });
     await deniedByTerms(page, test.role);
   } else {
-    await assertAdmitted(page, test);
+    await Promise.all([assertAdmitted(page, test), identityResponse(page)]);
     assert(requests.slice(submitIndex + 1).some(receiptRead), 'Aceite liberou antes de reler a confirmação');
     if (test.tourUnseen) {
       const tour = page.getByRole('dialog', { name: 'Apresentação do CALI Workspace' });
@@ -514,19 +556,20 @@ async function runCase(browser, origin, test) {
       assert(recorded(requests, '/auth/v1/factors', 200));
       await adminDenied(page);
     } else if (test.expected === 'mfa-session-replaced') {
-      await assertAdmitted(page, test);
+      await Promise.all([assertAdmitted(page, test), identityResponse(page)]);
       const replacement = session('aal1', [factor], false, 'dddddddd-dddd-4ddd-8ddd-dddddddddddd');
-      await page.evaluate(
-        ({ sessionKey, replacement }) => {
-          localStorage.setItem(sessionKey, JSON.stringify(replacement));
-          const channel = new BroadcastChannel(sessionKey);
-          channel.postMessage({ event: 'SIGNED_IN', session: replacement });
-          channel.close();
-        },
-        { sessionKey, replacement },
-      );
+      const beforeReplacement = requests.length;
+      await replaceSession(page, replacement);
       await page.getByLabel('Código do aplicativo').waitFor({ timeout });
       await adminDenied(page);
+      await assertIdentitySuspended(page, requests, beforeReplacement);
+    } else if (test.expected === 'terms-actor-replaced') {
+      await Promise.all([assertAdmitted(page, test), identityResponse(page)]);
+      const beforeReplacement = requests.length;
+      await replaceSession(page, session('aal1', [], false, 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', replacementUser));
+      await page.getByRole('checkbox', { name: /Li e aceito/ }).waitFor({ timeout });
+      await clientDenied(page);
+      await assertIdentitySuspended(page, requests, beforeReplacement);
     } else if (test.expected === 'terms-error') {
       await page.locator(gateError).waitFor({ timeout });
       await deniedByTerms(page, test.role);

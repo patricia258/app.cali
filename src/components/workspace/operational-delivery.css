@@ -111,10 +111,14 @@ html[data-workspace-ui='v2'] .v2-notice-staff .v2-notice-reactions{@apply tw:poi
 html[data-workspace-ui='v2'] .v2-notice-staff .v2-notice-reactions button:not(:has(b)){@apply tw:inline-flex}
 /* Cabeçalho das páginas no padrão .ap-title: os botões ficam numa linha só, alinhados ao título. */
 html[data-workspace-ui='v2'] .v2-admin-page .ap-title{@apply tw:items-center tw:gap-[20px]}
-html[data-workspace-ui='v2'] .v2-admin-page .ap-title>div:first-child{@apply tw:min-w-0;flex:1 1 320px}
+html[data-workspace-ui='v2'] .v2-admin-page .ap-title>div:first-child{@apply tw:min-w-0 tw:flex-[1_1_320px]}
 html[data-workspace-ui='v2'] .v2-admin-page .ap-title-actions{@apply tw:flex tw:items-center tw:gap-[10px] tw:flex-nowrap;@apply tw:flex-none}
 html[data-workspace-ui='v2'] .v2-admin-page .ap-title-actions>*{@apply tw:flex-none tw:whitespace-nowrap}
 @media(max-width:1100px){html[data-workspace-ui='v2'] .v2-admin-page .ap-title-actions{@apply tw:flex-wrap}}
+@media(max-width:640px){
+  html[data-workspace-ui='v2'] .v2-admin-page .ap-title{@apply tw:items-start}
+  html[data-workspace-ui='v2'] .v2-admin-page .ap-title>div:first-child{@apply tw:flex-auto}
+}
 /* Rodapé do entregável: botões e seletor de situação com a mesma altura, na mesma linha. */
 html[data-workspace-ui='v2'] .dv-modal .dv-actions :is(.deliverable-actions-left-v2,.deliverable-actions-right-v2){@apply tw:flex tw:items-center tw:gap-[10px] tw:flex-wrap}
 html[data-workspace-ui='v2'] .dv-modal .dv-actions :is(button.dv-secondary,.inline-status-select-v3,button.dv-converse-bottom){@apply tw:h-[40px] tw:min-h-[40px] tw:box-border tw:inline-flex tw:items-center tw:m-0}

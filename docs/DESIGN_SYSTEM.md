@@ -24,4 +24,4 @@ As primitivas preservam seletores que fazem parte da integração com estilos e 
 
 ## Aceite visual
 
-Compare desktop, notebook, tablet e celular com fixtures equivalentes. Exercite tema, teclado, foco, vazio, carregamento e falha. Em diálogo ou gaveta, confira abertura, fechamento, rolagem, retorno do foco e ação primária com clique e toque. Em impressão, confira conteúdo, fonte, tamanho e quebra de página. [Matriz de aceite](CONSOLIDATION_ACCEPTANCE.md) · [Testes](TESTING.md)
+Compare desktop, notebook, tablet e celular com fixtures equivalentes. Exercite tema, teclado, foco, vazio, carregamento e falha. Em diálogo ou gaveta, confira abertura, fechamento, rolagem, retorno do foco e ação primária com clique e toque. Em impressão, confira conteúdo, fonte, tamanho e quebra de página. [Comparação visual](VISUAL_QA.md) · [Matriz de aceite](CONSOLIDATION_ACCEPTANCE.md) · [Testes](TESTING.md)

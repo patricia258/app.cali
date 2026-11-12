@@ -97,7 +97,7 @@ body.workspace-modal-open .workspace-view {
   padding: 24px 28px 0 !important;
 }
 .client-account-modal .account-modal-intro {
-  flex: 0 0 auto !important;
+  @apply tw:flex-none!;
   @apply tw:pr-[48px]!;
 }
 .client-account-modal .account-modal-intro h2 {
@@ -131,7 +131,7 @@ body.workspace-modal-open .workspace-view {
 .client-account-modal .account-modal-footer {
   @apply tw:relative!;
   inset: auto !important;
-  flex: 0 0 auto !important;
+  @apply tw:flex-none!;
   margin: 0 -28px !important;
   padding: 12px 28px 14px !important;
   background: #fffdf9 !important;
@@ -256,7 +256,7 @@ body.workspace-modal-open .workspace-view {
   background: #f5eee7;
   color: var(--burgundy);
   @apply tw:grid tw:place-items-center tw:text-[.78rem];
-  font-weight: 800;
+  @apply tw:font-extrabold;
 }
 .bar-client-logo img {
   @apply tw:w-full tw:h-full tw:object-cover;
@@ -333,7 +333,7 @@ body.workspace-modal-open .workspace-view {
   border: 1px solid rgba(90,30,45,.1);
   @apply tw:rounded-[10px];
   background: #2f2927;
-  color: white;
+  @apply tw:text-white;
   box-shadow: 0 10px 28px rgba(31,24,22,.18);
   @apply tw:pointer-events-none;
 }
@@ -362,7 +362,7 @@ body.workspace-modal-open .workspace-view {
   background: rgba(255,255,255,.5);
   color: var(--graphite);
   @apply tw:inline-flex tw:items-center tw:gap-[7px] tw:text-[.67rem];
-  font-weight: 700;
+  @apply tw:font-bold;
 }
 .trend-series-legend button > span {
   @apply tw:w-[8px] tw:h-[8px] tw:rounded-[50%];
@@ -415,7 +415,7 @@ body.workspace-modal-open .workspace-view {
   background: #f4ebe5;
   color: var(--burgundy);
   @apply tw:grid tw:place-items-center tw:text-[.78rem];
-  font-weight: 800;
+  @apply tw:font-extrabold;
 }
 .deadline-main-v2 {
   @apply tw:min-w-0;
@@ -434,7 +434,7 @@ body.workspace-modal-open .workspace-view {
 .deadline-main-v2 strong {
   color: var(--muted);
   @apply tw:text-[.66rem];
-  font-weight: 700;
+  @apply tw:font-bold;
 }
 .deadline-main-v2 span,
 .deadline-main-v2 small {

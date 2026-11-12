@@ -5,12 +5,12 @@
 .v2-admin-page .ap-filters .v2-admin-search input{border:0;outline:0;background:transparent;@apply tw:w-full;padding:10px 5px;font:inherit;@apply tw:text-[11px];color:#67574c}
 .v2-admin-page .v2-admin-project-list{@apply tw:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));@apply tw:gap-[12px] tw:mb-[16px]}
 .v2-admin-page .v2-admin-project-list>button{@apply tw:flex tw:items-center tw:gap-[10px] tw:text-left;background:#fff;border:1px solid #eee2d9;@apply tw:rounded-[9px] tw:p-[13px];color:#554744;@apply tw:cursor-pointer tw:min-w-0}
-.v2-admin-page .v2-admin-project-list>button.active{border-color:#5a1e2d;box-shadow:inset 3px 0 #5a1e2d}
+.v2-admin-page .v2-admin-project-list>button.active{@apply tw:border-cali-brand;box-shadow:inset 3px 0 #5a1e2d}
 .v2-admin-page .v2-admin-project-list>button>span:nth-child(2){@apply tw:flex-1 tw:flex;@apply tw:flex-col tw:gap-[3px] tw:min-w-0}
 .v2-admin-page .v2-admin-project-list small{@apply tw:text-[9px];letter-spacing:.6px;color:#a39790}
 .v2-admin-page .v2-admin-project-list strong{@apply tw:text-[12px]}
 .v2-admin-page .v2-admin-project-list em{@apply tw:not-italic tw:text-[10px];color:#a39790;@apply tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap}
-.v2-admin-page .project-client-mark{@apply tw:w-[35px] tw:h-[35px];background:#f7eee8;@apply tw:grid tw:place-items-center;color:#653042;font-weight:700;@apply tw:rounded-[7px] tw:shrink-0}
+.v2-admin-page .project-client-mark{@apply tw:w-[35px] tw:h-[35px];background:#f7eee8;@apply tw:grid tw:place-items-center;color:#653042;@apply tw:font-bold;@apply tw:rounded-[7px] tw:shrink-0}
 .v2-admin-page .ap-project-context{@apply tw:mb-[16px] tw:items-center}
 .v2-admin-page .ap-project-context>div:first-child{@apply tw:flex tw:flex-col tw:gap-[2px]}
 .v2-admin-page .ap-project-context>div:first-child>span{@apply tw:text-[10px];color:#978980;order:-1}
@@ -18,18 +18,18 @@
 .v2-admin-page .project-rule-tags span{@apply tw:inline-flex tw:items-center tw:gap-[6px];padding:5px 9px;border:1px solid #eadfd5;@apply tw:rounded-[6px];background:#fbf7f4;@apply tw:text-[10px];color:#857870}
 .v2-admin-page .v2-admin-project-side{@apply tw:flex tw:items-center tw:gap-[18px] tw:flex-wrap}
 .v2-admin-page .project-progress-v2{@apply tw:flex tw:flex-col tw:gap-[3px] tw:min-w-[110px]}
-.v2-admin-page .project-progress-v2 strong{@apply tw:text-[20px];color:#5a1e2d}
+.v2-admin-page .project-progress-v2 strong{@apply tw:text-[20px];@apply tw:text-cali-brand}
 .v2-admin-page .project-progress-v2 span{@apply tw:text-[10px];color:#978980}
 .v2-admin-page .project-progress-v2>div{@apply tw:h-[6px] tw:rounded-[4px];background:#f1e9e2;@apply tw:overflow-hidden}
 .v2-admin-page .project-progress-v2 i{@apply tw:block tw:h-full;background:#5a1e2d}
 .v2-admin-page .project-hero-buttons{@apply tw:flex tw:gap-[8px] tw:flex-wrap}
-.v2-admin-page .project-hero-buttons :is(button,.light-button){@apply tw:rounded-[7px];border:1px solid #ead9ce;padding:10px 13px;background:#fff;color:#603144;@apply tw:inline-flex tw:items-center tw:gap-[8px];font:inherit;@apply tw:text-[11px];font-weight:600;@apply tw:whitespace-nowrap tw:cursor-pointer}
+.v2-admin-page .project-hero-buttons :is(button,.light-button){@apply tw:rounded-[7px];border:1px solid #ead9ce;padding:10px 13px;background:#fff;color:#603144;@apply tw:inline-flex tw:items-center tw:gap-[8px];font:inherit;@apply tw:text-[11px];@apply tw:font-semibold;@apply tw:whitespace-nowrap tw:cursor-pointer}
 .v2-admin-page .project-impact-note{@apply tw:items-start;margin:0 0 16px;border-color:#f0dfc0;background:#fffaf1;color:#7a5a2c}
 .v2-admin-page .project-impact-note p{margin:3px 0 0;@apply tw:text-[11px]}
 .v2-admin-page .ap-project-tabs{@apply tw:mb-[16px]}
 .v2-admin-page .ap-project-overview{@apply tw:flex tw:flex-col tw:gap-[16px]}
 .v2-admin-page .ap-project-overview .ap-exec-grid{@apply tw:m-0}
-.v2-admin-page .ap-pane-head small{@apply tw:text-[10px];letter-spacing:.12em;color:#a77e52;font-weight:800}
+.v2-admin-page .ap-pane-head small{@apply tw:text-[10px];letter-spacing:.12em;color:#a77e52;@apply tw:font-extrabold}
 .v2-admin-page .ap-pane-head p{margin:4px 0 0;@apply tw:text-[11px];color:#978980}
 .v2-admin-page .ap-pane-head>div{@apply tw:flex tw:flex-col tw:gap-[3px]}
 .v2-admin-page .ap-admin-roadmap .ap-project-months{grid-template-columns:repeat(var(--m,8),minmax(48px,1fr))}
@@ -43,21 +43,21 @@
 .v2-admin-page .front-copy-v2>p{@apply tw:m-0 tw:text-[10px];color:#978980}
 .v2-admin-page .front-monthbar-v2{@apply tw:grid;grid-template-columns:repeat(var(--months,8),minmax(0,1fr));@apply tw:gap-[3px] tw:relative tw:items-center}
 .v2-admin-page .front-monthbar-v2>i{grid-row:1;@apply tw:h-[22px] tw:rounded-[4px];background:#f1e9e2}
-.v2-admin-page .front-monthbar-v2>b{grid-row:1;@apply tw:h-[22px] tw:rounded-[4px];background:#5a1e2d;color:#fff;@apply tw:text-[9px] tw:grid tw:place-items-center tw:z-1}
+.v2-admin-page .front-monthbar-v2>b{grid-row:1;@apply tw:h-[22px] tw:rounded-[4px];background:#5a1e2d;@apply tw:text-white;@apply tw:text-[9px] tw:grid tw:place-items-center tw:z-1}
 .v2-admin-page .front-monthbar-v2>i:nth-of-type(1){grid-column:1}
 .v2-admin-page .ap-roadmap-list{padding:0 16px 6px}
 .v2-admin-page :is(.ap-roadmap-head,.ap-roadmap-row){@apply tw:grid;grid-template-columns:minmax(0,2.4fr) 70px minmax(150px,1fr) 100px 30px;@apply tw:items-center tw:gap-[12px]}
-.v2-admin-page .ap-roadmap-head{padding:12px 0 8px;@apply tw:text-[9px];font-weight:800;letter-spacing:.05em;@apply tw:uppercase;color:#988980}
+.v2-admin-page .ap-roadmap-head{padding:12px 0 8px;@apply tw:text-[9px];@apply tw:font-extrabold;letter-spacing:.05em;@apply tw:uppercase;color:#988980}
 .v2-admin-page .ap-roadmap-row{padding:11px 0;border-top:1px solid #f0e8e1;@apply tw:w-auto;background:none}
 .v2-admin-page .ap-roadmap-delivery{@apply tw:flex tw:items-center tw:gap-[10px];background:none;border:0;@apply tw:text-left;color:#392f2a;@apply tw:cursor-pointer tw:min-w-0 tw:p-0;font:inherit}
 .v2-admin-page .ap-roadmap-delivery>span{@apply tw:flex tw:flex-col tw:gap-[3px] tw:min-w-0}
 .v2-admin-page .ap-roadmap-delivery strong{@apply tw:text-[12px]}
 .v2-admin-page .ap-roadmap-delivery small{@apply tw:text-[9px];color:#a39790}
-.v2-admin-page .ap-roadmap-row time,.v2-admin-page .ap-project-delivery-row time{@apply tw:text-[11px];color:#b58c52;font-weight:800;@apply tw:whitespace-nowrap}
+.v2-admin-page .ap-roadmap-row time,.v2-admin-page .ap-project-delivery-row time{@apply tw:text-[11px];@apply tw:text-cali-gold;@apply tw:font-extrabold;@apply tw:whitespace-nowrap}
 .v2-admin-page .row-arrow-v3{border:0;background:none;color:#8a4b60;@apply tw:cursor-pointer tw:grid tw:place-items-center tw:p-[4px]}
-.v2-admin-page .mc-chip{@apply tw:inline-flex tw:justify-center;padding:4px 7px;@apply tw:rounded-[5px];background:#f4eee8;color:#75604f;@apply tw:text-[10px];font-weight:700;@apply tw:w-fit}
+.v2-admin-page .mc-chip{@apply tw:inline-flex tw:justify-center;padding:4px 7px;@apply tw:rounded-[5px];background:#f4eee8;color:#75604f;@apply tw:text-[10px];@apply tw:font-bold;@apply tw:w-fit}
 .v2-admin-page .inline-status-select-v3{@apply tw:inline-flex tw:items-center tw:gap-[6px];padding:0 8px;border:1px solid #eadfd5;@apply tw:rounded-[6px];background:#fff;@apply tw:min-w-0}
-.v2-admin-page .inline-status-select-v3 select{border:0;background:transparent;font:inherit;@apply tw:text-[11px];font-weight:600;color:#5a1e2d;padding:7px 2px;@apply tw:max-w-full;outline:0}
+.v2-admin-page .inline-status-select-v3 select{border:0;background:transparent;font:inherit;@apply tw:text-[11px];@apply tw:font-semibold;@apply tw:text-cali-brand;padding:7px 2px;@apply tw:max-w-full;outline:0}
 .v2-admin-page .status-dot-v3{@apply tw:w-[7px] tw:h-[7px] tw:rounded-[50%];background:#b58c52;@apply tw:shrink-0}
 .v2-admin-page .status-approved .status-dot-v3{background:#3caf80}
 .v2-admin-page .status-progress .status-dot-v3,.v2-admin-page .status-review .status-dot-v3{background:#7aafcd}
@@ -76,7 +76,7 @@
 .v2-admin-page .kanban-v2 button strong{@apply tw:text-[12px]}
 .v2-admin-page .kanban-v2 button p{@apply tw:m-0 tw:text-[10px];color:#978980}
 .v2-admin-page .kanban-v2 button footer{@apply tw:flex tw:justify-between tw:items-center tw:mt-[4px]}
-.v2-admin-page .kanban-v2 time{@apply tw:text-[10px];color:#b58c52;font-weight:800}
+.v2-admin-page .kanban-v2 time{@apply tw:text-[10px];@apply tw:text-cali-gold;@apply tw:font-extrabold}
 /* diálogos */
 .v2-admin-page .ap-pd-modal.v2-pd-narrow{width:min(640px,100%)}
 .v2-admin-page .ap-pd-overlay.v2-pd-top{@apply tw:z-990}
@@ -103,8 +103,8 @@
 .v2-admin-page .task-list-v2 p{@apply tw:m-0 tw:text-[10px];color:#978980}
 .v2-admin-page .task-list-v2 em{@apply tw:not-italic tw:text-[10px];color:#857870}
 .v2-admin-page .task-list-v2 .done strong{text-decoration:line-through;color:#978980}
-.v2-admin-page .task-check-v2{@apply tw:w-[22px] tw:h-[22px];border:1px solid #d9c9be;@apply tw:rounded-[6px];background:#fff;@apply tw:grid tw:place-items-center;color:#fff;@apply tw:cursor-pointer tw:p-0}
-.v2-admin-page .done .task-check-v2{background:#5a1e2d;border-color:#5a1e2d}
+.v2-admin-page .task-check-v2{@apply tw:w-[22px] tw:h-[22px];border:1px solid #d9c9be;@apply tw:rounded-[6px];background:#fff;@apply tw:grid tw:place-items-center;@apply tw:text-white;@apply tw:cursor-pointer tw:p-0}
+.v2-admin-page .done .task-check-v2{background:#5a1e2d;@apply tw:border-cali-brand}
 .v2-admin-page .deliverable-history-v2 article{@apply tw:flex tw:gap-[12px];padding:12px 2px;border-top:1px solid #f0e8e1}
 .v2-admin-page .deliverable-history-v2 article>i{@apply tw:w-[9px] tw:h-[9px] tw:rounded-[50%];background:#bd996a;@apply tw:mt-[4px] tw:shrink-0}
 .v2-admin-page .deliverable-history-v2 p{margin:3px 0;@apply tw:text-[11px];color:#857870}
@@ -120,22 +120,22 @@
 .ap-app.v2-admin-page .ap-roadmap-front-header.front-header-v2{@apply tw:grid;grid-template-columns:34px minmax(180px,1.1fr) minmax(220px,1.8fr) auto;@apply tw:gap-[14px] tw:cursor-pointer}
 .ap-app.v2-admin-page .front-section-v2.collapsed-v46>.front-deliverables-v2{@apply tw:hidden}
 .ap-app.v2-admin-page .front-section-v2.expanded-v46>.front-deliverables-v2{@apply tw:block}
-.v2-admin-page :is(.project-header-timer-start,.task-inline-timer,.task-inline-timer button,.project-header-timer button){@apply tw:inline-flex tw:items-center tw:gap-[6px];border:1px solid #dec9c3;@apply tw:rounded-[7px];background:#fff;color:#5a1e2d;padding:7px 10px;font:inherit;@apply tw:text-[10px];font-weight:700;@apply tw:cursor-pointer;box-shadow:none}
+.v2-admin-page :is(.project-header-timer-start,.task-inline-timer,.task-inline-timer button,.project-header-timer button){@apply tw:inline-flex tw:items-center tw:gap-[6px];border:1px solid #dec9c3;@apply tw:rounded-[7px];background:#fff;@apply tw:text-cali-brand;padding:7px 10px;font:inherit;@apply tw:text-[10px];@apply tw:font-bold;@apply tw:cursor-pointer;box-shadow:none}
 .v2-admin-page .task-inline-timer{border:0;@apply tw:p-0;background:none}
 .v2-admin-page :is(.project-header-timer-start,.task-inline-timer button):disabled,.v2-admin-page .project-work-closed{opacity:.5;@apply tw:cursor-default}
 .v2-admin-page .project-header-timer{@apply tw:inline-flex tw:items-center tw:gap-[8px];order:-1}
 .v2-admin-page .project-header-timer-label{@apply tw:text-[10px];color:#857870}
-.v2-admin-page .project-timer-live{@apply tw:text-[11px];font-weight:700;color:#5a1e2d}
+.v2-admin-page .project-timer-live{@apply tw:text-[11px];@apply tw:font-bold;@apply tw:text-cali-brand}
 .v2-admin-page .task-list-v2 article{grid-template-columns:26px minmax(0,1fr) 90px 100px 80px auto}
 .ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2{@apply tw:grid!;grid-template-columns:minmax(0,1fr) auto;gap:10px 12px;align-items:end;@apply tw:m-0;padding:14px 0 0;border-top:1px solid #efe4dc}
-.ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2>.conversation-channels-v2{grid-column:1/-1;justify-self:start}
-.ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2>.workspace-chat-runtime-pending-host{grid-column:1/-1}
+.ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2>.conversation-channels-v2{@apply tw:col-span-full;justify-self:start}
+.ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2>.workspace-chat-runtime-pending-host{@apply tw:col-span-full}
 .ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2>.workspace-chat-runtime-pending-host:empty{@apply tw:hidden}
 .ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2>textarea{grid-column:1;grid-row:3;@apply tw:w-full tw:box-border tw:min-h-[70px];max-height:120px}
 .ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2>.workspace-chat-send-actions{grid-column:2;grid-row:3;@apply tw:m-0}
-.ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2>.workspace-chat-runtime-tools-host{grid-column:1/-1;grid-row:4;justify-self:start}
+.ap-app.v2-admin-page .v2-pd-work .conversation-composer-v2>.workspace-chat-runtime-tools-host{@apply tw:col-span-full;grid-row:4;justify-self:start}
 .ap-app.v2-admin-page .v2-pd-work .conversation-channels-v2 button{background:#fff;color:#897a71}
-.ap-app.v2-admin-page .v2-pd-work .conversation-channels-v2 button.on{background:#5a1e2d;color:#fff}
+.ap-app.v2-admin-page .v2-pd-work .conversation-channels-v2 button.on{background:#5a1e2d;@apply tw:text-white}
 .ap-app.v2-admin-page .v2-pd-work .conversation-list-v2{@apply tw:flex tw:flex-col tw:gap-[14px]}
 .ap-app.v2-admin-page .v2-pd-work .workspace-chat-line.internal .workspace-chat-bubble{background:#fffaf1;border-color:#f0dfc0}
 .v2-admin-page .project-client-strip-v39{background:#fff;border:1px solid #e9dbd0;@apply tw:rounded-[10px];box-shadow:none;@apply tw:mb-[16px]}
@@ -145,7 +145,7 @@
 .ap-app.v2-admin-page .ap-project-delivery-row.deliverable-list-row-v3{@apply tw:grid;grid-template-columns:minmax(0,2.4fr) 60px minmax(160px,1fr) 90px 60px 110px 30px;@apply tw:gap-[12px] tw:items-center}
 .ap-app.v2-admin-page .ap-pane-head .deliverable-toolbar-v2{@apply tw:flex tw:flex-row;@apply tw:flex-nowrap}
 .ap-app.v2-admin-page .ap-pane-head .deliverable-toolbar-v2 button{@apply tw:inline-flex tw:items-center tw:gap-[6px];background:#fff;border:0;padding:9px 10px;@apply tw:text-[10px];color:#897a71}
-.ap-app.v2-admin-page .ap-pane-head .deliverable-toolbar-v2 button.on{background:#5a1e2d;color:#fff}
+.ap-app.v2-admin-page .ap-pane-head .deliverable-toolbar-v2 button.on{background:#5a1e2d;@apply tw:text-white}
 .ap-app.v2-admin-page .kanban-v2{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(190px,1fr)}
 
 /* ---- Módulos automáticos (Projetos, timer, travas): as cores vinham do tema anterior; no V2 as variáveis recebem a paleta aprovada ---- */
@@ -154,38 +154,38 @@ html[data-workspace-ui='v2']{--theme-page:#f7f3ee;--theme-page-2:#f7f3ee;--theme
 html[data-workspace-ui='v2'] :is(.project-lifecycle-backdrop-v44,.project-client-modal-backdrop-v39,.workflow-dialog-backdrop-v38){@apply tw:fixed tw:inset-0 tw:z-985;background:#171017a8;backdrop-filter:blur(4px);@apply tw:grid tw:place-items-center tw:p-[18px]}
 html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38){width:min(680px,100%);max-height:calc(100dvh - 36px);@apply tw:flex tw:flex-col tw:overflow-hidden;background:#fffdfb;border:1px solid #e5d9d0;@apply tw:rounded-[16px];box-shadow:0 24px 95px #28172440;color:#302b29;font:12px Inter,system-ui,sans-serif;@apply tw:p-0}
 html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38)>header{@apply tw:flex tw:items-start tw:justify-between tw:gap-[16px];padding:22px 29px 16px;background:linear-gradient(90deg,#fffaf6,#f8ecd9);border:0;@apply tw:m-0}
-html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38)>header :is(span,small):not([class]){@apply tw:text-[10px];letter-spacing:1.2px;color:#af8f72;font-weight:800;@apply tw:uppercase}
-html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38) h2{@apply tw:text-[21px];margin:6px 0 0;color:#322f2c;font-weight:700;letter-spacing:-.3px}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38)>header :is(span,small):not([class]){@apply tw:text-[10px];letter-spacing:1.2px;color:#af8f72;@apply tw:font-extrabold;@apply tw:uppercase}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38) h2{@apply tw:text-[21px];margin:6px 0 0;color:#322f2c;@apply tw:font-bold;letter-spacing:-.3px}
 html[data-workspace-ui='v2'] :is(.project-lifecycle-close-v44,.project-client-modal-close-v39,.workflow-dialog-close-v38){background:#fff;border:1px solid #ecded5;@apply tw:rounded-[8px] tw:w-[34px] tw:h-[34px] tw:grid tw:place-items-center;color:#322f2c;@apply tw:cursor-pointer tw:text-[16px];line-height:1;@apply tw:shrink-0 tw:static}
 html[data-workspace-ui='v2'] :is(.project-lifecycle-body-v44,.workflow-dialog-body-v38,.project-client-project-list-v39){padding:20px 29px;@apply tw:overflow-y-auto;scrollbar-width:none;@apply tw:min-h-0 tw:flex tw:flex-col tw:gap-[14px]}
 html[data-workspace-ui='v2'] :is(.project-lifecycle-body-v44,.workflow-dialog-body-v38,.project-client-project-list-v39)::-webkit-scrollbar{@apply tw:hidden}
 html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38)>footer,html[data-workspace-ui='v2'] .workflow-dialog-v38 footer{@apply tw:flex tw:items-center tw:justify-end tw:gap-[10px];padding:14px 29px;border-top:1px solid #ede3dd;background:#fffdfb;@apply tw:m-0 tw:text-[10px];color:#978980}
 html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38)>footer>span{@apply tw:mr-auto}
-html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38) footer button,html[data-workspace-ui='v2'] .workflow-dialog-v38 :is(button.primary,button.secondary){padding:10px 14px;@apply tw:rounded-[7px];border:1px solid #dec9c3;background:#fff;color:#5a1e2d;font:inherit;@apply tw:text-[11px];font-weight:700;@apply tw:cursor-pointer tw:h-auto tw:min-h-0;box-shadow:none}
-html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38) button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38) footer button,html[data-workspace-ui='v2'] .workflow-dialog-v38 :is(button.primary,button.secondary){padding:10px 14px;@apply tw:rounded-[7px];border:1px solid #dec9c3;background:#fff;@apply tw:text-cali-brand;font:inherit;@apply tw:text-[11px];@apply tw:font-bold;@apply tw:cursor-pointer tw:h-auto tw:min-h-0;box-shadow:none}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38) button.primary{background:#5a1e2d;@apply tw:border-cali-brand;@apply tw:text-white}
 html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.workflow-dialog-v38) button:disabled{opacity:.45;@apply tw:cursor-not-allowed}
-html[data-workspace-ui='v2'] :is(.project-lifecycle-field-v44,.workflow-dialog-body-v38 label){@apply tw:flex tw:flex-col tw:gap-[6px] tw:text-[11px];font-weight:700;color:#322f2c;@apply tw:m-0}
-html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.workflow-dialog-v38) :is(input:not([type='checkbox']):not([type='radio']),select,textarea){@apply tw:w-full tw:box-border tw:min-h-[42px];padding:10px 12px;border:1px solid #e5d8d0;@apply tw:rounded-[7px];background:#fff;color:#322f2c;font:inherit;font-weight:400;@apply tw:text-[12px]}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-field-v44,.workflow-dialog-body-v38 label){@apply tw:flex tw:flex-col tw:gap-[6px] tw:text-[11px];@apply tw:font-bold;color:#322f2c;@apply tw:m-0}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.workflow-dialog-v38) :is(input:not([type='checkbox']):not([type='radio']),select,textarea){@apply tw:w-full tw:box-border tw:min-h-[42px];padding:10px 12px;border:1px solid #e5d8d0;@apply tw:rounded-[7px];background:#fff;color:#322f2c;font:inherit;@apply tw:font-normal;@apply tw:text-[12px]}
 html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.workflow-dialog-v38) textarea{@apply tw:min-h-[84px] tw:resize-y}
 html[data-workspace-ui='v2'] .project-lifecycle-action-grid-v44{@apply tw:grid tw:grid-cols-3 tw:gap-[10px]}
 html[data-workspace-ui='v2'] .project-lifecycle-action-grid-v44>label{@apply tw:flex tw:flex-col tw:gap-[5px];padding:13px 14px;border:1px solid #e9ddd4;@apply tw:rounded-[9px];background:#fff;@apply tw:cursor-pointer tw:text-[11px]}
-html[data-workspace-ui='v2'] .project-lifecycle-action-grid-v44>label.active{border-color:#5a1e2d;box-shadow:inset 3px 0 #5a1e2d;background:#fdfaf7}
+html[data-workspace-ui='v2'] .project-lifecycle-action-grid-v44>label.active{@apply tw:border-cali-brand;box-shadow:inset 3px 0 #5a1e2d;background:#fdfaf7}
 html[data-workspace-ui='v2'] .project-lifecycle-action-grid-v44 input{@apply tw:absolute;opacity:0;@apply tw:pointer-events-none}
 html[data-workspace-ui='v2'] .project-lifecycle-action-grid-v44 strong{@apply tw:text-[12px];color:#322f2c}
-html[data-workspace-ui='v2'] .project-lifecycle-action-grid-v44 small{@apply tw:text-[10px];line-height:1.5;color:#857870;font-weight:400}
+html[data-workspace-ui='v2'] .project-lifecycle-action-grid-v44 small{@apply tw:text-[10px];line-height:1.5;color:#857870;@apply tw:font-normal}
 html[data-workspace-ui='v2'] :is(.project-lifecycle-note-v44,.workflow-help-v38,.workflow-complexity-note-v39,.workflow-approval-summary-v38,.workflow-request-v38,.workflow-request-detail-v39){padding:12px 15px;border:1px solid #f0dfc0;background:#fffaf1;@apply tw:rounded-[9px] tw:text-[11px];line-height:1.6;color:#7a5a2c;@apply tw:m-0}
-html[data-workspace-ui='v2'] :is(.project-lifecycle-danger-v44,.workflow-help-v38.danger){@apply tw:flex tw:items-center tw:gap-[10px];padding:12px 15px;border:1px solid #f0d5d8;background:#fdf3f3;@apply tw:rounded-[9px] tw:text-[11px];color:#9d4b64;font-weight:600}
+html[data-workspace-ui='v2'] :is(.project-lifecycle-danger-v44,.workflow-help-v38.danger){@apply tw:flex tw:items-center tw:gap-[10px];padding:12px 15px;border:1px solid #f0d5d8;background:#fdf3f3;@apply tw:rounded-[9px] tw:text-[11px];color:#9d4b64;@apply tw:font-semibold}
 html[data-workspace-ui='v2'] .project-lifecycle-current-v44{@apply tw:text-[11px];color:#857870}
 html[data-workspace-ui='v2'] .project-client-modal-identity-v39{@apply tw:flex tw:items-center tw:gap-[12px]}
 html[data-workspace-ui='v2'] .project-client-modal-identity-v39 .project-client-logo-v39{@apply tw:w-[46px] tw:h-[46px] tw:rounded-[7px];border:1px solid #e0cdc1;background:#f2e8e0;@apply tw:overflow-hidden tw:grid tw:place-items-center tw:shrink-0}
 html[data-workspace-ui='v2'] .project-client-modal-identity-v39 img{@apply tw:w-full tw:h-full tw:object-contain}
 html[data-workspace-ui='v2'] .project-client-project-card-v39{@apply tw:flex tw:items-center tw:gap-[14px] tw:w-full tw:text-left;background:#fff;border:1px solid #eee2d9;@apply tw:rounded-[9px] tw:p-[14px];color:#554744;@apply tw:cursor-pointer;font:inherit}
-html[data-workspace-ui='v2'] .project-client-project-card-v39.selected{border-color:#5a1e2d;box-shadow:inset 3px 0 #5a1e2d}
+html[data-workspace-ui='v2'] .project-client-project-card-v39.selected{@apply tw:border-cali-brand;box-shadow:inset 3px 0 #5a1e2d}
 html[data-workspace-ui='v2'] .project-client-project-card-v39>div:first-child{@apply tw:flex-1 tw:flex;@apply tw:flex-col tw:gap-[4px] tw:min-w-0}
 html[data-workspace-ui='v2'] .project-client-project-card-v39 strong{@apply tw:text-[13px];color:#322f2c}
 html[data-workspace-ui='v2'] .project-client-project-card-v39 small{@apply tw:text-[10px];color:#a39790}
 html[data-workspace-ui='v2'] .project-client-project-meta-v39{@apply tw:flex tw:gap-[10px] tw:flex-wrap tw:text-[10px];color:#857870}
-html[data-workspace-ui='v2'] .project-client-project-status-v39{@apply tw:inline-block;padding:6px 8px;@apply tw:rounded-[5px] tw:text-[10px];font-weight:600;@apply tw:whitespace-nowrap;background:#fff4e4;color:#9a672d}
+html[data-workspace-ui='v2'] .project-client-project-status-v39{@apply tw:inline-block;padding:6px 8px;@apply tw:rounded-[5px] tw:text-[10px];@apply tw:font-semibold;@apply tw:whitespace-nowrap;background:#fff4e4;color:#9a672d}
 html[data-workspace-ui='v2'] .project-client-project-status-v39:is(.status-approved,.status-active){background:#e6f6ec;color:#31805a}
 html[data-workspace-ui='v2'] .project-client-project-status-v39.status-draft{background:#f1eaff;color:#8055a5}
 html[data-workspace-ui='v2'] .workflow-toast-v40{@apply tw:fixed tw:right-[24px];@apply tw:bottom-[24px] tw:z-1200;padding:12px 16px;@apply tw:rounded-[9px];border:1px solid #d6e8dd;background:#f1f8f3;color:#42785a;font:600 12px Inter,system-ui,sans-serif;box-shadow:0 18px 60px #28172426}
@@ -193,19 +193,19 @@ html[data-workspace-ui='v2'] .workflow-toast-v40.error{border-color:#f0d5d8;back
 /* faixas e ações inseridas na página */
 .v2-admin-page :is(.project-review-banner-v38,.project-lifecycle-banner-v44){@apply tw:flex tw:items-center tw:justify-between tw:gap-[16px];margin:0 0 16px;padding:13px 16px;border:1px solid #f0dfc0;background:#fffaf1;@apply tw:rounded-[10px];color:#7a5a2c;@apply tw:text-[12px]}
 .v2-admin-page :is(.project-review-banner-v38,.project-lifecycle-banner-v44) p{margin:3px 0 0;@apply tw:text-[11px]}
-.v2-admin-page :is(.project-review-banner-v38,.project-lifecycle-banner-v44) button{@apply tw:rounded-[7px];border:1px solid #dec9c3;background:#fff;color:#5a1e2d;padding:9px 13px;font:inherit;@apply tw:text-[11px];font-weight:700;@apply tw:cursor-pointer tw:whitespace-nowrap}
+.v2-admin-page :is(.project-review-banner-v38,.project-lifecycle-banner-v44) button{@apply tw:rounded-[7px];border:1px solid #dec9c3;background:#fff;@apply tw:text-cali-brand;padding:9px 13px;font:inherit;@apply tw:text-[11px];@apply tw:font-bold;@apply tw:cursor-pointer tw:whitespace-nowrap}
 .v2-admin-page .project-lifecycle-banner-v44:is([data-state='suspended'],[data-state='cancelled']){border-color:#f0d5d8;background:#fdf3f3;color:#9d4b64}
 .v2-admin-page .project-forecast-v36{@apply tw:flex tw:gap-[22px] tw:flex-wrap tw:mt-[10px]}
 .v2-admin-page .project-forecast-v36>div{@apply tw:flex tw:flex-col tw:gap-[3px]}
-.v2-admin-page .project-forecast-v36 span{@apply tw:text-[9px];letter-spacing:.08em;@apply tw:uppercase;color:#a39790;font-weight:700}
-.v2-admin-page .project-forecast-v36 strong{@apply tw:text-[12px];color:#5a1e2d}
+.v2-admin-page .project-forecast-v36 span{@apply tw:text-[9px];letter-spacing:.08em;@apply tw:uppercase;color:#a39790;@apply tw:font-bold}
+.v2-admin-page .project-forecast-v36 strong{@apply tw:text-[12px];@apply tw:text-cali-brand}
 .v2-admin-page :is(.front-admin-actions-v38,.draft-row-actions-v36){@apply tw:inline-flex tw:items-center tw:gap-[6px]}
-.v2-admin-page :is(.front-admin-actions-v38 button,.quick-icon-v36){@apply tw:w-[30px] tw:h-[30px] tw:grid tw:place-items-center;border:1px solid #e5d8d0;@apply tw:rounded-[7px];background:#fff;color:#5a1e2d;@apply tw:cursor-pointer tw:p-0}
+.v2-admin-page :is(.front-admin-actions-v38 button,.quick-icon-v36){@apply tw:w-[30px] tw:h-[30px] tw:grid tw:place-items-center;border:1px solid #e5d8d0;@apply tw:rounded-[7px];background:#fff;@apply tw:text-cali-brand;@apply tw:cursor-pointer tw:p-0}
 .v2-admin-page .quick-icon-v36.danger{color:#b7495d}
 .v2-admin-page .front-deliverable-row-v3.draft-editable-v36{grid-template-columns:minmax(0,2.4fr) 70px minmax(150px,1fr) 100px 30px auto}
 .v2-admin-page .front-collapse-trigger-v46{@apply tw:cursor-pointer}
-.v2-admin-page .roadmap-help-trigger-v40{@apply tw:w-[26px] tw:h-[26px] tw:rounded-[7px];border:1px solid #e5d8d0;background:#fff;color:#5a1e2d;@apply tw:cursor-pointer tw:relative;font-weight:700}
-.v2-admin-page .roadmap-help-popover-v40{@apply tw:hidden tw:absolute tw:right-0;top:32px;@apply tw:z-5 tw:w-[260px] tw:text-left;background:#fff;border:1px solid #e9dbd0;@apply tw:rounded-[9px] tw:p-[12px];box-shadow:0 18px 60px #28172426;@apply tw:text-[11px];font-weight:400;color:#665751}
+.v2-admin-page .roadmap-help-trigger-v40{@apply tw:w-[26px] tw:h-[26px] tw:rounded-[7px];border:1px solid #e5d8d0;background:#fff;@apply tw:text-cali-brand;@apply tw:cursor-pointer tw:relative;@apply tw:font-bold}
+.v2-admin-page .roadmap-help-popover-v40{@apply tw:hidden tw:absolute tw:right-0;top:32px;@apply tw:z-5 tw:w-[260px] tw:text-left;background:#fff;border:1px solid #e9dbd0;@apply tw:rounded-[9px] tw:p-[12px];box-shadow:0 18px 60px #28172426;@apply tw:text-[11px];@apply tw:font-normal;color:#665751}
 .v2-admin-page .roadmap-help-trigger-v40.open .roadmap-help-popover-v40{@apply tw:flex tw:flex-col tw:gap-[6px]}
 .v2-admin-page .roadmap-help-popover-v40 i{@apply tw:not-italic}
 html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-modal-v39,.workflow-dialog-v38) [hidden]{@apply tw:hidden!}
@@ -215,28 +215,28 @@ html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-m
 .v2-admin-page :is(.project-client-strip-v39,.project-account-navigator-v36){@apply tw:hidden!}
 .v2-admin-page .v2-admin-project-bar{@apply tw:flex tw:items-center tw:gap-[14px] tw:flex-wrap tw:mb-[16px]}
 .v2-admin-page .v2-admin-project-bar>label{@apply tw:inline-flex tw:items-center tw:gap-[9px] tw:text-[11px];color:#8c7e74;@apply tw:m-0}
-.v2-admin-page .v2-admin-project-bar>label select{border:1px solid #e5d9d0;@apply tw:rounded-[7px];background:#fff;color:#5a1e2d;font:inherit;font-weight:700;padding:9px 10px;@apply tw:max-w-[280px]}
+.v2-admin-page .v2-admin-project-bar>label select{border:1px solid #e5d9d0;@apply tw:rounded-[7px];background:#fff;@apply tw:text-cali-brand;font:inherit;@apply tw:font-bold;padding:9px 10px;@apply tw:max-w-[280px]}
 .v2-admin-page .v2-admin-project-bar .ap-filters{margin:0 0 0 auto;@apply tw:flex-nowrap}
 .v2-admin-page .v2-admin-project-bar .v2-admin-search{flex:0 0 230px;@apply tw:min-w-0}
 .v2-admin-page .v2-admin-project-results{@apply tw:flex tw:flex-wrap tw:gap-[8px] tw:mb-[16px] tw:text-[11px];color:#857870}
 .v2-admin-page .v2-admin-project-results button{@apply tw:inline-flex tw:items-center tw:gap-[8px];border:1px solid #eadfd5;@apply tw:rounded-[7px];background:#fff;padding:8px 10px;font:inherit;@apply tw:text-[11px];color:#554744;@apply tw:cursor-pointer}
-.v2-admin-page .v2-admin-project-results button.current{border-color:#5a1e2d}
-.ap-app.v2-admin-page .v2-admin-hero{background:linear-gradient(120deg,#582031,#6d2c40 62%,#8a5a4a);border:0;color:#fff;padding:24px 28px;@apply tw:rounded-[12px]}
+.v2-admin-page .v2-admin-project-results button.current{@apply tw:border-cali-brand}
+.ap-app.v2-admin-page .v2-admin-hero{background:linear-gradient(120deg,#582031,#6d2c40 62%,#8a5a4a);border:0;@apply tw:text-white;padding:24px 28px;@apply tw:rounded-[12px]}
 .ap-app.v2-admin-page .v2-admin-hero>div:first-child>span{color:#e9cbb9;@apply tw:text-[10px];letter-spacing:.6px}
-.ap-app.v2-admin-page .v2-admin-hero h2{color:#fff;@apply tw:text-[24px];margin:4px 0 2px}
+.ap-app.v2-admin-page .v2-admin-hero h2{@apply tw:text-white;@apply tw:text-[24px];margin:4px 0 2px}
 .ap-app.v2-admin-page .v2-admin-hero .v2-hero-service{@apply tw:not-italic tw:text-[12px];color:#f1e2e5}
 /* o módulo de prazos reescreve este parágrafo com início e meta; as datas ficam uma única vez, nas etiquetas e na previsão */
 .ap-app.v2-admin-page .v2-admin-hero>div:first-child>p{@apply tw:hidden}
-.ap-app.v2-admin-page .v2-admin-hero .project-rule-tags span{border-color:#ffffff40;background:#ffffff1a;color:#fff}
+.ap-app.v2-admin-page .v2-admin-hero .project-rule-tags span{border-color:#ffffff40;background:#ffffff1a;@apply tw:text-white}
 .ap-app.v2-admin-page .v2-admin-hero:has(.project-forecast-v36) .v2-hero-meta{@apply tw:hidden}
 .ap-app.v2-admin-page .v2-admin-hero .project-forecast-v36{@apply tw:mt-[14px] tw:gap-[26px]}
 .ap-app.v2-admin-page .v2-admin-hero .project-forecast-v36 span{color:#e9cbb9}
-.ap-app.v2-admin-page .v2-admin-hero .project-forecast-v36 strong{color:#fff;@apply tw:text-[14px]}
-.ap-app.v2-admin-page .v2-admin-hero .project-progress-v2 strong{color:#fff;@apply tw:text-[26px]}
+.ap-app.v2-admin-page .v2-admin-hero .project-forecast-v36 strong{@apply tw:text-white;@apply tw:text-[14px]}
+.ap-app.v2-admin-page .v2-admin-hero .project-progress-v2 strong{@apply tw:text-white;@apply tw:text-[26px]}
 .ap-app.v2-admin-page .v2-admin-hero .project-progress-v2 span{color:#f1e2e5}
 .ap-app.v2-admin-page .v2-admin-hero .project-progress-v2>div{background:#ffffff33}
 .ap-app.v2-admin-page .v2-admin-hero .project-progress-v2 i{background:#e3bf7b}
-.ap-app.v2-admin-page .v2-admin-hero .project-hero-buttons :is(button,.light-button){background:#ffffff14;border-color:#ffffff66;color:#fff}
+.ap-app.v2-admin-page .v2-admin-hero .project-hero-buttons :is(button,.light-button){background:#ffffff14;border-color:#ffffff66;@apply tw:text-white}
 .v2-admin-page .v2-admin-timeline .ch-gantt-row{@apply tw:cursor-pointer;font:inherit;@apply tw:p-0}
 .v2-admin-page .v2-admin-timeline .ch-gantt-track{@apply tw:relative tw:min-h-[48px]}
 .v2-admin-page .v2-admin-timeline .ch-gantt-foot>span:empty{@apply tw:hidden}
@@ -248,12 +248,12 @@ html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-m
 .v2-admin-page .v2-admin-dv .dv-modal header{@apply tw:flex tw:items-start tw:justify-between tw:gap-[16px]}
 .v2-admin-page .v2-admin-dv .v2-dv-task-bar{@apply tw:flex tw:items-center tw:justify-between tw:gap-[12px];margin:14px 0;@apply tw:text-[11px];color:#8c7e74}
 .v2-admin-page .v2-admin-dv .dv-step{@apply tw:w-full tw:box-border}
-.v2-admin-page .v2-admin-dv .dv-step-mark{border:0;@apply tw:cursor-pointer;font:inherit;font-weight:700}
+.v2-admin-page .v2-admin-dv .dv-step-mark{border:0;@apply tw:cursor-pointer;font:inherit;@apply tw:font-bold}
 .v2-admin-page .v2-admin-dv .dv-step small{@apply tw:text-[9px];color:#a39790}
 .v2-admin-page .v2-admin-dv .dv-step.done strong{color:#857870}
 .v2-admin-page .v2-admin-dv .v2-pd-inline-form{@apply tw:flex tw:flex-col tw:gap-[12px];margin:14px 0}
-.v2-admin-page .v2-admin-dv .v2-pd-inline-form label{@apply tw:flex tw:flex-col tw:gap-[6px] tw:text-[11px];font-weight:700}
-.v2-admin-page .v2-admin-dv .v2-pd-inline-form :is(input:not([type='checkbox']),textarea){border:1px solid #dfd3ca;@apply tw:rounded-[8px];padding:10px 12px;font:inherit;font-weight:400;@apply tw:text-[12px];background:#fff}
+.v2-admin-page .v2-admin-dv .v2-pd-inline-form label{@apply tw:flex tw:flex-col tw:gap-[6px] tw:text-[11px];@apply tw:font-bold}
+.v2-admin-page .v2-admin-dv .v2-pd-inline-form :is(input:not([type='checkbox']),textarea){border:1px solid #dfd3ca;@apply tw:rounded-[8px];padding:10px 12px;font:inherit;@apply tw:font-normal;@apply tw:text-[12px];background:#fff}
 .v2-admin-page .v2-admin-dv .v2-dv-form-grid{@apply tw:grid tw:grid-cols-2;gap:12px 16px;align-items:end}
 .v2-admin-page .v2-admin-dv label.v2-dv-check{@apply tw:flex-row tw:items-center tw:gap-[8px] tw:pb-[10px]}
 .v2-admin-page .v2-admin-dv .dv-actions{@apply tw:flex-wrap tw:gap-[10px]}
@@ -261,19 +261,19 @@ html[data-workspace-ui='v2'] :is(.project-lifecycle-dialog-v44,.project-client-m
 .v2-admin-page .v2-admin-dv .deliverable-actions-right-v2{@apply tw:ml-auto}
 .v2-admin-page .v2-admin-dv .dv-actions .danger-text{color:#b7495d}
 .v2-admin-page .v2-admin-dv .dv-actions button:disabled{opacity:.4;@apply tw:cursor-not-allowed}
-.v2-admin-page .v2-admin-dv .dv-reply-fixed>.conversation-channels-v2{grid-column:1/-1;grid-row:1;justify-self:start}
+.v2-admin-page .v2-admin-dv .dv-reply-fixed>.conversation-channels-v2{@apply tw:col-span-full;grid-row:1;justify-self:start}
 .v2-admin-page .v2-admin-dv .dv-reply-fixed .conversation-channels-v2 button{background:#fff;color:#897a71;border:0;padding:8px 10px;@apply tw:text-[10px]}
-.v2-admin-page .v2-admin-dv .dv-reply-fixed .conversation-channels-v2 button.on{background:#5a1e2d;color:#fff}
+.v2-admin-page .v2-admin-dv .dv-reply-fixed .conversation-channels-v2 button.on{background:#5a1e2d;@apply tw:text-white}
 .v2-admin-page .v2-admin-dv .dv-reply-fixed textarea{grid-row:3}
 .v2-admin-page .v2-admin-dv .dv-reply-fixed .workspace-chat-send-actions{grid-row:3;@apply tw:flex tw:gap-[8px]}
 .v2-admin-page .v2-admin-dv .dv-reply-fixed .workspace-chat-runtime-tools-host{grid-row:4}
 .v2-admin-page .v2-admin-dv .dv-chat .workspace-chat-line.internal .workspace-chat-bubble{background:#fffaf1;border-color:#f0dfc0}
-.v2-admin-page .v2-admin-dv :is(.v2-dv-task-bar,.v2-pd-inline-actions) .dv-secondary{@apply tw:inline-flex tw:items-center tw:gap-[8px];background:#fff;border:1px solid #dec9c3;@apply tw:rounded-[7px];color:#5a1e2d;padding:9px 13px;font:inherit;@apply tw:text-[11px];font-weight:700;@apply tw:cursor-pointer}
-.v2-admin-page .v2-admin-dv .v2-pd-inline-actions .dv-converse-bottom{@apply tw:inline-flex tw:items-center tw:gap-[8px];background:#5a1e2d;color:#fff;border:1px solid #5a1e2d;padding:9px 13px;@apply tw:rounded-[7px];font:inherit;font-weight:700;@apply tw:text-[11px] tw:cursor-pointer}
+.v2-admin-page .v2-admin-dv :is(.v2-dv-task-bar,.v2-pd-inline-actions) .dv-secondary{@apply tw:inline-flex tw:items-center tw:gap-[8px];background:#fff;border:1px solid #dec9c3;@apply tw:rounded-[7px];@apply tw:text-cali-brand;padding:9px 13px;font:inherit;@apply tw:text-[11px];@apply tw:font-bold;@apply tw:cursor-pointer}
+.v2-admin-page .v2-admin-dv .v2-pd-inline-actions .dv-converse-bottom{@apply tw:inline-flex tw:items-center tw:gap-[8px];background:#5a1e2d;@apply tw:text-white;border:1px solid #5a1e2d;padding:9px 13px;@apply tw:rounded-[7px];font:inherit;@apply tw:font-bold;@apply tw:text-[11px] tw:cursor-pointer}
 .v2-admin-page .v2-admin-dv .v2-pd-inline-actions button:disabled{opacity:.45}
 /* Projetos (cliente): cronograma em linha do tempo e histórico, como na administradora */
 .v2-client-module .v2-project-timeline{background:#fff;border:1px solid #e9dbd0;@apply tw:rounded-[10px] tw:p-[23px]}
-.v2-client-module .v2-project-timeline-head small{@apply tw:text-[10px];letter-spacing:.12em;color:#a77e52;font-weight:800}
+.v2-client-module .v2-project-timeline-head small{@apply tw:text-[10px];letter-spacing:.12em;color:#a77e52;@apply tw:font-extrabold}
 .v2-client-module .v2-project-timeline-head h2{@apply tw:text-[15px];margin:3px 0}
 .v2-client-module .v2-project-timeline-head p{@apply tw:m-0 tw:text-[11px];color:#978980}
 .v2-client-module .v2-project-timeline .ch-gantt-row{@apply tw:cursor-pointer;font:inherit;@apply tw:p-0}

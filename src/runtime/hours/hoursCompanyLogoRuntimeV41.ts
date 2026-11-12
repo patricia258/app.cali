@@ -1,5 +1,6 @@
 import '../../modules/hours/hours-company-logo-v41.css';
 import { resolveCompanyAsset, type CompanyLogoRecord } from '../../lib/companyWorkspaceLogo';
+import { workspaceMediaSignal } from '../../lib/workspaceMedia';
 import { supabase } from '../../api/supabase';
 
 type CompanyRow = CompanyLogoRecord & { status?: string | null };
@@ -8,6 +9,7 @@ let installed = false;
 let timer = 0;
 let loading = false;
 let cacheAt = 0;
+let cacheScope: AbortSignal | undefined;
 let companies = new Map<string, CompanyRow>();
 let resolved = new Map<string, string>();
 
@@ -19,39 +21,41 @@ function isHoursPage() {
   return location.pathname.startsWith('/admin/horas');
 }
 
-async function loadCompanies(force = false) {
-  if (!supabase) return;
+async function loadCompanies(signal: AbortSignal, force: boolean) {
+  if (!supabase || signal.aborted) return;
   if (!force && companies.size && Date.now() - cacheAt < 10_000) return;
   const result = await supabase
     .from('companies')
     .select('id,display_name,logo_url,logo_workspace_url,logo_workspace_generated_at,status')
     .neq('status', 'closed')
-    .order('display_name');
-  if (result.error) return;
+    .order('display_name').abortSignal(signal);
+  if (result.error || signal.aborted) return;
   companies = new Map();
   resolved = new Map();
   for (const row of (result.data || []) as CompanyRow[]) companies.set(key(row.display_name), row);
   cacheAt = Date.now();
 }
 
-async function resolveLogo(company: CompanyRow) {
+async function resolveLogo(company: CompanyRow, signal: AbortSignal) {
+  if (signal.aborted) return '';
   const cached = resolved.get(company.id);
   if (cached) return cached;
   const raw = company.logo_url || company.logo_workspace_url || '';
   if (!raw) return '';
   const url = await resolveCompanyAsset(raw);
+  if (signal.aborted) return '';
   if (url) resolved.set(company.id, url);
   return url;
 }
 
-async function decorateRow(row: HTMLElement) {
+async function decorateRow(row: HTMLElement, signal: AbortSignal) {
   const name = row.querySelector<HTMLElement>('.hours-v13-usage-name strong')?.textContent?.trim() || '';
   const tile = row.querySelector<HTMLElement>('.hours-v13-logo');
   if (!name || !tile) return;
   const company = companies.get(key(name));
   if (!company) return;
-  const url = await resolveLogo(company);
-  if (!url) return;
+  const url = await resolveLogo(company, signal);
+  if (!url || signal.aborted || !row.isConnected) return;
   if (tile.dataset.hoursCompanyLogoV41 === url) return;
 
   tile.dataset.hoursCompanyLogoV41 = url;
@@ -69,21 +73,35 @@ async function decorateRow(row: HTMLElement) {
   tile.style.removeProperty('background-image');
 }
 
-async function scan(force = false) {
-  if (loading || !isHoursPage()) return;
+async function scan(signal: AbortSignal, force: boolean) {
+  if (signal.aborted || loading || !isHoursPage()) return;
   loading = true;
   try {
-    await loadCompanies(force);
+    await loadCompanies(signal, force);
+    if (signal.aborted) return;
     const rows = Array.from(document.querySelectorAll<HTMLElement>('.hours-v13-usage-list > article'));
-    await Promise.all(rows.map(decorateRow));
+    await Promise.all(rows.map((row) => decorateRow(row, signal)));
   } finally {
-    loading = false;
+    if (!signal.aborted) loading = false;
   }
 }
 
 function schedule(force = false) {
+  const signal = workspaceMediaSignal();
+  if (!signal || signal.aborted) return;
+  if (cacheScope !== signal) {
+    cacheScope = signal;
+    signal.addEventListener('abort', () => {
+      window.clearTimeout(timer);
+      loading = false;
+      cacheAt = 0;
+      companies.clear();
+      resolved.clear();
+      cacheScope = undefined;
+    }, { once: true });
+  }
   window.clearTimeout(timer);
-  timer = window.setTimeout(() => void scan(force), 60);
+  timer = window.setTimeout(() => void scan(signal, force), 60);
 }
 
 export function installHoursCompanyLogoRuntimeV41() {

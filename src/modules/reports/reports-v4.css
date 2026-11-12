@@ -5,7 +5,7 @@
 .reports-period-controls-v4 { @apply tw:items-end tw:justify-end; }
 .reports-period-controls-v4 label { @apply tw:grid tw:gap-[6px] tw:min-w-[150px]; }
 .reports-period-controls-v4 label:first-child { @apply tw:min-w-[220px]; }
-.reports-period-controls-v4 label > span { @apply tw:text-cali-muted tw:text-[9px]; font-weight:800; letter-spacing:.08em; @apply tw:uppercase; padding-left:2px; }
+.reports-period-controls-v4 label > span { @apply tw:text-cali-muted tw:text-[9px]; @apply tw:font-extrabold; letter-spacing:.08em; @apply tw:uppercase; padding-left:2px; }
 .reports-period-controls-v4 select,
 .reports-period-controls-v4 input { @apply tw:w-full tw:min-h-[44px]; }
 
@@ -22,10 +22,10 @@
 }
 .report-contract-strip-v4 > div { @apply tw:grid tw:gap-[4px] tw:min-w-0; padding:13px 16px; border-right:1px solid var(--theme-line); }
 .report-contract-strip-v4 > div:last-child { border-right:0; }
-.report-contract-strip-v4 span { @apply tw:text-cali-muted tw:text-[8px]; font-weight:800; letter-spacing:.08em; @apply tw:uppercase; }
+.report-contract-strip-v4 span { @apply tw:text-cali-muted tw:text-[8px]; @apply tw:font-extrabold; letter-spacing:.08em; @apply tw:uppercase; }
 .report-contract-strip-v4 strong { @apply tw:text-cali-text tw:text-[11px]; line-height:1.35; @apply tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap; }
 
-.report-preview-paper-v3 > header small { @apply tw:block tw:mt-[3px]; color:#7b6e66; @apply tw:text-[9px]; font-weight:500; }
+.report-preview-paper-v3 > header small { @apply tw:block tw:mt-[3px]; color:#7b6e66; @apply tw:text-[9px]; @apply tw:font-medium; }
 .report-preview-paper-v3 > header > span { @apply tw:text-right; line-height:1.45; }
 
 html[data-workspace-theme='night'] .report-contract-strip-v4 { background:var(--theme-surface); }
@@ -41,7 +41,7 @@ html[data-workspace-theme='night'] .report-contract-strip-v4 { background:var(--
   .reports-period-controls-v4 { @apply tw:grid; grid-template-columns:1fr 1fr; }
   .reports-period-controls-v4 label,
   .reports-period-controls-v4 label:first-child { @apply tw:min-w-0; }
-  .reports-period-controls-v4 label:first-child { grid-column:1 / -1; }
+  .reports-period-controls-v4 label:first-child { @apply tw:col-span-full; }
   .report-contract-strip-v4 { grid-template-columns:1fr; }
   .report-contract-strip-v4 > div { border-right:0; border-bottom:1px solid var(--theme-line); }
   .report-contract-strip-v4 > div:last-child { border-bottom:0; }

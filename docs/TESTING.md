@@ -8,7 +8,9 @@ Use Node 22 atualizado ou mais recente e instale as versões do lockfile com `np
 | `npm test` | Regras de domínio, componentes de apresentação, APIs do frontend, handler Vercel e Edge Functions com transporte controlado. Descobre arquivos de teste em subdiretórios. |
 | `npm run test:components` | Montagem direta dos componentes do DS e de componentes compartilhados. Chrome exercita clique, teclado, foco, refs, submissão, estados e acessibilidade. |
 | `npm run test:e2e` | Navegação de todas as rotas registradas, guardas de acesso e jornadas com ações verificadas. |
-| `npm run test:contracts` | SQL com rollback e smoke HTTP contra Auth, API, Edge, Storage e Mailpit da QA local. |
+| `npm run test:visual:pages` | Comparação de páginas inteiras e estados entre a referência Git e o candidato. |
+| `npm run test:visual:components` | Comparação de componentes montados pelas duas versões em temas e larguras equivalentes. |
+| `npm run test:contracts` | Catálogo de RPCs do frontend, SQL com rollback e smoke HTTP contra Auth, API, Edge, Storage e Mailpit da QA local. |
 | `npm run test:local` | Tipos, build, lógica, componentes, jornadas e contratos na mesma árvore. |
 | `npm run test:coverage` | Cobertura de linhas, funções e branches que o runner Node consegue instrumentar. |
 
@@ -21,6 +23,8 @@ Use Node 22 atualizado ou mais recente e instale as versões do lockfile com `np
 - **Integração local.** O [README dos contratos](../tests/contracts/README.md) lista os casos que usam PostgreSQL e serviços reais. Esses testes verificam as garantias que dependem de RLS, transação, Storage, entrega e Realtime.
 
 O relatório de cobertura Node tem como denominador os arquivos instrumentados. A matriz de navegação e os testes de navegador têm resultados próprios. Componentes internos podem ser exercitados pela página que os monta. Cada contrato SQL identifica as operações de banco e os perfis exercitados. Consulte as fichas de fluxo e o inventário das Edges para os cenários que exigem homologação com provedores externos.
+
+A [comparação visual](VISUAL_QA.md) documenta os dois workflows locais, a referência e as jornadas adicionais de componentes de fluxo.
 
 ## Ambiente
 

@@ -1,0 +1,94 @@
+@reference "../../styles/tailwind.css";
+
+.deliverable-head-actions-v2 > .status-chip-v3,
+.hours-connect-header .hours-v13-header-actions > button.primary,
+.admin-overview-page .compact-overview-actions > .compact-primary-action,
+.portal-proposal-editor-head > button.primary { @apply tw:hidden!; }
+
+.hours-audit-actions-head { @apply tw:w-[88px] tw:text-center!; }
+.hours-audit-actions { @apply tw:whitespace-nowrap tw:text-center!; }
+.hours-audit-action {
+  @apply tw:w-[34px] tw:h-[34px] tw:rounded-[9px] tw:bg-white tw:text-cali-brand
+    tw:inline-grid tw:place-items-center tw:mx-[3px] tw:my-0 tw:cursor-pointer;
+  border: 1px solid #ded3cc;
+}
+.hours-audit-action:hover { @apply tw:bg-[color:var(--cali-color-canvas)]; }
+.hours-audit-action.danger { @apply tw:text-[#9d332f]; }
+.hours-audit-action svg {
+  @apply tw:w-[15px] tw:h-[15px];
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.hours-audit-open { @apply tw:ml-auto; }
+
+.operational-safety-overlay {
+  @apply tw:fixed tw:inset-0 tw:z-[30000] tw:grid tw:place-items-center tw:p-[24px];
+  background: rgba(32,25,25,.48);
+  backdrop-filter: blur(5px);
+}
+.operational-safety-card {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  @apply tw:overflow-auto tw:bg-[#fffdfa] tw:text-[color:var(--cali-color-ink)] tw:rounded-[22px];
+  border: 1px solid #e6dbd4;
+  box-shadow: 0 24px 80px rgba(35,20,24,.2);
+}
+.operational-safety-head {
+  @apply tw:flex tw:gap-[14px] tw:px-[24px] tw:pt-[24px] tw:pb-[16px];
+  border-bottom: 1px solid #eee4df;
+}
+.operational-safety-head > div:first-child {
+  @apply tw:w-[42px] tw:h-[42px] tw:rounded-[12px] tw:bg-[#f7eeeb] tw:text-[#6d2035] tw:grid tw:place-items-center tw:flex-none;
+}
+.operational-safety-head h2 {
+  @apply tw:mx-0 tw:mt-0 tw:mb-[6px] tw:text-[22px];
+}
+.operational-safety-head p { @apply tw:m-0 tw:text-[#756b67]; line-height: 1.45; }
+.operational-safety-close {
+  @apply tw:ml-auto tw:w-[38px] tw:h-[38px] tw:rounded-[10px] tw:cursor-pointer
+    tw:bg-[#f4efeb] tw:text-cali-brand tw:grid tw:place-items-center;
+  border: 0;
+}
+.operational-safety-body { @apply tw:px-[24px] tw:py-[20px] tw:grid tw:gap-[15px]; }
+.operational-safety-note {
+  @apply tw:py-[13px] tw:px-[14px] tw:rounded-[12px] tw:bg-[#fbf5e8] tw:text-[#72531c] tw:text-[14px];
+  border: 1px solid #ead6a9;
+  line-height: 1.45;
+}
+.operational-safety-grid { @apply tw:grid tw:gap-[12px]; grid-template-columns: 1fr 1fr; }
+.operational-safety-body label { @apply tw:grid tw:gap-[6px] tw:text-[13px] tw:font-bold tw:text-[#554b47]; }
+.operational-safety-body input,
+.operational-safety-body select,
+.operational-safety-body textarea {
+  @apply tw:w-full tw:box-border tw:rounded-[11px] tw:bg-white tw:py-[11px] tw:px-[12px] tw:text-[color:var(--cali-color-ink)];
+  border: 1px solid #ded3cc;
+  font: inherit;
+}
+.operational-safety-body textarea { @apply tw:resize-y tw:min-h-[88px]; }
+.operational-safety-check { @apply tw:flex! tw:items-center tw:gap-[9px]! tw:font-semibold!; }
+.operational-safety-check input { @apply tw:w-[16px]! tw:h-[16px]!; }
+.operational-safety-foot {
+  @apply tw:flex tw:justify-end tw:gap-[10px] tw:px-[24px] tw:pt-[16px] tw:pb-[22px];
+  border-top: 1px solid #eee4df;
+}
+.operational-safety-foot button { @apply tw:rounded-[11px] tw:py-[11px] tw:px-[17px] tw:font-[800] tw:cursor-pointer; }
+.operational-safety-foot .secondary { @apply tw:bg-white tw:text-cali-brand; border: 1px solid #d9cec8; }
+.operational-safety-foot .primary { @apply tw:bg-cali-brand tw:text-white; border: 1px solid var(--cali-color-burgundy); }
+.operational-safety-foot .danger { @apply tw:bg-[#9d332f] tw:text-white; border: 1px solid #9d332f; }
+.operational-safety-foot button:disabled { @apply tw:opacity-[.45] tw:cursor-not-allowed; }
+
+.operational-audit-list { @apply tw:grid tw:gap-[10px]; }
+.operational-audit-row { @apply tw:rounded-[13px] tw:py-[13px] tw:px-[14px]; border: 1px solid #e6dbd4; }
+.operational-audit-row header { @apply tw:flex tw:justify-between tw:gap-[12px] tw:mb-[5px]; }
+.operational-audit-row strong { @apply tw:text-cali-brand; }
+.operational-audit-row small { @apply tw:text-[#887d78]; }
+.operational-audit-row p { @apply tw:my-[4px] tw:mx-0 tw:text-[#514945]; }
+.operational-audit-row em { @apply tw:not-italic tw:text-[#7c716c] tw:text-[12px]; }
+
+@media (max-width: 700px) {
+  .operational-safety-grid { grid-template-columns: 1fr; }
+  .hours-audit-actions-head { @apply tw:w-[72px]; }
+}

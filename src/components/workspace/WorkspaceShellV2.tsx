@@ -147,7 +147,7 @@ export function WorkspaceShellV2({ role, navigation, extras, children, schedulin
           <div className="profile-holder" ref={searchRef}>
             {searching
               ? <label className="global-search"><Search size={15} /><input autoFocus value={term} onChange={event => setTerm(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && results[0]) navigate(results[0].href); }} placeholder="Buscar no Workspace" aria-label="Buscar no Workspace" /></label>
-              : <button type="button" className="global-search" onClick={() => setSearching(true)}><Search size={15} /><span>Buscar no Workspace</span><kbd>⌘ K</kbd></button>}
+              : <button type="button" className="global-search" onClick={() => setSearching(true)} aria-label="Buscar no Workspace"><Search size={15} /><span>Buscar no Workspace</span><kbd>⌘ K</kbd></button>}
             {searching && <div className="profile-dropdown v2-search-results" role="listbox" aria-label="Resultados">{results.length ? results.map(item => <button key={item.href} role="option" aria-selected={false} onClick={() => navigate(item.href)}>{item.label} <ChevronRight size={14} /></button>) : <span>Nenhum módulo encontrado.</span>}</div>}
           </div>
           {extras}

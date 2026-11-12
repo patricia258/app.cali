@@ -21,7 +21,7 @@
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-tags{@apply tw:flex tw:items-center tw:gap-[6px] tw:flex-wrap}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-tags .wf-doc-label{@apply tw:m-0}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-client{@apply tw:flex tw:items-center tw:gap-[9px] tw:min-w-0}
-:is(.v2-admin-docs,.v2-client-docs) .v2-doc-client .document-client-logo-v3{@apply tw:grid tw:place-items-center tw:w-[30px] tw:h-[30px] tw:flex-none;border:1px solid #eadfd6;@apply tw:rounded-[7px];background:#fff;color:#5a1e2d;@apply tw:text-[11px];font-weight:800;@apply tw:overflow-hidden}
+:is(.v2-admin-docs,.v2-client-docs) .v2-doc-client .document-client-logo-v3{@apply tw:grid tw:place-items-center tw:w-[30px] tw:h-[30px] tw:flex-none;border:1px solid #eadfd6;@apply tw:rounded-[7px];background:#fff;@apply tw:text-cali-brand;@apply tw:text-[11px];@apply tw:font-extrabold;@apply tw:overflow-hidden}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-client .document-client-logo-v3 img{@apply tw:w-full tw:h-full tw:object-contain}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-client>div{@apply tw:flex tw:flex-col tw:gap-[2px] tw:min-w-0}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-client strong{@apply tw:text-[11px];color:#322f2c;@apply tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap}
@@ -34,13 +34,13 @@
 :is(.v2-admin-docs,.v2-client-docs) .wf-doc-actions{@apply tw:mt-[4px]}
 :is(.v2-admin-docs,.v2-client-docs) .wf-doc-actions button{@apply tw:inline-flex tw:items-center tw:justify-center tw:gap-[6px] tw:cursor-pointer;font-family:inherit;line-height:1.2}
 :is(.v2-admin-docs,.v2-client-docs) .wf-doc-actions button:disabled{opacity:.45;@apply tw:cursor-not-allowed}
-:is(.v2-admin-docs,.v2-client-docs) .wf-doc-actions button.v2-doc-primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+:is(.v2-admin-docs,.v2-client-docs) .wf-doc-actions button.v2-doc-primary{background:#5a1e2d;@apply tw:border-cali-brand;@apply tw:text-white}
 .v2-admin-docs .v2-admin-doc-list{@apply tw:mt-[16px]}
 .v2-admin-docs .v2-admin-doc-list .wf-record-row{grid-template-columns:34px minmax(0,2fr) minmax(0,1.3fr) minmax(0,.8fr) minmax(0,1fr) minmax(0,.7fr) minmax(0,.9fr) 18px;@apply tw:cursor-pointer}
-.v2-admin-docs .v2-record-logo{@apply tw:grid tw:place-items-center tw:w-[34px] tw:h-[34px];border:1px solid #eadfd6;@apply tw:rounded-[7px];background:#fff;color:#5a1e2d;@apply tw:text-[12px];font-weight:800;@apply tw:overflow-hidden}
+.v2-admin-docs .v2-record-logo{@apply tw:grid tw:place-items-center tw:w-[34px] tw:h-[34px];border:1px solid #eadfd6;@apply tw:rounded-[7px];background:#fff;@apply tw:text-cali-brand;@apply tw:text-[12px];@apply tw:font-extrabold;@apply tw:overflow-hidden}
 .v2-admin-docs .v2-record-logo img{@apply tw:w-full tw:h-full tw:object-contain}
 .v2-admin-docs .v2-record-author{@apply tw:flex tw:flex-col tw:gap-[3px] tw:min-w-0}
-.v2-admin-docs .v2-record-author strong{@apply tw:text-[11px];font-weight:600;color:#322f2c;@apply tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap}
+.v2-admin-docs .v2-record-author strong{@apply tw:text-[11px];@apply tw:font-semibold;color:#322f2c;@apply tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap}
 .v2-admin-docs .v2-record-author small{@apply tw:text-[9px];color:#a18e80;@apply tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap}
 @media(max-width:1100px){.v2-admin-docs .wf-doc-toolbar.v2-doc-toolbar{@apply tw:flex-wrap}}
 @media(max-width:860px){.v2-admin-docs .v2-admin-doc-list .wf-record-row{grid-template-columns:34px minmax(0,1fr) 18px}.v2-admin-docs .v2-admin-doc-list .wf-record-row.header{@apply tw:hidden}.v2-admin-docs .v2-admin-doc-list .wf-record-row>span:not(.v2-record-logo):not(:nth-child(2)){@apply tw:hidden}}
@@ -50,22 +50,22 @@
 .v2-admin-docs .modal-card.document-detail-modal-v3{width:min(720px,100%)}
 .v2-admin-docs :is(.document-modal-header,.document-detail-header-v3){@apply tw:flex tw:items-center tw:gap-[14px] tw:m-0;padding:20px 64px 18px 24px;border-bottom:1px solid #eadfd6;background:linear-gradient(90deg,#fffaf6,#f8ecd9)}
 .v2-admin-docs :is(.document-modal-header,.document-detail-header-v3)>div:last-of-type{@apply tw:min-w-0}
-.v2-admin-docs .modal-card .section-kicker{@apply tw:block tw:text-[9px];font-weight:800;letter-spacing:.14em;@apply tw:uppercase;color:#b58c52}
-.v2-admin-docs :is(.document-modal-header,.document-detail-header-v3) h2{margin:6px 0 0;@apply tw:text-[19px];line-height:1.25;font-weight:700;color:#5a1e2d}
+.v2-admin-docs .modal-card .section-kicker{@apply tw:block tw:text-[9px];@apply tw:font-extrabold;letter-spacing:.14em;@apply tw:uppercase;@apply tw:text-cali-gold}
+.v2-admin-docs :is(.document-modal-header,.document-detail-header-v3) h2{margin:6px 0 0;@apply tw:text-[19px];line-height:1.25;@apply tw:font-bold;@apply tw:text-cali-brand}
 .v2-admin-docs :is(.document-modal-header,.document-detail-header-v3) p{margin:5px 0 0;@apply tw:text-[11px];color:#857870}
-.v2-admin-docs .modal-card .modal-close{@apply tw:absolute tw:top-[16px];@apply tw:right-[18px] tw:z-3 tw:grid tw:place-items-center tw:w-[32px] tw:h-[32px] tw:p-0;border:1px solid #e5d9d0;@apply tw:rounded-[7px];background:#fff;color:#5a1e2d;@apply tw:cursor-pointer}
+.v2-admin-docs .modal-card .modal-close{@apply tw:absolute tw:top-[16px];@apply tw:right-[18px] tw:z-3 tw:grid tw:place-items-center tw:w-[32px] tw:h-[32px] tw:p-0;border:1px solid #e5d9d0;@apply tw:rounded-[7px];background:#fff;@apply tw:text-cali-brand;@apply tw:cursor-pointer}
 .v2-admin-docs .modal-card .modal-close svg{@apply tw:w-[16px] tw:h-[16px]}
-.v2-admin-docs .document-detail-cover-v3{@apply tw:grid tw:place-items-center tw:w-[52px] tw:h-[64px] tw:flex-none;border:1px solid #eadfd6;@apply tw:rounded-[7px];background:#fff;color:#b58c52;@apply tw:overflow-hidden}
+.v2-admin-docs .document-detail-cover-v3{@apply tw:grid tw:place-items-center tw:w-[52px] tw:h-[64px] tw:flex-none;border:1px solid #eadfd6;@apply tw:rounded-[7px];background:#fff;@apply tw:text-cali-gold;@apply tw:overflow-hidden}
 .v2-admin-docs .document-detail-cover-v3 img{@apply tw:w-full tw:h-full tw:object-cover}
 .v2-admin-docs :is(.document-modal-scroll,.document-detail-scroll-v3){@apply tw:flex-1 tw:min-h-0 tw:overflow-y-auto tw:flex;@apply tw:flex-col tw:gap-[14px];padding:20px 24px;scrollbar-width:none}
 .v2-admin-docs :is(.document-modal-scroll,.document-detail-scroll-v3)::-webkit-scrollbar{@apply tw:hidden}
 .v2-admin-docs :is(.document-modal-scroll,.document-detail-scroll-v3)>*{@apply tw:m-0 tw:shrink-0}
 .v2-admin-docs .document-source-tabs-v3{@apply tw:inline-flex tw:self-start tw:gap-[2px] tw:p-[4px] tw:rounded-[8px];background:#f6f0eb}
 .v2-admin-docs .document-source-tabs-v3 button{@apply tw:inline-flex tw:items-center tw:gap-[7px];border:0;background:none;@apply tw:rounded-[6px];padding:8px 13px;font:inherit;@apply tw:text-[11px];color:#857870;@apply tw:cursor-pointer}
-.v2-admin-docs .document-source-tabs-v3 button.active{background:#fff;color:#322f2c;font-weight:700;box-shadow:0 1px 3px #0000000f}
+.v2-admin-docs .document-source-tabs-v3 button.active{background:#fff;color:#322f2c;@apply tw:font-bold;box-shadow:0 1px 3px #0000000f}
 .v2-admin-docs .document-upload-pair{@apply tw:grid;grid-template-columns:minmax(0,1fr) 150px;@apply tw:gap-[14px]}
 .v2-admin-docs :is(.document-file-drop,.document-drive-link-field-v3,.document-cover-upload){@apply tw:relative tw:flex tw:flex-col tw:items-center tw:justify-center tw:gap-[6px] tw:min-h-[118px] tw:p-[16px];border:1px dashed #d9c7ba;@apply tw:rounded-[10px];background:#fffdfb;color:#8a5a2b;@apply tw:text-center tw:cursor-pointer tw:overflow-hidden}
-.v2-admin-docs :is(.document-file-drop,.document-cover-upload).selected{border-style:solid;border-color:#5a1e2d}
+.v2-admin-docs :is(.document-file-drop,.document-cover-upload).selected{border-style:solid;@apply tw:border-cali-brand}
 .v2-admin-docs :is(.document-file-drop,.document-drive-link-field-v3,.document-cover-upload) strong{@apply tw:text-[12px];color:#322f2c}
 .v2-admin-docs :is(.document-file-drop,.document-drive-link-field-v3,.document-cover-upload) span{@apply tw:text-[10px];color:#9a8c83}
 .v2-admin-docs :is(.document-file-drop,.document-cover-upload) input[type='file']{@apply tw:absolute tw:inset-0;opacity:0;@apply tw:cursor-pointer}
@@ -73,16 +73,16 @@
 .v2-admin-docs .document-drive-link-field-v3{@apply tw:cursor-default tw:items-stretch tw:text-left}
 .v2-admin-docs .document-drive-link-field-v3 svg{@apply tw:self-start}
 .v2-admin-docs .document-protocol-note{@apply tw:flex tw:items-baseline tw:gap-[10px] tw:flex-wrap;padding:11px 14px;border:1px solid #efe7df;@apply tw:rounded-[9px];background:#fffdfb}
-.v2-admin-docs .document-protocol-note span{@apply tw:text-[9px];font-weight:700;letter-spacing:.1em;color:#9a8c83}
-.v2-admin-docs .document-protocol-note strong{@apply tw:text-[12px];color:#5a1e2d}
+.v2-admin-docs .document-protocol-note span{@apply tw:text-[9px];@apply tw:font-bold;letter-spacing:.1em;color:#9a8c83}
+.v2-admin-docs .document-protocol-note strong{@apply tw:text-[12px];@apply tw:text-cali-brand}
 .v2-admin-docs .document-protocol-note small{@apply tw:text-[10px];color:#857870}
 .v2-admin-docs .document-form-grid{@apply tw:grid tw:grid-cols-2;gap:12px 14px}
-.v2-admin-docs .document-form-grid .wide{grid-column:1/-1}
-.v2-admin-docs .modal-card .stacked-label{@apply tw:flex tw:flex-col tw:gap-[6px] tw:m-0 tw:text-[10px];font-weight:700;color:#67574c;@apply tw:min-w-0}
-.v2-admin-docs .modal-card .stacked-label small{font-weight:400;color:#9a8c83}
-.v2-admin-docs .modal-card :is(input:not([type='checkbox']):not([type='file']),select){@apply tw:h-[38px] tw:w-full tw:box-border;padding:0 11px;border:1px solid #e5d8d0;@apply tw:rounded-[7px];background:#fff;font:inherit;@apply tw:text-[12px];font-weight:400;color:#322f2c;outline:0}
-.v2-admin-docs .modal-card textarea{@apply tw:w-full;min-height:80px;@apply tw:box-border;padding:10px 11px;border:1px solid #e5d8d0;@apply tw:rounded-[7px];background:#fff;font:inherit;@apply tw:text-[12px];font-weight:400;color:#322f2c;@apply tw:resize-y;outline:0}
-.v2-admin-docs .modal-card :is(input,select,textarea):focus{border-color:#5a1e2d}
+.v2-admin-docs .document-form-grid .wide{@apply tw:col-span-full}
+.v2-admin-docs .modal-card .stacked-label{@apply tw:flex tw:flex-col tw:gap-[6px] tw:m-0 tw:text-[10px];@apply tw:font-bold;color:#67574c;@apply tw:min-w-0}
+.v2-admin-docs .modal-card .stacked-label small{@apply tw:font-normal;color:#9a8c83}
+.v2-admin-docs .modal-card :is(input:not([type='checkbox']):not([type='file']),select){@apply tw:h-[38px] tw:w-full tw:box-border;padding:0 11px;border:1px solid #e5d8d0;@apply tw:rounded-[7px];background:#fff;font:inherit;@apply tw:text-[12px];@apply tw:font-normal;color:#322f2c;outline:0}
+.v2-admin-docs .modal-card textarea{@apply tw:w-full;min-height:80px;@apply tw:box-border;padding:10px 11px;border:1px solid #e5d8d0;@apply tw:rounded-[7px];background:#fff;font:inherit;@apply tw:text-[12px];@apply tw:font-normal;color:#322f2c;@apply tw:resize-y;outline:0}
+.v2-admin-docs .modal-card :is(input,select,textarea):focus{@apply tw:border-cali-brand}
 .v2-admin-docs .modal-card input[type='checkbox']{@apply tw:w-[15px] tw:h-[15px] tw:m-0;accent-color:#5a1e2d;@apply tw:flex-none}
 .v2-admin-docs .document-publication-options{@apply tw:grid tw:grid-cols-2 tw:gap-[10px]}
 .v2-admin-docs .check-line{@apply tw:flex tw:items-start tw:gap-[9px];padding:11px 13px;border:1px solid #efe7df;@apply tw:rounded-[9px];background:#fffdfb;@apply tw:cursor-pointer}
@@ -93,23 +93,23 @@
 .v2-admin-docs .document-modal-footer{@apply tw:flex tw:items-center tw:justify-between tw:gap-[14px] tw:flex-wrap tw:m-0;padding:14px 24px;border-top:1px solid #eadfd6;background:#fffdfb}
 .v2-admin-docs .document-modal-footer>span{@apply tw:text-[10px];color:#857870}
 .v2-admin-docs .modal-actions{@apply tw:flex tw:items-center tw:gap-[8px] tw:m-0}
-.v2-admin-docs .modal-card button:is(.primary,.secondary){@apply tw:inline-flex tw:items-center tw:justify-center tw:gap-[7px] tw:h-auto;padding:10px 14px;border:1px solid #dec9c3;@apply tw:rounded-[7px];background:#fff;color:#5a1e2d;font:inherit;@apply tw:text-[11px];font-weight:700;line-height:1.2;@apply tw:cursor-pointer;box-shadow:none}
-.v2-admin-docs .modal-card button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+.v2-admin-docs .modal-card button:is(.primary,.secondary){@apply tw:inline-flex tw:items-center tw:justify-center tw:gap-[7px] tw:h-auto;padding:10px 14px;border:1px solid #dec9c3;@apply tw:rounded-[7px];background:#fff;@apply tw:text-cali-brand;font:inherit;@apply tw:text-[11px];@apply tw:font-bold;line-height:1.2;@apply tw:cursor-pointer;box-shadow:none}
+.v2-admin-docs .modal-card button.primary{background:#5a1e2d;@apply tw:border-cali-brand;@apply tw:text-white}
 .v2-admin-docs .modal-card button.secondary.danger{color:#b7495d;border-color:#ecd0d5}
 .v2-admin-docs .modal-card button:disabled{opacity:.45;@apply tw:cursor-not-allowed}
 .v2-admin-docs .modal-card button svg{@apply tw:w-[14px] tw:h-[14px] tw:flex-none}
 .v2-admin-docs .document-detail-grid-v3{@apply tw:grid tw:grid-cols-4;border:1px solid #efe7df;@apply tw:rounded-[10px];background:#fff;@apply tw:overflow-hidden}
 .v2-admin-docs .document-detail-grid-v3 article{@apply tw:flex tw:flex-col tw:gap-[5px] tw:min-w-0;padding:13px 15px;border-right:1px solid #efe7df}
 .v2-admin-docs .document-detail-grid-v3 article:last-child{border-right:0}
-.v2-admin-docs .document-detail-grid-v3 span{@apply tw:text-[9px];font-weight:700;letter-spacing:.1em;@apply tw:uppercase;color:#9a8c83}
+.v2-admin-docs .document-detail-grid-v3 span{@apply tw:text-[9px];@apply tw:font-bold;letter-spacing:.1em;@apply tw:uppercase;color:#9a8c83}
 .v2-admin-docs .document-detail-grid-v3 strong{@apply tw:text-[12px];color:#322f2c;overflow-wrap:anywhere}
 .v2-admin-docs .document-detail-grid-v3 small{@apply tw:text-[10px];color:#857870;overflow-wrap:anywhere}
 .v2-admin-docs .document-context-v3{padding:13px 15px;border:1px solid #efe7df;@apply tw:rounded-[10px];background:#fffdfb}
-.v2-admin-docs .document-context-v3 span{@apply tw:text-[9px];font-weight:700;letter-spacing:.1em;color:#9a8c83}
+.v2-admin-docs .document-context-v3 span{@apply tw:text-[9px];@apply tw:font-bold;letter-spacing:.1em;color:#9a8c83}
 .v2-admin-docs .document-context-v3 p{margin:6px 0 0;@apply tw:text-[11px];line-height:1.55;color:#67574c}
 .v2-admin-docs .document-detail-actions-v3{@apply tw:flex tw:items-center tw:gap-[8px] tw:flex-wrap}
 .v2-admin-docs .document-comments-v3{@apply tw:flex tw:flex-col tw:gap-[12px] tw:p-[15px];border:1px solid #efe7df;@apply tw:rounded-[10px];background:#fffdfb}
-.v2-admin-docs .document-comments-title-v3{@apply tw:flex tw:items-center tw:justify-between tw:gap-[10px];color:#b58c52}
+.v2-admin-docs .document-comments-title-v3{@apply tw:flex tw:items-center tw:justify-between tw:gap-[10px];@apply tw:text-cali-gold}
 .v2-admin-docs .document-comments-title-v3>div{@apply tw:flex tw:flex-col tw:gap-[4px]}
 .v2-admin-docs .document-comments-title-v3 strong{@apply tw:text-[12px];color:#322f2c}
 .v2-admin-docs .document-comment-list-v3{@apply tw:flex tw:flex-col tw:gap-[8px]}
@@ -139,18 +139,18 @@
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-autocover{@apply tw:absolute tw:inset-0 tw:grid tw:place-items-center;background:#f6f1ee}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-autocover img{max-width:46%;max-height:78%;@apply tw:w-auto tw:h-auto tw:object-contain;border:0;border-radius:0;background:none}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-card .wf-doc-content{@apply tw:gap-[11px];padding:14px 16px 16px}
-:is(.v2-admin-docs,.v2-client-docs) .v2-doc-client-logo{@apply tw:grid tw:place-items-center tw:w-[30px] tw:h-[30px] tw:flex-none;border:1px solid #eadfd6;@apply tw:rounded-[7px];background:#fff;color:#5a1e2d;@apply tw:text-[11px];font-weight:800;@apply tw:overflow-hidden}
+:is(.v2-admin-docs,.v2-client-docs) .v2-doc-client-logo{@apply tw:grid tw:place-items-center tw:w-[30px] tw:h-[30px] tw:flex-none;border:1px solid #eadfd6;@apply tw:rounded-[7px];background:#fff;@apply tw:text-cali-brand;@apply tw:text-[11px];@apply tw:font-extrabold;@apply tw:overflow-hidden}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-client-logo img{@apply tw:w-full tw:h-full tw:object-contain}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-facts{@apply tw:grid tw:grid-cols-2 tw:gap-0 tw:m-0;border:1px solid #efe7df;@apply tw:rounded-[9px];background:#fffdfb;@apply tw:overflow-hidden}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-facts>div{@apply tw:flex tw:flex-col tw:gap-[3px] tw:min-w-0;padding:8px 11px;border-right:1px solid #efe7df;border-bottom:1px solid #efe7df}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-facts>div:nth-child(2n){border-right:0}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-facts>div:nth-last-child(-n+2){border-bottom:0}
-:is(.v2-admin-docs,.v2-client-docs) .v2-doc-facts dt{@apply tw:text-[8.5px];font-weight:700;letter-spacing:.08em;@apply tw:uppercase;color:#9a8c83}
-:is(.v2-admin-docs,.v2-client-docs) .v2-doc-facts dd{@apply tw:m-0 tw:flex tw:flex-col tw:gap-[2px] tw:text-[11px];font-weight:600;color:#322f2c;overflow-wrap:anywhere}
-:is(.v2-admin-docs,.v2-client-docs) .v2-doc-facts dd small{@apply tw:text-[9.5px];font-weight:600;color:#31805a}
+:is(.v2-admin-docs,.v2-client-docs) .v2-doc-facts dt{@apply tw:text-[8.5px];@apply tw:font-bold;letter-spacing:.08em;@apply tw:uppercase;color:#9a8c83}
+:is(.v2-admin-docs,.v2-client-docs) .v2-doc-facts dd{@apply tw:m-0 tw:flex tw:flex-col tw:gap-[2px] tw:text-[11px];@apply tw:font-semibold;color:#322f2c;overflow-wrap:anywhere}
+:is(.v2-admin-docs,.v2-client-docs) .v2-doc-facts dd small{@apply tw:text-[9.5px];@apply tw:font-semibold;color:#31805a}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-facts .soon dd small{color:#97672f}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-facts .late dd,:is(.v2-admin-docs,.v2-client-docs) .v2-doc-facts .late dd small{color:#b7495d}
-:is(.v2-admin-docs,.v2-client-docs) .v2-doc-facts .muted dd{font-weight:400;color:#b3a59c}
+:is(.v2-admin-docs,.v2-client-docs) .v2-doc-facts .muted dd{@apply tw:font-normal;color:#b3a59c}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-foot{@apply tw:flex tw:items-center tw:justify-between tw:gap-[10px]}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-foot .wf-doc-protocol{@apply tw:m-0 tw:p-0;border:0;@apply tw:text-[10px] tw:whitespace-nowrap tw:overflow-hidden tw:text-ellipsis}
 :is(.v2-admin-docs,.v2-client-docs) .v2-doc-foot .v2-doc-metrics{@apply tw:flex-none;@apply tw:flex-nowrap tw:gap-[10px]}

@@ -17,7 +17,7 @@
 }
 
 .identity-media-company {
-  background-color: #F7F3EE !important;
+  @apply tw:bg-cali-day-canvas!;
   border-color: #E3D7CE !important;
 }
 
@@ -50,7 +50,7 @@
 .account-company-logo.identity-media-company,
 .people-map-company-mark.identity-media-company,
 .people-map-company-avatar.identity-media-company {
-  background-color:#F7F3EE !important;
+  @apply tw:bg-cali-day-canvas!;
   background-origin:border-box !important;
 }
 
@@ -64,6 +64,6 @@ html[data-workspace-theme='night'] .identity-media-frame {
 }
 
 html[data-workspace-theme='night'] .identity-media-company {
-  background-color:#F7F3EE !important;
+  @apply tw:bg-cali-day-canvas!;
   border-color:#E3D7CE !important;
 }

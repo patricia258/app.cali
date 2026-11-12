@@ -19,7 +19,6 @@ type CompanyMedia = {
   logo_workspace_url?: string | null;
 };
 
-const ADMIN_PROFILE_KEY = 'cali-workspace-profile-admin';
 const COMPANY_FRAME_SELECTORS = [
   '.project-client-mark',
   '.company-mark',
@@ -38,9 +37,8 @@ const COMPANY_FRAME_SELECTORS = [
 
 let companies: CompanyMedia[] = [];
 let profiles: ProfileMedia[] = [];
-let observer: MutationObserver | null = null;
-let scheduled = false;
-let companyLoadStarted = false;
+let runtimeSignal: AbortSignal | undefined;
+let decorateFrame = 0;
 let profileLoading = false;
 let profilesLoaded = false;
 let tooltipTimer = 0;
@@ -68,16 +66,6 @@ function mediaKey(value?: string | null) {
 
 async function resolvePrivateMedia(raw?: string | null) {
   return resolveWorkspaceMedia(raw);
-}
-
-function readAdminProfile(): ProfileMedia {
-  try {
-    const raw = window.localStorage.getItem(ADMIN_PROFILE_KEY);
-    if (!raw) return {};
-    return JSON.parse(raw) as ProfileMedia;
-  } catch {
-    return {};
-  }
 }
 
 function isSimpleFrame(frame: HTMLElement) {
@@ -142,7 +130,12 @@ function applyMedia(frame: HTMLElement, src: string, kind: 'person' | 'company',
     // em vez de deixar o quadrado vazio.
     if (brokenMedia.has(src)) { showInitialsFallback(frame); return; }
     const probe = new Image();
-    probe.onerror = () => { brokenMedia.add(src); if (frame.dataset.identitySrc === src) showInitialsFallback(frame); };
+    const signal = runtimeSignal;
+    probe.onerror = () => {
+      if (!signal || signal.aborted) return;
+      brokenMedia.add(src);
+      if (frame.dataset.identitySrc === src) showInitialsFallback(frame);
+    };
     probe.src = src;
     frame.classList.add('profile-canonical-v47');
     frame.style.setProperty('--profile-image', `url("${src.replace(/"/g, '\\"')}")`);
@@ -187,7 +180,7 @@ function profileForAuthor(value: string) {
   const author = normalize(value);
   if (!author) return null;
   const admin = profiles.find((profile) => profile.role === 'admin' && profile.avatar_url);
-  if (author.includes('patricia') || author.includes('cali') || author.includes('nota interna')) return admin || readAdminProfile();
+  if (author.includes('patricia') || author.includes('cali') || author.includes('nota interna')) return admin;
   return profiles
     .filter((profile) => profile.avatar_url && profile.full_name)
     .sort((a, b) => String(b.full_name).length - String(a.full_name).length)
@@ -239,8 +232,6 @@ function applyProfileImage(image: HTMLImageElement, profile: ProfileMedia) {
 }
 
 function decorateConversation() {
-  const fallbackAdmin = readAdminProfile();
-
   document.querySelectorAll<HTMLElement>(":is(.conversation-list-v2,[data-v2-operation~=\"conversation-list-v2\"]) article").forEach((article) => {
     const frame = article.querySelector<HTMLElement>('.conversation-avatar-v2');
     if (!frame || !isSimpleFrame(frame)) return;
@@ -248,11 +239,6 @@ function decorateConversation() {
     const profile = profileForAuthor(authorText);
     if (profile?.avatar_url) {
       applyMedia(frame, profile.avatar_url, 'person', profile);
-      return;
-    }
-    const author = normalize(authorText);
-    if ((author.includes('patricia') || author.includes('cali')) && fallbackAdmin.avatar_url) {
-      applyMedia(frame, fallbackAdmin.avatar_url, 'person', fallbackAdmin);
       return;
     }
     clearIdentity(frame);
@@ -292,8 +278,8 @@ function decoratePersonImages() {
 }
 
 function decorateAdminInitials() {
-  const admin = profiles.find((profile) => profile.role === 'admin' && profile.avatar_url) || readAdminProfile();
-  if (!admin.avatar_url) return;
+  const admin = profiles.find((profile) => profile.role === 'admin' && profile.avatar_url);
+  if (!admin?.avatar_url) return;
   document.querySelectorAll<HTMLElement>('[class*="avatar"], [class*="profile"], [class*="mark"]').forEach((frame) => {
     if (!isSimpleFrame(frame)) return;
     const text = normalize(frame.textContent || '');
@@ -315,13 +301,13 @@ function decorateCompanyFrames() {
   });
 }
 
-function decoratePrivateImages() {
+function decoratePrivateImages(signal: AbortSignal) {
   document.querySelectorAll<HTMLImageElement>('img').forEach((image) => {
     const raw = image.getAttribute('src') || '';
     if (!raw.startsWith('private:') || image.dataset.privateMediaPending === raw) return;
     image.dataset.privateMediaPending = raw;
     void resolvePrivateMedia(raw).then((signed) => {
-      if (!signed) return;
+      if (!signed || signal.aborted || image.getAttribute('src') !== raw) return;
       image.setAttribute('src', signed);
       image.dataset.privateMediaResolved = 'true';
       delete image.dataset.privateMediaPending;
@@ -396,78 +382,90 @@ function showFrontTip(trigger: HTMLImageElement) {
   }, 5000);
 }
 
-function decorateFrontTooltips() {
+function decorateFrontTooltips(signal: AbortSignal) {
   document.querySelectorAll<HTMLImageElement>('.front-header-v2 > img.front-collapse-trigger-v46').forEach((trigger) => {
     trigger.removeAttribute('title');
     trigger.closest<HTMLElement>('.front-header-v2')?.removeAttribute('data-front-toggle-tip');
     if (trigger.dataset.frontTipBoundV47 === '1') return;
     trigger.dataset.frontTipBoundV47 = '1';
-    trigger.addEventListener('mouseenter', () => showFrontTip(trigger));
-    trigger.addEventListener('focus', () => showFrontTip(trigger));
-    trigger.addEventListener('mouseleave', hideFrontTip);
-    trigger.addEventListener('blur', hideFrontTip);
-    trigger.addEventListener('click', hideFrontTip);
+    trigger.addEventListener('mouseenter', () => showFrontTip(trigger), { signal });
+    trigger.addEventListener('focus', () => showFrontTip(trigger), { signal });
+    trigger.addEventListener('mouseleave', hideFrontTip, { signal });
+    trigger.addEventListener('blur', hideFrontTip, { signal });
+    trigger.addEventListener('click', hideFrontTip, { signal });
   });
 }
 
-function decorateIdentityMedia() {
-  scheduled = false;
+function decorateIdentityMedia(signal: AbortSignal) {
   ensurePolishStyles();
-  decoratePrivateImages();
+  decoratePrivateImages(signal);
   decorateConversation();
   decorateRecordsConversation();
   decorateAdminInitials();
   decorateCompanyFrames();
   decoratePersonImages();
-  decorateFrontTooltips();
+  decorateFrontTooltips(signal);
 }
 
 function scheduleDecorate() {
-  if (scheduled) return;
-  scheduled = true;
-  window.requestAnimationFrame(decorateIdentityMedia);
+  const signal = runtimeSignal;
+  if (!signal || signal.aborted || decorateFrame) return;
+  decorateFrame = window.requestAnimationFrame(() => {
+    decorateFrame = 0;
+    if (!signal.aborted) decorateIdentityMedia(signal);
+  });
 }
 
-async function loadCompanies() {
-  if (companyLoadStarted || !supabase) return;
-  companyLoadStarted = true;
+async function loadCompanies(signal: AbortSignal) {
+  if (signal.aborted || !supabase) return;
   try {
     const { data } = await supabase
       .from('companies')
       .select('display_name,logo_url,logo_workspace_url')
-      .order('display_name');
-    companies = await Promise.all(((data || []) as CompanyMedia[]).map(async (item) => ({
+      .order('display_name').abortSignal(signal);
+    if (signal.aborted) return;
+    const loaded = await Promise.all(((data || []) as CompanyMedia[]).map(async (item) => ({
       ...item,
       logo_url: await resolvePrivateMedia(item.logo_url),
       logo_workspace_url: await resolvePrivateMedia(item.logo_workspace_url),
     })));
+    if (signal.aborted) return;
+    companies = loaded;
     scheduleDecorate();
   } catch {
     // A identidade pessoal continua funcionando mesmo sem leitura de empresas.
   }
 }
 
-async function loadProfiles(force = false) {
-  if (!supabase || profileLoading || (profilesLoaded && !force)) return;
+async function loadProfiles(signal: AbortSignal, force = false) {
+  if (signal.aborted || !supabase || profileLoading || (profilesLoaded && !force)) return;
   profileLoading = true;
   try {
     const { data } = await supabase
       .from('profiles')
       .select('id,full_name,role,company_id,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom')
-      .eq('active', true);
+      .eq('active', true).abortSignal(signal);
+    if (signal.aborted) return;
     // Cada foto entra assim que fica pronta, em vez de esperar a de todos os usuários ativos.
     const loaded: ProfileMedia[] = [];
     await Promise.all(((data || []) as ProfileMedia[]).map(async (item) => {
       const resolved = { ...item, avatar_url: await resolvePrivateMedia(item.avatar_url) };
+      if (signal.aborted) return;
       loaded.push(resolved);
       profiles = [...profiles.filter((profile) => profile.id !== resolved.id), resolved];
       scheduleDecorate();
     }));
+    if (signal.aborted) return;
     profiles = loaded;
     if (!profiles.some((profile) => profile.role === 'admin') && location.pathname.startsWith('/cliente/')) {
-      const contact = await supabase.rpc('get_client_account_contact');
+      const contact = await supabase.rpc('get_client_account_contact').abortSignal(signal);
+      if (signal.aborted) return;
       const row = Array.isArray(contact.data) ? contact.data[0] : contact.data;
-      if (row) profiles.push({ ...row, role: 'admin', avatar_url: await resolvePrivateMedia(row.avatar_url) });
+      if (row) {
+        const avatar_url = await resolvePrivateMedia(row.avatar_url);
+        if (signal.aborted) return;
+        profiles.push({ ...row, role: 'admin', avatar_url });
+      }
     }
     profilesLoaded = true;
     document.querySelectorAll<HTMLElement>('[data-profile-signature-v47],[data-profile-image-signature-v47]').forEach((element) => {
@@ -478,20 +476,20 @@ async function loadProfiles(force = false) {
   } catch {
     // Fallback local permanece disponível.
   } finally {
-    profileLoading = false;
+    if (!signal.aborted) profileLoading = false;
   }
 }
 
-export function startIdentityMediaRuntime() {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
-  if (observer) return;
+export function startIdentityMediaRuntime(signal: AbortSignal) {
+  if (signal.aborted || runtimeSignal) return;
+  runtimeSignal = signal;
 
   ensurePolishStyles();
   scheduleDecorate();
-  void loadCompanies();
-  void loadProfiles();
+  void loadCompanies(signal);
+  void loadProfiles(signal);
 
-  observer = new MutationObserver(() => scheduleDecorate());
+  const observer = new MutationObserver(() => scheduleDecorate());
   // Observe new route content and real media/state changes only.
   // The runtime writes its own classes/data attributes; observing those creates
   // a self-triggering mutation loop and makes the interface visibly assemble.
@@ -502,10 +500,23 @@ export function startIdentityMediaRuntime() {
     attributeFilter: ['src', 'aria-expanded'],
   });
 
-  window.addEventListener('storage', scheduleDecorate);
-  window.addEventListener('focus', scheduleDecorate);
-  window.addEventListener('resize', hideFrontTip);
-  window.addEventListener('blur', hideFrontTip);
-  document.addEventListener('scroll', hideFrontTip, true);
-  window.addEventListener('cali-profile-updated', (() => void loadProfiles(true)) as EventListener);
+  window.addEventListener('storage', scheduleDecorate, { signal });
+  window.addEventListener('focus', scheduleDecorate, { signal });
+  window.addEventListener('resize', hideFrontTip, { signal });
+  window.addEventListener('blur', hideFrontTip, { signal });
+  document.addEventListener('scroll', hideFrontTip, { capture: true, signal });
+  window.addEventListener('cali-profile-updated', () => void loadProfiles(signal, true), { signal });
+  signal.addEventListener('abort', () => {
+    observer.disconnect();
+    window.cancelAnimationFrame(decorateFrame);
+    hideFrontTip();
+    document.querySelector('.front-toggle-toast-v47')?.remove();
+    decorateFrame = 0;
+    companies = [];
+    profiles = [];
+    profilesLoaded = false;
+    profileLoading = false;
+    brokenMedia.clear();
+    runtimeSignal = undefined;
+  }, { once: true });
 }

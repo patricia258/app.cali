@@ -53,7 +53,7 @@
 :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .calendar-primary-panel { @apply tw:p-0! tw:overflow-hidden; }
 :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .calendar-view-switch { @apply tw:rounded-[7px]!; background: var(--v2-soft) !important; }
 :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .calendar-view-switch button { padding: 8px 10px !important; @apply tw:text-[11px]!; }
-:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .calendar-view-switch button.active { background: #5a1e2d !important; color: #fff !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .calendar-view-switch button.active { background: #5a1e2d !important; @apply tw:text-white!; }
 
 :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .document-toolbar-v4 { padding: 12px 14px !important; border: 1px solid var(--v2-line) !important; @apply tw:rounded-[9px]!; background: var(--v2-surface) !important; box-shadow: none !important; }
 :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .document-library-grid-v3 { @apply tw:gap-[15px]!; }

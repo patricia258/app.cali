@@ -151,6 +151,25 @@ const cases = [
   { id: 'account-admin-links', role: 'admin', run: (ctx) => staffAccount(ctx, { path: '/admin', occurrences: '/admin/registros' }) },
   { id: 'account-partner-limited', role: 'partnerLimited', run: (ctx) => staffAccount(ctx, { path: '/equipe' }) },
   { id: 'overview-admin-pagination', role: 'admin', run: adminOverview },
+  {
+    id: 'overview-admin-mobile-header',
+    role: 'admin',
+    width: 390,
+    async run({ page, origin, snapshot }) {
+      await page.goto(origin + '/admin');
+      const heading = page.getByRole('heading', { name: /^Visão geral/, level: 1 });
+      const intro = page.getByText('Onde estão as decisões, entregas e contas que precisam da CALI hoje.');
+      const action = page.getByRole('link', { name: 'Cadastrar cliente', exact: true });
+      await heading.waitFor();
+      const [title, copy, button] = await Promise.all([heading.boundingBox(), intro.boundingBox(), action.boundingBox()]);
+      assert.ok(title && copy && button);
+      assert.ok(button.y - (copy.y + copy.height) <= 28, 'Ação separada do texto por espaço vazio');
+      assert.ok(Math.abs(button.x - title.x) <= 2, 'Ação desalinhada do título');
+      await snapshot('cabecalho-mobile', page.locator('.ap-title'));
+      await action.click();
+      await page.waitForURL((url) => url.pathname === '/admin/clientes');
+    },
+  },
 ];
 
 if (require.main === module) browserSuite(cases).catch((error) => { console.error(error.message); process.exitCode = 1; });

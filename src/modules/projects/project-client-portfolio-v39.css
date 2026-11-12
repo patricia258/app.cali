@@ -6,7 +6,7 @@
 .project-client-logo-v39 {
   background:#F7F3EE!important;
   border:1px solid #E3D7CE!important;
-  color:#5A1E2D!important;
+  @apply tw:text-cali-brand!;
   box-shadow:none!important;
 }
 .workspace-company-logo-tile-v39 img,
@@ -33,7 +33,7 @@
 .project-client-strip-head-v39>div:first-child { @apply tw:grid tw:gap-[2px]; }
 .project-client-strip-head-v39>div:first-child>span {
   @apply tw:text-[9px];
-  font-weight:900;
+  @apply tw:font-black;
   letter-spacing:.12em;
   color:#6E3545;
 }
@@ -55,12 +55,12 @@
   @apply tw:text-cali-muted;
   font:inherit;
   @apply tw:text-[10px];
-  font-weight:800;
+  @apply tw:font-extrabold;
   @apply tw:cursor-pointer;
 }
 .project-client-scope-v39 button.active {
   background:var(--theme-surface);
-  color:#5A1E2D;
+  @apply tw:text-cali-brand;
   box-shadow:0 2px 8px rgba(56,35,40,.08);
 }
 .project-client-rail-v39 {
@@ -97,18 +97,18 @@
 }
 .project-client-card-v39>span:last-child {
   @apply tw:min-w-0 tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap tw:text-[11.5px];
-  font-weight:800;
+  @apply tw:font-extrabold;
   line-height:1.25;
 }
 .project-client-logo-v39 {
   @apply tw:w-[44px] tw:h-[44px] tw:grid tw:place-items-center tw:rounded-[12px] tw:overflow-hidden;
-  flex:0 0 auto;
+  @apply tw:flex-none;
 }
 .project-client-logo-v39>strong {
   font-family:Georgia,serif;
   @apply tw:text-[20px];
-  font-weight:500;
-  color:#5A1E2D;
+  @apply tw:font-medium;
+  @apply tw:text-cali-brand;
 }
 .project-client-empty-v39 {
   @apply tw:min-w-full tw:p-[18px];
@@ -147,7 +147,7 @@
 }
 .project-client-modal-identity-v39>div>span {
   @apply tw:text-[8.5px];
-  font-weight:900;
+  @apply tw:font-black;
   letter-spacing:.11em;
   color:#7A4554;
 }
@@ -213,9 +213,9 @@
   @apply tw:flex tw:items-center tw:gap-[10px];
 }
 .project-client-project-card-v39>div:last-child>b {
-  color:#5A1E2D;
+  @apply tw:text-cali-brand;
   @apply tw:text-[23px];
-  font-weight:400;
+  @apply tw:font-normal;
 }
 .project-client-project-status-v39 {
   @apply tw:inline-flex tw:items-center tw:min-h-[27px];
@@ -224,7 +224,7 @@
   @apply tw:rounded-[999px];
   background:var(--theme-surface);
   @apply tw:text-cali-muted tw:text-[9px];
-  font-weight:800;
+  @apply tw:font-extrabold;
   @apply tw:whitespace-nowrap;
 }
 .project-client-project-status-v39.status-client_review,
@@ -278,7 +278,7 @@
 [data-workspace-theme='night'] .project-client-logo-v39 {
   background:#F7F3EE!important;
   border-color:#E3D7CE!important;
-  color:#5A1E2D!important;
+  @apply tw:text-cali-brand!;
 }
 [data-workspace-theme='night'] .project-client-modal-backdrop-v39 {
   background:rgba(10,8,9,.62);

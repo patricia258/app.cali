@@ -24,7 +24,7 @@
 .records-v13-table:not(:has(th:nth-child(8))) th:nth-child(6){@apply tw:w-[7%]!;}
 .records-v13-table:not(:has(th:nth-child(8))) th:nth-child(7){@apply tw:w-[7%]!;}
 .records-company-cell{@apply tw:flex tw:items-center tw:gap-[10px] tw:min-w-0;font-weight:750;}
-.records-company-logo{@apply tw:w-[34px] tw:h-[34px];flex:0 0 34px;@apply tw:rounded-[10px] tw:grid tw:place-items-center tw:overflow-hidden;background:color-mix(in srgb,var(--records-gold) 13%,var(--theme-surface));border:1px solid color-mix(in srgb,var(--records-gold) 30%,var(--theme-line));color:var(--records-bordeaux);@apply tw:text-[10px];font-weight:900;}
+.records-company-logo{@apply tw:w-[34px] tw:h-[34px];flex:0 0 34px;@apply tw:rounded-[10px] tw:grid tw:place-items-center tw:overflow-hidden;background:color-mix(in srgb,var(--records-gold) 13%,var(--theme-surface));border:1px solid color-mix(in srgb,var(--records-gold) 30%,var(--theme-line));color:var(--records-bordeaux);@apply tw:text-[10px];@apply tw:font-black;}
 .records-company-logo img{@apply tw:w-full tw:h-full tw:object-cover;}
 .message-count{@apply tw:min-w-[42px] tw:justify-center tw:gap-[7px]!;padding:7px 9px;@apply tw:rounded-[999px];background:color-mix(in srgb,var(--records-gold) 11%,var(--theme-surface));border:1px solid color-mix(in srgb,var(--records-gold) 28%,var(--theme-line));@apply tw:text-[12px]! tw:text-cali-text!;}
 .message-count svg{@apply tw:w-[16px] tw:h-[16px];color:var(--records-gold)!important;}
@@ -47,10 +47,10 @@
 .conversation-history{padding:24px 26px!important;@apply tw:gap-[17px]!;}
 .records-chat-line{@apply tw:flex tw:items-end tw:gap-[10px] tw:w-full;}
 .records-chat-line.mine{@apply tw:justify-end;}.records-chat-line.other{@apply tw:justify-start;}
-.records-chat-avatar{@apply tw:w-[42px] tw:h-[42px];flex:0 0 42px;@apply tw:rounded-[14px] tw:grid tw:place-items-center tw:overflow-hidden;border:1px solid var(--theme-line);background:var(--theme-surface);@apply tw:text-[11px];font-weight:900;color:var(--records-bordeaux);box-shadow:0 5px 16px rgba(50,32,37,.08);}
+.records-chat-avatar{@apply tw:w-[42px] tw:h-[42px];flex:0 0 42px;@apply tw:rounded-[14px] tw:grid tw:place-items-center tw:overflow-hidden;border:1px solid var(--theme-line);background:var(--theme-surface);@apply tw:text-[11px];@apply tw:font-black;color:var(--records-bordeaux);box-shadow:0 5px 16px rgba(50,32,37,.08);}
 .records-chat-avatar img{@apply tw:w-full tw:h-full tw:object-cover;transform-origin:center;}
 .records-chat-bubble{max-width:76%!important;padding:13px 15px!important;@apply tw:rounded-[18px]!;box-shadow:0 7px 20px rgba(42,29,33,.07)!important;}
-.records-chat-line.role-admin .records-chat-bubble{background:var(--records-bordeaux)!important;border-color:var(--records-bordeaux)!important;color:#fff!important;border-radius:18px 18px 18px 5px!important;}
+.records-chat-line.role-admin .records-chat-bubble{background:var(--records-bordeaux)!important;border-color:var(--records-bordeaux)!important;@apply tw:text-white!;border-radius:18px 18px 18px 5px!important;}
 .records-chat-line.role-admin.mine .records-chat-bubble{border-radius:18px 18px 5px 18px!important;}
 .records-chat-line.role-client .records-chat-bubble{background:#F2D89D!important;border-color:#D5B36A!important;color:#34291e!important;border-radius:18px 18px 18px 5px!important;}
 .records-chat-line.role-client.mine .records-chat-bubble{border-radius:18px 18px 5px 18px!important;}

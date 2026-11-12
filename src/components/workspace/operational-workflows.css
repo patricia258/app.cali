@@ -590,6 +590,32 @@ html[data-workspace-ui='v2']{
 }
 @media(max-width:760px){html[data-workspace-ui='v2'] .ch-project{@apply tw:overflow-hidden}}
 
+@media (max-width: 860px) {
+  html[data-workspace-ui='v2'] .topbar :is(.profile-holder:has(> .chrome-popover), .chrome-popover) {
+    @apply tw:static;
+  }
+  html[data-workspace-ui='v2'] .topbar .notification-panel {
+    @apply tw:right-[12px];
+    top: calc(100% + 6px);
+    max-width: calc(100vw - 24px);
+  }
+}
+
+@media (max-width: 600px) {
+  html[data-workspace-ui='v2'] .app[data-workspace-role='admin'] > .main > .topbar {
+    @apply tw:h-auto tw:min-h-[41px] tw:flex-wrap tw:gap-x-[8px] tw:gap-y-[4px] tw:py-[5px];
+  }
+  html[data-workspace-ui='v2'] .app[data-workspace-role='admin'] .topbar .top-actions {
+    @apply tw:flex-1 tw:basis-[230px] tw:flex-wrap tw:justify-end tw:gap-[5px];
+  }
+  html[data-workspace-ui='v2'] .app[data-workspace-role='admin'] .topbar button.global-search {
+    @apply tw:w-[35px] tw:h-[35px] tw:justify-center tw:p-0;
+  }
+  html[data-workspace-ui='v2'] .app[data-workspace-role='admin'] .topbar button.global-search :is(span, kbd) {
+    @apply tw:hidden;
+  }
+}
+
 /* Diálogo do entregável — composição aprovada (quatro abas) */
 .v2-client-module .dv-pane{@apply tw:contents}
 .v2-client-module .dv-modal header small .section-kicker{@apply tw:inline;font:inherit;letter-spacing:inherit;color:inherit;@apply tw:m-0 tw:p-0}

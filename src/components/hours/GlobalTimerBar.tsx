@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Pause, Square, TimerReset, X } from 'lucide-react';
 import { useLocation } from '../../hooks/useLocation';
 import { useNavigate } from '../../hooks/useNavigate';
@@ -8,6 +9,7 @@ import { finalizeTimerWork, pauseTimerSession, TIMER_EVENT } from '../../lib/tim
 import { TimerFinalizationDialog, type TimerFinalizationTarget } from './TimerFinalizationDialog';
 import type { Role } from '../workspace/WorkspaceShell';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
+import './global-timer-overflow.css';
 
 type TimerRow = {
   id: string; companyId: string; projectId?: string|null; deliverableId?: string|null; taskId?: string|null; accountRecordId?: string|null;
@@ -18,6 +20,12 @@ type TimerRow = {
 type PendingOrigin = { deliverableId?: string|null; deliverableName?: string|null; taskId?: string|null; taskName?: string|null };
 type PendingFinalization = { timer: TimerRow; target: TimerFinalizationTarget } | null;
 const ORIGIN_KEY='cali:timer-origin';
+
+function primaryTimerLimit() {
+  if (window.innerWidth >= 1400) return 2;
+  if (window.innerWidth >= 1024) return 1;
+  return 0;
+}
 
 function timerSeconds(timer:TimerRow,nowMs:number){return Math.max(0,Math.floor((nowMs-new Date(timer.startedAt).getTime())/1000)-Number(timer.pausedSeconds||0));}
 function timerLabel(seconds:number){const h=Math.floor(seconds/3600),m=Math.floor((seconds%3600)/60),s=seconds%60;return[h,m,s].map(v=>String(v).padStart(2,'0')).join(':');}
@@ -39,6 +47,58 @@ export function GlobalTimerBar({role}:{role:Role}){
   const location=useLocation(),navigate=useNavigate();
   const [timers,setTimers]=useState<TimerRow[]>([]),[nowMs,setNowMs]=useState(Date.now()),[busyId,setBusyId]=useState<string|null>(null),[moreOpen,setMoreOpen]=useState(false);
   const [pending,setPending]=useState<PendingFinalization>(null),[confirmStep,setConfirmStep]=useState<1|2>(1);const mounted=useRef(true);
+  const [primaryLimit, setPrimaryLimit] = useState(primaryTimerLimit);
+  const [panelPosition, setPanelPosition] = useState({ top: 0, right: 16 });
+  const moreButton = useRef<HTMLButtonElement>(null);
+  const morePanel = useRef<HTMLDivElement>(null);
+  const panelId = useId();
+  const panelTitleId = useId();
+
+  const updatePanelPosition = useCallback(() => {
+    const trigger = moreButton.current?.getBoundingClientRect();
+    if (trigger) setPanelPosition({
+      top: trigger.bottom + 8,
+      right: Math.max(16, Math.min(window.innerWidth - trigger.right, window.innerWidth - 446)),
+    });
+  }, []);
+
+  const closePanel = useCallback(() => {
+    setMoreOpen(false);
+    moreButton.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    const resize = () => {
+      setPrimaryLimit(primaryTimerLimit());
+      if (moreOpen) requestAnimationFrame(updatePanelPosition);
+    };
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
+  }, [moreOpen, updatePanelPosition]);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    morePanel.current?.querySelector('button')?.focus();
+    const outside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !morePanel.current?.contains(event.target) && !moreButton.current?.contains(event.target)) {
+        setMoreOpen(false);
+      }
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !event.defaultPrevented) {
+        event.preventDefault();
+        closePanel();
+      }
+    };
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('keydown', escape);
+    window.addEventListener('scroll', updatePanelPosition);
+    return () => {
+      document.removeEventListener('pointerdown', outside);
+      document.removeEventListener('keydown', escape);
+      window.removeEventListener('scroll', updatePanelPosition);
+    };
+  }, [closePanel, moreOpen, updatePanelPosition]);
 
   const load=useCallback(async()=>{
     if(role!=='admin'||!supabase){setTimers([]);return;}if(!user){setTimers([]);return;}
@@ -71,15 +131,75 @@ export function GlobalTimerBar({role}:{role:Role}){
     if(location.pathname.startsWith('/admin/projetos')){openPendingOrigin(origin);return;}navigate('/admin/projetos');
   }
 
-  const primary=visibleTimers.slice(0,3),overflow=visibleTimers.slice(3);
-  const chip=(timer:TimerRow,extended=false)=><article className={`global-timer-chip ${extended?'global-timer-chip-expanded':''}`} key={timer.id} style={{height:extended?44:38,display:'flex',alignItems:'center',gap:5,padding:'3px 5px 3px 4px',border:'1px solid var(--theme-line, #e6ddd6)',borderRadius:12,background:'var(--theme-surface, #fffdfa)',boxShadow:'0 5px 18px rgba(43,43,43,.05)',minWidth:0,overflow:'hidden'}}>
-    <button className="global-timer-origin" type="button" onClick={()=>goToOrigin(timer)} title="Abrir origem do timer" style={{display:'flex',alignItems:'center',gap:6,minWidth:0,border:0,background:'transparent',color:'var(--theme-text, #2b2b2b)',padding:0,cursor:'pointer',textAlign:'left'}}><span className="global-timer-logo" style={{width:29,height:29,minWidth:29,minHeight:29,display:'grid',placeItems:'center',overflow:'hidden',flex:'0 0 29px',borderRadius:9}}>{timer.companyLogo?<img src={timer.companyLogo} alt="" width={29} height={29} decoding="async" style={{display:'block',width:'100%',height:'100%',maxWidth:'100%',maxHeight:'100%',objectFit:'cover'}}/>:initials(timer.companyName)}</span><span className="global-timer-copy" style={{display:'grid',minWidth:0,maxWidth:extended?'none':150,flex:extended?'1 1 auto':undefined}}><strong title={timer.recordTitle||timer.taskName||timer.deliverableName||timer.description||''} style={{fontSize:10.5,lineHeight:1.1,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{timer.recordTitle||timer.taskName||timer.deliverableName||(timer.description||'').split(' · ').pop()||timer.projectName||'Atuação CALI'}</strong>{extended&&<small style={{fontSize:10,color:'var(--theme-muted, #8b817b)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{timer.companyName}</small>}</span></button>
-    <span className="global-timer-clock" style={{fontFamily:'ui-monospace,SFMono-Regular,Menlo,monospace',fontSize:11.5,fontWeight:800,letterSpacing:'.01em',whiteSpace:'nowrap',color:'#47775f'}}>{timerLabel(timerSeconds(timer,nowMs))}</span>
-    <button className="global-timer-control" style={{width:26,height:26,display:'grid',placeItems:'center',padding:0,border:0,borderRadius:8,background:'var(--theme-surface-soft, #f5f0ec)',color:'var(--theme-text, #2b2b2b)',cursor:'pointer'}} type="button" disabled={busyId===timer.id} onClick={()=>void pause(timer)} aria-label="Pausar e registrar esta sessão" title="Pausar: registra esta sessão e remove o timer"><Pause size={14}/></button>
-    {!timer.accountRecordId&&<button className="global-timer-control stop" style={{width:26,height:26,display:'grid',placeItems:'center',padding:0,border:0,borderRadius:8,background:'var(--theme-surface-soft, #f5f0ec)',color:'#8d3345',cursor:'pointer'}} type="button" disabled={busyId===timer.id} onClick={()=>requestStop(timer)} aria-label="Finalizar trabalho definitivamente" title="Stop: finalizar trabalho definitivamente"><Square size={13}/></button>}
-  </article>;
+  const primary = visibleTimers.slice(0, primaryLimit);
+  const overflow = visibleTimers.slice(primaryLimit);
+  const showMore = moreOpen && overflow.length > 0;
+  function chip(timer: TimerRow, extended = false) {
+    const workLabel = timer.recordTitle || timer.taskName || timer.deliverableName;
+    return <article className={extended ? 'global-timer-chip global-timer-chip-expanded' : 'global-timer-chip'} key={timer.id}>
+      <button className="global-timer-origin" type="button" onClick={() => goToOrigin(timer)} title="Abrir origem do timer">
+        <span className="global-timer-logo">
+          {timer.companyLogo
+            ? <img src={timer.companyLogo} alt="" width={29} height={29} decoding="async" />
+            : initials(timer.companyName)}
+        </span>
+        <span className="global-timer-copy">
+          <strong title={workLabel || timer.description || ''}>
+            {workLabel || (timer.description || '').split(' · ').pop() || timer.projectName || 'Atuação CALI'}
+          </strong>
+          {extended && <small>{timer.companyName}</small>}
+        </span>
+      </button>
+      <span className="global-timer-clock">{timerLabel(timerSeconds(timer, nowMs))}</span>
+      <button className="global-timer-control" type="button" disabled={busyId === timer.id} onClick={() => void pause(timer)}
+        aria-label="Pausar e registrar esta sessão" title="Pausar: registra esta sessão e remove o timer">
+        <Pause size={14}/>
+      </button>
+      {!timer.accountRecordId && <button className="global-timer-control stop" type="button" disabled={busyId === timer.id}
+        onClick={() => requestStop(timer)} aria-label="Finalizar trabalho definitivamente" title="Stop: finalizar trabalho definitivamente">
+        <Square size={13}/>
+      </button>}
+    </article>;
+  }
 
-  return <>{role==='admin'&&visibleTimers.length>0&&<div className="global-timers" aria-label="Timers ativos" style={{display:'flex',alignItems:'center',minWidth:0,maxWidth:'100%',overflow:'hidden'}}><span className="global-timers-mark" title={`${visibleTimers.length} timer(s) fora do contexto atual`}><TimerReset size={16}/></span><div className="global-timers-primary">{primary.map(t=>chip(t))}</div>{overflow.length>0&&<div className="global-timers-more-wrap"><button className="global-timers-more" type="button" onClick={()=>setMoreOpen(v=>!v)}>+{overflow.length}</button>{moreOpen&&<div className="global-timers-popover"><header><div><strong>Outros timers</strong><small>Empresas diferentes podem rodar em paralelo.</small></div><button type="button" onClick={()=>setMoreOpen(false)}><X size={16}/></button></header><div>{overflow.map(t=>chip(t,true))}</div></div>}</div>}</div>}
+  return <>
+    {role === 'admin' && visibleTimers.length > 0 && <div className="global-timers global-timers-fit" aria-label="Timers ativos">
+      <span className="global-timers-mark" title={`${visibleTimers.length} timer(s) fora do contexto atual`}><TimerReset size={16}/></span>
+      {primary.length > 0 && <div className="global-timers-primary">{primary.map(timer => chip(timer))}</div>}
+      {overflow.length > 0 && <button
+        ref={moreButton}
+        className="global-timers-more"
+        type="button"
+        aria-label={overflow.length === 1 ? 'Ver mais 1 timer ativo' : `Ver mais ${overflow.length} timers ativos`}
+        aria-haspopup="dialog"
+        aria-expanded={showMore}
+        aria-controls={showMore ? panelId : undefined}
+        onClick={() => {
+          if (showMore) closePanel();
+          else {
+            updatePanelPosition();
+            setMoreOpen(true);
+          }
+        }}
+      >{primary.length === 0 && <TimerReset size={14}/>}+{overflow.length}</button>}
+    </div>}
+    {showMore && createPortal(
+      <div
+        className="global-timers-popover global-timers-overlay"
+        id={panelId}
+        ref={morePanel}
+        role="dialog"
+        aria-labelledby={panelTitleId}
+        style={{ top: panelPosition.top, right: panelPosition.right, maxHeight: `calc(100dvh - ${panelPosition.top + 16}px)` }}
+      >
+        <header>
+          <div><strong id={panelTitleId}>{primary.length > 0 ? 'Outros timers' : 'Timers ativos'}</strong><small>Empresas diferentes podem rodar em paralelo.</small></div>
+          <button type="button" aria-label="Fechar timers" onClick={closePanel}><X size={16}/></button>
+        </header>
+        <div>{overflow.map(timer => chip(timer, true))}</div>
+      </div>,
+      document.body,
+    )}
     <TimerFinalizationDialog target={pending?.target||null} step={confirmStep} busy={Boolean(pending&&busyId===pending.timer.id)} onCancel={()=>{setPending(null);setConfirmStep(1);}} onAdvance={()=>setConfirmStep(2)} onConfirm={()=>void confirmStop()}/>
   </>;
 }

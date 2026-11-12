@@ -4,6 +4,7 @@ import { DialogFrame } from '../../components/ds/DialogFrame';
 import { EmptyState } from '../../components/ds/EmptyState';
 import { FieldLabel } from '../../components/ds/FieldLabel';
 import { InlineNotice } from '../../components/ds/InlineNotice';
+import { ExtraVisitExpenses } from '../../components/calendar/ExtraVisitExpenses';
 import { FormEvent, type ReactNode, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import {
   CalendarDays,
@@ -643,6 +644,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
       <section className="calendar-page-v2">
         <div className="ap-title"><div><small>{staff ? 'EQUIPE CALI / CALENDÁRIO' : 'BACKOFFICE / CALI RH'}</small><h1>{staff ? 'Calendário' : 'Agenda da CALI'}<span>.</span></h1><p>{staff ? 'Reuniões, validações e prazos das empresas que você atende.' : 'Reuniões, validações, prazos e a sua agenda Google em uma visão única.'}</p></div><div className="ap-title-actions calendar-v2-actions">
           {!staff && <AgendaChangeInbox onDecision={()=>void loadCalendar()}/>}
+          {!staff && <ExtraVisitExpenses />}
           {!staff && <Button variant="adminOutline" className="calendar-history-trigger" type="button" onClick={()=>setHistoryOpen(true)}><FileText size={15}/> Histórico de reuniões</Button>}
           <Button variant="adminPrimary" onClick={() => openCreateForDate()}><Plus size={15} /> Novo evento</Button>
         </div></div>

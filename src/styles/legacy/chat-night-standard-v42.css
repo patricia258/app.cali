@@ -1,3 +1,4 @@
+@reference "../tailwind.css";
 /* CALI Workspace · padrão final de chat no modo noite V42 */
 /* Deploy marker: publicar junto correções de Horas, Documentos e chats. */
 [data-workspace-theme='night'] .records-v13-drawer .records-chat-line.role-admin .records-chat-bubble,
@@ -18,7 +19,7 @@
 [data-workspace-theme='night'] .workspace-chat-standard .workspace-chat-line.role-system .workspace-chat-bubble {
   background:#2A1D21!important;
   border-color:#4A343B!important;
-  color:#F7F3EE!important;
+  @apply tw:text-cali-day-canvas!;
 }
 
 [data-workspace-theme='night'] .records-v13-drawer .records-chat-bubble strong,
@@ -68,7 +69,7 @@
 [data-workspace-theme='night'] .workspace-chat-standard .workspace-chat-tools>button {
   background:#2A1D21!important;
   border-color:#4A343B!important;
-  color:#F7F3EE!important;
+  @apply tw:text-cali-day-canvas!;
 }
 [data-workspace-theme='night'] .workspace-chat-standard .workspace-chat-emoji-picker {
   background:#2A1D21!important;
@@ -86,7 +87,7 @@
 [data-workspace-theme='night'] .client-deliverable-workspace-v33 .client-file-strip-v33 {
   background:#2A2024!important;
   border-color:#4A343B!important;
-  color:#F7F3EE!important;
+  @apply tw:text-cali-day-canvas!;
 }
 [data-workspace-theme='night'] .client-deliverable-workspace-v33 .client-file-strip-v33>svg {
   color:#D7A95F!important;

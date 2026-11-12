@@ -14,7 +14,7 @@
 .reports-v11-executive-grid{@apply tw:grid tw:grid-cols-3 tw:overflow-hidden;border:1px solid rgba(90,30,45,.13);@apply tw:rounded-[9px];background:rgba(255,255,255,.34);}
 .reports-v11-executive-grid>div{@apply tw:grid;align-content:start;@apply tw:gap-[5px];min-height:27mm;padding:10px 11px;border-right:1px solid rgba(90,30,45,.11);}
 .reports-v11-executive-grid>div:last-child{border-right:0;}
-.reports-v11-executive-grid strong{color:#5A1E2D!important;@apply tw:text-[7px]!;font-weight:850!important;letter-spacing:.06em!important;@apply tw:uppercase;}
+.reports-v11-executive-grid strong{@apply tw:text-cali-brand!;@apply tw:text-[7px]!;font-weight:850!important;letter-spacing:.06em!important;@apply tw:uppercase;}
 .reports-v11-executive-grid p{color:#393432!important;font-size:9.2px!important;line-height:1.52!important;}
 
 /* Registro do período: tira marcos/acontecimentos de dentro do fluxo de execução. */
@@ -29,11 +29,11 @@
 .reports-v11-feedback-summary{@apply tw:grid tw:gap-[7px];padding:10px 12px;border:1px solid rgba(90,30,45,.12);@apply tw:rounded-[9px];background:rgba(255,255,255,.4);}
 .reports-v11-feedback-score{@apply tw:flex tw:items-center tw:gap-[12px];}
 .reports-v11-feedback-score>div{@apply tw:grid tw:gap-[2px];}
-.reports-v11-feedback-score>div>strong{color:#5A1E2D!important;font-family:Georgia,'Times New Roman',serif!important;@apply tw:text-[17px]!;font-weight:500!important;line-height:1!important;}
+.reports-v11-feedback-score>div>strong{@apply tw:text-cali-brand!;font-family:Georgia,'Times New Roman',serif!important;@apply tw:text-[17px]!;@apply tw:font-medium!;line-height:1!important;}
 .reports-v11-feedback-score>div>small,.reports-v11-feedback-note{color:#746a65!important;@apply tw:text-[7px]!;line-height:1.4!important;}
-.reports-v11-stars{@apply tw:relative tw:inline-block;flex:0 0 auto;@apply tw:w-max;color:#d8cec6;font-family:Arial,sans-serif!important;@apply tw:text-[18px];line-height:1;letter-spacing:1px;}
+.reports-v11-stars{@apply tw:relative tw:inline-block;@apply tw:flex-none;@apply tw:w-max;color:#d8cec6;font-family:Arial,sans-serif!important;@apply tw:text-[18px];line-height:1;letter-spacing:1px;}
 .reports-v11-stars .back{@apply tw:block tw:whitespace-nowrap;}
-.reports-v11-stars .front{@apply tw:absolute tw:left-0;@apply tw:top-0 tw:block tw:overflow-hidden tw:whitespace-nowrap;color:#B58C52;@apply tw:w-0;}
+.reports-v11-stars .front{@apply tw:absolute tw:left-0;@apply tw:top-0 tw:block tw:overflow-hidden tw:whitespace-nowrap;@apply tw:text-cali-gold;@apply tw:w-0;}
 .reports-v11-feedback-empty{@apply tw:m-0!;color:#655c58!important;font-size:9.2px!important;@apply tw:italic;}
 
 /* No editor, os sinais continuam úteis para a CALI. No A4/PDF, não aparecem duplicados. */

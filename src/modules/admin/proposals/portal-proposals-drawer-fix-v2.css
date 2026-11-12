@@ -29,7 +29,7 @@ body:has(.portal-admin-drawer){@apply tw:overflow-hidden! tw:overscroll-none!}
   @apply tw:relative!;
   top:auto!important;
   @apply tw:z-2!;
-  flex:0 0 auto!important;
+  @apply tw:flex-none!;
   @apply tw:min-h-[132px]! tw:box-border!;
   padding:28px 30px 22px!important;
   background:var(--surface,#fff)!important;
@@ -37,7 +37,7 @@ body:has(.portal-admin-drawer){@apply tw:overflow-hidden! tw:overscroll-none!}
 }
 .portal-admin-drawer>header>div{@apply tw:min-w-0! tw:pr-[12px]!}
 .portal-admin-drawer>header h2{overflow-wrap:anywhere!important}
-.portal-admin-drawer>header .icon-button{flex:0 0 auto!important}
+.portal-admin-drawer>header .icon-button{@apply tw:flex-none!}
 
 .portal-admin-drawer-scroll{
   @apply tw:relative! tw:z-1!;
@@ -53,7 +53,7 @@ body:has(.portal-admin-drawer){@apply tw:overflow-hidden! tw:overscroll-none!}
   @apply tw:relative!;
   bottom:auto!important;
   @apply tw:z-2!;
-  flex:0 0 auto!important;
+  @apply tw:flex-none!;
   @apply tw:min-h-[72px]! tw:box-border! tw:m-0!;
   background:var(--surface,#fff)!important;
   border-top:1px solid var(--line,#e8dfda)!important;

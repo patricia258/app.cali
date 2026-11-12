@@ -36,7 +36,7 @@
   color:#6F2A3D!important;
 }
 .client-project-review-v38.client_review .client-review-copy-v38 h2{
-  color:#2B2B2B!important;
+  @apply tw:text-cali-ink!;
 }
 .client-project-review-v38.client_review .client-review-copy-v38 p{
   color:#5E5348!important;
@@ -52,14 +52,14 @@
 }
 .client-project-review-v38.client_review .client-review-actions-v38 .primary{
   background:#5A1E2D!important;
-  border-color:#5A1E2D!important;
-  color:#fff!important;
+  @apply tw:border-cali-brand!;
+  @apply tw:text-white!;
   box-shadow:0 9px 22px rgba(90,30,45,.24)!important;
 }
 .client-project-review-v38.client_review .client-review-actions-v38 .secondary{
   background:rgba(255,255,255,.44)!important;
   border-color:rgba(90,30,45,.28)!important;
-  color:#5A1E2D!important;
+  @apply tw:text-cali-brand!;
 }
 
 [data-workspace-theme='night'] .client-project-review-v38.client_review{

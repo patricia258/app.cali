@@ -21,7 +21,7 @@
   background: var(--theme-surface);
   @apply tw:text-cali-accent;
   font: inherit;
-  font-weight: 700;
+  @apply tw:font-bold;
   @apply tw:cursor-pointer;
 }
 

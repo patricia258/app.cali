@@ -57,7 +57,7 @@ body.workspace-modal-open .sidebar {
   padding: 28px 30px 0 !important;
 }
 .client-account-modal .account-modal-intro {
-  flex: 0 0 auto;
+  @apply tw:flex-none;
   padding-right: 52px;
 }
 .client-account-modal .account-modal-intro h2 {
@@ -91,7 +91,7 @@ body.workspace-modal-open .sidebar {
 }
 .client-account-modal .account-modal-footer {
   @apply tw:static!;
-  flex: 0 0 auto;
+  @apply tw:flex-none;
   margin: 0 -30px !important;
   padding: 13px 30px 16px !important;
   background: rgba(255,253,249,.98) !important;

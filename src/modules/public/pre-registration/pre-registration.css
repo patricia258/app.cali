@@ -45,10 +45,10 @@
   padding: 8px 16px;
   border: 1px solid transparent;
   @apply tw:rounded-[8px];
-  color: #fff;
+  @apply tw:text-white;
   background: var(--cali-color-burgundy);
   font: inherit;
-  font-weight: 600;
+  @apply tw:font-semibold;
   @apply tw:cursor-pointer;
 }
 .company-pre-registration button:disabled { opacity: .65; @apply tw:cursor-wait; }

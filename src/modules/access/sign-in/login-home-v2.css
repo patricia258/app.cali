@@ -21,7 +21,7 @@
 .login-v2-brand {
   @apply tw:relative tw:min-h-0;
   padding: clamp(28px, 4vh, 58px) clamp(42px, 5.2vw, 82px) 22px;
-  color: #f7f3ee;
+  @apply tw:text-cali-day-canvas;
   @apply tw:isolate tw:overflow-hidden;
 }
 
@@ -50,10 +50,10 @@
 
 .login-v2-copy h1 {
   @apply tw:m-0;
-  color: #fffdf9;
+  @apply tw:text-cali-paper;
   font-family: "Playfair Display", Georgia, serif;
   font-size: clamp(3rem, 4.7vw, 4.8rem);
-  font-weight: 600;
+  @apply tw:font-semibold;
   line-height: .96;
   letter-spacing: -.04em;
 }
@@ -80,7 +80,7 @@
 
 .login-v2-gold-mark {
   @apply tw:w-[42px] tw:h-[42px] tw:grid tw:place-items-center;
-  color: #b58c52;
+  @apply tw:text-cali-gold;
   @apply tw:text-[2rem];
   line-height: 1;
   transform: rotate(-10deg);
@@ -146,34 +146,34 @@
 
 .login-v2-kicker {
   @apply tw:block tw:mb-[20px];
-  color: #5a1e2d;
+  @apply tw:text-cali-brand;
   @apply tw:text-[.74rem];
-  font-weight: 800;
+  @apply tw:font-extrabold;
   letter-spacing: .18em;
 }
 
 .login-v2-card h2 {
   @apply tw:m-0;
-  color: #2b2b2b;
+  @apply tw:text-cali-ink;
   font-family: "Playfair Display", Georgia, serif;
   font-size: clamp(2rem, 3vw, 2.9rem);
-  font-weight: 600;
+  @apply tw:font-semibold;
   line-height: 1.08;
   letter-spacing: -.03em;
 }
 
 .login-v2-card-copy {
   @apply tw:mt-[18px];
-  color: #746d68;
+  @apply tw:text-cali-day-muted;
   @apply tw:text-[1rem];
   line-height: 1.65;
 }
 
 .login-v2-field {
   @apply tw:grid tw:gap-[10px] tw:mt-[24px];
-  color: #2b2b2b;
+  @apply tw:text-cali-ink;
   @apply tw:text-[.88rem];
-  font-weight: 700;
+  @apply tw:font-bold;
 }
 
 .login-v2-input-wrap {
@@ -196,7 +196,7 @@
   border: 0;
   outline: 0;
   background: transparent;
-  color: #2b2b2b;
+  @apply tw:text-cali-ink;
   @apply tw:text-[.98rem];
 }
 
@@ -209,7 +209,7 @@
   border: 0;
   @apply tw:rounded-[11px];
   background: linear-gradient(135deg, #6d2133, #5a1e2d 56%, #431520);
-  color: #fffdf9;
+  @apply tw:text-cali-paper;
   @apply tw:text-[.96rem];
   font-weight: 750;
   box-shadow: 0 14px 28px rgba(90,30,45,.18);
@@ -271,7 +271,7 @@
 .login-v2-footer-access {
   @apply tw:flex tw:items-center tw:justify-between tw:gap-[24px];
   padding: 12px clamp(30px, 4vw, 60px);
-  color: #746d68;
+  @apply tw:text-cali-day-muted;
 }
 
 .login-v2-footer-links {
@@ -283,16 +283,16 @@
   @apply tw:inline-flex tw:items-center tw:gap-[7px];
   padding: 4px 15px;
   border-right: 1px solid #d8cec5;
-  color: #746d68;
+  @apply tw:text-cali-day-muted;
   @apply tw:text-[.76rem] tw:whitespace-nowrap;
 }
 
 .login-v2-footer-links > :first-child { @apply tw:pl-0; }
 .login-v2-footer-links > :last-child { border-right: 0; }
-.login-v2-footer-links a:hover { color: #5a1e2d; }
+.login-v2-footer-links a:hover { @apply tw:text-cali-brand; }
 
 .login-v2-site-link {
-  flex: 0 0 auto;
+  @apply tw:flex-none;
   padding-left: 24px;
   border-left: 1px solid #d8cec5;
 }
@@ -305,7 +305,7 @@
 
 .login-v2-site-link a {
   @apply tw:mt-[3px] tw:inline-flex tw:items-center tw:gap-[5px];
-  color: #5a1e2d;
+  @apply tw:text-cali-brand;
   @apply tw:text-[.78rem];
   font-weight: 750;
 }

@@ -51,7 +51,7 @@ body.workspace-modal-open .topbar {
 
 .management-footer .modal-actions,
 .tabbed-modal-footer .modal-actions {
-  flex: 0 0 auto !important;
+  @apply tw:flex-none!;
   @apply tw:ml-auto! tw:pr-0!;
 }
 

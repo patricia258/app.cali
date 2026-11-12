@@ -36,14 +36,14 @@ h1 {
   font-size: clamp(1.85rem, 2.6vw, 2.65rem);
   line-height: 1.12;
   letter-spacing: -.035em;
-  font-weight: 700;
+  @apply tw:font-bold;
 }
 
 h2 {
   font-size: clamp(1.25rem, 1.7vw, 1.55rem);
   line-height: 1.22;
   letter-spacing: -.02em;
-  font-weight: 700;
+  @apply tw:font-bold;
 }
 
 h3 { letter-spacing: -.015em; font-weight: 650; }
@@ -158,9 +158,9 @@ p { line-height: 1.62; }
   padding: 8px 10px;
   @apply tw:rounded-[8px];
   background: #2f2927;
-  color: #fff;
+  @apply tw:text-white;
   @apply tw:text-[.78rem];
-  font-weight: 600;
+  @apply tw:font-semibold;
   opacity: 0;
   @apply tw:pointer-events-none;
   transform: translateX(-4px);
@@ -182,9 +182,9 @@ p { line-height: 1.62; }
   background: transparent;
   color: rgba(255,255,255,.62);
   @apply tw:flex tw:items-center tw:gap-[12px] tw:text-[.76rem];
-  font-weight: 600;
+  @apply tw:font-semibold;
 }
-.sidebar-pin:hover { background: rgba(255,255,255,.07); color: #fff; }
+.sidebar-pin:hover { background: rgba(255,255,255,.07); @apply tw:text-white; }
 
 .sidebar-footer {
   grid-template-columns: 38px minmax(0,1fr) 34px;
@@ -199,7 +199,7 @@ p { line-height: 1.62; }
   color: rgba(255,255,255,.68);
   background: transparent;
 }
-.sidebar-logout:hover { background: rgba(255,255,255,.09); color: #fff; }
+.sidebar-logout:hover { background: rgba(255,255,255,.09); @apply tw:text-white; }
 
 .main {
   margin-left: var(--sidebar-rail);
@@ -317,12 +317,12 @@ p { line-height: 1.62; }
 .hero-attention h2 { color: var(--graphite); }
 .hero-attention p { color: var(--muted); }
 .hero-attention .section-kicker.light { color: var(--burgundy); }
-.hero-attention .light-button { background: var(--burgundy); color: #fff; }
+.hero-attention .light-button { background: var(--burgundy); @apply tw:text-white; }
 
 .client-summary strong,
 .date strong,
 .company-mark,
-.company-logo { font-weight: 700; }
+.company-logo { @apply tw:font-bold; }
 
 .progress { @apply tw:h-[7px]; background: rgba(90,30,45,.085); }
 .progress span { transition: width .4s cubic-bezier(.2,.75,.25,1); }
