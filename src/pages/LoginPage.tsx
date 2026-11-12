@@ -1,6 +1,8 @@
 import { homeOf } from '../auth/WorkspaceAuthProvider';
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useForm, useStore } from '@tanstack/react-form';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { z } from 'zod';
 import {
   CalendarDays,
   LifeBuoy,
@@ -15,17 +17,28 @@ import {
 } from 'lucide-react';
 import { isSupabaseConfigured, requestAccessCode, supabase, verifyAccessCode } from '../lib/supabase';
 
+const emailSchema = z.string().refine((email) => email.includes('@') && email.includes('.'));
+const codeSchema = z.string().regex(/^\d{6}$/);
+
 export function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [error, setError] = useState('');
-  const validEmail = useMemo(() => email.includes('@') && email.includes('.'), [email]);
-  const validCode = useMemo(() => /^\d{6}$/.test(code), [code]);
+  const form = useForm({
+    defaultValues: { email: '', code: '' },
+    onSubmit: async ({ value }) => {
+      if (step === 'email') {
+        await requestCode(value.email);
+      } else {
+        await verifyCode(value.email, value.code);
+      }
+    },
+  });
+  const { email, code } = useStore(form.store, (state) => state.values);
+  const validInput = step === 'email' ? emailSchema.safeParse(email).success : codeSchema.safeParse(code).success;
 
   useEffect(() => {
     if (!supabase) return;
@@ -50,8 +63,7 @@ export function LoginPage() {
     return () => { active = false; };
   }, [navigate]);
 
-  async function requestCode(event?: FormEvent) {
-    event?.preventDefault();
+  async function requestCode(email: string): Promise<void> {
     setError('');
     setSent(false);
     if (!isSupabaseConfigured) {
@@ -65,7 +77,7 @@ export function LoginPage() {
       sessionStorage.removeItem('cali-preview-role');
       setStep('code');
       setSent(true);
-      setCode('');
+      form.setFieldValue('code', '');
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar o código de acesso.');
     } finally {
@@ -73,8 +85,7 @@ export function LoginPage() {
     }
   }
 
-  async function verifyCode(event: FormEvent) {
-    event.preventDefault();
+  async function verifyCode(email: string, code: string): Promise<void> {
     setError('');
     try {
       setLoading(true);
@@ -86,7 +97,7 @@ export function LoginPage() {
         const { data: profile, error: profileError } = await supabase.from('profiles').select('active').eq('id', user.id).maybeSingle();
         if (!profileError && profile && !profile.active) {
           await supabase.auth.signOut();
-          setCode('');
+          form.setFieldValue('code', '');
           throw new Error('Seu acesso ao CALI Workspace está desativado. Se acha que é um engano, fale com a CALI RH.');
         }
       }
@@ -125,7 +136,10 @@ export function LoginPage() {
       </section>
 
       <section className="login-v2-access">
-        <form className="login-v2-card" onSubmit={step === 'email' ? requestCode : verifyCode}>
+        <form className="login-v2-card" onSubmit={(event) => {
+          event.preventDefault();
+          void form.handleSubmit();
+        }}>
           <div className="login-v2-steps" aria-hidden="true"><span className="on" /><span className={step === 'code' ? 'on' : ''} /></div>
           <span className="login-v2-kicker">{step === 'email' ? 'ACESSO SEGURO · ETAPA 1 DE 2' : 'ACESSO SEGURO · ETAPA 2 DE 2'}</span>
           <h2>{step === 'email' ? 'Entre no seu Workspace.' : 'Digite seu código.'}</h2>
@@ -140,7 +154,7 @@ export function LoginPage() {
               <span>E-mail</span>
               <div className="login-v2-input-wrap">
                 <Mail size={18} aria-hidden="true" />
-                <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="voce@empresa.com.br" type="email" autoComplete="email" />
+                <input value={email} onChange={(event) => form.setFieldValue('email', event.target.value)} placeholder="voce@empresa.com.br" type="email" autoComplete="email" />
               </div>
             </label>
           ) : (
@@ -150,7 +164,7 @@ export function LoginPage() {
                 <KeyRound size={18} aria-hidden="true" />
                 <input
                   value={code}
-                  onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                  onChange={(event) => form.setFieldValue('code', event.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="000000"
                   inputMode="numeric"
                   autoComplete="one-time-code"
@@ -162,15 +176,15 @@ export function LoginPage() {
             </label>
           )}
 
-          <button disabled={(step === 'email' ? !validEmail : !validCode) || loading} className="login-v2-submit" type="submit">
+          <button disabled={!validInput || loading} className="login-v2-submit" type="submit">
             {step === 'email' ? <Send size={18} /> : <KeyRound size={18} />}
             {loading ? 'Aguarde…' : step === 'email' ? 'Enviar código de acesso' : 'Entrar no Workspace'}
           </button>
 
           {step === 'code' && (
             <div className="login-v2-code-actions">
-              <button type="button" onClick={() => { setStep('email'); setError(''); setSent(false); setCode(''); }}>Trocar e-mail</button>
-              <button type="button" onClick={() => void requestCode()}>Reenviar código</button>
+              <button type="button" onClick={() => { setStep('email'); setError(''); setSent(false); form.setFieldValue('code', ''); }}>Trocar e-mail</button>
+              <button type="button" onClick={() => void requestCode(email)}>Reenviar código</button>
             </div>
           )}
 

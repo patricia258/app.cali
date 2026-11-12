@@ -1,8 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
+import { queryClient } from './api/query-client';
 import App from './App';
 import { AppErrorBoundary, reloadOnceForNewVersion } from './components/AppErrorBoundary';
+import './styles/tailwind.css';
 
 // Arquivo de uma versão anterior que não existe mais (aba aberta durante uma publicação): recarrega uma vez.
 window.addEventListener('vite:preloadError', (event) => { if (reloadOnceForNewVersion()) event.preventDefault(); });
@@ -32,10 +35,12 @@ void applyVisualSystem(window.location.pathname).finally(() => ReactDOM.createRo
   <React.StrictMode>
     <BrowserRouter>
       <RouteErrorBoundary>
-        <WorkspaceAuthProvider>
-          <RouteRuntimeManager />
-          <App />
-        </WorkspaceAuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <WorkspaceAuthProvider>
+            <RouteRuntimeManager />
+            <App />
+          </WorkspaceAuthProvider>
+        </QueryClientProvider>
       </RouteErrorBoundary>
     </BrowserRouter>
   </React.StrictMode>,

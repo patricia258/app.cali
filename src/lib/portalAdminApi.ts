@@ -1,7 +1,22 @@
+import axios from 'axios';
 import { supabase } from './supabase';
 
 const SUPABASE_URL = 'https://kqtbfeeqbcllwvlkbrkq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_rhIy864X0VSQ0B7m7gdmCQ_hX3sKFMg';
+
+const portalHttp = axios.create({
+  baseURL: SUPABASE_URL,
+  adapter: 'fetch',
+  responseType: 'text',
+  validateStatus: () => true,
+  withXSRFToken: false,
+  headers: {
+    Accept: null,
+    'User-Agent': false,
+    apikey: SUPABASE_KEY,
+    'Content-Type': 'application/json',
+  },
+});
 
 export type PortalSubmissionStatus = 'novo'|'analise'|'edicao'|'aprovada'|'enviada'|'negociacao'|'fechada'|'recusada'|'expirada';
 export type PortalSubmission = {
@@ -35,13 +50,54 @@ async function sessionToken(){
   return data.session.access_token;
 }
 
-async function request<T>(path:string, init:RequestInit={}){
-  const token=await sessionToken();
-  const response=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{
-    ...init,cache:'no-store',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${token}`,'Content-Type':'application/json','Accept-Profile':'public','Content-Profile':'public',...(init.headers||{})},
+type PortalRequestOptions = {
+  method?: 'POST' | 'PATCH';
+  headers?: Record<string, string>;
+  body?: string;
+  cache?: RequestCache;
+};
+
+async function portalResponse(path: string, options: PortalRequestOptions = {}) {
+  const token = await sessionToken();
+  try {
+    const response = await portalHttp.request<string>({
+      url: path,
+      method: options.method ?? 'GET',
+      headers: { Authorization: `Bearer ${token}`, ...options.headers },
+      data: options.body,
+      fetchOptions: { cache: options.cache },
+    });
+    return {
+      text: response.data,
+      status: response.status,
+      ok: response.status >= 200 && response.status < 300,
+    };
+  } catch (error) {
+    // Axios wraps fetch failures. Keep the original message shown by the Portal.
+    if (axios.isAxiosError(error) && error.cause instanceof Error) throw error.cause;
+    throw error;
+  }
+}
+
+function parsePortalJson(text: string, fallback: unknown): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return fallback;
+  }
+}
+
+async function request<T>(path: string, options: PortalRequestOptions = {}) {
+  const { text, status, ok } = await portalResponse(`/rest/v1/${path}`, {
+    ...options,
+    cache: 'no-store',
+    headers: { 'Accept-Profile': 'public', 'Content-Profile': 'public', ...options.headers },
   });
-  const text=await response.text();let payload:any=null;if(text){try{payload=JSON.parse(text);}catch{payload=text;}}
-  if(!response.ok)throw new Error(String(payload?.message||payload?.error||text||`Erro ${response.status}`));
+  const payload = parsePortalJson(text, text || null);
+  if (!ok) {
+    const failure = payload as { message?: unknown; error?: unknown } | null;
+    throw new Error(String(failure?.message || failure?.error || text || `Erro ${status}`));
+  }
   return payload as T;
 }
 
@@ -80,7 +136,16 @@ export async function updatePortalProposal(id:string,patch:Partial<Pick<PortalPr
 }
 
 export async function sendPortalProposal(input:{proposal_id:string;pdf_base64:string;pdf_name:string;note:string;company_name:string;recipient_name:string;recipient_email:string}){
-  const token=await sessionToken();const response=await fetch(`${SUPABASE_URL}/functions/v1/portal-send-proposal`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify(input)});const result=await response.json().catch(()=>({}));if(!response.ok)throw new Error(result.error||'Não foi possível enviar a proposta.');return result as {ok:true;email_id?:string;to?:string;subject?:string};
+  const { text, ok } = await portalResponse('/functions/v1/portal-send-proposal', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  const result = parsePortalJson(text, {});
+  if (!ok) {
+    const failure = result as { error?: unknown } | null;
+    throw new Error(String(failure?.error || 'Não foi possível enviar a proposta.'));
+  }
+  return result as { ok: true; email_id?: string; to?: string; subject?: string };
 }
 
 export async function appendPortalActivity(input:{submission_id:string;proposal_id?:string|null;event_type:string;metadata?:Record<string,unknown>}){

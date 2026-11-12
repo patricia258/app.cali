@@ -6,6 +6,8 @@ O `app.cali` é a base operacional e visual. A revisão de referência começa e
 
 A entrega usa a branch `codex/cali-consolidacao`, com commits revisáveis por etapa e um Preview para o aceite do Felipe. A conversa principal integra e revisa. Até três auxiliares atuam em paralelo nos recortes independentes de acesso/backend, Admin/Cliente e interface compartilhada, público e Partner. Mudanças compartilhadas em dependências, rotas e schema passam pela integração da conversa principal.
 
+A `main` publicada continua no ambiente de produção atual. Nesta entrega, a consulta ao catálogo de produção é em leitura e as migrations rodam em banco isolado. A homologação verifica também os contratos que o app publicado consome. O Preview recebe projeto, credenciais e callbacks de teste próprios.
+
 ## Etapas e critérios de passagem
 
 | Etapa | Trabalho | Critério de passagem |

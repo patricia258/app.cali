@@ -1,0 +1,3 @@
+/* Mantém os resets e a ordem dos estilos existentes durante a migração. */
+@import 'tailwindcss/theme.css' prefix(tw);
+@import 'tailwindcss/utilities.css' prefix(tw) source('../');
