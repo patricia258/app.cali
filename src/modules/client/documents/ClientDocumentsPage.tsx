@@ -179,6 +179,7 @@ export function ClientDocumentsPage() {
   }
 
   async function openDocument(doc: ClientDoc) {
+    setError('');
     try {
       if (doc.storagePath) await openPrivateWorkspaceFile(doc.storagePath);
       else if (doc.driveUrl) window.open(doc.driveUrl, '_blank', 'noopener,noreferrer');

@@ -1,0 +1,273 @@
+'use strict';
+
+const assert = require('node:assert/strict');
+const { browserSuite } = require('./browser-suite.cjs');
+const { companyId, projectId, tables, user } = require('./fixtures.cjs');
+
+const apiOrigin = 'https://cali-local-qa.supabase.co';
+
+function mockJson(context, origin, path, method, handler) {
+  return context.route(
+    (url) => url.origin === apiOrigin && url.pathname === '/rest/v1/' + path,
+    (route) => {
+      const request = route.request();
+      if (request.method() !== method) return route.fallback();
+      return route.fulfill({ headers: { 'access-control-allow-origin': origin }, ...handler(request) });
+    },
+  );
+}
+
+const mockRpc = (context, origin, name, handler) =>
+  mockJson(context, origin, 'rpc/' + name, 'POST', (request) => handler(request.postDataJSON()));
+
+const cases = [
+  {
+    id: 'global-timer-pause-and-finalize',
+    role: 'admin',
+    async run({ page, context, origin }) {
+      const [pausedDelivery, finalizedDelivery] = tables.deliverables;
+      const pauseId = 'cc000000-0000-4000-8000-000000000001';
+      const stopId = 'cc000000-0000-4000-8000-000000000002';
+      const timer = {
+        company_id: companyId, project_id: projectId, started_at: '2026-11-12T12:00:00Z',
+        status: 'active', paused_seconds: 0, user_id: user.id,
+      };
+      let timers = [
+        { ...timer, id: pauseId, deliverable_id: pausedDelivery.id },
+        { ...timer, id: stopId, deliverable_id: finalizedDelivery.id, description: 'Execução sintética' },
+      ];
+      const writes = [];
+      const change = (operation) => (body) => {
+        writes.push({ operation, body });
+        timers = timers.filter((row) => row.id !== body.p_timer_id);
+        return { json: 30 };
+      };
+      await page.clock.setFixedTime(new Date('2026-11-12T12:30:00Z'));
+      await mockJson(context, origin, 'work_timers', 'GET', () => ({ json: timers }));
+      await mockRpc(context, origin, 'pause_work_timer', change('pause'));
+      await mockRpc(context, origin, 'stop_work_timer', change('stop'));
+      await page.goto(origin + '/admin', { waitUntil: 'domcontentloaded' });
+      const globalTimers = page.locator('.global-timers');
+      const pauseChip = globalTimers.locator('.global-timer-chip').filter({ hasText: pausedDelivery.title });
+      const stopChip = globalTimers.locator('.global-timer-chip').filter({ hasText: finalizedDelivery.title });
+      await pauseChip.getByText('00:30:00', { exact: true }).waitFor();
+      await pauseChip.getByRole('button', { name: 'Pausar e registrar esta sessão' }).click();
+      await pauseChip.waitFor({ state: 'detached' });
+      assert.deepEqual(writes, [{ operation: 'pause', body: { p_timer_id: pauseId } }]);
+
+      const stop = stopChip.getByRole('button', { name: 'Finalizar trabalho definitivamente' });
+      const first = page.getByRole('dialog', { name: 'Finalizar este entregável?', exact: true });
+      const second = page.getByRole('dialog', { name: 'Tem certeza mesmo?', exact: true });
+      await stop.click();
+      await first.getByRole('button', { name: 'Continuar', exact: true }).click();
+      await second.getByText(/O cliente ainda não aprovou/).waitFor();
+      await second.getByRole('button', { name: 'Voltar', exact: true }).click();
+      await second.waitFor({ state: 'detached' });
+      assert.equal(writes.length, 1);
+      await stop.click();
+      await first.getByRole('button', { name: 'Continuar', exact: true }).click();
+      await second.getByRole('button', { name: 'Sim, finalizar definitivamente' }).click();
+      await stopChip.waitFor({ state: 'detached' });
+      assert.deepEqual(writes[1], {
+        operation: 'stop', body: { p_timer_id: stopId, p_description: 'Execução sintética' },
+      });
+      assert.equal(writes.length, 2);
+      return { pause: true, cancellationBeforeStop: true, stopAfterTwoStages: true };
+    },
+  },
+  {
+    id: 'hours-lifecycle-finalizes-selected-active-timer',
+    role: 'admin',
+    async run({ page, context, origin }) {
+      const first = {
+        id: 'ce000000-0000-4000-8000-000000000001', user_id: user.id, company_id: companyId,
+        started_at: '2026-11-12T11:00:00Z', status: 'paused', description: 'Atuação pausada QA',
+      };
+      const selected = {
+        ...first, id: 'ce000000-0000-4000-8000-000000000002',
+        started_at: '2026-11-12T12:00:00Z', status: 'active', description: 'Atuação ativa QA',
+      };
+      let timers = [first, selected];
+      const writes = [];
+      await page.clock.setFixedTime(new Date('2026-11-12T12:30:00Z'));
+      await mockJson(context, origin, 'work_timers', 'GET', (request) => {
+        const scope = new URL(request.url()).searchParams.get('status');
+        return { json: scope === 'eq.active' ? timers.filter((timer) => timer.status === 'active') : timers };
+      });
+      await mockRpc(context, origin, 'stop_work_timer', (body) => {
+        writes.push(body);
+        timers = timers.filter((timer) => timer.id !== body.p_timer_id);
+        return { json: 30 };
+      });
+      const ready = page.waitForResponse((response) => {
+        const url = new URL(response.url());
+        return url.pathname === '/rest/v1/work_timers' && url.searchParams.get('status') === 'eq.active'
+          && url.searchParams.get('select') === 'id,deliverable_id,task_id,description';
+      });
+      await page.goto(origin + '/admin/horas', { waitUntil: 'domcontentloaded' });
+      await ready;
+      const paused = page.locator('.hours-v13-timer-row').filter({ hasText: first.description });
+      const active = page.locator('.hours-v13-timer-row').filter({ hasText: selected.description });
+      await paused.getByRole('button', { name: 'Retomar', exact: true }).waitFor();
+      await active.getByRole('button', { name: 'Encerrar', exact: true }).click();
+      const confirmation = page.getByRole('dialog', { name: 'Finalizar este entregável?', exact: true });
+      await confirmation.getByText(selected.description, { exact: true }).waitFor();
+      assert.deepEqual(writes, []);
+      await confirmation.getByRole('button', { name: 'Continuar', exact: true }).click();
+      await page.getByRole('button', { name: 'Sim, finalizar definitivamente' }).click();
+      await active.waitFor({ state: 'detached' });
+      await paused.waitFor();
+      assert.deepEqual(writes, [{ p_timer_id: selected.id, p_description: selected.description }]);
+      return { secondTimerSelected: true, pausedTimerPreserved: true, doubleConfirmation: true };
+    },
+  },
+  {
+    id: 'profile-save-retry-and-reopen',
+    role: 'client',
+    async run({ page, context, origin }) {
+      let stored = { ...tables.profiles[0], role: 'client' };
+      const writes = [];
+      await mockJson(context, origin, 'profiles', 'GET', (request) => ({
+        json: request.headers().accept?.includes('vnd.pgrst.object') ? stored : [stored],
+      }));
+      await mockRpc(context, origin, 'update_my_profile_v56', (body) => {
+        writes.push(body);
+        if (writes.length === 1) return { status: 409, json: { message: 'Falha sintética ao salvar' } };
+        stored = { ...stored, full_name: body.p_full_name, linkedin_url: body.p_linkedin_url };
+        return { json: true };
+      });
+
+      async function openProfile() {
+        await page.locator('.profile[aria-haspopup="menu"]').click();
+        await page.getByRole('menuitem', { name: 'Minha conta', exact: true }).click();
+        return page.getByRole('dialog', { name: 'Minha conta', exact: true });
+      }
+
+      await page.goto(origin + '/cliente', { waitUntil: 'domcontentloaded' });
+      const profile = await openProfile();
+      assert.equal(await profile.getByLabel('E-mail de acesso').isDisabled(), true);
+      await profile.getByLabel('Nome completo').fill('  Cliente QA atualizado  ');
+      await profile.getByLabel('LinkedIn', { exact: true }).fill('linkedin.example.invalid/qa');
+      const save = profile.getByRole('button', { name: 'Salvar alterações', exact: true });
+      await save.click();
+      await profile.getByText(/Não foi possível salvar o perfil|Falha sintética ao salvar/).waitFor();
+      assert.equal(await profile.getByLabel('Nome completo').inputValue(), '  Cliente QA atualizado  ');
+      await save.click();
+      await profile.waitFor({ state: 'detached' });
+      await page.locator('.profile[aria-haspopup="menu"]').getByText('Cliente QA atualizado', { exact: true }).waitFor();
+      assert.equal(writes.length, 2);
+      assert.deepEqual(writes[0], writes[1]);
+      assert.equal(writes[1].p_full_name, 'Cliente QA atualizado');
+      assert.equal(writes[1].p_linkedin_url, 'https://linkedin.example.invalid/qa');
+      assert(!Object.keys(writes[1]).some((key) => /email|role|company_id/.test(key)));
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      const reopened = await openProfile();
+      assert.equal(await reopened.getByLabel('Nome completo').inputValue(), 'Cliente QA atualizado');
+      assert.equal(await reopened.getByLabel('LinkedIn', { exact: true }).inputValue(), 'https://linkedin.example.invalid/qa');
+      return { preservedDraftAfterError: true, reloadedProfile: true, normalizedFields: true };
+    },
+  },
+  {
+    id: 'workspace-notification-destination-and-read',
+    role: 'client',
+    async run({ page, context, origin }) {
+      const file = tables.files[0];
+      let notifications = [
+        {
+          id: 'qa-external-alert', title: 'Aviso com endereço externo', created_at: '2026-11-12T12:05:00Z',
+          user_id: user.id, read_at: null, action_url: '//external.example.invalid',
+        },
+        {
+          id: 'qa-file-alert', title: 'Documento para consultar', created_at: '2026-11-12T12:00:00Z',
+          user_id: user.id, read_at: null, entity_type: 'file', entity_id: file.id,
+          action_url: '/cliente/documentos?origem=sino#referencia',
+        },
+      ];
+      const reads = [];
+      await mockJson(context, origin, 'notifications', 'GET', (request) => {
+        assert.equal(new URL(request.url()).searchParams.get('user_id'), 'eq.' + user.id);
+        return { json: notifications };
+      });
+      await mockRpc(context, origin, 'mark_notification_read', (body) => {
+        reads.push(body);
+        notifications = notifications.map((item) =>
+          item.id === body.p_notification_id ? { ...item, read_at: '2026-11-12T12:10:00Z' } : item,
+        );
+        return { json: true };
+      });
+      await page.goto(origin + '/cliente', { waitUntil: 'domcontentloaded' });
+      await page.getByRole('button', { name: 'Notificações', exact: true }).click();
+      const bell = page.getByRole('dialog', { name: 'Notificações', exact: true });
+      await bell.getByText('2 não lidas', { exact: true }).waitFor();
+      await bell.getByRole('button', { name: /Aviso com endereço externo/ }).click();
+      await bell.getByText('1 não lida', { exact: true }).waitFor();
+      assert.equal(page.url(), origin + '/cliente');
+      await bell.getByRole('button', { name: /Documento para consultar/ }).click();
+      await page.waitForURL((url) => url.pathname === '/cliente/documentos');
+      const destination = new URL(page.url());
+      assert.equal(destination.searchParams.get('documento'), file.id);
+      assert.equal(destination.searchParams.get('origem'), 'sino');
+      assert.equal(destination.hash, '#referencia');
+      assert.deepEqual(reads, [
+        { p_notification_id: 'qa-external-alert' }, { p_notification_id: 'qa-file-alert' },
+      ]);
+      return { externalAddressBlocked: true, deepLink: true, readOncePerNotification: true };
+    },
+  },
+  {
+    id: 'hours-audit-edit-keeps-visible-entry',
+    role: 'admin',
+    async run({ page, context, origin }) {
+      const entry = {
+        id: 'cd000000-0000-4000-8000-000000000001',
+        company_id: companyId, project_id: null, work_date: '2026-11-12',
+        minutes: 30, description: 'Lançamento visível QA', category: 'Outros',
+        source_type: 'manual', client_visible: false, created_at: '2026-11-12T12:00:00Z',
+      };
+      const excluded = {
+        ...entry, id: 'cd000000-0000-4000-8000-000000000002', work_date: '2026-11-13',
+        project_id: 'cd000000-0000-4000-8000-000000000003', description: 'Lançamento fora do projeto QA',
+      };
+      let visible = entry;
+      const writes = [];
+      let audit = [];
+      await page.clock.setFixedTime(new Date('2026-11-12T13:00:00Z'));
+      await mockJson(context, origin, 'hour_entries', 'GET', () => ({ json: [excluded, visible] }));
+      await mockRpc(context, origin, 'get_hour_entry_audit', () => ({ json: audit }));
+      await mockRpc(context, origin, 'edit_hour_entry_with_audit', (body) => {
+        writes.push(body);
+        visible = { ...visible, minutes: body.p_minutes };
+        audit = [{
+          id: 1, entity_id: entry.id, event_type: 'hours_entry_edited',
+          created_at: '2026-11-12T13:00:00Z', metadata: { reason: body.p_reason, after: visible },
+        }];
+        return { json: true };
+      });
+      await page.goto(origin + '/admin/horas', { waitUntil: 'domcontentloaded' });
+      const table = page.locator('.hours-connect-table');
+      const row = table.getByRole('row').filter({ hasText: 'Atuação geral' });
+      await row.locator('button[data-hour-action="edit"]').click();
+      const edit = page.locator('.operational-safety-card').filter({
+        has: page.getByRole('heading', { name: 'Editar lançamento de horas', exact: true }),
+      });
+      assert.equal(await edit.locator('textarea').first().inputValue(), entry.description);
+      const save = edit.getByRole('button', { name: 'Salvar correção', exact: true });
+      assert.equal(await save.isDisabled(), true);
+      await edit.getByLabel('Duração (minutos)').fill('45');
+      await edit.getByLabel('Justificativa da edição').fill(' Corrigir duração lançada. ');
+      await Promise.all([page.waitForEvent('load'), save.click()]);
+      assert.deepEqual(writes, [{
+        p_entry_id: entry.id, p_work_date: entry.work_date, p_minutes: 45, p_description: entry.description,
+        p_category: 'Outros', p_client_visible: false, p_reason: 'Corrigir duração lançada.',
+      }]);
+      await page.getByRole('button', { name: 'Auditoria', exact: true }).click();
+      const history = page.getByRole('dialog', { name: 'Auditoria de horas', exact: true });
+      await history.getByText('Lançamento editado', { exact: true }).waitFor();
+      await history.getByText('Justificativa: Corrigir duração lançada.', { exact: true }).waitFor();
+      return { matchingVisibleEntry: true, reasonRequired: true, auditedCorrection: true };
+    },
+  },
+];
+
+if (require.main === module) browserSuite(cases).catch((error) => { console.error(error.message); process.exitCode = 1; });
+module.exports = cases;

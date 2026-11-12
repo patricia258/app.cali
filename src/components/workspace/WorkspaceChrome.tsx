@@ -32,6 +32,14 @@ type NotificationItem = {
   action_url?: string | null;
 };
 
+const notificationRouteParameters = new Map([
+  ['deliverable', 'deliverable'],
+  ['project', 'project'],
+  ['scheduling_request', 'request'],
+  ['file', 'documento'],
+  ['report', 'report'],
+]);
+
 const profileFallback: Record<Role, ProfileData> = {
   admin: {
     full_name: 'Patrícia Lima',
@@ -162,22 +170,14 @@ export function NotificationCenter({ role }: { role: Role }) {
 
   const unread = items.filter((item) => !item.read_at).length;
   function notificationUrl(item: NotificationItem) {
-    let url = String(item.action_url || '').trim();
-    // Só caminhos internos: barra dupla ou barra invertida no início levariam para outro site (falha conhecida da biblioteca de rotas).
+    const url = String(item.action_url || '').trim();
     if (!url.startsWith('/') || url.startsWith('//') || url.startsWith('/\\')) return '';
-    if (item.entity_type === 'deliverable' && item.entity_id && !url.includes('deliverable=')) {
-      url += `${url.includes('?') ? '&' : '?'}deliverable=${encodeURIComponent(item.entity_id)}`;
-    } else if (item.entity_type === 'project' && item.entity_id && !url.includes('project=')) {
-      url += `${url.includes('?') ? '&' : '?'}project=${encodeURIComponent(item.entity_id)}`;
-    } else if (item.entity_type === 'scheduling_request' && item.entity_id && !url.includes('request=')) {
-      url += `${url.includes('?') ? '&' : '?'}request=${encodeURIComponent(item.entity_id)}`;
-    } else if (item.entity_type === 'file' && item.entity_id && !url.includes('documento=')) {
-      // Aviso de documento abre o próprio documento (ou a pasta dele), não só a página.
-      url += `${url.includes('?') ? '&' : '?'}documento=${encodeURIComponent(item.entity_id)}`;
-    } else if (item.entity_type === 'report' && item.entity_id && !url.includes('report=')) {
-      url += `${url.includes('?') ? '&' : '?'}report=${encodeURIComponent(item.entity_id)}`;
-    }
-    return url;
+    const destination = new URL(url, window.location.origin);
+    if (destination.origin !== window.location.origin) return '';
+    const parameter = notificationRouteParameters.get(item.entity_type || '');
+    if (!parameter || !item.entity_id || destination.searchParams.has(parameter)) return url;
+    destination.searchParams.set(parameter, item.entity_id);
+    return destination.pathname + destination.search + destination.hash;
   }
   async function openNotification(item: NotificationItem) {
     await markRead(item);

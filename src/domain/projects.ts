@@ -137,6 +137,12 @@ export function projectProgress(deliverables: ProjectDeliverable[]) {
   return Math.round((score / valid.length) * 100);
 }
 
+export function validDeliverableFeedback(score: number, comment: string) {
+  if (!Number.isInteger(score) || score < 1 || score > 5) return false;
+  const length = comment.trim().length;
+  return length <= 2000 && (score > 3 || length >= 3);
+}
+
 export const previewProjects: WorkspaceProject[] = [
   {
     id: 'project-aurora', protocol: 'CALI-PRJ-2026-000021', companyId: 'aurora', company: 'Grupo Aurora',

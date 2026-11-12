@@ -27,11 +27,12 @@ export async function GET(request: Request) {
         headers: { apikey: environment.key, Authorization: `Bearer ${environment.key}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ p_slug: slug }),
       });
-      const form = response.ok ? await response.json() as { title?: string; description?: string; category?: string } | null : null;
-      if (form?.title) {
+      const form = response.ok ? await response.json() as { title?: unknown; description?: unknown; category?: unknown } | null : null;
+      if (typeof form?.title === 'string' && form.title.trim()) {
         title = form.title;
-        const text = plain(form.description || '');
-        description = text ? (text.length > 160 ? `${text.slice(0, 157).trimEnd()}…` : text) : `${form.category || 'Formulário'} · CALI RH`;
+        const text = typeof form.description === 'string' ? plain(form.description) : '';
+        const category = typeof form.category === 'string' && form.category.trim() ? form.category : 'Formulário';
+        description = text ? (text.length > 160 ? `${text.slice(0, 157).trimEnd()}…` : text) : `${category} · CALI RH`;
       }
     } catch { /* sem formulário: fica a prévia geral do CALI Forms */ }
   }

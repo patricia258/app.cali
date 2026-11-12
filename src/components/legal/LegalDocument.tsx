@@ -29,6 +29,7 @@ export function LegalDocument({ source, idPrefix }: { source: string; idPrefix: 
       }
       const body = rows.filter((row) => row.some(Boolean));
       const [head, ...rest] = body;
+      if (!head) continue;
       out.push(<div className="v2-legal-table" key={key}><table><thead><tr>{head.map((cell, i) => <th key={i}>{plain(cell)}</th>)}</tr></thead><tbody>{rest.map((row, r) => <tr key={r}>{row.map((cell, i) => <td key={i}>{inline(cell)}</td>)}</tr>)}</tbody></table></div>);
       continue;
     }

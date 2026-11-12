@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  END_OF_FORM, formatAnswer, nextQuestionIndex, richTextHtml, slugify, validateAnswer,
+  END_OF_FORM, buildFormSubmission, formSubmissionKey, formatAnswer, nextQuestionIndex, richTextHtml, slugify, validateAnswer,
 } from '../../src/modules/forms/formModel.ts';
 
 test('conditional form navigation preserves old question IDs and handles retired targets', () => {
@@ -44,4 +44,35 @@ test('form instructions render formatting and escape markup from submitted text'
   assert.match(result, /&lt;img/);
   assert.doesNotMatch(result, /<img/);
   assert.doesNotMatch(richTextHtml('[clique](javascript:alert(1))'), /<a /);
+});
+
+test('public form submits only the answers and files on the chosen branch after going back', () => {
+  const questions = [
+    { id: 'branch', kind: 'multi_choice', logic: [{ when: 'Pular anexo', goTo: 'confirmation' }] },
+    { id: 'old-upload', kind: 'file' },
+    { id: 'confirmation', kind: 'statement' },
+    { id: 'rating', kind: 'scale' },
+  ];
+  const answers = {
+    branch: ['Aceito', 'Pular anexo'],
+    'old-upload': 'form-id/responses/1794528000000-retorno.pdf',
+    rating: 0,
+  };
+  const destination = nextQuestionIndex(questions, 0, answers.branch);
+  assert.equal(destination, 2);
+  assert.deepEqual(buildFormSubmission(questions, [0, destination, 3], answers), {
+    branch: ['Aceito', 'Pular anexo'],
+    rating: 0,
+    __visited: ['branch', 'confirmation', 'rating'],
+  });
+});
+
+test('retry identifies the same form and answers even if answer keys were inserted in another order', async () => {
+  const formId = 'qa-form';
+  const answers = { branch: 'Aceito', rating: 0, __visited: ['branch', 'rating'] };
+  const key = await formSubmissionKey(formId, answers);
+  assert.match(key, /^cali-form-submission:qa-form:[a-f0-9]{64}$/);
+  assert.equal(await formSubmissionKey(formId, { rating: 0, __visited: answers.__visited, branch: 'Aceito' }), key);
+  assert.notEqual(await formSubmissionKey(formId, { ...answers, rating: 1 }), key);
+  assert.notEqual(await formSubmissionKey('outro-form', answers), key);
 });

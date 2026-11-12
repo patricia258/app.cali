@@ -1,6 +1,6 @@
 // Composição do PDF individual da V2, restrita ao processo privado de entrega.
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'npm:pdf-lib@1.17.1';
-import { STYLE_CONTENT, combinationOf, profileName, type Style } from '../../../src/modules/shared/disc/profileContent.ts';
+import { STYLE_CONTENT, combinationOf, profileName, type Style } from '../../../src/modules/disc/profileContent.ts';
 
 export type RespondentPdfInput = {
   title: string;

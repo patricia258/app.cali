@@ -35,6 +35,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       disabled={disabled || pending}
       aria-busy={pending || ariaBusy}
       aria-label={ariaLabel ?? (closesDialog ? 'Fechar' : undefined)}
+      data-dialog-close={closesDialog ? '' : undefined}
     />
   );
 });

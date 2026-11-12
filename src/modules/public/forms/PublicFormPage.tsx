@@ -6,20 +6,13 @@ import { useParams } from '../../../hooks/useParams';
 import { useSearchParams } from '../../../hooks/useSearchParams';
 import { ArrowDown, ArrowRight, ArrowUp, Check, CornerDownLeft, Paperclip, X } from 'lucide-react';
 import { anonPublicRpc, anonStorage, supabase } from '../../../api/supabase';
-import { type FormAnswer, type FormQuestion, FILE_ACCEPT, FILE_HINT, fileLabel, isAnswerable, nextQuestionIndex, richTextHtml, scaleRange, validateAnswer } from '../../forms/formModel';
+import { type FormAnswer, type FormQuestion, FILE_ACCEPT, FILE_HINT, buildFormSubmission, fileLabel, formSubmissionKey, isAnswerable, nextQuestionIndex, richTextHtml, scaleRange, validateAnswer } from '../../forms/formModel';
 import './public-form.css';
 
 type PublicForm = { id: string; submit_label?: string | null; success_text?: string | null; slug: string; title: string; category?: string; description: string; thank_you: string; status: 'open' | 'closed'; confirm_email: boolean; questions: FormQuestion[] };
 type Phase = 'loading' | 'missing' | 'closed' | 'welcome' | 'questions' | 'sending' | 'done';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-async function submissionKey(formId: string, answers: Record<string, unknown>) {
-  const canonical = JSON.stringify(answers, Object.keys(answers).sort());
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonical));
-  const fingerprint = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
-  return `cali-form-submission:${formId}:${fingerprint}`;
-}
 
 export function PublicFormPage() {
   const { slug = '' } = useParams();
@@ -75,11 +68,9 @@ export function PublicFormPage() {
     if (preview) { setConfirmation(false); setPhase('done'); return; }
     submitting.current = true;
     setPhase('sending'); setSendError('');
-    const visited = [...trail, index].map((position) => questions[position]?.id).filter(Boolean) as string[];
-    const sent: Record<string, unknown> = Object.fromEntries(Object.entries(answers).filter(([id]) => visited.includes(id)));
-    sent.__visited = visited;
+    const sent = buildFormSubmission(questions, [...trail, index], answers);
     try {
-      const key = await submissionKey(form.id, sent);
+      const key = await formSubmissionKey(form.id, sent);
       let requestId = submissionIds.current.get(key);
       try { requestId ||= sessionStorage.getItem(key) || undefined; } catch { /* retry em memória */ }
       requestId ||= crypto.randomUUID();

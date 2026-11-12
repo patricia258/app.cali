@@ -25,6 +25,10 @@ const suites = [
   { name: 'design-browser' },
   { name: 'account-and-overview' },
   { name: 'commercial-delivery' },
+  { name: 'satisfaction' },
+  { name: 'page-behaviors' },
+  { name: 'people-behaviors' },
+  { name: 'workspace-components' },
 ];
 
 function main() {

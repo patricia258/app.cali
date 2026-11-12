@@ -35,6 +35,7 @@ async function browserSuite(cases) {
         const { context } = await makeContext(browser, server.origin, role, {
           viewport: { width, height: width < 500 ? 844 : 960 },
           hasTouch: test.input === 'touch',
+          timezoneId: test.timezoneId,
         });
         actors.push(context);
         const page = await context.newPage();

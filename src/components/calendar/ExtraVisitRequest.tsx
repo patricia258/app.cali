@@ -1,5 +1,5 @@
 import { DialogFrame } from '../ds/DialogFrame';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Building2, CalendarPlus, Mic2, Paperclip, UserRound, X } from 'lucide-react';
 import { supabase } from '../../api/supabase';
@@ -45,20 +45,34 @@ export function ExtraVisitRequest() {
   const [ack, setAck] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
+  const submissionPending = useRef(false);
   const [availability, setAvailability] = useState<'idle'|'checking'|'checked'|'unavailable'>('idle');
   const [busySlots, setBusySlots] = useState<boolean[]>([]);
   const [considerBusy, setConsiderBusy] = useState(false);
   const [prefill, setPrefill] = useState<SlotSelection | null>(null);
-  useEffect(()=>{const openChooser=(event:Event)=>{const slot=(event as CustomEvent<SlotSelection>).detail;setPrefill(slot?.date&&slot?.time?slot:null);setMode(null);setStep(0);setOpen(true)};window.addEventListener('cali:open-papo-request',openChooser);return()=>window.removeEventListener('cali:open-papo-request',openChooser)},[]);
+  const openChooser = useCallback((slot: SlotSelection | null) => {
+    if (submissionPending.current) return;
+    setPrefill(slot?.date && slot.time ? slot : null);
+    setMode(null);
+    setStep(0);
+    setRequestSent(false);
+    setAttachment(null);
+    setError('');
+    setOpen(true);
+  }, []);
+  useEffect(() => {
+    const openFromSlot = (event: Event) => openChooser((event as CustomEvent<SlotSelection>).detail);
+    window.addEventListener('cali:open-papo-request', openFromSlot);
+    return () => window.removeEventListener('cali:open-papo-request', openFromSlot);
+  }, [openChooser]);
   useEffect(() => {
     if (!open) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     document.body.classList.add('extra-visit-open');
     document.documentElement.classList.add('extra-visit-open');
-    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpen(false); };
-    window.addEventListener('keydown', close);
-    return () => { document.body.style.overflow = previousOverflow; document.body.classList.remove('extra-visit-open'); document.documentElement.classList.remove('extra-visit-open'); window.removeEventListener('keydown', close); };
+    return () => { document.body.style.overflow = previousOverflow; document.body.classList.remove('extra-visit-open'); document.documentElement.classList.remove('extra-visit-open'); };
   }, [open]);
   useEffect(() => { if (!open || !supabase) return; let live = true; (async () => { const { data: auth } = await supabase.auth.getUser(); if (!auth.user) return; const { data: profile } = await supabase.from('profiles').select('company_id').eq('id', auth.user.id).maybeSingle(); if (!profile?.company_id) return; const { data: companyData } = await supabase.from('companies').select('id,display_name').eq('id', profile.company_id).maybeSingle(); if (live && companyData) setCompany({ id: companyData.id, name: companyData.display_name }); })(); return () => { live = false; }; }, [open]);
   const hasMonday = slots.some(slot => slot.date && new Date(`${slot.date}T12:00:00-03:00`).getUTCDay() === 1);
@@ -85,38 +99,50 @@ export function ExtraVisitRequest() {
   }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submissionPending.current || requestSent) return;
     const issue = validateDetails();
     if (issue) return setError(issue);
     if (!ack || ackName.trim().length < 5) return setError('Digite seu nome completo e confirme sua ciência.');
     if (!supabase) return setError('Conexão indisponível. Tente novamente.');
-    const latestBusy = await checkAvailability();
-    if (latestBusy.some(Boolean) && !considerBusy) return setError('Há um compromisso em um dos horários. Marque a opção de análise mesmo assim ou escolha outra data.');
-    setError(''); setSaving(true);
-    const requestedSlots = slots.map(slot => {
-      const start = new Date(`${slot.date}T${slot.time}:00-03:00`);
-      return { startsAt: start.toISOString(), endsAt: new Date(start.getTime() + (mode==='visit'?240:duration) * 60 * 1000).toISOString() };
-    });
-    const { data: requestData, error: submitError } = mode==='visit'
-      ? await supabase.rpc('create_extra_visit_request_v1', {p_title:title.trim(),p_purpose:[purpose.trim(),hasMonday?`Segunda-feira solicitada: ${mondayReason.trim()}`:''].filter(Boolean).join('\n'),p_location:address.trim(),p_requested_slots:requestedSlots,p_ack_name:ackName.trim(),p_acknowledged:ack})
-      : await supabase.rpc('client_request_online_extra_v2',{p_title:title.trim(),p_purpose:purpose.trim(),p_slots:requestedSlots,p_ack_name:ackName.trim(),p_acknowledged:ack});
-    if (submitError) { setSaving(false); return setError(submitError.message); }
-    if (mode==='visit' && attachment) {
-      const requestId = typeof requestData === 'string' ? requestData : requestData?.request_id || requestData?.id;
-      if (!requestId || !company?.id) { setSaving(false); return setError('Pedido enviado. Não foi possível vincular o anexo. Avise a CALI, por favor.'); }
-      const path = `extra-visit-requests/${company.id}/${requestId}/${crypto.randomUUID()}-${attachment.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-      const uploaded = await supabase.storage.from('cali-workspace-private').upload(path, attachment, { upsert: false, contentType: attachment.type });
-      if (uploaded.error) { setSaving(false); return setError('Pedido enviado. O anexo não foi recebido: ' + uploaded.error.message); }
-      const saved = await supabase.rpc('attach_extra_visit_request_v1', { p_request_id: requestId, p_path: path, p_name: attachment.name });
-      if (saved.error) { await supabase.storage.from('cali-workspace-private').remove([path]); setSaving(false); return setError('Pedido enviado. O anexo não foi vinculado: ' + saved.error.message); }
+    submissionPending.current = true;
+    setSaving(true);
+    setError('');
+    try {
+      const latestBusy = await checkAvailability();
+      if (latestBusy.some(Boolean) && !considerBusy) return setError('Há um compromisso em um dos horários. Marque a opção de análise mesmo assim ou escolha outra data.');
+      const requestedSlots = slots.map(slot => {
+        const start = new Date(`${slot.date}T${slot.time}:00-03:00`);
+        return { startsAt: start.toISOString(), endsAt: new Date(start.getTime() + (mode==='visit'?240:duration) * 60 * 1000).toISOString() };
+      });
+      const { data: requestData, error: submitError } = mode==='visit'
+        ? await supabase.rpc('create_extra_visit_request_v1', {p_title:title.trim(),p_purpose:[purpose.trim(),hasMonday?`Segunda-feira solicitada: ${mondayReason.trim()}`:''].filter(Boolean).join('\n'),p_location:address.trim(),p_requested_slots:requestedSlots,p_ack_name:ackName.trim(),p_acknowledged:ack})
+        : await supabase.rpc('client_request_online_extra_v2',{p_title:title.trim(),p_purpose:purpose.trim(),p_slots:requestedSlots,p_ack_name:ackName.trim(),p_acknowledged:ack});
+      if (submitError) return setError(submitError.message);
+      setRequestSent(true);
+      if (mode==='visit' && attachment) {
+        const requestId = typeof requestData === 'string' ? requestData : requestData?.request_id || requestData?.id;
+        if (!requestId || !company?.id) return setError('Pedido enviado. Não foi possível vincular o anexo. Avise a CALI, por favor.');
+        const path = `extra-visit-requests/${company.id}/${requestId}/${crypto.randomUUID()}-${attachment.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        const uploaded = await supabase.storage.from('cali-workspace-private').upload(path, attachment, { upsert: false, contentType: attachment.type });
+        if (uploaded.error) return setError('Pedido enviado. O anexo não foi recebido: ' + uploaded.error.message);
+        const saved = await supabase.rpc('attach_extra_visit_request_v1', { p_request_id: requestId, p_path: path, p_name: attachment.name });
+        if (saved.error) {
+          await supabase.storage.from('cali-workspace-private').remove([path]);
+          return setError('Pedido enviado. O anexo não foi vinculado: ' + saved.error.message);
+        }
+      }
+      setOpen(false);
+      window.location.assign('/cliente/cronograma');
+    } finally {
+      submissionPending.current = false;
+      setSaving(false);
     }
-    setSaving(false);
-    setOpen(false); window.location.assign('/cliente/cronograma');
   }
   return <>
-    <button className="extra-visit-top-action" type="button" aria-label="Agende aqui um papo com a Pati" data-tooltip="Agende aqui um papo com a Pati" onClick={() => { setPrefill(null); setMode(null); setStep(0); setOpen(true); }}><CalendarPlus size={21}/><span>Agende aqui um papo com a Pati</span></button>
-    {open && createPortal(<div className="extra-visit-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setOpen(false); }}>
+    <button className="extra-visit-top-action" type="button" aria-label="Agende aqui um papo com a Pati" data-tooltip="Agende aqui um papo com a Pati" onClick={() => openChooser(null)}><CalendarPlus size={21}/><span>Agende aqui um papo com a Pati</span></button>
+    {open && createPortal(<div className="extra-visit-backdrop" onMouseDown={event => { if (event.target === event.currentTarget && !submissionPending.current) setOpen(false); }}>
       <DialogFrame className="extra-visit-dialog" aria-labelledby="extra-visit-heading">
-        <header><div className="extra-visit-heading-copy"><small>{step===0?'AGENDA COM A PATI':`${mode==='visit'?'VISITA PRESENCIAL':'PAPO ONLINE'} · ${step===1?'CONDIÇÕES':step===2?'AGENDAMENTO':'CONFIRMAÇÃO'} · ${step} DE 3`}</small><h2 id="extra-visit-heading">{step===0?'Que tipo de papo você deseja?':step === 1 ? mode==='visit' ? 'Que legal que você quer uma visita presencial minha! Vamos lá?' : 'Vamos marcar um papo online?' : step === 2 ? 'Vamos encontrar uma data?' : 'Tá quase acabando. Vamos confirmar seu pedido?'}</h2></div><button type="button" className="extra-visit-close" aria-label="Fechar" onClick={() => setOpen(false)}><X size={20}/></button>{step <= 1 && <img className="extra-visit-leaf" src="/brand/cali-oak-mark-light.svg" alt="" aria-hidden="true"/>}</header>
+        <header><div className="extra-visit-heading-copy"><small>{step===0?'AGENDA COM A PATI':`${mode==='visit'?'VISITA PRESENCIAL':'PAPO ONLINE'} · ${step===1?'CONDIÇÕES':step===2?'AGENDAMENTO':'CONFIRMAÇÃO'} · ${step} DE 3`}</small><h2 id="extra-visit-heading">{requestSent && !saving ? 'Pedido enviado' : step===0?'Que tipo de papo você deseja?':step === 1 ? mode==='visit' ? 'Que legal que você quer uma visita presencial minha! Vamos lá?' : 'Vamos marcar um papo online?' : step === 2 ? 'Vamos encontrar uma data?' : 'Tá quase acabando. Vamos confirmar seu pedido?'}</h2></div><button type="button" className="extra-visit-close" aria-label="Fechar" disabled={saving} onClick={() => setOpen(false)}><X size={20}/></button>{step <= 1 && <img className="extra-visit-leaf" src="/brand/cali-oak-mark-light.svg" alt="" aria-hidden="true"/>}</header>
         <form onSubmit={submit}>
           {step===0 ? <div className="extra-visit-choice"><p>Este espaço é para encontros <strong>além dos agendamentos mensais do seu contrato</strong>. Os encontros incluídos continuam sendo organizados por mim.</p><div><button type="button" onClick={()=>selectMode('visit')}><Building2 className="extra-visit-choice-icon" size={27} aria-hidden="true"/><span>Visita presencial na sede</span><small>Quero conversar pessoalmente na minha empresa.</small></button><button type="button" onClick={()=>selectMode('online')}><span className="extra-visit-choice-icon extra-visit-online-icon" aria-hidden="true"><UserRound size={22}/><Mic2 size={16}/></span><span>Bate-papo online</span><small>Quero uma reunião por vídeo.</small></button></div></div> : step === 1 && mode==='visit' ? <><div className="extra-visit-terms"><p><strong>Atenção para as condições:</strong></p><ul>
             <li>Eu analiso sua solicitação em até <strong>48 horas corridas</strong>. Proponha dois horários com essa antecedência.</li>
@@ -131,13 +157,16 @@ export function ExtraVisitRequest() {
           {mode==='visit' && hasMonday && <label className="extra-visit-monday">Por que a segunda-feira é importante?<textarea value={mondayReason} onChange={e => setMondayReason(e.target.value)} required minLength={5} placeholder="Conte o contexto para eu avaliar uma exceção."/></label>}
           <p className="extra-visit-hours">{mode==='visit'?'Horários: terça a sexta, início entre 9h e 12h (até 16h). Segunda-feira: mediante avaliação, sem taxa adicional.':'Horários: segunda a sexta, entre 9h e 16h. Envie duas opções para eu avaliar.'}</p>
           {error && <p className="extra-visit-error" role="alert">{error}</p>}
-          <footer><button type="button" onClick={() => { setError(''); setStep(1); }}>Voltar</button><button type="button" className="extra-visit-next" onClick={async event => { const form = event.currentTarget.form; if (!form?.reportValidity()) return; const issue = validateDetails(); if (issue) return setError(issue); setError(''); await checkAvailability(); setStep(3); }}>Revisar pedido →</button></footer></> : <>
+          <footer><button type="button" onClick={() => { setError(''); setStep(1); }}>Voltar</button><button type="button" className="extra-visit-next" onClick={async event => { const form = event.currentTarget.form; if (!form?.reportValidity()) return; const issue = validateDetails(); if (issue) return setError(issue); setError(''); await checkAvailability(); setStep(3); }}>Revisar pedido →</button></footer></> : requestSent && !saving ? <>
+          <p className="extra-visit-error" role="alert">{error || 'Pedido enviado. Não foi possível concluir o anexo. Avise a CALI, por favor.'}</p>
+          <footer><button type="button" autoFocus onClick={() => setOpen(false)}>Entendi, fechar</button></footer>
+          </> : <>
           <div className="extra-visit-review"><strong>{title}</strong><span>{company?.name} · {mode==='online'?'Online':'Presencial'}</span><div>{slots.map((slot,index) => <p key={index}><small>Opção {index + 1}</small><b>{weekday(slot)}</b></p>)}</div>{mode==='visit' && hasMonday && <small>Segunda-feira: sujeita à confirmação da CALI.</small>}{mode==='online'&&<small>Duração: {duration > 60 ? '1h30' : '1 hora'} · valor {onlinePrice(duration)}.</small>}</div>
           {availability==='checked' && busySlots.some(Boolean) && <div className="extra-visit-availability" role="status"><strong>Já tenho um compromisso {busySlots.filter(Boolean).length===2?'nos dois horários':'em uma das opções'}.</strong><p>Posso avaliar sua solicitação mesmo assim. Nenhuma data fica confirmada até eu responder.</p><label><input type="checkbox" checked={considerBusy} onChange={event=>setConsiderBusy(event.target.checked)}/><span>Quero que a Pati avalie esses horários mesmo assim.</span></label></div>}
           {availability==='unavailable' && <p className="extra-visit-availability">Não consegui consultar minha agenda agora. Você pode enviar as opções; vou conferir antes de confirmar.</p>}
           <div className="extra-visit-consent"><label>Seu nome completo<input autoComplete="name" value={ackName} onChange={e => setAckName(e.target.value)} required/></label><label className="extra-visit-check"><input type="checkbox" checked={ack} onChange={e => setAck(e.target.checked)}/><span>{mode==='visit'?'Estou ciente do valor da visita de até 4 horas, das despesas comprovadas à parte e do orçamento prévio para horas adicionais. Entendemos que eventualidades podem impedir a visita — se algo acontecer, avise com antecedência e conte o motivo. Sem aviso ou justificativa, aplica-se uma taxa de 20%; com aviso ou motivo justificado, não há cobrança.':`Entendi que este papo online é adicional ao meu contrato e custa ${onlinePrice(duration)} (${duration > 60 ? '1h30' : '1 hora'}). Enviar este pedido não gera cobrança; o valor vale depois que a CALI confirmar o horário.`}</span></label></div>
           {error && <p className="extra-visit-error" role="alert">{error}</p>}
-          <footer><button type="button" onClick={() => { setError(''); setStep(2); }}>Voltar</button><button type="submit" disabled={saving || !ack}>{saving ? 'Enviando…' : 'Enviar para análise'}</button></footer></>}
+          <footer><button type="button" disabled={saving} onClick={() => { setError(''); setStep(2); }}>Voltar</button><button type="submit" disabled={saving || !ack}>{saving ? 'Enviando…' : 'Enviar para análise'}</button></footer></>}
         </form>
       </DialogFrame>
     </div>, document.body)}

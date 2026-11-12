@@ -141,8 +141,8 @@ export async function sendPortalProposal(input:{proposal_id:string;request_id:st
     body: JSON.stringify(input),
   });
   const result = parsePortalJson(text, {});
-  const response = result as { ok?: boolean; email_id?: string; error?: unknown } | null;
-  if (!ok || !response?.ok || !response.email_id) {
+  const response = result as { ok?: unknown; email_id?: unknown; error?: unknown } | null;
+  if (!ok || response?.ok !== true || typeof response.email_id !== 'string' || !response.email_id.trim()) {
     const failure = response;
     throw new Error(String(failure?.error || 'Não foi possível enviar a proposta.'));
   }

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -40,4 +41,46 @@ test('custom hooks live in their own named files', () => {
     visit(source);
   }
   assert.deepEqual(violations, []);
+});
+
+
+test('cada rota registrada tem um caso de navegação no Playwright', () => {
+  const matrix = fileURLToPath(new URL('../e2e/routes.cjs', import.meta.url));
+  const { cases } = JSON.parse(execFileSync(process.execPath, [matrix, '--list'], { encoding: 'utf8' }));
+  const paths = Object.values(cases).flat().filter((path) => path.startsWith('/'))
+    .map((path) => new URL(path, 'http://127.0.0.1').pathname.split('/'));
+  const file = join(src, 'app/router.tsx');
+  const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+  const declared = new Set();
+
+  function visit(node) {
+    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
+      const [arg] = node.arguments;
+      if (arg && ts.isStringLiteral(arg) && node.expression.text === 'defineRoute') declared.add(arg.text);
+      if (arg && ts.isStringLiteral(arg) && node.expression.text === 'staffSection') {
+        declared.add(arg.text === '/' ? '/equipe' : '/equipe/' + arg.text);
+      }
+      if (arg && ts.isObjectLiteralExpression(arg) && node.expression.text === 'createRoute') {
+        const path = arg.properties.find((prop) => ts.isPropertyAssignment(prop) && prop.name.getText(source) === 'path');
+        if (path && ts.isStringLiteral(path.initializer)) {
+          const parent = arg.properties.find((prop) => ts.isPropertyAssignment(prop) && prop.name.getText(source) === 'getParentRoute');
+          const owner = parent && ts.isArrowFunction(parent.initializer) ? parent.initializer.body.getText(source) : null;
+          assert.ok(owner === 'rootRoute' || owner === 'staffRoute', 'Declare o pai da rota na matriz de navegação.');
+          const prefix = owner === 'staffRoute' ? '/equipe/' : '/';
+          declared.add(prefix + path.initializer.text.replace(/^\//, ''));
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(source);
+
+  assert.ok(declared.size > 0);
+  const missing = [...declared].filter((path) => {
+    const segments = path.split('/');
+    const wildcard = segments.at(-1) === '$';
+    return !paths.some((candidate) => (wildcard ? candidate.length >= segments.length : candidate.length === segments.length)
+      && segments.every((segment, index) => segment.startsWith('$') ? Boolean(candidate[index]) : segment === candidate[index]));
+  });
+  assert.deepEqual(missing, []);
 });

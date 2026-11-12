@@ -8,7 +8,7 @@ network=cali-oneshot-qa-internal
 test "$(docker network inspect "$network" --format '{{.Internal}}')" = true
 test "$(docker inspect "$container" --format '{{.State.Running}} {{len .NetworkSettings.Networks}} {{json .HostConfig.PortBindings}} {{range $name, $_ := .NetworkSettings.Networks}}{{$name}}{{end}}')" = "true 1 {} $network"
 
-for contract in session onboarding feedback timer notice commercial-retention mapa-delivery mapa-retention material-review; do
+for contract in session onboarding feedback timer calendar notice commercial-retention mapa-delivery mapa-retention material-review; do
   printf 'Contrato SQL %s\n' "$contract"
   {
     printf 'begin;\n'

@@ -24,22 +24,22 @@ Um build fornecido por `--dist` deve usar `VITE_SUPABASE_URL=https://cali-local-
 | Fluxo | Jornada principal |
 | --- | --- |
 | 01 · Login e sessão | Deep link anônimo, callback, MFA e termos pelas guardas |
-| 02 · Empresa e acessos | Lista de empresas, pesquisa e retorno à lista |
+| 02 · Empresa e acessos | Busca, novo link, retry, Partner de apoio, upload de contrato, liberação e pré-cadastro público |
 | 03 · Proposta | Editor com URL preservada e reenvio de PDF arquivado com dupla confirmação |
 | 04 · Início Cliente e Visão Admin | Responsáveis no Início, CTA de Ocorrências e Visão geral Admin |
-| 05 · Projeto e cronograma | Projeto selecionado, entregáveis e histórico |
+| 05 · Projeto e cronograma | Projeto selecionado, entregáveis, dependências e histórico de execução |
 | 06 · Entregáveis | Deep link, arquivo publicado, ajuste, ciclo Admin/Cliente e revisão obsoleta |
-| 07 · Horas e timer | Extrato do Cliente, confirmação de presença e recuperação do Partner |
-| 08 · Equipe | Indicadores, seletor de período e estado de URL |
-| 09 · Agenda | Semana, mês, navegação e retorno OAuth |
+| 07 · Horas e timer | Extrato, confirmação de presença, recuperação, pausa, dupla confirmação e edição por ID |
+| 08 · Equipe | Indicadores, período, URL e proteção de dados privados por papel |
+| 09 · Agenda | Semana, mês, navegação, virada de mês em Brasília e retorno OAuth |
 | 10 · Ocorrências | Histórico por empresa e conversa de uma ocorrência |
-| 11 · Documentos | Lista publicada e entrada da conexão Drive |
+| 11 · Documentos | Lista, conexão Drive, download privado, recuperação e ciência |
 | 12 · Relatório e PDF | Impressão A4, protocolo e PDF com múltiplas páginas |
 | 13 · Avisos | Comunicado por deep link e preservação dos demais parâmetros ao fechar |
-| 14 · Minha conta | Abertura e conteúdo do painel de conta por perfil |
+| 14 · Minha conta | Painel por perfil, gravação, recuperação e releitura do perfil |
 | 15 · Equipe CALI e Partner | Módulo atribuído e redirecionamento do Partner sem módulo |
-| 16 · Satisfação e auditoria | Indicadores de satisfação e acesso à Auditoria |
-| 17 · DISC, Forms e Mapa | Envio Forms, agradecimento DISC legado e reenvio de PDF Mapa |
+| 16 · Satisfação e auditoria | Coorte, paginação, impressão, trilha por protocolo, filtro e recuperação |
+| 17 · DISC, Forms e Mapa | Envio e restauração Forms, DISC legado, opt-out e reenvio de PDF Mapa |
 | 18 · Frentes, ajuda e legal | Rotas auxiliares e prazo de 30 dias nos textos |
 
 As jornadas validam a interface e os argumentos de chamadas simuladas. RLS, Storage, Realtime, Auth, cron, idempotência persistida e envio exigem as provas de contrato do stack isolado. O aceite completo segue [a matriz](../../docs/CONSOLIDATION_ACCEPTANCE.md).

@@ -7,7 +7,7 @@ import { openPrivateWorkspaceFile } from '../../../api/files/workspace';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ClientSubtaskModal } from './components/ClientSubtaskModal';
 import { DeliverableDependencies } from '../../../components/projects/DeliverableDependencies';
-import { complexityMeta, complexityRange, complexityClientNote } from '../../../domain/projects';
+import { complexityMeta, complexityRange, complexityClientNote, validDeliverableFeedback } from '../../../domain/projects';
 import { AlertCircle, AlertTriangle, ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileCheck2, FileText, FolderKanban, History, Leaf, Loader2, MessageCircle, RefreshCw, Star, X } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import {
@@ -148,6 +148,7 @@ export function ClientDeliverablesPage() {
   const maxMonth = useMemo(() => Math.max(8, ...fronts.map((front) => front.monthEnd || front.monthStart || 1), ...projectDeliverables.map((item) => item.roadmapMonthEnd || item.roadmapMonthStart || 1)), [fronts, projectDeliverables]);
   const months = useMemo(() => Array.from({ length: maxMonth }, (_, index) => index + 1), [maxMonth]);
   const npsCommentRequired = score > 0 && score <= 3;
+  const feedbackValid = validDeliverableFeedback(score, npsComment);
   const reaction = score ? scoreReaction(score) : null;
   const detailActionOpen = adjustmentOpen || npsOpen;
   const reviewErrorNotice = reviewError && <>
@@ -317,7 +318,7 @@ export function ClientDeliverablesPage() {
 
   async function submitNps() {
     const target = reviewTarget.current;
-    if (!target || target.id !== selected?.id || score === 0 || (npsCommentRequired && npsComment.trim().length < 3)) return;
+    if (!target || target.id !== selected?.id || !feedbackValid) return;
     setSaving(true);
     setReviewError(null);
     try {
@@ -493,7 +494,7 @@ export function ClientDeliverablesPage() {
             <textarea value={npsComment} onChange={(event) => setNpsComment(event.target.value)} rows={4} maxLength={2000} placeholder={npsCommentRequired ? 'Sua justificativa ajuda a CALI a entender exatamente o que precisa melhorar.' : 'Opcional — deixe um comentário se quiser.'} />
           </FieldLabel>}
           {reviewErrorNotice}
-          <Button type="button" variant="primary" className="full" disabled={saving || reviewError?.stale || score === 0 || (npsCommentRequired && npsComment.trim().length < 3)} onClick={() => void submitNps()}>{saving ? 'Confirmando…' : 'Confirmar aprovação e avaliação'}</Button>
+          <Button type="button" variant="primary" className="full" disabled={saving || reviewError?.stale || !feedbackValid} onClick={() => void submitNps()}>{saving ? 'Confirmando…' : 'Confirmar aprovação e avaliação'}</Button>
         </DialogFrame>
       </div>
     </div>}

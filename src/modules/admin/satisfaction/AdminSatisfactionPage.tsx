@@ -9,6 +9,7 @@ import { ArrowUpRight, BarChart3, CalendarRange, Clock3, MessageSquareText, Refr
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { resolveCompanyAsset } from '../../../lib/companyWorkspaceLogo';
 import { supabase } from '../../../api/supabase';
+import { filterSatisfactionResponses, summarizeClosureCohort, summarizeSatisfaction } from './satisfactionSummary';
 import './satisfaction-print.css';
 
 type SatisfactionRow = {
@@ -145,34 +146,16 @@ export function AdminSatisfactionPage(){
     if(to){end=new Date(`${to}T23:59:59.999`);}
     return{start,end};
   },[period,from,to]);
-  const periodFiltered=useMemo(()=>{
-    const{start,end}=range;
-    return rows.filter((row)=>{
-      const created=new Date(row.cohortAt || row.createdAt);
-      return (!start||created>=start)&&(!end||created<=end)&&(source==='all'||row.sourceType===source)&&(score==='all'||row.score===Number(score));
-    });
-  },[rows,range,source,score]);
-
+  const periodFiltered = useMemo(
+    () => filterSatisfactionResponses(rows, range, source, score),
+    [rows, range, source, score],
+  );
   const filtered=useMemo(()=>periodFiltered.filter((row)=>!company||company==='all'||row.companyId===company),[periodFiltered,company]);
-
-  const metrics=useMemo(()=>{
-    const total=filtered.length,average=total?filtered.reduce((sum,row)=>sum+row.score,0)/total:null;
-    const comments=filtered.filter((row)=>Boolean(row.comment?.trim())).length;
-    const attention=filtered.filter((row)=>row.score<=3).length;
-    const distribution=[1,2,3,4,5].map((value)=>({score:value,count:filtered.filter((row)=>row.score===value).length}));
-    const satisfied=filtered.filter((row)=>row.score>=4).length;
-    return{total,average,comments,attention,distribution,satisfied};
-  },[filtered]);
-
-  const cohort = useMemo(() => closures.filter((entry) => {
-    const closed = new Date(entry.closed_at);
-    return (!range.start || closed >= range.start) && (!range.end || closed <= range.end)
-      && (!company || company === 'all' || entry.account_records.company_id === company);
-  }), [closures, range, company]);
-  const waiting = cohort.filter((entry) => !entry.answered_at && !entry.superseded_at && !entry.closed_unanswered_at);
-  const answered = cohort.filter((entry) => entry.answered_at).length;
-  const closedUnanswered = cohort.length - waiting.length - answered;
-  const responseRate = cohort.length ? Math.round(answered / cohort.length * 100) : null;
+  const metrics = useMemo(() => summarizeSatisfaction(filtered), [filtered]);
+  const { cohort, waiting, answered, closedUnanswered, responseRate } = useMemo(
+    () => summarizeClosureCohort(closures, range, company),
+    [closures, range, company],
+  );
 
   // Variação por empresa: média do período contra a média do período anterior de mesmo tamanho.
   const previousAverage=useMemo(()=>{

@@ -164,6 +164,22 @@ export function nextQuestionIndex(questions: FormQuestion[], index: number, answ
   return index + 1 < questions.length ? index + 1 : -1;
 }
 
+export function buildFormSubmission(questions: FormQuestion[], positions: number[], answers: Record<string, FormAnswer>) {
+  const visited = positions.map((position) => questions[position]?.id).filter((id) => id !== undefined && id !== '');
+  const visitedIds = new Set(visited);
+  return {
+    ...Object.fromEntries(Object.entries(answers).filter(([id]) => visitedIds.has(id))),
+    __visited: visited,
+  };
+}
+
+export async function formSubmissionKey(formId: string, answers: Record<string, FormAnswer>) {
+  const canonical = JSON.stringify(answers, Object.keys(answers).sort());
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonical));
+  const fingerprint = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+  return `cali-form-submission:${formId}:${fingerprint}`;
+}
+
 export function choiceOptions(question: FormQuestion) {
   return question.kind === 'yes_no' ? ['Sim', 'Não'] : question.kind === 'single_choice' ? (question.options || []).filter((option) => option.trim()) : [];
 }

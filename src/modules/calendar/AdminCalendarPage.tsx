@@ -28,6 +28,7 @@ import {
 import { Shell } from '../../components/workspace/WorkspaceShell';
 import { AgendaChangeInbox } from './components/AgendaChangeInbox';
 import {
+  calendarDateKey as formDate,
   calendarTypeMeta,
   dateKey,
   downloadCalendarIcs,
@@ -150,13 +151,8 @@ function getCompanyMark(company?: string | null) {
   return (company || 'C').slice(0, 1).toUpperCase();
 }
 
-function formDate(value: string) {
-  return new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'America/Sao_Paulo' }).format(new Date(value));
-}
-
 function formTime(value: string | null | undefined) {
-  if (!value) return '09:00';
-  return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Sao_Paulo' }).format(new Date(value));
+  return value ? formatCalendarTime(value) : '09:00';
 }
 
 function formFromEvent(event: WorkspaceCalendarEvent): CreateEventForm {
@@ -633,11 +629,9 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
       })()
     : `${months[cursor.getMonth()]} ${cursor.getFullYear()}`;
 
+  const cursorMonth = dateKey(cursor).slice(0, 7);
   const monthAgenda = visibleEvents
-    .filter((event) => {
-      const date = new Date(event.startsAt);
-      return date.getMonth() === cursor.getMonth() && date.getFullYear() === cursor.getFullYear();
-    })
+    .filter((event) => eventDateKey(event).slice(0, 7) === cursorMonth)
     .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
 
   if (loading) return <CalendarFrame staff={staff}><div className="ap-app v2-admin-page"><div className="ap-content"><EmptyState as="p" variant="admin" className="data-loading" aria-live="polite" aria-busy="true">Carregando agenda…</EmptyState></div></div></CalendarFrame>;
@@ -749,9 +743,10 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
             </div></div>}
 
             {view === 'agenda' && <div className="calendar-agenda-view">
-              {monthAgenda.map((event) => (
-                <button key={event.id} className={`calendar-agenda-row ${event.sourceType === 'request_preview' ? 'is-preview' : ''}`} onClick={() => setSelectedEvent(event)}>
-                  <div className="calendar-agenda-date"><strong>{new Date(event.startsAt).getDate()}</strong><span>{months[new Date(event.startsAt).getMonth()].slice(0, 3).toUpperCase()}</span></div>
+              {monthAgenda.map((event) => {
+                const [, month, day] = eventDateKey(event).split('-');
+                return <button key={event.id} className={`calendar-agenda-row ${event.sourceType === 'request_preview' ? 'is-preview' : ''}`} onClick={() => setSelectedEvent(event)}>
+                  <div className="calendar-agenda-date"><strong>{Number(day)}</strong><span>{months[Number(month) - 1].slice(0, 3).toUpperCase()}</span></div>
                   <span className="calendar-event-bar" style={{ background: event.color }} />
                   <div className="calendar-agenda-copy">
                     <span>{event.sourceType === 'request_preview' ? `Prévia ${event.previewOption} · solicitação em análise` : calendarTypeMeta[event.type].label} · {formatCalendarTime(event.startsAt)}</span>
@@ -759,8 +754,8 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
                     <small>{event.company || 'CALI'}{event.sourceType === 'request_preview' ? ' · ainda não confirmado' : event.visibility === 'client' ? ' · cliente vê' : ' · interno'}{eventProtocol(event) ? ` · ${eventProtocol(event)}` : ''}</small>
                   </div>
                   <span className="calendar-agenda-mode">{event.mode === 'in_person' ? <MapPin size={15} /> : <Video size={15} />}{event.mode === 'in_person' ? 'Presencial' : event.mode === 'remote' ? 'Remoto' : 'Prazo'}</span>
-                </button>
-              ))}
+                </button>;
+              })}
               {!monthAgenda.length && <div className="calendar-empty">Nenhum evento neste mês com os filtros atuais.</div>}
             </div>}
           </section>

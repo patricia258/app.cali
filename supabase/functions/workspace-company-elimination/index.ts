@@ -91,7 +91,7 @@ Deno.serve(async (request) => {
     if (released.error) throw released.error;
     return json({ job: { jobId: lease.p_job, state: "queued" } }, 202);
   } catch {
-    await db.rpc("release_company_elimination_lease", { ...lease, p_failed: true }).catch(() => undefined);
+    await db.rpc("release_company_elimination_lease", { ...lease, p_failed: true }).then(() => undefined, () => undefined);
     return json({ job: { jobId: lease.p_job, state: "retry" } }, 202);
   }
 });

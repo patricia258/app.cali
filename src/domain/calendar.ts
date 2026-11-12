@@ -98,7 +98,27 @@ export function dateKey(date: Date) {
   return `${y}-${m}-${d}`;
 }
 
-export function eventDateKey(event: WorkspaceCalendarEvent) { return event.startsAt.slice(0, 10); }
+const calendarTimeZone = 'America/Sao_Paulo';
+const calendarDayFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: calendarTimeZone, year: 'numeric', month: '2-digit', day: '2-digit',
+});
+const calendarTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
+  timeZone: calendarTimeZone, hour: '2-digit', minute: '2-digit', hour12: false,
+});
+const calendarDateFormatter = new Intl.DateTimeFormat('pt-BR', {
+  timeZone: calendarTimeZone, day: '2-digit', month: 'short', year: 'numeric',
+});
+const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/;
+
+export function calendarDateKey(value: string) {
+  if (dateOnlyPattern.test(value)) return value;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : calendarDayFormatter.format(date);
+}
+
+export function eventDateKey(event: WorkspaceCalendarEvent) {
+  return calendarDateKey(event.startsAt);
+}
 
 export function startOfCalendarWeek(date: Date) {
   const copy = new Date(date);
@@ -125,12 +145,12 @@ export function formatCalendarTime(value: string | null | undefined) {
   if (!value) return 'Dia inteiro';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(date);
+  return calendarTimeFormatter.format(date);
 }
 
 export function formatCalendarDate(value: string) {
-  const date = new Date(value);
-  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(date).replace('.', '');
+  const date = new Date(dateOnlyPattern.test(value) ? `${value}T12:00:00Z` : value);
+  return Number.isNaN(date.getTime()) ? '' : calendarDateFormatter.format(date).replace('.', '');
 }
 
 export function googleCalendarTemplate(event: WorkspaceCalendarEvent) {
