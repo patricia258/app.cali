@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix --max-warnings=0",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "build": "vite build",
-    "check": "npm run typecheck && npm run build",
+    "check": "npm run lint && npm run typecheck && npm run build",
     "test:smoke": "npm run check && npm test",
     "preview": "vite preview",
     "test": "TSX_TSCONFIG_PATH=tsconfig.app.json node --import tsx --test 'tests/unit/**/*.test.mjs' 'tests/visual/**/*.test.cjs'",
@@ -36,15 +38,24 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@eslint/js": "9.39.4",
     "@tailwindcss/vite": "4.3.3",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "9.39.4",
+    "eslint-plugin-import": "2.32.0",
+    "eslint-plugin-jsx-a11y": "6.10.2",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "7.0.1",
+    "eslint-plugin-unused-imports": "4.4.1",
+    "globals": "16.4.0",
     "playwright-core": "1.58.2",
     "tailwindcss": "4.3.3",
     "tsx": "4.21.0",
     "typescript": "^5.6.3",
+    "typescript-eslint": "8.58.0",
     "vite": "^5.4.11"
   }
 }

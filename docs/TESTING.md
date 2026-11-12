@@ -4,7 +4,9 @@ Use Node 22 atualizado ou mais recente e instale as versões do lockfile com `np
 
 | Comando | Superfície |
 | --- | --- |
-| `npm run check` | TypeScript e build de produção. |
+| `npm run lint` | ESLint para JavaScript e TypeScript no repositório, com zero warnings. |
+| `npm run lint:fix` | Aplica as correções automáticas do ESLint e verifica o resultado. |
+| `npm run check` | Lint, TypeScript e build de produção. O CI executa esse comando. |
 | `npm test` | Regras de domínio, componentes de apresentação, APIs do frontend, handler Vercel e Edge Functions com transporte controlado. Descobre arquivos de teste em subdiretórios. |
 | `npm run test:components` | Montagem direta dos componentes do DS e de componentes compartilhados. Chrome exercita clique, teclado, foco, refs, submissão, estados e acessibilidade. |
 | `npm run test:e2e` | Navegação de todas as rotas registradas, guardas de acesso e jornadas com ações verificadas. |
@@ -12,8 +14,14 @@ Use Node 22 atualizado ou mais recente e instale as versões do lockfile com `np
 | `npm run test:visual:components` | Comparação de componentes montados pelas duas versões em temas e larguras equivalentes. |
 | `npm run test:contracts` | Catálogo de RPCs do frontend, SQL com rollback e smoke HTTP contra Auth, API, Edge, Storage e Mailpit da QA local. |
 | `node tests/contracts/browser-local.cjs` | Playwright com Vite, Auth, Mailpit e Postgres locais. OTP, termos, dados legados, isolamento entre duas empresas e logout. |
-| `npm run test:local` | Tipos, build, lógica, componentes, jornadas e contratos na mesma árvore. |
+| `npm run test:local` | Lint, tipos, build, lógica, componentes, jornadas e contratos na mesma árvore. |
 | `npm run test:coverage` | Cobertura de linhas, funções e branches que o runner Node consegue instrumentar. |
+
+## Lint
+
+O ESLint usa configuração plana com as regras recomendadas de JavaScript, TypeScript e React, além das regras de Hooks, acessibilidade JSX, imports não usados, asserções de tipo, tipos genéricos, recarga de página e chaves de listas. A configuração atribui os globals de navegador, Node e Deno conforme a superfície. Os arquivos CommonJS usam `require`. [Configuração](../eslint.config.mjs)
+
+A baseline inicial registra 683 ocorrências preexistentes em 150 arquivos por regra e arquivo. O ESLint aplica as regras a toda a árvore e falha quando uma contagem aumenta, aparece uma ocorrência em outro arquivo ou há warning. Ao corrigir código legado, rode `npm run lint -- --prune-suppressions` para retirar entradas resolvidas e execute `npm run lint` novamente. [Baseline](../eslint-suppressions.json)
 
 ## O que cada camada prova
 

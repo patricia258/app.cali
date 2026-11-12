@@ -10,6 +10,7 @@
 - Rode e registre todo o aceite local antes de publicar um Preview. O Preview usa backend e destinos de teste isolados.
 - Documente cada regra nova ou alterada no mesmo lote. Use [regras de produto](docs/PRODUCT_RULES.md), [contratos de dados](docs/DATA_CONTRACTS.md) ou [arquitetura](docs/ARCHITECTURE.md), conforme o assunto. Atualize as fichas de fluxo afetadas e vincule a prova de teste quando houver.
 - Nomeie arquivos e diretórios pela função em todo o repositório. Distinga variantes por papel, estado ou finalidade. Registre revisões no documento ou contrato correspondente. Migrations versionadas preservam seus caminhos como parte do histórico do banco.
+- Valide mudanças com `npm run lint`. Corrija ocorrências novas antes de integrar. Ao corrigir ocorrências da baseline, atualize-a com `npm run lint -- --prune-suppressions`. [Regras e comandos de lint](docs/TESTING.md#lint)
 
 ## Comunicação
 
