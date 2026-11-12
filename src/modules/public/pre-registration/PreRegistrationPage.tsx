@@ -1,6 +1,7 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type ComponentProps } from 'react';
+import { useForm } from '@tanstack/react-form';
 import { z } from 'zod';
-import { readPreRegistration, submitPreRegistration } from '../../../api/public/pre-registration';
+import { readPreRegistration, submitPreRegistration, type PreRegistrationFields } from '../../../api/public/pre-registration';
 import { useParams } from '../../../hooks/useParams';
 import './pre-registration.css';
 
@@ -9,7 +10,6 @@ type State = 'loading' | 'open' | 'submitted' | 'missing' | 'error';
 function Registration({ token }: { token: string }) {
   const [state, setState] = useState<State>('loading');
   const [retry, setRetry] = useState(0);
-  const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -25,27 +25,25 @@ function Registration({ token }: { token: string }) {
     return () => { active = false; };
   }, [token, retry]);
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (sending) return;
-    const fields = new FormData(event.currentTarget);
-    setSending(true);
-    setError('');
-    try {
-      await submitPreRegistration(token, {
-        name: String(fields.get('name') ?? ''),
-        legalName: String(fields.get('legalName') ?? ''),
-        city: String(fields.get('city') ?? ''),
-        state: String(fields.get('state') ?? ''),
-        contact: String(fields.get('contact') ?? ''),
-        email: String(fields.get('email') ?? '').trim(),
-      });
-      setState('submitted');
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Não foi possível enviar. Tente novamente.');
-    } finally {
-      setSending(false);
-    }
+  const form = useForm({
+    defaultValues: { name: '', legalName: '', city: '', state: '', contact: '', email: '' } satisfies PreRegistrationFields,
+    onSubmit: async ({ value }) => {
+      setError('');
+      try {
+        await submitPreRegistration(token, { ...value, email: value.email.trim() });
+        setState('submitted');
+      } catch (reason) {
+        setError(reason instanceof Error ? reason.message : 'Não foi possível enviar. Tente novamente.');
+      }
+    },
+  });
+
+  function field(name: keyof PreRegistrationFields, label: string, props: ComponentProps<'input'> = {}) {
+    return <form.Field name={name}>
+      {(input) => <label>{label}<input {...props} name={input.name} required
+        value={input.state.value} onBlur={input.handleBlur}
+        onChange={(event) => input.handleChange(event.target.value)} /></label>}
+    </form.Field>;
   }
 
   return <main className="company-pre-registration">
@@ -59,18 +57,20 @@ function Registration({ token }: { token: string }) {
         <p role="alert">Não foi possível conferir o link agora.</p>
         <button type="button" onClick={() => { setState('loading'); setRetry((count) => count + 1); }}>Tentar novamente</button>
       </>}
-      {state === 'open' && <form onSubmit={(event) => void submit(event)}>
+      {state === 'open' && <form onSubmit={(event) => { event.preventDefault(); void form.handleSubmit(); }}>
         <p>Preencha os dados da empresa e da pessoa de contato. A CALI completa a ficha.</p>
-        <label>Nome da empresa<input name="name" required maxLength={200} autoComplete="organization" /></label>
-        <label>Razão social<input name="legalName" required maxLength={200} /></label>
+        {field('name', 'Nome da empresa', { maxLength: 200, autoComplete: 'organization' })}
+        {field('legalName', 'Razão social', { maxLength: 200 })}
         <div className="pre-registration-locality">
-          <label>Cidade<input name="city" required maxLength={200} autoComplete="address-level2" /></label>
-          <label>UF<input name="state" required maxLength={2} pattern="[A-Za-z]{2}" autoComplete="address-level1" /></label>
+          {field('city', 'Cidade', { maxLength: 200, autoComplete: 'address-level2' })}
+          {field('state', 'UF', { maxLength: 2, pattern: '[A-Za-z]{2}', autoComplete: 'address-level1' })}
         </div>
-        <label>Pessoa de contato<input name="contact" required maxLength={200} autoComplete="name" /></label>
-        <label>E-mail de trabalho<input name="email" type="email" required maxLength={254} autoComplete="email" /></label>
+        {field('contact', 'Pessoa de contato', { maxLength: 200, autoComplete: 'name' })}
+        {field('email', 'E-mail de trabalho', { type: 'email', maxLength: 254, autoComplete: 'email' })}
         {error && <p className="pre-registration-error" role="alert">{error}</p>}
-        <button type="submit" disabled={sending}>{sending ? 'Enviando…' : 'Enviar dados'}</button>
+        <form.Subscribe selector={(state) => state.isSubmitting}>
+          {(sending) => <button type="submit" disabled={sending}>{sending ? 'Enviando…' : 'Enviar dados'}</button>}
+        </form.Subscribe>
       </form>}
     </section>
   </main>;

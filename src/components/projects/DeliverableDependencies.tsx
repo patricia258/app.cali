@@ -2,64 +2,72 @@
    A administradora registra, marca recebimento e reprograma o prazo com justificativa; a Equipe CALI registra e marca
    recebimento (por função); o cliente só lê. Nada é reprogramado sozinho: o sistema sugere e a administradora decide. */
 import { Button } from '../ds/Button';
+import { useQuery } from '@tanstack/react-query';
+import { addDays, differenceInCalendarDays, format, isWeekend } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { AlertTriangle, CalendarClock, Check, Plus } from 'lucide-react';
-import { supabase } from '../../api/supabase';
+import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
+import { isSupabaseConfigured } from '../../api/access/session';
+import {
+  addDeliverableDependency, cancelDeliverableDependency, markDeliverableDependencyReceived,
+  readDeliverableDependencies, writeDeliverableDeadlinePlan, type DeliverableDependency as Dep,
+} from '../../api/projects/dependencies';
 
-type Dep = { id: string; title: string; due_date: string; status: 'pending' | 'received' | 'cancelled'; received_at: string | null };
-type Rev = { id: string; previous_due: string | null; new_due: string; cause: string; reason: string; created_at: string };
 type Sibling = { id: string; title: string; dueAt: string | null };
 type Mode = 'admin' | 'staff' | 'client';
 
 const CAUSES: Record<string, string> = { client_dependency: 'Pendência do cliente', scope: 'Mudança de escopo', internal: 'Ajuste da CALI', other: 'Outro motivo' };
 const REMOBILIZATION: Record<string, number> = { MC1: 0, MC2: 1, MC3: 2 };
-const localDay = (date = new Date()) => { const copy = new Date(date); copy.setMinutes(copy.getMinutes() - copy.getTimezoneOffset()); return copy.toISOString().slice(0, 10); };
+const localDay = (date = new Date()) => format(date, 'yyyy-MM-dd');
 const asDay = (value: string) => value.length === 10 ? value : localDay(new Date(value));
 const show = (value?: string | null) => value ? asDay(value).split('-').reverse().join('/') : '—';
-const gap = (from: string, to: string) => Math.round((Date.parse(`${to}T12:00:00`) - Date.parse(`${from}T12:00:00`)) / 86400000);
-const plus = (value: string, days: number) => { const date = new Date(`${value}T12:00:00`); date.setDate(date.getDate() + days); while ([0, 6].includes(date.getDay())) date.setDate(date.getDate() + 1); return localDay(date); };
+const gap = (from: string, to: string) => differenceInCalendarDays(new Date(`${to}T12:00:00`), new Date(`${from}T12:00:00`));
+const plus = (value: string, days: number) => {
+  let date = addDays(new Date(`${value}T12:00:00`), days);
+  while (isWeekend(date)) date = addDays(date, 1);
+  return localDay(date);
+};
 const stamp = (value: string) => `${value}T18:00:00-03:00`;
 
 export function DeliverableDependencies({ deliverableId, companyId, title, dueAt, originalDueAt, complexity, mode, siblings = [], onNotice, onChanged }: { deliverableId: string; companyId: string; title: string; dueAt: string | null; originalDueAt?: string | null; complexity?: string | null; mode: Mode; siblings?: Sibling[]; onNotice?: (message: string) => void; onChanged?: () => void }) {
-  const [deps, setDeps] = useState<Dep[]>([]); const [revs, setRevs] = useState<Rev[]>([]); const [busy, setBusy] = useState(false);
+  const { user } = useWorkspaceAuth();
+  const [busy, setBusy] = useState(false);
   const [draft, setDraft] = useState({ title: '', due: '' });
   const [plan, setPlan] = useState<{ date: string; cause: string; reason: string; shift: string[] } | null>(null);
   const today = localDay(); const editable = mode !== 'client'; const fail = (message: string) => onNotice?.(message);
 
-  async function load() { if (!supabase) return;
-    const [depResult, revResult] = await Promise.all([
-      supabase.from('deliverable_client_dependencies').select('id,title,due_date,status,received_at').eq('deliverable_id', deliverableId).neq('status', 'cancelled').order('due_date'),
-      supabase.from('deliverable_due_revisions').select('id,previous_due,new_due,cause,reason,created_at').eq('deliverable_id', deliverableId).order('created_at', { ascending: false }),
-    ]);
-    if (!depResult.error) setDeps((depResult.data || []) as Dep[]); if (!revResult.error) setRevs((revResult.data || []) as Rev[]); }
-  useEffect(() => { setDeps([]); setRevs([]); setPlan(null); setDraft({ title: '', due: '' }); void load(); }, [deliverableId]);
+  const dependencies = useQuery({
+    queryKey: ['deliverable-dependencies', user?.id, mode, companyId, deliverableId],
+    queryFn: ({ signal }) => readDeliverableDependencies(deliverableId, signal),
+    enabled: isSupabaseConfigured,
+    retry: false,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+  });
+  const deps = dependencies.data?.items ?? [];
+  const revs = dependencies.data?.history ?? [];
+  useEffect(() => { setPlan(null); setDraft({ title: '', due: '' }); }, [deliverableId]);
 
   const late = (dep: Dep) => dep.status === 'pending' && dep.due_date < today ? gap(dep.due_date, today) : 0;
   const overdue = deps.filter((dep) => late(dep) > 0); const worst = Math.max(0, ...overdue.map(late));
   const extra = REMOBILIZATION[complexity || ''] || 0; const due = dueAt ? asDay(dueAt) : '';
 
-  async function add() { if (!supabase || busy || !draft.title.trim() || !draft.due) return; setBusy(true);
-    const failure = mode === 'staff'
-      ? (await supabase.rpc('partner_add_dependency', { p_deliverable_id: deliverableId, p_title: draft.title.trim(), p_due_date: draft.due })).error
-      : (await supabase.from('deliverable_client_dependencies').insert({ deliverable_id: deliverableId, company_id: companyId, title: draft.title.trim(), due_date: draft.due, created_by: (await supabase.auth.getUser()).data.user?.id || null })).error;
-    setBusy(false); if (failure) { fail(failure.message || 'Não foi possível registrar a dependência.'); return; } setDraft({ title: '', due: '' }); await load(); }
-  async function receive(dep: Dep) { if (!supabase || busy) return; setBusy(true);
-    const failure = mode === 'staff' ? (await supabase.rpc('partner_receive_dependency', { p_dependency_id: dep.id })).error
-      : (await supabase.from('deliverable_client_dependencies').update({ status: 'received', received_at: new Date().toISOString() }).eq('id', dep.id)).error;
-    setBusy(false); if (failure) { fail(failure.message || 'Não foi possível marcar como recebido.'); return; } await load(); }
-  async function cancel(dep: Dep) { if (!supabase || busy) return; setBusy(true); const failure = (await supabase.from('deliverable_client_dependencies').update({ status: 'cancelled' }).eq('id', dep.id)).error; setBusy(false); if (failure) { fail(failure.message); return; } await load(); }
+  async function add() { if (!isSupabaseConfigured || busy || !draft.title.trim() || !draft.due) return; setBusy(true);
+    const { error } = await addDeliverableDependency(deliverableId, companyId, draft.title.trim(), draft.due, mode === 'staff');
+    setBusy(false); if (error) { fail(error.message || 'Não foi possível registrar a dependência.'); return; } setDraft({ title: '', due: '' }); await dependencies.refetch(); }
+  async function receive(dep: Dep) { if (!isSupabaseConfigured || busy) return; setBusy(true);
+    const { error } = await markDeliverableDependencyReceived(dep.id, mode === 'staff');
+    setBusy(false); if (error) { fail(error.message || 'Não foi possível marcar como recebido.'); return; } await dependencies.refetch(); }
+  async function cancel(dep: Dep) { if (!isSupabaseConfigured || busy) return; setBusy(true); const { error } = await cancelDeliverableDependency(dep.id); setBusy(false); if (error) { fail(error.message); return; } await dependencies.refetch(); }
 
   function openPlan() { const suggested = due ? plus(due, worst + extra) : today; setPlan({ date: worst ? suggested : due || today, cause: worst ? 'client_dependency' : 'other', reason: worst ? `Pendência do cliente com ${worst} ${worst === 1 ? 'dia' : 'dias'} de atraso${extra ? ` + ${extra} ${extra === 1 ? 'dia útil' : 'dias úteis'} de remobilização (${complexity})` : ''}.` : '', shift: [] }); }
-  async function applyPlan() { if (!supabase || !plan || busy || !plan.date || !plan.reason.trim() || plan.date === due) return; setBusy(true);
-    const userId = (await supabase.auth.getUser()).data.user?.id || null; const moved = due ? gap(due, plan.date) : 0;
+  async function applyPlan() { if (!isSupabaseConfigured || !plan || busy || !plan.date || !plan.reason.trim() || plan.date === due) return; setBusy(true);
+    const moved = due ? gap(due, plan.date) : 0;
     const steps = [{ id: deliverableId, from: dueAt, to: plan.date, reason: plan.reason.trim(), keepOriginal: !originalDueAt && Boolean(dueAt) }, ...siblings.filter((item) => plan.shift.includes(item.id) && item.dueAt).map((item) => ({ id: item.id, from: item.dueAt, to: plus(asDay(item.dueAt!), moved), reason: `Reprogramado junto com “${title}”. ${plan.reason.trim()}`, keepOriginal: false }))];
-    for (const step of steps) {
-      const update = await supabase.from('deliverables').update({ due_at: stamp(step.to), ...(step.keepOriginal ? { original_due_at: step.from } : {}) }).eq('id', step.id);
-      if (update.error) { setBusy(false); fail(update.error.message || 'Não foi possível alterar o prazo.'); return; }
-      const log = await supabase.from('deliverable_due_revisions').insert({ deliverable_id: step.id, company_id: companyId, previous_due: step.from, new_due: stamp(step.to), cause: plan.cause, reason: step.reason, created_by: userId });
-      if (log.error) { setBusy(false); fail(log.error.message || 'O prazo mudou, mas o histórico não foi gravado.'); return; }
-    }
-    setBusy(false); setPlan(null); fail(`Prazo reprogramado para ${show(plan.date)}${steps.length > 1 ? ` e ${steps.length - 1} ${steps.length === 2 ? 'entrega seguinte ajustada' : 'entregas seguintes ajustadas'}` : ''}.`); await load(); onChanged?.(); }
+    const failure = await writeDeliverableDeadlinePlan(companyId, plan.cause, steps.map((step) => ({ ...step, to: stamp(step.to) })));
+    setBusy(false);
+    if (failure) { fail(failure); return; }
+    setPlan(null); fail(`Prazo reprogramado para ${show(plan.date)}${steps.length > 1 ? ` e ${steps.length - 1} ${steps.length === 2 ? 'entrega seguinte ajustada' : 'entregas seguintes ajustadas'}` : ''}.`); await dependencies.refetch(); onChanged?.(); }
 
   if (mode === 'client' && !deps.length && !revs.length) return null;
   const chip = (dep: Dep) => dep.status === 'received' ? <span className="wf-tag green">Recebido {show(dep.received_at)}</span> : late(dep) > 0 ? <span className="wf-tag red">Em atraso há {late(dep)} {late(dep) === 1 ? 'dia' : 'dias'}</span> : <span className="wf-tag amber">Pendente</span>;

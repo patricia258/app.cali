@@ -3,14 +3,13 @@ import { DialogFrame } from '../ds/DialogFrame';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, History, Pencil, ShieldAlert, Trash2, X } from 'lucide-react';
 import { useLocation } from '../../hooks/useLocation';
-import { supabase } from '../../api/supabase';
+import { hoursAvailable } from '../../api/hours/client';
+import { deleteAuditedHourEntry, editAuditedHourEntry, readAuditableHours, type AuditRow, type HourAuditEntry } from '../../api/hours/audit';
 import styles from './operational-safety.css?inline';
 
 type Role='admin'|'client';
 type ProjectAction={button:HTMLButtonElement;kind:'project'|'deliverable'}|null;
-type HourEntry={id:string;companyId:string;workDate:string;minutes:number;description:string;category:string;sourceType:string;clientVisible:boolean;createdAt:string};
-type HourAction={kind:'edit'|'delete';entry:HourEntry}|null;
-type AuditRow={id:number;event_type:string;entity_id:string;metadata:Record<string,any>;created_at:string};
+type HourAction={kind:'edit'|'delete';entry:HourAuditEntry}|null;
 type EditDraft={workDate:string;minutes:string;description:string;category:string;clientVisible:boolean};
 
 const categories=['Entregáveis','Reuniões e alinhamentos','Análise e consultoria','Documentação','Comunicação e follow-up','Treinamentos / encontros','Outros'];
@@ -24,18 +23,63 @@ function snapshot(row:AuditRow){return row.event_type==='hours_entry_deleted'?ro
 function formatMinutes(value:any){const n=Math.max(0,Number(value||0));const h=Math.floor(n/60),m=n%60;return h?`${h}h${m?` ${m}min`:''}`:`${m}min`}
 
 export function OperationalSafetyBridgeV2({role}:{role:Role}){
- const location=useLocation();const[projectAction,setProjectAction]=useState<ProjectAction>(null);const[hourEntries,setHourEntries]=useState<HourEntry[]>([]);const[hourAction,setHourAction]=useState<HourAction>(null);const[editDraft,setEditDraft]=useState<EditDraft>({workDate:'',minutes:'',description:'',category:'Outros',clientVisible:false});const[reason,setReason]=useState('');const[busy,setBusy]=useState(false);const[error,setError]=useState('');const[auditRows,setAuditRows]=useState<AuditRow[]>([]);const[auditOpen,setAuditOpen]=useState(false);
+ const location=useLocation();const[projectAction,setProjectAction]=useState<ProjectAction>(null);const[hourEntries,setHourEntries]=useState<HourAuditEntry[]>([]);const[hourAction,setHourAction]=useState<HourAction>(null);const[editDraft,setEditDraft]=useState<EditDraft>({workDate:'',minutes:'',description:'',category:'Outros',clientVisible:false});const[reason,setReason]=useState('');const[busy,setBusy]=useState(false);const[error,setError]=useState('');const[auditRows,setAuditRows]=useState<AuditRow[]>([]);const[auditOpen,setAuditOpen]=useState(false);
 
  useEffect(()=>{if(role!=='admin'||!location.pathname.startsWith('/admin/projetos'))return;const handler=(event:MouseEvent)=>{const target=event.target as HTMLElement|null;const button=target?.closest<HTMLButtonElement>('button');if(!button||!button.textContent?.includes('Enviar ao cliente'))return;const kind=button.closest('.project-hero-buttons')?'project':button.closest('.deliverable-actions-right-v2')?'deliverable':null;if(!kind)return;if(button.dataset.caliSafetyConfirmed==='1'){delete button.dataset.caliSafetyConfirmed;return;}event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();setProjectAction({button,kind});};document.addEventListener('click',handler,true);return()=>document.removeEventListener('click',handler,true);},[role,location.pathname]);
 
- const loadHours=useCallback(async()=>{if(role!=='admin'||!supabase||!location.pathname.startsWith('/admin/horas'))return;const period=document.querySelector<HTMLInputElement>('.hours-connect-period input[type="month"]')?.value||currentMonth();const{start,next}=monthBounds(period);const[result,audit]=await Promise.all([supabase.from('hour_entries').select('id,company_id,work_date,minutes,description,category,source_type,client_visible,created_at').gte('work_date',start).lt('work_date',next).order('work_date',{ascending:false}).order('created_at',{ascending:false}),supabase.rpc('get_hour_entry_audit',{p_limit:200})]);if(!result.error)setHourEntries((result.data||[]).map((r:any)=>({id:r.id,companyId:r.company_id,workDate:r.work_date,minutes:Number(r.minutes||0),description:r.description||'',category:r.category||'Outros',sourceType:r.source_type||'manual',clientVisible:Boolean(r.client_visible),createdAt:r.created_at})));if(!audit.error)setAuditRows((audit.data||[]) as AuditRow[]);},[role,location.pathname]);
+ const loadHours = useCallback(async () => {
+   if (role !== 'admin' || !hoursAvailable || !location.pathname.startsWith('/admin/horas')) return;
+   const period = document.querySelector<HTMLInputElement>('.hours-connect-period input[type="month"]')?.value || currentMonth();
+   const { start, next } = monthBounds(period);
+   const { entries, audit } = await readAuditableHours(start, next);
+   if (entries) setHourEntries(entries);
+   if (audit) setAuditRows(audit);
+ }, [role, location.pathname]);
  useEffect(()=>{if(role!=='admin'||!location.pathname.startsWith('/admin/horas')){setHourEntries([]);return;}void loadHours();const onChange=(event:Event)=>{const el=event.target as HTMLElement|null;if(el?.matches('.hours-connect-period input[type="month"],.hours-connect-filters select'))window.setTimeout(()=>void loadHours(),50)};document.addEventListener('change',onChange);return()=>document.removeEventListener('change',onChange);},[role,location.pathname,loadHours]);
 
  useEffect(()=>{if(role!=='admin'||!location.pathname.startsWith('/admin/horas'))return;const entriesById=new Map(hourEntries.map(entry=>[entry.id,entry]));const apply=()=>{const table=document.querySelector<HTMLTableElement>('.hours-connect-table');if(!table)return;const head=table.querySelector('thead tr');if(head&&!head.querySelector('.hours-audit-actions-head')){const th=document.createElement('th');th.className='hours-audit-actions-head';th.textContent='Ações';head.appendChild(th)}const rows=Array.from(table.querySelectorAll<HTMLTableRowElement>('tbody>tr[data-hour-entry-id]'));rows.forEach((row)=>{let td=row.querySelector<HTMLTableCellElement>('.hours-audit-actions');if(!td){td=document.createElement('td');td.className='hours-audit-actions';row.appendChild(td)}const entry=entriesById.get(row.dataset.hourEntryId||'');if(!entry){if(td.dataset.entryId){td.innerHTML='';delete td.dataset.entryId}return;}if(td.dataset.entryId!==entry.id){td.dataset.entryId=entry.id;td.innerHTML=`<button type="button" class="hours-audit-action" data-hour-action="edit" data-entry-id="${entry.id}" title="Editar lançamento" aria-label="Editar lançamento">${pencilSvg}</button><button type="button" class="hours-audit-action danger" data-hour-action="delete" data-entry-id="${entry.id}" title="Excluir lançamento" aria-label="Excluir lançamento">${trashSvg}</button>`;}});table.querySelectorAll<HTMLTableCellElement>('tr.hours-connect-detail td[colspan]').forEach(td=>{if(td.colSpan!==9)td.colSpan=9});const extractHead=document.querySelector<HTMLElement>('.hours-v13-extract-head');if(extractHead&&!extractHead.querySelector('[data-hours-audit-open]')){const button=document.createElement('button');button.type='button';button.className='secondary hours-audit-open';button.dataset.hoursAuditOpen='1';button.textContent='Auditoria';extractHead.appendChild(button)}};apply();const observer=new MutationObserver(()=>window.requestAnimationFrame(apply));observer.observe(document.body,{childList:true,subtree:true});const click=(event:MouseEvent)=>{const target=event.target as HTMLElement|null;if(target?.closest('[data-hours-audit-open]')){event.preventDefault();event.stopPropagation();setAuditOpen(true);return;}const button=target?.closest<HTMLButtonElement>('[data-hour-action]');if(!button)return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();const entry=entriesById.get(button.dataset.entryId||'');if(!entry)return;const kind=button.dataset.hourAction as 'edit'|'delete';setReason('');setError('');setHourAction({kind,entry});setEditDraft({workDate:entry.workDate,minutes:String(entry.minutes),description:entry.description,category:entry.category,clientVisible:entry.clientVisible});};document.addEventListener('click',click,true);return()=>{observer.disconnect();document.removeEventListener('click',click,true)};},[role,location.pathname,hourEntries]);
 
  const auditView=useMemo(()=>auditRows.map(row=>({row,snap:snapshot(row)})),[auditRows]);
  function confirmProject(){if(!projectAction)return;const button=projectAction.button;button.dataset.caliSafetyConfirmed='1';setProjectAction(null);window.setTimeout(()=>button.click(),0)}
- async function saveHourAction(){if(!hourAction||!supabase||busy)return;if(reason.trim().length<3){setError('Informe a justificativa.');return;}setBusy(true);setError('');try{if(hourAction.kind==='delete'){const result=await supabase.rpc('delete_hour_entry_with_audit',{p_entry_id:hourAction.entry.id,p_reason:reason.trim()});if(result.error)throw result.error;}else{const minutes=Math.round(Number(editDraft.minutes));if(!minutes||minutes<1){setError('Informe uma duração válida.');setBusy(false);return;}const result=await supabase.rpc('edit_hour_entry_with_audit',{p_entry_id:hourAction.entry.id,p_work_date:editDraft.workDate,p_minutes:minutes,p_description:editDraft.description.trim(),p_category:editDraft.category,p_client_visible:editDraft.clientVisible,p_reason:reason.trim()});if(result.error)throw result.error;}setHourAction(null);setReason('');await loadHours();window.setTimeout(()=>window.location.reload(),120);}catch(e){setError(e instanceof Error?e.message:'Não foi possível concluir a alteração.')}finally{setBusy(false)}}
+ async function saveHourAction() {
+   if (!hourAction || !hoursAvailable || busy) return;
+   const explanation = reason.trim();
+   if (explanation.length < 3) {
+     setError('Informe a justificativa.');
+     return;
+   }
+   setBusy(true);
+   setError('');
+   try {
+     if (hourAction.kind === 'delete') {
+       const result = await deleteAuditedHourEntry(hourAction.entry.id, explanation);
+       if (result.error) throw result.error;
+     } else {
+       const minutes = Math.round(Number(editDraft.minutes));
+       if (!minutes || minutes < 1) {
+         setError('Informe uma duração válida.');
+         return;
+       }
+       const result = await editAuditedHourEntry({
+         id: hourAction.entry.id,
+         workDate: editDraft.workDate,
+         minutes,
+         description: editDraft.description.trim(),
+         category: editDraft.category,
+         clientVisible: editDraft.clientVisible,
+       }, explanation);
+       if (result.error) throw result.error;
+     }
+     setHourAction(null);
+     setReason('');
+     await loadHours();
+     window.setTimeout(() => window.location.reload(), 120);
+   } catch (error) {
+     setError(error instanceof Error ? error.message : 'Não foi possível concluir a alteração.');
+   } finally {
+     setBusy(false);
+   }
+ }
  if(role!=='admin')return null;
  return <><style>{styles}</style>
  {projectAction&&<DialogFrame aria-label="Confirmar envio" className="operational-safety-overlay" as="div"><section className="operational-safety-card"><header className="operational-safety-head"><div><ShieldAlert size={21}/></div><div><h2>{projectAction.kind==='project'?'Enviar cronograma ao cliente?':'Enviar entregável para validação?'}</h2><p>{projectAction.kind==='project'?'Esta ação altera o projeto para “Aguardando cliente”.':'Esta ação altera o entregável de “Em andamento” para “Aguardando cliente” e registra a mudança no histórico.'}</p></div><button className="operational-safety-close" onClick={()=>setProjectAction(null)}><X size={19}/></button></header><div className="operational-safety-body"><div className="operational-safety-note"><AlertTriangle size={15}/> Este comando <strong>não dispara e-mail nem anexa arquivo automaticamente</strong>. Ele apenas muda a etapa/status dentro do Workspace. Confirme somente se é isso que você deseja fazer agora.</div></div><footer className="operational-safety-foot"><Button variant="secondary" onClick={()=>setProjectAction(null)}>Cancelar</Button><Button variant="primary" onClick={confirmProject}>Sim, enviar para validação</Button></footer></section></DialogFrame>}

@@ -1,4 +1,8 @@
-import { supabase } from '../../api/supabase';
+import { isSupabaseConfigured } from '../../api/access/session';
+import {
+  approveProjectSchedule, readAdminScheduleReview, readClientScheduleReview, resolveScheduleAdjustment,
+  requestScheduleAdjustmentV39,
+} from '../../api/projects/schedule';
 import { isWorkspaceRoute } from '../routeActivity';
 
 type ProjectRow={id:string;protocol:string|null;company_id:string;name:string;planning_status:string;start_date:string|null;roadmap_start_date:string|null;roadmap_end_date:string|null;client_response_business_days:number|null};
@@ -25,31 +29,13 @@ function dialog(title:string,kicker:string,body:string,footer:string){
   document.body.append(overlay);return overlay;
 }
 
-async function loadClientContext():Promise<Context|null>{
-  if(!supabase)return null;
-  const auth=await supabase.auth.getUser();const uid=auth.data.user?.id;if(!uid)return null;
-  const profile=await supabase.from('profiles').select('company_id').eq('id',uid).maybeSingle();const companyId=profile.data?.company_id;if(!companyId)return null;
-  const projects=await supabase.from('projects').select('id,protocol,company_id,name,planning_status,start_date,roadmap_start_date,roadmap_end_date,client_response_business_days').eq('company_id',companyId).order('created_at',{ascending:false});
-  if(projects.error||!projects.data?.length)return null;
-  const selected=currentClientProjectId();
-  const project=((selected&&projects.data.find((row:any)=>row.id===selected))||projects.data.find((row:any)=>['client_review','adjustment_requested'].includes(row.planning_status))||projects.data[0]) as ProjectRow;
-  const [fronts,deliverables,reviews]=await Promise.all([
-    supabase.from('project_workstreams').select('id,name').eq('project_id',project.id).neq('status','cancelled').order('sort_order'),
-    supabase.from('deliverables').select('id,title,complexity,due_at,status').eq('project_id',project.id).neq('status','cancelled').order('sort_order'),
-    supabase.from('project_review_requests').select('id,status,request_number,response_note,requested_changes,requested_at').eq('project_id',project.id).order('requested_at',{ascending:false}),
-  ]);
-  return{project,fronts:(fronts.data||[])as FrontRow[],deliverables:(deliverables.data||[])as DeliverableRow[],reviews:(reviews.data||[])as ReviewRow[]};
+async function loadAdminContext(): Promise<Context | null> {
+  const protocol = adminProtocol();
+  return protocol ? (await readAdminScheduleReview(protocol)) as Context | null : null;
 }
 
-async function loadAdminContext():Promise<Context|null>{
-  if(!supabase)return null;const protocol=adminProtocol();if(!protocol)return null;
-  const p=await supabase.from('projects').select('id,protocol,company_id,name,planning_status,start_date,roadmap_start_date,roadmap_end_date,client_response_business_days').eq('protocol',protocol).maybeSingle();if(p.error||!p.data)return null;const project=p.data as ProjectRow;
-  const [fronts,deliverables,reviews]=await Promise.all([
-    supabase.from('project_workstreams').select('id,name').eq('project_id',project.id).neq('status','cancelled').order('sort_order'),
-    supabase.from('deliverables').select('id,title,complexity,due_at,status').eq('project_id',project.id).neq('status','cancelled').order('sort_order'),
-    supabase.from('project_review_requests').select('id,status,request_number,response_note,requested_changes,requested_at').eq('project_id',project.id).order('requested_at',{ascending:false}),
-  ]);
-  return{project,fronts:(fronts.data||[])as FrontRow[],deliverables:(deliverables.data||[])as DeliverableRow[],reviews:(reviews.data||[])as ReviewRow[]};
+async function loadClientContext(): Promise<Context | null> {
+  return (await readClientScheduleReview(currentClientProjectId())) as Context | null;
 }
 
 function selectedDeliverable(ctx:Context,id:string){return ctx.deliverables.find((item)=>item.id===id)||null;}
@@ -135,7 +121,7 @@ function openAdjustment(ctx:Context,review:ReviewRow){
     if(type.value==='deliverable'&&action.value==='reschedule'&&!dateInput.value){alertError('Informe a nova data desejada para o entregável.');return;}
     if(type.value==='deliverable'&&action.value==='swap_order'&&!validateSwap(false)){alertError('A troca de prioridade só pode acontecer entre entregáveis da mesma complexidade (MC).');return;}
     const button=overlay.querySelector<HTMLButtonElement>('[data-submit]')!;button.disabled=true;
-    const result=await supabase!.rpc('client_request_project_schedule_adjustment_v39',{
+    const result=await requestScheduleAdjustmentV39({
       p_project_id:ctx.project.id,
       p_target_type:type.value,
       p_target_id:type.value==='project'?null:target.value||null,
@@ -153,14 +139,14 @@ function openApproval(ctx:Context){
   const start=ctx.project.start_date||ctx.project.roadmap_start_date;
   const overlay=dialog('Aprovar cronograma','APROVAÇÃO FINAL',`<div class="workflow-approval-summary-v38"><strong>${escapeHtml(ctx.project.name)}</strong><p>Ao aprovar, você confirma que concorda com este cronograma e a CALI começa a executar o projeto.</p><div><span>Início planejado</span><b>${escapeHtml(formatDate(start))}</b></div><div><span>Conclusão prevista</span><b>${escapeHtml(formatDate(ctx.project.roadmap_end_date))}</b></div></div><div class="workflow-after-v50"><strong>O que acontece depois de aprovar</strong><ul><li>As datas do cronograma continuam as mesmas.</li><li>A data da sua aprovação fica registrada.</li></ul></div>`,`<button type="button" class="secondary" data-cancel>Voltar</button><button type="button" class="primary" data-approve>Aprovar cronograma</button>`);
   overlay.querySelector('[data-cancel]')?.addEventListener('click',closeDialog);
-  overlay.querySelector('[data-approve]')?.addEventListener('click',async()=>{const button=overlay.querySelector<HTMLButtonElement>('[data-approve]')!;button.disabled=true;const result=await supabase!.rpc('client_approve_project_schedule',{p_project_id:ctx.project.id});if(result.error){button.disabled=false;alertError(result.error.message);return;}location.reload();});
+  overlay.querySelector('[data-approve]')?.addEventListener('click',async()=>{const button=overlay.querySelector<HTMLButtonElement>('[data-approve]')!;button.disabled=true;const result=await approveProjectSchedule(ctx.project.id);if(result.error){button.disabled=false;alertError(result.error.message);return;}location.reload();});
 }
 
 function openAdminResolution(ctx:Context,review:ReviewRow,accept:boolean){
   const change=review.requested_changes||{},summary=changeSummary(change);
   const overlay=dialog(accept?'Acolher pedido de ajuste':'Não aplicar pedido','ANÁLISE CALI',`<div class="workflow-request-v38"><span>Pedido ${review.request_number} de 2</span><strong>${escapeHtml(change.targetLabel||'Cronograma')}</strong>${summary.map((item)=>`<em>${escapeHtml(item)}</em>`).join('')}<p>${escapeHtml(review.response_note||'')}</p></div><label>Justificativa da decisão<textarea id="wf39-resolution" rows="5" placeholder="Explique ao cliente o que será feito e por quê."></textarea></label><p class="workflow-help-v38">Depois da decisão, o cronograma volta para validação do cliente. Se o pedido for acolhido, faça a alteração correspondente antes da aprovação final.</p>`,`<button type="button" class="secondary" data-cancel>Cancelar</button><button type="button" class="primary" data-resolve>Enviar decisão</button>`);
   overlay.querySelector('[data-cancel]')?.addEventListener('click',closeDialog);
-  overlay.querySelector('[data-resolve]')?.addEventListener('click',async()=>{const text=overlay.querySelector<HTMLTextAreaElement>('#wf39-resolution')!.value.trim();if(text.length<3){alertError('Informe a justificativa da decisão.');return;}const button=overlay.querySelector<HTMLButtonElement>('[data-resolve]')!;button.disabled=true;const result=await supabase!.rpc('admin_resolve_project_schedule_adjustment',{p_review_id:review.id,p_accept:accept,p_justification:text});if(result.error){button.disabled=false;alertError(result.error.message);return;}location.reload();});
+  overlay.querySelector('[data-resolve]')?.addEventListener('click',async()=>{const text=overlay.querySelector<HTMLTextAreaElement>('#wf39-resolution')!.value.trim();if(text.length<3){alertError('Informe a justificativa da decisão.');return;}const button=overlay.querySelector<HTMLButtonElement>('[data-resolve]')!;button.disabled=true;const result=await resolveScheduleAdjustment(review.id, accept, text);if(result.error){button.disabled=false;alertError(result.error.message);return;}location.reload();});
 }
 
 function patchClient(ctx:Context){
@@ -194,6 +180,6 @@ function patchAdmin(ctx:Context){
   }
 }
 
-async function scan(){if(busy||!supabase||!isWorkspaceRoute('/admin/projetos','/cliente/entregaveis'))return;const client=location.pathname.startsWith('/cliente/entregaveis'),admin=location.pathname.startsWith('/admin/projetos');if(!client&&!admin)return;busy=true;try{if(client){const ctx=await loadClientContext();if(ctx)patchClient(ctx);}if(admin){const ctx=await loadAdminContext();if(ctx)patchAdmin(ctx);}}finally{busy=false;}}
+async function scan(){if(busy||!isSupabaseConfigured||!isWorkspaceRoute('/admin/projetos','/cliente/entregaveis'))return;const client=location.pathname.startsWith('/cliente/entregaveis'),admin=location.pathname.startsWith('/admin/projetos');if(!client&&!admin)return;busy=true;try{if(client){const ctx=await loadClientContext();if(ctx)patchClient(ctx);}if(admin){const ctx=await loadAdminContext();if(ctx)patchAdmin(ctx);}}finally{busy=false;}}
 function schedule(){window.clearTimeout(timer);timer=window.setTimeout(()=>void scan(),180);}
 export function installProjectApprovalRulesRuntimeV39(){if(installed||typeof window==='undefined')return;installed=true;schedule();const observer=new MutationObserver(()=>schedule());observer.observe(document.body,{childList:true,subtree:true});window.addEventListener('focus',schedule);window.addEventListener('popstate',schedule);}

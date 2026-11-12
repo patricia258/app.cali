@@ -1,5 +1,5 @@
 import { backfillWorkspaceLogos, loadCompanyLogoRegistry } from '../../lib/companyWorkspaceLogo';
-import { supabase } from '../../api/supabase';
+import { observeCompanyIdentityChanges } from '../../api/workspace/identity';
 
 type CompanyRegistry = Map<string, { resolved: string; id: string }>;
 
@@ -106,7 +106,6 @@ function decorateTile(tile: HTMLElement, registry: CompanyRegistry) {
 
 export function installCompanyWorkspaceIdentityRuntimeV39(signal: AbortSignal) {
   if (signal.aborted) return;
-  const db = supabase;
   const uploadTimers = new Set<number>();
   let scanTimer = 0;
   let registryTimer = 0;
@@ -149,14 +148,12 @@ export function installCompanyWorkspaceIdentityRuntimeV39(signal: AbortSignal) {
     }
   }, { capture: true, signal });
 
-  const companyChannel = db?.channel('company-workspace-identity-v39')
-    .on('postgres_changes', { event: '*', schema: 'cali_workspace', table: 'companies' }, () => {
-      if (signal.aborted) return;
-      lastRegistryAt = 0;
-      window.clearTimeout(registryTimer);
-      registryTimer = window.setTimeout(() => void update(2), 700);
-    })
-    .subscribe();
+  const stopCompanyUpdates = observeCompanyIdentityChanges(() => {
+    if (signal.aborted) return;
+    lastRegistryAt = 0;
+    window.clearTimeout(registryTimer);
+    registryTimer = window.setTimeout(() => void update(2), 700);
+  });
   void update(3);
   const observer = new MutationObserver((mutations) => {
     if (mutations.every((mutation) => {
@@ -177,7 +174,7 @@ export function installCompanyWorkspaceIdentityRuntimeV39(signal: AbortSignal) {
     for (const timer of uploadTimers) window.clearTimeout(timer);
     uploadTimers.clear();
     registry.clear();
-    if (db && companyChannel) void db.removeChannel(companyChannel);
+    stopCompanyUpdates();
   }, { once: true });
   scan();
 }

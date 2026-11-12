@@ -27,6 +27,7 @@ declare
   fixture_delivery uuid := current_setting('qa.feedback_delivery')::uuid;
   first_closure uuid;
   second_closure uuid;
+  reopen_request uuid;
   new_review timestamptz;
   response jsonb;
 begin
@@ -38,8 +39,30 @@ begin
   then raise exception 'Retry de avaliação duplicou o encerramento.'; end if;
   perform cali_workspace.client_approve_deliverable_with_feedback(fixture_delivery,5,'Primeira avaliação.');
 
+  response := cali_workspace.request_account_record_reopen(fixture_record,'O assunto voltou a ocorrer.');
+  reopen_request := (response->>'request_id')::uuid;
+  response := cali_workspace.request_account_record_reopen(fixture_record,'O assunto voltou a ocorrer.');
+  if reopen_request is null or response->>'request_id' is distinct from reopen_request::text
+    or response->>'already_pending' is distinct from 'true' then
+    raise exception 'Retry de reabertura não reutilizou o pedido pendente.';
+  end if;
+
   perform set_config('request.jwt.claims',current_setting('qa.claims_admin'),true);
-  perform cali_workspace.set_account_record_status(fixture_record,'in_progress');
+  perform cali_workspace.decide_account_record_reopen(reopen_request,'rejected','Precisamos de mais dados.');
+  if not exists(select 1 from cali_workspace.account_records r where r.id=fixture_record and r.workflow_status='completed') then
+    raise exception 'Pedido recusado alterou a situação da ocorrência.';
+  end if;
+  perform set_config('request.jwt.claims',current_setting('qa.claims_client_a'),true);
+  response := cali_workspace.request_account_record_reopen(fixture_record,'A ocorrência voltou com os dados solicitados.');
+  if response->>'request_id' is not distinct from reopen_request::text then
+    raise exception 'Novo pedido reaproveitou a decisão recusada.';
+  end if;
+  reopen_request := (response->>'request_id')::uuid;
+  perform set_config('request.jwt.claims',current_setting('qa.claims_admin'),true);
+  perform cali_workspace.decide_account_record_reopen(reopen_request,'approved','Dados complementares conferidos.');
+  if not exists(select 1 from cali_workspace.account_records r where r.id=fixture_record and r.workflow_status='in_progress' and r.closed_at is null) then
+    raise exception 'Pedido aprovado não reabriu a ocorrência para conversa.';
+  end if;
   perform cali_workspace.set_account_record_status(fixture_record,'completed');
   select c.id into strict second_closure from cali_workspace.account_record_closures c
   where c.record_id=fixture_record and c.superseded_at is null;

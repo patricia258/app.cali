@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { loadMapaDeliveryState } from '../../../api/admin/people-map/delivery';
+import { loadMapaDeliveryState, sendMapaReport } from '../../../api/admin/people-map/delivery';
 import { Button } from '../../../components/ds/Button';
 import { DialogFrame } from '../../../components/ds/DialogFrame';
 import { FieldLabel } from '../../../components/ds/FieldLabel';
@@ -11,7 +11,8 @@ import { ArrowLeft, Building2, FileText, Mail, RefreshCw, Save, Send, UserRound,
 import { useNavigate } from '../../../hooks/useNavigate';
 import { useSearchParams } from '../../../hooks/useSearchParams';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { supabase } from '../../../api/supabase';
+import { readMapaReview, saveMapaReview } from '../../../api/admin/people-map/reviews';
+import '../../../components/workspace/document-shell.css';
 import './people-map-review.css';
 
 type DiagnosticoV2 = {
@@ -139,19 +140,26 @@ export function AdminPeopleMapReviewPage(){
   });
   const deliveryReady = delivery.isSuccess && !delivery.isFetching;
 
-  useEffect(()=>{(async()=>{
-    if(!supabase){setError('Supabase não configurado.');setLoading(false);return}
-    if(!protocolo){setError('Protocolo não informado.');setLoading(false);return}
-    const {data,error:rpcError}=await supabase.schema('public').rpc('workspace_mapa_people_record',{p_protocolo:protocolo});
-    if(rpcError){setError(rpcError.message);setLoading(false);return}
-    const raw=data as MapaRecord|MapaRecord[]|null;
-    const found=Array.isArray(raw)?raw[0]:raw;
-    if(!found){setError('Resposta não encontrada para este protocolo.');setLoading(false);return}
-    setRecord(found);
-    const saved=found.observacoes||{};
-    setDraft({d1_obs:saved.d1_obs||'',d2_obs:saved.d2_obs||'',d3_obs:saved.d3_obs||'',d4_obs:saved.d4_obs||'',parecer:saved.parecer||'',servico_recomendado:saved.servico_recomendado||'Diagnóstico Executivo de People'});
-    setLoading(false);
-  })()},[protocolo]);
+  useEffect(() => {
+    let active = true;
+    if (!protocolo) { setError('Protocolo não informado.'); setLoading(false); return; }
+    setLoading(true);
+    setError('');
+    void readMapaReview(protocolo).then((row) => {
+      if (!active) return;
+      const found = row as MapaRecord | null;
+      if (!found) { setError('Resposta não encontrada para este protocolo.'); return; }
+      setRecord(found);
+      const saved = found.observacoes || {};
+      setDraft({
+        d1_obs: saved.d1_obs || '', d2_obs: saved.d2_obs || '', d3_obs: saved.d3_obs || '', d4_obs: saved.d4_obs || '',
+        parecer: saved.parecer || '', servico_recomendado: saved.servico_recomendado || 'Diagnóstico Executivo de People',
+      });
+    }).catch((reason) => {
+      if (active) setError(reason instanceof Error ? reason.message : 'Não foi possível abrir a revisão.');
+    }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [protocolo]);
 
   useEffect(()=>{
     if(!emailOpen)return;
@@ -163,11 +171,10 @@ export function AdminPeopleMapReviewPage(){
   const qv2=record?.diagnostico_v2?.qualificacao||{};
 
   async function save(){
-    if(!record||!draft||!supabase)return false;
+    if(!record||!draft)return false;
     setSaving(true);setFeedback('Salvando revisão…');
     try{
-      const {data,error:rpcError}=await supabase.schema('public').rpc('workspace_update_mapa_people_record',{p_id:record.id,p_status:normalizeStatus(record.status),p_observacoes:draft});
-      if(rpcError||!data)throw new Error(rpcError?.message||'erro inesperado');
+      if (!await saveMapaReview(record.id, normalizeStatus(record.status), draft)) throw new Error('erro inesperado');
       setRecord((current)=>current?{...current,observacoes:draft}:current);
       setFeedback('Revisão salva ✓');
       return true;
@@ -204,7 +211,7 @@ export function AdminPeopleMapReviewPage(){
   }
 
   async function sendEmail(){
-    if (!record || !supabase || sending || !deliveryReady || !delivery.data) return;
+    if (!record || sending || !deliveryReady || !delivery.data) return;
     const { revision, hasPdf } = delivery.data;
     const recipient = record.c_email.trim().toLowerCase();
     if (!EMAIL_PATTERN.test(recipient)) { setEmailFeedback('Confira o e-mail da resposta do Mapa.'); return; }
@@ -217,9 +224,11 @@ export function AdminPeopleMapReviewPage(){
     if(!requestId)return;
     setSending(true);setEmailFeedback('Enviando relatório…');
     try{
-      const pdf_base64 = attachment ? await fileToBase64(attachment) : undefined;
-      const {data,error:fnError}=await supabase.functions.invoke('workspace-enviar-relatorio-mapa',{body:{response_id:record.id,revision,pdf_base64,request_id:requestId,recipients:[recipient],custom_message:emailMessage.trim()||null}});
-      if(fnError||!data?.ok||!data?.email_id)throw new Error(data?.error||fnError?.message||'Falha ao enviar.');
+      const pdfBase64 = attachment ? await fileToBase64(attachment) : undefined;
+      const data = await sendMapaReport({
+        responseId: record.id, revision, pdfBase64, requestId, recipient,
+        customMessage: emailMessage.trim() || null,
+      });
       completeDelivery();
       void delivery.refetch();
       const sentAt=new Date().toISOString();

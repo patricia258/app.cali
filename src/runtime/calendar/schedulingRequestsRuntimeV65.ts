@@ -1,6 +1,11 @@
 import style from './scheduling-requests-runtime-v65.css?inline';
 import polishStyle from './scheduling-requests-runtime-v65-polish.css?inline';
-import { supabase } from '../../api/supabase';
+import { isSupabaseConfigured } from '../../api/access/session';
+import { observeSchedulingRequests } from '../../api/calendar/agenda';
+import {
+  readAdminSchedulingRequests, readClientSchedulingCompany, readClientSchedulingRequests,
+  readSchedulingRequestDetails, runSchedulingCommand as rpc, signSchedulingAttachment, syncScheduledEvent,
+} from '../../api/calendar/requests';
 import { isWorkspaceRoute } from '../routeActivity';
 
 type Slot = { startsAt: string; endsAt: string };
@@ -144,7 +149,7 @@ function likelyBillable(company: Company, requests: SchedulingRequest[], month: 
 }
 
 async function renderClient() {
-  if (!supabase || window.location.pathname !== '/cliente/cronograma') return;
+  if (!isSupabaseConfigured || window.location.pathname !== '/cliente/cronograma') return;
   if (clientRenderInFlight) return;
   clientRenderInFlight = true;
   const anchor = document.querySelector<HTMLElement>('.client-google-settings'); if (!anchor) { clientRenderInFlight = false; return; }
@@ -155,15 +160,9 @@ async function renderClient() {
   host.innerHTML = '';
   let highlightedRequestId = '';
   try {
-    const { data: userData, error: userError } = await supabase.auth.getUser(); if (userError) throw userError;
-    const userId = userData.user?.id; if (!userId) throw new Error('Sessão do cliente não encontrada.');
-    const profile = await supabase.from('profiles').select('company_id').eq('id', userId).maybeSingle(); if (profile.error) throw profile.error;
-    const companyId = String(profile.data?.company_id || ''); if (!companyId) throw new Error('Empresa não vinculada ao acesso.');
-    const [companyResult, requestResult, expenseResult] = await Promise.all([
-      supabase.from('companies').select('id,display_name,logo_url,onsite_visits_included_per_month').eq('id', companyId).maybeSingle(),
-      supabase.from('scheduling_requests').select('*').eq('company_id', companyId).order('created_at', { ascending: false }).limit(20),
-      supabase.from('extra_visit_expenses').select('request_id,expense_kind,amount_cents,receipt_path,protocol,hours_quantity').eq('company_id', companyId).order('created_at', { ascending: false }).limit(100),
-    ]);
+    const companyId = await readClientSchedulingCompany();
+    if (!companyId) throw new Error('Empresa não vinculada ao acesso.');
+    const [companyResult, requestResult, expenseResult] = await readClientSchedulingRequests(companyId);
     if (companyResult.error) throw companyResult.error; if (requestResult.error) throw requestResult.error;
     const company = companyResult.data as Company; const requests = (requestResult.data || []) as SchedulingRequest[]; clientContext = { company, requests }; clientExpenses = (expenseResult.data || []) as ExtraExpense[];
     const active = requests.filter((request) => ADMIN_PENDING_STATUSES.has(request.status) || (request.extra_visit && ['confirmed','completed','not_occurred'].includes(request.status)));
@@ -229,7 +228,7 @@ function updateClientFormPolicy() {
 }
 
 async function renderAdmin() {
-  if (!supabase || window.location.pathname !== '/admin/calendario') return;
+  if (!isSupabaseConfigured || window.location.pathname !== '/admin/calendario') return;
   if (adminRenderInFlight) { adminRefreshPending = true; return; }
   adminRenderInFlight = true;
   ensureAdminFloatHost();
@@ -243,18 +242,14 @@ async function renderAdmin() {
     if (!host) { host = document.createElement('div'); host.id = 'scheduling-v65-admin-host'; anchor.insertAdjacentElement('afterend', host); }
   }
   try {
-    const [companiesResult, requestResult] = await Promise.all([
-      supabase.from('companies').select('id,display_name,logo_url,onsite_visits_included_per_month').neq('status', 'archived').order('display_name'),
-      supabase.from('scheduling_requests').select('*').order('created_at', { ascending: false }).limit(50),
-    ]);
+    const [companiesResult, requestResult] = await readAdminSchedulingRequests();
     if (companiesResult.error) throw companiesResult.error; if (requestResult.error) throw requestResult.error;
     const companies = (companiesResult.data || []) as Company[], requests = (requestResult.data || []) as SchedulingRequest[]; adminContext = { companies, requests };
     const active = requests.filter((request) => ADMIN_PENDING_STATUSES.has(request.status));
     if (active.length) {
-      const [people, files] = await Promise.all([
-        supabase.from('profiles').select('id,full_name').in('id', [...new Set(active.map(request => request.requested_by))]),
-        supabase.from('extra_visit_request_attachments').select('request_id,storage_path,file_name').in('request_id', active.map(request => request.id)),
-      ]);
+      const [people, files] = await readSchedulingRequestDetails(
+        [...new Set(active.map((request) => request.requested_by))], active.map((request) => request.id),
+      );
       adminRequesterNames = Object.fromEntries((people.data || []).map(person => [person.id, person.full_name]));
       adminAttachments = (files.data || []) as RequestAttachment[];
     }
@@ -311,15 +306,14 @@ function openOutcome(request: SchedulingRequest) {
   openModal('Registrar não ocorrência', 'HISTÓRICO DA AGENDA', `<form class="scheduling-v65-form" id="scheduling-admin-outcome-form" data-request-id="${esc(request.id)}" data-event-id="${esc(request.confirmed_event_id || '')}"><div class="scheduling-v65-grid"><label class="scheduling-v65-field"><span>Motivo</span><select name="reason" required><option value="">Selecione</option><option value="client">Cliente</option><option value="cali">CALI</option><option value="external">Fator externo</option><option value="health">Saúde</option><option value="travel_vacation">Viagem / férias</option><option value="other">Outro</option></select></label><label class="scheduling-v65-field"><span>Reposição</span><select name="justified"><option value="true">Com justificativa</option><option value="false">Sem justificativa</option></select></label><label class="scheduling-v65-field full"><span>Justificativa / registro</span><textarea name="note" required placeholder="Registre o que impediu a realização."></textarea></label><label class="scheduling-v65-ack full" data-scheduling-convert-wrap hidden><input type="checkbox" name="convertVirtual"/> <span>Converter a reposição desta visita presencial em reunião virtual.</span></label></div><div class="scheduling-v65-policy"><strong>${includedFixed ? 'Visita fixa incluída' : 'Regra de reposição'}</strong>${includedFixed ? `Com justificativa, a visita pode ser reagendada até 2 vezes. Esta solicitação já utilizou ${Number(request.reschedule_count || 0)} reagendamento(s). Sem justificativa, a visita não é reposta e não acumula para o mês seguinte.` : 'Com justificativa, o compromisso pode voltar para análise de agenda. Sem justificativa, a não ocorrência fica encerrada no histórico.'}</div><div class="scheduling-v65-error"></div><div class="scheduling-v65-modal-actions"><button type="button" class="scheduling-v65-button" data-scheduling-close>Cancelar</button><button type="submit" class="scheduling-v65-button danger">Registrar não ocorrência</button></div></form>`);
 }
 
-async function rpc(name: string, args: Record<string, unknown>) { if (!supabase) throw new Error('Supabase indisponível.'); const { data, error } = await supabase.rpc(name, args); if (error) throw error; return data as any; }
 function requestAdmin(id: string) { return adminContext?.requests.find((request) => request.id === id) || null; }
 async function refreshCurrent() { if (window.location.pathname === '/cliente/cronograma') await renderClient(); if (window.location.pathname === '/admin/calendario') await renderAdmin(); }
 
 async function handleClick(event: MouseEvent) {
   const target = event.target as HTMLElement | null; if (!target) return;
-  const receipt = target.closest<HTMLElement>('[data-extra-receipt]'); if (receipt && supabase) {
+  const receipt = target.closest<HTMLElement>('[data-extra-receipt]'); if (receipt && isSupabaseConfigured) {
     event.preventDefault(); const path = receipt.dataset.extraReceipt || '';
-    const { data, error } = await supabase.storage.from('cali-workspace-private').createSignedUrl(path, 120);
+    const { data, error } = await signSchedulingAttachment(path);
     if (error || !data?.signedUrl) toast(error?.message || 'Comprovante indisponível.', 'error');
     else window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
     return;
@@ -330,7 +324,7 @@ async function handleClick(event: MouseEvent) {
     /* Tabela do papo online (decisão de 14/10): 1 hora R$ 200; 1h30 R$ 300. O valor já vem preenchido pela duração pedida. */
     const asked=adminContext?.requests.find(row=>row.id===id);const askedMinutes=asked?Math.round((new Date(slotsOf(asked.requested_slots)[0]?.endsAt||0).getTime()-new Date(slotsOf(asked.requested_slots)[0]?.startsAt||0).getTime())/60000):0;const tablePrice=askedMinutes>60?300:200;const tableLabel=askedMinutes>60?'1h30':'1 hora';
     openModal('Orçamento da reunião online extra','CONDIÇÕES PARA O CLIENTE',`<form class="scheduling-v65-form" id="online-extra-quote-form" data-request-id="${esc(id)}"><label class="scheduling-v65-field"><span>Valor em reais (tabela: 1 hora R$ 200 · 1h30 R$ 300)</span><input name="amount" type="number" min="1" step="0.01" value="${tablePrice}" required/></label><label class="scheduling-v65-field"><span>Condições e escopo</span><textarea name="note" required minlength="5" placeholder="Explique a duração e o que está incluído.">Papo online de ${tableLabel}, conforme a tabela da CALI.</textarea></label><div class="scheduling-v65-error"></div><div class="scheduling-v65-modal-actions"><button type="button" class="scheduling-v65-button" data-scheduling-close>Voltar</button><button type="submit" class="scheduling-v65-button primary">Enviar orçamento</button></div></form>`);return;}
-  const attachment = target.closest<HTMLElement>('[data-scheduling-request-attachment]'); if (attachment && supabase) { event.preventDefault(); const { data, error } = await supabase.storage.from('cali-workspace-private').createSignedUrl(attachment.dataset.schedulingRequestAttachment || '', 120); if (error || !data?.signedUrl) toast(error?.message || 'Anexo indisponível.', 'error'); else window.open(data.signedUrl, '_blank', 'noopener,noreferrer'); return; }
+  const attachment = target.closest<HTMLElement>('[data-scheduling-request-attachment]'); if (attachment && isSupabaseConfigured) { event.preventDefault(); const { data, error } = await signSchedulingAttachment(attachment.dataset.schedulingRequestAttachment || ''); if (error || !data?.signedUrl) toast(error?.message || 'Anexo indisponível.', 'error'); else window.open(data.signedUrl, '_blank', 'noopener,noreferrer'); return; }
   const page = target.closest<HTMLElement>('[data-scheduling-drawer-page]'); if (page && adminContext) { event.preventDefault(); const active = adminContext.requests.filter(request => ADMIN_PENDING_STATUSES.has(request.status)); if (!active.length) return; adminRequestIndex = (adminRequestIndex + Number(page.dataset.schedulingDrawerPage) + active.length) % active.length; renderAdminDrawerItems(active); return; }
   if (target.closest('[data-scheduling-admin-float-toggle]')) { event.preventDefault(); toggleAdminDrawer(); return; }
   if (target.closest('[data-scheduling-admin-drawer-close]')) { event.preventDefault(); closeAdminDrawer(); return; }
@@ -346,8 +340,8 @@ async function handleClick(event: MouseEvent) {
     accept.setAttribute('disabled', 'true');
     try {
       const result = await rpc('client_accept_scheduling_proposal_v1', { p_request_id: id, p_slot_index: index, p_billing_acknowledged: ack });
-      if (result?.event_id && supabase) {
-        const sync = await supabase.functions.invoke('workspace-sync-scheduled-event', { body: { eventId: result.event_id } });
+      if (result?.event_id && isSupabaseConfigured) {
+        const sync = await syncScheduledEvent(result.event_id);
         if (sync.error || sync.data?.error) toast('Horário confirmado no Workspace. A sincronização com o Google ficará pendente para nova tentativa.', 'error');
         else toast('Horário confirmado. O compromisso entrou no Workspace e no Google Calendar.');
       }
@@ -360,7 +354,7 @@ async function handleClick(event: MouseEvent) {
     openModal('Outras opções para sua visita', 'VAMOS AJUSTAR A AGENDA', `<form class="scheduling-v65-form" id="extra-visit-client-counter" data-request-id="${esc(id)}"><p>Opa, não encaixou desta vez 🙂 Escolha duas novas opções de 4 horas. Eu avalio e te respondo.</p><div class="scheduling-v65-grid"><div class="scheduling-v65-field"><span>Opção 1</span><div class="scheduling-v65-slot-grid"><input type="date" name="date1" min="${minDate}" required/><input type="time" name="time1" min="09:00" max="12:00" required/></div></div><div class="scheduling-v65-field"><span>Opção 2</span><div class="scheduling-v65-slot-grid"><input type="date" name="date2" min="${minDate}" required/><input type="time" name="time2" min="09:00" max="12:00" required/></div></div><label class="scheduling-v65-field full"><span>Observação</span><textarea name="note" placeholder="Conte o que precisamos considerar."></textarea></label></div><div class="scheduling-v65-error"></div><div class="scheduling-v65-modal-actions"><button type="button" class="scheduling-v65-button" data-scheduling-close>Voltar</button><button type="submit" class="scheduling-v65-button primary">Enviar opções</button></div></form>`);
     return;
   } const note = window.prompt('Se quiser, diga por que os horários não funcionam ou indique uma preferência.'); if (note === null) return; try { await rpc('client_request_new_scheduling_options_v1', { p_request_id: id, p_note: note }); toast('Pedido enviado. Vamos encontrar uma data juntos.'); await renderClient(); } catch (error) { toast(errorText(error), 'error'); } return; }
-  const useSlot = target.closest<HTMLElement>('[data-scheduling-admin-use-slot]'); if (useSlot) { event.preventDefault(); const req = requestAdmin(String(useSlot.dataset.schedulingAdminUseSlot || '')); if (!req) return; if(req.online_extra_requested&&!req.online_extra_quote_accepted_at){toast('Envie o orçamento e aguarde o aceite antes de oferecer a confirmação.','error');return;}const slot = slotsOf(req.requested_slots)[Number(useSlot.dataset.slotIndex || 0)]; if (!slot) return; useSlot.setAttribute('disabled', 'true'); try { if (req.extra_visit) { const result = await rpc('admin_confirm_extra_visit_v1', { p_request_id: req.id, p_slot_index: Number(useSlot.dataset.slotIndex || 0) }); if (result?.event_id && supabase) void supabase.functions.invoke('workspace-sync-scheduled-event', { body: { eventId: result.event_id } }); toast('Visita extra confirmada e cliente notificado.'); } else { await rpc('admin_respond_scheduling_request_v1', { p_request_id: req.id, p_proposed_slots: [slot], p_note: 'Um dos horários enviados está disponível.', p_decline: false }); toast('Horário enviado ao cliente para confirmação.'); } await renderAdmin(); } catch (error) { toast(errorText(error), 'error'); useSlot.removeAttribute('disabled'); } return; }
+  const useSlot = target.closest<HTMLElement>('[data-scheduling-admin-use-slot]'); if (useSlot) { event.preventDefault(); const req = requestAdmin(String(useSlot.dataset.schedulingAdminUseSlot || '')); if (!req) return; if(req.online_extra_requested&&!req.online_extra_quote_accepted_at){toast('Envie o orçamento e aguarde o aceite antes de oferecer a confirmação.','error');return;}const slot = slotsOf(req.requested_slots)[Number(useSlot.dataset.slotIndex || 0)]; if (!slot) return; useSlot.setAttribute('disabled', 'true'); try { if (req.extra_visit) { const result = await rpc('admin_confirm_extra_visit_v1', { p_request_id: req.id, p_slot_index: Number(useSlot.dataset.slotIndex || 0) }); if (result?.event_id && isSupabaseConfigured) void syncScheduledEvent(result.event_id); toast('Visita extra confirmada e cliente notificado.'); } else { await rpc('admin_respond_scheduling_request_v1', { p_request_id: req.id, p_proposed_slots: [slot], p_note: 'Um dos horários enviados está disponível.', p_decline: false }); toast('Horário enviado ao cliente para confirmação.'); } await renderAdmin(); } catch (error) { toast(errorText(error), 'error'); useSlot.removeAttribute('disabled'); } return; }
   const counter = target.closest<HTMLElement>('[data-scheduling-admin-counter]'); if (counter) { event.preventDefault(); const req = requestAdmin(String(counter.dataset.schedulingAdminCounter || '')); if (req) openAdminCounter(req); return; }
   const decline = target.closest<HTMLElement>('[data-scheduling-admin-decline]'); if (decline) { event.preventDefault(); const req = requestAdmin(String(decline.dataset.schedulingAdminDecline || '')); if (req) openAdminDecline(req); return; }
   const occurred = target.closest<HTMLElement>('[data-scheduling-admin-occurred]'); if (occurred) { event.preventDefault(); const req = requestAdmin(String(occurred.dataset.schedulingAdminOccurred || '')); if (!req?.confirmed_event_id || !window.confirm('Confirmar que este compromisso foi realizado?')) return; try { await rpc('admin_mark_scheduling_event_outcome_v1', { p_event_id: req.confirmed_event_id, p_outcome: 'occurred', p_reason_category: null, p_justified: false, p_note: '', p_convert_to_virtual: false }); toast('Compromisso registrado como realizado.'); await renderAdmin(); } catch (error) { toast(errorText(error), 'error'); } return; }
@@ -438,8 +432,8 @@ function ensureHosts() {
 }
 function scheduleHosts() { if (!isWorkspaceRoute('/admin/calendario', '/cliente/cronograma') && !document.getElementById('scheduling-v65-admin-float')) return; window.clearTimeout(renderTimer); renderTimer = window.setTimeout(() => { const clientMissing = window.location.pathname === '/cliente/cronograma' && !document.getElementById('scheduling-v65-client-host'); const adminMissing = window.location.pathname === '/admin/calendario' && !document.getElementById('scheduling-v65-admin-host'); if (clientMissing || adminMissing) ensureHosts(); }, 180); }
 function installRealtime() {
-  if (!supabase || realtime) return;
-  realtime = supabase.channel('scheduling-requests-v65').on('postgres_changes', { event: '*', schema: 'cali_workspace', table: 'scheduling_requests' }, () => { void refreshCurrent(); }).subscribe();
+  if (!isSupabaseConfigured || realtime) return;
+  realtime = observeSchedulingRequests('scheduling-requests-v65', () => { void refreshCurrent(); });
 }
 
 export function installSchedulingRequestsRuntimeV65() {

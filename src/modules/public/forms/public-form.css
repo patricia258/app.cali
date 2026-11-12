@@ -31,7 +31,7 @@
 .cali-form-page .cf-req{@apply tw:not-italic;color:var(--cf-wine-2);@apply tw:ml-[6px]}
 .cali-form-page .cf-optional{@apply tw:inline-block tw:align-middle tw:ml-[10px];padding:3px 9px;@apply tw:rounded-[999px];background:#EFE6DF;color:var(--cf-muted);@apply tw:text-[12px];@apply tw:font-semibold;letter-spacing:0}
 .cali-form-page .cf-help{@apply tw:text-[16px];line-height:1.55;color:var(--cf-muted);margin:10px 0 0 38px;@apply tw:whitespace-pre-line}
-.cali-form-page .cf-text{@apply tw:block;width:calc(100% - 38px);margin:30px 0 0 38px;border:0;border-bottom:2px solid rgba(90,30,45,.25);background:transparent;padding:8px 0 10px;font:400 clamp(20px,3vw,26px)/1.4 Inter,system-ui,sans-serif;color:var(--cf-wine);outline:none;border-radius:0;transition:border-color .2s}
+.cali-form-page .cf-text{@apply tw:block;width:calc(100% - 38px);margin:30px 0 0 38px;border:0;border-bottom:2px solid rgba(90,30,45,.25);background:transparent;padding:8px 0 10px;font:400 clamp(20px,3vw,26px)/1.4 Inter,system-ui,sans-serif;color:var(--cf-wine);outline:none;@apply tw:rounded-none;transition:border-color .2s}
 .cali-form-page .cf-text::placeholder{color:rgba(90,30,45,.32)}
 .cali-form-page .cf-text:focus{border-bottom-color:var(--cf-wine)}
 .cali-form-page .cf-long{@apply tw:resize-none tw:min-h-[110px]}

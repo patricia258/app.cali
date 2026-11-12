@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import type { ReportEditor, ReportType } from '../../lib/reportComposition';
 import type { IntelligenceSnapshot } from '../../lib/reportIntelligence';
 import { formatHoursV14, reportKpisV14, type DeliveryPerformanceRow } from '../../lib/reportV14';
@@ -6,12 +5,12 @@ import { capacitySignalV15 } from '../../lib/reportV15';
 import { feedbackLabelV16 } from '../../lib/reportV16';
 import { periodChangeSignalsV17 } from '../../lib/reportEditorialV17';
 import { augmentReportData, reportManualComplementsFromSnapshot, reportManualMinutes } from '../../lib/reportManualComplements';
-import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
-import { supabase } from '../../api/supabase';
-import { ReportValidationBlockV55, type ReportIdentityV55 } from './ReportValidationV55';
+import type { ReportVisitCost } from '../../api/reports/paper';
+import type { ReportIdentityV55 } from '../../domain/report-identity';
+import { ReportValidationBlockV55 } from './ReportValidationV55';
 
 type Company = { name: string; logoUrl?: string | null };
-type Props = {
+export type ExecutiveReportPaperProps = {
   company: Company;
   snapshot: IntelligenceSnapshot;
   editor: ReportEditor;
@@ -24,16 +23,8 @@ type Props = {
   approvedAt?: string | null;
   acknowledgedAt?: string | null;
   acknowledgementProtocol?: string | null;
+  visitCosts?: ReportVisitCost[];
 };
-type CanonicalRecord = {
-  approvalIdentity?: ReportIdentityV55 | null;
-  acknowledgementIdentity?: ReportIdentityV55 | null;
-  approvedAt?: string | null;
-  acknowledgedAt?: string | null;
-  acknowledgementProtocol?: string | null;
-  logoUrl?: string | null;
-};
-type VisitCost = { id: string; label: string; amountCents: number; protocol: string };
 type Metric = { label: string; value: string; detail: string };
 type HourGroup = { label: string; minutes: number };
 type Attention = { tone: 'client' | 'late' | 'attention'; badge: string; title: string; detail: string; action?: string };
@@ -132,45 +123,12 @@ function attentionItems(snapshot: IntelligenceSnapshot, risks: string[]): Attent
   return [...dependencies, ...manual].slice(0, 3);
 }
 
-export function ExecutiveReportPaperV17({ company, snapshot, editor, reportType, periodName, protocol, deliveries, approvalIdentity, acknowledgementIdentity, approvedAt, acknowledgedAt, acknowledgementProtocol }: Props) {
+export function ExecutiveReportPaperV17({ company, snapshot, editor, reportType, periodName, protocol, deliveries, approvalIdentity, acknowledgementIdentity, approvedAt, acknowledgedAt, acknowledgementProtocol, visitCosts = [] }: ExecutiveReportPaperProps) {
   const manualComplements = reportManualComplementsFromSnapshot(snapshot);
   const manualMinutes = reportManualMinutes(manualComplements);
   const augmented = augmentReportData(snapshot, deliveries, manualComplements);
   snapshot = augmented.snapshot; deliveries = augmented.deliveries;
-  const [canonical, setCanonical] = useState<CanonicalRecord | null>(null);
-  const [visitCosts, setVisitCosts] = useState<VisitCost[]>([]);
-  useEffect(() => {
-    if (!supabase || !protocol || protocol === '—') return;
-    let cancelled = false; setVisitCosts([]);
-    async function hydrateCanonical() {
-      if (!supabase) return;
-      const reportResult = await supabase.from('reports').select('company_id,period_start,period_end,approval_identity_snapshot,acknowledgement_identity_snapshot,approved_at,acknowledged_at,acknowledgement_protocol').eq('protocol', protocol).maybeSingle();
-      if (cancelled || reportResult.error || !reportResult.data) return;
-      const row = reportResult.data as any; let logoUrl = '';
-      const companyResult = await supabase.from('companies').select('logo_url').eq('id', row.company_id).maybeSingle();
-      if (!cancelled && !companyResult.error && companyResult.data?.logo_url) logoUrl = await resolveWorkspaceMedia(companyResult.data.logo_url, 86400, true);
-      if (!cancelled) setCanonical({ approvalIdentity: row.approval_identity_snapshot || null, acknowledgementIdentity: row.acknowledgement_identity_snapshot || null, approvedAt: row.approved_at || null, acknowledgedAt: row.acknowledged_at || null, acknowledgementProtocol: row.acknowledgement_protocol || null, logoUrl: logoUrl || null });
-      const visitsResult = await supabase.from('scheduling_requests').select('id,title,status,extra_visit_fee_cents,extra_visit_cancellation_fee_cents').eq('company_id',row.company_id).eq('extra_visit',true).gte('extra_visit_billing_period',row.period_start).lte('extra_visit_billing_period',row.period_end);
-      if (cancelled || visitsResult.error) return;
-      const visits = visitsResult.data || [];
-      const costs: VisitCost[] = visits.filter(visit => visit.status === 'completed').map(visit => ({ id:`visit-${visit.id}`, label:`${visit.title} · visita de até 4h`, amountCents:Number(visit.extra_visit_fee_cents || 80000), protocol:visit.id.slice(0,8).toUpperCase() }));
-      for (const visit of visits) {
-        if (Number(visit.extra_visit_cancellation_fee_cents || 0) > 0) costs.push({ id:`visit-change-${visit.id}`, label:`${visit.title} · alteração avaliada pela CALI`, amountCents:Number(visit.extra_visit_cancellation_fee_cents), protocol:visit.id.slice(0,8).toUpperCase() });
-      }
-      if (visits.length) {
-        let query = supabase.from('extra_visit_expenses').select('id,request_id,expense_kind,amount_cents,protocol,created_at,hours_quantity').in('request_id',visits.map(visit => visit.id));
-        if (row.approved_at) query = query.lte('created_at',row.approved_at);
-        const expenses = await query;
-        if (!cancelled && !expenses.error) for (const expense of expenses.data || []) costs.push({ id:expense.id, label:({transport:'Deslocamento',parking:'Estacionamento',food:'Alimentação',extra_hours:'Horas adicionais'} as Record<string,string>)[expense.expense_kind] + (expense.hours_quantity ? ` · ${expense.hours_quantity}h` : ''), amountCents:expense.amount_cents, protocol:expense.protocol || '—' });
-      }
-      if (!cancelled) setVisitCosts(costs);
-    }
-    void hydrateCanonical(); const timer = window.setInterval(() => void hydrateCanonical(), 5000); return () => { cancelled = true; window.clearInterval(timer); };
-  }, [protocol]);
-
-  const approval = canonical ? canonical.approvalIdentity || null : approvalIdentity, acknowledgement = canonical ? canonical.acknowledgementIdentity || null : acknowledgementIdentity;
-  const approved = canonical ? canonical.approvedAt || null : approvedAt, acknowledged = canonical ? canonical.acknowledgedAt || null : acknowledgedAt, acknowledgementCode = canonical ? canonical.acknowledgementProtocol || null : acknowledgementProtocol;
-  const clientLogo = canonical?.logoUrl || company.logoUrl || null;
+  const clientLogo = company.logoUrl || null;
   const kpis = reportKpisV14(snapshot, deliveries), usedMinutes = Math.max(0, Number(kpis.consumedMinutes || 0)), contractedMinutes = Math.max(0, Number(kpis.contractedHours || 0) * 60), usagePercent = contractedMinutes ? Math.round((usedMinutes / contractedMinutes) * 1000) / 10 : null;
   const hours = groupHours(snapshot), usedWidth = contractedMinutes ? Math.min(100, (usedMinutes / contractedMinutes) * 100) : 0, capacitySignal = capacitySignalV15(snapshot), firstCapacityNotice = capacitySignal.state === 'first_over' ? capacitySignal.message : '', upgrade = upgradeRecommendation(snapshot, contractedMinutes, usedMinutes);
   const deliveryRows = relevantDeliveries(snapshot, deliveries), changes = periodChangeSignalsV17(snapshot, reportType).filter((item) => normalized(item.value) !== 'novo dado');
@@ -182,7 +140,7 @@ export function ExecutiveReportPaperV17({ company, snapshot, editor, reportType,
   if (kpis.plannedDeliveries > 0) metrics.push({ label: 'Entregas previstas', value: `${kpis.completedDeliveries}/${kpis.plannedDeliveries}`, detail: 'concluídas entre as previstas' });
   if (kpis.deliveryAdherence !== null) metrics.push({ label: 'Aderência ao prazo', value: `${kpis.deliveryAdherence}%`, detail: 'das conclusões avaliadas' });
   if (snapshot.feedback.count >= 2 && feedbackLabel) metrics.push({ label: 'Percepção do cliente', value: feedbackLabel, detail: `${snapshot.feedback.count} avaliações no período` });
-  const hasValidation = Boolean(approval || acknowledgement), hasDirection = Boolean(attentions.length || decisions.length || nextSteps.length || feedback.length);
+  const hasValidation = Boolean(approvalIdentity || acknowledgementIdentity), hasDirection = Boolean(attentions.length || decisions.length || nextSteps.length || feedback.length);
   const totalPages = 1 + executionPages.length + (hasDirection ? 1 : 0) + (visitCosts.length ? 1 : 0) + (hasValidation ? 1 : 0);
   const directionPage = 2 + executionPages.length;
   const visitPage = 2 + executionPages.length + (hasDirection ? 1 : 0);
@@ -220,6 +178,6 @@ export function ExecutiveReportPaperV17({ company, snapshot, editor, reportType,
     </article> : null}
 
     {visitCosts.length ? <article className="reports-v16-paper reports-v19-paper reports-v19-visit-costs">{header('VISITAS EXTRAS')}<div className="reports-v16-page-two-title reports-v19-page-title"><span>REGISTROS DO PERÍODO</span><h1>Visitas e despesas vinculadas.</h1></div><table className="reports-v19-table"><thead><tr><th>Registro</th><th>Protocolo</th><th>Valor</th></tr></thead><tbody>{visitCosts.map(cost => <tr key={cost.id}><td><strong>{cost.label}</strong></td><td>{cost.protocol}</td><td>{(cost.amountCents/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td></tr>)}</tbody></table><p className="reports-v19-note">Valores registrados para conciliação. Comprovantes ficam no histórico da visita no Workspace; este relatório não emite fatura.</p><footer className="reports-v16-footer"><span>CALI Workspace · Patrícia Lima</span><span>{protocol}</span><b>{visitPage} / {totalPages}</b></footer></article> : null}
-    {hasValidation ? <article className="reports-v16-paper reports-v19-paper reports-v16-paper-signature">{header('REGISTRO DO DOCUMENTO')}<ReportValidationBlockV55 approvalIdentity={approval} acknowledgementIdentity={acknowledgement} approvedAt={approved} acknowledgedAt={acknowledged} acknowledgementProtocol={acknowledgementCode} /><footer className="reports-v16-footer"><span>CALI Workspace · Patrícia Lima</span><span>{protocol}</span><b>{validationPage} / {totalPages}</b></footer></article> : null}
+    {hasValidation ? <article className="reports-v16-paper reports-v19-paper reports-v16-paper-signature">{header('REGISTRO DO DOCUMENTO')}<ReportValidationBlockV55 approvalIdentity={approvalIdentity} acknowledgementIdentity={acknowledgementIdentity} approvedAt={approvedAt} acknowledgedAt={acknowledgedAt} acknowledgementProtocol={acknowledgementProtocol} /><footer className="reports-v16-footer"><span>CALI Workspace · Patrícia Lima</span><span>{protocol}</span><b>{validationPage} / {totalPages}</b></footer></article> : null}
   </div>;
 }

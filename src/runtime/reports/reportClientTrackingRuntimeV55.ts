@@ -1,13 +1,6 @@
-import { supabase } from '../../api/supabase';
+import { readClientReportHistory, readOfficialTrackedReport, type TrackedReport } from '../../api/reports/tracking';
 import { isWorkspaceRoute } from '../routeActivity';
 
-type Track={
-  id:string;company_id:string;report_type?:string|null;period_start?:string|null;version?:number|null;
-  status:string;sent_at?:string|null;client_open_count?:number|null;client_first_opened_at?:string|null;
-  client_last_opened_at?:string|null;client_pdf_count?:number|null;acknowledged_at?:string|null;
-  acknowledgement_protocol?:string|null;
-};
-const eventLabel:Record<string,string>={opened:'Relatório aberto',pdf_opened:'PDF aberto / baixado',acknowledged:'Ciência registrada',drive_saved:'Salvo no Drive'};
 let observer:MutationObserver|null=null,timer=0,lastProtocol='';
 
 function fmt(value?:string|null){
@@ -45,32 +38,14 @@ function openSentVersion(id:string){
   window.open(`/admin/relatorios/impressao/${encodeURIComponent(id)}`,'_blank','noopener,noreferrer');
 }
 
-async function findOfficial(report:Track){
-  if(!supabase)return null;
-  if(['sent','published'].includes(report.status)||report.sent_at)return report;
-  if(!report.company_id||!report.period_start)return null;
-  const query=await supabase.from('reports')
-    .select('id,company_id,report_type,period_start,version,status,sent_at,client_open_count,client_first_opened_at,client_last_opened_at,client_pdf_count,acknowledged_at,acknowledgement_protocol')
-    .eq('company_id',report.company_id)
-    .eq('report_type',report.report_type||'monthly')
-    .eq('period_start',String(report.period_start).slice(0,10))
-    .in('status',['sent','published'])
-    .order('version',{ascending:false}).limit(1).maybeSingle();
-  return query.error||!query.data?null:query.data as Track;
-}
-
 async function render(){
-  if(window.location.pathname!=='/admin/relatorios'||!supabase){remove();lastProtocol='';return;}
+  if(window.location.pathname!=='/admin/relatorios'){remove();lastProtocol='';return;}
   document.querySelector('.report-client-track-v55')?.remove();
   const nextProtocol=protocol();
   if(!nextProtocol){document.querySelector('.report-client-history-trigger-v57')?.remove();document.querySelector('.report-client-sent-version-v63')?.remove();return;}
   lastProtocol=nextProtocol;
-  const result=await supabase.from('reports')
-    .select('id,company_id,report_type,period_start,version,status,sent_at,client_open_count,client_first_opened_at,client_last_opened_at,client_pdf_count,acknowledged_at,acknowledgement_protocol')
-    .eq('protocol',nextProtocol).maybeSingle();
-  if(result.error||!result.data||lastProtocol!==nextProtocol)return;
-  const current=result.data as Track;
-  const report=await findOfficial(current);
+  const report = await readOfficialTrackedReport(nextProtocol);
+  if (lastProtocol !== nextProtocol || window.location.pathname !== '/admin/relatorios') return;
   const toolbar=document.querySelector('.reports-v16-toolbar');
   if(!toolbar)return;
   const actionHost=toolbar.querySelector<HTMLElement>(':scope > div:last-child')||toolbar as HTMLElement;
@@ -95,43 +70,10 @@ async function render(){
   historyButton.onclick=()=>void openHistory(report);
 }
 
-async function openHistory(current:Track){
-  if(!supabase)return;
-  const[companyResult,reportsResult]=await Promise.all([
-    supabase.from('companies').select('display_name').eq('id',current.company_id).maybeSingle(),
-    supabase.from('reports')
-      .select('id,report_type,period_start,version,status,sent_at,client_open_count,client_first_opened_at,client_last_opened_at,client_pdf_count,acknowledged_at,acknowledgement_protocol')
-      .eq('company_id',current.company_id).in('status',['sent','published'])
-      .order('period_start',{ascending:false}).order('version',{ascending:false})
-  ]);
-  if(reportsResult.error)return;
-
-  const all=(reportsResult.data||[]) as Track[];
-  const consolidated:Track[]=[];
-  const seen=new Set<string>();
-  for(const item of all){
-    const key=`${item.report_type||'monthly'}:${String(item.period_start||'').slice(0,7)}`;
-    if(seen.has(key))continue;
-    seen.add(key);consolidated.push(item);
-  }
-
-  const reportIds=consolidated.map((item)=>item.id);
-  const eventsResult=reportIds.length
-    ?await supabase.from('report_client_events').select('report_id,event_type,created_at,user_id,metadata').in('report_id',reportIds).order('created_at',{ascending:false})
-    :{data:[],error:null} as any;
-  if(eventsResult.error)return;
-  const events=(eventsResult.data||[]) as any[];
-  const ids=Array.from(new Set(events.map((item)=>item.user_id).filter(Boolean)));
-  const names=new Map<string,string>();
-  if(ids.length){
-    const profiles=await supabase.from('profiles').select('id,full_name').in('id',ids);
-    for(const item of profiles.data||[])names.set(String((item as any).id),String((item as any).full_name||'Cliente'));
-  }
-  const eventsByReport=new Map<string,any[]>();
-  for(const event of events){
-    const id=String(event.report_id);
-    eventsByReport.set(id,[...(eventsByReport.get(id)||[]),event]);
-  }
+async function openHistory(current: TrackedReport) {
+  const history = await readClientReportHistory(current.company_id);
+  if (!history || window.location.pathname !== '/admin/relatorios') return;
+  const { companyName, consolidated, eventsByReport } = history;
 
   document.querySelector('.report-client-history-backdrop-v55')?.remove();
   const backdrop=document.createElement('div');
@@ -139,7 +81,6 @@ async function openHistory(current:Track){
   const modal=document.createElement('section');
   modal.className='modal-card report-client-history-modal-v55 report-client-history-modal-v57';
   modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');
-  const companyName=String((companyResult.data as any)?.display_name||'Cliente');
   modal.innerHTML=`<button class="modal-close" type="button" aria-label="Fechar">×</button>
     <span class="section-kicker">RASTREABILIDADE</span>
     <h2>Histórico do cliente</h2>
@@ -169,7 +110,7 @@ async function openHistory(current:Track){
                 ${item.acknowledgement_protocol?`<div class="wide"><span>Protocolo da ciência</span><strong>${esc(item.acknowledgement_protocol)}</strong></div>`:''}
               </div>
               <div class="report-history-events-v57">
-                ${itemEvents.length?itemEvents.map((event)=>`<div><span>${esc(fmt(event.created_at))}</span><strong>${esc(eventLabel[event.event_type]||event.event_type)}</strong><b>${esc(names.get(String(event.user_id))||'Cliente')}</b></div>`).join(''):'<span>Nenhum evento adicional registrado.</span>'}
+                ${itemEvents.length?itemEvents.map((event)=>`<div><span>${esc(fmt(event.date))}</span><strong>${esc(event.label)}</strong><b>${esc(event.actor)}</b></div>`).join(''):'<span>Nenhum evento adicional registrado.</span>'}
               </div>
             </td>
           </tr>`;

@@ -2,48 +2,41 @@ import { DialogFrame } from '../../../components/ds/DialogFrame';
 import { useEffect, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { CalendarClock, X } from 'lucide-react';
-import { supabase } from '../../../api/supabase';
+import { decideAgendaChange, observeAdminAgendaChanges, readAdminAgendaChanges, type AgendaChangeRequest as Request } from '../../../api/calendar/changes';
 import './agenda-change-inbox.css';
 
-type Slot = {startsAt:string;endsAt:string};
-type Request = {id:string;event_id:string;company_id:string;action:string;reason:string;slots:Slot[];status:string;original_starts_at:string;created_at:string;decision_note?:string|null};
 const date=(value:string)=>new Intl.DateTimeFormat('pt-BR',{dateStyle:'long',timeStyle:'short',timeZone:'America/Sao_Paulo'}).format(new Date(value));
 
 export function AgendaChangeInbox({onDecision}:{onDecision:()=>void}) {
   const [rows,setRows]=useState<Request[]>([]),[titles,setTitles]=useState<Record<string,string>>({}),[companyNames,setCompanies]=useState<Record<string,string>>({});
   const [active,setActive]=useState<Request|null>(null),[index,setIndex]=useState(0),[note,setNote]=useState(''),[approve,setApprove]=useState(true),[slot,setSlot]=useState(0),[busy,setBusy]=useState(false),[error,setError]=useState('');
-  async function load(){if(!supabase)return;const {data}=await supabase.from('agenda_change_requests').select('id,event_id,company_id,action,reason,slots,status,original_starts_at,created_at,decision_note').order('created_at',{ascending:false}).limit(100);const result=(data||[]) as Request[];setRows(result);const ids=[...new Set(result.map(row=>row.event_id))], cids=[...new Set(result.map(row=>row.company_id))];if(ids.length){const {data:events}=await supabase.from('events').select('id,title').in('id',ids);setTitles(Object.fromEntries((events||[]).map(row=>[row.id,row.title])));}if(cids.length){const {data:companies}=await supabase.from('companies').select('id,display_name').in('id',cids);setCompanies(Object.fromEntries((companies||[]).map(row=>[row.id,row.display_name])));}}
-  useEffect(()=>{void load();if(!supabase)return;const channel=supabase.channel('agenda-change-admin').on('postgres_changes',{event:'*',schema:'cali_workspace',table:'agenda_change_requests'},()=>void load()).subscribe();return()=>{void supabase?.removeChannel(channel)}},[]);
+  async function load() {
+    const next = await readAdminAgendaChanges();
+    setRows(next.requests);
+    setTitles(next.titles);
+    setCompanies(next.companies);
+  }
+  useEffect(() => {
+    void load();
+    return observeAdminAgendaChanges(() => void load());
+  }, []);
   const [syncWarning,setSyncWarning] = useState('');
 
   async function decide(event: FormEvent) {
     event.preventDefault();
-    if (!supabase || !active || busy) return;
+    if (!active || busy) return;
     setBusy(true);
     setError('');
     try {
-      const { data, error: decisionError } = await supabase.rpc('admin_decide_agenda_change_v1', {
-        p_change_id: active.id, p_approve: approve, p_note: note.trim(), p_slot_index: slot,
-      });
-      if (decisionError) {
-        setError(decisionError.message);
+      const result = await decideAgendaChange(active.id, approve, note, slot);
+      if (result.error) {
+        setError(result.error.message);
         return;
       }
 
-      setSyncWarning('');
-      if (approve && data?.event_id) {
-        let sync = await supabase.functions.invoke('google-calendar-oauth', {
-          body: { action: data.action === 'cancel' ? 'cancel_event' : 'sync_event', eventId: data.event_id },
-        });
-        if (sync.data?.status === 'deferred_to_scheduling_sync') {
-          sync = await supabase.functions.invoke('workspace-sync-scheduled-event', { body: { eventId: data.event_id } });
-        }
-        if (sync.error) {
-          setSyncWarning('Decisão salva no Workspace. A sincronização com o Google ficou pendente.');
-        } else if (['no_google_connection', 'admin_google_not_connected'].includes(sync.data?.status)) {
-          setSyncWarning('Decisão salva no Workspace. Conecte a agenda do Google para sincronizar.');
-        }
-      }
+      setSyncWarning(result.sync === 'pending'
+        ? 'Decisão salva no Workspace. A sincronização com o Google ficou pendente.'
+        : result.sync === 'disconnected' ? 'Decisão salva no Workspace. Conecte a agenda do Google para sincronizar.' : '');
       setActive(null);
       setNote('');
       await load();

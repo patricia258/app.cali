@@ -7,7 +7,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from '../../components/navigation/Link';
 import { useParams } from '../../hooks/useParams';
 import { ArrowLeft, Download, Printer, Send } from 'lucide-react';
-import { supabase } from '../../api/supabase';
+import { changeManagementDiscState, readManagementDiscReport, saveManagementDiscContext, sendManagementDiscPdf } from '../../api/disc/reports';
 import { GestaoReport, MOMENTS, SECTORS, type GestaoData } from './components/GestaoReport';
 import { downloadBlob, fileSlug, pagesToPdf } from './profilePdf';
 import './profile-pages.css';
@@ -29,8 +29,7 @@ export function GestaoPage({ role }: { role: 'admin' | 'client' }) {
   const back = admin ? '/admin/perfil-comportamental' : '/cliente/equipe';
 
   async function load() {
-    if (!supabase) return;
-    const { data: payload } = await supabase.rpc('profile_gestao', { p_link: linkId });
+    const payload = await readManagementDiscReport(linkId);
     if (!payload) { setMissing(true); return; }
     const value = payload as GestaoData;
     setData(value);
@@ -45,19 +44,18 @@ export function GestaoPage({ role }: { role: 'admin' | 'client' }) {
   }, []);
 
   async function saveFields() {
-    if (!supabase || !data) return;
+    if (!data) return;
     setBusy('save');
-    const { error } = await supabase.from('profile_links').update({ gestao_moment: fields.moment || null, gestao_sector: fields.sector || null, gestao_goal: fields.goal.trim() || null, gestao_note: fields.note.trim() || null }).eq('id', data.link_id);
+    const { error } = await saveManagementDiscContext(data.link_id, fields);
     setBusy('');
     if (error) { setNote(`Não foi possível salvar: ${error.message}`); return; }
     setNote(data.approved_at ? 'Salvo. Como o conteúdo mudou, o relatório voltou para rascunho: aprove de novo.' : 'Salvo.');
     await load();
   }
 
-  async function rpc(name: string, args: Record<string, unknown>, message: string) {
-    if (!supabase) return false;
-    setBusy(name);
-    const { error } = await supabase.rpc(name, args);
+  async function changeState(action: 'approve' | 'release', id: string, value: boolean, message: string) {
+    setBusy(action);
+    const { error } = await changeManagementDiscState(id, action, value);
     setBusy('');
     if (error) { setNote(error.message); return false; }
     setNote(message);
@@ -78,16 +76,13 @@ export function GestaoPage({ role }: { role: 'admin' | 'client' }) {
   }
 
   async function sendToManager() {
-    if (!supabase || !data || !captureRef.current) return;
+    if (!data || !captureRef.current) return;
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(recipient.email.trim())) { setNote('Confira o e-mail do gestor.'); return; }
     setBusy('send');
     try {
       const blob = await makePdf();
       const path = `gestao/${data.link_id}/${data.protocol || 'relatorio'}-${Date.now()}.pdf`;
-      const upload = await supabase.storage.from('cali-profiles').upload(path, blob, { contentType: 'application/pdf', upsert: false });
-      if (upload.error) throw upload.error;
-      const { error } = await supabase.rpc('profile_gestao_send', { p_link: data.link_id, p_name: recipient.name.trim(), p_email: recipient.email.trim(), p_path: path });
-      if (error) throw error;
+      await sendManagementDiscPdf(data.link_id, recipient, path, blob);
       setNote(`PDF enviado para ${recipient.email.trim()}.`);
       setRecipient({ name: '', email: '' });
       await load();
@@ -118,14 +113,14 @@ export function GestaoPage({ role }: { role: 'admin' | 'client' }) {
 
       <div className="cgp-step"><b>2. Aprovação</b>{approved ? <span>Aprovado e assinado em {when(data.approved_at!)} · protocolo {data.protocol}</span> : missingItems.length ? <span>Falta: {missingItems.join(', ')}.</span> : <span>Pronto para aprovar.</span>}</div>
       <div className="cgp-actions">{approved
-        ? <button type="button" className="cps-secondary" disabled={Boolean(busy)} onClick={() => void rpc('profile_gestao_approve', { p_link: data.link_id, p_approve: false }, 'Aprovação desfeita: o relatório voltou para rascunho.')}>Reabrir para edição</button>
-        : <button type="button" className="cps-primary" disabled={Boolean(missingItems.length) || changed || Boolean(busy)} title={changed ? 'Salve antes de aprovar' : ''} onClick={() => void rpc('profile_gestao_approve', { p_link: data.link_id, p_approve: true }, 'Aprovado e assinado.')}>Aprovar e assinar</button>}</div>
+        ? <button type="button" className="cps-secondary" disabled={Boolean(busy)} onClick={() => void changeState('approve', data.link_id, false, 'Aprovação desfeita: o relatório voltou para rascunho.')}>Reabrir para edição</button>
+        : <button type="button" className="cps-primary" disabled={Boolean(missingItems.length) || changed || Boolean(busy)} title={changed ? 'Salve antes de aprovar' : ''} onClick={() => void changeState('approve', data.link_id, true, 'Aprovado e assinado.')}>Aprovar e assinar</button>}</div>
 
       {approved && <>
         <div className="cgp-step"><b>3. Entrega</b><span>{data.has_account ? 'A empresa tem conta no aplicativo: libere lá (as pessoas da empresa são avisadas por e-mail) e, se quiser, envie também o PDF.' : 'A empresa não tem conta no aplicativo: envie o PDF por e-mail ao gestor.'}</span></div>
         {data.company_id && data.has_account && <div className="cgp-actions cgp-left">{data.released_at
-          ? <button type="button" className="cps-secondary" disabled={Boolean(busy)} onClick={() => void rpc('profile_gestao_release', { p_link: data.link_id, p_release: false }, 'Relatório retirado do aplicativo do cliente.')}>Liberado no aplicativo em {when(data.released_at)} · retirar</button>
-          : <button type="button" className="cps-primary" disabled={Boolean(busy)} onClick={() => void rpc('profile_gestao_release', { p_link: data.link_id, p_release: true }, 'Liberado no aplicativo; as pessoas da empresa foram avisadas por e-mail.')}>Liberar no aplicativo</button>}</div>}
+          ? <button type="button" className="cps-secondary" disabled={Boolean(busy)} onClick={() => void changeState('release', data.link_id, false, 'Relatório retirado do aplicativo do cliente.')}>Liberado no aplicativo em {when(data.released_at)} · retirar</button>
+          : <button type="button" className="cps-primary" disabled={Boolean(busy)} onClick={() => void changeState('release', data.link_id, true, 'Liberado no aplicativo; as pessoas da empresa foram avisadas por e-mail.')}>Liberar no aplicativo</button>}</div>}
         <label>Nome do gestor<input value={recipient.name} maxLength={120} placeholder="Ex.: Ana Ribeiro" onChange={(event) => setRecipient({ ...recipient, name: event.target.value })} /></label>
         <label className="wide">E-mail do gestor<input type="email" value={recipient.email} placeholder="ana@empresa.com" onChange={(event) => setRecipient({ ...recipient, email: event.target.value })} /></label>
         <div className="cgp-actions"><button type="button" className="cps-primary" disabled={busy === 'send' || !recipient.email.trim()} onClick={() => void sendToManager()}><Send size={15} /> {busy === 'send' ? 'Gerando e enviando…' : 'Enviar PDF ao gestor'}</button></div>

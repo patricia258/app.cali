@@ -5,41 +5,21 @@ import { FilterSelect } from '../../../components/ds/FilterSelect';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { LoadingState } from '../../../components/ds/LoadingState';
 import { useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { endOfMonth, startOfMonth, subDays, subMonths } from 'date-fns';
 import { ArrowUpRight, BarChart3, CalendarRange, Clock3, MessageSquareText, RefreshCw, Star, UserRound } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { resolveCompanyAsset } from '../../../lib/companyWorkspaceLogo';
-import { supabase } from '../../../api/supabase';
+import {
+  closeFeedbackRequest, deleteSatisfactionFollowup, readSatisfactionClosures, readSatisfactionReviews,
+  satisfactionClosuresKey, satisfactionRatingsKey, saveSatisfactionFollowup, type SatisfactionClosure,
+  type SatisfactionReview,
+} from '../../../api/admin/satisfaction/reviews';
+import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 import { filterSatisfactionResponses, summarizeClosureCohort, summarizeSatisfaction } from './satisfactionSummary';
 import './satisfaction-print.css';
 
-type SatisfactionRow = {
-  id:string;
-  companyId:string;
-  company:string;
-  companyLogoWorkspace?:string|null;
-  companyLogoOriginal?:string|null;
-  companyLogoResolved?:string;
-  responderName?:string|null;
-  responderAvatar?:string|null;
-  responderAvatarResolved?:string;
-  score:number;
-  comment?:string|null;
-  createdAt:string;
-  cohortAt?:string;
-  sourceType:'record'|'deliverable';
-  entityId?:string|null;
-  protocol?:string|null;
-  title?:string|null;
-};
-
-type Closure = {
-  id: string;
-  closed_at: string;
-  answered_at: string | null;
-  superseded_at: string | null;
-  closed_unanswered_at: string | null;
-  account_records: { company_id: string; title: string; companies: { display_name: string } | null };
-};
+type SatisfactionRow = SatisfactionReview & { companyLogoResolved: string; responderAvatarResolved: string };
 
 type PeriodPreset='month'|'30'|'90'|'180'|'365'|'all';
 // Tratativa das notas baixas (tabela satisfaction_followups, só administradora).
@@ -54,6 +34,8 @@ function sourceLabel(source:SatisfactionRow['sourceType']){return source==='reco
 function initials(value?:string|null){return (value||'C').split(/\s+/).filter(Boolean).slice(0,2).map((part)=>part[0]?.toUpperCase()).join('')||'C';}
 
 export function AdminSatisfactionPage(){
+  const { user } = useWorkspaceAuth();
+  const queryClient = useQueryClient();
   const [rows,setRows]=useState<SatisfactionRow[]>([]);
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState('');
@@ -67,33 +49,26 @@ export function AdminSatisfactionPage(){
   const [editing,setEditing]=useState<SatisfactionRow|null>(null);
   const [draft,setDraft]=useState({theme:'',note:''});
   const [savingFollow,setSavingFollow]=useState(false);
-  const [closures,setClosures]=useState<Closure[]>([]);
+  const [closures,setClosures]=useState<SatisfactionClosure[]>([]);
   const [closing,setClosing]=useState<string|null>(null);
   const [requestsPage,setRequestsPage]=useState(1);
 
   async function loadClosures() {
-    const db = supabase;
-    if (!db) return;
-    const entries: Closure[] = [];
-    const size = 250;
-    for (let offset = 0; ; offset += size) {
-      const { data, error } = await db.from('account_record_closures')
-        .select('id,closed_at,answered_at,superseded_at,closed_unanswered_at,account_records!inner(company_id,title,companies(display_name))')
-        .order('closed_at', { ascending: false }).order('id').range(offset, offset + size - 1);
-      if (error) throw new Error(error.message);
-      entries.push(...((data ?? []) as unknown as Closure[]));
-      if (!data || data.length < size) break;
-    }
+    if (!user) return;
+    const entries = await queryClient.fetchQuery({
+      queryKey: satisfactionClosuresKey(user.id),
+      queryFn: ({ signal }) => readSatisfactionClosures(signal),
+      staleTime: 0,
+    });
     setClosures(entries);
   }
 
   async function closeRequest(id: string) {
-    if (!supabase || closing || !window.confirm('Encerrar a espera por esta avaliação?')) return;
+    if (!user || closing || !window.confirm('Encerrar a espera por esta avaliação?')) return;
     setClosing(id);
     setError('');
     try {
-      const { error } = await supabase.rpc('close_account_record_feedback_request', { p_closure_id: id });
-      if (error) throw new Error(error.message);
+      await closeFeedbackRequest(id);
       await loadClosures();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Não foi possível encerrar a espera.');
@@ -103,21 +78,23 @@ export function AdminSatisfactionPage(){
   }
 
   async function load(){
-    if(!supabase)return;setLoading(true);setError('');
+    if(!user)return;setLoading(true);setError('');
     try{
-      const [result, follow] = await Promise.all([
-        supabase.rpc('get_admin_satisfaction_responses_v39'),
-        supabase.from('satisfaction_followups').select('source_type,response_id,theme,note,handled_at'),
+      const [result] = await Promise.all([
+        queryClient.fetchQuery({
+          queryKey: satisfactionRatingsKey(user.id),
+          queryFn: ({ signal }) => readSatisfactionReviews(signal),
+          staleTime: 0,
+        }),
         loadClosures(),
       ]);
-      if(result.error)throw result.error;
-      const hydrated=await Promise.all(((result.data||[])as SatisfactionRow[]).map(async(row)=>({
+      const hydrated=await Promise.all(result.ratings.map(async(row)=>({
         ...row,
         companyLogoResolved:await resolveCompanyAsset(row.companyLogoWorkspace||row.companyLogoOriginal||''),
         responderAvatarResolved:await resolveCompanyAsset(row.responderAvatar||''),
       })));
       setRows(hydrated);
-      if(!follow.error)setFollowups(Object.fromEntries((follow.data||[]).map((row:any)=>[`${row.source_type}:${row.response_id}`,{theme:row.theme,note:row.note,handledAt:row.handled_at}])));
+      if(result.followups)setFollowups(result.followups);
     }catch(requestError){setError(requestError instanceof Error?requestError.message:'Não foi possível carregar as avaliações.');}
     finally{setLoading(false);}
   }
@@ -138,9 +115,7 @@ export function AdminSatisfactionPage(){
     const now=new Date();
     let start:Date|null=null,end:Date|null=null;
     if (period === 'month' && !from && !to) {
-      const year = now.getFullYear();
-      const month = now.getMonth();
-      return { start: new Date(year, month, 1), end: new Date(year, month + 1, 1, 0, 0, 0, -1) };
+      return { start: startOfMonth(now), end: endOfMonth(now) };
     }
     if(from){start=new Date(`${from}T00:00:00`);}else if(period!=='all'){start=new Date(now);start.setDate(start.getDate()-Number(period));start.setHours(0,0,0,0);}
     if(to){end=new Date(`${to}T23:59:59.999`);}
@@ -161,9 +136,8 @@ export function AdminSatisfactionPage(){
   const previousAverage=useMemo(()=>{
     const map=new Map<string,number>();
     if(period==='all'||from||to||!range.start)return map;
-    const end=range.start,start=new Date(end);
-    if (period === 'month') start.setMonth(start.getMonth() - 1);
-    else start.setDate(start.getDate()-Number(period));
+    const end=range.start;
+    const start=period === 'month' ? subMonths(end, 1) : subDays(end, Number(period));
     const sums=new Map<string,{sum:number;count:number}>();
     rows.forEach((row)=>{const created=new Date(row.cohortAt || row.createdAt);if(created>=start&&created<end&&(source==='all'||row.sourceType===source)){const current=sums.get(row.companyId)||{sum:0,count:0};current.sum+=row.score;current.count+=1;sums.set(row.companyId,current);}});
     sums.forEach((value,key)=>map.set(key,value.sum/value.count));
@@ -194,16 +168,16 @@ export function AdminSatisfactionPage(){
 
   function openFollowup(row:SatisfactionRow){const current=followups[followKey(row)];setDraft({theme:current?.theme||'',note:current?.note||''});setError('');setEditing(row);}
   async function saveFollowup(){
-    if(!supabase||!editing)return;setSavingFollow(true);
-    const result=await supabase.from('satisfaction_followups').upsert({source_type:editing.sourceType,response_id:editing.id,company_id:editing.companyId,theme:draft.theme||null,note:draft.note.trim()||null},{onConflict:'source_type,response_id'}).select('theme,note,handled_at').maybeSingle();
+    if(!user||!editing)return;setSavingFollow(true);
+    const result=await saveSatisfactionFollowup(editing, { theme: draft.theme || null, note: draft.note.trim() || null });
     setSavingFollow(false);
     if(result.error){setError(result.error.message);return;}
     setFollowups((current)=>({...current,[followKey(editing)]:{theme:result.data?.theme??(draft.theme||null),note:result.data?.note??(draft.note.trim()||null),handledAt:result.data?.handled_at||new Date().toISOString()}}));
     setEditing(null);
   }
   async function removeFollowup(){
-    if(!supabase||!editing)return;setSavingFollow(true);
-    const result=await supabase.from('satisfaction_followups').delete().eq('source_type',editing.sourceType).eq('response_id',editing.id);
+    if(!user||!editing)return;setSavingFollow(true);
+    const result=await deleteSatisfactionFollowup(editing);
     setSavingFollow(false);
     if(result.error){setError(result.error.message);return;}
     setFollowups((current)=>{const next={...current};delete next[followKey(editing)];return next;});

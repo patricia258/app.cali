@@ -1,35 +1,20 @@
 import { InlineNotice } from '../../../components/ds/InlineNotice';
-import { useEffect, useState } from 'react';
-import { AlertTriangle, FolderKanban, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { AlertTriangle, FolderKanban } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { supabase } from '../../../api/supabase';
+import { countAdminProjects } from '../../../api/projects/workspace';
+import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 import { AdminProjectsPageV3 } from '../../projects/AdminProjectsPageV3';
 
-type GateState = 'loading' | 'ready' | 'empty' | 'error';
-
 export function AdminProjectsGatePage() {
-  const [state, setState] = useState<GateState>('loading');
-  const [message, setMessage] = useState('');
-
-  useEffect(() => { void checkWorkspace(); }, []);
-
-  async function checkWorkspace() {
-    if (!supabase) {
-      setState('error');
-      setMessage('Supabase não configurado.');
-      return;
-    }
-    const { count, error } = await supabase.from('projects').select('id', { count: 'exact', head: true });
-    if (error) {
-      setState('error');
-      setMessage(error.message);
-      return;
-    }
-    setState((count || 0) > 0 ? 'ready' : 'empty');
-  }
-
-  if (state === 'ready') return <AdminProjectsPageV3 />;
-  if (state === 'loading') return <Shell role="admin"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando projetos…</section></Shell>;
+  const { user } = useWorkspaceAuth();
+  const projects = useQuery({
+    queryKey: ['admin-projects-count', user?.id],
+    queryFn: ({ signal }) => countAdminProjects(signal),
+    gcTime: 0,
+  });
+  if (projects.data && projects.data > 0) return <AdminProjectsPageV3 />;
+  if (projects.isPending) return <Shell role="admin"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando projetos…</section></Shell>;
 
   return (
     <Shell role="admin">
@@ -37,7 +22,7 @@ export function AdminProjectsGatePage() {
         <div className="eyebrow">EXECUÇÃO & ROADMAP</div>
         <div className="page-heading"><div><h1>Projetos</h1><p>Projetos e entregáveis reais ficam persistidos no Workspace e alimentam Documentos, horas, histórico e validações.</p></div></div>
 
-        {state === 'empty' && (
+        {projects.isSuccess && (
           <section className="panel project-real-data-gate">
             <div className="project-real-data-gate-icon"><FolderKanban size={28} /></div>
             <div>
@@ -49,7 +34,7 @@ export function AdminProjectsGatePage() {
           </section>
         )}
 
-        {state === 'error' && <section className="panel project-real-data-gate"><AlertTriangle size={24} /><div><h2>Não foi possível validar a base de projetos.</h2><p>{message}</p></div></section>}
+        {projects.isError && <section className="panel project-real-data-gate"><AlertTriangle size={24} /><div><h2>Não foi possível validar a base de projetos.</h2><p>{projects.error.message}</p></div></section>}
       </section>
     </Shell>
   );

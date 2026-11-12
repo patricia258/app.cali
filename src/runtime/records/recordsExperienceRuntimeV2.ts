@@ -1,17 +1,21 @@
 import { openPrivateWorkspaceFile } from '../../api/files/workspace';
 import { appendWithMentions } from '../../lib/mentionText';
-import { supabase } from '../../api/supabase';
+import { readRecordViewerId, recordsAvailable } from '../../api/records/client';
+import {
+  listRecordMessages, postRecordMessage, readConversationIdentities, removeRecordAttachment,
+  subscribeRecordMessages, uploadRecordAttachment,
+  type ConversationIdentity as Identity, type ConversationMessageRow as Msg,
+} from '../../api/records/conversation';
+import { readRecordIdentity } from '../../api/records/workspace';
 import { askWorkspaceLink, workspaceChatAlert } from '../../lib/workspaceChatDialogs';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 
 type Role = 'admin' | 'client';
-type Identity = { id?: string | null; full_name: string; avatar_url?: string | null; avatar_position_x?: number | null; avatar_position_y?: number | null; avatar_zoom?: number | null };
-type Msg = { id:string; record_id:string; author_id?:string|null; author_role:'admin'|'client'|'system'; body:string; visibility:'client'|'internal'; created_at:string };
 type FileToken = { name:string; path:string; mime:string; size:number };
 
-let installed=false, busy=false, debounce=0, activeRecord='', activeCompany='';
+let installed=false, busy=false, debounce=0, activeRecord='';
 let observer:MutationObserver|null=null;
-let channel:ReturnType<NonNullable<typeof supabase>['channel']>|null=null;
+let unsubscribeMessages: (() => void) | null = null;
 let pending:FileToken[]=[];
 const emojis=['🙂','😊','👍','🙏','✨','✅','💡','📌','📎','❤️','👏','🤝'];
 const fileToken=/\[\[arquivo\|([^|]+)\|([^|]+)\|([^|]+)\|(\d+)\]\]/g;
@@ -35,32 +39,84 @@ async function openFile(file: FileToken) {
   }
 }
 
-async function identities(r:Role,companyId:string){const map=new Map<string,Identity>();let admin:Identity={full_name:'Patrícia Lima'},client:Identity={full_name:'Cliente'};if(!supabase)return{map,admin,client};const{data:s}=await supabase.auth.getSession();const uid=s.session?.user?.id||'';if(r==='admin'){
-  const self=uid?await supabase.from('profiles').select('id,full_name,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom').eq('id',uid).maybeSingle():{data:null};
-  const clients=await supabase.from('profiles').select('id,full_name,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom').eq('company_id',companyId).eq('role','client').eq('active',true);
-  if(self.data){admin=await hydrateIdentity(self.data as Identity);if(admin.id)map.set(String(admin.id),admin);}const hydratedClients=await Promise.all(((clients.data||[]) as Identity[]).map(hydrateIdentity));for(const hydrated of hydratedClients){if(hydrated.id)map.set(String(hydrated.id),hydrated);}if(hydratedClients[0])client=hydratedClients[0];
-}else{
-  const self=uid?await supabase.from('profiles').select('id,full_name,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom').eq('id',uid).maybeSingle():{data:null};
-  const contact=await supabase.rpc('get_client_account_contact');if(self.data){client=await hydrateIdentity(self.data as Identity);if(client.id)map.set(String(client.id),client);}const c=Array.isArray(contact.data)?contact.data[0]:contact.data;if(c)admin=await hydrateIdentity(c as Identity);
+async function identities(role: Role, companyId: string) {
+  const map = new Map<string, Identity>();
+  let admin: Identity = { full_name: 'Patrícia Lima' };
+  let client: Identity = { full_name: 'Cliente' };
+  const people = await readConversationIdentities(role, companyId);
+  const [viewer, participants, staff] = await Promise.all([
+    people.viewer ? hydrateIdentity(people.viewer) : null,
+    Promise.all(people.participants.map(hydrateIdentity)),
+    Promise.all(people.staff.map(hydrateIdentity)),
+  ]);
+  if (viewer?.id) map.set(viewer.id, viewer);
+  if (role === 'admin') {
+    admin = viewer ?? admin;
+    client = participants[0] ?? client;
+    for (const participant of participants) if (participant.id) map.set(participant.id, participant);
+  } else {
+    client = viewer ?? client;
+    admin = participants[0] ?? admin;
+  }
+  for (const person of staff) if (person.id && !map.has(person.id)) map.set(person.id, person);
+  return { map, admin, client };
 }
-  try{const st=await supabase.rpc('staff_identities');for(const p of await Promise.all(((st.data||[]) as Identity[]).map(hydrateIdentity)))if(p.id&&!map.has(String(p.id)))map.set(String(p.id),p);}catch{}
-  return{map,admin,client};}
 function who(m:Msg,ids:Awaited<ReturnType<typeof identities>>){if(m.author_id&&ids.map.has(m.author_id))return ids.map.get(m.author_id)!;if(m.author_role==='admin')return ids.admin;if(m.author_role==='client')return ids.client;return{full_name:'CALI RH'};}
 function pinLatest(history:HTMLElement){window.requestAnimationFrame(()=>{if(document.body.contains(history))history.scrollTop=history.scrollHeight;});window.setTimeout(()=>{if(document.body.contains(history))history.scrollTop=history.scrollHeight;},190);}
 
-async function renderMessages(recordId:string,companyId:string,r:Role){if(!supabase)return;const history=document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"]) :is(.conversation-history,[data-v2-operation~=\"conversation-history\"])");if(!history)return;const[result,ids]=await Promise.all([supabase.from('account_record_messages').select('id,record_id,author_id,author_role,body,visibility,created_at').eq('record_id',recordId).is('deleted_at',null).order('created_at',{ascending:true}),identities(r,companyId)]);if(result.error)return;const messages=(result.data||[])as Msg[];const signature=messages.map(m=>`${m.id}:${m.body.length}:${m.created_at}`).join('|');if(history.dataset.recordsSignature===signature&&history.querySelector('.records-chat-line,.records-chat-empty')){pinLatest(history);return;}history.dataset.recordsSignature=signature;history.replaceChildren();if(!messages.length){const e=document.createElement('div');e.className='records-chat-empty';e.textContent='A conversa começa aqui.';history.append(e);return;}
+async function renderMessages(recordId:string,companyId:string,r:Role){if(!recordsAvailable)return;const history=document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"]) :is(.conversation-history,[data-v2-operation~=\"conversation-history\"])");if(!history)return;const[result,ids]=await Promise.all([listRecordMessages(recordId),identities(r,companyId)]);if(result.error||!history.isConnected||recordId!==activeRecord)return;const messages=result.data??[];const signature=JSON.stringify(messages.map(m=>[m.id,m.body,m.created_at,m.edited_at]));if(history.dataset.recordsSignature===signature&&history.querySelector('.records-chat-line,.records-chat-empty')){pinLatest(history);return;}history.dataset.recordsSignature=signature;history.replaceChildren();if(!messages.length){const e=document.createElement('div');e.className='records-chat-empty';e.textContent='A conversa começa aqui.';history.append(e);return;}
   const known=seenRecordMessages.get(recordId),nextKnown=new Set(messages.map(m=>m.id));
   messages.forEach(m=>{const id=who(m,ids),mine=m.author_role===r,line=document.createElement('div');line.className=`conversation-line records-chat-line role-${m.author_role} ${mine?'mine':'other'} ${m.visibility==='internal'?'internal':''} ${known&&!known.has(m.id)?'is-arriving':''}`;line.dataset.messageCreatedAt=m.created_at;const bubble=document.createElement('div');bubble.className='conversation-bubble records-chat-bubble';const head=document.createElement('div');head.className='records-chat-head';const name=document.createElement('strong');name.textContent=m.visibility==='internal'?`${id.full_name} · nota interna`:id.full_name;const time=document.createElement('time');time.textContent=when(m.created_at);head.append(name,time);bubble.append(head);const parsed=parseBody(m.body);if(parsed.clean){const p=document.createElement('p');linkify(p,parsed.clean);bubble.append(p);}if(parsed.files.length){const list=document.createElement('div');list.className='records-chat-attachments';parsed.files.forEach(f=>{const b=document.createElement('button');b.type='button';b.className='records-chat-attachment';const icon=document.createElement('span');icon.textContent='📎';const copy=document.createElement('span'),strong=document.createElement('strong'),small=document.createElement('small');strong.textContent=f.name;small.textContent=f.size?`${Math.max(1,Math.round(f.size/1024))} KB`:'arquivo';copy.append(strong,small);b.append(icon,copy);b.onclick=()=>void openFile(f);list.append(b);});bubble.append(list);}if(mine)line.append(bubble,avatar(id));else line.append(avatar(id),bubble);history.append(line);});seenRecordMessages.set(recordId,nextKnown);if(known)window.requestAnimationFrame(()=>history.scrollTo({top:history.scrollHeight,behavior:'smooth'}));else pinLatest(history);
 }
 
-function pendingTray(compose:HTMLElement){const host=compose.querySelector<HTMLElement>('.records-chat-runtime-pending-host');let tray=(host||compose).querySelector<HTMLElement>('.records-chat-pending');if(!tray){tray=document.createElement('div');tray.className='records-chat-pending';(host||compose).append(tray);}const sig=pending.map(x=>x.path).join('|');if(tray.dataset.sig===sig)return;tray.dataset.sig=sig;tray.replaceChildren();pending.forEach((f,i)=>{const chip=document.createElement('span');chip.className='records-chat-pending-chip';const text=document.createElement('span');text.textContent=`📎 ${f.name}`;const x=document.createElement('button');x.type='button';x.textContent='×';x.onclick=async()=>{pending.splice(i,1);if(supabase)await supabase.storage.from('cali-workspace-private').remove([f.path]);pendingTray(compose);};chip.append(text,x);tray!.append(chip);});tray.style.display=pending.length?'flex':'none';}
-async function upload(file:File,recordId:string,companyId:string,compose:HTMLElement){if(!supabase)return;const allowed=new Set(['application/pdf','image/png','image/jpeg','image/webp','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.openxmlformats-officedocument.presentationml.presentation']);if(!allowed.has(file.type)){workspaceChatAlert('Use PDF, imagem, Word, Excel ou PowerPoint.');return;}if(file.size>10*1024*1024){workspaceChatAlert('Cada anexo pode ter até 10 MB.');return;}if(pending.length>=5){workspaceChatAlert('Você pode enviar até 5 anexos por mensagem.');return;}const{data:s}=await supabase.auth.getSession();const uid=s.session?.user?.id;if(!uid)return;const path=`records/${companyId}/${recordId}/${uid}/${Date.now()}-${safe(file.name)}`;const{error}=await supabase.storage.from('cali-workspace-private').upload(path,file,{contentType:file.type,upsert:false});if(error){workspaceChatAlert(`Não consegui anexar “${file.name}”.`);return;}pending.push({name:file.name,path,mime:file.type,size:file.size});pendingTray(compose);}
-async function send(recordId:string,textarea:HTMLTextAreaElement,button:HTMLButtonElement,compose:HTMLElement){if(!supabase)return;const text=textarea.value.trim();if(!text&&!pending.length)return;const tokens=pending.map(f=>`[[arquivo|${encodeURIComponent(f.name)}|${encodeURIComponent(f.path)}|${encodeURIComponent(f.mime)}|${f.size}]]`).join('\n');button.disabled=true;try{const res=await supabase.rpc('post_account_record_message',{p_record_id:recordId,p_body:[text,tokens].filter(Boolean).join('\n'),p_internal:false});if(res.error)throw res.error;pending=[];setValue(textarea,'');pendingTray(compose);window.setTimeout(()=>void enhance(true),80);}catch(e){workspaceChatAlert(e instanceof Error?e.message:'Não foi possível enviar a mensagem.');}finally{button.disabled=false;}}
+function pendingTray(compose:HTMLElement){const host=compose.querySelector<HTMLElement>('.records-chat-runtime-pending-host');let tray=(host||compose).querySelector<HTMLElement>('.records-chat-pending');if(!tray){tray=document.createElement('div');tray.className='records-chat-pending';(host||compose).append(tray);}const sig=pending.map(x=>x.path).join('|');if(tray.dataset.sig===sig)return;tray.dataset.sig=sig;tray.replaceChildren();pending.forEach((f,i)=>{const chip=document.createElement('span');chip.className='records-chat-pending-chip';const text=document.createElement('span');text.textContent=`📎 ${f.name}`;const x=document.createElement('button');x.type='button';x.textContent='×';x.onclick=async()=>{pending.splice(i,1);await removeRecordAttachment(f.path);pendingTray(compose);};chip.append(text,x);tray!.append(chip);});tray.style.display=pending.length?'flex':'none';}
+async function upload(file:File,recordId:string,companyId:string,compose:HTMLElement){if(!recordsAvailable)return;const allowed=new Set(['application/pdf','image/png','image/jpeg','image/webp','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.openxmlformats-officedocument.presentationml.presentation']);if(!allowed.has(file.type)){workspaceChatAlert('Use PDF, imagem, Word, Excel ou PowerPoint.');return;}if(file.size>10*1024*1024){workspaceChatAlert('Cada anexo pode ter até 10 MB.');return;}if(pending.length>=5){workspaceChatAlert('Você pode enviar até 5 anexos por mensagem.');return;}const uid=await readRecordViewerId();if(!uid)return;const path=`records/${companyId}/${recordId}/${uid}/${Date.now()}-${safe(file.name)}`;const{error}=await uploadRecordAttachment(path,file);if(error){workspaceChatAlert(`Não consegui anexar “${file.name}”.`);return;}pending.push({name:file.name,path,mime:file.type,size:file.size});pendingTray(compose);}
+async function send(recordId:string,textarea:HTMLTextAreaElement,button:HTMLButtonElement,compose:HTMLElement){if(!recordsAvailable)return;const text=textarea.value.trim();if(!text&&!pending.length)return;const tokens=pending.map(f=>`[[arquivo|${encodeURIComponent(f.name)}|${encodeURIComponent(f.path)}|${encodeURIComponent(f.mime)}|${f.size}]]`).join('\n');button.disabled=true;try{const res=await postRecordMessage(recordId,[text,tokens].filter(Boolean).join('\n'));if(res.error)throw res.error;pending=[];setValue(textarea,'');pendingTray(compose);window.setTimeout(()=>void enhance(true),80);}catch(e){workspaceChatAlert(e instanceof Error?e.message:'Não foi possível enviar a mensagem.');}finally{button.disabled=false;}}
 function composer(recordId:string,companyId:string){const compose=document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"]) :is(.conversation-compose,[data-v2-operation~=\"conversation-compose\"])"),textarea=compose?.querySelector<HTMLTextAreaElement>('textarea'),sendBtn=compose?.querySelector<HTMLButtonElement>('button.primary');if(!compose||!textarea||!sendBtn)return;if(!compose.querySelector('.records-chat-tools')){const tools=document.createElement('div');tools.className='records-chat-tools';const attach=document.createElement('button');attach.type='button';attach.textContent='📎';attach.title='Anexar arquivo';attach.setAttribute('aria-label','Anexar arquivo');const input=document.createElement('input');input.type='file';input.multiple=true;input.hidden=true;input.accept='.pdf,.png,.jpg,.jpeg,.webp,.docx,.xlsx,.pptx';attach.onclick=()=>input.click();input.onchange=async()=>{for(const f of Array.from(input.files||[]))await upload(f,recordId,companyId,compose);input.value='';};const link=document.createElement('button');link.type='button';link.textContent='🔗';link.title='Inserir link';link.setAttribute('aria-label','Inserir link');link.onclick=async()=>{const url=await askWorkspaceLink();if(!url)return;setValue(textarea,`${textarea.value}${textarea.value?' ':''}${url}`);};const emoji=document.createElement('button');emoji.type='button';emoji.textContent='😊';emoji.title='Emojis';emoji.setAttribute('aria-label','Abrir emojis');const picker=document.createElement('div');picker.className='records-chat-emoji-picker';picker.hidden=true;emojis.forEach(e=>{const b=document.createElement('button');b.type='button';b.textContent=e;b.onclick=()=>{setValue(textarea,`${textarea.value}${e}`);picker.hidden=true;};picker.append(b);});emoji.onclick=()=>picker.hidden=!picker.hidden;tools.append(attach,input,link,emoji,picker);const host=compose.querySelector<HTMLElement>('.records-chat-runtime-tools-host');if(host)host.append(tools);else compose.insertBefore(tools,textarea);pendingTray(compose);}if(!sendBtn.dataset.richRecordsBound){sendBtn.dataset.richRecordsBound='1';sendBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();void send(recordId,textarea,sendBtn,compose);},true);textarea.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();void send(recordId,textarea,sendBtn,compose);}},true);}}
-function subscribe(recordId:string){if(!supabase||(recordId===activeRecord&&channel))return;if(channel)supabase.removeChannel(channel);activeRecord=recordId;channel=supabase.channel(`records-live-v2-${recordId}-${Date.now()}`).on('postgres_changes',{event:'INSERT',schema:'cali_workspace',table:'account_record_messages',filter:`record_id=eq.${recordId}`},()=>{window.dispatchEvent(new CustomEvent('cali:workspace-chime'));window.setTimeout(()=>void enhance(true),80);}).subscribe();}
+function stopWatchingMessages() {
+  unsubscribeMessages?.();
+  unsubscribeMessages = null;
+  activeRecord = '';
+  pending = [];
+}
 
-async function decorateTable(){if(!supabase||role()!=='admin')return;const select=document.querySelector<HTMLSelectElement>('.records-v13-toolbar label:first-child select'),companyId=select?.value;if(!companyId)return;const{data:c}=await supabase.from('companies').select('display_name,logo_url').eq('id',companyId).maybeSingle();if(!c)return;const logo=await resolvePrivateMedia(c.logo_url);document.querySelectorAll<HTMLTableRowElement>('.records-v13-table tbody tr').forEach(row=>{const cell=row.querySelector<HTMLTableCellElement>('td:nth-child(2)');if(!cell||cell.querySelector('.records-company-cell'))return;const wrap=document.createElement('span');wrap.className='records-company-cell';const mark=document.createElement('span');mark.className='records-company-logo';if(logo){const img=document.createElement('img');img.src=logo;img.alt='';mark.append(img);}else mark.textContent=initials(c.display_name||'C');const name=document.createElement('span');name.textContent=c.display_name||cell.textContent||'Cliente';wrap.append(mark,name);cell.replaceChildren(wrap);});}
-function copy(){const h=document.querySelector<HTMLElement>('.records-v13-heading h1');if(h&&h.textContent?.trim()!=='Ocorrências e solicitações')h.textContent='Ocorrências e solicitações';}
-async function enhance(force=false){if(busy||!supabase)return;const r=role();if(!r)return;copy();void decorateTable();const drawer=document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"])");if(!drawer)return;const protocol=drawer.querySelector<HTMLElement>('.section-kicker')?.textContent?.trim()||'';if(!protocol.startsWith('CALI-REG-'))return;if(!force&&drawer.dataset.recordsRich===protocol)return;busy=true;try{const{data:rec}=await supabase.from('account_records').select('id,company_id').eq('protocol',protocol).maybeSingle();if(!rec?.id||!rec.company_id)return;activeCompany=rec.company_id;subscribe(rec.id);await renderMessages(rec.id,rec.company_id,r);composer(rec.id,rec.company_id);drawer.querySelectorAll<HTMLButtonElement>('.records-v13-drawer-actions button').forEach(b=>{const t=b.textContent?.trim();if(t==='Assumir')b.textContent='Assumir atendimento';if(t==='Enriquecer memória')b.textContent='Salvar na memória da conta';});drawer.dataset.recordsRich=protocol;}finally{busy=false;}}
+function watchMessages(recordId: string) {
+  if (recordId === activeRecord && unsubscribeMessages) return;
+  stopWatchingMessages();
+  activeRecord = recordId;
+  unsubscribeMessages = subscribeRecordMessages(recordId, 'INSERT', () => {
+    window.dispatchEvent(new CustomEvent('cali:workspace-chime'));
+    window.setTimeout(() => void enhance(true), 80);
+  });
+}
+
+async function enhance(force = false) {
+  if (busy || !recordsAvailable) return;
+  const currentRole = role();
+  const drawer = document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~='records-v13-drawer'])");
+  const protocol = drawer?.querySelector<HTMLElement>('.section-kicker')?.textContent?.trim() || '';
+  if (!currentRole || !drawer || !protocol.startsWith('CALI-REG-')) {
+    stopWatchingMessages();
+    return;
+  }
+  if (!force && drawer.dataset.recordsRich === protocol) return;
+  busy = true;
+  try {
+    const { data: record } = await readRecordIdentity(protocol);
+    if (!record?.id || !record.company_id || !drawer.isConnected || role() !== currentRole) return;
+    watchMessages(record.id);
+    await renderMessages(record.id, record.company_id, currentRole);
+    if (!drawer.isConnected || role() !== currentRole) return;
+    composer(record.id, record.company_id);
+    drawer.querySelectorAll<HTMLButtonElement>('.records-v13-drawer-actions button').forEach((button) => {
+      const text = button.textContent?.trim();
+      if (text === 'Assumir') button.textContent = 'Assumir atendimento';
+      if (text === 'Enriquecer memória') button.textContent = 'Salvar na memória da conta';
+    });
+    drawer.dataset.recordsRich = protocol;
+  } finally {
+    busy = false;
+  }
+}
 function schedule(){clearTimeout(debounce);debounce=window.setTimeout(()=>void enhance(),75);}
-export function installRecordsExperienceRuntimeV2(){if(installed)return;installed=true;const start=()=>{schedule();observer?.disconnect();observer=new MutationObserver(()=>schedule());observer.observe(document.body,{childList:true,subtree:true});};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();window.addEventListener('focus',schedule);window.addEventListener('popstate',schedule);}
+export function installRecordsExperienceRuntimeV2(){if(installed)return;installed=true;const start=()=>{schedule();observer?.disconnect();observer=new MutationObserver(()=>schedule());observer.observe(document.body,{childList:true,subtree:true});};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();window.addEventListener('cali-route-change',schedule);window.addEventListener('focus',schedule);window.addEventListener('popstate',schedule);}

@@ -13,7 +13,8 @@ const publication = { version: LEGAL_VERSION, contentHash, accepted: false };
 
 test('OTP envia e-mail normalizado e só confirma o papel depois de estabelecer uma sessão', async (t) => {
   const http = await workspaceHttp(t);
-  const api = await http.load('supabase.ts');
+  const api = await http.load('access/codes.ts');
+  const { readWorkspaceSession } = await http.load('access/session.ts');
   http.respond(otp, { ok: true, challenge: 'pending' });
   const requested = await api.requestAccessCode('  admin@example.test  ');
   assert.equal(requested.data.challenge, 'pending');
@@ -28,12 +29,13 @@ test('OTP envia e-mail normalizado e só confirma o papel depois de estabelecer 
     data: { ok: true, role: 'admin' }, error: null,
   });
   assert.equal(http.requests[1].body.code, '012345');
-  assert.equal((await api.supabase.auth.getSession()).data.session.user.id, actorId);
+  assert.equal((await readWorkspaceSession()).user.id, actorId);
 });
 
 test('OTP recusa erro de código, papel desconhecido e sucesso sem credencial', async (t) => {
   const http = await workspaceHttp(t);
-  const api = await http.load('supabase.ts');
+  const api = await http.load('access/codes.ts');
+  const { readWorkspaceSession } = await http.load('access/session.ts');
   http.respond(otp, { ok: false, error: 'Código expirado' }, { status: 400 });
   assert.deepEqual(await api.verifyAccessCode('admin@example.test', '012345'), {
     data: null, error: { message: 'Código expirado' },
@@ -42,7 +44,7 @@ test('OTP recusa erro de código, papel desconhecido e sucesso sem credencial', 
   assert.equal((await api.verifyAccessCode('admin@example.test', '012345')).data, null);
   http.respond(otp, { ok: true, role: 'admin' });
   assert.equal((await api.verifyAccessCode('admin@example.test', '012345')).data, null);
-  assert.equal((await api.supabase.auth.getSession()).data.session, null);
+  assert.equal(await readWorkspaceSession(), null);
 });
 
 test('RPC público anônimo omite sessão e RPC administrativo preserva token e schema', async (t) => {

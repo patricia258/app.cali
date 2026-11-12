@@ -12,7 +12,8 @@ import { useLocation } from '../../hooks/useLocation';
 import { useNavigate } from '../../hooks/useNavigate';
 import { ArrowRight, BriefcaseBusiness, Building2, CalendarDays, CalendarPlus, CheckCircle2, ChevronDown, ChevronRight, ClipboardList, Clock3, Fingerprint, FileBarChart2, FolderOpen, History, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Star, UserCog, Target, Users, X, type LucideIcon } from 'lucide-react';
 import { DirectProfileControl } from './DirectProfileControl';
-import { supabase } from '../../api/supabase';
+import { hoursAvailable } from '../../api/hours/client';
+import { pauseWorkTimer, readActiveTimersBeforeExit, stopPartnerTimer } from '../../api/hours/timers';
 import { startTimerPresence } from '../../runtime/hours/timerPresence';
 import { WelcomeTour, WELCOME_OPEN_EVENT, type WelcomeStep } from './WelcomeTour';
 import './v2.generated.css';
@@ -78,13 +79,29 @@ export function WorkspaceShellV2({ role, navigation, extras, children, schedulin
   const [exitTimers, setExitTimers] = useState<{ id: string; description: string | null; started_at: string }[] | null>(null); const [exitBusy, setExitBusy] = useState(false); const [exitError, setExitError] = useState('');
   useEffect(() => { if (role !== 'client') startTimerPresence(); }, [role]);
   async function requestLogout() {
-    if (role === 'client' || !supabase) { onLogout(); return; }
-    try { const { data: auth } = await supabase.auth.getUser(); const result = await supabase.from('work_timers').select('id,description,started_at').eq('user_id', auth.user?.id || '').eq('status', 'active'); if (!result.error && (result.data || []).length) { setExitError(''); setExitTimers(result.data as any[]); return; } } catch { /* sem conferência: segue a saída */ }
+    if (role === 'client' || !hoursAvailable) { onLogout(); return; }
+    try {
+      const timers = await readActiveTimersBeforeExit();
+      if (timers.length) {
+        setExitError('');
+        setExitTimers(timers);
+        return;
+      }
+    } catch { /* sem conferência: segue a saída */ }
     onLogout();
   }
   async function pauseAndLogout() {
-    if (!supabase || !exitTimers) return; setExitBusy(true); setExitError('');
-    for (const timer of exitTimers) { const result = role === 'partner' ? await supabase.rpc('partner_stop_timer', { p_timer_id: timer.id, p_description: null }) : await supabase.rpc('pause_work_timer', { p_timer_id: timer.id }); if (result.error) { setExitBusy(false); setExitError('Não foi possível pausar o cronômetro. Pause-o na tela e tente sair de novo.'); return; } }
+    if (!hoursAvailable || !exitTimers) return;
+    setExitBusy(true);
+    setExitError('');
+    for (const timer of exitTimers) {
+      const result = role === 'partner' ? await stopPartnerTimer(timer.id, null) : await pauseWorkTimer(timer.id);
+      if (result.error) {
+        setExitBusy(false);
+        setExitError('Não foi possível pausar o cronômetro. Pause-o na tela e tente sair de novo.');
+        return;
+      }
+    }
     setExitBusy(false); setExitTimers(null); onLogout();
   }
   const searchDestinations = useMemo(() => [...navigation.map(({ label, href }) => ({ label, href })), ...(role === 'client' ? [{ label: 'Frentes contratadas', href: '/cliente/frentes' }] : role === 'partner' ? [] : adminProducts.map(({ label, href }) => ({ label, href })))], [navigation, role]);

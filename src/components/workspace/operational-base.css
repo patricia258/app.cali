@@ -10,7 +10,7 @@ html[data-workspace-ui='v2']{
 .v2-client-module .ledger-filter select{border:1px solid var(--v2-line-e9e0d8,#e9e0d8);background:var(--v2-surface-fff,#fff);@apply tw:rounded-[7px] tw:p-[8px] tw:text-[11px]}
 .v2-client-module .wf-report-selection{@apply tw:flex tw:flex-wrap tw:gap-[8px] tw:mb-[14px]}
 .v2-client-module .wf-report-selection button{border:1px solid var(--v2-line-e9e0d8,#e9e0d8);@apply tw:rounded-[7px];background:var(--v2-surface-fff,#fff);@apply tw:p-[10px] tw:text-left tw:text-[11px];color:var(--v2-text-746a64,#746a64)}
-.v2-client-module .wf-report-selection button.selected{border-color:#b58c52;color:var(--v2-text-5a1e2d,#5a1e2d);background:var(--v2-surface-fff9eb,#fff9eb)}
+.v2-client-module .wf-report-selection button.selected{@apply tw:border-cali-gold;color:var(--v2-text-5a1e2d,#5a1e2d);background:var(--v2-surface-fff9eb,#fff9eb)}
 .v2-client-module .wf-report-selection button span{@apply tw:block tw:text-[10px] tw:mt-[5px]}
 .v2-client-dialog{@apply tw:p-0 tw:min-h-0}
 .v2-client-module .wf-doc-list-entry{@apply tw:flex tw:items-center tw:justify-between tw:gap-[18px];padding:18px 21px;border-bottom:1px solid var(--v2-line-eee2d9,#eee2d9);@apply tw:text-[11px]}
@@ -50,17 +50,17 @@ html[data-workspace-ui='v2']{
 .v2-client-module .mine :is(.workspace-chat-bubble,.records-chat-bubble){background:var(--v2-surface-f7e7d2,#f7e7d2)}
 .v2-client-module :is(.workspace-chat-head,.records-chat-head){@apply tw:flex tw:items-center tw:justify-between tw:gap-[20px] tw:text-[10px];color:var(--v2-text-805957,#805957)}
 .v2-client-module :is(.workspace-chat-head,.records-chat-head) time{@apply tw:text-[9px];color:var(--v2-text-978579,#978579)}
-.v2-client-module :is(.workspace-chat-avatar,.records-chat-avatar){@apply tw:shrink-0 tw:w-[30px] tw:h-[30px] tw:rounded-[7px] tw:grid tw:place-items-center;background:#5a1e2d;color:#fff;@apply tw:text-[10px]}
+.v2-client-module :is(.workspace-chat-avatar,.records-chat-avatar){@apply tw:shrink-0 tw:w-[30px] tw:h-[30px] tw:rounded-[7px] tw:grid tw:place-items-center;background:#5a1e2d;@apply tw:text-white;@apply tw:text-[10px]}
 .v2-client-module :is(.workspace-chat-tools,.records-chat-tools){@apply tw:flex tw:relative tw:gap-[7px]}
 .v2-client-module :is(.workspace-chat-tools,.records-chat-tools) button{border:1px solid var(--v2-line-e6d9ce,#e6d9ce);@apply tw:rounded-[7px];background:var(--v2-surface-fffaf7,#fffaf7);@apply tw:p-[7px]}
 .v2-client-module :is(.workspace-chat-emoji-picker,.records-chat-emoji-picker){@apply tw:absolute;bottom:38px;@apply tw:left-0;background:var(--v2-surface-fff,#fff);@apply tw:flex tw:flex-wrap;width:200px;@apply tw:p-[10px];border:1px solid var(--v2-line-e6d9ce,#e6d9ce);@apply tw:rounded-[9px];box-shadow:0 6px 18px #35202a20;@apply tw:z-5}
 .v2-client-module :is(.workspace-chat-emoji-picker,.records-chat-emoji-picker)[hidden]{@apply tw:hidden}
 .v2-client-module .workspace-chat-send-actions{@apply tw:flex tw:justify-end tw:mt-[10px]}
-.v2-client-module :is(.primary,.wf-primary){background:#5a1e2d;color:#fff;border:1px solid #5a1e2d;@apply tw:rounded-[7px];padding:10px 14px;@apply tw:inline-flex tw:items-center tw:justify-center tw:gap-[7px] tw:text-[11px];font-weight:600}
+.v2-client-module :is(.primary,.wf-primary){background:#5a1e2d;@apply tw:text-white;border:1px solid #5a1e2d;@apply tw:rounded-[7px];padding:10px 14px;@apply tw:inline-flex tw:items-center tw:justify-center tw:gap-[7px] tw:text-[11px];font-weight:600}
 .v2-client-module .secondary{background:var(--v2-surface-fff,#fff);color:var(--v2-text-5a1e2d,#5a1e2d);border:1px solid var(--v2-line-e1d1c4,#e1d1c4);@apply tw:rounded-[7px];padding:10px 14px;@apply tw:inline-flex tw:items-center tw:gap-[7px] tw:text-[11px]}
 .v2-client-module .client-delivery-rating-row{@apply tw:flex tw:justify-center tw:gap-[12px];margin:25px 0}
 .v2-client-module .client-delivery-rating-row button{@apply tw:flex tw:flex-col tw:items-center tw:gap-[5px];border:1px solid var(--v2-line-e5d6ca,#e5d6ca);background:var(--v2-surface-fffaf5,#fffaf5);@apply tw:rounded-[8px] tw:p-[12px];color:var(--v2-text-8a7366,#8a7366)}
-.v2-client-module .client-delivery-rating-row button.selected{background:#5a1e2d;color:#fff;border-color:#5a1e2d}
+.v2-client-module .client-delivery-rating-row button.selected{background:#5a1e2d;@apply tw:text-white;@apply tw:border-cali-brand}
 .v2-client-module .client-delivery-score-reaction{@apply tw:flex tw:gap-[12px];margin:16px 0;@apply tw:text-[12px];line-height:1.5}
 .v2-client-module .client-delivery-score-reaction>span{@apply tw:text-[30px]}
 .v2-client-module .v2-rating>button.full{@apply tw:w-full tw:mt-[20px]}
@@ -72,7 +72,7 @@ html[data-workspace-ui='v2']{
 .v2-client-module .v2-team-period-controls input{border:1px solid var(--v2-line-e6d7cb,#e6d7cb);@apply tw:rounded-[6px] tw:p-[7px];background:var(--v2-surface-fff,#fff);color:var(--v2-text-745e50,#745e50);@apply tw:text-[11px]}
 .v2-client-module .v2-team-period-switch{@apply tw:flex tw:gap-[2px]}
 .v2-client-module :is(.v2-team-period-switch,.v2-team-view-switch) button{@apply tw:p-[9px];border:1px solid var(--v2-line-e6d7cb,#e6d7cb);@apply tw:rounded-[5px];background:var(--v2-surface-fff,#fff);@apply tw:text-[10px];color:var(--v2-text-8a7668,#8a7668)}
-.v2-client-module :is(.v2-team-period-switch,.v2-team-view-switch) button.active{background:#5a1e2d;color:#fff;border-color:#5a1e2d}
+.v2-client-module :is(.v2-team-period-switch,.v2-team-view-switch) button.active{background:#5a1e2d;@apply tw:text-white;@apply tw:border-cali-brand}
 .v2-client-module .v2-team-view-switch{@apply tw:flex tw:gap-[4px]}
 .v2-client-module .v2-team-view-switch button{@apply tw:flex tw:items-center tw:gap-[5px]}
 .v2-client-module .v2-team-action-strip{@apply tw:flex tw:items-center tw:justify-between tw:gap-[12px];margin:16px 0 22px;@apply tw:flex-wrap}
@@ -81,7 +81,7 @@ html[data-workspace-ui='v2']{
 .v2-client-module .v2-team-review-callout p{@apply tw:text-[10px];color:var(--v2-text-a4896a,#a4896a)}
 .v2-client-module .v2-team-heading-actions{@apply tw:flex tw:gap-[8px]}
 .v2-client-module :is(.team-btn,.v2-team-open){border:1px solid var(--v2-line-e4d6ca,#e4d6ca);@apply tw:rounded-[7px];background:var(--v2-surface-fff,#fff);color:var(--v2-text-70584a,#70584a);padding:9px 12px;@apply tw:inline-flex tw:items-center tw:justify-center tw:gap-[6px] tw:text-[11px] tw:whitespace-nowrap}
-.v2-client-module .team-btn:not(.secondary){background:#5a1e2d;color:#fff;border-color:#5a1e2d}
+.v2-client-module .team-btn:not(.secondary){background:#5a1e2d;@apply tw:text-white;@apply tw:border-cali-brand}
 .v2-client-module .team-btn em{@apply tw:text-[9px] tw:not-italic}
 .v2-client-module .v2-team-filter select{border:1px solid var(--v2-line-e4d6ca,#e4d6ca);@apply tw:rounded-[7px];background:var(--v2-surface-fff,#fff);@apply tw:p-[10px] tw:text-[11px] tw:max-w-[170px];color:var(--v2-text-7b6456,#7b6456)}
 .v2-client-module .v2-team-filter>svg{@apply tw:hidden}
@@ -107,8 +107,8 @@ html[data-workspace-ui='v2']{
 .v2-client-module .v2-org-person-row small{@apply tw:text-[9px];color:var(--v2-text-a58c79,#a58c79)}
 .v2-client-module .v2-team-indicator-note{@apply tw:flex tw:items-center tw:gap-[15px];color:var(--v2-text-877366,#877366);@apply tw:text-[11px] tw:p-[15px]}
 .v2-client-module .v2-team-indicator-note>div{@apply tw:flex tw:flex-col tw:gap-[7px]}
-.v2-client-module .v2-team-analysis-note{background:#5a1e2d;color:#fff;@apply tw:rounded-[9px] tw:p-[25px] tw:mt-[18px]}
-.v2-client-module .v2-team-analysis-note h2{color:#fff;@apply tw:text-[22px]}
+.v2-client-module .v2-team-analysis-note{background:#5a1e2d;@apply tw:text-white;@apply tw:rounded-[9px] tw:p-[25px] tw:mt-[18px]}
+.v2-client-module .v2-team-analysis-note h2{@apply tw:text-white;@apply tw:text-[22px]}
 .v2-client-module .v2-team-analysis-note p{@apply tw:text-[12px];line-height:1.6;color:#eedcce}
 @media(max-width:850px){.v2-client-module .wf-report-version-head{@apply tw:flex-wrap}.v2-client-module .wf-doc-list-entry{@apply tw:flex-wrap}.v2-client-module .dv-action-buttons{@apply tw:flex-wrap}}
 @media(max-width:550px){.v2-client-module .wf-form-grid{grid-template-columns:1fr}.v2-client-module .v2-team-review-callout{@apply tw:flex-wrap}.v2-client-module .v2-team-heading-actions{@apply tw:flex-wrap}.v2-client-module .dv-actions{@apply tw:items-start tw:flex-col}}
@@ -174,7 +174,7 @@ html[data-workspace-ui='v2']{
 .v2-client-module .v2-team-month-wizard .team-review-row>button,.v2-client-module .v2-team-month-wizard .team-add-line{border:1px solid var(--v2-line-e5d6c9,#e5d6c9);@apply tw:rounded-[7px];background:var(--v2-surface-fff,#fff);color:var(--v2-text-5a1e2d,#5a1e2d);@apply tw:p-[10px] tw:text-[11px]}
 .v2-client-module .v2-team-month-wizard .team-step-track{@apply tw:flex tw:gap-[12px] tw:mb-[20px]}
 .v2-client-module .v2-team-month-wizard .team-step-track span{@apply tw:grid tw:place-items-center tw:w-[32px] tw:h-[32px];background:var(--v2-surface-f4ede6,#f4ede6);@apply tw:rounded-[7px];color:var(--v2-text-a78a72,#a78a72);@apply tw:text-[11px]}
-.v2-client-module .v2-team-month-wizard .team-step-track span.active{background:#5a1e2d;color:#fff}
+.v2-client-module .v2-team-month-wizard .team-step-track span.active{background:#5a1e2d;@apply tw:text-white}
 .v2-client-module .v2-team-month-wizard .team-stage-intro{@apply tw:flex tw:gap-[20px];color:var(--v2-text-8c7462,#8c7462);@apply tw:text-[12px];line-height:1.6}
 .v2-client-module .v2-team-month-wizard .team-stage-intro h3{@apply tw:text-[18px];color:var(--v2-text-5a1e2d,#5a1e2d)}
 .v2-client-module .v2-team-month-wizard .team-stage-intro .team-stage-illustration{@apply tw:ml-auto tw:shrink-0;color:var(--v2-text-b58c52,#b58c52)}
@@ -209,7 +209,7 @@ html[data-workspace-ui='v2']{
 .v2-client-module .v2-fronts-panel{@apply tw:p-[25px];background:var(--v2-surface-fff,#fff);border:1px solid var(--v2-line-e7d6c7,#e7d6c7);@apply tw:rounded-[9px] tw:text-[12px];color:var(--v2-text-9e846e,#9e846e)}
 .v2-client-module .v2-fronts-badge{@apply tw:text-[10px] tw:flex tw:items-center tw:gap-[7px];color:var(--v2-text-3f956e,#3f956e)}
 .v2-client-module.v2-fronts-overlay{@apply tw:fixed tw:inset-0 tw:z-12100;background:#241b216e;@apply tw:flex tw:items-center tw:justify-center tw:p-[18px]}
-.v2-client-module .v2-fronts-contact{color:#fff;text-decoration:none}
+.v2-client-module .v2-fronts-contact{@apply tw:text-white;text-decoration:none}
 @media(max-width:850px){.v2-client-module .v2-fronts-grid,.v2-client-module .v2-fronts-faq-grid{grid-template-columns:1fr}.v2-client-module .v2-fronts-included-note{@apply tw:items-start tw:flex-col}}
 
 .v2-client-module .v2-month-scroller{@apply tw:min-w-0 tw:overflow-x-auto}.v2-client-module .wf-month-grid .wf-cal-day.outside{opacity:.55}

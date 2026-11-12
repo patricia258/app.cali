@@ -1,9 +1,11 @@
-import { supabase } from '../../api/supabase';
+import { observeWorkspaceSession } from '../../api/access/session';
+import { observeWorkspaceNotifications } from '../../api/workspace/notifications';
 
 type SoundKind = 'chat' | 'movement';
 
 let installed = false;
-let channel: ReturnType<NonNullable<typeof supabase>['channel']> | null = null;
+let actorId: string | null = null;
+let stopNotifications: (() => void) | undefined;
 let audioContext: AudioContext | null = null;
 let lastSoundAt = 0;
 
@@ -72,32 +74,29 @@ function notify(kind: SoundKind) {
   void playSound(kind);
 }
 
-function notifyFromDatabase(payload: any) {
-  notify(classifyNotification(payload?.new?.notification_type));
-}
-
-async function subscribe() {
-  if (!supabase) return;
-  const { data } = await supabase.auth.getSession();
-  const userId = data.session?.user?.id;
+function setNotificationActor(userId: string | null) {
+  if (actorId === userId) return;
+  stopNotifications?.();
+  stopNotifications = undefined;
+  actorId = userId;
   if (!userId) return;
-  if (channel) await supabase.removeChannel(channel);
-  channel = supabase.channel(`workspace-notification-experience-${userId}-${Date.now()}`)
-    .on('postgres_changes', { event: 'INSERT', schema: 'cali_workspace', table: 'notifications', filter: `user_id=eq.${userId}` }, notifyFromDatabase)
-    .subscribe();
+  stopNotifications = observeWorkspaceNotifications(userId, 'experience', (item) => {
+    if (actorId === userId) notify(classifyNotification(item.notification_type));
+  });
 }
 
 export function installNotificationExperienceRuntime() {
   if (installed) return;
   installed = true;
-  const boot = () => void subscribe();
+  const boot = () => {
+    observeWorkspaceSession((session) => setNotificationActor(session?.user.id ?? null));
+  };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
   else boot();
 
   const unlock = () => void unlockAudio();
   window.addEventListener('pointerdown', unlock, { once: true, passive: true });
   window.addEventListener('keydown', unlock, { once: true });
-  window.addEventListener('focus', () => { if (!channel) void subscribe(); });
   window.addEventListener('cali:workspace-chime', (event: Event) => {
     const custom = event as CustomEvent<{ kind?: SoundKind }>;
     notify(custom.detail?.kind === 'movement' ? 'movement' : 'chat');

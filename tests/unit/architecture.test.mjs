@@ -43,6 +43,29 @@ test('custom hooks live in their own named files', () => {
   assert.deepEqual(violations, []);
 });
 
+test('telas e runtimes acessam Supabase por adaptadores de domínio', () => {
+  const apiDirectory = join(src, 'api') + '/';
+  const violations = [];
+  for (const file of sourceFiles(src).filter((path) => !path.startsWith(apiDirectory))) {
+    const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+    for (const node of source.statements) {
+      if (!ts.isImportDeclaration(node) || !ts.isStringLiteral(node.moduleSpecifier)) continue;
+      const module = node.moduleSpecifier.text;
+      if (/\/api\/supabase(?:\.ts)?$/.test(module) || (module === '@supabase/supabase-js' && !node.importClause?.isTypeOnly)) {
+        violations.push(file.slice(src.length) + ' → ' + module);
+      }
+    }
+  }
+  assert.deepEqual(violations, []);
+});
+
+test('o bootstrap usa folhas do fluxo com Tailwind e mantém retirado o carregador legado', () => {
+  assert.equal(existsSync(join(src, 'styles/legacy')), false);
+  assert.ok(existsSync(join(src, 'styles/tailwind.css')));
+  const obsoleteImports = sourceFiles(src).filter((file) => /styles\/legacy|loadLegacyStyles/.test(readFileSync(file, 'utf8')));
+  assert.deepEqual(obsoleteImports, []);
+});
+
 
 test('cada rota registrada tem um caso de navegação no Playwright', () => {
   const matrix = fileURLToPath(new URL('../e2e/routes.cjs', import.meta.url));

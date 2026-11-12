@@ -14,10 +14,18 @@ import { Paperclip, ArrowRight,
   AlertTriangle, CalendarDays, CheckCircle2, ChevronDown, ChevronRight, FileText, Filter,
   MessageCircle, Pencil, Plus, Search, Send, Trash2, X, UserPlus } from 'lucide-react';
 import { Shell, type Role } from '../../components/workspace/WorkspaceShell';
-import { supabase } from '../../api/supabase';
+import { recordsAvailable } from '../../api/records/client';
+import { listRecordMessages, postRecordMessage, uploadRecordAttachment, type ConversationMessageRow } from '../../api/records/conversation';
+import {
+  changeRecordStatus, checkRecordExists, deleteInternalRecord, insertRecord, notifyRecordShared,
+  readClientRecordCompany, readPartnerRecordTimer, readPendingRecordClosures, readRecord, readRecordAuthor,
+  readRecordAuthors, readRecordCompanies, readRecordContext, readRecordEditorReferences, requestPartnerRecordClose,
+  startPartnerRecordTimer, stopPartnerRecordTimer, subscribeWorkspaceRecords, updateRecord,
+} from '../../api/records/workspace';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
 import { CompanyConversationHistory } from './CompanyConversationHistory';
+import { AdditionalAccessDialog, type AdditionalAccessDraft } from './components/AdditionalAccessDialog';
 
 type RecordType =
   | 'meeting' | 'occurrence' | 'decision' | 'request' | 'people_movement'
@@ -94,10 +102,8 @@ const typeLabels: Record<RecordType, string> = {
 };
 const clientTypes: RecordType[] = ['occurrence', 'people_movement', 'leadership', 'request', 'context_change', 'other'];
 const adminTypes = Object.keys(typeLabels) as RecordType[];
-const emptyAccess = { name: '', job: '', email: '', phone: '', notes: '', ack: false };
 const conversationalTypes = new Set<RecordType>(['occurrence', 'request', 'context_change', 'other']);
 const archivedStatuses = new Set<WorkflowStatus>(['standby', 'completed', 'cancelled']);
-const recordColumns = 'id,company_id,project_id,event_id,protocol,record_type,title,occurred_at,visibility,source_actor,participants,summary,transcript,decisions,attention_points,next_actions,impact_level,include_in_report,requires_action,created_by,created_at,workflow_status,last_activity_at,closed_at';
 
 const workflowLabels: Record<WorkflowStatus, string> = {
   open: 'Aberta', in_progress: 'Em andamento', waiting_client: 'Aguardando cliente',
@@ -139,7 +145,7 @@ function mapRecord(row: any): AccountRecordRow {
     lastActivityAt: row.last_activity_at, closedAt: row.closed_at,
   };
 }
-function mapMessage(row: any): ConversationMessage {
+function mapMessage(row: ConversationMessageRow): ConversationMessage {
   return { id: row.id, recordId: row.record_id, authorId: row.author_id, authorRole: row.author_role, body: row.body, visibility: row.visibility, createdAt: row.created_at };
 }
 function statusLabel(status: WorkflowStatus | null | undefined, role: Role) {
@@ -181,7 +187,6 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
   const [groupLimit, setGroupLimit] = useState<Record<string, number>>({});
   const [form, setForm] = useState<FormState>(() => emptyForm(role));
   const [accessOpen, setAccessOpen] = useState(false);
-  const [access, setAccess] = useState(emptyAccess);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<AccountRecordRow | null>(null);
   const [selected, setSelected] = useState<AccountRecordRow | null>(null);
@@ -219,37 +224,31 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
     void openRecord(found);
   }, [records, searchParams]);
   useEffect(() => {
-    if (!supabase || !companyId) return;
-    const client = supabase;
+    if (!recordsAvailable || !companyId) return;
     const refresh = () => void loadContext(companyId).catch(() => setError('Não foi possível atualizar as ocorrências.'));
-    const filter = companyId === 'all' ? {} : { filter: `company_id=eq.${companyId}` };
-    const channel = client
-      .channel(`records-v27-${companyId}-${role}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'cali_workspace', table: 'account_records', ...filter }, refresh)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'cali_workspace', table: 'account_records', ...filter }, (payload) => {
-        const next = mapRecord(payload.new);
-        setRecords((current) => current.map((record) => record.id === next.id ? next : record));
-        setSelected((current) => current?.id === next.id ? next : current);
-        refresh();
-      })
-      .subscribe();
+    const unsubscribe = subscribeWorkspaceRecords(companyId, role, refresh, (row) => {
+      const next = mapRecord(row);
+      setRecords((current) => current.map((record) => record.id === next.id ? next : record));
+      setSelected((current) => current?.id === next.id ? next : current);
+      refresh();
+    });
     const refreshOnFocus = () => {
       refresh();
       const openedId = selectedRecordId.current;
       if (!openedId) return;
-      void client.from('account_records').select('id').eq('id', openedId).maybeSingle().then(({ data, error: queryError }) => {
-        if (!data && !queryError) setSelected((current) => current?.id === openedId ? null : current);
+      void checkRecordExists(openedId).then((exists) => {
+        if (!exists) setSelected((current) => current?.id === openedId ? null : current);
       });
     };
     window.addEventListener('focus', refreshOnFocus);
     return () => {
       window.removeEventListener('focus', refreshOnFocus);
-      void client.removeChannel(channel);
+      unsubscribe();
     };
   }, [companyId, role]);
 
   async function load() {
-    if (!supabase) return;
+    if (!recordsAvailable) return;
     setLoading(true); setError('');
     try {
       const userId = user?.id || '';
@@ -257,25 +256,22 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
       let resolvedCompanyId = '';
       if (staff) {
         setCompanies(staff.companies);
-        const [authorResult, adminResult] = await Promise.all([supabase.from('profiles').select('id,full_name,avatar_url'), supabase.rpc('staff_admin_contacts')]);
-        const people = [...((authorResult.data || []) as any[]), ...((adminResult.data || []) as any[])];
-        if (!authorResult.error) { setAuthors(Object.fromEntries(people.map((row: any) => [row.id, row.full_name || '']))); void Promise.all(people.filter((row) => row.avatar_url).map(async (row) => [row.id, (await resolveWorkspaceMedia(row.avatar_url, 3600)) || ''] as [string, string])).then((list) => setStaffPhotos(Object.fromEntries(list.filter(([, url]) => url)))); }
-        const pending = await supabase.from('staff_review_requests').select('entity_id').eq('kind', 'record_close').eq('status', 'pending');
-        setCloseRequested(Object.fromEntries(((pending.data || []) as any[]).map((row) => [row.entity_id, true])));
+        const people = await readRecordAuthors(true);
+        if (people) {
+          setAuthors(Object.fromEntries(people.map((row) => [row.id, row.full_name || ''])));
+          const avatars = people.filter((row) => row.avatar_url).map(async (row) =>
+            [row.id, (await resolveWorkspaceMedia(row.avatar_url, 3600)) || ''] as const);
+          void Promise.all(avatars).then((list) => setStaffPhotos(Object.fromEntries(list.filter(([, url]) => url))));
+        }
+        setCloseRequested(await readPendingRecordClosures());
         resolvedCompanyId = companyId || 'all';
       } else if (role === 'admin') {
-        const companyResult = await supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url').neq('status', 'archived').order('display_name');
-        if (companyResult.error) throw companyResult.error;
-        const nextCompanies = (companyResult.data || []).map((row: any) => ({ id: row.id, name: row.display_name, logo: row.logo_workspace_url, logoFallback: row.logo_url }));
-        setCompanies(nextCompanies);
-        // Quem abriu cada ocorrência (nome do login) — a RLS decide o que a administradora enxerga.
-        const authorResult = await supabase.from('profiles').select('id,full_name');
-        if (!authorResult.error) setAuthors(Object.fromEntries((authorResult.data || []).map((row: any) => [row.id, row.full_name || ''])));
+        setCompanies(await readRecordCompanies());
+        const people = await readRecordAuthors(false);
+        if (people) setAuthors(Object.fromEntries(people.map((row) => [row.id, row.full_name || ''])));
         resolvedCompanyId = companyId || 'all';
       } else {
-        const profileResult = await supabase.from('profiles').select('company_id').eq('id', userId).maybeSingle();
-        if (profileResult.error) throw profileResult.error;
-        resolvedCompanyId = profileResult.data?.company_id || '';
+        resolvedCompanyId = await readClientRecordCompany(userId);
       }
       setCompanyId(resolvedCompanyId);
       await loadContext(resolvedCompanyId);
@@ -285,36 +281,16 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
   }
 
   async function loadContext(targetCompanyId: string) {
-    if (!supabase || !targetCompanyId) return;
-    // 'all' (só administradora) lê as ocorrências de todas as empresas; a RLS continua valendo.
-    const scopedBase = (builder: any) => targetCompanyId === 'all' ? builder : builder.eq('company_id', targetCompanyId);
-    // Equipe CALI: só as conversas com o cliente (a memória interna da conta não entra).
-    const scoped = (builder: any, records = false) => records && staff ? scopedBase(builder).eq('visibility', 'client').not('workflow_status', 'is', null) : scopedBase(builder);
-    const [recordResult, countResult, reopenResult] = await Promise.all([
-      scoped(supabase.from('account_records').select(recordColumns), true).order('last_activity_at', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false }),
-      scoped(supabase.from('account_record_messages').select('id,record_id')).is('deleted_at', null),
-      scoped(supabase.from('account_record_reopen_requests').select('record_id,status,requested_at')).eq('status', 'pending').order('requested_at', { ascending: false }),
-    ]);
-    if (recordResult.error) throw recordResult.error;
-    if (countResult.error) throw countResult.error;
-    if (reopenResult.error) throw reopenResult.error;
-    const counts: Record<string, number> = {};
-    for (const row of countResult.data || []) counts[row.record_id] = (counts[row.record_id] || 0) + 1;
-    const reopen: Record<string, 'pending'> = {};
-    for (const row of reopenResult.data || []) reopen[row.record_id] = 'pending';
-    setMessageCounts(counts);
-    setReopenByRecord(reopen);
-    setRecords((recordResult.data || []).map(mapRecord));
+    if (!recordsAvailable || !targetCompanyId) return;
+    const context = await readRecordContext(targetCompanyId, Boolean(staff));
+    setMessageCounts(context.counts);
+    setReopenByRecord(context.pendingReopens);
+    setRecords(context.records.map(mapRecord));
 
     if (role === 'admin' && !staff) {
-      const [projectResult, eventResult] = await Promise.all([
-        scoped(supabase.from('projects').select('id,company_id,name')).neq('status', 'cancelled').order('name'),
-        scoped(supabase.from('events').select('id,company_id,title,starts_at,event_type,cancelled_at')).is('cancelled_at', null).order('starts_at', { ascending: false }),
-      ]);
-      if (projectResult.error) throw projectResult.error;
-      if (eventResult.error) throw eventResult.error;
-      setProjects((projectResult.data || []).map((row: any) => ({ id: row.id, companyId: row.company_id, name: row.name })));
-      setEvents((eventResult.data || []).map((row: any) => ({ id: row.id, companyId: row.company_id, title: row.title, startsAt: row.starts_at, type: row.event_type, cancelledAt: row.cancelled_at })));
+      const references = await readRecordEditorReferences(targetCompanyId);
+      setProjects(references.projects);
+      setEvents(references.events);
     } else {
       setProjects([]); setEvents([]);
     }
@@ -356,30 +332,29 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
   }, [role, visible, groupBy, companyMap]);
 
   // Pedido de acesso adicional: vira uma ocorrência do tipo "solicitação", com os dados da pessoa e a ciência das condições.
-  async function requestAccess(event: FormEvent) {
-    event.preventDefault();
-    if (!supabase || !companyId || !access.ack || !access.name.trim() || !access.email.trim()) return;
-    setSaving(true); setError('');
+  async function requestAccess(access: AdditionalAccessDraft) {
+    if (!recordsAvailable || !companyId) return;
+    setError('');
     try {
-      const userResult = await supabase.auth.getUser();
+      const userResult = await readRecordAuthor();
       if (userResult.error) throw userResult.error;
       const now = new Date();
       const body = ['Solicitação de acesso adicional ao CALI Workspace.', '', `Nome: ${access.name.trim()}`, `Cargo: ${access.job.trim() || 'não informado'}`, `E-mail: ${access.email.trim().toLowerCase()}`, `Telefone: ${access.phone.trim() || 'não informado'}`, access.notes.trim() ? `Observações: ${access.notes.trim()}` : '', '', `Ciência das condições registrada em ${formatDateTime(now.toISOString())}.`].filter((line, index, all) => line || all[index - 1]).join('\n');
-      const result = await supabase.from('account_records').insert({
+      const result = await insertRecord({
         company_id: companyId, record_type: 'request', title: `Solicitação de acesso adicional — ${access.name.trim()}`.slice(0, 180), occurred_at: now.toISOString(),
         visibility: 'client', source_actor: 'client', participants: [], summary: body, decisions: [], attention_points: [], next_actions: [],
         impact_level: emptyForm(role).impactLevel, include_in_report: false, requires_action: true, created_by: userResult.data.user?.id || null,
         workflow_status: 'open', last_activity_at: now.toISOString(), updated_at: now.toISOString(),
-      }).select('id').single();
+      });
       if (result.error) throw result.error;
-      const messageResult = await supabase.rpc('post_account_record_message', { p_record_id: result.data.id, p_body: body, p_internal: false });
+      const messageResult = await postRecordMessage(result.data.id, body);
       if (messageResult.error) throw messageResult.error;
-      setAccessOpen(false); setAccess(emptyAccess);
+      setAccessOpen(false);
       setNotice('Solicitação de acesso enviada à CALI.');
       await loadContext(companyId);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar a solicitação.');
-    } finally { setSaving(false); }
+    }
   }
   function openNew() {
     setEditing(null);
@@ -411,10 +386,10 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
 
   async function save(event: FormEvent) {
     event.preventDefault();
-    if (!supabase || !form.companyId || !form.title.trim()) return;
+    if (!recordsAvailable || !form.companyId || !form.title.trim()) return;
     setSaving(true); setError('');
     try {
-      const userResult = await supabase.auth.getUser();
+      const userResult = await readRecordAuthor();
       if (userResult.error) throw userResult.error;
       const userId = userResult.data.user?.id || null;
       const conversational = form.visibility === 'client' && conversationalTypes.has(form.type);
@@ -430,24 +405,20 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
       };
       let recordId = editing?.id || '';
       if (editing) {
-        const result = await supabase.from('account_records').update(payload).eq('id', editing.id).select('id').single();
+        const result = await updateRecord(editing.id, payload);
         if (result.error) throw result.error;
       } else {
         payload.created_by = userId;
         payload.workflow_status = conversational ? (role === 'client' ? 'open' : 'waiting_client') : null;
         payload.last_activity_at = new Date().toISOString();
-        const result = await supabase.from('account_records').insert(payload).select('id').single();
+        const result = await insertRecord(payload);
         if (result.error) throw result.error;
         recordId = result.data.id;
         if (conversational && form.summary.trim()) {
-          const messageResult = await supabase.rpc('post_account_record_message', { p_record_id: recordId, p_body: form.summary.trim(), p_internal: false });
+          const messageResult = await postRecordMessage(recordId, form.summary.trim());
           if (messageResult.error) throw messageResult.error;
         } else if (role === 'admin' && form.visibility === 'client') {
-          await supabase.rpc('notify_workspace_movement', {
-            p_company_id: form.companyId, p_actor_id: userId, p_target: 'client', p_notification_type: 'account_record_shared',
-            p_title: 'Novo registro compartilhado pela CALI', p_body: form.title.trim(), p_entity_type: 'account_record', p_entity_id: recordId,
-            p_action_url: `/cliente/registros?record=${recordId}`, p_relevance: 'normal', p_email_required: false,
-          });
+          await notifyRecordShared(form.companyId, userId, recordId, form.title.trim());
         }
       }
       setEditorOpen(false); setEditing(null);
@@ -459,25 +430,25 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
   }
 
   async function remove(record: AccountRecordRow) {
-    if (!supabase || role !== 'admin' || record.workflowStatus) return;
+    if (!recordsAvailable || role !== 'admin' || record.workflowStatus) return;
     if (!window.confirm(`Excluir “${record.title}”? O registro deixará de alimentar os relatórios.`)) return;
-    const result = await supabase.from('account_records').delete().eq('id', record.id);
+    const result = await deleteInternalRecord(record.id);
     if (result.error) setError(result.error.message);
     else { setNotice('Registro excluído.'); await loadContext(record.companyId); }
   }
 
   async function openRecord(record: AccountRecordRow) {
-    if (!supabase) return;
+    if (!recordsAvailable) return;
     setSelected(record); setConversationOpen(true); setMessageDraft(''); setMessages([]); setError('');
-    const result = await supabase.from('account_record_messages').select('id,record_id,author_id,author_role,body,visibility,created_at').eq('record_id', record.id).is('deleted_at', null).order('created_at');
+    const result = await listRecordMessages(record.id);
     if (result.error) { setError(result.error.message); return; }
     setMessages((result.data || []).map(mapMessage));
     if (staff) void staffLoadTimer(record.id);
   }
 
   async function openHistoryRecord(recordId: string) {
-    if (!supabase) return;
-    const { data, error: requestError } = await supabase.from('account_records').select(recordColumns).eq('id', recordId).maybeSingle();
+    if (!recordsAvailable) return;
+    const { data, error: requestError } = await readRecord(recordId);
     if (requestError || !data) {
       setError('Ocorrência indisponível. Atualize o histórico.');
       return;
@@ -493,7 +464,7 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
     }
   }
   async function sendMessage() {
-    if (!supabase || !selected || (!messageDraft.trim() && !(staff && staffFile))) return;
+    if (!recordsAvailable || !selected || (!messageDraft.trim() && !(staff && staffFile))) return;
     setSendingMessage(true); setError('');
     try {
       let token = '';
@@ -501,14 +472,14 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
         const allowed = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
         if (!allowed.includes(staffFile.type)) throw new Error('Use PDF, imagem, Word, Excel ou PowerPoint.');
         if (staffFile.size > 10 * 1024 * 1024) throw new Error('O anexo pode ter até 10 MB.');
-        const { data: auth } = await supabase.auth.getUser();
+        const { data: auth } = await readRecordAuthor();
         const safeName = staffFile.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').slice(0, 90) || 'arquivo';
         const path = `records/${selected.companyId}/${selected.id}/${auth.user?.id}/${Date.now()}-${safeName}`;
-        const upload = await supabase.storage.from('cali-workspace-private').upload(path, staffFile, { contentType: staffFile.type, upsert: false });
+        const upload = await uploadRecordAttachment(path, staffFile);
         if (upload.error) throw new Error('Não foi possível anexar o arquivo. A mensagem não foi enviada.');
         token = `[[arquivo|${encodeURIComponent(staffFile.name)}|${encodeURIComponent(path)}|${encodeURIComponent(staffFile.type)}|${staffFile.size}]]`;
       }
-      const result = await supabase.rpc(staff ? 'partner_post_record_message' : 'post_account_record_message', { p_record_id: selected.id, p_body: [messageDraft.trim(), token].filter(Boolean).join('\n'), p_internal: staff ? staffInternal : false });
+      const result = await postRecordMessage(selected.id, [messageDraft.trim(), token].filter(Boolean).join('\n'), Boolean(staff), Boolean(staff && staffInternal));
       if (result.error) throw result.error;
       setMessageDraft(''); setStaffFile(null);
       const nextStatus = (result.data as any)?.workflow_status as WorkflowStatus | undefined;
@@ -521,26 +492,27 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
   }
 
   async function staffRequestClose() {
-    if (!supabase || !selected || !staff) return;
+    if (!recordsAvailable || !selected || !staff) return;
     setStatusSaving(true); setError('');
-    const result = await supabase.rpc('partner_request_record_close', { p_record_id: selected.id, p_note: null });
+    const result = await requestPartnerRecordClose(selected.id);
     setStatusSaving(false);
     if (result.error) { setError(result.error.message || 'Não foi possível enviar para aprovação.'); return; }
     setCloseRequested((current) => ({ ...current, [selected.id]: true })); setNotice('Encerramento enviado para a Patricia aprovar.');
   }
   async function staffLoadTimer(recordId: string) {
-    if (!supabase || !staff || !user?.id) return; setStaffTimer(null);
-    const result = await supabase.from('work_timers').select('id,started_at').eq('user_id', user.id).eq('account_record_id', recordId).eq('status', 'active').limit(1);
-    const row: any = (result.data || [])[0]; if (row) setStaffTimer({ id: row.id, startedAt: row.started_at });
+    if (!recordsAvailable || !staff || !user?.id) return;
+    setStaffTimer(null);
+    const timer = await readPartnerRecordTimer(recordId, user.id);
+    if (timer) setStaffTimer(timer);
   }
   async function staffToggleTimer() {
-    if (!supabase || !selected || !staff) return; setError('');
+    if (!recordsAvailable || !selected || !staff) return; setError('');
     if (staffTimer) {
-      const result = await supabase.rpc('partner_stop_timer', { p_timer_id: staffTimer.id, p_description: null });
+      const result = await stopPartnerRecordTimer(staffTimer.id);
       if (result.error) { setError(result.error.message || 'Não foi possível pausar o cronômetro.'); return; }
       setStaffTimer(null); setNotice((result.data as any)?.discarded ? 'Sessão com menos de 30 segundos: não foi registrada.' : `Sessão de ${(result.data as any)?.minutes} min enviada para aprovação da Patrícia.`);
     } else {
-      const result = await supabase.rpc('partner_start_record_timer', { p_record_id: selected.id });
+      const result = await startPartnerRecordTimer(selected.id);
       if (result.error) { setError(result.error.message || 'Não foi possível iniciar o cronômetro.'); return; }
       setStaffTimer({ id: String(result.data), startedAt: new Date().toISOString() });
     }
@@ -548,10 +520,10 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
   }
 
   async function changeStatus(status: WorkflowStatus) {
-    if (!supabase || !selected || role !== 'admin') return;
+    if (!recordsAvailable || !selected || role !== 'admin') return;
     setStatusSaving(true); setError('');
     try {
-      const result = await supabase.rpc(staff ? 'partner_set_record_status' : 'set_account_record_status', { p_record_id: selected.id, p_status: status });
+      const result = await changeRecordStatus(selected.id, status, Boolean(staff));
       if (result.error) throw result.error;
       const next = { ...selected, workflowStatus: status, lastActivityAt: new Date().toISOString(), closedAt: ['completed', 'cancelled'].includes(status) ? new Date().toISOString() : null };
       setSelected(next);
@@ -578,7 +550,7 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
 
   return <RecordsFrame staff={Boolean(staff)} role={role}><div className={role==='client'?'v2-client-module':'ap-app v2-admin-page v2-admin-records v2-client-module'}><div className={role==='admin'?'ap-content':undefined} style={role==='admin'?undefined:{display:'contents'}}>
     <section className="wf">
-      {role==='client' && <div className="wf-head"><div><small>ÁREA DA EMPRESA / CANAL COM A CALI</small><h1>Ocorrências</h1><p>Uma conversa por assunto, com decisões e histórico no mesmo lugar.</p></div><div className="v2-head-actions"><Button variant="workflowSecondary" type="button" onClick={() => { setAccess(emptyAccess); setError(''); setAccessOpen(true); }}><UserPlus size={15}/> Solicitar acesso</Button><Button variant="workflowPrimary" type="button" onClick={openNew}><Plus size={15}/> Nova ocorrência</Button></div></div>}
+      {role==='client' && <div className="wf-head"><div><small>ÁREA DA EMPRESA / CANAL COM A CALI</small><h1>Ocorrências</h1><p>Uma conversa por assunto, com decisões e histórico no mesmo lugar.</p></div><div className="v2-head-actions"><Button variant="workflowSecondary" type="button" onClick={() => { setError(''); setAccessOpen(true); }}><UserPlus size={15}/> Solicitar acesso</Button><Button variant="workflowPrimary" type="button" onClick={openNew}><Plus size={15}/> Nova ocorrência</Button></div></div>}
       {role==='admin' && <div className="wf-head"><div><small>{staff ? 'EQUIPE CALI / OCORRÊNCIAS' : 'BACKOFFICE / CALI RH'}</small><h1>Ocorrências</h1><p>{staff ? 'Solicitações das empresas que você atende.' : 'Solicitações dos clientes e memória consultiva de cada conta, com histórico no mesmo lugar.'}</p></div>{!staff && <div className="v2-head-actions"><Button variant="workflowPrimary" type="button" onClick={openNew}><Plus size={15}/> Novo registro</Button></div>}</div>}
 
       {notice && <InlineNotice tone="success" className="v2-toast" role="status"><CheckCircle2 size={18} /><span>{notice}</span></InlineNotice>}
@@ -735,31 +707,8 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
       {role === 'client' ? <div className="wf-modal-actions"><button type="button" onClick={() => setEditorOpen(false)}>Cancelar</button><Button variant="workflowPrimary" type="submit" disabled={saving || !form.title.trim() || !form.companyId}>{saving ? 'Enviando…' : <>Registrar ocorrência <ArrowRight size={14} /></>}</Button></div> : <div className="wf-modal-actions"><button type="button" onClick={() => setEditorOpen(false)}>Cancelar</button><Button variant="workflowPrimary" type="submit" disabled={saving || !form.title.trim() || !form.companyId}>{saving ? 'Salvando…' : editing ? 'Salvar contexto' : 'Salvar registro'}</Button></div>}
     </DialogForm></div>}
 
-    {accessOpen && role === 'client' && <div className="wf-overlay"><DialogForm className="wf-modal wf-create" onSubmit={requestAccess} aria-label="Solicitar acesso adicional">
-      <div className="wf-modal-header"><span>SOLICITAR ACESSO</span><button type="button" onClick={() => setAccessOpen(false)} aria-label="Fechar"><X size={17} /></button></div>
-      <h2>Incluir mais uma pessoa no Workspace</h2>
-      <p>Indique quem deve receber acesso. A CALI confirma as condições nesta ocorrência e libera o convite.</p>
-      <div className="wf-form">
-        <div className="wf-access-terms"><strong>Antes de solicitar</strong><ul>
-          <li>Cada empresa pode ter até 4 acessos ao CALI Workspace.</li>
-          <li>Todos os acessos veem as mesmas informações da empresa: projetos, entregáveis, horas, documentos, relatórios, ocorrências e equipe. Não há níveis de permissão diferentes.</li>
-          <li>O acesso adicional é contratado à parte: R$ 59,90 por mês, por acesso. Inclui login individual, histórico de registros, acompanhamento das entregas e das informações da agenda de People, suporte ao uso da plataforma e manutenção contínua.</li>
-          <li>A CALI confirma o valor e o início da cobrança nesta ocorrência antes de liberar o acesso; nada é cobrado sem a sua confirmação.</li>
-          <li>A pessoa indicada recebe um convite por e-mail. A empresa responde por quem indica e avisa a CALI quando o acesso precisar ser encerrado.</li>
-          <li>Os dados informados são usados somente para criar e administrar o acesso, conforme a Política de Privacidade.</li>
-        </ul></div>
-        <div className="wf-form-grid">
-          <label>Nome completo<input value={access.name} onChange={(event) => setAccess((current) => ({ ...current, name: event.target.value }))} required /></label>
-          <label>Cargo<input value={access.job} onChange={(event) => setAccess((current) => ({ ...current, job: event.target.value }))} /></label>
-          <label>E-mail<input type="email" value={access.email} onChange={(event) => setAccess((current) => ({ ...current, email: event.target.value }))} required /></label>
-          <label>Telefone / WhatsApp<input value={access.phone} onChange={(event) => setAccess((current) => ({ ...current, phone: event.target.value }))} /></label>
-        </div>
-        <label>Observações<textarea value={access.notes} onChange={(event) => setAccess((current) => ({ ...current, notes: event.target.value }))} placeholder="Algo que a CALI precise saber sobre este acesso" /></label>
-        <label className="wf-access-ack"><input type="checkbox" checked={access.ack} onChange={(event) => setAccess((current) => ({ ...current, ack: event.target.checked }))} /><span>Li e estou ciente das condições acima.</span></label>
-        {error && <p className="wf-access-error">{error}</p>}
-      </div>
-      <div className="wf-modal-actions"><button type="button" onClick={() => setAccessOpen(false)}>Cancelar</button><Button variant="workflowPrimary" type="submit" disabled={saving || !access.ack || !access.name.trim() || !access.email.trim() || !companyId}>{saving ? 'Enviando…' : <>Enviar solicitação <ArrowRight size={14} /></>}</Button></div>
-    </DialogForm></div>}
+    {accessOpen && role === 'client' && <AdditionalAccessDialog available={Boolean(companyId)} error={error}
+      onClose={() => setAccessOpen(false)} onRequest={requestAccess} />}
   </div></RecordsFrame>;
 }
 

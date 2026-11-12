@@ -1,12 +1,15 @@
 import { EmptyState } from '../../../components/ds/EmptyState';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { LoadingState } from '../../../components/ds/LoadingState';
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
+import { skipToken, useQuery } from '@tanstack/react-query';
+import { endOfMonth, format, parseISO } from 'date-fns';
 import { capacityOf, capacityMessages, minutesLabel, percentLabel } from '../../../lib/capacity';
 import { CapacityCard } from '../../../components/hours/CapacityBar';
 import { AlertTriangle, Clock3 } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { supabase } from '../../../api/supabase';
+import { clientHoursKey, readClientHours } from '../../../api/client/hours/extract';
+import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 
 type Project = { id: string; name: string };
 type Deliverable = { id: string; projectId?: string | null; title: string; workstream?: string | null };
@@ -26,26 +29,9 @@ type Entry = {
   endedAt?: string | null;
 };
 
-type Summary = {
-  visible: boolean;
-  contractedHours: number;
-  consumedMinutes: number;
-  remainingMinutes: number;
-  overMinutes: number;
-  usagePercent: number | null;
-};
-
-function currentMonth() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-}
-
 function monthBounds(value: string) {
-  const [year, month] = value.split('-').map(Number);
-  const start = `${year}-${String(month).padStart(2, '0')}-01`;
-  const endDate = new Date(year, month, 0);
-  const end = `${year}-${String(month).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
-  return { start, end };
+  const start = `${value}-01`;
+  return { start, end: format(endOfMonth(parseISO(start)), 'yyyy-MM-dd') };
 }
 
 function monthLabel(value: string) {
@@ -94,66 +80,26 @@ function contextLabel(context: Exclude<ContextFilter, 'all'>) {
 }
 
 export function ClientHoursPage() {
-  const [period, setPeriod] = useState(currentMonth());
-  const [summary, setSummary] = useState<Summary | null>(null);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
-  const [entries, setEntries] = useState<Entry[]>([]);
-  const [rows, setRows] = useState<{ kind: string; project: string | null; title: string; protocol: string | null; front: string | null; minutes: number }[]>([]);
-  const [planName, setPlanName] = useState('');
-  const [status, setStatus] = useState<{ occurrence: number; paused: boolean }>({ occurrence: 0, paused: false });
+  const { user } = useWorkspaceAuth();
+  const [period, setPeriod] = useState(() => format(new Date(), 'yyyy-MM'));
   const [contextFilter, setContextFilter] = useState<ContextFilter>('all');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => { void load(); }, [period]);
-
-  async function load() {
-    if (!supabase) return;
-    setLoading(true);
-    setError('');
-    try {
+  const { data, isLoading: loading, error: loadError } = useQuery({
+    queryKey: clientHoursKey(user?.id ?? '', period),
+    queryFn: user && period ? ({ signal }) => {
       const { start, end } = monthBounds(period);
-      const userResult = await supabase.auth.getUser();
-      if (userResult.error) throw userResult.error;
-      const profileResult = await supabase.from('profiles').select('company_id').eq('id', userResult.data.user?.id || '').maybeSingle();
-      if (profileResult.error) throw profileResult.error;
-      const companyId = profileResult.data?.company_id;
-      if (!companyId) throw new Error('Empresa vinculada ao acesso não encontrada.');
-
-      const [summaryResult, projectResult, deliverableResult, entryResult] = await Promise.all([
-        supabase.rpc('get_client_hours_summary', { p_period_start: start, p_period_end: end }),
-        supabase.from('projects').select('id,name').eq('company_id', companyId).neq('status', 'cancelled').order('name'),
-        supabase.from('deliverables').select('id,project_id,title,workstream').eq('company_id', companyId).eq('client_visible', true).neq('status', 'cancelled').order('title'),
-        supabase.rpc('get_client_hours_breakdown', { p_period_start: start, p_period_end: end }),
-      ]);
-      if (summaryResult.error) throw summaryResult.error;
-      void supabase.rpc('get_client_capacity_status', { p_month: start }).then(({ data }) => setStatus({ occurrence: Number((data as any)?.occurrence || 0), paused: Boolean((data as any)?.paused) }));
-      void supabase.from('companies').select('service_plan').eq('id', companyId).maybeSingle().then(({ data }) => { const plan = String((data as any)?.service_plan || ''); setPlanName(plan ? `CALI ${plan.charAt(0).toUpperCase()}${plan.slice(1)}` : ''); });
-      if (projectResult.error) throw projectResult.error;
-      if (deliverableResult.error) throw deliverableResult.error;
-      if (entryResult.error) throw entryResult.error;
-
-      const raw = (summaryResult.data || {}) as any;
-      setSummary({
-        visible: raw.visible === true,
-        contractedHours: Number(raw.contractedHours || 0),
-        consumedMinutes: Number(raw.consumedMinutes || 0),
-        remainingMinutes: Number(raw.remainingMinutes || 0),
-        overMinutes: Number(raw.overMinutes || 0),
-        usagePercent: raw.usagePercent === null || raw.usagePercent === undefined ? null : Number(raw.usagePercent),
-      });
-      setProjects((projectResult.data || []).map((row: any) => ({ id: row.id, name: row.name })));
-      setDeliverables((deliverableResult.data || []).map((row: any) => ({ id: row.id, projectId: row.project_id, title: row.title, workstream: row.workstream || null })));
-      setEntries([]);
-      setRows(((entryResult.data || []) as any[]).map((row) => ({ kind: row.kind, project: row.project_name, title: row.item_title, protocol: row.protocol, front: row.front, minutes: Number(row.minutes || 0) })));
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar as horas.');
-    } finally {
-      setLoading(false);
-    }
-  }
+      return readClientHours(user.id, start, end, signal);
+    } : skipToken,
+  });
+  const summary = data?.summary ?? null;
+  const projects: Project[] = data?.projects ?? [];
+  const deliverables: Deliverable[] = data?.deliverables ?? [];
+  const entries: Entry[] = [];
+  const rows = data?.rows ?? [];
+  const status = data?.status ?? { occurrence: 0, paused: false };
+  const plan = data?.plan ?? '';
+  const planName = plan ? `CALI ${plan.charAt(0).toUpperCase()}${plan.slice(1)}` : '';
+  const error = loadError instanceof Error ? loadError.message : loadError ? 'Não foi possível carregar as horas.' : '';
 
   const projectMap = useMemo(() => new Map(projects.map((item) => [item.id, item.name])), [projects]);
   const deliverableMap = useMemo(() => new Map(deliverables.map((item) => [item.id, item.title])), [deliverables]);

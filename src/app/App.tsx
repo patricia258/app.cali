@@ -49,7 +49,7 @@ function prefetchLikelyRoutes() {
 export default function App() {
   useEffect(() => prefetchLikelyRoutes(), []);
   const { pathname } = useLocation();
-  useLayoutEffect(() => { void applyVisualSystem(pathname); }, [pathname]);
+  useLayoutEffect(() => { applyVisualSystem(pathname); }, [pathname]);
   const workspaceArea = pathname.split('/')[1];
   const workspaceRole = workspaceArea === 'cliente' ? 'client' : workspaceArea === 'admin' ? 'admin' : null;
   const routes = (

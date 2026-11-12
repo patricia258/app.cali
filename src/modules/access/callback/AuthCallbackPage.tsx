@@ -1,8 +1,7 @@
-import { homeOf, type Role as AccessRole } from '../../../auth/workspaceAuthContext';
+import { homeOf } from '../../../auth/workspaceAuthContext';
 import { useEffect, useState } from 'react';
 import { Navigate } from '../../../components/navigation/Navigate';
-import { isSupabaseConfigured, supabase } from '../../../api/supabase';
-import type { Role } from '../../../components/workspace/WorkspaceShell';
+import { isSupabaseConfigured, readExistingWorkspaceRole, readWorkspaceSession, verifyLegacyAccessLink } from '../../../api/access/session';
 
 function wait(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -13,7 +12,7 @@ export function AuthCallbackPage() {
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) {
+    if (!isSupabaseConfigured) {
       setFailed(true);
       return;
     }
@@ -26,14 +25,9 @@ export function AuthCallbackPage() {
       const tokenType = params.get('type');
 
       if (tokenHash) {
-        const { error: verifyError } = await supabase!.auth.verifyOtp({
-          token_hash: tokenHash,
-          type: tokenType === 'email' ? 'email' : 'magiclink',
-        });
-
+        const verified = await verifyLegacyAccessLink(tokenHash, tokenType === 'email' ? 'email' : 'magiclink');
         if (!active) return;
-        if (verifyError) {
-          console.error('Falha ao validar acesso do Workspace', verifyError);
+        if (!verified) {
           setFailed(true);
           return;
         }
@@ -41,37 +35,18 @@ export function AuthCallbackPage() {
         window.history.replaceState(window.history.state, document.title, '/auth/callback');
       }
 
-      let userId: string | null = null;
-
       for (let attempt = 0; attempt < 12 && active; attempt += 1) {
-        const { data: sessionData, error: sessionError } = await supabase!.auth.getSession();
-        if (!sessionError && sessionData.session?.user) {
-          userId = sessionData.session.user.id;
-          break;
+        const session = await readWorkspaceSession();
+        if (session) {
+          const role = await readExistingWorkspaceRole();
+          if (!active) return;
+          if (role) setDestination(homeOf(role));
+          else setFailed(true);
+          return;
         }
         await wait(250);
       }
-
-      if (!active) return;
-      if (!userId) {
-        setFailed(true);
-        return;
-      }
-
-      const { data: profile, error: profileError } = await supabase!
-        .from('profiles')
-        .select('role, active')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (!active) return;
-      if (profileError || !profile?.active) {
-        setFailed(true);
-        return;
-      }
-
-      const role = profile.role as Role;
-      setDestination(homeOf(profile.role as AccessRole));
+      if (active) setFailed(true);
     }
 
     resolveProfile();

@@ -18,7 +18,7 @@ npm run test:visual:components -- \
 
 A galeria renderiza os componentes e as folhas de estilo do app com 1440×960, 1280×800, 768×1024 e 390×844. Cada largura roda com tokens dia e noite. As 32 capturas opcionais incluem galeria, diálogo, formulário e carregador. A comparação no app cobre navegação, conta, notificações, auditoria de horas e timers. Ela salva `result.json`, capturas e sobreposições de diferenças, com limiar de 24 por canal. O cenário noturno aplica o atributo de tema no navegador para verificar os seletores. O runner mede a caixa, a presença no viewport e o alvo atingido pelo clique. Diferenças de pixels incluem o conteúdo da página e precisam ser interpretadas junto da geometria.
 
-Na comparação com `773c9d4` e `3096614`, o candidato passou os 28 estados. A navegação manteve zero pixels alterados sobre `3096614` nos oito estados. A edição de horas manteve zero pixels alterados sobre os dois builds nos quatro estados. Os dois builds anteriores tinham contador de timers inacessível nas quatro larguras, menu de perfil Admin inacessível a 390 px e painel de notificações 63 px fora da tela a 768 px. A galeria e as provas de comportamento passaram 37 casos. As capturas de assinaturas usam fontes de fallback locais.
+Na comparação com `773c9d4` e `3096614`, o candidato passou os 28 estados. A navegação manteve zero pixels alterados sobre `3096614` nos oito estados. A edição de horas manteve zero pixels alterados sobre os dois builds nos quatro estados. Os dois builds anteriores tinham contador de timers inacessível nas quatro larguras, menu de perfil Admin inacessível a 390 px e painel de notificações 63 px fora da tela a 768 px. A galeria e as provas de comportamento passaram 38 casos, incluindo reaproveitamento e descarte de URLs assinadas por sessão. As capturas de assinaturas usam fontes de fallback locais.
 
 As folhas dos componentes usam utilitários para estrutura, dimensões, cores repetidas e estados. Permanecem declarações específicas para máscaras e animações de marca, sombras, camadas de diálogos, geometria calculada e regras de impressão.
 
@@ -52,16 +52,16 @@ As folhas dos componentes usam utilitários para estrutura, dimensões, cores re
 | `navigation/Navigate.tsx` | Fixtures de push e replace com parâmetros repetidos e hash. |
 | `privacy/SensitiveDataNote.tsx` | Galeria e unitário de orientação e ícone decorativo. |
 | `projects/DeliverableDependencies.tsx` | Fixtures de reprogramação Admin com justificativa e registro/recebimento por RPC do Partner. E2E `06-client-dependency-read-only` verifica atraso, histórico, escopo e leitura pelo Cliente. |
-| `projects/ProjectDeliveryHistoryBridge.tsx` | E2E `06-project-delivery-performance-history` verifica prazo, aprovação, horas e exclusão de execução aberta. |
+| `modules/projects/components/ProjectDeliveryHistory.tsx` | E2E `06-project-delivery-performance-history` verifica prazo, aprovação, horas e exclusão de execução aberta. A suíte `project-history` verifica troca de projeto e atualização no intervalo. |
 | `reports/ExecutiveReportPaperV17.tsx` | Unitário do protocolo e ciência. E2E `12-report-print` valida impressão. |
 | `reports/ReportManualComplementsPanel.tsx` | Fixture de inclusão, edição, total e remoção. Unitário de travamento da versão fechada. Persistência externa fora da fixture. |
 | `reports/ReportValidationV55.tsx` | Galeria com 14 estilos gerados, assinatura enviada, ciência pendente e protocolo. Unitário pelo papel do relatório. |
 | `workspace/DirectProfileControl.tsx` | E2E `profile-save-retry-and-reopen` e casos `account-*`. Comparação da conta aberta em quatro larguras. |
 | `workspace/OperationalSafetyBridgeV2.tsx` | E2E `hours-audit-edit-keeps-visible-entry`. Comparação de edição de horas com justificativa. |
 | `workspace/WelcomeTour.tsx` | Fixture de avanço, retorno, destaque, conclusão persistida e reabertura. Guardas de primeira entrada. |
-| `workspace/WorkspaceChrome.tsx` | E2E `workspace-notification-destination-and-read` verifica destino, leitura e bloqueio de origem externa. Comparação do sino. O export legado `ProfileControl` não tem consumidores no app atual. |
+| `workspace/WorkspaceChrome.tsx` | E2E de destino, leitura, bloqueio de origem externa e troca de sessão com dois titulares. Comparação do sino. |
 | `workspace/WorkspaceShell.tsx` | Jornadas de entrada por papel e rotas diretas. Testes de barra global, notificações e pontes instaladas pelo shell. |
-| `workspace/WorkspaceShellV2.tsx` | Comparações de navegação e perfil. E2E de rotas, menu, perfil e troca de módulo. |
+| `workspace/WorkspaceShellV2.tsx` | Comparações de navegação e perfil. E2E de menu, troca de módulo e saída com timer ativo da sessão. |
 | `ds/useDialogFocus.ts` | Fixtures de diálogo sem ações, teclado aninhado e foco restaurado. |
 | `workspace/visualSystem.ts` | Exercitado no carregamento das rotas de ambos os shells. Teste de horário dos temas em `workspace-rules.test.mjs`. |
 

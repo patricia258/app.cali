@@ -2,8 +2,8 @@ import { DialogForm } from '../../../components/ds/DialogForm';
 import { Button } from '../../../components/ds/Button';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { useEffect, useState, type FormEvent } from 'react';
-import { supabase } from '../../../api/supabase';
-import { materialReviewColumns, materialStatus, materialText, type MaterialReview } from '../../material-review/material-review';
+import { readAssignedMaterials, submitMaterialReview, type MaterialReview } from '../../../api/materials/reviews';
+import { materialStatus, materialText } from '../../material-review/material-review';
 import '../../material-review/material-review.css';
 
 export function StaffMaterials() {
@@ -14,11 +14,7 @@ export function StaffMaterials() {
   const [busy, setBusy] = useState(false);
 
   async function load() {
-    if (!supabase) return;
-    const { data, error: requestError } = await supabase.from('partner_material_reviews')
-      .select(materialReviewColumns).order('updated_at', { ascending: false });
-    if (requestError) throw new Error(requestError.message);
-    setItems((data ?? []) as MaterialReview[]);
+    setItems(await readAssignedMaterials());
   }
   useEffect(() => {
     const refresh = () => void load().catch((reason) => setError(reason.message));
@@ -35,14 +31,11 @@ export function StaffMaterials() {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!supabase || !selected || busy) return;
+    if (!selected || busy) return;
     setBusy(true);
     setError('');
     try {
-      const { error: requestError } = await supabase.rpc('submit_partner_material_review', {
-        p_id: selected.id, p_revision: selected.revision, p_text: draft.trim(),
-      });
-      if (requestError) throw new Error(requestError.message);
+      await submitMaterialReview(selected, draft);
       setSelected(null);
       await load();
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Não foi possível enviar o material.'); }

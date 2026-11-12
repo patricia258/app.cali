@@ -135,6 +135,19 @@ async function prepareImages(page) {
     const visible = [...document.images].filter((image) => image.offsetWidth && image.offsetHeight);
     for (const image of visible) if (image.loading === 'lazy') image.loading = 'eager';
     await Promise.all(visible.map((image) => image.decode().catch(() => {})));
+    await Promise.all([...document.querySelectorAll('video')].map((video) => {
+      video.autoplay = false;
+      video.pause();
+      if (!video.readyState || video.currentTime === 0) return;
+      return new Promise((resolve) => {
+        const timer = window.setTimeout(resolve, 700);
+        video.addEventListener('seeked', () => {
+          window.clearTimeout(timer);
+          resolve();
+        }, { once: true });
+        video.currentTime = 0;
+      });
+    }));
   });
   await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
 }
@@ -168,7 +181,7 @@ async function captureDetail(page, directory, label, mapReport, id) {
     animations: 'disabled',
     caret: 'hide',
     scale: 'css',
-    timeout: 7000,
+    timeout: 12000,
   });
   await page.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }));
   return { filename, hash: hash(screenshot) };
@@ -381,7 +394,7 @@ async function capture(browser, origin, label, task, directory) {
           animations: 'disabled',
           caret: 'hide',
           scale: 'css',
-          timeout: 7000,
+          timeout: 12000,
         });
       } catch (failure) {
         error ||= String(failure.message).replaceAll(origin, 'ORIGIN');

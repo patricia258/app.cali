@@ -8,30 +8,30 @@
 .profile-signature-v59 .profile-signature-heading-v55 h3{@apply tw:text-[18px] tw:mt-[4px]}
 .profile-signature-v59 .profile-signature-heading-v55 p{max-width:610px;@apply tw:mt-[4px] tw:text-[11.5px]}
 .profile-signature-source-v59{@apply tw:flex tw:items-center tw:gap-[8px] tw:mb-[16px]}
-.profile-signature-source-v59 button,.profile-signature-source-v59 label{@apply tw:inline-flex tw:items-center tw:justify-center tw:gap-[7px] tw:min-h-[37px];padding:0 12px;border:1px solid rgba(90,30,45,.24);@apply tw:rounded-[9px];background:transparent;color:#5A1E2D;font:inherit;@apply tw:text-[11px];font-weight:800;@apply tw:cursor-pointer;transition:.16s ease}
+.profile-signature-source-v59 button,.profile-signature-source-v59 label{@apply tw:inline-flex tw:items-center tw:justify-center tw:gap-[7px] tw:min-h-[37px];padding:0 12px;border:1px solid rgba(90,30,45,.24);@apply tw:rounded-[9px];background:transparent;@apply tw:text-cali-brand;font:inherit;@apply tw:text-[11px];font-weight:800;@apply tw:cursor-pointer;transition:.16s ease}
 .profile-signature-source-v59 button:hover,.profile-signature-source-v59 label:hover{background:rgba(90,30,45,.045)}
-.profile-signature-source-v59 .active{background:#5A1E2D!important;border-color:#5A1E2D!important;color:#fff!important}
+.profile-signature-source-v59 .active{background:#5A1E2D!important;border-color:#5A1E2D!important;@apply tw:text-white!}
 .profile-signature-source-v59 input{@apply tw:hidden}
 .profile-signature-select-v59{@apply tw:relative tw:max-w-full}
 .profile-signature-field-label-v59{@apply tw:block tw:mb-[6px] tw:text-[9px];font-weight:850;letter-spacing:.1em;@apply tw:uppercase;color:#85776f}
-.profile-signature-select-trigger-v59{@apply tw:w-full tw:min-h-[76px] tw:grid;grid-template-columns:minmax(210px,1.35fr) minmax(150px,.75fr) 20px;@apply tw:items-center tw:gap-[16px];padding:10px 14px;border:1px solid #ddd2ca;@apply tw:rounded-[12px];background:#fff;color:#2B2B2B;@apply tw:text-left tw:cursor-pointer;transition:.16s ease}
+.profile-signature-select-trigger-v59{@apply tw:w-full tw:min-h-[76px] tw:grid;grid-template-columns:minmax(210px,1.35fr) minmax(150px,.75fr) 20px;@apply tw:items-center tw:gap-[16px];padding:10px 14px;border:1px solid #ddd2ca;@apply tw:rounded-[12px];background:#fff;@apply tw:text-cali-ink;@apply tw:text-left tw:cursor-pointer;transition:.16s ease}
 .profile-signature-select-trigger-v59:hover,.profile-signature-select-trigger-v59[aria-expanded="true"]{border-color:#B58C52;box-shadow:0 0 0 3px rgba(181,140,82,.08)}
-.profile-signature-selected-mark-v59{@apply tw:block tw:min-w-0 tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap;color:#5A1E2D;@apply tw:text-[31px];line-height:1.02;padding:4px 2px}
+.profile-signature-selected-mark-v59{@apply tw:block tw:min-w-0 tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap;@apply tw:text-cali-brand;@apply tw:text-[31px];line-height:1.02;padding:4px 2px}
 .profile-signature-selected-copy-v59{@apply tw:grid tw:gap-[2px];border-left:1px solid #ece3dd;@apply tw:pl-[16px]}
 .profile-signature-selected-copy-v59 strong{font-family:Inter,system-ui,sans-serif!important;@apply tw:text-[11px];color:#3A332F}
 .profile-signature-selected-copy-v59 small{font-family:Inter,system-ui,sans-serif!important;@apply tw:text-[9.5px];color:#857A73}
 .profile-signature-select-trigger-v59>svg{color:#8E7B70;transition:transform .16s ease}
 .profile-signature-select-trigger-v59[aria-expanded="true"]>svg{transform:rotate(180deg)}
 .profile-signature-options-v59{@apply tw:absolute tw:z-140 tw:left-0;@apply tw:right-0;top:calc(100% + 7px);max-height:354px;@apply tw:overflow-auto tw:p-[6px];border:1px solid #D8CCC4;@apply tw:rounded-[13px];background:#FFFDF9;box-shadow:0 20px 52px rgba(65,42,33,.18);scrollbar-width:thin}
-.profile-signature-options-v59>button{@apply tw:w-full tw:min-h-[64px] tw:grid;grid-template-columns:minmax(220px,1.35fr) minmax(160px,.75fr) 18px;@apply tw:items-center tw:gap-[15px];padding:8px 11px;border:0;border-bottom:1px solid #EEE5DE;background:transparent;color:#2B2B2B;@apply tw:text-left tw:cursor-pointer}
+.profile-signature-options-v59>button{@apply tw:w-full tw:min-h-[64px] tw:grid;grid-template-columns:minmax(220px,1.35fr) minmax(160px,.75fr) 18px;@apply tw:items-center tw:gap-[15px];padding:8px 11px;border:0;border-bottom:1px solid #EEE5DE;background:transparent;@apply tw:text-cali-ink;@apply tw:text-left tw:cursor-pointer}
 .profile-signature-options-v59>button:last-child{border-bottom:0}
 .profile-signature-options-v59>button:hover,.profile-signature-options-v59>button.active{background:rgba(181,140,82,.09)}
 .profile-signature-options-v59>button.active{box-shadow:inset 3px 0 0 #B58C52}
-.profile-signature-option-mark-v59{@apply tw:block tw:min-w-0 tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap;color:#5A1E2D;@apply tw:text-[28px];line-height:1;padding:4px 2px}
+.profile-signature-option-mark-v59{@apply tw:block tw:min-w-0 tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap;@apply tw:text-cali-brand;@apply tw:text-[28px];line-height:1;padding:4px 2px}
 .profile-signature-options-v59>button>span:nth-child(2){@apply tw:grid tw:gap-[2px]}
 .profile-signature-options-v59>button>span:nth-child(2)>strong{font-family:Inter,system-ui,sans-serif!important;@apply tw:text-[10.5px];color:#3E3733}
 .profile-signature-options-v59>button>span:nth-child(2)>small{font-family:Inter,system-ui,sans-serif!important;@apply tw:text-[9px];color:#887C75}
-.profile-signature-options-v59>button>svg{color:#5A1E2D}
+.profile-signature-options-v59>button>svg{@apply tw:text-cali-brand}
 .profile-signature-uploaded-preview-v59{@apply tw:min-h-[82px] tw:flex tw:items-center tw:justify-center;padding:10px 14px;border:1px solid #DDD2CA;@apply tw:rounded-[12px];background:#fff}
 .profile-signature-uploaded-preview-v59 img{@apply tw:block tw:max-w-[320px] tw:max-h-[62px] tw:object-contain}
 .profile-signature-uploaded-empty-v59{@apply tw:p-[18px];border:1px dashed #D9CCC4;@apply tw:rounded-[12px];color:#887C75;@apply tw:text-[11px] tw:text-center;background:#fff}
@@ -49,7 +49,7 @@
 .signature-style-minimal,.signature-style-minimal span{font-family:"Playfair Display",Baskerville,Georgia,serif!important;@apply tw:italic!;font-weight:600!important;letter-spacing:-.045em!important}
 .signature-style-personal,.signature-style-personal span{font-family:"Alex Brush","Snell Roundhand",cursive!important;@apply tw:not-italic!;font-weight:400!important;letter-spacing:0!important}
 
-.report-signature-generated-v55.signature-style-executive,.report-signature-generated-v55.signature-style-editorial,.report-signature-generated-v55.signature-style-notarial,.report-signature-generated-v55.signature-style-heritage,.report-signature-generated-v55.signature-style-calligraphic,.report-signature-generated-v55.signature-style-autograph,.report-signature-generated-v55.signature-style-contemporary,.report-signature-generated-v55.signature-style-italian,.report-signature-generated-v55.signature-style-minimal,.report-signature-generated-v55.signature-style-personal{color:#5A1E2D!important;text-rendering:geometricPrecision}
+.report-signature-generated-v55.signature-style-executive,.report-signature-generated-v55.signature-style-editorial,.report-signature-generated-v55.signature-style-notarial,.report-signature-generated-v55.signature-style-heritage,.report-signature-generated-v55.signature-style-calligraphic,.report-signature-generated-v55.signature-style-autograph,.report-signature-generated-v55.signature-style-contemporary,.report-signature-generated-v55.signature-style-italian,.report-signature-generated-v55.signature-style-minimal,.report-signature-generated-v55.signature-style-personal{@apply tw:text-cali-brand!;text-rendering:geometricPrecision}
 .report-signature-generated-v55.signature-style-calligraphic{font-size:20pt!important}
 .report-signature-generated-v55.signature-style-heritage,.report-signature-generated-v55.signature-style-autograph,.report-signature-generated-v55.signature-style-personal{font-size:18pt!important}
 
@@ -72,5 +72,5 @@
 }
 
 @media print{
-  .report-signature-generated-v55.signature-style-executive,.report-signature-generated-v55.signature-style-editorial,.report-signature-generated-v55.signature-style-notarial,.report-signature-generated-v55.signature-style-heritage,.report-signature-generated-v55.signature-style-calligraphic,.report-signature-generated-v55.signature-style-autograph,.report-signature-generated-v55.signature-style-contemporary,.report-signature-generated-v55.signature-style-italian,.report-signature-generated-v55.signature-style-minimal,.report-signature-generated-v55.signature-style-personal{color:#5A1E2D!important}
+  .report-signature-generated-v55.signature-style-executive,.report-signature-generated-v55.signature-style-editorial,.report-signature-generated-v55.signature-style-notarial,.report-signature-generated-v55.signature-style-heritage,.report-signature-generated-v55.signature-style-calligraphic,.report-signature-generated-v55.signature-style-autograph,.report-signature-generated-v55.signature-style-contemporary,.report-signature-generated-v55.signature-style-italian,.report-signature-generated-v55.signature-style-minimal,.report-signature-generated-v55.signature-style-personal{@apply tw:text-cali-brand!}
 }

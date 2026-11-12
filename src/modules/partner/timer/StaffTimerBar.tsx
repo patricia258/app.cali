@@ -4,9 +4,9 @@ import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { useEffect, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Clock3, Pause, X } from 'lucide-react';
-import { supabase } from '../../../api/supabase';
+import { stopPartnerTimer, submitPartnerTimerRecovery, touchPartnerTimer, type TimerRecovery } from '../../../api/partner/timer';
 import type { PartnerWorkspace } from '../../../api/partner/workspace';
-import { usePartnerTimer, type TimerRecovery } from './hooks/usePartnerTimer';
+import { usePartnerTimer } from './hooks/usePartnerTimer';
 import './staff-timer.css';
 
 function formatClock(seconds: number) {
@@ -34,17 +34,15 @@ export function StaffTimerBar({ me }: { me: PartnerWorkspace }) {
   }
 
   async function updateActive(operation: 'stop' | 'present') {
-    if (!supabase || !active || busy) return;
+    if (!active || busy) return;
     setBusy(true);
     setError('');
     try {
       if (operation === 'present') {
-        const { data, error } = await supabase.rpc('touch_partner_timer_v2', { p_timer_id: active.id, p_confirm_presence: true });
-        if (error) throw new Error(error.message);
+        const data = await touchPartnerTimer(active.id, true);
         setNotice(data ? 'Presença confirmada.' : 'O trecho foi pausado. Confira a justificativa.');
       } else {
-        const { data, error } = await supabase.rpc('partner_stop_timer', { p_timer_id: active.id });
-        if (error) throw new Error(error.message);
+        const data = await stopPartnerTimer(active.id);
         setNotice(data?.recovery_required ? 'Trecho pausado. Envie a justificativa.'
           : data?.discarded ? 'Sessão com menos de 30 segundos.' : 'Tempo enviado para aprovação da Patrícia.');
       }
@@ -64,14 +62,11 @@ export function StaffTimerBar({ me }: { me: PartnerWorkspace }) {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!supabase || !editing || busy) return;
+    if (!editing || busy) return;
     setBusy(true);
     setError('');
     try {
-      const { error } = await supabase.rpc('submit_partner_timer_recovery_v2', {
-        p_timer_id: editing.id, p_justification: reason.trim(), p_minutes: Number(minutes),
-      });
-      if (error) throw new Error(error.message);
+      await submitPartnerTimerRecovery(editing.id, reason, Number(minutes));
       setEditing(null);
       setNotice('Justificativa enviada para aprovação da Patrícia.');
       await refresh();

@@ -45,13 +45,25 @@ O CSS acompanha a página, o componente ou o fluxo que o usa. Um conjunto carreg
 - Cada hook próprio tem um arquivo com o mesmo nome, inclusive hooks locais. Importe pelo arquivo dono. Hooks nativos e de bibliotecas continuam importados da fonte.
 - Hooks de navegação compartilhados ficam em [src/hooks](../src/hooks). Hooks de Auth ficam em [src/auth/hooks](../src/auth/hooks). Hook de tela fica em `hooks/` do fluxo. Hooks que forem contrato de dados de vários módulos podem ficar na pasta da API do domínio.
 - URL guarda filtros, seleção e parâmetros compartilháveis. Formulário guarda rascunhos. Query guarda dados remotos por ator, empresa e filtros relevantes. Escopo privado limpa ou revalida cache ao trocar identidade. O [hook de Partner](../src/modules/partner/hooks/usePartnerWorkspace.ts) usa chave por ator, cancela leituras com o sinal da consulta e descarta cache ao desmontar.
-- A camada `api` valida entrada e retorno onde houver contrato de dados estruturado. O [cliente Supabase](../src/api/supabase.ts) atende Auth, Data API, Storage e Edge. Axios atende os fluxos HTTP que já têm consumidor. Os módulos legados que consultam o SDK diretamente migram por fluxo, preservando parâmetros, vínculos, estados e efeitos.
+- A camada `api` concentra Auth, Data API, Storage e Edge em adaptadores por domínio, com validação nos contratos estruturados. O [cliente Supabase](../src/api/supabase.ts) fica dentro dessa camada. O [Portal comercial](../src/api/commercial/portal.ts) usa Axios no transporte HTTP. A [suíte de arquitetura](../tests/unit/architecture.test.mjs) verifica a fronteira de acesso e a organização dos hooks.
 - Tipos inferidos de schemas e valores `as const` mantêm o vocabulário do domínio. Variantes de interface ficam na primitiva que as renderiza. Revisar estados persistidos antes de renomear valores. Utilitário específico fica perto do consumidor. Uma abstração compartilhada precisa ter uso concreto.
+
+## Bibliotecas nos fluxos
+
+| Biblioteca | Integração e prova |
+| --- | --- |
+| TanStack Router | Árvore de rotas, guardas e adapters de histórico e parâmetros. Playwright verifica entrada direta, retorno, parâmetros repetidos e papel. [Rotas](../src/app/router.tsx) · [Teste](../tests/e2e/routes.cjs) |
+| TanStack Query | Sessão e perfil, Partner, Equipe, Mapa, Auditoria, Satisfação, Documentos e Relatórios do Cliente, Frentes, histórico da empresa e de entregas, dependências. Leituras privadas usam a identidade e o recorte na chave. Jornadas verificam troca de empresa, recuperação e paginação. [Histórico da empresa](../src/modules/records/CompanyConversationHistory.tsx) · [Matriz](../tests/e2e/COVERAGE.md) |
+| TanStack Form | Código de acesso, pré-cadastro, pedido de acesso adicional e dúvida de relatório. Formulários nativos preservam validação do navegador, submissão por teclado e foco. [Login](../src/modules/access/sign-in/LoginPage.tsx) · [Pré-cadastro](../src/modules/public/pre-registration/PreRegistrationPage.tsx) · [Testes](TESTING.md) |
+| Zod | Códigos, MFA, termos, ficha, recibos comerciais, Forms, Mapa, histórico, Agenda e operações de Horas. As validações ficam no limite dos contratos, com estados opcionais conforme o domínio. [Contratos do app](../tests/unit/workspace-api.test.mjs) · [Contratos de acesso](../tests/unit/access-api.test.mjs) |
+| Axios | Transporte HTTP do Portal comercial para proposta e operações de envio. [Adapter](../src/api/commercial/portal.ts) · [Testes](../tests/unit/commercial-api.test.mjs) |
+| date-fns | Períodos de Horas, Satisfação e Visão geral, datas comerciais e prazos e dependências de projeto. Horários contratuais mantêm a referência de Brasília nos fluxos que a exigem. [Dependências](../src/components/projects/DeliverableDependencies.tsx) · [Testes](TESTING.md) |
+| Tailwind | Primitivas, utilitários de composição, tokens e folhas de fluxo. [Design system](DESIGN_SYSTEM.md) · [Comparação visual](VISUAL_QA.md) |
 
 ## Compatibilidade do runtime
 
 Os hooks [useLocation](../src/hooks/useLocation.ts), [useSearchParams](../src/hooks/useSearchParams.ts), [useNavigate](../src/hooks/useNavigate.ts) e [useParams](../src/hooks/useParams.ts) adaptam histórico e URLs existentes ao Router. Preservar query repetida, fragmento, links externos e Back/Forward.
 
-O [gerenciador de runtimes](../src/runtime/RouteRuntimeManager.tsx) mantém efeitos de páginas já em uso. A retirada de um efeito exige prova de gatilho, resultado, foco, rolagem e cleanup na rota que o usa. A precedência visual está no [design system](DESIGN_SYSTEM.md). Acesso direto e regras do servidor estão em [contratos de dados](DATA_CONTRACTS.md).
+O [gerenciador de runtimes](../src/runtime/RouteRuntimeManager.tsx) inicializa os efeitos que dependem das páginas existentes. A retirada exige prova de gatilho, resultado e limpeza, com foco e rolagem onde se aplicam. O [histórico de entregas](../src/modules/projects/components/ProjectDeliveryHistory.tsx) usa a seleção React e Query por ator e projeto. O [histórico de ocorrências](../src/modules/records/CompanyConversationHistory.tsx) usa cursor composto e cancela a leitura ao trocar o recorte. A precedência visual está no [design system](DESIGN_SYSTEM.md). Autorizações e regras de servidor estão em [contratos de dados](DATA_CONTRACTS.md).
 
 A [base de testes](TESTING.md) registra como provar lógica, jornadas e contratos em ambiente local isolado.

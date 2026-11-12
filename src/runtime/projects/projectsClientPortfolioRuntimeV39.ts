@@ -1,5 +1,6 @@
 import { resolveCompanyAsset, type CompanyLogoRecord } from '../../lib/companyWorkspaceLogo';
-import { supabase } from '../../api/supabase';
+import { isSupabaseConfigured } from '../../api/access/session';
+import { readProjectPortfolio } from '../../api/projects/planning';
 import { isWorkspaceRoute } from '../routeActivity';
 
 type ClientScope = 'active' | 'inactive';
@@ -52,16 +53,9 @@ function escapeText(value: string) {
 }
 
 async function load(force = false): Promise<PortfolioData> {
-  if (!supabase) return { companies: [], projects: [] };
+  if (!isSupabaseConfigured) return { companies: [], projects: [] };
   if (!force && cache && Date.now() - cache.at < 2500) return cache.data;
-  const [companyResult, projectResult] = await Promise.all([
-    supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url,logo_workspace_generated_at,status').order('display_name'),
-    supabase.from('projects').select('id,protocol,company_id,name,planning_status,created_at,start_date,target_end_date,roadmap_end_date').order('created_at', { ascending: false }),
-  ]);
-  const data = {
-    companies: (companyResult.data || []) as CompanyRow[],
-    projects: (projectResult.data || []) as ProjectRow[],
-  };
+  const data = await readProjectPortfolio() as PortfolioData;
   cache = { at: Date.now(), data };
   return data;
 }

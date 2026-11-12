@@ -1,0 +1,296 @@
+/* Public forms, privacy and callbacks share typography and browser behavior. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+@reference "./tailwind.css";
+@keyframes lp-final-monitor-float {
+  0%,100% { transform: translate3d(0,0,0) rotate(-.25deg); }
+  50% { transform: translate3d(0,-9px,0) rotate(.25deg); }
+}
+@keyframes ux-chat-pop {
+  0% { opacity: 0; transform: translateY(24px) scale(.84); }
+  72% { opacity: 1; transform: translateY(-3px) scale(1.012); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+:where(html[data-workspace-surface='public']) {
+
+@media (max-width: 620px) {
+  &:is(html) { @apply tw:text-[16px]; }
+}
+
+&:root {
+  --surface: rgba(255, 253, 249, .88);
+  --surface-strong: #fffdf9;
+  --surface-soft: rgba(255, 255, 255, .58);
+  --line-soft: rgba(90, 30, 45, .10);
+  --shadow-soft: 0 10px 35px rgba(49, 31, 25, .055);
+  --shadow-hover: 0 16px 42px rgba(49, 31, 25, .085);
+  --sidebar-open: 248px;
+}
+
+&:is(html) { scroll-behavior: smooth; }
+body {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 82% 8%, rgba(181, 140, 82, .08), transparent 28rem),
+    linear-gradient(180deg, #faf8f5 0%, #f7f3ee 42%, #f4eee8 100%);
+  color: var(--graphite);
+}
+
+h1,
+h2,
+h3 {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+h1 {
+  font-size: clamp(1.85rem, 2.6vw, 2.65rem);
+  line-height: 1.12;
+  letter-spacing: -.035em;
+  @apply tw:font-bold;
+}
+
+h2 {
+  font-size: clamp(1.25rem, 1.7vw, 1.55rem);
+  line-height: 1.22;
+  letter-spacing: -.02em;
+  @apply tw:font-bold;
+}
+
+h3 { letter-spacing: -.015em; font-weight: 650; }
+p { line-height: 1.62; }
+
+button {
+  transition: transform .16s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
+}
+
+@media (max-width: 860px) {
+  &:root { --sidebar-rail: 0px; }
+}
+
+@media (max-width: 620px) {
+  h1 { font-size: 1.78rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  &, *,
+*::before,
+*::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+&:root {
+  --sidebar-open: 286px;
+  --sidebar-rail: 80px;
+}
+@media print {
+  body { background: white !important; }
+}
+&, * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  @apply tw:w-0 tw:h-0;
+  background: transparent;
+}
+
+&:root {
+  --sidebar-open: 260px;
+  --sidebar-rail: 78px;
+}
+&:is(html),
+body,
+#root {
+  @apply tw:min-h-full;
+  background: #faf8f5 !important;
+  @apply tw:overscroll-none!;
+}
+&:is(html),
+body {
+  @apply tw:overflow-x-hidden!;
+}
+#root {
+  @apply tw:min-h-[100dvh];
+}
+&:is(html),
+body,
+&, * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+*::-webkit-scrollbar {
+  @apply tw:w-0! tw:h-0! tw:hidden!;
+  background: transparent !important;
+}
+&:is(html) {
+  @apply tw:min-h-full tw:h-auto! tw:overflow-x-clip!;
+  @apply tw:overflow-y-auto!;
+  overscroll-behavior-x: none !important;
+  overscroll-behavior-y: none !important;
+  background: #faf8f5 !important;
+}
+
+body {
+  @apply tw:min-h-[100vh]! tw:h-auto! tw:overflow-x-clip!;
+  @apply tw:overflow-y-visible!;
+  background: #faf8f5 !important;
+}
+
+#root {
+  @apply tw:min-h-[100vh] tw:h-auto! tw:max-h-none! tw:overflow-y-visible!;
+}
+
+&:is(html)[data-workspace-theme='night'],
+&:is(html)[data-workspace-theme='night'] body,
+&:is(html)[data-workspace-theme='night'] #root {
+  background: var(--theme-page) !important;
+  @apply tw:text-cali-text!;
+}
+
+&:is(html)[data-workspace-theme='night'] body {
+  background:
+    radial-gradient(circle at 84% 4%, rgba(181,140,82,.07), transparent 26rem),
+    linear-gradient(180deg, #171215 0%, #1a1417 48%, #151013 100%) !important;
+}
+
+&:is(html)[data-workspace-theme='night'] h1,
+&:is(html)[data-workspace-theme='night'] h2,
+&:is(html)[data-workspace-theme='night'] h3,
+&:is(html)[data-workspace-theme='night'] h4 {
+  @apply tw:text-cali-text!;
+}
+&:is(html)[data-workspace-theme='night'] tr,
+&:is(html)[data-workspace-theme='night'] td,
+&:is(html)[data-workspace-theme='night'] th {
+  @apply tw:border-cali-line!;
+}
+&:is(html)[data-workspace-theme='night'] input,
+&:is(html)[data-workspace-theme='night'] select,
+&:is(html)[data-workspace-theme='night'] textarea {
+  background: var(--theme-input) !important;
+  @apply tw:border-cali-input-line! tw:text-cali-text!;
+  caret-color: var(--theme-accent) !important;
+}
+&:is(html)[data-workspace-theme='night'] input::placeholder,
+&:is(html)[data-workspace-theme='night'] textarea::placeholder {
+  color: #897d79 !important;
+}
+&:is(html)[data-workspace-theme='night'] input:focus,
+&:is(html)[data-workspace-theme='night'] select:focus,
+&:is(html)[data-workspace-theme='night'] textarea:focus {
+  border-color: rgba(208,138,157,.48) !important;
+  box-shadow: 0 0 0 3px rgba(208,138,157,.09) !important;
+}
+&:is(html)[data-workspace-theme='night'] select { color-scheme: dark; }
+input,
+select,
+textarea {
+  transition:
+    background-color .22s ease,
+    background .22s ease,
+    color .22s ease,
+    border-color .22s ease,
+    box-shadow .22s ease,
+    transform .18s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  input,
+select,
+textarea {
+    transition-duration: .01ms !important;
+  }
+}
+&:root {
+  --ws-font-xs: var(--cali-font-caption);
+  --ws-font-sm: var(--cali-font-small);
+  --ws-font-base: 16px;
+  --ws-font-lg: 18px;
+  --ws-font-xl: 20px;
+  --ws-font-2xl: 24px;
+}
+
+body:not(.v2-client-module):not(.v2-client-module *),
+button:not(.v2-client-module):not(.v2-client-module *),
+input:not(.v2-client-module):not(.v2-client-module *),
+select:not(.v2-client-module):not(.v2-client-module *),
+textarea:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-cali-small; }
+
+@media (max-width: 760px) {
+  body:not(.v2-client-module):not(.v2-client-module *),
+button:not(.v2-client-module):not(.v2-client-module *),
+input:not(.v2-client-module):not(.v2-client-module *),
+select:not(.v2-client-module):not(.v2-client-module *),
+textarea:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-[14px]; }
+}
+
+[data-lp-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-lp-reveal] { opacity: 1; transform: none; transition: none; }
+}
+
+[data-lp-reveal="left"] { transform: translate3d(-46px, 0, 0); }
+[data-lp-reveal="right"] { transform: translate3d(46px, 0, 0); }
+[data-lp-reveal="up"] { transform: translate3d(0, 44px, 0); }
+[data-lp-reveal="down"] { transform: translate3d(0, -38px, 0); }
+[data-lp-reveal="zoom"] { transform: scale(.95); }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-lp-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+@media print{
+  @page{size:A4;margin:0!important}
+}
+&:root{
+  --ws-type-page:40px;
+  --ws-type-section:24px;
+  --ws-type-subsection:18px;
+  --ws-type-body:14px;
+  --ws-type-meta:12px;
+}
+body{font-size:var(--ws-type-body)}
+:is(button,input,select,textarea):not(.v2-client-module *):not(.client-v2-globalbar *){font-size:var(--ws-type-body)!important}
+
+@media(max-width:780px){
+  &:root{--ws-type-page:30px;--ws-type-section:21px;--ws-type-subsection:17px}
+}
+
+&:root {
+  --ux-shell-rail: 88px;
+  --ux-shell-open: 286px;
+  --ux-canvas: #f1ede8;
+  --ux-surface: rgba(255, 253, 250, .92);
+  --ux-line: rgba(90, 30, 45, .105);
+  --ux-shadow-1: 0 1px 2px rgba(51, 30, 35, .05), 0 12px 34px rgba(51, 30, 35, .07);
+  --ux-shadow-2: 0 2px 4px rgba(51, 30, 35, .07), 0 22px 60px rgba(51, 30, 35, .12);
+}
+
+&:is(html),
+body {
+  background: var(--ux-canvas) !important;
+}
+
+&:is(html)[data-workspace-theme='night'] {
+  --ux-canvas: #160f12;
+  --ux-surface: rgba(37, 25, 29, .92);
+  --ux-line: rgba(247, 243, 238, .1);
+  --ux-shadow-1: 0 1px 2px rgba(0, 0, 0, .2), 0 16px 40px rgba(0, 0, 0, .2);
+  --ux-shadow-2: 0 3px 6px rgba(0, 0, 0, .24), 0 26px 64px rgba(0, 0, 0, .3);
+}
+&:root {
+  --ux-shell-open: 252px;
+}
+&:root { --ux-shell-open: 224px; }
+}

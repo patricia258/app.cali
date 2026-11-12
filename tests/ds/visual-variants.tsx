@@ -19,9 +19,9 @@ import { ReportValidationBlockV55, type ReportSignatureStyleV59 } from '../../sr
 import { capacityOf } from '../../src/lib/capacity';
 import '../../src/styles/tailwind.css';
 import '../../src/styles/theme-tokens.css';
-import '../../src/styles/legacy/styles.css';
+import '../../src/styles/surface-foundation.css';
+import '../../src/components/ds/surface-controls.css';
 import '../../src/components/workspace/v2.generated.css';
-import '../../src/components/workspace/workspace-v2.css';
 import '../../src/components/workspace/operational.css';
 import '../../src/modules/public/forms/public-form.css';
 import '../../src/modules/reports/reports-v18-editorial.css';

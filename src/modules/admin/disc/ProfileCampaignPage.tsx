@@ -11,7 +11,10 @@ import { Link } from '../../../components/navigation/Link';
 import { useParams } from '../../../hooks/useParams';
 import { ArrowLeft, BarChart3, CalendarClock, ExternalLink, RefreshCw, RotateCcw, Send, Trash2, UserPlus } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { supabase } from '../../../api/supabase';
+import {
+  deliverDiscInvites, extendDiscCampaignDeadline, queueDiscInvites, readDiscCampaign,
+  removeQueuedDiscInvite, renewDiscInvite, saveCampaignSettings,
+} from '../../../api/disc/campaigns';
 import '../forms/admin-forms.css';
 import './profile-admin.css';
 
@@ -60,22 +63,16 @@ export function ProfileCampaignPage() {
   const [extend, setExtend] = useState({ open: false, date: '', reason: '' });
 
   async function load() {
-    if (!supabase) return;
     setLoading(true);
-    const { data: linkData } = await supabase.from('profile_links').select('id,slug,title,company_id,company_label,purpose,status,deadline_days,deadline_log,focal_name,focal_email').eq('id', linkId).maybeSingle();
-    if (!linkData) { setMissing(true); setLoading(false); return; }
-    const row = linkData as LinkRow;
+    const campaign = await readDiscCampaign(linkId);
+    if (!campaign) { setMissing(true); setLoading(false); return; }
+    const row = campaign.link as LinkRow;
     setLink(row);
     setSettings({ deadline_days: row.deadline_days, focal_name: row.focal_name || '', focal_email: row.focal_email || '' });
-    const [inviteRows, companyRow, memberRows] = await Promise.all([
-      supabase.from('profile_invite_status').select('*').eq('link_id', linkId).order('created_at'),
-      row.company_id ? supabase.from('companies').select('display_name').eq('id', row.company_id).maybeSingle() : Promise.resolve({ data: null }),
-      row.company_id ? supabase.from('team_members').select('id,full_name,work_email').eq('company_id', row.company_id).is('archived_at', null).order('full_name') : Promise.resolve({ data: [] }),
-    ]);
-    if (inviteRows.error) setNotice({ tone: 'error', text: inviteRows.error.message });
-    setInvites((inviteRows.data || []) as InviteRow[]);
-    setCompany((companyRow.data as { display_name?: string } | null)?.display_name || row.company_label || 'Link livre');
-    setMembers(((memberRows.data || []) as Member[]).filter((member) => member.work_email && EMAIL.test(member.work_email)));
+    if (campaign.invites.error) setNotice({ tone: 'error', text: campaign.invites.error.message });
+    setInvites((campaign.invites.data || []) as InviteRow[]);
+    setCompany(campaign.company || row.company_label || 'Link livre');
+    setMembers(campaign.members.filter((member) => member.work_email && EMAIL.test(member.work_email)));
     setLoading(false);
   }
   useEffect(() => { document.title = 'Convites · Perfil comportamental · CALI RH'; void load(); }, [linkId]);
@@ -103,12 +100,12 @@ export function ProfileCampaignPage() {
   const nextDeadline = invites.filter((row) => row.deadline_at && ['sent', 'opened', 'started'].includes(row.state)).map((row) => row.deadline_at!).sort()[0];
 
   async function saveSettings() {
-    if (!supabase || !link) return;
+    if (!link) return;
     const days = Math.round(Number(settings.deadline_days));
     if (!(days >= 1 && days <= 60)) { say('O prazo padrão precisa ficar entre 1 e 60 dias.', 'error'); return; }
     if (settings.focal_email.trim() && !EMAIL.test(settings.focal_email.trim())) { say('Confira o e-mail do ponto focal.', 'error'); return; }
     setBusy('settings');
-    const { error } = await supabase.from('profile_links').update({ deadline_days: days, focal_name: settings.focal_name.trim() || null, focal_email: settings.focal_email.trim().toLowerCase() || null }).eq('id', link.id);
+    const { error } = await saveCampaignSettings(link.id, { ...settings, deadline_days: days });
     setBusy('');
     if (error) { say(error.message, 'error'); return; }
     setLink({ ...link, deadline_days: days, focal_name: settings.focal_name.trim() || null, focal_email: settings.focal_email.trim().toLowerCase() || null });
@@ -116,12 +113,12 @@ export function ProfileCampaignPage() {
   }
 
   async function addPeople(people: Array<{ person_name: string; email: string; team_member_id?: string }>) {
-    if (!supabase || !link || !people.length) return;
+    if (!link || !people.length) return;
     const fresh = people.filter((person) => !invitedEmails.has(person.email.toLowerCase()));
     const repeated = people.length - fresh.length;
     if (!fresh.length) { say(repeated === 1 ? 'Essa pessoa já está na lista.' : 'Essas pessoas já estão na lista.', 'error'); return; }
     setBusy('add');
-    const { error } = await supabase.from('profile_invites').insert(fresh.map((person) => ({ link_id: link.id, ...person })));
+    const { error } = await queueDiscInvites(link.id, fresh);
     setBusy('');
     if (error) { say(/duplicate|unique/i.test(error.message) ? 'Alguém da lista já tinha convite neste link.' : error.message, 'error'); return; }
     await load();
@@ -143,9 +140,9 @@ export function ProfileCampaignPage() {
   }
 
   async function sendQueued() {
-    if (!supabase || !link || !queued.length) return;
+    if (!link || !queued.length) return;
     setBusy('send');
-    const { data, error } = await supabase.rpc('profile_send_invites', { p_link: link.id });
+    const { data, error } = await deliverDiscInvites(link.id);
     setBusy('');
     if (error) { say(error.message, 'error'); return; }
     const result = data as { sent: number; deadline_at: string };
@@ -154,26 +151,25 @@ export function ProfileCampaignPage() {
   }
 
   async function removeQueued(row: InviteRow) {
-    if (!supabase || row.state !== 'created') return;
-    const { error } = await supabase.from('profile_invites').delete().eq('id', row.id);
+    if (row.state !== 'created') return;
+    const { error } = await removeQueuedDiscInvite(row.id);
     if (error) { say(error.message, 'error'); return; }
     setInvites((current) => current.filter((item) => item.id !== row.id));
   }
 
   async function renew(row: InviteRow) {
-    if (!supabase) return;
-    const { error } = await supabase.rpc('profile_renew_invite', { p_invite: row.id });
+    const { error } = await renewDiscInvite(row.id);
     if (error) { say(error.message, 'error'); return; }
     await load();
     say(`Novo ciclo de ${row.person_name} na fila. O histórico anterior fica guardado.`);
   }
 
   async function saveExtension() {
-    if (!supabase || !link) return;
+    if (!link) return;
     if (!extend.date) { say('Escolha a nova data.', 'error'); return; }
     if (extend.reason.trim().length < 3) { say('Escreva o motivo da prorrogação: ele fica registrado.', 'error'); return; }
     setBusy('extend');
-    const { data, error } = await supabase.rpc('profile_extend_deadline', { p_link: link.id, p_until: `${extend.date}T23:59:00-03:00`, p_reason: extend.reason.trim() });
+    const { data, error } = await extendDiscCampaignDeadline(link.id, extend.date, extend.reason);
     setBusy('');
     if (error) { say(error.message, 'error'); return; }
     setExtend({ open: false, date: '', reason: '' });

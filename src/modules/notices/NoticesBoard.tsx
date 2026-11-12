@@ -7,7 +7,10 @@ import { Link } from '../../components/navigation/Link';
 import { useSearchParams } from '../../hooks/useSearchParams';
 import { Archive, ArrowRight, CalendarDays, Check, MessageCircle, Megaphone, Pencil, Plus, RotateCcw, Send, X } from 'lucide-react';
 import { Shell, type Role } from '../../components/workspace/WorkspaceShell';
-import { supabase } from '../../api/supabase';
+import {
+  addNoticeComment, publishNotice, readCalendarNotice, readClientHomeNotices, readNoticesBoard,
+  setNoticeAcknowledgement, setNoticeReaction, setNoticeStatus,
+} from '../../api/notices/board';
 import { AdminNoticeReviews } from './AdminNoticeReviews';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 
@@ -62,39 +65,22 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
   const [saving, setSaving] = useState(false);
 
   async function load() {
-    if (!supabase) return;
     setError('');
     try {
-      const { data: session } = await supabase.auth.getSession();
-      const uid = session.session?.user?.id || '';
-      const profile = uid ? await supabase.from('profiles').select('company_id').eq('id', uid).maybeSingle() : { data: null };
-      setMe({ id: uid, companyId: admin ? null : (profile.data as any)?.company_id || null });
-      const [noticeResult, targetResult, ackResult, commentResult, reactionResult] = await Promise.all([
-        supabase.from('notices').select('id,protocol,category,title,body,notice_date,time_label,coverage,cover_path,audience,status,published_at').order('published_at', { ascending: false }),
-        supabase.from('notice_targets').select('notice_id,company_id'),
-        supabase.from('notice_acknowledgements').select('notice_id,user_id,company_id,acknowledged_at'),
-        supabase.from('notice_comments').select('id,notice_id,company_id,author_user_id,author_role,body,created_at').order('created_at'),
-        supabase.from('notice_reactions').select('notice_id,user_id,reaction'),
-      ]);
-      if (noticeResult.error) throw noticeResult.error;
-      const rows = await Promise.all((noticeResult.data || []).map(async (row: any): Promise<Notice> => ({
+      const board = await readNoticesBoard(admin);
+      setMe(board.me);
+      const rows = await Promise.all(board.notices.map(async (row): Promise<Notice> => ({
         id: row.id, protocol: row.protocol, category: row.category, title: row.title, body: row.body || '', date: row.notice_date, time: row.time_label,
         coverage: row.coverage, coverPath: row.cover_path, coverUrl: row.cover_path ? (await resolveWorkspaceMedia(row.cover_path, 86400)) || '' : '',
         audience: row.audience, status: row.status, publishedAt: row.published_at,
       })));
       setNotices(rows);
-      const targetMap: Record<string, string[]> = {};
-      for (const row of targetResult.data || []) (targetMap[(row as any).notice_id] ||= []).push((row as any).company_id);
-      setTargets(targetMap);
-      setReactions(((reactionResult.error ? [] : reactionResult.data) || []).map((row: any) => ({ noticeId: row.notice_id, userId: row.user_id, reaction: row.reaction })));
-      setAcks((ackResult.data || []).map((row: any) => ({ noticeId: row.notice_id, userId: row.user_id, companyId: row.company_id, at: row.acknowledged_at })));
-      setComments((commentResult.data || []).map((row: any) => ({ id: row.id, noticeId: row.notice_id, companyId: row.company_id, authorId: row.author_user_id, authorRole: row.author_role, body: row.body, createdAt: row.created_at })));
-      const people = await supabase.from('profiles').select('id,full_name');
-      if (!people.error) setNames(Object.fromEntries((people.data || []).map((row: any) => [row.id, row.full_name || ''])));
-      if (admin) {
-        const companyResult = await supabase.from('companies').select('id,display_name').neq('status', 'archived').order('display_name');
-        if (!companyResult.error) setCompanies((companyResult.data || []).map((row: any) => ({ id: row.id, name: row.display_name })));
-      }
+      setTargets(board.targets);
+      setReactions(board.reactions);
+      setAcks(board.acknowledgements);
+      setComments(board.comments);
+      setNames(board.names);
+      if (admin) setCompanies(board.companies);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar os avisos.');
     } finally { setLoading(false); }
@@ -112,36 +98,37 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
   const audienceLabel = (item: Notice) => item.audience === 'all' ? 'Todas as empresas' : (targets[item.id] || []).map((id) => companyName.get(id) || 'Empresa').join(', ') || 'Nenhuma empresa escolhida';
   const authorLabel = (item: Comment) => item.authorRole === 'admin' ? 'CALI · Assessoria' : `${names[item.authorId] || 'Cliente'}${admin && item.companyId ? ` · ${companyName.get(item.companyId) || ''}` : ''}`;
 
-  function closeDetail() { setActiveId(null); setCommentText(''); setReplyCompany(''); if (searchParams.get('aviso')) { const next = new URLSearchParams(searchParams); next.delete('aviso'); setSearchParams(next, { replace: true }); } }
+  function closeDetail() { setActiveId(null); setCommentText(''); setReplyCompany(''); setError(''); if (searchParams.get('aviso')) { const next = new URLSearchParams(searchParams); next.delete('aviso'); setSearchParams(next, { replace: true }); } }
 
   const myReaction = (id: string) => reactions.find((item) => item.noticeId === id && item.userId === me.id)?.reaction || '';
   async function react(item: Notice, reaction: string) {
-    if (!supabase || !me.id) return; const current = myReaction(item.id); const previous = reactions;
+    if (!me.id) return; const current = myReaction(item.id); const previous = reactions;
+    setError('');
     setReactions((list) => [...list.filter((row) => !(row.noticeId === item.id && row.userId === me.id)), ...(current === reaction ? [] : [{ noticeId: item.id, userId: me.id, reaction }])]);
-    const result = current === reaction
-      ? await supabase.from('notice_reactions').delete().eq('notice_id', item.id).eq('user_id', me.id)
-      : await supabase.from('notice_reactions').upsert({ notice_id: item.id, user_id: me.id, company_id: me.companyId, reaction }, { onConflict: 'notice_id,user_id' });
+    const result = await setNoticeReaction(item.id, me, current === reaction ? null : reaction);
     if (result.error) { setReactions(previous); setError('Não foi possível registrar a reação. Tente de novo.'); }
   }
   const reactionBar = (item: Notice) => <div className="v2-notice-reactions" role="group" aria-label="Reagir ao comunicado">{REACTIONS.map(([key, emoji, label]) => { const count = reactions.filter((row) => row.noticeId === item.id && row.reaction === key).length; return <button type="button" key={key} className={myReaction(item.id) === key ? 'on' : ''} aria-pressed={myReaction(item.id) === key} title={label} onClick={(event) => { event.stopPropagation(); void react(item, key); }}><span aria-hidden="true">{emoji}</span>{count > 0 && <b>{count}</b>}<i>{label}</i></button>; })}</div>;
   async function toggleAck(item: Notice) {
-    if (!supabase || admin || !me.id) return;
+    if (admin || !me.id) return;
+    setError('');
     const done = iAcked(item.id);
-    const result = done
-      ? await supabase.from('notice_acknowledgements').delete().eq('notice_id', item.id).eq('user_id', me.id)
-      : await supabase.from('notice_acknowledgements').insert({ notice_id: item.id, user_id: me.id, company_id: me.companyId });
+    const result = await setNoticeAcknowledgement(item.id, me, !done);
     if (result.error) { setError(result.error.message); return; }
     setAcks((current) => done ? current.filter((ack) => !(ack.noticeId === item.id && ack.userId === me.id)) : [...current, { noticeId: item.id, userId: me.id, companyId: me.companyId, at: new Date().toISOString() }]);
   }
 
   async function sendComment(item: Notice) {
-    if (!supabase || !commentText.trim() || !me.id) return;
+    if (!commentText.trim() || !me.id) return;
     const replyTo = admin ? (replyCompany || commentCompanies(item.id)[0] || '') : '';
     if (admin && !replyTo) return;
-    const result = await supabase.from('notice_comments').insert({ notice_id: item.id, company_id: admin ? replyTo : me.companyId, author_user_id: me.id, author_role: admin ? 'admin' : 'client', body: commentText.trim() }).select('id,notice_id,company_id,author_user_id,author_role,body,created_at').maybeSingle();
+    setError('');
+    const result = await addNoticeComment(item.id, { id: me.id, companyId: admin ? replyTo : me.companyId }, admin ? 'admin' : 'client', commentText);
     if (result.error) { setError(result.error.message); return; }
-    const row: any = result.data;
-    if (row) setComments((current) => [...current, { id: row.id, noticeId: row.notice_id, companyId: row.company_id, authorId: row.author_user_id, authorRole: row.author_role, body: row.body, createdAt: row.created_at }]);
+    if (result.data) {
+      const comment = result.data;
+      setComments((current) => [...current, comment]);
+    }
     setCommentText('');
   }
 
@@ -153,32 +140,11 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
 
   async function saveNotice(event: FormEvent) {
     event.preventDefault();
-    if (!supabase || !draft || !draft.title.trim() || !draft.body.trim()) return;
+    if (!draft || !draft.title.trim() || !draft.body.trim()) return;
     if (draft.audience === 'selected' && !draft.targets.length) { setError('Escolha pelo menos uma empresa ou publique para todas.'); return; }
     setSaving(true); setError('');
     try {
-      const payload = { category: draft.category, title: draft.title.trim(), body: draft.body.trim(), notice_date: draft.date || null, time_label: draft.time.trim() || null, coverage: draft.coverage || null, audience: draft.audience };
-      const saved = draft.id
-        ? await supabase.from('notices').update(payload).eq('id', draft.id).select('id').maybeSingle()
-        : await supabase.from('notices').insert(payload).select('id').maybeSingle();
-      if (saved.error) throw saved.error;
-      const id = (saved.data as any)?.id || draft.id;
-      if (!id) throw new Error('O aviso não foi gravado.');
-      if (coverFile) {
-        const path = `notices/${id}/${Date.now()}-${coverFile.name.replace(/[^a-zA-Z0-9._-]+/g, '-').slice(-60)}`;
-        const upload = await supabase.storage.from('cali-workspace-private').upload(path, coverFile, { upsert: true, contentType: coverFile.type || undefined });
-        if (upload.error) throw upload.error;
-        const cover = await supabase.from('notices').update({ cover_path: `private:${path}` }).eq('id', id);
-        if (cover.error) throw cover.error;
-      }
-      const clear = await supabase.from('notice_targets').delete().eq('notice_id', id);
-      if (clear.error) throw clear.error;
-      if (draft.audience === 'selected') {
-        const insert = await supabase.from('notice_targets').insert(draft.targets.map((companyId) => ({ notice_id: id, company_id: companyId })));
-        if (insert.error) throw insert.error;
-      }
-      // Sino dos clientes que recebem o aviso (a função ignora quem já foi avisado).
-      await supabase.rpc('notify_notice', { p_notice_id: id });
+      await publishNotice(draft, coverFile);
       setDraft(null); setCoverFile(null);
       await load();
     } catch (requestError) {
@@ -187,8 +153,7 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
   }
 
   async function setStatus(item: Notice, status: Notice['status']) {
-    if (!supabase) return;
-    const result = await supabase.from('notices').update({ status }).eq('id', item.id);
+    const result = await setNoticeStatus(item.id, status);
     if (result.error) { setError(result.error.message); return; }
     setNotices((current) => current.map((notice) => notice.id === item.id ? { ...notice, status } : notice));
   }
@@ -227,13 +192,14 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
   const page = <div className={`notice-page ${admin ? 'v2-notice-admin' : ''} ${staff ? 'v2-notice-staff' : ''}`}>
     {head}
     {admin && <AdminNoticeReviews companies={companies} onPublish={load} />}
-    {error && !draft && <InlineNotice>{error}</InlineNotice>}
+    {error && !draft && !active && <InlineNotice tone="danger">{error}</InlineNotice>}
     {toolbar}
     {visible.length ? (admin && view === 'manage' ? manage : feed) : empty}
 
     {active && <div className="notice-overlay" onMouseDown={closeDetail}><DialogFrame className="notice-dialog v2-notice-detail" aria-label="Comunicado" onMouseDown={(event) => event.stopPropagation()}>
       <header><span>COMUNICADO · {active.protocol}</span><button type="button" onClick={closeDetail} aria-label="Fechar"><X size={19} /></button></header>
       <div className="notice-dialog-body">
+        {error && <InlineNotice tone="danger">{error}</InlineNotice>}
         {active.coverUrl && <img className="notice-detail-cover" src={active.coverUrl} alt="" />}
         <span className={`notice-category ${active.category}`}>{categoryLabel(active.category)}</span><h2>{active.title}</h2><p>{active.body}</p>
         <dl>{active.date && <div><dt>Data</dt><dd>{formatDay(active.date)}</dd></div>}{active.time && <div><dt>Horário</dt><dd>{active.time}</dd></div>}{active.coverage && <div><dt>Abrangência</dt><dd>{active.coverage}</dd></div>}<div><dt>Publicado por</dt><dd>CALI · Assessoria</dd></div>{admin && <div><dt>Quem recebe</dt><dd>{audienceLabel(active)}</dd></div>}</dl>
@@ -281,17 +247,12 @@ export function StaffNoticesPage({ onCompose }: { onCompose: () => void }) { ret
 export function ClientHomeNotices() {
   const [items, setItems] = useState<{ id: string; category: Category; title: string; publishedAt: string; coverUrl: string; acked: boolean }[] | null>(null);
   useEffect(() => { let active = true; void (async () => {
-    if (!supabase) return;
-    const { data: session } = await supabase.auth.getSession();
-    const uid = session.session?.user?.id || '';
-    const [noticeResult, ackResult] = await Promise.all([
-      supabase.from('notices').select('id,category,title,cover_path,published_at').eq('status', 'published').order('published_at', { ascending: false }).limit(2),
-      supabase.from('notice_acknowledgements').select('notice_id').eq('user_id', uid),
-    ]);
+    const notices = await readClientHomeNotices();
     if (!active) return;
-    if (noticeResult.error) { setItems([]); return; }
-    const acked = new Set((ackResult.data || []).map((row: any) => row.notice_id));
-    const rows = await Promise.all((noticeResult.data || []).map(async (row: any) => ({ id: row.id, category: row.category as Category, title: row.title, publishedAt: row.published_at, coverUrl: row.cover_path ? (await resolveWorkspaceMedia(row.cover_path, 86400)) || '' : '', acked: acked.has(row.id) })));
+    const rows = await Promise.all(notices.map(async (row) => ({
+      id: row.id, category: row.category as Category, title: row.title, publishedAt: row.published_at,
+      coverUrl: row.cover_path ? (await resolveWorkspaceMedia(row.cover_path, 86400)) || '' : '', acked: row.acked,
+    })));
     if (active) setItems(rows);
   })(); return () => { active = false; }; }, []);
   if (!items?.length) return <div className="ch-bulletin-grid"><article className="ch-bulletin-item ch-bulletin-empty"><div className="ch-bulletin-meta"><span className="ch-bulletin-label">COMUNICADOS</span><strong>Nenhum comunicado disponível</strong><span className="ch-bulletin-author">{items ? 'Quando a CALI publicar um aviso para a sua empresa, ele aparece aqui.' : 'Carregando avisos…'}</span></div><div className="ch-bulletin-picture ch-empty-picture"><MessageCircle size={25} /></div><div className="ch-bulletin-foot"><span>Mural da parceria</span></div></article></div>;
@@ -303,9 +264,7 @@ export function NoticeCalendarCard({ noticeId, href, onClose }: { noticeId: stri
   const [notice, setNotice] = useState<{ protocol: string; category: Category; title: string; body: string; date: string | null; time: string | null; coverage: string | null; coverUrl: string } | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => { let active = true; setFailed(false); void (async () => {
-    if (!supabase) return;
-    const result = await supabase.from('notices').select('protocol,category,title,body,notice_date,time_label,coverage,cover_path').eq('id', noticeId).limit(1);
-    const row: any = (result.data || [])[0];
+    const row = await readCalendarNotice(noticeId);
     if (!active) return;
     if (!row) { setFailed(true); return; }
     const coverUrl = row.cover_path ? (await resolveWorkspaceMedia(row.cover_path, 86400)) || '' : '';

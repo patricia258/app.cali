@@ -1,10 +1,8 @@
-/* Rotas que usam a interface V2: todas as do cliente (incluindo a impressão do relatório, cujo papel
-   traz as próprias folhas de estilo) e as da administradora já migradas. A administradora entra
-   página a página — acrescente a rota aqui somente quando a página estiver na composição V2. */
+/* As áreas Cliente e Partner usam a moldura compacta. As rotas Admin de edição,
+   visualização e impressão de documentos podem usar a composição de documentos. */
 const migratedAdminRoutes = new Set(['/admin', '/admin/clientes', '/admin/equipe', '/admin/projetos', '/admin/horas', '/admin/calendario', '/admin/registros', '/admin/documentos', '/admin/satisfacao', '/admin/propostas', '/admin/mapa-de-people', '/admin/formularios', '/admin/perfil-comportamental', '/admin/relatorios', '/admin/avisos', '/admin/auditoria', '/admin/equipe-cali']);
-/* Páginas que só sabem em tempo de execução se usam a moldura V2. Ex.: a rota da proposta serve tanto o PDF
-   oficial arquivado (moldura V2) quanto a prévia do rascunho, que continua nas folhas antigas porque é dela
-   que sai o PDF — medido em 2026-10-11: trocar a moldura mudava títulos e espaçamentos do documento. */
+/* A prévia do rascunho usa a composição de documentos que gera o PDF.
+   Quando existe um PDF arquivado, o visualizador usa a moldura compacta. */
 const runtimeV2Paths = new Set<string>();
 const normalize = (pathname: string) => pathname.length > 1 ? pathname.replace(/\/$/, '') : pathname;
 export const RUNTIME_V2_EVENT = 'cali:v2-routes-changed';
@@ -17,6 +15,6 @@ export function markRuntimeV2(pathname: string) {
 }
 const migratedAdminPrefixes: string[] = ['/admin/perfil-comportamental/'];
 export function usesV2(pathname: string) {
-  const path = pathname.length > 1 ? pathname.replace(/\/$/, '') : pathname;
+  const path = normalize(pathname);
   return path === '/cliente' || path.startsWith('/cliente/') || path === '/equipe' || path.startsWith('/equipe/') || migratedAdminRoutes.has(path) || migratedAdminPrefixes.some((prefix) => path.startsWith(prefix)) || runtimeV2Paths.has(path);
 }

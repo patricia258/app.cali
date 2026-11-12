@@ -5,7 +5,8 @@ A referência é o build da `main` no commit `773c9d4`. O candidato é a revisã
 ## Páginas inteiras
 
 ```sh
-npm run test:visual:pages -- --reference main --candidate HEAD --output /tmp/cali-visual-pages
+npm run test:visual:pages -- --reference 773c9d4 --candidate HEAD --output /tmp/cali-visual-pages \
+  --viewport desktop --viewport laptop --viewport tablet --viewport mobile
 ```
 
 O comando gera os dois builds a partir do Git, com dependências do lockfile e endpoint sintético. O npm precisa ter as dependências no cache para o build offline. Também aceita `--reference-dist` e `--candidate-dist` para builds sintéticos existentes. Nesse caso o relatório guarda SHA declarado e hash dos arquivos compilados. Use `--list` para listar os cenários, `--role`, `--case` e `--viewport` para recortes. Desktop e celular são o padrão. Notebook e tablet podem ser selecionados.
@@ -22,8 +23,12 @@ A comparação visual e as jornadas funcionais usam Chrome local em loopback e i
 | Cabeçalhos Admin e Partner | A base flex de desktop criava mais de 200 px vazios no celular. As telas que usam esse cabeçalho aproximam a ação do título e alinham os dois ao conteúdo. | [Visão geral](../tests/e2e/account-and-overview.cjs) · [Matriz visual](../tests/visual/pages/scenarios.cjs) |
 | Mapa oficial | O cabeçalho em uma linha cortava as ações no celular. A barra quebra em linhas e conserva retorno, atualização, link original e impressão pelo iframe. | [Relatório Mapa](../tests/e2e/people-behaviors.cjs) |
 | Agenda | Admin abre despesas pela Agenda. A decisão local continua visível quando a sincronização Google fica pendente. | [Visitas](../tests/e2e/agenda-visits.cjs) · [Decisões](../tests/e2e/agenda-components.cjs) |
-| Entregáveis e Horas | Esc cancela a renomeação sem fechar o diálogo. Espaço abre subtarefa. O histórico de entregas mantém uma leitura por seleção e atualização programada. Respostas atrasadas de capacidade são descartadas ao trocar empresa ou mês. | [Projetos](../tests/e2e/project-components.cjs) · [Histórico](../tests/e2e/project-history-bridge.cjs) · [Capacidade](../tests/e2e/hours-capacity.cjs) |
+| Entregáveis e Horas | Esc cancela a renomeação sem fechar o diálogo. Espaço abre subtarefa. O histórico de entregas mantém uma leitura por seleção e atualização programada. Respostas atrasadas de capacidade são descartadas ao trocar empresa ou mês. | [Projetos](../tests/e2e/project-components.cjs) · [Histórico](../tests/e2e/project-history.cjs) · [Capacidade](../tests/e2e/hours-capacity.cjs) |
 | Acesso | A leitura de logotipos e o canal de empresas aguardam a admissão. A troca de ator descarta respostas e URLs assinadas da sessão anterior. | [Guardas](../tests/e2e/guards.cjs) |
+| Ocorrências | Editar e excluir devolvem foco. Reabrir exibe as ações e o novo encerramento recebe outra avaliação. | [Histórico e atendimento](../tests/e2e/record-history.cjs) |
+| Relatórios | A leitura registra abertura do PDF. Enviar dúvida abre o formulário do relatório e preserva rascunho e foco após uma falha. O envio Admin exibe o erro dentro da confirmação e o recibo após concluir. | [Relatórios Cliente](../tests/e2e/report-and-staff-actions.cjs) · [Envio](../tests/e2e/commercial-delivery.cjs) |
+| Avisos | Falhas de comentário aparecem no diálogo. O Cliente consegue tentar novamente mantendo a mensagem. | [Avisos](../tests/e2e/review-workflows.cjs) |
+| Agenda | Falhas de gravação e cancelamento preservam o formulário. Lembrete e transcrição seguem na própria gravação do evento. | [Agenda](../tests/e2e/agenda-visits.cjs) |
 
 ## Componentes e primitivas
 

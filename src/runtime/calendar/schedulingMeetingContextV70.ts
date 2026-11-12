@@ -1,5 +1,6 @@
 import STYLE from './scheduling-meeting-context-v70.css?inline';
-import { supabase } from '../../api/supabase';
+import { isSupabaseConfigured } from '../../api/access/session';
+import { readMeetingByProtocol } from '../../api/calendar/meetings';
 
 let installed = false;
 let decorating = false;
@@ -29,12 +30,8 @@ function conciseDetail(extra: boolean) {
 }
 
 async function conditionForProtocol(protocol: string): Promise<MeetingCondition | null> {
-  if (!supabase || !protocol) return null;
-  const { data: event, error } = await supabase
-    .from('events')
-    .select('id,event_type,source_type,source_entity_id,billing_applies,billing_reason,schedule_class')
-    .eq('protocol', protocol)
-    .maybeSingle();
+  if (!isSupabaseConfigured || !protocol) return null;
+  const { data: event, error } = await readMeetingByProtocol(protocol);
   if (error || !event || event.event_type !== 'meeting') return null;
   if (event.source_type !== 'scheduling_request' && event.billing_applies === null) return null;
 

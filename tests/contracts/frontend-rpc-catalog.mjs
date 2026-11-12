@@ -11,8 +11,7 @@ const calls = new Map();
 const unknown = [];
 const dispatchers = new Set([
   'src/modules/disc/GestaoPage.tsx',
-  'src/runtime/calendar/schedulingPolicyRuntimeV66.ts',
-  'src/runtime/calendar/schedulingRequestsRuntimeV65.ts',
+  'src/api/calendar/requests.ts',
 ]);
 const revoked = 'cali_workspace.client_request_online_extra_v1';
 

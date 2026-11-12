@@ -22,7 +22,7 @@
   bottom:auto!important;
   width:min(620px,96vw)!important;
   @apply tw:h-[100dvh]! tw:min-h-[100dvh]! tw:max-h-[100dvh]! tw:m-0!;
-  border-radius:0!important;
+  @apply tw:rounded-none!;
   @apply tw:overflow-hidden! tw:z-10001!;
   box-shadow:-28px 0 70px rgba(31,18,23,.2)!important;
 }

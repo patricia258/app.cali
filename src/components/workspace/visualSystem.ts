@@ -1,29 +1,23 @@
-/* Decide qual implementação visual está ativa. O cliente e as páginas já migradas da administradora usam
-   somente a V2 aprovada; a landing, o login e as demais páginas da administradora seguem com as
-   folhas anteriores até serem migradas. As duas nunca ficam no documento ao mesmo tempo. */
 import { applyWorkspaceTheme, resolveWorkspaceTheme } from '../../lib/workspaceTheme';
 import { usesV2 } from '../../app/visualRoutes';
 
-export { usesV2 };
-type LegacyModule = typeof import('../../styles/legacy');
-let legacy: Promise<LegacyModule> | null = null;
-
-export function preloadLegacyStyles() {
-  legacy ??= import('../../styles/legacy');
-  return legacy;
+function standaloneSurface(pathname: string) {
+  const path = pathname.replace(/\/$/, '') || '/';
+  if (path === '/') return 'landing';
+  if (path === '/login') return 'sign-in';
+  if (path === '/admin' || path.startsWith('/admin/')) return 'admin-documents';
+  return 'public';
 }
 
-export async function applyVisualSystem(pathname: string) {
+export function applyVisualSystem(pathname: string) {
   const root = document.documentElement;
   if (usesV2(pathname)) {
     root.dataset.workspaceUi = 'v2';
+    delete root.dataset.workspaceSurface;
     applyWorkspaceTheme('day');
-    if (legacy) (await legacy).unmountLegacyStyles();
     return;
   }
-  (await preloadLegacyStyles()).mountLegacyStyles();
-  if (!usesV2(window.location.pathname)) {
-    delete root.dataset.workspaceUi;
-    applyWorkspaceTheme(resolveWorkspaceTheme());
-  }
+  delete root.dataset.workspaceUi;
+  root.dataset.workspaceSurface = standaloneSurface(pathname);
+  applyWorkspaceTheme(resolveWorkspaceTheme());
 }

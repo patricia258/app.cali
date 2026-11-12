@@ -4,7 +4,7 @@ import { EmptyState } from '../../../components/ds/EmptyState';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from '../../../components/navigation/Link';
 import { ArrowRight, CalendarDays, ChevronRight, Send } from 'lucide-react';
-import { supabase } from '../../../api/supabase';
+import { readPartnerOverview } from '../../../api/partner/operations';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
 import type { PartnerWorkspace } from '../../../api/partner/workspace';
 
@@ -28,20 +28,15 @@ export function StaffDashboard({ me }: { me: PartnerWorkspace }) {
   const [minutes, setMinutes] = useState<Record<string, number>>({}); const [pendingHours, setPendingHours] = useState(0); const [pendingReviews, setPendingReviews] = useState(0); const [loading, setLoading] = useState(true);
 
   useEffect(() => { let alive = true; (async () => {
-    if (!supabase) return; const db = supabase; const now = new Date(); const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-    const empty = Promise.resolve({ data: [] as any[], error: null });
-    const [del, ev, rec, hrs, myHours, myReviews] = await Promise.all([
-      has('projects') ? db.from('deliverables').select('id,company_id,title,status,due_at').is('cancelled_at', null).limit(500) : empty,
-      has('calendar') ? db.from('events').select('id,company_id,title,starts_at,event_type').is('cancelled_at', null).gte('starts_at', now.toISOString()).order('starts_at').limit(6) : empty,
-      has('records') ? db.from('account_records').select('id,company_id,title,workflow_status,last_activity_at').eq('visibility', 'client').order('last_activity_at', { ascending: false, nullsFirst: false }).limit(200) : empty,
-      has('hours') ? db.rpc('partner_hours_summary', { p_month: monthStart }) : empty,
-      db.from('staff_hour_submissions').select('id').eq('status', 'pending'),
-      db.from('staff_review_requests').select('id').eq('status', 'pending'),
-    ]);
-    if (!alive) return;
-    setDeliverables((del.data || []) as Deliverable[]); setEvents((ev.data || []) as EventRow[]); setRecords((rec.data || []) as RecordRow[]);
-    setMinutes(((hrs.data || []) as any[]).reduce<Record<string, number>>((map, row) => { map[row.company_id] = (map[row.company_id] || 0) + Number(row.minutes || 0); return map; }, {}));
-    setPendingHours((myHours.data || []).length); setPendingReviews((myReviews.data || []).length); setLoading(false);
+    const data = await readPartnerOverview(me.modules);
+    if (!alive || !data) return;
+    setDeliverables(data.deliverables);
+    setEvents(data.events);
+    setRecords(data.records);
+    setMinutes(data.minutes);
+    setPendingHours(data.pendingHours);
+    setPendingReviews(data.pendingReviews);
+    setLoading(false);
     const resolved = await Promise.all(me.companies.map(async (item) => [item.id, (await resolveWorkspaceMedia(item.logo_workspace_url || item.logo_url, 3600)) || ''] as [string, string]));
     if (alive) setLogos(Object.fromEntries(resolved.filter(([, url]) => url)));
   })(); return () => { alive = false; }; }, [me.id]);

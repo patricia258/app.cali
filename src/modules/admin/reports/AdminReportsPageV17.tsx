@@ -7,9 +7,14 @@ import { useMaterialDeliveryConfirmation } from '../../../hooks/useMaterialDeliv
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, BarChart3, CheckCircle2, Eye, FileText, Loader2, Mail, Printer, RefreshCw, RotateCcw, Send, Trash2, X } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { ExecutiveReportPaperV17 } from '../../../components/reports/ExecutiveReportPaperV17';
+import { WorkspaceExecutiveReportPaper } from '../../../components/reports/WorkspaceExecutiveReportPaper';
 import { ReportManualComplementsPanel } from '../../../components/reports/ReportManualComplementsPanel';
-import { supabase } from '../../../api/supabase';
+import {
+  approveExecutiveReport, createReportDraft, deleteReportDraft, deliverExecutiveReport, readCurrentReportPeriod,
+  readFreshReportPeriod, readReportPortfolio, readReportReadiness, readReportRecipients, refreshReportFacts,
+  saveReportEditorialDraft, startReportReview, type FreshPeriodData, type ReportReadiness,
+} from '../../../api/reports/admin';
+import { endOfMonth, endOfQuarter, format, startOfMonth, startOfQuarter } from 'date-fns';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
 import { reportTypeLabel, type ReportEditor, type ReportType } from '../../../lib/reportComposition';
 import { normalizeIntelligenceSnapshot, type IntelligenceSnapshot } from '../../../lib/reportIntelligence';
@@ -46,28 +51,15 @@ type Report = {
   sentAt?: string | null;
   sentTo: string[];
 };
-type FreshPeriodData = { snapshot: IntelligenceSnapshot; deliveries: DeliveryPerformanceRow[] };
-type Readiness = {
-  mode: 'official' | 'preview' | 'simulation';
-  collected_days: number;
-  required_days: number;
-  available_on?: string | null;
-  can_generate_official: boolean;
-  can_send: boolean;
-  official_report_id?: string | null;
-  official_protocol?: string | null;
-};
-
 const emptyEditor: ReportEditor = { summary: '', movements: '', decisions: '', risks: '', nextSteps: '' };
 const statusLabel: Record<ReportLifecycleStatus, string> = { draft: 'Rascunho', review: 'Em revisão', approved: 'Aprovado', sent: 'Enviado', published: 'Publicado', archived: 'Arquivado' };
 
-function isoDate(date: Date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; }
-function monthlyPeriod(date = new Date()) { return { start: isoDate(new Date(date.getFullYear(), date.getMonth(), 1)), end: isoDate(new Date(date.getFullYear(), date.getMonth() + 1, 0)) }; }
-function quarterlyPeriod(date = new Date()) { const startMonth = Math.floor(date.getMonth() / 3) * 3; return { start: isoDate(new Date(date.getFullYear(), startMonth, 1)), end: isoDate(new Date(date.getFullYear(), startMonth + 3, 0)) }; }
+function isoDate(date: Date) { return format(date, 'yyyy-MM-dd'); }
+function monthlyPeriod(date = new Date()) { return { start: isoDate(startOfMonth(date)), end: isoDate(endOfMonth(date)) }; }
+function quarterlyPeriod(date = new Date()) { return { start: isoDate(startOfQuarter(date)), end: isoDate(endOfQuarter(date)) }; }
 function quarterKey(value: string) { const [year, month] = value.split('-').map(Number); return `${year}-Q${Math.floor((month - 1) / 3) + 1}`; }
 function quarterPeriod(value: string) { const [yearText, quarterText] = value.split('-Q'); const year = Number(yearText), quarter = Number(quarterText), startMonth = (quarter - 1) * 3; return { start: isoDate(new Date(year, startMonth, 1)), end: isoDate(new Date(year, startMonth + 3, 0)) }; }
 function quarterOptions() { const year = new Date().getFullYear(); const values: Array<{ value: string; label: string }> = []; for (let y = year + 1; y >= year - 6; y -= 1) for (let q = 4; q >= 1; q -= 1) values.push({ value: `${y}-Q${q}`, label: `${q}º trimestre · ${y}` }); return values; }
-function trendStart(start: string, type: ReportType) { if (type === 'quarterly') return start; const [year, month] = start.split('-').map(Number); return isoDate(new Date(year, month - 6, 1)); }
 function lines(value: string) { return String(value || '').split('\n').map((item) => item.trim()).filter(Boolean); }
 function formatDate(value?: string | null) { if (!value) return '—'; const date = new Date(`${String(value).slice(0, 10)}T12:00:00`); return Number.isNaN(date.getTime()) ? '—' : new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date); }
 function formatDateTime(value?: string | null) { if (!value) return '—'; const date = new Date(value); return Number.isNaN(date.getTime()) ? '—' : new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(date); }
@@ -90,11 +82,12 @@ export function AdminReportsPageV17() {
   const [snapshot, setSnapshot] = useState<IntelligenceSnapshot | null>(null), [liveSnapshot, setLiveSnapshot] = useState<IntelligenceSnapshot | null>(null), [deliveries, setDeliveries] = useState<DeliveryPerformanceRow[]>([]), [activeReport, setActiveReport] = useState<Report | null>(null);
   const [editor, setEditor] = useState<ReportEditor>(emptyEditor), [internalNote, setInternalNote] = useState(''), [dismissedAlerts, setDismissedAlerts] = useState<DismissedReportAlert[]>([]);
   const [manualComplements, setManualComplements] = useState<ReportManualComplements>(emptyReportManualComplements());
-  const [readiness, setReadiness] = useState<Readiness | null>(null);
+  const [readiness, setReadiness] = useState<ReportReadiness | null>(null);
   const [loadingBase, setLoadingBase] = useState(true), [loadingPeriod, setLoadingPeriod] = useState(false), [saving, setSaving] = useState(false), [autosaveState, setAutosaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle'), [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [notice, setNotice] = useState(''), [error, setError] = useState(''), [previewOpen, setPreviewOpen] = useState(false);
   const [dismissTarget, setDismissTarget] = useState<ReportCloseAlert | null>(null), [dismissReason, setDismissReason] = useState('');
   const [sendOpen, setSendOpen] = useState(false), [sendRecipients, setSendRecipients] = useState(''), [sendMessage, setSendMessage] = useState(''), [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState('');
   const lastSavedPayload = useRef('');
 
   const selectedCompany = useMemo(() => companies.find((item) => item.id === companyId) || null, [companies, companyId]);
@@ -128,29 +121,35 @@ export function AdminReportsPageV17() {
     if (payload === lastSavedPayload.current) return;
     setAutosaveState('saving');
     const timer = window.setTimeout(async () => {
-      if (!supabase) return;
-      const result = await supabase.from('reports').update({ executive_summary: editor.summary, movements: lines(editor.movements), decisions: lines(editor.decisions), risks: lines(editor.risks), next_steps: lines(editor.nextSteps), internal_note: internalNote, dismissed_alerts: dismissedAlerts, source_snapshot: snapshot ? attachReportManualComplements(snapshot, manualComplements) : activeReport.snapshot }).eq('id', activeReport.id);
-      if (result.error) { setAutosaveState('error'); setError(`Autosave: ${result.error.message}`); return; }
+      try {
+        await saveReportEditorialDraft(activeReport.id, {
+          editor, internalNote, dismissedAlerts,
+          snapshot: snapshot ? attachReportManualComplements(snapshot, manualComplements) : activeReport.snapshot,
+        });
+      } catch (reason) {
+        setAutosaveState('error');
+        setError(`Autosave: ${reason instanceof Error ? reason.message : 'Não foi possível salvar.'}`);
+        return;
+      }
       lastSavedPayload.current = payload; setAutosaveState('saved'); setLastSavedAt(new Date().toISOString());
     }, 850);
     return () => window.clearTimeout(timer);
   }, [activeReport?.id, canEdit, editor, internalNote, dismissedAlerts, manualComplements, snapshot]);
 
   async function loadBase() {
-    if (!supabase) return;
     setLoadingBase(true); setError('');
     try {
-      const [companyResult, reportResult] = await Promise.all([
-        supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url,service_type,service_plan').neq('status', 'closed').order('display_name'),
-        supabase.from('reports').select('id,company_id,title,report_type,period_start,period_end,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,updated_at,version,revision_parent_id,dismissed_alerts,internal_note,data_refreshed_at,review_started_at,approved_at,sent_at,sent_to').order('period_start', { ascending: false }).order('version', { ascending: false }),
-      ]);
-      if (companyResult.error) throw companyResult.error;
-      if (reportResult.error) throw reportResult.error;
-      const nextCompanies: Company[] = (companyResult.data || []).map((row: any) => ({ id: row.id, name: row.display_name, logoUrl: row.logo_url || '', serviceType: row.service_type, servicePlan: row.service_plan }));
-      const logoRows=await Promise.all(nextCompanies.map(async (company) => { const row=(companyResult.data || []).find((entry: any) => entry.id === company.id); return [company.id, await resolveWorkspaceMedia(row?.logo_url || row?.logo_workspace_url, 86400, true) || await resolveWorkspaceMedia(row?.logo_workspace_url, 86400, true)] as const; }));
+      const portfolio = await readReportPortfolio();
+      const nextCompanies: Company[] = portfolio.companies.map((row) => ({
+        id: row.id, name: row.display_name, logoUrl: row.logo_url || '', serviceType: row.service_type, servicePlan: row.service_plan,
+      }));
+      const logoRows = await Promise.all(portfolio.companies.map(async (row) => [
+        row.id,
+        await resolveWorkspaceMedia(row.logo_url || row.logo_workspace_url, 86400, true) || await resolveWorkspaceMedia(row.logo_workspace_url, 86400, true),
+      ] as const));
       const logoMap=new Map(logoRows);
       setCompanies(nextCompanies.map((company)=>({...company,logoUrl:logoMap.get(company.id)||''})));
-      const nextReports = (reportResult.data || []).map(reportRow);
+      const nextReports = portfolio.reports.map(reportRow);
       setReports(nextReports);
       const requested = !companyId && deepLinkedReport && nextReports.find((row) => row.id === deepLinkedReport);
       if (requested) {
@@ -163,31 +162,8 @@ export function AdminReportsPageV17() {
     finally { setLoadingBase(false); }
   }
 
-  async function fetchFreshPeriod(nextCompanyId: string, nextType: ReportType, nextStart: string, nextEnd: string): Promise<FreshPeriodData> {
-    if (!supabase) throw new Error('Supabase não configurado.');
-    const seriesFrom = trendStart(nextStart, nextType);
-    const [snapshotResult, seriesResult, performanceResult] = await Promise.all([
-      supabase.rpc('build_report_intelligence_snapshot', { p_company_id: nextCompanyId, p_period_start: nextStart, p_period_end: nextEnd }),
-      supabase.rpc('build_report_monthly_series', { p_company_id: nextCompanyId, p_period_start: seriesFrom, p_period_end: nextEnd }),
-      supabase.from('deliverable_delivery_performance').select('deliverable_id,company_id,project_id,protocol,title,status,workstream,planned_start_date,actual_started_at,original_due_at,effective_due_at,work_closed_at,work_close_reason,approved_at,client_response_at,completion_at,delivery_timing,business_days_from_deadline,start_timing,business_days_from_original_deadline,total_minutes').eq('company_id', nextCompanyId),
-    ]);
-    if (snapshotResult.error) throw snapshotResult.error;
-    if (seriesResult.error) throw seriesResult.error;
-    if (performanceResult.error) throw performanceResult.error;
-    const fresh = normalizeIntelligenceSnapshot({ ...((snapshotResult.data || {}) as object), monthlySeries: seriesResult.data });
-    if (!fresh) throw new Error('A memória automática do período retornou em formato inválido.');
-    return { snapshot: fresh, deliveries: (performanceResult.data || []) as DeliveryPerformanceRow[] };
-  }
-
-  async function fetchReadiness(nextCompanyId: string, nextType: ReportType, nextStart: string, nextEnd: string) {
-    if (!supabase) return null;
-    const result = await supabase.rpc('report_generation_readiness_v61', { p_company_id: nextCompanyId, p_report_type: nextType, p_period_start: nextStart, p_period_end: nextEnd });
-    if (result.error) return null;
-    return result.data as Readiness;
-  }
-
   async function createDraft(fresh: FreshPeriodData, version = 1, parentId: string | null = null, mode: 'official' | 'simulation' = 'official', initialEditor?: ReportEditor, initialInternalNote = '', initialManual: ReportManualComplements = emptyReportManualComplements()) {
-    if (!supabase || !selectedCompany) throw new Error('Cliente não selecionado.');
+    if (!selectedCompany) throw new Error('Cliente não selecionado.');
     const seed = buildEditorialSeedV17(fresh.snapshot, reportType);
     const sourceSnapshot = attachReportManualComplements({ ...fresh.snapshot, deliveryPerformanceV14: fresh.deliveries, workflow_mode: mode, ...(mode === 'simulation' ? { simulation_of: parentId, simulation_marked_at: new Date().toISOString() } : {}) } as IntelligenceSnapshot, initialManual);
     const payload = {
@@ -197,7 +173,7 @@ export function AdminReportsPageV17() {
       period_start: periodStart,
       period_end: periodEnd,
       reference_month: `${periodStart.slice(0, 7)}-01`,
-      status: 'draft',
+      status: 'draft' as const,
       version,
       revision_parent_id: parentId,
       executive_summary: initialEditor ? initialEditor.summary : seed.summary,
@@ -213,21 +189,17 @@ export function AdminReportsPageV17() {
       dismissed_alerts: [],
       internal_note: initialEditor ? (initialInternalNote.trim() || null) : null,
     };
-    const result = await supabase.from('reports').insert(payload).select('id').single();
-    if (result.error) throw result.error;
-    await supabase.from('activity_log').insert({ company_id: selectedCompany.id, event_type: mode === 'simulation' ? 'report_simulation_generated' : 'report_draft_generated', entity_type: 'report', entity_id: result.data.id, metadata: { report_type: reportType, period_start: periodStart, period_end: periodEnd, version, generation_mode: mode, explicit_user_action: true } });
+    await createReportDraft(payload, mode);
   }
 
   async function loadPeriod(nextCompanyId: string, nextType: ReportType, nextStart: string, nextEnd: string) {
-    if (!supabase) return;
     setLoadingPeriod(true); setError(''); setNotice(''); setAutosaveState('idle');
     try {
-      const [fresh, nextReadiness] = await Promise.all([fetchFreshPeriod(nextCompanyId, nextType, nextStart, nextEnd), fetchReadiness(nextCompanyId, nextType, nextStart, nextEnd)]);
+      const [fresh, nextReadiness] = await Promise.all([readFreshReportPeriod(nextCompanyId, nextType, nextStart, nextEnd), readReportReadiness(nextCompanyId, nextType, nextStart, nextEnd)]);
       setLiveSnapshot(fresh.snapshot); setReadiness(nextReadiness);
-      const reportResult = await supabase.from('reports').select('id,company_id,title,report_type,period_start,period_end,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,updated_at,version,revision_parent_id,dismissed_alerts,internal_note,data_refreshed_at,review_started_at,approved_at,sent_at,sent_to').eq('company_id', nextCompanyId).eq('report_type', nextType).eq('period_start', nextStart).eq('period_end', nextEnd).neq('status', 'archived').order('version', { ascending: false }).limit(1).maybeSingle();
-      if (reportResult.error) throw reportResult.error;
+      const reportResult = await readCurrentReportPeriod(nextCompanyId, nextType, nextStart, nextEnd);
 
-      if (!reportResult.data) {
+      if (!reportResult) {
         setActiveReport(null);
         setSnapshot(fresh.snapshot);
         setDeliveries(fresh.deliveries);
@@ -237,7 +209,7 @@ export function AdminReportsPageV17() {
         return;
       }
 
-      const report = reportRow(reportResult.data), savedSnapshot = report.snapshot || fresh.snapshot;
+      const report = reportRow(reportResult), savedSnapshot = report.snapshot || fresh.snapshot;
       const frozen = frozenDeliveryRows(savedSnapshot);
       const useFrozen = ['approved', 'sent', 'published'].includes(report.status) && frozen;
       const savedManual = reportManualComplementsFromSnapshot(savedSnapshot);
@@ -257,9 +229,9 @@ export function AdminReportsPageV17() {
     if (!liveSnapshot) return;
     setSaving(true); setError('');
     try {
-      const currentReadiness = await fetchReadiness(companyId, reportType, periodStart, periodEnd);
+      const currentReadiness = await readReportReadiness(companyId, reportType, periodStart, periodEnd);
       if (currentReadiness && !currentReadiness.can_generate_official) throw new Error(`O fechamento oficial ainda não está disponível. A coleta mínima é de ${currentReadiness.required_days} dias.`);
-      const fresh = await fetchFreshPeriod(companyId, reportType, periodStart, periodEnd);
+      const fresh = await readFreshReportPeriod(companyId, reportType, periodStart, periodEnd);
       await createDraft(fresh, 1, null, 'official', editor, internalNote, manualComplements);
       setNotice('Fechamento oficial criado. A curadoria que você preparou na prévia foi preservada.');
       await loadBase(); await loadPeriod(companyId, reportType, periodStart, periodEnd);
@@ -268,67 +240,80 @@ export function AdminReportsPageV17() {
   }
 
   async function refreshData() {
-    if (!supabase || !activeReport || !canEdit) return;
+    if (!activeReport || !canEdit) return;
     setSaving(true); setError('');
     try {
-      const fresh = await fetchFreshPeriod(companyId, reportType, periodStart, periodEnd);
+      const fresh = await readFreshReportPeriod(companyId, reportType, periodStart, periodEnd);
       const previousMode = (activeReport.snapshot as any)?.workflow_mode || 'official';
       const sourceSnapshot = attachReportManualComplements({ ...fresh.snapshot, deliveryPerformanceV14: fresh.deliveries, workflow_mode: previousMode, ...((activeReport.snapshot as any)?.simulation_of ? { simulation_of: (activeReport.snapshot as any).simulation_of } : {}) } as IntelligenceSnapshot, manualComplements);
-      const result = await supabase.from('reports').update({ source_snapshot: sourceSnapshot, data_refreshed_at: new Date().toISOString(), service_type_snapshot: fresh.snapshot.contract.serviceType || selectedCompany?.serviceType || null, service_plan_snapshot: fresh.snapshot.contract.servicePlan || selectedCompany?.servicePlan || null, contracted_hours_snapshot: fresh.snapshot.contract.contractedHoursPeriod }).eq('id', activeReport.id);
-      if (result.error) throw result.error;
+      await refreshReportFacts(activeReport.id, sourceSnapshot, {
+        serviceType: fresh.snapshot.contract.serviceType || selectedCompany?.serviceType || null,
+        servicePlan: fresh.snapshot.contract.servicePlan || selectedCompany?.servicePlan || null,
+        contractedHours: fresh.snapshot.contract.contractedHoursPeriod,
+      });
       setSnapshot(fresh.snapshot); setLiveSnapshot(fresh.snapshot); setDeliveries(fresh.deliveries); setNotice('Dados automáticos atualizados. Sua curadoria editorial foi preservada.'); await loadBase();
     } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Não foi possível atualizar os dados.'); }
     finally { setSaving(false); }
   }
 
   async function startReview() {
-    if (!supabase || !activeReport || activeReport.status !== 'draft') return;
+    if (!activeReport || activeReport.status !== 'draft') return;
     if (isSimulation) { setError('Simulações internas não podem entrar em revisão oficial.'); return; }
     if (readiness && !readiness.can_generate_official) { setError(`A revisão oficial fica disponível após ${readiness.required_days} dias de coleta.`); return; }
-    setSaving(true); const now = new Date().toISOString();
-    const result = await supabase.from('reports').update({ status: 'review', review_started_at: now }).eq('id', activeReport.id);
-    if (result.error) setError(result.error.message); else { setNotice('Relatório em revisão. Confira interpretação, relevância e direção antes de aprovar.'); await loadBase(); await loadPeriod(companyId, reportType, periodStart, periodEnd); }
-    setSaving(false);
+    setSaving(true);
+    try {
+      await startReportReview(activeReport.id);
+      setNotice('Relatório em revisão. Confira interpretação, relevância e direção antes de aprovar.');
+      await loadBase();
+      await loadPeriod(companyId, reportType, periodStart, periodEnd);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Não foi possível iniciar a revisão.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function approveReport() {
-    if (!supabase || !activeReport || !snapshot || activeReport.status !== 'review') return;
+    if (!activeReport || !snapshot || activeReport.status !== 'review') return;
     if (isSimulation) { setError('Simulações internas não podem ser aprovadas.'); return; }
     if (!editor.summary.trim()) { setError('A leitura executiva precisa estar preenchida antes da aprovação.'); return; }
     if (unresolvedBlocking.length) { setError(`Existem ${unresolvedBlocking.length} item(ns) que precisam ser corrigidos antes da aprovação.`); return; }
     setSaving(true); setError('');
     try {
-      const user = await supabase.auth.getUser(); if (user.error) throw user.error;
       const sourceSnapshot = attachReportManualComplements({ ...snapshot, deliveryPerformanceV14: deliveries, workflow_mode: 'official' } as IntelligenceSnapshot, manualComplements);
-      const now = new Date().toISOString();
-      const result = await supabase.from('reports').update({ status: 'approved', approved_at: now, approved_by: user.data.user?.id || null, source_snapshot: sourceSnapshot, executive_summary: editor.summary, movements: lines(editor.movements), decisions: lines(editor.decisions), risks: lines(editor.risks), next_steps: lines(editor.nextSteps), internal_note: internalNote, dismissed_alerts: dismissedAlerts }).eq('id', activeReport.id);
-      if (result.error) throw result.error;
-      await supabase.from('activity_log').insert({ company_id: companyId, event_type: 'report_approved', entity_type: 'report', entity_id: activeReport.id, metadata: { version: activeReport.version, period_start: periodStart, period_end: periodEnd } });
+      await approveExecutiveReport(activeReport.id, activeReport.version, {
+        companyId, type: reportType, start: periodStart, end: periodEnd,
+      }, { editor, internalNote, dismissedAlerts, snapshot: sourceSnapshot });
       setNotice('Relatório aprovado e congelado. A próxima ação é enviar ao cliente.'); await loadBase(); await loadPeriod(companyId, reportType, periodStart, periodEnd);
     } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Não foi possível aprovar o relatório.'); }
     finally { setSaving(false); }
   }
 
   async function openSend() {
-    if (!supabase || !activeReport) return;
-    setSendMessage(''); setError('');
-    const contacts = await supabase.from('profiles').select('email,full_name,is_primary').eq('company_id', companyId).eq('role', 'client').eq('active', true).order('is_primary', { ascending: false });
-    setSendRecipients((contacts.data || []).map((item: any) => item.email).filter(Boolean).join(', ')); setSendOpen(true);
+    if (!activeReport) return;
+    setSendMessage(''); setSendError(''); setError('');
+    const recipients = await readReportRecipients(companyId).catch(() => []);
+    setSendRecipients(recipients.join(', '));
+    setSendOpen(true);
   }
 
   async function sendReport() {
-    if (!supabase || !activeReport || sending || !['approved', 'sent', 'published'].includes(activeReport.status)) return;
+    if (!activeReport || sending || !['approved', 'sent', 'published'].includes(activeReport.status)) return;
     const recipients = sendRecipients.split(/[;,]/).map((item) => item.trim()).filter(Boolean);
-    if (!recipients.length) { setError('Informe pelo menos um e-mail de destinatário.'); return; }
+    if (!recipients.length) { setSendError('Informe pelo menos um e-mail de destinatário.'); return; }
     const requestId = confirmDelivery(recipients, [activeReport.id, activeReport.version, sendMessage]);
     if (!requestId) return;
-    setSending(true); setError('');
+    setSending(true); setSendError('');
     try {
-      const result = await supabase.functions.invoke('workspace-send-executive-report', { body: { report_id: activeReport.id, request_id: requestId, version: activeReport.version, recipients, message: sendMessage } });
-      if (result.error || !result.data?.ok || !result.data?.email_id) throw new Error('Não foi possível confirmar o envio do relatório.');
+      await deliverExecutiveReport(activeReport.id, activeReport.version, requestId, recipients, sendMessage);
       completeDelivery();
-      setSendOpen(false); setNotice('Relatório disponibilizado no Workspace e enviado por e-mail.'); await loadBase(); await loadPeriod(companyId, reportType, periodStart, periodEnd);
-    } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar o relatório.'); }
+      setSendOpen(false);
+      await loadBase();
+      await loadPeriod(companyId, reportType, periodStart, periodEnd);
+      setNotice('Relatório disponibilizado no Workspace e enviado por e-mail.');
+    } catch (requestError) {
+      setSendError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar o relatório.');
+    }
     finally { setSending(false); }
   }
 
@@ -336,7 +321,7 @@ export function AdminReportsPageV17() {
     if (!activeReport || !liveSnapshot || !['approved', 'sent', 'published'].includes(activeReport.status)) return;
     setSaving(true); setError('');
     try {
-      const fresh = await fetchFreshPeriod(companyId, reportType, periodStart, periodEnd);
+      const fresh = await readFreshReportPeriod(companyId, reportType, periodStart, periodEnd);
       const simulation = ['sent', 'published'].includes(activeReport.status);
       await createDraft(fresh, activeReport.version + 1, activeReport.id, simulation ? 'simulation' : 'official', undefined, '', manualComplements);
       setNotice(simulation ? 'Simulação interna criada. Ela não altera nem substitui a versão enviada ao cliente.' : `Versão ${activeReport.version + 1} criada como novo rascunho.`);
@@ -346,10 +331,14 @@ export function AdminReportsPageV17() {
   }
 
   async function deleteReport(report: Report) {
-    if (!supabase || !['draft', 'review'].includes(report.status)) return;
+    if (!['draft', 'review'].includes(report.status)) return;
     const ok = window.confirm(`Excluir definitivamente ${periodLabelV14(report.reportType, report.periodStart)} · v${report.version}?`); if (!ok) return;
-    const result = await supabase.from('reports').delete().eq('id', report.id).in('status', ['draft', 'review']);
-    if (result.error) { setError(result.error.message); return; }
+    try {
+      await deleteReportDraft(report.id);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Não foi possível excluir o rascunho.');
+      return;
+    }
     setNotice('Rascunho excluído.'); await loadBase(); if (report.id === activeReport?.id) await loadPeriod(companyId, reportType, periodStart, periodEnd);
   }
 
@@ -445,8 +434,8 @@ export function AdminReportsPageV17() {
 
     {dismissTarget ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-modal-backdrop"><DialogFrame className="modal-card reports-v16-small-modal" aria-label="Dispensar alerta"><Button variant="close" type="button" onClick={() => setDismissTarget(null)}><X size={19} /></Button><span className="section-kicker">JUSTIFICATIVA INTERNA</span><h2>Ignorar este alerta?</h2><p><strong>{dismissTarget.title}</strong></p><textarea autoFocus rows={4} value={dismissReason} onChange={(event) => setDismissReason(event.target.value)} placeholder="Registre por que este ponto não impede o fechamento." /><footer><Button variant="secondary" type="button" onClick={() => setDismissTarget(null)}>Cancelar</Button><Button variant="primary" type="button" disabled={!dismissReason.trim()} onClick={dismissAlert}>Confirmar justificativa</Button></footer></DialogFrame></div> : null}
 
-    {sendOpen && activeReport ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-modal-backdrop"><DialogFrame className="modal-card reports-v16-send-modal" aria-label="Enviar relatório"><Button variant="close" type="button" onClick={() => setSendOpen(false)}><X size={19} /></Button><span className="section-kicker">ENVIAR AO CLIENTE</span><h2>Relatório aprovado · v{activeReport.version}</h2><p>Ao confirmar, esta versão congelada ficará disponível em Relatórios no Workspace do cliente e os destinatários receberão a notificação por e-mail.</p><div className="reports-v16-send-channels"><label><input type="checkbox" checked readOnly />Disponibilizar no Workspace</label><label><input type="checkbox" checked readOnly />Enviar notificação por e-mail</label></div><label><span>Destinatários</span><input type="text" value={sendRecipients} onChange={(event) => setSendRecipients(event.target.value)} placeholder="email@cliente.com, outro@cliente.com" /></label><label><span>Mensagem opcional</span><textarea rows={4} value={sendMessage} onChange={(event) => setSendMessage(event.target.value)} placeholder="Uma observação curta antes do acesso ao relatório." /></label><footer><Button variant="secondary" type="button" disabled={sending} onClick={() => setSendOpen(false)}>Cancelar</Button><Button variant="primary" type="button" disabled={sending || !sendRecipients.trim()} onClick={() => void sendReport()}>{sending ? <Loader2 className="spin" size={16} /> : <Mail size={16} />}Enviar relatório</Button></footer></DialogFrame></div> : null}
+    {sendOpen && activeReport ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-modal-backdrop"><DialogFrame className="modal-card reports-v16-send-modal" aria-label="Enviar relatório"><Button variant="close" type="button" onClick={() => setSendOpen(false)}><X size={19} /></Button><span className="section-kicker">ENVIAR AO CLIENTE</span><h2>Relatório aprovado · v{activeReport.version}</h2><p>Ao confirmar, esta versão congelada ficará disponível em Relatórios no Workspace do cliente e os destinatários receberão a notificação por e-mail.</p><div className="reports-v16-send-channels"><label><input type="checkbox" checked readOnly />Disponibilizar no Workspace</label><label><input type="checkbox" checked readOnly />Enviar notificação por e-mail</label></div><label><span>Destinatários</span><input type="text" value={sendRecipients} onChange={(event) => setSendRecipients(event.target.value)} placeholder="email@cliente.com, outro@cliente.com" /></label><label><span>Mensagem opcional</span><textarea rows={4} value={sendMessage} onChange={(event) => setSendMessage(event.target.value)} placeholder="Uma observação curta antes do acesso ao relatório." /></label>{sendError && <InlineNotice tone="danger" role="alert">{sendError}</InlineNotice>}<footer><Button variant="secondary" type="button" disabled={sending} onClick={() => setSendOpen(false)}>Cancelar</Button><Button variant="primary" type="button" disabled={sending || !sendRecipients.trim()} onClick={() => void sendReport()}>{sending ? <Loader2 className="spin" size={16} /> : <Mail size={16} />}Enviar relatório</Button></footer></DialogFrame></div> : null}
 
-    {previewOpen && snapshot && selectedCompany ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-preview-backdrop"><DialogFrame className="modal-card reports-v16-preview-modal" aria-label="Prévia do relatório"><div className="reports-v16-preview-toolbar"><div><strong>{activeReport ? 'Prévia da versão congelável' : 'Prévia interna sem persistência'}</strong><span>{selectedCompany.name} · {periodName}{activeReport ? ` · v${activeReport.version}` : ''}</span></div><div><Button variant="secondary" type="button" onClick={() => setPreviewOpen(false)}><X size={16} />Voltar</Button>{activeReport ? <Button variant="secondary" type="button" onClick={openPrint}><Printer size={16} />Baixar / imprimir PDF</Button> : null}{activeReport?.status === 'review' && !isSimulation ? <Button variant="primary" type="button" onClick={() => void approveReport()}><CheckCircle2 size={16} />Aprovar relatório</Button> : activeReport?.status === 'approved' ? <Button variant="primary" type="button" onClick={() => void openSend()}><Send size={16} />Enviar ao cliente</Button> : null}</div></div><div className="reports-v16-preview-document"><ExecutiveReportPaperV17 company={selectedCompany} snapshot={attachReportManualComplements(snapshot, manualComplements)} editor={editor} reportType={reportType} periodName={periodName} protocol={activeReport?.protocol || '—'} deliveries={deliveries} /></div></DialogFrame></div> : null}
+    {previewOpen && snapshot && selectedCompany ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-preview-backdrop"><DialogFrame className="modal-card reports-v16-preview-modal" aria-label="Prévia do relatório"><div className="reports-v16-preview-toolbar"><div><strong>{activeReport ? 'Prévia da versão congelável' : 'Prévia interna sem persistência'}</strong><span>{selectedCompany.name} · {periodName}{activeReport ? ` · v${activeReport.version}` : ''}</span></div><div><Button variant="secondary" type="button" onClick={() => setPreviewOpen(false)}><X size={16} />Voltar</Button>{activeReport ? <Button variant="secondary" type="button" onClick={openPrint}><Printer size={16} />Baixar / imprimir PDF</Button> : null}{activeReport?.status === 'review' && !isSimulation ? <Button variant="primary" type="button" onClick={() => void approveReport()}><CheckCircle2 size={16} />Aprovar relatório</Button> : activeReport?.status === 'approved' ? <Button variant="primary" type="button" onClick={() => void openSend()}><Send size={16} />Enviar ao cliente</Button> : null}</div></div><div className="reports-v16-preview-document"><WorkspaceExecutiveReportPaper company={selectedCompany} snapshot={attachReportManualComplements(snapshot, manualComplements)} editor={editor} reportType={reportType} periodName={periodName} protocol={activeReport?.protocol || '—'} deliveries={deliveries} /></div></DialogFrame></div> : null}
   </section></div></div></Shell>;
 }

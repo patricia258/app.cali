@@ -17,7 +17,9 @@ import {
   MessageCircle,
   Send,
 } from 'lucide-react';
-import { isSupabaseConfigured, requestAccessCode, supabase, verifyAccessCode } from '../../../api/supabase';
+import { requestAccessCode, verifyAccessCode } from '../../../api/access/codes';
+import { endWorkspaceSession, isSupabaseConfigured, readAuthenticatedWorkspaceProfile, readExistingWorkspaceRole } from '../../../api/access/session';
+import './sign-in.css';
 
 const emailSchema = z.string().refine((email) => email.includes('@') && email.includes('.'));
 const codeSchema = z.string().regex(/^\d{6}$/);
@@ -43,25 +45,10 @@ export function LoginPage() {
   const validInput = step === 'email' ? emailSchema.safeParse(email).success : codeSchema.safeParse(code).success;
 
   useEffect(() => {
-    if (!supabase) return;
     let active = true;
-
-    async function resumeExistingSession() {
-      const { data: sessionData, error: sessionError } = await supabase!.auth.getSession();
-      const user = sessionData.session?.user;
-      if (!active || sessionError || !user) return;
-
-      const { data: profile, error: profileError } = await supabase!
-        .from('profiles')
-        .select('role, active')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (!active || profileError || !profile?.active) return;
-      navigate(homeOf(profile.role), { replace: true });
-    }
-
-    resumeExistingSession();
+    void readExistingWorkspaceRole().then((role) => {
+      if (active && role) navigate(homeOf(role), { replace: true });
+    }, () => undefined);
     return () => { active = false; };
   }, [navigate]);
 
@@ -94,14 +81,11 @@ export function LoginPage() {
       const { data, error: authError } = await verifyAccessCode(email.trim(), code);
       if (authError) throw authError;
       // Acesso desativado (empresa encerrada, bloqueada ou arquivada, ou pessoa removida): explica em vez de voltar ao login sem aviso.
-      const user = supabase ? (await supabase.auth.getUser()).data.user : null;
-      if (supabase && user) {
-        const { data: profile, error: profileError } = await supabase.from('profiles').select('active').eq('id', user.id).maybeSingle();
-        if (!profileError && profile && !profile.active) {
-          await supabase.auth.signOut();
-          form.setFieldValue('code', '');
-          throw new Error('Seu acesso ao CALI Workspace está desativado. Se acha que é um engano, fale com a CALI RH.');
-        }
+      const profile = await readAuthenticatedWorkspaceProfile();
+      if (profile && !profile.active) {
+        await endWorkspaceSession();
+        form.setFieldValue('code', '');
+        throw new Error('Seu acesso ao CALI Workspace está desativado. Se acha que é um engano, fale com a CALI RH.');
       }
       navigate(homeOf(data?.role), { replace: true });
     } catch (requestError) {

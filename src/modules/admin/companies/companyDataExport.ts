@@ -3,7 +3,7 @@
    com links de download válidos por 7 dias, para enviar ao cliente junto. Os dados restritos de colaboradores
    (remuneração, gênero, filhos) saem separados em "dados_restritos"; quem recebe fica registrado na auditoria.
    A exportação aplicável deve ser entregue dentro dos 30 dias corridos do encerramento, antes da eliminação. */
-import { supabase } from '../../../api/supabase';
+import { readCompanyExport, signCompanyExportDocuments } from '../../../api/admin/companies/export';
 
 const LINK_DAYS = 7;
 const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
@@ -18,21 +18,14 @@ function download(content: string, type: string, filename: string) {
 type DocRow = { title?: string; original_filename?: string; protocol?: string; storage_path?: string; created_at?: string; document_date?: string; drive_url?: string; external_url?: string };
 
 export async function exportCompanyData(companyId: string, companyName: string, recipient: string) {
-  if (!supabase) throw new Error('Conexão indisponível.');
-  const result = await supabase.rpc('admin_export_company_data', { p_company_id: companyId, p_recipient: recipient });
-  if (result.error) throw new Error(result.error.message || 'Não foi possível gerar a exportação.');
-  const payload = result.data as { exported_at: string; data: Record<string, unknown[]> };
+  const payload = await readCompanyExport(companyId, recipient);
   const today = new Date().toISOString().slice(0, 10);
   const base = `cali-workspace-${slug(companyName)}-${today}`;
   download(JSON.stringify(payload, null, 2), 'application/json', `${base}-dados.json`);
 
   const docs = [...(payload.data.files || []), ...(payload.data.account_documents || [])] as DocRow[];
   const paths = docs.map((doc) => doc.storage_path).filter((path): path is string => Boolean(path));
-  const links: Record<string, string> = {};
-  if (paths.length) {
-    const signed = await supabase.storage.from('cali-workspace-private').createSignedUrls(paths, LINK_DAYS * 86400);
-    for (const item of signed.data || []) if (item.path && item.signedUrl) links[item.path] = item.signedUrl;
-  }
+  const links = await signCompanyExportDocuments(paths, LINK_DAYS * 86400);
   const until = new Date(Date.now() + LINK_DAYS * 86400000).toLocaleDateString('pt-BR');
   const rows = docs.map((doc) => {
     const href = (doc.storage_path && links[doc.storage_path]) || doc.drive_url || doc.external_url || '';

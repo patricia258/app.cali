@@ -9,6 +9,8 @@ declare
   internal_record uuid := gen_random_uuid();
   internal_message uuid;
   public_message uuid;
+  client_message uuid;
+  admin_message uuid;
   first_ids text[];
   cursor_at timestamptz;
   cursor_id text;
@@ -54,13 +56,54 @@ begin
     raise exception 'Empresa B abriu histórico de A.';
   exception when insufficient_privilege then null;
   end;
+  begin
+    perform cali_workspace.toggle_account_record_message_reaction(public_message,'like');
+    raise exception 'Cliente B reagiu à mensagem de A.';
+  exception when insufficient_privilege then null;
+  end;
   perform set_config('request.jwt.claims',current_setting('qa.claims_client_a'),true);
   if not exists(select 1 from cali_workspace.account_record_messages m where m.id=public_message)
     or exists(select 1 from cali_workspace.account_record_messages m where m.id=internal_message) then
     raise exception 'Nota interna visível ao Cliente ou retorno público ausente.';
   end if;
-  if (cali_workspace.post_account_record_message(record_a,'QA resposta do cliente',false)->>'message_id') is null then
+  client_message := (cali_workspace.post_account_record_message(record_a,'QA resposta do cliente',false)->>'message_id')::uuid;
+  if client_message is null then
     raise exception 'Cliente perdeu o canal de resposta da própria ocorrência.';
+  end if;
+  begin
+    perform cali_workspace.toggle_account_record_message_reaction(internal_message,'like');
+    raise exception 'Cliente reagiu a nota interna.';
+  exception when insufficient_privilege then null;
+  end;
+  receipt := cali_workspace.toggle_account_record_message_reaction(public_message,'like');
+  if receipt->>'active' is distinct from 'true'
+    or not exists(select 1 from cali_workspace.account_record_message_reactions r where r.message_id=public_message and r.user_id=actor_a and r.reaction='like') then
+    raise exception 'Reação não preservou mensagem, autor e tipo.';
+  end if;
+  receipt := cali_workspace.toggle_account_record_message_reaction(public_message,'like');
+  if receipt->>'active' is distinct from 'false'
+    or exists(select 1 from cali_workspace.account_record_message_reactions r where r.message_id=public_message and r.user_id=actor_a) then
+    raise exception 'Segundo toque não removeu a reação.';
+  end if;
+  begin
+    perform cali_workspace.edit_account_record_message(client_message,'QA alteração pelo cliente');
+    raise exception 'Cliente editou mensagem publicada.';
+  exception when raise_exception then
+    if sqlerrm <> 'Apenas a CALI pode editar mensagens.' then raise; end if;
+  end;
+  perform set_config('request.jwt.claims',current_setting('qa.claims_admin'),true);
+  begin
+    perform cali_workspace.edit_account_record_message(client_message,'QA alteração pela CALI');
+    raise exception 'Admin sobrescreveu o registro original do Cliente.';
+  exception when raise_exception then
+    if sqlerrm not like 'Mensagens do cliente permanecem%' then raise; end if;
+  end;
+  admin_message := (cali_workspace.post_account_record_message(record_a,'QA retorno da CALI',false)->>'message_id')::uuid;
+  perform cali_workspace.edit_account_record_message(admin_message,' QA retorno revisado pela CALI ');
+  perform set_config('request.jwt.claims',current_setting('qa.claims_client_a'),true);
+  if not exists(select 1 from cali_workspace.account_record_messages m where m.id=admin_message
+    and m.body='QA retorno revisado pela CALI' and m.edited_at is not null) then
+    raise exception 'Cliente não viu texto editado e carimbo de edição.';
   end if;
   begin
     perform cali_workspace.client_delete_unopened_account_record(record_a);

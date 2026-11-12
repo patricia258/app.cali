@@ -28,6 +28,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import { patiWavePoster, patiWaveVideo } from '../../../assets/patiWaveMedia';
+import './landing-identity.css';
 
 const carouselPhotoModules = import.meta.glob(
   '../../../assets/landing-carousel/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',

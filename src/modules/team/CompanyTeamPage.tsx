@@ -9,22 +9,19 @@ import { TeamMonthWizard } from './components/TeamMonthWizard';
 import { ArrowRight, Building2, CalendarDays, Check, ChevronDown, ChevronRight, Info, Download, FileDown, FileUp, Filter, LayoutGrid, List, Loader2, Plus, Search, SlidersHorizontal, Star, Users, UsersRound, X } from 'lucide-react';
 import { Shell, type Role } from '../../components/workspace/WorkspaceShell';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
-import { supabase } from '../../api/supabase';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  archiveTeamMember, readAnalyticsFront, readCompanyTeam, readTeamCompanies, readTeamMetrics,
+  saveTeamMembers, teamDirectoryKey,
+} from '../../api/team/directory';
+import type { Change, Company, Draft, Member, MonthMetric, Private, Snapshot, Vacancy } from '../../domain/team';
 import { writeTeamMetrics, type TeamMetricsWrite } from '../../api/team/metrics';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 import './company-team.css';
 import { TeamMemberProfiles } from '../disc/components/TeamMemberProfiles';
 import { GestaoBanner } from '../disc/components/GestaoBanner';
 
-export type Member = { id:string; company_id:string; employee_code:string; full_name:string; work_email:string|null; work_phone:string|null; admission_date:string; job_title:string; seniority:string|null; department:string; team_area:string|null; manager_code:string|null; is_leader:boolean; employment_type:string; weekly_hours:number|null; work_model:string|null; location:string|null; avatar_style?:'female'|'male'|'neutral'; status:'active'|'leave'|'terminated'; leave_reason:string|null; leave_start_date:string|null; expected_return_date:string|null; termination_date:string|null; termination_initiative:string|null; termination_reason:string|null; notice_type:string|null; archived_at?:string|null };
-export type Vacancy={id:string;vacancy_code:string;title:string;department:string|null;opened_on:string;status:'open'|'filled'|'cancelled';closed_on:string|null};
-type Private = { member_id:string; salary:number|null; salary_review_date:string|null; gender:string|null; gender_detail:string|null; has_children:string|null };
-type MonthMetric = { reference_month:string; updated_at:string; planned_hours:number|null; absence_medical_hours:number|null; absence_leave_hours:number|null; absence_unjustified_hours:number|null; absence_accident_hours:number|null; overtime_hours:number|null; hour_bank_balance:number|null; approved_headcount:Record<string,number>; enps_score:number|null; climate_score:number|null; climate_participation:number|null; notes:string|null };
 type MetricDraft = Record<'planned'|'medical'|'leave'|'unjustified'|'accident'|'overtime'|'bank'|'enps'|'climate'|'participation'|'notes',string> & { approved:Record<string,string>; reason:string; expectedAt:string|null };
-type Company = { id:string; display_name:string; logo_url:string|null; logo_workspace_url:string|null; service_plan:string|null };
-type Snapshot = { reference_month:string; member_id:string; status:string; department:string; manager_code:string|null; job_title:string; admission_date:string; termination_date:string|null };
-type Change = { id:string; member_id:string; reference_month:string; change_type:string; created_at:string; before_state:Record<string,unknown>|null; after_state:Record<string,unknown>|null };
-export type Draft = Omit<Member,'id'|'company_id'|'avatar_style'> & { termination_code:string; salary:string; salary_review_date:string; gender:string; gender_detail:string; has_children:string; optional_data_declared:boolean };
 type Tab='people'|'changes'|'indicators';
 type DetailTab='data'|'reports'|'history'|'profile';
 type ColumnKey='job_title'|'seniority'|'department'|'team_area'|'manager_code'|'is_leader'|'employment_type'|'weekly_hours'|'work_model'|'location'|'work_email'|'work_phone'|'admission_date'|'status'|'leave_reason'|'leave_start_date'|'expected_return_date'|'termination_date'|'termination_initiative'|'termination_reason'|'notice_type';
@@ -80,18 +77,6 @@ function normalizeCsvDate(raw:string,label:string,line:number){const value=raw.t
 function csvYes(raw:string){return ['sim','s','yes','true','1'].includes(raw.trim().toLocaleLowerCase('pt-BR'));}
 function csvMoney(raw:string){const value=raw.trim();if(!value)return'';const normalized=value.replace(/\s/g,'').replace(/^R\$/i,'').replace(/\./g,'').replace(',','.');const parsed=Number(normalized);if(!Number.isFinite(parsed)||parsed<0)throw new Error('Confira a remuneração informada.');return String(parsed);}
 function downloadModel(){const header=csvColumns.map(([label])=>label).join(';')+'\r\n';const blob=new Blob(['\ufeff'+header],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='cali-modelo-colaboradores.csv';a.click();URL.revokeObjectURL(url);}
-async function fetchTeamRows(table:'team_members'|'team_month_snapshots'|'team_changes'|'team_member_private',select:string,companyId:string,order:string,ascending=true){
-  if(!supabase)throw new Error('Conexão indisponível.');
-  const rows:unknown[]=[];
-  for(let start=0;start<100000;start+=500){
-    const result=await supabase.from(table).select(select).eq('company_id',companyId).order(order,{ascending}).range(start,start+499);
-    if(result.error)throw result.error;
-    rows.push(...(result.data||[]));
-    if((result.data||[]).length<500)return rows;
-  }
-  throw new Error('A equipe ultrapassou o limite de consulta; contate a CALI para ampliar a leitura.');
-}
-
 function columnContent(member:Member,key:ColumnKey,memberMap:Map<string,string>){
   if(key==='status')return <span className={`team-pill ${member.status}`}>{statusLabels[member.status]}</span>;
   if(key==='admission_date'||key==='leave_start_date'||key==='expected_return_date'||key==='termination_date')return dateLabel(member[key] as string|null);
@@ -107,7 +92,7 @@ function columnContent(member:Member,key:ColumnKey,memberMap:Map<string,string>)
 }
 /* staff = Equipe CALI (Partner): mesma tela do cliente, só para consulta, nas empresas atribuídas a ele; nunca carrega dados restritos (salário). */
 export function CompanyTeamPage({role,staff=false}:{role:Role;staff?:boolean}){
-  const {user}=useWorkspaceAuth();const admin=role==='admin';/* A administradora usa a mesma composição V2 do cliente; os ramos v1 (visual anterior) estão desligados e saem na limpeza. */const v1=false as boolean;/* Cadastro em um único formulário (decisão da proprietária em 10/10). */const single=true;/* Módulo People Analytics: núcleo do CALI Full, contratável à parte nos demais planos; a administradora vê sempre. */const [analyticsFront,setAnalyticsFront]=useState(false);const [cmpMode,setCmpMode]=useState('prev');const [metrics,setMetrics]=useState<MonthMetric[]>([]);const [metricDraft,setMetricDraft]=useState<MetricDraft|null>(null);const metricRequest=useRef<{key:string;id:string}>();const [essChart,setEssChart]=useState('Quadro ativo');const [printingIndicators,setPrintingIndicators]=useState(false);const loadSequence=useRef(0);const [companies,setCompanies]=useState<Company[]>([]);const [companyId,setCompanyId]=useState('');const [members,setMembers]=useState<Member[]>([]);const [privateRows,setPrivateRows]=useState<Private[]>([]);const [months,setMonths]=useState<{reference_month:string;confirmed_at:string;revision:number}[]>([]);const [snapshots,setSnapshots]=useState<Snapshot[]>([]);const [changes,setChanges]=useState<Change[]>([]);
+  const {user}=useWorkspaceAuth();const admin=role==='admin';/* A administradora usa a mesma composição V2 do cliente; os ramos v1 (visual anterior) estão desligados e saem na limpeza. */const v1=false as boolean;/* Cadastro em um único formulário (decisão da proprietária em 10/10). */const single=true;/* Módulo People Analytics: núcleo do CALI Full, contratável à parte nos demais planos; a administradora vê sempre. */const [analyticsFront,setAnalyticsFront]=useState(false);const [cmpMode,setCmpMode]=useState('prev');const [metrics,setMetrics]=useState<MonthMetric[]>([]);const [metricDraft,setMetricDraft]=useState<MetricDraft|null>(null);const metricRequest=useRef<{key:string;id:string}>();const [essChart,setEssChart]=useState('Quadro ativo');const [printingIndicators,setPrintingIndicators]=useState(false);const loadSequence=useRef(0);const [companies,setCompanies]=useState<Company[]>([]);const [companyId,setCompanyId]=useState('');const [members,setMembers]=useState<Member[]>([]);const [privateRows,setPrivateRows]=useState<Private[]>([]);const [months,setMonths]=useState<{reference_month:string;confirmed_at:string|null;revision?:number|null}[]>([]);const [snapshots,setSnapshots]=useState<Snapshot[]>([]);const [changes,setChanges]=useState<Change[]>([]);
   const [tab,setTab]=useState<Tab>('people');const [detailTab,setDetailTab]=useState<DetailTab>('data');const [viewKind,setViewKind]=useState<'list'|'leaders'>('list');const [periodMode,setPeriodMode]=useState(false);const [periodStart,setPeriodStart]=useState(currentMonth());const [periodEnd,setPeriodEnd]=useState(currentMonth());const [pendingTermination,setPendingTermination]=useState<Member|null>(null);const [month,setMonth]=useState(()=>new URLSearchParams(location.search).get('mes')||currentMonth());const [search,setSearch]=useState('');const [department,setDepartment]=useState('');const [status,setStatus]=useState('');const [columns,setColumns]=useState<ColumnKey[]>(admin?defaultColumns:clientDirectoryColumns);const [columnOpen,setColumnOpen]=useState(false);const [loading,setLoading]=useState(true);const [saving,setSaving]=useState(false);const [error,setError]=useState('');const [notice,setNotice]=useState('');const [editor,setEditor]=useState<Draft|null>(null);const [editingId,setEditingId]=useState<string|null>(null);const [importOpen,setImportOpen]=useState(false);const [importRows,setImportRows]=useState<Draft[]>([]);const [importError,setImportError]=useState('');const [importFileName,setImportFileName]=useState('');const [importBusy,setImportBusy]=useState(false);const [removeMember,setRemoveMember]=useState<Member|null>(null);const [detail,setDetail]=useState<Member|null>(null);
   const [orgArea,setOrgArea]=useState<string|null>(null);const [showFormer,setShowFormer]=useState(false);const [ieKind,setIeKind]=useState<'headcount'|'movements'>('headcount');const [ieFocus,setIeFocus]=useState<number|null>(null);const [ieSegment,setIeSegment]=useState('');const [searchParams]=useSearchParams();useEffect(()=>{const aba=searchParams.get('aba');if(aba==='diretorio'){setTab('people');setViewKind('list')}else if(aba==='estrutura'){setTab('people');setViewKind('leaders')}else if(aba==='movimentacoes')setTab('changes');else if(aba==='indicadores')setTab('indicators')},[searchParams]);const [vacancies,setVacancies]=useState<Vacancy[]>([]);const [reviews,setReviews]=useState<{reference_month:string}[]>([]);const [reviewOpen,setReviewOpen]=useState(false);const [editorStep,setEditorStep]=useState(0);const lastEditorAdvance=useRef(0);
   // A ficha abre fora da página (sobre a tela toda); a marca no corpo da página esconde as ações de edição para a Equipe CALI.
@@ -116,11 +101,66 @@ export function CompanyTeamPage({role,staff=false}:{role:Role;staff?:boolean}){
   const columnStorageKey=user?.id&&companyId?`cali:team-columns-v4:${user.id}:${companyId}`:'';
   useEffect(()=>{if(!columnStorageKey){setColumns(admin?defaultColumns:clientDirectoryColumns);return;}try{const saved=JSON.parse(localStorage.getItem(columnStorageKey)||'null');setColumns(Array.isArray(saved)?saved.filter((key):key is ColumnKey=>key in columnLabels):admin?defaultColumns:clientDirectoryColumns);}catch{setColumns(admin?defaultColumns:clientDirectoryColumns)}},[columnStorageKey]);
   function toggleColumn(key:ColumnKey){setColumns(previous=>{const next=previous.includes(key)?previous.filter(x=>x!==key):[...previous,key];if(columnStorageKey)localStorage.setItem(columnStorageKey,JSON.stringify(next));return next;});}
-  async function loadMetrics(id=companyId){if(!supabase||!id)return;const result=await supabase.from('team_month_metrics').select('reference_month,updated_at,planned_hours,absence_medical_hours,absence_leave_hours,absence_unjustified_hours,absence_accident_hours,overtime_hours,hour_bank_balance,approved_headcount,enps_score,climate_score,climate_participation,notes').eq('company_id',id).order('reference_month');if(!result.error)setMetrics((result.data||[]) as MonthMetric[]);}
+  async function loadMetrics(id=companyId) {
+    if (!id) return;
+    const result = await readTeamMetrics(id);
+    if (result) setMetrics(result);
+  }
   useEffect(()=>{setMetrics([]);setCmpMode('prev');void loadMetrics(companyId);},[companyId]);
-  useEffect(()=>{let alive=true;setAnalyticsFront(false);if(!supabase||!companyId||admin)return;const today=new Date().toISOString().slice(0,10);void supabase.from('company_fronts').select('id,ends_at').eq('company_id',companyId).eq('front_code','people_analytics').eq('status','active').then(result=>{if(alive)setAnalyticsFront((result.data||[]).some(item=>!item.ends_at||item.ends_at>=today));});return()=>{alive=false};},[companyId,admin]);
-  useEffect(()=>{let alive=true;async function loadCompanies(){if(!supabase||!user)return;setLoading(true);setError('');if(staff){const result=await supabase.rpc('partner_companies');if(!alive)return;if(result.error)setError('Não foi possível carregar as suas empresas.');else{const list=((result.data||[]) as any[]).map(row=>({id:row.id,display_name:row.display_name,logo_url:row.logo_url||null,logo_workspace_url:row.logo_workspace_url||null,service_plan:row.service_plan||null}));setCompanies(list as any);setCompanyId(previous=>previous||list[0]?.id||'');}setLoading(false);return;}if(admin){const result=await supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url,service_plan').order('display_name');if(!alive)return;if(result.error)setError(result.error.message);else{setCompanies(result.data||[]);setCompanyId(previous=>previous||result.data?.[0]?.id||'');}}else{const profile=await supabase.from('profiles').select('company_id').eq('id',user.id).maybeSingle();if(!alive)return;if(profile.error||!profile.data?.company_id){setError('Seu acesso não está vinculado a uma empresa.');setLoading(false);return;}const result=await supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url,service_plan').eq('id',profile.data.company_id).maybeSingle();if(!alive)return;if(result.error||!result.data)setError(result.error?.message||'Empresa indisponível.');else{setCompanies([result.data]);setCompanyId(result.data.id);}}}void loadCompanies();return()=>{alive=false};},[admin,user?.id]);
-  async function loadTeam(id=companyId){if(!supabase||!id)return;const request=++loadSequence.current;setLoading(true);setError('');try{const [people,monthRows,snapshotRows,changeRows,priv]=await Promise.all([fetchTeamRows('team_members','*',id,'full_name'),supabase.from('team_months').select('reference_month,confirmed_at,revision').eq('company_id',id).order('reference_month',{ascending:false}),fetchTeamRows('team_month_snapshots','reference_month,member_id,status,department,manager_code,job_title,admission_date,termination_date',id,'reference_month'),fetchTeamRows('team_changes','id,member_id,reference_month,change_type,created_at,before_state,after_state',id,'created_at',false),!staff?fetchTeamRows('team_member_private','member_id,salary,salary_review_date,gender,gender_detail,has_children',id,'member_id'):Promise.resolve([])]);if(monthRows.error)throw monthRows.error;if(request!==loadSequence.current)return;setMembers(people as Member[]);setMonths(monthRows.data||[]);setSnapshots(snapshotRows as Snapshot[]);setChanges(changeRows as Change[]);setPrivateRows(priv as Private[]);const [jobs,reviewRows]=await Promise.all([supabase.from('team_vacancies').select('id,vacancy_code,title,department,opened_on,status,closed_on').eq('company_id',id).order('opened_on',{ascending:false}),supabase.from('team_month_reviews').select('reference_month').eq('company_id',id)]);if(jobs.error||reviewRows.error)throw jobs.error||reviewRows.error;setVacancies(jobs.data||[]);setReviews(reviewRows.data||[]);}catch(err){if(request===loadSequence.current)setError(errorText(err));}finally{if(request===loadSequence.current)setLoading(false);}}
+  useEffect(() => {
+    let active = true;
+    setAnalyticsFront(false);
+    if (companyId && !admin) {
+      void readAnalyticsFront(companyId).then((visible) => { if (active) setAnalyticsFront(visible); });
+    }
+    return () => { active = false; };
+  }, [companyId, admin]);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    setLoading(true);
+    setError('');
+    const scope = staff ? 'partner' : admin ? 'admin' : 'client';
+    void readTeamCompanies(user.id, scope).then((result) => {
+      if (!active) return;
+      setCompanies(result);
+      setCompanyId((previous) => scope === 'client' ? result[0]?.id || '' : previous || result[0]?.id || '');
+      if (staff) setLoading(false);
+    }, (reason) => {
+      if (!active) return;
+      setError(reason instanceof Error ? reason.message : 'Não foi possível carregar as suas empresas.');
+      setLoading(false);
+    });
+    return () => { active = false; };
+  }, [admin, staff, user?.id]);
+
+  const queryClient = useQueryClient();
+  async function loadTeam(id=companyId) {
+    if (!id || !user) return;
+    const request = ++loadSequence.current;
+    setLoading(true);
+    setError('');
+    try {
+      const result = await queryClient.fetchQuery({
+        queryKey: teamDirectoryKey(user.id, id, staff),
+        queryFn: ({ signal }) => readCompanyTeam(id, staff, signal),
+        staleTime: 0,
+      });
+      if (request !== loadSequence.current) return;
+      setMembers(result.people);
+      setMonths(result.months);
+      setSnapshots(result.snapshots);
+      setChanges(result.changes);
+      setPrivateRows(result.privateRows);
+      setVacancies(result.vacancies);
+      setReviews(result.reviews);
+    } catch (reason) {
+      if (request === loadSequence.current) setError(errorText(reason));
+    } finally {
+      if (request === loadSequence.current) setLoading(false);
+    }
+  }
   useEffect(()=>{if(companyId){setDetail(null);setPrivateRows([]);setImportOpen(false);setImportRows([]);void loadTeam(companyId);}},[companyId]);
   const monthSnapshots=snapshots.filter(item=>item.reference_month===`${month}-01`);const visibleMembers:Member[]=isCurrent?members.filter(m=>!m.archived_at):monthSnapshots.flatMap(item=>{const source=members.find(m=>m.id===item.member_id);return source?[{...source,status:item.status as Member['status'],department:item.department,manager_code:item.manager_code,job_title:item.job_title,admission_date:item.admission_date,termination_date:item.termination_date}]:[];});
   const departments=useMemo(()=>[...new Set(visibleMembers.map(item=>item.department))].sort((a,b)=>a.localeCompare(b,'pt-BR')),[visibleMembers]);const memberMap=new Map(members.map(item=>[item.employee_code,item.full_name]));
@@ -138,9 +178,9 @@ export function CompanyTeamPage({role,staff=false}:{role:Role;staff?:boolean}){
   function openEdit(member?:Member){const restricted=member&&!staff?privateRows.find(item=>item.member_id===member.id):null;setEditor(normalized({salary:restricted?.salary?.toString()||'',salary_review_date:restricted?.salary_review_date||'',gender:restricted?.gender||'',gender_detail:restricted?.gender_detail||'',has_children:restricted?.has_children||'',optional_data_declared:Boolean(restricted&&(restricted.gender||restricted.has_children||restricted.salary!=null||restricted.salary_review_date))},member));setEditingId(member?.id||null);setEditorStep(0);setError('');}
   function openStatusEdit(member:Member,nextStatus:'leave'|'terminated'){const restricted=!staff?privateRows.find(item=>item.member_id===member.id):null;setEditor(normalized({salary:restricted?.salary?.toString()||'',salary_review_date:restricted?.salary_review_date||'',gender:restricted?.gender||'',gender_detail:restricted?.gender_detail||'',has_children:restricted?.has_children||'',optional_data_declared:Boolean(restricted&&(restricted.gender||restricted.has_children||restricted.salary!=null||restricted.salary_review_date)),status:nextStatus,...(nextStatus==='leave'&&!member.leave_start_date?{leave_start_date:new Date().toISOString().slice(0,10)}:{})},member));setEditingId(member.id);setEditorStep(3);setError('');}
   function payload(draft:Draft){return {employee_code:draft.employee_code.trim(),full_name:draft.full_name.trim(),work_email:draft.work_email||null,work_phone:draft.work_phone||null,admission_date:draft.admission_date,job_title:draft.job_title.trim(),seniority:draft.seniority||null,department:draft.department.trim(),team_area:draft.team_area||null,manager_code:draft.manager_code||null,is_leader:Boolean(draft.is_leader),employment_type:draft.employment_type,weekly_hours:draft.weekly_hours??null,work_model:draft.work_model||null,location:draft.location||null,status:draft.status,leave_reason:draft.status==='leave'?draft.leave_reason:null,leave_start_date:draft.status==='leave'?draft.leave_start_date:null,expected_return_date:draft.status==='leave'?draft.expected_return_date:null,termination_date:draft.status==='terminated'?draft.termination_date:null,termination_initiative:draft.status==='terminated'?draft.termination_initiative:null,termination_reason:draft.status==='terminated'?terminationReasonValue(draft.employment_type==='clt'?draft.termination_code:'',draft.termination_reason):null,notice_type:draft.status==='terminated'?draft.notice_type:null,...(draft.optional_data_declared?{optional_data_declared:true,...(draft.salary!==''?{salary:Number(draft.salary)}:{}),...(draft.salary_review_date?{salary_review_date:draft.salary_review_date}:{}),...(draft.gender?{gender:draft.gender,gender_detail:draft.gender==='other'?draft.gender_detail||null:null}:{}),...(draft.has_children?{has_children:draft.has_children}:{})}:{})};}
-  async function saveRows(rows:Draft[],success:string){if(!supabase||!companyId)return;setSaving(true);setError('');try{const result=await supabase.rpc('save_team_month_v1',{p_company_id:companyId,p_reference_month:`${activeMonth}-01`,p_rows:rows.map(payload)});if(result.error)throw result.error;await loadTeam(companyId);setEditor(null);setImportRows([]);setImportOpen(false);setMonth(activeMonth);setNotice(success);}catch(err){setError(errorText(err));}finally{setSaving(false);}}
+  async function saveRows(rows:Draft[],success:string){if(!companyId)return;setSaving(true);setError('');try{await saveTeamMembers(companyId, `${activeMonth}-01`, rows.map(payload));await loadTeam(companyId);setEditor(null);setImportRows([]);setImportOpen(false);setMonth(activeMonth);setNotice(success);}catch(err){setError(errorText(err));}finally{setSaving(false);}}
   function saveEditor(e:FormEvent){e.preventDefault();if(!editor||Date.now()-lastEditorAdvance.current<450)return;if(editor.status==='leave'&&(!editor.leave_reason||!editor.leave_start_date)){setError('Informe o motivo e a data de início das férias ou do afastamento.');return;}if(editor.status==='terminated'&&!editor.termination_date){setError('Informe a data do desligamento.');return;}if((editor.gender||editor.has_children||editor.salary||editor.salary_review_date)&&!editor.optional_data_declared){setError('Confirme a origem autorizada dos dados opcionais antes de salvar.');setEditorStep(4);return;}if(editor.gender==='other'&&editor.gender_detail.length>120){setError('A identificação de gênero deve ter até 120 caracteres.');return;}void saveRows([{...editor,employee_code:editor.employee_code.trim()||`CALI-${crypto.randomUUID().toUpperCase()}`}],editingId?'Ficha atualizada.':'Colaborador cadastrado.');}
-  async function archiveMember(){if(!supabase||!removeMember||!companyId)return;setSaving(true);setError('');try{const result=await supabase.rpc('archive_team_member_v1',{p_company_id:companyId,p_member_id:removeMember.id});if(result.error)throw result.error;setRemoveMember(null);setDetail(null);await loadTeam(companyId);setNotice('Ficha removida da equipe atual. O histórico foi preservado.')}catch(err){setError(errorText(err))}finally{setSaving(false)}}
+  async function archiveMember(){if(!removeMember||!companyId)return;setSaving(true);setError('');try{await archiveTeamMember(companyId, removeMember.id);setRemoveMember(null);setDetail(null);await loadTeam(companyId);setNotice('Ficha removida da equipe atual. O histórico foi preservado.')}catch(err){setError(errorText(err))}finally{setSaving(false)}}
   async function readCsv(file:File){
     setImportOpen(true);setImportError('');setImportRows([]);setImportFileName(file.name);setImportBusy(true);
     if(file.size>1_000_000){setImportError('A planilha deve ter até 1 MB.');setImportBusy(false);return;}

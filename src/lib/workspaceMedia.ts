@@ -1,4 +1,4 @@
-import { supabase } from '../api/supabase';
+import { signPrivateWorkspaceMedia, workspaceStorageAvailable } from '../api/files/workspace';
 
 type CachedMedia = { url: string; expiresAt: number };
 type MediaSession = {
@@ -44,7 +44,7 @@ function normalizePrivateMedia(raw: string) {
 }
 
 export async function resolveWorkspaceMedia(raw?: string | null, expiresIn = 3600, forceRefresh = false) {
-  if (!raw || !supabase) return raw || '';
+  if (!raw || !workspaceStorageAvailable) return raw || '';
 
   const normalized = normalizePrivateMedia(raw);
   if (!normalized.startsWith('private:')) return raw;
@@ -60,22 +60,20 @@ export async function resolveWorkspaceMedia(raw?: string | null, expiresIn = 360
 
   const path = normalized.slice('private:'.length);
   const request = (async () => {
-    const { data, error } = await supabase.storage
-      .from('cali-workspace-private')
-      .createSignedUrl(path, expiresIn);
+    const url = await signPrivateWorkspaceMedia(path, expiresIn);
 
     if (active !== scope || scope.signal.aborted) return '';
-    if (error || !data?.signedUrl) {
+    if (!url) {
       scope.signed.delete(normalized);
       return '';
     }
 
     const value = {
-      url: data.signedUrl,
+      url,
       expiresAt: now + Math.max(60, expiresIn) * 1000,
     };
     scope.signed.set(normalized, value);
-    return data.signedUrl;
+    return url;
   })();
   scope.pending.set(normalized, request);
   try {

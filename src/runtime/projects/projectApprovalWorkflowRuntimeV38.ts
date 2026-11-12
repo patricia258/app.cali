@@ -1,5 +1,10 @@
 import { caliWorkstreams } from '../../domain/projects';
-import { supabase } from '../../api/supabase';
+import { isSupabaseConfigured } from '../../api/access/session';
+import {
+  approveProjectSchedule, readAdminScheduleReview, readClientScheduleReview, resolveScheduleAdjustment,
+  deleteProjectWorkstream, renameProjectWorkstream, requestScheduleAdjustment, sendScheduleReminder,
+} from '../../api/projects/schedule';
+import { readProjectActor } from '../../api/projects/conversation';
 import { isWorkspaceRoute } from '../routeActivity';
 
 type PlanningStatus='draft'|'client_review'|'adjustment_requested'|'approved'|'active'|'rebriefing'|'closed';
@@ -52,32 +57,13 @@ function dialog(title:string,kicker:string,body:string,footer:string){
   document.body.append(overlay);return overlay;
 }
 
-async function loadAdminContext():Promise<Context|null>{
-  if(!supabase)return null;const protocol=projectProtocolFromAdmin();if(!protocol)return null;
-  const p=await supabase.from('projects').select('id,protocol,company_id,name,planning_status,start_date,roadmap_start_date,target_end_date,roadmap_end_date,client_response_business_days,client_approved_at,activated_at').eq('protocol',protocol).maybeSingle();
-  if(p.error||!p.data)return null;const project=p.data as ProjectRow;
-  const [f,d,r]=await Promise.all([
-    supabase.from('project_workstreams').select('id,protocol,project_id,name,objective,status,sort_order,roadmap_month_start,roadmap_month_end').eq('project_id',project.id).neq('status','cancelled').order('sort_order'),
-    supabase.from('deliverables').select('id,protocol,project_id,workstream,workstream_id,title,due_at,status,sort_order').eq('project_id',project.id).neq('status','cancelled').order('sort_order'),
-    supabase.from('project_review_requests').select('id,project_id,status,request_number,response_due_at,response_note,requested_changes,resolution_note,requested_at').eq('project_id',project.id).order('requested_at',{ascending:false}),
-  ]);
-  return{project,fronts:(f.data||[])as FrontRow[],deliverables:(d.data||[])as DeliverableRow[],reviews:(r.data||[])as ReviewRow[]};
+async function loadAdminContext(): Promise<Context | null> {
+  const protocol = projectProtocolFromAdmin();
+  return protocol ? (await readAdminScheduleReview(protocol)) as Context | null : null;
 }
 
-async function loadClientContext():Promise<Context|null>{
-  if(!supabase)return null;
-  const profile=await supabase.auth.getUser();const uid=profile.data.user?.id;if(!uid)return null;
-  const pr=await supabase.from('profiles').select('company_id').eq('id',uid).maybeSingle();const companyId=pr.data?.company_id;if(!companyId)return null;
-  const projects=await supabase.from('projects').select('id,protocol,company_id,name,planning_status,start_date,roadmap_start_date,target_end_date,roadmap_end_date,client_response_business_days,client_approved_at,activated_at').eq('company_id',companyId).order('created_at',{ascending:false});
-  if(projects.error||!projects.data?.length)return null;
-  const selectedId=currentClientProjectId();
-  const project=((selectedId&&projects.data.find((row:any)=>row.id===selectedId))||projects.data.find((row:any)=>['client_review','adjustment_requested'].includes(row.planning_status))||projects.data[0]) as ProjectRow;
-  const [f,d,r]=await Promise.all([
-    supabase.from('project_workstreams').select('id,protocol,project_id,name,objective,status,sort_order,roadmap_month_start,roadmap_month_end').eq('project_id',project.id).neq('status','cancelled').order('sort_order'),
-    supabase.from('deliverables').select('id,protocol,project_id,workstream,workstream_id,title,due_at,status,sort_order').eq('project_id',project.id).neq('status','cancelled').order('sort_order'),
-    supabase.from('project_review_requests').select('id,project_id,status,request_number,response_due_at,response_note,requested_changes,resolution_note,requested_at').eq('project_id',project.id).order('requested_at',{ascending:false}),
-  ]);
-  return{project,fronts:(f.data||[])as FrontRow[],deliverables:(d.data||[])as DeliverableRow[],reviews:(r.data||[])as ReviewRow[]};
+async function loadClientContext(): Promise<Context | null> {
+  return (await readClientScheduleReview(currentClientProjectId())) as Context | null;
 }
 
 function frontDeliverables(ctx:Context,front:FrontRow){return ctx.deliverables.filter((item)=>item.workstream_id===front.id||(!item.workstream_id&&normalize(item.workstream||'')===normalize(front.name)));}
@@ -89,7 +75,7 @@ function editFrontDialog(ctx:Context,front:FrontRow){
   const select=overlay.querySelector<HTMLSelectElement>('#wf-front-select-v38')!,customLabel=overlay.querySelector<HTMLElement>('#wf-custom-front-label-v38')!,custom=overlay.querySelector<HTMLInputElement>('#wf-custom-front-v38')!,objective=overlay.querySelector<HTMLTextAreaElement>('#wf-front-objective-v38')!;
   select.addEventListener('change',()=>{customLabel.hidden=select.value!=='Outro';if(select.value==='Outro')custom.focus();});
   overlay.querySelector('[data-cancel]')?.addEventListener('click',closeWorkflowModal);
-  overlay.querySelector('[data-save]')?.addEventListener('click',async()=>{const name=select.value==='Outro'?custom.value.trim():select.value;if(name.length<2){showError('Informe o nome da frente.');return;}const button=overlay.querySelector<HTMLButtonElement>('[data-save]')!;button.disabled=true;const result=await supabase!.rpc('admin_update_project_workstream',{p_workstream_id:front.id,p_name:name,p_objective:objective.value.trim()||null});if(result.error){button.disabled=false;showError(result.error.message);return;}location.reload();});
+  overlay.querySelector('[data-save]')?.addEventListener('click',async()=>{const name=select.value==='Outro'?custom.value.trim():select.value;if(name.length<2){showError('Informe o nome da frente.');return;}const button=overlay.querySelector<HTMLButtonElement>('[data-save]')!;button.disabled=true;const result=await renameProjectWorkstream(front.id, name, objective.value.trim() || null);if(result.error){button.disabled=false;showError(result.error.message);return;}location.reload();});
 }
 
 function deleteFrontDialog(ctx:Context,front:FrontRow){
@@ -98,7 +84,7 @@ function deleteFrontDialog(ctx:Context,front:FrontRow){
   const overlay=dialog('Excluir frente','RASCUNHO',`<p>Você está excluindo <strong>${escapeHtml(front.name)}</strong>.</p>${transfer}`,`<button type="button" class="secondary" data-cancel>Cancelar</button><button type="button" class="primary danger-button" data-delete ${items.length&&!targets.length?'disabled':''}>${items.length?'Transferir e excluir':'Excluir frente'}</button>`);
   if(items.length&&!targets.length){const note=document.createElement('p');note.className='workflow-help-v38 danger';note.textContent='Crie outra frente antes de excluir esta, pois há entregáveis vinculados.';overlay.querySelector('.workflow-dialog-body-v38')?.append(note);}
   overlay.querySelector('[data-cancel]')?.addEventListener('click',closeWorkflowModal);
-  overlay.querySelector('[data-delete]')?.addEventListener('click',async()=>{const target=overlay.querySelector<HTMLSelectElement>('#wf-front-target-v38')?.value||null;if(items.length&&!target){showError('Escolha a frente de destino dos entregáveis.');return;}const button=overlay.querySelector<HTMLButtonElement>('[data-delete]')!;button.disabled=true;const result=await supabase!.rpc('admin_delete_project_workstream',{p_workstream_id:front.id,p_move_to_workstream_id:target});if(result.error){button.disabled=false;showError(result.error.message);return;}location.reload();});
+  overlay.querySelector('[data-delete]')?.addEventListener('click',async()=>{const target=overlay.querySelector<HTMLSelectElement>('#wf-front-target-v38')?.value||null;if(items.length&&!target){showError('Escolha a frente de destino dos entregáveis.');return;}const button=overlay.querySelector<HTMLButtonElement>('[data-delete]')!;button.disabled=true;const result=await deleteProjectWorkstream(front.id, target);if(result.error){button.disabled=false;showError(result.error.message);return;}location.reload();});
 }
 
 function addFrontAdminActions(ctx:Context){
@@ -129,7 +115,7 @@ function draftReadiness(ctx:Context){
 function resolveAdjustmentDialog(ctx:Context,review:ReviewRow,accept:boolean){
   const change=review.requested_changes||{};const target=change.targetLabel||'Cronograma';
   const overlay=dialog(accept?'Acolher pedido de ajuste':'Não aplicar pedido','ANÁLISE CALI',`<div class="workflow-request-v38"><span>Pedido ${review.request_number} de 2</span><strong>${escapeHtml(target)}</strong><p>${escapeHtml(review.response_note||'')}</p>${change.priority?`<em>${escapeHtml(change.priority)}</em>`:''}</div><label>Justificativa da decisão<textarea id="wf-resolution-note-v38" rows="5" placeholder="Explique ao cliente o que será feito e por quê."></textarea></label><p class="workflow-help-v38">Depois da sua decisão, o cronograma volta para validação do cliente. Se você acolher o pedido, ajuste as datas/frentes necessárias antes de ele aprovar.</p>`,`<button type="button" class="secondary" data-cancel>Cancelar</button><button type="button" class="primary" data-resolve>Enviar decisão</button>`);
-  overlay.querySelector('[data-cancel]')?.addEventListener('click',closeWorkflowModal);overlay.querySelector('[data-resolve]')?.addEventListener('click',async()=>{const note=overlay.querySelector<HTMLTextAreaElement>('#wf-resolution-note-v38')!.value.trim();if(note.length<3){showError('Informe a justificativa da decisão.');return;}const button=overlay.querySelector<HTMLButtonElement>('[data-resolve]')!;button.disabled=true;const result=await supabase!.rpc('admin_resolve_project_schedule_adjustment',{p_review_id:review.id,p_accept:accept,p_justification:note});if(result.error){button.disabled=false;showError(result.error.message);return;}location.reload();});
+  overlay.querySelector('[data-cancel]')?.addEventListener('click',closeWorkflowModal);overlay.querySelector('[data-resolve]')?.addEventListener('click',async()=>{const note=overlay.querySelector<HTMLTextAreaElement>('#wf-resolution-note-v38')!.value.trim();if(note.length<3){showError('Informe a justificativa da decisão.');return;}const button=overlay.querySelector<HTMLButtonElement>('[data-resolve]')!;button.disabled=true;const result=await resolveScheduleAdjustment(review.id, accept, note);if(result.error){button.disabled=false;showError(result.error.message);return;}location.reload();});
 }
 
 function adminReviewBanner(ctx:Context){
@@ -151,14 +137,14 @@ function adminReviewBanner(ctx:Context){
 }
 
 function sendApprovalReminder(ctx:Context,review:ReviewRow|null){
-  if(!review||!supabase)return;
+  if(!review||!isSupabaseConfigured)return;
   const overlay=dialog('Enviar lembrete ao cliente','ACOMPANHAMENTO DO CRONOGRAMA',`<div class="workflow-warning-v40"><strong>O cliente receberá um lembrete sobre a aprovação pendente.</strong><p>O cronograma continuará aguardando a decisão dele. Esta ação registra uma notificação no Workspace e não altera prazos nem status.</p></div><div class="workflow-approval-summary-v38"><div><span>Projeto</span><b>${escapeHtml(ctx.project.name)}</b></div><div><span>Resposta prevista</span><b>${formatDateTime(review.response_due_at)}</b></div></div>`,`<button type="button" class="secondary" data-cancel>Cancelar</button><button type="button" class="primary" data-send>Enviar lembrete</button>`);
   overlay.querySelector('[data-cancel]')?.addEventListener('click',closeWorkflowModal);
   overlay.querySelector('[data-send]')?.addEventListener('click',async()=>{
     const button=overlay.querySelector<HTMLButtonElement>('[data-send]')!;button.disabled=true;button.textContent='Enviando…';
-    const auth=await supabase!.auth.getUser();const actor=auth.data.user?.id;
+    const auth=await readProjectActor();const actor=auth.data.user?.id;
     if(!actor){button.disabled=false;button.textContent='Enviar lembrete';showError('Não foi possível identificar o usuário administrador.');return;}
-    const result=await supabase!.rpc('notify_workspace_movement',{p_company_id:ctx.project.company_id,p_actor_id:actor,p_target:'client',p_notification_type:'project_schedule_reminder',p_title:'Lembrete: cronograma aguardando sua aprovação',p_body:`${ctx.project.name} continua aguardando sua aprovação. Acesse o Workspace para revisar o cronograma.`,p_entity_type:'project',p_entity_id:ctx.project.id,p_action_url:'/cliente/entregaveis',p_relevance:'high',p_email_required:true});
+    const result = await sendScheduleReminder(ctx.project, actor);
     if(result.error){button.disabled=false;button.textContent='Enviar lembrete';showError(result.error.message);return;}
     closeWorkflowModal();showWorkflowToast('Lembrete enviado ao cliente.');
   });
@@ -168,12 +154,12 @@ function clientAdjustmentDialog(ctx:Context,current:ReviewRow){
   const overlay=dialog('Solicitar ajuste no cronograma',`PEDIDO ${current.request_number} DE 2`,`<label>O que você quer ajustar?<select id="wf-adjust-type-v38"><option value="workstream">Prioridade de uma frente</option><option value="deliverable">Prazo ou ordem de um entregável</option><option value="project">Outro ponto do cronograma</option></select></label><label id="wf-target-label-v38">Frente<select id="wf-adjust-target-v38"></select></label><label id="wf-priority-label-v38">Como você quer priorizar?<select id="wf-adjust-priority-v38"><option value="Quero antecipar esta frente">Quero antecipar esta frente</option><option value="Quero que esta frente tenha prioridade sobre as próximas">Quero que esta frente tenha prioridade sobre as próximas</option><option value="Esta frente pode ficar para depois">Esta frente pode ficar para depois</option></select></label><label>Explique o ajuste<textarea id="wf-adjust-reason-v38" rows="5" placeholder="Ex.: precisamos priorizar Liderança antes de Comunicação Interna por causa do ciclo de metas."></textarea></label><p class="workflow-help-v38">A CALI recebe o pedido, analisa e responde com justificativa. O cronograma só vira projeto depois da sua aprovação final.</p>`,`<button type="button" class="secondary" data-cancel>Cancelar</button><button type="button" class="primary" data-submit>Enviar pedido</button>`);
   const type=overlay.querySelector<HTMLSelectElement>('#wf-adjust-type-v38')!,target=overlay.querySelector<HTMLSelectElement>('#wf-adjust-target-v38')!,targetLabel=overlay.querySelector<HTMLElement>('#wf-target-label-v38')!,priorityLabel=overlay.querySelector<HTMLElement>('#wf-priority-label-v38')!,priority=overlay.querySelector<HTMLSelectElement>('#wf-adjust-priority-v38')!;
   const sync=()=>{if(type.value==='project'){targetLabel.hidden=true;priorityLabel.hidden=true;target.replaceChildren();return;}targetLabel.hidden=false;priorityLabel.hidden=type.value!=='workstream';target.replaceChildren();const rows=type.value==='workstream'?ctx.fronts:ctx.deliverables;rows.forEach((row:any)=>{const o=document.createElement('option');o.value=row.id;o.textContent=type.value==='workstream'?row.name:row.title;target.append(o);});const textNode=Array.from(targetLabel.childNodes).find((node)=>node.nodeType===Node.TEXT_NODE);if(textNode)textNode.textContent=type.value==='workstream'?'Frente':'Entregável';};sync();type.addEventListener('change',sync);overlay.querySelector('[data-cancel]')?.addEventListener('click',closeWorkflowModal);
-  overlay.querySelector('[data-submit]')?.addEventListener('click',async()=>{const reason=overlay.querySelector<HTMLTextAreaElement>('#wf-adjust-reason-v38')!.value.trim();if(reason.length<3){showError('Explique o ajuste que você precisa.');return;}const button=overlay.querySelector<HTMLButtonElement>('[data-submit]')!;button.disabled=true;const result=await supabase!.rpc('client_request_project_schedule_adjustment',{p_project_id:ctx.project.id,p_target_type:type.value,p_target_id:type.value==='project'?null:target.value||null,p_reason:reason,p_priority:type.value==='workstream'?priority.value:null});if(result.error){button.disabled=false;showError(result.error.message);return;}location.reload();});
+  overlay.querySelector('[data-submit]')?.addEventListener('click',async()=>{const reason=overlay.querySelector<HTMLTextAreaElement>('#wf-adjust-reason-v38')!.value.trim();if(reason.length<3){showError('Explique o ajuste que você precisa.');return;}const button=overlay.querySelector<HTMLButtonElement>('[data-submit]')!;button.disabled=true;const result=await requestScheduleAdjustment({p_project_id:ctx.project.id,p_target_type:type.value,p_target_id:type.value==='project'?null:target.value||null,p_reason:reason,p_priority:type.value==='workstream'?priority.value:null});if(result.error){button.disabled=false;showError(result.error.message);return;}location.reload();});
 }
 
 function clientApprovalDialog(ctx:Context){
   const overlay=dialog('Aprovar cronograma','APROVAÇÃO FINAL',`<div class="workflow-approval-summary-v38"><strong>${escapeHtml(ctx.project.name)}</strong><p>Ao aprovar, este cronograma deixa de ser proposta e passa a ser um projeto ativo.</p><div><span>Início oficial</span><b>Data da aprovação</b></div><div><span>Previsão atual</span><b>${formatDate(ctx.project.roadmap_end_date)}</b></div></div><p class="workflow-help-v38">Se a aprovação ocorrer depois da data usada na montagem do cronograma, as deadlines serão reposicionadas em dias úteis para preservar os intervalos planejados.</p>`,`<button type="button" class="secondary" data-cancel>Voltar</button><button type="button" class="primary" data-approve>Aprovar e iniciar projeto</button>`);
-  overlay.querySelector('[data-cancel]')?.addEventListener('click',closeWorkflowModal);overlay.querySelector('[data-approve]')?.addEventListener('click',async()=>{const button=overlay.querySelector<HTMLButtonElement>('[data-approve]')!;button.disabled=true;const result=await supabase!.rpc('client_approve_project_schedule',{p_project_id:ctx.project.id});if(result.error){button.disabled=false;showError(result.error.message);return;}location.reload();});
+  overlay.querySelector('[data-cancel]')?.addEventListener('click',closeWorkflowModal);overlay.querySelector('[data-approve]')?.addEventListener('click',async()=>{const button=overlay.querySelector<HTMLButtonElement>('[data-approve]')!;button.disabled=true;const result=await approveProjectSchedule(ctx.project.id);if(result.error){button.disabled=false;showError(result.error.message);return;}location.reload();});
 }
 
 function clientReviewPanel(ctx:Context){
@@ -199,7 +185,7 @@ function clientEmptyState(){
 }
 
 async function scan(){
-  if(busy||!supabase||!isWorkspaceRoute('/admin/projetos','/cliente/entregaveis'))return;const admin=location.pathname.startsWith('/admin/projetos'),client=location.pathname.startsWith('/cliente/entregaveis');if(!admin&&!client)return;busy=true;
+  if(busy||!isSupabaseConfigured||!isWorkspaceRoute('/admin/projetos','/cliente/entregaveis'))return;const admin=location.pathname.startsWith('/admin/projetos'),client=location.pathname.startsWith('/cliente/entregaveis');if(!admin&&!client)return;busy=true;
   try{
     if(admin){const ctx=await loadAdminContext();if(ctx){addFrontAdminActions(ctx);adminReviewBanner(ctx);}}
     if(client){const ctx=await loadClientContext();if(ctx)clientReviewPanel(ctx);else clientEmptyState();}

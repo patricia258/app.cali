@@ -1,0 +1,55 @@
+@reference "../../styles/tailwind.css";
+
+:where(html[data-workspace-surface]) {
+  .route-loading {
+    @apply tw:min-h-screen tw:grid tw:place-items-center tw:content-center tw:gap-[14px]
+      tw:bg-[color:var(--ivory,var(--cali-color-canvas))];
+  }
+  .route-loading p { @apply tw:text-[.94rem]; }
+  .loading-mark {
+    @apply tw:font-cali-heading tw:text-[color:var(--burgundy,var(--cali-color-burgundy))]
+      tw:text-[2.1rem] tw:tracking-[.1em];
+  }
+  .cali-route-loading {
+    @apply tw:fixed! tw:inset-0! tw:w-screen! tw:h-dvh! tw:min-h-dvh! tw:grid! tw:place-items-center!
+      tw:overflow-hidden! tw:bg-cali-day-canvas! tw:z-2147483700!;
+  }
+  .cali-loading-illustrations {
+    --route-loading-art: clamp(92px, 10vw, 126px);
+    width: var(--route-loading-art);
+    height: var(--route-loading-art);
+  }
+  .cali-loading-mark {
+    @apply tw:bg-cali-brand tw:opacity-0;
+    transform: scale(.88) rotate(-4deg);
+    filter: drop-shadow(0 12px 22px rgba(90, 30, 45, .08));
+  }
+  .cali-loading-lime {
+    -webkit-mask: url('/brand/cali-lime-mark.svg') center / contain no-repeat;
+    mask: url('/brand/cali-lime-mark.svg') center / contain no-repeat;
+    animation: cali-loading-lime 2.4s ease-in-out infinite;
+  }
+  .cali-loading-oak {
+    -webkit-mask: url('/brand/cali-oak-mark.svg') center / contain no-repeat;
+    mask: url('/brand/cali-oak-mark.svg') center / contain no-repeat;
+    animation: cali-loading-oak 2.4s ease-in-out infinite;
+  }
+  &[data-workspace-theme='night'] {
+    .cali-route-loading { @apply tw:bg-cali-canvas!; }
+    .cali-loading-mark { background: #f1dbe1; filter: drop-shadow(0 12px 24px rgba(0, 0, 0, .18)); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cali-loading-lime, .cali-loading-oak { animation-duration: 4s !important; }
+  }
+}
+
+@keyframes cali-loading-lime {
+  0%, 8% { opacity: 0; transform: scale(.88) rotate(-6deg); }
+  18%, 44% { opacity: .88; transform: scale(1) rotate(0); }
+  54%, 100% { opacity: 0; transform: scale(.93) rotate(4deg); }
+}
+@keyframes cali-loading-oak {
+  0%, 46% { opacity: 0; transform: scale(.9) rotate(5deg); }
+  58%, 84% { opacity: .88; transform: scale(1) rotate(0); }
+  94%, 100% { opacity: 0; transform: scale(.92) rotate(-4deg); }
+}

@@ -1,16 +1,15 @@
 import '../../modules/hours/hours-company-logo-v41.css';
-import { resolveCompanyAsset, type CompanyLogoRecord } from '../../lib/companyWorkspaceLogo';
+import { resolveCompanyAsset } from '../../lib/companyWorkspaceLogo';
 import { workspaceMediaSignal } from '../../lib/workspaceMedia';
-import { supabase } from '../../api/supabase';
-
-type CompanyRow = CompanyLogoRecord & { status?: string | null };
+import { hoursAvailable } from '../../api/hours/client';
+import { readHoursCompanyLogos, type HoursCompanyLogo } from '../../api/hours/workspace';
 
 let installed = false;
 let timer = 0;
 let loading = false;
 let cacheAt = 0;
 let cacheScope: AbortSignal | undefined;
-let companies = new Map<string, CompanyRow>();
+let companies = new Map<string, HoursCompanyLogo>();
 let resolved = new Map<string, string>();
 
 function key(value = '') {
@@ -22,21 +21,17 @@ function isHoursPage() {
 }
 
 async function loadCompanies(signal: AbortSignal, force: boolean) {
-  if (!supabase || signal.aborted) return;
+  if (!hoursAvailable || signal.aborted) return;
   if (!force && companies.size && Date.now() - cacheAt < 10_000) return;
-  const result = await supabase
-    .from('companies')
-    .select('id,display_name,logo_url,logo_workspace_url,logo_workspace_generated_at,status')
-    .neq('status', 'closed')
-    .order('display_name').abortSignal(signal);
+  const result = await readHoursCompanyLogos(signal);
   if (result.error || signal.aborted) return;
   companies = new Map();
   resolved = new Map();
-  for (const row of (result.data || []) as CompanyRow[]) companies.set(key(row.display_name), row);
+  for (const row of result.data ?? []) companies.set(key(row.display_name), row);
   cacheAt = Date.now();
 }
 
-async function resolveLogo(company: CompanyRow, signal: AbortSignal) {
+async function resolveLogo(company: HoursCompanyLogo, signal: AbortSignal) {
   if (signal.aborted) return '';
   const cached = resolved.get(company.id);
   if (cached) return cached;

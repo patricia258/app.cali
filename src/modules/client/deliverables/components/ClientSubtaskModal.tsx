@@ -8,7 +8,12 @@ import { withMentions } from '../../../../lib/mentionText';
 import { SensitiveDataNote } from '../../../../components/privacy/SensitiveDataNote';
 import { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, Paperclip, RefreshCw, Send, X } from 'lucide-react';
-import { supabase } from '../../../../api/supabase';
+import { isSupabaseConfigured } from '../../../../api/access/session';
+import { readProjectActor, uploadDeliverableAttachment } from '../../../../api/projects/conversation';
+import {
+  approveClientTask, postClientTaskMessage, readClientTaskCompany, readClientTaskContext,
+  readClientTaskParticipants, requestClientTaskAdjustment,
+} from '../../../../api/projects/tasks';
 
 type Message = { id: string; author_user_id: string | null; author_role: string; body: string; created_at: string };
 type FileToken = { name: string; path: string; size: number };
@@ -25,20 +30,25 @@ export function ClientSubtaskModal({ task, deliverableId, deliverableTitle, stat
   const fileInput = useRef<HTMLInputElement | null>(null);
   const closed = ['approved', 'done', 'completed', 'cancelled'].includes(task.status);
 
-  async function load() { if (!supabase) return;
-    const [thread, files] = await Promise.all([
-      supabase.from('task_messages').select('id,author_user_id,author_role,body,created_at').eq('task_id', task.id).eq('client_visible', true).order('created_at'),
-      supabase.from('files').select('id,title,storage_path,original_filename').eq('task_id', task.id).eq('client_visible', true).eq('status', 'published'),
-    ]);
-    if (!thread.error) setMessages((thread.data || []) as Message[]); if (!files.error) setDocs((files.data || []) as any[]);
-    const used = await supabase.from('deliverable_tasks').select('adjustment_count').eq('id', task.id).maybeSingle(); if (!used.error) setAdjustUsed(Number((used.data as any)?.adjustment_count || 0));
+  async function load() { if (!isSupabaseConfigured) return;
+    const { thread, files, adjustments } = await readClientTaskContext(task.id);
+    if (!thread.error) setMessages((thread.data ?? []) as Message[]);
+    if (!files.error) setDocs(files.data ?? []);
+    if (!adjustments.error) setAdjustUsed(Number(adjustments.data?.adjustment_count ?? 0));
   }
-  useEffect(() => { if (!supabase) return; let alive = true; const db = supabase;
-    void (async () => { const { data: auth } = await db.auth.getUser(); const uid = auth.user?.id || ''; if (!alive) return; setMe(uid);
-      const profile = uid ? await db.from('profiles').select('company_id').eq('id', uid).maybeSingle() : { data: null }; if (alive) setCompanyId((profile.data as any)?.company_id || '');
-      const team = await db.rpc('staff_identities'); const contact = await db.rpc('get_client_account_contact'); const admin = Array.isArray(contact.data) ? contact.data[0] : contact.data;
-      if (alive) setNames(Object.fromEntries([...(((team.data || []) as any[]).map((row) => [row.id, row.full_name])), ...(admin?.id ? [[admin.id, admin.full_name]] : [])]));
-      await load(); })();
+  useEffect(() => { if (!isSupabaseConfigured) return; let alive = true;
+    void (async () => {
+      const { data: auth } = await readProjectActor();
+      if (!alive) return;
+      const uid = auth.user?.id ?? '';
+      setMe(uid);
+      const company = await readClientTaskCompany(uid);
+      if (alive) setCompanyId(company);
+      const people = await readClientTaskParticipants();
+      if (!alive) return;
+      setNames(people);
+      await load();
+    })();
     const timer = window.setInterval(() => void load(), 20000);
     return () => { alive = false; window.clearInterval(timer); };
   }, [task.id]);
@@ -51,7 +61,7 @@ export function ClientSubtaskModal({ task, deliverableId, deliverableTitle, stat
       setNotice('Não foi possível abrir este arquivo agora.');
     }
   }
-  async function send() { if (!supabase || busy || (!text.trim() && !file)) return; setBusy(true); setNotice('');
+  async function send() { if (!isSupabaseConfigured || busy || (!text.trim() && !file)) return; setBusy(true); setNotice('');
     try { let token = '';
       if (file) {
         if (!ALLOWED.includes(file.type)) { setNotice('Use PDF, imagem, Word, Excel ou PowerPoint.'); return; }
@@ -59,18 +69,18 @@ export function ClientSubtaskModal({ task, deliverableId, deliverableTitle, stat
         if (!companyId || !me) { setNotice('Não foi possível anexar agora. Tente de novo.'); return; }
         const clean = file.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').slice(0, 90) || 'arquivo';
         const path = `deliverable-chat/${companyId}/${deliverableId}/${me}/${Date.now()}-${clean}`;
-        const upload = await supabase.storage.from('cali-workspace-private').upload(path, file, { contentType: file.type, upsert: false });
+        const upload = await uploadDeliverableAttachment(path, file, file.type);
         if (upload.error) { setNotice('Não foi possível anexar o arquivo. A mensagem não foi enviada.'); return; }
         token = `[[arquivo|${encodeURIComponent(file.name)}|${encodeURIComponent(path)}|${encodeURIComponent(file.type)}|${file.size}]]`;
       }
-      const result = await supabase.rpc('client_post_task_message', { p_task_id: task.id, p_body: [text.trim(), token].filter(Boolean).join('\n') });
+      const result = await postClientTaskMessage(task.id, [text.trim(), token].filter(Boolean).join('\n'));
       if (result.error) { setNotice(result.error.message || 'Não foi possível enviar a mensagem.'); return; }
       setText(''); setFile(null); await load();
     } finally { setBusy(false); }
   }
-  async function approve() { if (!supabase || busy) return; setBusy(true); const result = await supabase.rpc('client_approve_task', { p_task_id: task.id }); setBusy(false); setConfirming(false);
+  async function approve() { if (!isSupabaseConfigured || busy) return; setBusy(true); const result = await approveClientTask(task.id); setBusy(false); setConfirming(false);
     if (result.error) { setNotice(result.error.message || 'Não foi possível registrar a aprovação.'); return; } onChanged(); onClose(); }
-  async function requestAdjustment() { if (!supabase || busy || adjustText.trim().length < 10) return; setBusy(true); const result = await supabase.rpc('client_request_task_adjustment', { p_task_id: task.id, p_body: adjustText.trim() }); setBusy(false);
+  async function requestAdjustment() { if (!isSupabaseConfigured || busy || adjustText.trim().length < 10) return; setBusy(true); const result = await requestClientTaskAdjustment(task.id, adjustText.trim()); setBusy(false);
     if (result.error) { setNotice(result.error.message || 'Não foi possível registrar o pedido de ajuste.'); return; } onChanged(); onClose(); }
   const author = (message: Message) => message.author_user_id === me ? 'Você' : (message.author_user_id && names[message.author_user_id]) || (message.author_role === 'client' ? 'Sua equipe' : 'CALI');
 

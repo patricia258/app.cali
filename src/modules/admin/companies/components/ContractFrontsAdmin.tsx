@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Plus, X } from 'lucide-react';
-import { supabase } from '../../../../api/supabase';
-import { activeFront, coreFront, eligibleMode, loadContractFronts, planName, type CompanyPlan, type ContractedFront, type Front } from '../../../../lib/contractFronts';
+import { addContractFront, closeContractFront, loadContractFronts, type CompanyPlan, type ContractedFront, type Front } from '../../../../api/fronts/contracts';
+import { activeFront, coreFront, eligibleMode, planName } from '../../../../lib/contractFronts';
 
 export function ContractFrontsAdmin({company}:{company:CompanyPlan}) {
   const [catalog,setCatalog]=useState<Front[]>([]),[contracts,setContracts]=useState<ContractedFront[]>([]);
@@ -17,12 +17,12 @@ export function ContractFrontsAdmin({company}:{company:CompanyPlan}) {
   const modes:ContractedFront['mode'][] = defaultMode==='slot_included'?['slot_included','slot_paid']:defaultMode?[defaultMode]:[];
   const included=active.filter(item=>item.mode==='slot_included').length;
   const paid=active.filter(item=>item.mode==='slot_paid').length;
-  async function add(){if(!supabase||!selected||!plan)return;setError('');setNotice('');setSaving(true);try{
+  async function add(){if(!selected||!plan)return;setError('');setNotice('');setSaving(true);try{
     if(selected.code==='selection_vacancy'&&!scope.trim())throw new Error('Identifique a vaga antes de ativar esta frente.');
-    const result=await supabase.from('company_fronts').insert({company_id:company.id,front_code:code,mode,scope_label:scope.trim()||null,ends_at:end||null});
-    if(result.error)throw result.error;setCode('');setScope('');setEnd('');await refresh();setNotice('Frente registrada no escopo da empresa.');
+    await addContractFront(company.id, code, mode, scope, end);
+    await refresh();setNotice('Frente registrada no escopo da empresa.');
   }catch(e){setError(e instanceof Error?e.message:'Não foi possível ativar a frente.');}finally{setSaving(false);}}
-  async function close(id:string){if(!supabase)return;setSaving(true);setError('');setNotice('');try{const result=await supabase.from('company_fronts').update({status:'ended'}).eq('id',id);if(result.error)throw result.error;await refresh();setNotice('Frente encerrada. O histórico permanece registrado.');}catch(e){setError(e instanceof Error?e.message:'Não foi possível encerrar a frente.');}finally{setSaving(false);}}
+  async function close(id:string){setSaving(true);setError('');setNotice('');try{await closeContractFront(id);await refresh();setNotice('Frente encerrada. O histórico permanece registrado.');}catch(e){setError(e instanceof Error?e.message:'Não foi possível encerrar a frente.');}finally{setSaving(false);}}
   return <section className="contract-fronts-admin account-tab-pane"><div className="account-pane-heading"><CheckCircle2 size={18}/><div><strong>Frentes contratadas</strong><span>Ative somente o que estiver no contrato ou aditivo desta empresa.</span></div></div>
     {!plan?<p className="fronts-note">Defina CALI Partner, Full ou Build nos dados da empresa e salve antes de configurar as frentes.</p>:<>
       <div className="fronts-summary"><strong>{planName[plan]}</strong>{plan==='partner'||plan==='full'?<span>{plan==='full'?`${included}/1 incluída · `:''}{paid}/1 adicional contratada</span>:<span>{active.filter(item=>item.mode==='build_assisted').length} em implantação assistida</span>}</div>

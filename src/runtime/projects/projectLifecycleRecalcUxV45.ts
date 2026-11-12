@@ -1,4 +1,5 @@
-import { supabase } from '../../api/supabase';
+import { isSupabaseConfigured } from '../../api/access/session';
+import { changeProjectLifecycle, readProjectLifecycle, readProjectLifecycleContext } from '../../api/projects/lifecycle';
 
 type ScopeType = 'project' | 'front' | 'deliverable';
 type Action = 'pause' | 'suspend' | 'cancel' | 'resume';
@@ -52,20 +53,15 @@ function activeHolds(ctx:Context){return ctx.events.filter((event)=>!event.resol
 function stateLabel(event:LifecycleEvent){return event.action==='pause'?'Pausado':'Suspenso';}
 
 async function loadAdminContext():Promise<Context|null>{
-  if(!supabase)return null;const protocol=protocolFromHero();if(!protocol)return null;
-  const p=await supabase.from('projects').select('id,protocol,name,planning_status,execution_status,start_date,roadmap_end_date').eq('protocol',protocol).maybeSingle();
-  if(p.error||!p.data)return null;
-  const [fronts,deliverables,events]=await Promise.all([
-    supabase.from('project_workstreams').select('id,name,status,execution_status').eq('project_id',p.data.id).order('sort_order'),
-    supabase.from('deliverables').select('id,title,workstream,workstream_id,status,execution_status').eq('project_id',p.data.id).order('sort_order'),
-    supabase.from('project_lifecycle_events').select('id,scope_type,scope_id,scope_label,action,reason,resume_date,created_at,resolved_at').eq('project_id',p.data.id).order('created_at',{ascending:false}).limit(50),
-  ]);
-  return { project:p.data as ProjectRow, fronts:(fronts.data||[]) as FrontRow[], deliverables:(deliverables.data||[]) as DeliverableRow[], events:(events.data||[]) as LifecycleEvent[] };
+  if(!isSupabaseConfigured)return null;const protocol=protocolFromHero();if(!protocol)return null;
+  const project = await readProjectLifecycle(protocol);
+  if (!project) return null;
+  return { project, ...await readProjectLifecycleContext(project.id, 50) } as Context;
 }
 
 async function runAction(ctx:Context, action:Action, scopeType:ScopeType, scopeId:string|null, reason:string, resumeDate:string|null){
-  if(!supabase)return;
-  const result=await supabase.rpc('admin_set_project_lifecycle_v44',{p_project_id:ctx.project.id,p_action:action,p_scope_type:scopeType,p_scope_id:scopeId,p_reason:reason,p_resume_date:resumeDate||null});
+  if(!isSupabaseConfigured)return;
+  const result=await changeProjectLifecycle(ctx.project.id, action, scopeType, scopeId, reason, resumeDate);
   if(result.error)throw result.error;
 }
 

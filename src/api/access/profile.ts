@@ -12,15 +12,12 @@ export type WorkspaceRole = z.infer<typeof workspaceRole>;
 
 export const workspaceProfileKey = (userId: string) => ['workspace-auth', 'profile', userId] as const;
 
-async function readWorkspaceProfile(userId: string, signal: AbortSignal) {
+export async function readWorkspaceProfile(userId: string, signal?: AbortSignal) {
   if (!supabase) throw new Error('Supabase não configurado.');
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('role, active')
-    .eq('id', userId)
-    .abortSignal(signal)
-    .single();
+  const query = supabase.from('profiles').select('role, active').eq('id', userId);
+  if (signal) query.abortSignal(signal);
+  const { data, error } = await query.single();
 
   if (error) throw error;
   return workspaceProfile.parse(data);

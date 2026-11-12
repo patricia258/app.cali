@@ -45,9 +45,13 @@ import {
   type CalendarView,
   type WorkspaceCalendarEvent,
 } from '../../domain/calendar';
-import { supabase } from '../../api/supabase';
+import { isSupabaseConfigured } from '../../api/access/session';
+import { cancelCalendarEvent, readAdminCalendar, readMeetingOutcomes, saveCalendarEvent, submitStaffCalendarChange } from '../../api/calendar/admin';
+import { observeSchedulingRequests, readCalendarNotices } from '../../api/calendar/agenda';
+import { authorizeGoogleCalendar, readGoogleCalendarEvents } from '../../api/calendar/connections';
 import { NoticeCalendarCard } from '../notices/NoticesBoard';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
+import './google-meeting-options.css';
 
 type CompanyOption = { id: string; name: string; logoUrl?: string | null };
 type MeetingOutcome = { event_id: string; outcome: string; transcription_url?: string | null; transcription_attachment_name?: string | null };
@@ -68,6 +72,8 @@ type CreateEventForm = {
   meetingUrl: string;
   description: string;
   attendeeEmails: string;
+  reminderMinutes: number;
+  autoTranscription: boolean;
 };
 
 const fallbackCompanies: CompanyOption[] = [
@@ -101,6 +107,8 @@ function defaultForm(date = dateKey(new Date())): CreateEventForm {
     meetingUrl: '',
     description: '',
     attendeeEmails: '',
+    reminderMinutes: 30,
+    autoTranscription: true,
   };
 }
 
@@ -173,6 +181,8 @@ function formFromEvent(event: WorkspaceCalendarEvent): CreateEventForm {
     meetingUrl: event.meetingUrl || '',
     description: event.description || '',
     attendeeEmails: event.attendees.map((attendee) => attendee.email).join(', '),
+    reminderMinutes: event.reminderMinutes ?? 30,
+    autoTranscription: event.autoTranscription ?? true,
   };
 }
 
@@ -189,11 +199,9 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
   const staffHiddenRef = useRef<Set<string>>(new Set());
   useEffect(() => { if (!staffNotice) return; const timer = window.setTimeout(() => setStaffNotice(''), 4200); return () => window.clearTimeout(timer); }, [staffNotice]);
   async function staffSubmitChange(action: string, title: string, payload: Record<string, unknown>, companyId: string) {
-    if (!supabase) return false;
-    const { data: auth } = await supabase.auth.getUser();
-    const { error } = await supabase.from('staff_review_requests').insert({ staff_user_id: auth.user?.id, company_id: companyId, kind: 'change', title: title.slice(0, 200), payload: { action, ...payload } });
-    setStaffNotice(error ? 'Não foi possível enviar o pedido. Tente de novo.' : 'Pedido enviado. Vale depois da aprovação.');
-    return !error;
+    const sent = await submitStaffCalendarChange(companyId, action, title, payload);
+    setStaffNotice(sent ? 'Pedido enviado. Vale depois da aprovação.' : 'Não foi possível enviar o pedido. Tente de novo.');
+    return sent;
   }
   const today = useMemo(() => new Date(), []);
   const [events, setEvents] = useState<WorkspaceCalendarEvent[]>(previewCalendarEvents);
@@ -201,8 +209,8 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
   // Avisos publicados com data aparecem na agenda como informação de dia inteiro (não bloqueiam horário).
   const [noticeEvents, setNoticeEvents] = useState<WorkspaceCalendarEvent[]>([]);
   useEffect(() => { let active = true; void (async () => {
-    if (!supabase) return;
-    const result = await supabase.from('notices').select('id,protocol,category,title,body,notice_date,time_label,coverage').eq('status', 'published').not('notice_date', 'is', null);
+    if (!isSupabaseConfigured) return;
+    const result = await readCalendarNotices(true);
     if (!active || result.error) return;
     const tone: Record<string, string> = { feriado: '#C79A4B', atendimento: '#5E93BF', comunicado: '#8A6FB0' };
     setNoticeEvents((result.data || []).map((row: any): WorkspaceCalendarEvent => ({ id: `notice:${row.id}`, title: `Aviso · ${row.title}`, company: 'Quadro de Avisos', type: 'other', color: tone[row.category] || '#8A6FB0', textColor: '#ffffff', startsAt: `${row.notice_date}T12:00:00-03:00`, endsAt: `${row.notice_date}T12:00:00-03:00`, allDay: true, description: [row.time_label, row.coverage, row.body].filter(Boolean).join(' · '), visibility: 'client', attendees: [], sourceType: 'manual', sourceProtocol: row.protocol, synthetic: true } as WorkspaceCalendarEvent)));
@@ -220,6 +228,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
   const [form, setForm] = useState<CreateEventForm>(() => defaultForm());
   const [selectedEvent, setSelectedEvent] = useState<WorkspaceCalendarEvent | null>(null);
   const [saving, setSaving] = useState(false);
+  const [eventError, setEventError] = useState('');
   const [cancelReason, setCancelReason] = useState('');
   const [showCancel, setShowCancel] = useState(false);
   const [calendarConnection, setCalendarConnection] = useState<'connected' | 'not_connected'>('not_connected');
@@ -236,7 +245,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
 
   useEffect(() => { void loadCalendar(); }, []);
   useEffect(() => {
-    if (!supabase || staff) return;
+    if (!isSupabaseConfigured || staff) return;
     let active = true;
     const refresh = async () => {
       const start = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1);
@@ -246,7 +255,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
         const local=(day:Date)=>`${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-01T00:00:00-03:00`;
         return {start:new Date(local(first)).toISOString(),end:new Date(local(last)).toISOString()};
       });
-      const results = await Promise.all(ranges.map(range => supabase!.functions.invoke('workspace-google-calendar-read',{body:{action:'events',...range}})));
+      const results = await Promise.all(ranges.map(range => readGoogleCalendarEvents('events', range)));
       if (!active) return;
       if (results.some(result=>result.error || result.data?.state!=='checked')) {
         setGoogleEvents([]);
@@ -268,10 +277,8 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
   },[cursor.getFullYear(),cursor.getMonth()]);
   useEffect(() => { const refresh = () => void loadCalendar(); window.addEventListener('cali-calendar-record-updated', refresh); return () => window.removeEventListener('cali-calendar-record-updated', refresh); }, []);
   useEffect(() => {
-    if (!supabase) return;
-    const client = supabase;
-    const channel = client.channel('admin-calendar-scheduling-preview').on('postgres_changes', { event: '*', schema: 'cali_workspace', table: 'scheduling_requests' }, () => { void loadCalendar(); }).subscribe();
-    return () => { void client.removeChannel(channel); };
+    if (!isSupabaseConfigured) return;
+    return observeSchedulingRequests('admin-calendar-scheduling-preview', () => void loadCalendar());
   }, []);
 
   useEffect(() => {
@@ -281,17 +288,9 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
   }, [editorOpen, selectedEvent]);
 
   async function loadCalendar() {
-    if (!supabase) { setLoading(false); return; }
+    if (!isSupabaseConfigured) { setLoading(false); return; }
     try {
-      const [{ data: companyRows }, { data: eventRows }, { data: attendeeRows }, { data: deadlineRows }, { data: connectionRows }, { data: requestRows }, { data: projectRows }] = await Promise.all([
-        staff ? supabase.rpc('partner_companies') : supabase.from('companies').select('id, display_name, logo_url, logo_workspace_url').neq('status', 'archived').order('display_name'),
-        supabase.from('events').select('staff_visible,id,protocol,title,company_id,project_id,event_type,color_hex,starts_at,ends_at,all_day,mode,location,meeting_url,description,visibility,source_type,source_entity_id,google_event_id,sync_status,cancelled_at').order('starts_at'),
-        supabase.from('event_attendees').select('id,event_id,name,email,status,response_note').order('created_at'),
-        supabase.from('deliverables').select('id, company_id, project_id, title, due_at, status, protocol').not('due_at', 'is', null).order('due_at'),
-        supabase.from('calendar_connections').select('id, status').eq('provider', 'google').eq('status', 'connected').limit(1),
-        supabase.from('scheduling_requests').select('id,company_id,title,status,request_mode,requested_slots,admin_proposed_slots,purpose,location,extra_visit,online_extra_requested').in('status', ['submitted','reschedule_review']).order('created_at', { ascending: false }).limit(100),
-        supabase.from('projects').select('id,name'),
-      ]);
+      const { companyRows, eventRows, attendeeRows, deadlineRows, connectionRows, requestRows, projectRows } = await readAdminCalendar(Boolean(staff));
 
       const options: CompanyOption[] = await Promise.all((companyRows || []).map(async (row: any) => ({
         id: row.id,
@@ -339,11 +338,13 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
         googleEventId: row.google_event_id,
         syncStatus: row.sync_status || 'local',
         cancelledAt: row.cancelled_at,
+        reminderMinutes: row.reminder_minutes ?? undefined,
+        autoTranscription: row.auto_transcription ?? undefined,
         synthetic: false,
       }));
       const meetingIds = manual.filter(event => event.type === 'meeting' && UUID_PATTERN.test(event.id)).map(event => event.id);
       if (meetingIds.length) {
-        const { data: outcomes, error: outcomeError } = await supabase.from('event_outcomes').select('event_id,outcome,transcription_url,transcription_attachment_name').in('event_id', meetingIds);
+        const { data: outcomes, error: outcomeError } = await readMeetingOutcomes(meetingIds);
         if (outcomeError) throw outcomeError;
         setMeetingOutcomes(Object.fromEntries(((outcomes || []) as MeetingOutcome[]).map(row => [row.event_id, row])));
       } else setMeetingOutcomes({});
@@ -442,6 +443,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
       const end=Math.min(minutes+duration,20*60);
       next.endTime = `${String(Math.floor(end/60)).padStart(2, '0')}:${String(end%60).padStart(2, '0')}`;
     }
+    setEventError('');
     setEditingEvent(null);
     setForm(next);
     setEditorOpen(true);
@@ -474,12 +476,14 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
     setSelectedEvent(null);
     setShowCancel(false);
     setCancelReason('');
+    setEventError('');
     setEditingEvent(event);
     setForm({ ...formFromEvent(event), staffVisible: !staffHiddenRef.current.has(event.id) });
     setEditorOpen(true);
   }
 
   function closeEditor() {
+    setEventError('');
     setEditorOpen(false);
     setEditingEvent(null);
   }
@@ -498,7 +502,8 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
 
   async function saveEvent(event: FormEvent) {
     event.preventDefault();
-    if (!form.title.trim() || !form.date) return;
+    if (saving || !form.title.trim() || !form.date) return;
+    setEventError('');
     setSaving(true);
     const company = companies.find((item) => item.id === form.companyId);
     const startsAt = form.allDay ? `${form.date}T09:00:00-03:00` : `${form.date}T${form.startTime || '09:00'}:00-03:00`;
@@ -524,6 +529,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
       timezone: 'America/Sao_Paulo',
       source_type: 'manual',
       sync_status: calendarConnection === 'connected' ? 'pending' : 'local',
+      ...(!staff && { reminder_minutes: form.reminderMinutes, auto_transcription: form.autoTranscription }),
     };
 
     try {
@@ -535,38 +541,11 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
         if (ok) closeEditor();
         return;
       }
-      if (supabase && isRealCompany && isRealEvent && editingEvent) {
-        const { error } = await supabase.from('events').update(eventPayload).eq('id', editingEvent.id);
-        if (error) throw error;
-        await supabase.from('event_attendees').delete().eq('event_id', editingEvent.id);
-        if (attendeeEmails.length) {
-          await supabase.from('event_attendees').insert(attendeeEmails.map((email) => ({
-            event_id: editingEvent.id,
-            company_id: form.companyId || null,
-            name: email.split('@')[0],
-            email,
-            attendee_type: form.visibility === 'client' ? 'client' : 'external',
-            status: 'pending',
-          })));
-        }
+      if (isSupabaseConfigured && isRealCompany && isRealEvent && editingEvent) {
+        await saveCalendarEvent(eventPayload, attendeeEmails, editingEvent.id);
         await loadCalendar();
-      } else if (supabase && isRealCompany && !editingEvent) {
-        const { data: userData } = await supabase.auth.getUser();
-        const { data: inserted, error } = await supabase.from('events').insert({
-          ...eventPayload,
-          created_by: userData.user?.id || null,
-        }).select('id, protocol').single();
-        if (error) throw error;
-        if (inserted?.id && attendeeEmails.length) {
-          await supabase.from('event_attendees').insert(attendeeEmails.map((email) => ({
-            event_id: inserted.id,
-            company_id: form.companyId || null,
-            name: email.split('@')[0],
-            email,
-            attendee_type: form.visibility === 'client' ? 'client' : 'external',
-            status: 'pending',
-          })));
-        }
+      } else if (isSupabaseConfigured && isRealCompany && !editingEvent) {
+        await saveCalendarEvent(eventPayload, attendeeEmails);
         await loadCalendar();
       } else {
         const localEvent: WorkspaceCalendarEvent = {
@@ -596,28 +575,35 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
           : [...current, localEvent].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()));
       }
       closeEditor();
-    } catch (error) {
-      console.error('Falha ao salvar evento', error);
+    } catch {
+      setEventError('Não foi possível salvar o evento. Tente novamente.');
     } finally {
       setSaving(false);
     }
   }
 
   async function cancelEvent() {
-    if (!selectedEvent || selectedEvent.synthetic || !cancelReason.trim()) return;
+    if (saving || !selectedEvent || selectedEvent.synthetic || !cancelReason.trim()) return;
+    setEventError('');
+    setSaving(true);
     try {
       if (staff) {
-        if (selectedEvent.companyId) await staffSubmitChange('event_cancel', `Cancelar evento: ${selectedEvent.title}`, { id: selectedEvent.id, reason: cancelReason.trim() }, selectedEvent.companyId);
-      } else if (supabase && UUID_PATTERN.test(selectedEvent.id)) {
-        await supabase.from('events').update({ cancelled_at: new Date().toISOString(), cancellation_reason: cancelReason.trim() }).eq('id', selectedEvent.id);
+        if (!selectedEvent.companyId) return;
+        const submitted = await staffSubmitChange('event_cancel', `Cancelar evento: ${selectedEvent.title}`, { id: selectedEvent.id, reason: cancelReason.trim() }, selectedEvent.companyId);
+        if (!submitted) return;
+      } else if (isSupabaseConfigured && UUID_PATTERN.test(selectedEvent.id)) {
+        await cancelCalendarEvent(selectedEvent.id, cancelReason);
         await loadCalendar();
       } else {
         setEvents((current) => current.map((item) => item.id === selectedEvent.id ? { ...item, cancelledAt: new Date().toISOString() } : item));
       }
-    } finally {
       setSelectedEvent(null);
       setCancelReason('');
       setShowCancel(false);
+    } catch {
+      setEventError('Não foi possível cancelar o evento. Tente novamente.');
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -659,7 +645,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
           <span className={`calendar-connection-status ${calendarConnection === 'connected' ? 'connected' : ''}`}>
             {googleReadStatus==='ready'?<><Check size={14}/>Sincronizado</>:googleReadStatus==='reconnect'?'Autorizar leitura':calendarConnection === 'connected' ? <><Check size={14} />Conectado</> : 'Não conectado'}
           </span>
-          {googleReadStatus==='reconnect' && <button type="button" className="google-calendar-runtime-button primary" onClick={async()=>{if(!supabase)return;const {data,error}=await supabase.functions.invoke('google-calendar-oauth',{body:{action:'authorize',companyId:null}});if(error||!data?.url)return;window.location.assign(data.url)}}>Autorizar leitura da agenda</button>}
+          {googleReadStatus==='reconnect' && <button type="button" className="google-calendar-runtime-button primary" onClick={async()=>{if(!isSupabaseConfigured)return;try{window.location.assign(await authorizeGoogleCalendar(null));}catch{/* a agenda local continua disponível */}}}>Autorizar leitura da agenda</button>}
         </section>
 
         <section className="calendar-main-toolbar">
@@ -779,6 +765,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
             {editingEvent?.protocol && <span className="calendar-modal-protocol">Protocolo {editingEvent.protocol}</span>}
           </div>
           <div className="calendar-modal-body">
+            {eventError && <InlineNotice tone="danger">{eventError}</InlineNotice>}
             <FieldLabel className="calendar-title-field">Título<input value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} placeholder="Ex.: reunião mensal de indicadores" /></FieldLabel>
             <div className="calendar-event-form-grid">
               <FieldLabel>Cliente<select value={form.companyId} onChange={(event) => setForm((current) => ({ ...current, companyId: event.target.value }))}><option value="">Somente CALI</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select></FieldLabel>
@@ -805,6 +792,22 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
             <FieldLabel>Descrição<textarea value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} rows={3} placeholder="Contexto, objetivo ou preparação necessária" /></FieldLabel>
               </div>
             </details>
+            {!staff && isSupabaseConfigured && <div className="google-calendar-runtime-form-settings">
+              <label className="stacked-label">Lembrete
+                <select value={form.reminderMinutes} onChange={(event) => setForm((current) => ({ ...current, reminderMinutes: Number(event.target.value) }))}>
+                  <option value={0}>Sem lembrete</option><option value={10}>10 minutos antes</option>
+                  <option value={15}>15 minutos antes</option><option value={30}>30 minutos antes</option>
+                  <option value={60}>1 hora antes</option><option value={1440}>1 dia antes</option>
+                  {![0, 10, 15, 30, 60, 1440].includes(form.reminderMinutes) && <option value={form.reminderMinutes}>{form.reminderMinutes} minutos antes</option>}
+                </select>
+              </label>
+              <label className="google-calendar-runtime-transcription">
+                <input type="checkbox" checked={form.autoTranscription}
+                  onChange={(event) => setForm((current) => ({ ...current, autoTranscription: event.target.checked }))} />
+                <span><strong>Transcrição automática no Google Meet</strong><br />
+                  <small>Quando o evento remoto tiver Meet, o Google inicia a transcrição se a conta permitir.</small></span>
+              </label>
+            </div>}
           </div>
           <div className="calendar-modal-footer"><Button type="button" variant="secondary" onClick={closeEditor}>Cancelar</Button><Button variant="primary" disabled={saving || !form.title.trim()} type="submit">{saving ? 'Salvando…' : staff ? 'Enviar para aprovação da Patricia' : editingEvent ? 'Salvar alterações' : 'Adicionar evento'}</Button></div>
         </DialogForm>
@@ -813,7 +816,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
       {selectedEvent && selectedEvent.id.startsWith('notice:') && <NoticeCalendarCard noticeId={selectedEvent.id.slice(7)} href={`/admin/avisos?aviso=${selectedEvent.id.slice(7)}`} onClose={() => setSelectedEvent(null)} />}
       {selectedEvent && !selectedEvent.id.startsWith('notice:') && <div className="modal-backdrop full-screen-modal calendar-modal-backdrop">
         <DialogFrame aria-label={selectedEvent.title} className={`modal-card calendar-detail-modal calendar-detail-refined ${selectedEvent.cancelledAt || meetingOutcomes[selectedEvent.id]?.outcome==='not_occurred' || selectedEvent.attendees.some(attendee=>attendee.status==='declined')?'is-negative':meetingOutcomes[selectedEvent.id]?.outcome==='occurred' || selectedEvent.attendees.some(attendee=>attendee.status==='accepted')?'is-positive':'is-pending'}`}>
-          <Button variant="close" onClick={() => { setSelectedEvent(null); setShowCancel(false); setCancelReason(''); }} aria-label="Fechar"><X size={20} /></Button>
+          <Button variant="close" onClick={() => { setSelectedEvent(null); setShowCancel(false); setCancelReason(''); setEventError(''); }} aria-label="Fechar"><X size={20} /></Button>
           <div className="calendar-detail-accent" style={{ background: selectedEvent.color }} />
           <div className="calendar-detail-heading">
             <div className="calendar-detail-company-mark">{selectedEvent.sourceType === 'google' ? <CalendarDays size={22} aria-hidden="true" /> : selectedEvent.companyLogo ? <img src={selectedEvent.companyLogo} alt="" /> : getCompanyMark(selectedEvent.company)}</div>
@@ -833,7 +836,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
               {selectedEvent.location && <div><MapPin size={18}/><span><strong>Local</strong><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedEvent.location)}`} target="_blank" rel="noopener noreferrer">{selectedEvent.location} <ExternalLink size={13}/></a></span></div>}
               {selectedEvent.attendees.length > 0 && <div><Users size={18}/><span><strong>Convidados</strong><small>{selectedEvent.attendees.map(guest=>`${guest.name}${guest.status==='accepted'?' · aceitou':guest.status==='declined'?' · recusou':guest.status==='tentative'?' · talvez':' · aguardando'}`).join(' · ')}</small></span></div>}
               <div><CalendarDays size={18}/><span><strong>Agenda Google</strong><small>{selectedEvent.organizer || 'Patrícia Lima'}</small></span></div>
-              {selectedEvent.reminderMinutes != null && <div><Clock3 size={18}/><span><strong>Lembrete</strong><small>{selectedEvent.reminderMinutes} minutos antes</small></span></div>}
+              {!UUID_PATTERN.test(selectedEvent.id) && selectedEvent.reminderMinutes != null && <div><Clock3 size={18}/><span><strong>Lembrete</strong><small>{selectedEvent.reminderMinutes} minutos antes</small></span></div>}
             </div> : <>
             <div className="calendar-detail-facts">
               <article><Clock3 size={17} /><span>Quando</span><strong>{formatCalendarDate(selectedEvent.startsAt)} · {selectedEvent.allDay ? 'Dia inteiro' : formatCalendarTime(selectedEvent.startsAt)}</strong></article>
@@ -843,7 +846,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
             {selectedEvent.description && <section className="calendar-detail-description"><strong>Contexto</strong><p>{selectedEvent.description}</p></section>}
             {selectedEvent.synthetic && <div className="calendar-auto-source"><CalendarDays size={18} /><div><strong>Prazo do entregável</strong><p>{selectedEvent.company ? `${selectedEvent.company} · ` : ''}{selectedEvent.project ? `${selectedEvent.project} · ` : ''}{selectedEvent.title.replace(/ · prazo$/,'')}. A data vem do entregável de origem.</p></div></div>}
             {!!selectedEvent.attendees.length && <section className="calendar-attendee-list"><strong>Convidados</strong>{selectedEvent.attendees.map((attendee, index) => <div key={`${attendee.email}-${index}`}><span className={`attendee-status ${attendee.status}`} /><span>{attendee.name}</span><small>{attendee.email}</small><b>{attendee.status === 'accepted' ? 'Aceito' : attendee.status === 'declined' ? 'Recusado' : attendee.status === 'tentative' ? 'Talvez' : 'Pendente'}</b></div>)}</section>}
-            {showCancel && !selectedEvent.synthetic && <section className="calendar-cancel-box"><strong>Cancelar compromisso</strong><p>O motivo fica registrado. Quando a régua de notificações estiver ativada, ele também poderá compor a comunicação aos participantes.</p><textarea value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} rows={2} placeholder="Motivo do cancelamento" /><div><Button variant="secondary" onClick={() => setShowCancel(false)}>Voltar</Button><Button variant="primary" className="danger-action" disabled={!cancelReason.trim()} onClick={() => void cancelEvent()}>Confirmar cancelamento</Button></div></section>}
+            {showCancel && !selectedEvent.synthetic && <section className="calendar-cancel-box"><strong>Cancelar compromisso</strong><p>O motivo fica registrado. Quando a régua de notificações estiver ativada, ele também poderá compor a comunicação aos participantes.</p><textarea value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} rows={2} placeholder="Motivo do cancelamento" />{eventError && <InlineNotice tone="danger">{eventError}</InlineNotice>}<div><Button variant="secondary" disabled={saving} onClick={() => { setShowCancel(false); setEventError(''); }}>Voltar</Button><Button variant="primary" className="danger-action" disabled={saving || !cancelReason.trim()} onClick={() => void cancelEvent()}>Confirmar cancelamento</Button></div></section>}
             </>}
           </div>
           {selectedEvent.sourceType !== 'request_preview' && <div className="calendar-detail-footer calendar-detail-actions"><div className="calendar-detail-primary-actions">{!selectedEvent.synthetic && !selectedEvent.cancelledAt && <Button variant="secondary" className="edit-event-action" onClick={() => openEditEvent(selectedEvent)}><Pencil size={16} />Editar ou remarcar</Button>}{selectedEvent.meetingUrl && !selectedEvent.cancelledAt && <Button variant="primary" onClick={() => window.open(selectedEvent.meetingUrl!, '_blank', 'noopener,noreferrer')}><Video size={16} />Abrir Meet</Button>}</div><div className="calendar-detail-secondary-actions">{selectedEvent.sourceType!=='google'&&<Button variant="secondary" onClick={() => window.open(googleCalendarTemplate(selectedEvent), '_blank', 'noopener,noreferrer')}><ExternalLink size={16} />Google Agenda</Button>}<Button variant="secondary" onClick={() => downloadCalendarIcs(selectedEvent)}><Download size={16} />ICS</Button>{!selectedEvent.synthetic && !selectedEvent.cancelledAt && !showCancel && <Button variant="secondary" className="danger-soft" onClick={() => setShowCancel(true)}>Cancelar</Button>}</div></div>}

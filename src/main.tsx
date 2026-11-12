@@ -7,6 +7,7 @@ import { router } from './app/router';
 import { AppErrorBoundary, reloadOnceForNewVersion } from './components/feedback/AppErrorBoundary';
 import { WorkspaceAuthProvider } from './auth/WorkspaceAuthProvider';
 import './styles/tailwind.css';
+import './styles/surfaces.css';
 
 // Arquivo de uma versão anterior que não existe mais (aba aberta durante uma publicação): recarrega uma vez.
 window.addEventListener('vite:preloadError', (event) => { if (reloadOnceForNewVersion()) event.preventDefault(); });
@@ -24,7 +25,8 @@ startWorkspaceThemeClock();
 installNotificationExperienceRuntime();
 installMentionRuntime();
 
-void applyVisualSystem(window.location.pathname).finally(() => ReactDOM.createRoot(document.getElementById('root')!).render(
+applyVisualSystem(window.location.pathname);
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <RouteErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -34,6 +36,6 @@ void applyVisualSystem(window.location.pathname).finally(() => ReactDOM.createRo
       </QueryClientProvider>
     </RouteErrorBoundary>
   </React.StrictMode>,
-));
+);
 
 // deploy final: atalhos contextuais e documento PDF fixo

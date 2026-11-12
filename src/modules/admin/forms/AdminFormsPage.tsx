@@ -10,19 +10,19 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from '../../../hooks/useSearchParams';
 import { ArrowDown, ArrowLeft, ArrowUp, Bold, Check, Copy, Italic, Paperclip, Pencil, Smile, Underline, X, Download, ExternalLink, FileSpreadsheet, ListChecks, Plus, QrCode, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { supabase } from '../../../api/supabase';
+import {
+  createForm, deleteForm, deleteFormResponses, openFormAttachment, readFormCatalog, readFormResponses,
+  restoreFormTrash, saveForm, saveFormResponseAnswers, signFormExportAttachments, updateFormResponseTracking,
+  uploadAdminFormAttachment, type FormResponse as ResponseRow, type FormTrashEntry as TrashRow,
+} from '../../../api/forms/admin';
 import { downloadQrPng, downloadShareCard, downloadXlsx, qrDataUrl } from './formExports';
 import { type FormAudience, type FormQuestion, type FormRecord, type QuestionKind, AUDIENCE_LABELS, CATEGORY_SUGGESTIONS, KIND_LABELS, KIND_ORDER, PUBLIC_FORM_BASE, STATUS_LABELS, END_OF_FORM, choiceOptions, fileLabel, formatAnswer, isAnswerable, stripRichText, newQuestion, questionId, slugify } from '../../forms/formModel';
 import './admin-forms.css';
 
 type Overview = Record<string, { responses: number; last: string | null }>;
-type ResponseRow = { id: string; answers: Record<string, unknown>; respondent_name: string | null; respondent_email: string | null; submitted_at: string; confirmation_sent_at: string | null; contacted_at: string | null; admin_note: string | null; stage: string | null; owner: string | null };
-const RESPONSE_FIELDS = 'id,answers,respondent_name,respondent_email,submitted_at,confirmation_sent_at,contacted_at,admin_note,stage,owner';
 type Tab = 'questions' | 'share' | 'responses';
-type TrashRow = { id: string; kind: 'form' | 'responses'; form_title: string; responses: unknown[]; deleted_at: string };
 const TRASH_DAYS = 30;
 
-const FORM_FIELDS = 'id,slug,title,description,thank_you,status,company_id,questions,confirm_email,category,audience,stages,submit_label,success_text,created_at,updated_at';
 const EMOJIS = ['😊', '🙂', '🙏', '💬', '✨', '🌱', '🍂', '💡', '📌', '✅', '📝', '📊', '🤝', '❤️', '👏', '🎯', '⏱️', '🔒', '📅', '👉'];
 const dateTime = (value?: string | null) => value ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value)) : '—';
 const shortDate = (value?: string | null) => value ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(new Date(value)) : '—';
@@ -48,20 +48,13 @@ export function AdminFormsPage() {
   const [restoring, setRestoring] = useState('');
 
   async function load() {
-    if (!supabase) return;
     setLoading(true); setError('');
     try {
-      const [list, counts, companyRows, trashRows] = await Promise.all([
-        supabase.from('forms').select(FORM_FIELDS).order('updated_at', { ascending: false }),
-        supabase.rpc('admin_form_overview'),
-        supabase.from('companies').select('id,display_name,status').order('display_name'),
-        supabase.from('forms_trash').select('id,kind,form_title,responses,deleted_at').is('restored_at', null).order('deleted_at', { ascending: false }),
-      ]);
-      if (list.error) throw list.error;
-      setForms((list.data || []) as FormRecord[]);
-      setOverview(Object.fromEntries(((counts.data || []) as Array<{ form_id: string; responses: number; last_response: string | null }>).map((row) => [row.form_id, { responses: Number(row.responses), last: row.last_response }])));
-      setTrash((trashRows.data || []) as TrashRow[]);
-      setCompanies(((companyRows.data || []) as Array<{ id: string; display_name: string; status: string }>).filter((row) => row.status !== 'archived').map((row) => ({ id: row.id, name: row.display_name })));
+      const catalog = await readFormCatalog();
+      setForms(catalog.forms);
+      setOverview(catalog.overview);
+      setTrash(catalog.trash);
+      setCompanies(catalog.companies);
     } catch (err) { setError(errorText(err, 'Não foi possível carregar os formulários.')); }
     finally { setLoading(false); }
   }
@@ -72,9 +65,8 @@ export function AdminFormsPage() {
 
   // Lixeira: formulário ou respostas excluídos ficam 30 dias e voltam com os mesmos dados (cali_forms_trash_restore).
   async function restore(item: TrashRow) {
-    if (!supabase) return;
     setRestoring(item.id); setError('');
-    const { error: restoreError } = await supabase.schema('public').rpc('cali_forms_trash_restore', { p_id: item.id });
+    const { error: restoreError } = await restoreFormTrash(item.id);
     setRestoring('');
     if (restoreError) { setError(errorText(restoreError, 'Não foi possível restaurar.')); return; }
     setAudienceFilter('all'); await load();
@@ -82,7 +74,7 @@ export function AdminFormsPage() {
   const go = (id: string | null, nextTab: Tab = 'questions') => setParams(id ? { form: id, aba: nextTab } : {});
 
   async function create() {
-    if (!supabase || !creating) return;
+    if (!creating) return;
     const title = creating.title.trim();
     if (!title) { setCreating({ ...creating, error: 'Dê um nome ao formulário.' }); return; }
     setCreating({ ...creating, busy: true, error: '' });
@@ -91,17 +83,16 @@ export function AdminFormsPage() {
     let slug = base.length >= 3 ? base : `${base}-form`; let n = 2;
     while (taken.has(slug)) slug = `${base}-${n++}`.slice(0, 60);
     const questions: FormQuestion[] = [newQuestion('name'), newQuestion('email')];
-    const { data, error: insertError } = await supabase.from('forms').insert({ title, slug, questions, thank_you: '', category: creating.category.trim() || 'Formulário', audience: creating.audience }).select(FORM_FIELDS).single();
+    const { data, error: insertError } = await createForm({ title, slug, questions, thank_you: '', category: creating.category.trim() || 'Formulário', audience: creating.audience });
     if (insertError || !data) { setCreating({ ...creating, title, busy: false, error: errorText(insertError, 'Não foi possível criar o formulário.') }); return; }
     setForms((current) => [data as FormRecord, ...current]); setCreating(null); go((data as FormRecord).id);
   }
 
   async function duplicate(form: FormRecord) {
-    if (!supabase) return;
     const taken = new Set(forms.map((item) => item.slug));
     let slug = `${form.slug}-copia`.slice(0, 60); let n = 2;
     while (taken.has(slug)) slug = `${form.slug}-copia-${n++}`.slice(0, 60);
-    const { data, error: insertError } = await supabase.from('forms').insert({ title: `${form.title} (cópia)`.slice(0, 160), slug, description: form.description, thank_you: form.thank_you, company_id: form.company_id, category: form.category, audience: form.audience, stages: form.stages ?? null, submit_label: form.submit_label ?? null, success_text: form.success_text ?? null, confirm_email: form.confirm_email, questions: form.questions.map((question) => ({ ...question, id: questionId() })) }).select(FORM_FIELDS).single();
+    const { data, error: insertError } = await createForm({ title: `${form.title} (cópia)`.slice(0, 160), slug, description: form.description, thank_you: form.thank_you, company_id: form.company_id, category: form.category, audience: form.audience, stages: form.stages ?? null, submit_label: form.submit_label ?? null, success_text: form.success_text ?? null, confirm_email: form.confirm_email, questions: form.questions.map((question) => ({ ...question, id: questionId() })) });
     if (insertError || !data) { setError(errorText(insertError, 'Não foi possível duplicar.')); return; }
     setForms((current) => [data as FormRecord, ...current]); go((data as FormRecord).id);
   }
@@ -188,12 +179,11 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
   }
 
   async function save(override?: Partial<FormRecord>) {
-    if (!supabase) return;
     const next = { ...draft, ...override, questions: (override?.questions || draft.questions).map((question) => { const options = question.options?.map((option) => option.trim()).filter(Boolean); const valid = question.kind === 'yes_no' ? ['Sim', 'Não'] : question.kind === 'single_choice' ? options || [] : []; const logic = (question.logic || []).filter((rule) => rule.goTo && valid.includes(rule.when)); return { ...question, label: question.label.trim(), options, logic: logic.length ? logic : undefined }; }) };
     const problem = problems(next);
     if (problem) { setNote({ text: problem, failed: true }); return; }
     setSaving(true); setNote(null);
-    const { data, error } = await supabase.from('forms').update({ title: next.title.trim(), slug: next.slug, description: next.description.trim(), thank_you: next.thank_you.trim(), status: next.status, submit_label: next.submit_label?.trim() || null, success_text: next.success_text?.trim() || null, category: next.category.trim() || 'Formulário', audience: next.audience, stages: (next.stages || []).map((item) => item.trim()).filter(Boolean).slice(0, 12).length ? (next.stages || []).map((item) => item.trim()).filter(Boolean).slice(0, 12) : null, company_id: next.audience === 'client' ? next.company_id || null : null, confirm_email: next.confirm_email, questions: next.questions, updated_at: new Date().toISOString() }).eq('id', form.id).select(FORM_FIELDS).single();
+    const { data, error } = await saveForm(form.id, { title: next.title.trim(), slug: next.slug, description: next.description.trim(), thank_you: next.thank_you.trim(), status: next.status, submit_label: next.submit_label?.trim() || null, success_text: next.success_text?.trim() || null, category: next.category.trim() || 'Formulário', audience: next.audience, stages: (next.stages || []).map((item) => item.trim()).filter(Boolean).slice(0, 12).length ? (next.stages || []).map((item) => item.trim()).filter(Boolean).slice(0, 12) : null, company_id: next.audience === 'client' ? next.company_id || null : null, confirm_email: next.confirm_email, questions: next.questions, updated_at: new Date().toISOString() });
     setSaving(false);
     if (error || !data) { setNote({ text: errorText(error, 'Não foi possível salvar.'), failed: true }); return; }
     setDraft(data as FormRecord); onSaved(data as FormRecord);
@@ -201,9 +191,8 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
   }
 
   async function remove() {
-    if (!supabase) return;
     setSaving(true);
-    const { error } = await supabase.from('forms').delete().eq('id', form.id);
+    const { error } = await deleteForm(form.id);
     setSaving(false);
     if (error) { setNote({ text: errorText(error, 'Não foi possível excluir.'), failed: true }); setConfirmDelete(false); return; }
     onDeleted();
@@ -334,9 +323,8 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
   const choiceColumns = useMemo(() => columns.filter((question) => ['single_choice', 'multi_choice', 'yes_no', 'scale'].includes(question.kind)), [columns]);
 
   async function load() {
-    if (!supabase) return;
     setLoading(true); setError('');
-    const { data, error: loadError } = await supabase.from('form_responses').select(RESPONSE_FIELDS).eq('form_id', form.id).order('submitted_at', { ascending: false }).limit(5000);
+    const { data, error: loadError } = await readFormResponses(form.id);
     if (loadError) setError(errorText(loadError, 'Não foi possível carregar as respostas.')); else setRows((data || []) as ResponseRow[]);
     setLoading(false); setSelected(new Set());
   }
@@ -370,41 +358,38 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
     const header = ['Data', ...(stages.length ? ['Situação', 'Responsável'] : []), ...columns.map((question) => stripRichText(question.label)), 'Contato', 'Nota interna'];
     // Arquivos saem como link: os do app valem 30 dias; os importados (Drive) seguem o link original.
     const paths = filtered.flatMap((row) => columns.filter((question) => question.kind === 'file').map((question) => row.answers[question.id])).filter((value): value is string => typeof value === 'string' && !!value && !/^https?:/.test(value));
-    const links: Record<string, string> = {};
-    if (paths.length && supabase) { const signed = await supabase.storage.from('cali-forms').createSignedUrls(paths, 30 * 86400); for (const item of signed.data || []) if (item.path && item.signedUrl) links[item.path] = item.signedUrl; }
+    const links = await signFormExportAttachments(paths);
     const body = filtered.map((row) => [dateTime(row.submitted_at), ...(stages.length ? [row.stage || stages[0], row.owner || ''] : []), ...columns.map((question) => { const value = row.answers[question.id]; if (question.kind === 'file' && typeof value === 'string' && value) return /^https?:/.test(value) ? value : links[value] || value; return typeof value === 'number' ? value : formatAnswer(question, value); }), row.contacted_at ? `Sim · ${dateTime(row.contacted_at)}` : 'Não', row.admin_note || '']);
     downloadXlsx(`cali-forms-${form.slug}-respostas.xlsx`, form.title, header, body);
   }
 
   async function updateRow(row: ResponseRow, patch: Partial<Pick<ResponseRow, 'stage' | 'owner'>>) {
-    if (!supabase) return;
     setRows((current) => current.map((item) => item.id === row.id ? { ...item, ...patch } : item));
-    const { error: updateError } = await supabase.from('form_responses').update(patch).eq('id', row.id);
+    const { error: updateError } = await updateFormResponseTracking(row.id, patch);
     if (updateError) { setError(errorText(updateError, 'Não foi possível salvar.')); setRows((current) => current.map((item) => item.id === row.id ? row : item)); }
   }
 
   async function setContacted(row: ResponseRow, done: boolean) {
-    if (!supabase) return;
     const contacted_at = done ? new Date().toISOString() : null;
     setRows((current) => current.map((item) => item.id === row.id ? { ...item, contacted_at } : item));
-    const { error: updateError } = await supabase.from('form_responses').update({ contacted_at }).eq('id', row.id);
+    const { error: updateError } = await updateFormResponseTracking(row.id, { contacted_at });
     if (updateError) { setError(errorText(updateError, 'Não foi possível marcar o contato.')); setRows((current) => current.map((item) => item.id === row.id ? { ...item, contacted_at: row.contacted_at } : item)); }
   }
 
   async function saveNote() {
-    if (!supabase || !noteFor) return;
+    if (!noteFor) return;
     setNoteFor({ ...noteFor, busy: true });
     const admin_note = noteFor.text.trim() || null;
-    const { error: updateError } = await supabase.from('form_responses').update({ admin_note }).eq('id', noteFor.row.id);
+    const { error: updateError } = await updateFormResponseTracking(noteFor.row.id, { admin_note });
     if (updateError) { setError(errorText(updateError, 'Não foi possível salvar a nota.')); setNoteFor({ ...noteFor, busy: false }); return; }
     setRows((current) => current.map((item) => item.id === noteFor.row.id ? { ...item, admin_note } : item)); setNoteFor(null);
   }
 
   async function removeSelected() {
-    if (!supabase || !selected.size) return;
+    if (!selected.size) return;
     setDeleting(true);
     const ids = [...selected];
-    const { error: deleteError } = await supabase.from('form_responses').delete().in('id', ids);
+    const { error: deleteError } = await deleteFormResponses(ids);
     setDeleting(false); setConfirmDelete(false);
     if (deleteError) { setError(errorText(deleteError, 'Não foi possível excluir.')); return; }
     setRows((current) => current.filter((item) => !selected.has(item.id))); setSelected(new Set()); flash(`${ids.length} ${ids.length === 1 ? 'resposta excluída' : 'respostas excluídas'}`);
@@ -500,9 +485,9 @@ function FileLink({ value }: { value: string }) {
   const [busy, setBusy] = useState(false);
   if (/^https?:\/\//.test(value)) return <a className="v2-forms-file" href={value} target="_blank" rel="noopener noreferrer" onClick={(event) => event.stopPropagation()}><Paperclip size={13} /> Abrir arquivo</a>;
   return <button type="button" className="v2-forms-file" disabled={busy} onClick={async (event) => {
-    event.stopPropagation(); if (!supabase) return; setBusy(true);
+    event.stopPropagation(); setBusy(true);
     const opened = window.open('', '_blank');
-    const { data } = await supabase.storage.from('cali-forms').createSignedUrl(value, 600);
+    const { data } = await openFormAttachment(value);
     setBusy(false);
     if (data?.signedUrl && opened) opened.location.href = data.signedUrl; else opened?.close();
   }}><Paperclip size={13} /> {busy ? 'Abrindo…' : fileLabel(value)}</button>;
@@ -518,26 +503,25 @@ function EditResponse({ form, row, onClose, onSaved }: { form: FormRecord; row: 
   const set = (id: string, value: unknown) => setAnswers((current) => { const next = { ...current }; if (value === '' || value === undefined || (Array.isArray(value) && !value.length)) delete next[id]; else next[id] = value; return next; });
 
   async function attach(question: FormQuestion, file: File | undefined) {
-    if (!file || !supabase) return;
+    if (!file) return;
     if (file.size > 25 * 1024 * 1024) { setError('O arquivo passa de 25 MB.'); return; }
     setUploading(question.id); setError('');
     const safe = file.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '-').slice(-80) || 'arquivo';
     const path = `${form.id}/admin/${crypto.randomUUID()}/${Date.now()}-${safe}`;
-    const { error: uploadError } = await supabase.storage.from('cali-forms').upload(path, file, { contentType: file.type || undefined, upsert: false });
+    const { error: uploadError } = await uploadAdminFormAttachment(path, file);
     setUploading('');
     if (uploadError) { setError(`Não foi possível anexar: ${uploadError.message}`); return; }
     set(question.id, path);
   }
 
   async function save() {
-    if (!supabase) return;
     setBusy(true); setError('');
     const nameQuestion = questions.find((question) => question.kind === 'name');
     const emailQuestion = questions.find((question) => question.kind === 'email');
     const email = emailQuestion && typeof answers[emailQuestion.id] === 'string' ? String(answers[emailQuestion.id]).trim().toLowerCase() : row.respondent_email;
     const name = nameQuestion && typeof answers[nameQuestion.id] === 'string' ? String(answers[nameQuestion.id]).trim() : row.respondent_name;
     const respondent_name = row.respondent_name && name && row.respondent_name.startsWith(name) ? row.respondent_name : name || null;
-    const { data, error: saveError } = await supabase.from('form_responses').update({ answers, respondent_email: email || null, respondent_name }).eq('id', row.id).select(RESPONSE_FIELDS).single();
+    const { data, error: saveError } = await saveFormResponseAnswers(row.id, { answers, respondent_email: email || null, respondent_name });
     setBusy(false);
     if (saveError || !data) { setError(errorText(saveError, 'Não foi possível salvar.')); return; }
     onSaved(data as ResponseRow);

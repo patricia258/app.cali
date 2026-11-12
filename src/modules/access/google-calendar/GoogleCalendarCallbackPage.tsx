@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { supabase } from '../../../api/supabase';
+import { isSupabaseConfigured } from '../../../api/access/session';
+import { exchangeGoogleCode } from '../../../api/google/oauth';
 
 function integrationFromState(state: string | null) {
   if (!state) return 'calendar';
@@ -32,34 +33,24 @@ export function GoogleCalendarCallbackPage() {
         setMessage('O Google não autorizou a conexão. Volte ao Workspace e tente novamente.');
         return;
       }
-      if (!code || !state || !supabase) {
+      if (!code || !state || !isSupabaseConfigured) {
         setMessage(`Retorno do Google incompleto. Volte ao ${integration === 'drive' ? 'menu Documentos' : 'Calendário'} e tente novamente.`);
         return;
       }
 
-      const functionName = integration === 'drive' ? 'google-drive-oauth' : 'google-calendar-oauth';
-      const payload = { body: { action: 'exchange', code, state } };
-      let result = await supabase.functions.invoke(functionName, payload);
-      if (result.error?.name === 'FunctionsFetchError') result = await supabase.functions.invoke(functionName, payload);
-      if (result.error || result.data?.error || result.data?.ok === false) {
+      const result = await exchangeGoogleCode(integration, code, state);
+      if (result.kind === 'error') {
         setMessage('Não foi possível concluir a conexão. Volte ao Workspace e inicie a conexão novamente.');
         return;
       }
-
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        setMessage('Sessão indisponível. Entre no Workspace e inicie a conexão novamente.');
-        return;
-      }
-      const { data: profile } = await supabase.from('profiles').select('role,active').eq('id', userData.user.id).maybeSingle();
-      if (!profile?.active || !['admin', 'client'].includes(profile.role)) {
+      if (result.kind === 'unavailable') {
         setMessage('Sessão indisponível. Entre no Workspace e inicie a conexão novamente.');
         return;
       }
 
-      setMessage(`${label} conectado${result.data?.accountEmail ? ` · ${result.data.accountEmail}` : ''}. Redirecionando...`);
+      setMessage(`${label} conectado${result.accountEmail ? ` · ${result.accountEmail}` : ''}. Redirecionando...`);
       const target = integration === 'drive' ? '/cliente/documentos?drive=connected'
-        : profile.role === 'client' ? '/cliente/cronograma?google=connected' : '/admin/calendario?google=connected';
+        : result.role === 'client' ? '/cliente/cronograma?google=connected' : '/admin/calendario?google=connected';
       window.setTimeout(() => window.location.replace(target), 700);
     }
   }, [integration, label]);

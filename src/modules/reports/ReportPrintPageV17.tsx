@@ -3,16 +3,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Loader2, Printer } from 'lucide-react';
 import { useNavigate } from '../../hooks/useNavigate';
 import { useParams } from '../../hooks/useParams';
-import { ExecutiveReportPaperV17 } from '../../components/reports/ExecutiveReportPaperV17';
-import type { ReportIdentityV55 } from '../../components/reports/ReportValidationV55';
-import { supabase } from '../../api/supabase';
+import { WorkspaceExecutiveReportPaper } from '../../components/reports/WorkspaceExecutiveReportPaper';
+import type { ReportIdentityV55 } from '../../domain/report-identity';
+import { readPrintableReport, readPrintableReportCompany, type PrintableReport, type ReportPrintRole } from '../../api/reports/print';
+import { recordReportRead } from '../../api/client/reports/library';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 import { type ReportEditor, type ReportType } from '../../lib/reportComposition';
 import { normalizeIntelligenceSnapshot, type IntelligenceSnapshot } from '../../lib/reportIntelligence';
 import type { DeliveryPerformanceRow } from '../../lib/reportV14';
 
 /* staff = Equipe CALI: só lê relatórios já enviados ao cliente, das empresas atribuídas a ela (a proteção por linha limita as empresas). */
-type Props = { role: 'admin' | 'client' | 'staff' };
+type Props = { role: ReportPrintRole };
 type Loaded = {
   company: { name: string; logoUrl?: string | null };
   snapshot: IntelligenceSnapshot;
@@ -35,7 +36,7 @@ function periodLabel(type: ReportType, start: string) {
     ? new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date(year, month - 1, 1))
     : `${Math.floor((month - 1) / 3) + 1}º trimestre de ${year}`;
 }
-function editorOf(row: any): ReportEditor {
+function editorOf(row: PrintableReport): ReportEditor {
   return {
     summary: row.executive_summary || '',
     movements: Array.isArray(row.movements) ? row.movements.map(String).join('\n') : '',
@@ -100,7 +101,12 @@ export function ReportPrintPageV17({ role }: Props) {
     html.classList.add('report-print-v16-isolated'); html.setAttribute('data-workspace-theme', 'day'); html.style.colorScheme = 'light'; document.body.classList.add('reports-v16-print-route');
     return () => { html.classList.remove('report-print-v16-isolated'); document.body.classList.remove('reports-v16-print-route'); if (previousTheme) html.setAttribute('data-workspace-theme', previousTheme); else html.removeAttribute('data-workspace-theme'); html.style.colorScheme = previousScheme; };
   }, []);
-  useEffect(() => { void load(); }, [reportId, role]);
+  useEffect(() => {
+    if (!reportId) return;
+    const controller = new AbortController();
+    void load(reportId, controller.signal);
+    return () => controller.abort();
+  }, [reportId, role]);
   useEffect(() => {
     if (!data || !autoPrint) return;
     let cancelled = false;
@@ -123,33 +129,28 @@ export function ReportPrintPageV17({ role }: Props) {
     window.print();
   }
 
-  async function load() {
-    if (!supabase || !reportId) return;
-    setLoading(true); setError('');
+  async function load(id: string, signal: AbortSignal) {
+    setLoading(true); setError(''); setData(null);
     try {
-      let companyId = '';
-      if (role === 'client') {
-        const user = await supabase.auth.getUser(); if (user.error) throw user.error;
-        const profile = await supabase.from('profiles').select('company_id').eq('id', user.data.user?.id || '').maybeSingle(); if (profile.error) throw profile.error;
-        companyId = String(profile.data?.company_id || ''); if (!companyId) throw new Error('Empresa vinculada ao acesso não encontrada.');
-      }
-      let query = supabase.from('reports').select('id,company_id,report_type,period_start,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,version,approval_identity_snapshot,acknowledgement_identity_snapshot,approved_at,acknowledged_at,acknowledgement_protocol').eq('id', reportId);
-      if (role === 'client') query = query.eq('company_id', companyId).in('status', ['sent', 'published']); else if (role === 'staff') query = query.in('status', ['sent', 'published']);
-      const reportResult = await query.maybeSingle(); if (reportResult.error) throw reportResult.error;
-      const report = reportResult.data; if (!report) throw new Error('Relatório não encontrado ou não disponível para este acesso.');
-      const snapshot = normalizeIntelligenceSnapshot(report.source_snapshot); if (!snapshot) throw new Error('A fotografia aprovada deste relatório não está disponível.');
-      const companyResult = await supabase.from('companies').select('display_name,logo_url').eq('id', report.company_id).maybeSingle(); if (companyResult.error) throw companyResult.error;
+      const report = await readPrintableReport(id, role, signal);
+      const snapshot = normalizeIntelligenceSnapshot(report.source_snapshot);
+      if (!snapshot) throw new Error('A fotografia aprovada deste relatório não está disponível.');
+      const company = await readPrintableReportCompany(report.company_id, signal);
       const start = String(report.period_start || report.reference_month).slice(0, 10), type = (report.report_type || 'monthly') as ReportType;
-      const resolvedLogo = await resolveWorkspaceMedia(companyResult.data?.logo_url, 86400, true);
+      const resolvedLogo = await resolveWorkspaceMedia(company?.logo_url, 86400, true);
       const printableLogo = await imageAsDataUrl(resolvedLogo);
-      setData({ company: { name: companyResult.data?.display_name || 'Empresa', logoUrl: printableLogo || resolvedLogo || null }, snapshot, editor: editorOf(report), reportType: type, periodName: periodLabel(type, start), protocol: report.protocol || '—', deliveries: deliveriesOf(snapshot), version: Number(report.version || 1), approvalIdentity: report.approval_identity_snapshot || null, ackIdentity: report.acknowledgement_identity_snapshot || null, approvedAt: report.approved_at || null, acknowledgedAt: report.acknowledged_at || null, ackProtocol: report.acknowledgement_protocol || null });
-      if (role === 'client') await supabase.rpc('record_report_client_event_v55', { p_report_id: reportId, p_event_type: 'pdf_opened' });
-    } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Não foi possível abrir o relatório.'); }
-    finally { setLoading(false); }
+      if (signal.aborted) return;
+      setData({ company: { name: company?.display_name || 'Empresa', logoUrl: printableLogo || resolvedLogo || null }, snapshot, editor: editorOf(report), reportType: type, periodName: periodLabel(type, start), protocol: report.protocol || '—', deliveries: deliveriesOf(snapshot), version: Number(report.version || 1), approvalIdentity: (report.approval_identity_snapshot as ReportIdentityV55 | null) || null, ackIdentity: (report.acknowledgement_identity_snapshot as ReportIdentityV55 | null) || null, approvedAt: report.approved_at || null, acknowledgedAt: report.acknowledged_at || null, ackProtocol: report.acknowledgement_protocol || null });
+      if (role === 'client') await recordReportRead(id, 'pdf_opened');
+    } catch (requestError) {
+      if (!signal.aborted) setError(requestError instanceof Error ? requestError.message : 'Não foi possível abrir o relatório.');
+    } finally {
+      if (!signal.aborted) setLoading(false);
+    }
   }
 
   if (loading) return <main className="report-print-v16-state"><Loader2 className="spin" size={22} />Preparando versão para impressão…</main>;
   const goBack = () => role === 'client' ? navigate('/cliente/relatorios') : role === 'staff' ? navigate('/equipe/relatorios') : navigate(-1);
   if (error || !data) return <main className="report-print-v16-state error"><strong>Não foi possível abrir o relatório.</strong><p>{error}</p><button type="button" onClick={goBack}>Voltar</button></main>;
-  return <main className="report-print-v16-page"><div className="report-print-v16-toolbar"><div><strong>Relatório executivo · v{data.version}</strong><span>{data.company.name} · {data.periodName}</span></div><div><button type="button" onClick={goBack}><ArrowLeft size={16} />Voltar</button><Button variant="primary" type="button" onClick={() => void prepareAndPrint(data)}><Printer size={16} />Imprimir / salvar PDF</Button></div></div><div className="report-print-v16-stage"><ExecutiveReportPaperV17 company={data.company} snapshot={data.snapshot} editor={data.editor} reportType={data.reportType} periodName={data.periodName} protocol={data.protocol} deliveries={data.deliveries} approvalIdentity={data.approvalIdentity} acknowledgementIdentity={data.ackIdentity} approvedAt={data.approvedAt} acknowledgedAt={data.acknowledgedAt} acknowledgementProtocol={data.ackProtocol} /></div></main>;
+  return <main className="report-print-v16-page"><div className="report-print-v16-toolbar"><div><strong>Relatório executivo · v{data.version}</strong><span>{data.company.name} · {data.periodName}</span></div><div><button type="button" onClick={goBack}><ArrowLeft size={16} />Voltar</button><Button variant="primary" type="button" onClick={() => void prepareAndPrint(data)}><Printer size={16} />Imprimir / salvar PDF</Button></div></div><div className="report-print-v16-stage"><WorkspaceExecutiveReportPaper company={data.company} snapshot={data.snapshot} editor={data.editor} reportType={data.reportType} periodName={data.periodName} protocol={data.protocol} deliveries={data.deliveries} approvalIdentity={data.approvalIdentity} acknowledgementIdentity={data.ackIdentity} approvedAt={data.approvedAt} acknowledgedAt={data.acknowledgedAt} acknowledgementProtocol={data.ackProtocol} /></div></main>;
 }

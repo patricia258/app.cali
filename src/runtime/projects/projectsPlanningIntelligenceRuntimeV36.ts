@@ -1,5 +1,6 @@
 import { caliWorkstreams } from '../../domain/projects';
-import { supabase } from '../../api/supabase';
+import { isSupabaseConfigured } from '../../api/access/session';
+import { readProjectPlanning, readProjectPlanningStatuses } from '../../api/projects/planning';
 import { isWorkspaceRoute } from '../routeActivity';
 
 type Scope = 'active' | 'closed';
@@ -33,12 +34,10 @@ function protocol(){const text=document.querySelector<HTMLElement>('.project-her
 function isDraft(){return norm(document.querySelector<HTMLElement>('.project-selector-v2 > button.active .status-chip')?.textContent||'')==='rascunho';}
 
 async function projectData(force=false){
-  if(!supabase)return{project:null as ProjectRow|null,deliverables:[] as DeliverableRow[]};
+  if(!isSupabaseConfigured)return{project:null as ProjectRow|null,deliverables:[] as DeliverableRow[]};
   const ptl=protocol();if(!ptl)return{project:null,deliverables:[]};
   if(!force&&cache?.protocol===ptl&&Date.now()-cache.at<1000)return{project:cache.project,deliverables:cache.deliverables};
-  const p=await supabase.from('projects').select('id,protocol,company_id,name,planning_status,start_date,target_end_date,roadmap_end_date,client_response_business_days').eq('protocol',ptl).maybeSingle();
-  const project=(p.data||null)as ProjectRow|null;let deliverables:DeliverableRow[]=[];
-  if(project?.id){const d=await supabase.from('deliverables').select('id,workstream,workstream_id,complexity,due_at,roadmap_month_start,sort_order,status').eq('project_id',project.id).neq('status','cancelled').order('sort_order');deliverables=(d.data||[])as DeliverableRow[];}
+  const { project, deliverables } = await readProjectPlanning(ptl) as { project: ProjectRow | null; deliverables: DeliverableRow[] };
   cache={protocol:ptl,at:Date.now(),project,deliverables};return{project,deliverables};
 }
 
@@ -95,7 +94,7 @@ function icon(labelText:string,svg:string){const b=document.createElement('butto
 const pencil='<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>',trash='<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg>';
 function draftActions(){const draft=isDraft();document.querySelectorAll<HTMLElement>('.front-deliverable-row-v3').forEach(row=>{let actions=row.querySelector<HTMLElement>('.draft-row-actions-v36');if(!draft){actions?.remove();return;}row.classList.add('draft-editable-v36');if(actions)return;actions=document.createElement('span');actions.className='draft-row-actions-v36';const edit=icon('Editar entregável',pencil),del=icon('Excluir entregável',trash);del.classList.add('danger');edit.onclick=e=>{e.preventDefault();e.stopPropagation();row.querySelector<HTMLButtonElement>('.front-deliverable-open-v3')?.click();setTimeout(()=>Array.from(document.querySelectorAll<HTMLButtonElement>('.deliverable-actions-left-v2 button')).find(b=>/^editar$/i.test(b.textContent?.trim()||''))?.click(),100);};del.onclick=e=>{e.preventDefault();e.stopPropagation();row.querySelector<HTMLButtonElement>('.front-deliverable-open-v3')?.click();setTimeout(()=>Array.from(document.querySelectorAll<HTMLButtonElement>('.deliverable-actions-left-v2 button')).find(b=>/^excluir$/i.test(b.textContent?.trim()||''))?.click(),100);};actions.append(edit,del);row.append(actions);});const header=document.querySelector<HTMLElement>('.roadmap-v2 > header');if(header){let add=header.querySelector<HTMLButtonElement>('.roadmap-add-front-v36');if(!draft)add?.remove();else if(!add){add=document.createElement('button');add.type='button';add.className='secondary roadmap-add-front-v36';add.textContent='+ Nova frente';add.onclick=()=>Array.from(document.querySelectorAll<HTMLButtonElement>('.project-hero-buttons button')).find(b=>/adicionar frente/i.test(b.textContent||''))?.click();header.append(add);}}document.querySelectorAll<HTMLElement>('.front-section-v2').forEach(section=>section.querySelector<HTMLElement>('.front-monthbar-v2')?.classList.toggle('front-window-pending-v36',!section.querySelector('.front-deliverable-row-v3')));}
 
-async function kpi(){const first=document.querySelector<HTMLElement>('.project-kpis-v2 article:first-child strong');if(!first||first.dataset.vigentesV36||!supabase)return;const q=await supabase.from('projects').select('id,planning_status');if(!q.data)return;first.textContent=String(q.data.filter((x:any)=>x.planning_status!=='closed').length);first.dataset.vigentesV36='1';}
+async function kpi(){const first=document.querySelector<HTMLElement>('.project-kpis-v2 article:first-child strong');if(!first||first.dataset.vigentesV36||!isSupabaseConfigured)return;const rows=await readProjectPlanningStatuses();if(!rows)return;first.textContent=String(rows.filter((x:any)=>x.planning_status!=='closed').length);first.dataset.vigentesV36='1';}
 function schedule(){clearTimeout(timer);timer=window.setTimeout(()=>void enhance(),90);}
 async function enhance(){if(busy||!isPage())return;busy=true;try{projectModal();frontModal();deliverableModal();portfolio();draftActions();await Promise.all([heroForecast(),kpi()]);}finally{busy=false;}}
 function mutationIsOurs(m:MutationRecord){const target=m.target instanceof Element?m.target:null;if(target?.closest('.project-account-navigator-v36,.project-forecast-v36,.deadline-intelligence-v36,.front-window-helper-v36,.draft-row-actions-v36'))return true;const nodes=[...Array.from(m.addedNodes),...Array.from(m.removedNodes)];return nodes.length>0&&nodes.every(n=>n instanceof Element&&Boolean(n.matches('.project-account-navigator-v36,.project-forecast-v36,.deadline-intelligence-v36,.front-window-helper-v36,.draft-row-actions-v36,.roadmap-add-front-v36')||n.closest('.project-account-navigator-v36,.project-forecast-v36,.deadline-intelligence-v36,.front-window-helper-v36,.draft-row-actions-v36')));}

@@ -1,9 +1,9 @@
 import runtimeStyles from './calendar-sync-guard.css?inline';
-import { supabase } from '../../api/supabase';
+import { isSupabaseConfigured } from '../../api/access/session';
+import { findCalendarEventForSync, invokeGoogleCalendar, listMyPendingCalendarEvents } from '../../api/calendar/sync';
 
 let installed = false;
 let repairing = false;
-type CalendarSyncRow = { id: string; sync_status: string | null };
 
 function isAdminCalendar() {
   return window.location.pathname === '/admin/calendario';
@@ -44,8 +44,8 @@ function calendarTimeValues(form: HTMLFormElement) {
 }
 
 async function invokeSync(eventId: string, silent = false) {
-  if (!supabase || !eventId) return;
-  const { data, error } = await supabase.functions.invoke('google-calendar-oauth', { body: { action: 'sync_event', eventId } });
+  if (!isSupabaseConfigured || !eventId) return;
+  const { data, error } = await invokeGoogleCalendar({ action: 'sync_event', eventId });
   if (error) {
     if (!silent) toast('O evento foi salvo no Workspace, mas o Google não sincronizou. Abra o evento para tentar novamente.', 'error');
     throw error;
@@ -67,19 +67,9 @@ async function invokeSync(eventId: string, silent = false) {
 }
 
 async function findAndSync(protocol: string | null, title: string, attempt = 0) {
-  if (!supabase) return;
+  if (!isSupabaseConfigured) return;
   try {
-    let row: CalendarSyncRow | null = null;
-    if (protocol) {
-      const result = await supabase.from('events').select('id,sync_status').eq('protocol', protocol).maybeSingle();
-      row = result.data as unknown as CalendarSyncRow | null;
-    } else if (title) {
-      const { data: userData } = await supabase.auth.getUser();
-      let query = supabase.from('events').select('id,sync_status').eq('title', title).order('created_at', { ascending: false }).limit(1);
-      if (userData.user?.id) query = query.eq('created_by', userData.user.id);
-      const result = await query.maybeSingle();
-      row = result.data as unknown as CalendarSyncRow | null;
-    }
+    const row = await findCalendarEventForSync(protocol, title);
     if (!row?.id) {
       if (attempt < 2) window.setTimeout(() => void findAndSync(protocol, title, attempt + 1), 900);
       return;
@@ -92,23 +82,11 @@ async function findAndSync(protocol: string | null, title: string, attempt = 0) 
 }
 
 async function repairPendingEvents() {
-  if (!isAdminWorkspace() || !supabase || repairing) return;
+  if (!isAdminWorkspace() || !isSupabaseConfigured || repairing) return;
   repairing = true;
   try {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    if (!userId) return;
     const since = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString();
-    const { data: rows } = await supabase
-      .from('events')
-      .select('id,sync_status,created_at')
-      .eq('created_by', userId)
-      .in('sync_status', ['pending', 'error'])
-      .gte('created_at', since)
-      .is('cancelled_at', null)
-      .order('created_at', { ascending: false })
-      .limit(10);
-    for (const row of rows || []) {
+    for (const row of await listMyPendingCalendarEvents(since)) {
       try {
         const result = await invokeSync(String(row.id), true);
         if (result?.status === 'synced') toast('Um evento pendente foi recuperado e sincronizado com o Google Calendar.', 'success');

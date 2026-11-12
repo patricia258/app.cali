@@ -6,7 +6,9 @@ import { withMentions } from '../../../lib/mentionText';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowLeft, Paperclip, Send, X } from 'lucide-react';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
-import { supabase } from '../../../api/supabase';
+import { isSupabaseConfigured } from '../../../api/access/session';
+import { postTaskMessage, readProjectActor, readTaskConversationPeople, readTaskMessages, uploadDeliverableAttachment } from '../../../api/projects/conversation';
+import { archiveProjectFile, insertProjectFile, proposeFinalProjectFile, readFinalProjectFiles, releaseFinalProjectFile } from '../../../api/projects/files';
 import { openPrivateWorkspaceFile } from '../../../api/files/workspace';
 import { NoteLog } from './NoteLog';
 
@@ -30,24 +32,23 @@ export function SubtaskModal({ task, deliverableId, deliverableTitle, companyId,
   const [channel, setChannel] = useState<'internal' | 'client'>('internal'); const [text, setText] = useState(''); const [file, setFile] = useState<File | null>(null); const [sending, setSending] = useState(false); const fileInput = useRef<HTMLInputElement | null>(null);
 
   const [finals, setFinals] = useState<FinalFile[]>([]); const [finalBusy, setFinalBusy] = useState('');
-  async function loadFinals() { if (!supabase) return; const result = await supabase.from('files').select('id,storage_path,status').eq('task_id', task.id); if (!result.error) setFinals((result.data || []) as FinalFile[]); }
+  async function loadFinals() { if (!isSupabaseConfigured) return; const result = await readFinalProjectFiles({ taskId: task.id }); if (!result.error) setFinals((result.data || []) as FinalFile[]); }
   useEffect(() => { void loadFinals(); }, [task.id]);
   /* Entrega final: o Partner propõe; só a administradora libera, suspende ou recusa. */
-  async function finalAction(file: FileToken, action: 'propose' | 'release' | 'suspend' | 'refuse') { if (!supabase || finalBusy) return; setFinalBusy(file.path); const existing = finals.find((item) => item.storage_path === file.path); let failure: any = null;
-    if (action === 'propose') failure = (await supabase.rpc('partner_propose_final_file', { p_deliverable_id: deliverableId, p_task_id: task.id, p_storage_path: file.path, p_filename: file.name, p_file_type: file.mime || 'application/octet-stream', p_size: file.size })).error;
+  async function finalAction(file: FileToken, action: 'propose' | 'release' | 'suspend' | 'refuse') { if (!isSupabaseConfigured || finalBusy) return; setFinalBusy(file.path); const existing = finals.find((item) => item.storage_path === file.path); let failure: any = null;
+    if (action === 'propose') failure = (await proposeFinalProjectFile(deliverableId, task.id, file)).error;
     else if (action === 'release') failure = existing
-      ? (await supabase.from('files').update({ status: 'published', client_visible: true, published_at: new Date().toISOString() }).eq('id', existing.id)).error
-      : (await supabase.from('files').insert({ company_id: companyId, project_id: projectId || null, deliverable_id: deliverableId, task_id: task.id, title: task.title, category: 'deliverable', storage_path: file.path, original_filename: file.name, file_type: file.mime || 'application/octet-stream', file_size_bytes: file.size, client_visible: true, status: 'published', published_at: new Date().toISOString(), workflow_origin: 'deliverable', uploaded_by: me || null })).error;
-    else if (existing) failure = (await supabase.from('files').update({ status: 'archived', client_visible: false }).eq('id', existing.id)).error;
+      ? (await releaseFinalProjectFile(existing.id)).error
+      : (await insertProjectFile({ company_id: companyId, project_id: projectId || null, deliverable_id: deliverableId, task_id: task.id, title: task.title, category: 'deliverable', storage_path: file.path, original_filename: file.name, file_type: file.mime || 'application/octet-stream', file_size_bytes: file.size, client_visible: true, status: 'published', published_at: new Date().toISOString(), workflow_origin: 'deliverable', uploaded_by: me || null })).error;
+    else if (existing) failure = (await archiveProjectFile(existing.id)).error;
     setFinalBusy(''); if (failure) { onNotice(failure.message || 'Não foi possível concluir esta ação.'); return; }
     onNotice(action === 'propose' ? 'Enviado para a Patricia liberar ao cliente.' : action === 'release' ? 'Liberado para o cliente em Documentos.' : action === 'suspend' ? 'Suspenso: o cliente deixou de ver este documento.' : 'Proposta recusada.'); await loadFinals(); }
-  async function loadMessages() { if (!supabase) return; const result = await supabase.from('task_messages').select('id,author_user_id,author_role,body,created_at,client_visible').eq('task_id', task.id).order('created_at'); if (!result.error) setMessages((result.data || []) as Message[]); }
-  useEffect(() => { if (!supabase) return; let alive = true; const db = supabase;
+  async function loadMessages() { if (!isSupabaseConfigured) return; const result = await readTaskMessages(task.id); if (!result.error) setMessages((result.data || []) as Message[]); }
+  useEffect(() => { if (!isSupabaseConfigured) return; let alive = true;
     void (async () => {
-      const { data: auth } = await db.auth.getUser(); if (!alive) return; setMe(auth.user?.id || '');
-      const team = await db.rpc('staff_identities'); const admins = staff ? await db.rpc('staff_admin_contacts') : await db.from('profiles').select('id,full_name,avatar_url').eq('role', 'admin');
-      const people = [...((team.data || []) as any[]), ...((admins.data || []) as any[])];
-      if (alive) setNames(Object.fromEntries(people.map((row) => [row.id, row.full_name])));
+      const { data: auth } = await readProjectActor(); if (!alive) return; setMe(auth.user?.id || '');
+      const people = await readTaskConversationPeople(staff);
+      if (alive) setNames(Object.fromEntries(people.map((row) => [row.id, row.full_name ?? ''])));
       const resolved = await Promise.all(people.map(async (row) => [row.id, row.avatar_url ? await resolveWorkspaceMedia(row.avatar_url).catch(() => null) : null] as const));
       if (alive) setPhotos(Object.fromEntries(resolved.filter((pair) => pair[1]) as [string, string][]));
       await loadMessages();
@@ -56,7 +57,7 @@ export function SubtaskModal({ task, deliverableId, deliverableTitle, companyId,
     return () => { alive = false; window.clearInterval(timer); };
   }, [task.id, staff]);
 
-  async function send() { if (!supabase || sending || (!text.trim() && !file)) return; setSending(true);
+  async function send() { if (!isSupabaseConfigured || sending || (!text.trim() && !file)) return; setSending(true);
     try {
       let token = '';
       if (file) {
@@ -64,12 +65,14 @@ export function SubtaskModal({ task, deliverableId, deliverableTitle, companyId,
         if (file.size > 10 * 1024 * 1024) { onNotice('O anexo pode ter até 10 MB.'); return; }
         const safe = file.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').slice(0, 90) || 'arquivo';
         const path = `deliverable-chat/${companyId}/${deliverableId}/${me}/${Date.now()}-${safe}`;
-        const upload = await supabase.storage.from('cali-workspace-private').upload(path, file, { contentType: file.type, upsert: false });
+        const upload = await uploadDeliverableAttachment(path, file, file.type);
         if (upload.error) { onNotice('Não foi possível anexar o arquivo. A mensagem não foi enviada.'); return; }
         token = `[[arquivo|${encodeURIComponent(file.name)}|${encodeURIComponent(path)}|${encodeURIComponent(file.type)}|${file.size}]]`;
       }
       const body = [text.trim(), token].filter(Boolean).join('\n');
-      const result = staff ? await supabase.rpc('partner_post_task_message', { p_task_id: task.id, p_body: body, p_client_visible: channel === 'client' }) : await supabase.from('task_messages').insert({ task_id: task.id, deliverable_id: deliverableId, company_id: companyId, author_user_id: me || null, author_role: 'admin', body, client_visible: channel === 'client' });
+      const result = await postTaskMessage({
+        taskId: task.id, deliverableId, companyId, actorId: me || null, body, visible: channel === 'client', partner: staff,
+      });
       if (result.error) { onNotice(result.error.message || 'Não foi possível enviar a mensagem.'); return; }
       setText(''); setFile(null); await loadMessages();
     } finally { setSending(false); }

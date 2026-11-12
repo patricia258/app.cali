@@ -2,7 +2,7 @@
    Quem sai é marcado como recusa: não recebe mais mensagens e não conta como pendente na taxa de resposta. */
 import { useEffect, useState } from 'react';
 import { useParams } from '../../../hooks/useParams';
-import { anonPublicRpc } from '../../../api/supabase';
+import { declineRespondentInvitation } from '../../../api/disc/respondent';
 import '../forms/public-form.css';
 
 export function ProfileOptOutPage() {
@@ -12,8 +12,7 @@ export function ProfileOptOutPage() {
 
   async function decline() {
     setState('busy');
-    const { data } = await anonPublicRpc<{ ok: boolean }>('cali_profile_invite_decline', { p_token: token });
-    setState(data?.ok ? 'done' : 'failed');
+    setState(await declineRespondentInvitation(token) ? 'done' : 'failed');
   }
 
   return <div className="cali-form-page">

@@ -10,6 +10,7 @@ import { SubtaskModal, SUBTASK_STATUS, subtaskStatusOptions, subtaskStatusLabel 
 import { NoteLog } from './components/NoteLog';
 import { DeliverableDependencies } from '../../components/projects/DeliverableDependencies';
 import { DeliverableFiles } from './components/DeliverableFiles';
+import { ProjectDeliveryHistory } from './components/ProjectDeliveryHistory';
 import { ChevronDown, ChevronRight, Pause,
   AlertTriangle, ArrowRight, CalendarDays, Check, CheckCircle2, Clock3, Edit3,
   FileText, FolderKanban, GitBranch, History, LayoutGrid, List, Paperclip, Play,
@@ -22,7 +23,19 @@ import './project-approval-workflow-v38.css';
 import './project-approval-rules-v39.css';
 import './project-client-portfolio-v39.css';
 import './admin-projects-stability-v62.css';
-import { supabase } from '../../api/supabase';
+import { isSupabaseConfigured } from '../../api/access/session';
+import {
+  changeDeliverableStatus, createProjectFront, createProjectWithFronts, deleteDeliverableDraft, insertDeliverable,
+  logDeliverableDeadlineEdit, publishProjectSchedule, readDeliverableContext, readProjectPartnerContext, readProjectsWorkspace,
+  reopenDeliverableReview, requestDeliverableAdjustment, requestPartnerDeliverableReview, startPartnerDeliverableTimer,
+  startProjectWorkTimer, submitPartnerProjectChange, updateDeliverable,
+} from '../../api/projects/workspace';
+import { addDeliverableTask, addPartnerDeliverableTask, changeDeliverableTaskStatus, readDeliverableTasks } from '../../api/projects/tasks';
+import {
+  postAdminDeliverableComment, postPartnerDeliverableComment, readPartnerDeliverableConversation, readProjectActor, uploadDeliverableAttachment,
+} from '../../api/projects/conversation';
+import { insertProjectFile } from '../../api/projects/files';
+import { pauseWorkTimer, startPartnerTimer, stopPartnerTimer, stopWorkTimer } from '../../api/hours/timers';
 import { openPrivateWorkspaceFile } from '../../api/files/workspace';
 import { optimizeImageForUpload } from '../../lib/imageUpload';
 import {
@@ -195,10 +208,11 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
   const [statusReason,setStatusReason] = useState('');
   const [confirmDelete,setConfirmDelete] = useState(false);
   // Equipe CALI: quem é quem na conversa (nome e foto), pedidos de aprovação pendentes e mensagens do canal aberto.
-  useEffect(()=>{ if(!staff||!supabase)return; let alive=true; void (async()=>{
-    const [{data:auth},profiles,admins,pending]=await Promise.all([supabase.auth.getUser(),supabase.from('profiles').select('id,full_name,avatar_url'),supabase.rpc('staff_admin_contacts'),supabase.from('staff_review_requests').select('entity_id').eq('kind','deliverable').eq('status','pending')]);
-    if(!alive)return; setStaffUserId(auth.user?.id||''); setStaffReviewPending(Object.fromEntries(((pending.data||[]) as any[]).map((row)=>[row.entity_id,true])));
-    const people=[...((profiles.data||[]) as any[]),...((admins.data||[]) as any[])]; const resolved=await Promise.all(people.map(async(row)=>[row.id,{name:row.full_name||'',photo:row.avatar_url?(await resolveWorkspaceMedia(row.avatar_url,3600))||'':''}] as [string,{name:string;photo:string}]));
+  useEffect(()=>{ if(!staff||!isSupabaseConfigured)return; let alive=true; void (async()=>{
+    const { userId, people, pending } = await readProjectPartnerContext();
+    if (!alive) return;
+    setStaffUserId(userId);
+    setStaffReviewPending(pending); const resolved=await Promise.all(people.map(async(row)=>[row.id,{name:row.full_name||'',photo:row.avatar_url?(await resolveWorkspaceMedia(row.avatar_url,3600))||'':''}] as [string,{name:string;photo:string}]));
     if(alive)setStaffPeople(Object.fromEntries(resolved));
   })(); return()=>{alive=false;}; },[Boolean(staff)]);
   useEffect(()=>{ if(!staff||!selectedDeliverable||detailTab!=='conversation'){ return; } void staffLoadChat(selectedDeliverable.id,conversationChannel); },[Boolean(staff),selectedDeliverable?.id,detailTab,conversationChannel]);
@@ -229,17 +243,9 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
   useEffect(()=>{ if(selectedDeliverable) void loadDeliverableContext(selectedDeliverable.id); },[selectedDeliverable?.id]);
 
   async function loadWorkspace() {
-    if(!supabase){ setLoading(false); return; }
+    if(!isSupabaseConfigured){ setLoading(false); return; }
     try {
-      const [{data:companyRows},{data:projectRows},{data:frontRows},{data:deliverableRows},{data:taskRows},{data:hourRows},{data:timerRows}] = await Promise.all([
-        staff ? Promise.resolve({ data: staff.companies.map((c)=>({ id:c.id, display_name:c.display_name, logo_url:c.logo_url, service_type:c.service_type||null, service_plan:c.service_plan||null })), error: null }) as any : supabase.from('companies').select('id,display_name,logo_url,service_type,service_plan').neq('status','closed').order('display_name'),
-        supabase.from('projects').select('id,protocol,company_id,name,description,status,planning_status,start_date,target_end_date,client_response_business_days,adjustment_limit').order('created_at',{ascending:false}),
-        supabase.from('project_workstreams').select('id,protocol,project_id,company_id,name,objective,roadmap_month_start,roadmap_month_end,status,sort_order').order('sort_order'),
-        supabase.from('deliverables').select('id,protocol,code,project_id,company_id,title,description,status,workstream,workstream_id,complexity,roadmap_month_start,roadmap_month_end,due_at,original_due_at,client_response_due_at,client_delay_business_days,adjustment_count,rebriefing_required,is_document,sort_order,client_visible,review_revision').order('sort_order'),
-        supabase.from('deliverable_tasks').select('id,protocol,deliverable_id,title,description,status,due_at,client_visible,estimated_minutes,sort_order').order('sort_order'),
-        supabase.from('hour_entries').select('deliverable_id,minutes'),
-        supabase.from('work_timers').select('id,deliverable_id,task_id,started_at,status').eq('status','active').order('started_at',{ascending:false}).limit(1),
-      ]);
+      const { companyRows, projectRows, frontRows, deliverableRows, taskRows, hourRows, timerRows } = await readProjectsWorkspace(staff?.companies);
       if(!projectRows?.length) return;
       const companyMap=new Map((companyRows||[]).map((r:any)=>[r.id,r]));
       const taskMap=new Map<string,TaskItem[]>();
@@ -271,18 +277,14 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
   }
 
   async function loadDeliverableContext(deliverableId:string) {
-    if(!supabase || !isUuid(deliverableId)) {
+    if(!isSupabaseConfigured || !isUuid(deliverableId)) {
       setComments([
         {id:'p1',body:'Material organizado e pronto para validação.',clientVisible:true,createdAt:'2026-08-27T12:00:00-03:00',author:'Patrícia · CALI'},
         {id:'p2',body:'Revisar dependência com a próxima frente antes de publicar.',clientVisible:false,createdAt:'2026-08-27T09:00:00-03:00',author:'Patrícia · CALI'},
       ]);
       setHistory([{id:'h1',title:'Entregável criado',detail:'Incluído no cronograma e vinculado à frente.',createdAt:'2026-08-20T10:00:00-03:00'},{id:'h2',title:'Status alterado',detail:`Status atual: ${deliverableLabels[selectedDeliverable?.status||'not_started']}.`,createdAt:'2026-08-27T09:00:00-03:00'}]); return;
     }
-    const [{data:commentRows},{data:statusRows},{data:correctionRows}] = await Promise.all([
-      supabase.from('comments').select('id,body,client_visible,created_at').eq('target_type','deliverable').eq('target_id',deliverableId).order('created_at'),
-      supabase.from('deliverable_status_history').select('*').eq('deliverable_id',deliverableId).order('created_at',{ascending:false}),
-      staff ? Promise.resolve({ data: null }) : supabase.rpc('read_deliverable_review_history_v2', { p_deliverable_id: deliverableId }),
-    ]);
+    const { commentRows, statusRows, correctionRows } = await readDeliverableContext(deliverableId, Boolean(staff));
 
     setComments((commentRows||[]).map((r:any)=>{
       return {id:r.id,body:r.body,clientVisible:Boolean(r.client_visible),createdAt:r.created_at,author:r.client_visible?'Conversa com cliente':'Nota interna CALI'};
@@ -315,11 +317,19 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
     try{
       const validFronts=frontDrafts.filter((f)=>f.name.trim());
       if(staff){ const ok=await staffSubmitChange('project_create',`Novo projeto: ${projectForm.name.trim()}`,{project:{company_id:projectForm.companyId,name:projectForm.name.trim(),status:'planned',planning_status:'draft',start_date:projectForm.startDate||null,target_end_date:projectForm.endDate||null,roadmap_start_date:projectForm.startDate||null,roadmap_end_date:projectForm.endDate||null,client_response_business_days:projectForm.clientResponseBusinessDays,adjustment_limit:3},fronts:validFronts.map((f,index)=>({name:f.name.trim(),objective:f.objective.trim()||null,roadmap_month_start:f.monthStart,roadmap_month_end:f.monthEnd,sort_order:index+1}))},projectForm.companyId); if(ok)setProjectModal(false); return; }
-      if(supabase&&isUuid(projectForm.companyId)){
-        const {data,error}=await supabase.from('projects').insert({company_id:projectForm.companyId,name:projectForm.name.trim(),status:'planned',planning_status:'draft',start_date:projectForm.startDate||null,target_end_date:projectForm.endDate||null,roadmap_start_date:projectForm.startDate||null,roadmap_end_date:projectForm.endDate||null,client_response_business_days:projectForm.clientResponseBusinessDays,adjustment_limit:3}).select('id').single();
-        if(error) throw error;
-        if(validFronts.length&&data?.id){ const {error:frontError}=await supabase.from('project_workstreams').insert(validFronts.map((f,index)=>({company_id:projectForm.companyId,project_id:data.id,name:f.name.trim(),objective:f.objective.trim()||null,roadmap_month_start:f.monthStart,roadmap_month_end:f.monthEnd,sort_order:index+1}))); if(frontError) throw frontError; }
-        setProjectModal(false); await loadWorkspace(); if(data?.id)setSelectedProjectId(data.id);
+      if(isSupabaseConfigured&&isUuid(projectForm.companyId)){
+        const id = await createProjectWithFronts({
+          company_id: projectForm.companyId, name: projectForm.name.trim(), status: 'planned', planning_status: 'draft',
+          start_date: projectForm.startDate || null, target_end_date: projectForm.endDate || null,
+          roadmap_start_date: projectForm.startDate || null, roadmap_end_date: projectForm.endDate || null,
+          client_response_business_days: projectForm.clientResponseBusinessDays, adjustment_limit: 3,
+        }, validFronts.map((front, index) => ({
+          name: front.name.trim(), objective: front.objective.trim() || null, roadmap_month_start: front.monthStart,
+          roadmap_month_end: front.monthEnd, sort_order: index + 1,
+        })));
+        setProjectModal(false);
+        await loadWorkspace();
+        if (id) setSelectedProjectId(id);
       } else {
         const company=projects.find((p)=>p.companyId===projectForm.companyId)?.company||'Cliente';
         const local:WorkspaceProject={id:`preview-project-${Date.now()}`,protocol:`CALI-PRJ-PREVIEW-${Date.now().toString().slice(-5)}`,companyId:projectForm.companyId,company,name:projectForm.name.trim(),service:projects.find((p)=>p.companyId===projectForm.companyId)?.service||'Serviço CALI',planningStatus:'draft',startDate:projectForm.startDate||null,endDate:projectForm.endDate||null,clientResponseBusinessDays:projectForm.clientResponseBusinessDays,adjustmentLimit:3,deliverables:[]};
@@ -333,7 +343,7 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
     event.preventDefault(); if(!frontForm.name.trim())return; setSaving(true);
     try{
       if(staff){ const ok=await staffSubmitChange('front_create',`Nova frente em ${selectedProject.name}: ${frontForm.name.trim()}`,{row:{company_id:selectedProject.companyId,project_id:selectedProject.id,name:frontForm.name.trim(),objective:frontForm.objective.trim()||null,roadmap_month_start:frontForm.monthStart,roadmap_month_end:frontForm.monthEnd,sort_order:selectedFronts.length+1}},selectedProject.companyId); if(ok){ setFrontModal(false); setFrontForm(emptyFrontForm()); } return; }
-      if(supabase&&isUuid(selectedProject.id)){ const {error}=await supabase.from('project_workstreams').insert({company_id:selectedProject.companyId,project_id:selectedProject.id,name:frontForm.name.trim(),objective:frontForm.objective.trim()||null,roadmap_month_start:frontForm.monthStart,roadmap_month_end:frontForm.monthEnd,sort_order:selectedFronts.length+1}); if(error)throw error; await loadWorkspace(); }
+      if(isSupabaseConfigured&&isUuid(selectedProject.id)){ const {error}=await createProjectFront({company_id:selectedProject.companyId,project_id:selectedProject.id,name:frontForm.name.trim(),objective:frontForm.objective.trim()||null,roadmap_month_start:frontForm.monthStart,roadmap_month_end:frontForm.monthEnd,sort_order:selectedFronts.length+1}); if(error)throw error; await loadWorkspace(); }
       else setFronts((c)=>[...c,{id:`preview-front-${Date.now()}`,protocol:`CALI-FRT-PREVIEW-${Date.now().toString().slice(-4)}`,projectId:selectedProject.id,companyId:selectedProject.companyId,name:frontForm.name.trim(),objective:frontForm.objective.trim(),monthStart:frontForm.monthStart,monthEnd:frontForm.monthEnd,status:'planned',sortOrder:selectedFronts.length+1}]);
       setFrontModal(false); setFrontForm(emptyFrontForm());
     }catch(error){console.error(error);}finally{setSaving(false);}
@@ -349,10 +359,10 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
   async function saveDeliverable(event:FormEvent){
     event.preventDefault(); if(!deliverableForm.title.trim())return; const front=selectedFronts.find((f)=>f.id===deliverableForm.frontId); if(!front)return; setSaving(true);
     try{
-      if(supabase&&isUuid(selectedProject.id)){
+      if(isSupabaseConfigured&&isUuid(selectedProject.id)){
         const payload={title:deliverableForm.title.trim(),description:deliverableForm.description.trim()||null,workstream:front.name,workstream_id:isUuid(front.id)?front.id:null,complexity:deliverableForm.complexity,roadmap_month_start:deliverableForm.monthStart,roadmap_month_end:deliverableForm.monthEnd,due_at:deliverableForm.dueDate?`${deliverableForm.dueDate}T18:00:00-03:00`:null,is_document:deliverableForm.isDocument,client_visible:deliverableForm.clientVisible};
         if(staff){ const ok=editingDeliverable&&isUuid(editingDeliverable.id)?await staffSubmitChange('deliverable_update',`Editar entregável: ${editingDeliverable.title}`,{id:editingDeliverable.id,row:payload},selectedProject.companyId):await staffSubmitChange('deliverable_create',`Novo entregável em ${selectedProject.name}: ${payload.title}`,{row:{...payload,company_id:selectedProject.companyId,project_id:selectedProject.id,status:'not_started',priority:'normal',sort_order:selectedProject.deliverables.length+1}},selectedProject.companyId); if(ok){ setDeliverableModal(false); setEditingDeliverable(null); } return; }
-        const result=editingDeliverable&&isUuid(editingDeliverable.id)?await supabase.from('deliverables').update(payload).eq('id',editingDeliverable.id):await supabase.from('deliverables').insert({...payload,company_id:selectedProject.companyId,project_id:selectedProject.id,status:'not_started',priority:'normal',sort_order:selectedProject.deliverables.length+1}); if(result.error)throw result.error; /* Prazo mudado pelo "Editar" também entra no histórico do prazo (fora de rascunho, onde o cliente ainda não vê nada). */ if(editingDeliverable&&isUuid(editingDeliverable.id)&&payload.due_at&&editingDeliverable.dueAt&&String(editingDeliverable.dueAt).slice(0,10)!==String(payload.due_at).slice(0,10)&&(selectedProject as any).planningStatus!=='draft'){ const {data:auth}=await supabase.auth.getUser(); await supabase.from('deliverable_due_revisions').insert({deliverable_id:editingDeliverable.id,company_id:selectedProject.companyId,previous_due:editingDeliverable.dueAt,new_due:payload.due_at,cause:'internal',reason:'Prazo ajustado pela CALI na edição do entregável.',created_by:auth.user?.id||null}); } await loadWorkspace();
+        const result=editingDeliverable&&isUuid(editingDeliverable.id)?await updateDeliverable(editingDeliverable.id, payload):await insertDeliverable({...payload,company_id:selectedProject.companyId,project_id:selectedProject.id,status:'not_started',priority:'normal',sort_order:selectedProject.deliverables.length+1}); if(result.error)throw result.error; /* Prazo mudado pelo "Editar" também entra no histórico do prazo (fora de rascunho, onde o cliente ainda não vê nada). */ if(editingDeliverable&&isUuid(editingDeliverable.id)&&payload.due_at&&editingDeliverable.dueAt&&String(editingDeliverable.dueAt).slice(0,10)!==String(payload.due_at).slice(0,10)&&(selectedProject as any).planningStatus!=='draft'){ await logDeliverableDeadlineEdit(editingDeliverable.id, selectedProject.companyId, editingDeliverable.dueAt, payload.due_at); } await loadWorkspace();
       } else if(editingDeliverable){ setProjects((c)=>c.map((p)=>p.id===selectedProject.id?{...p,deliverables:p.deliverables.map((d)=>d.id===editingDeliverable.id?{...d,title:deliverableForm.title,description:deliverableForm.description,workstream:front.name,complexity:deliverableForm.complexity,roadmapMonthStart:deliverableForm.monthStart,roadmapMonthEnd:deliverableForm.monthEnd,dueAt:deliverableForm.dueDate?`${deliverableForm.dueDate}T18:00:00-03:00`:null,isDocument:deliverableForm.isDocument,clientVisible:deliverableForm.clientVisible}:d)}:p)); }
       else { const local:ProjectDeliverable={id:`preview-del-${Date.now()}`,protocol:`CALI-ENT-PREVIEW-${Date.now().toString().slice(-5)}`,title:deliverableForm.title,description:deliverableForm.description,status:'not_started',workstream:front.name,complexity:deliverableForm.complexity,roadmapMonthStart:deliverableForm.monthStart,roadmapMonthEnd:deliverableForm.monthEnd,dueAt:deliverableForm.dueDate?`${deliverableForm.dueDate}T18:00:00-03:00`:null,clientDelayBusinessDays:0,adjustmentCount:0,rebriefingRequired:false,isDocument:deliverableForm.isDocument,hours:0,taskCount:0,taskDone:0,sortOrder:selectedProject.deliverables.length+1,clientVisible:deliverableForm.clientVisible}; setProjects((c)=>c.map((p)=>p.id===selectedProject.id?{...p,deliverables:[...p.deliverables,local]}:p)); }
       setDeliverableModal(false); setEditingDeliverable(null);
@@ -372,11 +382,8 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
 
   async function persistStatus(item:ProjectDeliverable,next:DeliverableStatus,note:string){
     if(item.status==='approved'||next===item.status)return;
-    if(supabase&&isUuid(item.id)){
-      const statusUpdate = { p_deliverable_id: item.id, p_status: next, p_note: note || null };
-      const { error } = staff
-        ? await supabase.rpc('partner_change_deliverable_status', statusUpdate)
-        : await supabase.rpc('change_deliverable_review_status_v2', { ...statusUpdate, p_review_revision: item.reviewRevision ?? 1 });
+    if(isSupabaseConfigured&&isUuid(item.id)){
+      const { error } = await changeDeliverableStatus(item.id, next, note || null, item.reviewRevision ?? 1, Boolean(staff));
       if(error){setStaffNotice(error.message);return;}
       await loadWorkspace();
       if(selectedDeliverable?.id===item.id) await loadDeliverableContext(item.id);
@@ -393,13 +400,11 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
     if (!pendingStatus || !statusReason.trim() || saving) return;
     const current = pendingStatus;
     if (current.status === 'reopen') {
-      if (!supabase || staff) return;
+      if (!isSupabaseConfigured || staff) return;
       setSaving(true);
       setStatusError('');
       try {
-        const result = await supabase.rpc('reopen_deliverable_for_review_v2', {
-          p_deliverable_id: current.item.id, p_review_revision: current.item.reviewRevision ?? 1, p_reason: statusReason.trim(),
-        });
+        const result = await reopenDeliverableReview(current.item.id, current.item.reviewRevision ?? 1, statusReason.trim());
         if (result.error) throw new Error(result.error.message);
         const revision = Number(result.data?.review_revision);
         const status = (result.data?.status ?? 'internal_review') as DeliverableStatus;
@@ -431,25 +436,25 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
 
   async function requestAdjustment(){
     if(!selectedDeliverable||!adjustmentReason.trim())return; const next=selectedDeliverable.adjustmentCount+1; const rebrief=next>(selectedProject.adjustmentLimit||3);
-    if(supabase&&isUuid(selectedDeliverable.id)){ const {error}=await supabase.rpc('request_deliverable_adjustment',{p_deliverable_id:selectedDeliverable.id,p_reason:adjustmentReason.trim(),p_impact_business_days:adjustmentImpact}); if(error){setStaffNotice(error.message);return;} await loadWorkspace(); await loadDeliverableContext(selectedDeliverable.id); }
+    if(isSupabaseConfigured&&isUuid(selectedDeliverable.id)){ const {error}=await requestDeliverableAdjustment(selectedDeliverable.id, adjustmentReason.trim(), adjustmentImpact); if(error){setStaffNotice(error.message);return;} await loadWorkspace(); await loadDeliverableContext(selectedDeliverable.id); }
     else setProjects((c)=>c.map((p)=>p.id===selectedProject.id?{...p,planningStatus:rebrief?'rebriefing':p.planningStatus,deliverables:p.deliverables.map((d)=>d.id===selectedDeliverable.id?{...d,status:rebrief?'rebriefing':'adjustment_requested',adjustmentCount:next,rebriefingRequired:rebrief}:d)}:p));
     setSelectedDeliverable((c)=>c?{...c,status:rebrief?'rebriefing':'adjustment_requested',adjustmentCount:next,rebriefingRequired:rebrief}:c); setAdjustmentReason('');setAdjustmentImpact(0);setShowAdjustment(false);
   }
 
-  async function sendScheduleToClient(){ if(!selectedProject)return; if(supabase&&isUuid(selectedProject.id)){await supabase.from('projects').update({planning_status:'client_review'}).eq('id',selectedProject.id);await loadWorkspace();}else setProjects((c)=>c.map((p)=>p.id===selectedProject.id?{...p,planningStatus:'client_review'}:p)); }
+  async function sendScheduleToClient(){ if(!selectedProject)return; if(isSupabaseConfigured&&isUuid(selectedProject.id)){const { error } = await publishProjectSchedule(selectedProject.id); if (error) { setStaffNotice(error.message); return; } await loadWorkspace();}else setProjects((c)=>c.map((p)=>p.id===selectedProject.id?{...p,planningStatus:'client_review'}:p)); }
 
   async function addTask(event:FormEvent){
     event.preventDefault(); if(!selectedDeliverable||!taskForm.title.trim())return; const estimated=Math.round((Number(taskForm.estimatedHours.replace(',','.'))||0)*60); setSaving(true);
     try{
       if(taskForm.dueDate&&selectedDeliverable.dueAt&&taskForm.dueDate>String(selectedDeliverable.dueAt).slice(0,10)){ setStaffNotice(`O prazo da subtarefa não pode passar do prazo do entregável (${formatProjectDate(selectedDeliverable.dueAt)}).`); return; }
-      if(staff){ if(!supabase)return; const created=await supabase.rpc('partner_create_task',{p_deliverable_id:selectedDeliverable.id,p_title:taskForm.title.trim(),p_description:taskForm.description.trim()||null,p_due_at:taskForm.dueDate?`${taskForm.dueDate}T18:00:00-03:00`:null,p_estimated_minutes:estimated,p_client_visible:taskForm.clientVisible,p_complexity:taskForm.complexity,p_is_document:taskForm.isDocument}); if(created.error){ setStaffNotice(created.error.message||'Não foi possível criar a subtarefa.'); return; } setTaskForm(emptyTaskForm()); setShowTaskForm(false); setStaffNotice('Subtarefa criada.'); await loadWorkspace(); return; }
-      if(supabase&&isUuid(selectedDeliverable.id)){ const {error}=await supabase.from('deliverable_tasks').insert({company_id:selectedProject.companyId,deliverable_id:selectedDeliverable.id,title:taskForm.title.trim(),description:taskForm.description.trim()||null,status:'todo',due_at:taskForm.dueDate?`${taskForm.dueDate}T18:00:00-03:00`:null,client_visible:taskForm.clientVisible,estimated_minutes:estimated,sort_order:selectedTasks.length+1,complexity:taskForm.complexity,is_document:taskForm.isDocument}); if(error)throw error; const {data}=await supabase.from('deliverable_tasks').select('*').eq('deliverable_id',selectedDeliverable.id).order('sort_order'); setTasks((current)=>[...current.filter((t)=>t.deliverableId!==selectedDeliverable.id),...(data||[]).map((r:any)=>({id:r.id,protocol:r.protocol,deliverableId:r.deliverable_id,title:r.title,description:r.description,status:r.status,dueAt:r.due_at,clientVisible:Boolean(r.client_visible),estimatedMinutes:Number(r.estimated_minutes||0),sortOrder:Number(r.sort_order||0),complexity:r.complexity||null,isDocument:Boolean(r.is_document)} as any))]); }
+      if(staff){ if(!isSupabaseConfigured)return; const created=await addPartnerDeliverableTask({p_deliverable_id:selectedDeliverable.id,p_title:taskForm.title.trim(),p_description:taskForm.description.trim()||null,p_due_at:taskForm.dueDate?`${taskForm.dueDate}T18:00:00-03:00`:null,p_estimated_minutes:estimated,p_client_visible:taskForm.clientVisible,p_complexity:taskForm.complexity,p_is_document:taskForm.isDocument}); if(created.error){ setStaffNotice(created.error.message||'Não foi possível criar a subtarefa.'); return; } setTaskForm(emptyTaskForm()); setShowTaskForm(false); setStaffNotice('Subtarefa criada.'); await loadWorkspace(); return; }
+      if(isSupabaseConfigured&&isUuid(selectedDeliverable.id)){ const {error}=await addDeliverableTask({company_id:selectedProject.companyId,deliverable_id:selectedDeliverable.id,title:taskForm.title.trim(),description:taskForm.description.trim()||null,status:'todo',due_at:taskForm.dueDate?`${taskForm.dueDate}T18:00:00-03:00`:null,client_visible:taskForm.clientVisible,estimated_minutes:estimated,sort_order:selectedTasks.length+1,complexity:taskForm.complexity,is_document:taskForm.isDocument}); if(error)throw error; const {data}=await readDeliverableTasks(selectedDeliverable.id); setTasks((current)=>[...current.filter((t)=>t.deliverableId!==selectedDeliverable.id),...(data||[]).map((r:any)=>({id:r.id,protocol:r.protocol,deliverableId:r.deliverable_id,title:r.title,description:r.description,status:r.status,dueAt:r.due_at,clientVisible:Boolean(r.client_visible),estimatedMinutes:Number(r.estimated_minutes||0),sortOrder:Number(r.sort_order||0),complexity:r.complexity||null,isDocument:Boolean(r.is_document)} as any))]); }
       else setTasks((c)=>[...c,{id:`preview-task-${Date.now()}`,protocol:`CALI-TSK-PREVIEW-${Date.now().toString().slice(-4)}`,deliverableId:selectedDeliverable.id,title:taskForm.title.trim(),description:taskForm.description,status:'todo',dueAt:taskForm.dueDate?`${taskForm.dueDate}T18:00:00-03:00`:null,clientVisible:taskForm.clientVisible,estimatedMinutes:estimated,sortOrder:selectedTasks.length+1}]);
       setTaskForm(emptyTaskForm());setShowTaskForm(false);
     }catch(error){console.error(error);}finally{setSaving(false);}
   }
 
-  async function toggleTask(task:TaskItem){ const next=task.status==='done'?'todo':'done'; if(staff){ if(task.status==='done'){ setStaffNotice('Etapa já concluída. Só a Patricia pode reabrir.'); return; } if(selectedDeliverable)await staffSubmitChange('task_complete',`Concluir subtarefa em ${selectedDeliverable.title}: ${task.title}`,{id:task.id},selectedProject.companyId); return; } if(supabase&&isUuid(task.id)){await supabase.from('deliverable_tasks').update({status:next,completed_at:next==='done'?new Date().toISOString():null}).eq('id',task.id);} setTasks((c)=>c.map((t)=>t.id===task.id?{...t,status:next}:t)); }
+  async function toggleTask(task:TaskItem){ const next=task.status==='done'?'todo':'done'; if(staff){ if(task.status==='done'){ setStaffNotice('Etapa já concluída. Só a Patricia pode reabrir.'); return; } if(selectedDeliverable)await staffSubmitChange('task_complete',`Concluir subtarefa em ${selectedDeliverable.title}: ${task.title}`,{id:task.id},selectedProject.companyId); return; } if(isSupabaseConfigured&&isUuid(task.id)){await changeDeliverableTaskStatus(task.id, next);} setTasks((c)=>c.map((t)=>t.id===task.id?{...t,status:next}:t)); }
 
   async function staffOpenAttachment(path: string) {
     try {
@@ -459,35 +464,34 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
     }
   }
   async function staffLoadChat(deliverableId:string, channel:ConversationChannel){
-    if(!supabase||!staff)return;
-    const result=await supabase.from('comments').select('id,body,author_user_id,source_actor,created_at').eq('target_type','deliverable').eq('target_id',deliverableId).eq('client_visible',channel==='client').order('created_at');
+    if(!isSupabaseConfigured||!staff)return;
+    const result=await readPartnerDeliverableConversation(deliverableId, channel === 'client');
     setStaffChat(((result.data||[]) as any[]).map((row)=>({id:row.id,body:row.body,authorId:row.author_user_id,actor:row.source_actor||'admin',createdAt:row.created_at})));
   }
   /* Equipe CALI: criar, editar, excluir ou cancelar NÃO grava direto — vira um pedido para a administradora autorizar. */
   async function staffSubmitChange(action:string,title:string,payload:Record<string,unknown>,companyId:string){
-    if(!supabase||!staff)return false;
-    const {data:auth}=await supabase.auth.getUser();
-    const {error}=await supabase.from('staff_review_requests').insert({staff_user_id:auth.user?.id,company_id:companyId,kind:'change',title:title.slice(0,200),payload:{action,...payload}});
+    if(!isSupabaseConfigured||!staff)return false;
+    const { error } = await submitPartnerProjectChange(companyId, action, title, payload);
     if(error){ setStaffNotice('Não foi possível enviar o pedido. Tente de novo.'); return false; }
     setStaffNotice('Pedido enviado. Vale depois da aprovação.'); return true;
   }
   async function staffRequestReview(){
-    if(!supabase||!staff||!selectedDeliverable)return;
-    const {error}=await supabase.rpc('partner_request_deliverable_review',{p_deliverable_id:selectedDeliverable.id,p_note:null});
+    if(!isSupabaseConfigured||!staff||!selectedDeliverable)return;
+    const {error}=await requestPartnerDeliverableReview(selectedDeliverable.id);
     if(error){ setStaffNotice(error.message||'Não foi possível enviar para aprovação.'); return; }
     setStaffReviewPending((c)=>({...c,[selectedDeliverable.id]:true})); setStaffNotice('Entregável enviado para a Patricia aprovar.'); await loadWorkspace();
   }
   async function sendMessage(){
-    if(staff){ if(!supabase||!selectedDeliverable||!selectedProject||(!messageText.trim()&&!messageFile))return; const toClient=conversationChannel==='client'; let attachmentNote='';
+    if(staff){ if(!isSupabaseConfigured||!selectedDeliverable||!selectedProject||(!messageText.trim()&&!messageFile))return; const toClient=conversationChannel==='client'; let attachmentNote='';
       if(messageFile){ const allowed=['application/pdf','image/png','image/jpeg','image/webp','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/vnd.openxmlformats-officedocument.presentationml.presentation'];
         if(!allowed.includes(messageFile.type)){ setStaffNotice('Use PDF, imagem, Word, Excel ou PowerPoint.'); return; } if(messageFile.size>10*1024*1024){ setStaffNotice('O anexo pode ter até 10 MB.'); return; }
         const safeName=messageFile.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/-+/g,'-').slice(0,90)||'arquivo'; const path=`deliverable-chat/${selectedProject.companyId}/${selectedDeliverable.id}/${staffUserId}/${Date.now()}-${safeName}`;
-        const upload=await supabase.storage.from('cali-workspace-private').upload(path,messageFile,{contentType:messageFile.type,upsert:false});
+        const upload=await uploadDeliverableAttachment(path, messageFile, messageFile.type);
         if(upload.error){ setStaffNotice('Não foi possível anexar o arquivo. A mensagem não foi enviada.'); return; } attachmentNote=`\n[[arquivo|${encodeURIComponent(messageFile.name)}|${encodeURIComponent(path)}|${encodeURIComponent(messageFile.type)}|${messageFile.size}]]`; }
-      const {error}=await supabase.rpc('partner_post_deliverable_comment',{p_deliverable_id:selectedDeliverable.id,p_body:`${messageText.trim()}${attachmentNote}`.trim(),p_client_visible:toClient}); if(error){ setStaffNotice(error.message||'Não foi possível enviar a mensagem.'); return; } setMessageText(''); setMessageFile(null); await staffLoadChat(selectedDeliverable.id,conversationChannel); return; }
+      const {error}=await postPartnerDeliverableComment(selectedDeliverable.id, `${messageText.trim()}${attachmentNote}`.trim(), toClient); if(error){ setStaffNotice(error.message||'Não foi possível enviar a mensagem.'); return; } setMessageText(''); setMessageFile(null); await staffLoadChat(selectedDeliverable.id,conversationChannel); return; }
     if(!selectedDeliverable||(!messageText.trim()&&!messageFile))return; const body=messageText.trim()||`Anexo: ${messageFile?.name}`; const visible=conversationChannel==='client';
-    if(supabase&&isUuid(selectedDeliverable.id)){ const {data:user}=await supabase.auth.getUser(); let attachmentNote=''; if(messageFile){ const prepared=messageFile.type.startsWith('image/')?await optimizeImageForUpload(messageFile,'attachment'):{blob:messageFile,contentType:messageFile.type||'application/octet-stream',extension:messageFile.name.split('.').pop()?.toLowerCase()||'bin'}; const safeName=messageFile.name.replace(/[^A-Za-z0-9._-]/g,'_'); const storedName=messageFile.type.startsWith('image/')?`${safeName.replace(/\.[^.]+$/,'')}.webp`:safeName; const path=`${selectedProject.companyId}/deliverables/${selectedDeliverable.id}/${Date.now()}-${storedName}`; const upload=await supabase.storage.from('cali-workspace-private').upload(path,prepared.blob,{contentType:prepared.contentType,cacheControl:messageFile.type.startsWith('image/')?'31536000':'3600'}); if(!upload.error){await supabase.from('files').insert({company_id:selectedProject.companyId,project_id:selectedProject.id,deliverable_id:selectedDeliverable.id,title:messageFile.name,category:'deliverable',storage_path:path,original_filename:messageFile.name,file_type:prepared.contentType,file_size_bytes:prepared.blob.size,client_visible:visible,status:'published'});attachmentNote=`\nAnexo: ${messageFile.name}`;}}
-      const {error}=await supabase.from('comments').insert({company_id:selectedProject.companyId,target_type:'deliverable',target_id:selectedDeliverable.id,author_user_id:user.user?.id||null,body:`${body}${attachmentNote}`,client_visible:visible}); if(error)console.error(error); await loadDeliverableContext(selectedDeliverable.id);
+    if(isSupabaseConfigured&&isUuid(selectedDeliverable.id)){ const {data:user}=await readProjectActor(); let attachmentNote=''; if(messageFile){ const prepared=messageFile.type.startsWith('image/')?await optimizeImageForUpload(messageFile,'attachment'):{blob:messageFile,contentType:messageFile.type||'application/octet-stream',extension:messageFile.name.split('.').pop()?.toLowerCase()||'bin'}; const safeName=messageFile.name.replace(/[^A-Za-z0-9._-]/g,'_'); const storedName=messageFile.type.startsWith('image/')?`${safeName.replace(/\.[^.]+$/,'')}.webp`:safeName; const path=`${selectedProject.companyId}/deliverables/${selectedDeliverable.id}/${Date.now()}-${storedName}`; const upload=await uploadDeliverableAttachment(path, prepared.blob, prepared.contentType, messageFile.type.startsWith('image/') ? '31536000' : '3600'); if(!upload.error){await insertProjectFile({company_id:selectedProject.companyId,project_id:selectedProject.id,deliverable_id:selectedDeliverable.id,title:messageFile.name,category:'deliverable',storage_path:path,original_filename:messageFile.name,file_type:prepared.contentType,file_size_bytes:prepared.blob.size,client_visible:visible,status:'published'});attachmentNote=`\nAnexo: ${messageFile.name}`;}}
+      const {error}=await postAdminDeliverableComment(selectedProject.companyId, selectedDeliverable.id, user.user?.id ?? null, `${body}${attachmentNote}`, visible); if(error)console.error(error); await loadDeliverableContext(selectedDeliverable.id);
     } else setComments((c)=>[...c,{id:`preview-comment-${Date.now()}`,body:messageFile?`${body}\nAnexo: ${messageFile.name}`:body,clientVisible:visible,createdAt:new Date().toISOString(),author:'Patrícia · CALI'}]);
     setMessageText('');setMessageFile(null);
   }
@@ -496,41 +500,41 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
   /* O mês do cronograma (M1, M2…) sai do prazo: a proprietária pediu para tirar os campos "Mês inicial/final" (2026-10-13). */
   useEffect(()=>{ const start=(selectedProject as any)?.startDate as string|undefined; if(!deliverableForm.dueDate||!start)return; const a=new Date(`${String(start).slice(0,10)}T12:00:00`),b=new Date(`${deliverableForm.dueDate}T12:00:00`); if(Number.isNaN(a.getTime())||Number.isNaN(b.getTime()))return; const month=Math.max(1,(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth())+1); setDeliverableForm((c)=>c.monthStart===month&&c.monthEnd===month?c:{...c,monthStart:month,monthEnd:month}); },[deliverableForm.dueDate,(selectedProject as any)?.startDate]);
   async function adminStartTaskTimer(task:{id:string;title:string}){
-    if(!supabase||!selectedDeliverable||!selectedProject||activeTimer)return;
-    const {data,error}=await supabase.rpc('start_work_timer',{p_company_id:selectedProject.companyId,p_project_id:selectedProject.id,p_deliverable_id:selectedDeliverable.id,p_task_id:task.id,p_note:task.title});
+    if(!isSupabaseConfigured||!selectedDeliverable||!selectedProject||activeTimer)return;
+    const {data,error}=await startProjectWorkTimer(selectedProject.companyId, selectedProject.id, selectedDeliverable.id, task.id, task.title);
     if(error){ setStaffNotice(error.message||'Não foi possível iniciar o cronômetro.'); return; }
     setActiveTimer({id:data as string,deliverableId:selectedDeliverable.id,taskId:task.id,startedAt:new Date().toISOString(),preview:false}); window.dispatchEvent(new CustomEvent('cali:timers-changed'));
   }
-  async function adminPauseTimer(){ if(!supabase||!activeTimer?.id)return; const {error}=await supabase.rpc('pause_work_timer',{p_timer_id:activeTimer.id}); if(error){ setStaffNotice(error.message||'Não foi possível pausar o cronômetro.'); return; } setActiveTimer(null); window.dispatchEvent(new CustomEvent('cali:timers-changed')); setStaffNotice('Sessão registrada. Dê play para continuar depois.'); }
+  async function adminPauseTimer(){ if(!isSupabaseConfigured||!activeTimer?.id)return; const {error}=await pauseWorkTimer(activeTimer.id); if(error){ setStaffNotice(error.message||'Não foi possível pausar o cronômetro.'); return; } setActiveTimer(null); window.dispatchEvent(new CustomEvent('cali:timers-changed')); setStaffNotice('Sessão registrada. Dê play para continuar depois.'); }
   function taskTimer(task:{id:string;title:string;status:string}){
     if(!selectedDeliverable||['done','approved','cancelled'].includes(String(task.status))||selectedDeliverable.status==='approved'||selectedDeliverable.status==='cancelled')return <span className="v2-task-closed" title="Trabalho encerrado: não recebe novas horas"><Square size={12}/> Encerrada</span>;
     if(activeTimer?.taskId===task.id)return <button type="button" className="v2-task-timer on" onClick={()=>void (staff?stopTimer():adminPauseTimer())}><Pause size={13}/> Pausar · {timerLabel}</button>;
     return <button type="button" className="v2-task-timer" disabled={Boolean(activeTimer)} title={activeTimer?'Pause o cronômetro ligado antes de iniciar outro':'Iniciar cronômetro nesta subtarefa'} onClick={()=>void (staff?staffStartTaskTimer(task):adminStartTaskTimer(task))}><Play size={13}/> Iniciar</button>;
   }
   async function setTaskStatus(task:{id:string;status:string},next:string){ if(next===task.status)return;
-    if(supabase&&isUuid(task.id)){ const result=staff?await supabase.rpc('partner_set_task_status',{p_task_id:task.id,p_status:next}):await supabase.from('deliverable_tasks').update({status:next,completed_at:(next==='done'||next==='approved')?new Date().toISOString():null}).eq('id',task.id); if(result.error){ setStaffNotice(result.error.message||'Não foi possível mudar a situação da subtarefa.'); return; } }
+    if(isSupabaseConfigured&&isUuid(task.id)){ const result=await changeDeliverableTaskStatus(task.id, next, Boolean(staff)); if(result.error){ setStaffNotice(result.error.message||'Não foi possível mudar a situação da subtarefa.'); return; } }
     setTasks((current)=>current.map((t)=>t.id===task.id?{...t,status:next as any}:t)); }
   /* Equipe CALI: play dentro da etapa (subtarefa), como na tela da administradora. */
   async function staffStartTaskTimer(task:{id:string;title:string}){
-    if(!supabase||!staff||!selectedDeliverable||!selectedProject||activeTimer)return;
-    const {data,error}=await supabase.rpc('partner_start_timer',{p_company_id:selectedProject.companyId,p_project_id:selectedProject.id,p_deliverable_id:selectedDeliverable.id,p_task_id:task.id,p_category:'Execução',p_description:task.title});
+    if(!isSupabaseConfigured||!staff||!selectedDeliverable||!selectedProject||activeTimer)return;
+    const {data,error}=await startPartnerTimer({p_company_id:selectedProject.companyId,p_project_id:selectedProject.id,p_deliverable_id:selectedDeliverable.id,p_task_id:task.id,p_category:'Execução',p_description:task.title});
     if(error){ setStaffNotice(error.message||'Não foi possível iniciar o cronômetro.'); return; }
     setActiveTimer({id:data as string,deliverableId:selectedDeliverable.id,taskId:task.id,startedAt:new Date().toISOString(),preview:false}); window.dispatchEvent(new Event('cali-staff-timer-changed'));
     if(selectedDeliverable.status==='not_started')void persistStatus(selectedDeliverable,'in_progress','Iniciado pelo cronômetro');
   }
   async function startTimer(){
     if(!selectedDeliverable||activeTimer)return;
-    if(supabase&&isUuid(selectedDeliverable.id)){ const {data,error}=staff?await supabase.rpc('partner_start_deliverable_timer',{p_deliverable_id:selectedDeliverable.id}):await supabase.rpc('start_work_timer',{p_company_id:selectedProject.companyId,p_project_id:selectedProject.id,p_deliverable_id:selectedDeliverable.id,p_task_id:null,p_note:selectedDeliverable.title}); if(error){console.error(error);if(staff)setStaffNotice(error.message||'Não foi possível iniciar o cronômetro.');return;} setActiveTimer({id:data,deliverableId:selectedDeliverable.id,startedAt:new Date().toISOString(),preview:false}); }
+    if(isSupabaseConfigured&&isUuid(selectedDeliverable.id)){ const {data,error}=staff?await startPartnerDeliverableTimer(selectedDeliverable.id):await startProjectWorkTimer(selectedProject.companyId, selectedProject.id, selectedDeliverable.id, null, selectedDeliverable.title); if(error){console.error(error);if(staff)setStaffNotice(error.message||'Não foi possível iniciar o cronômetro.');return;} setActiveTimer({id:data,deliverableId:selectedDeliverable.id,startedAt:new Date().toISOString(),preview:false}); }
     else setActiveTimer({deliverableId:selectedDeliverable.id,startedAt:new Date().toISOString(),preview:true});
     if(selectedDeliverable.status==='not_started')void persistStatus(selectedDeliverable,'in_progress','Timer iniciado');
   }
-  async function stopTimer(){ if(!activeTimer)return; if(!activeTimer.preview&&supabase&&activeTimer.id){const {data:stopped,error}=await supabase.rpc(staff?'partner_stop_timer':'stop_work_timer',{p_timer_id:activeTimer.id,p_description:selectedDeliverable?.title||'Atividade de projeto'});if(error)console.error(error);else{ if(staff)setStaffNotice((stopped as any)?.discarded?'Sessão com menos de 30 segundos: não foi registrada.':`Sessão de ${(stopped as any)?.minutes} min enviada para aprovação da Patrícia.`); await loadWorkspace(); }} setActiveTimer(null); }
+  async function stopTimer(){ if(!activeTimer)return; if(!activeTimer.preview&&isSupabaseConfigured&&activeTimer.id){const {data:stopped,error}=await (staff ? stopPartnerTimer : stopWorkTimer)(activeTimer.id, selectedDeliverable?.title || 'Atividade de projeto');if(error)console.error(error);else{ if(staff)setStaffNotice((stopped as any)?.discarded?'Sessão com menos de 30 segundos: não foi registrada.':`Sessão de ${(stopped as any)?.minutes} min enviada para aprovação da Patrícia.`); await loadWorkspace(); }} setActiveTimer(null); }
   const timerLabel=`${String(Math.floor(timerSeconds/3600)).padStart(2,'0')}:${String(Math.floor((timerSeconds%3600)/60)).padStart(2,'0')}:${String(timerSeconds%60).padStart(2,'0')}`;
 
   async function deleteDeliverable(){
     if(!selectedDeliverable||selectedDeliverable.status!=='not_started')return;
     if(staff){ const ok=await staffSubmitChange('deliverable_delete',`Excluir entregável: ${selectedDeliverable.title}`,{id:selectedDeliverable.id},selectedProject.companyId); if(ok){ setConfirmDelete(false); } return; }
-    if(supabase&&isUuid(selectedDeliverable.id)){await supabase.from('deliverables').delete().eq('id',selectedDeliverable.id);await loadWorkspace();}
+    if(isSupabaseConfigured&&isUuid(selectedDeliverable.id)){await deleteDeliverableDraft(selectedDeliverable.id);await loadWorkspace();}
     else setProjects((c)=>c.map((p)=>({...p,deliverables:p.deliverables.filter((d)=>d.id!==selectedDeliverable.id)})));
     setConfirmDelete(false);setSelectedDeliverable(null);
   }
@@ -574,7 +578,7 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
 
     {projectView==='deliverables'&&<section className="ap-pane ap-project-calendar ap-admin-roadmap roadmap-v2"><header className="ap-pane-head"><div><small>FRENTES E ENTREGÁVEIS</small><h2>{visibleDeliverables.length} {visibleDeliverables.length===1?'entregável':'entregáveis'} em {selectedFronts.length} {selectedFronts.length===1?'frente':'frentes'}</h2><p>Clique na frente para abrir ou recolher os entregáveis.</p></div><div className="ie-switch deliverable-toolbar-v2"><button className={deliverableView==='list'?'on active':''} onClick={()=>setDeliverableView('list')}><List size={13}/> Lista</button><button className={deliverableView==='kanban'?'on active':''} onClick={()=>setDeliverableView('kanban')}><LayoutGrid size={13}/> Kanban</button></div></header>{deliverableView==='list'?<><div className="front-list-v2">{selectedFronts.map((front,index)=>{const ds=selectedProject.deliverables.filter((d)=>d.workstream===front.name||(d as any).workstreamId===front.id).filter((d)=>d.status!=='cancelled');return <section className={`ap-roadmap-front front-section-v2${staff&&!staffOpenFronts[front.id]?' front-collapsed-v46':''}`} key={front.id}><div className="ap-roadmap-front-header front-header-v2"><img src={index%2?'/brand/cali-lime-mark.svg':'/brand/cali-oak-mark.svg'} alt="" {...(staff?{className:'front-collapse-trigger-v46',role:'button',tabIndex:0,title:staffOpenFronts[front.id]?'Clique para recolher os entregáveis':'Clique para visualizar os entregáveis','aria-expanded':Boolean(staffOpenFronts[front.id]),onClick:()=>setStaffOpenFronts((c)=>({...c,[front.id]:!c[front.id]})),onKeyDown:(e:any)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setStaffOpenFronts((c)=>({...c,[front.id]:!c[front.id]}));}}}:{})}/><div className="front-copy-v2"><span>{front.protocol}</span><strong>{front.name}</strong><p>{front.objective||'Frente do cronograma CALI.'}</p></div><div className="front-monthbar-v2" style={{'--months':months.length} as any}>{months.map((m)=><i key={m}/>)}<b style={{gridColumn:`${front.monthStart||1} / ${Math.min(months.length+1,(front.monthEnd||front.monthStart||1)+1)}`}}>M{front.monthStart||1}{front.monthEnd&&front.monthEnd!==front.monthStart?`–M${front.monthEnd}`:''}</b></div><Button variant="adminOutline" onClick={()=>openDeliverable(front)}><Plus size={14}/>Entregável</Button></div><div className="ap-roadmap-list front-deliverables-v2 front-deliverables-v3">{ds.length?<><div className="ap-roadmap-head v2-rm-6"><span>Entregável</span><span>Subtarefas</span><span>Complexidade</span><span>Situação</span><span>Prazo</span><span/></div>{ds.map((item)=><div className="ap-roadmap-row front-deliverable-row-v3 v2-rm-6" key={item.id}><button className="ap-roadmap-delivery front-deliverable-open-v3" onClick={()=>openDetail(item)}><FileText size={17}/><span><strong>{item.title}</strong><small>{item.protocol}</small></span></button>{(()=>{ const count=tasks.filter((t)=>t.deliverableId===item.id).length; return count>0?<button type="button" className="v2-subtask-toggle" aria-expanded={!closedSubs[item.id]} title={closedSubs[item.id]?'Mostrar subtarefas':'Recolher subtarefas'} onClick={()=>setClosedSubs((c)=>({...c,[item.id]:!c[item.id]}))}>{closedSubs[item.id]?<ChevronRight size={14}/>:<ChevronDown size={14}/>}{count} {count===1?'subtarefa':'subtarefas'}</button>:<span className="v2-st-muted v2-sub-none">—</span>; })()}<b className={`ap-roadmap-moment mc-chip ${item.complexity.toLowerCase()}`} data-tip={complexityMeta[item.complexity].description} aria-label={`${item.complexity}: ${complexityMeta[item.complexity].description}`}>{item.complexity}</b><StatusSelect item={item} compact onChange={(next)=>statusChoice(item,next)}/><time>{formatProjectDate(item.dueAt)}</time><button className="row-arrow-v3" onClick={()=>openDetail(item)} aria-label={`Abrir ${item.title}`}><ArrowRight size={15}/></button>{(()=>{ const subs=tasks.filter((t)=>t.deliverableId===item.id); return subs.length>0&&!closedSubs[item.id]&&<div className="v2-subtask-tree">{subs.map((t)=><div role="button" tabIndex={0} key={t.id} className="v2-subtask-node" onClick={()=>{openDetail(item);setDetailTab('tasks');setOpenTaskId(t.id);}} onKeyDown={(e)=>{if(e.key==='Enter'){openDetail(item);setDetailTab('tasks');setOpenTaskId(t.id);}}}><span className="v2-subtask-name"><i aria-hidden="true"/><span><strong>{t.title}</strong><small>{t.protocol}</small></span></span><span aria-hidden="true"/>{(t as any).complexity?<b data-tip={(complexityMeta as any)[(t as any).complexity]?.description||''} className={`mc-chip ${String((t as any).complexity).toLowerCase()}`}>{(t as any).complexity}</b>:<b className="v2-st-muted">—</b>}<SubtaskStatusSelect title={t.title} status={String(t.status)} onChange={(next)=>void setTaskStatus(t,next)}/><time>{t.dueAt?formatProjectDate(t.dueAt):'sem prazo'}</time><ArrowRight size={14} className="v2-subtask-arrow"/></div>)}</div>; })()}</div>)}</>:<div className="front-empty-v2 v2-admin-empty">Nenhum entregável nesta frente ainda.</div>}</div></section>})}{!selectedFronts.length&&<EmptyState as="p" variant="admin">Este projeto ainda não tem frentes. Use "Nova frente" para começar.</EmptyState>}</div></>:<div className="kanban-v2">{statuses.filter((status)=>!['cancelled','standby'].includes(status)).map((status)=><div key={status} onDragOver={staff&&staffStatuses.includes(status)?(e)=>{e.preventDefault();}:undefined} onDrop={staff&&staffStatuses.includes(status)?(e)=>{e.preventDefault();const id=e.dataTransfer.getData('text/plain');const item=selectedProject.deliverables.find((d)=>d.id===id);if(item&&!staffLocked(item.status))statusChoice(item,status);}:undefined}><header><strong>{staff&&status==='internal_review'?'Revisão da Patricia':deliverableLabels[status]}</strong><span>{selectedProject.deliverables.filter((d)=>d.status===status).length}</span></header>{selectedProject.deliverables.filter((d)=>d.status===status).map((item)=><button key={item.id} draggable={Boolean(staff)&&!staffLocked(item.status)} onDragStart={staff?(e)=>{e.dataTransfer.setData('text/plain',item.id);}:undefined} onClick={()=>openDetail(item)}><small>{item.protocol}</small><strong>{item.title}</strong><p>{item.workstream}</p><footer><b className={`mc-chip ${item.complexity.toLowerCase()}`} data-tip={complexityMeta[item.complexity].description} aria-label={`${item.complexity}: ${complexityMeta[item.complexity].description}`}>{item.complexity}</b><time>{formatProjectDate(item.dueAt)}</time></footer></button>)}</div>)}</div>}</section>}
 
-    {projectView==='history'&&<section className="ap-pane project-history-v2"><header className="ap-pane-head"><div><small>REGISTRO DO PROJETO</small><h2>Histórico do projeto</h2><p>Desempenho das entregas, decisões e impactos de prazo registrados.</p></div></header></section>}
+    {projectView==='history'&&<section className="ap-pane project-history-v2"><header className="ap-pane-head"><div><small>REGISTRO DO PROJETO</small><h2>Histórico do projeto</h2><p>Desempenho das entregas, decisões e impactos de prazo registrados.</p></div></header>{!staff && isUuid(selectedProject.id) && <ProjectDeliveryHistory projectId={selectedProject.id} />}</section>}
 
   {projectModal&&<div className="ap-pd-overlay"><DialogForm className="ap-pd-modal project-modal-v2" aria-label="Novo projeto" onSubmit={createProject}><header className="ap-pd-head"><div><small>OPERAÇÃO / PROJETOS</small><h2>Estruturar cronograma e frentes</h2><p>Cadastre o projeto e já deixe as frentes iniciais organizadas. Depois cada frente recebe seus entregáveis e subtarefas.</p></div><button type="button" className="ap-pd-close" aria-label="Fechar" onClick={()=>setProjectModal(false)}><X size={19}/></button></header><div className="ap-pd-body project-modal-scroll-v2"><div className="ap-pd-fields form-grid"><label className="ap-pd-field stacked-label"><span>Cliente</span><select value={projectForm.companyId} onChange={(e)=>setProjectForm((c)=>({...c,companyId:e.target.value}))}>{Array.from(new Map(projects.map((p)=>[p.companyId,p.company])).entries()).map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label><label className="ap-pd-field stacked-label"><span>Nome do projeto</span><input value={projectForm.name} onChange={(e)=>setProjectForm((c)=>({...c,name:e.target.value}))} placeholder="Roadmap People · ciclo estratégico"/></label><label className="ap-pd-field stacked-label"><span>Início</span><input type="date" value={projectForm.startDate} onChange={(e)=>setProjectForm((c)=>({...c,startDate:e.target.value}))}/></label><label className="ap-pd-field stacked-label"><span>Previsão final</span><input type="date" value={projectForm.endDate} onChange={(e)=>setProjectForm((c)=>({...c,endDate:e.target.value}))}/></label></div><div className="front-drafts-v2"><div className="ap-pd-subhead front-drafts-title"><div><h3>Frentes iniciais</h3><span>Ex.: Cultura & Clima, Processos, Comunicação Interna.</span></div><button type="button" onClick={addFrontDraft}><Plus size={14}/> Frente</button></div>{frontDrafts.map((front,index)=><div className="ap-pd-front front-draft-row" key={front.id}><span>{String(index+1).padStart(2,'0')}</span><input value={front.name} onChange={(e)=>patchFrontDraft(front.id,{name:e.target.value})} placeholder="Nome da frente"/><input value={front.objective} onChange={(e)=>patchFrontDraft(front.id,{objective:e.target.value})} placeholder="Objetivo / contexto"/><label>M<input type="number" min={1} value={front.monthStart} onChange={(e)=>patchFrontDraft(front.id,{monthStart:Number(e.target.value)})}/></label><label>até M<input type="number" min={front.monthStart} value={front.monthEnd} onChange={(e)=>patchFrontDraft(front.id,{monthEnd:Number(e.target.value)})}/></label><button type="button" onClick={()=>removeFrontDraft(front.id)} aria-label="Remover frente"><X size={15}/></button></div>)}</div><label className="ap-pd-field stacked-label"><span>Prazo esperado de resposta do cliente (dias corridos; 3 = 72 horas)</span><input type="number" min={1} max={30} value={projectForm.clientResponseBusinessDays} onChange={(e)=>setProjectForm((c)=>({...c,clientResponseBusinessDays:Number(e.target.value)}))}/></label><p className="ap-pd-note">A falta de resposta gera aviso e impacto de prazo, nunca aprovação automática.</p></div><footer className="ap-pd-footer"><span/><div><button type="button" onClick={()=>setProjectModal(false)}>Cancelar</button><button className="ap-pd-primary primary" disabled={saving||!projectForm.name.trim()}>{saving?'Salvando…':'Criar cronograma'}</button></div></footer></DialogForm></div>}
 

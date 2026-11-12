@@ -4,12 +4,13 @@
 import { Button } from '../../../components/ds/Button';
 import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, PauseCircle, PlayCircle } from 'lucide-react';
-import { supabase } from '../../../api/supabase';
+import { hoursAvailable } from '../../../api/hours/client';
+import {
+  pauseCompanyCapacity, readCapacityDetails, readCapacityOverview, recordCapacityReview, resumeCompanyCapacity,
+  type CapacityHistoryRow as History, type CapacityOverviewRow as Row, type CapacityReview as Review,
+} from '../../../api/hours/capacity';
 import { capacityOf, minutesLabel, percentLabel } from '../../../lib/capacity';
 
-type Row = { company_id: string; contracted_minutes: number; used_minutes: number; excess_months: number; window_months: number; paused: boolean; events: string[] };
-type History = { month: string; contracted_minutes: number; used_minutes: number };
-type Review = { id: string; company_id: string; analysis: string; decision: string; communicated: boolean; created_at: string };
 const decisionLabel: Record<string, string> = { monitor: 'Manter e acompanhar', reprioritize: 'Reorganizar prioridades', reschedule: 'Reprogramar atividades', complement: 'Contratação complementar', capacity_change: 'Propor alteração de capacidade' };
 const monthShort = (iso: string) => new Intl.DateTimeFormat('pt-BR', { month: 'short', year: '2-digit' }).format(new Date(`${String(iso).slice(0, 10)}T12:00:00`)).replace('.', '');
 const eventLabel: Record<string, string> = { m75: 'aviso de 75%', m100: 'aviso de 100%', excess: 'aviso de excedente', tolerance: 'alerta de tolerância (110%)', review: 'pendência de adequação' };
@@ -32,46 +33,39 @@ export function CapacityPanel({ month, companies, onNotice }: { month: string; c
     setHistory(null);
     setReviews([]);
     setDraft({ analysis: '', decision: 'monitor', communicated: false });
-    if (!supabase) return;
+    if (!hoursAvailable) return;
 
-    const [past, notes] = await Promise.all([
-      supabase.rpc('admin_capacity_history', { p_company_id: companyId, p_month: `${month}-01` }),
-      supabase.from('capacity_reviews').select('id,company_id,analysis,decision,communicated,created_at')
-        .eq('company_id', companyId).order('created_at', { ascending: false }).limit(5),
-    ]);
+    const { past, notes } = await readCapacityDetails(companyId, `${month}-01`);
     if (detailVersion.current !== version) return;
-    setHistory((past.data || []) as History[]);
-    if (!notes.error) setReviews((notes.data || []) as Review[]);
+    setHistory(past.data ?? []);
+    if (!notes.error) setReviews(notes.data ?? []);
     if (past.error || notes.error) onNotice('Não foi possível carregar todo o histórico de capacidade.');
   }
 
   async function saveReview(companyId: string) {
-    if (!supabase || busy || draft.analysis.trim().length < 3) return;
+    if (!hoursAvailable || busy || draft.analysis.trim().length < 3) return;
     const version = detailVersion.current;
     setBusy(companyId);
-    const { data: auth } = await supabase.auth.getUser();
-    const result = await supabase.from('capacity_reviews').insert({
-      company_id: companyId, month: `${month}-01`, analysis: draft.analysis.trim(),
-      decision: draft.decision, communicated: draft.communicated, created_by: auth.user?.id || null,
-    }).select('id,company_id,analysis,decision,communicated,created_at').single();
+    const result = await recordCapacityReview(companyId, `${month}-01`, draft);
     setBusy('');
-    if (result.error) {
+    if (result.error || !result.data) {
       onNotice('Não foi possível registrar a avaliação. Tente de novo.');
       return;
     }
     if (detailVersion.current === version) {
-      setReviews((current) => [result.data as Review, ...current]);
+      const review = result.data;
+      setReviews((current) => [review, ...current]);
       setDraft({ analysis: '', decision: 'monitor', communicated: false });
     }
     onNotice('Avaliação registrada. Nada foi alterado no contrato.');
   }
   const monthStart = `${month}-01`;
   async function load() {
-    if (!supabase) return;
+    if (!hoursAvailable) return;
     const version = ++overviewVersion.current;
-    const result = await supabase.rpc('admin_capacity_overview', { p_month: monthStart });
+    const result = await readCapacityOverview(monthStart);
     if (!result.error && overviewVersion.current === version) {
-      setOverview({ month: monthStart, rows: (result.data || []) as Row[] });
+      setOverview({ month: monthStart, rows: result.data ?? [] });
     }
   }
   useEffect(() => {
@@ -80,11 +74,11 @@ export function CapacityPanel({ month, companies, onNotice }: { month: string; c
     void load();
     return () => { detailVersion.current++; overviewVersion.current++; };
   }, [month]);
-  async function pause(row: Row) { if (!supabase || busy) return; const version = overviewVersion.current; setBusy(row.company_id); const { data: auth } = await supabase.auth.getUser();
-    const result = await supabase.from('capacity_pauses').upsert({ company_id: row.company_id, month: monthStart, paused_by: auth.user?.id || null, paused_at: new Date().toISOString(), resumed_at: null, resumed_by: null }, { onConflict: 'company_id,month' });
+  async function pause(row: Row) { if (!hoursAvailable || busy) return; const version = overviewVersion.current; setBusy(row.company_id);
+    const result = await pauseCompanyCapacity(row.company_id, monthStart);
     setBusy(''); if (overviewVersion.current === version) setConfirming(''); if (result.error) { onNotice('Não foi possível registrar a pausa. Tente de novo.'); return; } onNotice('Atividades pausadas até o próximo mês. O cliente vê o aviso em Horas.'); if (overviewVersion.current === version) await load(); }
-  async function resume(row: Row) { if (!supabase || busy) return; const version = overviewVersion.current; setBusy(row.company_id); const { data: auth } = await supabase.auth.getUser();
-    const result = await supabase.from('capacity_pauses').update({ resumed_at: new Date().toISOString(), resumed_by: auth.user?.id || null }).eq('company_id', row.company_id).eq('month', monthStart);
+  async function resume(row: Row) { if (!hoursAvailable || busy) return; const version = overviewVersion.current; setBusy(row.company_id);
+    const result = await resumeCompanyCapacity(row.company_id, monthStart);
     setBusy(''); if (result.error) { onNotice('Não foi possível retomar. Tente de novo.'); return; } onNotice('Atividades retomadas.'); if (overviewVersion.current === version) await load(); }
 
   const today = new Date(); const [year, monthIndex] = month.split('-').map(Number); const isCurrent = today.getFullYear() === year && today.getMonth() + 1 === monthIndex;

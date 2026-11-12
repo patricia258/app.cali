@@ -1,39 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { supabase } from '../../../../api/supabase';
-
-type ActiveTimer = {
-  id: string;
-  companyId: string;
-  description: string | null;
-  status: 'active' | 'paused';
-  startedAt: string;
-  pausedSeconds: number;
-  warningAt: string;
-  pauseAt: string;
-};
-export type TimerRecovery = {
-  id: string;
-  companyId: string;
-  description: string | null;
-  startedAt: string;
-  countedUntil: string;
-  seconds: number;
-  minutes: number;
-};
-type TimerState = { active: ActiveTimer | null; recoveries: TimerRecovery[] };
+import {
+  readPartnerTimer, touchPartnerTimer, type ActivePartnerTimer, type PartnerTimerState,
+} from '../../../../api/partner/timer';
 
 export function usePartnerTimer() {
-  const [state, setState] = useState<TimerState>({ active: null, recoveries: [] });
+  const [state, setState] = useState<PartnerTimerState>({ active: null, recoveries: [] });
   const [now, setNow] = useState(Date.now());
   const sequence = useRef(0);
-  const active = useRef<ActiveTimer | null>(null);
+  const active = useRef<ActivePartnerTimer | null>(null);
 
   const refresh = useCallback(async () => {
-    if (!supabase) return;
     const request = ++sequence.current;
-    const { data, error } = await supabase.rpc('read_partner_timer_state_v2');
-    if (error || request !== sequence.current || !data) return;
-    const next = data as TimerState;
+    const next = await readPartnerTimer();
+    if (request !== sequence.current || !next) return;
     active.current = next.active;
     setState(next);
     setNow(Date.now());
@@ -48,15 +27,16 @@ export function usePartnerTimer() {
     const heartbeat = async () => {
       const timer = active.current;
       const instant = Date.now();
-      if (!supabase || !timer || timer.status !== 'active' || pending
+      if (!timer || timer.status !== 'active' || pending
         || document.visibilityState !== 'visible' || instant - interactedAt > 90_000
         || instant - touchedAt < 90_000 || instant >= Date.parse(timer.warningAt)) return;
       touchedAt = instant;
       pending = true;
       try {
-        const { error } = await supabase.rpc('touch_partner_timer_v2', { p_timer_id: timer.id, p_confirm_presence: false });
-        if (!error) await refresh();
-      } finally { pending = false; }
+        await touchPartnerTimer(timer.id, false);
+        await refresh();
+      } catch { /* heartbeat seguinte reavalia presença e sessão */ }
+      finally { pending = false; }
     };
     void refresh();
     const clock = window.setInterval(() => setNow(Date.now()), 1000);

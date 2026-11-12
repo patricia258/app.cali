@@ -5,11 +5,11 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent a
 import { useParams } from '../../../hooks/useParams';
 import { useSearchParams } from '../../../hooks/useSearchParams';
 import { ArrowDown, ArrowRight, ArrowUp, Check, CornerDownLeft, Paperclip, X } from 'lucide-react';
-import { anonPublicRpc, anonStorage, supabase } from '../../../api/supabase';
+import { type PublicForm } from '../../../api/forms/contracts';
+import { readPublicForm, submitPublicForm, uploadPublicFormAttachment } from '../../../api/forms/public';
 import { type FormAnswer, type FormQuestion, FILE_ACCEPT, FILE_HINT, buildFormSubmission, fileLabel, formSubmissionKey, isAnswerable, nextQuestionIndex, richTextHtml, scaleRange, validateAnswer } from '../../forms/formModel';
 import './public-form.css';
 
-type PublicForm = { id: string; submit_label?: string | null; success_text?: string | null; slug: string; title: string; category?: string; description: string; thank_you: string; status: 'open' | 'closed'; confirm_email: boolean; questions: FormQuestion[] };
 type Phase = 'loading' | 'missing' | 'closed' | 'welcome' | 'questions' | 'sending' | 'done';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -35,13 +35,7 @@ export function PublicFormPage() {
   useEffect(() => {
     document.title = 'CALI Forms';
     let alive = true;
-    void anonPublicRpc<PublicForm | null>('cali_form_public', { p_slug: slug }).then(async ({ data: published }) => {
-      let data = published;
-      // Prévia da administradora: lê também rascunho e encerrado (só funciona com a sessão dela; RLS barra os demais).
-      if (preview && supabase) {
-        const own = await supabase.from('forms').select('id,slug,title,description,thank_you,status,confirm_email,category,submit_label,success_text,questions').eq('slug', slug.toLowerCase()).maybeSingle();
-        if (own.data) data = { ...(own.data as PublicForm), status: 'open' };
-      }
+    void readPublicForm(slug, preview).then((data) => {
       if (!alive) return;
       if (!data) { setPhase('missing'); return; }
       setForm(data); document.title = `${data.title} · CALI RH`;
@@ -50,7 +44,7 @@ export function PublicFormPage() {
     return () => { alive = false; };
   }, [slug, preview]);
 
-  const questions = useMemo(() => form?.questions ?? [], [form]);
+  const questions: FormQuestion[] = useMemo(() => form?.questions ?? [], [form]);
   const answerable = useMemo(() => questions.filter(isAnswerable), [questions]);
   const question = questions[index];
   const progress = phase === 'done' ? 100 : phase === 'questions' && questions.length ? Math.round((index / questions.length) * 100) : 0;
@@ -76,13 +70,10 @@ export function PublicFormPage() {
       requestId ||= crypto.randomUUID();
       submissionIds.current.set(key, requestId);
       try { sessionStorage.setItem(key, requestId); } catch { /* retry em memória */ }
-      const { data, error: rpcError } = await anonPublicRpc<{ ok: boolean; confirmation: boolean }>('cali_form_submit', {
-        p_slug: form.slug, p_answers: sent, p_form_id: form.id, p_request_id: requestId,
-      });
-      if (rpcError || !data?.ok) throw new Error(rpcError?.message || 'Não foi possível enviar agora.');
+      const confirmed = await submitPublicForm(form, sent, requestId);
       submissionIds.current.delete(key);
       try { sessionStorage.removeItem(key); } catch { /* storage indisponível */ }
-      setConfirmation(Boolean(data.confirmation)); setPhase('done');
+      setConfirmation(confirmed); setPhase('done');
     } catch (requestError) {
       setSendError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar agora.');
       setPhase('questions');
@@ -164,8 +155,7 @@ export function PublicFormPage() {
     const safe = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '-').slice(-80) || 'arquivo';
     const path = `${form.id}/${crypto.randomUUID()}/${Date.now()}-${safe}`;
     if (!preview) {
-      const result = anonStorage ? await anonStorage.from('cali-forms').upload(path, file, { contentType: file.type || undefined, upsert: false }) : { error: { message: 'indisponível' } };
-      if (result.error) { setUploads((current) => ({ ...current, [item.id]: { busy: false, name: file.name, preview: thumb, error: 'Não foi possível enviar o arquivo. Tente de novo.' } })); return; }
+      if (!await uploadPublicFormAttachment(path, file)) { setUploads((current) => ({ ...current, [item.id]: { busy: false, name: file.name, preview: thumb, error: 'Não foi possível enviar o arquivo. Tente de novo.' } })); return; }
     }
     setUploads((current) => ({ ...current, [item.id]: { busy: false, name: file.name, preview: thumb } }));
     setAnswers((current) => ({ ...current, [item.id]: path }));

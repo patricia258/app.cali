@@ -1,15 +1,5 @@
-import { supabase } from '../../api/supabase';
+import { correctDeliveredReport, readWithdrawableReports, type WithdrawableReport } from '../../api/reports/withdrawal';
 import { isWorkspaceRoute } from '../routeActivity';
-
-type WithdrawableReport = {
-  id: string;
-  protocol?: string | null;
-  status: string;
-  client_open_count?: number | null;
-  client_first_opened_at?: string | null;
-  acknowledged_at?: string | null;
-  withdrawn_at?: string | null;
-};
 
 let observer: MutationObserver | null = null;
 let timer = 0;
@@ -90,7 +80,6 @@ function correctionModal(report: WithdrawableReport) {
   }
 
   async function run(mode: 'edit' | 'remove') {
-    if (!supabase) return;
     const reason = clean((card.querySelector('textarea') as HTMLTextAreaElement | null)?.value).slice(0, 500);
     if (reason.length < 3) { showError('Informe o motivo da correção.'); return; }
     const requestAcknowledgement = Boolean(card.querySelector<HTMLInputElement>('.report-revision-ask-ack')?.checked);
@@ -98,25 +87,23 @@ function correctionModal(report: WithdrawableReport) {
     if (mode === 'edit' && edit) edit.textContent = 'Preparando edição…';
     if (mode === 'remove' && remove) remove.textContent = 'Retirando…';
 
-    const result = mode === 'edit'
-      ? await supabase.rpc('revise_delivered_report', { p_report_id: report.id, p_reason: reason, p_request_acknowledgement: requestAcknowledgement })
-      : await supabase.rpc('withdraw_unopened_report_v62', { p_report_id: report.id, p_reason: reason || null });
+    const result = await correctDeliveredReport(report.id, reason, mode, requestAcknowledgement);
 
     if (result.error) {
       setBusy(false);
       if (edit) edit.textContent = 'Editar e reenviar';
       if (remove) remove.textContent = 'Retirar sem substituir';
-      const message = result.error.message.includes('report_already_seen')
+      const message = result.error.includes('report_already_seen')
         ? 'O cliente já visualizou ou registrou ciência. A partir desse ponto, a versão enviada não pode mais ser retirada.'
-        : result.error.message.includes('report_not_reopenable') || result.error.message.includes('report_not_withdrawable')
+        : result.error.includes('report_not_reopenable') || result.error.includes('report_not_withdrawable')
           ? 'Este relatório não está mais em um estado que permita correção antes da leitura.'
-          : `Não foi possível concluir a ação: ${result.error.message}`;
+          : `Não foi possível concluir a ação: ${result.error}`;
       showError(message);
       return;
     }
 
     close();
-    if (mode === 'edit' && typeof result.data === 'string') window.location.assign('/admin/relatorios?report=' + encodeURIComponent(result.data));
+    if (result.revisionId) window.location.assign('/admin/relatorios?report=' + encodeURIComponent(result.revisionId));
     else window.location.reload();
   }
 
@@ -173,16 +160,11 @@ function applyButtons() {
 }
 
 async function refreshIndex() {
-  if (!supabase || loading || location.pathname !== '/admin/relatorios') return;
+  if (loading || location.pathname !== '/admin/relatorios') return;
   loading = true;
   try {
-    const result = await supabase
-      .from('reports')
-      .select('id,protocol,status,client_open_count,client_first_opened_at,acknowledged_at,withdrawn_at')
-      .in('status', ['sent', 'published'])
-      .order('period_start', { ascending: false })
-      .limit(60);
-    if (!result.error) reportIndex = new Map((result.data || []).map((row: any) => [String(row.id), row as WithdrawableReport]));
+    const reports = await readWithdrawableReports();
+    if (reports && location.pathname === '/admin/relatorios') reportIndex = new Map(reports.map((row) => [row.id, row]));
   } finally {
     loading = false;
     applyButtons();

@@ -1,5 +1,10 @@
 import STYLE from './scheduling-post-confirmation-v69.css?inline';
-import { supabase } from '../../api/supabase';
+import { isSupabaseConfigured } from '../../api/access/session';
+import {
+  readClientScheduledWork, readMeetingByProtocol, readMeetingOutcome,
+  recordMeetingOutcome, saveMeetingTranscription, uploadMeetingTranscription,
+} from '../../api/calendar/meetings';
+import { readClientSchedulingCompany, readConfirmedSchedulingRequests } from '../../api/calendar/requests';
 
 type EventRow = {
   id: string;
@@ -40,13 +45,10 @@ function localParts(value:string){const parts=new Intl.DateTimeFormat('en-CA',{y
 function sameMonth(a:Date,b:{y:number;m:number}){return a.getFullYear()===b.y&&a.getMonth()+1===b.m;}
 
 async function loadClientData(){
-  if(!supabase||location.pathname!=='/cliente/cronograma') return;
-  const {data:user}=await supabase.auth.getUser(); const uid=user.user?.id; if(!uid) return;
-  const {data:profile}=await supabase.from('profiles').select('company_id').eq('id',uid).maybeSingle(); const companyId=profile?.company_id; if(!companyId) return;
-  const [ev,del]=await Promise.all([
-    supabase.from('events').select('id,company_id,protocol,title,starts_at,ends_at,mode,location,meeting_url,description,visibility,source_type,source_entity_id,schedule_class,billing_applies,google_html_link,sync_status').eq('company_id',companyId).eq('visibility','client').is('cancelled_at',null).order('starts_at'),
-    supabase.from('deliverables').select('id,title,status,due_at').eq('company_id',companyId).eq('client_visible',true).not('due_at','is',null).neq('status','cancelled').order('due_at')
-  ]);
+  if(!isSupabaseConfigured||location.pathname!=='/cliente/cronograma') return;
+  const companyId = await readClientSchedulingCompany().catch(() => '');
+  if (!companyId) return;
+  const [ev, del] = await readClientScheduledWork(companyId);
   if(!ev.error) clientEvents=(ev.data||[]) as EventRow[];
   if(!del.error) clientDeliverables=(del.data||[]) as DeliverableRow[];
 }
@@ -89,8 +91,8 @@ function openClientEvent(eventId:string){
 }
 
 async function cleanAdminRequests(){
-  if(!supabase||location.pathname!=='/admin/calendario') return;
-  const {data}=await supabase.from('scheduling_requests').select('id,status').eq('status','confirmed').limit(100);
+  if(!isSupabaseConfigured||location.pathname!=='/admin/calendario') return;
+  const {data}=await readConfirmedSchedulingRequests();
   for(const row of data||[]) document.querySelector<HTMLElement>(`[data-admin-request="${row.id}"]`)?.remove();
   const list=document.querySelector<HTMLElement>('#scheduling-v65-admin-host .scheduling-v65-list');
   if(list&&!list.querySelector('.scheduling-v65-request')) list.outerHTML='<div class="scheduling-v65-empty">Nenhuma solicitação de cliente aguardando ação.</div>';
@@ -98,11 +100,11 @@ async function cleanAdminRequests(){
 
 function getProtocolFromModal(modal:HTMLElement){const text=modal.querySelector<HTMLElement>('.calendar-protocol-badge')?.textContent||'';return text.match(/CALI-EVT-[0-9-]+/i)?.[0]||'';}
 async function decorateAdminModal(){
-  if(!supabase||location.pathname!=='/admin/calendario') return;
+  if(!isSupabaseConfigured||location.pathname!=='/admin/calendario') return;
   const modal=document.querySelector<HTMLElement>('.calendar-detail-modal'); if(!modal||modal.dataset.v69==='1') return;
-  const protocol=getProtocolFromModal(modal); if(!protocol) return; const {data:event}=await supabase.from('events').select('id,company_id,title,event_type,starts_at,mode,source_type,source_entity_id').eq('protocol',protocol).maybeSingle(); if(!event||event.event_type!=='meeting') return;
+  const protocol=getProtocolFromModal(modal); if(!protocol) return; const {data:event}=await readMeetingByProtocol(protocol); if(!event||event.event_type!=='meeting') return;
   modal.dataset.v69='1';
-  const {data:outcome}=await supabase.from('event_outcomes').select('outcome,reason_category,justified,note,transcription_url,transcription_note,marked_at').eq('event_id',event.id).maybeSingle();
+  const {data:outcome}=await readMeetingOutcome(event.id);
   const body=modal.querySelector<HTMLElement>('.calendar-detail-body'); if(!body) return;
   const section=document.createElement('section');section.className='v69-admin-outcome';section.dataset.eventId=event.id;section.dataset.sourceType=event.source_type||'';
   const day=localParts(event.starts_at);const now=new Date();const available=(now.getFullYear()>day.y)||(now.getFullYear()===day.y&&now.getMonth()+1>day.m)||(now.getFullYear()===day.y&&now.getMonth()+1===day.m&&now.getDate()>=day.d);
@@ -120,13 +122,12 @@ function outcomeForm(section:HTMLElement,kind:'occurred'|'not_occurred'){
 }
 
 async function submitOutcome(section:HTMLElement,occurred:boolean){
-  if(!supabase) return;const eventId=section.dataset.eventId||'';const source=section.dataset.sourceType||'';const note=(section.querySelector<HTMLTextAreaElement>('[data-v69-note]')?.value||'').trim();const reason=section.querySelector<HTMLSelectElement>('[data-v69-reason]')?.value||null;const justified=Boolean(section.querySelector<HTMLInputElement>('[data-v69-justified]')?.checked);
-  const fn=source==='scheduling_request'?'admin_mark_scheduling_event_outcome_v1':'admin_mark_calendar_event_outcome_v66'; const args=source==='scheduling_request'?{p_event_id:eventId,p_outcome:occurred?'occurred':'not_occurred',p_reason_category:reason,p_justified:justified,p_note:note,p_convert_to_virtual:false}:{p_event_id:eventId,p_outcome:occurred?'occurred':'not_occurred',p_reason_category:reason,p_justified:justified,p_note:note};
-  const {error}=await supabase.rpc(fn,args); if(error){alert(error.message);return;} window.dispatchEvent(new Event('cali-calendar-record-updated')); section.removeAttribute('data-v69'); const modal=section.closest<HTMLElement>('.calendar-detail-modal'); section.remove(); if(modal) modal.dataset.v69='0'; await decorateAdminModal(); await cleanAdminRequests();
+  if(!isSupabaseConfigured) return;const eventId=section.dataset.eventId||'';const source=section.dataset.sourceType||'';const note=(section.querySelector<HTMLTextAreaElement>('[data-v69-note]')?.value||'').trim();const reason=section.querySelector<HTMLSelectElement>('[data-v69-reason]')?.value||null;const justified=Boolean(section.querySelector<HTMLInputElement>('[data-v69-justified]')?.checked);
+  const { error } = await recordMeetingOutcome(eventId, source === 'scheduling_request', occurred, reason, justified, note); if(error){alert(error.message);return;} window.dispatchEvent(new Event('cali-calendar-record-updated')); section.removeAttribute('data-v69'); const modal=section.closest<HTMLElement>('.calendar-detail-modal'); section.remove(); if(modal) modal.dataset.v69='0'; await decorateAdminModal(); await cleanAdminRequests();
 }
 
-async function saveTranscription(section:HTMLElement){if(!supabase)return;const eventId=section.dataset.eventId||'';const url=section.querySelector<HTMLInputElement>('[data-v69-transcription-url]')?.value||'';const note=section.querySelector<HTMLTextAreaElement>('[data-v69-transcription-note]')?.value||'';const {error}=await supabase.rpc('admin_save_event_transcription_v69',{p_event_id:eventId,p_url:url,p_note:note});if(error){alert(error.message);return;} window.dispatchEvent(new Event('cali-calendar-record-updated')); const btn=section.querySelector<HTMLButtonElement>('[data-v69-save-transcription]');if(btn){btn.textContent='Salvo';setTimeout(()=>btn.textContent='Salvar transcrição',1200);}}
-async function uploadTranscription(section:HTMLElement){if(!supabase)return;const file=section.querySelector<HTMLInputElement>('[data-v69-transcription-file]')?.files?.[0],eventId=section.dataset.eventId||'',companyId=section.dataset.companyId||'';if(!file)return;if(file.size>10*1024*1024||!['application/pdf','text/plain','application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type)){alert('Envie PDF, DOCX ou TXT de até 10 MB.');return;}const path=`meeting-transcripts/${companyId}/${eventId}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;const button=section.querySelector<HTMLButtonElement>('[data-v69-upload-transcription]');if(button)button.disabled=true;try{const upload=await supabase.storage.from('cali-workspace-private').upload(path,file,{upsert:false,contentType:file.type});if(upload.error)throw upload.error;const {error}=await supabase.rpc('admin_attach_meeting_record_v1',{p_event_id:eventId,p_path:path,p_name:file.name});if(error)throw error;if(button)button.textContent='Anexo disponível ao cliente';}catch(error){alert(error instanceof Error?error.message:'Não foi possível anexar.');if(button)button.disabled=false;}}
+async function saveTranscription(section:HTMLElement){if(!isSupabaseConfigured)return;const eventId=section.dataset.eventId||'';const url=section.querySelector<HTMLInputElement>('[data-v69-transcription-url]')?.value||'';const note=section.querySelector<HTMLTextAreaElement>('[data-v69-transcription-note]')?.value||'';const {error}=await saveMeetingTranscription(eventId,url,note);if(error){alert(error.message);return;} window.dispatchEvent(new Event('cali-calendar-record-updated')); const btn=section.querySelector<HTMLButtonElement>('[data-v69-save-transcription]');if(btn){btn.textContent='Salvo';setTimeout(()=>btn.textContent='Salvar transcrição',1200);}}
+async function uploadTranscription(section:HTMLElement){if(!isSupabaseConfigured)return;const file=section.querySelector<HTMLInputElement>('[data-v69-transcription-file]')?.files?.[0],eventId=section.dataset.eventId||'',companyId=section.dataset.companyId||'';if(!file)return;if(file.size>10*1024*1024||!['application/pdf','text/plain','application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type)){alert('Envie PDF, DOCX ou TXT de até 10 MB.');return;}const path=`meeting-transcripts/${companyId}/${eventId}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;const button=section.querySelector<HTMLButtonElement>('[data-v69-upload-transcription]');if(button)button.disabled=true;try{await uploadMeetingTranscription(eventId,path,file);if(button)button.textContent='Anexo disponível ao cliente';}catch(error){alert(error instanceof Error?error.message:'Não foi possível anexar.');if(button)button.disabled=false;}}
 
 export async function refreshSchedulingPostConfirmationV69(){
   ensureStyle(); if(refreshing) return; refreshing=true;

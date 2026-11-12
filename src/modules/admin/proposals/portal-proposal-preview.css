@@ -263,7 +263,7 @@
   .proposal-delivery .cycle-list.editorial small{font-size:7.1pt!important}
   .proposal-delivery .cycle-list.editorial p{margin-top:.7mm!important;font-size:7.9pt!important;line-height:1.28!important}
 
-  .proposal-signature.editorial a{color:#fff!important;background:var(--p-burgundy)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;text-decoration:none!important}
+  .proposal-signature.editorial a{@apply tw:text-white!;background:var(--p-burgundy)!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;text-decoration:none!important}
   .portal-proposal-page.proposal-v3>footer{break-inside:avoid!important}
 }
 

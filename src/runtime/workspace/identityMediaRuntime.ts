@@ -1,23 +1,12 @@
 import runtimeStyles from './identity-media-runtime.css?inline';
-import { supabase } from '../../api/supabase';
+import {
+  readClientContactMedia,
+  readVisibleCompanyMedia,
+  readVisibleProfileMedia,
+  type CompanyMedia,
+  type ProfileMedia,
+} from '../../api/workspace/identity';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
-
-type ProfileMedia = {
-  id?: string | null;
-  full_name?: string;
-  role?: string | null;
-  company_id?: string | null;
-  avatar_url?: string;
-  avatar_position_x?: number;
-  avatar_position_y?: number;
-  avatar_zoom?: number;
-};
-
-type CompanyMedia = {
-  display_name: string;
-  logo_url?: string | null;
-  logo_workspace_url?: string | null;
-};
 
 const COMPANY_FRAME_SELECTORS = [
   '.project-client-mark',
@@ -417,14 +406,11 @@ function scheduleDecorate() {
 }
 
 async function loadCompanies(signal: AbortSignal) {
-  if (signal.aborted || !supabase) return;
+  if (signal.aborted) return;
   try {
-    const { data } = await supabase
-      .from('companies')
-      .select('display_name,logo_url,logo_workspace_url')
-      .order('display_name').abortSignal(signal);
-    if (signal.aborted) return;
-    const loaded = await Promise.all(((data || []) as CompanyMedia[]).map(async (item) => ({
+    const data = await readVisibleCompanyMedia(signal);
+    if (signal.aborted || !data) return;
+    const loaded = await Promise.all(data.map(async (item) => ({
       ...item,
       logo_url: await resolvePrivateMedia(item.logo_url),
       logo_workspace_url: await resolvePrivateMedia(item.logo_workspace_url),
@@ -438,17 +424,14 @@ async function loadCompanies(signal: AbortSignal) {
 }
 
 async function loadProfiles(signal: AbortSignal, force = false) {
-  if (signal.aborted || !supabase || profileLoading || (profilesLoaded && !force)) return;
+  if (signal.aborted || profileLoading || (profilesLoaded && !force)) return;
   profileLoading = true;
   try {
-    const { data } = await supabase
-      .from('profiles')
-      .select('id,full_name,role,company_id,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom')
-      .eq('active', true).abortSignal(signal);
-    if (signal.aborted) return;
+    const data = await readVisibleProfileMedia(signal);
+    if (signal.aborted || !data) return;
     // Cada foto entra assim que fica pronta, em vez de esperar a de todos os usuários ativos.
     const loaded: ProfileMedia[] = [];
-    await Promise.all(((data || []) as ProfileMedia[]).map(async (item) => {
+    await Promise.all(data.map(async (item) => {
       const resolved = { ...item, avatar_url: await resolvePrivateMedia(item.avatar_url) };
       if (signal.aborted) return;
       loaded.push(resolved);
@@ -458,9 +441,8 @@ async function loadProfiles(signal: AbortSignal, force = false) {
     if (signal.aborted) return;
     profiles = loaded;
     if (!profiles.some((profile) => profile.role === 'admin') && location.pathname.startsWith('/cliente/')) {
-      const contact = await supabase.rpc('get_client_account_contact').abortSignal(signal);
+      const row = await readClientContactMedia(signal);
       if (signal.aborted) return;
-      const row = Array.isArray(contact.data) ? contact.data[0] : contact.data;
       if (row) {
         const avatar_url = await resolvePrivateMedia(row.avatar_url);
         if (signal.aborted) return;

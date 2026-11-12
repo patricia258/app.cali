@@ -11,7 +11,11 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Link } from '../../../components/navigation/Link';
 import { BarChart3, ChevronDown, ChevronRight, Copy, Download, ExternalLink, FileDown, Mail, Pencil, Plus, QrCode, RefreshCw, Search, Send, Share2, Trash2, X } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { supabase } from '../../../api/supabase';
+import {
+  addDiscInviteCycle, changeDiscLinkStatus, deliverDiscInvites, readDiscCatalog, readDiscInviteHistory,
+  saveDiscLink, type DiscLink as LinkRow,
+} from '../../../api/disc/campaigns';
+import { deleteDiscResult, signRespondentReport } from '../../../api/disc/reports';
 import { downloadQrPng, downloadShareCard, qrDataUrl } from '../forms/formExports';
 import { slugify } from '../../forms/formModel';
 import { adaptationOf, STYLES, type Scores, type Style } from '../../disc/profileMethod';
@@ -19,9 +23,7 @@ import { STYLE_CONTENT } from '../../disc/profileContent';
 import '../forms/admin-forms.css';
 import './profile-admin.css';
 
-type LinkRow = { id: string; slug: string; title: string; company_id: string | null; company_label: string | null; purpose: string; status: 'open' | 'closed'; created_at: string };
 type LinkDraft = { id?: string; title: string; slug: string; mode: 'free' | 'company' | 'other'; company_id: string; company_label: string; purpose: string; status: 'open' | 'closed'; busy: boolean; error: string };
-const LINK_FIELDS = 'id,slug,title,company_id,company_label,purpose,status,created_at';
 type ResultRow = { id: string; link_id: string | null; invite_id: string | null; company_id: string | null; company_name: string | null; team_member_id: string | null; person_name: string; email: string; job_title: string | null; primary_style: Style; secondary_style: Style; mixed: boolean; scores: Scores; created_at: string; report_path: string | null; report_emailed_at: string | null };
 type InviteLite = { id: string; link_id: string; cycle: number; state: string; sent_at: string | null; deadline_at: string | null; completed_at: string | null };
 const PURPOSE: Record<string, string> = { selecao: 'Seleção', desenvolvimento: 'Desenvolvimento', diagnostico: 'Diagnóstico' };
@@ -63,17 +65,12 @@ export function AdminProfilesPage() {
   const [resending, setResending] = useState(false);
 
   async function load() {
-    if (!supabase) return;
     setLoading(true); setError('');
-    const [linkRows, resultRows, companyRows] = await Promise.all([
-      supabase.from('profile_links').select(LINK_FIELDS).order('created_at', { ascending: false }),
-      supabase.from('profile_results').select('id,link_id,invite_id,company_id,company_name,team_member_id,person_name,email,job_title,primary_style,secondary_style,mixed,scores,created_at,report_path,report_emailed_at').order('created_at', { ascending: false }).limit(5000),
-      supabase.from('companies').select('id,display_name,status').order('display_name'),
-    ]);
-    if (linkRows.error || resultRows.error) setError((linkRows.error || resultRows.error)!.message);
-    setLinks((linkRows.data || []) as LinkRow[]);
-    setResults((resultRows.data || []) as ResultRow[]);
-    setCompanies(((companyRows.data || []) as Array<{ id: string; display_name: string; status: string }>).filter((row) => row.status !== 'archived').map((row) => ({ id: row.id, name: row.display_name })));
+    const catalog = await readDiscCatalog();
+    if (catalog.error) setError(catalog.error.message);
+    setLinks(catalog.links);
+    setResults(catalog.results as ResultRow[]);
+    setCompanies(catalog.companies);
     setLoading(false);
   }
   useEffect(() => { void load(); }, []);
@@ -113,7 +110,7 @@ export function AdminProfilesPage() {
   function editDraft(link: LinkRow): LinkDraft { return { id: link.id, title: link.title, slug: link.slug, mode: link.company_id ? 'company' : link.company_label ? 'other' : 'free', company_id: link.company_id || '', company_label: link.company_label || '', purpose: link.purpose, status: link.status, busy: false, error: '' }; }
 
   async function saveLink() {
-    if (!supabase || !editing) return;
+    if (!editing) return;
     const title = editing.title.trim() || 'Perfil Comportamental CALI';
     if (editing.mode === 'company' && !editing.company_id) { setEditing({ ...editing, error: 'Escolha a empresa.' }); return; }
     if (editing.mode === 'other' && !editing.company_label.trim()) { setEditing({ ...editing, error: 'Digite o nome da empresa.' }); return; }
@@ -123,8 +120,7 @@ export function AdminProfilesPage() {
     if (slug.length < 3) { setEditing({ ...editing, error: 'O endereço precisa de pelo menos 3 letras ou números.' }); return; }
     const payload = { title, slug, purpose: editing.purpose, status: editing.status, company_id: editing.mode === 'company' ? editing.company_id : null, company_label: editing.mode === 'other' ? editing.company_label.trim() : null };
     setEditing({ ...editing, busy: true, error: '' });
-    const request = editing.id ? supabase.from('profile_links').update(payload).eq('id', editing.id) : supabase.from('profile_links').insert(payload);
-    const { data, error: saveError } = await request.select(LINK_FIELDS).single();
+    const { data, error: saveError } = await saveDiscLink(editing.id, payload);
     if (saveError || !data) { setEditing({ ...editing, busy: false, error: /duplicate|unique/i.test(saveError?.message || '') ? 'Este endereço já está em uso. Escolha outro.' : saveError?.message || 'Não foi possível salvar.' }); return; }
     const saved = data as LinkRow;
     setLinks((current) => editing.id ? current.map((item) => item.id === saved.id ? saved : item) : [saved, ...current]);
@@ -134,23 +130,21 @@ export function AdminProfilesPage() {
   useEffect(() => { if (sharing) void qrDataUrl(`${BASE}${sharing.slug}`, 480).then(setQr); else setQr(''); }, [sharing]);
 
   async function patchLink(link: LinkRow, status: LinkRow['status']) {
-    if (!supabase) return;
     setLinks((current) => current.map((item) => item.id === link.id ? { ...item, status } : item));
-    const { error: updateError } = await supabase.from('profile_links').update({ status }).eq('id', link.id);
+    const { error: updateError } = await changeDiscLinkStatus(link.id, status);
     if (updateError) { setError(updateError.message); setLinks((current) => current.map((item) => item.id === link.id ? link : item)); }
   }
 
   async function openPdf(row: ResultRow) {
-    if (!supabase || !row.report_path) return;
+    if (!row.report_path) return;
     const opened = window.open('', '_blank');
-    const { data } = await supabase.storage.from('cali-profiles').createSignedUrl(row.report_path, 600);
-    if (data?.signedUrl && opened) opened.location.href = data.signedUrl; else opened?.close();
+    const url = await signRespondentReport(row.report_path);
+    if (url && opened) opened.location.href = url; else opened?.close();
   }
 
   async function remove() {
-    if (!supabase || !removing) return;
-    if (removing.report_path) await supabase.storage.from('cali-profiles').remove([removing.report_path]);
-    const { error: deleteError } = await supabase.from('profile_results').delete().eq('id', removing.id);
+    if (!removing) return;
+    const { error: deleteError } = await deleteDiscResult(removing.id, removing.report_path);
     if (deleteError) { setError(deleteError.message); setRemoving(null); return; }
     setResults((current) => current.filter((item) => item.id !== removing.id)); setRemoving(null); flash('Resposta excluída.');
   }
@@ -159,20 +153,20 @@ export function AdminProfilesPage() {
     setPerson(row); setPersonInvites(null);
     const openLinks = links.filter((link) => link.status === 'open');
     setResendLink(openLinks.some((link) => link.id === row.link_id) ? row.link_id! : openLinks[0]?.id || '');
-    if (!supabase) return;
-    const { data } = await supabase.from('profile_invite_status').select('id,link_id,cycle,state,sent_at,deadline_at,completed_at').ilike('email', row.email).order('created_at', { ascending: false });
-    setPersonInvites((data || []) as InviteLite[]);
+    setPersonInvites(await readDiscInviteHistory(row.email) as InviteLite[]);
   }
 
   async function resend() {
-    if (!supabase || !person || !resendLink) return;
+    if (!person || !resendLink) return;
     const pending = (personInvites || []).find((invite) => invite.link_id === resendLink && ['sent', 'opened', 'started'].includes(invite.state));
     if (pending) { flash(`Já existe um convite em aberto${pending.deadline_at ? ` até ${day(pending.deadline_at)}` : ''}.`); return; }
     setResending(true);
     const cycle = Math.max(0, ...(personInvites || []).filter((invite) => invite.link_id === resendLink).map((invite) => invite.cycle)) + 1;
-    const { data: created, error: insertError } = await supabase.from('profile_invites').insert({ link_id: resendLink, person_name: person.person_name, email: person.email.toLowerCase(), team_member_id: person.team_member_id, cycle }).select('id').single();
+    const { data: created, error: insertError } = await addDiscInviteCycle(resendLink, {
+      person_name: person.person_name, email: person.email.toLowerCase(), team_member_id: person.team_member_id,
+    }, cycle);
     if (insertError || !created) { setResending(false); setError(insertError?.message || 'Não foi possível criar o convite.'); return; }
-    const { data: sent, error: sendError } = await supabase.rpc('profile_send_invites', { p_link: resendLink, p_ids: [(created as { id: string }).id] });
+    const { data: sent, error: sendError } = await deliverDiscInvites(resendLink, [created.id]);
     setResending(false);
     if (sendError) { setError(sendError.message); return; }
     flash(`Teste reenviado para ${person.email}. Prazo: ${day((sent as { deadline_at: string }).deadline_at)}.`);

@@ -1,5 +1,6 @@
 import runtimeStyles from './project-execution-lifecycle-runtime-v44.css?inline';
-import { supabase } from '../../api/supabase';
+import { isSupabaseConfigured } from '../../api/access/session';
+import { readClientProjectLifecycle, readProjectLifecycle, readProjectLifecycleContext } from '../../api/projects/lifecycle';
 
 type ScopeType = 'project' | 'front' | 'deliverable';
 type Action = 'pause' | 'suspend' | 'cancel' | 'resume';
@@ -38,41 +39,26 @@ function injectStyles(){
 }
 
 async function loadContext(project:ProjectRow):Promise<Context|null>{
-  if(!supabase)return null;
-  const [fronts,deliverables,events]=await Promise.all([
-    supabase.from('project_workstreams').select('id,project_id,protocol,name,status,execution_status').eq('project_id',project.id).order('sort_order'),
-    supabase.from('deliverables').select('id,project_id,protocol,title,workstream_id,workstream,status,execution_status,due_at').eq('project_id',project.id).order('sort_order'),
-    supabase.from('project_lifecycle_events').select('id,project_id,scope_type,scope_id,scope_label,action,reason,resume_date,created_at,resolved_at').eq('project_id',project.id).order('created_at',{ascending:false}).limit(40),
-  ]);
-  return{project,fronts:(fronts.data||[])as FrontRow[],deliverables:(deliverables.data||[])as DeliverableRow[],events:(events.data||[])as LifecycleEvent[]};
+  if(!isSupabaseConfigured)return null;
+  return { project, ...await readProjectLifecycleContext(project.id, 40) } as Context;
 }
 
 async function loadAdminContext(force=false):Promise<Context|null>{
-  if(!supabase)return null;
+  if(!isSupabaseConfigured)return null;
   const protocol=protocolFromHero();
   if(!protocol)return null;
   if(!force&&adminCache?.protocol===protocol&&Date.now()-adminCache.at<1400)return adminCache.ctx;
-  const p=await supabase.from('projects').select('id,protocol,company_id,name,planning_status,status,execution_status,start_date,target_end_date,roadmap_end_date,lifecycle_reason,lifecycle_resume_date,lifecycle_updated_at').eq('protocol',protocol).maybeSingle();
-  if(p.error||!p.data)return null;
-  const ctx=await loadContext(p.data as ProjectRow);
+  const project = await readProjectLifecycle(protocol);
+  if (!project) return null;
+  const ctx = await loadContext(project as ProjectRow);
   adminCache={protocol,at:Date.now(),ctx};
   return ctx;
 }
 
-async function selectedClientProject():Promise<ProjectRow|null>{
-  if(!supabase)return null;
-  const user=await supabase.auth.getUser();
-  const uid=user.data.user?.id;
-  if(!uid)return null;
-  const profile=await supabase.from('profiles').select('company_id').eq('id',uid).maybeSingle();
-  const companyId=profile.data?.company_id;
-  if(!companyId)return null;
+async function selectedClientProject(): Promise<ProjectRow | null> {
+  if (!isSupabaseConfigured) return null;
   const selected=document.querySelector<HTMLSelectElement>(":is(.client-project-picker-v33,[data-v2-operation~=\"client-project-picker-v33\"]) select")?.value||'';
-  const result=await supabase.from('projects').select('id,protocol,company_id,name,planning_status,status,execution_status,start_date,target_end_date,roadmap_end_date,lifecycle_reason,lifecycle_resume_date,lifecycle_updated_at').eq('company_id',companyId).neq('planning_status','draft').order('created_at',{ascending:false});
-  if(result.error||!result.data?.length)return null;
-  if(selected)return(result.data.find((row:any)=>row.id===selected)||result.data[0])as ProjectRow;
-  const visible=result.data.find((row:any)=>row.execution_status!=='cancelled'&&row.planning_status!=='closed')||result.data[0];
-  return visible as ProjectRow;
+  return await readClientProjectLifecycle(selected) as ProjectRow | null;
 }
 
 async function loadClientContext(force=false):Promise<Context|null>{

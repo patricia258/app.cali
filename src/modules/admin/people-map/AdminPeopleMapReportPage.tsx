@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ExternalLink, Printer, RefreshCw } from 'lucide-react';
 import { useNavigate } from '../../../hooks/useNavigate';
 import { useParams } from '../../../hooks/useParams';
+import '../../../components/workspace/document-shell.css';
 import './official-report-embed.css';
 
 const MAPA_ORIGIN = 'https://mapa.calirh.com';

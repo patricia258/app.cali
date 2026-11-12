@@ -11,7 +11,11 @@ import { ClientGoogleCalendarPanel } from './components/ClientGoogleCalendarPane
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { NoticeCalendarCard } from '../../notices/NoticesBoard';
 import '../../calendar/styles';
-import { supabase } from '../../../api/supabase';
+import { isSupabaseConfigured } from '../../../api/access/session';
+import { readCalendarNotices, observeSchedulingRequests } from '../../../api/calendar/agenda';
+import { readClientCalendar, readClientCalendarAttendees } from '../../../api/calendar/client';
+import { requestAgendaChange } from '../../../api/calendar/changes';
+import { readGoogleCalendarEvents, refreshGoogleEventStatus } from '../../../api/calendar/connections';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 
 type Slot = { startsAt: string; endsAt?: string | null };
@@ -195,8 +199,8 @@ export function ClientTimelinePage() {
   // Avisos da CALI com data (feriado, atendimento) entram na agenda como informação de dia inteiro.
   const [noticeItems, setNoticeItems] = useState<TimelineItem[]>([]);
   useEffect(() => { let active = true; void (async () => {
-    if (!supabase) return;
-    const result = await supabase.from('notices').select('id,category,title,body,notice_date,time_label,coverage').eq('status', 'published').not('notice_date', 'is', null);
+    if (!isSupabaseConfigured) return;
+    const result = await readCalendarNotices(false);
     if (!active || result.error) return;
     const tone: Record<string, string> = { feriado: '#C79A4B', atendimento: '#5E93BF', comunicado: '#8A6FB0' };
     setNoticeItems((result.data || []).map((row: any): TimelineItem => { const start = `${row.notice_date}T12:00:00-03:00`; return { id: `notice-${row.id}`, sourceId: String(row.id), kind: 'google', title: `Aviso · ${row.title}`, at: start, endsAt: null, description: row.body, secondaryDetail: [row.time_label, row.coverage].filter(Boolean).join(' · ') || undefined, color: tone[row.category] || '#8A6FB0', textColor: '#ffffff', allDay: true, dateLabel: formatDay(start), timeLabel: row.time_label || 'Dia inteiro', state: dateState(start), typeLabel: 'Aviso da CALI', statusLabel: 'Aviso da CALI', tone: 'pending' } as TimelineItem; }));
@@ -206,11 +210,11 @@ export function ClientTimelinePage() {
 
   useEffect(() => { void load(); }, []);
   useEffect(()=>{
-    if(!supabase||!visibleKinds.has('google')){setPersonalGoogle([]);setPersonalGoogleNotice('');return;}
+    if(!isSupabaseConfigured||!visibleKinds.has('google')){setPersonalGoogle([]);setPersonalGoogleNotice('');return;}
     let current=true;
     const first=new Date(weekCursor.getFullYear(),weekCursor.getMonth(),weekCursor.getDate()-weekCursor.getDay());
     const last=new Date(first.getFullYear(),first.getMonth(),first.getDate()+7);
-    void supabase.functions.invoke('workspace-google-calendar-read',{body:{action:'client_events',start:first.toISOString(),end:last.toISOString()}}).then(({data,error})=>{
+    void readGoogleCalendarEvents('client_events', { start: first.toISOString(), end: last.toISOString() }).then(({data,error})=>{
       if(!current)return;
       if(error||data?.state!=='checked'){setPersonalGoogle([]);setPersonalGoogleNotice(data?.state==='reconnect_required'?'Conecte sua conta em “Integração com Google Calendar” para ver seus compromissos pessoais.':'Não foi possível consultar seus eventos do Google agora.');return;}
       setPersonalGoogleNotice('');
@@ -219,21 +223,19 @@ export function ClientTimelinePage() {
     return()=>{current=false};
   },[weekCursor,visibleKinds]);
   useEffect(() => {
-    if (!supabase) return;
-    const client = supabase;
-    const channel = client.channel('client-agenda-current').on('postgres_changes', { event: '*', schema: 'cali_workspace', table: 'scheduling_requests' }, () => { void load(); }).subscribe();
-    return () => { void client.removeChannel(channel); };
+    if (!isSupabaseConfigured) return;
+    return observeSchedulingRequests('client-agenda-current', () => void load());
   }, [user?.id]);
 
   async function refreshGoogleStatuses(rows: ClientEvent[]) {
-    if (!supabase) return;
+    if (!isSupabaseConfigured) return;
     const candidates = rows
       .filter((event) => event.sync_status === 'synced' && new Date(event.starts_at).getTime() >= Date.now() - 24 * 60 * 60 * 1000)
       .slice(0, 6);
-    await Promise.allSettled(candidates.map((event) => supabase!.functions.invoke('google-calendar-refresh-event', { body: { eventId: event.id } })));
+    await refreshGoogleEventStatus(candidates.map((event) => event.id));
   }
   async function openMeetingFile(record: MeetingRecord) {
-    if (!supabase || !record.attachment_path) return;
+    if (!isSupabaseConfigured || !record.attachment_path) return;
     try {
       await openPrivateWorkspaceFile(record.attachment_path);
     } catch {
@@ -242,50 +244,15 @@ export function ClientTimelinePage() {
   }
 
   async function load() {
-    if (!supabase) return;
+    if (!isSupabaseConfigured) return;
     setLoading(true);
     setError('');
     try {
       const userId = user?.id;
       if (!userId) throw new Error('Sessão do cliente não encontrada.');
 
-      const profile = await supabase.from('profiles').select('company_id,email').eq('id', userId).maybeSingle();
-      if (profile.error) throw profile.error;
-      const companyId = profile.data?.company_id;
-      const clientEmail = String(profile.data?.email || user?.email || '').trim().toLowerCase();
-      if (!companyId) throw new Error('Este acesso ainda não está vinculado a uma empresa.');
-
-      const [eventResult, deliverableResult, requestResult, recordResult, changeResult, projectResult] = await Promise.all([
-        supabase
-          .from('events')
-          .select('id,title,starts_at,ends_at,mode,location,meeting_url,description,event_type,sync_status,google_event_id,schedule_class,billing_applies,source_type,cancelled_at')
-          .eq('company_id', companyId)
-          .eq('visibility', 'client')
-          .order('starts_at'),
-        supabase
-          .from('deliverables')
-          .select('id,title,status,due_at,project_id')
-          .eq('company_id', companyId)
-          .eq('client_visible', true)
-          .not('due_at', 'is', null)
-          .neq('status', 'cancelled')
-          .order('due_at'),
-        supabase
-          .from('scheduling_requests')
-          .select('id,title,status,request_mode,requested_slots,admin_proposed_slots,selected_slot,billable_extra,urgency_level,created_at,extra_visit,online_extra_requested,purpose,location,admin_note,client_note,confirmed_event_id,extra_visit_change_reason,extra_visit_previous_slot,extra_visit_cancellation_fee_cents,extra_visit_cancellation_note')
-          .eq('company_id', companyId)
-          .order('created_at', { ascending: false }).limit(100),
-        supabase.rpc('client_meeting_records_v1'),
-        supabase.from('agenda_change_requests').select('id,event_id,action,reason,slots,status,decision_note,created_at').eq('company_id',companyId).order('created_at',{ascending:false}).limit(100),
-        supabase.from('projects').select('id,name').eq('company_id',companyId),
-      ]);
-
-      if (eventResult.error) throw eventResult.error;
-      if (deliverableResult.error) throw deliverableResult.error;
-      if (requestResult.error) throw requestResult.error;
-      if (recordResult.error) throw recordResult.error;
-      if (changeResult.error) throw changeResult.error;
-      if (projectResult.error) throw projectResult.error;
+      const { eventResult, deliverableResult, requestResult, recordResult, changeResult, projectResult, clientEmail } =
+        await readClientCalendar(userId, user?.email);
 
       const nextEvents = (eventResult.data || []) as ClientEvent[];
       setEvents(nextEvents);
@@ -299,11 +266,7 @@ export function ClientTimelinePage() {
       void refreshGoogleStatuses(nextEvents);
       if (nextEvents.length && clientEmail) {
         void (async () => {
-          const attendeeResult = await supabase
-            .from('event_attendees')
-            .select('event_id,email,status')
-            .in('event_id', nextEvents.map((event) => event.id))
-            .eq('email', clientEmail);
+          const attendeeResult = await readClientCalendarAttendees(nextEvents.map((event) => event.id), clientEmail);
           if (!attendeeResult.error) {
             const nextStatuses: Record<string, AttendeeStatus> = {};
             for (const attendee of attendeeResult.data || []) {
@@ -403,14 +366,15 @@ export function ClientTimelinePage() {
   function beginChange(action:'cancel'|'reschedule') { setChangeAction(action); setChangeTarget(selectedItem); setSelectedItem(null); setChangeError(''); setChangeReason(''); setNewSlots([{date:'',time:''},{date:'',time:''}]); }
   async function submitChange(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!supabase || !changeTarget || !changeAction || changeReason.trim().length < 5) { setChangeError('Conte brevemente o motivo da alteração.'); return; }
+    if (!isSupabaseConfigured || !changeTarget || !changeAction || changeReason.trim().length < 5) { setChangeError('Conte brevemente o motivo da alteração.'); return; }
     if (changeAction === 'reschedule' && newSlots.some(slot => !slot.date || !slot.time)) { setChangeError('Informe duas novas opções de data e horário.'); return; }
     const originalDuration = changeTarget.kind === 'event' ? Math.max(30, (new Date(events.find(row=>row.id===changeTarget.sourceId)?.ends_at||'').getTime()-new Date(changeTarget.at).getTime())/60000 || 60) : 240;
     const slots = changeAction === 'reschedule' ? newSlots.map(slot => ({ startsAt: new Date(`${slot.date}T${slot.time}:00-03:00`).toISOString(), endsAt: new Date(new Date(`${slot.date}T${slot.time}:00-03:00`).getTime() + originalDuration * 60000).toISOString() })) : [];
     setChangeBusy(true); setChangeError('');
-    const { error: changeFailure } = changeTarget.request?.extra_visit
-      ? await supabase.rpc('client_change_extra_visit_v2', { p_request_id: changeTarget.request.id, p_action: changeAction, p_reason: changeReason.trim(), p_slots: slots })
-      : await supabase.rpc('client_request_agenda_change_v1', { p_event_id: changeTarget.sourceId, p_action: changeAction, p_reason: changeReason.trim(), p_slots: slots });
+    const target = changeTarget.request?.extra_visit
+      ? { kind: 'extra' as const, id: changeTarget.request.id }
+      : { kind: 'event' as const, id: changeTarget.sourceId };
+    const { error: changeFailure } = await requestAgendaChange(target, changeAction, changeReason, slots);
     if (changeFailure) setChangeError(changeFailure.message);
     else { setChangeTarget(null); setChangeAction(null); setChangeReason(''); setNewSlots([{date:'',time:''},{date:'',time:''}]); await load(); }
     setChangeBusy(false);

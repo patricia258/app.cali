@@ -14,6 +14,9 @@ declare
   receipt jsonb;
   request_id uuid := gen_random_uuid();
   correction_id uuid := gen_random_uuid();
+  target_vacancy uuid;
+  vacancy jsonb := jsonb_build_object('vacancy_code',code,'title','Pessoa analista','department','Operações',
+    'opened_on',current_date-1,'status','open');
   a2 uuid := (current_setting('qa.claims_client_a2')::jsonb->>'sub')::uuid;
 begin
   -- A2 is a second equivalent Client and starts without the current terms receipt in the fixture.
@@ -42,6 +45,35 @@ begin
     or not exists(select 1 from cali_workspace.team_month_snapshots s where s.company_id=company_a and s.reference_month=month_start and s.member_id=target_member) then
     raise exception 'Confirmação não preservou o snapshot ou alterou os dados.';
   end if;
+  receipt := cali_workspace.confirm_team_month_v2(company_a,month_start,rows,jsonb_build_array(vacancy),'{}');
+  select v.id into strict target_vacancy from cali_workspace.team_vacancies v where v.company_id=company_a and v.vacancy_code=code;
+  if receipt->>'vacancy_changes' is distinct from '1'
+    or cali_workspace.confirm_team_month_v2(company_a,month_start,rows,jsonb_build_array(vacancy),'{}')->>'vacancy_changes' is distinct from '0' then
+    raise exception 'Abertura de vaga não produziu uma única mudança após retry.';
+  end if;
+  begin
+    perform cali_workspace.confirm_team_month_v2(company_a,month_start,rows,
+      jsonb_build_array(vacancy||jsonb_build_object('status','filled')),'{}');
+    raise exception 'Vaga preenchida aceita sem data de fechamento.';
+  exception when raise_exception then
+    if sqlerrm <> 'Confira título, datas e situação da vaga.' then raise; end if;
+  end;
+  begin
+    perform cali_workspace.confirm_team_month_v2(company_a,month_start,rows,
+      jsonb_build_array(vacancy||jsonb_build_object('opened_on',current_date)),'{}');
+    raise exception 'Revisão reescreveu a data original de abertura.';
+  exception when raise_exception then
+    if sqlerrm <> 'A data de abertura de uma vaga existente não pode ser alterada nesta revisão.' then raise; end if;
+  end;
+  receipt := cali_workspace.confirm_team_month_v2(company_a,month_start,rows,
+    jsonb_build_array(vacancy||jsonb_build_object('status','filled','closed_on',current_date)),'{}');
+  if receipt->>'vacancy_changes' is distinct from '1'
+    or not exists(select 1 from cali_workspace.team_vacancies v where v.id=target_vacancy and v.status='filled' and v.closed_on=current_date)
+    or (select count(*) from cali_workspace.team_vacancy_events e where e.vacancy_id=target_vacancy) <> 2
+    or not exists(select 1 from cali_workspace.team_vacancy_events e where e.vacancy_id=target_vacancy and e.actor_user_id=a2
+      and e.before_state->>'status'='open' and e.after_state->>'status'='filled') then
+    raise exception 'Preenchimento da vaga perdeu data ou trilha de mudanças.';
+  end if;
 
   first_metrics := cali_workspace.write_company_team_metrics(company_a,metrics_month,null,metrics,null,request_id);
   if first_metrics->>'revision' is distinct from '1'
@@ -56,8 +88,10 @@ begin
 
   perform set_config('request.jwt.claims',current_setting('qa.claims_client_b'),true);
   if exists(select 1 from cali_workspace.team_members m where m.id=target_member)
-    or exists(select 1 from cali_workspace.team_member_private p where p.member_id=target_member) then
-    raise exception 'Empresa B leu equipe ou dado privado da empresa A.';
+    or exists(select 1 from cali_workspace.team_member_private p where p.member_id=target_member)
+    or exists(select 1 from cali_workspace.team_vacancies v where v.id=target_vacancy)
+    or exists(select 1 from cali_workspace.team_vacancy_events e where e.vacancy_id=target_vacancy) then
+    raise exception 'Empresa B leu equipe, vaga ou dado privado da empresa A.';
   end if;
   begin
     perform cali_workspace.archive_team_member_v1(company_a,target_member);

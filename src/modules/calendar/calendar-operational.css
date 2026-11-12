@@ -25,7 +25,7 @@
 .v2-admin-calendar .calendar-filter-trigger{@apply tw:h-[36px] tw:inline-flex tw:items-center tw:gap-[7px];border:1px solid #e5d9d0;@apply tw:rounded-[7px];background:#fff;@apply tw:text-cali-brand;padding:0 12px;font:inherit;@apply tw:text-[11px];@apply tw:font-bold;@apply tw:cursor-pointer}
 .v2-admin-calendar .calendar-filter-trigger.active{@apply tw:border-cali-brand}
 .v2-admin-calendar .calendar-page-layout{@apply tw:grid;grid-template-columns:230px minmax(0,1fr);@apply tw:gap-0;border:1px solid #e9dbd0;@apply tw:rounded-[12px] tw:overflow-hidden;background:#fff;@apply tw:items-stretch}
-.v2-admin-calendar .calendar-primary-panel{border:0;border-radius:0;box-shadow:none;@apply tw:m-0 tw:p-0 tw:min-w-0;background:#fff}
+.v2-admin-calendar .calendar-primary-panel{border:0;@apply tw:rounded-none;box-shadow:none;@apply tw:m-0 tw:p-0 tw:min-w-0;background:#fff}
 .v2-admin-calendar .v2-admin-cal-aside{border:0;@apply tw:gap-[16px];padding:24px 18px}
 .v2-admin-calendar .v2-admin-cal-aside>span{@apply tw:lowercase}
 .v2-admin-calendar .v2-admin-cal-legend{@apply tw:flex tw:flex-col tw:gap-[9px] tw:text-[11px]}
@@ -49,7 +49,7 @@
 @media(max-width:900px){.v2-admin-calendar .calendar-page-layout{grid-template-columns:1fr}.v2-admin-calendar .calendar-toolbar-filters{@apply tw:ml-0 tw:flex-wrap}}
 .ap-app.v2-admin-calendar .calendar-page-layout{@apply tw:grid!;grid-template-columns:230px minmax(0,1fr)!important;@apply tw:gap-0! tw:items-stretch!}
 .ap-app.v2-admin-calendar .calendar-page-layout>.v2-admin-cal-aside{grid-column:1;grid-row:1}
-.ap-app.v2-admin-calendar .calendar-page-layout>.calendar-primary-panel{grid-column:2;grid-row:1;border:0!important;border-radius:0!important;box-shadow:none!important;@apply tw:m-0!}
+.ap-app.v2-admin-calendar .calendar-page-layout>.calendar-primary-panel{grid-column:2;grid-row:1;border:0!important;@apply tw:rounded-none!;box-shadow:none!important;@apply tw:m-0!}
 .ap-app.v2-admin-calendar .calendar-workspace-strip{background:#fffaf1!important;border:1px solid #e3c9a6!important;box-shadow:none!important;color:#665751!important;@apply tw:rounded-[10px]!}
 .ap-app.v2-admin-calendar .calendar-workspace-strip :is(strong){color:#322f2c!important}
 .ap-app.v2-admin-calendar .calendar-workspace-icon{background:#f4e6d2!important;color:#8a5a2b!important}
@@ -79,7 +79,7 @@
 .ap-app.v2-admin-calendar .calendar-detail-heading p{margin:5px 0 0!important;@apply tw:text-[11px]!;color:#857870!important}
 .ap-app.v2-admin-calendar .calendar-detail-heading>div:last-child{@apply tw:min-w-0}
 .ap-app.v2-admin-calendar .calendar-detail-company-mark{@apply tw:w-[44px]! tw:h-[44px]! tw:shrink-0 tw:grid tw:place-items-center tw:rounded-[7px]!;border:1px solid #eadfd6!important;background:#fff!important;@apply tw:text-cali-brand!;@apply tw:text-[12px];@apply tw:font-extrabold;@apply tw:overflow-hidden;box-shadow:none!important}
-.ap-app.v2-admin-calendar .calendar-detail-company-mark img{@apply tw:w-full tw:h-full tw:object-contain;border-radius:0}
+.ap-app.v2-admin-calendar .calendar-detail-company-mark img{@apply tw:w-full tw:h-full tw:object-contain;@apply tw:rounded-none}
 .ap-app.v2-admin-calendar .calendar-protocol-badge{@apply tw:inline-flex! tw:items-center;margin:9px 0 0!important;padding:4px 8px!important;border:0!important;@apply tw:rounded-[5px]!;background:#f4e6d2!important;color:#8a5a2b!important;@apply tw:text-[9px]!;@apply tw:font-bold!;letter-spacing:.04em}
 .ap-app.v2-admin-calendar :is(.calendar-event-modal,.calendar-detail-modal)>.modal-close,.ap-app.v2-admin-calendar .calendar-history-close{@apply tw:absolute! tw:top-[16px]!;@apply tw:right-[18px]! tw:w-[32px]! tw:h-[32px]! tw:grid! tw:place-items-center tw:p-0!;border:1px solid #e5d9d0!important;@apply tw:rounded-[7px]!;background:#fff!important;@apply tw:text-cali-brand!;box-shadow:none!important;@apply tw:cursor-pointer tw:z-3}
 .ap-app.v2-admin-calendar :is(.modal-close,.calendar-history-close) svg{@apply tw:w-[16px] tw:h-[16px]}
@@ -96,7 +96,7 @@
 .ap-app.v2-admin-calendar .calendar-cancel-box button.danger-action.danger-action{background:#b7495d!important;border-color:#b7495d!important;@apply tw:text-white!}
 /* resumo do evento em uma faixa única, como o resumo do entregável */
 .ap-app.v2-admin-calendar .calendar-detail-facts{@apply tw:grid! tw:grid-cols-3! tw:gap-0!;border:1px solid #efe7df;@apply tw:rounded-[10px];background:#fff;@apply tw:overflow-hidden}
-.ap-app.v2-admin-calendar .calendar-detail-facts article{@apply tw:grid!;grid-template-columns:auto minmax(0,1fr);@apply tw:items-center;column-gap:7px;row-gap:7px;@apply tw:m-0!;padding:13px 15px!important;border:0!important;border-right:1px solid #efe7df!important;border-radius:0!important;background:none!important;box-shadow:none!important;@apply tw:min-w-0}
+.ap-app.v2-admin-calendar .calendar-detail-facts article{@apply tw:grid!;grid-template-columns:auto minmax(0,1fr);@apply tw:items-center;column-gap:7px;row-gap:7px;@apply tw:m-0!;padding:13px 15px!important;border:0!important;border-right:1px solid #efe7df!important;@apply tw:rounded-none!;background:none!important;box-shadow:none!important;@apply tw:min-w-0}
 .ap-app.v2-admin-calendar .calendar-detail-facts article:last-child{border-right:0!important}
 .ap-app.v2-admin-calendar .calendar-detail-facts article svg{@apply tw:w-[14px] tw:h-[14px];@apply tw:text-cali-gold}
 .ap-app.v2-admin-calendar .calendar-detail-facts article span{@apply tw:text-[9px]!;@apply tw:font-bold!;letter-spacing:.1em;@apply tw:uppercase;color:#9a8c83!important}
@@ -199,7 +199,7 @@
 /* Detalhe do evento — convidados, registro do encontro e linha do Google (blocos criados pelos módulos automáticos) no padrão novo */
 .ap-app.v2-admin-calendar .calendar-attendee-list{@apply tw:flex! tw:flex-col tw:gap-0!;padding:13px 15px 5px!important}
 .ap-app.v2-admin-calendar .calendar-attendee-list>strong{@apply tw:block;margin:0 0 4px!important;@apply tw:text-[9px]!;@apply tw:font-bold!;letter-spacing:.1em;@apply tw:uppercase;color:#9a8c83!important}
-.ap-app.v2-admin-calendar .calendar-attendee-list>div{@apply tw:grid!;grid-template-columns:8px minmax(0,1fr) minmax(0,1.3fr) auto;@apply tw:items-center tw:gap-[10px]! tw:m-0!;padding:10px 0!important;border:0!important;border-top:1px solid #f1e9e2!important;background:none!important;border-radius:0!important}
+.ap-app.v2-admin-calendar .calendar-attendee-list>div{@apply tw:grid!;grid-template-columns:8px minmax(0,1fr) minmax(0,1.3fr) auto;@apply tw:items-center tw:gap-[10px]! tw:m-0!;padding:10px 0!important;border:0!important;border-top:1px solid #f1e9e2!important;background:none!important;@apply tw:rounded-none!}
 .ap-app.v2-admin-calendar .calendar-attendee-list>div:first-of-type{border-top:0!important}
 .ap-app.v2-admin-calendar .calendar-attendee-list .attendee-status{@apply tw:w-[8px] tw:h-[8px] tw:rounded-[50%];background:#c9bcb3}
 .ap-app.v2-admin-calendar .calendar-attendee-list .attendee-status.accepted{background:#31805a}

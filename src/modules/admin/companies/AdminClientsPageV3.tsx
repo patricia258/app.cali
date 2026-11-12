@@ -39,162 +39,33 @@ import {
   X,
 } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { supabase } from '../../../api/supabase';
+import { uploadCompanyContractDocument, uploadCompanyLogo } from '../../../api/admin/companies/assets';
+import { changeCompanyLifecycle } from '../../../api/admin/companies/lifecycle';
+import { readCompanyPortfolio } from '../../../api/admin/companies/portfolio';
+import { saveExistingCompanyProfile, saveNewCompanyProfile } from '../../../api/admin/companies/profile';
+import { planForService, type ClientRow, type ExtraPerson, type FormState, type LifecycleAction, type TerminationPaymentRule, type TerminationPenaltyType } from '../../../domain/company';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
-import { optimizeImageForUpload } from '../../../lib/imageUpload';
 import { ContractAgendaSettings } from './components/ContractAgendaSettings';
 import { ContractFrontsAdmin } from './components/ContractFrontsAdmin';
 import { exportCompanyData } from './companyDataExport';
 import {
   eliminateCompanyData, eliminationDeadlineDate, previewCompanyElimination, type CompanyEliminationPreview,
-} from './companyDataElimination';
+} from '../../../api/admin/companies/elimination';
 import { createCompanyDraft, saveCompanyAccessDraft, type AccessDraft } from '../../../api/admin/companies/onboarding';
 import type { PreRegistrationFields } from '../../../api/public/pre-registration';
 import { CompanyOnboardingPanel } from './components/CompanyOnboardingPanel';
 
-type ClientProject = { name: string; status: string };
-type AccountHistory = { title: string; detail: string; date: string };
 type AccountTab = 'data' | 'access' | 'contract' | 'fronts' | 'agenda' | 'financial' | 'operation' | 'communications' | 'history';
 type RegistrationTab = 'data' | 'access' | 'contract' | 'financial' | 'documents';
-type ExtraPerson = { id?:string; name:string; job:string; email:string; phone:string; access:boolean; active?:boolean; role:string };
 const contractTypes = ['CALI Partner','CALI Full','Outro'];
 const contractModels = ['Assessoria mensal','Projeto','Treinamento'];
 const roleToDb = (role:string) => role==='Decisor adicional'?'decision_maker':'additional';
 const roleFromDb = (role?:string) => role==='decision_maker'?'Decisor adicional':'Acesso adicional';
 // Até 4 acessos por empresa: o principal e mais três.
 const maxExtraPeople = 3;
-type LifecycleAction = 'pause' | 'block' | 'archive' | 'close' | 'reactivate';
-type TerminationPenaltyType = 'none' | 'remaining_balance_percent' | 'contract_total_percent' | 'fixed_amount' | 'monthly_fee_multiple';
-type TerminationPaymentRule = 'calendar_days' | 'business_days';
-
-type ClientRow = {
-  id: string;
-  name: string;
-  legalName?: string;
-  logoUrl?: string;
-  status: 'active' | 'paused' | 'blocked' | 'closed' | 'archived';
-  contractType?: string;
-  contractModel?: string;
-  paymentTermDays?: number | null;
-  driveUrl?: string;
-  documentNotes?: string;
-  documentOwner?: string;
-  extraAccesses?: ExtraPerson[];
-  createdAt?: string;
-  closedAt?: string;
-  dataEliminatedAt?: string;
-  contact: string;
-  email: string;
-  primaryInviteId?: string;
-  primaryAccessRequested: boolean;
-  primaryAccessActive: boolean;
-  primaryProfileLinked: boolean;
-  decisionTitle?: string;
-  decisionBirthday?: string;
-  phone?: string;
-  whatsapp?: string;
-  service: string;
-  segment?: string;
-  contractedHours: number;
-  hours: string;
-  usage: number;
-  nps: string;
-  access: string;
-  drive: string;
-  startDate?: string;
-  endDate?: string;
-  autoRenew?: boolean;
-  addressStreet?: string;
-  addressNumber?: string;
-  neighborhood?: string;
-  city?: string;
-  state?: string;
-  hasBranches?: boolean;
-  branches?: string[];
-  contractValue?: number | null;
-  billingFrequency?: string;
-  paymentMethod?: string;
-  billingStatus?: string;
-  billingDay?: number | null;
-  billingDueRule?: string;
-  billingLeadDays?: number;
-  financialNote?: string;
-  lateFeePercent?: number;
-  dailyInterestPercent?: number;
-  penaltyEnabled?: boolean;
-  penaltyText?: string;
-  terminationPenaltyType?: TerminationPenaltyType;
-  terminationPenaltyValue?: number;
-  terminationPaymentDays?: number;
-  terminationPaymentRule?: TerminationPaymentRule;
-  automationEnabled?: boolean;
-  welcomeEmailEnabled?: boolean;
-  dueReminderEnabled?: boolean;
-  overdueEmailEnabled?: boolean;
-  overdueEmailAfterDays?: number;
-  extrajudicialEmailEnabled?: boolean;
-  extrajudicialAfterDays?: number | null;
-  birthdayEmailEnabled?: boolean;
-  terminationEmailEnabled?: boolean;
-  terminationSignedAt?: string;
-  terminationPaymentDueAt?: string;
-  terminationPenaltyAmount?: number | null;
-  terminationBalanceSnapshot?: number | null;
-  projects?: ClientProject[];
-  documents?: string[];
-  history?: AccountHistory[];
-};
-
 type LifecycleState = { type: LifecycleAction; client: ClientRow } | null;
 
-type FormState = {
-  company: string;
-  legalName: string;
-  segment: string;
-  segmentOther: string;
-  contact: string;
-  decisionTitle: string;
-  decisionBirthday: string;
-  email: string;
-  phone: string;
-  whatsapp: string;
-  service: string;
-  hours: string;
-  startDate: string;
-  endDate: string;
-  autoRenew: boolean;
-  addressStreet: string;
-  addressNumber: string;
-  neighborhood: string;
-  city: string;
-  state: string;
-  hasBranches: boolean;
-  branchesText: string;
-  contractValue: string;
-  billingFrequency: string;
-  paymentMethod: string;
-  billingDay: string;
-  billingDueRule: string;
-  billingLeadDays: string;
-  notes: string;
-  lateFeePercent: string;
-  dailyInterestPercent: string;
-  penaltyEnabled: boolean;
-  penaltyText: string;
-  contractType: string;
-  contractModel: string;
-  paymentTermDays: string;
-  driveUrl: string;
-  documentNotes: string;
-  documentOwner: string;
-  terminationPenaltyType: TerminationPenaltyType;
-  terminationPenaltyValue: string;
-  terminationPaymentDays: string;
-  terminationPaymentRule: TerminationPaymentRule;
-};
-
 const segments = ['Tecnologia','Serviços','Serviços corporativos','Indústria','Varejo','Saúde','Educação','Logística e transportes','Construção e engenharia','Financeiro','Alimentação e hospitalidade','Outro'];
-const planForService = (service: string) => service === 'CALI Partner' ? 'partner' : service === 'CALI Full' ? 'full' : service === 'CALI Build Essencial' ? 'build_essential' : service === 'CALI Build Completo' ? 'build_complete' : null;
 const services = ['CALI Partner','CALI Full','CALI Build Essencial','CALI Build Completo','Assessoria Estratégica Mensal','Mentoria para RH','Treinamento','Projeto de Estruturação','Solução personalizada'];
 
 const emptyForm: FormState = {
@@ -203,14 +74,6 @@ const emptyForm: FormState = {
   contractValue: '', billingFrequency: 'monthly', paymentMethod: 'pix', billingDay: '', billingDueRule: 'fixed_day', billingLeadDays: '3', notes: '', lateFeePercent: '', dailyInterestPercent: '',
   penaltyEnabled: false, penaltyText: '', contractType: '', contractModel: '', paymentTermDays: '', driveUrl: '', documentNotes: '', documentOwner: '', terminationPenaltyType: 'none', terminationPenaltyValue: '', terminationPaymentDays: '', terminationPaymentRule: 'calendar_days',
 };
-
-function monthBounds() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  const date = (value: Date) => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
-  return { start: date(start), next: date(next), startIso: start.toISOString(), nextIso: next.toISOString() };
-}
 
 function formatHours(minutes: number) {
   const hours = Math.floor(minutes / 60), rest = minutes % 60;
@@ -319,21 +182,14 @@ export function AdminClientsPageV3() {
   }
 
   async function loadClients() {
-    if (!supabase) return;
     setLoading(true); setError('');
-    const { start,next } = monthBounds();
-    const [companiesResult,invitesResult,profilesResult,hoursResult,npsResult,projectsResult,documentsResult,historyResult] = await Promise.all([
-      supabase.from('companies').select('id,display_name,legal_name,logo_url,logo_workspace_url,status,created_at,closed_at,data_eliminated_at,monthly_hours_contracted,decision_maker_title,service_type,service_plan,segment,drive_folder_url,start_date,end_date,auto_renew,address_street,address_number,address_neighborhood,address_city,address_state,has_branches,branches,contract_value,billing_frequency,payment_method,billing_status,billing_day,billing_due_rule,billing_lead_days,payment_notes,late_fee_percent,daily_interest_percent,contract_penalty_enabled,contract_penalty_text,termination_penalty_type,termination_penalty_value,termination_payment_days,termination_payment_rule,automation_enabled,welcome_email_enabled,due_reminder_enabled,overdue_email_enabled,overdue_email_after_days,extrajudicial_email_enabled,extrajudicial_after_days,birthday_email_enabled,termination_email_enabled,termination_signed_at,termination_payment_due_at,termination_penalty_amount,termination_balance_snapshot,contract_type,contract_model,payment_term_days,document_notes,document_owner').order('created_at',{ascending:false}),
-      supabase.from('client_invites').select('*'),
-      supabase.from('profiles').select('id,company_id,email,full_name,job_title,phone,whatsapp,is_primary,active,role').eq('role','client'),
-      supabase.from('hour_entries').select('company_id,minutes').gte('work_date',start).lt('work_date',next),
-      supabase.from('nps_responses').select('company_id,score'),
-      supabase.from('projects').select('company_id,name,status').order('updated_at',{ascending:false}),
-      supabase.from('account_documents').select('company_id,title,document_date,document_type').order('created_at',{ascending:false}),
-      supabase.from('activity_log').select('company_id,event_type,metadata,created_at').order('created_at',{ascending:false}).limit(120),
-    ]);
-    if (companiesResult.error) { setError(`Não consegui carregar a carteira: ${companiesResult.error.message}`); setLoading(false); return; }
-    const companies:any[] = companiesResult.data || [], invites:any[] = invitesResult.data || [], profiles:any[] = profilesResult.data || [], hourRows:any[] = hoursResult.data || [], npsRows:any[] = npsResult.data || [], projectRows:any[] = projectsResult.data || [], documentRows:any[] = documentsResult.data || [], historyRows:any[] = historyResult.data || [];
+    const portfolio = await readCompanyPortfolio().catch((reason: Error) => {
+      setError(`Não consegui carregar a carteira: ${reason.message}`);
+      setLoading(false);
+      return null;
+    });
+    if (!portfolio) return;
+    const { companies, invites, profiles, hourRows, npsRows, projectRows, documentRows, historyRows } = portfolio;
     const rows:ClientRow[] = companies.map((item:any) => {
       const invite = invites.find((entry:any) => entry.company_id === item.id && entry.is_primary);
       const extras:ExtraPerson[] = invites.filter((entry:any) => entry.company_id === item.id && !entry.is_primary).map((entry:any) => ({id:entry.id,name:entry.full_name||'',job:entry.job_title||'',email:entry.email||'',phone:entry.phone||entry.whatsapp||'',access:entry.platform_access===true,active:Boolean(entry.active)&&entry.platform_access!==false,role:roleFromDb(entry.access_role)}));
@@ -372,21 +228,6 @@ export function AdminClientsPageV3() {
 
   function requestLifecycle(client:ClientRow,type:LifecycleAction) { setLifecycle({client,type}); setLifecycleReason(''); setLifecycleDate(new Date().toISOString().slice(0,10)); }
 
-  async function uploadLogo(companyId:string,file:File) {
-    if (!supabase) return '';
-    const prepared=await optimizeImageForUpload(file,'company-logo');
-    const path=`${companyId}/brand/logo-${Date.now()}.${prepared.extension}`;
-    const {error}=await supabase.storage.from('cali-workspace-private').upload(path,prepared.blob,{cacheControl:'31536000',contentType:prepared.contentType,upsert:false}); if(error) throw error; return `private:${path}`;
-  }
-  async function uploadDocument(companyId:string,file:File,type:'contract'|'addendum',documentDate:string) {
-    if (!supabase) return;
-    const safe=file.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-');
-    const prepared=file.type.startsWith('image/')?await optimizeImageForUpload(file,'attachment'):{blob:file,contentType:file.type||'application/octet-stream',extension:file.name.split('.').pop()?.toLowerCase()||'bin'};
-    const path=`${companyId}/account/${type}-${Date.now()}-${safe.replace(/\.[^.]+$/,'')}.${prepared.extension}`;
-    const {error:uploadError}=await supabase.storage.from('cali-workspace-private').upload(path,prepared.blob,{cacheControl:file.type.startsWith('image/')?'31536000':'3600',contentType:prepared.contentType,upsert:false}); if(uploadError) throw uploadError;
-    const {data:sessionData}=await supabase.auth.getSession(); const {error}=await supabase.from('account_documents').insert({company_id:companyId,document_type:type,title:type==='contract'?'Contrato assinado':'Aditivo contratual',document_date:documentDate||null,storage_path:path,client_visible:true,created_by:sessionData.session?.user.id??null}); if(error) throw error;
-  }
-
   async function saveAccessDraft(companyId: string, primary: AccessDraft, people: ExtraPerson[], previous: ExtraPerson[]) {
     const rows: AccessDraft[] = [];
     if (primary.name.trim() || primary.email.trim()) rows.push(primary);
@@ -408,8 +249,6 @@ export function AdminClientsPageV3() {
     if(!form.company.trim()){setRegistrationTab('data');setError('Informe o nome da empresa.');return;}
     if(Boolean(form.contact.trim())!==Boolean(form.email.trim())){setRegistrationTab('access');setError('Informe nome e e-mail da pessoa de contato.');return;}
     const contracted=Number(form.hours.replace(',','.')||0),value=currencyToNumber(form.contractValue),segment=form.segment==='Outro'?form.segmentOther.trim():form.segment,branches=form.hasBranches?form.branchesText.split('\n').map((v)=>v.trim()).filter(Boolean):[];
-    const newFields={ decisionBirthday:form.decisionBirthday,lateFeePercent:Number(form.lateFeePercent||0),dailyInterestPercent:Number(form.dailyInterestPercent||0),terminationPenaltyType:form.terminationPenaltyType,terminationPenaltyValue:Number(form.terminationPenaltyValue||0),terminationPaymentDays:Number(form.terminationPaymentDays||0),terminationPaymentRule:form.terminationPaymentRule };
-    if(!supabase)return;
 
 
 
@@ -418,14 +257,14 @@ export function AdminClientsPageV3() {
       const requestId = createRequest.current ?? crypto.randomUUID();
       createRequest.current = requestId;
       const id = await createCompanyDraft(requestId, form.company.trim(), contracted > 0 ? contracted : null, form.service);
-      const logo = logoFile ? await uploadLogo(id, logoFile) : null;
-      const {error:updateError}=await supabase.from('companies').update({legal_name:form.legalName.trim(),logo_url:logo,...(planForService(form.service)?{service_plan:planForService(form.service),...(form.service==='CALI Partner'||form.service==='CALI Full'?{meeting_sessions_included_per_month:form.service==='CALI Partner'?1:2,meeting_cadence_days:form.service==='CALI Partner'?30:14,onsite_visits_included_per_month:form.service==='CALI Partner'?0:1,fixed_meeting_required:true,meeting_mode_policy:form.service==='CALI Partner'?'online_only':'mixed_one_onsite'}:{})}:{}),segment:segment||null,decision_maker_title:form.decisionTitle||null,start_date:form.startDate||null,end_date:form.endDate||null,auto_renew:form.autoRenew,address_street:form.addressStreet||null,address_number:form.addressNumber||null,address_neighborhood:form.neighborhood||null,address_city:form.city||null,address_state:form.state||null,has_branches:form.hasBranches,branches,contract_value:value>0?value:null,billing_frequency:form.billingFrequency,payment_method:form.paymentMethod,billing_day:form.billingDay?Number(form.billingDay):null,billing_due_rule:form.billingDueRule,billing_lead_days:Number(form.billingLeadDays||3),payment_notes:form.notes||null,late_fee_percent:newFields.lateFeePercent,daily_interest_percent:newFields.dailyInterestPercent,contract_penalty_enabled:form.penaltyEnabled,contract_penalty_text:form.penaltyText||null,contract_type:form.contractType||null,contract_model:form.contractModel||null,payment_term_days:form.paymentTermDays?Number(form.paymentTermDays):null,drive_folder_url:form.driveUrl.trim()||null,document_notes:form.documentNotes.trim()||null,document_owner:form.documentOwner.trim()||null,termination_penalty_type:newFields.terminationPenaltyType,termination_penalty_value:newFields.terminationPenaltyValue,termination_payment_days:newFields.terminationPaymentDays,termination_payment_rule:newFields.terminationPaymentRule,status:'active'}).eq('id',id); if(updateError) throw updateError;
+      const logo = logoFile ? await uploadCompanyLogo(id, logoFile) : null;
+      await saveNewCompanyProfile(id, form, logo, value, segment, branches);
       await saveAccessDraft(id, {
         name: form.contact, email: form.email, job: form.decisionTitle, phone: form.phone,
         whatsapp: form.whatsapp, birthday: form.decisionBirthday || null,
         primary_contact: true, requested: true, access_role: 'primary',
       }, extraPeople, []);
-      if(contractFile) await uploadDocument(id,contractFile,'contract',contractDate); if(addendumFile) await uploadDocument(id,addendumFile,'addendum',addendumDate);
+      if(contractFile) await uploadCompanyContractDocument(id,contractFile,'contract',contractDate); if(addendumFile) await uploadCompanyContractDocument(id,addendumFile,'addendum',addendumDate);
       setCreateOpen(false); setForm(emptyForm); setLogoFile(null); setLogoPreview(''); setContractFile(null); setAddendumFile(null);
       createRequest.current = null;
       setMessage(`${form.company.trim()} foi cadastrada. Confira o pré-cadastro e a liberação na aba Acessos.`);
@@ -440,13 +279,10 @@ export function AdminClientsPageV3() {
     try{
       let logoValue=editDraft.logoUrl;
 
-      if(editLogoFile&&supabase)logoValue=await uploadLogo(editDraft.id,editLogoFile);
+      if(editLogoFile)logoValue=await uploadCompanyLogo(editDraft.id,editLogoFile);
       const next={...editDraft,logoUrl:logoValue};
       const previousService=clients.find(client=>client.id===next.id)?.service;
-      const selectedPlan=planForService(next.service);
-      const changedPlan=selectedPlan&&previousService!==next.service;
-      if(!supabase)return;
-      const {error:companyError}=await supabase.from('companies').update({display_name:next.name,legal_name:next.legalName?.trim()||'',logo_url:logoValue?.startsWith('blob:')?null:logoValue,segment:next.segment||null,service_type:next.service||null,...(selectedPlan?{service_plan:selectedPlan,...(changedPlan && (selectedPlan==='partner'||selectedPlan==='full')?{meeting_sessions_included_per_month:selectedPlan==='partner'?1:2,meeting_cadence_days:selectedPlan==='partner'?30:14,onsite_visits_included_per_month:selectedPlan==='partner'?0:1,fixed_meeting_required:true,meeting_mode_policy:selectedPlan==='partner'?'online_only':'mixed_one_onsite'}:{})}:{}),monthly_hours_contracted:next.contractedHours||null,start_date:next.startDate||null,end_date:next.endDate||null,auto_renew:Boolean(next.autoRenew),address_street:next.addressStreet||null,address_number:next.addressNumber||null,address_neighborhood:next.neighborhood||null,address_city:next.city||null,address_state:next.state||null,has_branches:Boolean(next.hasBranches),branches:next.hasBranches?(next.branches||[]):[],contract_value:next.contractValue||null,billing_frequency:next.billingFrequency||null,payment_method:next.paymentMethod||null,billing_day:next.billingDay||null,billing_due_rule:next.billingDueRule||'fixed_day',billing_lead_days:next.billingLeadDays??3,payment_notes:next.financialNote||null,late_fee_percent:next.lateFeePercent||0,daily_interest_percent:next.dailyInterestPercent||0,contract_penalty_enabled:Boolean(next.penaltyEnabled),contract_penalty_text:next.penaltyText||null,contract_type:next.contractType||null,contract_model:next.contractModel||null,payment_term_days:next.paymentTermDays??null,drive_folder_url:next.driveUrl?.trim()||null,document_notes:next.documentNotes?.trim()||null,document_owner:next.documentOwner?.trim()||null,termination_penalty_type:next.terminationPenaltyType||'none',termination_penalty_value:next.terminationPenaltyValue||0,termination_payment_days:next.terminationPaymentDays||0,termination_payment_rule:next.terminationPaymentRule||'calendar_days',automation_enabled:Boolean(next.automationEnabled),welcome_email_enabled:Boolean(next.welcomeEmailEnabled),due_reminder_enabled:Boolean(next.dueReminderEnabled),overdue_email_enabled:Boolean(next.overdueEmailEnabled),overdue_email_after_days:next.overdueEmailAfterDays??1,extrajudicial_email_enabled:Boolean(next.extrajudicialEmailEnabled),extrajudicial_after_days:next.extrajudicialAfterDays??null,birthday_email_enabled:Boolean(next.birthdayEmailEnabled),termination_email_enabled:Boolean(next.terminationEmailEnabled)}).eq('id',next.id); if(companyError) throw companyError;
+      await saveExistingCompanyProfile(next, previousService);
       await saveAccessDraft(next.id, {
         id: next.primaryInviteId, name: next.contact, email: next.email, job: next.decisionTitle,
         phone: next.phone, whatsapp: next.whatsapp, birthday: next.decisionBirthday || null,
@@ -505,20 +341,10 @@ export function AdminClientsPageV3() {
 
   async function applyLifecycle() {
     if(!lifecycle)return; if(lifecycle.type!=='reactivate'&&!lifecycleReason.trim())return;
-    const nextStatus:ClientRow['status']=lifecycle.type==='pause'?'paused':lifecycle.type==='block'?'blocked':lifecycle.type==='archive'?'archived':lifecycle.type==='close'?'closed':'active';
     const projection=lifecycle.type==='close'?terminationProjection(lifecycle.client,lifecycleDate):null;
-    if(!supabase)return;
     setSaving(true);
     try{
-      const now=new Date().toISOString(),patch:Record<string,unknown>={status:nextStatus};
-      if(lifecycle.type==='pause')Object.assign(patch,{paused_at:now,paused_reason:lifecycleReason});
-      if(lifecycle.type==='archive')Object.assign(patch,{archived_at:now});
-      if(lifecycle.type==='block')Object.assign(patch,{blocked_at:now,blocked_reason:lifecycleReason});
-      if(lifecycle.type==='reactivate')Object.assign(patch,{paused_at:null,paused_reason:null,blocked_at:null,blocked_reason:null});
-      if(lifecycle.type==='close')Object.assign(patch,{closed_at:now,closed_reason:lifecycleReason,termination_signed_at:lifecycleDate,termination_payment_due_at:projection?.dueDate||null,termination_penalty_amount:projection?.penalty||0,termination_balance_snapshot:projection?.remainingBalance||0});
-      const {error:statusError}=await supabase.from('companies').update(patch).eq('id',lifecycle.client.id);if(statusError)throw statusError;
-      await supabase.from('activity_log').insert({company_id:lifecycle.client.id,event_type:`account_${lifecycle.type}`,entity_type:'company',entity_id:lifecycle.client.id,metadata:{reason:lifecycleReason||null,termination_date:lifecycle.type==='close'?lifecycleDate:null,penalty:projection?.penalty||null,due_date:projection?.dueDate||null}});
-      if(lifecycle.type==='close'&&lifecycle.client.automationEnabled&&lifecycle.client.terminationEmailEnabled){await supabase.from('communication_outbox').insert({company_id:lifecycle.client.id,template_key:'termination',recipient_email:lifecycle.client.email,recipient_name:lifecycle.client.contact,subject:`CALI RH · encerramento contratual · ${lifecycle.client.name}`,status:'pending',scheduled_for:now,metadata:{termination_date:lifecycleDate,penalty:projection?.penalty||0,due_date:projection?.dueDate||null}});}
+      await changeCompanyLifecycle(lifecycle.client, lifecycle.type, lifecycleReason, lifecycleDate, projection);
       setLifecycle(null);setMessage(`Status de ${lifecycle.client.name} atualizado.`);await loadClients();
     }catch(err){setError(err instanceof Error?err.message:String((err as any)?.message||'Não foi possível atualizar a conta.'));}finally{setSaving(false);}
   }
@@ -638,7 +464,7 @@ export function AdminClientsPageV3() {
           const updated = rows?.find((client) => client.id === editDraft.id);
           if (updated) setEditDraft(updated);
         }}
-        onUploadContract={(file,date) => uploadDocument(editDraft.id,file,'contract',date)}
+        onUploadContract={(file,date) => uploadCompanyContractDocument(editDraft.id,file,'contract',date)}
       />}
       {accountTab==='fronts'&&<ContractFrontsAdmin company={{id:editDraft.id,display_name:editDraft.name,service_plan:planForService(clients.find(client=>client.id===editDraft.id)?.service||''),service_type:editDraft.service}}/>}
       {accountTab==='data'&&<section className="account-tab-pane"><div className="account-pane-heading"><Building2 size={18}/><div><strong>Dados cadastrais</strong><span>Identidade, serviço, localização e decisor.</span></div></div><div className="logo-registration-row edit-logo-row"><label className="secondary logo-upload-button"><ImagePlus size={15}/>Alterar logo<input type="file" accept="image/*,.svg" onChange={(e)=>setEditLogoFile(e.target.files?.[0]||null)}/></label>{editLogoFile&&<span>{editLogoFile.name}</span>}</div><div className="form-grid account-tab-form"><FieldLabel>Empresa<input value={editDraft.name} onChange={(e)=>patchDraft({name:e.target.value})}/></FieldLabel><FieldLabel>Razão social<input value={editDraft.legalName||''} onChange={(e)=>patchDraft({legalName:e.target.value})} placeholder="Como consta no contrato"/></FieldLabel><FieldLabel>Segmento<select value={editDraft.segment||''} onChange={(e)=>patchDraft({segment:e.target.value})}><option value="">Selecionar</option>{segments.map((item)=><option key={item}>{item}</option>)}</select></FieldLabel><FieldLabel>Serviço<select value={editDraft.service} onChange={(e)=>patchDraft({service:e.target.value})}><option value="">Selecionar</option>{services.map((item)=><option key={item}>{item}</option>)}</select></FieldLabel><FieldLabel>Horas contratadas<input inputMode="decimal" value={editDraft.contractedHours||''} onChange={(e)=>patchDraft({contractedHours:Number(e.target.value.replace(',','.'))||0})}/></FieldLabel><FieldLabel>Cidade<input value={editDraft.city||''} onChange={(e)=>patchDraft({city:e.target.value})}/></FieldLabel><FieldLabel>Estado<input maxLength={2} value={editDraft.state||''} onChange={(e)=>patchDraft({state:e.target.value.toUpperCase().slice(0,2)})}/></FieldLabel><FieldLabel>Endereço<input value={editDraft.addressStreet||''} onChange={(e)=>patchDraft({addressStreet:e.target.value})}/></FieldLabel><FieldLabel>Número<input value={editDraft.addressNumber||''} onChange={(e)=>patchDraft({addressNumber:e.target.value})}/></FieldLabel><FieldLabel>Bairro<input value={editDraft.neighborhood||''} onChange={(e)=>patchDraft({neighborhood:e.target.value})}/></FieldLabel><label className="check-line account-check wide"><input type="checkbox" checked={Boolean(editDraft.hasBranches)} onChange={(e)=>patchDraft({hasBranches:e.target.checked,branches:e.target.checked?editDraft.branches:[]})}/><span><strong>Possui filiais</strong><small>Registre as demais localidades.</small></span></label>{editDraft.hasBranches&&<FieldLabel className="wide">Filiais<textarea rows={2} value={(editDraft.branches||[]).join('\n')} onChange={(e)=>patchDraft({branches:e.target.value.split('\n').map((v)=>v.trim()).filter(Boolean)})}/></FieldLabel>}<div className="account-decision-link"><span className="account-decision-icon"><CheckCircle2 size={19}/></span><div><strong>{editDraft.access==='Ativo'?'Decisor conectado à conta':'Aguardando primeiro acesso'}</strong><p>{editDraft.access==='Ativo'?<>As mudanças em <b>nome, cargo e contato</b> também atualizam o perfil de {editDraft.contact||'quem representa a empresa'}. O e-mail de login fica protegido nesta ficha; caso precise trocá-lo, solicite a alteração à administração da CALI.</>:<>Os dados abaixo serão vinculados ao perfil quando o convite de acesso for aceito.</>}</p></div></div><FieldLabel>Nome do decisor<input value={editDraft.contact} onChange={(e)=>patchDraft({contact:e.target.value})}/></FieldLabel><FieldLabel>Cargo<input value={editDraft.decisionTitle||''} onChange={(e)=>patchDraft({decisionTitle:e.target.value})}/></FieldLabel><FieldLabel><span className="label-with-icon"><Cake size={14}/>Aniversário</span><input type="date" value={editDraft.decisionBirthday||''} onChange={(e)=>patchDraft({decisionBirthday:e.target.value})}/></FieldLabel><FieldLabel>E-mail de acesso<input type="email" value={editDraft.email} disabled={editDraft.primaryProfileLinked} onChange={(e)=>patchDraft({email:e.target.value})}/></FieldLabel><label className="check-line account-check wide"><input type="checkbox" checked={editDraft.primaryAccessRequested} onChange={(e)=>patchDraft({primaryAccessRequested:e.target.checked})}/><span><strong>Solicitar acesso para o contato principal</strong><small>Novas solicitações são liberadas na aba Acessos.</small></span></label><FieldLabel>Telefone<input value={editDraft.phone||''} onChange={(e)=>patchDraft({phone:e.target.value})}/></FieldLabel><FieldLabel>WhatsApp<input value={editDraft.whatsapp||''} onChange={(e)=>patchDraft({whatsapp:e.target.value})}/></FieldLabel><FieldLabel>Link do Drive<input type="url" placeholder="https://drive.google.com/..." value={editDraft.driveUrl||''} onChange={(e)=>patchDraft({driveUrl:e.target.value})}/></FieldLabel><FieldLabel>Responsável documental<input value={editDraft.documentOwner||''} onChange={(e)=>patchDraft({documentOwner:e.target.value})}/></FieldLabel><FieldLabel className="wide">Observação documental<input value={editDraft.documentNotes||''} onChange={(e)=>patchDraft({documentNotes:e.target.value})}/></FieldLabel></div>

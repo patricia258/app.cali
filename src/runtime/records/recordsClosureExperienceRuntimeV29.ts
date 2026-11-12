@@ -1,20 +1,12 @@
-import { supabase } from '../../api/supabase';
+import { recordsAvailable } from '../../api/records/client';
+import {
+  decideRecordReopen, readRecordClosureContext, requestRecordReopen, submitRecordFeedback,
+  type RecordClosureContext as Context, type RecordClosureView as RecordContext, type RecordFeedback as Feedback,
+} from '../../api/records/closure';
 import '../../modules/records/records-v28-closure-experience.css';
+import '../../modules/records/records-v30-final-polish.css';
 
 type Role = 'admin' | 'client';
-type RecordRow = {
-  id: string;
-  company_id: string;
-  protocol?: string | null;
-  title: string;
-  record_type: string;
-  workflow_status?: string | null;
-};
-type FeedbackRow = { score: number; comment?: string | null; created_at: string };
-type ClosureRow = { id: string; answered_at: string | null; closed_unanswered_at: string | null };
-type ReopenRow = { id: string; reason?: string | null; requested_at: string; status: string; decision_note?: string | null };
-type Context = { record: RecordRow; closure: ClosureRow | null; feedback: FeedbackRow | null; reopen: ReopenRow | null };
-
 let installed = false;
 let busy = false;
 let dismissedAdminRequest = '';
@@ -74,28 +66,6 @@ function overlay(target: HTMLElement, className: string) {
 function addTextBlock(parent: HTMLElement, kicker: string, title: string, copy: string) {
   parent.append(node('span', 'records-v28-kicker', kicker), node('h3', '', title), node('p', '', copy));
 }
-async function getContext(protocol: string, role: Role): Promise<Context | null> {
-  if (!supabase || !protocol.startsWith('CALI-REG-')) return null;
-  const recordResult = await supabase.from('account_records').select('id,company_id,protocol,title,record_type,workflow_status').eq('protocol', protocol).maybeSingle();
-  if (recordResult.error || !recordResult.data) return null;
-  const record = recordResult.data as RecordRow;
-  const [closureResult, feedbackResult, reopenResult] = await Promise.all([
-    role === 'client' && record.workflow_status === 'completed'
-      ? supabase.from('account_record_closures').select('id,answered_at,closed_unanswered_at').eq('record_id', record.id).is('superseded_at', null).maybeSingle()
-      : null,
-    role === 'admin'
-      ? supabase.from('account_record_feedback').select('score,comment,created_at').eq('record_id', record.id).order('created_at', { ascending: false }).limit(1).maybeSingle()
-      : null,
-    supabase.from('account_record_reopen_requests').select('id,reason,requested_at,status,decision_note').eq('record_id', record.id).eq('status', 'pending').order('requested_at', { ascending: false }).limit(1).maybeSingle(),
-  ]);
-  return {
-    record,
-    closure: (closureResult?.data ?? null) as ClosureRow | null,
-    feedback: (feedbackResult?.data ?? null) as FeedbackRow | null,
-    reopen: reopenResult.error ? null : (reopenResult.data as ReopenRow | null),
-  };
-}
-
 function renderThanks(card: HTMLElement, title: string, copy: string, buttonLabel: string, onBack: () => void) {
   card.replaceChildren();
   const wrap = node('div', 'records-v28-thanks');
@@ -174,15 +144,10 @@ function renderClientFeedback(target: HTMLElement, ctx: Context) {
   }
   textarea.oninput = () => { submit.disabled = !selected || (selected <= 3 && textarea.value.trim().length < 3); };
   submit.onclick = async () => {
-    if (!supabase || !selected || (selected <= 3 && textarea.value.trim().length < 3)) return;
+    if (!recordsAvailable || !selected || (selected <= 3 && textarea.value.trim().length < 3)) return;
     submit.disabled = true;
     submit.textContent = 'Registrando…';
-    const result = await supabase.rpc('submit_account_record_closure_feedback', {
-      p_record_id: ctx.record.id,
-      p_closure_id: closure.id,
-      p_score: selected,
-      p_comment: textarea.value.trim() || null,
-    });
+    const result = await submitRecordFeedback(ctx.record.id, closure.id, selected, textarea.value.trim() || null);
     if (result.error) {
       submit.disabled = false;
       submit.textContent = 'Enviar avaliação';
@@ -226,10 +191,10 @@ function showClientReopenDialog(target: HTMLElement, ctx: Context) {
   cancel.onclick = () => layer.remove();
   reason.oninput = () => { send.disabled = reason.value.trim().length < 3; };
   send.onclick = async () => {
-    if (!supabase || reason.value.trim().length < 3) return;
+    if (!recordsAvailable || reason.value.trim().length < 3) return;
     send.disabled = true;
     send.textContent = 'Enviando…';
-    const result = await supabase.rpc('request_account_record_reopen', { p_record_id: ctx.record.id, p_reason: reason.value.trim() });
+    const result = await requestRecordReopen(ctx.record.id, reason.value.trim());
     if (result.error) {
       send.disabled = false;
       send.textContent = 'Enviar para análise';
@@ -238,6 +203,7 @@ function showClientReopenDialog(target: HTMLElement, ctx: Context) {
     }
     renderThanks(card, 'Reabertura solicitada.', 'A CALI recebeu sua justificativa e vai analisar o pedido. Você será notificado quando houver uma decisão.', 'Voltar ao histórico', () => location.reload());
   };
+  actions.append(cancel, send);
   card.append(hours, label, actions);
   layer.append(card);
   window.setTimeout(() => reason.focus(), 30);
@@ -329,7 +295,7 @@ function showAdminReopenOverlay(target: HTMLElement, ctx: Context) {
     renderAdminPendingBanner(target, ctx);
   };
   const decide = async (decision: 'approved' | 'rejected') => {
-    if (!supabase || !ctx.reopen) return;
+    if (!recordsAvailable || !ctx.reopen) return;
     if (decision === 'rejected' && note.value.trim().length < 3) {
       error.hidden = false;
       error.textContent = 'Explique ao cliente por que a reabertura não foi aprovada.';
@@ -340,11 +306,7 @@ function showAdminReopenOverlay(target: HTMLElement, ctx: Context) {
     approve.disabled = true;
     reject.disabled = true;
     history.disabled = true;
-    const result = await supabase.rpc('decide_account_record_reopen', {
-      p_request_id: ctx.reopen.id,
-      p_decision: decision,
-      p_note: note.value.trim() || null,
-    });
+    const result = await decideRecordReopen(ctx.reopen.id, decision, note.value.trim() || null);
     if (result.error) {
       approve.disabled = false;
       reject.disabled = false;
@@ -394,8 +356,86 @@ function renderAdminReopen(target: HTMLElement, ctx: Context) {
   else showAdminReopenOverlay(target, ctx);
 }
 
+function polishAdminReopen(target: HTMLElement, ctx: { record: RecordContext }) {
+  const card = target.querySelector<HTMLElement>('.records-v29-admin-reopen-overlay .records-v28-admin-reopen-card');
+  if (!card) return;
+
+  card.classList.add('records-v30-admin-reopen-card');
+  const summary = card.querySelector<HTMLElement>('.records-v28-reopen-summary');
+  if (summary && summary.dataset.v30 !== '1') {
+    summary.dataset.v30 = '1';
+    summary.replaceChildren();
+
+    const status = document.createElement('div');
+    status.className = 'records-v30-summary-status';
+    const statusLabelEl = document.createElement('span');
+    statusLabelEl.textContent = 'STATUS ATUAL';
+    const statusValue = document.createElement('strong');
+    statusValue.textContent = statusLabel(ctx.record.workflow_status);
+    status.append(statusLabelEl, statusValue);
+
+    const period = document.createElement('div');
+    period.className = 'records-v30-summary-period';
+    const periodLabel = document.createElement('span');
+    periodLabel.textContent = 'PERÍODO';
+    const dates = document.createElement('div');
+    dates.className = 'records-v30-period-dates';
+    const opened = document.createElement('p');
+    opened.append(node('small', '', 'Abertura'), node('strong', '', formatDate(ctx.record.created_at)));
+    const closed = document.createElement('p');
+    closed.append(node('small', '', 'Finalização'), node('strong', '', formatDate(ctx.record.closed_at)));
+    dates.append(opened, closed);
+    period.append(periodLabel, dates);
+
+    summary.append(status, period);
+  }
+
+  const actions = card.querySelector<HTMLElement>('.records-v28-actions.admin');
+  if (actions) actions.classList.add('records-v30-admin-actions');
+}
+
+function renderClientFeedbackHistory(target: HTMLElement, feedback: Feedback | null) {
+  const existing = target.querySelector<HTMLElement>('.records-v30-client-feedback-history');
+  if (!feedback) {
+    existing?.remove();
+    return;
+  }
+
+  const signature = `${feedback.score}|${feedback.comment || ''}|${feedback.created_at}`;
+  if (existing?.dataset.signature === signature) return;
+  existing?.remove();
+
+  // Cartão fixo (sem abrir/fechar), com a nota em destaque e a cor conforme o resultado: verde, amarelo ou laranja.
+  const details = document.createElement('div');
+  details.className = `records-v30-client-feedback-history v2-rating-card ${feedback.score >= 4 ? 'good' : feedback.score === 3 ? 'neutral' : 'low'}`;
+  details.dataset.signature = signature;
+
+  const score = document.createElement('div');
+  score.className = 'v2-rating-score';
+  const face = document.createElement('span');
+  face.textContent = emojiForScore(feedback.score);
+  const value = document.createElement('strong');
+  value.textContent = `${feedback.score}/5`;
+  score.append(face, value);
+
+  const body = document.createElement('div');
+  body.className = 'v2-rating-body';
+  const left = document.createElement('span');
+  left.textContent = 'Sua avaliação deste atendimento';
+  body.append(left);
+  if (feedback.comment?.trim()) { const comment = document.createElement('p'); comment.textContent = feedback.comment.trim(); body.append(comment); }
+  const date = document.createElement('small');
+  date.textContent = `Registrada em ${formatDate(feedback.created_at)}`;
+  body.append(date);
+  details.append(score, body);
+
+  const locked = target.querySelector<HTMLElement>('.records-v27-chat-locked');
+  if (locked?.parentElement) locked.parentElement.insertBefore(details, locked);
+  else target.querySelector(":is(.records-v13-conversation,[data-v2-operation~=\"records-v13-conversation\"])")?.append(details);
+}
+
 async function enhance() {
-  if (busy || !supabase) return;
+  if (busy || !recordsAvailable) return;
   const role = currentRole();
   const target = drawer();
   if (!role || !target) return;
@@ -407,17 +447,19 @@ async function enhance() {
   }
   busy = true;
   try {
-    const ctx = await getContext(protocol, role);
+    const ctx = await readRecordClosureContext(protocol, role);
     if (!ctx || !document.body.contains(target)) return;
     if (role === 'client') {
       renderClientFeedback(target, ctx);
       renderClientReopen(target, ctx);
+      renderClientFeedbackHistory(target, ctx.feedback);
       remove('.records-v29-admin-feedback', target);
       remove('.records-v29-admin-reopen-overlay', target);
       remove('.records-v29-reopen-banner', target);
     } else {
       renderAdminFeedback(target, ctx);
       renderAdminReopen(target, ctx);
+      polishAdminReopen(target, ctx);
       remove('.records-v29-feedback-overlay', target);
       remove('.records-v29-reopen-overlay', target);
     }

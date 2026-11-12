@@ -17,7 +17,8 @@ import { Navigate } from '../../components/navigation/Navigate';
 import { useLocation } from '../../hooks/useLocation';
 import { useNavigate } from '../../hooks/useNavigate';
 import { ArrowRight, Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, SendHorizontal, Users, X } from 'lucide-react';
-import { supabase } from '../../api/supabase';
+import { readPartnerNotifications, readPartnerReports, readPartnerReviews, recordPartnerSession, type PartnerNotification, type PartnerReview } from '../../api/partner/operations';
+import { endWorkspaceSession } from '../../api/access/session';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
 import { RouteRuntimeManager } from '../../runtime/RouteRuntimeManager';
 import { type WelcomeStep } from '../../components/workspace/WelcomeTour';
@@ -52,14 +53,32 @@ const welcomeSteps: WelcomeStep[] = [
   { label: 'TUDO PRONTO', title: 'Pode começar', text: 'Para rever esta apresentação, abra o menu do seu perfil.' },
 ];
 
-type Notice = { id: string; title: string; body: string | null; action_url: string | null; created_at: string };
 function StaffBell({ me }: { me: PartnerWorkspace }) {
-  const [items, setItems] = useState<Notice[]>([]); const [open, setOpen] = useState(false); const key = `cali:staff-bell-seen:${me.id}`; const [seen, setSeen] = useState(() => { try { return localStorage.getItem(key) || ''; } catch { return ''; } });
-  useEffect(() => { let alive = true; const load = async () => { if (!supabase) return; const result = await supabase.from('notifications').select('id,title,body,action_url,created_at,notification_type').eq('user_id', me.id).order('created_at', { ascending: false }).limit(15); if (alive && !result.error) { const rows = (result.data || []) as Notice[]; setItems((current) => { if (current.length && rows[0] && rows[0].id !== current[0]?.id) window.dispatchEvent(new Event('cali:staff-refresh')); return rows; }); } }; void load(); const timer = window.setInterval(load, 20000); const onFocus = () => void load(); window.addEventListener('focus', onFocus); return () => { alive = false; window.clearInterval(timer); window.removeEventListener('focus', onFocus); }; }, [me.id]);
+  const [items, setItems] = useState<PartnerNotification[]>([]); const [open, setOpen] = useState(false); const key = `cali:staff-bell-seen:${me.id}`; const [seen, setSeen] = useState(() => { try { return localStorage.getItem(key) || ''; } catch { return ''; } });
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      const rows = await readPartnerNotifications(me.id);
+      if (!active || !rows) return;
+      setItems((current) => {
+        if (current.length && rows[0] && rows[0].id !== current[0]?.id) window.dispatchEvent(new Event('cali:staff-refresh'));
+        return rows;
+      });
+    };
+    void load();
+    const timer = window.setInterval(load, 20000);
+    const onFocus = () => void load();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [me.id]);
   const fresh = items.filter((item) => item.created_at > seen).length;
   const toggle = () => { const next = !open; setOpen(next); if (next && items[0]) { try { localStorage.setItem(key, items[0].created_at); } catch { /* segue */ } setSeen(items[0].created_at); } };
   return <span className="v2-staff-bell"><button type="button" className={'notification-button ' + (fresh ? 'has-new' : '')} onClick={toggle} aria-label={fresh ? `${fresh} avisos novos` : 'Avisos'} aria-expanded={open}><Bell size={17} />{fresh > 0 && <b>{fresh}</b>}</button>
-    {open && <div className="v2-staff-bell-list" role="menu"><strong>Avisos</strong>{items.length ? items.map((item) => <Link key={item.id} className={(item as any).notification_type === 'chat_mention' ? 'is-mention' : undefined} to={item.action_url && item.action_url.startsWith('/equipe') ? item.action_url : '/equipe'} onClick={() => setOpen(false)}><span>{item.title}</span>{item.body && <small>{item.body}</small>}<em>{moment(item.created_at)}</em></Link>) : <p>Nenhum aviso por enquanto.</p>}</div>}</span>;
+    {open && <div className="v2-staff-bell-list" role="menu"><strong>Avisos</strong>{items.length ? items.map((item) => <Link key={item.id} className={item.notification_type === 'chat_mention' ? 'is-mention' : undefined} to={item.action_url && item.action_url.startsWith('/equipe') ? item.action_url : '/equipe'} onClick={() => setOpen(false)}><span>{item.title}</span>{item.body && <small>{item.body}</small>}<em>{moment(item.created_at)}</em></Link>) : <p>Nenhum aviso por enquanto.</p>}</div>}</span>;
 }
 
 function Frame({ me, children }: { me: PartnerWorkspace; children: ReactNode }) {
@@ -68,8 +87,8 @@ function Frame({ me, children }: { me: PartnerWorkspace; children: ReactNode }) 
   const plain = ['/equipe', '/equipe/ocorrencias', '/equipe/projetos', '/equipe/avisos', '/equipe/horas', '/equipe/calendario', '/equipe/documentos'].includes(pathname.replace(/\/$/, ''));
   const nav = ([['/equipe', 'Visão geral', LayoutDashboard, true], ['/equipe/pessoas', 'Equipe', Users, has('team')], ['/equipe/projetos', 'Projetos', BriefcaseBusiness, has('projects')], ['/equipe/horas', 'Horas', Clock3, has('hours')], ['/equipe/calendario', 'Calendário', CalendarDays, has('calendar')], ['/equipe/ocorrencias', 'Ocorrências', MessageCircleMore, has('records')], ['/equipe/documentos', 'Documentos', FolderOpen, has('documents')], ['/equipe/relatorios', 'Relatórios', FileBarChart2, has('reports')], ['/equipe/materiais', 'Materiais', FileBarChart2, has('reports') || has('proposals') || has('people_map')], ['/equipe/avisos', 'Avisos', Megaphone, has('notices')], ['/equipe/aprovacoes', 'Aprovações', Send, true]] as [string, string, typeof Clock3, boolean][]).filter((item) => item[3]).map(([href, label, icon]) => ({ href, label, icon }));
   /* Entrada e saída ficam registradas para a administradora (função staff_log_session). */
-  useEffect(() => { try { if (sessionStorage.getItem('cali:staff-session') === me.id) return; sessionStorage.setItem('cali:staff-session', me.id); } catch { /* segue */ } void supabase?.rpc('staff_log_session', { p_event: 'staff_session_started' }); }, [me.id]);
-  async function logout() { try { await supabase?.rpc('staff_log_session', { p_event: 'staff_session_ended' }); sessionStorage.removeItem('cali:staff-session'); } catch { /* a saída não pode ficar presa ao registro */ } await supabase?.auth.signOut(); navigate('/login', { replace: true }); }
+  useEffect(() => { try { if (sessionStorage.getItem('cali:staff-session') === me.id) return; sessionStorage.setItem('cali:staff-session', me.id); } catch { /* segue */ } void recordPartnerSession('staff_session_started'); }, [me.id]);
+  async function logout() { try { await recordPartnerSession('staff_session_ended'); sessionStorage.removeItem('cali:staff-session'); } catch { /* a saída não pode ficar presa ao registro */ } await endWorkspaceSession(); navigate('/login', { replace: true }); }
   /* Mesma moldura da administradora e do cliente (topo, busca, sino, menu do perfil com "Ver meu perfil" e "Sair"). */
   return <WorkspaceShellV2 role="partner" navigation={nav} extras={<StaffTimerBar me={me} />} notifications={<StaffBell me={me} />} bridges={null} onLogout={() => void logout()} welcomeSteps={welcomeSteps}>{plain ? children : <div className="v2-client-module v2-staff-area">{children}</div>}</WorkspaceShellV2>;
 }
@@ -80,39 +99,54 @@ function Head({ eyebrow, title, text, action }: { eyebrow: string; title: string
 const CompanySelect = ({ me, value, onChange, all }: { me: PartnerWorkspace; value: string; onChange: (value: string) => void; all?: boolean }) => <FilterSelect aria-label="Empresa" value={value} onChange={(event) => onChange(event.target.value)}>{all && <option value="">Todas as minhas empresas</option>}{!all && <option value="">Escolha a empresa</option>}{me.companies.map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}</FilterSelect>;
 
 /* Consulta (somente leitura) dos módulos liberados. O banco só devolve o que é das empresas atribuídas. */
-type BrowseRow = { id: string; company_id: string | null; title: string; sub: string; tag: string; when: string | null };
+type BrowseRow = { id: string; company_id: string | null; title: string; sub: string; tag: string; when: string | null; href?: string };
 type BrowseConfig = { eyebrow: string; title: string; text: string; empty: string; load: () => Promise<BrowseRow[] | null> };
 const label = (map: Record<string, string>, value: unknown) => map[String(value || '')] || String(value || '—');
 const STATUS: Record<string, string> = { not_started: 'Não iniciada', in_progress: 'Em andamento', internal_review: 'Revisão interna', client_review: 'Com o cliente', approved: 'Aprovada', adjustment_requested: 'Ajuste solicitado', cancelled: 'Cancelada', done: 'Concluída', draft: 'Rascunho', review: 'Em revisão', sent: 'Enviado ao cliente', published: 'Publicado', archived: 'Arquivado', active: 'Ativa', leave: 'Afastada', terminated: 'Desligada', paused: 'Pausado', planning: 'Em planejamento' };
-const browse: Record<string, BrowseConfig> = {
-  projetos: { eyebrow: 'EQUIPE CALI / PROJETOS', title: 'Projetos e entregas', text: 'As entregas das suas empresas, com situação e prazo. Para enviar uma entrega ao cliente, use “Enviar para aprovação”.', empty: 'Nenhuma entrega nas suas empresas.', load: async () => { const result = await supabase!.from('deliverables').select('id,company_id,title,protocol,status,due_at,workstream').is('cancelled_at', null).order('due_at', { ascending: true, nullsFirst: false }).limit(300); return result.error ? null : (result.data as any[]).map((row) => ({ id: row.id, company_id: row.company_id, title: row.title, sub: [row.protocol, row.workstream].filter(Boolean).join(' · '), tag: label(STATUS, row.status), when: row.due_at })); } },
-  calendario: { eyebrow: 'EQUIPE CALI / CALENDÁRIO', title: 'Calendário', text: 'Compromissos das suas empresas a partir de hoje.', empty: 'Nenhum compromisso marcado nas suas empresas.', load: async () => { const result = await supabase!.from('events').select('id,company_id,title,starts_at,mode,event_type,protocol').is('cancelled_at', null).gte('starts_at', new Date(Date.now() - 86400000).toISOString()).order('starts_at').limit(200); return result.error ? null : (result.data as any[]).map((row) => ({ id: row.id, company_id: row.company_id, title: row.title, sub: [row.protocol, row.mode].filter(Boolean).join(' · '), tag: label({ meeting: 'Reunião', visit: 'Visita', onsite: 'Visita', deadline: 'Prazo', delivery: 'Entrega', training: 'Treinamento', holiday: 'Feriado', other: 'Compromisso' }, row.event_type || 'other'), when: row.starts_at })); } },
-  documentos: { eyebrow: 'EQUIPE CALI / DOCUMENTOS', title: 'Documentos', text: 'Documentos das suas empresas, do mais recente ao mais antigo.', empty: 'Nenhum documento nas suas empresas.', load: async () => { const result = await supabase!.from('files').select('id,company_id,title,protocol,status,version_label,document_kind,updated_at').order('updated_at', { ascending: false }).limit(300); return result.error ? null : (result.data as any[]).map((row) => ({ id: row.id, company_id: row.company_id, title: row.title, sub: [row.protocol, row.document_kind, row.version_label].filter(Boolean).join(' · '), tag: label(STATUS, row.status), when: row.updated_at })); } },
-  relatorios: { eyebrow: 'EQUIPE CALI / RELATÓRIOS', title: 'Relatórios', text: 'Relatórios das suas empresas. Os já enviados ao cliente abrem na versão impressa ao clicar. Só a Patricia aprova e envia.', empty: 'Nenhum relatório nas suas empresas.', load: async () => { const result = await supabase!.from('reports').select('id,company_id,title,protocol,status,period_end').order('period_end', { ascending: false }).limit(200); return result.error ? null : (result.data as any[]).map((row) => ({ id: row.id, company_id: row.company_id, title: row.title, sub: String(row.protocol || ''), tag: label(STATUS, row.status), when: row.period_end, href: ['sent', 'published'].includes(row.status) ? `/equipe/relatorios/impressao/${row.id}` : undefined })); } },
-  avisos: { eyebrow: 'EQUIPE CALI / AVISOS', title: 'Avisos', text: 'Comunicados publicados para as suas empresas.', empty: 'Nenhum comunicado publicado.', load: async () => { const result = await supabase!.from('notices').select('id,title,protocol,category,status,published_at').order('published_at', { ascending: false }).limit(100); return result.error ? null : (result.data as any[]).map((row) => ({ id: row.id, company_id: null, title: row.title, sub: String(row.protocol || ''), tag: label({ feriado: 'Feriado', atendimento: 'Atendimento', comunicado: 'Comunicado' }, row.category), when: row.published_at })); } },
-  pessoas: { eyebrow: 'EQUIPE CALI / EQUIPE DO CLIENTE', title: 'Equipe do cliente', text: 'O quadro de pessoas das suas empresas. Dados salariais não aparecem aqui.', empty: 'Nenhuma pessoa cadastrada nas suas empresas.', load: async () => { const result = await supabase!.from('team_members').select('id,company_id,full_name,job_title,department,status,admission_date').is('archived_at', null).order('full_name').limit(1000); return result.error ? null : (result.data as any[]).map((row) => ({ id: row.id, company_id: row.company_id, title: row.full_name, sub: [row.job_title, row.department].filter(Boolean).join(' · '), tag: label(STATUS, row.status), when: row.admission_date })); } },
+const reports: BrowseConfig = {
+  eyebrow: 'EQUIPE CALI / RELATÓRIOS',
+  title: 'Relatórios',
+  text: 'Relatórios das suas empresas. Os já enviados ao cliente abrem na versão impressa ao clicar. Só a Patricia aprova e envia.',
+  empty: 'Nenhum relatório nas suas empresas.',
+  async load() {
+    const rows = await readPartnerReports();
+    return rows?.map((row) => ({
+      id: row.id, company_id: row.company_id, title: row.title, sub: row.protocol || '',
+      tag: label(STATUS, row.status), when: row.period_end,
+      href: ['sent', 'published'].includes(row.status) ? `/equipe/relatorios/impressao/${row.id}` : undefined,
+    })) ?? null;
+  },
 };
-function Browse({ me, kind }: { me: PartnerWorkspace; kind: string }) {
-  const config = browse[kind]; const [rows, setRows] = useState<BrowseRow[] | null>(null); const [failed, setFailed] = useState(false); const [company, setCompany] = useState(''); const [query, setQuery] = useState('');
-  useEffect(() => { let alive = true; setRows(null); setFailed(false); void config.load().then((data) => { if (!alive) return; if (data) setRows(data); else setFailed(true); }); return () => { alive = false; }; }, [kind]);
+function PartnerReports({ me }: { me: PartnerWorkspace }) {
+  const config = reports; const [rows, setRows] = useState<BrowseRow[] | null>(null); const [failed, setFailed] = useState(false); const [company, setCompany] = useState(''); const [query, setQuery] = useState('');
+  useEffect(() => { let alive = true; setRows(null); setFailed(false); void config.load().then((data) => { if (!alive) return; if (data) setRows(data); else setFailed(true); }); return () => { alive = false; }; }, [me.id]);
   const companyName = new Map(me.companies.map((item) => [item.id, item.display_name])); const text = query.trim().toLocaleLowerCase('pt-BR');
   const visible = (rows || []).filter((row) => (!company || row.company_id === company) && (!text || `${row.title} ${row.sub}`.toLocaleLowerCase('pt-BR').includes(text)));
   return <><Head eyebrow={config.eyebrow} title={config.title} text={config.text} />
     <div className="toolbar"><CompanySelect me={me} value={company} onChange={setCompany} all /><input className="v2-staff-search" placeholder="Buscar" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Buscar" /></div>
-    {failed ? <InlineNotice>Não foi possível carregar. Recarregue a página; se continuar, fale com a Patricia.</InlineNotice> : !rows ? <LoadingState>Carregando…</LoadingState> : visible.length ? <div className="wf-records v2-staff-browse">{visible.map((row) => <div className={`wf-record-row${(row as any).href ? ' is-link' : ''}`} key={row.id} role={(row as any).href ? 'link' : undefined} tabIndex={(row as any).href ? 0 : undefined} onClick={() => { if ((row as any).href) window.open((row as any).href, '_blank', 'noopener'); }}><div><strong>{row.title}</strong><small>{[row.company_id ? companyName.get(row.company_id) : '', row.sub].filter(Boolean).join(' · ') || '—'}</small></div><span className="wf-tag">{row.tag}</span><small>{row.when ? dayLabel(row.when) : '—'}</small></div>)}</div> : <div className="empty">{config.empty}</div>}
-    <p className="soft-note">{kind === 'avisos' ? 'Os comunicados aprovados aparecem na lista.' : 'Tela de consulta. Você vê, mas não altera por aqui.'}</p></>;
+    {failed ? <InlineNotice>Não foi possível carregar. Recarregue a página; se continuar, fale com a Patricia.</InlineNotice> : !rows ? <LoadingState>Carregando…</LoadingState> : visible.length ? <div className="wf-records v2-staff-browse">{visible.map((row) => <div className={`wf-record-row${row.href ? ' is-link' : ''}`} key={row.id} role={row.href ? 'link' : undefined} tabIndex={row.href ? 0 : undefined} onClick={() => { if (row.href) window.open(row.href, '_blank', 'noopener'); }}><div><strong>{row.title}</strong><small>{[row.company_id ? companyName.get(row.company_id) : '', row.sub].filter(Boolean).join(' · ') || '—'}</small></div><span className="wf-tag">{row.tag}</span><small>{row.when ? dayLabel(row.when) : '—'}</small></div>)}</div> : <div className="empty">{config.empty}</div>}
+    <p className="soft-note">Tela de consulta. Você vê, mas não altera por aqui.</p></>;
 }
 
 /* Acompanhamento do que foi enviado para a Patricia. O envio acontece dentro de cada tela (entregável, ocorrência, horas,
    alteração em projeto); aqui a pessoa só acompanha a resposta. */
-type ReviewRow = { id: string; company_id: string; kind: string; title: string; note: string | null; status: string; decision_note: string | null; created_at: string };
 const KINDS: Record<string, string> = { deliverable: 'Entregável', report: 'Relatório', document: 'Documento', notice: 'Comunicado', other: 'Outro', record_close: 'Encerrar ocorrência', change: 'Alteração em projeto' };
 function Reviews({ me }: { me: PartnerWorkspace }) {
-  const [rows, setRows] = useState<ReviewRow[] | null>(null); const [filter, setFilter] = useState<'pending' | 'all'>('pending');
-  useEffect(() => { void (async () => { if (!supabase) return; const [reviews, hours] = await Promise.all([
-    supabase.from('staff_review_requests').select('id,company_id,kind,title,note,status,decision_note,created_at').order('created_at', { ascending: false }).limit(200),
-    supabase.from('staff_hour_submissions').select('id,company_id,minutes,description,status,decision_note,created_at').order('created_at', { ascending: false }).limit(200)]);
-    setRows([...((reviews.data || []) as ReviewRow[]), ...((hours.data || []) as any[]).map((row) => ({ id: `h-${row.id}`, company_id: row.company_id, kind: 'hours', title: `${duration(row.minutes)} · ${row.description}`, note: null, status: row.status === 'rejected' ? 'returned' : row.status, decision_note: row.decision_note, created_at: row.created_at }))].sort((a, b) => b.created_at.localeCompare(a.created_at))); })(); }, []);
+  const [rows, setRows] = useState<PartnerReview[] | null>(null); const [filter, setFilter] = useState<'pending' | 'all'>('pending');
+  useEffect(() => {
+    let active = true;
+    void readPartnerReviews().then(({ reviews, submissions }) => {
+      if (!active) return;
+      const hours = submissions.map((row) => ({
+        id: `h-${row.id}`, company_id: row.company_id, kind: 'hours',
+        title: `${duration(row.minutes)} · ${row.description}`, note: null,
+        status: row.status === 'rejected' ? 'returned' : row.status,
+        decision_note: row.decision_note, created_at: row.created_at,
+      }));
+      setRows([...reviews, ...hours].sort((a, b) => b.created_at.localeCompare(a.created_at)));
+    });
+    return () => { active = false; };
+  }, [me.id]);
   const companyName = new Map(me.companies.map((item) => [item.id, item.display_name])); const tone: Record<string, [string, string]> = { pending: ['wait', 'Aguardando'], approved: ['ok', 'Aprovado'], returned: ['bad', 'Devolvido'] };
   const visible = (rows || []).filter((row) => filter === 'all' || row.status === 'pending'); const waiting = (rows || []).filter((row) => row.status === 'pending').length;
   return <><Head eyebrow="EQUIPE CALI / APROVAÇÕES" title="Aprovações" text="O que você enviou para a Patricia e o que ela respondeu." />
@@ -153,7 +187,7 @@ export function StaffWorkspaceSection({ section }: { section: StaffSection }) {
     case 'horas': return <StaffHoursPage companies={me.companies} />;
     case 'documentos': return <StaffDocumentsPage />;
     case 'pessoas': return <CompanyTeamPage role="client" staff />;
-    case 'relatorios': return <Browse me={me} kind="relatorios" />;
+    case 'relatorios': return <PartnerReports me={me} />;
     case 'materiais': return ['reports','proposals','people_map'].some((key) => me.modules.includes(key)) ? <StaffMaterials /> : <Navigate to="/equipe" replace />;
     case 'projetos': return <StaffProjectsPage companies={me.companies} />;
     case 'avisos': return <StaffNotices me={me} />;

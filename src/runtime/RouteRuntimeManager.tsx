@@ -49,20 +49,18 @@ function installCalendar() {
 
 function installRecords() {
   once('records', async () => {
-    const [experience, controls, scroll, operations, closure, polish] = await Promise.all([
+    const [experience, controls, scroll, operations, closure] = await Promise.all([
       import('./records/recordsExperienceRuntimeV2'),
       import('./records/recordsMessageControlsRuntime'),
       import('./records/recordsConversationScrollGuard'),
       import('./records/recordsOperationsRuntimeV25'),
       import('./records/recordsClosureExperienceRuntimeV29'),
-      import('./records/recordsClosureFinalPolishV30'),
     ]);
     experience.installRecordsExperienceRuntimeV2();
     controls.installRecordsMessageControlsRuntime();
     scroll.installRecordsConversationScrollGuard();
     operations.installRecordsOperationsRuntimeV25();
     closure.installRecordsClosureExperienceRuntimeV29();
-    polish.installRecordsClosureFinalPolishV30();
   });
 }
 
@@ -89,13 +87,6 @@ function installProjects() {
   });
 }
 
-function installDocuments() {
-  once('documents', async () => {
-    const mod = await import('./documents/documentsIdentityRuntimeV42');
-    mod.installDocumentsIdentityRuntimeV42();
-  });
-}
-
 function installHours() {
   once('hours', async () => {
     const mod = await import('./hours/hoursCompanyLogoRuntimeV41');
@@ -103,23 +94,10 @@ function installHours() {
   });
 }
 
-function installDashboards(pathname: string) {
-  if (pathname === '/admin') {
-    once('admin-dashboard', async () => {
-      const mod = await import('./satisfaction/dashboardSatisfactionRuntimeV29');
-      mod.installDashboardSatisfactionRuntimeV29();
-    });
-  }
-}
-
 function installMap() {
   once('people-map', async () => {
-    const [auth, nav] = await Promise.all([
-      import('../lib/mapaAuthBridge'),
-      import('../lib/mapaReviewNavigation'),
-    ]);
+    const auth = await import('./people-map/authBridge');
     auth.installMapaAuthBridge();
-    nav.installMapaReviewNavigation();
   });
 }
 
@@ -133,10 +111,8 @@ export function RouteRuntimeManager() {
       if (pathname === '/admin/calendario' || pathname === '/cliente/cronograma') installCalendar();
       if (pathname.includes('/registros')) installRecords();
       if (pathname === '/admin/projetos' || pathname === '/cliente/entregaveis') installProjects();
-      if (pathname.includes('/documentos')) installDocuments();
       if (pathname.includes('/horas')) installHours();
       if (pathname.includes('/mapa-de-people')) installMap();
-      installDashboards(pathname);
     }, 0);
 
     return () => {

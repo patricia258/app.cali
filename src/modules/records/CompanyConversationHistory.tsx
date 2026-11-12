@@ -1,19 +1,10 @@
 import { Button } from '../../components/ds/Button';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { History } from 'lucide-react';
-import { supabase } from '../../api/supabase';
+import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
+import { readCompanyConversationHistory, type HistoryEvent } from '../../api/records/history';
 import './company-conversation-history.css';
-
-type HistoryEvent = {
-  id: string;
-  kind: string;
-  happened_at: string;
-  title: string;
-  subject_type: 'record' | 'delivery';
-  subject_id: string;
-  subject_title: string;
-  minutes: number | null;
-};
 
 const filters = [
   ['', 'Todos os eventos'], ['record', 'Ocorrências'], ['delivery', 'Entregáveis'],
@@ -30,46 +21,23 @@ function Timeline({ companyId, role, staff, openRecord }: {
   staff: boolean;
   openRecord: (recordId: string) => void;
 }) {
+  const { user } = useWorkspaceAuth();
   const [filter, setFilter] = useState('');
-  const [rows, setRows] = useState<HistoryEvent[]>([]);
-  const [cursor, setCursor] = useState<HistoryEvent | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(false);
-  const [error, setError] = useState('');
-  const [attempt, setAttempt] = useState(0);
-
-  useEffect(() => {
-    if (!supabase) return;
-    let active = true;
-    setLoading(true);
-    setError('');
-    void supabase.rpc('read_company_conversation_history', {
-      p_company_id: companyId, p_kind: filter || null,
-      p_before_at: cursor?.happened_at ?? null, p_before_id: cursor?.id ?? null,
-    }).then(({ data, error: requestError }) => {
-      if (!active) return;
-      setLoading(false);
-      if (requestError) {
-        setError('Não foi possível carregar o histórico.');
-        return;
-      }
-      const page = (data ?? []) as HistoryEvent[];
-      setHasMore(page.length > pageSize);
-      setRows((previous) => {
-        const entries = page.slice(0, pageSize);
-        return cursor ? [...previous, ...entries.filter((entry) => !previous.some((row) => row.id === entry.id))] : entries;
-      });
-    });
-    return () => { active = false; };
-  }, [companyId, cursor, filter, attempt]);
+  const history = useInfiniteQuery({
+    queryKey: ['record-history', user?.id, role, staff, companyId, filter],
+    initialPageParam: null as HistoryEvent | null,
+    queryFn: ({ pageParam, signal }) => readCompanyConversationHistory(companyId, filter, pageParam, signal),
+    getNextPageParam: (page) => page.length > pageSize ? page[pageSize - 1] : undefined,
+    retry: false,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+  });
+  const rows = [...new Map(history.data?.pages.flatMap((page) => page.slice(0, pageSize))
+    .map((row) => [row.id, row])).values()];
+  const loading = history.isPending || history.isFetchingNextPage;
 
   return <>
-    <label>Evento <select value={filter} onChange={(event) => {
-      setRows([]);
-      setHasMore(false);
-      setCursor(null);
-      setFilter(event.target.value);
-    }}>
+    <label>Evento <select value={filter} onChange={(event) => setFilter(event.target.value)}>
       {filters.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
     </select></label>
     <ol>
@@ -82,11 +50,12 @@ function Timeline({ companyId, role, staff, openRecord }: {
             : <a href={`${role === 'admin' ? '/admin/projetos' : '/cliente/entregaveis'}?deliverable=${encodeURIComponent(event.subject_id)}`}>{event.subject_title}</a>}
       </li>)}
     </ol>
-    {error && <p role="alert">{error} <button type="button" onClick={() => setAttempt((value) => value + 1)}>Tentar novamente</button></p>}
+    {history.isError && <p role="alert">Não foi possível carregar o histórico. <button type="button"
+      onClick={() => void (history.isFetchNextPageError ? history.fetchNextPage() : history.refetch())}>Tentar novamente</button></p>}
     {loading && <p role="status">Carregando histórico…</p>}
-    {!loading && !rows.length && !error && <p>Nenhum evento neste recorte.</p>}
-    {hasMore && !error && <Button type="button" variant="workflowSecondary" disabled={loading}
-      onClick={() => setCursor(rows.at(-1) ?? null)}>Carregar mais</Button>}
+    {!loading && !rows.length && !history.isError && <p>Nenhum evento neste recorte.</p>}
+    {history.hasNextPage && !history.isError && <Button type="button" variant="workflowSecondary" disabled={loading}
+      onClick={() => void history.fetchNextPage()}>Carregar mais</Button>}
   </>;
 }
 

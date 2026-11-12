@@ -102,7 +102,7 @@
 }
 .client-project-review-v38.client_review .client-review-metrics-v38>div{
   @apply tw:grid tw:gap-[2px];padding:0 15px;border:0;border-left:1px solid rgba(90,30,45,.14);
-  border-radius:0;background:transparent;@apply tw:min-w-0;
+  @apply tw:rounded-none;background:transparent;@apply tw:min-w-0;
 }
 .client-project-review-v38.client_review .client-review-metrics-v38>div:first-child{@apply tw:pl-0;border-left:0}
 .client-project-review-v38.client_review .client-review-metrics-v38 span{

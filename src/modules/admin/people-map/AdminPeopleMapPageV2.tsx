@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { loadMapaDeliveryState } from '../../../api/admin/people-map/delivery';
+import { loadMapaDeliveryState, sendMapaReport } from '../../../api/admin/people-map/delivery';
 import { Button } from '../../../components/ds/Button';
 import { DialogFrame } from '../../../components/ds/DialogFrame';
 import { EmptyState } from '../../../components/ds/EmptyState';
@@ -25,7 +25,7 @@ import {
   X,
 } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { supabase } from '../../../api/supabase';
+import { readMapaReviewCatalog, saveMapaReview } from '../../../api/admin/people-map/reviews';
 
 type MapaStatus = 'novo' | 'em_andamento' | 'em_revisao' | 'pre_enviado' | 'enviado' | 'cancelado' | 'excluido';
 type JourneyStatus = 'concluido' | 'andamento' | 'abandono';
@@ -225,18 +225,18 @@ export function AdminPeopleMapPageV2() {
   const deliveryReady = delivery.isSuccess && !delivery.isFetching;
 
   async function loadAll() {
-    if (!supabase) return;
     setLoading(true); setError('');
-    const publicDb = supabase.schema('public');
-    const [recordsResult, journeysResult] = await Promise.all([
-      publicDb.rpc('workspace_mapa_people_records'),
-      publicDb.rpc('workspace_mapa_people_journeys'),
-    ]);
-    if (recordsResult.error) setError(`Não foi possível carregar as respostas reais: ${recordsResult.error.message}`);
-    else setRecords(((recordsResult.data || []) as MapaRecord[]).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
-    if (journeysResult.error) setError((current) => current || `Não foi possível carregar a jornada: ${journeysResult.error.message}`);
-    else setJourneys(((journeysResult.data || []) as JourneyRecord[]).sort((a, b) => new Date(b.accessed_at).getTime() - new Date(a.accessed_at).getTime()).slice(0, 1000));
-    setLoading(false);
+    try {
+      const catalog = await readMapaReviewCatalog();
+      if (catalog.recordError) setError(`Não foi possível carregar as respostas reais: ${catalog.recordError}`);
+      else setRecords(((catalog.records ?? []) as MapaRecord[]).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+      if (catalog.journeyError) setError((current) => current || `Não foi possível carregar a jornada: ${catalog.journeyError}`);
+      else setJourneys(((catalog.journeys ?? []) as JourneyRecord[]).sort((a, b) => new Date(b.accessed_at).getTime() - new Date(a.accessed_at).getTime()).slice(0, 1000));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Não foi possível carregar o Mapa.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { loadAll(); }, []);
@@ -268,10 +268,12 @@ export function AdminPeopleMapPageV2() {
   function closeRecord() { setEmailOpen(false); document.body.classList.remove('workspace-modal-open'); setSelected(null); setDraft(null); setFeedback(''); }
 
   async function persist(record: MapaRecord, nextStatus: string, nextObservations: Record<string, string>) {
-    if (!supabase) return false;
-    const { data, error: rpcError } = await supabase.schema('public').rpc('workspace_update_mapa_people_record', { p_id: record.id, p_status: normalizeStatus(nextStatus), p_observacoes: nextObservations });
-    if (rpcError) { setError(`Não foi possível salvar no Mapa: ${rpcError.message}`); return false; }
-    return Boolean(data);
+    try {
+      return await saveMapaReview(record.id, normalizeStatus(nextStatus), nextObservations);
+    } catch (reason) {
+      setError(`Não foi possível salvar no Mapa: ${reason instanceof Error ? reason.message : 'erro inesperado'}`);
+      return false;
+    }
   }
   async function updateStatus(record: MapaRecord, nextStatus: string) {
     const ok = await persist(record, nextStatus, record.observacoes || {}); if (!ok) return;
@@ -306,7 +308,7 @@ export function AdminPeopleMapPageV2() {
     window.open(`https://wa.me/${number}?text=${encodeURIComponent(text)}`, '_blank');
   }
   async function sendEmail() {
-    if (!supabase || !selected || sendingEmail || !deliveryReady || !delivery.data) return;
+    if (!selected || sendingEmail || !deliveryReady || !delivery.data) return;
     const { revision, hasPdf } = delivery.data;
     const recipient = selected.c_email.trim().toLowerCase();
     if (!recipient.includes('@')) { setEmailFeedback('Confira o e-mail da resposta do Mapa.'); return; }
@@ -320,8 +322,7 @@ export function AdminPeopleMapPageV2() {
     setSendingEmail(true); setEmailFeedback('Enviando…');
     try {
       const pdfBase64 = attachment ? await fileToBase64(attachment) : undefined;
-      const { data, error: fnError } = await supabase.functions.invoke('workspace-enviar-relatorio-mapa', { body: { response_id: selected.id, revision, pdf_base64: pdfBase64, request_id: requestId, recipients: [recipient] } });
-      if (fnError || !data?.ok || !data?.email_id) throw new Error(data?.error || fnError?.message || 'Falha ao enviar.');
+      const data = await sendMapaReport({ responseId: selected.id, revision, pdfBase64, requestId, recipient });
       completeDelivery();
       void delivery.refetch();
       setEmailFeedback(`Enviado para ${data.to || selected.c_email} ✓`);

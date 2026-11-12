@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import './app-error-boundary.css';
 
 type Props = { children: ReactNode };
 type State = { failed: boolean };

@@ -2,38 +2,45 @@ import { Button } from '../../../../components/ds/Button';
 import { FieldLabel } from '../../../../components/ds/FieldLabel';
 import { useEffect, useState, type FormEvent } from 'react';
 import { CalendarDays } from 'lucide-react';
-import { supabase } from '../../../../api/supabase';
+import { readCompanyAgendaSettings, saveCompanyAgendaSettings, type CompanyAgendaSettings } from '../../../../api/admin/companies/agenda';
 import './contract-agenda-settings.css';
 
-type Settings = { plan: string; sessions: number; cadence: number; onsite: number };
-const initial: Settings = { plan: 'custom', sessions: 0, cadence: 0, onsite: 0 };
+const initial: CompanyAgendaSettings = { plan: 'custom', sessions: 0, cadence: 0, onsite: 0 };
 
 export function ContractAgendaSettings({ companyId }: { companyId: string }) {
-  const [data, setData] = useState<Settings>(initial);
+  const [data, setData] = useState<CompanyAgendaSettings>(initial);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   useEffect(() => {
-    if (!supabase) return;
-    let live = true;
+    const controller = new AbortController();
     setLoading(true);
-    supabase.from('companies').select('service_plan,meeting_sessions_included_per_month,meeting_cadence_days,onsite_visits_included_per_month').eq('id',companyId).maybeSingle().then(({data:row,error}) => {
-      if (!live) return;
-      if (error) setMessage(error.message);
-      else if (row) setData({plan: ['partner','full'].includes(String(row.service_plan)) ? String(row.service_plan) : 'custom',sessions:Number(row.meeting_sessions_included_per_month||0),cadence:Number(row.meeting_cadence_days||0),onsite:Number(row.onsite_visits_included_per_month||0)});
-      setLoading(false);
+    setMessage('');
+    void readCompanyAgendaSettings(companyId, controller.signal).then((row) => {
+      if (!controller.signal.aborted) setData(row ?? initial);
+    }).catch((error: Error) => {
+      if (!controller.signal.aborted) setMessage(error.message);
+    }).finally(() => {
+      if (!controller.signal.aborted) setLoading(false);
     });
-    return () => { live = false; };
-  },[companyId]);
+    return () => controller.abort();
+  }, [companyId]);
   function choosePlan(plan: string) {
     setData(current => plan === 'partner' ? {plan,sessions:1,cadence:30,onsite:0} : plan === 'full' ? {plan,sessions:2,cadence:14,onsite:1} : {...current,plan});
   }
   async function save(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); if (!supabase) return;
-    setSaving(true); setMessage('');
-    const {error} = await supabase.from('companies').update({service_plan:data.plan === 'custom' ? null : data.plan,meeting_sessions_included_per_month:data.sessions,meeting_cadence_days:data.cadence,onsite_visits_included_per_month:data.onsite,fixed_meeting_required:data.sessions > 0,meeting_mode_policy:data.plan === 'partner' ? 'online_only' : data.plan === 'full' ? 'mixed_one_onsite' : 'custom'}).eq('id',companyId);
-    setMessage(error ? error.message : 'Agenda do contrato atualizada.');
-    setSaving(false);
+    event.preventDefault();
+    if (saving) return;
+    setSaving(true);
+    setMessage('');
+    try {
+      await saveCompanyAgendaSettings(companyId, data);
+      setMessage('Agenda do contrato atualizada.');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Não foi possível salvar a agenda do contrato.');
+    } finally {
+      setSaving(false);
+    }
   }
   return <section className="account-tab-pane contract-agenda-settings"><div className="account-pane-heading"><CalendarDays size={18}/><div><strong>Agenda do contrato</strong><span>Encontros incluídos neste pacote. Visitas extras são solicitadas separadamente.</span></div></div>
     {loading ? <p>Carregando regra…</p> : <form onSubmit={save} className="form-grid account-tab-form">

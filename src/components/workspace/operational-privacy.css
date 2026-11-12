@@ -1,6 +1,6 @@
 @reference "../../styles/tailwind.css";
 /* Pasta do cliente: salvar a pasta inteira no Google Drive. */
-html[data-workspace-ui='v2'] .v2-fv-drive{@apply tw:inline-flex tw:items-center tw:gap-[6px] tw:h-[36px];padding:0 14px;border:1px solid #dfd3ca;@apply tw:rounded-[9px];background:#fff;color:#5a1e2d;font:inherit;@apply tw:text-[12px];font-weight:700;@apply tw:cursor-pointer tw:whitespace-nowrap}
+html[data-workspace-ui='v2'] .v2-fv-drive{@apply tw:inline-flex tw:items-center tw:gap-[6px] tw:h-[36px];padding:0 14px;border:1px solid #dfd3ca;@apply tw:rounded-[9px];background:#fff;@apply tw:text-cali-brand;font:inherit;@apply tw:text-[12px];font-weight:700;@apply tw:cursor-pointer tw:whitespace-nowrap}
 html[data-workspace-ui='v2'] .v2-fv-drive:disabled{opacity:.5;@apply tw:cursor-default}
 
 /* Nome mencionado com @ dentro das mensagens. */
@@ -15,12 +15,12 @@ html[data-workspace-ui='v2'] .v2-staff-browse .wf-record-row.is-link:hover{backg
 
 /* Perfil: privacidade e meus dados (LGPD). */
 .profile-privacy-v2{@apply tw:flex tw:flex-col tw:gap-[10px] tw:mt-[14px];padding:14px 16px;border:1px solid #e8ddd4;@apply tw:rounded-[10px];background:#fbf7f4;@apply tw:text-[12.5px];color:#5f5650}
-.profile-privacy-v2 strong{@apply tw:inline-flex tw:items-center tw:gap-[6px] tw:text-[13px];color:#2b2b2b}
+.profile-privacy-v2 strong{@apply tw:inline-flex tw:items-center tw:gap-[6px] tw:text-[13px];@apply tw:text-cali-ink}
 .profile-privacy-v2 p{margin:4px 0 0;line-height:1.5}
-.profile-privacy-v2 a{color:#5a1e2d;font-weight:700}
+.profile-privacy-v2 a{@apply tw:text-cali-brand;font-weight:700}
 .profile-privacy-actions,.profile-privacy-form>span{@apply tw:flex tw:flex-wrap tw:gap-[8px]}
-.profile-privacy-v2 button{@apply tw:inline-flex tw:items-center tw:gap-[6px] tw:h-[34px];padding:0 12px;border:1px solid #dfd3ca;@apply tw:rounded-[8px];background:#fff;color:#5a1e2d;font:inherit;@apply tw:text-[12px];font-weight:700;@apply tw:cursor-pointer}
-.profile-privacy-v2 button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+.profile-privacy-v2 button{@apply tw:inline-flex tw:items-center tw:gap-[6px] tw:h-[34px];padding:0 12px;border:1px solid #dfd3ca;@apply tw:rounded-[8px];background:#fff;@apply tw:text-cali-brand;font:inherit;@apply tw:text-[12px];font-weight:700;@apply tw:cursor-pointer}
+.profile-privacy-v2 button.primary{background:#5a1e2d;@apply tw:border-cali-brand;@apply tw:text-white}
 .profile-privacy-v2 button:disabled{opacity:.5;@apply tw:cursor-default}
 .profile-privacy-form{@apply tw:flex tw:flex-col tw:gap-[8px]}
 .profile-privacy-form label{@apply tw:flex tw:flex-col tw:gap-[4px] tw:text-[11.5px];font-weight:700}
@@ -29,8 +29,8 @@ html[data-workspace-ui='v2'] .v2-staff-browse .wf-record-row.is-link:hover{backg
 
 /* Auditoria: pedidos de privacidade (LGPD). */
 html[data-workspace-ui='v2'] .v2-privacy-panel{margin:0 0 18px;padding:16px 18px;border:1px solid #e8ddd4;@apply tw:rounded-[12px];background:#fff}
-html[data-workspace-ui='v2'] .v2-privacy-panel>header{@apply tw:flex tw:items-start tw:gap-[10px];color:#5a1e2d}
-html[data-workspace-ui='v2'] .v2-privacy-panel h2{@apply tw:m-0 tw:text-[15px];color:#2b2b2b}
+html[data-workspace-ui='v2'] .v2-privacy-panel>header{@apply tw:flex tw:items-start tw:gap-[10px];@apply tw:text-cali-brand}
+html[data-workspace-ui='v2'] .v2-privacy-panel h2{@apply tw:m-0 tw:text-[15px];@apply tw:text-cali-ink}
 html[data-workspace-ui='v2'] .v2-privacy-panel header p{margin:3px 0 0;@apply tw:text-[12px];color:#7d726b}
 html[data-workspace-ui='v2'] .v2-privacy-panel ul{list-style:none;margin:12px 0 0;@apply tw:p-0 tw:flex tw:flex-col tw:gap-[10px]}
 html[data-workspace-ui='v2'] .v2-privacy-panel li{padding:12px 14px;border:1px solid #eadfd5;border-left:4px solid #b5a79d;@apply tw:rounded-[9px] tw:text-[12.5px];color:#3d3531}
@@ -43,8 +43,8 @@ html[data-workspace-ui='v2'] .v2-privacy-message{margin:10px 0 0;@apply tw:text-
 html[data-workspace-ui='v2'] .v2-privacy-form{@apply tw:flex tw:flex-col tw:gap-[8px] tw:mt-[10px]}
 html[data-workspace-ui='v2'] .v2-privacy-form textarea{@apply tw:box-border;padding:8px 10px;border:1px solid #dfd3ca;@apply tw:rounded-[8px];font:inherit;@apply tw:text-[12.5px]}
 html[data-workspace-ui='v2'] .v2-privacy-form span{@apply tw:flex tw:justify-end tw:gap-[8px]}
-html[data-workspace-ui='v2'] :is(.v2-privacy-form button,.v2-privacy-reply){@apply tw:h-[32px] tw:mt-[8px];padding:0 12px;border:1px solid #dfd3ca;@apply tw:rounded-[8px];background:#fff;color:#5a1e2d;font:inherit;@apply tw:text-[12px];font-weight:700;@apply tw:cursor-pointer}
-html[data-workspace-ui='v2'] .v2-privacy-form button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] :is(.v2-privacy-form button,.v2-privacy-reply){@apply tw:h-[32px] tw:mt-[8px];padding:0 12px;border:1px solid #dfd3ca;@apply tw:rounded-[8px];background:#fff;@apply tw:text-cali-brand;font:inherit;@apply tw:text-[12px];font-weight:700;@apply tw:cursor-pointer}
+html[data-workspace-ui='v2'] .v2-privacy-form button.primary{background:#5a1e2d;@apply tw:border-cali-brand;@apply tw:text-white}
 
 /* Exportar dados da empresa (aba Contrato da ficha do cliente) */
 html[data-workspace-ui='v2'] .v2-admin-form .automation-preview.v2-company-export{@apply tw:flex-row tw:items-center tw:gap-[14px] tw:mt-[14px]}
@@ -53,7 +53,7 @@ html[data-workspace-ui='v2'] .v2-company-export>div{@apply tw:flex-1 tw:min-w-0 
 html[data-workspace-ui='v2'] .v2-company-export p{@apply tw:m-0;line-height:1.45}
 html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-ok{color:#1f7a4d;font-weight:600}
 html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-error{color:#b42318;font-weight:600}
-html[data-workspace-ui='v2'] .v2-company-export>button{flex:0 0 auto;border:1px solid #7a1f3d;background:#7a1f3d;color:#fff;@apply tw:rounded-[8px];padding:8px 16px;font:600 12px Inter,sans-serif;@apply tw:cursor-pointer}
+html[data-workspace-ui='v2'] .v2-company-export>button{flex:0 0 auto;border:1px solid #7a1f3d;background:#7a1f3d;@apply tw:text-white;@apply tw:rounded-[8px];padding:8px 16px;font:600 12px Inter,sans-serif;@apply tw:cursor-pointer}
 html[data-workspace-ui='v2'] .v2-company-export>button:disabled{opacity:.6;@apply tw:cursor-wait}
 
 /* Aceite dos termos no primeiro acesso (TermsGate; desligado até a revisão jurídica) */
@@ -97,7 +97,7 @@ html[data-workspace-ui='v2'] .pa-print-head{@apply tw:hidden}
 .v2-terms-text .v2-legal-doc+.v2-legal-doc{@apply tw:mt-[22px] tw:pt-[18px];border-top:1px solid #eee3dc}
 .v2-terms-text .v2-legal-doc h2{@apply tw:text-[16px]}
 .v2-terms-links{@apply tw:text-[12px];color:#6b5d63;@apply tw:m-0}
-.v2-terms-links a{color:#5a1e2d;font-weight:600}
+.v2-terms-links a{@apply tw:text-cali-brand;font-weight:600}
 html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-to{@apply tw:flex tw:items-center tw:gap-[10px] tw:mt-[4px] tw:text-[11px];font-weight:600;color:#3e3533}
 html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-to input{@apply tw:flex-1 tw:min-w-0;max-width:360px;border:1px solid #e3d6cc;@apply tw:rounded-[7px];padding:7px 10px;font:400 12px Inter,sans-serif;background:#fff}
 
@@ -108,28 +108,28 @@ html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-to input{@app
 /* Relatórios (15/10): confirmações e dúvida do cliente são criadas por reportWorkflowGovernanceV61.ts, mas os estilos
    delas ficavam só nas folhas antigas (desligadas nas telas novas) e a caixa aparecia crua no rodapé. */
 .v61-confirm-backdrop{@apply tw:fixed tw:inset-0 tw:z-420 tw:grid tw:place-items-center tw:p-[22px];background:rgba(20,13,15,.5);backdrop-filter:blur(6px)}
-.v61-confirm-card{@apply tw:relative tw:box-border;width:min(480px,94vw);@apply tw:p-[24px];border:1px solid #e3d8d1;@apply tw:rounded-[14px];background:#fffdfa;box-shadow:0 24px 70px rgba(39,24,28,.22);color:#2b2b2b;font-family:Inter,system-ui,sans-serif}
-.v61-confirm-card>span{@apply tw:block tw:mb-[6px];color:#b58c52;@apply tw:text-[10px];font-weight:700;letter-spacing:.12em}
+.v61-confirm-card{@apply tw:relative tw:box-border;width:min(480px,94vw);@apply tw:p-[24px];border:1px solid #e3d8d1;@apply tw:rounded-[14px];background:#fffdfa;box-shadow:0 24px 70px rgba(39,24,28,.22);@apply tw:text-cali-ink;font-family:Inter,system-ui,sans-serif}
+.v61-confirm-card>span{@apply tw:block tw:mb-[6px];@apply tw:text-cali-gold;@apply tw:text-[10px];font-weight:700;letter-spacing:.12em}
 .v61-confirm-card h2{margin:0 36px 8px 0;@apply tw:text-[18px];line-height:1.25;color:#2b2024}
 .v61-confirm-card p{@apply tw:m-0;color:#70655f;@apply tw:text-[13px];line-height:1.55}
 .v61-confirm-card>div{@apply tw:flex tw:justify-end tw:gap-[8px] tw:mt-[20px]}
 .v61-confirm-card>div>button{@apply tw:min-h-[38px];padding:0 16px;@apply tw:rounded-[8px];font:600 13px Inter,system-ui,sans-serif;@apply tw:cursor-pointer;border:1px solid #e3d6cc;background:#fff;color:#3e3533}
-.v61-confirm-card>div>button.v61-confirm{border-color:#5a1e2d;background:#5a1e2d;color:#fff}
+.v61-confirm-card>div>button.v61-confirm{@apply tw:border-cali-brand;background:#5a1e2d;@apply tw:text-white}
 .v61-confirm-close{@apply tw:absolute tw:right-[14px];@apply tw:top-[14px] tw:w-[32px] tw:h-[32px] tw:p-0;border:0;@apply tw:rounded-[8px];background:#f4efeb;color:#4c403b;@apply tw:text-[20px];line-height:1;@apply tw:cursor-pointer}
 .reports-governance-v61{@apply tw:flex tw:items-center tw:gap-[10px];margin:-2px 0 14px;padding:10px 14px;border:1px solid rgba(181,140,82,.32);@apply tw:rounded-[10px];background:rgba(231,198,111,.11);color:#4b4038;@apply tw:text-[12px];line-height:1.45}
-.reports-governance-v61 strong{color:#5a1e2d;@apply tw:whitespace-nowrap}
+.reports-governance-v61 strong{@apply tw:text-cali-brand;@apply tw:whitespace-nowrap}
 .v61-client-question-backdrop{@apply tw:fixed tw:inset-0 tw:z-420 tw:grid tw:place-items-center tw:p-[22px];background:rgba(20,13,15,.5);backdrop-filter:blur(6px)}
-.client-report-question-modal-v61{@apply tw:relative tw:box-border;width:min(560px,94vw);@apply tw:max-w-[560px] tw:p-[24px];border:1px solid #e3d8d1;@apply tw:rounded-[14px];background:#fffdfa;box-shadow:0 24px 70px rgba(39,24,28,.22);font-family:Inter,system-ui,sans-serif;color:#2b2b2b}
-.client-report-question-modal-v61 .section-kicker{@apply tw:block;color:#b58c52;@apply tw:text-[10px];font-weight:700;letter-spacing:.12em}
+.client-report-question-modal-v61{@apply tw:relative tw:box-border;width:min(560px,94vw);@apply tw:max-w-[560px] tw:p-[24px];border:1px solid #e3d8d1;@apply tw:rounded-[14px];background:#fffdfa;box-shadow:0 24px 70px rgba(39,24,28,.22);font-family:Inter,system-ui,sans-serif;@apply tw:text-cali-ink}
+.client-report-question-modal-v61 .section-kicker{@apply tw:block;@apply tw:text-cali-gold;@apply tw:text-[10px];font-weight:700;letter-spacing:.12em}
 .client-report-question-modal-v61 h2{@apply tw:text-[18px];margin:6px 0 8px;color:#2b2024}
 .client-report-question-modal-v61>p{@apply tw:m-0 tw:text-[13px];line-height:1.55;color:#746861}
 .client-report-question-modal-v61 label{@apply tw:grid tw:gap-[7px] tw:mt-[14px]}
 .client-report-question-modal-v61 label>span{@apply tw:text-[12px];font-weight:600;color:#655951}
-.client-report-question-modal-v61 textarea{@apply tw:box-border tw:w-full;min-height:130px;@apply tw:resize-y;border:1px solid #dfd4cd;@apply tw:rounded-[10px];background:#fff;padding:11px 12px;color:#2b2b2b;font:400 13px/1.55 Inter,system-ui,sans-serif}
+.client-report-question-modal-v61 textarea{@apply tw:box-border tw:w-full;min-height:130px;@apply tw:resize-y;border:1px solid #dfd4cd;@apply tw:rounded-[10px];background:#fff;padding:11px 12px;@apply tw:text-cali-ink;font:400 13px/1.55 Inter,system-ui,sans-serif}
 .client-report-question-deadline-v61{@apply tw:mt-[8px] tw:text-[12px];color:#8a7a80}
 .client-report-question-modal-v61 .modal-actions{@apply tw:flex tw:justify-end tw:gap-[8px] tw:mt-[16px]}
 .client-report-question-modal-v61 .modal-actions button{@apply tw:min-h-[38px];padding:0 16px;@apply tw:rounded-[8px];font:600 13px Inter,system-ui,sans-serif;@apply tw:cursor-pointer;border:1px solid #e3d6cc;background:#fff;color:#3e3533}
-.client-report-question-modal-v61 .modal-actions button:last-child{border-color:#5a1e2d;background:#5a1e2d;color:#fff}
+.client-report-question-modal-v61 .modal-actions button:last-child{@apply tw:border-cali-brand;background:#5a1e2d;@apply tw:text-white}
 .client-report-question-modal-v61 .modal-close{@apply tw:absolute tw:right-[14px];@apply tw:top-[14px] tw:w-[32px] tw:h-[32px];border:0;@apply tw:rounded-[8px];background:#f4efeb;color:#4c403b;@apply tw:text-[20px] tw:cursor-pointer}
 .client-report-question-v61{border-color:rgba(181,140,82,.55)!important;color:#765817!important}
 /* Relatórios: botão de fechamento oficial bloqueado precisa parecer bloqueado e dizer quando libera (15/10). */

@@ -12,6 +12,19 @@ A validação usa registros representativos do legado com dados sanitizados. Inc
 
 A rodada de execução avança pelos critérios abaixo até o aceite local e o Preview previsto. Cada checkpoint registra o resultado e alimenta o lote seguinte. A execução continua após verificações e correções recuperáveis. Um bloqueio que depende de informação, acesso ou decisão externa exige comunicar o que falta e concluir o trabalho independente. O [ambiente de partida](RUNBOOK.md#ambiente-local-desta-consolidação) usa o schema restaurado e dados sintéticos.
 
+## Critérios de encerramento
+
+O agente decide a implementação. Reduções de escopo e exceções aos critérios de aceite dependem de decisão explícita do responsável pelo projeto. Uma solução intermediária preserva a operação durante o trabalho. A etapa fecha quando a revisão final demonstra cada critério. Um bloqueio tem item, evidência e dependência identificados. O trabalho independente continua.
+
+| Área | Prova de encerramento |
+| --- | --- |
+| Tailwind | Retirada do carregador e dos imports das folhas legadas. Regras comuns usam utilitários e tokens. Impressão, animações e estilos calculados ficam junto à superfície que os usa. Compare páginas e componentes com a `main` e registre diferenças intencionais. |
+| Arquitetura | Fluxos têm donos explícitos. Consultas e mutações usam adaptadores por domínio. Efeitos legados acordados para retirada têm substituto com prova de gatilho, resultado e limpeza. URLs, dados e permissões preservam os contratos publicados. |
+| Bibliotecas | Inventário por fluxo mostra onde Router, Query, Form, Zod, Axios, date-fns e Tailwind se aplicam. Verifique a integração nos consumidores, com tipos, contratos e testes de comportamento. |
+| Testes | Matriz relaciona ações de páginas e componentes, regras de módulos e contratos de APIs aos testes que os exercitam. Registre os cenários, o resultado e a revisão. Catálogo de RPCs, testes de comportamento e comparação visual têm provas próprias. |
+| Banco local | Restaurar o dump de estrutura do CALI MAPA no laboratório isolado, aplicar as migrations da branch e validar catálogo e comportamento com dados de teste. O replay parte desse dump. |
+| Preview | Publicar somente após o aceite local da revisão final, com backend, credenciais e destinos externos próprios de teste. |
+
 ## Etapas e critérios de passagem
 
 | Etapa | Trabalho | Critério de passagem |

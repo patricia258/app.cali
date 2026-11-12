@@ -1,9 +1,8 @@
 /* Menção com @ nas conversas. Um único ouvinte para todos os campos de conversa do Workspace (ocorrências, entregável e
    subtarefa, nos três perfis): ao digitar @ aparece a lista de pessoas; escolher uma escreve "@Nome Completo" na mensagem.
    Quem recebe o aviso é decidido no banco, pelo nome escrito. Aqui é só a ajuda de digitação. */
-import { supabase } from '../../api/supabase';
-
-type Person = { id: string; full_name: string; label: string };
+import { observeWorkspaceSession } from '../../api/access/session';
+import { listMentionCandidates, type MentionCandidate as Person } from '../../api/workspace/mentions';
 
 const CHAT_FIELD = '[class*="chat"],[class*="conversation"],[class*="compose"],[class*="thread"],.wf-record-drawer,.v2-stm';
 let people: Person[] | null = null;
@@ -13,13 +12,25 @@ let field: HTMLTextAreaElement | null = null;
 let matches: Person[] = [];
 let active = 0;
 let start = -1;
+let actorId: string | null = null;
 
 const plain = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 async function loadPeople() {
   if (people) return people;
-  if (!supabase) return [];
-  if (!loading) loading = (async () => { const result = await supabase!.rpc('mention_candidates'); people = result.error ? [] : ((result.data || []) as Person[]).sort((a, b) => a.full_name.localeCompare(b.full_name, 'pt-BR')); if (result.error) loading = null; return people || []; })();
+  if (!actorId) return [];
+  if (!loading) {
+    const owner = actorId;
+    loading = listMentionCandidates().then((result) => {
+      if (owner !== actorId) return [];
+      if (!result) {
+        loading = null;
+        return [];
+      }
+      people = result.sort((a, b) => a.full_name.localeCompare(b.full_name, 'pt-BR'));
+      return people;
+    });
+  }
   return loading;
 }
 
@@ -88,6 +99,14 @@ function onKeyDown(event: KeyboardEvent) {
 let installed = false;
 export function installMentionRuntime() {
   if (installed || typeof document === 'undefined') return; installed = true;
+  observeWorkspaceSession((session) => {
+    const userId = session?.user.id ?? null;
+    if (userId === actorId) return;
+    actorId = userId;
+    people = null;
+    loading = null;
+    close();
+  });
   document.addEventListener('input', (event) => { void onInput(event); }, true);
   // Na fase de captura, para a tecla Enter escolher a pessoa antes de a conversa entender como "enviar".
   document.addEventListener('keydown', onKeyDown, true);

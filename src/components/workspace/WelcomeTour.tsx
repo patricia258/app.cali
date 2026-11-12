@@ -6,7 +6,7 @@ import { DialogFrame } from '../ds/DialogFrame';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, Play, X } from 'lucide-react';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
-import { supabase } from '../../api/supabase';
+import { hasSeenWorkspaceWelcome, markWorkspaceWelcomeSeen } from '../../api/workspace/welcome';
 
 export const WELCOME_OPEN_EVENT = 'cali:welcome-open';
 type Step = { href?: string; label: string; title: string; text: string };
@@ -34,9 +34,9 @@ export function WelcomeTour({ steps: custom }: { steps?: Step[] } = {}) {
     if (!key || !user?.id) return; let alive = true;
     try { if (localStorage.getItem(key)) return; } catch { return; /* sem armazenamento: não insiste */ }
     void (async () => {
-      const result = supabase ? await supabase.from('welcome_views').select('user_id').eq('user_id', user.id).limit(1) : null;
+      const seen = await hasSeenWorkspaceWelcome(user.id);
       if (!alive) return;
-      if (result && !result.error && (result.data || []).length) { try { localStorage.setItem(key, 'db'); } catch { /* segue */ } return; }
+      if (seen) { try { localStorage.setItem(key, 'db'); } catch { /* segue */ } return; }
       setIndex(0);
     })();
     return () => { alive = false; };
@@ -49,7 +49,7 @@ export function WelcomeTour({ steps: custom }: { steps?: Step[] } = {}) {
     return () => document.querySelectorAll('.v2-tour-focus').forEach((node) => node.classList.remove('v2-tour-focus'));
   }, [step]);
   if (index == null || !step) return null;
-  const close = () => { try { if (key) localStorage.setItem(key, new Date().toISOString()); } catch { /* segue */ } if (supabase && user?.id) void supabase.from('welcome_views').upsert({ user_id: user.id }, { onConflict: 'user_id', ignoreDuplicates: true }).then(() => undefined); setIndex(null); };
+  const close = () => { try { if (key) localStorage.setItem(key, new Date().toISOString()); } catch { /* segue */ } if (user?.id) void markWorkspaceWelcomeSeen(user.id); setIndex(null); };
   const last = index === steps.length - 1;
   return <div className="v2-welcome-overlay"><DialogFrame className="v2-welcome" aria-label="Apresentação do CALI Workspace" key={index}>
     <header><span>{step.label}</span><button type="button" onClick={close} aria-label="Fechar apresentação"><X size={16} /></button></header>

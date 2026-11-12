@@ -98,6 +98,54 @@ registerDeliveryDependencies((name, fixture, check, setup) => component(name, fi
 
 const focused = (locator) => locator.evaluate((element) => element === document.activeElement);
 
+component('Mídia privada · coalescência e descarte de resposta de sessão encerrada', 'workspaceMedia', async (page, state) => {
+  try {
+    const firstRequest = page.waitForRequest((request) => request.method() === 'POST' && new URL(request.url()).pathname === state.pathname);
+    await page.getByRole('button', { name: 'Abrir sessão anterior', exact: true }).click();
+    await firstRequest;
+    await page.getByRole('button', { name: 'Trocar sessão', exact: true }).click();
+    const next = page.getByRole('status', { name: 'nova', exact: true });
+    await next.waitFor();
+    const urls = JSON.parse(await next.textContent());
+    assert.equal(urls.length, 2);
+    assert.equal(urls[0], urls[1]);
+    assert.match(urls[0], /token=segunda/);
+    await page.getByRole('button', { name: 'Consultar novamente', exact: true }).click();
+    const cached = page.getByRole('status', { name: 'cache', exact: true });
+    await cached.waitFor();
+    assert.deepEqual(JSON.parse(await cached.textContent()), urls);
+  } finally {
+    state.releaseFirstRequest();
+  }
+  const previous = page.getByRole('status', { name: 'anterior', exact: true });
+  await previous.waitFor();
+  assert.deepEqual(JSON.parse(await previous.textContent()), ['', '']);
+  assert.equal(state.requests, 2);
+}, undefined, async (context, _page, origin) => {
+  let finishFirst;
+  const delayed = new Promise((resolve) => { finishFirst = resolve; });
+  const pathname = '/storage/v1/object/sign/cali-workspace-private/qa-company/logo.png';
+  const state = { requests: 0, pathname, releaseFirstRequest: finishFirst };
+  await context.route((url) => url.origin === supabaseOrigin && url.pathname === pathname, async (route) => {
+    const request = route.request();
+    const headers = {
+      'access-control-allow-origin': origin,
+      'access-control-allow-headers': request.headers()['access-control-request-headers'] || '*',
+      'access-control-allow-methods': 'POST, OPTIONS',
+    };
+    if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
+    assert.equal(request.method(), 'POST');
+    assert.equal(request.postDataJSON().expiresIn, 3600);
+    const first = ++state.requests === 1;
+    if (first) await delayed;
+    return route.fulfill({
+      headers,
+      json: { signedURL: '/object/sign/cali-workspace-private/qa-company/logo.png?token=' + (first ? 'primeira' : 'segunda') },
+    });
+  });
+  return state;
+});
+
 component('ReportManualComplementsPanel · edição, total, estado concluído e remoção', 'manualComplements', async (page) => {
   await page.getByText('Nenhum complemento manual', { exact: true }).waitFor();
   const groups = page.locator('.reports-v21-manual-group');
@@ -129,6 +177,7 @@ for (const [viewport, width, height] of [
       await gallery.waitFor();
       await page.evaluate((theme) => {
         document.documentElement.dataset.workspaceUi = 'v2';
+        document.documentElement.dataset.workspaceSurface = 'component-preview';
         document.documentElement.dataset.workspaceTheme = theme;
         document.documentElement.style.colorScheme = theme === 'night' ? 'dark' : 'light';
       }, theme);

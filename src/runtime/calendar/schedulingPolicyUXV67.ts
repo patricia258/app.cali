@@ -1,5 +1,6 @@
 import STYLE from './scheduling-policy-uxv67.css?inline';
-import { supabase } from '../../api/supabase';
+import { isSupabaseConfigured } from '../../api/access/session';
+import { readAgendaCompliance, readRecentSchedulingRequestBilling } from '../../api/calendar/requests';
 
 type AgendaPolicyV67 = {
   plan?: string | null;
@@ -54,11 +55,11 @@ function monthRange() {
 }
 
 async function loadClientPolicy() {
-  if (!supabase || policyLoading || policy || location.pathname !== '/cliente/cronograma') return;
+  if (!isSupabaseConfigured || policyLoading || policy || location.pathname !== '/cliente/cronograma') return;
   policyLoading = true;
   try {
     const { start, end } = monthRange();
-    const { data, error } = await supabase.rpc('my_agenda_compliance_v66', { p_period_start: start, p_period_end: end });
+    const { data, error } = await readAgendaCompliance(start, end);
     if (error) throw error;
     policy = (data || {}) as AgendaPolicyV67;
   } catch (error) {
@@ -70,14 +71,10 @@ async function loadClientPolicy() {
 }
 
 async function loadAdminRequests() {
-  if (!supabase || adminLoading || adminLoaded || location.pathname !== '/admin/calendario') return;
+  if (!isSupabaseConfigured || adminLoading || adminLoaded || location.pathname !== '/admin/calendario') return;
   adminLoading = true;
   try {
-    const { data, error } = await supabase
-      .from('scheduling_requests')
-      .select('id,request_mode,billable_extra,billing_acknowledged_at,urgency_level,urgency_fee_applies')
-      .order('created_at', { ascending: false })
-      .limit(60);
+    const { data, error } = await readRecentSchedulingRequestBilling();
     if (error) throw error;
     adminRequests = new Map(((data || []) as AdminRequestV67[]).map((row) => [row.id, row]));
     adminLoaded = true;

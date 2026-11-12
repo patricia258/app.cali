@@ -3,9 +3,11 @@ import { FilterSelect } from '../../../components/ds/FilterSelect';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { LoadingState } from '../../../components/ds/LoadingState';
 import { useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, RefreshCw, Search } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { supabase } from '../../../api/supabase';
+import { auditSourceLimit, auditTimelineKey, readAuditTimeline } from '../../../api/admin/audit/timeline';
+import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 import { PrivacyRequestsPanel } from '../companies/components/PrivacyRequestsPanel';
 
 /* Auditoria (só administradora): reúne em uma lista o que o sistema já registra — quem fez o quê, quando e em qual empresa.
@@ -15,7 +17,6 @@ import { PrivacyRequestsPanel } from '../companies/components/PrivacyRequestsPan
 type Row = { id: string; at: string; actor: string | null; company: string | null; area: Area; action: string; detail: string; protocol: string };
 type Area = 'Acesso' | 'Horas' | 'Relatórios' | 'Agenda' | 'Documentos' | 'Ocorrências' | 'Equipe' | 'Projetos' | 'Outros';
 const AREAS: Area[] = ['Acesso', 'Horas', 'Relatórios', 'Agenda', 'Documentos', 'Ocorrências', 'Equipe', 'Projetos', 'Outros'];
-const LIMIT = 400;
 
 const activityLabels: Record<string, [Area, string]> = {
   workspace_access_code_requested: ['Acesso', 'Pediu código de acesso'], privacy_request_created: ['Acesso', 'Fez um pedido de privacidade (LGPD)'], privacy_request_answered: ['Acesso', 'Respondeu um pedido de privacidade'], privacy_data_exported: ['Acesso', 'Baixou os próprios dados'], company_data_exported: ['Acesso', 'Exportou os dados da empresa (fim de contrato)'], workspace_access_code_verified: ['Acesso', 'Entrou com código de acesso'], workspace_access_requested: ['Acesso', 'Solicitou acesso ao Workspace'],
@@ -41,37 +42,34 @@ const shortDay = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-dig
 const hour = (iso: string) => new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
 
 export function AdminAuditPage() {
+  const { user } = useWorkspaceAuth();
+  const queryClient = useQueryClient();
   const [rows, setRows] = useState<Row[]>([]); const [names, setNames] = useState<Record<string, string>>({}); const [companies, setCompanies] = useState<{ id: string; display_name: string }[]>([]);
   const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [partial, setPartial] = useState<string[]>([]);
   const [company, setCompany] = useState(''); const [area, setArea] = useState(''); const [actor, setActor] = useState(''); const [period, setPeriod] = useState('30'); const [search, setSearch] = useState(''); const [shown, setShown] = useState(60); const [grouping, setGrouping] = useState<'day' | 'protocol'>('day'); const [trail, setTrail] = useState(''); const [kinds, setKinds] = useState<Record<string, string>>({});
 
   async function load() {
-    if (!supabase) return; setLoading(true); setError('');
-    const db = supabase; const failed: string[] = [];
-    const get = async (label: string, table: string, columns: string, order = 'created_at') => { const result = await db.from(table).select(columns).order(order, { ascending: false }).limit(LIMIT); if (result.error) { failed.push(label); return [] as any[]; } return (result.data || []) as any[]; };
+    if (!user) return;
+    setLoading(true); setError('');
     try {
-      const [activity, team, priv, status, lifecycle, reports, people, firms, members, ...protocolSources] = await Promise.all([
-        get('atividades', 'activity_log', 'id,company_id,actor_user_id,event_type,entity_type,entity_id,metadata,created_at'),
-        get('equipe', 'team_changes', 'id,company_id,member_id,change_type,actor_user_id,created_at'),
-        get('dados restritos', 'team_private_audit', 'id,company_id,member_id,actor_user_id,changed_fields,created_at'),
-        get('entregas', 'deliverable_status_history', 'id,company_id,deliverable_id,from_status,to_status,actor_user_id,note,created_at'),
-        get('projetos', 'project_lifecycle_events', 'id,company_id,project_id,scope_type,scope_label,action,reason,created_by,created_at'),
-        get('leitura de relatórios', 'report_client_events', 'id,company_id,report_id,user_id,event_type,created_at'),
-        get('pessoas', 'profiles', 'id,full_name', 'full_name'), get('empresas', 'companies', 'id,display_name', 'display_name'), get('equipe (nomes)', 'team_members', 'id,full_name', 'full_name'),
-        ...['account_records', 'deliverables', 'events', 'files', 'reports', 'projects', 'notices'].map((table) => get('protocolos', table, 'id,protocol', 'id')),
-      ]);
+      const { activity, team, priv, status, lifecycle, reports, people, firms, members, protocolSources, failed } =
+        await queryClient.fetchQuery({
+          queryKey: auditTimelineKey(user.id),
+          queryFn: ({ signal }) => readAuditTimeline(signal),
+          staleTime: 0,
+        });
       const protocolOf = new Map<string, string>(); const kindOf: Record<string, string> = {}; const kindLabels = ['Ocorrência', 'Entrega', 'Compromisso', 'Documento', 'Relatório', 'Projeto', 'Aviso']; protocolSources.forEach((list, position) => list.forEach((item) => { if (item.protocol) { protocolOf.set(item.id, item.protocol); kindOf[item.protocol] = kindLabels[position]; } })); setKinds(kindOf);
       const reasonText = (value: unknown) => ({ under_30_seconds: '' } as Record<string, string>)[text(value)] ?? text(value);
       const member = new Map(members.map((item) => [item.id, item.full_name as string]));
       const out: Row[] = [];
-      activity.forEach((item) => { if (hidden.has(item.event_type)) return; const known = activityLabels[item.event_type]; const meta = item.metadata || {}; out.push({ id: `a${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: known?.[0] || 'Outros', action: known?.[1] || String(item.event_type).replace(/_/g, ' '), detail: [text(meta.title), reasonText(meta.reason) && `Motivo: ${reasonText(meta.reason)}`, text(meta.minutes) && `${text(meta.minutes)} min`].filter(Boolean).join(' · '), protocol: protocolOf.get(item.entity_id) || protocolOf.get(text(meta.record_id)) || protocolOf.get(text(meta.deliverable_id)) || protocolOf.get(text(meta.report_id)) || text(meta.protocol) }); });
-      team.forEach((item) => out.push({ id: `t${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: 'Equipe', action: teamLabels[item.change_type] || 'Atualizou a equipe', detail: member.get(item.member_id) || '', protocol: '' }));
-      priv.forEach((item) => out.push({ id: `p${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: 'Equipe', action: 'Alterou dados com acesso restrito', detail: [member.get(item.member_id), (item.changed_fields || []).map((field: string) => fieldLabels[field] || field).join(', ')].filter(Boolean).join(' · '), protocol: '' }));
-      status.forEach((item) => out.push({ id: `s${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: 'Projetos', action: 'Mudou a situação de uma entrega', detail: [`${statusLabels[item.from_status] || item.from_status || 'Início'} → ${statusLabels[item.to_status] || item.to_status}`, text(item.note)].filter(Boolean).join(' · '), protocol: protocolOf.get(item.deliverable_id) || '' }));
-      lifecycle.forEach((item) => out.push({ id: `l${item.id}`, at: item.created_at, actor: item.created_by, company: item.company_id, area: 'Projetos', action: `${lifecycleLabels[item.action] || 'Alterou'} ${item.scope_type === 'project' ? 'o projeto' : item.scope_type === 'workstream' ? 'uma frente' : 'uma entrega'}`, detail: [text(item.scope_label), text(item.reason) && `Motivo: ${text(item.reason)}`].filter(Boolean).join(' · '), protocol: protocolOf.get(item.project_id) || '' }));
+      activity.forEach((item) => { if (hidden.has(item.event_type)) return; const known = activityLabels[item.event_type]; const meta = item.metadata || {}; out.push({ id: `a${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: known?.[0] || 'Outros', action: known?.[1] || String(item.event_type).replace(/_/g, ' '), detail: [text(meta.title), reasonText(meta.reason) && `Motivo: ${reasonText(meta.reason)}`, text(meta.minutes) && `${text(meta.minutes)} min`].filter(Boolean).join(' · '), protocol: protocolOf.get(item.entity_id ?? '') || protocolOf.get(text(meta.record_id)) || protocolOf.get(text(meta.deliverable_id)) || protocolOf.get(text(meta.report_id)) || text(meta.protocol) }); });
+      team.forEach((item) => out.push({ id: `t${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: 'Equipe', action: teamLabels[item.change_type] || 'Atualizou a equipe', detail: member.get(item.member_id ?? '') || '', protocol: '' }));
+      priv.forEach((item) => out.push({ id: `p${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: 'Equipe', action: 'Alterou dados com acesso restrito', detail: [member.get(item.member_id ?? ''), (item.changed_fields || []).map((field: string) => fieldLabels[field] || field).join(', ')].filter(Boolean).join(' · '), protocol: '' }));
+      status.forEach((item) => out.push({ id: `s${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: 'Projetos', action: 'Mudou a situação de uma entrega', detail: [`${statusLabels[item.from_status ?? ''] || item.from_status || 'Início'} → ${statusLabels[item.to_status] || item.to_status}`, text(item.note)].filter(Boolean).join(' · '), protocol: protocolOf.get(item.deliverable_id) || '' }));
+      lifecycle.forEach((item) => out.push({ id: `l${item.id}`, at: item.created_at, actor: item.created_by, company: item.company_id, area: 'Projetos', action: `${lifecycleLabels[item.action] || 'Alterou'} ${item.scope_type === 'project' ? 'o projeto' : item.scope_type === 'workstream' ? 'uma frente' : 'uma entrega'}`, detail: [text(item.scope_label), text(item.reason) && `Motivo: ${text(item.reason)}`].filter(Boolean).join(' · '), protocol: protocolOf.get(item.project_id ?? '') || '' }));
       reports.forEach((item) => out.push({ id: `r${item.id}`, at: item.created_at, actor: item.user_id, company: item.company_id, area: 'Relatórios', action: reportEventLabels[item.event_type] || 'Cliente interagiu com o relatório', detail: '', protocol: protocolOf.get(item.report_id) || '' }));
       out.sort((a, b) => b.at.localeCompare(a.at));
-      setRows(out); setNames(Object.fromEntries(people.map((item) => [item.id, item.full_name]))); setCompanies(firms); setPartial(failed);
+      setRows(out); setNames(Object.fromEntries(people.map((item) => [item.id, item.full_name || '']))); setCompanies(firms); setPartial(failed);
     } catch (err) { setError(err instanceof Error ? err.message : 'Não foi possível carregar a auditoria.'); } finally { setLoading(false); }
   }
   useEffect(() => { void load(); }, []);
@@ -105,6 +103,6 @@ export function AdminAuditPage() {
     {trail && <section className="v2-audit-trail"><div><small>TRILHA DO ITEM · {(kinds[trail] || 'Item').toUpperCase()}</small><h2>{trail}</h2><p>Tudo o que foi registrado sobre este item, do mais recente ao mais antigo. Os filtros acima ficam suspensos enquanto a trilha está aberta.</p></div><dl><div><dt>Movimentações</dt><dd>{filtered.length}</dd></div><div><dt>Primeira</dt><dd>{filtered.length ? shortDay(filtered[filtered.length - 1].at) : '—'}</dd></div><div><dt>Última</dt><dd>{filtered.length ? shortDay(filtered[0].at) : '—'}</dd></div><div><dt>Quem participou</dt><dd>{trailPeople.join(', ') || '—'}</dd></div></dl><Button type="button" variant="workflowSecondary" onClick={() => setTrail('')}><ArrowLeft size={14} /> Voltar para a lista</Button></section>}
     {loading ? <LoadingState>Carregando auditoria…</LoadingState> : groups.length ? <div className="v2-audit-list">{groups.map((group) => <section key={group.day}><h2>{group.day}{byProtocol && group.protocol && <button type="button" className="v2-audit-open" onClick={() => openTrail(group.protocol)}>Ver trilha completa</button>}</h2><div className="wf-records">{group.items.map((row) => <div className="wf-record-row" key={row.id}><time>{byProtocol || trail ? <>{shortDay(row.at)}<br /></> : null}{hour(row.at)}</time><span className={`wf-tag v2-audit-area a-${AREAS.indexOf(row.area)}`}>{row.area}</span><div><strong>{row.action}</strong>{row.detail && <small>{row.detail}</small>}</div><span className="v2-audit-who"><small>Protocolo</small>{row.protocol ? <button type="button" className="v2-audit-protocol" title="Ver tudo o que aconteceu com este item" onClick={() => openTrail(row.protocol)}>{row.protocol}</button> : '—'}</span><span className="v2-audit-who"><small>Quem</small>{who(row.actor)}</span><span className="v2-audit-who"><small>Empresa</small>{row.company ? companyName.get(row.company) || '—' : '—'}</span></div>)}</div></section>)}{filtered.length > shown && <Button type="button" variant="workflowSecondary" className="v2-audit-more" onClick={() => setShown(shown + 60)}>Mostrar mais ({filtered.length - shown} restantes)</Button>}</div> : <div className="v2-audit-empty">Nenhum registro neste recorte. Amplie o período ou limpe os filtros.</div>}
     {partial.length > 0 && <InlineNotice className="v2-audit-partial"><strong>Auditoria incompleta:</strong> não foi possível ler {partial.join(', ')}. O restante aparece normalmente. Clique em “Atualizar”; se continuar, avise o suporte técnico.</InlineNotice>}
-    <p className="soft-note v2-audit-note">A lista mostra os {LIMIT} registros mais recentes de cada fonte (acessos, horas, relatórios, agenda, documentos, ocorrências, equipe e projetos). Diagnósticos técnicos do sistema não aparecem.</p>
+    <p className="soft-note v2-audit-note">A lista mostra os {auditSourceLimit} registros mais recentes de cada fonte (acessos, horas, relatórios, agenda, documentos, ocorrências, equipe e projetos). Diagnósticos técnicos do sistema não aparecem.</p>
   </div></div></div></Shell>;
 }

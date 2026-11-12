@@ -10,8 +10,8 @@ import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { markRuntimeV2 } from '../../../app/visualRoutes';
 import { applyVisualSystem } from '../../../components/workspace/visualSystem';
 import { loadPortalProposal, sendPortalProposal, type PortalProposal, type PortalSubmission } from '../../../api/commercial/portal';
-import { createPortalProposalPdfUrl } from '../../../lib/portalProposalPdf';
-import { supabase } from '../../../api/supabase';
+import { createPortalProposalPdfUrl } from '../../../api/commercial/proposal-pdf';
+import { endWorkspaceSession, readWorkspaceSession } from '../../../api/access/session';
 import { AdminProposalPreviewPageV2 } from './AdminProposalPreviewPageV2';
 
 type FullProposal=PortalProposal&{submission:PortalSubmission};
@@ -30,8 +30,7 @@ export function AdminProposalPreviewPageV3(){
     const onMessage=async(event:MessageEvent)=>{
       if(event.origin!==window.location.origin)return;
       if(event.data?.type==='CALI_PORTAL_SESSION_REQUEST'){
-        const {data}=await supabase!.auth.getSession();
-        const session=data.session;
+        const session = await readWorkspaceSession();
         const target=event.source as WindowProxy|null;
         target?.postMessage({
           type:'CALI_PORTAL_SESSION',
@@ -39,7 +38,7 @@ export function AdminProposalPreviewPageV3(){
         },event.origin);
       }
       if(event.data?.type==='CALI_PORTAL_SIGN_OUT'){
-        await supabase?.auth.signOut();
+        await endWorkspaceSession();
         window.location.assign('/');
       }
     };
@@ -63,7 +62,7 @@ export function AdminProposalPreviewPageV3(){
   };
 
   const archivedPdf=Boolean(proposal?.pdf_path);
-  useEffect(()=>{if(!archivedPdf)return;markRuntimeV2(window.location.pathname);void applyVisualSystem(window.location.pathname);},[archivedPdf]);
+  useEffect(()=>{if(!archivedPdf)return;markRuntimeV2(window.location.pathname);applyVisualSystem(window.location.pathname);},[archivedPdf]);
 
   async function send() {
     if (!proposal || sending || !['aprovada', 'enviada'].includes(proposal.status)) return;
@@ -91,7 +90,7 @@ export function AdminProposalPreviewPageV3(){
 
   if(!proposal.pdf_path)return <AdminProposalPreviewPageV2/>;
 
-  // PDF oficial arquivado: só um visualizador em volta do arquivo — usa a moldura V2. A prévia do rascunho (acima) fica nas folhas antigas.
+  // O PDF oficial arquivado abre no visualizador da moldura compacta.
 
   return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-proposals v2-admin-pdfview v2-client-module"><div className="ap-content"><div className="wf">
    <div className="wf-head"><div><small>PROPOSTAS / VERSÃO OFICIAL ARQUIVADA</small><h1>Proposta v{proposal.version} · {proposal.submission.company_name||proposal.submission.contact_name}</h1><p>Este é o PDF efetivamente salvo e enviado. O documento não é alterado pela plataforma.</p></div><div className="v2-head-actions"><Button variant="workflowSecondary" type="button" onClick={()=>navigate('/admin/propostas')}><ArrowLeft size={15}/> Propostas</Button><Button variant="workflowSecondary" type="button" onClick={()=>navigate(`/admin/propostas/${proposal.submission_id}/editar`)}><PencilLine size={15}/> Criar nova versão</Button>{pdfUrl&&<Button variant="workflowPrimary" type="button" onClick={()=>window.open(pdfUrl,'_blank','noopener,noreferrer')}><ExternalLink size={15}/> Abrir PDF original</Button>}</div></div>

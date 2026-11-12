@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from '../../../components/navigation/Link';
 import { BarChart3 } from 'lucide-react';
-import { supabase } from '../../../api/supabase';
+import { readManagementDiscCatalog } from '../../../api/disc/reports';
 import './gestao-banner.css';
 
 type Item = { id: string; title: string; released_at: string };
 
 export function GestaoBanner() {
   const [items, setItems] = useState<Item[]>([]);
-  useEffect(() => { if (supabase) void supabase.rpc('profile_gestao_list').then(({ data }) => setItems(Array.isArray(data) ? data as Item[] : [])); }, []);
+  useEffect(() => { void readManagementDiscCatalog().then(setItems); }, []);
   if (!items.length) return null;
   return <div className="cgp-banner">{items.map((item) => <Link key={item.id} to={`/cliente/perfil-comportamental/gestao/${item.id}`}>
     <BarChart3 size={18} aria-hidden="true" /><span><b>Relatório de gestão do perfil comportamental</b><small>{item.title} · liberado em {new Intl.DateTimeFormat('pt-BR').format(new Date(item.released_at))}</small></span>

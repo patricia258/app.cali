@@ -1,9 +1,13 @@
 import style from './google-calendar-runtime.css?inline';
-import { supabase } from '../../api/supabase';
+import { isSupabaseConfigured } from '../../api/access/session';
+import {
+  observeCalendarEventSync, readAdminGoogleConnection, readGoogleCalendarEvent,
+  refreshGoogleCalendarEvent, runGoogleCalendarOperation,
+} from '../../api/calendar/sync';
 import { isWorkspaceRoute } from '../routeActivity';
 
 let installed = false;
-let realtimeChannel: any = null;
+let unsubscribeRealtime: (() => void) | null = null;
 let observer: MutationObserver | null = null;
 let enhanceTimer: number | undefined;
 let renderInFlight = false;
@@ -23,21 +27,14 @@ function extractProtocol(text: string) { return text.match(/CALI-[A-Z]+-\d{4}-\d
 function protocolFromOpenModal() { return extractProtocol(document.querySelector<HTMLElement>('.calendar-detail-modal .calendar-protocol-badge')?.textContent || ''); }
 
 async function getOwnConnection(force = false) {
-  if (!supabase) return null;
+  if (!isSupabaseConfigured) return null;
   if (!force && Date.now() - connectionCacheAt < 120000) return connectionCache;
-  const { data: userData } = await supabase.auth.getUser();
-  const userId = userData.user?.id;
-  if (!userId) return null;
-  const { data } = await supabase.from('calendar_connections').select('id,user_id,company_id,account_email,status,sync_enabled,is_primary').eq('user_id', userId).eq('provider', 'google').is('company_id', null).eq('status', 'connected').eq('sync_enabled', true).eq('is_primary', true).limit(1).maybeSingle();
-  connectionCache = data || null;
+  connectionCache = await readAdminGoogleConnection();
   connectionCacheAt = Date.now();
   return connectionCache;
 }
-async function invoke(body: Record<string, unknown>) { if (!supabase) throw new Error('Supabase indisponível'); const { data, error } = await supabase.functions.invoke('google-calendar-oauth', { body }); if (error) throw error; if (data?.error) throw new Error(data.detail || data.error); return data; }
-async function refreshGoogleEvent(eventId: string) { if (!supabase) return null; const { data, error } = await supabase.functions.invoke('google-calendar-refresh-event', { body: { eventId } }); if (error) return null; return data || null; }
-
 async function renderConnection() {
-  if (!isCalendar() || !supabase || renderInFlight) return;
+  if (!isCalendar() || !isSupabaseConfigured || renderInFlight) return;
   const strip = document.querySelector<HTMLElement>('.calendar-workspace-strip');
   if (!strip) return;
   let host = strip.querySelector<HTMLElement>('.google-calendar-runtime-actions');
@@ -46,7 +43,7 @@ async function renderConnection() {
   if (!host.childElementCount) host.innerHTML = '<span class="google-calendar-runtime-detail">Verificando integração...</span>';
   renderInFlight = true;
   try {
-    const [config, connection] = await Promise.all([invoke({ action: 'config' }), getOwnConnection()]);
+    const [config, connection] = await Promise.all([runGoogleCalendarOperation({ action: 'config' }), getOwnConnection()]);
     const originalStatus = strip.querySelector<HTMLElement>('.calendar-connection-status'); if (originalStatus) originalStatus.style.display = 'none';
     const copy = strip.querySelector<HTMLElement>('div:nth-child(2) p');
     if (!config?.configured) {
@@ -71,37 +68,6 @@ async function renderConnection() {
   } finally { renderInFlight = false; }
 }
 
-async function enhanceEditorModal() {
-  if (!isCalendar() || !supabase) return;
-  const form = document.querySelector<HTMLFormElement>('.calendar-event-modal');
-  if (!form || form.querySelector('.google-calendar-runtime-form-settings')) return;
-  const body = form.querySelector<HTMLElement>('.calendar-modal-body'); if (!body) return;
-  const protocol = extractProtocol(form.querySelector<HTMLElement>('.calendar-modal-protocol')?.textContent || '');
-  let reminder = 30, auto = true;
-  if (protocol) { const { data } = await supabase.from('events').select('reminder_minutes,auto_transcription').eq('protocol', protocol).maybeSingle(); if (data) { reminder = Number(data.reminder_minutes ?? 30); auto = Boolean(data.auto_transcription); } }
-  const wrap = document.createElement('div'); wrap.className = 'google-calendar-runtime-form-settings';
-  wrap.innerHTML = `<label class="stacked-label">Lembrete<select data-google-reminder><option value="0">Sem lembrete</option><option value="10">10 minutos antes</option><option value="15">15 minutos antes</option><option value="30">30 minutos antes</option><option value="60">1 hora antes</option><option value="1440">1 dia antes</option></select></label><label class="google-calendar-runtime-transcription"><input type="checkbox" data-google-auto-transcription/><span><strong>Transcrição automática no Google Meet</strong><br><small>Quando o evento remoto tiver Meet, o Google inicia a transcrição se a conta permitir.</small></span></label>`;
-  body.appendChild(wrap);
-  const reminderInput = wrap.querySelector<HTMLSelectElement>('[data-google-reminder]'), transcriptionInput = wrap.querySelector<HTMLInputElement>('[data-google-auto-transcription]');
-  if (reminderInput) reminderInput.value = String(reminder); if (transcriptionInput) transcriptionInput.checked = auto;
-}
-
-async function persistEditorSettings(form: HTMLFormElement) {
-  if (!supabase) return;
-  const reminder = Number(form.querySelector<HTMLSelectElement>('[data-google-reminder]')?.value || 30), auto = Boolean(form.querySelector<HTMLInputElement>('[data-google-auto-transcription]')?.checked);
-  const protocol = extractProtocol(form.querySelector<HTMLElement>('.calendar-modal-protocol')?.textContent || ''), title = form.querySelector<HTMLInputElement>('.calendar-title-field input')?.value.trim() || '';
-  window.setTimeout(async () => {
-    try {
-      let row: any = null;
-      if (protocol) row = (await supabase!.from('events').select('id,sync_status').eq('protocol', protocol).maybeSingle()).data;
-      else if (title) { const { data: userData } = await supabase!.auth.getUser(); let query = supabase!.from('events').select('id,sync_status').eq('title', title).order('created_at', { ascending: false }).limit(1); if (userData.user?.id) query = query.eq('created_by', userData.user.id); row = (await query.maybeSingle()).data; }
-      if (!row?.id) return;
-      const payload: any = { reminder_minutes: reminder, auto_transcription: auto, updated_at: new Date().toISOString() }; if (row.sync_status === 'synced' || row.sync_status === 'error') payload.sync_status = 'pending';
-      await supabase!.from('events').update(payload).eq('id', row.id);
-    } catch (error) { console.error('Falha ao salvar preferências Google do evento', error); }
-  }, 700);
-}
-
 function applyAttendeeStatuses(refreshed: any) {
   if (!refreshed?.attendees) return;
   const statusMap = new Map<string, string>((refreshed.attendees || []).map((item: any) => [String(item.email || '').toLowerCase(), String(item.status || 'pending')]));
@@ -113,17 +79,17 @@ function applyAttendeeStatuses(refreshed: any) {
 }
 
 async function enhanceOpenEventModal() {
-  if (!isCalendar() || !supabase) return;
+  if (!isCalendar() || !isSupabaseConfigured) return;
   const modal = document.querySelector<HTMLElement>('.calendar-detail-modal'); if (!modal) return;
   const protocol = protocolFromOpenModal(); if (!protocol) return;
   if (modal.dataset.googleEnhancedProtocol === protocol || modal.dataset.googleEnhancingProtocol === protocol) return;
   modal.dataset.googleEnhancingProtocol = protocol;
   try {
-    let { data: eventRow } = await supabase.from('events').select('id,protocol,google_event_id,google_html_link,meeting_url,reminder_minutes,auto_transcription,sync_status').eq('protocol', protocol).maybeSingle();
+    let { data: eventRow } = await readGoogleCalendarEvent({ protocol });
     if (!eventRow) return;
     if (eventRow.google_event_id) {
-      const refreshed = await refreshGoogleEvent(String(eventRow.id)); applyAttendeeStatuses(refreshed);
-      const latest = await supabase.from('events').select('id,protocol,google_event_id,google_html_link,meeting_url,reminder_minutes,auto_transcription,sync_status').eq('id', eventRow.id).maybeSingle(); if (latest.data) eventRow = latest.data;
+      const refreshed = await refreshGoogleCalendarEvent(String(eventRow.id)); applyAttendeeStatuses(refreshed);
+      const latest = await readGoogleCalendarEvent({ id: eventRow.id }); if (latest.data) eventRow = latest.data;
     }
     const connection = await getOwnConnection();
     const body = modal.querySelector<HTMLElement>('.calendar-detail-body');
@@ -143,8 +109,8 @@ async function enhanceOpenEventModal() {
   } finally { delete modal.dataset.googleEnhancingProtocol; }
 }
 
-async function connect() { const button = document.querySelector<HTMLButtonElement>('[data-google-calendar-connect],[data-google-calendar-reconnect]'); if (button) { button.disabled = true; button.textContent = 'Abrindo Google...'; } try { const data = await invoke({ action: 'authorize', companyId: null }); if (!data?.url) throw new Error('URL de autorização não recebida'); window.location.assign(data.url); } catch (error) { alert(`Não foi possível iniciar a autorização do Google.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); if (button) { button.disabled = false; button.textContent = 'Conectar Google Calendar'; } } }
-async function disconnect() { if (!confirm('Desconectar este Google Calendar do CALI Workspace? Os eventos já criados no Google não serão apagados automaticamente.')) return; try { await invoke({ action: 'disconnect', companyId: null }); connectionCache = null; connectionCacheAt = 0; lastRenderKey = ''; document.querySelector<HTMLElement>('.google-calendar-runtime-actions')?.removeAttribute('data-google-connection-ready'); await renderConnection(); } catch (error) { alert(`Não foi possível desconectar.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); } }
+async function connect() { const button = document.querySelector<HTMLButtonElement>('[data-google-calendar-connect],[data-google-calendar-reconnect]'); if (button) { button.disabled = true; button.textContent = 'Abrindo Google...'; } try { const data = await runGoogleCalendarOperation({ action: 'authorize', companyId: null }); if (!data?.url) throw new Error('URL de autorização não recebida'); window.location.assign(data.url); } catch (error) { alert(`Não foi possível iniciar a autorização do Google.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); if (button) { button.disabled = false; button.textContent = 'Conectar Google Calendar'; } } }
+async function disconnect() { if (!confirm('Desconectar este Google Calendar do CALI Workspace? Os eventos já criados no Google não serão apagados automaticamente.')) return; try { await runGoogleCalendarOperation({ action: 'disconnect', companyId: null }); connectionCache = null; connectionCacheAt = 0; lastRenderKey = ''; document.querySelector<HTMLElement>('.google-calendar-runtime-actions')?.removeAttribute('data-google-connection-ready'); await renderConnection(); } catch (error) { alert(`Não foi possível desconectar.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); } }
 /* Confirmação de exclusão no padrão dos diálogos do Workspace (antes eram duas janelas nativas do navegador). */
 function askDeleteReason(): Promise<string | null> {
   return new Promise((resolve) => {
@@ -164,26 +130,28 @@ function askDeleteReason(): Promise<string | null> {
     field.focus();
   });
 }
-async function deleteEvent(eventId: string) { const reason = await askDeleteReason(); if (!reason) return; try { await invoke({ action: 'delete_event', eventId, reason: reason.trim() }); window.location.reload(); } catch (error) { alert(`Não foi possível excluir o evento.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); } }
+async function deleteEvent(eventId: string) { const reason = await askDeleteReason(); if (!reason) return; try { await runGoogleCalendarOperation({ action: 'delete_event', eventId, reason: reason.trim() }); window.location.reload(); } catch (error) { alert(`Não foi possível excluir o evento.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); } }
 
-function scheduleEnhance(delay = 80) { if (!isWorkspaceRoute('/admin/calendario', '/cliente/cronograma')) return; if (enhanceTimer) window.clearTimeout(enhanceTimer); enhanceTimer = window.setTimeout(() => { if (!isCalendar() || !isWorkspaceRoute('/admin/calendario', '/cliente/cronograma')) { uninstallRealtime(); return; } ensureStyle(); void renderConnection(); void enhanceEditorModal(); void enhanceOpenEventModal(); installRealtime(); }, delay); }
+function scheduleEnhance(delay = 80) { if (!isWorkspaceRoute('/admin/calendario', '/cliente/cronograma')) return; if (enhanceTimer) window.clearTimeout(enhanceTimer); enhanceTimer = window.setTimeout(() => { if (!isCalendar() || !isWorkspaceRoute('/admin/calendario', '/cliente/cronograma')) { uninstallRealtime(); return; } ensureStyle(); void renderConnection(); void enhanceOpenEventModal(); installRealtime(); }, delay); }
 function addedRelevantNode(node: Node) { if (!(node instanceof Element)) return false; return node.matches('.calendar-workspace-strip,.calendar-event-modal,.calendar-detail-modal') || Boolean(node.querySelector('.calendar-workspace-strip,.calendar-event-modal,.calendar-detail-modal')); }
 function installRealtime() {
-  if (!supabase || realtimeChannel || !isCalendar()) return;
-  realtimeChannel = supabase.channel('cali-google-calendar-sync').on('postgres_changes', { event: '*', schema: 'cali_workspace', table: 'events' }, async (payload: any) => {
-    const row = payload?.new || {}; if (!row?.id) return;
+  if (!isSupabaseConfigured || unsubscribeRealtime || !isCalendar()) return;
+  unsubscribeRealtime = observeCalendarEventSync(async (row) => {
+    if (!row.id) return;
     try {
-      if (row.cancelled_at && row.sync_status !== 'cancelled_google') await invoke({ action: 'cancel_event', eventId: row.id });
-      else if (!row.cancelled_at && ['pending', 'error'].includes(String(row.sync_status || ''))) await invoke({ action: 'sync_event', eventId: row.id });
+      if (row.cancelled_at && row.sync_status !== 'cancelled_google') await runGoogleCalendarOperation({ action: 'cancel_event', eventId: row.id });
+      else if (!row.cancelled_at && ['pending', 'error'].includes(String(row.sync_status || ''))) await runGoogleCalendarOperation({ action: 'sync_event', eventId: row.id });
       const modal = document.querySelector<HTMLElement>('.calendar-detail-modal'); if (modal) { delete modal.dataset.googleEnhancedProtocol; scheduleEnhance(100); }
     } catch (error) { console.error('Falha ao sincronizar evento com Google Calendar', error); }
-  }).subscribe();
+  });
 }
-function uninstallRealtime() { if (realtimeChannel && supabase) { void supabase.removeChannel(realtimeChannel); realtimeChannel = null; } }
+function uninstallRealtime() {
+  unsubscribeRealtime?.();
+  unsubscribeRealtime = null;
+}
 
 export function installGoogleCalendarRuntime() {
   if (installed) return; installed = true; ensureStyle();
-  document.addEventListener('submit', (event) => { const form = event.target as HTMLFormElement | null; if (form?.matches('.calendar-event-modal')) void persistEditorSettings(form); }, true);
   document.addEventListener('click', (event) => {
     const target = event.target as HTMLElement | null;
     if (target?.closest('[data-google-calendar-connect],[data-google-calendar-reconnect]')) { event.preventDefault(); void connect(); return; }

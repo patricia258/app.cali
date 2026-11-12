@@ -32,11 +32,11 @@ const AdminProposalsPageV2 = lazy(async () => {
   return import('../modules/admin/proposals/AdminProposalsPageV2').then((m) => ({ default: m.AdminProposalsPageV2 }));
 });
 const AdminProposalEditorPageV3 = lazy(async () => {
-  await import('../modules/admin/proposals/styles');
+  await import('../modules/admin/proposals/document-styles');
   return import('../modules/admin/proposals/AdminProposalEditorPageV3').then((m) => ({ default: m.AdminProposalEditorPageV3 }));
 });
 const AdminProposalPreviewPageV3 = lazy(async () => {
-  await import('../modules/admin/proposals/styles');
+  await import('../modules/admin/proposals/document-styles');
   return import('../modules/admin/proposals/AdminProposalPreviewPageV3').then((m) => ({ default: m.AdminProposalPreviewPageV3 }));
 });
 const AdminProjectsGatePage = lazy(async () => {
@@ -113,7 +113,7 @@ const StaffWorkspace = lazy(() => import('../modules/partner/StaffWorkspace').th
 const AdminNoticesPage = lazy(() => import('../modules/notices/NoticesBoard').then((m) => ({ default: m.AdminNoticesPage })));
 const ClientFrontsPage = lazy(() => import('../modules/client/fronts/ClientFrontsPage').then((m) => ({ default: m.ClientFrontsPage })));
 const ReportPrintPageV17 = lazy(async () => {
-  await import('../modules/reports/styles');
+  await import('../modules/reports/print-styles');
   return import('../modules/reports/ReportPrintPageV17').then((m) => ({ default: m.ReportPrintPageV17 }));
 });
 

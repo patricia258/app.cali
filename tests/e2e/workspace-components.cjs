@@ -2,6 +2,7 @@
 
 const assert = require('node:assert/strict');
 const { browserSuite } = require('./browser-suite.cjs');
+const { makeSession, part, sessionKey } = require('./browser-fixture.cjs');
 const { companyId, projectId, tables, user } = require('./fixtures.cjs');
 
 const apiOrigin = 'https://cali-local-qa.supabase.co';
@@ -212,6 +213,89 @@ const cases = [
         { p_notification_id: 'qa-external-alert' }, { p_notification_id: 'qa-file-alert' },
       ]);
       return { externalAddressBlocked: true, deepLink: true, readOncePerNotification: true };
+    },
+  },
+  {
+    id: 'workspace-notifications-follow-session-actor',
+    role: 'client',
+    async run({ page, context, origin }) {
+      const nextId = 'ce000000-0000-4000-8000-000000000007';
+      const replacement = makeSession();
+      const [header, encoded, signature] = replacement.access_token.split('.');
+      const claims = JSON.parse(Buffer.from(encoded, 'base64url').toString());
+      replacement.access_token = [header, part({ ...claims, sub: nextId, session_id: 'ce000000-0000-4000-8000-000000000008' }), signature].join('.');
+      replacement.user = { ...replacement.user, id: nextId };
+
+      await mockJson(context, origin, 'profiles', 'GET', (request) => {
+        const actor = new URL(request.url()).searchParams.get('id')?.slice(3);
+        const profile = { ...tables.profiles[0], id: actor || user.id, role: 'client' };
+        return { json: request.headers().accept?.includes('vnd.pgrst.object') ? profile : [profile] };
+      });
+      const reads = [];
+      await mockJson(context, origin, 'notifications', 'GET', (request) => {
+        const actor = new URL(request.url()).searchParams.get('user_id')?.slice(3);
+        reads.push(actor);
+        return { json: [{
+          id: 'notification-' + actor, title: actor === nextId ? 'Aviso do novo perfil' : 'Aviso do perfil anterior',
+          user_id: actor, read_at: null, created_at: '2026-11-12T12:00:00Z',
+        }] };
+      });
+
+      await page.goto(origin + '/cliente', { waitUntil: 'domcontentloaded' });
+      const bell = page.getByRole('button', { name: 'Notificações', exact: true });
+      await bell.click();
+      await page.getByText('Aviso do perfil anterior', { exact: true }).waitFor();
+      await page.evaluate(({ sessionKey, replacement, nextId }) => {
+        localStorage.setItem(`cali:welcome-seen:${nextId}`, 'qa');
+        localStorage.setItem(sessionKey, JSON.stringify(replacement));
+        const channel = new BroadcastChannel(sessionKey);
+        channel.postMessage({ event: 'SIGNED_IN', session: replacement });
+        channel.close();
+      }, { sessionKey, replacement, nextId });
+      await page.getByText('Aviso do perfil anterior', { exact: true }).waitFor({ state: 'hidden' });
+      await bell.click();
+      await page.getByText('Aviso do novo perfil', { exact: true }).waitFor();
+      assert.equal(await page.getByText('Aviso do perfil anterior', { exact: true }).count(), 0);
+      assert.deepEqual([...new Set(reads)], [user.id, nextId]);
+      return { scopedToSignedInActor: true, previousActorHidden: true };
+    },
+  },
+  {
+    id: 'workspace-logout-pauses-current-actor-timer',
+    role: 'admin',
+    async run({ page, context, origin }) {
+      const timer = {
+        id: 'ce000000-0000-4000-8000-000000000009',
+        company_id: companyId, user_id: user.id, status: 'active', paused_seconds: 0,
+        description: 'Revisão em andamento QA', started_at: '2026-11-12T12:00:00Z',
+      };
+      let checkedActor;
+      let paused = false;
+      await mockJson(context, origin, 'work_timers', 'GET', (request) => {
+        const query = new URL(request.url()).searchParams;
+        if (query.get('select') === 'id,description,started_at') {
+          checkedActor = query.get('user_id');
+          assert.equal(query.get('status'), 'eq.active');
+        }
+        return { json: paused ? [] : [timer] };
+      });
+      await mockRpc(context, origin, 'pause_work_timer', (body) => {
+        assert.deepEqual(body, { p_timer_id: timer.id });
+        paused = true;
+        return { json: true };
+      });
+
+      await page.goto(origin + '/admin', { waitUntil: 'domcontentloaded' });
+      await page.locator('.profile[aria-haspopup="menu"]').click();
+      await page.getByRole('menuitem', { name: 'Sair', exact: true }).click();
+      const guard = page.getByRole('alertdialog', { name: 'Cronômetro ligado', exact: true });
+      await guard.getByText(timer.description, { exact: true }).waitFor();
+      assert.equal(checkedActor, 'eq.' + user.id);
+      assert.equal(paused, false);
+      await guard.getByRole('button', { name: 'Pausar e sair', exact: true }).click();
+      await page.waitForURL((url) => url.pathname === '/');
+      assert.equal(paused, true);
+      return { currentActorTimer: true, pausedBeforeLogout: true };
     },
   },
   {

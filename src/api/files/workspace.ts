@@ -3,6 +3,13 @@ import { supabase } from '../supabase';
 
 const inlineMime = new Set(['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'image/gif']);
 
+export const workspaceStorageAvailable = supabase !== null;
+
+export async function signPrivateWorkspaceMedia(path: string, expiresIn: number) {
+  const result = await supabase?.storage.from('cali-workspace-private').createSignedUrl(path, expiresIn);
+  return result?.error ? null : result?.data.signedUrl ?? null;
+}
+
 async function readPrivateWorkspaceFile(path: string) {
   if (!supabase || !supabaseEnvironment) throw new Error('Serviço indisponível.');
   const parts = path.split('/');

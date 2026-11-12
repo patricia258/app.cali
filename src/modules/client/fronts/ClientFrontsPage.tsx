@@ -5,8 +5,9 @@ import { createPortal } from 'react-dom';
 import { ArrowUpRight, Check, ChevronDown, MessagesSquare, X } from 'lucide-react';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { activeFront, coreFront, eligibleMode, loadContractFronts, planName, type CompanyPlan, type ContractedFront, type Front, type Plan } from '../../../lib/contractFronts';
-import { supabase } from '../../../api/supabase';
+import { skipToken, useQuery } from '@tanstack/react-query';
+import { clientFrontsKey, readClientFronts, type Front, type Plan } from '../../../api/fronts/contracts';
+import { activeFront, coreFront, eligibleMode, planName } from '../../../lib/contractFronts';
 
 // Cali ADM — administrativo, financeiro e dúvidas de upgrade/escopo (41 8787-9244).
 const ADM_WHATSAPP='554187879244';
@@ -70,17 +71,16 @@ function PossibleCard({front,plan,onChoose}:{front:Front;plan:Plan;onChoose:(fro
 
 export function ClientFrontsPage(){
   const {user}=useWorkspaceAuth();
-  const [company,setCompany]=useState<CompanyPlan|null>(null),[catalog,setCatalog]=useState<Front[]>([]),[contracts,setContracts]=useState<ContractedFront[]>([]);
-  const [chosen,setChosen]=useState<Front|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState('');
+  const [chosen,setChosen]=useState<Front|null>(null);
+  const { data, error: queryError, isLoading: loading } = useQuery({
+    queryKey: clientFrontsKey(user?.id ?? ''),
+    queryFn: user ? ({ signal }) => readClientFronts(user.id, signal) : skipToken,
+  });
+  const company = data?.company ?? null;
+  const catalog = data?.catalog ?? [];
+  const contracts = data?.contracts ?? [];
+  const error = queryError instanceof Error ? queryError.message : queryError ? 'Não foi possível carregar o escopo.' : '';
   useEffect(()=>{if(!chosen)return;document.body.classList.add('workspace-modal-open');const onKeyDown=(event:KeyboardEvent)=>{if(event.key==='Escape')setChosen(null);};window.addEventListener('keydown',onKeyDown);return()=>{document.body.classList.remove('workspace-modal-open');window.removeEventListener('keydown',onKeyDown);};},[chosen]);
-  useEffect(()=>{let alive=true;async function load(){if(!supabase||!user){setLoading(false);return;}try{
-    const profile=await supabase.from('profiles').select('company_id').eq('id',user.id).maybeSingle();
-    if(profile.error||!profile.data?.company_id)throw new Error('Seu acesso ainda não está vinculado a uma empresa.');
-    const info=await supabase.from('companies').select('id,display_name,service_plan,service_type').eq('id',profile.data.company_id).maybeSingle();
-    if(info.error||!info.data)throw info.error||new Error('Empresa não encontrada.');
-    const result=await loadContractFronts(info.data.id);if(!alive)return;
-    setCompany(info.data as CompanyPlan);setCatalog(result.catalog);setContracts(result.contracts);
-  }catch(e){if(alive)setError(e instanceof Error?e.message:'Não foi possível carregar o escopo.');}finally{if(alive)setLoading(false);}}void load();return()=>{alive=false;};},[user?.id]);
   const plan=company?.service_plan||null;
   const active=useMemo(()=>contracts.filter(activeFront),[contracts]);
   const grouped=useMemo(()=>({included:catalog.filter(front=>coreFront(front,plan)), contracted:active.map(item=>({item,front:catalog.find(front=>front.code===item.front_code)})).filter(entry=>entry.front), possible:catalog.filter(front=>!coreFront(front,plan)&&!active.some(item=>item.front_code===front.code)&&eligibleMode(front,plan))}),[catalog,active,plan]);

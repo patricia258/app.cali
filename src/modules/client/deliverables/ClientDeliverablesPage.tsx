@@ -11,21 +11,21 @@ import { complexityMeta, complexityRange, complexityClientNote, validDeliverable
 import { AlertCircle, AlertTriangle, ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileCheck2, FileText, FolderKanban, History, Leaf, Loader2, MessageCircle, RefreshCw, Star, X } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import {
-  loadClientDeliveryReality,
+  loadClientDeliveryReality, approveClientDeliveryReview, readClientDeliveryCompany, requestClientDeliveryAdjustment,
   subscribeClientDeliveryReality,
   type ClientDeliveryItem,
   type ClientDeliveryReality,
   type ClientDeliveryStatus,
   type ClientDeliveryWorkstream,
   type ClientPublishedDocument,
-} from '../../../lib/clientDeliveryReality';
+} from '../../../api/projects/client-delivery';
 import {
   loadClientDeliverableConversation,
   sendClientDeliverableMessage,
   subscribeClientDeliverableConversation,
   type ClientDeliverableMessage,
-} from '../../../lib/clientDeliverableConversation';
-import { supabase } from '../../../api/supabase';
+} from '../../../api/projects/client-conversation';
+import { isSupabaseConfigured } from '../../../api/access/session';
 
 type DetailTab = 'overview' | 'tasks' | 'conversation' | 'history';
 
@@ -157,7 +157,7 @@ export function ClientDeliverablesPage() {
   </>;
 
   useEffect(() => {
-    if (!supabase) return;
+    if (!isSupabaseConfigured) return;
     void bootstrap();
     return () => { if (refreshTimer.current) window.clearTimeout(refreshTimer.current); };
   }, []);
@@ -196,18 +196,11 @@ export function ClientDeliverablesPage() {
   }, [detailActionOpen]);
 
   async function bootstrap() {
-    if (!supabase) return;
+    if (!isSupabaseConfigured) return;
     setLoading(true);
     setError('');
     try {
-      const userResult = await supabase.auth.getUser();
-      if (userResult.error) throw userResult.error;
-      const userId = userResult.data.user?.id;
-      if (!userId) throw new Error('Sessão do cliente não encontrada.');
-      const profileResult = await supabase.from('profiles').select('company_id').eq('id', userId).maybeSingle();
-      if (profileResult.error) throw profileResult.error;
-      const nextCompanyId = profileResult.data?.company_id || '';
-      if (!nextCompanyId) throw new Error('Este acesso ainda não está vinculado a uma empresa.');
+      const nextCompanyId = await readClientDeliveryCompany();
       setCompanyId(nextCompanyId);
       applyReality(await loadClientDeliveryReality(nextCompanyId), true);
     } catch (requestError) {
@@ -296,11 +289,8 @@ export function ClientDeliverablesPage() {
     setSaving(true);
     setReviewError(null);
     try {
-      if (!supabase) throw new Error('Serviço indisponível. Tente novamente em instantes.');
-      const result = await supabase.rpc('client_request_deliverable_adjustment_v2', {
-        p_deliverable_id: target.id, p_review_revision: target.revision, p_review_requested_at: target.requestedAt,
-        p_reason: adjustmentText.trim(),
-      });
+      if (!isSupabaseConfigured) throw new Error('Serviço indisponível. Tente novamente em instantes.');
+      const result = await requestClientDeliveryAdjustment(target, adjustmentText.trim());
       if (result.error) {
         setReviewError({ message: result.error.message, stale: result.error.code === '40001' });
         return;
@@ -322,11 +312,8 @@ export function ClientDeliverablesPage() {
     setSaving(true);
     setReviewError(null);
     try {
-      if (!supabase) throw new Error('Serviço indisponível. Tente novamente em instantes.');
-      const result = await supabase.rpc('client_approve_deliverable_review_v2', {
-        p_deliverable_id: target.id, p_review_revision: target.revision, p_review_requested_at: target.requestedAt,
-        p_score: score, p_comment: npsComment.trim() || null,
-      });
+      if (!isSupabaseConfigured) throw new Error('Serviço indisponível. Tente novamente em instantes.');
+      const result = await approveClientDeliveryReview(target, score, npsComment.trim() || null);
       if (result.error) {
         setReviewError({ message: result.error.message, stale: result.error.code === '40001' });
         return;
@@ -344,7 +331,7 @@ export function ClientDeliverablesPage() {
   }
 
   async function openPublishedDocument(document: ClientPublishedDocument) {
-    if (!supabase) return;
+    if (!isSupabaseConfigured) return;
     if (document.storagePath) {
       try {
         await openPrivateWorkspaceFile(document.storagePath);

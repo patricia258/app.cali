@@ -31,11 +31,19 @@ const suites = [
   { name: 'workspace-components' },
   { name: 'admin-company-panels' },
   { name: 'project-components' },
-  { name: 'project-history-bridge' },
+  { name: 'project-history' },
   { name: 'agenda-components' },
   { name: 'agenda-visits' },
   { name: 'team-components' },
   { name: 'hours-capacity' },
+  { name: 'hours-actions' },
+  { name: 'review-workflows' },
+  { name: 'client-read-and-copy' },
+  { name: 'public-questionnaires' },
+  { name: 'report-and-staff-actions' },
+  { name: 'report-draft' },
+  { name: 'record-history' },
+  { name: 'surface-styles' },
 ];
 
 function main() {

@@ -1,0 +1,16 @@
+@reference "../../styles/tailwind.css";
+
+.google-calendar-runtime-form-settings{@apply tw:grid;grid-template-columns:1fr 1fr;@apply tw:gap-[14px];margin-top:4px}
+.google-calendar-runtime-transcription{@apply tw:flex tw:items-center tw:gap-[10px];border:1px solid #e5dad4;@apply tw:rounded-[12px];padding:12px 14px;background:#fbf8f5;@apply tw:text-[13px];color:#5b5053}.google-calendar-runtime-transcription input{accent-color:#5a1e2d;width:17px;height:17px}
+
+[data-workspace-theme='night'] .google-calendar-runtime-transcription {
+  background: #281d20;
+  border-color: #5b444b;
+  color: #c8b8bc;
+}
+
+@media (max-width: 760px) {
+  .google-calendar-runtime-form-settings {
+    grid-template-columns: 1fr;
+  }
+}

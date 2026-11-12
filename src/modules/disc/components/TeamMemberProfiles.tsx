@@ -2,7 +2,7 @@
 import { Fragment, useEffect, useState } from 'react';
 import { Link } from '../../../components/navigation/Link';
 import { ExternalLink } from 'lucide-react';
-import { supabase } from '../../../api/supabase';
+import { readMemberDiscHistory } from '../../../api/disc/reports';
 import { STYLES, bandOf, type Scores, type Style } from '../profileMethod';
 import { STYLE_CONTENT } from '../profileContent';
 import '../../admin/disc/profile-admin.css';
@@ -12,10 +12,9 @@ type Row = { id: string; created_at: string; primary_style: Style; secondary_sty
 export function TeamMemberProfiles({ memberId, admin }: { memberId: string; admin: boolean }) {
   const [rows, setRows] = useState<Row[] | null>(null);
   useEffect(() => {
-    if (!admin || !supabase) return;
+    if (!admin) return;
     let alive = true;
-    void supabase.from('profile_results').select('id,created_at,primary_style,secondary_style,mixed,scores').eq('team_member_id', memberId).order('created_at', { ascending: false })
-      .then(({ data }) => { if (alive) setRows((data || []) as Row[]); });
+    void readMemberDiscHistory(memberId).then((data) => { if (alive) setRows(data as Row[]); });
     return () => { alive = false; };
   }, [admin, memberId]);
 

@@ -3,7 +3,10 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from '../../components/navigation/Link';
 import { useParams } from '../../hooks/useParams';
 import { ArrowLeft, Download, Printer } from 'lucide-react';
-import { anonPublicRpc, supabase } from '../../api/supabase';
+import {
+  downloadRespondentReport, readDiscSigner, readEvaluatorCompanyContext, readEvaluatorReference,
+  readEvaluatorResult, updateEvaluatorResult,
+} from '../../api/disc/reports';
 import { EvaluatorReport, RespondentReport, type ProfileBase, type ProfileResultView, type ProfileSigner } from './components/ProfileReports';
 import type { RoleProfile } from './components/ProfileCharts';
 import { METHOD_VERSION, STYLES, type Style } from './profileMethod';
@@ -11,7 +14,6 @@ import { downloadBlob, fileSlug, pagesToPdf } from './profilePdf';
 import './profile-pages.css';
 
 type Row = ProfileResultView & { company_id: string | null; team_member_id: string | null; email: string; report_path: string | null; companies?: { display_name: string } | null };
-const FIELDS = 'id,person_name,email,company_id,company_name,job_title,purpose,created_at,scores,primary_style,secondary_style,mixed,method_version,role_profile,team_member_id,report_path,companies(display_name),protocol';
 
 function hasReportData(row: Row) {
   return Number.isFinite(Date.parse(row.created_at)) &&
@@ -39,21 +41,18 @@ export function ProfileEvaluatorPage({ role }: { role: 'admin' | 'client' }) {
 
   useEffect(() => {
     document.title = 'Perfil Comportamental · CALI RH';
-    if (!admin || !supabase) return;
-    void supabase.schema('public').rpc('cali_profile_base').then(({ data }) => { if (data) setBase(data as ProfileBase); });
-    void anonPublicRpc<ProfileSigner | null>('cali_profile_signer', {}).then(({ data }) => setSigner(data || null));
+    if (!admin) return;
+    void readEvaluatorReference().then((data) => { if (data) setBase(data as ProfileBase); });
+    void readDiscSigner().then((data) => setSigner(data as ProfileSigner | null));
     void (async () => {
-      const { data } = await supabase!.from('profile_results').select(FIELDS).eq('id', id).maybeSingle();
+      const data = await readEvaluatorResult(id);
       if (!data) { setMissing(true); return; }
       const result = data as unknown as Row;
       setRow({ ...result, company_name: result.companies?.display_name || result.company_name });
       if (result.company_id) {
-        const others = await supabase!.from('profile_results').select('primary_style').eq('company_id', result.company_id);
-        setTeam((others.data || []) as Array<{ primary_style: Style }>);
-        if (admin) {
-          const people = await supabase!.from('team_members').select('id,full_name,work_email').eq('company_id', result.company_id).is('archived_at', null).order('full_name');
-          setMembers((people.data || []) as typeof members);
-        }
+        const company = await readEvaluatorCompanyContext(result.company_id);
+        setTeam(company.styles as Array<{ primary_style: Style }>);
+        setMembers(company.members);
       }
     })();
   }, [id, admin]);
@@ -65,10 +64,10 @@ export function ProfileEvaluatorPage({ role }: { role: 'admin' | 'client' }) {
   }, []);
 
   async function update(patch: Partial<Pick<Row, 'team_member_id' | 'role_profile'>>, message: string) {
-    if (!supabase || !row) return;
+    if (!row) return;
     const previous = row;
     setRow({ ...row, ...patch });
-    const { error } = await supabase.from('profile_results').update(patch).eq('id', row.id);
+    const { error } = await updateEvaluatorResult(row.id, patch);
     if (error) { setRow(previous); setNote(`Não foi possível salvar: ${error.message}`); return; }
     setNote(message);
   }
@@ -81,13 +80,13 @@ export function ProfileEvaluatorPage({ role }: { role: 'admin' | 'client' }) {
   }
 
   async function downloadRespondent() {
-    if (!admin || !row || !supabase) return;
+    if (!admin || !row) return;
     setRespondentBusy(true);
     setNote('');
     const name = `perfil-comportamental-cali-${fileSlug(row.person_name)}.pdf`;
     try {
       if (row.report_path) {
-        const archived = await supabase.storage.from('cali-profiles').download(row.report_path);
+        const archived = await downloadRespondentReport(row.report_path);
         if (archived.data && !archived.error) {
           downloadBlob(archived.data, name);
           return;

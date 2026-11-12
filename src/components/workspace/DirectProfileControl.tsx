@@ -4,7 +4,14 @@ import { FieldLabel } from '../ds/FieldLabel';
 import { ChangeEvent, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Building2, Camera, Check, ChevronDown, Download, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, ShieldCheck, Upload, UserRound, X } from 'lucide-react';
-import { isSupabaseConfigured, supabase } from '../../api/supabase';
+import { exportOwnWorkspaceData, listOwnPrivacyRequests, requestWorkspaceDataRights } from '../../api/workspace/privacy';
+import {
+  readOwnWorkspaceProfile,
+  readProfileCompany,
+  updateOwnWorkspaceProfile,
+  uploadWorkspaceProfileImage,
+  workspaceProfileAvailable,
+} from '../../api/workspace/profile';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
 import { accessSupportLink, caliInstagram, caliLinkedIn, privacySupportLink } from '../../domain/caliContacts';
 import { legalEnabled } from '../../domain/legalTexts';
@@ -85,12 +92,12 @@ export function DirectProfileControl({role,trigger,partnerHasOccurrences = false
   const[companyName,setCompanyName]=useState('');
   // Direitos do titular (LGPD, art. 18): baixar os próprios dados e pedir acesso, correção ou exclusão.
   const[privacyBusy,setPrivacyBusy]=useState(false),[privacyForm,setPrivacyForm]=useState<{kind:string;details:string}|null>(null),[privacyMessage,setPrivacyMessage]=useState('');
-  async function downloadMyData(){if(!supabase||privacyBusy)return;setPrivacyBusy(true);setPrivacyMessage('');const result=await supabase.rpc('export_my_data');setPrivacyBusy(false);if(result.error){setPrivacyMessage('Não foi possível gerar o arquivo agora. Tente de novo.');return;}const blob=new Blob([JSON.stringify(result.data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`meus-dados-cali-workspace-${new Date().toISOString().slice(0,10)}.json`;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);setPrivacyMessage('Arquivo com os seus dados baixado.');}
+  async function downloadMyData(){if(!workspaceProfileAvailable||privacyBusy)return;setPrivacyBusy(true);setPrivacyMessage('');const result=await exportOwnWorkspaceData();setPrivacyBusy(false);if(!result||result.error){setPrivacyMessage('Não foi possível gerar o arquivo agora. Tente de novo.');return;}const blob=new Blob([JSON.stringify(result.data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`meus-dados-cali-workspace-${new Date().toISOString().slice(0,10)}.json`;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);setPrivacyMessage('Arquivo com os seus dados baixado.');}
   const [loadedPrivacy, setLoadedPrivacy] = useState<{ owner: string; requests: PrivacyRequest[] } | null>(null);
   const privacyRequests = loadedPrivacy?.owner === user?.id ? loadedPrivacy?.requests : null;
   const [privacyLoadError, setPrivacyLoadError] = useState(false);
   const [privacyRevision, setPrivacyRevision] = useState(0);
-  async function sendPrivacyRequest(){if(!supabase||!privacyForm||privacyBusy||privacyForm.details.trim().length<5)return;setPrivacyBusy(true);const result=await supabase.rpc('request_data_subject_right',{p_kind:privacyForm.kind,p_details:privacyForm.details.trim()});setPrivacyBusy(false);if(result.error){setPrivacyMessage('Não foi possível enviar o pedido. Tente de novo.');return;}setPrivacyForm(null);setPrivacyMessage('Pedido enviado à CALI. A resposta chega em até 15 dias.');setPrivacyRevision((revision)=>revision+1);}
+  async function sendPrivacyRequest(){if(!workspaceProfileAvailable||!privacyForm||privacyBusy||privacyForm.details.trim().length<5)return;setPrivacyBusy(true);const result=await requestWorkspaceDataRights(privacyForm.kind,privacyForm.details.trim());setPrivacyBusy(false);if(!result||result.error){setPrivacyMessage('Não foi possível enviar o pedido. Tente de novo.');return;}setPrivacyForm(null);setPrivacyMessage('Pedido enviado à CALI. A resposta chega em até 15 dias.');setPrivacyRevision((revision)=>revision+1);}
   const[companyLogo,setCompanyLogo]=useState('');
   const[activeSection,setActiveSection]=useState<'details'|'signature'>('details');
   const[cropOpen,setCropOpen]=useState(false);
@@ -101,11 +108,17 @@ export function DirectProfileControl({role,trigger,partnerHasOccurrences = false
     if(cached){try{const raw=JSON.parse(cached);const parsed={...fallback,...raw,signature_style:safeSignatureStyle(raw?.signature_style)} as ProfileData;setProfile(parsed);setDraft(parsed);}catch{}}
     let mounted=true;
     async function load(){
-      if(!isSupabaseConfigured||!supabase)return;
       if(!user||!mounted)return;
-      const{data}=await supabase.from('profiles').select('company_id,full_name,email,job_title,phone,whatsapp,linkedin_url,instagram_url,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom,signature_mode,signature_url,signature_style').eq('id',user.id).single();
-      if(!mounted||!data)return;
-      if(role==='client'&&data.company_id){const{data:company}=await supabase.from('companies').select('display_name,logo_url,logo_workspace_url').eq('id',data.company_id).single();if(mounted){setCompanyName(company?.display_name||'');const logo=await resolveWorkspaceMedia(company?.logo_url||company?.logo_workspace_url);if(mounted)setCompanyLogo(logo);}}
+      const data = await readOwnWorkspaceProfile(user.id);
+      if (!mounted || !data) return;
+      if (role === 'client' && data.company_id) {
+        const company = await readProfileCompany(data.company_id);
+        if (!mounted) return;
+        setCompanyName(company?.display_name || '');
+        const logo = await resolveWorkspaceMedia(company?.logo_url || company?.logo_workspace_url);
+        if (!mounted) return;
+        setCompanyLogo(logo);
+      }
       const next:ProfileData={
         full_name:data.full_name||fallback.full_name,
         email:data.email||user.email||fallback.email,
@@ -123,18 +136,13 @@ export function DirectProfileControl({role,trigger,partnerHasOccurrences = false
   useEffect(() => {
     setLoadedPrivacy(null);
     setPrivacyLoadError(false);
-    if (!modalOpen || role !== 'client' || !user || !supabase) return;
+    if (!modalOpen || role !== 'client' || !user || !workspaceProfileAvailable) return;
     let current = true;
-    void supabase.from('data_subject_requests')
-      .select('id,kind,status,answer,created_at')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .order('id')
-      .then(({ data, error }) => {
-        if (!current) return;
-        if (error) setPrivacyLoadError(true);
-        else setLoadedPrivacy({ owner: user.id, requests: data as PrivacyRequest[] });
-      });
+    void listOwnPrivacyRequests(user.id).then((result) => {
+      if (!current) return;
+      if (!result || result.error) setPrivacyLoadError(true);
+      else setLoadedPrivacy({ owner: user.id, requests: result.data as PrivacyRequest[] });
+    });
     return () => { current = false; };
   }, [modalOpen, privacyRevision, role, user?.id]);
 
@@ -143,13 +151,9 @@ export function DirectProfileControl({role,trigger,partnerHasOccurrences = false
   const avatar=useMemo(()=>profile.avatar_url?<img src={profile.avatar_url} alt="" style={avatarStyle(profile)}/>:<span>{initials(profile.full_name)}</span>,[profile]);
   function openEditor(){setDraft(profile);setMessage('');setActiveSection('details');setCropOpen(false);setPrivacyForm(null);setPrivacyMessage('');setModalOpen(true);}
   async function uploadImage(file:File,kind:'avatar'|'signature'){
-    if(!supabase)return'';
-    if(!user)return'';
-    const prepared=await optimizeImageForUpload(file,kind);
-    const path=`${user.id}/${kind}-${Date.now()}.${prepared.extension}`;
-    const{error}=await supabase.storage.from('workspace-assets').upload(path,prepared.blob,{cacheControl:'31536000',contentType:prepared.contentType,upsert:false});
-    if(error)throw error;
-    return supabase.storage.from('workspace-assets').getPublicUrl(path).data.publicUrl;
+    if (!workspaceProfileAvailable || !user) return '';
+    const prepared = await optimizeImageForUpload(file, kind);
+    return uploadWorkspaceProfileImage(user.id, kind, prepared);
   }
   async function handleAvatar(event:ChangeEvent<HTMLInputElement>){
     const file=event.target.files?.[0];if(!file)return;setMessage('');
@@ -168,19 +172,8 @@ export function DirectProfileControl({role,trigger,partnerHasOccurrences = false
     setSaving(true);setMessage('');
     const next={...draft,full_name:draft.full_name.trim(),signature_style:draft.signature_mode==='generated'?'calligraphic' as const:draft.signature_style,linkedin_url:normalizeExternalUrl(draft.linkedin_url),instagram_url:normalizeExternalUrl(draft.instagram_url)};
     try{
-      const{data:sessionData}=supabase?await supabase.auth.getSession():{data:{session:null}} as const;
-      const sessionUser=sessionData.session?.user;
-      if(supabase&&(!sessionUser||sessionUser.id!==user?.id)) throw new Error('Sua sessão mudou. Abra Minha conta novamente.');
-      if(supabase&&sessionUser){
-        const{error}=await supabase.rpc('update_my_profile_v56',{
-          p_full_name:next.full_name,p_job_title:next.job_title||null,p_phone:next.phone||null,p_avatar_url:next.avatar_url||null,
-          p_whatsapp:next.whatsapp||null,p_linkedin_url:next.linkedin_url||null,p_instagram_url:next.instagram_url||null,
-          p_avatar_position_x:next.avatar_position_x,p_avatar_position_y:next.avatar_position_y,p_avatar_zoom:next.avatar_zoom,
-          p_signature_mode:next.signature_mode,p_signature_url:next.signature_url||null,p_signature_style:next.signature_style,
-        });
-        if(error)throw error;
-      }
-      if(sessionUser)window.localStorage.setItem(`cali-workspace-profile-${sessionUser.id}`,JSON.stringify(next));
+      const savedUserId = await updateOwnWorkspaceProfile(user?.id, next);
+      if (savedUserId) window.localStorage.setItem(`cali-workspace-profile-${savedUserId}`, JSON.stringify(next));
       setProfile(next);setDraft(next);setModalOpen(false);
     }catch(error){setMessage(error instanceof Error?error.message:'Não foi possível salvar o perfil.');}
     finally{setSaving(false);}

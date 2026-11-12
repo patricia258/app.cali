@@ -13,78 +13,14 @@ import {
 } from 'lucide-react';
 import { Shell } from '../../components/workspace/WorkspaceShell';
 import { DocumentAutoCover as AutoCover } from '../../components/documents/DocumentAutoCover';
-import { supabase } from '../../api/supabase';
-import { openPrivateWorkspaceFile } from '../../api/files/workspace';
-import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
-import { optimizeImageForUpload } from '../../lib/imageUpload';
-
-type CategorySlug = 'policy' | 'manual' | 'flow' | 'guide' | 'report' | 'onboarding' | 'deliverable' | 'schedule' | 'contract' | 'reference' | 'other';
-type DocumentStatus = 'draft' | 'published' | 'archived';
-type WorkflowStage = 'preparation' | 'awaiting_final_file' | 'ready_to_publish' | 'published' | 'archived';
-type SourceMode = 'upload' | 'drive';
-type EditorMode = 'new' | 'complete' | 'revision';
-
-type CompanyOption = { id: string; name: string; logoUrl?: string | null };
-type ProjectOption = { id: string; companyId: string; name: string };
-type DeliverableOption = { id: string; companyId: string; projectId?: string | null; title: string; status?: string | null; protocol?: string | null; parts?: number };
-type ProfileOption = { id: string; companyId?: string | null; role: string; active: boolean };
-type DriveConnection = { id: string; accountEmail?: string | null; rootFolderName?: string | null; lastSyncAt?: string | null; status: string };
-type FileComment = { id: string; body: string; clientVisible: boolean; createdAt: string };
-
-type DocumentRow = {
-  id: string;
-  title: string;
-  companyId: string;
-  company: string;
-  companyLogo?: string | null;
-  projectId?: string | null;
-  project?: string | null;
-  deliverableId?: string | null;
-  deliverable?: string | null;
-  category: CategorySlug;
-  kind: string;
-  version: string;
-  updatedAt: string;
-  publishedAt?: string | null;
-  sourceType: 'workspace' | 'google_drive' | 'external';
-  status: DocumentStatus;
-  workflowStage: WorkflowStage;
-  workflowOrigin: 'manual' | 'deliverable' | 'project_attachment';
-  clientVisible: boolean;
-  protocol: string;
-  coverUrl?: string;
-  coverStoragePath?: string | null;
-  fileType?: string;
-  fileSizeBytes?: number;
-  originalFilename?: string | null;
-  requiresAcknowledgement: boolean;
-  storagePath?: string | null;
-  driveUrl?: string | null;
-  description?: string | null;
-  revisionOfId?: string | null;
-  views: number;
-  acknowledgements: number;
-  expectedAcknowledgements: number;
-  comments: number;
-  validUntil?: string | null;
-};
-
-type FormState = {
-  title: string;
-  companyId: string;
-  projectId: string;
-  deliverableId: string;
-  category: CategorySlug;
-  kind: string;
-  version: string;
-  description: string;
-  publish: boolean;
-  requiresAcknowledgement: boolean;
-  sourceMode: SourceMode;
-  driveUrl: string;
-  revisionOfId: string;
-  validUntil: string;
-};
+import { readAdminDocuments } from '../../api/admin/documents/library';
+import { archiveAdminDocument, saveAdminDocument, setAdminDocumentPublication } from '../../api/admin/documents/writes';
+import { addAdminDocumentComment, readAdminDocumentComments } from '../../api/admin/documents/comments';
+import type {
+  CategorySlug, CompanyOption, DeliverableOption, DocumentRow, DriveConnection, EditorMode, FileComment,
+  FormState, ProfileOption, ProjectOption, SourceMode, WorkflowStage,
+} from '../../domain/documents';
+import { openPrivateWorkspaceFile, workspaceStorageAvailable } from '../../api/files/workspace';
 
 const categoryOptions: Array<{ value: CategorySlug; label: string }> = [
   { value: 'deliverable', label: 'Entregável' }, { value: 'report', label: 'Relatório' },
@@ -111,10 +47,6 @@ function formatFileSize(value?: number) {
   if (!value) return '—';
   if (value < 1024 * 1024) return `${Math.max(1, Math.round(value / 1024))} KB`;
   return `${(value / 1024 / 1024).toFixed(1).replace('.', ',')} MB`;
-}
-
-function safeFileName(value: string) {
-  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '-').slice(0, 120);
 }
 
 function nextVersion(value: string) {
@@ -212,89 +144,29 @@ export function AdminDocumentsPageV4({ staff = false }: { staff?: boolean } = {}
   useEffect(() => () => { if (coverPreview.startsWith('blob:')) URL.revokeObjectURL(coverPreview); }, [coverPreview]);
 
   useEffect(() => {
-    if (preview || !supabase) {
+    if (preview || !workspaceStorageAvailable) {
       setLoading(false);
       return;
     }
     void loadDocuments();
   }, []);
 
-  async function resolveCover(path?: string | null) {
-    if (!path || !supabase) return '';
-    const { data } = await supabase.storage.from('cali-workspace-private').createSignedUrl(path, 3600);
-    return data?.signedUrl || '';
-  }
-
   async function loadDocuments() {
-    if (!supabase) return;
     setLoading(true);
     setError('');
     try {
-      const [companyResult, projectResult, deliverableResult, fileResult, ackResult, profileResult, commentResult, driveResult, partResult] = await Promise.all([
-        supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url').neq('status', 'closed').order('display_name'),
-        supabase.from('projects').select('id,company_id,name').order('created_at', { ascending: false }),
-        supabase.from('deliverables').select('id,company_id,project_id,title,status,is_document,protocol').order('created_at', { ascending: false }),
-        supabase.from('files').select('id,company_id,project_id,deliverable_id,title,category,version_label,updated_at,published_at,drive_url,client_visible,source_type,protocol,document_kind,cover_storage_path,file_type,file_size_bytes,original_filename,requires_acknowledgement,status,storage_path,description,revision_of_id,workflow_origin,workflow_stage,valid_until').order('updated_at', { ascending: false }),
-        supabase.from('document_acknowledgements').select('file_id,status,viewed_at,acknowledged_at'),
-        supabase.from('profiles').select('id,company_id,role,active').eq('active', true),
-        supabase.from('comments').select('target_id').eq('target_type', 'file'),
-        supabase.from('drive_connections').select('id,account_email,root_folder_name,last_sync_at,status').eq('owner_type', 'cali').eq('status', 'connected').order('updated_at', { ascending: false }).limit(1),
-        supabase.from('deliverable_tasks').select('deliverable_id'),
-      ]);
-      const partCount = new Map<string, number>();
-      ((partResult.data || []) as { deliverable_id: string }[]).forEach((row) => partCount.set(row.deliverable_id, (partCount.get(row.deliverable_id) || 0) + 1));
-      const failure = [companyResult.error, projectResult.error, deliverableResult.error, fileResult.error, ackResult.error, profileResult.error, commentResult.error, driveResult.error].find(Boolean);
-      if (failure) throw failure;
-
-      const companyOptions: CompanyOption[] = await Promise.all((companyResult.data || []).map(async (row) => ({
-        id: row.id,
-        name: row.display_name,
-        logoUrl: await resolveWorkspaceMedia(row.logo_url || row.logo_workspace_url) || await resolveWorkspaceMedia(row.logo_workspace_url),
-      })));
-      const projectOptions: ProjectOption[] = (projectResult.data || []).map((row) => ({ id: row.id, companyId: row.company_id, name: row.name }));
-      const deliverableOptions: DeliverableOption[] = (deliverableResult.data || []).map((row) => ({ id: row.id, companyId: row.company_id, projectId: row.project_id, title: row.title, status: row.status, protocol: (row as any).protocol || null, parts: partCount.get(row.id) || 0 }));
-      const profileOptions: ProfileOption[] = (profileResult.data || []).map((row) => ({ id: row.id, companyId: row.company_id, role: row.role, active: Boolean(row.active) }));
-      setCompanies(companyOptions); setProjects(projectOptions); setDeliverables(deliverableOptions); setProfiles(profileOptions); setDriveConnection((driveResult.data?.[0] as DriveConnection | undefined) || null);
-
-      const companyMap = new Map(companyOptions.map((item) => [item.id, item]));
-      const projectMap = new Map(projectOptions.map((item) => [item.id, item]));
-      const deliverableMap = new Map(deliverableOptions.map((item) => [item.id, item]));
-      const acksByFile = new Map<string, { views: number; acknowledgements: number }>();
-      (ackResult.data || []).forEach((row) => {
-        const current = acksByFile.get(row.file_id) || { views: 0, acknowledgements: 0 };
-        if (row.viewed_at) current.views += 1;
-        if (row.status === 'acknowledged' || row.acknowledged_at) current.acknowledgements += 1;
-        acksByFile.set(row.file_id, current);
-      });
-      const commentsByFile = new Map<string, number>();
-      (commentResult.data || []).forEach((row) => commentsByFile.set(row.target_id, (commentsByFile.get(row.target_id) || 0) + 1));
-      const expectedByCompany = new Map<string, number>();
-      profileOptions.filter((item) => item.role === 'client' && item.active && item.companyId).forEach((item) => expectedByCompany.set(item.companyId!, (expectedByCompany.get(item.companyId!) || 0) + 1));
-
-      const rows: DocumentRow[] = (fileResult.data || []).map((row) => {
-        const company = companyMap.get(row.company_id);
-        const project = row.project_id ? projectMap.get(row.project_id) : undefined;
-        const deliverable = row.deliverable_id ? deliverableMap.get(row.deliverable_id) : undefined;
-        const ack = acksByFile.get(row.id) || { views: 0, acknowledgements: 0 };
-        return {
-          id: row.id, title: row.title, companyId: row.company_id, company: company?.name || 'Cliente', companyLogo: company?.logoUrl,
-          projectId: row.project_id, project: project?.name, deliverableId: row.deliverable_id, deliverable: deliverable?.title,
-          category: (row.category || 'other') as CategorySlug, kind: row.document_kind || 'Outro', version: row.version_label || 'v1.0',
-          updatedAt: row.updated_at, publishedAt: row.published_at, sourceType: (row.source_type || 'workspace') as DocumentRow['sourceType'],
-          status: (row.status || 'draft') as DocumentStatus, workflowStage: (row.workflow_stage || (row.status === 'published' ? 'published' : 'ready_to_publish')) as WorkflowStage,
-          workflowOrigin: (row.workflow_origin || 'manual') as DocumentRow['workflowOrigin'], clientVisible: Boolean(row.client_visible), protocol: row.protocol || '—',
-          coverUrl: '', coverStoragePath: row.cover_storage_path, fileType: row.file_type || undefined,
-          fileSizeBytes: Number(row.file_size_bytes || 0), originalFilename: row.original_filename, requiresAcknowledgement: Boolean(row.requires_acknowledgement),
-          storagePath: row.storage_path, driveUrl: row.drive_url, description: row.description, revisionOfId: row.revision_of_id, validUntil: row.valid_until,
-          views: ack.views, acknowledgements: ack.acknowledgements, expectedAcknowledgements: expectedByCompany.get(row.company_id) || 0, comments: commentsByFile.get(row.id) || 0,
-        };
-      });
-      const coverRows=await Promise.all(rows.map(async (doc) => [doc.id, await resolveCover(doc.coverStoragePath)] as const));
-      const coverMap=new Map(coverRows);
-      setDocs(rows.map((doc)=>({...doc,coverUrl:coverMap.get(doc.id)||doc.coverUrl})));
+      const library = await readAdminDocuments();
+      setCompanies(library.companies);
+      setProjects(library.projects);
+      setDeliverables(library.deliverables);
+      setProfiles(library.profiles);
+      setDriveConnection(library.driveConnection);
+      setDocs(library.documents);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar a biblioteca.');
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   }
 
   function resetUploads() {
@@ -334,73 +206,24 @@ export function AdminDocumentsPageV4({ staff = false }: { staff?: boolean } = {}
     if (!form.title.trim() || !form.companyId) return;
     if (form.sourceMode === 'upload' && !file) return;
     if (form.sourceMode === 'drive' && !/^https?:\/\//i.test(form.driveUrl.trim())) return;
-    if (!supabase) return;
     setSaving(true); setError('');
-
-    let uploadedFilePath = ''; let uploadedCoverPath = '';
     try {
-      let protocol = editingDoc?.protocol || '';
-      if (!protocol) {
-        const { data: protocolValue, error: protocolError } = await supabase.rpc('generate_protocol', { p_entity_type: 'DOC' });
-        if (protocolError) throw protocolError;
-        protocol = String(protocolValue);
-      }
-
-      let uploadedImageSize = file?.size || null;
-      let uploadedFileType = file?.type || file?.name.split('.').pop()?.toLowerCase() || editingDoc?.fileType || null;
-      if (form.sourceMode === 'upload' && file) {
-        const prepared = file.type.startsWith('image/') ? await optimizeImageForUpload(file, 'attachment') : { blob: file, contentType: file.type || 'application/octet-stream', extension: file.name.split('.').pop()?.toLowerCase() || 'bin' };
-        uploadedImageSize = prepared.blob.size;
-        uploadedFileType = prepared.contentType;
-        const fileName = file.type.startsWith('image/') ? `${safeFileName(file.name).replace(/\\.[^.]+$/, '')}.webp` : safeFileName(file.name);
-        uploadedFilePath = `documents/${form.companyId}/${protocol}/file-${Date.now()}-${fileName}`;
-        const { error: uploadError } = await supabase.storage.from('cali-workspace-private').upload(uploadedFilePath, prepared.blob, { upsert: false, contentType: prepared.contentType, cacheControl: file.type.startsWith('image/') ? '31536000' : '3600' });
-        if (uploadError) throw uploadError;
-      }
-      if (cover) {
-        const preparedCover = await optimizeImageForUpload(cover, 'attachment');
-        uploadedCoverPath = `documents/${form.companyId}/${protocol}/cover-${Date.now()}-${safeFileName(cover.name).replace(/\\.[^.]+$/, '')}.webp`;
-        const { error: coverError } = await supabase.storage.from('cali-workspace-private').upload(uploadedCoverPath, preparedCover.blob, { upsert: false, contentType: preparedCover.contentType, cacheControl: '31536000' });
-        if (coverError) throw coverError;
-      }
-
-      const { data: sessionData } = await supabase.auth.getSession();
-      const now = new Date().toISOString();
-      const payload = {
-        company_id: form.companyId, project_id: form.projectId || null, deliverable_id: form.deliverableId || null,
-        title: form.title.trim(), category: form.category, document_kind: form.kind, description: form.description.trim() || null,
-        storage_path: uploadedFilePath || (editorMode === 'complete' ? editingDoc?.storagePath || null : null),
-        drive_url: form.sourceMode === 'drive' ? form.driveUrl.trim() : (editorMode === 'complete' ? editingDoc?.driveUrl || null : null),
-        cover_storage_path: uploadedCoverPath || (editorMode === 'complete' ? editingDoc?.coverStoragePath || null : null),
-        version_label: form.version.trim() || 'v1.0', is_final: form.publish, client_visible: form.publish,
-        uploaded_by: sessionData.session?.user.id ?? null, file_type: uploadedFileType,
-        file_size_bytes: uploadedImageSize || editingDoc?.fileSizeBytes || null, original_filename: file?.name || editingDoc?.originalFilename || null,
-        status: form.publish ? 'published' : 'draft', requires_acknowledgement: form.requiresAcknowledgement,
-        published_at: form.publish ? now : null, source_type: form.sourceMode === 'drive' ? 'google_drive' : 'workspace', valid_until: form.validUntil || null,
-      };
-
-      if (editorMode === 'complete' && editingDoc) {
-        const { error: updateError } = await supabase.from('files').update(payload).eq('id', editingDoc.id);
-        if (updateError) throw updateError;
-        await supabase.from('activity_log').insert({ company_id: form.companyId, event_type: form.publish ? 'document_published' : 'document_final_file_added', entity_type: 'file', entity_id: editingDoc.id, metadata: { protocol: editingDoc.protocol, title: form.title.trim(), deliverable_id: form.deliverableId || null } });
-        setNotice(form.publish ? `${form.title.trim()} publicado para o cliente.` : `${form.title.trim()} recebeu o arquivo final e está pronto para publicação.`);
+      const receipt = await saveAdminDocument({ form, editorMode, editingDoc, file, cover });
+      const title = form.title.trim();
+      if (receipt.completed) {
+        setNotice(form.publish ? `${title} publicado para o cliente.` : `${title} recebeu o arquivo final e está pronto para publicação.`);
       } else {
-        const { error: insertError } = await supabase.from('files').insert({ ...payload, revision_of_id: form.revisionOfId || null, protocol, workflow_origin: 'manual' });
-        if (insertError) throw insertError;
-        await supabase.from('activity_log').insert({ company_id: form.companyId, event_type: form.publish ? 'document_published' : form.revisionOfId ? 'document_revision_created' : 'document_created', entity_type: 'file', metadata: { protocol, title: form.title.trim(), revision_of_id: form.revisionOfId || null } });
-        setNotice(`${form.title.trim()} salvo com o protocolo ${protocol}.`);
+        setNotice(`${title} salvo com o protocolo ${receipt.protocol}.`);
       }
-
       setEditorOpen(false); setEditingDoc(null); resetUploads(); await loadDocuments();
     } catch (requestError) {
-      if (uploadedCoverPath) await supabase.storage.from('cali-workspace-private').remove([uploadedCoverPath]);
-      if (uploadedFilePath) await supabase.storage.from('cali-workspace-private').remove([uploadedFilePath]);
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível salvar o documento.');
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function openDocument(doc: DocumentRow) {
-    if (!supabase) return;
     if (doc.driveUrl) { window.open(doc.driveUrl, '_blank', 'noopener,noreferrer'); return; }
     if (!doc.storagePath) return;
     try {
@@ -411,42 +234,56 @@ export function AdminDocumentsPageV4({ staff = false }: { staff?: boolean } = {}
   }
 
   async function changePublication(doc: DocumentRow, publish: boolean) {
-    if (!supabase || (publish && !doc.storagePath && !doc.driveUrl)) return;
+    if (publish && !doc.storagePath && !doc.driveUrl) return;
     setSaving(true);
-    const { error: updateError } = await supabase.from('files').update({ status: publish ? 'published' : 'draft', client_visible: publish, is_final: publish, published_at: publish ? new Date().toISOString() : null }).eq('id', doc.id);
-    if (updateError) setError(updateError.message);
-    else {
-      await supabase.from('activity_log').insert({ company_id: doc.companyId, event_type: publish ? 'document_published' : 'document_unpublished', entity_type: 'file', entity_id: doc.id, metadata: { protocol: doc.protocol, title: doc.title } });
-      setNotice(publish ? 'Documento disponibilizado ao cliente.' : 'Documento voltou para uso interno.'); setDetailDoc(null); await loadDocuments();
+    try {
+      await setAdminDocumentPublication(doc, publish);
+      setNotice(publish ? 'Documento disponibilizado ao cliente.' : 'Documento voltou para uso interno.');
+      setDetailDoc(null);
+      await loadDocuments();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Não foi possível atualizar o documento.');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   }
 
   async function archiveDocument(doc: DocumentRow) {
-    if (!supabase) return;
     setSaving(true);
-    const { error: updateError } = await supabase.from('files').update({ status: 'archived', client_visible: false }).eq('id', doc.id);
-    if (updateError) setError(updateError.message);
-    else { await supabase.from('activity_log').insert({ company_id: doc.companyId, event_type: 'document_archived', entity_type: 'file', entity_id: doc.id, metadata: { protocol: doc.protocol, title: doc.title } }); setNotice('Documento arquivado. O histórico foi preservado.'); setDetailDoc(null); await loadDocuments(); }
-    setSaving(false);
+    try {
+      await archiveAdminDocument(doc);
+      setNotice('Documento arquivado. O histórico foi preservado.');
+      setDetailDoc(null);
+      await loadDocuments();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Não foi possível arquivar o documento.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function loadComments(doc: DocumentRow) {
     setDetailDoc(doc); setComments([]); setCommentText('');
-    if (!supabase) return;
     setCommentsLoading(true);
-    const { data, error: commentError } = await supabase.from('comments').select('id,body,client_visible,created_at').eq('target_type', 'file').eq('target_id', doc.id).order('created_at');
-    if (commentError) setError(commentError.message);
-    else setComments((data || []).map((row) => ({ id: row.id, body: row.body, clientVisible: Boolean(row.client_visible), createdAt: row.created_at })));
-    setCommentsLoading(false);
+    try {
+      setComments(await readAdminDocumentComments(doc.id));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Não foi possível carregar os comentários.');
+    } finally {
+      setCommentsLoading(false);
+    }
   }
 
   async function sendComment() {
-    if (!detailDoc || !commentText.trim() || !supabase) return;
-    const { data: sessionData } = await supabase.auth.getSession();
-    const { error: insertError } = await supabase.from('comments').insert({ company_id: detailDoc.companyId, target_type: 'file', target_id: detailDoc.id, author_user_id: sessionData.session?.user.id || null, body: commentText.trim(), client_visible: commentVisible });
-    if (insertError) { setError(insertError.message); return; }
-    setCommentText(''); await loadComments(detailDoc); await loadDocuments();
+    if (!detailDoc || !commentText.trim()) return;
+    try {
+      await addAdminDocumentComment(detailDoc, commentText, commentVisible);
+      setCommentText('');
+      await loadComments(detailDoc);
+      await loadDocuments();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Não foi possível enviar o comentário.');
+    }
   }
 
   if(loading)return <DocsFrame staff={staff}><section className="v2-client-module data-loading" aria-live="polite" aria-busy="true">Carregando biblioteca…</section></DocsFrame>;

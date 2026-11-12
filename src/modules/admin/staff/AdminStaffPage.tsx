@@ -6,15 +6,16 @@ import { LoadingState } from '../../../components/ds/LoadingState';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Check, Mail, Pencil, Plus, Undo2, X } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { supabase } from '../../../api/supabase';
+import { decideStaffSubmission } from '../../../api/admin/staff/decisions';
+import {
+  readStaffAdministration, saveStaffDirectoryPerson, sendStaffInvite,
+  type StaffDirectoryCompany, type StaffDirectoryPerson, type StaffDraft,
+} from '../../../api/admin/staff/directory';
 
 /* Equipe CALI (só administradora): cadastro de quem trabalha com a CALI no perfil Partner, com as empresas que atende
    e os módulos liberados. Tabelas: staff_members e staff_company_assignments (migração 20261012150000).
    ETAPA 1: aqui só se prepara o cadastro. O acesso do Partner ao Workspace é liberado nas próximas etapas. */
 
-type Staff = { id: string; email: string; full_name: string; modules: string[]; active: boolean; user_id: string | null; invited_at: string; accepted_at: string | null };
-type Company = { id: string; display_name: string };
-type Draft = { id: string | null; email: string; full_name: string; modules: string[]; companies: string[]; active: boolean };
 export const STAFF_MODULES: [string, string, string][] = [
   ['records', 'Ocorrências', 'Responder dúvidas e pedidos dos clientes'],
   ['projects', 'Projetos e entregas', 'Trabalhar nas entregas; o envio ao cliente passa pela sua aprovação'],
@@ -31,116 +32,68 @@ type Pending = { id: string; kind: 'hours' | 'review'; reviewKind?: string; enti
 type Decision = { item: Pending; approve: boolean; note: string };
 const REVIEW_KINDS: Record<string, string> = { report: 'Relatório', deliverable: 'Entrega', document: 'Documento', notice: 'Comunicado', other: 'Outro', record_close: 'Encerrar ocorrência', change: 'Alteração em projeto' };
 const CHANGE_EFFECT: Record<string, string> = { project_create: 'o projeto é criado como rascunho, com as frentes informadas', front_create: 'a frente é criada no projeto', deliverable_create: 'o entregável é criado como “Não iniciado”', deliverable_update: 'o entregável é alterado com os novos dados', deliverable_delete: 'o entregável é excluído', deliverable_cancel: 'o entregável é cancelado, com o motivo informado', task_create: 'a etapa é criada no entregável', task_complete: 'a etapa é marcada como concluída' };
-/* Executa, com o acesso da administradora, a alteração que a Equipe CALI pediu. */
-async function applyStaffChange(payload: any): Promise<string | null> {
-  if (!supabase || !payload?.action) return 'Pedido sem conteúdo para aplicar.';
-  const db = supabase; let error: any = null;
-  if (payload.action === 'project_create') { const created = await db.from('projects').insert(payload.project).select('id').single(); error = created.error; if (!error && created.data?.id && (payload.fronts || []).length) error = (await db.from('project_workstreams').insert((payload.fronts as any[]).map((front) => ({ ...front, company_id: payload.project.company_id, project_id: created.data.id })))).error; }
-  else if (payload.action === 'front_create') error = (await db.from('project_workstreams').insert(payload.row)).error;
-  else if (payload.action === 'deliverable_create') error = (await db.from('deliverables').insert(payload.row)).error;
-  else if (payload.action === 'deliverable_update') error = (await db.from('deliverables').update(payload.row).eq('id', payload.id)).error;
-  else if (payload.action === 'deliverable_delete') error = (await db.from('deliverables').delete().eq('id', payload.id)).error;
-  else if (payload.action === 'deliverable_cancel') error = (await db.rpc('change_deliverable_status', { p_deliverable_id: payload.id, p_status: 'cancelled', p_note: payload.reason })).error;
-  else if (payload.action === 'task_create') error = (await db.from('deliverable_tasks').insert(payload.row)).error;
-  else if (payload.action === 'task_complete') error = (await db.from('deliverable_tasks').update({ status: 'done', completed_at: new Date().toISOString() }).eq('id', payload.id)).error;
-  else if (payload.action === 'event_create' || payload.action === 'event_update') {
-    const { data: auth } = await db.auth.getUser();
-    const saved = payload.action === 'event_update' && payload.id
-      ? await db.from('events').update(payload.event).eq('id', payload.id).select('id').single()
-      : await db.from('events').insert({ ...payload.event, sync_status: 'local', created_by: auth.user?.id || null }).select('id').single();
-    error = saved.error;
-    const emails = (payload.attendees || []) as string[];
-    if (!error && saved.data?.id && emails.length) {
-      if (payload.action === 'event_update') await db.from('event_attendees').delete().eq('event_id', saved.data.id);
-      error = (await db.from('event_attendees').insert(emails.map((email) => ({ event_id: saved.data.id, company_id: payload.event.company_id || null, name: email.split('@')[0], email, attendee_type: payload.event.visibility === 'client' ? 'client' : 'external', status: 'pending' })))).error;
-    }
-  }
-  else if (payload.action === 'event_cancel') error = (await db.from('events').update({ cancelled_at: new Date().toISOString(), cancellation_reason: payload.reason }).eq('id', payload.id)).error;
-  else return 'Tipo de alteração desconhecido.';
-  return error ? (error.message || 'Não foi possível aplicar a alteração.') : null;
-}
-const blank = (): Draft => ({ id: null, email: '', full_name: '', modules: ['records', 'projects', 'hours'], companies: [], active: true });
+const blank = (): StaffDraft => ({ id: null, email: '', full_name: '', modules: ['records', 'projects', 'hours'], companies: [], active: true });
 const momentLabel = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)).replace('.', '');
 const dayLabel = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso));
 
 export function AdminStaffPage() {
-  const [staff, setStaff] = useState<Staff[]>([]); const [companies, setCompanies] = useState<Company[]>([]); const [assigned, setAssigned] = useState<Record<string, string[]>>({});
-  const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [draft, setDraft] = useState<Draft | null>(null); const [saving, setSaving] = useState(false); const [formError, setFormError] = useState(''); const [pending, setPending] = useState<Pending[]>([]); const [decision, setDecision] = useState<Decision | null>(null); const [deciding, setDeciding] = useState(false); const [decisionError, setDecisionError] = useState(''); const [sessions, setSessions] = useState<Record<string, { in?: string; out?: string }>>({}); const [invite, setInvite] = useState<{ name: string; email: string; sent: boolean } | null>(null); const [inviting, setInviting] = useState('');
+  const [staff, setStaff] = useState<StaffDirectoryPerson[]>([]); const [companies, setCompanies] = useState<StaffDirectoryCompany[]>([]); const [assigned, setAssigned] = useState<Record<string, string[]>>({});
+  const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [draft, setDraft] = useState<StaffDraft | null>(null); const [saving, setSaving] = useState(false); const [formError, setFormError] = useState(''); const [pending, setPending] = useState<Pending[]>([]); const [decision, setDecision] = useState<Decision | null>(null); const [deciding, setDeciding] = useState(false); const [decisionError, setDecisionError] = useState(''); const [sessions, setSessions] = useState<Record<string, { in?: string; out?: string }>>({}); const [invite, setInvite] = useState<{ name: string; email: string; sent: boolean } | null>(null); const [inviting, setInviting] = useState('');
 
   async function load() {
-    if (!supabase) return; setLoading(true); setError('');
-    const [people, firms, links] = await Promise.all([
-      supabase.from('staff_members').select('id,email,full_name,modules,active,user_id,invited_at,accepted_at').order('full_name'),
-      supabase.from('companies').select('id,display_name').order('display_name'),
-      supabase.from('staff_company_assignments').select('staff_id,company_id'),
-    ]);
-    if (people.error || firms.error || links.error) setError('Não foi possível carregar a Equipe CALI. Clique em "Tentar de novo".');
-    else { setStaff((people.data || []) as Staff[]); setCompanies((firms.data || []) as Company[]); const map: Record<string, string[]> = {}; (links.data || []).forEach((row: any) => (map[row.staff_id] ||= []).push(row.company_id)); setAssigned(map); }
-    const ids = ((people.data || []) as Staff[]).map((item) => item.user_id).filter(Boolean) as string[];
-    if (ids.length) { const log = await supabase.from('activity_log').select('actor_user_id,event_type,created_at').in('actor_user_id', ids).in('event_type', ['workspace_access_code_verified', 'staff_session_started', 'staff_session_ended']).order('created_at', { ascending: false }).limit(400); const map: Record<string, { in?: string; out?: string }> = {}; ((log.data || []) as any[]).forEach((row) => { const entry = (map[row.actor_user_id] ||= {}); if (row.event_type === 'staff_session_ended') { entry.out ||= row.created_at; } else { entry.in ||= row.created_at; } }); setSessions(map); }
-    const [hours, reviews] = await Promise.all([
-      supabase.from('staff_hour_submissions').select('id,staff_user_id,company_id,work_date,minutes,description,justification,created_at').eq('status', 'pending').order('created_at'),
-      supabase.from('staff_review_requests').select('id,staff_user_id,company_id,kind,entity_id,title,note,payload,created_at').eq('status', 'pending').order('created_at'),
-    ]);
+    setLoading(true); setError('');
+    const message = 'Não foi possível carregar a Equipe CALI. Clique em "Tentar de novo".';
+    const result = await readStaffAdministration().catch(() => null);
+    if (!result) { setError(message); setLoading(false); return; }
+    if (!result.directory) setError(message);
+    else {
+      setStaff(result.directory.staff);
+      setCompanies(result.directory.companies);
+      setAssigned(result.directory.assigned);
+    }
+    setSessions(result.sessions);
     setPending([
-      ...((hours.data || []) as any[]).map((row) => ({ id: row.id, kind: 'hours' as const, staff_user_id: row.staff_user_id, company_id: row.company_id, title: `${Math.floor(row.minutes / 60)}h${String(row.minutes % 60).padStart(2, '0')} · ${row.description}`, detail: `Justificativa: ${row.justification}`, meta: `Horas de ${dayLabel(row.work_date + 'T12:00:00')}`, created_at: row.created_at })),
-      ...((reviews.data || []) as any[]).map((row) => ({ id: row.id, kind: 'review' as const, staff_user_id: row.staff_user_id, company_id: row.company_id, reviewKind: row.kind, entityId: row.entity_id, payload: row.payload, title: row.title, detail: row.kind === 'change' ? `Se você aprovar, ${CHANGE_EFFECT[row.payload?.action] || 'a alteração é aplicada'}.${row.payload?.reason ? ` Motivo informado: ${row.payload.reason}` : ''}` : row.kind === 'record_close' ? (row.note || 'A pessoa considera esta ocorrência resolvida e pede o encerramento.') : (row.note || 'Sem recado.'), meta: REVIEW_KINDS[row.kind] || row.kind, created_at: row.created_at })),
+      ...result.hours.map((row) => ({ id: row.id, kind: 'hours' as const, staff_user_id: row.staff_user_id, company_id: row.company_id, title: `${Math.floor(row.minutes / 60)}h${String(row.minutes % 60).padStart(2, '0')} · ${row.description}`, detail: `Justificativa: ${row.justification}`, meta: `Horas de ${dayLabel(row.work_date + 'T12:00:00')}`, created_at: row.created_at })),
+      ...result.reviews.map((row) => ({ id: row.id, kind: 'review' as const, staff_user_id: row.staff_user_id, company_id: row.company_id, reviewKind: row.kind, entityId: row.entity_id, payload: row.payload, title: row.title, detail: row.kind === 'change' ? `Se você aprovar, ${CHANGE_EFFECT[row.payload?.action] || 'a alteração é aplicada'}.${row.payload?.reason ? ` Motivo informado: ${row.payload.reason}` : ''}` : row.kind === 'record_close' ? (row.note || 'A pessoa considera esta ocorrência resolvida e pede o encerramento.') : (row.note || 'Sem recado.'), meta: REVIEW_KINDS[row.kind] || row.kind, created_at: row.created_at })),
     ].sort((a, b) => a.created_at.localeCompare(b.created_at)));
     setLoading(false);
   }
   async function decide(event: FormEvent) {
-    event.preventDefault(); if (!supabase || !decision) return;
+    event.preventDefault();
+    if (!decision) return;
     if (!decision.approve && !decision.note.trim()) { setDecisionError('Escreva o motivo para a pessoa saber o que ajustar.'); return; }
     setDeciding(true); setDecisionError('');
-    const { data: session } = await supabase.auth.getUser();
-    // Encerramento de ocorrência pedido pela Equipe CALI: aprovar = finalizar de verdade (função da administradora).
-    if (decision.approve && decision.item.reviewKind === 'record_close' && decision.item.entityId) {
-      const closing = await supabase.rpc('set_account_record_status', { p_record_id: decision.item.entityId, p_status: 'completed' });
-      if (closing.error) { setDeciding(false); setDecisionError(closing.error.message || 'Não foi possível finalizar a ocorrência.'); return; }
+    try {
+      await decideStaffSubmission({ ...decision.item, approve: decision.approve, note: decision.note });
+      setDecision(null);
+      await load();
+    } catch (reason) {
+      setDecisionError(reason instanceof Error ? reason.message : 'Não foi possível registrar a decisão. Tente de novo.');
+    } finally {
+      setDeciding(false);
     }
-    // Entregável enviado pela Equipe CALI: aprovar = enviar ao cliente para validação (função da administradora).
-    if (decision.approve && decision.item.reviewKind === 'deliverable' && decision.item.entityId) {
-      const sending = await supabase.rpc('change_deliverable_status', { p_deliverable_id: decision.item.entityId, p_status: 'client_review', p_note: decision.note.trim() || 'Aprovado pela administradora e enviado ao cliente' });
-      if (sending.error) { setDeciding(false); setDecisionError(sending.error.message || 'Não foi possível enviar o entregável ao cliente.'); return; }
-    }
-    // Alteração pedida pela Equipe CALI (criar, editar, excluir, cancelar): aprovar = aplicar agora, com o acesso dela.
-    if (decision.approve && decision.item.reviewKind === 'change') {
-      const failure = await applyStaffChange(decision.item.payload);
-      if (failure) { setDeciding(false); setDecisionError(failure); return; }
-    }
-    const result = decision.item.kind === 'hours'
-      ? await supabase.rpc('admin_decide_staff_hours', { p_submission_id: decision.item.id, p_approve: decision.approve, p_note: decision.note.trim() || null })
-      : await supabase.from('staff_review_requests').update({ status: decision.approve ? 'approved' : 'returned', decided_by: session.user?.id || null, decided_at: new Date().toISOString(), decision_note: decision.note.trim() || null }).eq('id', decision.item.id);
-    setDeciding(false);
-    if (result.error) { setDecisionError(result.error.message && !/violates|policy|permission/i.test(result.error.message) ? result.error.message : 'Não foi possível registrar a decisão. Tente de novo.'); return; }
-    setDecision(null); await load();
   }
   useEffect(() => { void load(); }, []);
 
   /* Convite: tenta o envio automático (função workspace-staff-invite). Se ela não responder, mostra o convite pronto
      para a administradora enviar pelo próprio e-mail — a pessoa nunca fica sem saber como entrar. */
   async function sendInvite(person: { id: string; full_name: string; email: string }) {
-    if (!supabase) return; setInviting(person.id);
-    let sent = false;
-    try { const result = await supabase.functions.invoke('workspace-staff-invite', { body: { staffId: person.id } }); sent = !result.error && (result.data as any)?.ok === true; } catch { sent = false; }
+    setInviting(person.id);
+    const sent = await sendStaffInvite(person.id).catch(() => false);
     setInviting(''); setInvite({ name: person.full_name, email: person.email, sent });
   }
   const inviteText = (name: string, email: string) => `Olá, ${name.split(' ')[0]}!\n\nVocê agora faz parte da Equipe CALI e já tem acesso ao CALI Workspace.\n\nComo entrar:\n1. Abra ${window.location.origin}/login\n2. Informe este e-mail: ${email}\n3. Digite o código de 6 números que chega em seguida na sua caixa de entrada. Não há senha.\n\nNo primeiro acesso você verá uma apresentação rápida do que cada parte faz.\n\nQualquer dúvida, fale comigo.\nPatricia · CALI RH`;
   const toggle = (list: string[], value: string) => list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
   async function save(event: FormEvent) {
-    event.preventDefault(); if (!supabase || !draft) return;
+    event.preventDefault(); if (!draft) return;
     const email = draft.email.trim().toLowerCase(); const name = draft.full_name.trim();
     if (!name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { setFormError('Preencha o nome e um e-mail válido.'); return; }
     if (!draft.companies.length) { setFormError('Escolha pelo menos uma empresa que esta pessoa vai atender.'); return; }
     if (!draft.modules.length) { setFormError('Escolha pelo menos um módulo.'); return; }
     setSaving(true); setFormError('');
     try {
-      const { data: session } = await supabase.auth.getUser(); let id = draft.id;
-      if (id) { const result = await supabase.from('staff_members').update({ full_name: name, modules: draft.modules, active: draft.active, updated_at: new Date().toISOString() }).eq('id', id); if (result.error) throw result.error; }
-      else { const result = await supabase.from('staff_members').insert({ email, full_name: name, modules: draft.modules, active: true, invited_by: session.user?.id || null }).select('id').single(); if (result.error) throw result.error; id = (result.data as any).id; }
-      const before = draft.id ? assigned[draft.id] || [] : []; const add = draft.companies.filter((item) => !before.includes(item)); const remove = before.filter((item) => !draft.companies.includes(item));
-      if (add.length) { const result = await supabase.from('staff_company_assignments').insert(add.map((company_id) => ({ staff_id: id, company_id }))); if (result.error) throw result.error; }
-      if (remove.length) { const result = await supabase.from('staff_company_assignments').delete().eq('staff_id', id).in('company_id', remove); if (result.error) throw result.error; }
+      const before = draft.id ? assigned[draft.id] || [] : [];
+      const id = await saveStaffDirectoryPerson({ ...draft, full_name: name, email }, before);
       const created = !draft.id; setDraft(null); await load(); if (created && id) void sendInvite({ id, full_name: name, email });
     } catch (err) { const message = String((err as any)?.message || ''); setFormError(/duplicate|unique/i.test(message) ? 'Já existe uma pessoa cadastrada com este e-mail.' : 'Não foi possível salvar. Tente de novo.'); } finally { setSaving(false); }
   }

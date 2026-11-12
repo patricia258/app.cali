@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FileText } from 'lucide-react';
 import { resolveCompanyAsset } from '../../../../lib/companyWorkspaceLogo';
-import { resolveDocumentBrandVisual } from '../../../../runtime/documents/documentsIdentityRuntimeV42';
+import { resolveDocumentBrandVisual } from '../../../../lib/documentBrandVisual';
 
 const colorPromises = new Map<string, Promise<string>>();
 
@@ -16,7 +16,7 @@ export function ClientDocumentBrandCover({ companyId, companyName, logoUrl, comp
       setVisual((current) => ({ ...current, url }));
       if (!url) return;
       const key = `${companyId}:${url}`;
-      if (!colorPromises.has(key)) colorPromises.set(key, resolveDocumentBrandVisual({ id: companyId, display_name: companyName, logo_url: logoUrl }, url).then((brand) => brand.color));
+      if (!colorPromises.has(key)) colorPromises.set(key, resolveDocumentBrandVisual({ id: companyId, display_name: companyName }, url).then((brand) => brand.color));
       const color = await colorPromises.get(key)!;
       if (active) setVisual({ url, color });
     }

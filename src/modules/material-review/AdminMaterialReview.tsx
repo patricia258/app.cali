@@ -1,7 +1,7 @@
 import { Button } from '../../components/ds/Button';
 import { useEffect, useState, type FormEvent } from 'react';
-import { supabase } from '../../api/supabase';
-import { materialModule, materialReviewColumns, materialStatus, materialText, type MaterialKind, type MaterialReview } from './material-review';
+import { assignMaterialReview, decideMaterialReview, readMaterialCompanies, readMaterialPartners, readMaterialReview, type MaterialKind, type MaterialReview } from '../../api/materials/reviews';
+import { materialStatus, materialText } from './material-review';
 import './material-review.css';
 
 type Company = { id: string; display_name: string };
@@ -18,11 +18,7 @@ function Review({ kind, entityId, companyId }: { kind: MaterialKind; entityId: s
   const [error, setError] = useState('');
 
   async function load() {
-    if (!supabase) return;
-    const { data, error: requestError } = await supabase.from('partner_material_reviews')
-      .select(materialReviewColumns).eq('kind', kind).eq('entity_id', entityId).maybeSingle();
-    if (requestError) throw new Error(requestError.message);
-    const current = data as MaterialReview | null;
+    const current = await readMaterialReview(kind, entityId);
     setRecord(current);
     if (current) {
       setTarget(current.company_id);
@@ -31,48 +27,36 @@ function Review({ kind, entityId, companyId }: { kind: MaterialKind; entityId: s
   }
   useEffect(() => {
     void load().catch((reason) => setError(reason.message));
-    if (!supabase || companyId) return;
-    void supabase.from('companies').select('id,display_name').in('status',['active','paused']).order('display_name')
-      .then(({ data }) => setCompanies(data ?? []));
+    if (!companyId) void readMaterialCompanies().then(setCompanies);
   }, [entityId, kind, companyId]);
 
   useEffect(() => {
-    if (!supabase || !target) return;
+    if (!target) return;
     let active = true;
     setStaff([]);
-    void supabase.from('staff_company_assignments').select('staff_members!inner(user_id,full_name,modules,active)')
-      .eq('company_id',target).then(({ data, error: requestError }) => {
-        if (!active) return;
-        if (requestError) { setError('Não foi possível carregar os Partners.'); return; }
-        const assigned = (data ?? []) as unknown as Array<{ staff_members: Staff }>;
-        setStaff(assigned.map((item) => item.staff_members)
-          .filter((item) => item.active && item.user_id && item.modules.includes(materialModule[kind])));
-      });
+    void readMaterialPartners(target, kind).then(
+      (assigned) => { if (active) setStaff(assigned); },
+      () => { if (active) setError('Não foi possível carregar os Partners.'); },
+    );
     return () => { active = false; };
   }, [target, kind]);
 
   async function assign(event: FormEvent) {
     event.preventDefault();
-    if (!supabase || busy || !author || !target) return;
+    if (busy || !author || !target) return;
     setBusy(true); setError('');
     try {
-      const { error: requestError } = await supabase.rpc('assign_partner_material_review', {
-        p_kind: kind, p_entity_id: entityId, p_company_id: target, p_author_id: author,
-      });
-      if (requestError) throw new Error(requestError.message);
+      await assignMaterialReview(kind, entityId, target, author);
       await load();
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Não foi possível atribuir o material.'); }
     finally { setBusy(false); }
   }
 
   async function decide(accept: boolean) {
-    if (!supabase || !record || busy) return;
+    if (!record || busy) return;
     setBusy(true); setError('');
     try {
-      const { error: requestError } = await supabase.rpc('decide_partner_material_review', {
-        p_id: record.id, p_revision: record.revision, p_accept: accept, p_note: accept ? null : note.trim(),
-      });
-      if (requestError) throw new Error(requestError.message);
+      await decideMaterialReview(record, accept, note);
       if (accept) window.location.reload();
       else { setNote(''); await load(); }
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Não foi possível revisar o material.'); }

@@ -2,7 +2,7 @@ import { DialogFrame } from '../ds/DialogFrame';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Building2, CalendarPlus, Mic2, Paperclip, UserRound, X } from 'lucide-react';
-import { supabase } from '../../api/supabase';
+import { attachExtraVisitFile, createExtraVisit, extraVisitsAvailable, readExtraVisitAvailability, readExtraVisitCompany } from '../../api/calendar/extra-visits';
 import './extra-visit-request.css';
 
 const FEE = 'R$ 800,00';
@@ -74,7 +74,12 @@ export function ExtraVisitRequest() {
     document.documentElement.classList.add('extra-visit-open');
     return () => { document.body.style.overflow = previousOverflow; document.body.classList.remove('extra-visit-open'); document.documentElement.classList.remove('extra-visit-open'); };
   }, [open]);
-  useEffect(() => { if (!open || !supabase) return; let live = true; (async () => { const { data: auth } = await supabase.auth.getUser(); if (!auth.user) return; const { data: profile } = await supabase.from('profiles').select('company_id').eq('id', auth.user.id).maybeSingle(); if (!profile?.company_id) return; const { data: companyData } = await supabase.from('companies').select('id,display_name').eq('id', profile.company_id).maybeSingle(); if (live && companyData) setCompany({ id: companyData.id, name: companyData.display_name }); })(); return () => { live = false; }; }, [open]);
+  useEffect(() => {
+    if (!open || !extraVisitsAvailable) return;
+    let live = true;
+    void readExtraVisitCompany().then((next) => { if (live && next) setCompany(next); });
+    return () => { live = false; };
+  }, [open]);
   const hasMonday = slots.some(slot => slot.date && new Date(`${slot.date}T12:00:00-03:00`).getUTCDay() === 1);
   const address = `${street.trim()}, ${number.trim()} · ${district.trim()} · ${city.trim()} · CEP ${zip.trim()}`;
   function selectMode(next:MeetingMode){setMode(next);setTitle(next==='visit'?'Visita presencial extra':'Reunião online extra');setSlots([prefill || emptySlot(),emptySlot()]);setDuration(next==='online'&&prefill?.duration?[60,90].reduce((closest,option)=>Math.abs(option-prefill.duration!)<Math.abs(closest-prefill.duration!)?option:closest,60):60);setAck(false);setAckName('');setError('');setAvailability('idle');setBusySlots([]);setConsiderBusy(false);setStep(1);}
@@ -87,13 +92,11 @@ export function ExtraVisitRequest() {
   }
   function updateSlot(index: 0 | 1, key: keyof Slot, value: string) { setAvailability('idle');setBusySlots([]);setConsiderBusy(false);setSlots(current => { const next: [Slot, Slot] = [{ ...current[0] }, { ...current[1] }]; next[index][key] = value; return next; }); }
   async function checkAvailability() {
-    if (!supabase) { setAvailability('unavailable'); return []; }
+    if (!extraVisitsAvailable) { setAvailability('unavailable'); return []; }
     setAvailability('checking');
     const proposed = slots.map(slot => { const start = new Date(`${slot.date}T${slot.time}:00-03:00`); return { startsAt: start.toISOString(), endsAt: new Date(start.getTime()+(mode==='visit'?240:duration)*60000).toISOString() }; });
     try {
-      const { data, error } = await supabase.functions.invoke('workspace-google-calendar-read', { body: { action: 'availability', slots: proposed } });
-      if (error || data?.state !== 'checked' || !Array.isArray(data.slots)) throw error || new Error('Agenda indisponível');
-      const busy = data.slots.map((item: { busy: boolean }) => Boolean(item.busy));
+      const busy = await readExtraVisitAvailability(proposed);
       setBusySlots(busy); setAvailability('checked'); return busy;
     } catch { setAvailability('unavailable'); return []; }
   }
@@ -103,7 +106,7 @@ export function ExtraVisitRequest() {
     const issue = validateDetails();
     if (issue) return setError(issue);
     if (!ack || ackName.trim().length < 5) return setError('Digite seu nome completo e confirme sua ciência.');
-    if (!supabase) return setError('Conexão indisponível. Tente novamente.');
+    if (!extraVisitsAvailable) return setError('Conexão indisponível. Tente novamente.');
     submissionPending.current = true;
     setSaving(true);
     setError('');
@@ -114,22 +117,17 @@ export function ExtraVisitRequest() {
         const start = new Date(`${slot.date}T${slot.time}:00-03:00`);
         return { startsAt: start.toISOString(), endsAt: new Date(start.getTime() + (mode==='visit'?240:duration) * 60 * 1000).toISOString() };
       });
-      const { data: requestData, error: submitError } = mode==='visit'
-        ? await supabase.rpc('create_extra_visit_request_v1', {p_title:title.trim(),p_purpose:[purpose.trim(),hasMonday?`Segunda-feira solicitada: ${mondayReason.trim()}`:''].filter(Boolean).join('\n'),p_location:address.trim(),p_requested_slots:requestedSlots,p_ack_name:ackName.trim(),p_acknowledged:ack})
-        : await supabase.rpc('client_request_online_extra_v2',{p_title:title.trim(),p_purpose:purpose.trim(),p_slots:requestedSlots,p_ack_name:ackName.trim(),p_acknowledged:ack});
+      const draft = { title: title.trim(), purpose: purpose.trim(), slots: requestedSlots, ackName: ackName.trim(), acknowledged: ack };
+      const { id: requestId, error: submitError } = await createExtraVisit(mode === 'visit' ? {
+        ...draft, mode: 'visit', location: address,
+        purpose: [draft.purpose, hasMonday ? `Segunda-feira solicitada: ${mondayReason.trim()}` : ''].filter(Boolean).join('\n'),
+      } : { ...draft, mode: 'online' });
       if (submitError) return setError(submitError.message);
       setRequestSent(true);
-      if (mode==='visit' && attachment) {
-        const requestId = typeof requestData === 'string' ? requestData : requestData?.request_id || requestData?.id;
+      if (mode === 'visit' && attachment) {
         if (!requestId || !company?.id) return setError('Pedido enviado. Não foi possível vincular o anexo. Avise a CALI, por favor.');
-        const path = `extra-visit-requests/${company.id}/${requestId}/${crypto.randomUUID()}-${attachment.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-        const uploaded = await supabase.storage.from('cali-workspace-private').upload(path, attachment, { upsert: false, contentType: attachment.type });
-        if (uploaded.error) return setError('Pedido enviado. O anexo não foi recebido: ' + uploaded.error.message);
-        const saved = await supabase.rpc('attach_extra_visit_request_v1', { p_request_id: requestId, p_path: path, p_name: attachment.name });
-        if (saved.error) {
-          await supabase.storage.from('cali-workspace-private').remove([path]);
-          return setError('Pedido enviado. O anexo não foi vinculado: ' + saved.error.message);
-        }
+        const attachmentError = await attachExtraVisitFile(company.id, requestId, attachment);
+        if (attachmentError) return setError(attachmentError);
       }
       setOpen(false);
       window.location.assign('/cliente/cronograma');

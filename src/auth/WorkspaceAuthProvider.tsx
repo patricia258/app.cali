@@ -1,8 +1,8 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { workspaceProfileKey, workspaceProfileQuery } from '../api/access/profile';
-import { isSupabaseConfigured, supabase } from '../api/supabase';
+import { workspaceProfileQuery } from '../api/access/profile';
+import { isSupabaseConfigured, observeWorkspaceSession, readWorkspaceSession } from '../api/access/session';
 import { WorkspaceAuthContext, type AuthSnapshot, type AuthState } from './workspaceAuthContext';
 
 const signedOut: AuthSnapshot = { ready: true, user: null, role: null, active: false };
@@ -20,7 +20,7 @@ export function WorkspaceAuthProvider({ children }: { children: ReactNode }) {
     activeUserId.current = nextId;
 
     if (previousId && previousId !== nextId) {
-      queryClient.removeQueries({ queryKey: workspaceProfileKey(previousId), exact: true });
+      queryClient.clear();
     }
 
     if (!nextUser) {
@@ -42,34 +42,34 @@ export function WorkspaceAuthProvider({ children }: { children: ReactNode }) {
   }, [queryClient]);
 
   const refreshAccess = useCallback(async () => {
-    if (!isSupabaseConfigured || !supabase) {
+    if (!isSupabaseConfigured) {
       await applyUser(null);
       return;
     }
 
     const version = accessVersion.current;
-    const result = await supabase.auth.getSession().catch(() => null);
-    if (accessVersion.current === version) await applyUser(result?.data.session?.user ?? null);
+    const session = await readWorkspaceSession().catch(() => null);
+    if (accessVersion.current === version) await applyUser(session?.user ?? null);
   }, [applyUser]);
 
   useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) {
+    if (!isSupabaseConfigured) {
       setAccess(signedOut);
       return;
     }
 
     let mounted = true;
     void refreshAccess();
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const unsubscribe = observeWorkspaceSession((session) => {
       if (mounted) void applyUser(session?.user ?? null);
     });
 
     return () => {
       mounted = false;
       accessVersion.current++;
-      listener.subscription.unsubscribe();
+      unsubscribe();
       if (activeUserId.current) {
-        queryClient.removeQueries({ queryKey: workspaceProfileKey(activeUserId.current), exact: true });
+        queryClient.clear();
         activeUserId.current = null;
       }
     };

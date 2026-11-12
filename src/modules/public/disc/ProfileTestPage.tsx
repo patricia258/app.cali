@@ -9,7 +9,7 @@ import { useNavigate } from '../../../hooks/useNavigate';
 import { useParams } from '../../../hooks/useParams';
 import { useSearchParams } from '../../../hooks/useSearchParams';
 import { ArrowLeft, ArrowRight, CalendarClock, Check, Handshake, LayoutList, Mail } from 'lucide-react';
-import { anonPublicRpc } from '../../../api/supabase';
+import { openRespondentQuestionnaire, recordRespondentProgress, submitRespondentQuestionnaire, type RespondentInvite, type RespondentLink } from '../../../api/disc/respondent';
 import { blockItems, computeScores, NATURAL_BLOCKS, PRESSURE_BLOCKS, profileOf, type BlockAnswer, type Style } from '../../disc/profileMethod';
 import { richTextHtml } from '../../forms/formModel';
 import { RespondentReport, type ProfileResultView } from '../../disc/components/ProfileReports';
@@ -17,10 +17,8 @@ import { CONSENT_TEXT, NATURAL_INSTRUCTION, PRESSURE_INSTRUCTION } from '../../d
 import '../forms/public-form.css';
 import './profile-test.css';
 
-type LinkInfo = { title: string; purpose: string; status: 'open' | 'closed'; company_name: string | null; has_company: boolean };
 type Step = { kind: 'welcome' } | { kind: 'identify' } | { kind: 'intro'; key: 'natural' | 'pressure' } | { kind: 'block'; key: 'natural' | 'pressure'; block: number; index: number; of: number } | { kind: 'review' };
 type Partial2 = { mais?: Style; menos?: Style };
-type InviteInfo = { state: 'created' | 'sent' | 'opened' | 'started' | 'completed' | 'expired' | 'declined'; person_name: string; email: string; slug: string; deadline_at: string | null; last_block: number | null };
 type Draft = { stepIndex: number; consent: boolean; person: { name: string; email: string; job: string; company: string }; natural: Record<number, Partial2>; pressure: Record<number, Partial2> };
 const deadlineLabel = (iso: string) => {
   const date = new Date(iso);
@@ -45,10 +43,10 @@ export function ProfileTestPage() {
   const preview = params.get('previa') === '1';
   const inviteToken = preview ? '' : (params.get('c') || '');
   const draftKey = `cali-perfil:${inviteToken || slug}`;
-  const [invite, setInvite] = useState<InviteInfo | null>(null);
+  const [invite, setInvite] = useState<RespondentInvite | null>(null);
   const progressSent = useRef(-1);
   const navigate = useNavigate();
-  const [link, setLink] = useState<LinkInfo | null>(null);
+  const [link, setLink] = useState<RespondentLink | null>(null);
   const [state, setState] = useState<'loading' | 'missing' | 'ready'>('loading');
   const [stepIndex, setStepIndex] = useState(0);
   const [direction, setDirection] = useState<'next' | 'back'>('next');
@@ -62,14 +60,12 @@ export function ProfileTestPage() {
 
   useEffect(() => {
     document.title = 'Perfil Comportamental · CALI RH';
-    void (async () => {
-      const [linkResult, inviteResult] = await Promise.all([
-        anonPublicRpc<LinkInfo | null>('cali_profile_link', { p_slug: slug }),
-        inviteToken ? anonPublicRpc<InviteInfo | null>('cali_profile_invite_open', { p_token: inviteToken }) : Promise.resolve({ data: null }),
-      ]);
-      if (!linkResult.data || (inviteToken && (!inviteResult.data || inviteResult.data.slug !== slug))) { setState('missing'); return; }
-      const info = inviteResult.data as InviteInfo | null;
-      setLink(linkResult.data);
+    let active = true;
+    void openRespondentQuestionnaire(slug, inviteToken).then((questionnaire) => {
+      if (!active) return;
+      if (!questionnaire) { setState('missing'); return; }
+      const { link: publicLink, invite: info } = questionnaire;
+      setLink(publicLink);
       if (info) setInvite(info);
       const draft = preview ? null : readDraft(draftKey);
       if (draft && (!info || ['opened', 'started'].includes(info.state))) {
@@ -78,7 +74,8 @@ export function ProfileTestPage() {
       }
       if (info) setPerson((current) => ({ ...current, name: info.person_name, email: info.email }));
       setState('ready');
-    })();
+    });
+    return () => { active = false; };
   }, [slug, inviteToken]);
 
   const step = STEPS[stepIndex];
@@ -100,7 +97,7 @@ export function ProfileTestPage() {
     if (!inviteToken || !invite || !inviteOpen || stepIndex < 2) return;
     if (answered <= progressSent.current) return;
     progressSent.current = answered;
-    void anonPublicRpc('cali_profile_invite_progress', { p_token: inviteToken, p_block: answered });
+    void recordRespondentProgress(inviteToken, answered);
   }, [answered, stepIndex, invite]);
 
   function go(delta: number) {
@@ -151,14 +148,10 @@ export function ProfileTestPage() {
     }
     setSending(true); setError('');
     const answers = { natural: pack(natural, Array.from({ length: NATURAL_BLOCKS }, (_, i) => i + 1)), pressure: pack(pressure, PRESSURE_BLOCKS) };
-    const { data, error: rpcError } = inviteToken
-      ? await anonPublicRpc<{ id: string; token: string }>('cali_profile_submit_invite', { p_token: inviteToken, p_job_title: person.job.trim(), p_answers: answers, p_consent: consent })
-      : await anonPublicRpc<{ id: string; token: string }>('cali_profile_submit', {
-        p_slug: slug, p_name: person.name.trim(), p_email: person.email.trim(), p_job_title: person.job.trim(), p_company_name: person.company.trim(), p_answers: answers, p_consent: consent,
-      });
-    if (rpcError || !data?.token) { setSending(false); setError(rpcError?.message || 'Não foi possível enviar agora. Tente de novo.'); return; }
+    const receipt = await submitRespondentQuestionnaire({ slug, inviteToken, person, answers, consent });
+    if (!receipt.token) { setSending(false); setError(receipt.error || 'Não foi possível enviar agora. Tente de novo.'); return; }
     writeDraft(draftKey, null);
-    navigate(`/perfil/relatorio/${data.token}`, { replace: true });
+    navigate(`/perfil/relatorio/${receipt.token}`, { replace: true });
   }
 
   const blockScreen = step.kind === 'block' ? (() => {

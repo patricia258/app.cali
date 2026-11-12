@@ -3,7 +3,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNo
 import { FileCheck2 } from 'lucide-react';
 import { confirmTermsAcceptance, readTermsState, type TermsState } from '../api/access/terms';
 import type { WorkspaceRole } from '../api/access/profile';
-import { supabase } from '../api/supabase';
+import { endWorkspaceSession, observeWorkspaceSession } from '../api/access/session';
 import { LegalDocument } from '../components/legal/LegalDocument';
 import { privacyPolicy, termsOfUse } from '../domain/legalTexts';
 import { activateWorkspaceMedia } from '../lib/workspaceMedia';
@@ -22,7 +22,7 @@ function TermsLoading() {
 }
 
 async function leave() {
-  if (supabase) await supabase.auth.signOut();
+  await endWorkspaceSession();
   window.location.assign('/login');
 }
 
@@ -30,7 +30,7 @@ function AdmittedWorkspace({ actorId, children }: { actorId: string; children: R
   useLayoutEffect(() => {
     const scope = new AbortController();
     activateWorkspaceMedia(scope.signal);
-    const listener = supabase?.auth.onAuthStateChange((_event, session) => {
+    const unsubscribe = observeWorkspaceSession((session) => {
       if (session?.user.id !== actorId) scope.abort();
     });
     const timer = window.setTimeout(() => {
@@ -39,7 +39,7 @@ function AdmittedWorkspace({ actorId, children }: { actorId: string; children: R
     }, 900);
     return () => {
       window.clearTimeout(timer);
-      listener?.data.subscription.unsubscribe();
+      unsubscribe();
       scope.abort();
     };
   }, [actorId]);

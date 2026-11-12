@@ -1,12 +1,16 @@
 # Contratos do Workspace
 
-Os testes SQL exercitam o Postgres real no stack local com migrations aplicadas e as cinco identidades sintéticas da seed. Cada cenário com fixtures usa uma transação revertida. O smoke HTTP verifica GoTrue, Edges de acesso e de OAuth, Mailpit, Storage e WebSocket no loopback. Cria uma identidade sintética durante a execução e limpa a identidade e os vínculos no fim.
+Os testes SQL exercitam o Postgres real no stack local restaurado do dump do CALI MAPA, com migrations aplicadas e as cinco identidades sintéticas da seed. Cada cenário com fixtures usa uma transação revertida. O smoke HTTP verifica GoTrue, Edges de acesso e de OAuth, Mailpit, Storage e WebSocket no loopback. Cria uma identidade sintética durante a execução e limpa a identidade e os vínculos no fim.
 
 ```sh
 npm run test:contracts
 ```
 
 Execute em sequência com o stack de QA isolado. O teste HTTP usa as variáveis locais `CALI_QA_PUBLISHABLE_KEY`, `CALI_QA_SERVICE_ROLE_KEY` e `CALI_QA_TEST_PASSWORD`. O cenário do timer usa a configuração local `partner_timer_admin_email` com o Admin sintético.
+
+O ensaio `bash tests/contracts/replay-dump.sh 773c9d4` confirma o checksum e restaura o dump de estrutura com as migrations adicionadas desde a revisão de referência. Ele usa um container sem rede e limpa a instância ao terminar. Os testes com fixtures usam o laboratório local persistente descrito no [runbook](../../docs/RUNBOOK.md#ambiente-local-desta-consolidação).
+
+Com o Vite de QA em `127.0.0.1:56430`, execute `node tests/contracts/browser-local.cjs` para autenticar no Chrome pelo código capturado no Mailpit. A jornada abre uma ocorrência legada de cada empresa, verifica isolamento e encerra as sessões. O teste usa os serviços do stack local e as identidades sintéticas da seed.
 
 Os cenários cobrem sessão revogada, MFA vinculado, aceite e isolamento, reemissão de link e bloqueio de acesso sem contrato, avaliação por encerramento e revisão, presença e aprovação de horas, preço e recibo do pedido de reunião extra, revisão de aviso com publicação restrita aos destinatários, PDF oficial do Mapa e manifestos de eliminação de propostas e devolutivas. Os testes SQL de eliminação simulam o retorno da API de Storage para metadados criados na própria transação. Cobrem duas empresas com jobs concorrentes e um arquivo vizinho preservado.
 
@@ -23,9 +27,10 @@ O inventário inclui `.rpc`, os dispatchers legados com chamadas literais e `ano
 | Cenário | Efeito exercitado no Postgres local | Casos adicionais sem prova comportamental nesta suíte |
 | --- | --- | --- |
 | `session`, `onboarding` | Acesso, termos, sessão, MFA, empresa, pré-cadastro, link reemitido e bloqueio sem contrato. | Todos os tipos de convites antigos, recuperação de MFA e colisões de liberação simultânea. |
-| `calendar`, `timer` | Pedido online extra, ciência/preço, isolamento e recibo. Timer, presença, alerta, pausa, justificativa e aprovação. | Cancelar, remarcar, resultado, transcrição, agenda contratual e operadores de horas legados. |
-| `feedback`, `legacy-record-tasks` | Ciclos de avaliação, status e revisão do entregável, histórico paginado, nota interna, respostas, encerramento Partner, exclusão antes de leitura, conversa e aprovação de subtarefa, limite de ajustes. | Edição/reação de mensagens, decisões de reabertura e ciclo completo de cronograma, dependências e frentes de projeto. |
-| `team` | Clientes equivalentes, importação inválida/repetida, snapshot, campos privados, arquivamento e trilha de correção de métricas. | Vagas, gestor e corrida de importações no mesmo mês. |
+| `calendar`, `timer` | Pedido online extra, ciência/preço, isolamento, recibo, reagendamento e cancelamento com aprovação, resultado e transcrição. Timer, presença, alerta, pausa, justificativa e aprovação. | Agenda contratual, cancelamento de visita extra, provedor de transcrição e operadores de horas legados. |
+| `feedback`, `legacy-record-tasks` | Reabertura com recusa e aprovação, avaliação por encerramento, revisão do entregável, histórico paginado, edição de mensagem Admin, reação, nota interna, respostas, encerramento Partner, exclusão antes de leitura, conversa e aprovação de subtarefa, limite de ajustes. | Concorrência entre decisão, postagem e reabertura por sessões simultâneas. |
+| `project-schedule` | Rascunho privado, bloqueio sem entregável, envio para aprovação, ativação da frente com datas preservadas, registro e recebimento de dependência por Partner e isolamento entre empresas. | Troca de prioridade de entregáveis, exclusão de frente com realocação e reprogramação com ajuste encadeado. |
+| `team` | Clientes equivalentes, importação inválida/repetida, snapshot, campos privados, abertura e preenchimento de vaga, arquivamento e trilhas de vaga e métricas. | Gestor e corrida de importações no mesmo mês. |
 | `legacy-reports-notifications`, `notice` | Ciência legada, contagem de abertura/PDF, dúvida, retirada antes de leitura, revisão oculta, marcação de notificação própria e publicação de aviso após revisão. | Readiness de relatório, modelos de notificação, resumos e alertas de cada movimento. |
 | `public-forms-disc` | Ramo de Forms calculado no servidor, anexos A/B, recibo idempotente, restore preservando IDs, e convite DISC com progresso, prazo, consentimento, recusa e agradecimento sem resultado público. | Gestão de campanhas, renovação e envio focal DISC. Storage neste SQL usa metadados sintéticos. |
 | `mapa-delivery`, `material-review` | Revisão do Partner, destinatário, PDF oficial, versão obsoleta e idempotência. | Provedor de produção e destinatários reais de homologação. |

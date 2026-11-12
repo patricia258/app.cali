@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from '../../hooks/useLocation';
-import { supabase } from '../../api/supabase';
+import { hoursAvailable } from '../../api/hours/client';
+import { readHoursTimerLifecycle } from '../../api/hours/timer-context';
 import { finalizeTimerWork, TIMER_EVENT } from '../../lib/timerSemantics';
 import { TimerFinalizationDialog, type TimerFinalizationTarget } from './TimerFinalizationDialog';
 
@@ -11,11 +12,17 @@ type Pending={timer:TimerRow;target:TimerFinalizationTarget}|null;
 export function HoursLifecycleBridge({role}:{role:Role}){
   const location=useLocation();const [timers,setTimers]=useState<TimerRow[]>([]),[closedDeliverables,setClosedDeliverables]=useState<Set<string>>(new Set()),[closedTasks,setClosedTasks]=useState<Set<string>>(new Set()),[pending,setPending]=useState<Pending>(null),[step,setStep]=useState<1|2>(1),[busy,setBusy]=useState(false);
 
-  const load=useCallback(async()=>{if(role!=='admin'||!supabase||!location.pathname.startsWith('/admin/horas')){setTimers([]);return;}const user=(await supabase.auth.getUser()).data.user;if(!user)return;const [timerResult,deliverableResult,taskResult]=await Promise.all([
-    supabase.from('work_timers').select('id,deliverable_id,task_id,description').eq('user_id',user.id).eq('status','active').order('started_at',{ascending:true}),
-    supabase.from('deliverables').select('id,title,status,work_closed_at').or('status.eq.approved,work_closed_at.not.is.null'),
-    supabase.from('deliverable_tasks').select('id,title,status,work_closed_at').or('status.eq.done,work_closed_at.not.is.null'),
-  ]);const deliverables=deliverableResult.data||[],tasks=taskResult.data||[];const dm=new Map<string,any>(deliverables.map((r:any)=>[r.id,r])),tm=new Map<string,any>(tasks.map((r:any)=>[r.id,r]));setClosedDeliverables(new Set(deliverables.map((r:any)=>r.id)));setClosedTasks(new Set(tasks.map((r:any)=>r.id)));setTimers((timerResult.data||[]).map((r:any)=>({id:r.id,deliverableId:r.deliverable_id,taskId:r.task_id,description:r.description,deliverableName:dm.get(r.deliverable_id)?.title||null,taskName:tm.get(r.task_id)?.title||null,deliverableStatus:dm.get(r.deliverable_id)?.status||null})));},[role,location.pathname]);
+  const load = useCallback(async () => {
+    if (role !== 'admin' || !hoursAvailable || !location.pathname.startsWith('/admin/horas')) {
+      setTimers([]);
+      return;
+    }
+    const next = await readHoursTimerLifecycle();
+    if (!next) return;
+    setClosedDeliverables(next.closedDeliverables);
+    setClosedTasks(next.closedTasks);
+    setTimers(next.timers);
+  }, [role, location.pathname]);
 
   useEffect(()=>{void load();const id=window.setInterval(()=>void load(),8000),changed=()=>void load();window.addEventListener(TIMER_EVENT,changed);return()=>{window.clearInterval(id);window.removeEventListener(TIMER_EVENT,changed);};},[load]);
   useEffect(()=>{if(!location.pathname.startsWith('/admin/horas'))return;const apply=()=>{document.querySelectorAll<HTMLOptionElement>('select option').forEach(option=>{if(closedDeliverables.has(option.value)||closedTasks.has(option.value)){option.disabled=true;option.hidden=true;}});};apply();const observer=new MutationObserver(apply);observer.observe(document.body,{childList:true,subtree:true});return()=>observer.disconnect();},[location.pathname,closedDeliverables,closedTasks]);

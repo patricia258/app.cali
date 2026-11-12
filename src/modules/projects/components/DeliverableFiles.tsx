@@ -4,7 +4,12 @@ import { Button } from '../../../components/ds/Button';
 import { EmptyState } from '../../../components/ds/EmptyState';
 import { useEffect, useRef, useState } from 'react';
 import { FolderOpen } from 'lucide-react';
-import { supabase } from '../../../api/supabase';
+import { isSupabaseConfigured } from '../../../api/access/session';
+import { readProjectActor } from '../../../api/projects/conversation';
+import {
+  archiveProjectFile, insertProjectFile, proposeFinalProjectFile, readDeliverableAttachmentSources,
+  readFinalProjectFiles, releaseFinalProjectFile, removeProjectFile, renameProjectFile,
+} from '../../../api/projects/files';
 import { openPrivateWorkspaceFile } from '../../../api/files/workspace';
 
 type FileItem = { name: string; path: string; size: number; when: string; mime: string };
@@ -27,11 +32,11 @@ export function DeliverableFiles({ deliverableId, deliverableTitle, companyId, p
     setRenaming(null);
     setRenameError('');
   }
-  async function loadFinals() { if (!supabase) return; const result = await supabase.from('files').select('id,storage_path,status,title').eq('deliverable_id', deliverableId); if (!result.error) setFinals((result.data || []) as FinalRow[]); }
+  async function loadFinals() { if (!isSupabaseConfigured) return; const result = await readFinalProjectFiles({ deliverableId }); if (!result.error) setFinals((result.data || []) as FinalRow[]); }
   useEffect(() => { void loadFinals(); }, [deliverableId]);
   /* Nome que o cliente vê em Documentos. Só a administradora muda. */
   async function rename() {
-    if (!supabase || !renaming || renamePending.current) return;
+    if (!isSupabaseConfigured || !renaming || renamePending.current) return;
     const title = renaming.title.trim().slice(0, 200);
     if (!title) return;
 
@@ -39,7 +44,7 @@ export function DeliverableFiles({ deliverableId, deliverableTitle, companyId, p
     setSavingName(true);
     setRenameError('');
     try {
-      const result = await supabase.from('files').update({ title }).eq('id', renaming.id);
+      const result = await renameProjectFile(renaming.id, title);
       if (result.error) {
         setRenameError(result.error.message || 'Não foi possível renomear.');
         return;
@@ -53,21 +58,18 @@ export function DeliverableFiles({ deliverableId, deliverableTitle, companyId, p
     }
   }
   /* Entrega final: o Partner propõe; só a administradora libera, recusa, suspende ou exclui. */
-  async function act(file: FileItem, group: Group, action: 'propose' | 'release' | 'suspend' | 'refuse' | 'delete') { if (!supabase || busy) return; setBusy(file.path); const taskId = group.key === 'main' ? null : group.key; const existing = finals.find((row) => row.storage_path === file.path); let failure: any = null;
-    if (action === 'propose') failure = (await supabase.rpc('partner_propose_final_file', { p_deliverable_id: deliverableId, p_task_id: taskId, p_storage_path: file.path, p_filename: file.name, p_file_type: file.mime || 'application/octet-stream', p_size: file.size })).error;
-    else if (action === 'release') { const { data: auth } = await supabase.auth.getUser(); failure = existing
-      ? (await supabase.from('files').update({ status: 'published', client_visible: true, published_at: new Date().toISOString() }).eq('id', existing.id)).error
-      : (await supabase.from('files').insert({ company_id: companyId, project_id: projectId || null, deliverable_id: deliverableId, task_id: taskId, title: group.title, category: 'deliverable', storage_path: file.path, original_filename: file.name, file_type: file.mime || 'application/octet-stream', file_size_bytes: file.size, client_visible: true, status: 'published', published_at: new Date().toISOString(), workflow_origin: 'deliverable', uploaded_by: auth.user?.id || null })).error; }
-    else if (action === 'delete' && existing) failure = (await supabase.from('files').delete().eq('id', existing.id)).error;
-    else if (existing) failure = (await supabase.from('files').update({ status: 'archived', client_visible: false }).eq('id', existing.id)).error;
+  async function act(file: FileItem, group: Group, action: 'propose' | 'release' | 'suspend' | 'refuse' | 'delete') { if (!isSupabaseConfigured || busy) return; setBusy(file.path); const taskId = group.key === 'main' ? null : group.key; const existing = finals.find((row) => row.storage_path === file.path); let failure: any = null;
+    if (action === 'propose') failure = (await proposeFinalProjectFile(deliverableId, taskId, file)).error;
+    else if (action === 'release') { const { data: auth } = await readProjectActor(); failure = existing
+      ? (await releaseFinalProjectFile(existing.id)).error
+      : (await insertProjectFile({ company_id: companyId, project_id: projectId || null, deliverable_id: deliverableId, task_id: taskId, title: group.title, category: 'deliverable', storage_path: file.path, original_filename: file.name, file_type: file.mime || 'application/octet-stream', file_size_bytes: file.size, client_visible: true, status: 'published', published_at: new Date().toISOString(), workflow_origin: 'deliverable', uploaded_by: auth.user?.id || null })).error; }
+    else if (action === 'delete' && existing) failure = (await removeProjectFile(existing.id)).error;
+    else if (existing) failure = (await archiveProjectFile(existing.id)).error;
     setBusy(''); setRemoving(''); if (failure) { onNotice(failure.message || 'Não foi possível concluir esta ação.'); return; }
     onNotice(action === 'propose' ? 'Enviado para a Patricia liberar ao cliente.' : action === 'release' ? 'Liberado para o cliente em Documentos.' : action === 'suspend' ? 'Suspenso: o cliente deixou de ver este documento.' : action === 'delete' ? 'Documento retirado da pasta do cliente. O arquivo continua na conversa.' : 'Proposta recusada.'); await loadFinals(); }
-  useEffect(() => { if (!supabase) return; let alive = true; const db = supabase; setGroups(null);
+  useEffect(() => { if (!isSupabaseConfigured) return; let alive = true; setGroups(null);
     void (async () => {
-      const [main, sub] = await Promise.all([
-        db.from('comments').select('body,created_at').eq('target_type', 'deliverable').eq('target_id', deliverableId).order('created_at'),
-        db.from('task_messages').select('task_id,body,created_at').eq('deliverable_id', deliverableId).order('created_at'),
-      ]);
+      const [main, sub] = await readDeliverableAttachmentSources(deliverableId);
       if (!alive) return;
       const next: Group[] = [{ key: 'main', title: deliverableTitle, hint: 'Conversa do entregável', files: ((main.data || []) as any[]).flatMap((row) => filesOf(row.body, row.created_at)) }];
       tasks.forEach((task) => next.push({ key: task.id, title: task.title, hint: 'Subtarefa', files: ((sub.data || []) as any[]).filter((row) => row.task_id === task.id).flatMap((row) => filesOf(row.body, row.created_at)) }));

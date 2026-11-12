@@ -8,7 +8,16 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from '../../../hooks/useLocation';
 import { ArrowLeft, Clock3, FolderOpen, AlertTriangle, CheckCircle2, ChevronRight, Cloud, ExternalLink, Eye, FileCheck2, FileText, MessageSquare, Search, Send, X } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { supabase } from '../../../api/supabase';
+import { useQueryClient } from '@tanstack/react-query';
+import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
+import {
+  acknowledgeDocumentVersion, documentLibraryKey, postDocumentComment, readClientDocumentLibrary,
+  readDocumentComments, recordDocumentView,
+} from '../../../api/client/documents/library';
+import {
+  authorizeDriveConnection, copyFileToDrive, copyFolderToDrive, type DriveConnection,
+  type DriveSyncState as SyncState,
+} from '../../../api/client/documents/drive';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
 import { DocumentAutoCover } from '../../../components/documents/DocumentAutoCover';
 
@@ -28,11 +37,11 @@ type ClientDoc = {
   requiresAcknowledgement: boolean;
   description?: string | null;
   validUntil?: string | null;
+  deliverableId: string | null;
+  taskId: string | null;
 };
 
 type CommentRow = { id: string; body: string; createdAt: string; mine: boolean };
-type DriveConnection = { id: string; accountEmail?: string | null; rootFolderName?: string | null; status: string };
-type SyncState = { status: 'pending' | 'processing' | 'synced' | 'error'; url?: string | null };
 
 const categoryOptions: Array<{ value: CategorySlug; label: string }> = [
   { value: 'deliverable', label: 'Entregável' }, { value: 'report', label: 'Relatório' }, { value: 'policy', label: 'Política' },
@@ -56,6 +65,8 @@ function daysUntil(value?: string | null) {
 }
 
 export function ClientDocumentsPage() {
+  const { user } = useWorkspaceAuth();
+  const queryClient = useQueryClient();
   const [documents, setDocuments] = useState<ClientDoc[]>([]);
   const [folders, setFolders] = useState<{ id: string; title: string; protocol: string | null; items: { id: string; title: string; status: string }[] }[]>([]);
   const [openFolder, setOpenFolder] = useState<string | null>(null);
@@ -79,7 +90,7 @@ export function ClientDocumentsPage() {
 
   const categories = useMemo(() => Array.from(new Set(documents.map((doc) => doc.category))), [documents]);
   const folderIds = useMemo(() => new Set(folders.map((folder) => folder.id)), [folders]);
-  const filtered = useMemo(() => documents.filter((doc) => !(doc as any).taskId && !folderIds.has((doc as any).deliverableId)).filter((doc) => {
+  const filtered = useMemo(() => documents.filter((doc) => !doc.taskId && !folderIds.has(doc.deliverableId || '')).filter((doc) => {
     const matchQuery = `${doc.title} ${categoryLabel(doc.category)} ${doc.kind} ${doc.protocol}`.toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR'));
     const matchCategory = categoryFilter === 'all' || doc.category === categoryFilter;
     return matchQuery && matchCategory;
@@ -88,16 +99,15 @@ export function ClientDocumentsPage() {
   const shownFolders = useMemo(() => folders.filter((folder) => (categoryFilter === 'all' || categoryFilter === 'folder') && `${folder.title} ${folder.protocol || ''} pasta`.toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR'))), [folders, query, categoryFilter]);
 
   useEffect(() => {
-    if (!supabase) return;
     void loadDocuments();
-  }, []);
+  }, [user?.id]);
 
   // Chegando por um aviso (?documento=...): abre a pasta do documento ou a ficha dele, uma vez só.
   const location = useLocation(); const openedFromLink = useRef('');
   useEffect(() => {
     const wanted = new URLSearchParams(location.search).get('documento') || '';
     if (!wanted || openedFromLink.current === wanted || !documents.length) return;
-    const hit = documents.find((doc) => doc.id === wanted) as any; if (!hit) return;
+    const hit = documents.find((doc) => doc.id === wanted); if (!hit) return;
     openedFromLink.current = wanted;
     const folder = folders.find((item) => item.id === hit.deliverableId || item.items.some((part) => part.id === hit.taskId));
     if (folder) setOpenFolder(folder.id); else setDetailDoc(hit);
@@ -110,71 +120,46 @@ export function ClientDocumentsPage() {
   }, [commentDoc]);
 
   async function loadDocuments() {
-    if (!supabase) return;
+    if (!user) return;
     setLoading(true);
     setError('');
-    const [filesResult, ackResult, driveStatusResult] = await Promise.all([
-      supabase.from('files').select('deliverable_id,task_id,id,company_id,title,category,document_kind,version_label,protocol,storage_path,drive_url,requires_acknowledgement,description,updated_at,status,client_visible,valid_until').eq('client_visible', true).eq('status', 'published').order('updated_at', { ascending: false }),
-      supabase.from('document_acknowledgements').select('file_id,acknowledged_at'),
-      supabase.functions.invoke('google-drive-oauth', { body: { action: 'status' } }),
-    ]);
-    if (filesResult.error) {
-      setError(filesResult.error.message);
-      setLoading(false);
-      return;
-    }
-    if (filesResult.data?.[0]?.company_id) {
-      const companyResult = await supabase.from('companies').select('display_name,logo_url').eq('id', filesResult.data[0].company_id).maybeSingle();
-      if (companyResult.data) setCompanyBrand({ name: companyResult.data.display_name || 'sua empresa', logoUrl: (await resolveWorkspaceMedia(companyResult.data.logo_url, 86400)) || '' });
-    }
-    const rows = await Promise.all((filesResult.data ?? []).map(async (item) => ({
-      id: item.id,
-      companyId: item.company_id,
-      title: item.title,
-      category: (item.category || 'other') as CategorySlug,
-      kind: item.document_kind || 'Outro',
-      date: formatDate(item.updated_at),
-      version: item.version_label || 'final',
-      protocol: item.protocol || '—',
-      storagePath: item.storage_path || undefined,
-      driveUrl: item.drive_url || undefined,
-      requiresAcknowledgement: Boolean(item.requires_acknowledgement),
-      description: item.description,
-      validUntil: item.valid_until,
-      deliverableId: (item as any).deliverable_id || null,
-      taskId: (item as any).task_id || null,
-    })));
-    const [taskResult, deliverableResult] = await Promise.all([
-      supabase.from('deliverable_tasks').select('id,deliverable_id,title,status,sort_order').eq('client_visible', true).order('sort_order'),
-      supabase.from('deliverables').select('id,title,protocol'),
-    ]);
-    const folderTasks = (taskResult.data || []) as any[]; const names = new Map(((deliverableResult.data || []) as any[]).map((row) => [row.id, row]));
-    setFolders([...new Set(folderTasks.map((row) => row.deliverable_id))].filter((id) => names.has(id)).map((id) => ({ id, title: names.get(id).title, protocol: names.get(id).protocol || null, items: folderTasks.filter((row) => row.deliverable_id === id).map((row) => ({ id: row.id, title: row.title, status: row.status })) })));
-    setDocuments(rows);
-    setAcknowledged((ackResult.data ?? []).filter((item) => item.acknowledged_at).map((item) => item.file_id));
-
-    const driveData = driveStatusResult.data;
-    setDriveConnection(!driveStatusResult.error && driveData?.connected && driveData?.connection ? driveData.connection as DriveConnection : null);
-    const nextSync: Record<string, SyncState> = {};
-    if (!driveStatusResult.error) {
-      (driveData?.jobs || []).forEach((item: any) => {
-        if (!nextSync[item.file_id]) nextSync[item.file_id] = { status: item.status as SyncState['status'], url: item.external_url };
+    try {
+      const library = await queryClient.fetchQuery({
+        queryKey: documentLibraryKey(user.id),
+        queryFn: ({ signal }) => readClientDocumentLibrary(signal),
+        staleTime: 0,
       });
-    }
-    setSyncByFile(nextSync);
-    setLoading(false);
-  }
-
-  async function markViewed(doc: ClientDoc) {
-    if (!supabase) return;
-    const { data: sessionData } = await supabase.auth.getSession();
-    const userId = sessionData.session?.user.id;
-    if (!userId) return;
-    const { data: existing } = await supabase.from('document_acknowledgements').select('id,viewed_at,status').eq('file_id', doc.id).eq('user_id', userId).maybeSingle();
-    if (existing?.id) {
-      if (!existing.viewed_at) await supabase.from('document_acknowledgements').update({ viewed_at: new Date().toISOString(), status: existing.status === 'acknowledged' ? 'acknowledged' : 'viewed' }).eq('id', existing.id);
-    } else {
-      await supabase.from('document_acknowledgements').insert({ company_id: doc.companyId, file_id: doc.id, user_id: userId, status: 'viewed', viewed_at: new Date().toISOString() });
+      if (library.brand) {
+        setCompanyBrand({
+          name: library.brand.display_name || 'sua empresa',
+          logoUrl: (await resolveWorkspaceMedia(library.brand.logo_url, 86400)) || '',
+        });
+      }
+      setDocuments(library.documents.map((item) => ({
+        id: item.id,
+        companyId: item.company_id,
+        title: item.title,
+        category: (item.category || 'other') as CategorySlug,
+        kind: item.document_kind || 'Outro',
+        date: formatDate(item.updated_at),
+        version: item.version_label || 'final',
+        protocol: item.protocol || '—',
+        storagePath: item.storage_path || undefined,
+        driveUrl: item.drive_url || undefined,
+        requiresAcknowledgement: Boolean(item.requires_acknowledgement),
+        description: item.description,
+        validUntil: item.valid_until,
+        deliverableId: item.deliverable_id,
+        taskId: item.task_id,
+      })));
+      setFolders(library.folders);
+      setAcknowledged(library.acknowledged);
+      setDriveConnection(library.drive.connection);
+      setSyncByFile(library.drive.jobs);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Não foi possível carregar os documentos.');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -183,7 +168,7 @@ export function ClientDocumentsPage() {
     try {
       if (doc.storagePath) await openPrivateWorkspaceFile(doc.storagePath);
       else if (doc.driveUrl) window.open(doc.driveUrl, '_blank', 'noopener,noreferrer');
-      await markViewed(doc);
+      await recordDocumentView(doc);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Não foi possível abrir o documento.');
     }
@@ -191,16 +176,12 @@ export function ClientDocumentsPage() {
 
   async function acknowledgeDocument(doc: ClientDoc) {
     if (acknowledged.includes(doc.id)) return;
-    if (!supabase) { setError('Serviço indisponível. Tente novamente em instantes.'); return; }
-    const { data: sessionData } = await supabase.auth.getSession();
-    const userId = sessionData.session?.user.id;
-    if (!userId) return;
-    const now = new Date().toISOString();
-    const { data: existing } = await supabase.from('document_acknowledgements').select('id').eq('file_id', doc.id).eq('user_id', userId).maybeSingle();
-    const result = existing?.id
-      ? await supabase.from('document_acknowledgements').update({ status: 'acknowledged', viewed_at: now, acknowledged_at: now }).eq('id', existing.id)
-      : await supabase.from('document_acknowledgements').insert({ company_id: doc.companyId, file_id: doc.id, user_id: userId, status: 'acknowledged', viewed_at: now, acknowledged_at: now });
-    if (result.error) { setError(result.error.message); return; }
+    try {
+      if (!await acknowledgeDocumentVersion(doc)) return;
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Não foi possível registrar a ciência.');
+      return;
+    }
     setAcknowledged((current) => [...current, doc.id]);
     setNotice(`Ciência registrada em ${doc.title}.`);
   }
@@ -208,35 +189,36 @@ export function ClientDocumentsPage() {
   async function openComments(doc: ClientDoc) {
     setCommentDoc(doc);
     setComment('');
-    if (!supabase) { setComments([]); setError('Serviço indisponível. Tente novamente em instantes.'); return; }
     setCommentLoading(true);
-    const { data: sessionData } = await supabase.auth.getSession();
-    const userId = sessionData.session?.user.id;
-    const { data, error: commentsError } = await supabase.from('comments').select('id,body,created_at,author_user_id').eq('target_type', 'file').eq('target_id', doc.id).order('created_at');
-    if (commentsError) setError(commentsError.message);
-    setComments((data ?? []).map((item) => ({ id: item.id, body: item.body, createdAt: formatDate(item.created_at), mine: item.author_user_id === userId })));
-    setCommentLoading(false);
+    try {
+      const next = await readDocumentComments(doc.id);
+      setComments(next.map((item) => ({ ...item, createdAt: formatDate(item.createdAt) })));
+    } catch (reason) {
+      setComments([]);
+      setError(reason instanceof Error ? reason.message : 'Não foi possível carregar os comentários.');
+    } finally {
+      setCommentLoading(false);
+    }
   }
 
   async function sendComment() {
     if (!commentDoc || !comment.trim()) return;
-    if (!supabase) { setError('Serviço indisponível. Tente novamente em instantes.'); return; }
-    const { data: sessionData } = await supabase.auth.getSession();
-    const userId = sessionData.session?.user.id;
-    if (!userId) return;
-    const { error: insertError } = await supabase.from('comments').insert({ company_id: commentDoc.companyId, target_type: 'file', target_id: commentDoc.id, author_user_id: userId, body: comment.trim(), client_visible: true });
-    if (insertError) { setError(insertError.message); return; }
-    setComment('');
-    await openComments(commentDoc);
+    try {
+      if (!await postDocumentComment(commentDoc, comment)) return;
+      setComment('');
+      await openComments(commentDoc);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Não foi possível enviar o comentário.');
+    }
   }
 
   async function connectDrive() {
-    if (!supabase || driveConnecting) return;
+    if (driveConnecting) return;
     setDriveConnecting(true);
     setError('');
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke('google-drive-oauth', { body: { action: 'authorize' } });
-      if (invokeError || data?.error || !data?.url) throw new Error(data?.detail || data?.error || invokeError?.message || 'Não foi possível iniciar a conexão com o Google Drive.');
+      const { data, error: invokeError, detail } = await authorizeDriveConnection();
+      if (!data?.url) throw new Error(detail || invokeError || 'Não foi possível iniciar a conexão com o Google Drive.');
       window.location.assign(data.url);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível iniciar a conexão com o Google Drive.');
@@ -245,7 +227,7 @@ export function ClientDocumentsPage() {
   }
 
   async function requestDriveCopy(doc: ClientDoc) {
-    if (!driveConnection || !supabase || !doc.storagePath) return;
+    if (!driveConnection || !doc.storagePath) return;
     const existing = syncByFile[doc.id];
     if (existing?.status === 'synced' && existing.url) {
       window.open(existing.url, '_blank', 'noopener,noreferrer');
@@ -254,10 +236,10 @@ export function ClientDocumentsPage() {
     if (existing?.status === 'pending' || existing?.status === 'processing') return;
     setError('');
     setSyncByFile((current) => ({ ...current, [doc.id]: { status: 'processing' } }));
-    const { data, error: syncError } = await supabase.functions.invoke('google-drive-oauth', { body: { action: 'copy_file', fileId: doc.id } });
-    if (syncError || data?.error) {
+    const { data, error: syncError, detail } = await copyFileToDrive(doc.id);
+    if (syncError) {
       setSyncByFile((current) => ({ ...current, [doc.id]: { status: 'error' } }));
-      setError(data?.detail || data?.error || syncError?.message || 'Não foi possível salvar este arquivo no Google Drive.');
+      setError(detail || syncError || 'Não foi possível salvar este arquivo no Google Drive.');
       return;
     }
     setSyncByFile((current) => ({ ...current, [doc.id]: { status: 'synced', url: data?.url || null } }));
@@ -266,11 +248,11 @@ export function ClientDocumentsPage() {
 
   // Pasta inteira no Drive: "CALI Workspace / <entregável (protocolo)>" com todos os documentos liberados.
   async function saveFolderToDrive(folderId: string, title: string) {
-    if (!driveConnection || !supabase || folderSaving) return;
+    if (!driveConnection || folderSaving) return;
     setFolderSaving(folderId); setError('');
-    const { data, error: syncError } = await supabase.functions.invoke('google-drive-oauth', { body: { action: 'copy_folder', deliverableId: folderId } });
+    const { data, error: syncError, detail } = await copyFolderToDrive(folderId);
     setFolderSaving('');
-    if (syncError || data?.error) { setError(data?.detail || 'Não foi possível salvar a pasta no seu Google Drive. Tente de novo.'); return; }
+    if (syncError) { setError(detail || 'Não foi possível salvar a pasta no seu Google Drive. Tente de novo.'); return; }
     setNotice(data?.failed ? `${title}: ${data.copied} documento(s) salvo(s) no Drive; ${data.failed} não pôde(puderam) ser copiado(s).` : `${title} foi salva no seu Google Drive, na pasta CALI Workspace.`);
     if (data?.url) window.open(data.url, '_blank', 'noopener,noreferrer');
   }

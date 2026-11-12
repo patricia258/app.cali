@@ -1,5 +1,6 @@
 import { StrictMode, Suspense, lazy, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WorkspaceAuthContext } from '../../src/auth/workspaceAuthContext';
 import { AppErrorBoundary } from '../../src/components/feedback/AppErrorBoundary';
 import { TimerFinalizationDialog } from '../../src/components/hours/TimerFinalizationDialog';
@@ -20,6 +21,7 @@ import { useDialogFocus } from '../../src/components/ds/useDialogFocus';
 import { DeliverableDependencies } from '../../src/components/projects/DeliverableDependencies';
 import { ReportManualComplementsPanel } from '../../src/components/reports/ReportManualComplementsPanel';
 import type { ReportManualComplements } from '../../src/lib/reportManualComplements';
+import { activateWorkspaceMedia, resolveWorkspaceMedia } from '../../src/lib/workspaceMedia';
 import { ExpensesFixture, NavigationFixture, RequestFixture } from './calendar-navigation-fixtures';
 
 function ControlsFixture() {
@@ -469,7 +471,11 @@ function WelcomeFixture() {
 
 function DependenciesFixture({ mode }: { mode: 'admin' | 'staff' }) {
   const [notice, setNotice] = useState('');
-  return <>
+  return <WorkspaceAuthContext.Provider value={{
+    ready: true, role: mode === 'admin' ? 'admin' : 'partner', active: true,
+    user: { id: `qa-${mode}`, aud: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-11-12' },
+    refreshAccess: async () => undefined,
+  }}>
     <DeliverableDependencies
       mode={mode}
       companyId="qa-company"
@@ -480,12 +486,36 @@ function DependenciesFixture({ mode }: { mode: 'admin' | 'staff' }) {
       onNotice={setNotice}
     />
     <output>{notice}</output>
-  </>;
+  </WorkspaceAuthContext.Provider>;
 }
 
 function ManualComplementsFixture() {
   const [value, setValue] = useState<ReportManualComplements>({ deliveries: [], timeEntries: [] });
   return <ReportManualComplementsPanel value={value} onChange={setValue} />;
+}
+
+function WorkspaceMediaFixture() {
+  const scope = useRef<AbortController | null>(null);
+  const [results, setResults] = useState<Record<string, string[]>>({});
+
+  function read(key: string, replace: boolean) {
+    if (replace) {
+      scope.current?.abort();
+      scope.current = new AbortController();
+      activateWorkspaceMedia(scope.current.signal);
+    }
+    const resolve = () => resolveWorkspaceMedia('private:qa-company/logo.png');
+    void Promise.all([resolve(), resolve()]).then((urls) => {
+      setResults((current) => ({ ...current, [key]: urls }));
+    });
+  }
+
+  return <>
+    <button onClick={() => read('anterior', true)}>Abrir sessão anterior</button>
+    <button onClick={() => read('nova', true)}>Trocar sessão</button>
+    <button onClick={() => read('cache', false)}>Consultar novamente</button>
+    {Object.entries(results).map(([key, urls]) => <output key={key} aria-label={key}>{JSON.stringify(urls)}</output>)}
+  </>;
 }
 
 const fixtures = {
@@ -510,14 +540,18 @@ const fixtures = {
   dependencyAdmin: () => <DependenciesFixture mode="admin" />,
   dependencyStaff: () => <DependenciesFixture mode="staff" />,
   manualComplements: ManualComplementsFixture,
+  workspaceMedia: WorkspaceMediaFixture,
 };
 const name = (
   location.pathname === '/cliente/cronograma' ? 'request' : new URLSearchParams(location.search).get('fixture')
 ) as keyof typeof fixtures;
 const Fixture = fixtures[name];
 if (!Fixture) throw new Error('Fixture desconhecida');
+const queryClient = new QueryClient();
 createRoot(document.getElementById('fixture')!).render(
   <StrictMode>
-    <Suspense fallback={null}><Fixture /></Suspense>
+    <QueryClientProvider client={queryClient}>
+      <Suspense fallback={null}><Fixture /></Suspense>
+    </QueryClientProvider>
   </StrictMode>,
 );

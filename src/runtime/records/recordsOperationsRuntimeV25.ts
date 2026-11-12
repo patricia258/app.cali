@@ -1,28 +1,15 @@
-import { supabase } from '../../api/supabase';
+import { recordsAvailable, readRecordViewerId } from '../../api/records/client';
+import {
+  deleteUnopenedRecord, markRecordOpened, pauseRecordTimer, readRecordOperations,
+  readRecordTimerData, startRecordTimer, subscribeRecordOperations, type RecordOperationsRow as RecordRow,
+} from '../../api/records/operations';
 
 type Role = 'admin' | 'client';
-type RecordRow = {
-  id: string;
-  company_id: string;
-  protocol?: string | null;
-  title: string;
-  record_type: string;
-  source_actor: string;
-  created_by?: string | null;
-  workflow_status?: string | null;
-  first_admin_opened_at?: string | null;
-};
-type TimerRow = {
-  id: string;
-  started_at: string;
-  paused_seconds?: number | null;
-};
-
 let installed = false;
 let busy = false;
 let debounce = 0;
 let activeRecord = '';
-let recordChannel: ReturnType<NonNullable<typeof supabase>['channel']> | null = null;
+let unsubscribeRecord: (() => void) | null = null;
 let ticker = 0;
 
 function role(): Role | null {
@@ -46,16 +33,6 @@ function formatLive(startedAt: string, pausedSeconds = 0) {
 function currentProtocol(drawer: HTMLElement) {
   return drawer.querySelector<HTMLElement>('.section-kicker')?.textContent?.trim() || '';
 }
-async function getRecord(protocol: string): Promise<RecordRow | null> {
-  if (!supabase || !protocol.startsWith('CALI-REG-')) return null;
-  const { data, error } = await supabase
-    .from('account_records')
-    .select('id,company_id,protocol,title,record_type,source_actor,created_by,workflow_status,first_admin_opened_at')
-    .eq('protocol', protocol)
-    .maybeSingle();
-  if (error || !data) return null;
-  return data as RecordRow;
-}
 function ensureOperationalHost(drawer: HTMLElement) {
   let host = drawer.querySelector<HTMLElement>('.records-v25-ops');
   if (host) return host;
@@ -67,16 +44,16 @@ function ensureOperationalHost(drawer: HTMLElement) {
   return host;
 }
 async function markOpened(record: RecordRow) {
-  if (!supabase || record.first_admin_opened_at) return;
-  const { error } = await supabase.rpc('mark_account_record_opened', { p_record_id: record.id });
+  if (!recordsAvailable || record.first_admin_opened_at) return;
+  const { error } = await markRecordOpened(record.id);
   if (!error) record.first_admin_opened_at = new Date().toISOString();
 }
 async function deleteUnopened(record: RecordRow, button: HTMLButtonElement) {
-  if (!supabase) return;
+  if (!recordsAvailable) return;
   const confirmed = window.confirm('Excluir esta solicitação? Isso só é possível porque a CALI ainda não abriu o atendimento.');
   if (!confirmed) return;
   button.disabled = true;
-  const { error } = await supabase.rpc('client_delete_unopened_account_record', { p_record_id: record.id });
+  const { error } = await deleteUnopenedRecord(record.id);
   if (error) {
     button.disabled = false;
     alert(error.message || 'Não foi possível excluir esta solicitação.');
@@ -86,9 +63,8 @@ async function deleteUnopened(record: RecordRow, button: HTMLButtonElement) {
   window.setTimeout(() => location.reload(), 120);
 }
 async function renderClientDelete(record: RecordRow, host: HTMLElement) {
-  if (!supabase) return;
-  const { data: sessionData } = await supabase.auth.getSession();
-  const uid = sessionData.session?.user?.id || '';
+  if (!recordsAvailable) return;
+  const uid = await readRecordViewerId();
   const deletable =
     record.source_actor === 'client' &&
     record.created_by === uid &&
@@ -114,34 +90,14 @@ async function renderClientDelete(record: RecordRow, host: HTMLElement) {
     host.append(row);
   }
 }
-async function timerData(recordId: string) {
-  if (!supabase) return { timer: null as TimerRow | null, total: 0, sessions: 0 };
-  const { data: sessionData } = await supabase.auth.getSession();
-  const uid = sessionData.session?.user?.id || '';
-  const [timerResult, hoursResult] = await Promise.all([
-    supabase
-      .from('work_timers')
-      .select('id,started_at,paused_seconds')
-      .eq('account_record_id', recordId)
-      .eq('user_id', uid)
-      .eq('status', 'active')
-      .maybeSingle(),
-    supabase
-      .from('hour_entries')
-      .select('minutes')
-      .eq('account_record_id', recordId),
-  ]);
-  const minutes = (hoursResult.data || []).reduce((sum: number, row: any) => sum + Number(row.minutes || 0), 0);
-  return { timer: (timerResult.data || null) as TimerRow | null, total: minutes, sessions: (hoursResult.data || []).length };
-}
 function stopTicker() {
   if (ticker) window.clearInterval(ticker);
   ticker = 0;
 }
 async function startTimer(record: RecordRow, button: HTMLButtonElement) {
-  if (!supabase) return;
+  if (!recordsAvailable) return;
   button.disabled = true;
-  const { error } = await supabase.rpc('start_account_record_timer', { p_record_id: record.id });
+  const { error } = await startRecordTimer(record.id);
   button.disabled = false;
   if (error) {
     alert(error.message || 'Não foi possível iniciar o acompanhamento.');
@@ -151,11 +107,11 @@ async function startTimer(record: RecordRow, button: HTMLButtonElement) {
   schedule();
 }
 async function pauseTimer(timerId: string, button: HTMLButtonElement, startedAt?: string, pausedSeconds = 0) {
-  if (!supabase) return;
+  if (!recordsAvailable) return;
   // Regra do banco (2026-10-11): sessão com menos de 30 segundos é descartada, sem lançamento de horas.
   const elapsed = startedAt ? Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000) - pausedSeconds : 999;
   button.disabled = true;
-  const { error } = await supabase.rpc('pause_work_timer', { p_timer_id: timerId });
+  const { error } = await pauseRecordTimer(timerId);
   button.disabled = false;
   if (error) {
     alert(error.message || 'Não foi possível pausar e registrar esta sessão.');
@@ -171,7 +127,7 @@ async function pauseTimer(timerId: string, button: HTMLButtonElement, startedAt?
   }, 500);
 }
 async function renderAdminTimer(record: RecordRow, host: HTMLElement) {
-  const data = await timerData(record.id);
+  const data = await readRecordTimerData(record.id);
   let card = host.querySelector<HTMLElement>('.records-v25-timer');
   const locked = ['completed', 'cancelled'].includes(String(record.workflow_status || ''));
   const signature = [data.timer?.id || 'idle', data.total, data.sessions, locked ? 'locked' : 'open'].join('|');
@@ -225,27 +181,31 @@ async function renderAdminTimer(record: RecordRow, host: HTMLElement) {
   action.append(clock, button);
   card.append(copy, action);
 }
+function clearRecordSubscription() {
+  unsubscribeRecord?.();
+  unsubscribeRecord = null;
+  activeRecord = '';
+  stopTicker();
+}
+
 function subscribeRecord(recordId: string) {
-  if (!supabase || (recordId === activeRecord && recordChannel)) return;
-  if (recordChannel) void supabase.removeChannel(recordChannel);
+  if (recordId === activeRecord && unsubscribeRecord) return;
+  clearRecordSubscription();
   activeRecord = recordId;
-  recordChannel = supabase
-    .channel(`records-ops-${recordId}-${Date.now()}`)
-    .on('postgres_changes', { event: 'UPDATE', schema: 'cali_workspace', table: 'account_records', filter: `id=eq.${recordId}` }, () => schedule())
-    .subscribe();
+  unsubscribeRecord = subscribeRecordOperations(recordId, schedule);
 }
 async function enhance() {
-  if (busy || !supabase) return;
+  if (busy || !recordsAvailable) return;
   const currentRole = role();
-  if (!currentRole) return;
+  if (!currentRole) { clearRecordSubscription(); return; }
   const drawer = document.querySelector<HTMLElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"])");
-  if (!drawer) return;
+  if (!drawer) { clearRecordSubscription(); return; }
   const protocol = currentProtocol(drawer);
   if (!protocol.startsWith('CALI-REG-')) return;
   busy = true;
   try {
-    const record = await getRecord(protocol);
-    if (!record) return;
+    const record = await readRecordOperations(protocol);
+    if (!record || !drawer.isConnected || role() !== currentRole) return;
     subscribeRecord(record.id);
     const host = ensureOperationalHost(drawer);
     if (currentRole === 'admin') {
@@ -272,6 +232,7 @@ export function installRecordsOperationsRuntimeV25() {
     schedule();
     const observer = new MutationObserver(() => schedule());
     observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('cali-route-change', schedule);
     window.addEventListener('popstate', schedule);
     window.addEventListener('focus', schedule);
   };

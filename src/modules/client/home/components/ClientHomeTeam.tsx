@@ -1,40 +1,23 @@
-import { useEffect, useState } from 'react';
+import { skipToken, useQuery } from '@tanstack/react-query';
 import { Link } from '../../../../components/navigation/Link';
 import { ArrowRight, CalendarDays, Star } from 'lucide-react';
-import { supabase } from '../../../../api/supabase';
+import { readClientHomeTeam, type ClientHomePerson } from '../../../../api/client/home/team';
+import { useWorkspaceAuth } from '../../../../auth/hooks/useWorkspaceAuth';
 
-type Person = { id: string; full_name: string; department: string | null; admission_date: string | null; status: string; leave_reason: string | null; archived_at: string | null };
-const professionalFields = 'id,full_name,department,admission_date,status,leave_reason,archived_at';
-function situation(person: Person) {
+function situation(person: ClientHomePerson) {
   if (person.status !== 'leave') return { label: 'Ativa', tone: 'ok' };
   return /f[eé]rias|vacation/i.test(person.leave_reason || '') ? { label: 'Férias', tone: 'vacation' } : { label: 'Afastada', tone: 'away' };
 }
 
 /** Read-only summary of the existing team. Company comes from the authenticated dashboard. */
 export function ClientHomeTeam({ companyId }: { companyId?: string }) {
-  const [people, setPeople] = useState<Person[]>([]);
-  const [state, setState] = useState<'loading' | 'ready' | 'unavailable'>('loading');
-  useEffect(() => {
-    let alive = true;
-    setPeople([]);
-    if (!companyId || !supabase) { setState('unavailable'); return; }
-    const client = supabase;
-    setState('loading');
-    async function load() {
-      try {
-        const rows: Person[] = [];
-        for (let start = 0; ; start += 500) {
-          const result = await client.from('team_members').select(professionalFields).eq('company_id', companyId).order('full_name').range(start, start + 499);
-          if (result.error) throw result.error;
-          rows.push(...(result.data || []) as Person[]);
-          if ((result.data?.length || 0) < 500) break;
-        }
-        if (alive) { setPeople(rows.filter(person => !person.archived_at && person.status !== 'terminated')); setState('ready'); }
-      } catch { if (alive) setState('unavailable'); }
-    }
-    void load();
-    return () => { alive = false; };
-  }, [companyId]);
+  const { user } = useWorkspaceAuth();
+  const team = useQuery({
+    queryKey: ['client', 'home-team', user?.id, companyId],
+    queryFn: user?.id && companyId ? ({ signal }) => readClientHomeTeam(companyId, signal) : skipToken,
+  });
+  const people = team.data ?? [];
+  const state = !companyId || !user?.id || team.isError ? 'unavailable' : team.isPending ? 'loading' : 'ready';
   const today = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit' }).formatToParts(new Date());
   const month = Number(today.find(part => part.type === 'month')?.value);
   const year = Number(today.find(part => part.type === 'year')?.value);

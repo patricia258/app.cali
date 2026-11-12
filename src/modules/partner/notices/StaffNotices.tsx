@@ -3,10 +3,10 @@ import { Button } from '../../../components/ds/Button';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { useEffect, useState, type FormEvent } from 'react';
 import { X } from 'lucide-react';
-import { supabase } from '../../../api/supabase';
+import { readPartnerNoticeReviews, submitNoticeReview, type NoticeReview } from '../../../api/notices/reviews';
 import type { PartnerWorkspace } from '../../../api/partner/workspace';
 import { StaffNoticesPage } from '../../notices/NoticesBoard';
-import { noticeCategories, noticeReviewColumns, noticeReviewStatus, type NoticeReview } from '../../notices/notice-review';
+import { noticeCategories, noticeReviewStatus } from '../../notices/notice-review';
 import '../../notices/notice-review.css';
 
 function newDraft(review?: NoticeReview) {
@@ -30,11 +30,11 @@ export function StaffNotices({ me }: { me: PartnerWorkspace }) {
   const [done, setDone] = useState('');
 
   async function load() {
-    if (!supabase) return;
-    const { data, error: requestError } = await supabase.from('partner_notice_reviews')
-      .select(noticeReviewColumns).eq('author_id', me.id).order('submitted_at', { ascending: false });
-    if (requestError) setError('Não foi possível carregar os comunicados em revisão.');
-    else setReviews((data ?? []) as NoticeReview[]);
+    try {
+      setReviews(await readPartnerNoticeReviews(me.id));
+    } catch {
+      setError('Não foi possível carregar os comunicados em revisão.');
+    }
   }
   useEffect(() => { void load(); }, [me.id]);
 
@@ -46,16 +46,11 @@ export function StaffNotices({ me }: { me: PartnerWorkspace }) {
 
   async function save(event: FormEvent) {
     event.preventDefault();
-    if (!supabase || !draft || busy || !draft.companies.length) return;
+    if (!draft || busy || !draft.companies.length) return;
     setBusy(true);
     setError('');
     try {
-      const { error: requestError } = await supabase.rpc('submit_partner_notice_review', {
-        p_request_id: draft.requestId, p_review_id: draft.id, p_revision: draft.revision,
-        p_category: draft.category, p_title: draft.title, p_body: draft.body,
-        p_companies: draft.companies, p_date: draft.date || null,
-      });
-      if (requestError) throw new Error(requestError.message);
+      await submitNoticeReview(draft);
       setDraft(null);
       setDone('Comunicado enviado para revisão da Patrícia.');
       await load();

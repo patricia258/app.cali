@@ -1,4 +1,5 @@
-import { supabase } from '../../api/supabase';
+import { isSupabaseConfigured } from '../../api/access/session';
+import { readReportAgendaSnapshot } from '../../api/calendar/meetings';
 
 type AgendaItemV71 = {
   startsAt?: string | null;
@@ -89,7 +90,7 @@ function ensureSection(paper: HTMLElement) {
 }
 
 export async function refreshSchedulingReportAgendaV71() {
-  if (!supabase || !window.location.pathname.includes('/relatorios')) return;
+  if (!isSupabaseConfigured || !window.location.pathname.includes('/relatorios')) return;
   const papers = Array.from(document.querySelectorAll<HTMLElement>('.reports-v16-paper-one'));
   for (const paper of papers) {
     if (paper.dataset.v71AgendaLoading === '1') continue;
@@ -97,7 +98,7 @@ export async function refreshSchedulingReportAgendaV71() {
     if (!protocol || protocol === '—') continue;
     paper.dataset.v71AgendaLoading = '1';
     try {
-      const { data, error } = await supabase.from('reports').select('source_snapshot').eq('protocol', protocol).maybeSingle();
+      const { data, error } = await readReportAgendaSnapshot(protocol);
       if (error) throw error;
       const agenda = (data?.source_snapshot as any)?.agendaCompliance as AgendaComplianceV71 | undefined;
       if (!agenda || (!number(agenda.requiredTotal) && !number(agenda.extraCount))) continue;

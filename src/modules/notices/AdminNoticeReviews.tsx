@@ -1,8 +1,7 @@
 import { DialogForm } from '../../components/ds/DialogForm';
 import { Button } from '../../components/ds/Button';
 import { useEffect, useState, type FormEvent } from 'react';
-import { supabase } from '../../api/supabase';
-import { noticeReviewColumns, type NoticeReview } from './notice-review';
+import { readPendingNoticeReviews, decideNoticeReview, type NoticeReview } from '../../api/notices/reviews';
 import './notice-review.css';
 
 export function AdminNoticeReviews({ companies, onPublish }: {
@@ -17,25 +16,21 @@ export function AdminNoticeReviews({ companies, onPublish }: {
   const [error, setError] = useState('');
 
   async function load() {
-    if (!supabase) return;
-    const { data, error: requestError } = await supabase.from('partner_notice_reviews')
-      .select(noticeReviewColumns).eq('status', 'pending').order('submitted_at').order('id');
-    if (requestError) setError('Não foi possível carregar a fila de revisão.');
-    else setRows((data ?? []) as NoticeReview[]);
+    try {
+      setRows(await readPendingNoticeReviews());
+    } catch {
+      setError('Não foi possível carregar a fila de revisão.');
+    }
   }
   useEffect(() => { void load(); }, []);
 
   async function decide(event: FormEvent) {
     event.preventDefault();
-    if (!supabase || !selected || busy) return;
+    if (!selected || busy) return;
     setBusy(true);
     setError('');
     try {
-      const { error: requestError } = await supabase.rpc('review_partner_notice', {
-        p_review_id: selected.id, p_revision: selected.revision,
-        p_approve: !returning, p_note: returning ? note.trim() : null,
-      });
-      if (requestError) throw new Error(requestError.message);
+      await decideNoticeReview(selected, !returning, note);
       setSelected(null);
       await load();
       if (!returning) await onPublish();

@@ -11,7 +11,7 @@ test "$(docker inspect "$container" --format '{{.State.Running}} {{len .NetworkS
 printf 'Catálogo de RPCs do frontend\n'
 node frontend-rpc-catalog.mjs | docker exec -i "$container" psql -U cali_restore_admin -d postgres -Xq -v ON_ERROR_STOP=1
 
-for contract in session onboarding feedback timer calendar notice commercial-retention mapa-delivery mapa-retention material-review public-forms-disc team legacy-reports-notifications legacy-record-tasks privacy; do
+for contract in session onboarding feedback timer calendar notice commercial-retention mapa-delivery mapa-retention material-review public-forms-disc team legacy-reports-notifications legacy-record-tasks project-schedule privacy; do
   printf 'Contrato SQL %s\n' "$contract"
   {
     printf 'begin;\n'

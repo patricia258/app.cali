@@ -19,6 +19,8 @@ Um build fornecido por `--dist` deve usar `VITE_SUPABASE_URL=https://cali-local-
 
 ## Cobertura no navegador
 
+A [matriz de ações](COVERAGE.md) vincula cada fluxo às provas de interface e de contrato e registra lacunas.
+
 `routes.cjs` valida URLs diretas, papéis, callbacks, parâmetros repetidos, fragmentos, menu, histórico e recarga. `guards.cjs` injeta falhas de MFA, versão, hash, aceite e endpoints de identidade. Exercita cadastro/verificação do fator, montagem privada e impressão por papel. `interactions.cjs` cobre carrossel e ajuste de Entregáveis com teclado, clique e toque. `design-browser.cjs` verifica foco, fechamento, retorno de foco, seletor, estado vazio, botão e rótulo de formulário.
 
 | Fluxo | Jornada principal |

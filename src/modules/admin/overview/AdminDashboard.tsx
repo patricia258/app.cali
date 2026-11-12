@@ -6,67 +6,10 @@ import { createPortal } from "react-dom";
 import { format } from "date-fns";
 import { ArrowRight, Building2, CalendarDays, ChevronRight, CircleAlert, Clock3, Download, MessageSquareText, Plus, X } from "lucide-react";
 import { Shell } from "../../../components/workspace/WorkspaceShell";
-import { supabase } from "../../../api/supabase";
-import { resolveWorkspaceMedia } from "../../../lib/workspaceMedia";
+import { readAdminOverview, subscribeAdminOverview, type DashboardData, type Satisfaction } from "../../../api/admin/overview/portfolio";
 import { useSearchParams } from "../../../hooks/useSearchParams";
 import { Button } from "../../../components/ds/Button";
 import { InlineNotice } from "../../../components/ds/InlineNotice";
-
-type Company = {
-  id: string;
-  name: string;
-  service: string;
-  contracted: number;
-  mark: string;
-  logoUrl?: string;
-};
-type Project = {
-  id: string;
-  companyId: string;
-  name: string;
-  planningStatus?: string | null;
-  status?: string | null;
-};
-type Deliverable = {
-  id: string;
-  companyId: string;
-  projectId?: string | null;
-  title: string;
-  status: string;
-  dueAt?: string | null;
-};
-type AgendaEvent = {
-  id: string;
-  companyId: string;
-  title: string;
-  startsAt: string;
-  type: "meeting" | "validation" | "deadline";
-};
-type Satisfaction = {
-  average: number | null;
-  total: number;
-  distribution: Record<string, number>;
-  monthly: Array<{ month: string; average: number | null; count: number }>;
-  recent: Array<{
-    score: number;
-    company?: string | null;
-    protocol?: string | null;
-    title?: string | null;
-    createdAt: string;
-  }>;
-};
-type DashboardData = {
-  companies: Company[];
-  projects: Project[];
-  deliverables: Deliverable[];
-  entries: Array<{
-    companyId: string;
-    minutes: number;
-    workDate?: string | null;
-  }>;
-  events: AgendaEvent[];
-  satisfaction: Satisfaction;
-};
 
 const emptySatisfaction: Satisfaction = {
   average: null,
@@ -77,17 +20,6 @@ const emptySatisfaction: Satisfaction = {
 };
 const dashboardSources = ["Carteira", "Projetos", "Entregáveis", "Horas", "Agenda", "Satisfação"] as const;
 type DashboardSource = typeof dashboardSources[number];
-
-async function readDashboardPages<T>(read: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>) {
-  const pageSize = 250;
-  const rows: T[] = [];
-  for (let offset = 0; ; offset += pageSize) {
-    const { data, error } = await read(offset, offset + pageSize - 1);
-    if (error) throw error;
-    rows.push(...(data ?? []));
-    if (!data || data.length < pageSize) return rows;
-  }
-}
 
 const statusNames: Record<string, string> = {
   approved: "Aprovados",
@@ -104,14 +36,6 @@ const tones = ["#5A1E2D", "#B58C52", "#8A6B73", "#D9C9BE", "#C98E62"];
 function greeting() {
   const hour = new Date().getHours();
   return hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
-}
-function monthBounds() {
-  const now = new Date();
-  const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-  return {
-    next: format(next, "yyyy-MM-dd"),
-    now,
-  };
 }
 function formatHours(minutes: number) {
   return `${(minutes / 60).toFixed(1).replace(".", ",")}h`;
@@ -525,104 +449,17 @@ export function AdminDashboard() {
     let cancelled = false;
     let refreshTimer = 0;
     let newestLoad = 0;
-    const db = supabase;
     async function load() {
-      if (!db) {
+      const loadId = ++newestLoad;
+      const result = await readAdminOverview().catch(() => null);
+      if (cancelled || newestLoad !== loadId) return;
+      if (!result) {
         setFailedSources([...dashboardSources]);
         setLoading(false);
         return;
       }
-      const loadId = ++newestLoad;
-      const { next, now } = monthBounds();
-      const historyStart = new Date(now.getFullYear(), now.getMonth() - 11, 1);
-      const [
-        companies,
-        projects,
-        deliverables,
-        entries,
-        events,
-        satisfaction,
-      ] = await Promise.allSettled([
-        readDashboardPages((from, to) => db
-          .from("companies")
-          .select(
-            "id,display_name,logo_url,service_type,service_plan,monthly_hours_contracted",
-          )
-          .neq("status", "closed")
-          .order("display_name")
-          .order("id")
-          .range(from, to)).then((rows) => Promise.all(rows.map(async (row) => ({
-            id: row.id,
-            name: row.display_name || "Cliente",
-            service: row.service_plan || row.service_type || "Serviço CALI",
-            contracted: Number(row.monthly_hours_contracted || 0),
-            mark: String(row.display_name || "C").trim().slice(0, 1).toUpperCase(),
-            logoUrl: await resolveWorkspaceMedia(row.logo_url),
-          })))),
-        readDashboardPages((from, to) => db
-          .from("projects")
-          .select("id,company_id,name,planning_status,status")
-          .neq("status", "closed")
-          .order("updated_at", { ascending: false })
-          .order("id")
-          .range(from, to)).then((rows) => rows.map((row) => ({
-            id: row.id,
-            companyId: row.company_id,
-            name: row.name || "Projeto",
-            planningStatus: row.planning_status,
-            status: row.status,
-          }))),
-        readDashboardPages((from, to) => db
-          .from("deliverables")
-          .select("id,company_id,project_id,title,status,due_at")
-          .neq("status", "cancelled")
-          .order("due_at", { ascending: true })
-          .order("id")
-          .range(from, to)).then((rows) => rows.map((row) => ({
-            id: row.id,
-            companyId: row.company_id,
-            projectId: row.project_id,
-            title: row.title || "Entregável",
-            status: row.status,
-            dueAt: row.due_at,
-          }))),
-        readDashboardPages((from, to) => db
-          .from("hour_entries")
-          .select("company_id,minutes,work_date")
-          .gte("work_date", format(historyStart, "yyyy-MM-dd"))
-          .lt("work_date", next)
-          .order("id")
-          .range(from, to)).then((rows) => rows.map((row) => ({
-            companyId: row.company_id,
-            minutes: Number(row.minutes || 0),
-            workDate: row.work_date,
-          }))),
-        readDashboardPages((from, to) => db
-          .from("events")
-          .select("id,company_id,title,starts_at,event_type")
-          .gte("starts_at", historyStart.toISOString())
-          .lt(
-            "starts_at",
-            new Date(now.getTime() + 15 * 86400000).toISOString(),
-          )
-          .is("cancelled_at", null)
-          .order("starts_at")
-          .order("id")
-          .range(from, to)).then((rows): AgendaEvent[] => rows.map((row) => ({
-            id: row.id,
-            companyId: row.company_id,
-            title: row.title || "Compromisso",
-            startsAt: row.starts_at,
-            type: row.event_type === "meeting" || row.event_type === "deadline" ? row.event_type : "validation",
-          }))),
-        db.rpc("get_admin_satisfaction_overview").then(({ data, error }) => {
-          if (error) throw error;
-          return data as Satisfaction | null;
-        }),
-      ] as const);
-      if (cancelled || newestLoad !== loadId) return;
-      const results = [companies, projects, deliverables, entries, events, satisfaction];
-      setFailedSources(dashboardSources.filter((_, index) => results[index].status === "rejected"));
+      const [companies, projects, deliverables, entries, events, satisfaction] = result;
+      setFailedSources(dashboardSources.filter((_, index) => result[index].status === "rejected"));
       setData((previous) => ({
         companies: companies.status === "fulfilled" ? companies.value : previous.companies,
         projects: projects.status === "fulfilled" ? projects.value : previous.projects,
@@ -638,56 +475,11 @@ export function AdminDashboard() {
       refreshTimer = window.setTimeout(() => void load(), 250);
     }
     void load();
-    if (!supabase)
-      return () => {
-        cancelled = true;
-      };
-    const channel = supabase
-      .channel("admin-dashboard-live")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "cali_workspace", table: "companies" },
-        scheduleReload,
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "cali_workspace", table: "projects" },
-        scheduleReload,
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "cali_workspace", table: "deliverables" },
-        scheduleReload,
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "cali_workspace", table: "hour_entries" },
-        scheduleReload,
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "cali_workspace", table: "events" },
-        scheduleReload,
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "cali_workspace", table: "nps_responses" },
-        scheduleReload,
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "cali_workspace",
-          table: "account_record_feedback",
-        },
-        scheduleReload,
-      )
-      .subscribe();
+    const unsubscribe = subscribeAdminOverview(scheduleReload);
     return () => {
       cancelled = true;
       window.clearTimeout(refreshTimer);
-      if (supabase) void supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [reloadRevision]);
 
