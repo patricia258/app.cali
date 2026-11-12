@@ -8,6 +8,7 @@ import {
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { DocumentAutoCover as AutoCover } from '../../../components/documents/DocumentAutoCover';
 import { supabase } from '../../../api/supabase';
+import { openPrivateWorkspaceFile } from '../../../api/files/workspace';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
 import { optimizeImageForUpload } from '../../../lib/imageUpload';
 
@@ -396,9 +397,11 @@ export function AdminDocumentsPageV4({ staff = false }: { staff?: boolean } = {}
     if (!supabase) return;
     if (doc.driveUrl) { window.open(doc.driveUrl, '_blank', 'noopener,noreferrer'); return; }
     if (!doc.storagePath) return;
-    const { data, error: signedError } = await supabase.storage.from('cali-workspace-private').createSignedUrl(doc.storagePath, 900);
-    if (signedError || !data?.signedUrl) { setError(signedError?.message || 'Não foi possível abrir o arquivo.'); return; }
-    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    try {
+      await openPrivateWorkspaceFile(doc.storagePath);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível abrir o arquivo.');
+    }
   }
 
   async function changePublication(doc: DocumentRow, publish: boolean) {

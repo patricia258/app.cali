@@ -32,6 +32,8 @@ export type ClientPublishedDocument = {
 };
 
 export type ClientDeliveryFeedback = {
+  id?: string;
+  reviewRevision?: number | null;
   score: number;
   comment?: string | null;
   createdAt: string;
@@ -105,6 +107,8 @@ export type ClientDeliveryItem = {
   visibleTaskProgress: number | null;
   document: ClientPublishedDocument | null;
   feedback: ClientDeliveryFeedback | null;
+  feedbackHistory?: ClientDeliveryFeedback[];
+  reviewRevision?: number;
   latestAdjustment: ClientDeliveryAdjustment | null;
   history: ClientDeliveryHistoryItem[];
 };
@@ -168,7 +172,7 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
       .neq('status', 'cancelled')
       .order('sort_order'),
     supabase.from('deliverables')
-      .select('id,company_id,project_id,protocol,code,title,description,status,priority,complexity,workstream,workstream_id,roadmap_month_start,roadmap_month_end,due_at,original_due_at,client_response_due_at,started_at,approval_requested_at,client_response_at,approved_at,cancelled_at,updated_at,adjustment_count,rebriefing_required,is_document,final_drive_url,sort_order,client_visible')
+      .select('id,company_id,project_id,protocol,code,title,description,status,priority,complexity,workstream,workstream_id,roadmap_month_start,roadmap_month_end,due_at,original_due_at,client_response_due_at,started_at,approval_requested_at,client_response_at,approved_at,cancelled_at,updated_at,adjustment_count,rebriefing_required,is_document,final_drive_url,sort_order,client_visible,review_revision')
       .eq('company_id', companyId)
       .eq('client_visible', true)
       .order('sort_order')
@@ -191,7 +195,7 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
       .order('published_at', { ascending: false, nullsFirst: false })
       .order('updated_at', { ascending: false }),
     supabase.from('nps_responses')
-      .select('deliverable_id,score,comment,created_at')
+      .select('id,deliverable_id,delivery_review_revision,score,comment,created_at')
       .eq('company_id', companyId)
       .order('created_at', { ascending: false }),
     supabase.from('deliverable_adjustments')
@@ -283,13 +287,15 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
     });
   }
 
-  const feedbackByDeliverable = new Map<string, ClientDeliveryFeedback>();
+  const feedbackByDeliverable = new Map<string, ClientDeliveryFeedback[]>();
   const allScores: number[] = [];
   for (const row of npsResult.data || []) {
     const score = finiteNumber(row.score);
     if (score >= 1 && score <= 5) allScores.push(score);
-    if (!row.deliverable_id || feedbackByDeliverable.has(row.deliverable_id)) continue;
-    feedbackByDeliverable.set(row.deliverable_id, { score, comment: row.comment, createdAt: row.created_at });
+    if (!row.deliverable_id) continue;
+    const history = feedbackByDeliverable.get(row.deliverable_id) || [];
+    history.push({ id: row.id, reviewRevision: row.delivery_review_revision, score, comment: row.comment, createdAt: row.created_at });
+    feedbackByDeliverable.set(row.deliverable_id, history);
   }
 
   const adjustmentByDeliverable = new Map<string, ClientDeliveryAdjustment>();
@@ -320,6 +326,8 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
     const project = row.project_id ? projectMap.get(row.project_id) : undefined;
     const visibleTasks = tasksByDeliverable.get(row.id) || [];
     const doneTasks = visibleTasks.filter((task) => ['done', 'completed'].includes(task.status)).length;
+    const reviewRevision = finiteNumber(row.review_revision) || 1;
+    const feedbackHistory = feedbackByDeliverable.get(row.id) || [];
     return {
       id: row.id,
       companyId: row.company_id,
@@ -354,7 +362,9 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
       visibleTasks,
       visibleTaskProgress: visibleTasks.length ? Math.round((doneTasks / visibleTasks.length) * 100) : null,
       document: documentByDeliverable.get(row.id) || null,
-      feedback: feedbackByDeliverable.get(row.id) || null,
+      reviewRevision,
+      feedbackHistory,
+      feedback: feedbackHistory.find((feedback) => (feedback.reviewRevision ?? 1) === reviewRevision) || null,
       latestAdjustment: adjustmentByDeliverable.get(row.id) || null,
       history: historyByDeliverable.get(row.id) || [],
     };

@@ -24,6 +24,7 @@ export type ProjectDeliverable = {
   taskDone: number;
   sortOrder: number;
   clientVisible: boolean;
+  reviewRevision?: number;
 };
 
 export type WorkspaceProject = {

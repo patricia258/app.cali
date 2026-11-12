@@ -5,6 +5,7 @@
 - A branch `codex/cali-consolidacao` reúne a documentação de fluxos, bibliotecas, organização por módulo e os lotes de acesso, ficha, Cliente e Partner.
 - O laboratório restaurou a estrutura do CALI MAPA em rede isolada. Usou dados sintéticos, Auth e Storage locais, Mailpit e provedor Google simulado.
 - As provas de navegador cobriram 104 cenários de navegação, 31 guardas, 7 interações e 27 comparações visuais em desktop e celular. Os cenários de negócio incluíram liberação de acesso, histórico por empresa, avaliação por encerramento, termos `2026-11-12.2`, retomada de eliminação, aprovação de Avisos e entrega dos três materiais após dupla confirmação.
+- A revisão de Entregáveis passou quatro cenários adicionais. A correção retira a revisão da área Cliente, preserva as avaliações anteriores e exige a revisão vigente para aprovar ou pedir ajuste.
 - O Partner recebe alerta do cronômetro aos 25 minutos e pausa aos 30. O trecho preservado segue para aprovação com justificativa. O laboratório confirmou a entrega do alerta ao Partner e à administradora configurada.
 - O Preview depende de projeto Supabase de homologação, permissões para o deploy e destinos de teste. O inventário remoto acessível mostrou apenas o CALI MAPA. [Runbook](RUNBOOK.md#preview-e-corte)
 

@@ -17,6 +17,7 @@ import './project-approval-rules-v39.css';
 import './project-client-portfolio-v39.css';
 import './admin-projects-stability-v62.css';
 import { supabase } from '../../../api/supabase';
+import { openPrivateWorkspaceFile } from '../../../api/files/workspace';
 import { optimizeImageForUpload } from '../../../lib/imageUpload';
 import {
   complexityMeta, complexityRange, deliverableLabels, formatProjectDate, previewProjects, projectPlanningLabels,
@@ -52,7 +53,7 @@ type DeliverableForm = {
   monthStart: number; monthEnd: number; dueDate: string; isDocument: boolean; clientVisible: boolean;
 };
 type TaskForm = { title: string; description: string; dueDate: string; estimatedHours: string; clientVisible: boolean; complexity: string; isDocument: boolean };
-type PendingStatus = { item: ProjectDeliverable; status: DeliverableStatus } | null;
+type PendingStatus = { item: ProjectDeliverable; status: DeliverableStatus | 'reopen' } | null;
 
 const statuses: DeliverableStatus[] = ['not_started','in_progress','standby','internal_review','client_review','adjustment_requested','rebriefing','approved','cancelled'];
 const statusTone: Record<DeliverableStatus,string> = {
@@ -142,7 +143,11 @@ function StatusSelect({ item, onChange, compact=false }: { item:ProjectDeliverab
   </label>;
   return <label className={`inline-status-select-v3 ${statusTone[item.status]} ${compact?'compact':''}`} onClick={(e)=>e.stopPropagation()}>
     <span className="status-dot-v3"/><select aria-label={`Status de ${item.title}`} value={item.status} disabled={item.status==='approved'} onChange={(e)=>onChange(e.target.value as DeliverableStatus)}>
-      {statuses.map((status)=><option key={status} value={status}>{deliverableLabels[status]}</option>)}
+      {statuses.filter((status) => (
+        (status !== 'approved' || item.status === 'approved' || (item.reviewRevision ?? 1) === 1)
+        && (status !== 'adjustment_requested' || item.clientVisible || (item.reviewRevision ?? 1) === 1)
+      ))
+        .map((status)=><option key={status} value={status}>{deliverableLabels[status]}</option>)}
     </select>
   </label>;
 }
@@ -180,6 +185,7 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
   const [editingDeliverable,setEditingDeliverable] = useState<ProjectDeliverable|null>(null);
   const [deliverableForm,setDeliverableForm] = useState<DeliverableForm>(emptyDeliverableForm());
   const [pendingStatus,setPendingStatus] = useState<PendingStatus>(null);
+  const [statusError, setStatusError] = useState('');
   const [statusReason,setStatusReason] = useState('');
   const [confirmDelete,setConfirmDelete] = useState(false);
   // Equipe CALI: quem é quem na conversa (nome e foto), pedidos de aprovação pendentes e mensagens do canal aberto.
@@ -223,7 +229,7 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
         staff ? Promise.resolve({ data: staff.companies.map((c)=>({ id:c.id, display_name:c.display_name, logo_url:c.logo_url, service_type:c.service_type||null, service_plan:c.service_plan||null })), error: null }) as any : supabase.from('companies').select('id,display_name,logo_url,service_type,service_plan').neq('status','closed').order('display_name'),
         supabase.from('projects').select('id,protocol,company_id,name,description,status,planning_status,start_date,target_end_date,client_response_business_days,adjustment_limit').order('created_at',{ascending:false}),
         supabase.from('project_workstreams').select('id,protocol,project_id,company_id,name,objective,roadmap_month_start,roadmap_month_end,status,sort_order').order('sort_order'),
-        supabase.from('deliverables').select('id,protocol,code,project_id,company_id,title,description,status,workstream,workstream_id,complexity,roadmap_month_start,roadmap_month_end,due_at,original_due_at,client_response_due_at,client_delay_business_days,adjustment_count,rebriefing_required,is_document,sort_order,client_visible').order('sort_order'),
+        supabase.from('deliverables').select('id,protocol,code,project_id,company_id,title,description,status,workstream,workstream_id,complexity,roadmap_month_start,roadmap_month_end,due_at,original_due_at,client_response_due_at,client_delay_business_days,adjustment_count,rebriefing_required,is_document,sort_order,client_visible,review_revision').order('sort_order'),
         supabase.from('deliverable_tasks').select('id,protocol,deliverable_id,title,description,status,due_at,client_visible,estimated_minutes,sort_order').order('sort_order'),
         supabase.from('hour_entries').select('deliverable_id,minutes'),
         supabase.from('work_timers').select('id,deliverable_id,task_id,started_at,status').eq('status','active').order('started_at',{ascending:false}).limit(1),
@@ -240,7 +246,7 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
         const c:any=companyMap.get(row.company_id)||{};
         const ds:ProjectDeliverable[]=(deliverableRows||[]).filter((d:any)=>d.project_id===row.id).map((d:any)=>{
           const related=taskMap.get(d.id)||[];
-          return { id:d.id,protocol:d.protocol||d.code||'—',title:d.title,description:d.description,status:d.status as DeliverableStatus,workstream:d.workstream||'Frente não definida',complexity:(d.complexity||'MC2') as MaterialComplexity,roadmapMonthStart:d.roadmap_month_start,roadmapMonthEnd:d.roadmap_month_end,dueAt:d.due_at,originalDueAt:d.original_due_at,clientResponseDueAt:d.client_response_due_at,clientDelayBusinessDays:Number(d.client_delay_business_days||0),adjustmentCount:Number(d.adjustment_count||0),rebriefingRequired:Boolean(d.rebriefing_required),isDocument:Boolean(d.is_document),hours:hours.get(d.id)||0,taskCount:related.length,taskDone:related.filter((t)=>t.status==='done').length,sortOrder:Number(d.sort_order||0),clientVisible:Boolean(d.client_visible),workstreamId:d.workstream_id } as ProjectDeliverable & {workstreamId?:string};
+          return { id:d.id,protocol:d.protocol||d.code||'—',title:d.title,description:d.description,status:d.status as DeliverableStatus,workstream:d.workstream||'Frente não definida',complexity:(d.complexity||'MC2') as MaterialComplexity,roadmapMonthStart:d.roadmap_month_start,roadmapMonthEnd:d.roadmap_month_end,dueAt:d.due_at,originalDueAt:d.original_due_at,clientResponseDueAt:d.client_response_due_at,clientDelayBusinessDays:Number(d.client_delay_business_days||0),adjustmentCount:Number(d.adjustment_count||0),rebriefingRequired:Boolean(d.rebriefing_required),isDocument:Boolean(d.is_document),hours:hours.get(d.id)||0,taskCount:related.length,taskDone:related.filter((t)=>t.status==='done').length,sortOrder:Number(d.sort_order||0),clientVisible:Boolean(d.client_visible),reviewRevision:Number(d.review_revision||1),workstreamId:d.workstream_id } as ProjectDeliverable & {workstreamId?:string};
         });
         return { id:row.id,protocol:row.protocol||'—',companyId:row.company_id,company:c.display_name||'Cliente',companyLogo:c.logo_url,name:row.name,service:servicePlanLabel(c.service_type,c.service_plan),description:row.description,planningStatus:(row.planning_status||(row.status==='active'?'active':'draft')) as ProjectPlanningStatus,startDate:row.start_date,endDate:row.target_end_date,clientResponseBusinessDays:Number(row.client_response_business_days||3),adjustmentLimit:Number(row.adjustment_limit||3),deliverables:ds };
       });
@@ -266,16 +272,26 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
       ]);
       setHistory([{id:'h1',title:'Entregável criado',detail:'Incluído no cronograma e vinculado à frente.',createdAt:'2026-08-20T10:00:00-03:00'},{id:'h2',title:'Status alterado',detail:`Status atual: ${deliverableLabels[selectedDeliverable?.status||'not_started']}.`,createdAt:'2026-08-27T09:00:00-03:00'}]); return;
     }
-    const [{data:commentRows},{data:statusRows}] = await Promise.all([
+    const [{data:commentRows},{data:statusRows},{data:correctionRows}] = await Promise.all([
       supabase.from('comments').select('id,body,client_visible,created_at').eq('target_type','deliverable').eq('target_id',deliverableId).order('created_at'),
       supabase.from('deliverable_status_history').select('*').eq('deliverable_id',deliverableId).order('created_at',{ascending:false}),
-      supabase.auth.getUser(),
+      staff ? Promise.resolve({ data: null }) : supabase.rpc('read_deliverable_review_history_v2', { p_deliverable_id: deliverableId }),
     ]);
 
     setComments((commentRows||[]).map((r:any)=>{
       return {id:r.id,body:r.body,clientVisible:Boolean(r.client_visible),createdAt:r.created_at,author:r.client_visible?'Conversa com cliente':'Nota interna CALI'};
     }));
-    setHistory((statusRows||[]).map((r:any)=>({id:String(r.id),title:`${r.from_status?deliverableLabels[r.from_status as DeliverableStatus]+' → ':''}${deliverableLabels[r.to_status as DeliverableStatus]||r.to_status}`,detail:r.note||'Mudança registrada no fluxo.',createdAt:r.created_at})));
+    const corrections = (correctionRows ?? []) as { review_revision: number; opened_at: string | null; reason: string | null; approved_at: string | null; score: number | null }[];
+    const statusHistory = (statusRows ?? [])
+      .filter((row: any) => !corrections.length || row.note !== 'Entregável reaberto para correção.')
+      .map((r: any) => ({ id: String(r.id), title: `${r.from_status ? deliverableLabels[r.from_status as DeliverableStatus] + ' → ' : ''}${deliverableLabels[r.to_status as DeliverableStatus] || r.to_status}`, detail: r.note || 'Mudança registrada no fluxo.', createdAt: r.created_at }));
+    const correctionHistory = corrections.flatMap((row): HistoryItem[] => {
+      const rows: HistoryItem[] = [];
+      if (row.opened_at && row.reason) rows.push({ id: `reopen-${row.review_revision}`, title: `Revisão ${row.review_revision} aberta para correção`, detail: row.reason, createdAt: row.opened_at });
+      if (row.approved_at && row.score) rows.push({ id: `review-${row.review_revision}`, title: `Avaliação da revisão ${row.review_revision}`, detail: `Nota ${row.score}/5`, createdAt: row.approved_at });
+      return rows;
+    });
+    setHistory([...statusHistory, ...correctionHistory].sort((left, right) => right.createdAt.localeCompare(left.createdAt)));
   }
 
   const filteredProjects=useMemo(()=>projects.filter((p)=>{const text=`${p.company} ${p.name} ${p.protocol} ${p.service}`.toLowerCase(); return (!query||text.includes(query.toLowerCase()))&&(statusFilter==='all'||p.planningStatus===statusFilter);}),[projects,query,statusFilter]);
@@ -351,22 +367,65 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
   async function persistStatus(item:ProjectDeliverable,next:DeliverableStatus,note:string){
     if(item.status==='approved'||next===item.status)return;
     if(supabase&&isUuid(item.id)){
-      const {error}=await supabase.rpc(staff?'partner_change_deliverable_status':'change_deliverable_status',{p_deliverable_id:item.id,p_status:next,p_note:note||null});
-      if(error){console.error(error);return;}
+      const statusUpdate = { p_deliverable_id: item.id, p_status: next, p_note: note || null };
+      const { error } = staff
+        ? await supabase.rpc('partner_change_deliverable_status', statusUpdate)
+        : await supabase.rpc('change_deliverable_review_status_v2', { ...statusUpdate, p_review_revision: item.reviewRevision ?? 1 });
+      if(error){setStaffNotice(error.message);return;}
       await loadWorkspace();
       if(selectedDeliverable?.id===item.id) await loadDeliverableContext(item.id);
     } else {
       setProjects((c)=>c.map((p)=>({...p,planningStatus:next==='rebriefing'&&p.id===selectedProject.id?'rebriefing':p.planningStatus,deliverables:p.deliverables.map((d)=>d.id===item.id?{...d,status:next,rebriefingRequired:next==='rebriefing'?true:d.rebriefingRequired}:d)})));
       setHistory((c)=>[{id:`preview-history-${Date.now()}`,title:`${deliverableLabels[item.status]} → ${deliverableLabels[next]}`,detail:note||'Mudança registrada no fluxo.',createdAt:new Date().toISOString()},...c]);
     }
-    setSelectedDeliverable((current)=>current?.id===item.id?{...current,status:next,rebriefingRequired:next==='rebriefing'?true:current.rebriefingRequired}:current);
+    setSelectedDeliverable((current)=>current?.id===item.id?{...current,status:next,
+      clientVisible: next === 'client_review' || ((current.reviewRevision ?? 1) === 1 && current.clientVisible),
+      rebriefingRequired:next==='rebriefing'?true:current.rebriefingRequired}:current);
   }
 
-  async function confirmPendingStatus(){ if(!pendingStatus||!statusReason.trim())return; if(staff&&pendingStatus.status==='cancelled'){ const item=pendingStatus.item; const ok=await staffSubmitChange('deliverable_cancel',`Cancelar entregável: ${item.title}`,{id:item.id,reason:statusReason.trim()},selectedProject.companyId); if(ok){ setPendingStatus(null); setStatusReason(''); } return; } const current=pendingStatus; setPendingStatus(null); await persistStatus(current.item,current.status,statusReason.trim()); setStatusReason(''); }
+  async function confirmPendingStatus() {
+    if (!pendingStatus || !statusReason.trim() || saving) return;
+    const current = pendingStatus;
+    if (current.status === 'reopen') {
+      if (!supabase || staff) return;
+      setSaving(true);
+      setStatusError('');
+      try {
+        const result = await supabase.rpc('reopen_deliverable_for_review_v2', {
+          p_deliverable_id: current.item.id, p_review_revision: current.item.reviewRevision ?? 1, p_reason: statusReason.trim(),
+        });
+        if (result.error) throw new Error(result.error.message);
+        const revision = Number(result.data?.review_revision);
+        const status = (result.data?.status ?? 'internal_review') as DeliverableStatus;
+        await loadWorkspace();
+        setSelectedDeliverable((item) => item?.id === current.item.id
+          ? { ...item, status, clientVisible: Boolean(result.data?.client_visible), reviewRevision: revision }
+          : item);
+        await loadDeliverableContext(current.item.id);
+        setPendingStatus(null);
+        setStatusReason('');
+        setStaffNotice('Entregável reaberto para correção. Libere a revisão para voltar a exibi-lo ao cliente.');
+      } catch (error) {
+        setStatusError(error instanceof Error ? error.message : 'Não foi possível reabrir o entregável.');
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+    if (staff && current.status === 'cancelled') {
+      const item = current.item;
+      const ok = await staffSubmitChange('deliverable_cancel', `Cancelar entregável: ${item.title}`, { id: item.id, reason: statusReason.trim() }, selectedProject.companyId);
+      if (!ok) return;
+    } else {
+      await persistStatus(current.item, current.status, statusReason.trim());
+    }
+    setPendingStatus(null);
+    setStatusReason('');
+  }
 
   async function requestAdjustment(){
     if(!selectedDeliverable||!adjustmentReason.trim())return; const next=selectedDeliverable.adjustmentCount+1; const rebrief=next>(selectedProject.adjustmentLimit||3);
-    if(supabase&&isUuid(selectedDeliverable.id)){ const {error}=await supabase.rpc('request_deliverable_adjustment',{p_deliverable_id:selectedDeliverable.id,p_reason:adjustmentReason.trim(),p_impact_business_days:adjustmentImpact}); if(error)console.error(error); else { await loadWorkspace(); await loadDeliverableContext(selectedDeliverable.id); } }
+    if(supabase&&isUuid(selectedDeliverable.id)){ const {error}=await supabase.rpc('request_deliverable_adjustment',{p_deliverable_id:selectedDeliverable.id,p_reason:adjustmentReason.trim(),p_impact_business_days:adjustmentImpact}); if(error){setStaffNotice(error.message);return;} await loadWorkspace(); await loadDeliverableContext(selectedDeliverable.id); }
     else setProjects((c)=>c.map((p)=>p.id===selectedProject.id?{...p,planningStatus:rebrief?'rebriefing':p.planningStatus,deliverables:p.deliverables.map((d)=>d.id===selectedDeliverable.id?{...d,status:rebrief?'rebriefing':'adjustment_requested',adjustmentCount:next,rebriefingRequired:rebrief}:d)}:p));
     setSelectedDeliverable((c)=>c?{...c,status:rebrief?'rebriefing':'adjustment_requested',adjustmentCount:next,rebriefingRequired:rebrief}:c); setAdjustmentReason('');setAdjustmentImpact(0);setShowAdjustment(false);
   }
@@ -386,7 +445,13 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
 
   async function toggleTask(task:TaskItem){ const next=task.status==='done'?'todo':'done'; if(staff){ if(task.status==='done'){ setStaffNotice('Etapa já concluída. Só a Patricia pode reabrir.'); return; } if(selectedDeliverable)await staffSubmitChange('task_complete',`Concluir subtarefa em ${selectedDeliverable.title}: ${task.title}`,{id:task.id},selectedProject.companyId); return; } if(supabase&&isUuid(task.id)){await supabase.from('deliverable_tasks').update({status:next,completed_at:next==='done'?new Date().toISOString():null}).eq('id',task.id);} setTasks((c)=>c.map((t)=>t.id===task.id?{...t,status:next}:t)); }
 
-  async function staffOpenAttachment(path:string){ if(!supabase)return; const {data,error}=await supabase.storage.from('cali-workspace-private').createSignedUrl(path,300); if(error||!data?.signedUrl){ setStaffNotice('Não foi possível abrir este anexo agora.'); return; } window.open(data.signedUrl,'_blank','noopener,noreferrer'); }
+  async function staffOpenAttachment(path: string) {
+    try {
+      await openPrivateWorkspaceFile(path);
+    } catch {
+      setStaffNotice('Não foi possível abrir este anexo agora.');
+    }
+  }
   async function staffLoadChat(deliverableId:string, channel:ConversationChannel){
     if(!supabase||!staff)return;
     const result=await supabase.from('comments').select('id,body,author_user_id,source_actor,created_at').eq('target_type','deliverable').eq('target_id',deliverableId).eq('client_visible',channel==='client').order('created_at');
@@ -453,7 +518,7 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
     else setActiveTimer({deliverableId:selectedDeliverable.id,startedAt:new Date().toISOString(),preview:true});
     if(selectedDeliverable.status==='not_started')void persistStatus(selectedDeliverable,'in_progress','Timer iniciado');
   }
-  async function stopTimer(){ if(!activeTimer)return; if(!activeTimer.preview&&supabase&&activeTimer.id){const {data:stopped,error}=await supabase.rpc(staff?'partner_stop_timer':'stop_work_timer',{p_timer_id:activeTimer.id,p_description:selectedDeliverable?.title||'Atividade de projeto'});if(error)console.error(error);else{ if(staff)setStaffNotice((stopped as any)?.discarded?'Sessão com menos de 30 segundos: não foi registrada.':`Sessão de ${(stopped as any)?.minutes} min registrada. Dê play para continuar depois.`); await loadWorkspace(); }} setActiveTimer(null); }
+  async function stopTimer(){ if(!activeTimer)return; if(!activeTimer.preview&&supabase&&activeTimer.id){const {data:stopped,error}=await supabase.rpc(staff?'partner_stop_timer':'stop_work_timer',{p_timer_id:activeTimer.id,p_description:selectedDeliverable?.title||'Atividade de projeto'});if(error)console.error(error);else{ if(staff)setStaffNotice((stopped as any)?.discarded?'Sessão com menos de 30 segundos: não foi registrada.':`Sessão de ${(stopped as any)?.minutes} min enviada para aprovação da Patrícia.`); await loadWorkspace(); }} setActiveTimer(null); }
   const timerLabel=`${String(Math.floor(timerSeconds/3600)).padStart(2,'0')}:${String(Math.floor((timerSeconds%3600)/60)).padStart(2,'0')}:${String(timerSeconds%60).padStart(2,'0')}`;
 
   async function deleteDeliverable(){
@@ -510,7 +575,7 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
   {frontModal&&<div className="ap-pd-overlay"><form className="ap-pd-modal v2-pd-narrow simple-project-modal-v2" role="dialog" aria-modal="true" aria-label="Nova frente" onSubmit={createFront}><header className="ap-pd-head"><div><small>OPERAÇÃO / PROJETOS</small><h2>Adicionar frente ao cronograma</h2><p>A frente organiza um bloco de trabalho. Dentro dela serão criados os entregáveis e suas subtarefas.</p><div className="ap-pd-context"><span>Conta <strong>{selectedProject.company}</strong></span><span>Projeto / cronograma <strong>{selectedProject.name}</strong></span></div></div><button type="button" className="ap-pd-close" aria-label="Fechar" onClick={()=>setFrontModal(false)}><X size={19}/></button></header><div className="ap-pd-body project-modal-scroll-v2"><div className="ap-pd-fields"><label className="ap-pd-field ap-pd-wide stacked-label"><span>Nome da frente</span><input value={frontForm.name} onChange={(e)=>setFrontForm((c)=>({...c,name:e.target.value}))} placeholder="Ex.: Cultura & Clima"/></label><label className="ap-pd-field ap-pd-wide stacked-label"><span>Objetivo / contexto</span><textarea rows={3} value={frontForm.objective} onChange={(e)=>setFrontForm((c)=>({...c,objective:e.target.value}))}/></label><label className="ap-pd-field stacked-label"><span>Mês inicial</span><input type="number" min={1} value={frontForm.monthStart} onChange={(e)=>setFrontForm((c)=>({...c,monthStart:Number(e.target.value)}))}/></label><label className="ap-pd-field stacked-label"><span>Mês final</span><input type="number" min={frontForm.monthStart} value={frontForm.monthEnd} onChange={(e)=>setFrontForm((c)=>({...c,monthEnd:Number(e.target.value)}))}/></label></div></div><footer className="ap-pd-footer"><span/><div><button type="button" onClick={()=>setFrontModal(false)}>Cancelar</button><button className="ap-pd-primary primary" disabled={saving||!frontForm.name.trim()}>Adicionar frente</button></div></footer></form></div>}
 
   {(()=>{ const openTask=openTaskId?tasks.find((t)=>t.id===openTaskId):null; return openTask&&selectedDeliverable&&selectedProject&&isUuid(openTask.id)?<SubtaskModal task={{id:openTask.id,title:openTask.title,description:openTask.description,status:String(openTask.status),dueAt:openTask.dueAt,protocol:openTask.protocol,clientVisible:openTask.clientVisible,complexity:(openTask as any).complexity,isDocument:(openTask as any).isDocument}} deliverableId={selectedDeliverable.id} deliverableTitle={selectedDeliverable.title} companyId={selectedProject.companyId} projectId={selectedProject.id} staff={Boolean(staff)} timer={taskTimer({id:openTask.id,title:openTask.title,status:String(openTask.status)})} formatDate={(value)=>formatProjectDate(value||undefined)} onStatus={(next)=>void setTaskStatus(openTask,next)} onClose={()=>setOpenTaskId(null)} onNotice={setStaffNotice}/>:null; })()}
-  {deliverableModal&&<div className="ap-pd-overlay"><form className="ap-pd-modal simple-project-modal-v2" role="dialog" aria-modal="true" aria-label="Entregável" onSubmit={saveDeliverable}><header className="ap-pd-head"><div><small>OPERAÇÃO / PROJETOS</small><h2>{editingDeliverable?'Atualizar entregável':'Criar entregável'}</h2><p>O entregável pertence a uma frente e pode ser desdobrado em quantas subtarefas forem necessárias.</p><div className="ap-pd-context"><span>Conta <strong>{selectedProject.company}</strong></span><span>Projeto / cronograma <strong>{selectedProject.name}</strong></span></div></div><button type="button" className="ap-pd-close" aria-label="Fechar" onClick={()=>setDeliverableModal(false)}><X size={19}/></button></header><div className="ap-pd-body project-modal-scroll-v2"><div className="ap-pd-fields"><label className="ap-pd-field stacked-label"><span>Título</span><input value={deliverableForm.title} onChange={(e)=>setDeliverableForm((c)=>({...c,title:e.target.value}))}/></label><label className="ap-pd-field stacked-label"><span>Frente</span><select value={deliverableForm.frontId} onChange={(e)=>setDeliverableForm((c)=>({...c,frontId:e.target.value}))}><option value="">Selecionar frente</option>{selectedFronts.map((f)=><option key={f.id} value={f.id}>{f.name}</option>)}</select></label><label className="ap-pd-field stacked-label"><span>Complexidade</span><select value={deliverableForm.complexity} onChange={(e)=>setDeliverableForm((c)=>({...c,complexity:e.target.value as MaterialComplexity}))}>{(Object.keys(complexityMeta) as MaterialComplexity[]).map((key)=><option key={key} value={key}>{complexityMeta[key].label}</option>)}</select></label><label className="ap-pd-field stacked-label"><span>Prazo</span><input type="date" value={deliverableForm.dueDate} onChange={(e)=>setDeliverableForm((c)=>({...c,dueDate:e.target.value}))}/>{(()=>{ const meta=complexityMeta[deliverableForm.complexity]; const iso=(days:number)=>{ const d=new Date(); d.setDate(d.getDate()+days); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }; const from=iso(meta.minDays), to=iso(meta.maxDays); const outside=Boolean(deliverableForm.dueDate)&&(deliverableForm.dueDate<from||deliverableForm.dueDate>to); return <small className={`v2-mc-range ${outside?'outside':''}`}>{outside?`Fora da faixa estimada para ${deliverableForm.complexity} (${formatProjectDate(from)} a ${formatProjectDate(to)}). Ajuste manual permitido.`:`Faixa estimada para ${deliverableForm.complexity}: ${formatProjectDate(from)} a ${formatProjectDate(to)} (${complexityRange(deliverableForm.complexity)}).`}{!deliverableForm.dueDate&&<button type="button" onClick={()=>setDeliverableForm((c)=>({...c,dueDate:to}))}>Usar {formatProjectDate(to)}</button>}</small>; })()}</label><label className="ap-pd-field ap-pd-wide stacked-label"><span>Descrição / resultado esperado</span><textarea rows={3} value={deliverableForm.description} onChange={(e)=>setDeliverableForm((c)=>({...c,description:e.target.value}))}/></label><label className="ap-pd-check"><input type="checkbox" checked={deliverableForm.clientVisible} onChange={(e)=>setDeliverableForm((c)=>({...c,clientVisible:e.target.checked}))}/> Visível para o cliente</label><label className="ap-pd-check"><input type="checkbox" checked={deliverableForm.isDocument} onChange={(e)=>setDeliverableForm((c)=>({...c,isDocument:e.target.checked}))}/> Entrega documental</label></div><div className="ap-pd-wide complexity-note-v2"><ComplexityLegend current={deliverableForm.complexity}/></div></div><footer className="ap-pd-footer"><span/><div><button type="button" onClick={()=>setDeliverableModal(false)}>Cancelar</button><button className="ap-pd-primary primary" disabled={saving||!deliverableForm.title.trim()||!deliverableForm.frontId}>{saving?'Salvando…':editingDeliverable?'Salvar alterações':'Adicionar entregável'}</button></div></footer></form></div>}
+  {deliverableModal&&<div className="ap-pd-overlay"><form className="ap-pd-modal simple-project-modal-v2" role="dialog" aria-modal="true" aria-label="Entregável" onSubmit={saveDeliverable}><header className="ap-pd-head"><div><small>OPERAÇÃO / PROJETOS</small><h2>{editingDeliverable?'Atualizar entregável':'Criar entregável'}</h2><p>O entregável pertence a uma frente e pode ser desdobrado em quantas subtarefas forem necessárias.</p><div className="ap-pd-context"><span>Conta <strong>{selectedProject.company}</strong></span><span>Projeto / cronograma <strong>{selectedProject.name}</strong></span></div></div><button type="button" className="ap-pd-close" aria-label="Fechar" onClick={()=>setDeliverableModal(false)}><X size={19}/></button></header><div className="ap-pd-body project-modal-scroll-v2"><div className="ap-pd-fields"><label className="ap-pd-field stacked-label"><span>Título</span><input value={deliverableForm.title} onChange={(e)=>setDeliverableForm((c)=>({...c,title:e.target.value}))}/></label><label className="ap-pd-field stacked-label"><span>Frente</span><select value={deliverableForm.frontId} onChange={(e)=>setDeliverableForm((c)=>({...c,frontId:e.target.value}))}><option value="">Selecionar frente</option>{selectedFronts.map((f)=><option key={f.id} value={f.id}>{f.name}</option>)}</select></label><label className="ap-pd-field stacked-label"><span>Complexidade</span><select value={deliverableForm.complexity} onChange={(e)=>setDeliverableForm((c)=>({...c,complexity:e.target.value as MaterialComplexity}))}>{(Object.keys(complexityMeta) as MaterialComplexity[]).map((key)=><option key={key} value={key}>{complexityMeta[key].label}</option>)}</select></label><label className="ap-pd-field stacked-label"><span>Prazo</span><input type="date" value={deliverableForm.dueDate} onChange={(e)=>setDeliverableForm((c)=>({...c,dueDate:e.target.value}))}/>{(()=>{ const meta=complexityMeta[deliverableForm.complexity]; const iso=(days:number)=>{ const d=new Date(); d.setDate(d.getDate()+days); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }; const from=iso(meta.minDays), to=iso(meta.maxDays); const outside=Boolean(deliverableForm.dueDate)&&(deliverableForm.dueDate<from||deliverableForm.dueDate>to); return <small className={`v2-mc-range ${outside?'outside':''}`}>{outside?`Fora da faixa estimada para ${deliverableForm.complexity} (${formatProjectDate(from)} a ${formatProjectDate(to)}). Ajuste manual permitido.`:`Faixa estimada para ${deliverableForm.complexity}: ${formatProjectDate(from)} a ${formatProjectDate(to)} (${complexityRange(deliverableForm.complexity)}).`}{!deliverableForm.dueDate&&<button type="button" onClick={()=>setDeliverableForm((c)=>({...c,dueDate:to}))}>Usar {formatProjectDate(to)}</button>}</small>; })()}</label><label className="ap-pd-field ap-pd-wide stacked-label"><span>Descrição / resultado esperado</span><textarea rows={3} value={deliverableForm.description} onChange={(e)=>setDeliverableForm((c)=>({...c,description:e.target.value}))}/></label><label className="ap-pd-check"><input type="checkbox" checked={deliverableForm.clientVisible} disabled={(editingDeliverable?.reviewRevision??1)>1} onChange={(e)=>setDeliverableForm((c)=>({...c,clientVisible:e.target.checked}))}/> {(editingDeliverable?.reviewRevision??1)>1?'Visibilidade definida ao liberar a revisão':'Visível para o cliente'}</label><label className="ap-pd-check"><input type="checkbox" checked={deliverableForm.isDocument} onChange={(e)=>setDeliverableForm((c)=>({...c,isDocument:e.target.checked}))}/> Entrega documental</label></div><div className="ap-pd-wide complexity-note-v2"><ComplexityLegend current={deliverableForm.complexity}/></div></div><footer className="ap-pd-footer"><span/><div><button type="button" onClick={()=>setDeliverableModal(false)}>Cancelar</button><button className="ap-pd-primary primary" disabled={saving||!deliverableForm.title.trim()||!deliverableForm.frontId}>{saving?'Salvando…':editingDeliverable?'Salvar alterações':'Adicionar entregável'}</button></div></footer></form></div>}
 
   {selectedDeliverable&&(()=>{const doneTasks=selectedTasks.filter((task)=>task.status==='done');const percent=selectedTasks.length?Math.round(doneTasks.length/selectedTasks.length*100):0;const currentTask=selectedTasks.find((task)=>task.status!=='done');return <div hidden={Boolean(openTaskId)} className="dv-overlay v2-admin-dv"><section className="dv-modal deliverable-workspace-modal-v2" role="dialog" aria-modal="true" aria-label={selectedDeliverable.title}>
     <header className="deliverable-workspace-header-v2"><div className="deliverable-title-v2"><small><span className="section-kicker">{selectedDeliverable.protocol}</span> · {selectedDeliverable.complexity}</small><h2>{selectedDeliverable.title}</h2><p>{selectedDeliverable.workstream} · {roadmapLabel(selectedDeliverable)}</p></div><div className="deliverable-head-actions-v2">{staff&&selectedDeliverable.status!=='approved'&&selectedDeliverable.status!=='cancelled'&&(activeTimer?.deliverableId===selectedDeliverable.id&&!activeTimer?.taskId?<button type="button" className="v2-head-timer on" onClick={()=>void stopTimer()}><Pause size={14}/> Pausar · {timerLabel}</button>:<button type="button" className="v2-head-timer" disabled={Boolean(activeTimer)} title={activeTimer?'Pause o cronômetro ligado antes de iniciar outro':'Iniciar cronômetro neste entregável'} onClick={()=>void startTimer()}><Play size={14}/> Iniciar timer</button>)}<span className={`v2-head-status ${deliveryTone(selectedDeliverable.status)}`} title="Situação do entregável — clique para alterar"><StatusSelect item={selectedDeliverable} onChange={(next)=>statusChoice(selectedDeliverable,next)}/></span><button className="modal-close-static" aria-label="Fechar" onClick={()=>{setSelectedDeliverable(null);setShowAdjustment(false);}}><X size={18}/></button></div></header>
@@ -536,10 +601,17 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
     </div>
     {detailTab==='conversation'&&<div className="dv-reply dv-reply-fixed conversation-composer-v2 workspace-chat-compose"><div className="ie-switch conversation-channel-compact-v64 conversation-channels-v2" aria-label="Canal da conversa"><button className={conversationChannel==='client'?'on active':''} onClick={()=>setConversationChannel('client')}>Cliente</button><button className={conversationChannel==='internal'?'on active':''} onClick={()=>setConversationChannel('internal')}>Interno</button></div><div className="workspace-chat-runtime-pending-host"/><div className="workspace-chat-runtime-tools-host"/><textarea value={messageText} onChange={(e)=>setMessageText(e.target.value)} placeholder={conversationChannel==='client'?'Escreva uma mensagem para o cliente…':'Registre uma nota interna…'}/><input ref={fileInputRef} type="file" hidden onChange={(e)=>setMessageFile(e.target.files?.[0]||null)}/><div className="workspace-chat-send-actions"><button className="secondary dv-secondary" onClick={()=>fileInputRef.current?.click()}><Paperclip size={14}/>{messageFile?messageFile.name:'Anexar'}</button><button className="primary" onClick={()=>void sendMessage()} disabled={!messageText.trim()&&!messageFile}>Enviar <ArrowRight size={14}/></button></div></div>}
     </div>
-    {detailTab!=='conversation'&&<footer className="dv-actions deliverable-actions-v2"><div className="deliverable-actions-left-v2">{selectedDeliverable.status!=='approved'&&selectedDeliverable.status!=='cancelled'&&<button className="dv-secondary" onClick={()=>openDeliverable(undefined,selectedDeliverable)}><Edit3 size={13}/> Editar</button>}{selectedDeliverable.status!=='approved'&&selectedDeliverable.status!=='cancelled'&&<button hidden={Boolean(staff)} className="dv-secondary" onClick={()=>setShowAdjustment(true)}><RefreshCw size={13}/> Ajuste</button>}<button className="dv-secondary danger-text" onClick={()=>{setPendingStatus({item:selectedDeliverable,status:'cancelled'});setStatusReason('');}} disabled={selectedDeliverable.status==='approved'||selectedDeliverable.status==='cancelled'}><X size={13}/> Cancelar entregável</button><button className="dv-secondary danger-text" onClick={()=>setConfirmDelete(true)} disabled={selectedDeliverable.status!=='not_started'}><Trash2 size={13}/> Excluir</button></div><div className="deliverable-actions-right-v2">{selectedDeliverable.status==='in_progress'&&<button className="dv-secondary" disabled={Boolean(staff&&staffReviewPending[selectedDeliverable.id])} onClick={()=>staff?void staffRequestReview():void persistStatus(selectedDeliverable,'client_review','Enviado para validação do cliente')}><Send size={13}/> {staff?(staffReviewPending[selectedDeliverable.id]?'Aguardando aprovação':'Enviar para aprovação'):'Enviar ao cliente'}</button>}{selectedDeliverable.status==='approved'?<span className="locked-v2"><ShieldCheck size={14}/> Aprovado e protegido</span>:activeTimer?.deliverableId===selectedDeliverable.id&&!activeTimer?.taskId?<button className="dv-converse-bottom timer-button-v2 active" onClick={()=>void stopTimer()}>{staff?<><Pause size={13}/> Pausar · {timerLabel}</>:<><Square size={13}/> Parar timer · {timerLabel}</>}</button>:<button className="dv-converse-bottom timer-button-v2" onClick={()=>void startTimer()} disabled={Boolean(activeTimer)}><Play size={13}/> Iniciar timer</button>}</div></footer>}
+    {detailTab!=='conversation'&&<footer className="dv-actions deliverable-actions-v2"><div className="deliverable-actions-left-v2">
+      {!staff && selectedDeliverable.status === 'approved' && isUuid(selectedDeliverable.id) && <button
+        type="button" className="dv-secondary" onClick={() => {
+          setPendingStatus({ item: selectedDeliverable, status: 'reopen' });
+          setStatusReason('');
+          setStatusError('');
+        }}
+      ><RefreshCw size={13}/> Reabrir para correção</button>}{selectedDeliverable.status!=='approved'&&selectedDeliverable.status!=='cancelled'&&<button className="dv-secondary" onClick={()=>openDeliverable(undefined,selectedDeliverable)}><Edit3 size={13}/> Editar</button>}{selectedDeliverable.status!=='approved'&&selectedDeliverable.status!=='cancelled'&&(selectedDeliverable.clientVisible||(selectedDeliverable.reviewRevision??1)===1)&&<button hidden={Boolean(staff)} className="dv-secondary" onClick={()=>setShowAdjustment(true)}><RefreshCw size={13}/> Ajuste</button>}<button className="dv-secondary danger-text" onClick={()=>{setPendingStatus({item:selectedDeliverable,status:'cancelled'});setStatusReason('');}} disabled={selectedDeliverable.status==='approved'||selectedDeliverable.status==='cancelled'}><X size={13}/> Cancelar entregável</button><button className="dv-secondary danger-text" onClick={()=>setConfirmDelete(true)} disabled={selectedDeliverable.status!=='not_started'}><Trash2 size={13}/> Excluir</button></div><div className="deliverable-actions-right-v2">{(selectedDeliverable.status==='in_progress'||(!staff&&(selectedDeliverable.reviewRevision??1)>1&&selectedDeliverable.status==='internal_review'))&&<button className="dv-secondary" disabled={Boolean(staff&&staffReviewPending[selectedDeliverable.id])} onClick={()=>staff?void staffRequestReview():void persistStatus(selectedDeliverable,'client_review','Enviado para validação do cliente')}><Send size={13}/> {staff?(staffReviewPending[selectedDeliverable.id]?'Aguardando aprovação':'Enviar para aprovação'):((selectedDeliverable.reviewRevision??1)>1?'Liberar revisão ao cliente':'Enviar ao cliente')}</button>}{selectedDeliverable.status==='approved'?<span className="locked-v2"><ShieldCheck size={14}/> Aprovado e protegido</span>:activeTimer?.deliverableId===selectedDeliverable.id&&!activeTimer?.taskId?<button className="dv-converse-bottom timer-button-v2 active" onClick={()=>void stopTimer()}>{staff?<><Pause size={13}/> Pausar · {timerLabel}</>:<><Square size={13}/> Parar timer · {timerLabel}</>}</button>:<button className="dv-converse-bottom timer-button-v2" onClick={()=>void startTimer()} disabled={Boolean(activeTimer)}><Play size={13}/> Iniciar timer</button>}</div></footer>}
   </section></div>;})()}
 
-  {pendingStatus&&<div className="ap-pd-overlay v2-pd-top"><section className="ap-status-confirm confirm-project-modal-v2" role="dialog" aria-modal="true" aria-label="Alterar status"><div><small>ALTERAR STATUS</small><h2>{deliverableLabels[pendingStatus.status]}</h2><p><strong>{pendingStatus.item.title}</strong></p><p>Registre o motivo. Ele fica associado à data e hora da mudança no histórico e pode alimentar o relatório do projeto.</p></div><label>Motivo<textarea autoFocus value={statusReason} onChange={(e)=>setStatusReason(e.target.value)} placeholder={pendingStatus.status==='standby'?'Por que este entregável ficará em standby?':pendingStatus.status==='rebriefing'?'O que exige rebriefing?':'Motivo do cancelamento'}/></label><footer><button onClick={()=>setPendingStatus(null)}>Voltar</button><button disabled={!statusReason.trim()} onClick={()=>void confirmPendingStatus()}>Confirmar status</button></footer></section></div>}
+  {pendingStatus&&<div className="ap-pd-overlay v2-pd-top"><section className="ap-status-confirm confirm-project-modal-v2" role="dialog" aria-modal="true" aria-label={pendingStatus.status==='reopen'?'Reabrir entregável':'Alterar status'}><div><h2>{pendingStatus.status==='reopen'?'Reabrir entregável':deliverableLabels[pendingStatus.status]}</h2><p><strong>{pendingStatus.item.title}</strong></p><p>{pendingStatus.status==='reopen'?'O cliente volta a ver o entregável quando a revisão for liberada para nova aprovação.':'Registre o motivo para manter a mudança no histórico do projeto.'}</p></div><label>Motivo<textarea autoFocus maxLength={pendingStatus.status==='reopen'?2000:undefined} value={statusReason} onChange={(e)=>setStatusReason(e.target.value)} placeholder={pendingStatus.status==='standby'?'Por que este entregável ficará em standby?':pendingStatus.status==='rebriefing'?'O que exige rebriefing?':pendingStatus.status==='reopen'?'O que precisa ser corrigido?':'Motivo do cancelamento'}/></label>{statusError&&<p role="alert">{statusError}</p>}<footer><button disabled={saving} onClick={()=>{setPendingStatus(null);setStatusError('');}}>Voltar</button><button disabled={saving||statusReason.trim().length<3} onClick={()=>void confirmPendingStatus()}>{saving?'Salvando…':pendingStatus.status==='reopen'?'Reabrir para correção':'Confirmar status'}</button></footer></section></div>}
 
   {confirmDelete&&selectedDeliverable&&<div className="ap-pd-overlay v2-pd-top"><section className="ap-status-confirm confirm-project-modal-v2" role="alertdialog" aria-modal="true" aria-label="Excluir entregável"><div><small>CONFIRMAÇÃO</small><h2>Excluir entregável</h2><p><strong>{selectedDeliverable.title}</strong></p><p>A exclusão só é permitida antes do início. Depois disso, o correto é cancelar para preservar o histórico.</p></div><footer><button onClick={()=>setConfirmDelete(false)}>Voltar</button><button onClick={()=>void deleteDeliverable()}>Excluir</button></footer></section></div>}
   </div></div>

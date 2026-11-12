@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowLeft, Paperclip, Send, X } from 'lucide-react';
 import { resolveWorkspaceMedia } from '../../../../lib/workspaceMedia';
 import { supabase } from '../../../../api/supabase';
+import { openPrivateWorkspaceFile } from '../../../../api/files/workspace';
 import { NoteLog } from './NoteLog';
 
 type Message = { id: string; author_user_id: string | null; author_role: string; body: string; created_at: string; client_visible?: boolean };
@@ -71,7 +72,13 @@ export function SubtaskModal({ task, deliverableId, deliverableTitle, companyId,
       setText(''); setFile(null); await loadMessages();
     } finally { setSending(false); }
   }
-  async function openFile(path: string) { if (!supabase) return; const { data, error } = await supabase.storage.from('cali-workspace-private').createSignedUrl(path, 300); if (error || !data?.signedUrl) { onNotice('Não foi possível abrir este anexo agora.'); return; } window.open(data.signedUrl, '_blank', 'noopener,noreferrer'); }
+  async function openFile(path: string) {
+    try {
+      await openPrivateWorkspaceFile(path);
+    } catch {
+      onNotice('Não foi possível abrir este anexo agora.');
+    }
+  }
   const author = (message: Message) => (message.author_user_id && names[message.author_user_id]) || (message.author_role === 'admin' ? 'Patrícia Lima' : message.author_role === 'client' ? 'Cliente' : 'Equipe CALI');
   const files = messages.flatMap((message) => parse(message.body).files);
   const shown = messages.filter((message) => Boolean(message.client_visible) === (channel === 'client'));

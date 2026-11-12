@@ -3345,7 +3345,8 @@
   .cali-landing .lp-screens-section .lp-shell{width:calc(100% - 22px)}
   .cali-landing .lp-screen-carousel{padding:0 0 55px!important}
   .cali-landing .lp-screen-controls{height:40px;top:auto!important;bottom:0!important;padding:0 6px}
-  .cali-landing .lp-screen-dots{bottom:14px}
+  .cali-landing .lp-screen-dots{bottom:14px;pointer-events:none}
+  .cali-landing .lp-screen-dots button{pointer-events:auto}
   .cali-landing .lp-screen-controls button{width:34px!important;height:34px!important;min-width:34px!important}
 }
 @media(prefers-reduced-motion:reduce){

@@ -1,8 +1,9 @@
 /* Aba "Arquivos" do entregável: a pasta. Reúne o que foi anexado na conversa do entregável e na conversa de cada subtarefa.
-   Só leitura; cada arquivo abre por link temporário. Serve à administradora e à Equipe CALI. */
+   Cada arquivo abre com a sessão do Workspace. Serve à administradora e à Equipe CALI. */
 import { useEffect, useState } from 'react';
 import { FolderOpen } from 'lucide-react';
 import { supabase } from '../../../../api/supabase';
+import { openPrivateWorkspaceFile } from '../../../../api/files/workspace';
 
 type FileItem = { name: string; path: string; size: number; when: string; mime: string };
 type FinalRow = { id: string; storage_path: string | null; status: string; title: string | null };
@@ -42,7 +43,13 @@ export function DeliverableFiles({ deliverableId, deliverableTitle, companyId, p
     })();
     return () => { alive = false; };
   }, [deliverableId, tasks.map((task) => task.id).join(',')]);
-  async function open(path: string) { if (!supabase) return; const { data, error } = await supabase.storage.from('cali-workspace-private').createSignedUrl(path, 300); if (error || !data?.signedUrl) { onNotice('Não foi possível abrir este arquivo agora.'); return; } window.open(data.signedUrl, '_blank', 'noopener,noreferrer'); }
+  async function open(path: string) {
+    try {
+      await openPrivateWorkspaceFile(path);
+    } catch {
+      onNotice('Não foi possível abrir este arquivo agora.');
+    }
+  }
   if (!groups) return <p className="v2-admin-empty data-loading" aria-busy="true">Carregando arquivos…</p>;
   const total = groups.reduce((sum, group) => sum + group.files.length, 0);
   return <section className="v2-dfiles">

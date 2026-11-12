@@ -1,3 +1,4 @@
+import { openPrivateWorkspaceFile } from '../../../api/files/workspace';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ClientSubtaskModal } from './components/ClientSubtaskModal';
 import { DeliverableDependencies } from '../../../components/projects/DeliverableDependencies';
@@ -108,6 +109,8 @@ function deriveFronts(reality: ClientDeliveryReality, projectId: string): Client
 export function ClientDeliverablesPage() {
   const refreshTimer = useRef<number | null>(null);
   const conversationRef = useRef<HTMLDivElement | null>(null);
+  const detailActionTrigger = useRef<HTMLButtonElement | null>(null);
+  const reviewTarget = useRef<{ id: string; revision: number; requestedAt: string | null } | null>(null);
 
   const [companyId, setCompanyId] = useState('');
   const [reality, setReality] = useState<ClientDeliveryReality | null>(null);
@@ -127,6 +130,7 @@ export function ClientDeliverablesPage() {
   const [npsOpen, setNpsOpen] = useState(false);
   const [score, setScore] = useState(0);
   const [npsComment, setNpsComment] = useState('');
+  const [reviewError, setReviewError] = useState<{ message: string; stale: boolean } | null>(null);
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -140,6 +144,11 @@ export function ClientDeliverablesPage() {
   const months = useMemo(() => Array.from({ length: maxMonth }, (_, index) => index + 1), [maxMonth]);
   const npsCommentRequired = score > 0 && score <= 3;
   const reaction = score ? scoreReaction(score) : null;
+  const detailActionOpen = adjustmentOpen || npsOpen;
+  const reviewErrorNotice = reviewError && <>
+    <div role="alert" className="inline-notice"><AlertTriangle size={18} aria-hidden="true" />{reviewError.message}</div>
+    {reviewError.stale && <button type="button" className="secondary" onClick={() => window.location.reload()}>Recarregar página</button>}
+  </>;
 
   useEffect(() => {
     if (!supabase) return;
@@ -170,10 +179,15 @@ export function ClientDeliverablesPage() {
   }, [messages.length, detailTab]);
 
   useEffect(() => {
-    const modalOpen = Boolean(selected) || adjustmentOpen || npsOpen;
-    document.body.classList.toggle('workspace-modal-open', modalOpen);
+    document.body.classList.toggle('workspace-modal-open', Boolean(selected));
     return () => document.body.classList.remove('workspace-modal-open');
-  }, [selected, adjustmentOpen, npsOpen]);
+  }, [selected]);
+
+  useEffect(() => {
+    if (detailActionOpen) return;
+    detailActionTrigger.current?.focus();
+    detailActionTrigger.current = null;
+  }, [detailActionOpen]);
 
   async function bootstrap() {
     if (!supabase) return;
@@ -237,12 +251,18 @@ export function ClientDeliverablesPage() {
   }
 
   function openDeliverable(item: ClientDeliveryItem, tab: DetailTab = 'overview') {
+    setAdjustmentOpen(false);
+    setNpsOpen(false);
+    reviewTarget.current = null;
     setSelectedId(item.id);
     setDetailTab(tab);
     setNotice('');
   }
 
   function closeDeliverable() {
+    setAdjustmentOpen(false);
+    setNpsOpen(false);
+    reviewTarget.current = null;
     setSelectedId('');
     setDetailTab('overview');
     setMessageDraft('');
@@ -265,39 +285,53 @@ export function ClientDeliverablesPage() {
   }
 
   async function submitAdjustment() {
-    if (!selected || adjustmentText.trim().length < 3) return;
+    const target = reviewTarget.current;
+    if (!target || target.id !== selected?.id || adjustmentText.trim().length < 3) return;
     setSaving(true);
-    setError('');
+    setReviewError(null);
     try {
       if (!supabase) throw new Error('Serviço indisponível. Tente novamente em instantes.');
-      const result = await supabase.rpc('request_deliverable_adjustment', { p_deliverable_id: selected.id, p_reason: adjustmentText.trim(), p_impact_business_days: 0 });
-      if (result.error) throw result.error;
+      const result = await supabase.rpc('client_request_deliverable_adjustment_v2', {
+        p_deliverable_id: target.id, p_review_revision: target.revision, p_review_requested_at: target.requestedAt,
+        p_reason: adjustmentText.trim(),
+      });
+      if (result.error) {
+        setReviewError({ message: result.error.message, stale: result.error.code === '40001' });
+        return;
+      }
       setNotice('Seu pedido de ajuste foi registrado e já está com a CALI.');
       setAdjustmentOpen(false);
       setAdjustmentText('');
       await refreshReality();
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Não foi possível registrar o ajuste.');
+      setReviewError({ message: requestError instanceof Error ? requestError.message : 'Não foi possível registrar o ajuste.', stale: false });
     } finally {
       setSaving(false);
     }
   }
 
   async function submitNps() {
-    if (!selected || score === 0 || (npsCommentRequired && npsComment.trim().length < 3)) return;
+    const target = reviewTarget.current;
+    if (!target || target.id !== selected?.id || score === 0 || (npsCommentRequired && npsComment.trim().length < 3)) return;
     setSaving(true);
-    setError('');
+    setReviewError(null);
     try {
       if (!supabase) throw new Error('Serviço indisponível. Tente novamente em instantes.');
-      const result = await supabase.rpc('client_approve_deliverable_with_feedback', { p_deliverable_id: selected.id, p_score: score, p_comment: npsComment.trim() || null });
-      if (result.error) throw result.error;
+      const result = await supabase.rpc('client_approve_deliverable_review_v2', {
+        p_deliverable_id: target.id, p_review_revision: target.revision, p_review_requested_at: target.requestedAt,
+        p_score: score, p_comment: npsComment.trim() || null,
+      });
+      if (result.error) {
+        setReviewError({ message: result.error.message, stale: result.error.code === '40001' });
+        return;
+      }
       setNpsOpen(false);
-      setNotice('Entrega aprovada. Sua avaliação foi registrada.');
+      setNotice(result.data?.already_approved ? 'Esta revisão já foi aprovada.' : 'Entrega aprovada. Sua avaliação foi registrada.');
       setScore(0);
       setNpsComment('');
       await refreshReality();
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Não foi possível concluir a aprovação.');
+      setReviewError({ message: requestError instanceof Error ? requestError.message : 'Não foi possível concluir a aprovação.', stale: false });
     } finally {
       setSaving(false);
     }
@@ -306,9 +340,11 @@ export function ClientDeliverablesPage() {
   async function openPublishedDocument(document: ClientPublishedDocument) {
     if (!supabase) return;
     if (document.storagePath) {
-      const { data, error: signedError } = await supabase.storage.from('cali-workspace-private').createSignedUrl(document.storagePath, 300);
-      if (signedError || !data?.signedUrl) { setError(signedError?.message || 'Não foi possível abrir o documento.'); return; }
-      window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+      try {
+        await openPrivateWorkspaceFile(document.storagePath);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : 'Não foi possível abrir o documento.');
+      }
       return;
     }
     if (document.driveUrl) window.open(document.driveUrl, '_blank', 'noopener,noreferrer');
@@ -337,7 +373,7 @@ export function ClientDeliverablesPage() {
       </div>
     </section>
 
-    {selected && <div className="v2-client-module v2-client-dialog"><div className="dv-overlay">
+    {selected && <div className="v2-client-module v2-client-dialog" hidden={detailActionOpen}><div className="dv-overlay">
       <section className="dv-modal" role="dialog" aria-modal="true" aria-label={selected.title} data-v2-operation="deliverable-workspace-modal-v2">
         <header data-v2-operation="deliverable-workspace-header-v2">
           <div data-v2-operation="deliverable-title-v2"><small><span className="section-kicker">{selected.protocol || selected.code || 'ENTREGÁVEL'}</span> · {selected.complexity || 'MC1'}</small><h2>{selected.title}</h2><p>{selected.workstream || 'Frente CALI'} · {roadmapLabel(selected)}</p></div>
@@ -378,6 +414,7 @@ export function ClientDeliverablesPage() {
           {detailTab === 'history' && <>
             <div className="dv-history-intro"><History size={19} /><div><strong>Histórico da entrega</strong><p>Registro cronológico de mudanças de situação, validações e decisões — diferente das mensagens da conversa.</p></div></div>
             {selected.history.length ? <div className="dv-history-list">{selected.history.map((item) => <div className="dv-history-row" key={item.id}><span className={'dv-history-dot ' + (item.toStatus === 'approved' ? 'green' : item.toStatus === 'client_review' || item.toStatus === 'adjustment_requested' ? 'gold' : 'neutral')} /><div><time>{formatDateTime(item.createdAt)}</time><strong>{statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}</strong><p>{item.fromStatus ? `${statusLabel[item.fromStatus as ClientDeliveryStatus] || item.fromStatus} → ${statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}` : 'Situação registrada.'}</p></div></div>)}</div> : <p className="dv-history-footnote">Ainda não há movimentações registradas para esta entrega.</p>}
+            {selected.feedbackHistory?.map((feedback) => <div className="dv-file" key={feedback.id || feedback.createdAt}><Star size={20} /><div><strong>{feedback.reviewRevision ? `Revisão ${feedback.reviewRevision} · ` : ''}Sua avaliação: {feedback.score}/5</strong><small>{formatDateTime(feedback.createdAt)}{feedback.comment ? ` · ${feedback.comment}` : ''}</small></div></div>)}
           </>}
         </div>
 
@@ -393,16 +430,68 @@ export function ClientDeliverablesPage() {
         <footer className="dv-actions">
           <span>{statusLabel[selected.status]}{selected.updatedAt ? ` · atualizado em ${formatDateTime(selected.updatedAt)}` : ''}</span>
           <div className="dv-action-buttons">
-            {selected.status === 'client_review' && <><button className="dv-secondary" onClick={() => { setAdjustmentText(''); setAdjustmentOpen(true); }}><RefreshCw size={14} /> Solicitar ajuste</button><button className="dv-converse-bottom" onClick={() => { setScore(0); setNpsComment(''); setNpsOpen(true); }}><FileCheck2 size={14} /> Aprovar entrega</button></>}
+            {selected.status === 'client_review' && <>
+              <button type="button" className="dv-secondary" onClick={(event) => {
+                detailActionTrigger.current = event.currentTarget;
+                reviewTarget.current = { id: selected.id, revision: selected.reviewRevision ?? 1, requestedAt: selected.approvalRequestedAt ?? null };
+                setReviewError(null);
+                setAdjustmentText('');
+                setAdjustmentOpen(true);
+              }}><RefreshCw size={14} /> Solicitar ajuste</button>
+              <button type="button" className="dv-converse-bottom" onClick={(event) => {
+                detailActionTrigger.current = event.currentTarget;
+                reviewTarget.current = { id: selected.id, revision: selected.reviewRevision ?? 1, requestedAt: selected.approvalRequestedAt ?? null };
+                setReviewError(null);
+                setScore(0);
+                setNpsComment('');
+                setNpsOpen(true);
+              }}><FileCheck2 size={14} /> Aprovar entrega</button>
+            </>}
             {selected.status !== 'client_review' && detailTab === 'overview' && <button className="dv-converse-bottom" onClick={() => setDetailTab('conversation')}><MessageCircle size={14} /> Conversar sobre esta entrega <ArrowRight size={14} /></button>}
           </div>
         </footer>
       </section>
     </div></div>}
 
-    {adjustmentOpen && selected && <div className="v2-client-module v2-client-dialog"><div className="wf-overlay"><section className="wf-modal wf-create" role="dialog" aria-modal="true"><button className="modal-close" type="button" onClick={() => setAdjustmentOpen(false)}><X size={20} /></button><span className="section-kicker">SOLICITAR AJUSTE</span><h2>O que precisa ser revisto?</h2><p>Descreva o ponto que precisa mudar. O pedido fica vinculado a <strong>{selected.protocol || selected.title}</strong>.</p><textarea value={adjustmentText} onChange={(event) => setAdjustmentText(event.target.value)} placeholder="Ex.: precisamos separar este indicador por unidade antes da validação final." rows={5} autoFocus /><div className="v2-dialog-actions"><button className="secondary" onClick={() => setAdjustmentOpen(false)}>Cancelar</button><button className="primary" disabled={saving || adjustmentText.trim().length < 3} onClick={() => void submitAdjustment()}>{saving ? 'Registrando…' : 'Enviar ajuste'}</button></div></section></div></div>}
+    {adjustmentOpen && selected && <div className="v2-client-module v2-client-dialog">
+      <div className="wf-overlay">
+        <section className="wf-modal wf-create" role="dialog" aria-modal="true" aria-labelledby="client-deliverable-adjustment-title" onKeyDown={(event) => {
+          if (event.key !== 'Escape') return;
+          event.stopPropagation();
+          setAdjustmentOpen(false);
+        }}>
+          <button className="modal-close" type="button" aria-label="Fechar ajuste" onClick={() => setAdjustmentOpen(false)}><X size={20} /></button>
+          <span className="section-kicker">SOLICITAR AJUSTE</span>
+          <h2 id="client-deliverable-adjustment-title">O que precisa ser revisto?</h2>
+          <p>Descreva o ponto que precisa mudar. O pedido fica vinculado a <strong>{selected.protocol || selected.title}</strong>.</p>
+          <textarea value={adjustmentText} onChange={(event) => setAdjustmentText(event.target.value)} placeholder="Ex.: precisamos separar este indicador por unidade antes da validação final." rows={5} maxLength={2000} autoFocus />
+          {reviewErrorNotice}
+          <div className="v2-dialog-actions">
+            <button type="button" className="secondary" onClick={() => setAdjustmentOpen(false)}>Cancelar</button>
+            <button type="button" className="primary" disabled={saving || reviewError?.stale || adjustmentText.trim().length < 3} onClick={() => void submitAdjustment()}>{saving ? 'Registrando…' : 'Enviar ajuste'}</button>
+          </div>
+        </section>
+      </div>
+    </div>}
 
-    {npsOpen && selected && <div className="v2-client-module v2-client-dialog"><div className="wf-overlay"><section className="wf-modal wf-create v2-rating" role="dialog" aria-modal="true"><button className="modal-close" type="button" onClick={() => setNpsOpen(false)}><X size={20} /></button><span className="section-kicker">APROVAÇÃO DA ENTREGA</span><h2>Como foi esta entrega?</h2><p>Escolha sua nota, revise e só depois confirme.</p><div className="client-delivery-rating-row">{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" className={score === value ? 'selected' : ''} onClick={() => setScore(value)}><Star size={21} fill={score === value ? 'currentColor' : 'none'} /><span>{value}</span></button>)}</div>{reaction && <div className={`client-delivery-score-reaction score-${score}`}><span>{reaction.emoji}</span><div><strong>{reaction.title}</strong><p>{reaction.copy}</p></div></div>}{score > 0 && <label className="stacked-label">{npsCommentRequired ? 'O que podemos melhorar?' : 'Quer contar mais alguma coisa?'}<textarea value={npsComment} onChange={(event) => setNpsComment(event.target.value)} rows={4} placeholder={npsCommentRequired ? 'Sua justificativa ajuda a CALI a entender exatamente o que precisa melhorar.' : 'Opcional — deixe um comentário se quiser.'} /></label>}<button className="primary full" disabled={saving || score === 0 || (npsCommentRequired && npsComment.trim().length < 3)} onClick={() => void submitNps()}>{saving ? 'Confirmando…' : 'Confirmar aprovação e avaliação'}</button></section></div></div>}
+    {npsOpen && selected && <div className="v2-client-module v2-client-dialog">
+      <div className="wf-overlay">
+        <section className="wf-modal wf-create v2-rating" role="dialog" aria-modal="true" aria-labelledby="client-deliverable-rating-title">
+          <button className="modal-close" type="button" aria-label="Fechar avaliação" autoFocus onClick={() => setNpsOpen(false)}><X size={20} /></button>
+          <span className="section-kicker">APROVAÇÃO DA ENTREGA</span>
+          <h2 id="client-deliverable-rating-title">Como foi esta entrega?</h2>
+          <p>Escolha sua nota, revise e só depois confirme.</p>
+          <div className="client-delivery-rating-row">{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" className={score === value ? 'selected' : ''} onClick={() => setScore(value)}><Star size={21} fill={score === value ? 'currentColor' : 'none'} /><span>{value}</span></button>)}</div>
+          {reaction && <div className={`client-delivery-score-reaction score-${score}`}><span>{reaction.emoji}</span><div><strong>{reaction.title}</strong><p>{reaction.copy}</p></div></div>}
+          {score > 0 && <label className="stacked-label">
+            {npsCommentRequired ? 'O que podemos melhorar?' : 'Quer contar mais alguma coisa?'}
+            <textarea value={npsComment} onChange={(event) => setNpsComment(event.target.value)} rows={4} maxLength={2000} placeholder={npsCommentRequired ? 'Sua justificativa ajuda a CALI a entender exatamente o que precisa melhorar.' : 'Opcional — deixe um comentário se quiser.'} />
+          </label>}
+          {reviewErrorNotice}
+          <button type="button" className="primary full" disabled={saving || reviewError?.stale || score === 0 || (npsCommentRequired && npsComment.trim().length < 3)} onClick={() => void submitNps()}>{saving ? 'Confirmando…' : 'Confirmar aprovação e avaliação'}</button>
+        </section>
+      </div>
+    </div>}
   {openSub && <ClientSubtaskModal task={{ id: openSub.task.id, title: openSub.task.title, status: openSub.task.status, dueAt: openSub.task.dueAt, protocol: openSub.task.protocol, complexity: openSub.task.complexity }} deliverableId={openSub.item.id} deliverableTitle={openSub.item.title} statusLabel={openSub.task.status === 'todo' ? 'Programada' : openSub.task.status === 'client_review' ? 'Aguardando você' : ['done', 'approved', 'completed'].includes(openSub.task.status) ? 'Concluída' : 'Em andamento'} complexityHint={complexityCopy[openSub.task.complexity || ''] || ''} formatDate={formatDate} onClose={() => setOpenSub(null)} onChanged={() => window.location.reload()} />}
   </Shell>;
 }

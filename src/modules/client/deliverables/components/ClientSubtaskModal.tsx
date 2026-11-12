@@ -1,3 +1,4 @@
+import { openPrivateWorkspaceFile } from '../../../../api/files/workspace';
 /* Subtarefa vista pelo cliente: situação, prazo, complexidade, documentos liberados, conversa com a CALI e aprovação da parte.
    O cliente só vê o que a CALI marcou como visível; não altera situação — apenas conversa, anexa e aprova quando está "Aguardando você". */
 import { withMentions } from '../../../../lib/mentionText';
@@ -40,7 +41,13 @@ export function ClientSubtaskModal({ task, deliverableId, deliverableTitle, stat
   }, [task.id]);
   useEffect(() => { if (!notice) return; const timer = window.setTimeout(() => setNotice(''), 4500); return () => window.clearTimeout(timer); }, [notice]);
 
-  async function open(path: string) { if (!supabase) return; const { data, error } = await supabase.storage.from('cali-workspace-private').createSignedUrl(path, 300); if (error || !data?.signedUrl) { setNotice('Não foi possível abrir este arquivo agora.'); return; } window.open(data.signedUrl, '_blank', 'noopener,noreferrer'); }
+  async function open(path: string) {
+    try {
+      await openPrivateWorkspaceFile(path);
+    } catch {
+      setNotice('Não foi possível abrir este arquivo agora.');
+    }
+  }
   async function send() { if (!supabase || busy || (!text.trim() && !file)) return; setBusy(true);
     try { let token = '';
       if (file) {
