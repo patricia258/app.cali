@@ -49,12 +49,6 @@ async function hashCode(email: string, code: string) {
   const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
   return Array.from(digest).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
-async function safeEqual(a: string, b: string) {
-  const aa = new TextEncoder().encode(a), bb = new TextEncoder().encode(b);
-  if (aa.length !== bb.length) return false;
-  let diff = 0; for (let i = 0; i < aa.length; i++) diff |= aa[i] ^ bb[i];
-  return diff === 0;
-}
 function shell(title: string, inner: string) {
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="color-scheme" content="light only"><title>${title}</title></head>
 <body bgcolor="#F7F3EE" style="margin:0;background:#F7F3EE;font-family:Arial,sans-serif;color:#2B2B2B">
@@ -149,23 +143,21 @@ Deno.serve(async (request) => {
       // Não revela se o e-mail existe ou foi convidado.
       if (!profile) return json(request, { ok: true });
 
-      const since = new Date(Date.now() - 2 * 60 * 1000).toISOString();
-      const { count, error: countError } = await workspace.from("workspace_access_codes").select("id", { count: "exact", head: true }).eq("email", email).gte("created_at", since);
-      if (countError) throw countError;
-      if ((count ?? 0) >= 1) return json(request, { error: "Um código já foi enviado. Aguarde 2 minutos antes de solicitar outro." }, 429);
-
-      await workspace.from("workspace_access_codes").update({ used_at: new Date().toISOString() }).eq("email", email).is("used_at", null);
+      if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY não configurada.");
       const code = randomCode();
       const codeHash = await hashCode(email, code);
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
       const requestedIp = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for") || null;
-      const { error: codeError } = await workspace.from("workspace_access_codes").insert({ email, code_hash: codeHash, expires_at: expiresAt, requested_ip: requestedIp });
+      const { data: codeId, error: codeError } = await workspace.rpc("reserve_workspace_access_code", {
+        p_email: email,
+        p_code_hash: codeHash,
+        p_requested_ip: requestedIp,
+      });
       if (codeError) throw codeError;
+      if (!codeId) return json(request, { error: "Um código já foi enviado. Aguarde 2 minutos antes de solicitar outro." }, 429);
 
-      if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY não configurada.");
       const resend = await fetch("https://api.resend.com/emails", {
         method: "POST",
-        headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-code-${crypto.randomUUID()}` },
+        headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-code-${codeId}` },
         body: JSON.stringify({ from: "APP CALI RH <workspace@calirh.com>", to: [email], reply_to: "nao-responda@calirh.com", subject: profile.role === "client" ? "APP CALI RH · Seu código para entrar" : "Seu código de acesso ao CALI Workspace", html: profile.role === "client" ? renderClientCodeV3(code, profile.full_name, APP_URL) : emailHtml(code, profile.full_name) }),
       });
       const emailResult = await resend.json().catch(() => ({}));
@@ -178,16 +170,14 @@ Deno.serve(async (request) => {
     if (action === "verify") {
       const code = String(body.code || "").replace(/\D/g, "").slice(0, 6);
       if (code.length !== 6) return json(request, { error: "Código inválido ou expirado." }, 400);
-      const { data: row, error: rowError } = await workspace.from("workspace_access_codes").select("id,code_hash,expires_at,attempts,used_at").eq("email", email).is("used_at", null).order("created_at", { ascending: false }).limit(1).maybeSingle();
-      if (rowError) throw rowError;
-      if (!row || new Date(row.expires_at).getTime() < Date.now() || Number(row.attempts || 0) >= 5) return json(request, { error: "Código inválido ou expirado." }, 400);
-
-      const nextAttempts = Number(row.attempts || 0) + 1;
-      await workspace.from("workspace_access_codes").update({ attempts: nextAttempts }).eq("id", row.id);
       const candidate = await hashCode(email, code);
-      if (!(await safeEqual(candidate, row.code_hash))) return json(request, { error: "Código inválido ou expirado." }, 400);
+      const { data: consumed, error: consumeError } = await workspace.rpc("consume_workspace_access_code", {
+        p_email: email,
+        p_code_hash: candidate,
+      });
+      if (consumeError) throw consumeError;
+      if (consumed !== true) return json(request, { error: "Código inválido ou expirado." }, 400);
 
-      await workspace.from("workspace_access_codes").update({ used_at: new Date().toISOString(), attempts: nextAttempts }).eq("id", row.id);
       const profile = await resolveOrCreateProfile();
       if (!profile?.active) return json(request, { error: "Acesso não disponível." }, 403);
       // O convite do CLIENTE será marcado aceito somente após gerar a sessão;
