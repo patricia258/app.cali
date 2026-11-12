@@ -11,6 +11,7 @@ Use Node 22 atualizado ou mais recente e instale as versões do lockfile com `np
 | `npm run test:visual:pages` | Comparação de páginas inteiras e estados entre a referência Git e o candidato. |
 | `npm run test:visual:components` | Comparação de componentes montados pelas duas versões em temas e larguras equivalentes. |
 | `npm run test:contracts` | Catálogo de RPCs do frontend, SQL com rollback e smoke HTTP contra Auth, API, Edge, Storage e Mailpit da QA local. |
+| `node tests/contracts/browser-local.cjs` | Playwright com Vite, Auth, Mailpit e Postgres locais. OTP, termos, dados legados, isolamento entre duas empresas e logout. |
 | `npm run test:local` | Tipos, build, lógica, componentes, jornadas e contratos na mesma árvore. |
 | `npm run test:coverage` | Cobertura de linhas, funções e branches que o runner Node consegue instrumentar. |
 

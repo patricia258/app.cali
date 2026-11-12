@@ -166,6 +166,29 @@ test('devolutiva do Mapa retorna disponibilidade do PDF sem expor o caminho', as
   }
 });
 
+test('revisão do Mapa usa as RPCs autenticadas do schema público', async (t) => {
+  const http = await workspaceHttp(t);
+  const { readMapaReviewCatalog, readMapaReview, saveMapaReview } = await http.load('admin/people-map/reviews.ts');
+  await http.signIn();
+  const protocol = 'CALI-MAPA-2026-0001';
+  const review = { id: requestId, protocolo: protocol, created_at: now, status: 'pending' };
+  const journey = { session_id: requestId, accessed_at: now };
+  http.respond(rpc('workspace_mapa_people_records'), [review]);
+  http.respond(rpc('workspace_mapa_people_journeys'), [journey]);
+  const catalog = await readMapaReviewCatalog();
+  assert.deepEqual(catalog.records, [review]);
+  assert.deepEqual(catalog.journeys, [journey]);
+  http.respond(rpc('workspace_mapa_people_record'), [review]);
+  assert.deepEqual(await readMapaReview(protocol), review);
+  http.respond(rpc('workspace_update_mapa_people_record'), true);
+  assert.equal(await saveMapaReview(requestId, 'reviewed', { geral: 'Revisão QA' }), true);
+  assert.deepEqual(http.requests.at(-1).body, { p_id: requestId, p_status: 'reviewed', p_observacoes: { geral: 'Revisão QA' } });
+  for (const { headers } of http.requests.slice(1)) {
+    assert.equal(headers.get('content-profile'), 'public');
+    assert.equal(headers.get('authorization'), `Bearer ${http.accessToken}`);
+  }
+});
+
 test('arquivo privado valida caminho e sessão antes de ler bytes com a autorização do ator', async (t) => {
   const fetchBlob = globalThis.fetch;
   const http = await workspaceHttp(t);

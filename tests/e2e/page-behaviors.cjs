@@ -183,11 +183,11 @@ const cases = [
         metadata: { protocol: 'QA-AUDIT-001' },
       };
       const events = [
-        { ...base, id: 'qa-hours', event_type: 'timer_paused' },
-        { ...base, id: 'qa-report', event_type: 'report_approved' },
+        { ...base, id: 21, event_type: 'timer_paused' },
+        { ...base, id: 22, event_type: 'report_approved' },
         {
           ...base,
-          id: 'qa-debug',
+          id: 23,
           event_type: 'preview_render_error',
           metadata: { title: 'Diagnóstico privado QA' },
         },

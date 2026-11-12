@@ -29,6 +29,8 @@ A comparação visual e as jornadas funcionais usam Chrome local em loopback e i
 | Relatórios | A leitura registra abertura do PDF. Enviar dúvida abre o formulário do relatório e preserva rascunho e foco após uma falha. O envio Admin exibe o erro dentro da confirmação e o recibo após concluir. | [Relatórios Cliente](../tests/e2e/report-and-staff-actions.cjs) · [Envio](../tests/e2e/commercial-delivery.cjs) |
 | Avisos | Falhas de comentário aparecem no diálogo. O Cliente consegue tentar novamente mantendo a mensagem. | [Avisos](../tests/e2e/review-workflows.cjs) |
 | Agenda | Falhas de gravação e cancelamento preservam o formulário. Lembrete e transcrição seguem na própria gravação do evento. | [Agenda](../tests/e2e/agenda-visits.cjs) |
+| Auditoria | A linha do tempo aceita os identificadores numéricos de atividades e mudanças de situação, conforme o schema do CALI. | [Comportamentos de página](../tests/e2e/page-behaviors.cjs) |
+| Projetos | A criação oferece empresas ativas que ainda não têm projeto. A carteira continua filtrada pelos projetos existentes. | [Criação e frentes](../tests/e2e/project-creation.cjs) |
 
 ## Componentes e primitivas
 

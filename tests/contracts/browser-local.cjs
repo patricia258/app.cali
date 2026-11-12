@@ -23,7 +23,7 @@ async function latestCode(email, since) {
     }
     await delay(250);
   }
-  throw new Error('Mailpit não recebeu o código de acesso de QA.');
+  throw new Error(`Mailpit não recebeu código para ${email}. A janela de reenvio é de dois minutos.`);
 }
 
 async function verifyCompany(browser, { email, own, other }) {
@@ -71,8 +71,9 @@ async function verifyCompany(browser, { email, own, other }) {
     await page.getByRole('button', { name: `Abrir ${own}`, exact: true }).click();
     await page.getByRole('dialog', { name: own, exact: true }).waitFor();
     await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: 'Sair do Workspace' }).click();
-    await page.waitForURL((url) => url.pathname === '/login');
+    await page.locator('.profile[aria-haspopup="menu"]').click();
+    await page.getByRole('menuitem', { name: 'Sair', exact: true }).click();
+    await page.waitForURL((url) => url.pathname === '/');
     assert.deepEqual(failures, [], 'Erro de JavaScript no navegador.');
   } finally {
     await context.close();
@@ -85,7 +86,7 @@ finishCli(async () => {
   let browser;
   try {
     browser = await launchBrowser(defaultChrome(), proxy);
-    await verifyCompany(browser, { email: 'cliente-a@example.test', own: 'Ocorrência legada A QA', other: 'Ocorrência legada B QA' });
+    await verifyCompany(browser, { email: 'cliente-a2@example.test', own: 'Ocorrência legada A QA', other: 'Ocorrência legada B QA' });
     await verifyCompany(browser, { email: 'cliente-b@example.test', own: 'Ocorrência legada B QA', other: 'Ocorrência legada A QA' });
     console.log('PASS Playwright local · OTP, termos, duas empresas, ocorrência legada e logout');
   } finally {

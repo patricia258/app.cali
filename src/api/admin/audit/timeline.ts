@@ -5,7 +5,8 @@ export const auditTimelineKey = (actorId: string) => ['admin', 'audit', actorId]
 
 const nullableText = z.string().nullish().transform((value) => value ?? null);
 const actor = nullableText;
-const base = z.object({ id: z.string(), company_id: nullableText, created_at: z.string() });
+const rowId = z.union([z.string(), z.number().int()]).transform(String);
+const base = z.object({ id: rowId, company_id: nullableText, created_at: z.string() });
 const protocol = z.object({ id: z.string(), protocol: nullableText });
 export const auditSourceLimit = 400;
 

@@ -103,6 +103,8 @@ function makeFixture(role) {
     id: 'qa-people-analytics',
     company_id: companyId,
     front_code: 'people_analytics',
+    mode: 'addon',
+    started_at: '2026-10-15',
     status: 'active',
     ends_at: null,
   });

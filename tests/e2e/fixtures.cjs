@@ -492,7 +492,7 @@ tables.client_invites.push({
 });
 tables.nps_responses = [];
 tables.account_documents = [];
-tables.activity_log = [{ company_id: companyId, event_type: 'account_created', metadata: {}, created_at: now }];
+tables.activity_log = [{ id: 1, company_id: companyId, event_type: 'account_created', metadata: {}, created_at: now }];
 tables.team_months.push({ reference_month: '2026-09-01', confirmed_at: now, revision: 1 });
 tables.team_month_snapshots.push(
   ...tables.team_members.slice(0, 4).map((m) => ({

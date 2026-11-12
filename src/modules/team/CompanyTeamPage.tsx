@@ -218,7 +218,14 @@ export function CompanyTeamPage({role,staff=false}:{role:Role;staff?:boolean}){
         if(header.includes('expected_return_date'))optional.expected_return_date=normalizeCsvDate(data.expected_return_date||'','previsão de retorno',line)||null;
         if(header.includes('termination_date'))optional.termination_date=normalizeCsvDate(data.termination_date||'','data de desligamento',line)||null;
         if(header.includes('termination_initiative'))optional.termination_initiative=({'pedido da pessoa':'employee','pedido do colaborador':'employee','por iniciativa do empregado':'employee','empresa':'company','por iniciativa do empregador':'company','fim do contrato':'contract_end','término do contrato a termo':'contract_end','outro':'other'} as Record<string,string>)[(data.termination_initiative||'').toLocaleLowerCase('pt-BR')]||data.termination_initiative||null;
-        if(header.includes('termination_code')){const code=(data.termination_code||'').padStart(2,'0');if(code&&!terminationCodes.some(item=>item.code===code))throw new Error(`Código eSocial inválido na linha ${line}.`);optional.termination_code=code;if(code)optional.termination_initiative=terminationCodes.find(item=>item.code===code)?.initiative||null;}
+        if(header.includes('termination_code')){
+          const value=(data.termination_code||'').trim();
+          const code=value?value.padStart(2,'0'):'';
+          const reason=terminationCodes.find(item=>item.code===code);
+          if(code&&!reason)throw new Error(`Código eSocial inválido na linha ${line}.`);
+          optional.termination_code=code;
+          if(reason)optional.termination_initiative=reason.initiative;
+        }
         if(header.includes('termination_reason'))optional.termination_reason=data.termination_reason||null;
         if(header.includes('notice_type'))optional.notice_type=({'trabalhado':'worked','indenizado':'indemnified','dispensado':'waived','nao se aplica':'not_applicable','não se aplica':'not_applicable'} as Record<string,string>)[(data.notice_type||'').toLocaleLowerCase('pt-BR')]||data.notice_type||null;
         if(header.includes('salary'))optional.salary=csvMoney(data.salary||'');
