@@ -21,7 +21,14 @@ Use Node 22 atualizado ou mais recente e instale as versões do lockfile com `np
 
 O ESLint usa configuração plana com as regras recomendadas de JavaScript, TypeScript e React, além das regras de Hooks, acessibilidade JSX, imports não usados, asserções de tipo, tipos genéricos, recarga de página e chaves de listas. A configuração atribui os globals de navegador, Node e Deno conforme a superfície. Os arquivos CommonJS usam `require`. [Configuração](../eslint.config.mjs)
 
-A baseline inicial registra 683 ocorrências preexistentes em 150 arquivos por regra e arquivo. O ESLint aplica as regras a toda a árvore e falha quando uma contagem aumenta, aparece uma ocorrência em outro arquivo ou há warning. Ao corrigir código legado, rode `npm run lint -- --prune-suppressions` para retirar entradas resolvidas e execute `npm run lint` novamente. [Baseline](../eslint-suppressions.json)
+`npm run lint` verifica todos os arquivos JavaScript e TypeScript do repositório, incluindo testes, scripts, APIs e Edge Functions. Qualquer erro ou aviso bloqueia a integração. O projeto roda sem baseline. `npm run lint:fix` aplica as correções automáticas. Revise o diff e confirme o resultado com `npm run lint`.
+
+- Modele respostas e dados persistidos com tipos de domínio, guardas ou decodificadores. Declare o tipo de objetos e arrays na atribuição.
+- Use chaves estáveis para listas React. Em coleções editáveis, derive a chave da identidade do registro.
+- Use mensagens e confirmações da interface. Após mutações, atualize os dados da tela. A fronteira de erro pode navegar novamente para carregar a versão publicada quando o bundle fica indisponível.
+- Valide atributos ARIA, texto alternativo, ordem dos Hooks e imports e variáveis sem uso. A configuração define o ambiente de cada superfície e as regras próprias dos testes.
+
+`npm run test:local` reúne lint, tipos, build, unitários, componentes, jornadas Playwright e contratos no banco local restaurado. Registre o resultado antes de publicar o Preview.
 
 ## O que cada camada prova
 

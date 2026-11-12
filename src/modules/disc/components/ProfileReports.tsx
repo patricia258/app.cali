@@ -113,7 +113,7 @@ export function RespondentReport({ result, signer }: { result: ProfileResultView
       <div className="cpr-chart-row"><ProfileRadar natural={natural} size={320} /><ul className="cpr-styles-line">{STYLES.map((style) => <li key={style}><b style={{ color: STYLE_CONTENT[style].ink }}>{style} · {STYLE_CONTENT[style].name}</b><span>{STYLE_CONTENT[style].verbLine}</span></li>)}</ul></div>
       <small className="cpr-eyebrow">INTENSIDADE, COM A MARGEM DE LEITURA</small>
       <ProfileBandBars values={natural} margin={MARGIN.natural} plain />
-      <p className="cpr-note"><b>Como ler:</b> o ponto mostra onde você está e a faixa colorida em volta, a variação natural da leitura. Quando ela cruza a fronteira entre duas faixas, aparece "no limite com". {BAND_EXPLAIN} Estilo baixo não é defeito: mostra o que você usa menos, não o que você não sabe fazer.</p>
+      <p className="cpr-note"><b>Como ler:</b> o ponto mostra onde você está e a faixa colorida em volta, a variação natural da leitura. Quando ela cruza a fronteira entre duas faixas, aparece &quot;no limite com&quot;. {BAND_EXPLAIN} Estilo baixo não é defeito: mostra o que você usa menos, não o que você não sabe fazer.</p>
     </Page>
 
     <Page number={3} total={total} title={title} protocol={result.protocol}>
@@ -307,7 +307,7 @@ export function EvaluatorReport({ result, team, base, signer, editableRole, onRo
           {!concentrated.length && !missing.length && <li>Os quatro estilos aparecem no grupo, sem concentração forte.</li>}
           <li>Esta pessoa traz {p.name}{teamCount[P] / teamTotal >= 0.5 ? ', o estilo que já concentra o grupo: reforça a característica do time.' : ', um contraponto ao que concentra o grupo: complementa, e pode gerar atrito se não for combinado.'}</li>
         </ul>
-        <p className="cpr-note">Base: {teamTotal} pessoas da mesma empresa que responderam. Sem nota de "melhor equipe": a leitura mostra onde há buraco e onde há sobreposição.</p>
+        <p className="cpr-note">Base: {teamTotal} pessoas da mesma empresa que responderam. Sem nota de &quot;melhor equipe&quot;: a leitura mostra onde há buraco e onde há sobreposição.</p>
       </> : <p className="cpr-note">A leitura de time aparece a partir de {TEAM_MIN} pessoas da mesma empresa (proteção de privacidade). Hoje: {teamTotal}.</p>}
     </Page>
 
@@ -346,7 +346,7 @@ export function EvaluatorReport({ result, team, base, signer, editableRole, onRo
       <table className="cpr-matrix cpr-data"><thead><tr><th>Estilo</th><th>Saldo (−18 a +18)</th><th>Dia comum (±{MARGIN.natural})</th><th>Faixa</th><th>Semana difícil (±{MARGIN.pressure})</th></tr></thead><tbody>
         {STYLES.map((style) => { const n = rangeOf(natural[style], MARGIN.natural), pr = rangeOf(pressure[style], MARGIN.pressure); return <tr key={style}><td className="cpr-style-cell" style={{ color: STYLE_CONTENT[style].ink }}><b>{style}</b> {STYLE_CONTENT[style].name}</td><td>{signed(result.scores.natural[style].raw)}</td><td>{natural[style]} ({n.lo}–{n.hi})</td><td>{bandText(natural[style], MARGIN.natural)}</td><td>{bandText(pressure[style], MARGIN.pressure)} ({pr.lo}–{pr.hi})</td></tr>; })}
       </tbody></table>
-      <p className="cpr-note">Instrumento {result.method_version || METHOD_VERSION}: {NATURAL_BLOCKS} blocos de 4 afirmações ({NATURAL_BLOCKS * 4} itens) no dia comum e {PRESSURE_BLOCKS.length} blocos repetidos na semana difícil. Em cada bloco, +1 no estilo marcado como "mais" e −1 no marcado como "menos"; escala (saldo + {NATURAL_BLOCKS}) ÷ {NATURAL_BLOCKS * 2} × 100, com 50 como equilíbrio. Perfil misto quando os dois maiores ficam a menos de {MARGIN.natural} pontos. Adaptação em níveis, acima de 25 pontos nos mesmos blocos. Escores de escolha forçada comparam os estilos da pessoa entre si, não pessoas entre si. {baseLine(base, P)}</p>
+      <p className="cpr-note">Instrumento {result.method_version || METHOD_VERSION}: {NATURAL_BLOCKS} blocos de 4 afirmações ({NATURAL_BLOCKS * 4} itens) no dia comum e {PRESSURE_BLOCKS.length} blocos repetidos na semana difícil. Em cada bloco, +1 no estilo marcado como &quot;mais&quot; e −1 no marcado como &quot;menos&quot;; escala (saldo + {NATURAL_BLOCKS}) ÷ {NATURAL_BLOCKS * 2} × 100, com 50 como equilíbrio. Perfil misto quando os dois maiores ficam a menos de {MARGIN.natural} pontos. Adaptação em níveis, acima de 25 pontos nos mesmos blocos. Escores de escolha forçada comparam os estilos da pessoa entre si, não pessoas entre si. {baseLine(base, P)}</p>
       <small className="cpr-eyebrow">O QUE ESTE RELATÓRIO NÃO PODE AFIRMAR</small>
       <ul className="cpr-list">
         <li><b>Previsão de desempenho.</b> Não há evidência publicada de que o DISC preveja desempenho no trabalho; estudos independentes são poucos e, em geral, sem efeito (por exemplo, Moreno e Puertas, 2022: 3 correlações significativas entre 225 testadas). O relatório descreve preferência, não resultado.</li>

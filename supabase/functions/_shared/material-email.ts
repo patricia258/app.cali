@@ -1,3 +1,4 @@
+import type { JsonValue } from './json.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 
 import { deliveryAppOrigin, emailDestinationsAllowed } from "./delivery-environment.ts";
@@ -36,8 +37,8 @@ export function deliveryPreflight(request: Request) {
   return null;
 }
 
-export function failureResponse(request: Request, error: unknown) {
-  return error instanceof DeliveryError
+export function failureResponse(request: Request, error: DeliveryError | null) {
+  return error
     ? emailResponse(request, { ok: false, error: error.message }, error.status)
     : emailResponse(request, { ok: false, error: "Não foi possível confirmar o envio. Tente novamente." }, 500);
 }
@@ -51,7 +52,7 @@ export function approvedRecipients(values: string[]) {
   return list;
 }
 
-export function emailUuid(value: unknown) {
+export function emailUuid(value: JsonValue | undefined) {
   if (typeof value !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) {
     throw new DeliveryError(400, "Identificador inválido.");
   }
@@ -76,7 +77,7 @@ export async function deliveryAdmin(request: Request) {
   return { db, workspace, user };
 }
 
-type Transport = ReturnType<typeof createClient>;
+type Transport = Awaited<ReturnType<typeof deliveryAdmin>>["db"];
 type Kind = "report" | "proposal" | "mapa";
 type Attachment = { filename: string; content: string };
 
@@ -131,7 +132,7 @@ export async function sendMaterialEmail(
   return result.id as string;
 }
 
-export function checkedPdf(value: unknown) {
+export function checkedPdf(value: JsonValue | undefined) {
   if (typeof value !== "string" || value.length > 11_184_812 || !/^JVBERi0[A-Za-z0-9+/]*={0,2}$/.test(value)) {
     throw new DeliveryError(400, "Selecione um PDF de até 8 MB.");
   }

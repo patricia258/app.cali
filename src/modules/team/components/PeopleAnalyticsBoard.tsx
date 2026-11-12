@@ -48,11 +48,18 @@ function Pie({ slices, unit = 'pessoas', empty }: { slices: [string, number][]; 
   const [hover, setHover] = useState<number | null>(null);
   const data = slices.filter(([, value]) => value > 0); const total = data.reduce((sum, [, value]) => sum + value, 0);
   if (!total) return <div className="pa-empty">{empty || 'Sem dados para este recorte.'}</div>;
-  let offset = 0; const shown = hover != null ? data[hover] : null;
+  const segments: { label: string; share: number; dashOffset: number }[] = [];
+  let dashOffset = 25;
+  for (const [label, value] of data) {
+    const share = value / total * 100;
+    segments.push({ label, share, dashOffset });
+    dashOffset -= share;
+  }
+  const shown = hover != null ? data[hover] : null;
   return <div className="pa-pie" onMouseLeave={() => setHover(null)}>
     <svg viewBox="0 0 42 42" role="img" aria-label={data.map(([label, value]) => `${label}: ${num(value)}`).join(', ')}>
       <circle cx="21" cy="21" r="15.915" fill="none" stroke="#f3ece6" strokeWidth="7" />
-      {data.map(([label, value], index) => { const share = value / total * 100; const node = <circle key={label} cx="21" cy="21" r="15.915" fill="none" stroke={COLORS[index % COLORS.length]} strokeWidth={hover === index ? 8.6 : 7} opacity={hover == null || hover === index ? 1 : .35} strokeDasharray={`${share} ${100 - share}`} strokeDashoffset={25 - offset} onMouseEnter={() => setHover(index)} />; offset += share; return node; })}
+      {segments.map(({ label, share, dashOffset }, index) => <circle key={label} cx="21" cy="21" r="15.915" fill="none" stroke={COLORS[index % COLORS.length]} strokeWidth={hover === index ? 8.6 : 7} opacity={hover == null || hover === index ? 1 : .35} strokeDasharray={`${share} ${100 - share}`} strokeDashoffset={dashOffset} onMouseEnter={() => setHover(index)} />)}
       <text x="21" y="20.4" textAnchor="middle">{shown ? `${Math.round(shown[1] / total * 100)}%` : num(total)}</text>
       <text x="21" y="25.2" textAnchor="middle" className="sub">{shown ? `${num(shown[1], unit === 'horas' ? 1 : 0)} ${unit}` : unit}</text>
     </svg>
@@ -135,13 +142,14 @@ export function PeopleAnalyticsMonth({ series, metrics, working, privateRows, mo
   const point = series.find((item) => item.month === month); const index = series.findIndex((item) => item.month === month); const before = index > 0 ? series[index - 1] : null;
   const start = before ? before.active : point ? point.active - point.admissions + point.exits : 0;
   const ytd = series.filter((item) => item.month.slice(0, 4) === month.slice(0, 4) && item.month <= month).reduce((sum, item) => sum + item.admissions - item.exits, 0);
-  const cascade = [['Início do mês', start, 'base'], ['Admissões', point?.admissions || 0, 'in'], ['Desligamentos', point?.exits || 0, 'out'], ['Fim do mês', point?.active || 0, 'base']] as [string, number, string][]; const cascadePeak = Math.max(1, ...cascade.map((item) => item[1]));
+  const cascade: [string, number, string][] = [['Início do mês', start, 'base'], ['Admissões', point?.admissions || 0, 'in'], ['Desligamentos', point?.exits || 0, 'out'], ['Fim do mês', point?.active || 0, 'base']]; const cascadePeak = Math.max(1, ...cascade.map((item) => item[1]));
   const count = (pick: (item: PaMember) => string, list = working) => Object.entries(list.reduce<Record<string, number>>((map, item) => { const key = pick(item); map[key] = (map[key] || 0) + 1; return map; }, {})).sort((a, b) => b[1] - a[1]) as [string, number][];
   const privateOf = (item: PaMember) => privateRows.find((row) => row.member_id === item.id);
   const hasPrivate = working.some((item) => privateOf(item)?.gender || privateOf(item)?.has_children);
   const contract: Record<string, string> = { clt: 'CLT', pj: 'PJ', intern: 'Estágio', temporary: 'Temporário', outsourced: 'Terceirizado', other: 'Outro' }; const model: Record<string, string> = { presencial: 'Presencial', hibrido: 'Híbrido', remoto: 'Remoto' }; const gender: Record<string, string> = { female: 'Feminino', male: 'Masculino', other: 'Outra identificação', prefer_not: 'Prefere não informar' };
   const months = (item: PaMember) => Math.max(0, (new Date(`${month}-28T12:00:00`).getTime() - new Date(`${item.admission_date}T12:00:00`).getTime()) / 2629800000);
   const band = (item: PaMember) => { const value = months(item); return value < 6 ? 'Até 6 meses' : value < 12 ? '6 a 12 meses' : value < 24 ? '1 a 2 anos' : value < 48 ? '2 a 4 anos' : 'Mais de 4 anos'; };
+  const childrenLabels: Record<string, string> = { yes: 'Tem filhos', no: 'Não tem filhos' };
   const segment = working.filter((item) => !area || item.department === area);
   const avgMonths = segment.length ? segment.reduce((sum, item) => sum + months(item), 0) / segment.length : null;
   const tenureText = avgMonths == null ? '—' : avgMonths >= 12 ? `${num(avgMonths / 12, 1)} anos` : `${num(avgMonths, 0)} meses`;
@@ -171,14 +179,14 @@ export function PeopleAnalyticsMonth({ series, metrics, working, privateRows, mo
       <Card title="Tempo de permanência" what="Há quanto tempo as pessoas ativas estão na empresa" control={<select className="pa-range" aria-label="Área" value={area} onChange={(event) => setArea(event.target.value)}><option value="">Todas as áreas</option>{departments.map((name) => <option key={name}>{name}</option>)}</select>}
         results={[['Tempo médio de casa', tenureText], ['Até 1 ano', segment.length ? `${Math.round(newcomers / segment.length * 100)}%` : '—'], ['Mais de 4 anos', segment.length ? `${Math.round(veteran / segment.length * 100)}%` : '—']]}
         reading={segment.length ? 'muita gente com menos de 1 ano pede atenção à integração; muita gente com mais de 4 anos pede plano para não perder conhecimento de uma vez.' : undefined}>
-        <Pie slices={['Até 6 meses', '6 a 12 meses', '1 a 2 anos', '2 a 4 anos', 'Mais de 4 anos'].map((label) => [label, segment.filter((item) => band(item) === label).length] as [string, number])} />
+        <Pie slices={['Até 6 meses', '6 a 12 meses', '1 a 2 anos', '2 a 4 anos', 'Mais de 4 anos'].map((label): [string, number] => [label, segment.filter((item) => band(item) === label).length])} />
       </Card>
 
       <Card title="Tipo de contrato" what="Vínculo das pessoas ativas"><Pie slices={count((item) => contract[item.employment_type] || item.employment_type || 'Não informado')} /></Card>
       <Card title="Modelo de trabalho" what="Presencial, híbrido ou remoto, conforme o cadastro"><Pie slices={count((item) => model[item.work_model || ''] || 'Não informado')} /></Card>
       <Card title="Liderança" what="Quem lidera pessoas e quem não lidera" reading={working.length ? `1 liderança para cada ${num((working.length - working.filter((item) => item.is_leader).length) / Math.max(1, working.filter((item) => item.is_leader).length), 1)} pessoas.` : undefined}><Pie slices={[['Lideranças', working.filter((item) => item.is_leader).length], ['Demais pessoas', working.filter((item) => !item.is_leader).length]]} /></Card>
       <Card title="Gênero" what="Informação declarada no cadastro"><Pie slices={hasPrivate ? count((item) => gender[privateOf(item)?.gender || ''] || 'Não informado') : []} empty="Sem dado de gênero no cadastro desta empresa." /></Card>
-      <Card title="Mães e pais" what="Pessoas que declararam ter filhos"><Pie slices={hasPrivate ? count((item) => ({ yes: 'Tem filhos', no: 'Não tem filhos' } as Record<string, string>)[privateOf(item)?.has_children || ''] || 'Não informado') : []} empty="Sem dado de filhos no cadastro desta empresa." /></Card>
+      <Card title="Mães e pais" what="Pessoas que declararam ter filhos"><Pie slices={hasPrivate ? count((item) => childrenLabels[privateOf(item)?.has_children || ''] || 'Não informado') : []} empty="Sem dado de filhos no cadastro desta empresa." /></Card>
 
       <section className="pa-card wide pa-missing"><header><div><h3>O que a planilha pede e ainda não tem dado no cadastro</h3><p>Faixa etária e idade média (falta a data de nascimento) · filhos por faixa de idade · pessoas com deficiência e cota legal · cor / raça autodeclarada · nível hierárquico · custo de horas extras e de banco de horas · custo por perfil. Esses gráficos entram quando os campos existirem.</p></div></header></section>
     </div>

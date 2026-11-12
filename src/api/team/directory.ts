@@ -1,3 +1,4 @@
+import type { JsonObject } from '../../domain/json';
 import { z } from 'zod';
 import { supabase } from '../supabase';
 import type { Change, Company, Member, MonthMetric, Private, Snapshot, Vacancy } from '../../domain/team';
@@ -59,13 +60,13 @@ async function readTeamRows<T>(
   columns: string, companyId: string, order: string, ascending: boolean, signal: AbortSignal,
 ) {
   if (!supabase) throw new Error(unavailable);
-  const rows: unknown[] = [];
+  const rows: T[] = [];
   for (let start = 0; start < 100000; start += 500) {
     const result = await supabase.from(table).select(columns).eq('company_id', companyId)
-      .order(order, { ascending }).range(start, start + 499).abortSignal(signal);
+      .order(order, { ascending }).range(start, start + 499).abortSignal(signal).overrideTypes<T[], { merge: false }>();
     if (result.error) throw result.error;
     rows.push(...(result.data ?? []));
-    if ((result.data ?? []).length < 500) return rows as T[];
+    if ((result.data ?? []).length < 500) return rows;
   }
   throw new Error('A equipe ultrapassou o limite de consulta; contate a CALI para ampliar a leitura.');
 }
@@ -92,7 +93,7 @@ export async function readCompanyTeam(companyId: string, staff: boolean, signal:
   };
 }
 
-export async function saveTeamMembers(companyId: string, referenceMonth: string, rows: Record<string, unknown>[]) {
+export async function saveTeamMembers(companyId: string, referenceMonth: string, rows: JsonObject[]) {
   if (!supabase) throw new Error(unavailable);
   const result = await supabase.rpc('save_team_month_v1', {
     p_company_id: companyId, p_reference_month: referenceMonth, p_rows: rows,
@@ -107,7 +108,7 @@ export async function archiveTeamMember(companyId: string, memberId: string) {
 }
 
 export async function confirmTeamMonth(
-  companyId: string, referenceMonth: string, people: Record<string, unknown>[],
+  companyId: string, referenceMonth: string, people: JsonObject[],
   vacancies: Array<Omit<Vacancy, 'id'>>,
   answers: { departures: number; admissions: number; changes: number; vacancies: number },
 ) {

@@ -109,6 +109,6 @@ Deno.serve(async (request) => {
       return config.json({ status: 'deleted' });
     });
   } catch (error) {
-    return googleFailure(config, error);
+    return googleFailure(config, error instanceof GoogleIntegrationError ? error : null);
   }
 });

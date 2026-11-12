@@ -41,7 +41,8 @@ export async function readTaskConversationPeople(partner: boolean) {
   const team = await client.rpc('staff_identities');
   const admins = partner ? await client.rpc('staff_admin_contacts')
     : await client.from('profiles').select('id,full_name,avatar_url').eq('role', 'admin');
-  return [...(team.data ?? []), ...(admins.data ?? [])] as { id: string; full_name?: string; avatar_url?: string }[];
+  const people: { id: string; full_name?: string; avatar_url?: string }[] = [...(team.data ?? []), ...(admins.data ?? [])];
+  return people;
 }
 
 export async function postTaskMessage(input: {

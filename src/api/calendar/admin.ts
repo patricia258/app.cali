@@ -1,3 +1,4 @@
+import type { JsonObject } from '../../domain/json';
 import { supabase } from '../supabase';
 
 export async function readAdminCalendar(staff: boolean) {
@@ -20,7 +21,7 @@ export async function readMeetingOutcomes(eventIds: string[]) {
 }
 
 export async function submitStaffCalendarChange(
-  companyId: string, action: string, title: string, payload: Record<string, unknown>,
+  companyId: string, action: string, title: string, payload: JsonObject,
 ) {
   if (!supabase) return false;
   const { data: auth } = await supabase.auth.getUser();
@@ -33,7 +34,7 @@ export async function submitStaffCalendarChange(
 
 type CalendarEventWrite = {
   title: string; company_id: string | null; visibility: string; starts_at: string; ends_at: string;
-} & Record<string, unknown>;
+} & JsonObject;
 
 export async function saveCalendarEvent(event: CalendarEventWrite, attendees: string[], eventId?: string) {
   if (!supabase) throw new Error('Conexão indisponível.');

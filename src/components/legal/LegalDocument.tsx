@@ -1,11 +1,12 @@
 /* Mostra um texto jurídico (Política de Privacidade ou Termos de Uso) escrito em markdown simples:
    títulos (#, ##, ###), parágrafos, listas, tabelas e **negrito**. */
 import { Fragment, ReactNode } from 'react';
+import { keysByContent } from '../../lib/keysByContent';
 
 function inline(text: string): ReactNode {
-  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => part.startsWith('**') && part.endsWith('**') && part.length > 4
-    ? <strong key={index}>{part.slice(2, -2)}</strong>
-    : <Fragment key={index}>{part}</Fragment>);
+  return keysByContent(text.split(/(\*\*[^*]+\*\*)/g), (part) => part).map(({ item: part, key }) => part.startsWith('**') && part.endsWith('**') && part.length > 4
+    ? <strong key={key}>{part.slice(2, -2)}</strong>
+    : <Fragment key={key}>{part}</Fragment>);
 }
 const plain = (text: string) => text.replace(/\*\*/g, '').trim();
 
@@ -30,19 +31,19 @@ export function LegalDocument({ source, idPrefix }: { source: string; idPrefix: 
       const body = rows.filter((row) => row.some(Boolean));
       const [head, ...rest] = body;
       if (!head) continue;
-      out.push(<div className="v2-legal-table" key={key}><table><thead><tr>{head.map((cell, i) => <th key={i}>{plain(cell)}</th>)}</tr></thead><tbody>{rest.map((row, r) => <tr key={r}>{row.map((cell, i) => <td key={i}>{inline(cell)}</td>)}</tr>)}</tbody></table></div>);
+      out.push(<div className="v2-legal-table" key={key}><table><thead><tr>{keysByContent(head, (cell) => cell).map(({ item: cell, key }) => <th key={key}>{plain(cell)}</th>)}</tr></thead><tbody>{keysByContent(rest, (row) => JSON.stringify(row)).map(({ item: row, key }) => <tr key={key}>{keysByContent(row, (cell) => cell).map(({ item: cell, key: cellKey }) => <td key={cellKey}>{inline(cell)}</td>)}</tr>)}</tbody></table></div>);
       continue;
     }
     if (/^\s*-\s+/.test(line)) {
       const items: string[] = [];
       while (index < lines.length && /^\s*-\s+/.test(lines[index])) { items.push(lines[index].replace(/^\s*-\s+/, '')); index += 1; }
-      out.push(<ul key={key}>{items.map((item, i) => <li key={i}>{inline(item)}</li>)}</ul>);
+      out.push(<ul key={key}>{keysByContent(items, (item) => item).map(({ item, key }) => <li key={key}>{inline(item)}</li>)}</ul>);
       continue;
     }
     if (/^\s*\d+\.\s+/.test(line)) {
       const items: string[] = [];
       while (index < lines.length && /^\s*\d+\.\s+/.test(lines[index])) { items.push(lines[index].replace(/^\s*\d+\.\s+/, '')); index += 1; }
-      out.push(<ol key={key}>{items.map((item, i) => <li key={i}>{inline(item)}</li>)}</ol>);
+      out.push(<ol key={key}>{keysByContent(items, (item) => item).map(({ item, key }) => <li key={key}>{inline(item)}</li>)}</ol>);
       continue;
     }
     out.push(<p key={key}>{inline(line)}</p>);

@@ -1,3 +1,4 @@
+import type { JsonValue } from '../../domain/json';
 import { z } from 'zod';
 import { requireHoursClient } from './client';
 
@@ -19,7 +20,7 @@ export type CapacityHistoryRow = z.infer<typeof historyRow>;
 export type CapacityReview = z.infer<typeof reviewRow>;
 type ReviewDraft = Pick<CapacityReview, 'analysis' | 'decision' | 'communicated'>;
 
-function parseCapacity<Schema extends z.ZodType>(schema: Schema, response: { data: unknown; error: { message: string } | null }) {
+function parseCapacity<Schema extends z.ZodType>(schema: Schema, response: { data: JsonValue | undefined; error: { message: string } | null }) {
   if (response.error) return { data: null, error: response.error };
   const parsed = schema.safeParse(response.data);
   if (!parsed.success) return { data: null, error: { message: 'O Workspace retornou dados de capacidade inválidos.' } };

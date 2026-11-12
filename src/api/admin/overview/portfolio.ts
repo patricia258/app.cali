@@ -1,3 +1,4 @@
+import type { PostgrestError } from '@supabase/supabase-js';
 import { addMonths, format, startOfMonth, subMonths } from 'date-fns';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
 import { supabase } from '../../supabase';
@@ -58,7 +59,7 @@ export type DashboardData = {
   satisfaction: Satisfaction;
 };
 
-async function readDashboardPages<T>(read: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>) {
+async function readDashboardPages<T>(read: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: PostgrestError | null }>) {
   const pageSize = 250;
   const rows: T[] = [];
   for (let offset = 0; ; offset += pageSize) {

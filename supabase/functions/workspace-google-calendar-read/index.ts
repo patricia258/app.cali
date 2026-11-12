@@ -1,5 +1,68 @@
-import { googleActor, googleFailure, googleRequest } from '../_shared/google-integration.ts';
+import { googleActor, googleFailure, GoogleIntegrationError, googleRequest } from '../_shared/google-integration.ts';
 import { calendarAccessToken } from '../_shared/google-calendar-events.ts';
+import { isJsonObject, type JsonValue } from '../_shared/json.ts';
+
+type CalendarList = {
+    items?: { id?: string; deleted?: boolean; backgroundColor?: string; foregroundColor?: string; colorId?: string }[];
+    nextPageToken?: string;
+};
+
+type CalendarFreeBusy = {
+    calendars?: Record<string, { errors?: { reason?: string }[]; busy?: { start: string; end: string }[] }>;
+};
+
+type CalendarColor = { background?: string; foreground?: string };
+type CalendarPalette = {
+    event?: Record<string, CalendarColor>;
+    calendar?: Record<string, CalendarColor>;
+};
+
+type EventTime = { date?: string; dateTime?: string };
+type CalendarEvents = {
+    items?: {
+        id: string;
+        iCalUID?: string;
+        start?: EventTime;
+        end?: EventTime;
+        status?: string;
+        summary?: string;
+        location?: string;
+        description?: string;
+        htmlLink?: string;
+        colorId?: string;
+        organizer?: { displayName?: string; email?: string };
+        hangoutLink?: string;
+        conferenceData?: { entryPoints?: { entryPointType: string; uri: string }[] };
+        attendees?: { displayName?: string; email?: string; responseStatus?: string; self?: boolean }[];
+        reminders?: { overrides?: { method: string; minutes: number }[] };
+    }[];
+    nextPageToken?: string;
+};
+
+type ReadEvent = {
+    id: string;
+    calendarId: string;
+    title: string;
+    start: string | undefined;
+    end: string | undefined;
+    allDay: boolean;
+    location: string | null;
+    description: string | null;
+    htmlLink: string | null;
+    color: string;
+    textColor: string | null;
+    explicitColor: boolean;
+    organizer: string | null;
+    meetingUrl: string | null;
+    attendees: { name: string; email: string; status: string; self: boolean }[];
+    reminderMinutes: number | null;
+};
+
+function isSlot(value: JsonValue): value is { startsAt: string | number; endsAt: string | number } {
+    return isJsonObject(value)
+        && (typeof value.startsAt === 'string' || typeof value.startsAt === 'number')
+        && (typeof value.endsAt === 'string' || typeof value.endsAt === 'number');
+}
 
 const requiredScope = 'https://www.googleapis.com/auth/calendar.readonly';
 
@@ -11,20 +74,21 @@ Deno.serve(async (request) => {
   const reply = config.json;
   try {
     const { db, profile, user } = await googleActor(request);
-    let body: any;
+    let input: JsonValue;
     try {
-        body = await request.json();
+        input = await request.json();
     }
     catch {
         return reply({ error: 'invalid_body' }, 400);
     }
+    const body = isJsonObject(input) ? input : null;
     const action = String(body?.action || '');
     if (!['availability', 'events', 'client_events'].includes(action) || (action === 'events' && profile.role !== 'admin') || (action === 'client_events' && (profile.role !== 'client' || !profile.company_id)))
         return reply({ error: 'access_denied' }, 403);
     const connectionQuery = db.from('calendar_connections').select('id,calendar_id,credential_key,user_id,company_id,account_email,provider_account_id').eq('provider', 'google').eq('status', 'connected').eq('sync_enabled', true).eq('is_primary', true);
     const { data: connection } = await (action === 'client_events'
         ? connectionQuery.eq('user_id', user.id).eq('company_id', profile.company_id).limit(1).maybeSingle()
-        : connectionQuery.is('company_id', null).in('user_id', (await db.from('profiles').select('id').eq('role', 'admin').eq('active', true)).data?.map((row: any) => row.id) || []).order('updated_at', { ascending: false }).limit(1).maybeSingle());
+        : connectionQuery.is('company_id', null).in('user_id', (await db.from('profiles').select('id').eq('role', 'admin').eq('active', true)).data?.map(row => row.id) || []).order('updated_at', { ascending: false }).limit(1).maybeSingle());
     if (!connection)
         return reply({ state: 'reconnect_required' });
     if (!config.calendarAllowed(connection.calendar_id || 'primary')) return reply({ state: 'reconnect_required' });
@@ -34,9 +98,9 @@ Deno.serve(async (request) => {
     let token: string;
     try { token = await calendarAccessToken(config, db, connection); }
     catch { return reply({ state: 'reconnect_required' }); }
-    const google = async (endpoint: string, options?: RequestInit) => {
+    const google = async <Result>(endpoint: string, options?: RequestInit): Promise<Result> => {
         const response = await config.fetch(`https://www.googleapis.com/calendar/v3/${endpoint}`, { ...options, headers: { Authorization: `Bearer ${token}`, ...(options?.headers || {}) } });
-        const result = await response.json().catch(() => ({}));
+        const result: Result & { error?: { message?: string } } = await response.json().catch(() => ({}));
         if (!response.ok)
             throw new Error(`google_${response.status}:${result?.error?.message || 'Falha ao consultar a agenda'}`);
         return result;
@@ -53,7 +117,7 @@ Deno.serve(async (request) => {
             const params = new URLSearchParams({ maxResults: '250' });
             if (page)
                 params.set('pageToken', page);
-            const list = await google(`users/me/calendarList?${params}`);
+            const list = await google<CalendarList>(`users/me/calendarList?${params}`);
             for (const item of list.items || [])
                 if (item.id && !item.deleted && config.calendarAllowed(item.id))
                     calendars.push({ id: item.id, color: item.backgroundColor || '', foreground: item.foregroundColor || '', colorId: item.colorId || '' });
@@ -65,21 +129,21 @@ Deno.serve(async (request) => {
             if (profile.role !== 'client' || !profile.company_id)
                 return reply({ error: 'access_denied' }, 403);
             const slots = body?.slots;
-            if (!Array.isArray(slots) || slots.length < 1 || slots.length > 2)
+            if (!Array.isArray(slots) || slots.length < 1 || slots.length > 2 || !slots.every(isSlot))
                 return reply({ error: 'invalid_slots' }, 400);
-            const parsed = slots.map((slot: any) => ({ start: new Date(slot.startsAt).getTime(), end: new Date(slot.endsAt).getTime() }));
-            if (parsed.some((slot: any) => !Number.isFinite(slot.start) || !Number.isFinite(slot.end) || slot.end <= slot.start || slot.start < Date.now() + 48 * 3600000 || slot.end > Date.now() + 180 * 86400000 || ![30, 45, 60, 90, 240].includes((slot.end - slot.start) / 60000)))
+            const parsed = slots.map(slot => ({ start: new Date(slot.startsAt).getTime(), end: new Date(slot.endsAt).getTime() }));
+            if (parsed.some(slot => !Number.isFinite(slot.start) || !Number.isFinite(slot.end) || slot.end <= slot.start || slot.start < Date.now() + 48 * 3600000 || slot.end > Date.now() + 180 * 86400000 || ![30, 45, 60, 90, 240].includes((slot.end - slot.start) / 60000)))
                 return reply({ error: 'invalid_slots' }, 400);
             const { count, error: countError } = await db.from('activity_log').select('id', { count: 'exact', head: true }).eq('actor_user_id', user.id).eq('event_type', 'client_calendar_availability_checked').gte('created_at', new Date(Date.now() - 3600000).toISOString());
             if (countError)
                 throw countError;
             if ((count || 0) >= 45)
                 return reply({ error: 'availability_limit' }, 429);
-            const { error: auditError } = await db.from('activity_log').insert({ company_id: profile.company_id, actor_user_id: user.id, event_type: 'client_calendar_availability_checked', entity_type: 'calendar', metadata: { slots: slots.map((slot: any) => ({ startsAt: slot.startsAt, endsAt: slot.endsAt })) } });
+            const { error: auditError } = await db.from('activity_log').insert({ company_id: profile.company_id, actor_user_id: user.id, event_type: 'client_calendar_availability_checked', entity_type: 'calendar', metadata: { slots: slots.map(slot => ({ startsAt: slot.startsAt, endsAt: slot.endsAt })) } });
             if (auditError)
                 throw auditError;
-            const min = new Date(Math.min(...parsed.map((slot: any) => slot.start))).toISOString();
-            const max = new Date(Math.max(...parsed.map((slot: any) => slot.end))).toISOString();
+            const min = new Date(Math.min(...parsed.map(slot => slot.start))).toISOString();
+            const max = new Date(Math.max(...parsed.map(slot => slot.end))).toISOString();
             const busy: {
                 start: number;
                 end: number;
@@ -89,8 +153,8 @@ Deno.serve(async (request) => {
             let googleOk = true;
             try {
                 for (let i = 0; i < calendars.length; i += 50) {
-                    const result = await google('freeBusy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ timeMin: min, timeMax: max, timeZone: 'America/Sao_Paulo', items: calendars.slice(i, i + 50).map(calendar => ({ id: calendar.id })) }) });
-                    for (const entry of Object.values(result.calendars || {}) as any[]) {
+                    const result = await google<CalendarFreeBusy>('freeBusy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ timeMin: min, timeMax: max, timeZone: 'America/Sao_Paulo', items: calendars.slice(i, i + 50).map(calendar => ({ id: calendar.id })) }) });
+                    for (const entry of Object.values(result.calendars || {})) {
                         if (entry.errors?.length)
                             continue;
                         for (const interval of entry.busy || [])
@@ -106,27 +170,31 @@ Deno.serve(async (request) => {
                 throw error;
             for (const event of local || [])
                 busy.push({ start: new Date(event.starts_at).getTime(), end: new Date(event.ends_at).getTime() });
-            return reply({ state: 'checked', google: googleOk, slots: parsed.map((slot: any) => ({ busy: busy.some((period) => period.start < slot.end && period.end > slot.start) })) });
+            return reply({ state: 'checked', google: googleOk, slots: parsed.map(slot => ({ busy: busy.some((period) => period.start < slot.end && period.end > slot.start) })) });
         }
-        const start = new Date(body?.start || 0).getTime(), end = new Date(body?.end || 0).getTime();
+        const startInput = body?.start || 0;
+        const endInput = body?.end || 0;
+        const start = new Date(typeof startInput === 'string' || typeof startInput === 'number' ? startInput : NaN).getTime();
+        const end = new Date(typeof endInput === 'string' || typeof endInput === 'number' ? endInput : NaN).getTime();
         if (!Number.isFinite(start) || !Number.isFinite(end) || start >= end || end - start > 62 * 86400000)
             return reply({ error: 'invalid_range' }, 400);
-        const items: any[] = [], byIdentity = new Map<string, number>();
-        const palette = await google('colors');
+        const items: ReadEvent[] = [];
+        const byIdentity = new Map<string, number>();
+        const palette = await google<CalendarPalette>('colors');
         for (const calendar of calendars) {
             let next = '';
             do {
                 const params = new URLSearchParams({ timeMin: new Date(start).toISOString(), timeMax: new Date(end).toISOString(), singleEvents: 'true', maxResults: '250', showDeleted: 'false' });
                 if (next)
                     params.set('pageToken', next);
-                const result = await google(`calendars/${encodeURIComponent(calendar.id)}/events?${params}`);
+                const result = await google<CalendarEvents>(`calendars/${encodeURIComponent(calendar.id)}/events?${params}`);
                 for (const entry of result.items || []) {
                     if (entry.status === 'cancelled' || !entry.start)
                         continue;
                     const identity = `${entry.iCalUID || entry.id}:${entry.start.dateTime || entry.start.date}`;
                     const eventColor = entry.colorId ? palette.event?.[entry.colorId] : null;
                     const calendarColor = palette.calendar?.[calendar.colorId];
-                    const mapped = { id: entry.id, calendarId: calendar.id, title: entry.summary || 'Ocupado', start: entry.start.dateTime || entry.start.date, end: entry.end?.dateTime || entry.end?.date, allDay: Boolean(entry.start.date), location: entry.location || null, description: entry.description || null, htmlLink: entry.htmlLink || null, color: eventColor?.background || calendar.color || calendarColor?.background || '#8D7354', textColor: eventColor?.foreground || calendar.foreground || calendarColor?.foreground || null, explicitColor: Boolean(eventColor), organizer: entry.organizer?.displayName || entry.organizer?.email || null, meetingUrl: entry.hangoutLink || entry.conferenceData?.entryPoints?.find((point: any) => point.entryPointType === 'video')?.uri || null, attendees: (entry.attendees || []).map((guest: any) => ({ name: guest.displayName || guest.email || 'Convidado', email: guest.email || '', status: guest.responseStatus || 'needsAction', self: Boolean(guest.self) })), reminderMinutes: entry.reminders?.overrides?.find((reminder: any) => reminder.method === 'popup')?.minutes ?? null };
+                    const mapped = { id: entry.id, calendarId: calendar.id, title: entry.summary || 'Ocupado', start: entry.start.dateTime || entry.start.date, end: entry.end?.dateTime || entry.end?.date, allDay: Boolean(entry.start.date), location: entry.location || null, description: entry.description || null, htmlLink: entry.htmlLink || null, color: eventColor?.background || calendar.color || calendarColor?.background || '#8D7354', textColor: eventColor?.foreground || calendar.foreground || calendarColor?.foreground || null, explicitColor: Boolean(eventColor), organizer: entry.organizer?.displayName || entry.organizer?.email || null, meetingUrl: entry.hangoutLink || entry.conferenceData?.entryPoints?.find(point => point.entryPointType === 'video')?.uri || null, attendees: (entry.attendees || []).map(guest => ({ name: guest.displayName || guest.email || 'Convidado', email: guest.email || '', status: guest.responseStatus || 'needsAction', self: Boolean(guest.self) })), reminderMinutes: entry.reminders?.overrides?.find(reminder => reminder.method === 'popup')?.minutes ?? null };
                     const previousIndex = byIdentity.get(identity);
                     if (previousIndex == null) {
                         byIdentity.set(identity, items.length);
@@ -140,10 +208,10 @@ Deno.serve(async (request) => {
         }
         return reply({ state: 'checked', events: items.map(({ explicitColor, ...event }) => event) });
     }
-    catch (error) {
+    catch {
         return reply({ error: 'calendar_unavailable' }, 502);
     }
   } catch (error) {
-    return googleFailure(config, error);
+    return googleFailure(config, error instanceof GoogleIntegrationError ? error : null);
   }
 });

@@ -14,14 +14,11 @@ import {
   Building2,
   ChevronLeft,
   FileText,
-  Filter,
   Mail,
   RefreshCw,
   Search,
   Send,
-  Target,
   UserRound,
-  Workflow,
   X,
 } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
@@ -177,15 +174,15 @@ function observationDraft(record: MapaRecord): ObservationDraft {
 function dimensionRows(record: MapaRecord, dimension: 1 | 2 | 3 | 4) {
   const v2 = record.diagnostico_v2;
   if (v2?.version === 2) {
-    if (dimension === 1) return [['Cargos e atribuições', v2.d1?.processos?.[0]], ['Fluxos de admissão, promoção e saída', v2.d1?.processos?.[1]], ['Políticas aplicadas', v2.d1?.processos?.[2]], ['Hierarquia clara', v2.d1?.estrutura?.[0]], ['Proporção do time de gente', v2.d1?.estrutura?.[1]], ['Regras de decisão', v2.d1?.governanca?.[0]], ['Registro e controle', v2.d1?.governanca?.[1]]] as Array<[string, number | null | undefined]>;
-    if (dimension === 2) return [['Iniciativa', v2.d2?.comportamento?.[0]], ['Responsabilidade por resultado', v2.d2?.comportamento?.[1]], ['Postura com o negócio', v2.d2?.comportamento?.[2]], ['Cultura orienta decisão', v2.d2?.valores?.cultura_decisao], ['Pipeline de sucessão', v2.d2?.desenvolvimento?.[0]], ['Programa de liderança', v2.d2?.desenvolvimento?.[1]], ['Preparo para responsabilidades maiores', v2.d2?.desenvolvimento?.[2]]] as Array<[string, number | null | undefined]>;
-    if (dimension === 3) return [['Indicadores existem', v2.d3?.indicadores?.[0]], ['Revisão periódica', v2.d3?.indicadores?.[1]], ['Decisões de gente por dados', v2.d3?.decisao?.[0]], ['Referência compartilhada', v2.d3?.decisao?.[1]], ['Ferramentas de RH', v2.d3?.tecnologia?.[0]], ['Uso de IA no RH', v2.d3?.tecnologia?.[1]]] as Array<[string, number | null | undefined]>;
-    return [['Tamanho do quadro', v2.d4?.tamanho?.[0]], ['Distribuição geográfica', v2.d4?.tamanho?.[1]], ['Gestão dos regimes', v2.d4?.vinculos?.gestao], ['Nível de turnover', v2.d4?.rotatividade?.[0]], ['Custo de gente no resultado', v2.d4?.rotatividade?.[1]]] as Array<[string, number | null | undefined]>;
+    if (dimension === 1) return [['Cargos e atribuições', v2.d1?.processos?.[0]], ['Fluxos de admissão, promoção e saída', v2.d1?.processos?.[1]], ['Políticas aplicadas', v2.d1?.processos?.[2]], ['Hierarquia clara', v2.d1?.estrutura?.[0]], ['Proporção do time de gente', v2.d1?.estrutura?.[1]], ['Regras de decisão', v2.d1?.governanca?.[0]], ['Registro e controle', v2.d1?.governanca?.[1]]] satisfies Array<[string, number | null | undefined]>;
+    if (dimension === 2) return [['Iniciativa', v2.d2?.comportamento?.[0]], ['Responsabilidade por resultado', v2.d2?.comportamento?.[1]], ['Postura com o negócio', v2.d2?.comportamento?.[2]], ['Cultura orienta decisão', v2.d2?.valores?.cultura_decisao], ['Pipeline de sucessão', v2.d2?.desenvolvimento?.[0]], ['Programa de liderança', v2.d2?.desenvolvimento?.[1]], ['Preparo para responsabilidades maiores', v2.d2?.desenvolvimento?.[2]]] satisfies Array<[string, number | null | undefined]>;
+    if (dimension === 3) return [['Indicadores existem', v2.d3?.indicadores?.[0]], ['Revisão periódica', v2.d3?.indicadores?.[1]], ['Decisões de gente por dados', v2.d3?.decisao?.[0]], ['Referência compartilhada', v2.d3?.decisao?.[1]], ['Ferramentas de RH', v2.d3?.tecnologia?.[0]], ['Uso de IA no RH', v2.d3?.tecnologia?.[1]]] satisfies Array<[string, number | null | undefined]>;
+    return [['Tamanho do quadro', v2.d4?.tamanho?.[0]], ['Distribuição geográfica', v2.d4?.tamanho?.[1]], ['Gestão dos regimes', v2.d4?.vinculos?.gestao], ['Nível de turnover', v2.d4?.rotatividade?.[0]], ['Custo de gente no resultado', v2.d4?.rotatividade?.[1]]] satisfies Array<[string, number | null | undefined]>;
   }
-  if (dimension === 1) return [['Como descreve o RH hoje', record.d1_rh_hoje], ['Processos formalizados', record.d1_processos], ['Cargos e salários', record.d1_cargos_salarios]] as Array<[string, number | null | undefined]>;
-  if (dimension === 2) return [['Valores praticados', record.d2_valores], ['Preparo das lideranças', record.d2_lideres_preparo], ['Senso de responsabilidade', record.d2_comportamento_dono], ['Plano de sucessão', record.d2_sucessao]] as Array<[string, number | null | undefined]>;
-  if (dimension === 3) return [['Acompanha indicadores', record.d3_indicadores], ['Decisão por dado', record.d3_decisao], ['Conhece custo de gente', record.d3_custo]] as Array<[string, number | null | undefined]>;
-  return [['Colaboradores', record.d4_colaboradores], ['Unidades', record.d4_unidades], ['Turnover', record.d4_turnover]] as Array<[string, number | null | undefined]>;
+  if (dimension === 1) return [['Como descreve o RH hoje', record.d1_rh_hoje], ['Processos formalizados', record.d1_processos], ['Cargos e salários', record.d1_cargos_salarios]] satisfies Array<[string, number | null | undefined]>;
+  if (dimension === 2) return [['Valores praticados', record.d2_valores], ['Preparo das lideranças', record.d2_lideres_preparo], ['Senso de responsabilidade', record.d2_comportamento_dono], ['Plano de sucessão', record.d2_sucessao]] satisfies Array<[string, number | null | undefined]>;
+  if (dimension === 3) return [['Acompanha indicadores', record.d3_indicadores], ['Decisão por dado', record.d3_decisao], ['Conhece custo de gente', record.d3_custo]] satisfies Array<[string, number | null | undefined]>;
+  return [['Colaboradores', record.d4_colaboradores], ['Unidades', record.d4_unidades], ['Turnover', record.d4_turnover]] satisfies Array<[string, number | null | undefined]>;
 }
 function fileToBase64(file: File) {
   return new Promise<string>((resolve, reject) => {
@@ -317,7 +314,7 @@ export function AdminPeopleMapPage() {
     if (attachment && attachment.type !== 'application/pdf' && !attachment.name.toLowerCase().endsWith('.pdf')) { setEmailFeedback('Selecione um arquivo PDF.'); return; }
     if (attachment && attachment.size > 8 * 1024 * 1024) { setEmailFeedback('O PDF precisa ter até 8 MB.'); return; }
     const fileIdentity = attachment && [attachment.name, attachment.size, attachment.lastModified];
-    const requestId = confirmDelivery([recipient], [selected.id, revision, fileIdentity]);
+    const requestId = await confirmDelivery([recipient], [selected.id, revision, fileIdentity]);
     if (!requestId) return;
     setSendingEmail(true); setEmailFeedback('Enviando…');
     try {
@@ -337,7 +334,7 @@ export function AdminPeopleMapPage() {
   const qv2 = selected?.diagnostico_v2?.qualificacao || {};
 
   const statusTone=(value:string)=>/envi/.test(value)?'green':/andamento|revis/.test(value)?'purple':/novo/.test(value)?'yellow':'blue';
-  const deviceLabel=(value?:string|null)=>(({mobile:'Celular',tablet:'Tablet',desktop:'Computador',unknown:'Não identificado'} as Record<string,string>)[value||'unknown']||value||'Não identificado');
+  const deviceLabel=(value?:string|null)=>(({mobile:'Celular',tablet:'Tablet',desktop:'Computador',unknown:'Não identificado'} satisfies Record<string,string>)[value||'unknown']||value||'Não identificado');
 
   return <Shell role="admin">
     <div className="ap-app v2-admin-page v2-admin-peoplemap v2-client-module"><div className="ap-content"><div className="wf">

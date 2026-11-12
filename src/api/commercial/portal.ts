@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { isJsonObject, type JsonObject, type JsonValue } from '../../domain/json';
 import { supabase } from '../supabase';
 
 import { supabaseEnvironment } from '../client-environment';
@@ -23,23 +24,65 @@ export type PortalSubmission = {
   contact_name:string; contact_role?:string|null; contact_email:string; contact_phone?:string|null;
   contact_preference?:string|null; company_name?:string|null; company_segment?:string|null;
   company_size?:number|null; company_units?:number|null; company_location?:string|null;
-  answers:Record<string,any>; source_path?:string|null; lgpd_accepted:boolean;
+  answers:JsonObject; source_path?:string|null; lgpd_accepted:boolean;
   internal_notes?:string|null; archived_at?:string|null; created_at:string; updated_at:string;
 };
 export type PortalSubmissionPatch=Partial<Pick<PortalSubmission,'status'|'internal_notes'|'archived_at'|'contact_name'|'contact_role'|'contact_email'|'contact_phone'|'contact_preference'|'company_name'|'company_segment'|'company_size'|'company_units'|'company_location'>>;
 export type PortalProposalStatus='rascunho'|'aprovada'|'enviada'|'aceita'|'recusada'|'expirada';
+export type PortalProposalCycle = { title: string; focus: string; objective: string; duration: string };
+type PortalProposalPayment = {
+  method: string; monthlyDue: string; activationPct: number; entryPct: number; finalPct: number;
+  pixDiscount: number; cardInstallments: number; cardFees: string; customLabel: string;
+};
+export type PortalProposalCalculator = JsonObject & {
+  monthly?: boolean;
+  monthlyHours?: number;
+  manualFinal?: boolean;
+  budgetStrategy?: 'adequar' | 'fasear' | 'manter';
+  discountType?: string;
+  discountDescription?: string;
+  contextSummary?: string;
+  painPoints?: string[];
+  executiveReading?: string;
+  solutionTagline?: string;
+  whyNow?: string;
+  cycleObjective?: string;
+  expectedResults?: string[];
+  advantages?: string[];
+  mapaPeople?: { include: boolean; score: number; quadrant: string; sourceId?: string | null; protocol?: string | null; completedAt?: string | null } | null;
+  proposalAnswers?: JsonObject;
+  trainingEditorialVersion?: number;
+  trainingTravelEstimate?: number;
+  cycles?: Array<PortalProposalCycle | string>;
+  cadence?: string[];
+  caliResponsibilities?: string[];
+  clientResponsibilities?: string[];
+  roadmapItems?: string[];
+  outOfScope?: string[];
+  bonus?: { code: string; title: string; description: string } | null;
+  payment?: Partial<PortalProposalPayment>;
+  nextSteps?: string[][];
+  commercialConditions?: string[];
+};
 export type PortalProposal = {
   id:string; submission_id:string; service_slug:string; version:number; package_code:string;
   base_price:number; extras:number; discount_pct:number; contract_months:number; validity_days:number;
-  subtotal:number; final_unit:number; total_value:number; calculator_data:Record<string,any>;
-  scope_items:unknown[]; payment_terms?:string|null; public_notes?:string|null;
+  subtotal:number; final_unit:number; total_value:number; calculator_data:PortalProposalCalculator;
+  scope_items:JsonValue[]; payment_terms?:string|null; public_notes?:string|null;
   status:PortalProposalStatus; pdf_path?:string|null; resend_email_id?:string|null; sent_at?:string|null;
   created_at:string; updated_at:string;
 };
 export type PortalProposalWrite = Omit<PortalProposal,'id'|'created_at'|'updated_at'|'pdf_path'|'resend_email_id'|'sent_at'> & Partial<Pick<PortalProposal,'pdf_path'|'resend_email_id'|'sent_at'>>;
-export type PortalActivity = {id:number; submission_id?:string|null; proposal_id?:string|null; event_type:string; metadata:Record<string,unknown>; created_at:string};
-export type PortalPricingRule = {id:string; service_slug:string; package_code:string; package_label:string; base_price:number; config:Record<string,any>; active:boolean; sort_order:number};
-export type PortalMapaResponse={id:string;protocolo?:string|null;c_email?:string|null;created_at:string;diagnostico_v2?:Record<string,any>|null};
+export type PortalActivity = {id:number; submission_id?:string|null; proposal_id?:string|null; event_type:string; metadata:JsonObject; created_at:string};
+export type PortalPricingRule = {id:string; service_slug:string; package_code:string; package_label:string; base_price:number; config:JsonObject; active:boolean; sort_order:number};
+type MapaDiagnosis = {
+  version: number;
+  d1?: { processos?: JsonValue[]; estrutura?: JsonValue[]; governanca?: JsonValue[] };
+  d2?: { comportamento?: JsonValue[]; valores?: { cultura_decisao?: JsonValue }; desenvolvimento?: JsonValue[] };
+  d3?: { indicadores?: JsonValue[]; decisao?: JsonValue[]; tecnologia?: JsonValue[] };
+  d4?: { tamanho?: JsonValue[]; vinculos?: { gestao?: JsonValue }; rotatividade?: JsonValue[] };
+};
+export type PortalMapaResponse={id:string;protocolo?:string|null;c_email?:string|null;created_at:string;diagnostico_v2?:MapaDiagnosis|null};
 
 async function sessionToken(){
   if(!supabase) throw new Error('Supabase não configurado.');
@@ -79,7 +122,7 @@ async function portalResponse(path: string, options: PortalRequestOptions = {}) 
   }
 }
 
-function parsePortalJson(text: string, fallback: unknown): unknown {
+function parsePortalJson(text: string, fallback: JsonValue): JsonValue {
   try {
     return JSON.parse(text);
   } catch {
@@ -95,7 +138,7 @@ async function request<T>(path: string, options: PortalRequestOptions = {}) {
   });
   const payload = parsePortalJson(text, text || null);
   if (!ok) {
-    const failure = payload as { message?: unknown; error?: unknown } | null;
+    const failure = isJsonObject(payload) ? payload : null;
     throw new Error(String(failure?.message || failure?.error || text || `Erro ${status}`));
   }
   return payload as T;
@@ -141,7 +184,7 @@ export async function sendPortalProposal(input:{proposal_id:string;request_id:st
     body: JSON.stringify(input),
   });
   const result = parsePortalJson(text, {});
-  const response = result as { ok?: unknown; email_id?: unknown; error?: unknown } | null;
+  const response = isJsonObject(result) ? result : null;
   if (!ok || response?.ok !== true || typeof response.email_id !== 'string' || !response.email_id.trim()) {
     const failure = response;
     throw new Error(String(failure?.error || 'Não foi possível enviar a proposta.'));
@@ -149,7 +192,7 @@ export async function sendPortalProposal(input:{proposal_id:string;request_id:st
   return result as { ok: true; email_id?: string; to?: string; subject?: string };
 }
 
-export async function appendPortalActivity(input:{submission_id:string;proposal_id?:string|null;event_type:string;metadata?:Record<string,unknown>}){
+export async function appendPortalActivity(input:{submission_id:string;proposal_id?:string|null;event_type:string;metadata?:JsonObject}){
   const rows=await request<PortalActivity[]>('cali_activity',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({...input,metadata:input.metadata||{}})});return rows[0]||null;
 }
 

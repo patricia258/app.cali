@@ -9,6 +9,7 @@ export type ProjectDeliverable = {
   description?: string | null;
   status: DeliverableStatus;
   workstream: string;
+  workstreamId?: string | null;
   complexity: MaterialComplexity;
   roadmapMonthStart?: number | null;
   roadmapMonthEnd?: number | null;
@@ -173,3 +174,13 @@ export const previewProjects: WorkspaceProject[] = [
     ],
   },
 ];
+
+export type ScheduleReviewChanges = {
+  actionLabel?: string;
+  targetLabel?: string;
+  targetComplexity?: string;
+  requestedDate?: string;
+  swapTargetLabel?: string;
+  swapTargetComplexity?: string;
+  priority?: string;
+};

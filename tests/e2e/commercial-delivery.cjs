@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const { browserSuite } = require('./browser-suite.cjs');
+const { answerWorkspaceDialog, browserSuite } = require('./browser-suite.cjs');
 const { companyId, tables } = require('./fixtures.cjs');
 
 const recipient = 'decisor@example.invalid';
@@ -27,15 +27,9 @@ function routeJson(context, origin, pathname, method, respond) {
 
 function confirmations(page) {
   const messages = [];
-  let choices = [];
-  page.on('dialog', async (dialog) => {
-    messages.push(dialog.message());
-    if (choices.shift()) await dialog.accept();
-    else await dialog.dismiss();
-  });
   return {
-    next(...answers) {
-      choices = answers;
+    async answer(...choices) {
+      for (const choice of choices) messages.push(await answerWorkspaceDialog(page, choice));
     },
     get messages() {
       return messages;
@@ -72,18 +66,18 @@ async function proposal({ page, context, origin }) {
   const dialogs = confirmations(page);
   await page.goto(origin + '/admin/propostas/proposta/' + entityId);
   const send = page.getByRole('button', { name: 'Reenviar proposta', exact: true });
-  dialogs.next(false);
   await send.click();
+  await dialogs.answer(false);
   assert.equal(dialogs.messages.length, 1);
-  dialogs.next(true, false);
   await send.click();
+  await dialogs.answer(true, false);
   assert.equal(dialogs.messages.length, 3);
   assert.equal(messages.length, 0);
-  dialogs.next(true, true);
   await send.click();
+  await dialogs.answer(true, true);
   await page.getByRole('alert').getByText('Entrega de teste pendente.').waitFor();
-  dialogs.next(true, true);
   await send.click();
+  await dialogs.answer(true, true);
   await page.getByText(`Proposta reenviada para ${recipient}.`, { exact: true }).waitFor();
   assert.deepEqual(messages[0], messages[1], 'Retry preserva destinatário, versão e identificador');
   assert.equal(messages[0].proposal_id, entityId);
@@ -126,11 +120,11 @@ async function mapa({ page, context, origin }) {
   await dialog.getByText('O envio usa o PDF oficial da versão 2.', { exact: true }).waitFor();
   assert.equal(await dialog.locator('input[type="email"], input[type="file"]').count(), 0);
   const send = dialog.getByRole('button', { name: 'Reenviar relatório', exact: true });
-  dialogs.next(true, false);
   await send.click();
+  await dialogs.answer(true, false);
   assert.equal(messages.length, 0);
-  dialogs.next(true, true);
   await send.click();
+  await dialogs.answer(true, true);
   await dialog.getByText(`Enviado para ${recipient} ✓`, { exact: true }).waitFor();
   assert.equal(messages.length, 1);
   assert.deepEqual(messages[0].recipients, [recipient]);
@@ -210,23 +204,23 @@ async function report({ page, context, origin }) {
   await recipients.fill(recipient + '; ' + copyTo);
   await dialog.getByRole('textbox', { name: 'Mensagem opcional' }).fill(note);
   const send = dialog.getByRole('button', { name: 'Enviar relatório', exact: true });
-  confirms.next(false);
   await send.click();
+  await confirms.answer(false);
   assert.equal(confirms.messages.length, 1);
-  confirms.next(true, false);
   await send.click();
+  await confirms.answer(true, false);
   assert.equal(confirms.messages.length, 3);
   assert.equal(sendCalls.length, 0);
-  confirms.next(true, true);
   await send.click();
+  await confirms.answer(true, true);
   await dialog
     .getByRole('alert')
     .filter({ hasText: 'Não foi possível confirmar o envio do relatório.' })
     .waitFor();
   assert.equal(sent, false);
   assert.equal(await recipients.inputValue(), recipient + '; ' + copyTo);
-  confirms.next(true, true);
   await send.click();
+  await confirms.answer(true, true);
   await dialog.waitFor({ state: 'hidden' });
   await page.getByRole('button', { name: 'Reenviar ao cliente', exact: true }).waitFor();
   await page

@@ -3,7 +3,7 @@ import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery
 // Fonte: os avisos gravados no dia (o que o cliente fez e o que a CALI fez/avisou) e as horas registradas no dia.
 // Chamado só pela rotina do banco, com o segredo "notification_email_hook". Não altera nenhum dado.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2.112.3";
+import { createClient, type PostgrestError } from "npm:@supabase/supabase-js@2.112.3";
 import { buildDailySummary, summaryIdempotencyKey, summaryWindow } from "./summary.ts";
 import { summaryHtml } from "./presentation.ts";
 
@@ -15,7 +15,7 @@ const REPLY_TO = "nao-responda@calirh.com";
 const APP_URL = deliveryAppOrigin;
 const headers = { "Content-Type": "application/json", "Cache-Control": "no-store" };
 
-async function readPages<T>(read: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>) {
+async function readPages<T>(read: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: PostgrestError | null }>) {
   const rows: T[] = [];
   const size = 500;
   for (let offset = 0; ; offset += size) {

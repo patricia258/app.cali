@@ -5,11 +5,10 @@ import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, ChevronRight, FileText, MessageCircle, Printer, ShieldCheck, X } from 'lucide-react';
 import { WorkspaceExecutiveReportPaper } from '../../../components/reports/WorkspaceExecutiveReportPaper';
-import type { DeliveryPerformanceRow } from '../../../lib/reportCloseMetrics';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import type { ReportIdentityV55 } from '../../../domain/report-identity';
 import { useQueryClient } from '@tanstack/react-query';
-import { acknowledgeClientReport, clientReportsKey, readClientReports, recordReportRead } from '../../../api/client/reports/library';
+import { acknowledgeClientReport, clientReportsKey, readClientReports, recordReportRead, type ClientReportRow } from '../../../api/client/reports/library';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
 import { type ReportType } from '../../../lib/reportComposition';
@@ -27,9 +26,9 @@ type Report={
 };
 type Company={name:string;logoUrl?:string|null;workspaceLogo?:boolean};
 
-function rowToReport(row:any):Report{
+function rowToReport(row: ClientReportRow):Report{
   return{
-    id:row.id,title:row.title,reportType:(row.report_type||'monthly') as ReportType,
+    id:row.id,title:row.title,reportType:row.report_type||'monthly',
     periodStart:String(row.period_start||row.reference_month).slice(0,10),
     periodEnd:String(row.period_end||row.reference_month).slice(0,10),
     summary:row.executive_summary||'',
@@ -141,7 +140,7 @@ export function ClientReportsPage(){
         ...item,
         acknowledgedAt:data?.acknowledged_at||item.acknowledgedAt,
         ackProtocol:data?.acknowledgement_protocol||item.ackProtocol,
-        ackIdentity:(data?.identity as Report['ackIdentity'])||item.ackIdentity
+        ackIdentity:data?.identity||item.ackIdentity
       }:item));
       setAckOpen(false);
     }catch(requestError){
@@ -166,7 +165,7 @@ export function ClientReportsPage(){
     document.title=previous;
   };
   const openReport=(report:Report)=>{setRevealed((current)=>new Set(current).add(report.id));noteReportOpened(report);};
-  const paper=selected&&selected.snapshot?<WorkspaceExecutiveReportPaper company={{name:company?.name||'Empresa',logoUrl:company?.logoUrl||null}} snapshot={selected.snapshot} editor={{summary:selected.summary,movements:selected.movements.join('\n'),decisions:selected.decisions.join('\n'),risks:selected.risks.join('\n'),nextSteps:selected.nextSteps.join('\n')}} reportType={selected.reportType} periodName={periodLabel(selected.reportType,selected.periodStart)} protocol={selected.protocol} deliveries={Array.isArray((selected.snapshot as any)?.deliveryPerformanceV14)?(selected.snapshot as any).deliveryPerformanceV14 as DeliveryPerformanceRow[]:[]} approvalIdentity={selected.approvalIdentity} acknowledgementIdentity={selected.ackIdentity} approvedAt={selected.approvedAt} acknowledgedAt={selected.acknowledgedAt} acknowledgementProtocol={selected.ackProtocol}/>:null;
+  const paper=selected&&selected.snapshot?<WorkspaceExecutiveReportPaper company={{name:company?.name||'Empresa',logoUrl:company?.logoUrl||null}} snapshot={selected.snapshot} editor={{summary:selected.summary,movements:selected.movements.join('\n'),decisions:selected.decisions.join('\n'),risks:selected.risks.join('\n'),nextSteps:selected.nextSteps.join('\n')}} reportType={selected.reportType} periodName={periodLabel(selected.reportType,selected.periodStart)} protocol={selected.protocol} deliveries={selected.snapshot.deliveryPerformanceV14 ?? []} approvalIdentity={selected.approvalIdentity} acknowledgementIdentity={selected.ackIdentity} approvedAt={selected.approvedAt} acknowledgedAt={selected.acknowledgedAt} acknowledgementProtocol={selected.ackProtocol}/>:null;
 
   return <Shell role="client"><section className="v2-client-module"><div className="wf">
     <div className="wf-head"><div><small>ÁREA DA EMPRESA / LEITURA EXECUTIVA</small><h1>Relatórios</h1><p>Fatos, evolução e encaminhamentos — não apenas gráficos.</p></div></div>

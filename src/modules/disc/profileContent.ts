@@ -2,7 +2,9 @@
    Um texto por perfil, usado no relatório do respondente (2ª pessoa, acolhedor) e no do avaliador (descritivo, orientado a decisão).
    Cada força tem dono (um estilo) e um comportamento que terceiros reconhecem. Temperamento entra só como vocabulário, nunca como nota.
    Cores: cartela DISC (D vermelho, I amarelo, S verde, C azul). `color` pinta barras e marcas; `ink` é a versão legível para texto. */
-export type Style = 'D' | 'I' | 'S' | 'C';
+import { STYLES, type Style } from './profileMethod';
+
+export type { Style } from './profileMethod';
 
 export type StyleContent = {
   name: string;
@@ -310,7 +312,7 @@ export const STYLE_CONTENT: Record<Style, StyleContent> = {
   },
 };
 
-const pairKey = (a: Style, b: Style) => (['D', 'I', 'S', 'C'] as Style[]).filter((style) => style === a || style === b).join('');
+const pairKey = (a: Style, b: Style) => STYLES.filter((style) => style === a || style === b).join('');
 
 export const COMBINATIONS: Record<string, { name: string; text: string }> = {
   DI: { name: 'Mobilizador', text: 'Une decisão e influência: puxa o resultado e leva as pessoas junto. Rende abrindo frentes e liderando mudança; precisa de apoio em detalhe, rotina e acompanhamento.' },

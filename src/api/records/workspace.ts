@@ -1,3 +1,4 @@
+import type { JsonObject } from '../../domain/json';
 import { recordsAvailable, requireRecordsClient } from './client';
 
 const recordColumns = 'id,company_id,project_id,event_id,protocol,record_type,title,occurred_at,visibility,source_actor,participants,summary,transcript,decisions,attention_points,next_actions,impact_level,include_in_report,requires_action,created_by,created_at,workflow_status,last_activity_at,closed_at';
@@ -94,7 +95,7 @@ export async function readRecordIdentity(protocol: string) {
   return await requireRecordsClient().from('account_records').select('id,company_id').eq('protocol', protocol).maybeSingle();
 }
 
-export function subscribeWorkspaceRecords(companyId: string, role: string, onInsert: () => void, onUpdate: (row: Record<string, unknown>) => void) {
+export function subscribeWorkspaceRecords(companyId: string, role: string, onInsert: () => void, onUpdate: (row: JsonObject) => void) {
   if (!recordsAvailable) return () => {};
   const client = requireRecordsClient();
   const filter = companyId === 'all' ? {} : { filter: `company_id=eq.${companyId}` };
@@ -109,11 +110,11 @@ export async function readRecordAuthor() {
   return await requireRecordsClient().auth.getUser();
 }
 
-export async function insertRecord(payload: Record<string, unknown>) {
+export async function insertRecord(payload: JsonObject) {
   return await requireRecordsClient().from('account_records').insert(payload).select('id').single();
 }
 
-export async function updateRecord(recordId: string, payload: Record<string, unknown>) {
+export async function updateRecord(recordId: string, payload: JsonObject) {
   return await requireRecordsClient().from('account_records').update(payload).eq('id', recordId).select('id').single();
 }
 

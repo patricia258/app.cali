@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const { browserSuite } = require('./browser-suite.cjs');
+const { answerWorkspaceDialog, browserSuite } = require('./browser-suite.cjs');
 const { companyId, tables, user } = require('./fixtures.cjs');
 
 const host = 'https://cali-local-qa.supabase.co';
@@ -333,12 +333,10 @@ browserSuite([
 
       await edit.press('Enter');
       await input.fill('  ' + editedText + '  ');
-      const alert = page.waitForEvent('dialog');
-      const failedSave = save.press('Enter');
-      const editFailure = await alert;
-      assert.match(editFailure.message(), /Não foi possível editar/);
-      await editFailure.accept();
-      await failedSave;
+      await save.press('Enter');
+      const editFailure = page.getByRole('dialog', { name: /Não foi possível editar/ });
+      await editFailure.getByRole('button', { name: 'OK', exact: true }).click();
+      await editFailure.waitFor({ state: 'hidden' });
       assert.equal(await input.inputValue(), '  ' + editedText + '  ');
       await save.press('Enter');
       await conversation.getByText('editada', { exact: true }).waitFor();
@@ -350,18 +348,12 @@ browserSuite([
         Array(2).fill({ p_message_id: editable.id, p_body: editedText + '\n' + attachment }),
       );
 
-      let confirmation = page.waitForEvent('dialog');
-      let deleting = remove.press('Enter');
-      const cancel = await confirmation;
-      assert.match(cancel.message(), /Excluir esta mensagem/);
-      await cancel.dismiss();
-      await deleting;
+      await remove.press('Enter');
+      assert.match(await answerWorkspaceDialog(page, false), /Excluir esta mensagem/);
       assert.equal(deletes.length, 0);
       await assertFocused(remove);
-      confirmation = page.waitForEvent('dialog');
-      deleting = remove.press('Enter');
-      await (await confirmation).accept();
-      await deleting;
+      await remove.press('Enter');
+      assert.match(await answerWorkspaceDialog(page, true), /Excluir esta mensagem/);
       await conversation.getByText(editedText, { exact: true }).waitFor({ state: 'hidden' });
       await assertFocused(conversation.getByRole('textbox', { name: 'Responder ao cliente' }));
       assert.deepEqual(deletes, [{ p_message_id: editable.id }]);

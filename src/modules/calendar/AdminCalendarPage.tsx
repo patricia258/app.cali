@@ -5,7 +5,7 @@ import { EmptyState } from '../../components/ds/EmptyState';
 import { FieldLabel } from '../../components/ds/FieldLabel';
 import { InlineNotice } from '../../components/ds/InlineNotice';
 import { ExtraVisitExpenses } from '../../components/calendar/ExtraVisitExpenses';
-import { FormEvent, type ReactNode, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
+import { FormEvent, type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import {
   CalendarDays,
   Check,
@@ -41,10 +41,12 @@ import {
   previewCalendarEvents,
   startOfCalendarWeek,
   weekCells,
+  type CalendarAttendee,
   type CalendarEventType,
   type CalendarView,
   type WorkspaceCalendarEvent,
 } from '../../domain/calendar';
+import type { JsonObject } from '../../domain/json';
 import { isSupabaseConfigured } from '../../api/access/session';
 import { cancelCalendarEvent, readAdminCalendar, readMeetingOutcomes, saveCalendarEvent, submitStaffCalendarChange } from '../../api/calendar/admin';
 import { observeSchedulingRequests, readCalendarNotices } from '../../api/calendar/agenda';
@@ -56,6 +58,60 @@ import './google-meeting-options.css';
 type CompanyOption = { id: string; name: string; logoUrl?: string | null };
 type MeetingOutcome = { event_id: string; outcome: string; transcription_url?: string | null; transcription_attachment_name?: string | null };
 
+type CalendarCompanyRow = {
+  id: string;
+  display_name: string;
+  logo_url?: string | null;
+  logo_workspace_url?: string | null;
+};
+type CalendarAttendeeRow = Omit<CalendarAttendee, 'responseNote'> & {
+  event_id: string;
+  response_note?: string | null;
+};
+type CalendarEventRow = {
+  id: string;
+  protocol: string | null;
+  title: string;
+  company_id: string | null;
+  project_id: string | null;
+  event_type: CalendarEventType | null;
+  color_hex: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  all_day: boolean;
+  mode: WorkspaceCalendarEvent['mode'];
+  location: string | null;
+  meeting_url: string | null;
+  description: string | null;
+  visibility: WorkspaceCalendarEvent['visibility'];
+  source_type: WorkspaceCalendarEvent['sourceType'] | null;
+  source_entity_id: string | null;
+  google_event_id: string | null;
+  sync_status: WorkspaceCalendarEvent['syncStatus'] | null;
+  cancelled_at: string | null;
+  reminder_minutes: number | null;
+  auto_transcription: boolean | null;
+  staff_visible: boolean | null;
+};
+type CalendarDeadlineRow = {
+  id: string;
+  company_id: string;
+  project_id: string | null;
+  title: string;
+  due_at: string;
+  status: string;
+  protocol: string | null;
+};
+type CalendarRequestRow = {
+  id: string;
+  company_id: string;
+  title: string | null;
+  status: string;
+  request_mode: WorkspaceCalendarEvent['mode'];
+  requested_slots: { startsAt?: string; endsAt?: string | null }[] | null;
+  purpose: string | null;
+  location: string | null;
+};
 type CreateEventForm = {
   title: string;
   companyId: string;
@@ -82,6 +138,7 @@ const fallbackCompanies: CompanyOption[] = [
   { id: 'studio-norte', name: 'Studio Norte' },
 ];
 
+const calendarViews: CalendarView[] = ['week', 'month', 'agenda'];
 const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const hours = Array.from({ length: 13 }, (_, index) => index + 7);
@@ -120,7 +177,8 @@ function eventStyle(event: WorkspaceCalendarEvent) {
     return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4;
   }).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
   const foreground = luminance > .18 ? '#30232a' : '#ffffff';
-  return { '--event-color': hex, '--event-soft': `${hex}18`, '--event-foreground': foreground } as React.CSSProperties;
+  const style: CSSProperties & Record<`--${string}`, string> = { '--event-color': hex, '--event-soft': `${hex}18`, '--event-foreground': foreground };
+  return style;
 }
 
 function isSameDate(a: Date, b: Date) {
@@ -198,7 +256,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
   const [staffNotice, setStaffNotice] = useState('');
   const staffHiddenRef = useRef<Set<string>>(new Set());
   useEffect(() => { if (!staffNotice) return; const timer = window.setTimeout(() => setStaffNotice(''), 4200); return () => window.clearTimeout(timer); }, [staffNotice]);
-  async function staffSubmitChange(action: string, title: string, payload: Record<string, unknown>, companyId: string) {
+  async function staffSubmitChange(action: string, title: string, payload: JsonObject, companyId: string) {
     const sent = await submitStaffCalendarChange(companyId, action, title, payload);
     setStaffNotice(sent ? 'Pedido enviado. Vale depois da aprovação.' : 'Não foi possível enviar o pedido. Tente de novo.');
     return sent;
@@ -213,7 +271,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
     const result = await readCalendarNotices(true);
     if (!active || result.error) return;
     const tone: Record<string, string> = { feriado: '#C79A4B', atendimento: '#5E93BF', comunicado: '#8A6FB0' };
-    setNoticeEvents((result.data || []).map((row: any): WorkspaceCalendarEvent => ({ id: `notice:${row.id}`, title: `Aviso · ${row.title}`, company: 'Quadro de Avisos', type: 'other', color: tone[row.category] || '#8A6FB0', textColor: '#ffffff', startsAt: `${row.notice_date}T12:00:00-03:00`, endsAt: `${row.notice_date}T12:00:00-03:00`, allDay: true, description: [row.time_label, row.coverage, row.body].filter(Boolean).join(' · '), visibility: 'client', attendees: [], sourceType: 'manual', sourceProtocol: row.protocol, synthetic: true } as WorkspaceCalendarEvent)));
+    setNoticeEvents((result.data || []).map((row): WorkspaceCalendarEvent => ({ id: `notice:${row.id}`, title: `Aviso · ${row.title}`, company: 'Quadro de Avisos', type: 'other', color: tone[row.category] || '#8A6FB0', textColor: '#ffffff', startsAt: `${row.notice_date}T12:00:00-03:00`, endsAt: `${row.notice_date}T12:00:00-03:00`, allDay: true, description: [row.time_label, row.coverage, row.body].filter(Boolean).join(' · '), visibility: 'client', attendees: [], sourceType: 'manual', sourceProtocol: row.protocol, synthetic: true })));
   })(); return () => { active = false; }; }, []);
   const [googleReadStatus, setGoogleReadStatus] = useState<'loading'|'ready'|'reconnect'|'unavailable'>('loading');
   const [companies, setCompanies] = useState<CompanyOption[]>(fallbackCompanies);
@@ -238,7 +296,6 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
   const [historyMode, setHistoryMode] = useState('all');
   const [historyOutcome, setHistoryOutcome] = useState('all');
   const [historyOpen, setHistoryOpen] = useState(false);
-  const upcomingRef = useRef<HTMLDivElement>(null);
   const selectionStart = useRef<{date:Date;minutes:number;pointerId:number;startY:number}|null>(null);
   const lastHorizontalMove = useRef(0);
   const [selectionPreview, setSelectionPreview] = useState<{date:string;top:number;height:number}|null>(null);
@@ -263,12 +320,12 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
         return;
       }
       const seen = new Set<string>();
-      const external:WorkspaceCalendarEvent[] = results.flatMap(result=>(result.data.events||[]).flatMap((row:any)=>{
+      const external = results.flatMap(result=>(result.data?.state === 'checked' ? result.data.events : []).flatMap((row): WorkspaceCalendarEvent[]=>{
         const id=`google:${row.calendarId}:${row.id}`;
         if(seen.has(id)) return [];
         seen.add(id);
         const allDay=Boolean(row.allDay);
-        return [{id,title:row.title,startsAt:allDay?`${row.start}T12:00:00-03:00`:row.start,endsAt:allDay?`${row.end}T12:00:00-03:00`:row.end,allDay,type:'other',color:/^#[0-9a-f]{6}$/i.test(row.color)?row.color:'#8D7354',textColor:row.textColor,location:row.location,description:row.description,organizer:row.organizer,reminderMinutes:row.reminderMinutes,meetingUrl:row.meetingUrl,attendees:(row.attendees||[]).map((guest:any)=>({name:String(guest.name||guest.email||'Convidado'),email:String(guest.email||''),status:guest.status==='accepted'?'accepted':guest.status==='declined'?'declined':guest.status==='tentative'?'tentative':'pending'})),googleEventId:row.id,googleHtmlLink:row.htmlLink,visibility:'internal',sourceType:'google',synthetic:true} as WorkspaceCalendarEvent];
+        return [{id,title:row.title,startsAt:allDay?`${row.start}T12:00:00-03:00`:row.start,endsAt:allDay && row.end ? `${row.end}T12:00:00-03:00` : row.end,allDay,type:'other',color:/^#[0-9a-f]{6}$/i.test(row.color)?row.color:'#8D7354',textColor:row.textColor ?? undefined,location:row.location,description:row.description,organizer:row.organizer,reminderMinutes:row.reminderMinutes ?? undefined,meetingUrl:row.meetingUrl,attendees:(row.attendees||[]).map((guest)=>({name:String(guest.name||guest.email||'Convidado'),email:String(guest.email||''),status:guest.status==='accepted'?'accepted':guest.status==='declined'?'declined':guest.status==='tentative'?'tentative':'pending'})),googleEventId:row.id,googleHtmlLink:row.htmlLink,visibility:'internal',sourceType:'google',synthetic:true}];
       }));
       setGoogleEvents(external);setGoogleReadStatus('ready');
     };
@@ -292,32 +349,33 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
     try {
       const { companyRows, eventRows, attendeeRows, deadlineRows, connectionRows, requestRows, projectRows } = await readAdminCalendar(Boolean(staff));
 
-      const options: CompanyOption[] = await Promise.all((companyRows || []).map(async (row: any) => ({
+      const options: CompanyOption[] = await Promise.all((companyRows || []).map(async (row: CalendarCompanyRow) => ({
         id: row.id,
         name: row.display_name,
         logoUrl: await resolveWorkspaceMedia(row.logo_url || row.logo_workspace_url) || await resolveWorkspaceMedia(row.logo_workspace_url),
       })));
       if (options.length) setCompanies(options);
       const companyMap = new Map(options.map((company) => [company.id, company]));
-      const projectMap = new Map((projectRows || []).map((project: any) => [project.id, project.name]));
-      const attendeeMap = new Map<string, any[]>();
-      (attendeeRows || []).forEach((row: any) => {
+      const projectMap = new Map((projectRows || []).map((project: { id: string; name: string }) => [project.id, project.name] as const));
+      const attendeeMap = new Map<string, CalendarAttendeeRow[]>();
+      (attendeeRows || []).forEach((row: CalendarAttendeeRow) => {
         const list = attendeeMap.get(row.event_id) || [];
         list.push(row);
         attendeeMap.set(row.event_id, list);
       });
 
-      staffHiddenRef.current = new Set((eventRows || []).filter((row: any) => row.staff_visible === false).map((row: any) => row.id));
-      const manual: WorkspaceCalendarEvent[] = (eventRows || []).map((row: any) => ({
+      const calendarRows: CalendarEventRow[] = eventRows || [];
+      staffHiddenRef.current = new Set(calendarRows.filter((row) => row.staff_visible === false).map((row) => row.id));
+      const manual = calendarRows.map((row): WorkspaceCalendarEvent => ({
         id: row.id,
         protocol: row.protocol,
         title: row.title,
         companyId: row.company_id,
-        company: companyMap.get(row.company_id)?.name || null,
-        companyLogo: companyMap.get(row.company_id)?.logoUrl,
+        company: companyMap.get(row.company_id ?? '')?.name || null,
+        companyLogo: companyMap.get(row.company_id ?? '')?.logoUrl,
         projectId: row.project_id,
-        type: (row.event_type || 'other') as CalendarEventType,
-        color: row.color_hex || calendarTypeMeta[(row.event_type || 'other') as CalendarEventType]?.color || calendarTypeMeta.other.color,
+        type: (row.event_type || 'other'),
+        color: row.color_hex || calendarTypeMeta[(row.event_type || 'other')]?.color || calendarTypeMeta.other.color,
         startsAt: row.starts_at,
         endsAt: row.ends_at,
         allDay: Boolean(row.all_day),
@@ -326,7 +384,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
         meetingUrl: row.meeting_url,
         description: row.description,
         visibility: row.visibility,
-        attendees: (attendeeMap.get(row.id) || []).map((attendee: any) => ({
+        attendees: (attendeeMap.get(row.id) || []).map((attendee) => ({
           id: attendee.id,
           name: attendee.name,
           email: attendee.email,
@@ -350,15 +408,15 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
       } else setMeetingOutcomes({});
 
       const deadlines: WorkspaceCalendarEvent[] = (deadlineRows || [])
-        .filter((row: any) => !['approved', 'cancelled'].includes(String(row.status)))
-        .map((row: any) => ({
+        .filter((row: CalendarDeadlineRow) => !['approved', 'cancelled'].includes(String(row.status)))
+        .map((row: CalendarDeadlineRow) => ({
           id: `deadline-${row.id}`,
           title: `${row.title} · prazo`,
           companyId: row.company_id,
-          company: companyMap.get(row.company_id)?.name || null,
-          companyLogo: companyMap.get(row.company_id)?.logoUrl,
+          company: companyMap.get(row.company_id ?? '')?.name || null,
+          companyLogo: companyMap.get(row.company_id ?? '')?.logoUrl,
           projectId: row.project_id,
-          project: projectMap.get(row.project_id),
+          project: projectMap.get(row.project_id ?? ''),
           type: 'deadline',
           color: calendarTypeMeta.deadline.color,
           startsAt: row.due_at,
@@ -372,11 +430,11 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
           synthetic: true,
         }));
 
-      const previews: WorkspaceCalendarEvent[] = (requestRows || []).flatMap((row: any) => {
+      const previews: WorkspaceCalendarEvent[] = (requestRows || []).flatMap((row: CalendarRequestRow) => {
         const slots = row.requested_slots;
-        return (Array.isArray(slots) ? slots : []).filter((slot: any) => slot?.startsAt).slice(0, 2).map((slot: any, index: number) => ({
+        return (Array.isArray(slots) ? slots : []).filter((slot): slot is { startsAt: string; endsAt?: string | null } => typeof slot?.startsAt === 'string' && slot.startsAt.length > 0).slice(0, 2).map((slot, index) => ({
           id: `request-preview-${row.id}-${index}`, title: row.title || (row.request_mode === 'in_person' ? 'Visita presencial' : 'Reunião online'),
-          companyId: row.company_id, company: companyMap.get(row.company_id)?.name || null, companyLogo: companyMap.get(row.company_id)?.logoUrl,
+          companyId: row.company_id, company: companyMap.get(row.company_id ?? '')?.name || null, companyLogo: companyMap.get(row.company_id ?? '')?.logoUrl,
           type: 'meeting' as const, color: '#A66A37', startsAt: slot.startsAt, endsAt: slot.endsAt || null, allDay: false,
           mode: row.request_mode, location: row.location, description: row.purpose,
           visibility: 'internal' as const, attendees: [], sourceType: 'request_preview' as const,
@@ -411,11 +469,6 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
     return map;
   }, [visibleEvents]);
 
-  const upcoming = useMemo(() => visibleEvents
-    .filter((event) => event.sourceType !== 'request_preview' && new Date(event.startsAt).getTime() >= new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime())
-    .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())
-    .slice(0, 5), [visibleEvents, today]);
-
   const meetingHistory = useMemo(() => events.filter(event => event.sourceType !== 'request_preview' && event.type === 'meeting' && (event.cancelledAt || new Date(event.startsAt).getTime() < Date.now()))
     .filter(event => companyFilter === 'all' || event.companyId === companyFilter)
     .filter(event => !historyMonth || formDate(event.startsAt).slice(0,7) === historyMonth)
@@ -425,7 +478,6 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
 
   const monthDates = useMemo(() => monthCells(cursor), [cursor]);
   const weekDates = useMemo(() => weekCells(cursor), [cursor]);
-  const miniDates = useMemo(() => monthCells(cursor), [cursor]);
 
   function navigatePeriod(delta: number) {
     const next = new Date(cursor);
@@ -650,7 +702,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
 
         <section className="calendar-main-toolbar">
           <div className="calendar-view-switch">
-              {(['week', 'month', 'agenda'] as CalendarView[]).map((item) => (
+              {calendarViews.map((item) => (
                 <button key={item} className={view === item ? 'active' : ''} onClick={() => setView(item)}>
                   {item === 'month' ? 'Mês' : item === 'week' ? 'Semana' : 'Lista'}
                 </button>
@@ -845,7 +897,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
             </div>
             {selectedEvent.description && <section className="calendar-detail-description"><strong>Contexto</strong><p>{selectedEvent.description}</p></section>}
             {selectedEvent.synthetic && <div className="calendar-auto-source"><CalendarDays size={18} /><div><strong>Prazo do entregável</strong><p>{selectedEvent.company ? `${selectedEvent.company} · ` : ''}{selectedEvent.project ? `${selectedEvent.project} · ` : ''}{selectedEvent.title.replace(/ · prazo$/,'')}. A data vem do entregável de origem.</p></div></div>}
-            {!!selectedEvent.attendees.length && <section className="calendar-attendee-list"><strong>Convidados</strong>{selectedEvent.attendees.map((attendee, index) => <div key={`${attendee.email}-${index}`}><span className={`attendee-status ${attendee.status}`} /><span>{attendee.name}</span><small>{attendee.email}</small><b>{attendee.status === 'accepted' ? 'Aceito' : attendee.status === 'declined' ? 'Recusado' : attendee.status === 'tentative' ? 'Talvez' : 'Pendente'}</b></div>)}</section>}
+            {!!selectedEvent.attendees.length && <section className="calendar-attendee-list"><strong>Convidados</strong>{selectedEvent.attendees.map((attendee) => <div key={attendee.id ?? `${attendee.email}:${attendee.name}`}><span className={`attendee-status ${attendee.status}`} /><span>{attendee.name}</span><small>{attendee.email}</small><b>{attendee.status === 'accepted' ? 'Aceito' : attendee.status === 'declined' ? 'Recusado' : attendee.status === 'tentative' ? 'Talvez' : 'Pendente'}</b></div>)}</section>}
             {showCancel && !selectedEvent.synthetic && <section className="calendar-cancel-box"><strong>Cancelar compromisso</strong><p>O motivo fica registrado. Quando a régua de notificações estiver ativada, ele também poderá compor a comunicação aos participantes.</p><textarea value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} rows={2} placeholder="Motivo do cancelamento" />{eventError && <InlineNotice tone="danger">{eventError}</InlineNotice>}<div><Button variant="secondary" disabled={saving} onClick={() => { setShowCancel(false); setEventError(''); }}>Voltar</Button><Button variant="primary" className="danger-action" disabled={saving || !cancelReason.trim()} onClick={() => void cancelEvent()}>Confirmar cancelamento</Button></div></section>}
             </>}
           </div>

@@ -14,7 +14,7 @@ function month(value?:string|null){
   return Number.isNaN(date.getTime())?'—':new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'}).format(date);
 }
 function typeLabel(value?:string|null){return value==='quarterly'?'Trimestral':'Mensal';}
-function esc(value:unknown){return String(value??'').replace(/[&<>'\"]/g,(char)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','\"':'&quot;'}[char]||char));}
+function esc(value: string | number | boolean | null | undefined){return String(value??'').replace(/[&<>'"]/g,(char)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[char]||char));}
 function protocol(){
   const values=Array.from(document.querySelectorAll<HTMLElement>('.reports-v16-identification dd'));
   return values.map((item)=>item.textContent?.trim()||'').find((value)=>/^CALI-RPT-/i.test(value))||'';

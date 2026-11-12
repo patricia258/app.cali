@@ -2,7 +2,7 @@
    Especificação "Relatorio-Gestao_Especificacao_v1": fala do conjunto, nunca de pessoas; cada manchete traz um número e uma
    consequência amarrada ao resultado que a empresa persegue; termina em três decisões com dono e pergunta de checagem.
    Regras de microdado: abaixo de 5 respostas não há leitura; de 5 a 14, o time é descrito em texto, sem número por estilo. */
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { STYLES, type Style } from '../profileMethod';
 import { NATURE, STYLE_CONTENT } from '../profileContent';
 import { Alert, Page, SignatureBlock, type ProfileSigner } from './ProfileReports';
@@ -62,11 +62,18 @@ export function GestaoReport({ data }: { data: GestaoData }) {
   const rate = inv.sent - inv.declined > 0 ? Math.round((inv.completed / (inv.sent - inv.declined)) * 100) : null;
   const readAt = data.dates.max ? day(data.dates.max) : '—';
   const validUntil = data.dates.min ? (() => { const date = new Date(data.dates.min); date.setMonth(date.getMonth() + 6); return date; })() : null;
-  const current = validUntil ? validUntil.getTime() > Date.now() : false;
+  const [readTime] = useState(Date.now);
+  const current = validUntil ? validUntil.getTime() > readTime : false;
   const total = !valid ? 2 : n >= MIN_CHART ? 6 : 5;
   const protocol = data.approved_at ? data.protocol : null;
   const draft = !data.approved_at;
   const title = `Relatório de gestão · ${data.company || data.title}`;
+  const lineOccurrences = new Map<string, number>();
+  const noteParagraphs = data.note?.trim().split(/\n+/).map((text) => {
+    const occurrence = (lineOccurrences.get(text) ?? 0) + 1;
+    lineOccurrences.set(text, occurrence);
+    return { text, key: `${text}:${occurrence}` };
+  }) ?? [];
 
   const dist = data.dist;
   /** Abaixo de 15 pessoas, nada de número: o tamanho vira palavra, para não permitir dedução. */
@@ -157,7 +164,7 @@ export function GestaoReport({ data }: { data: GestaoData }) {
             <div className="cgr-dist-track"><i style={{ width: `${(dist.primary[style] / n) * 100}%`, background: STYLE_CONTENT[style].color }} /><i className="soft" style={{ width: `${(dist.secondary[style] / n) * 100}%`, background: STYLE_CONTENT[style].color }} /></div>
             <em>cerca de {inTen(dist.primary[style], n)} em 10</em>
           </div>)}</div>
-          <p className="cpr-note">Cor cheia: estilo predominante. Cor clara: estilo secundário. Leitura em faixas de "em cada 10", nunca em percentual exato.</p>
+          <p className="cpr-note">Cor cheia: estilo predominante. Cor clara: estilo secundário. Leitura em faixas de &quot;em cada 10&quot;, nunca em percentual exato.</p>
           <small className="cpr-eyebrow">INTENSIDADE DE CADA ESTILO NO GRUPO</small>
           <div className="cgr-bands">{STYLES.map((style) => { const band = dist.bands[style]; return <div key={style} className="cgr-band-row">
             <span style={{ color: STYLE_CONTENT[style].ink }}>{STYLE_CONTENT[style].name}</span>
@@ -179,7 +186,7 @@ export function GestaoReport({ data }: { data: GestaoData }) {
       <Page number={total - 1} total={total} title={title} protocol={protocol || (draft ? 'Rascunho: aguardando aprovação' : null)}>
         <small className="cpr-eyebrow">O QUE FAZER COM ISSO AGORA</small>
         <h2>Três decisões</h2>
-        <ol className="cgr-decisions">{decisions.map((item, index) => <li key={index}><span>{index + 1}</span><div><b>{item.decision}</b><p><em>Dono sugerido:</em> {item.owner}</p><p><em>Pergunta de checagem:</em> {item.check}</p></div></li>)}</ol>
+        <ol className="cgr-decisions">{decisions.map((item, index) => <li key={item.owner}><span>{index + 1}</span><div><b>{item.decision}</b><p><em>Dono sugerido:</em> {item.owner}</p><p><em>Pergunta de checagem:</em> {item.check}</p></div></li>)}</ol>
         <small className="cpr-eyebrow">NOTA DE MÉTODO</small>
         <p className="cpr-note">Autoavaliação de preferências comportamentais de trabalho (base DISC, método {data.dates.method || 'CALI'}), respondida por {n} {n === 1 ? 'pessoa' : 'pessoas'}{rate !== null ? ` (${rate}% dos convites)` : ''}. Leitura por faixa e por grupo: nenhum dado individual aparece aqui{n < MIN_CHART ? '; em grupos com menos de 15 pessoas a distribuição aparece em texto, sem número por estilo, para ninguém ser identificado' : ''}. Não serve para decidir contratação, promoção ou desligamento. {validUntil ? `Vale como leitura atual até ${day(validUntil.toISOString())}.` : ''}</p>
 
@@ -187,7 +194,7 @@ export function GestaoReport({ data }: { data: GestaoData }) {
       <Page number={total} total={total} title={title} protocol={protocol || (draft ? 'Rascunho: aguardando aprovação' : null)}>
         <small className="cpr-eyebrow">PARECER DA CALI</small>
         <h2>O que eu destaco para esta liderança</h2>
-        <div className="cgr-note">{data.note?.trim() ? data.note.trim().split(/\n+/).map((line, index) => <p key={index}>{line}</p>) : <p className="cgr-note-empty">O parecer da CALI entra aqui antes da aprovação.</p>}</div>
+        <div className="cgr-note">{data.note?.trim() ? noteParagraphs.map(({ key, text }) => <p key={key}>{text}</p>) : <p className="cgr-note-empty">O parecer da CALI entra aqui antes da aprovação.</p>}</div>
         <SignatureBlock signer={data.signer} protocol={protocol} date={data.approved_at} pending={draft} />
       </Page>
     </>}

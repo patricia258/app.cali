@@ -25,6 +25,8 @@ export type DeliveryPerformanceRow = {
   start_timing?: 'started_early' | 'started_on_time' | 'started_late' | 'unknown' | null;
   business_days_from_original_deadline?: number | null;
   total_minutes?: number | null;
+  complexity?: string | null;
+  manual_source?: boolean;
 };
 
 export type DismissedReportAlert = {
@@ -63,7 +65,7 @@ function within(value: string | null | undefined, start: string, end: string) {
   return Boolean(normalized && normalized >= start && normalized <= end);
 }
 
-function clean(value: unknown) {
+function clean(value: string | number | null | undefined) {
   return String(value || '').replace(/\s+/g, ' ').trim();
 }
 

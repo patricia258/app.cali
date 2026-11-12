@@ -1,10 +1,11 @@
+import type { JsonObject } from '../../domain/json';
 import { requireProjectClient } from './client';
 
 export async function readDeliverableTasks(deliverableId: string) {
   return await requireProjectClient().from('deliverable_tasks').select('*').eq('deliverable_id', deliverableId).order('sort_order');
 }
 
-export async function addDeliverableTask(row: Record<string, unknown>) {
+export async function addDeliverableTask(row: JsonObject) {
   return await requireProjectClient().from('deliverable_tasks').insert(row);
 }
 

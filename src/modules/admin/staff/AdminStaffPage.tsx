@@ -1,3 +1,5 @@
+import { isJsonObject } from '../../../domain/json';
+import { errorMessage } from '../../../lib/errorMessage';
 import { DialogForm } from '../../../components/ds/DialogForm';
 import { Button } from '../../../components/ds/Button';
 import { DialogFrame } from '../../../components/ds/DialogFrame';
@@ -28,10 +30,13 @@ export const STAFF_MODULES: [string, string, string][] = [
   ['team', 'Equipe do cliente', 'Ver o quadro de pessoas, sem dados salariais'],
   ['people_map', 'Mapa de People', 'Preparar pareceres atribuídos para revisão'],
 ];
-type Pending = { id: string; kind: 'hours' | 'review'; reviewKind?: string; entityId?: string | null; payload?: any; staff_user_id: string; company_id: string; title: string; detail: string; meta: string; created_at: string };
+type Pending = { id: string; kind: 'hours' | 'review'; reviewKind?: string; entityId?: string | null; payload?: Parameters<typeof decideStaffSubmission>[0]['payload']; staff_user_id: string; company_id: string; title: string; detail: string; meta: string; created_at: string };
 type Decision = { item: Pending; approve: boolean; note: string };
 const REVIEW_KINDS: Record<string, string> = { report: 'Relatório', deliverable: 'Entrega', document: 'Documento', notice: 'Comunicado', other: 'Outro', record_close: 'Encerrar ocorrência', change: 'Alteração em projeto' };
 const CHANGE_EFFECT: Record<string, string> = { project_create: 'o projeto é criado como rascunho, com as frentes informadas', front_create: 'a frente é criada no projeto', deliverable_create: 'o entregável é criado como “Não iniciado”', deliverable_update: 'o entregável é alterado com os novos dados', deliverable_delete: 'o entregável é excluído', deliverable_cancel: 'o entregável é cancelado, com o motivo informado', task_create: 'a etapa é criada no entregável', task_complete: 'a etapa é marcada como concluída' };
+function changeEffect(payload: Pending['payload'], fallback: string) {
+  return isJsonObject(payload) && typeof payload.action === 'string' ? CHANGE_EFFECT[payload.action] || fallback : fallback;
+}
 const blank = (): StaffDraft => ({ id: null, email: '', full_name: '', modules: ['records', 'projects', 'hours'], companies: [], active: true });
 const momentLabel = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)).replace('.', '');
 const dayLabel = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(iso));
@@ -54,7 +59,7 @@ export function AdminStaffPage() {
     setSessions(result.sessions);
     setPending([
       ...result.hours.map((row) => ({ id: row.id, kind: 'hours' as const, staff_user_id: row.staff_user_id, company_id: row.company_id, title: `${Math.floor(row.minutes / 60)}h${String(row.minutes % 60).padStart(2, '0')} · ${row.description}`, detail: `Justificativa: ${row.justification}`, meta: `Horas de ${dayLabel(row.work_date + 'T12:00:00')}`, created_at: row.created_at })),
-      ...result.reviews.map((row) => ({ id: row.id, kind: 'review' as const, staff_user_id: row.staff_user_id, company_id: row.company_id, reviewKind: row.kind, entityId: row.entity_id, payload: row.payload, title: row.title, detail: row.kind === 'change' ? `Se você aprovar, ${CHANGE_EFFECT[row.payload?.action] || 'a alteração é aplicada'}.${row.payload?.reason ? ` Motivo informado: ${row.payload.reason}` : ''}` : row.kind === 'record_close' ? (row.note || 'A pessoa considera esta ocorrência resolvida e pede o encerramento.') : (row.note || 'Sem recado.'), meta: REVIEW_KINDS[row.kind] || row.kind, created_at: row.created_at })),
+      ...result.reviews.map((row) => ({ id: row.id, kind: 'review' as const, staff_user_id: row.staff_user_id, company_id: row.company_id, reviewKind: row.kind, entityId: row.entity_id, payload: row.payload, title: row.title, detail: row.kind === 'change' ? `Se você aprovar, ${changeEffect(row.payload, 'a alteração é aplicada')}.${row.payload?.reason ? ` Motivo informado: ${row.payload.reason}` : ''}` : row.kind === 'record_close' ? (row.note || 'A pessoa considera esta ocorrência resolvida e pede o encerramento.') : (row.note || 'Sem recado.'), meta: REVIEW_KINDS[row.kind] || row.kind, created_at: row.created_at })),
     ].sort((a, b) => a.created_at.localeCompare(b.created_at)));
     setLoading(false);
   }
@@ -95,7 +100,7 @@ export function AdminStaffPage() {
       const before = draft.id ? assigned[draft.id] || [] : [];
       const id = await saveStaffDirectoryPerson({ ...draft, full_name: name, email }, before);
       const created = !draft.id; setDraft(null); await load(); if (created && id) void sendInvite({ id, full_name: name, email });
-    } catch (err) { const message = String((err as any)?.message || ''); setFormError(/duplicate|unique/i.test(message) ? 'Já existe uma pessoa cadastrada com este e-mail.' : 'Não foi possível salvar. Tente de novo.'); } finally { setSaving(false); }
+    } catch (err) { const message = errorMessage(err, ''); setFormError(/duplicate|unique/i.test(message) ? 'Já existe uma pessoa cadastrada com este e-mail.' : 'Não foi possível salvar. Tente de novo.'); } finally { setSaving(false); }
   }
   const companyName = new Map(companies.map((item) => [item.id, item.display_name]));
   const moduleName = new Map(STAFF_MODULES.map(([key, label]) => [key, label]));
@@ -130,7 +135,7 @@ export function AdminStaffPage() {
     {decision && <div className="wf-overlay" onMouseDown={() => setDecision(null)}><DialogForm className="wf-modal v2-staff-form v2-staff-decision" aria-label="Decisão" onSubmit={decide} onMouseDown={(event) => event.stopPropagation()}>
       <header><div><small>{decision.item.meta.toUpperCase()}</small><h2>{decision.approve ? 'Aprovar' : decision.item.kind === 'hours' ? 'Recusar lançamento' : 'Devolver para ajuste'}</h2></div><button type="button" onClick={() => setDecision(null)} aria-label="Fechar"><X size={16} /></button></header>
       <div className="v2-staff-body"><div className="v2-staff-decision-item"><strong>{decision.item.title}</strong><small>{decision.item.detail}</small></div>
-        <p className="v2-staff-decision-effect">{decision.approve ? (decision.item.kind === 'hours' ? 'Ao aprovar, as horas entram no controle de horas da empresa como lançamento manual, com o nome de quem lançou e a justificativa guardados na nota interna. Elas ficam ocultas do cliente até você marcar como visíveis em Horas.' : decision.item.reviewKind === 'change' ? `Ao aprovar, ${CHANGE_EFFECT[decision.item.payload?.action] || 'a alteração é aplicada'} agora, como se você mesma tivesse feito.` : decision.item.reviewKind === 'record_close' ? 'Ao aprovar, a ocorrência é finalizada agora e o cliente é avisado, como quando você clica em Finalizar.' : decision.item.reviewKind === 'deliverable' && decision.item.entityId ? 'Ao aprovar, o entregável é enviado agora ao cliente para validação, como quando você clica em Enviar ao cliente.' : 'Ao aprovar, a pessoa é avisada de que o material está liberado. O envio ao cliente continua sendo feito por você.') : decision.item.reviewKind === 'record_close' ? 'A ocorrência continua aberta e a pessoa verá o seu motivo.' : 'A pessoa verá o seu motivo e poderá corrigir e enviar de novo.'}</p>
+        <p className="v2-staff-decision-effect">{decision.approve ? (decision.item.kind === 'hours' ? 'Ao aprovar, as horas entram no controle de horas da empresa como lançamento manual, com o nome de quem lançou e a justificativa guardados na nota interna. Elas ficam ocultas do cliente até você marcar como visíveis em Horas.' : decision.item.reviewKind === 'change' ? `Ao aprovar, ${changeEffect(decision.item.payload, 'a alteração é aplicada')} agora, como se você mesma tivesse feito.` : decision.item.reviewKind === 'record_close' ? 'Ao aprovar, a ocorrência é finalizada agora e o cliente é avisado, como quando você clica em Finalizar.' : decision.item.reviewKind === 'deliverable' && decision.item.entityId ? 'Ao aprovar, o entregável é enviado agora ao cliente para validação, como quando você clica em Enviar ao cliente.' : 'Ao aprovar, a pessoa é avisada de que o material está liberado. O envio ao cliente continua sendo feito por você.') : decision.item.reviewKind === 'record_close' ? 'A ocorrência continua aberta e a pessoa verá o seu motivo.' : 'A pessoa verá o seu motivo e poderá corrigir e enviar de novo.'}</p>
         <div className="v2-staff-fields one"><label>{decision.approve ? 'Recado (opcional)' : 'Motivo (obrigatório)'}<input value={decision.note} onChange={(event) => setDecision({ ...decision, note: event.target.value })} autoFocus /></label></div>
         {decisionError && <InlineNotice className="v2-staff-error" role="alert">{decisionError}</InlineNotice>}</div>
       <footer><Button type="button" variant="workflowSecondary" onClick={() => setDecision(null)}>Cancelar</Button><Button type="submit" variant="workflowPrimary" disabled={deciding}>{deciding ? 'Registrando…' : decision.approve ? 'Aprovar' : decision.item.kind === 'hours' ? 'Recusar' : 'Devolver'}</Button></footer>

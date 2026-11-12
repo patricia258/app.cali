@@ -1,3 +1,4 @@
+import { confirmAction } from '../../../../components/feedback/workspaceDialogs';
 import { useEffect, useState } from 'react';
 import { CalendarCheck2, Link2, RefreshCw, Unplug } from 'lucide-react';
 import { authorizeGoogleCalendar, disconnectGoogleCalendar, readClientGoogleConnection, type GoogleCalendarConnection } from '../../../../api/calendar/connections';
@@ -35,7 +36,7 @@ export function ClientGoogleCalendarPanel(){
 
   async function disconnect(){
     if(!companyId||!connection)return;
-    if(!window.confirm('Desconectar sua agenda Google do CALI Workspace? Os compromissos que já existem no Google não serão apagados.'))return;
+    if(!(await confirmAction('Desconectar sua agenda Google do CALI Workspace? Os compromissos que já existem no Google não serão apagados.')))return;
     setWorking(true);setError('');
     try{
       await disconnectGoogleCalendar(companyId);

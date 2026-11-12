@@ -13,7 +13,7 @@ export async function signPrivateWorkspaceMedia(path: string, expiresIn: number)
 async function readPrivateWorkspaceFile(path: string) {
   if (!supabase || !supabaseEnvironment) throw new Error('Serviço indisponível.');
   const parts = path.split('/');
-  if (parts.some((part) => !part || part === '.' || part === '..' || /[\u0000-\u001f\\]/.test(part))) {
+  if (parts.some((part) => !part || part === '.' || part === '..' || part.includes('\\') || [...part].some((character) => character.charCodeAt(0) < 32))) {
     throw new Error('O caminho do arquivo é inválido.');
   }
   const { data: { session }, error } = await supabase.auth.getSession();

@@ -1,6 +1,7 @@
+import type { JsonValue } from '../_shared/json.ts';
 import type { SummaryBlock, SummaryItem } from "./summary.ts";
 
-const esc = (value: unknown) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+const esc = (value: JsonValue | undefined) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 const hoursLabel = (minutes: number) => { const h = Math.floor(minutes / 60), m = minutes % 60; return h ? `${h}h${m ? String(m).padStart(2, "0") : ""}` : `${m} min`; };
 const clock = (iso: string) => new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" }).format(new Date(iso));
 

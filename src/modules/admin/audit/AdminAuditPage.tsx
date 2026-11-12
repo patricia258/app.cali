@@ -36,7 +36,7 @@ const lifecycleLabels: Record<string, string> = { pause: 'Pausou', resume: 'Reto
 const reportEventLabels: Record<string, string> = { opened: 'Cliente abriu o relatório', pdf_opened: 'Cliente abriu o PDF do relatório', acknowledged: 'Cliente deu ciência do relatório', question_submitted: 'Cliente enviou dúvida sobre o relatório' };
 const statusLabels: Record<string, string> = { not_started: 'Não iniciada', in_progress: 'Em andamento', internal_review: 'Revisão interna', client_review: 'Com o cliente', approved: 'Aprovada', adjustment_requested: 'Ajuste solicitado', cancelled: 'Cancelada', done: 'Concluída', paused: 'Pausada' };
 const fieldLabels: Record<string, string> = { salary: 'remuneração', salary_review_date: 'data de revisão salarial', gender: 'gênero', gender_detail: 'gênero (detalhe)', has_children: 'filhos' };
-const text = (value: unknown) => typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+const text = <T,>(value: T) => typeof value === 'string' || typeof value === 'number' ? String(value) : '';
 const day = (iso: string) => new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(iso));
 const shortDay = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).format(new Date(iso));
 const hour = (iso: string) => new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
@@ -59,7 +59,7 @@ export function AdminAuditPage() {
           staleTime: 0,
         });
       const protocolOf = new Map<string, string>(); const kindOf: Record<string, string> = {}; const kindLabels = ['Ocorrência', 'Entrega', 'Compromisso', 'Documento', 'Relatório', 'Projeto', 'Aviso']; protocolSources.forEach((list, position) => list.forEach((item) => { if (item.protocol) { protocolOf.set(item.id, item.protocol); kindOf[item.protocol] = kindLabels[position]; } })); setKinds(kindOf);
-      const reasonText = (value: unknown) => ({ under_30_seconds: '' } as Record<string, string>)[text(value)] ?? text(value);
+      const reasonText = <T,>(value: T) => text(value) === 'under_30_seconds' ? '' : text(value);
       const member = new Map(members.map((item) => [item.id, item.full_name as string]));
       const out: Row[] = [];
       activity.forEach((item) => { if (hidden.has(item.event_type)) return; const known = activityLabels[item.event_type]; const meta = item.metadata || {}; out.push({ id: `a${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: known?.[0] || 'Outros', action: known?.[1] || String(item.event_type).replace(/_/g, ' '), detail: [text(meta.title), reasonText(meta.reason) && `Motivo: ${reasonText(meta.reason)}`, text(meta.minutes) && `${text(meta.minutes)} min`].filter(Boolean).join(' · '), protocol: protocolOf.get(item.entity_id ?? '') || protocolOf.get(text(meta.record_id)) || protocolOf.get(text(meta.deliverable_id)) || protocolOf.get(text(meta.report_id)) || text(meta.protocol) }); });
@@ -78,7 +78,7 @@ export function AdminAuditPage() {
   const companyName = useMemo(() => new Map(companies.map((item) => [item.id, item.display_name])), [companies]);
   const who = (id: string | null) => id ? names[id] || 'Usuário sem nome no perfil' : 'Sistema';
   const filtered = useMemo(() => { const since = period === 'all' ? '' : new Date(Date.now() - Number(period) * 86400000).toISOString(); const query = search.trim().toLocaleLowerCase('pt-BR'); return rows.filter((row) => trail ? row.protocol === trail : (!company || row.company === company) && (!area || row.area === area) && (!actor || (row.actor || 'system') === actor) && (!since || row.at >= since) && (!query || `${row.action} ${row.detail} ${row.protocol} ${who(row.actor)} ${companyName.get(row.company || '') || ''}`.toLocaleLowerCase('pt-BR').includes(query))); }, [rows, company, area, actor, period, search, names, companyName, trail]);
-  const actors = useMemo(() => [...new Set(rows.map((row) => row.actor || 'system'))].map((id) => [id, id === 'system' ? 'Sistema' : who(id)] as [string, string]).sort((a, b) => a[1].localeCompare(b[1], 'pt-BR')), [rows, names]);
+  const actors = useMemo(() => [...new Set(rows.map((row) => row.actor || 'system'))].map((id) => [id, id === 'system' ? 'Sistema' : who(id)] satisfies [string, string]).sort((a, b) => a[1].localeCompare(b[1], 'pt-BR')), [rows, names]);
   const byProtocol = grouping === 'protocol' && !trail;
   const ordered = byProtocol ? (() => { const latest = new Map<string, string>(); filtered.forEach((row) => { const key = row.protocol || ''; if (!latest.has(key)) latest.set(key, row.at); }); return filtered.slice().sort((a, b) => (a.protocol ? 0 : 1) - (b.protocol ? 0 : 1) || (latest.get(b.protocol) || '').localeCompare(latest.get(a.protocol) || '') || b.at.localeCompare(a.at)); })() : filtered;
   const visible = ordered.slice(0, shown);

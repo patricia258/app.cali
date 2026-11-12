@@ -4,8 +4,23 @@ import type { ReportEditor, ReportType } from '../../lib/reportComposition';
 import { normalizeIntelligenceSnapshot, type IntelligenceSnapshot } from '../../lib/reportIntelligence';
 import type { DeliveryPerformanceRow, DismissedReportAlert } from '../../lib/reportCloseMetrics';
 import { supabase } from '../supabase';
+import { reportContent } from './report-content';
 
 const reportFields = 'id,company_id,title,report_type,period_start,period_end,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,updated_at,version,revision_parent_id,dismissed_alerts,internal_note,data_refreshed_at,review_started_at,approved_at,sent_at,sent_to';
+const storedReport = reportContent.extend({
+  company_id: z.string(),
+  status: z.enum(['draft', 'review', 'approved', 'sent', 'published', 'archived']),
+  updated_at: z.string(),
+  revision_parent_id: z.string().nullish(),
+  dismissed_alerts: z.json().optional(),
+  internal_note: z.string().nullish(),
+  data_refreshed_at: z.string().nullish(),
+  review_started_at: z.string().nullish(),
+  approved_at: z.string().nullish(),
+  sent_to: z.json().optional(),
+});
+export type AdminReportRow = z.infer<typeof storedReport>;
+
 const readinessSchema = z.looseObject({
   mode: z.enum(['official', 'preview', 'simulation']),
   collected_days: z.number(),
@@ -83,7 +98,7 @@ export async function readReportPortfolio() {
   ]);
   if (companies.error) throw companies.error;
   if (reports.error) throw reports.error;
-  return { companies: companies.data ?? [], reports: reports.data ?? [] };
+  return { companies: companies.data ?? [], reports: z.array(storedReport).parse(reports.data ?? []) };
 }
 
 export async function readFreshReportPeriod(companyId: string, type: ReportType, start: string, end: string): Promise<FreshPeriodData> {
@@ -118,7 +133,7 @@ export async function readCurrentReportPeriod(companyId: string, type: ReportTyp
     .eq('company_id', companyId).eq('report_type', type).eq('period_start', start).eq('period_end', end)
     .neq('status', 'archived').order('version', { ascending: false }).limit(1).maybeSingle();
   if (result.error) throw result.error;
-  return result.data;
+  return storedReport.nullable().parse(result.data);
 }
 
 export async function createReportDraft(payload: DraftReport, mode: 'official' | 'simulation') {

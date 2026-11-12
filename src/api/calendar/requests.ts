@@ -1,3 +1,4 @@
+import type { JsonObject } from '../../domain/json';
 import { supabase } from '../supabase';
 
 function requireSchedulingClient() {
@@ -13,7 +14,7 @@ type SchedulingCommand =
   | 'client_accept_scheduling_proposal_v2' | 'client_counter_extra_visit_v1' | 'client_request_new_scheduling_options_v1'
   | 'client_request_online_extra_v1' | 'create_scheduling_request_v1' | 'create_scheduling_request_v2';
 
-export async function runSchedulingCommand(name: SchedulingCommand, args: Record<string, unknown>) {
+export async function runSchedulingCommand(name: SchedulingCommand, args: JsonObject) {
   const { data, error } = await requireSchedulingClient().rpc(name, args);
   if (error) throw error;
   return data;

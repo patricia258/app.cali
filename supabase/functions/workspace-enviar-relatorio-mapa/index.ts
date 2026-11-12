@@ -61,6 +61,6 @@ Deno.serve(async (request: Request) => {
     });
     return emailResponse(request, { ok: true, email_id: provider, to: recipients });
   } catch (error) {
-    return failureResponse(request, error);
+    return failureResponse(request, error instanceof DeliveryError ? error : null);
   }
 });

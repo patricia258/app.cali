@@ -2,7 +2,13 @@
 import { strToU8, zipSync } from 'fflate';
 import QRCode from 'qrcode';
 
-const xml = (value: unknown) => String(value ?? '').replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[char]!)).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+function xml(value: string | number) {
+  const text = Array.from(String(value)).filter((character) => {
+    const code = character.charCodeAt(0);
+    return code >= 32 || code === 9 || code === 10 || code === 13;
+  }).join('');
+  return text.replace(/[&<>"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[character]!));
+}
 
 function columnName(index: number) {
   let name = '';

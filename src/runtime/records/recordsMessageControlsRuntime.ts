@@ -1,3 +1,4 @@
+import { showMessage, confirmAction } from '../../components/feedback/workspaceDialogs';
 import { recordsAvailable } from '../../api/records/client';
 import {
   deleteRecordMessage, editRecordMessage, listRecordMessages, subscribeRecordMessages,
@@ -91,7 +92,7 @@ async function editMessage(message: MessageRow, bubble: HTMLElement, trigger: HT
       nudgeConversation();
       window.setTimeout(schedule, 120);
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Não foi possível editar a mensagem.');
+      void showMessage(error instanceof Error ? error.message : 'Não foi possível editar a mensagem.');
     } finally {
       save.disabled = false;
       if (editor.isConnected && shouldRestoreFocus()) save.focus();
@@ -107,7 +108,7 @@ async function editMessage(message: MessageRow, bubble: HTMLElement, trigger: HT
 
 async function deleteMessage(message: MessageRow, trigger: HTMLButtonElement) {
   if (!recordsAvailable || pageRole() !== 'admin' || message.author_role !== 'admin') return;
-  if (!confirm('Excluir esta mensagem do histórico visível para o cliente?')) return;
+  if (!await confirmAction('Excluir esta mensagem do histórico visível para o cliente?')) return;
   try {
     const result = await deleteRecordMessage(message.id);
     if (result.error) throw result.error;
@@ -120,7 +121,7 @@ async function deleteMessage(message: MessageRow, trigger: HTMLButtonElement) {
     nudgeConversation();
     window.setTimeout(schedule, 120);
   } catch (error) {
-    alert(error instanceof Error ? error.message : 'Não foi possível excluir a mensagem.');
+    void showMessage(error instanceof Error ? error.message : 'Não foi possível excluir a mensagem.');
   }
 }
 

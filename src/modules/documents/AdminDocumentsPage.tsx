@@ -18,7 +18,7 @@ import { archiveAdminDocument, saveAdminDocument, setAdminDocumentPublication } 
 import { addAdminDocumentComment, readAdminDocumentComments } from '../../api/admin/documents/comments';
 import type {
   CategorySlug, CompanyOption, DeliverableOption, DocumentRow, DriveConnection, EditorMode, FileComment,
-  FormState, ProfileOption, ProjectOption, SourceMode, WorkflowStage,
+  FormState, ProjectOption, SourceMode, WorkflowStage,
 } from '../../domain/documents';
 import { openPrivateWorkspaceFile, workspaceStorageAvailable } from '../../api/files/workspace';
 
@@ -68,7 +68,6 @@ export function AdminDocumentsPage({ staff = false }: { staff?: boolean } = {}) 
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [projects, setProjects] = useState<ProjectOption[]>([]);
   const [deliverables, setDeliverables] = useState<DeliverableOption[]>([]);
-  const [profiles, setProfiles] = useState<ProfileOption[]>([]);
   const [driveConnection, setDriveConnection] = useState<DriveConnection | null>(null);
   const [loading, setLoading] = useState(!preview);
   const [saving, setSaving] = useState(false);
@@ -116,12 +115,6 @@ export function AdminDocumentsPage({ staff = false }: { staff?: boolean } = {}) 
   const activeFolder = folderList.find((group) => group.id === openFolder) || null;
   const shown = useMemo(() => activeFolder ? activeFolder.items : filtered.filter((doc) => !doc.deliverableId || !folderIds.has(doc.deliverableId)), [activeFolder, filtered, folderIds]);
 
-  const stats = useMemo(() => ({
-    preparation: docs.filter((doc) => doc.workflowStage === 'preparation').length,
-    awaitingFinal: docs.filter((doc) => doc.workflowStage === 'awaiting_final_file').length,
-    ready: docs.filter((doc) => doc.workflowStage === 'ready_to_publish').length,
-    published: docs.filter((doc) => doc.workflowStage === 'published').length,
-  }), [docs]);
 
   const formProjects = useMemo(() => projects.filter((item) => item.companyId === form.companyId), [projects, form.companyId]);
   const formDeliverables = useMemo(() => deliverables.filter((item) => item.companyId === form.companyId && (!form.projectId || item.projectId === form.projectId)), [deliverables, form.companyId, form.projectId]);
@@ -159,7 +152,6 @@ export function AdminDocumentsPage({ staff = false }: { staff?: boolean } = {}) 
       setCompanies(library.companies);
       setProjects(library.projects);
       setDeliverables(library.deliverables);
-      setProfiles(library.profiles);
       setDriveConnection(library.driveConnection);
       setDocs(library.documents);
     } catch (requestError) {
@@ -291,7 +283,6 @@ export function AdminDocumentsPage({ staff = false }: { staff?: boolean } = {}) 
   const delivered = (doc: DocumentRow) => doc.publishedAt ? new Date(doc.publishedAt).toLocaleDateString('pt-BR') : '—';
 
   const tagTone = (stage: string) => stage === 'published' ? 'green' : stage === 'ready_to_publish' ? 'blue' : stage === 'archived' ? 'red' : stage === 'awaiting_final_file' ? 'yellow' : 'purple';
-  const validity = (doc: DocumentRow) => doc.validUntil ? doc.validUntil.split('-').reverse().join('/') : 'não definida';
   // Projeto e entregável aparecem uma vez só: o entregável some quando já é o próprio título do documento.
   const same = (a?: string | null, b?: string | null) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
   const contextLine = (doc: DocumentRow) => [doc.project ? `Projeto ${doc.project}` : 'Sem projeto vinculado', doc.deliverable && !same(doc.deliverable, doc.title) ? `Entregável ${doc.deliverable}` : ''].filter(Boolean).join(' · ');

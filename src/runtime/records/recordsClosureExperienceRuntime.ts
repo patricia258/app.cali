@@ -1,3 +1,4 @@
+import { showMessage } from '../../components/feedback/workspaceDialogs';
 import { recordsAvailable } from '../../api/records/client';
 import {
   decideRecordReopen, readRecordClosureContext, requestRecordReopen, submitRecordFeedback,
@@ -151,7 +152,7 @@ function renderClientFeedback(target: HTMLElement, ctx: Context) {
     if (result.error) {
       submit.disabled = false;
       submit.textContent = 'Enviar avaliação';
-      alert(result.error.message || 'Não foi possível registrar sua avaliação.');
+      void showMessage(result.error.message || 'Não foi possível registrar sua avaliação.');
       return;
     }
     target.dataset.v29FeedbackDone = closure.id;
@@ -198,7 +199,7 @@ function showClientReopenDialog(target: HTMLElement, ctx: Context) {
     if (result.error) {
       send.disabled = false;
       send.textContent = 'Enviar para análise';
-      alert(result.error.message || 'Não foi possível solicitar a reabertura.');
+      void showMessage(result.error.message || 'Não foi possível solicitar a reabertura.');
       return;
     }
     renderThanks(card, 'Reabertura solicitada.', 'A CALI recebeu sua justificativa e vai analisar o pedido. Você será notificado quando houver uma decisão.', 'Voltar ao histórico', () => location.reload());

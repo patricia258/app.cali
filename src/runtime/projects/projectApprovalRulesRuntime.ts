@@ -1,3 +1,5 @@
+import type { ScheduleReviewChanges } from '../../domain/projects';
+import { showMessage } from '../../components/feedback/workspaceDialogs';
 import { isSupabaseConfigured } from '../../api/access/session';
 import {
   approveProjectSchedule, readAdminScheduleReview, readClientScheduleReview, resolveScheduleAdjustment,
@@ -8,17 +10,17 @@ import { isWorkspaceRoute } from '../routeActivity';
 type ProjectRow={id:string;protocol:string|null;company_id:string;name:string;planning_status:string;start_date:string|null;roadmap_start_date:string|null;roadmap_end_date:string|null;client_response_business_days:number|null};
 type FrontRow={id:string;name:string};
 type DeliverableRow={id:string;title:string;complexity:string|null;due_at:string|null;status:string};
-type ReviewRow={id:string;status:string;request_number:number;response_note:string|null;requested_changes:any;requested_at:string};
+type ReviewRow={id:string;status:string;request_number:number;response_note:string|null;requested_changes:ScheduleReviewChanges|null;requested_at:string};
 type Context={project:ProjectRow;fronts:FrontRow[];deliverables:DeliverableRow[];reviews:ReviewRow[]};
 
 let installed=false,timer=0,busy=false;
 
 function formatDate(value?:string|null){if(!value)return'A definir';const d=new Date(value.length===10?`${value}T12:00:00`:value);return Number.isNaN(d.getTime())?'A definir':new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',year:'numeric'}).format(d).replace('.','');}
-function escapeHtml(value:unknown){return String(value??'').replace(/[&<>"']/g,(ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]||ch));}
+function escapeHtml(value: string | number | boolean | null | undefined){return String(value??'').replace(/[&<>"']/g,(ch)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]||ch));}
 function currentClientProjectId(){return document.querySelector<HTMLSelectElement>(":is(.client-project-picker-v33,[data-v2-operation~=\"client-project-picker-v33\"]) select")?.value||'';}
 function adminProtocol(){const text=document.querySelector<HTMLElement>('.project-hero-v2 > div:first-of-type > span')?.textContent||'';return text.match(/CALI-PRJ-[A-Z0-9-]+/i)?.[0]||'';}
 function closeDialog(){document.querySelector('.workflow-dialog-backdrop-v39')?.remove();}
-function alertError(message:string){window.alert(message);}
+function alertError(message:string){void showMessage(message);}
 
 function dialog(title:string,kicker:string,body:string,footer:string){
   closeDialog();
@@ -39,7 +41,7 @@ async function loadClientContext(): Promise<Context | null> {
 }
 
 function selectedDeliverable(ctx:Context,id:string){return ctx.deliverables.find((item)=>item.id===id)||null;}
-function changeSummary(change:any){
+function changeSummary(change:ScheduleReviewChanges){
   const bits:string[]=[];
   if(change?.actionLabel)bits.push(change.actionLabel);
   if(change?.targetComplexity)bits.push(`Complexidade ${change.targetComplexity}`);
@@ -85,7 +87,7 @@ function openAdjustment(ctx:Context,review:ReviewRow){
   function fillTargets(){
     target.replaceChildren();
     const rows=type.value==='workstream'?ctx.fronts:ctx.deliverables;
-    rows.forEach((row:any)=>{const option=document.createElement('option');option.value=row.id;option.textContent=type.value==='workstream'?row.name:`${row.title} · ${row.complexity||'sem MC'} · ${formatDate(row.due_at)}`;target.append(option);});
+    rows.forEach((row)=>{const option=document.createElement('option');option.value=row.id;option.textContent='name' in row?row.name:`${row.title} · ${row.complexity||'sem MC'} · ${formatDate(row.due_at)}`;target.append(option);});
   }
   function fillSwap(){
     const chosen=selectedDeliverable(ctx,target.value);swap.replaceChildren();
@@ -142,7 +144,8 @@ function openApproval(ctx:Context){
   overlay.querySelector('[data-approve]')?.addEventListener('click',async()=>{const button=overlay.querySelector<HTMLButtonElement>('[data-approve]')!;button.disabled=true;const result=await approveProjectSchedule(ctx.project.id);if(result.error){button.disabled=false;alertError(result.error.message);return;}location.reload();});
 }
 
-function openAdminResolution(ctx:Context,review:ReviewRow,accept:boolean){
+
+function openAdminResolution(review:ReviewRow,accept:boolean){
   const change=review.requested_changes||{},summary=changeSummary(change);
   const overlay=dialog(accept?'Acolher pedido de ajuste':'Não aplicar pedido','ANÁLISE CALI',`<div class="workflow-request-v38"><span>Pedido ${review.request_number} de 2</span><strong>${escapeHtml(change.targetLabel||'Cronograma')}</strong>${summary.map((item)=>`<em>${escapeHtml(item)}</em>`).join('')}<p>${escapeHtml(review.response_note||'')}</p></div><label>Justificativa da decisão<textarea id="wf39-resolution" rows="5" placeholder="Explique ao cliente o que será feito e por quê."></textarea></label><p class="workflow-help-v38">Depois da decisão, o cronograma volta para validação do cliente. Se o pedido for acolhido, faça a alteração correspondente antes da aprovação final.</p>`,`<button type="button" class="secondary" data-cancel>Cancelar</button><button type="button" class="primary" data-resolve>Enviar decisão</button>`);
   overlay.querySelector('[data-cancel]')?.addEventListener('click',closeDialog);
@@ -175,8 +178,8 @@ function patchAdmin(ctx:Context){
   }
   if(ctx.project.planning_status==='adjustment_requested'){
     const review=ctx.reviews.find((item)=>item.status==='adjustment_requested');if(!review)return;const change=review.requested_changes||{},box=banner.querySelector<HTMLElement>('div:first-child');if(box){box.querySelectorAll('.workflow-request-detail-v39').forEach((node)=>node.remove());changeSummary(change).forEach((item)=>{const em=document.createElement('em');em.className='workflow-request-detail-v39';em.textContent=item;box.append(em);});}
-    const reject=banner.querySelector<HTMLButtonElement>('[data-reject]');if(reject&&!reject.dataset.v39){const clone=reject.cloneNode(true) as HTMLButtonElement;clone.dataset.v39='1';clone.addEventListener('click',()=>openAdminResolution(ctx,review,false));reject.replaceWith(clone);}
-    const accept=banner.querySelector<HTMLButtonElement>('[data-accept]');if(accept&&!accept.dataset.v39){const clone=accept.cloneNode(true) as HTMLButtonElement;clone.dataset.v39='1';clone.addEventListener('click',()=>openAdminResolution(ctx,review,true));accept.replaceWith(clone);}
+    const reject=banner.querySelector<HTMLButtonElement>('[data-reject]');if(reject&&!reject.dataset.v39){const clone=reject.cloneNode(true) as HTMLButtonElement;clone.dataset.v39='1';clone.addEventListener('click',()=>openAdminResolution(review,false));reject.replaceWith(clone);}
+    const accept=banner.querySelector<HTMLButtonElement>('[data-accept]');if(accept&&!accept.dataset.v39){const clone=accept.cloneNode(true) as HTMLButtonElement;clone.dataset.v39='1';clone.addEventListener('click',()=>openAdminResolution(review,true));accept.replaceWith(clone);}
   }
 }
 

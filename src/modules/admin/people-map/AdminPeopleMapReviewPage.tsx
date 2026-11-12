@@ -124,6 +124,7 @@ export function AdminPeopleMapReviewPage(){
   const [record,setRecord]=useState<MapaRecord|null>(null);
   const [draft,setDraft]=useState<Draft|null>(null);
   const [loading,setLoading]=useState(true);
+  const [reviewRefresh, setReviewRefresh] = useState(0);
   const [error,setError]=useState('');
   const [saving,setSaving]=useState(false);
   const [feedback,setFeedback]=useState('');
@@ -159,7 +160,7 @@ export function AdminPeopleMapReviewPage(){
       if (active) setError(reason instanceof Error ? reason.message : 'Não foi possível abrir a revisão.');
     }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [protocolo]);
+  }, [protocolo, reviewRefresh]);
 
   useEffect(()=>{
     if(!emailOpen)return;
@@ -220,7 +221,7 @@ export function AdminPeopleMapReviewPage(){
     if (attachment && attachment.type !== 'application/pdf' && !attachment.name.toLowerCase().endsWith('.pdf')) { setEmailFeedback('Selecione um arquivo PDF.'); return; }
     if (attachment && attachment.size > 8 * 1024 * 1024) { setEmailFeedback('O PDF precisa ter até 8 MB.'); return; }
     const fileIdentity = attachment && [attachment.name, attachment.size, attachment.lastModified];
-    const requestId = confirmDelivery([recipient], [record.id, revision, fileIdentity, emailMessage.trim()]);
+    const requestId = await confirmDelivery([recipient], [record.id, revision, fileIdentity, emailMessage.trim()]);
     if(!requestId)return;
     setSending(true);setEmailFeedback('Enviando relatório…');
     try{
@@ -265,7 +266,7 @@ export function AdminPeopleMapReviewPage(){
         <aside className="people-map-review-side">
           <section className="panel people-map-review-sidecard"><div className="people-map-review-side-title"><UserRound size={18}/><h3>Contato</h3></div><dl><div><dt>Nome</dt><dd>{record.c_nome}</dd></div><div><dt>Empresa</dt><dd>{record.c_empresa}</dd></div><div><dt>Cargo</dt><dd>{record.c_cargo||'Não informado'}</dd></div><div><dt>E-mail</dt><dd>{record.c_email}</dd></div><div><dt>WhatsApp</dt><dd>{record.c_whatsapp||'Não informado'}</dd></div><div><dt>Preferência</dt><dd>{record.c_preferencia_contato||'Não informada'}</dd></div><div><dt>LinkedIn / site</dt><dd>{record.c_linkedin_site||'Não informado'}</dd></div></dl></section>
           <section className="panel people-map-review-sidecard"><div className="people-map-review-side-title"><Building2 size={18}/><h3>Qualificação</h3></div><dl><div><dt>Prazo</dt><dd>{record.q_prazo||'—'}</dd></div><div><dt>Decisores</dt><dd>{[...(record.q_decisor||[]),record.q_decisor_outro].filter(Boolean).join(', ')||'—'}</dd></div><div><dt>Formato</dt><dd>{record.q_formato||'—'}</dd></div><div><dt>Apoio posterior</dt><dd>{qv2.apoio_pos||'—'}</dd></div><div><dt>Jurídico</dt><dd>{qv2.juridico||'—'}</dd></div><div><dt>Investimento</dt><dd>{record.q_investimento||'—'}</dd></div><div><dt>Origem</dt><dd>{record.q_origem||'—'}</dd></div></dl></section>
-          {record.status!=='enviado'&&<AdminMaterialReview kind="mapa" entityId={record.id} />}<section className="panel people-map-review-sidecard people-map-review-actions"><h3>Fluxo aprovado</h3><p>Salve a revisão, confira o relatório e envie exatamente o PDF aprovado ao decisor.</p><Button variant="secondary" onClick={save} disabled={saving}><Save size={16}/>{saving?'Salvando…':'Salvar revisão'}</Button><Button variant="primary" onClick={saveAndOpenReport} disabled={saving}><FileText size={16}/>{saving?'Salvando…':'Salvar e abrir relatório'}</Button><Button variant="secondary" onClick={openEmailModal}><Mail size={16}/>Enviar relatório por e-mail</Button><Button variant="secondary" onClick={openWhatsapp}><Send size={16}/>Preparar WhatsApp</Button>{record.relatorio_enviado_em&&<small>Último envio: {new Date(record.relatorio_enviado_em).toLocaleString('pt-BR')}</small>}<span className="people-map-review-feedback" aria-live="polite">{feedback}</span></section>
+          {record.status!=='enviado'&&<AdminMaterialReview kind="mapa" entityId={record.id} onApproved={() => setReviewRefresh((version) => version + 1)} />}<section className="panel people-map-review-sidecard people-map-review-actions"><h3>Fluxo aprovado</h3><p>Salve a revisão, confira o relatório e envie exatamente o PDF aprovado ao decisor.</p><Button variant="secondary" onClick={save} disabled={saving}><Save size={16}/>{saving?'Salvando…':'Salvar revisão'}</Button><Button variant="primary" onClick={saveAndOpenReport} disabled={saving}><FileText size={16}/>{saving?'Salvando…':'Salvar e abrir relatório'}</Button><Button variant="secondary" onClick={openEmailModal}><Mail size={16}/>Enviar relatório por e-mail</Button><Button variant="secondary" onClick={openWhatsapp}><Send size={16}/>Preparar WhatsApp</Button>{record.relatorio_enviado_em&&<small>Último envio: {new Date(record.relatorio_enviado_em).toLocaleString('pt-BR')}</small>}<span className="people-map-review-feedback" aria-live="polite">{feedback}</span></section>
         </aside>
       </div>
     </section>

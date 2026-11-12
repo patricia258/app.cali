@@ -1,3 +1,4 @@
+import type { JsonObject } from '../../../domain/json';
 import type { ClientRow, LifecycleAction } from '../../../domain/company';
 import { supabase } from '../../supabase';
 
@@ -11,7 +12,7 @@ export async function changeCompanyLifecycle(
   client: ClientRow, action: LifecycleAction, reason: string, date: string, projection: TerminationProjection | null,
 ) {
   if (!supabase) throw new Error('Conexão indisponível.');
-  const now=new Date().toISOString(),patch:Record<string,unknown>={status:nextStatus[action]};
+  const now=new Date().toISOString(),patch:JsonObject={status:nextStatus[action]};
   if(action==='pause')Object.assign(patch,{paused_at:now,paused_reason:reason});
   if(action==='archive')Object.assign(patch,{archived_at:now});
   if(action==='block')Object.assign(patch,{blocked_at:now,blocked_reason:reason});

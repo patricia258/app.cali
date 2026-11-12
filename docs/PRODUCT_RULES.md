@@ -61,7 +61,7 @@ Admin pode reabrir o mesmo relatório para correção, com motivo e histórico. 
 
 ## Materiais, propostas e avisos
 
-- Patrícia revisa relatórios, propostas e devolutivas preparados pelo Partner. O material de autoria da Patrícia segue para envio direto. Para enviar ou reenviar, pedir as duas confirmações em sequência, “Deseja enviar?” e “Tem certeza?”.
+- Patrícia revisa relatórios, propostas e devolutivas preparados pelo Partner. O material de autoria da Patrícia segue para envio direto. Para enviar ou reenviar, a interface pede duas confirmações em sequência, “Deseja enviar?” e “Tem certeza?”. Cancelar qualquer confirmação encerra a tentativa antes de chamar o envio.
 - Entregar de fato a revisão confirmada ao destinatário autorizado. Registrar geração, aprovação, liberação e envio como eventos distintos, com autor, revisão e resultado.
 - Para relatório, escolher acessos ativos da empresa. Para proposta, usar o contato salvo no briefing. Para devolutiva do Mapa, usar o endereço da resposta consentida. Reenvio de proposta ou devolutiva reutiliza o PDF oficial da revisão quando arquivado.
 - Propostas são preparadas, enviadas e acompanhadas no Workspace. Os formulários de resposta continuam no portal do Cliente. As respostas ficam reunidas em uma área Admin do Workspace, com vínculos e histórico preservados.

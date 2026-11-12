@@ -13,7 +13,7 @@ export type CapacitySignalV15={
   message:string;
 };
 
-function num(value:unknown){const parsed=Number(value||0);return Number.isFinite(parsed)?parsed:0;}
+function num(value: string | number | null | undefined){const parsed=Number(value||0);return Number.isFinite(parsed)?parsed:0;}
 function usageRatio(contractedHours:number|null|undefined,consumedMinutes:number){const contracted=num(contractedHours)*60;return contracted>0?num(consumedMinutes)/contracted:0;}
 function extraMinutes(contractedHours:number|null|undefined,consumedMinutes:number){return Math.max(0,num(consumedMinutes)-num(contractedHours)*60);}
 

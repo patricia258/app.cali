@@ -22,6 +22,8 @@
 
 **Dados e integrações.** Empresa, evento, pedido, horário e fuso, convidados, situação, despesas e valor aceito, conta Google, calendário, evento externo e Meet. Confirmação local, sincronização Google e entrega de convites têm recibos independentes.
 
+A consulta de disponibilidade aceita um ou dois horários com início e fim como datas em texto ou timestamps em milissegundos. Com calendário conectado, a Edge responde `400 invalid_slots` para horários malformados ou fora dos limites. [Validação de disponibilidade](../../supabase/functions/workspace-google-calendar-read/index.ts)
+
 **Alvo.** Autorizar conexão → confirmar evento → sincronizar com vínculo externo estável. Alterar ou cancelar no mesmo vínculo. Conflito ou aceite externo seguido de falha local exige releitura e reconciliação antes de repetir. Convite, Meet, ata e histórico permanecem associados ao evento correto. [Contratos OAuth e agenda](../DATA_CONTRACTS.md#contratos-por-lote)
 
 **Aceite.** Criar, remarcar e cancelar no calendário de teste, incluindo Meet. Conferir tentativa repetida, colisão de ID, ausência de objeto externo, conta errada, token expirado e corrida cancelar × alterar. Conferir visita extra, preço, despesas, convidados e ata. Um vínculo persistente e um efeito externo por operação confirmada.

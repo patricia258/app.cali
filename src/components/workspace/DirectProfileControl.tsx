@@ -73,8 +73,8 @@ type PrivacyRequest = {
 function initials(name:string){return name.split(' ').filter(Boolean).slice(0,2).map((part)=>part[0]?.toUpperCase()).join('')||'C';}
 function normalizeExternalUrl(value:string){const trimmed=value.trim();if(!trimmed)return'';return/^https?:\/\//i.test(trimmed)?trimmed:`https://${trimmed}`;}
 function whatsappUrl(value:string){const digits=value.replace(/\D/g,'');if(!digits)return'';return`https://wa.me/${digits.startsWith('55')?digits:`55${digits}`}`;}
-function avatarStyle(profile:Pick<ProfileData,'avatar_position_x'|'avatar_position_y'|'avatar_zoom'>):CSSProperties{return{'--avatar-x':`${profile.avatar_position_x}%`,'--avatar-y':`${profile.avatar_position_y}%`,'--avatar-zoom':String(profile.avatar_zoom)} as CSSProperties;}
-function safeSignatureStyle(value:unknown):SignatureStyle{
+function avatarStyle(profile:Pick<ProfileData,'avatar_position_x'|'avatar_position_y'|'avatar_zoom'>): CSSProperties & Record<`--${string}`, string> {return{'--avatar-x':`${profile.avatar_position_x}%`,'--avatar-y':`${profile.avatar_position_y}%`,'--avatar-zoom':String(profile.avatar_zoom)};}
+function safeSignatureStyle(value: string | null | undefined):SignatureStyle{
   const raw=String(value||'');
   const legacy=legacyStyleMap[raw];
   if(legacy)return legacy;
@@ -105,7 +105,7 @@ export function DirectProfileControl({role,trigger,partnerHasOccurrences = false
   useEffect(()=>{
     setProfile(fallback);setDraft(fallback);setCompanyName('');setCompanyLogo('');
     const cached=user?window.localStorage.getItem(`cali-workspace-profile-${user.id}`):null;
-    if(cached){try{const raw=JSON.parse(cached);const parsed={...fallback,...raw,signature_style:safeSignatureStyle(raw?.signature_style)} as ProfileData;setProfile(parsed);setDraft(parsed);}catch{}}
+    if(cached){try{const raw: Partial<ProfileData> | null = JSON.parse(cached);const parsed: ProfileData = {...fallback,...raw,signature_style:safeSignatureStyle(raw?.signature_style)};setProfile(parsed);setDraft(parsed);}catch{/* A leitura do servidor ainda atualiza o perfil. */}}
     let mounted=true;
     async function load(){
       if(!user||!mounted)return;

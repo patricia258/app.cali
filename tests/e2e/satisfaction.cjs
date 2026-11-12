@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const { browserSuite } = require('./browser-suite.cjs');
+const { answerWorkspaceDialog, browserSuite } = require('./browser-suite.cjs');
 
 const endpoint = 'https://cali-local-qa.supabase.co/rest/v1';
 const companies = { a: 'Empresa Alfa QA', b: 'Empresa Beta QA' };
@@ -138,12 +138,12 @@ const cases = [
       await novemberForAlpha(page, origin);
       const request = page.getByRole('listitem').filter({ hasText: 'Aguardando Alfa' });
       const close = request.getByRole('button', { name: 'Encerrar espera', exact: true });
-      page.once('dialog', (dialog) => dialog.dismiss());
       await close.click();
+      await answerWorkspaceDialog(page, false);
       await request.waitFor();
       assert.equal(writes.length, 0);
-      page.once('dialog', (dialog) => dialog.accept());
       await close.click();
+      await answerWorkspaceDialog(page, true);
       await request.waitFor({ state: 'detached' });
       await page
         .getByText('4 solicitadas · 1 respondidas · 0 aguardando · 3 encerradas sem resposta', { exact: true })

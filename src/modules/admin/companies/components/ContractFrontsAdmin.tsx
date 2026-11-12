@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Plus, X } from 'lucide-react';
 import { addContractFront, closeContractFront, loadContractFronts, type CompanyPlan, type ContractedFront, type Front } from '../../../../api/fronts/contracts';
-import { activeFront, coreFront, eligibleMode, planName } from '../../../../lib/contractFronts';
+import { activeFront, eligibleMode, planName } from '../../../../lib/contractFronts';
 
 export function ContractFrontsAdmin({company}:{company:CompanyPlan}) {
   const [catalog,setCatalog]=useState<Front[]>([]),[contracts,setContracts]=useState<ContractedFront[]>([]);

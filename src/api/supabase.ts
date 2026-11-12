@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import type { JsonObject, JsonValue } from '../domain/json';
 
 import { supabaseEnvironment } from './client-environment';
 
@@ -29,9 +30,9 @@ const rawPublicSupabase = isSupabaseConfigured
     })
   : null;
 
-type RpcResult<T = unknown> = { data: T | null; error: { message: string } | null };
+type RpcResult<T> = { data: T | null; error: { message: string } | null };
 
-async function directPublicRpc<T = unknown>(fn: string, args?: Record<string, unknown>): Promise<RpcResult<T>> {
+async function directPublicRpc<T = JsonValue>(fn: string, args?: JsonObject): Promise<RpcResult<T>> {
   if (!workspaceSupabase) {
     return { data: null, error: { message: 'Supabase não configurado.' } };
   }
@@ -58,14 +59,14 @@ async function directPublicRpc<T = unknown>(fn: string, args?: Record<string, un
     });
 
     const text = await response.text();
-    let payload: unknown = null;
+    let payload: JsonValue = null;
     if (text) {
       try { payload = JSON.parse(text); } catch { payload = text; }
     }
 
     if (!response.ok) {
       const message = typeof payload === 'object' && payload && 'message' in payload
-        ? String((payload as { message?: unknown }).message || `Erro ${response.status}`)
+        ? String(payload.message || `Erro ${response.status}`)
         : String(payload || `Erro ${response.status}`);
       return { data: null, error: { message } };
     }
@@ -77,7 +78,7 @@ async function directPublicRpc<T = unknown>(fn: string, args?: Record<string, un
 }
 
 /** Chamada pública sem sessão (ex.: CALI Forms em /f/:slug). Só para funções liberadas ao papel anon. */
-export async function anonPublicRpc<T = unknown>(fn: string, args?: Record<string, unknown>): Promise<RpcResult<T>> {
+export async function anonPublicRpc<T = JsonValue>(fn: string, args?: JsonObject): Promise<RpcResult<T>> {
   if (!supabaseEnvironment) return { data: null, error: { message: 'Supabase não configurado.' } };
 
   try {
@@ -102,7 +103,7 @@ export const publicSupabase = rawPublicSupabase
   ? new Proxy(rawPublicSupabase, {
       get(target, prop, receiver) {
         if (prop === 'rpc') {
-          return (fn: string, args?: Record<string, unknown>) => directPublicRpc(fn, args);
+          return (fn: string, args?: JsonObject) => directPublicRpc(fn, args);
         }
         const value = Reflect.get(target, prop, receiver);
         return typeof value === 'function' ? value.bind(target) : value;
@@ -121,11 +122,12 @@ export const supabase = workspaceSupabase
         }
 
         if (prop === 'rpc') {
-          return (fn: string, args?: Record<string, unknown>, options?: Record<string, unknown>) => {
+          const workspaceRpc = target.rpc.bind(target);
+          return (fn: string, args?: JsonObject, options?: Parameters<typeof workspaceRpc>[2]) => {
             if (fn === 'update_mapa_people_record' && publicSupabase) {
-              return (publicSupabase as any).rpc('workspace_update_mapa_people_record', args, options);
+              return publicSupabase.rpc('workspace_update_mapa_people_record', args);
             }
-            return (target.rpc as any)(fn, args, options);
+            return workspaceRpc(fn, args, options);
           };
         }
 

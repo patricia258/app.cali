@@ -339,7 +339,14 @@ const cases = [
       assert.equal(await save.isDisabled(), true);
       await edit.getByLabel('Duração (minutos)').fill('45');
       await edit.getByLabel('Justificativa da edição').fill(' Corrigir duração lançada. ');
-      await Promise.all([page.waitForEvent('load'), save.click()]);
+      const navigations = [];
+      page.on('framenavigated', (frame) => {
+        if (frame === page.mainFrame()) navigations.push(frame.url());
+      });
+      await save.click();
+      await edit.waitFor({ state: 'hidden' });
+      await row.getByText('45min', { exact: true }).waitFor();
+      assert.deepEqual(navigations, []);
       assert.deepEqual(writes, [{
         p_entry_id: entry.id, p_work_date: entry.work_date, p_minutes: 45, p_description: entry.description,
         p_category: 'Outros', p_client_visible: false, p_reason: 'Corrigir duração lançada.',

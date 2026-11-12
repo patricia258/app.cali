@@ -1,3 +1,4 @@
+import type { JsonObject } from '../../domain/json';
 import { requireProjectClient } from './client';
 
 type ProjectFileRow = { id: string; storage_path: string | null; status: string; title: string | null };
@@ -12,7 +13,7 @@ export async function renameProjectFile(id: string, title: string) {
   return await requireProjectClient().from('files').update({ title }).eq('id', id);
 }
 
-export async function insertProjectFile(row: Record<string, unknown>) {
+export async function insertProjectFile(row: JsonObject) {
   return await requireProjectClient().from('files').insert(row);
 }
 

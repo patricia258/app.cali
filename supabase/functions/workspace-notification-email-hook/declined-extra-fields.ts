@@ -1,3 +1,5 @@
+import type { NotificationDb } from "./database.ts";
+
 type DeclinedExtraNotification = {entity_id:string;company_id:string;user_id:string;title:string;body:string|null};
 type ExtraMode = "extra_presential_declined" | "extra_online_declined";
 const esc = (text:string) => text.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
@@ -8,7 +10,7 @@ const dateStr = (slot: {startsAt?: string}) => {
     month:"long",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(milliseconds));
 };
 export async function declinedExtraFields(
-  ws:any,
+  ws:NotificationDb,
   n:DeclinedExtraNotification,
   template:ExtraMode,
 ):Promise<{fields:Record<string,string>;blocks:{bloco_motivo:string}}> {

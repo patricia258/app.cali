@@ -47,7 +47,8 @@ export function ProfileEvaluatorPage({ role }: { role: 'admin' | 'client' }) {
     void (async () => {
       const data = await readEvaluatorResult(id);
       if (!data) { setMissing(true); return; }
-      const result = data as unknown as Row;
+      const { companies, ...fields } = data;
+      const result: Row = { ...fields, companies: Array.isArray(companies) ? companies[0] : companies };
       setRow({ ...result, company_name: result.companies?.display_name || result.company_name });
       if (result.company_id) {
         const company = await readEvaluatorCompanyContext(result.company_id);

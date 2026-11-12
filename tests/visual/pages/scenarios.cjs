@@ -7,7 +7,7 @@ const { makeSession, fixtureCode, sessionKey } = require('../../e2e/browser-fixt
 const { projectId } = require('../../e2e/fixtures.cjs');
 const { fixtureOrigin } = require('./build.cjs');
 
-const navigation = {
+const menuPaths = {
   client: ['/cliente', '/cliente/cronograma', '/cliente/documentos'],
   admin: ['/admin', '/admin/clientes', '/admin/projetos'],
   partner: ['/equipe', '/equipe/projetos', '/equipe/documentos'],
@@ -23,7 +23,7 @@ async function openMenu(page) {
 }
 
 async function navigateMenu({ page, go, role, id }) {
-  const [home, first, second] = navigation[role];
+  const [home, first, second] = menuPaths[role];
   const click = async (route) => {
     await openMenu(page);
     await page.locator(`.sidebar a[href="${route}"]:visible`).first().click();
@@ -61,7 +61,7 @@ async function matrixState({ page, go, role, id }) {
   if (id.startsWith('/')) return go(id);
   if (id.startsWith('menu:') || id.startsWith('history:')) return navigateMenu({ page, go, role, id });
   if (id === 'reload:deep-link') {
-    await go(navigation[role][2] + '?qa=rota%2Flegada&etapa=1&etapa=2#referencia');
+    await go(menuPaths[role][2] + '?qa=rota%2Flegada&etapa=1&etapa=2#referencia');
     await page.reload({ waitUntil: 'domcontentloaded' });
     return;
   }
@@ -260,7 +260,7 @@ const states = [
     role,
     'menu:aberto-mobile',
     async ({ page, go }) => {
-      await go(navigation[role][0]);
+      await go(menuPaths[role][0]);
       await openMenu(page);
       await page.locator('.sidebar nav:visible').waitFor();
     },

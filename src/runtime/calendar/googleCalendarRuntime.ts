@@ -1,3 +1,4 @@
+import { showMessage, confirmAction } from '../../components/feedback/workspaceDialogs';
 import style from './google-calendar-runtime.css?inline';
 import { isSupabaseConfigured } from '../../api/access/session';
 import {
@@ -13,10 +14,10 @@ let enhanceTimer: number | undefined;
 let renderInFlight = false;
 let lastRenderKey = '';
 let lastPath = typeof window !== 'undefined' ? window.location.pathname : '';
-let connectionCache: any = null;
+let connectionCache: Awaited<ReturnType<typeof readAdminGoogleConnection>> = null;
 let connectionCacheAt = 0;
 
-function esc(value: unknown) {
+function esc(value: string | number | boolean | null | undefined) {
   return String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char] || char));
 }
 function ensureStyle() { if (document.getElementById('google-calendar-runtime-style')) return; const el = document.createElement('style'); el.id = 'google-calendar-runtime-style'; el.textContent = style; document.head.appendChild(el); }
@@ -68,9 +69,9 @@ async function renderConnection() {
   } finally { renderInFlight = false; }
 }
 
-function applyAttendeeStatuses(refreshed: any) {
+function applyAttendeeStatuses(refreshed: { attendees?: { email?: string; status?: string }[] } | null) {
   if (!refreshed?.attendees) return;
-  const statusMap = new Map<string, string>((refreshed.attendees || []).map((item: any) => [String(item.email || '').toLowerCase(), String(item.status || 'pending')]));
+  const statusMap = new Map<string, string>((refreshed.attendees || []).map((item) => [String(item.email || '').toLowerCase(), String(item.status || 'pending')]));
   document.querySelectorAll<HTMLElement>('.calendar-attendee-list > div').forEach((row) => {
     const email = row.querySelector('small')?.textContent?.trim().toLowerCase() || '', status = statusMap.get(email); if (!status) return;
     const badge = row.querySelector('b'); if (badge) badge.textContent = status === 'accepted' ? 'Aceito' : status === 'declined' ? 'Recusado' : status === 'tentative' ? 'Talvez' : 'Pendente';
@@ -109,8 +110,8 @@ async function enhanceOpenEventModal() {
   } finally { delete modal.dataset.googleEnhancingProtocol; }
 }
 
-async function connect() { const button = document.querySelector<HTMLButtonElement>('[data-google-calendar-connect],[data-google-calendar-reconnect]'); if (button) { button.disabled = true; button.textContent = 'Abrindo Google...'; } try { const data = await runGoogleCalendarOperation({ action: 'authorize', companyId: null }); if (!data?.url) throw new Error('URL de autorização não recebida'); window.location.assign(data.url); } catch (error) { alert(`Não foi possível iniciar a autorização do Google.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); if (button) { button.disabled = false; button.textContent = 'Conectar Google Calendar'; } } }
-async function disconnect() { if (!confirm('Desconectar este Google Calendar do CALI Workspace? Os eventos já criados no Google não serão apagados automaticamente.')) return; try { await runGoogleCalendarOperation({ action: 'disconnect', companyId: null }); connectionCache = null; connectionCacheAt = 0; lastRenderKey = ''; document.querySelector<HTMLElement>('.google-calendar-runtime-actions')?.removeAttribute('data-google-connection-ready'); await renderConnection(); } catch (error) { alert(`Não foi possível desconectar.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); } }
+async function connect() { const button = document.querySelector<HTMLButtonElement>('[data-google-calendar-connect],[data-google-calendar-reconnect]'); if (button) { button.disabled = true; button.textContent = 'Abrindo Google...'; } try { const data = await runGoogleCalendarOperation({ action: 'authorize', companyId: null }); if (!data?.url) throw new Error('URL de autorização não recebida'); window.location.assign(data.url); } catch (error) { void showMessage(`Não foi possível iniciar a autorização do Google.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); if (button) { button.disabled = false; button.textContent = 'Conectar Google Calendar'; } } }
+async function disconnect() { if (!await confirmAction('Desconectar este Google Calendar do CALI Workspace? Os eventos já criados no Google não serão apagados automaticamente.')) return; try { await runGoogleCalendarOperation({ action: 'disconnect', companyId: null }); connectionCache = null; connectionCacheAt = 0; lastRenderKey = ''; document.querySelector<HTMLElement>('.google-calendar-runtime-actions')?.removeAttribute('data-google-connection-ready'); await renderConnection(); } catch (error) { void showMessage(`Não foi possível desconectar.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); } }
 /* Confirmação de exclusão no padrão dos diálogos do Workspace (antes eram duas janelas nativas do navegador). */
 function askDeleteReason(): Promise<string | null> {
   return new Promise((resolve) => {
@@ -130,7 +131,7 @@ function askDeleteReason(): Promise<string | null> {
     field.focus();
   });
 }
-async function deleteEvent(eventId: string) { const reason = await askDeleteReason(); if (!reason) return; try { await runGoogleCalendarOperation({ action: 'delete_event', eventId, reason: reason.trim() }); window.location.reload(); } catch (error) { alert(`Não foi possível excluir o evento.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); } }
+async function deleteEvent(eventId: string) { const reason = await askDeleteReason(); if (!reason) return; try { await runGoogleCalendarOperation({ action: 'delete_event', eventId, reason: reason.trim() }); window.dispatchEvent(new Event('cali-calendar-record-updated')); } catch (error) { void showMessage(`Não foi possível excluir o evento.\n\n${error instanceof Error ? error.message : 'Erro desconhecido'}`); } }
 
 function scheduleEnhance(delay = 80) { if (!isWorkspaceRoute('/admin/calendario', '/cliente/cronograma')) return; if (enhanceTimer) window.clearTimeout(enhanceTimer); enhanceTimer = window.setTimeout(() => { if (!isCalendar() || !isWorkspaceRoute('/admin/calendario', '/cliente/cronograma')) { uninstallRealtime(); return; } ensureStyle(); void renderConnection(); void enhanceOpenEventModal(); installRealtime(); }, delay); }
 function addedRelevantNode(node: Node) { if (!(node instanceof Element)) return false; return node.matches('.calendar-workspace-strip,.calendar-event-modal,.calendar-detail-modal') || Boolean(node.querySelector('.calendar-workspace-strip,.calendar-event-modal,.calendar-detail-modal')); }

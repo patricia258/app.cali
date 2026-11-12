@@ -208,7 +208,7 @@ export function AdminProfilesPage() {
         {filtersOn && <button type="button" className="cpa-clear" onClick={() => { setQuery(''); setCompanyFilter(''); setStyleFilter(''); setValidityFilter(''); setFrom(''); setTo(''); }}><X size={13} /> Limpar filtros</button>}
         <span className="v2-forms-total">{filtered.length} de {results.length}</span>
       </div>
-      {loading ? <LoadingState>Carregando…</LoadingState> : !results.length ? <EmptyState variant="workflow"><strong>Nenhuma resposta ainda.</strong><p>Crie um link em "Novo link" e envie os convites.</p></EmptyState>
+      {loading ? <LoadingState>Carregando…</LoadingState> : !results.length ? <EmptyState variant="workflow"><strong>Nenhuma resposta ainda.</strong><p>Crie um link em &quot;Novo link&quot; e envie os convites.</p></EmptyState>
         : !filtered.length ? <EmptyState variant="workflow"><strong>Nada com esses filtros.</strong><p>Ajuste ou limpe os filtros.</p></EmptyState>
         : <div className="v2-forms-table-wrap"><table className="v2-forms-table cpa-table"><thead><tr><th>Pessoa</th>{!grouped && <th>Empresa</th>}<th>Perfil</th><th>Sob pressão</th><th>Respondido em</th><th>Válido até</th><th /></tr></thead><tbody>
           {grouped ? groups.map((group) => { const closed = collapsed.includes(group.key); const valid = group.rows.filter((row) => isValid(row.created_at)).length; return <Fragment key={group.key}>
@@ -222,7 +222,7 @@ export function AdminProfilesPage() {
         </tbody></table></div>}
     </>}
 
-    {tab === 'links' && (loading ? <LoadingState>Carregando…</LoadingState> : !links.length ? <EmptyState variant="workflow"><strong>Nenhum link ainda.</strong><p>"Novo link" cria um link livre ou de uma empresa.</p></EmptyState>
+    {tab === 'links' && (loading ? <LoadingState>Carregando…</LoadingState> : !links.length ? <EmptyState variant="workflow"><strong>Nenhum link ainda.</strong><p>&quot;Novo link&quot; cria um link livre ou de uma empresa.</p></EmptyState>
       : <div className="v2-forms-table-wrap"><table className="v2-forms-table cpa-table"><thead><tr><th>Link</th><th>Empresa</th><th>Contexto</th><th>Situação</th><th>Respostas</th><th /></tr></thead><tbody>
         {links.map((link) => <tr key={link.id}>
           <td><span className="cpa-person"><strong>{link.title}</strong><small>{BASE.replace('https://', '')}{link.slug}</small></span></td>

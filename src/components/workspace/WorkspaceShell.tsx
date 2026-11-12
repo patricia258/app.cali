@@ -1,14 +1,10 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
 import { Link } from '../navigation/Link';
 import { useLocation } from '../../hooks/useLocation';
 import { useNavigate } from '../../hooks/useNavigate';
-import { BookOpenText, BriefcaseBusiness, Building2, CalendarDays, Clock3, FileText, FolderKanban, Home, LayoutDashboard, Layers, LogOut, Menu, Moon, PieChart, Star, Sun, Target, TimerReset, UsersRound, X, type LucideIcon } from 'lucide-react';
+import { BookOpenText, BriefcaseBusiness, Building2, CalendarDays, Clock3, FileText, FolderKanban, LayoutDashboard, LogOut, Menu, Moon, PieChart, Star, Sun, Target, TimerReset, UsersRound, X, type LucideIcon } from 'lucide-react';
 import { endWorkspaceSession } from '../../api/access/session';
-import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
 import { nextThemeBoundary, resolveWorkspaceTheme, setManualWorkspaceTheme, workspaceThemeEventName, type WorkspaceTheme } from '../../lib/workspaceTheme';
-import { loadContractFronts, type CompanyPlan, type ContractedFront, type Front } from '../../api/fronts/contracts';
-import { activeFront, planName } from '../../lib/contractFronts';
 import { NotificationCenter } from './WorkspaceChrome';
 import { DirectProfileControl } from './DirectProfileControl';
 import { AdminShell, ClientShell } from './WorkspaceShellLayout';

@@ -20,7 +20,7 @@ type CompanyLogoRegistry = {
 };
 type RegistryState = { cache?: { value: CompanyLogoRegistry; expiresAt: number }; pending?: Promise<CompanyLogoRegistry> };
 const registries = new WeakMap<AbortSignal, RegistryState>();
-const ensureQueues = new WeakMap<AbortSignal, Promise<unknown>>();
+const ensureQueues = new WeakMap<AbortSignal, Promise<string>>();
 
 function clamp(value: number, min = 0, max = 1) {
   return Math.max(min, Math.min(max, value));

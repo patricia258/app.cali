@@ -13,7 +13,7 @@ const rules = [
   [
     'pre-cadastro',
     'Pré-cadastro público passou a tratar link inválido',
-    (row, before, after) =>
+    (row, _before, after) =>
       row.id.startsWith('/pre-cadastro/') &&
       row.reference.signature.url === '/' &&
       after.includes('Solicite um novo link à CALI'),
@@ -103,7 +103,7 @@ const rules = [
   [
     'mfa-antes-do-shell',
     'MFA bloqueia a montagem da interface Admin',
-    (row, before, after) =>
+    (row, _before, after) =>
       row.id === 'seguranca:mfa-antes-da-confirmacao' &&
       row.reference.signature.menus.length > 0 &&
       !row.candidate.signature.menus.length &&

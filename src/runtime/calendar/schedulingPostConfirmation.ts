@@ -1,3 +1,4 @@
+import { showMessage } from '../../components/feedback/workspaceDialogs';
 import STYLE from './scheduling-post-confirmation.css?inline';
 import { isSupabaseConfigured } from '../../api/access/session';
 import {
@@ -36,13 +37,13 @@ let clientDeliverables: DeliverableRow[] = [];
 let clickInstalled = false;
 let refreshing = false;
 
-function esc(value: unknown) { return String(value ?? '').replace(/[&<>'"]/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]||c)); }
+function esc(value: string | number | boolean | null | undefined) { return String(value ?? '').replace(/[&<>'"]/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]||c)); }
 function ensureStyle(){ if(document.getElementById('scheduling-post-v69-style')) return; const el=document.createElement('style');el.id='scheduling-post-v69-style';el.textContent=STYLE;document.head.appendChild(el); }
 function fmtDay(value:string){return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',timeZone:'America/Sao_Paulo'}).format(new Date(value)).replace('.','');}
 function fmtTime(value:string){return new Intl.DateTimeFormat('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'}).format(new Date(value));}
-function fmtLong(value:string){return new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'}).format(new Date(value));}
+
 function localParts(value:string){const parts=new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'America/Sao_Paulo'}).formatToParts(new Date(value)); const get=(t:string)=>Number(parts.find(p=>p.type===t)?.value||0);return {y:get('year'),m:get('month'),d:get('day')};}
-function sameMonth(a:Date,b:{y:number;m:number}){return a.getFullYear()===b.y&&a.getMonth()+1===b.m;}
+
 
 async function loadClientData(){
   if(!isSupabaseConfigured||location.pathname!=='/cliente/cronograma') return;
@@ -123,11 +124,11 @@ function outcomeForm(section:HTMLElement,kind:'occurred'|'not_occurred'){
 
 async function submitOutcome(section:HTMLElement,occurred:boolean){
   if(!isSupabaseConfigured) return;const eventId=section.dataset.eventId||'';const source=section.dataset.sourceType||'';const note=(section.querySelector<HTMLTextAreaElement>('[data-v69-note]')?.value||'').trim();const reason=section.querySelector<HTMLSelectElement>('[data-v69-reason]')?.value||null;const justified=Boolean(section.querySelector<HTMLInputElement>('[data-v69-justified]')?.checked);
-  const { error } = await recordMeetingOutcome(eventId, source === 'scheduling_request', occurred, reason, justified, note); if(error){alert(error.message);return;} window.dispatchEvent(new Event('cali-calendar-record-updated')); section.removeAttribute('data-v69'); const modal=section.closest<HTMLElement>('.calendar-detail-modal'); section.remove(); if(modal) modal.dataset.v69='0'; await decorateAdminModal(); await cleanAdminRequests();
+  const { error } = await recordMeetingOutcome(eventId, source === 'scheduling_request', occurred, reason, justified, note); if(error){void showMessage(error.message);return;} window.dispatchEvent(new Event('cali-calendar-record-updated')); section.removeAttribute('data-v69'); const modal=section.closest<HTMLElement>('.calendar-detail-modal'); section.remove(); if(modal) modal.dataset.v69='0'; await decorateAdminModal(); await cleanAdminRequests();
 }
 
-async function saveTranscription(section:HTMLElement){if(!isSupabaseConfigured)return;const eventId=section.dataset.eventId||'';const url=section.querySelector<HTMLInputElement>('[data-v69-transcription-url]')?.value||'';const note=section.querySelector<HTMLTextAreaElement>('[data-v69-transcription-note]')?.value||'';const {error}=await saveMeetingTranscription(eventId,url,note);if(error){alert(error.message);return;} window.dispatchEvent(new Event('cali-calendar-record-updated')); const btn=section.querySelector<HTMLButtonElement>('[data-v69-save-transcription]');if(btn){btn.textContent='Salvo';setTimeout(()=>btn.textContent='Salvar transcrição',1200);}}
-async function uploadTranscription(section:HTMLElement){if(!isSupabaseConfigured)return;const file=section.querySelector<HTMLInputElement>('[data-v69-transcription-file]')?.files?.[0],eventId=section.dataset.eventId||'',companyId=section.dataset.companyId||'';if(!file)return;if(file.size>10*1024*1024||!['application/pdf','text/plain','application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type)){alert('Envie PDF, DOCX ou TXT de até 10 MB.');return;}const path=`meeting-transcripts/${companyId}/${eventId}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;const button=section.querySelector<HTMLButtonElement>('[data-v69-upload-transcription]');if(button)button.disabled=true;try{await uploadMeetingTranscription(eventId,path,file);if(button)button.textContent='Anexo disponível ao cliente';}catch(error){alert(error instanceof Error?error.message:'Não foi possível anexar.');if(button)button.disabled=false;}}
+async function saveTranscription(section:HTMLElement){if(!isSupabaseConfigured)return;const eventId=section.dataset.eventId||'';const url=section.querySelector<HTMLInputElement>('[data-v69-transcription-url]')?.value||'';const note=section.querySelector<HTMLTextAreaElement>('[data-v69-transcription-note]')?.value||'';const {error}=await saveMeetingTranscription(eventId,url,note);if(error){void showMessage(error.message);return;} window.dispatchEvent(new Event('cali-calendar-record-updated')); const btn=section.querySelector<HTMLButtonElement>('[data-v69-save-transcription]');if(btn){btn.textContent='Salvo';setTimeout(()=>btn.textContent='Salvar transcrição',1200);}}
+async function uploadTranscription(section:HTMLElement){if(!isSupabaseConfigured)return;const file=section.querySelector<HTMLInputElement>('[data-v69-transcription-file]')?.files?.[0],eventId=section.dataset.eventId||'',companyId=section.dataset.companyId||'';if(!file)return;if(file.size>10*1024*1024||!['application/pdf','text/plain','application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type)){void showMessage('Envie PDF, DOCX ou TXT de até 10 MB.');return;}const path=`meeting-transcripts/${companyId}/${eventId}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;const button=section.querySelector<HTMLButtonElement>('[data-v69-upload-transcription]');if(button)button.disabled=true;try{await uploadMeetingTranscription(eventId,path,file);if(button)button.textContent='Anexo disponível ao cliente';}catch(error){void showMessage(error instanceof Error?error.message:'Não foi possível anexar.');if(button)button.disabled=false;}}
 
 export async function refreshSchedulingPostConfirmation(){
   ensureStyle(); if(refreshing) return; refreshing=true;

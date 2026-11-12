@@ -1,3 +1,4 @@
+import type { JsonObject } from '../../domain/json';
 import { z } from 'zod';
 import { anonPublicRpc, supabase } from '../supabase';
 
@@ -46,7 +47,7 @@ export async function readDiscSigner() {
   return result.data;
 }
 
-export async function updateEvaluatorResult(id: string, fields: { team_member_id?: string | null; role_profile?: unknown }) {
+export async function updateEvaluatorResult(id: string, fields: { team_member_id?: string | null; role_profile?: JsonObject | null }) {
   if (!supabase) return { error: unavailable };
   return await supabase.from('profile_results').update(fields).eq('id', id);
 }

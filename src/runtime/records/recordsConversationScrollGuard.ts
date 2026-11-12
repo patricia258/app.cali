@@ -11,7 +11,7 @@ type HistoryState = {
 const states = new WeakMap<HTMLElement, HistoryState>();
 
 function scrollTopDescriptor() {
-  let proto: any = HTMLElement.prototype;
+  let proto: object | null = HTMLElement.prototype;
   while (proto) {
     const descriptor = Object.getOwnPropertyDescriptor(proto, 'scrollTop');
     if (descriptor?.get && descriptor?.set) return descriptor;

@@ -2,7 +2,7 @@ import { supabase } from '../supabase';
 
 const trackingFields = 'id,company_id,report_type,period_start,version,status,sent_at,client_open_count,client_first_opened_at,client_last_opened_at,client_pdf_count,acknowledged_at,acknowledgement_protocol';
 const historyFields = 'id,report_type,period_start,version,status,sent_at,client_open_count,client_first_opened_at,client_last_opened_at,client_pdf_count,acknowledged_at,acknowledgement_protocol';
-const clientEvents = { opened: 'Relatório aberto', pdf_opened: 'PDF aberto / baixado', acknowledged: 'Ciência registrada', drive_saved: 'Salvo no Drive', question_submitted: 'Dúvida enviada' } as Record<string, string>;
+const clientEvents: Record<string, string> = { opened: 'Relatório aberto', pdf_opened: 'PDF aberto / baixado', acknowledged: 'Ciência registrada', drive_saved: 'Salvo no Drive', question_submitted: 'Dúvida enviada' };
 
 export async function readOfficialTrackedReport(protocol: string) {
   if (!supabase) return null;

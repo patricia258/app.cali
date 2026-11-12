@@ -1,9 +1,14 @@
 import { z } from 'zod';
 import { supabase } from '../../supabase';
 
+const documentRow = z.looseObject({
+  title: z.string().nullish(), original_filename: z.string().nullish(), protocol: z.string().nullish(),
+  storage_path: z.string().nullish(), created_at: z.string().nullish(), document_date: z.string().nullish(),
+  drive_url: z.string().nullish(), external_url: z.string().nullish(),
+});
 const exportPayload = z.looseObject({
   exported_at: z.string(),
-  data: z.record(z.string(), z.array(z.unknown())),
+  data: z.object({ files: z.array(documentRow).optional(), account_documents: z.array(documentRow).optional() }).catchall(z.array(z.json())),
 });
 
 export async function readCompanyExport(companyId: string, recipient: string) {

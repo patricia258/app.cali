@@ -1,3 +1,4 @@
+import type { JsonObject, JsonValue } from '../_shared/json.ts';
 import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 // CALI Forms: e-mail "Recebemos sua resposta" para quem respondeu um formulário. Chamado só pelo banco
 // (public.cali_form_submit), com o segredo x-workspace-hook. Envia uma cópia das respostas e marca o envio.
@@ -15,11 +16,21 @@ const MARK_URL = `${APP_URL}/brand/cali-oak-mark-light.svg`;
 const headers = { "Content-Type": "application/json" };
 
 type Question = { id: string; kind: string; label: string };
+type Form = { title: string; thank_you: string | null; questions: Question[]; confirm_email: boolean };
 
-const esc = (value: unknown) => String(value ?? "")
+type FormResponse = {
+  id: string;
+  answers: JsonObject | null;
+  respondent_name: string | null;
+  respondent_email: string | null;
+  confirmation_sent_at: string | null;
+  forms: Form | null;
+};
+
+const esc = (value: JsonValue | undefined) => String(value ?? "")
   .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 
-function answerText(question: Question, value: unknown) {
+function answerText(question: Question, value: JsonValue | undefined) {
   if (value === undefined || value === null || value === "") return "—";
   if (Array.isArray(value)) return value.join(", ");
   if (question.kind === "file") return "Arquivo enviado";
@@ -64,9 +75,11 @@ Deno.serve(async (req: Request) => {
 
     const { response_id } = await req.json().catch(() => ({}));
     if (!response_id) return new Response(JSON.stringify({ ok: false, error: "missing response_id" }), { status: 400, headers });
-    const { data: response, error } = await ws.from("form_responses").select("id,answers,respondent_name,respondent_email,confirmation_sent_at,forms(title,thank_you,questions,confirm_email)").eq("id", response_id).maybeSingle();
+    const { data: response, error } = await ws.from("form_responses")
+      .select("id,answers,respondent_name,respondent_email,confirmation_sent_at,forms(title,thank_you,questions,confirm_email)")
+      .eq("id", response_id).maybeSingle().overrideTypes<FormResponse, { merge: false }>();
     if (error || !response) return new Response(JSON.stringify({ ok: false, error: "not found" }), { status: 404, headers });
-    const form = response.forms as unknown as { title: string; thank_you: string; questions: Question[]; confirm_email: boolean };
+    const form = response.forms;
     if (response.confirmation_sent_at || !response.respondent_email || !form?.confirm_email) return new Response(JSON.stringify({ ok: true, skipped: true }), { headers });
     if (!emailDestinationsAllowed([response.respondent_email])) return Response.json({ ok: false, error: "destination_not_allowed" }, { status: 403, headers });
     const { data: lease, error: claimError } = await ws.rpc("cali_form_claim_confirmation", { p_response_id: response.id });
@@ -74,7 +87,7 @@ Deno.serve(async (req: Request) => {
     if (!lease) return new Response(JSON.stringify({ ok: true, skipped: true }), { headers });
     activeDelivery = { responseId: response.id, lease };
 
-    const answers = (response.answers ?? {}) as Record<string, unknown>;
+    const answers: JsonObject = response.answers ?? {};
     const rows = (form.questions ?? []).filter((question) => question.kind !== "statement" && answers[question.id] !== undefined).map((question, index) => `<tr><td style="padding:11px 14px;${index ? "border-top:1px solid #EFE6DF;" : ""}font-size:12px;color:#8C807A;width:42%;vertical-align:top">${esc(question.label.replace(/\*\*|__|\*/g, ""))}</td><td style="padding:11px 14px;${index ? "border-top:1px solid #EFE6DF;" : ""}font-size:14px;color:#2B2B2B;vertical-align:top;white-space:pre-wrap">${esc(answerText(question, answers[question.id]))}</td></tr>`).join("");
 
     const sent = await fetch("https://api.resend.com/emails", {

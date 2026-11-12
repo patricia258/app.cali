@@ -6,7 +6,7 @@ let timer = 0;
 let loading = false;
 let reportIndex = new Map<string, WithdrawableReport>();
 
-function clean(value: unknown) {
+function clean(value: string | number | boolean | null | undefined) {
   return String(value ?? '').replace(/\s+/g, ' ').trim();
 }
 
@@ -104,7 +104,7 @@ function correctionModal(report: WithdrawableReport) {
 
     close();
     if (result.revisionId) window.location.assign('/admin/relatorios?report=' + encodeURIComponent(result.revisionId));
-    else window.location.reload();
+    else window.dispatchEvent(new Event('cali:reports:refresh'));
   }
 
   edit?.addEventListener('click', () => void run('edit'));

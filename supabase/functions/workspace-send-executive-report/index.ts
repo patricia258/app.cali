@@ -1,3 +1,4 @@
+import type { JsonValue } from '../_shared/json.ts';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import {
   appOrigin, approvedRecipients, deliveryAdmin, deliveryPreflight, DeliveryError,
@@ -9,7 +10,7 @@ const APP_URL = `${APP_BASE}/cliente/relatorios`;
 const LOGO_URL = `${APP_BASE}/brand/cali-workspace-transparent.svg`;
 const MARK_URL = `${APP_BASE}/brand/cali-oak-mark-light.svg`;
 
-function esc(value: unknown) {
+function esc(value: JsonValue | undefined) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -24,7 +25,7 @@ function monthLabel(start: string) {
     .format(new Date(Date.UTC(year, month - 1, 1)));
 }
 
-function dateOnly(value: unknown) {
+function dateOnly(value: JsonValue | undefined) {
   const raw = String(value ?? "").slice(0, 10);
   return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : "";
 }
@@ -40,7 +41,7 @@ function subject(company: string, period: string) {
   return `CALI Workspace · ${company} · Fechamento de ${period} disponível`;
 }
 
-function html(company: string, period: string, message: string, reportId: string) {
+function html(period: string, message: string, reportId: string) {
   const url = `${APP_URL}?report=${encodeURIComponent(reportId)}`;
   const personal = message
     ? `<div style="margin:0 0 22px;padding:14px 16px;border:1px solid #E8DDD4;border-radius:12px;background:#FBF7F3"><div style="font-size:10px;color:#B58C52;letter-spacing:.08em;text-transform:uppercase;font-weight:700;margin-bottom:6px">Uma observação da Patrícia</div><div style="font-size:14px;color:#2B2B2B;line-height:1.55">${esc(message).replaceAll("\n", "<br>")}</div></div>`
@@ -114,10 +115,10 @@ Deno.serve(async (req: Request) => {
     const provider = await sendMaterialEmail(db, {
       kind: "report", entityId: report.id, companyId: report.company_id, version: report.version,
       userId: user.id, requestId, recipients: to,
-      subject: subject(company.display_name, period), html: html(company.display_name, period, message, report.id),
+      subject: subject(company.display_name, period), html: html(period, message, report.id),
     });
     return emailResponse(req, { ok: true, email_id: provider, to, status: "sent" });
   } catch (error) {
-    return failureResponse(req, error);
+    return failureResponse(req, error instanceof DeliveryError ? error : null);
   }
 });

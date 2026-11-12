@@ -1,5 +1,5 @@
-type ClientProject = { name: string; status: string };
-type AccountHistory = { title: string; detail: string; date: string };
+type ClientProject = { id: string; name: string; status: string };
+type AccountHistory = { id: number; title: string; detail: string; date: string };
 
 export type ExtraPerson = { id?:string; name:string; job:string; email:string; phone:string; access:boolean; active?:boolean; role:string };
 

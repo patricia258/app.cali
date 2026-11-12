@@ -24,7 +24,6 @@ let busy = false;
 let cache: { at: number; data: PortfolioData } | null = null;
 let selectedScope: ClientScope = (localStorage.getItem('cali-project-client-scope-v39') as ClientScope | null) || 'active';
 let overlay: HTMLElement | null = null;
-let selectedCompanyId = '';
 
 const statusLabels: Record<string, string> = {
   draft: 'Rascunho',
@@ -48,9 +47,7 @@ function currentProjectProtocol() {
   const text = document.querySelector<HTMLElement>('.project-hero-v2 > div:first-of-type > span')?.textContent || '';
   return text.match(/CALI-PRJ-[A-Z0-9-]+/i)?.[0] || '';
 }
-function escapeText(value: string) {
-  return value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char] || char));
-}
+
 
 async function load(force = false): Promise<PortfolioData> {
   if (!isSupabaseConfigured) return { companies: [], projects: [] };
@@ -120,13 +117,11 @@ function selectProject(project: ProjectRow) {
 function closeModal() {
   overlay?.remove();
   overlay = null;
-  selectedCompanyId = '';
   document.body.classList.remove('workspace-modal-open');
 }
 
 async function openCompany(company: CompanyRow, data: PortfolioData) {
   closeModal();
-  selectedCompanyId = company.id;
   document.body.classList.add('workspace-modal-open');
   overlay = document.createElement('div');
   overlay.className = 'project-client-modal-backdrop-v39';
@@ -211,7 +206,8 @@ async function render() {
     const label = document.createElement('span'); label.textContent = 'CLIENTES';
     const title = document.createElement('strong'); title.textContent = selectedScope === 'active' ? 'Contas ativas' : 'Contas inativas'; heading.append(label, title);
     const tabs = document.createElement('div'); tabs.className = 'project-client-scope-v39';
-    (['active', 'inactive'] as ClientScope[]).forEach((scope) => {
+    const scopes: ClientScope[] = ['active', 'inactive'];
+    scopes.forEach((scope) => {
       const button = document.createElement('button'); button.type = 'button'; button.className = selectedScope === scope ? 'active' : ''; button.textContent = scope === 'active' ? 'Ativos' : 'Inativos';
       button.onclick = () => { selectedScope = scope; localStorage.setItem('cali-project-client-scope-v39', scope); schedule(true); };
       tabs.append(button);

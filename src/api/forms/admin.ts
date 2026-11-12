@@ -1,3 +1,4 @@
+import type { JsonObject, JsonValue } from '../../domain/json';
 import { z } from 'zod';
 import { supabase } from '../supabase';
 import { formContentColumns, formContentSchema } from './contracts';
@@ -15,7 +16,7 @@ const formRecord = formContentSchema.extend({
 
 const responseRow = z.object({
   id: z.string(),
-  answers: z.record(z.string(), z.unknown()),
+  answers: z.record(z.string(), z.json()),
   respondent_name: z.string().nullable(),
   respondent_email: z.string().nullable(),
   submitted_at: z.string(),
@@ -29,7 +30,7 @@ const trashRow = z.object({
   id: z.string(),
   kind: z.enum(['form', 'responses']),
   form_title: z.string(),
-  responses: z.array(z.unknown()),
+  responses: z.array(z.json()),
   deleted_at: z.string(),
 });
 const formCount = z.object({
@@ -40,13 +41,13 @@ const companyRow = z.object({ id: z.string(), display_name: z.string(), status: 
 export type FormResponse = z.infer<typeof responseRow>;
 export type FormTrashEntry = z.infer<typeof trashRow>;
 
-function parseRows<Schema extends z.ZodType>(schema: Schema, data: unknown) {
+function parseRows<Schema extends z.ZodType>(schema: Schema, data: JsonValue | undefined) {
   const parsed = z.array(schema).safeParse(data ?? []);
   return parsed.success ? parsed.data : [];
 }
 
 function parseSingle<Schema extends z.ZodType>(
-  schema: Schema, result: { data: unknown; error: { message: string } | null },
+  schema: Schema, result: { data: JsonValue | undefined; error: { message: string } | null },
 ) {
   if (result.error) return { data: null, error: result.error };
   const parsed = schema.safeParse(result.data);
@@ -112,7 +113,7 @@ export async function updateFormResponseTracking(
 }
 
 export async function saveFormResponseAnswers(
-  id: string, fields: Pick<FormResponse, 'answers' | 'respondent_name' | 'respondent_email'>,
+  id: string, fields: Pick<FormResponse, 'respondent_name' | 'respondent_email'> & { answers: JsonObject },
 ) {
   if (!supabase) return { data: null, error: unavailable };
   const result = await supabase.from('form_responses').update(fields).eq('id', id).select(responseColumns).single();

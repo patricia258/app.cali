@@ -1,3 +1,4 @@
+import type { JsonObject } from '../domain/json';
 import type { PortalPricingRule } from '../api/commercial/portal';
 import { initialPackageFor, investmentContextFor, scopeDefaults } from './portalProposalLogic';
 
@@ -66,10 +67,10 @@ export const BONUS_PRESETS:Record<string,Array<{code:string;title:string;descrip
   'solucao-personalizada':[{code:'followup',title:'Check-in executivo de 30 dias',description:'Uma conversa breve para revisar a aplicação da entrega principal e orientar o próximo movimento.'}],
 };
 
-export function technicalPackageFor(serviceSlug:string,answers:Record<string,unknown>,pricing:PortalPricingRule[]){
+export function technicalPackageFor(serviceSlug:string,answers:JsonObject,pricing:PortalPricingRule[]){
   return initialPackageFor(serviceSlug,{...answers,investimento:'avaliar',budget:'avaliar'},pricing);
 }
-export function packageForBudget(serviceSlug:string,answers:Record<string,unknown>,pricing:PortalPricingRule[]){
+export function packageForBudget(serviceSlug:string,answers:JsonObject,pricing:PortalPricingRule[]){
   const investment=investmentContextFor(serviceSlug,answers);const technical=technicalPackageFor(serviceSlug,answers,pricing);
   if(serviceSlug==='cali-build')return technical;
   const max=investment?.max;
@@ -80,9 +81,9 @@ export function packageForBudget(serviceSlug:string,answers:Record<string,unknow
   const fitting=pricing.filter(rule=>rule.service_slug===serviceSlug&&codes.has(rule.package_code)&&Number(rule.base_price)>0&&Number(rule.base_price)<=max).sort((a,b)=>Number(a.base_price)-Number(b.base_price));
   return fitting.at(-1)?.package_code||technical;
 }
-export function prioritizedScope(serviceSlug:string,answers:Record<string,any>,phased=false,packageCode=initialPackageFor(serviceSlug,answers,[])){
+export function prioritizedScope(serviceSlug:string,answers:JsonObject,phased=false,packageCode=initialPackageFor(serviceSlug,answers,[])){
   if(serviceSlug==='assessoria-estrategica'){
-    const selected=Array.isArray(answers.frentes)?answers.frentes:[];
+    const selected=Array.isArray(answers.frentes)?answers.frentes.map(String):[];
     const challenge=String(answers.principal_desafio||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
     const keywordMap:Record<string,string[]>={governanca:['governan','process'],clima:['clima','engaj'],comunicacao:['comunic'],planejamento:['planej'],desenho:['estrutur','desenho'],cultura:['cultur'],cargos:['cargo','salario'],atracao:['atracao','selec','onboard']};
     const ordered=[...selected.filter((value:string)=>(keywordMap[value]||[]).some(keyword=>challenge.includes(keyword))),...selected].filter((value:string,index:number,list:string[])=>list.indexOf(value)===index);
@@ -91,7 +92,7 @@ export function prioritizedScope(serviceSlug:string,answers:Record<string,any>,p
     return [phased?'Fase 1 de direção estratégica com a liderança':'Direção estratégica mensal com a liderança',`${packageCode==='FULL'?'Prioridades':'Prioridade'} do primeiro ciclo: ${description}`,`${packageCode==='FULL'?'Encontros quinzenais':'Encontro mensal'} e apoio a decisões críticas dentro da carga contratada`,'Organização de um roadmap para as demais frentes levantadas no briefing','Revisão das prioridades conforme a evolução do ciclo'];
   }
   if(serviceSlug==='cali-build'){
-    const selected=Array.isArray(answers.frentes)?answers.frentes:[];
+    const selected=Array.isArray(answers.frentes)?answers.frentes.map(String):[];
     const labels:Record<string,string>={planejamento:'Planejamento estratégico de pessoas',desenho:'Estrutura e desenho organizacional',governanca:'Governança, políticas e processos',people_analytics:'Indicadores, People Analytics e dashboards',desempenho:'Gestão de desempenho e metas',clima:'Clima e engajamento',cultura:'Cultura e valores',cargos:'Cargos, carreira e salários',sucessao:'Sucessão e gestão de talentos',liderancas:'Desenvolvimento de lideranças',atracao:'Atração, seleção e onboarding',marca:'Marca empregadora e experiência do colaborador',comunicacao:'Comunicação interna',saude:'Saúde, segurança e conformidade',diversidade:'Diversidade, equidade e inclusão'};
     const limit=packageCode==='COMPLETO'?3:1,priorities=selected.slice(0,limit).map((x:string)=>labels[x]||x),description=priorities.length?priorities.join(', '):(answers.escopo_build==='rh_completo'?'arquitetura do RH e subsistemas prioritários':'frente prioritária a confirmar no kickoff');
     return [phased?'Ciclo inicial de estruturação assistida com escopo delimitado':'Estruturação assistida organizada em ciclos','Prioridades do primeiro ciclo: '+description,'Método, modelos, critérios e revisão técnica pela CALI; execução pelo RH interno','Checkpoints de implantação e validações com sponsor nos marcos necessários','Roadmap das demais frentes para ciclos posteriores'];
@@ -106,12 +107,12 @@ export function prioritizedScope(serviceSlug:string,answers:Record<string,any>,p
   return [phased?'Primeira fase do trabalho, com escopo e entregas delimitados':'Escopo priorizado conforme o investimento informado',...defaults.slice(0,3),'Roadmap das demais necessidades para uma etapa posterior'];
 }
 
-export function defaultNarrative(company:string,answers:Record<string,any>){
+export function defaultNarrative(company:string,answers:JsonObject){
   if(answers.escopo_build||answers.estrutura_rh_status){
     const contextParts=[answers.momento_empresa,answers.estrutura_rh_status,answers.pessoas_rh?String(answers.pessoas_rh)+' pessoa(s) no RH':'',answers.escopo_build].filter(Boolean);
     return{
       contextSummary:(company||'A empresa')+' compartilhou um contexto de estruturação em que '+(contextParts.join(', ')||'o RH precisa ganhar método, sequência e capacidade de sustentação')+'. O CALI Build parte dessa realidade para organizar a arquitetura e os ciclos sem substituir a execução do time interno.',
-      painPoints:[answers.objetivo_primeiro_ciclo,answers.principal_bloqueio,...(Array.isArray(answers.frentes)?answers.frentes:[])].filter(Boolean).slice(0,4).map(String),
+      painPoints:[answers.objetivo_primeiro_ciclo,answers.principal_bloqueio,...(Array.isArray(answers.frentes)?answers.frentes.map(String):[])].filter(Boolean).slice(0,4).map(String),
       executiveReading:'A leitura inicial deve equilibrar a complexidade do negócio com a capacidade real de execução do RH interno. O primeiro ciclo precisa ser suficientemente claro para avançar, mas também viável para ser construído e sustentado pela equipe.',
       whyNow:'A estrutura precisa ganhar método antes que novas demandas aumentem dependências, retrabalho e decisões sem continuidade.',
       cycleObjective:String(answers.objetivo_primeiro_ciclo||'Definir a arquitetura da frente prioritária, colocar a construção em movimento e chegar ao primeiro marco validado de implantação.'),
@@ -121,7 +122,7 @@ export function defaultNarrative(company:string,answers:Record<string,any>){
   const contextParts=[answers.momento_empresa,answers.principal_desafio,Array.isArray(answers.frentes)?answers.frentes.join(', '):''].filter(Boolean);
   return {
     contextSummary:`${company||'A empresa'} compartilhou um contexto que combina ${contextParts.join(', ')||'necessidades de gestão de pessoas que pedem organização e direção'}. Esta proposta parte do briefing recebido e considera o momento atual, a capacidade de implantação e as decisões que precisam ser sustentadas pela liderança.`,
-    painPoints:[answers.principal_desafio,...(Array.isArray(answers.frentes)?answers.frentes:[])].filter(Boolean).slice(0,4).map(String),
+    painPoints:[answers.principal_desafio,...(Array.isArray(answers.frentes)?answers.frentes.map(String):[])].filter(Boolean).slice(0,4).map(String),
     executiveReading:'A leitura inicial indica que o trabalho deve começar pelo que cria base para as demais necessidades avançarem com consistência. Por isso, a recomendação prioriza uma sequência viável de implantação, sem perder de vista o conjunto de temas levantados.',
     whyNow:'O momento pede foco, critérios claros de decisão e uma condução que conecte pessoas ao negócio sem ampliar desnecessariamente a estrutura fixa da empresa.',
     cycleObjective:'Organizar a prioridade central deste ciclo, definir responsáveis e transformar as decisões em uma rotina de acompanhamento aplicável.',

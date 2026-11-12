@@ -37,7 +37,7 @@ export function StaffDashboard({ me }: { me: PartnerWorkspace }) {
     setPendingHours(data.pendingHours);
     setPendingReviews(data.pendingReviews);
     setLoading(false);
-    const resolved = await Promise.all(me.companies.map(async (item) => [item.id, (await resolveWorkspaceMedia(item.logo_workspace_url || item.logo_url, 3600)) || ''] as [string, string]));
+    const resolved = await Promise.all(me.companies.map(async (item) => [item.id, (await resolveWorkspaceMedia(item.logo_workspace_url || item.logo_url, 3600)) || ''] satisfies [string, string]));
     if (alive) setLogos(Object.fromEntries(resolved.filter(([, url]) => url)));
   })(); return () => { alive = false; }; }, [me.id]);
 
@@ -48,7 +48,13 @@ export function StaffDashboard({ me }: { me: PartnerWorkspace }) {
   const deadlines = open.filter((item) => item.due_at && String(item.due_at) >= today).sort((a, b) => String(a.due_at).localeCompare(String(b.due_at))).slice(0, 4);
   const openRecords = records.filter((item) => !['completed', 'closed', 'archived'].includes(item.workflow_status || ''));
   const statusData = Object.entries(deliverables.reduce<Record<string, number>>((map, item) => { const key = item.status || 'not_started'; map[key] = (map[key] || 0) + 1; return map; }, {})).sort((a, b) => b[1] - a[1]);
-  let cursor = 0; const donutStops = statusData.map(([, value], index) => { const from = cursor; cursor += value / Math.max(1, deliverables.length) * 100; return `${tones[index % tones.length]} ${from}% ${cursor}%`; });
+  const donutStops: string[] = [];
+  let cursor = 0;
+  for (const [position, [, value]] of statusData.entries()) {
+    const from = cursor;
+    cursor += value / Math.max(1, deliverables.length) * 100;
+    donutStops.push(`${tones[position % tones.length]} ${from}% ${cursor}%`);
+  }
   const waiting = pendingHours + pendingReviews;
   const metrics = [
     { label: 'Empresas', value: String(me.companies.length), helper: me.companies.slice(0, 2).map((c) => c.display_name).join(' · ') + (me.companies.length > 2 ? ` · +${me.companies.length - 2}` : ''), tone: 'green', href: '/equipe' },
@@ -108,7 +114,7 @@ export function StaffDashboard({ me }: { me: PartnerWorkspace }) {
 
     <section className="ap-pane ap-full v2-staff-scope">
       <div className="ap-pane-head"><h2>O que está liberado para você</h2></div>
-      <div className="v2-staff-scope-tags">{me.modules.map((key) => <span className="ap-status purple" key={key}>{({ records: 'Ocorrências', projects: 'Projetos e entregas', hours: 'Horas', calendar: 'Calendário', documents: 'Documentos', reports: 'Relatórios', notices: 'Avisos', team: 'Equipe do cliente', people_map: 'Mapa de People' } as Record<string, string>)[key] || key}</span>)}</div>
+      <div className="v2-staff-scope-tags">{me.modules.map((key) => <span className="ap-status purple" key={key}>{({ records: 'Ocorrências', projects: 'Projetos e entregas', hours: 'Horas', calendar: 'Calendário', documents: 'Documentos', reports: 'Relatórios', notices: 'Avisos', team: 'Equipe do cliente', people_map: 'Mapa de People' } satisfies Record<string, string>)[key] || key}</span>)}</div>
     </section>
   </div></div>;
 }

@@ -3,13 +3,49 @@ import { GoogleIntegrationError, type googleActor, type googleRequest } from './
 type Context = Awaited<ReturnType<typeof googleActor>>;
 type Config = ReturnType<typeof googleRequest>;
 type Db = Context['db'];
-type EventRow = Record<string, any>;
-type Connection = Record<string, any>;
+type EventRow = {
+  id: string;
+  title: string;
+  starts_at: string;
+  updated_at: string;
+  description: string | null;
+  location: string | null;
+  ends_at: string | null;
+  timezone: string;
+  mode: string | null;
+  protocol: string | null;
+  source_entity_id: string | null;
+  source_type: string;
+  created_by: string | null;
+  company_id: string | null;
+  cancelled_at: string | null;
+  google_connection_id: string | null;
+  google_calendar_id: string | null;
+  google_event_id: string | null;
+  google_account_email: string | null;
+  google_account_id: string | null;
+  google_html_link: string | null;
+  meeting_url: string | null;
+  meet_space_name: string | null;
+  all_day: boolean;
+  auto_transcription: boolean;
+  reminder_minutes: number;
+};
+
+type Connection = {
+  id: string;
+  user_id: string;
+  account_email: string;
+  company_id: string | null;
+  calendar_id: string | null;
+  provider_account_id: string | null;
+  credential_key: string | null;
+};
 
 const eventsEndpoint = (calendar: string) => `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendar)}/events`;
 const eventIdentity = (id: string) => 'cali' + id.replaceAll('-', '');
 
-export async function calendarEvent(actor: Context, id: string) {
+export async function calendarEvent(actor: Context, id: string): Promise<EventRow> {
   if (!/^[a-f0-9-]{36}$/.test(id)) throw new GoogleIntegrationError('invalid_event_id');
   const visible = await actor.workspace.from('events').select('id').eq('id', id).maybeSingle();
   if (visible.error || !visible.data) throw new GoogleIntegrationError('event_access_denied', 403);
@@ -18,7 +54,7 @@ export async function calendarEvent(actor: Context, id: string) {
   return loaded.data;
 }
 
-export async function calendarConnection(db: Db, event: EventRow, userId?: string, companyId?: string | null) {
+export async function calendarConnection(db: Db, event: EventRow, userId?: string, companyId?: string | null): Promise<Connection | null> {
   let query = db.from('calendar_connections').select('*').eq('provider', 'google').eq('status', 'connected').eq('sync_enabled', true).eq('is_primary', true);
   if (event.google_connection_id) {
     query = query.eq('id', event.google_connection_id);

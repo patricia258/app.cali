@@ -8,12 +8,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ClientSubtaskModal } from './components/ClientSubtaskModal';
 import { DeliverableDependencies } from '../../../components/projects/DeliverableDependencies';
 import { complexityMeta, complexityRange, complexityClientNote, validDeliverableFeedback } from '../../../domain/projects';
-import { AlertCircle, AlertTriangle, ArrowRight, CalendarDays, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileCheck2, FileText, FolderKanban, History, Leaf, Loader2, MessageCircle, RefreshCw, Star, X } from 'lucide-react';
+import { AlertCircle, AlertTriangle, ArrowRight, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileCheck2, FileText, FolderKanban, History, Leaf, Loader2, MessageCircle, RefreshCw, Star, X } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import {
   loadClientDeliveryReality, approveClientDeliveryReview, readClientDeliveryCompany, requestClientDeliveryAdjustment,
   subscribeClientDeliveryReality,
   type ClientDeliveryItem,
+  type ClientVisibleTask,
   type ClientDeliveryReality,
   type ClientDeliveryStatus,
   type ClientDeliveryWorkstream,
@@ -39,18 +40,6 @@ const statusLabel: Record<ClientDeliveryStatus, string> = {
   rebriefing: 'Em rebriefing',
   approved: 'Concluída',
   cancelled: 'Cancelada',
-};
-
-const statusTone: Record<ClientDeliveryStatus, string> = {
-  not_started: 'status-neutral',
-  in_progress: 'status-progress',
-  standby: 'status-standby',
-  internal_review: 'status-review',
-  client_review: 'status-client',
-  adjustment_requested: 'status-adjustment',
-  rebriefing: 'status-rebriefing',
-  approved: 'status-approved',
-  cancelled: 'status-cancelled',
 };
 
 const taskStatusLabel: Record<string, string> = {
@@ -123,12 +112,11 @@ export function ClientDeliverablesPage() {
   const [selectedId, setSelectedId] = useState('');
   const [projectTab, setProjectTab] = useState<'timeline' | 'deliverables' | 'history'>('timeline');
   const [closedSubs, setClosedSubs] = useState<Record<string, boolean>>({});
-  const [openSub, setOpenSub] = useState<{ task: any; item: any } | null>(null);
+  const [openSub, setOpenSub] = useState<{ task: ClientVisibleTask; item: ClientDeliveryItem } | null>(null);
   const [expandedFronts, setExpandedFronts] = useState<Record<string, boolean>>({});
   const [detailTab, setDetailTab] = useState<DetailTab>('overview');
   const [messages, setMessages] = useState<ClientDeliverableMessage[]>([]);
   const [messageDraft, setMessageDraft] = useState('');
-  const [conversationLoading, setConversationLoading] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [adjustmentOpen, setAdjustmentOpen] = useState(false);
   const [adjustmentText, setAdjustmentText] = useState('');
@@ -153,7 +141,7 @@ export function ClientDeliverablesPage() {
   const detailActionOpen = adjustmentOpen || npsOpen;
   const reviewErrorNotice = reviewError && <>
     <InlineNotice role="alert"><AlertTriangle size={18} aria-hidden="true" />{reviewError.message}</InlineNotice>
-    {reviewError.stale && <Button type="button" variant="secondary" onClick={() => window.location.reload()}>Recarregar página</Button>}
+    {reviewError.stale && <Button type="button" variant="secondary" disabled={saving} onClick={() => void refreshStaleReview()}>Atualizar dados</Button>}
   </>;
 
   useEffect(() => {
@@ -176,7 +164,7 @@ export function ClientDeliverablesPage() {
       return;
     }
     void loadConversation(selected.id);
-    return subscribeClientDeliverableConversation(selected.id, () => void loadConversation(selected.id, false));
+    return subscribeClientDeliverableConversation(selected.id, () => void loadConversation(selected.id));
   }, [selected?.id]);
 
   useEffect(() => {
@@ -230,22 +218,43 @@ export function ClientDeliverablesPage() {
   }
 
   async function refreshReality() {
-    if (!companyId) return;
+    if (!companyId) return false;
     try {
       applyReality(await loadClientDeliveryReality(companyId));
+      return true;
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível atualizar os dados.');
+      return false;
     }
   }
 
-  async function loadConversation(deliverableId: string, showLoading = true) {
-    if (showLoading) setConversationLoading(true);
+  async function refreshStaleReview() {
+    const target = reviewTarget.current;
+    setSaving(true);
+    try {
+      const refreshed = await refreshReality();
+      if (reviewTarget.current !== target) return;
+      if (!refreshed) {
+        setReviewError({ message: 'Não foi possível atualizar os dados. Tente novamente.', stale: true });
+        return;
+      }
+      reviewTarget.current = null;
+      setReviewError(null);
+      setAdjustmentOpen(false);
+      setNpsOpen(false);
+      setAdjustmentText('');
+      setScore(0);
+      setNpsComment('');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function loadConversation(deliverableId: string) {
     try {
       setMessages(await loadClientDeliverableConversation(deliverableId));
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar a conversa desta entrega.');
-    } finally {
-      if (showLoading) setConversationLoading(false);
     }
   }
 
@@ -274,7 +283,7 @@ export function ClientDeliverablesPage() {
     setError('');
     try {
       await sendClientDeliverableMessage(selected.id, body);
-      await loadConversation(selected.id, false);
+      await loadConversation(selected.id);
       setMessageDraft('');
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar a mensagem.');
@@ -378,7 +387,7 @@ export function ClientDeliverablesPage() {
           <button aria-label="Fechar entrega" onClick={closeDeliverable}><X size={18} /></button>
         </header>
 
-        <nav aria-label="Detalhes da entrega">{(['overview', 'conversation', 'history'] as DetailTab[]).map((tab) => <button key={tab} className={detailTab === tab ? 'selected' : ''} onClick={() => setDetailTab(tab)}>{tab === 'overview' ? 'Visão geral' : tab === 'tasks' ? 'Etapas' : tab === 'conversation' ? 'Conversas' : 'Histórico'}</button>)}</nav>
+        <nav aria-label="Detalhes da entrega">{(['overview', 'conversation', 'history'] satisfies DetailTab[]).map((tab: DetailTab) => <button key={tab} className={detailTab === tab ? 'selected' : ''} onClick={() => setDetailTab(tab)}>{tab === 'overview' ? 'Visão geral' : tab === 'tasks' ? 'Etapas' : tab === 'conversation' ? 'Conversas' : 'Histórico'}</button>)}</nav>
 
         {/* Os runtimes da conversa procuram a lista e o campo de resposta dentro de "conversation-pane-v2"; este invólucro (display: contents) reúne a área rolável e o campo fixo sem alterar a composição aprovada. */}
         <div className="dv-pane" data-v2-operation="conversation-pane-v2">
@@ -490,6 +499,6 @@ export function ClientDeliverablesPage() {
         </DialogFrame>
       </div>
     </div>}
-  {openSub && <ClientSubtaskModal task={{ id: openSub.task.id, title: openSub.task.title, status: openSub.task.status, dueAt: openSub.task.dueAt, protocol: openSub.task.protocol, complexity: openSub.task.complexity }} deliverableId={openSub.item.id} deliverableTitle={openSub.item.title} statusLabel={openSub.task.status === 'todo' ? 'Programada' : openSub.task.status === 'client_review' ? 'Aguardando você' : ['done', 'approved', 'completed'].includes(openSub.task.status) ? 'Concluída' : 'Em andamento'} complexityHint={complexityCopy[openSub.task.complexity || ''] || ''} formatDate={formatDate} onClose={() => setOpenSub(null)} onChanged={() => window.location.reload()} />}
+  {openSub && <ClientSubtaskModal task={{ id: openSub.task.id, title: openSub.task.title, status: openSub.task.status, dueAt: openSub.task.dueAt, protocol: openSub.task.protocol, complexity: openSub.task.complexity }} deliverableId={openSub.item.id} deliverableTitle={openSub.item.title} statusLabel={openSub.task.status === 'todo' ? 'Programada' : openSub.task.status === 'client_review' ? 'Aguardando você' : ['done', 'approved', 'completed'].includes(openSub.task.status) ? 'Concluída' : 'Em andamento'} complexityHint={complexityCopy[openSub.task.complexity || ''] || ''} formatDate={formatDate} onClose={() => setOpenSub(null)} onChanged={() => { setOpenSub(null); void refreshReality(); }} />}
   </Shell>;
 }

@@ -35,7 +35,7 @@ export function SubtaskModal({ task, deliverableId, deliverableTitle, companyId,
   async function loadFinals() { if (!isSupabaseConfigured) return; const result = await readFinalProjectFiles({ taskId: task.id }); if (!result.error) setFinals((result.data || []) as FinalFile[]); }
   useEffect(() => { void loadFinals(); }, [task.id]);
   /* Entrega final: o Partner propõe; só a administradora libera, suspende ou recusa. */
-  async function finalAction(file: FileToken, action: 'propose' | 'release' | 'suspend' | 'refuse') { if (!isSupabaseConfigured || finalBusy) return; setFinalBusy(file.path); const existing = finals.find((item) => item.storage_path === file.path); let failure: any = null;
+  async function finalAction(file: FileToken, action: 'propose' | 'release' | 'suspend' | 'refuse') { if (!isSupabaseConfigured || finalBusy) return; setFinalBusy(file.path); const existing = finals.find((item) => item.storage_path === file.path); let failure: { message: string } | null = null;
     if (action === 'propose') failure = (await proposeFinalProjectFile(deliverableId, task.id, file)).error;
     else if (action === 'release') failure = existing
       ? (await releaseFinalProjectFile(existing.id)).error

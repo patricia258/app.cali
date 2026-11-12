@@ -1,3 +1,4 @@
+import type { JsonObject } from '../../domain/json';
 import { supabase } from '../supabase';
 
 function requireCalendarClient() {
@@ -15,11 +16,11 @@ export async function readAdminGoogleConnection() {
   return data;
 }
 
-export async function invokeGoogleCalendar(body: Record<string, unknown>) {
+export async function invokeGoogleCalendar(body: JsonObject) {
   return await requireCalendarClient().functions.invoke('google-calendar-oauth', { body });
 }
 
-export async function runGoogleCalendarOperation(body: Record<string, unknown>) {
+export async function runGoogleCalendarOperation(body: JsonObject) {
   const { data, error } = await invokeGoogleCalendar(body);
   if (error) throw error;
   if (data?.error) throw new Error(data.detail || data.error);

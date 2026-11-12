@@ -62,7 +62,7 @@ const { values } = parseArgs({
 });
 
 const hash = (buffer) => createHash('sha256').update(buffer).digest('hex');
-const name = (value) =>
+const scenarioName = (value) =>
   value
     .toLowerCase()
     .normalize('NFD')
@@ -422,7 +422,7 @@ async function capture(browser, origin, label, task, directory) {
 
 async function compare(browser, servers, task, output) {
   const { role, id, viewport } = task;
-  const folder = join(viewport, role, `${name(id)}-${hash(id).slice(0, 8)}`);
+  const folder = join(viewport, role, `${scenarioName(id)}-${hash(id).slice(0, 8)}`);
   const directory = join(output, folder);
   await fs.mkdir(directory, { recursive: true });
   const [reference, candidate] = await Promise.all(

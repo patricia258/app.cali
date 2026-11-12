@@ -184,3 +184,26 @@ export function downloadCalendarIcs(event: WorkspaceCalendarEvent) {
   anchor.click();
   URL.revokeObjectURL(url);
 }
+
+export type ReportAgendaCompliance = {
+  label?: string | null;
+  requiredTotal?: number | null;
+  occurredCount?: number | null;
+  notOccurredCount?: number | null;
+  pendingOutcomeCount?: number | null;
+  extraCount?: number | null;
+  extraOccurredCount?: number | null;
+  remoteOccurredCount?: number | null;
+  inPersonOccurredCount?: number | null;
+  remoteContractualCount?: number | null;
+  inPersonContractualCount?: number | null;
+  items?: Array<{
+    startsAt?: string | null;
+    outcome?: string | null;
+    reasonCategory?: string | null;
+    note?: string | null;
+    scheduleClass?: string | null;
+    billingApplies?: boolean | null;
+    mode?: string | null;
+  } | null> | null;
+};

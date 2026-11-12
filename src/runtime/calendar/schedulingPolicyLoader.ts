@@ -35,8 +35,8 @@ async function loadPoliciesWithoutObservers() {
     // neutralizamos somente o observer de DOM e capturamos apenas o popstate dessas duas
     // camadas. Assim elas continuam com seus eventos de click/change/submit, mas não
     // passam a escutar a navegação global do Workspace.
-    (window as any).MutationObserver = SilentMutationObserver;
-    (window as any).addEventListener = ((type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | AddEventListenerOptions) => {
+    window.MutationObserver = SilentMutationObserver;
+    window.addEventListener = ((type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | AddEventListenerOptions) => {
       if (type === 'popstate') {
         capturePolicyPopstateListener(listener);
         return;
@@ -48,8 +48,8 @@ async function loadPoliciesWithoutObservers() {
     await import('./schedulingPolicyFields');
     policiesLoaded = true;
   } finally {
-    (window as any).MutationObserver = NativeMutationObserver;
-    (window as any).addEventListener = nativeAddEventListener;
+    window.MutationObserver = NativeMutationObserver;
+    window.addEventListener = nativeAddEventListener;
     loadingPolicies = false;
   }
 }

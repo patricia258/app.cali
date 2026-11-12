@@ -2,8 +2,8 @@ import { Button } from '../../../components/ds/Button';
 import { EmptyState } from '../../../components/ds/EmptyState';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { useMaterialDeliveryConfirmation } from '../../../hooks/useMaterialDeliveryConfirmation';
-import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ExternalLink, FileText, Loader2, PencilLine } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, ExternalLink, Loader2, PencilLine } from 'lucide-react';
 import { useNavigate } from '../../../hooks/useNavigate';
 import { useParams } from '../../../hooks/useParams';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
@@ -21,7 +21,6 @@ export function AdminProposalPreviewPage(){
   const [sending, setSending] = useState(false);
   const [sentMessage, setSentMessage] = useState('');
   const{proposalId=''}=useParams();const navigate=useNavigate();
-  const legacyFrameRef=useRef<HTMLIFrameElement|null>(null);
   const[proposal,setProposal]=useState<FullProposal|null>(null),[pdfUrl,setPdfUrl]=useState(''),[loading,setLoading]=useState(true),[error,setError]=useState('');
 
   useEffect(()=>{void(async()=>{setLoading(true);setError('');try{const data=await loadPortalProposal(proposalId);if(!data)throw new Error('Proposta não encontrada.');setProposal(data);if(data.pdf_path)setPdfUrl(await createPortalProposalPdfUrl(data.pdf_path));}catch(e){setError(e instanceof Error?e.message:'Não foi possível abrir a proposta.');}finally{setLoading(false)}})()},[proposalId]);
@@ -46,21 +45,6 @@ export function AdminProposalPreviewPage(){
     return()=>window.removeEventListener('message',onMessage);
   },[]);
 
-  const guardLegacyFrameNavigation=()=>{
-    const frame=legacyFrameRef.current;
-    if(!frame?.contentWindow)return;
-    try{
-      const {pathname,search,hash}=frame.contentWindow.location;
-      if(!pathname||pathname==='about:blank'||pathname.startsWith('/portal-legacy/'))return;
-      if(pathname.startsWith('/admin/')){
-        navigate(`${pathname}${search}${hash}`,{replace:true});
-      }
-    }catch{
-      // A prévia é same-origin; se algum recurso externo assumir a navegação,
-      // não tentamos inspecionar o conteúdo do frame.
-    }
-  };
-
   const archivedPdf=Boolean(proposal?.pdf_path);
   useEffect(()=>{if(!archivedPdf)return;markRuntimeV2(window.location.pathname);applyVisualSystem(window.location.pathname);},[archivedPdf]);
 
@@ -68,7 +52,7 @@ export function AdminProposalPreviewPage(){
     if (!proposal || sending || !['aprovada', 'enviada'].includes(proposal.status)) return;
     const recipient = proposal.submission.contact_email.trim();
     if (!recipient.includes('@')) { setError('Confira o e-mail do contato no briefing.'); return; }
-    const requestId = confirmDelivery([recipient], [proposal.id, proposal.version, proposal.pdf_path]);
+    const requestId = await confirmDelivery([recipient], [proposal.id, proposal.version, proposal.pdf_path]);
     if (!requestId) return;
     setSending(true);
     setError('');

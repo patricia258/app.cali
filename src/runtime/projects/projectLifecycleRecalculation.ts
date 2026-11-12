@@ -1,3 +1,4 @@
+import { showMessage } from '../../components/feedback/workspaceDialogs';
 import { isSupabaseConfigured } from '../../api/access/session';
 import { changeProjectLifecycle, readProjectLifecycle, readProjectLifecycleContext } from '../../api/projects/lifecycle';
 
@@ -48,7 +49,7 @@ function formatDate(value?:string|null){if(!value)return'A definir';const d=new 
 function formatDateTime(value?:string|null){if(!value)return'—';const d=new Date(value);return Number.isNaN(d.getTime())?'—':new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(d).replace('.','');}
 function protocolFromHero(){const text=document.querySelector<HTMLElement>('.project-hero-v2 > div:first-of-type > span')?.textContent||'';return text.match(/CALI-PRJ-[A-Z0-9-]+/i)?.[0]||'';}
 function closeDialog(){document.querySelector('.project-lifecycle-backdrop-v45')?.remove();document.body.classList.remove('workspace-modal-open');dialogOpen=false;}
-function showError(message:string){window.alert(message);}
+function showError(message:string){void showMessage(message);}
 function activeHolds(ctx:Context){return ctx.events.filter((event)=>!event.resolved_at&&['pause','suspend'].includes(event.action));}
 function stateLabel(event:LifecycleEvent){return event.action==='pause'?'Pausado':'Suspenso';}
 
@@ -56,7 +57,8 @@ async function loadAdminContext():Promise<Context|null>{
   if(!isSupabaseConfigured)return null;const protocol=protocolFromHero();if(!protocol)return null;
   const project = await readProjectLifecycle(protocol);
   if (!project) return null;
-  return { project, ...await readProjectLifecycleContext(project.id, 50) } as Context;
+  const context: Context = { project, ...await readProjectLifecycleContext(project.id, 50) };
+  return context;
 }
 
 async function runAction(ctx:Context, action:Action, scopeType:ScopeType, scopeId:string|null, reason:string, resumeDate:string|null){
@@ -91,7 +93,7 @@ function openManager(ctx:Context){
     const scope=overlay.querySelector<HTMLSelectElement>('#lifecycle-v45-scope')!,targetField=overlay.querySelector<HTMLElement>('#lifecycle-v45-target-field')!,target=overlay.querySelector<HTMLSelectElement>('#lifecycle-v45-target')!,targetLabel=overlay.querySelector<HTMLElement>('#lifecycle-v45-target-label')!,reasonKind=overlay.querySelector<HTMLSelectElement>('#lifecycle-v45-reason-kind')!,resumeField=overlay.querySelector<HTMLElement>('#lifecycle-v45-resume-field')!,cancelConfirm=overlay.querySelector<HTMLElement>('#lifecycle-v45-cancel-confirm')!;
     const action=()=>((radios.find((radio)=>radio.checked)?.value||'pause') as 'pause'|'suspend'|'cancel');
     const updateAction=()=>{radios.forEach((radio)=>radio.closest('label')?.classList.toggle('active',radio.checked));reasonKind.innerHTML=reasonOptions(action());resumeField.hidden=action()==='cancel';cancelConfirm.hidden=action()!=='cancel';};
-    const updateTargets=()=>{const type=scope.value as ScopeType;targetField.hidden=type==='project';target.replaceChildren();if(type==='project')return;targetLabel.textContent=type==='front'?'Frente':'Entregável';const rows=type==='front'?ctx.fronts.filter((item)=>item.status!=='cancelled'):ctx.deliverables.filter((item)=>item.status!=='cancelled');const empty=document.createElement('option');empty.value='';empty.textContent=type==='front'?'Selecionar frente':'Selecionar entregável';target.append(empty);rows.forEach((row:any)=>{const option=document.createElement('option');option.value=row.id;option.textContent=type==='front'?row.name:`${row.title}${row.workstream?` · ${row.workstream}`:''}`;target.append(option);});};
+    const updateTargets=()=>{const type=scope.value as ScopeType;targetField.hidden=type==='project';target.replaceChildren();if(type==='project')return;targetLabel.textContent=type==='front'?'Frente':'Entregável';const rows=type==='front'?ctx.fronts.filter((item)=>item.status!=='cancelled'):ctx.deliverables.filter((item)=>item.status!=='cancelled');const empty=document.createElement('option');empty.value='';empty.textContent=type==='front'?'Selecionar frente':'Selecionar entregável';target.append(empty);rows.forEach((row)=>{const option=document.createElement('option');option.value=row.id;option.textContent='name' in row?row.name:`${row.title}${row.workstream?` · ${row.workstream}`:''}`;target.append(option);});};
     radios.forEach((radio)=>radio.addEventListener('change',updateAction));scope.addEventListener('change',updateTargets);updateTargets();
     overlay.querySelector('[data-apply]')?.addEventListener('click',async()=>{const chosen=action(),scopeType=scope.value as ScopeType,scopeId=scopeType==='project'?null:(target.value||null),reasonLabel=reasonKind.value,details=(overlay.querySelector<HTMLTextAreaElement>('#lifecycle-v45-details')?.value||'').trim(),resumeDate=(overlay.querySelector<HTMLInputElement>('#lifecycle-v45-resume-date')?.value||'')||null;if(scopeType!=='project'&&!scopeId){showError(`Selecione ${scopeType==='front'?'a frente':'o entregável'}.`);return;}if(!reasonLabel){showError('Selecione o motivo principal.');return;}if(details.length<4){showError('Explique brevemente o contexto para registrar e comunicar ao cliente.');return;}if(chosen==='cancel'&&!overlay.querySelector<HTMLInputElement>('#lifecycle-v45-cancel-check')?.checked){showError('Confirme o cancelamento definitivo antes de continuar.');return;}const fullReason=`${reasonLabel} — ${details}`;const button=overlay.querySelector<HTMLButtonElement>('[data-apply]')!;button.disabled=true;try{await runAction(ctx,chosen,scopeType,scopeId,fullReason,resumeDate);location.reload();}catch(error){button.disabled=false;showError(error instanceof Error?error.message:'Não foi possível aplicar a ação.');}});
   }

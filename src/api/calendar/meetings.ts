@@ -1,3 +1,4 @@
+import type { ReportAgendaCompliance } from '../../domain/calendar';
 import { supabase } from '../supabase';
 
 function requireMeetingClient() {
@@ -55,5 +56,6 @@ export async function uploadMeetingTranscription(eventId: string, path: string, 
 }
 
 export async function readReportAgendaSnapshot(protocol: string) {
-  return await requireMeetingClient().from('reports').select('source_snapshot').eq('protocol', protocol).maybeSingle();
+  return await requireMeetingClient().from('reports').select('source_snapshot').eq('protocol', protocol)
+    .maybeSingle().overrideTypes<{ source_snapshot: { agendaCompliance?: ReportAgendaCompliance } | null }, { merge: false }>();
 }

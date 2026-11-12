@@ -1,3 +1,4 @@
+import type { JsonObject, JsonValue } from '../_shared/json.ts';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 
@@ -16,7 +17,7 @@ const buckets = new Set(["cali-workspace-private", "workspace-assets", "cali-for
 
 type BatchRow = { bucket: string; path: string };
 
-function json(body: Record<string, unknown>, status = 200) {
+function json(body: JsonObject, status = 200) {
   return new Response(JSON.stringify(body), { headers, status });
 }
 
@@ -46,7 +47,7 @@ Deno.serve(async (request) => {
 
   const scheduled = body.action === "scheduled";
   const jobId = scheduled ? null : body.jobId as string;
-  let current: unknown;
+  let current: JsonValue = null;
   if (scheduled) {
     const hook = request.headers.get("x-workspace-hook") ?? "";
     const { data, error } = await db.from("runtime_secrets").select("secret_value").eq("secret_key", "company_elimination_worker_hook").maybeSingle();

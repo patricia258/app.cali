@@ -110,7 +110,9 @@ function ExportOverview({ data }: { data: DashboardData }) {
       : range === "quarter"
         ? "Trimestre atual"
         : "Ano atual";
+  const [printError, setPrintError] = useState('');
   function printPdf() {
+    setPrintError('');
     const documentNode =
       document.querySelector<HTMLElement>(".overview-export-print");
     if (!documentNode) return;
@@ -121,7 +123,7 @@ function ExportOverview({ data }: { data: DashboardData }) {
       "width=1100,height=900",
     );
     if (!printWindow) {
-      window.alert(
+      setPrintError(
         "O navegador bloqueou a janela de impressão. Permita pop-ups para este site e tente novamente.",
       );
       return;
@@ -380,6 +382,7 @@ function ExportOverview({ data }: { data: DashboardData }) {
                 </footer>
               </article>
             </div>
+            {printError && <InlineNotice role="alert">{printError}</InlineNotice>}
             <footer className="overview-export-actions">
               <Button
                 variant="secondary"
@@ -554,6 +557,7 @@ export function AdminDashboard() {
     ...highUsage.map(({ item }) => `company:${item.id}`),
   ]).size;
   const npsMonths = (data.satisfaction.monthly || []).map((item) => ({
+    id: item.month,
     label: new Intl.DateTimeFormat("pt-BR", { month: "short" })
       .format(new Date(`${item.month}T12:00:00`))
       .replace(".", "")
@@ -686,7 +690,7 @@ export function AdminDashboard() {
             <section className="ap-pane">
               <div className="ap-pane-head"><h2>NPS e satisfação</h2><Link to="/admin/satisfacao">Ver avaliações <ArrowRight size={14} /></Link></div>
               <div className="ap-exec-nps"><strong>{average ?? "—"}<span>/5</span></strong><div><b>{data.satisfaction.total ? `${data.satisfaction.total} avaliações registradas` : blockStatus("Nenhuma avaliação registrada", "Satisfação")}</b><small>Escala de satisfação de 1 a 5 · evolução mensal da carteira.</small></div></div>
-              {npsMonths.length > 1 ? <div className="ap-exec-nps-bars v2-admin-nps-bars">{npsMonths.map((month, index) => <span key={index} style={{ height: `${Math.max(4, month.average * 16)}%` }} title={`${month.label}: ${month.average.toFixed(1).replace(".", ",")}/5`}><em>{month.label}</em></span>)}</div> : <EmptyState as="p" variant="admin">As avaliações reais aparecerão aqui conforme forem registradas.</EmptyState>}
+              {npsMonths.length > 1 ? <div className="ap-exec-nps-bars v2-admin-nps-bars">{npsMonths.map((month) => <span key={month.id} style={{ height: `${Math.max(4, month.average * 16)}%` }} title={`${month.label}: ${month.average.toFixed(1).replace(".", ",")}/5`}><em>{month.label}</em></span>)}</div> : <EmptyState as="p" variant="admin">As avaliações reais aparecerão aqui conforme forem registradas.</EmptyState>}
             </section>
             <section className="ap-pane">
               <div className="ap-pane-head"><h2>Próximos prazos</h2><Link to="/admin/projetos">Ver cronograma <ArrowRight size={14} /></Link></div>

@@ -1,3 +1,4 @@
+import { showMessage, confirmAction } from '../../components/feedback/workspaceDialogs';
 import { recordsAvailable, readRecordViewerId } from '../../api/records/client';
 import {
   deleteUnopenedRecord, markRecordOpened, pauseRecordTimer, readRecordOperations,
@@ -50,13 +51,13 @@ async function markOpened(record: RecordRow) {
 }
 async function deleteUnopened(record: RecordRow, button: HTMLButtonElement) {
   if (!recordsAvailable) return;
-  const confirmed = window.confirm('Excluir esta solicitação? Isso só é possível porque a CALI ainda não abriu o atendimento.');
+  const confirmed = await confirmAction('Excluir esta solicitação? Isso só é possível porque a CALI ainda não abriu o atendimento.');
   if (!confirmed) return;
   button.disabled = true;
   const { error } = await deleteUnopenedRecord(record.id);
   if (error) {
     button.disabled = false;
-    alert(error.message || 'Não foi possível excluir esta solicitação.');
+    void showMessage(error.message || 'Não foi possível excluir esta solicitação.');
     return;
   }
   document.querySelector<HTMLButtonElement>(":is(.records-v13-drawer,[data-v2-operation~=\"records-v13-drawer\"]) .drawer-close")?.click();
@@ -100,7 +101,7 @@ async function startTimer(record: RecordRow, button: HTMLButtonElement) {
   const { error } = await startRecordTimer(record.id);
   button.disabled = false;
   if (error) {
-    alert(error.message || 'Não foi possível iniciar o acompanhamento.');
+    void showMessage(error.message || 'Não foi possível iniciar o acompanhamento.');
     return;
   }
   window.dispatchEvent(new CustomEvent('cali:timers-changed'));
@@ -114,7 +115,7 @@ async function pauseTimer(timerId: string, button: HTMLButtonElement, startedAt?
   const { error } = await pauseRecordTimer(timerId);
   button.disabled = false;
   if (error) {
-    alert(error.message || 'Não foi possível pausar e registrar esta sessão.');
+    void showMessage(error.message || 'Não foi possível pausar e registrar esta sessão.');
     return;
   }
   window.dispatchEvent(new CustomEvent('cali:timers-changed'));

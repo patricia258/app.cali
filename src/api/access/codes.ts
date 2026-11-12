@@ -13,7 +13,9 @@ const accessResponse = z.object({
   session: z.object({ access_token: z.string().min(1), refresh_token: z.string().min(1) }).optional(),
 });
 
-async function workspaceAccessRequest(body: Record<string, unknown>) {
+type AccessRequest = { action: 'request'; email: string } | { action: 'verify'; email: string; code: string };
+
+async function workspaceAccessRequest(body: AccessRequest) {
   if (!isSupabaseConfigured) {
     return { data: null, error: { message: 'Supabase ainda não configurado neste ambiente.' } };
   }

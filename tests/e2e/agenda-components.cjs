@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const { browserSuite } = require('./browser-suite.cjs');
+const { answerWorkspaceDialog, browserSuite } = require('./browser-suite.cjs');
 const { companyId, user } = require('./fixtures.cjs');
 
 const host = 'https://cali-local-qa.supabase.co';
@@ -104,12 +104,12 @@ browserSuite([
       await panel.getByText(/Conectado a agenda@example.test/).waitFor();
       await snapshot('google-conectado', panel);
       const disconnect = panel.getByRole('button', { name: 'Desconectar', exact: true });
-      page.once('dialog', (confirmation) => confirmation.dismiss());
       await disconnect.click();
+      await answerWorkspaceDialog(page, false);
       assert.deepEqual(requests, []);
       assert.equal(await disconnect.isVisible(), true);
-      page.once('dialog', (confirmation) => confirmation.accept());
       await disconnect.click();
+      await answerWorkspaceDialog(page, true);
       await panel.getByRole('button', { name: 'Conectar Google Calendar' }).waitFor();
       assert.deepEqual(requests, [{ action: 'disconnect', companyId }]);
       assert.ok(reads.some((read) => read[0] === 'eq.' + companyId && read[1] === 'eq.' + user.id && read[2] === 'eq.google'));

@@ -49,6 +49,7 @@ function parsePeople(text: string) {
 
 export function ProfileCampaignPage() {
   const { linkId = '' } = useParams();
+  const [referenceTime, setReferenceTime] = useState(() => Date.now());
   const [link, setLink] = useState<LinkRow | null>(null);
   const [company, setCompany] = useState('');
   const [invites, setInvites] = useState<InviteRow[]>([]);
@@ -63,6 +64,7 @@ export function ProfileCampaignPage() {
   const [extend, setExtend] = useState({ open: false, date: '', reason: '' });
 
   async function load() {
+    setReferenceTime(Date.now());
     setLoading(true);
     const campaign = await readDiscCampaign(linkId);
     if (!campaign) { setMissing(true); setLoading(false); return; }
@@ -182,7 +184,7 @@ export function ProfileCampaignPage() {
   const validity = (row: InviteRow) => {
     if (!row.completed_at) return null;
     const until = plusMonths(row.completed_at, 6);
-    const days = (until.getTime() - Date.now()) / 86400000;
+    const days = (until.getTime() - referenceTime) / 86400000;
     return { until, expired: days <= 0, soon: days > 0 && days <= 30 };
   };
   const renewed = (row: InviteRow) => invites.some((item) => item.previous_invite_id === row.id);
@@ -237,7 +239,7 @@ export function ProfileCampaignPage() {
         </section>
       </div>
 
-      {!invites.length ? <EmptyState variant="workflow"><strong>Nenhum convite ainda.</strong><p>Adicione as pessoas acima e clique em "Enviar convites".</p></EmptyState>
+      {!invites.length ? <EmptyState variant="workflow"><strong>Nenhum convite ainda.</strong><p>Adicione as pessoas acima e clique em &quot;Enviar convites&quot;.</p></EmptyState>
         : <div className="v2-forms-table-wrap"><table className="v2-forms-table cpa-table"><thead><tr><th>Pessoa</th><th>Situação</th><th>Prazo</th><th>Lembretes</th><th>Última atividade</th><th>Validade</th><th /></tr></thead><tbody>
           {invites.map((row) => { const valid = validity(row); return <tr key={row.id}>
             <td><span className="cpa-person"><strong>{row.person_name}{row.cycle > 1 ? ` · ciclo ${row.cycle}` : ''}</strong><small>{row.email}</small></span></td>
@@ -253,7 +255,7 @@ export function ProfileCampaignPage() {
             </td>
           </tr>; })}
         </tbody></table></div>}
-      {link.status !== 'open' && <InlineNotice className="cpc-notice error" role="alert">Este link está bloqueado: desbloqueie em "Links" para enviar convites.</InlineNotice>}
+      {link.status !== 'open' && <InlineNotice className="cpc-notice error" role="alert">Este link está bloqueado: desbloqueie em &quot;Links&quot; para enviar convites.</InlineNotice>}
       {notice && <InlineNotice className={`cpc-notice ${notice.tone}`} role={notice.tone === 'error' ? 'alert' : 'status'}>{notice.text}</InlineNotice>}
     </>}
   </div></div></div></Shell>;

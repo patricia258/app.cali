@@ -1,3 +1,6 @@
+import { confirmAction } from '../../../components/feedback/workspaceDialogs';
+import { errorMessage } from '../../../lib/errorMessage';
+import type { JsonValue } from '../../../domain/json';
 /* CALI Forms — área da administradora (/admin/formularios). Lista de formulários; ao abrir um, três abas:
    Perguntas (montar e publicar), Compartilhar (link, QR Code e cartão) e Respostas (tabela e Excel).
    Nada aqui aparece para o cliente: a rota e o menu são só da administradora. */
@@ -26,8 +29,8 @@ const TRASH_DAYS = 30;
 const EMOJIS = ['😊', '🙂', '🙏', '💬', '✨', '🌱', '🍂', '💡', '📌', '✅', '📝', '📊', '🤝', '❤️', '👏', '🎯', '⏱️', '🔒', '📅', '👉'];
 const dateTime = (value?: string | null) => value ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value)) : '—';
 const shortDate = (value?: string | null) => value ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(new Date(value)) : '—';
-const errorText = (err: unknown, fallback: string) => {
-  const message = err instanceof Error ? err.message : String((err as { message?: string })?.message || '');
+const errorText = <T,>(err: T, fallback: string) => {
+  const message = errorMessage(err, '');
   if (/duplicate key|forms_slug_key/.test(message)) return 'Este link já está em uso por outro formulário. Escolha outro.';
   if (/forms_slug_check/.test(message)) return 'O link só pode ter letras minúsculas, números e hífens (3 a 60 caracteres).';
   return message || fallback;
@@ -105,7 +108,7 @@ export function AdminFormsPage() {
       <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Formulários</h1><p>Pesquisas, questionários, inscrições, levantamentos: crie qualquer formulário com a identidade CALI, envie por link ou QR Code e veja as respostas reunidas aqui.</p></div>
         <div className="v2-head-actions"><Button variant="workflowSecondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</Button><Button variant="workflowPrimary" type="button" onClick={() => setCreating({ title: '', category: '', audience: 'cali', busy: false, error: '' })}><Plus size={15} /> Novo formulário</Button></div></div>
       {error && <InlineNotice role="alert">{error}</InlineNotice>}
-      <div className="wf-controls v2-forms-filter"><div className="wf-segments">{([['all', 'Todos'], ['cali', AUDIENCE_LABELS.cali], ['client', AUDIENCE_LABELS.client], ['trash', 'Lixeira']] as Array<['all' | FormAudience | 'trash', string]>).map(([key, label]) => <button type="button" key={key} className={audienceFilter === key ? 'on' : ''} onClick={() => setAudienceFilter(key)}>{label} <b>{key === 'all' ? forms.length : key === 'trash' ? trash.length : forms.filter((form) => form.audience === key).length}</b></button>)}</div></div>
+      <div className="wf-controls v2-forms-filter"><div className="wf-segments">{([['all', 'Todos'], ['cali', AUDIENCE_LABELS.cali], ['client', AUDIENCE_LABELS.client], ['trash', 'Lixeira']] satisfies Array<['all' | FormAudience | 'trash', string]>).map(([key, label]) => <button type="button" key={key} className={audienceFilter === key ? 'on' : ''} onClick={() => setAudienceFilter(key)}>{label} <b>{key === 'all' ? forms.length : key === 'trash' ? trash.length : forms.filter((form) => form.audience === key).length}</b></button>)}</div></div>
       {audienceFilter === 'trash' ? <>
         <div className="wf-group-head"><div><span>LIXEIRA</span><strong>Excluídos nos últimos {TRASH_DAYS} dias</strong></div><b>{trash.length}</b></div>
         {loading ? <LoadingState>Carregando…</LoadingState> : trash.length ? <div className="wf-records v2-forms-list v2-forms-trash">
@@ -199,14 +202,14 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
   }
 
   return <>
-    <button type="button" className="v2-forms-back" onClick={() => { if (!dirty || window.confirm('Sair sem salvar as alterações?')) onBack(); }}><ArrowLeft size={15} /> Formulários</button>
+    <button type="button" className="v2-forms-back" onClick={async () => { if (!dirty || await confirmAction('Sair sem salvar as alterações?')) onBack(); }}><ArrowLeft size={15} /> Formulários</button>
     <div className="wf-head v2-forms-head"><div><small>CALI FORMS · <span className={`v2-forms-status ${form.status}`}>{STATUS_LABELS[form.status]}</span></small><h1>{form.title}</h1><p>{url.replace('https://', '')} · {stats?.responses || 0} {stats?.responses === 1 ? 'resposta' : 'respostas'}</p></div>
       <div className="v2-head-actions">
         <a className="wf-secondary" href={`/f/${form.slug}?previa=1`} target="_blank" rel="noopener noreferrer"><ExternalLink size={15} /> Ver como respondente</a>
         <Button type="button" variant="workflowSecondary" onClick={onDuplicate}><Copy size={15} /> Duplicar</Button>
         {form.status !== 'open' ? <Button type="button" variant="workflowPrimary" disabled={saving} onClick={() => void save({ status: 'open' })}>Abrir para respostas</Button> : <Button type="button" variant="workflowSecondary" disabled={saving} onClick={() => void save({ status: 'closed' })}>Encerrar respostas</Button>}
       </div></div>
-    <div className="wf-segments v2-forms-tabs" role="tablist">{([['questions', 'Perguntas'], ['share', 'Compartilhar'], ['responses', `Respostas (${stats?.responses || 0})`]] as Array<[Tab, string]>).map(([key, label]) => <button type="button" role="tab" aria-selected={tab === key} key={key} className={tab === key ? 'on' : ''} onClick={() => onTab(key)}>{label}</button>)}</div>
+    <div className="wf-segments v2-forms-tabs" role="tablist">{([['questions', 'Perguntas'], ['share', 'Compartilhar'], ['responses', `Respostas (${stats?.responses || 0})`]] satisfies Array<[Tab, string]>).map(([key, label]) => <button type="button" role="tab" aria-selected={tab === key} key={key} className={tab === key ? 'on' : ''} onClick={() => onTab(key)}>{label}</button>)}</div>
     {note && <p className={note.failed ? 'v2-forms-error' : 'v2-forms-ok'} role="status">{note.text}</p>}
 
     {tab === 'questions' && <div className="v2-forms-editor">
@@ -493,21 +496,25 @@ function FileLink({ value }: { value: string }) {
   }}><Paperclip size={13} /> {busy ? 'Abrindo…' : fileLabel(value)}</button>;
 }
 
+function responseAttachmentPath(formId: string, filename: string) {
+    const safe = filename.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '-').slice(-80) || 'arquivo';
+    return `${formId}/admin/${crypto.randomUUID()}/${Date.now()}-${safe}`;
+}
+
 /** Edição pela administradora: completa ou corrige uma resposta (ex.: pitch e foto enviados por fora). */
 function EditResponse({ form, row, onClose, onSaved }: { form: FormRecord; row: ResponseRow; onClose: () => void; onSaved: (row: ResponseRow) => void }) {
-  const [answers, setAnswers] = useState<Record<string, unknown>>({ ...row.answers });
+  const [answers, setAnswers] = useState<Record<string, JsonValue>>({ ...row.answers });
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState('');
   const [error, setError] = useState('');
   const questions = form.questions.filter(isAnswerable);
-  const set = (id: string, value: unknown) => setAnswers((current) => { const next = { ...current }; if (value === '' || value === undefined || (Array.isArray(value) && !value.length)) delete next[id]; else next[id] = value; return next; });
+  const set = (id: string, value: JsonValue | undefined) => setAnswers((current) => { const next = { ...current }; if (value === '' || value === undefined || (Array.isArray(value) && !value.length)) delete next[id]; else next[id] = value; return next; });
 
   async function attach(question: FormQuestion, file: File | undefined) {
     if (!file) return;
     if (file.size > 25 * 1024 * 1024) { setError('O arquivo passa de 25 MB.'); return; }
     setUploading(question.id); setError('');
-    const safe = file.name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '-').slice(-80) || 'arquivo';
-    const path = `${form.id}/admin/${crypto.randomUUID()}/${Date.now()}-${safe}`;
+    const path = responseAttachmentPath(form.id, file.name);
     const { error: uploadError } = await uploadAdminFormAttachment(path, file);
     setUploading('');
     if (uploadError) { setError(`Não foi possível anexar: ${uploadError.message}`); return; }

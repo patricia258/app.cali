@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { DialogForm } from '../../components/ds/DialogForm';
 import { Button } from '../../components/ds/Button';
 import { DialogFrame } from '../../components/ds/DialogFrame';
@@ -11,8 +12,10 @@ import { SensitiveDataNote } from '../../components/privacy/SensitiveDataNote';
 import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useSearchParams } from '../../hooks/useSearchParams';
 import { Paperclip, ArrowRight,
-  AlertTriangle, CalendarDays, CheckCircle2, ChevronDown, ChevronRight, FileText, Filter,
+  AlertTriangle, CheckCircle2, ChevronDown, ChevronRight,
   MessageCircle, Pencil, Plus, Search, Send, Trash2, X, UserPlus } from 'lucide-react';
+import { confirmAction } from '../../components/feedback/workspaceDialogs';
+import type { JsonObject, JsonValue } from '../../domain/json';
 import { Shell, type Role } from '../../components/workspace/WorkspaceShell';
 import { recordsAvailable } from '../../api/records/client';
 import { listRecordMessages, postRecordMessage, uploadRecordAttachment, type ConversationMessageRow } from '../../api/records/conversation';
@@ -130,12 +133,47 @@ function emptyForm(role: Role): FormState {
     impactLevel: 'medium', includeInReport: role === 'admin', requiresAction: role === 'client',
   };
 }
-function mapRecord(row: any): AccountRecordRow {
+const recordRowSchema = z.object({
+  id: z.string(),
+  company_id: z.string(),
+  project_id: z.string().nullable(),
+  event_id: z.string().nullable(),
+  protocol: z.string().nullable(),
+  record_type: z.enum(adminTypes),
+  title: z.string(),
+  occurred_at: z.string(),
+  visibility: z.enum(['internal', 'client']),
+  source_actor: z.enum(['admin', 'client', 'calendar', 'import']),
+  participants: z.json(),
+  summary: z.string().nullable(),
+  transcript: z.string().nullable(),
+  decisions: z.json(),
+  attention_points: z.json(),
+  next_actions: z.json(),
+  impact_level: z.enum(['low', 'medium', 'high', 'critical']),
+  include_in_report: z.boolean(),
+  requires_action: z.boolean(),
+  created_by: z.string().nullable(),
+  created_at: z.string(),
+  workflow_status: z.enum(Object.keys(workflowLabels) as WorkflowStatus[]).nullable(),
+  last_activity_at: z.string().nullable(),
+  closed_at: z.string().nullable(),
+});
+
+type RecordRow = z.infer<typeof recordRowSchema>;
+
+function mapRecord(row: RecordRow): AccountRecordRow {
   return {
     id: row.id, companyId: row.company_id, projectId: row.project_id, eventId: row.event_id,
     protocol: row.protocol, type: row.record_type, title: row.title, occurredAt: row.occurred_at,
     visibility: row.visibility, sourceActor: row.source_actor,
-    participants: Array.isArray(row.participants) ? row.participants.map((item: any) => typeof item === 'string' ? item : item?.name || item?.email || '').filter(Boolean) : [],
+    participants: Array.isArray(row.participants) ? row.participants.map((item: JsonValue) => {
+      if (typeof item === 'string') return item;
+      if (item && typeof item === 'object' && !Array.isArray(item)) {
+        return typeof item.name === 'string' && item.name ? item.name : typeof item.email === 'string' ? item.email : '';
+      }
+      return '';
+    }).filter(Boolean) : [],
     summary: row.summary, transcript: row.transcript,
     decisions: Array.isArray(row.decisions) ? row.decisions.map(String) : [],
     attentionPoints: Array.isArray(row.attention_points) ? row.attention_points.map(String) : [],
@@ -227,9 +265,12 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
     if (!recordsAvailable || !companyId) return;
     const refresh = () => void loadContext(companyId).catch(() => setError('Não foi possível atualizar as ocorrências.'));
     const unsubscribe = subscribeWorkspaceRecords(companyId, role, refresh, (row) => {
-      const next = mapRecord(row);
-      setRecords((current) => current.map((record) => record.id === next.id ? next : record));
-      setSelected((current) => current?.id === next.id ? next : current);
+      const parsed = recordRowSchema.safeParse(row);
+      if (parsed.success) {
+        const next = mapRecord(parsed.data);
+        setRecords((current) => current.map((record) => record.id === next.id ? next : record));
+        setSelected((current) => current?.id === next.id ? next : current);
+      }
       refresh();
     });
     const refreshOnFocus = () => {
@@ -361,11 +402,6 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
     setForm({ ...emptyForm(role), companyId: companyId === 'all' ? (companies[0]?.id || '') : companyId });
     setEditorOpen(true);
   }
-  function openFromEvent(event: Event) {
-    setEditing(null);
-    setForm({ ...emptyForm(role), companyId: event.companyId || companyId, eventId: event.id, type: 'meeting', title: event.title, occurredAt: localDateTime(new Date(event.startsAt)), visibility: 'client' });
-    setEditorOpen(true);
-  }
   function openEdit(record: AccountRecordRow) {
     if (role !== 'admin') return;
     setEditing(record);
@@ -393,7 +429,7 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
       if (userResult.error) throw userResult.error;
       const userId = userResult.data.user?.id || null;
       const conversational = form.visibility === 'client' && conversationalTypes.has(form.type);
-      const payload: Record<string, unknown> = {
+      const payload: JsonObject = {
         company_id: form.companyId, project_id: form.projectId || null, event_id: form.eventId || null,
         record_type: form.type, title: form.title.trim(), occurred_at: new Date(form.occurredAt).toISOString(),
         visibility: role === 'client' ? 'client' : form.visibility,
@@ -431,7 +467,7 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
 
   async function remove(record: AccountRecordRow) {
     if (!recordsAvailable || role !== 'admin' || record.workflowStatus) return;
-    if (!window.confirm(`Excluir “${record.title}”? O registro deixará de alimentar os relatórios.`)) return;
+    if (!await confirmAction(`Excluir “${record.title}”? O registro deixará de alimentar os relatórios.`)) return;
     const result = await deleteInternalRecord(record.id);
     if (result.error) setError(result.error.message);
     else { setNotice('Registro excluído.'); await loadContext(record.companyId); }
@@ -482,7 +518,7 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
       const result = await postRecordMessage(selected.id, [messageDraft.trim(), token].filter(Boolean).join('\n'), Boolean(staff), Boolean(staff && staffInternal));
       if (result.error) throw result.error;
       setMessageDraft(''); setStaffFile(null);
-      const nextStatus = (result.data as any)?.workflow_status as WorkflowStatus | undefined;
+      const nextStatus = (result.data as { workflow_status?: WorkflowStatus } | null)?.workflow_status;
       if (nextStatus) setSelected((current) => current ? { ...current, workflowStatus: nextStatus, lastActivityAt: new Date().toISOString(), requiresAction: role === 'client' } : current);
       await openRecord({ ...(selected as AccountRecordRow), workflowStatus: nextStatus || selected.workflowStatus, lastActivityAt: new Date().toISOString() });
       await loadContext(selected.companyId);
@@ -510,7 +546,8 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
     if (staffTimer) {
       const result = await stopPartnerRecordTimer(staffTimer.id);
       if (result.error) { setError(result.error.message || 'Não foi possível pausar o cronômetro.'); return; }
-      setStaffTimer(null); setNotice((result.data as any)?.discarded ? 'Sessão com menos de 30 segundos: não foi registrada.' : `Sessão de ${(result.data as any)?.minutes} min enviada para aprovação da Patrícia.`);
+      const outcome = result.data as { discarded?: boolean; minutes?: number } | null;
+      setStaffTimer(null); setNotice(outcome?.discarded ? 'Sessão com menos de 30 segundos: não foi registrada.' : `Sessão de ${outcome?.minutes} min enviada para aprovação da Patrícia.`);
     } else {
       const result = await startPartnerRecordTimer(selected.id);
       if (result.error) { setError(result.error.message || 'Não foi possível iniciar o cronômetro.'); return; }
@@ -539,7 +576,9 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
   }
 
   const allowedTypes = role === 'admin' ? adminTypes : clientTypes;
-  const meetingEvents = events.filter((event) => event.type === 'meeting');
+  const clientSegments: [WorkflowStatus | 'all', string][] = [
+    ['all', 'Todas'], ['waiting_client', 'Aguardando você'], ['in_progress', 'Em acompanhamento'], ['completed', 'Concluídas'],
+  ];
   const archiveFilterSelected = statusFilter !== 'all' && archivedStatuses.has(statusFilter);
   const clientConversationLocked = Boolean(role === 'client' && selected?.workflowStatus && archivedStatuses.has(selected.workflowStatus));
   const reopenPending = Boolean(selected && reopenByRecord[selected.id] === 'pending');
@@ -569,7 +608,7 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
           <button type="button" className={`v2-record-toggle ${actionOnly?'on':''}`} aria-pressed={actionOnly} onClick={() => setActionOnly((current) => !current)}><i className="wf-dot red"/>Só com ação necessária</button>
           <label className="v2-record-search"><Search size={14} /><input aria-label="Buscar ocorrências" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar assunto, protocolo ou empresa" /></label>
         </div> : <div className="wf-controls">
-          <div className="wf-segments">{([['all','Todas'],['waiting_client','Aguardando você'],['in_progress','Em acompanhamento'],['completed','Concluídas']] as [WorkflowStatus | 'all', string][]).map(([value,label])=><button type="button" key={value} className={statusFilter===value?'on':''} onClick={()=>setStatusFilter(value)}>{label}</button>)}</div>
+          <div className="wf-segments">{clientSegments.map(([value,label])=><button type="button" key={value} className={statusFilter===value?'on':''} onClick={()=>setStatusFilter(value)}>{label}</button>)}</div>
           <div className="wf-control-right">
             <FilterSelect aria-label="Tipo" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as RecordType | 'all')}><option value="all">Todos os tipos</option>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</FilterSelect>
             <FilterSelect aria-label="Situação" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as WorkflowStatus | 'all')}><option value="all">Todas as situações</option>{(Object.keys(workflowLabels) as WorkflowStatus[]).map((status) => <option value={status} key={status}>{statusLabel(status, role)}</option>)}</FilterSelect>

@@ -19,7 +19,7 @@ export async function loadClientDeliverableConversation(deliverableId: string): 
     .order('created_at', { ascending: true });
 
   if (error) throw error;
-  return (data || []).map((row: any) => ({
+  return (data || []).map((row) => ({
     id: row.id,
     deliverableId: row.target_id,
     body: row.body,

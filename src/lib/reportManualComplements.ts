@@ -1,3 +1,4 @@
+import type { JsonObject, JsonValue } from '../domain/json';
 import type { IntelligenceSnapshot } from './reportIntelligence';
 import type { DeliveryPerformanceRow } from './reportCloseMetrics';
 
@@ -39,36 +40,48 @@ export type ReportManualComplements = {
 
 export const emptyReportManualComplements = (): ReportManualComplements => ({ deliveries: [], timeEntries: [] });
 
-function clean(value: unknown) { return String(value ?? '').replace(/\s+/g, ' ').trim(); }
-function minutes(value: unknown) { const parsed = Math.round(Number(value || 0)); return Number.isFinite(parsed) ? Math.max(0, parsed) : 0; }
-function date(value: unknown) { const raw = String(value || '').slice(0, 10); return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : ''; }
-function id(value: unknown, prefix: string, index: number) { return clean(value) || `${prefix}-${index + 1}`; }
+function clean(value: JsonValue | undefined) { return String(value ?? '').replace(/\s+/g, ' ').trim(); }
+function minutes(value: JsonValue | undefined) { const parsed = Math.round(Number(value || 0)); return Number.isFinite(parsed) ? Math.max(0, parsed) : 0; }
+function date(value: JsonValue | undefined) { const raw = String(value || '').slice(0, 10); return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : ''; }
+function id(value: JsonValue | undefined, prefix: string, index: number) { return clean(value) || `${prefix}-${index + 1}`; }
 
-export function normalizeReportManualComplements(value: unknown): ReportManualComplements {
-  const raw = value && typeof value === 'object' ? value as any : {};
-  const deliveries = Array.isArray(raw.deliveries) ? raw.deliveries.map((item: any, index: number): ManualReportDelivery => ({
-    id: id(item?.id, 'manual-delivery', index),
-    title: clean(item?.title),
-    workstream: clean(item?.workstream),
-    complexity: clean(item?.complexity),
-    status: ['in_progress', 'completed', 'cancelled', 'client_review', 'adjustment', 'not_started'].includes(String(item?.status)) ? item.status : 'in_progress',
-    dueDate: date(item?.dueDate),
-    completedAt: date(item?.completedAt),
-    minutes: minutes(item?.minutes),
-  })).filter((item: ManualReportDelivery) => item.title || item.minutes > 0) : [];
+const statuses: readonly ReportManualStatus[] = ['in_progress', 'completed', 'cancelled', 'client_review', 'adjustment', 'not_started'];
 
-  const timeEntries = Array.isArray(raw.timeEntries) ? raw.timeEntries.map((item: any, index: number): ManualReportTimeEntry => ({
-    id: id(item?.id, 'manual-time', index),
-    description: clean(item?.description),
-    category: REPORT_MANUAL_CATEGORIES.includes(item?.category) ? item.category : 'Outros',
-    minutes: minutes(item?.minutes),
-  })).filter((item: ManualReportTimeEntry) => item.description || item.minutes > 0) : [];
+function fields(value: JsonValue | undefined) {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : null;
+}
+
+export function normalizeReportManualComplements(value: JsonObject | ReportManualComplements | null | undefined): ReportManualComplements {
+  const raw = value ?? {};
+  const deliveries = Array.isArray(raw.deliveries) ? raw.deliveries.map((value, index): ManualReportDelivery => {
+    const item = fields(value);
+    return {
+      id: id(item?.id, 'manual-delivery', index),
+      title: clean(item?.title),
+      workstream: clean(item?.workstream),
+      complexity: clean(item?.complexity),
+      status: statuses.find((status) => status === item?.status) ?? 'in_progress',
+      dueDate: date(item?.dueDate),
+      completedAt: date(item?.completedAt),
+      minutes: minutes(item?.minutes),
+    };
+  }).filter((item) => item.title || item.minutes > 0) : [];
+
+  const timeEntries = Array.isArray(raw.timeEntries) ? raw.timeEntries.map((value, index): ManualReportTimeEntry => {
+    const item = fields(value);
+    return {
+      id: id(item?.id, 'manual-time', index),
+      description: clean(item?.description),
+      category: REPORT_MANUAL_CATEGORIES.find((category) => category === item?.category) ?? 'Outros',
+      minutes: minutes(item?.minutes),
+    };
+  }).filter((item) => item.description || item.minutes > 0) : [];
 
   return { deliveries, timeEntries };
 }
 
 export function reportManualComplementsFromSnapshot(snapshot: IntelligenceSnapshot | null | undefined) {
-  return normalizeReportManualComplements((snapshot as any)?.reportManual);
+  return normalizeReportManualComplements(snapshot?.reportManual);
 }
 
 export function reportManualMinutes(value: ReportManualComplements) {
@@ -81,7 +94,7 @@ export function hasReportManualComplements(value: ReportManualComplements) {
 
 export function attachReportManualComplements(snapshot: IntelligenceSnapshot, value: ReportManualComplements): IntelligenceSnapshot {
   const normalized = normalizeReportManualComplements(value);
-  return { ...(snapshot as any), reportManual: normalized } as IntelligenceSnapshot;
+  return { ...snapshot, reportManual: normalized };
 }
 
 function mergeCategories(snapshot: IntelligenceSnapshot, value: ReportManualComplements) {
@@ -133,7 +146,7 @@ function deliveryTiming(item: ManualReportDelivery): DeliveryPerformanceRow['del
 }
 
 function manualDeliveryRows(snapshot: IntelligenceSnapshot, value: ReportManualComplements): DeliveryPerformanceRow[] {
-  return value.deliveries.filter((item) => item.title).map((item) => ({
+  return value.deliveries.filter((item) => item.title).map((item): DeliveryPerformanceRow => ({
     deliverable_id: `report-manual-${item.id}`,
     company_id: snapshot.companyId,
     project_id: snapshot.projects[0]?.id || 'report-manual',
@@ -157,14 +170,14 @@ function manualDeliveryRows(snapshot: IntelligenceSnapshot, value: ReportManualC
     total_minutes: minutes(item.minutes),
     complexity: item.complexity || null,
     manual_source: true,
-  } as DeliveryPerformanceRow & { complexity?: string | null; manual_source?: boolean }));
+  }));
 }
 
 export function augmentReportData(snapshot: IntelligenceSnapshot, deliveries: DeliveryPerformanceRow[], value: ReportManualComplements) {
   const normalized = normalizeReportManualComplements(value);
   const totalManual = reportManualMinutes(normalized);
-  const nextSnapshot = {
-    ...(snapshot as any),
+  const nextSnapshot: IntelligenceSnapshot = {
+    ...snapshot,
     reportManual: normalized,
     hours: {
       ...snapshot.hours,
@@ -173,6 +186,6 @@ export function augmentReportData(snapshot: IntelligenceSnapshot, deliveries: De
       categories: mergeCategories(snapshot, normalized),
       entries: syntheticEntries(snapshot, normalized),
     },
-  } as IntelligenceSnapshot;
+  };
   return { snapshot: nextSnapshot, deliveries: [...deliveries, ...manualDeliveryRows(snapshot, normalized)] };
 }

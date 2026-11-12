@@ -1,7 +1,7 @@
+import { keysByContent } from '../../lib/keysByContent';
 import type { ReportEditor, ReportType } from '../../lib/reportComposition';
 import type { IntelligenceSnapshot } from '../../lib/reportIntelligence';
 import { formatHoursV14, reportKpisV14, type DeliveryPerformanceRow } from '../../lib/reportCloseMetrics';
-import { capacitySignalV15 } from '../../lib/reportCapacityAndAlerts';
 import { feedbackLabelV16 } from '../../lib/reportReviewAndFeedback';
 import { periodChangeSignalsV17 } from '../../lib/reportEditorial';
 import { augmentReportData, reportManualComplementsFromSnapshot, reportManualMinutes } from '../../lib/reportManualComplements';
@@ -36,8 +36,8 @@ const REPORT_V19_CSS = `
 `;
 
 function lines(value: string) { return String(value || '').split('\n').map((item) => item.trim()).filter(Boolean); }
-function clean(value: unknown) { return String(value || '').replace(/\s+/g, ' ').trim(); }
-function normalized(value: unknown) { return clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+function clean(value: string | number | null | undefined) { return String(value || '').replace(/\s+/g, ' ').trim(); }
+function normalized(value: string | number | null | undefined) { return clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
 function formatDate(value?: string | null) { if (!value) return '—'; const date = new Date(`${String(value).slice(0, 10)}T12:00:00`); return Number.isNaN(date.getTime()) ? '—' : new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }).format(date); }
 function periodRange(snapshot: IntelligenceSnapshot) { return `${formatDate(snapshot.period.start)} a ${formatDate(snapshot.period.end)}`; }
 function within(value: string | null | undefined, start: string, end: string) { const day = String(value || '').slice(0, 10); return Boolean(day && day >= start && day <= end); }
@@ -63,35 +63,25 @@ function groupHours(snapshot: IntelligenceSnapshot): HourGroup[] {
    vigência do pacote (Partner 8 meses, Full 12, demais 6), número da ocorrência de excedente e textos oficiais.
    Nada aqui afirma cobrança, upgrade obrigatório ou interrupção. */
 function capacityHistory(snapshot: IntelligenceSnapshot, contractedMinutes: number, usedMinutes: number, periodName: string) {
-  const plan = String((snapshot.contract as any)?.servicePlan || '').toLowerCase(); const windowMonths = plan === 'partner' ? 8 : plan === 'full' ? 12 : 6;
+  const plan = String(snapshot.contract.servicePlan || '').toLowerCase(); const windowMonths = plan === 'partner' ? 8 : plan === 'full' ? 12 : 6;
   const previous = [...snapshot.previousReports].filter((item) => Number(item.contractedHours || 0) > 0).sort((a, b) => String(a.periodStart).localeCompare(String(b.periodStart))).slice(-(windowMonths - 1))
     .map((item) => { const contracted = Number(item.contractedHours || 0) * 60, used = Math.max(0, Number(item.consumedMinutes || 0)); return { label: new Intl.DateTimeFormat('pt-BR', { month: 'short', year: '2-digit' }).format(new Date(`${String(item.periodStart).slice(0, 10)}T12:00:00`)).replace('.', ''), percent: Math.round((used / contracted) * 1000) / 10, over: used > contracted }; });
   const currentOver = contractedMinutes > 0 && usedMinutes > contractedMinutes;
   const rows = [...previous, { label: periodName, percent: contractedMinutes ? Math.round((usedMinutes / contractedMinutes) * 1000) / 10 : 0, over: currentOver }];
   return { rows, windowMonths, occurrence: currentOver ? previous.filter((item) => item.over).length + 1 : 0 };
 }
-function upgradeRecommendation(snapshot: IntelligenceSnapshot, contractedMinutes: number, usedMinutes: number) {
-  if (!contractedMinutes || usedMinutes <= contractedMinutes * 1.05) return '';
-  const previous = [...snapshot.previousReports].sort((a, b) => String(a.periodStart).localeCompare(String(b.periodStart))).at(-1);
-  if (!previous) return '';
-  const previousContracted = Math.max(0, Number(previous.contractedHours || 0) * 60);
-  const previousUsed = Math.max(0, Number(previous.consumedMinutes || 0));
-  if (!previousContracted || previousUsed <= previousContracted * 1.05) return '';
-  const recommended = Math.max(1, Math.ceil(((usedMinutes + previousUsed) / 2) / 60));
-  return `Por dois fechamentos consecutivos, o consumo ficou mais de 5% acima da capacidade contratada. Recomenda-se revisar o pacote para aproximadamente ${recommended}h/mês, proporcionalmente ao ritmo observado.`;
-}
 function relevantDeliveries(snapshot: IntelligenceSnapshot, rows: DeliveryPerformanceRow[]) {
   const start = snapshot.period.start.slice(0, 10), end = snapshot.period.end.slice(0, 10);
   return rows.filter((item) => {
     const status = normalized(item.status);
-    const manual = Boolean((item as DeliveryPerformanceRow & { manual_source?: boolean }).manual_source);
+    const manual = Boolean(item.manual_source);
     const ongoing = !item.completion_at && (status.includes('progress') || status.includes('review') || status.includes('adjust')) && (!item.actual_started_at || item.actual_started_at.slice(0, 10) <= end);
     return manual || ongoing || within(item.effective_due_at, start, end) || within(item.completion_at, start, end) || within(item.actual_started_at, start, end);
   }).sort((a, b) => String(a.effective_due_at || a.completion_at || '').localeCompare(String(b.effective_due_at || b.completion_at || '')));
 }
 function deliveryState(item: DeliveryPerformanceRow, referenceEnd: string) {
   const status = normalized(item.status);
-  const manual = Boolean((item as DeliveryPerformanceRow & { manual_source?: boolean }).manual_source);
+  const manual = Boolean(item.manual_source);
   if (manual && status.includes('completed') && !item.completion_at) return { label: 'Concluído', tone: 'ok', detail: '' };
   if (item.completion_at) {
     if (item.delivery_timing === 'before_deadline') return { label: 'Entregue antes do prazo', tone: 'ok', detail: `Concluído em ${formatDate(item.completion_at)}` };
@@ -130,7 +120,7 @@ export function ExecutiveReportPaper({ company, snapshot, editor, reportType, pe
   snapshot = augmented.snapshot; deliveries = augmented.deliveries;
   const clientLogo = company.logoUrl || null;
   const kpis = reportKpisV14(snapshot, deliveries), usedMinutes = Math.max(0, Number(kpis.consumedMinutes || 0)), contractedMinutes = Math.max(0, Number(kpis.contractedHours || 0) * 60), usagePercent = contractedMinutes ? Math.round((usedMinutes / contractedMinutes) * 1000) / 10 : null;
-  const hours = groupHours(snapshot), usedWidth = contractedMinutes ? Math.min(100, (usedMinutes / contractedMinutes) * 100) : 0, capacitySignal = capacitySignalV15(snapshot), firstCapacityNotice = capacitySignal.state === 'first_over' ? capacitySignal.message : '', upgrade = upgradeRecommendation(snapshot, contractedMinutes, usedMinutes);
+  const hours = groupHours(snapshot), usedWidth = contractedMinutes ? Math.min(100, (usedMinutes / contractedMinutes) * 100) : 0;
   const deliveryRows = relevantDeliveries(snapshot, deliveries), changes = periodChangeSignalsV17(snapshot, reportType).filter((item) => normalized(item.value) !== 'novo dado');
   const inlineDeliveryRows = deliveryRows.length <= 4 ? deliveryRows : [];
   const executionPages = deliveryRows.length > 4 ? chunkRows(deliveryRows, 8) : [];
@@ -148,7 +138,7 @@ export function ExecutiveReportPaper({ company, snapshot, editor, reportType, pe
   const documentType = reportType === 'quarterly' ? 'RELATÓRIO TRIMESTRAL' : 'RELATÓRIO MENSAL', referenceLabel = reportType === 'quarterly' ? 'Trimestre de referência' : 'Mês de referência';
 
   const header = (label = documentType) => <><header className="reports-v19-header"><div className="reports-v19-brand"><img src={CALI_LOGO} alt="CALI Workspace" /></div><div className="reports-v19-client"><div><small>{label}</small><strong>{company.name}</strong><div className="reports-v19-ref"><span><small>{referenceLabel}</small><b>{periodName}</b></span><span><small>Período trabalhado</small><b>{periodRange(snapshot)}</b></span></div></div>{clientLogo ? <img src={clientLogo} alt={company.name} /> : <span />}</div></header><div className="reports-v19-meta"><small>Protocolo</small><strong>{protocol}</strong></div></>;
-  const deliveryTable = (rows: DeliveryPerformanceRow[]) => <table className="reports-v19-table"><thead><tr><th>Entregável</th><th>Frente</th><th>Complex.</th><th>Prazo</th><th>Status</th></tr></thead><tbody>{rows.map((item, index) => { const state = deliveryState(item, snapshot.period.end.slice(0, 10)), complexity = (item as DeliveryPerformanceRow & { complexity?: string | null }).complexity, manual = Boolean((item as DeliveryPerformanceRow & { manual_source?: boolean }).manual_source); return <tr key={`${item.deliverable_id}-${index}`}><td><div className="reports-v21-delivery-title"><strong>{item.title}</strong>{manual ? <span className="reports-v21-manual-tag">Manual</span> : null}</div>{item.total_minutes ? <small>{formatHoursV14(Number(item.total_minutes))} aplicados</small> : null}</td><td>{item.workstream || '—'}</td><td>{complexity ? <span className="reports-v19-pill">{complexity}</span> : '—'}</td><td>{formatDate(item.effective_due_at)}</td><td><span className={`reports-v19-pill ${state.tone}`}>{state.label}</span>{state.detail ? <small>{state.detail}</small> : null}</td></tr>; })}</tbody></table>;
+  const deliveryTable = (rows: DeliveryPerformanceRow[]) => <table className="reports-v19-table"><thead><tr><th>Entregável</th><th>Frente</th><th>Complex.</th><th>Prazo</th><th>Status</th></tr></thead><tbody>{rows.map((item) => { const state = deliveryState(item, snapshot.period.end.slice(0, 10)), complexity = item.complexity, manual = Boolean(item.manual_source); return <tr key={item.deliverable_id}><td><div className="reports-v21-delivery-title"><strong>{item.title}</strong>{manual ? <span className="reports-v21-manual-tag">Manual</span> : null}</div>{item.total_minutes ? <small>{formatHoursV14(Number(item.total_minutes))} aplicados</small> : null}</td><td>{item.workstream || '—'}</td><td>{complexity ? <span className="reports-v19-pill">{complexity}</span> : '—'}</td><td>{formatDate(item.effective_due_at)}</td><td><span className={`reports-v19-pill ${state.tone}`}>{state.label}</span>{state.detail ? <small>{state.detail}</small> : null}</td></tr>; })}</tbody></table>;
 
   return <div className="reports-v16-document"><style>{REPORT_V19_CSS}</style>
     <article className="reports-v16-paper reports-v19-paper reports-v16-paper-one">{header()}
@@ -170,9 +160,9 @@ export function ExecutiveReportPaper({ company, snapshot, editor, reportType, pe
     {executionPages.map((rows, pageIndex) => { const pageNumber = 2 + pageIndex; return <article className="reports-v16-paper reports-v19-paper reports-v19-execution-page" key={`execution-${pageIndex}`}>{header('EXECUÇÃO DO PERÍODO')}<div className="reports-v16-page-two-title reports-v19-page-title reports-v19-execution-title"><span>ENTREGAS</span><h1>{pageIndex === 0 ? 'Entregas e andamento.' : 'Entregas e andamento · continuação.'}</h1></div><section className="reports-v16-execution-grid"><div className="reports-v16-execution-block">{deliveryTable(rows)}</div></section><footer className="reports-v16-footer"><span>CALI Workspace · Patrícia Lima</span><span>{protocol}</span><b>{pageNumber} / {totalPages}</b></footer></article>; })}
 
     {hasDirection ? <article className="reports-v16-paper reports-v19-paper reports-v16-paper-two">{header('DIREÇÃO DO PERÍODO')}<div className="reports-v16-page-two-title reports-v19-page-title"><span>DA LEITURA À AÇÃO</span><h1>O que precisa de atenção e qual é o próximo movimento.</h1></div>
-      {attentions.length ? <section className="reports-v16-editorial-block"><div className="reports-v16-section-head compact"><div><small>PONTOS DE ATENÇÃO</small><h2>O que precisa ser resolvido</h2></div></div>{attentions.map((item, index) => <article className="reports-v19-attention" key={`${item.title}-${index}`}><div><span className={`reports-v19-pill ${item.tone}`}>{item.badge}</span></div><div><h3>{item.title}</h3><p>{item.detail}</p>{item.action ? <small>{item.action}</small> : null}</div></article>)}</section> : null}
-      {decisions.length ? <section className="reports-v16-editorial-block"><div className="reports-v16-section-head compact"><div><small>DECISÕES DO PERÍODO</small><h2>O que foi definido</h2></div></div><ol className="reports-v19-simple-list">{decisions.map((item, index) => <li key={`${item}-${index}`}><b>{String(index + 1).padStart(2, '0')}</b><span>{item}</span></li>)}</ol></section> : null}
-      {nextSteps.length ? <section className="reports-v16-editorial-block"><div className="reports-v16-section-head compact"><div><small>{reportType === 'quarterly' ? 'PRÓXIMO TRIMESTRE' : 'PRÓXIMO CICLO'}</small><h2>O que entra em movimento agora</h2></div></div><ol className="reports-v19-simple-list">{nextSteps.map((item, index) => <li key={`${item}-${index}`}><b>{String(index + 1).padStart(2, '0')}</b><span>{item}</span></li>)}</ol></section> : null}
+      {attentions.length ? <section className="reports-v16-editorial-block"><div className="reports-v16-section-head compact"><div><small>PONTOS DE ATENÇÃO</small><h2>O que precisa ser resolvido</h2></div></div>{keysByContent(attentions, (item) => item.title).map(({ item, key }) => <article className="reports-v19-attention" key={key}><div><span className={`reports-v19-pill ${item.tone}`}>{item.badge}</span></div><div><h3>{item.title}</h3><p>{item.detail}</p>{item.action ? <small>{item.action}</small> : null}</div></article>)}</section> : null}
+      {decisions.length ? <section className="reports-v16-editorial-block"><div className="reports-v16-section-head compact"><div><small>DECISÕES DO PERÍODO</small><h2>O que foi definido</h2></div></div><ol className="reports-v19-simple-list">{keysByContent(decisions, (item) => item).map(({ item, key }, index) => <li key={key}><b>{String(index + 1).padStart(2, '0')}</b><span>{item}</span></li>)}</ol></section> : null}
+      {nextSteps.length ? <section className="reports-v16-editorial-block"><div className="reports-v16-section-head compact"><div><small>{reportType === 'quarterly' ? 'PRÓXIMO TRIMESTRE' : 'PRÓXIMO CICLO'}</small><h2>O que entra em movimento agora</h2></div></div><ol className="reports-v19-simple-list">{keysByContent(nextSteps, (item) => item).map(({ item, key }, index) => <li key={key}><b>{String(index + 1).padStart(2, '0')}</b><span>{item}</span></li>)}</ol></section> : null}
       {feedback[0]?.comment ? <section className="reports-v16-feedback"><div><small>PERCEPÇÃO DO CLIENTE</small>{feedbackLabel ? <strong>{feedbackLabel}</strong> : null}</div><blockquote>“{feedback[0].comment}”</blockquote></section> : null}
       <footer className="reports-v16-footer"><span>CALI Workspace · Patrícia Lima</span><span>{protocol}</span><b>{directionPage} / {totalPages}</b></footer>
     </article> : null}

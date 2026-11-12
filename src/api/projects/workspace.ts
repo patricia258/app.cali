@@ -1,6 +1,7 @@
+import type { JsonObject } from '../../domain/json';
 import { requireProjectClient } from './client';
 
-type Payload = Record<string, unknown>;
+type Payload = JsonObject;
 
 export type ProjectCompany = {
   id: string;
@@ -39,10 +40,11 @@ export async function readProjectPartnerContext() {
     client.auth.getUser(), client.from('profiles').select('id,full_name,avatar_url'), client.rpc('staff_admin_contacts'),
     client.from('staff_review_requests').select('entity_id').eq('kind', 'deliverable').eq('status', 'pending'),
   ]);
+  const people: { id: string; full_name?: string; avatar_url?: string }[] = [...(profiles.data ?? []), ...(admins.data ?? [])];
   return {
     userId: auth.user?.id ?? '',
     pending: Object.fromEntries((pending.data ?? []).map((row) => [row.entity_id, true])),
-    people: [...(profiles.data ?? []), ...(admins.data ?? [])] as { id: string; full_name?: string; avatar_url?: string }[],
+    people,
   };
 }
 

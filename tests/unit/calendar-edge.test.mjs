@@ -43,7 +43,7 @@ function withClient(t, respond) {
         assert.equal(req.headers.get('content-profile'), 'cali_workspace');
         return Response.json(true);
       }
-      if (url.pathname === '/rest/v1/profiles') {
+      if (url.pathname === '/rest/v1/profiles' && url.searchParams.has('id')) {
         assert.equal(req.headers.get('authorization'), 'Bearer qa-service');
         assert.equal(url.searchParams.get('id'), `eq.${client}`);
         return Response.json([{ id: client, role: 'client', company_id: company, active: true }]);
@@ -71,10 +71,18 @@ test('Calendar lê a conta do Cliente, filtra eventos cancelados e recusa escopo
     if (url.origin === google) providerCalls++;
     switch (pathname) {
       case '/rest/v1/calendar_connections':
+        if (searchParams.get('company_id') === 'is.null') {
+          assert.equal(searchParams.get('user_id'), `in.(${session})`);
+          return Response.json([calendar]);
+        }
         assert.equal(searchParams.get('user_id'), `eq.${client}`);
         assert.equal(searchParams.get('company_id'), `eq.${company}`);
         assert.equal(searchParams.get('status'), 'eq.connected');
         return Response.json([calendar]);
+      case '/rest/v1/profiles':
+        assert.equal(searchParams.get('role'), 'eq.admin');
+        assert.equal(searchParams.get('active'), 'eq.true');
+        return Response.json([{ id: session }]);
       case '/rest/v1/google_calendar_credentials':
         assert.equal(searchParams.get('credential_key'), `eq.${calendar.credential_key}`);
         return Response.json([{ ...credential, scope: hasScope ? scope : 'different-scope' }]);
@@ -105,6 +113,9 @@ test('Calendar lê a conta do Cliente, filtra eventos cancelados e recusa escopo
   const [item] = result.events;
   assert.deepEqual([item.id, item.calendarId, item.title, item.color], ['event-a', calendar.calendar_id, 'Agenda do Cliente', '#123456']);
   assert.equal(providerCalls, 3);
+  const malformed = await run(clientRequest(endpoint, { action: 'availability', slots: [null] }));
+  assert.equal(malformed.status, 400);
+  assert.deepEqual(await malformed.json(), { error: 'invalid_slots' });
 });
 
 test('Calendar atualiza presença e Meet após conferir vínculo e oculta convidados externos do Cliente', async t => {

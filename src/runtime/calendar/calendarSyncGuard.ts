@@ -1,3 +1,4 @@
+import { showMessage } from '../../components/feedback/workspaceDialogs';
 import runtimeStyles from './calendar-sync-guard.css?inline';
 import { isSupabaseConfigured } from '../../api/access/session';
 import { findCalendarEventForSync, invokeGoogleCalendar, listMyPendingCalendarEvents } from '../../api/calendar/sync';
@@ -116,7 +117,7 @@ export function installCalendarSyncGuard() {
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
-      alert('O horário de término precisa ser posterior ao horário de início.');
+      void showMessage('O horário de término precisa ser posterior ao horário de início.');
       return;
     }
 
@@ -125,7 +126,7 @@ export function installCalendarSyncGuard() {
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
-      alert('Para compartilhar um compromisso com o cliente, selecione primeiro qual cliente receberá esse evento.\n\nSe for um compromisso somente seu/CALI, altere a visibilidade para “Somente CALI”.');
+      void showMessage('Para compartilhar um compromisso com o cliente, selecione primeiro qual cliente receberá esse evento.\n\nSe for um compromisso somente seu/CALI, altere a visibilidade para “Somente CALI”.');
       return;
     }
     window.setTimeout(() => void findAndSync(values.protocol, values.title), 1100);

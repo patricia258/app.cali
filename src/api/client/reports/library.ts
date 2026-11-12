@@ -1,16 +1,45 @@
 import { z } from 'zod';
 import { supabase } from '../../supabase';
+import { reportContent } from '../../reports/report-content';
 
 const nullableText = z.string().nullish().transform((value) => value ?? null);
 const readEvent = z.object({
   open_count: z.coerce.number().nullish(), first_opened_at: nullableText, last_opened_at: nullableText,
 });
+const optionalIdentityText = z.string().nullish().transform((value) => value ?? undefined);
+const optionalIdentityNumber = z.number().nullish().transform((value) => value ?? undefined);
+const identity = z.object({
+  user_id: optionalIdentityText,
+  full_name: optionalIdentityText,
+  job_title: optionalIdentityText,
+  avatar_url: optionalIdentityText,
+  avatar_position_x: optionalIdentityNumber,
+  avatar_position_y: optionalIdentityNumber,
+  avatar_zoom: optionalIdentityNumber,
+  signature_mode: z.enum(['generated', 'uploaded']).optional().catch(undefined),
+  signature_url: optionalIdentityText,
+  signature_style: z.enum(['executive', 'editorial', 'notarial', 'heritage', 'calligraphic', 'autograph', 'contemporary',
+    'italian', 'minimal', 'classic', 'fluid', 'delicate', 'formal', 'personal']).optional().catch(undefined),
+  signed_at: optionalIdentityText,
+  protocol: optionalIdentityText,
+}).nullish().catch(null);
 const receipt = z.object({
-  acknowledged_at: nullableText, acknowledgement_protocol: nullableText, identity: z.unknown().optional(),
+  acknowledged_at: nullableText, acknowledgement_protocol: nullableText, identity,
 });
-const report = z.looseObject({
-  id: z.string(), title: z.string(), status: z.enum(['sent', 'published']),
+const report = reportContent.extend({
+  status: z.enum(['sent', 'published']),
+  published_at: nullableText,
+  approved_at: nullableText,
+  acknowledged_at: nullableText,
+  acknowledgement_protocol: nullableText,
+  approval_identity_snapshot: identity,
+  acknowledgement_identity_snapshot: identity,
+  client_open_count: z.coerce.number().nullish(),
+  client_first_opened_at: nullableText,
+  client_last_opened_at: nullableText,
+  client_pdf_count: z.coerce.number().nullish(),
 });
+export type ClientReportRow = z.infer<typeof report>;
 const company = z.object({ display_name: nullableText, logo_url: nullableText, logo_workspace_url: nullableText });
 
 export const clientReportsKey = (actorId: string) => ['client', 'reports', actorId] as const;

@@ -1,3 +1,4 @@
+import type { JsonValue } from '../../domain/json';
 import { z } from 'zod';
 import { supabase } from '../supabase';
 
@@ -29,11 +30,11 @@ export async function readClientGoogleConnection() {
 
 async function changeGoogleConnection(action: 'authorize' | 'disconnect', companyId: string | null) {
   if (!supabase) throw new Error('Supabase indisponível.');
-  const result = await supabase.functions.invoke('google-calendar-oauth', { body: { action, companyId } });
+  const result = await supabase.functions.invoke<JsonValue>('google-calendar-oauth', { body: { action, companyId } });
   if (result.error) throw result.error;
   const failure = providerError.safeParse(result.data).data;
   if (failure?.error) throw new Error(failure.detail || failure.error);
-  return result.data as unknown;
+  return result.data;
 }
 
 export async function authorizeGoogleCalendar(companyId: string | null) {
@@ -46,9 +47,32 @@ export async function disconnectGoogleCalendar(companyId: string) {
   await changeGoogleConnection('disconnect', companyId);
 }
 
+export type GoogleCalendarEvent = {
+  id: string;
+  calendarId: string;
+  title: string;
+  start: string;
+  end?: string;
+  allDay: boolean;
+  location: string | null;
+  description: string | null;
+  htmlLink: string | null;
+  color: string;
+  textColor: string | null;
+  organizer: string | null;
+  meetingUrl: string | null;
+  attendees: Array<{ name: string; email: string; status: string; self: boolean }>;
+  reminderMinutes: number | null;
+};
+
+type GoogleCalendarEventsResponse =
+  | { state: 'checked'; events: GoogleCalendarEvent[] }
+  | { state: 'reconnect_required' }
+  | { state?: never; error: string };
+
 export async function readGoogleCalendarEvents(action: 'events' | 'client_events', range: { start: string; end: string }) {
   if (!supabase) return { data: null, error: { message: 'Supabase indisponível.' } };
-  return await supabase.functions.invoke('workspace-google-calendar-read', { body: { action, ...range } });
+  return await supabase.functions.invoke<GoogleCalendarEventsResponse>('workspace-google-calendar-read', { body: { action, ...range } });
 }
 
 export async function refreshGoogleEventStatus(eventIds: string[]) {

@@ -1,6 +1,6 @@
 // Admin projects: tabs and dialogs screenshots (mocked backend, admin role).
 process.env.QA_ROLE='admin';
-const { chromium } = require('playwright-core');const path=require('node:path');const fs=require('node:fs');const { user, token, readRpcs, tables } = require('./fixtures.cjs');
+const { chromium } = require('playwright-core');const path=require('node:path');const { user, token, readRpcs, tables } = require('./fixtures.cjs');
 const out=path.join(__dirname,'shots','adm');
 (async()=>{const b=await chromium.launch({channel:'chrome',headless:true});const c=await b.newContext({viewport:{width:1440,height:900}});
 await c.addInitScript(({user,token})=>{localStorage.setItem('sb-qa-isolated-auth-token',JSON.stringify({access_token:token,refresh_token:'qa',expires_at:4070908800,expires_in:3600,token_type:'bearer',user}));},{user,token});

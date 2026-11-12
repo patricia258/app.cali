@@ -17,7 +17,7 @@ const uuid = (value: string) => /^[a-f0-9-]{36}$/.test(value);
 const fileUrl = (id: string) => 'https://drive.google.com/file/d/' + encodeURIComponent(id) + '/view';
 const folderUrl = (id: string) => 'https://drive.google.com/drive/folders/' + encodeURIComponent(id);
 
-async function sourceVersion(file: Record<string, unknown>) {
+async function sourceVersion(file: { version_label?: string | null; storage_path?: string | null; published_at?: string | null }) {
   const value = JSON.stringify([file.version_label, file.storage_path, file.published_at]);
   const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('');
@@ -278,6 +278,6 @@ Deno.serve(async (request) => {
       return config.json({ status: failed ? 'partial' : 'synced', url: folderUrl(target), copied, failed });
     });
   } catch (error) {
-    return googleFailure(config, error);
+    return googleFailure(config, error instanceof GoogleIntegrationError ? error : null);
   }
 });

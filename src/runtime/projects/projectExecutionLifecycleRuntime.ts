@@ -40,7 +40,8 @@ function injectStyles(){
 
 async function loadContext(project:ProjectRow):Promise<Context|null>{
   if(!isSupabaseConfigured)return null;
-  return { project, ...await readProjectLifecycleContext(project.id, 40) } as Context;
+  const context: Context = { project, ...await readProjectLifecycleContext(project.id, 40) };
+  return context;
 }
 
 async function loadAdminContext(force=false):Promise<Context|null>{
@@ -154,7 +155,7 @@ function setFrontExpanded(section:HTMLElement,expanded:boolean){
     image.setAttribute('aria-expanded',String(expanded));
     image.title=tip;
   }
-  try{sessionStorage.setItem(frontStorageKey(section),expanded?'1':'0');}catch{}
+  try{sessionStorage.setItem(frontStorageKey(section),expanded?'1':'0');}catch{/* Armazenamento indisponível. */}
 }
 
 function enhanceFrontCollapse(){
@@ -169,7 +170,7 @@ function enhanceFrontCollapse(){
       image.setAttribute('role','button');
       image.tabIndex=0;
       let expanded=false;
-      try{expanded=sessionStorage.getItem(frontStorageKey(section))==='1';}catch{}
+      try{expanded=sessionStorage.getItem(frontStorageKey(section))==='1';}catch{/* Armazenamento indisponível. */}
       setFrontExpanded(section,expanded);
       const toggle=(event:Event)=>{
         event.preventDefault();

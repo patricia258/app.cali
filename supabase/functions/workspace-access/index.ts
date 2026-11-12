@@ -1,3 +1,4 @@
+import type { JsonValue } from '../_shared/json.ts';
 import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 // Acesso por código para Cliente, Admin e Partner.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -32,7 +33,7 @@ function cors(request: Request) {
     Vary: "Origin",
   };
 }
-function json(request: Request, body: unknown, status = 200) {
+function json(request: Request, body: JsonValue, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: {
     ...cors(request), "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store",
   } });
@@ -41,7 +42,7 @@ function safeName(name: string | null | undefined) {
   const first = String(name || "").trim().split(/\s+/)[0];
   return (first || "Olá").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
-function normalizeEmail(value: unknown) { return typeof value === "string" ? value.trim().toLowerCase() : ""; }
+function normalizeEmail(value: JsonValue | undefined) { return typeof value === "string" ? value.trim().toLowerCase() : ""; }
 function randomCode() {
   const buffer = new Uint32Array(1);
   do { crypto.getRandomValues(buffer); } while (buffer[0] >= 4_294_000_000);

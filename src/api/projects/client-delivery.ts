@@ -1,3 +1,4 @@
+import type { JsonValue } from '../../domain/json';
 import { supabase } from '../supabase';
 import { requireProjectClient } from './client';
 
@@ -175,7 +176,7 @@ export type ClientDeliveryReality = {
   };
 };
 
-function finiteNumber(value: unknown, fallback = 0) {
+function finiteNumber(value: JsonValue | undefined, fallback = 0) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
 }
@@ -254,7 +255,7 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
     showHoursToClient: Boolean(companyResult.data.show_hours_to_client),
   };
 
-  const projects: ClientDeliveryProject[] = (projectResult.data || []).map((row: any) => ({
+  const projects: ClientDeliveryProject[] = (projectResult.data || []).map((row) => ({
     id: row.id,
     name: row.name,
     protocol: row.protocol,
@@ -265,7 +266,7 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
   }));
   const projectMap = new Map(projects.map((project) => [project.id, project]));
 
-  const workstreams: ClientDeliveryWorkstream[] = (workstreamResult.data || []).map((row: any) => ({
+  const workstreams: ClientDeliveryWorkstream[] = (workstreamResult.data || []).map((row) => ({
     id: row.id,
     companyId: row.company_id,
     projectId: row.project_id,
@@ -350,7 +351,7 @@ export async function loadClientDeliveryReality(companyId: string): Promise<Clie
     historyByDeliverable.set(row.deliverable_id, list);
   }
 
-  const deliverables: ClientDeliveryItem[] = (deliverableResult.data || []).map((row: any) => {
+  const deliverables: ClientDeliveryItem[] = (deliverableResult.data || []).map((row) => {
     const project = row.project_id ? projectMap.get(row.project_id) : undefined;
     const visibleTasks = tasksByDeliverable.get(row.id) || [];
     const doneTasks = visibleTasks.filter((task) => ['done', 'completed'].includes(task.status)).length;
@@ -495,7 +496,7 @@ export async function loadClientDashboardReality(companyId: string): Promise<Cli
     monthlyHoursContracted: companyResult.data.monthly_hours_contracted == null ? null : finiteNumber(companyResult.data.monthly_hours_contracted),
     showHoursToClient: Boolean(companyResult.data.show_hours_to_client),
   };
-  const projects: ClientDeliveryProject[] = (projectResult.data || []).map((row: any) => ({
+  const projects: ClientDeliveryProject[] = (projectResult.data || []).map((row) => ({
     id: row.id,
     name: row.name,
     protocol: row.protocol,
@@ -512,7 +513,7 @@ export async function loadClientDashboardReality(companyId: string): Promise<Cli
     if (score >= 1 && score <= 5) scores.push(score);
     if (row.deliverable_id && !feedbackByDeliverable.has(row.deliverable_id)) feedbackByDeliverable.set(row.deliverable_id, { score, createdAt: row.created_at });
   }
-  const deliverables: ClientDeliveryItem[] = (deliverableResult.data || []).map((row: any) => {
+  const deliverables: ClientDeliveryItem[] = (deliverableResult.data || []).map((row) => {
     const project = row.project_id ? projectMap.get(row.project_id) : undefined;
     return {
       id: row.id,

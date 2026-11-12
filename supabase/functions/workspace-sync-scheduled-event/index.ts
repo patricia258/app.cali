@@ -1,4 +1,4 @@
-import { googleActor, googleFailure, googleRequest, withGoogleLease } from '../_shared/google-integration.ts';
+import { googleActor, googleFailure, GoogleIntegrationError, googleRequest, withGoogleLease } from '../_shared/google-integration.ts';
 import { calendarConnection, calendarEvent, syncCalendarEvent } from '../_shared/google-calendar-events.ts';
 
 Deno.serve(async (request) => {
@@ -22,6 +22,6 @@ Deno.serve(async (request) => {
       return config.json(await syncCalendarEvent(config, actor.db, event, connection));
     });
   } catch (error) {
-    return googleFailure(config, error);
+    return googleFailure(config, error instanceof GoogleIntegrationError ? error : null);
   }
 });

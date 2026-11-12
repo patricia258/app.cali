@@ -1,3 +1,4 @@
+import type { JsonObject } from '../../domain/json';
 import type { ReportType } from '../../lib/reportComposition';
 import { supabase } from '../supabase';
 
@@ -10,7 +11,7 @@ export type GovernanceReport = {
   period_end: string;
   status: string;
   version: number;
-  source_snapshot: Record<string, unknown> | null;
+  source_snapshot: JsonObject | null;
   client_open_count?: number | null;
   acknowledged_at?: string | null;
 };

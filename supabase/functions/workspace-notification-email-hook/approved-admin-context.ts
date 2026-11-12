@@ -1,11 +1,8 @@
+import type { NotificationDb } from "./database.ts";
+
 type AdminNotification={id:string;entity_id:string|null;entity_type:string|null;company_id:string;created_at:string;body:string|null};
-const formatDate=(iso:string)=>{
-  const v=iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if(!v)throw new Error("Data de aprovação inválida.");
-  return v[3]+"/"+v[2]+"/"+v[1];
-};
 export async function approvedAdminScheduleFields(
- ws:any, notification:AdminNotification,
+ ws:NotificationDb, notification:AdminNotification,
  key:"project_schedule_approved"|"project_schedule_adjustment",
 ):Promise<Record<string,string>>{
  if(notification.entity_type!=="project"||!notification.entity_id)throw Error("Projeto do cronograma ausente.");
@@ -39,7 +36,8 @@ export async function approvedAdminScheduleFields(
   .gte("responded_at",lower).lte("responded_at",upper)
   .order("responded_at",{ascending:false}).limit(5);
  if(reviewsError)throw reviewsError;
- const matches=(reviews||[]).filter((r:any)=>{
+ const reviewRows: { status: string; response_note: string | null; requested_changes: { targetLabel?: string; actionLabel?: string } | null }[] = reviews || [];
+ const matches=reviewRows.filter((r)=>{
    if(r.status!=="adjustment_requested"||!r.response_note)return false;
    const label=String(r.requested_changes?.targetLabel||"");
    const action=String(r.requested_changes?.actionLabel||"");

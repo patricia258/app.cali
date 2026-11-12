@@ -3,6 +3,7 @@ import { DialogFrame } from '../ds/DialogFrame';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, History, Pencil, ShieldAlert, Trash2, X } from 'lucide-react';
 import { useLocation } from '../../hooks/useLocation';
+import { TIMER_EVENT } from '../../lib/timerSemantics';
 import { hoursAvailable } from '../../api/hours/client';
 import { deleteAuditedHourEntry, editAuditedHourEntry, readAuditableHours, type AuditRow, type HourAuditEntry } from '../../api/hours/audit';
 import styles from './operational-safety.css?inline';
@@ -20,7 +21,7 @@ const trashSvg='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><
 function currentMonth(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}
 function monthBounds(value:string){const[y,m]=value.split('-').map(Number);const start=`${y}-${String(m).padStart(2,'0')}-01`;const n=new Date(y,m,1);const next=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-01`;return{start,next}}
 function snapshot(row:AuditRow){return row.event_type==='hours_entry_deleted'?row.metadata?.deleted_entry:row.metadata?.after}
-function formatMinutes(value:any){const n=Math.max(0,Number(value||0));const h=Math.floor(n/60),m=n%60;return h?`${h}h${m?` ${m}min`:''}`:`${m}min`}
+function formatMinutes(value: number | null | undefined){const n=Math.max(0,Number(value||0));const h=Math.floor(n/60),m=n%60;return h?`${h}h${m?` ${m}min`:''}`:`${m}min`}
 
 export function OperationalSafetyBridge({role}:{role:Role}){
  const location=useLocation();const[projectAction,setProjectAction]=useState<ProjectAction>(null);const[hourEntries,setHourEntries]=useState<HourAuditEntry[]>([]);const[hourAction,setHourAction]=useState<HourAction>(null);const[editDraft,setEditDraft]=useState<EditDraft>({workDate:'',minutes:'',description:'',category:'Outros',clientVisible:false});const[reason,setReason]=useState('');const[busy,setBusy]=useState(false);const[error,setError]=useState('');const[auditRows,setAuditRows]=useState<AuditRow[]>([]);const[auditOpen,setAuditOpen]=useState(false);
@@ -73,7 +74,7 @@ export function OperationalSafetyBridge({role}:{role:Role}){
      setHourAction(null);
      setReason('');
      await loadHours();
-     window.setTimeout(() => window.location.reload(), 120);
+     window.dispatchEvent(new CustomEvent(TIMER_EVENT));
    } catch (error) {
      setError(error instanceof Error ? error.message : 'Não foi possível concluir a alteração.');
    } finally {

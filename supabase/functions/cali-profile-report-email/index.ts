@@ -1,3 +1,4 @@
+import type { JsonValue } from '../_shared/json.ts';
 import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 // Gera, arquiva e envia o relatório individual a partir de um pedido privado de entrega.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -16,13 +17,29 @@ const MARK_URL = `${APP_URL}/brand/cali-oak-mark-light.svg`;
 const headers = { "Content-Type": "application/json" };
 type Signer = NonNullable<RespondentPdfInput["signer"]> & { avatar_url?: string; signature_url?: string };
 type Claim = { lease: string; signer: Signer | null };
+
+type ProfileResult = {
+  id: string;
+  person_name: string;
+  email: string;
+  company_name: string | null;
+  protocol: string | null;
+  created_at: string;
+  primary_style: RespondentPdfInput["primary"];
+  secondary_style: RespondentPdfInput["secondary"];
+  mixed: boolean;
+  report_path: string | null;
+  report_emailed_at: string | null;
+  companies: { display_name: string } | null;
+  profile_links: { title: string; company_label: string | null } | null;
+};
 const NAMES: Record<string, { name: string; line: string }> = {
   D: { name: "Executor", line: "Resolve. Decide com pouca informação e gosta de desafio." },
   I: { name: "Comunicador", line: "Conecta. Convence pela energia e pela relação." },
   S: { name: "Planejador", line: "Sustenta. Mantém o time de pé e cumpre o combinado." },
   C: { name: "Analista", line: "Confere. Quer critério, dado e padrão antes de concordar." },
 };
-const esc = (value: unknown) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+const esc = (value: JsonValue | undefined) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 const slug = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase() || "perfil";
 
 async function signerImage(value?: string) {
@@ -71,7 +88,9 @@ Deno.serve(async (req: Request) => {
     if (!provided || !secretRow?.secret_value || provided !== secretRow.secret_value) return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), { status: 401, headers });
     const { result_id } = await req.json().catch(() => ({}));
     if (!result_id) return new Response(JSON.stringify({ ok: false, error: "missing result_id" }), { status: 400, headers });
-    const { data: row } = await ws.from("profile_results").select("id,person_name,email,company_name,protocol,created_at,primary_style,secondary_style,mixed,report_path,report_emailed_at,companies(display_name),profile_links(title,company_label)").eq("id", result_id).maybeSingle();
+    const { data: row } = await ws.from("profile_results")
+      .select("id,person_name,email,company_name,protocol,created_at,primary_style,secondary_style,mixed,report_path,report_emailed_at,companies(display_name),profile_links(title,company_label)")
+      .eq("id", result_id).maybeSingle().overrideTypes<ProfileResult, { merge: false }>();
     if (!row) return new Response(JSON.stringify({ ok: false, error: "not found" }), { status: 404, headers });
     if (row.report_emailed_at) return new Response(JSON.stringify({ ok: true, skipped: true }), { headers });
     const { data: rawClaim, error: claimError } = await ws.rpc("cali_profile_claim_report", { p_result_id: row.id });
@@ -81,12 +100,12 @@ Deno.serve(async (req: Request) => {
     activeDelivery = { resultId: row.id, lease: claim.lease };
 
     const bucket = ws.storage.from("cali-profiles");
-    let reportPath = row.report_path as string | null;
+    let reportPath = row.report_path;
     if (!reportPath) {
-      const company = row.companies as unknown as { display_name?: string } | null;
-      const link = row.profile_links as unknown as { title?: string; company_label?: string } | null;
-      const primary = row.primary_style as RespondentPdfInput["primary"];
-      const secondary = row.secondary_style as RespondentPdfInput["secondary"];
+      const company = row.companies;
+      const link = row.profile_links;
+      const primary = row.primary_style;
+      const secondary = row.secondary_style;
       if (!Object.hasOwn(NAMES, primary) || !Object.hasOwn(NAMES, secondary) || !row.protocol) {
         return new Response(JSON.stringify({ ok: false, error: "result unavailable" }), { status: 422, headers });
       }

@@ -7,7 +7,14 @@ import './material-review.css';
 type Company = { id: string; display_name: string };
 type Staff = { user_id: string | null; full_name: string; modules: string[]; active: boolean };
 
-function Review({ kind, entityId, companyId }: { kind: MaterialKind; entityId: string; companyId?: string }) {
+type ReviewProps = {
+  kind: MaterialKind;
+  entityId: string;
+  companyId?: string;
+  onApproved: () => void | Promise<void>;
+};
+
+function Review({ kind, entityId, companyId, onApproved }: ReviewProps) {
   const [target, setTarget] = useState(companyId ?? '');
   const [companies, setCompanies] = useState<Company[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
@@ -57,8 +64,9 @@ function Review({ kind, entityId, companyId }: { kind: MaterialKind; entityId: s
     setBusy(true); setError('');
     try {
       await decideMaterialReview(record, accept, note);
-      if (accept) window.location.reload();
-      else { setNote(''); await load(); }
+      setNote('');
+      if (accept) await Promise.all([load(), onApproved()]);
+      else await load();
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Não foi possível revisar o material.'); }
     finally { setBusy(false); }
   }
@@ -88,7 +96,7 @@ function Review({ kind, entityId, companyId }: { kind: MaterialKind; entityId: s
   </div>;
 }
 
-export function AdminMaterialReview(props: { kind: MaterialKind; entityId: string; companyId?: string }) {
+export function AdminMaterialReview(props: ReviewProps) {
   const [open, setOpen] = useState(false);
   return <details className="material-review" onToggle={(event) => setOpen(event.currentTarget.open)}>
     <summary>Preparação e revisão com Partner</summary>

@@ -1,3 +1,4 @@
+import type { JsonValue } from '../_shared/json.ts';
 import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
@@ -24,7 +25,7 @@ const LOGO_URL = `${APP_URL}/brand/cali-workspace-transparent.svg`;
 const MARK_URL = `${APP_URL}/brand/cali-oak-mark-light.svg`;
 const headers = { "Content-Type": "application/json" };
 
-const esc = (value: unknown) => String(value ?? "")
+const esc = (value: JsonValue | undefined) => String(value ?? "")
   .replaceAll("&", "&amp;")
   .replaceAll("<", "&lt;")
   .replaceAll(">", "&gt;")
@@ -215,7 +216,7 @@ Deno.serve(async (req: Request) => {
           // Os dois eventos guardam o ID do ENTREGÁVEL, não da subtarefa/dependência.
           // Só usar o HTML personalizado quando os detalhes baterem EXATAMENTE com
           // um único registro real; nunca adivinhar qual item originou o aviso.
-          let safeHtmlBlocks: { bloco_observacoes?: string; linha_segunda_opcao?: string; bloco_motivo?: string } = {};
+          const safeHtmlBlocks: { bloco_observacoes?: string; linha_segunda_opcao?: string; bloco_motivo?: string } = {};
           let calendarExtraTimely: boolean | null = null;
           if (template === "extra_presential_declined" || template === "extra_online_declined") {
             const result = await declinedExtraFields(ws, notification, template);

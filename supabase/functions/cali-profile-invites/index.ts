@@ -1,3 +1,4 @@
+import type { JsonValue } from '../_shared/json.ts';
 import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 // Perfil Comportamental CALI: convites e lembretes por e-mail (especificação "Prazos-Lembretes-Painel_v1").
 // Chamado só pelo banco (cali_workspace.profile_post_invite_email), com o segredo x-workspace-hook.
@@ -19,7 +20,7 @@ const MARK_URL = `${APP_URL}/brand/cali-oak-mark-light.svg`;
 const TOTAL_BLOCKS = 24;
 const headers = { "Content-Type": "application/json" };
 
-const esc = (value: unknown) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+const esc = (value: JsonValue | undefined) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 const first = (name: string) => esc(String(name || "").trim().split(/\s+/)[0]);
 const when = (iso: string) => {
   const date = new Date(iso);

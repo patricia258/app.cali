@@ -22,6 +22,7 @@ O agente decide a implementação. Reduções de escopo e exceções aos critér
 | Arquitetura | Fluxos têm donos explícitos. Consultas e mutações usam adaptadores por domínio. Efeitos legados acordados para retirada têm substituto com prova de gatilho, resultado e limpeza. URLs, dados e permissões preservam os contratos publicados. |
 | Bibliotecas | Inventário por fluxo mostra onde Router, Query, Form, Zod, Axios, date-fns e Tailwind se aplicam. Verifique a integração nos consumidores, com tipos, contratos e testes de comportamento. |
 | Testes | Matriz relaciona ações de páginas e componentes, regras de módulos e contratos de APIs aos testes que os exercitam. Registre os cenários, o resultado e a revisão. Catálogo de RPCs, testes de comportamento e comparação visual têm provas próprias. |
+| Lint | `npm run lint` na árvore inteira com zero erros e zero avisos, sem baseline. As regras ficam no [guia de testes](TESTING.md#lint). |
 | Banco local | Restaurar o dump de estrutura do CALI MAPA no laboratório isolado, aplicar as migrations da branch e validar catálogo e comportamento com dados de teste. O replay parte desse dump. |
 | Preview | Publicar somente após o aceite local da revisão final, com backend, credenciais e destinos externos próprios de teste. |
 

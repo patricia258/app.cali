@@ -26,7 +26,6 @@ export function PublicFormPage() {
   const [uploads, setUploads] = useState<Record<string, { busy: boolean; name: string; preview?: string; error?: string }>>({});
   const [error, setError] = useState('');
   const [sendError, setSendError] = useState('');
-  const [confirmation, setConfirmation] = useState(false);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const advanceTimer = useRef<number>();
   const submitting = useRef(false);
@@ -59,7 +58,7 @@ export function PublicFormPage() {
 
   const submit = useCallback(async () => {
     if (!form || submitting.current) return;
-    if (preview) { setConfirmation(false); setPhase('done'); return; }
+    if (preview) { setPhase('done'); return; }
     submitting.current = true;
     setPhase('sending'); setSendError('');
     const sent = buildFormSubmission(questions, [...trail, index], answers);
@@ -70,10 +69,10 @@ export function PublicFormPage() {
       requestId ||= crypto.randomUUID();
       submissionIds.current.set(key, requestId);
       try { sessionStorage.setItem(key, requestId); } catch { /* retry em memória */ }
-      const confirmed = await submitPublicForm(form, sent, requestId);
+      await submitPublicForm(form, sent, requestId);
       submissionIds.current.delete(key);
       try { sessionStorage.removeItem(key); } catch { /* storage indisponível */ }
-      setConfirmation(confirmed); setPhase('done');
+      setPhase('done');
     } catch (requestError) {
       setSendError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar agora.');
       setPhase('questions');

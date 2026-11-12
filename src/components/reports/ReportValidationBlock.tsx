@@ -10,12 +10,12 @@ function fmt(value?:string|null){
     day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'
   }).format(date).replace('.','');
 }
-function avatarVars(identity?:ReportIdentityV55|null):CSSProperties{
+function avatarVars(identity?:ReportIdentityV55|null): CSSProperties & Record<`--${string}`, string> {
   return{
     '--avatar-x':`${Number(identity?.avatar_position_x??50)}%`,
     '--avatar-y':`${Number(identity?.avatar_position_y??50)}%`,
     '--avatar-zoom':String(Number(identity?.avatar_zoom??1))
-  } as CSSProperties;
+  };
 }
 function initials(name?:string){return String(name||'C').split(' ').filter(Boolean).slice(0,2).map((part)=>part[0]?.toUpperCase()).join('')||'C';}
 function styleClass(identity?:ReportIdentityV55|null){const raw=identity?.signature_style;const value=raw&&allowedStyles.has(raw)?raw:'executive';return `signature-style-${value}`;}

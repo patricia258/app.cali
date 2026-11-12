@@ -142,6 +142,7 @@ const tables = {
       executive_summary: 'Resumo fictício para teste',
       source_snapshot: {},
       published_at: now,
+      updated_at: now,
     },
   ],
   account_records: [

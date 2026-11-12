@@ -90,4 +90,14 @@ function press(locator, input) {
   return locator.click({ timeout: 3500 });
 }
 
-module.exports = { browserSuite, press };
+async function answerWorkspaceDialog(page, accept) {
+  const open = page.locator('dialog.workspace-action-dialog[open]');
+  await open.waitFor();
+  const message = await open.getAttribute('aria-label');
+  const dialog = page.getByRole('dialog', { name: message, exact: true });
+  await dialog.getByRole('button', { name: accept ? 'Confirmar' : 'Cancelar', exact: true }).click();
+  await dialog.waitFor({ state: 'hidden' });
+  return message;
+}
+
+module.exports = { answerWorkspaceDialog, browserSuite, press };

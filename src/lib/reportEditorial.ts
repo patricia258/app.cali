@@ -10,7 +10,7 @@ export type ReportChangeSignalV17 = {
   tone: 'positive' | 'attention' | 'neutral';
 };
 
-function clean(value: unknown) {
+function clean(value: string | number | null | undefined) {
   return String(value || '').replace(/\s+/g, ' ').trim();
 }
 

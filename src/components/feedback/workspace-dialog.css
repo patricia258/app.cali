@@ -1,0 +1,31 @@
+@reference "../../styles/tailwind.css";
+
+.workspace-action-dialog {
+  @apply tw:rounded-[16px] tw:border tw:p-5;
+  width: min(440px, calc(100vw - 32px));
+  border-color: var(--theme-line);
+  background: var(--theme-surface);
+  color: var(--theme-text);
+}
+
+.workspace-action-dialog::backdrop { background: rgb(26 17 18 / 60%); }
+.workspace-action-dialog form { @apply tw:grid tw:gap-4; }
+.workspace-action-dialog p { @apply tw:m-0 tw:whitespace-pre-line; }
+.workspace-action-dialog textarea {
+  @apply tw:min-h-24 tw:w-full tw:rounded-lg tw:border tw:p-2;
+  border-color: var(--theme-line);
+  background: var(--theme-surface);
+  color: inherit;
+}
+.workspace-action-dialog footer { @apply tw:flex tw:justify-end tw:gap-2; }
+.workspace-action-dialog button {
+  @apply tw:min-h-cali-control tw:rounded-cali-control tw:border tw:px-4 tw:font-bold;
+  border-color: var(--theme-line);
+  background: var(--theme-surface);
+  color: inherit;
+}
+.workspace-action-dialog button[type='submit'] {
+  border-color: var(--burgundy);
+  background: var(--burgundy);
+  color: white;
+}

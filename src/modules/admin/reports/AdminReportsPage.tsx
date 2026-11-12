@@ -1,3 +1,5 @@
+import { isJsonObject, type JsonValue } from '../../../domain/json';
+import { confirmAction } from '../../../components/feedback/workspaceDialogs';
 import { Button } from '../../../components/ds/Button';
 import { DialogFrame } from '../../../components/ds/DialogFrame';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
@@ -5,14 +7,14 @@ import { useSearchParams } from '../../../hooks/useSearchParams';
 import { AdminMaterialReview } from '../../material-review/AdminMaterialReview';
 import { useMaterialDeliveryConfirmation } from '../../../hooks/useMaterialDeliveryConfirmation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, BarChart3, CheckCircle2, Eye, FileText, Loader2, Mail, Printer, RefreshCw, RotateCcw, Send, Trash2, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Eye, FileText, Loader2, Mail, Printer, RefreshCw, RotateCcw, Send, Trash2, X } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { WorkspaceExecutiveReportPaper } from '../../../components/reports/WorkspaceExecutiveReportPaper';
 import { ReportManualComplementsPanel } from '../../../components/reports/ReportManualComplementsPanel';
 import {
   approveExecutiveReport, createReportDraft, deleteReportDraft, deliverExecutiveReport, readCurrentReportPeriod,
   readFreshReportPeriod, readReportPortfolio, readReportReadiness, readReportRecipients, refreshReportFacts,
-  saveReportEditorialDraft, startReportReview, type FreshPeriodData, type ReportReadiness,
+  saveReportEditorialDraft, startReportReview, type FreshPeriodData, type ReportReadiness, type AdminReportRow,
 } from '../../../api/reports/admin';
 import { endOfMonth, endOfQuarter, format, startOfMonth, startOfQuarter } from 'date-fns';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
@@ -63,10 +65,19 @@ function quarterOptions() { const year = new Date().getFullYear(); const values:
 function lines(value: string) { return String(value || '').split('\n').map((item) => item.trim()).filter(Boolean); }
 function formatDate(value?: string | null) { if (!value) return '—'; const date = new Date(`${String(value).slice(0, 10)}T12:00:00`); return Number.isNaN(date.getTime()) ? '—' : new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date); }
 function formatDateTime(value?: string | null) { if (!value) return '—'; const date = new Date(value); return Number.isNaN(date.getTime()) ? '—' : new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(date); }
-function dismissedFrom(value: unknown): DismissedReportAlert[] { return Array.isArray(value) ? value.filter((item: any) => item && item.id && item.reason).map((item: any) => ({ id: String(item.id), reason: String(item.reason), dismissedAt: String(item.dismissedAt || item.dismissed_at || new Date().toISOString()) })) : []; }
-function reportRow(row: any): Report { return { id: row.id, companyId: row.company_id, title: row.title, reportType: (row.report_type || 'monthly') as ReportType, periodStart: String(row.period_start || row.reference_month).slice(0, 10), periodEnd: String(row.period_end || row.reference_month).slice(0, 10), status: row.status as ReportLifecycleStatus, summary: row.executive_summary || '', movements: Array.isArray(row.movements) ? row.movements.map(String) : [], decisions: Array.isArray(row.decisions) ? row.decisions.map(String) : [], risks: Array.isArray(row.risks) ? row.risks.map(String) : [], nextSteps: Array.isArray(row.next_steps) ? row.next_steps.map(String) : [], snapshot: normalizeIntelligenceSnapshot(row.source_snapshot), protocol: row.protocol || '—', updatedAt: row.updated_at, version: Number(row.version || 1), revisionParentId: row.revision_parent_id, dismissedAlerts: dismissedFrom(row.dismissed_alerts), internalNote: row.internal_note || '', dataRefreshedAt: row.data_refreshed_at, reviewStartedAt: row.review_started_at, approvedAt: row.approved_at, sentAt: row.sent_at, sentTo: Array.isArray(row.sent_to) ? row.sent_to.map(String) : [] }; }
+function dismissedFrom(value: JsonValue | undefined): DismissedReportAlert[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!isJsonObject(item) || !item.id || !item.reason) return [];
+    return [{
+      id: String(item.id), reason: String(item.reason),
+      dismissedAt: String(item.dismissedAt || item.dismissed_at || new Date().toISOString()),
+    }];
+  });
+}
+function reportRow(row: AdminReportRow): Report { return { id: row.id, companyId: row.company_id, title: row.title, reportType: row.report_type || 'monthly', periodStart: String(row.period_start || row.reference_month).slice(0, 10), periodEnd: String(row.period_end || row.reference_month).slice(0, 10), status: row.status, summary: row.executive_summary || '', movements: Array.isArray(row.movements) ? row.movements.map(String) : [], decisions: Array.isArray(row.decisions) ? row.decisions.map(String) : [], risks: Array.isArray(row.risks) ? row.risks.map(String) : [], nextSteps: Array.isArray(row.next_steps) ? row.next_steps.map(String) : [], snapshot: normalizeIntelligenceSnapshot(row.source_snapshot), protocol: row.protocol || '—', updatedAt: row.updated_at, version: Number(row.version || 1), revisionParentId: row.revision_parent_id, dismissedAlerts: dismissedFrom(row.dismissed_alerts), internalNote: row.internal_note || '', dataRefreshedAt: row.data_refreshed_at, reviewStartedAt: row.review_started_at, approvedAt: row.approved_at, sentAt: row.sent_at, sentTo: Array.isArray(row.sent_to) ? row.sent_to.map(String) : [] }; }
 function editorFrom(report: Report): ReportEditor { return { summary: report.summary, movements: report.movements.join('\n'), decisions: report.decisions.join('\n'), risks: report.risks.join('\n'), nextSteps: report.nextSteps.join('\n') }; }
-function frozenDeliveryRows(snapshot: IntelligenceSnapshot | null) { const raw = (snapshot as any)?.deliveryPerformanceV14; return Array.isArray(raw) ? raw as DeliveryPerformanceRow[] : null; }
+function frozenDeliveryRows(snapshot: IntelligenceSnapshot | null) { return snapshot?.deliveryPerformanceV14 ?? null; }
 
 function EditorialField({ title, value, onChange, helper, rows = 5, locked }: { title: string; value: string; onChange: (value: string) => void; helper: string; rows?: number; locked: boolean }) {
   return <div className="reports-v16-editor-field"><div><h3>{title}</h3><p>{helper}</p></div><textarea rows={rows} value={value} readOnly={locked} onChange={(event) => onChange(event.target.value)} /></div>;
@@ -108,11 +119,16 @@ export function AdminReportsPage() {
   const capacitySignal = useMemo(() => effectiveSnapshot ? capacitySignalV15(effectiveSnapshot) : null, [effectiveSnapshot]);
   const changes = useMemo(() => effectiveSnapshot ? periodChangeSignalsV17(effectiveSnapshot, reportType) : [], [effectiveSnapshot, reportType]);
   const reviewCounts = useMemo(() => effectiveSnapshot ? reportReviewCountsV16(effectiveSnapshot, effectiveDeliveries, selectedDemands.size, selectedDecisions.size, unresolvedAlerts.length) : null, [effectiveSnapshot, effectiveDeliveries, selectedDemands.size, selectedDecisions.size, unresolvedAlerts.length]);
-  const isSimulation = Boolean((activeReport?.snapshot as any)?.workflow_mode === 'simulation');
+  const isSimulation = Boolean(activeReport?.snapshot?.workflow_mode === 'simulation');
   const canEdit = Boolean(!activeReport || activeReport.status === 'draft' || activeReport.status === 'review');
   const lifecycleStatus = activeReport?.status || 'draft';
 
   useEffect(() => { void loadBase(); }, []);
+  useEffect(() => {
+    const refresh = () => void refreshReportViews();
+    window.addEventListener('cali:reports:refresh', refresh);
+    return () => window.removeEventListener('cali:reports:refresh', refresh);
+  }, [companyId, reportType, periodStart, periodEnd]);
   useEffect(() => { if (companyId && periodStart && periodEnd) void loadPeriod(companyId, reportType, periodStart, periodEnd); }, [companyId, reportType, periodStart, periodEnd]);
   useEffect(() => { if (!previewOpen && !dismissTarget && !sendOpen) return; document.body.classList.add('workspace-modal-open'); return () => document.body.classList.remove('workspace-modal-open'); }, [previewOpen, dismissTarget, sendOpen]);
   useEffect(() => {
@@ -162,10 +178,15 @@ export function AdminReportsPage() {
     finally { setLoadingBase(false); }
   }
 
+  async function refreshReportViews() {
+    await loadBase();
+    if (companyId && periodStart && periodEnd) await loadPeriod(companyId, reportType, periodStart, periodEnd);
+  }
+
   async function createDraft(fresh: FreshPeriodData, version = 1, parentId: string | null = null, mode: 'official' | 'simulation' = 'official', initialEditor?: ReportEditor, initialInternalNote = '', initialManual: ReportManualComplements = emptyReportManualComplements()) {
     if (!selectedCompany) throw new Error('Cliente não selecionado.');
     const seed = buildEditorialSeedV17(fresh.snapshot, reportType);
-    const sourceSnapshot = attachReportManualComplements({ ...fresh.snapshot, deliveryPerformanceV14: fresh.deliveries, workflow_mode: mode, ...(mode === 'simulation' ? { simulation_of: parentId, simulation_marked_at: new Date().toISOString() } : {}) } as IntelligenceSnapshot, initialManual);
+    const sourceSnapshot = attachReportManualComplements({ ...fresh.snapshot, deliveryPerformanceV14: fresh.deliveries, workflow_mode: mode, ...(mode === 'simulation' ? { simulation_of: parentId, simulation_marked_at: new Date().toISOString() } : {}) } satisfies IntelligenceSnapshot, initialManual);
     const payload = {
       company_id: selectedCompany.id,
       title: `Relatório Executivo ${reportTypeLabel[reportType]} · ${selectedCompany.name} · ${periodName}`,
@@ -223,7 +244,7 @@ export function AdminReportsPage() {
   function changeType(next: ReportType) { setReportType(next); const anchor = new Date(`${periodStart}T12:00:00`), period = next === 'monthly' ? monthlyPeriod(anchor) : quarterlyPeriod(anchor); setPeriodStart(period.start); setPeriodEnd(period.end); }
   function changeMonth(value: string) { const [year, month] = value.split('-').map(Number), period = monthlyPeriod(new Date(year, month - 1, 1)); setPeriodStart(period.start); setPeriodEnd(period.end); }
   function changeQuarter(value: string) { const period = quarterPeriod(value); setPeriodStart(period.start); setPeriodEnd(period.end); }
-  function toggleSelection(value: string, kind: 'decisions' | 'movements') { if (!canEdit) return; const current = new Set(lines(editor[kind])); current.has(value) ? current.delete(value) : current.add(value); setEditor((state) => ({ ...state, [kind]: Array.from(current).join('\n') })); }
+  function toggleSelection(value: string, kind: 'decisions' | 'movements') { if (!canEdit) return; const current = new Set(lines(editor[kind])); if (current.has(value)) current.delete(value); else current.add(value); setEditor((state) => ({ ...state, [kind]: Array.from(current).join('\n') })); }
 
   async function createOfficialClosing() {
     if (!liveSnapshot) return;
@@ -244,8 +265,8 @@ export function AdminReportsPage() {
     setSaving(true); setError('');
     try {
       const fresh = await readFreshReportPeriod(companyId, reportType, periodStart, periodEnd);
-      const previousMode = (activeReport.snapshot as any)?.workflow_mode || 'official';
-      const sourceSnapshot = attachReportManualComplements({ ...fresh.snapshot, deliveryPerformanceV14: fresh.deliveries, workflow_mode: previousMode, ...((activeReport.snapshot as any)?.simulation_of ? { simulation_of: (activeReport.snapshot as any).simulation_of } : {}) } as IntelligenceSnapshot, manualComplements);
+      const previousMode = activeReport.snapshot?.workflow_mode || 'official';
+      const sourceSnapshot = attachReportManualComplements({ ...fresh.snapshot, deliveryPerformanceV14: fresh.deliveries, workflow_mode: previousMode, ...(activeReport.snapshot?.simulation_of ? { simulation_of: activeReport.snapshot.simulation_of } : {}) } satisfies IntelligenceSnapshot, manualComplements);
       await refreshReportFacts(activeReport.id, sourceSnapshot, {
         serviceType: fresh.snapshot.contract.serviceType || selectedCompany?.serviceType || null,
         servicePlan: fresh.snapshot.contract.servicePlan || selectedCompany?.servicePlan || null,
@@ -280,7 +301,7 @@ export function AdminReportsPage() {
     if (unresolvedBlocking.length) { setError(`Existem ${unresolvedBlocking.length} item(ns) que precisam ser corrigidos antes da aprovação.`); return; }
     setSaving(true); setError('');
     try {
-      const sourceSnapshot = attachReportManualComplements({ ...snapshot, deliveryPerformanceV14: deliveries, workflow_mode: 'official' } as IntelligenceSnapshot, manualComplements);
+      const sourceSnapshot = attachReportManualComplements({ ...snapshot, deliveryPerformanceV14: deliveries, workflow_mode: 'official' } satisfies IntelligenceSnapshot, manualComplements);
       await approveExecutiveReport(activeReport.id, activeReport.version, {
         companyId, type: reportType, start: periodStart, end: periodEnd,
       }, { editor, internalNote, dismissedAlerts, snapshot: sourceSnapshot });
@@ -301,7 +322,7 @@ export function AdminReportsPage() {
     if (!activeReport || sending || !['approved', 'sent', 'published'].includes(activeReport.status)) return;
     const recipients = sendRecipients.split(/[;,]/).map((item) => item.trim()).filter(Boolean);
     if (!recipients.length) { setSendError('Informe pelo menos um e-mail de destinatário.'); return; }
-    const requestId = confirmDelivery(recipients, [activeReport.id, activeReport.version, sendMessage]);
+    const requestId = await confirmDelivery(recipients, [activeReport.id, activeReport.version, sendMessage]);
     if (!requestId) return;
     setSending(true); setSendError('');
     try {
@@ -332,7 +353,7 @@ export function AdminReportsPage() {
 
   async function deleteReport(report: Report) {
     if (!['draft', 'review'].includes(report.status)) return;
-    const ok = window.confirm(`Excluir definitivamente ${periodLabelV14(report.reportType, report.periodStart)} · v${report.version}?`); if (!ok) return;
+    const ok = await confirmAction(`Excluir definitivamente ${periodLabelV14(report.reportType, report.periodStart)} · v${report.version}?`); if (!ok) return;
     try {
       await deleteReportDraft(report.id);
     } catch (reason) {
@@ -366,7 +387,7 @@ export function AdminReportsPage() {
   const hasPlanned = Number(kpis?.plannedDeliveries || 0) > 0;
   const hasAdherence = kpis?.deliveryAdherence !== null && kpis?.deliveryAdherence !== undefined;
 
-  const history = <section className="reports-v16-history"><div className="reports-v16-section-heading"><span>08</span><div><h2>Histórico e versões</h2><p>Versões oficiais preservam o fechamento do período. Rascunhos e simulações só existem quando você os cria.</p></div></div><div className="reports-v16-history-table"><div className="head"><span>Período</span><span>Versão</span><span>Status</span><span>Data</span><span>Ações</span></div>{companyReports.slice(0, 12).map((report) => <div className={report.id === activeReport?.id ? 'active' : ''} key={report.id} data-report-id={report.id}><button type="button" className="period" onClick={() => { setReportType(report.reportType); setPeriodStart(report.periodStart); setPeriodEnd(report.periodEnd); }}>{periodLabelV14(report.reportType, report.periodStart)}</button><span>v{report.version}</span><span>{(report.snapshot as any)?.workflow_mode === 'simulation' ? 'Simulação' : statusLabel[report.status]}</span><span>{formatDateTime(report.sentAt || report.approvedAt || report.updatedAt)}</span><span className="actions"><button type="button" onClick={() => {
+  const history = <section className="reports-v16-history"><div className="reports-v16-section-heading"><span>08</span><div><h2>Histórico e versões</h2><p>Versões oficiais preservam o fechamento do período. Rascunhos e simulações só existem quando você os cria.</p></div></div><div className="reports-v16-history-table"><div className="head"><span>Período</span><span>Versão</span><span>Status</span><span>Data</span><span>Ações</span></div>{companyReports.slice(0, 12).map((report) => <div className={report.id === activeReport?.id ? 'active' : ''} key={report.id} data-report-id={report.id}><button type="button" className="period" onClick={() => { setReportType(report.reportType); setPeriodStart(report.periodStart); setPeriodEnd(report.periodEnd); }}>{periodLabelV14(report.reportType, report.periodStart)}</button><span>v{report.version}</span><span>{report.snapshot?.workflow_mode === 'simulation' ? 'Simulação' : statusLabel[report.status]}</span><span>{formatDateTime(report.sentAt || report.approvedAt || report.updatedAt)}</span><span className="actions"><button type="button" onClick={() => {
       if (report.status === 'archived') {
         window.open(`/admin/relatorios/impressao/${encodeURIComponent(report.id)}`, '_blank', 'noopener,noreferrer');
       } else {
@@ -388,7 +409,7 @@ export function AdminReportsPage() {
   const stages = ['Prévia interna', isSimulation ? 'Simulação interna' : 'Fechamento em revisão', 'Aprovado', 'Enviado ao cliente'];
 
   return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-reports v2-client-module"><div className="ap-content"><section className="wf reports-admin-v16">
-    {activeReport && ['draft','review'].includes(activeReport.status) && <AdminMaterialReview kind="report" entityId={activeReport.id} companyId={activeReport.companyId} />}
+    {activeReport && ['draft','review'].includes(activeReport.status) && <AdminMaterialReview kind="report" entityId={activeReport.id} companyId={activeReport.companyId} onApproved={refreshReportViews} />}
     <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Relatórios</h1><p>Fechamento executivo de cada conta: fatos do período, curadoria, leitura da CALI, aprovação e envio ao cliente.</p></div></div>
     <div className="wf-controls v2-report-controls"><ol className="v2-report-stages" aria-label="Etapa do fechamento">{stages.map((label, index) => <li key={label} className={index < stageIndex ? 'done' : index === stageIndex ? 'current' : ''}><b>{index + 1}</b><span>{label}</span></li>)}</ol><div className="reports-v16-filters"><label>Empresa<select value={companyId} onChange={(event) => setCompanyId(event.target.value)}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label><label>Tipo<select value={reportType} onChange={(event) => changeType(event.target.value as ReportType)}><option value="monthly">Mensal</option><option value="quarterly">Trimestral</option></select></label>{reportType === 'monthly' ? <label>Período<input type="month" value={periodStart.slice(0, 7)} onChange={(event) => changeMonth(event.target.value)} /></label> : <label>Período<select value={quarterKey(periodStart)} onChange={(event) => changeQuarter(event.target.value)}>{quarters.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>}</div></div>
     {notice ? <InlineNotice tone="success"><CheckCircle2 size={18} />{notice}</InlineNotice> : null}{error ? <InlineNotice><AlertTriangle size={18} />{error}</InlineNotice> : null}

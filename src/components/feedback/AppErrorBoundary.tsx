@@ -7,10 +7,10 @@ type State = { failed: boolean };
 /* Depois de uma publicação, uma aba que já estava aberta pede arquivos da versão anterior, que não existem mais.
    Nesse caso o Workspace recarrega sozinho uma vez e a pessoa segue na versão nova, sem ver a tela de erro. */
 const RELOAD_KEY = 'cali:auto-reload-at';
-const staleVersion = (error: unknown) => /dynamically imported module|Importing a module script failed|Failed to fetch|error loading dynamically|ChunkLoadError|Unable to preload CSS/i.test(String((error as Error)?.message || error));
+const staleVersion = (error: Error) => /dynamically imported module|Importing a module script failed|Failed to fetch|error loading dynamically|ChunkLoadError|Unable to preload CSS/i.test(error.message);
 export function reloadOnceForNewVersion() {
   try { const last = Number(sessionStorage.getItem(RELOAD_KEY) || 0); if (Date.now() - last < 20_000) return false; sessionStorage.setItem(RELOAD_KEY, String(Date.now())); } catch { return false; }
-  window.location.reload(); return true;
+  window.location.replace(window.location.href); return true;
 }
 
 export class AppErrorBoundary extends Component<Props, State> {
@@ -34,7 +34,7 @@ export class AppErrorBoundary extends Component<Props, State> {
           <span style={{ fontSize: 10, letterSpacing: 1.4, fontWeight: 800, color: '#af8f72' }}>CALI WORKSPACE</span>
           <h1 style={{ margin: 0, fontSize: 19, lineHeight: 1.3 }}>O Workspace foi atualizado.</h1>
           <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: '#655a55' }}>Nada do que você fez foi perdido. Clique em recarregar para continuar na versão mais recente.</p>
-          <button type="button" onClick={() => window.location.reload()} style={{ alignSelf: 'flex-start', marginTop: 6, padding: '11px 16px', borderRadius: 7, border: '1px solid #5a1e2d', background: '#5a1e2d', color: '#fff', font: 'inherit', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Recarregar Workspace</button>
+          <button type="button" onClick={() => window.location.assign(window.location.href)} style={{ alignSelf: 'flex-start', marginTop: 6, padding: '11px 16px', borderRadius: 7, border: '1px solid #5a1e2d', background: '#5a1e2d', color: '#fff', font: 'inherit', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Recarregar Workspace</button>
         </section>
       </main>
     );

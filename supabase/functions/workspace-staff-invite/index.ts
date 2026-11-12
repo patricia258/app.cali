@@ -1,3 +1,4 @@
+import type { JsonValue } from '../_shared/json.ts';
 import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 // CALI Workspace — convite por e-mail para a Equipe CALI (perfil Partner).
 // Só a administradora pode chamar (confere com cali_workspace.is_admin() usando a sessão de quem chamou).
@@ -16,7 +17,7 @@ function cors(request: Request) {
   const allowed = origin === APP_URL || /^https:\/\/[-a-z0-9]+\.vercel\.app$/i.test(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
   return { "Access-Control-Allow-Origin": allowed ? origin : APP_URL, "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info", "Access-Control-Allow-Methods": "POST, OPTIONS", Vary: "Origin" };
 }
-function json(request: Request, body: unknown, status = 200) {
+function json(request: Request, body: JsonValue, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { ...cors(request), "Content-Type": "application/json; charset=utf-8" } });
 }
 function firstName(name: string | null | undefined) { return String(name || "").trim().split(/\s+/)[0] || "Olá"; }

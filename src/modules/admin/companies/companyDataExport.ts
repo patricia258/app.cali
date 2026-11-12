@@ -6,7 +6,7 @@
 import { readCompanyExport, signCompanyExportDocuments } from '../../../api/admin/companies/export';
 
 const LINK_DAYS = 7;
-const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
+const escapeHtml = (value: string) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
 const slug = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'empresa';
 
 function download(content: string, type: string, filename: string) {
@@ -15,16 +15,14 @@ function download(content: string, type: string, filename: string) {
   document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
-type DocRow = { title?: string; original_filename?: string; protocol?: string; storage_path?: string; created_at?: string; document_date?: string; drive_url?: string; external_url?: string };
-
 export async function exportCompanyData(companyId: string, companyName: string, recipient: string) {
   const payload = await readCompanyExport(companyId, recipient);
   const today = new Date().toISOString().slice(0, 10);
   const base = `cali-workspace-${slug(companyName)}-${today}`;
   download(JSON.stringify(payload, null, 2), 'application/json', `${base}-dados.json`);
 
-  const docs = [...(payload.data.files || []), ...(payload.data.account_documents || [])] as DocRow[];
-  const paths = docs.map((doc) => doc.storage_path).filter((path): path is string => Boolean(path));
+  const docs = [...(payload.data.files || []), ...(payload.data.account_documents || [])];
+  const paths = docs.flatMap(doc => doc.storage_path ? [doc.storage_path] : []);
   const links = await signCompanyExportDocuments(paths, LINK_DAYS * 86400);
   const until = new Date(Date.now() + LINK_DAYS * 86400000).toLocaleDateString('pt-BR');
   const rows = docs.map((doc) => {

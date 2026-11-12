@@ -1,3 +1,5 @@
+import type { JsonValue } from '../../domain/json';
+
 /* CALI Forms: modelo comum à tela da administradora e à página pública (/f/:slug). As perguntas ficam numa lista
    JSON no próprio formulário (cali_workspace.forms.questions); as respostas, por id de pergunta, em form_responses. */
 
@@ -128,7 +130,7 @@ export function fileLabel(value: string) {
   return last.replace(/^\d{10,}-/, '');
 }
 
-export function formatAnswer(question: FormQuestion, value: unknown) {
+export function formatAnswer(question: FormQuestion, value: JsonValue | undefined) {
   if (value === undefined || value === null || value === '') return '';
   if (question.kind === 'file' && typeof value === 'string') return fileLabel(value);
   if (Array.isArray(value)) return value.join(', ');

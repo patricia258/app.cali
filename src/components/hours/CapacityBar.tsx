@@ -18,7 +18,7 @@ export function CapacityBar({ capacity, dark, bare }: { capacity: Capacity; dark
 
 /** Cartão "Horas do mês" (modelo aprovado pela proprietária em 2026-10-13): plano e mês, percentual grande, barra,
  *  três cartões e, quando for o caso, o aviso do marco atingido. */
-export function CapacityCard({ capacity, plan, month, occurrence, paused }: { capacity: Capacity; plan?: string | null; month: string; occurrence?: number; paused?: boolean }) {
+export function CapacityCard({ capacity, occurrence, paused }: { capacity: Capacity; plan?: string | null; month: string; occurrence?: number; paused?: boolean }) {
   const occurrenceText = occurrence === 1 ? 'Esta é a primeira ocorrência registrada.' : occurrence === 2 ? 'Esta é a segunda ocorrência no período acompanhado; a recorrência pode indicar a necessidade de rever o volume de horas.' : occurrence && occurrence >= 3 ? 'É a terceira ocorrência no período acompanhado; vamos avaliar juntos a adequação do pacote e as alternativas disponíveis.' : '';
   const level = capacity.level; const excess = capacity.excessMinutes > 0;
   const alert = level === 'excess'

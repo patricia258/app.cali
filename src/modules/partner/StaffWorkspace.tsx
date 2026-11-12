@@ -10,13 +10,13 @@ import { CompanyTeamPage } from '../team/CompanyTeamPage';
 import { MfaGate } from '../../auth/MfaGate';
 import { TermsGate } from '../../auth/TermsGate';
 import { StaffDocumentsPage } from '../documents/AdminDocumentsPage';
-import { createContext, useContext, useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Outlet } from '@tanstack/react-router';
 import { Link } from '../../components/navigation/Link';
 import { Navigate } from '../../components/navigation/Navigate';
 import { useLocation } from '../../hooks/useLocation';
 import { useNavigate } from '../../hooks/useNavigate';
-import { ArrowRight, Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, SendHorizontal, Users, X } from 'lucide-react';
+import { Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, Users } from 'lucide-react';
 import { readPartnerNotifications, readPartnerReports, readPartnerReviews, recordPartnerSession, type PartnerNotification, type PartnerReview } from '../../api/partner/operations';
 import { endWorkspaceSession } from '../../api/access/session';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
@@ -42,7 +42,6 @@ import '../../components/workspace/operational.css';
 const moment = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
 const dayLabel = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${iso.slice(0, 10)}T12:00:00`));
 const duration = (minutes: number) => `${Math.floor(minutes / 60)}h${String(minutes % 60).padStart(2, '0')}`;
-const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('');
 const welcomeSteps: WelcomeStep[] = [
   { label: 'BOAS-VINDAS À EQUIPE CALI', title: 'Que bom ter você no time', text: 'Este é o seu espaço de trabalho na CALI. Veja em um minuto como ele funciona.' },
   { href: '/equipe', label: 'VISÃO GERAL', title: 'O resumo do seu dia', text: 'As empresas que você atende, as prioridades e a agenda.' },
@@ -85,7 +84,7 @@ function Frame({ me, children }: { me: PartnerWorkspace; children: ReactNode }) 
   const navigate = useNavigate(); const { pathname } = useLocation(); const has = (key: string) => me.modules.includes(key);
   /* A Visão geral usa a composição da administradora (.content > .ap-app), sem invólucro, para herdar as mesmas regras, inclusive no celular. */
   const plain = ['/equipe', '/equipe/ocorrencias', '/equipe/projetos', '/equipe/avisos', '/equipe/horas', '/equipe/calendario', '/equipe/documentos'].includes(pathname.replace(/\/$/, ''));
-  const nav = ([['/equipe', 'Visão geral', LayoutDashboard, true], ['/equipe/pessoas', 'Equipe', Users, has('team')], ['/equipe/projetos', 'Projetos', BriefcaseBusiness, has('projects')], ['/equipe/horas', 'Horas', Clock3, has('hours')], ['/equipe/calendario', 'Calendário', CalendarDays, has('calendar')], ['/equipe/ocorrencias', 'Ocorrências', MessageCircleMore, has('records')], ['/equipe/documentos', 'Documentos', FolderOpen, has('documents')], ['/equipe/relatorios', 'Relatórios', FileBarChart2, has('reports')], ['/equipe/materiais', 'Materiais', FileBarChart2, has('reports') || has('proposals') || has('people_map')], ['/equipe/avisos', 'Avisos', Megaphone, has('notices')], ['/equipe/aprovacoes', 'Aprovações', Send, true]] as [string, string, typeof Clock3, boolean][]).filter((item) => item[3]).map(([href, label, icon]) => ({ href, label, icon }));
+  const nav = ([['/equipe', 'Visão geral', LayoutDashboard, true], ['/equipe/pessoas', 'Equipe', Users, has('team')], ['/equipe/projetos', 'Projetos', BriefcaseBusiness, has('projects')], ['/equipe/horas', 'Horas', Clock3, has('hours')], ['/equipe/calendario', 'Calendário', CalendarDays, has('calendar')], ['/equipe/ocorrencias', 'Ocorrências', MessageCircleMore, has('records')], ['/equipe/documentos', 'Documentos', FolderOpen, has('documents')], ['/equipe/relatorios', 'Relatórios', FileBarChart2, has('reports')], ['/equipe/materiais', 'Materiais', FileBarChart2, has('reports') || has('proposals') || has('people_map')], ['/equipe/avisos', 'Avisos', Megaphone, has('notices')], ['/equipe/aprovacoes', 'Aprovações', Send, true]] satisfies [string, string, typeof Clock3, boolean][]).filter((item) => item[3]).map(([href, label, icon]) => ({ href, label, icon }));
   /* Entrada e saída ficam registradas para a administradora (função staff_log_session). */
   useEffect(() => { try { if (sessionStorage.getItem('cali:staff-session') === me.id) return; sessionStorage.setItem('cali:staff-session', me.id); } catch { /* segue */ } void recordPartnerSession('staff_session_started'); }, [me.id]);
   async function logout() { try { await recordPartnerSession('staff_session_ended'); sessionStorage.removeItem('cali:staff-session'); } catch { /* a saída não pode ficar presa ao registro */ } await endWorkspaceSession(); navigate('/login', { replace: true }); }
@@ -101,7 +100,7 @@ const CompanySelect = ({ me, value, onChange, all }: { me: PartnerWorkspace; val
 /* Consulta (somente leitura) dos módulos liberados. O banco só devolve o que é das empresas atribuídas. */
 type BrowseRow = { id: string; company_id: string | null; title: string; sub: string; tag: string; when: string | null; href?: string };
 type BrowseConfig = { eyebrow: string; title: string; text: string; empty: string; load: () => Promise<BrowseRow[] | null> };
-const label = (map: Record<string, string>, value: unknown) => map[String(value || '')] || String(value || '—');
+const label = <T,>(map: Record<string, string>, value: T) => map[String(value || '')] || String(value || '—');
 const STATUS: Record<string, string> = { not_started: 'Não iniciada', in_progress: 'Em andamento', internal_review: 'Revisão interna', client_review: 'Com o cliente', approved: 'Aprovada', adjustment_requested: 'Ajuste solicitado', cancelled: 'Cancelada', done: 'Concluída', draft: 'Rascunho', review: 'Em revisão', sent: 'Enviado ao cliente', published: 'Publicado', archived: 'Arquivado', active: 'Ativa', leave: 'Afastada', terminated: 'Desligada', paused: 'Pausado', planning: 'Em planejamento' };
 const reports: BrowseConfig = {
   eyebrow: 'EQUIPE CALI / RELATÓRIOS',

@@ -446,15 +446,15 @@ export function LandingPage() {
 
         <div className="lp-photo-rail" aria-label="Galeria de fotos da CALI">
           <div className="lp-photo-track">
-            {[...PHOTO_SLOTS, ...PHOTO_SLOTS].map((slot, index) => (
+            {['gallery', 'loop'].flatMap((copy) => PHOTO_SLOTS.map((slot) => (
               <BrandSlot
-                key={`${slot.title}-${index}`}
+                key={`${copy}-${slot.title}`}
                 title={slot.title}
                 mark={slot.mark}
                 src={slot.src}
                 objectPosition={slot.objectPosition}
               />
-            ))}
+            )))}
           </div>
         </div>
       </section>

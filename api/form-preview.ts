@@ -2,6 +2,7 @@
    capa geral do Workspace. O vercel.json manda só os robôs de /f/:slug para cá; pessoas continuam indo direto para o app.
    Devolve título e texto do próprio formulário com uma imagem quadrada pequena (200×200: abaixo de 300 px o WhatsApp mostra só a miniatura à esquerda). */
 import { readSupabaseEnvironment } from '../src/api/environment';
+import type { JsonValue } from '../src/domain/json';
 
 const esc = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 // Mesmo texto que a pessoa vê na abertura, sem as marcações de negrito/itálico, numa linha só.
@@ -27,8 +28,8 @@ export async function GET(request: Request) {
         headers: { apikey: environment.key, Authorization: `Bearer ${environment.key}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ p_slug: slug }),
       });
-      const form = response.ok ? await response.json() as { title?: unknown; description?: unknown; category?: unknown } | null : null;
-      if (typeof form?.title === 'string' && form.title.trim()) {
+      const form: JsonValue = response.ok ? await response.json() : null;
+      if (form && typeof form === 'object' && !Array.isArray(form) && typeof form.title === 'string' && form.title.trim()) {
         title = form.title;
         const text = typeof form.description === 'string' ? plain(form.description) : '';
         const category = typeof form.category === 'string' && form.category.trim() ? form.category : 'Formulário';

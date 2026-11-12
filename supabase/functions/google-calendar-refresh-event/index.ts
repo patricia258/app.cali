@@ -45,7 +45,7 @@ Deno.serve(async (request) => {
         }
         if (organizerEmail)
             attendeeStatus.set(organizerEmail, 'accepted');
-        const changed: any[] = [];
+        const changed: { email: string; from: string; to: string; attendeeType: string }[] = [];
         const { data: localAttendees, error: attendeeError } = await service.from('event_attendees').select('id,email,status,attendee_type,user_id').eq('event_id', event.id);
         if (attendeeError) throw new GoogleIntegrationError('event_attendees_unavailable', 503);
         for (const attendee of localAttendees || []) {
@@ -99,6 +99,6 @@ Deno.serve(async (request) => {
         });
     });
   } catch (error) {
-    return googleFailure(config, error);
+    return googleFailure(config, error instanceof GoogleIntegrationError ? error : null);
   }
 });

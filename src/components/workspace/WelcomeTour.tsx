@@ -51,7 +51,7 @@ export function WelcomeTour({ steps: custom }: { steps?: Step[] } = {}) {
   if (index == null || !step) return null;
   const close = () => { try { if (key) localStorage.setItem(key, new Date().toISOString()); } catch { /* segue */ } if (user?.id) void markWorkspaceWelcomeSeen(user.id); setIndex(null); };
   const last = index === steps.length - 1;
-  return <div className="v2-welcome-overlay"><DialogFrame className="v2-welcome" aria-label="Apresentação do CALI Workspace" key={index}>
+  return <div className="v2-welcome-overlay"><DialogFrame className="v2-welcome" aria-label="Apresentação do CALI Workspace" key={step.title}>
     <header><span>{step.label}</span><button type="button" onClick={close} aria-label="Fechar apresentação"><X size={16} /></button></header>
     <div className="v2-welcome-body">
       {index === 0 && <div className="v2-welcome-video" role="img" aria-label="Vídeo de boas-vindas (em breve)"><span><Play size={22} /></span><small>Vídeo de boas-vindas · em breve</small></div>}

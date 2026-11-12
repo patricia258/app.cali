@@ -43,7 +43,7 @@ const audit=()=>{const vis=e=>{const r=e.getBoundingClientRect();const s=getComp
    const single=(r.headers()['accept']||'').includes('vnd.pgrst.object');return route.fulfill({headers:{...cors,'content-range':`0-${Math.max(0,rows.length-1)}/${rows.length}`},json:single?rows[0]??null:rows});});
   const p=await c.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message.slice(0,90)));
   for(const [label,url,pre] of steps){errs.length=0;await p.goto('http://127.0.0.1:5173'+url);await p.waitForTimeout(500);await p.waitForFunction(()=>!document.querySelector('.data-loading,.spin'),null,{timeout:12000}).catch(()=>{});await p.waitForTimeout(500);
-   if(pre){if(width<850&&pre.includes('.profile')){}await p.evaluate(pre).catch(()=>{});await p.waitForTimeout(label.includes('conversa')?2600:900);}
+   if(pre){await p.evaluate(pre).catch(()=>{});await p.waitForTimeout(label.includes('conversa')?2600:900);}
    const res=await p.evaluate(audit);if(errs.length)res.erros=[...new Set(errs)];checked++;
    if(Object.keys(res).length){issues++;console.log(`[${width}] ${label}: ${JSON.stringify(res)}`);}}
   await c.close();}

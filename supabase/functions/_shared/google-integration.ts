@@ -1,3 +1,4 @@
+import type { JsonObject, JsonValue } from './json.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
 
 export const env = (name: string) => (Deno.env.get(name) || '').trim();
@@ -46,7 +47,7 @@ export function googleRequest(request: Request) {
     Vary: 'Origin',
     ...(origin && allowed ? { 'Access-Control-Allow-Origin': origin } : {}),
   };
-  const json = (data: unknown, status = 200) => new Response(JSON.stringify(data), { status, headers });
+  const json = (data: JsonValue, status = 200) => new Response(JSON.stringify(data), { status, headers });
   const clientId = env('GOOGLE_CLIENT_ID');
   const clientSecret = env('GOOGLE_CLIENT_SECRET');
   const localProvider = env('GOOGLE_LOCAL_PROVIDER_URL');
@@ -180,7 +181,7 @@ export async function claimGoogleOAuth(config: GoogleRequest, actor: Actor, purp
   return { nonce: parsed.nonce, company: parsed.company, redirect, verifier: claim.data.verifier as string };
 }
 
-export async function finishGoogleOAuth(actor: Actor, nonce: string, connection: string | null, target: string | null, credential: unknown) {
+export async function finishGoogleOAuth(actor: Actor, nonce: string, connection: string | null, target: string | null, credential: JsonObject) {
   const saved = await actor.db.rpc('finish_google_oauth', {
     p_nonce: nonce, p_connection: connection, p_target: target, p_credential: credential,
   });
@@ -200,8 +201,8 @@ export async function withGoogleLease<T>(db: Actor['db'], key: string, action: (
   finally { await db.rpc('release_google_operation', { p_key: key, p_lease: lease }); }
 }
 
-export function googleFailure(config: GoogleRequest, error: unknown) {
-  return error instanceof GoogleIntegrationError
+export function googleFailure(config: GoogleRequest, error: GoogleIntegrationError | null) {
+  return error
     ? config.json({ error: error.message }, error.status)
     : config.json({ error: 'google_integration_unavailable' }, 502);
 }

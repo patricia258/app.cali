@@ -46,8 +46,8 @@ function editorOf(row: PrintableReport): ReportEditor {
   };
 }
 function deliveriesOf(snapshot: IntelligenceSnapshot) {
-  const raw = (snapshot as any)?.deliveryPerformanceV14;
-  return Array.isArray(raw) ? raw as DeliveryPerformanceRow[] : [];
+  const rows = snapshot.deliveryPerformanceV14;
+  return Array.isArray(rows) ? rows : [];
 }
 async function imageAsDataUrl(url?: string | null) {
   if (!url || url.startsWith('data:')) return url || '';

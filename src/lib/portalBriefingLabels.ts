@@ -1,3 +1,5 @@
+import type { JsonValue } from '../domain/json';
+
 const fieldValues:Record<string,Record<string,string>>={
   preferencia_contato:{email:'E-mail',whatsapp:'WhatsApp',ambos:'Tanto faz'},
   origem_contato:{indicacao:'Indicação',linkedin:'LinkedIn',instagram:'Instagram',site:'Site ou busca',evento:'Evento ou palestra',cliente:'Já sou cliente',outro:'Outro'},
@@ -79,11 +81,11 @@ const fieldValues:Record<string,Record<string,string>>={
   budget:{ate25:'Até R$ 2,5 mil','25a4':'R$ 2,5 mil a R$ 4 mil','4a6':'R$ 4 mil a R$ 6 mil','6a10':'R$ 6 mil a R$ 10 mil','10mais':'Acima de R$ 10 mil','25a5':'R$ 2,5 mil a R$ 5 mil','5mais':'Acima de R$ 5 mil',avaliar:'Prefiro avaliar pelo escopo'},
 };
 
-export function readablePortalValue(key:string,value:unknown):string{
+export function readablePortalValue(key:string,value: JsonValue | undefined):string{
   if(value===null||value===undefined||value==='')return '—';
   if(value===true||value==='true')return 'Sim';
   if(value===false||value==='false')return 'Não';
   if(Array.isArray(value))return value.map(item=>readablePortalValue(key,item)).join(' · ');
-  if(typeof value==='object')return Object.entries(value as Record<string,unknown>).map(([k,v])=>`${k.replace(/_/g,' ')}: ${readablePortalValue(k,v)}`).join(' | ');
+  if(typeof value==='object')return Object.entries(value).map(([k,v])=>`${k.replace(/_/g,' ')}: ${readablePortalValue(k,v)}`).join(' | ');
   const raw=String(value);return fieldValues[key]?.[raw]||raw;
 }

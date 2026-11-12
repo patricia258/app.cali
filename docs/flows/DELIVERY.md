@@ -22,6 +22,8 @@
 
 **Dados e integrações.** Entrega/protocolo, revisão, prazos, subtarefas, horas, arquivos, conversa, autoria e decisões. Conversa e arquivos anexados à conversa têm projeções próprias. O arquivo final depende da revisão publicada. [Arquivos finais](../../supabase/migrations/20261016120000_deliverable_folder_final_files.sql) · [Histórico](OPERATIONS.md#flow-10)
 
+Quando a RPC recusa uma revisão desatualizada, as ações ficam bloqueadas. **Atualizar dados** busca a revisão vigente na mesma página. Após a atualização, o Cliente abre a revisão vigente para decidir. [Jornada de revisão desatualizada](../../tests/e2e/journeys.cjs)
+
 **Alvo.** Cliente aprova ou solicita ajuste com comentário. Aprovação fecha a revisão e solicita nota de 1 a 5. Notas de 1 a 3 exigem justificativa. Admin pode reabrir o mesmo item com motivo e trilha. Retirar a revisão da visão Cliente durante correção. Nova liberação exige nova aprovação e mantém histórico, IDs e anexos autorizados. [Regras de entregáveis](../PRODUCT_RULES.md#projetos-cronograma-e-entregáveis)
 
 **Aceite.** Abrir detalhe, ajustar, aprovar, avaliar e reabrir. Testar nota baixa sem justificativa, ajuste em estado inelegível via RPC e acesso a bytes retirados por URL direta. Reliberar e confirmar que a aprovação anterior não aprova a revisão nova. Conferir subtarefas e retorno ao objeto de origem.

@@ -464,12 +464,20 @@ const cases = [
           p_comment: null,
         },
       ]);
+      const navigations = [];
+      page.on('framenavigated', (frame) => {
+        if (frame === page.mainFrame()) navigations.push(frame.url());
+      });
       await Promise.all([
-        page.waitForEvent('framenavigated', { predicate: (frame) => frame === page.mainFrame() }),
-        dialog.getByRole('button', { name: 'Recarregar página', exact: true }).click(),
+        page.waitForResponse((response) => {
+          const url = new URL(response.url());
+          return url.pathname === '/rest/v1/deliverables' && response.request().method() === 'GET' && response.ok();
+        }),
+        dialog.getByRole('button', { name: 'Atualizar dados', exact: true }).click(),
       ]);
       await dialog.waitFor({ state: 'hidden' });
       await page.getByRole('button', { name: 'Aprovar entrega', exact: true }).waitFor();
+      assert.deepEqual(navigations, []);
     },
   },
   {

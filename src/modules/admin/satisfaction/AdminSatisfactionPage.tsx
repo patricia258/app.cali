@@ -1,3 +1,4 @@
+import { confirmAction } from '../../../components/feedback/workspaceDialogs';
 import { Button } from '../../../components/ds/Button';
 import { DialogFrame } from '../../../components/ds/DialogFrame';
 import { EmptyState } from '../../../components/ds/EmptyState';
@@ -64,7 +65,7 @@ export function AdminSatisfactionPage(){
   }
 
   async function closeRequest(id: string) {
-    if (!user || closing || !window.confirm('Encerrar a espera por esta avaliação?')) return;
+    if (!user || closing || !(await confirmAction('Encerrar a espera por esta avaliação?'))) return;
     setClosing(id);
     setError('');
     try {
@@ -195,11 +196,11 @@ export function AdminSatisfactionPage(){
     {error&&<InlineNotice>{error}</InlineNotice>}
 
     <div className="wf-controls v2-nps-controls">
-      <div className="wf-segments">{([['month','Este mês'],['30','30 dias'],['90','90 dias'],['180','6 meses'],['365','12 meses'],['all','Todo período']] as Array<[PeriodPreset,string]>).map(([value,label])=><button type="button" key={value} className={period===value&&!from&&!to?'on':''} onClick={()=>selectPreset(value)}>{label}</button>)}</div>
+      <div className="wf-segments">{([['month','Este mês'],['30','30 dias'],['90','90 dias'],['180','6 meses'],['365','12 meses'],['all','Todo período']] satisfies Array<[PeriodPreset,string]>).map(([value,label])=><button type="button" key={value} className={period===value&&!from&&!to?'on':''} onClick={()=>selectPreset(value)}>{label}</button>)}</div>
       <label className="v2-nps-date">De<input type="date" value={from} onChange={(e)=>{setFrom(e.target.value);setPeriod('all');}}/></label>
       <label className="v2-nps-date">Até<input type="date" value={to} onChange={(e)=>{setTo(e.target.value);setPeriod('all');}}/></label>
       <FilterSelect aria-label="Empresa" value={company || 'all'} onChange={(e)=>{setCompany(e.target.value);setRequestsPage(1);}}><option value="all">Todas as empresas</option>{companies.map(([id,name])=><option value={id} key={id}>{name}</option>)}</FilterSelect>
-      <FilterSelect aria-label="Origem" value={source} onChange={(e)=>setSource(e.target.value as any)}><option value="all">Todas as origens</option><option value="record">Ocorrências / solicitações</option><option value="deliverable">Entregáveis</option></FilterSelect>
+      <FilterSelect aria-label="Origem" value={source} onChange={(e)=>setSource(e.target.value as typeof source)}><option value="all">Todas as origens</option><option value="record">Ocorrências / solicitações</option><option value="deliverable">Entregáveis</option></FilterSelect>
       <FilterSelect aria-label="Nota" value={score} onChange={(e)=>setScore(e.target.value)}><option value="all">Todas as notas</option>{[5,4,3,2,1].map((value)=><option key={value} value={value}>{value}/5 · {scoreLabel(value)}</option>)}</FilterSelect>
     </div>
 

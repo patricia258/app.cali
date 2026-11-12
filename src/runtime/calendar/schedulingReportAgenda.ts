@@ -1,27 +1,8 @@
+import type { ReportAgendaCompliance } from '../../domain/calendar';
 import { isSupabaseConfigured } from '../../api/access/session';
 import { readReportAgendaSnapshot } from '../../api/calendar/meetings';
 
-type AgendaItemV71 = {
-  startsAt?: string | null;
-  outcome?: string | null;
-  reasonCategory?: string | null;
-  note?: string | null;
-};
-
-type AgendaComplianceV71 = {
-  label?: string | null;
-  requiredTotal?: number | null;
-  occurredCount?: number | null;
-  notOccurredCount?: number | null;
-  pendingOutcomeCount?: number | null;
-  extraCount?: number | null;
-  extraOccurredCount?: number | null;
-  remoteOccurredCount?: number | null;
-  inPersonOccurredCount?: number | null;
-  items?: AgendaItemV71[] | null;
-};
-
-function esc(value: unknown) {
+function esc(value: string | number | boolean | null | undefined) {
   return String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char] || char));
 }
 
@@ -44,23 +25,23 @@ function formatDay(value?: string | null) {
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(date);
 }
 
-function number(value: unknown) {
+function number(value: string | number | boolean | null | undefined) {
   const parsed = Number(value || 0);
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function resolvedExtraOccurred(a: AgendaComplianceV71) {
+function resolvedExtraOccurred(a: ReportAgendaCompliance) {
   if (a.extraOccurredCount !== undefined && a.extraOccurredCount !== null) return number(a.extraOccurredCount);
-  return (a.items || []).filter((item: any) => item?.outcome === 'occurred' && (item?.scheduleClass === 'extra' || item?.billingApplies === true)).length;
+  return (a.items || []).filter((item) => item?.outcome === 'occurred' && (item?.scheduleClass === 'extra' || item?.billingApplies === true)).length;
 }
 
-function resolvedModeOccurred(a: AgendaComplianceV71, mode: 'remote' | 'in_person') {
+function resolvedModeOccurred(a: ReportAgendaCompliance, mode: 'remote' | 'in_person') {
   const direct = mode === 'remote' ? a.remoteOccurredCount : a.inPersonOccurredCount;
   if (direct !== undefined && direct !== null) return number(direct);
-  return (a.items || []).filter((item: any) => item?.outcome === 'occurred' && item?.mode === mode).length;
+  return (a.items || []).filter((item) => item?.outcome === 'occurred' && item?.mode === mode).length;
 }
 
-function renderAgenda(section: HTMLElement, a: AgendaComplianceV71) {
+function renderAgenda(section: HTMLElement, a: ReportAgendaCompliance) {
   const occurred = number(a.occurredCount);
   const notOccurred = number(a.notOccurredCount);
   const pending = number(a.pendingOutcomeCount);
@@ -68,7 +49,7 @@ function renderAgenda(section: HTMLElement, a: AgendaComplianceV71) {
   const extraOccurred = resolvedExtraOccurred(a);
   const remoteOccurred = resolvedModeOccurred(a, 'remote');
   const inPersonOccurred = resolvedModeOccurred(a, 'in_person');
-  const notItems = (a.items || []).filter((item) => item?.outcome === 'not_occurred');
+  const notItems = (a.items || []).filter((item) => item !== null).filter((item) => item.outcome === 'not_occurred');
   const key = JSON.stringify({ required, occurred, notOccurred, pending, extraOccurred, remoteOccurred, inPersonOccurred, notItems });
   if (section.dataset.v71AgendaKey === key) return;
 
@@ -100,7 +81,7 @@ export async function refreshSchedulingReportAgenda() {
     try {
       const { data, error } = await readReportAgendaSnapshot(protocol);
       if (error) throw error;
-      const agenda = (data?.source_snapshot as any)?.agendaCompliance as AgendaComplianceV71 | undefined;
+      const agenda = data?.source_snapshot?.agendaCompliance;
       if (!agenda || (!number(agenda.requiredTotal) && !number(agenda.extraCount))) continue;
       const section = ensureSection(paper);
       renderAgenda(section, agenda);

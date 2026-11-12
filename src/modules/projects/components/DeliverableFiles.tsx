@@ -58,7 +58,7 @@ export function DeliverableFiles({ deliverableId, deliverableTitle, companyId, p
     }
   }
   /* Entrega final: o Partner propõe; só a administradora libera, recusa, suspende ou exclui. */
-  async function act(file: FileItem, group: Group, action: 'propose' | 'release' | 'suspend' | 'refuse' | 'delete') { if (!isSupabaseConfigured || busy) return; setBusy(file.path); const taskId = group.key === 'main' ? null : group.key; const existing = finals.find((row) => row.storage_path === file.path); let failure: any = null;
+  async function act(file: FileItem, group: Group, action: 'propose' | 'release' | 'suspend' | 'refuse' | 'delete') { if (!isSupabaseConfigured || busy) return; setBusy(file.path); const taskId = group.key === 'main' ? null : group.key; const existing = finals.find((row) => row.storage_path === file.path); let failure: { message: string } | null = null;
     if (action === 'propose') failure = (await proposeFinalProjectFile(deliverableId, taskId, file)).error;
     else if (action === 'release') { const { data: auth } = await readProjectActor(); failure = existing
       ? (await releaseFinalProjectFile(existing.id)).error
@@ -71,8 +71,8 @@ export function DeliverableFiles({ deliverableId, deliverableTitle, companyId, p
     void (async () => {
       const [main, sub] = await readDeliverableAttachmentSources(deliverableId);
       if (!alive) return;
-      const next: Group[] = [{ key: 'main', title: deliverableTitle, hint: 'Conversa do entregável', files: ((main.data || []) as any[]).flatMap((row) => filesOf(row.body, row.created_at)) }];
-      tasks.forEach((task) => next.push({ key: task.id, title: task.title, hint: 'Subtarefa', files: ((sub.data || []) as any[]).filter((row) => row.task_id === task.id).flatMap((row) => filesOf(row.body, row.created_at)) }));
+      const next: Group[] = [{ key: 'main', title: deliverableTitle, hint: 'Conversa do entregável', files: ((main.data || []) as { body: string; created_at: string }[]).flatMap((row) => filesOf(row.body, row.created_at)) }];
+      tasks.forEach((task) => next.push({ key: task.id, title: task.title, hint: 'Subtarefa', files: ((sub.data || []) as { task_id: string; body: string; created_at: string }[]).filter((row) => row.task_id === task.id).flatMap((row) => filesOf(row.body, row.created_at)) }));
       setGroups(next);
     })();
     return () => { alive = false; };

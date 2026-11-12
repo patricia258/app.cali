@@ -6,7 +6,7 @@ import { CapacityBar } from '../../../components/hours/CapacityBar';
 import { ClientHomeNotices } from '../../notices/NoticesBoard';
 import { Link } from '../../../components/navigation/Link';
 import {
-  ArrowRight, ArrowUpRight, CalendarDays, Check, CheckCircle2, ChevronRight, FileText,
+  ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronRight, FileText,
   Loader2, MessageCircle, Star,
 } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
@@ -178,11 +178,9 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
     { label: 'Com o cliente', count: work?.withClient || 0 },
     { label: 'Concluídas', count: work?.completed || 0 },
   ];
-  const highestStageCount = Math.max(1, ...deliveryStages.map((stage) => stage.count));
   const waiting = data.deliverables.filter((item) => item.status === 'client_review');
   const showHours = data.hoursVisible;
   const contractedMinutes = showHours ? data.contractedHours * 60 : 0;
-  const hoursProgress = contractedMinutes > 0 ? Math.min(100, Math.max(0, data.minutes / contractedMinutes * 100)) : 0;
   const hoursPercentage = contractedMinutes > 0 ? Math.round(data.minutes / contractedMinutes * 100) : 0;
   const packageName = planLabel(data.company?.service_plan) || planLabel(data.company?.service_type) || 'Contratação CALI';
   const latestOccurrence = data.latestOccurrence;
