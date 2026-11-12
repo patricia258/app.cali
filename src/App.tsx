@@ -1,125 +1,10 @@
-import { lazy, Suspense, useEffect, useLayoutEffect } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
-import { ProtectedRoute, WorkspaceRouteLoader } from './components/ProtectedRoute';
+import { Outlet } from '@tanstack/react-router';
+import { Suspense, useEffect, useLayoutEffect } from 'react';
+import { useLocation } from './app/navigation';
+import { WorkspaceRouteLoader } from './components/ProtectedRoute';
 import { Shell, WorkspaceFrame } from './components/WorkspaceShell';
-import { useLocation } from 'react-router-dom';
+import { RouteRuntimeManager } from './runtime/RouteRuntimeManager';
 import { applyVisualSystem } from './v2/visualSystem';
-
-const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
-const LoginPage = lazy(() => import('./pages/LoginPage').then((m) => ({ default: m.LoginPage })));
-const LegalPage = lazy(() => import('./legal/LegalPage').then((m) => ({ default: m.LegalPage })));
-const PublicFormPage = lazy(() => import('./forms/PublicFormPage').then((m) => ({ default: m.PublicFormPage })));
-const AdminFormsPage = lazy(() => import('./forms/AdminFormsPage').then((m) => ({ default: m.AdminFormsPage })));
-const ProfileTestPage = lazy(() => import('./profile/ProfileTestPage').then((m) => ({ default: m.ProfileTestPage })));
-const ProfileReportPage = lazy(() => import('./profile/ProfileReportPage').then((m) => ({ default: m.ProfileReportPage })));
-const ProfileEvaluatorPage = lazy(() => import('./profile/ProfileEvaluatorPage').then((m) => ({ default: m.ProfileEvaluatorPage })));
-const AdminProfilesPage = lazy(() => import('./profile/AdminProfilesPage').then((m) => ({ default: m.AdminProfilesPage })));
-const ProfileCampaignPage = lazy(() => import('./profile/ProfileCampaignPage').then((m) => ({ default: m.ProfileCampaignPage })));
-const GestaoPage = lazy(() => import('./profile/GestaoPage').then((m) => ({ default: m.GestaoPage })));
-const ProfileOptOutPage = lazy(() => import('./profile/ProfileOptOutPage').then((m) => ({ default: m.ProfileOptOutPage })));
-const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage').then((m) => ({ default: m.AuthCallbackPage })));
-const GoogleCalendarCallbackPage = lazy(() => import('./pages/GoogleCalendarCallbackPage').then((m) => ({ default: m.GoogleCalendarCallbackPage })));
-
-const AdminDashboard = lazy(async () => {
-  await import('./styles/routes/overview');
-  return import('./pages/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard }));
-});
-const AdminClientsPageV3 = lazy(async () => {
-  return import('./pages/admin/AdminClientsPageV3').then((m) => ({ default: m.AdminClientsPageV3 }));
-});
-const AdminProposalsPageV2 = lazy(async () => {
-  // Lista na composição V2: as folhas antigas de propostas só entram no editor e na prévia.
-  return import('./pages/admin/AdminProposalsPageV2').then((m) => ({ default: m.AdminProposalsPageV2 }));
-});
-const AdminProposalEditorPageV3 = lazy(async () => {
-  await import('./styles/routes/proposals');
-  return import('./pages/admin/AdminProposalEditorPageV3').then((m) => ({ default: m.AdminProposalEditorPageV3 }));
-});
-const AdminProposalPreviewPageV3 = lazy(async () => {
-  await import('./styles/routes/proposals');
-  return import('./pages/admin/AdminProposalPreviewPageV3').then((m) => ({ default: m.AdminProposalPreviewPageV3 }));
-});
-const AdminProjectsGatePage = lazy(async () => {
-  await import('./styles/routes/projects');
-  return import('./pages/admin/AdminProjectsGatePage').then((m) => ({ default: m.AdminProjectsGatePage }));
-});
-const AdminHoursPageV3 = lazy(async () => {
-  return import('./pages/admin/AdminHoursPageV3').then((m) => ({ default: m.AdminHoursPageV3 }));
-});
-const AdminCalendarPage = lazy(async () => {
-  await import('./styles/routes/calendar');
-  return import('./pages/admin/AdminCalendarPage').then((m) => ({ default: m.AdminCalendarPage }));
-});
-const AdminDocumentsPageV4 = lazy(async () => {
-  // Página na composição V2: as folhas antigas de documentos não são mais carregadas aqui.
-  return import('./pages/admin/AdminDocumentsPageV4').then((m) => ({ default: m.AdminDocumentsPageV4 }));
-});
-const AdminReportsPageV17 = lazy(async () => {
-  await import('./styles/routes/reports');
-  return import('./pages/admin/AdminReportsPageV17').then((m) => ({ default: m.AdminReportsPageV17 }));
-});
-const AdminSatisfactionPage = lazy(async () => {
-  await import('./styles/routes/satisfaction');
-  return import('./pages/admin/AdminSatisfactionPage').then((m) => ({ default: m.AdminSatisfactionPage }));
-});
-const AdminPeopleMapPageV2 = lazy(async () => {
-  await import('./styles/routes/peopleMap');
-  return import('./pages/admin/AdminPeopleMapPageV2').then((m) => ({ default: m.AdminPeopleMapPageV2 }));
-});
-const AdminPeopleMapReviewPage = lazy(async () => {
-  await import('./styles/routes/peopleMap');
-  return import('./pages/admin/AdminPeopleMapReviewPage').then((m) => ({ default: m.AdminPeopleMapReviewPage }));
-});
-const AdminPeopleMapReportPage = lazy(async () => {
-  await import('./styles/routes/peopleMap');
-  return import('./pages/admin/AdminPeopleMapReportPage').then((m) => ({ default: m.AdminPeopleMapReportPage }));
-});
-
-const AdminRecordsPage = lazy(async () => {
-  await import('./styles/routes/records');
-  return import('./pages/records/WorkspaceRecordsPage').then((m) => ({ default: m.AdminRecordsPage }));
-});
-const ClientRecordsPage = lazy(async () => {
-  await import('./styles/routes/clientModules');
-  return import('./pages/records/WorkspaceRecordsPage').then((m) => ({ default: m.ClientRecordsPage }));
-});
-const ClientDashboard = lazy(async () => {
-  await import('./styles/routes/clientExperience');
-  return import('./pages/client/ClientDashboard').then((m) => ({ default: m.ClientDashboard }));
-});
-const ClientTimelinePage = lazy(async () => {
-  await import('./styles/routes/clientExperience');
-  return import('./pages/client/ClientTimelinePage').then((m) => ({ default: m.ClientTimelinePage }));
-});
-const ClientDeliverablesPage = lazy(async () => {
-  await import('./styles/routes/clientModules');
-  return import('./pages/client/ClientDeliverablesPage').then((m) => ({ default: m.ClientDeliverablesPage }));
-});
-const ClientHoursPage = lazy(async () => {
-  await import('./styles/routes/clientModules');
-  return import('./pages/client/ClientHoursPage').then((m) => ({ default: m.ClientHoursPage }));
-});
-const ClientDocumentsPage = lazy(async () => {
-  await import('./styles/routes/clientModules');
-  return import('./pages/client/ClientDocumentsPage').then((m) => ({ default: m.ClientDocumentsPage }));
-});
-// O relatório é lido no próprio documento oficial (papel), que tem folhas de estilo próprias.
-const ClientReportsPageV5 = lazy(async () => {
-  await import('./styles/routes/reports');
-  return import('./pages/client/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 }));
-});
-const CompanyTeamPage = lazy(() => import('./pages/team/CompanyTeamPage').then((m) => ({ default: m.CompanyTeamPage })));
-const ClientFaqPage = lazy(() => import('./pages/client/ClientFaqPage').then((m) => ({ default: m.ClientFaqPage })));
-const ClientNoticesPage = lazy(() => import('./pages/notices/NoticesBoard').then((m) => ({ default: m.ClientNoticesPage })));
-const AdminAuditPage = lazy(() => import('./pages/admin/AdminAuditPage').then((m) => ({ default: m.AdminAuditPage })));
-const AdminStaffPage = lazy(() => import('./pages/admin/AdminStaffPage').then((m) => ({ default: m.AdminStaffPage })));
-const StaffWorkspace = lazy(() => import('./pages/staff/StaffWorkspace').then((m) => ({ default: m.StaffWorkspace })));
-const AdminNoticesPage = lazy(() => import('./pages/notices/NoticesBoard').then((m) => ({ default: m.AdminNoticesPage })));
-const ClientFrontsPage = lazy(() => import('./pages/client/ClientFrontsPage').then((m) => ({ default: m.ClientFrontsPage })));
-const ReportPrintPageV17 = lazy(async () => {
-  await import('./styles/routes/reports');
-  return import('./pages/reports/ReportPrintPageV17').then((m) => ({ default: m.ReportPrintPageV17 }));
-});
 
 function WorkspaceNavigationFallback() {
   const { pathname } = useLocation();
@@ -160,75 +45,21 @@ function prefetchLikelyRoutes() {
   return () => window.clearTimeout(schedule);
 }
 
-function AppRoutes() {
+export default function App() {
   useEffect(() => prefetchLikelyRoutes(), []);
   const { pathname } = useLocation();
   useLayoutEffect(() => { void applyVisualSystem(pathname); }, [pathname]);
   const workspaceRole = pathname.startsWith('/cliente') ? 'client' : pathname.startsWith('/admin') ? 'admin' : null;
-
   const routes = (
-    
     <Suspense fallback={<WorkspaceNavigationFallback />}>
-      <Routes>
-        <Route path="/" element={<LandingPage/>}/>
-        <Route path="/login" element={<LoginPage/>}/>
-        <Route path="/privacidade" element={<LegalPage kind="privacy"/>}/>
-        <Route path="/termos" element={<LegalPage kind="terms"/>}/>
-        <Route path="/politica-do-site" element={<LegalPage kind="site"/>}/>
-        <Route path="/f/:slug" element={<PublicFormPage/>}/>
-        <Route path="/perfil/relatorio/:token" element={<ProfileReportPage/>}/>
-        <Route path="/perfil/sair/:token" element={<ProfileOptOutPage/>}/>
-        <Route path="/perfil/:slug" element={<ProfileTestPage/>}/>
-        <Route path="/auth/callback" element={<AuthCallbackPage/>}/>
-        <Route path="/oauth/google/callback" element={<GoogleCalendarCallbackPage/>}/>
-
-        <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard/></ProtectedRoute>}/>
-        <Route path="/admin/clientes" element={<ProtectedRoute role="admin"><AdminClientsPageV3/></ProtectedRoute>}/>
-        <Route path="/admin/equipe" element={<ProtectedRoute role="admin"><CompanyTeamPage role="admin"/></ProtectedRoute>}/>
-        <Route path="/admin/propostas" element={<ProtectedRoute role="admin"><AdminProposalsPageV2/></ProtectedRoute>}/>
-        <Route path="/admin/propostas/:submissionId/editar" element={<ProtectedRoute role="admin"><AdminProposalEditorPageV3/></ProtectedRoute>}/>
-        <Route path="/admin/propostas/proposta/:proposalId" element={<ProtectedRoute role="admin"><AdminProposalPreviewPageV3/></ProtectedRoute>}/>
-        <Route path="/admin/projetos" element={<ProtectedRoute role="admin"><AdminProjectsGatePage/></ProtectedRoute>}/>
-        <Route path="/admin/horas" element={<ProtectedRoute role="admin"><AdminHoursPageV3/></ProtectedRoute>}/>
-        <Route path="/admin/calendario" element={<ProtectedRoute role="admin"><AdminCalendarPage/></ProtectedRoute>}/>
-        <Route path="/admin/registros" element={<ProtectedRoute role="admin"><AdminRecordsPage/></ProtectedRoute>}/>
-        <Route path="/admin/documentos" element={<ProtectedRoute role="admin"><AdminDocumentsPageV4/></ProtectedRoute>}/>
-        <Route path="/admin/relatorios/impressao/:reportId" element={<ProtectedRoute role="admin"><ReportPrintPageV17 role="admin"/></ProtectedRoute>}/>
-        <Route path="/admin/relatorios" element={<ProtectedRoute role="admin"><AdminReportsPageV17/></ProtectedRoute>}/>
-        <Route path="/admin/auditoria" element={<ProtectedRoute role="admin"><AdminAuditPage/></ProtectedRoute>}/>
-        <Route path="/admin/equipe-cali" element={<ProtectedRoute role="admin"><AdminStaffPage/></ProtectedRoute>}/>
-        <Route path="/admin/avisos" element={<ProtectedRoute role="admin"><AdminNoticesPage/></ProtectedRoute>}/>
-        <Route path="/admin/satisfacao" element={<ProtectedRoute role="admin"><AdminSatisfactionPage/></ProtectedRoute>}/>
-        <Route path="/admin/mapa-de-people" element={<ProtectedRoute role="admin"><AdminPeopleMapPageV2/></ProtectedRoute>}/>
-        <Route path="/admin/formularios" element={<ProtectedRoute role="admin"><AdminFormsPage/></ProtectedRoute>}/>
-        <Route path="/admin/perfil-comportamental" element={<ProtectedRoute role="admin"><AdminProfilesPage/></ProtectedRoute>}/>
-        <Route path="/admin/perfil-comportamental/gestao/:linkId" element={<ProtectedRoute role="admin"><GestaoPage role="admin"/></ProtectedRoute>}/>
-        <Route path="/admin/perfil-comportamental/convites/:linkId" element={<ProtectedRoute role="admin"><ProfileCampaignPage/></ProtectedRoute>}/>
-        <Route path="/admin/perfil-comportamental/:id" element={<ProtectedRoute role="admin"><ProfileEvaluatorPage role="admin"/></ProtectedRoute>}/>
-        <Route path="/cliente/perfil-comportamental/gestao/:linkId" element={<ProtectedRoute role="client"><GestaoPage role="client"/></ProtectedRoute>}/>
-        <Route path="/cliente/perfil-comportamental/:id" element={<ProtectedRoute role="client"><ProfileEvaluatorPage role="client"/></ProtectedRoute>}/>
-        <Route path="/admin/mapa-de-people/revisao" element={<ProtectedRoute role="admin"><AdminPeopleMapReviewPage/></ProtectedRoute>}/>
-        <Route path="/admin/mapa-de-people/relatorio/:id" element={<ProtectedRoute role="admin"><AdminPeopleMapReportPage/></ProtectedRoute>}/>
-
-        <Route path="/cliente" element={<ProtectedRoute role="client"><ClientDashboard/></ProtectedRoute>}/>
-        <Route path="/cliente/cronograma" element={<ProtectedRoute role="client"><ClientTimelinePage/></ProtectedRoute>}/>
-        <Route path="/cliente/equipe" element={<ProtectedRoute role="client"><CompanyTeamPage role="client"/></ProtectedRoute>}/>
-        <Route path="/cliente/avisos" element={<ProtectedRoute role="client"><ClientNoticesPage/></ProtectedRoute>}/>
-        <Route path="/cliente/ajuda" element={<ProtectedRoute role="client"><ClientFaqPage/></ProtectedRoute>}/>
-        <Route path="/cliente/frentes" element={<ProtectedRoute role="client"><ClientFrontsPage/></ProtectedRoute>}/>
-        <Route path="/cliente/entregaveis" element={<ProtectedRoute role="client"><ClientDeliverablesPage/></ProtectedRoute>}/>
-        <Route path="/cliente/horas" element={<ProtectedRoute role="client"><ClientHoursPage/></ProtectedRoute>}/>
-        <Route path="/cliente/registros" element={<ProtectedRoute role="client"><ClientRecordsPage/></ProtectedRoute>}/>
-        <Route path="/cliente/documentos" element={<ProtectedRoute role="client"><ClientDocumentsPage/></ProtectedRoute>}/>
-        <Route path="/cliente/relatorios/impressao/:reportId" element={<ProtectedRoute role="client"><ReportPrintPageV17 role="client"/></ProtectedRoute>}/>
-        <Route path="/cliente/relatorios" element={<ProtectedRoute role="client"><ClientReportsPageV5/></ProtectedRoute>}/>
-        <Route path="/equipe/*" element={<StaffWorkspace/>}/>
-        <Route path="*" element={<Navigate to="/" replace/>}/>
-      </Routes>
+      <Outlet />
     </Suspense>
   );
 
-
-  return workspaceRole ? <WorkspaceFrame role={workspaceRole}>{routes}</WorkspaceFrame> : routes;
+  return (
+    <>
+      <RouteRuntimeManager />
+      {workspaceRole ? <WorkspaceFrame role={workspaceRole}>{routes}</WorkspaceFrame> : routes}
+    </>
+  );
 }
-export default AppRoutes;

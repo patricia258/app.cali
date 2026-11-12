@@ -1,9 +1,9 @@
 /* Ficha do colaborador (Equipe) — aba Perfil comportamental. Administradora vê todos os resultados vinculados e libera
    para o cliente; o cliente vê só os liberados (RLS). */
 import { Fragment, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../../app/navigation';
 import { ExternalLink } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { STYLES, bandOf, type Scores, type Style } from './profileMethod';
 import { STYLE_CONTENT } from './profileContent';
 import './profile-admin.css';

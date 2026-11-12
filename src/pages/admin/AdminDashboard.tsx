@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "../../app/navigation";
 import { createPortal } from "react-dom";
 import { ArrowRight, Building2, CalendarDays, ChevronRight, CircleAlert, Clock3, Download, MessageSquareText, Plus, X } from "lucide-react";
 import { Shell } from "../../components/WorkspaceShell";

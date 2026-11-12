@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CalendarCheck2, Clock3, History, TimerReset } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from '../app/navigation';
 import { supabase } from '../lib/supabase';
 
 type Role='admin'|'client';

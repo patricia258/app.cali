@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ExternalLink, FileText, Loader2, PencilLine } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from '../../app/navigation';
 import { Shell } from '../../components/WorkspaceShell';
 import { markRuntimeV2 } from '../../v2/routes';
 import { applyVisualSystem } from '../../v2/visualSystem';
-import { loadPortalProposal, type PortalProposal, type PortalSubmission } from '../../lib/portalAdminApi';
+import { loadPortalProposal, type PortalProposal, type PortalSubmission } from '../../api/commercial/portal';
 import { createPortalProposalPdfUrl } from '../../lib/portalProposalPdf';
 import { supabase } from '../../lib/supabase';
 import { AdminProposalPreviewPageV2 } from './AdminProposalPreviewPageV2';

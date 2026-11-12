@@ -4,9 +4,9 @@
    ao gestor por e-mail (empresa sem conta). Editar o conteúdo depois de aprovar desfaz a aprovação. Tudo vai para a auditoria.
    Cliente: só abre o que foi liberado para a própria empresa (cali_workspace.profile_gestao). */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from '../../app/navigation';
 import { ArrowLeft, Download, Printer, Send } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { GestaoReport, MOMENTS, SECTORS, type GestaoData } from './GestaoReport';
 import { downloadBlob, fileSlug, pagesToPdf } from './profilePdf';
 import './profile-pages.css';

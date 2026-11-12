@@ -1,4 +1,4 @@
-import type { PortalPricingRule } from './portalAdminApi';
+import type { PortalPricingRule } from '../api/commercial/portal';
 
 type Answers=Record<string,any>;
 type Band={min:number;max:number};

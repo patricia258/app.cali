@@ -3,10 +3,10 @@
    até 3 lembretes automáticos, saída em um clique; a empresa (ponto focal) recebe véspera e fechamento.
    Indicadores: resposta, abertura, conclusão, tempo mediano, expirados e bloco de abandono. Validade: 6 meses. */
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from '../../app/navigation';
 import { ArrowLeft, BarChart3, CalendarClock, ExternalLink, RefreshCw, RotateCcw, Send, Trash2, UserPlus } from 'lucide-react';
-import { Shell } from '../components/WorkspaceShell';
-import { supabase } from '../lib/supabase';
+import { Shell } from '../../components/WorkspaceShell';
+import { supabase } from '../../lib/supabase';
 import '../forms/admin-forms.css';
 import './profile-admin.css';
 

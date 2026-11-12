@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from '../app/navigation';
 import { supabase } from '../lib/supabase';
 import { finalizeTimerWork, TIMER_EVENT } from '../lib/timerSemantics';
 import { TimerFinalizationDialog, type TimerFinalizationTarget } from './TimerFinalizationDialog';

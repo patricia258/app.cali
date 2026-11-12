@@ -1,9 +1,9 @@
 /* CALI Forms — página pública (/f/:slug): uma pergunta por tela, no estilo Typeform, com a identidade CALI.
    Sem login. Lê e envia pelas funções públicas cali_form_public e cali_form_submit. */
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from '../../app/navigation';
 import { ArrowDown, ArrowRight, ArrowUp, Check, CornerDownLeft, Paperclip, X } from 'lucide-react';
-import { anonPublicRpc, anonStorage, supabase } from '../lib/supabase';
+import { anonPublicRpc, anonStorage, supabase } from '../../lib/supabase';
 import { type FormAnswer, type FormQuestion, FILE_ACCEPT, FILE_HINT, fileLabel, isAnswerable, nextQuestionIndex, richTextHtml, scaleRange, validateAnswer } from './formModel';
 import './public-form.css';
 

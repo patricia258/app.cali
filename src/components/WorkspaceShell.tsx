@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from '../app/navigation';
 import { BookOpenText, BriefcaseBusiness, Building2, CalendarDays, Clock3, FileText, FolderKanban, Home, LayoutDashboard, Layers, LogOut, Menu, Moon, PieChart, Star, Sun, Target, TimerReset, UsersRound, X, type LucideIcon } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useWorkspaceAuth } from '../auth/WorkspaceAuthProvider';

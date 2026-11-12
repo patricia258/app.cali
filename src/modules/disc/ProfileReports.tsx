@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import { adaptationOf, bandOf, bandText, MARGIN, METHOD_VERSION, NATURAL_BLOCKS, PRESSURE_BLOCKS, rangeOf, STYLES, type Scores, type Style } from './profileMethod';
 import { BAND_EXPLAIN, NATURE, STYLE_CONTENT, VALIDITY, combinationOf, profileName } from './profileContent';
 import { ProfileBandBars, ProfileRadar, RoleMatrix, TwinBands, type RoleProfile } from './ProfileCharts';
-import '../signature-professional-v59.css';
+import '../../signature-professional-v59.css';
 import './profile-report.css';
 
 export type ProfileResultView = {

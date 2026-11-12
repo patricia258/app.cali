@@ -1,9 +1,9 @@
 /* Equipe (cliente): aviso com os relatórios de gestão do perfil comportamental liberados para a empresa.
    Fica separado do relatório para não carregar o relatório inteiro na página de Equipe. Some quando não há nenhum. */
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../../app/navigation';
 import { BarChart3 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import './gestao-banner.css';
 
 type Item = { id: string; title: string; released_at: string };

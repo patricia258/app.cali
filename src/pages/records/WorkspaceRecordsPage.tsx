@@ -1,7 +1,7 @@
 import { withMentions } from '../../lib/mentionText';
 import { SensitiveDataNote } from '../../components/SensitiveDataNote';
 import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from '../../app/navigation';
 import { Paperclip, ArrowRight,
   AlertTriangle, CalendarDays, CheckCircle2, ChevronDown, ChevronRight, FileText, Filter,
   MessageCircle, Pencil, Plus, Search, Send, Trash2, X, UserPlus } from 'lucide-react';

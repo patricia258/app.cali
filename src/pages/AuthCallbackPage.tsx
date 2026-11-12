@@ -1,6 +1,6 @@
 import { homeOf, type Role as AccessRole } from '../auth/WorkspaceAuthProvider';
 import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate } from '../app/navigation';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import type { Role } from '../components/WorkspaceShell';
 
@@ -38,7 +38,7 @@ export function AuthCallbackPage() {
           return;
         }
 
-        window.history.replaceState({}, document.title, '/auth/callback');
+        window.history.replaceState(window.history.state, document.title, '/auth/callback');
       }
 
       let userId: string | null = null;

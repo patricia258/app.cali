@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { supabase } from './supabase';
+import { supabase } from '../../lib/supabase';
 
 const SUPABASE_URL = 'https://kqtbfeeqbcllwvlkbrkq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_rhIy864X0VSQ0B7m7gdmCQ_hX3sKFMg';

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from '../../app/navigation';
 import { Archive, ArrowRight, CalendarDays, Check, MessageCircle, Megaphone, Pencil, Plus, RotateCcw, Send, X } from 'lucide-react';
 import { Shell, type Role } from '../../components/WorkspaceShell';
 import { supabase } from '../../lib/supabase';

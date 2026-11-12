@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { ArrowLeft, ExternalLink, Printer, RefreshCw } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from '../../app/navigation';
 
 const MAPA_ORIGIN = 'https://mapa.calirh.com';
 const EMBED_TOOLBAR_HEIGHT = 50;

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ArrowLeft, Calculator, FileText, Loader2, Save, Sparkles } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from '../../app/navigation';
 import { Shell } from '../../components/WorkspaceShell';
-import { loadPortalOpportunity, portalServiceLabel, savePortalProposal, updatePortalSubmission, type PortalPricingRule, type PortalProposal, type PortalSubmission } from '../../lib/portalAdminApi';
+import { loadPortalOpportunity, portalServiceLabel, savePortalProposal, updatePortalSubmission, type PortalPricingRule, type PortalProposal, type PortalSubmission } from '../../api/commercial/portal';
 import { calculateProposal, investmentContextFor, PACKAGE_PRICE_BANDS, scopeDefaults, trainingPackageRecommendation } from '../../lib/portalProposalLogic';
 import { BONUS_PRESETS, BUDGET_STRATEGIES, DISCOUNT_TYPES, packageForBudget, PACKAGE_META, PAYMENT_METHODS, prioritizedScope, technicalPackageFor } from '../../lib/portalProposalConfig';
 import { buildDefaultNarrative, getProposalProfile, portalServiceAlerts, profileCadence, trainingNeedsTravel } from '../../lib/portalProposalParity';

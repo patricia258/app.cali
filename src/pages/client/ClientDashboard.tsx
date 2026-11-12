@@ -3,7 +3,7 @@ import { SensitiveDataNote } from '../../components/SensitiveDataNote';
 import { capacityOf, percentLabel } from '../../lib/capacity';
 import { CapacityBar } from '../../v2/CapacityBar';
 import { ClientHomeNotices } from '../notices/NoticesBoard';
-import { Link } from 'react-router-dom';
+import { Link } from '../../app/navigation';
 import {
   Activity, ArrowRight, ArrowUpRight, CircleHelp, ClipboardCheck, Clock3, CalendarDays, Check, CheckCircle2, ChevronRight, FileText,
   Leaf, Loader2, MessageCircle, Minus, Send,

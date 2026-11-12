@@ -1,7 +1,7 @@
 import { homeOf } from '../auth/WorkspaceAuthProvider';
 import { useForm, useStore } from '@tanstack/react-form';
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from '../app/navigation';
 import { z } from 'zod';
 import {
   CalendarDays,

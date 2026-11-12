@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Archive, ArchiveRestore, Download, FileText, Loader2, RefreshCw, Search, X } from 'lucide-react';
 import { Shell } from '../../components/WorkspaceShell';
-import { PORTAL_STATUS, loadPortalAdminData, portalServiceLabel, portalStatusLabel, updatePortalSubmission, type PortalActivity, type PortalPricingRule, type PortalProposal, type PortalSubmission, type PortalSubmissionStatus } from '../../lib/portalAdminApi';
+import { PORTAL_STATUS, loadPortalAdminData, portalServiceLabel, portalStatusLabel, updatePortalSubmission, type PortalActivity, type PortalPricingRule, type PortalProposal, type PortalSubmission, type PortalSubmissionStatus } from '../../api/commercial/portal';
 import { readablePortalValue } from '../../lib/portalBriefingLabels';
 
 type PortalData={submissions:PortalSubmission[];proposals:PortalProposal[];pricing:PortalPricingRule[];activity:PortalActivity[]};

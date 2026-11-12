@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../app/navigation';
 import { ArrowRight, CalendarDays, Star } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 

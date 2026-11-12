@@ -3,10 +3,10 @@
    Clicar na pessoa abre a ficha: histórico de respostas, convites, se é cliente da CALI e "Reenviar teste".
    Link livre (qualquer pessoa informa a empresa) ou link de uma empresa (vincula à ficha pelo e-mail corporativo). */
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../../app/navigation';
 import { BarChart3, ChevronDown, ChevronRight, Copy, Download, ExternalLink, FileDown, Mail, Pencil, Plus, QrCode, RefreshCw, Search, Send, Share2, Trash2, X } from 'lucide-react';
-import { Shell } from '../components/WorkspaceShell';
-import { supabase } from '../lib/supabase';
+import { Shell } from '../../components/WorkspaceShell';
+import { supabase } from '../../lib/supabase';
 import { downloadQrPng, downloadShareCard, qrDataUrl } from '../forms/formExports';
 import { slugify } from '../forms/formModel';
 import { adaptationOf, STYLES, type Scores, type Style } from './profileMethod';

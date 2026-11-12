@@ -8,6 +8,8 @@ A entrega usa a branch `codex/cali-consolidacao`, com commits revisáveis por et
 
 A `main` publicada continua no ambiente de produção atual. Nesta entrega, a consulta ao catálogo de produção é em leitura e as migrations rodam em banco isolado. A homologação verifica também os contratos que o app publicado consome. O Preview recebe projeto, credenciais e callbacks de teste próprios.
 
+A validação usa registros representativos do legado com dados sanitizados. Inclui valores nulos, estados antigos, IDs, vínculos, anexos, históricos e links emitidos. Em uma troca futura, o backfill precisa incluir as gravações feitas pela `main` até o corte e aceitar reexecução. Preservar os contratos antigos enquanto houver consumidores ativos e conferir o retorno à revisão anterior com os dados já processados.
+
 ## Etapas e critérios de passagem
 
 | Etapa | Trabalho | Critério de passagem |

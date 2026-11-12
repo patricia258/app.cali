@@ -4,9 +4,9 @@
    Com convite (?c=token): nome e e-mail vêm do convite, o prazo aparece em data, o progresso é registrado (bloco de
    parada) e as respostas ficam guardadas no aparelho para retomar de onde parou. */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from '../../app/navigation';
 import { ArrowLeft, ArrowRight, CalendarClock, Check, Handshake, LayoutList, Mail } from 'lucide-react';
-import { anonPublicRpc } from '../lib/supabase';
+import { anonPublicRpc } from '../../lib/supabase';
 import { blockItems, computeScores, NATURAL_BLOCKS, PRESSURE_BLOCKS, profileOf, type BlockAnswer, type Style } from './profileMethod';
 import { richTextHtml } from '../forms/formModel';
 import { RespondentReport, type ProfileResultView } from './ProfileReports';

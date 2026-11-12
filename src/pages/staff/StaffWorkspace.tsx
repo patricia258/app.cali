@@ -7,8 +7,9 @@ import { CompanyTeamPage } from '../team/CompanyTeamPage';
 import { MfaGate } from '../../auth/MfaGate';
 import { TermsGate } from '../../auth/TermsGate';
 import { StaffDocumentsPage } from '../admin/AdminDocumentsPageV4';
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
-import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { createContext, useContext, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { Outlet } from '@tanstack/react-router';
+import { Link, Navigate, useLocation, useNavigate } from '../../app/navigation';
 import { ArrowRight, Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, Pause, SendHorizontal, Users, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
@@ -154,26 +155,69 @@ function Reviews({ me }: { me: Me }) {
     {!rows ? <div className="data-loading">Carregando…</div> : visible.length ? <div className="wf-records v2-staff-sent">{visible.map((row) => <div className="wf-record-row" key={row.id}><time>{moment(row.created_at)}</time><strong>{row.kind === 'hours' ? 'Horas' : KINDS[row.kind] || row.kind}</strong><div><strong>{row.title}</strong><small>{[companyName.get(row.company_id) || 'Empresa', row.note, row.decision_note ? `Resposta: ${row.decision_note}` : ''].filter(Boolean).join(' · ')}</small></div><span className={`wf-tag ${tone[row.status]?.[0] || ''}`}>{tone[row.status]?.[1] || row.status}</span></div>)}</div> : <div className="empty">{filter === 'pending' ? 'Nada aguardando no momento.' : 'Você ainda não enviou nada para aprovação.'}</div>}</>;
 }
 
+const sectionModules = {
+  '/': null,
+  ocorrencias: 'records',
+  calendario: 'calendar',
+  horas: 'hours',
+  documentos: 'documents',
+  pessoas: 'team',
+  relatorios: 'reports',
+  projetos: 'projects',
+  avisos: 'notices',
+  aprovacoes: null,
+} as const;
+
+export type StaffSection = keyof typeof sectionModules;
+const StaffContext = createContext<Me | null>(null);
+
+export function StaffWorkspaceSection({ section }: { section: StaffSection }) {
+  const me = useContext(StaffContext);
+  if (!me) return null;
+
+  const module = sectionModules[section];
+  if (module && !me.modules.includes(module)) return <Navigate to="/equipe" replace />;
+
+  switch (section) {
+    case '/': return <StaffDashboard me={me} />;
+    case 'ocorrencias': return <StaffRecordsPage companies={me.companies.map((item) => ({
+      id: item.id, name: item.display_name, logo: item.logo_workspace_url, logoFallback: item.logo_url,
+    }))} />;
+    case 'calendario': return <StaffCalendarPage />;
+    case 'horas': return <StaffHoursPage companies={me.companies} />;
+    case 'documentos': return <StaffDocumentsPage />;
+    case 'pessoas': return <CompanyTeamPage role="client" staff />;
+    case 'relatorios': return <Browse me={me} kind="relatorios" />;
+    case 'projetos': return <StaffProjectsPage companies={me.companies} />;
+    case 'avisos': return <StaffNotices me={me} />;
+    case 'aprovacoes': return <Reviews me={me} />;
+  }
+}
+
+export function StaffPrint() {
+  return <ReportPrintPageV17 role="staff" />;
+}
+
 export function StaffWorkspace() {
-  const auth = useWorkspaceAuth(); const { me, error } = useMe();
+  const auth = useWorkspaceAuth();
+  const { me, error } = useMe();
+  const { pathname } = useLocation();
   if (!auth.ready) return <div className="v2-client-module"><div className="data-loading">Carregando…</div></div>;
   if (!auth.user || !auth.active) return <Navigate to="/login" replace />;
   if (auth.role !== 'partner') return <Navigate to={auth.role === 'admin' ? '/admin' : '/cliente'} replace />;
   if (error) return <div className="v2-client-module v2-staff-fail"><div className="inline-notice">{error}</div></div>;
   if (!me) return <div className="v2-client-module"><div className="data-loading">Carregando o seu espaço…</div></div>;
   // Relatório impresso abre em página cheia, sem o menu, como para a administradora e o cliente.
-  if (location.pathname.startsWith('/equipe/relatorios/impressao/')) return <MfaGate><Routes><Route path="relatorios/impressao/:reportId" element={<ReportPrintPageV17 role="staff" />} /></Routes></MfaGate>;
-  return <MfaGate><TermsGate><Frame me={me}><Routes>
-    <Route index element={<StaffDashboard me={me} />} />
-    <Route path="ocorrencias" element={me.modules.includes('records') ? <StaffRecordsPage companies={me.companies.map((item) => ({ id: item.id, name: item.display_name, logo: item.logo_workspace_url, logoFallback: item.logo_url }))} /> : <Navigate to="/equipe" replace />} />
-    <Route path="calendario" element={me.modules.includes('calendar') ? <StaffCalendarPage /> : <Navigate to="/equipe" replace />} />
-    <Route path="horas" element={me.modules.includes('hours') ? <StaffHoursPage companies={me.companies} /> : <Navigate to="/equipe" replace />} />
-    <Route path="documentos" element={me.modules.includes('documents') ? <StaffDocumentsPage /> : <Navigate to="/equipe" replace />} />
-    <Route path="pessoas" element={me.modules.includes('team') ? <CompanyTeamPage role="client" staff /> : <Navigate to="/equipe" replace />} />
-    {([['relatorios', 'reports']] as [string, string][]).map(([path, module]) => <Route key={path} path={path} element={me.modules.includes(module) ? <Browse me={me} kind={path} /> : <Navigate to="/equipe" replace />} />)}
-    <Route path="projetos" element={me.modules.includes('projects') ? <StaffProjectsPage companies={me.companies} /> : <Navigate to="/equipe" replace />} />
-    <Route path="avisos" element={me.modules.includes('notices') ? <StaffNotices me={me} /> : <Navigate to="/equipe" replace />} />
-    <Route path="aprovacoes" element={<Reviews me={me} />} />
-    <Route path="*" element={<Navigate to="/equipe" replace />} />
-  </Routes></Frame></TermsGate></MfaGate>;
+  if (pathname.startsWith('/equipe/relatorios/impressao/')) return <MfaGate><Outlet /></MfaGate>;
+  return (
+    <MfaGate>
+      <TermsGate>
+        <Frame me={me}>
+          <StaffContext.Provider value={me}>
+            <Outlet />
+          </StaffContext.Provider>
+        </Frame>
+      </TermsGate>
+    </MfaGate>
+  );
 }

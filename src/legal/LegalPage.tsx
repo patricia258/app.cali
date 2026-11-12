@@ -1,5 +1,5 @@
 /* Páginas públicas /privacidade, /termos e /politica-do-site: abertas sem login (links na entrada e no perfil). */
-import { Link } from 'react-router-dom';
+import { Link } from '../app/navigation';
 import { LegalDocument } from './LegalDocument';
 import { LEGAL_UPDATED_AT, legalEnabled, privacyPolicy, sitePolicy, termsOfUse } from './legalTexts';
 import './legal.css';

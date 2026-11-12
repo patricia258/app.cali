@@ -1,8 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { ArrowLeft, Loader2, Mail, Printer, X } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from '../../app/navigation';
 import { Shell } from '../../components/WorkspaceShell';
-import { loadPortalProposal, portalServiceLabel, sendPortalProposal, type PortalProposal, type PortalSubmission } from '../../lib/portalAdminApi';
+import { loadPortalProposal, portalServiceLabel, sendPortalProposal, type PortalProposal, type PortalSubmission } from '../../api/commercial/portal';
 import { PACKAGE_META } from '../../lib/portalProposalConfig';
 import { getProposalProfile } from '../../lib/portalProposalParity';
 

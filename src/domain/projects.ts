@@ -1,6 +1,6 @@
-export type ProjectPlanningStatus = 'draft' | 'client_review' | 'adjustment_requested' | 'approved' | 'active' | 'rebriefing' | 'closed';
-export type DeliverableStatus = 'not_started' | 'in_progress' | 'standby' | 'internal_review' | 'client_review' | 'adjustment_requested' | 'rebriefing' | 'approved' | 'cancelled';
-export type MaterialComplexity = 'MC1' | 'MC2' | 'MC3';
+export type ProjectPlanningStatus = keyof typeof projectPlanningLabels;
+export type DeliverableStatus = keyof typeof deliverableLabels;
+export type MaterialComplexity = keyof typeof complexityMeta;
 
 export type ProjectDeliverable = {
   id: string;
@@ -43,7 +43,7 @@ export type WorkspaceProject = {
   deliverables: ProjectDeliverable[];
 };
 
-export const projectPlanningLabels: Record<ProjectPlanningStatus, string> = {
+export const projectPlanningLabels = {
   draft: 'Rascunho',
   client_review: 'Aguardando cliente',
   adjustment_requested: 'Ajuste solicitado',
@@ -51,9 +51,9 @@ export const projectPlanningLabels: Record<ProjectPlanningStatus, string> = {
   active: 'Projeto vigente',
   rebriefing: 'Rebriefing',
   closed: 'Encerrado',
-};
+} as const;
 
-export const deliverableLabels: Record<DeliverableStatus, string> = {
+export const deliverableLabels = {
   not_started: 'Não iniciado',
   in_progress: 'Em andamento',
   standby: 'Standby',
@@ -63,16 +63,21 @@ export const deliverableLabels: Record<DeliverableStatus, string> = {
   rebriefing: 'Rebriefing',
   approved: 'Aprovado',
   cancelled: 'Cancelado',
-};
+} as const;
 
 /** Regra oficial da CALI (documento da proprietária, 2026-10-13). MC = complexidade do entregável; NÃO confundir com
  *  M1, M2, M3…, que são os meses/momentos do roadmap. A faixa é referência de planejamento, nunca prazo contratual. */
-export const complexityMeta: Record<MaterialComplexity, { label: string; description: string; minDays: number; maxDays: number }> = {
+export const complexityMeta = {
   MC1: { label: 'MC1 · Baixa', minDays: 30, maxDays: 45, description: 'Materiais de construção mais direta, com menor volume de informações, poucas dependências e menor número de pessoas envolvidas.' },
   MC2: { label: 'MC2 · Média', minDays: 60, maxDays: 75, description: 'Materiais que exigem análises mais aprofundadas, cruzamento de dados, participação de diferentes responsáveis e etapas de construção e validação.' },
   MC3: { label: 'MC3 · Alta', minDays: 90, maxDays: 120, description: 'Materiais estratégicos de maior abrangência, com múltiplos desdobramentos, participação de diferentes áreas e lideranças, dependências técnicas e diversas etapas de validação.' },
-};
-export const complexityRange = (code: string) => { const meta = (complexityMeta as Record<string, { minDays: number; maxDays: number }>)[code]; return meta ? `${meta.minDays} a ${meta.maxDays} dias corridos` : ''; };
+} as const;
+
+export function complexityRange(code: string) {
+  if (!Object.prototype.hasOwnProperty.call(complexityMeta, code)) return '';
+  const { minDays, maxDays } = complexityMeta[code as MaterialComplexity];
+  return `${minDays} a ${maxDays} dias corridos`;
+}
 export const complexityClientNote = 'Prazo estimado, que pode ser antecipado. O cronograma se ajusta conforme a disponibilidade das informações, a participação dos envolvidos e o tempo de resposta e aprovação.';
 
 export const caliWorkstreams = [

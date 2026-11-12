@@ -2,9 +2,9 @@
    logo após o envio (?novo=1) o PDF é gerado fora da tela, guardado no bucket privado e enviado por e-mail; a página mostra só
    o agradecimento. Aberta depois (link antigo de e-mail), oferece apenas o download do PDF. */
 import { useEffect, useRef, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from '../../app/navigation';
 import { Download } from 'lucide-react';
-import { anonPublicRpc, anonStorage } from '../lib/supabase';
+import { anonPublicRpc, anonStorage } from '../../lib/supabase';
 import { RespondentReport, type ProfileResultView, type ProfileSigner } from './ProfileReports';
 import { downloadBlob, fileSlug, pagesToPdf } from './profilePdf';
 import './profile-pages.css';

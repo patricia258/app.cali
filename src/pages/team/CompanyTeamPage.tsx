@@ -1,7 +1,7 @@
 import {PeopleAnalyticsMonth,PeopleAnalyticsPeriod} from './PeopleAnalyticsBoard';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from '../../app/navigation';
 import { TeamMonthWizard } from './TeamMonthWizard';
 import { ArrowRight, Building2, CalendarDays, Check, ChevronDown, ChevronRight, Info, Download, FileDown, FileUp, Filter, LayoutGrid, List, Loader2, Plus, Search, SlidersHorizontal, Star, Users, UsersRound, X } from 'lucide-react';
 import { Shell, type Role } from '../../components/WorkspaceShell';
@@ -9,8 +9,8 @@ import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
 import { supabase } from '../../lib/supabase';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 import './company-team.css';
-import { TeamMemberProfiles } from '../../profile/TeamMemberProfiles';
-import { GestaoBanner } from '../../profile/GestaoBanner';
+import { TeamMemberProfiles } from '../../modules/disc/TeamMemberProfiles';
+import { GestaoBanner } from '../../modules/disc/GestaoBanner';
 
 export type Member = { id:string; company_id:string; employee_code:string; full_name:string; work_email:string|null; work_phone:string|null; admission_date:string; job_title:string; seniority:string|null; department:string; team_area:string|null; manager_code:string|null; is_leader:boolean; employment_type:string; weekly_hours:number|null; work_model:string|null; location:string|null; avatar_style?:'female'|'male'|'neutral'; status:'active'|'leave'|'terminated'; leave_reason:string|null; leave_start_date:string|null; expected_return_date:string|null; termination_date:string|null; termination_initiative:string|null; termination_reason:string|null; notice_type:string|null; archived_at?:string|null };
 export type Vacancy={id:string;vacancy_code:string;title:string;department:string|null;opened_on:string;status:'open'|'filled'|'cancelled';closed_on:string|null};

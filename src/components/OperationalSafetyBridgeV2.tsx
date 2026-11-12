@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, History, Pencil, ShieldAlert, Trash2, X } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from '../app/navigation';
 import { supabase } from '../lib/supabase';
 
 type Role='admin'|'client';

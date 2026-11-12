@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pause, Square, TimerReset, X } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from '../app/navigation';
 import { supabase } from '../lib/supabase';
 import { resolveWorkspaceMedia } from '../lib/workspaceMedia';
 import { finalizeTimerWork, pauseTimerSession, TIMER_EVENT } from '../lib/timerSemantics';

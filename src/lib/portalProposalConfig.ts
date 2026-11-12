@@ -1,4 +1,4 @@
-import type { PortalPricingRule } from './portalAdminApi';
+import type { PortalPricingRule } from '../api/commercial/portal';
 import { initialPackageFor, investmentContextFor, scopeDefaults } from './portalProposalLogic';
 
 export type PackageMeta={code:string;label:string;description:string;minimumMonths:number;suggestedHours?:number;hoursRange?:string};

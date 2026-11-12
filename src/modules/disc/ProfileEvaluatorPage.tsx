@@ -3,9 +3,9 @@
    este relatório técnico (decisão da proprietária, 23/10): a liderança recebe o relatório de gestão.
    Cliente: só abre resultados que a CALI liberou (RLS), sem as ferramentas. */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from '../../app/navigation';
 import { ArrowLeft, Download, Printer } from 'lucide-react';
-import { anonPublicRpc, supabase } from '../lib/supabase';
+import { anonPublicRpc, supabase } from '../../lib/supabase';
 import { EvaluatorReport, type ProfileBase, type ProfileResultView, type ProfileSigner } from './ProfileReports';
 import type { RoleProfile } from './ProfileCharts';
 import type { Style } from './profileMethod';

@@ -1,8 +1,8 @@
 /* Perfil Comportamental CALI — saída em um clique (/perfil/sair/:token), presente em todo convite e lembrete.
    Quem sai é marcado como recusa: não recebe mais mensagens e não conta como pendente na taxa de resposta. */
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { anonPublicRpc } from '../lib/supabase';
+import { useParams } from '../../app/navigation';
+import { anonPublicRpc } from '../../lib/supabase';
 import '../forms/public-form.css';
 
 export function ProfileOptOutPage() {
