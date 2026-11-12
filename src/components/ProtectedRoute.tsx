@@ -27,6 +27,6 @@ export function ProtectedRoute({ role, children }: { role: Role; children: React
     return <Navigate to={homeOf(auth.role)} replace />;
   }
 
-  // Administradora passa pela verificação em duas etapas; cliente aceita os termos (desligado até a revisão jurídica).
-  return role === 'admin' ? <MfaGate>{children}</MfaGate> : <TermsGate>{children}</TermsGate>;
+  const accepted = <TermsGate>{children}</TermsGate>;
+  return role === 'admin' ? <MfaGate>{accepted}</MfaGate> : accepted;
 }

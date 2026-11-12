@@ -139,7 +139,10 @@ export function RouteRuntimeManager() {
       installDashboards(pathname);
     }, 0);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      activateRoute('');
+    };
   }, [pathname]);
 
   return null;

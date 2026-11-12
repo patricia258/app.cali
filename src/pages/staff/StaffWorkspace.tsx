@@ -13,6 +13,7 @@ import { Link, Navigate, useLocation, useNavigate } from '../../app/navigation';
 import { ArrowRight, Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, Pause, SendHorizontal, Users, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useWorkspaceAuth } from '../../auth/WorkspaceAuthProvider';
+import { RouteRuntimeManager } from '../../runtime/RouteRuntimeManager';
 import { type WelcomeStep } from '../../v2/WelcomeTour';
 import { WorkspaceShellV2 } from '../../v2/WorkspaceShellV2';
 import { StaffNoticesPage } from '../notices/NoticesBoard';
@@ -198,25 +199,35 @@ export function StaffPrint() {
   return <ReportPrintPageV17 role="staff" />;
 }
 
-export function StaffWorkspace() {
-  const auth = useWorkspaceAuth();
+function AuthorizedStaffWorkspace() {
   const { me, error } = useMe();
   const { pathname } = useLocation();
-  if (!auth.ready) return <div className="v2-client-module"><div className="data-loading">Carregando…</div></div>;
-  if (!auth.user || !auth.active) return <Navigate to="/login" replace />;
-  if (auth.role !== 'partner') return <Navigate to={auth.role === 'admin' ? '/admin' : '/cliente'} replace />;
   if (error) return <div className="v2-client-module v2-staff-fail"><div className="inline-notice">{error}</div></div>;
   if (!me) return <div className="v2-client-module"><div className="data-loading">Carregando o seu espaço…</div></div>;
   // Relatório impresso abre em página cheia, sem o menu, como para a administradora e o cliente.
-  if (pathname.startsWith('/equipe/relatorios/impressao/')) return <MfaGate><Outlet /></MfaGate>;
+  if (pathname.startsWith('/equipe/relatorios/impressao/')) {
+    if (!me.modules.includes('reports')) return <Navigate to="/equipe" replace />;
+    return <Outlet />;
+  }
+  return (
+    <Frame me={me}>
+      <StaffContext.Provider value={me}>
+        <Outlet />
+      </StaffContext.Provider>
+    </Frame>
+  );
+}
+
+export function StaffWorkspace() {
+  const auth = useWorkspaceAuth();
+  if (!auth.ready) return <div className="v2-client-module"><div className="data-loading">Carregando…</div></div>;
+  if (!auth.user || !auth.active) return <Navigate to="/login" replace />;
+  if (auth.role !== 'partner') return <Navigate to={auth.role === 'admin' ? '/admin' : '/cliente'} replace />;
   return (
     <MfaGate>
       <TermsGate>
-        <Frame me={me}>
-          <StaffContext.Provider value={me}>
-            <Outlet />
-          </StaffContext.Provider>
-        </Frame>
+        <RouteRuntimeManager />
+        <AuthorizedStaffWorkspace />
       </TermsGate>
     </MfaGate>
   );

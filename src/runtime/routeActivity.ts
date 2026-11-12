@@ -1,4 +1,4 @@
-let activePath = typeof window === 'undefined' ? '' : window.location.pathname;
+let activePath = '';
 
 export function activateRoute(pathname: string) {
   activePath = pathname;

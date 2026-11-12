@@ -1,11 +1,10 @@
 import axios from 'axios';
 import { supabase } from '../../lib/supabase';
 
-const SUPABASE_URL = 'https://kqtbfeeqbcllwvlkbrkq.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_rhIy864X0VSQ0B7m7gdmCQ_hX3sKFMg';
+import { supabaseEnvironment } from '../client-environment';
 
-const portalHttp = axios.create({
-  baseURL: SUPABASE_URL,
+const portalHttp = supabaseEnvironment ? axios.create({
+  baseURL: supabaseEnvironment.url,
   adapter: 'fetch',
   responseType: 'text',
   validateStatus: () => true,
@@ -13,10 +12,10 @@ const portalHttp = axios.create({
   headers: {
     Accept: null,
     'User-Agent': false,
-    apikey: SUPABASE_KEY,
+    apikey: supabaseEnvironment.key,
     'Content-Type': 'application/json',
   },
-});
+}) : null;
 
 export type PortalSubmissionStatus = 'novo'|'analise'|'edicao'|'aprovada'|'enviada'|'negociacao'|'fechada'|'recusada'|'expirada';
 export type PortalSubmission = {
@@ -58,6 +57,7 @@ type PortalRequestOptions = {
 };
 
 async function portalResponse(path: string, options: PortalRequestOptions = {}) {
+  if (!portalHttp) throw new Error('Supabase não configurado.');
   const token = await sessionToken();
   try {
     const response = await portalHttp.request<string>({

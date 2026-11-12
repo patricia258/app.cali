@@ -1,7 +1,7 @@
 import { Outlet } from '@tanstack/react-router';
 import { Suspense, useEffect, useLayoutEffect } from 'react';
 import { useLocation } from './app/navigation';
-import { WorkspaceRouteLoader } from './components/ProtectedRoute';
+import { ProtectedRoute, WorkspaceRouteLoader } from './components/ProtectedRoute';
 import { Shell, WorkspaceFrame } from './components/WorkspaceShell';
 import { RouteRuntimeManager } from './runtime/RouteRuntimeManager';
 import { applyVisualSystem } from './v2/visualSystem';
@@ -49,17 +49,20 @@ export default function App() {
   useEffect(() => prefetchLikelyRoutes(), []);
   const { pathname } = useLocation();
   useLayoutEffect(() => { void applyVisualSystem(pathname); }, [pathname]);
-  const workspaceRole = pathname.startsWith('/cliente') ? 'client' : pathname.startsWith('/admin') ? 'admin' : null;
+  const workspaceArea = pathname.split('/')[1];
+  const workspaceRole = workspaceArea === 'cliente' ? 'client' : workspaceArea === 'admin' ? 'admin' : null;
   const routes = (
     <Suspense fallback={<WorkspaceNavigationFallback />}>
       <Outlet />
     </Suspense>
   );
 
+  if (!workspaceRole) return routes;
+
   return (
-    <>
+    <ProtectedRoute role={workspaceRole}>
       <RouteRuntimeManager />
-      {workspaceRole ? <WorkspaceFrame role={workspaceRole}>{routes}</WorkspaceFrame> : routes}
-    </>
+      <WorkspaceFrame role={workspaceRole}>{routes}</WorkspaceFrame>
+    </ProtectedRoute>
   );
 }

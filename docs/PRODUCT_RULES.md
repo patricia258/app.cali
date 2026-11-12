@@ -15,6 +15,7 @@ O Workspace é o ambiente compartilhado de execução e relacionamento entre a C
 - A empresa adere ao Workspace mediante formalização própria registrada antes do convite. A adesão é opcional e o serviço contratado segue se a empresa não aderir. O aceite individual dos termos é versionado, obrigatório no primeiro acesso e a cada nova versão. Falha na verificação bloqueia a entrada.
 - O Cliente entra por código. Admin deve cadastrar e confirmar o segundo fator antes de acessar a área administrativa, inclusive no primeiro uso. Falhas mantêm o acesso bloqueado e permitem tentar de novo. O backend aplica vínculo, papel, aceite e validade da sessão em operações protegidas.
 - A CALI gerencia a empresa em uma ficha organizada em abas. O pré-cadastro pede somente os dados do Cliente. A CALI completa a ficha e confere os campos obrigatórios e o contrato assinado vigente. O link de pré-cadastro tem validade de sete dias e sua reemissão invalida o anterior. A liberação confirma a ficha e os acessos juntos, com rollback se houver falha parcial.
+- A checagem de ficha e contrato vale na liberação de acesso. A transição preserva o vínculo e o estado dos acessos já liberados. Lacunas de cadastro legado ficam visíveis para saneamento da CALI.
 - Na ficha, Patrícia é a responsável CALI. A CALI pode designar um Partner de apoio com vínculo elegível à empresa. A designação alimenta o Início do Cliente. As permissões de trabalho continuam vinculadas às atribuições.
 
 ## Navegação

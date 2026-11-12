@@ -1,12 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
+import { z } from 'zod';
 
-const fallbackUrl = 'https://kqtbfeeqbcllwvlkbrkq.supabase.co';
-const fallbackPublishableKey = 'sb_publishable_rhIy864X0VSQ0B7m7gdmCQ_hX3sKFMg';
+import { supabaseEnvironment } from '../api/client-environment';
 
-const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || fallbackUrl;
-const supabasePublishableKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) || fallbackPublishableKey;
+const { url: supabaseUrl, key: supabasePublishableKey } = supabaseEnvironment ?? { url: '', key: '' };
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabasePublishableKey);
+export const isSupabaseConfigured = supabaseEnvironment !== null;
 
 const workspaceSupabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabasePublishableKey, {
@@ -80,6 +79,8 @@ async function directPublicRpc<T = unknown>(fn: string, args?: Record<string, un
 
 /** Chamada pública sem sessão (ex.: CALI Forms em /f/:slug). Só para funções liberadas ao papel anon. */
 export async function anonPublicRpc<T = unknown>(fn: string, args?: Record<string, unknown>): Promise<RpcResult<T>> {
+  if (!supabaseEnvironment) return { data: null, error: { message: 'Supabase não configurado.' } };
+
   try {
     const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${encodeURIComponent(fn)}`, {
       method: 'POST',
@@ -135,7 +136,14 @@ export const supabase = workspaceSupabase
     })
   : null;
 
-type AccessResponse = { ok?: boolean; error?: string; token_hash?: string; role?: 'admin' | 'client' | 'partner'; challenge?: string };
+const accessResponse = z.object({
+  ok: z.boolean().optional(),
+  error: z.string().optional(),
+  role: z.enum(['admin', 'client', 'partner']).optional(),
+  challenge: z.string().optional(),
+  token_hash: z.string().min(1).optional(),
+  session: z.object({ access_token: z.string().min(1), refresh_token: z.string().min(1) }).optional(),
+});
 
 async function workspaceAccessRequest(body: Record<string, unknown>) {
   if (!isSupabaseConfigured) {
@@ -151,11 +159,12 @@ async function workspaceAccessRequest(body: Record<string, unknown>) {
       },
       body: JSON.stringify({ ...body, website: '' }),
     });
-    const payload = await response.json().catch(() => ({})) as AccessResponse;
-    if (!response.ok) {
-      return { data: null, error: { message: payload.error || 'Não foi possível concluir o acesso.' } };
+    const payload = accessResponse.safeParse(await response.json().catch(() => null));
+    if (!payload.success || !response.ok || payload.data.ok === false) {
+      const message = payload.success ? payload.data.error : undefined;
+      return { data: null, error: { message: message || 'Não foi possível concluir o acesso.' } };
     }
-    return { data: payload, error: null };
+    return { data: payload.data, error: null };
   } catch (error) {
     return { data: null, error: { message: error instanceof Error ? error.message : 'Não foi possível concluir o acesso.' } };
   }
@@ -167,14 +176,18 @@ export function requestAccessCode(email: string) {
 
 export async function verifyAccessCode(email: string, code: string) {
   const result = await workspaceAccessRequest({ action: 'verify', email: email.trim(), code });
-  if (result.error || !result.data?.token_hash || !workspaceSupabase) return result;
+  if (result.error || !result.data || !workspaceSupabase) return result;
 
-  const { error: verifyError } = await workspaceSupabase.auth.verifyOtp({
-    token_hash: result.data.token_hash,
-    type: 'email',
-  });
-  if (verifyError) return { data: null, error: { message: verifyError.message } };
-  return result;
+  const { session, token_hash, role } = result.data;
+  const verified = session
+    ? await workspaceSupabase.auth.setSession(session)
+    : token_hash
+      ? await workspaceSupabase.auth.verifyOtp({ token_hash, type: 'email' })
+      : null;
+  if (!verified?.data.session || verified.error) {
+    return { data: null, error: { message: verified?.error?.message || 'Não foi possível confirmar seu acesso.' } };
+  }
+  return { data: { ok: true, role }, error: null };
 }
 
 // Compatibilidade temporária com chamadas antigas: passa a solicitar código, não link.
