@@ -34,4 +34,11 @@ npm run build
 
 As páginas são fechadas e validadas uma a uma. A branch `main` permanece como base de produção; trabalhos ainda não aprovados ficam em branches de desenvolvimento.
 
+Na consolidação do Workspace, a implementação parte deste repositório. Os documentos abaixo registram o contrato de produto, os limites de dados e os critérios de passagem da branch:
+
+- [Regras de produto](docs/PRODUCT_RULES.md)
+- [Sequência de consolidação e arquitetura](docs/CONSOLIDATION_PLAN.md)
+- [Dados e permissões](docs/DATA_CONTRACTS.md)
+- [Matriz de aceite](docs/CONSOLIDATION_ACCEPTANCE.md)
+
 <!-- deploy trigger: connected Vercel production -->
