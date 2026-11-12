@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLocation } from '../app/navigation';
+import { useLocation } from '../hooks/useLocation';
 import { activateRoute } from './routeActivity';
 
 const installed = new Set<string>();

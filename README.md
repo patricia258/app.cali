@@ -8,37 +8,29 @@ Workspace compartilhado entre a CALI RH e seus clientes para acompanhar projetos
 
 O Workspace não é um SaaS para o cliente operar. É o ambiente de relacionamento e execução da CALI com cada empresa.
 
-## Arquitetura atual
+## Documentação
 
-- React + TypeScript + Vite
-- Supabase com schema isolado `cali_workspace`
-- Vercel
-- Resend para comunicações transacionais
-- Integração Google Workspace/Drive preparada para evolução
+- [Índice](docs/INDEX.md)
+- [Fluxos de produto](docs/flows/README.md)
+- [Arquitetura e mapa de pastas](docs/ARCHITECTURE.md)
 
 ## Desenvolvimento
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
 Validação:
 
 ```bash
-npm run typecheck
-npm run build
+npm run check
 ```
 
 ## Fluxo de construção
 
 As páginas são fechadas e validadas uma a uma. A branch `main` permanece como base de produção; trabalhos ainda não aprovados ficam em branches de desenvolvimento.
 
-Na consolidação do Workspace, a implementação parte deste repositório. Os documentos abaixo registram o contrato de produto, os limites de dados e os critérios de passagem da branch:
-
-- [Regras de produto](docs/PRODUCT_RULES.md)
-- [Sequência de consolidação e arquitetura](docs/CONSOLIDATION_PLAN.md)
-- [Dados e permissões](docs/DATA_CONTRACTS.md)
-- [Matriz de aceite](docs/CONSOLIDATION_ACCEPTANCE.md)
+O [plano de consolidação](docs/CONSOLIDATION_PLAN.md) registra a sequência da branch. O [runbook](docs/RUNBOOK.md) define configuração local, validação de dados e preparação do Preview.
 
 <!-- deploy trigger: connected Vercel production -->

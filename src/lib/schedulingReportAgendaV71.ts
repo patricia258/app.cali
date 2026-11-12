@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 
 type AgendaItemV71 = {
   startsAt?: string | null;

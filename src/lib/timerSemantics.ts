@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 
 export const TIMER_EVENT = 'cali:timers-changed';
 

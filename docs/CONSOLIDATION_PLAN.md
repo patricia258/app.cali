@@ -26,19 +26,7 @@ A validação usa registros representativos do legado com dados sanitizados. Inc
 
 ## Organização da aplicação
 
-| Dono | Conteúdo |
-| --- | --- |
-| `src/app` | Composição, rotas e layouts. Integra as APIs do produto sem implementar regras de escrita. |
-| `src/auth` | Sessão, vínculo, MFA, aceite e integração com guardas de rota. |
-| `src/modules/<domínio>` | Telas, formulários, estados de interface e hooks específicos do domínio. |
-| `src/api/<domínio>` | Operações tipadas, schemas Zod nas entradas e respostas externas, keys de consulta com `as const` e hooks de acesso aos dados. Query controla cache, cancelamento e invalidação. |
-| `src/components` e `src/styles` | Primitivas compartilhadas, tokens derivados da aparência atual, variantes tipadas e estilos por rota. |
-| `src/domain` e `src/lib` | Regras puras do domínio e utilitários compartilhados. Manter funções específicas próximas do consumidor. |
-| `supabase/migrations` e `supabase/functions` | DDL reconciliado, RPCs, autorização, estado persistido e efeitos externos. |
-
-O SDK Supabase é o transporte para Auth, Data API, Storage e funções próprias. Axios atende operações HTTP quando houver um consumidor concreto. Rascunhos ficam no formulário, filtros compartilháveis ficam na URL e respostas remotas no cache de Query com escopo de ator e empresa. Revisar enums e valores de status com base nos contratos persistidos antes de renomear qualquer literal.
-
-Rotas, templates de PDF, formulários e regras de produto preservam as identidades e vínculos existentes. Cada runtime removido tem verificação do efeito correspondente, incluindo foco, rolagem, eventos, temporizadores e cancelamento ao sair da rota.
+O [mapa de arquitetura](ARCHITECTURE.md) define as pastas, os donos de código e as convenções para hooks, serviços, estado e estilos.
 
 ## Fontes de aceite
 

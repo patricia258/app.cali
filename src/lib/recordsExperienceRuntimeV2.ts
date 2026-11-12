@@ -1,5 +1,5 @@
 import { appendWithMentions } from './mentionText';
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 import { askWorkspaceLink, workspaceChatAlert } from './workspaceChatDialogs';
 import { resolveWorkspaceMedia } from './workspaceMedia';
 

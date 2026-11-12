@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 import { z } from 'zod';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../supabase';
 
 const workspaceRole = z.enum(['admin', 'client', 'partner']);
 const workspaceProfile = z.object({

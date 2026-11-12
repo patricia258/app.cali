@@ -1,0 +1,585 @@
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+import {
+  Archive,
+  Banknote,
+  Ban,
+  BellRing,
+  BriefcaseBusiness,
+  Building2,
+  Cake,
+  CalendarDays,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Cloud,
+  FileCheck2,
+  FolderKanban,
+  History,
+  ImagePlus,
+  Loader2,
+  Mail,
+  MessageCircle,
+  PauseCircle,
+  Pencil,
+  Plus,
+  ReceiptText,
+  RotateCcw,
+  AlertCircle,
+  Clock3,
+  Search,
+  ShieldCheck,
+  Upload,
+  Download,
+  Trash2,
+  WalletCards,
+  X,
+} from 'lucide-react';
+import { Shell } from '../../../components/workspace/WorkspaceShell';
+import { supabase } from '../../../api/supabase';
+import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
+import { optimizeImageForUpload } from '../../../lib/imageUpload';
+import { ContractAgendaSettings } from './components/ContractAgendaSettings';
+import { ContractFrontsAdmin } from './components/ContractFrontsAdmin';
+import { exportCompanyData } from './companyDataExport';
+import { eliminateCompanyData, eliminationReleaseDate } from './companyDataElimination';
+
+type ClientProject = { name: string; status: string };
+type AccountHistory = { title: string; detail: string; date: string };
+type AccountTab = 'data' | 'contract' | 'fronts' | 'agenda' | 'financial' | 'operation' | 'communications' | 'history';
+type RegistrationTab = 'data' | 'access' | 'contract' | 'financial' | 'documents';
+type ExtraPerson = { id?:string; name:string; job:string; email:string; phone:string; access:boolean; role:string };
+const contractTypes = ['CALI Partner','CALI Full','Outro'];
+const contractModels = ['Assessoria mensal','Projeto','Treinamento'];
+const roleToDb = (role:string) => role==='Decisor adicional'?'decision_maker':'additional';
+const roleFromDb = (role?:string) => role==='decision_maker'?'Decisor adicional':'Acesso adicional';
+// Até 4 acessos por empresa: o principal e mais três.
+const maxExtraPeople = 3;
+type LifecycleAction = 'pause' | 'block' | 'archive' | 'close' | 'reactivate';
+type TerminationPenaltyType = 'none' | 'remaining_balance_percent' | 'contract_total_percent' | 'fixed_amount' | 'monthly_fee_multiple';
+type TerminationPaymentRule = 'calendar_days' | 'business_days';
+
+type ClientRow = {
+  id: string;
+  name: string;
+  legalName?: string;
+  logoUrl?: string;
+  status: 'active' | 'paused' | 'blocked' | 'closed' | 'archived';
+  contractType?: string;
+  contractModel?: string;
+  paymentTermDays?: number | null;
+  driveUrl?: string;
+  documentNotes?: string;
+  documentOwner?: string;
+  extraAccesses?: ExtraPerson[];
+  createdAt?: string;
+  closedAt?: string;
+  dataEliminatedAt?: string;
+  contact: string;
+  email: string;
+  decisionTitle?: string;
+  decisionBirthday?: string;
+  phone?: string;
+  whatsapp?: string;
+  service: string;
+  segment?: string;
+  contractedHours: number;
+  hours: string;
+  usage: number;
+  nps: string;
+  access: string;
+  drive: string;
+  startDate?: string;
+  endDate?: string;
+  autoRenew?: boolean;
+  addressStreet?: string;
+  addressNumber?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+  hasBranches?: boolean;
+  branches?: string[];
+  contractValue?: number | null;
+  billingFrequency?: string;
+  paymentMethod?: string;
+  billingStatus?: string;
+  billingDay?: number | null;
+  billingDueRule?: string;
+  billingLeadDays?: number;
+  financialNote?: string;
+  lateFeePercent?: number;
+  dailyInterestPercent?: number;
+  penaltyEnabled?: boolean;
+  penaltyText?: string;
+  terminationPenaltyType?: TerminationPenaltyType;
+  terminationPenaltyValue?: number;
+  terminationPaymentDays?: number;
+  terminationPaymentRule?: TerminationPaymentRule;
+  automationEnabled?: boolean;
+  welcomeEmailEnabled?: boolean;
+  dueReminderEnabled?: boolean;
+  overdueEmailEnabled?: boolean;
+  overdueEmailAfterDays?: number;
+  extrajudicialEmailEnabled?: boolean;
+  extrajudicialAfterDays?: number | null;
+  birthdayEmailEnabled?: boolean;
+  terminationEmailEnabled?: boolean;
+  terminationSignedAt?: string;
+  terminationPaymentDueAt?: string;
+  terminationPenaltyAmount?: number | null;
+  terminationBalanceSnapshot?: number | null;
+  responsibilities?: string[];
+  projects?: ClientProject[];
+  documents?: string[];
+  history?: AccountHistory[];
+};
+
+type LifecycleState = { type: LifecycleAction; client: ClientRow } | null;
+
+type FormState = {
+  company: string;
+  legalName: string;
+  segment: string;
+  segmentOther: string;
+  contact: string;
+  decisionTitle: string;
+  decisionBirthday: string;
+  email: string;
+  phone: string;
+  whatsapp: string;
+  service: string;
+  hours: string;
+  startDate: string;
+  endDate: string;
+  autoRenew: boolean;
+  addressStreet: string;
+  addressNumber: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  hasBranches: boolean;
+  branchesText: string;
+  contractValue: string;
+  billingFrequency: string;
+  paymentMethod: string;
+  billingDay: string;
+  billingDueRule: string;
+  billingLeadDays: string;
+  notes: string;
+  lateFeePercent: string;
+  dailyInterestPercent: string;
+  penaltyEnabled: boolean;
+  penaltyText: string;
+  contractType: string;
+  contractModel: string;
+  paymentTermDays: string;
+  driveUrl: string;
+  documentNotes: string;
+  documentOwner: string;
+  terminationPenaltyType: TerminationPenaltyType;
+  terminationPenaltyValue: string;
+  terminationPaymentDays: string;
+  terminationPaymentRule: TerminationPaymentRule;
+};
+
+const segments = ['Tecnologia','Serviços','Serviços corporativos','Indústria','Varejo','Saúde','Educação','Logística e transportes','Construção e engenharia','Financeiro','Alimentação e hospitalidade','Outro'];
+const planForService = (service: string) => service === 'CALI Partner' ? 'partner' : service === 'CALI Full' ? 'full' : service === 'CALI Build Essencial' ? 'build_essential' : service === 'CALI Build Completo' ? 'build_complete' : null;
+const services = ['CALI Partner','CALI Full','CALI Build Essencial','CALI Build Completo','Assessoria Estratégica Mensal','Mentoria para RH','Treinamento','Projeto de Estruturação','Solução personalizada'];
+
+const emptyForm: FormState = {
+  company: '', legalName: '', segment: '', segmentOther: '', contact: '', decisionTitle: '', decisionBirthday: '', email: '', phone: '', whatsapp: '', service: '', hours: '',
+  startDate: '', endDate: '', autoRenew: false, addressStreet: '', addressNumber: '', neighborhood: '', city: '', state: 'PR', hasBranches: false, branchesText: '',
+  contractValue: '', billingFrequency: 'monthly', paymentMethod: 'pix', billingDay: '', billingDueRule: 'fixed_day', billingLeadDays: '3', notes: '', lateFeePercent: '', dailyInterestPercent: '',
+  penaltyEnabled: false, penaltyText: '', contractType: '', contractModel: '', paymentTermDays: '', driveUrl: '', documentNotes: '', documentOwner: '', terminationPenaltyType: 'none', terminationPenaltyValue: '', terminationPaymentDays: '', terminationPaymentRule: 'calendar_days',
+};
+
+function monthBounds() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const date = (value: Date) => `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
+  return { start: date(start), next: date(next), startIso: start.toISOString(), nextIso: next.toISOString() };
+}
+
+function formatHours(minutes: number) {
+  const hours = Math.floor(minutes / 60), rest = minutes % 60;
+  return rest ? `${hours}h${String(rest).padStart(2, '0')}` : `${hours}h`;
+}
+function formatCurrency(value?: number | null) { return value == null ? '—' : new Intl.NumberFormat('pt-BR',{ style:'currency',currency:'BRL' }).format(value); }
+function formatDate(value?: string) { if (!value) return '—'; const date = new Date(`${value.slice(0,10)}T12:00:00`); return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('pt-BR').format(date); }
+function statusLabel(status: ClientRow['status']) { return ({ active:'Ativo',paused:'Pausado',blocked:'Bloqueado',closed:'Encerrado',archived:'Arquivado' } as const)[status]; }
+function paymentMethodLabel(value?: string) { return ({pix:'Pix',boleto:'Boleto',transfer:'Transferência',card:'Cartão',other:'Outra'} as Record<string,string>)[value || ''] || value || '—'; }
+function currencyToNumber(value: string) { const clean = value.replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.'); return Number(clean || 0); }
+function contractDuration(start?: string, end?: string) {
+  if (!start || !end) return 'A definir';
+  const a = new Date(`${start}T12:00:00`), b = new Date(`${end}T12:00:00`);
+  const days = Math.max(1, Math.round((b.getTime() - a.getTime()) / 86400000));
+  const months = Math.max(1, Math.round(days / 30.4375));
+  return months === 12 ? '1 ano' : months % 12 === 0 ? `${months / 12} anos` : months === 1 ? '1 mês' : `${months} meses`;
+}
+function dueRuleLabel(client: ClientRow) {
+  if (client.billingDueRule === 'first_business_day') return '1º dia útil do mês';
+  if (client.billingDueRule === 'last_business_day') return 'Último dia útil do mês';
+  if (client.billingDueRule === 'custom') return 'Regra personalizada';
+  return client.billingDay ? `Dia ${client.billingDay}` : 'A definir';
+}
+function estimateContractTotal(client: ClientRow) {
+  const value = Number(client.contractValue || 0);
+  if (!value) return 0;
+  if (!client.startDate || !client.endDate) return value;
+  const start = new Date(`${client.startDate}T12:00:00`), end = new Date(`${client.endDate}T12:00:00`);
+  const months = Math.max(1, Math.round(Math.max(1, (end.getTime() - start.getTime()) / 86400000) / 30.4375));
+  if (client.billingFrequency === 'monthly') return value * months;
+  if (client.billingFrequency === 'quarterly') return value * Math.ceil(months / 3);
+  return value;
+}
+function addDays(dateIso: string, days: number, rule: TerminationPaymentRule) {
+  const date = new Date(`${dateIso}T12:00:00`);
+  let added = 0;
+  while (added < Math.max(0, days)) {
+    date.setDate(date.getDate() + 1);
+    if (rule === 'calendar_days' || (date.getDay() !== 0 && date.getDay() !== 6)) added += 1;
+  }
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+}
+function terminationProjection(client: ClientRow, terminationDate: string) {
+  if (!terminationDate || !client.startDate || !client.endDate) return null;
+  const start = new Date(`${client.startDate}T12:00:00`), end = new Date(`${client.endDate}T12:00:00`), cut = new Date(`${terminationDate}T12:00:00`);
+  const totalDays = Math.max(1, (end.getTime() - start.getTime()) / 86400000);
+  const remainingDays = Math.max(0, Math.min(totalDays, (end.getTime() - cut.getTime()) / 86400000));
+  const contractTotal = estimateContractTotal(client);
+  const remainingBalance = contractTotal * (remainingDays / totalDays);
+  const parameter = Number(client.terminationPenaltyValue || 0);
+  let penalty = 0;
+  if (client.terminationPenaltyType === 'remaining_balance_percent') penalty = remainingBalance * parameter / 100;
+  if (client.terminationPenaltyType === 'contract_total_percent') penalty = contractTotal * parameter / 100;
+  if (client.terminationPenaltyType === 'fixed_amount') penalty = parameter;
+  if (client.terminationPenaltyType === 'monthly_fee_multiple') penalty = Number(client.contractValue || 0) * parameter;
+  const dueDate = addDays(terminationDate, Number(client.terminationPaymentDays || 0), client.terminationPaymentRule || 'calendar_days');
+  return { contractTotal, remainingBalance, penalty, dueDate };
+}
+
+function Tabs<T extends string>({ value, onChange, items, className }: { value:T; onChange:(value:T)=>void; items:Array<{id:T;label:string}>; className:string }) {
+  return <nav className={className} role="tablist">{items.map((item) => <button type="button" role="tab" aria-selected={value===item.id} className={value===item.id?'active':''} key={item.id} onClick={() => onChange(item.id)}>{item.label}</button>)}</nav>;
+}
+
+export function AdminClientsPageV3() {
+
+  const [clients,setClients] = useState<ClientRow[]>([]);
+  const [loading,setLoading] = useState(true);
+  const [statusFilter,setStatusFilter] = useState<'all'|ClientRow['status']>('all');
+  const [query,setQuery] = useState('');
+  const [message,setMessage] = useState('');
+  const [error,setError] = useState('');
+  const [saving,setSaving] = useState(false);
+  const [exportState,setExportState] = useState<{busy:boolean;note:string;failed?:boolean}>({busy:false,note:''});
+  const [elimination,setElimination] = useState<{open:boolean;name:string;busy:boolean;note:string;failed?:boolean}>({open:false,name:'',busy:false,note:''});
+  const [exportRecipient,setExportRecipient] = useState('');
+  const [createOpen,setCreateOpen] = useState(false);
+  const [registrationTab,setRegistrationTab] = useState<RegistrationTab>('data');
+  const [form,setForm] = useState<FormState>(emptyForm);
+  const [extraPeople,setExtraPeople] = useState<ExtraPerson[]>([]);
+  const [logoFile,setLogoFile] = useState<File|null>(null);
+  const [logoPreview,setLogoPreview] = useState('');
+  const [contractFile,setContractFile] = useState<File|null>(null);
+  const [contractDate,setContractDate] = useState('');
+  const [addendumFile,setAddendumFile] = useState<File|null>(null);
+  const [addendumDate,setAddendumDate] = useState('');
+  const [manageOpen,setManageOpen] = useState(false);
+  const [accountTab,setAccountTab] = useState<AccountTab>('data');
+  const [editDraft,setEditDraft] = useState<ClientRow|null>(null);
+  const [editLogoFile,setEditLogoFile] = useState<File|null>(null);
+  const [lifecycle,setLifecycle] = useState<LifecycleState>(null);
+  const [lifecycleReason,setLifecycleReason] = useState('');
+  const [lifecycleDate,setLifecycleDate] = useState(new Date().toISOString().slice(0,10));
+
+  const anyModalOpen = createOpen || manageOpen || Boolean(lifecycle);
+  useEffect(() => {
+    if (!anyModalOpen) return;
+    document.body.classList.add('workspace-modal-open');
+    return () => document.body.classList.remove('workspace-modal-open');
+  },[anyModalOpen]);
+  useEffect(() => () => { if (logoPreview.startsWith('blob:')) URL.revokeObjectURL(logoPreview); },[logoPreview]);
+
+  async function resolveLogo(raw?: string|null, workspaceRaw?: string|null) {
+    return await resolveWorkspaceMedia(raw || workspaceRaw) || await resolveWorkspaceMedia(workspaceRaw);
+  }
+
+  async function loadClients() {
+    if (!supabase) return;
+    setLoading(true); setError('');
+    const { start,next } = monthBounds();
+    const [companiesResult,invitesResult,profilesResult,hoursResult,npsResult,projectsResult,documentsResult,historyResult] = await Promise.all([
+      supabase.from('companies').select('id,display_name,legal_name,logo_url,logo_workspace_url,status,created_at,closed_at,data_eliminated_at,monthly_hours_contracted,decision_maker_title,service_type,service_plan,segment,drive_folder_url,start_date,end_date,auto_renew,address_street,address_number,address_neighborhood,address_city,address_state,has_branches,branches,contract_value,billing_frequency,payment_method,billing_status,billing_day,billing_due_rule,billing_lead_days,payment_notes,late_fee_percent,daily_interest_percent,contract_penalty_enabled,contract_penalty_text,termination_penalty_type,termination_penalty_value,termination_payment_days,termination_payment_rule,automation_enabled,welcome_email_enabled,due_reminder_enabled,overdue_email_enabled,overdue_email_after_days,extrajudicial_email_enabled,extrajudicial_after_days,birthday_email_enabled,termination_email_enabled,termination_signed_at,termination_payment_due_at,termination_penalty_amount,termination_balance_snapshot,contract_type,contract_model,payment_term_days,document_notes,document_owner').order('created_at',{ascending:false}),
+      supabase.from('client_invites').select('*'),
+      supabase.from('profiles').select('id,company_id,email,full_name,job_title,phone,whatsapp,is_primary,active,role').eq('role','client'),
+      supabase.from('hour_entries').select('company_id,minutes').gte('work_date',start).lt('work_date',next),
+      supabase.from('nps_responses').select('company_id,score'),
+      supabase.from('projects').select('company_id,name,status').order('updated_at',{ascending:false}),
+      supabase.from('account_documents').select('company_id,title,document_date,document_type').order('created_at',{ascending:false}),
+      supabase.from('activity_log').select('company_id,event_type,metadata,created_at').order('created_at',{ascending:false}).limit(120),
+    ]);
+    if (companiesResult.error) { setError(`Não consegui carregar a carteira: ${companiesResult.error.message}`); setLoading(false); return; }
+    const companies:any[] = companiesResult.data || [], invites:any[] = invitesResult.data || [], profiles:any[] = profilesResult.data || [], hourRows:any[] = hoursResult.data || [], npsRows:any[] = npsResult.data || [], projectRows:any[] = projectsResult.data || [], documentRows:any[] = documentsResult.data || [], historyRows:any[] = historyResult.data || [];
+    const rows:ClientRow[] = companies.map((item:any) => {
+      const invite = invites.find((entry:any) => entry.company_id === item.id && entry.is_primary);
+      const extras:ExtraPerson[] = invites.filter((entry:any) => entry.company_id === item.id && !entry.is_primary).map((entry:any) => ({id:entry.id,name:entry.full_name||'',job:entry.job_title||'',email:entry.email||'',phone:entry.phone||entry.whatsapp||'',access:Boolean(entry.active)&&entry.platform_access!==false,role:roleFromDb(entry.access_role)}));
+      const profile = profiles.find((entry:any) => entry.company_id === item.id && entry.is_primary && invite && String(entry.email).trim().toLowerCase()===String(invite.email).trim().toLowerCase());
+      const consumed = hourRows.filter((entry:any) => entry.company_id===item.id).reduce((total:number,entry:any)=>total+Number(entry.minutes||0),0);
+      const contracted = Number(item.monthly_hours_contracted || 0), scores = npsRows.filter((entry:any)=>entry.company_id===item.id).map((entry:any)=>Number(entry.score));
+      const avg = scores.length ? scores.reduce((a:number,b:number)=>a+b,0)/scores.length : null;
+      return {
+        contractType:item.contract_type||'',contractModel:item.contract_model||'',paymentTermDays:item.payment_term_days==null?null:Number(item.payment_term_days),driveUrl:item.drive_folder_url||'',documentNotes:item.document_notes||'',documentOwner:item.document_owner||'',extraAccesses:extras,
+        id:item.id,name:item.display_name,legalName:item.legal_name||'',logoUrl:item.logo_url||'',status:(item.status||'active') as ClientRow['status'],createdAt:item.created_at,closedAt:item.closed_at||'',dataEliminatedAt:item.data_eliminated_at||'',contact:profile?.full_name||invite?.full_name||'Contato principal não definido',email:invite?.email||'—',decisionTitle:profile?.job_title||invite?.job_title||item.decision_maker_title||'',decisionBirthday:invite?.birthday||'',phone:profile?.phone||invite?.phone||'',whatsapp:profile?.whatsapp||invite?.whatsapp||'',service:item.service_plan==='partner'?'CALI Partner':item.service_plan==='full'?'CALI Full':item.service_plan==='build_essential'?'CALI Build Essencial':item.service_plan==='build_complete'?'CALI Build Completo':item.service_type||'Serviço a definir',segment:item.segment||'',contractedHours:contracted,hours:`${formatHours(consumed)} / ${contracted?`${contracted}h`:'—'}`,usage:contracted>0?Math.min(100,Math.round(consumed/(contracted*60)*100)):0,nps:avg===null?'—':avg.toFixed(1).replace('.',','),access:profile?.active?'Ativo':invite?'Convite preparado':'Sem acesso',drive:item.drive_folder_url?'Conectado':'Não conectado',startDate:item.start_date||'',endDate:item.end_date||'',autoRenew:Boolean(item.auto_renew),addressStreet:item.address_street||'',addressNumber:item.address_number||'',neighborhood:item.address_neighborhood||'',city:item.address_city||'',state:item.address_state||'',hasBranches:Boolean(item.has_branches),branches:Array.isArray(item.branches)?item.branches.map(String):[],contractValue:item.contract_value==null?null:Number(item.contract_value),billingFrequency:item.billing_frequency||'monthly',paymentMethod:item.payment_method||'pix',billingStatus:item.billing_status==='overdue'?'Em atraso':item.billing_status==='pending'?'Pendente':item.billing_status==='current'?'Em dia':'A acompanhar',billingDay:item.billing_day==null?null:Number(item.billing_day),billingDueRule:item.billing_due_rule||'fixed_day',billingLeadDays:Number(item.billing_lead_days??3),financialNote:item.payment_notes||'',lateFeePercent:Number(item.late_fee_percent||0),dailyInterestPercent:Number(item.daily_interest_percent||0),penaltyEnabled:Boolean(item.contract_penalty_enabled),penaltyText:item.contract_penalty_text||'',terminationPenaltyType:(item.termination_penalty_type||'none') as TerminationPenaltyType,terminationPenaltyValue:Number(item.termination_penalty_value||0),terminationPaymentDays:Number(item.termination_payment_days||0),terminationPaymentRule:(item.termination_payment_rule||'calendar_days') as TerminationPaymentRule,automationEnabled:Boolean(item.automation_enabled),welcomeEmailEnabled:Boolean(item.welcome_email_enabled),dueReminderEnabled:Boolean(item.due_reminder_enabled),overdueEmailEnabled:Boolean(item.overdue_email_enabled),overdueEmailAfterDays:Number(item.overdue_email_after_days??1),extrajudicialEmailEnabled:Boolean(item.extrajudicial_email_enabled),extrajudicialAfterDays:item.extrajudicial_after_days==null?null:Number(item.extrajudicial_after_days),birthdayEmailEnabled:Boolean(item.birthday_email_enabled),terminationEmailEnabled:Boolean(item.termination_email_enabled),terminationSignedAt:item.termination_signed_at||'',terminationPaymentDueAt:item.termination_payment_due_at||'',terminationPenaltyAmount:item.termination_penalty_amount==null?null:Number(item.termination_penalty_amount),terminationBalanceSnapshot:item.termination_balance_snapshot==null?null:Number(item.termination_balance_snapshot),responsibilities:[],projects:projectRows.filter((entry:any)=>entry.company_id===item.id).slice(0,6).map((entry:any)=>({name:entry.name,status:String(entry.status).replaceAll('_',' ')})),documents:documentRows.filter((entry:any)=>entry.company_id===item.id).map((entry:any)=>`${entry.title}${entry.document_date?` · ${formatDate(entry.document_date)}`:''}`),history:historyRows.filter((entry:any)=>entry.company_id===item.id).slice(0,8).map((entry:any)=>({title:String(entry.event_type).replaceAll('_',' '),detail:typeof entry.metadata==='object'?JSON.stringify(entry.metadata):'',date:new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short'}).format(new Date(entry.created_at))})),
+      };
+    });
+    const logoRows=await Promise.all(rows.map(async (row) => { const company=companies.find((item:any) => item.id === row.id); return [row.id, await resolveLogo(company?.logo_url, company?.logo_workspace_url)] as const; }));
+    const logoMap=new Map(logoRows);
+    const readyRows=rows.map((row)=>({...row,logoUrl:logoMap.get(row.id)||''}));
+    setClients(readyRows);
+    setLoading(false);
+  }
+  useEffect(()=>{ void loadClients(); },[]);
+
+  function patchForm(patch:Partial<FormState>) { setForm((current)=>({...current,...patch})); }
+  function patchDraft(patch:Partial<ClientRow>) { setEditDraft((current)=>current?{...current,...patch}:current); }
+  function openClient(client:ClientRow,tab:AccountTab='data') { setEditDraft({...client,branches:[...(client.branches||[])],projects:[...(client.projects||[])],documents:[...(client.documents||[])],history:[...(client.history||[])]}); setEditLogoFile(null); setExportState({busy:false,note:''}); setExportRecipient(''); setAccountTab(tab); setManageOpen(true); }
+  function requestLifecycle(client:ClientRow,type:LifecycleAction) { setLifecycle({client,type}); setLifecycleReason(''); setLifecycleDate(new Date().toISOString().slice(0,10)); }
+
+  async function uploadLogo(companyId:string,file:File) {
+    if (!supabase) return '';
+    const prepared=await optimizeImageForUpload(file,'company-logo');
+    const path=`${companyId}/brand/logo-${Date.now()}.${prepared.extension}`;
+    const {error}=await supabase.storage.from('cali-workspace-private').upload(path,prepared.blob,{cacheControl:'31536000',contentType:prepared.contentType,upsert:false}); if(error) throw error; return `private:${path}`;
+  }
+  async function uploadDocument(companyId:string,file:File,type:'contract'|'addendum',documentDate:string) {
+    if (!supabase) return;
+    const safe=file.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-');
+    const prepared=file.type.startsWith('image/')?await optimizeImageForUpload(file,'attachment'):{blob:file,contentType:file.type||'application/octet-stream',extension:file.name.split('.').pop()?.toLowerCase()||'bin'};
+    const path=`${companyId}/account/${type}-${Date.now()}-${safe.replace(/\.[^.]+$/,'')}.${prepared.extension}`;
+    const {error:uploadError}=await supabase.storage.from('cali-workspace-private').upload(path,prepared.blob,{cacheControl:file.type.startsWith('image/')?'31536000':'3600',contentType:prepared.contentType,upsert:false}); if(uploadError) throw uploadError;
+    const {data:sessionData}=await supabase.auth.getSession(); const {error}=await supabase.from('account_documents').insert({company_id:companyId,document_type:type,title:type==='contract'?'Contrato assinado':'Aditivo contratual',document_date:documentDate||null,storage_path:path,client_visible:true,created_by:sessionData.session?.user.id??null}); if(error) throw error;
+  }
+
+  // Decisores e acessos adicionais ficam em client_invites (is_primary = false).
+  // ATENÇÃO: a função de login (workspace-access) cria o acesso de qualquer convite com active = true assim que a pessoa
+  // pede o código. Por isso "Liberar acesso à plataforma" grava active; sem a marcação a pessoa fica só registrada.
+  // O banco limita a 4 convites ativos por empresa. Ao tirar o acesso ou remover a pessoa, o perfil dela é desativado.
+  async function saveExtraAccesses(companyId:string,people:ExtraPerson[],previous:ExtraPerson[]) {
+    if(!supabase)return;
+    const valid=people.filter((person)=>person.name.trim()&&person.email.trim());
+    const revoke=async(email:string)=>{const {error}=await supabase!.from('profiles').update({active:false}).eq('company_id',companyId).eq('role','client').eq('is_primary',false).eq('email',email.trim().toLowerCase());if(error)throw error;};
+    for(const old of previous.filter((item)=>item.id&&!valid.some((person)=>person.id===item.id))){
+      const {error}=await supabase.from('client_invites').delete().eq('id',old.id!).eq('is_primary',false);if(error)throw error;
+      await revoke(old.email);
+    }
+    for(const person of valid){
+      const row={company_id:companyId,full_name:person.name.trim(),email:person.email.trim().toLowerCase(),job_title:person.job.trim()||null,phone:person.phone.trim()||null,access_role:roleToDb(person.role),platform_access:person.access,is_primary:false,active:person.access};
+      const {error}=person.id?await supabase.from('client_invites').update(row).eq('id',person.id):await supabase.from('client_invites').upsert(row,{onConflict:'company_id,email'});
+      if(error)throw error;
+      const before=previous.find((item)=>item.id===person.id);
+      if(!person.access)await revoke(person.email);
+      if(before&&before.email.trim().toLowerCase()!==row.email)await revoke(before.email);
+    }
+  }
+
+  async function createClient(event:FormEvent) {
+    event.preventDefault(); setError(''); setMessage('');
+    if(!form.company.trim()){setRegistrationTab('data');setError('Informe o nome da empresa.');return;}
+    if(!form.contact.trim()||!form.email.trim()){setRegistrationTab('access');setError('Informe o nome e o e-mail de acesso do decisor principal.');return;}
+    const contracted=Number(form.hours.replace(',','.')||0),value=currencyToNumber(form.contractValue),segment=form.segment==='Outro'?form.segmentOther.trim():form.segment,branches=form.hasBranches?form.branchesText.split('\n').map((v)=>v.trim()).filter(Boolean):[];
+    const newFields={ decisionBirthday:form.decisionBirthday,lateFeePercent:Number(form.lateFeePercent||0),dailyInterestPercent:Number(form.dailyInterestPercent||0),terminationPenaltyType:form.terminationPenaltyType,terminationPenaltyValue:Number(form.terminationPenaltyValue||0),terminationPaymentDays:Number(form.terminationPaymentDays||0),terminationPaymentRule:form.terminationPaymentRule };
+    if(!supabase)return;
+
+
+
+    setSaving(true);
+    try{
+      const {data:companyId,error:createError}=await supabase.rpc('create_client_account',{p_company:form.company.trim(),p_contact:form.contact.trim(),p_email:form.email.trim().toLowerCase(),p_hours:contracted>0?contracted:null,p_service_type:form.service||null}); if(createError) throw createError;
+      const id=String(companyId),logo=logoFile?await uploadLogo(id,logoFile):null;
+      const {error:updateError}=await supabase.from('companies').update({legal_name:form.legalName.trim()||form.company.trim(),logo_url:logo,...(planForService(form.service)?{service_plan:planForService(form.service),...(form.service==='CALI Partner'||form.service==='CALI Full'?{meeting_sessions_included_per_month:form.service==='CALI Partner'?1:2,meeting_cadence_days:form.service==='CALI Partner'?30:14,onsite_visits_included_per_month:form.service==='CALI Partner'?0:1,fixed_meeting_required:true,meeting_mode_policy:form.service==='CALI Partner'?'online_only':'mixed_one_onsite'}:{})}:{}),segment:segment||null,decision_maker_title:form.decisionTitle||null,start_date:form.startDate||null,end_date:form.endDate||null,auto_renew:form.autoRenew,address_street:form.addressStreet||null,address_number:form.addressNumber||null,address_neighborhood:form.neighborhood||null,address_city:form.city||null,address_state:form.state||null,has_branches:form.hasBranches,branches,contract_value:value>0?value:null,billing_frequency:form.billingFrequency,payment_method:form.paymentMethod,billing_day:form.billingDay?Number(form.billingDay):null,billing_due_rule:form.billingDueRule,billing_lead_days:Number(form.billingLeadDays||3),payment_notes:form.notes||null,late_fee_percent:newFields.lateFeePercent,daily_interest_percent:newFields.dailyInterestPercent,contract_penalty_enabled:form.penaltyEnabled,contract_penalty_text:form.penaltyText||null,contract_type:form.contractType||null,contract_model:form.contractModel||null,payment_term_days:form.paymentTermDays?Number(form.paymentTermDays):null,drive_folder_url:form.driveUrl.trim()||null,document_notes:form.documentNotes.trim()||null,document_owner:form.documentOwner.trim()||null,termination_penalty_type:newFields.terminationPenaltyType,termination_penalty_value:newFields.terminationPenaltyValue,termination_payment_days:newFields.terminationPaymentDays,termination_payment_rule:newFields.terminationPaymentRule,status:'active'}).eq('id',id); if(updateError) throw updateError;
+      const {error:inviteError}=await supabase.from('client_invites').update({job_title:form.decisionTitle||null,phone:form.phone||null,whatsapp:form.whatsapp||null,birthday:form.decisionBirthday||null}).eq('company_id',id).eq('is_primary',true); if(inviteError) throw inviteError;
+      await saveExtraAccesses(id,extraPeople,[]);
+      if(contractFile) await uploadDocument(id,contractFile,'contract',contractDate); if(addendumFile) await uploadDocument(id,addendumFile,'addendum',addendumDate);
+      setCreateOpen(false); setForm(emptyForm); setLogoFile(null); setLogoPreview(''); setContractFile(null); setAddendumFile(null); setMessage(`${form.company.trim()} foi cadastrado.`); await loadClients();
+    }catch(err){/* O erro do banco não é um Error do JavaScript: sem isto a tela escondia o motivo real. */const reason=err instanceof Error?err.message:String((err as any)?.message||'');setError(reason?`Não foi possível cadastrar o cliente: ${reason}`:'Não foi possível cadastrar o cliente.');}finally{setSaving(false);}
+  }
+
+  async function saveClient() {
+    if(!editDraft)return; setSaving(true); setError('');
+    try{
+      let logoValue=editDraft.logoUrl;
+
+      if(editLogoFile&&supabase)logoValue=await uploadLogo(editDraft.id,editLogoFile);
+      const next={...editDraft,logoUrl:logoValue};
+      const previousService=clients.find(client=>client.id===next.id)?.service;
+      const selectedPlan=planForService(next.service);
+      const changedPlan=selectedPlan&&previousService!==next.service;
+      if(!supabase)return;
+      const {error:companyError}=await supabase.from('companies').update({display_name:next.name,legal_name:next.legalName?.trim()||next.name,logo_url:logoValue?.startsWith('blob:')?null:logoValue,segment:next.segment||null,service_type:next.service||null,...(selectedPlan?{service_plan:selectedPlan,...(changedPlan && (selectedPlan==='partner'||selectedPlan==='full')?{meeting_sessions_included_per_month:selectedPlan==='partner'?1:2,meeting_cadence_days:selectedPlan==='partner'?30:14,onsite_visits_included_per_month:selectedPlan==='partner'?0:1,fixed_meeting_required:true,meeting_mode_policy:selectedPlan==='partner'?'online_only':'mixed_one_onsite'}:{})}:{}),monthly_hours_contracted:next.contractedHours||null,start_date:next.startDate||null,end_date:next.endDate||null,auto_renew:Boolean(next.autoRenew),address_street:next.addressStreet||null,address_number:next.addressNumber||null,address_neighborhood:next.neighborhood||null,address_city:next.city||null,address_state:next.state||null,has_branches:Boolean(next.hasBranches),branches:next.hasBranches?(next.branches||[]):[],contract_value:next.contractValue||null,billing_frequency:next.billingFrequency||null,payment_method:next.paymentMethod||null,billing_day:next.billingDay||null,billing_due_rule:next.billingDueRule||'fixed_day',billing_lead_days:next.billingLeadDays??3,payment_notes:next.financialNote||null,late_fee_percent:next.lateFeePercent||0,daily_interest_percent:next.dailyInterestPercent||0,contract_penalty_enabled:Boolean(next.penaltyEnabled),contract_penalty_text:next.penaltyText||null,contract_type:next.contractType||null,contract_model:next.contractModel||null,payment_term_days:next.paymentTermDays??null,drive_folder_url:next.driveUrl?.trim()||null,document_notes:next.documentNotes?.trim()||null,document_owner:next.documentOwner?.trim()||null,termination_penalty_type:next.terminationPenaltyType||'none',termination_penalty_value:next.terminationPenaltyValue||0,termination_payment_days:next.terminationPaymentDays||0,termination_payment_rule:next.terminationPaymentRule||'calendar_days',automation_enabled:Boolean(next.automationEnabled),welcome_email_enabled:Boolean(next.welcomeEmailEnabled),due_reminder_enabled:Boolean(next.dueReminderEnabled),overdue_email_enabled:Boolean(next.overdueEmailEnabled),overdue_email_after_days:next.overdueEmailAfterDays??1,extrajudicial_email_enabled:Boolean(next.extrajudicialEmailEnabled),extrajudicial_after_days:next.extrajudicialAfterDays??null,birthday_email_enabled:Boolean(next.birthdayEmailEnabled),termination_email_enabled:Boolean(next.terminationEmailEnabled)}).eq('id',next.id); if(companyError) throw companyError;
+      const {error:inviteError}=await supabase.rpc('update_primary_client_contact_v65',{p_company_id:next.id,p_full_name:next.contact,p_email:next.email,p_job_title:next.decisionTitle||null,p_phone:next.phone||null,p_whatsapp:next.whatsapp||null,p_birthday:next.decisionBirthday||null}); if(inviteError) throw inviteError;
+      await saveExtraAccesses(next.id,next.extraAccesses||[],clients.find(client=>client.id===next.id)?.extraAccesses||[]);
+      setManageOpen(false);setMessage(`Alterações de ${next.name} salvas.`);await loadClients();
+    }catch(err){setError(err instanceof Error?err.message:String((err as any)?.message||'Não foi possível salvar as alterações.'));}finally{setSaving(false);}
+  }
+
+  async function runCompanyExport(client:ClientRow){
+    if(exportState.busy)return; if(exportRecipient.trim().length<3){setExportState({busy:false,failed:true,note:'Informe para quem os dados serão entregues (nome e cargo do representante autorizado).'});return;} setExportState({busy:true,note:''});
+    try{const done=await exportCompanyData(client.id,client.name,exportRecipient.trim());setExportState({busy:false,note:`Dois arquivos baixados: os dados e o índice com ${done.documents} documento(s). Os links dos documentos valem até ${done.until}.`});}
+    catch(err){setExportState({busy:false,failed:true,note:err instanceof Error?err.message:'Não foi possível gerar a exportação.'});}
+  }
+
+  async function runElimination(client:ClientRow){
+    if(elimination.busy)return; setElimination((current)=>({...current,busy:true,note:'',failed:false}));
+    try{const done=await eliminateCompanyData(client.id,elimination.name.trim());setElimination({open:false,name:'',busy:false,note:`Dados eliminados: ${done.rows} registro(s), ${done.files} arquivo(s) e ${done.people} pessoa(s) anonimizada(s).`});setEditDraft((current)=>current&&current.id===client.id?{...current,dataEliminatedAt:new Date().toISOString()}:current);await loadClients();}
+    catch(err){setElimination((current)=>({...current,busy:false,failed:true,note:err instanceof Error?err.message:'Não foi possível eliminar os dados.'}));}
+  }
+
+  async function applyLifecycle() {
+    if(!lifecycle)return; if(lifecycle.type!=='reactivate'&&!lifecycleReason.trim())return;
+    const nextStatus:ClientRow['status']=lifecycle.type==='pause'?'paused':lifecycle.type==='block'?'blocked':lifecycle.type==='archive'?'archived':lifecycle.type==='close'?'closed':'active';
+    const projection=lifecycle.type==='close'?terminationProjection(lifecycle.client,lifecycleDate):null;
+    if(!supabase)return;
+    setSaving(true);
+    try{
+      const now=new Date().toISOString(),patch:Record<string,unknown>={status:nextStatus};
+      if(lifecycle.type==='pause')Object.assign(patch,{paused_at:now,paused_reason:lifecycleReason});
+      if(lifecycle.type==='archive')Object.assign(patch,{archived_at:now});
+      if(lifecycle.type==='block')Object.assign(patch,{blocked_at:now,blocked_reason:lifecycleReason});
+      if(lifecycle.type==='reactivate')Object.assign(patch,{paused_at:null,paused_reason:null,blocked_at:null,blocked_reason:null});
+      if(lifecycle.type==='close')Object.assign(patch,{closed_at:now,closed_reason:lifecycleReason,termination_signed_at:lifecycleDate,termination_payment_due_at:projection?.dueDate||null,termination_penalty_amount:projection?.penalty||0,termination_balance_snapshot:projection?.remainingBalance||0});
+      const {error:statusError}=await supabase.from('companies').update(patch).eq('id',lifecycle.client.id);if(statusError)throw statusError;
+      await supabase.from('profiles').update({active:nextStatus==='active'||nextStatus==='paused'}).eq('company_id',lifecycle.client.id).eq('role','client');
+      await supabase.from('activity_log').insert({company_id:lifecycle.client.id,event_type:`account_${lifecycle.type}`,entity_type:'company',entity_id:lifecycle.client.id,metadata:{reason:lifecycleReason||null,termination_date:lifecycle.type==='close'?lifecycleDate:null,penalty:projection?.penalty||null,due_date:projection?.dueDate||null}});
+      if(lifecycle.type==='close'&&lifecycle.client.automationEnabled&&lifecycle.client.terminationEmailEnabled){await supabase.from('communication_outbox').insert({company_id:lifecycle.client.id,template_key:'termination',recipient_email:lifecycle.client.email,recipient_name:lifecycle.client.contact,subject:`CALI RH · encerramento contratual · ${lifecycle.client.name}`,status:'pending',scheduled_for:now,metadata:{termination_date:lifecycleDate,penalty:projection?.penalty||0,due_date:projection?.dueDate||null}});}
+      setLifecycle(null);setMessage(`Status de ${lifecycle.client.name} atualizado.`);await loadClients();
+    }catch(err){setError(err instanceof Error?err.message:String((err as any)?.message||'Não foi possível atualizar a conta.'));}finally{setSaving(false);}
+  }
+
+  const registrationItems:Array<{id:RegistrationTab;label:string}>=[{id:'data',label:'Dados cadastrais'},{id:'access',label:'Decisores e acessos'},{id:'contract',label:'Contrato'},{id:'financial',label:'Financeiro'},{id:'documents',label:'Documentos'}];
+  const accountItems:Array<{id:AccountTab;label:string}>=[{id:'data',label:'Dados cadastrais'},{id:'contract',label:'Contrato'},{id:'fronts',label:'Frentes'},{id:'agenda',label:'Agenda do contrato'},{id:'financial',label:'Financeiro'},{id:'operation',label:'Operação'},{id:'communications',label:'Comunicações'},{id:'history',label:'Histórico'}];
+  const regIndex=registrationItems.findIndex((item)=>item.id===registrationTab);
+  const closeProjection=lifecycle?.type==='close'?terminationProjection(lifecycle.client,lifecycleDate):null;
+
+  const wanted=query.trim().toLocaleLowerCase('pt-BR');
+  const visibleClients=clients.filter((client)=>(statusFilter==='all'||client.status===statusFilter)&&(!wanted||[client.name,client.legalName,client.contact,client.email].some((value)=>String(value||'').toLocaleLowerCase('pt-BR').includes(wanted))));
+  const initials=(name:string)=>name.split(/\s+/).filter(Boolean).map((word)=>word[0]).join('').slice(0,2).toUpperCase()||'C';
+
+  return <Shell role="admin">
+    <div className="ap-app v2-admin-page"><div className="ap-content">
+      <div className="ap-title"><div><small>BACKOFFICE / CALI RH</small><h1>Contas e clientes<span>.</span></h1><p>Acompanhamento das empresas, contratos e prioridades por conta.</p></div><div className="ap-title-actions"><button className="ap-primary" onClick={()=>{setForm(emptyForm);setExtraPeople([]);setError('');setRegistrationTab('data');setCreateOpen(true);}}><Plus size={15}/> Nova conta</button></div></div>
+
+      <section className="ap-pane ap-accounts-v2">
+        <div className="ap-pane-head"><h2>Contas e clientes</h2><div className="ap-accounts-filters"><select aria-label="Filtrar situação" value={statusFilter} onChange={(e)=>setStatusFilter(e.target.value as typeof statusFilter)}><option value="all">Todos os status</option><option value="active">Ativo</option><option value="paused">Pausado</option><option value="blocked">Bloqueado</option><option value="archived">Arquivado</option><option value="closed">Encerrado</option></select><div className="ap-search"><Search size={14}/><input placeholder="Buscar empresa" value={query} onChange={(e)=>setQuery(e.target.value)}/></div></div></div>
+        <div className="ap-client-data" aria-busy={loading}>
+          <div className="ap-client-data-head"><span>Cliente / contrato</span><span>Decisor e acesso</span><span>Horas do ciclo</span><span>NPS</span><span>Situação / Drive</span><span>Ações</span></div>
+          {visibleClients.map((client)=><div className="ap-client-data-row" key={client.id} role="button" tabIndex={0} onClick={()=>openClient(client)} onKeyDown={(e)=>{if(e.target===e.currentTarget&&(e.key==='Enter'||e.key===' '))openClient(client);}}>
+            <div className="ap-client-info"><span className="ap-client-image">{client.logoUrl?<img src={client.logoUrl} alt={`Logo ${client.name}`}/>:initials(client.name)}</span><span><strong>{client.name}</strong><small>{client.service}</small></span></div>
+            <div className="ap-client-contact"><strong>{client.contact}</strong><small>{[client.decisionTitle,'decisor principal'].filter(Boolean).join(' · ')}</small><small>{1+(client.extraAccesses||[]).filter((person)=>person.access).length} acesso(s) habilitado(s) · principal: {client.access.toLowerCase()}</small></div>
+            <div className="ap-client-usage"><strong>{client.hours}</strong><span><i style={{width:`${client.usage}%`}}/></span></div>
+            <div className="ap-client-nps">{client.nps}</div>
+            <div className="ap-client-state"><span className={`ap-state-pill ${client.status}`}>{statusLabel(client.status)}</span><small>Drive {client.drive.toLowerCase()}</small></div>
+            <div className="ap-client-ops" onClick={(e)=>e.stopPropagation()}><button title="Editar cadastro" aria-label={`Editar ${client.name}`} onClick={()=>openClient(client,'data')}><BriefcaseBusiness size={15}/></button>{client.status==='paused'?<button title="Reativar" onClick={()=>requestLifecycle(client,'reactivate')}><RotateCcw size={15}/></button>:<button title="Pausar temporariamente" onClick={()=>requestLifecycle(client,'pause')}><Clock3 size={15}/></button>}{client.status==='blocked'?<button title="Desbloquear" onClick={()=>requestLifecycle(client,'reactivate')}><RotateCcw size={15}/></button>:<button title="Bloquear acesso" onClick={()=>requestLifecycle(client,'block')}><AlertCircle size={15}/></button>}<button title="Arquivar" onClick={()=>requestLifecycle(client,'archive')}><Archive size={15}/></button><button title="Encerrar contrato" onClick={()=>requestLifecycle(client,'close')}><X size={15}/></button></div>
+          </div>)}
+          {loading&&<div className="ap-accounts-empty data-loading"><Loader2 className="spin" size={15}/> Carregando carteira…</div>}
+          {!loading&&!visibleClients.length&&<div className="ap-accounts-empty">{clients.length?'Nenhuma conta corresponde ao filtro selecionado.':'Nenhuma conta cadastrada.'}</div>}
+        </div>
+      </section>
+      {message&&<p className="v2-admin-notice ok"><CheckCircle2 size={15}/> {message}</p>}{error&&<p className="v2-admin-notice">{error}</p>}
+
+    {createOpen&&<div className="ap-registration-overlay" role="presentation"><form className="ap-registration-modal" role="dialog" aria-modal="true" aria-label="Cadastrar cliente" onSubmit={createClient}><header><div><small>NOVA CONTA</small><h2>Cadastrar cliente</h2><p>Ficha da empresa, contrato, cobrança, acesso e documentos.</p></div><button type="button" aria-label="Fechar cadastro" onClick={()=>setCreateOpen(false)}><X size={19}/></button></header><Tabs className="ap-registration-tabs" value={registrationTab} onChange={setRegistrationTab} items={registrationItems}/><div className="ap-registration-content">
+      {registrationTab==='data'&&<><div className="ap-registration-hint">Dados de identificação, serviço e endereço</div><div className="ap-registration-fields">
+        <label><span>Empresa</span><input placeholder="Nome fantasia" value={form.company} onChange={(e)=>patchForm({company:e.target.value})} required/></label>
+        <label><span>Razão social</span><input placeholder="Como consta no contrato" value={form.legalName} onChange={(e)=>patchForm({legalName:e.target.value})}/></label>
+        <label><span>Segmento</span><select value={form.segment} onChange={(e)=>patchForm({segment:e.target.value})}><option value="">Selecionar</option>{segments.map((item)=><option key={item}>{item}</option>)}</select></label>
+        <label><span>Serviço</span><select value={form.service} onChange={(e)=>patchForm({service:e.target.value})}><option value="">Selecionar</option>{services.map((item)=><option key={item}>{item}</option>)}</select></label>
+        {form.segment==='Outro'&&<label className="wide"><span>Qual segmento?</span><input value={form.segmentOther} onChange={(e)=>patchForm({segmentOther:e.target.value})}/></label>}
+        <label><span>Horas contratadas</span><input inputMode="decimal" placeholder="15" value={form.hours} onChange={(e)=>patchForm({hours:e.target.value.replace(/[^0-9.,]/g,'')})}/></label>
+        <label><span>Cidade</span><input placeholder="Curitiba" value={form.city} onChange={(e)=>patchForm({city:e.target.value})}/></label>
+        <label><span>Estado</span><input maxLength={2} placeholder="PR" value={form.state} onChange={(e)=>patchForm({state:e.target.value.toUpperCase().slice(0,2)})}/></label>
+        <label><span>Endereço</span><input placeholder="Rua e complemento" value={form.addressStreet} onChange={(e)=>patchForm({addressStreet:e.target.value})}/></label>
+        <label><span>Número</span><input placeholder="Número" value={form.addressNumber} onChange={(e)=>patchForm({addressNumber:e.target.value})}/></label>
+        <label><span>Bairro</span><input placeholder="Bairro" value={form.neighborhood} onChange={(e)=>patchForm({neighborhood:e.target.value})}/></label>
+        <label><span>Possui filiais</span><select value={form.hasBranches?'sim':'nao'} onChange={(e)=>patchForm({hasBranches:e.target.value==='sim'})}><option value="nao">Não</option><option value="sim">Sim</option></select></label>
+        <label><span>Logo da empresa</span><span className="v2-admin-file">{logoPreview&&<img src={logoPreview} alt="Prévia da logo"/>}<input type="file" accept="image/*,.svg" onChange={(e)=>{const file=e.target.files?.[0]||null;setLogoFile(file);setLogoPreview(file?URL.createObjectURL(file):'');}}/></span></label>
+        {form.hasBranches&&<label className="wide"><span>Filiais</span><textarea rows={2} placeholder="Uma localidade por linha" value={form.branchesText} onChange={(e)=>patchForm({branchesText:e.target.value})}/></label>}
+      </div></>}
+      {registrationTab==='access'&&<><div className="ap-registration-hint">Responsáveis pela tomada de decisão e acessos autorizados</div><div className="ap-decision-list">
+        <section className="ap-decision-person"><header><strong>Decisor principal</strong></header><div className="ap-registration-fields">
+          <label><span>Nome completo</span><input value={form.contact} onChange={(e)=>patchForm({contact:e.target.value})} required/></label>
+          <label><span>Cargo</span><input value={form.decisionTitle} onChange={(e)=>patchForm({decisionTitle:e.target.value})}/></label>
+          <label><span>E-mail de acesso</span><input type="email" value={form.email} onChange={(e)=>patchForm({email:e.target.value})} required/></label>
+          <label><span>Telefone</span><input value={form.phone} onChange={(e)=>patchForm({phone:e.target.value})}/></label>
+          <label><span>WhatsApp</span><input value={form.whatsapp} onChange={(e)=>patchForm({whatsapp:e.target.value})}/></label>
+          <label><span>Aniversário</span><input type="date" value={form.decisionBirthday} onChange={(e)=>patchForm({decisionBirthday:e.target.value})}/></label>
+          <label><span>Permissão</span><select value="Principal" disabled><option>Principal</option></select></label>
+          <label className="ap-decision-check"><input type="checkbox" checked disabled readOnly/>Liberar acesso à plataforma</label>
+        </div></section>
+        {extraPeople.map((person,index)=><section key={index} className="ap-decision-person"><header><strong>Decisor / acesso adicional {index+1}</strong><button type="button" onClick={()=>setExtraPeople((list)=>list.filter((_,n)=>n!==index))}>Remover</button></header><div className="ap-registration-fields">
+          {([['name','Nome completo'],['job','Cargo'],['email','E-mail'],['phone','Telefone / WhatsApp']] as const).map(([key,label])=><label key={key}><span>{label}</span><input type={key==='email'?'email':'text'} value={person[key]} onChange={(e)=>setExtraPeople((list)=>list.map((item,n)=>n===index?{...item,[key]:e.target.value}:item))}/></label>)}
+          <label><span>Permissão</span><select value={person.role} onChange={(e)=>setExtraPeople((list)=>list.map((item,n)=>n===index?{...item,role:e.target.value}:item))}><option>Decisor adicional</option><option>Acesso adicional</option></select></label>
+          <label className="ap-decision-check"><input type="checkbox" checked={person.access} onChange={(e)=>setExtraPeople((list)=>list.map((item,n)=>n===index?{...item,access:e.target.checked}:item))}/>Liberar acesso à plataforma</label>
+        </div></section>)}
+        {extraPeople.length<maxExtraPeople&&<button type="button" className="ap-outline" onClick={()=>setExtraPeople((list)=>[...list,{name:'',job:'',email:'',phone:'',access:true,role:'Decisor adicional'}])}><Plus size={14}/> Adicionar decisor ou acesso</button>}
+        <p className="v2-admin-hint">Até 4 acessos por empresa, todos com a mesma visão. Com "Liberar acesso à plataforma" marcado, a pessoa já consegue entrar: basta informar o e-mail na tela de acesso e digitar o código que recebe. Sem a marcação, ela fica apenas registrada como decisora.</p>
+      </div></>}
+      {registrationTab==='contract'&&<><div className="ap-registration-hint">Configuração contratual e vigência</div><div className="ap-registration-fields">
+        <label><span>Início</span><input type="date" value={form.startDate} onChange={(e)=>patchForm({startDate:e.target.value})}/></label>
+        <label><span>Término</span><input type="date" value={form.endDate} onChange={(e)=>patchForm({endDate:e.target.value})}/></label>
+        <label><span>Duração</span><input readOnly tabIndex={-1} value={contractDuration(form.startDate,form.endDate)}/></label>
+        <label><span>Contrato</span><select value={form.contractType} onChange={(e)=>patchForm({contractType:e.target.value})}><option value="">Selecionar</option>{contractTypes.map((item)=><option key={item}>{item}</option>)}</select></label>
+        <label><span>Modelo</span><select value={form.contractModel} onChange={(e)=>patchForm({contractModel:e.target.value})}><option value="">Selecionar</option>{contractModels.map((item)=><option key={item}>{item}</option>)}</select></label>
+        <label><span>Renovação</span><select value={form.autoRenew?'auto':'manual'} onChange={(e)=>patchForm({autoRenew:e.target.value==='auto'})}><option value="manual">Manual</option><option value="auto">Automática, conforme contrato</option></select></label>
+        <label><span>Multa por encerramento antecipado</span><select value={form.penaltyEnabled?'sim':'nao'} onChange={(e)=>patchForm({penaltyEnabled:e.target.value==='sim',terminationPenaltyType:e.target.value==='sim'?form.terminationPenaltyType:'none'})}><option value="nao">Não consta no contrato</option><option value="sim">Sim, consta no contrato</option></select></label>
+        {form.penaltyEnabled&&<><label><span>Base da multa</span><select value={form.terminationPenaltyType} onChange={(e)=>patchForm({terminationPenaltyType:e.target.value as TerminationPenaltyType})}><option value="none">Somente regra textual</option><option value="remaining_balance_percent">% sobre saldo restante</option><option value="contract_total_percent">% sobre valor total estimado</option><option value="fixed_amount">Valor fixo</option><option value="monthly_fee_multiple">Múltiplos da mensalidade</option></select></label>
+        <label><span>Parâmetro</span><input inputMode="decimal" placeholder="Ex.: 20 ou 1,5" value={form.terminationPenaltyValue} onChange={(e)=>patchForm({terminationPenaltyValue:e.target.value.replace(/[^0-9.,]/g,'')})}/></label>
+        <label><span>Prazo para pagamento (dias após o distrato)</span><input inputMode="numeric" placeholder="Dias" value={form.terminationPaymentDays} onChange={(e)=>patchForm({terminationPaymentDays:e.target.value.replace(/\D/g,'').slice(0,3)})}/></label>
+        <label><span>Contagem</span><select value={form.terminationPaymentRule} onChange={(e)=>patchForm({terminationPaymentRule:e.target.value as TerminationPaymentRule})}><option value="calendar_days">Dias corridos</option><option value="business_days">Dias úteis</option></select></label>
+        <label className="wide"><span>Regra / cláusula</span><textarea rows={2} value={form.penaltyText} onChange={(e)=>patchForm({penaltyText:e.target.value})}/></label></>}
+      </div></>}
+      {registrationTab==='financial'&&<><div className="ap-registration-hint">Condições financeiras e cobrança</div><div className="ap-registration-fields">
+        <label><span>Valor do contrato</span><input placeholder="Valor mensal" value={form.contractValue} onChange={(e)=>patchForm({contractValue:e.target.value})}/></label>
+        <label><span>Recorrência</span><select value={form.billingFrequency} onChange={(e)=>patchForm({billingFrequency:e.target.value})}><option value="monthly">Mensal</option><option value="single">Única</option><option value="quarterly">Trimestral</option><option value="custom">Personalizada</option></select></label>
+        <label><span>Pagamento</span><select value={form.paymentMethod} onChange={(e)=>patchForm({paymentMethod:e.target.value})}><option value="pix">Pix</option><option value="boleto">Boleto</option><option value="transfer">Transferência</option><option value="card">Cartão</option><option value="other">Outra</option></select></label>
+        <label><span>Regra de vencimento</span><select value={form.billingDueRule} onChange={(e)=>patchForm({billingDueRule:e.target.value})}><option value="fixed_day">Dia fixo</option><option value="first_business_day">Primeiro dia útil</option><option value="last_business_day">Último dia útil</option><option value="custom">Personalizada</option></select></label>
+        {form.billingDueRule==='fixed_day'&&<label><span>Dia de vencimento</span><input placeholder="Dia" value={form.billingDay} onChange={(e)=>patchForm({billingDay:e.target.value.replace(/\D/g,'').slice(0,2)})}/></label>}
+        <label><span>Aviso antecipado (dias antes)</span><input placeholder="Dias" value={form.billingLeadDays} onChange={(e)=>patchForm({billingLeadDays:e.target.value.replace(/\D/g,'').slice(0,2)})}/></label>
+        <label><span>Prazo para pagamento</span><input inputMode="numeric" placeholder="Dias" value={form.paymentTermDays} onChange={(e)=>patchForm({paymentTermDays:e.target.value.replace(/\D/g,'').slice(0,3)})}/></label>
+        <label><span>Multa por atraso (%)</span><input inputMode="decimal" placeholder="Percentual" value={form.lateFeePercent} onChange={(e)=>patchForm({lateFeePercent:e.target.value.replace(/[^0-9.,]/g,'')})}/></label>
+        <label><span>Juros diário (%)</span><input inputMode="decimal" placeholder="Percentual" value={form.dailyInterestPercent} onChange={(e)=>patchForm({dailyInterestPercent:e.target.value.replace(/[^0-9.,]/g,'')})}/></label>
+        <label className="wide"><span>Observação financeira</span><input value={form.notes} onChange={(e)=>patchForm({notes:e.target.value})}/></label>
+      </div><p className="v2-admin-hint">O registro financeiro terá vencimento, baixa de pagamento, multa e juros. A automação de cobrança só é ativada depois, na gestão da conta.</p></>}
+      {registrationTab==='documents'&&<><div className="ap-registration-hint">Vínculos documentais da conta</div><div className="ap-registration-fields">
+        <label><span>Link do Drive</span><input type="url" placeholder="https://drive.google.com/..." value={form.driveUrl} onChange={(e)=>patchForm({driveUrl:e.target.value})}/></label>
+        <label><span>Responsável documental</span><input placeholder="Nome do responsável" value={form.documentOwner} onChange={(e)=>patchForm({documentOwner:e.target.value})}/></label>
+        <label className="wide"><span>Observação documental</span><input placeholder="Documentos necessários" value={form.documentNotes} onChange={(e)=>patchForm({documentNotes:e.target.value})}/></label>
+        <label><span>Contrato assinado (PDF, DOC ou imagem)</span><span className="v2-admin-file"><input type="file" accept=".pdf,.doc,.docx,image/*" onChange={(e)=>setContractFile(e.target.files?.[0]||null)}/></span></label>
+        <label><span>Data do contrato</span><input type="date" value={contractDate} onChange={(e)=>setContractDate(e.target.value)}/></label>
+        <label><span>Aditivo contratual (opcional)</span><span className="v2-admin-file"><input type="file" accept=".pdf,.doc,.docx,image/*" onChange={(e)=>setAddendumFile(e.target.files?.[0]||null)}/></span></label>
+        <label><span>Data do aditivo</span><input type="date" value={addendumDate} onChange={(e)=>setAddendumDate(e.target.value)}/></label>
+      </div></>}
+    </div><footer><span>Etapa {regIndex+1} de {registrationItems.length}{error?` · ${error}`:''}</span><div>{regIndex>0&&<button type="button" className="ap-outline" onClick={()=>setRegistrationTab(registrationItems[regIndex-1].id)}><ChevronLeft size={14}/>Voltar</button>}{regIndex<registrationItems.length-1?<button type="button" className="ap-primary" onClick={()=>setRegistrationTab(registrationItems[regIndex+1].id)}>Continuar<ChevronRight size={14}/></button>:<button className="ap-primary" type="submit" disabled={saving}>{saving?'Salvando…':'Cadastrar conta'}</button>}</div></footer></form></div>}
+
+    {manageOpen&&editDraft&&<div className="ap-account-overlay"><section className="ap-account-modal" role="dialog" aria-modal="true" aria-label={`Gerenciar ${editDraft.name}`}><header className="ap-account-header"><div className="ap-account-identity"><div className="ap-company-logo">{editDraft.logoUrl?<img src={editDraft.logoUrl} alt={`Logo ${editDraft.name}`}/>:initials(editDraft.name)}</div><div><small>GESTÃO DA CONTA</small><h2>{editDraft.name}</h2><p>{editDraft.service} · {editDraft.segment||'Segmento não informado'}</p></div></div><div className="ap-account-pills"><span className={editDraft.status}>{statusLabel(editDraft.status)}</span><span>Drive {editDraft.drive.toLowerCase()}</span></div><button type="button" className="ap-close" aria-label="Fechar gestão" onClick={()=>setManageOpen(false)}><X size={20}/></button></header><Tabs className="ap-account-tabs" value={accountTab} onChange={setAccountTab} items={accountItems}/><div className="ap-account-body v2-admin-form">
+      {accountTab==='fronts'&&<ContractFrontsAdmin company={{id:editDraft.id,display_name:editDraft.name,service_plan:planForService(clients.find(client=>client.id===editDraft.id)?.service||''),service_type:editDraft.service}}/>}
+      {accountTab==='data'&&<section className="account-tab-pane"><div className="account-pane-heading"><Building2 size={18}/><div><strong>Dados cadastrais</strong><span>Identidade, serviço, localização e decisor.</span></div></div><div className="logo-registration-row edit-logo-row"><label className="secondary logo-upload-button"><ImagePlus size={15}/>Alterar logo<input type="file" accept="image/*,.svg" onChange={(e)=>setEditLogoFile(e.target.files?.[0]||null)}/></label>{editLogoFile&&<span>{editLogoFile.name}</span>}</div><div className="form-grid account-tab-form"><label className="stacked-label">Empresa<input value={editDraft.name} onChange={(e)=>patchDraft({name:e.target.value})}/></label><label className="stacked-label">Razão social<input value={editDraft.legalName||''} onChange={(e)=>patchDraft({legalName:e.target.value})} placeholder="Como consta no contrato"/></label><label className="stacked-label">Segmento<select value={editDraft.segment||''} onChange={(e)=>patchDraft({segment:e.target.value})}><option value="">Selecionar</option>{segments.map((item)=><option key={item}>{item}</option>)}</select></label><label className="stacked-label">Serviço<select value={editDraft.service} onChange={(e)=>patchDraft({service:e.target.value})}>{services.map((item)=><option key={item}>{item}</option>)}</select></label><label className="stacked-label">Horas contratadas<input inputMode="decimal" value={editDraft.contractedHours||''} onChange={(e)=>patchDraft({contractedHours:Number(e.target.value.replace(',','.'))||0})}/></label><label className="stacked-label">Cidade<input value={editDraft.city||''} onChange={(e)=>patchDraft({city:e.target.value})}/></label><label className="stacked-label">Estado<input maxLength={2} value={editDraft.state||''} onChange={(e)=>patchDraft({state:e.target.value.toUpperCase().slice(0,2)})}/></label><label className="stacked-label">Endereço<input value={editDraft.addressStreet||''} onChange={(e)=>patchDraft({addressStreet:e.target.value})}/></label><label className="stacked-label">Número<input value={editDraft.addressNumber||''} onChange={(e)=>patchDraft({addressNumber:e.target.value})}/></label><label className="stacked-label">Bairro<input value={editDraft.neighborhood||''} onChange={(e)=>patchDraft({neighborhood:e.target.value})}/></label><label className="check-line account-check wide"><input type="checkbox" checked={Boolean(editDraft.hasBranches)} onChange={(e)=>patchDraft({hasBranches:e.target.checked,branches:e.target.checked?editDraft.branches:[]})}/><span><strong>Possui filiais</strong><small>Registre as demais localidades.</small></span></label>{editDraft.hasBranches&&<label className="stacked-label wide">Filiais<textarea rows={2} value={(editDraft.branches||[]).join('\n')} onChange={(e)=>patchDraft({branches:e.target.value.split('\n').map((v)=>v.trim()).filter(Boolean)})}/></label>}<div className="account-decision-link"><span className="account-decision-icon"><CheckCircle2 size={19}/></span><div><strong>{editDraft.access==='Ativo'?'Decisor conectado à conta':'Aguardando primeiro acesso'}</strong><p>{editDraft.access==='Ativo'?<>As mudanças em <b>nome, cargo e contato</b> também atualizam o perfil de {editDraft.contact||'quem representa a empresa'}. O e-mail de login fica protegido nesta ficha; caso precise trocá-lo, solicite a alteração à administração da CALI.</>:<>Os dados abaixo serão vinculados ao perfil quando o convite de acesso for aceito.</>}</p></div></div><label className="stacked-label">Nome do decisor<input value={editDraft.contact} onChange={(e)=>patchDraft({contact:e.target.value})}/></label><label className="stacked-label">Cargo<input value={editDraft.decisionTitle||''} onChange={(e)=>patchDraft({decisionTitle:e.target.value})}/></label><label className="stacked-label"><span className="label-with-icon"><Cake size={14}/>Aniversário</span><input type="date" value={editDraft.decisionBirthday||''} onChange={(e)=>patchDraft({decisionBirthday:e.target.value})}/></label><label className="stacked-label">E-mail de acesso<input type="email" value={editDraft.email} disabled={editDraft.access==='Ativo'} onChange={(e)=>patchDraft({email:e.target.value})}/></label><label className="stacked-label">Telefone<input value={editDraft.phone||''} onChange={(e)=>patchDraft({phone:e.target.value})}/></label><label className="stacked-label">WhatsApp<input value={editDraft.whatsapp||''} onChange={(e)=>patchDraft({whatsapp:e.target.value})}/></label><label className="stacked-label">Link do Drive<input type="url" placeholder="https://drive.google.com/..." value={editDraft.driveUrl||''} onChange={(e)=>patchDraft({driveUrl:e.target.value})}/></label><label className="stacked-label">Responsável documental<input value={editDraft.documentOwner||''} onChange={(e)=>patchDraft({documentOwner:e.target.value})}/></label><label className="stacked-label wide">Observação documental<input value={editDraft.documentNotes||''} onChange={(e)=>patchDraft({documentNotes:e.target.value})}/></label></div>
+        <div className="account-pane-heading v2-admin-subheading"><ShieldCheck size={18}/><div><strong>Decisores e acessos adicionais</strong><span>Até 4 acessos por empresa, contando o principal. Todos veem as mesmas informações.</span></div></div>
+        <div className="ap-decision-list">{(editDraft.extraAccesses||[]).map((person,index)=><section key={person.id||index} className="ap-decision-person"><header><strong>Decisor / acesso adicional {index+1}</strong><button type="button" onClick={()=>patchDraft({extraAccesses:(editDraft.extraAccesses||[]).filter((_,n)=>n!==index)})}>Remover</button></header><div className="ap-registration-fields">
+          {([['name','Nome completo'],['job','Cargo'],['email','E-mail'],['phone','Telefone / WhatsApp']] as const).map(([key,label])=><label key={key}><span>{label}</span><input type={key==='email'?'email':'text'} value={person[key]} onChange={(e)=>patchDraft({extraAccesses:(editDraft.extraAccesses||[]).map((item,n)=>n===index?{...item,[key]:e.target.value}:item)})}/></label>)}
+          <label><span>Permissão</span><select value={person.role} onChange={(e)=>patchDraft({extraAccesses:(editDraft.extraAccesses||[]).map((item,n)=>n===index?{...item,role:e.target.value}:item)})}><option>Decisor adicional</option><option>Acesso adicional</option></select></label>
+          <label className="ap-decision-check"><input type="checkbox" checked={person.access} onChange={(e)=>patchDraft({extraAccesses:(editDraft.extraAccesses||[]).map((item,n)=>n===index?{...item,access:e.target.checked}:item)})}/>Liberar acesso à plataforma</label>
+        </div></section>)}
+        {(editDraft.extraAccesses||[]).length<maxExtraPeople&&<button type="button" className="ap-outline" onClick={()=>patchDraft({extraAccesses:[...(editDraft.extraAccesses||[]),{name:'',job:'',email:'',phone:'',access:true,role:'Decisor adicional'}]})}><Plus size={14}/> Adicionar decisor ou acesso</button>}</div>
+      </section>}
+      {accountTab==='contract'&&<section className="account-tab-pane"><div className="account-pane-heading"><FileCheck2 size={18}/><div><strong>Contrato</strong><span>Prazo, renovação e encerramento.</span></div></div><div className="account-summary-strip"><div><span>Duração</span><strong>{contractDuration(editDraft.startDate,editDraft.endDate)}</strong></div><div><span>Renovação</span><strong>{editDraft.autoRenew?'Automática':'Manual / não prevista'}</strong></div><div><span>Valor estimado do período</span><strong>{formatCurrency(estimateContractTotal(editDraft))}</strong></div></div><div className="form-grid account-tab-form"><label className="stacked-label">Início<input type="date" value={editDraft.startDate||''} onChange={(e)=>patchDraft({startDate:e.target.value})}/></label><label className="stacked-label">Término<input type="date" value={editDraft.endDate||''} onChange={(e)=>patchDraft({endDate:e.target.value})}/></label><label className="stacked-label">Contrato<select value={editDraft.contractType||''} onChange={(e)=>patchDraft({contractType:e.target.value})}><option value="">Selecionar</option>{contractTypes.map((item)=><option key={item}>{item}</option>)}</select></label><label className="stacked-label">Modelo<select value={editDraft.contractModel||''} onChange={(e)=>patchDraft({contractModel:e.target.value})}><option value="">Selecionar</option>{contractModels.map((item)=><option key={item}>{item}</option>)}</select></label><label className="check-line account-check"><input type="checkbox" checked={Boolean(editDraft.autoRenew)} onChange={(e)=>patchDraft({autoRenew:e.target.checked})}/><span><strong>Renovação automática</strong><small>Conforme o contrato.</small></span></label><label className="check-line account-check"><input type="checkbox" checked={Boolean(editDraft.penaltyEnabled)} onChange={(e)=>patchDraft({penaltyEnabled:e.target.checked,terminationPenaltyType:e.target.checked?(editDraft.terminationPenaltyType||'remaining_balance_percent'):'none'})}/><span><strong>Multa de encerramento</strong><small>Usada na simulação de distrato.</small></span></label>{editDraft.penaltyEnabled&&<><label className="stacked-label">Base da multa<select value={editDraft.terminationPenaltyType||'none'} onChange={(e)=>patchDraft({terminationPenaltyType:e.target.value as TerminationPenaltyType})}><option value="none">Somente regra textual</option><option value="remaining_balance_percent">% sobre saldo restante</option><option value="contract_total_percent">% sobre valor total estimado</option><option value="fixed_amount">Valor fixo</option><option value="monthly_fee_multiple">Múltiplos da mensalidade</option></select></label><label className="stacked-label">Parâmetro<input inputMode="decimal" value={editDraft.terminationPenaltyValue??0} onChange={(e)=>patchDraft({terminationPenaltyValue:Number(e.target.value.replace(',','.'))||0})}/></label><label className="stacked-label">Prazo para pagamento<input inputMode="numeric" value={editDraft.terminationPaymentDays??0} onChange={(e)=>patchDraft({terminationPaymentDays:Number(e.target.value.replace(/\D/g,''))||0})}/></label><label className="stacked-label">Contagem<select value={editDraft.terminationPaymentRule||'calendar_days'} onChange={(e)=>patchDraft({terminationPaymentRule:e.target.value as TerminationPaymentRule})}><option value="calendar_days">Dias corridos</option><option value="business_days">Dias úteis</option></select></label><label className="stacked-label wide">Regra / cláusula<textarea rows={2} value={editDraft.penaltyText||''} onChange={(e)=>patchDraft({penaltyText:e.target.value})}/></label></>}</div>{editDraft.terminationSignedAt&&<div className="automation-preview"><FileCheck2 size={17}/><div><strong>Distrato registrado em {formatDate(editDraft.terminationSignedAt)}</strong><p>Multa registrada: {formatCurrency(editDraft.terminationPenaltyAmount)} · vencimento: {formatDate(editDraft.terminationPaymentDueAt)}.</p></div></div>}<div className="automation-preview v2-company-export"><Download size={17}/><div><strong>Exportar dados da empresa</strong><p>Para o fim do contrato (a empresa tem 45 dias para receber): baixa todos os dados da empresa e um índice dos documentos com links de download por 7 dias. Anotações internas da CALI ficam de fora. Salários, gênero e filhos saem separados, como dados restritos: entregue só a representante autorizado. A exportação e o destinatário ficam registrados no histórico.</p><label className="v2-company-export-to"><span>Entregar para</span><input value={exportRecipient} maxLength={200} onChange={(e)=>setExportRecipient(e.target.value)} placeholder="Nome e cargo do representante autorizado"/></label>{exportState.note&&<p className={exportState.failed?'v2-company-export-error':'v2-company-export-ok'} role="status">{exportState.note}</p>}</div><button type="button" disabled={exportState.busy} onClick={()=>void runCompanyExport(editDraft)}>{exportState.busy?'Gerando…':'Exportar'}</button></div>{editDraft.status==='closed'&&editDraft.closedAt&&(()=>{const release=eliminationReleaseDate(editDraft.closedAt);const ready=!editDraft.dataEliminatedAt&&release.getTime()<=Date.now();return <div className={`automation-preview v2-company-export v2-company-elim${ready?' is-due':''}${editDraft.dataEliminatedAt?' is-done':''}`} role={ready?'alert':undefined}><Trash2 size={17}/><div><strong>{editDraft.dataEliminatedAt?'Dados eliminados':ready?'Eliminação de dados liberada':'Eliminação de dados'}</strong><p>{editDraft.dataEliminatedAt?`Eliminados em ${formatDate(editDraft.dataEliminatedAt)}. Ficaram só o cadastro sem textos livres, a cobrança e o histórico de auditoria; as pessoas do cliente foram anonimizadas e bloqueadas.`:ready?'Os 45 dias depois do encerramento terminaram. Confira se a exportação foi entregue e elimine os dados: entregas, documentos, arquivos, agenda, horas, ocorrências e equipe. Não dá para desfazer.':`Liberada em ${release.toLocaleDateString('pt-BR')} (45 dias depois do encerramento). Até lá, exporte e entregue os dados ao cliente.`}</p>{elimination.note&&!elimination.open&&<p className={elimination.failed?'v2-company-export-error':'v2-company-export-ok'} role="status">{elimination.note}</p>}</div>{ready&&<button type="button" onClick={()=>setElimination({open:true,name:'',busy:false,note:''})}>Eliminar dados</button>}</div>;})()}</section>}
+      {accountTab==='agenda'&&<ContractAgendaSettings companyId={editDraft.id}/>}
+      {accountTab==='financial'&&<section className="account-tab-pane"><div className="account-pane-heading"><Banknote size={18}/><div><strong>Financeiro</strong><span>Valor, vencimento, atraso e regras de cobrança.</span></div></div><div className="account-summary-strip"><div><span>Valor</span><strong>{formatCurrency(editDraft.contractValue)}</strong></div><div><span>Vencimento</span><strong>{dueRuleLabel(editDraft)}</strong></div><div><span>Situação</span><strong>{editDraft.billingStatus||'A acompanhar'}</strong></div></div><div className="form-grid account-tab-form"><label className="stacked-label">Valor do contrato<input inputMode="decimal" value={editDraft.contractValue??''} onChange={(e)=>patchDraft({contractValue:Number(e.target.value.replace(',','.'))||null})}/></label><label className="stacked-label">Recorrência<select value={editDraft.billingFrequency||'monthly'} onChange={(e)=>patchDraft({billingFrequency:e.target.value})}><option value="monthly">Mensal</option><option value="single">Única</option><option value="quarterly">Trimestral</option><option value="custom">Personalizada</option></select></label><label className="stacked-label">Pagamento<select value={editDraft.paymentMethod||'pix'} onChange={(e)=>patchDraft({paymentMethod:e.target.value})}><option value="pix">Pix</option><option value="boleto">Boleto</option><option value="transfer">Transferência</option><option value="card">Cartão</option><option value="other">Outra</option></select></label><label className="stacked-label">Regra de vencimento<select value={editDraft.billingDueRule||'fixed_day'} onChange={(e)=>patchDraft({billingDueRule:e.target.value})}><option value="fixed_day">Dia fixo</option><option value="first_business_day">Primeiro dia útil</option><option value="last_business_day">Último dia útil</option><option value="custom">Personalizada</option></select></label>{(editDraft.billingDueRule||'fixed_day')==='fixed_day'&&<label className="stacked-label">Dia<input value={editDraft.billingDay??''} onChange={(e)=>patchDraft({billingDay:Number(e.target.value.replace(/\D/g,'').slice(0,2))||null})}/></label>}<label className="stacked-label">Aviso antecipado<input value={editDraft.billingLeadDays??3} onChange={(e)=>patchDraft({billingLeadDays:Number(e.target.value.replace(/\D/g,''))||0})}/><small className="field-helper">dias antes</small></label><label className="stacked-label">Prazo para pagamento<input inputMode="numeric" placeholder="Dias" value={editDraft.paymentTermDays??''} onChange={(e)=>patchDraft({paymentTermDays:e.target.value?Number(e.target.value.replace(/\D/g,'').slice(0,3)):null})}/></label><label className="stacked-label">Multa por atraso (%)<input inputMode="decimal" value={editDraft.lateFeePercent??0} onChange={(e)=>patchDraft({lateFeePercent:Number(e.target.value.replace(',','.'))||0})}/></label><label className="stacked-label">Juros diário (%)<input inputMode="decimal" value={editDraft.dailyInterestPercent??0} onChange={(e)=>patchDraft({dailyInterestPercent:Number(e.target.value.replace(',','.'))||0})}/></label><label className="stacked-label wide">Observação financeira<input value={editDraft.financialNote||''} onChange={(e)=>patchDraft({financialNote:e.target.value})}/></label></div><div className="billing-flow-preview"><ReceiptText size={17}/><div><strong>Fluxo financeiro</strong><p>{editDraft.billingLeadDays??3} dias antes de {dueRuleLabel(editDraft).toLowerCase()}, preparar cobrança com relatório + {paymentMethodLabel(editDraft.paymentMethod)}. Se não houver baixa, a régua de atraso começa no dia seguinte ao vencimento.</p></div></div></section>}
+      {accountTab==='operation'&&<section className="account-tab-pane"><div className="account-pane-heading"><FolderKanban size={18}/><div><strong>Operação</strong><span>Horas, satisfação e projetos vinculados.</span></div></div><div className="account-summary-strip"><div><span>Horas</span><strong>{editDraft.hours}</strong></div><div><span>Consumo</span><strong>{editDraft.usage}%</strong></div><div><span>NPS</span><strong>{editDraft.nps}</strong></div><div><span>Acesso</span><strong>{editDraft.access}</strong></div></div><article className="account-operation-card"><div className="account-detail-title"><BriefcaseBusiness size={17}/><strong>Projetos em andamento</strong></div>{editDraft.projects?.length?<ul className="account-project-list">{editDraft.projects.map((project)=><li key={project.name}><span>{project.name}</span><small>{({active:'Em andamento',paused:'Em pausa',closed:'Encerrado',completed:'Concluído',planning:'Em planejamento'} as Record<string,string>)[project.status]||project.status}</small></li>)}</ul>:<p>Nenhum projeto vinculado ainda.</p>}</article><div className="contact-action-row"><a href={`mailto:${editDraft.email}`}><Mail size={16}/>E-mail</a>{editDraft.whatsapp&&<a href={`https://wa.me/55${editDraft.whatsapp.replace(/\D/g,'')}`} target="_blank" rel="noreferrer"><MessageCircle size={16}/>WhatsApp</a>}</div></section>}
+      {accountTab==='communications'&&<section className="account-tab-pane"><div className="account-pane-heading"><BellRing size={18}/><div><strong>Comunicações automáticas</strong><span>Régua por evento da conta. O envio fica desligado até você ativar esta empresa.</span></div></div><label className="automation-master"><input type="checkbox" checked={Boolean(editDraft.automationEnabled)} onChange={(e)=>patchDraft({automationEnabled:e.target.checked})}/><span><strong>Automação desta conta</strong><small>{editDraft.automationEnabled?'Ativa: eventos habilitados podem entrar na fila automática.':'Desligada: nenhum e-mail automático será disparado.'}</small></span></label><div className="communication-grid"><label><input type="checkbox" checked={Boolean(editDraft.welcomeEmailEnabled)} onChange={(e)=>patchDraft({welcomeEmailEnabled:e.target.checked})}/><span><strong>Boas-vindas</strong><small>Ao ativar o acesso principal.</small></span></label><label><input type="checkbox" checked={Boolean(editDraft.dueReminderEnabled)} onChange={(e)=>patchDraft({dueReminderEnabled:e.target.checked})}/><span><strong>Lembrete de vencimento</strong><small>{editDraft.billingLeadDays??3} dias antes do vencimento.</small></span></label><label><input type="checkbox" checked={Boolean(editDraft.overdueEmailEnabled)} onChange={(e)=>patchDraft({overdueEmailEnabled:e.target.checked})}/><span><strong>Pagamento em aberto</strong><small><input className="inline-days" inputMode="numeric" value={editDraft.overdueEmailAfterDays??1} onChange={(e)=>patchDraft({overdueEmailAfterDays:Number(e.target.value.replace(/\D/g,''))||0})}/> dia(s) depois, se não houver baixa.</small></span></label><label><input type="checkbox" checked={Boolean(editDraft.extrajudicialEmailEnabled)} onChange={(e)=>patchDraft({extrajudicialEmailEnabled:e.target.checked})}/><span><strong>Notificação extrajudicial</strong><small>Depois de <input className="inline-days" inputMode="numeric" value={editDraft.extrajudicialAfterDays??''} onChange={(e)=>patchDraft({extrajudicialAfterDays:e.target.value?Number(e.target.value.replace(/\D/g,'')):null})}/> dia(s) em aberto.</small></span></label><label><input type="checkbox" checked={Boolean(editDraft.terminationEmailEnabled)} onChange={(e)=>patchDraft({terminationEmailEnabled:e.target.checked})}/><span><strong>Encerramento</strong><small>Após registrar o distrato.</small></span></label><label><input type="checkbox" checked={Boolean(editDraft.birthdayEmailEnabled)} onChange={(e)=>patchDraft({birthdayEmailEnabled:e.target.checked})}/><span><strong>Aniversário</strong><small>{editDraft.decisionBirthday?`Data: ${formatDate(editDraft.decisionBirthday)}`:'Cadastre a data do decisor.'}</small></span></label></div><div className="email-template-list"><div><strong>Boas-vindas</strong><span>“Bem-vindo(a) ao CALI Workspace · {editDraft.name}”</span></div><div><strong>Vencimento</strong><span>“CALI RH · vencimento em [data] · {editDraft.name}”</span></div><div><strong>Atraso</strong><span>“CALI RH · pagamento em aberto · {editDraft.name}”</span></div><div><strong>Notificação</strong><span>“CALI RH · notificação referente a pagamento em aberto · {editDraft.name}”</span></div><div><strong>Encerramento</strong><span>“CALI RH · encerramento contratual · {editDraft.name}”</span></div></div></section>}
+      {accountTab==='history'&&<section className="account-tab-pane"><div className="account-pane-heading"><History size={18}/><div><strong>Histórico da relação</strong><span>Movimentos importantes da conta.</span></div></div><div className="account-history-list">{editDraft.history?.length?editDraft.history.map((item,index)=><div key={`${item.title}-${index}`}><span className="history-dot"/><div><strong>{item.title}</strong><p>{item.detail}</p></div><time>{item.date}</time></div>):<p>Ainda não há movimentações registradas.</p>}</div></section>}
+    </div><footer><div className="ap-account-danger">{editDraft.status==='paused'||editDraft.status==='blocked'?<button type="button" onClick={()=>{setManageOpen(false);requestLifecycle(editDraft,'reactivate')}}>Reativar</button>:<><button type="button" onClick={()=>{setManageOpen(false);requestLifecycle(editDraft,'pause')}}>Pausar</button><button type="button" onClick={()=>{setManageOpen(false);requestLifecycle(editDraft,'block')}}>Bloquear</button></>}<button type="button" onClick={()=>{setManageOpen(false);requestLifecycle(editDraft,'archive')}}>Arquivar</button><button type="button" onClick={()=>{setManageOpen(false);requestLifecycle(editDraft,'close')}}>Encerrar contrato</button></div><div><button type="button" onClick={()=>setManageOpen(false)}>Cancelar</button><button className="ap-account-save" type="button" disabled={saving} onClick={()=>void saveClient()}>{saving?'Salvando…':'Salvar alterações'}</button></div></footer></section></div>}
+
+    {elimination.open&&editDraft&&<div className="ap-pd-overlay" onMouseDown={(e)=>{if(e.target===e.currentTarget&&!elimination.busy)setElimination({open:false,name:'',busy:false,note:''});}}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Eliminar dados"><div><small>FIM DE CONTRATO</small><h2>Eliminar dados</h2><p><strong>{editDraft.name}</strong></p><p>Apaga entregas, documentos, arquivos, agenda, horas, ocorrências, equipe e mensagens desta empresa, e anonimiza e bloqueia as pessoas do cliente. Ficam o cadastro sem textos livres, a cobrança e o histórico de auditoria. Não dá para desfazer.</p></div><label>Digite o nome da empresa para confirmar<input value={elimination.name} onChange={(e)=>setElimination((current)=>({...current,name:e.target.value}))} autoFocus/></label>{elimination.note&&<p className="v2-company-export-error" role="alert">{elimination.note}</p>}<footer><button type="button" disabled={elimination.busy} onClick={()=>setElimination({open:false,name:'',busy:false,note:''})}>Cancelar</button><button type="button" className="danger" disabled={elimination.busy||elimination.name.trim().toLowerCase()!==editDraft.name.trim().toLowerCase()} onClick={()=>void runElimination(editDraft)}>{elimination.busy?'Eliminando…':'Eliminar dados'}</button></footer></section></div>}
+    {lifecycle&&<div className="ap-pd-overlay" onMouseDown={(e)=>{if(e.target===e.currentTarget)setLifecycle(null);}}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Gestão da conta"><div><small>GESTÃO DA CONTA</small><h2>{lifecycle.type==='pause'?'Pausar temporariamente':lifecycle.type==='block'?'Bloquear acesso':lifecycle.type==='archive'?'Arquivar conta':lifecycle.type==='close'?'Encerrar contrato':'Reativar conta'}</h2><p><strong>{lifecycle.client.name}</strong> · {lifecycle.client.service}</p><p>{lifecycle.type==='close'?'Registre a data do distrato. O Workspace calcula a projeção financeira usando a cláusula cadastrada. O acesso das pessoas do cliente é bloqueado na hora. Antes de confirmar, se quiser, exporte os dados na aba Contrato.':lifecycle.type==='pause'?'O contrato fica em espera. O cliente continua entrando e consultando. A ação ficará registrada no histórico da conta.':lifecycle.type==='block'?'O cliente deixa de conseguir entrar no Workspace até a conta ser reativada. A ação ficará registrada no histórico da conta.':lifecycle.type==='archive'?'O acesso das pessoas do cliente é bloqueado. A ação ficará registrada no histórico da conta.':'A ação ficará registrada no histórico da conta.'}</p></div>{lifecycle.type==='close'&&<><label>Data do distrato<input type="date" value={lifecycleDate} onChange={(e)=>setLifecycleDate(e.target.value)}/></label>{closeProjection&&<div className="termination-projection"><div><span>Saldo contratual estimado</span><strong>{formatCurrency(closeProjection.remainingBalance)}</strong></div><div><span>Multa calculada</span><strong>{formatCurrency(closeProjection.penalty)}</strong></div><div><span>Pagamento até</span><strong>{formatDate(closeProjection.dueDate)}</strong></div></div>}</>}{lifecycle.type!=='reactivate'&&<label>Motivo<textarea value={lifecycleReason} onChange={(e)=>setLifecycleReason(e.target.value)} placeholder="Registre o motivo" autoFocus/></label>}<footer><button type="button" onClick={()=>setLifecycle(null)}>Cancelar</button><button type="button" disabled={saving||(lifecycle.type!=='reactivate'&&!lifecycleReason.trim())} onClick={()=>void applyLifecycle()}>{saving?'Salvando…':'Confirmar'}</button></footer></section></div>}
+    </div></div>
+  </Shell>;
+}

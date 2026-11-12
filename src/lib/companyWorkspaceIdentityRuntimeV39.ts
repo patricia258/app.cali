@@ -1,6 +1,6 @@
 import { backfillWorkspaceLogos, loadCompanyLogoRegistry } from './companyWorkspaceLogo';
 import { installHoursCompanyLogoRuntimeV41 } from './hoursCompanyLogoRuntimeV41';
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 
 let installed = false;
 let observer: MutationObserver | null = null;

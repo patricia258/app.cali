@@ -4,8 +4,8 @@
    Reabre por evento: window.dispatchEvent(new Event('cali:welcome-open')). */
 import { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, Play, X } from 'lucide-react';
-import { useWorkspaceAuth } from '../auth/WorkspaceAuthProvider';
-import { supabase } from '../lib/supabase';
+import { useWorkspaceAuth } from '../auth/hooks/useWorkspaceAuth';
+import { supabase } from '../api/supabase';
 
 export const WELCOME_OPEN_EVENT = 'cali:welcome-open';
 type Step = { href?: string; label: string; title: string; text: string };

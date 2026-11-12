@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 
 type Readiness={mode:'official'|'preview'|'simulation';collected_days:number;required_days:number;available_on?:string|null;can_generate_official:boolean;can_send:boolean;official_report_id?:string|null;official_protocol?:string|null;official_version?:number|null;official_acknowledged_at?:string|null};
 type ReportRow={id:string;company_id:string;report_type:string;period_start:string;period_end:string;status:string;version:number;source_snapshot:any;client_open_count?:number|null;acknowledged_at?:string|null};

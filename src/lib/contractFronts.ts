@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 
 export type Plan = 'partner' | 'full' | 'build_essential' | 'build_complete';
 export type Front = { code:string; title:string; description:string; category:'recurring'|'vacancy'|'addon'|'project'; partner_core:boolean; full_core:boolean; partner_slot:boolean; full_slot:boolean; build_allowed:boolean; display_order:number };

@@ -1,25 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { workspaceProfileKey, workspaceProfileQuery, type WorkspaceRole } from '../api/access/profile';
-import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { workspaceProfileKey, workspaceProfileQuery } from '../api/access/profile';
+import { isSupabaseConfigured, supabase } from '../api/supabase';
+import { WorkspaceAuthContext, type AuthSnapshot, type AuthState } from './workspaceAuthContext';
 
-/* Perfis de acesso: administradora, cliente e Partner (equipe CALI, área própria em /equipe). */
-export type Role = WorkspaceRole;
-export const homeOf = (role: Role | null | undefined) => role === 'admin' ? '/admin' : role === 'partner' ? '/equipe' : '/cliente';
-
-type AuthSnapshot = {
-  ready: boolean;
-  user: User | null;
-  role: Role | null;
-  active: boolean;
-};
-
-type AuthState = AuthSnapshot & {
-  refreshAccess: () => Promise<void>;
-};
-
-const WorkspaceAuthContext = createContext<AuthState | null>(null);
 const signedOut: AuthSnapshot = { ready: true, user: null, role: null, active: false };
 
 export function WorkspaceAuthProvider({ children }: { children: ReactNode }) {
@@ -96,10 +81,4 @@ export function WorkspaceAuthProvider({ children }: { children: ReactNode }) {
   }), [access, refreshAccess]);
 
   return <WorkspaceAuthContext.Provider value={value}>{children}</WorkspaceAuthContext.Provider>;
-}
-
-export function useWorkspaceAuth() {
-  const value = useContext(WorkspaceAuthContext);
-  if (!value) throw new Error('useWorkspaceAuth must be used inside WorkspaceAuthProvider');
-  return value;
 }

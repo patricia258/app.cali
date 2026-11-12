@@ -1,5 +1,5 @@
-import { supabase } from './supabase';
-import '../dashboard-satisfaction-v28.css';
+import { supabase } from '../api/supabase';
+import '../modules/admin/overview/dashboard-satisfaction-v28.css';
 
 type Monthly = { month: string; average: number | null; count: number };
 type Recent = { score: number; comment?: string | null; createdAt: string; sourceType: 'record' | 'deliverable'; entityId?: string | null; protocol?: string | null; title?: string | null; company?: string | null };

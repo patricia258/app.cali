@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 
 type ScopeType = 'project' | 'front' | 'deliverable';
 type Action = 'pause' | 'suspend' | 'cancel' | 'resume';

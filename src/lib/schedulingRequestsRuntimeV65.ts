@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 import { isWorkspaceRoute } from '../runtime/routeActivity';
 
 type Slot = { startsAt: string; endsAt: string };

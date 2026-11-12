@@ -1,6 +1,6 @@
-import '../hours-company-logo-v41.css';
+import '../modules/shared/hours/hours-company-logo-v41.css';
 import { resolveCompanyAsset, type CompanyLogoRecord } from './companyWorkspaceLogo';
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 
 type CompanyRow = CompanyLogoRecord & { status?: string | null };
 

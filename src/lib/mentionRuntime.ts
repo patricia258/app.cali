@@ -1,7 +1,7 @@
 /* Menção com @ nas conversas. Um único ouvinte para todos os campos de conversa do Workspace (ocorrências, entregável e
    subtarefa, nos três perfis): ao digitar @ aparece a lista de pessoas; escolher uma escreve "@Nome Completo" na mensagem.
    Quem recebe o aviso é decidido no banco, pelo nome escrito. Aqui é só a ajuda de digitação. */
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 
 type Person = { id: string; full_name: string; label: string };
 

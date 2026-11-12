@@ -1,5 +1,5 @@
-import { supabase } from './supabase';
-import '../records-v28-closure-experience.css';
+import { supabase } from '../api/supabase';
+import '../modules/shared/records/records-v28-closure-experience.css';
 
 type Role = 'admin' | 'client';
 type RecordRow = {

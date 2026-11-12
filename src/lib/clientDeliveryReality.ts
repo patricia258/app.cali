@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 
 export type ClientDeliveryStatus =
   | 'not_started'

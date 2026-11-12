@@ -1,5 +1,5 @@
 import { ensureCompanyWorkspaceLogo, resolveCompanyAsset, type CompanyLogoRecord } from './companyWorkspaceLogo';
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 import { isWorkspaceRoute } from '../runtime/routeActivity';
 
 type CompanyRow = CompanyLogoRecord & { status?: string | null };

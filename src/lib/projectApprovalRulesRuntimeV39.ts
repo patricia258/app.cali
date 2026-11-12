@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 import { isWorkspaceRoute } from '../runtime/routeActivity';
 
 type ProjectRow={id:string;protocol:string|null;company_id:string;name:string;planning_status:string;start_date:string|null;roadmap_start_date:string|null;roadmap_end_date:string|null;client_response_business_days:number|null};

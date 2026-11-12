@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNod
 import type { Session } from '@supabase/supabase-js';
 import { ShieldCheck } from 'lucide-react';
 import { z } from 'zod';
-import { supabase } from '../lib/supabase';
-import { useWorkspaceAuth } from './WorkspaceAuthProvider';
+import { supabase } from '../api/supabase';
+import { useWorkspaceAuth } from './hooks/useWorkspaceAuth';
 
 type AuthClient = NonNullable<typeof supabase>['auth'];
 type GateState =

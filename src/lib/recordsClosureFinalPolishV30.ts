@@ -1,5 +1,5 @@
-import { supabase } from './supabase';
-import '../records-v30-final-polish.css';
+import { supabase } from '../api/supabase';
+import '../modules/shared/records/records-v30-final-polish.css';
 
 type RecordContext = {
   id: string;

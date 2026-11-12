@@ -1,0 +1,61 @@
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+import { Link } from '../navigation/Link';
+import { useLocation } from '../../hooks/useLocation';
+import { useNavigate } from '../../hooks/useNavigate';
+import { BookOpenText, BriefcaseBusiness, Building2, CalendarDays, Clock3, FileText, FolderKanban, Home, LayoutDashboard, Layers, LogOut, Menu, Moon, PieChart, Star, Sun, Target, TimerReset, UsersRound, X, type LucideIcon } from 'lucide-react';
+import { supabase } from '../../api/supabase';
+import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
+import { nextThemeBoundary, resolveWorkspaceTheme, setManualWorkspaceTheme, workspaceThemeEventName, type WorkspaceTheme } from '../../lib/workspaceTheme';
+import { activeFront, loadContractFronts, planName, type CompanyPlan, type ContractedFront, type Front } from '../../lib/contractFronts';
+import { NotificationCenter } from './WorkspaceChrome';
+import { DirectProfileControl } from './DirectProfileControl';
+import { AdminShell, ClientShell } from '../../v2/WorkspaceShellV2';
+import { RUNTIME_V2_EVENT, usesV2 } from '../../v2/routes';
+import { GlobalTimerBar } from '../hours/GlobalTimerBar';
+import { ProjectTimerBridge } from '../hours/ProjectTimerBridge';
+import { ProjectDeliveryHistoryBridge } from '../projects/ProjectDeliveryHistoryBridge';
+import { HoursLifecycleBridge } from '../hours/HoursLifecycleBridge';
+import { OperationalSafetyBridgeV2 } from './OperationalSafetyBridgeV2';
+import { ExtraVisitRequest } from '../calendar/ExtraVisitRequest';
+import { ExtraVisitExpenses } from '../calendar/ExtraVisitExpenses';
+
+export type Role='admin'|'client';
+type NavItem={label:string;icon:LucideIcon;href:string};type CompactMark='lime'|'oak';const compactMarks:CompactMark[]=['lime','oak'];
+export const adminNav:NavItem[]=[{label:'Visão geral',icon:LayoutDashboard,href:'/admin'},{label:'Clientes',icon:Building2,href:'/admin/clientes'},{label:'Equipe',icon:UsersRound,href:'/admin/equipe'},{label:'Projetos',icon:FolderKanban,href:'/admin/projetos'},{label:'Horas',icon:TimerReset,href:'/admin/horas'},{label:'Calendário',icon:CalendarDays,href:'/admin/calendario'},{label:'Ocorrências',icon:BookOpenText,href:'/admin/registros'},{label:'Documentos',icon:FileText,href:'/admin/documentos'},{label:'Relatórios',icon:PieChart,href:'/admin/relatorios'},{label:'Satisfação',icon:Star,href:'/admin/satisfacao'}];
+export const adminExternalNav:NavItem[]=[{label:'Propostas',icon:BriefcaseBusiness,href:'/admin/propostas'},{label:'Mapa de People',icon:Target,href:'/admin/mapa-de-people'}];
+export const clientNav:NavItem[]=[{label:'Início',icon:LayoutDashboard,href:'/cliente'},{label:'Equipe',icon:UsersRound,href:'/cliente/equipe'},{label:'Horas',icon:Clock3,href:'/cliente/horas'},{label:'Calendário',icon:CalendarDays,href:'/cliente/cronograma'},{label:'Ocorrências',icon:BookOpenText,href:'/cliente/registros'},{label:'Documentos',icon:FolderKanban,href:'/cliente/documentos'},{label:'Relatórios',icon:PieChart,href:'/cliente/relatorios'},{label:'Projetos e entregáveis',icon:BriefcaseBusiness,href:'/cliente/entregaveis'}];
+function CompactBrandMark({variant}:{variant:CompactMark}){return <span className={`brand-compact-art brand-compact-${variant}`} aria-hidden="true"/>;}
+export function Brand({dark=false,compactVariant='lime'}:{dark?:boolean;compactVariant?:CompactMark}){return <div className={`brand ${dark?'brand-dark':''}`} aria-label="CALI Workspace"><div className="brand-full"><img src={dark?'https://raw.githubusercontent.com/patricia258/cali-portal/main/assets/logo-cali-bordo.png':'https://raw.githubusercontent.com/patricia258/cali-portal/main/assets/logo-cali-light.png'} alt="Logo CALI RH" decoding="async" fetchPriority="high"/><span>WORKSPACE</span></div><span className={`brand-compact brand-compact-slide variant-${compactVariant}`} title="CALI Workspace"><CompactBrandMark variant={compactVariant}/></span></div>;}
+function Sidebar({role}:{role:Role}){
+  const location=useLocation(),nav=role==='admin'?adminNav:clientNav;
+  const roleRoot=role==='admin'?'/admin':'/cliente';
+  const[mobileOpen,setMobileOpen]=useState(false),[compactMarkIndex,setCompactMarkIndex]=useState(0);
+  function rotateCompactMark(){setCompactMarkIndex(c=>(c+1)%compactMarks.length);}
+  function renderNavItem(item:NavItem){
+    const active=location.pathname===item.href||(item.href!==roleRoot&&location.pathname.startsWith(`${item.href}/`));
+    const Icon=item.icon;
+    return <Link key={item.href} to={item.href} onClick={event=>{setMobileOpen(false);event.currentTarget.blur();}} className={active?'active':''} data-label={item.label} aria-label={item.label} aria-current={active?'page':undefined}><Icon size={19}/><span className="nav-label">{item.label}</span></Link>;
+  }
+  return <><button className="mobile-menu" onClick={()=>setMobileOpen(true)} aria-label="Abrir menu"><Menu/></button>{mobileOpen&&<button className="sidebar-backdrop" aria-label="Fechar menu" onClick={()=>setMobileOpen(false)}/>}<aside className={`sidebar ${mobileOpen?'mobile-open':''}`} onMouseLeave={()=>{if(!mobileOpen)rotateCompactMark();}}><div className="sidebar-top">{role==='client'?<div className="client-v2-brand" aria-label="CALI Workspace">CALI</div>:<Brand compactVariant={compactMarks[compactMarkIndex]}/>}<button className="sidebar-close" onClick={()=>setMobileOpen(false)} aria-label="Fechar menu"><X/></button></div><nav aria-label={role==='admin'?'Navegação administrativa':'Navegação do cliente'}>{nav.map(renderNavItem)}</nav>{role==='client'?<div className="client-v2-sidebar-bottom" aria-label="Acesso adicional"><span className="client-v2-sidebar-rule"/><Link to="/cliente/frentes" title="Frentes contratadas" aria-label="Frentes contratadas"><BriefcaseBusiness size={17}/></Link></div>:<div className="sidebar-footer sidebar-footer-profile-only"><DirectProfileControl role={role}/></div>}</aside></>;
+}
+
+function ExternalProductsTopNav(){const location=useLocation();return <div className="external-products-topnav" aria-label="Sistemas externos integrados">{adminExternalNav.map(item=>{const active=location.pathname===item.href||location.pathname.startsWith(`${item.href}/`);const Icon=item.icon;return <Link key={item.href} to={item.href} className={active?'active':''} aria-current={active?'page':undefined} aria-label={item.label} data-tooltip={item.label}><Icon size={19}/><span className="external-product-label">{item.label}</span></Link>;})}</div>;}
+
+function currentWorkspacePage(role:Role,pathname:string){
+  if(role==='client'&&pathname==='/cliente/frentes')return'Frentes';
+  const routes=role==='admin'?[...adminNav,...adminExternalNav]:clientNav;
+  return routes.find(item=>pathname===item.href||(item.href!==(role==='admin'?'/admin':'/cliente')&&pathname.startsWith(`${item.href}/`)))?.label||(role==='admin'?'Visão geral':'Início');
+}
+
+function ThemeToggle(){const[theme,setTheme]=useState<WorkspaceTheme>(()=>resolveWorkspaceTheme());useEffect(()=>{const eventName=workspaceThemeEventName();const sync=(event?:Event)=>{const detail=(event as CustomEvent<{theme?:WorkspaceTheme}>|undefined)?.detail?.theme;setTheme(detail==='day'||detail==='night'?detail:resolveWorkspaceTheme());};window.addEventListener(eventName,sync);window.addEventListener('focus',sync);return()=>{window.removeEventListener(eventName,sync);window.removeEventListener('focus',sync);};},[]);const isNight=theme==='night',nextBoundary=nextThemeBoundary(),nextLabel=nextBoundary.getHours()===6?'06:00':'18:00';function toggleTheme(){const next=isNight?'day':'night';setManualWorkspaceTheme(next);setTheme(next);}return <button className={`icon-button workspace-theme-toggle theme-${theme}`} type="button" aria-label={`Tema ${isNight?'noturno':'diurno'}. Alternar tema`} title={`${isNight?'Modo noite':'Modo dia'} · automático às 06:00 e 18:00 · ajuste manual vale até ${nextLabel}`} onClick={toggleTheme}>{isNight?<Moon size={18}/>:<Sun size={18}/>}</button>;}
+function watermarkScene(pathname:string){if(pathname==='/admin'||pathname==='/cliente')return'scene-overview';if(pathname.includes('/clientes')||pathname.includes('/documentos')||pathname.includes('/propostas'))return'scene-lime';if(pathname.includes('/projetos')||pathname.includes('/entregaveis')||pathname.includes('/relatorios')||pathname.includes('/satisfacao')||pathname.includes('/mapa-de-people')||pathname.includes('/registros'))return'scene-oak';if(pathname.includes('/horas'))return'scene-lime-soft';if(pathname.includes('/calendario')||pathname.includes('/cronograma'))return'scene-oak-soft';return'scene-overview';}
+const WorkspaceFrameContext = createContext(false);
+
+function WorkspaceChrome({role,children}:{role:Role;children:ReactNode}){const navigate=useNavigate(),location=useLocation();const[,redrawForRuntimeV2]=useState(0);useEffect(()=>{const redraw=()=>redrawForRuntimeV2(value=>value+1);window.addEventListener(RUNTIME_V2_EVENT,redraw);return()=>window.removeEventListener(RUNTIME_V2_EVENT,redraw);},[]);const pageLabel=currentWorkspacePage(role,location.pathname);useEffect(()=>{document.body.classList.remove('workspace-modal-open');},[location.pathname]);async function handleLogout(){sessionStorage.removeItem('cali-preview-role');sessionStorage.removeItem('cali:timer-origin');document.body.classList.remove('workspace-modal-open');if(supabase)await supabase.auth.signOut();navigate('/',{replace:true});}if(role==='client')return <ClientShell scheduling={<ExtraVisitRequest/>} notifications={<NotificationCenter role={role}/>} bridges={<><ProjectTimerBridge role={role}/><ProjectDeliveryHistoryBridge role={role}/><HoursLifecycleBridge role={role}/><OperationalSafetyBridgeV2 role={role}/></>} onLogout={handleLogout}>{children}</ClientShell>;if(usesV2(location.pathname))return <AdminShell extras={<><GlobalTimerBar role={role}/>{location.pathname==='/admin/clientes'&&<ExtraVisitExpenses/>}</>} notifications={<NotificationCenter role={role}/>} bridges={<><ProjectTimerBridge role={role}/><ProjectDeliveryHistoryBridge role={role}/><HoursLifecycleBridge role={role}/><OperationalSafetyBridgeV2 role={role}/></>} onLogout={handleLogout}>{children}</AdminShell>;return <div className="app-shell" data-visual-system="v2" data-workspace-role={role}><Sidebar role={role}/><ProjectTimerBridge role={role}/><ProjectDeliveryHistoryBridge role={role}/><HoursLifecycleBridge role={role}/><OperationalSafetyBridgeV2 role={role}/><main className="main"><header className="topbar"><div className="topbar-context"><span className="topbar-context-mark" aria-hidden="true"/><div><small>{role==='admin'?'CALI Workspace':'Área da empresa'}</small><strong>{pageLabel}</strong></div></div><div className="top-actions"><GlobalTimerBar role={role}/>{role==='admin'&&location.pathname==='/admin/clientes'&&<ExtraVisitExpenses/>}{role==='admin'&&<ExternalProductsTopNav/>}<ThemeToggle/><NotificationCenter role={role}/><button className="icon-button topbar-logout" type="button" aria-label="Sair do Workspace" title="Sair" onClick={handleLogout}><LogOut size={19}/></button></div></header><div className={`workspace-view workspace-brand-scene ${watermarkScene(location.pathname)}`}><div className="workspace-brand-watermarks" aria-hidden="true"><span className="workspace-watermark workspace-watermark-lime"/><span className="workspace-watermark workspace-watermark-oak"/></div>{children}</div></main></div>;}
+
+export function WorkspaceFrame({role,children}:{role:Role;children:ReactNode}){return <WorkspaceFrameContext.Provider value={true}><WorkspaceChrome role={role}>{children}</WorkspaceChrome></WorkspaceFrameContext.Provider>;}
+
+export function Shell({role,children}:{role:Role;children:ReactNode}){const persistent=useContext(WorkspaceFrameContext);return persistent?<>{children}</>:<WorkspaceChrome role={role}>{children}</WorkspaceChrome>;}
+export function Kpi({label,value,helper}:{label:string;value:string;helper:string}){return <article className="kpi"><span>{label}</span><strong>{value}</strong><small>{helper}</small></article>;}
+export function Progress({value}:{value:number}){const bounded=Math.max(0,Math.min(100,value));return <div className="progress" aria-label={`${bounded}%`}><span style={{width:`${bounded}%`}}/></div>;}

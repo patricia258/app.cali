@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { LEGAL_VERSION, legalEnabled, privacyPolicy, termsOfUse } from '../../legal/legalTexts';
-import { supabase } from '../../lib/supabase';
+import { LEGAL_VERSION, legalEnabled, privacyPolicy, termsOfUse } from '../../domain/legalTexts';
+import { supabase } from '../supabase';
 import type { WorkspaceRole } from './profile';
 
 const publicationSchema = z.object({

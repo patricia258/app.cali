@@ -1,7 +1,7 @@
 /* Sinal de presença do cronômetro. Enquanto a pessoa mexe no Workspace, avisa o banco a cada 2 minutos que ela está ali
    (função touch_my_timers). Se o sinal parar por 30 minutos — aba fechada, computador dormindo, pessoa ausente — o banco
    pausa o cronômetro sozinho, contando só até o último sinal (rotina close_stale_timers, migração 20261014090000). */
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 
 let started = false;
 let lastActivity = Date.now();

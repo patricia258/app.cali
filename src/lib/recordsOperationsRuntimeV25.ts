@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 
 type Role = 'admin' | 'client';
 type RecordRow = {

@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 
 export async function createPortalProposalPdfUrl(path:string,expiresIn=1800){
   if(!supabase) throw new Error('Supabase não configurado.');

@@ -2,11 +2,11 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { FileCheck2 } from 'lucide-react';
 import { confirmTermsAcceptance, readTermsState, type TermsState } from '../api/access/terms';
 import type { WorkspaceRole } from '../api/access/profile';
-import { supabase } from '../lib/supabase';
-import { LegalDocument } from '../legal/LegalDocument';
-import { privacyPolicy, termsOfUse } from '../legal/legalTexts';
-import { useWorkspaceAuth } from './WorkspaceAuthProvider';
-import '../legal/legal.css';
+import { supabase } from '../api/supabase';
+import { LegalDocument } from '../components/legal/LegalDocument';
+import { privacyPolicy, termsOfUse } from '../domain/legalTexts';
+import { useWorkspaceAuth } from './hooks/useWorkspaceAuth';
+import '../styles/legal.css';
 
 type GateState =
   | { kind: 'checking' }

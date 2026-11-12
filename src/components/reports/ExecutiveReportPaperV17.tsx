@@ -7,7 +7,7 @@ import { feedbackLabelV16 } from '../../lib/reportV16';
 import { periodChangeSignalsV17 } from '../../lib/reportEditorialV17';
 import { augmentReportData, reportManualComplementsFromSnapshot, reportManualMinutes } from '../../lib/reportManualComplements';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../api/supabase';
 import { ReportValidationBlockV55, type ReportIdentityV55 } from './ReportValidationV55';
 
 type Company = { name: string; logoUrl?: string | null };

@@ -1,5 +1,5 @@
 import { caliWorkstreams } from '../domain/projects';
-import { supabase } from './supabase';
+import { supabase } from '../api/supabase';
 import { isWorkspaceRoute } from '../runtime/routeActivity';
 
 type Scope = 'active' | 'closed';
