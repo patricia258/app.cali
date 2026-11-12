@@ -57,11 +57,9 @@ async function mockPlanning(context, origin, { empty = false, noCompanies = fals
   return writes;
 }
 
-async function draftFront(row, { name, objective, start, end }) {
-  await row.getByPlaceholder('Nome da frente', { exact: true }).fill(name);
-  await row.getByPlaceholder('Objetivo / contexto', { exact: true }).fill(objective);
-  await row.getByRole('spinbutton').nth(0).fill(String(start));
-  await row.getByRole('spinbutton').nth(1).fill(String(end));
+async function nameCustomFront(form, name) {
+  await form.getByRole('combobox', { name: 'Frente CALI', exact: true }).selectOption('Outro');
+  await form.getByPlaceholder('Nome da nova frente', { exact: true }).fill(name);
 }
 
 browserSuite([
@@ -82,7 +80,7 @@ browserSuite([
       const create = page.getByRole('dialog', { name: 'Novo projeto', exact: true });
       assert.equal(await create.getByRole('combobox', { name: 'Cliente', exact: true }).inputValue(), newCompanyId);
       await create.getByRole('textbox', { name: 'Nome do projeto', exact: true }).fill(newProject);
-      await create.getByPlaceholder('Nome da frente', { exact: true }).fill('Primeira frente QA');
+      await nameCustomFront(create, 'Primeira frente QA');
       await create.getByRole('button', { name: 'Criar cronograma', exact: true }).click();
       await page.getByRole('heading', { name: newProject, exact: true }).waitFor();
 
@@ -139,13 +137,14 @@ browserSuite([
       await accounts.selectOption(newCompanyId);
       await create.getByRole('textbox', { name: 'Nome do projeto', exact: true }).fill(`  ${newProject}  `);
       await create.getByLabel('Início', { exact: true }).fill('2026-12-01');
-      await create.getByLabel('Previsão final', { exact: true }).fill('2027-02-28');
+      await create.getByLabel(/^Previsão final/).fill('2027-02-28');
       await create.getByRole('spinbutton', { name: /^Prazo esperado de resposta/ }).fill('5');
       await create.getByRole('button', { name: 'Frente', exact: true }).click();
       await create.getByRole('button', { name: 'Frente', exact: true }).click();
       const drafts = create.locator('.front-draft-row');
-      await draftFront(drafts.nth(0), { name: '  Diagnóstico QA  ', objective: '  Ler o cenário  ', start: 1, end: 2 });
-      await draftFront(drafts.nth(1), { name: 'Execução QA', objective: '', start: 2, end: 3 });
+      await nameCustomFront(drafts.nth(0), '  Diagnóstico QA  ');
+      await drafts.nth(0).getByPlaceholder('Objetivo / contexto', { exact: true }).fill('  Ler o cenário  ');
+      await nameCustomFront(drafts.nth(1), 'Execução QA');
       await save.click();
       await create.waitFor({ state: 'hidden' });
       await page.getByRole('heading', { name: newProject, exact: true }).waitFor();
@@ -165,15 +164,13 @@ browserSuite([
       const add = frontDialog.getByRole('button', { name: 'Adicionar frente', exact: true });
       assert.equal(await add.isDisabled(), true);
       await frontDialog.getByText(newProject, { exact: true }).waitFor();
-      await frontDialog.getByRole('textbox', { name: 'Nome da frente', exact: true }).fill('Frente cancelada QA');
+      await nameCustomFront(frontDialog, 'Frente cancelada QA');
       await frontDialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
       assert.equal(writes.length, 2);
 
       await frontTrigger.click();
-      await frontDialog.getByRole('textbox', { name: 'Nome da frente', exact: true }).fill('  Encerramento QA  ');
+      await nameCustomFront(frontDialog, '  Encerramento QA  ');
       await frontDialog.getByRole('textbox', { name: 'Objetivo / contexto', exact: true }).fill('  Registrar os resultados  ');
-      await frontDialog.getByRole('spinbutton', { name: 'Mês inicial', exact: true }).fill('3');
-      await frontDialog.getByRole('spinbutton', { name: 'Mês final', exact: true }).fill('3');
       await add.click();
       await frontDialog.waitFor({ state: 'hidden' });
 
@@ -186,11 +183,11 @@ browserSuite([
           client_response_business_days: 5, adjustment_limit: 3,
         } },
         { table: 'project_workstreams', data: [
-          { ...base, name: 'Diagnóstico QA', objective: 'Ler o cenário', roadmap_month_start: 1, roadmap_month_end: 2, sort_order: 1 },
-          { ...base, name: 'Execução QA', objective: null, roadmap_month_start: 2, roadmap_month_end: 3, sort_order: 2 },
+          { ...base, name: 'Diagnóstico QA', objective: 'Ler o cenário', roadmap_month_start: 1, roadmap_month_end: 1, sort_order: 1 },
+          { ...base, name: 'Execução QA', objective: null, roadmap_month_start: 1, roadmap_month_end: 1, sort_order: 2 },
         ] },
         { table: 'project_workstreams', data: {
-          ...base, name: 'Encerramento QA', objective: 'Registrar os resultados', roadmap_month_start: 3, roadmap_month_end: 3, sort_order: 3,
+          ...base, name: 'Encerramento QA', objective: 'Registrar os resultados', roadmap_month_start: 1, roadmap_month_end: 1, sort_order: 3,
         } },
       ]);
 
