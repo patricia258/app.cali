@@ -24,9 +24,6 @@ function eligible(report?: WithdrawableReport | null) {
   return Boolean(
     report
     && ['sent', 'published'].includes(report.status)
-    && Number(report.client_open_count || 0) === 0
-    && !report.client_first_opened_at
-    && !report.acknowledged_at
     && !report.withdrawn_at
   );
 }
@@ -42,6 +39,7 @@ function currentProtocol() {
 }
 
 function correctionModal(report: WithdrawableReport) {
+  const canWithdraw = Number(report.client_open_count || 0) === 0 && !report.client_first_opened_at && !report.acknowledged_at;
   const backdrop = document.createElement('div');
   backdrop.className = 'modal-backdrop full-screen-modal report-withdraw-v62-backdrop';
   const card = document.createElement('section');
@@ -50,11 +48,12 @@ function correctionModal(report: WithdrawableReport) {
   card.setAttribute('aria-modal', 'true');
   card.innerHTML = `
     <button type="button" class="modal-close report-withdraw-v62-close" aria-label="Fechar">×</button>
-    <span class="section-kicker">ANTES DA PRIMEIRA VISUALIZAÇÃO</span>
-    <h2>Este fechamento ainda pode ser corrigido.</h2>
-    <p>O cliente ainda não abriu o relatório nem registrou ciência. Você pode voltar para edição mantendo o conteúdo atual ou retirar esta emissão e começar novamente.</p>
-    <div class="report-withdraw-v62-note"><strong>Importante</strong><span>O e-mail que já foi enviado não pode ser recolhido. Ao corrigir ou retirar, esta versão deixa de ficar disponível no Workspace e permanece apenas no histórico administrativo.</span></div>
-    <label class="report-withdraw-v62-reason">Motivo <span>(opcional)</span><textarea rows="3" maxlength="500" placeholder="Ex.: ajuste de conteúdo antes da primeira leitura"></textarea></label>
+    <span class="section-kicker">CORREÇÃO DE RELATÓRIO</span>
+    <h2>Corrigir fechamento</h2>
+    <p>A versão enviada sai da área do cliente até a próxima liberação. O conteúdo e a ciência anterior ficam no histórico da CALI.</p>
+    <div class="report-withdraw-v62-note"><strong>Importante</strong><span>O cliente recebe a nova revisão após aprovação e envio.</span></div>
+    <label class="report-withdraw-v62-reason">Motivo<textarea rows="3" maxlength="500"></textarea></label>
+    <label><input type="checkbox" class="report-revision-ask-ack" /> Solicitar nova ciência ao cliente</label>
     <div class="modal-actions">
       <button type="button" class="secondary report-withdraw-v62-cancel">Cancelar</button>
       <button type="button" class="danger report-withdraw-v62-remove">Retirar sem substituir</button>
@@ -69,6 +68,7 @@ function correctionModal(report: WithdrawableReport) {
   const cancel = card.querySelector('.report-withdraw-v62-cancel') as HTMLButtonElement | null;
   const edit = card.querySelector('.report-withdraw-v62-edit') as HTMLButtonElement | null;
   const remove = card.querySelector('.report-withdraw-v62-remove') as HTMLButtonElement | null;
+  if (remove && !canWithdraw) remove.hidden = true;
   card.querySelector('.report-withdraw-v62-close')?.addEventListener('click', close);
   cancel?.addEventListener('click', close);
   backdrop.addEventListener('pointerdown', (event) => { if (event.target === backdrop) close(); });
@@ -92,12 +92,14 @@ function correctionModal(report: WithdrawableReport) {
   async function run(mode: 'edit' | 'remove') {
     if (!supabase) return;
     const reason = clean((card.querySelector('textarea') as HTMLTextAreaElement | null)?.value).slice(0, 500);
+    if (reason.length < 3) { showError('Informe o motivo da correção.'); return; }
+    const requestAcknowledgement = Boolean(card.querySelector<HTMLInputElement>('.report-revision-ask-ack')?.checked);
     setBusy(true);
     if (mode === 'edit' && edit) edit.textContent = 'Preparando edição…';
     if (mode === 'remove' && remove) remove.textContent = 'Retirando…';
 
     const result = mode === 'edit'
-      ? await supabase.rpc('reopen_unopened_report_v63', { p_report_id: report.id, p_reason: reason || null })
+      ? await supabase.rpc('revise_delivered_report', { p_report_id: report.id, p_reason: reason, p_request_acknowledgement: requestAcknowledgement })
       : await supabase.rpc('withdraw_unopened_report_v62', { p_report_id: report.id, p_reason: reason || null });
 
     if (result.error) {
@@ -114,7 +116,8 @@ function correctionModal(report: WithdrawableReport) {
     }
 
     close();
-    window.location.reload();
+    if (mode === 'edit' && typeof result.data === 'string') window.location.assign('/admin/relatorios?report=' + encodeURIComponent(result.data));
+    else window.location.reload();
   }
 
   edit?.addEventListener('click', () => void run('edit'));
@@ -127,7 +130,7 @@ function addButton(container: Element, report: WithdrawableReport, compact = fal
   button.type = 'button';
   button.className = compact ? 'report-withdraw-v62-button compact' : 'secondary report-withdraw-v62-button';
   button.dataset.withdrawReportId = report.id;
-  button.title = 'Editar ou retirar enquanto o cliente ainda não visualizou';
+  button.title = 'Abrir revisão para correção';
   button.textContent = 'Corrigir';
   button.addEventListener('click', (event) => {
     event.preventDefault();

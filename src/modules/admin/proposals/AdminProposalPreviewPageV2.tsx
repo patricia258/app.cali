@@ -1,9 +1,11 @@
+import { AdminMaterialReview } from '../../shared/material-review/AdminMaterialReview';
+import { useMaterialDeliveryConfirmation } from '../../../hooks/useMaterialDeliveryConfirmation';
 import { useEffect, useState, type ReactNode } from 'react';
 import { ArrowLeft, Loader2, Mail, Printer, X } from 'lucide-react';
 import { useNavigate } from '../../../hooks/useNavigate';
 import { useParams } from '../../../hooks/useParams';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { loadPortalProposal, portalServiceLabel, sendPortalProposal, type PortalProposal, type PortalSubmission } from '../../../api/commercial/portal';
+import { loadPortalProposal, portalServiceLabel, sendPortalProposal, updatePortalProposal, type PortalProposal, type PortalSubmission } from '../../../api/commercial/portal';
 import { PACKAGE_META } from '../../../lib/portalProposalConfig';
 import { getProposalProfile } from '../../../lib/portalProposalParity';
 
@@ -27,10 +29,21 @@ function cleanRecurringPaymentNote(v:any){const x=present(v).trim();if(!x)return
 function Page({proposal,index,total,className='',darkHeader=false,minimalFooter=false,children}:{proposal:FullProposal;index:number;total:number;className?:string;darkHeader?:boolean;minimalFooter?:boolean;children:ReactNode}){const validity=new Date(proposal.updated_at||proposal.created_at);validity.setDate(validity.getDate()+Number(proposal.validity_days||15));return <article className={`portal-proposal-page proposal-v3 ${className}`}><span className="proposal-watermark proposal-watermark-lime" aria-hidden="true"/><span className="proposal-watermark proposal-watermark-oak" aria-hidden="true"/><header className={darkHeader?'dark':''}><img src={darkHeader?CALI_LOGO_LIGHT:CALI_LOGO} alt="CALI — HR for Business"/><div><strong>{proposal.submission.protocol}</strong><span>{date(proposal.updated_at||proposal.created_at)} · válida até {date(validity.toISOString())}</span></div></header><main>{children}</main><footer className={minimalFooter?'minimal':''}>{!minimalFooter&&<span>Patrícia Lima · CALI RH · patricia@calirh.com</span>}<span>{String(index).padStart(2,'0')} / {String(total).padStart(2,'0')}</span></footer></article>}
 
 export function AdminProposalPreviewPageV2(){
+  const { confirmDelivery, completeDelivery } = useMaterialDeliveryConfirmation();
  const{proposalId=''}=useParams();const navigate=useNavigate();const[proposal,setProposal]=useState<FullProposal|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[sendOpen,setSendOpen]=useState(false),[sending,setSending]=useState(false),[company,setCompany]=useState(''),[recipient,setRecipient]=useState(''),[email,setEmail]=useState(''),[note,setNote]=useState(''),[file,setFile]=useState<File|null>(null),[sentMessage,setSentMessage]=useState('');
  useEffect(()=>{void(async()=>{setLoading(true);setError('');try{const data=await loadPortalProposal(proposalId);if(!data)throw new Error('Proposta não encontrada.');setProposal(data);setCompany(data.submission.company_name||'');setRecipient(data.submission.contact_name||'');setEmail(data.submission.contact_email||'')}catch(e){setError(e instanceof Error?e.message:'Não foi possível carregar a proposta.')}finally{setLoading(false)}})()},[proposalId]);
  function print(){if(!proposal)return;const old=document.title;document.title=filename(proposal).replace(/\.pdf$/i,'');window.print();window.setTimeout(()=>{document.title=old},700)}
- async function send(){if(!proposal||!file)return;if(file.size>8*1024*1024)return setError('O PDF ultrapassa 8 MB.');if(recipient.trim().length<2||!email.includes('@'))return setError('Confirme nome e e-mail do decisor.');setSending(true);setError('');setSentMessage('');try{const result=await sendPortalProposal({proposal_id:proposal.id,pdf_base64:await fileBase64(file),pdf_name:file.name,note,company_name:company.trim(),recipient_name:recipient.trim(),recipient_email:email.trim()});setSentMessage(`Proposta enviada para ${result.to||email} ✓`);setProposal(c=>c?{...c,status:'enviada',sent_at:new Date().toISOString()}:c)}catch(e){setError(e instanceof Error?e.message:'Falha no envio.')}finally{setSending(false)}}
+ async function send(){if(!proposal||!file||sending||proposal.status!=='aprovada')return;if(file.size>8*1024*1024)return setError('O PDF ultrapassa 8 MB.');if(recipient.trim().length<2||!email.includes('@'))return setError('Confirme nome e e-mail do decisor.');const requestId=confirmDelivery([email.trim()],[proposal.id,file.name,file.size,file.lastModified,note,company,recipient]);if(!requestId)return;setSending(true);setError('');setSentMessage('');try{const result=await sendPortalProposal({proposal_id:proposal.id,request_id:requestId,pdf_base64:await fileBase64(file),pdf_name:file.name,note,company_name:company.trim(),recipient_name:recipient.trim(),recipient_email:email.trim()});completeDelivery();setSentMessage(`Proposta enviada para ${result.to||email} ✓`);setProposal(c=>c?{...c,status:'enviada',sent_at:new Date().toISOString()}:c)}catch(e){setError(e instanceof Error?e.message:'Falha no envio.')}finally{setSending(false)}}
+ async function approve(){
+   if(!proposal||sending||proposal.status!=='rascunho')return;
+   setSending(true);setError('');
+   try{
+     const saved=await updatePortalProposal(proposal.id,{status:'aprovada'});
+     if(!saved)throw new Error('Não foi possível aprovar a proposta.');
+     setProposal({...proposal,status:saved.status});
+   }catch(reason){setError(reason instanceof Error?reason.message:'Não foi possível aprovar a proposta.');}
+   finally{setSending(false);}
+ }
  if(loading)return <Shell role="admin"><section className="page"><div className="panel portal-admin-loading"><Loader2 className="spin"/>Carregando proposta…</div></section></Shell>;
  if(!proposal)return <Shell role="admin"><section className="page"><div className="inline-notice danger">{error||'Proposta não encontrada.'}</div></section></Shell>;
 
@@ -38,7 +51,7 @@ export function AdminProposalPreviewPageV2(){
  const operatingClean=operating.filter(x=>!/carga mensal contratada|\b\d+\s*horas\b|contrato mínimo|mensalidade remunera|atuação 100% online|passagens|hospedagem|alimentação|deslocamentos/i.test(x)).slice(0,4);
  const roadmapOrCycles=roadmap.length?roadmap:cycles.map((x:any)=>[x.title,x.focus].filter(Boolean).join(' — ')).filter(Boolean);
 
- return <Shell role="admin"><section className="page portal-proposal-preview"><header className="portal-proposal-preview-toolbar"><button className="secondary" onClick={()=>navigate(`/admin/propostas/${proposal.submission_id}/editar`)}><ArrowLeft size={16}/>Editar proposta</button><div><strong>Prévia da proposta · modelo editorial</strong><span>Confira as {total===6?'seis':'cinco'} páginas A4 antes de salvar e enviar.</span></div><div><button className="secondary" onClick={print}><Printer size={16}/>Salvar PDF</button><button className="primary" onClick={()=>setSendOpen(true)}><Mail size={16}/>Enviar por e-mail</button></div></header>{error&&<div className="inline-notice danger">{error}</div>}{proposal.status==='enviada'&&proposal.sent_at&&<div className="inline-notice">Versão enviada em {date(proposal.sent_at)}. Uma nova edição criará outra versão sem alterar esta.</div>}<div className="portal-proposal-document">
+ return <Shell role="admin"><section className="page portal-proposal-preview"><header className="portal-proposal-preview-toolbar"><button className="secondary" onClick={()=>navigate(`/admin/propostas/${proposal.submission_id}/editar`)}><ArrowLeft size={16}/>Editar proposta</button><div><strong>Prévia da proposta · modelo editorial</strong><span>Confira as {total===6?'seis':'cinco'} páginas A4 antes de salvar e enviar.</span></div><div><button className="secondary" onClick={print}><Printer size={16}/>Salvar PDF</button>{proposal.status==='rascunho'&&<button className="primary" disabled={sending} onClick={()=>void approve()}>Aprovar proposta</button>}{proposal.status==='aprovada'&&<button className="primary" disabled={sending} onClick={()=>setSendOpen(true)}><Mail size={16}/>Enviar por e-mail</button>}</div></header>{proposal.status==='rascunho'&&<AdminMaterialReview kind="proposal" entityId={proposal.id} />}{error&&<div className="inline-notice danger">{error}</div>}{proposal.status==='enviada'&&proposal.sent_at&&<div className="inline-notice">Versão enviada em {date(proposal.sent_at)}. Uma nova edição criará outra versão sem alterar esta.</div>}<div className="portal-proposal-document">
 
  <Page proposal={proposal} index={1} total={total} className="proposal-cover" darkHeader>
    <div className="proposal-cover-band">

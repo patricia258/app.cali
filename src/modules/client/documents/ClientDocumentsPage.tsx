@@ -1,3 +1,4 @@
+import { openPrivateWorkspaceFile } from '../../../api/files/workspace';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from '../../../hooks/useLocation';
 import { ArrowLeft, Clock3, FolderOpen, AlertTriangle, CheckCircle2, ChevronRight, Cloud, ExternalLink, Eye, FileCheck2, FileText, MessageSquare, Search, Send, X } from 'lucide-react';
@@ -173,15 +174,13 @@ export function ClientDocumentsPage() {
   }
 
   async function openDocument(doc: ClientDoc) {
-    await markViewed(doc);
-    if (!supabase) return;
-    if (doc.storagePath) {
-      const { data, error: signedError } = await supabase.storage.from('cali-workspace-private').createSignedUrl(doc.storagePath, 300);
-      if (signedError) { setError(signedError.message); return; }
-      if (data?.signedUrl) window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
-      return;
+    try {
+      if (doc.storagePath) await openPrivateWorkspaceFile(doc.storagePath);
+      else if (doc.driveUrl) window.open(doc.driveUrl, '_blank', 'noopener,noreferrer');
+      await markViewed(doc);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível abrir o documento.');
     }
-    if (doc.driveUrl) window.open(doc.driveUrl, '_blank', 'noopener,noreferrer');
   }
 
   async function acknowledgeDocument(doc: ClientDoc) {

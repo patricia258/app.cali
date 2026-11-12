@@ -11,8 +11,9 @@ type RecordRow = {
   workflow_status?: string | null;
 };
 type FeedbackRow = { score: number; comment?: string | null; created_at: string };
+type ClosureRow = { id: string; answered_at: string | null; closed_unanswered_at: string | null };
 type ReopenRow = { id: string; reason?: string | null; requested_at: string; status: string; decision_note?: string | null };
-type Context = { record: RecordRow; feedback: FeedbackRow | null; reopen: ReopenRow | null };
+type Context = { record: RecordRow; closure: ClosureRow | null; feedback: FeedbackRow | null; reopen: ReopenRow | null };
 
 let installed = false;
 let busy = false;
@@ -73,18 +74,24 @@ function overlay(target: HTMLElement, className: string) {
 function addTextBlock(parent: HTMLElement, kicker: string, title: string, copy: string) {
   parent.append(node('span', 'records-v28-kicker', kicker), node('h3', '', title), node('p', '', copy));
 }
-async function getContext(protocol: string): Promise<Context | null> {
+async function getContext(protocol: string, role: Role): Promise<Context | null> {
   if (!supabase || !protocol.startsWith('CALI-REG-')) return null;
   const recordResult = await supabase.from('account_records').select('id,company_id,protocol,title,record_type,workflow_status').eq('protocol', protocol).maybeSingle();
   if (recordResult.error || !recordResult.data) return null;
   const record = recordResult.data as RecordRow;
-  const [feedbackResult, reopenResult] = await Promise.all([
-    supabase.from('account_record_feedback').select('score,comment,created_at').eq('record_id', record.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+  const [closureResult, feedbackResult, reopenResult] = await Promise.all([
+    role === 'client' && record.workflow_status === 'completed'
+      ? supabase.from('account_record_closures').select('id,answered_at,closed_unanswered_at').eq('record_id', record.id).is('superseded_at', null).maybeSingle()
+      : null,
+    role === 'admin'
+      ? supabase.from('account_record_feedback').select('score,comment,created_at').eq('record_id', record.id).order('created_at', { ascending: false }).limit(1).maybeSingle()
+      : null,
     supabase.from('account_record_reopen_requests').select('id,reason,requested_at,status,decision_note').eq('record_id', record.id).eq('status', 'pending').order('requested_at', { ascending: false }).limit(1).maybeSingle(),
   ]);
   return {
     record,
-    feedback: feedbackResult.error ? null : (feedbackResult.data as FeedbackRow | null),
+    closure: (closureResult?.data ?? null) as ClosureRow | null,
+    feedback: (feedbackResult?.data ?? null) as FeedbackRow | null,
     reopen: reopenResult.error ? null : (reopenResult.data as ReopenRow | null),
   };
 }
@@ -100,20 +107,35 @@ function renderThanks(card: HTMLElement, title: string, copy: string, buttonLabe
 }
 
 function renderClientFeedback(target: HTMLElement, ctx: Context) {
-  target.querySelectorAll<HTMLElement>('.records-v27-feedback-overlay').forEach((item) => { item.style.display = 'none'; });
   const existing = target.querySelector<HTMLElement>('.records-v29-feedback-overlay');
-  if (target.dataset.v29FeedbackDone === ctx.record.id && existing) return;
-  if (ctx.record.workflow_status !== 'completed' || ctx.feedback) {
+  const trigger = target.querySelector<HTMLButtonElement>('.records-v29-feedback-trigger');
+  const closure = ctx.closure;
+  if (existing && closure && target.dataset.v29FeedbackDone === closure.id) return;
+  if (ctx.record.workflow_status !== 'completed' || !closure || closure.answered_at || closure.closed_unanswered_at) {
     existing?.remove();
+    trigger?.remove();
     return;
   }
-  if (existing?.dataset.recordId === ctx.record.id) return;
+  if (target.dataset.v29FeedbackDismissed === closure.id) {
+    if (!trigger) {
+      const show = actionButton('Avaliar atendimento', 'secondary records-v29-feedback-trigger');
+      show.onclick = () => {
+        delete target.dataset.v29FeedbackDismissed;
+        show.remove();
+        renderClientFeedback(target, ctx);
+      };
+      target.querySelector('.records-v27-chat-locked')?.append(show);
+    }
+    return;
+  }
+  trigger?.remove();
+  if (existing?.dataset.closureId === closure.id) return;
   existing?.remove();
 
   const layer = overlay(target, 'records-v28-feedback-overlay records-v29-feedback-overlay');
-  layer.dataset.recordId = ctx.record.id;
+  layer.dataset.closureId = closure.id;
   const card = node('section', 'records-v28-feedback-card');
-  addTextBlock(card, 'ANTES DE ENCERRAR', 'Como foi este atendimento?', 'Escolha uma nota de 1 a 5. Você pode revisar antes de enviar.');
+  addTextBlock(card, 'AVALIAÇÃO DO ATENDIMENTO', 'Como foi este atendimento?', 'Escolha uma nota de 1 a 5. Você pode revisar antes de enviar.');
   const scores = node('div', 'records-v28-score-grid');
   const response = node('div', 'records-v28-score-response');
   response.hidden = true;
@@ -121,6 +143,7 @@ function renderClientFeedback(target: HTMLElement, ctx: Context) {
   const labelText = node('span', '', 'Comentário');
   const textarea = node('textarea');
   textarea.rows = 4;
+  textarea.maxLength = 2000;
   textarea.placeholder = 'Conte em poucas palavras.';
   textareaLabel.append(labelText, textarea);
   const actions = node('div', 'records-v28-actions');
@@ -154,8 +177,9 @@ function renderClientFeedback(target: HTMLElement, ctx: Context) {
     if (!supabase || !selected || (selected <= 3 && textarea.value.trim().length < 3)) return;
     submit.disabled = true;
     submit.textContent = 'Registrando…';
-    const result = await supabase.rpc('submit_account_record_feedback', {
+    const result = await supabase.rpc('submit_account_record_closure_feedback', {
       p_record_id: ctx.record.id,
+      p_closure_id: closure.id,
       p_score: selected,
       p_comment: textarea.value.trim() || null,
     });
@@ -165,14 +189,20 @@ function renderClientFeedback(target: HTMLElement, ctx: Context) {
       alert(result.error.message || 'Não foi possível registrar sua avaliação.');
       return;
     }
-    target.dataset.v29FeedbackDone = ctx.record.id;
-    renderThanks(card, 'Obrigada pela sua avaliação.', `Sua nota ${selected}/5 ficou vinculada a esta solicitação. O histórico continua disponível para consulta.`, 'Voltar ao histórico', () => {
+    target.dataset.v29FeedbackDone = closure.id;
+    renderThanks(card, 'Avaliação registrada', 'A avaliação fica vinculada a este encerramento. O histórico continua disponível para consulta.', 'Voltar ao histórico', () => {
       layer.remove();
       delete target.dataset.v29FeedbackDone;
       void enhance();
     });
   };
-  card.append(scores, response);
+  const later = actionButton('Avaliar depois', 'secondary');
+  later.onclick = () => {
+    target.dataset.v29FeedbackDismissed = closure.id;
+    layer.remove();
+    renderClientFeedback(target, ctx);
+  };
+  card.append(scores, response, later);
   layer.append(card);
 }
 
@@ -216,8 +246,6 @@ function showClientReopenDialog(target: HTMLElement, ctx: Context) {
 function renderClientReopen(target: HTMLElement, ctx: Context) {
   const locked = target.querySelector<HTMLElement>('.records-v27-chat-locked');
   if (!locked) return;
-  const legacy = Array.from(locked.querySelectorAll<HTMLButtonElement>(':scope > button')).find((item) => !item.classList.contains('records-v29-reopen-trigger'));
-  if (legacy) legacy.style.display = 'none';
   let trigger = locked.querySelector<HTMLButtonElement>('.records-v29-reopen-trigger');
   if (!trigger) {
     trigger = actionButton('Solicitar reabertura', 'secondary records-v28-reopen-trigger records-v29-reopen-trigger');
@@ -379,7 +407,7 @@ async function enhance() {
   }
   busy = true;
   try {
-    const ctx = await getContext(protocol);
+    const ctx = await getContext(protocol, role);
     if (!ctx || !document.body.contains(target)) return;
     if (role === 'client') {
       renderClientFeedback(target, ctx);

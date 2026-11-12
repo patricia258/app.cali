@@ -1,3 +1,4 @@
+import { openPrivateWorkspaceFile } from '../api/files/workspace';
 import { appendWithMentions } from './mentionText';
 import { supabase } from '../api/supabase';
 import { askWorkspaceLink, workspaceChatAlert } from './workspaceChatDialogs';
@@ -26,7 +27,13 @@ async function hydrateIdentity(value:Identity):Promise<Identity>{return{...value
 function avatar(identity:Identity){const a=document.createElement('span');a.className='records-chat-avatar';if(identity.avatar_url){const x=Number(identity.avatar_position_x??50),y=Number(identity.avatar_position_y??50),zoom=Math.max(1,Number(identity.avatar_zoom??1));a.style.backgroundImage=`url("${identity.avatar_url.replace(/"/g,'\\"')}")`;a.style.backgroundRepeat='no-repeat';a.style.backgroundPosition=`${x}% ${y}%`;a.style.backgroundSize=`${zoom*100}%`;a.dataset.identitySrc=identity.avatar_url;}else a.textContent=initials(identity.full_name);return a;}
 function parseBody(body:string){const files:FileToken[]=[];const clean=body.replace(fileToken,(_m,n,p,t,s)=>{try{files.push({name:decodeURIComponent(n),path:decodeURIComponent(p),mime:decodeURIComponent(t),size:Number(s||0)});}catch{files.push({name:n,path:p,mime:t,size:Number(s||0)});}return'';}).trim();return{clean,files};}
 function linkify(parent:HTMLElement,text:string){text.split(/(https?:\/\/[^\s]+)/g).forEach(part=>{if(/^https?:\/\//i.test(part)){const a=document.createElement('a');a.href=part;a.target='_blank';a.rel='noopener noreferrer';a.textContent=part;parent.append(a);}else if(part)appendWithMentions(parent,part);});}
-async function openFile(file:FileToken){if(!supabase)return;const{data,error}=await supabase.storage.from('cali-workspace-private').createSignedUrl(file.path,300);if(error||!data?.signedUrl){workspaceChatAlert('Não foi possível abrir este anexo agora.');return;}window.open(data.signedUrl,'_blank','noopener,noreferrer');}
+async function openFile(file: FileToken) {
+  try {
+    await openPrivateWorkspaceFile(file.path, file.name);
+  } catch {
+    workspaceChatAlert('Não foi possível abrir este anexo agora.');
+  }
+}
 
 async function identities(r:Role,companyId:string){const map=new Map<string,Identity>();let admin:Identity={full_name:'Patrícia Lima'},client:Identity={full_name:'Cliente'};if(!supabase)return{map,admin,client};const{data:s}=await supabase.auth.getSession();const uid=s.session?.user?.id||'';if(r==='admin'){
   const self=uid?await supabase.from('profiles').select('id,full_name,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom').eq('id',uid).maybeSingle():{data:null};

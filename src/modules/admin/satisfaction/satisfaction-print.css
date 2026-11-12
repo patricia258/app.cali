@@ -1,0 +1,75 @@
+.satisfaction-requests {
+  margin-block: 14px;
+}
+
+.satisfaction-requests ul {
+  padding: 0;
+  list-style: none;
+}
+
+.satisfaction-requests li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-block: 6px;
+}
+
+.satisfaction-requests .satisfaction-print-only {
+  display: none;
+}
+
+@media print {
+  html:has(.v2-admin-nps),
+  body:has(.v2-admin-nps),
+  body:has(.v2-admin-nps) #root {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  body:has(.v2-admin-nps) #root * {
+    visibility: hidden !important;
+  }
+
+  body:has(.v2-admin-nps) #root .v2-admin-nps,
+  body:has(.v2-admin-nps) #root .v2-admin-nps * {
+    visibility: visible !important;
+  }
+
+  html[data-workspace-ui='v2'] .v2-admin-nps .wf-head {
+    display: block !important;
+  }
+
+  body:has(.v2-admin-nps) #root .v2-admin-nps {
+    padding: 12mm !important;
+    print-color-adjust: exact;
+  }
+
+  .v2-admin-nps .v2-head-actions,
+  .v2-admin-nps button {
+    display: none !important;
+  }
+
+  .v2-admin-nps .wf-record-row,
+  .v2-admin-nps .satisfaction-requests li {
+    break-inside: avoid;
+  }
+
+  .v2-admin-nps .satisfaction-requests .satisfaction-print-only {
+    display: flex;
+  }
+}
+
+.satisfaction-print-cohort {
+  display: none;
+}
+
+@media print {
+  .v2-admin-nps .satisfaction-print-cohort {
+    display: block;
+    margin-block: 4mm;
+  }
+}

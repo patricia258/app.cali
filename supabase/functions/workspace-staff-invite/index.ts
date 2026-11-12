@@ -1,3 +1,4 @@
+import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 // CALI Workspace — convite por e-mail para a Equipe CALI (perfil Partner).
 // Só a administradora pode chamar (confere com cali_workspace.is_admin() usando a sessão de quem chamou).
 // Não cria usuário nem dá acesso: apenas envia o e-mail com o endereço do Workspace para quem já está em staff_members.
@@ -8,7 +9,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const APP_URL = "https://app.calirh.com";
+const APP_URL = deliveryAppOrigin;
 
 function cors(request: Request) {
   const origin = request.headers.get("origin") ?? "";
@@ -56,6 +57,7 @@ Deno.serve(async (request) => {
     if (staffError) throw staffError;
     if (!staff || !staff.active) return json(request, { error: "Cadastro não encontrado ou desativado." }, 404);
     if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY não configurada.");
+    if (!emailDestinationsAllowed([staff.email])) return json(request, { error: "Destinatário indisponível neste ambiente." }, 403);
     const resend = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-staff-invite-${crypto.randomUUID()}` },

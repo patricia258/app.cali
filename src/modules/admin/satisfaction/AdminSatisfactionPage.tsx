@@ -3,6 +3,7 @@ import { ArrowUpRight, BarChart3, CalendarRange, Clock3, MessageSquareText, Refr
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { resolveCompanyAsset } from '../../../lib/companyWorkspaceLogo';
 import { supabase } from '../../../api/supabase';
+import './satisfaction-print.css';
 
 type SatisfactionRow = {
   id:string;
@@ -17,13 +18,23 @@ type SatisfactionRow = {
   score:number;
   comment?:string|null;
   createdAt:string;
+  cohortAt?:string;
   sourceType:'record'|'deliverable';
   entityId?:string|null;
   protocol?:string|null;
   title?:string|null;
 };
 
-type PeriodPreset='30'|'90'|'180'|'365'|'all';
+type Closure = {
+  id: string;
+  closed_at: string;
+  answered_at: string | null;
+  superseded_at: string | null;
+  closed_unanswered_at: string | null;
+  account_records: { company_id: string; title: string; companies: { display_name: string } | null };
+};
+
+type PeriodPreset='month'|'30'|'90'|'180'|'365'|'all';
 // Tratativa das notas baixas (tabela satisfaction_followups, só administradora).
 type Followup={theme:string|null;note:string|null;handledAt:string};
 const THEMES:[string,string][]=[['prazo','Prazo'],['qualidade','Qualidade da entrega'],['comunicacao','Comunicação'],['atendimento','Atendimento'],['outro','Outro']];
@@ -39,23 +50,59 @@ export function AdminSatisfactionPage(){
   const [rows,setRows]=useState<SatisfactionRow[]>([]);
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState('');
-  const [period,setPeriod]=useState<PeriodPreset>('90');
-  const [company,setCompany]=useState('all');
+  const [period,setPeriod]=useState<PeriodPreset>('month');
+  const [company,setCompany]=useState('');
   const [source,setSource]=useState<'all'|'record'|'deliverable'>('all');
   const [score,setScore]=useState('all');
   const [from,setFrom]=useState('');
   const [to,setTo]=useState('');
-  // Solicitações finalizadas (visíveis ao cliente): denominador da taxa de resposta.
   const [followups,setFollowups]=useState<Record<string,Followup>>({});
   const [editing,setEditing]=useState<SatisfactionRow|null>(null);
   const [draft,setDraft]=useState({theme:'',note:''});
   const [savingFollow,setSavingFollow]=useState(false);
-  const [closedRecords,setClosedRecords]=useState<{companyId:string;closedAt:string}[]>([]);
+  const [closures,setClosures]=useState<Closure[]>([]);
+  const [closing,setClosing]=useState<string|null>(null);
+  const [requestsPage,setRequestsPage]=useState(1);
+
+  async function loadClosures() {
+    const db = supabase;
+    if (!db) return;
+    const entries: Closure[] = [];
+    const size = 250;
+    for (let offset = 0; ; offset += size) {
+      const { data, error } = await db.from('account_record_closures')
+        .select('id,closed_at,answered_at,superseded_at,closed_unanswered_at,account_records!inner(company_id,title,companies(display_name))')
+        .order('closed_at', { ascending: false }).order('id').range(offset, offset + size - 1);
+      if (error) throw new Error(error.message);
+      entries.push(...((data ?? []) as unknown as Closure[]));
+      if (!data || data.length < size) break;
+    }
+    setClosures(entries);
+  }
+
+  async function closeRequest(id: string) {
+    if (!supabase || closing || !window.confirm('Encerrar a espera por esta avaliação?')) return;
+    setClosing(id);
+    setError('');
+    try {
+      const { error } = await supabase.rpc('close_account_record_feedback_request', { p_closure_id: id });
+      if (error) throw new Error(error.message);
+      await loadClosures();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Não foi possível encerrar a espera.');
+    } finally {
+      setClosing(null);
+    }
+  }
 
   async function load(){
     if(!supabase)return;setLoading(true);setError('');
     try{
-      const result=await supabase.rpc('get_admin_satisfaction_responses_v39');
+      const [result, follow] = await Promise.all([
+        supabase.rpc('get_admin_satisfaction_responses_v39'),
+        supabase.from('satisfaction_followups').select('source_type,response_id,theme,note,handled_at'),
+        loadClosures(),
+      ]);
       if(result.error)throw result.error;
       const hydrated=await Promise.all(((result.data||[])as SatisfactionRow[]).map(async(row)=>({
         ...row,
@@ -63,19 +110,31 @@ export function AdminSatisfactionPage(){
         responderAvatarResolved:await resolveCompanyAsset(row.responderAvatar||''),
       })));
       setRows(hydrated);
-      const follow=await supabase.from('satisfaction_followups').select('source_type,response_id,theme,note,handled_at');
       if(!follow.error)setFollowups(Object.fromEntries((follow.data||[]).map((row:any)=>[`${row.source_type}:${row.response_id}`,{theme:row.theme,note:row.note,handledAt:row.handled_at}])));
-      const closed=await supabase.from('account_records').select('company_id,closed_at,last_activity_at').eq('workflow_status','completed').eq('visibility','client');
-      if(!closed.error)setClosedRecords((closed.data||[]).map((row:any)=>({companyId:row.company_id,closedAt:row.closed_at||row.last_activity_at})).filter((row)=>row.closedAt));
     }catch(requestError){setError(requestError instanceof Error?requestError.message:'Não foi possível carregar as avaliações.');}
     finally{setLoading(false);}
   }
   useEffect(()=>{void load();},[]);
 
-  const companies=useMemo(()=>Array.from(new Map(rows.map((row)=>[row.companyId,row.company])).entries()).sort((a,b)=>a[1].localeCompare(b[1],'pt-BR')),[rows]);
+  const companies=useMemo(() => {
+    const names = new Map(rows.map((row) => [row.companyId, row.company]));
+    closures.forEach(({ account_records: record }) => {
+      if (record.companies) names.set(record.company_id, record.companies.display_name);
+    });
+    return [...names].sort((a, b) => a[1].localeCompare(b[1], 'pt-BR'));
+  }, [rows, closures]);
+  useEffect(() => {
+    if (!company && companies.length) setCompany(companies[0][0]);
+  }, [companies, company]);
+
   const range=useMemo(()=>{
     const now=new Date();
     let start:Date|null=null,end:Date|null=null;
+    if (period === 'month' && !from && !to) {
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      return { start: new Date(year, month, 1), end: new Date(year, month + 1, 1, 0, 0, 0, -1) };
+    }
     if(from){start=new Date(`${from}T00:00:00`);}else if(period!=='all'){start=new Date(now);start.setDate(start.getDate()-Number(period));start.setHours(0,0,0,0);}
     if(to){end=new Date(`${to}T23:59:59.999`);}
     return{start,end};
@@ -83,12 +142,12 @@ export function AdminSatisfactionPage(){
   const periodFiltered=useMemo(()=>{
     const{start,end}=range;
     return rows.filter((row)=>{
-      const created=new Date(row.createdAt);
+      const created=new Date(row.cohortAt || row.createdAt);
       return (!start||created>=start)&&(!end||created<=end)&&(source==='all'||row.sourceType===source)&&(score==='all'||row.score===Number(score));
     });
   },[rows,range,source,score]);
 
-  const filtered=useMemo(()=>periodFiltered.filter((row)=>company==='all'||row.companyId===company),[periodFiltered,company]);
+  const filtered=useMemo(()=>periodFiltered.filter((row)=>!company||company==='all'||row.companyId===company),[periodFiltered,company]);
 
   const metrics=useMemo(()=>{
     const total=filtered.length,average=total?filtered.reduce((sum,row)=>sum+row.score,0)/total:null;
@@ -99,28 +158,32 @@ export function AdminSatisfactionPage(){
     return{total,average,comments,attention,distribution,satisfied};
   },[filtered]);
 
-  // Taxa de resposta: só faz sentido para solicitações — no entregável a nota é parte da aprovação (sempre há avaliação).
-  const responseRate=useMemo(()=>{
-    const{start,end}=range;
-    const finished=closedRecords.filter((row)=>{const closed=new Date(row.closedAt);return(!start||closed>=start)&&(!end||closed<=end)&&(company==='all'||row.companyId===company);}).length;
-    const answered=rows.filter((row)=>{const created=new Date(row.createdAt);return row.sourceType==='record'&&(!start||created>=start)&&(!end||created<=end)&&(company==='all'||row.companyId===company);}).length;
-    return{finished,answered,pct:finished?Math.min(100,Math.round(answered/finished*100)):null};
-  },[closedRecords,rows,range,company]);
+  const cohort = useMemo(() => closures.filter((entry) => {
+    const closed = new Date(entry.closed_at);
+    return (!range.start || closed >= range.start) && (!range.end || closed <= range.end)
+      && (!company || company === 'all' || entry.account_records.company_id === company);
+  }), [closures, range, company]);
+  const waiting = cohort.filter((entry) => !entry.answered_at && !entry.superseded_at && !entry.closed_unanswered_at);
+  const answered = cohort.filter((entry) => entry.answered_at).length;
+  const closedUnanswered = cohort.length - waiting.length - answered;
+  const responseRate = cohort.length ? Math.round(answered / cohort.length * 100) : null;
 
   // Variação por empresa: média do período contra a média do período anterior de mesmo tamanho.
   const previousAverage=useMemo(()=>{
     const map=new Map<string,number>();
     if(period==='all'||from||to||!range.start)return map;
-    const end=range.start,start=new Date(end);start.setDate(start.getDate()-Number(period));
+    const end=range.start,start=new Date(end);
+    if (period === 'month') start.setMonth(start.getMonth() - 1);
+    else start.setDate(start.getDate()-Number(period));
     const sums=new Map<string,{sum:number;count:number}>();
-    rows.forEach((row)=>{const created=new Date(row.createdAt);if(created>=start&&created<end&&(source==='all'||row.sourceType===source)){const current=sums.get(row.companyId)||{sum:0,count:0};current.sum+=row.score;current.count+=1;sums.set(row.companyId,current);}});
+    rows.forEach((row)=>{const created=new Date(row.cohortAt || row.createdAt);if(created>=start&&created<end&&(source==='all'||row.sourceType===source)){const current=sums.get(row.companyId)||{sum:0,count:0};current.sum+=row.score;current.count+=1;sums.set(row.companyId,current);}});
     sums.forEach((value,key)=>map.set(key,value.sum/value.count));
     return map;
   },[rows,range,period,from,to,source]);
 
   const monthSeries=useMemo(()=>{
     const map=new Map<string,{sum:number;count:number}>();
-    filtered.forEach((row)=>{const date=new Date(row.createdAt);const key=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;const current=map.get(key)||{sum:0,count:0};current.sum+=row.score;current.count+=1;map.set(key,current);});
+    filtered.forEach((row)=>{const date=new Date(row.cohortAt || row.createdAt);const key=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;const current=map.get(key)||{sum:0,count:0};current.sum+=row.score;current.count+=1;map.set(key,current);});
     return Array.from(map.entries()).sort(([a],[b])=>a.localeCompare(b)).slice(-12).map(([key,value])=>({key,label:new Intl.DateTimeFormat('pt-BR',{month:'short',year:'2-digit'}).format(new Date(`${key}-01T12:00:00`)).replace('.',''),average:value.sum/value.count,count:value.count}));
   },[filtered]);
 
@@ -165,23 +228,28 @@ export function AdminSatisfactionPage(){
   const y=(average:number)=>185-((average-1)/4)*165;
 
   return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-nps v2-client-module"><div className="ap-content"><div className="wf">
-    <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Satisfação</h1><p>Como os clientes avaliam cada entrega aprovada e cada solicitação finalizada, de 1 a 5.</p></div><div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={()=>void load()} disabled={loading}><RefreshCw size={15}/> {loading?'Atualizando…':'Atualizar'}</button></div></div>
+    <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Satisfação</h1><p>Como os clientes avaliam cada entrega aprovada e cada solicitação finalizada, de 1 a 5.</p></div><div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={()=>void load()} disabled={loading}><RefreshCw size={15}/> {loading?'Atualizando…':'Atualizar'}</button><button className="wf-secondary" type="button" disabled={loading || Boolean(error)} onClick={() => window.print()}>Imprimir / salvar PDF</button></div></div>
     {error&&<div className="inline-notice">{error}</div>}
 
     <div className="wf-controls v2-nps-controls">
-      <div className="wf-segments">{([['30','30 dias'],['90','90 dias'],['180','6 meses'],['365','12 meses'],['all','Todo período']] as Array<[PeriodPreset,string]>).map(([value,label])=><button type="button" key={value} className={period===value&&!from&&!to?'on':''} onClick={()=>selectPreset(value)}>{label}</button>)}</div>
+      <div className="wf-segments">{([['month','Este mês'],['30','30 dias'],['90','90 dias'],['180','6 meses'],['365','12 meses'],['all','Todo período']] as Array<[PeriodPreset,string]>).map(([value,label])=><button type="button" key={value} className={period===value&&!from&&!to?'on':''} onClick={()=>selectPreset(value)}>{label}</button>)}</div>
       <label className="v2-nps-date">De<input type="date" value={from} onChange={(e)=>{setFrom(e.target.value);setPeriod('all');}}/></label>
       <label className="v2-nps-date">Até<input type="date" value={to} onChange={(e)=>{setTo(e.target.value);setPeriod('all');}}/></label>
-      <select className="wf-record-filter" aria-label="Empresa" value={company} onChange={(e)=>setCompany(e.target.value)}><option value="all">Todas as empresas</option>{companies.map(([id,name])=><option value={id} key={id}>{name}</option>)}</select>
+      <select className="wf-record-filter" aria-label="Empresa" value={company || 'all'} onChange={(e)=>{setCompany(e.target.value);setRequestsPage(1);}}><option value="all">Todas as empresas</option>{companies.map(([id,name])=><option value={id} key={id}>{name}</option>)}</select>
       <select className="wf-record-filter" aria-label="Origem" value={source} onChange={(e)=>setSource(e.target.value as any)}><option value="all">Todas as origens</option><option value="record">Ocorrências / solicitações</option><option value="deliverable">Entregáveis</option></select>
       <select className="wf-record-filter" aria-label="Nota" value={score} onChange={(e)=>setScore(e.target.value)}><option value="all">Todas as notas</option>{[5,4,3,2,1].map((value)=><option key={value} value={value}>{value}/5 · {scoreLabel(value)}</option>)}</select>
     </div>
 
+    <p className="satisfaction-print-cohort">
+      {companies.find(([id]) => id === company)?.[1] ?? 'Todas as empresas'} · {range.start?.toLocaleDateString('pt-BR') ?? 'Início do histórico'}
+      {range.end ? ` a ${range.end.toLocaleDateString('pt-BR')}` : ''} · {source === 'all' ? 'Todas as origens' : sourceLabel(source)}
+      {score !== 'all' ? ` · Nota ${score}/5` : ''}
+    </p>
     <section className="v2-nps-kpis">
       <article><i><Star size={16}/></i><span>Índice de satisfação</span><strong>{metrics.average==null?'—':metrics.average.toFixed(1).replace('.',',')}<small>/5</small></strong><em>média das notas do período</em></article>
       <article><i><BarChart3 size={16}/></i><span>Satisfeitos</span><strong>{metrics.total?Math.round(metrics.satisfied/metrics.total*100):0}%</strong><em>{metrics.satisfied} de {metrics.total} com nota 4 ou 5</em></article>
       <article><i><MessageSquareText size={16}/></i><span>Base do período</span><strong>{metrics.total}</strong><em>{metrics.total===1?'avaliação registrada':'avaliações registradas'}</em></article>
-      <article className={responseRate.pct!=null&&responseRate.pct<30?'weak':''}><i><Clock3 size={16}/></i><span>Taxa de resposta</span><strong>{responseRate.pct==null?'—':`${responseRate.pct}%`}</strong><em>{responseRate.finished?`${responseRate.answered} de ${responseRate.finished} solicitações finalizadas${responseRate.pct!=null&&responseRate.pct<30?' · sinal fraco':''}`:'sem solicitações finalizadas no período'}</em></article>
+      {source !== 'deliverable' && <article className={responseRate !== null && responseRate < 30 ? 'weak' : ''}><i><Clock3 size={16}/></i><span>Taxa de resposta</span><strong>{responseRate === null ? '—' : `${responseRate}%`}</strong><em>{answered} de {cohort.length} encerramentos no período</em></article>}
       <article><i><UserRound size={16}/></i><span>Feedback qualitativo</span><strong>{metrics.total?Math.round(metrics.comments/metrics.total*100):0}%</strong><em>{metrics.comments} com comentário</em></article>
       <article className={metrics.attention?'attention':''}><i><CalendarRange size={16}/></i><span>Pedem atenção</span><strong>{metrics.attention}</strong><em>{metrics.attention?`${handledCount} de ${metrics.attention} já tratadas`:'notas de 1 a 3 · ação CALI'}</em></article>
     </section>
@@ -192,6 +260,17 @@ export function AdminSatisfactionPage(){
       <section className="v2-nps-panel"><header><div><small>RECORTE POR EMPRESA</small><h2>Onde a percepção está concentrada</h2></div><BarChart3 size={16}/></header>{companySeries.length?<div className="v2-nps-rank">{companySeries.map((item)=><div key={item.id}><div><strong>{item.name}</strong><small>{item.count} {item.count===1?'avaliação':'avaliações'} · média {item.average.toFixed(1).replace('.',',')}{(()=>{const before=previousAverage.get(item.id);if(before==null)return null;const delta=item.average-before;if(Math.abs(delta)<0.05)return <b className="flat"> · estável</b>;return <b className={delta<0?'down':'up'}> · {delta<0?'▼':'▲'} {Math.abs(delta).toFixed(1).replace('.',',')} vs período anterior</b>;})()}</small></div><div><i style={{width:`${Math.max(8,item.average/5*100)}%`}}/></div></div>)}</div>:<p className="v2-nps-empty">Sem avaliações no recorte.</p>}</section>
       <section className="v2-nps-panel"><header><div><small>ORIGEM DA AVALIAÇÃO</small><h2>De onde o feedback está vindo</h2></div><Clock3 size={16}/></header><div className="v2-nps-source">{sourceSeries.map((item)=><div key={item.key}><span>{item.label}</span><strong>{item.count}</strong><div><i style={{width:`${periodFiltered.length?item.count/periodFiltered.length*100:0}%`}}/></div></div>)}</div></section>
     </div>
+
+    {source !== 'deliverable' && <section className="v2-nps-panel satisfaction-requests">
+      <h2>Solicitações de avaliação</h2>
+      <p>{cohort.length} solicitadas · {answered} respondidas · {waiting.length} aguardando · {closedUnanswered} encerradas sem resposta</p>
+      {waiting.length > 0 && <ul>{waiting.map((entry, index) => <li key={entry.id} className={index >= requestsPage * 10 ? 'satisfaction-print-only' : undefined}>
+        <span>{entry.account_records.title} · {formatDate(entry.closed_at)}</span>
+        <button type="button" className="wf-secondary" disabled={closing !== null} onClick={() => void closeRequest(entry.id)}>Encerrar espera</button>
+      </li>)}</ul>}
+      {waiting.length > requestsPage * 10 && <button type="button" className="wf-secondary"
+        onClick={() => setRequestsPage((page) => page + 1)}>Mostrar mais solicitações</button>}
+    </section>}
 
     <div className="wf-group-head"><div><span>RESPOSTAS</span><strong>Todas as avaliações do período</strong></div><b>{filtered.length}</b></div>
     {loading?<div className="data-loading">Carregando avaliações…</div>:filtered.length?<div className="wf-records v2-nps-list">
@@ -210,7 +289,7 @@ export function AdminSatisfactionPage(){
       })}
     </div>:<div className="wf-empty"><strong>Nenhuma avaliação encontrada com os filtros atuais.</strong><p>Amplie o período ou limpe os filtros.</p></div>}
 
-    <p className="v2-nps-note">A avaliação nasce quando o cliente aprova um entregável ou quando uma solicitação visível a ele é finalizada. As duas origens são reunidas aqui sem misturar o contexto de cada uma. A taxa de resposta considera só as solicitações: no entregável a nota faz parte da aprovação.</p>
+
   </div></div>
   {editing&&<div className="ap-pd-overlay" onMouseDown={(event)=>{if(event.target===event.currentTarget)setEditing(null);}}><section className="ap-status-confirm v2-nps-follow-dialog" role="dialog" aria-modal="true" aria-label="Tratativa da avaliação">
     <div><small>SATISFAÇÃO · NOTA {editing.score}/5</small><h2>{followups[followKey(editing)]?'Tratativa registrada':'Marcar como tratada'}</h2><p>{editing.company} · {editing.responderName||'Cliente'} · {editing.title||'Avaliação do cliente'}</p>{editing.comment?.trim()&&<p className="v2-nps-quote">“{editing.comment.trim()}”</p>}</div>

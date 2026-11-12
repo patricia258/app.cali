@@ -1,3 +1,4 @@
+import { useMaterialDeliveryConfirmation } from '../../../hooks/useMaterialDeliveryConfirmation';
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ExternalLink, FileText, Loader2, PencilLine } from 'lucide-react';
 import { useNavigate } from '../../../hooks/useNavigate';
@@ -5,7 +6,7 @@ import { useParams } from '../../../hooks/useParams';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { markRuntimeV2 } from '../../../v2/routes';
 import { applyVisualSystem } from '../../../v2/visualSystem';
-import { loadPortalProposal, type PortalProposal, type PortalSubmission } from '../../../api/commercial/portal';
+import { loadPortalProposal, sendPortalProposal, type PortalProposal, type PortalSubmission } from '../../../api/commercial/portal';
 import { createPortalProposalPdfUrl } from '../../../lib/portalProposalPdf';
 import { supabase } from '../../../api/supabase';
 import { AdminProposalPreviewPageV2 } from './AdminProposalPreviewPageV2';
@@ -13,6 +14,9 @@ import { AdminProposalPreviewPageV2 } from './AdminProposalPreviewPageV2';
 type FullProposal=PortalProposal&{submission:PortalSubmission};
 
 export function AdminProposalPreviewPageV3(){
+  const { confirmDelivery, completeDelivery } = useMaterialDeliveryConfirmation();
+  const [sending, setSending] = useState(false);
+  const [sentMessage, setSentMessage] = useState('');
   const{proposalId=''}=useParams();const navigate=useNavigate();
   const legacyFrameRef=useRef<HTMLIFrameElement|null>(null);
   const[proposal,setProposal]=useState<FullProposal|null>(null),[pdfUrl,setPdfUrl]=useState(''),[loading,setLoading]=useState(true),[error,setError]=useState('');
@@ -58,6 +62,23 @@ export function AdminProposalPreviewPageV3(){
   const archivedPdf=Boolean(proposal?.pdf_path);
   useEffect(()=>{if(!archivedPdf)return;markRuntimeV2(window.location.pathname);void applyVisualSystem(window.location.pathname);},[archivedPdf]);
 
+  async function resend() {
+    if (!proposal || sending) return;
+    const recipient = proposal.submission.contact_email.trim();
+    const requestId = confirmDelivery([recipient], [proposal.id]);
+    if (!requestId) return;
+    setSending(true);
+    setError('');
+    setSentMessage('');
+    try {
+      const result = await sendPortalProposal({ proposal_id: proposal.id, request_id: requestId, recipient_email: recipient });
+      completeDelivery();
+      setSentMessage(`Proposta reenviada para ${result.to || recipient}.`);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Não foi possível reenviar a proposta.');
+    } finally { setSending(false); }
+  }
+
   if(loading)return <Shell role="admin"><section className="page"><div className="panel portal-admin-loading"><Loader2 className="spin"/>Carregando proposta…</div></section></Shell>;
   if(!proposal)return <Shell role="admin"><section className="page"><div className="inline-notice danger">{error||'Proposta não encontrada.'}</div></section></Shell>;
 
@@ -67,6 +88,8 @@ export function AdminProposalPreviewPageV3(){
 
   return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-proposals v2-admin-pdfview v2-client-module"><div className="ap-content"><div className="wf">
    <div className="wf-head"><div><small>PROPOSTAS / VERSÃO OFICIAL ARQUIVADA</small><h1>Proposta v{proposal.version} · {proposal.submission.company_name||proposal.submission.contact_name}</h1><p>Este é o PDF efetivamente salvo e enviado. O documento não é alterado pela plataforma.</p></div><div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={()=>navigate('/admin/propostas')}><ArrowLeft size={15}/> Propostas</button><button className="wf-secondary" type="button" onClick={()=>navigate(`/admin/propostas/${proposal.submission_id}/editar`)}><PencilLine size={15}/> Criar nova versão</button>{pdfUrl&&<button className="wf-primary" type="button" onClick={()=>window.open(pdfUrl,'_blank','noopener,noreferrer')}><ExternalLink size={15}/> Abrir PDF original</button>}</div></div>
+   {proposal.status==='enviada'&&<button type="button" className="wf-secondary" disabled={sending} onClick={()=>void resend()}>{sending?'Enviando…':'Reenviar proposta'}</button>}
+   {sentMessage&&<p className="inline-notice success" role="status">{sentMessage}</p>}
    {error&&<div className="inline-notice danger">{error}</div>}
    <div className="v2-pdf-frame">{pdfUrl?<iframe title={`Proposta v${proposal.version}`} src={pdfUrl}/>:<div className="wf-empty"><strong>O registro possui um PDF arquivado, mas ele não pôde ser aberto.</strong><p>Tente novamente em instantes.</p></div>}</div>
   </div></div></div></Shell>;

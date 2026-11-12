@@ -1,0 +1,30 @@
+.notice-review-panel {
+  margin-block: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--theme-line);
+  border-radius: 12px;
+  background: var(--theme-surface);
+}
+
+.notice-review-panel h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.notice-review-panel ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.notice-review-panel li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding-block: 8px;
+}
+
+.notice-review-body {
+  white-space: pre-wrap;
+}

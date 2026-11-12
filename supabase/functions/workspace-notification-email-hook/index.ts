@@ -1,3 +1,4 @@
+import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { renderApprovedClientEmail } from "./approved-client-templates.ts";
@@ -18,7 +19,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const FROM_EMAIL = "APP CALI RH <workspace@calirh.com>";
 const REPLY_TO = "nao-responda@calirh.com";
-const APP_URL = "https://app.calirh.com";
+const APP_URL = deliveryAppOrigin;
 const LOGO_URL = `${APP_URL}/brand/cali-workspace-transparent.svg`;
 const MARK_URL = `${APP_URL}/brand/cali-oak-mark-light.svg`;
 const headers = { "Content-Type": "application/json" };
@@ -66,6 +67,53 @@ function html(title: string, body: string, url: string, company: string, context
   </td></tr></table></body></html>`;
 }
 
+async function deliverTimerWarning(ws: ReturnType<ReturnType<typeof createClient>["schema"]>, id: string) {
+  const stale = new Date(Date.now() - 120000).toISOString();
+  const cutoff = new Date(Date.now() - 23 * 3600000).toISOString();
+  const lease = new Date().toISOString();
+  const { data: warning, error } = await ws.from("communication_outbox")
+    .update({ status: "sending", updated_at: lease, error_message: null })
+    .eq("id", id).eq("template_key", "partner_timer_presence_warning")
+    .lte("scheduled_for", lease).gte("created_at", cutoff)
+    .or(`status.in.(pending,error),and(status.eq.sending,updated_at.lt.${stale})`)
+    .select("id,recipient_email,subject,metadata").maybeSingle();
+  if (error) throw error;
+  if (!warning) return { ok: true, skipped: "already_processed" };
+  const finish = (values: Record<string, string | null>) => ws.from("communication_outbox").update({
+    ...values, updated_at: new Date().toISOString(),
+  }).eq("id", id).eq("updated_at", lease).eq("status", "sending");
+  try {
+    const recipientId = warning.metadata?.recipient_user_id;
+    const { data: recipient } = await ws.from("profiles").select("active,email,role").eq("id", recipientId).maybeSingle();
+    const email = String(warning.recipient_email).trim().toLowerCase();
+    if (!recipient?.active || !["admin", "partner"].includes(recipient.role) || recipient.email?.toLowerCase() !== email || !emailDestinationsAllowed([email])) {
+      await finish({ status: "cancelled", error_message: "Destinatário indisponível." });
+      return { ok: true, skipped: "recipient_unavailable" };
+    }
+    const target = recipient.role === "admin" ? "/admin/horas" : "/equipe/horas";
+    const paused = warning.subject === "Cronômetro pausado por inatividade";
+    const copy = paused
+      ? "O trecho registrado fica disponível em Horas para justificativa."
+      : "O cronômetro está há 25 minutos sem atividade. Abra o Workspace e use Continuo aqui para manter a contagem.";
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST", redirect: "error", signal: AbortSignal.timeout(15000),
+      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-partner-timer-${id}` },
+      body: JSON.stringify({
+        from: FROM_EMAIL, to: [email], reply_to: REPLY_TO, subject: warning.subject,
+        html: html(warning.subject, copy, APP_URL + target, "Equipe CALI"),
+      }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.id) throw new Error("Envio não confirmado.");
+    const { error: finishError } = await finish({ status: "sent", provider_id: result.id, sent_at: new Date().toISOString() });
+    if (finishError) throw finishError;
+    return { ok: true };
+  } catch (error) {
+    await finish({ status: "error", error_message: "Envio não confirmado." });
+    throw error;
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return new Response(JSON.stringify({ ok: false, error: "method_not_allowed" }), { status: 405, headers });
   try {
@@ -76,6 +124,9 @@ Deno.serve(async (req: Request) => {
     if (!provided || !secretRow?.secret_value || provided !== secretRow.secret_value) return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), { status: 401, headers });
 
     const payload = await req.json().catch(() => ({}));
+    if (typeof payload?.outbox_id === "string" && /^[0-9a-f-]{36}$/i.test(payload.outbox_id)) {
+      return Response.json(await deliverTimerWarning(ws, payload.outbox_id), { headers });
+    }
     const notificationId = String(payload?.notification_id || "");
     if (!/^[0-9a-f-]{36}$/i.test(notificationId)) return new Response(JSON.stringify({ ok: false, error: "invalid_notification" }), { status: 400, headers });
 
@@ -93,6 +144,9 @@ Deno.serve(async (req: Request) => {
     if (profileError) throw profileError;
     if (!profile?.active || !profile.email) return new Response(JSON.stringify({ ok: true, skipped: "recipient_unavailable" }), { headers });
 
+    if (!emailDestinationsAllowed([String(profile.email)])) {
+      return Response.json({ ok: false, error: "destination_not_allowed" }, { status: 403 });
+    }
     let context: { protocol?: string; type?: string; subject?: string } | undefined;
     if (notification.entity_type === "account_record" && notification.entity_id) {
       const { data: record } = await ws.from("account_records").select("protocol,title,record_type").eq("id", notification.entity_id).maybeSingle();
@@ -532,12 +586,11 @@ Deno.serve(async (req: Request) => {
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-notification-${notification.id}` },
       body: JSON.stringify({ from: FROM_EMAIL, to: [String(profile.email).trim().toLowerCase()], reply_to: REPLY_TO, subject: outgoingSubject, html: outgoingHtml }),
     });
-    const text = await response.text();
-    if (!response.ok) throw new Error(`Resend ${response.status}: ${text}`);
+    if (!response.ok) throw new Error("Envio não confirmado pelo provedor.");
     await ws.from("notifications").update({ emailed_at: new Date().toISOString() }).eq("id", notification.id).is("emailed_at", null);
     return new Response(JSON.stringify({ ok: true, to: profile.email, subject: outgoingSubject }), { headers });
   } catch (error) {
-    console.error("workspace-notification-email-hook", error);
+    console.error("workspace-notification-email-hook delivery failed");
     return new Response(JSON.stringify({ ok: false, error: error instanceof Error ? error.message : "unknown_error" }), { status: 500, headers });
   }
 });

@@ -1,3 +1,4 @@
+import { useMaterialDeliveryConfirmation } from '../../../hooks/useMaterialDeliveryConfirmation';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowUpRight,
@@ -187,6 +188,7 @@ function fileToBase64(file: File) {
 }
 
 export function AdminPeopleMapPageV2() {
+  const { confirmDelivery, completeDelivery } = useMaterialDeliveryConfirmation();
   const [records, setRecords] = useState<MapaRecord[]>([]);
   const [journeys, setJourneys] = useState<JourneyRecord[]>([]);
   const [tab, setTab] = useState<'respostas' | 'jornada'>('respostas');
@@ -288,14 +290,17 @@ export function AdminPeopleMapPageV2() {
     window.open(`https://wa.me/${number}?text=${encodeURIComponent(text)}`, '_blank');
   }
   async function sendEmail() {
-    if (!supabase || !selected || !pdfFile) return;
+    if (!supabase || !selected || !pdfFile || sendingEmail) return;
     if (pdfFile.type !== 'application/pdf') { setEmailFeedback('Selecione um arquivo PDF.'); return; }
     if (pdfFile.size > 8 * 1024 * 1024) { setEmailFeedback('O PDF precisa ter até 8 MB.'); return; }
+    const requestId = confirmDelivery([selected.c_email], [selected.id, pdfFile.name, pdfFile.size, pdfFile.lastModified]);
+    if (!requestId) return;
     setSendingEmail(true); setEmailFeedback('Enviando…');
     try {
       const pdfBase64 = await fileToBase64(pdfFile);
-      const { data, error: fnError } = await supabase.functions.invoke('workspace-enviar-relatorio-mapa', { body: { response_id: selected.id, pdf_base64: pdfBase64, request_id: crypto.randomUUID() } });
-      if (fnError || !data?.ok) throw new Error(data?.error || fnError?.message || 'Falha ao enviar.');
+      const { data, error: fnError } = await supabase.functions.invoke('workspace-enviar-relatorio-mapa', { body: { response_id: selected.id, pdf_base64: pdfBase64, request_id: requestId } });
+      if (fnError || !data?.ok || !data?.email_id) throw new Error(data?.error || fnError?.message || 'Falha ao enviar.');
+      completeDelivery();
       setEmailFeedback(`Enviado para ${data.to || selected.c_email} ✓`);
       setRecords((current) => current.map((item) => item.id === selected.id ? { ...item, status: 'enviado', relatorio_enviado_em: new Date().toISOString() } : item));
       setSelected((current) => current ? { ...current, status: 'enviado', relatorio_enviado_em: new Date().toISOString() } : current);

@@ -135,14 +135,15 @@ export async function updatePortalProposal(id:string,patch:Partial<Pick<PortalPr
   const rows=await request<PortalProposal[]>(`cali_proposals?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({...patch,updated_at:new Date().toISOString()})});return rows[0]||null;
 }
 
-export async function sendPortalProposal(input:{proposal_id:string;pdf_base64:string;pdf_name:string;note:string;company_name:string;recipient_name:string;recipient_email:string}){
+export async function sendPortalProposal(input:{proposal_id:string;request_id:string;pdf_base64?:string;pdf_name?:string;note?:string;company_name?:string;recipient_name?:string;recipient_email:string}){
   const { text, ok } = await portalResponse('/functions/v1/portal-send-proposal', {
     method: 'POST',
     body: JSON.stringify(input),
   });
   const result = parsePortalJson(text, {});
-  if (!ok) {
-    const failure = result as { error?: unknown } | null;
+  const response = result as { ok?: boolean; email_id?: string; error?: unknown } | null;
+  if (!ok || !response?.ok || !response.email_id) {
+    const failure = response;
     throw new Error(String(failure?.error || 'Não foi possível enviar a proposta.'));
   }
   return result as { ok: true; email_id?: string; to?: string; subject?: string };

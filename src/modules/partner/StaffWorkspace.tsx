@@ -13,13 +13,15 @@ import { Link } from '../../components/navigation/Link';
 import { Navigate } from '../../components/navigation/Navigate';
 import { useLocation } from '../../hooks/useLocation';
 import { useNavigate } from '../../hooks/useNavigate';
-import { ArrowRight, Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, Pause, SendHorizontal, Users, X } from 'lucide-react';
+import { ArrowRight, Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart2, FolderOpen, LayoutDashboard, Megaphone, MessageCircleMore, Send, SendHorizontal, Users, X } from 'lucide-react';
 import { supabase } from '../../api/supabase';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
 import { RouteRuntimeManager } from '../../runtime/RouteRuntimeManager';
 import { type WelcomeStep } from '../../v2/WelcomeTour';
 import { WorkspaceShellV2 } from '../../v2/WorkspaceShellV2';
-import { StaffNoticesPage } from '../shared/notices/NoticesBoard';
+import { StaffNotices } from './notices/StaffNotices';
+import { StaffTimerBar } from './timer/StaffTimerBar';
+import { StaffMaterials } from './materials/StaffMaterials';
 import { StaffDashboard } from './home/StaffDashboard';
 import { usePartnerWorkspace } from './hooks/usePartnerWorkspace';
 import type { PartnerWorkspace } from '../../api/partner/workspace';
@@ -48,17 +50,6 @@ const welcomeSteps: WelcomeStep[] = [
 ];
 
 type Notice = { id: string; title: string; body: string | null; action_url: string | null; created_at: string };
-// Cronômetro ligado, sempre à vista na barra do topo (como o da administradora). Pausar grava a sessão direto no extrato; a tarefa continua aberta.
-function StaffTimerBar({ me }: { me: PartnerWorkspace }) {
-  const [timers, setTimers] = useState<{ id: string; company_id: string; started_at: string; paused_seconds: number | null; description: string | null }[]>([]);
-  const [now, setNow] = useState(Date.now()); const [busy, setBusy] = useState(''); const [notice, setNotice] = useState('');
-  const load = async () => { if (!supabase) return; const result = await supabase.from('work_timers').select('id,company_id,started_at,paused_seconds,description').eq('user_id', me.id).eq('status', 'active').order('started_at'); if (!result.error) setTimers((result.data as any) || []); };
-  useEffect(() => { void load(); const refresh = window.setInterval(() => void load(), 8000); const tick = window.setInterval(() => setNow(Date.now()), 1000); return () => { window.clearInterval(refresh); window.clearInterval(tick); }; }, [me.id]);
-  useEffect(() => { if (!notice) return; const timer = window.setTimeout(() => setNotice(''), 4200); return () => window.clearTimeout(timer); }, [notice]);
-  const stop = async (id: string) => { if (!supabase) return; setBusy(id); const result = await supabase.rpc('partner_stop_timer', { p_timer_id: id }); setBusy(''); setNotice(result.error ? 'Não foi possível pausar o cronômetro. Tente de novo.' : (result.data as any)?.discarded ? 'Cronômetro descartado: menos de 30 segundos.' : 'Sessão registrada. Dê play para continuar depois.'); await load(); window.dispatchEvent(new Event('cali-staff-timer-changed')); };
-  const clock = (timer: { started_at: string; paused_seconds: number | null }) => { const total = Math.max(0, Math.floor((now - new Date(timer.started_at).getTime()) / 1000) - (timer.paused_seconds || 0)); return `${String(Math.floor(total / 3600)).padStart(2, '0')}:${String(Math.floor((total % 3600) / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`; };
-  return <>{timers.length > 0 && <div className="v2-staff-timers" aria-label="Cronômetros ligados">{timers.map((timer) => <article key={timer.id} className="v2-staff-timer"><Clock3 size={15} /><div><strong>{clock(timer)}</strong><small title={timer.description || ''}>{(timer.description || '').split(' · ').pop() || me.companies.find((item) => item.id === timer.company_id)?.display_name || 'Atuação'}</small></div><button type="button" disabled={busy === timer.id} onClick={() => void stop(timer.id)}><Pause size={12} /> Pausar</button></article>)}</div>}{notice && <div className="inline-notice success v2-toast" role="status"><span>{notice}</span></div>}</>;
-}
 function StaffBell({ me }: { me: PartnerWorkspace }) {
   const [items, setItems] = useState<Notice[]>([]); const [open, setOpen] = useState(false); const key = `cali:staff-bell-seen:${me.id}`; const [seen, setSeen] = useState(() => { try { return localStorage.getItem(key) || ''; } catch { return ''; } });
   useEffect(() => { let alive = true; const load = async () => { if (!supabase) return; const result = await supabase.from('notifications').select('id,title,body,action_url,created_at,notification_type').eq('user_id', me.id).order('created_at', { ascending: false }).limit(15); if (alive && !result.error) { const rows = (result.data || []) as Notice[]; setItems((current) => { if (current.length && rows[0] && rows[0].id !== current[0]?.id) window.dispatchEvent(new Event('cali:staff-refresh')); return rows; }); } }; void load(); const timer = window.setInterval(load, 20000); const onFocus = () => void load(); window.addEventListener('focus', onFocus); return () => { alive = false; window.clearInterval(timer); window.removeEventListener('focus', onFocus); }; }, [me.id]);
@@ -72,7 +63,7 @@ function Frame({ me, children }: { me: PartnerWorkspace; children: ReactNode }) 
   const navigate = useNavigate(); const { pathname } = useLocation(); const has = (key: string) => me.modules.includes(key);
   /* A Visão geral usa a composição da administradora (.content > .ap-app), sem invólucro, para herdar as mesmas regras, inclusive no celular. */
   const plain = ['/equipe', '/equipe/ocorrencias', '/equipe/projetos', '/equipe/avisos', '/equipe/horas', '/equipe/calendario', '/equipe/documentos'].includes(pathname.replace(/\/$/, ''));
-  const nav = ([['/equipe', 'Visão geral', LayoutDashboard, true], ['/equipe/pessoas', 'Equipe', Users, has('team')], ['/equipe/projetos', 'Projetos', BriefcaseBusiness, has('projects')], ['/equipe/horas', 'Horas', Clock3, has('hours')], ['/equipe/calendario', 'Calendário', CalendarDays, has('calendar')], ['/equipe/ocorrencias', 'Ocorrências', MessageCircleMore, has('records')], ['/equipe/documentos', 'Documentos', FolderOpen, has('documents')], ['/equipe/relatorios', 'Relatórios', FileBarChart2, has('reports')], ['/equipe/avisos', 'Avisos', Megaphone, has('notices')], ['/equipe/aprovacoes', 'Aprovações', Send, true]] as [string, string, typeof Clock3, boolean][]).filter((item) => item[3]).map(([href, label, icon]) => ({ href, label, icon }));
+  const nav = ([['/equipe', 'Visão geral', LayoutDashboard, true], ['/equipe/pessoas', 'Equipe', Users, has('team')], ['/equipe/projetos', 'Projetos', BriefcaseBusiness, has('projects')], ['/equipe/horas', 'Horas', Clock3, has('hours')], ['/equipe/calendario', 'Calendário', CalendarDays, has('calendar')], ['/equipe/ocorrencias', 'Ocorrências', MessageCircleMore, has('records')], ['/equipe/documentos', 'Documentos', FolderOpen, has('documents')], ['/equipe/relatorios', 'Relatórios', FileBarChart2, has('reports')], ['/equipe/materiais', 'Materiais', FileBarChart2, has('reports') || has('proposals') || has('people_map')], ['/equipe/avisos', 'Avisos', Megaphone, has('notices')], ['/equipe/aprovacoes', 'Aprovações', Send, true]] as [string, string, typeof Clock3, boolean][]).filter((item) => item[3]).map(([href, label, icon]) => ({ href, label, icon }));
   /* Entrada e saída ficam registradas para a administradora (função staff_log_session). */
   useEffect(() => { try { if (sessionStorage.getItem('cali:staff-session') === me.id) return; sessionStorage.setItem('cali:staff-session', me.id); } catch { /* segue */ } void supabase?.rpc('staff_log_session', { p_event: 'staff_session_started' }); }, [me.id]);
   async function logout() { try { await supabase?.rpc('staff_log_session', { p_event: 'staff_session_ended' }); sessionStorage.removeItem('cali:staff-session'); } catch { /* a saída não pode ficar presa ao registro */ } await supabase?.auth.signOut(); navigate('/login', { replace: true }); }
@@ -98,27 +89,6 @@ const browse: Record<string, BrowseConfig> = {
   avisos: { eyebrow: 'EQUIPE CALI / AVISOS', title: 'Avisos', text: 'Comunicados publicados para as suas empresas.', empty: 'Nenhum comunicado publicado.', load: async () => { const result = await supabase!.from('notices').select('id,title,protocol,category,status,published_at').order('published_at', { ascending: false }).limit(100); return result.error ? null : (result.data as any[]).map((row) => ({ id: row.id, company_id: null, title: row.title, sub: String(row.protocol || ''), tag: label({ feriado: 'Feriado', atendimento: 'Atendimento', comunicado: 'Comunicado' }, row.category), when: row.published_at })); } },
   pessoas: { eyebrow: 'EQUIPE CALI / EQUIPE DO CLIENTE', title: 'Equipe do cliente', text: 'O quadro de pessoas das suas empresas. Dados salariais não aparecem aqui.', empty: 'Nenhuma pessoa cadastrada nas suas empresas.', load: async () => { const result = await supabase!.from('team_members').select('id,company_id,full_name,job_title,department,status,admission_date').is('archived_at', null).order('full_name').limit(1000); return result.error ? null : (result.data as any[]).map((row) => ({ id: row.id, company_id: row.company_id, title: row.full_name, sub: [row.job_title, row.department].filter(Boolean).join(' · '), tag: label(STATUS, row.status), when: row.admission_date })); } },
 };
-function StaffNotices({ me }: { me: PartnerWorkspace }) {
-  const [open, setOpen] = useState(false); const [version, setVersion] = useState(0); const [draft, setDraft] = useState({ category: 'comunicado', title: '', body: '', date: '', companies: [] as string[] }); const [busy, setBusy] = useState(false); const [error, setError] = useState(''); const [done, setDone] = useState('');
-  async function save(event: FormEvent) { event.preventDefault(); if (!supabase) return; if (!draft.companies.length) { setError('Escolha pelo menos uma empresa.'); return; } if (!draft.title.trim() || !draft.body.trim()) { setError('Escreva o título e a mensagem.'); return; }
-    setBusy(true); setError(''); const result = await supabase.rpc('partner_publish_notice', { p_category: draft.category, p_title: draft.title.trim(), p_body: draft.body.trim(), p_companies: draft.companies, p_date: draft.date || null, p_time: null, p_coverage: null }); setBusy(false);
-    if (result.error) { setError('Não foi possível publicar. Tente de novo.'); return; } setDraft({ category: 'comunicado', title: '', body: '', date: '', companies: [] }); setOpen(false); setDone('Comunicado publicado. As empresas escolhidas foram avisadas e a Patricia também.'); setVersion((value) => value + 1); }
-  /* Mesma composição da página de Avisos da administradora (.content > .ap-app.v2-admin-notices > .ap-content). */
-  return <div className="ap-app v2-admin-page v2-admin-notices"><div className="ap-content">{done && <div className="inline-notice success v2-toast" role="status"><span>{done}</span></div>}
-    <StaffNoticesPage key={version} onCompose={() => { setDone(''); setError(''); setOpen(true); }} />
-    {open && <div className="wf-overlay" onMouseDown={() => setOpen(false)}><form className="wf-modal v2-staff-form" role="dialog" aria-modal="true" aria-label="Novo comunicado" onSubmit={save} onMouseDown={(event) => event.stopPropagation()}>
-      <header><div><small>QUADRO DE AVISOS · EQUIPE CALI</small><h2>Novo comunicado</h2></div><button type="button" onClick={() => setOpen(false)} aria-label="Fechar"><X size={16} /></button></header>
-      <div className="v2-staff-body">
-        <p className="v2-staff-summary">Sai em nome da CALI e chega no sino e no e-mail das empresas escolhidas. Não passa por aprovação: revise antes de publicar.</p>
-        <div className="v2-staff-fields"><label>Tipo<select value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value })}><option value="comunicado">Comunicado</option><option value="atendimento">Atendimento</option><option value="feriado">Feriado</option></select></label><label>Data do aviso (opcional)<input type="date" value={draft.date} onChange={(event) => setDraft({ ...draft, date: event.target.value })} /></label></div>
-        <div className="v2-staff-fields one"><label>Título<input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} autoFocus /></label><label>Mensagem<textarea rows={4} value={draft.body} onChange={(event) => setDraft({ ...draft, body: event.target.value })} /></label></div>
-        <fieldset><legend>Para quais empresas</legend><div className="v2-staff-checks">{me.companies.map((item) => <label key={item.id}><input type="checkbox" checked={draft.companies.includes(item.id)} onChange={() => setDraft({ ...draft, companies: draft.companies.includes(item.id) ? draft.companies.filter((id) => id !== item.id) : [...draft.companies, item.id] })} /><span>{item.display_name}</span></label>)}</div></fieldset>
-        {error && <div className="inline-notice v2-staff-error" role="alert">{error}</div>}
-      </div>
-      <footer><button type="button" className="wf-secondary" onClick={() => setOpen(false)}>Cancelar</button><button type="submit" className="wf-primary" disabled={busy}>{busy ? 'Publicando…' : 'Publicar comunicado'}</button></footer>
-    </form></div>}</div></div>;
-}
-
 function Browse({ me, kind }: { me: PartnerWorkspace; kind: string }) {
   const config = browse[kind]; const [rows, setRows] = useState<BrowseRow[] | null>(null); const [failed, setFailed] = useState(false); const [company, setCompany] = useState(''); const [query, setQuery] = useState('');
   useEffect(() => { let alive = true; setRows(null); setFailed(false); void config.load().then((data) => { if (!alive) return; if (data) setRows(data); else setFailed(true); }); return () => { alive = false; }; }, [kind]);
@@ -127,7 +97,7 @@ function Browse({ me, kind }: { me: PartnerWorkspace; kind: string }) {
   return <><Head eyebrow={config.eyebrow} title={config.title} text={config.text} />
     <div className="toolbar"><CompanySelect me={me} value={company} onChange={setCompany} all /><input className="v2-staff-search" placeholder="Buscar" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Buscar" /></div>
     {failed ? <div className="inline-notice">Não foi possível carregar. Recarregue a página; se continuar, fale com a Patricia.</div> : !rows ? <div className="data-loading">Carregando…</div> : visible.length ? <div className="wf-records v2-staff-browse">{visible.map((row) => <div className={`wf-record-row${(row as any).href ? ' is-link' : ''}`} key={row.id} role={(row as any).href ? 'link' : undefined} tabIndex={(row as any).href ? 0 : undefined} onClick={() => { if ((row as any).href) window.open((row as any).href, '_blank', 'noopener'); }}><div><strong>{row.title}</strong><small>{[row.company_id ? companyName.get(row.company_id) : '', row.sub].filter(Boolean).join(' · ') || '—'}</small></div><span className="wf-tag">{row.tag}</span><small>{row.when ? dayLabel(row.when) : '—'}</small></div>)}</div> : <div className="empty">{config.empty}</div>}
-    <p className="soft-note">{kind === 'avisos' ? 'Você publica comunicados para as suas empresas; os já publicados aparecem na lista.' : 'Tela de consulta. Você vê, mas não altera por aqui.'}</p></>;
+    <p className="soft-note">{kind === 'avisos' ? 'Os comunicados aprovados aparecem na lista.' : 'Tela de consulta. Você vê, mas não altera por aqui.'}</p></>;
 }
 
 /* Acompanhamento do que foi enviado para a Patricia. O envio acontece dentro de cada tela (entregável, ocorrência, horas,
@@ -155,6 +125,7 @@ const sectionModules = {
   documentos: 'documents',
   pessoas: 'team',
   relatorios: 'reports',
+  materiais: null,
   projetos: 'projects',
   avisos: 'notices',
   aprovacoes: null,
@@ -180,6 +151,7 @@ export function StaffWorkspaceSection({ section }: { section: StaffSection }) {
     case 'documentos': return <StaffDocumentsPage />;
     case 'pessoas': return <CompanyTeamPage role="client" staff />;
     case 'relatorios': return <Browse me={me} kind="relatorios" />;
+    case 'materiais': return ['reports','proposals','people_map'].some((key) => me.modules.includes(key)) ? <StaffMaterials /> : <Navigate to="/equipe" replace />;
     case 'projetos': return <StaffProjectsPage companies={me.companies} />;
     case 'avisos': return <StaffNotices me={me} />;
     case 'aprovacoes': return <Reviews me={me} />;

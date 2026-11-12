@@ -1,3 +1,4 @@
+import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 
@@ -6,7 +7,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const FROM_EMAIL = "APP CALI RH <workspace@calirh.com>";
 const REPLY_TO = "nao-responda@calirh.com";
-const APP_URL = "https://app.calirh.com";
+const APP_URL = deliveryAppOrigin;
 const LOGO_URL = `${APP_URL}/brand/cali-workspace-transparent.svg`;
 const MARK_URL = `${APP_URL}/brand/cali-oak-mark.svg`;
 const headers = { "Content-Type": "application/json" };
@@ -105,7 +106,7 @@ Deno.serve(async (req: Request) => {
     let sent = 0;
     for (const [userId, userRows] of grouped) {
       const profile: any = profiles.get(userId);
-      if (!profile?.active || !profile.email) continue;
+      if (!profile?.active || !profile.email || !emailDestinationsAllowed([String(profile.email)])) continue;
       const threadMap = new Map<string, Thread>();
       for (const notification of userRows) {
         const record = notification.entity_id ? records.get(notification.entity_id) : undefined;

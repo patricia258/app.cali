@@ -17,9 +17,10 @@ export const STAFF_MODULES: [string, string, string][] = [
   ['calendar', 'Calendário', 'Criar agendamentos em nome da CALI'],
   ['documents', 'Documentos', 'Preparar documentos das empresas atribuídas'],
   ['reports', 'Relatórios', 'Preparar relatórios e enviar para você aprovar'],
-  ['notices', 'Avisos', 'Publicar comunicados'],
+  ['notices', 'Avisos', 'Preparar comunicados para revisão'],
+  ['proposals', 'Propostas', 'Preparar propostas atribuídas para revisão'],
   ['team', 'Equipe do cliente', 'Ver o quadro de pessoas, sem dados salariais'],
-  ['people_map', 'Mapa de People', 'Acessar e gerar o Mapa'],
+  ['people_map', 'Mapa de People', 'Preparar pareceres atribuídos para revisão'],
 ];
 type Pending = { id: string; kind: 'hours' | 'review'; reviewKind?: string; entityId?: string | null; payload?: any; staff_user_id: string; company_id: string; title: string; detail: string; meta: string; created_at: string };
 type Decision = { item: Pending; approve: boolean; note: string };
@@ -119,7 +120,7 @@ export function AdminStaffPage() {
     try { const result = await supabase.functions.invoke('workspace-staff-invite', { body: { staffId: person.id } }); sent = !result.error && (result.data as any)?.ok === true; } catch { sent = false; }
     setInviting(''); setInvite({ name: person.full_name, email: person.email, sent });
   }
-  const inviteText = (name: string, email: string) => `Olá, ${name.split(' ')[0]}!\n\nVocê agora faz parte da Equipe CALI e já tem acesso ao CALI Workspace.\n\nComo entrar:\n1. Abra https://app.calirh.com/login\n2. Informe este e-mail: ${email}\n3. Digite o código de 6 números que chega em seguida na sua caixa de entrada. Não há senha.\n\nNo primeiro acesso você verá uma apresentação rápida do que cada parte faz.\n\nQualquer dúvida, fale comigo.\nPatricia · CALI RH`;
+  const inviteText = (name: string, email: string) => `Olá, ${name.split(' ')[0]}!\n\nVocê agora faz parte da Equipe CALI e já tem acesso ao CALI Workspace.\n\nComo entrar:\n1. Abra ${window.location.origin}/login\n2. Informe este e-mail: ${email}\n3. Digite o código de 6 números que chega em seguida na sua caixa de entrada. Não há senha.\n\nNo primeiro acesso você verá uma apresentação rápida do que cada parte faz.\n\nQualquer dúvida, fale comigo.\nPatricia · CALI RH`;
   const toggle = (list: string[], value: string) => list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
   async function save(event: FormEvent) {
     event.preventDefault(); if (!supabase || !draft) return;

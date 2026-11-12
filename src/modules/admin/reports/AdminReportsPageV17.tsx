@@ -1,3 +1,6 @@
+import { useSearchParams } from '../../../hooks/useSearchParams';
+import { AdminMaterialReview } from '../../shared/material-review/AdminMaterialReview';
+import { useMaterialDeliveryConfirmation } from '../../../hooks/useMaterialDeliveryConfirmation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, BarChart3, CheckCircle2, Eye, FileText, Loader2, Mail, Printer, RefreshCw, RotateCcw, Send, Trash2, X } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
@@ -75,6 +78,9 @@ function EditorialField({ title, value, onChange, helper, rows = 5, locked }: { 
 }
 
 export function AdminReportsPageV17() {
+  const { confirmDelivery, completeDelivery } = useMaterialDeliveryConfirmation();
+  const [searchParams] = useSearchParams();
+  const deepLinkedReport = searchParams.get('report');
   const initial = monthlyPeriod();
   const [companies, setCompanies] = useState<Company[]>([]), [reports, setReports] = useState<Report[]>([]);
   const [companyId, setCompanyId] = useState(''), [reportType, setReportType] = useState<ReportType>('monthly'), [periodStart, setPeriodStart] = useState(initial.start), [periodEnd, setPeriodEnd] = useState(initial.end);
@@ -133,7 +139,7 @@ export function AdminReportsPageV17() {
     try {
       const [companyResult, reportResult] = await Promise.all([
         supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url,service_type,service_plan').neq('status', 'closed').order('display_name'),
-        supabase.from('reports').select('id,company_id,title,report_type,period_start,period_end,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,updated_at,version,revision_parent_id,dismissed_alerts,internal_note,data_refreshed_at,review_started_at,approved_at,sent_at,sent_to').neq('status', 'archived').order('period_start', { ascending: false }).order('version', { ascending: false }),
+        supabase.from('reports').select('id,company_id,title,report_type,period_start,period_end,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,updated_at,version,revision_parent_id,dismissed_alerts,internal_note,data_refreshed_at,review_started_at,approved_at,sent_at,sent_to').order('period_start', { ascending: false }).order('version', { ascending: false }),
       ]);
       if (companyResult.error) throw companyResult.error;
       if (reportResult.error) throw reportResult.error;
@@ -141,8 +147,15 @@ export function AdminReportsPageV17() {
       const logoRows=await Promise.all(nextCompanies.map(async (company) => { const row=(companyResult.data || []).find((entry: any) => entry.id === company.id); return [company.id, await resolveWorkspaceMedia(row?.logo_url || row?.logo_workspace_url, 86400, true) || await resolveWorkspaceMedia(row?.logo_workspace_url, 86400, true)] as const; }));
       const logoMap=new Map(logoRows);
       setCompanies(nextCompanies.map((company)=>({...company,logoUrl:logoMap.get(company.id)||''})));
-      setReports((reportResult.data || []).map(reportRow));
-      if (!companyId && nextCompanies.length) setCompanyId(nextCompanies[0].id);
+      const nextReports = (reportResult.data || []).map(reportRow);
+      setReports(nextReports);
+      const requested = !companyId && deepLinkedReport && nextReports.find((row) => row.id === deepLinkedReport);
+      if (requested) {
+        setCompanyId(requested.companyId);
+        setReportType(requested.reportType);
+        setPeriodStart(requested.periodStart);
+        setPeriodEnd(requested.periodEnd);
+      } else if (!companyId && nextCompanies.length) setCompanyId(nextCompanies[0].id);
     } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar Relatórios.'); }
     finally { setLoadingBase(false); }
   }
@@ -301,13 +314,16 @@ export function AdminReportsPageV17() {
   }
 
   async function sendReport() {
-    if (!supabase || !activeReport || activeReport.status !== 'approved') return;
+    if (!supabase || !activeReport || sending || !['approved', 'sent', 'published'].includes(activeReport.status)) return;
     const recipients = sendRecipients.split(/[;,]/).map((item) => item.trim()).filter(Boolean);
     if (!recipients.length) { setError('Informe pelo menos um e-mail de destinatário.'); return; }
+    const requestId = confirmDelivery(recipients, [activeReport.id, sendMessage]);
+    if (!requestId) return;
     setSending(true); setError('');
     try {
-      const result = await supabase.functions.invoke('workspace-send-executive-report', { body: { report_id: activeReport.id, recipients, message: sendMessage } });
-      if (result.error) throw result.error; if ((result.data as any)?.error) throw new Error((result.data as any).error);
+      const result = await supabase.functions.invoke('workspace-send-executive-report', { body: { report_id: activeReport.id, request_id: requestId, recipients, message: sendMessage } });
+      if (result.error || !result.data?.ok || !result.data?.email_id) throw new Error('Não foi possível confirmar o envio do relatório.');
+      completeDelivery();
       setSendOpen(false); setNotice('Relatório disponibilizado no Workspace e enviado por e-mail.'); await loadBase(); await loadPeriod(companyId, reportType, periodStart, periodEnd);
     } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar o relatório.'); }
     finally { setSending(false); }
@@ -343,6 +359,12 @@ export function AdminReportsPageV17() {
     if (activeReport.status === 'draft') return <button className="primary" type="button" disabled={saving || Boolean(readiness && !readiness.can_generate_official)} onClick={() => void startReview()}><Eye size={16} />Iniciar revisão</button>;
     if (activeReport.status === 'review') return <button className="primary" type="button" disabled={saving} onClick={() => void approveReport()}><CheckCircle2 size={16} />Aprovar relatório</button>;
     if (activeReport.status === 'approved') return <button className="primary" type="button" disabled={saving} onClick={() => void openSend()}><Send size={16} />Enviar ao cliente</button>;
+    if (['sent', 'published'].includes(activeReport.status)) {
+      return <>
+        <button className="secondary" type="button" disabled={saving} onClick={() => void openSend()}><Send size={16} />Reenviar ao cliente</button>
+        <button className="primary" type="button" onClick={() => setPreviewOpen(true)}><Eye size={16} />Ver relatório</button>
+      </>;
+    }
     return <button className="primary" type="button" onClick={() => setPreviewOpen(true)}><Eye size={16} />Ver relatório</button>;
   }
 
@@ -352,7 +374,13 @@ export function AdminReportsPageV17() {
   const hasPlanned = Number(kpis?.plannedDeliveries || 0) > 0;
   const hasAdherence = kpis?.deliveryAdherence !== null && kpis?.deliveryAdherence !== undefined;
 
-  const history = <section className="reports-v16-history"><div className="reports-v16-section-heading"><span>08</span><div><h2>Histórico e versões</h2><p>Versões oficiais preservam o fechamento do período. Rascunhos e simulações só existem quando você os cria.</p></div></div><div className="reports-v16-history-table"><div className="head"><span>Período</span><span>Versão</span><span>Status</span><span>Data</span><span>Ações</span></div>{companyReports.slice(0, 12).map((report) => <div className={report.id === activeReport?.id ? 'active' : ''} key={report.id}><button type="button" className="period" onClick={() => { setReportType(report.reportType); setPeriodStart(report.periodStart); setPeriodEnd(report.periodEnd); }}>{periodLabelV14(report.reportType, report.periodStart)}</button><span>v{report.version}</span><span>{(report.snapshot as any)?.workflow_mode === 'simulation' ? 'Simulação' : statusLabel[report.status]}</span><span>{formatDateTime(report.sentAt || report.approvedAt || report.updatedAt)}</span><span className="actions"><button type="button" onClick={() => { setReportType(report.reportType); setPeriodStart(report.periodStart); setPeriodEnd(report.periodEnd); }}>Abrir</button>{['draft', 'review'].includes(report.status) ? <button type="button" className="delete" onClick={() => void deleteReport(report)} aria-label="Excluir versão"><Trash2 size={14} /></button> : null}</span></div>)}</div></section>;
+  const history = <section className="reports-v16-history"><div className="reports-v16-section-heading"><span>08</span><div><h2>Histórico e versões</h2><p>Versões oficiais preservam o fechamento do período. Rascunhos e simulações só existem quando você os cria.</p></div></div><div className="reports-v16-history-table"><div className="head"><span>Período</span><span>Versão</span><span>Status</span><span>Data</span><span>Ações</span></div>{companyReports.slice(0, 12).map((report) => <div className={report.id === activeReport?.id ? 'active' : ''} key={report.id} data-report-id={report.id}><button type="button" className="period" onClick={() => { setReportType(report.reportType); setPeriodStart(report.periodStart); setPeriodEnd(report.periodEnd); }}>{periodLabelV14(report.reportType, report.periodStart)}</button><span>v{report.version}</span><span>{(report.snapshot as any)?.workflow_mode === 'simulation' ? 'Simulação' : statusLabel[report.status]}</span><span>{formatDateTime(report.sentAt || report.approvedAt || report.updatedAt)}</span><span className="actions"><button type="button" onClick={() => {
+      if (report.status === 'archived') {
+        window.open(`/admin/relatorios/impressao/${encodeURIComponent(report.id)}`, '_blank', 'noopener,noreferrer');
+      } else {
+        setReportType(report.reportType); setPeriodStart(report.periodStart); setPeriodEnd(report.periodEnd);
+      }
+    }}>{report.status === 'archived' ? 'Ver versão arquivada' : 'Abrir'}</button>{['draft', 'review'].includes(report.status) ? <button type="button" className="delete" onClick={() => void deleteReport(report)} aria-label="Excluir versão"><Trash2 size={14} /></button> : null}</span></div>)}</div></section>;
 
   const previewEditorial = <>
     {changes.length ? <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>03</span><div><h2>{reportType === 'quarterly' ? 'Evolução dentro do trimestre' : 'O que mudou'}</h2><p>Só existe comparativo quando há base real nos dois períodos.</p></div></div><div className="reports-v16-change-grid">{changes.map((item) => <article className={`tone-${item.tone}`} key={item.id}><span>{item.label}</span><strong>{item.value}</strong><p>{item.detail}</p></article>)}</div></section> : null}
@@ -368,6 +396,7 @@ export function AdminReportsPageV17() {
   const stages = ['Prévia interna', isSimulation ? 'Simulação interna' : 'Fechamento em revisão', 'Aprovado', 'Enviado ao cliente'];
 
   return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-reports v2-client-module"><div className="ap-content"><section className="wf reports-admin-v16">
+    {activeReport && ['draft','review'].includes(activeReport.status) && <AdminMaterialReview kind="report" entityId={activeReport.id} companyId={activeReport.companyId} />}
     <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Relatórios</h1><p>Fechamento executivo de cada conta: fatos do período, curadoria, leitura da CALI, aprovação e envio ao cliente.</p></div></div>
     <div className="wf-controls v2-report-controls"><ol className="v2-report-stages" aria-label="Etapa do fechamento">{stages.map((label, index) => <li key={label} className={index < stageIndex ? 'done' : index === stageIndex ? 'current' : ''}><b>{index + 1}</b><span>{label}</span></li>)}</ol><div className="reports-v16-filters"><label>Empresa<select value={companyId} onChange={(event) => setCompanyId(event.target.value)}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label><label>Tipo<select value={reportType} onChange={(event) => changeType(event.target.value as ReportType)}><option value="monthly">Mensal</option><option value="quarterly">Trimestral</option></select></label>{reportType === 'monthly' ? <label>Período<input type="month" value={periodStart.slice(0, 7)} onChange={(event) => changeMonth(event.target.value)} /></label> : <label>Período<select value={quarterKey(periodStart)} onChange={(event) => changeQuarter(event.target.value)}>{quarters.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>}</div></div>
     {notice ? <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div> : null}{error ? <div className="inline-notice"><AlertTriangle size={18} />{error}</div> : null}

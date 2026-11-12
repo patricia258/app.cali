@@ -8,6 +8,7 @@ const LandingPage = lazy(() => import('../modules/public/landing/LandingPage').t
 const LoginPage = lazy(() => import('../modules/access/sign-in/LoginPage').then((m) => ({ default: m.LoginPage })));
 const LegalPage = lazy(() => import('../modules/public/legal/LegalPage').then((m) => ({ default: m.LegalPage })));
 const PublicFormPage = lazy(() => import('../modules/public/forms/PublicFormPage').then((m) => ({ default: m.PublicFormPage })));
+const PreRegistrationPage = lazy(() => import('../modules/public/pre-registration/PreRegistrationPage').then((m) => ({ default: m.PreRegistrationPage })));
 const AdminFormsPage = lazy(() => import('../modules/admin/forms/AdminFormsPage').then((m) => ({ default: m.AdminFormsPage })));
 const ProfileTestPage = lazy(() => import('../modules/public/disc/ProfileTestPage').then((m) => ({ default: m.ProfileTestPage })));
 const ProfileReportPage = lazy(() => import('../modules/public/disc/ProfileReportPage').then((m) => ({ default: m.ProfileReportPage })));
@@ -151,6 +152,7 @@ const staffRoutes = staffRoute.addChildren([
   staffSection('documentos'),
   staffSection('pessoas'),
   staffSection('relatorios'),
+  staffSection('materiais'),
   staffSection('projetos'),
   staffSection('avisos'),
   staffSection('aprovacoes'),
@@ -173,6 +175,7 @@ const routeTree = rootRoute.addChildren([
   defineRoute('/termos', () => <LegalPage kind="terms" />),
   defineRoute('/politica-do-site', () => <LegalPage kind="site" />),
   defineRoute('/f/$slug', () => <PublicFormPage />),
+  defineRoute('/pre-cadastro/$token', () => <PreRegistrationPage />),
   defineRoute('/perfil/relatorio/$token', () => <ProfileReportPage />),
   defineRoute('/perfil/sair/$token', () => <ProfileOptOutPage />),
   defineRoute('/perfil/$slug', () => <ProfileTestPage />),

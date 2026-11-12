@@ -133,7 +133,7 @@ export function ReportPrintPageV17({ role }: Props) {
         companyId = String(profile.data?.company_id || ''); if (!companyId) throw new Error('Empresa vinculada ao acesso não encontrada.');
       }
       let query = supabase.from('reports').select('id,company_id,report_type,period_start,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,version,approval_identity_snapshot,acknowledgement_identity_snapshot,approved_at,acknowledged_at,acknowledgement_protocol').eq('id', reportId);
-      if (role === 'client') query = query.eq('company_id', companyId).in('status', ['sent', 'published']); else if (role === 'staff') query = query.in('status', ['sent', 'published']); else query = query.neq('status', 'archived');
+      if (role === 'client') query = query.eq('company_id', companyId).in('status', ['sent', 'published']); else if (role === 'staff') query = query.in('status', ['sent', 'published']);
       const reportResult = await query.maybeSingle(); if (reportResult.error) throw reportResult.error;
       const report = reportResult.data; if (!report) throw new Error('Relatório não encontrado ou não disponível para este acesso.');
       const snapshot = normalizeIntelligenceSnapshot(report.source_snapshot); if (!snapshot) throw new Error('A fotografia aprovada deste relatório não está disponível.');

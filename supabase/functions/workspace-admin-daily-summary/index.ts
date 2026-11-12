@@ -1,3 +1,4 @@
+import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 // Resumo diário da administradora: um e-mail por dia, às 19h de Brasília, com o que aconteceu no dia, por cliente.
 // Fonte: os avisos gravados no dia (o que o cliente fez e o que a CALI fez/avisou) e as horas registradas no dia.
 // Chamado só pela rotina do banco, com o segredo "notification_email_hook". Não altera nenhum dado.
@@ -9,7 +10,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const FROM_EMAIL = "APP CALI RH <workspace@calirh.com>";
 const REPLY_TO = "nao-responda@calirh.com";
-const APP_URL = "https://app.calirh.com";
+const APP_URL = deliveryAppOrigin;
 const LOGO_URL = `${APP_URL}/brand/cali-workspace-transparent.svg`;
 const headers = { "Content-Type": "application/json" };
 
@@ -55,6 +56,17 @@ function summaryHtml(dateLabel: string, blocks: Block[], totals: { client: numbe
   </td></tr></table></body></html>`;
 }
 
+async function readPages<T>(read: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>) {
+  const rows: T[] = [];
+  const size = 500;
+  for (let offset = 0; ; offset += size) {
+    const { data, error } = await read(offset, offset + size - 1);
+    if (error) throw error;
+    rows.push(...(data ?? []));
+    if (!data || data.length < size) return rows;
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return new Response(JSON.stringify({ ok: false, error: "method_not_allowed" }), { status: 405, headers });
   try {
@@ -70,21 +82,22 @@ Deno.serve(async (req: Request) => {
     // Dia corrente no horário de Brasília (UTC-3, sem horário de verão).
     const day = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
     const from = `${day}T00:00:00-03:00`, to = `${day}T23:59:59-03:00`;
-    const [noticeResult, profileResult, companyResult, hourResult] = await Promise.all([
-      ws.from("notifications").select("user_id,company_id,notification_type,title,body,action_url,entity_id,created_at").gte("created_at", from).lte("created_at", to).order("created_at").limit(2000),
-      ws.from("profiles").select("id,role,email,active"),
-      ws.from("companies").select("id,display_name"),
-      ws.from("hour_entries").select("company_id,minutes").eq("work_date", day),
+    const [notices, profiles, companies, hours] = await Promise.all([
+      readPages((first, last) => ws.from("notifications")
+        .select("id,user_id,company_id,notification_type,title,body,action_url,entity_id,created_at")
+        .gte("created_at", from).lte("created_at", to).order("created_at").order("id").range(first, last)),
+      readPages((first, last) => ws.from("profiles").select("id,role,email,active").order("id").range(first, last)),
+      readPages((first, last) => ws.from("companies").select("id,display_name").order("id").range(first, last)),
+      readPages((first, last) => ws.from("hour_entries").select("id,company_id,minutes").eq("work_date", day)
+        .order("id").range(first, last)),
     ]);
-    const failure = noticeResult.error || profileResult.error || companyResult.error || hourResult.error;
-    if (failure) throw failure;
 
-    const roles = new Map(((profileResult.data || []) as any[]).map((row) => [row.id, row.role]));
-    const names = new Map(((companyResult.data || []) as any[]).map((row) => [row.id, row.display_name]));
+    const roles = new Map(profiles.map((row) => [row.id, row.role]));
+    const names = new Map(companies.map((row) => [row.id, row.display_name]));
     const blocks = new Map<string, Block>();
     const blockOf = (companyId: string) => { if (!blocks.has(companyId)) blocks.set(companyId, { name: names.get(companyId) || "CALI", fromClient: [], fromCali: [], minutes: 0 }); return blocks.get(companyId)!; };
     const seen = new Set<string>();
-    for (const row of (noticeResult.data || []) as any[]) {
+    for (const row of notices) {
       const role = roles.get(row.user_id);
       // Aviso recebido pela administradora = o cliente (ou o sistema) fez algo; recebido pelo cliente = a CALI fez algo.
       const side = role === "admin" ? "fromClient" : role === "client" ? "fromCali" : null;
@@ -96,7 +109,7 @@ Deno.serve(async (req: Request) => {
       blockOf(row.company_id || "none")[side].push({ title: row.title || "Atualização", body: row.body || "", at: row.created_at, url: side === "fromClient" && path.startsWith(prefix) ? `${APP_URL}${path}` : `${APP_URL}/admin` });
     }
     let minutes = 0;
-    for (const row of (hourResult.data || []) as any[]) { const value = Number(row.minutes || 0); minutes += value; if (value) blockOf(row.company_id || "none").minutes += value; }
+    for (const row of hours) { const value = Number(row.minutes || 0); minutes += value; if (value) blockOf(row.company_id || "none").minutes += value; }
 
     const ordered = [...blocks.values()].filter((block) => block.fromClient.length || block.fromCali.length || block.minutes).sort((a, b) => (b.fromClient.length + b.fromCali.length) - (a.fromClient.length + a.fromCali.length));
     if (!ordered.length) return new Response(JSON.stringify({ ok: true, skipped: "no_activity" }), { headers });
@@ -104,15 +117,16 @@ Deno.serve(async (req: Request) => {
     const dateLabel = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long", timeZone: "America/Sao_Paulo" }).format(new Date());
     const html = summaryHtml(dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1), ordered, totals);
 
-    const admins = ((profileResult.data || []) as any[]).filter((row) => row.role === "admin" && row.active && row.email);
+    const admins = profiles.filter((row) => row.role === "admin" && row.active && row.email);
     let sent = 0;
     for (const admin of admins) {
+      if (!emailDestinationsAllowed([String(admin.email)])) continue;
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-admin-summary-${admin.id}-${day}${keySuffix}` },
         body: JSON.stringify({ from: FROM_EMAIL, to: [String(admin.email).trim().toLowerCase()], reply_to: REPLY_TO, subject: `CALI Workspace · Resumo do dia · ${day.split("-").reverse().join("/")}`, html }),
       });
-      if (!response.ok) { console.error("admin summary resend", response.status, await response.text()); continue; }
+      if (!response.ok) { console.error("admin summary send failed", response.status); continue; }
       sent += 1;
     }
     return new Response(JSON.stringify({ ok: true, recipients: sent, companies: ordered.length, totals }), { headers });

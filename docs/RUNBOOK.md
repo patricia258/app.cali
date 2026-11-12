@@ -33,4 +33,13 @@ O smoke de partida cobriu login por código, MFA, aceite e isolamento por empres
 
 O Preview usa a branch revisada, backend de homologação e credenciais e callbacks próprios. Depois de passar a validação local, confirme o commit, o ambiente Vercel, as rotas públicas e o login com contas autorizadas de teste. Registre URL e roteiro de aceite.
 
+1. Selecione um projeto Supabase de homologação com Auth, Storage e Edge Functions próprios. Restaure a estrutura e as fixtures sintéticas. Confira o schema exposto, os papéis gerenciados, a permissão de configurar `pgrst.db_pre_request` e o proprietário das políticas de `storage.objects` antes de aplicar as migrations. Mantenha `main` e o projeto de produção na revisão publicada até um corte separado.
+2. Configure as variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` no ambiente Preview da branch. Na Edge, configure `CALI_DELIVERY_MODE=isolated`, a origem exata do Preview, `WORKSPACE_ACCESS_ALLOWED_ORIGINS` e os e-mails de teste em `CALI_TEST_EMAIL_RECIPIENTS`. Cada URL de hook do banco deve apontar para a função do próprio ambiente. Use chaves e segredos desse projeto.
+3. Para Google, use `CALI_GOOGLE_MODE=test`, callback exato `/oauth/google/callback`, conta, calendário, pasta Drive e convidados autorizados para homologação. Teste primeiro um destino fora da lista e confirme a recusa. A configuração local usa provedor simulado e rede interna.
+4. Aplique a publicação dos termos e o build correspondente no mesmo ambiente. Rode o login de Admin com MFA e aceite, um Cliente de cada empresa sintética e o Partner atribuído. Confira recusa de empresa externa, recepção do e-mail de teste e estado após recarga.
+
+Os hooks `edge_url_workspace_notification_email_hook`, `edge_url_workspace_admin_daily_summary` e `edge_url_cali_profile_invites` ficam em `cali_workspace.runtime_secrets`. Forms e DISC usam `forms_confirmation_url` e `disc_report_url`. O executor de eliminação usa `company_elimination_worker_url`, `company_elimination_worker_hook` e a credencial `company_elimination_worker_bearer` no Vault. Configure só os envios e jobs que serão exercitados naquele ambiente.
+
+Em homologação, `partner_timer_admin_email` identifica a conta Admin de teste que recebe o alerta do cronômetro. A configuração padrão é a Patrícia. O resumo diário usa `0 22 * * *` no catálogo em UTC, correspondente a 19h de Brasília.
+
 Em um corte futuro de produção, reconcilie as gravações da última janela, verifique vínculos e contagens e confirme o caminho de retorno. Preserve os contratos utilizados pela revisão anterior durante a transição. [Migração e compatibilidade](DATA_CONTRACTS.md#migração-e-compatibilidade)

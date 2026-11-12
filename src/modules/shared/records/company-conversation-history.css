@@ -1,0 +1,64 @@
+.company-conversation-history {
+  margin-block: 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--theme-line);
+  border-radius: 12px;
+  background: var(--theme-surface);
+}
+
+.company-conversation-history summary {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.company-conversation-history summary svg {
+  vertical-align: middle;
+}
+
+.company-conversation-history-content,
+.company-conversation-history ol {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.company-conversation-history ol {
+  list-style: none;
+  padding: 0;
+}
+
+.company-conversation-history label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.company-conversation-history li {
+  display: grid;
+  grid-template-columns: minmax(9rem, auto) minmax(8rem, 1fr) minmax(9rem, 2fr);
+  align-items: baseline;
+  gap: 8px;
+}
+
+.company-conversation-history li button,
+.company-conversation-history li a {
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font: inherit;
+  font-weight: 700;
+  color: var(--theme-accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .company-conversation-history li {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding-block: 8px;
+    border-bottom: 1px solid var(--theme-line);
+  }
+}

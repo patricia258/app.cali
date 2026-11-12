@@ -232,7 +232,6 @@ function subscribeRecord(recordId: string) {
   recordChannel = supabase
     .channel(`records-ops-${recordId}-${Date.now()}`)
     .on('postgres_changes', { event: 'UPDATE', schema: 'cali_workspace', table: 'account_records', filter: `id=eq.${recordId}` }, () => schedule())
-    .on('postgres_changes', { event: 'DELETE', schema: 'cali_workspace', table: 'account_records', filter: `id=eq.${recordId}` }, () => location.reload())
     .subscribe();
 }
 async function enhance() {

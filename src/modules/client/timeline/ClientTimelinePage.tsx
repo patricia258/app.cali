@@ -1,3 +1,4 @@
+import { openPrivateWorkspaceFile } from '../../../api/files/workspace';
 import { useEffect, useMemo, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { AlertTriangle, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, FileText, Loader2, Plus, SlidersHorizontal, X } from 'lucide-react';
@@ -228,9 +229,11 @@ export function ClientTimelinePage() {
   }
   async function openMeetingFile(record: MeetingRecord) {
     if (!supabase || !record.attachment_path) return;
-    const {data,error:failure}=await supabase.storage.from('cali-workspace-private').createSignedUrl(record.attachment_path,120);
-    if (failure || !data?.signedUrl) { setError('Não foi possível abrir o anexo da reunião.'); return; }
-    window.open(data.signedUrl,'_blank','noopener,noreferrer');
+    try {
+      await openPrivateWorkspaceFile(record.attachment_path);
+    } catch {
+      setError('Não foi possível abrir o anexo da reunião.');
+    }
   }
 
   async function load() {

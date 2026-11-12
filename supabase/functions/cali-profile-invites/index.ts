@@ -1,3 +1,4 @@
+import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 // Perfil Comportamental CALI: convites e lembretes por e-mail (especificação "Prazos-Lembretes-Painel_v1").
 // Chamado só pelo banco (cali_workspace.profile_post_invite_email), com o segredo x-workspace-hook.
 // Tipos: invite, reminder1 (não abriu), reminder2 (parou no meio), reminder3 (último toque), focal_eve (véspera, pendentes),
@@ -12,7 +13,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const FROM_EMAIL = "CALI RH <workspace@calirh.com>";
 const REPLY_TO = "nao-responda@calirh.com";
-const APP_URL = "https://app.calirh.com";
+const APP_URL = deliveryAppOrigin;
 const LOGO_URL = `${APP_URL}/brand/cali-workspace-transparent.svg`;
 const MARK_URL = `${APP_URL}/brand/cali-oak-mark-light.svg`;
 const TOTAL_BLOCKS = 24;
@@ -50,6 +51,7 @@ const box = (html: string) => `<div style="margin:0 0 20px;padding:14px 18px;bor
 const optOut = (token: string) => `Se não quiser participar, <a href="${APP_URL}/perfil/sair/${token}" style="color:#8C807A">clique aqui</a> e não enviaremos mais mensagens sobre este convite. E-mail automático da CALI RH.`;
 
 async function send(to: string, subject: string, html: string, attachments?: Array<{ filename: string; content: string }>) {
+  if (!emailDestinationsAllowed([to])) throw new Error("Destinatário indisponível neste ambiente.");
   const sent = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },

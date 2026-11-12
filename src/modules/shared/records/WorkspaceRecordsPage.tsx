@@ -1,3 +1,4 @@
+import { openPrivateWorkspaceFile } from '../../../api/files/workspace';
 import { withMentions } from '../../../lib/mentionText';
 import { SensitiveDataNote } from '../../../components/privacy/SensitiveDataNote';
 import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -9,6 +10,7 @@ import { Shell, type Role } from '../../../components/workspace/WorkspaceShell';
 import { supabase } from '../../../api/supabase';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
+import { CompanyConversationHistory } from './CompanyConversationHistory';
 
 type RecordType =
   | 'meeting' | 'occurrence' | 'decision' | 'request' | 'people_movement'
@@ -88,6 +90,7 @@ const adminTypes = Object.keys(typeLabels) as RecordType[];
 const emptyAccess = { name: '', job: '', email: '', phone: '', notes: '', ack: false };
 const conversationalTypes = new Set<RecordType>(['occurrence', 'request', 'context_change', 'other']);
 const archivedStatuses = new Set<WorkflowStatus>(['standby', 'completed', 'cancelled']);
+const recordColumns = 'id,company_id,project_id,event_id,protocol,record_type,title,occurred_at,visibility,source_actor,participants,summary,transcript,decisions,attention_points,next_actions,impact_level,include_in_report,requires_action,created_by,created_at,workflow_status,last_activity_at,closed_at';
 
 const workflowLabels: Record<WorkflowStatus, string> = {
   open: 'Aberta', in_progress: 'Em andamento', waiting_client: 'Aguardando cliente',
@@ -158,7 +161,6 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
   const [projects, setProjects] = useState<Project[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [messageCounts, setMessageCounts] = useState<Record<string, number>>({});
-  const [feedbackByRecord, setFeedbackByRecord] = useState<Record<string, number>>({});
   const [reopenByRecord, setReopenByRecord] = useState<Record<string, 'pending'>>({});
   const [companyId, setCompanyId] = useState('');
   const [query, setQuery] = useState('');
@@ -176,16 +178,19 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<AccountRecordRow | null>(null);
   const [selected, setSelected] = useState<AccountRecordRow | null>(null);
+  const selectedRecordId = useRef('');
+  useEffect(() => { selectedRecordId.current = selected?.id ?? ''; }, [selected?.id]);
+  useEffect(() => {
+    if (!staff || !selected?.id) return;
+    const refresh = () => void staffLoadTimer(selected.id);
+    window.addEventListener('cali-staff-timer-changed', refresh);
+    return () => window.removeEventListener('cali-staff-timer-changed', refresh);
+  }, [staff, selected?.id]);
   const [conversationOpen, setConversationOpen] = useState(false);
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [messageDraft, setMessageDraft] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
-  const [reopenSaving, setReopenSaving] = useState(false);
-  const [feedbackScore, setFeedbackScore] = useState<number | null>(null);
-  const [feedbackComment, setFeedbackComment] = useState('');
-  const [feedbackSaving, setFeedbackSaving] = useState(false);
-  const [feedbackThanks, setFeedbackThanks] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState('');
@@ -209,16 +214,31 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
   useEffect(() => {
     if (!supabase || !companyId) return;
     const client = supabase;
+    const refresh = () => void loadContext(companyId).catch(() => setError('Não foi possível atualizar as ocorrências.'));
+    const filter = companyId === 'all' ? {} : { filter: `company_id=eq.${companyId}` };
     const channel = client
       .channel(`records-v27-${companyId}-${role}`)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'cali_workspace', table: 'account_records', ...(companyId === 'all' ? {} : { filter: `company_id=eq.${companyId}` }) }, (payload) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'cali_workspace', table: 'account_records', ...filter }, refresh)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'cali_workspace', table: 'account_records', ...filter }, (payload) => {
         const next = mapRecord(payload.new);
         setRecords((current) => current.map((record) => record.id === next.id ? next : record));
         setSelected((current) => current?.id === next.id ? next : current);
-        void loadContext(companyId);
+        refresh();
       })
       .subscribe();
-    return () => { void client.removeChannel(channel); };
+    const refreshOnFocus = () => {
+      refresh();
+      const openedId = selectedRecordId.current;
+      if (!openedId) return;
+      void client.from('account_records').select('id').eq('id', openedId).maybeSingle().then(({ data, error: queryError }) => {
+        if (!data && !queryError) setSelected((current) => current?.id === openedId ? null : current);
+      });
+    };
+    window.addEventListener('focus', refreshOnFocus);
+    return () => {
+      window.removeEventListener('focus', refreshOnFocus);
+      void client.removeChannel(channel);
+    };
   }, [companyId, role]);
 
   async function load() {
@@ -263,24 +283,19 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
     const scopedBase = (builder: any) => targetCompanyId === 'all' ? builder : builder.eq('company_id', targetCompanyId);
     // Equipe CALI: só as conversas com o cliente (a memória interna da conta não entra).
     const scoped = (builder: any, records = false) => records && staff ? scopedBase(builder).eq('visibility', 'client').not('workflow_status', 'is', null) : scopedBase(builder);
-    const [recordResult, countResult, feedbackResult, reopenResult] = await Promise.all([
-      scoped(supabase.from('account_records').select('id,company_id,project_id,event_id,protocol,record_type,title,occurred_at,visibility,source_actor,participants,summary,transcript,decisions,attention_points,next_actions,impact_level,include_in_report,requires_action,created_by,created_at,workflow_status,last_activity_at,closed_at'), true).order('last_activity_at', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false }),
+    const [recordResult, countResult, reopenResult] = await Promise.all([
+      scoped(supabase.from('account_records').select(recordColumns), true).order('last_activity_at', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false }),
       scoped(supabase.from('account_record_messages').select('id,record_id')).is('deleted_at', null),
-      scoped(supabase.from('account_record_feedback').select('record_id,score')),
       scoped(supabase.from('account_record_reopen_requests').select('record_id,status,requested_at')).eq('status', 'pending').order('requested_at', { ascending: false }),
     ]);
     if (recordResult.error) throw recordResult.error;
     if (countResult.error) throw countResult.error;
-    if (feedbackResult.error) throw feedbackResult.error;
     if (reopenResult.error) throw reopenResult.error;
     const counts: Record<string, number> = {};
     for (const row of countResult.data || []) counts[row.record_id] = (counts[row.record_id] || 0) + 1;
-    const feedbacks: Record<string, number> = {};
-    for (const row of feedbackResult.data || []) if (feedbacks[row.record_id] == null) feedbacks[row.record_id] = Number(row.score);
     const reopen: Record<string, 'pending'> = {};
     for (const row of reopenResult.data || []) reopen[row.record_id] = 'pending';
     setMessageCounts(counts);
-    setFeedbackByRecord(feedbacks);
     setReopenByRecord(reopen);
     setRecords((recordResult.data || []).map(mapRecord));
 
@@ -447,14 +462,29 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
   async function openRecord(record: AccountRecordRow) {
     if (!supabase) return;
     setSelected(record); setConversationOpen(true); setMessageDraft(''); setMessages([]); setError('');
-    setFeedbackScore(null); setFeedbackComment(''); setFeedbackThanks(false);
     const result = await supabase.from('account_record_messages').select('id,record_id,author_id,author_role,body,visibility,created_at').eq('record_id', record.id).is('deleted_at', null).order('created_at');
     if (result.error) { setError(result.error.message); return; }
     setMessages((result.data || []).map(mapMessage));
     if (staff) void staffLoadTimer(record.id);
   }
 
-  async function staffOpenAttachment(path: string) { if (!supabase) return; const { data, error: signError } = await supabase.storage.from('cali-workspace-private').createSignedUrl(path, 300); if (signError || !data?.signedUrl) { setError('Não foi possível abrir este anexo agora.'); return; } window.open(data.signedUrl, '_blank', 'noopener,noreferrer'); }
+  async function openHistoryRecord(recordId: string) {
+    if (!supabase) return;
+    const { data, error: requestError } = await supabase.from('account_records').select(recordColumns).eq('id', recordId).maybeSingle();
+    if (requestError || !data) {
+      setError('Ocorrência indisponível. Atualize o histórico.');
+      return;
+    }
+    await openRecord(mapRecord(data));
+  }
+
+  async function staffOpenAttachment(path: string) {
+    try {
+      await openPrivateWorkspaceFile(path);
+    } catch {
+      setError('Não foi possível abrir este anexo agora.');
+    }
+  }
   async function sendMessage() {
     if (!supabase || !selected || (!messageDraft.trim() && !(staff && staffFile))) return;
     setSendingMessage(true); setError('');
@@ -501,52 +531,13 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
     if (staffTimer) {
       const result = await supabase.rpc('partner_stop_timer', { p_timer_id: staffTimer.id, p_description: null });
       if (result.error) { setError(result.error.message || 'Não foi possível pausar o cronômetro.'); return; }
-      setStaffTimer(null); setNotice((result.data as any)?.discarded ? 'Sessão com menos de 30 segundos: não foi registrada.' : `Sessão de ${(result.data as any)?.minutes} min registrada. Dê play para continuar depois.`);
+      setStaffTimer(null); setNotice((result.data as any)?.discarded ? 'Sessão com menos de 30 segundos: não foi registrada.' : `Sessão de ${(result.data as any)?.minutes} min enviada para aprovação da Patrícia.`);
     } else {
       const result = await supabase.rpc('partner_start_record_timer', { p_record_id: selected.id });
       if (result.error) { setError(result.error.message || 'Não foi possível iniciar o cronômetro.'); return; }
       setStaffTimer({ id: String(result.data), startedAt: new Date().toISOString() });
     }
-  }
-
-  async function requestReopen() {
-    if (!supabase || !selected || role !== 'client') return;
-    setReopenSaving(true); setError('');
-    try {
-      const result = await supabase.rpc('request_account_record_reopen', { p_record_id: selected.id, p_reason: null });
-      if (result.error) throw result.error;
-      setReopenByRecord((current) => ({ ...current, [selected.id]: 'pending' }));
-      setNotice('Pedido de reabertura enviado à CALI.');
-      await openRecord(selected);
-      await loadContext(selected.companyId);
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Não foi possível solicitar a reabertura.');
-    } finally { setReopenSaving(false); }
-  }
-
-  async function submitFeedback(scoreOverride?: number) {
-    if (!supabase || !selected || role !== 'client') return;
-    const score = scoreOverride ?? feedbackScore;
-    if (!score) return;
-    if (score <= 3 && feedbackComment.trim().length < 3) {
-      setError('Conte brevemente o motivo da sua avaliação.');
-      return;
-    }
-    setFeedbackSaving(true); setError('');
-    try {
-      const result = await supabase.rpc('submit_account_record_feedback', {
-        p_record_id: selected.id,
-        p_score: score,
-        p_comment: score <= 3 ? feedbackComment.trim() : null,
-      });
-      if (result.error) throw result.error;
-      setFeedbackByRecord((current) => ({ ...current, [selected.id]: score }));
-      setFeedbackThanks(true);
-      setFeedbackScore(score);
-      setFeedbackComment('');
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Não foi possível registrar sua avaliação.');
-    } finally { setFeedbackSaving(false); }
+    window.dispatchEvent(new Event('cali-staff-timer-changed'));
   }
 
   async function changeStatus(status: WorkflowStatus) {
@@ -585,6 +576,9 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
 
       {notice && <div className="inline-notice success v2-toast" role="status"><CheckCircle2 size={18} /><span>{notice}</span></div>}
       {error && <div className="inline-notice"><AlertTriangle size={18} />{error}</div>}
+
+      <CompanyConversationHistory companyId={companyId} companies={companies} role={role} staff={Boolean(staff)}
+        openRecord={(recordId) => void openHistoryRecord(recordId)} />
 
       <>
         <div className="wf-summary-inline"><span><strong>{records.length}</strong> {records.length===1?'registro':'registros'}</span><span><i className="wf-dot yellow"/>{records.filter(record=>record.workflowStatus==='waiting_client').length} {role==='admin'?'aguardando cliente':'aguardando você'}</span><span><i className="wf-dot purple"/>{records.filter(record=>record.workflowStatus==='open'||record.workflowStatus==='in_progress'||record.workflowStatus==='standby').length} em acompanhamento</span><span><i className="wf-dot green"/>{records.filter(record=>record.workflowStatus==='completed').length} {records.filter(record=>record.workflowStatus==='completed').length===1?'concluído':'concluídos'}</span></div>
@@ -644,30 +638,6 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
         </div>
         {role==='client'?<details className="wf-story wf-story-compact"><summary>Contexto inicial · ver detalhes</summary><section className="records-v25-ops" aria-label="Resumo do atendimento" /></details>:<section className="records-v25-ops" aria-label="Resumo do atendimento" />}
 
-        {role === 'client' && selected.workflowStatus === 'completed' && (feedbackThanks || !feedbackByRecord[selected.id]) && <div className="records-v27-feedback-overlay">
-          <section className="records-v27-feedback-card">
-            {feedbackThanks ? <div className="records-v27-feedback-thanks">
-              <CheckCircle2 size={30} />
-              <span>AVALIAÇÃO REGISTRADA</span>
-              <h3>Obrigada pela sua avaliação.</h3>
-              <p>Ela fica vinculada a esta solicitação e ajuda a CALI a acompanhar a qualidade das entregas.</p>
-              <button className="primary" type="button" onClick={() => setFeedbackThanks(false)}>Voltar ao histórico</button>
-            </div> : <>
-              <span className="section-kicker">ANTES DE ENCERRAR</span>
-              <h3>Como foi este atendimento?</h3>
-              <p>Avalie de 1 a 5. Para notas de 1 a 3, conte brevemente o que poderia ter sido melhor.</p>
-              <div className="records-v27-score" role="group" aria-label="Avaliação de 1 a 5">
-                {[1, 2, 3, 4, 5].map((score) => <button key={score} type="button" className={feedbackScore === score ? 'selected' : ''} disabled={feedbackSaving} onClick={() => { setFeedbackScore(score); if (score >= 4) void submitFeedback(score); }}>{score}</button>)}
-              </div>
-              {feedbackScore != null && feedbackScore <= 3 && <div className="records-v27-feedback-reason">
-                <label>O que poderia ter sido melhor?<textarea rows={4} value={feedbackComment} onChange={(event) => setFeedbackComment(event.target.value)} placeholder="Conte em poucas palavras." autoFocus /></label>
-                <button className="primary" type="button" disabled={feedbackSaving || feedbackComment.trim().length < 3} onClick={() => void submitFeedback()}>{feedbackSaving ? 'Enviando…' : 'Enviar avaliação'}</button>
-              </div>}
-              {feedbackSaving && <small className="records-v27-feedback-saving">Registrando sua avaliação…</small>}
-            </>}
-          </section>
-        </div>}
-
         {selected.workflowStatus ? <div className="wf-record-conversation" data-v2-operation="records-v13-conversation">
           <h3 className="wf-thread-title">Conversa e encaminhamentos</h3>
           {staff ? <div className="wf-thread v2-staff-thread" aria-live="polite">{messages.length ? messages.map((message) => { const mine = message.authorId === user?.id; const name = message.authorId ? authors[message.authorId] || (message.authorRole === 'client' ? 'Cliente' : 'CALI') : 'Sistema'; return <div key={message.id} className={`conversation-line records-chat-line role-${message.authorRole} ${mine ? 'mine' : 'other'} ${message.visibility === 'internal' ? 'internal-note' : ''}`}>{!mine && <span className="v2-chat-photo">{message.authorId && staffPhotos[message.authorId] ? <img src={staffPhotos[message.authorId]} alt="" /> : name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')}</span>}<div className="conversation-bubble records-chat-bubble"><div className="records-chat-head"><strong>{name}{message.visibility === 'internal' ? ' · nota interna' : ''}</strong><time>{formatDateTime(message.createdAt)}</time></div>{(() => { const files: { name: string; path: string; size: number }[] = []; const clean = message.body.replace(/\[\[arquivo\|([^|]+)\|([^|]+)\|([^|]+)\|(\d+)\]\]/g, (_all: string, n: string, filePath: string, _type: string, size: string) => { try { files.push({ name: decodeURIComponent(n), path: decodeURIComponent(filePath), size: Number(size || 0) }); } catch { files.push({ name: n, path: filePath, size: Number(size || 0) }); } return ''; }).trim(); return <>{clean && <p>{withMentions(clean)}</p>}{files.length > 0 && <div className="records-chat-attachments">{files.map((file) => <button key={file.path} type="button" className="records-chat-attachment" onClick={() => void staffOpenAttachment(file.path)}><span>📎</span><span><strong>{file.name}</strong><small>{file.size ? `${Math.max(1, Math.round(file.size / 1024))} KB` : 'arquivo'}</small></span></button>)}</div>}</>; })()}</div>{mine && <span className="v2-chat-photo">{message.authorId && staffPhotos[message.authorId] ? <img src={staffPhotos[message.authorId]} alt="" /> : name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')}</span>}</div>; }) : <p className="v2-staff-thread-empty">Ainda não há mensagens nesta conversa.</p>}</div>
@@ -683,7 +653,6 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
           </div>}
           {clientConversationLocked && <div className="records-v27-chat-locked">
             <div><span>CONVERSA ENCERRADA</span><strong>{selected.workflowStatus === 'standby' ? 'Esta solicitação está em stand by.' : selected.workflowStatus === 'cancelled' ? 'Esta solicitação foi cancelada.' : 'Esta solicitação foi finalizada.'}</strong><p>O histórico continua disponível, mas novas mensagens só são liberadas depois que a CALI aprovar a reabertura. O tempo já consumido permanece contabilizado e não é devolvido ao saldo de horas.</p></div>
-            <button className="secondary" type="button" disabled={reopenSaving || reopenPending} onClick={() => void requestReopen()}>{reopenPending ? 'Reabertura solicitada' : reopenSaving ? 'Enviando…' : 'Solicitar reabertura'}</button>
           </div>}
         </div> : <div className="wf-memory-detail">
           <div><span>Contexto</span><p>{selected.summary || 'Sem resumo registrado.'}</p></div>

@@ -4,6 +4,7 @@ import { useSearchParams } from '../../../hooks/useSearchParams';
 import { Archive, ArrowRight, CalendarDays, Check, MessageCircle, Megaphone, Pencil, Plus, RotateCcw, Send, X } from 'lucide-react';
 import { Shell, type Role } from '../../../components/workspace/WorkspaceShell';
 import { supabase } from '../../../api/supabase';
+import { AdminNoticeReviews } from './AdminNoticeReviews';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
 
 /* Quadro de Avisos — composição aprovada na V2 (mural com capa, categoria, ciência e comentários).
@@ -221,6 +222,7 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
 
   const page = <div className={`notice-page ${admin ? 'v2-notice-admin' : ''} ${staff ? 'v2-notice-staff' : ''}`}>
     {head}
+    {admin && <AdminNoticeReviews companies={companies} onPublish={load} />}
     {error && !draft && <div className="inline-notice">{error}</div>}
     {toolbar}
     {visible.length ? (admin && view === 'manage' ? manage : feed) : empty}
