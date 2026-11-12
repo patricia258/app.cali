@@ -76,6 +76,15 @@ const rules = [
       row.role === 'admin' && !before.includes('Avisos para revisar') && after.includes('Avisos para revisar'),
   ],
   [
+    'primeiro-projeto',
+    'Carteira vazia permite cadastrar o primeiro projeto',
+    (row, before, after) =>
+      row.id === 'projetos:carteira-vazia' &&
+      before.includes('Ainda não há um projeto persistido') &&
+      after.includes('Nenhum projeto cadastrado') &&
+      after.includes('Novo projeto'),
+  ],
+  [
     'satisfacao-coorte',
     'Satisfação inclui coorte e estado das solicitações',
     (row, before, after) =>

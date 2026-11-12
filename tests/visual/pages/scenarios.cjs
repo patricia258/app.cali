@@ -5,6 +5,7 @@ const { execFileSync } = require('node:child_process');
 const path = require('node:path');
 const { makeSession, fixtureCode, sessionKey } = require('../../e2e/browser-fixture.cjs');
 const { projectId } = require('../../e2e/fixtures.cjs');
+const { fixtureOrigin } = require('./build.cjs');
 
 const navigation = {
   client: ['/cliente', '/cliente/cronograma', '/cliente/documentos'],
@@ -166,6 +167,25 @@ const states = [
   ],
   ['admin', 'seguranca:mfa-antes-da-confirmacao', showMfa],
   ['admin', 'legado:relatorios', ({ go }) => go('/admin/relatorios')],
+  [
+    'admin',
+    'projetos:carteira-vazia',
+    async ({ page, go }) => {
+      await page.route((url) => url.origin === fixtureOrigin && url.pathname === '/rest/v1/projects', (route) => {
+        const request = route.request();
+        if (request.method() !== 'HEAD' && request.method() !== 'GET') return route.fallback();
+        const headers = {
+          'access-control-allow-origin': request.headers().origin || '*',
+          'access-control-expose-headers': 'content-range',
+          'content-range': '*/0',
+        };
+        if (request.method() === 'HEAD') return route.fulfill({ status: 200, headers });
+        return route.fulfill({ headers, json: [] });
+      });
+      await go('/admin/projetos');
+      await page.getByRole('heading', { name: /Ainda não há um projeto persistido|Nenhum projeto cadastrado/ }).waitFor();
+    },
+  ],
   [
     'admin',
     'ocorrencias:recorte-vazio',

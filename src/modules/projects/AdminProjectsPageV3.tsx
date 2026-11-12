@@ -172,17 +172,17 @@ function StatusSelect({ item, onChange, compact=false }: { item:ProjectDeliverab
 }
 
 export function StaffProjectsPage({ companies }: StaffProjectsScope) { return <StaffModeContext.Provider value={true}><AdminProjectsPageV3 staff={{ companies }} /></StaffModeContext.Provider>; }
-export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = {}) {
+export function AdminProjectsPageV3({ staff, emptyPortfolio = false }: { staff?: StaffProjectsScope; emptyPortfolio?: boolean } = {}) {
   useEffect(()=>{ if(!staff)return; const refresh=()=>void loadWorkspace(); window.addEventListener('cali:staff-refresh',refresh); return()=>window.removeEventListener('cali:staff-refresh',refresh); },[staff]);
   const [openTaskId,setOpenTaskId] = useState<string|null>(null); const [closedSubs,setClosedSubs] = useState<Record<string,boolean>>({});
   const [staffOpenFronts,setStaffOpenFronts] = useState<Record<string,boolean>>({});
   const [staffChat,setStaffChat] = useState<{id:string;body:string;authorId:string|null;actor:string;createdAt:string}[]>([]); const [staffPeople,setStaffPeople] = useState<Record<string,{name:string;photo:string}>>({}); const [staffUserId,setStaffUserId] = useState(''); const [staffReviewPending,setStaffReviewPending] = useState<Record<string,boolean>>({}); const [staffNotice,setStaffNotice] = useState('');
   useEffect(()=>{ if(!staffNotice)return; const timer=window.setTimeout(()=>setStaffNotice(''),4500); return()=>window.clearTimeout(timer); },[staffNotice]);
-  const [projects,setProjects] = useState<WorkspaceProject[]>(previewProjects);
-  const [selectedProjectId,setSelectedProjectId] = useState(previewProjects[0].id);
+  const [projects,setProjects] = useState<WorkspaceProject[]>(emptyPortfolio ? [] : previewProjects);
+  const [selectedProjectId,setSelectedProjectId] = useState(emptyPortfolio ? '' : previewProjects[0].id);
   const [projectCompanies, setProjectCompanies] = useState<ProjectCompany[] | null>(null);
-  const [fronts,setFronts] = useState<ProjectFront[]>(previewProjects.flatMap(previewFronts));
-  const [tasks,setTasks] = useState<TaskItem[]>(previewProjects.flatMap((p)=>p.deliverables.flatMap(previewTasks)));
+  const [fronts,setFronts] = useState<ProjectFront[]>(() => emptyPortfolio ? [] : previewProjects.flatMap(previewFronts));
+  const [tasks,setTasks] = useState<TaskItem[]>(() => emptyPortfolio ? [] : previewProjects.flatMap((p)=>p.deliverables.flatMap(previewTasks)));
   const [comments,setComments] = useState<CommentItem[]>([]);
   const [history,setHistory] = useState<HistoryItem[]>([]);
   const [projectView,setProjectView] = useState<ProjectView>('roadmap');
@@ -306,9 +306,6 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
 
   const filteredProjects=useMemo(()=>projects.filter((p)=>{const text=`${p.company} ${p.name} ${p.protocol} ${p.service}`.toLowerCase(); return (!query||text.includes(query.toLowerCase()))&&(statusFilter==='all'||p.planningStatus===statusFilter);}),[projects,query,statusFilter]);
   const summary=useMemo(()=>({active:projects.filter((p)=>p.planningStatus==='active').length,waiting:projects.reduce((s,p)=>s+p.deliverables.filter((d)=>d.status==='client_review').length,0),rebriefing:projects.reduce((s,p)=>s+p.deliverables.filter((d)=>d.rebriefingRequired||d.status==='rebriefing').length,0),impacted:projects.reduce((s,p)=>s+p.deliverables.filter((d)=>Boolean(d.originalDueAt)||d.clientDelayBusinessDays>0).length,0)}),[projects]);
-  const maxMonth=Math.max(8,...selectedFronts.map((f)=>f.monthEnd||f.monthStart||1),...selectedProject.deliverables.map((d)=>d.roadmapMonthEnd||d.roadmapMonthStart||1));
-  const months=Array.from({length:maxMonth},(_,i)=>i+1);
-
   const creationAccounts = !staff && projectCompanies
     ? projectCompanies.map(({ id, display_name }) => [id, display_name] as const)
     : Array.from(new Map(projects.map((project) => [project.companyId, project.company])).entries());
@@ -553,6 +550,95 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
 
   if(loading) return <ProjectsFrame staff={Boolean(staff)}><div className="ap-app v2-admin-page"><div className="ap-content"><EmptyState as="p" variant="admin" className="data-loading" aria-live="polite" aria-busy="true">Carregando execução e cronograma…</EmptyState></div></div></ProjectsFrame>;
 
+  const projectDialog = projectModal && (
+    <div className="ap-pd-overlay">
+      <DialogForm className="ap-pd-modal project-modal-v2" aria-label="Novo projeto" onSubmit={createProject}>
+        <header className="ap-pd-head">
+          <div>
+            <small>OPERAÇÃO / PROJETOS</small>
+            <h2>Estruturar cronograma e frentes</h2>
+            <p>Cadastre o projeto e já deixe as frentes iniciais organizadas. Depois cada frente recebe seus entregáveis e subtarefas.</p>
+          </div>
+          <button type="button" className="ap-pd-close" aria-label="Fechar" onClick={() => setProjectModal(false)}><X size={19}/></button>
+        </header>
+        <div className="ap-pd-body project-modal-scroll-v2">
+          <div className="ap-pd-fields form-grid">
+            <label className="ap-pd-field stacked-label">
+              <span>Cliente</span>
+              <select value={projectForm.companyId} onChange={(e) => setProjectForm((c) => ({ ...c, companyId: e.target.value }))}>
+                {creationAccounts.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+              </select>
+            </label>
+            <label className="ap-pd-field stacked-label">
+              <span>Nome do projeto</span>
+              <input value={projectForm.name} onChange={(e) => setProjectForm((c) => ({ ...c, name: e.target.value }))} placeholder="Roadmap People · ciclo estratégico"/>
+            </label>
+            <label className="ap-pd-field stacked-label">
+              <span>Início</span>
+              <input type="date" value={projectForm.startDate} onChange={(e) => setProjectForm((c) => ({ ...c, startDate: e.target.value }))}/>
+            </label>
+            <label className="ap-pd-field stacked-label">
+              <span>Previsão final</span>
+              <input type="date" value={projectForm.endDate} onChange={(e) => setProjectForm((c) => ({ ...c, endDate: e.target.value }))}/>
+            </label>
+          </div>
+          <div className="front-drafts-v2">
+            <div className="ap-pd-subhead front-drafts-title">
+              <div><h3>Frentes iniciais</h3><span>Ex.: Cultura & Clima, Processos, Comunicação Interna.</span></div>
+              <button type="button" onClick={addFrontDraft}><Plus size={14}/> Frente</button>
+            </div>
+            {frontDrafts.map((front, index) => (
+              <div className="ap-pd-front front-draft-row" key={front.id}>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <input value={front.name} onChange={(e) => patchFrontDraft(front.id, { name: e.target.value })} placeholder="Nome da frente"/>
+                <input value={front.objective} onChange={(e) => patchFrontDraft(front.id, { objective: e.target.value })} placeholder="Objetivo / contexto"/>
+                <label>M<input type="number" min={1} value={front.monthStart} onChange={(e) => patchFrontDraft(front.id, { monthStart: Number(e.target.value) })}/></label>
+                <label>até M<input type="number" min={front.monthStart} value={front.monthEnd} onChange={(e) => patchFrontDraft(front.id, { monthEnd: Number(e.target.value) })}/></label>
+                <button type="button" onClick={() => removeFrontDraft(front.id)} aria-label="Remover frente"><X size={15}/></button>
+              </div>
+            ))}
+          </div>
+          <label className="ap-pd-field stacked-label">
+            <span>Prazo esperado de resposta do cliente (dias corridos; 3 = 72 horas)</span>
+            <input type="number" min={1} max={30} value={projectForm.clientResponseBusinessDays} onChange={(e) => setProjectForm((c) => ({ ...c, clientResponseBusinessDays: Number(e.target.value) }))}/>
+          </label>
+          <p className="ap-pd-note">A falta de resposta gera aviso e impacto de prazo, nunca aprovação automática.</p>
+        </div>
+        <footer className="ap-pd-footer">
+          <span/>
+          <div>
+            <button type="button" onClick={() => setProjectModal(false)}>Cancelar</button>
+            <button type="submit" className="ap-pd-primary primary" disabled={saving || !projectForm.name.trim()}>{saving ? 'Salvando…' : 'Criar cronograma'}</button>
+          </div>
+        </footer>
+      </DialogForm>
+    </div>
+  );
+
+  if (!selectedProject) {
+    return (
+      <ProjectsFrame staff={Boolean(staff)}>
+        <section className="page projects-flow-page">
+          <div className="eyebrow">EXECUÇÃO & ROADMAP</div>
+          <div className="page-heading"><div><h1>Projetos</h1></div></div>
+          <section className="panel project-real-data-gate">
+            <div className="project-real-data-gate-icon"><FolderKanban size={28}/></div>
+            <div>
+              <h2>Nenhum projeto cadastrado</h2>
+              <p>{creationAccounts.length > 0
+                ? 'Crie o primeiro projeto para organizar frentes, entregáveis e prazos.'
+                : 'Cadastre uma empresa em Clientes para criar o primeiro projeto.'}</p>
+              {creationAccounts.length > 0 && <Button variant="adminPrimary" className="tw:mt-3" type="button" onClick={openNewProject}><Plus size={15}/> Novo projeto</Button>}
+            </div>
+          </section>
+          {projectModal && <div className="ap-app v2-admin-page v2-client-module">{projectDialog}</div>}
+        </section>
+      </ProjectsFrame>
+    );
+  }
+
+  const maxMonth=Math.max(8,...selectedFronts.map((f)=>f.monthEnd||f.monthStart||1),...selectedProject.deliverables.map((d)=>d.roadmapMonthEnd||d.roadmapMonthStart||1));
+  const months=Array.from({length:maxMonth},(_,i)=>i+1);
   const visibleDeliverables=selectedProject.deliverables.filter((d)=>d.status!=='cancelled');
   const waitingClient=visibleDeliverables.filter((d)=>d.status==='client_review');
   const openDetail=(item:ProjectDeliverable)=>{setSelectedDeliverable(item);setDetailTab('overview');};
@@ -592,7 +678,7 @@ export function AdminProjectsPageV3({ staff }: { staff?: StaffProjectsScope } = 
 
     {projectView==='history'&&<section className="ap-pane project-history-v2"><header className="ap-pane-head"><div><small>REGISTRO DO PROJETO</small><h2>Histórico do projeto</h2><p>Desempenho das entregas, decisões e impactos de prazo registrados.</p></div></header>{!staff && isUuid(selectedProject.id) && <ProjectDeliveryHistory projectId={selectedProject.id} />}</section>}
 
-  {projectModal&&<div className="ap-pd-overlay"><DialogForm className="ap-pd-modal project-modal-v2" aria-label="Novo projeto" onSubmit={createProject}><header className="ap-pd-head"><div><small>OPERAÇÃO / PROJETOS</small><h2>Estruturar cronograma e frentes</h2><p>Cadastre o projeto e já deixe as frentes iniciais organizadas. Depois cada frente recebe seus entregáveis e subtarefas.</p></div><button type="button" className="ap-pd-close" aria-label="Fechar" onClick={()=>setProjectModal(false)}><X size={19}/></button></header><div className="ap-pd-body project-modal-scroll-v2"><div className="ap-pd-fields form-grid"><label className="ap-pd-field stacked-label"><span>Cliente</span><select value={projectForm.companyId} onChange={(e)=>setProjectForm((c)=>({...c,companyId:e.target.value}))}>{creationAccounts.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label><label className="ap-pd-field stacked-label"><span>Nome do projeto</span><input value={projectForm.name} onChange={(e)=>setProjectForm((c)=>({...c,name:e.target.value}))} placeholder="Roadmap People · ciclo estratégico"/></label><label className="ap-pd-field stacked-label"><span>Início</span><input type="date" value={projectForm.startDate} onChange={(e)=>setProjectForm((c)=>({...c,startDate:e.target.value}))}/></label><label className="ap-pd-field stacked-label"><span>Previsão final</span><input type="date" value={projectForm.endDate} onChange={(e)=>setProjectForm((c)=>({...c,endDate:e.target.value}))}/></label></div><div className="front-drafts-v2"><div className="ap-pd-subhead front-drafts-title"><div><h3>Frentes iniciais</h3><span>Ex.: Cultura & Clima, Processos, Comunicação Interna.</span></div><button type="button" onClick={addFrontDraft}><Plus size={14}/> Frente</button></div>{frontDrafts.map((front,index)=><div className="ap-pd-front front-draft-row" key={front.id}><span>{String(index+1).padStart(2,'0')}</span><input value={front.name} onChange={(e)=>patchFrontDraft(front.id,{name:e.target.value})} placeholder="Nome da frente"/><input value={front.objective} onChange={(e)=>patchFrontDraft(front.id,{objective:e.target.value})} placeholder="Objetivo / contexto"/><label>M<input type="number" min={1} value={front.monthStart} onChange={(e)=>patchFrontDraft(front.id,{monthStart:Number(e.target.value)})}/></label><label>até M<input type="number" min={front.monthStart} value={front.monthEnd} onChange={(e)=>patchFrontDraft(front.id,{monthEnd:Number(e.target.value)})}/></label><button type="button" onClick={()=>removeFrontDraft(front.id)} aria-label="Remover frente"><X size={15}/></button></div>)}</div><label className="ap-pd-field stacked-label"><span>Prazo esperado de resposta do cliente (dias corridos; 3 = 72 horas)</span><input type="number" min={1} max={30} value={projectForm.clientResponseBusinessDays} onChange={(e)=>setProjectForm((c)=>({...c,clientResponseBusinessDays:Number(e.target.value)}))}/></label><p className="ap-pd-note">A falta de resposta gera aviso e impacto de prazo, nunca aprovação automática.</p></div><footer className="ap-pd-footer"><span/><div><button type="button" onClick={()=>setProjectModal(false)}>Cancelar</button><button className="ap-pd-primary primary" disabled={saving||!projectForm.name.trim()}>{saving?'Salvando…':'Criar cronograma'}</button></div></footer></DialogForm></div>}
+  {projectDialog}
 
   {frontModal&&<div className="ap-pd-overlay"><DialogForm className="ap-pd-modal v2-pd-narrow simple-project-modal-v2" aria-label="Nova frente" onSubmit={createFront}><header className="ap-pd-head"><div><small>OPERAÇÃO / PROJETOS</small><h2>Adicionar frente ao cronograma</h2><p>A frente organiza um bloco de trabalho. Dentro dela serão criados os entregáveis e suas subtarefas.</p><div className="ap-pd-context"><span>Conta <strong>{selectedProject.company}</strong></span><span>Projeto / cronograma <strong>{selectedProject.name}</strong></span></div></div><button type="button" className="ap-pd-close" aria-label="Fechar" onClick={()=>setFrontModal(false)}><X size={19}/></button></header><div className="ap-pd-body project-modal-scroll-v2"><div className="ap-pd-fields"><label className="ap-pd-field ap-pd-wide stacked-label"><span>Nome da frente</span><input value={frontForm.name} onChange={(e)=>setFrontForm((c)=>({...c,name:e.target.value}))} placeholder="Ex.: Cultura & Clima"/></label><label className="ap-pd-field ap-pd-wide stacked-label"><span>Objetivo / contexto</span><textarea rows={3} value={frontForm.objective} onChange={(e)=>setFrontForm((c)=>({...c,objective:e.target.value}))}/></label><label className="ap-pd-field stacked-label"><span>Mês inicial</span><input type="number" min={1} value={frontForm.monthStart} onChange={(e)=>setFrontForm((c)=>({...c,monthStart:Number(e.target.value)}))}/></label><label className="ap-pd-field stacked-label"><span>Mês final</span><input type="number" min={frontForm.monthStart} value={frontForm.monthEnd} onChange={(e)=>setFrontForm((c)=>({...c,monthEnd:Number(e.target.value)}))}/></label></div></div><footer className="ap-pd-footer"><span/><div><button type="button" onClick={()=>setFrontModal(false)}>Cancelar</button><button className="ap-pd-primary primary" disabled={saving||!frontForm.name.trim()}>Adicionar frente</button></div></footer></DialogForm></div>}
 

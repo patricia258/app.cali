@@ -15,10 +15,11 @@ const frontIds = [
   'e7410000-0000-4000-8000-000000000005',
 ];
 
-async function mockPlanning(context, origin) {
-  const projects = structuredClone(tables.projects);
-  const fronts = structuredClone(tables.project_workstreams);
-  const companies = [...tables.companies, { ...tables.companies[0], id: newCompanyId, display_name: newCompany }];
+async function mockPlanning(context, origin, { empty = false, noCompanies = false } = {}) {
+  const projects = empty ? [] : structuredClone(tables.projects);
+  const fronts = empty ? [] : structuredClone(tables.project_workstreams);
+  const company = { ...tables.companies[0], id: newCompanyId, display_name: newCompany };
+  const companies = noCompanies ? [] : empty ? [company] : [...tables.companies, company];
   const writes = [];
 
   for (const [table, rows] of [['companies', companies], ['projects', projects], ['project_workstreams', fronts]]) {
@@ -64,6 +65,58 @@ async function draftFront(row, { name, objective, start, end }) {
 }
 
 browserSuite([
+  {
+    id: 'admin-create-first-project',
+    role: 'admin',
+    async run({ page, context, origin, snapshot }) {
+      const writes = await mockPlanning(context, origin, { empty: true });
+      await page.goto(origin + '/admin/projetos');
+      await page.getByRole('heading', { name: 'Nenhum projeto cadastrado', exact: true }).waitFor();
+      await page.getByText('Crie o primeiro projeto para organizar frentes, entregáveis e prazos.', { exact: true }).waitFor();
+      assert.equal(await page.getByRole('combobox', { name: 'Projeto', exact: true }).count(), 0);
+      assert.equal(await page.getByRole('button', { name: 'Nova frente', exact: true }).count(), 0);
+      const start = page.getByRole('button', { name: 'Novo projeto', exact: true });
+      await start.waitFor();
+      await snapshot('carteira-vazia');
+      await start.click();
+      const create = page.getByRole('dialog', { name: 'Novo projeto', exact: true });
+      assert.equal(await create.getByRole('combobox', { name: 'Cliente', exact: true }).inputValue(), newCompanyId);
+      await create.getByRole('textbox', { name: 'Nome do projeto', exact: true }).fill(newProject);
+      await create.getByPlaceholder('Nome da frente', { exact: true }).fill('Primeira frente QA');
+      await create.getByRole('button', { name: 'Criar cronograma', exact: true }).click();
+      await page.getByRole('heading', { name: newProject, exact: true }).waitFor();
+
+      assert.equal(writes.length, 2);
+      assert.equal(writes[0].table, 'projects');
+      assert.equal(writes[0].data.company_id, newCompanyId);
+      assert.equal(writes[0].data.name, newProject);
+      assert.deepEqual(writes[1], { table: 'project_workstreams', data: [{
+        company_id: newCompanyId, project_id: newProjectId, name: 'Primeira frente QA', objective: null,
+        roadmap_month_start: 1, roadmap_month_end: 1, sort_order: 1,
+      }] });
+
+      await page.goto(origin + '/admin/projetos?project=' + newProjectId);
+      await page.getByRole('heading', { name: newProject, exact: true }).waitFor();
+      await page.getByRole('tab', { name: 'Entregáveis', exact: true }).click();
+      const roadmap = page.locator('.roadmap-v2');
+      await roadmap.getByRole('heading', { name: '0 entregáveis em 1 frente', exact: true }).waitFor();
+      await roadmap.getByText('Primeira frente QA', { exact: true }).waitFor();
+      await snapshot('primeiro-projeto', roadmap);
+      return { initialProjects: 0, firstProject: true, reread: true };
+    },
+  },
+  {
+    id: 'admin-empty-projects-without-company',
+    role: 'admin',
+    async run({ page, context, origin }) {
+      const writes = await mockPlanning(context, origin, { empty: true, noCompanies: true });
+      await page.goto(origin + '/admin/projetos');
+      await page.getByRole('heading', { name: 'Nenhum projeto cadastrado', exact: true }).waitFor();
+      await page.getByText('Cadastre uma empresa em Clientes para criar o primeiro projeto.', { exact: true }).waitFor();
+      assert.equal(await page.getByRole('button', { name: 'Novo projeto', exact: true }).count(), 0);
+      assert.equal(writes.length, 0);
+    },
+  },
   {
     id: 'admin-create-project-and-workstreams',
     role: 'admin',

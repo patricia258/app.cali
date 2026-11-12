@@ -159,7 +159,7 @@ browserSuite([
     },
   },
   {
-    id: '13-notice-review-return-retry-publish-and-ack',
+    id: '13-notice-compose-return-retry-approve-and-reach-client',
     role: 'admin',
     async run({ page, context, openActor, origin }) {
       const review = {
@@ -170,9 +170,10 @@ browserSuite([
         body: 'Vamos ajustar o atendimento.',
         company_ids: [companyId],
         notice_date: '2026-11-20',
-        status: 'pending',
+        status: null,
         review_note: null,
       };
+      const revisedBody = 'Novo horário confirmado às 14h.';
       const published = () =>
         review.status === 'published'
           ? [
@@ -192,6 +193,8 @@ browserSuite([
       const decisions = [];
       const submissions = [];
       const acknowledgements = [];
+      const calendarReads = [];
+      let approvalAttempts = 0;
       const directPublications = [];
       const partner = await openActor('partner');
       const client = await openActor('client');
@@ -209,13 +212,16 @@ browserSuite([
         const body = request.postDataJSON();
         decisions.push(body);
         if (decisions.length === 1) return { status: 409, json: { message: 'Conflito de revisão QA' } };
+        if (body.p_approve && ++approvalAttempts === 1) {
+          return { status: 503, json: { message: 'Publicação temporariamente indisponível QA' } };
+        }
         review.status = body.p_approve ? 'published' : 'returned';
         review.review_note = body.p_note;
-        return { json: { id: reviewId } };
+        return { json: body.p_approve ? noticeId : null };
       });
       await endpoint(partner.context, origin, 'partner_notice_reviews', 'GET', (request) => {
         assert.equal(new URL(request.url()).searchParams.get('author_id'), 'eq.' + user.id);
-        return { json: [review] };
+        return { json: review.status ? [review] : [] };
       });
       await endpoint(partner.context, origin, 'notices', 'POST', (request) => {
         directPublications.push(request.postDataJSON());
@@ -224,23 +230,50 @@ browserSuite([
       await endpoint(partner.context, origin, 'rpc/submit_partner_notice_review', 'POST', (request) => {
         const body = request.postDataJSON();
         submissions.push(body);
-        if (submissions.length === 1)
+        if (submissions.length === 2) {
           return { status: 503, json: { message: 'Fila temporariamente indisponível QA' } };
-        review.revision++;
+        }
+        if (body.p_review_id) review.revision++;
         review.status = 'pending';
         review.body = body.p_body;
         review.review_note = null;
-        return { json: { id: reviewId, revision: review.revision } };
+        return { json: reviewId };
       });
       await endpoint(client.context, origin, 'notice_acknowledgements', 'POST', (request) => {
         acknowledgements.push(request.postDataJSON());
         return { json: null };
       });
 
-      await client.page.goto(origin + '/cliente/avisos?aviso=' + noticeId);
-      await client.page.getByRole('heading', { name: /Quadro de Avisos/ }).waitFor();
-      assert.equal(await client.page.getByText(noticeTitle, { exact: true }).count(), 0);
       await page.goto(origin + '/admin/avisos');
+      await page.getByText('Nenhum aviso aguardando revisão.', { exact: true }).waitFor();
+      await partner.page.goto(origin + '/equipe/avisos');
+      await partner.page.getByRole('button', { name: 'Novo comunicado', exact: true }).click();
+      const compose = partner.page.getByRole('dialog', { name: 'Novo comunicado', exact: true });
+      const submit = compose.getByRole('button', { name: 'Enviar para revisão', exact: true });
+      await compose.getByRole('combobox', { name: 'Tipo', exact: true }).selectOption('atendimento');
+      await compose.getByLabel('Data do aviso', { exact: true }).fill(review.notice_date);
+      await compose.getByRole('textbox', { name: 'Título', exact: true }).fill(noticeTitle);
+      await compose.getByRole('textbox', { name: 'Mensagem', exact: true }).fill(review.body);
+      assert.equal(await submit.isDisabled(), true);
+      await compose.getByRole('checkbox', { name: 'Empresa QA fictícia', exact: true }).check();
+      await submit.click();
+      await partner.page.getByText('Aguardando revisão', { exact: true }).waitFor();
+      assert.equal(submissions.length, 1);
+      assert.match(submissions[0].p_request_id, /^[0-9a-f-]{36}$/);
+      assert.deepEqual(submissions[0], {
+        p_request_id: submissions[0].p_request_id,
+        p_review_id: null,
+        p_revision: null,
+        p_category: 'atendimento',
+        p_title: noticeTitle,
+        p_body: 'Vamos ajustar o atendimento.',
+        p_companies: [companyId],
+        p_date: '2026-11-20',
+      });
+
+      await client.page.goto(origin + '/cliente/avisos?aviso=' + noticeId);
+      await client.page.getByText('Nenhum comunicado publicado.', { exact: true }).waitFor();
+      await page.reload();
       const first = await noticeReview(page);
       await first.getByRole('button', { name: 'Pedir ajuste', exact: true }).click();
       const returnButton = first.getByRole('button', { name: 'Devolver para ajuste', exact: true });
@@ -264,22 +297,22 @@ browserSuite([
       await recipient.uncheck();
       assert(await send.isDisabled());
       await recipient.check();
-      await form.getByRole('textbox', { name: 'Mensagem', exact: true }).fill('Novo horário confirmado às 14h.');
+      await form.getByRole('textbox', { name: 'Mensagem', exact: true }).fill(revisedBody);
       await send.click();
       await form.getByRole('alert').filter({ hasText: 'temporariamente indisponível QA' }).waitFor();
       await send.click();
       await partner.page.getByText('Aguardando revisão', { exact: true }).waitFor();
-      assert.equal(submissions.length, 2);
-      assert.match(submissions[0].p_request_id, /^[0-9a-f-]{36}$/);
+      assert.equal(submissions.length, 3);
+      assert.match(submissions[1].p_request_id, /^[0-9a-f-]{36}$/);
       assert.deepEqual(
-        submissions,
+        submissions.slice(1),
         Array(2).fill({
-          p_request_id: submissions[0].p_request_id,
+          p_request_id: submissions[1].p_request_id,
           p_review_id: reviewId,
           p_revision: 1,
           p_category: 'atendimento',
           p_title: noticeTitle,
-          p_body: 'Novo horário confirmado às 14h.',
+          p_body: revisedBody,
           p_companies: [companyId],
           p_date: '2026-11-20',
         }),
@@ -287,24 +320,65 @@ browserSuite([
       assert.deepEqual(directPublications, []);
 
       await client.page.reload();
-      await client.page.getByRole('heading', { name: /Quadro de Avisos/ }).waitFor();
-      assert.equal(await client.page.getByText(noticeTitle, { exact: true }).count(), 0);
+      await client.page.getByText('Nenhum comunicado publicado.', { exact: true }).waitFor();
       await page.reload();
       const second = await noticeReview(page);
-      await second.getByText('Novo horário confirmado às 14h.', { exact: true }).waitFor();
-      await second.getByRole('button', { name: 'Aprovar e publicar', exact: true }).click();
+      await second.getByText(revisedBody, { exact: true }).waitFor();
+      const approve = second.getByRole('button', { name: 'Aprovar e publicar', exact: true });
+      await approve.click();
+      await second.getByRole('alert').filter({ hasText: 'Publicação temporariamente indisponível QA' }).waitFor();
+      assert.equal(await second.getByText(revisedBody, { exact: true }).isVisible(), true);
+      await client.page.reload();
+      await client.page.getByText('Nenhum comunicado publicado.', { exact: true }).waitFor();
+
+      const agenda = await openActor('client');
+      await endpoint(agenda.context, origin, 'notices', 'GET', (request) => {
+        const params = new URL(request.url()).searchParams;
+        if (params.has('notice_date')) calendarReads.push({ status: params.get('status'), date: params.get('notice_date') });
+        return { json: published() };
+      });
+      await Promise.all([
+        agenda.page.waitForResponse((response) => {
+          const url = new URL(response.url());
+          return url.origin === host && url.pathname === '/rest/v1/notices' && url.searchParams.has('notice_date');
+        }),
+        agenda.page.goto(origin + '/cliente/cronograma'),
+      ]);
+      await agenda.page.getByRole('button', { name: 'Lista', exact: true }).click();
+      const agendaNotice = agenda.page.getByRole('button', { name: 'Ver detalhes de Aviso · ' + noticeTitle, exact: true });
+      assert.equal(await agendaNotice.count(), 0);
+      assert.equal(calendarReads.length, 1);
+
+      await approve.click();
       await second.waitFor({ state: 'detached' });
+      await page.getByText('Nenhum aviso aguardando revisão.', { exact: true }).waitFor();
       assert.deepEqual(decisions, [
         ...Array(2).fill({ p_review_id: reviewId, p_revision: 1, p_approve: false, p_note: returnNote }),
-        { p_review_id: reviewId, p_revision: 2, p_approve: true, p_note: null },
+        ...Array(2).fill({ p_review_id: reviewId, p_revision: 2, p_approve: true, p_note: null }),
       ]);
+
+      await agenda.page.reload();
+      await agenda.page.getByRole('button', { name: 'Lista', exact: true }).click();
+      await agendaNotice.click();
+      const agendaCard = agenda.page.getByRole('dialog', { name: 'Aviso da CALI', exact: true });
+      await agendaCard.getByText(revisedBody, { exact: true }).waitFor();
+      assert.deepEqual(calendarReads, Array(2).fill({ status: 'eq.published', date: 'not.is.null' }));
+      const boardLink = agendaCard.getByRole('link', { name: 'Abrir no Quadro de Avisos', exact: true });
+      assert.equal(await boardLink.getAttribute('href'), '/cliente/avisos?aviso=' + noticeId);
+      await boardLink.click();
+      await agenda.page.getByRole('dialog', { name: 'Comunicado', exact: true }).getByText(revisedBody, { exact: true }).waitFor();
+
       await client.page.reload();
       const publication = client.page.getByRole('dialog', { name: 'Comunicado', exact: true });
-      await publication.getByText('Novo horário confirmado às 14h.', { exact: true }).waitFor();
+      await publication.getByText(revisedBody, { exact: true }).waitFor();
+      assert.equal(await publication.getByText('Vamos ajustar o atendimento.', { exact: true }).count(), 0);
       await publication.getByRole('button', { name: 'Estou ciente', exact: true }).click();
       await publication.getByRole('button', { name: 'Ciente registrado', exact: true }).waitFor();
       assert.deepEqual(acknowledgements, [{ notice_id: noticeId, user_id: user.id, company_id: companyId }]);
-      return { revisions: [1, 2], publicationAfterApproval: true, noDirectWrite: true };
+      await partner.page.reload();
+      await partner.page.locator('.notice-review-panel').getByText('Publicado', { exact: true }).waitFor();
+      assert.deepEqual(directPublications, []);
+      return { revisions: [1, 2], freshSubmission: true, approvalRetried: true, clientBoardAndAgenda: true, noDirectWrite: true };
     },
   },
   {

@@ -7,6 +7,118 @@ const { companyId, tables } = require('./fixtures.cjs');
 
 browserSuite([
   {
+    id: '08-team-create-person-validation-private-consent-and-retry',
+    role: 'admin',
+    async run({ context, page, origin }) {
+      const api = 'https://cali-local-qa.supabase.co/rest/v1/';
+      const headers = { 'access-control-allow-origin': origin };
+      const fullName = 'Pessoa Cadastro Individual QA';
+      const members = new Map();
+      const writes = [];
+      await context.route(api + 'team_members?**', (route) => {
+        if (route.request().method() !== 'GET') return route.fallback();
+        assert.equal(new URL(route.request().url()).searchParams.get('company_id'), 'eq.' + companyId);
+        const publicRows = [...members.values()].map(({ salary, optional_data_declared, ...row }) => row);
+        return route.fulfill({ headers, json: [...tables.team_members, ...publicRows] });
+      });
+      await context.route(api + 'team_member_private?**', (route) => {
+        if (route.request().method() !== 'GET') return route.fallback();
+        assert.equal(new URL(route.request().url()).searchParams.get('company_id'), 'eq.' + companyId);
+        const privateRows = [...members.values()]
+          .filter((row) => row.optional_data_declared)
+          .map((row) => ({ member_id: row.id, salary: row.salary }));
+        return route.fulfill({ headers, json: privateRows });
+      });
+      await context.route(api + 'rpc/save_team_month_v1', (route) => {
+        const request = route.request();
+        if (request.method() !== 'POST') return route.fallback();
+        assert.equal(request.headers()['content-profile'], 'cali_workspace');
+        const data = request.postDataJSON();
+        writes.push(data);
+        assert.equal(data.p_rows.length, 1);
+        const [row] = data.p_rows;
+        const existing = members.get(row.employee_code);
+        members.set(row.employee_code, {
+          ...row,
+          company_id: companyId,
+          id: existing?.id || `qa-person-${members.size + 1}`,
+          avatar_style: 'neutral',
+        });
+        // O servidor persistiu o lote, mas a primeira resposta falhou antes de chegar ao browser.
+        return writes.length === 1
+          ? route.fulfill({ headers, status: 503, json: { message: 'Resposta de gravação indisponível.' } })
+          : route.fulfill({ headers, json: { ok: true } });
+      });
+
+      await page.clock.setFixedTime(new Date('2026-11-12T16:00:00Z'));
+      await page.goto(origin + '/admin/equipe');
+      await page.getByRole('button', { name: 'Abrir ficha de Pessoa Um QA', exact: true }).waitFor();
+      await page.getByRole('button', { name: 'Adicionar pessoa', exact: true }).click();
+      const dialog = page.getByRole('dialog', { name: 'Cadastrar colaborador', exact: true });
+      const save = dialog.getByRole('button', { name: 'Salvar ficha', exact: true });
+      const name = dialog.getByRole('textbox', { name: 'Nome completo' });
+      const salary = dialog.getByLabel(/^Remuneração atual/);
+      await save.click();
+      await dialog.getByRole('alert').filter({ hasText: 'Preencha nome, admissão e cargo.' }).waitFor();
+      assert(await name.evaluate((element) => element.validity.valueMissing));
+      assert.deepEqual(writes, []);
+      await name.fill('  ' + fullName + '  ');
+      await dialog.getByLabel('Data de admissão', { exact: true }).fill('2026-11-10');
+      await dialog.getByRole('textbox', { name: 'Cargo', exact: true }).fill('  Analista QA  ');
+      await save.click();
+      await dialog.getByRole('alert').filter({ hasText: 'Informe o departamento.' }).waitFor();
+      assert.deepEqual(writes, []);
+      await dialog.getByLabel(/^Departamento/).fill('Operações');
+      await dialog.getByRole('combobox', { name: /^Gestor direto/ }).selectOption('QA01');
+      await salary.fill('3210.5');
+      await save.click();
+      await dialog.getByRole('alert').filter({ hasText: 'Confirme a origem autorizada' }).waitFor();
+      assert.deepEqual(writes, []);
+      await dialog.getByRole('checkbox', { name: /^Confirmo que tenho origem autorizada/ }).check();
+      await save.click();
+      await dialog.getByRole('alert').filter({ hasText: 'Não foi possível concluir a operação.' }).waitFor();
+      assert.equal(await name.inputValue(), '  ' + fullName + '  ');
+      assert.equal(await salary.inputValue(), '3210.5');
+      assert.equal(writes.length, 1);
+      await save.click();
+      await dialog.waitFor({ state: 'hidden' });
+      await page.getByRole('status').filter({ hasText: 'Colaborador cadastrado.' }).waitFor();
+      assert.equal(writes.length, 2);
+      const [created, retry] = writes;
+      assert.deepEqual(retry, created, 'Retry deve reutilizar o código automático de colaborador.');
+      assert.equal(members.size, 1);
+      assert.equal(created.p_company_id, companyId);
+      assert.equal(created.p_reference_month, '2026-11-01');
+      const [row] = created.p_rows;
+      assert.match(row.employee_code, /^CALI-[A-F0-9-]{36}$/);
+      assert.deepEqual(
+        [
+          row.full_name,
+          row.admission_date,
+          row.job_title,
+          row.department,
+          row.manager_code,
+          row.salary,
+          row.optional_data_declared,
+        ],
+        [fullName, '2026-11-10', 'Analista QA', 'Operações', 'QA01', 3210.5, true],
+      );
+
+      await page.reload();
+      await page.getByRole('button', { name: 'Abrir ficha de ' + fullName, exact: true }).click();
+      const details = page.getByRole('dialog', { name: 'Ficha de ' + fullName, exact: true });
+      await details.getByText(row.employee_code, { exact: true }).waitFor();
+      await details.getByText('Pessoa Um QA', { exact: true }).waitFor();
+      await details.getByText(/R\$\s*3\.210,50/).waitFor();
+      return {
+        mandatoryFields: true,
+        privateConsentRequired: true,
+        stableGeneratedCode: true,
+        readBackAfterReload: true,
+      };
+    },
+  },
+  {
     id: '08-team-import-model-preview-retry-and-filtered-pdf',
     role: 'client',
     async run({ context, page, origin }) {

@@ -46,6 +46,8 @@ const form = {
   success_text: 'Recebemos sua resposta de teste.',
   status: 'open',
   confirm_email: false,
+  created_at: '2026-10-08T13:00:00Z',
+  updated_at: '2026-10-08T13:00:00Z',
   questions: [{ id: 'qa-name', kind: 'short_text', label: 'Seu nome', required: true }],
 };
 const modules = ['projects', 'records', 'hours', 'calendar', 'documents', 'reports', 'team', 'notices'];

@@ -179,7 +179,32 @@ export function CompanyTeamPage({role,staff=false}:{role:Role;staff?:boolean}){
   function openStatusEdit(member:Member,nextStatus:'leave'|'terminated'){const restricted=!staff?privateRows.find(item=>item.member_id===member.id):null;setEditor(normalized({salary:restricted?.salary?.toString()||'',salary_review_date:restricted?.salary_review_date||'',gender:restricted?.gender||'',gender_detail:restricted?.gender_detail||'',has_children:restricted?.has_children||'',optional_data_declared:Boolean(restricted&&(restricted.gender||restricted.has_children||restricted.salary!=null||restricted.salary_review_date)),status:nextStatus,...(nextStatus==='leave'&&!member.leave_start_date?{leave_start_date:new Date().toISOString().slice(0,10)}:{})},member));setEditingId(member.id);setEditorStep(3);setError('');}
   function payload(draft:Draft){return {employee_code:draft.employee_code.trim(),full_name:draft.full_name.trim(),work_email:draft.work_email||null,work_phone:draft.work_phone||null,admission_date:draft.admission_date,job_title:draft.job_title.trim(),seniority:draft.seniority||null,department:draft.department.trim(),team_area:draft.team_area||null,manager_code:draft.manager_code||null,is_leader:Boolean(draft.is_leader),employment_type:draft.employment_type,weekly_hours:draft.weekly_hours??null,work_model:draft.work_model||null,location:draft.location||null,status:draft.status,leave_reason:draft.status==='leave'?draft.leave_reason:null,leave_start_date:draft.status==='leave'?draft.leave_start_date:null,expected_return_date:draft.status==='leave'?draft.expected_return_date:null,termination_date:draft.status==='terminated'?draft.termination_date:null,termination_initiative:draft.status==='terminated'?draft.termination_initiative:null,termination_reason:draft.status==='terminated'?terminationReasonValue(draft.employment_type==='clt'?draft.termination_code:'',draft.termination_reason):null,notice_type:draft.status==='terminated'?draft.notice_type:null,...(draft.optional_data_declared?{optional_data_declared:true,...(draft.salary!==''?{salary:Number(draft.salary)}:{}),...(draft.salary_review_date?{salary_review_date:draft.salary_review_date}:{}),...(draft.gender?{gender:draft.gender,gender_detail:draft.gender==='other'?draft.gender_detail||null:null}:{}),...(draft.has_children?{has_children:draft.has_children}:{})}:{})};}
   async function saveRows(rows:Draft[],success:string){if(!companyId)return;setSaving(true);setError('');try{await saveTeamMembers(companyId, `${activeMonth}-01`, rows.map(payload));await loadTeam(companyId);setEditor(null);setImportRows([]);setImportOpen(false);setMonth(activeMonth);setNotice(success);}catch(err){setError(errorText(err));}finally{setSaving(false);}}
-  function saveEditor(e:FormEvent){e.preventDefault();if(!editor||Date.now()-lastEditorAdvance.current<450)return;if(editor.status==='leave'&&(!editor.leave_reason||!editor.leave_start_date)){setError('Informe o motivo e a data de início das férias ou do afastamento.');return;}if(editor.status==='terminated'&&!editor.termination_date){setError('Informe a data do desligamento.');return;}if((editor.gender||editor.has_children||editor.salary||editor.salary_review_date)&&!editor.optional_data_declared){setError('Confirme a origem autorizada dos dados opcionais antes de salvar.');setEditorStep(4);return;}if(editor.gender==='other'&&editor.gender_detail.length>120){setError('A identificação de gênero deve ter até 120 caracteres.');return;}void saveRows([{...editor,employee_code:editor.employee_code.trim()||`CALI-${crypto.randomUUID().toUpperCase()}`}],editingId?'Ficha atualizada.':'Colaborador cadastrado.');}
+  function saveEditor(event: FormEvent) {
+    event.preventDefault();
+    if (!editor || saving || Date.now() - lastEditorAdvance.current < 450) return;
+    if (editor.status === 'leave' && (!editor.leave_reason || !editor.leave_start_date)) {
+      setError('Informe o motivo e a data de início das férias ou do afastamento.');
+      return;
+    }
+    if (editor.status === 'terminated' && !editor.termination_date) {
+      setError('Informe a data do desligamento.');
+      return;
+    }
+    if ((editor.gender || editor.has_children || editor.salary || editor.salary_review_date) && !editor.optional_data_declared) {
+      setError('Confirme a origem autorizada dos dados opcionais antes de salvar.');
+      setEditorStep(4);
+      return;
+    }
+    if (editor.gender === 'other' && editor.gender_detail.length > 120) {
+      setError('A identificação de gênero deve ter até 120 caracteres.');
+      return;
+    }
+    const employeeCode = editor.employee_code.trim() || `CALI-${crypto.randomUUID().toUpperCase()}`;
+    const row = { ...editor, employee_code: employeeCode };
+    // Preserve o código se a gravação for concluída sem que a resposta chegue ao navegador.
+    setEditor(row);
+    void saveRows([row], editingId ? 'Ficha atualizada.' : 'Colaborador cadastrado.');
+  }
   async function archiveMember(){if(!removeMember||!companyId)return;setSaving(true);setError('');try{await archiveTeamMember(companyId, removeMember.id);setRemoveMember(null);setDetail(null);await loadTeam(companyId);setNotice('Ficha removida da equipe atual. O histórico foi preservado.')}catch(err){setError(errorText(err))}finally{setSaving(false)}}
   async function readCsv(file:File){
     setImportOpen(true);setImportError('');setImportRows([]);setImportFileName(file.name);setImportBusy(true);

@@ -30,7 +30,8 @@ A comparação visual e as jornadas funcionais usam Chrome local em loopback e i
 | Avisos | Falhas de comentário aparecem no diálogo. O Cliente consegue tentar novamente mantendo a mensagem. | [Avisos](../tests/e2e/review-workflows.cjs) |
 | Agenda | Falhas de gravação e cancelamento preservam o formulário. Lembrete e transcrição seguem na própria gravação do evento. | [Agenda](../tests/e2e/agenda-visits.cjs) |
 | Auditoria | A linha do tempo aceita os identificadores numéricos de atividades e mudanças de situação, conforme o schema do CALI. | [Comportamentos de página](../tests/e2e/page-behaviors.cjs) |
-| Projetos | A criação oferece empresas ativas que ainda não têm projeto. A carteira continua filtrada pelos projetos existentes. | [Criação e frentes](../tests/e2e/project-creation.cjs) |
+| Projetos | O Admin cadastra o primeiro projeto com a carteira vazia quando há empresa ativa. A lista de criação inclui empresas sem projeto anterior. A carteira continua filtrada pelos projetos existentes. | [Criação e frentes](../tests/e2e/project-creation.cjs) |
+| Equipe | O cadastro individual preserva o código gerado em nova tentativa. Uma falha de resposta após a gravação mantém uma única ficha. | [Cadastro de colaborador](../tests/e2e/team-components.cjs) |
 
 ## Componentes e primitivas
 
