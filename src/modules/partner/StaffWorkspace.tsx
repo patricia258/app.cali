@@ -34,7 +34,7 @@ import { StaffProjectsPage } from '../projects/AdminProjectsPage';
 import { StaffHoursPage } from '../hours/AdminHoursPage';
 import '../calendar/styles';
 import { StaffCalendarPage } from '../calendar/AdminCalendarPage';
-import '../../components/workspace/v2.generated.css';
+import '../../components/workspace/workspace-shell.generated.css';
 import '../records/styles';
 import '../projects/styles';
 import '../../components/workspace/operational.css';

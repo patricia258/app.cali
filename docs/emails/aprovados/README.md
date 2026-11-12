@@ -2,19 +2,21 @@
 
 Atualizado em 13/10/2026. Referência: aprovação da proprietária em conversa.
 
+Os nomes dos HTMLs identificam o evento. As revisões dos arquivos de referência `documento-final.html` e `relatorio-mensal.html` são V2. `multa-extra-aplicada.html`, `pendencia-atraso.html`, `prazo-reprogramado.html` e `reuniao-online-extra-cancelada.html` são V1.
+
 ## Cliente — HTML aprovado
 
 | Tipo | Modelo | Disparo correspondente | Pasta |
 |---|---|---|---|
-| Boas-vindas no primeiro acesso | V3 | workspace-access: verificação de código de cliente convidado, única vez | boas-vindas-v3.html |
-| Cronograma para validação | V1 | project_schedule_review (ou aviso project "Planejamento para sua validação") | cronograma-validacao-v1.html |
-| Lembrete de cronograma | V1 | project_schedule_reminder | lembrete-cronograma-v1.html |
-| Projeto concluído | V2 | project "Projeto concluído" | projeto-concluido-v2.html |
-| Projeto cancelado | V2 | project_lifecycle "Execução cancelada" para escopo Projeto; ou project "Projeto cancelado" | projeto-cancelado-v2.html |
-| Entregável para validação | V2 (72 horas úteis) | deliverable_status "Sua validação é necessária" | entregavel-validacao-v2.html |
-| Subtarefa aguardando aprovação | V1 | task_client_review, identificação inequívoca da subtarefa | subtarefa-validacao-v1.html |
-| A CALI precisa de um retorno | V1 | client_dependency, identificação inequívoca da pendência e prazo real | solicitacao-retorno-v1.html |
-| Documento para ciência | V1 | document + arquivo publicado que exige ciência (somente evento já existente) | documento-ciencia-v1.html |
+| Boas-vindas no primeiro acesso | V3 | workspace-access: verificação de código de cliente convidado, única vez | boas-vindas.html |
+| Cronograma para validação | V1 | project_schedule_review (ou aviso project "Planejamento para sua validação") | cronograma-validacao.html |
+| Lembrete de cronograma | V1 | project_schedule_reminder | lembrete-cronograma.html |
+| Projeto concluído | V2 | project "Projeto concluído" | projeto-concluido.html |
+| Projeto cancelado | V2 | project_lifecycle "Execução cancelada" para escopo Projeto; ou project "Projeto cancelado" | projeto-cancelado.html |
+| Entregável para validação | V2 (72 horas úteis) | deliverable_status "Sua validação é necessária" | entregavel-validacao.html |
+| Subtarefa aguardando aprovação | V1 | task_client_review, identificação inequívoca da subtarefa | subtarefa-validacao.html |
+| A CALI precisa de um retorno | V1 | client_dependency, identificação inequívoca da pendência e prazo real | solicitacao-retorno.html |
+| Documento para ciência | V1 | document + arquivo publicado que exige ciência (somente evento já existente) | documento-ciencia.html |
 
 HTML fonte nesta pasta. Os módulos TypeScript são cópias literais desses seis arquivos, usadas pelas duas Edge Functions de envio. **Não modificar textos/layouts aprovados sem aprovação nova.**
 
@@ -47,8 +49,8 @@ Cliente: rebriefing, entregável cancelado, subtarefa para aprovação, dependê
 
 | Modalidade | Modelo | Condições comunicadas | Arquivo |
 |---|---|---|---|
-| Visita presencial extra | V2 | R$ 800 por até 4 horas; despesas adicionais com comprovantes; 2 datas; sujeita a análise de agenda | visita-presencial-extra-solicitacao-v2.html |
-| Reunião online extra | V3 | R$ 200 por 1 hora ou R$ 300 por 1h30; valor da duração escolhida; 2 datas; sujeita a análise de agenda | reuniao-online-extra-solicitacao-v3.html |
+| Visita presencial extra | V2 | R$ 800 por até 4 horas; despesas adicionais com comprovantes; 2 datas; sujeita a análise de agenda | visita-presencial-extra-solicitacao.html |
+| Reunião online extra | V3 | R$ 200 por 1 hora ou R$ 300 por 1h30; valor da duração escolhida; 2 datas; sujeita a análise de agenda | reuniao-online-extra-solicitacao.html |
 
 **Integração:** os modelos HTML também estão no módulo `approved-client-templates.ts` da função `workspace-notification-email-hook`, preservando remetente `APP CALI RH <workspace@calirh.com>` e `reply_to: nao-responda@calirh.com`. Isso **não habilita sozinho** o envio de recibo inicial: a inserção de `scheduling_request` no banco atualmente é dirigida à administradora, e não existe evento de notificação ao cliente, nessa fase, que o hook possa usar sem nova regra. Não criar notificações adicionais nem modificar banco/telas por causa deste registro. O fluxo precisa de autorização específica para incorporar o disparo do recibo no evento correto.
 
@@ -67,8 +69,8 @@ Cliente: rebriefing, entregável cancelado, subtarefa para aprovação, dependê
 
 ## Confirmação de atendimento extra — modelos aprovados (15/10/2026)
 
-- **Visita presencial extra V1:** `visita-extra-confirmada-v1.html`, evento `scheduling_extra_confirmed` somente quando `status` passa para `confirmed`, evento final e data selecionada estão registrados.
-- **Reunião online extra V1:** `reuniao-online-extra-confirmada-v1.html`, mesma regra, preço fixo aceito conforme duração (1 hora R$ 200 / 1h30 R$ 300).
+- **Visita presencial extra V1:** `visita-extra-confirmada.html`, evento `scheduling_extra_confirmed` somente quando `status` passa para `confirmed`, evento final e data selecionada estão registrados.
+- **Reunião online extra V1:** `reuniao-online-extra-confirmada.html`, mesma regra, preço fixo aceito conforme duração (1 hora R$ 200 / 1h30 R$ 300).
 - A função `notify_confirmed_extra_request_v1` envia uma única notificação ao solicitante para qualquer confirmação de atendimento extra (CALI ou aceite de uma nova data). A notificação anterior de cliente na `admin_confirm_extra_visit_v1` é substituída para não enviar duplicado; avisos à administração preservados.
 - Os HTMLs são copiados integralmente para `approved-client-templates.ts`, com dados validados contra o evento de calendário.
 - Sem envio retroativo, sem alteração de valores ou regras de calendário; templates de novas datas e reagendamento seguem aguardando aprovação.
@@ -77,68 +79,68 @@ Cliente: rebriefing, entregável cancelado, subtarefa para aprovação, dependê
 
 | Tipo | HTML aprovado | Disparo |
 |---|---|---|
-| CALI propõe 1–2 opções de data para extra | `extra-novas-datas-v1.html` | Aviso `scheduling_response` que já existe; apenas troca layout quando o pedido está `client_review` e modalidade é extra |
-| Cliente solicita reagendar visita extra previamente confirmada | `extra-reagendamento-solicitado-v1.html` | Novo aviso `scheduling_extra_reschedule_requested` apenas no evento `confirmed → reschedule_review` com motivo e duas datas reais |
+| CALI propõe 1–2 opções de data para extra | `extra-novas-datas.html` | Aviso `scheduling_response` que já existe; apenas troca layout quando o pedido está `client_review` e modalidade é extra |
+| Cliente solicita reagendar visita extra previamente confirmada | `extra-reagendamento-solicitado.html` | Novo aviso `scheduling_extra_reschedule_requested` apenas no evento `confirmed → reschedule_review` com motivo e duas datas reais |
 
 Não gera notificações duplicadas para propostas administrativas. Em outros pedidos, mantém o template existente. A confirmação de reagendamento definitivo continuará usando seu próprio e-mail já aprovado de confirmação, após aprovação de nova data no sistema. Remetente e rodapé preservados.
 
 ## Visita extra cancelada e reagendamento confirmado — aprovados (15/10/2026)
 
-- **Visita extra cancelada V2**: `extra-visita-cancelada-v2.html`. Conteúdo atualizado com condição de multa de 20% (R$ 160,00) somente após avaliação, sem cobrança por este e-mail. Notificação `scheduling_extra_cancelled` para visita presencial previamente confirmada, quando `confirmed -> cancelled`.
-- **Nova data da visita extra confirmada V1**: `extra-visita-reagendada-confirmada-v1.html`. Reaproveita notificação `scheduling_extra_confirmed`; reconhece campos da visita reagendada e usa a data antiga e a nova. Não gera aviso duplicado.
+- **Visita extra cancelada V2**: `extra-visita-cancelada.html`. Conteúdo atualizado com condição de multa de 20% (R$ 160,00) somente após avaliação, sem cobrança por este e-mail. Notificação `scheduling_extra_cancelled` para visita presencial previamente confirmada, quando `confirmed -> cancelled`.
+- **Nova data da visita extra confirmada V1**: `extra-visita-reagendada-confirmada.html`. Reaproveita notificação `scheduling_extra_confirmed`; reconhece campos da visita reagendada e usa a data antiga e a nova. Não gera aviso duplicado.
 - O código vigente contempla decisão de multa de 20% apenas na visita presencial, via função administrativa. Para online existe condição genérica de avaliação de cobrança, mas não há cálculo de 20% implementado. Não assumir que está ativo.
 - **Prazo de aviso para isenção:** pendente confirmação da proprietária; não confundir antecedência de solicitação (48h) com antecedência de cancelamento.
 
 
 ## Modelos de cliente — ocorrências, equipe e menções (aprovados 15/10/2026)
-- `ocorrencia-situacao-v1.html`: evento `record_status`; mostrar a situação textual que constava na notificação, não a situação corrente.
-- `ocorrencia-reabertura-v1.html`: `record_reopen_decision`; buscar a decisão formal e a justificativa específica daquele momento, inclusive quando recusada.
-- `equipe-atualizacao-mensal-v1.html`: `team_month_update`; referência mensal do lembrete, sem confundir com o mês corrente.
-- `mencao-conversa-v1.html`: `chat_mention`; enviar ao cliente mencionado com autor e trecho da notificação. **Mensagens comuns não geram e-mail.**
+- `ocorrencia-situacao.html`: evento `record_status`; mostrar a situação textual que constava na notificação, não a situação corrente.
+- `ocorrencia-reabertura.html`: `record_reopen_decision`; buscar a decisão formal e a justificativa específica daquele momento, inclusive quando recusada.
+- `equipe-atualizacao-mensal.html`: `team_month_update`; referência mensal do lembrete, sem confundir com o mês corrente.
+- `mencao-conversa.html`: `chat_mention`; enviar ao cliente mencionado com autor e trecho da notificação. **Mensagens comuns não geram e-mail.**
 - Todos os HTMLs são cópias literais dos aprovados. Não cria triggers, avisos, novos destinatários nem muda remetente ou reply_to.
 - Quando dados não permitem associar o registro original com segurança, a função mantém o layout genérico anterior; sem inventar decisões ou nomes.
 
 ## Entregáveis — modelos de cliente aprovados em 15/10/2026
 
-- **Rebriefing V2:** `entregavel-rebriefing-v2.html`, notificação existente `deliverable_status` / `Rebriefing necessário`; exige entregável visível em rebriefing.
-- **Cancelamento V1:** `entregavel-cancelado-v1.html`, notificação existente `deliverable_status` / `Entregável cancelado`; inclui motivo de cancelamento efetivamente registrado.
+- **Rebriefing V2:** `entregavel-rebriefing.html`, notificação existente `deliverable_status` / `Rebriefing necessário`; exige entregável visível em rebriefing.
+- **Cancelamento V1:** `entregavel-cancelado.html`, notificação existente `deliverable_status` / `Entregável cancelado`; inclui motivo de cancelamento efetivamente registrado.
 - Os demais status e regras de envio não foram alterados. Caso a referência não seja inequívoca, mantém o modelo anterior. Sender/reply-to e rodapé preservados.
 
 
 ## Cliente — código de acesso V3 e ajuste registrado V1 (15/10/2026)
 
-- **Código V3:** `codigo-acesso-v3.html`. Renderizador `workspace-access/approved-code-v3.ts` utiliza apenas para `role='client'`. As regras existentes de código de 6 dígitos, validade 10 minutos, uso único e limitação de solicitações não foram alteradas. Admin/Partner preservam o HTML anterior; assunto novo somente para o Cliente.
-- **Ajuste registrado V1:** `ajuste-registrado-v1.html`. Evento `adjustment` existente, título `Ajuste registrado no projeto`, registro `deliverable_adjustment`. Confere solicitação de ajuste comum originada pela CALI, motivo da notificação, empresa e entregável visível; não cria disparos novos.
+- **Código V3:** `codigo-acesso.html`. Renderizador `workspace-access/client-access-code-email.ts` utiliza apenas para `role='client'`. As regras existentes de código de 6 dígitos, validade 10 minutos, uso único e limitação de solicitações não foram alteradas. Admin/Partner preservam o HTML anterior; assunto novo somente para o Cliente.
+- **Ajuste registrado V1:** `ajuste-registrado.html`. Evento `adjustment` existente, título `Ajuste registrado no projeto`, registro `deliverable_adjustment`. Confere solicitação de ajuste comum originada pela CALI, motivo da notificação, empresa e entregável visível; não cria disparos novos.
 - Remetente e reply_to novos preservados. Cópias HTML literais aprovadas, sem novas tabelas, fluxos de autenticação, gatilhos ou telas.
 
 ## Cliente — pedidos extras não confirmados (aprovados 15/10/2026)
 
-- **Visita extra não confirmada V1:** `visita-extra-nao-confirmada-v1.html`. Evento `scheduling_response` e título `Visita extra não confirmada · [data]`, modificado pela rotina existente que descreve visitas presenciais extras. As duas datas são consultadas no pedido de origem; motivo apresentado somente quando registrado.
-- **Papo online extra não confirmado V1:** `papo-online-extra-nao-confirmado-v1.html`. Evento `scheduling_response`, título `Solicitação de agenda respondida`, restrito a pedido online extra em estado `declined`, com duração e preço fixo aceitos conferidos no registro.
+- **Visita extra não confirmada V1:** `visita-extra-nao-confirmada.html`. Evento `scheduling_response` e título `Visita extra não confirmada · [data]`, modificado pela rotina existente que descreve visitas presenciais extras. As duas datas são consultadas no pedido de origem; motivo apresentado somente quando registrado.
+- **Papo online extra não confirmado V1:** `papo-online-extra-nao-confirmado.html`. Evento `scheduling_response`, título `Solicitação de agenda respondida`, restrito a pedido online extra em estado `declined`, com duração e preço fixo aceitos conferidos no registro.
 - Sem notificações extras, triggers ou regras de cobrança. Não misturar recusa de pedido não confirmado com cancelamento de atendimento previamente confirmado.
 - Ambas as comunicações são idempotentes pelo envio original; remetente/reply-to e rodapé padrão preservados.
 
 
 ## Administradora — cronograma aprovado e ajuste solicitado (15/10/2026)
 
-- **Cronograma aprovado V1:** `docs/emails/aprovados/administradora/cronograma-aprovado-v1.html`. Evento existente `project_schedule_approved` para usuário ativo com `role='admin'`. Mostra empresa, projeto e data de início que constava na notificação histórica de aprovação.
-- **Ajuste solicitado V1:** `docs/emails/aprovados/administradora/cronograma-ajuste-solicitado-v1.html`. Evento existente `project_schedule_adjustment`, relacionado a um registro de revisão respondida na mesma data, com ponto alvo, ação e justificativa informados pelo cliente.
+- **Cronograma aprovado V1:** `docs/emails/aprovados/administradora/cronograma-aprovado.html`. Evento existente `project_schedule_approved` para usuário ativo com `role='admin'`. Mostra empresa, projeto e data de início que constava na notificação histórica de aprovação.
+- **Ajuste solicitado V1:** `docs/emails/aprovados/administradora/cronograma-ajuste-solicitado.html`. Evento existente `project_schedule_adjustment`, relacionado a um registro de revisão respondida na mesma data, com ponto alvo, ação e justificativa informados pelo cliente.
 - HTML integralmente aprovado, copiado para `approved-admin-templates.ts`. Nenhum trigger, regra de negócio, destinatário, banco ou tela alterado. Outras notificações administrativas continuam no HTML anterior quando não correspondem com segurança. Remetente e reply-to oficiais preservados.
 
 ## Administradora — entregáveis (aprovados 15/10/2026)
 
-- **Entregável aprovado V1:** `administradora/entregavel-aprovado-v1.html`. Aviso real `deliverable_status` / `Cliente aprovou um entregável`, validado contra empresa, projeto, título, status e conteúdo da notificação. O evento original não registra o nome do aprovador; o modelo identifica o cliente sem inventar pessoa.
-- **Ajuste solicitado V1:** `administradora/entregavel-ajuste-solicitado-v1.html`. Aviso real `deliverable_status` / `Cliente solicitou ajuste`; mostra justificativa e solicitante somente quando existe registro único correspondente de `deliverable_adjustments` para cliente. Sem correspondência segura, preserva o envio anterior.
+- **Entregável aprovado V1:** `administradora/entregavel-aprovado.html`. Aviso real `deliverable_status` / `Cliente aprovou um entregável`, validado contra empresa, projeto, título, status e conteúdo da notificação. O evento original não registra o nome do aprovador; o modelo identifica o cliente sem inventar pessoa.
+- **Ajuste solicitado V1:** `administradora/entregavel-ajuste-solicitado.html`. Aviso real `deliverable_status` / `Cliente solicitou ajuste`; mostra justificativa e solicitante somente quando existe registro único correspondente de `deliverable_adjustments` para cliente. Sem correspondência segura, preserva o envio anterior.
 - **Rebriefing:** evento próprio `Cliente solicitou rebriefing`; **não reutilizar** o HTML de ajuste. Aguardando modelo específico.
 - HTMLs literais aprovados, copiados para `approved-admin-templates.ts`. Nenhum trigger, banco ou regra de contratação alterados.
 
 ## Administradora — rebriefing e reabertura (aprovados 15/10/2026)
 
-- **Rebriefing V1:** `administradora/entregavel-rebriefing-v1.html` para evento `deliverable_status` / `Cliente solicitou rebriefing`. Somente usa HTML novo se houver registro de rebriefing inequívoco e observação específica registrada; caso contrário, usa o e-mail anterior.
-- **Reabertura V1:** `administradora/ocorrencia-reabertura-v1.html` para evento `record_reopen_request` / `Solicitação de reabertura`, com motivo e solicitante conferidos contra o pedido de origem e texto do aviso.
+- **Rebriefing V1:** `administradora/entregavel-rebriefing.html` para evento `deliverable_status` / `Cliente solicitou rebriefing`. Somente usa HTML novo se houver registro de rebriefing inequívoco e observação específica registrada; caso contrário, usa o e-mail anterior.
+- **Reabertura V1:** `administradora/ocorrencia-reabertura.html` para evento `record_reopen_request` / `Solicitação de reabertura`, com motivo e solicitante conferidos contra o pedido de origem e texto do aviso.
 - HTMLs copiados literalmente, sem mudanças em gatilhos, destinatários, tabelas ou status. Não cria envio retroativo.
 
 ## Administradora — novas solicitações (modelos 7 e 8 aprovados)
-- `administradora/nova-solicitacao-v1.html`: evento `record_opened`, para nova solicitação de cliente e origem `account_record`. Campos da solicitação original, com fallback legado se incompletos.
-- `administradora/nova-visita-v1.html`: evento `scheduling_request`, exclusivamente visita presencial e suas duas datas reais, antes de confirmação.
+- `administradora/nova-solicitacao.html`: evento `record_opened`, para nova solicitação de cliente e origem `account_record`. Campos da solicitação original, com fallback legado se incompletos.
+- `administradora/nova-visita.html`: evento `scheduling_request`, exclusivamente visita presencial e suas duas datas reais, antes de confirmação.
 - HTMLs preservados literalmente. Sem alterar destinatários, gatilhos, banco ou outros modelos aprovados.

@@ -2,7 +2,7 @@
 /* Encaixes operacionais do cliente V2.
    Estilos de elementos que existem no aplicativo oficial e não têm representação no protótipo
    aprovado (filtros reais, formulários, conversas, ciência, Drive, etc.), desenhados com os
-   mesmos valores da V2. Nada aqui redefine uma regra de v2.generated.css. */
+   mesmos valores da V2. Nada aqui redefine uma regra de workspace-shell.generated.css. */
 html[data-workspace-ui='v2']{
 /* ---- módulos ---- */
 .v2-client-module .ledger-entry-detail{padding:14px 11px;border-bottom:1px solid var(--v2-line-e9e0d8,#e9e0d8);@apply tw:text-[11px];color:var(--v2-text-746a64,#746a64);@apply tw:grid tw:gap-[6px]}

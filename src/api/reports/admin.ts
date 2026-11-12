@@ -2,7 +2,7 @@ import { format, subMonths } from 'date-fns';
 import { z } from 'zod';
 import type { ReportEditor, ReportType } from '../../lib/reportComposition';
 import { normalizeIntelligenceSnapshot, type IntelligenceSnapshot } from '../../lib/reportIntelligence';
-import type { DeliveryPerformanceRow, DismissedReportAlert } from '../../lib/reportV14';
+import type { DeliveryPerformanceRow, DismissedReportAlert } from '../../lib/reportCloseMetrics';
 import { supabase } from '../supabase';
 
 const reportFields = 'id,company_id,title,report_type,period_start,period_end,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,updated_at,version,revision_parent_id,dismissed_alerts,internal_note,data_refreshed_at,review_started_at,approved_at,sent_at,sent_to';

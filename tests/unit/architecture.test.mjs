@@ -25,10 +25,19 @@ test('application navigation and cross-role flows retain their documented owners
   ]) assert.ok(existsSync(join(src, owner)), owner);
 });
 
-test('componentes e páginas usam nomes de arquivo por função', () => {
-  const files = ['components', 'modules'].flatMap((directory) => sourceFiles(join(src, directory)));
-  const versionedFiles = files.filter((file) => /v\d+\.tsx$/i.test(basename(file)));
-  assert.deepEqual(versionedFiles.map((file) => file.slice(src.length)), []);
+test('arquivos e diretórios do repositório usam nomes por função', () => {
+  const root = join(src, '..');
+  const files = execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], {
+    cwd: root,
+    encoding: 'utf8',
+  }).split('\0');
+  const versionedPaths = files.filter((file) => {
+    if (!/v\d+(?:[a-z])?(?=$|[./_-])/i.test(file) || !existsSync(join(root, file))) return false;
+    const migration = /^supabase\/migrations\/(\d+)_/.exec(file);
+    // Último caminho de migration com revisão no nome antes da adoção desta convenção.
+    return !migration || Number(migration[1]) > 20261003170000;
+  });
+  assert.deepEqual(versionedPaths, []);
 });
 
 test('custom hooks live in their own named files', () => {

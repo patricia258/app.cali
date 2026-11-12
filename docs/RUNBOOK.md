@@ -12,7 +12,7 @@ npm run dev
 
 Configure a URL e a chave pública do Supabase de teste conforme [o exemplo de ambiente](../.env.example). O app valida a origem e o destino ao inicializar os clientes. Mantenha tokens operacionais e chaves de serviço fora da árvore versionada. E-mail, Calendar, Meet, Drive e callbacks usam destinos de teste.
 
-`npm run check` cobre TypeScript e build. O script `scripts/verify-v2-operation.cjs` pertence à migração visual histórica e compara caminhos e fontes de uma revisão anterior. A validação da consolidação segue a [matriz local](CONSOLIDATION_ACCEPTANCE.md).
+`npm run check` cobre TypeScript e build. O script `scripts/verify-visual-migration-bindings.cjs` pertence à migração visual histórica e compara caminhos e fontes de uma revisão anterior. A validação da consolidação segue a [matriz local](CONSOLIDATION_ACCEPTANCE.md).
 
 ## Banco e dados de QA
 

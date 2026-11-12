@@ -1,5 +1,5 @@
 import type { IntelligenceSnapshot } from './reportIntelligence';
-import type { DeliveryPerformanceRow } from './reportV14';
+import type { DeliveryPerformanceRow } from './reportCloseMetrics';
 
 export const REPORT_MANUAL_CATEGORIES = [
   'Projetos e entregáveis',

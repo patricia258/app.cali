@@ -16,7 +16,7 @@ import { hoursAvailable } from '../../api/hours/client';
 import { pauseWorkTimer, readActiveTimersBeforeExit, stopPartnerTimer } from '../../api/hours/timers';
 import { startTimerPresence } from '../../runtime/hours/timerPresence';
 import { WelcomeTour, WELCOME_OPEN_EVENT, type WelcomeStep } from './WelcomeTour';
-import './v2.generated.css';
+import './workspace-shell.generated.css';
 import './operational.css';
 
 type NavItem = { label: string; href: string; icon: LucideIcon };

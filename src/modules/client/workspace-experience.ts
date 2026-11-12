@@ -1,4 +1,4 @@
 import '../calendar/calendar.css';
-import './deliverables/client-approval-highlight-v50.css';
+import './deliverables/client-approval-highlight.css';
 
 export {};

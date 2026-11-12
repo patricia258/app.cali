@@ -18,10 +18,10 @@ import { endOfMonth, endOfQuarter, format, startOfMonth, startOfQuarter } from '
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
 import { reportTypeLabel, type ReportEditor, type ReportType } from '../../../lib/reportComposition';
 import { normalizeIntelligenceSnapshot, type IntelligenceSnapshot } from '../../../lib/reportIntelligence';
-import { deliveryRowsForPdf, deliveryTimingLabelV14, formatHoursV14, isAlertDismissed, periodLabelV14, reportKpisV14, type DeliveryPerformanceRow, type DismissedReportAlert, type ReportCloseAlert, type ReportLifecycleStatus } from '../../../lib/reportV14';
-import { buildReportAlertsV15, capacitySignalV15 } from '../../../lib/reportV15';
-import { reportReviewCountsV16 } from '../../../lib/reportV16';
-import { buildEditorialSeedV17, decisionCandidatesV17, demandCandidatesV17, periodChangeSignalsV17 } from '../../../lib/reportEditorialV17';
+import { deliveryRowsForPdf, deliveryTimingLabelV14, formatHoursV14, isAlertDismissed, periodLabelV14, reportKpisV14, type DeliveryPerformanceRow, type DismissedReportAlert, type ReportCloseAlert, type ReportLifecycleStatus } from '../../../lib/reportCloseMetrics';
+import { buildReportAlertsV15, capacitySignalV15 } from '../../../lib/reportCapacityAndAlerts';
+import { reportReviewCountsV16 } from '../../../lib/reportReviewAndFeedback';
+import { buildEditorialSeedV17, decisionCandidatesV17, demandCandidatesV17, periodChangeSignalsV17 } from '../../../lib/reportEditorial';
 import { attachReportManualComplements, augmentReportData, emptyReportManualComplements, reportManualComplementsFromSnapshot, type ReportManualComplements } from '../../../lib/reportManualComplements';
 
 type Company = { id: string; name: string; logoUrl?: string | null; serviceType?: string | null; servicePlan?: string | null };

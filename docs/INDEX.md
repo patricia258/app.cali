@@ -26,4 +26,4 @@ Comece pelo identificador do fluxo e sua ficha. Leia a regra de produto, a permi
 
 ## Histórico
 
-O [handoff](HANDOFF_V2_CLIENTE.md), o [registro de mudanças](AI_CHANGE_LOG.md) e os documentos de [substituição estrutural](V2_SUBSTITUICAO_ESTRUTURAL_2026-10-09.md) e [homologação visual](VISUAL_V2_HOMOLOGACAO_2026-10-09.md) preservam o contexto de revisões anteriores. Compare seus relatos com o código e o ambiente da revisão em análise.
+O [handoff](HANDOFF_WORKSPACE_CLIENTE.md), o [registro de mudanças](AI_CHANGE_LOG.md) e os documentos de [substituição estrutural](SUBSTITUICAO_ESTRUTURAL_WORKSPACE_2026-10-09.md) e [homologação visual](HOMOLOGACAO_VISUAL_WORKSPACE_2026-10-09.md) preservam o contexto de revisões anteriores. Compare seus relatos com o código e o ambiente da revisão em análise.

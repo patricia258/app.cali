@@ -4,8 +4,8 @@ import {
   groupHours, normalizeIntelligenceSnapshot, shouldShowNextCycle,
 } from '../../src/lib/reportIntelligence.ts';
 import { normalizeMonthlySeries, quarterlyEvolutionSummary } from '../../src/lib/reportComposition.ts';
-import { buildReportAlertsV15, capacitySignalV15 } from '../../src/lib/reportV15.ts';
-import { deliveryRowsForPdf, reportKpisV14 } from '../../src/lib/reportV14.ts';
+import { buildReportAlertsV15, capacitySignalV15 } from '../../src/lib/reportCapacityAndAlerts.ts';
+import { deliveryRowsForPdf, reportKpisV14 } from '../../src/lib/reportCloseMetrics.ts';
 import { augmentReportData, normalizeReportManualComplements } from '../../src/lib/reportManualComplements.ts';
 import { calculateProposal, initialPackageFor } from '../../src/lib/portalProposalLogic.ts';
 

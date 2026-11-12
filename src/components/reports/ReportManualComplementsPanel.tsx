@@ -1,6 +1,6 @@
 import { Button } from '../ds/Button';
 import { Plus, Trash2 } from 'lucide-react';
-import { formatHoursV14 } from '../../lib/reportV14';
+import { formatHoursV14 } from '../../lib/reportCloseMetrics';
 import {
   REPORT_MANUAL_CATEGORIES,
   reportManualMinutes,

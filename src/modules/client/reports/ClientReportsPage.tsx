@@ -5,7 +5,7 @@ import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { useEffect, useMemo, useState } from 'react';
 import { CalendarDays, ChevronRight, FileText, MessageCircle, Printer, ShieldCheck, X } from 'lucide-react';
 import { WorkspaceExecutiveReportPaper } from '../../../components/reports/WorkspaceExecutiveReportPaper';
-import type { DeliveryPerformanceRow } from '../../../lib/reportV14';
+import type { DeliveryPerformanceRow } from '../../../lib/reportCloseMetrics';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import type { ReportIdentityV55 } from '../../../domain/report-identity';
 import { useQueryClient } from '@tanstack/react-query';

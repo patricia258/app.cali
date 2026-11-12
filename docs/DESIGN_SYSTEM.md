@@ -10,19 +10,19 @@ A interface publicada fornece a referência de composição, tipografia, cores e
 
 O CSS acompanha a página, o componente ou o domínio. Os [estilos de entrada](../src/styles/surfaces.css) definem a base das páginas públicas e dos documentos Admin. Landing e Login importam seus estilos próprios. As rotas de Propostas, Mapa e impressão Admin importam a [moldura dos documentos](../src/components/workspace/document-shell.css). O [estado visual da rota](../src/components/workspace/visualSystem.ts) seleciona o escopo e aplica o tema antes da renderização, sem injetar folhas. Os manifests de [Propostas](../src/modules/admin/proposals/document-styles.ts) e [Impressão](../src/modules/reports/print-styles.ts) aplicam as regras de domínio depois da moldura.
 
-A [ordem operacional do shell](../src/components/workspace/operational.css) preserva as sobrescritas entre módulos. A [folha gerada do shell](../src/components/workspace/v2.generated.css) usa utilitários para as declarações equivalentes e mantém a ordem da fonte aprovada. Regras de impressão, fontes, animações, máscaras, seletores de runtime, composição de portais e geometrias calculadas ficam nas folhas de seus consumidores.
+A [ordem operacional do shell](../src/components/workspace/operational.css) preserva as sobrescritas entre módulos. A [folha gerada do shell](../src/components/workspace/workspace-shell.generated.css) usa utilitários para as declarações equivalentes e mantém a ordem da fonte aprovada. Regras de impressão, fontes, animações, máscaras, seletores de runtime, composição de portais e geometrias calculadas ficam nas folhas de seus consumidores.
 
 | CSS próprio | Motivo |
 | --- | --- |
 | [Tokens de tema](../src/styles/theme-tokens.css) | Variáveis de dia e noite aplicadas às superfícies públicas e de documentos. O Workspace compacto preserva a apresentação diurna. |
 | [Landing](../src/modules/public/landing/landing-identity.css) e [Login](../src/modules/access/sign-in/sign-in.css) | Composição de marca, carrossel, ilustrações, formulário, autofill e comportamento responsivo. |
 | [Moldura de documentos](../src/components/workspace/document-shell.css) | Navegação, perfil, tema e portais nas rotas Admin de proposta e Mapa e na impressão Admin. |
-| [Proposta](../src/modules/admin/proposals/portal-proposal-preview.css) e [relatório](../src/modules/reports/reports-pdf-polish-v54.css) | Medidas do papel, quebras, fontes editoriais e comportamento da mídia de impressão. |
+| [Proposta](../src/modules/admin/proposals/portal-proposal-preview.css) e [relatório](../src/modules/reports/report-pdf-pagination.css) | Medidas do papel, quebras, fontes editoriais e comportamento da mídia de impressão. |
 | [Carregamento](../src/components/ds/route-loading.css) | Máscaras da marca, alternância dos símbolos e movimento reduzido. |
 | [Timer global](../src/components/hours/global-timer-overflow.css) | Tamanho do painel dentro do viewport, sombra e valores calculados a partir do gatilho. |
 | [Ordem operacional](../src/components/workspace/operational.css) | Seletores compartilhados com markup existente, portais, estados dos módulos e ajustes de cascata. |
 
-O gerador de CSS usa os commits aprovados da V2 e do protótipo Admin. Para reproduzir a versão atual, execute `node scripts/port-v2-css.cjs <checkout-v2> 7c0a2323bb221cfd61c0a8ed4ced8670c05cce78`. A revisão do Admin fica registrada no cabeçalho da folha gerada.
+O gerador de CSS usa os commits aprovados da V2 e do protótipo Admin. Para reproduzir a versão atual, execute `node scripts/generate-workspace-shell-css.cjs <checkout-v2> 7c0a2323bb221cfd61c0a8ed4ced8670c05cce78`. A revisão do Admin fica registrada no cabeçalho da folha gerada.
 
 ## Primitivas
 

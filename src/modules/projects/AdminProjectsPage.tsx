@@ -18,11 +18,11 @@ import { ChevronDown, ChevronRight, Pause,
 } from 'lucide-react';
 import { Shell } from '../../components/workspace/WorkspaceShell';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
-import './projects-planning-intelligence-v36.css';
-import './project-approval-workflow-v38.css';
-import './project-approval-rules-v39.css';
-import './project-client-portfolio-v39.css';
-import './admin-projects-stability-v62.css';
+import './project-planning.css';
+import './project-approval-workflow.css';
+import './project-approval-rules.css';
+import './project-client-portfolio.css';
+import './admin-projects-layout.css';
 import { isSupabaseConfigured } from '../../api/access/session';
 import {
   changeDeliverableStatus, createProjectFront, createProjectWithFronts, deleteDeliverableDraft, insertDeliverable,

@@ -392,7 +392,7 @@ export function LandingPage() {
                   heroScreenRef.current?.style.setProperty('--tilt-y', '0deg');
                 }}
               >
-                <img src={WORKSPACE_SCREEN_URLS[0] || '/landing/cali-workspace-login-v2.jpg?v=1'} alt="Visão geral do CALI Workspace" />
+                <img src={WORKSPACE_SCREEN_URLS[0] || '/landing/cali-workspace-sign-in-preview.jpg?v=1'} alt="Visão geral do CALI Workspace" />
                 <div className="lp-hero-chip lp-hero-chip-a" aria-hidden="true"><span className="dot" /><div><small>VALIDAÇÃO</small><strong>1 entrega aguarda você</strong></div></div>
                 <div className="lp-hero-chip lp-hero-chip-b" aria-hidden="true"><div><small>HORAS DO MÊS</small><strong>1h30 de 20h</strong></div><i><b style={{ width: '18%' }} /></i></div>
               </div>

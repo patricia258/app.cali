@@ -10,7 +10,7 @@ import { recordReportRead } from '../../api/client/reports/library';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 import { type ReportEditor, type ReportType } from '../../lib/reportComposition';
 import { normalizeIntelligenceSnapshot, type IntelligenceSnapshot } from '../../lib/reportIntelligence';
-import type { DeliveryPerformanceRow } from '../../lib/reportV14';
+import type { DeliveryPerformanceRow } from '../../lib/reportCloseMetrics';
 
 /* staff = Equipe CALI: só lê relatórios já enviados ao cliente, das empresas atribuídas a ela (a proteção por linha limita as empresas). */
 type Props = { role: ReportPrintRole };

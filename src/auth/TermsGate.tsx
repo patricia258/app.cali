@@ -7,7 +7,7 @@ import { endWorkspaceSession, observeWorkspaceSession } from '../api/access/sess
 import { LegalDocument } from '../components/legal/LegalDocument';
 import { privacyPolicy, termsOfUse } from '../domain/legalTexts';
 import { activateWorkspaceMedia } from '../lib/workspaceMedia';
-import { installCompanyWorkspaceIdentityRuntimeV39 } from '../runtime/workspace/companyWorkspaceIdentityRuntimeV39';
+import { installCompanyWorkspaceIdentityRuntime } from '../runtime/workspace/companyWorkspaceIdentityRuntime';
 import { startIdentityMediaRuntime } from '../runtime/workspace/identityMediaRuntime';
 import { useWorkspaceAuth } from './hooks/useWorkspaceAuth';
 import '../components/legal/legal.css';
@@ -35,7 +35,7 @@ function AdmittedWorkspace({ actorId, children }: { actorId: string; children: R
     });
     const timer = window.setTimeout(() => {
       startIdentityMediaRuntime(scope.signal);
-      installCompanyWorkspaceIdentityRuntimeV39(scope.signal);
+      installCompanyWorkspaceIdentityRuntime(scope.signal);
     }, 900);
     return () => {
       window.clearTimeout(timer);

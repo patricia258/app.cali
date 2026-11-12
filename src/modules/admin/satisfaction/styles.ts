@@ -1,3 +1,3 @@
-import './satisfaction-admin-v39.css';
+import './satisfaction-admin.css';
 
 export {};

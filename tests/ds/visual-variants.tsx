@@ -21,10 +21,10 @@ import '../../src/styles/tailwind.css';
 import '../../src/styles/theme-tokens.css';
 import '../../src/styles/surface-foundation.css';
 import '../../src/components/ds/surface-controls.css';
-import '../../src/components/workspace/v2.generated.css';
+import '../../src/components/workspace/workspace-shell.generated.css';
 import '../../src/components/workspace/operational.css';
 import '../../src/modules/public/forms/public-form.css';
-import '../../src/modules/reports/reports-v18-editorial.css';
+import '../../src/modules/reports/report-paper-editorial.css';
 import '../../src/modules/team/company-team.css';
 import './visual-variants.css';
 

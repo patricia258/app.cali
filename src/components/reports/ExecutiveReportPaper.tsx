@@ -1,9 +1,9 @@
 import type { ReportEditor, ReportType } from '../../lib/reportComposition';
 import type { IntelligenceSnapshot } from '../../lib/reportIntelligence';
-import { formatHoursV14, reportKpisV14, type DeliveryPerformanceRow } from '../../lib/reportV14';
-import { capacitySignalV15 } from '../../lib/reportV15';
-import { feedbackLabelV16 } from '../../lib/reportV16';
-import { periodChangeSignalsV17 } from '../../lib/reportEditorialV17';
+import { formatHoursV14, reportKpisV14, type DeliveryPerformanceRow } from '../../lib/reportCloseMetrics';
+import { capacitySignalV15 } from '../../lib/reportCapacityAndAlerts';
+import { feedbackLabelV16 } from '../../lib/reportReviewAndFeedback';
+import { periodChangeSignalsV17 } from '../../lib/reportEditorial';
 import { augmentReportData, reportManualComplementsFromSnapshot, reportManualMinutes } from '../../lib/reportManualComplements';
 import type { ReportVisitCost } from '../../api/reports/paper';
 import type { ReportIdentityV55 } from '../../domain/report-identity';

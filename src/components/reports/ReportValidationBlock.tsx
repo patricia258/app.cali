@@ -1,6 +1,6 @@
 import type { ReportIdentityV55, ReportSignatureStyleV59 } from '../../domain/report-identity';
 import type { CSSProperties } from 'react';
-import './signature-professional-v59.css';
+import './report-signature-fonts.css';
 
 const allowedStyles=new Set<ReportSignatureStyleV59>(['executive','editorial','notarial','heritage','calligraphic','autograph','contemporary','italian','minimal','personal','classic','fluid','delicate','formal']);
 function fmt(value?:string|null){
