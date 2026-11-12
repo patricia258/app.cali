@@ -98,12 +98,13 @@ async function watchRecords(session) {
   });
 }
 
-async function waitForOwnRecordChange() {
-  for (let index=0; index<30; index++) {
-    if (events.some(([type,id])=>type==='UPDATE' && id===ownRealtimeRecord)) return;
+async function waitForRealtime(check, message) {
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    if (check()) return;
     await pause(250);
   }
-  assert.fail('Realtime não entregou atualização própria.');
+  assert.fail(message);
 }
 
 assert(key&&service&&password);
@@ -151,14 +152,26 @@ try {
   assert.equal(authorize.searchParams.get('redirect_uri'),origin+'/oauth/google/callback');
 
   await watchRecords(first);
+  // The channel acknowledgement can precede registration with Postgres Changes on a cold tenant.
+  await waitForRealtime(() => sql(`select exists (
+    select 1 from realtime.subscription
+    where entity='cali_workspace.account_records'::regclass and claims->>'sub'='${actorId}'
+  );`) === 't', 'Realtime não registrou a assinatura de ocorrências.');
   sql(`insert into cali_workspace.account_records(id,company_id,title,visibility)
     values('${ownRealtimeRecord}','${companyA}','QA Realtime A','client'),
       ('${foreignRealtimeRecord}','${companyB}','QA Realtime B','client');`);
   const visible=await workspace('account_records?select=id&id=in.('+ownRealtimeRecord+','+foreignRealtimeRecord+')',token);
   assert.equal(visible.status,200);
   assert.deepEqual(visible.data.map(record=>record.id),[ownRealtimeRecord]);
+  await waitForRealtime(
+    () => events.some(([type,id]) => type === 'INSERT' && id === ownRealtimeRecord),
+    'Realtime não entregou inserção própria.',
+  );
   sql(`update cali_workspace.account_records set title='QA Realtime antes do corte' where id in ('${ownRealtimeRecord}','${foreignRealtimeRecord}');`);
-  await waitForOwnRecordChange();
+  await waitForRealtime(
+    () => events.some(([type,id]) => type === 'UPDATE' && id === ownRealtimeRecord),
+    'Realtime não entregou atualização própria.',
+  );
   await pause(500);
   const allowedEvents=[['INSERT',ownRealtimeRecord],['UPDATE',ownRealtimeRecord]];
   assert.deepEqual(events,allowedEvents,'Realtime divergiu dos eventos próprios de A.');
