@@ -1,5 +1,6 @@
 /* CALI Workspace · UX/UI refinement
    Readability first, automatic navigation retraction, lighter surfaces and softer motion. */
+@reference "../tailwind.css";
 
 :root {
   --surface: rgba(255, 253, 249, .88);
@@ -52,13 +53,13 @@ p { line-height: 1.62; }
 .sidebar {
   width: var(--sidebar-rail);
   padding: 22px 12px 18px;
-  overflow: hidden;
+  @apply tw:overflow-hidden;
   background:
     linear-gradient(180deg, rgba(255,255,255,.025), transparent 22%),
     var(--burgundy);
   box-shadow: 10px 0 34px rgba(62, 25, 35, .08);
   transition: width .24s cubic-bezier(.2,.75,.25,1), box-shadow .24s ease;
-  isolation: isolate;
+  @apply tw:isolate;
 }
 
 .sidebar:hover,
@@ -69,56 +70,50 @@ p { line-height: 1.62; }
 }
 
 .sidebar-top {
-  min-height: 62px;
-  align-items: flex-start;
+  @apply tw:min-h-[62px] tw:items-start;
 }
 
 .brand {
-  width: 100%;
-  min-width: 0;
+  @apply tw:w-full tw:min-w-0;
   padding: 5px 7px 24px;
-  overflow: hidden;
+  @apply tw:overflow-hidden;
 }
 
 .brand strong {
-  font-size: 1.55rem;
+  @apply tw:text-[1.55rem];
   line-height: 1;
   font-weight: 750;
   letter-spacing: .12em;
-  white-space: nowrap;
+  @apply tw:whitespace-nowrap;
 }
 
-.brand-compact { display: block; }
-.brand-full { display: none; }
+.brand-compact { @apply tw:block; }
+.brand-full { @apply tw:hidden; }
 .brand span {
   opacity: 0;
   transform: translateX(-4px);
-  white-space: nowrap;
+  @apply tw:whitespace-nowrap;
   transition: opacity .16s ease, transform .2s ease;
 }
 
 .sidebar:hover .brand-full,
 .sidebar:focus-within .brand-full,
-.sidebar.pinned .brand-full { display: block; }
+.sidebar.pinned .brand-full { @apply tw:block; }
 .sidebar:hover .brand-compact,
 .sidebar:focus-within .brand-compact,
-.sidebar.pinned .brand-compact { display: none; }
+.sidebar.pinned .brand-compact { @apply tw:hidden; }
 .sidebar:hover .brand span,
 .sidebar:focus-within .brand span,
 .sidebar.pinned .brand span { opacity: 1; transform: translateX(0); }
 
 .sidebar nav {
-  gap: 6px;
-  margin-top: 4px;
+  @apply tw:gap-[6px] tw:mt-[4px];
 }
 
 .sidebar nav a {
-  position: relative;
-  width: 100%;
-  min-height: 46px;
+  @apply tw:relative tw:w-full tw:min-h-[46px];
   padding: 0 16px;
-  gap: 14px;
-  border-radius: 12px;
+  @apply tw:gap-[14px] tw:rounded-[12px];
   transition: background .18s ease, color .18s ease, transform .18s ease;
 }
 
@@ -136,8 +131,7 @@ p { line-height: 1.62; }
 .sidebar-user-copy,
 .sidebar-pin span {
   opacity: 0;
-  visibility: hidden;
-  white-space: nowrap;
+  @apply tw:invisible tw:whitespace-nowrap;
   transform: translateX(-5px);
   transition: opacity .14s ease, transform .2s ease, visibility .14s ease;
 }
@@ -152,23 +146,23 @@ p { line-height: 1.62; }
 .sidebar:focus-within .sidebar-pin span,
 .sidebar.pinned .sidebar-pin span {
   opacity: 1;
-  visibility: visible;
+  @apply tw:visible;
   transform: translateX(0);
 }
 
 .sidebar:not(:hover):not(:focus-within):not(.pinned) nav a::after {
   content: attr(data-label);
-  position: fixed;
+  @apply tw:fixed;
   left: 68px;
-  z-index: 80;
+  @apply tw:z-80;
   padding: 8px 10px;
-  border-radius: 8px;
+  @apply tw:rounded-[8px];
   background: #2f2927;
   color: #fff;
-  font-size: .78rem;
+  @apply tw:text-[.78rem];
   font-weight: 600;
   opacity: 0;
-  pointer-events: none;
+  @apply tw:pointer-events-none;
   transform: translateX(-4px);
   transition: opacity .14s ease, transform .14s ease;
   box-shadow: 0 8px 24px rgba(0,0,0,.16);
@@ -180,18 +174,14 @@ p { line-height: 1.62; }
 }
 
 .sidebar-pin {
-  width: 100%;
-  height: 38px;
+  @apply tw:w-full tw:h-[38px];
   margin: -4px 0 12px;
   padding: 0 17px;
   border: 0;
-  border-radius: 10px;
+  @apply tw:rounded-[10px];
   background: transparent;
   color: rgba(255,255,255,.62);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: .76rem;
+  @apply tw:flex tw:items-center tw:gap-[12px] tw:text-[.76rem];
   font-weight: 600;
 }
 .sidebar-pin:hover { background: rgba(255,255,255,.07); color: #fff; }
@@ -199,16 +189,13 @@ p { line-height: 1.62; }
 .sidebar-footer {
   grid-template-columns: 38px minmax(0,1fr) 34px;
   padding: 18px 8px 0;
-  min-width: 220px;
+  @apply tw:min-w-[220px];
 }
 
 .sidebar-logout {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
+  @apply tw:w-[34px] tw:h-[34px] tw:grid tw:place-items-center;
   border: 0;
-  border-radius: 9px;
+  @apply tw:rounded-[9px];
   color: rgba(255,255,255,.68);
   background: transparent;
 }
@@ -221,7 +208,7 @@ p { line-height: 1.62; }
 }
 
 .topbar {
-  height: 64px;
+  @apply tw:h-[64px];
   padding: 0 clamp(24px, 4vw, 58px);
   background: rgba(250, 248, 245, .78);
   border-bottom: 1px solid rgba(90,30,45,.07);
@@ -230,7 +217,7 @@ p { line-height: 1.62; }
 
 .topbar-context span {
   color: #877e78;
-  font-size: .78rem;
+  @apply tw:text-[.78rem];
   font-weight: 650;
   letter-spacing: .04em;
 }
@@ -255,13 +242,13 @@ p { line-height: 1.62; }
 }
 
 .page-heading {
-  align-items: flex-start;
+  @apply tw:items-start;
 }
-.page-heading p { max-width: 720px; }
+.page-heading p { @apply tw:max-w-[720px]; }
 
 .eyebrow, .section-kicker {
   letter-spacing: .14em;
-  font-size: .69rem;
+  @apply tw:text-[.69rem];
 }
 
 .primary, .secondary, .light-button, .ghost, button {
@@ -270,7 +257,7 @@ p { line-height: 1.62; }
 .primary:hover, .light-button:hover { transform: translateY(-1px); }
 .primary:active, .light-button:active { transform: translateY(0); }
 
-.kpi-grid { gap: 14px; margin-top: 34px; }
+.kpi-grid { @apply tw:gap-[14px] tw:mt-[34px]; }
 .kpi,
 .panel,
 .client-summary > div {
@@ -281,7 +268,7 @@ p { line-height: 1.62; }
 }
 
 .kpi {
-  border-radius: 17px;
+  @apply tw:rounded-[17px];
   padding: 21px 22px;
   transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
@@ -291,13 +278,13 @@ p { line-height: 1.62; }
   border-color: rgba(90,30,45,.15);
 }
 .kpi strong {
-  font-size: 1.85rem;
+  @apply tw:text-[1.85rem];
   font-weight: 720;
   letter-spacing: -.035em;
 }
 
 .panel {
-  border-radius: 18px;
+  @apply tw:rounded-[18px];
   box-shadow: var(--shadow-soft);
 }
 
@@ -337,7 +324,7 @@ p { line-height: 1.62; }
 .company-mark,
 .company-logo { font-weight: 700; }
 
-.progress { height: 7px; background: rgba(90,30,45,.085); }
+.progress { @apply tw:h-[7px]; background: rgba(90,30,45,.085); }
 .progress span { transition: width .4s cubic-bezier(.2,.75,.25,1); }
 
 .login-brand {
@@ -356,13 +343,13 @@ p { line-height: 1.62; }
   box-shadow: 0 22px 60px rgba(49,31,25,.09) !important;
 }
 
-.sidebar-backdrop { display: none; }
+.sidebar-backdrop { @apply tw:hidden; }
 
 @media (max-width: 860px) {
   :root { --sidebar-rail: 0px; }
-  .main { margin-left: 0; width: 100%; }
+  .main { @apply tw:ml-0 tw:w-full; }
   .topbar { padding-left: 70px; }
-  .mobile-menu { display: grid; place-items: center; }
+  .mobile-menu { @apply tw:grid tw:place-items-center; }
   .sidebar {
     width: min(290px, 86vw);
     transform: translateX(-105%);
@@ -374,30 +361,27 @@ p { line-height: 1.62; }
   .sidebar.pinned { width: min(290px, 86vw); }
   .sidebar.mobile-open { transform: translateX(0); }
   .sidebar-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 29;
+    @apply tw:block tw:fixed tw:inset-0 tw:z-29;
     border: 0;
     background: rgba(37,28,30,.28);
     backdrop-filter: blur(2px);
   }
-  .sidebar-close { display: grid; place-items: center; width: 40px; height: 40px; }
-  .sidebar-pin { display: none; }
-  .brand-full { display: block !important; }
-  .brand-compact { display: none !important; }
+  .sidebar-close { @apply tw:grid tw:place-items-center tw:w-[40px] tw:h-[40px]; }
+  .sidebar-pin { @apply tw:hidden; }
+  .brand-full { @apply tw:block!; }
+  .brand-compact { @apply tw:hidden!; }
   .brand span,
   .nav-label,
-  .sidebar-user-copy { opacity: 1; visibility: visible; transform: none; }
-  .page { width: min(100% - 34px, 760px); padding-top: 34px; }
+  .sidebar-user-copy { opacity: 1; @apply tw:visible; transform: none; }
+  .page { width: min(100% - 34px, 760px); @apply tw:pt-[34px]; }
 }
 
 @media (max-width: 620px) {
   h1 { font-size: 1.78rem; }
   .page { width: calc(100% - 28px); }
-  .topbar-context { display: none; }
-  .topbar { justify-content: flex-end; }
-  .kpi, .panel { border-radius: 16px; }
+  .topbar-context { @apply tw:hidden; }
+  .topbar { @apply tw:justify-end; }
+  .kpi, .panel { @apply tw:rounded-[16px]; }
 }
 
 @media (prefers-reduced-motion: reduce) {

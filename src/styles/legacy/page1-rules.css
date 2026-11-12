@@ -5,23 +5,23 @@
    4) Cards usam o espaço disponível sem colunas invisíveis ou sobreposição. */
 
 /* Scrollbars invisíveis em todo o app, preservando wheel, trackpad e touch. */
+@reference "../tailwind.css";
 * {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 *::-webkit-scrollbar {
-  width: 0;
-  height: 0;
+  @apply tw:w-0 tw:h-0;
   background: transparent;
 }
 
 /* Regra global de modal. */
 body.workspace-modal-open {
-  overflow: hidden !important;
+  @apply tw:overflow-hidden!;
 }
 body.workspace-modal-open .sidebar,
 body.workspace-modal-open .topbar {
-  pointer-events: none !important;
+  @apply tw:pointer-events-none!;
   user-select: none;
   filter: blur(6px) saturate(.82);
   opacity: .68;
@@ -34,28 +34,18 @@ body.workspace-modal-open .sidebar {
 .full-screen-modal,
 .chrome-modal-backdrop.full-screen-modal,
 .modal-backdrop.full-screen-modal {
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100dvh !important;
-  min-height: 100dvh !important;
-  max-height: 100dvh !important;
+  @apply tw:fixed! tw:inset-0! tw:w-[100vw]! tw:h-[100dvh]! tw:min-h-[100dvh]! tw:max-h-[100dvh]!;
   padding: clamp(14px, 2.4vh, 24px) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  overflow: hidden !important;
-  z-index: 10000 !important;
+  @apply tw:flex! tw:items-center! tw:justify-center! tw:overflow-hidden! tw:z-10000!;
   background: rgba(39, 33, 34, .56) !important;
   -webkit-backdrop-filter: blur(10px) saturate(.88) !important;
   backdrop-filter: blur(10px) saturate(.88) !important;
 }
 .full-screen-modal > .modal-card {
-  position: relative;
-  z-index: 10001;
+  @apply tw:relative tw:z-10001;
   max-width: calc(100vw - 28px);
   max-height: calc(100dvh - 28px);
-  overscroll-behavior: contain;
+  @apply tw:overscroll-contain;
 }
 
 /* Gestão da conta: cabeçalho + conteúdo rolável + ações sempre visíveis. */
@@ -63,9 +53,7 @@ body.workspace-modal-open .sidebar {
   width: min(1120px, calc(100vw - 34px)) !important;
   height: min(860px, calc(100dvh - 28px)) !important;
   max-height: calc(100dvh - 28px) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
+  @apply tw:flex! tw:flex-col! tw:overflow-hidden!;
   padding: 28px 30px 0 !important;
 }
 .client-account-modal .account-modal-intro {
@@ -73,43 +61,36 @@ body.workspace-modal-open .sidebar {
   padding-right: 52px;
 }
 .client-account-modal .account-modal-intro h2 {
-  margin-top: 7px;
+  @apply tw:mt-[7px];
   font-size: clamp(1.45rem, 2vw, 1.9rem);
 }
 .client-account-modal .account-modal-intro p {
-  margin-top: 7px;
-  font-size: .84rem;
+  @apply tw:mt-[7px] tw:text-[.84rem];
   line-height: 1.5;
 }
 .client-account-modal .account-form-sections {
   flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto !important;
-  overscroll-behavior: contain;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  @apply tw:min-h-0 tw:overflow-y-auto! tw:overscroll-contain tw:grid tw:grid-cols-2;
   align-content: start;
-  gap: 12px;
-  margin-top: 18px;
+  @apply tw:gap-[12px] tw:mt-[18px];
   padding: 0 4px 16px 0;
 }
 .client-account-modal .account-form-section {
-  min-width: 0;
-  padding: 16px;
+  @apply tw:min-w-0 tw:p-[16px];
 }
 .client-account-modal .account-form-section .form-grid {
   gap: 11px 12px;
 }
 .client-account-modal .stacked-label {
-  font-size: .73rem;
+  @apply tw:text-[.73rem];
 }
 .client-account-modal input,
 .client-account-modal select,
 .client-account-modal textarea {
-  min-height: 44px !important;
+  @apply tw:min-h-[44px]!;
 }
 .client-account-modal .account-modal-footer {
-  position: static !important;
+  @apply tw:static!;
   flex: 0 0 auto;
   margin: 0 -30px !important;
   padding: 13px 30px 16px !important;
@@ -118,52 +99,50 @@ body.workspace-modal-open .sidebar {
   box-shadow: 0 -10px 28px rgba(51,35,37,.035);
 }
 .client-account-modal .account-modal-footer .modal-actions {
-  margin: 0 !important;
+  @apply tw:m-0!;
 }
 
 /* Perfil: mais horizontal e integralmente acessível no viewport. */
 .profile-modal-v2 {
   width: min(900px, calc(100vw - 34px)) !important;
   max-height: calc(100dvh - 28px) !important;
-  overflow-y: auto !important;
-  overscroll-behavior: contain;
+  @apply tw:overflow-y-auto! tw:overscroll-contain;
   padding: 26px 32px 24px !important;
 }
 .profile-modal-v2 > h2 {
-  margin-top: 6px;
+  @apply tw:mt-[6px];
   font-size: clamp(1.45rem, 2vw, 1.85rem);
 }
 .profile-modal-v2 > p {
-  margin-top: 7px;
-  font-size: .82rem;
+  @apply tw:mt-[7px] tw:text-[.82rem];
   line-height: 1.5;
 }
 .profile-modal-v2 .profile-photo-workbench {
   margin: 18px 0;
   grid-template-columns: 168px minmax(0,1fr);
-  gap: 24px;
+  @apply tw:gap-[24px];
   padding: 16px 18px;
 }
 .profile-modal-v2 .large-editor-avatar {
   width: 112px !important;
-  height: 112px !important;
+  @apply tw:h-[112px]!;
 }
 .profile-modal-v2 .profile-form-grid {
   gap: 10px 14px;
 }
 .profile-modal-v2 .stacked-label {
-  font-size: .72rem;
+  @apply tw:text-[.72rem];
 }
 .profile-modal-v2 input {
-  min-height: 43px !important;
+  @apply tw:min-h-[43px]!;
 }
 .profile-modal-v2 .profile-live-actions {
-  margin-top: 10px;
+  @apply tw:mt-[10px];
 }
 .profile-modal-v2 .modal-actions {
-  position: sticky;
+  @apply tw:sticky;
   bottom: -24px;
-  z-index: 2;
+  @apply tw:z-2;
   margin: 14px -32px -24px !important;
   padding: 12px 32px 18px;
   background: rgba(255,253,249,.98);
@@ -177,51 +156,46 @@ body.workspace-modal-open .sidebar {
 .overview-lower-grid.agenda-deadline-grid {
   grid-template-columns: minmax(0, 1.8fr) minmax(430px, .82fr) !important;
   align-items: start !important;
-  gap: 18px !important;
+  @apply tw:gap-[18px]!;
 }
 .agenda-overview-panel,
 .deadline-panel {
   align-self: start !important;
-  height: auto !important;
-  min-height: 0 !important;
+  @apply tw:h-auto! tw:min-h-0!;
 }
 .agenda-overview-content {
-  width: 100%;
+  @apply tw:w-full;
   grid-template-columns: minmax(350px, .9fr) minmax(0, 1.25fr) !important;
   gap: clamp(26px, 3vw, 42px) !important;
   align-items: start !important;
 }
 .agenda-overview-content .mini-calendar,
 .agenda-overview-content .week-calendar {
-  width: 100% !important;
-  min-width: 0 !important;
+  @apply tw:w-full! tw:min-w-0!;
 }
 .agenda-overview-content .mini-calendar {
-  padding: 20px !important;
+  @apply tw:p-[20px]!;
 }
 .agenda-overview-content .week-calendar {
   padding: 18px 16px !important;
-  grid-template-columns: repeat(7, minmax(0,1fr)) !important;
+  @apply tw:grid-cols-7!;
 }
 .agenda-timeline {
-  min-width: 0;
-  padding-right: 4px;
+  @apply tw:min-w-0 tw:pr-[4px];
 }
 .agenda-line {
-  padding-bottom: 24px !important;
+  @apply tw:pb-[24px]!;
 }
 
 /* Deadlines: sem grid conflitante; logo/cliente + conteúdo + data. */
 .enhanced-deadlines {
-  gap: 0 !important;
+  @apply tw:gap-0!;
 }
 .enhanced-deadlines .deadline-item {
-  display: grid !important;
+  @apply tw:grid!;
   grid-template-columns: 44px minmax(0,1fr) 72px !important;
   grid-template-rows: auto !important;
-  gap: 13px !important;
-  align-items: center !important;
-  min-width: 0;
+  @apply tw:gap-[13px]! tw:items-center! tw:min-w-0;
   padding: 15px 0 !important;
 }
 .enhanced-deadlines .deadline-item > div,
@@ -232,45 +206,41 @@ body.workspace-modal-open .sidebar {
 .enhanced-deadlines .deadline-client-mark {
   grid-column: 1 !important;
   grid-row: 1 !important;
-  width: 42px !important;
-  height: 42px !important;
-  border-radius: 12px !important;
+  @apply tw:w-[42px]! tw:h-[42px]! tw:rounded-[12px]!;
 }
 .enhanced-deadlines .deadline-copy {
   grid-column: 2 !important;
   grid-row: 1 !important;
-  min-width: 0;
+  @apply tw:min-w-0;
 }
 .enhanced-deadlines .deadline-date {
   grid-column: 3 !important;
   grid-row: 1 !important;
-  text-align: right;
-  align-self: center;
+  @apply tw:text-right tw:self-center;
 }
 .enhanced-deadlines .deadline-date strong {
-  font-size: .8rem !important;
+  @apply tw:text-[.8rem]!;
 }
 .enhanced-deadlines .deadline-date span {
-  font-size: .68rem !important;
+  @apply tw:text-[.68rem]!;
 }
 .enhanced-deadlines .deadline-copy p {
   margin: 0 0 4px !important;
-  font-size: .8rem !important;
+  @apply tw:text-[.8rem]!;
   line-height: 1.28 !important;
-  white-space: normal;
+  @apply tw:whitespace-normal;
 }
 .enhanced-deadlines .deadline-copy strong {
-  display: block !important;
-  font-size: .71rem !important;
+  @apply tw:block! tw:text-[.71rem]!;
   line-height: 1.25;
 }
 .enhanced-deadlines .deadline-copy small {
-  display: inline-block;
+  @apply tw:inline-block;
   margin: 6px 0 0 !important;
-  font-size: .64rem !important;
+  @apply tw:text-[.64rem]!;
 }
 .enhanced-deadlines .deadline-item.critical {
-  margin: 0 !important;
+  @apply tw:m-0!;
   padding: 15px 12px !important;
 }
 
@@ -279,14 +249,14 @@ body.workspace-modal-open .sidebar {
   .overview-lower-grid.agenda-deadline-grid {
     grid-template-columns: 1fr !important;
   }
-  .deadline-panel { width: 100%; }
+  .deadline-panel { @apply tw:w-full; }
   .client-account-modal .account-form-sections { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 820px) {
   .full-screen-modal,
   .chrome-modal-backdrop.full-screen-modal,
-  .modal-backdrop.full-screen-modal { padding: 10px !important; }
+  .modal-backdrop.full-screen-modal { @apply tw:p-[10px]!; }
   .client-account-modal {
     width: calc(100vw - 20px) !important;
     height: calc(100dvh - 20px) !important;
@@ -297,9 +267,9 @@ body.workspace-modal-open .sidebar {
     margin: 0 -18px !important;
     padding: 12px 18px 14px !important;
   }
-  .client-account-modal .account-modal-footer p { display: none; }
-  .client-account-modal .account-modal-footer .modal-actions { width: 100%; }
-  .client-account-modal .account-modal-footer .modal-actions > * { flex: 1; }
+  .client-account-modal .account-modal-footer p { @apply tw:hidden; }
+  .client-account-modal .account-modal-footer .modal-actions { @apply tw:w-full; }
+  .client-account-modal .account-modal-footer .modal-actions > * { @apply tw:flex-1; }
   .profile-modal-v2 {
     width: calc(100vw - 20px) !important;
     max-height: calc(100dvh - 20px) !important;
@@ -310,8 +280,8 @@ body.workspace-modal-open .sidebar {
     margin-left: -18px !important;
     margin-right: -18px !important;
     margin-bottom: -20px !important;
-    padding-left: 18px;
-    padding-right: 18px;
+    @apply tw:pl-[18px];
+    @apply tw:pr-[18px];
   }
   .agenda-overview-content { grid-template-columns: 1fr !important; }
 }

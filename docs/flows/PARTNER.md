@@ -12,4 +12,4 @@
 
 **Aceite.** Ativar e desativar Partner e ajustar módulos/empresas. Testar AAL1, ausência de aceite, empresa diferente, falta de atribuição e URL copiada de impressão. Tentar SELECT de rascunho e leitura de arquivo indevido. Validar retorno de revisão, fila própria, rota direta e negativa após perda de acesso. Conferir [Horas](OPERATIONS.md#flow-07), [Avisos](OPERATIONS.md#flow-13) e [Relatórios](ADMIN.md#flow-12) separadamente.
 
-**Lacunas.** Reconciliar permissões em leitura direta, relatórios em rascunho e guardas de cada comando após revogação. Mapear capacidades da Equipe CALI e do Partner antes de ampliar papéis ou módulos.
+**Evidência e lacunas.** Provas locais de rotas e acesso direto cobriram Partner atribuído e limitado, impressão, MFA, aceite e revogação. O acesso a rascunhos, anexos e comandos combina módulo, vínculo e atribuição. Conferir o catálogo hospedado e manter cada teste de módulo ao alterar o escopo. [Guardas Playwright](../../tests/e2e/guards.cjs)

@@ -1,125 +1,74 @@
 /* CALI Workspace · perfil no sidebar fechado
    Correção isolada: o rail fechado não pode herdar a grade de 3 colunas
    (avatar + texto + seta) usada no perfil aberto. */
+@reference "../../styles/tailwind.css";
 
 @media (min-width: 861px) {
   .sidebar:not(:hover):not(.pinned) .sidebar-footer-profile-only {
-    position: absolute !important;
-    left: 8px !important;
-    right: 8px !important;
-    bottom: 9px !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    height: 58px !important;
-    min-height: 58px !important;
-    margin: 0 !important;
+    @apply tw:absolute! tw:left-[8px]!;
+    @apply tw:right-[8px]!;
+    @apply tw:bottom-[9px]! tw:w-auto! tw:min-w-0! tw:max-w-none! tw:h-[58px]! tw:min-h-[58px]! tw:m-0!;
     padding: 5px 0 0 !important;
-    display: grid !important;
+    @apply tw:grid!;
     grid-template-columns: 1fr !important;
     grid-template-rows: 1fr !important;
-    place-items: center !important;
-    overflow: hidden !important;
-    box-sizing: border-box !important;
+    @apply tw:place-items-center! tw:overflow-hidden! tw:box-border!;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-control-direct {
-    position: static !important;
-    display: grid !important;
+    @apply tw:static! tw:grid!;
     grid-template-columns: 1fr !important;
     grid-template-rows: 1fr !important;
-    place-items: center !important;
-    flex: none !important;
-    width: 52px !important;
-    min-width: 52px !important;
-    max-width: 52px !important;
-    height: 52px !important;
-    min-height: 52px !important;
+    @apply tw:place-items-center! tw:flex-none! tw:w-[52px]! tw:min-w-[52px]! tw:max-w-[52px]! tw:h-[52px]! tw:min-h-[52px]!;
     max-height: 52px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: visible !important;
+    @apply tw:m-0! tw:p-0! tw:overflow-visible!;
     transform: none !important;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-trigger-direct {
-    position: static !important;
+    @apply tw:static!;
     inset: auto !important;
-    display: grid !important;
+    @apply tw:grid!;
     grid-template-columns: 1fr !important;
     grid-template-rows: 1fr !important;
     grid-auto-columns: unset !important;
     grid-auto-flow: row !important;
-    place-items: center !important;
-    justify-content: center !important;
+    @apply tw:place-items-center! tw:justify-center!;
     align-content: center !important;
-    gap: 0 !important;
-    column-gap: 0 !important;
-    row-gap: 0 !important;
-    width: 52px !important;
-    min-width: 52px !important;
-    max-width: 52px !important;
-    height: 52px !important;
-    min-height: 52px !important;
+    @apply tw:gap-0!;
+    @apply tw:gap-x-0!;
+    @apply tw:gap-y-0! tw:w-[52px]! tw:min-w-[52px]! tw:max-w-[52px]! tw:h-[52px]! tw:min-h-[52px]!;
     max-height: 52px !important;
-    margin: 0 !important;
-    padding: 4px !important;
-    overflow: hidden !important;
-    box-sizing: border-box !important;
+    @apply tw:m-0! tw:p-[4px]! tw:overflow-hidden! tw:box-border!;
     transform: none !important;
   }
 
   /* No rail fechado existe visualmente apenas o avatar. */
   .sidebar:not(:hover):not(.pinned) .profile-trigger-direct > .profile-copy,
   .sidebar:not(:hover):not(.pinned) .profile-trigger-direct > .profile-edit-chevron {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-    min-width: 0 !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    @apply tw:hidden! tw:w-0! tw:h-0! tw:min-w-0! tw:min-h-0! tw:m-0! tw:p-0!;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-trigger-direct > .profile-avatar {
-    position: static !important;
+    @apply tw:static!;
     grid-column: 1 !important;
     grid-row: 1 !important;
     justify-self: center !important;
-    align-self: center !important;
-    display: grid !important;
-    place-items: center !important;
-    width: 42px !important;
-    min-width: 42px !important;
+    @apply tw:self-center! tw:grid! tw:place-items-center! tw:w-[42px]! tw:min-w-[42px]!;
     max-width: 42px !important;
-    height: 42px !important;
-    min-height: 42px !important;
-    max-height: 42px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    flex: none !important;
+    @apply tw:h-[42px]! tw:min-h-[42px]! tw:max-h-[42px]! tw:m-0! tw:p-0! tw:flex-none!;
     transform: none !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
+    @apply tw:box-border! tw:overflow-hidden!;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-trigger-direct > .profile-avatar > span {
-    position: static !important;
-    display: grid !important;
-    place-items: center !important;
-    width: 100% !important;
-    height: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    @apply tw:static! tw:grid! tw:place-items-center! tw:w-full! tw:h-full! tw:m-0! tw:p-0!;
     transform: none !important;
     line-height: 1 !important;
-    text-align: center !important;
+    @apply tw:text-center!;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-trigger-direct > .profile-avatar > img {
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
-    margin: 0 !important;
+    @apply tw:block! tw:w-full! tw:h-full! tw:m-0!;
   }
 }

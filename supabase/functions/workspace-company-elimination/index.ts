@@ -12,7 +12,7 @@ const headers = {
   "Content-Type": "application/json",
 };
 const uuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
-const buckets = new Set(["cali-workspace-private", "workspace-assets", "cali-forms", "cali-profiles"]);
+const buckets = new Set(["cali-workspace-private", "workspace-assets", "cali-forms", "cali-profiles", "cali-proposals", "cali-mapa-delivery"]);
 
 type BatchRow = { bucket: string; path: string };
 

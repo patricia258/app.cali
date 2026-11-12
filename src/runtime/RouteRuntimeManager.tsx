@@ -16,12 +16,12 @@ function once(key: string, task: () => Promise<void>) {
 function installReports() {
   once('reports', async () => {
     const [pdf, dedup, tracking, governance, toolbar, withdrawal] = await Promise.all([
-      import('../lib/reportsPdfRuntime'),
-      import('../lib/reportsDedupRuntime'),
-      import('../lib/reportClientTrackingRuntimeV55'),
-      import('../lib/reportWorkflowGovernanceV61'),
-      import('../lib/reportToolbarDedupeV18'),
-      import('../lib/reportWithdrawalRuntimeV62'),
+      import('./reports/reportsPdfRuntime'),
+      import('./reports/reportsDedupRuntime'),
+      import('./reports/reportClientTrackingRuntimeV55'),
+      import('./reports/reportWorkflowGovernanceV61'),
+      import('./reports/reportToolbarDedupeV18'),
+      import('./reports/reportWithdrawalRuntimeV62'),
     ]);
     pdf.installReportsPdfRuntime();
     dedup.installReportsDedupRuntime();
@@ -35,10 +35,10 @@ function installReports() {
 function installCalendar() {
   once('calendar', async () => {
     const [google, guard, scheduling, policy] = await Promise.all([
-      import('../lib/googleCalendarRuntime'),
-      import('../lib/calendarSyncGuard'),
-      import('../lib/schedulingRequestsRuntimeV65'),
-      import('../lib/schedulingPolicyLoaderV68'),
+      import('./calendar/googleCalendarRuntime'),
+      import('./calendar/calendarSyncGuard'),
+      import('./calendar/schedulingRequestsRuntimeV65'),
+      import('./calendar/schedulingPolicyLoaderV68'),
     ]);
     google.installGoogleCalendarRuntime();
     guard.installCalendarSyncGuard();
@@ -50,12 +50,12 @@ function installCalendar() {
 function installRecords() {
   once('records', async () => {
     const [experience, controls, scroll, operations, closure, polish] = await Promise.all([
-      import('../lib/recordsExperienceRuntimeV2'),
-      import('../lib/recordsMessageControlsRuntime'),
-      import('../lib/recordsConversationScrollGuard'),
-      import('../lib/recordsOperationsRuntimeV25'),
-      import('../lib/recordsClosureExperienceRuntimeV29'),
-      import('../lib/recordsClosureFinalPolishV30'),
+      import('./records/recordsExperienceRuntimeV2'),
+      import('./records/recordsMessageControlsRuntime'),
+      import('./records/recordsConversationScrollGuard'),
+      import('./records/recordsOperationsRuntimeV25'),
+      import('./records/recordsClosureExperienceRuntimeV29'),
+      import('./records/recordsClosureFinalPolishV30'),
     ]);
     experience.installRecordsExperienceRuntimeV2();
     controls.installRecordsMessageControlsRuntime();
@@ -69,14 +69,14 @@ function installRecords() {
 function installProjects() {
   once('projects', async () => {
     const [chat, planning, deadlines, workflow, rules, portfolio, lifecycle, recalc] = await Promise.all([
-      import('../lib/deliverableChatStandardRuntimeV35'),
-      import('../lib/projectsPlanningIntelligenceRuntimeV36'),
-      import('../lib/projectsDeadlineAutofillRuntimeV37'),
-      import('../lib/projectApprovalWorkflowRuntimeV38'),
-      import('../lib/projectApprovalRulesRuntimeV39'),
-      import('../lib/projectsClientPortfolioRuntimeV39'),
-      import('../lib/projectExecutionLifecycleRuntimeV44'),
-      import('../lib/projectLifecycleRecalcUxV45'),
+      import('./projects/deliverableChatStandardRuntimeV35'),
+      import('./projects/projectsPlanningIntelligenceRuntimeV36'),
+      import('./projects/projectsDeadlineAutofillRuntimeV37'),
+      import('./projects/projectApprovalWorkflowRuntimeV38'),
+      import('./projects/projectApprovalRulesRuntimeV39'),
+      import('./projects/projectsClientPortfolioRuntimeV39'),
+      import('./projects/projectExecutionLifecycleRuntimeV44'),
+      import('./projects/projectLifecycleRecalcUxV45'),
     ]);
     chat.installDeliverableChatStandardRuntimeV35();
     planning.installProjectsPlanningIntelligenceRuntimeV36();
@@ -91,14 +91,14 @@ function installProjects() {
 
 function installDocuments() {
   once('documents', async () => {
-    const mod = await import('../lib/documentsIdentityRuntimeV42');
+    const mod = await import('./documents/documentsIdentityRuntimeV42');
     mod.installDocumentsIdentityRuntimeV42();
   });
 }
 
 function installHours() {
   once('hours', async () => {
-    const mod = await import('../lib/hoursCompanyLogoRuntimeV41');
+    const mod = await import('./hours/hoursCompanyLogoRuntimeV41');
     mod.installHoursCompanyLogoRuntimeV41();
   });
 }
@@ -106,7 +106,7 @@ function installHours() {
 function installDashboards(pathname: string) {
   if (pathname === '/admin') {
     once('admin-dashboard', async () => {
-      const mod = await import('../lib/dashboardSatisfactionRuntimeV29');
+      const mod = await import('./satisfaction/dashboardSatisfactionRuntimeV29');
       mod.installDashboardSatisfactionRuntimeV29();
     });
   }

@@ -1,11 +1,16 @@
+import { Button } from '../../../components/ds/Button';
+import { DialogFrame } from '../../../components/ds/DialogFrame';
+import { EmptyState } from '../../../components/ds/EmptyState';
+import { InlineNotice } from '../../../components/ds/InlineNotice';
+import { LoadingState } from '../../../components/ds/LoadingState';
 import { openPrivateWorkspaceFile } from '../../../api/files/workspace';
 import { useEffect, useMemo, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { AlertTriangle, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, FileText, Loader2, Plus, SlidersHorizontal, X } from 'lucide-react';
 import { ClientGoogleCalendarPanel } from './components/ClientGoogleCalendarPanel';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { NoticeCalendarCard } from '../../shared/notices/NoticesBoard';
-import '../../shared/calendar/styles';
+import { NoticeCalendarCard } from '../../notices/NoticesBoard';
+import '../../calendar/styles';
 import { supabase } from '../../../api/supabase';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 
@@ -450,11 +455,11 @@ export function ClientTimelinePage() {
   return (
     <Shell role="client">
       <section className="v2-client-module"><div className="wf">
-        <div className="wf-head"><div><small>ÁREA DA EMPRESA / ACOMPANHAMENTO</small><h1>Agenda compartilhada</h1><p>Reuniões, validações e marcos da assessoria em uma visão única.</p></div><button type="button" className="wf-primary" onClick={()=>window.dispatchEvent(new CustomEvent('cali:open-papo-request'))}><Plus size={15}/> Solicitar agendamento</button></div>
+        <div className="wf-head"><div><small>ÁREA DA EMPRESA / ACOMPANHAMENTO</small><h1>Agenda compartilhada</h1><p>Reuniões, validações e marcos da assessoria em uma visão única.</p></div><Button type="button" variant="workflowPrimary" onClick={()=>window.dispatchEvent(new CustomEvent('cali:open-papo-request'))}><Plus size={15}/> Solicitar agendamento</Button></div>
         <details className="client-google-settings"><summary><CalendarDays size={19} aria-hidden="true"/><span><strong>Integração com Google Agenda</strong><small>Veja seus eventos pessoais junto aos compromissos da CALI. Você escolhe o que exibir pelo filtro da agenda.</small></span><span className="client-google-settings-action">Ver integração</span></summary><ClientGoogleCalendarPanel /></details>
 
-        {error && <div className="inline-notice">{error}</div>}
-        {loading ? <div className="data-loading"><Loader2 className="spin" size={20} />Carregando sua agenda…</div> : <>
+        {error && <InlineNotice>{error}</InlineNotice>}
+        {loading ? <LoadingState><Loader2 className="spin" size={20} />Carregando sua agenda…</LoadingState> : <>
           <section className="wf-calendar-module">
             <div className="wf-controls">
               <div className="wf-segments"><button type="button" className={agendaView==='week'?'on':''} onClick={()=>setAgendaView('week')}>Semana</button><button type="button" className={agendaView==='month'?'on':''} onClick={()=>setAgendaView('month')}>Mês</button><button type="button" className={agendaView==='list'?'on':''} onClick={()=>setAgendaView('list')}>Lista</button></div>
@@ -520,18 +525,18 @@ export function ClientTimelinePage() {
                   </article>;
                 })}
               </div>
-            </div> : <div className="wf-empty"><CalendarDays size={24} /><strong>Nada previsto por enquanto.</strong><p>Reuniões confirmadas, solicitações em análise e prazos publicados aparecerão aqui.</p></div>)}
+            </div> : <EmptyState variant="workflow"><CalendarDays size={24} /><strong>Nada previsto por enquanto.</strong><p>Reuniões confirmadas, solicitações em análise e prazos publicados aparecerão aqui.</p></EmptyState>)}
           </section>
         </>}
       </div></section>
-      {historyOpen && createPortal(<div className="v2-client-module wf-agenda-overlay" onMouseDown={event=>{if(event.target===event.currentTarget)setHistoryOpen(false)}}><section className="wf-modal wf-agenda-modal" role="dialog" aria-modal="true" aria-label="Histórico de reuniões"><button type="button" className="wf-agenda-close" onClick={()=>setHistoryOpen(false)} aria-label="Fechar histórico"><X size={20}/></button>
+      {historyOpen && createPortal(<div className="v2-client-module wf-agenda-overlay" onMouseDown={event=>{if(event.target===event.currentTarget)setHistoryOpen(false)}}><DialogFrame className="wf-modal wf-agenda-modal" aria-label="Histórico de reuniões"><button type="button" className="wf-agenda-close" onClick={()=>setHistoryOpen(false)} aria-label="Fechar histórico"><X size={20}/></button>
             <div className="wf-head"><div><span>CONSULTAR ENCONTROS</span><h2>Histórico de reuniões</h2></div></div>
             <div className="wf-controls"><label>Mês <input type="month" value={historyMonth} onChange={event=>setHistoryMonth(event.target.value)}/></label><button type="button" onClick={()=>setHistoryMonth('')}>Todos os períodos</button></div>
             <div className="wf-history-list">{meetingHistory.filter(item=>!historyMonth || monthOf(item.at)===historyMonth).map(item=><button type="button" key={item.id} onClick={()=>{setHistoryOpen(false);openItem(item)}}><strong>{item.title}</strong><span>{item.dateLabel} · {item.timeLabel}</span><small>{meetingRecords[item.sourceId]?.outcome==='occurred' ? 'Realizada' : 'Registro pendente'}{meetingRecords[item.sourceId]?.transcription_url || meetingRecords[item.sourceId]?.attachment_path ? ' · Transcrição disponível' : ''}</small></button>)}{!meetingHistory.length&&<p>As reuniões realizadas aparecerão aqui.</p>}</div>
-          </section></div>,document.body)}
+          </DialogFrame></div>,document.body)}
       {selectedItem && createPortal(
         <div className="v2-client-module wf-agenda-overlay" onMouseDown={event => { if (event.currentTarget === event.target) setSelectedItem(null); }}>
-          <section className={`wf-modal wf-agenda-modal tone-${selectedItem.tone || 'pending'}`} role="dialog" aria-modal="true" aria-labelledby="client-agenda-detail-title">
+          <DialogFrame className={`wf-modal wf-agenda-modal tone-${selectedItem.tone || 'pending'}`} aria-labelledby="client-agenda-detail-title">
             <header><div><small>{selectedItem.typeLabel} · {selectedItem.statusLabel}</small><h2 id="client-agenda-detail-title">{selectedItem.title}</h2></div><button type="button" onClick={() => setSelectedItem(null)} aria-label="Fechar"><X size={19}/></button></header>
             <div className="wf-agenda-modal-body">
               {selectedItem.kind==='google' ? <><div className="full"><span>Quando</span><strong>{new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'America/Sao_Paulo'}).format(new Date(selectedItem.at))} · {selectedItem.timeLabel}{selectedItem.endsAt?`–${formatTime(selectedItem.endsAt)}`:''}</strong></div>{selectedItem.description&&<div className="full"><span>Anotações</span><strong>{selectedItem.description}</strong></div>}{selectedItem.secondaryDetail&&<div className="full"><span>Local</span><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedItem.secondaryDetail)}`} target="_blank" rel="noopener noreferrer">{selectedItem.secondaryDetail} <ArrowUpRight size={15}/></a></div>}{selectedItem.googleHtmlLink&&<a href={selectedItem.googleHtmlLink} target="_blank" rel="noopener noreferrer">Abrir no Google Agenda <ArrowUpRight size={16}/></a>}</> : selectedItem.request ? <>
@@ -562,9 +567,9 @@ export function ClientTimelinePage() {
                 {agendaChanges.filter(row=>row.event_id===selectedItem.sourceId).map(row=><div className="full" key={row.id}><span>{row.action==='reschedule'?'Reagendamento':'Cancelamento'} · {row.status==='pending'?'Em análise':row.status==='approved'?'Aprovado':'Não aprovado'}</span><strong>{row.reason}{row.decision_note ? ` · Resposta da CALI: ${row.decision_note}` : ''}</strong></div>)}
               </>}
             </div>
-          </section>
+          </DialogFrame>
         </div>, document.body)}
-      {changeTarget && changeAction && createPortal(<div className="v2-client-module wf-agenda-overlay wf-agenda-change-overlay" onMouseDown={event=>{if(event.target===event.currentTarget&&!changeBusy)setChangeTarget(null)}}><section className="wf-modal wf-create" role="alertdialog" aria-modal="true" aria-labelledby="agenda-change-title"><header><div><small>{changeTarget.request?.extra_visit?'VISITA EXTRA':'REUNIÃO'}</small><h2 id="agenda-change-title">{changeAction==='cancel'?'Pedir cancelamento':'Sugerir novas datas'}</h2></div><button type="button" onClick={()=>setChangeTarget(null)} aria-label="Fechar"><X size={19}/></button></header><form className="wf-create-form" onSubmit={submitChange}><p><strong>{changeTarget.title}</strong> · {changeTarget.dateLabel} {changeTarget.timeLabel}</p><p>Conte o motivo para a CALI analisar. Uma taxa eventual depende da antecedência, da justificativa e das condições aceitas no seu contrato. Nada é cobrado automaticamente.</p>{changeAction==='reschedule'&&<><p>As novas opções precisam ter pelo menos 48 horas úteis de antecedência e ocorrer de segunda a sexta, entre 9h e 16h.</p><div className="wf-change-slots">{newSlots.map((slot,index)=><fieldset key={index}><legend>Opção {index+1}</legend><input aria-label={`Data da opção ${index+1}`} type="date" required value={slot.date} onChange={event=>setNewSlots(current=>current.map((row,i)=>i===index?{...row,date:event.target.value}:row))}/><input aria-label={`Horário da opção ${index+1}`} type="time" min="09:00" max={changeTarget.request?.extra_visit?'12:00':'16:00'} required value={slot.time} onChange={event=>setNewSlots(current=>current.map((row,i)=>i===index?{...row,time:event.target.value}:row))}/></fieldset>)}</div></>}<label>Justificativa<textarea required minLength={5} value={changeReason} onChange={event=>setChangeReason(event.target.value)} placeholder="O que mudou na sua agenda?"/></label>{changeError&&<p className="client-visit-change-error" role="alert">{changeError}</p>}<div className="v2-dialog-actions"><button type="button" onClick={()=>setChangeTarget(null)}>Voltar</button><button type="submit" disabled={changeBusy}>{changeBusy?'Enviando…':'Confirmar pedido'}</button></div></form></section></div>,document.body)}
+      {changeTarget && changeAction && createPortal(<div className="v2-client-module wf-agenda-overlay wf-agenda-change-overlay" onMouseDown={event=>{if(event.target===event.currentTarget&&!changeBusy)setChangeTarget(null)}}><DialogFrame className="wf-modal wf-create" role="alertdialog" aria-labelledby="agenda-change-title"><header><div><small>{changeTarget.request?.extra_visit?'VISITA EXTRA':'REUNIÃO'}</small><h2 id="agenda-change-title">{changeAction==='cancel'?'Pedir cancelamento':'Sugerir novas datas'}</h2></div><button type="button" onClick={()=>setChangeTarget(null)} aria-label="Fechar"><X size={19}/></button></header><form className="wf-create-form" onSubmit={submitChange}><p><strong>{changeTarget.title}</strong> · {changeTarget.dateLabel} {changeTarget.timeLabel}</p><p>Conte o motivo para a CALI analisar. Uma taxa eventual depende da antecedência, da justificativa e das condições aceitas no seu contrato. Nada é cobrado automaticamente.</p>{changeAction==='reschedule'&&<><p>As novas opções precisam ter pelo menos 48 horas úteis de antecedência e ocorrer de segunda a sexta, entre 9h e 16h.</p><div className="wf-change-slots">{newSlots.map((slot,index)=><fieldset key={index}><legend>Opção {index+1}</legend><input aria-label={`Data da opção ${index+1}`} type="date" required value={slot.date} onChange={event=>setNewSlots(current=>current.map((row,i)=>i===index?{...row,date:event.target.value}:row))}/><input aria-label={`Horário da opção ${index+1}`} type="time" min="09:00" max={changeTarget.request?.extra_visit?'12:00':'16:00'} required value={slot.time} onChange={event=>setNewSlots(current=>current.map((row,i)=>i===index?{...row,time:event.target.value}:row))}/></fieldset>)}</div></>}<label>Justificativa<textarea required minLength={5} value={changeReason} onChange={event=>setChangeReason(event.target.value)} placeholder="O que mudou na sua agenda?"/></label>{changeError&&<p className="client-visit-change-error" role="alert">{changeError}</p>}<div className="v2-dialog-actions"><button type="button" onClick={()=>setChangeTarget(null)}>Voltar</button><button type="submit" disabled={changeBusy}>{changeBusy?'Enviando…':'Confirmar pedido'}</button></div></form></DialogFrame></div>,document.body)}
       {noticeOpen && <NoticeCalendarCard noticeId={noticeOpen} href={`/cliente/avisos?aviso=${noticeOpen}`} onClose={() => setNoticeOpen(null)} />}
     </Shell>
   );

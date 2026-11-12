@@ -1,4 +1,4 @@
-import { usesV2 } from '../v2/routes';
+import { usesV2 } from '../app/visualRoutes';
 export type WorkspaceTheme = 'day' | 'night';
 
 type ThemeOverride = {

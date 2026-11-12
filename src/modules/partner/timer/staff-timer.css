@@ -1,76 +1,66 @@
+
+@reference "../../../styles/tailwind.css";
+
 .staff-timer-warning,
 .staff-timer-recoveries {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
+  @apply tw:flex tw:flex-wrap tw:items-center tw:gap-[8px];
   font-size: 0.8rem;
 }
 
 .staff-timer-warning {
   padding: 5px 8px;
-  border-radius: 8px;
+  @apply tw:rounded-[8px];
   background: var(--theme-surface-soft);
-  color: var(--theme-text);
+  @apply tw:text-cali-text;
 }
 
 .staff-timer-warning button {
   padding: 4px 8px;
   border: 1px solid currentColor;
-  border-radius: 6px;
+  @apply tw:rounded-[6px];
   background: var(--theme-surface);
-  color: var(--theme-accent);
+  @apply tw:text-cali-accent;
   font: inherit;
   font-weight: 700;
-  cursor: pointer;
+  @apply tw:cursor-pointer;
 }
 
 .staff-timer-dock {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  @apply tw:flex tw:items-center tw:gap-[8px];
 }
 
 .staff-timer-warning {
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  z-index: 70;
+  @apply tw:fixed tw:right-[18px];
+  @apply tw:bottom-[18px] tw:z-70;
   border: 1px solid var(--theme-line);
   box-shadow: 0 3px 12px rgb(0 0 0 / 12%);
 }
 
 .staff-timer-recoveries {
-  max-height: 42px;
-  overflow: auto;
+  @apply tw:max-h-[42px] tw:overflow-auto;
 }
 
 @media (max-width: 740px) {
   html[data-workspace-ui='v2'] .topbar .staff-timer-dock {
-    position: fixed;
+    @apply tw:fixed;
     inset: auto 12px max(12px, env(safe-area-inset-bottom)) 12px;
-    z-index: 70;
-    display: grid;
-    gap: 6px;
-    padding: 6px;
+    @apply tw:z-70 tw:grid tw:gap-[6px] tw:p-[6px];
     border: 1px solid var(--theme-line);
-    border-radius: 12px;
+    @apply tw:rounded-[12px];
     background: var(--theme-surface);
     box-shadow: 0 3px 12px rgb(0 0 0 / 12%);
   }
 
   html[data-workspace-ui='v2'] .staff-timer-dock .v2-staff-timer {
-    width: 100%;
-    justify-content: flex-start;
+    @apply tw:w-full tw:justify-start;
   }
 
   html[data-workspace-ui='v2'] .staff-timer-dock .v2-staff-timer button {
-    margin-left: auto;
+    @apply tw:ml-auto;
   }
 
   .staff-timer-dock .staff-timer-warning {
-    position: static;
-    justify-content: space-between;
+    @apply tw:static tw:justify-between;
     box-shadow: none;
   }
 

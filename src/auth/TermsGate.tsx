@@ -1,3 +1,4 @@
+import { Button } from '../components/ds/Button';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { FileCheck2 } from 'lucide-react';
 import { confirmTermsAcceptance, readTermsState, type TermsState } from '../api/access/terms';
@@ -6,7 +7,7 @@ import { supabase } from '../api/supabase';
 import { LegalDocument } from '../components/legal/LegalDocument';
 import { privacyPolicy, termsOfUse } from '../domain/legalTexts';
 import { useWorkspaceAuth } from './hooks/useWorkspaceAuth';
-import '../styles/legal.css';
+import '../components/legal/legal.css';
 
 type GateState =
   | { kind: 'checking' }
@@ -91,15 +92,15 @@ function ActorTermsGate({ id, role, children }: {
       <h1 id="v2-terms-title">Termos de uso e privacidade</h1>
       {state.kind === 'unavailable' ? <>
         <p className="v2-mfa-error" role="alert">{state.message}</p>
-        {id && role && <button type="button" className="v2-mfa-primary" onClick={() => void check()}>Tentar novamente</button>}
+        {id && role && <Button type="button" variant="gatePrimary" onClick={() => void check()}>Tentar novamente</Button>}
       </> : <>
         <p>Antes de continuar, leia como o CALI Workspace funciona e como tratamos os seus dados.</p>
         <div className="v2-terms-text" tabIndex={0}><LegalDocument source={termsOfUse()} idPrefix="gate-terms" /><LegalDocument source={privacyPolicy()} idPrefix="gate-privacy" /></div>
         <p className="v2-terms-links">Também disponíveis em <a href="/termos" target="_blank" rel="noopener">Termos de Uso</a> e <a href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</a>.</p>
         <label className="v2-terms-check"><input type="checkbox" disabled={busy} checked={agreed} onChange={(event) => setAgreed(event.target.checked)} /><span>Li e aceito os termos de uso e a política de privacidade.</span></label>
-        <button type="button" className="v2-mfa-primary" disabled={busy || !agreed} onClick={() => void accept()}>{busy ? 'Registrando…' : 'Continuar'}</button>
+        <Button type="button" variant="gatePrimary" disabled={busy || !agreed} onClick={() => void accept()}>{busy ? 'Registrando…' : 'Continuar'}</Button>
       </>}
-      <button type="button" className="v2-mfa-leave" onClick={() => void leave()}>Sair</button>
+      <Button type="button" variant="gateExit" onClick={() => void leave()}>Sair</Button>
     </section>
   </main>;
 }

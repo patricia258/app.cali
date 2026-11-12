@@ -85,6 +85,7 @@ Deno.serve(async (req: Request) => {
     if (!["approved", "sent", "published"].includes(report.status)) {
       throw new DeliveryError(409, "Apenas relatórios aprovados podem ser enviados.");
     }
+    if (input.version !== report.version) throw new DeliveryError(409, "A versão do relatório mudou. Reabra o relatório antes de enviar.");
     const [{ data: company }, { data: profiles }, { data: existingOfficial }] = await Promise.all([
       workspace.from("companies").select("display_name,start_date,status").eq("id", report.company_id).maybeSingle(),
       workspace.from("profiles").select("email").eq("company_id", report.company_id).eq("role", "client").eq("active", true),

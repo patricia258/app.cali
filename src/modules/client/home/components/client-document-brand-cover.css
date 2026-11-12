@@ -1,17 +1,16 @@
+
+@reference "../../../../styles/tailwind.css";
 .client-document-brand-cover {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
+  @apply tw:grid tw:place-items-center tw:w-full tw:h-full;
   min-height: 154px;
-  padding: 16px;
+  @apply tw:p-[16px];
   color: #5a1e2d;
 }
 .client-document-brand-cover img {
-  display: block;
+  @apply tw:block;
   width: min(86%, 240px) !important;
   height: min(86%, 126px) !important;
-  object-fit: contain !important;
+  @apply tw:object-contain!;
   background: transparent !important;
 }
 html[data-workspace-theme='night'] .client-document-brand-cover { color: #5a1e2d; }

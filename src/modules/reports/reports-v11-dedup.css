@@ -1,0 +1,42 @@
+/* Relatório executivo v11 — elimina redundância e dá função única a cada bloco. */
+
+/* O topo deixa de repetir horas, execução e feedback. */
+@reference "../../styles/tailwind.css";
+.reports-v9-paper > .reports-v9-pulse{@apply tw:hidden!;}
+.reports-v9-paper .reports-v9-paper-section.lead{margin-top:8mm;@apply tw:pt-0;border-top:0;}
+
+/* Horas: contratadas, realizadas e saldo. A utilização aparece uma única vez no alerta/barra. */
+.reports-v9-paper .reports-v9-hours-stats{@apply tw:grid-cols-3!;}
+.reports-v9-paper .reports-v9-hours-stats>div:nth-child(4){@apply tw:hidden!;}
+.reports-v9-paper .reports-v9-hours-stats>div:nth-child(3){border-right:0!important;}
+
+/* Síntese executiva: interpretação em vez de repetição de indicadores. */
+.reports-v11-executive-grid{@apply tw:grid tw:grid-cols-3 tw:overflow-hidden;border:1px solid rgba(90,30,45,.13);@apply tw:rounded-[9px];background:rgba(255,255,255,.34);}
+.reports-v11-executive-grid>div{@apply tw:grid;align-content:start;@apply tw:gap-[5px];min-height:27mm;padding:10px 11px;border-right:1px solid rgba(90,30,45,.11);}
+.reports-v11-executive-grid>div:last-child{border-right:0;}
+.reports-v11-executive-grid strong{color:#5A1E2D!important;@apply tw:text-[7px]!;font-weight:850!important;letter-spacing:.06em!important;@apply tw:uppercase;}
+.reports-v11-executive-grid p{color:#393432!important;font-size:9.2px!important;line-height:1.52!important;}
+
+/* Registro do período: tira marcos/acontecimentos de dentro do fluxo de execução. */
+.reports-v11-registry .reports-v9-sublist{@apply tw:mt-[1px]!;}
+.reports-v11-registry .reports-v9-sublist>strong{@apply tw:block tw:mb-[6px];color:#665d59!important;font-size:7.2px!important;font-weight:750!important;letter-spacing:.04em;}
+.reports-v11-registry .reports-v9-sublist ul{@apply tw:relative tw:grid tw:gap-[7px] tw:pl-[16px]!;list-style:none!important;}
+.reports-v11-registry .reports-v9-sublist ul:before{content:'';@apply tw:absolute;left:3px;@apply tw:top-[5px];bottom:5px;@apply tw:w-[1px];background:rgba(90,30,45,.18);}
+.reports-v11-registry .reports-v9-sublist li{@apply tw:relative;padding-left:5px;}
+.reports-v11-registry .reports-v9-sublist li:before{content:'';@apply tw:absolute;left:-15px;top:.55em;@apply tw:w-[6px] tw:h-[6px];border:2px solid #F7F3EE;@apply tw:rounded-[50%];background:#8C4154;box-shadow:0 0 0 1px rgba(90,30,45,.18);}
+
+/* Feedback: avaliação de 1 a 5, sem chamar de NPS. */
+.reports-v11-feedback-summary{@apply tw:grid tw:gap-[7px];padding:10px 12px;border:1px solid rgba(90,30,45,.12);@apply tw:rounded-[9px];background:rgba(255,255,255,.4);}
+.reports-v11-feedback-score{@apply tw:flex tw:items-center tw:gap-[12px];}
+.reports-v11-feedback-score>div{@apply tw:grid tw:gap-[2px];}
+.reports-v11-feedback-score>div>strong{color:#5A1E2D!important;font-family:Georgia,'Times New Roman',serif!important;@apply tw:text-[17px]!;font-weight:500!important;line-height:1!important;}
+.reports-v11-feedback-score>div>small,.reports-v11-feedback-note{color:#746a65!important;@apply tw:text-[7px]!;line-height:1.4!important;}
+.reports-v11-stars{@apply tw:relative tw:inline-block;flex:0 0 auto;@apply tw:w-max;color:#d8cec6;font-family:Arial,sans-serif!important;@apply tw:text-[18px];line-height:1;letter-spacing:1px;}
+.reports-v11-stars .back{@apply tw:block tw:whitespace-nowrap;}
+.reports-v11-stars .front{@apply tw:absolute tw:left-0;@apply tw:top-0 tw:block tw:overflow-hidden tw:whitespace-nowrap;color:#B58C52;@apply tw:w-0;}
+.reports-v11-feedback-empty{@apply tw:m-0!;color:#655c58!important;font-size:9.2px!important;@apply tw:italic;}
+
+/* No editor, os sinais continuam úteis para a CALI. No A4/PDF, não aparecem duplicados. */
+@media print{
+  .reports-v11-executive-grid,.reports-v11-registry,.reports-v11-feedback-summary{break-inside:avoid;page-break-inside:avoid;}
+}

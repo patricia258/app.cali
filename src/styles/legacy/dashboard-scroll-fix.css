@@ -2,36 +2,30 @@
    Mantém a página rolável e posiciona a comparação do período junto ao valor principal. */
 
 /* Scroll vertical pertence ao documento. O overscroll continua sem revelar fundo diferente. */
+@reference "../tailwind.css";
 html {
-  min-height: 100%;
-  height: auto !important;
-  overflow-x: clip !important;
-  overflow-y: auto !important;
+  @apply tw:min-h-full tw:h-auto! tw:overflow-x-clip!;
+  @apply tw:overflow-y-auto!;
   overscroll-behavior-x: none !important;
   overscroll-behavior-y: none !important;
   background: #faf8f5 !important;
 }
 
 body {
-  min-height: 100vh !important;
-  height: auto !important;
-  overflow-x: clip !important;
-  overflow-y: visible !important;
+  @apply tw:min-h-[100vh]! tw:h-auto! tw:overflow-x-clip!;
+  @apply tw:overflow-y-visible!;
   background: #faf8f5 !important;
 }
 
 body.workspace-modal-open {
-  overflow: hidden !important;
+  @apply tw:overflow-hidden!;
 }
 
 #root,
 .app-shell,
 .main,
 .workspace-view {
-  min-height: 100vh;
-  height: auto !important;
-  max-height: none !important;
-  overflow-y: visible !important;
+  @apply tw:min-h-[100vh] tw:h-auto! tw:max-h-none! tw:overflow-y-visible!;
 }
 
 /* Enquanto um modal estiver aberto, somente o overlay/modal controla a rolagem. */
@@ -39,18 +33,17 @@ body.workspace-modal-open #root,
 body.workspace-modal-open .app-shell,
 body.workspace-modal-open .main,
 body.workspace-modal-open .workspace-view {
-  overflow: visible !important;
+  @apply tw:overflow-visible!;
 }
 
 /* KPIs: comparação do período fica ao lado do número grande, nunca colada no helper. */
 .overview-signal-strip .signal-card {
-  display: grid !important;
+  @apply tw:grid!;
   grid-template-columns: auto minmax(0, 1fr) auto !important;
   grid-template-rows: auto auto auto !important;
   column-gap: 10px !important;
   row-gap: 2px !important;
-  align-items: center !important;
-  padding-bottom: 16px !important;
+  @apply tw:items-center! tw:pb-[16px]!;
 }
 
 .overview-signal-strip .signal-card > span {
@@ -62,17 +55,17 @@ body.workspace-modal-open .workspace-view {
 .overview-signal-strip .signal-card > strong {
   grid-column: 1 !important;
   grid-row: 2 !important;
-  align-self: center !important;
+  @apply tw:self-center!;
   margin: 2px 0 0 !important;
 }
 
 .overview-signal-strip .signal-card > .signal-trend {
-  position: static !important;
+  @apply tw:static!;
   inset: auto !important;
   grid-column: 2 !important;
   grid-row: 2 !important;
   justify-self: start !important;
-  align-self: center !important;
+  @apply tw:self-center!;
   margin: 4px 0 0 !important;
   min-height: 21px !important;
 }
@@ -81,7 +74,7 @@ body.workspace-modal-open .workspace-view {
   grid-column: 1 / 3 !important;
   grid-row: 3 !important;
   align-self: start !important;
-  margin-top: 1px !important;
+  @apply tw:mt-[1px]!;
 }
 
 .overview-signal-strip .signal-card > i {

@@ -1,3 +1,6 @@
+import { Button } from '../ds/Button';
+import { DialogFrame } from '../ds/DialogFrame';
+import { FieldLabel } from '../ds/FieldLabel';
 import { ChangeEvent, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Bell, CalendarDays, Camera, Check, ChevronDown, Clock3, FileText, FolderKanban, Instagram, Linkedin, Loader2, Mail, MessageCircle, Phone, UserRound, X, AtSign } from 'lucide-react';
 import { isSupabaseConfigured, supabase } from '../../api/supabase';
@@ -329,8 +332,8 @@ export function ProfileControl({ role, compact = false }: { role: Role; compact?
 
       {modalOpen && (
         <div className="modal-backdrop chrome-modal-backdrop full-screen-modal" role="presentation">
-          <section className="modal-card profile-modal profile-modal-v2" role="dialog" aria-modal="true" aria-label="Editar perfil">
-            <button className="modal-close" type="button" onClick={() => setModalOpen(false)} aria-label="Fechar"><X size={20} /></button>
+          <DialogFrame className="modal-card profile-modal profile-modal-v2" aria-label="Editar perfil">
+            <Button variant="close" type="button" onClick={() => setModalOpen(false)} aria-label="Fechar"><X size={20} /></Button>
             <span className="section-kicker">SEU PERFIL</span>
             <h2>Perfil e canais de contato</h2>
             <p>Essas informações identificam você no Workspace e deixam seus canais de contato acessíveis para quem trabalha com você.</p>
@@ -350,21 +353,21 @@ export function ProfileControl({ role, compact = false }: { role: Role; compact?
             </div>
 
             <div className="form-grid profile-form-grid">
-              <label className="stacked-label wide">Nome<input value={draft.full_name} onChange={(event) => setDraft((current) => ({ ...current, full_name: event.target.value }))} /></label>
-              <label className="stacked-label">Cargo / função<input value={draft.job_title} onChange={(event) => setDraft((current) => ({ ...current, job_title: event.target.value }))} placeholder="Ex.: Diretora de RH" /></label>
-              <label className="stacked-label">Telefone<input value={draft.phone} onChange={(event) => setDraft((current) => ({ ...current, phone: event.target.value }))} placeholder="(41) 3333-3333" /></label>
-              <label className="stacked-label"><span className="label-with-icon"><MessageCircle size={15} />WhatsApp</span><input value={draft.whatsapp} onChange={(event) => setDraft((current) => ({ ...current, whatsapp: event.target.value }))} placeholder="(41) 99999-9999" /></label>
-              <label className="stacked-label"><span className="label-with-icon"><Linkedin size={15} />LinkedIn</span><input value={draft.linkedin_url} onChange={(event) => setDraft((current) => ({ ...current, linkedin_url: event.target.value }))} placeholder="linkedin.com/in/..." /></label>
-              <label className="stacked-label"><span className="label-with-icon"><Instagram size={15} />Instagram</span><input value={draft.instagram_url} onChange={(event) => setDraft((current) => ({ ...current, instagram_url: event.target.value }))} placeholder="instagram.com/..." /></label>
-              <label className="stacked-label wide"><span className="label-with-icon"><Mail size={15} />E-mail</span><input value={draft.email} disabled /></label>
+              <FieldLabel className="wide">Nome<input value={draft.full_name} onChange={(event) => setDraft((current) => ({ ...current, full_name: event.target.value }))} /></FieldLabel>
+              <FieldLabel>Cargo / função<input value={draft.job_title} onChange={(event) => setDraft((current) => ({ ...current, job_title: event.target.value }))} placeholder="Ex.: Diretora de RH" /></FieldLabel>
+              <FieldLabel>Telefone<input value={draft.phone} onChange={(event) => setDraft((current) => ({ ...current, phone: event.target.value }))} placeholder="(41) 3333-3333" /></FieldLabel>
+              <FieldLabel><span className="label-with-icon"><MessageCircle size={15} />WhatsApp</span><input value={draft.whatsapp} onChange={(event) => setDraft((current) => ({ ...current, whatsapp: event.target.value }))} placeholder="(41) 99999-9999" /></FieldLabel>
+              <FieldLabel><span className="label-with-icon"><Linkedin size={15} />LinkedIn</span><input value={draft.linkedin_url} onChange={(event) => setDraft((current) => ({ ...current, linkedin_url: event.target.value }))} placeholder="linkedin.com/in/..." /></FieldLabel>
+              <FieldLabel><span className="label-with-icon"><Instagram size={15} />Instagram</span><input value={draft.instagram_url} onChange={(event) => setDraft((current) => ({ ...current, instagram_url: event.target.value }))} placeholder="instagram.com/..." /></FieldLabel>
+              <FieldLabel className="wide"><span className="label-with-icon"><Mail size={15} />E-mail</span><input value={draft.email} disabled /></FieldLabel>
             </div>
             <div className="profile-live-actions">
               {(draft.whatsapp || draft.phone) && <a className="secondary" href={whatsappUrl(draft.whatsapp || draft.phone)} target="_blank" rel="noreferrer"><MessageCircle size={16} />Abrir WhatsApp</a>}
               {draft.phone && <a className="secondary" href={`tel:${draft.phone.replace(/[^+\d]/g, '')}`}><Phone size={16} />Ligar</a>}
             </div>
             {message && <div className="form-message">{message}</div>}
-            <div className="modal-actions"><button type="button" className="secondary" onClick={() => setModalOpen(false)}>Cancelar</button><button type="button" className="primary" onClick={saveProfile} disabled={saving}>{saving ? <Loader2 size={17} className="spin" /> : <Check size={17} />}{saving ? 'Salvando…' : 'Salvar perfil'}</button></div>
-          </section>
+            <div className="modal-actions"><Button type="button" variant="secondary" onClick={() => setModalOpen(false)}>Cancelar</Button><Button type="button" variant="primary" onClick={saveProfile} disabled={saving}>{saving ? <Loader2 size={17} className="spin" /> : <Check size={17} />}{saving ? 'Salvando…' : 'Salvar perfil'}</Button></div>
+          </DialogFrame>
         </div>
       )}
     </>

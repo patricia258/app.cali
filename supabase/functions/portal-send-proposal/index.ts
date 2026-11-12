@@ -15,12 +15,16 @@ Deno.serve(async (request: Request) => {
     const { data: proposal } = await db.from("cali_proposals").select("id,submission_id,version,status,pdf_path").eq("id", id).maybeSingle();
     if (!proposal) throw new DeliveryError(404, "Proposta indisponível.");
     if (!["aprovada", "enviada"].includes(proposal.status)) throw new DeliveryError(409, "Aprove a proposta antes do envio.");
+    if (input.version !== proposal.version) throw new DeliveryError(409, "A versão da proposta mudou. Reabra a proposta antes de enviar.");
     const { data: submission } = await db.from("cali_submissions").select("contact_email,contact_name,company_name,protocol,archived_at")
       .eq("id", proposal.submission_id).maybeSingle();
     if (!submission || submission.archived_at) throw new DeliveryError(404, "Contato indisponível.");
-    const recipients = approvedRecipients([String(input.recipient_email ?? submission.contact_email)]);
-    const name = String(input.recipient_name ?? submission.contact_name).trim().slice(0, 180);
-    const company = String(input.company_name ?? submission.company_name ?? "").trim().slice(0, 180);
+    const recipients = approvedRecipients([String(submission.contact_email ?? "")]);
+    if (input.recipient_email !== undefined && String(input.recipient_email).trim().toLowerCase() !== recipients[0]) {
+      throw new DeliveryError(409, "O contato do briefing mudou. Reabra a proposta e confira o destinatário.");
+    }
+    const name = String(submission.contact_name ?? "").trim().slice(0, 180);
+    const company = String(submission.company_name ?? "").trim().slice(0, 180);
     const note = String(input.note ?? "").trim().slice(0, 2000);
     const filename = `CALI-Proposta-${String(submission.protocol).replace(/[^A-Z0-9-]/gi, "")}-v${proposal.version}.pdf`;
     const bucket = db.storage.from("cali-proposals");

@@ -98,6 +98,7 @@ export async function sendMaterialEmail(
     p_request_id: input.requestId, p_kind: input.kind, p_entity_id: input.entityId,
     p_actor_id: input.userId, p_hash: hash, p_company_id: input.companyId ?? null, p_version: input.version ?? null,
   });
+  if (error?.code === "55000") throw new DeliveryError(409, "Conclua a revisão do Partner antes de aprovar ou enviar.");
   if (error || !job?.id) throw new DeliveryError(409, "Já há um envio em andamento ou a confirmação mudou. Atualize o material e tente novamente.");
   if (job.provider_id) return String(job.provider_id);
   const response = await fetch("https://api.resend.com/emails", {

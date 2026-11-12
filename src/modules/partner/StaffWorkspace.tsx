@@ -2,11 +2,14 @@
    (.app > aside.sidebar + main.main > header.topbar + .content). Não usa os módulos automáticos da administradora.
    O Partner vê só as empresas e módulos atribuídos (regras no banco, migrações 20261012150000/170000/190000) e tudo que
    vai para o cliente passa pela administradora: horas e materiais entram em filas de aprovação. */
-import { ReportPrintPageV17 } from '../shared/reports/ReportPrintPageV17';
-import { CompanyTeamPage } from '../shared/team/CompanyTeamPage';
+import { FilterSelect } from '../../components/ds/FilterSelect';
+import { InlineNotice } from '../../components/ds/InlineNotice';
+import { LoadingState } from '../../components/ds/LoadingState';
+import { ReportPrintPageV17 } from '../reports/ReportPrintPageV17';
+import { CompanyTeamPage } from '../team/CompanyTeamPage';
 import { MfaGate } from '../../auth/MfaGate';
 import { TermsGate } from '../../auth/TermsGate';
-import { StaffDocumentsPage } from '../shared/documents/AdminDocumentsPageV4';
+import { StaffDocumentsPage } from '../documents/AdminDocumentsPageV4';
 import { createContext, useContext, useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { Outlet } from '@tanstack/react-router';
 import { Link } from '../../components/navigation/Link';
@@ -17,23 +20,23 @@ import { ArrowRight, Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart
 import { supabase } from '../../api/supabase';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
 import { RouteRuntimeManager } from '../../runtime/RouteRuntimeManager';
-import { type WelcomeStep } from '../../v2/WelcomeTour';
-import { WorkspaceShellV2 } from '../../v2/WorkspaceShellV2';
+import { type WelcomeStep } from '../../components/workspace/WelcomeTour';
+import { WorkspaceShellV2 } from '../../components/workspace/WorkspaceShellV2';
 import { StaffNotices } from './notices/StaffNotices';
 import { StaffTimerBar } from './timer/StaffTimerBar';
 import { StaffMaterials } from './materials/StaffMaterials';
 import { StaffDashboard } from './home/StaffDashboard';
 import { usePartnerWorkspace } from './hooks/usePartnerWorkspace';
 import type { PartnerWorkspace } from '../../api/partner/workspace';
-import { StaffRecordsPage } from '../shared/records/WorkspaceRecordsPage';
-import { StaffProjectsPage } from '../shared/projects/AdminProjectsPageV3';
-import { StaffHoursPage } from '../shared/hours/AdminHoursPageV3';
-import '../shared/calendar/styles';
-import { StaffCalendarPage } from '../shared/calendar/AdminCalendarPage';
-import '../../styles/v2.generated.css';
-import '../shared/records/styles';
-import '../shared/projects/styles';
-import '../../styles/operational.css';
+import { StaffRecordsPage } from '../records/WorkspaceRecordsPage';
+import { StaffProjectsPage } from '../projects/AdminProjectsPageV3';
+import { StaffHoursPage } from '../hours/AdminHoursPageV3';
+import '../calendar/styles';
+import { StaffCalendarPage } from '../calendar/AdminCalendarPage';
+import '../../components/workspace/v2.generated.css';
+import '../records/styles';
+import '../projects/styles';
+import '../../components/workspace/operational.css';
 
 const moment = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
 const dayLabel = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${iso.slice(0, 10)}T12:00:00`));
@@ -74,7 +77,7 @@ function Frame({ me, children }: { me: PartnerWorkspace; children: ReactNode }) 
 function Head({ eyebrow, title, text, action }: { eyebrow: string; title: string; text: string; action?: ReactNode }) {
   return <div className="page-head"><div><div className="eyebrow">{eyebrow}</div><h1>{title}<span className="title-dot">.</span></h1><p>{text}</p></div>{action}</div>;
 }
-const CompanySelect = ({ me, value, onChange, all }: { me: PartnerWorkspace; value: string; onChange: (value: string) => void; all?: boolean }) => <select className="wf-record-filter" aria-label="Empresa" value={value} onChange={(event) => onChange(event.target.value)}>{all && <option value="">Todas as minhas empresas</option>}{!all && <option value="">Escolha a empresa</option>}{me.companies.map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}</select>;
+const CompanySelect = ({ me, value, onChange, all }: { me: PartnerWorkspace; value: string; onChange: (value: string) => void; all?: boolean }) => <FilterSelect aria-label="Empresa" value={value} onChange={(event) => onChange(event.target.value)}>{all && <option value="">Todas as minhas empresas</option>}{!all && <option value="">Escolha a empresa</option>}{me.companies.map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}</FilterSelect>;
 
 /* Consulta (somente leitura) dos módulos liberados. O banco só devolve o que é das empresas atribuídas. */
 type BrowseRow = { id: string; company_id: string | null; title: string; sub: string; tag: string; when: string | null };
@@ -96,7 +99,7 @@ function Browse({ me, kind }: { me: PartnerWorkspace; kind: string }) {
   const visible = (rows || []).filter((row) => (!company || row.company_id === company) && (!text || `${row.title} ${row.sub}`.toLocaleLowerCase('pt-BR').includes(text)));
   return <><Head eyebrow={config.eyebrow} title={config.title} text={config.text} />
     <div className="toolbar"><CompanySelect me={me} value={company} onChange={setCompany} all /><input className="v2-staff-search" placeholder="Buscar" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Buscar" /></div>
-    {failed ? <div className="inline-notice">Não foi possível carregar. Recarregue a página; se continuar, fale com a Patricia.</div> : !rows ? <div className="data-loading">Carregando…</div> : visible.length ? <div className="wf-records v2-staff-browse">{visible.map((row) => <div className={`wf-record-row${(row as any).href ? ' is-link' : ''}`} key={row.id} role={(row as any).href ? 'link' : undefined} tabIndex={(row as any).href ? 0 : undefined} onClick={() => { if ((row as any).href) window.open((row as any).href, '_blank', 'noopener'); }}><div><strong>{row.title}</strong><small>{[row.company_id ? companyName.get(row.company_id) : '', row.sub].filter(Boolean).join(' · ') || '—'}</small></div><span className="wf-tag">{row.tag}</span><small>{row.when ? dayLabel(row.when) : '—'}</small></div>)}</div> : <div className="empty">{config.empty}</div>}
+    {failed ? <InlineNotice>Não foi possível carregar. Recarregue a página; se continuar, fale com a Patricia.</InlineNotice> : !rows ? <LoadingState>Carregando…</LoadingState> : visible.length ? <div className="wf-records v2-staff-browse">{visible.map((row) => <div className={`wf-record-row${(row as any).href ? ' is-link' : ''}`} key={row.id} role={(row as any).href ? 'link' : undefined} tabIndex={(row as any).href ? 0 : undefined} onClick={() => { if ((row as any).href) window.open((row as any).href, '_blank', 'noopener'); }}><div><strong>{row.title}</strong><small>{[row.company_id ? companyName.get(row.company_id) : '', row.sub].filter(Boolean).join(' · ') || '—'}</small></div><span className="wf-tag">{row.tag}</span><small>{row.when ? dayLabel(row.when) : '—'}</small></div>)}</div> : <div className="empty">{config.empty}</div>}
     <p className="soft-note">{kind === 'avisos' ? 'Os comunicados aprovados aparecem na lista.' : 'Tela de consulta. Você vê, mas não altera por aqui.'}</p></>;
 }
 
@@ -114,7 +117,7 @@ function Reviews({ me }: { me: PartnerWorkspace }) {
   const visible = (rows || []).filter((row) => filter === 'all' || row.status === 'pending'); const waiting = (rows || []).filter((row) => row.status === 'pending').length;
   return <><Head eyebrow="EQUIPE CALI / APROVAÇÕES" title="Aprovações" text="O que você enviou para a Patricia e o que ela respondeu." />
     <div className="toolbar"><div className="wf-segments"><button type="button" className={filter === 'pending' ? 'on' : ''} onClick={() => setFilter('pending')}>Aguardando ({waiting})</button><button type="button" className={filter === 'all' ? 'on' : ''} onClick={() => setFilter('all')}>Tudo</button></div></div>
-    {!rows ? <div className="data-loading">Carregando…</div> : visible.length ? <div className="wf-records v2-staff-sent">{visible.map((row) => <div className="wf-record-row" key={row.id}><time>{moment(row.created_at)}</time><strong>{row.kind === 'hours' ? 'Horas' : KINDS[row.kind] || row.kind}</strong><div><strong>{row.title}</strong><small>{[companyName.get(row.company_id) || 'Empresa', row.note, row.decision_note ? `Resposta: ${row.decision_note}` : ''].filter(Boolean).join(' · ')}</small></div><span className={`wf-tag ${tone[row.status]?.[0] || ''}`}>{tone[row.status]?.[1] || row.status}</span></div>)}</div> : <div className="empty">{filter === 'pending' ? 'Nada aguardando no momento.' : 'Você ainda não enviou nada para aprovação.'}</div>}</>;
+    {!rows ? <LoadingState>Carregando…</LoadingState> : visible.length ? <div className="wf-records v2-staff-sent">{visible.map((row) => <div className="wf-record-row" key={row.id}><time>{moment(row.created_at)}</time><strong>{row.kind === 'hours' ? 'Horas' : KINDS[row.kind] || row.kind}</strong><div><strong>{row.title}</strong><small>{[companyName.get(row.company_id) || 'Empresa', row.note, row.decision_note ? `Resposta: ${row.decision_note}` : ''].filter(Boolean).join(' · ')}</small></div><span className={`wf-tag ${tone[row.status]?.[0] || ''}`}>{tone[row.status]?.[1] || row.status}</span></div>)}</div> : <div className="empty">{filter === 'pending' ? 'Nada aguardando no momento.' : 'Você ainda não enviou nada para aprovação.'}</div>}</>;
 }
 
 const sectionModules = {
@@ -165,8 +168,8 @@ export function StaffPrint() {
 function AuthorizedStaffWorkspace() {
   const { me, error } = usePartnerWorkspace();
   const { pathname } = useLocation();
-  if (error) return <div className="v2-client-module v2-staff-fail"><div className="inline-notice">{error}</div></div>;
-  if (!me) return <div className="v2-client-module"><div className="data-loading">Carregando o seu espaço…</div></div>;
+  if (error) return <div className="v2-client-module v2-staff-fail"><InlineNotice>{error}</InlineNotice></div>;
+  if (!me) return <div className="v2-client-module"><LoadingState>Carregando o seu espaço…</LoadingState></div>;
   // Relatório impresso abre em página cheia, sem o menu, como para a administradora e o cliente.
   if (pathname.startsWith('/equipe/relatorios/impressao/')) {
     if (!me.modules.includes('reports')) return <Navigate to="/equipe" replace />;
@@ -183,7 +186,7 @@ function AuthorizedStaffWorkspace() {
 
 export function StaffWorkspace() {
   const auth = useWorkspaceAuth();
-  if (!auth.ready) return <div className="v2-client-module"><div className="data-loading">Carregando…</div></div>;
+  if (!auth.ready) return <div className="v2-client-module"><LoadingState>Carregando…</LoadingState></div>;
   if (!auth.user || !auth.active) return <Navigate to="/login" replace />;
   if (auth.role !== 'partner') return <Navigate to={auth.role === 'admin' ? '/admin' : '/cliente'} replace />;
   return (

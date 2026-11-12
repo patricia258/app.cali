@@ -1,3 +1,6 @@
+import { DialogForm } from '../../../components/ds/DialogForm';
+import { Button } from '../../../components/ds/Button';
+import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { useEffect, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Clock3, Pause, X } from 'lucide-react';
@@ -97,15 +100,15 @@ export function StaffTimerBar({ me }: { me: PartnerWorkspace }) {
         <button type="button" disabled={busy || !remaining} onClick={() => void updateActive('present')}>Continuo aqui</button>
       </div>}
       {recoveries.length > 0 && <div className="staff-timer-recoveries">
-        {recoveries.map((recovery) => <button key={recovery.id} type="button" className="wf-secondary" onClick={() => edit(recovery)}>
+        {recoveries.map((recovery) => <Button key={recovery.id} type="button" variant="workflowSecondary" onClick={() => edit(recovery)}>
           Justificar pausa · {recovery.description || label(recovery.companyId)}
-        </button>)}
+        </Button>)}
       </div>}
     </div>}
-    {error && !editing && <p className="inline-notice v2-toast" role="alert">{error}</p>}
-    {notice && <p className="inline-notice success v2-toast" role="status">{notice}</p>}
-    {editing && createPortal(<div className="wf-overlay"><form className="wf-modal v2-staff-form" role="dialog"
-      aria-modal="true" aria-label="Justificar pausa do cronômetro" onSubmit={submit}>
+    {error && !editing && <InlineNotice as="p" className="v2-toast" role="alert">{error}</InlineNotice>}
+    {notice && <InlineNotice as="p" tone="success" className="v2-toast" role="status">{notice}</InlineNotice>}
+    {editing && createPortal(<div className="wf-overlay"><DialogForm className="wf-modal v2-staff-form"
+      aria-label="Justificar pausa do cronômetro" onSubmit={submit}>
       <header><h2>Justificar pausa do cronômetro</h2>
         <button type="button" disabled={busy} aria-label="Fechar" onClick={() => setEditing(null)}><X size={16} /></button></header>
       <div className="v2-staff-body">
@@ -114,10 +117,10 @@ export function StaffTimerBar({ me }: { me: PartnerWorkspace }) {
           onChange={(event) => setMinutes(event.target.value)} /></label>
         <label>Justificativa<textarea value={reason} minLength={10} maxLength={1500} required
           onChange={(event) => setReason(event.target.value)} /></label>
-        {error && <p className="inline-notice" role="alert">{error}</p>}
+        {error && <InlineNotice as="p" role="alert">{error}</InlineNotice>}
       </div>
-      <footer><button className="wf-secondary" type="button" disabled={busy} onClick={() => setEditing(null)}>Cancelar</button>
-        <button className="wf-primary" type="submit" disabled={busy || reason.trim().length < 10}>Enviar para aprovação</button></footer>
-    </form></div>, document.body)}
+      <footer><Button variant="workflowSecondary" type="button" disabled={busy} onClick={() => setEditing(null)}>Cancelar</Button>
+        <Button variant="workflowPrimary" type="submit" disabled={busy || reason.trim().length < 10}>Enviar para aprovação</Button></footer>
+    </DialogForm></div>, document.body)}
   </>;
 }

@@ -3,112 +3,97 @@
    sem interferir na leitura ou nos componentes funcionais. */
 
 /* ---------- Menu: marca compacta realmente visível ---------- */
+@reference "../tailwind.css";
 .sidebar .brand {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  width: 100% !important;
+  @apply tw:flex! tw:items-center! tw:justify-start! tw:w-full!;
   padding: 2px 0 18px !important;
-  overflow: visible !important;
+  @apply tw:overflow-visible!;
 }
 
 .sidebar .brand-compact-slide {
-  width: 54px !important;
-  height: 54px !important;
+  @apply tw:w-[54px]! tw:h-[54px]!;
   margin: 0 auto !important;
   opacity: 1 !important;
-  visibility: visible !important;
+  @apply tw:visible!;
   transform: none !important;
   color: #f7f3ee !important;
-  align-items: center !important;
-  justify-content: center !important;
+  @apply tw:items-center! tw:justify-center!;
 }
 
 .sidebar .brand-compact-slide .brand-compact-art,
 .sidebar .brand-compact-slide .compact-wordmark {
   opacity: 1 !important;
-  visibility: visible !important;
+  @apply tw:visible!;
 }
 
 .sidebar .brand-compact-slide .brand-compact-art {
-  width: 42px !important;
-  height: 42px !important;
-  margin: 0 !important;
+  @apply tw:w-[42px]! tw:h-[42px]! tw:m-0!;
   color: #f7f3ee !important;
-  background-color: currentColor !important;
+  @apply tw:bg-current!;
 }
 
 .sidebar .brand-compact-slide .compact-wordmark {
-  width: 52px !important;
-  height: 29px !important;
-  margin: 0 !important;
+  @apply tw:w-[52px]! tw:h-[29px]! tw:m-0!;
   transform: none;
 }
 
 /* ---------- Menu aberto: logo e WORKSPACE voltam a ser um único bloco ---------- */
 .sidebar .brand-full {
-  width: 100% !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  gap: 7px !important;
-  overflow: visible !important;
+  @apply tw:w-full! tw:flex-col! tw:items-center! tw:justify-start! tw:gap-[7px]! tw:overflow-visible!;
 }
 
 .sidebar .brand-full img {
-  display: block !important;
-  width: 136px !important;
+  @apply tw:block! tw:w-[136px]!;
   max-width: 136px !important;
-  height: auto !important;
+  @apply tw:h-auto!;
   margin: 0 auto !important;
-  object-fit: contain !important;
+  @apply tw:object-contain!;
 }
 
 .sidebar .brand-full span {
-  display: block !important;
-  width: 136px !important;
+  @apply tw:block! tw:w-[136px]!;
   margin: 0 auto !important;
-  padding: 0 !important;
+  @apply tw:p-0!;
   opacity: .72 !important;
-  visibility: visible !important;
+  @apply tw:visible!;
   transform: none !important;
-  text-align: center !important;
+  @apply tw:text-center!;
   color: rgba(247,243,238,.82) !important;
-  font-size: .61rem !important;
+  @apply tw:text-[.61rem]!;
   line-height: 1.2 !important;
   letter-spacing: .23em !important;
-  white-space: nowrap !important;
+  @apply tw:whitespace-nowrap!;
 }
 
 @media (min-width: 861px) {
   .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand-full {
-    display: none !important;
+    @apply tw:hidden!;
   }
   .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand-compact-slide {
-    display: flex !important;
+    @apply tw:flex!;
   }
 
   .sidebar:hover .brand-full,
   .sidebar:focus-within .brand-full,
   .sidebar.pinned .brand-full {
-    display: flex !important;
+    @apply tw:flex!;
   }
   .sidebar:hover .brand-compact-slide,
   .sidebar:focus-within .brand-compact-slide,
   .sidebar.pinned .brand-compact-slide {
-    display: none !important;
+    @apply tw:hidden!;
   }
 }
 
 /* ---------- Fundo de identidade: visível, dinâmico e repetido ---------- */
 .workspace-brand-watermarks {
-  overflow: hidden !important;
+  @apply tw:overflow-hidden!;
 }
 
 .workspace-watermark,
 .workspace-brand-watermarks::before,
 .workspace-brand-watermarks::after {
-  pointer-events: none !important;
+  @apply tw:pointer-events-none!;
   user-select: none !important;
   will-change: transform, opacity;
 }
@@ -118,7 +103,7 @@
 .scene-lime-soft .workspace-watermark-oak,
 .scene-oak .workspace-watermark-lime,
 .scene-oak-soft .workspace-watermark-lime {
-  display: block !important;
+  @apply tw:block!;
 }
 
 .workspace-watermark {
@@ -199,8 +184,7 @@
 .workspace-brand-watermarks::before,
 .workspace-brand-watermarks::after {
   content: '';
-  position: absolute;
-  display: block;
+  @apply tw:absolute tw:block;
 }
 
 .workspace-brand-watermarks::before {
@@ -266,7 +250,7 @@
   }
   .scene-overview .workspace-watermark-lime {
     right: -105px !important;
-    top: 10px !important;
+    @apply tw:top-[10px]!;
   }
   .scene-overview .workspace-watermark-oak {
     right: 30px !important;

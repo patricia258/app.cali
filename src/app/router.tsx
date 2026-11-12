@@ -12,10 +12,10 @@ const PreRegistrationPage = lazy(() => import('../modules/public/pre-registratio
 const AdminFormsPage = lazy(() => import('../modules/admin/forms/AdminFormsPage').then((m) => ({ default: m.AdminFormsPage })));
 const ProfileTestPage = lazy(() => import('../modules/public/disc/ProfileTestPage').then((m) => ({ default: m.ProfileTestPage })));
 const ProfileReportPage = lazy(() => import('../modules/public/disc/ProfileReportPage').then((m) => ({ default: m.ProfileReportPage })));
-const ProfileEvaluatorPage = lazy(() => import('../modules/shared/disc/ProfileEvaluatorPage').then((m) => ({ default: m.ProfileEvaluatorPage })));
+const ProfileEvaluatorPage = lazy(() => import('../modules/disc/ProfileEvaluatorPage').then((m) => ({ default: m.ProfileEvaluatorPage })));
 const AdminProfilesPage = lazy(() => import('../modules/admin/disc/AdminProfilesPage').then((m) => ({ default: m.AdminProfilesPage })));
 const ProfileCampaignPage = lazy(() => import('../modules/admin/disc/ProfileCampaignPage').then((m) => ({ default: m.ProfileCampaignPage })));
-const GestaoPage = lazy(() => import('../modules/shared/disc/GestaoPage').then((m) => ({ default: m.GestaoPage })));
+const GestaoPage = lazy(() => import('../modules/disc/GestaoPage').then((m) => ({ default: m.GestaoPage })));
 const ProfileOptOutPage = lazy(() => import('../modules/public/disc/ProfileOptOutPage').then((m) => ({ default: m.ProfileOptOutPage })));
 const AuthCallbackPage = lazy(() => import('../modules/access/callback/AuthCallbackPage').then((m) => ({ default: m.AuthCallbackPage })));
 const GoogleCalendarCallbackPage = lazy(() => import('../modules/access/google-calendar/GoogleCalendarCallbackPage').then((m) => ({ default: m.GoogleCalendarCallbackPage })));
@@ -40,22 +40,22 @@ const AdminProposalPreviewPageV3 = lazy(async () => {
   return import('../modules/admin/proposals/AdminProposalPreviewPageV3').then((m) => ({ default: m.AdminProposalPreviewPageV3 }));
 });
 const AdminProjectsGatePage = lazy(async () => {
-  await import('../modules/shared/projects/styles');
+  await import('../modules/projects/styles');
   return import('../modules/admin/projects/AdminProjectsGatePage').then((m) => ({ default: m.AdminProjectsGatePage }));
 });
 const AdminHoursPageV3 = lazy(async () => {
-  return import('../modules/shared/hours/AdminHoursPageV3').then((m) => ({ default: m.AdminHoursPageV3 }));
+  return import('../modules/hours/AdminHoursPageV3').then((m) => ({ default: m.AdminHoursPageV3 }));
 });
 const AdminCalendarPage = lazy(async () => {
-  await import('../modules/shared/calendar/styles');
-  return import('../modules/shared/calendar/AdminCalendarPage').then((m) => ({ default: m.AdminCalendarPage }));
+  await import('../modules/calendar/styles');
+  return import('../modules/calendar/AdminCalendarPage').then((m) => ({ default: m.AdminCalendarPage }));
 });
 const AdminDocumentsPageV4 = lazy(async () => {
   // Página na composição V2: as folhas antigas de documentos não são mais carregadas aqui.
-  return import('../modules/shared/documents/AdminDocumentsPageV4').then((m) => ({ default: m.AdminDocumentsPageV4 }));
+  return import('../modules/documents/AdminDocumentsPageV4').then((m) => ({ default: m.AdminDocumentsPageV4 }));
 });
 const AdminReportsPageV17 = lazy(async () => {
-  await import('../modules/shared/reports/styles');
+  await import('../modules/reports/styles');
   return import('../modules/admin/reports/AdminReportsPageV17').then((m) => ({ default: m.AdminReportsPageV17 }));
 });
 const AdminSatisfactionPage = lazy(async () => {
@@ -76,12 +76,11 @@ const AdminPeopleMapReportPage = lazy(async () => {
 });
 
 const AdminRecordsPage = lazy(async () => {
-  await import('../modules/shared/records/styles');
-  return import('../modules/shared/records/WorkspaceRecordsPage').then((m) => ({ default: m.AdminRecordsPage }));
+  await import('../modules/records/styles');
+  return import('../modules/records/WorkspaceRecordsPage').then((m) => ({ default: m.AdminRecordsPage }));
 });
 const ClientRecordsPage = lazy(async () => {
-  await import('../styles/routes/clientModules');
-  return import('../modules/shared/records/WorkspaceRecordsPage').then((m) => ({ default: m.ClientRecordsPage }));
+  return import('../modules/records/WorkspaceRecordsPage').then((m) => ({ default: m.ClientRecordsPage }));
 });
 const ClientDashboard = lazy(async () => {
   await import('../modules/client/workspace-experience');
@@ -92,33 +91,30 @@ const ClientTimelinePage = lazy(async () => {
   return import('../modules/client/timeline/ClientTimelinePage').then((m) => ({ default: m.ClientTimelinePage }));
 });
 const ClientDeliverablesPage = lazy(async () => {
-  await import('../styles/routes/clientModules');
   return import('../modules/client/deliverables/ClientDeliverablesPage').then((m) => ({ default: m.ClientDeliverablesPage }));
 });
 const ClientHoursPage = lazy(async () => {
-  await import('../styles/routes/clientModules');
   return import('../modules/client/hours/ClientHoursPage').then((m) => ({ default: m.ClientHoursPage }));
 });
 const ClientDocumentsPage = lazy(async () => {
-  await import('../styles/routes/clientModules');
   return import('../modules/client/documents/ClientDocumentsPage').then((m) => ({ default: m.ClientDocumentsPage }));
 });
 // O relatório é lido no próprio documento oficial (papel), que tem folhas de estilo próprias.
 const ClientReportsPageV5 = lazy(async () => {
-  await import('../modules/shared/reports/styles');
+  await import('../modules/reports/styles');
   return import('../modules/client/reports/ClientReportsPageV5').then((m) => ({ default: m.ClientReportsPageV5 }));
 });
-const CompanyTeamPage = lazy(() => import('../modules/shared/team/CompanyTeamPage').then((m) => ({ default: m.CompanyTeamPage })));
+const CompanyTeamPage = lazy(() => import('../modules/team/CompanyTeamPage').then((m) => ({ default: m.CompanyTeamPage })));
 const ClientFaqPage = lazy(() => import('../modules/client/faq/ClientFaqPage').then((m) => ({ default: m.ClientFaqPage })));
-const ClientNoticesPage = lazy(() => import('../modules/shared/notices/NoticesBoard').then((m) => ({ default: m.ClientNoticesPage })));
+const ClientNoticesPage = lazy(() => import('../modules/notices/NoticesBoard').then((m) => ({ default: m.ClientNoticesPage })));
 const AdminAuditPage = lazy(() => import('../modules/admin/audit/AdminAuditPage').then((m) => ({ default: m.AdminAuditPage })));
 const AdminStaffPage = lazy(() => import('../modules/admin/staff/AdminStaffPage').then((m) => ({ default: m.AdminStaffPage })));
 const StaffWorkspace = lazy(() => import('../modules/partner/StaffWorkspace').then((m) => ({ default: m.StaffWorkspace })));
-const AdminNoticesPage = lazy(() => import('../modules/shared/notices/NoticesBoard').then((m) => ({ default: m.AdminNoticesPage })));
+const AdminNoticesPage = lazy(() => import('../modules/notices/NoticesBoard').then((m) => ({ default: m.AdminNoticesPage })));
 const ClientFrontsPage = lazy(() => import('../modules/client/fronts/ClientFrontsPage').then((m) => ({ default: m.ClientFrontsPage })));
 const ReportPrintPageV17 = lazy(async () => {
-  await import('../modules/shared/reports/styles');
-  return import('../modules/shared/reports/ReportPrintPageV17').then((m) => ({ default: m.ReportPrintPageV17 }));
+  await import('../modules/reports/styles');
+  return import('../modules/reports/ReportPrintPageV17').then((m) => ({ default: m.ReportPrintPageV17 }));
 });
 
 

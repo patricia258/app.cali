@@ -4,7 +4,7 @@
 
 **Início e Visão geral.** Cliente abre `/cliente` para acompanhar a própria conta. Admin abre `/admin` para acompanhar carteira, prioridades e recortes por empresa.
 
-**Atual.** Início consulta plano, contato, agenda, horas, ocorrências, documentos e relatórios. O Início mostra os responsáveis e encaminha atendimento para Ocorrências. A Visão geral Admin compõe carteira, indicadores e atalhos. Cada bloco lê fontes próprias e pode falhar em separado. [Início Cliente](../../src/modules/client/home/ClientDashboard.tsx) · [Visão geral Admin](../../src/modules/admin/overview/AdminDashboard.tsx)
+**Atual.** Início consulta plano, responsáveis, agenda, horas, ocorrências, documentos e relatórios. O atendimento começa em Ocorrências. Na Visão geral Admin, as fontes tabulares são paginadas e ordenadas com desempate por ID. Empresa e mês das horas ficam na URL. Se uma fonte falhar, o aviso nomeia a fonte, os demais blocos continuam disponíveis e o Admin pode tentar novamente. O total de ações inclui itens fora da lista curta de prioridades. [Início Cliente](../../src/modules/client/home/ClientDashboard.tsx) · [Visão geral Admin](../../src/modules/admin/overview/AdminDashboard.tsx)
 
 **Dados e integrações.** Plano e responsáveis vêm da [ficha](ACCESS.md#flow-02). Pendências e indicadores cruzam dados de contrato, Equipe, Agenda, entregas, Horas, Documentos e Relatórios. O destino do atalho verifica o acesso ao objeto novamente.
 
@@ -12,13 +12,13 @@
 
 **Aceite.** Empresa com Patrícia apenas e com Partner de apoio. Nenhuma ação de envio na home. Histórico anterior preservado e acessível no assunto correto. Carteira com mais de uma página, mês vazio, falha parcial e recarga mantendo o recorte. Horas ocultas ficam indisponíveis ao Cliente.
 
-**Lacunas.** Conferir paginação, recortes e fontes dos agregados da carteira antes de reutilizar projeções da V2. Conferir que registros já gerados pela home continuam acessíveis em Ocorrências.
+**Evidência e lacunas.** O caso Playwright sintético validou 251 empresas em duas páginas, falha isolada da Agenda, recuperação e recarga preservando empresa e mês. O NPS da Visão geral usa a carteira. Satisfação por empresa e período está no [FLOW-16](ADMIN.md#flow-16). Conferir a navegação para ocorrências legadas vindas do Início com amostra do destino. [Prova de carteira](../../tests/e2e/account-and-overview.cjs)
 
 ## FLOW-08
 
 **Equipe da empresa.** Cliente em `/cliente/equipe` e Admin em `/admin/equipe` usam a própria empresa ou o contexto escolhido. Partner autorizado abre `/equipe/pessoas` para a projeção funcional.
 
-**Atual.** Diretório e ficha → edição ou importação → movimentação → confirmação mensal → indicadores. Admin e Clientes da própria empresa consultam e mantêm a ficha e os campos privados. Partner mantém a projeção funcional autorizada. Métricas seguem lançamento inicial Cliente e correção Admin com motivo, revisão e antes/depois. A pessoa focal continua destinatária nos fluxos legados de comunicação. [Equipe](../../src/modules/shared/team/CompanyTeamPage.tsx) · [Guarda e métricas](../../supabase/migrations/20261112132100_company_team_equivalent_access.sql)
+**Atual.** Diretório e ficha → edição ou importação → movimentação → confirmação mensal → indicadores. Admin e Clientes da própria empresa consultam e mantêm a ficha e os campos privados. Partner mantém a projeção funcional autorizada. Métricas seguem lançamento inicial Cliente e correção Admin com motivo, revisão e antes/depois. A pessoa focal continua destinatária nos fluxos legados de comunicação. [Equipe](../../src/modules/team/CompanyTeamPage.tsx) · [Guarda e métricas](../../supabase/migrations/20261112132100_company_team_equivalent_access.sql)
 
 **Dados e integrações.** Identidade por empresa e código, cargo, departamento, gestor, status e datas. Dados privados incluem remuneração, revisão salarial, gênero e filhos. Movimentação, vaga, snapshot, confirmação e métricas têm vínculos de mês e revisão. Arquivamento retira a pessoa do quadro atual e conserva o histórico. A ausência na importação não configura desligamento. [Confirmação de mês](../../supabase/migrations/20261002000902_team_monthly_review_v2.sql)
 
@@ -26,7 +26,7 @@
 
 **Aceite.** Usar dois Clientes da mesma empresa, Cliente B e Partner com e sem módulo. Conferir privados em UI, leitura direta e exportação. Importar com gestor inválido, conflito, ausência de linha e retry. Confirmar mês, corrigir como Admin, negar correção Cliente e comparar snapshots e métricas por período.
 
-**Lacunas.** Confirmar fórmulas, janela de referência e critérios de exportação com o contrato dono, preservando o comportamento histórico onde aplicável. A versão de termos `2026-11-12.2` registra o acesso de Clientes autorizados aos privados da própria empresa.
+**Evidência e lacunas.** PostgreSQL e Playwright no laboratório confirmaram leitura de privados por A1 e A2 e isolamento de B. O ensaio SQL também cobriu confirmação mensal por acessos equivalentes, Partner sem leitura privada e correção Admin com motivo. A versão `2026-11-12.2` registra o acesso de Clientes autorizados aos privados da própria empresa. Conferir fórmulas e exportações com o contrato de Equipe.
 
 ## FLOW-18
 

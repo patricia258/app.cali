@@ -1,8 +1,13 @@
-import { AdminMaterialReview } from '../../shared/material-review/AdminMaterialReview';
+import { useQuery } from '@tanstack/react-query';
+import { loadMapaDeliveryState } from '../../../api/admin/people-map/delivery';
+import { Button } from '../../../components/ds/Button';
+import { DialogFrame } from '../../../components/ds/DialogFrame';
+import { FieldLabel } from '../../../components/ds/FieldLabel';
+import { AdminMaterialReview } from '../../material-review/AdminMaterialReview';
 import { useMaterialDeliveryConfirmation } from '../../../hooks/useMaterialDeliveryConfirmation';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, Building2, FileText, Mail, Plus, RefreshCw, Save, Send, UserRound, X } from 'lucide-react';
+import { ArrowLeft, Building2, FileText, Mail, RefreshCw, Save, Send, UserRound, X } from 'lucide-react';
 import { useNavigate } from '../../../hooks/useNavigate';
 import { useSearchParams } from '../../../hooks/useSearchParams';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
@@ -124,9 +129,15 @@ export function AdminPeopleMapReviewPage(){
   const [emailOpen,setEmailOpen]=useState(false);
   const [pdfFile,setPdfFile]=useState<File|null>(null);
   const [emailFeedback,setEmailFeedback]=useState('');
-  const [emailRecipients,setEmailRecipients]=useState<string[]>([]);
   const [emailMessage,setEmailMessage]=useState('');
   const [sending,setSending]=useState(false);
+  const delivery = useQuery({
+    queryKey: ['mapa-delivery', record?.id],
+    queryFn: () => loadMapaDeliveryState(record!.id),
+    enabled: emailOpen && Boolean(record),
+    retry: false,
+  });
+  const deliveryReady = delivery.isSuccess && !delivery.isFetching;
 
   useEffect(()=>{(async()=>{
     if(!supabase){setError('Supabase não configurado.');setLoading(false);return}
@@ -188,47 +199,34 @@ export function AdminPeopleMapReviewPage(){
     if(!record)return;
     setPdfFile(null);
     setEmailFeedback('');
-    setEmailRecipients([record.c_email||'']);
     setEmailMessage('');
     setEmailOpen(true);
   }
 
-  function updateRecipient(index:number,value:string){
-    setEmailRecipients((current)=>current.map((recipient,i)=>i===index?value:recipient));
-    setEmailFeedback('');
-  }
-
-  function addRecipient(){
-    setEmailRecipients((current)=>current.length>=8?current:[...current,'']);
-  }
-
-  function removeRecipient(index:number){
-    setEmailRecipients((current)=>current.length===1?['']:current.filter((_,i)=>i!==index));
-    setEmailFeedback('');
-  }
-
   async function sendEmail(){
-    if(!record||!supabase||sending)return;
-    const recipients=[...new Set(emailRecipients.map((value)=>value.trim().toLowerCase()).filter(Boolean))];
-    if(!recipients.length){setEmailFeedback('Informe pelo menos um destinatário.');return}
-    const invalid=recipients.find((email)=>!EMAIL_PATTERN.test(email));
-    if(invalid){setEmailFeedback(`Confira o e-mail: ${invalid}`);return}
-    if(!pdfFile){setEmailFeedback('Selecione o PDF aprovado antes de enviar.');return}
-    if(pdfFile.type!=='application/pdf'&&!pdfFile.name.toLowerCase().endsWith('.pdf')){setEmailFeedback('Selecione um arquivo PDF.');return}
-    if(pdfFile.size>8*1024*1024){setEmailFeedback('O PDF precisa ter até 8 MB.');return}
-    const requestId=confirmDelivery(recipients,[record.id,pdfFile.name,pdfFile.size,pdfFile.lastModified,emailMessage]);
+    if (!record || !supabase || sending || !deliveryReady || !delivery.data) return;
+    const { revision, hasPdf } = delivery.data;
+    const recipient = record.c_email.trim().toLowerCase();
+    if (!EMAIL_PATTERN.test(recipient)) { setEmailFeedback('Confira o e-mail da resposta do Mapa.'); return; }
+    const attachment = hasPdf ? null : pdfFile;
+    if (!hasPdf && !attachment) { setEmailFeedback('Selecione o PDF aprovado antes de enviar.'); return; }
+    if (attachment && attachment.type !== 'application/pdf' && !attachment.name.toLowerCase().endsWith('.pdf')) { setEmailFeedback('Selecione um arquivo PDF.'); return; }
+    if (attachment && attachment.size > 8 * 1024 * 1024) { setEmailFeedback('O PDF precisa ter até 8 MB.'); return; }
+    const fileIdentity = attachment && [attachment.name, attachment.size, attachment.lastModified];
+    const requestId = confirmDelivery([recipient], [record.id, revision, fileIdentity, emailMessage.trim()]);
     if(!requestId)return;
     setSending(true);setEmailFeedback('Enviando relatório…');
     try{
-      const pdf_base64=await fileToBase64(pdfFile);
-      const {data,error:fnError}=await supabase.functions.invoke('workspace-enviar-relatorio-mapa',{body:{response_id:record.id,pdf_base64,request_id:requestId,recipients,custom_message:emailMessage.trim()||null}});
+      const pdf_base64 = attachment ? await fileToBase64(attachment) : undefined;
+      const {data,error:fnError}=await supabase.functions.invoke('workspace-enviar-relatorio-mapa',{body:{response_id:record.id,revision,pdf_base64,request_id:requestId,recipients:[recipient],custom_message:emailMessage.trim()||null}});
       if(fnError||!data?.ok||!data?.email_id)throw new Error(data?.error||fnError?.message||'Falha ao enviar.');
       completeDelivery();
+      void delivery.refetch();
       const sentAt=new Date().toISOString();
-      const sentTo=Array.isArray(data.to)?data.to.join(', '):(data.to||recipients.join(', '));
+      const sentTo=Array.isArray(data.to)?data.to.join(', '):(data.to||recipient);
       setEmailFeedback(`Enviado para ${sentTo} ✓`);
       setRecord((current)=>current?{...current,status:'enviado',relatorio_enviado_em:sentAt}:current);
-      setTimeout(()=>{setEmailOpen(false);setPdfFile(null);setEmailRecipients([]);setEmailMessage('');setEmailFeedback('')},1400);
+      setTimeout(()=>{setEmailOpen(false);setPdfFile(null);setEmailMessage('');setEmailFeedback('')},1400);
     }catch(err){
       setEmailFeedback(err instanceof Error?err.message:'Não foi possível enviar.');
     }finally{
@@ -237,7 +235,7 @@ export function AdminPeopleMapReviewPage(){
   }
 
   if(loading)return <Shell role="admin"><div className="people-map-review-state"><RefreshCw className="spin" size={22}/>Abrindo revisão…</div></Shell>;
-  if(error||!record||!draft||!scores)return <Shell role="admin"><div className="people-map-review-state error"><strong>Não foi possível abrir a revisão.</strong><span>{error}</span><button className="secondary" onClick={()=>navigate('/admin/mapa-de-people')}>Voltar ao Mapa</button></div></Shell>;
+  if(error||!record||!draft||!scores)return <Shell role="admin"><div className="people-map-review-state error"><strong>Não foi possível abrir a revisão.</strong><span>{error}</span><Button variant="secondary" onClick={()=>navigate('/admin/mapa-de-people')}>Voltar ao Mapa</Button></div></Shell>;
 
   const dimensions:[1|2|3|4,string,keyof Draft,number|null][]=[
     [1,'D1 · Maturidade Estrutural','d1_obs',scores.d1],
@@ -252,16 +250,16 @@ export function AdminPeopleMapReviewPage(){
       <div className="people-map-review-head"><div><span className="eyebrow">REVISÃO DO RELATÓRIO · {record.protocolo}</span><h1>{record.c_empresa||record.c_nome}</h1><p>{record.c_nome}{record.c_cargo?` · ${record.c_cargo}`:''} · respondido em {formatDate(record.created_at)}</p></div><div className="people-map-review-score"><strong>{fmt(scores.total)}</strong><span>/10</span><small>score geral</small></div></div>
       <div className="people-map-review-grid">
         <main className="people-map-review-main">
-          {dimensions.map(([dimension,title,key,score])=><section className="panel people-map-review-card" key={dimension}><header><div><span className="section-kicker">DIMENSÃO {dimension}</span><h2>{title}</h2></div><strong>{fmt(score)}<small>/10</small></strong></header><div className="people-map-review-answers">{rows(record,dimension).map(([label,value])=><div key={label}><span>{label}</span><b>{scoreLabel(value)}</b></div>)}</div><label className="stacked-label">Observação da Patrícia<textarea rows={4} value={String(draft[key]||'')} onChange={(e)=>setDraft({...draft,[key]:e.target.value})}/></label></section>)}
-          <section className="panel people-map-review-card people-map-review-final"><header><div><span className="section-kicker">DEVOLUTIVA</span><h2>Parecer final</h2></div><FileText size={22}/></header><label className="stacked-label">O que você indicaria primeiro<textarea rows={7} value={draft.parecer} onChange={(e)=>setDraft({...draft,parecer:e.target.value})}/></label><label className="stacked-label">Serviço recomendado<select value={draft.servico_recomendado} onChange={(e)=>setDraft({...draft,servico_recomendado:e.target.value})}>{SERVICES.map((service)=><option key={service}>{service}</option>)}</select></label></section>
+          {dimensions.map(([dimension,title,key,score])=><section className="panel people-map-review-card" key={dimension}><header><div><span className="section-kicker">DIMENSÃO {dimension}</span><h2>{title}</h2></div><strong>{fmt(score)}<small>/10</small></strong></header><div className="people-map-review-answers">{rows(record,dimension).map(([label,value])=><div key={label}><span>{label}</span><b>{scoreLabel(value)}</b></div>)}</div><FieldLabel>Observação da Patrícia<textarea rows={4} value={String(draft[key]||'')} onChange={(e)=>setDraft({...draft,[key]:e.target.value})}/></FieldLabel></section>)}
+          <section className="panel people-map-review-card people-map-review-final"><header><div><span className="section-kicker">DEVOLUTIVA</span><h2>Parecer final</h2></div><FileText size={22}/></header><FieldLabel>O que você indicaria primeiro<textarea rows={7} value={draft.parecer} onChange={(e)=>setDraft({...draft,parecer:e.target.value})}/></FieldLabel><FieldLabel>Serviço recomendado<select value={draft.servico_recomendado} onChange={(e)=>setDraft({...draft,servico_recomendado:e.target.value})}>{SERVICES.map((service)=><option key={service}>{service}</option>)}</select></FieldLabel></section>
         </main>
         <aside className="people-map-review-side">
           <section className="panel people-map-review-sidecard"><div className="people-map-review-side-title"><UserRound size={18}/><h3>Contato</h3></div><dl><div><dt>Nome</dt><dd>{record.c_nome}</dd></div><div><dt>Empresa</dt><dd>{record.c_empresa}</dd></div><div><dt>Cargo</dt><dd>{record.c_cargo||'Não informado'}</dd></div><div><dt>E-mail</dt><dd>{record.c_email}</dd></div><div><dt>WhatsApp</dt><dd>{record.c_whatsapp||'Não informado'}</dd></div><div><dt>Preferência</dt><dd>{record.c_preferencia_contato||'Não informada'}</dd></div><div><dt>LinkedIn / site</dt><dd>{record.c_linkedin_site||'Não informado'}</dd></div></dl></section>
           <section className="panel people-map-review-sidecard"><div className="people-map-review-side-title"><Building2 size={18}/><h3>Qualificação</h3></div><dl><div><dt>Prazo</dt><dd>{record.q_prazo||'—'}</dd></div><div><dt>Decisores</dt><dd>{[...(record.q_decisor||[]),record.q_decisor_outro].filter(Boolean).join(', ')||'—'}</dd></div><div><dt>Formato</dt><dd>{record.q_formato||'—'}</dd></div><div><dt>Apoio posterior</dt><dd>{qv2.apoio_pos||'—'}</dd></div><div><dt>Jurídico</dt><dd>{qv2.juridico||'—'}</dd></div><div><dt>Investimento</dt><dd>{record.q_investimento||'—'}</dd></div><div><dt>Origem</dt><dd>{record.q_origem||'—'}</dd></div></dl></section>
-          {record.status!=='enviado'&&<AdminMaterialReview kind="mapa" entityId={record.id} />}<section className="panel people-map-review-sidecard people-map-review-actions"><h3>Fluxo aprovado</h3><p>Salve a revisão, confira o relatório e envie exatamente o PDF aprovado ao decisor.</p><button className="secondary" onClick={save} disabled={saving}><Save size={16}/>{saving?'Salvando…':'Salvar revisão'}</button><button className="primary" onClick={saveAndOpenReport} disabled={saving}><FileText size={16}/>{saving?'Salvando…':'Salvar e abrir relatório'}</button><button className="secondary" onClick={openEmailModal}><Mail size={16}/>Enviar relatório por e-mail</button><button className="secondary" onClick={openWhatsapp}><Send size={16}/>Preparar WhatsApp</button>{record.relatorio_enviado_em&&<small>Último envio: {new Date(record.relatorio_enviado_em).toLocaleString('pt-BR')}</small>}<span className="people-map-review-feedback" aria-live="polite">{feedback}</span></section>
+          {record.status!=='enviado'&&<AdminMaterialReview kind="mapa" entityId={record.id} />}<section className="panel people-map-review-sidecard people-map-review-actions"><h3>Fluxo aprovado</h3><p>Salve a revisão, confira o relatório e envie exatamente o PDF aprovado ao decisor.</p><Button variant="secondary" onClick={save} disabled={saving}><Save size={16}/>{saving?'Salvando…':'Salvar revisão'}</Button><Button variant="primary" onClick={saveAndOpenReport} disabled={saving}><FileText size={16}/>{saving?'Salvando…':'Salvar e abrir relatório'}</Button><Button variant="secondary" onClick={openEmailModal}><Mail size={16}/>Enviar relatório por e-mail</Button><Button variant="secondary" onClick={openWhatsapp}><Send size={16}/>Preparar WhatsApp</Button>{record.relatorio_enviado_em&&<small>Último envio: {new Date(record.relatorio_enviado_em).toLocaleString('pt-BR')}</small>}<span className="people-map-review-feedback" aria-live="polite">{feedback}</span></section>
         </aside>
       </div>
     </section>
-    {emailOpen&&createPortal(<div className="workspace-modal-layer people-map-send-layer" role="presentation" onMouseDown={(event)=>{if(event.target===event.currentTarget&&!sending)setEmailOpen(false)}}><section className="workspace-standard-modal people-map-send-modal" role="dialog" aria-modal="true" aria-labelledby="people-map-send-title"><button className="people-map-send-close" onClick={()=>!sending&&setEmailOpen(false)} disabled={sending} aria-label="Fechar"><X size={20}/></button><span className="eyebrow">ENVIO DO RELATÓRIO</span><h2 id="people-map-send-title">Confirmar devolutiva</h2><p>O destinatário principal vem do Mapa, mas você pode alterar ou incluir outras pessoas antes do envio.</p><div className="people-map-email-form"><label className="stacked-label"><span>Destinatários</span><small>Até 8 endereços. O primeiro já vem preenchido com o e-mail do formulário.</small><div className="people-map-recipient-list">{emailRecipients.map((recipient,index)=><div className="people-map-recipient-row" key={index}><Mail size={16}/><input type="email" value={recipient} disabled={sending} placeholder="nome@empresa.com.br" onChange={(event)=>updateRecipient(index,event.target.value)}/><button type="button" aria-label={`Remover destinatário ${index+1}`} onClick={()=>removeRecipient(index)} disabled={sending}><X size={16}/></button></div>)}</div><button type="button" className="people-map-add-recipient" onClick={addRecipient} disabled={sending||emailRecipients.length>=8}><Plus size={15}/>Adicionar destinatário</button></label><div className="people-map-email-subject"><span>Assunto</span><strong>{REPORT_EMAIL_SUBJECT}</strong></div><label className="stacked-label"><span>Mensagem adicional <em>opcional</em></span><textarea rows={3} value={emailMessage} disabled={sending} maxLength={3000} placeholder="Escreva aqui uma observação pessoal para acompanhar o e-mail padrão da CALI." onChange={(event)=>setEmailMessage(event.target.value)}/><small>{emailMessage.length}/3000 · entra no corpo do e-mail sem substituir o modelo aprovado.</small></label></div><label className={`people-map-pdf-upload${pdfFile?' has-file':''}`}><input type="file" accept="application/pdf,.pdf" disabled={sending} onChange={(e)=>{setPdfFile(e.target.files?.[0]||null);setEmailFeedback('')}}/><FileText size={22}/><strong>{pdfFile?pdfFile.name:'Selecionar relatório aprovado'}</strong><span>{pdfFile?`${(pdfFile.size/1024/1024).toFixed(2)} MB · pronto para enviar`:'PDF de até 8 MB'}</span></label>{emailFeedback&&<div className="people-map-email-feedback" aria-live="polite">{emailFeedback}</div>}<footer><button className="secondary" onClick={()=>setEmailOpen(false)} disabled={sending}>Cancelar</button><button className="primary" onClick={sendEmail} disabled={sending}>{sending?'Enviando…':'Enviar relatório'}</button></footer></section></div>,document.body)}
+    {emailOpen&&createPortal(<div className="workspace-modal-layer people-map-send-layer" role="presentation" onMouseDown={(event)=>{if(event.target===event.currentTarget&&!sending)setEmailOpen(false)}}><DialogFrame className="workspace-standard-modal people-map-send-modal" aria-labelledby="people-map-send-title"><button className="people-map-send-close" onClick={()=>!sending&&setEmailOpen(false)} disabled={sending} aria-label="Fechar"><X size={20}/></button><span className="eyebrow">ENVIO DO RELATÓRIO</span><h2 id="people-map-send-title">Confirmar devolutiva</h2><div className="people-map-email-form"><div className="people-map-send-recipient"><span>Destinatário da resposta</span><strong>{record.c_nome} &lt;{record.c_email}&gt;</strong></div><div className="people-map-email-subject"><span>Assunto</span><strong>{REPORT_EMAIL_SUBJECT}</strong></div><FieldLabel><span>Mensagem adicional <em>opcional</em></span><textarea rows={3} value={emailMessage} disabled={sending} maxLength={3000} placeholder="Escreva aqui uma observação pessoal para acompanhar o e-mail padrão da CALI." onChange={(event)=>setEmailMessage(event.target.value)}/><small>{emailMessage.length}/3000 · entra no corpo do e-mail sem substituir o modelo aprovado.</small></FieldLabel></div>{delivery.isError ? <div role="alert">Não foi possível consultar a revisão. <Button type="button" variant="secondary" onClick={() => void delivery.refetch()}>Tentar novamente</Button></div> : !deliveryReady ? <p role="status">Consultando revisão…</p> : delivery.data?.hasPdf ? <p>O envio usa o PDF oficial da versão {delivery.data.revision}.</p> : <label className={`people-map-pdf-upload${pdfFile?' has-file':''}`}><input type="file" accept="application/pdf,.pdf" disabled={sending} onChange={(e)=>{setPdfFile(e.target.files?.[0]||null);setEmailFeedback('')}}/><FileText size={22}/><strong>{pdfFile?pdfFile.name:'Selecionar relatório aprovado'}</strong><span>{pdfFile?`${(pdfFile.size/1024/1024).toFixed(2)} MB · pronto para enviar`:'PDF de até 8 MB'}</span></label>}{emailFeedback&&<div className="people-map-email-feedback" aria-live="polite">{emailFeedback}</div>}<footer><Button variant="secondary" onClick={()=>setEmailOpen(false)} disabled={sending}>Cancelar</Button><Button variant="primary" onClick={sendEmail} disabled={sending||!deliveryReady||(!delivery.data?.hasPdf&&!pdfFile)}>{sending ? 'Enviando…' : record.status === 'enviado' ? 'Reenviar relatório' : 'Enviar relatório'}</Button></footer></DialogFrame></div>,document.body)}
   </Shell>;
 }

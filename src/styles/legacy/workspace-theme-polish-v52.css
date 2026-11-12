@@ -1,6 +1,7 @@
 /* CALI Workspace · V52 · ajustes finos de contraste, documentos do cliente e uso do dourado */
 
 /* 1) Cliente · Entregáveis · contador da frente legível no modo noite. */
+@reference "../tailwind.css";
 html[data-workspace-theme='night'] .client-roadmap-table-v33 .client-front-count-v33{
   background:#E5C789!important;
   border-color:#C79E58!important;
@@ -10,52 +11,43 @@ html[data-workspace-theme='night'] .client-roadmap-table-v33 .client-front-count
 
 /* 2) Cliente · Documentos · mais respiro e uma conexão de Drive deliberadamente simples. */
 .client-documents-v3 .drive-banner{
-  display:grid!important;
+  @apply tw:grid!;
   grid-template-columns:48px minmax(0,1fr) auto!important;
-  gap:16px!important;
-  align-items:center!important;
+  @apply tw:gap-[16px]! tw:items-center!;
   margin:22px 0 24px!important;
   padding:18px 20px!important;
-  border-radius:17px!important;
+  @apply tw:rounded-[17px]!;
 }
 .client-documents-v3 .drive-banner.not-configured{opacity:1!important}
 .client-documents-v3 .drive-banner .drive-icon{
-  width:46px!important;
-  height:46px!important;
-  border-radius:14px!important;
-  display:grid!important;
-  place-items:center!important;
+  @apply tw:w-[46px]! tw:h-[46px]! tw:rounded-[14px]! tw:grid! tw:place-items-center!;
   background:color-mix(in srgb,var(--theme-gold) 12%,var(--theme-surface))!important;
   border:1px solid color-mix(in srgb,var(--theme-gold) 24%,var(--theme-line))!important;
   color:var(--theme-gold)!important;
 }
-.client-documents-v3 .drive-banner>div:nth-child(2){display:grid!important;gap:4px!important;min-width:0!important}
-.client-documents-v3 .drive-banner strong{font-size:13px!important;line-height:1.3!important}
-.client-documents-v3 .drive-banner p{margin:0!important;max-width:790px!important;font-size:11.5px!important;line-height:1.5!important}
-.client-drive-kicker-v52{font-size:9px!important;font-weight:850!important;letter-spacing:.1em!important;color:var(--theme-gold)!important;text-transform:uppercase!important}
-.client-drive-actions-v52{display:flex!important;align-items:center!important;gap:9px!important;justify-content:flex-end!important;flex-wrap:wrap!important}
+.client-documents-v3 .drive-banner>div:nth-child(2){@apply tw:grid! tw:gap-[4px]! tw:min-w-0!}
+.client-documents-v3 .drive-banner strong{@apply tw:text-[13px]!;line-height:1.3!important}
+.client-documents-v3 .drive-banner p{@apply tw:m-0!;max-width:790px!important;@apply tw:text-[11.5px]!;line-height:1.5!important}
+.client-drive-kicker-v52{@apply tw:text-[9px]!;font-weight:850!important;letter-spacing:.1em!important;color:var(--theme-gold)!important;@apply tw:uppercase!}
+.client-drive-actions-v52{@apply tw:flex! tw:items-center! tw:gap-[9px]! tw:justify-end! tw:flex-wrap!}
 .client-drive-action-v52{
-  min-height:40px!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  gap:7px!important;
+  @apply tw:min-h-[40px]! tw:inline-flex! tw:items-center! tw:justify-center! tw:gap-[7px]!;
   padding:0 14px!important;
-  border-radius:11px!important;
+  @apply tw:rounded-[11px]!;
   border:1px solid #B58C52!important;
   background:#B58C52!important;
   color:#251C17!important;
   font:inherit!important;
-  font-size:11px!important;
+  @apply tw:text-[11px]!;
   font-weight:850!important;
-  cursor:pointer!important;
+  @apply tw:cursor-pointer!;
   box-shadow:0 7px 18px rgba(77,54,27,.10)!important;
-  white-space:nowrap!important;
+  @apply tw:whitespace-nowrap!;
 }
 .client-drive-action-v52:hover{filter:brightness(1.03)}
-.client-drive-action-v52:disabled{opacity:.62!important;cursor:wait!important}
-.client-documents-v3 .client-doc-toolbar-v3{margin-top:0!important;margin-bottom:18px!important}
-.client-documents-v3 .data-empty{margin-top:0!important}
+.client-drive-action-v52:disabled{opacity:.62!important;@apply tw:cursor-wait!}
+.client-documents-v3 .client-doc-toolbar-v3{@apply tw:mt-0!;@apply tw:mb-[18px]!}
+.client-documents-v3 .data-empty{@apply tw:mt-0!}
 html[data-workspace-theme='night'] .client-documents-v3 .drive-banner{
   background:#241C1F!important;
   border-color:#4A383F!important;
@@ -168,6 +160,6 @@ html[data-workspace-theme='night'] .reports-admin-v15 .reports-v15-alert-list{
 .calendar-workspace-strip .google-calendar-runtime-button:hover{filter:brightness(1.02)!important}
 
 @media(max-width:760px){
-  .client-documents-v3 .drive-banner{grid-template-columns:44px minmax(0,1fr)!important;padding:16px!important}
-  .client-drive-actions-v52{grid-column:1/-1!important;justify-content:flex-start!important}
+  .client-documents-v3 .drive-banner{grid-template-columns:44px minmax(0,1fr)!important;@apply tw:p-[16px]!}
+  .client-drive-actions-v52{grid-column:1/-1!important;@apply tw:justify-start!}
 }

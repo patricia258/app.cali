@@ -8,13 +8,14 @@
  * de clicar/rolar. O overlay já protege o fundo sozinho, então o app precisa
  * continuar aceitando eventos para que o modal funcione.
  */
+@reference "../tailwind.css";
 body.workspace-modal-open .app-shell {
-  pointer-events: auto !important;
+  @apply tw:pointer-events-auto!;
   user-select: auto !important;
 }
 
 body.workspace-modal-open {
-  overflow: hidden !important;
+  @apply tw:overflow-hidden!;
 }
 
 .modal-backdrop,
@@ -22,35 +23,25 @@ body.workspace-modal-open {
 .full-screen-modal,
 .chrome-modal-backdrop.full-screen-modal,
 .modal-backdrop.full-screen-modal {
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100dvh !important;
-  min-height: 100dvh !important;
-  margin: 0 !important;
+  @apply tw:fixed! tw:inset-0! tw:w-[100vw]! tw:h-[100dvh]! tw:min-h-[100dvh]! tw:m-0!;
   padding: clamp(16px, 3vh, 32px) clamp(16px, 3vw, 42px) !important;
-  display: grid !important;
-  place-items: center !important;
-  overflow: hidden !important;
-  pointer-events: auto !important;
+  @apply tw:grid! tw:place-items-center! tw:overflow-hidden! tw:pointer-events-auto!;
   touch-action: none;
   background: rgba(31, 26, 28, .48) !important;
   backdrop-filter: blur(8px) saturate(.94) !important;
   -webkit-backdrop-filter: blur(8px) saturate(.94) !important;
-  z-index: 2147483000 !important;
+  @apply tw:z-2147483000!;
 }
 
 .modal-backdrop > .modal-card,
 .workspace-modal-backdrop > .modal-card,
 .full-screen-modal > .modal-card {
-  position: relative !important;
-  z-index: 2147483001 !important;
-  pointer-events: auto !important;
+  @apply tw:relative! tw:z-2147483001! tw:pointer-events-auto!;
   touch-action: auto;
-  margin: 0 !important;
+  @apply tw:m-0!;
   background: var(--paper) !important;
   border: 1px solid var(--line) !important;
-  border-radius: 20px !important;
+  @apply tw:rounded-[20px]!;
   box-shadow: 0 28px 76px rgba(30, 22, 25, .22) !important;
 }
 
@@ -60,24 +51,19 @@ body.workspace-modal-open {
 .modal-card select,
 .modal-card textarea,
 .modal-card label {
-  pointer-events: auto;
+  @apply tw:pointer-events-auto;
 }
 
 /* Cabeçalho e X: mesma zona segura em todo modal. */
 .modal-card > .modal-close,
 .document-modal-close {
-  position: absolute !important;
-  top: 18px !important;
-  right: 20px !important;
-  width: 40px !important;
-  height: 40px !important;
-  display: grid !important;
-  place-items: center !important;
+  @apply tw:absolute! tw:top-[18px]!;
+  @apply tw:right-[20px]! tw:w-[40px]! tw:h-[40px]! tw:grid! tw:place-items-center!;
   border: 0 !important;
-  border-radius: 11px !important;
+  @apply tw:rounded-[11px]!;
   background: var(--soft) !important;
   color: var(--graphite) !important;
-  z-index: 50 !important;
+  @apply tw:z-50!;
 }
 .modal-card > .modal-close:hover,
 .document-modal-close:hover {
@@ -88,12 +74,10 @@ body.workspace-modal-open {
 /* Documento: mantém o desenho aprovado, apenas garante interação e rolagem. */
 .document-create-modal {
   width: min(920px, calc(100vw - 48px)) !important;
-  max-width: 920px !important;
+  @apply tw:max-w-[920px]!;
   height: min(780px, calc(100dvh - 48px)) !important;
   max-height: calc(100dvh - 48px) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
+  @apply tw:flex! tw:flex-col! tw:overflow-hidden!;
 }
 .document-modal-header {
   flex: 0 0 auto !important;
@@ -101,20 +85,17 @@ body.workspace-modal-open {
 }
 .document-modal-scroll {
   flex: 1 1 auto !important;
-  min-height: 0 !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  overscroll-behavior: contain !important;
+  @apply tw:min-h-0! tw:overflow-y-auto!;
+  @apply tw:overflow-x-hidden! tw:overscroll-contain!;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y !important;
   padding: 22px 28px 26px !important;
 }
 .document-modal-footer {
   flex: 0 0 auto !important;
-  width: 100% !important;
-  min-height: 68px !important;
+  @apply tw:w-full! tw:min-h-[68px]!;
   padding: 11px 28px !important;
-  box-sizing: border-box !important;
+  @apply tw:box-border!;
 }
 
 /* Cadastro e gestão do cliente: mesmo sistema visual do modal de documentos. */
@@ -124,10 +105,7 @@ body.workspace-modal-open {
   max-width: 1000px !important;
   height: min(760px, calc(100dvh - 48px)) !important;
   max-height: calc(100dvh - 48px) !important;
-  padding: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
+  @apply tw:p-0! tw:flex! tw:flex-col! tw:overflow-hidden!;
 }
 
 .compact-account-modal .account-modal-intro {
@@ -136,36 +114,34 @@ body.workspace-modal-open {
   border-bottom: 0 !important;
 }
 .compact-account-modal .account-modal-intro h2 {
-  margin-top: 7px !important;
+  @apply tw:mt-[7px]!;
   font: 750 1.42rem/1.15 Inter, system-ui, sans-serif !important;
   letter-spacing: -.025em !important;
 }
 .compact-account-modal .account-modal-intro p {
-  margin-top: 7px !important;
-  max-width: 760px !important;
-  font-size: .78rem !important;
+  @apply tw:mt-[7px]! tw:max-w-[760px]! tw:text-[.78rem]!;
   line-height: 1.48 !important;
 }
 
 .account-management-header {
   flex: 0 0 auto !important;
-  min-height: 110px !important;
+  @apply tw:min-h-[110px]!;
   padding: 20px 82px 16px 28px !important;
 }
 
 /* Abas: mesma altura, tipografia e linha ativa. */
 .account-tabs-v3 {
   flex: 0 0 auto !important;
-  min-height: 46px !important;
+  @apply tw:min-h-[46px]!;
   padding: 0 28px !important;
-  gap: 6px !important;
+  @apply tw:gap-[6px]!;
   border-bottom: 1px solid var(--line) !important;
 }
 .account-tabs-v3 button {
-  min-height: 46px !important;
+  @apply tw:min-h-[46px]!;
   padding: 0 11px !important;
   border-radius: 0 !important;
-  font-size: .76rem !important;
+  @apply tw:text-[.76rem]!;
   font-weight: 700 !important;
 }
 
@@ -173,10 +149,8 @@ body.workspace-modal-open {
 .compact-account-modal .account-tab-scroll,
 .compact-account-modal .account-management-scroll {
   flex: 1 1 auto !important;
-  min-height: 0 !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  overscroll-behavior: contain !important;
+  @apply tw:min-h-0! tw:overflow-y-auto!;
+  @apply tw:overflow-x-hidden! tw:overscroll-contain!;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y !important;
 }
@@ -186,9 +160,9 @@ body.workspace-modal-open {
 
 /* Campos: um padrão único em todos os modais. */
 .modal-card .stacked-label {
-  gap: 5px !important;
+  @apply tw:gap-[5px]!;
   color: var(--graphite) !important;
-  font-size: .72rem !important;
+  @apply tw:text-[.72rem]!;
   font-weight: 700 !important;
 }
 .modal-card .stacked-label input,
@@ -198,21 +172,19 @@ body.workspace-modal-open {
 .modal-card .document-form-grid input,
 .modal-card .document-form-grid select,
 .modal-card .document-form-grid textarea {
-  width: 100%;
-  min-height: 42px !important;
+  @apply tw:w-full tw:min-h-[42px]!;
   padding: 9px 12px !important;
   border: 1px solid var(--line) !important;
-  border-radius: 10px !important;
+  @apply tw:rounded-[10px]!;
   background: var(--paper) !important;
   color: var(--graphite) !important;
-  font-size: .78rem !important;
+  @apply tw:text-[.78rem]!;
   line-height: 1.25 !important;
   box-shadow: none !important;
 }
 .modal-card .stacked-label textarea,
 .modal-card .document-form-grid textarea {
-  min-height: 72px !important;
-  resize: vertical;
+  @apply tw:min-h-[72px]! tw:resize-y;
 }
 .modal-card input:focus,
 .modal-card select:focus,
@@ -224,28 +196,26 @@ body.workspace-modal-open {
 
 /* Uploads do cadastro usam a mesma linguagem do upload de Documentos. */
 .compact-account-modal .document-upload-grid-v2 {
-  gap: 14px !important;
+  @apply tw:gap-[14px]!;
 }
 .compact-account-modal .account-upload-card {
-  min-height: 126px !important;
-  padding: 15px !important;
+  @apply tw:min-h-[126px]! tw:p-[15px]!;
   border: 1px dashed #cbbdb3 !important;
-  border-radius: 14px !important;
+  @apply tw:rounded-[14px]!;
   background: rgba(247,243,238,.44) !important;
 }
 .compact-account-modal .account-upload-card > div strong {
-  font-size: .8rem !important;
+  @apply tw:text-[.8rem]!;
 }
 .compact-account-modal .account-upload-card > div span {
-  margin-top: 4px !important;
+  @apply tw:mt-[4px]!;
   color: var(--muted) !important;
-  font-size: .68rem !important;
+  @apply tw:text-[.68rem]!;
 }
 .compact-account-modal .account-upload-card > label {
-  min-height: 38px !important;
+  @apply tw:min-h-[38px]!;
   padding: 0 12px !important;
-  border-radius: 10px !important;
-  font-size: .72rem !important;
+  @apply tw:rounded-[10px]! tw:text-[.72rem]!;
 }
 
 /* Rodapé: borda e margens invioláveis. */
@@ -253,17 +223,16 @@ body.workspace-modal-open {
 .tabbed-modal-footer,
 .management-footer,
 .document-modal-footer {
-  position: relative !important;
+  @apply tw:relative!;
   inset: auto !important;
   flex: 0 0 auto !important;
-  width: 100% !important;
-  margin: 0 !important;
+  @apply tw:w-full! tw:m-0!;
   padding: 11px 28px !important;
-  box-sizing: border-box !important;
+  @apply tw:box-border!;
   border-top: 1px solid var(--line) !important;
   background: var(--paper) !important;
   box-shadow: 0 -8px 24px rgba(51,35,37,.035) !important;
-  z-index: 20 !important;
+  @apply tw:z-20!;
 }
 
 /*
@@ -275,41 +244,29 @@ body.workspace-modal-open {
  */
 .client-account-modal.compact-account-modal .account-modal-footer,
 .client-account-modal.management-modal-v3 .account-modal-footer {
-  width: 100% !important;
-  max-width: 100% !important;
-  margin: 0 !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
+  @apply tw:w-full! tw:max-w-full! tw:m-0!;
+  @apply tw:ml-0!;
+  @apply tw:mr-0!;
   padding: 11px 28px !important;
   left: auto !important;
   right: auto !important;
   transform: none !important;
-  box-sizing: border-box !important;
+  @apply tw:box-border!;
 }
 
 .account-modal-footer > span {
-  padding-left: 0 !important;
-  margin-left: 0 !important;
-  font-size: .68rem !important;
+  @apply tw:pl-0! tw:ml-0! tw:text-[.68rem]!;
   color: var(--muted) !important;
 }
 .account-modal-footer .modal-actions,
 .management-footer .modal-actions,
 .document-modal-footer .modal-actions {
   margin: 0 0 0 auto !important;
-  padding: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 9px !important;
+  @apply tw:p-0! tw:flex! tw:items-center! tw:gap-[9px]!;
   flex: 0 0 auto !important;
 }
 .management-danger-actions {
-  margin: 0 !important;
-  padding: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 5px !important;
-  min-width: 0 !important;
+  @apply tw:m-0! tw:p-0! tw:flex! tw:items-center! tw:gap-[5px]! tw:min-w-0!;
 }
 
 /* Botões: mesma altura, raio e peso em qualquer modal. */
@@ -317,14 +274,12 @@ body.workspace-modal-open {
 .modal-card .secondary,
 .modal-card .ghost-action,
 .modal-card .modal-actions button {
-  min-height: 42px !important;
-  height: 42px !important;
+  @apply tw:min-h-[42px]! tw:h-[42px]!;
   padding: 0 15px !important;
-  border-radius: 10px !important;
-  font-size: .76rem !important;
+  @apply tw:rounded-[10px]! tw:text-[.76rem]!;
   font-weight: 750 !important;
   line-height: 1 !important;
-  white-space: nowrap !important;
+  @apply tw:whitespace-nowrap!;
 }
 .modal-card .secondary {
   border: 1px solid rgba(90,30,45,.18) !important;
@@ -376,16 +331,16 @@ html[data-workspace-theme='night'] .modal-card .secondary {
   .modal-backdrop,
   .workspace-modal-backdrop,
   .full-screen-modal {
-    padding: 8px !important;
+    @apply tw:p-[8px]!;
   }
   .document-create-modal,
   .client-account-modal.compact-account-modal,
   .client-account-modal.management-modal-v3 {
     width: calc(100vw - 16px) !important;
     height: calc(100dvh - 16px) !important;
-    max-width: none !important;
+    @apply tw:max-w-none!;
     max-height: calc(100dvh - 16px) !important;
-    border-radius: 16px !important;
+    @apply tw:rounded-[16px]!;
   }
   .document-modal-header,
   .compact-account-modal .account-modal-intro {
@@ -393,11 +348,11 @@ html[data-workspace-theme='night'] .modal-card .secondary {
   }
   .document-modal-scroll,
   .compact-account-modal .account-tab-pane {
-    padding: 18px !important;
+    @apply tw:p-[18px]!;
   }
   .account-tabs-v3 {
     padding: 0 12px !important;
-    overflow-x: auto !important;
+    @apply tw:overflow-x-auto!;
   }
   .account-modal-footer,
   .document-modal-footer,
@@ -408,17 +363,15 @@ html[data-workspace-theme='night'] .modal-card .secondary {
   }
   .account-modal-footer > span,
   .document-modal-footer > span {
-    display: none !important;
+    @apply tw:hidden!;
   }
   .management-footer {
-    align-items: stretch !important;
-    gap: 8px !important;
-    flex-direction: column !important;
+    @apply tw:items-stretch! tw:gap-[8px]! tw:flex-col!;
   }
   .management-danger-actions,
   .management-footer .modal-actions,
   .document-modal-footer .modal-actions {
-    width: 100% !important;
+    @apply tw:w-full!;
   }
   .management-footer .modal-actions button,
   .document-modal-footer .modal-actions button {

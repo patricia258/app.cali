@@ -1,0 +1,27 @@
+@reference '../../styles/tailwind.css';
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .company-team { --team-radius: 9px; --team-line: var(--v2-line); --team-muted: var(--v2-muted); --team-surface: var(--v2-surface); }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-heading { @apply tw:mb-[16px]!; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-heading h1 { @apply tw:text-[26px]!; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-context { margin: 0 0 16px !important; @apply tw:pb-[14px]; border-bottom: 1px solid var(--v2-line); }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .company-team { color: var(--v2-text); @apply tw:text-[13px]; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .company-team .team-btn { @apply tw:min-h-[35px]; padding: 8px 12px !important; @apply tw:text-[11px]! tw:rounded-[7px]!; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-review-callout { @apply tw:min-h-0!; padding: 16px 20px !important; @apply tw:rounded-[9px]!; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-review-callout strong { @apply tw:text-[17px]!; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-review-callout::after { content: none; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-tabs { @apply tw:gap-[24px]!; border-bottom: 1px solid var(--v2-line); }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-tabs button { @apply tw:text-[12px]!; padding: 10px 0 !important; background: transparent !important; border-radius: 0 !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-tabs button.active { color: var(--v2-accent) !important; border-bottom: 2px solid var(--v2-accent) !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-tools { @apply tw:my-[14px]! tw:p-0!; background: transparent !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-tools :is(label,select,.team-status-filter) { @apply tw:rounded-[7px]! tw:min-h-[36px]!; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-table-wrap { @apply tw:rounded-[9px]!; border-color: var(--v2-line) !important; background: var(--v2-surface) !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-table td { padding-block: 12px !important; @apply tw:text-[12px]!; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-table th { @apply tw:text-[10px]!; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] :is(.team-leader-card,.team-chart,.team-summary,.team-full) { @apply tw:rounded-[9px]!; border-color: var(--v2-line) !important; box-shadow: none !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-summary { background: var(--v2-soft) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-summary > div { @apply tw:p-[18px]!; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .team-summary strong { @apply tw:text-[26px]!; color: var(--v2-accent) !important; }
+
+@media (max-width: 700px) {
+  :root .app-shell[data-visual-system='v2'][data-workspace-role] .team-tabs { @apply tw:gap-[16px]! tw:overflow-x-auto tw:flex-nowrap; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role] .team-tabs button { @apply tw:whitespace-nowrap; }
+}

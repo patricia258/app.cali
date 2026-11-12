@@ -13,6 +13,7 @@ O Workspace não é um SaaS para o cliente operar. É o ambiente de relacionamen
 - [Índice](docs/INDEX.md)
 - [Fluxos de produto](docs/flows/README.md)
 - [Arquitetura e mapa de pastas](docs/ARCHITECTURE.md)
+- [Testes de lógica, jornadas e contratos](docs/TESTING.md)
 
 ## Desenvolvimento
 
@@ -21,10 +22,10 @@ npm ci
 npm run dev
 ```
 
-Validação:
+Validação de tipos, build e lógica local.
 
 ```bash
-npm run check
+npm run test:smoke
 ```
 
 ## Fluxo de construção

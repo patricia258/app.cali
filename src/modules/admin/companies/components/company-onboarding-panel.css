@@ -1,7 +1,8 @@
+
+@reference "../../../../styles/tailwind.css";
 .company-onboarding-panel,
 .company-onboarding-panel > section {
-  display: grid;
-  gap: 12px;
+  @apply tw:grid tw:gap-[12px];
 }
 .company-onboarding-panel > section {
   padding-block: 14px;
@@ -9,13 +10,12 @@
 .company-onboarding-panel > section + section {
   border-top: 1px solid rgba(120, 76, 66, .2);
 }
-.company-onboarding-panel p { margin: 0; }
+.company-onboarding-panel p { @apply tw:m-0; }
 .company-onboarding-panel button { justify-self: start; }
 .company-onboarding-panel .company-onboarding-link {
-  display: flex;
-  flex-wrap: wrap;
+  @apply tw:flex tw:flex-wrap;
   align-items: end;
-  gap: 12px;
+  @apply tw:gap-[12px];
 }
 .company-onboarding-panel .company-onboarding-link label { min-width: min(100%, 200px); }
-.company-onboarding-panel .company-onboarding-link label:first-child { flex: 1; }
+.company-onboarding-panel .company-onboarding-link label:first-child { @apply tw:flex-1; }

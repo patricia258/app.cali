@@ -2,15 +2,20 @@
    Respostas agrupadas por empresa (pensado para muitas pessoas), com filtros por perfil, data, validade e empresa.
    Clicar na pessoa abre a ficha: histórico de respostas, convites, se é cliente da CALI e "Reenviar teste".
    Link livre (qualquer pessoa informa a empresa) ou link de uma empresa (vincula à ficha pelo e-mail corporativo). */
+import { Button } from '../../../components/ds/Button';
+import { DialogFrame } from '../../../components/ds/DialogFrame';
+import { EmptyState } from '../../../components/ds/EmptyState';
+import { InlineNotice } from '../../../components/ds/InlineNotice';
+import { LoadingState } from '../../../components/ds/LoadingState';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Link } from '../../../components/navigation/Link';
 import { BarChart3, ChevronDown, ChevronRight, Copy, Download, ExternalLink, FileDown, Mail, Pencil, Plus, QrCode, RefreshCw, Search, Send, Share2, Trash2, X } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { supabase } from '../../../api/supabase';
 import { downloadQrPng, downloadShareCard, qrDataUrl } from '../forms/formExports';
-import { slugify } from '../../shared/forms/formModel';
-import { adaptationOf, STYLES, type Scores, type Style } from '../../shared/disc/profileMethod';
-import { STYLE_CONTENT } from '../../shared/disc/profileContent';
+import { slugify } from '../../forms/formModel';
+import { adaptationOf, STYLES, type Scores, type Style } from '../../disc/profileMethod';
+import { STYLE_CONTENT } from '../../disc/profileContent';
 import '../forms/admin-forms.css';
 import './profile-admin.css';
 
@@ -194,7 +199,7 @@ export function AdminProfilesPage() {
 
   return <Shell role="admin"><div className="ap-app v2-admin-page v2-forms v2-client-module"><div className="ap-content"><div className="wf">
     <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Perfil comportamental</h1></div>
-      <div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> Atualizar</button><button className="wf-primary" type="button" onClick={() => setEditing(newDraft())}><Plus size={15} /> Novo link</button></div></div>
+      <div className="v2-head-actions"><Button variant="workflowSecondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> Atualizar</Button><Button variant="workflowPrimary" type="button" onClick={() => setEditing(newDraft())}><Plus size={15} /> Novo link</Button></div></div>
     <div className="wf-segments v2-forms-tabs" role="tablist"><button type="button" className={tab === 'results' ? 'on' : ''} onClick={() => setTab('results')}>Respostas ({results.length})</button><button type="button" className={tab === 'links' ? 'on' : ''} onClick={() => setTab('links')}>Links e convites ({links.length})</button></div>
 
     {tab === 'results' && <>
@@ -209,8 +214,8 @@ export function AdminProfilesPage() {
         {filtersOn && <button type="button" className="cpa-clear" onClick={() => { setQuery(''); setCompanyFilter(''); setStyleFilter(''); setValidityFilter(''); setFrom(''); setTo(''); }}><X size={13} /> Limpar filtros</button>}
         <span className="v2-forms-total">{filtered.length} de {results.length}</span>
       </div>
-      {loading ? <div className="data-loading">Carregando…</div> : !results.length ? <div className="wf-empty"><strong>Nenhuma resposta ainda.</strong><p>Crie um link em "Novo link" e envie os convites.</p></div>
-        : !filtered.length ? <div className="wf-empty"><strong>Nada com esses filtros.</strong><p>Ajuste ou limpe os filtros.</p></div>
+      {loading ? <LoadingState>Carregando…</LoadingState> : !results.length ? <EmptyState variant="workflow"><strong>Nenhuma resposta ainda.</strong><p>Crie um link em "Novo link" e envie os convites.</p></EmptyState>
+        : !filtered.length ? <EmptyState variant="workflow"><strong>Nada com esses filtros.</strong><p>Ajuste ou limpe os filtros.</p></EmptyState>
         : <div className="v2-forms-table-wrap"><table className="v2-forms-table cpa-table"><thead><tr><th>Pessoa</th>{!grouped && <th>Empresa</th>}<th>Perfil</th><th>Sob pressão</th><th>Respondido em</th><th>Válido até</th><th /></tr></thead><tbody>
           {grouped ? groups.map((group) => { const closed = collapsed.includes(group.key); const valid = group.rows.filter((row) => isValid(row.created_at)).length; return <Fragment key={group.key}>
             <tr className="cpa-group"><td colSpan={6}><button type="button" onClick={() => setCollapsed((current) => closed ? current.filter((key) => key !== group.key) : [...current, group.key])} aria-expanded={!closed}>
@@ -223,7 +228,7 @@ export function AdminProfilesPage() {
         </tbody></table></div>}
     </>}
 
-    {tab === 'links' && (loading ? <div className="data-loading">Carregando…</div> : !links.length ? <div className="wf-empty"><strong>Nenhum link ainda.</strong><p>"Novo link" cria um link livre ou de uma empresa.</p></div>
+    {tab === 'links' && (loading ? <LoadingState>Carregando…</LoadingState> : !links.length ? <EmptyState variant="workflow"><strong>Nenhum link ainda.</strong><p>"Novo link" cria um link livre ou de uma empresa.</p></EmptyState>
       : <div className="v2-forms-table-wrap"><table className="v2-forms-table cpa-table"><thead><tr><th>Link</th><th>Empresa</th><th>Contexto</th><th>Situação</th><th>Respostas</th><th /></tr></thead><tbody>
         {links.map((link) => <tr key={link.id}>
           <td><span className="cpa-person"><strong>{link.title}</strong><small>{BASE.replace('https://', '')}{link.slug}</small></span></td>
@@ -234,17 +239,17 @@ export function AdminProfilesPage() {
           <td className="cpa-actions">
             <Link className="wf-secondary" to={`/admin/perfil-comportamental/convites/${link.id}`}><Mail size={14} /> Convites</Link>
             <Link className="wf-secondary" to={`/admin/perfil-comportamental/gestao/${link.id}`}><BarChart3 size={14} /> Relatório de gestão</Link>
-            <button type="button" className="wf-secondary" onClick={() => setSharing(link)}><Share2 size={14} /> Compartilhar</button>
+            <Button type="button" variant="workflowSecondary" onClick={() => setSharing(link)}><Share2 size={14} /> Compartilhar</Button>
             <button type="button" className="v2-forms-edit" aria-label="Editar link" title="Editar link" onClick={() => setEditing(editDraft(link))}><Pencil size={14} /></button>
             <a className="v2-forms-edit" href={`/perfil/${link.slug}?previa=1`} target="_blank" rel="noopener noreferrer" aria-label="Ver como respondente" title="Ver como respondente"><ExternalLink size={14} /></a>
           </td>
         </tr>)}
       </tbody></table></div>)}
-    {error && <div className="inline-notice cpc-notice error" role="alert">{error}</div>}
+    {error && <InlineNotice className="cpc-notice error" role="alert">{error}</InlineNotice>}
   </div></div>
   {toast && <div className="v2-forms-toast" role="status">{toast}</div>}
 
-  {person && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setPerson(null); }}><section className="ap-status-confirm cpa-person-card" role="dialog" aria-modal="true" aria-label={person.person_name}>
+  {person && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setPerson(null); }}><DialogFrame className="ap-status-confirm cpa-person-card" aria-label={person.person_name}>
     <div><small>PESSOA</small><h2>{person.person_name}</h2><p>{[person.job_title, person.email].filter(Boolean).join(' · ')}</p></div>
     <dl className="cpa-facts">
       <div><dt>Empresa</dt><dd>{companyName(person.company_id, person.company_name)} <span className={`cpa-badge ${person.company_id ? 'client' : ''}`}>{person.company_id ? 'Cliente CALI' : 'Fora da carteira'}</span></dd></div>
@@ -262,9 +267,9 @@ export function AdminProfilesPage() {
       <p className="cpa-muted">A pessoa recebe um convite novo por e-mail, com prazo e lembretes. As respostas anteriores continuam no histórico.</p>
     </div>
     <footer><button type="button" onClick={() => setPerson(null)}>Fechar</button><button type="button" disabled={!resendLink || resending} onClick={() => void resend()}><Send size={14} /> {resending ? 'Enviando…' : 'Reenviar teste'}</button></footer>
-  </section></div>}
+  </DialogFrame></div>}
 
-  {editing && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !editing.busy) setEditing(null); }}><section className="ap-status-confirm cpa-link-dialog" role="dialog" aria-modal="true" aria-label={editing.id ? 'Editar link' : 'Novo link'}>
+  {editing && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !editing.busy) setEditing(null); }}><DialogFrame className="ap-status-confirm cpa-link-dialog" aria-label={editing.id ? 'Editar link' : 'Novo link'}>
     <div><small>PERFIL COMPORTAMENTAL</small><h2>{editing.id ? 'Editar link' : 'Novo link'}</h2><p>Sem empresa, o link é livre e a pessoa informa onde trabalha. Com empresa cadastrada, o resultado entra na ficha do colaborador pelo e-mail corporativo.</p></div>
     <label>Nome do link (aparece para a pessoa)<input value={editing.title} maxLength={120} onChange={(event) => setEditing({ ...editing, title: event.target.value })} /></label>
     <label>Empresa<select value={editing.mode === 'company' ? editing.company_id : editing.mode} onChange={(event) => { const value = event.target.value; setEditing({ ...editing, mode: value === 'free' ? 'free' : value === 'other' ? 'other' : 'company', company_id: value === 'free' || value === 'other' ? '' : value, error: '' }); }}><option value="free">Link livre (a pessoa informa a empresa)</option><option value="other">Outra empresa (digitar o nome)</option><optgroup label="Empresas cadastradas">{companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</optgroup></select></label>
@@ -275,23 +280,23 @@ export function AdminProfilesPage() {
     {editing.id && editing.slug && links.find((item) => item.id === editing.id)?.slug !== slugify(editing.slug) && <p className="v2-forms-warn">Ao trocar o endereço, o link antigo para de funcionar.</p>}
     {editing.error && <p className="v2-forms-error" role="alert">{editing.error}</p>}
     <footer><button type="button" disabled={editing.busy} onClick={() => setEditing(null)}>Cancelar</button><button type="button" disabled={editing.busy} onClick={() => void saveLink()}>{editing.busy ? 'Salvando…' : editing.id ? 'Salvar' : 'Criar link'}</button></footer>
-  </section></div>}
-  {sharing && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setSharing(null); }}><section className="ap-status-confirm cpa-share" role="dialog" aria-modal="true" aria-label="Compartilhar link">
+  </DialogFrame></div>}
+  {sharing && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setSharing(null); }}><DialogFrame className="ap-status-confirm cpa-share" aria-label="Compartilhar link">
     <div><small>COMPARTILHAR</small><h2>{sharing.title}</h2><p>{linkCompany(sharing)}{sharing.status === 'closed' ? ' · bloqueado: quem abrir verá que não recebe mais respostas' : ''}</p></div>
     <div className="cpa-share-body">
       <div className="cpa-qr">{qr ? <img src={qr} alt="QR Code do link" /> : <span>Gerando…</span>}</div>
       <div className="cpa-share-actions">
-        <div className="v2-forms-link"><input readOnly value={`${BASE}${sharing.slug}`} onFocus={(event) => event.target.select()} /><button type="button" className="wf-primary" onClick={() => { void navigator.clipboard.writeText(`${BASE}${sharing.slug}`).then(() => flash('Link copiado.')); }}><Copy size={14} /> Copiar</button></div>
-        <button type="button" className="wf-secondary" onClick={() => void downloadQrPng(`${BASE}${sharing.slug}`, `perfil-${sharing.slug}-qrcode.png`)}><QrCode size={14} /> Baixar QR Code</button>
-        <button type="button" className="wf-secondary" onClick={() => void downloadShareCard({ title: sharing.title, category: 'Perfil comportamental', intro: 'Queremos conhecer mais sobre você: como decide, se comunica e reage no trabalho. São 24 blocos de 4 frases curtas, em média 12 a 20 minutos, e você recebe o seu relatório por e-mail.' }, `${BASE}${sharing.slug}`, `perfil-${sharing.slug}-cartao.png`)}><Download size={14} /> Baixar cartão para divulgar</button>
+        <div className="v2-forms-link"><input readOnly value={`${BASE}${sharing.slug}`} onFocus={(event) => event.target.select()} /><Button type="button" variant="workflowPrimary" onClick={() => { void navigator.clipboard.writeText(`${BASE}${sharing.slug}`).then(() => flash('Link copiado.')); }}><Copy size={14} /> Copiar</Button></div>
+        <Button type="button" variant="workflowSecondary" onClick={() => void downloadQrPng(`${BASE}${sharing.slug}`, `perfil-${sharing.slug}-qrcode.png`)}><QrCode size={14} /> Baixar QR Code</Button>
+        <Button type="button" variant="workflowSecondary" onClick={() => void downloadShareCard({ title: sharing.title, category: 'Perfil comportamental', intro: 'Queremos conhecer mais sobre você: como decide, se comunica e reage no trabalho. São 24 blocos de 4 frases curtas, em média 12 a 20 minutos, e você recebe o seu relatório por e-mail.' }, `${BASE}${sharing.slug}`, `perfil-${sharing.slug}-cartao.png`)}><Download size={14} /> Baixar cartão para divulgar</Button>
         <a className="wf-secondary" href={`https://wa.me/?text=${encodeURIComponent(`${sharing.title}: ${BASE}${sharing.slug}`)}`} target="_blank" rel="noopener noreferrer"><ExternalLink size={14} /> Enviar no WhatsApp</a>
       </div>
     </div>
     <footer><button type="button" onClick={() => setSharing(null)}>Fechar</button></footer>
-  </section></div>}
-  {removing && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setRemoving(null); }}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Excluir resposta">
+  </DialogFrame></div>}
+  {removing && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setRemoving(null); }}><DialogFrame className="ap-status-confirm" aria-label="Excluir resposta">
     <div><small>PERFIL COMPORTAMENTAL</small><h2>Tem certeza que quer excluir?</h2><p><strong>{removing.person_name}</strong> · respondido em {day(removing.created_at)}. Apaga as respostas, os escores e o PDF. Não dá para desfazer.</p></div>
     <footer><button type="button" onClick={() => setRemoving(null)}>Cancelar</button><button type="button" className="danger" onClick={() => void remove()}>Excluir</button></footer>
-  </section></div>}
+  </DialogFrame></div>}
   </div></Shell>;
 }

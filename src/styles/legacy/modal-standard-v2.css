@@ -1,81 +1,70 @@
 /* CALI Workspace · modal standard v2
    Global invariant: modal belongs to the viewport, never to a page section. */
+@reference "../tailwind.css";
 
 .modal-backdrop,
 .workspace-modal-backdrop,
 .full-screen-modal,
 .chrome-modal-backdrop.full-screen-modal,
 .modal-backdrop.full-screen-modal {
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100dvh !important;
-  margin: 0 !important;
+  @apply tw:fixed! tw:inset-0! tw:w-[100vw]! tw:h-[100dvh]! tw:m-0!;
   padding: clamp(18px, 4vh, 40px) clamp(18px, 3vw, 44px) !important;
-  display: grid !important;
-  place-items: center !important;
-  overflow: auto !important;
+  @apply tw:grid! tw:place-items-center! tw:overflow-auto!;
   background: rgba(28, 22, 25, .48) !important;
   backdrop-filter: blur(8px) saturate(.92) !important;
   -webkit-backdrop-filter: blur(8px) saturate(.92) !important;
-  z-index: 2147483000 !important;
+  @apply tw:z-2147483000!;
 }
 
 .modal-backdrop > .modal-card,
 .workspace-modal-backdrop > .modal-card,
 .full-screen-modal > .modal-card {
-  position: relative !important;
-  margin: auto !important;
-  z-index: 2147483001 !important;
+  @apply tw:relative! tw:m-auto! tw:z-2147483001!;
 }
 
 body.workspace-modal-open {
-  overflow: hidden !important;
+  @apply tw:overflow-hidden!;
 }
 
 body.workspace-modal-open .topbar {
   opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
+  @apply tw:invisible! tw:pointer-events-none!;
 }
 
 /* Safe footer margins: actions never touch or cross the modal border. */
 .account-modal-footer,
 .tabbed-modal-footer,
 .management-footer {
-  box-sizing: border-box !important;
-  width: 100% !important;
+  @apply tw:box-border! tw:w-full!;
   padding-left: 26px !important;
   padding-right: 26px !important;
-  overflow: visible !important;
+  @apply tw:overflow-visible!;
 }
 
 .management-footer {
-  min-width: 0 !important;
+  @apply tw:min-w-0!;
 }
 
 .management-danger-actions {
-  min-width: 0 !important;
-  padding-left: 0 !important;
+  @apply tw:min-w-0! tw:pl-0!;
 }
 
 .management-footer .modal-actions,
 .tabbed-modal-footer .modal-actions {
   flex: 0 0 auto !important;
-  margin-left: auto !important;
-  padding-right: 0 !important;
+  @apply tw:ml-auto! tw:pr-0!;
 }
 
 .management-footer .modal-actions button,
 .tabbed-modal-footer .modal-actions button {
-  white-space: nowrap;
+  @apply tw:whitespace-nowrap;
 }
 
 /* Close control keeps its own safe zone and cannot overlap status badges. */
 .client-account-modal .modal-close,
 .lifecycle-modal .modal-close {
-  top: 16px !important;
-  right: 16px !important;
+  @apply tw:top-[16px]!;
+  @apply tw:right-[16px]!;
 }
 
 .account-management-header {
@@ -86,7 +75,7 @@ body.workspace-modal-open .topbar {
   .modal-backdrop,
   .workspace-modal-backdrop,
   .full-screen-modal {
-    padding: 8px !important;
+    @apply tw:p-[8px]!;
   }
 
   .account-modal-footer,

@@ -1,0 +1,50 @@
+
+@reference "../../styles/tailwind.css";
+
+.material-review,
+.material-review-items li {
+  margin-block: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--theme-line);
+  @apply tw:rounded-[10px];
+  background: var(--theme-surface);
+}
+
+.material-review summary {
+  @apply tw:cursor-pointer;
+  font-weight: 700;
+}
+
+.material-review-items {
+  list-style: none;
+  @apply tw:p-0;
+}
+
+.material-review-content,
+.material-review-content form,
+.material-review-content label,
+.material-review-items li {
+  @apply tw:grid tw:gap-[8px];
+}
+
+.material-review-content {
+  @apply tw:mt-[12px];
+}
+
+.material-review-content select,
+.material-review-content textarea {
+  @apply tw:w-full;
+}
+
+.material-review-content button,
+.material-review-items button {
+  justify-self: start;
+}
+
+.material-review-actions {
+  @apply tw:flex tw:flex-wrap tw:gap-[8px];
+}
+
+.material-review-text {
+  @apply tw:whitespace-pre-wrap;
+}

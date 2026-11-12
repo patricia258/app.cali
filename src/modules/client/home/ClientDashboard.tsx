@@ -1,7 +1,9 @@
+import { InlineNotice } from '../../../components/ds/InlineNotice';
+import { LoadingState } from '../../../components/ds/LoadingState';
 import { useEffect, useRef, useState } from 'react';
 import { capacityOf, percentLabel } from '../../../lib/capacity';
-import { CapacityBar } from '../../../v2/CapacityBar';
-import { ClientHomeNotices } from '../../shared/notices/NoticesBoard';
+import { CapacityBar } from '../../../components/hours/CapacityBar';
+import { ClientHomeNotices } from '../../notices/NoticesBoard';
 import { Link } from '../../../components/navigation/Link';
 import {
   ArrowRight, ArrowUpRight, CalendarDays, Check, CheckCircle2, ChevronRight, FileText,
@@ -296,7 +298,7 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
   const occurrenceStatusText: Record<string, string> = { open: 'Aberta', in_progress: 'Em andamento', waiting_client: 'Aguardando você', standby: 'Em espera', completed: 'Encerrada', cancelled: 'Cancelada', recorded: 'Registrada' };
   const occurrenceDays = latestOccurrence ? Math.max(0, Math.floor((Date.now() - new Date(latestOccurrence.occurred_at).getTime()) / 86400000)) : 0;
 
-  if (loading) return <Shell role="client"><section className="client-home"><div className="data-loading"><Loader2 className="spin" size={20} />Preparando sua área CALI…</div></section></Shell>;
+  if (loading) return <Shell role="client"><section className="client-home"><LoadingState><Loader2 className="spin" size={20} />Preparando sua área CALI…</LoadingState></section></Shell>;
 
   const contact = data.responsibles?.executive;
   const supportPartner = data.responsibles?.supportPartner;
@@ -305,7 +307,7 @@ function ClientDashboardContent({ userId }: { userId: string | undefined }) {
 
   return <Shell role="client">
     <section className="client-home">
-      {error && <div className="inline-notice">{error}</div>}
+      {error && <InlineNotice>{error}</InlineNotice>}
 
       <div className="ch-content">
       <div className="ch-greeting">

@@ -1,3 +1,5 @@
+import { Button } from '../../../../components/ds/Button';
+import { FieldLabel } from '../../../../components/ds/FieldLabel';
 import { useEffect, useState, type FormEvent } from 'react';
 import { CalendarDays } from 'lucide-react';
 import { supabase } from '../../../../api/supabase';
@@ -35,13 +37,13 @@ export function ContractAgendaSettings({ companyId }: { companyId: string }) {
   }
   return <section className="account-tab-pane contract-agenda-settings"><div className="account-pane-heading"><CalendarDays size={18}/><div><strong>Agenda do contrato</strong><span>Encontros incluídos neste pacote. Visitas extras são solicitadas separadamente.</span></div></div>
     {loading ? <p>Carregando regra…</p> : <form onSubmit={save} className="form-grid account-tab-form">
-      <label className="stacked-label">Pacote<select value={data.plan} onChange={event => choosePlan(event.target.value)}><option value="partner">CALI Partner</option><option value="full">CALI Full</option><option value="custom">Personalizado</option></select></label>
-      <label className="stacked-label">Encontros por mês<input type="number" min="0" max="12" required value={data.sessions} onChange={event => setData(current => ({...current,sessions:Number(event.target.value)}))}/></label>
-      <label className="stacked-label">Dias entre encontros<input type="number" min="0" max="60" required value={data.cadence} onChange={event => setData(current => ({...current,cadence:Number(event.target.value)}))}/></label>
-      <label className="stacked-label">Visitas presenciais incluídas por mês<input type="number" min="0" max="12" required value={data.onsite} onChange={event => setData(current => ({...current,onsite:Number(event.target.value)}))}/></label>
+      <FieldLabel>Pacote<select value={data.plan} onChange={event => choosePlan(event.target.value)}><option value="partner">CALI Partner</option><option value="full">CALI Full</option><option value="custom">Personalizado</option></select></FieldLabel>
+      <FieldLabel>Encontros por mês<input type="number" min="0" max="12" required value={data.sessions} onChange={event => setData(current => ({...current,sessions:Number(event.target.value)}))}/></FieldLabel>
+      <FieldLabel>Dias entre encontros<input type="number" min="0" max="60" required value={data.cadence} onChange={event => setData(current => ({...current,cadence:Number(event.target.value)}))}/></FieldLabel>
+      <FieldLabel>Visitas presenciais incluídas por mês<input type="number" min="0" max="12" required value={data.onsite} onChange={event => setData(current => ({...current,onsite:Number(event.target.value)}))}/></FieldLabel>
       <p className="contract-agenda-rule wide">Partner: um encontro online mensal. Full: dois encontros mensais, sendo um presencial e um online ou dois online. Os encontros não se acumulam. A agenda fixa mensal do Full ainda será definida em fluxo próprio.</p>
       {message && <p className="wide" role="status">{message}</p>}
-      <button className="primary contract-agenda-save" type="submit" disabled={saving}>{saving ? 'Salvando…' : 'Salvar agenda do contrato'}</button>
+      <Button variant="primary" className="contract-agenda-save" type="submit" disabled={saving}>{saving ? 'Salvando…' : 'Salvar agenda do contrato'}</Button>
     </form>}
   </section>;
 }

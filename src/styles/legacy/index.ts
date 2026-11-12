@@ -2,7 +2,7 @@
    até que a administradora seja migrada. Ficam fora do documento enquanto o cliente V2 está montado,
    para que exista uma única implementação visual ativa por vez. A ordem é a original de main.tsx. */
 // Vinha de App.tsx, avaliado antes das folhas de main.tsx; a posição original é mantida.
-import calendar from '../../modules/shared/calendar/page4-calendar.css?inline';
+import calendar from '../../modules/calendar/page4-calendar.css?inline';
 import s0 from './styles.css?inline';
 import s1 from './modules.css?inline';
 import s2 from './ux-v2.css?inline';
@@ -46,7 +46,7 @@ import s39 from '../../modules/client/reports/client-reports-list-v64.css?inline
 import s40 from '../../components/workspace/profile-account-clean-v65.css?inline';
 import s41 from '../../components/workspace/profile-account-v66.css?inline';
 import s42 from '../../components/workspace/profile-correction-v67.css?inline';
-import s43 from '../workspace-v2.css?inline';
+import s43 from '../../components/workspace/workspace-v2.css?inline';
 // Página inicial e entrada na identidade V2 (15/10/2026); por último para valer sobre as folhas acima.
 import s44 from './site-identity-v2.css?inline';
 

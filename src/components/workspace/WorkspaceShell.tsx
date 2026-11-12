@@ -10,8 +10,8 @@ import { nextThemeBoundary, resolveWorkspaceTheme, setManualWorkspaceTheme, work
 import { activeFront, loadContractFronts, planName, type CompanyPlan, type ContractedFront, type Front } from '../../lib/contractFronts';
 import { NotificationCenter } from './WorkspaceChrome';
 import { DirectProfileControl } from './DirectProfileControl';
-import { AdminShell, ClientShell } from '../../v2/WorkspaceShellV2';
-import { RUNTIME_V2_EVENT, usesV2 } from '../../v2/routes';
+import { AdminShell, ClientShell } from './WorkspaceShellV2';
+import { RUNTIME_V2_EVENT, usesV2 } from '../../app/visualRoutes';
 import { GlobalTimerBar } from '../hours/GlobalTimerBar';
 import { ProjectTimerBridge } from '../hours/ProjectTimerBridge';
 import { ProjectDeliveryHistoryBridge } from '../projects/ProjectDeliveryHistoryBridge';

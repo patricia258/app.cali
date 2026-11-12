@@ -3,16 +3,17 @@
    do perfil → envio. Depois do envio, a pessoa só vê o agradecimento; o relatório chega por e-mail.
    Com convite (?c=token): nome e e-mail vêm do convite, o prazo aparece em data, o progresso é registrado (bloco de
    parada) e as respostas ficam guardadas no aparelho para retomar de onde parou. */
+import { GuidedInput } from '../../../components/ds/GuidedField';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from '../../../hooks/useNavigate';
 import { useParams } from '../../../hooks/useParams';
 import { useSearchParams } from '../../../hooks/useSearchParams';
 import { ArrowLeft, ArrowRight, CalendarClock, Check, Handshake, LayoutList, Mail } from 'lucide-react';
 import { anonPublicRpc } from '../../../api/supabase';
-import { blockItems, computeScores, NATURAL_BLOCKS, PRESSURE_BLOCKS, profileOf, type BlockAnswer, type Style } from '../../shared/disc/profileMethod';
-import { richTextHtml } from '../../shared/forms/formModel';
-import { RespondentReport, type ProfileResultView } from '../../shared/disc/components/ProfileReports';
-import { CONSENT_TEXT, NATURAL_INSTRUCTION, PRESSURE_INSTRUCTION } from '../../shared/disc/profileContent';
+import { blockItems, computeScores, NATURAL_BLOCKS, PRESSURE_BLOCKS, profileOf, type BlockAnswer, type Style } from '../../disc/profileMethod';
+import { richTextHtml } from '../../forms/formModel';
+import { RespondentReport, type ProfileResultView } from '../../disc/components/ProfileReports';
+import { CONSENT_TEXT, NATURAL_INSTRUCTION, PRESSURE_INSTRUCTION } from '../../disc/profileContent';
 import '../forms/public-form.css';
 import './profile-test.css';
 
@@ -210,11 +211,11 @@ export function ProfileTestPage() {
           <small>ANTES DE COMEÇAR</small>
           <h2>Quem está respondendo?</h2>
           {invite ? <p className="cpt-company">Convite para <b>{invite.person_name}</b> · o relatório chega em <b>{invite.email}</b></p> : <>
-          <label><span>Seu nome completo</span><input className="cf-text" value={person.name} autoComplete="name" onChange={(event) => setPerson({ ...person, name: event.target.value })} /></label>
-          <label><span>Seu e-mail <em>o relatório chega aqui</em></span><input className="cf-text" type="email" autoComplete="email" value={person.email} onChange={(event) => setPerson({ ...person, email: event.target.value })} /></label>
+          <label><span>Seu nome completo</span><GuidedInput value={person.name} autoComplete="name" onChange={(event) => setPerson({ ...person, name: event.target.value })} /></label>
+          <label><span>Seu e-mail <em>o relatório chega aqui</em></span><GuidedInput type="email" autoComplete="email" value={person.email} onChange={(event) => setPerson({ ...person, email: event.target.value })} /></label>
           </>}
-          <label><span>Seu cargo <em>opcional</em></span><input className="cf-text" value={person.job} onChange={(event) => setPerson({ ...person, job: event.target.value })} /></label>
-          {link.has_company ? <p className="cpt-company">Empresa: <b>{link.company_name}</b></p> : invite ? null : <label><span>Empresa onde você trabalha</span><input className="cf-text" value={person.company} autoComplete="organization" onChange={(event) => setPerson({ ...person, company: event.target.value })} /></label>}
+          <label><span>Seu cargo <em>opcional</em></span><GuidedInput value={person.job} onChange={(event) => setPerson({ ...person, job: event.target.value })} /></label>
+          {link.has_company ? <p className="cpt-company">Empresa: <b>{link.company_name}</b></p> : invite ? null : <label><span>Empresa onde você trabalha</span><GuidedInput value={person.company} autoComplete="organization" onChange={(event) => setPerson({ ...person, company: event.target.value })} /></label>}
           {error && <p className="cf-error" role="alert">{error}</p>}
           <div className="cf-actions"><button type="button" className="cf-primary" onClick={next}>Continuar <ArrowRight size={18} /></button></div>
         </div>}

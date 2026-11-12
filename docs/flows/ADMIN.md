@@ -4,7 +4,7 @@
 
 **Propostas e portal.** Admin abre `/admin/propostas`, o editor por `submissionId` e a prévia por `proposalId`. Partner atribuído prepara material. O destinatário responde pelos formulários e links do portal.
 
-**Atual.** Resposta do portal → triagem Admin → edição → aprovação interna → envio. A oportunidade pode avançar para negociação, fechamento, recusa ou expiração. A proposta tem estado próprio e o editor gera PDF. A lista permite filtrar, arquivar e exportar respostas. [Lista Admin](../../src/modules/admin/proposals/AdminProposalsPageV2.tsx) · [Adapter do portal](../../src/api/commercial/portal.ts)
+**Atual.** Resposta do portal → triagem Admin → edição → aprovação interna → envio. Partner atribuído submete para revisão. A oportunidade mantém seu próprio estado. Envio e reenvio exigem duas confirmações, a versão da prévia e o contato gravado no briefing. O primeiro envio pode arquivar o PDF selecionado. As próximas entregas usam o PDF oficial quando existe. [Lista Admin](../../src/modules/admin/proposals/AdminProposalsPageV2.tsx) · [Prévia arquivada](../../src/modules/admin/proposals/AdminProposalPreviewPageV3.tsx) · [Edge de envio](../../supabase/functions/portal-send-proposal/index.ts)
 
 **Dados e integrações.** ID e protocolo da resposta, oportunidade, versão da proposta, valores, destinatário, PDF e recibo de envio. O portal continua recebendo respostas. A fila Admin reúne vínculos e histórico, inclusive respostas antigas.
 
@@ -12,13 +12,13 @@
 
 **Aceite.** Abrir resposta antiga e nova, conferir proposta/PDF e seguir o vínculo de retorno. Negar Partner fora do escopo. Exercitar devolução, as duas confirmações e o cancelamento em cada uma. Simular timeout e repetir a mesma operação sem entrega adicional. Conferir caixa de teste, destinatário e revisão corretos no envio e no reenvio deliberado.
 
-**Lacunas.** Reconciliar origem, IDs e respostas do portal, catálogo da Edge `portal-send-proposal` e identificação de destinatário antes de substituir o transporte atual. [Contratos de dados](../DATA_CONTRACTS.md)
+**Evidência e lacunas.** Playwright cobriu o cancelamento em cada confirmação e o reenvio do PDF oficial. Edge, PostgreSQL e Mailpit locais rejeitaram versão obsoleta, destinatário divergente e revisão Partner pendente. Repetir a operação conservou o recibo. Reconciliar origem, IDs e registros antigos do portal no destino e verificar a caixa de teste. Propostas legadas sem PDF arquivado exigem anexar o PDF da versão confirmada. [Smoke comercial](../../tests/contracts/commercial-http.mjs)
 
 ## FLOW-12
 
 **Relatório mensal, revisão e PDF.** Admin opera `/admin/relatorios`. Cliente lê `/cliente/relatorios` e a impressão autorizada. Partner prepara relatórios atribuídos em `/equipe/relatorios`.
 
-**Atual.** Geração e curadoria Admin → revisão/aprovação → liberação → leitura e ciência Cliente. A área tem histórico, impressão A4, assinatura e ações de envio. A Edge legada recebe dados de destinatário no corpo, confere acesso e versão e envia antes de atualizar o estado local. [Editor Admin](../../src/modules/admin/reports/AdminReportsPageV17.tsx) · [Relatórios Cliente](../../src/modules/client/reports/ClientReportsPageV5.tsx) · [Edge de envio](../../supabase/functions/workspace-send-executive-report/index.ts)
+**Atual.** Geração e curadoria CALI → revisão → aprovação → liberação → leitura e ciência Cliente. Admin pode retirar a versão, registrar o motivo, corrigir e decidir se pede nova ciência. Após duas confirmações, a Edge valida a revisão e os endereços ativos da empresa, reserva recibo, envia link para a revisão e registra a confirmação do provedor. [Editor Admin](../../src/modules/admin/reports/AdminReportsPageV17.tsx) · [Relatórios Cliente](../../src/modules/client/reports/ClientReportsPageV5.tsx) · [Revisão e nova ciência](../../supabase/migrations/20261112152300_revise_delivered_reports.sql) · [Recibos](../../supabase/migrations/20261112152000_material_delivery_receipts.sql)
 
 **Dados e integrações.** Empresa, ciclo, entregáveis, horas, reuniões, decisões, avaliações e demais fatos da operação compõem o snapshot. Patrícia acrescenta síntese, riscos e próximos passos. Revisão aprovada vincula PDF privado, foto, assinatura e protocolo `CALI-TIPO-AAAA-NNNNNN`. Geração, aprovação, liberação, envio e ciência têm eventos próprios.
 
@@ -26,13 +26,13 @@
 
 **Aceite.** Cobrir devolução e aprovação, acesso direto à impressão, ocultação de revisão em correção e reliberação com e sem nova ciência. Conferir A4, foto, assinatura, protocolo, PDF legado e bytes autorizados. Cancelar as duas etapas de confirmação, testar perda de resposta depois do envio e repetir. Conferir caixa de teste e recibo nas três modalidades.
 
-**Lacunas.** Conciliar os leitores legados, o transporte atual e a fila proposta. O envio piloto por notificação interna prova a sinalização no Workspace. O recebimento real dos três materiais exige homologação própria. [Contratos por lote](../DATA_CONTRACTS.md#contratos-por-lote)
+**Evidência e lacunas.** Edge e Mailpit locais confirmaram o envio e o recibo estável na repetição. Versão obsoleta, destinatário de outra empresa e revisão Partner pendente foram recusados. Confirmar assinatura, foto e PDF legado com amostras autorizadas e testar o recebimento externo na caixa de teste. [Smoke comercial](../../tests/contracts/commercial-http.mjs)
 
 ## FLOW-16
 
 **Satisfação e auditoria.** Admin abre `/admin/satisfacao` para comparar notas, acompanhar respostas e registrar follow-up. `/admin/auditoria` reúne trilhas da operação. Cliente responde pelo [encerramento da ocorrência](OPERATIONS.md#flow-10) ou pela [aprovação da entrega](DELIVERY.md#flow-06).
 
-**Atual.** Satisfação consulta respostas, fechamentos, notas, tendências e follow-ups. O indicador combina data de fechamento no denominador e data de resposta no numerador, com teto de 100%. O seletor de empresa deriva das respostas e pode omitir empresa sem nota. Auditoria lista fontes com identidades e ações próprias. [Satisfação](../../src/modules/admin/satisfaction/AdminSatisfactionPage.tsx) · [Auditoria](../../src/modules/admin/audit/AdminAuditPage.tsx) · [Follow-up](../../supabase/migrations/20261011200000_satisfaction_followups.sql)
+**Atual.** Satisfação consulta respostas, solicitações de cada fechamento, tendências e follow-ups. As contagens e a taxa usam o mesmo conjunto de encerramentos. A média usa apenas notas recebidas. O seletor inclui empresas com solicitações sem resposta. A impressão/PDF usa o recorte da tela. Auditoria lista as ações por origem. [Satisfação](../../src/modules/admin/satisfaction/AdminSatisfactionPage.tsx) · [Auditoria](../../src/modules/admin/audit/AdminAuditPage.tsx) · [Coorte](../../supabase/migrations/20261112133000_record_closure_feedback.sql)
 
 **Dados e integrações.** Empresa, evento de origem, solicitação, resposta, nota de 1 a 5, comentário, encaminhamento e decisão Admin. Data do evento de origem define a coorte, em Brasília. Solicitação pendente pode ser respondida ou encerrada sem resposta por Admin. Auditoria registra autoria, data e alteração relevante com projeção mínima.
 
@@ -40,4 +40,4 @@
 
 **Aceite.** Empresa sem respostas, mês sem dados, virada de mês em Brasília, resposta no mês seguinte, volume superior a uma página e fechamento manual sem resposta. Reabrir e encerrar de novo, verificar duas solicitações e ausência de duplicidade no retry. Comparar totais, notas e recortes na tela e no PDF.
 
-**Lacunas.** Definir destino de solicitação ainda aguardando quando a ocorrência for reaberta. Associar dados legados somente onde o vínculo com o evento de origem for comprovável. Conferir como nova aprovação de entregável corrigido aparece no histórico e na coorte.
+**Evidência e lacunas.** O ensaio local cobre encerramentos independentes, resposta tardia na coorte original e encerramento manual da espera. Reabertura encerra a espera ativa do evento anterior no painel e preserva o vínculo de eventual resposta tardia. Conferir em amostra legada os vínculos reconstruídos e a consistência entre tela e PDF da mesma coorte.

@@ -12,13 +12,13 @@
 
 **Aceite.** Ocultar rascunho, validar cronograma, testar aprovação e ajuste concorrentes, pausa/retomada, revisão de prazo e sobreposição. Conferir recarga, links e recortes. Negar escrita e leitura de Partner fora do escopo em chamada direta.
 
-**Lacunas.** Reconciliar a ordem dos patches de planejamento e execução com o catálogo efetivo. SLA automático de 72 horas depende de nova confirmação de produto.
+**Evidência e lacunas.** Navegação, visualização e operações de projeto foram exercitadas em fixtures. A ordem dos patches e os escritores do cronograma precisam coincidir no catálogo hospedado. O SLA automático de 72 horas depende de decisão de produto.
 
 ## FLOW-06
 
 **Entregáveis.** Admin e Partner atribuído trabalham no contexto de projetos. Cliente abre `/cliente/entregaveis` e valida entregas liberadas da sua empresa.
 
-**Atual.** Execução → revisão interna → revisão Cliente → ajuste solicitado ou aprovação. Detalhe reúne subtarefas, dependências, histórico, conversa e arquivos finais. A interface de ajuste restringe a ação à revisão Cliente. A RPC versionada legada precisa de verificação equivalente do estado. [Entregáveis Cliente](../../src/modules/client/deliverables/ClientDeliverablesPage.tsx) · [Fluxo de entregas](../../supabase/migrations/20260829164500_projects_deliverables_cali_workflow.sql) · [Dependências e revisões de prazo](../../supabase/migrations/20261017150000_deliverable_client_dependencies_and_due_revisions.sql)
+**Atual.** Execução → revisão interna → revisão Cliente → ajuste solicitado ou aprovação. Detalhe reúne subtarefas, dependências, histórico, conversa e arquivos finais. A RPC valida a revisão vigente e o estado antes de aceitar ajuste ou aprovação. Ao corrigir, o Admin informa motivo e a revisão fica oculta até nova liberação. [Entregáveis Cliente](../../src/modules/client/deliverables/ClientDeliverablesPage.tsx) · [Ciclo de aprovação](../../supabase/migrations/20261112153000_deliverable_review_cycles.sql) · [Guardas de leitura](../../supabase/migrations/20261112153100_guard_delivery_review_consumers.sql)
 
 **Dados e integrações.** Entrega/protocolo, revisão, prazos, subtarefas, horas, arquivos, conversa, autoria e decisões. Conversa e arquivos anexados à conversa têm projeções próprias. O arquivo final depende da revisão publicada. [Arquivos finais](../../supabase/migrations/20261016120000_deliverable_folder_final_files.sql) · [Histórico](OPERATIONS.md#flow-10)
 
@@ -26,7 +26,7 @@
 
 **Aceite.** Abrir detalhe, ajustar, aprovar, avaliar e reabrir. Testar nota baixa sem justificativa, ajuste em estado inelegível via RPC e acesso a bytes retirados por URL direta. Reliberar e confirmar que a aprovação anterior não aprova a revisão nova. Conferir subtarefas e retorno ao objeto de origem.
 
-**Lacunas.** Confirmar elegibilidade na RPC de ajuste e acesso a objetos de revisão retirada no catálogo efetivo. A caracterização local identificou sobreposição de modais na abertura de ajuste por clique. Validar o comportamento por clique, toque e teclado na rodada de correções.
+**Evidência e lacunas.** Provas locais cobriram correção, retirada de visibilidade, nova aprovação e ajuste com estado obsoleto. Playwright verificou ajuste por clique, toque e teclado. Conferir negativas para bytes e URLs assinadas no catálogo hospedado. [Jornadas](../../tests/e2e/journeys.cjs)
 
 ## FLOW-11
 
@@ -40,4 +40,4 @@
 
 **Aceite.** Arquivo legado, nova revisão, pasta mista, falha parcial e retomada. Conferir bytes, autorização de empresa e versão, validade, ciência repetida e URL assinada após retirada. Copiar para Google de teste e reconciliar recibo, destino e original. Verificar desconexão sem perda do Calendar.
 
-**Lacunas.** Validar policies vigentes de metadata, Storage, ciência e comentários. Medir a janela residual de URLs antigas e homologar a cópia real com destinos de teste. [Contratos de dados](../DATA_CONTRACTS.md)
+**Evidência e lacunas.** No laboratório, a Edge operou com provedor Google simulado e destinos sintéticos. O ensaio inclui retomada da cópia e desvinculação de Drive preservando Calendar. Homologar conta e pasta de teste no Google e conferir bytes e validade das URLs no catálogo hospedado. [Contratos de dados](../DATA_CONTRACTS.md)

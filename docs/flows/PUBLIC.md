@@ -12,7 +12,7 @@
 
 **DISC.** Respondente usa `/perfil/:slug` ou `/perfil/:slug?c=:token`, opt-out em `/perfil/sair/:token` e link legado `/perfil/relatorio/:token`. CALI opera campanhas e avaliações em `/admin/perfil-comportamental`. Gestão Cliente consulta relatório liberado da própria empresa.
 
-**Atual.** Convite ou link aberto → progresso e rascunho no navegador → envio → resultado e geração de PDF. O link de relatório com token usa RPC pública e renderiza PDF no navegador. O link antigo e a falha de e-mail oferecem download. Há rota Cliente de consulta individual e projeção legada por visibilidade. [Relatório do respondente](../../src/modules/public/disc/ProfileReportPage.tsx) · [Convites](../../supabase/migrations/20261024090000_cali_profile_invites.sql) · [Gestão](../../supabase/migrations/20261024120000_cali_profile_gestao.sql) · [Entrega de PDF](../../supabase/migrations/20261024150000_cali_profile_signature_delivery.sql)
+**Atual.** Convite ou link aberto → progresso e rascunho no navegador → envio → agradecimento. Link individual antigo mostra agradecimento e contato da CALI. Avaliador Admin pode recuperar PDF arquivado ou gerar uma cópia com dados disponíveis. O relatório de gestão é liberado separadamente, após parecer e aprovação. [Agradecimento](../../src/modules/public/disc/ProfileReportPage.tsx) · [Avaliador](../../src/modules/disc/ProfileEvaluatorPage.tsx) · [Guarda do respondente](../../supabase/migrations/20261112141000_disc_private_respondent_reports.sql) · [Guarda do arquivo](../../supabase/migrations/20261112141100_disc_storage_policy.sql)
 
 **Dados e integrações.** Campanha, slug, token, convite, progresso, opt-out, resposta, revisão, resultado, relatório e recibo de e-mail. Rascunho preserva a chave legada do convite ou slug no navegador. PDF fica no acervo privado. A metodologia e os cálculos ficam restritos à CALI.
 
@@ -20,13 +20,13 @@
 
 **Aceite.** Convite antigo e aberto sem token, rascunho parcial, concluído, expirado, revogado e opt-out. Abrir link individual antigo e verificar agradecimento sem resposta, metodologia, download ou PDF em UI, RPC e Storage. Exercitar PDF armazenado, reconstrução fiel e dados insuficientes. Reenvio autorizado chega ao próprio respondente. Testar avaliador CALI e gestão com 4, 5, 14 e 15 respostas, outra empresa e revisão sem parecer ou sem liberação.
 
-**Lacunas.** Inventariar PDFs armazenados e dados históricos para reconstrução fiel. Conciliar rotas, projeções e objetos individuais legados antes de fechar acesso público e Cliente.
+**Evidência e lacunas.** O laboratório cobriu link legado, convite, entrega privada, recuperação CALI e negativas de escopo. Para resposta antiga sem PDF, a cópia usa os dados que ainda existirem. Reenvio de cópia recuperada por CALI e fidelidade histórica dependem da conferência da identidade, do arquivo e da revisão. Validar amostra autorizada no ambiente de destino.
 
 ## FLOW-17b
 
 **CALI Forms.** Admin cria, compartilha, revisa, exporta e restaura em `/admin/formularios`. Respondente usa `/f/:slug` sem login e pode anexar arquivos nos campos autorizados.
 
-**Atual.** Configurar formulário → abrir → responder com regras condicionais e anexos → confirmar → triar e exportar. Há lixeira, restauração, QR, cartão e prévia social. Restauração usa o schema padrão no cliente, enquanto a migration declara a função em `public`. A confirmação legada verifica o estado antes do envio e grava depois, com possibilidade de corrida. [Página pública](../../src/modules/public/forms/PublicFormPage.tsx) · [Coleta](../../supabase/migrations/20261021240000_cali_forms.sql) · [Anexos](../../supabase/migrations/20261021250000_cali_forms_files_logic.sql) · [Lixeira](../../supabase/migrations/20261029180000_cali_forms_lixeira.sql) · [Confirmação](../../supabase/functions/cali-forms-confirmation/index.ts)
+**Atual.** Configurar formulário → abrir → responder com regras condicionais e anexos → confirmar → triar e exportar. Há lixeira, restauração, QR, cartão e prévia social. A restauração chama o schema público, preservando IDs e vínculos. Envio e confirmação usam recibos para retomar e deduplicar. [Página pública](../../src/modules/public/forms/PublicFormPage.tsx) · [Restauração](../../supabase/migrations/20261029180000_cali_forms_lixeira.sql) · [Recibos e validação](../../supabase/migrations/20261112140000_forms_submission_receipts.sql) · [Confirmação](../../supabase/functions/cali-forms-confirmation/index.ts)
 
 **Dados e integrações.** Slug, ID e versão do formulário, perguntas, condicionais, resposta, caminho do anexo, consentimentos, triagem, recibo, lixeira e vínculos com exportação. A rota também atende prévia social pelo rewrite. [Rewrites](../../vercel.json)
 
@@ -34,13 +34,13 @@
 
 **Aceite.** Link ativo/fechado, condicional, tipos de campo, envio com anexo e caminho forjado de outro formulário. Simular queda após gravação e confirmação concorrente. Testar resposta legada sem reenvio, colisão de slug no restore, QR/prévia sem sessão e exportação com anexos autorizados.
 
-**Lacunas.** Confirmar o alias efetivo de restauração, o dispatcher atual e o prazo de acesso a anexos em cópias exportadas. Reconciliar fila e recibos antes de trocar o escritor.
+**Evidência e lacunas.** SQL, Edge e Mailpit locais cobriram retomada, tentativa repetida, restauração e anexos. Confirmar slugs e arquivos legados com amostra autorizada e testar entrega externa somente na caixa de teste.
 
 ## FLOW-17c
 
 **Mapa de People e devolutiva.** Respostas entram pelo portal. Admin consulta `/admin/mapa-de-people`, revisão e relatório por protocolo/ID. Partner atribuído prepara parecer. Destinatário autorizado recebe a devolutiva.
 
-**Atual.** Resposta → triagem → em andamento/revisão → relatório → envio. A lista e a revisão usam RPCs `public.workspace_mapa_people_*`. O envio chama `workspace-enviar-relatorio-mapa`, com PDF e, em um caminho, destinatários enviados pelo cliente. [Mapa e protocolo](../MAPA_PEOPLE_PARITY.md) · [Revisão do Mapa](../../src/modules/admin/people-map/AdminPeopleMapReviewPage.tsx)
+**Atual.** Resposta → triagem → revisão CALI → PDF → envio. Partner atribuído submete parecer para decisão da Patrícia. Envio exige duas confirmações e associa o PDF privado à revisão corrente. A Edge usa o e-mail da resposta consentida. Reenvio usa o arquivo oficial da revisão quando disponível. [Mapa e protocolo](../MAPA_PEOPLE_PARITY.md) · [Revisão do Mapa](../../src/modules/admin/people-map/AdminPeopleMapReviewPage.tsx) · [Edge de envio](../../supabase/functions/workspace-enviar-relatorio-mapa/index.ts)
 
 **Dados e integrações.** ID e protocolo da resposta, empresa/destinatário, respostas de origem, parecer, revisão da devolutiva, PDF e recibo. Portal e Workspace preservam o vínculo do registro e o protocolo emitido.
 
@@ -48,4 +48,4 @@
 
 **Aceite.** Preservar protocolo legado, abrir resposta pelo vínculo de origem e negar parecer de Partner sem atribuição. Testar devolução, aprovação, cancelamento em ambas as confirmações, timeout e reenvio deliberado. Conferir revisão, caixa de teste e recibo.
 
-**Lacunas.** Confirmar versão e guardas do transporte no destino, vincular destinatário no servidor e reconciliar trilhas entre portal e Workspace. A integração real depende de homologação em destino de teste.
+**Evidência e lacunas.** No laboratório, a Edge recusou revisão e destinatário divergentes. Primeiro envio e reenvio deliberado geraram duas mensagens no Mailpit com o PDF oficial da mesma revisão. Repetir cada operação conservou o recibo. Revisões legadas sem PDF exigem anexar o PDF da revisão confirmada. Reconciliar protocolos e trilhas com o portal de teste e conferir o recebimento externo. [Smoke comercial](../../tests/contracts/commercial-http.mjs)

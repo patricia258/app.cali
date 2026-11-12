@@ -1,7 +1,7 @@
 /* CALI Workspace · V50 · destaque da aprovação do cronograma */
+@reference "../../../styles/tailwind.css";
 .client-project-review-v38.client_review{
-  position:relative!important;
-  overflow:hidden!important;
+  @apply tw:relative! tw:overflow-hidden!;
   padding:30px 30px 30px 132px!important;
   border:1px solid #B58C52!important;
   background:
@@ -12,27 +12,23 @@
 
 .client-project-review-v38.client_review::before{
   content:""!important;
-  position:absolute!important;
+  @apply tw:absolute!;
   left:-30px!important;
   right:auto!important;
-  top:50%!important;
-  width:148px!important;
+  @apply tw:top-[50%]! tw:w-[148px]!;
   height:148px!important;
   transform:translateY(-50%) rotate(-7deg)!important;
   background:#5A1E2D!important;
   opacity:.92!important;
   -webkit-mask:url('/brand/cali-lime-mark.svg') center/contain no-repeat!important;
   mask:url('/brand/cali-lime-mark.svg') center/contain no-repeat!important;
-  pointer-events:none!important;
+  @apply tw:pointer-events-none!;
 }
 
 .client-project-review-v38.client_review::after{
   content:""!important;
-  position:absolute!important;
-  left:0!important;
-  top:0!important;
-  width:100%!important;
-  height:4px!important;
+  @apply tw:absolute! tw:left-0!;
+  @apply tw:top-0! tw:w-full! tw:h-[4px]!;
   background:linear-gradient(90deg,#5A1E2D 0 34%,#B58C52 34% 72%,rgba(255,255,255,.58) 100%)!important;
 }
 
@@ -115,7 +111,7 @@
     padding:26px 24px 26px 112px!important;
   }
   .client-project-review-v38.client_review::before{
-    left:-28px!important;width:126px!important;height:126px!important;
+    @apply tw:left-[-28px]! tw:w-[126px]!;height:126px!important;
   }
 }
 
@@ -124,8 +120,8 @@
     padding:84px 20px 22px!important;
   }
   .client-project-review-v38.client_review::before{
-    left:14px!important;top:12px!important;width:68px!important;height:68px!important;
+    @apply tw:left-[14px]!;@apply tw:top-[12px]!;width:68px!important;@apply tw:h-[68px]!;
     transform:none!important;opacity:.88!important;
   }
-  .client-project-review-v38.client_review::after{height:3px!important}
+  .client-project-review-v38.client_review::after{@apply tw:h-[3px]!}
 }

@@ -6,22 +6,18 @@
 /* =========================================================
    EDITOR DE PERFIL · PRÉVIA GRANDE E QUADRADA
    ========================================================= */
+@reference "../../styles/tailwind.css";
 .profile-modal-v2 .profile-photo-workbench {
-  display: grid !important;
+  @apply tw:grid!;
   grid-template-columns: minmax(190px, .58fr) minmax(360px, 1.42fr) !important;
-  align-items: center !important;
+  @apply tw:items-center!;
   gap: clamp(24px, 4vw, 44px) !important;
   min-height: 210px !important;
   padding: 20px 24px !important;
 }
 
 .profile-modal-v2 .profile-photo-stage {
-  min-width: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 14px !important;
+  @apply tw:min-w-0! tw:flex! tw:flex-col! tw:items-center! tw:justify-center! tw:gap-[14px]!;
 }
 
 .profile-modal-v2 .profile-photo-stage .profile-avatar-editor.large-editor-avatar {
@@ -30,25 +26,21 @@
   min-width: 124px !important;
   min-height: 124px !important;
   flex: 0 0 auto !important;
-  border-radius: 24px !important;
-  overflow: hidden !important;
+  @apply tw:rounded-[24px]! tw:overflow-hidden!;
   border: 2px solid rgba(90,30,45,.22) !important;
   background: rgba(247,243,238,.72) !important;
   box-shadow: 0 12px 30px rgba(55,31,37,.10) !important;
 }
 
 .profile-modal-v2 .profile-photo-stage .profile-avatar-editor.large-editor-avatar img {
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
+  @apply tw:block! tw:w-full! tw:h-full! tw:object-cover!;
   object-position: var(--avatar-x,50%) var(--avatar-y,50%) !important;
   transform: scale(var(--avatar-zoom,1)) !important;
   transform-origin: var(--avatar-x,50%) var(--avatar-y,50%) !important;
 }
 
 .profile-modal-v2 .photo-upload-button {
-  justify-content: center !important;
+  @apply tw:justify-center!;
 }
 
 html[data-workspace-theme='night'] .profile-modal-v2 .profile-photo-stage .profile-avatar-editor.large-editor-avatar {
@@ -66,39 +58,32 @@ html[data-workspace-theme='night'] .profile-modal-v2 .profile-photo-stage .profi
   .sidebar:hover .profile-trigger-direct,
   .sidebar:focus-within .profile-trigger-direct,
   .sidebar.pinned .profile-trigger-direct {
-    min-height: 62px !important;
-    gap: 14px !important;
-    column-gap: 14px !important;
+    @apply tw:min-h-[62px]! tw:gap-[14px]!;
+    @apply tw:gap-x-[14px]!;
     padding: 5px 4px !important;
   }
 
   .sidebar:hover .profile-trigger-direct .profile-avatar,
   .sidebar:focus-within .profile-trigger-direct .profile-avatar,
   .sidebar.pinned .profile-trigger-direct .profile-avatar {
-    width: 50px !important;
-    height: 50px !important;
+    @apply tw:w-[50px]! tw:h-[50px]!;
     min-width: 50px !important;
-    min-height: 50px !important;
+    @apply tw:min-h-[50px]!;
     flex: 0 0 50px !important;
     margin-right: 2px !important;
-    border-radius: 14px !important;
-    overflow: hidden !important;
+    @apply tw:rounded-[14px]! tw:overflow-hidden!;
   }
 
   .sidebar:hover .profile-trigger-direct .profile-copy,
   .sidebar:focus-within .profile-trigger-direct .profile-copy,
   .sidebar.pinned .profile-trigger-direct .profile-copy {
-    min-width: 0 !important;
-    margin-left: 2px !important;
+    @apply tw:min-w-0! tw:ml-[2px]!;
   }
 
   .sidebar:hover .profile-trigger-direct .profile-avatar img,
   .sidebar:focus-within .profile-trigger-direct .profile-avatar img,
   .sidebar.pinned .profile-trigger-direct .profile-avatar img {
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
+    @apply tw:block! tw:w-full! tw:h-full! tw:object-cover!;
     object-position: var(--avatar-x,50%) var(--avatar-y,50%) !important;
     transform: scale(var(--avatar-zoom,1)) !important;
     transform-origin: var(--avatar-x,50%) var(--avatar-y,50%) !important;
@@ -107,24 +92,20 @@ html[data-workspace-theme='night'] .profile-modal-v2 .profile-photo-stage .profi
 
 /* Sidebar mobile aberto: mesma linguagem quadrada, sem exagerar a escala. */
 .sidebar.mobile-open .profile-trigger-direct {
-  gap: 14px !important;
+  @apply tw:gap-[14px]!;
 }
 
 .sidebar.mobile-open .profile-trigger-direct .profile-avatar {
-  width: 50px !important;
-  height: 50px !important;
+  @apply tw:w-[50px]! tw:h-[50px]!;
   min-width: 50px !important;
-  min-height: 50px !important;
+  @apply tw:min-h-[50px]!;
   flex: 0 0 50px !important;
   margin-right: 2px !important;
-  border-radius: 14px !important;
-  overflow: hidden !important;
+  @apply tw:rounded-[14px]! tw:overflow-hidden!;
 }
 
 .sidebar.mobile-open .profile-trigger-direct .profile-avatar img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
+  @apply tw:w-full! tw:h-full! tw:object-cover!;
   object-position: var(--avatar-x,50%) var(--avatar-y,50%) !important;
   transform: scale(var(--avatar-zoom,1)) !important;
   transform-origin: var(--avatar-x,50%) var(--avatar-y,50%) !important;
@@ -133,11 +114,11 @@ html[data-workspace-theme='night'] .profile-modal-v2 .profile-photo-stage .profi
 @media (max-width: 720px) {
   .profile-modal-v2 .profile-photo-workbench {
     grid-template-columns: 1fr !important;
-    gap: 20px !important;
+    @apply tw:gap-[20px]!;
   }
 
   .profile-modal-v2 .profile-photo-stage .profile-avatar-editor.large-editor-avatar {
     width: 124px !important;
-    height: 124px !important;
+    @apply tw:h-[124px]!;
   }
 }

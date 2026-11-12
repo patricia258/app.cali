@@ -1,6 +1,7 @@
 /* CALI Workspace · V53 · correções críticas de contraste, tipografia e impressão */
 
 /* Calendário: o card do Google Workspace é AMARELO nos dois temas. */
+@reference "../tailwind.css";
 .calendar-page-v2 > .calendar-workspace-strip,
 html[data-workspace-theme='night'] .calendar-page-v2 > .calendar-workspace-strip{
   background:linear-gradient(135deg,#FFF0B8 0%,#E7C66F 56%,#F7DFA0 100%)!important;
@@ -84,11 +85,11 @@ html[data-workspace-theme='night'] .reports-admin-v16 .reports-v16-review-stats 
 .reports-v16-paper .reports-v16-reading p{font-weight:400!important}
 
 /* A versão ativa já aparece no topo; histórico mostra somente versões anteriores. */
-.reports-v16-history-table>div.active{display:none!important}
-.reports-v16-history-table:not(:has(>div:not(.head):not(.active))) .head{display:none!important}
+.reports-v16-history-table>div.active{@apply tw:hidden!}
+.reports-v16-history-table:not(:has(>div:not(.head):not(.active))) .head{@apply tw:hidden!}
 .reports-v16-history-table:not(:has(>div:not(.head):not(.active)))::after{
   content:'Nenhuma versão anterior ainda. A versão atual está aberta acima.';
-  display:block;padding:14px 0;color:#81746E;font-size:11px;
+  @apply tw:block;padding:14px 0;color:#81746E;@apply tw:text-[11px];
 }
 html[data-workspace-theme='night'] .reports-v16-history-table:not(:has(>div:not(.head):not(.active)))::after{color:#B9AAA5!important}
 
@@ -159,45 +160,36 @@ html.report-print-v16-isolated .report-print-v16-page .reports-v16-paper .report
   body.reports-v16-print-route,
   .report-print-v16-page,
   .report-print-v16-stage{
-    margin:0!important;
-    padding:0!important;
+    @apply tw:m-0! tw:p-0!;
     width:210mm!important;
     min-width:210mm!important;
-    height:auto!important;
-    min-height:0!important;
-    max-height:none!important;
+    @apply tw:h-auto! tw:min-h-0! tw:max-h-none!;
     background:#FFF!important;
     color:#2B2B2B!important;
-    overflow:visible!important;
+    @apply tw:overflow-visible!;
   }
-  .report-print-v16-toolbar{display:none!important}
+  .report-print-v16-toolbar{@apply tw:hidden!}
   .report-print-v16-stage .reports-v16-document{
-    display:block!important;
+    @apply tw:block!;
     width:210mm!important;
-    height:auto!important;
-    min-height:0!important;
-    margin:0!important;
-    padding:0!important;
-    gap:0!important;
-    overflow:visible!important;
+    @apply tw:h-auto! tw:min-h-0! tw:m-0! tw:p-0! tw:gap-0! tw:overflow-visible!;
   }
   .report-print-v16-stage .reports-v16-paper{
-    display:block!important;
+    @apply tw:block!;
     width:210mm!important;
     height:297mm!important;
     min-height:297mm!important;
-    margin:0!important;
+    @apply tw:m-0!;
     padding:12mm 13mm 10mm!important;
     background:#FFF!important;
     color:#2B2B2B!important;
     box-shadow:none!important;
-    overflow:hidden!important;
-    visibility:visible!important;
+    @apply tw:overflow-hidden! tw:visible!;
     break-after:page!important;
     page-break-after:always!important;
     -webkit-print-color-adjust:exact!important;
     print-color-adjust:exact!important;
   }
-  .report-print-v16-stage .reports-v16-paper *{visibility:visible!important}
+  .report-print-v16-stage .reports-v16-paper *{@apply tw:visible!}
   .report-print-v16-stage .reports-v16-paper:last-child{break-after:auto!important;page-break-after:auto!important}
 }

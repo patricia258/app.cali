@@ -1,0 +1,145 @@
+@import '../../modules/client/workspace-client-v2.css';
+@import '../../modules/admin/workspace-admin-v2.css';
+@import '../../modules/team/team-workspace.css';
+@import '../../modules/records/records-workspace.css';
+
+/* CALI Workspace V2, integrated into the official shell.
+   Reference: patricia258/cali-workspace-v2@7c0a232. UI only; no data or permissions.
+   Report paper and portal-mounted workflows retain their operational geometry. */
+@reference "../../styles/tailwind.css";
+:root .app-shell[data-visual-system='v2'][data-workspace-role] {
+  --v2-canvas: #f7f3ee;
+  --v2-surface: #ffffff;
+  --v2-soft: #faf8f5;
+  --v2-line: #e9e0d8;
+  --v2-text: #322f2c;
+  --v2-muted: #746a64;
+  --v2-accent: #5a1e2d;
+  --v2-gold: #b58c52;
+  --ux-shell-rail: 56px;
+  --ux-shell-open: 194px;
+  --sidebar-rail: 56px;
+  --sidebar-open: 194px;
+  --ux-canvas: var(--v2-canvas);
+  --ux-surface: var(--v2-surface);
+  --ux-line: var(--v2-line);
+  --ux-shadow-1: none;
+  --ux-shadow-2: 0 12px 36px #322f2c14;
+  @apply tw:min-h-[100dvh];
+  background: var(--v2-canvas) !important;
+  color: var(--v2-text);
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  @apply tw:text-[13px];
+}
+html[data-workspace-theme='night'] .app-shell[data-visual-system='v2'][data-workspace-role] {
+  --v2-canvas: #201b1e;
+  --v2-surface: #2b2428;
+  --v2-soft: #322a2e;
+  --v2-line: #493a40;
+  --v2-text: #f7f3ee;
+  --v2-muted: #c8bbb3;
+  --v2-accent: #e5bbc6;
+  --v2-gold: #ddbb85;
+}
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .main { @apply tw:min-w-0; background: var(--v2-canvas) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .workspace-view {
+  @apply tw:min-w-0;
+  background: var(--v2-canvas) !important;
+  background-image: none !important;
+}
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .workspace-brand-watermarks { @apply tw:hidden; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .topbar {
+  @apply tw:min-h-[61px]! tw:h-auto! tw:top-0! tw:m-0!;
+  padding: 10px 28px !important;
+  @apply tw:gap-[16px];
+  background: var(--v2-surface) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--v2-line) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .topbar-context strong { @apply tw:text-[14px]!; color: var(--v2-text) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .topbar-context small { @apply tw:text-[9px]!; color: var(--v2-muted) !important; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .top-actions { @apply tw:gap-[9px]! tw:flex-wrap tw:min-w-0; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .top-actions > .icon-button { @apply tw:w-[30px] tw:h-[30px] tw:rounded-[7px]; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .workspace-view > :is(.page, .company-team, .fronts-page) {
+  width: min(1550px, 100%) !important;
+  max-width: 1550px !important;
+  margin: 0 auto !important;
+  padding: 26px 30px 72px !important;
+  color: var(--v2-text);
+}
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page :is(h1, h2, h3) { color: var(--v2-text); }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page h1 { @apply tw:text-[29px]!; letter-spacing: -.035em; line-height: 1.2; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page :is(.panel-title h2, .section-head h2) { @apply tw:text-[14px]!; line-height: 1.4; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page :is(.panel, .hours-connect-card) {
+  border: 1px solid var(--v2-line) !important;
+  @apply tw:rounded-[9px]!;
+  background: var(--v2-surface) !important;
+  box-shadow: none !important;
+}
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page :is(.primary, .secondary, .team-btn) {
+  @apply tw:min-h-[35px] tw:rounded-[7px]!;
+  padding: 8px 12px;
+  @apply tw:text-[11px]!;
+  box-shadow: none !important;
+}
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page :is(.primary, .team-btn:not(.secondary)) { background: #5a1e2d; color: #fff; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page .secondary { background: var(--v2-surface); color: var(--v2-accent); border-color: var(--v2-line); }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page :is(.search-box, .search-field) { @apply tw:rounded-[7px]!; background: var(--v2-surface); border-color: var(--v2-line); }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page :is(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']), select) { @apply tw:text-[12px] tw:rounded-[7px]; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page :is(button, a, input, select, textarea):focus-visible { outline: 2px solid var(--v2-gold); outline-offset: 3px; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page :is(.section-kicker, .team-eyebrow) { @apply tw:text-[9px]; letter-spacing: .12em; color: var(--v2-gold); }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page table { @apply tw:text-[12px]; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page table th { background: var(--v2-soft); color: var(--v2-muted); @apply tw:text-[10px]; font-weight: 600; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page table :is(th, td) { padding-block: 12px; border-color: var(--v2-line); }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page table tbody tr:hover { background: var(--v2-soft); }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .page .inline-notice { @apply tw:rounded-[7px] tw:text-[12px]; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .modal-card { border: 1px solid var(--v2-line) !important; @apply tw:rounded-[9px]!; background: var(--v2-surface) !important; color: var(--v2-text); }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .modal-card :is(input,select,textarea,.primary,.secondary,.modal-close) { @apply tw:rounded-[7px]!; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .modal-card h2 { @apply tw:text-[21px]; }
+:root .app-shell[data-visual-system='v2'][data-workspace-role] .document-comment-list { @apply tw:rounded-[7px]!; background: var(--v2-soft) !important; }
+
+@media (min-width: 861px) {
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar,
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar:not(:hover):not(:focus-within):not(.pinned):not(.hovered) {
+    inset: 0 auto 0 0 !important;
+    @apply tw:w-[56px]! tw:h-[100dvh]! tw:min-h-0! tw:max-h-[100dvh]!;
+    padding: 12px 7px 10px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: linear-gradient(175deg,#5a1e2d 0%,#642a3b 42%,#785044 74%,#b58c52 100%) !important;
+  }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar:hover,
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar:focus-within,
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar.pinned,
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar.hovered { width: 194px !important; box-shadow: 12px 0 28px #39162218 !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar nav { @apply tw:gap-[4px]!; grid-auto-rows: 38px !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar nav a > svg { @apply tw:block! tw:shrink-0 tw:w-[16px]! tw:h-[16px]!; stroke-width: 1.55; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar nav a::after { content: none !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar nav a { @apply tw:h-[38px]! tw:min-h-[38px]! tw:max-h-[38px]!; flex-basis: 38px !important; @apply tw:rounded-[7px]! tw:text-[12px]!; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar nav a.active { color: #fff !important; background: #ffffff26 !important; box-shadow: inset 2px 0 #dcb87b !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar nav a.active::before { content: none !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role] .main { @apply tw:ml-[56px]!; width: calc(100% - 56px) !important; max-width: calc(100% - 56px) !important; flex-basis: calc(100% - 56px) !important; }
+}
+@media (max-width: 1024px) {
+  :root .app-shell[data-visual-system='v2'][data-workspace-role] .workspace-view > :is(.page, .company-team, .fronts-page) { padding: 22px 22px 60px !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role] .topbar { @apply tw:px-[20px]!; }
+}
+@media (max-width: 860px) {
+  :root .app-shell[data-visual-system='v2'][data-workspace-role] .main { @apply tw:ml-0! tw:w-full!; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role] .topbar { padding-left: 58px !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar.mobile-open { border-radius: 0 !important; inset: 0 auto 0 0 !important; @apply tw:h-[100dvh]!; }
+}
+@media (max-width: 600px) {
+  :root .app-shell[data-visual-system='v2'][data-workspace-role] .workspace-view > :is(.page, .company-team, .fronts-page) { padding: 18px 14px 60px !important; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role] .topbar { @apply tw:items-start tw:pr-[12px]! tw:gap-[8px]; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role] .top-actions { @apply tw:justify-end tw:gap-[5px]!; }
+  :root .app-shell[data-visual-system='v2'][data-workspace-role] .page h1 { @apply tw:text-[25px]!; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .sidebar,
+  :root .app-shell[data-visual-system='v2'][data-workspace-role='admin'] .page { animation: none !important; transition: none !important; }
+}

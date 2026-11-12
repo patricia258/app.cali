@@ -1,6 +1,9 @@
+import { EmptyState } from '../../../components/ds/EmptyState';
+import { InlineNotice } from '../../../components/ds/InlineNotice';
+import { LoadingState } from '../../../components/ds/LoadingState';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { capacityOf, capacityMessages, minutesLabel, percentLabel } from '../../../lib/capacity';
-import { CapacityCard } from '../../../v2/CapacityBar';
+import { CapacityCard } from '../../../components/hours/CapacityBar';
 import { AlertTriangle, Clock3 } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { supabase } from '../../../api/supabase';
@@ -186,20 +189,20 @@ export function ClientHoursPage() {
   }
 
   if (loading) {
-    return <Shell role="client"><section className="v2-client-module"><div className="data-loading" aria-live="polite" aria-busy="true">Carregando horas…</div></section></Shell>;
+    return <Shell role="client"><section className="v2-client-module"><LoadingState aria-live="polite" aria-busy="true">Carregando horas…</LoadingState></section></Shell>;
   }
 
   return <Shell role="client">
     <section className="v2-client-module">
       <header className="page-head"><div><div className="eyebrow">CONTA / ACOMPANHAMENTO EXECUTIVO</div><h1>Horas<span className="title-dot">.</span></h1><p>Onde a assessoria investiu tempo, o que foi realizado e o saldo do ciclo.</p></div></header>
-      {error && <div className="inline-notice" role="alert"><AlertTriangle size={18} />{error}</div>}
-      {summary && !summary.visible ? <section className="wf-empty"><Clock3 size={24} /><strong>A visualização de horas não está habilitada para este mês.</strong><p>Os meses já liberados continuam disponíveis para consulta. Selecione outro mês abaixo.</p><label><span>Consultar mês</span><input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></label></section> : summary && <>
+      {error && <InlineNotice role="alert"><AlertTriangle size={18} />{error}</InlineNotice>}
+      {summary && !summary.visible ? <EmptyState as="section" variant="workflow"><Clock3 size={24} /><strong>A visualização de horas não está habilitada para este mês.</strong><p>Os meses já liberados continuam disponíveis para consulta. Selecione outro mês abaixo.</p><label><span>Consultar mês</span><input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></label></EmptyState> : summary && <>
         <div className="hours-context"><span className="plan-mark">Período</span><input className="v2-hours-month" aria-label="Consultar mês" type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /><span className="hours-context-end"><Clock3 size={14}/> Visibilidade contratual habilitada</span></div>
         <div className="hours-ledger">
           <section className="ledger-main">
             <CapacityCard capacity={capacity} plan={planName} occurrence={status.occurrence} paused={status.paused} month={new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(new Date(`${period}-15T12:00:00`)).replace(/^./, (c) => c.toUpperCase())} />
             <div className="ledger-header"><h2>Onde o tempo foi investido</h2><span>{filteredRows.length} {filteredRows.length === 1 ? 'item neste período' : 'itens neste período'}</span><label className="ledger-filter">Tipo<select value={contextFilter} onChange={(event) => setContextFilter(event.target.value as ContextFilter)}><option value="all">Todos</option><option value="deliverable">Entregáveis e subtarefas</option><option value="project">Projeto</option><option value="interaction">Ocorrências e outras</option></select></label></div>
-            {filteredRows.length === 0 ? <div className="wf-empty">Nenhum registro de horas neste período.</div> : <div className="ledger-table v2-ledger-v2">
+            {filteredRows.length === 0 ? <EmptyState variant="workflow">Nenhum registro de horas neste período.</EmptyState> : <div className="ledger-table v2-ledger-v2">
               <div className="ledger-row ledger-heading"><span>Projeto</span><span>Tarefa</span><span>Tipo</span><span>Frente</span><span>Protocolo</span><span>Duração</span></div>
               {filteredRows.map((row, index) => <div className="ledger-row" key={`${row.kind}:${row.protocol || row.title}:${index}`}>
                 <span className="ledger-project">{row.project || '—'}</span><span className="ledger-title"><strong>{row.title}</strong></span><span className={`v2-ledger-kind k-${row.kind.toLowerCase().normalize('NFD').replace(/[^a-z]/g, '')}`}>{row.kind === 'Outras' ? 'Assessoria' : row.kind}</span><span>{row.front ? <span className={`chip v2-front-tag v2-front-${toneOf(row.front)}`}>{row.front}</span> : '—'}</span><span className="ledger-protocol">{row.protocol || '—'}</span><strong>{formatMinutes(row.minutes)}</strong>

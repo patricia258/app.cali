@@ -1,27 +1,25 @@
 /* Uma ilustração por vez, centralizada em todas as páginas com dados. */
+@reference "../tailwind.css";
 .data-loading,
 .cali-symbol-loading {
-  position: relative;
+  @apply tw:relative;
   min-height: 48vh !important;
-  display: grid !important;
-  place-items: center !important;
+  @apply tw:grid! tw:place-items-center!;
   background: transparent !important;
-  color: transparent !important;
+  @apply tw:text-transparent!;
   font-size: 0 !important;
 }
 
-.data-loading svg { display: none !important; }
+.data-loading svg { @apply tw:hidden!; }
 
 .data-loading::before,
 .data-loading::after,
 .cali-symbol-dot {
   content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  display: block !important;
+  @apply tw:absolute tw:top-[50%];
+  @apply tw:left-[50%] tw:block!;
   width: 78px !important;
-  height: 78px !important;
+  @apply tw:h-[78px]!;
   border-radius: 0 !important;
   background-image: none !important;
   box-shadow: none !important;
@@ -47,7 +45,7 @@
   mask-image: url('/brand/cali-oak-mark.svg');
   animation: cali-loading-second 2.4s ease-in-out infinite !important;
 }
-.cali-symbol-dot.three { display: none !important; }
+.cali-symbol-dot.three { @apply tw:hidden!; }
 
 html[data-workspace-theme='night'] .data-loading::before,
 html[data-workspace-theme='night'] .cali-symbol-dot.one { background: #D6AEB8 !important; }

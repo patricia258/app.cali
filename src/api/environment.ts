@@ -29,12 +29,13 @@ export function readSupabaseEnvironment({
 
   try {
     const target = new URL(url);
-    const local = loopback.has(target.hostname);
+    const hostname = target.hostname.replace(/\.+$/, '');
+    const local = loopback.has(hostname);
     if (
       (target.protocol !== 'https:' && !(local && target.protocol === 'http:')) ||
       target.username || target.password || target.pathname !== '/' || target.search || target.hash ||
       (local && !loopback.has(new URL(origin).hostname)) ||
-      (target.hostname === productionProject && (!allowProduction || origin !== productionOrigin))
+      (hostname === productionProject && (!allowProduction || origin !== productionOrigin))
     ) return null;
 
     return { url: target.origin, key };

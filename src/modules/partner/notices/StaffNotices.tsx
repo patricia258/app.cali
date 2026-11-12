@@ -1,10 +1,13 @@
+import { DialogForm } from '../../../components/ds/DialogForm';
+import { Button } from '../../../components/ds/Button';
+import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { useEffect, useState, type FormEvent } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../../../api/supabase';
 import type { PartnerWorkspace } from '../../../api/partner/workspace';
-import { StaffNoticesPage } from '../../shared/notices/NoticesBoard';
-import { noticeCategories, noticeReviewColumns, noticeReviewStatus, type NoticeReview } from '../../shared/notices/notice-review';
-import '../../shared/notices/notice-review.css';
+import { StaffNoticesPage } from '../../notices/NoticesBoard';
+import { noticeCategories, noticeReviewColumns, noticeReviewStatus, type NoticeReview } from '../../notices/notice-review';
+import '../../notices/notice-review.css';
 
 function newDraft(review?: NoticeReview) {
   return {
@@ -62,19 +65,19 @@ export function StaffNotices({ me }: { me: PartnerWorkspace }) {
   }
 
   return <div className="ap-app v2-admin-page v2-admin-notices"><div className="ap-content">
-    {done && <p className="inline-notice success" role="status">{done}</p>}
-    {error && !draft && <p className="inline-notice" role="alert">{error}</p>}
+    {done && <InlineNotice as="p" tone="success" role="status">{done}</InlineNotice>}
+    {error && !draft && <InlineNotice as="p" role="alert">{error}</InlineNotice>}
     {reviews.length > 0 && <section className="notice-review-panel">
       <h2>Meus comunicados</h2>
       <ul>{reviews.map((review) => <li key={review.id}>
         <strong>{review.title}</strong>
         <span>{noticeReviewStatus[review.status]}</span>
         {review.review_note && <p>{review.review_note}</p>}
-        {review.status === 'returned' && <button type="button" className="wf-secondary" onClick={() => open(review)}>Ajustar comunicado</button>}
+        {review.status === 'returned' && <Button type="button" variant="workflowSecondary" onClick={() => open(review)}>Ajustar comunicado</Button>}
       </li>)}</ul>
     </section>}
     <StaffNoticesPage onCompose={() => open()} />
-    {draft && <div className="wf-overlay"><form className="wf-modal v2-staff-form" role="dialog" aria-modal="true"
+    {draft && <div className="wf-overlay"><DialogForm className="wf-modal v2-staff-form"
       aria-label={draft.id ? 'Ajustar comunicado' : 'Novo comunicado'} onSubmit={save}>
       <header><h2>{draft.id ? 'Ajustar comunicado' : 'Novo comunicado'}</h2>
         <button type="button" onClick={() => setDraft(null)} aria-label="Fechar" disabled={busy}><X size={16} /></button></header>
@@ -94,12 +97,12 @@ export function StaffNotices({ me }: { me: PartnerWorkspace }) {
             companies: draft.companies.includes(item.id) ? draft.companies.filter((id) => id !== item.id) : [...draft.companies, item.id],
           })} /><span>{item.display_name}</span>
         </label>)}</div></fieldset>
-        {error && <p className="inline-notice" role="alert">{error}</p>}
+        {error && <InlineNotice as="p" role="alert">{error}</InlineNotice>}
       </div>
       <footer>
-        <button type="button" className="wf-secondary" onClick={() => setDraft(null)} disabled={busy}>Cancelar</button>
-        <button type="submit" className="wf-primary" disabled={busy || !draft.companies.length}>{busy ? 'Enviando…' : 'Enviar para revisão'}</button>
+        <Button type="button" variant="workflowSecondary" onClick={() => setDraft(null)} disabled={busy}>Cancelar</Button>
+        <Button type="submit" variant="workflowPrimary" pending={busy} disabled={!draft.companies.length}>{busy ? 'Enviando…' : 'Enviar para revisão'}</Button>
       </footer>
-    </form></div>}
+    </DialogForm></div>}
   </div></div>;
 }

@@ -1,11 +1,12 @@
 /* CALI Forms — página pública (/f/:slug): uma pergunta por tela, no estilo Typeform, com a identidade CALI.
    Sem login. Lê e envia pelas funções públicas de CALI Forms. */
+import { GuidedInput, GuidedTextarea } from '../../../components/ds/GuidedField';
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useParams } from '../../../hooks/useParams';
 import { useSearchParams } from '../../../hooks/useSearchParams';
 import { ArrowDown, ArrowRight, ArrowUp, Check, CornerDownLeft, Paperclip, X } from 'lucide-react';
 import { anonPublicRpc, anonStorage, supabase } from '../../../api/supabase';
-import { type FormAnswer, type FormQuestion, FILE_ACCEPT, FILE_HINT, fileLabel, isAnswerable, nextQuestionIndex, richTextHtml, scaleRange, validateAnswer } from '../../shared/forms/formModel';
+import { type FormAnswer, type FormQuestion, FILE_ACCEPT, FILE_HINT, fileLabel, isAnswerable, nextQuestionIndex, richTextHtml, scaleRange, validateAnswer } from '../../forms/formModel';
 import './public-form.css';
 
 type PublicForm = { id: string; submit_label?: string | null; success_text?: string | null; slug: string; title: string; category?: string; description: string; thank_you: string; status: 'open' | 'closed'; confirm_email: boolean; questions: FormQuestion[] };
@@ -185,7 +186,7 @@ export function PublicFormPage() {
     switch (item.kind) {
       case 'statement': return null;
       case 'long_text':
-        return <textarea ref={(node) => { inputRef.current = node; }} className="cf-text cf-long" rows={3} value={text} maxLength={5000} placeholder="Digite sua resposta aqui…" onKeyDown={onTextKey} onChange={(event) => setAnswer(event.target.value)} />;
+        return <GuidedTextarea ref={(node) => { inputRef.current = node; }} rows={3} value={text} maxLength={5000} placeholder="Digite sua resposta aqui…" onKeyDown={onTextKey} onChange={(event) => setAnswer(event.target.value)} />;
       case 'single_choice': case 'multi_choice': case 'yes_no': {
         const options = item.kind === 'yes_no' ? ['Sim', 'Não'] : item.options ?? [];
         const selected = Array.isArray(value) ? value : typeof value === 'string' ? [value] : [];
@@ -218,13 +219,13 @@ export function PublicFormPage() {
         </div>;
       }
       case 'date':
-        return <input ref={(node) => { inputRef.current = node; }} className="cf-text" type="date" value={text} onChange={(event) => setAnswer(event.target.value)} />;
+        return <GuidedInput ref={(node) => { inputRef.current = node; }} type="date" value={text} onChange={(event) => setAnswer(event.target.value)} />;
       case 'number':
-        return <input ref={(node) => { inputRef.current = node; }} className="cf-text" inputMode="decimal" value={text} placeholder="Digite um número" onChange={(event) => { const raw = event.target.value.replace(',', '.'); setAnswer(raw === '' ? '' : Number.isFinite(Number(raw)) ? Number(raw) : event.target.value); }} />;
+        return <GuidedInput ref={(node) => { inputRef.current = node; }} inputMode="decimal" value={text} placeholder="Digite um número" onChange={(event) => { const raw = event.target.value.replace(',', '.'); setAnswer(raw === '' ? '' : Number.isFinite(Number(raw)) ? Number(raw) : event.target.value); }} />;
       default: {
         const type = item.kind === 'email' ? 'email' : item.kind === 'phone' ? 'tel' : 'text';
         const auto = item.kind === 'email' ? 'email' : item.kind === 'phone' ? 'tel' : item.kind === 'name' ? 'name' : 'off';
-        return <input ref={(node) => { inputRef.current = node; }} className="cf-text" type={type} autoComplete={auto} value={text} maxLength={item.kind === 'short_text' || item.kind === 'name' ? 300 : 200} placeholder={item.kind === 'email' ? 'nome@empresa.com' : item.kind === 'phone' ? '(11) 90000-0000' : 'Digite sua resposta aqui…'} onChange={(event) => setAnswer(event.target.value)} />;
+        return <GuidedInput ref={(node) => { inputRef.current = node; }} type={type} autoComplete={auto} value={text} maxLength={item.kind === 'short_text' || item.kind === 'name' ? 300 : 200} placeholder={item.kind === 'email' ? 'nome@empresa.com' : item.kind === 'phone' ? '(11) 90000-0000' : 'Digite sua resposta aqui…'} onChange={(event) => setAnswer(event.target.value)} />;
       }
     }
   }

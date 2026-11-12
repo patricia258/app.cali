@@ -24,7 +24,7 @@ A rodada de execução avança pelos critérios abaixo até o aceite local e o P
 | 6. Admin e Cliente | Ficha, pré-cadastro, responsáveis, Ocorrências, histórico e satisfação por encerramento. | Jornadas A/B com isolamento, liberação atômica e dados coerentes em tela e PDF. |
 | 7. Continuidade e privacidade | DISC, Forms, Google Calendar/Meet e Drive. Alinhar executor, telas e documentos para eliminação em 30 dias. | Links e acervo compatíveis, integração idempotente, destinação verificada com dados sintéticos. |
 | 8. Partner e envios | Cronômetro e horas com aprovação. Revisão de Avisos e materiais. Entrega após dupla confirmação onde exigida. | Atribuição, fila, retomada e entrega externa verificadas com destinatários de teste. |
-| 9. Aceite local e Preview | Validação visual e funcional em Playwright, limpeza dos testes temporários e nova execução de build e tipos. | Tudo aprovado localmente antes de publicar o Preview no Vercel. Felipe recebe a URL e o roteiro de aceite. |
+| 9. Aceite local e Preview | Duas rodadas locais com a base versionada, comparação visual e limpeza dos artefatos temporários. | Tudo aprovado localmente antes de publicar o Preview no Vercel. Felipe recebe a URL e o roteiro de aceite. |
 
 ## Organização da aplicação
 
@@ -35,3 +35,5 @@ O [mapa de arquitetura](ARCHITECTURE.md) define as pastas, os donos de código e
 - [Regras de produto](PRODUCT_RULES.md) define o comportamento e os públicos.
 - [Dados e permissões](DATA_CONTRACTS.md) define as superfícies e a evidência exigida no backend.
 - [Matriz de aceite](CONSOLIDATION_ACCEPTANCE.md) cobre perfis, cenários e evidência de teste.
+
+A [base versionada de testes](TESTING.md) permanece na branch. Capturas, dumps e scripts descartáveis ficam fora do repositório.

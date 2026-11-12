@@ -1,46 +1,35 @@
 /* CALI Workspace — fechamento visual do menu aprovado em 28/08/2026.
    Menu compacto usa somente os dois símbolos oficiais (lima + carvalho).
    Menu aberto mantém a assinatura CALI centralizada visualmente no eixo da sidebar. */
+@reference "../../styles/tailwind.css";
 
 @media (min-width: 861px) {
   .sidebar-top {
-    position: relative !important;
-    width: 100% !important;
-    display: flex !important;
-    align-items: flex-start !important;
-    justify-content: center !important;
+    @apply tw:relative! tw:w-full! tw:flex! tw:items-start! tw:justify-center!;
   }
 
   .sidebar .brand {
-    width: 100% !important;
-    min-width: 0 !important;
+    @apply tw:w-full! tw:min-w-0!;
     margin: 0 auto !important;
     padding: 2px 0 18px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    @apply tw:flex! tw:items-center! tw:justify-center!;
   }
 
   /* Estado retraído: o símbolo ocupa exatamente o eixo do rail. */
   .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand {
-    width: 54px !important;
+    @apply tw:w-[54px]!;
     flex: 0 0 54px !important;
   }
 
   .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand-compact-slide {
-    display: flex !important;
-    width: 54px !important;
-    height: 54px !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    @apply tw:flex! tw:w-[54px]! tw:h-[54px]! tw:m-0! tw:p-0!;
     border: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
   }
 
   .sidebar:not(:hover):not(:focus-within):not(.pinned) .brand-compact-art {
-    width: 44px !important;
-    height: 44px !important;
+    @apply tw:w-[44px]! tw:h-[44px]!;
   }
 
   /* Estado aberto: compensação óptica do PNG oficial.
@@ -49,20 +38,16 @@
   .sidebar:hover .brand-full,
   .sidebar:focus-within .brand-full,
   .sidebar.pinned .brand-full {
-    display: flex !important;
-    width: 100% !important;
+    @apply tw:flex! tw:w-full!;
     margin: 0 auto !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
+    @apply tw:flex-col! tw:items-center! tw:justify-start!;
     transform: translateX(-20px) !important;
   }
 
   .sidebar:hover .brand-full img,
   .sidebar:focus-within .brand-full img,
   .sidebar.pinned .brand-full img {
-    display: block !important;
-    width: 136px !important;
+    @apply tw:block! tw:w-[136px]!;
     max-width: 136px !important;
     margin: 0 auto !important;
   }
@@ -70,10 +55,9 @@
   .sidebar:hover .brand-full span,
   .sidebar:focus-within .brand-full span,
   .sidebar.pinned .brand-full span {
-    display: block !important;
-    width: 136px !important;
+    @apply tw:block! tw:w-[136px]!;
     margin: 7px auto 0 !important;
-    text-align: center !important;
+    @apply tw:text-center!;
   }
 }
 

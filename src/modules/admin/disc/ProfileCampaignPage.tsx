@@ -2,6 +2,10 @@
    Especificação "Prazos-Lembretes-Painel_v1": cada pessoa recebe um convite com prazo (data, não contagem regressiva),
    até 3 lembretes automáticos, saída em um clique; a empresa (ponto focal) recebe véspera e fechamento.
    Indicadores: resposta, abertura, conclusão, tempo mediano, expirados e bloco de abandono. Validade: 6 meses. */
+import { Button } from '../../../components/ds/Button';
+import { EmptyState } from '../../../components/ds/EmptyState';
+import { InlineNotice } from '../../../components/ds/InlineNotice';
+import { LoadingState } from '../../../components/ds/LoadingState';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from '../../../components/navigation/Link';
 import { useParams } from '../../../hooks/useParams';
@@ -189,12 +193,12 @@ export function ProfileCampaignPage() {
 
   return <Shell role="admin"><div className="ap-app v2-admin-page v2-forms v2-client-module"><div className="ap-content"><div className="wf cpc">
     <Link className="cpc-back" to="/admin/perfil-comportamental"><ArrowLeft size={15} /> Perfil comportamental</Link>
-    {missing ? <div className="wf-empty"><strong>Link não encontrado.</strong></div> : loading || !link ? <div className="data-loading">Carregando…</div> : <>
+    {missing ? <EmptyState variant="workflow"><strong>Link não encontrado.</strong></EmptyState> : loading || !link ? <LoadingState>Carregando…</LoadingState> : <>
       <div className="wf-head"><div><small>CONVITES · {company.toUpperCase()}</small><h1>{link.title}</h1>
         <p>Cada pessoa recebe um convite com prazo de {link.deadline_days} dias, até 3 lembretes automáticos (em dia útil, das 8h às 18h) e um link para sair. {link.focal_email ? `${link.focal_name || 'O ponto focal'} recebe a véspera e o fechamento.` : 'Cadastre um ponto focal para a empresa receber a véspera e o fechamento.'}</p></div>
-        <div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => void load()}><RefreshCw size={15} /> Atualizar</button>
+        <div className="v2-head-actions"><Button variant="workflowSecondary" type="button" onClick={() => void load()}><RefreshCw size={15} /> Atualizar</Button>
           <Link className="wf-secondary" to={`/admin/perfil-comportamental/gestao/${link.id}`}><BarChart3 size={15} /> Relatório de gestão</Link>
-          <button className="wf-primary" type="button" disabled={!queued.length || busy === 'send' || link.status !== 'open'} onClick={() => void sendQueued()}><Send size={15} /> {busy === 'send' ? 'Enviando…' : `Enviar convites${queued.length ? ` (${queued.length})` : ''}`}</button></div></div>
+          <Button variant="workflowPrimary" type="button" disabled={!queued.length || busy === 'send' || link.status !== 'open'} onClick={() => void sendQueued()}><Send size={15} /> {busy === 'send' ? 'Enviando…' : `Enviar convites${queued.length ? ` (${queued.length})` : ''}`}</Button></div></div>
 
       <section className="cpc-metrics" aria-label="Indicadores">
         <div className="main"><span>Taxa de resposta</span><strong>{pct(metrics.completed, metrics.sent - metrics.declined)}</strong><small>{metrics.completed} de {metrics.sent - metrics.declined} convites válidos</small></div>
@@ -214,12 +218,12 @@ export function ProfileCampaignPage() {
             <label>Ponto focal da empresa<input value={settings.focal_name} placeholder="Nome" maxLength={120} onChange={(event) => setSettings({ ...settings, focal_name: event.target.value })} /></label>
             <label>E-mail do ponto focal<input type="email" value={settings.focal_email} placeholder="nome@empresa.com" onChange={(event) => setSettings({ ...settings, focal_email: event.target.value })} /></label>
           </div>
-          <div className="cpc-row"><button type="button" className="wf-secondary" disabled={busy === 'settings'} onClick={() => void saveSettings()}>{busy === 'settings' ? 'Salvando…' : 'Salvar'}</button>
-            {metrics.sent > 0 && !extend.open && <button type="button" className="wf-secondary" onClick={() => setExtend({ ...extend, open: true })}>Prorrogar prazo</button>}</div>
+          <div className="cpc-row"><Button type="button" variant="workflowSecondary" disabled={busy === 'settings'} onClick={() => void saveSettings()}>{busy === 'settings' ? 'Salvando…' : 'Salvar'}</Button>
+            {metrics.sent > 0 && !extend.open && <Button type="button" variant="workflowSecondary" onClick={() => setExtend({ ...extend, open: true })}>Prorrogar prazo</Button>}</div>
           {extend.open && <div className="cpc-extend">
             <label>Nova data final<input type="date" value={extend.date} min={new Date().toISOString().slice(0, 10)} onChange={(event) => setExtend({ ...extend, date: event.target.value })} /></label>
             <label>Motivo (fica registrado)<input value={extend.reason} maxLength={240} placeholder="Ex.: pedido da diretoria por causa do fechamento do mês" onChange={(event) => setExtend({ ...extend, reason: event.target.value })} /></label>
-            <div className="cpc-row"><button type="button" className="wf-secondary" onClick={() => setExtend({ open: false, date: '', reason: '' })}>Cancelar</button><button type="button" className="wf-primary" disabled={busy === 'extend'} onClick={() => void saveExtension()}>{busy === 'extend' ? 'Salvando…' : 'Prorrogar'}</button></div>
+            <div className="cpc-row"><Button type="button" variant="workflowSecondary" onClick={() => setExtend({ open: false, date: '', reason: '' })}>Cancelar</Button><Button type="button" variant="workflowPrimary" disabled={busy === 'extend'} onClick={() => void saveExtension()}>{busy === 'extend' ? 'Salvando…' : 'Prorrogar'}</Button></div>
           </div>}
           {!!link.deadline_log?.length && <ul className="cpc-log">{link.deadline_log.map((item) => <li key={item.at}><b>{dateOnly(item.at)}</b> · prorrogado até {dateOnly(item.to)} ({item.invites} {item.invites === 1 ? 'convite' : 'convites'}): {item.reason}</li>)}</ul>}
         </section>
@@ -228,16 +232,16 @@ export function ProfileCampaignPage() {
           <h2><UserPlus size={16} /> Adicionar pessoas</h2>
           <label className="cpc-paste"><span>Uma pessoa por linha, no formato <b>Nome; e-mail</b>. Pode colar direto do Excel.</span>
             <textarea rows={4} value={pasted} placeholder={'Maria Souza; maria@empresa.com\nJoão Lima; joao@empresa.com'} onChange={(event) => setPasted(event.target.value)} /></label>
-          <div className="cpc-row"><button type="button" className="wf-secondary" disabled={!pasted.trim() || busy === 'add'} onClick={() => void addPasted()}>Adicionar à fila</button></div>
+          <div className="cpc-row"><Button type="button" variant="workflowSecondary" disabled={!pasted.trim() || busy === 'add'} onClick={() => void addPasted()}>Adicionar à fila</Button></div>
           {!!available.length && <div className="cpc-team">
             <p className="cpc-muted">Equipe cadastrada de {company} ({available.length} sem convite)</p>
             <div className="cpc-team-list">{available.map((member) => <label key={member.id}><input type="checkbox" checked={picked.includes(member.id)} onChange={(event) => setPicked((current) => event.target.checked ? [...current, member.id] : current.filter((id) => id !== member.id))} /><span>{member.full_name}<small>{member.work_email}</small></span></label>)}</div>
-            <div className="cpc-row"><button type="button" className="cpc-link" onClick={() => setPicked(picked.length === available.length ? [] : available.map((member) => member.id))}>{picked.length === available.length ? 'Desmarcar todos' : 'Marcar todos'}</button><button type="button" className="wf-secondary" disabled={!picked.length || busy === 'add'} onClick={() => void addPicked()}>Adicionar selecionados ({picked.length})</button></div>
+            <div className="cpc-row"><button type="button" className="cpc-link" onClick={() => setPicked(picked.length === available.length ? [] : available.map((member) => member.id))}>{picked.length === available.length ? 'Desmarcar todos' : 'Marcar todos'}</button><Button type="button" variant="workflowSecondary" disabled={!picked.length || busy === 'add'} onClick={() => void addPicked()}>Adicionar selecionados ({picked.length})</Button></div>
           </div>}
         </section>
       </div>
 
-      {!invites.length ? <div className="wf-empty"><strong>Nenhum convite ainda.</strong><p>Adicione as pessoas acima e clique em "Enviar convites".</p></div>
+      {!invites.length ? <EmptyState variant="workflow"><strong>Nenhum convite ainda.</strong><p>Adicione as pessoas acima e clique em "Enviar convites".</p></EmptyState>
         : <div className="v2-forms-table-wrap"><table className="v2-forms-table cpa-table"><thead><tr><th>Pessoa</th><th>Situação</th><th>Prazo</th><th>Lembretes</th><th>Última atividade</th><th>Validade</th><th /></tr></thead><tbody>
           {invites.map((row) => { const valid = validity(row); return <tr key={row.id}>
             <td><span className="cpa-person"><strong>{row.person_name}{row.cycle > 1 ? ` · ciclo ${row.cycle}` : ''}</strong><small>{row.email}</small></span></td>
@@ -248,13 +252,13 @@ export function ProfileCampaignPage() {
             <td>{valid ? <span className={`v2-forms-status ${valid.expired ? 'closed' : valid.soon ? 'draft' : 'open'}`}>{valid.expired ? 'Vencido' : `Vigente até ${dateOnly(valid.until.toISOString())}`}</span> : <span className="cpa-muted">—</span>}</td>
             <td className="cpa-actions">
               {row.result_id && <Link className="wf-secondary" to={`/admin/perfil-comportamental/${row.result_id}`}><ExternalLink size={14} /> Resultado</Link>}
-              {valid && (valid.expired || valid.soon) && !renewed(row) && <button type="button" className="wf-secondary" onClick={() => void renew(row)}><RotateCcw size={14} /> Renovar</button>}
+              {valid && (valid.expired || valid.soon) && !renewed(row) && <Button type="button" variant="workflowSecondary" onClick={() => void renew(row)}><RotateCcw size={14} /> Renovar</Button>}
               {row.state === 'created' && <button type="button" className="v2-forms-edit" aria-label="Tirar da fila" title="Tirar da fila" onClick={() => void removeQueued(row)}><Trash2 size={14} /></button>}
             </td>
           </tr>; })}
         </tbody></table></div>}
-      {link.status !== 'open' && <div className="inline-notice cpc-notice error" role="alert">Este link está bloqueado: desbloqueie em "Links" para enviar convites.</div>}
-      {notice && <div className={`inline-notice cpc-notice ${notice.tone}`} role={notice.tone === 'error' ? 'alert' : 'status'}>{notice.text}</div>}
+      {link.status !== 'open' && <InlineNotice className="cpc-notice error" role="alert">Este link está bloqueado: desbloqueie em "Links" para enviar convites.</InlineNotice>}
+      {notice && <InlineNotice className={`cpc-notice ${notice.tone}`} role={notice.tone === 'error' ? 'alert' : 'status'}>{notice.text}</InlineNotice>}
     </>}
   </div></div></div></Shell>;
 }

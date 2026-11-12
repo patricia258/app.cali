@@ -1,5 +1,6 @@
 /* Pedidos de privacidade (LGPD, art. 18) feitos pelos usuários no perfil. A administradora vê o prazo e registra a resposta;
    quem pediu recebe a resposta no sino e por e-mail. A exclusão ou correção em si continua sendo feita caso a caso. */
+import { Button } from '../../../../components/ds/Button';
 import { useEffect, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { supabase } from '../../../../api/supabase';
@@ -45,7 +46,7 @@ export function PrivacyRequestsPanel() {
       <p>{row.details}</p>
       {row.answer && <p className="v2-privacy-answer"><b>Resposta:</b> {row.answer}</p>}
       {row.status === 'open' && (answering?.id === row.id
-        ? <div className="v2-privacy-form"><textarea rows={3} maxLength={4000} value={answering.text} onChange={(event) => setAnswering({ id: row.id, text: event.target.value })} placeholder="Escreva a resposta que a pessoa vai receber." /><span><button type="button" onClick={() => setAnswering(null)}>Cancelar</button><button type="button" className="primary" disabled={busy || answering.text.trim().length < 5} onClick={() => void answer()}>{busy ? 'Enviando…' : 'Enviar resposta'}</button></span></div>
+        ? <div className="v2-privacy-form"><textarea rows={3} maxLength={4000} value={answering.text} onChange={(event) => setAnswering({ id: row.id, text: event.target.value })} placeholder="Escreva a resposta que a pessoa vai receber." /><span><button type="button" onClick={() => setAnswering(null)}>Cancelar</button><Button type="button" variant="primary" disabled={busy || answering.text.trim().length < 5} onClick={() => void answer()}>{busy ? 'Enviando…' : 'Enviar resposta'}</Button></span></div>
         : <button type="button" className="v2-privacy-reply" onClick={() => { setMessage(''); setAnswering({ id: row.id, text: '' }); }}>Responder</button>)}
     </li>; })}</ul>
   </section>;

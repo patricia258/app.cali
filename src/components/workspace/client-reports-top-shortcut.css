@@ -1,12 +1,11 @@
+
+@reference "../../styles/tailwind.css";
 .top-actions .client-reports-top-shortcut {
-  position: relative;
-  display: grid;
-  place-items: center;
+  @apply tw:relative tw:grid tw:place-items-center;
   flex: 0 0 40px;
-  width: 40px;
-  height: 40px;
+  @apply tw:w-[40px] tw:h-[40px];
   border: 1px solid rgba(181, 140, 82, .55);
-  border-radius: 12px;
+  @apply tw:rounded-[12px];
   background: #f5e5c7;
   color: #5a1e2d;
   box-shadow: 0 4px 14px rgba(90, 30, 45, .1);
@@ -21,37 +20,30 @@
   transform: translateY(-2px);
 }
 .client-reports-top-count {
-  position: absolute;
-  top: -7px;
-  right: -7px;
-  display: grid;
-  place-items: center;
-  min-width: 19px;
-  height: 19px;
+  @apply tw:absolute tw:top-[-7px];
+  @apply tw:right-[-7px] tw:grid tw:place-items-center tw:min-w-[19px] tw:h-[19px];
   padding: 0 4px;
   border: 2px solid var(--card, #fffdf9);
-  border-radius: 999px;
+  @apply tw:rounded-[999px];
   background: #5a1e2d;
   color: #fff;
-  font-size: 10px;
+  @apply tw:text-[10px];
   line-height: 1;
   font-weight: 800;
 }
 .client-reports-top-shortcut::after {
   content: attr(data-tooltip);
-  position: absolute;
+  @apply tw:absolute;
   top: calc(100% + 9px);
-  left: 50%;
-  z-index: 35;
+  @apply tw:left-[50%] tw:z-35;
   transform: translate(-50%, -4px);
   padding: 7px 10px;
-  border-radius: 8px;
+  @apply tw:rounded-[8px];
   background: #5a1e2d;
   color: #fff;
-  font-size: 11px;
-  white-space: nowrap;
+  @apply tw:text-[11px] tw:whitespace-nowrap;
   opacity: 0;
-  pointer-events: none;
+  @apply tw:pointer-events-none;
   transition: opacity .15s ease, transform .15s ease;
 }
 .client-reports-top-shortcut:hover::after,
@@ -69,6 +61,6 @@ html[data-workspace-theme='night'] .top-actions .client-reports-top-shortcut:foc
 html[data-workspace-theme='night'] .top-actions .client-reports-top-shortcut.active { background: #b58c52; }
 html[data-workspace-theme='night'] .client-reports-top-count { border-color: #24191e; background: #e8c88e; color: #421c27; }
 @media(max-width:700px) {
-  .top-actions .client-reports-top-shortcut { flex-basis: 38px; width: 38px; height: 38px; }
-  .client-reports-top-shortcut::after { display: none; }
+  .top-actions .client-reports-top-shortcut { flex-basis: 38px; @apply tw:w-[38px] tw:h-[38px]; }
+  .client-reports-top-shortcut::after { @apply tw:hidden; }
 }

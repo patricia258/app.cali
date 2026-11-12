@@ -1,19 +1,19 @@
 /* CALI Workspace · identidade visual de pessoas e empresas
    Renderização segura: usa background-image na moldura existente e não altera a árvore React. */
+@reference "../tailwind.css";
 
 .identity-media-frame {
-  overflow: hidden !important;
-  position: relative !important;
+  @apply tw:overflow-hidden! tw:relative!;
   background-image: var(--identity-image, none) !important;
   background-repeat: no-repeat !important;
   background-position: var(--identity-position, center) !important;
   background-size: var(--identity-size, cover) !important;
-  color: transparent !important;
+  @apply tw:text-transparent!;
   text-shadow: none !important;
 }
 
 .identity-media-person {
-  border-radius: 12px !important;
+  @apply tw:rounded-[12px]!;
 }
 
 .identity-media-company {
@@ -30,17 +30,14 @@
 
 /* Conversa de projeto: foto real de quem está falando. */
 .conversation-avatar-v2.identity-media-frame {
-  width: 40px !important;
-  height: 40px !important;
-  min-width: 40px !important;
-  border-radius: 12px !important;
+  @apply tw:w-[40px]! tw:h-[40px]! tw:min-w-[40px]! tw:rounded-[12px]!;
   border: 1px solid color-mix(in srgb, var(--theme-accent) 18%, var(--theme-line)) !important;
   background-color: var(--theme-surface-muted) !important;
 }
 
 .conversation-list-v2 article:has(.conversation-avatar-v2.identity-media-frame) {
   grid-template-columns: 42px minmax(0,1fr) !important;
-  gap: 12px !important;
+  @apply tw:gap-[12px]!;
 }
 
 /* Molduras de empresa usam sempre o tile CALI derivado. */
@@ -58,7 +55,7 @@
 }
 
 .project-client-mark.identity-media-company {
-  padding:0 !important;
+  @apply tw:p-0!;
 }
 
 /* A identidade da empresa NÃO acompanha a troca Dia/Noite. */

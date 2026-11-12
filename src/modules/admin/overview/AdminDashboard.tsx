@@ -1,10 +1,16 @@
+import { DialogFrame } from '../../../components/ds/DialogFrame';
+import { EmptyState } from '../../../components/ds/EmptyState';
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "../../../components/navigation/Link";
 import { createPortal } from "react-dom";
+import { format } from "date-fns";
 import { ArrowRight, Building2, CalendarDays, ChevronRight, CircleAlert, Clock3, Download, MessageSquareText, Plus, X } from "lucide-react";
 import { Shell } from "../../../components/workspace/WorkspaceShell";
 import { supabase } from "../../../api/supabase";
 import { resolveWorkspaceMedia } from "../../../lib/workspaceMedia";
+import { useSearchParams } from "../../../hooks/useSearchParams";
+import { Button } from "../../../components/ds/Button";
+import { InlineNotice } from "../../../components/ds/InlineNotice";
 
 type Company = {
   id: string;
@@ -69,6 +75,19 @@ const emptySatisfaction: Satisfaction = {
   monthly: [],
   recent: [],
 };
+const dashboardSources = ["Carteira", "Projetos", "Entregáveis", "Horas", "Agenda", "Satisfação"] as const;
+type DashboardSource = typeof dashboardSources[number];
+
+async function readDashboardPages<T>(read: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>) {
+  const pageSize = 250;
+  const rows: T[] = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await read(offset, offset + pageSize - 1);
+    if (error) throw error;
+    rows.push(...(data ?? []));
+    if (!data || data.length < pageSize) return rows;
+  }
+}
 
 const statusNames: Record<string, string> = {
   approved: "Aprovados",
@@ -88,11 +107,9 @@ function greeting() {
 }
 function monthBounds() {
   const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
   const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
   return {
-    start: start.toISOString().slice(0, 10),
-    next: next.toISOString().slice(0, 10),
+    next: format(next, "yyyy-MM-dd"),
     now,
   };
 }
@@ -119,8 +136,8 @@ function overviewExportBounds(range: ExportRange) {
         ? new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1)
         : new Date(now.getFullYear(), 0, 1);
   return {
-    start: start.toISOString().slice(0, 10),
-    end: now.toISOString().slice(0, 10),
+    start: format(start, "yyyy-MM-dd"),
+    end: format(now, "yyyy-MM-dd"),
   };
 }
 
@@ -148,9 +165,10 @@ function ExportOverview({ data }: { data: DashboardData }) {
           item.dueAt.slice(0, 10) <= bounds.end)),
   );
   const exportProjects = data.projects.filter((item) => selectedIds.has(item.companyId));
-  const exportEvents = data.events.filter(
-    (item) => selectedIds.has(item.companyId) && item.startsAt.slice(0, 10) >= bounds.start && item.startsAt.slice(0, 10) <= bounds.end,
-  );
+  const exportEvents = data.events.filter((item) => {
+    const day = format(new Date(item.startsAt), "yyyy-MM-dd");
+    return selectedIds.has(item.companyId) && day >= bounds.start && day <= bounds.end;
+  });
   const exportDistribution = Object.entries(data.satisfaction.distribution).sort(([a], [b]) => Number(a) - Number(b));
   const totalMinutes = exportEntries.reduce(
     (sum, item) => sum + item.minutes,
@@ -240,10 +258,9 @@ function ExportOverview({ data }: { data: DashboardData }) {
     <>
       <button type="button" onClick={() => setOpen(true)}><Download size={15} /> Exportar</button>
       {open && createPortal((
-        <div
+        <DialogFrame
           className="overview-export-backdrop"
-          role="dialog"
-          aria-modal="true"
+          as="div"
           aria-label="Exportar visão geral"
         >
           <section className="overview-export-modal">
@@ -440,19 +457,19 @@ function ExportOverview({ data }: { data: DashboardData }) {
               </article>
             </div>
             <footer className="overview-export-actions">
-              <button
-                className="secondary"
+              <Button
+                variant="secondary"
                 type="button"
                 onClick={() => setOpen(false)}
               >
                 Voltar
-              </button>
-              <button className="primary" type="button" onClick={printPdf}>
+              </Button>
+              <Button variant="primary" type="button" onClick={printPdf}>
                 Abrir visualização do PDF
-              </button>
+              </Button>
             </footer>
           </section>
-        </div>
+        </DialogFrame>
       ), document.body)}
     </>
   );
@@ -468,8 +485,32 @@ export function AdminDashboard() {
     satisfaction: emptySatisfaction,
   });
   const [loading, setLoading] = useState(true);
-  const [account, setAccount] = useState("all");
-  const [monthOffset, setMonthOffset] = useState(0);
+  const [failedSources, setFailedSources] = useState<DashboardSource[]>([]);
+  const [reloadRevision, setReloadRevision] = useState(0);
+  const [params, setParams] = useSearchParams();
+  const accountParam = params.get("company");
+  const account = accountParam && loaded.companies.some((item) => item.id === accountParam) ? accountParam : "all";
+  const monthOptions = useMemo(() => {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" });
+    return Array.from({ length: 12 }, (_, offset) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+      const label = formatter.format(date);
+      return {
+        offset,
+        key: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`,
+        label: label.charAt(0).toUpperCase() + label.slice(1),
+      };
+    });
+  }, []);
+  const monthOffset = monthOptions.find((item) => item.key === params.get("month"))?.offset ?? 0;
+  const unavailable = (...sources: DashboardSource[]) => sources.some((source) => failedSources.includes(source));
+  function selectFilter(key: "company" | "month", value: string) {
+    const next = new URLSearchParams(params);
+    if (value) next.set(key, value);
+    else next.delete(key);
+    setParams(next, { replace: true });
+  }
   // Recorte por conta: tudo o que a página mostra passa por aqui; a exportação tem o próprio recorte.
   const data = useMemo<DashboardData>(() => account === "all" ? loaded : {
     ...loaded,
@@ -483,115 +524,114 @@ export function AdminDashboard() {
   useEffect(() => {
     let cancelled = false;
     let refreshTimer = 0;
+    let newestLoad = 0;
+    const db = supabase;
     async function load() {
-      if (!supabase) {
+      if (!db) {
+        setFailedSources([...dashboardSources]);
         setLoading(false);
         return;
       }
-      const { start, next, now } = monthBounds();
-      const historyStart = new Date(now.getFullYear(), now.getMonth() - 11, 1)
-        .toISOString()
-        .slice(0, 10);
-      try {
-        const [
-          companies,
-          projects,
-          deliverables,
-          entries,
-          events,
-          satisfaction,
-        ] = await Promise.all([
-          supabase
-            .from("companies")
-            .select(
-              "id,display_name,logo_url,service_type,service_plan,monthly_hours_contracted",
-            )
-            .neq("status", "closed")
-            .order("display_name"),
-          supabase
-            .from("projects")
-            .select("id,company_id,name,planning_status,status")
-            .neq("status", "closed")
-            .order("updated_at", { ascending: false }),
-          supabase
-            .from("deliverables")
-            .select("id,company_id,project_id,title,status,due_at")
-            .neq("status", "cancelled")
-            .order("due_at", { ascending: true }),
-          supabase
-            .from("hour_entries")
-            .select("company_id,minutes,work_date")
-            .gte("work_date", historyStart)
-            .lt("work_date", next),
-          supabase
-            .from("events")
-            .select("id,company_id,title,starts_at,event_type")
-            .gte("starts_at", now.toISOString())
-            .lt(
-              "starts_at",
-              new Date(now.getTime() + 15 * 86400000).toISOString(),
-            )
-            .is("cancelled_at", null)
-            .order("starts_at"),
-          supabase.rpc("get_admin_satisfaction_overview"),
-        ]);
-        if (cancelled) return;
-        const companyData: Company[] = await Promise.all(
-          ((companies.data || []) as any[]).map(async (row) => ({
+      const loadId = ++newestLoad;
+      const { next, now } = monthBounds();
+      const historyStart = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+      const [
+        companies,
+        projects,
+        deliverables,
+        entries,
+        events,
+        satisfaction,
+      ] = await Promise.allSettled([
+        readDashboardPages((from, to) => db
+          .from("companies")
+          .select(
+            "id,display_name,logo_url,service_type,service_plan,monthly_hours_contracted",
+          )
+          .neq("status", "closed")
+          .order("display_name")
+          .order("id")
+          .range(from, to)).then((rows) => Promise.all(rows.map(async (row) => ({
             id: row.id,
             name: row.display_name || "Cliente",
             service: row.service_plan || row.service_type || "Serviço CALI",
             contracted: Number(row.monthly_hours_contracted || 0),
-            mark: String(row.display_name || "C")
-              .trim()
-              .slice(0, 1)
-              .toUpperCase(),
+            mark: String(row.display_name || "C").trim().slice(0, 1).toUpperCase(),
             logoUrl: await resolveWorkspaceMedia(row.logo_url),
-          })),
-        );
-        const satisfactionData =
-          satisfaction.error || !satisfaction.data
-            ? emptySatisfaction
-            : (satisfaction.data as Satisfaction);
-        setData({
-          companies: companyData,
-          projects: ((projects.data || []) as any[]).map((row) => ({
+          })))),
+        readDashboardPages((from, to) => db
+          .from("projects")
+          .select("id,company_id,name,planning_status,status")
+          .neq("status", "closed")
+          .order("updated_at", { ascending: false })
+          .order("id")
+          .range(from, to)).then((rows) => rows.map((row) => ({
             id: row.id,
             companyId: row.company_id,
             name: row.name || "Projeto",
             planningStatus: row.planning_status,
             status: row.status,
-          })),
-          deliverables: ((deliverables.data || []) as any[]).map((row) => ({
+          }))),
+        readDashboardPages((from, to) => db
+          .from("deliverables")
+          .select("id,company_id,project_id,title,status,due_at")
+          .neq("status", "cancelled")
+          .order("due_at", { ascending: true })
+          .order("id")
+          .range(from, to)).then((rows) => rows.map((row) => ({
             id: row.id,
             companyId: row.company_id,
             projectId: row.project_id,
             title: row.title || "Entregável",
             status: row.status,
             dueAt: row.due_at,
-          })),
-          entries: ((entries.data || []) as any[]).map((row) => ({
+          }))),
+        readDashboardPages((from, to) => db
+          .from("hour_entries")
+          .select("company_id,minutes,work_date")
+          .gte("work_date", format(historyStart, "yyyy-MM-dd"))
+          .lt("work_date", next)
+          .order("id")
+          .range(from, to)).then((rows) => rows.map((row) => ({
             companyId: row.company_id,
             minutes: Number(row.minutes || 0),
             workDate: row.work_date,
-          })),
-          events: ((events.data || []) as any[]).map((row) => ({
+          }))),
+        readDashboardPages((from, to) => db
+          .from("events")
+          .select("id,company_id,title,starts_at,event_type")
+          .gte("starts_at", historyStart.toISOString())
+          .lt(
+            "starts_at",
+            new Date(now.getTime() + 15 * 86400000).toISOString(),
+          )
+          .is("cancelled_at", null)
+          .order("starts_at")
+          .order("id")
+          .range(from, to)).then((rows): AgendaEvent[] => rows.map((row) => ({
             id: row.id,
             companyId: row.company_id,
             title: row.title || "Compromisso",
             startsAt: row.starts_at,
-            type:
-              row.event_type === "meeting"
-                ? "meeting"
-                : row.event_type === "deadline"
-                  ? "deadline"
-                  : "validation",
-          })),
-          satisfaction: satisfactionData,
-        });
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+            type: row.event_type === "meeting" || row.event_type === "deadline" ? row.event_type : "validation",
+          }))),
+        db.rpc("get_admin_satisfaction_overview").then(({ data, error }) => {
+          if (error) throw error;
+          return data as Satisfaction | null;
+        }),
+      ] as const);
+      if (cancelled || newestLoad !== loadId) return;
+      const results = [companies, projects, deliverables, entries, events, satisfaction];
+      setFailedSources(dashboardSources.filter((_, index) => results[index].status === "rejected"));
+      setData((previous) => ({
+        companies: companies.status === "fulfilled" ? companies.value : previous.companies,
+        projects: projects.status === "fulfilled" ? projects.value : previous.projects,
+        deliverables: deliverables.status === "fulfilled" ? deliverables.value : previous.deliverables,
+        entries: entries.status === "fulfilled" ? entries.value : previous.entries,
+        events: events.status === "fulfilled" ? events.value : previous.events,
+        satisfaction: satisfaction.status === "fulfilled" ? satisfaction.value ?? emptySatisfaction : previous.satisfaction,
+      }));
+      setLoading(false);
     }
     function scheduleReload() {
       window.clearTimeout(refreshTimer);
@@ -649,22 +689,17 @@ export function AdminDashboard() {
       window.clearTimeout(refreshTimer);
       if (supabase) void supabase.removeChannel(channel);
     };
-  }, []);
+  }, [reloadRevision]);
 
   const companyMap = useMemo(
     () => new Map(loaded.companies.map((item) => [item.id, item])),
     [loaded.companies],
   );
-  const monthOptions = useMemo(() => Array.from({ length: 12 }, (_, offset) => {
-    const date = new Date(new Date().getFullYear(), new Date().getMonth() - offset, 1);
-    const label = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(date);
-    return { offset, label: label.charAt(0).toUpperCase() + label.slice(1) };
-  }), []);
   const currentPeriod = useMemo(() => {
     const now = new Date();
     return {
-      start: new Date(now.getFullYear(), now.getMonth() - monthOffset, 1).toISOString().slice(0, 10),
-      next: new Date(now.getFullYear(), now.getMonth() - monthOffset + 1, 1).toISOString().slice(0, 10),
+      start: format(new Date(now.getFullYear(), now.getMonth() - monthOffset, 1), "yyyy-MM-dd"),
+      next: format(new Date(now.getFullYear(), now.getMonth() - monthOffset + 1, 1), "yyyy-MM-dd"),
     };
   }, [monthOffset]);
   const currentEntries = useMemo(
@@ -711,8 +746,21 @@ export function AdminDashboard() {
   const byDue = pendingDeliverables
     .filter((item) => item.dueAt)
     .sort((a, b) => String(a.dueAt).localeCompare(String(b.dueAt)));
-  const dueSoon = byDue.filter((item) => String(item.dueAt) <= soonLimit).slice(0, 4);
-  const deadlines = byDue.filter((item) => !dueSoon.includes(item)).slice(0, 5);
+  const dueSoon = byDue.filter((item) => String(item.dueAt) <= soonLimit);
+  const displayedDueSoon = dueSoon.slice(0, 4);
+  const deadlines = byDue.filter((item) => String(item.dueAt) > soonLimit).slice(0, 5);
+  const planningReviews = data.projects.filter((item) => item.planningStatus === "client_review");
+  const adjustmentRequests = data.deliverables.filter((item) => item.status === "adjustment_requested");
+  const highUsage = data.companies.map((item) => ({
+    item,
+    usage: item.contracted ? Math.round(((minutesByCompany.get(item.id) || 0) / 60 / item.contracted) * 100) : 0,
+  })).filter(({ usage }) => usage >= 80);
+  const totalActions = new Set([
+    ...dueSoon.map((item) => `deliverable:${item.id}`),
+    ...adjustmentRequests.map((item) => `deliverable:${item.id}`),
+    ...planningReviews.map((item) => `project:${item.id}`),
+    ...highUsage.map(({ item }) => `company:${item.id}`),
+  ]).size;
   const npsMonths = (data.satisfaction.monthly || []).map((item) => ({
     label: new Intl.DateTimeFormat("pt-BR", { month: "short" })
       .format(new Date(`${item.month}T12:00:00`))
@@ -721,46 +769,35 @@ export function AdminDashboard() {
     average: Number(item.average || 0),
   }));
   const actions: { icon: JSX.Element; title: string; detail: string; helper: string; href: string; date?: string; overdue?: boolean }[] = [
-    ...dueSoon.map((item) => ({
+    ...displayedDueSoon.map((item) => ({
       icon: <Clock3 size={20} />,
       title: item.title,
       detail: loaded.companies.find((company) => company.id === item.companyId)?.name || "Cliente",
       helper: statusNames[item.status] || item.status,
-      href: "/admin/projetos",
+      href: `/admin/projetos?deliverable=${encodeURIComponent(item.id)}`,
       date: dateLabel(item.dueAt),
       overdue: String(item.dueAt) < new Date().toISOString(),
     })),
-    ...data.projects
-      .filter((item) => item.planningStatus === "client_review")
+    ...planningReviews
       .slice(0, 1)
       .map((item) => ({
         icon: <CircleAlert size={20} />,
         title: "Cronograma aguardando cliente",
         detail: item.name,
         helper: "Aprovação necessária",
-        href: "/admin/projetos",
+        href: `/admin/projetos?project=${encodeURIComponent(item.id)}`,
       })),
-    ...data.deliverables
-      .filter((item) => item.status === "adjustment_requested")
+    ...adjustmentRequests
+      .filter((item) => !displayedDueSoon.includes(item))
       .slice(0, 1)
       .map((item) => ({
         icon: <MessageSquareText size={20} />,
         title: "Ajuste solicitado pelo cliente",
         detail: item.title,
         helper: "Abrir entregável",
-        href: "/admin/projetos",
+        href: `/admin/projetos?deliverable=${encodeURIComponent(item.id)}`,
       })),
-    ...data.companies
-      .map((item) => ({
-        item,
-        usage: item.contracted
-          ? Math.round(
-              ((minutesByCompany.get(item.id) || 0) / 60 / item.contracted) *
-                100,
-            )
-          : 0,
-      }))
-      .filter(({ usage }) => usage >= 80)
+    ...highUsage
       .slice(0, 2)
       .map(({ item, usage }) => ({
         icon: <Clock3 size={20} />,
@@ -770,7 +807,8 @@ export function AdminDashboard() {
         href: "/admin/horas",
       })),
   ];
-  const events = data.events.slice(0, 5);
+  const now = Date.now();
+  const events = data.events.filter((event) => Date.parse(event.startsAt) >= now).slice(0, 5);
   const average = data.satisfaction.average == null ? null : data.satisfaction.average.toFixed(1).replace(".", ",");
   const donutTotal = statusData.reduce((sum, [, value]) => sum + value, 0);
   let donutCursor = 0;
@@ -782,11 +820,16 @@ export function AdminDashboard() {
   const eventTone = { meeting: "purple", validation: "", deadline: "blue" } as const;
   const eventKind = { meeting: "Reunião", validation: "Validação", deadline: "Prazo" } as const;
   const eventTime = (value: string) => new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+  const prioritiesUnavailable = unavailable("Entregáveis", "Projetos", "Carteira", "Horas");
+  const usageUnavailable = unavailable("Carteira", "Horas");
+  function blockStatus(message: string, ...sources: DashboardSource[]) {
+    return loading ? "Carregando…" : unavailable(...sources) ? "Dados indisponíveis" : message;
+  }
   const metrics = [
-    { label: "Contas ativas", value: String(data.companies.length), tone: "green", helper: data.companies.length ? "clientes com ciclo aberto" : "Nenhuma conta ativa", href: "/admin/clientes" },
-    { label: "Ações pendentes", value: String(actions.length), tone: "amber", helper: actions.length ? "precisam de acompanhamento" : "Nenhuma ação crítica", href: "/admin/projetos" },
-    { label: monthOffset ? `Horas em ${monthOptions[monthOffset].label.split(" ")[0].toLowerCase()}` : "Horas no mês", value: formatHours(totalMinutes), tone: "blue", helper: totalContracted ? `${Math.round((totalMinutes / 60 / totalContracted) * 100)}% das ${totalContracted}h contratadas` : "Sem horas contratadas registradas", href: "/admin/horas" },
-    { label: "NPS atual", value: average == null ? "—" : `${average}/5`, tone: "purple", helper: data.satisfaction.total ? `${data.satisfaction.total} avaliações registradas · escala 1–5` : "Nenhuma avaliação registrada", href: "/admin/satisfacao" },
+    { label: "Contas ativas", value: String(data.companies.length), tone: "green", helper: data.companies.length ? "clientes com ciclo aberto" : "Nenhuma conta ativa", href: "/admin/clientes", unavailable: unavailable("Carteira") },
+    { label: "Ações pendentes", value: String(totalActions), tone: "amber", helper: totalActions ? "precisam de acompanhamento" : "Nenhuma ação crítica", href: "/admin/projetos", unavailable: prioritiesUnavailable },
+    { label: monthOffset ? `Horas em ${monthOptions[monthOffset].label.split(" ")[0].toLowerCase()}` : "Horas no mês", value: formatHours(totalMinutes), tone: "blue", helper: totalContracted ? `${Math.round((totalMinutes / 60 / totalContracted) * 100)}% das ${totalContracted}h contratadas` : "Sem horas contratadas registradas", href: "/admin/horas", unavailable: usageUnavailable },
+    { label: "NPS da carteira", value: average == null ? "—" : `${average}/5`, tone: "purple", helper: data.satisfaction.total ? `${data.satisfaction.total} avaliações registradas · escala 1–5` : "Nenhuma avaliação registrada", href: "/admin/satisfacao", unavailable: unavailable("Satisfação") },
   ];
 
   return (
@@ -799,59 +842,63 @@ export function AdminDashboard() {
           </div>
 
           <div className="ap-filters">
-            <label><Building2 size={14} /><select aria-label="Conta" value={account} onChange={(event) => setAccount(event.target.value)}><option value="all">Todas as contas</option>{loaded.companies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-            <label><CalendarDays size={14} /><select aria-label="Mês das horas" value={monthOffset} onChange={(event) => setMonthOffset(Number(event.target.value))}>{monthOptions.map((item) => <option key={item.offset} value={item.offset}>{item.label}</option>)}</select></label>
+            <label><Building2 size={14} /><select aria-label="Conta" value={account} onChange={(event) => selectFilter("company", event.target.value === "all" ? "" : event.target.value)}><option value="all">Todas as contas</option>{loaded.companies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+            <label><CalendarDays size={14} /><select aria-label="Mês das horas" value={monthOptions[monthOffset].key} onChange={(event) => selectFilter("month", event.target.value)}>{monthOptions.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label>
             <span>O mês muda as horas; agenda e prazos mostram sempre o que vem pela frente.</span>
           </div>
+          {failedSources.length > 0 && <InlineNotice tone="danger">
+            Falha ao atualizar {failedSources.join(", ")}. Os demais dados seguem disponíveis. Valores anteriores podem aparecer enquanto a fonte estiver indisponível.
+            <Button variant="secondary" type="button" onClick={() => setReloadRevision((revision) => revision + 1)}>Tentar novamente</Button>
+          </InlineNotice>}
 
           <section className="ap-overview-hero">
             <div><small>CALI · OPERAÇÃO</small><h2>{greeting()}, Patrícia.</h2><p>O que precisa de decisão agora, quais contas merecem atenção e como cada ciclo está avançando.</p></div>
-            <ExportOverview data={loaded} />
+            {!loading && !failedSources.length && <ExportOverview data={loaded} />}
           </section>
 
           <div className="ap-metrics" aria-label="Sinais reais da operação">
-            {metrics.map((metric) => <Link className={`ap-metric ${metric.tone}`} key={metric.label} to={metric.href}><small>{metric.label}</small><strong>{loading ? "—" : metric.value}</strong><span>{metric.helper}</span></Link>)}
+            {metrics.map((metric) => <Link className={`ap-metric ${metric.tone}`} key={metric.label} to={metric.href}><small>{metric.label}</small><strong>{loading || metric.unavailable ? "—" : metric.value}</strong><span>{loading ? "Carregando…" : metric.unavailable ? "Dados indisponíveis" : metric.helper}</span></Link>)}
           </div>
 
           <div className="ap-grid-two">
             <section className="ap-pane">
               <div className="ap-pane-head"><h2>Prioridades de hoje</h2><Link to="/admin/projetos">Abrir acompanhamento <ArrowRight size={14} /></Link></div>
-              {actions.length ? actions.map((action, index) => <Link className="ap-activity" key={`${action.title}-${action.detail}`} to={action.href}><span className="ap-index">{String(index + 1).padStart(2, "0")}</span><span><strong>{action.title}</strong><small>{action.detail} · {action.helper}</small></span>{action.date && <span className={`ap-status ${action.overdue ? "red" : "amber"}`}>{action.overdue ? `Venceu ${action.date}` : action.date}</span>}<ChevronRight size={14} /></Link>) : <p className="v2-admin-empty">A operação não tem pendências críticas no momento.</p>}
+              {actions.length ? actions.map((action, index) => <Link className="ap-activity" key={`${action.title}-${action.detail}`} to={action.href}><span className="ap-index">{String(index + 1).padStart(2, "0")}</span><span><strong>{action.title}</strong><small>{action.detail} · {action.helper}</small></span>{action.date && <span className={`ap-status ${action.overdue ? "red" : "amber"}`}>{action.overdue ? `Venceu ${action.date}` : action.date}</span>}<ChevronRight size={14} /></Link>) : <EmptyState as="p" variant="admin">{blockStatus("A operação não tem pendências críticas no momento.", "Entregáveis", "Projetos", "Carteira", "Horas")}</EmptyState>}
             </section>
             <section className="ap-pane">
               <div className="ap-pane-head"><h2>Agenda da CALI</h2><Link to="/admin/calendario">Ver calendário <ArrowRight size={14} /></Link></div>
-              {events.length ? events.map((event) => <Link className="ap-time-line" key={event.id} to="/admin/calendario"><time>{dateLabel(event.startsAt)} · {eventTime(event.startsAt)}</time><i className={eventTone[event.type]} /><span><strong>{event.title}</strong><small>{companyMap.get(event.companyId)?.name || "Cliente"} · {eventKind[event.type]}</small></span><ChevronRight size={14} /></Link>) : <p className="v2-admin-empty">Nenhum compromisso nos próximos 15 dias.</p>}
+              {events.length ? events.map((event) => <Link className="ap-time-line" key={event.id} to="/admin/calendario"><time>{dateLabel(event.startsAt)} · {eventTime(event.startsAt)}</time><i className={eventTone[event.type]} /><span><strong>{event.title}</strong><small>{companyMap.get(event.companyId)?.name || "Cliente"} · {eventKind[event.type]}</small></span><ChevronRight size={14} /></Link>) : <EmptyState as="p" variant="admin">{blockStatus("Nenhum compromisso nos próximos 15 dias.", "Agenda")}</EmptyState>}
             </section>
           </div>
 
           <div className="ap-exec-grid">
             <section className="ap-pane ap-exec-hours">
               <div className="ap-pane-head"><h2>Consumo de horas por cliente</h2><Link to="/admin/horas">Detalhar horas <ArrowRight size={14} /></Link></div>
-              {data.companies.length ? data.companies.map((item) => {
+              {data.companies.length && !usageUnavailable ? data.companies.map((item) => {
                 const minutes = minutesByCompany.get(item.id) || 0;
                 const pct = item.contracted ? Math.round((minutes / 60 / item.contracted) * 100) : 0;
                 const left = item.contracted ? `${Math.max(0, item.contracted - minutes / 60).toFixed(1).replace(".", ",")}h restantes` : "Sem limite de ciclo";
                 return <Link className={`ap-hour-client ${pct >= 90 ? "critical" : pct >= 75 ? "warn" : ""}`} key={item.id} to="/admin/horas"><span className="ap-hour-logo">{item.logoUrl ? <img src={item.logoUrl} alt="" /> : item.mark}</span><span className="ap-hour-main"><strong>{item.name}</strong><small>{formatHours(minutes)}{item.contracted ? ` / ${item.contracted}h` : ""} · {left}</small><span className="ap-hour-track"><i style={{ width: `${Math.min(100, pct)}%` }} /></span></span><b>{item.contracted ? `${pct}%` : "—"}</b></Link>;
-              }) : <p className="v2-admin-empty">Nenhum cliente ativo encontrado.</p>}
+              }) : <EmptyState as="p" variant="admin">{blockStatus("Nenhum cliente ativo encontrado.", "Carteira", "Horas")}</EmptyState>}
             </section>
             <section className="ap-pane ap-exec-status">
               <div className="ap-pane-head"><h2>Status dos entregáveis</h2><Link to="/admin/projetos">Abrir projetos <ArrowRight size={14} /></Link></div>
               {statusData.length ? <>
                 <div className="ap-exec-donut" role="img" aria-label={statusData.map(([label, value]) => `${statusNames[label] || label}: ${value}`).join(", ")} style={{ background: `conic-gradient(${donutStops.join(",")})` }}><div><strong>{data.deliverables.length}</strong><small>no portfólio</small></div></div>
                 <div className="ap-exec-legend">{statusData.map(([label, value], index) => <span key={label}><i style={{ background: tones[index % tones.length] }} />{statusNames[label] || label} <strong>{value}</strong></span>)}</div>
-              </> : <p className="v2-admin-empty">Ainda não há entregáveis para consolidar.</p>}
+              </> : <EmptyState as="p" variant="admin">{blockStatus("Ainda não há entregáveis para consolidar.", "Entregáveis")}</EmptyState>}
             </section>
           </div>
 
           <div className="ap-exec-grid">
             <section className="ap-pane">
               <div className="ap-pane-head"><h2>NPS e satisfação</h2><Link to="/admin/satisfacao">Ver avaliações <ArrowRight size={14} /></Link></div>
-              <div className="ap-exec-nps"><strong>{average ?? "—"}<span>/5</span></strong><div><b>{data.satisfaction.total ? `${data.satisfaction.total} avaliações registradas` : "Nenhuma avaliação registrada"}</b><small>Escala de satisfação de 1 a 5 · evolução mensal das avaliações.</small></div></div>
-              {npsMonths.length > 1 ? <div className="ap-exec-nps-bars v2-admin-nps-bars">{npsMonths.map((month, index) => <span key={index} style={{ height: `${Math.max(4, month.average * 16)}%` }} title={`${month.label}: ${month.average.toFixed(1).replace(".", ",")}/5`}><em>{month.label}</em></span>)}</div> : <p className="v2-admin-empty">As avaliações reais aparecerão aqui conforme forem registradas.</p>}
+              <div className="ap-exec-nps"><strong>{average ?? "—"}<span>/5</span></strong><div><b>{data.satisfaction.total ? `${data.satisfaction.total} avaliações registradas` : blockStatus("Nenhuma avaliação registrada", "Satisfação")}</b><small>Escala de satisfação de 1 a 5 · evolução mensal da carteira.</small></div></div>
+              {npsMonths.length > 1 ? <div className="ap-exec-nps-bars v2-admin-nps-bars">{npsMonths.map((month, index) => <span key={index} style={{ height: `${Math.max(4, month.average * 16)}%` }} title={`${month.label}: ${month.average.toFixed(1).replace(".", ",")}/5`}><em>{month.label}</em></span>)}</div> : <EmptyState as="p" variant="admin">As avaliações reais aparecerão aqui conforme forem registradas.</EmptyState>}
             </section>
             <section className="ap-pane">
               <div className="ap-pane-head"><h2>Próximos prazos</h2><Link to="/admin/projetos">Ver cronograma <ArrowRight size={14} /></Link></div>
-              {deadlines.length ? deadlines.map((item) => <Link className="ap-deadline" key={item.id} to="/admin/projetos"><CalendarDays size={16} /><span><strong>{item.title}</strong><small>{companyMap.get(item.companyId)?.name || "Cliente"} · {statusNames[item.status] || item.status}</small></span><b>{dateLabel(item.dueAt)}</b></Link>) : <p className="v2-admin-empty">Nenhum prazo registrado.</p>}
+              {deadlines.length ? deadlines.map((item) => <Link className="ap-deadline" key={item.id} to={`/admin/projetos?deliverable=${encodeURIComponent(item.id)}`}><CalendarDays size={16} /><span><strong>{item.title}</strong><small>{companyMap.get(item.companyId)?.name || "Cliente"} · {statusNames[item.status] || item.status}</small></span><b>{dateLabel(item.dueAt)}</b></Link>) : <EmptyState as="p" variant="admin">{blockStatus("Nenhum prazo registrado.", "Entregáveis")}</EmptyState>}
             </section>
           </div>
 
@@ -873,7 +920,7 @@ export function AdminDashboard() {
                   <span className={`ap-status ${state[1]}`}>{state[0]}</span><ArrowRight size={15} />
                 </Link>;
               })}
-            </div> : <p className="v2-admin-empty">Nenhum cliente ativo encontrado.</p>}
+            </div> : <EmptyState as="p" variant="admin">{blockStatus("Nenhum cliente ativo encontrado.", "Carteira")}</EmptyState>}
           </section>
         </div>
       </div>

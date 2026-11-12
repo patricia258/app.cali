@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FileText } from 'lucide-react';
 import { resolveCompanyAsset } from '../../../../lib/companyWorkspaceLogo';
-import { resolveDocumentBrandVisual } from '../../../../lib/documentsIdentityRuntimeV42';
+import { resolveDocumentBrandVisual } from '../../../../runtime/documents/documentsIdentityRuntimeV42';
 
 const colorPromises = new Map<string, Promise<string>>();
 

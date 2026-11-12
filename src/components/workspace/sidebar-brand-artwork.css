@@ -1,12 +1,10 @@
 /* CALI Workspace · sidebar aberto alinhado ao mockup aprovado.
    Usa o pattern original como uma única imagem de fundo e a assinatura CALI
    transparente, preservando shell, perfil e comportamento do menu. */
+@reference "../../styles/tailwind.css";
 
 .app-shell {
-  width: 100vw !important;
-  max-width: 100vw !important;
-  min-width: 0 !important;
-  overflow-x: clip !important;
+  @apply tw:w-[100vw]! tw:max-w-[100vw]! tw:min-w-0! tw:overflow-x-clip!;
 }
 
 @media (min-width: 861px) {
@@ -14,30 +12,23 @@
     flex: 0 0 calc(100vw - var(--sidebar-rail)) !important;
     width: calc(100vw - var(--sidebar-rail)) !important;
     max-width: calc(100vw - var(--sidebar-rail)) !important;
-    min-width: 0 !important;
+    @apply tw:min-w-0!;
     margin-left: var(--sidebar-rail) !important;
-    left: 0 !important;
+    @apply tw:left-0!;
     transform: none !important;
   }
 
   .workspace-view {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
+    @apply tw:w-full! tw:max-w-full! tw:min-w-0!;
   }
 
   .sidebar:hover,
   .sidebar:focus-within,
   .sidebar.pinned {
-    position: fixed !important;
+    @apply tw:fixed!;
     inset: 0 auto 0 0 !important;
     width: var(--sidebar-open) !important;
-    height: 100dvh !important;
-    min-height: 100dvh !important;
-    max-height: 100dvh !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
-    isolation: isolate !important;
+    @apply tw:h-[100dvh]! tw:min-h-[100dvh]! tw:max-h-[100dvh]! tw:box-border! tw:overflow-hidden! tw:isolate!;
     background-color: #581b24 !important;
     background-image:
       linear-gradient(rgba(88, 27, 36, .72), rgba(88, 27, 36, .72)),
@@ -54,27 +45,23 @@
   .sidebar:focus-within::after,
   .sidebar.pinned::after {
     content: none !important;
-    display: none !important;
+    @apply tw:hidden!;
   }
 
   .sidebar:hover > *,
   .sidebar:focus-within > *,
   .sidebar.pinned > * {
-    position: relative !important;
-    z-index: 1 !important;
+    @apply tw:relative! tw:z-1!;
   }
 
   .sidebar:hover .brand-full,
   .sidebar:focus-within .brand-full,
   .sidebar.pinned .brand-full {
-    display: flex !important;
-    width: 100% !important;
-    min-height: 118px !important;
+    @apply tw:flex! tw:w-full! tw:min-h-[118px]!;
     margin: 0 auto !important;
     padding: 10px 26px 4px !important;
     transform: none !important;
-    align-items: center !important;
-    justify-content: center !important;
+    @apply tw:items-center! tw:justify-center!;
     background: transparent !important;
     box-shadow: none !important;
     border: 0 !important;
@@ -84,13 +71,12 @@
   .sidebar:focus-within .brand-full img,
   .sidebar.pinned .brand-full img {
     content: url('/brand/cali-workspace-transparent.svg') !important;
-    display: block !important;
+    @apply tw:block!;
     width: min(188px, 76%) !important;
     max-width: 188px !important;
-    height: auto !important;
+    @apply tw:h-auto!;
     margin: 0 auto !important;
-    object-fit: contain !important;
-    object-position: center !important;
+    @apply tw:object-contain! tw:object-center!;
     background: transparent !important;
     box-shadow: none !important;
     border: 0 !important;
@@ -100,14 +86,14 @@
   .sidebar:hover .brand-full span,
   .sidebar:focus-within .brand-full span,
   .sidebar.pinned .brand-full span {
-    display: none !important;
+    @apply tw:hidden!;
   }
 
   .sidebar:hover nav,
   .sidebar:focus-within nav,
   .sidebar.pinned nav {
     flex: 0 0 auto !important;
-    min-height: 0 !important;
+    @apply tw:min-h-0!;
   }
 
   .sidebar:hover .sidebar-pin,
@@ -124,15 +110,11 @@
   .sidebar:hover .sidebar-footer-profile-only,
   .sidebar:focus-within .sidebar-footer-profile-only,
   .sidebar.pinned .sidebar-footer-profile-only {
-    display: block !important;
-    width: 100% !important;
-    min-width: 0 !important;
+    @apply tw:block! tw:w-full! tw:min-w-0!;
     flex: 0 0 auto !important;
-    margin-top: auto !important;
-    padding-top: 14px !important;
+    @apply tw:mt-auto! tw:pt-[14px]!;
     opacity: 1 !important;
-    visibility: visible !important;
-    overflow: visible !important;
+    @apply tw:visible! tw:overflow-visible!;
     border-top-color: rgba(247, 243, 238, .22) !important;
   }
 
@@ -142,18 +124,17 @@
   .sidebar:hover .profile-trigger-direct,
   .sidebar:focus-within .profile-trigger-direct,
   .sidebar.pinned .profile-trigger-direct {
-    width: 100% !important;
-    min-width: 0 !important;
+    @apply tw:w-full! tw:min-w-0!;
     opacity: 1 !important;
-    visibility: visible !important;
+    @apply tw:visible!;
   }
 
   .sidebar:hover .profile-trigger-direct,
   .sidebar:focus-within .profile-trigger-direct,
   .sidebar.pinned .profile-trigger-direct {
-    display: grid !important;
+    @apply tw:grid!;
     grid-template-columns: 44px minmax(0, 1fr) 18px !important;
-    align-items: center !important;
+    @apply tw:items-center!;
     column-gap: 11px !important;
   }
 
@@ -163,28 +144,21 @@
   .sidebar:hover .profile-edit-chevron,
   .sidebar:focus-within .profile-edit-chevron,
   .sidebar.pinned .profile-edit-chevron {
-    display: block !important;
+    @apply tw:block!;
     opacity: 1 !important;
-    visibility: visible !important;
+    @apply tw:visible!;
   }
 }
 
 @media (max-width: 860px) {
   .main {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    margin-left: 0 !important;
+    @apply tw:w-[100vw]! tw:max-w-[100vw]! tw:ml-0!;
   }
 
   .sidebar.mobile-open {
-    position: fixed !important;
+    @apply tw:fixed!;
     inset: 0 auto 0 0 !important;
-    height: 100dvh !important;
-    min-height: 100dvh !important;
-    max-height: 100dvh !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important;
-    isolation: isolate !important;
+    @apply tw:h-[100dvh]! tw:min-h-[100dvh]! tw:max-h-[100dvh]! tw:box-border! tw:overflow-hidden! tw:isolate!;
     background-color: #581b24 !important;
     background-image:
       linear-gradient(rgba(88, 27, 36, .72), rgba(88, 27, 36, .72)),
@@ -197,20 +171,18 @@
   .sidebar.mobile-open::before,
   .sidebar.mobile-open::after {
     content: none !important;
-    display: none !important;
+    @apply tw:hidden!;
   }
 
   .sidebar.mobile-open > * {
-    position: relative !important;
-    z-index: 1 !important;
+    @apply tw:relative! tw:z-1!;
   }
 
   .sidebar.mobile-open .brand-full {
-    min-height: 112px !important;
+    @apply tw:min-h-[112px]!;
     padding: 8px 24px 2px !important;
     transform: none !important;
-    align-items: center !important;
-    justify-content: center !important;
+    @apply tw:items-center! tw:justify-center!;
     background: transparent !important;
     box-shadow: none !important;
     border: 0 !important;
@@ -220,28 +192,25 @@
     content: url('/brand/cali-workspace-transparent.svg') !important;
     width: min(184px, 68vw) !important;
     max-width: 184px !important;
-    height: auto !important;
-    object-fit: contain !important;
+    @apply tw:h-auto! tw:object-contain!;
     background: transparent !important;
     box-shadow: none !important;
     border: 0 !important;
   }
 
   .sidebar.mobile-open .brand-full span {
-    display: none !important;
+    @apply tw:hidden!;
   }
 
   .sidebar.mobile-open .sidebar-footer-profile-only {
-    display: block !important;
-    width: 100% !important;
-    margin-top: auto !important;
+    @apply tw:block! tw:w-full! tw:mt-auto!;
     opacity: 1 !important;
-    visibility: visible !important;
+    @apply tw:visible!;
   }
 
   .sidebar.mobile-open .profile-copy,
   .sidebar.mobile-open .profile-edit-chevron {
     opacity: 1 !important;
-    visibility: visible !important;
+    @apply tw:visible!;
   }
 }

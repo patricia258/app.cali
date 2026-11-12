@@ -1,6 +1,6 @@
 # Fluxos do CALI Workspace
 
-Fichas de jornada para manutenção do app.cali. A referência funcional é o app.cali em `773c9d4`. O estado **Atual** descreve as fontes da branch indicadas em cada ficha. As fichas reconciliam o levantamento e as jornadas da V2 com as decisões vigentes. [Mapa das rotas](../../src/app/router.tsx)
+Fichas de jornada para manutenção do app.cali. A referência funcional é o app.cali em `773c9d4`. As fichas reconciliam o levantamento, as jornadas da V2 e o código da branch de consolidação. [Mapa das rotas](../../src/app/router.tsx)
 
 - **Atual** registra comportamento localizado no código ou em migrations versionadas. Um link SQL identifica a versão inspecionada do contrato. O catálogo e o comportamento hospedados exigem evidência própria.
 - **Alvo** deriva das [regras de produto](../PRODUCT_RULES.md) e dos [contratos de dados](../DATA_CONTRACTS.md). As fichas detalham as transições e os pontos de integração da jornada.
@@ -23,7 +23,8 @@ Fichas de jornada para manutenção do app.cali. A referência funcional é o ap
 | [11 · Documentos e Drive](DELIVERY.md#flow-11) | `/admin/documentos`, `/cliente/documentos`, `/equipe/documentos` | Admin, Cliente, Partner atribuído |
 | [12 · Relatório mensal e PDF](ADMIN.md#flow-12) | `/admin/relatorios`, `/cliente/relatorios`, `/equipe/relatorios` | Admin, Cliente, Partner atribuído |
 | [13 · Avisos](OPERATIONS.md#flow-13) | `/admin/avisos`, `/cliente/avisos`, `/equipe/avisos` | Admin, Cliente, Partner atribuído |
-| [14 · Minha conta, sino e resumo diário](SHELL.md#flow-14) | Shell autenticado | Admin, Cliente, Partner |
+| [14 · Minha conta e sino](SHELL.md#flow-14) | Shell autenticado | Admin, Cliente, Partner |
+| [RESUMO-01 · Resumo diário](SHELL.md#resumo-01) | Edge acionada pelo cron às 19h | Admin |
 | [15 · Equipe CALI e Partner](PARTNER.md#flow-15) | `/admin/equipe-cali`, `/equipe` | Admin, Partner |
 | [16 · Satisfação e auditoria](ADMIN.md#flow-16) | `/admin/satisfacao`, `/admin/auditoria` | Admin |
 | [17 · Coleta pública e devolutivas](PUBLIC.md#flow-17) | `/perfil/:slug`, `/f/:slug`, `/admin/mapa-de-people` | Respondente, Admin, Cliente, Partner atribuído |
@@ -31,6 +32,30 @@ Fichas de jornada para manutenção do app.cali. A referência funcional é o ap
 | [17b · CALI Forms](PUBLIC.md#flow-17b) | `/f/:slug`, `/admin/formularios` | Respondente, Admin |
 | [17c · Mapa de People](PUBLIC.md#flow-17c) | `/admin/mapa-de-people`, portal | Admin, Partner atribuído, destinatário |
 | [18 · Frentes, ajuda, privacidade e encerramento](CLIENT.md#flow-18) | `/cliente/frentes`, `/cliente/ajuda`, `/admin/clientes` | Cliente, Admin, titular |
+
+## Fechamento da auditoria local
+
+| Fluxo | Evidência local | Aceite pendente no destino |
+| --- | --- | --- |
+| [01](ACCESS.md#flow-01) | Auth, MFA, termos, sessão revogada e controles de acesso | Configuração hospedada e caixa externa de teste |
+| [02](ACCESS.md#flow-02) | Ficha, pré-cadastro e liberação verificados em Playwright e PostgreSQL | Reconciliar contratos e acessos legados |
+| [03](ADMIN.md#flow-03) | Revisão, proposta, duas confirmações, PDF arquivado e transporte de teste | Conferir vínculo com amostra do portal e caixa de teste |
+| [04](CLIENT.md#flow-04) | Início por empresa e carteira com paginação, falha parcial e recarga | Navegação a ocorrências legadas |
+| [05](DELIVERY.md#flow-05) | Navegação e operações em fixtures | Cronograma, recálculo e concorrência no catálogo hospedado |
+| [06](DELIVERY.md#flow-06) | Revisões, ajuste obsoleto, arquivo e controles por clique, toque e teclado | URLs previamente emitidas e casos legados |
+| [07](OPERATIONS.md#flow-07) | Presença, pausa, justificativa e lançamento único em PostgreSQL | Cadência do cron e entrega externa aos dois destinatários |
+| [08](CLIENT.md#flow-08) | Acessos A1/A2 equivalentes, negativa B e métricas por papel | Conferir fórmulas e exportações do contrato de Equipe |
+| [09](OPERATIONS.md#flow-09) | Agenda e reconciliação com provedor Google simulado | Conta, calendário, Meet e convidados de teste |
+| [10](OPERATIONS.md#flow-10) | Histórico por empresa, fechamento e reabertura com avaliação independente | Links e anexos legados |
+| [11](DELIVERY.md#flow-11) | Projeções, Storage privado e cópia com provedor Google simulado | Pasta Drive de teste e URLs legadas |
+| [12](ADMIN.md#flow-12) | Revisão, ciência, impressão e transporte para Mailpit | Conferir PDFs históricos e caixa externa de teste |
+| [13](OPERATIONS.md#flow-13) | Revisão de aviso, negativa de publicação direta e publicação única | Público no catálogo hospedado |
+| [14](SHELL.md#flow-14) | Navegação e Minha conta em Playwright, com Login, Cliente, Admin e Partner | Responsáveis CALI por tratar pedidos |
+| [15](PARTNER.md#flow-15) | Partner atribuído/limitado, rotas, impressão e guardas | Conferir atribuições e catálogo hospedado |
+| [16](ADMIN.md#flow-16) | Coorte de encerramento, resposta tardia e impressão | Cruzar vínculos legados e PDF da mesma coorte |
+| [17](PUBLIC.md#flow-17) | DISC, Forms e Mapa exercitados separadamente | Amostras autorizadas, fidelidade de PDFs e destinatários de teste |
+| [18](CLIENT.md#flow-18) | Prazo 29/30 dias, eliminação e retomada no Storage local | Instrumentos assinados, cópias externas e registros legados sem vínculo |
+| [RESUMO-01](SHELL.md#resumo-01) | Cinco testes unitários e entrega única no Mailpit após repetir o acionamento | Cron e destinatários do ambiente de teste |
 
 ## Contexto comum
 

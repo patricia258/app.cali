@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import '../../shared/disc/profile-pages.css';
+import '../../disc/profile-pages.css';
 
 export function ProfileReportPage() {
   useEffect(() => { document.title = 'Perfil Comportamental · CALI RH'; }, []);

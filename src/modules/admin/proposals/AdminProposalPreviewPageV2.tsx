@@ -1,4 +1,6 @@
-import { AdminMaterialReview } from '../../shared/material-review/AdminMaterialReview';
+import { Button } from '../../../components/ds/Button';
+import { InlineNotice } from '../../../components/ds/InlineNotice';
+import { AdminMaterialReview } from '../../material-review/AdminMaterialReview';
 import { useMaterialDeliveryConfirmation } from '../../../hooks/useMaterialDeliveryConfirmation';
 import { useEffect, useState, type ReactNode } from 'react';
 import { ArrowLeft, Loader2, Mail, Printer, X } from 'lucide-react';
@@ -30,10 +32,44 @@ function Page({proposal,index,total,className='',darkHeader=false,minimalFooter=
 
 export function AdminProposalPreviewPageV2(){
   const { confirmDelivery, completeDelivery } = useMaterialDeliveryConfirmation();
- const{proposalId=''}=useParams();const navigate=useNavigate();const[proposal,setProposal]=useState<FullProposal|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[sendOpen,setSendOpen]=useState(false),[sending,setSending]=useState(false),[company,setCompany]=useState(''),[recipient,setRecipient]=useState(''),[email,setEmail]=useState(''),[note,setNote]=useState(''),[file,setFile]=useState<File|null>(null),[sentMessage,setSentMessage]=useState('');
- useEffect(()=>{void(async()=>{setLoading(true);setError('');try{const data=await loadPortalProposal(proposalId);if(!data)throw new Error('Proposta não encontrada.');setProposal(data);setCompany(data.submission.company_name||'');setRecipient(data.submission.contact_name||'');setEmail(data.submission.contact_email||'')}catch(e){setError(e instanceof Error?e.message:'Não foi possível carregar a proposta.')}finally{setLoading(false)}})()},[proposalId]);
+ const{proposalId=''}=useParams();const navigate=useNavigate();const[proposal,setProposal]=useState<FullProposal|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[sendOpen,setSendOpen]=useState(false),[sending,setSending]=useState(false),[note,setNote]=useState(''),[file,setFile]=useState<File|null>(null),[sentMessage,setSentMessage]=useState('');
+ useEffect(()=>{void(async()=>{setLoading(true);setError('');try{const data=await loadPortalProposal(proposalId);if(!data)throw new Error('Proposta não encontrada.');setProposal(data)}catch(e){setError(e instanceof Error?e.message:'Não foi possível carregar a proposta.')}finally{setLoading(false)}})()},[proposalId]);
  function print(){if(!proposal)return;const old=document.title;document.title=filename(proposal).replace(/\.pdf$/i,'');window.print();window.setTimeout(()=>{document.title=old},700)}
- async function send(){if(!proposal||!file||sending||proposal.status!=='aprovada')return;if(file.size>8*1024*1024)return setError('O PDF ultrapassa 8 MB.');if(recipient.trim().length<2||!email.includes('@'))return setError('Confirme nome e e-mail do decisor.');const requestId=confirmDelivery([email.trim()],[proposal.id,file.name,file.size,file.lastModified,note,company,recipient]);if(!requestId)return;setSending(true);setError('');setSentMessage('');try{const result=await sendPortalProposal({proposal_id:proposal.id,request_id:requestId,pdf_base64:await fileBase64(file),pdf_name:file.name,note,company_name:company.trim(),recipient_name:recipient.trim(),recipient_email:email.trim()});completeDelivery();setSentMessage(`Proposta enviada para ${result.to||email} ✓`);setProposal(c=>c?{...c,status:'enviada',sent_at:new Date().toISOString()}:c)}catch(e){setError(e instanceof Error?e.message:'Falha no envio.')}finally{setSending(false)}}
+ async function send() {
+   if (!proposal || sending || !['aprovada', 'enviada'].includes(proposal.status)) return;
+   const attachment = proposal.pdf_path ? null : file;
+   if (!proposal.pdf_path && !attachment) return;
+   if (attachment && attachment.size > 8 * 1024 * 1024) return setError('O PDF ultrapassa 8 MB.');
+   const recipientEmail = proposal.submission.contact_email.trim();
+   if (!recipientEmail.includes('@')) return setError('Confira o e-mail do contato no briefing.');
+   const fileIdentity = attachment && [attachment.name, attachment.size, attachment.lastModified];
+   const requestId = confirmDelivery([recipientEmail], [proposal.id, proposal.version, proposal.pdf_path, fileIdentity, note]);
+   if (!requestId) return;
+   setSending(true);
+   setError('');
+   setSentMessage('');
+   try {
+     const result = await sendPortalProposal({
+       proposal_id: proposal.id,
+       request_id: requestId,
+       version: proposal.version,
+       pdf_base64: attachment ? await fileBase64(attachment) : undefined,
+       pdf_name: attachment?.name,
+       note,
+       recipient_email: recipientEmail,
+     });
+     completeDelivery();
+     setSentMessage(`Proposta enviada para ${result.to || recipientEmail} ✓`);
+     const refreshed = await loadPortalProposal(proposal.id).catch(() => null);
+     setProposal((current) => current?.id === proposal.id ? refreshed ?? {
+       ...current, status: 'enviada', sent_at: current.sent_at ?? new Date().toISOString(),
+     } : current);
+   } catch (reason) {
+     setError(reason instanceof Error ? reason.message : 'Falha no envio.');
+   } finally {
+     setSending(false);
+   }
+ }
  async function approve(){
    if(!proposal||sending||proposal.status!=='rascunho')return;
    setSending(true);setError('');
@@ -45,13 +81,15 @@ export function AdminProposalPreviewPageV2(){
    finally{setSending(false);}
  }
  if(loading)return <Shell role="admin"><section className="page"><div className="panel portal-admin-loading"><Loader2 className="spin"/>Carregando proposta…</div></section></Shell>;
- if(!proposal)return <Shell role="admin"><section className="page"><div className="inline-notice danger">{error||'Proposta não encontrada.'}</div></section></Shell>;
+ if(!proposal)return <Shell role="admin"><section className="page"><InlineNotice tone="danger">{error||'Proposta não encontrada.'}</InlineNotice></section></Shell>;
 
  const calc=proposal.calculator_data||{},packageInfo=(PACKAGE_META[proposal.service_slug]||[]).find(x=>x.code===proposal.package_code),hours=Number(calc.monthlyHours||packageInfo?.suggestedHours||0),months=Math.max(Number(proposal.contract_months||1),Number(packageInfo?.minimumMonths||1)),profile=getProposalProfile(proposal.service_slug,proposal.package_code,proposal.submission.answers||{},months,hours),scope=scopeGroups(proposal.scope_items),cycles=Array.isArray(calc.cycles)?calc.cycles.map((x:any)=>({...x,title:present(x.title),focus:present(x.focus),objective:present(x.objective),duration:present(x.duration)})):[],roadmap=list(calc.roadmapItems),out=list(calc.outOfScope),pain=list(calc.painPoints),results=list(calc.expectedResults),advantages=list(calc.advantages),cadence=list(calc.cadence),cali=list(calc.caliResponsibilities),client=list(calc.clientResponsibilities),map=calc.mapaPeople,paymentConditionsList=paymentConditions(proposal),bonus=calc.bonus||null,monthly=Boolean(calc.monthly||proposal.service_slug==='assessoria-estrategica'||proposal.service_slug==='cali-build'||(proposal.service_slug==='marca-empregadora'&&proposal.package_code==='RECORRENTE')),nextSteps=(monthly?[['Avaliação e aprovação da proposta','Confirmação do escopo, investimento e condições desta versão.'],['Assinatura + pagamento da Ativação','Formalização do contrato e pagamento da Ativação para abertura da operação CALI.'],['Kickoff','Reunião de início para organizar insumos, responsáveis e o primeiro ciclo.']]:(Array.isArray(calc.nextSteps)&&calc.nextSteps.length?calc.nextSteps:profile.nextSteps)).map((x:any)=>[present(x[0]),present(x[1])] as [string,string]),firstName=proposal.submission.contact_name.trim().split(/\s+/)[0]||'Olá',reference=Number(proposal.subtotal||proposal.final_unit||0),discount=Math.max(0,reference-Number(proposal.final_unit||0)),commercial=unique((proposal.service_slug==='assessoria-estrategica'||proposal.service_slug==='cali-build'||(proposal.service_slug==='marca-empregadora'&&proposal.package_code==='RECORRENTE'))?[...(profile.commercial||[]),`Mensalidades pagas antecipadamente, com vencimento no ${present(calc.payment?.monthlyDue)||'1º dia útil de cada mês'}.`]:(list(calc.commercialConditions).length?list(calc.commercialConditions):profile.commercial||[])),operating=unique([...(profile.operating||[]).map(present),...cadence]),companyName=proposal.submission.company_name||'Sua empresa',solutionCopy=proposal.public_notes||profile.solutionCopy,solutionTagline=present(calc.solutionTagline)||descriptor(proposal.service_slug),contextParagraphs=paragraphs(calc.contextSummary||'Contexto em revisão.',3),readingParagraphs=paragraphs(calc.executiveReading||'',2),solutionParagraphs=paragraphs(solutionCopy||'',2),whats=`https://wa.me/5541987791933?text=${encodeURIComponent(`Olá, Pati! Aqui é ${proposal.submission.contact_name||''}, da ${proposal.submission.company_name||''}. Analisei a proposta ${packageInfo?.label||proposal.package_code} (${proposal.submission.protocol}) e gostaria de conversar sobre ela.`)}`,activationPct=Number(calc.payment?.activationPct??20),activationValue=Number(proposal.final_unit||0)*activationPct/100,paymentNote=monthly?cleanRecurringPaymentNote(proposal.payment_terms):present(proposal.payment_terms),commercialWithPayment=unique([...commercial,...paymentConditionsList,...(paymentNote?[paymentNote]:[])]),total=monthly?6:5;
+ const sendingAgain = proposal.status === 'enviada';
+ const deliverable = proposal.status === 'aprovada' || sendingAgain;
  const operatingClean=operating.filter(x=>!/carga mensal contratada|\b\d+\s*horas\b|contrato mínimo|mensalidade remunera|atuação 100% online|passagens|hospedagem|alimentação|deslocamentos/i.test(x)).slice(0,4);
  const roadmapOrCycles=roadmap.length?roadmap:cycles.map((x:any)=>[x.title,x.focus].filter(Boolean).join(' — ')).filter(Boolean);
 
- return <Shell role="admin"><section className="page portal-proposal-preview"><header className="portal-proposal-preview-toolbar"><button className="secondary" onClick={()=>navigate(`/admin/propostas/${proposal.submission_id}/editar`)}><ArrowLeft size={16}/>Editar proposta</button><div><strong>Prévia da proposta · modelo editorial</strong><span>Confira as {total===6?'seis':'cinco'} páginas A4 antes de salvar e enviar.</span></div><div><button className="secondary" onClick={print}><Printer size={16}/>Salvar PDF</button>{proposal.status==='rascunho'&&<button className="primary" disabled={sending} onClick={()=>void approve()}>Aprovar proposta</button>}{proposal.status==='aprovada'&&<button className="primary" disabled={sending} onClick={()=>setSendOpen(true)}><Mail size={16}/>Enviar por e-mail</button>}</div></header>{proposal.status==='rascunho'&&<AdminMaterialReview kind="proposal" entityId={proposal.id} />}{error&&<div className="inline-notice danger">{error}</div>}{proposal.status==='enviada'&&proposal.sent_at&&<div className="inline-notice">Versão enviada em {date(proposal.sent_at)}. Uma nova edição criará outra versão sem alterar esta.</div>}<div className="portal-proposal-document">
+ return <Shell role="admin"><section className="page portal-proposal-preview"><header className="portal-proposal-preview-toolbar"><Button variant="secondary" onClick={()=>navigate(`/admin/propostas/${proposal.submission_id}/editar`)}><ArrowLeft size={16}/>Editar proposta</Button><div><strong>Prévia da proposta · modelo editorial</strong><span>Confira as {total===6?'seis':'cinco'} páginas A4 antes de salvar e enviar.</span></div><div><Button variant="secondary" onClick={print}><Printer size={16}/>Salvar PDF</Button>{proposal.status==='rascunho'&&<Button variant="primary" disabled={sending} onClick={()=>void approve()}>Aprovar proposta</Button>}{deliverable&&<Button variant="primary" disabled={sending} onClick={()=>{setError('');setSentMessage('');setSendOpen(true)}}><Mail size={16}/>{sendingAgain ? 'Reenviar por e-mail' : 'Enviar por e-mail'}</Button>}</div></header>{proposal.status==='rascunho'&&<AdminMaterialReview kind="proposal" entityId={proposal.id} />}{error&&<InlineNotice tone="danger">{error}</InlineNotice>}{proposal.status==='enviada'&&proposal.sent_at&&<InlineNotice>Versão enviada em {date(proposal.sent_at)}. Uma nova edição criará outra versão sem alterar esta.</InlineNotice>}<div className="portal-proposal-document">
 
  <Page proposal={proposal} index={1} total={total} className="proposal-cover" darkHeader>
    <div className="proposal-cover-band">
@@ -124,5 +162,5 @@ export function AdminProposalPreviewPageV2(){
    <div className="proposal-signature proposal-signature-final editorial"><div><strong>Patrícia Lima</strong><span>People Advisory Executive · CALI RH</span></div><a href={whats} target="_blank" rel="noreferrer">Vamos conversar sobre a proposta?</a></div>
  </Page>}
 
- </div>{sendOpen&&<><button className="portal-send-backdrop" onClick={()=>setSendOpen(false)} aria-label="Fechar"/><aside className="portal-send-drawer"><header><div><span className="eyebrow">ENVIO APROVADO</span><h2>Enviar proposta</h2><p>{portalServiceLabel(proposal.service_slug)} · {proposal.submission.protocol}</p></div><button className="icon-button" onClick={()=>setSendOpen(false)}><X/></button></header><div className="portal-send-scroll"><section><h3>1. Salve o PDF</h3><p>Use “Salvar PDF”. O nome sugerido é <strong>{filename(proposal)}</strong>.</p></section><section><h3>2. Confirme o destinatário</h3><label>Empresa<input value={company} onChange={e=>setCompany(e.target.value)}/></label><label>Nome do decisor<input value={recipient} onChange={e=>setRecipient(e.target.value)}/></label><label>E-mail de envio<input type="email" value={email} onChange={e=>setEmail(e.target.value)}/></label></section><section><h3>3. Anexe e envie</h3><label>Proposta final em PDF<input type="file" accept="application/pdf,.pdf" onChange={e=>setFile(e.target.files?.[0]||null)}/></label><label>Mensagem pessoal adicional<textarea rows={5} value={note} onChange={e=>setNote(e.target.value)}/></label>{sentMessage&&<div className="inline-notice">{sentMessage}</div>}{error&&<div className="inline-notice danger">{error}</div>}</section></div><footer><button className="primary" disabled={!file||sending||recipient.trim().length<2||!email.includes('@')} onClick={()=>void send()}>{sending?'Enviando…':'Confirmar e enviar'}</button></footer></aside></>}</section></Shell>
+ </div>{sendOpen&&<><button className="portal-send-backdrop" onClick={()=>setSendOpen(false)} aria-label="Fechar"/><aside className="portal-send-drawer"><header><div><span className="eyebrow">ENVIO APROVADO</span><h2>{sendingAgain ? 'Reenviar proposta' : 'Enviar proposta'}</h2><p>{portalServiceLabel(proposal.service_slug)} · {proposal.submission.protocol}</p></div><button className="icon-button" onClick={()=>setSendOpen(false)}><X/></button></header><div className="portal-send-scroll"><section>{proposal.pdf_path ? <><h3>1. PDF oficial</h3><p>O envio usa o PDF arquivado da versão {proposal.version}.</p></> : <><h3>1. Salve o PDF</h3><p>Use “Salvar PDF”. O nome sugerido é <strong>{filename(proposal)}</strong>.</p></>}</section><section><h3>2. Confirme o destinatário</h3><p><strong>{proposal.submission.contact_name}</strong> · {proposal.submission.contact_email}</p><p>Para mudar o destinatário, atualize o contato no briefing.</p></section><section><h3>{proposal.pdf_path ? "3. Confirme o envio" : "3. Anexe e envie"}</h3>{!proposal.pdf_path&&<label>Proposta final em PDF<input type="file" accept="application/pdf,.pdf" onChange={e=>setFile(e.target.files?.[0]||null)}/></label>}<label>Mensagem pessoal adicional<textarea rows={5} value={note} onChange={e=>setNote(e.target.value)}/></label>{sentMessage&&<InlineNotice>{sentMessage}</InlineNotice>}{error&&<InlineNotice tone="danger">{error}</InlineNotice>}</section></div><footer><Button variant="primary" disabled={(!proposal.pdf_path&&!file)||sending||!proposal.submission.contact_email.includes('@')} onClick={()=>void send()}>{sending ? 'Enviando…' : sendingAgain ? 'Confirmar e reenviar' : 'Confirmar e enviar'}</Button></footer></aside></>}</section></Shell>
 }

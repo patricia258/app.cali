@@ -1,3 +1,4 @@
+import { DialogFrame } from '../ds/DialogFrame';
 import { useEffect, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Building2, CalendarPlus, Mic2, Paperclip, UserRound, X } from 'lucide-react';
@@ -114,7 +115,7 @@ export function ExtraVisitRequest() {
   return <>
     <button className="extra-visit-top-action" type="button" aria-label="Agende aqui um papo com a Pati" data-tooltip="Agende aqui um papo com a Pati" onClick={() => { setPrefill(null); setMode(null); setStep(0); setOpen(true); }}><CalendarPlus size={21}/><span>Agende aqui um papo com a Pati</span></button>
     {open && createPortal(<div className="extra-visit-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setOpen(false); }}>
-      <section className="extra-visit-dialog" role="dialog" aria-modal="true" aria-labelledby="extra-visit-heading">
+      <DialogFrame className="extra-visit-dialog" aria-labelledby="extra-visit-heading">
         <header><div className="extra-visit-heading-copy"><small>{step===0?'AGENDA COM A PATI':`${mode==='visit'?'VISITA PRESENCIAL':'PAPO ONLINE'} · ${step===1?'CONDIÇÕES':step===2?'AGENDAMENTO':'CONFIRMAÇÃO'} · ${step} DE 3`}</small><h2 id="extra-visit-heading">{step===0?'Que tipo de papo você deseja?':step === 1 ? mode==='visit' ? 'Que legal que você quer uma visita presencial minha! Vamos lá?' : 'Vamos marcar um papo online?' : step === 2 ? 'Vamos encontrar uma data?' : 'Tá quase acabando. Vamos confirmar seu pedido?'}</h2></div><button type="button" className="extra-visit-close" aria-label="Fechar" onClick={() => setOpen(false)}><X size={20}/></button>{step <= 1 && <img className="extra-visit-leaf" src="/brand/cali-oak-mark-light.svg" alt="" aria-hidden="true"/>}</header>
         <form onSubmit={submit}>
           {step===0 ? <div className="extra-visit-choice"><p>Este espaço é para encontros <strong>além dos agendamentos mensais do seu contrato</strong>. Os encontros incluídos continuam sendo organizados por mim.</p><div><button type="button" onClick={()=>selectMode('visit')}><Building2 className="extra-visit-choice-icon" size={27} aria-hidden="true"/><span>Visita presencial na sede</span><small>Quero conversar pessoalmente na minha empresa.</small></button><button type="button" onClick={()=>selectMode('online')}><span className="extra-visit-choice-icon extra-visit-online-icon" aria-hidden="true"><UserRound size={22}/><Mic2 size={16}/></span><span>Bate-papo online</span><small>Quero uma reunião por vídeo.</small></button></div></div> : step === 1 && mode==='visit' ? <><div className="extra-visit-terms"><p><strong>Atenção para as condições:</strong></p><ul>
@@ -138,7 +139,7 @@ export function ExtraVisitRequest() {
           {error && <p className="extra-visit-error" role="alert">{error}</p>}
           <footer><button type="button" onClick={() => { setError(''); setStep(2); }}>Voltar</button><button type="submit" disabled={saving || !ack}>{saving ? 'Enviando…' : 'Enviar para análise'}</button></footer></>}
         </form>
-      </section>
+      </DialogFrame>
     </div>, document.body)}
   </>;
 }

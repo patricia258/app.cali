@@ -11,6 +11,7 @@
 | Interfaces com o servidor, legado e migração | [Contratos de dados](DATA_CONTRACTS.md) · [Contratos por domínio](contracts/README.md) |
 | Sequência da consolidação e critérios de passagem | [Plano](CONSOLIDATION_PLAN.md) · [Matriz de aceite](CONSOLIDATION_ACCEPTANCE.md) |
 | Como alterar código e provar comportamento | [Roteiros de trabalho](TASK_PLAYBOOKS.md) · [Política de mudança](CHANGE_POLICY.md) |
+| Testes de lógica, jornadas e contratos | [Testes](TESTING.md) |
 | Execução local, Preview e recuperação | [Runbook](RUNBOOK.md) |
 
 ## Como localizar uma mudança

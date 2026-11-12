@@ -1,3 +1,5 @@
+import { Button } from '../../../../components/ds/Button';
+import { FieldLabel } from '../../../../components/ds/FieldLabel';
 import { useEffect, useRef, useState } from 'react';
 import { FileCheck2, Link2, ShieldCheck, UsersRound } from 'lucide-react';
 import {
@@ -115,7 +117,7 @@ export function CompanyOnboardingPanel({ companyId, isActive, onApplyPreRegistra
   if (loading) return <section className="account-tab-pane"><p role="status">Carregando acessos…</p></section>;
   if (!data) return <section className="account-tab-pane">
     <p role="alert">{error || 'Não foi possível carregar os acessos.'}</p>
-    <button className="ap-outline" type="button" onClick={reload}>Tentar novamente</button>
+    <Button variant="adminOutline" type="button" onClick={reload}>Tentar novamente</Button>
   </section>;
 
   const { registration, contract, partners, supportPartnerId, pendingAccesses, activeAccesses } = data;
@@ -124,41 +126,41 @@ export function CompanyOnboardingPanel({ companyId, isActive, onApplyPreRegistra
     <section>
       <div className="account-pane-heading"><UsersRound size={18} /><div><strong>Responsáveis</strong><span>Exibidos no Início do Cliente.</span></div></div>
       <p>Responsável CALI · Patrícia Lima</p>
-      <label className="stacked-label">Partner de apoio
+      <FieldLabel>Partner de apoio
         <select value={partnerId} onChange={(event) => setPartnerId(event.target.value)} disabled={busy}>
           <option value="">Sem Partner de apoio</option>
           {supportPartnerId && !partners.some((partner) => partner.id === supportPartnerId) &&
             <option value={supportPartnerId} disabled>Partner indisponível</option>}
           {partners.map((partner) => <option key={partner.id} value={partner.id}>{partner.name}</option>)}
         </select>
-      </label>
-      <button className="ap-outline" type="button" disabled={busy || partnerId === (supportPartnerId ?? '')}
+      </FieldLabel>
+      <Button variant="adminOutline" type="button" disabled={busy || partnerId === (supportPartnerId ?? '')}
         onClick={() => void run(async () => {
           await setCompanySupportPartner(companyId, partnerId || null);
           setStatus('Responsáveis atualizados.');
-        })}>Salvar responsáveis</button>
+        })}>Salvar responsáveis</Button>
     </section>
 
     <section>
       <div className="account-pane-heading"><Link2 size={18} /><div><strong>Pré-cadastro</strong><span>O link fica disponível por sete dias.</span></div></div>
       {registration?.submittedAt ? <>
         <p>Dados recebidos em {dateTime.format(new Date(registration.submittedAt))}.</p>
-        <button className="ap-outline" type="button" disabled={busy || !registration.fields}
-          onClick={() => { if (registration.fields) onApplyPreRegistration(registration.fields); }}>Usar dados na ficha</button>
+        <Button variant="adminOutline" type="button" disabled={busy || !registration.fields}
+          onClick={() => { if (registration.fields) onApplyPreRegistration(registration.fields); }}>Usar dados na ficha</Button>
       </> : <>
         {registration && <p>Validade do link · {dateTime.format(new Date(registration.expiresAt))}.</p>}
-        <button className="ap-outline" type="button" disabled={busy || !isActive} onClick={issueLink}>
+        <Button variant="adminOutline" type="button" disabled={busy || !isActive} onClick={issueLink}>
           {registration ? 'Gerar novo link' : 'Gerar link de pré-cadastro'}
-        </button>
+        </Button>
         {registration && <small>Ao gerar outro link, o anterior perde a validade.</small>}
         {link && <div className="company-onboarding-link">
-          <label className="stacked-label">Link para a empresa<input value={link} readOnly onFocus={(event) => event.currentTarget.select()} /></label>
-          <button className="ap-outline" type="button" onClick={() => {
+          <FieldLabel>Link para a empresa<input value={link} readOnly onFocus={(event) => event.currentTarget.select()} /></FieldLabel>
+          <Button variant="adminOutline" type="button" onClick={() => {
             void navigator.clipboard.writeText(link).then(
               () => setStatus('Link copiado.'),
               () => setError('Selecione o endereço para copiar o link.'),
             );
-          }}>Copiar</button>
+          }}>Copiar</Button>
         </div>}
       </>}
     </section>
@@ -167,14 +169,14 @@ export function CompanyOnboardingPanel({ companyId, isActive, onApplyPreRegistra
       <div className="account-pane-heading"><FileCheck2 size={18} /><div><strong>Contrato assinado</strong><span>Anexe a versão vigente assinada pela empresa.</span></div></div>
       {contract && <p>{contract.title}{contract.date ? ` · ${contract.date.split('-').reverse().join('/')}` : ''}{!contract.available && ' · arquivo indisponível'}</p>}
       <div className="company-onboarding-link">
-        <label className="stacked-label">Arquivo do contrato
+        <FieldLabel>Arquivo do contrato
           <input key={fileInputKey} type="file" accept=".pdf,.doc,.docx,image/*" disabled={busy}
             onChange={(event) => setContractFile(event.target.files?.[0])} />
-        </label>
-        <label className="stacked-label">Data do contrato<input type="date" value={contractDate} disabled={busy}
-          onChange={(event) => setContractDate(event.target.value)} /></label>
+        </FieldLabel>
+        <FieldLabel>Data do contrato<input type="date" value={contractDate} disabled={busy}
+          onChange={(event) => setContractDate(event.target.value)} /></FieldLabel>
       </div>
-      <button className="ap-outline" type="button" disabled={busy || !contractFile} onClick={uploadContract}>Anexar contrato</button>
+      <Button variant="adminOutline" type="button" disabled={busy || !contractFile} onClick={uploadContract}>Anexar contrato</Button>
     </section>
 
     <section>
@@ -186,14 +188,14 @@ export function CompanyOnboardingPanel({ companyId, isActive, onApplyPreRegistra
           onChange={(event) => setConfirmed(event.target.checked)} />
         Confirmo que o contrato vinculado está assinado e que a empresa aderiu ao Workspace.
       </label>
-      <button className="ap-primary" type="button" disabled={busy || !isActive || !pendingAccesses || !confirmed}
-        onClick={confirmRelease}>Liberar acessos</button>
+      <Button variant="adminPrimary" type="button" disabled={busy || !isActive || !pendingAccesses || !confirmed}
+        onClick={confirmRelease}>Liberar acessos</Button>
       {data.releasedAt && <small>Última liberação · {dateTime.format(new Date(data.releasedAt))}.</small>}
     </section>
     {status && <p role="status">{status}</p>}
     {error && <div>
       <p role="alert">{error}</p>
-      <button className="ap-outline" type="button" disabled={busy} onClick={reload}>Atualizar dados da ficha</button>
+      <Button variant="adminOutline" type="button" disabled={busy} onClick={reload}>Atualizar dados da ficha</Button>
     </div>}
   </section>;
 }

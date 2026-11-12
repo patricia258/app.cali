@@ -1,3 +1,5 @@
+import { Button } from '../ds/Button';
+import { DialogFrame } from '../ds/DialogFrame';
 import { AlertTriangle, CheckCircle2, Square, X } from 'lucide-react';
 
 export type TimerFinalizationTarget = {
@@ -18,7 +20,7 @@ export function TimerFinalizationDialog({ target, step, busy, onCancel, onAdvanc
   if (!target) return null;
   const item = target.kind === 'task' ? 'subtarefa' : 'entregável';
   return <div className="timer-finalize-backdrop" role="presentation">
-    <section className="timer-finalize-dialog" role="dialog" aria-modal="true" aria-labelledby="timer-finalize-title">
+    <DialogFrame className="timer-finalize-dialog" aria-labelledby="timer-finalize-title">
       <button className="timer-finalize-x" type="button" onClick={onCancel} aria-label="Fechar"><X size={19}/></button>
       <span className={`timer-finalize-icon ${step === 2 ? 'danger' : ''}`}>{step === 1 ? <Square size={22}/> : <AlertTriangle size={23}/>}</span>
       <span className="section-kicker">{step === 1 ? 'FINALIZAR EXECUÇÃO' : 'CONFIRMAÇÃO DEFINITIVA'}</span>
@@ -33,11 +35,11 @@ export function TimerFinalizationDialog({ target, step, busy, onCancel, onAdvanc
         <p className="timer-finalize-note">Essa ação ficará no histórico com data e hora como finalização manual da execução.</p>
       </>}
       <footer>
-        <button className="secondary" type="button" disabled={busy} onClick={onCancel}>Voltar</button>
+        <Button variant="secondary" type="button" disabled={busy} onClick={onCancel}>Voltar</Button>
         {step === 1
-          ? <button className="primary" type="button" disabled={busy} onClick={onAdvance}>Continuar</button>
-          : <button className="primary timer-finalize-confirm" type="button" disabled={busy} onClick={onConfirm}>{busy ? 'Finalizando…' : <><CheckCircle2 size={16}/>Sim, finalizar definitivamente</>}</button>}
+          ? <Button variant="primary" type="button" disabled={busy} onClick={onAdvance}>Continuar</Button>
+          : <Button variant="primary" className="timer-finalize-confirm" type="button" disabled={busy} onClick={onConfirm}>{busy ? 'Finalizando…' : <><CheckCircle2 size={16}/>Sim, finalizar definitivamente</>}</Button>}
       </footer>
-    </section>
+    </DialogFrame>
   </div>;
 }

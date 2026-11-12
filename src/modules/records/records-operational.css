@@ -1,0 +1,105 @@
+@reference "../../styles/tailwind.css";
+/* Ocorrências da administradora — mesma composição do cliente (lista, painel da conversa, formulário), com os campos e ações próprios da CALI */
+.v2-admin-records .wf-head{@apply tw:items-start}
+.v2-admin-records .wf-dot.red{background:#b7495d}
+.v2-admin-records .v2-record-action,.v2-admin-record-drawer .v2-record-action{@apply tw:inline-flex tw:items-center tw:ml-[8px];padding:3px 7px;@apply tw:rounded-[5px];background:#fbe9ec;color:#b7495d;@apply tw:text-[9px];font-weight:700;letter-spacing:.04em;@apply tw:align-middle}
+.v2-admin-records .wf-control-right{@apply tw:flex-nowrap}
+.v2-admin-records .wf-record-filter.v2-record-company{@apply tw:max-w-[210px];font-weight:600;color:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer header p{margin:6px 0 0;@apply tw:text-[11px];color:#857870}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-chat-line .records-chat-bubble.records-chat-bubble{background:#faf7f4!important;border:1px solid #ebe3dc!important;@apply tw:rounded-[10px]!;color:#322f2c!important;box-shadow:none!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-chat-line.mine .records-chat-bubble.records-chat-bubble{background:#f6edf0!important;border-color:#eddce2!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-chat-bubble>p{@apply tw:text-[11px]!;line-height:1.6!important;color:#322f2c!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-chat-head :is(strong,time){color:inherit}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions{@apply tw:flex-none tw:flex tw:items-center tw:justify-between tw:gap-[10px];@apply tw:flex-wrap tw:m-0;padding:14px 24px;border-top:1px solid #eadfd6;background:#fffdfb}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions>div{@apply tw:flex tw:items-center tw:gap-[8px] tw:flex-wrap tw:m-0}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions button{@apply tw:inline-flex tw:items-center tw:justify-center tw:gap-[8px] tw:h-auto tw:min-h-0;padding:10px 14px;border:1px solid #dec9c3;@apply tw:rounded-[7px];background:#fff;color:#5a1e2d;font:inherit;@apply tw:text-[11px];font-weight:700;line-height:1.2;@apply tw:cursor-pointer;box-shadow:none}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions button.danger-text{color:#b7495d;border-color:#ecd0d5}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .v2-record-drawer-actions button:disabled{opacity:.45;@apply tw:cursor-not-allowed}
+html[data-workspace-ui='v2'] .wf-modal.v2-admin-record-form{width:min(820px,100%)}
+html[data-workspace-ui='v2'] .v2-admin-record-form .wf-form-grid.three{@apply tw:grid tw:grid-cols-3;gap:12px 14px}
+html[data-workspace-ui='v2'] .v2-admin-record-form .v2-record-options{@apply tw:flex tw:items-center;gap:10px 22px;@apply tw:flex-wrap;padding:12px 14px;border:1px solid #efe7df;@apply tw:rounded-[9px];background:#fffdfb}
+html[data-workspace-ui='v2'] .v2-admin-record-form .v2-record-options label{@apply tw:inline-flex tw:items-center tw:gap-[8px] tw:m-0 tw:text-[11px];font-weight:600;color:#322f2c}
+html[data-workspace-ui='v2'] .v2-admin-record-form .v2-record-options input{@apply tw:w-[15px] tw:h-[15px] tw:m-0;accent-color:#5a1e2d}
+@media(max-width:760px){html[data-workspace-ui='v2'] .v2-admin-record-form .wf-form-grid.three{grid-template-columns:1fr}.v2-admin-records .wf-control-right{@apply tw:flex-wrap}}
+html[data-workspace-ui='v2'] .wf-modal.v2-admin-record-form .wf-form .wf-form-grid.three{@apply tw:grid-cols-3!}
+html[data-workspace-ui='v2'] .wf-modal.v2-admin-record-form .wf-form .v2-record-options label{@apply tw:inline-flex! tw:flex-row! tw:items-center! tw:gap-[8px]! tw:w-auto}
+html[data-workspace-ui='v2'] .wf-modal.v2-admin-record-form .wf-form .v2-record-options input{@apply tw:w-[15px]! tw:h-[15px]! tw:min-h-0! tw:p-0! tw:flex-none}
+@media(max-width:760px){html[data-workspace-ui='v2'] .wf-modal.v2-admin-record-form .wf-form .wf-form-grid.three{grid-template-columns:1fr!important}}
+
+/* Ocorrências da administradora — filtros em listas suspensas, grupos recolhíveis e cronômetro compacto no topo do painel */
+.v2-admin-records .wf-controls.v2-record-controls{@apply tw:flex tw:items-center tw:gap-[10px] tw:flex-nowrap}
+.v2-admin-records .v2-record-controls .wf-record-filter{@apply tw:h-[36px] tw:min-w-0;flex:0 1 190px;border:1px solid #e5d9d0;@apply tw:rounded-[7px];background-color:#fff;padding:0 28px 0 11px;font:inherit;@apply tw:text-[11px];color:#322f2c}
+.v2-admin-records .v2-record-controls .wf-record-filter.v2-record-company{flex:0 1 220px;@apply tw:max-w-none}
+.v2-admin-records .v2-record-toggle{@apply tw:flex-none tw:inline-flex tw:items-center tw:gap-[7px] tw:h-[36px];padding:0 12px;border:1px solid #e5d9d0;@apply tw:rounded-[7px];background:#fff;color:#67574c;font:inherit;@apply tw:text-[11px];font-weight:600;@apply tw:whitespace-nowrap tw:cursor-pointer}
+.v2-admin-records .v2-record-toggle.on{border-color:#b7495d;background:#fbe9ec;color:#b7495d}
+.v2-admin-records .v2-record-search{flex:1 1 200px;@apply tw:min-w-[160px] tw:flex tw:items-center tw:gap-[7px] tw:h-[36px];margin:0 0 0 auto;padding:0 11px;border:1px solid #e5d9d0;@apply tw:rounded-[7px];background:#fff;color:#9a8c83}
+.v2-admin-records .v2-record-search input{@apply tw:flex-1 tw:min-w-0;border:0;outline:0;background:none;@apply tw:p-0;font:inherit;@apply tw:text-[11px];color:#322f2c}
+.v2-admin-records .v2-record-groups{@apply tw:flex tw:flex-col tw:gap-[14px] tw:mt-[16px]}
+.v2-admin-records .v2-record-group{border:1px solid #e9dbd0;@apply tw:rounded-[10px];background:#fff;@apply tw:overflow-hidden}
+.v2-admin-records .v2-record-group-head{@apply tw:flex tw:items-center tw:gap-[12px] tw:w-full;padding:13px 16px;border:0;background:#fffdfb;font:inherit;@apply tw:text-left tw:cursor-pointer}
+.v2-admin-records .v2-record-group.open .v2-record-group-head{border-bottom:1px solid #efe7df}
+.v2-admin-records .v2-record-group-chevron{@apply tw:grid tw:place-items-center tw:w-[24px] tw:h-[24px] tw:rounded-[6px];background:#f6f0eb;color:#5a1e2d;@apply tw:flex-none}
+.v2-admin-records .v2-record-group-title{@apply tw:flex tw:flex-col tw:gap-[3px] tw:min-w-0 tw:mr-auto}
+.v2-admin-records .v2-record-group-title small{@apply tw:text-[9px];letter-spacing:1.2px;color:#ad8259}
+.v2-admin-records .v2-record-group-title strong{@apply tw:text-[13px];font-weight:600;color:#322f2c;@apply tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap}
+.v2-admin-records .v2-record-group-head .v2-record-action{@apply tw:m-0}
+.v2-admin-records .v2-record-group-count{@apply tw:flex-none tw:min-w-[30px] tw:text-center;padding:5px 9px;border:1px solid #e7d7c8;@apply tw:rounded-[7px];background:#f2e9e2;color:#6d404c;@apply tw:text-[11px]}
+.v2-admin-records .v2-record-group .wf-records{border:0;border-radius:0;box-shadow:none;@apply tw:m-0}
+.v2-admin-records .v2-record-company-name{@apply tw:inline-flex tw:items-center tw:ml-[8px];padding:3px 7px;@apply tw:rounded-[5px];background:#f4e6d2;color:#8a5a2b;@apply tw:text-[9px] tw:not-italic;font-weight:700;letter-spacing:.02em;@apply tw:align-middle}
+.v2-admin-records .v2-record-more{@apply tw:block tw:w-full;padding:11px 16px;border:0;border-top:1px solid #efe7df;background:#fffdfb;color:#5a1e2d;font:inherit;@apply tw:text-[11px];font-weight:700;@apply tw:cursor-pointer}
+@media(max-width:1100px){.v2-admin-records .wf-controls.v2-record-controls{@apply tw:flex-wrap}.v2-admin-records .v2-record-search{@apply tw:ml-0}}
+/* painel: cronômetro como etiqueta no canto superior direito (igual ao das tarefas), sem tirar espaço da conversa */
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-ops{@apply tw:m-0! tw:p-0!;border:0!important;background:none!important;@apply tw:block}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer{@apply tw:absolute! tw:top-[18px];right:62px;@apply tw:z-2 tw:inline-flex! tw:items-center tw:gap-0 tw:m-0! tw:p-0!;border:0!important;background:none!important;box-shadow:none!important;@apply tw:w-auto!}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-copy{@apply tw:hidden!}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action{@apply tw:inline-flex! tw:flex-row-reverse tw:items-center tw:gap-0 tw:m-0!;border:1px solid #dec9c3;@apply tw:rounded-[7px];background:#fff;@apply tw:overflow-hidden tw:h-[32px]}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action b{@apply tw:inline-flex tw:items-center tw:h-full;padding:0 11px;@apply tw:text-[12px]!;font-weight:700;color:#5a1e2d!important;font-variant-numeric:tabular-nums;@apply tw:whitespace-nowrap}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button{@apply tw:inline-flex! tw:items-center tw:gap-[7px] tw:h-full! tw:min-h-0!;padding:0 12px!important;border:0!important;border-radius:0!important;background:#5a1e2d!important;color:#fff!important;font:inherit;@apply tw:text-[11px]!;font-weight:700!important;@apply tw:whitespace-nowrap tw:cursor-pointer;box-shadow:none!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button::before{content:'';@apply tw:w-0 tw:h-0;border-left:7px solid currentColor;border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button.records-v25-timer-pause::before{@apply tw:w-[7px] tw:h-[9px];border:0;border-left:2.5px solid currentColor;border-right:2.5px solid currentColor;@apply tw:box-border}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button:disabled{background:#f6f0eb!important;color:#9a8c83!important;@apply tw:cursor-default}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button:disabled::before{@apply tw:hidden}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer.is-active .records-v25-timer-action{border-color:#5a1e2d}
+/* avaliação do cliente: uma faixa compacta */
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-feedback{@apply tw:flex! tw:items-center tw:gap-[12px];margin:12px 24px 0!important;padding:10px 14px!important;border:1px solid #efe7df!important;@apply tw:rounded-[9px]!;background:#fffdfb!important;box-shadow:none!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-score{@apply tw:inline-flex tw:items-center tw:gap-[6px] tw:flex-none}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-score span{@apply tw:text-[18px]}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-score strong{@apply tw:text-[16px]!;color:#322f2c}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-score strong small{@apply tw:text-[10px];color:#9a8c83}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-feedback>div:last-child{@apply tw:flex tw:flex-col tw:gap-[2px] tw:min-w-0}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-feedback .records-v28-kicker{@apply tw:text-[9px]!;font-weight:700;letter-spacing:.1em;color:#b58c52!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-feedback :is(div:last-child>strong){@apply tw:text-[11px]!;color:#322f2c}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v28-admin-feedback :is(p,div:last-child>small){@apply tw:m-0! tw:text-[10px]!;color:#857870!important}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer{right:66px;top:24px}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button{font-size:0!important;@apply tw:gap-0}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button::after{content:'Iniciar';margin-left:7px;@apply tw:text-[11px];font-weight:700}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button.records-v25-timer-pause::after{content:'Pausar'}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action button:disabled::after{content:'Encerrado';@apply tw:ml-0}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer>header>div{@apply tw:min-w-0}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer>header h2{@apply tw:mt-[22px]!}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer>header>div{flex:1 1 auto}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer>header small{@apply tw:block;padding-right:165px;@apply tw:whitespace-nowrap tw:overflow-hidden tw:text-ellipsis}
+
+/* Ocorrências da administradora — balões usando a largura do painel, botões de editar/excluir discretos, logo e "Aberta por" na lista */
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-chat-line{max-width:89%!important;width:89%}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-chat-line.mine{@apply tw:ml-auto!}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-chat-line .records-chat-bubble.records-chat-bubble{@apply tw:max-w-none! tw:w-full! tw:box-border}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-message-meta-extra{@apply tw:inline-flex tw:items-center tw:gap-[8px] tw:ml-auto}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-message-admin-controls{@apply tw:inline-flex tw:items-center tw:gap-[4px] tw:m-0}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-message-admin-controls button{@apply tw:grid tw:place-items-center tw:w-[24px] tw:h-[24px] tw:min-h-0 tw:p-0;border:0;@apply tw:rounded-[6px];background:transparent;color:#a8938f;box-shadow:none;@apply tw:cursor-pointer;font-size:0;line-height:1}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-message-admin-controls button:hover{background:#fff;color:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-message-admin-controls button:last-child:hover{color:#b7495d}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action b{@apply tw:flex-col tw:items-start tw:justify-center tw:gap-[1px];line-height:1.1}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action b::before{content:attr(data-label);@apply tw:text-[8px];font-weight:700;letter-spacing:.08em;@apply tw:uppercase;color:#9a8c83}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-v25-timer-action{@apply tw:h-[36px]}
+.v2-admin-records .v2-admin-records-list .wf-record-row{grid-template-columns:34px minmax(0,2.2fr) minmax(0,1fr) minmax(0,.9fr) minmax(0,1fr) minmax(0,.9fr) 18px}
+.v2-admin-records .v2-record-logo{@apply tw:grid tw:place-items-center tw:w-[34px] tw:h-[34px];border:1px solid #eadfd6;@apply tw:rounded-[7px];background:#fff;color:#5a1e2d;@apply tw:text-[12px];font-weight:800;@apply tw:overflow-hidden tw:flex-none}
+.v2-admin-records .v2-record-logo img{@apply tw:w-full tw:h-full tw:object-contain}
+.v2-admin-records .v2-record-author{@apply tw:flex tw:flex-col tw:gap-[3px] tw:min-w-0}
+.v2-admin-records .v2-record-author strong{@apply tw:text-[11px];font-weight:600;color:#322f2c;@apply tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap}
+.v2-admin-records .v2-record-author small{@apply tw:text-[9px];color:#a18e80}
+@media(max-width:860px){.v2-admin-records .v2-admin-records-list .wf-record-row{grid-template-columns:34px minmax(0,1fr) 18px}.v2-admin-records .v2-admin-records-list .wf-record-row.header{@apply tw:hidden}.v2-admin-records .v2-admin-records-list .wf-record-row>span:not(.v2-record-logo):not(:nth-child(2)){@apply tw:hidden}}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-chat-bubble{@apply tw:relative}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-message-meta-extra{@apply tw:absolute tw:top-[13px];@apply tw:right-[12px] tw:m-0 tw:text-[9px];color:#a19a92}
+html[data-workspace-ui='v2'] .v2-admin-record-drawer .records-message-meta-extra em{@apply tw:not-italic}

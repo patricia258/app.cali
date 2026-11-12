@@ -11,11 +11,11 @@ import './styles/tailwind.css';
 // Arquivo de uma versão anterior que não existe mais (aba aberta durante uma publicação): recarrega uma vez.
 window.addEventListener('vite:preloadError', (event) => { if (reloadOnceForNewVersion()) event.preventDefault(); });
 import { initializeWorkspaceTheme, startWorkspaceThemeClock } from './lib/workspaceTheme';
-import { startIdentityMediaRuntime } from './lib/identityMediaRuntime';
-import { installNotificationExperienceRuntime } from './lib/notificationExperienceRuntime';
-import { installMentionRuntime } from './lib/mentionRuntime';
-import { installCompanyWorkspaceIdentityRuntimeV39 } from './lib/companyWorkspaceIdentityRuntimeV39';
-import { applyVisualSystem } from './v2/visualSystem';
+import { startIdentityMediaRuntime } from './runtime/workspace/identityMediaRuntime';
+import { installNotificationExperienceRuntime } from './runtime/workspace/notificationExperienceRuntime';
+import { installMentionRuntime } from './runtime/workspace/mentionRuntime';
+import { installCompanyWorkspaceIdentityRuntimeV39 } from './runtime/workspace/companyWorkspaceIdentityRuntimeV39';
+import { applyVisualSystem } from './components/workspace/visualSystem';
 
 function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
   return <AppErrorBoundary>{children}</AppErrorBoundary>;

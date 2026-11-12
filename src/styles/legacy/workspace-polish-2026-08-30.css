@@ -7,13 +7,14 @@
    O background global de <select> usa shorthand e estava zerando
    background-repeat, fazendo a seta virar um padrão repetido.
    ========================================================= */
+@reference "../tailwind.css";
 html[data-workspace-theme='night'] select.people-map-status {
   appearance: none !important;
   -webkit-appearance: none !important;
   min-width: 166px !important;
-  min-height: 38px !important;
+  @apply tw:min-h-[38px]!;
   padding: 8px 46px 8px 16px !important;
-  border-radius: 999px !important;
+  @apply tw:rounded-[999px]!;
   border-width: 1px !important;
   border-style: solid !important;
   font-weight: 800 !important;
@@ -60,7 +61,7 @@ html[data-workspace-theme='night'] .people-map-open {
   color: #e8a4b8 !important;
   background: rgba(208,138,157,.09) !important;
   border: 1px solid rgba(208,138,157,.18) !important;
-  border-radius: 10px !important;
+  @apply tw:rounded-[10px]!;
   padding: 8px 10px !important;
   font-weight: 800 !important;
   text-decoration: none !important;
@@ -77,140 +78,105 @@ html[data-workspace-theme='night'] .people-map-open:hover {
    cobre de verdade topbar, sidebar e conteúdo do Workspace.
    ========================================================= */
 .people-map-send-layer {
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100dvh !important;
-  min-height: 100dvh !important;
-  margin: 0 !important;
+  @apply tw:fixed! tw:inset-0! tw:w-[100vw]! tw:h-[100dvh]! tw:min-h-[100dvh]! tw:m-0!;
   padding: clamp(16px,3vh,32px) clamp(16px,3vw,42px) !important;
-  display: grid !important;
-  place-items: center !important;
-  overflow: auto !important;
-  pointer-events: auto !important;
+  @apply tw:grid! tw:place-items-center! tw:overflow-auto! tw:pointer-events-auto!;
   touch-action: auto !important;
   background: rgba(27,21,24,.56) !important;
   backdrop-filter: blur(14px) saturate(.88) !important;
   -webkit-backdrop-filter: blur(14px) saturate(.88) !important;
-  z-index: 2147483600 !important;
+  @apply tw:z-2147483600!;
 }
 .people-map-send-layer > .people-map-send-modal {
-  position: relative !important;
-  z-index: 2147483601 !important;
+  @apply tw:relative! tw:z-2147483601!;
   width: min(680px,calc(100vw - 40px)) !important;
   max-height: calc(100dvh - 48px) !important;
-  margin: auto !important;
-  padding: 28px !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  pointer-events: auto !important;
-  border-radius: 20px !important;
+  @apply tw:m-auto! tw:p-[28px]! tw:overflow-y-auto!;
+  @apply tw:overflow-x-hidden! tw:pointer-events-auto! tw:rounded-[20px]!;
   background: #fffdf9 !important;
   border: 1px solid rgba(90,30,45,.10) !important;
   box-shadow: 0 30px 90px rgba(29,20,23,.24) !important;
 }
 .people-map-send-layer .people-map-send-modal,
 .people-map-send-layer .people-map-send-modal * {
-  pointer-events: auto !important;
+  @apply tw:pointer-events-auto!;
 }
-.people-map-send-modal > .eyebrow {display:block;margin-bottom:8px}
-.people-map-send-modal > h2 {margin:0 52px 8px 0 !important;font-size:1.65rem !important}
-.people-map-send-modal > p {margin:0 44px 20px 0 !important;font-size:.84rem !important;line-height:1.55 !important}
+.people-map-send-modal > .eyebrow {@apply tw:block tw:mb-[8px]}
+.people-map-send-modal > h2 {margin:0 52px 8px 0 !important;@apply tw:text-[1.65rem]!}
+.people-map-send-modal > p {margin:0 44px 20px 0 !important;@apply tw:text-[.84rem]!;line-height:1.55 !important}
 .people-map-send-close {
-  position:absolute !important;
-  top:18px !important;
-  right:18px !important;
-  width:40px !important;
-  height:40px !important;
-  display:grid !important;
-  place-items:center !important;
+  @apply tw:absolute! tw:top-[18px]!;
+  @apply tw:right-[18px]! tw:w-[40px]! tw:h-[40px]! tw:grid! tw:place-items-center!;
   border:0 !important;
-  border-radius:11px !important;
+  @apply tw:rounded-[11px]!;
   background:#f0e9e2 !important;
   color:#5a1e2d !important;
 }
-.people-map-email-form {display:grid;gap:15px;margin-bottom:16px}
-.people-map-email-form .stacked-label {display:grid;gap:7px;font-size:.76rem;font-weight:750;color:#3a3033}
-.people-map-email-form .stacked-label > small {font-size:.67rem;font-weight:500;line-height:1.4;color:#8e8184}
-.people-map-email-form .stacked-label em {font-style:normal;font-weight:500;color:#9e9093}
-.people-map-recipient-list {display:grid;gap:7px}
+.people-map-email-form {@apply tw:grid tw:gap-[15px] tw:mb-[16px]}
+.people-map-email-form .stacked-label {@apply tw:grid tw:gap-[7px] tw:text-[.76rem];font-weight:750;color:#3a3033}
+.people-map-email-form .stacked-label > small {@apply tw:text-[.67rem];font-weight:500;line-height:1.4;color:#8e8184}
+.people-map-email-form .stacked-label em {@apply tw:not-italic;font-weight:500;color:#9e9093}
+.people-map-recipient-list {@apply tw:grid tw:gap-[7px]}
 .people-map-recipient-row {
-  min-height:44px;
-  display:grid;
+  @apply tw:min-h-[44px] tw:grid;
   grid-template-columns:18px minmax(0,1fr) 34px;
-  align-items:center;
-  gap:9px;
+  @apply tw:items-center tw:gap-[9px];
   padding:0 7px 0 12px;
   border:1px solid #e6ddd4;
-  border-radius:11px;
+  @apply tw:rounded-[11px];
   background:#fff;
   color:#8b7279;
 }
 .people-map-recipient-row:focus-within {border-color:rgba(90,30,45,.32);box-shadow:0 0 0 3px rgba(90,30,45,.07)}
 .people-map-recipient-row input {
-  width:100% !important;
-  min-width:0 !important;
-  height:42px !important;
-  padding:0 !important;
+  @apply tw:w-full! tw:min-w-0! tw:h-[42px]! tw:p-0!;
   border:0 !important;
   outline:0 !important;
   background:transparent !important;
   color:#2b2b2b !important;
-  font-size:.79rem !important;
+  @apply tw:text-[.79rem]!;
 }
 .people-map-recipient-row button {
-  width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:9px;background:transparent;color:#9a858b;padding:0
+  @apply tw:w-[32px] tw:h-[32px] tw:grid tw:place-items-center;border:0;@apply tw:rounded-[9px];background:transparent;color:#9a858b;@apply tw:p-0
 }
 .people-map-recipient-row button:hover {background:rgba(90,30,45,.07);color:#5a1e2d}
 .people-map-add-recipient {
-  width:max-content;
-  min-height:34px;
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
+  @apply tw:w-max tw:min-h-[34px] tw:inline-flex tw:items-center tw:gap-[6px];
   padding:0 10px;
   border:1px solid rgba(90,30,45,.16);
-  border-radius:9px;
+  @apply tw:rounded-[9px];
   background:#fffdf9;
   color:#5a1e2d;
-  font-size:.7rem;
+  @apply tw:text-[.7rem];
   font-weight:750;
 }
 .people-map-email-subject {
-  display:grid;
-  gap:4px;
+  @apply tw:grid tw:gap-[4px];
   padding:11px 13px;
-  border-radius:11px;
+  @apply tw:rounded-[11px];
   background:rgba(90,30,45,.035);
   border:1px solid rgba(90,30,45,.08);
 }
-.people-map-email-subject span {font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:#9b8d90;font-weight:800}
-.people-map-email-subject strong {font-size:.75rem;color:#514649;font-weight:650}
+.people-map-email-subject span {@apply tw:text-[.62rem];letter-spacing:.08em;@apply tw:uppercase;color:#9b8d90;font-weight:800}
+.people-map-email-subject strong {@apply tw:text-[.75rem];color:#514649;font-weight:650}
 .people-map-email-form textarea {
-  width:100% !important;
-  min-height:82px !important;
-  resize:vertical !important;
+  @apply tw:w-full! tw:min-h-[82px]! tw:resize-y!;
   padding:11px 12px !important;
   border:1px solid #e6ddd4 !important;
-  border-radius:11px !important;
+  @apply tw:rounded-[11px]!;
   background:#fff !important;
   color:#2b2b2b !important;
-  font-size:.78rem !important;
+  @apply tw:text-[.78rem]!;
   line-height:1.5 !important;
   outline:0 !important;
 }
 .people-map-email-form textarea:focus {border-color:rgba(90,30,45,.32) !important;box-shadow:0 0 0 3px rgba(90,30,45,.07)}
-.people-map-pdf-upload {margin-top:4px !important}
+.people-map-pdf-upload {@apply tw:mt-[4px]!}
 .people-map-send-modal > footer {
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  gap:9px;
-  margin-top:18px;
-  padding-top:14px;
+  @apply tw:flex tw:items-center tw:justify-end tw:gap-[9px] tw:mt-[18px] tw:pt-[14px];
   border-top:1px solid rgba(90,30,45,.09);
 }
-.people-map-send-modal > footer button {min-height:42px !important}
+.people-map-send-modal > footer button {@apply tw:min-h-[42px]!}
 
 html[data-workspace-theme='night'] .people-map-send-layer > .people-map-send-modal {
   background:#21191d !important;
@@ -241,82 +207,57 @@ html[data-workspace-theme='night'] .people-map-send-close {background:#2d2227;co
    ========================================================= */
 @media (min-width: 861px) {
   .sidebar:not(:hover):not(.pinned) .sidebar-footer-profile-only {
-    position: absolute !important;
-    left: 8px !important;
-    right: 8px !important;
-    bottom: 9px !important;
-    width: auto !important;
-    min-width: 0 !important;
+    @apply tw:absolute! tw:left-[8px]!;
+    @apply tw:right-[8px]!;
+    @apply tw:bottom-[9px]! tw:w-auto! tw:min-w-0!;
     max-width: calc(100% - 16px) !important;
-    height: 58px !important;
-    min-height: 58px !important;
-    margin: 0 !important;
+    @apply tw:h-[58px]! tw:min-h-[58px]! tw:m-0!;
     padding: 5px 0 0 !important;
-    display: flex !important;
+    @apply tw:flex!;
     grid-template-columns: none !important;
-    align-items: center !important;
-    justify-content: center !important;
+    @apply tw:items-center! tw:justify-center!;
     opacity: 1 !important;
-    visibility: visible !important;
-    overflow: hidden !important;
-    box-sizing: border-box !important;
+    @apply tw:visible! tw:overflow-hidden! tw:box-border!;
     background: transparent !important;
-    z-index: 12 !important;
+    @apply tw:z-12!;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-control-direct {
-    display: flex !important;
+    @apply tw:flex!;
     flex: 0 0 52px !important;
-    width: 52px !important;
-    min-width: 0 !important;
-    max-width: 52px !important;
-    height: 52px !important;
+    @apply tw:w-[52px]! tw:min-w-0! tw:max-w-[52px]! tw:h-[52px]!;
     margin: 0 auto !important;
     opacity: 1 !important;
-    visibility: visible !important;
+    @apply tw:visible!;
     transform: none !important;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-trigger-direct {
-    position: relative !important;
+    @apply tw:relative!;
     inset: auto !important;
-    display: grid !important;
-    place-items: center !important;
-    width: 52px !important;
-    height: 52px !important;
-    min-width: 52px !important;
-    min-height: 52px !important;
-    max-width: 52px !important;
+    @apply tw:grid! tw:place-items-center! tw:w-[52px]! tw:h-[52px]! tw:min-w-[52px]! tw:min-h-[52px]! tw:max-w-[52px]!;
     margin: 0 auto !important;
-    padding: 4px !important;
+    @apply tw:p-[4px]!;
     border: 1px solid rgba(247,243,238,.22) !important;
-    border-radius: 15px !important;
+    @apply tw:rounded-[15px]!;
     background: rgba(247,243,238,.08) !important;
     box-shadow: 0 6px 18px rgba(42,17,24,.10) !important;
     opacity: 1 !important;
-    visibility: visible !important;
+    @apply tw:visible!;
     transform: none !important;
-    box-sizing: border-box !important;
+    @apply tw:box-border!;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-trigger-direct .profile-avatar {
-    display: grid !important;
-    place-items: center !important;
-    width: 42px !important;
-    height: 42px !important;
-    min-width: 42px !important;
+    @apply tw:grid! tw:place-items-center! tw:w-[42px]! tw:h-[42px]! tw:min-w-[42px]!;
     max-width: 42px !important;
-    border-radius: 12px !important;
-    overflow: hidden !important;
+    @apply tw:rounded-[12px]! tw:overflow-hidden!;
     opacity: 1 !important;
-    visibility: visible !important;
+    @apply tw:visible!;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-trigger-direct .profile-avatar img {
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
+    @apply tw:block! tw:w-full! tw:h-full! tw:object-cover!;
     object-position: var(--avatar-x,50%) var(--avatar-y,50%) !important;
     transform: scale(var(--avatar-zoom,1)) !important;
     transform-origin: var(--avatar-x,50%) var(--avatar-y,50%) !important;
@@ -324,7 +265,7 @@ html[data-workspace-theme='night'] .people-map-send-close {background:#2d2227;co
 
   .sidebar:not(:hover):not(.pinned) .profile-copy,
   .sidebar:not(:hover):not(.pinned) .profile-edit-chevron {
-    display: none !important;
+    @apply tw:hidden!;
   }
 }
 
@@ -339,7 +280,7 @@ html[data-workspace-theme='night'] .sidebar:hover,
 html[data-workspace-theme='night'] .sidebar:focus-within,
 html[data-workspace-theme='night'] .sidebar.pinned,
 html[data-workspace-theme='night'] .sidebar.mobile-open {
-  isolation: isolate !important;
+  @apply tw:isolate!;
   background-color: #f2e8dc !important;
   background-image: linear-gradient(rgba(247,243,238,.68),rgba(247,243,238,.68)), url('/brand/cali-sidebar-pattern.webp') !important;
   background-repeat: no-repeat,no-repeat !important;
@@ -353,7 +294,7 @@ html[data-workspace-theme='night'] .sidebar.mobile-open {
 html[data-workspace-theme='night'] .sidebar::before,
 html[data-workspace-theme='night'] .sidebar::after {
   content: none !important;
-  display: none !important;
+  @apply tw:hidden!;
 }
 
 html[data-workspace-theme='night'] .sidebar nav a,
@@ -419,26 +360,17 @@ html[data-workspace-theme='night'] .sidebar .profile-copy small {
    ilustrações oficiais alternam suavemente, como uma pequena assinatura viva.
    ========================================================= */
 .cali-route-loading {
-  position:fixed !important;
-  inset:0 !important;
-  width:100vw !important;
-  height:100dvh !important;
-  min-height:100dvh !important;
-  display:grid !important;
-  place-items:center !important;
-  overflow:hidden !important;
+  @apply tw:fixed! tw:inset-0! tw:w-[100vw]! tw:h-[100dvh]! tw:min-h-[100dvh]! tw:grid! tw:place-items-center! tw:overflow-hidden!;
   background:#f7f3ee !important;
-  z-index:2147483700 !important;
+  @apply tw:z-2147483700!;
 }
 .cali-loading-illustrations {
-  position:relative;
+  @apply tw:relative;
   width:clamp(92px,10vw,126px);
   height:clamp(92px,10vw,126px);
 }
 .cali-loading-mark {
-  position:absolute;
-  inset:0;
-  display:block;
+  @apply tw:absolute tw:inset-0 tw:block;
   background:#5a1e2d;
   opacity:0;
   transform:scale(.88) rotate(-4deg);
@@ -465,14 +397,11 @@ html[data-workspace-theme='night'] .sidebar .profile-copy small {
   94%,100%{opacity:0;transform:scale(.92) rotate(-4deg)}
 }
 .sr-only {
-  position:absolute !important;
-  width:1px !important;
-  height:1px !important;
-  padding:0 !important;
+  @apply tw:absolute! tw:w-[1px]! tw:h-[1px]! tw:p-0!;
   margin:-1px !important;
-  overflow:hidden !important;
+  @apply tw:overflow-hidden!;
   clip:rect(0,0,0,0) !important;
-  white-space:nowrap !important;
+  @apply tw:whitespace-nowrap!;
   border:0 !important;
 }
 html[data-workspace-theme='night'] .cali-route-loading {background:#171215 !important}
@@ -484,15 +413,15 @@ html[data-workspace-theme='night'] .cali-loading-mark {background:#f1dbe1;filter
     padding-right: 42px !important;
     background-position: right 14px center !important;
   }
-  .people-map-send-layer {padding:8px !important}
+  .people-map-send-layer {@apply tw:p-[8px]!}
   .people-map-send-layer > .people-map-send-modal {
     width:calc(100vw - 16px) !important;
     max-height:calc(100dvh - 16px) !important;
     padding:22px 18px !important;
-    border-radius:16px !important;
+    @apply tw:rounded-[16px]!;
   }
   .people-map-recipient-row {grid-template-columns:16px minmax(0,1fr) 32px}
-  .people-map-send-modal > footer {position:sticky;bottom:-22px;margin-left:-18px;margin-right:-18px;padding:12px 18px;background:inherit}
+  .people-map-send-modal > footer {@apply tw:sticky;bottom:-22px;margin-left:-18px;margin-right:-18px;padding:12px 18px;background:inherit}
 }
 
 @media (prefers-reduced-motion: reduce) {

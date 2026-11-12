@@ -1,8 +1,9 @@
+import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { useEffect, useState } from 'react';
 import { AlertTriangle, FolderKanban, Loader2 } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { supabase } from '../../../api/supabase';
-import { AdminProjectsPageV3 } from '../../shared/projects/AdminProjectsPageV3';
+import { AdminProjectsPageV3 } from '../../projects/AdminProjectsPageV3';
 
 type GateState = 'loading' | 'ready' | 'empty' | 'error';
 
@@ -43,7 +44,7 @@ export function AdminProjectsGatePage() {
               <span className="section-kicker">BASE REAL</span>
               <h2>Ainda não há um projeto persistido.</h2>
               <p>Os projetos de demonstração usados como referência visual não podem mais receber alterações em produção. Isso evita que uma entrega pareça salva e desapareça ao trocar de página.</p>
-              <div className="inline-notice"><AlertTriangle size={18} />Crie ou use um projeto real para que entregáveis, subtarefas, NPS e prévias em Documentos sejam gravados de verdade.</div>
+              <InlineNotice><AlertTriangle size={18} />Crie ou use um projeto real para que entregáveis, subtarefas, NPS e prévias em Documentos sejam gravados de verdade.</InlineNotice>
             </div>
           </section>
         )}

@@ -1,3 +1,4 @@
+import { Button } from '../ds/Button';
 import { Plus, Trash2 } from 'lucide-react';
 import { formatHoursV14 } from '../../lib/reportV14';
 import {
@@ -49,7 +50,7 @@ export function ReportManualComplementsPanel({ value, onChange, locked = false }
 
     <div className="reports-v21-manual-columns">
       <div className="reports-v21-manual-group">
-        <div className="reports-v21-manual-group-head"><div><h3>Entregas / atividades</h3><p>Status e tempo que precisam entrar no fechamento.</p></div><button type="button" className="secondary" disabled={locked} onClick={addDelivery}><Plus size={15}/>Adicionar</button></div>
+        <div className="reports-v21-manual-group-head"><div><h3>Entregas / atividades</h3><p>Status e tempo que precisam entrar no fechamento.</p></div><Button type="button" variant="secondary" disabled={locked} onClick={addDelivery}><Plus size={15}/>Adicionar</Button></div>
         {value.deliveries.length ? <div className="reports-v21-manual-items">{value.deliveries.map((item) => <article key={item.id} className="reports-v21-manual-item">
           <div className="reports-v21-manual-item-top"><span className="reports-v21-manual-tag">Manual</span><button type="button" disabled={locked} onClick={() => onChange({ ...value, deliveries: value.deliveries.filter((row) => row.id !== item.id) })} aria-label="Remover complemento"><Trash2 size={14}/></button></div>
           <div className="reports-v21-manual-grid">
@@ -65,7 +66,7 @@ export function ReportManualComplementsPanel({ value, onChange, locked = false }
       </div>
 
       <div className="reports-v21-manual-group">
-        <div className="reports-v21-manual-group-head"><div><h3>Tempo complementar</h3><p>Para trabalho que não precisa virar uma entrega na tabela.</p></div><button type="button" className="secondary" disabled={locked} onClick={addTime}><Plus size={15}/>Adicionar</button></div>
+        <div className="reports-v21-manual-group-head"><div><h3>Tempo complementar</h3><p>Para trabalho que não precisa virar uma entrega na tabela.</p></div><Button type="button" variant="secondary" disabled={locked} onClick={addTime}><Plus size={15}/>Adicionar</Button></div>
         {value.timeEntries.length ? <div className="reports-v21-manual-items">{value.timeEntries.map((item) => <article key={item.id} className="reports-v21-manual-item compact">
           <div className="reports-v21-manual-item-top"><span className="reports-v21-manual-tag">Manual</span><button type="button" disabled={locked} onClick={() => onChange({ ...value, timeEntries: value.timeEntries.filter((row) => row.id !== item.id) })} aria-label="Remover complemento"><Trash2 size={14}/></button></div>
           <div className="reports-v21-manual-grid">

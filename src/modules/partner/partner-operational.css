@@ -1,0 +1,136 @@
+@reference "../../styles/tailwind.css";
+/* Área do Partner (/equipe) e fila "Para aprovar" da administradora. */
+html[data-workspace-ui='v2'] .v2-staff-brand{@apply tw:text-[12px];letter-spacing:1.6px;color:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-staff-brand span{font-weight:500;color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-me{@apply tw:inline-flex tw:items-center tw:gap-[10px]}
+html[data-workspace-ui='v2'] .v2-staff-me>span:last-child{@apply tw:flex tw:flex-col tw:gap-[2px] tw:text-[12px];color:#322f2c}
+html[data-workspace-ui='v2'] .v2-staff-me small{@apply tw:text-[10px];color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-me .avatar{@apply tw:w-[32px] tw:h-[32px] tw:rounded-[7px];background:#f3ece6;color:#5a1e2d;@apply tw:grid tw:place-items-center tw:text-[11px];font-weight:700}
+html[data-workspace-ui='v2'] .v2-staff-logout{border:0;background:none;@apply tw:cursor-pointer}
+html[data-workspace-ui='v2'] .v2-staff-area{@apply tw:flex tw:flex-col tw:gap-[16px]}
+html[data-workspace-ui='v2'] .v2-staff-area>*{@apply tw:mt-0;@apply tw:mb-0}
+html[data-workspace-ui='v2'] .v2-staff-cards{@apply tw:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));@apply tw:gap-[16px]}
+html[data-workspace-ui='v2'] .v2-staff-cards article{@apply tw:flex tw:items-center tw:gap-[12px];background:#fff;border:1px solid #e9dfd8;@apply tw:rounded-[9px];padding:14px 16px;@apply tw:min-w-0}
+html[data-workspace-ui='v2'] .v2-staff-cards .avatar{@apply tw:w-[38px] tw:h-[38px] tw:rounded-[7px];background:#f3ece6;color:#5a1e2d;@apply tw:grid tw:place-items-center tw:flex-none}
+html[data-workspace-ui='v2'] .v2-staff-cards article>div{@apply tw:flex tw:flex-col tw:gap-[3px] tw:min-w-0}
+html[data-workspace-ui='v2'] .v2-staff-cards strong{@apply tw:text-[13px];color:#322f2c}
+html[data-workspace-ui='v2'] .v2-staff-cards small{@apply tw:text-[11px];color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-modules>div{@apply tw:flex tw:flex-wrap tw:gap-[8px] tw:mt-[12px]}
+html[data-workspace-ui='v2'] .v2-staff-area .panel h3{margin:0 0 4px;@apply tw:text-[14px];color:#322f2c}
+html[data-workspace-ui='v2'] .v2-staff-area .panel>p{@apply tw:m-0 tw:text-[12px];color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-area .toolbar{@apply tw:flex tw:gap-[10px]}
+html[data-workspace-ui='v2'] .v2-staff-area select.wf-record-filter{@apply tw:h-[40px] tw:min-w-[200px];border:1px solid #e5d9d0;@apply tw:rounded-[7px];background:#fff;padding:0 11px;font:inherit;@apply tw:text-[12px];color:#322f2c;@apply tw:m-0}
+html[data-workspace-ui='v2'] .v2-staff-records .wf-record-row{@apply tw:grid;grid-template-columns:minmax(0,1fr) auto 110px 18px;@apply tw:items-center tw:gap-[14px] tw:w-full tw:text-left;border:0;border-bottom:1px solid #f1e9e3;background:#fff;font:inherit;@apply tw:cursor-pointer}
+html[data-workspace-ui='v2'] .v2-staff-sent .wf-record-row{grid-template-columns:110px 64px minmax(0,1fr) auto;@apply tw:items-center tw:gap-[14px] tw:cursor-default}
+html[data-workspace-ui='v2'] .v2-staff-area .wf-record-row>div{@apply tw:flex tw:flex-col tw:gap-[3px] tw:min-w-0}
+html[data-workspace-ui='v2'] .v2-staff-area .wf-record-row strong{@apply tw:text-[12px];color:#322f2c}
+html[data-workspace-ui='v2'] .v2-staff-area .wf-record-row :is(small,time){@apply tw:text-[11px];color:#8c7e74}
+html[data-workspace-ui='v2'] :is(.v2-staff-area,.v2-staff-queue) .wf-tag.wait{background:#fff4de;color:#9b6c21}
+html[data-workspace-ui='v2'] .v2-staff-area .wf-tag.ok{background:#e6f6ec;color:#31805a}
+html[data-workspace-ui='v2'] .v2-staff-area .wf-tag.bad{background:#fdecee;color:#b7495d}
+html[data-workspace-ui='v2'] .v2-staff-hours{@apply tw:flex tw:flex-col tw:gap-[14px]}
+html[data-workspace-ui='v2'] .v2-staff-fields.three{@apply tw:grid-cols-3}
+html[data-workspace-ui='v2'] .v2-staff-fields.one{grid-template-columns:1fr}
+html[data-workspace-ui='v2'] .v2-staff-fields select{@apply tw:w-full tw:min-w-0}
+html[data-workspace-ui='v2'] .v2-staff-duration{@apply tw:flex tw:items-center tw:gap-[8px];font-weight:400;color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-duration input{width:64px}
+html[data-workspace-ui='v2'] .v2-staff-submit{@apply tw:flex tw:justify-end}
+html[data-workspace-ui='v2'] .v2-staff-done{background:#f1f8f3;border:1px solid #d6e8dd;color:#42785a}
+html[data-workspace-ui='v2'] .v2-staff-fail{padding:40px 24px}
+html[data-workspace-ui='v2'] .v2-staff-chat .v2-staff-body{@apply tw:gap-[10px] tw:min-h-[180px]}
+html[data-workspace-ui='v2'] .v2-staff-summary{@apply tw:m-0 tw:text-[12px];line-height:1.55;color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-msg{max-width:86%;padding:10px 12px;@apply tw:rounded-[9px];background:#faf6f2;@apply tw:flex tw:flex-col tw:gap-[4px] tw:text-[12px];color:#322f2c}
+html[data-workspace-ui='v2'] .v2-staff-msg.cali{@apply tw:self-end;background:#f6edf0}
+html[data-workspace-ui='v2'] .v2-staff-msg p{@apply tw:m-0;line-height:1.55;@apply tw:whitespace-pre-wrap;overflow-wrap:anywhere}
+html[data-workspace-ui='v2'] .v2-staff-msg small{@apply tw:text-[10px];color:#96867c}
+html[data-workspace-ui='v2'] .v2-staff-reply{@apply tw:flex tw:items-center tw:gap-[8px];padding:12px 22px;border-top:1px solid #ece1da}
+html[data-workspace-ui='v2'] .v2-staff-reply input{@apply tw:flex-1 tw:min-w-0 tw:h-[38px];padding:0 12px;border:1px solid #e5d8d0;@apply tw:rounded-[7px];font:inherit;@apply tw:text-[12px]}
+html[data-workspace-ui='v2'] .v2-staff-reply button{@apply tw:w-[40px] tw:h-[38px] tw:grid tw:place-items-center tw:p-0 tw:rounded-[7px]}
+.v2-admin-staff .v2-staff-queue{@apply tw:mb-[16px];padding:18px 20px;border:1px solid #ecd9b0;border-left:4px solid #d9a441;@apply tw:rounded-[10px];background:#fffaf1;@apply tw:flex tw:flex-col tw:gap-[14px]}
+.v2-admin-staff .v2-staff-queue small{@apply tw:text-[10px];letter-spacing:1.2px;font-weight:800;color:#a66a00}
+.v2-admin-staff .v2-staff-queue h2{margin:5px 0;@apply tw:text-[16px];color:#322f2c}
+.v2-admin-staff .v2-staff-queue p{@apply tw:m-0 tw:text-[12px];line-height:1.55;color:#6f5c45}
+.v2-admin-staff .v2-staff-queue .wf-record-row{grid-template-columns:130px minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) auto;@apply tw:items-center tw:gap-[14px] tw:cursor-default}
+.v2-admin-staff .v2-staff-queue .wf-record-row>div{@apply tw:flex tw:flex-col tw:gap-[3px] tw:min-w-0 tw:text-[11px];color:#322f2c}
+.v2-admin-staff .v2-staff-queue .wf-record-row>div small{@apply tw:text-[10px];letter-spacing:0;font-weight:400;color:#96867c}
+.v2-admin-staff .v2-staff-queue .wf-record-row strong{@apply tw:text-[12px]}
+.v2-admin-staff .v2-staff-queue .wf-tag{justify-self:start;letter-spacing:0}
+.v2-admin-staff .v2-staff-queue .v2-staff-queue-actions{@apply tw:flex-row tw:items-center tw:gap-[8px]}
+.v2-admin-staff .v2-staff-queue-actions button{@apply tw:inline-flex tw:items-center tw:gap-[6px] tw:h-[34px];padding:0 12px;@apply tw:rounded-[7px];font:inherit;@apply tw:text-[11px];font-weight:700;@apply tw:cursor-pointer tw:whitespace-nowrap}
+.v2-admin-staff .v2-staff-queue-actions .wf-secondary{border:1px solid #dec9c3;background:#fff;color:#5a1e2d}
+.v2-admin-staff .v2-staff-queue-actions .wf-primary{border:1px solid #5a1e2d;background:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] .v2-staff-decision{width:min(480px,100%)}
+html[data-workspace-ui='v2'] .v2-staff-decision-item{@apply tw:flex tw:flex-col tw:gap-[4px];padding:12px 14px;@apply tw:rounded-[8px];background:#faf6f2;@apply tw:text-[12px];color:#322f2c}
+html[data-workspace-ui='v2'] .v2-staff-decision-item small{@apply tw:text-[11px];color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-decision-effect{@apply tw:m-0 tw:text-[12px];line-height:1.55;color:#655a55}
+@media(max-width:860px){html[data-workspace-ui='v2'] .v2-staff-fields.three{grid-template-columns:1fr}html[data-workspace-ui='v2'] .v2-staff-sent .wf-record-row,.v2-admin-staff .v2-staff-queue .wf-record-row{grid-template-columns:1fr}html[data-workspace-ui='v2'] .v2-staff-records .wf-record-row{grid-template-columns:minmax(0,1fr) 18px}html[data-workspace-ui='v2'] .v2-staff-records .wf-record-row>:is(.wf-tag,small){@apply tw:hidden}}
+html[data-workspace-ui='v2'] .v2-staff-area .panel{padding:18px 20px;background:#fff;border:1px solid #e9dfd8;@apply tw:rounded-[9px]}
+.v2-admin-staff .v2-staff-queue .wf-record-row{grid-template-columns:176px minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) auto}
+.v2-admin-staff .v2-staff-queue .wf-record-row>div.v2-staff-queue-actions{@apply tw:flex-row tw:items-center tw:gap-[8px]}
+@media(max-width:860px){.v2-admin-staff .v2-staff-queue .wf-record-row{grid-template-columns:1fr}}
+html[data-workspace-ui='v2'] .v2-staff-browse .wf-record-row{@apply tw:grid;grid-template-columns:minmax(0,1fr) auto 110px;@apply tw:items-center tw:gap-[14px] tw:cursor-default}
+html[data-workspace-ui='v2'] .v2-staff-search{@apply tw:flex-1 tw:min-w-0 tw:max-w-[320px] tw:h-[40px];padding:0 12px;border:1px solid #e5d9d0;@apply tw:rounded-[7px];background:#fff;font:inherit;@apply tw:text-[12px];color:#322f2c}
+@media(max-width:860px){html[data-workspace-ui='v2'] .v2-staff-browse .wf-record-row{grid-template-columns:minmax(0,1fr) auto}html[data-workspace-ui='v2'] .v2-staff-browse .wf-record-row>small{@apply tw:hidden}html[data-workspace-ui='v2'] .v2-staff-area .toolbar{@apply tw:flex-wrap}}
+/* Partner: sino, cronômetro e publicação de comunicado. */
+html[data-workspace-ui='v2'] .v2-staff-bell{@apply tw:relative tw:inline-flex}
+html[data-workspace-ui='v2'] .v2-staff-bell>button{@apply tw:relative tw:grid tw:place-items-center tw:w-[38px] tw:h-[38px];border:1px solid #e9dfd8;@apply tw:rounded-[8px];background:#fff;color:#5a1e2d;@apply tw:cursor-pointer}
+html[data-workspace-ui='v2'] .v2-staff-bell>button.has-new{background:#fbeef0;border-color:#e9c8cf}
+html[data-workspace-ui='v2'] .v2-staff-bell>button b{@apply tw:absolute;top:-6px;@apply tw:right-[-6px];min-width:17px;@apply tw:h-[17px];padding:0 4px;@apply tw:rounded-[9px];background:#b7495d;color:#fff;@apply tw:text-[10px];line-height:17px;@apply tw:text-center}
+html[data-workspace-ui='v2'] .v2-staff-bell-list{@apply tw:absolute;top:46px;@apply tw:right-0 tw:z-60;width:min(340px,86vw);max-height:60vh;@apply tw:overflow-y-auto;scrollbar-width:none;background:#fff;border:1px solid #e9dfd8;@apply tw:rounded-[10px];box-shadow:0 18px 60px #28172426;@apply tw:p-[12px] tw:flex tw:flex-col tw:gap-[6px];animation:v2-pop .2s ease-out backwards}
+html[data-workspace-ui='v2'] .v2-staff-bell-list::-webkit-scrollbar{@apply tw:hidden}
+html[data-workspace-ui='v2'] .v2-staff-bell-list>strong{@apply tw:text-[11px];letter-spacing:.4px;color:#8c7e74;padding:2px 6px 6px}
+html[data-workspace-ui='v2'] .v2-staff-bell-list a{@apply tw:flex tw:flex-col tw:gap-[3px];padding:9px 10px;@apply tw:rounded-[7px];text-decoration:none;color:#322f2c;@apply tw:text-[12px]}
+html[data-workspace-ui='v2'] .v2-staff-bell-list a:hover{background:#faf6f2}
+html[data-workspace-ui='v2'] .v2-staff-bell-list a span{font-weight:700}
+html[data-workspace-ui='v2'] .v2-staff-bell-list a small{@apply tw:text-[11px];line-height:1.45;color:#655a55}
+html[data-workspace-ui='v2'] .v2-staff-bell-list a em{@apply tw:not-italic tw:text-[10px];color:#96867c}
+html[data-workspace-ui='v2'] .v2-staff-bell-list p{@apply tw:m-0;padding:8px 6px;@apply tw:text-[12px];color:#8c7e74}
+html[data-workspace-ui='v2'] .top-actions:has(.v2-staff-bell){@apply tw:flex tw:items-center tw:gap-[16px]}
+html[data-workspace-ui='v2'] .v2-staff-timer{@apply tw:flex tw:items-center tw:justify-between tw:gap-[16px];padding:16px 20px;@apply tw:rounded-[9px];background:#5a1e2d;color:#fff}
+html[data-workspace-ui='v2'] .v2-staff-timer>div{@apply tw:flex tw:flex-col tw:gap-[4px] tw:min-w-0}
+html[data-workspace-ui='v2'] .v2-staff-timer small{@apply tw:text-[10px];letter-spacing:1.4px;font-weight:700;color:#e3c9a3}
+html[data-workspace-ui='v2'] .v2-staff-timer strong{@apply tw:text-[26px];line-height:1.1;font-variant-numeric:tabular-nums;color:#fff}
+html[data-workspace-ui='v2'] .v2-staff-timer span{@apply tw:text-[11px];color:#eadfd8}
+html[data-workspace-ui='v2'] .v2-staff-timer button{@apply tw:inline-flex tw:items-center tw:gap-[7px] tw:h-[38px];padding:0 16px;@apply tw:rounded-[7px];font:inherit;@apply tw:text-[12px];font-weight:700;@apply tw:cursor-pointer tw:whitespace-nowrap tw:flex-none}
+html[data-workspace-ui='v2'] .v2-staff-timer .wf-primary{background:#fff;border:1px solid #fff;color:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-staff-timer .wf-secondary{background:transparent;border:1px solid #ffffff8c;color:#fff}
+html[data-workspace-ui='v2'] .v2-staff-publish-bar{@apply tw:flex tw:items-center tw:justify-end tw:gap-[12px]}
+html[data-workspace-ui='v2'] .v2-staff-publish-bar .inline-notice{@apply tw:flex-1 tw:m-0}
+html[data-workspace-ui='v2'] .v2-staff-area textarea{padding:10px 12px;border:1px solid #e5d8d0;@apply tw:rounded-[7px];background:#fff;font:inherit;@apply tw:text-[12px];font-weight:400;color:#322f2c;@apply tw:resize-y tw:min-w-0}
+html[data-workspace-ui='v2'] .v2-staff-targets{@apply tw:m-0 tw:p-0;border:0;@apply tw:min-w-0}
+html[data-workspace-ui='v2'] .v2-staff-targets legend{@apply tw:p-0 tw:mb-[8px] tw:text-[11px];font-weight:700;color:#322f2c}
+html[data-workspace-ui='v2'] .v2-staff-submit{@apply tw:gap-[10px]}
+html[data-workspace-ui='v2'] .v2-staff-submit button,html[data-workspace-ui='v2'] .v2-staff-publish-bar button{@apply tw:h-[38px];padding:0 15px;@apply tw:inline-flex tw:items-center tw:rounded-[7px];font:inherit;@apply tw:text-[12px];font-weight:700;@apply tw:cursor-pointer}
+html[data-workspace-ui='v2'] .v2-staff-submit .wf-secondary{border:1px solid #dec9c3;background:#fff;color:#5a1e2d}
+/* Partner na moldura oficial: mural de avisos sem ações de cliente; passos da tela "Enviar para a Patricia". */
+html[data-workspace-ui='v2'] .v2-notice-staff .v2-notice-detail>footer{@apply tw:hidden}
+html[data-workspace-ui='v2'] .v2-notice-staff .v2-notice-reactions{@apply tw:pointer-events-none}
+html[data-workspace-ui='v2'] .v2-notice-staff .v2-notice-reactions button:not(:has(b)){@apply tw:hidden}
+html[data-workspace-ui='v2'] .v2-notice-staff .notice-actions>button:first-child{@apply tw:hidden}
+html[data-workspace-ui='v2'] .v2-staff-steps{@apply tw:grid tw:grid-cols-3 tw:gap-[16px]}
+html[data-workspace-ui='v2'] .v2-staff-steps article{@apply tw:flex tw:items-start tw:gap-[12px];background:#fff;border:1px solid #e9dfd8;@apply tw:rounded-[9px];padding:14px 16px;@apply tw:min-w-0}
+html[data-workspace-ui='v2'] .v2-staff-steps b{@apply tw:flex-none tw:w-[26px] tw:h-[26px] tw:rounded-[7px];background:#5a1e2d;color:#fff;@apply tw:grid tw:place-items-center tw:text-[12px]}
+html[data-workspace-ui='v2'] .v2-staff-steps article>div{@apply tw:flex tw:flex-col tw:gap-[3px] tw:min-w-0}
+html[data-workspace-ui='v2'] .v2-staff-steps strong{@apply tw:text-[13px];color:#322f2c}
+html[data-workspace-ui='v2'] .v2-staff-steps small{@apply tw:text-[11px];line-height:1.5;color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-form .v2-staff-fields select{@apply tw:h-[40px];padding:0 11px;border:1px solid #e5d8d0;@apply tw:rounded-[7px];background:#fff;font:inherit;@apply tw:text-[12px];font-weight:400;color:#322f2c}
+@media(max-width:860px){html[data-workspace-ui='v2'] .v2-staff-steps{grid-template-columns:1fr}}
+.v2-admin-staff .v2-staff-list .wf-record-row{grid-template-columns:38px minmax(0,1.2fr) minmax(0,1.3fr) minmax(0,1.6fr) minmax(0,1fr) auto}
+.v2-admin-staff .v2-staff-row-actions{@apply tw:inline-flex tw:items-center tw:gap-[8px]}
+.v2-admin-staff .v2-row-icon:disabled{opacity:.45;@apply tw:cursor-not-allowed}
+html[data-workspace-ui='v2'] .v2-staff-invite-text{@apply tw:m-0;padding:12px 14px;@apply tw:rounded-[8px];background:#faf6f2;font:inherit;@apply tw:text-[12px];line-height:1.6;color:#322f2c;@apply tw:whitespace-pre-wrap}
+html[data-workspace-ui='v2'] .v2-staff-form>footer a.wf-primary{@apply tw:h-[38px];padding:0 15px;@apply tw:inline-flex tw:items-center tw:rounded-[7px];border:1px solid #5a1e2d;background:#5a1e2d;color:#fff;@apply tw:text-[12px];font-weight:700;text-decoration:none}
+/* Visão geral do Partner: a página usa a composição da administradora; a área não acrescenta espaçamento próprio. */
+html[data-workspace-ui='v2'] .v2-staff-area:has(>.v2-staff-dashboard){@apply tw:block}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-overview-hero{@apply tw:min-h-0}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .v2-staff-count{@apply tw:text-[11px];color:#8c7e74}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .v2-staff-scope-tags{@apply tw:flex tw:flex-wrap tw:gap-[8px] tw:pt-[4px]}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-time-line>i{background:#a484d7}
+html[data-workspace-ui='v2'] .v2-staff-area>.ap-app>.ap-content{@apply tw:p-0 tw:max-w-none}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-account-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr))}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client{@apply tw:min-w-0}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client>div{@apply tw:min-w-0 tw:flex-1}
+html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client small{@apply tw:block tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap}
+@media(max-width:640px){html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client{@apply tw:flex-wrap}html[data-workspace-ui='v2'] .v2-staff-dashboard .ap-client small{@apply tw:whitespace-normal}}
+.v2-admin-staff .v2-staff-list .wf-record-row{grid-template-columns:38px minmax(0,1.1fr) minmax(0,1.2fr) minmax(0,1.5fr) minmax(0,1fr) minmax(0,.9fr) auto}
+@media(max-width:1100px){.v2-admin-staff .v2-staff-list .wf-record-row{grid-template-columns:38px minmax(0,1fr) auto}.v2-admin-staff .v2-staff-list .wf-record-row>div:nth-of-type(n+2){grid-column:2}}

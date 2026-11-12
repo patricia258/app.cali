@@ -1,3 +1,4 @@
+import { Button } from '../components/ds/Button';
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { ShieldCheck } from 'lucide-react';
@@ -192,7 +193,7 @@ function ActorMfaGate({ actorId, children }: { actorId: string; children: ReactN
       <h1 id="v2-mfa-title">{stage === 'enroll' ? 'Ative a verificação em duas etapas' : 'Verificação em duas etapas'}</h1>
       {stage === 'error' && <>
         <p className="v2-mfa-error" role="alert">{gate.message}</p>
-        <button type="button" className="v2-mfa-primary" onClick={retry}>Tentar novamente</button>
+        <Button type="button" variant="gatePrimary" onClick={retry}>Tentar novamente</Button>
       </>}
       {stage === 'enroll' && <>
         <p>Proteção extra para o seu acesso. Você faz isso uma vez só.</p>
@@ -208,9 +209,9 @@ function ActorMfaGate({ actorId, children }: { actorId: string; children: ReactN
       {stage !== 'error' && <form onSubmit={(event) => void confirm(event)} className="v2-mfa-form">
         <label>Código do aplicativo<input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} autoFocus /></label>
         {message && <p className="v2-mfa-error" role="alert">{message}</p>}
-        <button type="submit" className="v2-mfa-primary" disabled={busy || code.length !== 6}>{busy ? 'Conferindo…' : 'Confirmar'}</button>
+        <Button type="submit" variant="gatePrimary" disabled={busy || code.length !== 6}>{busy ? 'Conferindo…' : 'Confirmar'}</Button>
       </form>}
-      <button type="button" className="v2-mfa-leave" onClick={() => void leave()}>Sair</button>
+      <Button type="button" variant="gateExit" onClick={() => void leave()}>Sair</Button>
     </section>
   </main>;
 }

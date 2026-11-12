@@ -1,13 +1,18 @@
 /* CALI Forms — área da administradora (/admin/formularios). Lista de formulários; ao abrir um, três abas:
    Perguntas (montar e publicar), Compartilhar (link, QR Code e cartão) e Respostas (tabela e Excel).
    Nada aqui aparece para o cliente: a rota e o menu são só da administradora. */
+import { Button } from '../../../components/ds/Button';
+import { DialogFrame } from '../../../components/ds/DialogFrame';
+import { EmptyState } from '../../../components/ds/EmptyState';
+import { InlineNotice } from '../../../components/ds/InlineNotice';
+import { LoadingState } from '../../../components/ds/LoadingState';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from '../../../hooks/useSearchParams';
 import { ArrowDown, ArrowLeft, ArrowUp, Bold, Check, Copy, Italic, Paperclip, Pencil, Smile, Underline, X, Download, ExternalLink, FileSpreadsheet, ListChecks, Plus, QrCode, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { supabase } from '../../../api/supabase';
 import { downloadQrPng, downloadShareCard, downloadXlsx, qrDataUrl } from './formExports';
-import { type FormAudience, type FormQuestion, type FormRecord, type QuestionKind, AUDIENCE_LABELS, CATEGORY_SUGGESTIONS, KIND_LABELS, KIND_ORDER, PUBLIC_FORM_BASE, STATUS_LABELS, END_OF_FORM, choiceOptions, fileLabel, formatAnswer, isAnswerable, stripRichText, newQuestion, questionId, slugify } from '../../shared/forms/formModel';
+import { type FormAudience, type FormQuestion, type FormRecord, type QuestionKind, AUDIENCE_LABELS, CATEGORY_SUGGESTIONS, KIND_LABELS, KIND_ORDER, PUBLIC_FORM_BASE, STATUS_LABELS, END_OF_FORM, choiceOptions, fileLabel, formatAnswer, isAnswerable, stripRichText, newQuestion, questionId, slugify } from '../../forms/formModel';
 import './admin-forms.css';
 
 type Overview = Record<string, { responses: number; last: string | null }>;
@@ -107,24 +112,24 @@ export function AdminFormsPage() {
       onDeleted={() => { setForms((current) => current.filter((item) => item.id !== open.id)); go(null); }} />
     : <>
       <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Formulários</h1><p>Pesquisas, questionários, inscrições, levantamentos: crie qualquer formulário com a identidade CALI, envie por link ou QR Code e veja as respostas reunidas aqui.</p></div>
-        <div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</button><button className="wf-primary" type="button" onClick={() => setCreating({ title: '', category: '', audience: 'cali', busy: false, error: '' })}><Plus size={15} /> Novo formulário</button></div></div>
-      {error && <div className="inline-notice" role="alert">{error}</div>}
+        <div className="v2-head-actions"><Button variant="workflowSecondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</Button><Button variant="workflowPrimary" type="button" onClick={() => setCreating({ title: '', category: '', audience: 'cali', busy: false, error: '' })}><Plus size={15} /> Novo formulário</Button></div></div>
+      {error && <InlineNotice role="alert">{error}</InlineNotice>}
       <div className="wf-controls v2-forms-filter"><div className="wf-segments">{([['all', 'Todos'], ['cali', AUDIENCE_LABELS.cali], ['client', AUDIENCE_LABELS.client], ['trash', 'Lixeira']] as Array<['all' | FormAudience | 'trash', string]>).map(([key, label]) => <button type="button" key={key} className={audienceFilter === key ? 'on' : ''} onClick={() => setAudienceFilter(key)}>{label} <b>{key === 'all' ? forms.length : key === 'trash' ? trash.length : forms.filter((form) => form.audience === key).length}</b></button>)}</div></div>
       {audienceFilter === 'trash' ? <>
         <div className="wf-group-head"><div><span>LIXEIRA</span><strong>Excluídos nos últimos {TRASH_DAYS} dias</strong></div><b>{trash.length}</b></div>
-        {loading ? <div className="data-loading">Carregando…</div> : trash.length ? <div className="wf-records v2-forms-list v2-forms-trash">
+        {loading ? <LoadingState>Carregando…</LoadingState> : trash.length ? <div className="wf-records v2-forms-list v2-forms-trash">
           <div className="wf-record-row header"><span>Formulário</span><span>O que foi excluído</span><span>Excluído em</span><span>Apagado de vez em</span><span /></div>
           {trash.map((item) => <div className="wf-record-row" key={item.id}>
             <span className="v2-forms-name"><strong>{item.form_title}</strong></span>
             <span>{item.kind === 'form' ? `Formulário e ${item.responses.length} ${item.responses.length === 1 ? 'resposta' : 'respostas'}` : `${item.responses.length} ${item.responses.length === 1 ? 'resposta' : 'respostas'}`}</span>
             <span>{dateTime(item.deleted_at)}</span>
             <span>{shortDate(new Date(new Date(item.deleted_at).getTime() + TRASH_DAYS * 86400000).toISOString())}</span>
-            <span className="v2-forms-row-actions"><button type="button" className="wf-secondary" disabled={Boolean(restoring)} onClick={() => void restore(item)}><RefreshCw size={14} /> {restoring === item.id ? 'Restaurando…' : 'Restaurar'}</button></span>
+            <span className="v2-forms-row-actions"><Button type="button" variant="workflowSecondary" disabled={Boolean(restoring)} onClick={() => void restore(item)}><RefreshCw size={14} /> {restoring === item.id ? 'Restaurando…' : 'Restaurar'}</Button></span>
           </div>)}
-        </div> : <div className="wf-empty"><strong>A lixeira está vazia.</strong><p>Formulários e respostas excluídos ficam aqui por {TRASH_DAYS} dias e podem ser restaurados.</p></div>}
+        </div> : <EmptyState variant="workflow"><strong>A lixeira está vazia.</strong><p>Formulários e respostas excluídos ficam aqui por {TRASH_DAYS} dias e podem ser restaurados.</p></EmptyState>}
       </> : <>
       <div className="wf-group-head"><div><span>FORMULÁRIOS</span><strong>{audienceFilter === 'all' ? 'Todos os formulários' : audienceFilter === 'cali' ? 'Formulários da CALI' : 'Formulários para clientes'}</strong></div><b>{visible.length}</b></div>
-      {loading ? <div className="data-loading">Carregando formulários…</div> : visible.length ? <div className="wf-records v2-forms-list">
+      {loading ? <LoadingState>Carregando formulários…</LoadingState> : visible.length ? <div className="wf-records v2-forms-list">
         <div className="wf-record-row header"><span>Formulário</span><span>Para quem</span><span>Situação</span><span>Respostas</span><span>Última resposta</span><span>Atualizado</span><span /></div>
         {visible.map((form) => <div className="wf-record-row" key={form.id} role="button" tabIndex={0} onClick={() => go(form.id)} onKeyDown={(event) => { if (event.key === 'Enter') go(form.id); }}>
           <span className="v2-forms-name"><strong>{form.title}</strong><small>{PUBLIC_FORM_BASE.replace('https://', '')}{form.slug}</small></span>
@@ -133,13 +138,13 @@ export function AdminFormsPage() {
           <span className="v2-forms-count">{overview[form.id]?.responses || 0}</span>
           <span>{shortDate(overview[form.id]?.last)}</span>
           <span>{shortDate(form.updated_at)}</span>
-          <span className="v2-forms-row-actions"><button type="button" className="wf-secondary" onClick={(event) => { event.stopPropagation(); go(form.id, 'responses'); }}><ListChecks size={14} /> Respostas</button></span>
+          <span className="v2-forms-row-actions"><Button type="button" variant="workflowSecondary" onClick={(event) => { event.stopPropagation(); go(form.id, 'responses'); }}><ListChecks size={14} /> Respostas</Button></span>
         </div>)}
-      </div> : <div className="wf-empty"><strong>Nenhum formulário ainda.</strong><p>Clique em “Novo formulário” para criar o primeiro. Ele começa como rascunho: só recebe respostas depois que você abrir.</p></div>}
+      </div> : <EmptyState variant="workflow"><strong>Nenhum formulário ainda.</strong><p>Clique em “Novo formulário” para criar o primeiro. Ele começa como rascunho: só recebe respostas depois que você abrir.</p></EmptyState>}
       </>}
     </>}
   </div></div>
-  {creating && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !creating.busy) setCreating(null); }}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Novo formulário">
+  {creating && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !creating.busy) setCreating(null); }}><DialogFrame className="ap-status-confirm" aria-label="Novo formulário">
     <div><small>CALI FORMS</small><h2>Novo formulário</h2><p>Começa como rascunho, já com as perguntas de nome e e-mail. Você monta o resto em seguida.</p></div>
     <label>Nome do formulário<input value={creating.title} maxLength={160} autoFocus placeholder="Ex.: Pesquisa de clima 2026" onChange={(event) => setCreating({ ...creating, title: event.target.value, error: '' })} onKeyDown={(event) => { if (event.key === 'Enter') void create(); }} /></label>
     <label>Categoria (aparece para quem responde)<input list="cali-form-categories" value={creating.category} maxLength={40} placeholder="Ex.: Pesquisa de satisfação" onChange={(event) => setCreating({ ...creating, category: event.target.value })} /></label>
@@ -147,7 +152,7 @@ export function AdminFormsPage() {
     <datalist id="cali-form-categories">{CATEGORY_SUGGESTIONS.map((item) => <option key={item} value={item} />)}</datalist>
     {creating.error && <p className="v2-forms-error" role="alert">{creating.error}</p>}
     <footer><button type="button" disabled={creating.busy} onClick={() => setCreating(null)}>Cancelar</button><button type="button" disabled={creating.busy} onClick={() => void create()}>{creating.busy ? 'Criando…' : 'Criar formulário'}</button></footer>
-  </section></div>}
+  </DialogFrame></div>}
   </div></Shell>;
 }
 
@@ -209,8 +214,8 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
     <div className="wf-head v2-forms-head"><div><small>CALI FORMS · <span className={`v2-forms-status ${form.status}`}>{STATUS_LABELS[form.status]}</span></small><h1>{form.title}</h1><p>{url.replace('https://', '')} · {stats?.responses || 0} {stats?.responses === 1 ? 'resposta' : 'respostas'}</p></div>
       <div className="v2-head-actions">
         <a className="wf-secondary" href={`/f/${form.slug}?previa=1`} target="_blank" rel="noopener noreferrer"><ExternalLink size={15} /> Ver como respondente</a>
-        <button type="button" className="wf-secondary" onClick={onDuplicate}><Copy size={15} /> Duplicar</button>
-        {form.status !== 'open' ? <button type="button" className="wf-primary" disabled={saving} onClick={() => void save({ status: 'open' })}>Abrir para respostas</button> : <button type="button" className="wf-secondary" disabled={saving} onClick={() => void save({ status: 'closed' })}>Encerrar respostas</button>}
+        <Button type="button" variant="workflowSecondary" onClick={onDuplicate}><Copy size={15} /> Duplicar</Button>
+        {form.status !== 'open' ? <Button type="button" variant="workflowPrimary" disabled={saving} onClick={() => void save({ status: 'open' })}>Abrir para respostas</Button> : <Button type="button" variant="workflowSecondary" disabled={saving} onClick={() => void save({ status: 'closed' })}>Encerrar respostas</Button>}
       </div></div>
     <div className="wf-segments v2-forms-tabs" role="tablist">{([['questions', 'Perguntas'], ['share', 'Compartilhar'], ['responses', `Respostas (${stats?.responses || 0})`]] as Array<[Tab, string]>).map(([key, label]) => <button type="button" role="tab" aria-selected={tab === key} key={key} className={tab === key ? 'on' : ''} onClick={() => onTab(key)}>{label}</button>)}</div>
     {note && <p className={note.failed ? 'v2-forms-error' : 'v2-forms-ok'} role="status">{note.text}</p>}
@@ -269,19 +274,19 @@ function FormDetail({ form, tab, companies, stats, onTab, onBack, onDuplicate, o
       <div className="v2-forms-savebar">
         <button type="button" className="v2-forms-delete" onClick={() => setConfirmDelete(true)}><Trash2 size={14} /> Excluir formulário</button>
         <span>{dirty ? 'Alterações não salvas' : 'Tudo salvo'}</span>
-        <button type="button" className="wf-secondary" disabled={!dirty || saving} onClick={() => { setDraft(form); setNote(null); }}>Descartar</button>
-        <button type="button" className="wf-primary" disabled={!dirty || saving} onClick={() => void save()}>{saving ? 'Salvando…' : 'Salvar alterações'}</button>
+        <Button type="button" variant="workflowSecondary" disabled={!dirty || saving} onClick={() => { setDraft(form); setNote(null); }}>Descartar</Button>
+        <Button type="button" variant="workflowPrimary" disabled={!dirty || saving} onClick={() => void save()}>{saving ? 'Salvando…' : 'Salvar alterações'}</Button>
       </div>
     </div>}
 
     {tab === 'share' && <SharePanel form={form} url={url} onOpen={() => void save({ status: 'open' })} />}
     {tab === 'responses' && <ResponsesPanel form={form} />}
 
-    {confirmDelete && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) setConfirmDelete(false); }}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Excluir formulário">
+    {confirmDelete && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) setConfirmDelete(false); }}><DialogFrame className="ap-status-confirm" aria-label="Excluir formulário">
       <div><small>CALI FORMS</small><h2>Excluir formulário</h2><p><strong>{form.title}</strong></p><p>O link para de funcionar e {stats?.responses ? `as ${stats.responses} respostas saem junto` : 'ele sai da lista'}. Tudo fica na Lixeira por 30 dias e pode ser restaurado. Se quiser só parar de receber respostas, use “Encerrar respostas”.</p></div>
       <label>Para confirmar, digite o nome do formulário<input value={typedName} autoComplete="off" placeholder={form.title} onChange={(event) => setTypedName(event.target.value)} /></label>
       <footer><button type="button" disabled={saving} onClick={() => { setConfirmDelete(false); setTypedName(''); }}>Cancelar</button><button type="button" className="danger" disabled={saving || typedName.trim().toLowerCase() !== form.title.trim().toLowerCase()} onClick={() => void remove()}>{saving ? 'Excluindo…' : 'Excluir'}</button></footer>
-    </section></div>}
+    </DialogFrame></div>}
   </>;
 }
 
@@ -292,16 +297,16 @@ function SharePanel({ form, url, onOpen }: { form: FormRecord; url: string; onOp
   useEffect(() => { void qrDataUrl(url, 520).then(setQr); }, [url]);
   const fileBase = `cali-forms-${form.slug}`;
   return <div className="v2-forms-share">
-    {form.status !== 'open' && <div className="v2-forms-alert" role="alert"><div><strong>{form.status === 'draft' ? 'Este formulário ainda é rascunho' : 'Este formulário está encerrado'}</strong><p>Quem abrir o link {form.status === 'draft' ? 'vai ver “formulário não encontrado”' : 'vai ver que ele não recebe mais respostas'}. Abra para respostas antes de enviar.</p></div><button type="button" className="wf-primary" onClick={onOpen}>Abrir para respostas</button></div>}
+    {form.status !== 'open' && <div className="v2-forms-alert" role="alert"><div><strong>{form.status === 'draft' ? 'Este formulário ainda é rascunho' : 'Este formulário está encerrado'}</strong><p>Quem abrir o link {form.status === 'draft' ? 'vai ver “formulário não encontrado”' : 'vai ver que ele não recebe mais respostas'}. Abra para respostas antes de enviar.</p></div><Button type="button" variant="workflowPrimary" onClick={onOpen}>Abrir para respostas</Button></div>}
     <section className="v2-forms-card v2-forms-share-card">
       <div className="v2-forms-qr">{qr ? <img src={qr} alt={`QR Code do formulário ${form.title}`} /> : <span className="data-loading">Gerando…</span>}</div>
       <div className="v2-forms-share-body">
         <small>LINK DO FORMULÁRIO</small>
-        <div className="v2-forms-link"><input readOnly value={url} onFocus={(event) => event.target.select()} /><button type="button" className="wf-primary" onClick={() => { void navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2200); }); }}><Copy size={15} /> {copied ? 'Copiado' : 'Copiar link'}</button></div>
+        <div className="v2-forms-link"><input readOnly value={url} onFocus={(event) => event.target.select()} /><Button type="button" variant="workflowPrimary" onClick={() => { void navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2200); }); }}><Copy size={15} /> {copied ? 'Copiado' : 'Copiar link'}</Button></div>
         <p>Envie o link por e-mail ou WhatsApp. Para eventos, apresentações e materiais impressos, use o QR Code ou o cartão pronto para divulgar.</p>
         <div className="v2-forms-share-actions">
-          <button type="button" className="wf-secondary" onClick={() => void downloadQrPng(url, `${fileBase}-qrcode.png`)}><QrCode size={15} /> Baixar QR Code</button>
-          <button type="button" className="wf-secondary" disabled={busy} onClick={() => { setBusy(true); void downloadShareCard({ title: form.title, category: form.category, intro: stripRichText(form.description) }, url, `${fileBase}-cartao.png`).finally(() => setBusy(false)); }}><Download size={15} /> {busy ? 'Gerando…' : 'Baixar cartão para divulgar'}</button>
+          <Button type="button" variant="workflowSecondary" onClick={() => void downloadQrPng(url, `${fileBase}-qrcode.png`)}><QrCode size={15} /> Baixar QR Code</Button>
+          <Button type="button" variant="workflowSecondary" disabled={busy} onClick={() => { setBusy(true); void downloadShareCard({ title: form.title, category: form.category, intro: stripRichText(form.description) }, url, `${fileBase}-cartao.png`).finally(() => setBusy(false)); }}><Download size={15} /> {busy ? 'Gerando…' : 'Baixar cartão para divulgar'}</Button>
           <a className="wf-secondary" href={`https://wa.me/?text=${encodeURIComponent(`${form.title}: ${url}`)}`} target="_blank" rel="noopener noreferrer"><ExternalLink size={15} /> Enviar no WhatsApp</a>
         </div>
       </div>
@@ -412,12 +417,12 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
       <select className="v2-forms-filter-select" aria-label="Contato" value={contactFilter} onChange={(event) => setContactFilter(event.target.value as typeof contactFilter)}><option value="all">Contato: todos</option><option value="pending">Ainda sem contato</option><option value="done">Já contatados</option></select>
       {choiceColumns.length > 0 && <select className="v2-forms-filter-select" aria-label="Filtrar por resposta" value={answerFilter} onChange={(event) => setAnswerFilter(event.target.value)}><option value="">Filtrar por resposta</option>{choiceColumns.map((question) => <optgroup key={question.id} label={stripRichText(question.label).slice(0, 60)}>{(question.kind === 'yes_no' ? ['Sim', 'Não'] : question.kind === 'scale' ? scaleOptions(question) : question.options || []).map((option) => <option key={option} value={`${question.id}::${option}`}>{option}</option>)}</optgroup>)}</select>}
       <span className="v2-forms-total">{filtered.length} de {rows.length}</span>
-      <button type="button" className="wf-secondary" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> Atualizar</button>
-      <button type="button" className="wf-primary" disabled={!filtered.length} onClick={() => void exportExcel()}><FileSpreadsheet size={15} /> Exportar Excel</button>
+      <Button type="button" variant="workflowSecondary" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> Atualizar</Button>
+      <Button type="button" variant="workflowPrimary" disabled={!filtered.length} onClick={() => void exportExcel()}><FileSpreadsheet size={15} /> Exportar Excel</Button>
     </div>
-    {selected.size > 0 && <div className="v2-forms-selbar" role="status"><strong>{selected.size} {selected.size === 1 ? 'resposta selecionada' : 'respostas selecionadas'}</strong><button type="button" className="v2-forms-delete" onClick={() => setConfirmDelete(true)}><Trash2 size={14} /> Excluir</button><button type="button" className="wf-secondary" onClick={() => setSelected(new Set())}>Limpar seleção</button></div>}
-    {error && <div className="inline-notice" role="alert">{error}</div>}
-    {loading ? <div className="data-loading">Carregando respostas…</div> : !rows.length ? <div className="wf-empty"><strong>Nenhuma resposta ainda.</strong><p>{form.status === 'open' ? 'Assim que alguém responder, aparece aqui.' : 'Abra o formulário para respostas e compartilhe o link.'}</p></div>
+    {selected.size > 0 && <div className="v2-forms-selbar" role="status"><strong>{selected.size} {selected.size === 1 ? 'resposta selecionada' : 'respostas selecionadas'}</strong><button type="button" className="v2-forms-delete" onClick={() => setConfirmDelete(true)}><Trash2 size={14} /> Excluir</button><Button type="button" variant="workflowSecondary" onClick={() => setSelected(new Set())}>Limpar seleção</Button></div>}
+    {error && <InlineNotice role="alert">{error}</InlineNotice>}
+    {loading ? <LoadingState>Carregando respostas…</LoadingState> : !rows.length ? <EmptyState variant="workflow"><strong>Nenhuma resposta ainda.</strong><p>{form.status === 'open' ? 'Assim que alguém responder, aparece aqui.' : 'Abra o formulário para respostas e compartilhe o link.'}</p></EmptyState>
       : <div className="v2-forms-table-wrap"><table className="v2-forms-table">
         <thead><tr>
           <th className="v2-forms-check-col"><input type="checkbox" aria-label="Selecionar todas" checked={allChecked} onChange={() => setSelected(allChecked ? new Set() : new Set(filtered.map((row) => row.id)))} /></th>
@@ -442,15 +447,15 @@ function ResponsesPanel({ form }: { form: FormRecord }) {
       </table></div>}
     {editing && <EditResponse form={form} row={editing} onClose={() => setEditing(null)} onSaved={(saved) => { setRows((current) => current.map((item) => item.id === saved.id ? saved : item)); setEditing(null); flash('Resposta atualizada'); }} />}
     {toast && <div className="v2-forms-toast" role="status"><Check size={14} /> {toast}</div>}
-    {noteFor && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !noteFor.busy) setNoteFor(null); }}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Nota interna">
+    {noteFor && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !noteFor.busy) setNoteFor(null); }}><DialogFrame className="ap-status-confirm" aria-label="Nota interna">
       <div><small>NOTA INTERNA · SÓ VOCÊ VÊ</small><h2>{noteFor.row.respondent_name || 'Resposta'}</h2><p>{dateTime(noteFor.row.submitted_at)}{noteFor.row.respondent_email ? ` · ${noteFor.row.respondent_email}` : ''}</p></div>
       <label>Nota<textarea rows={4} maxLength={2000} autoFocus value={noteFor.text} placeholder="Ex.: liguei em 22/10, confirmou presença." onChange={(event) => setNoteFor({ ...noteFor, text: event.target.value })} /></label>
       <footer><button type="button" disabled={noteFor.busy} onClick={() => setNoteFor(null)}>Cancelar</button><button type="button" disabled={noteFor.busy} onClick={() => void saveNote()}>{noteFor.busy ? 'Salvando…' : 'Salvar nota'}</button></footer>
-    </section></div>}
-    {confirmDelete && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !deleting) setConfirmDelete(false); }}><section className="ap-status-confirm" role="dialog" aria-modal="true" aria-label="Excluir respostas">
+    </DialogFrame></div>}
+    {confirmDelete && <div className="ap-pd-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !deleting) setConfirmDelete(false); }}><DialogFrame className="ap-status-confirm" aria-label="Excluir respostas">
       <div><small>CALI FORMS</small><h2>Excluir {selected.size === 1 ? 'resposta' : `${selected.size} respostas`}?</h2><p>{rows.filter((row) => selected.has(row.id)).slice(0, 4).map((row) => row.respondent_name || dateTime(row.submitted_at)).join(', ')}{selected.size > 4 ? ` e mais ${selected.size - 4}` : ''}. Ficam na Lixeira por 30 dias e podem ser restauradas.</p></div>
       <footer><button type="button" disabled={deleting} onClick={() => setConfirmDelete(false)}>Cancelar</button><button type="button" className="danger" disabled={deleting} onClick={() => void removeSelected()}>{deleting ? 'Excluindo…' : 'Excluir'}</button></footer>
-    </section></div>}
+    </DialogFrame></div>}
   </div>;
 }
 
@@ -554,11 +559,11 @@ function EditResponse({ form, row, onClose, onSaved }: { form: FormRecord; row: 
   }
 
   return <div className="ap-pd-overlay v2-forms-drawer-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onClose(); }}>
-    <aside className="v2-forms-drawer" role="dialog" aria-modal="true" aria-label="Editar resposta">
+    <DialogFrame className="v2-forms-drawer" as="aside" aria-label="Editar resposta">
       <header><div><small>EDITAR RESPOSTA · {dateTime(row.submitted_at)}</small><h2>{row.respondent_name || 'Resposta'}</h2><p>Complete ou corrija o que chegou por fora (texto, foto, arquivo). Fica registrado como resposta desta pessoa.</p></div><button type="button" aria-label="Fechar" onClick={onClose}><X size={18} /></button></header>
       <div className="v2-forms-drawer-body">{questions.map((question) => <div className="v2-forms-edit-field" key={question.id}><span>{stripRichText(question.label)}</span>{field(question)}</div>)}</div>
       {error && <p className="v2-forms-error" role="alert">{error}</p>}
-      <footer><button type="button" className="wf-secondary" disabled={busy} onClick={onClose}>Cancelar</button><button type="button" className="wf-primary" disabled={busy || Boolean(uploading)} onClick={() => void save()}>{busy ? 'Salvando…' : 'Salvar resposta'}</button></footer>
-    </aside>
+      <footer><Button type="button" variant="workflowSecondary" disabled={busy} onClick={onClose}>Cancelar</Button><Button type="button" variant="workflowPrimary" disabled={busy || Boolean(uploading)} onClick={() => void save()}>{busy ? 'Salvando…' : 'Salvar resposta'}</Button></footer>
+    </DialogFrame>
   </div>;
 }

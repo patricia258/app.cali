@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Link } from '../../../components/navigation/Link';
 import { useNavigate } from '../../../hooks/useNavigate';
 import { z } from 'zod';
+import { accessSupportLink } from '../../../domain/caliContacts';
 import {
   CalendarDays,
   LifeBuoy,
@@ -206,7 +207,7 @@ export function LoginPage() {
             <p>Por segurança, o Workspace não informa se um e-mail está ou não cadastrado. Se continuar sem acesso, fale com a CALI:</p>
             <div className="login-v2-help-actions">
               <a href={`https://wa.me/5541987791933?text=${encodeURIComponent(`Olá, Patrícia. Não consigo acessar o CALI Workspace${email.trim() ? ` com o e-mail ${email.trim()}` : ''}.`)}`} target="_blank" rel="noreferrer"><MessageCircle size={15} aria-hidden="true" />WhatsApp</a>
-              <a href={`mailto:patricia@calirh.com?subject=${encodeURIComponent('Acesso ao CALI Workspace')}&body=${encodeURIComponent(`Não consigo acessar o CALI Workspace${email.trim() ? ` com o e-mail ${email.trim()}` : ''}.`)}`}><Mail size={15} aria-hidden="true" />E-mail</a>
+              <a href={accessSupportLink(`Não consigo acessar o CALI Workspace${email.trim() ? ` com o e-mail ${email.trim()}` : ''}.`)}><Mail size={15} aria-hidden="true" />E-mail</a>
             </div>
           </div>}
         </form>

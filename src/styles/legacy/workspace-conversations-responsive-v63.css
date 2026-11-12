@@ -1,5 +1,6 @@
 /* CALI Workspace v63 — conversas, notificações e acabamento responsivo.
    Mantém dados e fluxos; altera somente apresentação e movimento. */
+@reference "../tailwind.css";
 
 @keyframes cali-message-arrive-v63 {
   0% { opacity: 0; transform: translateY(18px) scale(.94); }
@@ -36,7 +37,7 @@
 
 .workspace-chat-standard .conversation-list-v2.workspace-chat-list,
 .records-v13-drawer .conversation-history {
-  overscroll-behavior: contain;
+  @apply tw:overscroll-contain;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, #b58c52 34%, transparent) transparent;
   background-image:
@@ -48,19 +49,18 @@
 }
 
 .workspace-chat-standard .conversation-list-v2.workspace-chat-list::-webkit-scrollbar,
-.records-v13-drawer .conversation-history::-webkit-scrollbar { width: 7px; }
+.records-v13-drawer .conversation-history::-webkit-scrollbar { @apply tw:w-[7px]; }
 .workspace-chat-standard .conversation-list-v2.workspace-chat-list::-webkit-scrollbar-thumb,
 .records-v13-drawer .conversation-history::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
-  border-radius: 999px;
+  @apply tw:rounded-[999px];
   background: color-mix(in srgb, #b58c52 38%, transparent);
   background-clip: padding-box;
 }
 
 .workspace-chat-bubble,
 .records-chat-bubble {
-  position: relative;
-  isolation: isolate;
+  @apply tw:relative tw:isolate;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 10px 26px rgba(46, 27, 33, .085) !important;
@@ -109,13 +109,13 @@
 
 /* Notificações: painel mais leve, hierarquia por tipo e leitura fácil. */
 .notification-panel {
-  right: 0 !important;
+  @apply tw:right-0!;
   top: calc(100% + 13px) !important;
   width: min(430px, calc(100vw - 28px)) !important;
   max-height: min(610px, calc(100dvh - 92px)) !important;
-  overflow: hidden !important;
+  @apply tw:overflow-hidden!;
   border: 1px solid color-mix(in srgb, #5a1e2d 12%, var(--theme-line)) !important;
-  border-radius: 22px !important;
+  @apply tw:rounded-[22px]!;
   background: color-mix(in srgb, var(--theme-surface) 96%, transparent) !important;
   box-shadow: 0 28px 76px rgba(44, 24, 31, .2) !important;
   backdrop-filter: blur(20px) saturate(1.05);
@@ -124,55 +124,45 @@
 }
 
 .notification-head {
-  min-height: 82px;
+  @apply tw:min-h-[82px];
   padding: 17px 18px !important;
   border-bottom: 1px solid var(--theme-line) !important;
   background: linear-gradient(120deg, color-mix(in srgb, #5a1e2d 5%, var(--theme-surface)), color-mix(in srgb, #e7c66f 10%, var(--theme-surface))) !important;
 }
 
-.notification-head-title { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.notification-head-title { @apply tw:flex tw:items-center tw:gap-[11px] tw:min-w-0; }
 .notification-head-mark {
-  width: 40px;
-  height: 40px;
+  @apply tw:w-[40px] tw:h-[40px];
   flex: 0 0 40px;
-  display: grid !important;
-  place-items: center;
-  margin: 0 !important;
+  @apply tw:grid! tw:place-items-center tw:m-0!;
   border: 1px solid color-mix(in srgb, #b58c52 32%, var(--theme-line));
-  border-radius: 13px;
+  @apply tw:rounded-[13px];
   color: #5a1e2d !important;
   background: color-mix(in srgb, #e7c66f 14%, var(--theme-surface));
 }
-.notification-head-title > div > strong { font-size: .98rem !important; letter-spacing: -.015em; }
-.notification-head-title > div > span { margin-top: 2px !important; font-size: .7rem !important; }
+.notification-head-title > div > strong { @apply tw:text-[.98rem]!; letter-spacing: -.015em; }
+.notification-head-title > div > span { @apply tw:mt-[2px]! tw:text-[.7rem]!; }
 .notification-head > button {
-  min-height: 34px;
+  @apply tw:min-h-[34px];
   padding: 0 10px !important;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  @apply tw:inline-flex tw:items-center tw:gap-[6px];
   border: 1px solid color-mix(in srgb, #5a1e2d 13%, var(--theme-line)) !important;
-  border-radius: 10px;
+  @apply tw:rounded-[10px];
   background: color-mix(in srgb, var(--theme-surface) 82%, transparent) !important;
-  cursor: pointer;
+  @apply tw:cursor-pointer;
 }
 
 .notification-list {
   max-height: min(500px, calc(100dvh - 176px));
-  padding: 8px;
-  gap: 5px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  @apply tw:p-[8px] tw:gap-[5px] tw:overflow-y-auto tw:overscroll-contain;
 }
 .notification-item {
-  position: relative;
+  @apply tw:relative;
   grid-template-columns: 44px minmax(0, 1fr) !important;
   align-items: start;
-  gap: 12px !important;
-  padding: 13px !important;
+  @apply tw:gap-[12px]! tw:p-[13px]!;
   border: 1px solid transparent !important;
-  border-radius: 15px;
-  color: var(--theme-text) !important;
+  @apply tw:rounded-[15px] tw:text-cali-text!;
   transition: transform .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
 .notification-item:hover {
@@ -187,12 +177,9 @@
 }
 .notification-item.is-arriving { animation: cali-message-arrive-v63 .56s cubic-bezier(.2,.78,.2,1) both; }
 .notification-visual {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
+  @apply tw:w-[42px] tw:h-[42px] tw:grid tw:place-items-center;
   border: 1px solid color-mix(in srgb, #5a1e2d 11%, var(--theme-line));
-  border-radius: 13px;
+  @apply tw:rounded-[13px];
   color: #5a1e2d;
   background: var(--theme-surface);
 }
@@ -200,13 +187,13 @@
 .notification-kind-hours .notification-visual { color: #315d48; background: color-mix(in srgb, #7ca98d 14%, var(--theme-surface)); }
 .notification-kind-calendar .notification-visual { color: #755634; background: color-mix(in srgb, #d2a85f 13%, var(--theme-surface)); }
 .notification-kind-message .notification-visual { color: #6e2940; background: color-mix(in srgb, #b95b7b 10%, var(--theme-surface)); }
-.notification-copy { min-width: 0; }
-.notification-title-row { display: flex !important; align-items: flex-start; justify-content: space-between; gap: 10px; margin: 0 !important; }
-.notification-title-row strong { font-size: .82rem !important; line-height: 1.35 !important; }
-.notification-title-row i { width: 7px; height: 7px; flex: 0 0 7px; margin-top: 5px; border-radius: 999px; background: #5a1e2d; box-shadow: 0 0 0 4px rgba(90, 30, 45, .08); }
-.notification-copy p { margin: 4px 0 0 !important; font-size: .74rem !important; line-height: 1.45 !important; }
-.notification-copy small { margin-top: 7px !important; font-size: .65rem !important; }
-.notification-indicator { display: none !important; }
+.notification-copy { @apply tw:min-w-0; }
+.notification-title-row { @apply tw:flex! tw:items-start tw:justify-between tw:gap-[10px] tw:m-0!; }
+.notification-title-row strong { @apply tw:text-[.82rem]!; line-height: 1.35 !important; }
+.notification-title-row i { @apply tw:w-[7px] tw:h-[7px]; flex: 0 0 7px; @apply tw:mt-[5px] tw:rounded-[999px]; background: #5a1e2d; box-shadow: 0 0 0 4px rgba(90, 30, 45, .08); }
+.notification-copy p { margin: 4px 0 0 !important; @apply tw:text-[.74rem]!; line-height: 1.45 !important; }
+.notification-copy small { @apply tw:mt-[7px]! tw:text-[.65rem]!; }
+.notification-indicator { @apply tw:hidden!; }
 
 html[data-workspace-theme='night'] .notification-head-mark,
 html[data-workspace-theme='night'] .notification-visual { color: #e6bd73 !important; }
@@ -222,38 +209,31 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
 
 /* V64 — a conversa ocupa o modal; somente as mensagens rolam. */
 .deliverable-workspace-scroll-v2:has(> .conversation-pane-v2) {
-  min-height: 0 !important;
-  padding: 0 !important;
-  display: grid !important;
-  overflow: hidden !important;
+  @apply tw:min-h-0! tw:p-0! tw:grid! tw:overflow-hidden!;
 }
 .deliverable-workspace-modal-v2 .conversation-pane-v2.workspace-chat-standard {
-  min-height: 0 !important;
-  height: 100%;
+  @apply tw:min-h-0! tw:h-full;
   grid-template-rows: minmax(0, 1fr) auto !important;
-  overflow: hidden !important;
+  @apply tw:overflow-hidden!;
   border: 0 !important;
   border-radius: 0 !important;
 }
 .deliverable-workspace-modal-v2 .conversation-list-v2.workspace-chat-list {
-  min-height: 0 !important;
-  max-height: none !important;
-  height: auto !important;
-  gap: 11px !important;
+  @apply tw:min-h-0! tw:max-h-none! tw:h-auto! tw:gap-[11px]!;
   padding: 16px 22px !important;
   border-top: 0 !important;
 }
 .deliverable-workspace-modal-v2 .workspace-chat-bubble,
 .records-v13-drawer .records-chat-bubble {
-  min-width: 0 !important;
+  @apply tw:min-w-0!;
   max-width: min(66%, 520px) !important;
   padding: 10px 12px !important;
-  border-radius: 15px !important;
+  @apply tw:rounded-[15px]!;
 }
 .deliverable-workspace-modal-v2 .workspace-chat-head,
-.records-v13-drawer .records-chat-head { gap: 12px; margin-bottom: 4px; }
+.records-v13-drawer .records-chat-head { @apply tw:gap-[12px] tw:mb-[4px]; }
 .deliverable-workspace-modal-v2 .workspace-chat-bubble > p,
-.records-v13-drawer .records-chat-bubble > p { font-size: 12.5px !important; line-height: 1.45 !important; }
+.records-v13-drawer .records-chat-bubble > p { @apply tw:text-[12.5px]!; line-height: 1.45 !important; }
 
 .workspace-chat-standard .conversation-composer-v2.workspace-chat-compose {
   grid-template-columns: auto minmax(0, 1fr) auto !important;
@@ -272,39 +252,33 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
 .conversation-channel-compact-v64 {
   grid-area: channel !important;
   justify-self: start;
-  min-height: 30px;
-  margin: 0 !important;
+  @apply tw:min-h-[30px] tw:m-0!;
   padding: 2px !important;
-  border-radius: 9px !important;
+  @apply tw:rounded-[9px]!;
   background: var(--theme-surface-soft);
 }
 .conversation-channel-compact-v64 button {
-  min-height: 27px !important;
+  @apply tw:min-h-[27px]!;
   padding: 0 10px !important;
-  font-size: 10px !important;
+  @apply tw:text-[10px]!;
 }
 .workspace-chat-runtime-pending-host {
   grid-area: pending !important;
-  display: block !important;
-  margin: 0 !important;
+  @apply tw:block! tw:m-0!;
 }
 .workspace-chat-runtime-tools-host {
   grid-area: tools !important;
-  display: block !important;
-  margin: 0 !important;
+  @apply tw:block! tw:m-0!;
 }
-.workspace-chat-runtime-tools-host .workspace-chat-tools { display: flex; }
+.workspace-chat-runtime-tools-host .workspace-chat-tools { @apply tw:flex; }
 .workspace-chat-send-actions {
   grid-area: send !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  margin: 0 !important;
+  @apply tw:flex! tw:items-center! tw:gap-[8px]! tw:m-0!;
 }
 .workspace-chat-standard .workspace-chat-compose textarea {
-  min-height: 62px !important;
+  @apply tw:min-h-[62px]!;
   max-height: 88px !important;
-  resize: none !important;
+  @apply tw:resize-none!;
 }
 
 /* Ocorrências: resumo compacto no alto, conversa central e composição fixa. */
@@ -314,50 +288,43 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
 .records-v13-drawer > header { padding: 18px 22px 13px !important; }
 .records-v13-drawer-meta { padding: 8px 22px !important; }
 .records-v13-drawer .records-v25-ops {
-  min-height: 0;
-  display: grid;
+  @apply tw:min-h-0 tw:grid;
   grid-template-columns: minmax(0, 1.08fr) minmax(280px, .92fr);
-  align-items: stretch;
-  gap: 7px;
+  @apply tw:items-stretch tw:gap-[7px];
   padding: 7px 16px !important;
-  overflow: hidden;
+  @apply tw:overflow-hidden;
   border-top: 0;
   border-bottom: 1px solid var(--theme-line);
 }
-.records-v13-drawer .records-v25-ops:empty { display: none; }
+.records-v13-drawer .records-v25-ops:empty { @apply tw:hidden; }
 .records-v13-drawer .records-v25-ops > :only-child { grid-column: 1 / -1; }
 .records-v13-drawer .records-v25-timer,
 .records-v13-drawer .records-v28-admin-feedback {
-  min-width: 0;
+  @apply tw:min-w-0;
   padding: 8px 10px !important;
-  border-radius: 11px !important;
+  @apply tw:rounded-[11px]!;
 }
 .records-v13-drawer .records-v25-timer {
-  display: grid;
+  @apply tw:grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
+  @apply tw:gap-[10px];
 }
-.records-v13-drawer .records-v25-timer-copy { gap: 1px; }
+.records-v13-drawer .records-v25-timer-copy { @apply tw:gap-[1px]; }
 .records-v13-drawer .records-v25-timer-copy > small {
   max-width: 330px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  @apply tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap;
 }
-.records-v13-drawer .records-v25-timer-action > button { min-height: 34px; }
-.records-v13-drawer .records-v25-timer-action { gap: 7px; }
-.records-v13-drawer .records-v25-timer-action > b { min-width: 46px; font-size: 12px; }
-.records-v13-drawer .records-v25-timer-action > button { padding-inline: 10px; white-space: nowrap; }
+.records-v13-drawer .records-v25-timer-action > button { @apply tw:min-h-[34px]; }
+.records-v13-drawer .records-v25-timer-action { @apply tw:gap-[7px]; }
+.records-v13-drawer .records-v25-timer-action > b { min-width: 46px; @apply tw:text-[12px]; }
+.records-v13-drawer .records-v25-timer-action > button { @apply tw:px-[10px] tw:whitespace-nowrap; }
 .records-v13-drawer .records-v13-conversation {
-  min-height: 0;
-  height: 100%;
-  overflow: hidden;
+  @apply tw:min-h-0 tw:h-full tw:overflow-hidden;
 }
 .records-v13-drawer .conversation-history {
-  min-height: 0 !important;
-  gap: 10px !important;
+  @apply tw:min-h-0! tw:gap-[10px]!;
   padding: 14px 18px !important;
-  overflow-y: auto !important;
+  @apply tw:overflow-y-auto!;
 }
 .records-v13-drawer .conversation-compose {
   grid-template-columns: auto minmax(0, 1fr) auto !important;
@@ -367,12 +334,12 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
 }
 .records-chat-runtime-pending-host { grid-area: pending; }
 .records-chat-runtime-tools-host { grid-area: tools; align-self: end; }
-.records-chat-runtime-tools-host .records-chat-tools { display: flex; }
+.records-chat-runtime-tools-host .records-chat-tools { @apply tw:flex; }
 .records-v13-drawer .conversation-compose textarea {
   grid-area: field;
-  min-height: 58px !important;
+  @apply tw:min-h-[58px]!;
   max-height: 82px !important;
-  resize: none !important;
+  @apply tw:resize-none!;
 }
 .records-v13-drawer .conversation-compose > .primary { grid-area: send; align-self: end; }
 
@@ -383,107 +350,106 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
     height: calc(100dvh - 24px) !important;
     max-height: calc(100dvh - 24px) !important;
   }
-  .workspace-chat-standard .conversation-list-v2.workspace-chat-list { max-height: none; }
+  .workspace-chat-standard .conversation-list-v2.workspace-chat-list { @apply tw:max-h-none; }
   .workspace-chat-bubble,
   .records-chat-bubble { max-width: min(82%, 590px) !important; }
-  .notification-panel { position: fixed !important; top: 72px !important; right: 14px !important; }
+  .notification-panel { @apply tw:fixed!; top: 72px !important; @apply tw:right-[14px]!; }
   .records-v13-drawer .records-v25-ops { grid-template-columns: 1fr; }
-  .records-v13-drawer .records-v28-admin-feedback { display: grid; }
+  .records-v13-drawer .records-v28-admin-feedback { @apply tw:grid; }
 }
 
 @media (max-width: 640px) {
   .modal-backdrop,
   .workspace-modal-backdrop,
   .full-screen-modal,
-  .chrome-modal-backdrop.full-screen-modal { padding: 6px !important; }
+  .chrome-modal-backdrop.full-screen-modal { @apply tw:p-[6px]!; }
 
   .deliverable-workspace-modal-v2,
   .client-deliverable-workspace-v33 {
     width: calc(100vw - 12px) !important;
     height: calc(100dvh - 12px) !important;
     max-height: calc(100dvh - 12px) !important;
-    border-radius: 20px !important;
+    @apply tw:rounded-[20px]!;
   }
   .deliverable-workspace-header-v2 {
     grid-template-columns: 42px minmax(0, 1fr) 42px !important;
-    gap: 10px !important;
-    padding: 14px !important;
+    @apply tw:gap-[10px]! tw:p-[14px]!;
   }
-  .deliverable-title-v2 .section-kicker { font-size: 8px !important; }
-  .deliverable-title-v2 h2 { overflow: hidden; font-size: 18px !important; text-overflow: ellipsis; white-space: nowrap; }
-  .deliverable-title-v2 p { overflow: hidden; font-size: 10px !important; text-overflow: ellipsis; white-space: nowrap; }
-  .deliverable-head-actions-v2 { justify-content: flex-end; }
-  .deliverable-head-actions-v2 > button:not(.modal-close):not(.drawer-close) { display: none !important; }
-  .deliverable-workspace-tabs-v2 { overflow-x: auto; scrollbar-width: none; }
-  .deliverable-workspace-tabs-v2::-webkit-scrollbar { display: none; }
-  .deliverable-workspace-tabs-v2 button { flex: 0 0 auto; min-width: max-content; padding-inline: 13px !important; }
+  .deliverable-title-v2 .section-kicker { @apply tw:text-[8px]!; }
+  .deliverable-title-v2 h2 { @apply tw:overflow-hidden tw:text-[18px]! tw:text-ellipsis tw:whitespace-nowrap; }
+  .deliverable-title-v2 p { @apply tw:overflow-hidden tw:text-[10px]! tw:text-ellipsis tw:whitespace-nowrap; }
+  .deliverable-head-actions-v2 { @apply tw:justify-end; }
+  .deliverable-head-actions-v2 > button:not(.modal-close):not(.drawer-close) { @apply tw:hidden!; }
+  .deliverable-workspace-tabs-v2 { @apply tw:overflow-x-auto; scrollbar-width: none; }
+  .deliverable-workspace-tabs-v2::-webkit-scrollbar { @apply tw:hidden; }
+  .deliverable-workspace-tabs-v2 button { flex: 0 0 auto; @apply tw:min-w-max; padding-inline: 13px !important; }
 
   .workspace-chat-standard > header { padding: 0 2px 11px !important; }
-  .workspace-chat-standard .client-conversation-title-v33 p { font-size: 10.5px !important; }
+  .workspace-chat-standard .client-conversation-title-v33 p { @apply tw:text-[10.5px]!; }
   .workspace-chat-standard .conversation-list-v2.workspace-chat-list,
-  .records-v13-drawer .conversation-history { gap: 14px !important; padding: 18px 12px !important; background-size: 34px 34px, 34px 34px, auto !important; }
+  .records-v13-drawer .conversation-history { @apply tw:gap-[14px]!; padding: 18px 12px !important; background-size: 34px 34px, 34px 34px, auto !important; }
   .workspace-chat-bubble,
-  .records-chat-bubble { min-width: 0 !important; max-width: calc(100% - 42px) !important; padding: 11px 12px !important; border-radius: 16px !important; }
+  .records-chat-bubble { @apply tw:min-w-0!; max-width: calc(100% - 42px) !important; padding: 11px 12px !important; @apply tw:rounded-[16px]!; }
   .workspace-chat-avatar,
-  .records-chat-avatar { width: 34px !important; height: 34px !important; flex-basis: 34px !important; border-radius: 11px !important; }
+  .records-chat-avatar { @apply tw:w-[34px]! tw:h-[34px]!; flex-basis: 34px !important; @apply tw:rounded-[11px]!; }
   .workspace-chat-head,
-  .records-chat-head { gap: 10px; margin-bottom: 5px; }
+  .records-chat-head { @apply tw:gap-[10px] tw:mb-[5px]; }
   .workspace-chat-head strong,
-  .records-chat-head strong { font-size: 9.5px !important; }
+  .records-chat-head strong { @apply tw:text-[9.5px]!; }
   .workspace-chat-head time,
-  .records-chat-head time { font-size: 8px !important; }
+  .records-chat-head time { @apply tw:text-[8px]!; }
   .workspace-chat-bubble > p,
-  .records-chat-bubble p { font-size: 13px !important; line-height: 1.48 !important; }
+  .records-chat-bubble p { @apply tw:text-[13px]!; line-height: 1.48 !important; }
 
   .workspace-chat-standard .conversation-composer-v2.workspace-chat-compose,
   .records-v13-drawer .conversation-compose {
     grid-template-columns: 1fr auto !important;
     grid-template-areas: "channel channel" "pending pending" "tools tools" "field send" !important;
-    gap: 8px !important;
+    @apply tw:gap-[8px]!;
     padding: 11px 12px 13px !important;
   }
   .client-deliverable-workspace-v33 .conversation-composer-v2.workspace-chat-compose {
     grid-template-areas: "pending pending" "tools tools" "field send" !important;
   }
   .workspace-chat-compose textarea,
-  .records-v13-drawer .conversation-compose textarea { min-height: 58px !important; max-height: 118px; padding: 11px 12px !important; font-size: 13px !important; resize: none; }
+  .records-v13-drawer .conversation-compose textarea { @apply tw:min-h-[58px]!; max-height: 118px; padding: 11px 12px !important; @apply tw:text-[13px]! tw:resize-none; }
   .workspace-chat-tools,
-  .records-chat-tools { gap: 6px; padding: 0 !important; }
+  .records-chat-tools { @apply tw:gap-[6px] tw:p-0!; }
   .workspace-chat-tools > button,
-  .records-chat-tools > button { width: 34px; height: 34px; border-radius: 10px; font-size: 16px; }
+  .records-chat-tools > button { @apply tw:w-[34px] tw:h-[34px] tw:rounded-[10px] tw:text-[16px]; }
   .workspace-chat-compose > .workspace-chat-send-actions > .primary,
-  .records-v13-drawer .conversation-compose > .primary { min-width: 72px !important; height: 46px !important; padding-inline: 12px !important; }
+  .records-v13-drawer .conversation-compose > .primary { min-width: 72px !important; @apply tw:h-[46px]! tw:px-[12px]!; }
 
   .records-v13-drawer {
     width: calc(100vw - 12px) !important;
     height: calc(100dvh - 12px) !important;
     margin: 6px !important;
     border: 1px solid var(--theme-line) !important;
-    border-radius: 20px !important;
+    @apply tw:rounded-[20px]!;
   }
   .records-v13-drawer > header { padding: 18px 16px 14px !important; }
-  .records-v13-drawer > header h2 { font-size: 21px !important; }
+  .records-v13-drawer > header h2 { @apply tw:text-[21px]!; }
   .records-v13-drawer-meta { padding: 10px 16px !important; }
   .records-v13-drawer-actions { padding: 11px 12px !important; }
   .records-v13-drawer .records-v25-ops { padding: 6px 10px !important; }
-  .records-v13-drawer .records-v25-timer-copy > small { display: none; }
+  .records-v13-drawer .records-v25-timer-copy > small { @apply tw:hidden; }
   .records-v13-drawer .records-v25-timer-action > button { max-width: 150px; }
 
   .notification-panel {
     inset: auto 8px 8px 8px !important;
     top: auto !important;
-    width: auto !important;
+    @apply tw:w-auto!;
     max-height: min(76dvh, 610px) !important;
-    border-radius: 22px !important;
+    @apply tw:rounded-[22px]!;
     transform-origin: bottom center;
   }
-  .notification-head { min-height: 74px; padding: 14px !important; }
-  .notification-head-mark { width: 38px; height: 38px; flex-basis: 38px; }
-  .notification-head > button { width: 36px; padding: 0 !important; justify-content: center; font-size: 0 !important; }
-  .notification-head > button svg { width: 16px; height: 16px; }
+  .notification-head { @apply tw:min-h-[74px] tw:p-[14px]!; }
+  .notification-head-mark { @apply tw:w-[38px] tw:h-[38px]; flex-basis: 38px; }
+  .notification-head > button { @apply tw:w-[36px] tw:p-0! tw:justify-center; font-size: 0 !important; }
+  .notification-head > button svg { @apply tw:w-[16px] tw:h-[16px]; }
   .notification-list { max-height: calc(76dvh - 82px); }
-  .notification-item { grid-template-columns: 40px minmax(0, 1fr) !important; padding: 12px !important; }
-  .notification-visual { width: 38px; height: 38px; border-radius: 12px; }
+  .notification-item { grid-template-columns: 40px minmax(0, 1fr) !important; @apply tw:p-[12px]!; }
+  .notification-visual { @apply tw:w-[38px] tw:h-[38px] tw:rounded-[12px]; }
 
   .profile-modal-v55,
   .document-create-modal,
@@ -492,7 +458,7 @@ html[data-workspace-theme='night'] .notification-title-row i { background: #e6bd
     width: calc(100vw - 12px) !important;
     height: calc(100dvh - 12px) !important;
     max-height: calc(100dvh - 12px) !important;
-    border-radius: 20px !important;
+    @apply tw:rounded-[20px]!;
   }
 }
 

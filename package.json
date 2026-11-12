@@ -8,8 +8,12 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "build": "vite build",
     "check": "npm run typecheck && npm run build",
-    "test:smoke": "npm run check",
-    "preview": "vite preview"
+    "test:smoke": "npm run check && npm test",
+    "preview": "vite preview",
+    "test": "TSX_TSCONFIG_PATH=tsconfig.app.json node --import tsx --test tests/unit/*.test.mjs",
+    "test:e2e": "node tests/e2e/run.cjs",
+    "test:contracts": "bash tests/contracts/run-sql.sh && node --env-file .cali-db-schema.local/qa/stack.env tests/contracts/session-http.mjs",
+    "test:local": "npm run check && npm test && npm run test:e2e && npm run test:contracts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
@@ -33,7 +37,9 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
+    "playwright-core": "1.58.2",
     "tailwindcss": "4.3.3",
+    "tsx": "4.21.0",
     "typescript": "^5.6.3",
     "vite": "^5.4.11"
   }

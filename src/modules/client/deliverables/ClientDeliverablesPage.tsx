@@ -1,3 +1,8 @@
+import { Button } from '../../../components/ds/Button';
+import { DialogFrame } from '../../../components/ds/DialogFrame';
+import { FieldLabel } from '../../../components/ds/FieldLabel';
+import { InlineNotice } from '../../../components/ds/InlineNotice';
+import { StatusBadge } from '../../../components/ds/StatusBadge';
 import { openPrivateWorkspaceFile } from '../../../api/files/workspace';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ClientSubtaskModal } from './components/ClientSubtaskModal';
@@ -146,8 +151,8 @@ export function ClientDeliverablesPage() {
   const reaction = score ? scoreReaction(score) : null;
   const detailActionOpen = adjustmentOpen || npsOpen;
   const reviewErrorNotice = reviewError && <>
-    <div role="alert" className="inline-notice"><AlertTriangle size={18} aria-hidden="true" />{reviewError.message}</div>
-    {reviewError.stale && <button type="button" className="secondary" onClick={() => window.location.reload()}>Recarregar página</button>}
+    <InlineNotice role="alert"><AlertTriangle size={18} aria-hidden="true" />{reviewError.message}</InlineNotice>
+    {reviewError.stale && <Button type="button" variant="secondary" onClick={() => window.location.reload()}>Recarregar página</Button>}
   </>;
 
   useEffect(() => {
@@ -357,8 +362,8 @@ export function ClientDeliverablesPage() {
       <div className="v4-projects">
         <div className="page-head" data-v2-operation="client-roadmap-heading-v33"><div><div className="eyebrow">ÁREA DA EMPRESA / EXECUÇÃO</div><h1>Projetos<span className="title-dot">.</span></h1><p>Execução, planejamento e acompanhamento da assessoria em um só lugar.</p></div></div>
         {reality && project && <div className="dv-toolbar"><label data-v2-operation="client-project-picker-v33"><strong>Projeto · </strong><select aria-label="Projeto" value={project?.id || ''} onChange={(event) => { setProjectId(event.target.value); closeDeliverable(); }}>{reality.projects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><span>{project.protocol || reality.company.displayName}</span></div>}
-        {notice && <div className="inline-notice success"><CheckCircle2 size={18} />{notice}</div>}
-        {error && <div className="inline-notice"><AlertTriangle size={18} />{error}</div>}
+        {notice && <InlineNotice tone="success"><CheckCircle2 size={18} />{notice}</InlineNotice>}
+        {error && <InlineNotice><AlertTriangle size={18} />{error}</InlineNotice>}
         {reality && project && <div data-v2-operation="client-roadmap-table-v33">
           <div className="v2-project-tabs" role="tablist" aria-label="Seções do projeto">{([['timeline','Cronograma'],['deliverables','Entregáveis'],['history','Histórico']] as const).map(([id,label])=><button key={id} role="tab" aria-selected={projectTab===id} className={projectTab===id?'current':''} onClick={()=>setProjectTab(id)}>{label}</button>)}</div>
           {projectDeliverables.some(item=>item.status==='client_review') && <div className="dv-next-action v2-project-attention"><AlertCircle size={16}/><div><strong>Há uma validação aguardando você</strong><p>{projectDeliverables.find(item=>item.status==='client_review')!.title} · sua análise define se seguimos para publicação ou para uma nova versão.</p></div><button type="button" onClick={()=>openDeliverable(projectDeliverables.find(item=>item.status==='client_review')!)}>Abrir entrega <ArrowRight size={13}/></button></div>}
@@ -367,14 +372,14 @@ export function ClientDeliverablesPage() {
           {projectTab==='deliverables' && <div className="dv"><header><div><small>ÁREA DA EMPRESA / PROJETOS</small><h1>Entregáveis</h1><p>Frentes contratadas, cronograma, arquivos e decisões em um só fluxo.</p></div></header>{fronts.length ? fronts.map((front,frontIndex)=>{
             const items=projectDeliverables.filter(item=>item.workstreamId===front.id || item.workstream===front.name);
             const expanded=expandedFronts[front.id]!==false;
-            return <section className="dv-project" key={front.id}><div className="dv-project-title"><button type="button" className="dv-front-title dv-front-toggle" aria-expanded={expanded} onClick={()=>setExpandedFronts(current=>({...current,[front.id]:!expanded}))}><span className="dv-front-logo"><span className={`v2-brand-mark ${frontIndex%2?'lime':'oak'}`} aria-hidden="true"/></span><span className="dv-front-text"><small>{front.protocol || project.protocol || 'FRENTE CALI'}</small><strong>{front.name}</strong><em>{front.objective || `Frente contratada · clique para ${expanded?'recolher':'visualizar'} entregáveis`}</em></span>{expanded?<ChevronDown size={15}/>:<ChevronRight size={15}/>}</button><div className="dv-months" style={{gridTemplateColumns:`repeat(${months.length},minmax(25px,1fr))`}}>{months.map(month=><span key={month} className={month>=(front.monthStart||1)&&month<=(front.monthEnd||front.monthStart||1)?'current':''}>M{month}</span>)}</div><span className="dv-count">{items.length} {items.length===1?'entregável':'entregáveis'}</span></div>{expanded && items.length > 0 && <div className="dv-row dv-head" aria-hidden="true"><span className="dv-square"/><span className="dv-title">Entregável</span><span className="dv-subcol">Subtarefas</span><span className="dv-mc">Complexidade</span><span className="dv-status">Situação</span><span className="dv-due">Prazo</span><span className="dv-subend"/></div>}{expanded && (items.length ? items.map(item=><button className="dv-row" key={item.id} onClick={() => openDeliverable(item)} aria-label={`Abrir ${item.title}`}><span className="dv-square">{item.isDocument?<FileText size={16}/>:<FolderKanban size={16}/>}</span><span className="dv-title"><strong>{item.title}</strong><small>{item.protocol || item.code || 'ENTREGÁVEL'}</small></span><span className="dv-subcol">{(item.visibleTasks || []).length > 0 ? <span role="button" tabIndex={0} className="dv-subbtn" aria-expanded={!closedSubs[item.id]} title={closedSubs[item.id] ? 'Mostrar subtarefas' : 'Recolher subtarefas'} onClick={(event) => { event.stopPropagation(); setClosedSubs((current) => ({ ...current, [item.id]: !current[item.id] })); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); setClosedSubs((current) => ({ ...current, [item.id]: !current[item.id] })); } }}>{closedSubs[item.id] ? <ChevronRight size={14} /> : <ChevronDown size={14} />}{item.visibleTasks.length} {item.visibleTasks.length === 1 ? 'subtarefa' : 'subtarefas'}</span> : '—'}</span><b className={`mc-chip dv-mc ${(item.complexity || 'MC1').toLowerCase()}`} data-tip={complexityCopy[item.complexity || 'MC1'] || ''}>{item.complexity || 'MC1'}</b><span className={`dv-status ${item.status==='client_review'?'d0':item.status==='not_started'?'d2':''}`}>{statusLabel[item.status]}</span><span className="dv-due">{formatDate(item.dueAt)}</span><ArrowRight size={15}/></button>).flatMap((row, index) => { const item = items[index]; const subs = item.visibleTasks || []; const closed = Boolean(closedSubs[item.id]); return [row,  ...(closed ? [] : subs).map((task) => <div className="dv-row dv-subrow" role="button" tabIndex={0} title="Abrir esta parte" key={`${item.id}:${task.id}`} onClick={() => setOpenSub({ task, item })} onKeyDown={(event) => { if (event.key === 'Enter') setOpenSub({ task, item }); }}><span className="dv-subline" aria-hidden="true"/><span className="dv-title"><strong>{task.title}</strong><small>{task.protocol || 'SUBTAREFA'}</small></span><span className="dv-subcol"/>{task.complexity ? <b className={`mc-chip dv-mc ${task.complexity.toLowerCase()}`} data-tip={complexityCopy[task.complexity] || ''}>{task.complexity}</b> : <b className="dv-mc dv-mc-empty">—</b>}<span className={`dv-status ${task.status === 'client_review' ? 'd0' : task.status === 'todo' ? 'd2' : ''}`}>{task.status === 'todo' ? 'Programada' : task.status === 'client_review' ? 'Aguardando você' : ['done', 'approved', 'completed'].includes(task.status) ? 'Concluída' : 'Em andamento'}</span><span className="dv-due">{formatDate(task.dueAt)}</span><ArrowRight size={15}/></div>)]; }) : <p className="wf-empty">Nenhum entregável compartilhado nesta frente ainda.</p>)}</section>;
+            return <section className="dv-project" key={front.id}><div className="dv-project-title"><button type="button" className="dv-front-title dv-front-toggle" aria-expanded={expanded} onClick={()=>setExpandedFronts(current=>({...current,[front.id]:!expanded}))}><span className="dv-front-logo"><span className={`v2-brand-mark ${frontIndex%2?'lime':'oak'}`} aria-hidden="true"/></span><span className="dv-front-text"><small>{front.protocol || project.protocol || 'FRENTE CALI'}</small><strong>{front.name}</strong><em>{front.objective || `Frente contratada · clique para ${expanded?'recolher':'visualizar'} entregáveis`}</em></span>{expanded?<ChevronDown size={15}/>:<ChevronRight size={15}/>}</button><div className="dv-months" style={{gridTemplateColumns:`repeat(${months.length},minmax(25px,1fr))`}}>{months.map(month=><span key={month} className={month>=(front.monthStart||1)&&month<=(front.monthEnd||front.monthStart||1)?'current':''}>M{month}</span>)}</div><span className="dv-count">{items.length} {items.length===1?'entregável':'entregáveis'}</span></div>{expanded && items.length > 0 && <div className="dv-row dv-head" aria-hidden="true"><span className="dv-square"/><span className="dv-title">Entregável</span><span className="dv-subcol">Subtarefas</span><span className="dv-mc">Complexidade</span><StatusBadge variant="delivery">Situação</StatusBadge><span className="dv-due">Prazo</span><span className="dv-subend"/></div>}{expanded && (items.length ? items.map(item=><button className="dv-row" key={item.id} onClick={() => openDeliverable(item)} aria-label={`Abrir ${item.title}`}><span className="dv-square">{item.isDocument?<FileText size={16}/>:<FolderKanban size={16}/>}</span><span className="dv-title"><strong>{item.title}</strong><small>{item.protocol || item.code || 'ENTREGÁVEL'}</small></span><span className="dv-subcol">{(item.visibleTasks || []).length > 0 ? <span role="button" tabIndex={0} className="dv-subbtn" aria-expanded={!closedSubs[item.id]} title={closedSubs[item.id] ? 'Mostrar subtarefas' : 'Recolher subtarefas'} onClick={(event) => { event.stopPropagation(); setClosedSubs((current) => ({ ...current, [item.id]: !current[item.id] })); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); setClosedSubs((current) => ({ ...current, [item.id]: !current[item.id] })); } }}>{closedSubs[item.id] ? <ChevronRight size={14} /> : <ChevronDown size={14} />}{item.visibleTasks.length} {item.visibleTasks.length === 1 ? 'subtarefa' : 'subtarefas'}</span> : '—'}</span><b className={`mc-chip dv-mc ${(item.complexity || 'MC1').toLowerCase()}`} data-tip={complexityCopy[item.complexity || 'MC1'] || ''}>{item.complexity || 'MC1'}</b><StatusBadge variant="delivery" className={`${item.status==='client_review'?'d0':item.status==='not_started'?'d2':''}`}>{statusLabel[item.status]}</StatusBadge><span className="dv-due">{formatDate(item.dueAt)}</span><ArrowRight size={15}/></button>).flatMap((row, index) => { const item = items[index]; const subs = item.visibleTasks || []; const closed = Boolean(closedSubs[item.id]); return [row,  ...(closed ? [] : subs).map((task) => <div className="dv-row dv-subrow" role="button" tabIndex={0} title="Abrir esta parte" key={`${item.id}:${task.id}`} onClick={() => setOpenSub({ task, item })} onKeyDown={(event) => { if (event.key === 'Enter') setOpenSub({ task, item }); }}><span className="dv-subline" aria-hidden="true"/><span className="dv-title"><strong>{task.title}</strong><small>{task.protocol || 'SUBTAREFA'}</small></span><span className="dv-subcol"/>{task.complexity ? <b className={`mc-chip dv-mc ${task.complexity.toLowerCase()}`} data-tip={complexityCopy[task.complexity] || ''}>{task.complexity}</b> : <b className="dv-mc dv-mc-empty">—</b>}<StatusBadge variant="delivery" className={`${task.status === 'client_review' ? 'd0' : task.status === 'todo' ? 'd2' : ''}`}>{task.status === 'todo' ? 'Programada' : task.status === 'client_review' ? 'Aguardando você' : ['done', 'approved', 'completed'].includes(task.status) ? 'Concluída' : 'Em andamento'}</StatusBadge><span className="dv-due">{formatDate(task.dueAt)}</span><ArrowRight size={15}/></div>)]; }) : <p className="wf-empty">Nenhum entregável compartilhado nesta frente ainda.</p>)}</section>;
           }):<p className="wf-empty">O cronograma ainda não possui frentes compartilhadas.</p>}</div>}
         </div>}
       </div>
     </section>
 
     {selected && <div className="v2-client-module v2-client-dialog" hidden={detailActionOpen}><div className="dv-overlay">
-      <section className="dv-modal" role="dialog" aria-modal="true" aria-label={selected.title} data-v2-operation="deliverable-workspace-modal-v2">
+      <DialogFrame className="dv-modal" aria-label={selected.title} data-v2-operation="deliverable-workspace-modal-v2">
         <header data-v2-operation="deliverable-workspace-header-v2">
           <div data-v2-operation="deliverable-title-v2"><small><span className="section-kicker">{selected.protocol || selected.code || 'ENTREGÁVEL'}</span> · {selected.complexity || 'MC1'}</small><h2>{selected.title}</h2><p>{selected.workstream || 'Frente CALI'} · {roadmapLabel(selected)}</p></div>
           <button aria-label="Fechar entrega" onClick={closeDeliverable}><X size={18} /></button>
@@ -422,7 +427,7 @@ export function ClientDeliverablesPage() {
           <div className="workspace-chat-runtime-pending-host" />
           <div className="workspace-chat-runtime-tools-host" />
           <textarea value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder="Escreva sua mensagem sobre esta entrega..." onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void sendMessage(); }} />
-          <div className="workspace-chat-send-actions"><button className="primary" onClick={() => void sendMessage()} disabled={sendingMessage || !messageDraft.trim()}>{sendingMessage ? <Loader2 className="spin" size={14} /> : null}Enviar <ArrowRight size={14} /></button></div>
+          <div className="workspace-chat-send-actions"><Button variant="primary" onClick={() => void sendMessage()} disabled={sendingMessage || !messageDraft.trim()}>{sendingMessage ? <Loader2 className="spin" size={14} /> : null}Enviar <ArrowRight size={14} /></Button></div>
         </div>}
 
         </div>
@@ -450,46 +455,46 @@ export function ClientDeliverablesPage() {
             {selected.status !== 'client_review' && detailTab === 'overview' && <button className="dv-converse-bottom" onClick={() => setDetailTab('conversation')}><MessageCircle size={14} /> Conversar sobre esta entrega <ArrowRight size={14} /></button>}
           </div>
         </footer>
-      </section>
+      </DialogFrame>
     </div></div>}
 
     {adjustmentOpen && selected && <div className="v2-client-module v2-client-dialog">
       <div className="wf-overlay">
-        <section className="wf-modal wf-create" role="dialog" aria-modal="true" aria-labelledby="client-deliverable-adjustment-title" onKeyDown={(event) => {
+        <DialogFrame className="wf-modal wf-create" aria-labelledby="client-deliverable-adjustment-title" onKeyDown={(event) => {
           if (event.key !== 'Escape') return;
           event.stopPropagation();
           setAdjustmentOpen(false);
         }}>
-          <button className="modal-close" type="button" aria-label="Fechar ajuste" onClick={() => setAdjustmentOpen(false)}><X size={20} /></button>
+          <Button variant="close" type="button" aria-label="Fechar ajuste" onClick={() => setAdjustmentOpen(false)}><X size={20} /></Button>
           <span className="section-kicker">SOLICITAR AJUSTE</span>
           <h2 id="client-deliverable-adjustment-title">O que precisa ser revisto?</h2>
           <p>Descreva o ponto que precisa mudar. O pedido fica vinculado a <strong>{selected.protocol || selected.title}</strong>.</p>
           <textarea value={adjustmentText} onChange={(event) => setAdjustmentText(event.target.value)} placeholder="Ex.: precisamos separar este indicador por unidade antes da validação final." rows={5} maxLength={2000} autoFocus />
           {reviewErrorNotice}
           <div className="v2-dialog-actions">
-            <button type="button" className="secondary" onClick={() => setAdjustmentOpen(false)}>Cancelar</button>
-            <button type="button" className="primary" disabled={saving || reviewError?.stale || adjustmentText.trim().length < 3} onClick={() => void submitAdjustment()}>{saving ? 'Registrando…' : 'Enviar ajuste'}</button>
+            <Button type="button" variant="secondary" onClick={() => setAdjustmentOpen(false)}>Cancelar</Button>
+            <Button type="button" variant="primary" disabled={saving || reviewError?.stale || adjustmentText.trim().length < 3} onClick={() => void submitAdjustment()}>{saving ? 'Registrando…' : 'Enviar ajuste'}</Button>
           </div>
-        </section>
+        </DialogFrame>
       </div>
     </div>}
 
     {npsOpen && selected && <div className="v2-client-module v2-client-dialog">
       <div className="wf-overlay">
-        <section className="wf-modal wf-create v2-rating" role="dialog" aria-modal="true" aria-labelledby="client-deliverable-rating-title">
-          <button className="modal-close" type="button" aria-label="Fechar avaliação" autoFocus onClick={() => setNpsOpen(false)}><X size={20} /></button>
+        <DialogFrame className="wf-modal wf-create v2-rating" aria-labelledby="client-deliverable-rating-title">
+          <Button variant="close" type="button" aria-label="Fechar avaliação" autoFocus onClick={() => setNpsOpen(false)}><X size={20} /></Button>
           <span className="section-kicker">APROVAÇÃO DA ENTREGA</span>
           <h2 id="client-deliverable-rating-title">Como foi esta entrega?</h2>
           <p>Escolha sua nota, revise e só depois confirme.</p>
           <div className="client-delivery-rating-row">{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" className={score === value ? 'selected' : ''} onClick={() => setScore(value)}><Star size={21} fill={score === value ? 'currentColor' : 'none'} /><span>{value}</span></button>)}</div>
           {reaction && <div className={`client-delivery-score-reaction score-${score}`}><span>{reaction.emoji}</span><div><strong>{reaction.title}</strong><p>{reaction.copy}</p></div></div>}
-          {score > 0 && <label className="stacked-label">
+          {score > 0 && <FieldLabel>
             {npsCommentRequired ? 'O que podemos melhorar?' : 'Quer contar mais alguma coisa?'}
             <textarea value={npsComment} onChange={(event) => setNpsComment(event.target.value)} rows={4} maxLength={2000} placeholder={npsCommentRequired ? 'Sua justificativa ajuda a CALI a entender exatamente o que precisa melhorar.' : 'Opcional — deixe um comentário se quiser.'} />
-          </label>}
+          </FieldLabel>}
           {reviewErrorNotice}
-          <button type="button" className="primary full" disabled={saving || reviewError?.stale || score === 0 || (npsCommentRequired && npsComment.trim().length < 3)} onClick={() => void submitNps()}>{saving ? 'Confirmando…' : 'Confirmar aprovação e avaliação'}</button>
-        </section>
+          <Button type="button" variant="primary" className="full" disabled={saving || reviewError?.stale || score === 0 || (npsCommentRequired && npsComment.trim().length < 3)} onClick={() => void submitNps()}>{saving ? 'Confirmando…' : 'Confirmar aprovação e avaliação'}</Button>
+        </DialogFrame>
       </div>
     </div>}
   {openSub && <ClientSubtaskModal task={{ id: openSub.task.id, title: openSub.task.title, status: openSub.task.status, dueAt: openSub.task.dueAt, protocol: openSub.task.protocol, complexity: openSub.task.complexity }} deliverableId={openSub.item.id} deliverableTitle={openSub.item.title} statusLabel={openSub.task.status === 'todo' ? 'Programada' : openSub.task.status === 'client_review' ? 'Aguardando você' : ['done', 'approved', 'completed'].includes(openSub.task.status) ? 'Concluída' : 'Em andamento'} complexityHint={complexityCopy[openSub.task.complexity || ''] || ''} formatDate={formatDate} onClose={() => setOpenSub(null)} onChanged={() => window.location.reload()} />}

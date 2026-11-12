@@ -1,0 +1,148 @@
+@reference "../../styles/tailwind.css";
+/* Pasta do cliente: salvar a pasta inteira no Google Drive. */
+html[data-workspace-ui='v2'] .v2-fv-drive{@apply tw:inline-flex tw:items-center tw:gap-[6px] tw:h-[36px];padding:0 14px;border:1px solid #dfd3ca;@apply tw:rounded-[9px];background:#fff;color:#5a1e2d;font:inherit;@apply tw:text-[12px];font-weight:700;@apply tw:cursor-pointer tw:whitespace-nowrap}
+html[data-workspace-ui='v2'] .v2-fv-drive:disabled{opacity:.5;@apply tw:cursor-default}
+
+/* Nome mencionado com @ dentro das mensagens. */
+html[data-workspace-ui='v2'] .v2-mention{@apply tw:inline;padding:0 4px;@apply tw:rounded-[5px];background:#fbe7c6;color:#6b4a12;font-weight:700}
+
+/* Equipe do cliente vista pela Equipe CALI: só consulta (sem editar, afastar, desligar ou importar). */
+html[data-workspace-ui='v2'] .v2-team-staff :is(.team-btn:not(.team-download),.team-danger,.primary-button){@apply tw:hidden!}
+body.v2-team-staff-mode .v2-person-sheet :is(.v2-person-actions,.team-btn:not(.team-download),.team-danger,.primary-button){@apply tw:hidden!}
+html[data-workspace-ui='v2'] .v2-staff-bell-list a.is-mention{border-left:4px solid #d9a514;background:#fff8e6}
+html[data-workspace-ui='v2'] .v2-staff-browse .wf-record-row.is-link{@apply tw:cursor-pointer}
+html[data-workspace-ui='v2'] .v2-staff-browse .wf-record-row.is-link:hover{background:#fbf7f4}
+
+/* Perfil: privacidade e meus dados (LGPD). */
+.profile-privacy-v2{@apply tw:flex tw:flex-col tw:gap-[10px] tw:mt-[14px];padding:14px 16px;border:1px solid #e8ddd4;@apply tw:rounded-[10px];background:#fbf7f4;@apply tw:text-[12.5px];color:#5f5650}
+.profile-privacy-v2 strong{@apply tw:inline-flex tw:items-center tw:gap-[6px] tw:text-[13px];color:#2b2b2b}
+.profile-privacy-v2 p{margin:4px 0 0;line-height:1.5}
+.profile-privacy-v2 a{color:#5a1e2d;font-weight:700}
+.profile-privacy-actions,.profile-privacy-form>span{@apply tw:flex tw:flex-wrap tw:gap-[8px]}
+.profile-privacy-v2 button{@apply tw:inline-flex tw:items-center tw:gap-[6px] tw:h-[34px];padding:0 12px;border:1px solid #dfd3ca;@apply tw:rounded-[8px];background:#fff;color:#5a1e2d;font:inherit;@apply tw:text-[12px];font-weight:700;@apply tw:cursor-pointer}
+.profile-privacy-v2 button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+.profile-privacy-v2 button:disabled{opacity:.5;@apply tw:cursor-default}
+.profile-privacy-form{@apply tw:flex tw:flex-col tw:gap-[8px]}
+.profile-privacy-form label{@apply tw:flex tw:flex-col tw:gap-[4px] tw:text-[11.5px];font-weight:700}
+.profile-privacy-form :is(select,textarea){@apply tw:box-border;padding:8px 10px;border:1px solid #dfd3ca;@apply tw:rounded-[8px];background:#fff;font:inherit;@apply tw:text-[12.5px];font-weight:400}
+.profile-privacy-v2 small{color:#356448;font-weight:700}
+
+/* Auditoria: pedidos de privacidade (LGPD). */
+html[data-workspace-ui='v2'] .v2-privacy-panel{margin:0 0 18px;padding:16px 18px;border:1px solid #e8ddd4;@apply tw:rounded-[12px];background:#fff}
+html[data-workspace-ui='v2'] .v2-privacy-panel>header{@apply tw:flex tw:items-start tw:gap-[10px];color:#5a1e2d}
+html[data-workspace-ui='v2'] .v2-privacy-panel h2{@apply tw:m-0 tw:text-[15px];color:#2b2b2b}
+html[data-workspace-ui='v2'] .v2-privacy-panel header p{margin:3px 0 0;@apply tw:text-[12px];color:#7d726b}
+html[data-workspace-ui='v2'] .v2-privacy-panel ul{list-style:none;margin:12px 0 0;@apply tw:p-0 tw:flex tw:flex-col tw:gap-[10px]}
+html[data-workspace-ui='v2'] .v2-privacy-panel li{padding:12px 14px;border:1px solid #eadfd5;border-left:4px solid #b5a79d;@apply tw:rounded-[9px] tw:text-[12.5px];color:#3d3531}
+html[data-workspace-ui='v2'] .v2-privacy-panel li.open{border-left-color:#d9a514;background:#fff8e6}
+html[data-workspace-ui='v2'] .v2-privacy-panel li.late{border-left-color:#b3261e;background:#fdecea}
+html[data-workspace-ui='v2'] .v2-privacy-head{@apply tw:flex tw:flex-wrap tw:justify-between;gap:4px 12px}
+html[data-workspace-ui='v2'] .v2-privacy-head span{@apply tw:text-[11.5px];color:#7d726b}
+html[data-workspace-ui='v2'] .v2-privacy-panel li p{margin:6px 0 0;line-height:1.5;@apply tw:whitespace-pre-wrap}
+html[data-workspace-ui='v2'] .v2-privacy-message{margin:10px 0 0;@apply tw:text-[12px];font-weight:700;color:#356448}
+html[data-workspace-ui='v2'] .v2-privacy-form{@apply tw:flex tw:flex-col tw:gap-[8px] tw:mt-[10px]}
+html[data-workspace-ui='v2'] .v2-privacy-form textarea{@apply tw:box-border;padding:8px 10px;border:1px solid #dfd3ca;@apply tw:rounded-[8px];font:inherit;@apply tw:text-[12.5px]}
+html[data-workspace-ui='v2'] .v2-privacy-form span{@apply tw:flex tw:justify-end tw:gap-[8px]}
+html[data-workspace-ui='v2'] :is(.v2-privacy-form button,.v2-privacy-reply){@apply tw:h-[32px] tw:mt-[8px];padding:0 12px;border:1px solid #dfd3ca;@apply tw:rounded-[8px];background:#fff;color:#5a1e2d;font:inherit;@apply tw:text-[12px];font-weight:700;@apply tw:cursor-pointer}
+html[data-workspace-ui='v2'] .v2-privacy-form button.primary{background:#5a1e2d;border-color:#5a1e2d;color:#fff}
+
+/* Exportar dados da empresa (aba Contrato da ficha do cliente) */
+html[data-workspace-ui='v2'] .v2-admin-form .automation-preview.v2-company-export{@apply tw:flex-row tw:items-center tw:gap-[14px] tw:mt-[14px]}
+html[data-workspace-ui='v2'] .v2-company-export>svg{flex:0 0 auto;color:#7a1f3d}
+html[data-workspace-ui='v2'] .v2-company-export>div{@apply tw:flex-1 tw:min-w-0 tw:flex;@apply tw:flex-col tw:gap-[4px]}
+html[data-workspace-ui='v2'] .v2-company-export p{@apply tw:m-0;line-height:1.45}
+html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-ok{color:#1f7a4d;font-weight:600}
+html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-error{color:#b42318;font-weight:600}
+html[data-workspace-ui='v2'] .v2-company-export>button{flex:0 0 auto;border:1px solid #7a1f3d;background:#7a1f3d;color:#fff;@apply tw:rounded-[8px];padding:8px 16px;font:600 12px Inter,sans-serif;@apply tw:cursor-pointer}
+html[data-workspace-ui='v2'] .v2-company-export>button:disabled{opacity:.6;@apply tw:cursor-wait}
+
+/* Aceite dos termos no primeiro acesso (TermsGate; desligado até a revisão jurídica) */
+.v2-mfa-card.v2-terms-card{@apply tw:max-w-[620px]}
+.v2-terms-text{max-height:46vh;@apply tw:overflow-y-auto;scrollbar-width:none;border:1px solid #eee3dc;@apply tw:rounded-[10px];padding:14px 16px;background:#fcfaf8;@apply tw:text-[13px];line-height:1.55;color:#4a3d42}
+.v2-terms-text::-webkit-scrollbar{@apply tw:hidden}
+.v2-terms-text h2{@apply tw:text-[13px];margin:12px 0 4px;color:#2b2024}
+.v2-terms-text h2:first-child{@apply tw:mt-0}
+.v2-terms-text p{margin:0 0 8px}
+.v2-terms-check{@apply tw:flex tw:items-start tw:gap-[9px] tw:text-[13px];color:#2b2024;@apply tw:cursor-pointer}
+.v2-terms-check input{@apply tw:mt-[2px];accent-color:#7a1f3d}
+
+/* Indicadores em PDF (Equipe → Indicadores → Baixar PDF, 15/10): por seção, com as Leituras. Some o que é controle
+   de tela (abas, seletores, botões, convite do People Analytics); cada seção do People Analytics começa em folha nova
+   e nenhum cartão é cortado entre folhas. */
+html[data-workspace-ui='v2'] .v2-pa-pdf{margin-left:12px;@apply tw:inline-flex tw:items-center tw:gap-[6px] tw:whitespace-nowrap}
+html[data-workspace-ui='v2'] .pa-print-head{@apply tw:hidden}
+@media print{
+  @page{size:A4;margin:12mm}
+  body.pa-printing :is(.sidebar,.topbar,.page-head,.section-tabs,.context-strip,.v2-compare,.v2-month-strip,.ie-switch,.v2-module-gate.locked,.v2-module-blur,.v2-module-lock,.pa-missing,.team-alert,.ch-chat-trigger,.toast,.inline-notice,.v2-ess-legend){@apply tw:hidden!}
+  body.pa-printing .pa-card header :is(select,button,label,[role=tablist]){@apply tw:hidden!}
+  html[data-workspace-ui='v2']:has(body.pa-printing),body.pa-printing,body.pa-printing #root{@apply tw:h-auto! tw:min-h-0! tw:overflow-visible!;background:#fff!important}
+  body.pa-printing :is(.app,.main,.content,.v2-client-module){@apply tw:block! tw:static! tw:w-auto! tw:max-w-none! tw:h-auto! tw:min-h-0! tw:max-h-none! tw:overflow-visible! tw:m-0! tw:p-0!;background:#fff!important}
+  body.pa-printing *{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-shadow:none!important}
+  body.pa-printing .pa-print-head{@apply tw:block;margin:0 0 14px;padding:0 0 10px;border-bottom:2px solid #5a1e2d}
+  body.pa-printing .pa-print-head small{@apply tw:text-[8px];letter-spacing:1.4px;font-weight:700;color:#a5866b}
+  body.pa-printing .pa-print-head h1{@apply tw:text-[20px];margin:4px 0 2px;color:#2b2024}
+  body.pa-printing .pa-print-head p{@apply tw:text-[10px] tw:m-0;color:#6b5d63}
+  body.pa-printing .pa-print-ess{@apply tw:grid;grid-template-columns:1fr 1fr;@apply tw:gap-[10px]}
+  body.pa-printing .pa-print-ess .v2-ess-chart h3{@apply tw:text-[12px]}
+  body.pa-printing .pa-print-ess{break-before:page;page-break-before:always}
+  body.pa-printing .pa-print-ess>h2{grid-column:1/-1;@apply tw:text-[15px];margin:0 0 2px;color:#2b2024}
+  body.pa-printing .pa-print-ess .v2-ess-chart{padding:12px 14px!important;@apply tw:m-0!}
+  body.pa-printing .pa-print-ess .mini-chart{height:150px!important;@apply tw:min-h-0!}
+  body.pa-printing :is(.pa-hover,.pa-section-head p){@apply tw:hidden!}
+  body.pa-printing .pa-section-head{break-before:page;page-break-before:always}
+  body.pa-printing :is(.pa-card,.panel,.metric-strip>div,.ie-insight,.v2-ess-chart,.pa-section-head){break-inside:avoid;page-break-inside:avoid}
+  body.pa-printing .pa-reading{break-inside:avoid}
+}
+.v2-terms-text .v2-legal-doc{@apply tw:text-[12.5px]}
+.v2-terms-text .v2-legal-doc+.v2-legal-doc{@apply tw:mt-[22px] tw:pt-[18px];border-top:1px solid #eee3dc}
+.v2-terms-text .v2-legal-doc h2{@apply tw:text-[16px]}
+.v2-terms-links{@apply tw:text-[12px];color:#6b5d63;@apply tw:m-0}
+.v2-terms-links a{color:#5a1e2d;font-weight:600}
+html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-to{@apply tw:flex tw:items-center tw:gap-[10px] tw:mt-[4px] tw:text-[11px];font-weight:600;color:#3e3533}
+html[data-workspace-ui='v2'] .v2-company-export .v2-company-export-to input{@apply tw:flex-1 tw:min-w-0;max-width:360px;border:1px solid #e3d6cc;@apply tw:rounded-[7px];padding:7px 10px;font:400 12px Inter,sans-serif;background:#fff}
+
+/* Orientação sobre documentos clínicos junto de campos livres e anexos do cliente */
+.v2-sensitive-note{@apply tw:flex tw:items-center tw:gap-[6px];margin:6px 0 0;font:400 11px/1.4 Inter,system-ui,sans-serif;color:#8a7a80}
+.v2-sensitive-note svg{flex:0 0 auto;color:#b0893f}
+
+/* Relatórios (15/10): confirmações e dúvida do cliente são criadas por reportWorkflowGovernanceV61.ts, mas os estilos
+   delas ficavam só nas folhas antigas (desligadas nas telas novas) e a caixa aparecia crua no rodapé. */
+.v61-confirm-backdrop{@apply tw:fixed tw:inset-0 tw:z-420 tw:grid tw:place-items-center tw:p-[22px];background:rgba(20,13,15,.5);backdrop-filter:blur(6px)}
+.v61-confirm-card{@apply tw:relative tw:box-border;width:min(480px,94vw);@apply tw:p-[24px];border:1px solid #e3d8d1;@apply tw:rounded-[14px];background:#fffdfa;box-shadow:0 24px 70px rgba(39,24,28,.22);color:#2b2b2b;font-family:Inter,system-ui,sans-serif}
+.v61-confirm-card>span{@apply tw:block tw:mb-[6px];color:#b58c52;@apply tw:text-[10px];font-weight:700;letter-spacing:.12em}
+.v61-confirm-card h2{margin:0 36px 8px 0;@apply tw:text-[18px];line-height:1.25;color:#2b2024}
+.v61-confirm-card p{@apply tw:m-0;color:#70655f;@apply tw:text-[13px];line-height:1.55}
+.v61-confirm-card>div{@apply tw:flex tw:justify-end tw:gap-[8px] tw:mt-[20px]}
+.v61-confirm-card>div>button{@apply tw:min-h-[38px];padding:0 16px;@apply tw:rounded-[8px];font:600 13px Inter,system-ui,sans-serif;@apply tw:cursor-pointer;border:1px solid #e3d6cc;background:#fff;color:#3e3533}
+.v61-confirm-card>div>button.v61-confirm{border-color:#5a1e2d;background:#5a1e2d;color:#fff}
+.v61-confirm-close{@apply tw:absolute tw:right-[14px];@apply tw:top-[14px] tw:w-[32px] tw:h-[32px] tw:p-0;border:0;@apply tw:rounded-[8px];background:#f4efeb;color:#4c403b;@apply tw:text-[20px];line-height:1;@apply tw:cursor-pointer}
+.reports-governance-v61{@apply tw:flex tw:items-center tw:gap-[10px];margin:-2px 0 14px;padding:10px 14px;border:1px solid rgba(181,140,82,.32);@apply tw:rounded-[10px];background:rgba(231,198,111,.11);color:#4b4038;@apply tw:text-[12px];line-height:1.45}
+.reports-governance-v61 strong{color:#5a1e2d;@apply tw:whitespace-nowrap}
+.v61-client-question-backdrop{@apply tw:fixed tw:inset-0 tw:z-420 tw:grid tw:place-items-center tw:p-[22px];background:rgba(20,13,15,.5);backdrop-filter:blur(6px)}
+.client-report-question-modal-v61{@apply tw:relative tw:box-border;width:min(560px,94vw);@apply tw:max-w-[560px] tw:p-[24px];border:1px solid #e3d8d1;@apply tw:rounded-[14px];background:#fffdfa;box-shadow:0 24px 70px rgba(39,24,28,.22);font-family:Inter,system-ui,sans-serif;color:#2b2b2b}
+.client-report-question-modal-v61 .section-kicker{@apply tw:block;color:#b58c52;@apply tw:text-[10px];font-weight:700;letter-spacing:.12em}
+.client-report-question-modal-v61 h2{@apply tw:text-[18px];margin:6px 0 8px;color:#2b2024}
+.client-report-question-modal-v61>p{@apply tw:m-0 tw:text-[13px];line-height:1.55;color:#746861}
+.client-report-question-modal-v61 label{@apply tw:grid tw:gap-[7px] tw:mt-[14px]}
+.client-report-question-modal-v61 label>span{@apply tw:text-[12px];font-weight:600;color:#655951}
+.client-report-question-modal-v61 textarea{@apply tw:box-border tw:w-full;min-height:130px;@apply tw:resize-y;border:1px solid #dfd4cd;@apply tw:rounded-[10px];background:#fff;padding:11px 12px;color:#2b2b2b;font:400 13px/1.55 Inter,system-ui,sans-serif}
+.client-report-question-deadline-v61{@apply tw:mt-[8px] tw:text-[12px];color:#8a7a80}
+.client-report-question-modal-v61 .modal-actions{@apply tw:flex tw:justify-end tw:gap-[8px] tw:mt-[16px]}
+.client-report-question-modal-v61 .modal-actions button{@apply tw:min-h-[38px];padding:0 16px;@apply tw:rounded-[8px];font:600 13px Inter,system-ui,sans-serif;@apply tw:cursor-pointer;border:1px solid #e3d6cc;background:#fff;color:#3e3533}
+.client-report-question-modal-v61 .modal-actions button:last-child{border-color:#5a1e2d;background:#5a1e2d;color:#fff}
+.client-report-question-modal-v61 .modal-close{@apply tw:absolute tw:right-[14px];@apply tw:top-[14px] tw:w-[32px] tw:h-[32px];border:0;@apply tw:rounded-[8px];background:#f4efeb;color:#4c403b;@apply tw:text-[20px] tw:cursor-pointer}
+.client-report-question-v61{border-color:rgba(181,140,82,.55)!important;color:#765817!important}
+/* Relatórios: botão de fechamento oficial bloqueado precisa parecer bloqueado e dizer quando libera (15/10). */
+html[data-workspace-ui='v2'] .reports-v16-toolbar button:disabled{opacity:.45;@apply tw:cursor-not-allowed;filter:saturate(.6)}
+html[data-workspace-ui='v2'] .reports-v16-toolbar .reports-v17-official-wait{color:#9a6b1f;font-weight:600}
+html[data-workspace-ui='v2'] .reports-v16-toolbar .reports-v17-toolbar-error{color:#b42318;font-weight:600}
+/* Eliminação dos dados (fim de contrato): aviso de alerta quando liberada. */
+html[data-workspace-ui='v2'] .v2-company-export.v2-company-elim{border-color:#eadfd6}
+html[data-workspace-ui='v2'] .v2-company-export.v2-company-elim>svg{color:#8a7a80}
+html[data-workspace-ui='v2'] .v2-company-export.v2-company-elim.is-due{background:#fff6f4;border:1px solid #f1c4bd;border-left:4px solid #b42318}
+html[data-workspace-ui='v2'] .v2-company-export.v2-company-elim.is-due>svg{color:#b42318}
+html[data-workspace-ui='v2'] .v2-company-export.v2-company-elim.is-due strong{color:#8f1d14}
+html[data-workspace-ui='v2'] .v2-company-export.v2-company-elim.is-due>button{background:#b42318;border-color:#b42318}
+html[data-workspace-ui='v2'] .v2-company-export.v2-company-elim.is-done>svg{color:#1f7a4d}
+html[data-workspace-ui='v2'] .ap-status-confirm footer button.danger:last-child{background:#b42318;border-color:#b42318}
+html[data-workspace-ui='v2'] .ap-status-confirm .v2-company-export-error{color:#b42318;font-weight:600;@apply tw:m-0}

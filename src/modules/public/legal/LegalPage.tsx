@@ -2,7 +2,7 @@
 import { Link } from '../../../components/navigation/Link';
 import { LegalDocument } from '../../../components/legal/LegalDocument';
 import { LEGAL_UPDATED_AT, legalEnabled, privacyPolicy, sitePolicy, termsOfUse } from '../../../domain/legalTexts';
-import '../../../styles/legal.css';
+import '../../../components/legal/legal.css';
 
 export function LegalPage({ kind }: { kind: 'privacy' | 'terms' | 'site' }) {
   const privacy = kind === 'privacy';

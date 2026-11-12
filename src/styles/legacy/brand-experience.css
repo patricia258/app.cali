@@ -2,19 +2,15 @@
    Mantida separada para os símbolos CALI poderem ser reutilizados em todas as páginas. */
 
 /* ---------- Marca compacta do menu ---------- */
+@reference "../tailwind.css";
 .brand-compact-slide {
-  width: 58px;
-  height: 54px;
-  align-items: center;
-  justify-content: center;
+  @apply tw:w-[58px] tw:h-[54px] tw:items-center tw:justify-center;
   color: #f7f3ee;
-  overflow: hidden;
+  @apply tw:overflow-hidden;
 }
 
 .brand-compact-art {
-  display: block;
-  width: 43px;
-  height: 43px;
+  @apply tw:block tw:w-[43px] tw:h-[43px];
   background: currentColor;
   transform-origin: center;
   animation: cali-mark-in .28s cubic-bezier(.2,.7,.2,1) both;
@@ -31,10 +27,7 @@
 }
 
 .compact-wordmark {
-  display: block;
-  width: 56px;
-  height: 31px;
-  overflow: hidden;
+  @apply tw:block tw:w-[56px] tw:h-[31px] tw:overflow-hidden;
   text-indent: -9999px;
   background: url('https://raw.githubusercontent.com/patricia258/cali-portal/main/assets/logo-cali-light.png') center / contain no-repeat;
   animation: cali-mark-in .28s cubic-bezier(.2,.7,.2,1) both;
@@ -47,33 +40,32 @@
 
 /* Garante a lógica expandido/retraído mesmo que estilos antigos do menu mudem. */
 @media (min-width: 861px) {
-  .sidebar .brand-full { display: none !important; }
-  .sidebar .brand-compact { display: flex !important; }
+  .sidebar .brand-full { @apply tw:hidden!; }
+  .sidebar .brand-compact { @apply tw:flex!; }
 
   .sidebar:hover .brand-full,
   .sidebar:focus-within .brand-full,
   .sidebar.pinned .brand-full {
-    display: flex !important;
+    @apply tw:flex!;
   }
 
   .sidebar:hover .brand-compact,
   .sidebar:focus-within .brand-compact,
   .sidebar.pinned .brand-compact {
-    display: none !important;
+    @apply tw:hidden!;
   }
 }
 
-.sidebar.mobile-open .brand-full { display: flex !important; }
-.sidebar.mobile-open .brand-compact { display: none !important; }
+.sidebar.mobile-open .brand-full { @apply tw:flex!; }
+.sidebar.mobile-open .brand-compact { @apply tw:hidden!; }
 
 /* ---------- Perfil direto ---------- */
 .profile-control-direct {
-  width: 100%;
+  @apply tw:w-full;
 }
 
 .profile-trigger-direct {
-  width: 100%;
-  cursor: pointer;
+  @apply tw:w-full tw:cursor-pointer;
 }
 
 .profile-trigger-direct .profile-edit-chevron {
@@ -90,32 +82,25 @@
 
 /* O card intermediário antigo deixa de fazer parte da experiência. */
 .sidebar-footer .profile-menu {
-  display: none !important;
+  @apply tw:hidden!;
 }
 
 /* ---------- Marcas d'água CALI por página ---------- */
 .workspace-brand-scene {
-  position: relative;
-  isolation: isolate;
+  @apply tw:relative tw:isolate;
 }
 
 .workspace-brand-watermarks {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
+  @apply tw:absolute tw:inset-0 tw:z-0 tw:overflow-hidden tw:pointer-events-none;
   user-select: none;
 }
 
 .workspace-brand-scene > :not(.workspace-brand-watermarks) {
-  position: relative;
-  z-index: 1;
+  @apply tw:relative tw:z-1;
 }
 
 .workspace-watermark {
-  position: absolute;
-  display: block;
+  @apply tw:absolute tw:block;
   background: #5a1e2d;
   opacity: .025;
   filter: saturate(.9);
@@ -155,7 +140,7 @@
 .scene-lime-soft .workspace-watermark-oak,
 .scene-oak .workspace-watermark-lime,
 .scene-oak-soft .workspace-watermark-lime {
-  display: none;
+  @apply tw:hidden;
 }
 
 .scene-lime .workspace-watermark-lime,

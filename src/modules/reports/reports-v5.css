@@ -1,0 +1,67 @@
+
+@reference "../../styles/tailwind.css";
+
+.reports-admin-v5 { @apply tw:max-w-[1500px]; }
+
+.report-composition-guide-v5 {
+  @apply tw:grid;
+  grid-template-columns:minmax(230px,.78fr) minmax(0,2fr);
+  @apply tw:gap-[16px] tw:items-stretch;
+  margin:-2px 0 18px;
+  @apply tw:p-[14px];
+  border:1px solid var(--theme-line);
+  @apply tw:rounded-[18px];
+  background:color-mix(in srgb,var(--theme-surface) 92%,var(--theme-surface-soft));
+}
+.report-mode-copy-v5 { @apply tw:grid; align-content:center; @apply tw:gap-[5px]; padding:4px 6px; }
+.report-mode-copy-v5 span { @apply tw:text-cali-accent tw:text-[10px]; font-weight:800; letter-spacing:.06em; @apply tw:uppercase; }
+.report-mode-copy-v5 p { @apply tw:m-0 tw:text-cali-muted tw:text-[10px]; line-height:1.45; }
+.report-guide-items-v5 { @apply tw:grid tw:grid-cols-3 tw:gap-[8px]; }
+.report-guide-items-v5 article { @apply tw:flex tw:gap-[9px] tw:min-w-0; padding:10px 11px; border:1px solid color-mix(in srgb,var(--theme-line) 78%,transparent); @apply tw:rounded-[13px]; background:var(--theme-surface); }
+.report-guide-items-v5 b { @apply tw:text-cali-accent tw:text-[9px]; line-height:1.4; }
+.report-guide-items-v5 article > div { @apply tw:grid tw:gap-[3px] tw:min-w-0; }
+.report-guide-items-v5 strong { @apply tw:text-cali-text tw:text-[10px]; line-height:1.25; }
+.report-guide-items-v5 small { @apply tw:text-cali-muted tw:text-[8px]; line-height:1.35; }
+.report-composition-guide-v5.full { border-color:color-mix(in srgb,var(--theme-gold,#b58c52) 36%,var(--theme-line)); }
+
+.quarterly-evolution-v5 { margin:0 0 16px; @apply tw:p-[17px]; }
+.quarterly-evolution-v5 > header { @apply tw:flex tw:items-start tw:justify-between tw:gap-[18px]; padding-bottom:13px; border-bottom:1px solid var(--theme-line); }
+.quarterly-evolution-v5 h2 { margin:3px 0 4px; @apply tw:text-cali-text tw:text-[18px]; }
+.quarterly-evolution-v5 header p { @apply tw:m-0 tw:text-cali-muted tw:text-[9px]; line-height:1.4; }
+.quarterly-evolution-v5 > header > svg { @apply tw:text-cali-accent; }
+.quarterly-month-grid-v5 { @apply tw:grid tw:grid-cols-3 tw:gap-[10px]; padding-top:13px; }
+.quarterly-month-grid-v5 article { @apply tw:min-w-0 tw:p-[12px]; border:1px solid var(--theme-line); @apply tw:rounded-[14px]; background:color-mix(in srgb,var(--theme-surface-soft) 52%,var(--theme-surface)); }
+.quarter-month-title-v5 { @apply tw:flex tw:justify-between tw:gap-[8px] tw:items-baseline tw:mb-[9px]; }
+.quarter-month-title-v5 span { @apply tw:text-cali-text tw:text-[12px]; font-weight:800; }
+.quarter-month-title-v5 small { @apply tw:text-cali-muted tw:text-[7px]; }
+.quarterly-month-grid-v5 dl { @apply tw:grid tw:grid-cols-2 tw:gap-[7px] tw:m-0; }
+.quarterly-month-grid-v5 dl > div { @apply tw:grid tw:gap-[2px]; }
+.quarterly-month-grid-v5 dt { @apply tw:text-cali-muted tw:text-[7px] tw:uppercase; letter-spacing:.06em; }
+.quarterly-month-grid-v5 dd { @apply tw:m-0 tw:text-cali-text tw:text-[12px]; font-weight:800; }
+.quarterly-month-grid-v5 footer { @apply tw:mt-[10px] tw:pt-[8px]; border-top:1px solid color-mix(in srgb,var(--theme-line) 76%,transparent); @apply tw:text-cali-muted tw:text-[8px]; line-height:1.4; }
+.quarterly-reading-strip-v5 { @apply tw:flex tw:flex-wrap tw:gap-[6px] tw:mt-[11px]; padding-top:11px; border-top:1px solid var(--theme-line); }
+.quarterly-reading-strip-v5 span { padding:6px 8px; @apply tw:rounded-[9px]; background:var(--theme-surface-soft); @apply tw:text-cali-muted tw:text-[8px]; line-height:1.35; }
+
+.report-preview-paper-v5 .preview-quarterly-series-v5 > div { @apply tw:grid tw:grid-cols-3 tw:gap-[8px] tw:mt-[10px]; }
+.report-preview-paper-v5 .preview-quarterly-series-v5 article { @apply tw:grid tw:gap-[3px] tw:p-[10px]; border:1px solid rgba(90,30,45,.12); @apply tw:rounded-[12px]; background:rgba(255,255,255,.28); }
+.report-preview-paper-v5 .preview-quarterly-series-v5 article strong { color:#5a1e2d; @apply tw:text-[12px]; }
+.report-preview-paper-v5 .preview-quarterly-series-v5 article span { color:#3f3935; @apply tw:text-[10px]; }
+.report-preview-paper-v5 .preview-quarterly-series-v5 article small { color:#7b6e66; @apply tw:text-[8px]; line-height:1.35; }
+
+html[data-workspace-theme='night'] .report-composition-guide-v5,
+html[data-workspace-theme='night'] .quarterly-month-grid-v5 article { background:var(--theme-surface); }
+
+@media (max-width:1180px) {
+  .report-composition-guide-v5 { grid-template-columns:1fr; }
+}
+
+@media (max-width:850px) {
+  .report-guide-items-v5,
+  .quarterly-month-grid-v5,
+  .report-preview-paper-v5 .preview-quarterly-series-v5 > div { grid-template-columns:1fr; }
+}
+
+@media (max-width:620px) {
+  .report-composition-guide-v5 { @apply tw:p-[11px]; }
+  .quarterly-evolution-v5 { @apply tw:p-[14px]; }
+}

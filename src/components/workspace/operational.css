@@ -1,0 +1,16 @@
+/* Preserve the original cascade of workspace and route overrides. */
+@import "./operational-base.css";
+@import "../../modules/client/home/home-operational.css";
+@import "./operational-workflows.css";
+@import "../../modules/projects/projects-operational.css";
+@import "../../modules/hours/hours-operational.css";
+@import "./operational-controls.css";
+@import "../../modules/calendar/calendar-operational.css";
+@import "../../modules/records/records-operational.css";
+@import "./operational-feedback.css";
+@import "../../modules/documents/documents-operational.css";
+@import "./operational-management.css";
+@import "../../modules/partner/partner-operational.css";
+@import "./operational-delivery.css";
+@import "../../auth/access-gates-operational.css";
+@import "./operational-privacy.css";

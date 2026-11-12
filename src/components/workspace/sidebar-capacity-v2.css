@@ -1,21 +1,20 @@
 /* CALI Workspace · sidebar capacity v8
    Aberto: preserva a densidade aprovada.
    Fechado: aplica a mesma logica compacta, sem estado de foco fantasma. */
+@reference "../../styles/tailwind.css";
 
 @media (min-width: 861px) {
   .sidebar {
-    display: flex !important;
-    flex-direction: column !important;
+    @apply tw:flex! tw:flex-col!;
   }
 
   .sidebar nav {
     scrollbar-width: none !important;
-    overscroll-behavior: contain !important;
+    @apply tw:overscroll-contain!;
   }
 
   .sidebar nav::-webkit-scrollbar {
-    width: 0 !important;
-    height: 0 !important;
+    @apply tw:w-0! tw:h-0!;
   }
 
   /* =========================================================
@@ -24,155 +23,100 @@
      O foco de um link nao pode reabrir o layout internamente.
      ========================================================= */
   .sidebar:not(:hover):not(.pinned) {
-    position: fixed !important;
+    @apply tw:fixed!;
     inset: 0 auto 0 0 !important;
-    height: 100dvh !important;
-    min-height: 100dvh !important;
-    max-height: 100dvh !important;
-    overflow: hidden !important;
+    @apply tw:h-[100dvh]! tw:min-h-[100dvh]! tw:max-h-[100dvh]! tw:overflow-hidden!;
     padding: 10px 8px 9px !important;
   }
 
   .sidebar:not(:hover):not(.pinned) .sidebar-top {
-    position: relative !important;
-    width: 100% !important;
-    height: 50px !important;
-    min-height: 50px !important;
+    @apply tw:relative! tw:w-full! tw:h-[50px]! tw:min-h-[50px]!;
     flex: 0 0 50px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    @apply tw:flex! tw:items-center! tw:justify-center!;
   }
 
   .sidebar:not(:hover):not(.pinned) .brand {
-    width: 50px !important;
-    height: 50px !important;
-    min-height: 50px !important;
+    @apply tw:w-[50px]! tw:h-[50px]! tw:min-h-[50px]!;
     flex: 0 0 50px !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    @apply tw:m-0! tw:p-0!;
   }
 
   .sidebar:not(:hover):not(.pinned) .brand-compact-slide {
-    width: 50px !important;
-    height: 50px !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    @apply tw:w-[50px]! tw:h-[50px]! tw:m-0! tw:p-0!;
   }
 
   .sidebar:not(:hover):not(.pinned) .brand-compact-art {
-    width: 40px !important;
-    height: 40px !important;
+    @apply tw:w-[40px]! tw:h-[40px]!;
   }
 
   .sidebar:not(:hover):not(.pinned) .sidebar-pin {
-    display: none !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
+    @apply tw:hidden! tw:invisible! tw:pointer-events-none!;
   }
 
   .sidebar:not(:hover):not(.pinned) nav {
-    position: static !important;
-    width: 100% !important;
-    height: auto !important;
-    min-height: 0 !important;
+    @apply tw:static! tw:w-full! tw:h-auto! tw:min-h-0!;
     max-height: calc(100dvh - 126px) !important;
     flex: 0 1 auto !important;
     margin: 4px 0 0 !important;
-    padding: 0 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    justify-content: flex-start !important;
-    gap: 0 !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    @apply tw:p-0! tw:flex! tw:flex-col! tw:items-stretch! tw:justify-start! tw:gap-0! tw:overflow-y-auto!;
+    @apply tw:overflow-x-hidden!;
   }
 
   .sidebar:not(:hover):not(.pinned) nav a {
     flex: 0 0 38px !important;
-    width: 100% !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    max-height: 38px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 0 !important;
-    border-radius: 10px !important;
+    @apply tw:w-full! tw:h-[38px]! tw:min-h-[38px]! tw:max-h-[38px]! tw:m-0! tw:p-0! tw:flex! tw:items-center! tw:justify-center! tw:gap-0! tw:rounded-[10px]!;
   }
 
   .sidebar:not(:hover):not(.pinned) nav a svg {
-    display: block !important;
-    position: static !important;
-    width: 18px !important;
-    height: 18px !important;
+    @apply tw:block! tw:static! tw:w-[18px]! tw:h-[18px]!;
     min-width: 18px !important;
     flex: 0 0 18px !important;
     margin: 0 auto !important;
     transform: none !important;
     opacity: 1 !important;
-    visibility: visible !important;
+    @apply tw:visible!;
   }
 
   .sidebar:not(:hover):not(.pinned) nav .nav-label {
-    display: none !important;
+    @apply tw:hidden!;
   }
 
   .sidebar:not(:hover):not(.pinned) .sidebar-footer-profile-only {
-    position: absolute !important;
-    left: 8px !important;
-    right: 8px !important;
-    bottom: 9px !important;
-    width: auto !important;
-    height: 58px !important;
-    min-height: 58px !important;
-    margin: 0 !important;
+    @apply tw:absolute! tw:left-[8px]!;
+    @apply tw:right-[8px]!;
+    @apply tw:bottom-[9px]! tw:w-auto! tw:h-[58px]! tw:min-h-[58px]! tw:m-0!;
     padding: 7px 0 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    @apply tw:flex! tw:items-center! tw:justify-center!;
     opacity: 1 !important;
-    visibility: visible !important;
-    overflow: visible !important;
+    @apply tw:visible! tw:overflow-visible!;
     border-top: 1px solid rgba(247,243,238,.20) !important;
-    z-index: 3 !important;
+    @apply tw:z-3!;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-control-direct,
   .sidebar:not(:hover):not(.pinned) .profile-trigger-direct {
-    display: flex !important;
+    @apply tw:flex!;
     opacity: 1 !important;
-    visibility: visible !important;
+    @apply tw:visible!;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-trigger-direct {
-    width: 48px !important;
-    height: 48px !important;
-    min-height: 48px !important;
+    @apply tw:w-[48px]! tw:h-[48px]! tw:min-h-[48px]!;
     margin: 0 auto !important;
-    padding: 0 !important;
-    align-items: center !important;
-    justify-content: center !important;
+    @apply tw:p-0! tw:items-center! tw:justify-center!;
     border: 0 !important;
     background: transparent !important;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-avatar {
-    display: grid !important;
-    place-items: center !important;
-    width: 42px !important;
-    height: 42px !important;
-    min-width: 42px !important;
+    @apply tw:grid! tw:place-items-center! tw:w-[42px]! tw:h-[42px]! tw:min-w-[42px]!;
     opacity: 1 !important;
-    visibility: visible !important;
+    @apply tw:visible!;
   }
 
   .sidebar:not(:hover):not(.pinned) .profile-copy,
   .sidebar:not(:hover):not(.pinned) .profile-edit-chevron {
-    display: none !important;
+    @apply tw:hidden!;
   }
 
   /* =========================================================
@@ -180,14 +124,12 @@
      ========================================================= */
   .sidebar:hover,
   .sidebar.pinned {
-    display: flex !important;
-    flex-direction: column !important;
+    @apply tw:flex! tw:flex-col!;
   }
 
   .sidebar:hover .brand-full,
   .sidebar.pinned .brand-full {
-    min-height: 72px !important;
-    height: 72px !important;
+    @apply tw:min-h-[72px]! tw:h-[72px]!;
     padding: 2px 0 0 !important;
   }
 
@@ -195,118 +137,97 @@
   .sidebar.pinned .brand-full img {
     width: min(146px, 65%) !important;
     max-width: 146px !important;
-    max-height: 62px !important;
-    object-fit: contain !important;
+    @apply tw:max-h-[62px]! tw:object-contain!;
   }
 
   .sidebar:hover .sidebar-pin,
   .sidebar.pinned .sidebar-pin {
-    display: flex !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
-    min-height: 36px !important;
-    height: 36px !important;
+    @apply tw:flex! tw:visible! tw:pointer-events-auto! tw:min-h-[36px]! tw:h-[36px]!;
     margin: 1px 14px 3px !important;
     padding: 0 12px !important;
-    border-radius: 11px !important;
+    @apply tw:rounded-[11px]!;
   }
 
   .sidebar:hover nav,
   .sidebar.pinned nav {
-    position: static !important;
-    display: grid !important;
+    @apply tw:static! tw:grid!;
     grid-template-columns: 1fr !important;
     grid-auto-rows: 40px !important;
-    gap: 1px !important;
+    @apply tw:gap-[1px]!;
     align-content: start !important;
     flex: 1 1 auto !important;
-    min-height: 0 !important;
-    margin: 0 !important;
+    @apply tw:min-h-0! tw:m-0!;
     padding: 0 14px 4px !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    @apply tw:overflow-y-auto!;
+    @apply tw:overflow-x-hidden!;
   }
 
   .sidebar:hover nav a,
   .sidebar.pinned nav a {
-    min-height: 40px !important;
-    height: 40px !important;
-    margin: 0 !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    border-radius: 11px !important;
+    @apply tw:min-h-[40px]! tw:h-[40px]! tw:m-0! tw:pt-0!;
+    @apply tw:pb-0! tw:rounded-[11px]!;
   }
 
   .sidebar:hover nav a svg,
   .sidebar.pinned nav a svg {
-    width: 17px !important;
-    height: 17px !important;
+    @apply tw:w-[17px]! tw:h-[17px]!;
     flex: 0 0 17px !important;
   }
 
   .sidebar:hover nav .nav-label,
   .sidebar.pinned nav .nav-label {
-    font-size: 14px !important;
+    @apply tw:text-[14px]!;
     line-height: 1.08 !important;
   }
 
   .sidebar:hover .sidebar-footer-profile-only,
   .sidebar.pinned .sidebar-footer-profile-only {
-    position: static !important;
+    @apply tw:static!;
     flex: 0 0 auto !important;
-    min-height: 62px !important;
-    margin-top: auto !important;
+    @apply tw:min-h-[62px]! tw:mt-auto!;
     padding: 6px 14px 7px !important;
     background: linear-gradient(to bottom, rgba(88,27,36,0), rgba(88,27,36,.16) 20%, rgba(88,27,36,.28)) !important;
   }
 
   .sidebar:hover .sidebar-footer-profile-only .profile-avatar,
   .sidebar.pinned .sidebar-footer-profile-only .profile-avatar {
-    width: 38px !important;
-    height: 38px !important;
-    min-width: 38px !important;
+    @apply tw:w-[38px]! tw:h-[38px]! tw:min-w-[38px]!;
   }
 }
 
 @media (max-width: 860px) {
   .sidebar.mobile-open {
-    display: flex !important;
-    flex-direction: column !important;
+    @apply tw:flex! tw:flex-col!;
   }
 
   .sidebar.mobile-open .brand-full {
-    min-height: 72px !important;
-    height: 72px !important;
+    @apply tw:min-h-[72px]! tw:h-[72px]!;
   }
 
   .sidebar.mobile-open nav {
-    display: grid !important;
+    @apply tw:grid!;
     grid-template-columns: 1fr !important;
     grid-auto-rows: 40px !important;
-    gap: 1px !important;
+    @apply tw:gap-[1px]!;
     align-content: start !important;
     flex: 1 1 auto !important;
-    min-height: 0 !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    @apply tw:min-h-0! tw:overflow-y-auto!;
+    @apply tw:overflow-x-hidden!;
     padding-block: 1px !important;
     scrollbar-width: none !important;
   }
 
   .sidebar.mobile-open nav::-webkit-scrollbar {
-    width: 0 !important;
+    @apply tw:w-0!;
   }
 
   .sidebar.mobile-open nav a {
-    min-height: 40px !important;
-    height: 40px !important;
-    margin: 0 !important;
+    @apply tw:min-h-[40px]! tw:h-[40px]! tw:m-0!;
   }
 
   .sidebar.mobile-open .sidebar-footer-profile-only {
     flex: 0 0 auto !important;
-    min-height: 62px !important;
-    margin-top: auto !important;
+    @apply tw:min-h-[62px]! tw:mt-auto!;
     padding-block: 6px !important;
   }
 }
@@ -316,8 +237,7 @@
    Tratamento visual isolado: não altera rotas, ações ou permissões. */
 @media (min-width: 861px) {
   .sidebar-external-nav {
-    display: grid !important;
-    gap: 6px !important;
+    @apply tw:grid! tw:gap-[6px]!;
     flex: 0 0 auto !important;
     margin: 10px 14px 8px !important;
     padding: 13px 0 0 !important;
@@ -326,18 +246,17 @@
   .sidebar-external-label {
     padding: 0 11px 3px !important;
     color: rgba(247,243,238,.62) !important;
-    font-size: 9px !important;
+    @apply tw:text-[9px]!;
     line-height: 1.1 !important;
     font-weight: 800 !important;
     letter-spacing: .15em !important;
-    text-transform: uppercase !important;
+    @apply tw:uppercase!;
   }
   .sidebar-external-nav a {
-    min-height: 38px !important;
-    height: 38px !important;
+    @apply tw:min-h-[38px]! tw:h-[38px]!;
     padding: 0 11px !important;
     border: 1px solid rgba(247,243,238,.32) !important;
-    border-radius: 11px !important;
+    @apply tw:rounded-[11px]!;
     background: #f7f3ee !important;
     color: #5a1e2d !important;
     box-shadow: 0 5px 16px rgba(31,10,18,.14) !important;
@@ -350,29 +269,22 @@
   }
   .sidebar-external-nav a::after {
     content: '↗';
-    margin-left: auto;
-    color: currentColor;
-    font-size: 14px;
+    @apply tw:ml-auto tw:text-current tw:text-[14px];
     line-height: 1;
     opacity: .72;
   }
   .sidebar-external-nav a.active::after { opacity: 1; }
   .sidebar:not(:hover):not(.pinned) .sidebar-external-nav {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 0 !important;
+    @apply tw:flex! tw:flex-col! tw:gap-0!;
     margin: 5px 0 4px !important;
     padding: 6px 0 0 !important;
     border-top-color: rgba(247,243,238,.18) !important;
   }
-  .sidebar:not(:hover):not(.pinned) .sidebar-external-label { display: none !important; }
+  .sidebar:not(:hover):not(.pinned) .sidebar-external-label { @apply tw:hidden!; }
   .sidebar:not(:hover):not(.pinned) .sidebar-external-nav a {
-    width: 100% !important;
-    height: 34px !important;
-    min-height: 34px !important;
-    padding: 0 !important;
+    @apply tw:w-full! tw:h-[34px]! tw:min-h-[34px]! tw:p-0!;
     border: 0 !important;
-    border-radius: 9px !important;
+    @apply tw:rounded-[9px]!;
     background: transparent !important;
     color: rgba(255,255,255,.76) !important;
     box-shadow: none !important;
@@ -382,41 +294,39 @@
     background: #f7f3ee !important;
     color: #5a1e2d !important;
   }
-  .sidebar:not(:hover):not(.pinned) .sidebar-external-nav a::after { display: none !important; }
-  .sidebar:not(:hover):not(.pinned) .sidebar-external-nav .nav-label { display: none !important; }
+  .sidebar:not(:hover):not(.pinned) .sidebar-external-nav a::after { @apply tw:hidden!; }
+  .sidebar:not(:hover):not(.pinned) .sidebar-external-nav .nav-label { @apply tw:hidden!; }
   .sidebar:not(:hover):not(.pinned) .sidebar-external-nav a svg {
-    width: 18px !important;
-    height: 18px !important;
+    @apply tw:w-[18px]! tw:h-[18px]!;
     margin: 0 auto !important;
   }
 }
 @media (max-width: 860px) {
   .sidebar-external-nav {
-    display: grid !important;
-    gap: 6px !important;
+    @apply tw:grid! tw:gap-[6px]!;
     flex: 0 0 auto !important;
     margin: 12px 14px 8px !important;
-    padding-top: 12px !important;
+    @apply tw:pt-[12px]!;
     border-top: 1px solid rgba(247,243,238,.22) !important;
   }
   .sidebar-external-label {
     padding: 0 11px 3px !important;
     color: rgba(247,243,238,.62) !important;
-    font-size: 9px !important;
+    @apply tw:text-[9px]!;
     font-weight: 800 !important;
     letter-spacing: .15em !important;
-    text-transform: uppercase !important;
+    @apply tw:uppercase!;
   }
   .sidebar-external-nav a {
-    min-height: 40px !important;
+    @apply tw:min-h-[40px]!;
     border: 1px solid rgba(247,243,238,.32) !important;
-    border-radius: 11px !important;
+    @apply tw:rounded-[11px]!;
     background: #f7f3ee !important;
     color: #5a1e2d !important;
   }
   .sidebar-external-nav a.active,
   .sidebar-external-nav a:hover { background: #b58c52 !important; color: #2b2b2b !important; }
-  .sidebar-external-nav a::after { content: '↗'; margin-left: auto; }
+  .sidebar-external-nav a::after { content: '↗'; @apply tw:ml-auto; }
 }
 
 
@@ -432,22 +342,14 @@
 
 /* External products live in the top bar: compact and timer-safe. */
 .external-products-topnav {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 5px !important;
+  @apply tw:inline-flex! tw:items-center! tw:gap-[5px]!;
   flex: 0 0 auto !important;
 }
 .external-products-topnav a {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 6px !important;
-  width: auto !important;
-  min-width: 36px !important;
-  height: 36px !important;
+  @apply tw:inline-flex! tw:items-center! tw:justify-center! tw:gap-[6px]! tw:w-auto! tw:min-w-[36px]! tw:h-[36px]!;
   padding: 0 9px !important;
   border: 1px solid rgba(90,30,45,.16) !important;
-  border-radius: 10px !important;
+  @apply tw:rounded-[10px]!;
   background: #f7f3ee !important;
   color: #5a1e2d !important;
   text-decoration: none !important;
@@ -461,10 +363,10 @@
   color: #2b2b2b !important;
 }
 .external-products-topnav a span {
-  font-size: 11px !important;
+  @apply tw:text-[11px]!;
   line-height: 1 !important;
   font-weight: 800 !important;
-  white-space: nowrap !important;
+  @apply tw:whitespace-nowrap!;
 }
 body[data-workspace-theme='night'] .external-products-topnav a {
   border-color: rgba(247,243,238,.15) !important;
@@ -473,19 +375,16 @@ body[data-workspace-theme='night'] .external-products-topnav a {
 }
 @media (max-width: 1180px) {
   .external-products-topnav a {
-    width: 34px !important;
-    min-width: 34px !important;
-    padding: 0 !important;
+    @apply tw:w-[34px]! tw:min-w-[34px]! tw:p-0!;
   }
-  .external-products-topnav a span { display: none !important; }
+  .external-products-topnav a span { @apply tw:hidden!; }
 }
 @media (max-width: 860px) {
-  .external-products-topnav { gap: 3px !important; }
+  .external-products-topnav { @apply tw:gap-[3px]!; }
   .external-products-topnav a {
-    width: 32px !important;
+    @apply tw:w-[32px]!;
     min-width: 32px !important;
-    height: 32px !important;
-    border-radius: 9px !important;
+    @apply tw:h-[32px]! tw:rounded-[9px]!;
   }
 }
 
@@ -495,23 +394,22 @@ body[data-workspace-theme='night'] .external-products-topnav a {
 /* Workspace chrome permanece aberto durante a troca de rota enquanto o ponteiro continua sobre o menu. */
 @media (min-width: 861px) {
   .sidebar.hovered {
-    position: fixed !important; inset: 0 auto 0 0 !important; width: var(--sidebar-open) !important;
-    height: 100dvh !important; min-height: 100dvh !important; max-height: 100dvh !important;
-    box-sizing: border-box !important; overflow: hidden !important; isolation: isolate !important;
+    @apply tw:fixed!; inset: 0 auto 0 0 !important; width: var(--sidebar-open) !important;
+    @apply tw:h-[100dvh]! tw:min-h-[100dvh]! tw:max-h-[100dvh]! tw:box-border! tw:overflow-hidden! tw:isolate!;
     background-color: #581b24 !important;
     background-image: linear-gradient(rgba(88,27,36,.72),rgba(88,27,36,.72)),url('/brand/cali-sidebar-pattern.webp') !important;
     background-repeat:no-repeat,no-repeat !important; background-position:center,center !important; background-size:cover,cover !important;
   }
-  .sidebar.hovered > * { position:relative !important; z-index:1 !important; }
-  .sidebar.hovered .brand-full { display:flex !important; width:100% !important; min-height:72px !important; height:72px !important; padding:2px 0 0 !important; align-items:center !important; justify-content:center !important; }
-  .sidebar.hovered .brand-compact-slide { display:none !important; }
-  .sidebar.hovered .brand-full img { display:block !important; width:min(146px,65%) !important; max-width:146px !important; max-height:62px !important; object-fit:contain !important; }
-  .sidebar.hovered .brand-full span { display:none !important; }
-  .sidebar.hovered .sidebar-pin { display:flex !important; visibility:visible !important; pointer-events:auto !important; min-height:36px !important; height:36px !important; margin:1px 14px 3px !important; padding:0 12px !important; border-radius:11px !important; }
-  .sidebar.hovered nav { position:static !important; display:grid !important; grid-template-columns:1fr !important; grid-auto-rows:40px !important; gap:1px !important; align-content:start !important; flex:1 1 auto !important; min-height:0 !important; margin:0 !important; padding:0 14px 4px !important; overflow-y:auto !important; overflow-x:hidden !important; }
-  .sidebar.hovered nav a { min-height:40px !important; height:40px !important; margin:0 !important; padding-top:0 !important; padding-bottom:0 !important; border-radius:11px !important; display:flex !important; align-items:center !important; justify-content:flex-start !important; gap:12px !important; }
-  .sidebar.hovered nav a svg { display:block !important; width:17px !important; height:17px !important; flex:0 0 17px !important; margin:0 !important; }
-  .sidebar.hovered nav .nav-label { display:block !important; font-size:14px !important; line-height:1.08 !important; }
-  .sidebar.hovered .sidebar-footer-profile-only { position:static !important; display:block !important; width:100% !important; min-height:62px !important; margin-top:auto !important; padding:6px 14px 7px !important; opacity:1 !important; visibility:visible !important; overflow:visible !important; }
-  .sidebar.hovered .profile-copy, .sidebar.hovered .profile-edit-chevron { display:block !important; opacity:1 !important; visibility:visible !important; }
+  .sidebar.hovered > * { @apply tw:relative! tw:z-1!; }
+  .sidebar.hovered .brand-full { @apply tw:flex! tw:w-full! tw:min-h-[72px]! tw:h-[72px]!; padding:2px 0 0 !important; @apply tw:items-center! tw:justify-center!; }
+  .sidebar.hovered .brand-compact-slide { @apply tw:hidden!; }
+  .sidebar.hovered .brand-full img { @apply tw:block!; width:min(146px,65%) !important; max-width:146px !important; @apply tw:max-h-[62px]! tw:object-contain!; }
+  .sidebar.hovered .brand-full span { @apply tw:hidden!; }
+  .sidebar.hovered .sidebar-pin { @apply tw:flex! tw:visible! tw:pointer-events-auto! tw:min-h-[36px]! tw:h-[36px]!; margin:1px 14px 3px !important; padding:0 12px !important; @apply tw:rounded-[11px]!; }
+  .sidebar.hovered nav { @apply tw:static! tw:grid!; grid-template-columns:1fr !important; grid-auto-rows:40px !important; @apply tw:gap-[1px]!; align-content:start !important; flex:1 1 auto !important; @apply tw:min-h-0! tw:m-0!; padding:0 14px 4px !important; @apply tw:overflow-y-auto!; @apply tw:overflow-x-hidden!; }
+  .sidebar.hovered nav a { @apply tw:min-h-[40px]! tw:h-[40px]! tw:m-0! tw:pt-0!; @apply tw:pb-0! tw:rounded-[11px]! tw:flex! tw:items-center! tw:justify-start! tw:gap-[12px]!; }
+  .sidebar.hovered nav a svg { @apply tw:block! tw:w-[17px]! tw:h-[17px]!; flex:0 0 17px !important; @apply tw:m-0!; }
+  .sidebar.hovered nav .nav-label { @apply tw:block! tw:text-[14px]!; line-height:1.08 !important; }
+  .sidebar.hovered .sidebar-footer-profile-only { @apply tw:static! tw:block! tw:w-full! tw:min-h-[62px]! tw:mt-auto!; padding:6px 14px 7px !important; opacity:1 !important; @apply tw:visible! tw:overflow-visible!; }
+  .sidebar.hovered .profile-copy, .sidebar.hovered .profile-edit-chevron { @apply tw:block!; opacity:1 !important; @apply tw:visible!; }
 }

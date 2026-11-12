@@ -1,9 +1,10 @@
 /* CALI Workspace · regra global de legibilidade inspirada no Connect
    Texto operacional: 14px | auxiliares: 12px | títulos: 18–24px.
    Nenhuma informação de uso recorrente deve depender de fonte abaixo de 12px. */
+@reference "../tailwind.css";
 :root {
-  --ws-font-xs: 12px;
-  --ws-font-sm: 14px;
+  --ws-font-xs: var(--cali-font-caption);
+  --ws-font-sm: var(--cali-font-small);
   --ws-font-base: 16px;
   --ws-font-lg: 18px;
   --ws-font-xl: 20px;
@@ -14,12 +15,12 @@ body:not(.v2-client-module):not(.v2-client-module *),
 button:not(.v2-client-module):not(.v2-client-module *),
 input:not(.v2-client-module):not(.v2-client-module *),
 select:not(.v2-client-module):not(.v2-client-module *),
-textarea:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-sm); }
+textarea:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-cali-small; }
 
 .page p:not(.v2-client-module):not(.v2-client-module *),
 .modal-card p:not(.v2-client-module):not(.v2-client-module *),
 .panel p:not(.v2-client-module):not(.v2-client-module *),
-.data-panel p:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-sm); line-height: 1.55; }
+.data-panel p:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-cali-small; line-height: 1.55; }
 
 .page small:not(.v2-client-module):not(.v2-client-module *),
 .modal-card small:not(.v2-client-module):not(.v2-client-module *),
@@ -27,30 +28,30 @@ textarea:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-f
 .data-panel small:not(.v2-client-module):not(.v2-client-module *),
 .field-helper:not(.v2-client-module):not(.v2-client-module *),
 .eyebrow:not(.v2-client-module):not(.v2-client-module *),
-.section-kicker:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-xs) !important; line-height: 1.4; }
+.section-kicker:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-cali-caption!; line-height: 1.4; }
 
 .page label:not(.v2-client-module):not(.v2-client-module *),
 .modal-card label:not(.v2-client-module):not(.v2-client-module *),
-.stacked-label:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-sm); }
+.stacked-label:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-cali-small; }
 
 .page input:not(.v2-client-module):not(.v2-client-module *),
 .page select:not(.v2-client-module):not(.v2-client-module *),
 .page textarea:not(.v2-client-module):not(.v2-client-module *),
 .modal-card input:not(.v2-client-module):not(.v2-client-module *),
 .modal-card select:not(.v2-client-module):not(.v2-client-module *),
-.modal-card textarea:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-sm) !important; }
+.modal-card textarea:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-cali-small!; }
 
 .page button:not(.v2-client-module):not(.v2-client-module *),
 .modal-card button:not(.v2-client-module):not(.v2-client-module *),
 .sidebar nav a:not(.v2-client-module):not(.v2-client-module *),
-.topbar button:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-sm); }
+.topbar button:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-cali-small; }
 
 .status-pill:not(.v2-client-module):not(.v2-client-module *),
 .status-chip:not(.v2-client-module):not(.v2-client-module *),
 .project-status-pill:not(.v2-client-module):not(.v2-client-module *),
 .deliverable-status:not(.v2-client-module):not(.v2-client-module *),
 .complexity-pill:not(.v2-client-module):not(.v2-client-module *),
-.mc-chip:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-xs) !important; }
+.mc-chip:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-cali-caption!; }
 
 .page-heading h1:not(.v2-client-module):not(.v2-client-module *) { font-size: clamp(30px, 3vw, 42px); }
 .modal-card h2:not(.v2-client-module):not(.v2-client-module *) { font-size: clamp(20px, 2vw, 24px); line-height: 1.2; }
@@ -63,7 +64,7 @@ textarea:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-f
 .roadmap-row-copy span:not(.v2-client-module):not(.v2-client-module *),
 .project-kanban-card > span:not(.v2-client-module):not(.v2-client-module *),
 .calendar-protocol:not(.v2-client-module):not(.v2-client-module *),
-.document-protocol:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-xs) !important; }
+.document-protocol:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-cali-caption!; }
 
 /* Componentes antigos que haviam caído para 8–10px. */
 .project-kpi-grid article span:not(.v2-client-module):not(.v2-client-module *),
@@ -99,7 +100,7 @@ textarea:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-f
 .deliverable-hours small:not(.v2-client-module):not(.v2-client-module *),
 .deliverable-date small:not(.v2-client-module):not(.v2-client-module *),
 .project-kanban-column header strong:not(.v2-client-module):not(.v2-client-module *),
-.project-kanban-column header span:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-xs) !important; }
+.project-kanban-column header span:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-cali-caption!; }
 
 .project-selector-card > div:nth-child(2) strong:not(.v2-client-module):not(.v2-client-module *),
 .project-hero-main p:not(.v2-client-module):not(.v2-client-module *),
@@ -108,9 +109,9 @@ textarea:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-f
 .project-tabs button:not(.v2-client-module):not(.v2-client-module *),
 .project-roadmap-header p:not(.v2-client-module):not(.v2-client-module *),
 .roadmap-row-copy strong:not(.v2-client-module):not(.v2-client-module *),
-.deliverable-main strong:not(.v2-client-module):not(.v2-client-module *) { font-size: var(--ws-font-sm) !important; }
+.deliverable-main strong:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-cali-small!; }
 
 @media (max-width: 760px) {
-  body:not(.v2-client-module):not(.v2-client-module *), button:not(.v2-client-module):not(.v2-client-module *), input:not(.v2-client-module):not(.v2-client-module *), select:not(.v2-client-module):not(.v2-client-module *), textarea:not(.v2-client-module):not(.v2-client-module *) { font-size: 14px; }
-  .page-heading h1:not(.v2-client-module):not(.v2-client-module *) { font-size: 30px; }
+  body:not(.v2-client-module):not(.v2-client-module *), button:not(.v2-client-module):not(.v2-client-module *), input:not(.v2-client-module):not(.v2-client-module *), select:not(.v2-client-module):not(.v2-client-module *), textarea:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-[14px]; }
+  .page-heading h1:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-[30px]; }
 }

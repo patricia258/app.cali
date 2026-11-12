@@ -1,0 +1,19 @@
+@reference "../../styles/tailwind.css";
+/* ---- Alinhamento (regra permanente da proprietária): controles do mesmo grupo na mesma linha e centrados na vertical ---- */
+html[data-workspace-ui='v2'] .project-header-timer.active,html[data-workspace-ui='v2'] .project-header-timer.active :is(.project-header-timer-label,.project-timer-live,.project-timer-controls){@apply tw:inline-flex tw:items-center;line-height:1}
+html[data-workspace-ui='v2'] .project-header-timer.active .project-timer-live{@apply tw:h-[30px]}
+html[data-workspace-ui='v2'] .project-header-timer.active .project-header-timer-label svg{@apply tw:shrink-0}
+html[data-workspace-ui='v2'] .deliverable-head-actions-v2{@apply tw:flex tw:items-center tw:gap-[10px]}
+html[data-workspace-ui='v2'] .topbar .global-timers-mark{@apply tw:hidden!}
+html[data-workspace-ui='v2'] .topbar :is(.global-timers,.global-timers-primary){@apply tw:flex! tw:items-center!}
+html[data-workspace-ui='v2'] .topbar .global-timer-chip{@apply tw:inline-flex! tw:items-center! tw:gap-[8px]! tw:h-[40px]!;padding:5px 6px 5px 5px!important}
+html[data-workspace-ui='v2'] .topbar .global-timer-chip :is(.global-timer-copy,.global-timer-clock,.global-timer-origin){@apply tw:inline-flex! tw:items-center!;line-height:1!important;@apply tw:m-0!}
+html[data-workspace-ui='v2'] .topbar .global-timer-chip .global-timer-control{@apply tw:w-[30px]! tw:h-[30px]! tw:grid! tw:place-items-center! tw:shrink-0}
+html[data-workspace-ui='v2'] .topbar .global-timer-chip .global-timer-logo{@apply tw:w-[30px]! tw:h-[30px]! tw:min-w-[30px]! tw:min-h-[30px]!}
+html[data-workspace-ui='v2'] :is(.timer-finalize-dialog,.ap-status-confirm,.ap-pd-footer,.dv-actions) footer button,html[data-workspace-ui='v2'] :is(.ap-pd-footer,.dv-actions) button,html[data-workspace-ui='v2'] .timer-finalize-dialog footer button{@apply tw:inline-flex tw:items-center tw:justify-center tw:gap-[8px];line-height:1.2}
+html[data-workspace-ui='v2'] :is(.timer-finalize-dialog,.ap-status-confirm,.ap-pd-footer,.dv-actions) button svg{@apply tw:shrink-0}
+.ap-app.v2-admin-page .ap-pane-head{@apply tw:flex-nowrap}
+.ap-app.v2-admin-page .ap-accounts-filters{@apply tw:flex tw:flex-row;@apply tw:flex-nowrap tw:items-center tw:gap-[10px]}
+.ap-app.v2-admin-page .ap-accounts-filters :is(select,.ap-search){@apply tw:h-[40px] tw:box-border tw:m-0}
+.ap-app.v2-admin-page .ap-accounts-filters .ap-search{@apply tw:flex tw:items-center tw:gap-[8px]}
+@media(max-width:760px){.ap-app.v2-admin-page .ap-pane-head{@apply tw:flex-wrap}.ap-app.v2-admin-page .ap-accounts-filters{@apply tw:flex-wrap}}

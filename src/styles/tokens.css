@@ -1,7 +1,21 @@
 :root {
   --cali-color-canvas: #f7f3ee;
+  --cali-color-paper: #fffdf9;
+  --cali-color-ink: #2b2b2b;
+  --cali-color-muted: #746d68;
+  --cali-color-line: #e6ddd4;
   --cali-color-burgundy: #5a1e2d;
+  --cali-color-burgundy-deep: #431520;
   --cali-color-gold: #b58c52;
+  --cali-color-success: #356448;
+  --cali-color-warning: #8c642a;
+  --cali-font-body: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --cali-font-heading: "Playfair Display", Georgia, serif;
+  --cali-font-small: 14px;
+  --cali-font-caption: 12px;
+  --cali-control-height: 46px;
+  --cali-control-radius: 10px;
+  --cali-control-gap: 8px;
   --cali-loader-size: 34px;
   --cali-loader-cycle: 2.4s;
 }

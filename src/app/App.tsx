@@ -5,7 +5,7 @@ import { ProtectedRoute } from '../auth/ProtectedRoute';
 import { WorkspaceRouteLoader } from '../components/ds/WorkspaceRouteLoader';
 import { Shell, WorkspaceFrame } from '../components/workspace/WorkspaceShell';
 import { RouteRuntimeManager } from '../runtime/RouteRuntimeManager';
-import { applyVisualSystem } from '../v2/visualSystem';
+import { applyVisualSystem } from '../components/workspace/visualSystem';
 
 function WorkspaceNavigationFallback() {
   const { pathname } = useLocation();
@@ -25,12 +25,12 @@ function prefetchLikelyRoutes() {
   const schedule = window.setTimeout(() => {
     if (document.visibilityState !== 'visible') return;
     if (path.startsWith('/admin')) {
-      void import('../modules/shared/calendar/AdminCalendarPage');
+      void import('../modules/calendar/AdminCalendarPage');
       void import('../modules/admin/reports/AdminReportsPageV17');
       void import('../modules/admin/companies/AdminClientsPageV3');
       void import('../modules/admin/projects/AdminProjectsGatePage');
-      void import('../modules/shared/hours/AdminHoursPageV3');
-      void import('../modules/shared/documents/AdminDocumentsPageV4');
+      void import('../modules/hours/AdminHoursPageV3');
+      void import('../modules/documents/AdminDocumentsPageV4');
       return;
     }
 

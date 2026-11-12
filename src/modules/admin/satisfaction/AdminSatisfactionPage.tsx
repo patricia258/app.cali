@@ -1,3 +1,9 @@
+import { Button } from '../../../components/ds/Button';
+import { DialogFrame } from '../../../components/ds/DialogFrame';
+import { EmptyState } from '../../../components/ds/EmptyState';
+import { FilterSelect } from '../../../components/ds/FilterSelect';
+import { InlineNotice } from '../../../components/ds/InlineNotice';
+import { LoadingState } from '../../../components/ds/LoadingState';
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowUpRight, BarChart3, CalendarRange, Clock3, MessageSquareText, RefreshCw, Star, UserRound } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
@@ -228,16 +234,16 @@ export function AdminSatisfactionPage(){
   const y=(average:number)=>185-((average-1)/4)*165;
 
   return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-nps v2-client-module"><div className="ap-content"><div className="wf">
-    <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Satisfação</h1><p>Como os clientes avaliam cada entrega aprovada e cada solicitação finalizada, de 1 a 5.</p></div><div className="v2-head-actions"><button className="wf-secondary" type="button" onClick={()=>void load()} disabled={loading}><RefreshCw size={15}/> {loading?'Atualizando…':'Atualizar'}</button><button className="wf-secondary" type="button" disabled={loading || Boolean(error)} onClick={() => window.print()}>Imprimir / salvar PDF</button></div></div>
-    {error&&<div className="inline-notice">{error}</div>}
+    <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Satisfação</h1><p>Como os clientes avaliam cada entrega aprovada e cada solicitação finalizada, de 1 a 5.</p></div><div className="v2-head-actions"><Button variant="workflowSecondary" type="button" onClick={()=>void load()} disabled={loading}><RefreshCw size={15}/> {loading?'Atualizando…':'Atualizar'}</Button><Button variant="workflowSecondary" type="button" disabled={loading || Boolean(error)} onClick={() => window.print()}>Imprimir / salvar PDF</Button></div></div>
+    {error&&<InlineNotice>{error}</InlineNotice>}
 
     <div className="wf-controls v2-nps-controls">
       <div className="wf-segments">{([['month','Este mês'],['30','30 dias'],['90','90 dias'],['180','6 meses'],['365','12 meses'],['all','Todo período']] as Array<[PeriodPreset,string]>).map(([value,label])=><button type="button" key={value} className={period===value&&!from&&!to?'on':''} onClick={()=>selectPreset(value)}>{label}</button>)}</div>
       <label className="v2-nps-date">De<input type="date" value={from} onChange={(e)=>{setFrom(e.target.value);setPeriod('all');}}/></label>
       <label className="v2-nps-date">Até<input type="date" value={to} onChange={(e)=>{setTo(e.target.value);setPeriod('all');}}/></label>
-      <select className="wf-record-filter" aria-label="Empresa" value={company || 'all'} onChange={(e)=>{setCompany(e.target.value);setRequestsPage(1);}}><option value="all">Todas as empresas</option>{companies.map(([id,name])=><option value={id} key={id}>{name}</option>)}</select>
-      <select className="wf-record-filter" aria-label="Origem" value={source} onChange={(e)=>setSource(e.target.value as any)}><option value="all">Todas as origens</option><option value="record">Ocorrências / solicitações</option><option value="deliverable">Entregáveis</option></select>
-      <select className="wf-record-filter" aria-label="Nota" value={score} onChange={(e)=>setScore(e.target.value)}><option value="all">Todas as notas</option>{[5,4,3,2,1].map((value)=><option key={value} value={value}>{value}/5 · {scoreLabel(value)}</option>)}</select>
+      <FilterSelect aria-label="Empresa" value={company || 'all'} onChange={(e)=>{setCompany(e.target.value);setRequestsPage(1);}}><option value="all">Todas as empresas</option>{companies.map(([id,name])=><option value={id} key={id}>{name}</option>)}</FilterSelect>
+      <FilterSelect aria-label="Origem" value={source} onChange={(e)=>setSource(e.target.value as any)}><option value="all">Todas as origens</option><option value="record">Ocorrências / solicitações</option><option value="deliverable">Entregáveis</option></FilterSelect>
+      <FilterSelect aria-label="Nota" value={score} onChange={(e)=>setScore(e.target.value)}><option value="all">Todas as notas</option>{[5,4,3,2,1].map((value)=><option key={value} value={value}>{value}/5 · {scoreLabel(value)}</option>)}</FilterSelect>
     </div>
 
     <p className="satisfaction-print-cohort">
@@ -266,14 +272,14 @@ export function AdminSatisfactionPage(){
       <p>{cohort.length} solicitadas · {answered} respondidas · {waiting.length} aguardando · {closedUnanswered} encerradas sem resposta</p>
       {waiting.length > 0 && <ul>{waiting.map((entry, index) => <li key={entry.id} className={index >= requestsPage * 10 ? 'satisfaction-print-only' : undefined}>
         <span>{entry.account_records.title} · {formatDate(entry.closed_at)}</span>
-        <button type="button" className="wf-secondary" disabled={closing !== null} onClick={() => void closeRequest(entry.id)}>Encerrar espera</button>
+        <Button type="button" variant="workflowSecondary" disabled={closing !== null} onClick={() => void closeRequest(entry.id)}>Encerrar espera</Button>
       </li>)}</ul>}
-      {waiting.length > requestsPage * 10 && <button type="button" className="wf-secondary"
-        onClick={() => setRequestsPage((page) => page + 1)}>Mostrar mais solicitações</button>}
+      {waiting.length > requestsPage * 10 && <Button type="button" variant="workflowSecondary"
+        onClick={() => setRequestsPage((page) => page + 1)}>Mostrar mais solicitações</Button>}
     </section>}
 
     <div className="wf-group-head"><div><span>RESPOSTAS</span><strong>Todas as avaliações do período</strong></div><b>{filtered.length}</b></div>
-    {loading?<div className="data-loading">Carregando avaliações…</div>:filtered.length?<div className="wf-records v2-nps-list">
+    {loading?<LoadingState>Carregando avaliações…</LoadingState>:filtered.length?<div className="wf-records v2-nps-list">
       <div className="wf-record-row header"><span/><span>Empresa / Quem avaliou</span><span>Nota</span><span>Avaliação</span><span>Data</span><span>Origem</span><span>Registro</span></div>
       {filtered.map((row)=>{
         const href=row.sourceType==='record'&&row.entityId?`/admin/registros?record=${encodeURIComponent(row.entityId)}`:row.sourceType==='deliverable'&&row.entityId?`/admin/projetos?deliverable=${encodeURIComponent(row.entityId)}`:'';
@@ -287,16 +293,16 @@ export function AdminSatisfactionPage(){
           <span>{href?<a className="v2-nps-link" href={href}>{row.protocol||'Ver registro'} <ArrowUpRight size={13}/></a>:<small>Sem vínculo</small>}</span>
         </div>;
       })}
-    </div>:<div className="wf-empty"><strong>Nenhuma avaliação encontrada com os filtros atuais.</strong><p>Amplie o período ou limpe os filtros.</p></div>}
+    </div>:<EmptyState variant="workflow"><strong>Nenhuma avaliação encontrada com os filtros atuais.</strong><p>Amplie o período ou limpe os filtros.</p></EmptyState>}
 
 
   </div></div>
-  {editing&&<div className="ap-pd-overlay" onMouseDown={(event)=>{if(event.target===event.currentTarget)setEditing(null);}}><section className="ap-status-confirm v2-nps-follow-dialog" role="dialog" aria-modal="true" aria-label="Tratativa da avaliação">
+  {editing&&<div className="ap-pd-overlay" onMouseDown={(event)=>{if(event.target===event.currentTarget)setEditing(null);}}><DialogFrame className="ap-status-confirm v2-nps-follow-dialog" aria-label="Tratativa da avaliação">
     <div><small>SATISFAÇÃO · NOTA {editing.score}/5</small><h2>{followups[followKey(editing)]?'Tratativa registrada':'Marcar como tratada'}</h2><p>{editing.company} · {editing.responderName||'Cliente'} · {editing.title||'Avaliação do cliente'}</p>{editing.comment?.trim()&&<p className="v2-nps-quote">“{editing.comment.trim()}”</p>}</div>
     <label>Tema do comentário<select value={draft.theme} onChange={(event)=>setDraft((current)=>({...current,theme:event.target.value}))}><option value="">Sem tema</option>{THEMES.map(([key,label])=><option value={key} key={key}>{label}</option>)}</select></label>
     <label>O que foi feito<textarea value={draft.note} onChange={(event)=>setDraft((current)=>({...current,note:event.target.value}))} placeholder="Ex.: liguei em 12/10 e alinhamos novo prazo."/></label>
     {error&&<small className="v2-nps-follow-error">{error}</small>}
     <footer>{followups[followKey(editing)]&&<button type="button" className="v2-nps-remove" disabled={savingFollow} onClick={()=>void removeFollowup()}>Remover marcação</button>}<button type="button" onClick={()=>setEditing(null)}>Voltar</button><button type="button" disabled={savingFollow} onClick={()=>void saveFollowup()}>{savingFollow?'Salvando…':'Salvar'}</button></footer>
-  </section></div>}
+  </DialogFrame></div>}
   </div></Shell>;
 }

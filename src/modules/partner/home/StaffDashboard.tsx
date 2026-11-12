@@ -1,5 +1,6 @@
 /* Visão geral do Partner (Equipe CALI). Mesma composição e mesmas classes da Visão geral da administradora (.ap-*),
    com os dados que ele pode ver: empresas atribuídas e módulos liberados. Cada bloco só aparece se o módulo estiver liberado. */
+import { EmptyState } from '../../../components/ds/EmptyState';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from '../../../components/navigation/Link';
 import { ArrowRight, CalendarDays, ChevronRight, Send } from 'lucide-react';
@@ -78,15 +79,15 @@ export function StaffDashboard({ me }: { me: PartnerWorkspace }) {
     {(has('projects') || has('calendar')) && <div className="ap-grid-two">
       {has('projects') && <section className="ap-pane">
         <div className="ap-pane-head"><h2>Prioridades de hoje</h2><Link to="/equipe/projetos">Abrir projetos <ArrowRight size={14} /></Link></div>
-        {priorities.length ? priorities.map((item, index) => { const overdue = String(item.due_at) < today; return <Link className="ap-activity" key={item.id} to="/equipe/projetos"><span className="ap-index">{String(index + 1).padStart(2, '0')}</span><span><strong>{item.title}</strong><small>{companyName.get(item.company_id) || 'Empresa'} · {statusNames[item.status || ''] || item.status || 'Não iniciado'}</small></span><span className={`ap-status ${overdue ? 'red' : 'amber'}`}>{overdue ? `Venceu ${dateLabel(String(item.due_at))}` : dateLabel(String(item.due_at))}</span><ChevronRight size={14} /></Link>; }) : <p className="v2-admin-empty">Nenhuma entrega com prazo em aberto nas suas empresas.</p>}
+        {priorities.length ? priorities.map((item, index) => { const overdue = String(item.due_at) < today; return <Link className="ap-activity" key={item.id} to="/equipe/projetos"><span className="ap-index">{String(index + 1).padStart(2, '0')}</span><span><strong>{item.title}</strong><small>{companyName.get(item.company_id) || 'Empresa'} · {statusNames[item.status || ''] || item.status || 'Não iniciado'}</small></span><span className={`ap-status ${overdue ? 'red' : 'amber'}`}>{overdue ? `Venceu ${dateLabel(String(item.due_at))}` : dateLabel(String(item.due_at))}</span><ChevronRight size={14} /></Link>; }) : <EmptyState as="p" variant="admin">Nenhuma entrega com prazo em aberto nas suas empresas.</EmptyState>}
       </section>}
       {has('calendar') && <section className="ap-pane">
         <div className="ap-pane-head"><h2>Agenda das suas empresas</h2><Link to="/equipe/calendario">Ver calendário <ArrowRight size={14} /></Link></div>
-        {events.length ? events.map((event) => <Link className="ap-time-line" key={event.id} to="/equipe/calendario"><time>{dateLabel(event.starts_at)} · {timeLabel(event.starts_at)}</time><i /><span><strong>{event.title}</strong><small>{companyName.get(event.company_id || '') || 'CALI'} · {eventKind[event.event_type || ''] || 'Compromisso'}</small></span><ChevronRight size={14} /></Link>) : <p className="v2-admin-empty">Nenhum compromisso marcado nos próximos dias.</p>}
+        {events.length ? events.map((event) => <Link className="ap-time-line" key={event.id} to="/equipe/calendario"><time>{dateLabel(event.starts_at)} · {timeLabel(event.starts_at)}</time><i /><span><strong>{event.title}</strong><small>{companyName.get(event.company_id || '') || 'CALI'} · {eventKind[event.event_type || ''] || 'Compromisso'}</small></span><ChevronRight size={14} /></Link>) : <EmptyState as="p" variant="admin">Nenhum compromisso marcado nos próximos dias.</EmptyState>}
       </section>}
       {has('projects') && !has('calendar') && <section className="ap-pane">
         <div className="ap-pane-head"><h2>Próximos prazos</h2><Link to="/equipe/projetos">Ver entregas <ArrowRight size={14} /></Link></div>
-        {deadlines.length ? deadlines.map((item) => <Link className="ap-deadline" key={item.id} to="/equipe/projetos"><CalendarDays size={16} /><span><strong>{item.title}</strong><small>{companyName.get(item.company_id) || 'Empresa'} · {statusNames[item.status || ''] || item.status}</small></span><b>{dateLabel(String(item.due_at))}</b></Link>) : <p className="v2-admin-empty">Nenhum prazo à frente.</p>}
+        {deadlines.length ? deadlines.map((item) => <Link className="ap-deadline" key={item.id} to="/equipe/projetos"><CalendarDays size={16} /><span><strong>{item.title}</strong><small>{companyName.get(item.company_id) || 'Empresa'} · {statusNames[item.status || ''] || item.status}</small></span><b>{dateLabel(String(item.due_at))}</b></Link>) : <EmptyState as="p" variant="admin">Nenhum prazo à frente.</EmptyState>}
       </section>}
     </div>}
 
@@ -100,14 +101,14 @@ export function StaffDashboard({ me }: { me: PartnerWorkspace }) {
         {statusData.length ? <>
           <div className="ap-exec-donut" role="img" aria-label={statusData.map(([label, value]) => `${statusNames[label] || label}: ${value}`).join(', ')} style={{ background: `conic-gradient(${donutStops.join(',')})` }}><div><strong>{deliverables.length}</strong><small>nas suas empresas</small></div></div>
           <div className="ap-exec-legend">{statusData.map(([label, value], index) => <span key={label}><i style={{ background: tones[index % tones.length] }} />{statusNames[label] || label} <strong>{value}</strong></span>)}</div>
-        </> : <p className="v2-admin-empty">Ainda não há entregas nas suas empresas.</p>}
+        </> : <EmptyState as="p" variant="admin">Ainda não há entregas nas suas empresas.</EmptyState>}
       </section>}
     </div>}
 
     <section className="ap-pane ap-full">
       <div className="ap-pane-head"><h2>Suas empresas</h2></div>
       {me.companies.length ? <div className="ap-account-grid">{me.companies.map((client) => { const mine = open.filter((item) => item.company_id === client.id); const talk = openRecords.filter((item) => item.company_id === client.id).length; const state = mine.some((item) => item.status === 'adjustment_requested') ? ['Ajuste solicitado', 'red'] : mine.some((item) => item.status === 'client_review') ? ['Aguardando cliente', 'red'] : talk ? [`${talk} ${talk === 1 ? 'ocorrência aberta' : 'ocorrências abertas'}`, 'amber'] : mine.length ? ['Em execução', 'amber'] : ['Em dia', 'green'];
-        return <Link className="ap-client" key={client.id} to={has('projects') ? '/equipe/projetos' : '/equipe'}><span className="ap-client-brand">{logos[client.id] ? <img src={logos[client.id]} alt="" /> : mark(client.display_name)}</span><div><strong>{client.display_name}</strong><small>{[PLAN[String(client.service_plan || '').toLowerCase()] || client.service_plan, client.monthly_hours_contracted ? `${client.monthly_hours_contracted}h por mês` : '', has('projects') ? `${mine.length} ${mine.length === 1 ? 'entrega em andamento' : 'entregas em andamento'}` : ''].filter(Boolean).join(' · ')}</small></div><span className={`ap-status ${state[1]}`}>{state[0]}</span><ArrowRight size={15} /></Link>; })}</div> : <p className="v2-admin-empty">Nenhuma empresa atribuída a você ainda. Fale com a Patricia.</p>}
+        return <Link className="ap-client" key={client.id} to={has('projects') ? '/equipe/projetos' : '/equipe'}><span className="ap-client-brand">{logos[client.id] ? <img src={logos[client.id]} alt="" /> : mark(client.display_name)}</span><div><strong>{client.display_name}</strong><small>{[PLAN[String(client.service_plan || '').toLowerCase()] || client.service_plan, client.monthly_hours_contracted ? `${client.monthly_hours_contracted}h por mês` : '', has('projects') ? `${mine.length} ${mine.length === 1 ? 'entrega em andamento' : 'entregas em andamento'}` : ''].filter(Boolean).join(' · ')}</small></div><span className={`ap-status ${state[1]}`}>{state[0]}</span><ArrowRight size={15} /></Link>; })}</div> : <EmptyState as="p" variant="admin">Nenhuma empresa atribuída a você ainda. Fale com a Patricia.</EmptyState>}
     </section>
 
     <section className="ap-pane ap-full v2-staff-scope">

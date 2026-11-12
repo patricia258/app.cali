@@ -1,23 +1,20 @@
+
+@reference "../tailwind.css";
+
 .data-loading,
 .data-empty {
-  min-height: 150px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  @apply tw:min-h-[150px] tw:flex tw:items-center tw:justify-center tw:gap-[10px];
   color: var(--muted);
-  font-size: .9rem;
+  @apply tw:text-[.9rem];
 }
 
 .data-empty {
-  flex-direction: column;
-  text-align: center;
-  padding: 28px;
+  @apply tw:flex-col tw:text-center tw:p-[28px];
 }
 
 .data-empty strong {
   color: var(--graphite);
-  font-size: 1rem;
+  @apply tw:text-[1rem];
 }
 
 .data-empty span {
