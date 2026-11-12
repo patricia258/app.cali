@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { SensitiveDataNote } from '../../../components/privacy/SensitiveDataNote';
 import { capacityOf, percentLabel } from '../../../lib/capacity';
 import { CapacityBar } from '../../../v2/CapacityBar';
 import { ClientHomeNotices } from '../../shared/notices/NoticesBoard';
 import { Link } from '../../../components/navigation/Link';
 import {
-  Activity, ArrowRight, ArrowUpRight, CircleHelp, ClipboardCheck, Clock3, CalendarDays, Check, CheckCircle2, ChevronRight, FileText,
-  Leaf, Loader2, MessageCircle, Minus, Send,
-  Star, X,
+  ArrowRight, ArrowUpRight, CalendarDays, Check, CheckCircle2, ChevronRight, FileText,
+  Loader2, MessageCircle, Star,
 } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { ClientHomeTeam } from './components/ClientHomeTeam';
@@ -16,7 +14,8 @@ import { loadClientDashboardReality, subscribeClientDeliveryReality } from '../.
 import { supabase } from '../../../api/supabase';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
-import { patiWavePoster, patiWaveVideo } from '../../../assets/patiWaveMedia';
+import { readClientAccountResponsibles, type AccountResponsibles } from '../../../api/client/home/responsibles';
+import './client-home-responsibles.css';
 
 type Company = {
   id: string;
@@ -36,15 +35,6 @@ type Deliverable = { id: string; title: string; status: string; due_at?: string 
 type EventItem = { id: string; title: string; starts_at: string; mode?: string | null; meeting_url?: string | null };
 type ClientDocument = { id: string; title: string; updated_at: string; category?: string | null };
 type ClientOccurrence = { id: string; title: string; workflow_status?: string | null; occurred_at: string; last_activity_at?: string | null };
-type Contact = {
-  full_name: string;
-  job_title?: string | null;
-  avatar_url?: string | null;
-  avatar_position_x?: number | null;
-  avatar_position_y?: number | null;
-  avatar_zoom?: number | null;
-};
-type ChatKind = 'question' | 'context_change' | 'request' | 'occurrence';
 type WorkMetrics = {
   total: number; completed: number; notStarted: number; inProgress: number;
   internalReview: number; withClient: number;
@@ -53,7 +43,7 @@ type WorkMetrics = {
 type DashboardData = {
   company: Company | null;
   profile: Profile | null;
-  contact: Contact | null;
+  responsibles: AccountResponsibles | null;
   projects: Project[];
   deliverables: Deliverable[];
   events: EventItem[];
@@ -139,23 +129,26 @@ function currentMonthBounds() {
 }
 export function ClientDashboard() {
   const { user } = useWorkspaceAuth();
-  const [data, setData] = useState<DashboardData>({ company: null, profile: null, contact: null, projects: [], deliverables: [], events: [], minutes: 0, hoursVisible: false, contractedHours: 0, hoursLoadError: false, nps: null, npsCount: 0, completionPct: 0, workMetrics: null, unlinkedHourEntries: 0, reportCount: null, latestDocument: null, documentCount: null, openOccurrenceCount: null, latestOccurrence: null, occurrenceLoadError: false });
+  return <ClientDashboardContent key={user?.id} userId={user?.id} />;
+}
+
+function ClientDashboardContent({ userId }: { userId: string | undefined }) {
+  const [data, setData] = useState<DashboardData>({ company: null, profile: null, responsibles: null, projects: [], deliverables: [], events: [], minutes: 0, hoursVisible: false, contractedHours: 0, hoursLoadError: false, nps: null, npsCount: 0, completionPct: 0, workMetrics: null, unlinkedHourEntries: 0, reportCount: null, latestDocument: null, documentCount: null, openOccurrenceCount: null, latestOccurrence: null, occurrenceLoadError: false });
   const [occurrenceLogoUrl, setOccurrenceLogoUrl] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatText, setChatText] = useState('');
-  const [chatKind, setChatKind] = useState<ChatKind>('question');
-  const [chatSent, setChatSent] = useState(false);
-  const [assistantReply, setAssistantReply] = useState('');
-  const [sending, setSending] = useState(false);
   const refreshTimer = useRef<number | null>(null);
   const loadingRef = useRef(false);
   const refreshPendingRef = useRef(false);
+  const mounted = useRef(false);
 
   useEffect(() => {
+    mounted.current = true;
     void load(true);
-    return () => { if (refreshTimer.current) window.clearTimeout(refreshTimer.current); };
+    return () => {
+      mounted.current = false;
+      if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -189,7 +182,6 @@ export function ClientDashboard() {
     if (showLoading) setLoading(true);
     setError('');
     try {
-      const userId = user?.id;
       if (!userId) throw new Error('Sessão do cliente não encontrada.');
 
       const profileResult = await supabase.from('profiles').select('full_name,company_id,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom').eq('id', userId).maybeSingle();
@@ -199,14 +191,14 @@ export function ClientDashboard() {
 
       const nowIso = new Date().toISOString();
       const { start, end } = currentMonthBounds();
-      const [companyResult, deliveryReality, hoursResult, workResult, eventResult, reportResult, contactResult, documentsResult, occurrencesResult, latestOccurrenceResult] = await Promise.all([
+      const [companyResult, deliveryReality, hoursResult, workResult, eventResult, reportResult, responsibles, documentsResult, occurrencesResult, latestOccurrenceResult] = await Promise.all([
         supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url,service_type,service_plan,start_date,end_date,monthly_hours_contracted,show_hours_to_client').eq('id', companyId).single(),
         loadClientDashboardReality(companyId),
         supabase.rpc('get_client_hours_summary', { p_period_start: start, p_period_end: end }),
         supabase.rpc('get_client_home_work_metrics', { p_period_start: start, p_period_end: end }),
         supabase.from('events').select('id,title,starts_at,mode,meeting_url').eq('company_id', companyId).eq('visibility', 'client').is('cancelled_at', null).gte('starts_at', nowIso).order('starts_at').limit(3),
         supabase.from('reports').select('id').eq('company_id', companyId).in('status', ['sent', 'published']),
-        supabase.rpc('get_client_account_contact'),
+        readClientAccountResponsibles(),
         supabase.from('files').select('id,title,updated_at,category', { count: 'exact' }).eq('company_id', companyId).eq('client_visible', true).eq('status', 'published').order('updated_at', { ascending: false }).limit(1),
         supabase.from('account_records').select('id', { count: 'exact', head: true }).eq('company_id', companyId).eq('visibility', 'client').in('record_type', ['occurrence', 'request', 'context_change', 'other']).in('workflow_status', ['open', 'in_progress', 'waiting_client', 'standby']),
         supabase.from('account_records').select('id,title,workflow_status,occurred_at,last_activity_at').eq('company_id', companyId).eq('visibility', 'client').in('record_type', ['occurrence', 'request', 'context_change', 'other']).order('last_activity_at', { ascending: false, nullsFirst: false }).order('occurred_at', { ascending: false }).limit(1),
@@ -215,14 +207,13 @@ export function ClientDashboard() {
       if (companyResult.error) throw companyResult.error;
       if (eventResult.error) throw eventResult.error;
       if (workResult.error) throw workResult.error;
-      const contactRows = contactResult.error ? [] : ((contactResult.data || []) as Contact[]);
       const hoursSummary = (hoursResult.error ? null : hoursResult.data) as { visible?: boolean; contractedHours?: number; consumedMinutes?: number } | null;
       const workSummary = workResult.data as { ratings?: { average?: number | null; count?: number }; work?: WorkMetrics; unlinkedHourEntries?: number } | null;
 
       setData({
         company: companyResult.data as Company,
         profile: profileResult.data as Profile,
-        contact: contactRows[0] || null,
+        responsibles,
         projects: deliveryReality.projects.map((project) => ({
           id: project.id,
           name: project.name,
@@ -259,7 +250,7 @@ export function ClientDashboard() {
     } finally {
       loadingRef.current = false;
       if (showLoading) setLoading(false);
-      if (refreshPendingRef.current) {
+      if (refreshPendingRef.current && mounted.current) {
         refreshPendingRef.current = false;
         if (refreshTimer.current) window.clearTimeout(refreshTimer.current);
         refreshTimer.current = window.setTimeout(() => void load(false), 260);
@@ -305,43 +296,12 @@ export function ClientDashboard() {
   const occurrenceStatusText: Record<string, string> = { open: 'Aberta', in_progress: 'Em andamento', waiting_client: 'Aguardando você', standby: 'Em espera', completed: 'Encerrada', cancelled: 'Cancelada', recorded: 'Registrada' };
   const occurrenceDays = latestOccurrence ? Math.max(0, Math.floor((Date.now() - new Date(latestOccurrence.occurred_at).getTime()) / 86400000)) : 0;
 
-  function quickAnswer(kind: 'next_event' | 'hours' | 'validation' | 'reports') {
-    if (kind === 'next_event') {
-      const next = data.events[0];
-      if (!next) setAssistantReply('Não há compromisso futuro publicado para sua empresa neste momento.');
-      else {
-        const date = new Date(next.starts_at);
-        setAssistantReply(`Seu próximo compromisso é “${next.title}”, em ${new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(date)}.`);
-      }
-    }
-    if (kind === 'hours') {
-      if (data.hoursLoadError) setAssistantReply('Não consegui consultar as horas agora. Tente novamente na página de Horas.');
-      else if (!showHours) setAssistantReply('A visualização de horas não está habilitada para esta conta. Quando a CALI disponibilizar esse indicador, ele aparecerá aqui automaticamente.');
-      else setAssistantReply(contractedMinutes > 0 ? `Há ${formatHours(data.minutes)} registradas neste mês, de ${data.contractedHours}h contratadas.` : `Há ${formatHours(data.minutes)} registradas neste mês. A franquia mensal ainda não está definida no cadastro da sua conta.`);
-    }
-    if (kind === 'validation') setAssistantReply(waiting.length ? `${waiting.length} ${waiting.length === 1 ? 'entrega está' : 'entregas estão'} aguardando sua validação.` : 'Você não tem validação pendente neste momento.');
-    if (kind === 'reports') setAssistantReply(data.reportCount == null ? 'Não consegui consultar os relatórios agora. Acesse a página de Relatórios para tentar novamente.' : data.reportCount ? `${data.reportCount} ${data.reportCount === 1 ? 'relatório publicado está' : 'relatórios publicados estão'} disponível na sua área.` : 'Ainda não há relatório publicado para sua conta.');
-  }
-
-  async function sendMessage() {
-    if (!supabase || !chatText.trim()) return;
-    setSending(true);
-    setError('');
-    try {
-      const result = await supabase.rpc('client_submit_account_message', { p_kind: chatKind, p_message: chatText.trim() });
-      if (result.error) throw result.error;
-      setChatSent(true);
-      setAssistantReply('Recebi e registrei sua mensagem na conta CALI. Ela também foi sinalizada no administrativo para acompanhamento da Patrícia.');
-      setChatText('');
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar sua mensagem.');
-    } finally { setSending(false); }
-  }
-
   if (loading) return <Shell role="client"><section className="client-home"><div className="data-loading"><Loader2 className="spin" size={20} />Preparando sua área CALI…</div></section></Shell>;
 
-  const contactName = data.contact?.full_name || 'Patrícia Lima';
-  const contactRole = data.contact?.job_title || 'People Advisory Executive';
+  const contact = data.responsibles?.executive;
+  const supportPartner = data.responsibles?.supportPartner;
+  const contactName = contact?.full_name || 'Patrícia Lima';
+  const contactRole = contact?.job_title || 'People Advisory Executive';
 
   return <Shell role="client">
     <section className="client-home">
@@ -351,8 +311,11 @@ export function ClientDashboard() {
       <div className="ch-greeting">
         <div><span className="ch-overline">SUA PARCERIA COM A CALI</span><h1>Olá, {data.profile?.full_name ? firstName(data.profile.full_name) : 'seja bem-vinda'}.</h1><p>Veja o que aconteceu e o que vem a seguir na sua assessoria.</p></div>
         <div className="ch-executive">
-          <div className="ch-executive-photo">{data.contact?.avatar_url ? <img src={data.contact.avatar_url} alt={contactName} style={{ objectPosition: `${Number(data.contact.avatar_position_x || 50)}% ${Number(data.contact.avatar_position_y || 50)}%`, transform: `scale(${Number(data.contact.avatar_zoom || 1)})` }} /> : contactName.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')}</div>
-          <div><small>RESPONSÁVEL EXECUTIVA DA CONTA</small><strong>{contactName}</strong><span>{contactRole}</span></div>
+          <div className="ch-executive-photo">{contact?.avatar_url ? <img src={contact.avatar_url} alt={contactName} style={{ objectPosition: `${Number(contact.avatar_position_x || 50)}% ${Number(contact.avatar_position_y || 50)}%`, transform: `scale(${Number(contact.avatar_zoom || 1)})` }} /> : contactName.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')}</div>
+          <div>
+            <small>RESPONSÁVEL EXECUTIVA DA CONTA</small><strong>{contactName}</strong><span>{contactRole}</span>
+            {supportPartner && <><small className="ch-support-label">PARTNER DE APOIO</small><strong>{supportPartner.full_name}</strong></>}
+          </div>
         </div>
       </div>
 
@@ -442,7 +405,7 @@ export function ClientDashboard() {
         <article className="ch-surface ch-recent-case">
           <div className="ch-avatars" aria-label="Contatos da empresa e da CALI">
             <span className="ch-avatar">{data.profile?.avatar_url ? <img src={data.profile.avatar_url} alt={data.profile.full_name} style={{ objectPosition: `${Number(data.profile.avatar_position_x ?? 50)}% ${Number(data.profile.avatar_position_y ?? 50)}%`, transform: `scale(${Number(data.profile.avatar_zoom ?? 1)})` }} /> : firstName(data.profile?.full_name).charAt(0)}</span>
-            <span className="ch-avatar">{data.contact?.avatar_url ? <img src={data.contact.avatar_url} alt={contactName} style={{ objectPosition: `${Number(data.contact.avatar_position_x ?? 50)}% ${Number(data.contact.avatar_position_y ?? 50)}%`, transform: `scale(${Number(data.contact.avatar_zoom ?? 1)})` }} /> : contactName.charAt(0)}</span>
+            <span className="ch-avatar">{contact?.avatar_url ? <img src={contact.avatar_url} alt={contactName} style={{ objectPosition: `${Number(contact.avatar_position_x ?? 50)}% ${Number(contact.avatar_position_y ?? 50)}%`, transform: `scale(${Number(contact.avatar_zoom ?? 1)})` }} /> : contactName.charAt(0)}</span>
             <span className="ch-avatar company">{occurrenceLogoUrl ? <img src={occurrenceLogoUrl} alt={data.company?.display_name || 'Empresa'} /> : 'C'}</span>
           </div>
           {latestOccurrence && <span className={`ch-tag amber status-${occurrenceStatus}`}>{occurrenceStatusText[occurrenceStatus] || 'Em acompanhamento'}</span>}
@@ -481,36 +444,9 @@ export function ClientDashboard() {
       </div>
       </div>
 
-      {!chatOpen && <button className="ch-chat-trigger" type="button" onClick={() => { setChatSent(false); setAssistantReply(''); setChatOpen(true); }} aria-label="Fale com a Pati" title="Fale com a Pati">
-        <span className="ch-chat-portrait"><video src={patiWaveVideo} poster={patiWavePoster} muted loop autoPlay playsInline preload="metadata" aria-hidden="true" /></span> Fale com a Pati <MessageCircle size={15} />
-      </button>}
-
-    {chatOpen && <aside className="ch-chat" role="dialog" aria-label="Fale com a Pati">
-      <div className="ch-chat-top"><span className="ch-chat-portrait"><video src={patiWaveVideo} poster={patiWavePoster} muted loop autoPlay playsInline preload="metadata" aria-hidden="true" /></span><div><small>CANAL DIRETO CALI</small><strong>Fale com a Pati</strong><span>{contactRole}</span></div>
-        <button title="Minimizar" onClick={() => setChatOpen(false)} aria-label="Minimizar"><Minus size={15} /></button>
-        <button title="Fechar" onClick={() => { setChatOpen(false); setAssistantReply(''); setChatSent(false); }} aria-label="Fechar"><X size={16} /></button>
-      </div>
-      <div className="ch-chat-body">
-        <p>Use este canal para consultar informações da sua conta ou enviar algo que precise de acompanhamento da CALI.</p>
-        <div className="ch-chat-quick"><small>POSSO RESPONDER AGORA</small>
-          <div><button onClick={() => quickAnswer('next_event')}><CalendarDays size={13} /> Próxima reunião</button>{showHours && <button onClick={() => quickAnswer('hours')}><Clock3 size={13} /> Horas do ciclo</button>}<button onClick={() => quickAnswer('validation')}><ClipboardCheck size={13} /> Validações</button><button onClick={() => quickAnswer('reports')}><Activity size={13} /> Relatórios</button></div>
-          {assistantReply && <div className="ch-auto-reply"><Leaf size={15} /><p>{assistantReply}</p></div>}
-        </div>
-        {chatSent ? <div className="ch-chat-success"><CheckCircle2 size={22} /><strong>Mensagem registrada.</strong><p>Ela entrou em Registros/Ocorrências da conta e gerou uma notificação no administrativo.</p><button onClick={() => { setChatSent(false); setAssistantReply(''); }}>Enviar outra mensagem</button></div> : <>
-          <div className="ch-chat-kinds" role="group" aria-label="Tipo da mensagem">
-            <button className={chatKind === 'question' ? 'selected' : ''} onClick={() => setChatKind('question')}>Dúvida</button>
-            <button className={chatKind === 'context_change' ? 'selected' : ''} onClick={() => setChatKind('context_change')}>Mudança de contexto</button>
-            <button className={chatKind === 'request' ? 'selected' : ''} onClick={() => setChatKind('request')}>Solicitação</button>
-            <button className={chatKind === 'occurrence' ? 'selected' : ''} onClick={() => setChatKind('occurrence')}>Ocorrência</button>
-          </div>
-          <label htmlFor="ch-message">Sua mensagem</label>
-          <textarea id="ch-message" value={chatText} onChange={(event) => setChatText(event.target.value)} placeholder="Escreva aqui. Isso ficará registrado na sua conta CALI." />
-          <SensitiveDataNote />
-          <div className="ch-chat-send"><button disabled={!chatText.trim() || sending} onClick={() => void sendMessage()}>{sending ? <Loader2 className="spin" size={13} /> : <Send size={13} />} Enviar para a Pati</button></div>
-          <div className="ch-chat-note"><CircleHelp size={13} /> Respostas automáticas usam apenas dados reais. Questões estratégicas ficam registradas para a Pati.</div>
-        </>}
-      </div>
-    </aside>}
+      <Link className="ch-chat-trigger ch-contact-link" to="/cliente/registros">
+        <MessageCircle size={16} /> Falar com a CALI
+      </Link>
     </section>
   </Shell>;
 }

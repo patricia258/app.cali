@@ -1,6 +1,6 @@
 # Fluxos do CALI Workspace
 
-Fichas de jornada para manutenção do app.cali. A referência funcional é o app.cali em `773c9d4`. O estado **Atual** descreve fontes desta branch, incluindo o lote de segurança até `ae3aa2a`. As fichas reconciliam o levantamento e as jornadas da V2 com as decisões vigentes. [Mapa das rotas](../../src/app/router.tsx)
+Fichas de jornada para manutenção do app.cali. A referência funcional é o app.cali em `773c9d4`. O estado **Atual** descreve as fontes da branch indicadas em cada ficha. As fichas reconciliam o levantamento e as jornadas da V2 com as decisões vigentes. [Mapa das rotas](../../src/app/router.tsx)
 
 - **Atual** registra comportamento localizado no código ou em migrations versionadas. Um link SQL identifica a versão inspecionada do contrato. O catálogo e o comportamento hospedados exigem evidência própria.
 - **Alvo** deriva das [regras de produto](../PRODUCT_RULES.md) e dos [contratos de dados](../DATA_CONTRACTS.md). As fichas detalham as transições e os pontos de integração da jornada.

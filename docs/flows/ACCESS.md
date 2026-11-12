@@ -18,7 +18,7 @@
 
 **Ficha da empresa, contrato e acessos.** Admin opera `/admin/clientes`. Cliente consulta a própria empresa a partir da área autenticada. O candidato preenche dados pelo link de pré-cadastro quando o contrato for adotado.
 
-**Atual.** Admin cria ou edita empresa, plano, ciclo, contatos, contrato e documentos. Criação chama `create_client_account` e segue com operações separadas de cadastro, convites e arquivo. Fechamento e renovação passam pela ficha. Edição de acesso primário e dos acessos adicionais usa caminhos distintos, com risco de falha parcial. [Ficha Admin](../../src/modules/admin/companies/AdminClientsPageV3.tsx) · [Corte no fim do contrato](../../supabase/migrations/20261021150000_block_client_access_on_contract_end.sql)
+**Atual.** Admin cria rascunho da empresa e, na aba Acessos, gera ou reemite link, importa o pré-cadastro, anexa o contrato e confere os acessos pendentes. O servidor confirma os obrigatórios, a revisão do contrato, os objetos de Storage e a revisão da ficha antes de ativar o conjunto. Patrícia e Partner de apoio elegível aparecem no Início. Os acessos ativos legados são preservados na edição da ficha. [Ficha Admin](../../src/modules/admin/companies/AdminClientsPageV3.tsx) · [Pré-cadastro e liberação](../../supabase/migrations/20261112130000_company_onboarding.sql)
 
 **Dados e integrações.** Empresa, plano e ciclo, responsáveis, adesão, versão do contrato, comprovantes, contatos e reservas de convite vinculam-se ao ID estável da empresa. No contrato alvo, entrega do convite e criação da identidade Auth têm recibos e podem ser retomadas depois da reserva. A indicação de contato focal é independente dos poderes do acesso. [Dados e autorização](../PERMISSIONS.md#matriz-de-autorização-alvo)
 

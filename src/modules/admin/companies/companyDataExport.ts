@@ -2,7 +2,7 @@
    Gera dois arquivos: os dados em JSON (função admin_export_company_data) e um índice dos documentos
    com links de download válidos por 7 dias, para enviar ao cliente junto. Os dados restritos de colaboradores
    (remuneração, gênero, filhos) saem separados em "dados_restritos"; quem recebe fica registrado na auditoria.
-   Dentro dos 45 dias depois do encerramento, dá para gerar de novo (links novos). */
+   A exportação aplicável deve ser entregue dentro dos 30 dias corridos do encerramento, antes da eliminação. */
 import { supabase } from '../../../api/supabase';
 
 const LINK_DAYS = 7;

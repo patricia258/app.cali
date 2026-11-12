@@ -1,0 +1,58 @@
+.company-pre-registration {
+  display: grid;
+  min-height: 100dvh;
+  align-items: center;
+  justify-items: center;
+  padding: 24px;
+  background: var(--cali-color-canvas);
+  color: #321c23;
+}
+.company-pre-registration > section {
+  width: min(100%, 520px);
+  padding: clamp(20px, 5vw, 36px);
+  border: 1px solid #e8ddd6;
+  border-radius: 18px;
+  background: #fff;
+}
+.company-pre-registration h1 {
+  margin: 16px 0 10px;
+  color: var(--cali-color-burgundy);
+  font-size: clamp(1.5rem, 5vw, 2rem);
+}
+.company-pre-registration form,
+.company-pre-registration label {
+  display: grid;
+  gap: 8px;
+}
+.company-pre-registration form { gap: 14px; }
+.company-pre-registration p { margin: 0 0 8px; }
+.pre-registration-locality {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px;
+  gap: 12px;
+}
+.company-pre-registration input {
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid #cbbab6;
+  border-radius: 8px;
+  font: inherit;
+  color: inherit;
+  background: #fff;
+}
+.company-pre-registration button {
+  justify-self: start;
+  min-height: 42px;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--cali-color-burgundy);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.company-pre-registration button:disabled { opacity: .65; cursor: wait; }
+.company-pre-registration :focus-visible { outline: 2px solid var(--cali-color-burgundy); outline-offset: 2px; }
+.company-pre-registration .pre-registration-error { color: #7e2537; }
