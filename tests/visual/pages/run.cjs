@@ -55,11 +55,13 @@ const { values } = parseArgs({
     viewport: { type: 'string', multiple: true },
     role: { type: 'string', multiple: true },
     case: { type: 'string', multiple: true },
+    'cases-file': { type: 'string' },
     jobs: { type: 'string', default: '1' },
     'browser-batch': { type: 'string', default: '4' },
     list: { type: 'boolean' },
     help: { type: 'boolean' },
     'require-equivalent': { type: 'boolean' },
+    resume: { type: 'boolean' },
   },
 });
 
@@ -526,8 +528,10 @@ async function main() {
         '--browser-batch N       Reinicia o navegador a cada N cenários (padrão 4)',
         '--viewport desktop|mobile|laptop|tablet    Repetível, desktop/mobile por padrão',
         '--role PERFIL --case TRECHO --list    Filtros repetíveis e inventário',
+        '--cases-file JSON      Seleção exata por papel, ID e viewport, como em result.json',
         '--reference-terms VERSÃO    Recibo sintético legado, por padrão 2026-10-15',
         '--require-equivalent    Retorna falha quando houver diferença ou limitação',
+        '--resume               Retoma capturas salvas no mesmo --output, com os mesmos builds',
         'Sem build fornecido, o runner usa Git archive e npm ci --offline.',
       ].join('\n'),
     );
@@ -542,6 +546,11 @@ async function main() {
   assert(Number.isInteger(jobs) && jobs >= 1 && jobs <= 6, '--jobs deve estar entre 1 e 6');
   const browserBatch = Number(values['browser-batch']);
   assert(Number.isInteger(browserBatch) && browserBatch > 0, '--browser-batch deve ser um inteiro positivo');
+  const key = ({ role, id, viewport }) => JSON.stringify([role, id, viewport]);
+  const exactCases = values['cases-file']
+    ? JSON.parse(await fs.readFile(values['cases-file'], 'utf8'))
+    : null;
+  const selection = exactCases ? new Set((exactCases.rows ?? exactCases).map(key)) : null;
   const tasks = scenarios()
     .filter(
       ({ role, id }) =>
@@ -552,15 +561,18 @@ async function main() {
       chosen
         .filter((viewport) => !scenario.onlyViewport || scenario.onlyViewport === viewport)
         .map((viewport) => ({ ...scenario, viewport })),
-    );
+    )
+    .filter((task) => !selection || selection.has(key(task)));
+  assert(!selection || tasks.length === selection.size, 'A seleção contém cenários ausentes nos filtros atuais');
   assert(tasks.length, 'Nenhum cenário selecionado');
   if (values.list) {
     console.log(JSON.stringify({ total: tasks.length, tasks }, null, 2));
     return;
   }
+  assert(!values.resume || values.output, '--resume exige --output');
   const output = values.output ? resolve(values.output) : await fs.mkdtemp(join(tmpdir(), 'cali-visual-pages-'));
   await fs.mkdir(output, { recursive: true });
-  const metadata = { date, viewports, threshold };
+  const metadata = { date, viewports, threshold, referenceTerms: values['reference-terms'] };
   for (const label of ['reference', 'candidate']) {
     const commit = sha(values[label]);
     const dist = values[label + '-dist'] ? resolve(values[label + '-dist']) : buildArtifact(output, label, commit);
@@ -571,26 +583,55 @@ async function main() {
       ...(await artifactHash(dist)),
     };
   }
+  const taskKeys = new Set(tasks.map(key));
+  let rows = [];
+  if (values.resume) {
+    const previous = await fs.readFile(join(output, 'result.json'), 'utf8')
+      .then(JSON.parse)
+      .catch((error) => {
+        if (error.code === 'ENOENT') return null;
+        throw error;
+      });
+    if (previous) {
+      for (const label of ['reference', 'candidate']) {
+        assert.equal(previous[label].hash, metadata[label].hash, 'Build alterado em ' + label);
+      }
+      assert.equal(previous.date, date, 'Data da fixture alterada');
+      assert.equal(previous.referenceTerms, metadata.referenceTerms, 'Versão de termos da referência alterada');
+      assert(previous.rows.every((row) => taskKeys.has(key(row))), 'A seleção deve incluir todas as capturas já salvas');
+      rows = previous.rows.filter((row) => row.status !== 'candidate-failure');
+      metadata.browser = previous.browser;
+    }
+  }
+  const completed = new Set(rows.map(key));
+  const pendingTasks = tasks.filter((task) => !completed.has(key(task)));
+  if (!pendingTasks.length) {
+    await report(output, rows, metadata);
+    if (values['require-equivalent'] && rows.some((row) => row.status !== 'equivalent')) process.exitCode = 1;
+    return;
+  }
   const proxy = await denyProxy();
   const servers = {};
   let browser;
   try {
     for (const label of ['reference', 'candidate']) servers[label] = await serve(metadata[label].dist);
-    const rows = [];
-    for (let start = 0; start < tasks.length; start += browserBatch) {
+    for (let start = 0; start < pendingTasks.length; start += browserBatch) {
       browser = await launchBrowser(values.chrome, proxy);
-      metadata.browser = browser.version();
+      const browserVersion = browser.version();
+      assert(!metadata.browser || metadata.browser === browserVersion, 'Versão do Chromium alterada');
+      metadata.browser = browserVersion;
       let cursor = start;
-      const end = Math.min(start + browserBatch, tasks.length);
+      const end = Math.min(start + browserBatch, pendingTasks.length);
+      const batch = [];
       await Promise.all(
         Array.from({ length: Math.min(jobs, end - start) }, async () => {
           while (cursor < end) {
             const index = cursor++;
-            const result = await compare(browser, servers, tasks[index], output);
-            rows[index] = result;
+            const result = await compare(browser, servers, pendingTasks[index], output);
+            batch[index - start] = result;
             const { role, id, viewport, status, pixels, candidate } = result;
             console.error(JSON.stringify({
-              index: index + 1,
+              index: completed.size + index + 1,
               total: tasks.length,
               role,
               id,
@@ -605,6 +646,7 @@ async function main() {
       );
       await closeBrowser(browser);
       browser = undefined;
+      rows.push(...batch);
       await report(output, rows, metadata);
     }
     if (

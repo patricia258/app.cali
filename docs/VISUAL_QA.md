@@ -9,11 +9,11 @@ npm run test:visual:pages -- --reference 773c9d4 --candidate HEAD --output /tmp/
   --viewport desktop --viewport laptop --viewport tablet --viewport mobile
 ```
 
-O comando gera os dois builds a partir do Git, com dependências do lockfile e endpoint sintético. O npm precisa ter as dependências no cache para o build offline. Também aceita `--reference-dist` e `--candidate-dist` para builds sintéticos existentes. Nesse caso o relatório guarda SHA declarado e hash dos arquivos compilados. Use `--list` para listar os cenários, `--role`, `--case` e `--viewport` para recortes. Desktop e celular são o padrão. Notebook e tablet podem ser selecionados.
+O comando gera os dois builds a partir do Git, com dependências do lockfile e endpoint sintético. O npm precisa ter as dependências no cache para o build offline. Também aceita `--reference-dist` e `--candidate-dist` para builds sintéticos existentes. Nesse caso o relatório guarda SHA declarado e hash dos arquivos compilados. Use `--list` para listar os cenários, `--role`, `--case` e `--viewport` para recortes. `--cases-file` aceita as chaves de um resultado anterior para repetir exatamente papel, cenário e largura. Desktop e celular são o padrão. Notebook e tablet podem ser selecionados.
 
 O comparador abre uma página por vez por padrão (`--jobs 1`). Cada referência fecha antes da captura candidata. O Chrome reinicia a cada quatro cenários (`--browser-batch 4`), e o relatório é atualizado após cada lote. As jornadas e as provas do design system também reciclam o navegador a cada quatro casos. O teste de rotas abre um Chromium por perfil para preservar o histórico da sessão no mesmo contexto. Execute as suítes em sequência no mesmo computador.
 
-O runner verifica o espaço do volume temporário antes de abrir o Chromium e entre cenários. A execução encerra com menos de 1 GiB livre ou quando o macOS indica pressão de memória. Cada lote aguarda o encerramento do Chromium anterior. Em máquinas com pouca folga, use recortes com `--case` e reduza `--browser-batch`.
+O runner verifica o espaço do volume temporário antes de abrir o Chromium e entre cenários. A execução encerra com menos de 1 GiB livre ou quando o macOS indica pressão de memória. Cada lote aguarda o encerramento do Chromium anterior. Para retomar, repita o comando com `--resume` e o mesmo `--output`. O runner exige os mesmos builds e a mesma versão de termos da fixture. Em máquinas com pouca folga, use recortes com `--case` e reduza `--browser-batch`.
 
 A matriz parte de todas as rotas registradas, cruza perfis e inclui deep links, menu, histórico, tema e interações selecionadas. Cada cenário guarda a página inteira, estado de navegação, títulos, diálogos e geometria. A diferença de pixels aponta a região a revisar. Uma diferença intencional precisa corresponder à regra de produto ou a uma correção reproduzida.
 
@@ -53,9 +53,40 @@ A migração retirou as folhas gerada, operacional, documental e de controles. O
 
 A matriz local cobriu os 302 estados de desktop e celular com a mesma referência `773c9d4`. A primeira execução salvou 268 estados antes da interrupção por pressão de memória. O restante e as recapturas dirigidas usaram o build final em lotes de dois, com uma página aberta por vez. O manifesto do primeiro build começa em `65ce2ce3` e o do final em `b94aff58`. As 28 capturas de componentes completaram sem falha no candidato.
 
-A matriz consolidada tem 20 equivalências, 279 diferenças e três limitações na referência, no carrossel móvel e nas despesas de visita extra em duas larguras. Nenhuma captura da branch falhou. A classificação reconheceu 153 diferenças e deixou 126 para revisão, incluindo 62 de conteúdo, 62 de layout e duas de pixels. A paridade visual segue aberta. Revise especialmente o espaçamento e a altura de Indicadores em Equipe, o diálogo móvel de subtarefa, a Landing e as diferenças de conteúdo da revisão do Mapa. A continuação do relatório executivo é uma diferença deliberada, coberta pela prova física de três folhas A4.
+A matriz consolidada tem 20 equivalências, 279 diferenças e três limitações na referência, no carrossel móvel e nas despesas de visita extra em duas larguras. Nenhuma captura da branch falhou. A classificação reconheceu 153 diferenças e deixou 126 para revisão, incluindo 62 de conteúdo, 62 de layout e duas de pixels. A seção a seguir registra a revisão desses estados. A continuação do relatório executivo é uma diferença deliberada, coberta pela prova física de três folhas A4.
 
 Lint, TypeScript, build e 116 testes unitários passaram. Os 275 cenários funcionais passaram na execução integrada e nas repetições dirigidas. As 38 provas de componentes e os contratos SQL e HTTP no stack local também passaram. A prova final de Propostas abriu a capa em 390 px e confirmou o PDF de seis folhas A4 com a capa na origem.
+
+### Revisão das 126 diferenças
+
+A referência desta revisão é a `main` em `773c9d4`. A unidade de contagem é papel, cenário e largura. Redirecionamentos, histórico, retorno de OAuth e acesso direto podem mostrar a mesma superfície. As diferenças de pixels das capturas inteiras também incluem a altura do documento.
+
+| Superfície de destino | Estados | Revisão e decisão |
+| --- | ---: | --- |
+| Landing e retornos públicos | 12 | Restaurados a largura útil de seção, a escala do título de contato, o raio do vídeo, o kicker dourado e a caixa alta dos prazos comerciais. O vídeo pode renderizar o pôster ou o primeiro frame. A captura completa ainda registra diferenças de espaçamento entre seções. |
+| Login em tema Noite | 2 | Corrigidos contraste do título sobre o card claro e gradiente indevido do botão desabilitado. |
+| Agenda Cliente e callback Google | 12 | Restaurados altura da grade, espaçamento e botão de histórico. A Agenda usa o estado de sincronização e a classificação contratual já previstos. |
+| Equipe, incluindo Admin, período e histórico | 13 | Restaurados fonte, altura do gráfico essencial, faixas coloridas e padding dos cartões na raiz compacta. Diretório mantém rolagem local. |
+| Avisos e Ajuda Cliente | 6 | Conteúdo e ações preservados. O comunicado mantém envio de comentário e o fechamento preserva os parâmetros da URL. |
+| Frentes Cliente | 2 | A ação de contato volta a caber no cabeçalho. |
+| Entregáveis Cliente, conversa, aprovação e subtarefa | 14 | A tabela estreita ganha linhas de metadados com estados legíveis. O modal único de ajuste evita sobreposição do diálogo. A conversa mostra rótulos de anexo e link. |
+| Horas Cliente | 2 | A tabela semântica mantém todas as colunas com rolagem local. Ajustada a largura mínima para evitar colisões. |
+| Documentos e callback Drive Cliente | 10 | Paleta dos tipos de documento restaurada. Lista e ações preservadas no acesso direto e no retorno OAuth. |
+| Leitura de Relatórios Cliente e lista Admin | 6 | A leitura mantém ciência e ações. O erro sintético da lista Admin segue com a mesma mensagem. |
+| Impressão Admin, Cliente e Partner | 6 | Continuação e numeração do relatório longo são deliberadas. A prévia estreita permite rolar a folha A4 dentro da região e preserva Voltar e Imprimir. |
+| Gestão DISC Cliente e listas, convite e relatório Admin | 6 | Mantidos dados e ações. Diferenças de moldura e geometria registradas nas capturas. |
+| Propostas, calculadora, arquivo, prévia e envio | 9 | Corrigido espaçamento do editor e acesso ao fechamento da gaveta. O contato salvo no briefing aparece em leitura na confirmação. O envio usa as duas confirmações do fluxo aprovado. |
+| Projetos Admin, histórico de navegação, Kanban e detalhes | 12 | Corrigidos filtros empilhados, contraste do estado, cabeçalho e abas em 390 px. A previsão informa quando o prazo calculado excede a meta. Conversas mantêm as mensagens com ações rotuladas. |
+| Horas Admin e Partner limitado | 3 | Mesmas métricas e ações. O quadro apresenta identidade da empresa quando a fixture tem logo. |
+| Documentos Admin e retorno do Partner limitado | 2 | Restaurados o alinhamento e o espaçamento da entrada. O retorno por falta de permissão conserva o destino do Partner. |
+| Auditoria, Formulários e Equipe CALI | 3 | Restaurados contador interpolado, alinhamento dos filtros e agrupadores de Formulários. A contagem CALI inclui o formulário sem público explícito. |
+| Mapa, revisão e relatório oficial | 6 | Botão público recupera a identidade visual. A revisão exibe preparação do Partner e mantém os dados. Em tela estreita, as ações do relatório oficial quebram linha para caber. |
+
+Mudanças de produto seguem as [regras de materiais, horas, ocorrências e privacidade](PRODUCT_RULES.md). Remoção de vãos, rolagem contida e foco dos diálogos seguem as [regras de acessibilidade](PRODUCT_RULES.md#ux-e-acessibilidade). Os percentuais de diferença e o texto de cada estado ficam no relatório local das capturas.
+
+A recaptura concluiu os 126 estados sem falha em nenhuma versão. O login Noite ficou equivalente nas duas larguras. Os demais estados ainda têm diferenças, incluindo espaçamentos da Landing e da Equipe. A matriz registra os percentuais para comparação e não constitui igualdade de pixels. O lote completo usou o manifesto `c7c3c0bb`. Os ajustes finais de Landing e Equipe usam `e7de889a`. A recaptura da marca d’água de Propostas usa `e38bbf28`.
+
+Lint sem avisos, TypeScript, build e 117 testes passaram. Playwright passou 79 cenários funcionais distintos, incluindo carrossel, envio, contraste, indicadores e PDF. A execução visual retomou os lotes salvos após pressão de memória do macOS e passou a usar um Chromium por estado.
 
 ## Correções verificadas
 
