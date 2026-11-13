@@ -12,6 +12,10 @@
 
 **Aceite.** Ocultar rascunho, validar cronograma, testar aprovação e ajuste concorrentes, pausa/retomada, revisão de prazo e sobreposição. Conferir recarga, links e recortes. Negar escrita e leitura de Partner fora do escopo em chamada direta.
 
+No rascunho, Admin pode renomear a frente ou excluí-la após indicar destino para os entregáveis vinculados. O botão de envio fica disponível quando há data planejada de início, pelo menos um entregável, prazos preenchidos e entregáveis em todas as frentes ativas. Decisão sobre ajuste exige justificativa. Lembrete registra notificação do cronograma pendente. [Rascunho e publicação](../../tests/e2e/project-creation.cjs) · [Decisão e lembrete](../../tests/e2e/project-components.cjs)
+
+Cliente abre a revisão no projeto selecionado, inclusive por acesso direto a Entregáveis. Troca de ordem exige complexidade equivalente. Falha preserva o pedido para nova tentativa. Ajuste enviado e aprovação atualizam a página aberta. A aprovação mantém as datas planejadas. No Kanban Admin, soltar um cartão aciona a mesma transição da seleção de situação pelo ID do entregável. [Aprovação e Kanban](../../tests/e2e/project-components.cjs)
+
 **Evidência e lacunas.** Navegação, visualização e operações de projeto foram exercitadas em fixtures. A ordem dos patches e os escritores do cronograma precisam coincidir no catálogo hospedado. O SLA automático de 72 horas depende de decisão de produto.
 
 ## FLOW-06
@@ -23,6 +27,10 @@
 **Dados e integrações.** Entrega/protocolo, revisão, prazos, subtarefas, horas, arquivos, conversa, autoria e decisões. Conversa e arquivos anexados à conversa têm projeções próprias. O arquivo final depende da revisão publicada. [Arquivos finais](../../supabase/migrations/20261016120000_deliverable_folder_final_files.sql) · [Histórico](OPERATIONS.md#flow-10)
 
 Quando a RPC recusa uma revisão desatualizada, as ações ficam bloqueadas. **Atualizar dados** busca a revisão vigente na mesma página. Após a atualização, o Cliente abre a revisão vigente para decidir. [Jornada de revisão desatualizada](../../tests/e2e/journeys.cjs)
+
+O retorno do cronômetro usa os identificadores de projeto, entregável e subtarefa. Projetos abre a visão geral do entregável ou destaca a subtarefa correspondente na aba Subtarefas. [Retorno ao trabalho](../../tests/e2e/project-components.cjs)
+
+A aba Conversas mantém rascunhos separados para o canal Cliente e para notas internas. Uma falha de envio preserva o rascunho e os anexos. A lista tem rolagem própria, mantendo campo e ações da entrega acessíveis. [Conversa, canais e retry](../../tests/e2e/project-components.cjs)
 
 **Alvo.** Cliente aprova ou solicita ajuste com comentário. Aprovação fecha a revisão e solicita nota de 1 a 5. Notas de 1 a 3 exigem justificativa. Admin pode reabrir o mesmo item com motivo e trilha. Retirar a revisão da visão Cliente durante correção. Nova liberação exige nova aprovação e mantém histórico, IDs e anexos autorizados. [Regras de entregáveis](../PRODUCT_RULES.md#projetos-cronograma-e-entregáveis)
 

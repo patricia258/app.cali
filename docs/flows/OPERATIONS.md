@@ -8,6 +8,8 @@
 
 **Dados e integrações.** Empresa e ciclo, ator, alvo, início, pausa e tempo original, último sinal, justificativa, ajuste e decisão. Extrato e saldo somam lançamentos autorizados. Justificativa interna fica com a CALI. Alertas de consumo por ciclo usam 70%, 85% e 100% como parâmetros previstos.
 
+Em Horas, Admin finaliza o cronômetro ativo em duas confirmações, pelo ID da linha. Falha mantém a seleção para nova tentativa. Edição e exclusão exigem justificativa e ficam na trilha, consultada quando a auditoria abre. [Cronômetro e auditoria](../../tests/e2e/workspace-components.cjs)
+
 **Alvo.** Timer ativo → alerta de inatividade → **Continuo aqui** renova presença no servidor ou a pausa preserva o trecho. A proposta para homologação é avisar aos 25 minutos sem sinal e pausar aos 30. Enviar aviso no Workspace e por e-mail para Patrícia e para o Partner responsável, com uma entrega por destinatário e episódio. Na volta de aba fechada, recuperar trecho e justificativa. Partner submete o ajuste, Patrícia aprova, devolve ou rejeita. Só a aprovação gera lançamento no extrato. [Regras de Horas](../PRODUCT_RULES.md#horas)
 
 **Aceite.** Rodar com Meet ou edição em outra janela, aba aberta e fechada, duas abas, perda de rede, cron concorrente e retry. Medir alerta, recebimento e pausa. Conferir que “Continuo aqui” desloca o prazo e que a justificativa recupera o trecho. Aprovar uma vez e reler o original e o lançamento. Negar consulta a horas de outro Partner fora do escopo.
@@ -19,6 +21,10 @@
 **Agenda, Calendar e Meet.** Admin abre `/admin/calendario`. Cliente acessa a agenda pelo Início. Partner com módulo e atribuição abre `/equipe/calendario`. `/oauth/google/callback` atende o retorno da conexão.
 
 **Atual.** Agenda compõe eventos locais, Google e avisos pertinentes. Solicitação → confirmação ou recusa. Remarcação, cancelamento e visita extra têm comandos próprios, inclusive contraproposta, despesas, convidados, ata e histórico. Sincronização usa Edge com ID externo determinístico e trata colisão de criação. [Agenda Admin e Partner](../../src/modules/calendar/AdminCalendarPage.tsx) · [OAuth Calendar](../../supabase/functions/google-calendar-oauth/index.ts) · [Sincronização](../../supabase/functions/workspace-sync-scheduled-event/index.ts) · [Visita extra](../VISITA_EXTRA_SPEC.md)
+
+**Solicitações.** [Admin](../../src/modules/calendar/scheduling/AdminSchedulingRequests.tsx) e [Cliente](../../src/modules/calendar/scheduling/ClientSchedulingRequests.tsx) montam suas interfaces na página. A consulta e a assinatura Realtime acompanham a sessão. A ciência e as ações da fila são estados React. A confirmação atualiza a agenda e preserva o resultado local quando o Google está indisponível. A contraproposta mantém os campos para nova tentativa se a gravação falhar. [Jornadas](../../tests/e2e/agenda-components.cjs)
+
+A fila Cliente compõe o card e o diálogo em arquivos próprios. As mutações de aceite, confirmação Admin e envio de formulário têm um hook por arquivo. Os componentes de solicitações usam a escala do Tailwind e `rem` para medidas fora da escala. [Código da Agenda](../../src/modules/calendar/scheduling/)
 
 **Dados e integrações.** Empresa, evento, pedido, horário e fuso, convidados, situação, despesas e valor aceito, conta Google, calendário, evento externo e Meet. Confirmação local, sincronização Google e entrega de convites têm recibos independentes.
 
@@ -35,6 +41,8 @@ A consulta de disponibilidade aceita um ou dois horários com início e fim como
 **Ocorrências e histórico.** Cliente abre `/cliente/registros` ou o atalho do Início. Admin trata em `/admin/registros`. Partner atribuído usa `/equipe/ocorrencias`.
 
 **Atual.** Abrir → conversar e anexar → atender ou aguardar Cliente → concluir. Cliente pode avaliar ou pedir reabertura. Admin decide reabertura. Partner pode pedir encerramento conforme módulo. Histórico por empresa consulta eventos com filtros, paginação e acesso ao assunto. Cada fechamento tem identidade própria para avaliação. [Ocorrências](../../src/modules/records/WorkspaceRecordsPage.tsx) · [Histórico por empresa](../../supabase/migrations/20261112133100_company_conversation_history.sql) · [Fechamentos e avaliações](../../supabase/migrations/20261112133000_record_closure_feedback.sql)
+
+O painel de Ocorrências consulta a conversa, o encerramento, a avaliação e a reabertura ao abrir. Enquanto está montado, atualiza por eventos da ocorrência, mudança de foco e resultado das ações. Mensagens novas preservam a posição de quem está lendo mensagens antigas. O envio de uma resposta volta para a mensagem mais recente. O cronômetro e a exclusão de solicitação ainda não aberta usam o estado do painel. [Jornadas](../../tests/e2e/record-history.cjs)
 
 **Dados e integrações.** Empresa, assunto, protocolo, status, autoria, mensagens, anexos, horas, aprovações e eventos de encerramento. Identificar cada evento por origem e registro. Notas internas e horas restritas permanecem no recorte CALI. Mensagens ficam no aplicativo, com alertas contextuais de menção ou ação quando elegíveis.
 

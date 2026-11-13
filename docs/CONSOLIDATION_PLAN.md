@@ -18,13 +18,13 @@ O agente decide a implementação. Reduções de escopo e exceções aos critér
 
 | Área | Prova de encerramento |
 | --- | --- |
-| Tailwind | Retirada do carregador e dos imports das folhas legadas. Regras comuns usam utilitários e tokens. Impressão, animações e estilos calculados ficam junto à superfície que os usa. Compare páginas e componentes com a `main` e registre diferenças intencionais. |
+| Tailwind | Layout, aparência, responsividade e estados no markup com utilitários e tokens. Retire as folhas substituídas e seus imports. Documente cada exceção de CSS colocalizado, como integração de biblioteca, fontes, keyframes e impressão. Compare dois workspaces locais e confira também a paridade com a branch antes da migração. [Inventário](TAILWIND_MIGRATION.md) |
 | Arquitetura | Fluxos têm donos explícitos. Consultas e mutações usam adaptadores por domínio. Efeitos legados acordados para retirada têm substituto com prova de gatilho, resultado e limpeza. URLs, dados e permissões preservam os contratos publicados. |
 | Bibliotecas | Inventário por fluxo mostra onde Router, Query, Form, Zod, Axios, date-fns e Tailwind se aplicam. Verifique a integração nos consumidores, com tipos, contratos e testes de comportamento. |
 | Testes | Matriz relaciona ações de páginas e componentes, regras de módulos e contratos de APIs aos testes que os exercitam. Registre os cenários, o resultado e a revisão. Catálogo de RPCs, testes de comportamento e comparação visual têm provas próprias. |
 | Lint | `npm run lint` na árvore inteira com zero erros e zero avisos, sem baseline. As regras ficam no [guia de testes](TESTING.md#lint). |
 | Banco local | Restaurar o dump de estrutura do CALI MAPA no laboratório isolado, aplicar as migrations da branch e validar catálogo e comportamento com dados de teste. O replay parte desse dump. |
-| Preview | Publicar somente após o aceite local da revisão final, com backend, credenciais e destinos externos próprios de teste. |
+| Preview | Depois do aceite local, provisionar o projeto separado `CALI STAGING` na organização da CALI. Restaurar a estrutura e validar migrations, credenciais e destinos próprios de teste antes de publicar. |
 
 ## Etapas e critérios de passagem
 
@@ -42,7 +42,7 @@ O agente decide a implementação. Reduções de escopo e exceções aos critér
 
 ## Organização da aplicação
 
-O [mapa de arquitetura](ARCHITECTURE.md) define as pastas, os donos de código e as convenções para hooks, serviços, estado e estilos.
+O [mapa de arquitetura](ARCHITECTURE.md) se aplica a todo o repositório. A fila React da [Agenda](../src/modules/calendar/scheduling/) exemplifica composição em JSX, subcomponentes exclusivos, hooks por operação e Tailwind na marcação. Cada lote compara a branch e a `main` em dois workspaces locais com os mesmos cenários. Registre as diferenças intencionais e cubra as correções com testes de comportamento.
 
 Arquivos e diretórios usam nomes pela função em todo o repositório. Cada lote atualiza o documento dono das regras de produto, contratos ou convenções que introduz ou altera, com o teste correspondente quando houver.
 

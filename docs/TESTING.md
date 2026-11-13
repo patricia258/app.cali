@@ -27,6 +27,7 @@ O ESLint usa configuração plana com as regras recomendadas de JavaScript, Type
 - Use chaves estáveis para listas React. Em coleções editáveis, derive a chave da identidade do registro.
 - Use mensagens e confirmações da interface. Após mutações, atualize os dados da tela. A fronteira de erro pode navegar novamente para carregar a versão publicada quando o bundle fica indisponível.
 - Valide atributos ARIA, texto alternativo, ordem dos Hooks e imports e variáveis sem uso. A configuração define o ambiente de cada superfície e as regras próprias dos testes.
+- A [suíte de arquitetura](../tests/unit/architecture.test.mjs) verifica a árvore `src` e acusa observadores de mutações do DOM, inserção de HTML e controles montados imperativamente. Testes de navegador verificam foco, rolagem e cancelamento nos fluxos React.
 
 `npm run test:local` reúne lint, tipos, build, unitários, componentes, jornadas Playwright e contratos no banco local restaurado. Registre o resultado antes de publicar o Preview.
 

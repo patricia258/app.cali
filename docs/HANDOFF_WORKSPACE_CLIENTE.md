@@ -441,7 +441,7 @@ A proprietária informou que "Contas e clientes" do protótipo está 100% aprova
   3. Cadastro sem a etapa "Decisores e acessos": vários decisores/acessos por empresa exigem mudança de banco e de permissões (ver `HANDOFF_ADMIN_CLIENTES_DECISORES_2026-10-10.md` no repositório V2). Hoje a lista mostra o decisor principal e a situação do acesso dele.
 - Conferência: `scripts/check-admin-clients.cjs` abre cadastro (4 etapas), gestão (8 abas) e os diálogos de motivo. `npm run check` passou; varredura do cliente 105/0.
 - Não testado: gravações (cadastrar, salvar, bloquear, arquivar, encerrar, enviar logo e documentos) contra o banco real.
-- Pendência técnica: `dashboard-overview-live.css` ainda é carregada na Visão geral só por causa do documento de exportação; podar para as regras `.overview-export-*`.
+- A Visão geral usa Tailwind no modal de exportação e uma folha de papel A4 junto ao componente de exportação.
 
 ### 10/10 — Nova conta no padrão do protótipo, acessos e "Solicitar acesso"
 
