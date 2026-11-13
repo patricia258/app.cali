@@ -127,6 +127,89 @@ async function deliveryDialog({ page, go }, name) {
     .waitFor();
 }
 
+const proposalId = 'qa-visual-proposal';
+const mapaProtocol = 'CALI-MAPA-QA';
+const fixtureDate = '2026-11-12T12:00:00Z';
+const proposal = {
+  id: proposalId,
+  submission_id: 'qa-submission',
+  service_slug: 'assessoria-estrategica',
+  version: 2,
+  status: 'aprovada',
+  pdf_path: null,
+  package_code: 'cali-partner',
+  final_unit: 5000,
+  contract_months: 8,
+  validity_days: 15,
+  calculator_data: { monthlyHours: 12, contextSummary: 'Planejar o próximo ciclo e organizar os indicadores do time.' },
+  scope_items: ['Análise de prioridades'],
+  created_at: fixtureDate,
+  updated_at: fixtureDate,
+  submission: {
+    id: 'qa-submission',
+    protocol: 'CALI-PROP-QA',
+    contact_name: 'Decisora QA',
+    contact_email: 'decisor@example.invalid',
+    company_name: company,
+  },
+};
+const mapaRecord = {
+  id: 'qa-map',
+  protocolo: mapaProtocol,
+  status: 'revisado',
+  created_at: fixtureDate,
+  c_nome: 'Decisora QA',
+  c_cargo: 'Diretoria',
+  c_empresa: company,
+  c_email: 'decisor@example.invalid',
+  c_whatsapp: '41900000000',
+  d1_rh_hoje: 3, d1_processos: 4, d1_cargos_salarios: 2,
+  d2_valores: 3, d2_lideres_preparo: 3, d2_comportamento_dono: 4, d2_sucessao: 2,
+  d3_indicadores: 3, d3_decisao: 4, d3_custo: 3,
+  d4_colaboradores: 4, d4_unidades: 2, d4_turnover: 3,
+  observacoes: { parecer: 'Começar pelo diagnóstico executivo com o time.' },
+};
+
+function fulfillDocumentFixture(route, method, row) {
+  const request = route.request();
+  const headers = {
+    'access-control-allow-origin': request.headers().origin || '*',
+    'access-control-allow-methods': method,
+    'access-control-allow-headers': request.headers()['access-control-request-headers'] || '*',
+  };
+  if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
+  if (request.method() !== method) return route.fallback();
+  return route.fulfill({ headers, json: [row] });
+}
+
+async function previewProposal({ page, go }) {
+  await page.route(
+    (url) => url.pathname === '/rest/v1/cali_proposals' && url.searchParams.get('id') === 'eq.' + proposalId,
+    (route) => fulfillDocumentFixture(route, 'GET', proposal),
+  );
+  await page.route('https://raw.githubusercontent.com/patricia258/cali-portal/main/assets/logo-cali-*.png', (route) =>
+    route.fulfill({
+      contentType: 'image/svg+xml',
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="90" height="34"><rect width="90" height="34" fill="#b58c52"/></svg>',
+    }),
+  );
+  await go('/admin/propostas/proposta/' + proposalId);
+  await page.getByRole('heading', { name: 'Olá, Decisora.', exact: true }).waitFor();
+}
+
+async function reviewMapa({ page, go }) {
+  await page.route(
+    (url) => url.origin === fixtureOrigin && url.pathname === '/rest/v1/rpc/workspace_mapa_people_record',
+    (route) => {
+      const request = route.request();
+      if (request.method() === 'POST' && request.postDataJSON()?.p_protocolo !== mapaProtocol) return route.fallback();
+      return fulfillDocumentFixture(route, 'POST', mapaRecord);
+    },
+  );
+  await go('/admin/mapa-de-people/revisao?protocolo=' + mapaProtocol);
+  await page.getByRole('heading', { name: company, exact: true }).waitFor();
+}
+
 const states = [
   [
     'public',
@@ -167,6 +250,13 @@ const states = [
   ],
   ['admin', 'seguranca:mfa-antes-da-confirmacao', showMfa],
   ['admin', 'legado:relatorios', ({ go }) => go('/admin/relatorios')],
+  ['admin', 'propostas:previa-editorial', previewProposal],
+  ['admin', 'propostas:drawer-envio', async (scenario) => {
+    await previewProposal(scenario);
+    await scenario.page.getByRole('button', { name: 'Enviar por e-mail', exact: true }).click();
+    await scenario.page.locator('.portal-send-drawer').getByRole('heading', { name: 'Enviar proposta', exact: true }).waitFor();
+  }],
+  ['admin', 'mapa:revisao-com-dados', reviewMapa],
   [
     'public',
     'landing:como-funciona',

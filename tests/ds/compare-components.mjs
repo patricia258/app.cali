@@ -175,9 +175,9 @@ const servers = [];
 let browser;
 try {
   for (const [, path] of builds) servers.push(await serve(path));
-  browser = await launchBrowser(values.chrome, proxy);
   const report = [];
   for (const scenario of selected) {
+    browser = await launchBrowser(values.chrome, proxy);
     for (const size of Object.keys(widths)) {
       for (const theme of scenario.id === 'bell' || scenario.id === 'navigation' ? ['day', 'night'] : ['day']) {
         const captures = [];
@@ -198,8 +198,10 @@ try {
         report.push({ scenario: scenario.id, size, theme, views });
       }
     }
+    await closeBrowser(browser);
+    browser = undefined;
+    await writeFile(join(values.output, 'result.json'), JSON.stringify(report, null, 2) + '\n');
   }
-  await writeFile(join(values.output, 'result.json'), JSON.stringify(report, null, 2) + '\n');
   console.log(JSON.stringify({ states: report.length, builds: builds.map(([name]) => name), pixelThreshold: threshold, output: values.output }));
   if (report.some(({ scenario, views }) => views.candidate.failure || views.candidate.errors.length
     || (['timers-overflow', 'navigation', 'bell'].includes(scenario) && (

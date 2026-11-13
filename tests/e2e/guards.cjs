@@ -5,6 +5,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const { parseArgs } = require('node:util');
 const { defaultChrome, serve, denyProxy, launchBrowser, closeBrowser, finishCli } = require('./loopback.cjs');
+const { checkBrowserResources } = require('./browser-resources.cjs');
 const {
   user,
   tables,
@@ -654,20 +655,18 @@ async function main() {
   let browser;
   try {
     server = await serve(values.dist);
-    browser = await launchBrowser(values.chrome, proxy);
-    const results = new Array(cases.length);
-    let nextCase = 0;
-    async function worker() {
-      while (nextCase < cases.length) {
-        const index = nextCase++;
-        const test = cases[index];
-        console.error(JSON.stringify({ id: test.id, progress: 'start' }));
-        const result = await runCase(browser, server.origin, test);
-        console.error(JSON.stringify({ progress: 'end', ...result, requests: undefined }));
-        results[index] = result;
+    const results = [];
+    for (const [index, test] of cases.entries()) {
+      checkBrowserResources();
+      if (index % 4 === 0) {
+        await closeBrowser(browser);
+        browser = await launchBrowser(values.chrome, proxy);
       }
+      console.error(JSON.stringify({ id: test.id, progress: 'start' }));
+      const result = await runCase(browser, server.origin, test);
+      console.error(JSON.stringify({ progress: 'end', ...result, requests: undefined }));
+      results.push(result);
     }
-    await Promise.all(Array.from({ length: Math.min(3, cases.length) }, () => worker()));
     const summary = { passes: results.filter((result) => result.passed).length, total: results.length };
     await fs.writeFile(values.output, JSON.stringify({ ...summary, results }, null, 2) + '\n');
     console.log(JSON.stringify({ ...summary, output: values.output }));

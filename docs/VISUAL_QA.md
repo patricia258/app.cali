@@ -11,7 +11,7 @@ npm run test:visual:pages -- --reference 773c9d4 --candidate HEAD --output /tmp/
 
 O comando gera os dois builds a partir do Git, com dependências do lockfile e endpoint sintético. O npm precisa ter as dependências no cache para o build offline. Também aceita `--reference-dist` e `--candidate-dist` para builds sintéticos existentes. Nesse caso o relatório guarda SHA declarado e hash dos arquivos compilados. Use `--list` para listar os cenários, `--role`, `--case` e `--viewport` para recortes. Desktop e celular são o padrão. Notebook e tablet podem ser selecionados.
 
-O comparador abre uma página por vez por padrão (`--jobs 1`). Cada referência fecha antes da captura candidata. O Chrome reinicia a cada 16 cenários (`--browser-batch 16`), e o relatório é atualizado após cada lote. Execute as jornadas e a comparação visual em sequência no mesmo computador.
+O comparador abre uma página por vez por padrão (`--jobs 1`). Cada referência fecha antes da captura candidata. O Chrome reinicia a cada quatro cenários (`--browser-batch 4`), e o relatório é atualizado após cada lote. As jornadas e as provas do design system também reciclam o navegador a cada quatro casos. O teste de rotas abre um Chromium por perfil para preservar o histórico da sessão no mesmo contexto. Execute as suítes em sequência no mesmo computador.
 
 O runner verifica o espaço do volume temporário antes de abrir o Chromium e entre cenários. A execução encerra com menos de 1 GiB livre ou quando o macOS indica pressão de memória. Cada lote aguarda o encerramento do Chromium anterior. Em máquinas com pouca folga, use recortes com `--case` e reduza `--browser-batch`.
 
@@ -46,6 +46,16 @@ As provas de componentes passaram 38 casos. O comparador registrou 28 estados em
 Uma rodada posterior comparou 28 capturas em quatro larguras de Propostas, Mapa, Histórico e Subtarefas, sem falha de captura. A revisão apontou sobreposição das colunas de Entregáveis Cliente em 390 px e ausência dos estilos do gráfico de prazos Admin. A lista passou a distribuir título e metadados em linhas distintas em largura estreita. Admin, Partner e Cliente passaram a compartilhar o componente de prazos. O perfil documental foi medido em quatro estados e manteve posição e tamanho do avatar. A subtarefa foi recapturada em seis estados após ajustar a borda da ficha e a largura do anexo.
 
 No checkpoint seguinte, lint, TypeScript, build e 108 testes unitários passaram. Os contratos SQL e HTTP passaram no stack isolado. A última execução completa de Playwright e os 38 casos de componentes passaram no build anterior aos ajustes da lista e do gráfico. O caso de 390 px passou no build que os incluiu. A repetição depois da correção do seletor de notas internas passou essa jornada e encerrou por pressão de memória do macOS antes do próximo caso. A suíte integrada e as capturas finais permanecem pendentes.
+
+### Fechamento das folhas transversais
+
+A migração retirou as folhas gerada, operacional, documental e de controles. O [inventário](TAILWIND_MIGRATION.md#css-que-permanece) registra as exceções. A revisão lado a lado corrigiu a densidade do diretório de Equipe, a ação de exportação Admin e a faixa de título na capa móvel de Propostas.
+
+A matriz local cobriu os 302 estados de desktop e celular com a mesma referência `773c9d4`. A primeira execução salvou 268 estados antes da interrupção por pressão de memória. O restante e as recapturas dirigidas usaram o build final em lotes de dois, com uma página aberta por vez. O manifesto do primeiro build começa em `65ce2ce3` e o do final em `b94aff58`. As 28 capturas de componentes completaram sem falha no candidato.
+
+A matriz consolidada tem 20 equivalências, 279 diferenças e três limitações na referência, no carrossel móvel e nas despesas de visita extra em duas larguras. Nenhuma captura da branch falhou. A classificação reconheceu 153 diferenças e deixou 126 para revisão, incluindo 62 de conteúdo, 62 de layout e duas de pixels. A paridade visual segue aberta. Revise especialmente o espaçamento e a altura de Indicadores em Equipe, o diálogo móvel de subtarefa, a Landing e as diferenças de conteúdo da revisão do Mapa. A continuação do relatório executivo é uma diferença deliberada, coberta pela prova física de três folhas A4.
+
+Lint, TypeScript, build e 116 testes unitários passaram. Os 275 cenários funcionais passaram na execução integrada e nas repetições dirigidas. As 38 provas de componentes e os contratos SQL e HTTP no stack local também passaram. A prova final de Propostas abriu a capa em 390 px e confirmou o PDF de seis folhas A4 com a capa na origem.
 
 ## Correções verificadas
 

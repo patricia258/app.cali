@@ -96,7 +96,7 @@ browserSuite([
       await page.goto(origin + '/admin/projetos?project=' + newProjectId);
       await page.getByRole('heading', { name: newProject, exact: true }).waitFor();
       await page.getByRole('tab', { name: 'Entregáveis', exact: true }).click();
-      const roadmap = page.locator('.roadmap-v2');
+      const roadmap = page.getByRole('region', { name: 'Frentes e entregáveis', exact: true });
       await roadmap.getByRole('heading', { name: '0 entregáveis em 1 frente', exact: true }).waitFor();
       await roadmap.getByText('Primeira frente QA', { exact: true }).waitFor();
       await snapshot('primeiro-projeto', roadmap);
@@ -154,7 +154,7 @@ browserSuite([
       assert.equal(await accountPicker.inputValue(), newCompanyId);
       assert.equal(await projectPicker.inputValue(), newProjectId);
 
-      const selectedFronts = page.locator('.roadmap-v2');
+      const selectedFronts = page.getByRole('region', { name: 'Frentes e entregáveis', exact: true });
       const deliveries = page.getByRole('tab', { name: 'Entregáveis', exact: true });
       await deliveries.click();
       await selectedFronts.getByRole('heading', { name: '0 entregáveis em 2 frentes', exact: true }).waitFor();

@@ -6,6 +6,7 @@ const path = require('node:path');
 const { isDeepStrictEqual, parseArgs } = require('node:util');
 const { setTimeout: pause } = require('node:timers/promises');
 const { defaultChrome, serve, denyProxy, launchBrowser, closeBrowser, finishCli } = require('./loopback.cjs');
+const { checkBrowserResources } = require('./browser-resources.cjs');
 const {
   makeContext,
   makeSession,
@@ -212,7 +213,8 @@ async function waitURL(page, expected) {
   await waitRendered(page);
 }
 
-async function run(browser, dist, label) {
+async function run(dist, proxy) {
+  const label = 'routes';
   const server = await serve(dist);
   const scenarios = [];
   const blocked = new Set();
@@ -221,8 +223,11 @@ async function run(browser, dist, label) {
     for (const role of chosenRoles) {
       if (!caseIds(role).some(matches)) continue;
       console.error(JSON.stringify({ stage: label, role, progress: 'start-role' }));
-      const actor = await makeContext(browser, server.origin, role);
+      checkBrowserResources();
+      const browser = await launchBrowser(values.chrome, proxy);
+      let actor;
       try {
+        actor = await makeContext(browser, server.origin, role);
         const page = await actor.context.newPage();
         const pageErrors = [];
         const assetFailures = [];
@@ -248,6 +253,7 @@ async function run(browser, dist, label) {
         });
         async function attempt(id, expected, action) {
           if (!matches(id)) return;
+          checkBrowserResources();
           const start = Date.now();
           console.error(JSON.stringify({ stage: label, role, id, progress: 'start' }));
           pageErrors.length = 0;
@@ -429,9 +435,9 @@ async function run(browser, dist, label) {
           await page.reload({ waitUntil: 'domcontentloaded' });
         });
       } finally {
-        await actor.context.close();
-        actor.blocked.forEach((value) => blocked.add(value));
-        actor.mocked.forEach((value) => mocked.add(value));
+        await closeBrowser(browser);
+        actor?.blocked.forEach((value) => blocked.add(value));
+        actor?.mocked.forEach((value) => mocked.add(value));
       }
     }
   } finally {
@@ -467,10 +473,8 @@ async function main() {
   }
   assert(values.output, '--output obrigatório');
   const proxy = await denyProxy();
-  let browser;
   try {
-    browser = await launchBrowser(values.chrome, proxy);
-    const result = await run(browser, values.dist, 'routes');
+    const result = await run(values.dist, proxy);
     const failures = result.scenarios.filter(
       (item) => item.status === 'fail' || item.pageErrors.length || item.assetFailures.length,
     );
@@ -484,7 +488,6 @@ async function main() {
     if (failures.length || result.scenarios.length !== total) process.exitCode = 1;
   } finally {
     proxy.close();
-    await closeBrowser(browser);
   }
 }
 

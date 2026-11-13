@@ -54,8 +54,17 @@ async function documentSurface({ page, context, origin }) {
   const summary = page.locator('.portal-editor-summary.panel');
   await summary.waitFor();
   await scope(page, { workspaceUi: null, workspaceSurface: 'admin-documents', workspaceTheme: 'day' });
-  const summaryPadding = () => summary.evaluate((element) => getComputedStyle(element).padding);
-  assert.equal(await summaryPadding(), '20px');
+  const readSummary = () => summary.evaluate((element) => {
+    const line = getComputedStyle(element.querySelector(':scope > div'));
+    const action = getComputedStyle(element.querySelector(':scope > button'));
+    return {
+      padding: getComputedStyle(element).padding,
+      metricBorders: [line.borderTopWidth, line.borderRightWidth, line.borderBottomWidth, line.borderLeftWidth],
+      actionFontSize: action.fontSize,
+    };
+  });
+  const summaryStyle = { padding: '20px', metricBorders: ['1px', '0px', '0px', '0px'], actionFontSize: '11px' };
+  assert.deepEqual(await readSummary(), summaryStyle);
   await page.evaluate(() => { window.__caliSurfaceCheck = 'spa'; });
   await page.locator('.portal-proposal-editor-head').getByRole('button', { name: 'Propostas', exact: true }).click();
   await page.getByRole('heading', { name: 'Propostas', exact: true }).waitFor();
@@ -64,9 +73,9 @@ async function documentSurface({ page, context, origin }) {
   await page.waitForURL((url) => url.pathname === editorUrl);
   await summary.waitFor();
   await scope(page, { workspaceUi: null, workspaceSurface: 'admin-documents', workspaceTheme: 'day' });
-  assert.equal(await summaryPadding(), '20px');
+  assert.deepEqual(await readSummary(), summaryStyle);
   assert.equal(await page.evaluate(() => window.__caliSurfaceCheck), 'spa');
-  return { editorPadding: '20px', inactiveOutsideDocument: true, restoredOnBack: true };
+  return { editorSummary: summaryStyle, inactiveOutsideDocument: true, restoredOnBack: true };
 }
 
 async function readBriefingLayout(page) {
@@ -128,7 +137,25 @@ async function draftPrint({ page, context, origin, snapshot }) {
   await page.goto(origin + '/admin/propostas/proposta/qa-draft');
   const paper = page.locator('.portal-proposal-page.proposal-cover');
   await paper.getByRole('heading', { name: 'Olá, Pessoa.', exact: true }).waitFor();
+  const preview = await paper.evaluate((element) => {
+    const band = element.querySelector('.proposal-cover-band');
+    const service = band.querySelector('.cover-service strong');
+    return {
+      width: element.getBoundingClientRect().width,
+      bandBottom: band.getBoundingClientRect().bottom,
+      serviceBottom: service.getBoundingClientRect().bottom,
+      greetingSize: parseFloat(getComputedStyle(band.querySelector('h1')).fontSize),
+      background: getComputedStyle(band, '::before').backgroundColor,
+    };
+  });
+  assert(preview.width <= 390, 'A capa deve caber no celular: ' + JSON.stringify(preview));
+  assert(preview.serviceBottom <= preview.bandBottom, 'O nome do serviço deve ficar dentro da faixa');
+  assert(preview.greetingSize <= 34, 'A saudação deve caber na capa estreita');
+  assert.equal(preview.background, 'rgb(90, 30, 45)');
+  await snapshot('capa-mobile', paper);
   await page.emulateMedia({ media: 'print' });
+  await page.setViewportSize({ width: 1440, height: 960 });
+  await page.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }));
   await page.waitForFunction(() => {
     const cover = document.querySelector('.portal-proposal-page.proposal-cover');
     if (!cover || !matchMedia('print').matches) return false;
@@ -161,7 +188,7 @@ browserSuite([
   { id: 'surface-public-night-spa', role: 'public', run: publicSurfaces },
   { id: 'surface-admin-document-spa', role: 'admin', run: documentSurface },
   { id: 'surface-proposal-briefing-spa', role: 'admin', run: proposalBriefing },
-  { id: 'surface-proposal-draft-print', role: 'admin', run: draftPrint },
+  { id: 'surface-proposal-draft-print', role: 'admin', width: 390, run: draftPrint },
 ]).catch((error) => {
   console.error(error);
   process.exitCode = 1;

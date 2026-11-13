@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import loopback from '../e2e/loopback.cjs';
+import browserResources from '../e2e/browser-resources.cjs';
 import { registerCalendarNavigation, supabaseOrigin } from './calendar-navigation.mjs';
 import { registerDeliveryDependencies } from './delivery-dependencies.mjs';
 
@@ -16,6 +17,7 @@ let outDir;
 let server;
 let proxy;
 let browser;
+let casesSinceLaunch = 0;
 
 before(async () => {
   outDir = await mkdtemp(join(tmpdir(), 'cali-ds-'));
@@ -46,7 +48,6 @@ before(async () => {
   });
   server = await serve(outDir);
   proxy = await denyProxy();
-  browser = await launchBrowser(process.env.CALI_E2E_CHROME || defaultChrome(), proxy);
 });
 
 after(async () => {
@@ -61,6 +62,13 @@ after(async () => {
 
 function component(name, fixture, check, expectedError, setup) {
   test(name, async (t) => {
+    browserResources.checkBrowserResources();
+    if (!browser || casesSinceLaunch === 4) {
+      await closeBrowser(browser);
+      browser = await launchBrowser(process.env.CALI_E2E_CHROME || defaultChrome(), proxy);
+      casesSinceLaunch = 0;
+    }
+    casesSinceLaunch++;
     const context = await browser.newContext({ serviceWorkers: 'block' });
     t.after(() => context.close());
     await context.route(
@@ -390,7 +398,8 @@ component(
   'states',
   async (page) => {
     const saved = page.getByRole('status').filter({ hasText: /^Salvo$/ });
-    assert.match(await saved.getAttribute('class'), /\binline-notice success fixture-notice\b/);
+    const classes = await saved.evaluate((element) => [...element.classList]);
+    assert(['inline-notice', 'success', 'fixture-notice'].every((name) => classes.includes(name)));
     const error = page.getByRole('alert').filter({ hasText: /^Falhou$/ });
     assert.equal(await error.evaluate((element) => element.tagName), 'P');
     assert.match(await error.getAttribute('class'), /\binline-notice danger\b/);

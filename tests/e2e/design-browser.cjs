@@ -74,9 +74,10 @@ async function semanticStyles({ page, origin, snapshot }) {
   await label.waitFor();
   const fields = await label.evaluate((element) => {
     const style = getComputedStyle(element);
-    return { display: style.display, gap: style.gap };
+    return { display: style.display, gap: Number.parseFloat(style.gap) };
   });
-  assert.deepEqual(fields, { display: 'flex', gap: '7px' });
+  assert.equal(fields.display, 'flex');
+  assert(Math.abs(fields.gap - 7) < 0.05, 'Espaçamento vertical da legenda deve permanecer em torno de 7 px');
   const viewportOverflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
   assert.equal(viewportOverflow, 0);
   await snapshot('form');

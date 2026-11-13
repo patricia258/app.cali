@@ -14,21 +14,27 @@ async function browserSuite(cases) {
       dist: { type: 'string' },
       output: { type: 'string' },
       case: { type: 'string', multiple: true },
+      'browser-batch': { type: 'string', default: process.env.CALI_QA_BROWSER_BATCH || '4' },
       chrome: { type: 'string', default: process.env.CALI_E2E_CHROME || defaultChrome() },
     },
   });
   assert(values.dist && values.output, '--dist e --output obrigatórios');
   const selected = cases.filter((test) => !values.case || values.case.some((query) => test.id.includes(query)));
   assert(selected.length, 'Nenhum caso selecionado');
+  const browserBatch = Number(values['browser-batch']);
+  assert(Number.isInteger(browserBatch) && browserBatch > 0, 'Lote de navegador inválido');
   await fs.mkdir(values.output, { recursive: true });
   const proxy = await denyProxy();
   const server = await serve(values.dist);
   let browser;
   try {
-    browser = await launchBrowser(values.chrome, proxy);
     const results = [];
-    for (const test of selected) {
+    for (const [index, test] of selected.entries()) {
       checkBrowserResources();
+      if (index % browserBatch === 0) {
+        await closeBrowser(browser);
+        browser = await launchBrowser(values.chrome, proxy);
+      }
       const width = test.width ?? 1440;
       const actors = [];
       const pageErrors = [];
@@ -74,9 +80,13 @@ async function browserSuite(cases) {
       const row = { id: test.id, passed: !failure, detail, failure, pageErrors, assetFailures };
       results.push(row);
       console.error(JSON.stringify(row));
+      await fs.writeFile(path.join(values.output, 'result.json'), JSON.stringify({
+        passed: results.filter((result) => result.passed).length,
+        total: selected.length,
+        results,
+      }, null, 2) + '\n');
     }
     const summary = { passed: results.filter((result) => result.passed).length, total: results.length, results };
-    await fs.writeFile(path.join(values.output, 'result.json'), JSON.stringify(summary, null, 2) + '\n');
     console.log(JSON.stringify({ ...summary, results: undefined }));
     if (summary.passed !== summary.total) process.exitCode = 1;
   } finally {

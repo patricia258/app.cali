@@ -17,6 +17,8 @@ npm run test:e2e -- --dist /tmp/cali-build-sintetico --output /tmp/cali-e2e-pass
 
 Um build fornecido por `--dist` deve usar `VITE_SUPABASE_URL=https://cali-local-qa.supabase.co`. O runner imprime o caminho da evidência fora do código. Para repetir apenas um caso, execute a suíte com `node tests/e2e/journeys.cjs --dist /tmp/cali-build-sintetico --output /tmp/cali-e2e-case --case 17-public`.
 
+As jornadas e as guardas rodam em sequência e reciclam o Chromium a cada quatro casos. Use `CALI_QA_BROWSER_BATCH=2` para reduzir o lote das jornadas. As rotas reiniciam o navegador por perfil e aceitam `--role` e `--case`. O runner verifica espaço temporário e pressão de memória entre casos. As jornadas gravam os resultados caso a caso.
+
 ## Cobertura no navegador
 
 A [matriz de ações](COVERAGE.md) vincula cada fluxo às provas de interface e de contrato e registra lacunas.
