@@ -66,12 +66,12 @@ export function ClientFrontsPage() {
             </span>
             {plan && (
               <a
-                className="tw:inline-flex tw:items-center tw:gap-[.69rem] tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e5dbd5] tw:bg-white tw:px-[1.08rem] tw:py-[.77rem] tw:text-[.85rem]/[inherit] tw:font-semibold tw:text-[#594e4b] tw:hover:border-cali-gold"
+                className="tw:inline-flex tw:items-center tw:gap-[.69rem] tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e5dbd5] tw:bg-white tw:px-[1.08rem] tw:py-[.77rem] tw:text-[.85rem]/[inherit] tw:font-semibold tw:whitespace-nowrap tw:text-[#594e4b] tw:hover:border-cali-gold"
                 href={`https://wa.me/${PATI_WHATSAPP}?text=${encodeURIComponent(`Olá, Pati! Quero conversar sobre as frentes do meu ${planName[plan]}.`)}`}
                 target="_blank"
                 rel="noreferrer"
               >
-                Falar com a Pati <ArrowUpRight size={14} />
+                Falar com a Pati <ArrowUpRight className="tw:shrink-0" size={14} />
               </a>
             )}
           </div>

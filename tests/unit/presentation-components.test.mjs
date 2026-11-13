@@ -7,6 +7,7 @@ import { CapacityBar } from '../../src/components/hours/CapacityBar.tsx';
 import { CapacityCard } from '../../src/components/hours/CapacityCard.tsx';
 import { DocumentAutoCover } from '../../src/components/documents/DocumentAutoCover.tsx';
 import { DocumentAction } from '../../src/components/workspace/components/DocumentAction.tsx';
+import { WorkflowGroupHeading } from '../../src/components/ds/WorkflowGroupHeading.tsx';
 import { DocumentPanel } from '../../src/components/workspace/components/DocumentPanel.tsx';
 import { SensitiveDataNote } from '../../src/components/privacy/SensitiveDataNote.tsx';
 import { ReportManualComplementsPanel } from '../../src/modules/admin/reports/components/ReportManualComplementsPanel.tsx';
@@ -74,6 +75,13 @@ test('DocumentAction preserva ações nativas e permite envio explícito de form
   const secondary = render(DocumentAction, { type: 'submit', variant: 'secondary', children: 'Continuar' });
   assert.match(secondary, /<button[^>]+type="submit"/);
   assert.doesNotMatch(secondary, /disabled=""/);
+});
+
+test('WorkflowGroupHeading anuncia o grupo e conserva contagem vazia', () => {
+  const markup = render(WorkflowGroupHeading, { label: 'RESPOSTAS', title: 'Avaliações do período', count: 0 });
+  assert.match(markup, /<span[^>]*>RESPOSTAS<\/span>/);
+  assert.match(markup, /<h2[^>]*>Avaliações do período<\/h2>/);
+  assert.match(markup, /<b[^>]*>0<\/b>/);
 });
 
 test('SensitiveDataNote orienta sobre documentos clínicos com ícone decorativo', () => {

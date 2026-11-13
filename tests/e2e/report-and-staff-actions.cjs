@@ -56,6 +56,24 @@ browserSuite([
       assert.ok(horizontalPadding > 30, `Margem interna da folha: ${horizontalPadding}`);
       assert.equal(await page.locator('.reports-v19-paper').count(), 2);
       assert.equal(await page.locator('.reports-v16-footer b').last().textContent(), '2 / 2');
+      await page.setViewportSize({ width: 390, height: 844 });
+      const stage = page.getByRole('region', { name: 'Prévia do relatório' });
+      await stage.focus();
+      await stage.evaluate((element) => { element.scrollLeft = element.scrollWidth; });
+      const mobile = await stage.evaluate((element) => ({
+        viewport: window.innerWidth,
+        rootWidth: document.documentElement.scrollWidth,
+        stageWidth: element.clientWidth,
+        paperWidth: element.scrollWidth,
+        scrollLeft: element.scrollLeft,
+        actionsFit: [...document.querySelectorAll('.report-print-v16-toolbar button')].every(
+          (button) => button.getBoundingClientRect().right <= window.innerWidth,
+        ),
+      }));
+      assert.equal(mobile.rootWidth, mobile.viewport, 'A página não deve alargar para acomodar o papel');
+      assert(mobile.stageWidth <= mobile.viewport && mobile.paperWidth > mobile.stageWidth);
+      assert(mobile.scrollLeft > 0 && mobile.actionsFit, 'A prévia deve rolar e preservar as ações');
+
     },
   },
   {

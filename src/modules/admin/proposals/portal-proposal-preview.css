@@ -302,14 +302,16 @@
 
 @media screen and (max-width: 45rem) {
   .portal-proposal-page.proposal-v3.proposal-cover {
+    isolation: isolate;
     background: var(--p-paper);
 
-    & > header { z-index: 3; }
-    & > main { overflow: visible; }
+    & > main {
+      z-index: auto;
+      overflow: visible;
+    }
 
     & .proposal-cover-band {
       position: relative;
-      isolation: isolate;
 
       &::before {
         content: '';

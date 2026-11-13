@@ -1,14 +1,17 @@
 import { useForm } from '@tanstack/react-form';
 import { z } from 'zod';
-import { WorkspaceDialogOverlay } from '../../../components/workspace/components/WorkspaceDialogOverlay';
+import { ArrowRight, X } from 'lucide-react';
+import { Button } from '../../../components/ds/Button';
 import {
-  WorkspaceFormDialog,
-  WorkspaceFormDialogBody,
+  WorkflowDialogActions,
+  WorkflowDialogForm,
+  WorkflowDialogHeader,
+  WorkflowDialogOverlay,
+} from '../../../components/ds/WorkflowDialog';
+import {
   WorkspaceFormDialogCheck,
   WorkspaceFormDialogField,
   WorkspaceFormDialogFields,
-  WorkspaceFormDialogFooter,
-  WorkspaceFormDialogHeader,
 } from '../../../components/workspace/components/WorkspaceFormDialog';
 
 const accessSchema = z.object({
@@ -36,14 +39,22 @@ export function AdditionalAccessDialog({ available, error, onClose, onRequest }:
     },
   });
 
-  return <WorkspaceDialogOverlay><WorkspaceFormDialog className="tw:max-w-[46.15rem]!" onSubmit={(event) => { event.preventDefault(); void form.handleSubmit(); }} aria-label="Solicitar acesso adicional">
-      <WorkspaceFormDialogHeader
-        kicker="SOLICITAR ACESSO"
-        title="Incluir mais uma pessoa no Workspace"
-        description="Indique quem deve receber acesso. A CALI confirma as condições nesta ocorrência e libera o convite."
-        onClose={onClose}
-      />
-      <WorkspaceFormDialogBody>
+  return (
+    <WorkflowDialogOverlay>
+      <WorkflowDialogForm
+        create
+        className="tw:[&_input:not([type=checkbox])]:min-h-[2.769rem]! tw:[&_textarea]:min-h-[4.923rem]!"
+        onSubmit={(event) => { event.preventDefault(); void form.handleSubmit(); }}
+        aria-label="Solicitar acesso adicional"
+      >
+        <WorkflowDialogHeader>
+          <span>SOLICITAR ACESSO</span>
+          <button type="button" data-dialog-close="" aria-label="Fechar" onClick={onClose}>
+            <X size={17} />
+          </button>
+        </WorkflowDialogHeader>
+        <h2>Incluir mais uma pessoa no Workspace</h2>
+        <p>Indique quem deve receber acesso. A CALI confirma as condições nesta ocorrência e libera o convite.</p>
         <div className="tw:flex tw:flex-col tw:gap-[1.15rem]">
           <div className="tw:rounded-[.69rem] tw:border tw:border-solid tw:border-[#f0dfc0] tw:bg-[#fffaf1] tw:px-[1.23rem] tw:py-[1.08rem] tw:text-[.85rem] tw:leading-[1.6] tw:text-[#665751]">
             <strong className="tw:mb-[.46rem] tw:block tw:text-[.92rem] tw:text-cali-brand">Antes de solicitar</strong>
@@ -66,9 +77,17 @@ export function AdditionalAccessDialog({ available, error, onClose, onRequest }:
           <WorkspaceFormDialogCheck><form.Field name="ack">{(field) => <input className="tw:m-0 tw:shrink-0 tw:accent-cali-brand" type="checkbox" checked={field.state.value} onChange={(event) => field.handleChange(event.target.checked)} />}</form.Field><span>Li e estou ciente das condições acima.</span></WorkspaceFormDialogCheck>
           {error && <p role="alert" className="tw:m-0 tw:text-[.85rem] tw:text-[#b7495d]">{error}</p>}
         </div>
-      </WorkspaceFormDialogBody>
-      <form.Subscribe selector={(state) => ({ busy: state.isSubmitting, ready: accessSchema.safeParse(state.values).success })}>
-        {({ busy, ready }) => <WorkspaceFormDialogFooter onCancel={onClose} submitLabel={busy ? 'Enviando…' : 'Enviar solicitação'} disabled={busy || !ready || !available} />}
-      </form.Subscribe>
-    </WorkspaceFormDialog></WorkspaceDialogOverlay>;
+        <WorkflowDialogActions>
+          <button type="button" onClick={onClose}>Cancelar</button>
+          <form.Subscribe selector={(state) => ({ busy: state.isSubmitting, ready: accessSchema.safeParse(state.values).success })}>
+            {({ busy, ready }) => (
+              <Button variant="workflowPrimary" type="submit" disabled={busy || !ready || !available}>
+                {busy ? 'Enviando…' : <>Enviar solicitação <ArrowRight size={14} /></>}
+              </Button>
+            )}
+          </form.Subscribe>
+        </WorkflowDialogActions>
+      </WorkflowDialogForm>
+    </WorkflowDialogOverlay>
+  );
 }

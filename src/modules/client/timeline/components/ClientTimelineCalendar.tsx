@@ -85,7 +85,7 @@ export function ClientTimelineCalendar<T extends Item>({ view, cursor, weekDays,
 
   return (
     <>
-      <div className="tw:mt-4 tw:overflow-hidden tw:rounded-xl tw:border tw:border-solid tw:border-[#eadfd5] tw:bg-white">
+      <div className="tw:mt-[1.231rem] tw:overflow-hidden tw:rounded-[0.923rem] tw:border tw:border-solid tw:border-[#eadfd5] tw:bg-white">
         {view === 'month' ? (
           <>
             <div className={grid.monthHead}>{dayNames.map(day => <span key={day} className={grid.monthWeekday}>{day}</span>)}</div>
@@ -117,24 +117,24 @@ export function ClientTimelineCalendar<T extends Item>({ view, cursor, weekDays,
           </>
         ) : (
           <div className="tw:overflow-x-auto tw:[scrollbar-width:none]">
-            <div className="tw:grid tw:min-w-[58.125rem] tw:grid-cols-[3.875rem_repeat(7,minmax(6.875rem,1fr))] tw:grid-rows-[3.375rem_auto_auto]">
+            <div className="tw:grid tw:min-w-[71.538rem] tw:grid-cols-[4.769rem_repeat(7,minmax(8.462rem,1fr))] tw:grid-rows-[4.154rem_auto_auto]">
               <div className={grid.weekCorner} />
               {weekDays.map(day => (
-                <div key={day.toISOString()} className={grid.weekDayHead}>
+                <div key={day.toISOString()} className={`${grid.weekDayHead} tw:min-h-[4.154rem]`}>
                   <span className={grid.weekDayLabel}>{dayNames[day.getDay()]}</span>
                   <strong className={`${grid.weekDayNumber} ${dateKey(day) === today ? grid.todayNumber : ''}`}>{day.getDate()}</strong>
                 </div>
               ))}
-              <div className={`${grid.weekAllDay} tw:flex tw:items-center tw:justify-end tw:pr-2 tw:text-[0.65625rem] tw:font-bold tw:text-[#8a7c74]`}>Dia inteiro</div>
+              <div className={`${grid.weekAllDay} tw:min-h-[2.615rem]! tw:flex tw:items-center tw:justify-end tw:pr-[0.615rem] tw:text-[0.808rem] tw:font-bold tw:text-[#8a7c74]`}>Dia inteiro</div>
               {weekDays.map(day => (
-                <div key={`all-${day.toISOString()}`} className={grid.weekAllDay}>
+                <div key={`all-${day.toISOString()}`} className={`${grid.weekAllDay} tw:min-h-[2.615rem]!`}>
                   {itemsOf(day).filter(item => item.kind === 'deadline').map(item => (
                     <button type="button" key={item.id} className={`${grid.weekAllDayEvent} tw:font-semibold!`} style={paint(item)} title={`Prazo · ${item.title}`} onClick={() => onOpenItem(item)}>{item.title}</button>
                   ))}
                 </div>
               ))}
               <div className={grid.weekAxis} style={{ height: hours.length * hourHeight }}>
-                {hours.map(hour => <span key={hour} className="tw:absolute tw:right-2 tw:translate-y-[0.4375rem] tw:text-[0.65625rem] tw:font-bold tw:text-[#8a7c74]" style={{ top: (hour - 7) * hourHeight }}>{String(hour).padStart(2, '0')}:00</span>)}
+                {hours.map(hour => <span key={hour} className="tw:absolute tw:right-[0.615rem] tw:translate-y-[0.538rem] tw:text-[0.808rem] tw:font-bold tw:text-[#8a7c74]" style={{ top: (hour - 7) * hourHeight }}>{String(hour).padStart(2, '0')}:00</span>)}
               </div>
               {weekDays.map(day => (
                 <div key={`lane-${day.toISOString()}`} className={`calendar-week-lane ${grid.weekLane}`} style={{ height: hours.length * hourHeight }}>
@@ -158,13 +158,13 @@ export function ClientTimelineCalendar<T extends Item>({ view, cursor, weekDays,
             </div>
           </div>
         )}
-        <footer className="tw:flex tw:flex-wrap tw:items-center tw:justify-between tw:gap-4 tw:border-0 tw:border-t tw:border-solid tw:border-[#efe6de] tw:px-[1.125rem] tw:py-3 tw:text-[0.6875rem] tw:text-[#67574c]">
-          <div className="tw:flex tw:flex-wrap tw:gap-x-4 tw:gap-y-2">
+        <footer className="tw:flex tw:flex-wrap tw:items-center tw:justify-between tw:gap-[1.231rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#efe6de] tw:px-[1.385rem] tw:py-[0.923rem] tw:text-[0.846rem] tw:text-[#67574c]">
+          <div className="tw:flex tw:flex-wrap tw:gap-x-[1.231rem] tw:gap-y-[0.615rem]">
             {labels.map(({ label, color }) => (
-              <span key={label} className="tw:inline-flex tw:items-center tw:gap-2"><i className="tw:size-2 tw:rounded-full" style={{ backgroundColor: color }} />{label}</span>
+              <span key={label} className="tw:inline-flex tw:items-center tw:gap-[0.538rem]"><i className="tw:size-[0.615rem] tw:rounded-full" style={{ backgroundColor: color }} />{label}</span>
             ))}
           </div>
-          <span><b className="tw:mr-1 tw:text-[0.8125rem] tw:text-cali-ink">{total}</b> {total === 1 ? 'compromisso' : 'compromissos'} no período</span>
+          <span><b className="tw:mr-[0.308rem] tw:text-base tw:text-cali-ink">{total}</b> {total === 1 ? 'compromisso' : 'compromissos'} no período</span>
         </footer>
       </div>
       <div className="tw:mt-[1.08rem] tw:text-[.77rem]/[1.55] tw:text-[#98897e]">Este calendário mostra compromissos e entregas da CALI, não jornadas de ponto, férias ou escala de colaboradores.</div>

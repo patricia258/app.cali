@@ -13,7 +13,7 @@ export function LandingSection({ tone, id, children }: { tone: keyof typeof sect
 }
 
 export function LandingWidth({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={`tw:mx-auto tw:max-w-[73.75rem] tw:px-8 tw:[@media(35rem<width<=51.25rem)]:px-[1.125rem] tw:[@media(max-width:35rem)]:px-3.5 ${className ?? ''}`}>{children}</div>;
+  return <div className={`tw:mx-auto tw:w-[min(73.75rem,calc(100%-4rem))] tw:max-[51.25rem]:w-[min(73.75rem,calc(100%-2.25rem))] tw:max-[35rem]:w-[calc(100%-1.75rem)] ${className ?? ''}`}>{children}</div>;
 }
 
 export function LandingSectionHeading({ title, eyebrow, description, center, dark }: {

@@ -3,6 +3,7 @@ import { StatusBadge } from '../../../components/ds/StatusBadge';
 import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
 import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
 import { WorkflowHeading } from '../../../components/ds/WorkflowHeading';
+import { WorkflowGroupHeading } from '../../../components/ds/WorkflowGroupHeading';
 import { WorkflowList, WorkflowListRow } from '../../../components/ds/WorkflowList';
 import { WorkspaceConfirmDialog } from '../../../components/workspace/components/WorkspaceConfirmDialog';
 import { WorkspaceDialogOverlay } from '../../../components/workspace/components/WorkspaceDialogOverlay';
@@ -286,7 +287,7 @@ export function AdminSatisfactionPage(){
       {waiting.length > requestsPage * 10 && <Button type="button" variant="workflowSecondary" onClick={() => setRequestsPage((page) => page + 1)}>Mostrar mais solicitações</Button>}
     </SatisfactionPanel>}
 
-    <div className="wf-group-head"><div><span>RESPOSTAS</span><strong>Todas as avaliações do período</strong></div><b>{filtered.length}</b></div>
+    <WorkflowGroupHeading label="RESPOSTAS" title="Todas as avaliações do período" count={filtered.length} />
     {loading?<LoadingState>Carregando avaliações…</LoadingState>:filtered.length?<WorkflowList>
       <WorkflowListRow header className="tw:grid-cols-[2.615rem_minmax(0,1.2fr)_minmax(0,.9fr)_minmax(0,2.2fr)_repeat(2,minmax(0,1fr))_minmax(0,1.1fr)]! tw:[@media(max-width:53.75rem)]:hidden!"><span/><span>Empresa / Quem avaliou</span><span>Nota</span><span>Avaliação</span><span>Data</span><span>Origem</span><span>Registro</span></WorkflowListRow>
       {filtered.map((row)=>{

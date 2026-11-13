@@ -49,8 +49,8 @@ export function ClientHoursLedger({ rows, filter, onFilter, toneOf }: {
       </header>
       {rows.length === 0 ? <EmptyState variant="workflow">Nenhum registro de horas neste período.</EmptyState> : (
         <div className="tw:overflow-x-auto tw:rounded-xl tw:border tw:border-solid tw:border-[#e7dfd8] tw:bg-white" tabIndex={0} aria-label="Extrato de horas do período" role="region">
-          <table className="tw:w-full tw:min-w-[40rem] tw:table-fixed tw:border-collapse tw:text-left tw:text-[.846rem] tw:leading-[inherit]">
-            <colgroup><col className="tw:w-[18%]" /><col className="tw:w-[25%]" /><col className="tw:w-[8.46rem]" /><col className="tw:w-[18%]" /><col className="tw:w-[13.08rem]" /><col className="tw:w-[6.92rem]" /></colgroup>
+          <table className="tw:w-full tw:min-w-[56rem] tw:table-fixed tw:border-collapse tw:text-left tw:text-[.846rem] tw:leading-[inherit]">
+            <colgroup><col className="tw:w-[10rem]" /><col /><col className="tw:w-[8.46rem]" /><col className="tw:w-[9.23rem]" /><col className="tw:w-[13.08rem]" /><col className="tw:w-[6.92rem]" /></colgroup>
             <thead className="tw:bg-[#f2eeea] tw:text-[.77rem] tw:leading-[inherit] tw:text-[#948a84]">
               <tr className="tw:[&>th]:px-3 tw:[&>th]:py-3.5 tw:[&>th]:font-semibold">
                 <th scope="col">Projeto</th><th scope="col">Tarefa</th><th scope="col">Tipo</th><th scope="col">Frente</th><th scope="col">Protocolo</th><th scope="col" className="tw:text-right">Duração</th>
@@ -60,9 +60,9 @@ export function ClientHoursLedger({ rows, filter, onFilter, toneOf }: {
               {rows.map((row) => (
                 <tr className="tw:border-0 tw:border-b tw:border-solid tw:border-[#f0eae5] tw:hover:bg-[#faf7f4] tw:[&>td]:px-3 tw:[&>td]:py-5" key={JSON.stringify([row.kind, row.project, row.title, row.protocol, row.front])}>
                   <td className="tw:text-[.923rem] tw:leading-[inherit] tw:text-[#5f5650]">{row.project || '—'}</td>
-                  <td className="tw:font-bold tw:text-[#473c38]">{row.title}</td>
+                  <td className="tw:font-bold tw:text-[#473c38] tw:[overflow-wrap:anywhere]">{row.title}</td>
                   <td><span className={`tw:inline-flex tw:min-h-7 tw:items-center tw:rounded-lg tw:px-3 tw:text-[.81rem] tw:leading-[inherit] tw:font-bold ${kindTones[row.kind] ?? 'tw:bg-[#f1ebe6] tw:text-[#5f5650]'}`}>{row.kind === 'Outras' ? 'Assessoria' : row.kind}</span></td>
-                  <td>{row.front ? <span className={`tw:inline-block tw:rounded-md tw:px-2 tw:py-1.5 tw:text-[.69rem] tw:leading-[inherit] tw:font-semibold ${frontTones[toneOf(row.front)]}`}>{row.front}</span> : '—'}</td>
+                  <td>{row.front ? <span className={`tw:inline-block tw:max-w-full tw:rounded-md tw:px-2 tw:py-1.5 tw:[overflow-wrap:anywhere] tw:text-[.69rem] tw:leading-[inherit] tw:font-semibold ${frontTones[toneOf(row.front)]}`}>{row.front}</span> : '—'}</td>
                   <td className="tw:truncate tw:text-[.81rem] tw:leading-[inherit] tw:text-[#9a8d85]" title={row.protocol || undefined}>{row.protocol || '—'}</td>
                   <td className="tw:text-right tw:font-bold tw:text-[#592535]">{minutesLabel(row.minutes)}</td>
                 </tr>

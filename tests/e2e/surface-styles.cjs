@@ -32,6 +32,10 @@ async function publicSurfaces({ page, context, origin }) {
   const login = page.locator('.login-v2');
   await login.waitFor();
   await scope(page, { workspaceUi: null, workspaceSurface: 'sign-in', workspaceTheme: 'night' });
+  const heading = login.getByRole('heading', { name: 'Entre no seu Workspace.', exact: true });
+  assert.equal(await heading.evaluate((element) => getComputedStyle(element).color), 'rgb(43, 43, 43)');
+  const send = login.getByRole('button', { name: 'Enviar código de acesso', exact: true });
+  assert.equal(await send.evaluate((element) => getComputedStyle(element).backgroundImage), 'none');
   await page.getByRole('link', { name: 'Termos', exact: true }).click();
   await page.locator('.v2-legal-page').waitFor();
   await scope(page, { workspaceUi: null, workspaceSurface: 'public', workspaceTheme: 'night' });
@@ -115,10 +119,10 @@ async function proposalBriefing({ page, origin, snapshot }) {
   return { drawer: direct, unchangedAfterEditor: true };
 }
 
-async function draftPrint({ page, context, origin, snapshot }) {
+async function openProposalFixture({ page, context, origin }, status) {
   const proposal = {
     id: 'qa-draft', submission_id: 'qa-submission', service_slug: 'assessoria-estrategica',
-    version: 2, status: 'rascunho', pdf_path: null, package_code: 'cali-partner',
+    version: 2, status, pdf_path: null, package_code: 'cali-partner',
     final_unit: 5000, contract_months: 8, validity_days: 15,
     calculator_data: { monthlyHours: 12 }, scope_items: ['Análise de prioridades'],
     created_at: '2026-11-12T12:00:00Z', updated_at: '2026-11-12T12:00:00Z',
@@ -137,6 +141,11 @@ async function draftPrint({ page, context, origin, snapshot }) {
   await page.goto(origin + '/admin/propostas/proposta/qa-draft');
   const paper = page.locator('.portal-proposal-page.proposal-cover');
   await paper.getByRole('heading', { name: 'Olá, Pessoa.', exact: true }).waitFor();
+  return paper;
+}
+
+async function draftPrint({ page, context, origin, snapshot }) {
+  const paper = await openProposalFixture({ page, context, origin }, 'rascunho');
   const preview = await paper.evaluate((element) => {
     const band = element.querySelector('.proposal-cover-band');
     const service = band.querySelector('.cover-service strong');
@@ -184,11 +193,39 @@ async function draftPrint({ page, context, origin, snapshot }) {
   return { paper: '210 × 296 mm', origin: [geometry.x, geometry.y], physicalPages, toolbarHidden: true };
 }
 
+async function proposalSendDrawer({ page, context, origin, snapshot }) {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openProposalFixture({ page, context, origin }, 'aprovada');
+  const trigger = page.getByRole('button', { name: 'Enviar por e-mail', exact: true });
+  await trigger.click();
+
+  const drawer = page.getByRole('dialog', { name: 'Enviar proposta', exact: true });
+  const close = drawer.getByRole('button', { name: 'Fechar envio da proposta', exact: true });
+  const title = drawer.getByRole('heading', { name: 'Enviar proposta', exact: true });
+  for (const control of [close, title]) {
+    await control.waitFor();
+    assert.equal(await control.evaluate((element) => {
+      const { left, right, top, bottom } = element.getBoundingClientRect();
+      return left >= 0 && right <= innerWidth && top >= 0 && bottom <= innerHeight
+        && element.contains(document.elementFromPoint((left + right) / 2, (top + bottom) / 2));
+    }), true, 'Título e fechamento devem ficar acima da navegação e dentro da tela');
+  }
+
+  assert.equal(await page.evaluate(() => getComputedStyle(document.body).overflowY), 'hidden');
+  await snapshot('envio-mobile', drawer);
+  await close.focus();
+  await page.keyboard.press('Escape');
+  await drawer.waitFor({ state: 'detached' });
+  await page.waitForFunction(() => document.activeElement?.textContent?.includes('Enviar por e-mail'));
+  return { titleVisible: true, closeVisible: true, restoredFocus: true };
+}
+
 browserSuite([
   { id: 'surface-public-night-spa', role: 'public', run: publicSurfaces },
   { id: 'surface-admin-document-spa', role: 'admin', run: documentSurface },
   { id: 'surface-proposal-briefing-spa', role: 'admin', run: proposalBriefing },
   { id: 'surface-proposal-draft-print', role: 'admin', width: 390, run: draftPrint },
+  { id: 'surface-proposal-send-drawer-mobile', role: 'admin', run: proposalSendDrawer },
 ]).catch((error) => {
   console.error(error);
   process.exitCode = 1;

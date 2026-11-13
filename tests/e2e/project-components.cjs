@@ -305,12 +305,36 @@ browserSuite([
     async run({ page, origin }) {
       const task = tables.deliverable_tasks.find((row) => row.deliverable_id === delivery.id && row.status !== 'cancelled');
       assert(task, 'A fixture precisa ter uma subtarefa no entregável');
+      await page.setViewportSize({ width: 390, height: 844 });
       await page.goto(origin + '/equipe/projetos' + query + '&view=overview&task=' + task.id);
       const dialog = page.getByRole('dialog', { name: delivery.title, exact: true });
       await dialog.waitFor();
-      await dialog.getByRole('button', { name: /^Subtarefas/ }).waitFor();
+      const tabs = dialog.getByRole('navigation', { name: 'Detalhes da entrega' });
+      await tabs.getByRole('button', { name: /^Subtarefas/, pressed: true }).waitFor();
+      const status = dialog.getByRole('combobox', { name: 'Status de ' + delivery.title, exact: true });
+      await status.waitFor();
+      const statusStyle = await status.evaluate((element) => {
+        const control = getComputedStyle(element);
+        return {
+          background: control.backgroundColor,
+          badgeBackground: getComputedStyle(element.parentElement).backgroundColor,
+          color: control.color,
+          label: element.selectedOptions[0]?.textContent,
+        };
+      });
+      assert.equal(statusStyle.background, 'rgba(0, 0, 0, 0)');
+      assert.equal(statusStyle.badgeBackground, 'rgb(217, 138, 43)');
+      assert.equal(statusStyle.color, 'rgb(255, 255, 255)');
+      assert.match(statusStyle.label || '', /Aguardando cliente/);
+      assert.equal(await tabs.getByRole('button').count(), 5);
+      assert.ok(await tabs.evaluate((element) => element.scrollWidth <= element.clientWidth));
       const highlighted = dialog.locator('article[data-highlighted=true]');
-      await highlighted.getByText(task.title, { exact: true }).waitFor();
+      const title = highlighted.getByText(task.title, { exact: true });
+      await title.waitFor();
+      assert.ok(await title.evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        return bounds.width > 60 && bounds.right <= document.documentElement.clientWidth;
+      }));
       assert.equal(await dialog.getByRole('heading', { name: 'Sobre esta entrega' }).count(), 0);
       await dialog.getByRole('button', { name: 'Fechar', exact: true }).click();
       await dialog.waitFor({ state: 'hidden' });

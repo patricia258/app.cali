@@ -3,6 +3,7 @@ import { WorkspaceAdminPage } from '../../../components/workspace/components/Wor
 import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
 import { WorkflowControls, WorkflowSegments } from '../../../components/ds/WorkflowControls';
 import { WorkflowHeading } from '../../../components/ds/WorkflowHeading';
+import { WorkflowGroupHeading } from '../../../components/ds/WorkflowGroupHeading';
 import { WorkflowList, WorkflowListRow } from '../../../components/ds/WorkflowList';
 import { WorkspaceConfirmDialog } from '../../../components/workspace/components/WorkspaceConfirmDialog';
 import { WorkspaceDialogOverlay } from '../../../components/workspace/components/WorkspaceDialogOverlay';
@@ -118,7 +119,7 @@ export function AdminFormsPage() {
       <WorkflowControls className="v2-forms-filter tw:[margin:0_0_0.462rem] tw:[&_.wf-segments_button_b]:ml-[0.385rem]
         tw:[&_.wf-segments_button_b]:font-bold tw:[&_.wf-segments_button_b]:opacity-[.6]"><WorkflowSegments>{([['all', 'Todos'], ['cali', AUDIENCE_LABELS.cali], ['client', AUDIENCE_LABELS.client], ['trash', 'Lixeira']] satisfies Array<['all' | FormAudience | 'trash', string]>).map(([key, label]) => <button type="button" key={key} className={audienceFilter === key ? 'on' : ''} onClick={() => setAudienceFilter(key)}>{label} <b>{key === 'all' ? forms.length : key === 'trash' ? trash.length : forms.filter((form) => form.audience === key).length}</b></button>)}</WorkflowSegments></WorkflowControls>
       {audienceFilter === 'trash' ? <>
-        <div className="wf-group-head"><div><span>LIXEIRA</span><strong>Excluídos nos últimos {TRASH_DAYS} dias</strong></div><b>{trash.length}</b></div>
+        <WorkflowGroupHeading label="LIXEIRA" title={`Excluídos nos últimos ${TRASH_DAYS} dias`} count={trash.length} />
         {loading ? <LoadingState>Carregando…</LoadingState> : trash.length ? <WorkflowList className="v2-forms-list v2-forms-trash tw:[&_.wf-record-row]:gap-x-[1.538rem]! tw:[&_.wf-record-row]:pt-[1.231rem]!
           tw:[&_.wf-record-row]:pb-[1.231rem]! tw:[@media(max-width:760px)]:[&_.wf-record-row>span:nth-child(n+3)]:hidden!
           tw:[@media(max-width:760px)]:[&_.wf-record-row.header]:hidden! tw:[&_.wf-record-row]:grid-cols-[minmax(18.462rem,2fr)_minmax(13.077rem,1.2fr)_11.538rem_10.769rem_11.538rem]!
@@ -139,7 +140,7 @@ export function AdminFormsPage() {
           </WorkflowListRow>)}
         </WorkflowList> : <EmptyState variant="workflow"><strong>A lixeira está vazia.</strong><p>Formulários e respostas excluídos ficam aqui por {TRASH_DAYS} dias e podem ser restaurados.</p></EmptyState>}
       </> : <>
-      <div className="wf-group-head"><div><span>FORMULÁRIOS</span><strong>{audienceFilter === 'all' ? 'Todos os formulários' : audienceFilter === 'cali' ? 'Formulários da CALI' : 'Formulários para clientes'}</strong></div><b>{visible.length}</b></div>
+      <WorkflowGroupHeading label="FORMULÁRIOS" title={audienceFilter === 'all' ? 'Todos os formulários' : audienceFilter === 'cali' ? 'Formulários da CALI' : 'Formulários para clientes'} count={visible.length} />
       {loading ? <LoadingState>Carregando formulários…</LoadingState> : visible.length ? <WorkflowList className="v2-forms-list tw:[&_.wf-record-row]:grid-cols-[minmax(20rem,2.6fr)_minmax(8.462rem,.8fr)_minmax(13.077rem,1fr)_7.692rem_10rem_9.231rem_10.769rem]!
         tw:[&_.wf-record-row]:gap-x-[1.538rem]! tw:[&_.wf-record-row]:pt-[1.231rem]! tw:[&_.wf-record-row]:pb-[1.231rem]!
         tw:[&_.wf-record-row]:cursor-pointer tw:[&_.wf-record-row:not(.header):hover]:bg-[#fbf7f3]! tw:[@media(max-width:760px)]:[&_.wf-record-row]:grid-cols-[1fr_auto]!

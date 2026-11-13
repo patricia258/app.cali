@@ -1591,7 +1591,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   </p>
                 </div>
                 {!periodMode && (
-                  <label className="v2-compare tw:m-0 tw:inline-flex tw:items-center tw:gap-2.25 tw:text-[0.6875rem] tw:text-[#8c7e74] tw:[&_select]:rounded-[0.4375rem] tw:[&_select]:border tw:[&_select]:border-solid tw:[&_select]:border-[#e5d9d0] tw:[&_select]:bg-white tw:[&_select]:px-2.5 tw:[&_select]:py-1.75 tw:[&_select]:font-bold tw:[&_select]:text-cali-brand tw:[&_small]:text-[0.625rem] tw:[&_small]:text-[#978579]">
+                  <label className="v2-compare tw:m-0 tw:inline-flex tw:items-center tw:gap-[0.6923rem] tw:text-[0.8462rem] tw:text-[#8c7e74] tw:[&_select]:rounded-[0.5385rem] tw:[&_select]:border tw:[&_select]:border-solid tw:[&_select]:border-[#e5d9d0] tw:[&_select]:bg-white tw:[&_select]:px-[0.7692rem] tw:[&_select]:py-[0.5385rem] tw:[&_select]:font-bold tw:[&_select]:text-cali-brand tw:[&_small]:text-[0.7692rem] tw:[&_small]:text-[#978579]">
                     Comparar com
                     <select value={cmpMode} onChange={(e) => setCmpMode(e.target.value)}>
                       <option value="prev">Mês anterior</option>
@@ -1610,7 +1610,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   </label>
                 )}
               </div>
-              <div className="metric-strip tw:mb-4.5 tw:grid tw:grid-cols-4 tw:border-0 tw:border-y tw:border-solid tw:border-[#ddd3cb] tw:bg-[#faf8f5] tw:max-[50rem]:grid-cols-2 tw:[&>div]:relative tw:[&>div]:flex tw:[&>div]:flex-col tw:[&>div]:gap-2 tw:[&>div]:border-0 tw:[&>div]:border-r tw:[&>div]:border-solid tw:[&>div]:border-[#e8dfd8] tw:[&>div]:p-[1.69rem] tw:[&>div:last-child]:border-0 tw:[&>div]:before:absolute tw:[&>div]:before:inset-x-0 tw:[&>div]:before:top-0 tw:[&>div]:before:h-0.5 tw:[&>div]:before:bg-[#bd9174] tw:[&_div.m-green]:before:bg-[#55b68a] tw:[&_div.m-blue]:before:bg-[#76aecf] tw:[&_div.m-red]:before:bg-[#d66c81] tw:[&_div.m-purple]:before:bg-[#9a80c4] tw:[&_span]:text-[.85rem]/[inherit] tw:[&_span]:text-[#a4978d] tw:[&_strong]:font-cali-body tw:[&_strong]:text-[1.85rem]/[inherit] tw:[&_strong]:font-normal tw:[&_strong]:text-[#592535] tw:[&_p]:mt-[.77rem] tw:[&_p]:mb-[.46rem] tw:[&_p]:text-[.77rem]/[1.45] tw:[&_p]:text-[#8b7c73] tw:[&>div>small]:text-[.77rem]/[inherit] tw:[&>div>small]:text-[#78535b]">
+              <div className="metric-strip tw:mb-4.5 tw:grid tw:grid-cols-4 tw:border-0 tw:border-y tw:border-solid tw:border-[#ddd3cb] tw:bg-[#faf8f5] tw:max-[53.125rem]:grid-cols-2 tw:[&>div]:min-w-0 tw:[&>div]:relative tw:[&>div]:flex tw:[&>div]:flex-col tw:[&>div]:gap-[.615rem] tw:[&>div]:border-0 tw:[&>div]:border-r tw:[&>div]:border-solid tw:[&>div]:border-[#e8dfd8] tw:[&>div]:p-[1.69rem] tw:[&>div:last-child]:border-0 tw:[&>div]:before:absolute tw:[&>div]:before:inset-x-0 tw:[&>div]:before:top-0 tw:[&>div]:before:h-[.154rem] tw:[&>div]:before:bg-[#bd9174] tw:[&>div]:before:content-[''] tw:[&_div.m-green]:before:bg-[#55b68a] tw:[&_div.m-blue]:before:bg-[#76aecf] tw:[&_div.m-red]:before:bg-[#d66c81] tw:[&_div.m-purple]:before:bg-[#9a80c4] tw:[&_span]:text-[.85rem]/[inherit] tw:[&_span]:text-[#a4978d] tw:[&_strong]:font-cali-body tw:[&_strong]:text-[1.85rem]/[inherit] tw:[&_strong]:font-normal tw:[&_strong]:text-[#592535] tw:[&_p]:mt-[.77rem] tw:[&_p]:mb-[.46rem] tw:[&_p]:text-[.77rem]/[1.45] tw:[&_p]:text-[#8b7c73] tw:[&>div>small]:text-[.77rem]/[inherit] tw:[&>div>small]:text-[#78535b]">
                 {[
                   [
                     'Quadro ativo',
@@ -1757,7 +1757,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                       </div>
                     </div>
                     {!staff && (
-                      <div className="v2-month-strip tw:my-4 tw:flex tw:flex-wrap tw:items-center tw:justify-between tw:gap-3.5 tw:rounded-[0.625rem] tw:border tw:border-solid tw:border-[#e9dbd0] tw:bg-white tw:px-4 tw:py-3 tw:text-[0.6875rem] tw:text-[#8c7e74] tw:[&_strong]:text-cali-brand">
+                      <div className="v2-month-strip tw:my-[1.2308rem] tw:flex tw:flex-wrap tw:items-center tw:justify-between tw:gap-[1.0769rem] tw:rounded-[0.7692rem] tw:border tw:border-solid tw:border-[#e9dbd0] tw:bg-white tw:px-[1.2308rem] tw:py-[0.9231rem] tw:text-[0.8462rem] tw:text-[#8c7e74] tw:[&_strong]:text-cali-brand">
                         <span>
                           <strong>Dados de {monthLabel(month)}</strong> ·{' '}
                           {monthMetric ? 'lançados' : 'ainda não lançados'} · ausências, horas extras, quadro
@@ -1824,7 +1824,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                               : String(Math.round(value));
                         return (
                           <section
-                            className="v2-ess-chart tw:mb-4 tw:min-w-0 tw:rounded-[0.625rem] tw:border tw:border-solid tw:border-[#e9dbd0] tw:bg-white tw:px-5.5 tw:py-5 tw:[&>header]:mb-2 tw:[&>header]:flex tw:[&>header]:flex-wrap tw:[&>header]:items-start tw:[&>header]:justify-between tw:[&>header]:gap-4 tw:[&_h3]:mt-0 tw:[&_h3]:mb-1 tw:[&_h3]:text-[0.9375rem] tw:[&_header_p]:m-0 tw:[&_header_p]:text-[0.6875rem] tw:[&_header_p]:text-[#8c7e74] tw:[&_.ie-switch]:flex-wrap"
+                            className="v2-ess-chart tw:mb-[1.2308rem] tw:min-w-0 tw:rounded-[0.7692rem] tw:border tw:border-solid tw:border-[#e9dbd0] tw:bg-white tw:px-[1.6923rem] tw:py-[1.5385rem] tw:[&>header]:mb-[0.6154rem] tw:[&>header]:flex tw:[&>header]:flex-wrap tw:[&>header]:items-start tw:[&>header]:justify-between tw:[&>header]:gap-[1.2308rem] tw:[&_h3]:mt-0 tw:[&_h3]:mb-[0.3077rem] tw:[&_h3]:text-[1.1538rem] tw:[&_header_p]:m-0 tw:[&_header_p]:text-[0.8462rem] tw:[&_header_p]:text-[#8c7e74] tw:[&_.ie-switch]:flex-wrap"
                             key={name}
                           >
                             <header>
@@ -1836,7 +1836,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                                 </p>
                               </div>
                               <div
-                                className="ie-switch tw:flex tw:flex-wrap tw:overflow-hidden tw:rounded-md tw:border tw:border-solid tw:border-[#e9dfd8] tw:[&_button]:border-0 tw:[&_button]:bg-white tw:[&_button]:px-2.5 tw:[&_button]:py-2.25 tw:[&_button]:text-[0.625rem] tw:[&_button]:text-[#897a71] tw:[&_button.on]:bg-cali-brand tw:[&_button.on]:text-white"
+                                className="ie-switch tw:flex tw:flex-wrap tw:overflow-hidden tw:rounded-md tw:border tw:border-solid tw:border-[#e9dfd8] tw:[&_button]:border-0 tw:[&_button]:bg-white tw:[&_button]:px-[0.7692rem] tw:[&_button]:py-[0.6923rem] tw:[&_button]:text-[0.7692rem] tw:[&_button]:text-[#897a71] tw:[&_button.on]:bg-cali-brand tw:[&_button.on]:text-white"
                                 role="tablist"
                                 aria-label="Indicador"
                               >
@@ -1854,7 +1854,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                               </div>
                             </header>
                             {points.some((point) => point.value != null) ? (
-                              <div className="mini-chart tw:grid tw:h-[14.875rem] tw:grid-cols-8 tw:items-end tw:gap-5 tw:border-b tw:border-solid tw:border-[#e9e0d8] tw:px-2.5 tw:pt-5 tw:pb-2 tw:[&>div]:flex tw:[&>div]:h-full tw:[&>div]:flex-col tw:[&>div]:items-center tw:[&>div]:justify-end tw:[&>div]:gap-2 tw:[&>div>span:nth-child(2)]:min-h-2.5 tw:[&>div>span:nth-child(2)]:w-[57%] tw:[&>div>span:nth-child(2)]:max-w-12 tw:[&>div>span:nth-child(2)]:rounded-t tw:[&_small]:text-[0.625rem] tw:[&_small]:text-[#a5958a]">
+                              <div className="mini-chart tw:grid tw:h-[18.3077rem] tw:grid-cols-8 tw:items-end tw:gap-[1.5385rem] tw:border-b tw:border-solid tw:border-[#e9e0d8] tw:px-[0.7692rem] tw:pt-[1.5385rem] tw:pb-[0.6154rem] tw:[&>div]:flex tw:[&>div]:h-full tw:[&>div]:flex-col tw:[&>div]:items-center tw:[&>div]:justify-end tw:[&>div]:gap-[0.6154rem] tw:[&>div>span:nth-child(2)]:min-h-[0.7692rem] tw:[&>div>span:nth-child(2)]:w-[57%] tw:[&>div>span:nth-child(2)]:max-w-[3.6923rem] tw:[&>div>span:nth-child(2)]:rounded-t tw:[&_small]:text-[0.7692rem] tw:[&_small]:text-[#a5958a]">
                                 {points.map((point) => (
                                   <div
                                     key={point.month}
@@ -1891,7 +1891,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                                 Ainda não há dados deste indicador nos meses confirmados.
                               </div>
                             )}
-                            <p className="v2-ess-legend tw:mt-2.5 tw:mb-0 tw:flex tw:items-center tw:gap-2 tw:text-[0.625rem] tw:text-[#978579] tw:[&_i]:ml-2 tw:[&_i]:inline-block tw:[&_i]:size-2.25 tw:[&_i]:rounded-[0.125rem] tw:[&_i:first-child]:ml-0">
+                            <p className="v2-ess-legend tw:mt-[0.7692rem] tw:mb-0 tw:flex tw:items-center tw:gap-[0.6154rem] tw:text-[0.7692rem] tw:text-[#978579] tw:[&_i]:ml-[0.6154rem] tw:[&_i]:inline-block tw:[&_i]:size-[0.6923rem] tw:[&_i]:rounded-[0.1538rem] tw:[&_i:first-child]:ml-0">
                               <i className="tw:bg-cali-brand" /> mês de referência
                               {!periodMode && (
                                 <>

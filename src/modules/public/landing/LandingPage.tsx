@@ -206,7 +206,7 @@ export function LandingPage() {
       <LandingSection tone="light" id="cali">
         <LandingWidth className="tw:grid tw:grid-cols-[minmax(0,1.03fr)_minmax(26.25rem,.97fr)] tw:items-center tw:gap-[clamp(3.375rem,8vw,6.875rem)] tw:[@media(max-width:65rem)]:grid-cols-1">
           <LandingReveal direction="left">
-            <span className="tw:mb-[1.125rem] tw:inline-block tw:text-[.656rem] tw:font-bold tw:tracking-[.14em] tw:text-cali-brand">A CALI RH</span>
+            <span className="tw:mb-[1.125rem] tw:inline-block tw:text-[.656rem] tw:font-bold tw:tracking-[.14em] tw:text-(--id-gold)">A CALI RH</span>
             <h2 className="tw:m-0 tw:text-[clamp(2.55rem,4.15vw,4.45rem)] tw:leading-[1.02] tw:text-cali-brand tw:[@media(max-width:35rem)]:text-[clamp(2.25rem,11vw,3.7rem)]">A plataforma organiza o trabalho. A condução continua sendo da CALI.</h2>
             <p className="tw:m-0 tw:mt-6 tw:max-w-[41.25rem] tw:text-base tw:leading-[1.75] tw:text-[#655d58]">
               A CALI atua como <strong className="tw:text-[#4b4140]">People Advisory Executive</strong> junto à liderança.

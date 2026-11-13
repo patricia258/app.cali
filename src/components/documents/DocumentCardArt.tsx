@@ -39,6 +39,10 @@ export function DocumentCardTags({ children }: { children: ReactNode }) {
 
 
 export function DocumentCardTag({ tone, children }: { tone: 'delivery' | 'report' | 'work'; children: ReactNode }) {
-  const color = tone === 'delivery' ? 'tw:text-[#966423]' : tone === 'report' ? 'tw:text-[#7753a1]' : 'tw:text-[#227c68]';
-  return <span className={`tw:m-0 tw:inline-block tw:rounded-full tw:bg-white tw:px-[.692rem] tw:py-[.385rem] tw:text-[.692rem] ${color}`}>{children}</span>;
+  const colors = {
+    delivery: 'tw:bg-[#fff1d8] tw:text-[#966423]',
+    report: 'tw:bg-[#f2eaf8] tw:text-[#7753a1]',
+    work: 'tw:bg-[#e3f5ef] tw:text-[#217a66]',
+  };
+  return <span className={`tw:m-0 tw:inline-block tw:rounded-full tw:px-[.692rem] tw:py-[.385rem] tw:text-[.692rem] ${colors[tone]}`}>{children}</span>;
 }

@@ -354,7 +354,7 @@ export function ClientDeliverablesPage() {
         {reality && project && <div>
           <ProjectSectionTabs label="Seções do projeto" tabs={[[ 'timeline', 'Cronograma' ], [ 'deliverables', 'Entregáveis' ], [ 'history', 'Histórico' ]]} value={projectTab} onChange={setProjectTab} />
           {waitingDelivery && <DeliveryNotice icon={<AlertCircle size={16} />} title="Há uma validação aguardando você"
-              className="tw:mb-[1.23rem]" action={<DeliveryActionButton tone="primary" onClick={() => openDeliverable(waitingDelivery)}>Abrir entrega <ArrowRight size={13} /></DeliveryActionButton>}>
+              className="tw:mb-[1.23rem]" action={<DeliveryActionButton tone="primary" className="tw:min-h-0! tw:gap-[0.462rem]! tw:px-[0.923rem]! tw:py-[0.769rem]! tw:text-[0.769rem]! tw:font-semibold! tw:whitespace-nowrap" onClick={() => openDeliverable(waitingDelivery)}>Abrir entrega <ArrowRight size={13} /></DeliveryActionButton>}>
               {waitingDelivery.title} · sua análise define se seguimos para publicação ou para uma nova versão.
             </DeliveryNotice>}
           {projectTab === 'timeline' && <DeliverySchedule items={projectDeliverables} labels={statusLabel} onOpen={openDeliverable} empty={<p className="tw:p-[1.85rem] tw:text-center tw:text-[#999]">Quando a CALI abrir as primeiras entregas deste projeto, elas aparecerão aqui.</p>} />}

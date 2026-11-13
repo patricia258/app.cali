@@ -1,10 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :where(html[data-workspace-ui='v2']) {
-  font: 13px Inter, system-ui, sans-serif;
+  font: 13px var(--cali-font-body);
   font-synthesis: none;
   color: #322f2c;
-  background: #f7f3ee;
+  background: #f1ede8;
 
   &, body {
     overscroll-behavior: none;
@@ -24,7 +24,7 @@
 
   body {
     margin: 0;
-    background: #f7f3ee;
+    background: #f1ede8;
   }
 
   button { cursor: pointer; }

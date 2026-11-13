@@ -176,12 +176,12 @@ export function ReportPrintPage({ role }: Props) {
         tw:workspace-compact:mb-3.5 tw:workspace-compact:gap-3.5 tw:workspace-compact:rounded-[0.5625rem]
         tw:workspace-compact:border tw:workspace-compact:border-[#ebe4de] tw:workspace-compact:bg-white
         tw:workspace-compact:px-3.5 tw:workspace-compact:py-[0.6875rem] tw:workspace-compact:shadow-none
-        tw:workspace-compact:max-[680px]:flex-row tw:workspace-compact:max-[680px]:items-center">
+        tw:workspace-compact:max-[42.5rem]:flex-wrap tw:workspace-compact:max-[42.5rem]:items-start">
         <div className="tw:grid tw:gap-0.5 tw:workspace-compact:flex tw:workspace-compact:flex-col tw:workspace-compact:gap-1">
           <strong className="tw:text-xs tw:workspace-compact:text-[#3e3533]">Relatório executivo · v{data.version}</strong>
           <span className="tw:text-[0.59375rem] tw:text-[#7f736d] tw:workspace-compact:text-[0.625rem] tw:workspace-compact:text-[#8c8079]">{data.company.name} · {data.periodName}</span>
         </div>
-        <div className="tw:flex tw:gap-2 tw:workspace-compact:gap-[0.5625rem]">
+        <div className="tw:flex tw:max-w-full tw:flex-wrap tw:gap-2 tw:workspace-compact:gap-[0.5625rem]">
           <Button type="button" variant="unstyled" className="tw:inline-flex tw:min-h-[2.375rem] tw:cursor-pointer tw:items-center tw:gap-[0.4375rem] tw:rounded-[0.625rem]
             tw:border tw:border-solid tw:border-[#ded4cd] tw:bg-white tw:px-[0.8125rem] tw:py-0 tw:[font-family:inherit] tw:[line-height:inherit] tw:text-[0.6875rem]
             tw:font-extrabold tw:text-cali-brand tw:workspace-compact:h-auto tw:workspace-compact:rounded-[0.4375rem]
@@ -193,7 +193,8 @@ export function ReportPrintPage({ role }: Props) {
             tw:workspace-compact:py-2.5 tw:workspace-compact:font-semibold tw:workspace-compact:shadow-none" variant="unstyled" type="button" onClick={() => void prepareAndPrint()}><Printer size={16} />Imprimir / salvar PDF</Button>
         </div>
       </div>
-      <div ref={printStage} className="report-print-v16-stage tw:pt-6 tw:pb-[3.125rem]">
+      <div ref={printStage} role="region" aria-label="Prévia do relatório" tabIndex={0}
+        className="report-print-v16-stage tw:max-w-full tw:overflow-x-auto tw:pt-6 tw:pb-[3.125rem]">
         <WorkspaceExecutiveReportPaper
           pinnedCompanyLogo
           company={data.company}

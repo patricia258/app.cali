@@ -363,7 +363,10 @@ export function AdminPeopleMapPage() {
 
   return <Shell role="admin">
     <WorkspaceAdminPage className="v2-admin-peoplemap v2-client-module"><WorkspaceAdminContent><WorkflowPage>
-      <WorkflowHeading className="tw:items-start"><div><small>BACKOFFICE / MAPA DE PEOPLE</small><h1>Mapa de People</h1><p>Respostas do diagnóstico público, revisão da CALI, devolutiva e a jornada de quem acessou.</p></div><div className="v2-head-actions tw:flex tw:flex-wrap tw:items-center tw:gap-[0.769rem]"><Button variant="workflowSecondary" type="button" onClick={loadAll}><RefreshCw size={15}/> Atualizar</Button><a className="wf-primary v2-link-button tw:inline-flex tw:items-center tw:gap-[0.538rem] tw:no-underline" href="https://mapa.calirh.com" target="_blank" rel="noreferrer">Abrir Mapa público <ArrowUpRight size={15}/></a></div></WorkflowHeading>
+      <WorkflowHeading className="tw:items-start"><div><small>BACKOFFICE / MAPA DE PEOPLE</small><h1>Mapa de People</h1><p>Respostas do diagnóstico público, revisão da CALI, devolutiva e a jornada de quem acessou.</p></div><div className="v2-head-actions tw:flex tw:flex-wrap tw:items-center tw:gap-[0.769rem]"><Button variant="workflowSecondary" type="button" onClick={loadAll}><RefreshCw size={15}/> Atualizar</Button><a className="tw:inline-flex tw:items-center tw:justify-center tw:gap-[0.538rem] tw:rounded-[0.538rem]
+        tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-[1.077rem] tw:py-[0.769rem]
+        tw:text-[0.846rem]/[inherit] tw:font-semibold tw:text-white tw:no-underline tw:hover:bg-(--cali-color-burgundy-deep)
+        tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-gold" href="https://mapa.calirh.com" target="_blank" rel="noreferrer">Abrir Mapa público <ArrowUpRight size={15}/></a></div></WorkflowHeading>
       {error && <InlineNotice tone="danger">{error}</InlineNotice>}
 
       {tab === 'respostas' ? <>

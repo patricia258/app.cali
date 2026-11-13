@@ -28,7 +28,7 @@ export function LandingPackages({ features }: { features: Record<'partner' | 'fu
                 {featured && <div className="tw:absolute tw:-top-4 tw:left-10 tw:z-2 tw:rounded-[var(--id-radius-control)] tw:bg-[#d6ad73] tw:px-3.5 tw:py-2 tw:text-[.64rem] tw:leading-[inherit] tw:font-extrabold tw:tracking-[.11em] tw:text-[#431523] tw:[@media(max-width:35rem)]:left-[1.4375rem]">MAIOR PROXIMIDADE</div>}
                 <div className="tw:flex tw:items-center tw:justify-between tw:gap-3">
                   <h3 className="tw:m-0 tw:text-[clamp(1.45rem,2.2vw,1.9rem)] tw:leading-[1.12]">CALI {name}</h3>
-                  <span className={`tw:rounded-[var(--id-radius-control)] tw:border tw:border-solid tw:px-2.5 tw:py-2 tw:text-[.69rem] tw:leading-[inherit] tw:font-bold tw:whitespace-nowrap ${featured ? 'tw:border-white/25 tw:bg-white/8 tw:text-cali-day-canvas' : 'tw:border-[#e5d7c8] tw:bg-[#f5eee7] tw:text-cali-brand'}`}>{duration}</span>
+                  <span className={`tw:rounded-[var(--id-radius-control)] tw:border tw:border-solid tw:px-2.5 tw:py-2 tw:text-[.69rem] tw:leading-[inherit] tw:font-bold tw:whitespace-nowrap tw:uppercase ${featured ? 'tw:border-white/25 tw:bg-white/8 tw:text-cali-day-canvas' : 'tw:border-[#e5d7c8] tw:bg-[#f5eee7] tw:text-cali-brand'}`}>{duration}</span>
                 </div>
                 <p className={`tw:m-0 tw:mt-[1.3125rem] tw:min-h-[3.5em] tw:text-[.92rem] tw:leading-[1.65] ${featured ? 'tw:text-[#f7f3eed4]' : 'tw:text-[#655d58]'}`}>{description}</p>
                 <div className="tw:mt-8 tw:flex tw:items-baseline tw:gap-2.5 tw:[@media(max-width:35rem)]:flex-wrap">

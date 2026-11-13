@@ -11,7 +11,7 @@ const codeSchema = z.string().regex(/^\d{6}$/);
 
 const rise = 'tw:motion-safe:animate-[sign-in-rise_.6s_cubic-bezier(.2,.7,.3,1)_both]';
 const field = 'tw:mt-6 tw:grid tw:gap-[0.625rem] tw:text-[.88rem] tw:font-bold tw:text-cali-ink tw:max-[561px]:mt-[18px] tw:[@media(max-width:860px)_and_(max-height:730px)]:mt-3 tw:[@media(max-width:860px)_and_(max-height:730px)]:gap-[5px]';
-const caption = 'tw:text-[0.75rem] tw:font-semibold tw:tracking-normal tw:text-[#3e3533]';
+const caption = 'tw:text-[0.75rem] tw:font-semibold tw:tracking-normal tw:text-[#3e3533] tw:[[data-workspace-theme=night]_&]:text-cali-ink';
 const control = 'tw:flex tw:min-h-[3.625rem] tw:items-center tw:gap-[0.8125rem] tw:rounded-[0.5625rem] tw:border tw:border-solid tw:border-[#e3d6cc] tw:bg-white tw:px-4 tw:text-[#8c8179] tw:[transition:border-color_.18s_ease,box-shadow_.18s_ease] tw:focus-within:border-cali-brand tw:focus-within:shadow-[0_0_0_0.1875rem_rgba(90,30,45,.1)] tw:[[data-workspace-theme=night]_&]:border-[#ddd2c8] tw:[[data-workspace-theme=night]_&]:bg-cali-paper tw:[@media(max-width:860px)_and_(max-height:730px)]:h-[46px] tw:[@media(max-width:860px)_and_(max-height:730px)]:min-h-[46px]';
 const input = 'tw:h-14 tw:w-full tw:min-w-0 tw:rounded-none tw:border-0 tw:bg-transparent tw:p-0 tw:text-cali-ink tw:outline-none tw:placeholder:text-[#9a928c] tw:[[data-workspace-theme=night]_&]:bg-transparent! tw:[[data-workspace-theme=night]_&]:border-0! tw:[[data-workspace-theme=night]_&]:text-cali-ink! tw:[[data-workspace-theme=night]_&]:shadow-none! tw:[[data-workspace-theme=night]_&]:[-webkit-text-fill-color:var(--cali-color-ink)] tw:[[data-workspace-theme=night]_&]:placeholder:[-webkit-text-fill-color:#9a928c] tw:[@media(max-width:860px)_and_(max-height:730px)]:h-[46px] tw:[@media(max-width:860px)_and_(max-height:730px)]:min-h-[46px]';
 const secondary = 'tw:min-h-[2.375rem] tw:flex-1 tw:rounded-[0.5625rem] tw:border tw:border-solid tw:border-[#e3d6cc] tw:bg-white tw:font-semibold tw:text-[#3e3533] tw:hover:border-cali-brand tw:hover:text-cali-brand';
@@ -71,9 +71,9 @@ export function SignInForm() {
           void form.handleSubmit();
         }}>
           <div className="tw:mx-0 tw:mt-0 tw:mb-[0.875rem] tw:flex tw:gap-[0.375rem]" aria-hidden="true"><span className="tw:h-1 tw:flex-1 tw:rounded-full tw:bg-cali-brand" /><span className={`tw:h-1 tw:flex-1 tw:rounded-full ${step === 'code' ? 'tw:bg-cali-brand' : 'tw:bg-[#eee3dc]'}`} /></div>
-          <span className="tw:mb-5 tw:block tw:text-[0.65625rem] tw:font-bold tw:tracking-[.14em] tw:text-cali-gold tw:max-[561px]:mb-[11px]">{step === 'email' ? 'ACESSO SEGURO · ETAPA 1 DE 2' : 'ACESSO SEGURO · ETAPA 2 DE 2'}</span>
-          <h2 className="tw:m-0 tw:font-[Inter,system-ui,sans-serif] tw:text-[clamp(1.6rem,2.4vw,2rem)] tw:leading-[1.12] tw:font-bold tw:tracking-[-.025em] tw:text-[#2b2024]! tw:max-[861px]:text-[1.55rem]">{step === 'email' ? 'Entre no seu Workspace.' : 'Digite seu código.'}</h2>
-          <p className="tw:mt-[1.125rem] tw:text-[0.875rem] tw:leading-[1.55] tw:text-[#82786f] tw:max-[561px]:mt-3 tw:[@media(max-width:860px)_and_(max-height:730px)]:mt-2">
+          <span className="tw:mb-5 tw:block tw:text-[0.65625rem] tw:font-bold tw:tracking-[.14em] tw:text-cali-gold tw:[[data-workspace-theme=night]_&]:text-cali-brand tw:max-[561px]:mb-[11px]">{step === 'email' ? 'ACESSO SEGURO · ETAPA 1 DE 2' : 'ACESSO SEGURO · ETAPA 2 DE 2'}</span>
+          <h2 className="tw:m-0 tw:font-[Inter,system-ui,sans-serif] tw:text-[clamp(1.6rem,2.4vw,2rem)] tw:leading-[1.12] tw:font-bold tw:tracking-[-.025em] tw:text-[#2b2024]! tw:[[data-workspace-theme=night]_&]:text-cali-ink! tw:max-[861px]:text-[1.55rem]">{step === 'email' ? 'Entre no seu Workspace.' : 'Digite seu código.'}</h2>
+          <p className="tw:mt-[1.125rem] tw:text-[0.875rem] tw:leading-[1.55] tw:text-[#82786f] tw:[[data-workspace-theme=night]_&]:text-[#746d68] tw:max-[561px]:mt-3 tw:[@media(max-width:860px)_and_(max-height:730px)]:mt-2">
             {step === 'email'
               ? 'Informe o e-mail cadastrado. Você receberá um código numérico de uso único, sem senha para memorizar.'
               : <>Se <strong>{email}</strong> estiver cadastrado, enviamos um código de 6 dígitos. Ele expira em 10 minutos e pode ser usado uma única vez.</>}
@@ -106,7 +106,7 @@ export function SignInForm() {
             </label>
           )}
 
-          <button disabled={!validInput || loading} className="tw:mt-5 tw:inline-flex tw:min-h-[3.75rem] tw:w-full tw:items-center tw:justify-center tw:gap-[0.625rem] tw:rounded-[0.5625rem] tw:border-0 tw:bg-cali-brand tw:[[data-workspace-theme=night]_&]:bg-[linear-gradient(135deg,#6d2133,#5a1e2d_56%,#431520)] tw:px-1.5 tw:py-px tw:font-semibold tw:tracking-normal tw:text-cali-paper tw:[transition:transform_.16s_ease,box-shadow_.16s_ease,opacity_.16s_ease] tw:enabled:hover:-translate-y-px tw:disabled:cursor-not-allowed tw:disabled:bg-[#b9a2a8] tw:disabled:opacity-[.48] tw:[@media(max-width:860px)_and_(max-height:730px)]:mt-3 tw:[@media(max-width:860px)_and_(max-height:730px)]:min-h-[47px]" type="submit">
+          <button disabled={!validInput || loading} className="tw:mt-5 tw:inline-flex tw:min-h-[3.75rem] tw:w-full tw:items-center tw:justify-center tw:gap-[0.625rem] tw:rounded-[0.5625rem] tw:border-0 tw:bg-cali-brand tw:[[data-workspace-theme=night]_&]:bg-[linear-gradient(135deg,#6d2133,#5a1e2d_56%,#431520)] tw:px-1.5 tw:py-px tw:font-semibold tw:tracking-normal tw:text-cali-paper tw:[transition:transform_.16s_ease,box-shadow_.16s_ease,opacity_.16s_ease] tw:enabled:hover:-translate-y-px tw:disabled:cursor-not-allowed tw:disabled:bg-[#b9a2a8] tw:disabled:opacity-[.48] tw:[[data-workspace-theme=night]_&]:disabled:bg-none tw:[@media(max-width:860px)_and_(max-height:730px)]:mt-3 tw:[@media(max-width:860px)_and_(max-height:730px)]:min-h-[47px]" type="submit">
             {step === 'email' ? <Send size={18} /> : <KeyRound size={18} />}
             {loading ? 'Aguarde…' : step === 'email' ? 'Enviar código de acesso' : 'Entrar no Workspace'}
           </button>

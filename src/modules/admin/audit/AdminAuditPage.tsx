@@ -99,11 +99,11 @@ export function AdminAuditPage() {
     {error && <InlineNotice>{error}</InlineNotice>}
     <PrivacyRequestsPanel />
     <AdminMetricsStrip metrics={[
-          { label: 'Registros no recorte', value: filtered.length, description: 'dos {rows.length} mais recentes carregados' },
+          { label: 'Registros no recorte', value: filtered.length, description: `dos ${rows.length} mais recentes carregados` },
           { label: 'Pessoas que agiram', value: people, description: 'inclui ações automáticas do sistema' },
           { label: 'Ações sensíveis', value: sensitive, description: 'exclusões, dados restritos, cancelamentos' },
         ]} />
-    <AdminListControls alwaysWrap>
+    <AdminListControls>
       <AdminListFilter aria-label="Período" value={period} onChange={(event) => setPeriod(event.target.value)}><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="all">Todo o histórico carregado</option></AdminListFilter>
       <AdminListFilter aria-label="Empresa" value={company} onChange={(event) => setCompany(event.target.value)}><option value="">Todas as empresas</option>{companies.map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}</AdminListFilter>
       <AdminListFilter aria-label="Área" value={area} onChange={(event) => setArea(event.target.value)}><option value="">Todas as áreas</option>{AREAS.map((item) => <option key={item}>{item}</option>)}</AdminListFilter>

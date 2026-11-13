@@ -6,6 +6,7 @@ type DeliveryDetailHeaderProps = {
   complexity: string;
   description: string;
   children: ReactNode;
+  className?: string;
 };
 
 export function DeliveryDetailHeader({
@@ -14,10 +15,11 @@ export function DeliveryDetailHeader({
   complexity,
   description,
   children,
+  className = '',
 }: DeliveryDetailHeaderProps) {
   return (
     <header
-      className="tw:m-0 tw:flex tw:shrink-0 tw:flex-wrap tw:items-start tw:justify-between tw:gap-[1.23rem] tw:bg-[linear-gradient(90deg,#fffaf6,#f8ecd9)] tw:px-[2.08rem] tw:pt-[1.77rem] tw:pb-[1.23rem]"
+      className={`tw:m-0 tw:flex tw:shrink-0 tw:flex-wrap tw:items-start tw:justify-between tw:gap-[1.23rem] tw:bg-[linear-gradient(90deg,#fffaf6,#f8ecd9)] tw:px-[2.08rem] tw:pt-[1.77rem] tw:pb-[1.23rem] ${className}`}
       data-v2-operation="deliverable-workspace-header-v2"
     >
       <div className="tw:min-w-0 tw:flex-1" data-v2-operation="deliverable-title-v2">

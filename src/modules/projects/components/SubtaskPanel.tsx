@@ -326,7 +326,7 @@ export function SubtaskModal({
             >
               <i aria-hidden="true" className="tw:size-[.538rem] tw:rounded-full tw:bg-white" />
               <select
-                className="tw:h-full tw:min-w-0 tw:cursor-pointer tw:border-0 tw:bg-transparent tw:pr-[.462rem] tw:text-[.962rem] tw:font-extrabold tw:text-white tw:disabled:cursor-default tw:disabled:opacity-100 tw:[&_option]:bg-white tw:[&_option]:text-cali-ink"
+                className="tw:h-full tw:min-w-0 tw:cursor-pointer tw:border-0! tw:bg-transparent! tw:pr-[.462rem] tw:text-[.962rem] tw:font-extrabold tw:text-white! tw:disabled:cursor-default tw:disabled:opacity-100 tw:[&_option]:bg-white tw:[&_option]:text-cali-ink"
                 aria-label="Situação da subtarefa"
                 value={task.status}
                 disabled={options.length === 1}

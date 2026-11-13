@@ -89,7 +89,14 @@ function Frame({ me, children }: { me: PartnerWorkspace; children: ReactNode }) 
 }
 
 function Head({ eyebrow, title, text, action }: { eyebrow: string; title: string; text: string; action?: ReactNode }) {
-  return <div className="page-head"><div><div className="eyebrow">{eyebrow}</div><h1>{title}<span className="title-dot">.</span></h1><p>{text}</p></div>{action}</div>;
+  return <div className="tw:flex tw:items-center tw:justify-between tw:gap-[1.692rem]">
+    <div>
+      <div className="tw:mb-[0.538rem] tw:text-[0.769rem]/[inherit] tw:font-bold tw:tracking-[0.154rem] tw:text-[#aa8f7b]">{eyebrow}</div>
+      <h1 className="tw:mt-0 tw:mb-[0.538rem] tw:text-[2.231rem]/[inherit] tw:font-semibold tw:tracking-[-0.085rem]">{title}<span className="tw:text-cali-gold">.</span></h1>
+      <p className="tw:m-0 tw:text-[0.923rem]/[1.28] tw:text-[#968e88]">{text}</p>
+    </div>
+    {action}
+  </div>;
 }
 const CompanySelect = ({ me, value, onChange, all }: { me: PartnerWorkspace; value: string; onChange: (value: string) => void; all?: boolean }) => <FilterSelect className="tw:h-[3.08rem] tw:min-w-[15.38rem] tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-white tw:px-[.85rem] tw:py-0 tw:text-[.85rem] tw:text-[#322f2c]" aria-label="Empresa" value={value} onChange={(event) => onChange(event.target.value)}>{all && <option value="">Todas as minhas empresas</option>}{!all && <option value="">Escolha a empresa</option>}{me.companies.map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}</FilterSelect>;
 
@@ -118,7 +125,7 @@ function PartnerReports({ me }: { me: PartnerWorkspace }) {
   const companyName = new Map(me.companies.map((item) => [item.id, item.display_name])); const text = query.trim().toLocaleLowerCase('pt-BR');
   const visible = (rows || []).filter((row) => (!company || row.company_id === company) && (!text || `${row.title} ${row.sub}`.toLocaleLowerCase('pt-BR').includes(text)));
   return <><Head eyebrow={config.eyebrow} title={config.title} text={config.text} />
-    <div className="tw:mb-[1.15rem] tw:flex tw:gap-[.77rem] tw:max-[53.125rem]:flex-wrap"><CompanySelect me={me} value={company} onChange={setCompany} all /><input className="tw:h-[3.08rem] tw:max-w-[24.62rem] tw:min-w-0 tw:flex-1 tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-white tw:px-[.92rem] tw:text-[.92rem] tw:text-[#322f2c]" placeholder="Buscar" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Buscar" /></div>
+    <div className="tw:flex tw:gap-[.77rem] tw:max-[23rem]:flex-wrap"><CompanySelect me={me} value={company} onChange={setCompany} all /><input className="tw:h-[3.08rem] tw:max-w-[24.62rem] tw:min-w-0 tw:flex-1 tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-white tw:px-[.92rem] tw:text-[.92rem] tw:text-[#322f2c]" placeholder="Buscar" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Buscar" /></div>
     {failed ? <InlineNotice>Não foi possível carregar. Recarregue a página; se continuar, fale com a Patricia.</InlineNotice> : !rows ? <LoadingState>Carregando…</LoadingState> : visible.length ? <WorkflowList className="v2-staff-browse">{visible.map((row) => <WorkflowListRow className={`tw:grid tw:grid-cols-[minmax(0,1fr)_auto_8.46rem]! tw:items-center tw:gap-[1.08rem] tw:[@media(max-width:860px)]:grid-cols-[minmax(0,1fr)_auto]! ${row.href ? 'is-link tw:cursor-pointer tw:hover:bg-[#fbf7f4]!' : 'tw:cursor-default'}`} key={row.id} role={row.href ? 'link' : undefined} tabIndex={row.href ? 0 : undefined} onClick={() => { if (row.href) window.open(row.href, '_blank', 'noopener'); }}><div className="tw:flex tw:min-w-0 tw:flex-col tw:gap-[.23rem]"><strong className="tw:text-[.92rem] tw:text-[#322f2c]">{row.title}</strong><small className="tw:text-[.85rem] tw:text-[#8c7e74]">{[row.company_id ? companyName.get(row.company_id) : '', row.sub].filter(Boolean).join(' · ') || '—'}</small></div><StatusBadge variant="workflow">{row.tag}</StatusBadge><small className="tw:text-[.85rem] tw:text-[#8c7e74] tw:[@media(max-width:860px)]:hidden">{row.when ? dayLabel(row.when) : '—'}</small></WorkflowListRow>)}</WorkflowList> : <div className="empty">{config.empty}</div>}
     <p className="tw:my-[1.31rem] tw:flex tw:items-center tw:gap-[.62rem] tw:text-[.85rem]/[inherit] tw:text-[#96887e]">Tela de consulta. Você vê, mas não altera por aqui.</p></>;
 }

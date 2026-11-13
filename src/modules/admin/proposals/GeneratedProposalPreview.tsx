@@ -3,7 +3,8 @@ import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { AdminMaterialReview } from '../../material-review/AdminMaterialReview';
 import { useMaterialDeliveryConfirmation } from '../../../hooks/useMaterialDeliveryConfirmation';
 import { useEffect, useState, type ReactNode } from 'react';
-import { ArrowLeft, Loader2, Mail, Printer, X } from 'lucide-react';
+import { ArrowLeft, Loader2, Mail, Printer } from 'lucide-react';
+import { ProposalSendDrawer } from './components/ProposalSendDrawer';
 import { useNavigate } from '../../../hooks/useNavigate';
 import { useParams } from '../../../hooks/useParams';
 import { DocumentShell } from '../../../components/workspace/DocumentShell';
@@ -183,13 +184,24 @@ export function GeneratedProposalPreview(){
    <div className="proposal-signature proposal-signature-final editorial"><div><strong>Patrícia Lima</strong><span>People Advisory Executive · CALI RH</span></div><a href={whats} target="_blank" rel="noreferrer">Vamos conversar sobre a proposta?</a></div>
  </Page>}
 
- </div>{sendOpen&&<><button className="portal-send-backdrop tw:print:hidden! tw:fixed tw:inset-0 tw:z-120 tw:border-0 tw:bg-[#28191c57] tw:backdrop-blur-[0.125rem]" onClick={()=>setSendOpen(false)} aria-label="Fechar"/><aside className="portal-send-drawer tw:print:hidden! tw:fixed tw:top-0 tw:right-0 tw:z-121 tw:flex tw:h-screen tw:w-[min(38.75rem,95vw)]
-   tw:flex-col tw:bg-[var(--surface,#fff)] tw:shadow-[-1.125rem_0_3.4375rem_#28161a2e]"><header className="tw:flex tw:justify-between tw:gap-[1.125rem] tw:bg-cali-brand tw:px-[1.625rem] tw:py-6 tw:text-white"><div><span className="eyebrow tw:text-xs/[1.4]! tw:font-bold tw:tracking-[0.14em] tw:text-[#ddbb7f]">ENVIO APROVADO</span><h2 className="tw:mx-0 tw:my-1 tw:text-[1.6875rem] tw:text-white">{sendingAgain ? 'Reenviar proposta' : 'Enviar proposta'}</h2><p className="tw:m-0 tw:text-cali-small/[1.55]! tw:text-[#ead9d1]">{portalServiceLabel(proposal.service_slug)} · {proposal.submission.protocol}</p></div><button type="button" className="icon-button tw:relative tw:grid tw:size-11 tw:place-items-center tw:rounded-xl tw:border tw:border-solid
-   tw:border-[#5a1e2d1a] tw:bg-white/72 tw:text-[var(--graphite)] tw:shadow-[0_0.3125rem_1.125rem_#311f1909]
-   tw:[transition:background_.22s_ease,color_.22s_ease,border-color_.22s_ease,box-shadow_.22s_ease,transform_.18s_ease]
-   tw:hover:-translate-y-px tw:hover:bg-white tw:hover:shadow-[0_0.5625rem_1.5rem_#311f1912] tw:motion-reduce:transition-none
-   tw:workspace-night:border-cali-line tw:workspace-night:bg-[#241b1f] tw:workspace-night:text-cali-text
-   tw:workspace-night:shadow-[0_0.4375rem_1.25rem_#00000021] tw:workspace-night:hover:bg-[#2c2126]" aria-label="Fechar envio da proposta" onClick={()=>setSendOpen(false)}><X/></button></header><div className="portal-send-scroll tw:flex-1 tw:overflow-auto tw:p-5"><section className="tw:mb-3 tw:rounded-xl tw:border tw:border-solid tw:border-[color:var(--line,#e8dfda)] tw:p-[1.125rem]">{proposal.pdf_path ? <><h3 className="tw:mx-0 tw:mt-0 tw:mb-2.5 tw:text-cali-brand">1. PDF oficial</h3><p className="tw:text-cali-small/[1.55]!">O envio usa o PDF arquivado da versão {proposal.version}.</p></> : <><h3 className="tw:mx-0 tw:mt-0 tw:mb-2.5 tw:text-cali-brand">1. Salve o PDF</h3><p className="tw:text-cali-small/[1.55]!">Use “Salvar PDF”. O nome sugerido é <strong>{filename(proposal)}</strong>.</p></>}</section><section className="tw:mb-3 tw:rounded-xl tw:border tw:border-solid tw:border-[color:var(--line,#e8dfda)] tw:p-[1.125rem]"><h3 className="tw:mx-0 tw:mt-0 tw:mb-2.5 tw:text-cali-brand">2. Confirme o destinatário</h3><p className="tw:text-cali-small/[1.55]!"><strong>{proposal.submission.contact_name}</strong> · {proposal.submission.contact_email}</p><p className="tw:text-cali-small/[1.55]!">Para mudar o destinatário, atualize o contato no briefing.</p></section><section className="tw:mb-3 tw:rounded-xl tw:border tw:border-solid tw:border-[color:var(--line,#e8dfda)] tw:p-[1.125rem]"><h3 className="tw:mx-0 tw:mt-0 tw:mb-2.5 tw:text-cali-brand">{proposal.pdf_path ? "3. Confirme o envio" : "3. Anexe e envie"}</h3>{!proposal.pdf_path&&<label className="tw:mx-0 tw:my-3 tw:block tw:text-cali-small! tw:font-bold">Proposta final em PDF<input className="tw:mt-1.5 tw:block tw:w-full tw:rounded-[0.5625rem] tw:border tw:border-solid tw:border-[color:var(--line,#ded5d0)]
-   tw:bg-[var(--surface,#fff)] tw:p-2.5 tw:text-inherit" type="file" accept="application/pdf,.pdf" onChange={e=>setFile(e.target.files?.[0]||null)}/></label>}<label className="tw:mx-0 tw:my-3 tw:block tw:text-cali-small! tw:font-bold">Mensagem pessoal adicional<textarea className="tw:mt-1.5 tw:block tw:w-full tw:rounded-[0.5625rem] tw:border tw:border-solid tw:border-[color:var(--line,#ded5d0)]
-   tw:bg-[var(--surface,#fff)] tw:p-2.5 tw:text-inherit" rows={5} value={note} onChange={e=>setNote(e.target.value)}/></label>{sentMessage&&<InlineNotice>{sentMessage}</InlineNotice>}{error&&<InlineNotice tone="danger" className="tw:print:hidden!">{error}</InlineNotice>}</section></div><footer className="tw:border-0 tw:border-t tw:border-solid tw:border-[color:var(--line,#e8dfda)] tw:px-5 tw:py-3.5"><DocumentAction className="tw:flex tw:w-full tw:items-center tw:justify-center tw:gap-2" variant="primary" disabled={(!proposal.pdf_path&&!file)||sending||!proposal.submission.contact_email.includes('@')} onClick={()=>void send()}>{sending ? 'Enviando…' : sendingAgain ? 'Confirmar e reenviar' : 'Confirmar e enviar'}</DocumentAction></footer></aside></>}</section></DocumentShell>
+ </div>
+ {sendOpen && <ProposalSendDrawer
+   service={portalServiceLabel(proposal.service_slug)}
+   protocol={proposal.submission.protocol}
+   recipient={proposal.submission.contact_name}
+   email={proposal.submission.contact_email}
+   fileName={filename(proposal)}
+   archivedVersion={proposal.pdf_path ? proposal.version : undefined}
+   sendingAgain={sendingAgain}
+   sending={sending}
+   file={file}
+   note={note}
+   sentMessage={sentMessage}
+   error={error}
+   onClose={() => setSendOpen(false)}
+   onFile={setFile}
+   onNote={setNote}
+   onSend={() => void send()}
+ />}
+ </section></DocumentShell>
 }

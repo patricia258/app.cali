@@ -731,11 +731,28 @@ const cases = [
   {
     id: '08-team-tabs-and-period',
     role: 'client',
+    width: 390,
     async run({ page, origin }) {
+      await page.clock.setFixedTime(new Date('2026-11-12T12:30:00Z'));
       const indicators = origin + '/cliente/equipe?aba=indicadores&tag=a&tag=b#equipe';
       await page.goto(indicators);
       const tabs = page.locator('.section-tabs');
       await tabs.locator('button.current').filter({ hasText: 'Indicadores' }).waitFor();
+      const plot = page.locator('.v2-ess-chart .mini-chart').first();
+      await plot.waitFor();
+      const layout = await plot.evaluate((element) => {
+        const card = document.querySelector('.pa-card');
+        return {
+          chartHeight: element.getBoundingClientRect().height,
+          cardPadding: Number.parseFloat(getComputedStyle(card).paddingLeft),
+          activeMetricAccent: getComputedStyle(document.querySelector('.metric-strip > .m-green'), '::before').backgroundColor,
+          overflow: document.documentElement.scrollWidth - window.innerWidth,
+        };
+      });
+      assert(Math.abs(layout.chartHeight - 238) < 1);
+      assert(Math.abs(layout.cardPadding - 18) < 1);
+      assert.equal(layout.activeMetricAccent, 'rgb(85, 182, 138)');
+      assert.equal(layout.overflow, 0);
       await page.getByRole('button', { name: 'Período', exact: true }).click();
       await page.getByLabel('De', { exact: true }).fill('2026-08');
       await page.getByLabel('Até', { exact: true }).fill('2026-09');
