@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '../../../../components/ds/Button';
-import { DialogFrame } from '../../../../components/ds/DialogFrame';
+import { CompactDialog, CompactDialogOverlay, CompactDialogActions } from '../../../../components/ds/CompactDialog';
 import { InlineNotice } from '../../../../components/ds/InlineNotice';
 import type { WithdrawableReport } from '../../../../api/reports/withdrawal';
 import { useCorrectDeliveredReport } from '../hooks/useCorrectDeliveredReport';
@@ -27,12 +27,12 @@ export function CorrectDeliveredReportDialog({ report, onClose, onCorrected }: {
   }
 
   return (
-    <div className="modal-backdrop full-screen-modal" onPointerDown={(event) => {
+    <CompactDialogOverlay onPointerDown={(event) => {
       if (event.target === event.currentTarget && !isPending) onClose();
     }}>
-      <DialogFrame aria-label="Corrigir fechamento" className="modal-card tw:w-[min(35rem,calc(100vw-2rem))]!">
+      <CompactDialog aria-label="Corrigir fechamento" className="tw:w-[min(35rem,calc(100vw-2rem))]!">
         <Button variant="close" type="button" disabled={isPending} onClick={onClose}>×</Button>
-        <span className="section-kicker">CORREÇÃO DE RELATÓRIO</span>
+        <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-[0.769rem]/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-[#a88b76]">CORREÇÃO DE RELATÓRIO</span>
         <h2>Corrigir fechamento</h2>
         <p className="tw:mt-3 tw:mb-4 tw:leading-relaxed tw:text-cali-muted">A versão enviada sai da área do cliente até a próxima liberação. O conteúdo e a ciência anterior ficam no histórico da CALI.</p>
         <div className="tw:mb-4 tw:grid tw:gap-1 tw:rounded-xl tw:border tw:border-solid tw:border-cali-gold/40 tw:bg-cali-gold/10 tw:px-4 tw:py-3">
@@ -55,7 +55,7 @@ export function CorrectDeliveredReportDialog({ report, onClose, onCorrected }: {
           <input type="checkbox" checked={acknowledgement} disabled={isPending} onChange={(event) => setAcknowledgement(event.target.checked)} />
           Solicitar nova ciência ao cliente
         </label>
-        <div className="modal-actions">
+        <CompactDialogActions>
           <Button variant="secondary" type="button" disabled={isPending} onClick={onClose}>Cancelar</Button>
           {canWithdraw && <Button variant="secondary" type="button" disabled={isPending} className="tw:text-cali-danger!" onClick={() => submit('remove')}>
             {isPending && variables?.action === 'remove' ? 'Retirando…' : 'Retirar sem substituir'}
@@ -63,8 +63,8 @@ export function CorrectDeliveredReportDialog({ report, onClose, onCorrected }: {
           <Button variant="primary" type="button" disabled={isPending} onClick={() => submit('edit')}>
             {isPending && variables?.action === 'edit' ? 'Preparando edição…' : 'Editar e reenviar'}
           </Button>
-        </div>
-      </DialogFrame>
-    </div>
+        </CompactDialogActions>
+      </CompactDialog>
+    </CompactDialogOverlay>
   );
 }

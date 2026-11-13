@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '../../src/components/ds/Button';
 import { DataTable } from '../../src/components/ds/DataTable';
-import { DialogFrame } from '../../src/components/ds/DialogFrame';
-import { DialogForm } from '../../src/components/ds/DialogForm';
+import { WorkflowDialog, WorkflowDialogActions, WorkflowDialogForm } from '../../src/components/ds/WorkflowDialog';
+import { WorkflowHeading } from '../../src/components/ds/WorkflowHeading';
 import { EmptyState } from '../../src/components/ds/EmptyState';
 import { FieldLabel } from '../../src/components/ds/FieldLabel';
 import { FilterSelect } from '../../src/components/ds/FilterSelect';
@@ -20,9 +20,9 @@ import { ReportValidationBlock, type ReportSignatureStyleV59 } from '../../src/c
 import { capacityOf } from '../../src/lib/capacity';
 import '../../src/styles/theme-tokens.css';
 import '../../src/styles/surface-foundation.css';
-import '../../src/components/ds/surface-controls.css';
-import '../../src/components/workspace/workspace-shell.generated.css';
-import '../../src/components/workspace/operational.css';
+import '../../src/styles/workspace-compact-foundation.css';
+import '../../src/styles/workspace-compact-theme.css';
+import '../../src/components/workspace/workspace-motion.css';
 import '../../src/components/reports/report-document-a4.css';
 import './visual-variants.css';
 
@@ -56,7 +56,7 @@ export function VisualVariants() {
   return <>{surface === 'loader' ? <WorkspaceRouteLoader /> : <main className="fixture-visual v2-admin-page v2-client-module" aria-label="Variantes de componentes">
     <section aria-label="Ações" className="fixture-visual-card">
       <h2>Ações</h2>
-      <div className="fixture-visual-actions wf-head">
+      <WorkflowHeading className="fixture-visual-actions">
         {buttons.map(([variant, label]) => <Button key={variant} variant={variant} type="button">{label}</Button>)}
         <Button variant="primary" type="button" disabled>Indisponível</Button>
         <Button variant="workflowPrimary" type="button" pending>Salvando…</Button>
@@ -64,7 +64,7 @@ export function VisualVariants() {
           <Button variant="close" type="button"><X size={18} /></Button>
           <Button variant="inlineClose" type="button" aria-label="Fechar prévia"><X size={18} /></Button>
         </span>
-      </div>
+      </WorkflowHeading>
     </section>
     <section aria-label="Campos e estados" className="fixture-visual-card">
       <h2>Campos e estados</h2>
@@ -135,29 +135,29 @@ export function VisualVariants() {
       <Button type="button" variant="secondary" onClick={() => setSurface('loader')}>Carregar página</Button>
     </section>
     {surface === 'frame' && <div className="wf-modal-overlay fixture-dialog-overlay">
-      <DialogFrame className="wf-modal wf-create" aria-label="Revisão de entrega">
+      <WorkflowDialog create aria-label="Revisão de entrega">
         <Button type="button" variant="close" onClick={() => setSurface(null)}><X size={18} /></Button>
         <h2>Revisão de entrega</h2>
         <p>Confira o documento antes de concluir a revisão.</p>
-        <div className="wf-modal-actions">
+        <WorkflowDialogActions>
           <Button type="button" variant="workflowOutline" onClick={() => setSurface(null)}>Voltar</Button>
           <Button type="button" variant="workflowPrimary" onClick={() => setSurface(null)}>Continuar</Button>
-        </div>
-      </DialogFrame>
+        </WorkflowDialogActions>
+      </WorkflowDialog>
     </div>}
     {surface === 'form' && <div className="wf-modal-overlay fixture-dialog-overlay">
-      <DialogForm className="wf-modal wf-create" aria-label="Registrar revisão" onSubmit={(event) => {
+      <WorkflowDialogForm create aria-label="Registrar revisão" onSubmit={(event) => {
         event.preventDefault();
         setSurface(null);
       }}>
         <Button type="button" variant="close" onClick={() => setSurface(null)}><X size={18} /></Button>
         <h2>Registrar revisão</h2>
         <FieldLabel>Observação<GuidedInput required autoFocus /></FieldLabel>
-        <div className="wf-modal-actions">
+        <WorkflowDialogActions>
           <Button type="button" variant="workflowOutline" onClick={() => setSurface(null)}>Cancelar</Button>
           <Button type="submit" variant="workflowPrimary">Salvar</Button>
-        </div>
-      </DialogForm>
+        </WorkflowDialogActions>
+      </WorkflowDialogForm>
     </div>}
   </main>}</>;
 }

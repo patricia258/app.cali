@@ -1,3 +1,4 @@
+import './loading-state.css';
 import './route-loading.css';
 
 export function WorkspaceRouteLoader() {

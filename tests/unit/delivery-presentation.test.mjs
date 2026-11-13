@@ -3,6 +3,9 @@ import { test } from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DeliveryHistory } from '../../src/components/projects/DeliveryHistory.tsx';
+import { DeliveryDetailTabs } from '../../src/components/projects/DeliveryDetailTabs.tsx';
+import { ProjectComplexityBadge } from '../../src/components/projects/ProjectComplexityBadge.tsx';
+import { StatusBadge } from '../../src/components/ds/StatusBadge.tsx';
 import { ClientDeliverySteps } from '../../src/modules/client/deliverables/components/ClientDeliverySteps.tsx';
 
 const render = (Component, props) => renderToStaticMarkup(createElement(Component, props));
@@ -40,4 +43,24 @@ test('etapas do Cliente anunciam progresso, marcam a próxima e preservam prazos
   const empty = render(ClientDeliverySteps, { tasks: [], formatDate });
   assert.match(empty, /Nenhuma etapa compartilhada/);
   assert.doesNotMatch(empty, /role="progressbar"|<ol/);
+});
+
+test('abas do entregável preservam botões e anunciam a seção selecionada', () => {
+  const markup = render(DeliveryDetailTabs, {
+    tabs: ['overview', 'conversation'], selected: 'conversation', onChange() {},
+    label: (tab) => tab === 'overview' ? 'Visão geral' : 'Conversas',
+  });
+  assert.match(markup, /<nav aria-label="Detalhes da entrega"/);
+  assert.match(markup, /<button type="button"[^>]*aria-pressed="false">Visão geral<\/button>/);
+  assert.match(markup, /<button type="button"[^>]*aria-pressed="true">Conversas<\/button>/);
+});
+
+test('badges de entrega e complexidade carregam suas variantes sem folha de Projetos', () => {
+  const review = render(StatusBadge, { variant: 'delivery', tone: 'review', children: 'Aguardando você' });
+  assert.match(review, /dv-status[^"]*tw:bg-\[#fff0d9\][^"]*">Aguardando você/);
+  const mc = render(ProjectComplexityBadge, { code: 'MC2', explain: true });
+  assert.match(mc, /aria-label="MC2: [^"]+" data-tip="[^"]+">MC2<\/b>/);
+  const old = render(ProjectComplexityBadge, { code: 'Antiga', explain: true });
+  assert.doesNotMatch(old, /data-tip/);
+  assert.match(old, />Antiga<\/b>/);
 });

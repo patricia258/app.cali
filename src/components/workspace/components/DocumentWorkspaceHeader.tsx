@@ -20,7 +20,7 @@ export function DocumentWorkspaceHeader({ pageLabel, pathname, products, timer, 
       tw:border-b tw:border-solid tw:border-[var(--v2-line)] tw:bg-[var(--v2-surface)] tw:px-7 tw:py-2.5 tw:outline-none
       tw:[@media(max-width:64rem)]:px-5 tw:max-[53.8125rem]:pl-[3.625rem] tw:[@media(max-width:40rem)]:justify-end
       tw:[@media(max-width:37.5rem)]:items-start tw:[@media(max-width:37.5rem)]:gap-2 tw:[@media(max-width:37.5rem)]:pr-3
-      tw:print:hidden!
+      tw:print:hidden! tw:[body.workspace-modal-open_&]:invisible! tw:[body.workspace-modal-open_&]:pointer-events-none!
       `}>
       <div className="tw:flex tw:items-center tw:gap-3 tw:[@media(max-width:40rem)]:hidden">
         <span className="tw:h-[2.1875rem] tw:w-[0.5625rem] tw:rounded-full tw:bg-[linear-gradient(180deg,#5a1e2d,#b58c52)] tw:shadow-[0_0.4375rem_1rem_#5a1e2d33]" aria-hidden="true" />

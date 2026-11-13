@@ -14,8 +14,21 @@
 }
 
 @custom-variant workspace-night (&:where(html[data-workspace-theme='night'] *));
+@custom-variant workspace-documents (&:where(html[data-workspace-surface='admin-documents'] *));
 @custom-variant workspace-compact (&:where(html[data-workspace-ui='v2'] *));
+@custom-variant workspace-standalone (&:where(html[data-workspace-surface] *));
 @custom-variant compact-content (&:where(html[data-workspace-ui='v2'] .main *));
+
+@theme {
+  --animate-message-arrive: cali-message-arrive .56s cubic-bezier(.2, .78, .2, 1) both;
+
+  @keyframes cali-message-arrive {
+    0% { opacity: 0; transform: translateY(18px) scale(.94); }
+    58% { opacity: 1; transform: translateY(-5px) scale(1.018); }
+    78% { transform: translateY(2px) scale(.994); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+}
 
 @theme inline {
   --color-cali-brand: var(--cali-color-burgundy);

@@ -1,3 +1,9 @@
+import { WorkflowPage } from '../../../components/ds/WorkflowPage';
+import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
+import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
+import { WorkflowControls, WorkflowSegments } from '../../../components/ds/WorkflowControls';
+import { WorkflowHeading } from '../../../components/ds/WorkflowHeading';
+import { WorkflowList, WorkflowListRow } from '../../../components/ds/WorkflowList';
 import { WorkspaceConfirmDialog } from '../../../components/workspace/components/WorkspaceConfirmDialog';
 import { WorkspaceDialogOverlay } from '../../../components/workspace/components/WorkspaceDialogOverlay';
 import { FormDetail } from './components/FormDetail';
@@ -89,7 +95,7 @@ export function AdminFormsPage() {
     setForms((current) => [data as FormRecord, ...current]); go((data as FormRecord).id);
   }
 
-  return <Shell role="admin"><div className="ap-app v2-admin-page v2-forms v2-client-module tw:[--fm-wine:#5a1e2d] tw:[--fm-line:#eadfd6] tw:[--fm-muted:#8c7e74]
+  return <Shell role="admin"><WorkspaceAdminPage className="v2-forms v2-client-module tw:[--fm-wine:#5a1e2d] tw:[--fm-line:#eadfd6] tw:[--fm-muted:#8c7e74]
     tw:[--fm-ink:#3e3533] tw:[&_.wf-head_.v2-head-actions_a]:no-underline tw:[&_label>span]:block
     tw:[&_label>span]:text-[0.846rem] tw:[&_label>span]:font-semibold tw:[&_label>span]:text-[color:var(--fm-ink)]
     tw:[&_label>span]:mb-[0.462rem] tw:[&_label>span_em]:not-italic tw:[&_label>span_em]:font-medium
@@ -101,27 +107,27 @@ export function AdminFormsPage() {
     tw:[&_:is(.v2-forms-grid,.v2-forms-q,.v2-forms-scale,.v2-forms-options)_:is(input:not([type=checkbox]),select,textarea)]:text-[color:var(--fm-ink)]
     tw:[&_:is(.v2-forms-grid,.v2-forms-q,.v2-forms-scale,.v2-forms-options)_:is(input:not([type=checkbox]),select,textarea)]:bg-white
     tw:[&_textarea]:resize-y tw:[&_:is(input,select,textarea):focus]:outline-none tw:[&_:is(input,select,textarea):focus]:[border-color:var(--fm-wine)]
-    tw:[&_:is(input,select,textarea):focus]:[box-shadow:0_0_0_0.231rem_rgba(90,30,45,.08)]"><div className="ap-content"><div className="wf">
+    tw:[&_:is(input,select,textarea):focus]:[box-shadow:0_0_0_0.231rem_rgba(90,30,45,.08)]"><WorkspaceAdminContent><WorkflowPage>
     {open ? <FormDetail key={open.id} form={open} tab={tab} companies={companies} stats={overview[open.id]} onTab={(next) => go(open.id, next)} onBack={() => { go(null); void load(); }} onDuplicate={() => void duplicate(open)}
       onSaved={(saved) => setForms((current) => current.map((item) => item.id === saved.id ? saved : item))}
       onDeleted={() => { setForms((current) => current.filter((item) => item.id !== open.id)); go(null); }} />
     : <>
-      <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Formulários</h1><p>Pesquisas, questionários, inscrições, levantamentos: crie qualquer formulário com a identidade CALI, envie por link ou QR Code e veja as respostas reunidas aqui.</p></div>
-        <div className="v2-head-actions"><Button variant="formSecondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</Button><Button variant="workflowPrimary" type="button" onClick={() => setCreating({ title: '', category: '', audience: 'cali', busy: false, error: '' })}><Plus size={15} /> Novo formulário</Button></div></div>
+      <WorkflowHeading><div><small>BACKOFFICE / CALI RH</small><h1>Formulários</h1><p>Pesquisas, questionários, inscrições, levantamentos: crie qualquer formulário com a identidade CALI, envie por link ou QR Code e veja as respostas reunidas aqui.</p></div>
+        <div className="v2-head-actions tw:flex tw:flex-wrap tw:items-center tw:gap-[0.769rem]"><Button variant="formSecondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</Button><Button variant="workflowPrimary" type="button" onClick={() => setCreating({ title: '', category: '', audience: 'cali', busy: false, error: '' })}><Plus size={15} /> Novo formulário</Button></div></WorkflowHeading>
       {error && <InlineNotice role="alert">{error}</InlineNotice>}
-      <div className="wf-controls v2-forms-filter tw:[margin:0_0_0.462rem] tw:[&_.wf-segments_button_b]:ml-[0.385rem]
-        tw:[&_.wf-segments_button_b]:font-bold tw:[&_.wf-segments_button_b]:opacity-[.6]"><div className="wf-segments">{([['all', 'Todos'], ['cali', AUDIENCE_LABELS.cali], ['client', AUDIENCE_LABELS.client], ['trash', 'Lixeira']] satisfies Array<['all' | FormAudience | 'trash', string]>).map(([key, label]) => <button type="button" key={key} className={audienceFilter === key ? 'on' : ''} onClick={() => setAudienceFilter(key)}>{label} <b>{key === 'all' ? forms.length : key === 'trash' ? trash.length : forms.filter((form) => form.audience === key).length}</b></button>)}</div></div>
+      <WorkflowControls className="v2-forms-filter tw:[margin:0_0_0.462rem] tw:[&_.wf-segments_button_b]:ml-[0.385rem]
+        tw:[&_.wf-segments_button_b]:font-bold tw:[&_.wf-segments_button_b]:opacity-[.6]"><WorkflowSegments>{([['all', 'Todos'], ['cali', AUDIENCE_LABELS.cali], ['client', AUDIENCE_LABELS.client], ['trash', 'Lixeira']] satisfies Array<['all' | FormAudience | 'trash', string]>).map(([key, label]) => <button type="button" key={key} className={audienceFilter === key ? 'on' : ''} onClick={() => setAudienceFilter(key)}>{label} <b>{key === 'all' ? forms.length : key === 'trash' ? trash.length : forms.filter((form) => form.audience === key).length}</b></button>)}</WorkflowSegments></WorkflowControls>
       {audienceFilter === 'trash' ? <>
         <div className="wf-group-head"><div><span>LIXEIRA</span><strong>Excluídos nos últimos {TRASH_DAYS} dias</strong></div><b>{trash.length}</b></div>
-        {loading ? <LoadingState>Carregando…</LoadingState> : trash.length ? <div className="wf-records v2-forms-list v2-forms-trash tw:[&_.wf-record-row]:gap-x-[1.538rem]! tw:[&_.wf-record-row]:pt-[1.231rem]!
+        {loading ? <LoadingState>Carregando…</LoadingState> : trash.length ? <WorkflowList className="v2-forms-list v2-forms-trash tw:[&_.wf-record-row]:gap-x-[1.538rem]! tw:[&_.wf-record-row]:pt-[1.231rem]!
           tw:[&_.wf-record-row]:pb-[1.231rem]! tw:[@media(max-width:760px)]:[&_.wf-record-row>span:nth-child(n+3)]:hidden!
           tw:[@media(max-width:760px)]:[&_.wf-record-row.header]:hidden! tw:[&_.wf-record-row]:grid-cols-[minmax(18.462rem,2fr)_minmax(13.077rem,1.2fr)_11.538rem_10.769rem_11.538rem]!
           tw:[&_.wf-record-row]:cursor-default tw:[&_.wf-record-row:not(.header):hover]:bg-transparent! tw:[@media(max-width:760px)]:[&_.wf-record-row]:grid-cols-[1fr_auto]!
           tw:[@media(max-width:760px)]:[&_.wf-record-row>span:nth-child(2)]:block! tw:[@media(max-width:760px)]:[&_.wf-record-row>span:nth-child(2)]:col-span-full
           tw:[@media(max-width:760px)]:[&_.wf-record-row>span:nth-child(2)]:order-[3] tw:[@media(max-width:760px)]:[&_.wf-record-row>span:nth-child(2)]:text-[0.923rem]
           tw:[@media(max-width:760px)]:[&_.wf-record-row>span:nth-child(5)]:flex!">
-          <div className="wf-record-row header"><span>Formulário</span><span>O que foi excluído</span><span>Excluído em</span><span>Apagado de vez em</span><span /></div>
-          {trash.map((item) => <div className="wf-record-row" key={item.id}>
+          <WorkflowListRow header><span>Formulário</span><span>O que foi excluído</span><span>Excluído em</span><span>Apagado de vez em</span><span /></WorkflowListRow>
+          {trash.map((item) => <WorkflowListRow  key={item.id}>
             <span className="v2-forms-name tw:flex tw:flex-col tw:gap-[0.231rem] tw:min-w-0 tw:[&_strong]:text-[1rem] tw:[&_strong]:text-[color:var(--fm-ink)]
               tw:[&_strong]:overflow-hidden tw:[&_strong]:text-ellipsis tw:[&_strong]:whitespace-nowrap tw:[&_small]:text-[0.846rem]
               tw:[&_small]:text-[color:var(--fm-muted)] tw:[&_small]:overflow-hidden tw:[&_small]:text-ellipsis
@@ -130,16 +136,16 @@ export function AdminFormsPage() {
             <span>{dateTime(item.deleted_at)}</span>
             <span>{shortDate(new Date(new Date(item.deleted_at).getTime() + TRASH_DAYS * 86400000).toISOString())}</span>
             <span className="v2-forms-row-actions tw:flex tw:justify-end"><Button type="button" variant="formSecondary" disabled={Boolean(restoring)} onClick={() => void restore(item)}><RefreshCw size={14} /> {restoring === item.id ? 'Restaurando…' : 'Restaurar'}</Button></span>
-          </div>)}
-        </div> : <EmptyState variant="workflow"><strong>A lixeira está vazia.</strong><p>Formulários e respostas excluídos ficam aqui por {TRASH_DAYS} dias e podem ser restaurados.</p></EmptyState>}
+          </WorkflowListRow>)}
+        </WorkflowList> : <EmptyState variant="workflow"><strong>A lixeira está vazia.</strong><p>Formulários e respostas excluídos ficam aqui por {TRASH_DAYS} dias e podem ser restaurados.</p></EmptyState>}
       </> : <>
       <div className="wf-group-head"><div><span>FORMULÁRIOS</span><strong>{audienceFilter === 'all' ? 'Todos os formulários' : audienceFilter === 'cali' ? 'Formulários da CALI' : 'Formulários para clientes'}</strong></div><b>{visible.length}</b></div>
-      {loading ? <LoadingState>Carregando formulários…</LoadingState> : visible.length ? <div className="wf-records v2-forms-list tw:[&_.wf-record-row]:grid-cols-[minmax(20rem,2.6fr)_minmax(8.462rem,.8fr)_minmax(13.077rem,1fr)_7.692rem_10rem_9.231rem_10.769rem]!
+      {loading ? <LoadingState>Carregando formulários…</LoadingState> : visible.length ? <WorkflowList className="v2-forms-list tw:[&_.wf-record-row]:grid-cols-[minmax(20rem,2.6fr)_minmax(8.462rem,.8fr)_minmax(13.077rem,1fr)_7.692rem_10rem_9.231rem_10.769rem]!
         tw:[&_.wf-record-row]:gap-x-[1.538rem]! tw:[&_.wf-record-row]:pt-[1.231rem]! tw:[&_.wf-record-row]:pb-[1.231rem]!
         tw:[&_.wf-record-row]:cursor-pointer tw:[&_.wf-record-row:not(.header):hover]:bg-[#fbf7f3]! tw:[@media(max-width:760px)]:[&_.wf-record-row]:grid-cols-[1fr_auto]!
         tw:[@media(max-width:760px)]:[&_.wf-record-row>span:nth-child(n+3)]:hidden! tw:[@media(max-width:760px)]:[&_.wf-record-row.header]:hidden!">
-        <div className="wf-record-row header"><span>Formulário</span><span>Para quem</span><span>Situação</span><span>Respostas</span><span>Última resposta</span><span>Atualizado</span><span /></div>
-        {visible.map((form) => <div className="wf-record-row" key={form.id} role="button" tabIndex={0} onClick={() => go(form.id)} onKeyDown={(event) => { if (event.key === 'Enter') go(form.id); }}>
+        <WorkflowListRow header><span>Formulário</span><span>Para quem</span><span>Situação</span><span>Respostas</span><span>Última resposta</span><span>Atualizado</span><span /></WorkflowListRow>
+        {visible.map((form) => <WorkflowListRow  key={form.id} role="button" tabIndex={0} onClick={() => go(form.id)} onKeyDown={(event) => { if (event.key === 'Enter') go(form.id); }}>
           <span className="v2-forms-name tw:flex tw:flex-col tw:gap-[0.231rem] tw:min-w-0 tw:[&_strong]:text-[1rem] tw:[&_strong]:text-[color:var(--fm-ink)]
             tw:[&_strong]:overflow-hidden tw:[&_strong]:text-ellipsis tw:[&_strong]:whitespace-nowrap tw:[&_small]:text-[0.846rem]
             tw:[&_small]:text-[color:var(--fm-muted)] tw:[&_small]:overflow-hidden tw:[&_small]:text-ellipsis
@@ -150,11 +156,11 @@ export function AdminFormsPage() {
           <span>{shortDate(overview[form.id]?.last)}</span>
           <span>{shortDate(form.updated_at)}</span>
           <span className="v2-forms-row-actions tw:flex tw:justify-end"><Button type="button" variant="formSecondary" onClick={(event) => { event.stopPropagation(); go(form.id, 'responses'); }}><ListChecks size={14} /> Respostas</Button></span>
-        </div>)}
-      </div> : <EmptyState variant="workflow"><strong>Nenhum formulário ainda.</strong><p>Clique em “Novo formulário” para criar o primeiro. Ele começa como rascunho: só recebe respostas depois que você abrir.</p></EmptyState>}
+        </WorkflowListRow>)}
+      </WorkflowList> : <EmptyState variant="workflow"><strong>Nenhum formulário ainda.</strong><p>Clique em “Novo formulário” para criar o primeiro. Ele começa como rascunho: só recebe respostas depois que você abrir.</p></EmptyState>}
       </>}
     </>}
-  </div></div>
+  </WorkflowPage></WorkspaceAdminContent>
   {creating && <WorkspaceDialogOverlay onMouseDown={(event) => { if (event.target === event.currentTarget && !creating.busy) setCreating(null); }}><WorkspaceConfirmDialog aria-label="Novo formulário">
     <div><small>CALI FORMS</small><h2>Novo formulário</h2><p>Começa como rascunho, já com as perguntas de nome e e-mail. Você monta o resto em seguida.</p></div>
     <label>Nome do formulário<input value={creating.title} maxLength={160} autoFocus placeholder="Ex.: Pesquisa de clima 2026" onChange={(event) => setCreating({ ...creating, title: event.target.value, error: '' })} onKeyDown={(event) => { if (event.key === 'Enter') void create(); }} /></label>
@@ -165,5 +171,5 @@ export function AdminFormsPage() {
       tw:font-semibold tw:bg-[#fff6f4] tw:text-[#b42318] tw:[border:1px_solid_#f1c4bd]" role="alert">{creating.error}</p>}
     <footer><button type="button" disabled={creating.busy} onClick={() => setCreating(null)}>Cancelar</button><button type="button" disabled={creating.busy} onClick={() => void create()}>{creating.busy ? 'Criando…' : 'Criar formulário'}</button></footer>
   </WorkspaceConfirmDialog></WorkspaceDialogOverlay>}
-  </div></Shell>;
+  </WorkspaceAdminPage></Shell>;
 }

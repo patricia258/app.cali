@@ -1,3 +1,9 @@
+import { WorkflowPage } from '../../../components/ds/WorkflowPage';
+import { StatusBadge } from '../../../components/ds/StatusBadge';
+import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
+import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
+import { WorkflowHeading } from '../../../components/ds/WorkflowHeading';
+import { WorkflowList, WorkflowListRow } from '../../../components/ds/WorkflowList';
 import { confirmAction } from '../../../components/feedback/workspaceDialogs';
 import { Button } from '../../../components/ds/Button';
 import { EmptyState } from '../../../components/ds/EmptyState';
@@ -42,8 +48,8 @@ export function AdminProposalsPage(){
  const contactDirty=selected?contact.contact_name!==(selected.contact_name||'')||contact.contact_role!==(selected.contact_role||'')||contact.contact_email!==(selected.contact_email||'')||contact.contact_phone!==(selected.contact_phone||'')||contact.company_name!==(selected.company_name||'')||contact.company_location!==(selected.company_location||''):false;
  const latest=selectedProposals[0];
  const statusTone=(value:string)=>value==='fechada'||value==='aprovada'?'green':value==='enviada'||value==='negociacao'?'blue':value==='recusada'||value==='expirada'?'red':value==='novo'?'yellow':'purple';
- return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-proposals v2-client-module"><div className="ap-content"><div className="wf">
-  <div className="wf-head tw:items-start"><div><small>BACKOFFICE / PORTAL CALI</small><h1>Propostas</h1><p>Briefings que chegam pelo Portal, análise comercial, proposta e histórico no mesmo fluxo.</p></div><div className="v2-head-actions"><Button variant="workflowSecondary" type="button" onClick={exportCsv} disabled={!filtered.length}><Download size={15}/> Baixar CSV</Button><Button variant="workflowSecondary" type="button" onClick={()=>void load()} disabled={loading}><RefreshCw size={15}/> Atualizar</Button></div></div>
+ return <Shell role="admin"><WorkspaceAdminPage className="v2-admin-proposals v2-client-module"><WorkspaceAdminContent><WorkflowPage>
+  <WorkflowHeading className="tw:items-start"><div><small>BACKOFFICE / PORTAL CALI</small><h1>Propostas</h1><p>Briefings que chegam pelo Portal, análise comercial, proposta e histórico no mesmo fluxo.</p></div><div className="v2-head-actions tw:flex tw:flex-wrap tw:items-center tw:gap-[0.769rem]"><Button variant="workflowSecondary" type="button" onClick={exportCsv} disabled={!filtered.length}><Download size={15}/> Baixar CSV</Button><Button variant="workflowSecondary" type="button" onClick={()=>void load()} disabled={loading}><RefreshCw size={15}/> Atualizar</Button></div></WorkflowHeading>
   {error&&<InlineNotice tone="danger">{error}</InlineNotice>}
   <AdminMetricsStrip metrics={[
           { label: 'Novas', value: kpis.novo, description: 'aguardam primeira leitura' },
@@ -59,21 +65,21 @@ export function AdminProposalsPage(){
      ${showArchived ? 'on tw:border-cali-brand tw:bg-[#f6edf0] tw:text-cali-brand' : 'tw:border-[#e5d9d0] tw:bg-white tw:text-[#67574c]'}`} aria-pressed={showArchived} onClick={()=>setShowArchived(v=>!v)}>{showArchived?<ArchiveRestore size={14}/>:<Archive size={14}/>} {showArchived?'Vendo arquivados':'Ver arquivados'}</button>
    <AdminListSearch value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar empresa, contato ou protocolo" aria-label="Buscar oportunidades" />
   </AdminListControls>
-  {loading?<LoadingState>Carregando dados reais do Portal…</LoadingState>:filtered.length?<div className="wf-records v2-proposal-list tw:mt-[1.23rem] tw:[&_.wf-record-row]:grid-cols-[minmax(0,2fr)_minmax(0,1.1fr)_minmax(0,1.1fr)_minmax(0,.8fr)_minmax(0,.9fr)_5.38rem]
+  {loading?<LoadingState>Carregando dados reais do Portal…</LoadingState>:filtered.length?<WorkflowList className="v2-proposal-list tw:mt-[1.23rem] tw:[&_.wf-record-row]:grid-cols-[minmax(0,2fr)_minmax(0,1.1fr)_minmax(0,1.1fr)_minmax(0,.8fr)_minmax(0,.9fr)_5.38rem]
     tw:[&_.wf-record-row]:cursor-pointer tw:max-[860px]:[&_.wf-record-row]:grid-cols-[minmax(0,1fr)_auto]
     tw:max-[860px]:[&_.wf-record-row.header]:hidden tw:max-[860px]:[&_.wf-record-row>span:nth-child(n+2):not(:nth-child(5))]:hidden">
-   <div className="wf-record-row header"><span>Empresa / Contato</span><span>Serviço</span><span>Momento</span><span>Entrada</span><span>Status</span><span/></div>
-   {filtered.map(item=>{const momentKey=item.answers?.momento_empresa?'momento_empresa':item.answers?.prazo_inicio?'prazo_inicio':item.answers?.data_desejada?'data_desejada':'decisao_evento';return <div className="wf-record-row" key={item.id} role="button" tabIndex={0} onClick={()=>setSelectedId(item.id)} onKeyDown={event=>{if(event.target===event.currentTarget&&(event.key==='Enter'||event.key===' ')){event.preventDefault();setSelectedId(item.id)}}}>
+   <WorkflowListRow header><span>Empresa / Contato</span><span>Serviço</span><span>Momento</span><span>Entrada</span><span>Status</span><span/></WorkflowListRow>
+   {filtered.map(item=>{const momentKey=item.answers?.momento_empresa?'momento_empresa':item.answers?.prazo_inicio?'prazo_inicio':item.answers?.data_desejada?'data_desejada':'decisao_evento';return <WorkflowListRow  key={item.id} role="button" tabIndex={0} onClick={()=>setSelectedId(item.id)} onKeyDown={event=>{if(event.target===event.currentTarget&&(event.key==='Enter'||event.key===' ')){event.preventDefault();setSelectedId(item.id)}}}>
     <span><small>{item.protocol}</small><strong>{item.company_name||item.contact_name}</strong><small>{item.contact_name} · {item.contact_email}</small></span>
     <span>{portalServiceLabel(item.service_slug)}</span>
     <span>{readablePortalValue(momentKey,item.answers?.[momentKey])}</span>
     <span>{formatDate(item.created_at)}</span>
-    <span><span className={`wf-tag ${statusTone(item.status)}`}>{portalStatusLabel(item.status)}</span></span>
+    <span><StatusBadge variant="workflow" tone={statusTone(item.status)}>{portalStatusLabel(item.status)}</StatusBadge></span>
     <AdminRowActions><AdminRowButton title="Abrir briefing" aria-label="Abrir briefing" onClick={event=>{event.stopPropagation();setSelectedId(item.id)}}><FileText size={15}/></AdminRowButton><AdminRowButton title={item.archived_at?'Restaurar':'Arquivar'} aria-label={item.archived_at?'Restaurar':'Arquivar'} onClick={event=>{event.stopPropagation();void toggleArchive(item)}}>{item.archived_at?<ArchiveRestore size={15}/>:<Archive size={15}/>}</AdminRowButton></AdminRowActions>
-   </div>})}
-  </div>:<EmptyState variant="workflow"><strong>Nenhuma oportunidade encontrada.</strong><p>Ajuste os filtros ou confira os arquivados.</p></EmptyState>}
- </div></div>
- {selected&&<><button className="portal-admin-drawer-backdrop tw:fixed tw:inset-0 tw:z-970 tw:cursor-default tw:border-0 tw:bg-[#171017a8] tw:p-0 tw:backdrop-blur-[0.23rem]" onClick={()=>setSelectedId(null)} aria-label="Fechar"/><aside className="portal-admin-drawer tw:[body:has(&)]:overflow-hidden! tw:fixed tw:inset-y-0 tw:right-0 tw:z-980 tw:m-0 tw:flex tw:w-[min(43.08rem,100vw)]!
+   </WorkflowListRow>})}
+  </WorkflowList>:<EmptyState variant="workflow"><strong>Nenhuma oportunidade encontrada.</strong><p>Ajuste os filtros ou confira os arquivados.</p></EmptyState>}
+ </WorkflowPage></WorkspaceAdminContent>
+ {selected&&<><button className="portal-admin-drawer-backdrop tw:workspace-compact:motion-safe:animate-[v2-fade_.22s_ease-out_backwards] tw:workspace-compact:motion-safe:[&>*]:animate-[v2-pop_.34s_cubic-bezier(.2,.7,.2,1)_backwards] tw:fixed tw:inset-0 tw:z-970 tw:cursor-default tw:border-0 tw:bg-[#171017a8] tw:p-0 tw:backdrop-blur-[0.23rem]" onClick={()=>setSelectedId(null)} aria-label="Fechar"/><aside className="portal-admin-drawer tw:[body:has(&)]:overflow-hidden! tw:fixed tw:inset-y-0 tw:right-0 tw:z-980 tw:m-0 tw:flex tw:w-[min(43.08rem,100vw)]!
    tw:max-w-none! tw:flex-col tw:rounded-none! tw:border-0 tw:border-l tw:border-solid tw:border-[#e8ded6]
    tw:bg-white tw:p-0! tw:text-[0.92rem] tw:text-[#332b29] tw:shadow-[-18px_0_60px_#28172433] tw:[font-family:Inter,system-ui,sans-serif]
    tw:[&_label]:flex tw:[&_label]:min-w-0 tw:[&_label]:flex-col tw:[&_label]:gap-[0.46rem] tw:[&_label]:text-[0.77rem]
@@ -126,5 +132,5 @@ export function AdminProposalsPage(){
    tw:shadow-none! tw:[&_h3]:m-0 tw:[&_h3]:text-[0.92rem] tw:[&_h3]:font-bold tw:[&_h3]:text-[#322f2c]
    tw:[&_p]:mx-0 tw:[&_p]:mt-[0.31rem] tw:[&_p]:mb-0 tw:[&_p]:text-[0.85rem] tw:[&_p]:leading-normal
    tw:[&_p]:text-[#857870]"><h3>Histórico</h3>{selectedActivity.length?<div className="portal-activity-list tw:flex tw:flex-col tw:gap-[0.62rem]">{selectedActivity.map(event=><article key={event.id} className="tw:flex tw:items-baseline tw:gap-[0.77rem] tw:text-[0.85rem]"><span className="tw:flex-none tw:text-[0.77rem] tw:text-[#a18e80]">{formatDate(event.created_at,true)}</span><strong className="tw:font-semibold tw:text-[#322f2c] tw:capitalize">{event.event_type.replace(/_/g,' ')}</strong></article>)}</div>:<p className="portal-admin-muted tw:m-0! tw:text-[0.85rem] tw:text-[#96867c]!">Sem eventos registrados ainda.</p>}</section></div><footer className="tw:m-0 tw:flex tw:flex-none tw:flex-wrap tw:items-center tw:gap-[0.62rem] tw:border-t tw:border-solid
-   tw:border-[#eadfd6] tw:bg-[#fffdfb] tw:px-[1.85rem]! tw:py-[1.08rem]! tw:[&_button]:self-center"><Button variant="secondary" onClick={()=>void toggleArchive(selected)}>{selected.archived_at?'Restaurar':'Arquivar'}</Button><Button variant="primary" onClick={()=>window.location.assign(`/admin/propostas/${selected.id}/editar`)}>{proposalActionLabel(latest)}</Button><span className="tw:ml-auto tw:text-[0.77rem] tw:text-[#96867c]">{saving?'Salvando alterações…':'Dados sincronizados com o Portal'}</span></footer></aside></>}</div></Shell>
+   tw:border-[#eadfd6] tw:bg-[#fffdfb] tw:px-[1.85rem]! tw:py-[1.08rem]! tw:[&_button]:self-center"><Button variant="secondary" onClick={()=>void toggleArchive(selected)}>{selected.archived_at?'Restaurar':'Arquivar'}</Button><Button variant="primary" onClick={()=>window.location.assign(`/admin/propostas/${selected.id}/editar`)}>{proposalActionLabel(latest)}</Button><span className="tw:ml-auto tw:text-[0.77rem] tw:text-[#96867c]">{saving?'Salvando alterações…':'Dados sincronizados com o Portal'}</span></footer></aside></>}</WorkspaceAdminPage></Shell>
 }

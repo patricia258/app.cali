@@ -126,12 +126,12 @@ export function RecordMessageComposer({ role, partner, companyId, recordId, acto
         onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); } }}
       />
       <input ref={fileInput} type="file" hidden multiple={!partner} accept={accept} onChange={(event) => { chooseFiles(event.target.files); event.target.value = ''; }} />
-      {partner ? <div className="v2-staff-compose-actions tw:col-span-full tw:flex tw:items-center tw:justify-end tw:gap-[.77rem]">
-        <span className="v2-staff-compose-mode" role="tablist" aria-label="Para quem">
-          <button type="button" role="tab" aria-selected={!internal} className={!internal ? 'on' : ''} onClick={() => setInternal(false)}>Cliente</button>
-          <button type="button" role="tab" aria-selected={internal} className={internal ? 'on' : ''} onClick={() => setInternal(true)}>Interno</button>
+      {partner ? <div className="tw:col-span-full tw:flex tw:flex-wrap tw:items-center tw:justify-end tw:gap-[.77rem] tw:[&>*]:my-0!">
+        <span className="tw:inline-flex tw:h-[2.77rem] tw:w-auto tw:items-stretch tw:self-center tw:overflow-hidden tw:rounded-[.538rem] tw:border tw:border-solid tw:border-[#e7ddd5] tw:bg-white" role="tablist" aria-label="Para quem">
+          <button type="button" role="tab" aria-selected={!internal} className="tw:inline-flex tw:h-auto tw:w-auto tw:cursor-pointer tw:items-center tw:rounded-none tw:border-0 tw:bg-white tw:px-[.923rem] tw:py-[.462rem] tw:text-[.846rem] tw:font-semibold tw:text-[#8b7f77] tw:aria-selected:bg-cali-brand tw:aria-selected:text-white" onClick={() => setInternal(false)}>Cliente</button>
+          <button type="button" role="tab" aria-selected={internal} className="tw:inline-flex tw:h-auto tw:w-auto tw:cursor-pointer tw:items-center tw:rounded-none tw:border-0 tw:bg-white tw:px-[.923rem] tw:py-[.462rem] tw:text-[.846rem] tw:font-semibold tw:text-[#8b7f77] tw:aria-selected:bg-cali-brand tw:aria-selected:text-white" onClick={() => setInternal(true)}>Interno</button>
         </span>
-        <Button variant="secondary" className="v2-staff-attach" type="button" disabled={busy} title={attachments[0] ? 'Clique para trocar o arquivo' : 'PDF, imagem, Word, Excel ou PowerPoint, até 10 MB'} onClick={() => fileInput.current?.click()}><Paperclip size={14} /><span>{attachments[0]?.file.name ?? 'Anexar'}</span></Button>
+        <Button variant="secondary" className="tw:ml-auto tw:inline-flex tw:h-[2.77rem] tw:min-h-[2.77rem] tw:max-w-[16.92rem] tw:items-center tw:gap-[.538rem] tw:px-[1rem]! tw:[&_span]:truncate" type="button" disabled={busy} title={attachments[0] ? 'Clique para trocar o arquivo' : 'PDF, imagem, Word, Excel ou PowerPoint, até 10 MB'} onClick={() => fileInput.current?.click()}><Paperclip size={14} /><span>{attachments[0]?.file.name ?? 'Anexar'}</span></Button>
         <Button variant="primary" type="button" pending={busy} disabled={!draft.trim() && !attachments.length} onClick={() => void send()}><Send size={14} />{busy ? 'Enviando…' : 'Enviar'}</Button>
       </div> : <>
         <div className="tw:relative tw:col-start-1 tw:flex tw:items-center tw:gap-[.62rem]">

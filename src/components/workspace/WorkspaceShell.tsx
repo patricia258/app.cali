@@ -12,6 +12,7 @@ import { DocumentWorkspaceSidebar, isDocumentNavigationActive, type DocumentNavi
 import { DirectProfileControl } from './DirectProfileControl';
 import { NotificationCenter } from './WorkspaceChrome';
 import { AdminShell, ClientShell } from './WorkspaceShellLayout';
+import './document-workspace-theme.css';
 
 export type Role = 'admin' | 'client';
 
@@ -74,6 +75,7 @@ function WorkspaceChrome({ role, children }: { role: Role; children: ReactNode }
   return (
     <div
       className="app-shell tw:flex tw:min-h-dvh tw:w-screen tw:min-w-0 tw:max-w-[100vw] tw:overflow-x-clip tw:bg-[var(--v2-canvas)] tw:font-cali-body tw:text-[0.8125rem]/[inherit] tw:text-[var(--v2-text)]
+        tw:[body.workspace-modal-open_&]:overflow-visible!
         tw:print:has-[.portal-proposal-preview,.report-print-v16-stage]:block!
         tw:print:has-[.portal-proposal-preview,.report-print-v16-stage]:w-[210mm]!
         tw:print:has-[.portal-proposal-preview,.report-print-v16-stage]:max-w-none!
@@ -86,7 +88,8 @@ function WorkspaceChrome({ role, children }: { role: Role; children: ReactNode }
       <main
         className="main tw:min-h-dvh tw:w-screen tw:min-w-0 tw:max-w-[100vw] tw:bg-[var(--v2-canvas)]
         tw:[@media_screen_and_(min-width:53.8125rem)]:ml-14 tw:min-[53.8125rem]:w-[calc(100%-3.5rem)] tw:min-[53.8125rem]:max-w-[calc(100%-3.5rem)] tw:min-[53.8125rem]:basis-[calc(100%-3.5rem)]
-        tw:print:m-0!
+        tw:[body.workspace-modal-open_&]:overflow-visible!
+        tw:print:m-0! tw:print:w-full!
         tw:print:has-[.portal-proposal-preview,.report-print-v16-stage]:w-full!
         tw:print:has-[.portal-proposal-preview,.report-print-v16-stage]:max-w-none!
         tw:print:has-[.portal-proposal-preview,.report-print-v16-stage]:min-h-0!"
@@ -100,6 +103,12 @@ function WorkspaceChrome({ role, children }: { role: Role; children: ReactNode }
           onLogout={handleLogout}
         />
         <div className="workspace-view tw:relative tw:isolate tw:w-full tw:min-w-0 tw:max-w-full tw:bg-[var(--v2-canvas)] tw:[@media_screen]:pt-1.5
+          tw:[body.workspace-modal-open_&]:overflow-visible!
+          tw:[&_:is(h1,h2,h3):not(.portal-proposal-page_*,.reports-v16-paper_*)]:font-cali-body
+          tw:[&_h2:not(.portal-proposal-page_*,.reports-v16-paper_*)]:text-[clamp(1.25rem,1.7vw,1.55rem)]/[1.22]
+          tw:[&_h2:not(.portal-proposal-page_*,.reports-v16-paper_*)]:tracking-[-0.02em]
+          tw:[&_h3:not(.portal-proposal-page_*,.reports-v16-paper_*)]:font-[650]
+          tw:[&_h3:not(.portal-proposal-page_*,.reports-v16-paper_*)]:tracking-[-0.015em]
           tw:print:p-0!
           tw:print:has-[.portal-proposal-preview,.report-print-v16-stage]:max-w-none!
           tw:[&>:is(.page,.company-team,.fronts-page)]:mx-auto! tw:[&>:is(.page,.company-team,.fronts-page)]:my-0!
@@ -125,13 +134,4 @@ export function WorkspaceFrame({ role, children }: { role: Role; children: React
 export function Shell({ role, children }: { role: Role; children: ReactNode }) {
   const persistent = useContext(WorkspaceFrameContext);
   return persistent ? <>{children}</> : <WorkspaceChrome role={role}>{children}</WorkspaceChrome>;
-}
-
-export function Kpi({ label, value, helper }: { label: string; value: string; helper: string }) {
-  return <article className="kpi"><span>{label}</span><strong>{value}</strong><small>{helper}</small></article>;
-}
-
-export function Progress({ value }: { value: number }) {
-  const bounded = Math.max(0, Math.min(100, value));
-  return <div className="progress" aria-label={`${bounded}%`}><span style={{ width: `${bounded}%` }} /></div>;
 }

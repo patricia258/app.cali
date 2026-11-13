@@ -1,5 +1,6 @@
+import { Button } from '../../../../components/ds/Button';
 import { Fragment, useState, type ReactNode } from 'react';
-import { DialogFrame } from '../../../../components/ds/DialogFrame';
+import { CompactDialog, CompactDialogOverlay } from '../../../../components/ds/CompactDialog';
 import { InlineNotice } from '../../../../components/ds/InlineNotice';
 import { LoadingState } from '../../../../components/ds/LoadingState';
 import { useClientReportHistory } from '../hooks/useClientReportHistory';
@@ -28,12 +29,12 @@ export function ReportClientHistory({ companyId, currentId, onClose, renderCorre
   const [expanded, setExpanded] = useState<string[]>([]);
 
   return (
-    <div className="modal-backdrop full-screen-modal" onMouseDown={(event) => {
+    <CompactDialogOverlay onMouseDown={(event) => {
       if (event.target === event.currentTarget) onClose();
     }}>
-      <DialogFrame aria-label="Histórico do cliente" className="modal-card tw:w-[min(56.25rem,94vw)]! tw:max-w-[56.25rem]!">
-        <button className="modal-close" type="button" aria-label="Fechar" onClick={onClose}>×</button>
-        <span className="section-kicker">RASTREABILIDADE</span>
+      <CompactDialog aria-label="Histórico do cliente" className="tw:w-[min(56.25rem,94vw)]! tw:max-w-[56.25rem]!">
+        <Button variant="close" type="button" onClick={onClose}>×</Button>
+        <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-[0.769rem]/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-[#a88b76]">RASTREABILIDADE</span>
         <h2>Histórico do cliente</h2>
         {isPending ? <LoadingState>Carregando histórico…</LoadingState> : data ? (
           <>
@@ -115,8 +116,8 @@ export function ReportClientHistory({ companyId, currentId, onClose, renderCorre
             </div>
           </>
         ) : <InlineNotice>Não foi possível carregar o histórico.</InlineNotice>}
-      </DialogFrame>
-    </div>
+      </CompactDialog>
+    </CompactDialogOverlay>
   );
 }
 

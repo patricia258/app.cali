@@ -4,7 +4,7 @@ import { useNavigate } from '../../../hooks/useNavigate';
 
 type Destination = { label: string; href: string };
 
-export function CompactWorkspaceSearch({ destinations, resetKey }: { destinations: Destination[]; resetKey: string }) {
+export function CompactWorkspaceSearch({ admin, destinations, resetKey }: { admin: boolean; destinations: Destination[]; resetKey: string }) {
   const navigate = useNavigate();
   const root = useRef<HTMLDivElement>(null);
   const [searching, setSearching] = useState(false);
@@ -48,9 +48,9 @@ export function CompactWorkspaceSearch({ destinations, resetKey }: { destination
   return (
     <div className="tw:relative" ref={root}>
       {searching
-        ? <label className={searchStyle}><Search size={15} /><input autoFocus value={term} onChange={(event) => setTerm(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && results[0]) navigate(results[0].href); }} placeholder="Buscar no Workspace" aria-label="Buscar no Workspace" /></label>
-        : <button type="button" className={`${searchStyle} tw:cursor-pointer tw:text-left`} onClick={() => setSearching(true)} aria-label="Buscar no Workspace"><Search size={15} /><span>Buscar no Workspace</span><kbd className="tw:ml-auto tw:rounded-[0.308rem] tw:border tw:border-solid tw:border-[#ebe5df] tw:px-[0.308rem] tw:py-[0.077rem] tw:text-[0.769rem]/[inherit] tw:text-[#b2a8a1]">⌘ K</kbd></button>}
-      {searching && <div className="profile-dropdown v2-search-results tw:absolute tw:top-[calc(100%+1.077rem)] tw:z-45 tw:flex tw:min-w-full tw:flex-col tw:rounded-[0.692rem] tw:border tw:border-solid tw:border-[#e9ded6] tw:bg-white tw:px-4 tw:pt-[0.462rem] tw:pb-[0.923rem] tw:shadow-[0_12px_30px_#34202121]" role="listbox" aria-label="Resultados">
+        ? <label className={searchStyle}><Search size={15} /><input className="tw:w-full tw:min-w-0 tw:border-0 tw:bg-transparent tw:p-0 tw:text-[#322f2c] tw:outline-none" autoFocus value={term} onChange={(event) => setTerm(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && results[0]) navigate(results[0].href); }} placeholder="Buscar no Workspace" aria-label="Buscar no Workspace" /></label>
+        : <button type="button" className={`${searchStyle} tw:cursor-pointer tw:text-left ${admin ? 'tw:[@media(max-width:37.5rem)]:size-[2.692rem] tw:[@media(max-width:37.5rem)]:justify-center tw:[@media(max-width:37.5rem)]:p-0 tw:[@media(max-width:37.5rem)]:[&>:is(span,kbd)]:hidden' : ''}`} onClick={() => setSearching(true)} aria-label="Buscar no Workspace"><Search size={15} /><span>Buscar no Workspace</span><kbd className="tw:ml-auto tw:rounded-[0.308rem] tw:border tw:border-solid tw:border-[#ebe5df] tw:px-[0.308rem] tw:py-[0.077rem] tw:text-[0.769rem]/[inherit] tw:text-[#b2a8a1]">⌘ K</kbd></button>}
+      {searching && <div className="profile-dropdown v2-search-results tw:absolute tw:top-[calc(100%+1.077rem)] tw:left-0 tw:z-45 tw:flex tw:min-w-full tw:flex-col tw:rounded-[0.692rem] tw:border tw:border-solid tw:border-[#e9ded6] tw:bg-white tw:px-4 tw:pt-[0.462rem] tw:pb-[0.923rem] tw:shadow-[0_0.923rem_2.308rem_#34202121] tw:[@media(max-width:47.5rem)]:right-0 tw:[@media(max-width:47.5rem)]:left-auto tw:[@media(max-width:47.5rem)]:w-[min(20rem,calc(100vw-1.846rem))] tw:[@media(max-width:47.5rem)]:min-w-0" role="listbox" aria-label="Resultados">
         {results.length ? results.map((item) => (
           <button key={item.href} type="button" role="option" aria-selected={false} className="tw:flex tw:items-center tw:justify-between tw:border-0 tw:border-t tw:border-solid tw:border-[#efeae7] tw:bg-transparent tw:px-0 tw:pt-[0.923rem] tw:font-semibold tw:text-cali-brand tw:first:border-t-0" onClick={() => navigate(item.href)}>{item.label} <ChevronRight size={14} /></button>
         )) : <span className="tw:text-[0.769rem]/[inherit] tw:text-[#867c75]">Nenhum módulo encontrado.</span>}

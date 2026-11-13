@@ -1,3 +1,7 @@
+import { WorkflowPage } from '../../../components/ds/WorkflowPage';
+import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
+import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
+import { WorkflowHeading } from '../../../components/ds/WorkflowHeading';
 import { FormStatusBadge, type FormStatus } from '../../../components/forms/FormStatusBadge';
 import { FormResultsTable } from '../../../components/forms/FormResultsTable';
 /* Perfil Comportamental CALI — convites de um link (/admin/perfil-comportamental/convites/:linkId).
@@ -189,22 +193,22 @@ export function ProfileCampaignPage() {
   };
   const renewed = (row: InviteRow) => invites.some((item) => item.previous_invite_id === row.id);
 
-  return <Shell role="admin"><div className="ap-app v2-admin-page v2-forms v2-client-module tw:[--fm-wine:#5a1e2d] tw:[--fm-line:#eadfd6] tw:[--fm-muted:#8c7e74]
+  return <Shell role="admin"><WorkspaceAdminPage className="v2-forms v2-client-module tw:[--fm-wine:#5a1e2d] tw:[--fm-line:#eadfd6] tw:[--fm-muted:#8c7e74]
     tw:[--fm-ink:#3e3533] tw:[&_.wf-head_.v2-head-actions_a]:no-underline tw:[&_label>span]:block
     tw:[&_label>span]:text-[0.846rem] tw:[&_label>span]:font-semibold tw:[&_label>span]:text-[color:var(--fm-ink)]
     tw:[&_label>span]:mb-[0.462rem] tw:[&_label>span_em]:not-italic tw:[&_label>span_em]:font-medium
     tw:[&_label>span_em]:text-[color:var(--fm-muted)] tw:[&_label>span_em]:ml-[0.308rem]    tw:[&_textarea]:resize-y tw:[&_:is(input,select,textarea):focus]:outline-none tw:[&_:is(input,select,textarea):focus]:[border-color:var(--fm-wine)]
-    tw:[&_:is(input,select,textarea):focus]:[box-shadow:0_0_0_0.231rem_rgba(90,30,45,.08)]"><div className="ap-content"><div className="wf cpc tw:flex tw:flex-col tw:gap-[1.23rem]">
+    tw:[&_:is(input,select,textarea):focus]:[box-shadow:0_0_0_0.231rem_rgba(90,30,45,.08)]"><WorkspaceAdminContent><WorkflowPage className="cpc tw:flex tw:flex-col tw:gap-[1.23rem]">
     <Link className="cpc-back tw:inline-flex tw:items-center tw:gap-[0.46rem] tw:self-start tw:text-[1rem] tw:font-semibold tw:text-cali-brand tw:no-underline" to="/admin/perfil-comportamental"><ArrowLeft size={15} /> Perfil comportamental</Link>
     {missing ? <EmptyState variant="workflow"><strong>Link não encontrado.</strong></EmptyState> : loading || !link ? <LoadingState>Carregando…</LoadingState> : <>
-      <div className="wf-head"><div><small>CONVITES · {company.toUpperCase()}</small><h1>{link.title}</h1>
+      <WorkflowHeading><div><small>CONVITES · {company.toUpperCase()}</small><h1>{link.title}</h1>
         <p>Cada pessoa recebe um convite com prazo de {link.deadline_days} dias, até 3 lembretes automáticos (em dia útil, das 8h às 18h) e um link para sair. {link.focal_email ? `${link.focal_name || 'O ponto focal'} recebe a véspera e o fechamento.` : 'Cadastre um ponto focal para a empresa receber a véspera e o fechamento.'}</p></div>
-        <div className="v2-head-actions"><Button variant="formSecondary" type="button" onClick={() => void load()}><RefreshCw size={15} /> Atualizar</Button>
+        <div className="v2-head-actions tw:flex tw:flex-wrap tw:items-center tw:gap-[0.769rem]"><Button variant="formSecondary" type="button" onClick={() => void load()}><RefreshCw size={15} /> Atualizar</Button>
           <Link className="wf-secondary tw:inline-flex tw:items-center tw:gap-[0.538rem] tw:justify-center tw:[border:1px_solid_#e3d6cc]
             tw:bg-white tw:text-cali-brand tw:rounded-[0.538rem] tw:[padding:0.692rem_1rem] tw:[font:600_0.846rem_Inter,sans-serif]
             tw:no-underline tw:cursor-pointer tw:[transition:border-color_.15s,background_.15s] tw:[&:hover:not(:disabled)]:border-cali-brand
             tw:[&:hover:not(:disabled)]:bg-[#fbf7f3] tw:[&:disabled]:opacity-[.45] tw:[&:disabled]:cursor-default" to={`/admin/perfil-comportamental/gestao/${link.id}`}><BarChart3 size={15} /> Relatório de gestão</Link>
-          <Button variant="workflowPrimary" type="button" disabled={!queued.length || busy === 'send' || link.status !== 'open'} onClick={() => void sendQueued()}><Send size={15} /> {busy === 'send' ? 'Enviando…' : `Enviar convites${queued.length ? ` (${queued.length})` : ''}`}</Button></div></div>
+          <Button variant="workflowPrimary" type="button" disabled={!queued.length || busy === 'send' || link.status !== 'open'} onClick={() => void sendQueued()}><Send size={15} /> {busy === 'send' ? 'Enviando…' : `Enviar convites${queued.length ? ` (${queued.length})` : ''}`}</Button></div></WorkflowHeading>
 
       <section className="cpc-metrics tw:grid tw:grid-cols-[1.3fr_repeat(5,1fr)] tw:gap-[0.92rem] tw:max-[1100px]:grid-cols-3
         tw:max-[640px]:grid-cols-2 tw:[&>div]:flex tw:[&>div]:min-w-0 tw:[&>div]:flex-col tw:[&>div]:gap-[0.31rem]
@@ -305,5 +309,5 @@ export function ProfileCampaignPage() {
         tw:px-[1.23rem] tw:py-[0.92rem] tw:text-[1rem] tw:text-[#8d382a]" role="alert">Este link está bloqueado: desbloqueie em &quot;Links&quot; para enviar convites.</InlineNotice>}
       {notice && <InlineNotice className={`cpc-notice tw:m-0 tw:rounded-[0.77rem] tw:border tw:border-solid tw:px-[1.23rem] tw:py-[0.92rem] tw:text-[1rem] ${notice.tone === 'error' ? 'tw:border-[#f0c8c0] tw:bg-[#fdf1ee] tw:text-[#8d382a]' : 'tw:border-[#bfe0cb] tw:bg-[#eef8f1] tw:text-[#2f6b47]'}`} role={notice.tone === 'error' ? 'alert' : 'status'}>{notice.text}</InlineNotice>}
     </>}
-  </div></div></div></Shell>;
+  </WorkflowPage></WorkspaceAdminContent></WorkspaceAdminPage></Shell>;
 }

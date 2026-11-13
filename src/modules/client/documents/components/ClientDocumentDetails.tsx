@@ -1,3 +1,4 @@
+import { StatusBadge } from '../../../../components/ds/StatusBadge';
 import { ExternalLink, FileCheck2, MessageSquare, X } from 'lucide-react';
 import { Button } from '../../../../components/ds/Button';
 import { DialogFrame } from '../../../../components/ds/DialogFrame';
@@ -22,7 +23,7 @@ export function ClientDocumentDetails({ doc, state, facts, acknowledged, onClose
         </header>
         <h2 className="tw:mt-0 tw:mb-[0.769rem] tw:text-[1.615rem]/[inherit] tw:font-bold tw:tracking-[-0.046rem]">{doc.title}</h2>
         {doc.description && <p className="tw:mt-4 tw:mb-[1.385rem] tw:text-[0.846rem]/[1.65] tw:text-[#82786f]">{doc.description}</p>}
-        <span className={`wf-tag ${state.tone}`}>{state.label}</span>
+        <StatusBadge variant="workflow" tone={state.tone}>{state.label}</StatusBadge>
         <dl className="tw:mt-[1.385rem] tw:mb-0 tw:grid tw:grid-cols-3 tw:gap-[0.923rem] tw:max-[40.6875rem]:grid-cols-1">
           {facts.map(({ label, value }) => (
             <div className="tw:flex tw:flex-col tw:gap-[0.538rem] tw:rounded-[0.538rem] tw:border tw:border-solid tw:border-[#eee5dd] tw:p-4 tw:text-[0.769rem]/[inherit] tw:text-[#998c83]" key={label}>

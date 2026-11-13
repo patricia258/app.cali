@@ -1,3 +1,5 @@
+import { WorkflowSegments } from '../../../../components/ds/WorkflowControls';
+import { WorkflowHeading } from '../../../../components/ds/WorkflowHeading';
 import { WorkspaceConfirmDialog } from '../../../../components/workspace/components/WorkspaceConfirmDialog';
 import { WorkspaceDialogOverlay } from '../../../../components/workspace/components/WorkspaceDialogOverlay';
 import { FormStatusBadge } from '../../../../components/forms/FormStatusBadge';
@@ -66,16 +68,16 @@ export function FormDetail({ form, tab, companies, stats, onTab, onBack, onDupli
   return <>
     <button type="button" className="v2-forms-back tw:inline-flex tw:items-center tw:gap-[0.462rem] tw:border-0 tw:bg-transparent tw:text-[color:var(--fm-wine)]
       tw:[font:600_0.923rem_Inter,sans-serif] tw:p-0 tw:[margin:0_0_0.923rem] tw:cursor-pointer" onClick={async () => { if (!dirty || await confirmAction('Sair sem salvar as alterações?')) onBack(); }}><ArrowLeft size={15} /> Formulários</button>
-    <div className="wf-head v2-forms-head tw:[&_small]:flex tw:[&_small]:items-center tw:[&_small]:gap-[0.615rem] tw:[&_small_.wf-tag]:tracking-[0] tw:[&_small_.wf-tag]:normal-case"><div><small>CALI FORMS · <FormStatusBadge status={form.status}>{STATUS_LABELS[form.status]}</FormStatusBadge></small><h1>{form.title}</h1><p>{url.replace('https://', '')} · {stats?.responses || 0} {stats?.responses === 1 ? 'resposta' : 'respostas'}</p></div>
-      <div className="v2-head-actions">
+    <WorkflowHeading className="v2-forms-head tw:[&_small]:flex tw:[&_small]:items-center tw:[&_small]:gap-[0.615rem] tw:[&_small_.wf-tag]:tracking-[0] tw:[&_small_.wf-tag]:normal-case"><div><small>CALI FORMS · <FormStatusBadge status={form.status}>{STATUS_LABELS[form.status]}</FormStatusBadge></small><h1>{form.title}</h1><p>{url.replace('https://', '')} · {stats?.responses || 0} {stats?.responses === 1 ? 'resposta' : 'respostas'}</p></div>
+      <div className="v2-head-actions tw:flex tw:flex-wrap tw:items-center tw:gap-[0.769rem]">
         <a className="wf-secondary tw:inline-flex tw:items-center tw:gap-[0.538rem] tw:justify-center tw:[border:1px_solid_#e3d6cc]
           tw:bg-white tw:text-cali-brand tw:rounded-[0.538rem] tw:[padding:0.692rem_1rem] tw:[font:600_0.846rem_Inter,sans-serif]
           tw:no-underline tw:cursor-pointer tw:[transition:border-color_.15s,background_.15s] tw:[&:hover:not(:disabled)]:border-cali-brand
           tw:[&:hover:not(:disabled)]:bg-[#fbf7f3] tw:[&:disabled]:opacity-[.45] tw:[&:disabled]:cursor-default" href={`/f/${form.slug}?previa=1`} target="_blank" rel="noopener noreferrer"><ExternalLink size={15} /> Ver como respondente</a>
         <Button type="button" variant="formSecondary" onClick={onDuplicate}><Copy size={15} /> Duplicar</Button>
         {form.status !== 'open' ? <Button type="button" variant="workflowPrimary" disabled={saving} onClick={() => void save({ status: 'open' })}>Abrir para respostas</Button> : <Button type="button" variant="formSecondary" disabled={saving} onClick={() => void save({ status: 'closed' })}>Encerrar respostas</Button>}
-      </div></div>
-    <div className="wf-segments v2-forms-tabs tw:[margin:0.308rem_0_1.231rem] tw:w-max tw:max-w-full" role="tablist">{([['questions', 'Perguntas'], ['share', 'Compartilhar'], ['responses', `Respostas (${stats?.responses || 0})`]] satisfies Array<[FormAdminTab, string]>).map(([key, label]) => <button type="button" role="tab" aria-selected={tab === key} key={key} className={tab === key ? 'on' : ''} onClick={() => onTab(key)}>{label}</button>)}</div>
+      </div></WorkflowHeading>
+    <WorkflowSegments className="v2-forms-tabs tw:[margin:0.308rem_0_1.231rem] tw:w-max tw:max-w-full" role="tablist">{([['questions', 'Perguntas'], ['share', 'Compartilhar'], ['responses', `Respostas (${stats?.responses || 0})`]] satisfies Array<[FormAdminTab, string]>).map(([key, label]) => <button type="button" role="tab" aria-selected={tab === key} key={key} className={tab === key ? 'on' : ''} onClick={() => onTab(key)}>{label}</button>)}</WorkflowSegments>
     {note && <p className={note.failed ? "v2-forms-error tw:[margin:0_0_1.077rem] tw:[padding:0.769rem_1.077rem] tw:rounded-[0.692rem] tw:text-[0.923rem] tw:font-semibold tw:bg-[#fff6f4] tw:text-[#b42318] tw:[border:1px_solid_#f1c4bd]" : "v2-forms-ok tw:[margin:0_0_1.077rem] tw:[padding:0.769rem_1.077rem] tw:rounded-[0.692rem] tw:text-[0.923rem] tw:font-semibold tw:bg-[#e6f6ec] tw:text-[#31805a] tw:[border:1px_solid_#caebd9]"} role="status">{note.text}</p>}
 
     {tab === 'questions' && <div className="v2-forms-editor tw:flex tw:flex-col tw:gap-[1.231rem] tw:pb-[6.462rem]">

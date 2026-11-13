@@ -1,3 +1,4 @@
+import { WorkflowSegments } from '../ds/WorkflowControls';
 import { ArrowLeft, FolderOpen } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -9,10 +10,10 @@ export function DocumentLayoutSwitch({ label, layout, onChange }: {
   onChange: (layout: DocumentLibraryLayout) => void;
 }) {
   return (
-    <div className="wf-segments tw:shrink-0" aria-label={label}>
+    <WorkflowSegments className="tw:shrink-0" aria-label={label}>
       <button type="button" className={layout === 'covers' ? 'on' : ''} aria-pressed={layout === 'covers'} onClick={() => onChange('covers')}>Capas</button>
       <button type="button" className={layout === 'list' ? 'on' : ''} aria-pressed={layout === 'list'} onClick={() => onChange('list')}>Lista</button>
-    </div>
+    </WorkflowSegments>
   );
 }
 

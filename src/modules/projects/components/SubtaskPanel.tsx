@@ -1,3 +1,6 @@
+import { ProjectMessage } from './ProjectMessage';
+import { ProjectComplexityBadge } from '../../../components/projects/ProjectComplexityBadge';
+import { projectStatusColor } from './projectStatusColor';
 import { MentionTextarea } from '../../../components/workspace/MentionTextarea';
 /* Painel de uma subtarefa (upgrade do entregável, fase 2): notas internas, conversa da equipe e anexos próprios.
    Serve à administradora e à Equipe CALI (Partner). O cliente ainda não lê nada daqui — isso entra na fase 4. */
@@ -7,7 +10,6 @@ import { withMentions } from '../../../lib/mentionText';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ArrowLeft, Paperclip, Send, X } from 'lucide-react';
 import type { ProfileMedia } from '../../../api/workspace/identity';
-import { ProjectConversationAvatar } from '../../../components/projects/conversation/components/ProjectConversationAvatar';
 import { ConversationAttachmentButton } from '../../../components/projects/conversation/components/ConversationAttachmentButton';
 import { isSupabaseConfigured } from '../../../api/access/session';
 import {
@@ -314,16 +316,17 @@ export function SubtaskModal({
                 Subtarefa de <strong>{deliverableTitle}</strong>
               </span>
               {task.protocol && <small>{task.protocol}</small>}
-              {task.complexity && <b className={`mc-chip ${task.complexity.toLowerCase()}`}>{task.complexity}</b>}
+              {task.complexity && <ProjectComplexityBadge code={task.complexity} />}
             </p>
           </div>
-          <div className="tw:flex tw:min-w-0 tw:flex-none tw:flex-wrap tw:items-center tw:gap-[0.769rem] tw:[&>.v2-task-timer]:m-0! tw:[&>.v2-task-timer]:h-[3.077rem]! tw:[&>.v2-task-timer]:order-2! tw:[&>.v2-head-status]:order-1! tw:[&>.v2-head-status]:gap-[0.615rem] tw:[&>.v2-head-status>i]:size-[0.538rem] tw:[&>.v2-head-status>i]:rounded-full tw:[&>.v2-head-status>i]:bg-white">
+          <div className="tw:flex tw:min-w-0 tw:flex-none tw:flex-wrap tw:items-center tw:gap-[0.769rem]">
             <label
-              className={`v2-head-status ${SUBTASK_STATUS[task.status]?.tone || 'purple'}`}
+              className={`tw:order-1 tw:inline-flex tw:h-[3.077rem] tw:items-center tw:gap-[.615rem] tw:rounded-[.692rem] tw:pr-[.308rem] tw:pl-[.923rem] tw:text-white ${projectStatusColor[SUBTASK_STATUS[task.status]?.tone || 'purple'] ?? projectStatusColor.purple}`}
               title="Situação da subtarefa — clique para alterar"
             >
-              <i />
+              <i aria-hidden="true" className="tw:size-[.538rem] tw:rounded-full tw:bg-white" />
               <select
+                className="tw:h-full tw:min-w-0 tw:cursor-pointer tw:border-0 tw:bg-transparent tw:pr-[.462rem] tw:text-[.962rem] tw:font-extrabold tw:text-white tw:disabled:cursor-default tw:disabled:opacity-100 tw:[&_option]:bg-white tw:[&_option]:text-cali-ink"
                 aria-label="Situação da subtarefa"
                 value={task.status}
                 disabled={options.length === 1}
@@ -431,7 +434,7 @@ export function SubtaskModal({
                 <small>{channel === 'client' ? 'O cliente vê estas mensagens' : 'Só a CALI vê'}</small>
               </div>
               <div
-                className="workspace-chat-list v2-staff-project-chat tw:flex tw:max-h-[24.615rem] tw:flex-col tw:gap-[0.615rem] tw:overflow-y-auto tw:px-[0.154rem] tw:py-[0.308rem] tw:[scrollbar-width:none]"
+                className="tw:flex tw:max-h-[24.615rem] tw:flex-col tw:gap-[0.615rem] tw:overflow-y-auto tw:px-[0.154rem] tw:py-[0.308rem] tw:[scrollbar-width:none]"
                 aria-live="polite"
               >
                 {shown.length ? (
@@ -439,24 +442,15 @@ export function SubtaskModal({
                     const parsed = parse(message.body);
                     const mine = message.author_user_id === me;
                     const name = author(message);
-                    const avatar = (
-                      <ProjectConversationAvatar
+                    return (
+                      <ProjectMessage
+                        key={message.id}
                         identity={message.author_user_id ? identities[message.author_user_id] : undefined}
                         name={name}
-                        className="workspace-chat-avatar v2-chat-photo"
-                      />
-                    );
-                    return (
-                      <div
-                        key={message.id}
-                        className={`workspace-chat-line tw:flex! tw:w-full tw:flex-row! tw:items-start tw:gap-[0.769rem] ${mine ? 'mine tw:justify-end' : 'other'}`}
+                        date={when(message.created_at)}
+                        mine={mine}
+                        task
                       >
-                        {!mine && avatar}
-                        <div className="workspace-chat-bubble">
-                          <div className="workspace-chat-head">
-                            <strong>{name}</strong>
-                            <time>{when(message.created_at)}</time>
-                          </div>
                           {parsed.clean && <p>{withMentions(parsed.clean)}</p>}
                           {parsed.files.length > 0 && (
                             <div className="tw:mt-[.62rem] tw:flex tw:flex-col tw:items-start tw:gap-[.46rem]">
@@ -471,9 +465,7 @@ export function SubtaskModal({
                               ))}
                             </div>
                           )}
-                        </div>
-                        {mine && avatar}
-                      </div>
+                      </ProjectMessage>
                     );
                   })
                 ) : (

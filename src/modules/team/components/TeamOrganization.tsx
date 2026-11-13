@@ -1,3 +1,4 @@
+import { Button } from '../../../components/ds/Button';
 import { Building2, ChevronRight, Users, X } from 'lucide-react';
 import type { Change, Member } from '../../../domain/team';
 import { dateLabel, monthLabel } from '../teamDateLabels';
@@ -48,9 +49,9 @@ export function TeamOrganization({
             <p>Explore áreas e pessoas por níveis, sem perder o contexto da empresa.</p>
           </div>
           <div className="tw:flex tw:gap-2">
-            <button className="outline-button" onClick={() => onSelectArea(null)}>
+            <Button variant="compactOutline" type="button" onClick={() => onSelectArea(null)}>
               Ver toda a estrutura
-            </button>
+            </Button>
           </div>
         </div>
         <div className="tw:mx-1.25 tw:mt-8.25 tw:mb-3.75 tw:flex tw:flex-col tw:items-center">
@@ -86,7 +87,7 @@ export function TeamOrganization({
             ))}
           </div>
         </div>
-        {!areas.length && <div className="empty">Nenhuma pessoa cadastrada nesta referência.</div>}
+        {!areas.length && <div className="tw:p-[1.92rem] tw:text-center tw:text-[#9a8f88]">Nenhuma pessoa cadastrada nesta referência.</div>}
         {picked && (
           <section className="tw:mt-6 tw:rounded-[0.6875rem] tw:border tw:border-solid tw:border-[#e9dcd0] tw:bg-[#fffdfb] tw:p-4.5">
             <div className="tw:flex tw:items-center tw:justify-between tw:gap-3 tw:[&_small]:text-[0.5625rem] tw:[&_small]:tracking-[0.0625rem] tw:[&_small]:text-cali-gold tw:[&_h3]:my-1.5 tw:[&_h3]:text-base tw:[&_p]:text-[0.625rem] tw:[&_p]:text-[#98867c]">
@@ -97,9 +98,9 @@ export function TeamOrganization({
                   {picked.people.length} {picked.people.length === 1 ? 'pessoa' : 'pessoas'} nesta referência
                 </p>
               </div>
-              <button className="outline-button" onClick={() => onSelectArea(null)}>
+              <Button variant="compactOutline" type="button" onClick={() => onSelectArea(null)}>
                 <X size={14} /> Fechar
-              </button>
+              </Button>
             </div>
             {(() => {
               const inArea = (id: string) => members.find((item) => item.id === id)?.department === picked.name;
@@ -200,7 +201,7 @@ export function TeamOrganization({
                 const manager = members.find((item) => item.employee_code === member.manager_code);
                 return (
                   <button onClick={() => onOpenMember(member)} key={member.id}>
-                    <span className="avatar">
+                    <span className="avatar tw:overflow-hidden tw:rounded-[0.538rem] tw:[&>*]:rounded-[0.538rem] tw:[&_:is(img,video)]:block tw:[&_:is(img,video)]:size-full tw:[&_:is(img,video)]:object-cover">
                       {member.full_name
                         .split(' ')
                         .filter(Boolean)

@@ -1,3 +1,7 @@
+import { Button } from '../../components/ds/Button';
+import { CompactPageHeading } from '../../components/workspace/components/CompactPageHeading';
+import { WorkflowDialog, WorkflowDialogForm } from '../../components/ds/WorkflowDialog';
+import { TeamDialogOverlay } from './components/TeamDialogOverlay';
 import { TeamDirectory } from './components/TeamDirectory';
 import { TeamOrganization } from './components/TeamOrganization';
 import { columnLabels, clientDirectoryColumns, defaultColumns, type ColumnKey } from './teamDirectoryColumns';
@@ -10,7 +14,6 @@ import {
   TeamDialogHeader,
   TeamEditorFields,
 } from './components/TeamDialogParts';
-import { DialogForm } from '../../components/ds/DialogForm';
 import { DataTable } from '../../components/ds/DataTable';
 import { DialogFrame } from '../../components/ds/DialogFrame';
 import { PeopleAnalyticsMonth, PeopleAnalyticsPeriod } from './components/PeopleAnalyticsBoard';
@@ -1298,18 +1301,14 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
   const page = (
     <div className="v2-client-module">
       {
-        <div className="page-head">
-          <div>
-            <div className="eyebrow">EMPRESA / CAPITAL HUMANO</div>
-            <h1>
-              Equipe<span className="title-dot">.</span>
-            </h1>
-            <p>Quadro, estrutura, movimentações e indicadores em um mesmo contexto.</p>
-          </div>
+        <CompactPageHeading
+          eyebrow="EMPRESA / CAPITAL HUMANO"
+          title="Equipe"
+          description="Quadro, estrutura, movimentações e indicadores em um mesmo contexto."
+        >
           {isCurrent && !staff && (
-            <div className="tw:flex tw:flex-wrap tw:items-center tw:gap-2.5">
-              <button
-                className="outline-button"
+            <div className="tw:flex tw:shrink-0 tw:flex-wrap tw:items-center tw:gap-[.77rem] tw:max-[37.5rem]:max-w-[52%]">
+              <Button variant="compactOutline" type="button"
                 onClick={() => {
                   setImportRows([]);
                   setImportFileName('');
@@ -1318,17 +1317,17 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 }}
               >
                 <FileUp size={15} /> Cadastrar todos via planilha
-              </button>
-              <button className="primary-button" onClick={() => openEdit()}>
+              </Button>
+              <Button variant="compactPrimary" type="button" onClick={() => openEdit()}>
                 <Plus size={15} />
                 Adicionar pessoa
-              </button>
+              </Button>
             </div>
           )}
-        </div>
+        </CompactPageHeading>
       }
       {
-        <div className="section-tabs">
+        <div className="section-tabs tw:mb-[1.23rem] tw:flex tw:gap-[2.15rem] tw:overflow-x-auto tw:border-0 tw:border-b tw:border-solid tw:border-[#ded7d0] tw:[&_button]:cursor-pointer tw:[&_button]:border-0 tw:[&_button]:border-b-2 tw:[&_button]:border-solid tw:[&_button]:border-transparent tw:[&_button]:bg-transparent tw:[&_button]:px-px tw:[&_button]:pb-[.85rem] tw:[&_button]:text-[.92rem]/[inherit] tw:[&_button]:whitespace-nowrap tw:[&_button]:text-[#8c837e] tw:[&_button.current]:border-cali-brand tw:[&_button.current]:font-bold tw:[&_button.current]:text-cali-brand">
           <button
             className={tab === 'people' && viewKind === 'list' ? 'current' : ''}
             onClick={() => {
@@ -1356,7 +1355,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
         </div>
       }
       {
-        <div className="context-strip">
+        <div className="context-strip tw:mb-[1.15rem] tw:flex tw:flex-wrap tw:items-center tw:gap-x-[1.54rem] tw:gap-y-[.77rem] tw:border-0 tw:border-b tw:border-solid tw:border-[#e9e0d8] tw:pb-[1.15rem] tw:text-[#77716c] tw:[&>span:not(.context-end):not(.context-sep)]:flex tw:[&>span:not(.context-end):not(.context-sep)]:items-center tw:[&>span:not(.context-end):not(.context-sep)]:gap-[.62rem] tw:[&_strong]:text-[1rem]/[inherit] tw:[&_strong]:text-[#473b37]">
           {(admin || staff) && (
             <>
               <label className="tw:m-0 tw:inline-flex tw:items-center tw:gap-2.25 tw:text-[0.6875rem] tw:text-[#8c7e74] tw:[&_select]:max-w-60 tw:[&_select]:rounded-[0.4375rem] tw:[&_select]:border tw:[&_select]:border-solid tw:[&_select]:border-[#e5d9d0] tw:[&_select]:bg-white tw:[&_select]:px-2.5 tw:[&_select]:py-1.75 tw:[&_select]:font-bold tw:[&_select]:text-cali-brand">
@@ -1369,19 +1368,19 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   ))}
                 </select>
               </label>
-              <span className="context-sep" />
+              <span className="context-sep tw:text-[#d6c9bf]" />
             </>
           )}
           <span>
             <Users size={15} />
             <strong>{visibleMembers.filter((item) => item.status === 'active').length}</strong> pessoas ativas
           </span>
-          <span className="context-sep" />
+          <span className="context-sep tw:text-[#d6c9bf]" />
           <span>
             <strong>{departments.length}</strong> {departments.length === 1 ? 'departamento' : 'departamentos'}
           </span>
-          <span className="context-sep" />
-          <span className="tw:inline-flex tw:flex-none tw:items-center tw:gap-1.75 tw:whitespace-nowrap tw:[&_input]:rounded-md tw:[&_input]:border tw:[&_input]:border-solid tw:[&_input]:border-[#e7ddd5] tw:[&_input]:bg-white tw:[&_input]:px-1.75 tw:[&_input]:py-1 tw:[&_input]:font-bold tw:[&_input]:text-[#322f2c]">
+          <span className="context-sep tw:text-[#d6c9bf]" />
+          <span className="tw:inline-flex tw:min-w-0 tw:flex-wrap tw:items-center tw:gap-1.75 tw:whitespace-nowrap tw:[&_input]:rounded-md tw:[&_input]:border tw:[&_input]:border-solid tw:[&_input]:border-[#e7ddd5] tw:[&_input]:bg-white tw:[&_input]:px-1.75 tw:[&_input]:py-1 tw:[&_input]:font-bold tw:[&_input]:text-[#322f2c]">
             Referência{' '}
             {periodMode ? (
               <>
@@ -1427,17 +1426,17 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
               Período
             </button>
           </span>
-          <span className="context-end">
+          <span className="context-end tw:ml-auto tw:min-w-0 tw:text-[.77rem]/[inherit] tw:text-[#99928d] tw:max-[53.125rem]:hidden tw:whitespace-nowrap tw:[@media(max-width:47.5rem)]:ml-0 tw:[@media(max-width:47.5rem)]:w-full">
             {selectedCompany?.display_name} · {confirmed ? 'mês confirmado' : 'confirmação mensal pendente'}
           </span>
           {tab === 'indicators' && (
-            <button
+            <Button variant="compactOutline"
               type="button"
-              className="outline-button tw:ml-3 tw:inline-flex tw:items-center tw:gap-1.5 tw:whitespace-nowrap"
+              className="tw:ml-3 tw:inline-flex tw:items-center tw:gap-1.5 tw:whitespace-nowrap"
               onClick={printIndicators}
             >
               <Download size={14} /> Baixar PDF
-            </button>
+            </Button>
           )}
         </div>
       }
@@ -1531,10 +1530,10 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
             />
           )}
           {tab === 'changes' && (
-            <div className="panel list-page">
-              <div className="section-head">
+            <div className="tw:rounded-[.69rem] tw:border tw:border-solid tw:border-[#eae3dd] tw:bg-white tw:p-[1.69rem]">
+              <div className="section-head tw:mb-[1.31rem] tw:flex tw:items-center tw:justify-between tw:gap-[.77rem] tw:[&_h2]:m-0 tw:[&_h2]:text-[1.08rem]/[inherit] tw:[&_h2]:font-bold tw:[&_h2]:tracking-[-.019rem]">
                 <h2>Movimentações registradas</h2>
-                <span className="small-counter">{monthLabel(month)}</span>
+                <span className="tw:text-[.77rem]/[inherit] tw:text-[#9e8f86]">{monthLabel(month)}</span>
               </div>
               {monthChanges.length ? (
                 monthChanges.map((change) => {
@@ -1553,18 +1552,18 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                       <time title={`Registrada em ${dateLabel(change.created_at)}`}>
                         {dateLabel(effective || change.created_at)}
                       </time>
-                      <span className="chip neutral">{changeLabels[change.change_type] || 'Atualização'}</span>
+                      <span className="tw:inline-block tw:rounded-[.38rem] tw:border tw:border-solid tw:border-transparent tw:bg-[#f4f0ed] tw:px-[.54rem] tw:py-[.38rem] tw:text-[.69rem]/[inherit] tw:font-semibold tw:whitespace-nowrap tw:text-[#72655d]">{changeLabels[change.change_type] || 'Atualização'}</span>
                       <strong>{member?.full_name || 'Pessoa da equipe'}</strong>
                       <span>{changeDetails(change)}</span>
                     </div>
                   );
                 })
               ) : (
-                <div className="empty">
+                <div className="tw:p-[1.92rem] tw:text-center tw:text-[#9a8f88]">
                   Nenhuma movimentação registrada. As mudanças aparecerão aqui depois da atualização do mês.
                 </div>
               )}
-              <p className="soft-note">
+              <p className="soft-note tw:my-[1.31rem] tw:flex tw:items-center tw:gap-[.62rem] tw:text-[.85rem]/[inherit] tw:text-[#96887e]">
                 Alterações registradas na equipe: o que mudou, quando aconteceu e quando foi registrado.
               </p>
             </div>
@@ -1582,10 +1581,10 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   {new Date().toLocaleDateString('pt-BR')}
                 </p>
               </div>
-              <div className="section-head">
+              <div className="section-head tw:mb-[1.31rem] tw:flex tw:items-center tw:justify-between tw:gap-[.77rem] tw:[&_h2]:m-0 tw:[&_h2]:text-[1.08rem]/[inherit] tw:[&_h2]:font-bold tw:[&_h2]:tracking-[-.019rem]">
                 <div>
                   <h2>Panorama da força de trabalho</h2>
-                  <p>
+                  <p className="tw:mt-[.38rem] tw:mb-0 tw:text-[.77rem]/[inherit] tw:text-[#95847a]">
                     {admin
                       ? 'Headcount, movimentação e composição do quadro'
                       : 'Indicadores essenciais · incluídos no contrato da sua empresa'}
@@ -1611,7 +1610,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   </label>
                 )}
               </div>
-              <div className="metric-strip tw:mb-4.5 tw:grid tw:grid-cols-4 tw:border-y tw:border-solid tw:border-[#ddd3cb] tw:bg-[#faf8f5] tw:max-[50rem]:grid-cols-2 tw:[&>div]:relative tw:[&>div]:flex tw:[&>div]:flex-col tw:[&>div]:gap-2 tw:[&>div]:border-r tw:[&>div]:border-solid tw:[&>div]:border-[#e8dfd8] tw:[&>div]:p-5.5 tw:[&>div:last-child]:border-0 tw:[&>div]:before:absolute tw:[&>div]:before:inset-x-0 tw:[&>div]:before:top-0 tw:[&>div]:before:h-0.5 tw:[&>div]:before:bg-[#bd9174] tw:[&_div.m-green]:before:bg-[#55b68a] tw:[&_div.m-blue]:before:bg-[#76aecf] tw:[&_div.m-red]:before:bg-[#d66c81] tw:[&_div.m-purple]:before:bg-[#9a80c4] tw:[&_span]:text-[0.6875rem] tw:[&_span]:text-[#a4978d] tw:[&_strong]:font-cali-body tw:[&_strong]:text-2xl tw:[&_strong]:text-[#592535] tw:[&_p]:mt-2.5 tw:[&_p]:mb-1.5 tw:[&_p]:text-[0.625rem]/[1.45] tw:[&_p]:text-[#8b7c73] tw:[&>div>small]:text-[0.625rem] tw:[&>div>small]:text-[#78535b]">
+              <div className="metric-strip tw:mb-4.5 tw:grid tw:grid-cols-4 tw:border-0 tw:border-y tw:border-solid tw:border-[#ddd3cb] tw:bg-[#faf8f5] tw:max-[50rem]:grid-cols-2 tw:[&>div]:relative tw:[&>div]:flex tw:[&>div]:flex-col tw:[&>div]:gap-2 tw:[&>div]:border-0 tw:[&>div]:border-r tw:[&>div]:border-solid tw:[&>div]:border-[#e8dfd8] tw:[&>div]:p-[1.69rem] tw:[&>div:last-child]:border-0 tw:[&>div]:before:absolute tw:[&>div]:before:inset-x-0 tw:[&>div]:before:top-0 tw:[&>div]:before:h-0.5 tw:[&>div]:before:bg-[#bd9174] tw:[&_div.m-green]:before:bg-[#55b68a] tw:[&_div.m-blue]:before:bg-[#76aecf] tw:[&_div.m-red]:before:bg-[#d66c81] tw:[&_div.m-purple]:before:bg-[#9a80c4] tw:[&_span]:text-[.85rem]/[inherit] tw:[&_span]:text-[#a4978d] tw:[&_strong]:font-cali-body tw:[&_strong]:text-[1.85rem]/[inherit] tw:[&_strong]:font-normal tw:[&_strong]:text-[#592535] tw:[&_p]:mt-[.77rem] tw:[&_p]:mb-[.46rem] tw:[&_p]:text-[.77rem]/[1.45] tw:[&_p]:text-[#8b7c73] tw:[&>div>small]:text-[.77rem]/[inherit] tw:[&>div>small]:text-[#78535b]">
                 {[
                   [
                     'Quadro ativo',
@@ -1675,7 +1674,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   <div className="tw:mt-4.5 tw:mb-4">
                     <div className="tw:mt-4 tw:mb-3.75 tw:grid tw:grid-cols-5 tw:gap-3 tw:max-[73.75rem]:grid-cols-3 tw:max-[43.75rem]:grid-cols-1">
                       <div
-                        className="ie-insight tw:flex tw:flex-col tw:gap-2 tw:rounded-[0.4375rem] tw:border tw:border-t-[0.1875rem] tw:border-solid tw:border-[#e9dfd8] tw:bg-white tw:p-4.5 tw:[&>span]:text-[0.6875rem] tw:[&>span]:text-[#8d817b] tw:[&_strong]:text-[1.4375rem] tw:[&_strong]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-[0.6875rem] tw:[&_p]:font-bold tw:[&_p]:text-[#665c58] tw:[&_small]:text-[0.625rem] tw:[&_small]:text-[#a1948a]"
+                        className="ie-insight tw:flex tw:flex-col tw:gap-[.62rem] tw:rounded-[0.4375rem] tw:border tw:border-t-[0.1875rem] tw:border-solid tw:border-[#e9dfd8] tw:bg-white tw:p-[1.38rem] tw:[&>span]:text-[.85rem]/[inherit] tw:[&>span]:text-[#8d817b] tw:[&_strong]:text-[1.77rem]/[inherit] tw:[&_strong]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-[.85rem]/[inherit] tw:[&_p]:font-bold tw:[&_p]:text-[#665c58] tw:[&_small]:text-[.77rem]/[inherit] tw:[&_small]:text-[#a1948a]"
                         style={{ borderTopColor: '#e76f7b' }}
                       >
                         <span>Rotatividade no período</span>
@@ -1689,7 +1688,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                         {delta('Rotatividade no período')}
                       </div>
                       <div
-                        className="ie-insight tw:flex tw:flex-col tw:gap-2 tw:rounded-[0.4375rem] tw:border tw:border-t-[0.1875rem] tw:border-solid tw:border-[#e9dfd8] tw:bg-white tw:p-4.5 tw:[&>span]:text-[0.6875rem] tw:[&>span]:text-[#8d817b] tw:[&_strong]:text-[1.4375rem] tw:[&_strong]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-[0.6875rem] tw:[&_p]:font-bold tw:[&_p]:text-[#665c58] tw:[&_small]:text-[0.625rem] tw:[&_small]:text-[#a1948a]"
+                        className="ie-insight tw:flex tw:flex-col tw:gap-[.62rem] tw:rounded-[0.4375rem] tw:border tw:border-t-[0.1875rem] tw:border-solid tw:border-[#e9dfd8] tw:bg-white tw:p-[1.38rem] tw:[&>span]:text-[.85rem]/[inherit] tw:[&>span]:text-[#8d817b] tw:[&_strong]:text-[1.77rem]/[inherit] tw:[&_strong]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-[.85rem]/[inherit] tw:[&_p]:font-bold tw:[&_p]:text-[#665c58] tw:[&_small]:text-[.77rem]/[inherit] tw:[&_small]:text-[#a1948a]"
                         style={{ borderTopColor: '#53b595' }}
                       >
                         <span>Permanência média</span>
@@ -1698,7 +1697,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                         <small>Pessoas ativas nesta referência</small>
                       </div>
                       <div
-                        className="ie-insight tw:flex tw:flex-col tw:gap-2 tw:rounded-[0.4375rem] tw:border tw:border-t-[0.1875rem] tw:border-solid tw:border-[#e9dfd8] tw:bg-white tw:p-4.5 tw:[&>span]:text-[0.6875rem] tw:[&>span]:text-[#8d817b] tw:[&_strong]:text-[1.4375rem] tw:[&_strong]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-[0.6875rem] tw:[&_p]:font-bold tw:[&_p]:text-[#665c58] tw:[&_small]:text-[0.625rem] tw:[&_small]:text-[#a1948a]"
+                        className="ie-insight tw:flex tw:flex-col tw:gap-[.62rem] tw:rounded-[0.4375rem] tw:border tw:border-t-[0.1875rem] tw:border-solid tw:border-[#e9dfd8] tw:bg-white tw:p-[1.38rem] tw:[&>span]:text-[.85rem]/[inherit] tw:[&>span]:text-[#8d817b] tw:[&_strong]:text-[1.77rem]/[inherit] tw:[&_strong]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-[.85rem]/[inherit] tw:[&_p]:font-bold tw:[&_p]:text-[#665c58] tw:[&_small]:text-[.77rem]/[inherit] tw:[&_small]:text-[#a1948a]"
                         style={{ borderTopColor: '#a38bd9' }}
                       >
                         <span>Movimentações internas</span>
@@ -1711,7 +1710,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                         {delta('Movimentações internas')}
                       </div>
                       <div
-                        className="ie-insight tw:flex tw:flex-col tw:gap-2 tw:rounded-[0.4375rem] tw:border tw:border-t-[0.1875rem] tw:border-solid tw:border-[#e9dfd8] tw:bg-white tw:p-4.5 tw:[&>span]:text-[0.6875rem] tw:[&>span]:text-[#8d817b] tw:[&_strong]:text-[1.4375rem] tw:[&_strong]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-[0.6875rem] tw:[&_p]:font-bold tw:[&_p]:text-[#665c58] tw:[&_small]:text-[0.625rem] tw:[&_small]:text-[#a1948a]"
+                        className="ie-insight tw:flex tw:flex-col tw:gap-[.62rem] tw:rounded-[0.4375rem] tw:border tw:border-t-[0.1875rem] tw:border-solid tw:border-[#e9dfd8] tw:bg-white tw:p-[1.38rem] tw:[&>span]:text-[.85rem]/[inherit] tw:[&>span]:text-[#8d817b] tw:[&_strong]:text-[1.77rem]/[inherit] tw:[&_strong]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-[.85rem]/[inherit] tw:[&_p]:font-bold tw:[&_p]:text-[#665c58] tw:[&_small]:text-[.77rem]/[inherit] tw:[&_small]:text-[#a1948a]"
                         style={{ borderTopColor: '#e9a23b' }}
                       >
                         <span>Absenteísmo</span>
@@ -1733,7 +1732,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                         {metricDelta(absenteeism(monthMetric), absenteeism(cmpMetric), ' p.p.')}
                       </div>
                       <div
-                        className="ie-insight tw:flex tw:flex-col tw:gap-2 tw:rounded-[0.4375rem] tw:border tw:border-t-[0.1875rem] tw:border-solid tw:border-[#e9dfd8] tw:bg-white tw:p-4.5 tw:[&>span]:text-[0.6875rem] tw:[&>span]:text-[#8d817b] tw:[&_strong]:text-[1.4375rem] tw:[&_strong]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-[0.6875rem] tw:[&_p]:font-bold tw:[&_p]:text-[#665c58] tw:[&_small]:text-[0.625rem] tw:[&_small]:text-[#a1948a]"
+                        className="ie-insight tw:flex tw:flex-col tw:gap-[.62rem] tw:rounded-[0.4375rem] tw:border tw:border-t-[0.1875rem] tw:border-solid tw:border-[#e9dfd8] tw:bg-white tw:p-[1.38rem] tw:[&>span]:text-[.85rem]/[inherit] tw:[&>span]:text-[#8d817b] tw:[&_strong]:text-[1.77rem]/[inherit] tw:[&_strong]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-[.85rem]/[inherit] tw:[&_p]:font-bold tw:[&_p]:text-[#665c58] tw:[&_small]:text-[.77rem]/[inherit] tw:[&_small]:text-[#a1948a]"
                         style={{ borderTopColor: '#7aafcd' }}
                       >
                         <span>Sinais de clima</span>
@@ -1765,9 +1764,9 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                           aprovado e pesquisa de clima
                         </span>
                         {!periodMode && canWriteMetrics && (
-                          <button type="button" className="outline-button" onClick={openMetrics}>
+                          <Button variant="compactOutline" type="button" onClick={openMetrics}>
                             {admin ? 'Corrigir dados do mês' : 'Lançar dados do mês'} <ArrowRight size={13} />
-                          </button>
+                          </Button>
                         )}
                       </div>
                     )}
@@ -1825,7 +1824,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                               : String(Math.round(value));
                         return (
                           <section
-                            className="panel v2-ess-chart tw:mb-4 tw:min-w-0 tw:rounded-[0.625rem] tw:border tw:border-solid tw:border-[#e9dbd0] tw:bg-white tw:px-5.5 tw:py-5 tw:[&>header]:mb-2 tw:[&>header]:flex tw:[&>header]:flex-wrap tw:[&>header]:items-start tw:[&>header]:justify-between tw:[&>header]:gap-4 tw:[&_h3]:mt-0 tw:[&_h3]:mb-1 tw:[&_h3]:text-[0.9375rem] tw:[&_header_p]:m-0 tw:[&_header_p]:text-[0.6875rem] tw:[&_header_p]:text-[#8c7e74] tw:[&_.ie-switch]:flex-wrap"
+                            className="v2-ess-chart tw:mb-4 tw:min-w-0 tw:rounded-[0.625rem] tw:border tw:border-solid tw:border-[#e9dbd0] tw:bg-white tw:px-5.5 tw:py-5 tw:[&>header]:mb-2 tw:[&>header]:flex tw:[&>header]:flex-wrap tw:[&>header]:items-start tw:[&>header]:justify-between tw:[&>header]:gap-4 tw:[&_h3]:mt-0 tw:[&_h3]:mb-1 tw:[&_h3]:text-[0.9375rem] tw:[&_header_p]:m-0 tw:[&_header_p]:text-[0.6875rem] tw:[&_header_p]:text-[#8c7e74] tw:[&_.ie-switch]:flex-wrap"
                             key={name}
                           >
                             <header>
@@ -1930,10 +1929,10 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                             uma frente contratada à parte, mediante alinhamento de escopo.
                           </p>
                           <div className="tw:flex tw:flex-wrap tw:gap-2.5">
-                            <a className="primary-button" href="/cliente/frentes">
+                            <a className="tw:inline-flex tw:items-center tw:gap-[.69rem] tw:rounded-[.54rem] tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-[1.08rem] tw:py-[.77rem] tw:text-[.85rem]/[inherit] tw:font-semibold tw:text-white" href="/cliente/frentes">
                               Conhecer esta frente <ArrowRight size={14} />
                             </a>
-                            <a className="outline-button" href="/cliente/registros">
+                            <a className="tw:inline-flex tw:items-center tw:gap-[.69rem] tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e5dbd5] tw:bg-white tw:px-[1.08rem] tw:py-[.77rem] tw:text-[.85rem]/[inherit] tw:font-semibold tw:text-[#594e4b] tw:hover:border-cali-gold" href="/cliente/registros">
                               Conversar com a CALI
                             </a>
                           </div>
@@ -1963,7 +1962,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 );
               })()}
               <div
-                className={'indicators-body' + (analytics ? '' : ' v2-module-blur')}
+                className={'indicators-body' + (analytics ? '' : ' tw:pointer-events-none tw:opacity-55 tw:blur-[0.538rem] tw:select-none')}
                 aria-hidden={!analytics}
                 ref={(node) => {
                   if (node) node.inert = !analytics;
@@ -1980,7 +1979,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   departments={departments}
                 />
               </div>
-              <p className="soft-note">
+              <p className="soft-note tw:my-[1.31rem] tw:flex tw:items-center tw:gap-[.62rem] tw:text-[.85rem]/[inherit] tw:text-[#96887e]">
                 <Info size={15} />{' '}
                 {periodMode
                   ? `${monthLabel(periodStart)} — ${monthLabel(periodEnd)}. Quadro: posição do último mês; gráficos: intervalo selecionado.`
@@ -1993,12 +1992,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
       )}
       {detail &&
         createPortal(
-          <div
-            className="v2-client-module enh-overlay"
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget) setDetail(null);
-            }}
-          >
+          <TeamDialogOverlay detail onClose={() => setDetail(null)}>
             <DialogFrame
               className="tw:max-h-[calc(100dvh-2.25rem)] tw:w-full tw:max-w-[45.9375rem] tw:overflow-y-auto tw:overscroll-contain tw:rounded-[0.8125rem] tw:bg-white tw:shadow-[0_1.5625rem_4.375rem_#0003]"
               as="aside"
@@ -2238,7 +2232,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                           <th>Tempo de casa</th>
                           <th>Situação</th>
                           <th>
-                            <span className="sr-only">Abrir ficha</span>
+                            <span className="tw:sr-only">Abrir ficha</span>
                           </th>
                         </tr>
                       </thead>
@@ -2302,7 +2296,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                               <th>Tempo na equipe</th>
                               <th>Situação</th>
                               <th>
-                                <span className="sr-only">Abrir ficha</span>
+                                <span className="tw:sr-only">Abrir ficha</span>
                               </th>
                             </tr>
                           </thead>
@@ -2441,19 +2435,14 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 </div>
               )}
             </DialogFrame>
-          </div>,
+          </TeamDialogOverlay>,
           document.body,
         )}
       {pendingTermination &&
         createPortal(
-          <div
-            className="v2-client-module v2-team-overlay"
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget) setPendingTermination(null);
-            }}
-          >
-            <DialogFrame
-              className="wf-modal wf-create tw:w-full! tw:max-w-[42.5rem] tw:p-0!"
+          <TeamDialogOverlay onClose={() => setPendingTermination(null)}>
+            <WorkflowDialog create
+              className="tw:w-full! tw:max-w-[42.5rem] tw:p-0!"
               role="alertdialog"
               aria-labelledby="team-termination-title"
             >
@@ -2482,20 +2471,15 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   Continuar
                 </TeamAction>
               </TeamDialogFooter>
-            </DialogFrame>
-          </div>,
+            </WorkflowDialog>
+          </TeamDialogOverlay>,
           document.body,
         )}
       {metricDraft &&
         createPortal(
-          <div
-            className="v2-client-module v2-team-overlay"
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget) setMetricDraft(null);
-            }}
-          >
-            <DialogForm
-              className="wf-modal wf-create v2-month-form tw:flex tw:max-h-[calc(100dvh-2.25rem)] tw:w-full! tw:max-w-[42.5rem] tw:flex-col tw:overflow-hidden tw:p-0!"
+          <TeamDialogOverlay onClose={() => setMetricDraft(null)}>
+            <WorkflowDialogForm create
+              className="tw:flex tw:max-h-[calc(100dvh-3.077rem)] tw:w-full! tw:max-w-[42.5rem] tw:flex-col tw:overflow-hidden tw:p-0!"
               onSubmit={saveMetrics}
               aria-labelledby="team-metrics-title"
             >
@@ -2505,11 +2489,18 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   {admin ? 'Corrigir' : 'Lançar'} dados de {selectedCompany?.display_name || 'empresa'}
                 </h2>
               </TeamDialogHeader>
-              <div className="wf-form tw:min-h-0 tw:overflow-y-auto tw:px-[1.5625rem] tw:pt-4.5 tw:pb-5">
+              <div className="tw:flex tw:min-h-0 tw:flex-col tw:gap-[1.154rem] tw:overflow-y-auto tw:px-[1.5625rem] tw:pt-4.5 tw:pb-5
+                tw:[scrollbar-width:none] tw:[&_label]:m-0 tw:[&_label]:flex tw:[&_label]:flex-col tw:[&_label]:gap-[0.538rem]
+                tw:[&_label]:text-[0.846rem]/[inherit] tw:[&_label]:font-semibold tw:[&_label]:text-[#665751]
+                tw:[&_:is(input,textarea)]:w-full tw:[&_:is(input,textarea)]:min-h-0 tw:[&_:is(input,textarea)]:rounded-[0.615rem]
+                tw:[&_:is(input,textarea)]:border tw:[&_:is(input,textarea)]:border-solid tw:[&_:is(input,textarea)]:border-[#e9e0d8]
+                tw:[&_:is(input,textarea)]:bg-white tw:[&_:is(input,textarea)]:p-[0.846rem] tw:[&_:is(input,textarea)]:font-cali-body
+                tw:[&_:is(input,textarea)]:text-[0.846rem]/[inherit] tw:[&_:is(input,textarea)]:text-[#322f2c]
+                tw:[&_:is(input,textarea)]:outline-cali-gold tw:[&_textarea]:h-[4.615rem] tw:[&_textarea]:resize-y">
                 <h3 className="tw:col-span-full tw:mt-2.5 tw:mb-0 tw:border-t tw:border-solid tw:border-[#efe7e1] tw:pt-3.5 tw:text-[0.8125rem] tw:font-semibold tw:text-cali-brand tw:first:mt-0 tw:first:border-0 tw:first:pt-0">
                   Jornada e ausências (horas)
                 </h3>
-                <div className="wf-form-grid">
+                <div className="tw:grid tw:grid-cols-2 tw:gap-[1.154rem] tw:[@media(max-width:40.625rem)]:grid-cols-1">
                   {(
                     [
                       ['planned', 'Horas previstas no mês'],
@@ -2535,7 +2526,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   Quadro aprovado por área (posições)
                 </h3>
                 {departments.length ? (
-                  <div className="wf-form-grid">
+                  <div className="tw:grid tw:grid-cols-2 tw:gap-[1.154rem] tw:[@media(max-width:40.625rem)]:grid-cols-1">
                     {departments.map((name) => (
                       <label key={name}>
                         {name}
@@ -2560,7 +2551,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                 <h3 className="tw:col-span-full tw:mt-2.5 tw:mb-0 tw:border-t tw:border-solid tw:border-[#efe7e1] tw:pt-3.5 tw:text-[0.8125rem] tw:font-semibold tw:text-cali-brand tw:first:mt-0 tw:first:border-0 tw:first:pt-0">
                   Pesquisa de clima (quando houver ciclo)
                 </h3>
-                <div className="wf-form-grid">
+                <div className="tw:grid tw:grid-cols-2 tw:gap-[1.154rem] tw:[@media(max-width:40.625rem)]:grid-cols-1">
                   <label>
                     eNPS (−100 a 100)
                     <input
@@ -2595,7 +2586,7 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   />
                 </label>
                 {error && (
-                  <p className="wf-access-error" role="alert">
+                  <p className="tw:m-0 tw:text-[0.846rem]/[inherit] tw:text-[#b7495d]" role="alert">
                     {error}
                   </p>
                 )}
@@ -2620,20 +2611,15 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   {saving ? 'Gravando…' : 'Gravar dados do mês'}
                 </TeamAction>
               </TeamDialogFooter>
-            </DialogForm>
-          </div>,
+            </WorkflowDialogForm>
+          </TeamDialogOverlay>,
           document.body,
         )}
       {removeMember &&
         createPortal(
-          <div
-            className="v2-client-module v2-team-overlay"
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget) setRemoveMember(null);
-            }}
-          >
-            <DialogFrame
-              className="wf-modal wf-create tw:w-full! tw:max-w-[42.5rem] tw:p-0!"
+          <TeamDialogOverlay onClose={() => setRemoveMember(null)}>
+            <WorkflowDialog create
+              className="tw:w-full! tw:max-w-[42.5rem] tw:p-0!"
               role="alertdialog"
               aria-labelledby="team-remove-title"
             >
@@ -2656,20 +2642,15 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   {saving ? 'Removendo…' : 'Remover ficha'}
                 </TeamAction>
               </TeamDialogFooter>
-            </DialogFrame>
-          </div>,
+            </WorkflowDialog>
+          </TeamDialogOverlay>,
           document.body,
         )}
       {editor &&
         createPortal(
-          <div
-            className="v2-client-module v2-team-overlay"
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget) setEditor(null);
-            }}
-          >
-            <DialogForm
-              className="wf-modal wf-create tw:flex tw:max-h-[calc(100dvh-2.25rem)] tw:w-full! tw:max-w-[47.5rem] tw:flex-col tw:overflow-hidden tw:p-0!"
+          <TeamDialogOverlay onClose={() => setEditor(null)}>
+            <WorkflowDialogForm create
+              className="tw:flex tw:max-h-[calc(100dvh-2.25rem)] tw:w-full! tw:max-w-[47.5rem] tw:flex-col tw:overflow-hidden tw:p-0!"
               noValidate
               onSubmit={(e) => {
                 e.preventDefault();
@@ -3127,20 +3108,15 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   </TeamAction>
                 }
               </TeamDialogFooter>
-            </DialogForm>
-          </div>,
+            </WorkflowDialogForm>
+          </TeamDialogOverlay>,
           document.body,
         )}
       {importOpen &&
         createPortal(
-          <div
-            className="v2-client-module v2-team-overlay"
-            onMouseDown={(e) => {
-              if (e.target === e.currentTarget) setImportOpen(false);
-            }}
-          >
-            <DialogFrame
-              className="wf-modal wf-create tw:flex tw:max-h-[calc(100dvh-2.25rem)] tw:w-full! tw:max-w-[42.5rem] tw:flex-col tw:overflow-hidden tw:p-0!"
+          <TeamDialogOverlay onClose={() => setImportOpen(false)}>
+            <WorkflowDialog create
+              className="tw:flex tw:max-h-[calc(100dvh-2.25rem)] tw:w-full! tw:max-w-[42.5rem] tw:flex-col tw:overflow-hidden tw:p-0!"
               as="div"
               aria-label="Cadastrar colaboradores por planilha"
             >
@@ -3236,8 +3212,8 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
                   atualizar {importRows.length} {importRows.length === 1 ? 'colaborador' : 'colaboradores'}
                 </TeamAction>
               </TeamDialogFooter>
-            </DialogFrame>
-          </div>,
+            </WorkflowDialog>
+          </TeamDialogOverlay>,
           document.body,
         )}
       {reviewOpen && companyId && (

@@ -1,6 +1,7 @@
+import { WorkflowDialog } from '../../../components/ds/WorkflowDialog';
+import { TeamDialogOverlay } from './TeamDialogOverlay';
 import { TeamDialogEyebrow, TeamDialogFooter, TeamDialogHeader } from './TeamDialogParts';
 import { TeamAction } from './TeamAction';
-import { DialogFrame } from '../../../components/ds/DialogFrame';
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -198,14 +199,9 @@ export function TeamMonthWizard({
     }
   }
   return createPortal(
-    <div
-      className="v2-client-module v2-team-overlay"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <DialogFrame
-        className="wf-modal wf-create tw:flex tw:max-h-[calc(100dvh-2.25rem)] tw:w-full! tw:max-w-[42.5rem] tw:flex-col tw:overflow-hidden tw:p-0!"
+    <TeamDialogOverlay onClose={onClose}>
+      <WorkflowDialog create
+        className="tw:flex tw:max-h-[calc(100dvh-2.25rem)] tw:w-full! tw:max-w-[42.5rem] tw:flex-col tw:overflow-hidden tw:p-0!"
         aria-label="Atualização mensal"
       >
         <TeamDialogHeader onClose={onClose}>
@@ -517,8 +513,8 @@ export function TeamMonthWizard({
             </TeamAction>
           )}
         </TeamDialogFooter>
-      </DialogFrame>
-    </div>,
+      </WorkflowDialog>
+    </TeamDialogOverlay>,
     document.body,
   );
 }

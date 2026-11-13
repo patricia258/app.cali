@@ -24,7 +24,7 @@ export function DeliverableConversationMessage({ message, identity, mine, visibl
   const alignment = mine ? 'tw:self-end' : 'tw:self-start';
   const avatar = <ProjectConversationAvatar identity={identity} name={identity.full_name}
     className="tw:grid tw:size-[2.31rem] tw:shrink-0 tw:place-items-center tw:rounded-lg tw:bg-cali-brand tw:text-[.77rem] tw:font-semibold tw:text-white tw:workspace-night:bg-[#2a1d21]" />;
-  const arrival = arriving ? 'tw:motion-safe:animate-[cali-message-arrive-v63_.56s_cubic-bezier(.2,.78,.2,1)_both]' : '';
+  const arrival = arriving ? 'tw:motion-safe:animate-message-arrive' : '';
 
   return <div data-message-id={message.id} className={`tw:flex tw:max-w-3/4 tw:shrink-0 tw:origin-bottom tw:items-start tw:gap-[.69rem] tw:motion-safe:transition-transform tw:motion-safe:hover:-translate-y-px tw:max-sm:max-w-[90%] ${alignment} ${arrival}`}>
     {!mine && avatar}

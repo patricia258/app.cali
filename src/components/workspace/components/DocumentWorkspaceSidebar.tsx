@@ -41,7 +41,8 @@ export function DocumentWorkspaceSidebar({ pathname, navigation, profile }: Prop
         sidebar tw:group/document-sidebar tw:fixed tw:inset-y-0 tw:left-0 tw:z-30 tw:isolate tw:flex tw:h-dvh tw:min-h-0 tw:max-h-dvh
         tw:flex-col tw:overflow-hidden tw:border-0 tw:text-[#fffaf7]
         tw:[transition:width_.18s_cubic-bezier(.2,.75,.25,1),box-shadow_.16s_ease,transform_.22s_ease]
-        tw:motion-reduce:transition-none tw:print:hidden! tw:max-[53.8125rem]:w-[min(18.125rem,86vw)] tw:max-[53.8125rem]:px-4
+        tw:motion-reduce:transition-none tw:print:hidden! tw:[body.workspace-modal-open_&]:pointer-events-none!
+        tw:[body.workspace-modal-open_&]:[transform:none]! tw:max-[53.8125rem]:w-[min(18.125rem,86vw)] tw:max-[53.8125rem]:px-4
         tw:max-[53.8125rem]:pt-6 tw:max-[53.8125rem]:pb-[1.125rem] tw:min-[53.8125rem]:w-14
         tw:min-[53.8125rem]:bg-[linear-gradient(175deg,#5a1e2d_0%,#642a3b_42%,#785044_74%,#b58c52_100%)]
         tw:min-[53.8125rem]:px-[0.4375rem] tw:min-[53.8125rem]:pt-3 tw:min-[53.8125rem]:pb-2.5 tw:min-[53.8125rem]:hover:w-[12.125rem]

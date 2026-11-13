@@ -117,7 +117,7 @@ export function ExportOverview({ data }: { data: DashboardData }) {
   }
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)}><Download size={15} /> Exportar</button>
+      <Button type="button" variant="adminOutline" onClick={() => setOpen(true)}><Download size={15} /> Exportar</Button>
       {open && createPortal((
         <DialogFrame
           className="tw:fixed tw:inset-0 tw:z-10000 tw:isolate tw:grid tw:place-items-center tw:bg-[#22161ab8] tw:p-[1.846rem] tw:backdrop-blur-[0.615rem] tw:max-[42.5rem]:p-[0.769rem]"
@@ -127,7 +127,7 @@ export function ExportOverview({ data }: { data: DashboardData }) {
           <section className="tw:grid tw:max-h-[calc(100dvh-3.692rem)] tw:w-[min(86.154rem,100%)] tw:grid-rows-[auto_auto_minmax(0,1fr)_auto] tw:overflow-hidden tw:rounded-[1.692rem] tw:border tw:border-solid tw:border-[#b58c5261] tw:bg-[var(--theme-surface,#fffdfa)] tw:shadow-[0_28px_90px_#22161a47] tw:workspace-night:bg-[#241b1e] tw:max-[42.5rem]:max-h-[calc(100dvh-1.538rem)] tw:max-[42.5rem]:rounded-[1.231rem]">
             <header className="tw:flex tw:justify-between tw:gap-[1.538rem] tw:border-0 tw:border-b tw:border-solid tw:border-[var(--theme-line,#5a1e2d1f)] tw:px-8 tw:pt-[1.692rem] tw:pb-[1.385rem] tw:max-[42.5rem]:px-[1.231rem]">
               <div>
-                <span className="section-kicker">EXPORTAÇÃO</span>
+                <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-[0.769rem]/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-[#a88b76]">EXPORTAÇÃO</span>
                 <h2 className="tw:my-[0.308rem]! tw:text-[1.692rem]/[inherit] tw:text-[var(--theme-text,#2b2b2b)]">Visão geral da operação</h2>
                 <p className="tw:m-0 tw:text-[0.923rem]/[inherit] tw:text-[var(--theme-muted,#756b67)]">
                   Escolha o recorte e revise a prévia antes de salvar em PDF.

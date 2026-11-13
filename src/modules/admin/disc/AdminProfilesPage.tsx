@@ -1,3 +1,8 @@
+import { WorkflowPage } from '../../../components/ds/WorkflowPage';
+import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
+import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
+import { WorkflowSegments, WorkflowControls } from '../../../components/ds/WorkflowControls';
+import { WorkflowHeading } from '../../../components/ds/WorkflowHeading';
 import { WorkspaceConfirmDialog } from '../../../components/workspace/components/WorkspaceConfirmDialog';
 import { WorkspaceDialogOverlay } from '../../../components/workspace/components/WorkspaceDialogOverlay';
 import { FormFeedbackToast } from '../../../components/forms/FormFeedbackToast';
@@ -203,18 +208,18 @@ export function AdminProfilesPage() {
     </td>
   </tr>;
 
-  return <Shell role="admin"><div className="ap-app v2-admin-page v2-forms v2-client-module tw:[--fm-wine:#5a1e2d] tw:[--fm-line:#eadfd6] tw:[--fm-muted:#8c7e74]
+  return <Shell role="admin"><WorkspaceAdminPage className="v2-forms v2-client-module tw:[--fm-wine:#5a1e2d] tw:[--fm-line:#eadfd6] tw:[--fm-muted:#8c7e74]
     tw:[--fm-ink:#3e3533] tw:[&_.wf-head_.v2-head-actions_a]:no-underline tw:[&_label>span]:block
     tw:[&_label>span]:text-[0.846rem] tw:[&_label>span]:font-semibold tw:[&_label>span]:text-[color:var(--fm-ink)]
     tw:[&_label>span]:mb-[0.462rem] tw:[&_label>span_em]:not-italic tw:[&_label>span_em]:font-medium
     tw:[&_label>span_em]:text-[color:var(--fm-muted)] tw:[&_label>span_em]:ml-[0.308rem]    tw:[&_textarea]:resize-y tw:[&_:is(input,select,textarea):focus]:outline-none tw:[&_:is(input,select,textarea):focus]:[border-color:var(--fm-wine)]
-    tw:[&_:is(input,select,textarea):focus]:[box-shadow:0_0_0_0.231rem_rgba(90,30,45,.08)]"><div className="ap-content"><div className="wf">
-    <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Perfil comportamental</h1></div>
-      <div className="v2-head-actions"><Button variant="formSecondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> Atualizar</Button><Button variant="workflowPrimary" type="button" onClick={() => setEditing(newDraft())}><Plus size={15} /> Novo link</Button></div></div>
-    <div className="wf-segments v2-forms-tabs tw:[margin:0.308rem_0_1.231rem] tw:w-max tw:max-w-full" role="tablist"><button type="button" className={tab === 'results' ? 'on' : ''} onClick={() => setTab('results')}>Respostas ({results.length})</button><button type="button" className={tab === 'links' ? 'on' : ''} onClick={() => setTab('links')}>Links e convites ({links.length})</button></div>
+    tw:[&_:is(input,select,textarea):focus]:[box-shadow:0_0_0_0.231rem_rgba(90,30,45,.08)]"><WorkspaceAdminContent><WorkflowPage>
+    <WorkflowHeading><div><small>BACKOFFICE / CALI RH</small><h1>Perfil comportamental</h1></div>
+      <div className="v2-head-actions tw:flex tw:flex-wrap tw:items-center tw:gap-[0.769rem]"><Button variant="formSecondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> Atualizar</Button><Button variant="workflowPrimary" type="button" onClick={() => setEditing(newDraft())}><Plus size={15} /> Novo link</Button></div></WorkflowHeading>
+    <WorkflowSegments className="v2-forms-tabs tw:[margin:0.308rem_0_1.231rem] tw:w-max tw:max-w-full" role="tablist"><button type="button" className={tab === 'results' ? 'on' : ''} onClick={() => setTab('results')}>Respostas ({results.length})</button><button type="button" className={tab === 'links' ? 'on' : ''} onClick={() => setTab('links')}>Links e convites ({links.length})</button></WorkflowSegments>
 
     {tab === 'results' && <>
-      <div className="wf-controls v2-forms-controls cpa-filters tw:flex-wrap tw:gap-[0.77rem] tw:flex tw:items-center tw:gap-[0.769rem] tw:flex-wrap tw:mb-[0.923rem]">
+      <WorkflowControls className="v2-forms-controls cpa-filters tw:flex-wrap tw:gap-[0.77rem] tw:flex tw:items-center tw:gap-[0.769rem] tw:flex-wrap tw:mb-[0.923rem]">
         <label className="v2-forms-search tw:flex tw:items-center tw:gap-[0.538rem] tw:flex-1 tw:min-w-[16.923rem] tw:max-w-[29.231rem]
           tw:[border:1px_solid_#e3d6cc] tw:rounded-[0.615rem] tw:[padding:0_0.769rem] tw:bg-white tw:text-[color:var(--fm-muted)]
           tw:[&_input]:flex-1 tw:[&_input]:border-0 tw:[&_input]:outline-none tw:[&_input]:[padding:0.692rem_0]
@@ -237,7 +242,7 @@ export function AdminProfilesPage() {
           tw:font-medium tw:text-[#3e3533] tw:[&_input]:size-[1.15rem] tw:[&_input]:accent-cali-brand"><input type="checkbox" checked={grouped} onChange={(event) => setGrouped(event.target.checked)} /> Agrupar por empresa</label>
         {filtersOn && <button type="button" className="cpa-clear tw:inline-flex tw:cursor-pointer tw:items-center tw:gap-[0.31rem] tw:border-0 tw:bg-transparent tw:text-[0.92rem] tw:font-semibold tw:text-cali-brand" onClick={() => { setQuery(''); setCompanyFilter(''); setStyleFilter(''); setValidityFilter(''); setFrom(''); setTo(''); }}><X size={13} /> Limpar filtros</button>}
         <span className="v2-forms-total tw:text-[0.846rem] tw:text-[color:var(--fm-muted)] tw:mr-auto">{filtered.length} de {results.length}</span>
-      </div>
+      </WorkflowControls>
       {loading ? <LoadingState>Carregando…</LoadingState> : !results.length ? <EmptyState variant="workflow"><strong>Nenhuma resposta ainda.</strong><p>Crie um link em &quot;Novo link&quot; e envie os convites.</p></EmptyState>
         : !filtered.length ? <EmptyState variant="workflow"><strong>Nada com esses filtros.</strong><p>Ajuste ou limpe os filtros.</p></EmptyState>
         : <FormResultsTable><thead><tr><th>Pessoa</th>{!grouped && <th>Empresa</th>}<th>Perfil</th><th>Sob pressão</th><th>Respondido em</th><th>Válido até</th><th /></tr></thead><tbody>
@@ -288,7 +293,7 @@ export function AdminProfilesPage() {
       </tbody></FormResultsTable>)}
     {error && <InlineNotice className="cpc-notice error tw:m-0 tw:rounded-[0.77rem] tw:border tw:border-solid tw:border-[#f0c8c0] tw:bg-[#fdf1ee]
       tw:px-[1.23rem] tw:py-[0.92rem] tw:text-[1rem] tw:text-[#8d382a]" role="alert">{error}</InlineNotice>}
-  </div></div>
+  </WorkflowPage></WorkspaceAdminContent>
   {toast && <FormFeedbackToast>{toast}</FormFeedbackToast>}
 
   {person && <WorkspaceDialogOverlay onMouseDown={(event) => { if (event.target === event.currentTarget) setPerson(null); }}><WorkspaceConfirmDialog className="cpa-person-card tw:max-h-[92vh] tw:w-[min(47.69rem,96vw)] tw:overflow-auto" aria-label={person.person_name}>
@@ -364,5 +369,5 @@ export function AdminProfilesPage() {
     <div><small>PERFIL COMPORTAMENTAL</small><h2>Tem certeza que quer excluir?</h2><p><strong>{removing.person_name}</strong> · respondido em {day(removing.created_at)}. Apaga as respostas, os escores e o PDF. Não dá para desfazer.</p></div>
     <footer><button type="button" onClick={() => setRemoving(null)}>Cancelar</button><button type="button" className="danger tw:border-[#b42318]! tw:bg-[#b42318]!" onClick={() => void remove()}>Excluir</button></footer>
   </WorkspaceConfirmDialog></WorkspaceDialogOverlay>}
-  </div></Shell>;
+  </WorkspaceAdminPage></Shell>;
 }

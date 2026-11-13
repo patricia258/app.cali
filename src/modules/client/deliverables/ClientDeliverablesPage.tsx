@@ -1,3 +1,13 @@
+import { CompactPageHeading } from '../../../components/workspace/components/CompactPageHeading';
+import { WorkflowDialogOverlay, WorkflowDialog } from '../../../components/ds/WorkflowDialog';
+import { DeliveryDetailDialog } from '../../../components/projects/DeliveryDetailDialog';
+import { DeliveryDetailHeader } from '../../../components/projects/DeliveryDetailHeader';
+import { DeliveryDetailTabs } from '../../../components/projects/DeliveryDetailTabs';
+import { DeliverySummary } from '../../../components/projects/DeliverySummary';
+import { DeliveryNotice } from '../../../components/projects/DeliveryNotice';
+import { DeliveryActionButton } from '../../../components/projects/DeliveryActionButton';
+import { ClientDeliveryFile } from './components/ClientDeliveryFile';
+import { ProjectComplexityCard } from '../../../components/projects/ProjectComplexityCard';
 import { ProjectSectionTabs } from '../../../components/projects/ProjectSectionTabs';
 import { DeliveryHistory } from '../../../components/projects/DeliveryHistory';
 import { ClientDeliverySteps } from './components/ClientDeliverySteps';
@@ -6,7 +16,6 @@ import { ClientDeliveryFront } from './components/ClientDeliveryFront';
 import { ClientDeliveryRow } from './components/ClientDeliveryRow';
 import { EmptyState } from '../../../components/ds/EmptyState';
 import { Button } from '../../../components/ds/Button';
-import { DialogFrame } from '../../../components/ds/DialogFrame';
 import { FieldLabel } from '../../../components/ds/FieldLabel';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { openPrivateWorkspaceFile } from '../../../api/files/workspace';
@@ -15,7 +24,7 @@ import { ClientSubtaskModal } from './components/ClientSubtaskModal';
 import { ClientProjectLifecycleBanner } from './components/ClientProjectLifecycleBanner';
 import { ClientScheduleReviewPanel } from './components/ClientScheduleReviewPanel';
 import { DeliverableDependencies } from '../../../components/projects/DeliverableDependencies';
-import { complexityMeta, complexityRange, complexityClientNote, validDeliverableFeedback } from '../../../domain/projects';
+import { complexityClientNote, validDeliverableFeedback } from '../../../domain/projects';
 import { AlertCircle, AlertTriangle, ArrowRight, CheckCircle2, Clock3, FileCheck2, FileText, Leaf, MessageCircle, RefreshCw, Star, X } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import {
@@ -45,8 +54,6 @@ const statusLabel: Record<ClientDeliveryStatus, string> = {
   cancelled: 'Cancelada',
 };
 
-const complexityCopy: Record<string, string> = { MC1: complexityMeta.MC1.description, MC2: complexityMeta.MC2.description, MC3: complexityMeta.MC3.description };
-const complexityDays: Record<string, string> = { MC1: `Prazo estimado: ${complexityRange('MC1')}.`, MC2: `Prazo estimado: ${complexityRange('MC2')}.`, MC3: `Prazo estimado: ${complexityRange('MC3')}.` };
 
 function historyStatusLabel(status: string) {
   return statusLabel[status as ClientDeliveryStatus] || status;
@@ -136,6 +143,7 @@ export function ClientDeliverablesPage() {
   const selected = useMemo(() => reality?.deliverables.find((item) => item.id === selectedId) || null, [reality?.deliverables, selectedId]);
   const project = useMemo(() => reality?.projects.find((item) => item.id === projectId) || reality?.projects[0] || null, [reality?.projects, projectId]);
   const projectDeliverables = useMemo(() => (reality?.deliverables || []).filter((item) => item.projectId === project?.id && item.status !== 'cancelled'), [reality?.deliverables, project?.id]);
+  const waitingDelivery = projectDeliverables.find((item) => item.status === 'client_review');
   const fronts = useMemo(() => reality && project ? deriveFronts(reality, project.id) : [], [reality, project]);
   const maxMonth = useMemo(() => Math.max(8, ...fronts.map((front) => front.monthEnd || front.monthStart || 1), ...projectDeliverables.map((item) => item.roadmapMonthEnd || item.roadmapMonthStart || 1)), [fronts, projectDeliverables]);
   const months = useMemo(() => Array.from({ length: maxMonth }, (_, index) => index + 1), [maxMonth]);
@@ -321,8 +329,8 @@ export function ClientDeliverablesPage() {
 
   return <Shell role="client">
     <section className="v2-client-module">
-      <div className="v4-projects">
-        <div className="page-head"><div><div className="eyebrow">ÁREA DA EMPRESA / EXECUÇÃO</div><h1>Projetos<span className="title-dot">.</span></h1><p>Execução, planejamento e acompanhamento da assessoria em um só lugar.</p></div></div>
+      <div>
+        <CompactPageHeading eyebrow="ÁREA DA EMPRESA / EXECUÇÃO" title="Projetos" description="Execução, planejamento e acompanhamento da assessoria em um só lugar." />
         {reality && <ClientProjectLifecycleBanner companyId={reality.company.id} projectId={project?.id ?? null} />}
         {reality && project && <div className="tw:mt-[1.31rem] tw:mb-[1.08rem] tw:flex tw:min-w-0 tw:flex-wrap tw:items-center tw:justify-between tw:gap-[.92rem] tw:rounded-[.77rem] tw:border tw:border-solid tw:border-[#e9e0d8] tw:bg-white tw:px-[1.08rem] tw:py-[.77rem] tw:text-[.85rem] tw:text-[#8b7f77]">
           <label className="tw:inline-flex tw:min-w-0 tw:max-w-full tw:items-center tw:gap-[.615rem] tw:text-[#3e3533]">
@@ -345,9 +353,12 @@ export function ClientDeliverablesPage() {
         </section>}
         {reality && project && <div>
           <ProjectSectionTabs label="Seções do projeto" tabs={[[ 'timeline', 'Cronograma' ], [ 'deliverables', 'Entregáveis' ], [ 'history', 'Histórico' ]]} value={projectTab} onChange={setProjectTab} />
-          {projectDeliverables.some(item=>item.status==='client_review') && <div className="dv-next-action v2-project-attention tw:mb-[1.23rem]"><AlertCircle size={16}/><div><strong>Há uma validação aguardando você</strong><p>{projectDeliverables.find(item=>item.status==='client_review')!.title} · sua análise define se seguimos para publicação ou para uma nova versão.</p></div><button type="button" onClick={()=>openDeliverable(projectDeliverables.find(item=>item.status==='client_review')!)}>Abrir entrega <ArrowRight size={13}/></button></div>}
-          {projectTab === 'timeline' && <DeliverySchedule items={projectDeliverables} labels={statusLabel} onOpen={openDeliverable} empty={<p className="wf-empty">Quando a CALI abrir as primeiras entregas deste projeto, elas aparecerão aqui.</p>} />}
-          {projectTab === 'history' && <section className="wf-panel v2-project-timeline tw:min-w-0 tw:overflow-hidden tw:rounded-[.77rem] tw:border tw:border-solid tw:border-[#e9dbd0] tw:bg-white tw:p-[1.77rem]">
+          {waitingDelivery && <DeliveryNotice icon={<AlertCircle size={16} />} title="Há uma validação aguardando você"
+              className="tw:mb-[1.23rem]" action={<DeliveryActionButton tone="primary" onClick={() => openDeliverable(waitingDelivery)}>Abrir entrega <ArrowRight size={13} /></DeliveryActionButton>}>
+              {waitingDelivery.title} · sua análise define se seguimos para publicação ou para uma nova versão.
+            </DeliveryNotice>}
+          {projectTab === 'timeline' && <DeliverySchedule items={projectDeliverables} labels={statusLabel} onOpen={openDeliverable} empty={<p className="tw:p-[1.85rem] tw:text-center tw:text-[#999]">Quando a CALI abrir as primeiras entregas deste projeto, elas aparecerão aqui.</p>} />}
+          {projectTab === 'history' && <section className="tw:min-w-0 tw:overflow-hidden tw:rounded-[.77rem] tw:border tw:border-solid tw:border-[#e9dbd0] tw:bg-white tw:p-[1.77rem]">
             <DeliveryHistory
               title="Histórico do projeto"
               description="Mudanças de situação das entregas compartilhadas, da mais recente para a mais antiga."
@@ -392,37 +403,62 @@ export function ClientDeliverablesPage() {
       </div>
     </section>
 
-    {selected && <div className="v2-client-module v2-client-dialog" hidden={detailActionOpen}><div className="dv-overlay">
-      <DialogFrame className="dv-modal" aria-label={selected.title} data-v2-operation="deliverable-workspace-modal-v2">
-        <header data-v2-operation="deliverable-workspace-header-v2">
-          <div data-v2-operation="deliverable-title-v2"><small><span className="section-kicker">{selected.protocol || selected.code || 'ENTREGÁVEL'}</span> · {selected.complexity || 'MC1'}</small><h2>{selected.title}</h2><p>{selected.workstream || 'Frente CALI'} · {roadmapLabel(selected)}</p></div>
-          <button type="button" aria-label="Fechar entrega" data-dialog-close onClick={closeDeliverable}><X size={18} /></button>
-        </header>
-
-        <nav aria-label="Detalhes da entrega">{(['overview', 'conversation', 'history'] satisfies DetailTab[]).map((tab: DetailTab) => <button key={tab} className={detailTab === tab ? 'selected' : ''} onClick={() => setDetailTab(tab)}>{tab === 'overview' ? 'Visão geral' : tab === 'tasks' ? 'Etapas' : tab === 'conversation' ? 'Conversas' : 'Histórico'}</button>)}</nav>
+    {selected && <DeliveryDetailDialog title={selected.title} hidden={detailActionOpen}>
+        <DeliveryDetailHeader
+          title={selected.title}
+          code={selected.protocol || selected.code || 'ENTREGÁVEL'}
+          complexity={selected.complexity || 'MC1'}
+          description={`${selected.workstream || 'Frente CALI'} · ${roadmapLabel(selected)}`}
+        >
+          <Button type="button" variant="inlineClose" className="tw:grid tw:cursor-pointer tw:place-items-center tw:rounded-[.615rem] tw:border tw:border-solid tw:border-[#ecded5] tw:bg-white tw:p-[.615rem]" aria-label="Fechar entrega" onClick={closeDeliverable}><X size={18} /></Button>
+        </DeliveryDetailHeader>
+        <DeliveryDetailTabs<DetailTab> tabs={['overview', 'conversation', 'history']} selected={detailTab} onChange={setDetailTab}
+          label={(tab) => tab === 'overview' ? 'Visão geral' : tab === 'conversation' ? 'Conversas' : 'Histórico'} />
 
         <DeliverableConversation
           key={selected.id} role="client" companyId={companyId} deliverableId={selected.id} active={detailTab === 'conversation'}
         />
-        {detailTab !== 'conversation' && <div className="dv-modal-content">
+        {detailTab !== 'conversation' && <div className="tw:min-h-0 tw:flex-1 tw:overflow-y-auto tw:px-[2.077rem] tw:py-[1.538rem] tw:[scrollbar-width:none]">
           {detailTab === 'overview' && <>
-            <div className="dv-summary">
-              <span><Clock3 size={14} /> Prazo <b>{formatDate(selected.dueAt)}</b></span>
-              <span><CheckCircle2 size={14} /> Situação <b>{statusLabel[selected.status]}</b></span>
-              <span><FileText size={14} /> Versão <b>{selected.document?.versionLabel || '—'}</b></span>
-              <span><Leaf size={14} /> Frente de atuação <b>{selected.workstream || 'Frente CALI'}</b></span>
+            <DeliverySummary items={[
+              { icon: <Clock3 size={14} />, label: 'Prazo', value: formatDate(selected.dueAt) },
+              { icon: <CheckCircle2 size={14} />, label: 'Situação', value: statusLabel[selected.status] },
+              { icon: <FileText size={14} />, label: 'Versão', value: selected.document?.versionLabel || '—' },
+              { icon: <Leaf size={14} />, label: 'Frente de atuação', value: selected.workstream || 'Frente CALI' },
+            ]} />
+            <div className="tw:pt-[.308rem] tw:pb-[.923rem] tw:[&_p]:m-0 tw:[&_p]:text-[.923rem]/[1.65] tw:[&_p]:text-[#766b64]">
+              <h3 className="tw:mt-0 tw:mb-[.769rem] tw:text-[1.077rem]">Sobre esta entrega</h3>
+              {selected.description && <p>{selected.description}</p>}
+              <ProjectComplexityCard code={selected.complexity || 'MC1'} />
+              <p className="tw:mt-[.615rem]! tw:text-[.808rem]/[1.45]! tw:italic tw:text-[#9a8d85]!"><span aria-hidden="true">* </span>{complexityClientNote}</p>
+              {selected.originalDueAt && selected.originalDueAt !== selected.dueAt && <p>Prazo original: {formatDate(selected.originalDueAt)}.</p>}
             </div>
-            <div className="dv-overview-copy"><h3>Sobre esta entrega</h3>{selected.description && <p>{selected.description}</p>}<div className={`v2-mc-card ${(selected.complexity || 'MC1').toLowerCase()}`}><b className={`mc-chip ${(selected.complexity || 'MC1').toLowerCase()}`}>{selected.complexity || 'MC1'}</b><div><strong>{complexityCopy[selected.complexity || 'MC1'] || 'Complexidade definida pela CALI conforme volume de análise e dependências.'}</strong><span>{complexityDays[selected.complexity || 'MC1'] || ''}</span></div></div><p className="v2-mc-clientnote"><span aria-hidden="true">* </span>{complexityClientNote}</p>{selected.originalDueAt && selected.originalDueAt !== selected.dueAt && <p>Prazo original: {formatDate(selected.originalDueAt)}.</p>}</div>
             <DeliverableDependencies deliverableId={selected.id} companyId="" title={selected.title} dueAt={selected.dueAt || null} mode="client" />
-            {selected.isDocument && <div className="dv-file"><FileText size={20} /><div><strong>{selected.document ? selected.document.title : 'Arquivo ainda não publicado'}</strong><small>{selected.document ? `${selected.document.versionLabel ? `Versão ${selected.document.versionLabel} · ` : ''}publicado em ${formatDateTime(selected.document.publishedAt)}` : 'Quando a versão compartilhável estiver pronta, ela aparecerá aqui e em Documentos.'}</small></div>{selected.document ? <button type="button" className="dv-file-open" onClick={() => void openPublishedDocument(selected.document!)}>Abrir</button> : <span className="dv-file-status">{statusLabel[selected.status]}</span>}</div>}
-            {selected.feedback && <div className="dv-file"><Star size={20} /><div><strong>Sua avaliação: {selected.feedback.score}/5</strong><small>{selected.feedback.comment || 'Sem comentário adicional.'}</small></div></div>}
-            {selected.status === 'client_review' && <div className="dv-next-action"><AlertCircle size={16} /><div><strong>O que precisa acontecer agora</strong><p>{selected.clientResponseDueAt ? `Revise esta entrega e responda até ${formatDateTime(selected.clientResponseDueAt)}.` : 'Revise esta entrega e escolha entre aprovar ou solicitar ajuste.'}</p></div></div>}
-            {selected.status === 'adjustment_requested' && <div className="dv-next-action"><AlertCircle size={16} /><div><strong>Seu ajuste está com a CALI</strong><p>{selected.latestAdjustment?.reason || 'A nova versão voltará para sua validação assim que estiver pronta.'}</p></div></div>}
+            {selected.isDocument && <ClientDeliveryFile
+              icon={<FileText size={20} />}
+              title={selected.document?.title || 'Arquivo ainda não publicado'}
+              description={selected.document
+                ? `${selected.document.versionLabel ? `Versão ${selected.document.versionLabel} · ` : ''}publicado em ${formatDateTime(selected.document.publishedAt)}`
+                : 'Quando a versão compartilhável estiver pronta, ela aparecerá aqui e em Documentos.'}
+              action={selected.document
+                ? <DeliveryActionButton tone="primary" onClick={() => void openPublishedDocument(selected.document!)}>Abrir</DeliveryActionButton>
+                : <span className="tw:rounded-[.538rem] tw:bg-[#fff1d8] tw:px-[.769rem] tw:py-[.615rem] tw:text-[.769rem] tw:whitespace-nowrap tw:text-[#875c21] tw:max-[34.375rem]:hidden">{statusLabel[selected.status]}</span>}
+            />}
+            {selected.feedback && <ClientDeliveryFile icon={<Star size={20} />} title={`Sua avaliação: ${selected.feedback.score}/5`} description={selected.feedback.comment || 'Sem comentário adicional.'} />}
+            {selected.status === 'client_review' && <DeliveryNotice icon={<AlertCircle size={16} />} title="O que precisa acontecer agora">
+              {selected.clientResponseDueAt ? `Revise esta entrega e responda até ${formatDateTime(selected.clientResponseDueAt)}.` : 'Revise esta entrega e escolha entre aprovar ou solicitar ajuste.'}
+            </DeliveryNotice>}
+            {selected.status === 'adjustment_requested' && <DeliveryNotice icon={<AlertCircle size={16} />} title="Seu ajuste está com a CALI">
+              {selected.latestAdjustment?.reason || 'A nova versão voltará para sua validação assim que estiver pronta.'}
+            </DeliveryNotice>}
           </>}
 
           {detailTab === 'tasks' && <>
             <ClientDeliverySteps tasks={selected.visibleTasks} formatDate={formatDate} />
-            <div className="dv-next-action"><AlertCircle size={16} /><div><strong>Próxima ação</strong><p>{selected.status === 'client_review' ? 'Revisar a entrega e registrar sua devolutiva: aprovar, pedir ajuste ou conversar.' : 'Acompanhar o andamento e conversar com a CALI se precisar.'}</p></div><button type="button" onClick={() => setDetailTab('conversation')}>Conversar <ArrowRight size={13} /></button></div>
+            <DeliveryNotice icon={<AlertCircle size={16} />} title="Próxima ação"
+              action={<DeliveryActionButton tone="primary" onClick={() => setDetailTab('conversation')}>Conversar <ArrowRight size={13} /></DeliveryActionButton>}>
+              {selected.status === 'client_review' ? 'Revisar a entrega e registrar sua devolutiva: aprovar, pedir ajuste ou conversar.' : 'Acompanhar o andamento e conversar com a CALI se precisar.'}
+            </DeliveryNotice>
           </>}
 
           {detailTab === 'history' && <>
@@ -438,75 +474,77 @@ export function ClientDeliverablesPage() {
                 tone: historyTone(item.toStatus),
               }))}
             />
-            {selected.feedbackHistory?.map((feedback) => <div className="dv-file" key={feedback.id || feedback.createdAt}><Star size={20} /><div><strong>{feedback.reviewRevision ? `Revisão ${feedback.reviewRevision} · ` : ''}Sua avaliação: {feedback.score}/5</strong><small>{formatDateTime(feedback.createdAt)}{feedback.comment ? ` · ${feedback.comment}` : ''}</small></div></div>)}
+            {selected.feedbackHistory?.map((feedback) => <ClientDeliveryFile key={feedback.id || feedback.createdAt} icon={<Star size={20} />}
+              title={`${feedback.reviewRevision ? `Revisão ${feedback.reviewRevision} · ` : ''}Sua avaliação: ${feedback.score}/5`}
+              description={`${formatDateTime(feedback.createdAt)}${feedback.comment ? ` · ${feedback.comment}` : ''}`}
+            />)}
           </>}
         </div>}
 
-        <footer className="dv-actions tw:shrink-0">
+        <footer className="tw:flex tw:min-h-[4.462rem] tw:shrink-0 tw:items-center tw:justify-between tw:gap-[.923rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#efe4dc] tw:px-[2.077rem] tw:py-[1.154rem] tw:text-[.769rem] tw:text-[#9c897e] tw:max-[34.375rem]:flex-col tw:max-[34.375rem]:items-start">
           <span>{statusLabel[selected.status]}{selected.updatedAt ? ` · atualizado em ${formatDateTime(selected.updatedAt)}` : ''}</span>
-          <div className="dv-action-buttons">
+          <div className="tw:ml-auto tw:flex tw:flex-wrap tw:items-center tw:gap-[.769rem]">
             {selected.status === 'client_review' && <>
-              <button type="button" className="dv-secondary" onClick={(event) => {
+              <DeliveryActionButton onClick={(event) => {
                 detailActionTrigger.current = event.currentTarget;
                 reviewTarget.current = { id: selected.id, revision: selected.reviewRevision ?? 1, requestedAt: selected.approvalRequestedAt ?? null };
                 setReviewError(null);
                 setAdjustmentText('');
                 setAdjustmentOpen(true);
-              }}><RefreshCw size={14} /> Solicitar ajuste</button>
-              <button type="button" className="dv-converse-bottom" onClick={(event) => {
+              }}><RefreshCw size={14} /> Solicitar ajuste</DeliveryActionButton>
+              <DeliveryActionButton tone="primary" onClick={(event) => {
                 detailActionTrigger.current = event.currentTarget;
                 reviewTarget.current = { id: selected.id, revision: selected.reviewRevision ?? 1, requestedAt: selected.approvalRequestedAt ?? null };
                 setReviewError(null);
                 setScore(0);
                 setNpsComment('');
                 setNpsOpen(true);
-              }}><FileCheck2 size={14} /> Aprovar entrega</button>
+              }}><FileCheck2 size={14} /> Aprovar entrega</DeliveryActionButton>
             </>}
-            {selected.status !== 'client_review' && detailTab === 'overview' && <button className="dv-converse-bottom" onClick={() => setDetailTab('conversation')}><MessageCircle size={14} /> Conversar sobre esta entrega <ArrowRight size={14} /></button>}
+            {selected.status !== 'client_review' && detailTab === 'overview' && <DeliveryActionButton tone="primary" onClick={() => setDetailTab('conversation')}><MessageCircle size={14} /> Conversar sobre esta entrega <ArrowRight size={14} /></DeliveryActionButton>}
           </div>
         </footer>
-      </DialogFrame>
-    </div></div>}
+      </DeliveryDetailDialog>}
 
     {adjustmentOpen && selected && <div className="v2-client-module v2-client-dialog">
-      <div className="wf-overlay">
-        <DialogFrame className="wf-modal wf-create tw:relative" aria-labelledby="client-deliverable-adjustment-title" onKeyDown={(event) => {
+      <WorkflowDialogOverlay>
+        <WorkflowDialog create className="tw:relative" aria-labelledby="client-deliverable-adjustment-title" onKeyDown={(event) => {
           if (event.key !== 'Escape') return;
           event.stopPropagation();
           setAdjustmentOpen(false);
         }}>
           <Button variant="close" type="button" aria-label="Fechar ajuste" onClick={() => setAdjustmentOpen(false)}><X size={20} /></Button>
-          <span className="section-kicker">SOLICITAR AJUSTE</span>
+          <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-[0.769rem]/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-[#a88b76]">SOLICITAR AJUSTE</span>
           <h2 id="client-deliverable-adjustment-title">O que precisa ser revisto?</h2>
           <p>Descreva o ponto que precisa mudar. O pedido fica vinculado a <strong>{selected.protocol || selected.title}</strong>.</p>
           <textarea className="tw:box-border tw:w-full tw:resize-y tw:rounded-xl tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-input tw:px-4 tw:py-3 tw:font-[inherit]" aria-label="Descreva o ajuste" value={adjustmentText} onChange={(event) => setAdjustmentText(event.target.value)} placeholder="Ex.: precisamos separar este indicador por unidade antes da validação final." rows={5} maxLength={2000} autoFocus />
           {reviewErrorNotice}
-          <div className="v2-dialog-actions">
+          <div className="tw:mt-[1.385rem] tw:flex tw:flex-wrap tw:justify-end tw:gap-[.769rem]">
             <Button type="button" variant="secondary" onClick={() => setAdjustmentOpen(false)}>Cancelar</Button>
             <Button type="button" variant="primary" disabled={saving || reviewError?.stale || adjustmentText.trim().length < 3} onClick={() => void submitAdjustment()}>{saving ? 'Registrando…' : 'Enviar ajuste'}</Button>
           </div>
-        </DialogFrame>
-      </div>
+        </WorkflowDialog>
+      </WorkflowDialogOverlay>
     </div>}
 
     {npsOpen && selected && <div className="v2-client-module v2-client-dialog">
-      <div className="wf-overlay">
-        <DialogFrame className="wf-modal wf-create v2-rating tw:relative" aria-labelledby="client-deliverable-rating-title">
+      <WorkflowDialogOverlay>
+        <WorkflowDialog create className="tw:relative" aria-labelledby="client-deliverable-rating-title">
           <Button variant="close" type="button" aria-label="Fechar avaliação" autoFocus onClick={() => setNpsOpen(false)}><X size={20} /></Button>
-          <span className="section-kicker">APROVAÇÃO DA ENTREGA</span>
+          <span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-[0.769rem]/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-[#a88b76]">APROVAÇÃO DA ENTREGA</span>
           <h2 id="client-deliverable-rating-title">Como foi esta entrega?</h2>
           <p>Escolha sua nota, revise e só depois confirme.</p>
-          <div className="client-delivery-rating-row">{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" className={score === value ? 'selected' : ''} onClick={() => setScore(value)}><Star size={21} fill={score === value ? 'currentColor' : 'none'} /><span>{value}</span></button>)}</div>
-          {reaction && <div className={`client-delivery-score-reaction score-${score}`}><span>{reaction.emoji}</span><div><strong>{reaction.title}</strong><p>{reaction.copy}</p></div></div>}
+          <div className="tw:my-[1.923rem] tw:flex tw:flex-wrap tw:justify-center tw:gap-[.923rem]">{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" className="tw:flex tw:cursor-pointer tw:flex-col tw:items-center tw:gap-[.385rem] tw:rounded-[.615rem] tw:border tw:border-solid tw:border-[var(--v2-line-e5d6ca,#e5d6ca)] tw:bg-[var(--v2-surface-fffaf5,#fffaf5)] tw:p-[.923rem] tw:text-[var(--v2-text-8a7366,#8a7366)] tw:aria-pressed:border-cali-brand tw:aria-pressed:bg-cali-brand tw:aria-pressed:text-white" aria-pressed={score === value} onClick={() => setScore(value)}><Star size={21} fill={score === value ? 'currentColor' : 'none'} /><span>{value}</span></button>)}</div>
+          {reaction && <div className="tw:my-[1.231rem] tw:flex tw:gap-[.923rem] tw:text-[.923rem]/[1.5]"><span className="tw:text-[2.308rem]" aria-hidden="true">{reaction.emoji}</span><div><strong>{reaction.title}</strong><p>{reaction.copy}</p></div></div>}
           {score > 0 && <FieldLabel>
             {npsCommentRequired ? 'O que podemos melhorar?' : 'Quer contar mais alguma coisa?'}
             <textarea value={npsComment} onChange={(event) => setNpsComment(event.target.value)} rows={4} maxLength={2000} placeholder={npsCommentRequired ? 'Sua justificativa ajuda a CALI a entender exatamente o que precisa melhorar.' : 'Opcional — deixe um comentário se quiser.'} />
           </FieldLabel>}
           {reviewErrorNotice}
-          <Button type="button" variant="primary" className="full" disabled={saving || reviewError?.stale || !feedbackValid} onClick={() => void submitNps()}>{saving ? 'Confirmando…' : 'Confirmar aprovação e avaliação'}</Button>
-        </DialogFrame>
-      </div>
+          <Button type="button" variant="primary" className="tw:mt-[1.538rem] tw:w-full" disabled={saving || reviewError?.stale || !feedbackValid} onClick={() => void submitNps()}>{saving ? 'Confirmando…' : 'Confirmar aprovação e avaliação'}</Button>
+        </WorkflowDialog>
+      </WorkflowDialogOverlay>
     </div>}
-  {openSub && <ClientSubtaskModal task={{ id: openSub.task.id, title: openSub.task.title, status: openSub.task.status, dueAt: openSub.task.dueAt, protocol: openSub.task.protocol, complexity: openSub.task.complexity }} deliverableId={openSub.item.id} deliverableTitle={openSub.item.title} statusLabel={openSub.task.status === 'todo' ? 'Programada' : openSub.task.status === 'client_review' ? 'Aguardando você' : ['done', 'approved', 'completed'].includes(openSub.task.status) ? 'Concluída' : 'Em andamento'} complexityHint={complexityCopy[openSub.task.complexity || ''] || ''} formatDate={formatDate} onClose={() => setOpenSub(null)} onChanged={() => { setOpenSub(null); void refreshReality(); }} />}
+  {openSub && <ClientSubtaskModal task={{ id: openSub.task.id, title: openSub.task.title, status: openSub.task.status, dueAt: openSub.task.dueAt, protocol: openSub.task.protocol, complexity: openSub.task.complexity }} deliverableId={openSub.item.id} deliverableTitle={openSub.item.title} statusLabel={openSub.task.status === 'todo' ? 'Programada' : openSub.task.status === 'client_review' ? 'Aguardando você' : ['done', 'approved', 'completed'].includes(openSub.task.status) ? 'Concluída' : 'Em andamento'} formatDate={formatDate} onClose={() => setOpenSub(null)} onChanged={() => { setOpenSub(null); void refreshReality(); }} />}
   </Shell>;
 }

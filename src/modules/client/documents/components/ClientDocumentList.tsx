@@ -1,3 +1,4 @@
+import { StatusBadge } from '../../../../components/ds/StatusBadge';
 import { ChevronRight, FolderOpen } from 'lucide-react';
 
 type Row = {
@@ -34,7 +35,7 @@ export function ClientDocumentList({ rows }: { rows: Row[] }) {
           </strong>
           <span className="tw:max-[43.8125rem]:hidden">{category}</span>
           <span className="tw:max-[61.3125rem]:hidden">{reference}</span>
-          <span className={`wf-tag ${tone}`}>{status}</span>
+          <StatusBadge variant="workflow" tone={tone}>{status}</StatusBadge>
           <ChevronRight size={14} />
         </button>
       ))}

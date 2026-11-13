@@ -1,3 +1,4 @@
+import { CompactPageHeading } from '../../../components/workspace/components/CompactPageHeading';
 import { EmptyState } from '../../../components/ds/EmptyState';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { LoadingState } from '../../../components/ds/LoadingState';
@@ -41,7 +42,7 @@ export function ClientHoursPage() {
 
   return <Shell role="client">
     <section className="v2-client-module">
-      <header className="page-head"><div><div className="eyebrow">CONTA / ACOMPANHAMENTO EXECUTIVO</div><h1>Horas<span className="title-dot">.</span></h1><p>Onde a assessoria investiu tempo, o que foi realizado e o saldo do ciclo.</p></div></header>
+      <CompactPageHeading eyebrow="CONTA / ACOMPANHAMENTO EXECUTIVO" title="Horas" description="Onde a assessoria investiu tempo, o que foi realizado e o saldo do ciclo." />
       {error && <InlineNotice role="alert"><AlertTriangle size={18} />{error}</InlineNotice>}
       {summary && !summary.visible ? <EmptyState as="section" variant="workflow"><Clock3 size={24} /><strong>A visualização de horas não está habilitada para este mês.</strong><p>Os meses já liberados continuam disponíveis para consulta. Selecione outro mês abaixo.</p><label><span>Consultar mês</span><input type="month" value={period} onChange={(event) => setPeriod(event.target.value)} /></label></EmptyState> : summary && <>
         <div className="tw:mb-6 tw:flex tw:min-h-[3.31rem] tw:items-center tw:gap-4 tw:rounded-lg tw:border tw:border-solid tw:border-[#e9e0d8] tw:bg-white tw:px-[1.154rem] tw:py-4 tw:text-[.846rem] tw:leading-[inherit]">

@@ -47,13 +47,13 @@ export function CompactWorkspaceProfile({ role, partnerHasOccurrences, resetKey,
   return <div className="tw:relative" ref={root}>
     <DirectProfileControl role={role} partnerHasOccurrences={partnerHasOccurrences} trigger={({ profile, avatar, companyName, openEditor }) => <>
       <button type="button" aria-expanded={open} aria-haspopup="menu" onClick={() => setOpen(!open)} className="profile tw:flex tw:items-center tw:gap-[0.615rem] tw:border-0 tw:bg-transparent tw:text-[0.846rem]/[inherit] tw:text-[#554b47]">
-        <span className={`avatar small ${avatarStyle} tw:size-[2.077rem] tw:text-[0.692rem]/[inherit]`}>{avatar}</span>
+        <span className={`avatar small ${avatarStyle} tw:rounded-[0.538rem] tw:[&>*]:rounded-[0.538rem] tw:[&_:is(img,video)]:block tw:[&_:is(img,video)]:size-full tw:[&_:is(img,video)]:object-cover tw:size-[2.077rem] tw:text-[0.692rem]/[inherit]`}>{avatar}</span>
         <span className="tw:[@media(max-width:53.125rem)]:hidden">{profile.full_name}</span>
         <ChevronDown size={13} className="tw:[@media(max-width:53.125rem)]:hidden" />
       </button>
       {open && <div className="profile-dropdown v2-profile tw:absolute tw:top-[calc(100%+1.077rem)] tw:right-0 tw:z-45 tw:flex tw:min-w-[20.231rem] tw:flex-col tw:rounded-[0.692rem] tw:border tw:border-solid tw:border-[#e9ded6] tw:bg-white tw:p-4 tw:shadow-[0_12px_30px_#34202121]" role="menu">
         <div className="tw:flex tw:items-center tw:gap-[0.846rem] tw:border-0 tw:border-b tw:border-solid tw:border-[#efe6e1] tw:px-[0.308rem] tw:pt-[0.385rem] tw:pb-[1.077rem]">
-          <span className={`avatar small ${avatarStyle} tw:size-[2.923rem] tw:text-[0.769rem]/[inherit]`}>{avatar}</span>
+          <span className={`avatar small ${avatarStyle} tw:rounded-[0.538rem] tw:[&>*]:rounded-[0.538rem] tw:[&_:is(img,video)]:block tw:[&_:is(img,video)]:size-full tw:[&_:is(img,video)]:object-cover tw:size-[2.923rem] tw:text-[0.769rem]/[inherit]`}>{avatar}</span>
           <span className="tw:flex tw:flex-col tw:gap-[0.385rem] tw:text-[#867c75]"><strong className="tw:text-[0.923rem]/[inherit]">{profile.full_name}</strong><small className="tw:text-[0.769rem]/[inherit] tw:text-[#93867d]">{profile.job_title || (role === 'admin' ? 'Administradora geral' : role === 'client' ? 'Perfil cliente' : roleLabel)}</small></span>
         </div>
         <div className="tw:flex tw:flex-col tw:gap-[0.846rem] tw:px-[0.308rem] tw:py-4">

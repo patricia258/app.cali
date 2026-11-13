@@ -1,6 +1,8 @@
+import { WorkflowDialogOverlay } from '../../../components/ds/WorkflowDialog';
 import { StaffDialogBody, StaffDialogFields, StaffDialogFooter, StaffDialogForm, StaffDialogHeader } from '../../../components/workspace/StaffDialog';
 import { Button } from '../../../components/ds/Button';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
+import { WorkspaceToast } from '../../../components/workspace/components/WorkspaceToast';
 import { useEffect, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Clock3, Pause } from 'lucide-react';
@@ -112,9 +114,9 @@ export function StaffTimerBar({ me }: { me: PartnerWorkspace }) {
         </div>}
       </div>
     )}
-    {error && !editing && <InlineNotice as="p" className="v2-toast" role="alert">{error}</InlineNotice>}
-    {notice && <InlineNotice as="p" tone="success" className="v2-toast" role="status">{notice}</InlineNotice>}
-    {editing && createPortal(<div className="wf-overlay"><StaffDialogForm
+    {error && !editing && <WorkspaceToast tone="error">{error}</WorkspaceToast>}
+    {notice && <WorkspaceToast>{notice}</WorkspaceToast>}
+    {editing && createPortal(<WorkflowDialogOverlay><StaffDialogForm
       aria-label="Justificar pausa do cronômetro" onSubmit={submit}>
       <StaffDialogHeader onClose={() => setEditing(null)} disabled={busy}><h2>Justificar pausa do cronômetro</h2></StaffDialogHeader>
       <StaffDialogBody>
@@ -127,6 +129,6 @@ export function StaffTimerBar({ me }: { me: PartnerWorkspace }) {
       </StaffDialogBody>
       <StaffDialogFooter><Button variant="workflowSecondary" type="button" disabled={busy} onClick={() => setEditing(null)}>Cancelar</Button>
         <Button variant="workflowPrimary" type="submit" disabled={busy || reason.trim().length < 10}>Enviar para aprovação</Button></StaffDialogFooter>
-    </StaffDialogForm></div>, document.body)}
+    </StaffDialogForm></WorkflowDialogOverlay>, document.body)}
   </>;
 }

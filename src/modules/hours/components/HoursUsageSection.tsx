@@ -1,3 +1,5 @@
+import { WorkspaceAdminPanel } from '../../../components/workspace/components/WorkspaceAdminPanel';
+import { WorkspaceAdminPanelHeader } from '../../../components/workspace/components/WorkspaceAdminPanelHeader';
 import { Eye, EyeOff, Filter } from 'lucide-react';
 import { Button } from '../../../components/ds/Button';
 import { EmptyState } from '../../../components/ds/EmptyState';
@@ -82,8 +84,8 @@ export function HoursUsageSection<Company extends UsageCompany>({
   saving: boolean;
 }) {
   return (
-    <section className="ap-pane" aria-labelledby="hours-usage-title">
-      <div className="ap-pane-head">
+    <WorkspaceAdminPanel aria-labelledby="hours-usage-title">
+      <WorkspaceAdminPanelHeader>
         <div className="tw:flex tw:flex-col tw:gap-1">
           <h2 id="hours-usage-title">Consumo por cliente</h2>
           <span>{count} {count === 1 ? 'conta' : 'contas'} · ordenadas pelo maior uso</span>
@@ -103,12 +105,12 @@ export function HoursUsageSection<Company extends UsageCompany>({
             Acima de 80%
           </Button>
         </div>
-      </div>
+      </WorkspaceAdminPanelHeader>
       <div className="tw:mt-5 tw:grid tw:grid-cols-[repeat(auto-fill,minmax(min(100%,22.31rem),1fr))] tw:gap-4" data-hours-usage-list="">
         {rows.map((row) => <HoursUsageCard key={row.company.id} row={row} onVisibility={onVisibility} saving={saving} />)}
       </div>
       {rows.length === 0 && <EmptyState as="p" variant="admin">Nenhuma conta corresponde ao filtro.</EmptyState>}
       {pagination && <HoursMoreButton onClick={pagination.toggle}>{pagination.text}</HoursMoreButton>}
-    </section>
+    </WorkspaceAdminPanel>
   );
 }

@@ -1,3 +1,7 @@
+import { WorkflowPage } from '../../../components/ds/WorkflowPage';
+import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
+import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
+import { WorkflowHeading } from '../../../components/ds/WorkflowHeading';
 import { Button } from '../../../components/ds/Button';
 import { EmptyState } from '../../../components/ds/EmptyState';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
@@ -7,6 +11,7 @@ import { ArrowLeft, ExternalLink, Loader2, PencilLine } from 'lucide-react';
 import { useNavigate } from '../../../hooks/useNavigate';
 import { useParams } from '../../../hooks/useParams';
 import { DocumentShell } from '../../../components/workspace/DocumentShell';
+import { DocumentPanel } from '../../../components/workspace/components/DocumentPanel';
 import { markRuntimeV2 } from '../../../app/visualRoutes';
 import { applyVisualSystem } from '../../../components/workspace/visualSystem';
 import { loadPortalProposal, sendPortalProposal, type PortalProposal, type PortalSubmission } from '../../../api/commercial/portal';
@@ -69,15 +74,15 @@ export function AdminProposalPreviewPage(){
     } finally { setSending(false); }
   }
 
-  if(loading)return <DocumentShell><section className="page"><div className="panel portal-admin-loading tw:flex tw:items-center tw:justify-center tw:gap-2.5 tw:p-10.5! tw:text-center! tw:text-[color:var(--muted,#756b6d)]"><Loader2 className="spin"/>Carregando proposta…</div></section></DocumentShell>;
+  if(loading)return <DocumentShell><section className="page"><DocumentPanel as="div" padding="loading" className="portal-admin-loading tw:flex tw:items-center tw:justify-center tw:gap-2.5 tw:text-center! tw:text-[color:var(--muted,#756b6d)]"><Loader2 className="tw:motion-safe:animate-[spin_.8s_linear_infinite]"/>Carregando proposta…</DocumentPanel></section></DocumentShell>;
   if(!proposal)return <DocumentShell><section className="page"><InlineNotice tone="danger">{error||'Proposta não encontrada.'}</InlineNotice></section></DocumentShell>;
 
   if(!proposal.pdf_path)return <GeneratedProposalPreview/>;
 
   // O PDF oficial arquivado abre no visualizador da moldura compacta.
 
-  return <DocumentShell><div className="ap-app v2-admin-page v2-admin-proposals v2-client-module"><div className="ap-content"><div className="wf">
-   <div className="wf-head tw:items-start!"><div><small>PROPOSTAS / VERSÃO OFICIAL ARQUIVADA</small><h1>Proposta v{proposal.version} · {proposal.submission.company_name||proposal.submission.contact_name}</h1><p>Este é o PDF efetivamente salvo e enviado. O documento não é alterado pela plataforma.</p></div><div className="v2-head-actions"><Button variant="workflowSecondary" type="button" onClick={()=>navigate('/admin/propostas')}><ArrowLeft size={15}/> Propostas</Button><Button variant="workflowSecondary" type="button" onClick={()=>navigate(`/admin/propostas/${proposal.submission_id}/editar`)}><PencilLine size={15}/> Criar nova versão</Button>{pdfUrl&&<Button variant="workflowPrimary" type="button" onClick={()=>window.open(pdfUrl,'_blank','noopener,noreferrer')}><ExternalLink size={15}/> Abrir PDF original</Button>}</div></div>
+  return <DocumentShell><WorkspaceAdminPage className="v2-admin-proposals v2-client-module"><WorkspaceAdminContent><WorkflowPage>
+   <WorkflowHeading className="tw:items-start!"><div><small>PROPOSTAS / VERSÃO OFICIAL ARQUIVADA</small><h1>Proposta v{proposal.version} · {proposal.submission.company_name||proposal.submission.contact_name}</h1><p>Este é o PDF efetivamente salvo e enviado. O documento não é alterado pela plataforma.</p></div><div className="v2-head-actions tw:flex tw:flex-wrap tw:items-center tw:gap-[0.769rem]"><Button variant="workflowSecondary" type="button" onClick={()=>navigate('/admin/propostas')}><ArrowLeft size={15}/> Propostas</Button><Button variant="workflowSecondary" type="button" onClick={()=>navigate(`/admin/propostas/${proposal.submission_id}/editar`)}><PencilLine size={15}/> Criar nova versão</Button>{pdfUrl&&<Button variant="workflowPrimary" type="button" onClick={()=>window.open(pdfUrl,'_blank','noopener,noreferrer')}><ExternalLink size={15}/> Abrir PDF original</Button>}</div></WorkflowHeading>
    {['aprovada', 'enviada'].includes(proposal.status)&&<Button type="button" variant="workflowSecondary" disabled={sending} onClick={()=>void send()}>{sending ? 'Enviando…' : proposal.status === 'enviada' ? 'Reenviar proposta' : 'Enviar proposta'}</Button>}
    {sentMessage&&<InlineNotice as="p" tone="success" role="status">{sentMessage}</InlineNotice>}
    {error&&<InlineNotice tone="danger">{error}</InlineNotice>}
@@ -86,5 +91,5 @@ export function AdminProposalPreviewPage(){
        ? <iframe className="tw:block tw:size-full tw:border-0" title={`Proposta v${proposal.version}`} src={pdfUrl} />
        : <EmptyState variant="workflow"><strong>O registro possui um PDF arquivado, mas ele não pôde ser aberto.</strong><p>Tente novamente em instantes.</p></EmptyState>}
    </div>
-  </div></div></div></DocumentShell>;
+  </WorkflowPage></WorkspaceAdminContent></WorkspaceAdminPage></DocumentShell>;
 }

@@ -1,0 +1,129 @@
+/* Document-shell tokens and document-root behavior for screen, portals and print. */
+:where(html[data-workspace-surface='admin-documents']) {
+  --surface: rgb(255 253 249 / .88);
+  --document-canvas: #f1ede8;
+  --document-root: #faf8f5;
+
+  &:root {
+    min-height: 100%;
+    height: auto;
+    overflow-x: clip;
+    overflow-y: auto;
+    overscroll-behavior: none;
+    background: var(--document-canvas);
+    scroll-behavior: smooth;
+  }
+
+  &, * {
+    scrollbar-width: none;
+  }
+
+  &:root body {
+    min-height: 100vh;
+    height: auto;
+    overflow-x: clip;
+    overflow-y: visible;
+    overscroll-behavior: none;
+    background: var(--document-canvas);
+    color: var(--graphite);
+    font-family: var(--cali-font-body);
+    font-size: .875rem;
+
+    &.workspace-modal-open {
+      overflow: hidden;
+
+      #root {
+        overflow: visible;
+      }
+    }
+  }
+
+  #root {
+    min-height: 100vh;
+    background: var(--document-root);
+  }
+
+  :is(button, input, select, textarea):not(.v2-client-module *, [data-document-action]) {
+    font-size: .875rem !important;
+  }
+
+  :is(input, select, textarea) {
+    transition:
+      background-color .22s ease,
+      background .22s ease,
+      color .22s ease,
+      border-color .22s ease,
+      box-shadow .22s ease,
+      transform .18s ease;
+  }
+
+  .app-shell[data-visual-system='v2'][data-workspace-role] {
+    --v2-canvas: #f7f3ee;
+    --v2-surface: #fff;
+    --v2-text: #322f2c;
+    --v2-muted: #746a64;
+    --v2-line: #e9e0d8;
+    --v2-accent: #5a1e2d;
+    --v2-gold: #b58c52;
+  }
+
+  &[data-workspace-theme='night'] {
+    --document-canvas: #160f12;
+    --document-root: var(--theme-page);
+
+    &, body, #root {
+      color: var(--theme-text);
+    }
+
+    .app-shell[data-visual-system='v2'][data-workspace-role] {
+      --v2-canvas: #201b1e;
+      --v2-surface: #2b2428;
+      --v2-text: #f7f3ee;
+      --v2-muted: #c8bbb3;
+      --v2-line: #493a40;
+      --v2-accent: #e5bbc6;
+      --v2-gold: #ddbb85;
+    }
+
+    :is(h1, h2, h3, h4), .main :is(strong, b) {
+      color: var(--theme-text) !important;
+    }
+
+    .main :is(p, small, label, .muted) {
+      color: var(--theme-muted) !important;
+    }
+
+    :is(tr, td, th) {
+      border-color: var(--theme-line) !important;
+    }
+
+    :is(input, select, textarea) {
+      background: var(--theme-input) !important;
+      border-color: var(--theme-input-border) !important;
+      color: var(--theme-text) !important;
+      caret-color: var(--theme-accent);
+
+      &::placeholder {
+        color: #897d79;
+      }
+
+      &:focus {
+        border-color: rgb(208 138 157 / .48) !important;
+        box-shadow: 0 0 0 .1875rem rgb(208 138 157 / .09);
+      }
+    }
+
+    select {
+      color-scheme: dark;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &, *, *::before, *::after {
+      scroll-behavior: auto !important;
+      transition-duration: .01ms !important;
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
+}

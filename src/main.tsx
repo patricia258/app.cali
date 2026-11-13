@@ -9,6 +9,8 @@ import { WorkspaceActionDialog } from './components/feedback/WorkspaceActionDial
 import { WorkspaceAuthProvider } from './auth/WorkspaceAuthProvider';
 import './styles/tailwind.css';
 import './styles/surfaces.css';
+import './styles/workspace-compact-foundation.css';
+import './styles/workspace-compact-theme.css';
 
 // Arquivo de uma versão anterior que não existe mais (aba aberta durante uma publicação): recarrega uma vez.
 window.addEventListener('vite:preloadError', (event) => { if (reloadOnceForNewVersion()) event.preventDefault(); });

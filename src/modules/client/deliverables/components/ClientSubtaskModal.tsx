@@ -1,3 +1,4 @@
+import { ProjectComplexityBadge } from '../../../../components/projects/ProjectComplexityBadge';
 import type { ProfileMedia } from '../../../../api/workspace/identity';
 import { conversationAttachmentToken } from '../../../../lib/conversationMessageBody';
 import { MentionTextarea } from '../../../../components/workspace/MentionTextarea';
@@ -23,7 +24,7 @@ import {
 type Message = { id: string; author_user_id: string | null; author_role: string; body: string; created_at: string };
 const ALLOWED = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
 
-export function ClientSubtaskModal({ task, deliverableId, deliverableTitle, statusLabel, complexityHint, formatDate, onClose, onChanged }: { task: { id: string; title: string; status: string; dueAt?: string | null; protocol?: string | null; complexity?: string | null }; deliverableId: string; deliverableTitle: string; statusLabel: string; complexityHint: string; formatDate: (value?: string | null) => string; onClose: () => void; onChanged: () => void }) {
+export function ClientSubtaskModal({ task, deliverableId, deliverableTitle, statusLabel, formatDate, onClose, onChanged }: { task: { id: string; title: string; status: string; dueAt?: string | null; protocol?: string | null; complexity?: string | null }; deliverableId: string; deliverableTitle: string; statusLabel: string; formatDate: (value?: string | null) => string; onClose: () => void; onChanged: () => void }) {
   const [messages, setMessages] = useState<Message[]>([]); const [docs, setDocs] = useState<{ id: string; title: string; storage_path: string | null; original_filename: string | null }[]>([]);
   const [me, setMe] = useState(''); const [companyId, setCompanyId] = useState(''); const [identities, setIdentities] = useState<Record<string, ProfileMedia>>({});
   const [text, setText] = useState(''); const [file, setFile] = useState<File | null>(null); const [busy, setBusy] = useState(false); const [notice, setNotice] = useState(''); const [approvalPhase, setApprovalPhase] = useState<'idle' | 'confirming' | 'adjusting'>('idle'); const [adjustUsed, setAdjustUsed] = useState(0); const [adjustText, setAdjustText] = useState('');
@@ -92,11 +93,11 @@ export function ClientSubtaskModal({ task, deliverableId, deliverableTitle, stat
             <p className="tw:m-0 tw:flex tw:flex-wrap tw:items-center tw:gap-[1.08rem] tw:text-[.96rem] tw:text-[#5f5650]">
               <span>Parte de <strong>{deliverableTitle}</strong></span>
               {task.protocol && <small className="tw:text-[.81rem] tw:font-bold tw:tracking-[.12em] tw:text-[#a8773f]">{task.protocol}</small>}
-              {task.complexity && <b className={`mc-chip ${task.complexity.toLowerCase()}`} data-tip={complexityHint}>{task.complexity}</b>}
+              {task.complexity && <ProjectComplexityBadge code={task.complexity} explain />}
             </p>
           </div>
           <div className="tw:flex tw:shrink-0 tw:items-center tw:gap-[.77rem]">
-            <StatusBadge variant="delivery" className={`tw:inline-flex! tw:h-[2.62rem] tw:w-auto! tw:items-center tw:justify-center tw:rounded-[.69rem] tw:px-[1.08rem]! tw:text-[.92rem]! tw:font-bold tw:whitespace-nowrap ${task.status === 'client_review' ? 'd0' : task.status === 'todo' ? 'd2' : ''}`}>{statusLabel}</StatusBadge>
+            <StatusBadge variant="delivery" tone={task.status === 'client_review' ? 'review' : task.status === 'todo' ? 'scheduled' : undefined} className="tw:inline-flex! tw:h-[2.62rem] tw:w-auto! tw:items-center tw:justify-center tw:rounded-[.69rem] tw:px-[1.08rem]! tw:text-[.92rem]! tw:font-bold tw:whitespace-nowrap">{statusLabel}</StatusBadge>
             <Button type="button" variant="inlineClose" className="tw:grid! tw:size-[3.08rem]! tw:place-items-center tw:rounded-[.69rem] tw:border tw:border-solid tw:border-[#eadfd5] tw:bg-white tw:text-cali-ink" onClick={onClose}><X size={18} /></Button>
           </div>
         </header>

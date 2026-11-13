@@ -1,3 +1,6 @@
+import { WorkflowDialogOverlay } from '../../../components/ds/WorkflowDialog';
+import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
+import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
 import { StaffDialogBody, StaffDialogFields, StaffDialogFooter, StaffDialogForm, StaffDialogHeader } from '../../../components/workspace/StaffDialog';
 import { Button } from '../../../components/ds/Button';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
@@ -57,7 +60,7 @@ export function StaffNotices({ me }: { me: PartnerWorkspace }) {
     } finally { setBusy(false); }
   }
 
-  return <div className="ap-app v2-admin-page"><div className="ap-content">
+  return <WorkspaceAdminPage><WorkspaceAdminContent>
     {done && <InlineNotice as="p" tone="success" role="status">{done}</InlineNotice>}
     {error && !draft && <InlineNotice as="p" role="alert">{error}</InlineNotice>}
     {reviews.length > 0 && <section className={noticeReviewStyles.panel}>
@@ -70,7 +73,7 @@ export function StaffNotices({ me }: { me: PartnerWorkspace }) {
       </li>)}</ul>
     </section>}
     <StaffNoticesPage onCompose={() => open()} />
-    {draft && <div className="wf-overlay"><StaffDialogForm
+    {draft && <WorkflowDialogOverlay><StaffDialogForm
       aria-label={draft.id ? 'Ajustar comunicado' : 'Novo comunicado'} onSubmit={save}>
       <StaffDialogHeader onClose={() => setDraft(null)} disabled={busy}><h2>{draft.id ? 'Ajustar comunicado' : 'Novo comunicado'}</h2></StaffDialogHeader>
       <StaffDialogBody>
@@ -95,6 +98,6 @@ export function StaffNotices({ me }: { me: PartnerWorkspace }) {
         <Button type="button" variant="workflowSecondary" onClick={() => setDraft(null)} disabled={busy}>Cancelar</Button>
         <Button type="submit" variant="workflowPrimary" pending={busy} disabled={!draft.companies.length}>{busy ? 'Enviando…' : 'Enviar para revisão'}</Button>
       </StaffDialogFooter>
-    </StaffDialogForm></div>}
-  </div></div>;
+    </StaffDialogForm></WorkflowDialogOverlay>}
+  </WorkspaceAdminContent></WorkspaceAdminPage>;
 }

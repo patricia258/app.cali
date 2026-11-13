@@ -26,7 +26,7 @@ export function ProjectFrontDisclosure({ name, emblem, storageKey, heading, chil
       </div>
       {heading}
     </div>
-    <div id={controls} hidden={!expanded} className="ap-roadmap-list front-deliverables-v2 front-deliverables-v3 tw:px-[1.23rem] tw:pb-[.46rem]">
+    <div id={controls} hidden={!expanded} className="tw:overflow-x-auto tw:px-[1.23rem] tw:pb-[.46rem]">
       {children}
     </div>
   </section>;

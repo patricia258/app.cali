@@ -28,7 +28,7 @@ export function TimerFinalizationDialog({ target, step, busy, error, onCancel, o
 }) {
   if (!target) return null;
   const item = target.kind === 'task' ? 'esta subtarefa' : 'este entregável';
-  return <div className="timer-finalize-backdrop tw:fixed tw:inset-0 tw:z-1300 tw:grid tw:place-items-center tw:bg-[#171017a8] tw:p-5 tw:backdrop-blur-xs" role="presentation">
+  return <div className="timer-finalize-backdrop tw:workspace-compact:motion-safe:animate-[v2-fade_.22s_ease-out_backwards] tw:workspace-compact:motion-safe:[&>*]:animate-[v2-pop_.34s_cubic-bezier(.2,.7,.2,1)_backwards] tw:fixed tw:inset-0 tw:z-1300 tw:grid tw:place-items-center tw:bg-[#171017a8] tw:p-5 tw:backdrop-blur-xs" role="presentation">
     <DialogFrame className="tw:relative tw:flex tw:w-[min(40rem,96vw)] tw:flex-col tw:gap-3.5 tw:rounded-[1.077rem] tw:border tw:border-solid tw:border-[#eadfd6] tw:bg-[#fffdfb] tw:p-8 tw:font-cali-body tw:text-[.923rem]/[normal] tw:text-[#302b29] tw:shadow-[0_1.54rem_6.15rem_#1d111344]" aria-labelledby="timer-finalize-title">
       <button className="tw:absolute tw:top-5 tw:right-5 tw:grid tw:size-[2.615rem] tw:cursor-pointer tw:place-items-center tw:rounded-[.615rem] tw:border tw:border-solid tw:border-[#ecded5] tw:bg-white tw:text-[#322f2c]" type="button" disabled={busy} onClick={onCancel} aria-label="Fechar"><X size={19}/></button>
       <span className={`tw:grid tw:size-[3.23rem] tw:place-items-center tw:rounded-[.7rem] ${step === 2 ? 'tw:bg-[#fdf3f3] tw:text-[#b7495d]' : 'tw:bg-[#f8ecef] tw:text-cali-brand'}`} aria-hidden="true">{step === 1 ? <Square size={22}/> : <AlertTriangle size={23}/>}</span>

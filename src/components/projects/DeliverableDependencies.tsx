@@ -1,3 +1,4 @@
+import { StatusBadge } from '../ds/StatusBadge';
 /* Dependências do cliente no entregável + histórico do prazo (regra oficial de complexidade, itens 4 a 6).
    A administradora registra, marca recebimento e reprograma o prazo com justificativa; a Equipe CALI registra e marca
    recebimento (por função); o cliente só lê. Nada é reprogramado sozinho: o sistema sugere e a administradora decide. */
@@ -200,13 +201,13 @@ export function DeliverableDependencies({
   if (mode === 'client' && !deps.length && !revs.length) return null;
   const chip = (dep: Dep) =>
     dep.status === 'received' ? (
-      <span className="wf-tag green">Recebido {show(dep.received_at)}</span>
+      <StatusBadge variant="workflow" tone="green">Recebido {show(dep.received_at)}</StatusBadge>
     ) : late(dep) > 0 ? (
-      <span className="wf-tag red">
+      <StatusBadge variant="workflow" tone="red">
         Em atraso há {late(dep)} {late(dep) === 1 ? 'dia' : 'dias'}
-      </span>
+      </StatusBadge>
     ) : (
-      <span className="wf-tag amber">Pendente</span>
+      <StatusBadge variant="workflow" tone="amber">Pendente</StatusBadge>
     );
 
   return (

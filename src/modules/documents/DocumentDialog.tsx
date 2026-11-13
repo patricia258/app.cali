@@ -4,7 +4,7 @@ import { Button } from '../../components/ds/Button';
 import { DialogFrame } from '../../components/ds/DialogFrame';
 
 export function DocumentDialog({ label, detail, children }: { label: string; detail?: boolean; children: ReactNode }) {
-  return <div className="modal-backdrop workspace-modal-backdrop tw:fixed tw:inset-0 tw:z-980 tw:grid! tw:place-items-center tw:bg-[#171017a8]! tw:p-[1.385rem] tw:backdrop-blur-[0.308rem]" role="presentation">
+  return <div className="modal-backdrop workspace-modal-backdrop tw:workspace-compact:motion-safe:animate-[v2-fade_.22s_ease-out_backwards] tw:workspace-compact:motion-safe:[&>*]:animate-[v2-pop_.34s_cubic-bezier(.2,.7,.2,1)_backwards] tw:fixed tw:inset-0 tw:z-980 tw:grid! tw:place-items-center tw:bg-[#171017a8]! tw:p-[1.385rem] tw:backdrop-blur-[0.308rem]" role="presentation">
     <DialogFrame
       className={`modal-card ${detail ? 'document-detail-modal-v3 tw:w-[min(55.385rem,100%)]!' : 'document-create-modal document-create-modal-v3 tw:w-[min(58.462rem,100%)]!'} tw:relative tw:flex! tw:max-h-[92dvh]! tw:max-w-none! tw:flex-col tw:gap-0! tw:overflow-hidden! tw:rounded-[1.077rem]! tw:border tw:border-solid tw:border-[#e8ded6] tw:bg-white! tw:p-0! tw:font-cali-body tw:text-[0.923rem]/[inherit] tw:text-[#332b29] tw:shadow-[0_25px_85px_#2418234a]`}
       aria-label={label}

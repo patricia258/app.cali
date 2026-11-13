@@ -18,7 +18,7 @@ export function DocumentCardArt({ cover, logo, name, label, folder, onOpen, fall
   tone?: keyof typeof coverBorder;
   children?: ReactNode;
 }) {
-  return <div className="v2-doc-art-wrap tw:relative">
+  return <div className="tw:relative">
     <button
       type="button"
       className={`tw:relative tw:block tw:h-[8.615rem] tw:w-full tw:cursor-pointer tw:overflow-hidden tw:border-0 tw:border-b tw:border-solid tw:bg-[#f6f1ee] tw:p-0 ${coverBorder[tone]}`}
@@ -34,5 +34,11 @@ export function DocumentCardArt({ cover, logo, name, label, folder, onOpen, fall
 }
 
 export function DocumentCardTags({ children }: { children: ReactNode }) {
-  return <div className="v2-doc-tags tw:pointer-events-none tw:absolute tw:top-[0.769rem] tw:right-[0.769rem] tw:flex tw:flex-col tw:items-end tw:gap-[0.385rem] tw:[&>span]:shadow-[0_1px_4px_#2817241a] tw:[&>.wf-doc-label]:m-0! tw:[&>.wf-doc-label]:bg-white!">{children}</div>;
+  return <div className="tw:pointer-events-none tw:absolute tw:top-[0.769rem] tw:right-[0.769rem] tw:flex tw:flex-col tw:items-end tw:gap-[0.385rem] tw:[&>span]:shadow-[0_1px_4px_#2817241a]">{children}</div>;
+}
+
+
+export function DocumentCardTag({ tone, children }: { tone: 'delivery' | 'report' | 'work'; children: ReactNode }) {
+  const color = tone === 'delivery' ? 'tw:text-[#966423]' : tone === 'report' ? 'tw:text-[#7753a1]' : 'tw:text-[#227c68]';
+  return <span className={`tw:m-0 tw:inline-block tw:rounded-full tw:bg-white tw:px-[.692rem] tw:py-[.385rem] tw:text-[.692rem] ${color}`}>{children}</span>;
 }

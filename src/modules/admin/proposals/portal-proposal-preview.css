@@ -298,7 +298,31 @@
   .solution-grid.editorial,.outcome-grid,.advantage-grid.editorial,.responsibility-grid.editorial,.commercial-facts.editorial,.commercial-columns,.next-steps.editorial,.operating-cards,.cycle-list.editorial,.roadmap-list,.limits-editorial ul{grid-template-columns:1fr}
   .cover-bottom-grid{grid-template-columns:1fr}
   .proposal-cover-band{min-height:64mm;padding-bottom:10mm}
-  .portal-proposal-page.proposal-v3.proposal-cover{background:linear-gradient(180deg,var(--p-burgundy) 0 35%,var(--p-paper) 35% 100%)}
+}
+
+@media screen and (max-width: 45rem) {
+  .portal-proposal-page.proposal-v3.proposal-cover {
+    background: var(--p-paper);
+
+    & > header { z-index: 3; }
+    & > main { overflow: visible; }
+
+    & .proposal-cover-band {
+      position: relative;
+      isolation: isolate;
+
+      &::before {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        inset: -9rem -2rem 0;
+        background: var(--p-burgundy);
+      }
+
+      & h1 { font-size: clamp(1.75rem, 7vw, 2.125rem) !important; }
+      & .cover-service strong { overflow-wrap: anywhere; }
+    }
+  }
 }
 
 /* Papel editorial em tema claro e escuro */

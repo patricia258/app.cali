@@ -1,5 +1,6 @@
+import { ProjectComplexityBadge } from '../../../components/projects/ProjectComplexityBadge';
 import { useState, type DragEvent } from 'react';
-import { complexityMeta, deliverableLabels, formatProjectDate, type DeliverableStatus, type ProjectDeliverable } from '../../../domain/projects';
+import { deliverableLabels, formatProjectDate, type DeliverableStatus, type ProjectDeliverable } from '../../../domain/projects';
 
 const columns: DeliverableStatus[] = ['not_started', 'in_progress', 'internal_review', 'client_review', 'adjustment_requested', 'rebriefing', 'approved'];
 const partnerColumns = new Set<DeliverableStatus>(['not_started', 'in_progress', 'internal_review']);
@@ -67,7 +68,7 @@ export function ProjectKanban({ items, staff, onOpen, onMove }: Props) {
             <strong className="tw:text-[0.925rem]">{item.title}</strong>
             <p className="tw:m-0 tw:text-xs tw:text-[#978980]">{item.workstream}</p>
             <footer className="tw:mt-1 tw:flex tw:items-center tw:justify-between">
-              <b className={`mc-chip ${item.complexity.toLowerCase()}`} data-tip={complexityMeta[item.complexity].description} aria-label={`${item.complexity}: ${complexityMeta[item.complexity].description}`}>{item.complexity}</b>
+              <ProjectComplexityBadge code={item.complexity} explain />
               <time className="tw:text-xs tw:font-extrabold tw:text-cali-gold">{formatProjectDate(item.dueAt)}</time>
             </footer>
           </button>;

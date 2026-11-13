@@ -4,5 +4,5 @@ export const FieldLabel = forwardRef<HTMLLabelElement, ComponentPropsWithoutRef<
   { className, ...props },
   ref,
 ) {
-  return <label {...props} ref={ref} className={className ? `stacked-label ${className}` : 'stacked-label'} />;
+  return <label {...props} ref={ref} className={`stacked-label tw:flex tw:flex-col tw:gap-[0.538rem] tw:text-[0.846rem]/[inherit] tw:font-semibold ${className ?? ''}`} />;
 });

@@ -14,7 +14,7 @@ export function AdminProjectsGatePage() {
         <div className="eyebrow">EXECUÇÃO & ROADMAP</div>
         <div className="page-heading"><div><h1>Projetos</h1><p>Projetos e entregáveis reais ficam persistidos no Workspace e alimentam Documentos, horas, histórico e validações.</p></div></div>
 
-        {projects.isError && <section className="panel project-real-data-gate"><AlertTriangle size={24} /><div><h2>Não foi possível validar a base de projetos.</h2><p>{projects.error.message}</p></div></section>}
+        {projects.isError && <section className="project-real-data-gate tw:rounded-[.69rem] tw:border tw:border-solid tw:border-[#eae3dd] tw:bg-white"><AlertTriangle size={24} /><div><h2>Não foi possível validar a base de projetos.</h2><p>{projects.error.message}</p></div></section>}
       </section>
     </Shell>
   );

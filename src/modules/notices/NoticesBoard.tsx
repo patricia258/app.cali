@@ -1,3 +1,6 @@
+import { WorkspaceAdminPage } from '../../components/workspace/components/WorkspaceAdminPage';
+import { WorkspaceAdminContent } from '../../components/workspace/components/WorkspaceAdminContent';
+import { WorkflowList, WorkflowListRow } from '../../components/ds/WorkflowList';
 import { AdminRowActions, AdminRowButton } from '../../components/workspace/components/AdminRowActions';
 import { NoticeFeedCard } from './components/NoticeFeedCard';
 import {
@@ -469,18 +472,17 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
   );
 
   const manage = (
-    <div className="wf-records tw:[&>.wf-record-row]:cursor-pointer tw:[&>.wf-record-row]:grid-cols-[minmax(0,2.2fr)_minmax(0,.9fr)_minmax(0,1.1fr)_minmax(0,1.5fr)_minmax(0,.9fr)_5.846rem]! tw:max-[53.75rem]:[&>.wf-record-row]:grid-cols-[minmax(0,1fr)_5.846rem]! tw:max-[53.75rem]:[&>.header]:hidden! tw:max-[53.75rem]:[&>.wf-record-row>span:nth-child(n+2):not(:last-child)]:hidden">
-      <div className="wf-record-row header">
+    <WorkflowList className="tw:[&>.wf-record-row]:cursor-pointer tw:[&>.wf-record-row]:grid-cols-[minmax(0,2.2fr)_minmax(0,.9fr)_minmax(0,1.1fr)_minmax(0,1.5fr)_minmax(0,.9fr)_5.846rem]! tw:max-[53.75rem]:[&>.wf-record-row]:grid-cols-[minmax(0,1fr)_5.846rem]! tw:max-[53.75rem]:[&>.header]:hidden! tw:max-[53.75rem]:[&>.wf-record-row>span:nth-child(n+2):not(:last-child)]:hidden">
+      <WorkflowListRow header>
         <span>Comunicado</span>
         <span>Categoria</span>
         <span>Data</span>
         <span>Quem recebe</span>
         <span>Ciências / Comentários</span>
         <span />
-      </div>
+      </WorkflowListRow>
       {visible.map((item) => (
-        <div
-          className="wf-record-row"
+        <WorkflowListRow
           key={item.id}
           role="button"
           tabIndex={0}
@@ -525,13 +527,13 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
               {item.status === 'archived' ? <RotateCcw size={15} /> : <Archive size={15} />}
             </AdminRowButton>
           </AdminRowActions>
-        </div>
+        </WorkflowListRow>
       ))}
-    </div>
+    </WorkflowList>
   );
 
   const empty = (
-    <div className="empty tw:flex tw:flex-col tw:items-center tw:gap-[0.615rem] tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#e9e0d8] tw:bg-white tw:px-[1.923rem] tw:py-[3.538rem] tw:[&_strong]:text-base tw:[&_strong]:text-[#3e3533] tw:[&_p]:m-0 tw:[&_p]:text-[0.846rem]">
+    <div className="tw:text-[#9a8f88] tw:flex tw:flex-col tw:items-center tw:gap-[0.615rem] tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#e9e0d8] tw:bg-white tw:px-[1.923rem] tw:py-[3.538rem] tw:[&_strong]:text-base tw:[&_strong]:text-[#3e3533] tw:[&_p]:m-0 tw:[&_p]:text-[0.846rem]">
       <Megaphone size={22} />
       <strong>
         {admin
@@ -807,9 +809,9 @@ function NoticesBoard({ role, staff }: { role: Role; staff?: { onCompose: () => 
   return (
     <Shell role={role}>
       {admin ? (
-        <div className="ap-app v2-admin-page">
-          <div className="ap-content">{page}</div>
-        </div>
+        <WorkspaceAdminPage>
+          <WorkspaceAdminContent>{page}</WorkspaceAdminContent>
+        </WorkspaceAdminPage>
       ) : (
         page
       )}

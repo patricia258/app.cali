@@ -1,3 +1,4 @@
+import { WorkflowDialogOverlay } from '../ds/WorkflowDialog';
 /* Shell do Workspace na composição aprovada da V2 (cali-workspace-v2/src/main.tsx), usado pelo
    cliente e, página a página, pela administradora com os menus dela:
    .app > aside.sidebar + main.main > header.topbar + .content.
@@ -17,8 +18,7 @@ import { hoursAvailable } from '../../api/hours/client';
 import { pauseWorkTimer, readActiveTimersBeforeExit, stopPartnerTimer } from '../../api/hours/timers';
 import { useTimerPresence } from '../hours/hooks/useTimerPresence';
 import { WelcomeTour, type WelcomeStep } from './WelcomeTour';
-import './workspace-shell.generated.css';
-import './operational.css';
+import './workspace-motion.css';
 
 export const clientNavigation: WorkspaceNavItem[] = [
   { label: 'Visão Geral', href: '/cliente', icon: LayoutDashboard },
@@ -115,9 +115,9 @@ export function WorkspaceShellLayout({ role, navigation, extras, children, sched
   const isActive = (href: string) => pathname === href || (href !== home && pathname.startsWith(`${href}/`));
 
   const resetKey = pathname + search;
-  const topToolStyle = 'ch-tool tw:relative tw:inline-flex tw:min-h-[2.692rem] tw:min-w-[2.692rem] tw:items-center tw:justify-center tw:rounded-[0.692rem] tw:border tw:border-solid tw:text-[#62293a] tw:[@media(max-width:50rem)]:min-h-[2.385rem] tw:[@media(max-width:50rem)]:min-w-[2.231rem]';
+  const topToolStyle = 'tw:relative tw:inline-flex tw:min-h-[2.692rem] tw:min-w-[2.692rem] tw:items-center tw:justify-center tw:rounded-[0.692rem] tw:border tw:border-solid tw:text-[#62293a] tw:[@media(max-width:50rem)]:min-h-[2.385rem] tw:[@media(max-width:50rem)]:min-w-[2.231rem]';
 
-  return <div className="app tw:flex tw:min-h-screen tw:[&:has([data-workspace-welcome])>.sidebar]:z-996!" data-workspace-role={role}>
+  return <div className="app tw:flex tw:min-h-screen tw:[&_a]:no-underline tw:[&_a:not([class])]:text-inherit tw:[&:has([data-workspace-welcome])>.sidebar]:z-996!" data-workspace-role={role}>
     <CompactWorkspaceSidebar
       navigation={navigation}
       mobileOpen={mobileNav}
@@ -127,21 +127,24 @@ export function WorkspaceShellLayout({ role, navigation, extras, children, sched
       isActive={isActive}
       onPreview={(href) => setTeamFlyout(role === 'client' && href === '/cliente/equipe')}
     />
-    <main className="main tw:w-full tw:min-w-0 tw:flex-1 tw:[@media(min-width:53.1875rem)]:ml-[4.308rem] tw:[@media(min-width:53.1875rem)]:w-[calc(100%-4.308rem)] tw:[@media(max-width:46.25rem)]:[&:has([data-staff-timer-dock])>.content]:pb-[10rem]!">
-      <header className="topbar tw:relative tw:z-24 tw:flex tw:h-[4.692rem] tw:items-center tw:justify-between tw:gap-[1.385rem] tw:border-0 tw:border-b tw:border-solid tw:border-[#e9e3de] tw:bg-white tw:px-[2.385rem] tw:[@media(max-width:53.125rem)]:px-[1.154rem]">
+    <main className="main tw:w-full tw:min-w-0 tw:flex-1 tw:bg-[linear-gradient(#96775d0d_1px,transparent_1px),linear-gradient(90deg,#96775d0d_1px,transparent_1px)] tw:bg-size-[1.923rem_1.923rem] tw:[@media(min-width:53.1875rem)]:ml-[4.308rem] tw:[@media(min-width:53.1875rem)]:w-[calc(100%-4.308rem)] tw:[@media(max-width:46.25rem)]:[&:has([data-staff-timer-dock])>.content]:pb-[10rem]!">
+      <header className={`topbar tw:relative tw:z-24 tw:flex tw:h-[4.692rem] tw:items-center tw:justify-between tw:gap-[1.385rem] tw:border-0 tw:border-b tw:border-solid tw:border-[#e9e3de] tw:bg-white tw:px-[2.385rem] tw:[@media(max-width:53.125rem)]:px-[1.154rem]
+        ${role === 'admin' ? 'tw:[@media(max-width:37.5rem)]:h-auto tw:[@media(max-width:37.5rem)]:min-h-[3.154rem] tw:[@media(max-width:37.5rem)]:flex-wrap tw:[@media(max-width:37.5rem)]:gap-x-[0.615rem] tw:[@media(max-width:37.5rem)]:gap-y-[0.308rem] tw:[@media(max-width:37.5rem)]:py-[0.385rem]' : ''}`}>
         <button type="button" className="mobile-menu tw:hidden tw:items-center tw:border-0 tw:bg-transparent tw:[@media(max-width:53.125rem)]:inline-flex" onClick={() => setMobileNav(!mobileNav)} aria-label={mobileNav ? 'Fechar menu' : 'Abrir menu'} aria-expanded={mobileNav}>{mobileNav ? <X size={19} /> : <Menu size={19} />}</button>
         <div className="top-left tw:flex tw:items-center tw:gap-[1.385rem]">
           <span className="workspace-label tw:text-[0.923rem]/[inherit] tw:font-bold tw:tracking-[0.115rem] tw:whitespace-nowrap tw:text-cali-brand">
             CALI <span className="tw:font-normal tw:tracking-[0.077rem] tw:text-[#918781]">WORKSPACE</span>
           </span>
         </div>
-        <div className={`top-actions tw:flex tw:items-center ${role === 'partner' ? 'tw:gap-[1.23rem]!' : 'tw:gap-[1.385rem]'}`}>
-          {role === 'client' && <div className="ch-tools v2-top-tools">
-            <Link aria-label="Abrir agenda" title="Abrir agenda" className={`${topToolStyle} gold tw:border-[#e6be64] tw:bg-[#f6d98e]`} to="/cliente/cronograma"><CalendarPlus size={17} /></Link>
-            <Link className={`${topToolStyle} pill tw:gap-[0.538rem] tw:border-[#ebddd4] tw:bg-white tw:px-[0.923rem] tw:font-semibold`} to="/cliente/frentes"><BriefcaseBusiness size={17} /> Frentes</Link>
+        <div className={`top-actions tw:flex tw:items-center tw:[@media(max-width:47.5rem)]:min-w-0 tw:[@media(max-width:47.5rem)]:gap-[0.615rem]
+          ${role === 'partner' ? 'tw:gap-[1.23rem]!' : 'tw:gap-[1.385rem]'}
+          ${role === 'admin' ? 'tw:[@media(max-width:37.5rem)]:flex-1 tw:[@media(max-width:37.5rem)]:basis-[17.692rem] tw:[@media(max-width:37.5rem)]:flex-wrap tw:[@media(max-width:37.5rem)]:justify-end tw:[@media(max-width:37.5rem)]:gap-[0.385rem]!' : ''}`}>
+          {role === 'client' && <div className="ch-tools v2-top-tools tw:flex tw:items-center tw:gap-[0.615rem] tw:[@media(max-width:47.5rem)]:gap-[0.462rem]">
+            <Link aria-label="Abrir agenda" title="Abrir agenda" className={`${topToolStyle} gold tw:border-[#e6be64] tw:bg-[#f6d98e] tw:[@media(max-width:47.5rem)]:hidden`} to="/cliente/cronograma"><CalendarPlus size={17} /></Link>
+            <Link aria-label="Frentes" className={`${topToolStyle} pill tw:gap-[0.538rem] tw:border-[#ebddd4] tw:bg-white tw:px-[0.923rem] tw:font-semibold tw:[@media(47.5rem<width<=59.375rem)]:hidden tw:[@media(max-width:47.5rem)]:min-w-0 tw:[@media(max-width:47.5rem)]:gap-0 tw:[@media(max-width:47.5rem)]:p-[0.615rem] tw:[@media(max-width:47.5rem)]:text-[0]`} to="/cliente/frentes"><BriefcaseBusiness size={17} /><span className="tw:max-[47.5rem]:sr-only">Frentes</span></Link>
           </div>}
-          {role === 'admin' && <div className="ch-tools v2-top-tools">{adminProducts.map(({ label, href, icon: Icon }) => <Link key={href} className="ch-tool v2-top-icon tw:inline-grid tw:size-[2.923rem] tw:min-h-[2.692rem] tw:min-w-[2.692rem] tw:place-items-center tw:rounded-[0.615rem] tw:border tw:border-solid tw:border-[#e5dbd5] tw:bg-white tw:text-cali-brand tw:[@media(max-width:50rem)]:min-h-[2.385rem] tw:[@media(max-width:50rem)]:min-w-[2.231rem]" to={href} title={label} aria-label={label}><Icon size={17} /></Link>)}</div>}
-          <CompactWorkspaceSearch destinations={searchDestinations} resetKey={resetKey} />
+          {role === 'admin' && <div className="ch-tools v2-top-tools tw:flex tw:items-center tw:gap-[0.615rem] tw:[@media(max-width:47.5rem)]:gap-[0.462rem]">{adminProducts.map(({ label, href, icon: Icon }) => <Link key={href} className="v2-top-icon tw:inline-flex tw:size-[2.923rem] tw:min-h-[2.692rem] tw:min-w-[2.692rem] tw:items-center tw:justify-center tw:rounded-[0.615rem] tw:border tw:border-solid tw:border-[#e5dbd5] tw:bg-white tw:text-cali-brand tw:[@media(max-width:50rem)]:min-h-[2.385rem] tw:[@media(max-width:50rem)]:min-w-[2.231rem]" to={href} title={label} aria-label={label}><Icon size={17} /></Link>)}</div>}
+          <CompactWorkspaceSearch admin={role === 'admin'} destinations={searchDestinations} resetKey={resetKey} />
           {extras}
           <div className="profile-holder tw:relative tw:[@media(max-width:53.75rem)]:static">{notifications}</div>
           <CompactWorkspaceProfile role={role} partnerHasOccurrences={navigation.some((item) => item.href === '/equipe/ocorrencias')} resetKey={resetKey} onLogout={() => void requestLogout()} />
@@ -150,13 +153,13 @@ export function WorkspaceShellLayout({ role, navigation, extras, children, sched
       {scheduling}
       <div className="content tw:mx-auto tw:max-w-[119.231rem] tw:px-[2.692rem] tw:pt-8 tw:pb-[5.385rem] tw:[@media(53.125rem<width<=78.125rem)]:px-[1.846rem] tw:[@media(53.125rem<width<=78.125rem)]:pb-[4.615rem] tw:[@media(max-width:53.125rem)]:px-[1.154rem] tw:[@media(max-width:53.125rem)]:pb-[1.923rem]">{children}</div>
     </main>
-    {exitTimers && <div className="wf-overlay tw:z-1250!" role="presentation"><StaffDialog compact role="alertdialog" aria-label="Cronômetro ligado">
+    {exitTimers && <WorkflowDialogOverlay className="tw:z-1250!" role="presentation"><StaffDialog compact role="alertdialog" aria-label="Cronômetro ligado">
       <StaffDialogHeader><div><small>ANTES DE SAIR</small><h2>Você está com cronômetro ligado</h2></div></StaffDialogHeader>
       <StaffDialogBody><InlineNotice className="tw:m-0 tw:rounded-[.69rem] tw:border tw:border-solid tw:border-[#ecd9b0] tw:bg-[#fff6e3] tw:px-[1.08rem] tw:py-[.92rem] tw:text-[.92rem] tw:leading-[1.5] tw:text-[#7a5a2c]"><strong>Se você sair agora sem pausar, o tempo continua contando.</strong> Pause para registrar só o que foi trabalhado.</InlineNotice>
         {exitTimers.map((timer) => <div className="tw:flex tw:flex-col tw:gap-[.31rem] tw:rounded-[.62rem] tw:bg-[#faf6f2] tw:px-[1.08rem] tw:py-[.92rem] tw:text-[.92rem] tw:text-[#322f2c] tw:[&>small]:text-[.85rem] tw:[&>small]:text-[#8c7e74]" key={timer.id}><strong>{timer.description || 'Atuação em andamento'}</strong><small>Ligado desde {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(timer.started_at)).replace('.', '')}</small></div>)}
         {exitError && <InlineNotice className="tw:border tw:border-solid tw:border-[#f0d5d8] tw:bg-[#fdf3f3] tw:text-[#9d4b64]" role="alert">{exitError}</InlineNotice>}</StaffDialogBody>
       <StaffDialogFooter><Button type="button" variant="workflowSecondary" onClick={() => setExitTimers(null)}>Voltar ao trabalho</Button><Button type="button" variant="workflowPrimary" disabled={exitBusy} onClick={() => void pauseAndLogout()}>{exitBusy ? 'Pausando…' : 'Pausar e sair'}</Button></StaffDialogFooter>
-    </StaffDialog></div>}
+    </StaffDialog></WorkflowDialogOverlay>}
     {role === 'client' && <WelcomeTour onHighlight={setTourHref} />}
     {role === 'partner' && <WelcomeTour steps={welcomeSteps} onHighlight={setTourHref} />}
   </div>;

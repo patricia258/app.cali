@@ -1,3 +1,9 @@
+import { WorkflowPage } from '../../../components/ds/WorkflowPage';
+import { StatusBadge } from '../../../components/ds/StatusBadge';
+import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
+import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
+import { WorkflowHeading } from '../../../components/ds/WorkflowHeading';
+import { WorkflowList, WorkflowListRow } from '../../../components/ds/WorkflowList';
 import { WorkspaceConfirmDialog } from '../../../components/workspace/components/WorkspaceConfirmDialog';
 import { WorkspaceDialogOverlay } from '../../../components/workspace/components/WorkspaceDialogOverlay';
 import { SatisfactionDateFilter } from './components/SatisfactionDateFilter';
@@ -195,8 +201,8 @@ export function AdminSatisfactionPage(){
 
   const tone=(value:number)=>value<=2?'red':value===3?'yellow':value===4?'blue':'green';
 
-  return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-nps v2-client-module"><div className="ap-content"><div className="wf">
-    <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Satisfação</h1><p>Como os clientes avaliam cada entrega aprovada e cada solicitação finalizada, de 1 a 5.</p></div><div className="v2-head-actions"><Button variant="workflowSecondary" type="button" onClick={()=>void load()} disabled={loading}><RefreshCw size={15}/> {loading?'Atualizando…':'Atualizar'}</Button><Button variant="workflowSecondary" type="button" disabled={loading || Boolean(error)} onClick={() => window.print()}>Imprimir / salvar PDF</Button></div></div>
+  return <Shell role="admin"><WorkspaceAdminPage className="v2-admin-nps v2-client-module"><WorkspaceAdminContent><WorkflowPage>
+    <WorkflowHeading><div><small>BACKOFFICE / CALI RH</small><h1>Satisfação</h1><p>Como os clientes avaliam cada entrega aprovada e cada solicitação finalizada, de 1 a 5.</p></div><div className="v2-head-actions tw:flex tw:flex-wrap tw:items-center tw:gap-[0.769rem]"><Button variant="workflowSecondary" type="button" onClick={()=>void load()} disabled={loading}><RefreshCw size={15}/> {loading?'Atualizando…':'Atualizar'}</Button><Button variant="workflowSecondary" type="button" disabled={loading || Boolean(error)} onClick={() => window.print()}>Imprimir / salvar PDF</Button></div></WorkflowHeading>
     {error&&<InlineNotice>{error}</InlineNotice>}
 
     <div className="tw:mb-4 tw:flex tw:items-center tw:gap-3 tw:[@media(max-width:73.75rem)]:flex-wrap">
@@ -281,24 +287,24 @@ export function AdminSatisfactionPage(){
     </SatisfactionPanel>}
 
     <div className="wf-group-head"><div><span>RESPOSTAS</span><strong>Todas as avaliações do período</strong></div><b>{filtered.length}</b></div>
-    {loading?<LoadingState>Carregando avaliações…</LoadingState>:filtered.length?<div className="wf-records">
-      <div className="wf-record-row header tw:grid-cols-[2.615rem_minmax(0,1.2fr)_minmax(0,.9fr)_minmax(0,2.2fr)_repeat(2,minmax(0,1fr))_minmax(0,1.1fr)]! tw:[@media(max-width:53.75rem)]:hidden!"><span/><span>Empresa / Quem avaliou</span><span>Nota</span><span>Avaliação</span><span>Data</span><span>Origem</span><span>Registro</span></div>
+    {loading?<LoadingState>Carregando avaliações…</LoadingState>:filtered.length?<WorkflowList>
+      <WorkflowListRow header className="tw:grid-cols-[2.615rem_minmax(0,1.2fr)_minmax(0,.9fr)_minmax(0,2.2fr)_repeat(2,minmax(0,1fr))_minmax(0,1.1fr)]! tw:[@media(max-width:53.75rem)]:hidden!"><span/><span>Empresa / Quem avaliou</span><span>Nota</span><span>Avaliação</span><span>Data</span><span>Origem</span><span>Registro</span></WorkflowListRow>
       {filtered.map((row)=>{
         const href=row.sourceType==='record'&&row.entityId?`/admin/registros?record=${encodeURIComponent(row.entityId)}`:row.sourceType==='deliverable'&&row.entityId?`/admin/projetos?deliverable=${encodeURIComponent(row.entityId)}`:'';
-        return <div className="wf-record-row tw:cursor-default! tw:grid-cols-[2.615rem_minmax(0,1.2fr)_minmax(0,.9fr)_minmax(0,2.2fr)_repeat(2,minmax(0,1fr))_minmax(0,1.1fr)]! tw:[@media(max-width:53.75rem)]:grid-cols-[2.615rem_minmax(0,1fr)_auto]! tw:[@media(max-width:53.75rem)]:[&>span:nth-child(n+4)]:hidden!" key={`${row.sourceType}-${row.id}`}>
+        return <WorkflowListRow className="tw:cursor-default! tw:grid-cols-[2.615rem_minmax(0,1.2fr)_minmax(0,.9fr)_minmax(0,2.2fr)_repeat(2,minmax(0,1fr))_minmax(0,1.1fr)]! tw:[@media(max-width:53.75rem)]:grid-cols-[2.615rem_minmax(0,1fr)_auto]! tw:[@media(max-width:53.75rem)]:[&>span:nth-child(n+4)]:hidden!" key={`${row.sourceType}-${row.id}`}>
           <span className="tw:grid tw:size-[2.615rem] tw:place-items-center tw:overflow-hidden tw:rounded-lg tw:border tw:border-solid tw:border-[#eadfd6] tw:bg-white tw:text-[.846rem] tw:leading-none tw:font-extrabold tw:text-cali-brand">{row.companyLogoResolved?<img className="tw:size-full tw:object-contain" src={row.companyLogoResolved} alt=""/>:<span aria-hidden="true">{initials(row.company)}</span>}</span>
           <span className="tw:flex tw:min-w-0 tw:flex-col tw:gap-1"><strong className="tw:truncate tw:text-[.846rem] tw:leading-[inherit] tw:font-semibold tw:text-[#322f2c]">{row.company}</strong><small className="tw:text-[.69rem] tw:leading-[inherit] tw:text-[#a18e80]">{row.responderName||'Cliente'}</small></span>
-          <span className="tw:flex tw:flex-col tw:items-start tw:gap-2"><span className={`wf-tag ${tone(row.score)}`}>{row.score}/5 · {scoreLabel(row.score)}</span>{row.score<=3&&(followups[followKey(row)]?<button type="button" className="tw:cursor-pointer tw:rounded-md tw:border tw:border-solid tw:border-[#cfe9da] tw:bg-[#e6f6ec] tw:px-2.5 tw:py-1 tw:text-[.77rem] tw:leading-[inherit] tw:text-[#31805a]" title={followups[followKey(row)].note||'Sem anotação'} onClick={()=>openFollowup(row)}>Tratada · {themeLabel(followups[followKey(row)].theme)}</button>:<button type="button" className="tw:cursor-pointer tw:rounded-md tw:border tw:border-dashed tw:border-[#dec9c3] tw:bg-white tw:px-2.5 tw:py-1 tw:text-[.77rem] tw:leading-[inherit] tw:text-cali-brand" onClick={()=>openFollowup(row)}>Marcar como tratada</button>)}</span>
+          <span className="tw:flex tw:flex-col tw:items-start tw:gap-2"><StatusBadge variant="workflow" tone={tone(row.score)}>{row.score}/5 · {scoreLabel(row.score)}</StatusBadge>{row.score<=3&&(followups[followKey(row)]?<button type="button" className="tw:cursor-pointer tw:rounded-md tw:border tw:border-solid tw:border-[#cfe9da] tw:bg-[#e6f6ec] tw:px-2.5 tw:py-1 tw:text-[.77rem] tw:leading-[inherit] tw:text-[#31805a]" title={followups[followKey(row)].note||'Sem anotação'} onClick={()=>openFollowup(row)}>Tratada · {themeLabel(followups[followKey(row)].theme)}</button>:<button type="button" className="tw:cursor-pointer tw:rounded-md tw:border tw:border-dashed tw:border-[#dec9c3] tw:bg-white tw:px-2.5 tw:py-1 tw:text-[.77rem] tw:leading-[inherit] tw:text-cali-brand" onClick={()=>openFollowup(row)}>Marcar como tratada</button>)}</span>
           <span className="tw:flex tw:min-w-0 tw:flex-col tw:gap-1"><strong className="tw:truncate tw:text-[.846rem] tw:leading-[inherit] tw:font-semibold tw:text-[#322f2c]">{row.title||'Avaliação do cliente'}</strong><small className="tw:text-[.77rem] tw:leading-[1.45] tw:text-[#857870]">{row.comment?.trim()||'Sem comentário adicional.'}</small></span>
           <span><time>{formatDate(row.createdAt)}</time></span>
           <span>{sourceLabel(row.sourceType)}</span>
           <span>{href?<a className="tw:inline-flex tw:items-center tw:gap-1.5 tw:text-[.77rem] tw:leading-[inherit] tw:font-bold tw:text-cali-brand tw:no-underline" href={href}>{row.protocol||'Ver registro'} <ArrowUpRight size={13}/></a>:<small>Sem vínculo</small>}</span>
-        </div>;
+        </WorkflowListRow>;
       })}
-    </div>:<EmptyState variant="workflow"><strong>Nenhuma avaliação encontrada com os filtros atuais.</strong><p>Amplie o período ou limpe os filtros.</p></EmptyState>}
+    </WorkflowList>:<EmptyState variant="workflow"><strong>Nenhuma avaliação encontrada com os filtros atuais.</strong><p>Amplie o período ou limpe os filtros.</p></EmptyState>}
 
 
-  </div></div>
+  </WorkflowPage></WorkspaceAdminContent>
   {editing&&<WorkspaceDialogOverlay onMouseDown={(event)=>{if(event.target===event.currentTarget)setEditing(null);}}><WorkspaceConfirmDialog className="tw:[&_p]:mb-2! tw:[&_p]:text-[.923rem]! tw:[&_footer>button]:text-[.846rem]! tw:[&_footer>button]:font-bold!" aria-label="Tratativa da avaliação">
     <div><small>SATISFAÇÃO · NOTA {editing.score}/5</small><h2>{followups[followKey(editing)]?'Tratativa registrada':'Marcar como tratada'}</h2><p>{editing.company} · {editing.responderName||'Cliente'} · {editing.title||'Avaliação do cliente'}</p>{editing.comment?.trim()&&<p className="tw:border-0 tw:border-l-[.23rem] tw:border-solid tw:border-[#e3c9a6] tw:bg-[#fffaf1] tw:px-3.5 tw:py-3 tw:text-[#67574c] tw:italic">“{editing.comment.trim()}”</p>}</div>
     <label>Tema do comentário<select className="tw:h-[3.077rem] tw:rounded-xl tw:border tw:border-solid tw:border-[#e5d8d0] tw:bg-white tw:px-4 tw:font-normal" value={draft.theme} onChange={(event)=>setDraft((current)=>({...current,theme:event.target.value}))}><option value="">Sem tema</option>{THEMES.map(([key,label])=><option value={key} key={key}>{label}</option>)}</select></label>
@@ -306,5 +312,5 @@ export function AdminSatisfactionPage(){
     {error&&<small className="tw:text-[#b7495d]" role="alert">{error}</small>}
     <footer>{followups[followKey(editing)]&&<button type="button" className="tw:mr-auto tw:border-[#ecd0d5]! tw:bg-white! tw:text-[#b7495d]!" disabled={savingFollow} onClick={()=>void removeFollowup()}>Remover marcação</button>}<button type="button" onClick={()=>setEditing(null)}>Voltar</button><button type="button" disabled={savingFollow} onClick={()=>void saveFollowup()}>{savingFollow?'Salvando…':'Salvar'}</button></footer>
   </WorkspaceConfirmDialog></WorkspaceDialogOverlay>}
-  </div></Shell>;
+  </WorkspaceAdminPage></Shell>;
 }

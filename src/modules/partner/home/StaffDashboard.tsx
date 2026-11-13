@@ -1,10 +1,19 @@
+import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
+import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
+import { WorkspaceMetricGrid } from '../../../components/workspace/components/WorkspaceMetricGrid';
+import { WorkspaceOverviewIntro } from '../../../components/workspace/components/WorkspaceOverviewIntro';
+import { WorkspaceOverviewPanel } from '../../../components/workspace/components/WorkspaceOverviewPanel';
+import { OverviewDeliveryChart } from '../../../components/workspace/components/OverviewDeliveryChart';
+import { OverviewCompanyHours } from '../../../components/workspace/components/OverviewCompanyHours';
+import { OverviewActivityLink } from '../../../components/workspace/components/OverviewActivityLink';
+import { OverviewCompanyLink } from '../../../components/workspace/components/OverviewCompanyLink';
+import { OverviewDeadlineLink } from '../../../components/workspace/components/OverviewDeadlineLink';
+import { StatusBadge } from '../../../components/ds/StatusBadge';
 import { WorkspacePageHeader } from '../../../components/workspace/WorkspacePageHeader';
-/* Visão geral do Partner (Equipe CALI). Mesma composição e mesmas classes da Visão geral da administradora (.ap-*),
-   com os dados que ele pode ver: empresas atribuídas e módulos liberados. Cada bloco só aparece se o módulo estiver liberado. */
 import { EmptyState } from '../../../components/ds/EmptyState';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from '../../../components/navigation/Link';
-import { ArrowRight, CalendarDays, ChevronRight, Send } from 'lucide-react';
+import { ChevronRight, Send } from 'lucide-react';
 import { readPartnerOverview } from '../../../api/partner/operations';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
 import type { PartnerWorkspace } from '../../../api/partner/workspace';
@@ -49,13 +58,6 @@ export function StaffDashboard({ me }: { me: PartnerWorkspace }) {
   const deadlines = open.filter((item) => item.due_at && String(item.due_at) >= today).sort((a, b) => String(a.due_at).localeCompare(String(b.due_at))).slice(0, 4);
   const openRecords = records.filter((item) => !['completed', 'closed', 'archived'].includes(item.workflow_status || ''));
   const statusData = Object.entries(deliverables.reduce<Record<string, number>>((map, item) => { const key = item.status || 'not_started'; map[key] = (map[key] || 0) + 1; return map; }, {})).sort((a, b) => b[1] - a[1]);
-  const donutStops: string[] = [];
-  let cursor = 0;
-  for (const [position, [, value]] of statusData.entries()) {
-    const from = cursor;
-    cursor += value / Math.max(1, deliverables.length) * 100;
-    donutStops.push(`${tones[position % tones.length]} ${from}% ${cursor}%`);
-  }
   const waiting = pendingHours + pendingReviews;
   const metrics = [
     { label: 'Empresas', value: String(me.companies.length), helper: me.companies.slice(0, 2).map((c) => c.display_name).join(' · ') + (me.companies.length > 2 ? ` · +${me.companies.length - 2}` : ''), tone: 'green', href: '/equipe' },
@@ -64,57 +66,52 @@ export function StaffDashboard({ me }: { me: PartnerWorkspace }) {
     { label: 'Aguardando aprovação', value: String(waiting), helper: `${pendingHours} ${pendingHours === 1 ? 'lançamento de horas' : 'lançamentos de horas'} · ${pendingReviews} ${pendingReviews === 1 ? 'material' : 'materiais'}`, tone: 'purple', href: '/equipe/aprovacoes' },
   ];
 
-  return <div className="ap-app v2-admin-page v2-staff-dashboard"><div className="ap-content">
+  return <WorkspaceAdminPage className="v2-staff-dashboard"><WorkspaceAdminContent>
     <WorkspacePageHeader eyebrow="EQUIPE CALI / VISÃO GERAL" title="Visão geral" description="Prioridades, agenda e consumo de horas.">
       <Link className="tw:inline-flex tw:items-center tw:gap-[.538rem] tw:rounded-[.615rem] tw:border tw:border-solid tw:border-[#e5d9d1] tw:bg-white tw:px-4 tw:py-[.846rem] tw:font-bold tw:text-cali-brand" to="/equipe/aprovacoes"><Send size={15} /> Ver aprovações</Link>
     </WorkspacePageHeader>
 
-    <section className="ap-overview-hero tw:min-h-0!">
-      <div><small>CALI · EQUIPE</small><h2>{greeting()}, {me.name.split(' ')[0]}.</h2><p>Veja o que precisa de você hoje.</p></div>
-    </section>
+    <WorkspaceOverviewIntro eyebrow="CALI · EQUIPE" title={`${greeting()}, ${me.name.split(' ')[0]}.`} description="Veja o que precisa de você hoje." />
+    <WorkspaceMetricGrid label="Sinais do seu trabalho" metrics={metrics.map((metric) => ({ ...metric, value: loading ? '—' : metric.value }))} />
 
-    <div className="ap-metrics" aria-label="Sinais do seu trabalho">
-      {metrics.map((metric) => <Link className={`ap-metric ${metric.tone}`} key={metric.label} to={metric.href}><small>{metric.label}</small><strong>{loading ? '—' : metric.value}</strong><span>{metric.helper}</span></Link>)}
-    </div>
-
-    {(has('projects') || has('calendar')) && <div className="ap-grid-two">
-      {has('projects') && <section className="ap-pane">
-        <div className="ap-pane-head"><h2>Prioridades de hoje</h2><Link to="/equipe/projetos">Abrir projetos <ArrowRight size={14} /></Link></div>
-        {priorities.length ? priorities.map((item, index) => { const overdue = String(item.due_at) < today; return <Link className="ap-activity" key={item.id} to="/equipe/projetos"><span className="ap-index">{String(index + 1).padStart(2, '0')}</span><span><strong>{item.title}</strong><small>{companyName.get(item.company_id) || 'Empresa'} · {statusNames[item.status || ''] || item.status || 'Não iniciado'}</small></span><span className={`ap-status ${overdue ? 'red' : 'amber'}`}>{overdue ? `Venceu ${dateLabel(String(item.due_at))}` : dateLabel(String(item.due_at))}</span><ChevronRight size={14} /></Link>; }) : <EmptyState as="p" variant="admin">Nenhuma entrega com prazo em aberto nas suas empresas.</EmptyState>}
-      </section>}
-      {has('calendar') && <section className="ap-pane">
-        <div className="ap-pane-head"><h2>Agenda das suas empresas</h2><Link to="/equipe/calendario">Ver calendário <ArrowRight size={14} /></Link></div>
-        {events.length ? events.map((event) => <Link className="ap-time-line" key={event.id} to="/equipe/calendario"><time>{dateLabel(event.starts_at)} · {timeLabel(event.starts_at)}</time><i className="tw:bg-[#a484d7]" /><span><strong>{event.title}</strong><small>{companyName.get(event.company_id || '') || 'CALI'} · {eventKind[event.event_type || ''] || 'Compromisso'}</small></span><ChevronRight size={14} /></Link>) : <EmptyState as="p" variant="admin">Nenhum compromisso marcado nos próximos dias.</EmptyState>}
-      </section>}
-      {has('projects') && !has('calendar') && <section className="ap-pane">
-        <div className="ap-pane-head"><h2>Próximos prazos</h2><Link to="/equipe/projetos">Ver entregas <ArrowRight size={14} /></Link></div>
-        {deadlines.length ? deadlines.map((item) => <Link className="ap-deadline" key={item.id} to="/equipe/projetos"><CalendarDays size={16} /><span><strong>{item.title}</strong><small>{companyName.get(item.company_id) || 'Empresa'} · {statusNames[item.status || ''] || item.status}</small></span><b>{dateLabel(String(item.due_at))}</b></Link>) : <EmptyState as="p" variant="admin">Nenhum prazo à frente.</EmptyState>}
-      </section>}
+    {(has('projects') || has('calendar')) && <div className="tw:mb-[1.23rem] tw:grid tw:grid-cols-2 tw:gap-[1.23rem] tw:max-[59.375rem]:grid-cols-1">
+      {has('projects') && <WorkspaceOverviewPanel title="Prioridades de hoje" action={{ href: "/equipe/projetos", label: "Abrir projetos" }}>
+        {priorities.length ? priorities.map((item, index) => { const overdue = String(item.due_at) < today; return <OverviewActivityLink key={item.id} href="/equipe/projetos" title={item.title} detail={`${companyName.get(item.company_id) || 'Empresa'} · ${statusNames[item.status || ''] || item.status || 'Não iniciado'}`} leading={<span className="tw:text-[1.23rem]/[inherit] tw:text-[#bf9a75]">{String(index + 1).padStart(2, '0')}</span>} trailing={<><StatusBadge variant="admin" tone={overdue ? 'red' : 'amber'}>{overdue ? `Venceu ${dateLabel(String(item.due_at))}` : dateLabel(String(item.due_at))}</StatusBadge><ChevronRight size={14} /></>} />; }) : <EmptyState as="p" variant="admin">Nenhuma entrega com prazo em aberto nas suas empresas.</EmptyState>}
+      </WorkspaceOverviewPanel>}
+      {has('calendar') && <WorkspaceOverviewPanel title="Agenda das suas empresas" action={{ href: "/equipe/calendario", label: "Ver calendário" }}>
+        {events.length ? events.map((event) => <OverviewActivityLink key={event.id} href="/equipe/calendario" title={event.title} detail={<>{companyName.get(event.company_id || '') || 'CALI'} · {eventKind[event.event_type || ''] || 'Compromisso'}</>} leading={<><time className="tw:text-[.85rem]/[inherit] tw:font-bold tw:text-[#977669]">{dateLabel(event.starts_at)} · {timeLabel(event.starts_at)}</time><i className="tw:size-[.69rem] tw:shrink-0 tw:rounded-full tw:bg-[#a484d7]" /></>} trailing={<ChevronRight size={14} />} />) : <EmptyState as="p" variant="admin">Nenhum compromisso marcado nos próximos dias.</EmptyState>}
+      </WorkspaceOverviewPanel>}
+      {has('projects') && !has('calendar') && <WorkspaceOverviewPanel title="Próximos prazos" action={{ href: "/equipe/projetos", label: "Ver entregas" }}>
+        {deadlines.length ? deadlines.map((item) => <OverviewDeadlineLink key={item.id} href="/equipe/projetos" title={item.title} detail={<>{companyName.get(item.company_id) || 'Empresa'} · {statusNames[item.status || ''] || item.status}</>} date={dateLabel(String(item.due_at))} />) : <EmptyState as="p" variant="admin">Nenhum prazo à frente.</EmptyState>}
+      </WorkspaceOverviewPanel>}
     </div>}
 
-    {(has('hours') || has('projects')) && <div className="ap-exec-grid">
-      {has('hours') && <section className="ap-pane ap-exec-hours">
-        <div className="ap-pane-head"><h2>Consumo de horas por empresa</h2><Link to="/equipe/horas">Lançar horas <ArrowRight size={14} /></Link></div>
-        {me.companies.map((item) => { const used = minutes[item.id] || 0; const contracted = Number(item.monthly_hours_contracted || 0); const pct = contracted ? Math.round(used / 60 / contracted * 100) : 0; return <Link className={`ap-hour-client ${pct >= 90 ? 'critical' : pct >= 75 ? 'warn' : ''}`} key={item.id} to="/equipe/horas"><span className="ap-hour-logo">{logos[item.id] ? <img src={logos[item.id]} alt="" /> : mark(item.display_name)}</span><span className="ap-hour-main"><strong>{item.display_name}</strong><small>{hours(used)}{contracted ? ` / ${contracted}h · ${Math.max(0, contracted - used / 60).toFixed(1).replace('.', ',')}h restantes` : ' · sem limite de ciclo'}</small><span className="ap-hour-track"><i style={{ width: `${Math.min(100, pct)}%` }} /></span></span><b>{contracted ? `${pct}%` : '—'}</b></Link>; })}
-      </section>}
-      {has('projects') && <section className="ap-pane ap-exec-status">
-        <div className="ap-pane-head"><h2>Status das entregas</h2><Link to="/equipe/projetos">Abrir projetos <ArrowRight size={14} /></Link></div>
-        {statusData.length ? <>
-          <div className="ap-exec-donut" role="img" aria-label={statusData.map(([label, value]) => `${statusNames[label] || label}: ${value}`).join(', ')} style={{ background: `conic-gradient(${donutStops.join(',')})` }}><div><strong>{deliverables.length}</strong><small>nas suas empresas</small></div></div>
-          <div className="ap-exec-legend">{statusData.map(([label, value], index) => <span key={label}><i style={{ background: tones[index % tones.length] }} />{statusNames[label] || label} <strong>{value}</strong></span>)}</div>
-        </> : <EmptyState as="p" variant="admin">Ainda não há entregas nas suas empresas.</EmptyState>}
-      </section>}
+    {(has('hours') || has('projects')) && <div className="tw:mb-[1.23rem] tw:grid tw:grid-cols-[1.35fr_1fr] tw:gap-[1.23rem] tw:max-[53.125rem]:grid-cols-1">
+      {has('hours') && <WorkspaceOverviewPanel title="Consumo de horas por empresa" action={{ href: "/equipe/horas", label: "Lançar horas" }}>
+        {me.companies.map((item) => { const used = minutes[item.id] || 0; const contracted = Number(item.monthly_hours_contracted || 0); const pct = contracted ? Math.round(used / 60 / contracted * 100) : 0; return <OverviewCompanyHours key={item.id} href="/equipe/horas" company={item.display_name}
+          logo={logos[item.id] ? <img src={logos[item.id]} alt="" /> : mark(item.display_name)}
+          description={`${hours(used)}${contracted ? ` / ${contracted}h · ${Math.max(0, contracted - used / 60).toFixed(1).replace('.', ',')}h restantes` : ' · sem limite de ciclo'}`}
+          percent={contracted ? pct : null} />; })}
+      </WorkspaceOverviewPanel>}
+      {has('projects') && <WorkspaceOverviewPanel title="Status das entregas" action={{ href: "/equipe/projetos", label: "Abrir projetos" }}>
+        {statusData.length ? <OverviewDeliveryChart
+                values={statusData.map(([label, count], index) => ({ label: statusNames[label] || label, count, color: tones[index % tones.length] }))}
+                total={deliverables.length}
+                caption="nas suas empresas"
+              /> : <EmptyState as="p" variant="admin">Ainda não há entregas nas suas empresas.</EmptyState>}
+      </WorkspaceOverviewPanel>}
     </div>}
 
-    <section className="ap-pane ap-full">
-      <div className="ap-pane-head"><h2>Suas empresas</h2></div>
-      {me.companies.length ? <div className="ap-account-grid tw:grid-cols-[repeat(auto-fill,minmax(min(100%,25.38rem),1fr))]!">{me.companies.map((client) => { const mine = open.filter((item) => item.company_id === client.id); const talk = openRecords.filter((item) => item.company_id === client.id).length; const state = mine.some((item) => item.status === 'adjustment_requested') ? ['Ajuste solicitado', 'red'] : mine.some((item) => item.status === 'client_review') ? ['Aguardando cliente', 'red'] : talk ? [`${talk} ${talk === 1 ? 'ocorrência aberta' : 'ocorrências abertas'}`, 'amber'] : mine.length ? ['Em execução', 'amber'] : ['Em dia', 'green'];
-        return <Link className="ap-client tw:min-w-0 tw:[@media(max-width:640px)]:flex-wrap" key={client.id} to={has('projects') ? '/equipe/projetos' : '/equipe'}><span className="ap-client-brand">{logos[client.id] ? <img src={logos[client.id]} alt="" /> : mark(client.display_name)}</span><div className="tw:min-w-0 tw:flex-1"><strong>{client.display_name}</strong><small className="tw:block tw:truncate tw:[@media(max-width:640px)]:whitespace-normal">{[PLAN[String(client.service_plan || '').toLowerCase()] || client.service_plan, client.monthly_hours_contracted ? `${client.monthly_hours_contracted}h por mês` : '', has('projects') ? `${mine.length} ${mine.length === 1 ? 'entrega em andamento' : 'entregas em andamento'}` : ''].filter(Boolean).join(' · ')}</small></div><span className={`ap-status ${state[1]}`}>{state[0]}</span><ArrowRight size={15} /></Link>; })}</div> : <EmptyState as="p" variant="admin">Nenhuma empresa atribuída a você ainda. Fale com a Patricia.</EmptyState>}
-    </section>
+    <WorkspaceOverviewPanel title="Suas empresas">
+      {me.companies.length ? <div className="tw:mt-[1.38rem] tw:grid tw:grid-cols-[repeat(auto-fill,minmax(min(100%,25.38rem),1fr))] tw:gap-[.92rem]">{me.companies.map((client) => { const mine = open.filter((item) => item.company_id === client.id); const talk = openRecords.filter((item) => item.company_id === client.id).length; const state = mine.some((item) => item.status === 'adjustment_requested') ? ['Ajuste solicitado', 'red'] : mine.some((item) => item.status === 'client_review') ? ['Aguardando cliente', 'red'] : talk ? [`${talk} ${talk === 1 ? 'ocorrência aberta' : 'ocorrências abertas'}`, 'amber'] : mine.length ? ['Em execução', 'amber'] : ['Em dia', 'green'];
+        return <OverviewCompanyLink key={client.id} href={has('projects') ? '/equipe/projetos' : '/equipe'} company={client.display_name}
+          logo={logos[client.id] ? <img src={logos[client.id]} alt="" /> : mark(client.display_name)}
+          detail={[PLAN[String(client.service_plan || '').toLowerCase()] || client.service_plan, client.monthly_hours_contracted ? `${client.monthly_hours_contracted}h por mês` : '', has('projects') ? `${mine.length} ${mine.length === 1 ? 'entrega em andamento' : 'entregas em andamento'}` : ''].filter(Boolean).join(' · ')}
+          status={<StatusBadge variant="admin" tone={state[1]}>{state[0]}</StatusBadge>} />; })}</div> : <EmptyState as="p" variant="admin">Nenhuma empresa atribuída a você ainda. Fale com a Patricia.</EmptyState>}
+    </WorkspaceOverviewPanel>
 
-    <section className="ap-pane ap-full v2-staff-scope">
-      <div className="ap-pane-head"><h2>O que está liberado para você</h2></div>
-      <div className="tw:flex tw:flex-wrap tw:gap-[.62rem] tw:pt-[.31rem]">{me.modules.map((key) => <span className="ap-status purple" key={key}>{({ records: 'Ocorrências', projects: 'Projetos e entregas', hours: 'Horas', calendar: 'Calendário', documents: 'Documentos', reports: 'Relatórios', notices: 'Avisos', team: 'Equipe do cliente', people_map: 'Mapa de People' } satisfies Record<string, string>)[key] || key}</span>)}</div>
-    </section>
-  </div></div>;
+    <WorkspaceOverviewPanel title="O que está liberado para você">
+      <div className="tw:flex tw:flex-wrap tw:gap-[.62rem] tw:pt-[.31rem]">{me.modules.map((key) => <StatusBadge variant="admin" tone="purple" key={key}>{({ records: 'Ocorrências', projects: 'Projetos e entregas', hours: 'Horas', calendar: 'Calendário', documents: 'Documentos', reports: 'Relatórios', notices: 'Avisos', team: 'Equipe do cliente', people_map: 'Mapa de People' } satisfies Record<string, string>)[key] || key}</StatusBadge>)}</div>
+    </WorkspaceOverviewPanel>
+  </WorkspaceAdminContent></WorkspaceAdminPage>;
 }

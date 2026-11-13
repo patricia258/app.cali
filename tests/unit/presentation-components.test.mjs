@@ -6,6 +6,8 @@ import { LegalDocument } from '../../src/components/legal/LegalDocument.tsx';
 import { CapacityBar } from '../../src/components/hours/CapacityBar.tsx';
 import { CapacityCard } from '../../src/components/hours/CapacityCard.tsx';
 import { DocumentAutoCover } from '../../src/components/documents/DocumentAutoCover.tsx';
+import { DocumentAction } from '../../src/components/workspace/components/DocumentAction.tsx';
+import { DocumentPanel } from '../../src/components/workspace/components/DocumentPanel.tsx';
 import { SensitiveDataNote } from '../../src/components/privacy/SensitiveDataNote.tsx';
 import { ReportManualComplementsPanel } from '../../src/modules/admin/reports/components/ReportManualComplementsPanel.tsx';
 import { normalizeIntelligenceSnapshot } from '../../src/lib/reportIntelligence.ts';
@@ -56,6 +58,22 @@ test('DocumentAutoCover preserva logo e texto alternativo da empresa', () => {
   const image = markup.match(/<img\b[^>]*\/>/)?.[0] ?? '';
   assert.match(image, /\bsrc="\/logos\/qa\.png"/);
   assert.match(image, /\balt="Logo de CALI &amp; QA"/);
+});
+
+test('DocumentPanel preserva região semântica e variante de carregamento', () => {
+  const markup = render(DocumentPanel, { as: 'aside', padding: 'loading', 'aria-label': 'Resumo', children: 'Carregando' });
+  assert.match(markup, /<aside[^>]+aria-label="Resumo"/);
+  assert.match(markup, /tw:p-10\.5!/);
+  assert.match(markup, /Carregando<\/aside>/);
+});
+
+test('DocumentAction preserva ações nativas e permite envio explícito de formulário', () => {
+  const primary = render(DocumentAction, { variant: 'primary', disabled: true, children: 'Salvar' });
+  assert.match(primary, /<button[^>]+type="button"[^>]+disabled=""/);
+  assert.match(primary, /tw:bg-cali-brand/);
+  const secondary = render(DocumentAction, { type: 'submit', variant: 'secondary', children: 'Continuar' });
+  assert.match(secondary, /<button[^>]+type="submit"/);
+  assert.doesNotMatch(secondary, /disabled=""/);
 });
 
 test('SensitiveDataNote orienta sobre documentos clínicos com ícone decorativo', () => {

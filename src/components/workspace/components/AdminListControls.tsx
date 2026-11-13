@@ -1,13 +1,14 @@
+import { WorkflowControls } from '../../ds/WorkflowControls';
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import { Search } from 'lucide-react';
 import { FilterSelect } from '../../ds/FilterSelect';
 
 export function AdminListControls({ children, alwaysWrap = false }: { children: ReactNode; alwaysWrap?: boolean }) {
   return (
-    <div className={`wf-controls v2-list-controls tw:flex tw:items-center tw:gap-[0.769rem]
+    <WorkflowControls className={`v2-list-controls tw:flex tw:items-center tw:gap-[0.769rem]
       ${alwaysWrap ? 'tw:flex-wrap' : 'tw:flex-nowrap tw:[@media(max-width:980px)]:flex-wrap'}`}>
       {children}
-    </div>
+    </WorkflowControls>
   );
 }
 

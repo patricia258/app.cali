@@ -1,3 +1,4 @@
+import { StatusBadge } from '../../../../components/ds/StatusBadge';
 import { CheckCircle2, Clock3, Cloud, Eye, FileText } from 'lucide-react';
 import type { ClientDoc } from '../ClientDocumentsPage';
 import { DocumentAutoCover } from '../../../../components/documents/DocumentAutoCover';
@@ -40,7 +41,7 @@ function FolderEntryActions({ docs, acknowledged, list, onOpen, onAcknowledge }:
 }
 
 function FolderEntryStatus({ delivered }: { delivered: boolean }) {
-  return <span className={`wf-tag ${delivered ? 'green' : 'amber'}`}>{delivered ? 'Entregue' : 'Em produção'}</span>;
+  return <StatusBadge variant="workflow" tone={delivered ? 'green' : 'amber'}>{delivered ? 'Entregue' : 'Em produção'}</StatusBadge>;
 }
 
 export function ClientDocumentFolder({

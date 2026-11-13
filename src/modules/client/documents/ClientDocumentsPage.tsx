@@ -1,4 +1,9 @@
-import { DocumentCardArt, DocumentCardTags } from '../../../components/documents/DocumentCardArt';
+import { DocumentStorageNotice } from '../../../components/documents/DocumentStorageNotice';
+import { WorkflowPage } from '../../../components/ds/WorkflowPage';
+import { StatusBadge } from '../../../components/ds/StatusBadge';
+import { WorkflowHeading } from '../../../components/ds/WorkflowHeading';
+import { DocumentFolderAction } from '../../../components/documents/DocumentFolderAction';
+import { DocumentCardArt, DocumentCardTag, DocumentCardTags } from '../../../components/documents/DocumentCardArt';
 import { DocumentCardFact, DocumentCardFacts } from '../../../components/documents/DocumentCardFacts';
 import { DocumentCardActions, DocumentCardContent, DocumentCardProtocol } from '../../../components/documents/DocumentCardContent';
 import { Button } from '../../../components/ds/Button';
@@ -7,7 +12,7 @@ import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { openPrivateWorkspaceFile } from '../../../api/files/workspace';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from '../../../hooks/useLocation';
-import { FolderOpen, AlertTriangle, CheckCircle2, ChevronRight, Cloud, ExternalLink, Eye, FileCheck2, FileText, MessageSquare, Search } from 'lucide-react';
+import { FolderOpen, AlertTriangle, CheckCircle2, Cloud, ExternalLink, Eye, FileCheck2, FileText, MessageSquare, Search } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { useQueryClient } from '@tanstack/react-query';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
@@ -289,11 +294,15 @@ export function ClientDocumentsPage() {
   ] : [];
   const overdue = documents.filter((doc) => { const left = daysUntil(doc.validUntil); return left != null && left < 0; });
   const expiring = documents.filter((doc) => { const left = daysUntil(doc.validUntil); return left != null && left >= 0 && left <= 60; });
-  return <Shell role="client"><section className="v2-client-module v2-client-docs"><div className="wf">
-    <div className="wf-head"><div><small>ÁREA DA EMPRESA / ACERVO</small><h1>Documentos</h1><p>Entregáveis com capa, versões, protocolo e acompanhamento.</p></div></div>
+  return <Shell role="client"><section className="v2-client-module v2-client-docs"><WorkflowPage>
+    <WorkflowHeading><div><small>ÁREA DA EMPRESA / ACERVO</small><h1>Documentos</h1><p>Entregáveis com capa, versões, protocolo e acompanhamento.</p></div></WorkflowHeading>
     {notice && <InlineNotice tone="success" role="status"><CheckCircle2 size={18}/>{notice}</InlineNotice>}
     {error && <InlineNotice role="alert">{error}</InlineNotice>}
-    <section className="wf-doc-drive"><Cloud size={23}/><div><strong>{driveConnection ? 'Drive da sua empresa conectado' : 'Leve suas versões aprovadas para o Drive da sua empresa'}</strong><p>{driveConnection ? `${driveConnection.accountEmail || 'Conta Google conectada'}. Você escolhe quais versões copiar para o Drive da empresa.` : 'Conecte a conta Google da sua empresa para salvar as versões aprovadas.'}</p></div><Button type="button" variant="workflowOutline" disabled={driveConnecting} onClick={() => void connectDrive()}>{driveConnecting ? 'Abrindo Google…' : driveConnection ? 'Trocar conta' : 'Conectar meu Drive'}</Button></section>
+    <DocumentStorageNotice icon={<Cloud size={23} />}
+      title={driveConnection ? 'Drive da sua empresa conectado' : 'Leve suas versões aprovadas para o Drive da sua empresa'}
+      description={driveConnection ? `${driveConnection.accountEmail || 'Conta Google conectada'}. Você escolhe quais versões copiar para o Drive da empresa.` : 'Conecte a conta Google da sua empresa para salvar as versões aprovadas.'}
+      action={<Button type="button" variant="workflowOutline" disabled={driveConnecting} onClick={() => void connectDrive()}>{driveConnecting ? 'Abrindo Google…' : driveConnection ? 'Trocar conta' : 'Conectar meu Drive'}</Button>}
+    />
     {selectedFolder && <ClientDocumentFolder
       title={selectedFolder.title}
       protocol={selectedFolder.protocol}
@@ -312,7 +321,8 @@ export function ClientDocumentsPage() {
     <div hidden={Boolean(selectedFolder)} className="tw:[&[hidden]]:hidden!">
     <div className="tw:mb-[1.154rem] tw:flex tw:flex-wrap tw:items-center tw:justify-end tw:gap-4 tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#eee4dc] tw:bg-white tw:p-[1.154rem] tw:min-[68.8125rem]:flex-nowrap"><strong className="tw:mr-auto tw:text-[0.923rem]/[inherit]">{[shownFolders.length ? `${shownFolders.length} ${shownFolders.length === 1 ? 'pasta' : 'pastas'}` : '', filtered.length || !shownFolders.length ? `${filtered.length} ${filtered.length === 1 ? 'documento' : 'documentos'}` : ''].filter(Boolean).join(' · ')}</strong><label className="tw:flex tw:min-w-[20rem] tw:items-center tw:gap-[0.692rem] tw:rounded-[0.615rem] tw:border tw:border-solid tw:border-[#e9dcd3] tw:px-[0.923rem] tw:py-[0.769rem] tw:focus-within:border-cali-gold tw:max-[40.6875rem]:min-w-[min(100%,13.846rem)]"><Search size={14}/><input className="tw:w-full tw:min-w-0 tw:border-0 tw:text-[0.846rem]/[inherit] tw:outline-none" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nome, tipo ou protocolo" aria-label="Buscar documentos"/></label><select className="tw:rounded-[0.615rem] tw:border tw:border-solid tw:border-[#eaded5] tw:bg-white tw:px-[0.923rem] tw:py-[0.769rem] tw:text-[0.846rem]/[inherit] tw:text-[#604c49]" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} aria-label="Filtrar documentos por categoria"><option value="all">Todas as categorias</option>{folders.length > 0 && <option value="folder">Pastas</option>}{categories.map((value) => <option key={value} value={value}>{categoryLabel(value)}</option>)}</select><DocumentLayoutSwitch label="Exibição do acervo" layout={layout} onChange={setLayout} /></div>
     {filtered.length === 0 && shownFolders.length === 0 && <EmptyState variant="workflow"><strong>Nenhum documento encontrado.</strong><p>{documents.length || folders.length ? 'Ajuste a busca ou o filtro.' : 'Assim que a CALI publicar uma versão final para você, ela aparecerá aqui.'}</p></EmptyState>}
-    {(expiring.length > 0 || overdue.length > 0) && <div className={`v2-hours-notice ${overdue.length ? 'critical' : 'warning'}`} role="status"><AlertTriangle size={16}/><span>{[overdue.length ? `${overdue.length} ${overdue.length === 1 ? 'documento está com a validade vencida' : 'documentos estão com a validade vencida'}` : '', expiring.length ? `${expiring.length} ${expiring.length === 1 ? 'documento tem' : 'documentos têm'} validade ou revisão prevista nos próximos 60 dias` : ''].filter(Boolean).join(' · ')}.</span></div>}
+    {(expiring.length > 0 || overdue.length > 0) && <div className={`tw:mb-[1.077rem] tw:flex tw:items-center tw:gap-[0.769rem] tw:rounded-[0.769rem] tw:border tw:border-solid tw:px-[1.231rem] tw:py-[0.923rem] tw:text-[0.846rem]/[1.5] tw:[&>svg]:flex-none
+      ${overdue.length ? 'tw:border-[#f3d5db] tw:bg-[#fbecee] tw:text-[#7a4450] tw:[&>svg]:text-[#b05165]' : 'tw:border-[#f2dfb8] tw:bg-[#fff5e0] tw:text-[#6b5330] tw:[&>svg]:text-cali-gold'}`} role="status"><AlertTriangle size={16}/><span>{[overdue.length ? `${overdue.length} ${overdue.length === 1 ? 'documento está com a validade vencida' : 'documentos estão com a validade vencida'}` : '', expiring.length ? `${expiring.length} ${expiring.length === 1 ? 'documento tem' : 'documentos têm'} validade ou revisão prevista nos próximos 60 dias` : ''].filter(Boolean).join(' · ')}.</span></div>}
     {layout === 'list' && (filtered.length > 0 || shownFolders.length > 0) && (
       <ClientDocumentList rows={[
         ...shownFolders.map((folder) => {
@@ -334,29 +344,29 @@ export function ClientDocumentsPage() {
       ]} />
     )}
     {layout === 'covers' && <section className="tw:mt-[1.231rem] tw:grid tw:grid-cols-[repeat(auto-fill,minmax(min(100%,20.769rem),1fr))] tw:gap-[1.231rem]">
-      {shownFolders.map((folder) => { const own = documents.filter((doc) => !doc.taskId && doc.deliverableId === folder.id).length; const total = folder.items.length + own; const done = folder.items.filter((item) => documents.some((doc) => doc.taskId === item.id)).length + own; return <article className="wf-doc-cover v2-doc-card doc-deliverable v2-folder-card" key={`f:${folder.id}`}>
+      {shownFolders.map((folder) => { const own = documents.filter((doc) => !doc.taskId && doc.deliverableId === folder.id).length; const total = folder.items.length + own; const done = folder.items.filter((item) => documents.some((doc) => doc.taskId === item.id)).length + own; return <article className="tw:overflow-hidden tw:rounded-[1rem] tw:border tw:border-solid tw:border-[#e6d9cf] tw:bg-white" key={`f:${folder.id}`}>
         <DocumentCardArt folder tone="delivery" logo={companyBrand.logoUrl} name={companyBrand.name} label={`Abrir a pasta ${folder.title}`} onOpen={() => setOpenFolder(folder.id)} fallback={<b>CALI</b>}>
           <span className="v2-folder-mark tw:pointer-events-none tw:absolute tw:top-[0.769rem] tw:left-[0.769rem] tw:grid tw:size-[2.615rem] tw:place-items-center tw:rounded-[0.692rem] tw:bg-white tw:text-cali-brand tw:shadow-[0_1px_4px_#2817241a]" aria-hidden="true"><FolderOpen size={18} /></span>
-          <DocumentCardTags><span className="wf-doc-label doc-deliverable">Pasta</span></DocumentCardTags>
+          <DocumentCardTags><DocumentCardTag tone="delivery">Pasta</DocumentCardTag></DocumentCardTags>
         </DocumentCardArt>
         <DocumentCardContent title={folder.title}>
           <p className="tw:m-0! tw:text-[0.769rem]/[inherit] tw:text-[#857870]">{folder.protocol || 'Entregável'}</p>
           <DocumentFolderProgress percentage={total ? Math.round((done / total) * 100) : 0} className="tw:mt-[0.923rem] tw:mb-[0.462rem]" />
-          <small className="v2-folder-count">{done} de {total} {total === 1 ? 'entregue' : 'entregues'}</small>
-          <button type="button" className="v2-folder-open" onClick={() => setOpenFolder(folder.id)}>Abrir pasta <ChevronRight size={14} /></button>
+          <small className="tw:block tw:text-[.885rem] tw:text-[#7d726b]">{done} de {total} {total === 1 ? 'entregue' : 'entregues'}</small>
+          <DocumentFolderAction onClick={() => setOpenFolder(folder.id)} />
         </DocumentCardContent>
       </article>; })}
       {filtered.map((doc) => {
         const isAcknowledged = acknowledged.includes(doc.id);
         const syncState = syncByFile[doc.id];
         const syncLocked = syncState?.status === 'pending' || syncState?.status === 'processing';
-        const tone = doc.category === 'deliverable' ? 'doc-deliverable' : doc.category === 'report' ? 'doc-executive' : 'doc-work';
+        const tone = doc.category === 'deliverable' ? 'delivery' : doc.category === 'report' ? 'report' : 'work';
         const left = daysUntil(doc.validUntil);
         const review: { date: string; note: string; tone: 'muted' | 'late' | 'soon' | '' } = !doc.validUntil ? { date: 'Não definida', note: '', tone: 'muted' } : { date: formatDate(doc.validUntil), note: left == null ? '' : left < 0 ? `vencida há ${-left} ${-left === 1 ? 'dia' : 'dias'}` : left === 0 ? 'vence hoje' : `faltam ${left} ${left === 1 ? 'dia' : 'dias'}`, tone: left != null && left < 0 ? 'late' : left != null && left <= 60 ? 'soon' : '' };
         const kindLabel = doc.kind.trim().toLowerCase() === categoryLabel(doc.category).trim().toLowerCase() ? '' : doc.kind;
-        return <article className={`wf-doc-cover v2-doc-card ${tone}`} key={doc.id}>
+        return <article className="tw:overflow-hidden tw:rounded-[1rem] tw:border tw:border-solid tw:border-[#e6d9cf] tw:bg-white" key={doc.id}>
           <DocumentCardArt tone={doc.category === 'deliverable' ? 'delivery' : doc.category === 'report' ? 'report' : 'work'} cover={doc.coverUrl} logo={companyBrand.logoUrl} name={companyBrand.name} label={`Ver informações de ${doc.title}`} onOpen={() => setDetailDoc(doc)} fallback={<><FileText size={30} /><b>CALI</b></>}>
-            <DocumentCardTags><span className={`wf-doc-label ${tone}`}>{categoryLabel(doc.category)}</span>{isAcknowledged && <span className="wf-tag green">Ciente</span>}</DocumentCardTags>
+            <DocumentCardTags><DocumentCardTag tone={tone}>{categoryLabel(doc.category)}</DocumentCardTag>{isAcknowledged && <StatusBadge variant="workflow" tone="green">Ciente</StatusBadge>}</DocumentCardTags>
           </DocumentCardArt>
           <DocumentCardContent title={doc.title}>
             {doc.description && <p className="tw:m-0! tw:text-[0.769rem]/[inherit] tw:text-[#857870]">{doc.description}</p>}
@@ -412,5 +422,5 @@ export function ClientDocumentsPage() {
       onSend={() => void sendComment()}
       onClose={() => setCommentDoc(null)}
     />}
-  </div></section></Shell>;
+  </WorkflowPage></section></Shell>;
 }

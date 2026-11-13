@@ -1,3 +1,4 @@
+import { StatusBadge } from '../../../../components/ds/StatusBadge';
 import type { ReactNode } from 'react';
 import { Button } from '../../../../components/ds/Button';
 
@@ -60,7 +61,7 @@ export function AuditTimeline({ groups, remaining, onOpen, onMore }: {
                 <time className="tw:text-[0.846rem]/[1.5] tw:font-bold tw:text-cali-brand" dateTime={entry.at}>
                   {entry.day && <>{entry.day}<br /></>}{entry.time}
                 </time>
-                <span className={`wf-tag tw:justify-self-start ${areaTone[entry.area] ?? 'tw:bg-[#f3ece6]! tw:text-[#67574c]!'}`}>{entry.area}</span>
+                <StatusBadge variant="workflow" className={`tw:justify-self-start ${areaTone[entry.area] ?? 'tw:bg-[#f3ece6]! tw:text-[#67574c]!'}`}>{entry.area}</StatusBadge>
                 <div className="tw:flex tw:min-w-0 tw:flex-col tw:gap-[0.231rem] tw:max-[53.8125rem]:col-start-2">
                   <strong className="tw:text-[0.923rem]/[inherit] tw:text-[#322f2c]">{entry.action}</strong>
                   {entry.detail && <small className="tw:text-[0.769rem]/[inherit] tw:text-[#96867c] tw:[overflow-wrap:anywhere]">{entry.detail}</small>}

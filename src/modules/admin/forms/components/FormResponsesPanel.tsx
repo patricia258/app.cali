@@ -1,3 +1,4 @@
+import { WorkflowControls } from '../../../../components/ds/WorkflowControls';
 import { WorkspaceConfirmDialog } from '../../../../components/workspace/components/WorkspaceConfirmDialog';
 import { WorkspaceDialogOverlay } from '../../../../components/workspace/components/WorkspaceDialogOverlay';
 import { FormFeedbackToast } from '../../../../components/forms/FormFeedbackToast';
@@ -109,7 +110,7 @@ export function FormResponsesPanel({ form }: { form: FormRecord }) {
   }
 
   return <div className="v2-forms-responses">
-    <div className="wf-controls v2-forms-controls tw:flex tw:items-center tw:gap-[0.769rem] tw:flex-wrap tw:mb-[0.923rem]">
+    <WorkflowControls className="v2-forms-controls tw:flex tw:items-center tw:gap-[0.769rem] tw:flex-wrap tw:mb-[0.923rem]">
       <label className="v2-forms-search tw:flex tw:items-center tw:gap-[0.538rem] tw:flex-1 tw:min-w-[16.923rem] tw:max-w-[29.231rem]
         tw:[border:1px_solid_#e3d6cc] tw:rounded-[0.615rem] tw:[padding:0_0.769rem] tw:bg-white tw:text-[color:var(--fm-muted)]
         tw:[&_input]:flex-1 tw:[&_input]:border-0 tw:[&_input]:outline-none tw:[&_input]:[padding:0.692rem_0]
@@ -123,7 +124,7 @@ export function FormResponsesPanel({ form }: { form: FormRecord }) {
       <span className="v2-forms-total tw:text-[0.846rem] tw:text-[color:var(--fm-muted)] tw:mr-auto">{filtered.length} de {rows.length}</span>
       <Button type="button" variant="formSecondary" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> Atualizar</Button>
       <Button type="button" variant="workflowPrimary" disabled={!filtered.length} onClick={() => void exportExcel()}><FileSpreadsheet size={15} /> Exportar Excel</Button>
-    </div>
+    </WorkflowControls>
     {selected.size > 0 && <div className="v2-forms-selbar tw:flex tw:items-center tw:gap-[0.923rem] tw:[margin:0_0_0.769rem] tw:[padding:0.769rem_1.077rem]
       tw:[border:1px_solid_#f1c4bd] tw:rounded-[0.769rem] tw:bg-[#fff6f4] tw:[&_strong]:text-[0.923rem]
       tw:[&_strong]:text-[#8f1d14] tw:[&_strong]:mr-auto" role="status"><strong>{selected.size} {selected.size === 1 ? 'resposta selecionada' : 'respostas selecionadas'}</strong><button type="button" className="v2-forms-delete tw:inline-flex tw:items-center tw:gap-[0.462rem] tw:border-0 tw:bg-transparent

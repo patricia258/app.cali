@@ -18,7 +18,9 @@ type TeamAvatarProps = {
 export function TeamAvatar({ name, style = 'neutral', large = false, leader = false }: TeamAvatarProps) {
   const src = avatarSources[style] ?? avatarSources.neutral;
   const [failedSrc, setFailedSrc] = useState<string>();
-  const size = large ? 'tw:size-[4.0625rem]' : 'tw:size-[2.375rem]';
+  const size = large
+    ? 'tw:size-[4.125rem] tw:compact-content:size-[5.077rem]'
+    : 'tw:size-[2.375rem] tw:compact-content:size-[2.923rem]';
   return (
     <span className={`tw:relative tw:inline-grid tw:flex-none tw:place-items-center ${size}`}>
       <span
@@ -40,7 +42,7 @@ export function TeamAvatar({ name, style = 'neutral', large = false, leader = fa
         <span
           title="Liderança"
           aria-label="Liderança"
-          className={`tw:absolute tw:grid tw:place-items-center tw:rounded-[0.4375rem] tw:bg-[#e9c57e] tw:text-cali-brand tw:shadow-[0_0.125rem_0.3125rem_#28111636] ${large ? 'tw:-right-1.75 tw:-top-2 tw:size-6' : 'tw:-right-1.5 tw:-top-1.75 tw:size-5'}`}
+          className={`tw:absolute tw:grid tw:place-items-center tw:rounded-[0.4375rem] tw:bg-[#e9c57e] tw:text-cali-brand tw:shadow-[0_0.125rem_0.3125rem_#28111636] ${large ? 'tw:-right-1.75 tw:-top-2 tw:size-6' : 'tw:-right-1.5 tw:-top-1.75 tw:size-5 tw:compact-content:size-[1.54rem]'}`}
         >
           <Star size={large ? 15 : 12} fill="currentColor" />
         </span>

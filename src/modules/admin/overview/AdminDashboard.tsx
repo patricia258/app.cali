@@ -1,9 +1,20 @@
+import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
+import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
+import { WorkspaceMetricGrid } from '../../../components/workspace/components/WorkspaceMetricGrid';
+import { WorkspaceOverviewIntro } from '../../../components/workspace/components/WorkspaceOverviewIntro';
+import { WorkspaceOverviewPanel } from '../../../components/workspace/components/WorkspaceOverviewPanel';
+import { OverviewDeliveryChart } from '../../../components/workspace/components/OverviewDeliveryChart';
+import { OverviewCompanyHours } from '../../../components/workspace/components/OverviewCompanyHours';
+import { OverviewActivityLink } from '../../../components/workspace/components/OverviewActivityLink';
+import { OverviewCompanyLink } from '../../../components/workspace/components/OverviewCompanyLink';
+import { OverviewDeadlineLink } from '../../../components/workspace/components/OverviewDeadlineLink';
+import { StatusBadge } from '../../../components/ds/StatusBadge';
 import { WorkspacePageHeader } from '../../../components/workspace/WorkspacePageHeader';
 import { EmptyState } from '../../../components/ds/EmptyState';
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "../../../components/navigation/Link";
 import { format } from "date-fns";
-import { ArrowRight, Building2, CalendarDays, ChevronRight, CircleAlert, Clock3, MessageSquareText, Plus } from "lucide-react";
+import { Building2, CalendarDays, ChevronRight, CircleAlert, Clock3, MessageSquareText, Plus } from "lucide-react";
 import { Shell } from "../../../components/workspace/WorkspaceShell";
 import { readAdminOverview, subscribeAdminOverview, type DashboardData, type Satisfaction } from "../../../api/admin/overview/portfolio";
 import { useSearchParams } from "../../../hooks/useSearchParams";
@@ -232,14 +243,7 @@ export function AdminDashboard() {
   const now = Date.now();
   const events = data.events.filter((event) => Date.parse(event.startsAt) >= now).slice(0, 5);
   const average = data.satisfaction.average == null ? null : data.satisfaction.average.toFixed(1).replace(".", ",");
-  const donutTotal = statusData.reduce((sum, [, value]) => sum + value, 0);
-  let donutCursor = 0;
-  const donutStops = statusData.map(([, value], index) => {
-    const from = donutCursor;
-    donutCursor += donutTotal ? (value / donutTotal) * 100 : 0;
-    return `${tones[index % tones.length]} ${from}% ${donutCursor}%`;
-  });
-  const eventTone = { meeting: "purple", validation: "", deadline: "blue" } as const;
+  const eventTone = { meeting: "tw:bg-[#ac89d4]", validation: "tw:bg-[#bd996a]", deadline: "tw:bg-[#72b2d6]" } as const;
   const eventKind = { meeting: "Reunião", validation: "Validação", deadline: "Prazo" } as const;
   const eventTime = (value: string) => new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
   const prioritiesUnavailable = unavailable("Entregáveis", "Projetos", "Carteira", "Horas");
@@ -256,76 +260,74 @@ export function AdminDashboard() {
 
   return (
     <Shell role="admin">
-      <div className="ap-app v2-admin-page">
-        <div className="ap-content">
+      <WorkspaceAdminPage>
+        <WorkspaceAdminContent>
           <WorkspacePageHeader eyebrow="BACKOFFICE / CALI RH" title="Visão geral" description="Onde estão as decisões, entregas e contas que precisam da CALI hoje.">
-            <Link className="ap-primary" to="/admin/clientes"><Plus size={15} /> Cadastrar cliente</Link>
+            <Link className="tw:inline-flex tw:items-center tw:gap-[.62rem] tw:rounded-[.54rem] tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-[1rem] tw:py-[.77rem] tw:font-semibold tw:whitespace-nowrap tw:text-white" to="/admin/clientes"><Plus size={15} /> Cadastrar cliente</Link>
           </WorkspacePageHeader>
 
-          <div className="ap-filters">
+          <div className="tw:mb-[1.23rem] tw:flex tw:flex-wrap tw:items-center tw:gap-[.69rem] tw:[&_label]:flex tw:[&_label]:items-center tw:[&_label]:gap-[.46rem] tw:[&_label]:rounded-[.54rem] tw:[&_label]:border tw:[&_label]:border-solid tw:[&_label]:border-[#e7ddd5] tw:[&_label]:bg-white tw:[&_label]:px-[.77rem] tw:[&_select]:max-w-[14.62rem] tw:[&_select]:border-0 tw:[&_select]:bg-transparent tw:[&_select]:px-[.38rem] tw:[&_select]:py-[.77rem] tw:[&_select]:text-[.85rem]/[inherit] tw:[&_select]:text-[#67574c]">
             <label><Building2 size={14} /><select aria-label="Conta" value={account} onChange={(event) => selectFilter("company", event.target.value === "all" ? "" : event.target.value)}><option value="all">Todas as contas</option>{loaded.companies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
             <label><CalendarDays size={14} /><select aria-label="Mês das horas" value={monthOptions[monthOffset].key} onChange={(event) => selectFilter("month", event.target.value)}>{monthOptions.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label>
-            <span>O mês muda as horas; agenda e prazos mostram sempre o que vem pela frente.</span>
+            <span className="tw:ml-auto tw:text-[.77rem]/[inherit] tw:text-[#b09f91] tw:max-[40rem]:ml-0">O mês muda as horas; agenda e prazos mostram sempre o que vem pela frente.</span>
           </div>
           {failedSources.length > 0 && <InlineNotice tone="danger">
             Falha ao atualizar {failedSources.join(", ")}. Os demais dados seguem disponíveis. Valores anteriores podem aparecer enquanto a fonte estiver indisponível.
             <Button variant="secondary" type="button" onClick={() => setReloadRevision((revision) => revision + 1)}>Tentar novamente</Button>
           </InlineNotice>}
 
-          <section className="ap-overview-hero">
-            <div><small>CALI · OPERAÇÃO</small><h2>{greeting()}, Patrícia.</h2><p>O que precisa de decisão agora, quais contas merecem atenção e como cada ciclo está avançando.</p></div>
+          <WorkspaceOverviewIntro eyebrow="CALI · OPERAÇÃO" title={`${greeting()}, Patrícia.`} description="O que precisa de decisão agora, quais contas merecem atenção e como cada ciclo está avançando.">
             {!loading && !failedSources.length && <ExportOverview data={loaded} />}
-          </section>
+          </WorkspaceOverviewIntro>
 
-          <div className="ap-metrics" aria-label="Sinais reais da operação">
-            {metrics.map((metric) => <Link className={`ap-metric ${metric.tone}`} key={metric.label} to={metric.href}><small>{metric.label}</small><strong>{loading || metric.unavailable ? "—" : metric.value}</strong><span>{loading ? "Carregando…" : metric.unavailable ? "Dados indisponíveis" : metric.helper}</span></Link>)}
+          <WorkspaceMetricGrid label="Sinais reais da operação" metrics={metrics.map((metric) => ({
+            ...metric,
+            value: loading || metric.unavailable ? "—" : metric.value,
+            helper: loading ? "Carregando…" : metric.unavailable ? "Dados indisponíveis" : metric.helper,
+          }))} />
+
+          <div className="tw:mb-[1.23rem] tw:grid tw:grid-cols-2 tw:gap-[1.23rem] tw:max-[59.375rem]:grid-cols-1">
+            <WorkspaceOverviewPanel title="Prioridades de hoje" action={{ href: "/admin/projetos", label: "Abrir acompanhamento" }}>
+              {actions.length ? actions.map((action, index) => <OverviewActivityLink key={`${action.title}-${action.detail}`} href={action.href} title={action.title} detail={`${action.detail} · ${action.helper}`} leading={<span className="tw:text-[1.23rem]/[inherit] tw:text-[#bf9a75]">{String(index + 1).padStart(2, "0")}</span>} trailing={<>{action.date && <StatusBadge variant="admin" tone={action.overdue ? "red" : "amber"}>{action.overdue ? `Venceu ${action.date}` : action.date}</StatusBadge>}<ChevronRight size={14} /></>} />) : <EmptyState as="p" variant="admin">{blockStatus("A operação não tem pendências críticas no momento.", "Entregáveis", "Projetos", "Carteira", "Horas")}</EmptyState>}
+            </WorkspaceOverviewPanel>
+            <WorkspaceOverviewPanel title="Agenda da CALI" action={{ href: "/admin/calendario", label: "Ver calendário" }}>
+              {events.length ? events.map((event) => <OverviewActivityLink key={event.id} href="/admin/calendario" title={event.title} detail={`${companyMap.get(event.companyId)?.name || "Cliente"} · ${eventKind[event.type]}`} leading={<><time className="tw:text-[.85rem]/[inherit] tw:font-bold tw:text-[#977669]">{dateLabel(event.startsAt)} · {eventTime(event.startsAt)}</time><i className={`tw:size-[.69rem] tw:shrink-0 tw:rounded-full ${eventTone[event.type]}`} /></>} trailing={<ChevronRight size={14} />} />) : <EmptyState as="p" variant="admin">{blockStatus("Nenhum compromisso nos próximos 15 dias.", "Agenda")}</EmptyState>}
+            </WorkspaceOverviewPanel>
           </div>
 
-          <div className="ap-grid-two">
-            <section className="ap-pane">
-              <div className="ap-pane-head"><h2>Prioridades de hoje</h2><Link to="/admin/projetos">Abrir acompanhamento <ArrowRight size={14} /></Link></div>
-              {actions.length ? actions.map((action, index) => <Link className="ap-activity" key={`${action.title}-${action.detail}`} to={action.href}><span className="ap-index">{String(index + 1).padStart(2, "0")}</span><span><strong>{action.title}</strong><small>{action.detail} · {action.helper}</small></span>{action.date && <span className={`ap-status ${action.overdue ? "red" : "amber"}`}>{action.overdue ? `Venceu ${action.date}` : action.date}</span>}<ChevronRight size={14} /></Link>) : <EmptyState as="p" variant="admin">{blockStatus("A operação não tem pendências críticas no momento.", "Entregáveis", "Projetos", "Carteira", "Horas")}</EmptyState>}
-            </section>
-            <section className="ap-pane">
-              <div className="ap-pane-head"><h2>Agenda da CALI</h2><Link to="/admin/calendario">Ver calendário <ArrowRight size={14} /></Link></div>
-              {events.length ? events.map((event) => <Link className="ap-time-line" key={event.id} to="/admin/calendario"><time>{dateLabel(event.startsAt)} · {eventTime(event.startsAt)}</time><i className={eventTone[event.type]} /><span><strong>{event.title}</strong><small>{companyMap.get(event.companyId)?.name || "Cliente"} · {eventKind[event.type]}</small></span><ChevronRight size={14} /></Link>) : <EmptyState as="p" variant="admin">{blockStatus("Nenhum compromisso nos próximos 15 dias.", "Agenda")}</EmptyState>}
-            </section>
-          </div>
-
-          <div className="ap-exec-grid">
-            <section className="ap-pane ap-exec-hours">
-              <div className="ap-pane-head"><h2>Consumo de horas por cliente</h2><Link to="/admin/horas">Detalhar horas <ArrowRight size={14} /></Link></div>
+          <div className="tw:mb-[1.23rem] tw:grid tw:grid-cols-[1.35fr_1fr] tw:gap-[1.23rem] tw:max-[53.125rem]:grid-cols-1">
+            <WorkspaceOverviewPanel title="Consumo de horas por cliente" action={{ href: "/admin/horas", label: "Detalhar horas" }}>
               {data.companies.length && !usageUnavailable ? data.companies.map((item) => {
                 const minutes = minutesByCompany.get(item.id) || 0;
                 const pct = item.contracted ? Math.round((minutes / 60 / item.contracted) * 100) : 0;
                 const left = item.contracted ? `${Math.max(0, item.contracted - minutes / 60).toFixed(1).replace(".", ",")}h restantes` : "Sem limite de ciclo";
-                return <Link className={`ap-hour-client ${pct >= 90 ? "critical" : pct >= 75 ? "warn" : ""}`} key={item.id} to="/admin/horas"><span className="ap-hour-logo">{item.logoUrl ? <img src={item.logoUrl} alt="" /> : item.mark}</span><span className="ap-hour-main"><strong>{item.name}</strong><small>{formatHours(minutes)}{item.contracted ? ` / ${item.contracted}h` : ""} · {left}</small><span className="ap-hour-track"><i style={{ width: `${Math.min(100, pct)}%` }} /></span></span><b>{item.contracted ? `${pct}%` : "—"}</b></Link>;
+                return <OverviewCompanyHours key={item.id} href="/admin/horas" company={item.name}
+                  logo={item.logoUrl ? <img src={item.logoUrl} alt="" /> : item.mark}
+                  description={`${formatHours(minutes)}${item.contracted ? ` / ${item.contracted}h` : ""} · ${left}`}
+                  percent={item.contracted ? pct : null} />;
               }) : <EmptyState as="p" variant="admin">{blockStatus("Nenhum cliente ativo encontrado.", "Carteira", "Horas")}</EmptyState>}
-            </section>
-            <section className="ap-pane ap-exec-status">
-              <div className="ap-pane-head"><h2>Status dos entregáveis</h2><Link to="/admin/projetos">Abrir projetos <ArrowRight size={14} /></Link></div>
-              {statusData.length ? <>
-                <div className="ap-exec-donut" role="img" aria-label={statusData.map(([label, value]) => `${statusNames[label] || label}: ${value}`).join(", ")} style={{ background: `conic-gradient(${donutStops.join(",")})` }}><div><strong>{data.deliverables.length}</strong><small>no portfólio</small></div></div>
-                <div className="ap-exec-legend">{statusData.map(([label, value], index) => <span key={label}><i style={{ background: tones[index % tones.length] }} />{statusNames[label] || label} <strong>{value}</strong></span>)}</div>
-              </> : <EmptyState as="p" variant="admin">{blockStatus("Ainda não há entregáveis para consolidar.", "Entregáveis")}</EmptyState>}
-            </section>
+            </WorkspaceOverviewPanel>
+            <WorkspaceOverviewPanel title="Status dos entregáveis" action={{ href: "/admin/projetos", label: "Abrir projetos" }}>
+              {statusData.length ? <OverviewDeliveryChart
+                values={statusData.map(([label, count], index) => ({ label: statusNames[label] || label, count, color: tones[index % tones.length] }))}
+                total={data.deliverables.length}
+                caption="no portfólio"
+              /> : <EmptyState as="p" variant="admin">{blockStatus("Ainda não há entregáveis para consolidar.", "Entregáveis")}</EmptyState>}
+            </WorkspaceOverviewPanel>
           </div>
 
-          <div className="ap-exec-grid">
-            <section className="ap-pane">
-              <div className="ap-pane-head"><h2>NPS e satisfação</h2><Link to="/admin/satisfacao">Ver avaliações <ArrowRight size={14} /></Link></div>
-              <div className="ap-exec-nps"><strong>{average ?? "—"}<span>/5</span></strong><div><b>{data.satisfaction.total ? `${data.satisfaction.total} avaliações registradas` : blockStatus("Nenhuma avaliação registrada", "Satisfação")}</b><small>Escala de satisfação de 1 a 5 · evolução mensal da carteira.</small></div></div>
-              {npsMonths.length > 1 ? <div className="ap-exec-nps-bars v2-admin-nps-bars">{npsMonths.map((month) => <span key={month.id} style={{ height: `${Math.max(4, month.average * 16)}%` }} title={`${month.label}: ${month.average.toFixed(1).replace(".", ",")}/5`}><em>{month.label}</em></span>)}</div> : <EmptyState as="p" variant="admin">As avaliações reais aparecerão aqui conforme forem registradas.</EmptyState>}
-            </section>
-            <section className="ap-pane">
-              <div className="ap-pane-head"><h2>Próximos prazos</h2><Link to="/admin/projetos">Ver cronograma <ArrowRight size={14} /></Link></div>
-              {deadlines.length ? deadlines.map((item) => <Link className="ap-deadline" key={item.id} to={`/admin/projetos?deliverable=${encodeURIComponent(item.id)}`}><CalendarDays size={16} /><span><strong>{item.title}</strong><small>{companyMap.get(item.companyId)?.name || "Cliente"} · {statusNames[item.status] || item.status}</small></span><b>{dateLabel(item.dueAt)}</b></Link>) : <EmptyState as="p" variant="admin">{blockStatus("Nenhum prazo registrado.", "Entregáveis")}</EmptyState>}
-            </section>
+          <div className="tw:mb-[1.23rem] tw:grid tw:grid-cols-[1.35fr_1fr] tw:gap-[1.23rem] tw:max-[53.125rem]:grid-cols-1">
+            <WorkspaceOverviewPanel title="NPS e satisfação" action={{ href: "/admin/satisfacao", label: "Ver avaliações" }}>
+              <div className="tw:mx-[.31rem] tw:my-[1.77rem] tw:flex tw:items-center tw:gap-[1.62rem] tw:[&>strong]:text-[2.77rem]/[inherit] tw:[&>strong]:whitespace-nowrap tw:[&>strong]:text-cali-brand tw:[&>strong>span]:text-[1rem]/[inherit] tw:[&>strong>span]:text-[#ab9b90] tw:[&>div]:flex tw:[&>div]:flex-col tw:[&>div]:gap-[.38rem] tw:[&_small]:leading-[1.5] tw:[&_small]:text-[#93857a]"><strong>{average ?? "—"}<span>/5</span></strong><div><b>{data.satisfaction.total ? `${data.satisfaction.total} avaliações registradas` : blockStatus("Nenhuma avaliação registrada", "Satisfação")}</b><small>Escala de satisfação de 1 a 5 · evolução mensal da carteira.</small></div></div>
+              {npsMonths.length > 1 ? <div className="tw:mb-[1.69rem] tw:flex tw:h-[7.69rem] tw:items-end tw:justify-around tw:gap-[.69rem] tw:border-0 tw:border-b tw:border-solid tw:border-[#eae2db] tw:px-[1.54rem] tw:pb-[.38rem] tw:max-[53.125rem]:h-[5.77rem] tw:[&>span]:relative tw:[&>span]:w-full tw:[&>span]:max-w-[2.62rem] tw:[&>span]:rounded-t-[.31rem] tw:[&>span]:bg-[#a76376] tw:[&_em]:absolute tw:[&_em]:top-full tw:[&_em]:left-1/2 tw:[&_em]:-translate-x-1/2 tw:[&_em]:pt-[.54rem] tw:[&_em]:text-[.69rem]/[inherit] tw:[&_em]:text-[#978980] tw:[&_em]:not-italic">{npsMonths.map((month) => <span key={month.id} style={{ height: `${Math.max(4, month.average * 16)}%` }} title={`${month.label}: ${month.average.toFixed(1).replace(".", ",")}/5`}><em>{month.label}</em></span>)}</div> : <EmptyState as="p" variant="admin">As avaliações reais aparecerão aqui conforme forem registradas.</EmptyState>}
+            </WorkspaceOverviewPanel>
+            <WorkspaceOverviewPanel title="Próximos prazos" action={{ href: "/admin/projetos", label: "Ver cronograma" }}>
+              {deadlines.length ? deadlines.map((item) => <OverviewDeadlineLink key={item.id} href={`/admin/projetos?deliverable=${encodeURIComponent(item.id)}`} title={item.title} detail={`${companyMap.get(item.companyId)?.name || "Cliente"} · ${statusNames[item.status] || item.status}`} date={dateLabel(item.dueAt)} />) : <EmptyState as="p" variant="admin">{blockStatus("Nenhum prazo registrado.", "Entregáveis")}</EmptyState>}
+            </WorkspaceOverviewPanel>
           </div>
 
-          <section className="ap-pane ap-full">
-            <div className="ap-pane-head"><h2>Carteira de clientes</h2><Link to="/admin/clientes">Todas as contas <ArrowRight size={14} /></Link></div>
-            {data.companies.length ? <div className="ap-account-grid">
+          <WorkspaceOverviewPanel title="Carteira de clientes" action={{ href: "/admin/clientes", label: "Todas as contas" }}>
+            {data.companies.length ? <div className="tw:mt-[1.38rem] tw:grid tw:grid-cols-3 tw:gap-[.92rem] tw:max-[59.375rem]:grid-cols-2 tw:max-[40rem]:grid-cols-1">
               {data.companies.map((client) => {
                 const minutes = minutesByCompany.get(client.id) || 0;
                 const projects = data.projects.filter((item) => item.companyId === client.id);
@@ -335,16 +337,15 @@ export function AdminDashboard() {
                   : open.some((item) => item.status === "client_review") || projects.some((item) => item.planningStatus === "client_review") ? ["Aguardando cliente", "red"]
                   : !projects.length ? ["Sem projeto ativo", "purple"]
                   : open.length ? ["Em execução", "amber"] : ["Em dia", "green"];
-                return <Link className="ap-client" key={client.id} to="/admin/clientes">
-                  <span className="ap-client-brand">{client.logoUrl ? <img src={client.logoUrl} alt="" /> : client.mark}</span>
-                  <div><strong>{client.name}</strong><small>{[client.service, `${formatHours(minutes)}${client.contracted ? ` / ${client.contracted}h` : ""}`, `${projects.length} ${projects.length === 1 ? "projeto" : "projetos"}`, nps == null ? "" : `NPS ${nps.toFixed(1).replace(".", ",")}`].filter(Boolean).join(" · ")}</small></div>
-                  <span className={`ap-status ${state[1]}`}>{state[0]}</span><ArrowRight size={15} />
-                </Link>;
+                return <OverviewCompanyLink key={client.id} href="/admin/clientes" company={client.name}
+                  logo={client.logoUrl ? <img src={client.logoUrl} alt="" /> : client.mark}
+                  detail={[client.service, `${formatHours(minutes)}${client.contracted ? ` / ${client.contracted}h` : ""}`, `${projects.length} ${projects.length === 1 ? "projeto" : "projetos"}`, nps == null ? "" : `NPS ${nps.toFixed(1).replace(".", ",")}`].filter(Boolean).join(" · ")}
+                  status={<StatusBadge variant="admin" tone={state[1]}>{state[0]}</StatusBadge>} />;
               })}
             </div> : <EmptyState as="p" variant="admin">{blockStatus("Nenhum cliente ativo encontrado.", "Carteira")}</EmptyState>}
-          </section>
-        </div>
-      </div>
+          </WorkspaceOverviewPanel>
+        </WorkspaceAdminContent>
+      </WorkspaceAdminPage>
     </Shell>
   );
 }

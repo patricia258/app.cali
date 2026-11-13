@@ -48,7 +48,7 @@ export function NotificationItem({ item, url, arriving, onOpen }: {
           ? 'tw:border-transparent tw:bg-transparent tw:workspace-compact:bg-white'
           : 'tw:border-[color-mix(in_srgb,#b58c52_21%,var(--theme-line))] tw:bg-[linear-gradient(115deg,color-mix(in_srgb,#e7c66f_10%,var(--theme-surface)),color-mix(in_srgb,#5a1e2d_3%,var(--theme-surface)))] tw:workspace-compact:bg-[#fffaf5] tw:workspace-compact:bg-none'}
         ${mention ? 'tw:workspace-compact:border-l-[0.308rem] tw:workspace-compact:border-l-[#d9a514] tw:workspace-compact:bg-[#fff8e6]!' : ''}
-        ${arriving ? 'tw:motion-safe:animate-[cali-message-arrive-v63_.56s_cubic-bezier(.2,.78,.2,1)_both] tw:workspace-compact:motion-safe:animate-none' : ''}`}
+        ${arriving ? 'tw:motion-safe:animate-message-arrive tw:workspace-compact:motion-safe:animate-none' : ''}`}
     >
       <span className={`tw:grid tw:size-[2.625rem] tw:place-items-center tw:rounded-[0.8125rem] tw:border tw:border-solid
         tw:border-[color-mix(in_srgb,#5a1e2d_11%,var(--theme-line))] tw:bg-cali-surface tw:text-cali-brand tw:workspace-night:text-[#e6bd73]

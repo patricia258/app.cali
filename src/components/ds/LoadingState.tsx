@@ -1,3 +1,4 @@
+import './loading-state.css';
 import type { ComponentPropsWithoutRef } from 'react';
 
 export function LoadingState({ className, role = 'status', 'aria-busy': ariaBusy = true, ...props }: ComponentPropsWithoutRef<'div'>) {

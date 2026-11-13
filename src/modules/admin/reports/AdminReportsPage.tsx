@@ -1,3 +1,8 @@
+import { WorkflowPage } from '../../../components/ds/WorkflowPage';
+import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
+import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
+import { WorkflowControls } from '../../../components/ds/WorkflowControls';
+import { WorkflowHeading } from '../../../components/ds/WorkflowHeading';
 import { ReportPeriodChanges } from './components/ReportPeriodChanges';
 import { ReportReviewChecklist } from './components/ReportReviewChecklist';
 import { ReportEditorWorkspace } from './components/ReportEditorWorkspace';
@@ -567,13 +572,13 @@ export function AdminReportsPage() {
     ? `Fechamento oficial liberado ${readiness.available_on ? `em ${formatDate(readiness.available_on)}` : `após ${readiness.required_days} dias de coleta`}`
     : null;
 
-  return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-reports v2-client-module"><div className="ap-content"><section className="wf reports-admin-v16 tw:mx-auto tw:max-w-[98.46154rem] tw:pb-[5.84615rem] tw:[&>.inline-notice:not(.success)]:border!
+  return <Shell role="admin"><WorkspaceAdminPage className="v2-admin-reports v2-client-module"><WorkspaceAdminContent><WorkflowPage as="section" className="reports-admin-v16 tw:mx-auto tw:max-w-[98.46154rem] tw:pb-[5.84615rem] tw:[&>.inline-notice:not(.success)]:border!
     tw:[&>.inline-notice:not(.success)]:border-solid! tw:[&>.inline-notice:not(.success)]:border-[#d7c6bd]!
     tw:[&>.inline-notice:not(.success)]:bg-cali-day-canvas! tw:[&>.inline-notice:not(.success)]:text-cali-brand!
     tw:[&>.inline-notice:not(.success)_svg]:text-[#8b4855]! tw:max-[680px]:px-0 tw:[&_:is(strong,b,span,h1,h2,h3,dd,dt,small,p,td,th,button,label,input,select,textarea)]:[font-family:Inter,system-ui,sans-serif]!">
     {activeReport && isDraft(activeReport) && !isSimulation && <AdminMaterialReview kind="report" entityId={activeReport.id} companyId={activeReport.companyId} onApproved={refreshReportViews} />}
-    <div className="wf-head tw:items-start"><div><small>BACKOFFICE / CALI RH</small><h1>Relatórios</h1><p>Fechamento executivo de cada conta: fatos do período, curadoria, leitura da CALI, aprovação e envio ao cliente.</p></div></div>
-    <div className="wf-controls v2-report-controls tw:mb-[1.23077rem] tw:flex tw:flex-wrap! tw:items-center tw:justify-between tw:gap-x-[1.23077rem] tw:gap-y-[0.92308rem]"><ol className="v2-report-stages tw:m-0 tw:flex tw:min-w-0 tw:flex-none tw:list-none tw:items-center tw:gap-0 tw:p-0 tw:max-[1180px]:flex-wrap tw:max-[1180px]:gap-y-[0.61538rem]" aria-label="Etapa do fechamento">{stages.map((label, index) => <li key={label} className={`tw:inline-flex tw:items-center tw:gap-[0.61538rem] tw:text-[0.84615rem] tw:whitespace-nowrap tw:text-[#a8938f] tw:[&+li]:before:mx-[0.61538rem] tw:[&+li]:before:h-px tw:[&+li]:before:w-[1.38462rem] tw:[&+li]:before:bg-[#e2d5cb] tw:[&+li]:before:content-[''] ${index < stageIndex ? 'done tw:text-[#31805a]' : index === stageIndex ? 'current tw:font-bold tw:text-[#322f2c]' : ''}`}>
+    <WorkflowHeading className="tw:items-start"><div><small>BACKOFFICE / CALI RH</small><h1>Relatórios</h1><p>Fechamento executivo de cada conta: fatos do período, curadoria, leitura da CALI, aprovação e envio ao cliente.</p></div></WorkflowHeading>
+    <WorkflowControls className="v2-report-controls tw:mb-[1.23077rem] tw:flex tw:flex-wrap! tw:items-center tw:justify-between tw:gap-x-[1.23077rem] tw:gap-y-[0.92308rem]"><ol className="v2-report-stages tw:m-0 tw:flex tw:min-w-0 tw:flex-none tw:list-none tw:items-center tw:gap-0 tw:p-0 tw:max-[1180px]:flex-wrap tw:max-[1180px]:gap-y-[0.61538rem]" aria-label="Etapa do fechamento">{stages.map((label, index) => <li key={label} className={`tw:inline-flex tw:items-center tw:gap-[0.61538rem] tw:text-[0.84615rem] tw:whitespace-nowrap tw:text-[#a8938f] tw:[&+li]:before:mx-[0.61538rem] tw:[&+li]:before:h-px tw:[&+li]:before:w-[1.38462rem] tw:[&+li]:before:bg-[#e2d5cb] tw:[&+li]:before:content-[''] ${index < stageIndex ? 'done tw:text-[#31805a]' : index === stageIndex ? 'current tw:font-bold tw:text-[#322f2c]' : ''}`}>
       <b className={`tw:grid tw:size-[1.375rem] tw:place-items-center tw:rounded-md tw:border tw:border-solid tw:text-[0.625rem] tw:font-bold ${index < stageIndex ? 'tw:border-[#cfe9da] tw:bg-[#e6f6ec] tw:text-[#31805a]' : index === stageIndex ? 'tw:border-cali-brand tw:bg-cali-brand tw:text-white' : 'tw:border-[#e2d5cb] tw:bg-white tw:text-[#a8938f]'}`}>{index + 1}</b><span>{label}</span></li>)}</ol><div className="reports-v16-filters tw:my-0! tw:ml-auto! tw:flex! tw:flex-none tw:flex-wrap tw:items-center tw:justify-end
         tw:gap-[0.76923rem] tw:p-0! tw:max-[1050px]:justify-start tw:max-[680px]:w-full tw:[&_label]:m-0!
         tw:[&_label]:inline-flex! tw:[&_label]:flex-row! tw:[&_label]:items-center tw:[&_label]:gap-[0.53846rem]
@@ -583,10 +588,10 @@ export function AdminReportsPage() {
         tw:[&_:is(select,input)]:rounded-[0.53846rem]! tw:[&_:is(select,input)]:border! tw:[&_:is(select,input)]:border-solid!
         tw:[&_:is(select,input)]:border-[#e5d9d0]! tw:[&_:is(select,input)]:bg-white! tw:[&_:is(select,input)]:px-[0.76923rem]!
         tw:[&_:is(select,input)]:py-0! tw:[&_:is(select,input)]:text-[0.84615rem]! tw:[&_:is(select,input)]:font-semibold!
-        tw:[&_:is(select,input)]:text-[#322f2c]! tw:[&_:is(select,input)]:normal-case tw:[&_label:first-child_select]:min-w-[17.69231rem]"><label>Empresa<select value={companyId} onChange={(event) => setCompanyId(event.target.value)}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label><label>Tipo<select value={reportType} onChange={(event) => changeType(event.target.value as ReportType)}><option value="monthly">Mensal</option><option value="quarterly">Trimestral</option></select></label>{reportType === 'monthly' ? <label>Período<input type="month" value={periodStart.slice(0, 7)} onChange={(event) => changeMonth(event.target.value)} /></label> : <label>Período<select value={quarterKey(periodStart)} onChange={(event) => changeQuarter(event.target.value)}>{quarters.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>}</div></div>
+        tw:[&_:is(select,input)]:text-[#322f2c]! tw:[&_:is(select,input)]:normal-case tw:[&_label:first-child_select]:min-w-[17.69231rem]"><label>Empresa<select value={companyId} onChange={(event) => setCompanyId(event.target.value)}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label><label>Tipo<select value={reportType} onChange={(event) => changeType(event.target.value as ReportType)}><option value="monthly">Mensal</option><option value="quarterly">Trimestral</option></select></label>{reportType === 'monthly' ? <label>Período<input type="month" value={periodStart.slice(0, 7)} onChange={(event) => changeMonth(event.target.value)} /></label> : <label>Período<select value={quarterKey(periodStart)} onChange={(event) => changeQuarter(event.target.value)}>{quarters.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>}</div></WorkflowControls>
     {notice ? <InlineNotice tone="success"><CheckCircle2 size={18} />{notice}</InlineNotice> : null}{error ? <InlineNotice><AlertTriangle size={18} />{error}</InlineNotice> : null}
 
-    {loadingPeriod ? <div className="panel data-loading"><Loader2 className="spin" size={20} />Lendo {periodName}…</div> : snapshot && selectedCompany ? <>
+    {loadingPeriod ? <div className="data-loading tw:rounded-[.69rem] tw:border tw:border-solid tw:border-[#eae3dd] tw:bg-white"><Loader2 className="spin" size={20} />Lendo {periodName}…</div> : snapshot && selectedCompany ? <>
       {!activeReport ? <>
         <ReportEditorToolbar><div><strong>Prévia interna</strong><span>Sem registro persistente</span><span>{readiness?.required_days ? `${Math.max(0, readiness.collected_days)} de ${readiness.required_days} dias de coleta` : 'Dados lidos em tempo real'}</span>{collectionWait && <span className="reports-v17-official-wait tw:font-semibold tw:text-[#9a6b1f]!">{collectionWait}</span>}{error ? <span className="reports-v17-toolbar-error tw:font-semibold tw:text-[#b42318]!" role="alert">{error}</span> : null}</div><div><Button variant="secondary" type="button" disabled={saving} onClick={() => setWorkflowAction('refresh-preview')}><RefreshCw size={15} />Atualizar prévia</Button><Button variant="secondary" type="button" onClick={() => setPreviewOpen(true)}><FileText size={15} />Visualizar prévia</Button><Button variant="primary" type="button" disabled={saving || Boolean(readiness && !readiness.can_generate_official)} onClick={() => void createOfficialClosing()}><CheckCircle2 size={15} />Criar fechamento oficial</Button></div></ReportEditorToolbar>
         <ReportReviewOverview
@@ -735,7 +740,7 @@ export function AdminReportsPage() {
       </>}
     </> : null}
 
-    {dismissTarget ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-modal-backdrop tw:fixed tw:inset-0 tw:z-980
+    {dismissTarget ? <div className="modal-backdrop workspace-modal-backdrop tw:workspace-compact:motion-safe:animate-[v2-fade_.22s_ease-out_backwards] tw:workspace-compact:motion-safe:[&>*]:animate-[v2-pop_.34s_cubic-bezier(.2,.7,.2,1)_backwards] reports-v16-modal-backdrop tw:fixed tw:inset-0 tw:z-980
       tw:grid tw:place-items-center tw:bg-[#171017a8] tw:p-[1.38462rem] tw:backdrop-blur-sm"><DialogFrame className="modal-card reports-v16-small-modal tw:relative tw:flex tw:max-h-[92dvh] tw:w-[min(41.53846rem,100%)]
       tw:max-w-[43.84615rem] tw:flex-col tw:gap-[1rem] tw:overflow-y-auto tw:rounded-[1.07692rem] tw:border
       tw:border-solid tw:border-[#eadfd6] tw:bg-[#fffdfb] tw:p-[2rem] tw:text-[#322f2c] tw:[&_h2]:m-0
@@ -755,7 +760,7 @@ export function AdminReportsPage() {
       tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-white tw:p-0 tw:text-cali-brand" variant="close" type="button" onClick={() => setDismissTarget(null)}><X size={19} /></Button><span className="section-kicker tw:block tw:text-[0.5625rem] tw:font-extrabold tw:tracking-[0.14em] tw:text-cali-gold">JUSTIFICATIVA INTERNA</span><h2>Ignorar este alerta?</h2><p><strong>{dismissTarget.title}</strong></p><textarea className="tw:box-border tw:w-full tw:rounded-[0.5625rem] tw:border tw:border-solid tw:border-[#e5d8d0] tw:bg-white
       tw:px-3 tw:text-xs tw:font-normal tw:text-[#322f2c] tw:resize-y tw:py-[0.6875rem]" autoFocus rows={4} value={dismissReason} onChange={(event) => setDismissReason(event.target.value)} placeholder="Registre por que este ponto não impede o fechamento." /><footer><Button variant="secondary" type="button" onClick={() => setDismissTarget(null)}>Cancelar</Button><Button variant="primary" type="button" disabled={!dismissReason.trim()} onClick={dismissAlert}>Confirmar justificativa</Button></footer></DialogFrame></div> : null}
 
-    {sendOpen && activeReport ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-modal-backdrop tw:fixed tw:inset-0 tw:z-980
+    {sendOpen && activeReport ? <div className="modal-backdrop workspace-modal-backdrop tw:workspace-compact:motion-safe:animate-[v2-fade_.22s_ease-out_backwards] tw:workspace-compact:motion-safe:[&>*]:animate-[v2-pop_.34s_cubic-bezier(.2,.7,.2,1)_backwards] reports-v16-modal-backdrop tw:fixed tw:inset-0 tw:z-980
       tw:grid tw:place-items-center tw:bg-[#171017a8] tw:p-[1.38462rem] tw:backdrop-blur-sm"><DialogFrame className="modal-card reports-v16-send-modal tw:relative tw:flex tw:max-h-[92dvh] tw:w-[min(41.53846rem,100%)]
       tw:max-w-[43.84615rem] tw:flex-col tw:gap-[1rem] tw:overflow-y-auto tw:rounded-[1.07692rem] tw:border
       tw:border-solid tw:border-[#eadfd6] tw:bg-[#fffdfb] tw:p-[2rem] tw:text-[#322f2c] tw:[&_h2]:m-0
@@ -795,7 +800,7 @@ export function AdminReportsPage() {
         void refreshReportViews();
       }}
     />}
-    {previewOpen && snapshot && selectedCompany ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-preview-backdrop tw:fixed tw:inset-0 tw:z-980
+    {previewOpen && snapshot && selectedCompany ? <div className="modal-backdrop workspace-modal-backdrop tw:workspace-compact:motion-safe:animate-[v2-fade_.22s_ease-out_backwards] tw:workspace-compact:motion-safe:[&>*]:animate-[v2-pop_.34s_cubic-bezier(.2,.7,.2,1)_backwards] reports-v16-preview-backdrop tw:fixed tw:inset-0 tw:z-980
       tw:grid tw:place-items-center tw:bg-[#171017a8] tw:p-[1.38462rem] tw:backdrop-blur-sm"><DialogFrame className="modal-card reports-v16-preview-modal tw:flex tw:h-[94dvh] tw:max-h-[94dvh] tw:w-[min(101.53846rem,100%)]
       tw:max-w-none tw:flex-col tw:overflow-hidden tw:rounded-[1.07692rem] tw:border tw:border-solid
       tw:border-[#e8ded6] tw:bg-white tw:p-0 tw:shadow-[0_1.5625rem_5.3125rem_#2418234a] tw:[&_:is(button.primary,button.secondary)]:inline-flex
@@ -819,5 +824,5 @@ export function AdminReportsPage() {
       tw:[scrollbar-width:none] tw:[&::-webkit-scrollbar]:hidden tw:max-[680px]:h-[calc(100%-8.61538rem)]
       tw:max-[680px]:p-[1.07692rem] tw:[&_.reports-v16-paper_small]:text-[0.92308rem]! tw:[&_.reports-v16-paper_small]:leading-[calc(1/0.75)]!
       tw:[&_.reports-v16-paper_h1]:text-[2.23077rem]!"><WorkspaceExecutiveReportPaper company={selectedCompany} snapshot={attachReportManualComplements(snapshot, manualComplements)} editor={editor} reportType={reportType} periodName={periodName} protocol={activeReport?.protocol || '—'} deliveries={deliveries} /></div></DialogFrame></div> : null}
-  </section></div></div></Shell>;
+  </WorkflowPage></WorkspaceAdminContent></WorkspaceAdminPage></Shell>;
 }

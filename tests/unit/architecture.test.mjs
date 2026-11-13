@@ -101,7 +101,12 @@ test('telas e runtimes acessam Supabase por adaptadores de domínio', () => {
 test('o bootstrap usa folhas do fluxo com Tailwind e mantém retirado o carregador legado', () => {
   assert.equal(existsSync(join(src, 'styles/legacy')), false);
   assert.ok(existsSync(join(src, 'styles/tailwind.css')));
-  const obsoleteImports = sourceFiles(src).filter((file) => /styles\/legacy|loadLegacyStyles/.test(readFileSync(file, 'utf8')));
+  const workspace = join(src, 'components/workspace');
+  assert.equal(existsSync(join(workspace, 'workspace-shell.generated.css')), false);
+  assert.equal(existsSync(join(workspace, 'document-shell.css')), false);
+  assert.equal(existsSync(join(workspace, 'operational.css')), false);
+  const obsoleteImports = sourceFiles(src).filter((file) =>
+    /styles\/legacy|loadLegacyStyles|workspace-shell\.generated\.css|document-shell\.css|operational\.css/.test(readFileSync(file, 'utf8')));
   assert.deepEqual(obsoleteImports, []);
 });
 

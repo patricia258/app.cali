@@ -1,3 +1,8 @@
+import { AdminNotice } from '../../../components/ds/AdminNotice';
+import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
+import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
+import { WorkspaceAdminPanel } from '../../../components/workspace/components/WorkspaceAdminPanel';
+import { WorkspaceAdminPanelHeader } from '../../../components/workspace/components/WorkspaceAdminPanelHeader';
 import { WorkspaceConfirmDialog } from '../../../components/workspace/components/WorkspaceConfirmDialog';
 import { WorkspaceDialogOverlay } from '../../../components/workspace/components/WorkspaceDialogOverlay';
 import { WorkspacePageHeader } from '../../../components/workspace/WorkspacePageHeader';
@@ -373,13 +378,13 @@ export function AdminClientsPage() {
   const initials=(name:string)=>name.split(/\s+/).filter(Boolean).map((word)=>word[0]).join('').slice(0,2).toUpperCase()||'C';
 
   return <Shell role="admin">
-    <div className="ap-app v2-admin-page"><div className="ap-content">
+    <WorkspaceAdminPage><WorkspaceAdminContent>
       <WorkspacePageHeader eyebrow="BACKOFFICE / CALI RH" title="Contas e clientes" description="Acompanhamento das empresas, contratos e prioridades por conta.">
         <Button variant="adminPrimary" onClick={()=>{createRequest.current=null;setForm(emptyForm);setExtraPeople([]);setLogoFile(null);setContractFile(null);setContractDate('');setAddendumFile(null);setAddendumDate('');setError('');setRegistrationTab('data');setCreateOpen(true);}}><Plus size={15}/> Nova conta</Button>
       </WorkspacePageHeader>
 
-      <section className="ap-pane ap-accounts-v2">
-        <div className="ap-pane-head">
+      <WorkspaceAdminPanel className="ap-accounts-v2">
+        <WorkspaceAdminPanelHeader>
           <h2>Contas e clientes</h2>
           <div className="tw:flex tw:items-center tw:gap-[.769rem] tw:max-[47.5rem]:flex-wrap">
             <select
@@ -406,7 +411,7 @@ export function AdminClientsPage() {
               />
             </label>
           </div>
-        </div>
+        </WorkspaceAdminPanelHeader>
         <CompanyList
           clients={visibleClients}
           loading={loading}
@@ -416,8 +421,8 @@ export function AdminClientsPage() {
           onEdit={(client) => openClient(client, 'data')}
           onLifecycle={requestLifecycle}
         />
-      </section>
-      {message&&<p className="v2-admin-notice ok"><CheckCircle2 size={15}/> {message}</p>}{error&&<p className="v2-admin-notice">{error}</p>}
+      </WorkspaceAdminPanel>
+      {message&&<AdminNotice success><CheckCircle2 size={15}/> {message}</AdminNotice>}{error&&<AdminNotice>{error}</AdminNotice>}
 
     {createOpen && (
       <div className="tw:fixed tw:inset-0 tw:z-[800] tw:motion-safe:animate-[workspace-dialog-fade_.22s_ease-out_backwards] tw:grid tw:place-items-center tw:bg-[#161018b8] tw:p-[1.692rem] tw:backdrop-blur-sm tw:max-[43.75rem]:p-[.615rem]" role="presentation">
@@ -647,6 +652,6 @@ export function AdminClientsPage() {
       </WorkspaceConfirmDialog>
     </WorkspaceDialogOverlay>}
     {lifecycle&&<WorkspaceDialogOverlay onMouseDown={(e)=>{if(e.target===e.currentTarget)setLifecycle(null);}}><WorkspaceConfirmDialog aria-label="Gestão da conta"><div><small>GESTÃO DA CONTA</small><h2>{lifecycle.type==='pause'?'Pausar temporariamente':lifecycle.type==='block'?'Bloquear acesso':lifecycle.type==='archive'?'Arquivar conta':lifecycle.type==='close'?'Encerrar contrato':'Reativar conta'}</h2><p><strong>{lifecycle.client.name}</strong> · {lifecycle.client.service}</p><p>{lifecycle.type==='close'?'Registre a data do distrato. O Workspace calcula a projeção financeira usando a cláusula cadastrada. O acesso das pessoas do cliente é bloqueado na hora. Antes de confirmar, se quiser, exporte os dados na aba Contrato.':lifecycle.type==='pause'?'O contrato fica em espera. O cliente continua entrando e consultando. A ação ficará registrada no histórico da conta.':lifecycle.type==='block'?'O cliente deixa de conseguir entrar no Workspace até a conta ser reativada. A ação ficará registrada no histórico da conta.':lifecycle.type==='archive'?'O acesso das pessoas do cliente é bloqueado. A ação ficará registrada no histórico da conta.':'A ação ficará registrada no histórico da conta.'}</p></div>{lifecycle.type==='close'&&<><label>Data do distrato<input className="tw:h-[3.308rem] tw:rounded-[.692rem] tw:border tw:border-solid tw:border-[#e5d8d0] tw:px-[.923rem] tw:font-normal" type="date" value={lifecycleDate} onChange={(e)=>setLifecycleDate(e.target.value)}/></label>{closeProjection&&<CompanyMetrics values={[["Saldo contratual estimado", formatCurrency(closeProjection.remainingBalance)], ["Multa calculada", formatCurrency(closeProjection.penalty)], ["Pagamento até", formatDate(closeProjection.dueDate)]]} />}</>}{lifecycle.type!=='reactivate'&&<label>Motivo<textarea value={lifecycleReason} onChange={(e)=>setLifecycleReason(e.target.value)} placeholder="Registre o motivo" autoFocus/></label>}<footer><button type="button" onClick={()=>setLifecycle(null)}>Cancelar</button><button type="button" disabled={saving||(lifecycle.type!=='reactivate'&&!lifecycleReason.trim())} onClick={()=>void applyLifecycle()}>{saving?'Salvando…':'Confirmar'}</button></footer></WorkspaceConfirmDialog></WorkspaceDialogOverlay>}
-    </div></div>
+    </WorkspaceAdminContent></WorkspaceAdminPage>
   </Shell>;
 }

@@ -4,5 +4,5 @@ export const FilterSelect = forwardRef<HTMLSelectElement, ComponentPropsWithoutR
   { className, ...props },
   ref,
 ) {
-  return <select {...props} ref={ref} className={className ? `wf-record-filter ${className}` : 'wf-record-filter'} />;
+  return <select {...props} ref={ref} className={`wf-record-filter tw:mr-[0.615rem] tw:rounded-[0.538rem] tw:border tw:border-solid tw:border-[#e7ddd5] tw:bg-white tw:px-[0.692rem] tw:py-[0.538rem] tw:text-[0.846rem]/[inherit] tw:text-[#655b57] ${className ?? ''}`} />;
 });

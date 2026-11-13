@@ -167,7 +167,7 @@ export function ClientTimelineCalendar<T extends Item>({ view, cursor, weekDays,
           <span><b className="tw:mr-1 tw:text-[0.8125rem] tw:text-cali-ink">{total}</b> {total === 1 ? 'compromisso' : 'compromissos'} no período</span>
         </footer>
       </div>
-      <div className="wf-footnote">Este calendário mostra compromissos e entregas da CALI, não jornadas de ponto, férias ou escala de colaboradores.</div>
+      <div className="tw:mt-[1.08rem] tw:text-[.77rem]/[1.55] tw:text-[#98897e]">Este calendário mostra compromissos e entregas da CALI, não jornadas de ponto, férias ou escala de colaboradores.</div>
     </>
   );
 }

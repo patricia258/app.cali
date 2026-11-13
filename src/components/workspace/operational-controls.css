@@ -1,7 +1,0 @@
-@reference "../../styles/tailwind.css";
-/* ---- Alinhamento (regra permanente da proprietária): controles do mesmo grupo na mesma linha e centrados na vertical ---- */
-html[data-workspace-ui='v2'] .deliverable-head-actions-v2{@apply tw:flex tw:items-center tw:gap-[10px]}
-html[data-workspace-ui='v2'] .dv-actions button{@apply tw:inline-flex tw:items-center tw:justify-center tw:gap-[8px];line-height:1.2}
-html[data-workspace-ui='v2'] .dv-actions button svg{@apply tw:shrink-0}
-.ap-app.v2-admin-page .ap-pane-head{@apply tw:flex-nowrap}
-@media(max-width:760px){.ap-app.v2-admin-page .ap-pane-head{@apply tw:flex-wrap}}

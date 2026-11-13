@@ -1,7 +1,9 @@
+import { WorkspaceAdminPage } from '../../components/workspace/components/WorkspaceAdminPage';
+import { WorkspaceAdminContent } from '../../components/workspace/components/WorkspaceAdminContent';
 import { WorkspacePageHeader } from '../../components/workspace/WorkspacePageHeader';
 import { Button } from '../../components/ds/Button';
 import { EmptyState } from '../../components/ds/EmptyState';
-import { InlineNotice } from '../../components/ds/InlineNotice';
+import { WorkspaceToast } from '../../components/workspace/components/WorkspaceToast';
 import { ExtraVisitExpenses } from '../../components/calendar/ExtraVisitExpenses';
 import { FormEvent, type CSSProperties, type ReactNode, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react';
 import {
@@ -449,13 +451,13 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
     .filter((event) => eventDateKey(event).slice(0, 7) === cursorMonth)
     .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
 
-  if (loading) return <CalendarFrame staff={staff}><div className="ap-app v2-admin-page"><div className="ap-content"><EmptyState as="p" variant="admin" className="data-loading" aria-live="polite" aria-busy="true">Carregando agenda…</EmptyState></div></div></CalendarFrame>;
+  if (loading) return <CalendarFrame staff={staff}><WorkspaceAdminPage><WorkspaceAdminContent><EmptyState as="p" variant="admin" className="data-loading" aria-live="polite" aria-busy="true">Carregando agenda…</EmptyState></WorkspaceAdminContent></WorkspaceAdminPage></CalendarFrame>;
 
   return (
     <CalendarFrame staff={staff}>
       <SchedulingNotice notice={calendarNotice} />
-      <div className={`ap-app v2-admin-page v2-admin-calendar${staff ? ' v2-staff-calendar' : ''}`}><div className="ap-content">
-      {staffNotice && <InlineNotice tone="success" className="v2-toast" role="status"><Check size={18} /><span>{staffNotice}</span></InlineNotice>}
+      <WorkspaceAdminPage className={`v2-admin-calendar${staff ? ' v2-staff-calendar' : ''}`}><WorkspaceAdminContent>
+      {staffNotice && <WorkspaceToast><Check size={18} /><span>{staffNotice}</span></WorkspaceToast>}
       <section className="tw:relative">
         <WorkspacePageHeader eyebrow={staff ? 'EQUIPE CALI / CALENDÁRIO' : 'BACKOFFICE / CALI RH'} title={staff ? 'Calendário' : 'Agenda da CALI'} description={staff ? 'Reuniões, validações e prazos das empresas que você atende.' : 'Reuniões, validações, prazos e a sua agenda Google em uma visão única.'} actionClassName="tw:my-3! tw:flex! tw:flex-wrap tw:items-center tw:gap-2 tw:[&_button]:whitespace-nowrap">
           {!staff && <AgendaChangeInbox onDecision={()=>void loadCalendar()}/>}
@@ -567,7 +569,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
         saving={saving} error={eventError} />}
       {deletingEventId && <CalendarDeleteEventDialog eventId={deletingEventId} onClose={() => setDeletingEventId(null)}
         onDeleted={() => { setSelectedEvent(null); invalidateGoogleEvent(deletingEventId); }} />}
-      </div></div>
+      </WorkspaceAdminContent></WorkspaceAdminPage>
     </CalendarFrame>
   );
 }

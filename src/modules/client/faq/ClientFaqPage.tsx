@@ -1,3 +1,4 @@
+import { CompactPageHeading } from '../../../components/workspace/components/CompactPageHeading';
 /* Perguntas frequentes do cliente — contrato e utilização de horas. Textos do documento da proprietária (2026-10-13),
    sem alteração. Pesquisável, por assunto, com perguntas que abrem e fecham. */
 import { useMemo, useState } from 'react';
@@ -30,7 +31,7 @@ export function ClientFaqPage() {
   const groups = useMemo(() => { const term = plain(query.trim()); return FAQ.map((group) => ({ ...group, items: group.items.filter(([question, answer]) => !term || plain(question).includes(term) || plain(answer).includes(term)) })).filter((group) => group.items.length > 0); }, [query]);
   return <Shell role="client">
     <section className="v2-client-module">
-      <header className="page-head"><div><div className="eyebrow">AJUDA / CONTRATO E HORAS</div><h1>Dúvidas frequentes<span className="title-dot">.</span></h1><p>Como funcionam as horas contratadas, os avisos de consumo e os excedentes.</p></div></header>
+      <CompactPageHeading eyebrow="AJUDA / CONTRATO E HORAS" title="Dúvidas frequentes" description="Como funcionam as horas contratadas, os avisos de consumo e os excedentes." />
       <label className="tw:mb-[1.385rem] tw:flex tw:h-[3.23rem] tw:max-w-[35.385rem] tw:items-center tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-[#dfd3ca] tw:bg-white tw:px-4 tw:focus-within:outline tw:focus-within:outline-cali-brand">
         <Search size={15} />
         <input

@@ -52,6 +52,9 @@ export function PeopleMapSendDialog({
   const footer = documentLayout
     ? 'tw:mt-[1.125rem] tw:items-center tw:gap-[0.5625rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#5a1e2d17] tw:pt-3.5 tw:max-[45rem]:sticky tw:max-[45rem]:bottom-[-1.375rem] tw:max-[45rem]:mx-[-1.125rem] tw:max-[45rem]:bg-inherit tw:max-[45rem]:px-[1.125rem] tw:max-[45rem]:py-3'
     : 'tw:gap-[0.615rem] tw:border-0! tw:bg-transparent! tw:p-0! tw:max-[45rem]:flex-col-reverse';
+  const documentAction = 'tw:inline-flex tw:min-h-[2.625rem]! tw:items-center tw:justify-center tw:rounded-cali-control tw:text-sm/[inherit]! tw:font-bold tw:[transition:background_.18s_ease,transform_.16s_ease] tw:motion-reduce:transition-none';
+  const documentPrimary = `${documentAction} tw:border-0 tw:bg-cali-brand tw:px-[1.1875rem] tw:text-white tw:shadow-[0_0.5rem_1.125rem_#5a1e2d2b] tw:hover:-translate-y-px tw:hover:bg-[#481724] tw:workspace-night:bg-[#6a253a] tw:workspace-night:hover:bg-[#7a2d44]`;
+  const documentSecondary = `${documentAction} tw:border tw:border-solid tw:border-[#cfbfc1] tw:bg-[var(--paper)] tw:px-[1.125rem] tw:text-[var(--burgundy)] tw:hover:bg-[#faf5f2] tw:workspace-night:border-cali-line tw:workspace-night:bg-[#241b1f] tw:workspace-night:text-cali-text tw:workspace-night:shadow-[0_0.4375rem_1.25rem_#00000021] tw:workspace-night:hover:bg-[#2c2126]`;
   const compactAction = 'tw:inline-flex tw:min-h-[3.231rem] tw:items-center tw:justify-center tw:rounded-[0.538rem]! tw:border tw:border-solid tw:px-[1.077rem]! tw:py-[0.769rem]! tw:text-[0.846rem]/[1.2]! tw:font-bold tw:shadow-none! tw:disabled:cursor-not-allowed tw:disabled:opacity-45 tw:max-[45rem]:w-full';
 
   return (
@@ -69,7 +72,7 @@ export function PeopleMapSendDialog({
         >
           <X size={20} />
         </button>
-        <span className={documentLayout ? 'eyebrow tw:mb-2 tw:block' : 'tw:block tw:text-[0.692rem]/[inherit] tw:font-extrabold tw:tracking-[0.14em] tw:text-cali-gold'}>
+        <span className={documentLayout ? 'eyebrow tw:mb-2 tw:block tw:text-cali-caption/[1.4]! tw:font-bold tw:tracking-[0.14em] tw:text-[var(--burgundy)]' : 'tw:block tw:text-[0.692rem]/[inherit] tw:font-extrabold tw:tracking-[0.14em] tw:text-cali-gold'}>
           ENVIO DO RELATÓRIO
         </span>
         <h2 className={`tw:text-cali-brand tw:workspace-night:text-cali-day-canvas ${documentLayout ? 'tw:mt-0! tw:mr-13! tw:mb-2! tw:text-[1.65rem]/[inherit]!' : 'tw:m-0! tw:text-[1.615rem]/[inherit]!'}`}>
@@ -81,7 +84,7 @@ export function PeopleMapSendDialog({
           <strong className={`tw:text-[#4e4245] tw:[overflow-wrap:anywhere] tw:workspace-night:text-cali-day-canvas ${documentLayout ? 'tw:text-[0.8125rem]/[inherit]' : 'tw:text-base/[inherit]'}`}>{recipient}</strong>
         </div>
         {children}
-        {deliveryError && <div role="alert">Não foi possível consultar a revisão. <Button type="button" variant="secondary" onClick={onRetry}>Tentar novamente</Button></div>}
+        {deliveryError && <div role="alert">Não foi possível consultar a revisão. <Button type="button" variant={documentLayout ? "unstyled" : "secondary"} className={documentLayout ? documentSecondary : undefined} onClick={onRetry}>Tentar novamente</Button></div>}
         {!deliveryError && !deliveryReady && <p role="status">Consultando revisão…</p>}
         {deliveryReady && officialPdf && <p>O envio usa o PDF oficial da versão {revision}.</p>}
         {deliveryReady && !officialPdf && (
@@ -96,11 +99,11 @@ export function PeopleMapSendDialog({
         )}
         {feedback && <div className="tw:mt-3 tw:rounded-lg tw:bg-[#5a1e2d0f] tw:px-3 tw:py-2.5 tw:text-xs/[inherit] tw:text-[#6b4d56]" aria-live="polite">{feedback}</div>}
         <footer className={`tw:flex tw:justify-end ${footer}`}>
-          <Button variant="secondary" type="button" className={documentLayout ? 'tw:min-h-[2.625rem]!' : `${compactAction} tw:border-[#dec9c3]! tw:bg-white! tw:text-cali-brand!`} onClick={close} disabled={sending}>Cancelar</Button>
+          <Button variant={documentLayout ? "unstyled" : "secondary"} type="button" className={documentLayout ? documentSecondary : `${compactAction} tw:border-[#dec9c3]! tw:bg-white! tw:text-cali-brand!`} onClick={close} disabled={sending}>Cancelar</Button>
           <Button
-            variant="primary"
+            variant={documentLayout ? "unstyled" : "primary"}
             type="button"
-            className={documentLayout ? 'tw:min-h-[2.625rem]!' : `${compactAction} tw:border-cali-brand! tw:bg-cali-brand! tw:text-white!`}
+            className={documentLayout ? documentPrimary : `${compactAction} tw:border-cali-brand! tw:bg-cali-brand! tw:text-white!`}
             onClick={onSend}
             disabled={sending || !deliveryReady || (!officialPdf && !file)}
           >

@@ -2,6 +2,8 @@
 
 As regras valem para toda a árvore de código. A fila de solicitações da Agenda serve como referência. Use os critérios do [plano](CONSOLIDATION_PLAN.md), o [mapa de arquivos e hooks](ARCHITECTURE.md) e as [regras de estilos](DESIGN_SYSTEM.md).
 
+Listas, controles, cabeçalhos e diálogos operacionais usam primitivas do design system. Ocorrências mantém a gaveta e a conversa no módulo. Equipe mantém o overlay e os formulários no módulo. O carregamento compacto usa máscaras e keyframes na folha do design system.
+
 ## Inventário por fluxo
 
 | Recorte | Implementação em revisão | Dependências a verificar |
@@ -18,31 +20,23 @@ As regras valem para toda a árvore de código. A fila de solicitações da Agen
 | Formulários Admin e DISC | Lista, lixeira, editor, compartilhamento, tabela e gaveta de respostas usam Tailwind no JSX. Formulários e DISC compartilham tabela, indicador de estado e confirmação. | Conferir filtros, estados de carregamento, colunas fixas, restauração e gavetas com dados no desktop e no celular. |
 | Privacidade | Ajuda e pedidos no perfil, painel de auditoria, orientação sobre documentos clínicos, dúvida de relatório, exportação e eliminação usam utilitários nos componentes. A folha operacional de privacidade saiu do shell. | Conferir pedido em aberto, atrasado, respondido, erro e foco de retorno após cancelar. |
 | Acesso e público | Login, pré-cadastro, callbacks, MFA, termos, Forms e partes do DISC em componentes e hooks. Texto formatado de Forms e DISC usa JSX. | A Landing tem componentes próprios por seção. Seu CSS local cobre o documento e os tokens da marca. DISC mantém a folha A4. Compare menu, carrossel, movimento reduzido e exportação. |
-| Shell e demais módulos | Consultas e mutações em hooks por operação. A apresentação informa a rota destacada ao shell por estado React. Presença e áudio limpam assinaturas e listeners. O relatório do Mapa recebe sessão pela janela vinculada ao fluxo. Avatares e logos são resolvidos por quem os renderiza. | Migrar estilos restantes na moldura, documentos, equipe, administração, Partner e primitivas. Conferir as mudanças de identidade nas capturas por papel. |
+| Shell e demais módulos | Consultas e mutações em hooks por operação. A apresentação informa a rota destacada ao shell por estado React. Presença e áudio limpam assinaturas e listeners. O relatório do Mapa recebe sessão pela janela vinculada ao fluxo. Avatares e logos são resolvidos por quem os renderiza. | Conferir lista, controles, diálogos, identidade e estados de carregamento nas capturas por papel. |
 
-Fontes, tokens, reset, keyframes e regras específicas de impressão são avaliados pela necessidade e pelo escopo. As folhas usadas por várias páginas permanecem no inventário até que seus consumidores tenham sido migrados. A [comparação visual](VISUAL_QA.md) registra o ambiente, os cenários e os resultados.
+A migração removeu a folha gerada e as folhas operacionais transversais. A [comparação visual](VISUAL_QA.md) registra as capturas, o ambiente e os resultados.
 
 Satisfação, Equipe e Projetos carregam as folhas de impressão ou movimento pelo módulo dono. O modal de exportação da Visão Geral Admin usa utilitários, e o papel A4 mantém a folha colocalizada para dimensões físicas e isolamento de tema. A aprovação Cliente usa utilitários no próprio painel. O teste de arquitetura impede reintroduzir módulos TypeScript que apenas importam uma folha isolada.
 
-A moldura compacta, os links do menu lateral, a busca, o menu de conta, as notificações, os cabeçalhos Admin e a apresentação usam utilitários nos componentes donos. Os keyframes de entrada dos diálogos ficam junto da moldura. A folha de referência ainda contém estilos de módulos e serve de base para os recortes restantes. O gerador escreve a referência na saída padrão para preservar o trabalho feito nos componentes. Compare abertura e fechamento do menu, busca, navegação do teclado e perfil em Admin, Cliente e Partner. [Moldura](../src/components/workspace/WorkspaceShellLayout.tsx) · [Jornadas](../tests/e2e/workspace-components.cjs)
+A moldura compacta, os links do menu lateral, a busca, o menu de conta, as notificações, os cabeçalhos Admin e a apresentação usam utilitários nos componentes donos. Os keyframes de entrada dos diálogos ficam junto da moldura. O shell importa apenas a própria folha de movimento. Reset e tema compacto entram no ponto de entrada e têm escopo de rota. Compare abertura e fechamento do menu, busca, navegação do teclado e perfil em Admin, Cliente e Partner. [Moldura](../src/components/workspace/WorkspaceShellLayout.tsx) · [Jornadas](../tests/e2e/workspace-components.cjs)
 
-O inventário continua aberto enquanto as folhas próprias de páginas e do shell ainda contiverem layout ou aparência migráveis. A presença de `@apply` em uma regra antiga identifica uma pendência de migração quando o componente é dono da marcação. O aceite inclui inspeção das diferenças capturadas em relação à `main`.
+## CSS que permanece
 
-O replay restaurou o dump e aplicou 40 migrations. Os contratos SQL e HTTP passaram no stack isolado. A matriz de páginas e a comparação de componentes registram suas revisões e resultados em [Comparação visual](VISUAL_QA.md). O aceite de CSS e paridade visual continua aberto.
-
-## Folhas que ainda concentram estilos de interface
-
-| Dono | Trabalho restante |
+| Dono | Escopo |
 | --- | --- |
-| [Shell](../src/components/workspace/) | Migrar cabeçalhos de módulos, listas, controles, estados e diálogos ainda definidos nas folhas geradas e operacionais. Menu lateral, barra, perfil, cabeçalhos, overlay e confirmações compartilhadas usam JSX. Conferir ordem de visita. |
-| [Moldura documental](../src/components/workspace/document-shell.css) | Navegação, topo, notificações, perfil e dimensões da área principal usam Tailwind nos componentes donos. Restam painéis, controles, tipografia e tema usados por Propostas, Mapa e impressão Admin. As medidas A4 e a remoção da moldura na impressão têm regras próprias. |
-| [Auditoria Admin](../src/modules/admin/audit/) | Busca, lista, agrupamento e trilha usam utilitários no JSX. Compare os recortes vazios, por área, por protocolo e com falha parcial de fonte. |
-| [Equipe CALI](../src/modules/admin/staff/) | Perfis, fila, lista e cadastro usam utilitários e o diálogo compartilhado do Workspace. A folha operacional perdeu os comentários órfãos e as regras sem consumidor do gráfico antigo de Pessoas. |
-| [Ficha Admin](../src/modules/admin/companies/) | Carteira, filtros, cadastro, ficha, abas, edição, métricas, histórico, comunicações, exportação e eliminação usam utilitários nos componentes donos. Conferir cada aba com dados e em estado vazio. |
-| [Relatórios](../src/modules/reports/) | Conferir a paridade visual do editor, dos diálogos e do histórico. Validar o papel nas leituras Admin, Cliente e Partner, a numeração de continuação e o PDF físico A4. |
-| [Ocorrências](../src/modules/records/) e [Projetos](../src/modules/projects/) | As folhas exclusivas migraram. O pedido de acesso adicional usa o formulário compartilhado. Arquivos, Dependências, histórico, andamento e subtarefas usam utilitários. Admin e Cliente compartilham histórico e anexos de conversa. O Cliente mantém componentes próprios para aprovação, ajustes e mensagens da subtarefa. A carteira e outros estados do detalhe ainda usam folhas transversais. |
-| [Horas](../src/modules/hours/) e [Partner](../src/modules/partner/) | As folhas operacionais exclusivas saíram do shell. Restam primitivas de workflow compartilhadas em folhas transversais. Compare a lista, os diálogos e os estados do cronômetro por papel. |
-| [Documentos](../src/modules/documents/) | Capas, metadados, lista Admin, filtros, editor e detalhe usam utilitários. A folha operacional exclusiva saiu do shell. Busca, categorias, lista, galeria, pasta, ficha e comentários do Cliente usam utilitários. Cliente, Admin e Partner compartilham cabeçalho e seletor da pasta. As primitivas visuais compartilhadas ainda usam regras comuns. Compare capa, lista, detalhe, comentários, editor e cópia ao Drive. |
-| [Mapa de People](../src/modules/admin/people-map/) | Lista, revisão, upload e ações do relatório usam utilitários no dono. Compare aba de jornadas, edição, confirmação de envio, visualização e impressão pelo iframe oficial. |
-| [DISC](../src/modules/disc/) e [Propostas](../src/modules/admin/proposals/) | Comparar controles, filtros, modais e relatórios. Conferir captura DISC, quebras e medidas das folhas editoriais. |
-| [Equipe](../src/modules/team/), [Formulários Admin](../src/modules/admin/forms/) e [Landing](../src/modules/public/landing/) | Diretório, organograma, indicadores, editor de formulários e seções públicas usam JSX. Conferir filtros, exportação, carregamento, estados vazios e movimento reduzido. |
+| [Estilos base](../src/styles/) | Tokens, fonte, resets por superfície, controles nativos em tema escuro e comportamento da raiz durante rolagem e impressão. |
+| [Design system](../src/components/ds/) | Máscaras e movimento do carregamento e controles da base pública. |
+| [Shell](../src/components/workspace/) | Tema documental, keyframes e escalonamento da entrada de seções. Navegação, topo, perfil e controles usam Tailwind nos componentes. |
+| [Relatórios](../src/components/reports/), [Propostas](../src/modules/admin/proposals/) e [DISC](../src/modules/disc/components/) | Medidas físicas e regras de mídia paginada, fontes, quebras, composição editorial e escala de prévia. |
+| [Equipe](../src/modules/team/), [Visão Geral](../src/modules/admin/overview/components/) e [Satisfação](../src/modules/admin/satisfaction/) | Regras de impressão no módulo dono. |
+| Módulos com transições | Keyframes locais de cards, diálogos, toast e destaques. Layout e estados interativos ficam no JSX. |
+
+O replay local restaura o dump e aplica 40 migrations. Os contratos SQL e HTTP usam o stack isolado. A validação de interface usa os dois builds com dados sintéticos.

@@ -1,3 +1,6 @@
+import { WorkflowPage } from '../../../components/ds/WorkflowPage';
+import { WorkflowControls, WorkflowSegments, WorkflowControlsAside } from '../../../components/ds/WorkflowControls';
+import { WorkflowHeading } from '../../../components/ds/WorkflowHeading';
 import { ClientSchedulingRequests } from '../../calendar/scheduling/ClientSchedulingRequests';
 import { Button } from '../../../components/ds/Button';
 import { DialogFrame } from '../../../components/ds/DialogFrame';
@@ -399,24 +402,24 @@ export function ClientTimelinePage() {
 
   return (
     <Shell role="client">
-      <section className="v2-client-module"><div className="wf">
-        <div className="wf-head"><div><small>ÁREA DA EMPRESA / ACOMPANHAMENTO</small><h1>Agenda compartilhada</h1><p>Reuniões, validações e marcos da assessoria em uma visão única.</p></div><Button type="button" variant="workflowPrimary" onClick={()=>window.dispatchEvent(new CustomEvent('cali:open-papo-request'))}><Plus size={15}/> Solicitar agendamento</Button></div>
+      <section className="v2-client-module"><WorkflowPage>
+        <WorkflowHeading><div><small>ÁREA DA EMPRESA / ACOMPANHAMENTO</small><h1>Agenda compartilhada</h1><p>Reuniões, validações e marcos da assessoria em uma visão única.</p></div><Button type="button" variant="workflowPrimary" onClick={()=>window.dispatchEvent(new CustomEvent('cali:open-papo-request'))}><Plus size={15}/> Solicitar agendamento</Button></WorkflowHeading>
         <ClientGoogleCalendarSettings />
         <ClientSchedulingRequests />
 
         {error && <InlineNotice>{error}</InlineNotice>}
         {loading ? <LoadingState><Loader2 className="spin" size={20} />Carregando sua agenda…</LoadingState> : <>
           <section aria-label="Agenda da empresa">
-            <div className="wf-controls">
-              <div className="wf-segments"><button type="button" className={agendaView==='week'?'on':''} onClick={()=>setAgendaView('week')}>Semana</button><button type="button" className={agendaView==='month'?'on':''} onClick={()=>setAgendaView('month')}>Mês</button><button type="button" className={agendaView==='list'?'on':''} onClick={()=>setAgendaView('list')}>Lista</button></div>
+            <WorkflowControls>
+              <WorkflowSegments><button type="button" className={agendaView==='week'?'on':''} onClick={()=>setAgendaView('week')}>Semana</button><button type="button" className={agendaView==='month'?'on':''} onClick={()=>setAgendaView('month')}>Mês</button><button type="button" className={agendaView==='list'?'on':''} onClick={()=>setAgendaView('list')}>Lista</button></WorkflowSegments>
               {agendaView!=='list' && <>
-                <button type="button" className="wf-inline" aria-label={agendaView==='month'?'Mês anterior':'Semana anterior'} onClick={()=>agendaView==='month'?setWeekCursor(current=>new Date(current.getFullYear(),current.getMonth()-1,1,12)):moveWeek(-1)}><ChevronLeft size={15}/></button>
+                <Button variant="workflowIcon" type="button" aria-label={agendaView==='month'?'Mês anterior':'Semana anterior'} onClick={()=>agendaView==='month'?setWeekCursor(current=>new Date(current.getFullYear(),current.getMonth()-1,1,12)):moveWeek(-1)}><ChevronLeft size={15}/></Button>
                 <strong>{agendaView==='month'?new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'}).format(weekCursor):`${new Intl.DateTimeFormat('pt-BR',{day:'2-digit'}).format(weekDays[0])} a ${new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'long',year:'numeric'}).format(weekDays[6])}`}</strong>
-                <button type="button" className="wf-inline" aria-label={agendaView==='month'?'Próximo mês':'Próxima semana'} onClick={()=>agendaView==='month'?setWeekCursor(current=>new Date(current.getFullYear(),current.getMonth()+1,1,12)):moveWeek(1)}><ChevronRight size={15}/></button>
-                <button type="button" className="wf-inline" onClick={()=>setWeekCursor(new Date())}>Hoje</button>
+                <Button variant="workflowIcon" type="button" aria-label={agendaView==='month'?'Próximo mês':'Próxima semana'} onClick={()=>agendaView==='month'?setWeekCursor(current=>new Date(current.getFullYear(),current.getMonth()+1,1,12)):moveWeek(1)}><ChevronRight size={15}/></Button>
+                <Button variant="workflowIcon" type="button" onClick={()=>setWeekCursor(new Date())}>Hoje</Button>
               </>}
-              <div className="wf-control-right"><small>{futureCountText(futureItems.filter(item=>item.kind!=='request'||['confirmed','completed'].includes(item.request?.status||'')).length)}</small><SlidersHorizontal size={15}/><fieldset className="tw:m-0 tw:flex tw:items-center tw:gap-3 tw:border-0 tw:p-0 tw:text-[0.6875rem] tw:text-[#655b57] tw:max-[56.25rem]:flex-wrap"><legend className="tw:sr-only">Mostrar</legend>{([['event','Reuniões'],['request','Solicitações'],['deadline','Prazos'],['google','Minha agenda Google']] as const).map(([kind,label])=><label className="tw:inline-flex tw:items-center tw:gap-1.5" key={kind}><input className="tw:m-0 tw:accent-cali-brand" type="checkbox" checked={visibleKinds.has(kind)} onChange={()=>setVisibleKinds(current=>{const next=new Set(current);if(next.has(kind))next.delete(kind);else next.add(kind);return next})}/>{label}</label>)}</fieldset><button type="button" className="wf-inline" onClick={()=>setHistoryOpen(true)}><FileText size={15}/> Histórico de reuniões</button></div>
-            </div>
+              <WorkflowControlsAside><small className="tw:mr-[0.462rem] tw:text-[0.769rem]/[inherit] tw:text-[#998c83]">{futureCountText(futureItems.filter(item=>item.kind!=='request'||['confirmed','completed'].includes(item.request?.status||'')).length)}</small><SlidersHorizontal size={15}/><fieldset className="tw:m-0 tw:flex tw:items-center tw:gap-3 tw:border-0 tw:p-0 tw:text-[0.6875rem] tw:text-[#655b57] tw:max-[56.25rem]:flex-wrap"><legend className="tw:sr-only">Mostrar</legend>{([['event','Reuniões'],['request','Solicitações'],['deadline','Prazos'],['google','Minha agenda Google']] as const).map(([kind,label])=><label className="tw:inline-flex tw:items-center tw:gap-1.5" key={kind}><input className="tw:m-0 tw:accent-cali-brand" type="checkbox" checked={visibleKinds.has(kind)} onChange={()=>setVisibleKinds(current=>{const next=new Set(current);if(next.has(kind))next.delete(kind);else next.add(kind);return next})}/>{label}</label>)}</fieldset><button type="button" className="wf-inline tw:ml-[0.462rem] tw:inline-flex tw:items-center tw:gap-[0.462rem]" onClick={()=>setHistoryOpen(true)}><FileText size={15}/> Histórico de reuniões</button></WorkflowControlsAside>
+            </WorkflowControls>
             {personalGoogleNotice&&<p className="tw:mx-[1.125rem]! tw:my-2! tw:text-xs tw:text-cali-muted" role="status">{personalGoogleNotice}</p>}
             {agendaView !== 'list' && <ClientTimelineCalendar view={agendaView} cursor={weekCursor} weekDays={weekDays}
               items={filteredItems} onOpenItem={openItem} onShowList={() => setAgendaView('list')} />}
@@ -444,7 +447,7 @@ export function ClientTimelinePage() {
             </div> : <EmptyState variant="workflow"><CalendarDays size={24} /><strong>Nada previsto por enquanto.</strong><p>Reuniões confirmadas, solicitações em análise e prazos publicados aparecerão aqui.</p></EmptyState>)}
           </section>
         </>}
-      </div></section>
+      </WorkflowPage></section>
       {historyOpen && createPortal(<div className={styles.overlay} onMouseDown={event=>{if(event.target===event.currentTarget)setHistoryOpen(false)}}><DialogFrame className={styles.dialog} aria-label="Histórico de reuniões"><button type="button" className={`${styles.dialogClose} tw:absolute tw:top-5 tw:right-5`} onClick={()=>setHistoryOpen(false)} aria-label="Fechar histórico"><X size={20}/></button>
             <div className={styles.dialogHeader}><div><span className={styles.dialogKicker}>CONSULTAR ENCONTROS</span><h2 className={styles.dialogTitle}>Histórico de reuniões</h2></div></div>
             <div className="tw:flex tw:flex-wrap tw:items-center tw:gap-3"><label className="tw:inline-flex tw:items-center tw:gap-2 tw:text-[0.6875rem] tw:text-[#655b57]">Mês <input className="tw:rounded-md tw:border tw:border-solid tw:border-[#e7ddd5] tw:bg-white tw:px-2 tw:py-2 tw:text-[#322f2c]" type="month" value={historyMonth} onChange={event=>setHistoryMonth(event.target.value)}/></label><button type="button" className={`${styles.dialogClose} tw:text-[0.6875rem]! tw:font-semibold!`} onClick={()=>setHistoryMonth('')}>Todos os períodos</button></div>

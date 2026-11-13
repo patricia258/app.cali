@@ -216,30 +216,6 @@ select:not(.v2-client-module):not(.v2-client-module *),
 textarea:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-[14px]; }
 }
 
-[data-lp-reveal] {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [data-lp-reveal] { opacity: 1; transform: none; transition: none; }
-}
-
-[data-lp-reveal="left"] { transform: translate3d(-46px, 0, 0); }
-[data-lp-reveal="right"] { transform: translate3d(46px, 0, 0); }
-[data-lp-reveal="up"] { transform: translate3d(0, 44px, 0); }
-[data-lp-reveal="down"] { transform: translate3d(0, -38px, 0); }
-[data-lp-reveal="zoom"] { transform: scale(.95); }
-
-@media (prefers-reduced-motion: reduce) {
-  [data-lp-reveal] {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-}
-
 &:root{
   --ws-type-page:40px;
   --ws-type-section:24px;

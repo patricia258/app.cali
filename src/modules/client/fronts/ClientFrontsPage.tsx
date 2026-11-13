@@ -1,3 +1,4 @@
+import { CompactPageHeading } from '../../../components/workspace/components/CompactPageHeading';
 import { IncludedFrontCard, PossibleFrontCard } from './components/ClientFrontCards';
 import { Button } from '../../../components/ds/Button';
 import { DialogFrame } from '../../../components/ds/DialogFrame';
@@ -54,21 +55,18 @@ export function ClientFrontsPage() {
   return (
     <Shell role="client">
       <div className="v2-client-module">
-        <header className="page-head">
-          <div>
-            <span className="eyebrow">{company?.display_name || 'CALI Workspace'} / ESCOPO DA ASSESSORIA</span>
-            <h1>
-              Frentes contratadas<span className="title-dot">.</span>
-            </h1>
-            <p>Conheça os assuntos em que a CALI pode atuar com a sua empresa.</p>
-          </div>
+        <CompactPageHeading
+          eyebrow={<>{company?.display_name || 'CALI Workspace'} / ESCOPO DA ASSESSORIA</>}
+          title="Frentes contratadas"
+          description="Conheça os assuntos em que a CALI pode atuar com a sua empresa."
+        >
           <div className="tw:flex tw:flex-wrap tw:items-center tw:gap-[0.769rem]">
-            <span className="chip gold">
+            <span className="tw:inline-block tw:rounded-[.38rem] tw:border tw:border-solid tw:border-[#f3e7d0] tw:bg-[#fcf5e6] tw:px-[.54rem] tw:py-[.38rem] tw:text-[.69rem]/[inherit] tw:font-semibold tw:whitespace-nowrap tw:text-[#9c7243]">
               {plan ? planName[plan] : company?.service_type || 'Plano em definição'}
             </span>
             {plan && (
               <a
-                className="outline-button"
+                className="tw:inline-flex tw:items-center tw:gap-[.69rem] tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e5dbd5] tw:bg-white tw:px-[1.08rem] tw:py-[.77rem] tw:text-[.85rem]/[inherit] tw:font-semibold tw:text-[#594e4b] tw:hover:border-cali-gold"
                 href={`https://wa.me/${PATI_WHATSAPP}?text=${encodeURIComponent(`Olá, Pati! Quero conversar sobre as frentes do meu ${planName[plan]}.`)}`}
                 target="_blank"
                 rel="noreferrer"
@@ -77,7 +75,7 @@ export function ClientFrontsPage() {
               </a>
             )}
           </div>
-        </header>
+        </CompactPageHeading>
         {loading ? (
           <p>Carregando escopo…</p>
         ) : error ? (

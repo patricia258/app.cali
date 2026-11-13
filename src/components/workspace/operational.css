@@ -1,8 +1,0 @@
-/* Preserve the original cascade of workspace and route overrides. */
-@import "./operational-base.css";
-@import "./operational-workflows.css";
-@import "../../styles/workspace-compact-theme.css";
-@import "./operational-controls.css";
-@import "./operational-feedback.css";
-@import "./operational-management.css";
-@import "./operational-delivery.css";

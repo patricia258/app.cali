@@ -71,10 +71,7 @@ const AdminStaffPage = lazy(() => import('../modules/admin/staff/AdminStaffPage'
 const StaffWorkspace = lazy(() => import('../modules/partner/StaffWorkspace').then((m) => ({ default: m.StaffWorkspace })));
 const AdminNoticesPage = lazy(() => import('../modules/notices/NoticesBoard').then((m) => ({ default: m.AdminNoticesPage })));
 const ClientFrontsPage = lazy(() => import('../modules/client/fronts/ClientFrontsPage').then((m) => ({ default: m.ClientFrontsPage })));
-const ReportPrintPage = lazy(async () => {
-  await import('../components/workspace/document-shell.css');
-  return import('../modules/reports/ReportPrintPage').then((m) => ({ default: m.ReportPrintPage }));
-});
+const ReportPrintPage = lazy(() => import('../modules/reports/ReportPrintPage').then((m) => ({ default: m.ReportPrintPage })));
 
 
 const StaffWorkspaceSection = lazy(() => import('../modules/partner/StaffWorkspace').then((m) => ({ default: m.StaffWorkspaceSection })));

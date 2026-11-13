@@ -1,6 +1,7 @@
+import { StatusBadge } from '../../../../components/ds/StatusBadge';
 import type { ReactNode } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { complexityMeta, type MaterialComplexity } from '../../../../domain/projects';
+import { ProjectComplexityBadge } from '../../../../components/projects/ProjectComplexityBadge';
 
 type ClientDeliveryRowMetadataProps = {
   complexity?: string | null;
@@ -8,12 +9,6 @@ type ClientDeliveryRowMetadataProps = {
   statusTone: 'scheduled' | 'review' | 'active';
   due: string;
   children?: ReactNode;
-};
-
-const statusStyle = {
-  scheduled: 'tw:bg-[#f2edf9] tw:text-[#7559a6]',
-  review: 'tw:bg-[#fff0d9] tw:text-[#986523]',
-  active: 'tw:bg-[#e6f2fc] tw:text-[#4475a3]',
 };
 
 export function ClientDeliveryRowMetadata({
@@ -28,20 +23,17 @@ export function ClientDeliveryRowMetadata({
       <span className="tw:col-start-2 tw:col-end-4 tw:flex tw:min-w-0 tw:flex-wrap tw:items-center tw:gap-x-2 tw:gap-y-1.5 tw:@min-[56rem]:contents">
         {children}
         {complexity ? (
-          <b
-            className={`mc-chip tw:z-10 tw:w-fit tw:max-w-full ${complexity.toLowerCase()}`}
-            data-tip={complexityMeta[complexity as MaterialComplexity]?.description || ''}
-          >
-            {complexity}
-          </b>
+          <ProjectComplexityBadge code={complexity} explain className="tw:z-10 tw:w-fit tw:max-w-full" />
         ) : (
           <span className="tw:w-fit tw:text-[#b5a79d]">—</span>
         )}
-        <span
-          className={`tw:w-fit tw:max-w-full tw:rounded-[.538rem] tw:px-[.77rem] tw:py-[.538rem] tw:text-center tw:text-[.77rem] tw:@min-[56rem]:w-full ${statusStyle[statusTone]}`}
+        <StatusBadge
+          variant="delivery"
+          tone={statusTone}
+          className="tw:w-fit tw:max-w-full tw:text-center tw:@min-[56rem]:w-full"
         >
           {status}
-        </span>
+        </StatusBadge>
         <span className="tw:text-[.77rem] tw:whitespace-nowrap tw:text-[#928077] tw:@min-[56rem]:text-right">
           {due}
         </span>

@@ -1,3 +1,5 @@
+import { WorkspaceAdminPanel } from '../../../components/workspace/components/WorkspaceAdminPanel';
+import { WorkspaceAdminPanelHeader } from '../../../components/workspace/components/WorkspaceAdminPanelHeader';
 /* Painel de capacidade mensal da administradora (política de 2026-10-13): por empresa, consumo, saldo ou excedente, ritmo
    estimado, ocorrências de excedente na vigência do pacote, avisos já enviados ao cliente e a decisão de pausar.
    A pausa NUNCA é automática: o sistema avisa ao passar de 110% e ela decide. Nada aqui cobra ou altera contrato. */
@@ -89,7 +91,7 @@ export function CapacityPanel({ month, companies, onNotice }: { month: string; c
     .sort((a, b) => (b.capacity.usagePercent || 0) - (a.capacity.usagePercent || 0));
   if (!list.length) return null;
 
-  return <section className="ap-pane v2-capadmin"><div className="ap-pane-head"><div><h2>Capacidade mensal em atenção</h2><span>{list.length} {list.length === 1 ? 'empresa' : 'empresas'} com 75% ou mais{isCurrent ? ` · dia ${day} de ${daysInMonth}, faltam ${daysLeft} ${daysLeft === 1 ? 'dia' : 'dias'}` : ''}</span></div></div>
+  return <WorkspaceAdminPanel className="v2-capadmin"><WorkspaceAdminPanelHeader><div><h2>Capacidade mensal em atenção</h2><span>{list.length} {list.length === 1 ? 'empresa' : 'empresas'} com 75% ou mais{isCurrent ? ` · dia ${day} de ${daysInMonth}, faltam ${daysLeft} ${daysLeft === 1 ? 'dia' : 'dias'}` : ''}</span></div></WorkspaceAdminPanelHeader>
     <div className="tw:flex tw:flex-col tw:gap-[.769rem]">{list.map(({ row, name, capacity }) => { const pct = capacity.usagePercent || 0; const projected = isCurrent && day > 0 ? Math.round((pct / day) * daysInMonth) : null; const needsAttention = capacity.level === 'excess' || pct >= 100; const overTolerance = pct >= 110;
       return <article key={row.company_id} className={`tw:grid tw:grid-cols-[minmax(0,1.1fr)_minmax(0,1.5fr)_auto] tw:items-center tw:gap-[1.385rem] tw:rounded-[.769rem] tw:border tw:border-l-[.308rem] tw:border-solid tw:px-5 tw:py-[1.077rem] tw:max-[61.25rem]:grid-cols-1 ${needsAttention ? 'tw:border-[#eebcbc] tw:border-l-[#c0392b] tw:bg-[#fef8f7]' : 'tw:border-[#efd58b] tw:border-l-[#d9a514] tw:bg-[#fffdf6]'}`}>
         <div className="tw:flex tw:min-w-0 tw:flex-col tw:gap-[.231rem] tw:[&>strong]:text-[1.038rem] tw:[&>span]:text-[.923rem] tw:[&>span]:text-[#5f5650]"><strong>{name}</strong><span>{percentLabel(capacity.usagePercent)} · {minutesLabel(capacity.usedMinutes)} de {minutesLabel(capacity.contractedMinutes)}{capacity.excessMinutes > 0 ? ` · +${minutesLabel(capacity.excessMinutes)} (${percentLabel(capacity.excessPercent)} acima)` : ` · saldo ${minutesLabel(capacity.balanceMinutes)}`}</span></div>
@@ -113,7 +115,7 @@ export function CapacityPanel({ month, companies, onNotice }: { month: string; c
         </div>}
       </article>; })}</div>
     <p className="tw:mt-[.923rem] tw:mb-0 tw:text-[.846rem] tw:text-[#8a7c74]">Excedente não gera cobrança, suspensão automática nem mudança de contrato. A pausa é uma decisão sua e vale só até o fim do mês.</p>
-  </section>;
+  </WorkspaceAdminPanel>;
 }
 
 function CapacityAction({ primary, ...props }: ComponentPropsWithoutRef<'button'> & { primary?: boolean }) {

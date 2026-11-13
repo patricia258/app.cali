@@ -67,7 +67,7 @@ export function RecordMessageRow({ message, identity, mine, partner, canManage, 
   }
 
   return (
-    <div data-message-id={message.id} data-message-created-at={message.created_at} className={`tw:relative tw:mb-[.77rem] tw:flex tw:w-full tw:items-start tw:gap-[.77rem] ${mine ? 'tw:justify-end' : ''} ${arriving ? 'tw:motion-safe:animate-[cali-message-arrive-v63_.56s_cubic-bezier(.2,.78,.2,1)_both]' : ''}`}>
+    <div data-message-id={message.id} data-message-created-at={message.created_at} className={`tw:relative tw:mb-[.77rem] tw:flex tw:w-full tw:items-start tw:gap-[.77rem] ${mine ? 'tw:justify-end' : ''} ${arriving ? 'tw:motion-safe:animate-message-arrive' : ''}`}>
       {!mine && <MessageAvatar key={identity.avatar_url} identity={identity} mine={mine} partner={partner} />}
       <div className={`tw:relative tw:flex tw:max-w-[min(74%,36.92rem)] tw:min-w-0 tw:flex-col tw:gap-[.23rem] tw:rounded-[.77rem] tw:border tw:border-solid tw:px-[1.08rem] tw:py-[.77rem] tw:text-[#322f2c] ${bubbleTone}`}>
         <div className="tw:contents">
