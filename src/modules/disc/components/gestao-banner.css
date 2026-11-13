@@ -1,9 +1,0 @@
-/* Aviso do relatório de gestão na Equipe do cliente. */
-@reference "../../../styles/tailwind.css";
-.cgp-banner{@apply tw:flex tw:flex-col tw:gap-[8px];margin:0 0 14px}
-.cgp-banner a{@apply tw:flex tw:items-center tw:gap-[12px];padding:14px 16px;border:1px solid #eadfd6;border-left:4px solid #5a1e2d;@apply tw:rounded-[12px];background:#fff;color:#3e3533;text-decoration:none}
-.cgp-banner a:hover{background:#fbf7f3}
-.cgp-banner svg{@apply tw:flex-none;@apply tw:text-cali-brand}
-.cgp-banner span{@apply tw:flex tw:flex-col tw:gap-[2px] tw:min-w-0}
-.cgp-banner b{font:700 14px Inter,sans-serif;@apply tw:text-cali-brand}
-.cgp-banner small{@apply tw:text-[12px];color:#8c7e74}

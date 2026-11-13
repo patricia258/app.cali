@@ -80,3 +80,48 @@ test('conversa preserva RPC por papel, visibilidade, edição e exclusão pelo m
   ]);
   assert.ok(http.requests.slice(1).every(({ headers }) => headers.get('authorization') === `Bearer ${http.accessToken}`));
 });
+
+test('encerramento consulta o registro selecionado e envia avaliação vinculada ao encerramento vigente', async (t) => {
+  const http = await workspaceHttp(t);
+  const { readRecordClosureContext, submitRecordFeedback, requestRecordReopen, decideRecordReopen } = await http.load('records/closure.ts');
+  const closureId = '4c801da1-47c0-44df-bb47-73d1ea39cd76';
+  const reopenId = '5c801da1-47c0-44df-bb47-73d1ea39cd76';
+  const recordPath = '/rest/v1/account_records';
+  const closurePath = '/rest/v1/account_record_closures';
+  const feedbackPath = '/rest/v1/account_record_feedback';
+  const reopenPath = '/rest/v1/account_record_reopen_requests';
+  const selected = { id: record, protocol: 'CALI-REG-QA', workflow_status: 'completed', created_at: now, closed_at: now };
+  const closure = { id: closureId, answered_at: null, closed_unanswered_at: null };
+  const feedback = { score: 2, comment: 'Avaliação anterior', created_at: now };
+  const reopen = { id: reopenId, status: 'pending', requested_at: now, reason: 'Novo assunto' };
+  await http.signIn();
+
+  http.respond(recordPath, [selected], { method: 'GET' });
+  http.respond(closurePath, [closure], { method: 'GET' });
+  http.respond(feedbackPath, [feedback], { method: 'GET' });
+  http.respond(reopenPath, [reopen], { method: 'GET' });
+  assert.deepEqual(await readRecordClosureContext(record, 'client'), { record: selected, closure, feedback, reopen });
+  const filters = (path) => http.requests.find(({ url }) => url.pathname === path).url.searchParams;
+  assert.equal(filters(recordPath).get('id'), `eq.${record}`);
+  assert.equal(filters(closurePath).get('record_id'), `eq.${record}`);
+  assert.equal(filters(closurePath).get('superseded_at'), 'is.null');
+  assert.equal(filters(feedbackPath).get('order'), 'created_at.desc');
+  assert.equal(filters(reopenPath).get('status'), 'eq.pending');
+
+  http.respond(recordPath, [selected], { method: 'GET' });
+  http.respond(feedbackPath, [feedback], { method: 'GET' });
+  http.respond(reopenPath, [reopen], { method: 'GET' });
+  assert.deepEqual(await readRecordClosureContext(record, 'admin'), { record: selected, closure: null, feedback, reopen });
+
+  http.respond(rpc('submit_account_record_closure_feedback'), { ok: true, closure_id: closureId });
+  http.respond(rpc('request_account_record_reopen'), { ok: true, request_id: reopenId });
+  http.respond(rpc('decide_account_record_reopen'), { message: 'Pedido já analisado' }, { status: 409 });
+  assert.equal((await submitRecordFeedback(record, closureId, 5, null)).data.closure_id, closureId);
+  assert.equal((await requestRecordReopen(record, 'Novo assunto')).data.request_id, reopenId);
+  assert.equal((await decideRecordReopen(reopenId, 'approved', null)).error.message, 'Pedido já analisado');
+  assert.deepEqual(http.requests.slice(-3).map(({ body }) => body), [
+    { p_record_id: record, p_closure_id: closureId, p_score: 5, p_comment: null },
+    { p_record_id: record, p_reason: 'Novo assunto' },
+    { p_request_id: reopenId, p_decision: 'approved', p_note: null },
+  ]);
+});

@@ -1,7 +1,6 @@
 import { workspaceStorageAvailable } from '../api/files/workspace';
 import {
   listCompaniesWithoutWorkspaceLogo,
-  listCompanyLogoRegistry,
   readCompanyLogoForGeneration,
   saveCompanyWorkspaceLogo,
   type CompanyLogoRecord,
@@ -14,12 +13,6 @@ const WORKSPACE_BG = '#F7F3EE';
 const WORKSPACE_MARK = '#5A1E2D';
 const TILE_SIZE = 256;
 const STYLE_VERSION = 1;
-type CompanyLogoRegistry = {
-  byId: Map<string, { raw: string; resolved: string; name: string }>;
-  byName: Map<string, { raw: string; resolved: string; id: string }>;
-};
-type RegistryState = { cache?: { value: CompanyLogoRegistry; expiresAt: number }; pending?: Promise<CompanyLogoRegistry> };
-const registries = new WeakMap<AbortSignal, RegistryState>();
 const ensureQueues = new WeakMap<AbortSignal, Promise<string>>();
 
 function clamp(value: number, min = 0, max = 1) {
@@ -204,37 +197,6 @@ export async function ensureCompanyWorkspaceLogo(company: CompanyLogoRecord, sig
   });
   ensureQueues.set(signal, job);
   return job;
-}
-
-export async function loadCompanyLogoRegistry(signal: AbortSignal): Promise<CompanyLogoRegistry> {
-  const value: CompanyLogoRegistry = { byId: new Map(), byName: new Map() };
-  if (!workspaceStorageAvailable || signal.aborted) return value;
-  let state = registries.get(signal);
-  if (!state) {
-    state = {};
-    registries.set(signal, state);
-    signal.addEventListener('abort', () => registries.delete(signal), { once: true });
-  }
-  if (state.cache && state.cache.expiresAt > Date.now()) return state.cache.value;
-  if (state.pending) return state.pending;
-
-  const registry = state;
-  registry.pending = (async () => {
-    const rows = await listCompanyLogoRegistry(signal);
-    for (const row of rows) {
-      if (signal.aborted) return value;
-      const raw = row.logo_url || row.logo_workspace_url || '';
-      const resolved = raw ? await resolveCompanyAsset(raw) : '';
-      value.byId.set(row.id, { raw, resolved, name: row.display_name });
-      value.byName.set(row.display_name.trim().toLocaleLowerCase('pt-BR'), { raw, resolved, id: row.id });
-    }
-    if (!signal.aborted) registry.cache = { value, expiresAt: Date.now() + 5_000 };
-    return value;
-  })().finally(() => {
-    registry.pending = undefined;
-  });
-
-  return registry.pending;
 }
 
 export async function backfillWorkspaceLogos(limit: number, signal: AbortSignal) {

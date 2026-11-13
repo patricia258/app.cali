@@ -90,6 +90,10 @@ const cases = [
       };
       let timers = [first, selected];
       const writes = [];
+      const company = tables.companies[0];
+      const brokenLogo = apiOrigin + '/qa-hours-original.svg';
+      await context.route(brokenLogo, (route) => route.fulfill({ status: 404 }));
+      await mockJson(context, origin, 'companies', 'GET', () => ({ json: [{ ...company, logo_url: brokenLogo }] }));
       await page.clock.setFixedTime(new Date('2026-11-12T12:30:00Z'));
       await mockJson(context, origin, 'work_timers', 'GET', (request) => {
         const scope = new URL(request.url()).searchParams.get('status');
@@ -97,40 +101,80 @@ const cases = [
       });
       await mockRpc(context, origin, 'stop_work_timer', (body) => {
         writes.push(body);
+        if (writes.length === 1) return { status: 409, json: { message: 'Falha simulada ao finalizar.' } };
         timers = timers.filter((timer) => timer.id !== body.p_timer_id);
         return { json: 30 };
       });
-      const ready = page.waitForResponse((response) => {
-        const url = new URL(response.url());
-        return url.pathname === '/rest/v1/work_timers' && url.searchParams.get('status') === 'eq.active'
-          && url.searchParams.get('select') === 'id,deliverable_id,task_id,description';
-      });
       await page.goto(origin + '/admin/horas', { waitUntil: 'domcontentloaded' });
-      await ready;
-      const paused = page.locator('.hours-v13-timer-row').filter({ hasText: first.description });
-      const active = page.locator('.hours-v13-timer-row').filter({ hasText: selected.description });
+      const paused = page.locator('[data-work-timer-id]').filter({ hasText: first.description });
+      const active = page.locator('[data-work-timer-id]').filter({ hasText: selected.description });
       await paused.getByRole('button', { name: 'Retomar', exact: true }).waitFor();
+      const hasDerivedLogo = (selector) => page.waitForFunction(({ selector, url }) => [...document.querySelectorAll(selector)].some((image) => image.getAttribute('src') === url), { selector, url: company.logo_workspace_url });
+      await hasDerivedLogo('[data-work-timer-id] img');
+      await hasDerivedLogo('[data-hours-usage-list] img');
       await active.getByRole('button', { name: 'Encerrar', exact: true }).click();
       const confirmation = page.getByRole('dialog', { name: 'Finalizar este entregável?', exact: true });
       await confirmation.getByText(selected.description, { exact: true }).waitFor();
       assert.deepEqual(writes, []);
       await confirmation.getByRole('button', { name: 'Continuar', exact: true }).click();
-      await page.getByRole('button', { name: 'Sim, finalizar definitivamente' }).click();
+      const confirm = page.getByRole('button', { name: 'Sim, finalizar definitivamente' });
+      await confirm.click();
+      await page.getByRole('dialog', { name: 'Tem certeza mesmo?' }).getByRole('alert').filter({ hasText: 'Falha simulada ao finalizar.' }).waitFor();
+      await active.waitFor();
+      await confirm.click();
       await active.waitFor({ state: 'detached' });
       await paused.waitFor();
-      assert.deepEqual(writes, [{ p_timer_id: selected.id, p_description: selected.description }]);
-      return { secondTimerSelected: true, pausedTimerPreserved: true, doubleConfirmation: true };
+      assert.deepEqual(writes, Array(2).fill({ p_timer_id: selected.id, p_description: selected.description }));
+      return { secondTimerSelected: true, pausedTimerPreserved: true, doubleConfirmation: true, companyLogoFallback: true };
     },
   },
   {
     id: 'profile-save-retry-and-reopen',
     role: 'client',
     async run({ page, context, origin }) {
-      let stored = { ...tables.profiles[0], role: 'client' };
+      const mediaPath = '/storage/v1/object/sign/cali-workspace-private/qa-profile/';
+      const avatarSource = 'private:qa-profile/avatar.svg';
+      const signatureSource = apiOrigin + mediaPath + 'signature.svg?token=expirado';
+      const nextId = 'ce000000-0000-4000-8000-000000000017';
+      let stored = {
+        ...tables.profiles[0], role: 'client', avatar_url: avatarSource,
+        avatar_position_x: 0, avatar_position_y: 100, avatar_zoom: 1.5,
+        signature_mode: 'uploaded', signature_url: signatureSource,
+      };
       const writes = [];
-      await mockJson(context, origin, 'profiles', 'GET', (request) => ({
-        json: request.headers().accept?.includes('vnd.pgrst.object') ? stored : [stored],
-      }));
+      const signedImages = new Set();
+      await context.route((url) => url.origin === apiOrigin && url.pathname.startsWith(mediaPath), (route) => {
+        const request = route.request();
+        const url = new URL(request.url());
+        const image = url.pathname.slice(mediaPath.length);
+        const headers = {
+          'access-control-allow-origin': origin,
+          'access-control-allow-methods': 'GET,POST,OPTIONS',
+          'access-control-allow-headers': request.headers()['access-control-request-headers'] || '*',
+        };
+        if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
+        if (request.method() === 'POST') {
+          signedImages.add(image);
+          return route.fulfill({ headers, json: { signedURL: url.pathname.replace('/storage/v1', '') + '?token=perfil-qa' } });
+        }
+        if (url.searchParams.get('token') !== 'perfil-qa' || image === 'unavailable.svg') return route.fulfill({ status: 404, headers });
+        return route.fulfill({ headers, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><rect width="20" height="20" fill="#723043"/></svg>' });
+      });
+      await mockJson(context, origin, 'profiles', 'GET', (request) => {
+        const actor = new URL(request.url()).searchParams.get('id')?.slice(3);
+        const profile = actor === nextId
+          ? { ...stored, id: nextId, full_name: 'Nova cliente QA', avatar_url: null, signature_mode: 'generated', signature_url: null }
+          : stored;
+        return { json: request.headers().accept?.includes('vnd.pgrst.object') ? profile : [profile] };
+      });
+      await mockRpc(context, origin, 'read_client_account_responsibles', () => ({ json: {
+        executive: {
+          full_name: 'Patrícia Lima', job_title: 'Executiva QA',
+          avatar_url: 'private:qa-profile/unavailable.svg',
+          avatar_position_x: null, avatar_position_y: null, avatar_zoom: null,
+        },
+        supportPartner: null,
+      } }));
       await mockRpc(context, origin, 'update_my_profile_v56', (body) => {
         writes.push(body);
         if (writes.length === 1) return { status: 409, json: { message: 'Falha sintética ao salvar' } };
@@ -144,9 +188,23 @@ const cases = [
         return page.getByRole('dialog', { name: 'Minha conta', exact: true });
       }
 
+      const unavailableAvatar = page.waitForResponse((response) => response.url().includes(mediaPath + 'unavailable.svg') && response.request().method() === 'GET');
       await page.goto(origin + '/cliente', { waitUntil: 'domcontentloaded' });
+      const homeAvatar = page.locator('[aria-label="Contatos da empresa e da CALI"]').getByRole('img', { name: stored.full_name, exact: true });
+      const crop = await homeAvatar.evaluate((image) => [image.style.objectPosition, image.style.transformOrigin, image.style.transform]);
+      assert.deepEqual(crop, ['0% 100%', '0% 100%', 'scale(1.5)']);
+      await unavailableAvatar;
+      await page.locator('[data-workspace-identity]').filter({ hasText: /^PL$/ }).waitFor();
       const profile = await openProfile();
       assert.equal(await profile.getByLabel('E-mail de acesso').isDisabled(), true);
+      const photoPreview = profile.getByRole('img', { name: 'Prévia do perfil' });
+      assert.match(await photoPreview.getAttribute('src'), /avatar\.svg\?token=perfil-qa$/);
+      assert.equal(await photoPreview.evaluate((image) => getComputedStyle(image).objectPosition), '0% 100%');
+      await profile.getByRole('button', { name: 'Assinatura', exact: true }).click();
+      const signature = profile.getByRole('img', { name: 'Sua assinatura atual' });
+      assert.match(await signature.getAttribute('src'), /signature\.svg\?token=perfil-qa$/);
+      assert.deepEqual(signedImages, new Set(['avatar.svg', 'signature.svg', 'unavailable.svg']));
+      await profile.getByRole('button', { name: 'Dados pessoais', exact: true }).click();
       await profile.getByLabel('Nome completo').fill('  Cliente QA atualizado  ');
       await profile.getByLabel('LinkedIn', { exact: true }).fill('linkedin.example.invalid/qa');
       const save = profile.getByRole('button', { name: 'Salvar alterações', exact: true });
@@ -160,12 +218,30 @@ const cases = [
       assert.deepEqual(writes[0], writes[1]);
       assert.equal(writes[1].p_full_name, 'Cliente QA atualizado');
       assert.equal(writes[1].p_linkedin_url, 'https://linkedin.example.invalid/qa');
+      assert.equal(writes[1].p_avatar_url, avatarSource);
+      assert.equal(writes[1].p_signature_url, signatureSource);
       assert(!Object.keys(writes[1]).some((key) => /email|role|company_id/.test(key)));
       await page.reload({ waitUntil: 'domcontentloaded' });
       const reopened = await openProfile();
       assert.equal(await reopened.getByLabel('Nome completo').inputValue(), 'Cliente QA atualizado');
       assert.equal(await reopened.getByLabel('LinkedIn', { exact: true }).inputValue(), 'https://linkedin.example.invalid/qa');
-      return { preservedDraftAfterError: true, reloadedProfile: true, normalizedFields: true };
+      await reopened.getByRole('img', { name: 'Prévia do perfil' }).waitFor();
+      const replacement = makeSession();
+      const [header, encoded, signatureToken] = replacement.access_token.split('.');
+      const claims = JSON.parse(Buffer.from(encoded, 'base64url').toString());
+      replacement.access_token = [header, part({ ...claims, sub: nextId, session_id: 'ce000000-0000-4000-8000-000000000018' }), signatureToken].join('.');
+      replacement.user = { ...replacement.user, id: nextId };
+      await page.evaluate(({ sessionKey, replacement, nextId }) => {
+        localStorage.setItem(`cali:welcome-seen:${nextId}`, 'qa');
+        localStorage.setItem(sessionKey, JSON.stringify(replacement));
+        const channel = new BroadcastChannel(sessionKey);
+        channel.postMessage({ event: 'SIGNED_IN', session: replacement });
+        channel.close();
+      }, { sessionKey, replacement, nextId });
+      await reopened.waitFor({ state: 'hidden' });
+      await page.locator('.profile[aria-haspopup="menu"]').getByText('Nova cliente QA', { exact: true }).waitFor();
+      assert.equal(await page.locator('img[src*="qa-profile/avatar.svg"]').count(), 0);
+      return { preservedDraftAfterError: true, reloadedProfile: true, normalizedFields: true, privateMedia: true, brokenAvatarFallback: true, previousActorMediaHidden: true };
     },
   },
   {
@@ -197,10 +273,17 @@ const cases = [
         return { json: true };
       });
       await page.goto(origin + '/cliente', { waitUntil: 'domcontentloaded' });
-      await page.getByRole('button', { name: 'Notificações', exact: true }).click();
+      const trigger = page.getByRole('button', { name: 'Notificações', exact: true });
+      await trigger.click();
       const bell = page.getByRole('dialog', { name: 'Notificações', exact: true });
+      const externalAlert = bell.getByRole('button', { name: /Aviso com endereço externo/ });
       await bell.getByText('2 não lidas', { exact: true }).waitFor();
-      await bell.getByRole('button', { name: /Aviso com endereço externo/ }).click();
+      await externalAlert.focus();
+      await page.keyboard.press('Escape');
+      await bell.waitFor({ state: 'hidden' });
+      assert.equal(await trigger.evaluate((button) => button === document.activeElement), true);
+      await trigger.click();
+      await externalAlert.click();
       await bell.getByText('1 não lida', { exact: true }).waitFor();
       assert.equal(page.url(), origin + '/cliente');
       await bell.getByRole('button', { name: /Documento para consultar/ }).click();
@@ -314,9 +397,10 @@ const cases = [
       };
       let visible = entry;
       const writes = [];
+      const deletions = [];
       let audit = [];
       await page.clock.setFixedTime(new Date('2026-11-12T13:00:00Z'));
-      await mockJson(context, origin, 'hour_entries', 'GET', () => ({ json: [excluded, visible] }));
+      await mockJson(context, origin, 'hour_entries', 'GET', () => ({ json: visible ? [excluded, visible] : [excluded] }));
       await mockRpc(context, origin, 'get_hour_entry_audit', () => ({ json: audit }));
       await mockRpc(context, origin, 'edit_hour_entry_with_audit', (body) => {
         writes.push(body);
@@ -327,11 +411,17 @@ const cases = [
         }];
         return { json: true };
       });
+      await mockRpc(context, origin, 'delete_hour_entry_with_audit', (body) => {
+        deletions.push(body);
+        audit = [{ id: 2, event_type: 'hours_entry_deleted', created_at: '2026-11-12T13:00:00Z', metadata: { reason: body.p_reason, deleted_entry: visible } }, ...audit];
+        visible = null;
+        return { json: true };
+      });
       await page.goto(origin + '/admin/horas', { waitUntil: 'domcontentloaded' });
-      const table = page.locator('.hours-connect-table');
+      const table = page.locator('[data-hours-entries]');
       const row = table.getByRole('row').filter({ hasText: 'Atuação geral' });
-      await row.locator('button[data-hour-action="edit"]').click();
-      const edit = page.locator('.operational-safety-card').filter({
+      await row.getByRole('button', { name: 'Editar lançamento', exact: true }).click();
+      const edit = page.getByRole('dialog', { name: 'Confirmar alteração de horas' }).filter({
         has: page.getByRole('heading', { name: 'Editar lançamento de horas', exact: true }),
       });
       assert.equal(await edit.locator('textarea').first().inputValue(), entry.description);
@@ -355,7 +445,24 @@ const cases = [
       const history = page.getByRole('dialog', { name: 'Auditoria de horas', exact: true });
       await history.getByText('Lançamento editado', { exact: true }).waitFor();
       await history.getByText('Justificativa: Corrigir duração lançada.', { exact: true }).waitFor();
-      return { matchingVisibleEntry: true, reasonRequired: true, auditedCorrection: true };
+      await history.getByRole('button', { name: 'Fechar', exact: true }).click();
+      await row.getByRole('button', { name: 'Excluir lançamento', exact: true }).click();
+      const remove = page.getByRole('dialog', { name: 'Confirmar alteração de horas' }).filter({
+        has: page.getByRole('heading', { name: 'Excluir lançamento de horas', exact: true }),
+      });
+      assert.equal(await remove.getByRole('button', { name: 'Excluir e registrar', exact: true }).isDisabled(), true);
+      await remove.getByRole('button', { name: 'Cancelar', exact: true }).click();
+      await remove.waitFor({ state: 'hidden' });
+      await row.getByText('45min', { exact: true }).waitFor();
+      assert.deepEqual(deletions, []);
+      await row.getByRole('button', { name: 'Excluir lançamento', exact: true }).click();
+      await remove.getByRole('textbox', { name: 'Por que você está excluindo?' }).fill(' Registro duplicado. ');
+      await remove.getByRole('button', { name: 'Excluir e registrar', exact: true }).click();
+      await row.waitFor({ state: 'hidden' });
+      assert.deepEqual(deletions, [{ p_entry_id: entry.id, p_reason: 'Registro duplicado.' }]);
+      await page.getByRole('button', { name: 'Auditoria', exact: true }).click();
+      await history.getByText('Lançamento excluído', { exact: true }).waitFor();
+      return { matchingVisibleEntry: true, reasonRequired: true, auditedCorrection: true, auditedDeletion: true };
     },
   },
 ];

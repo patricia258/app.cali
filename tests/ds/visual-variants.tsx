@@ -12,20 +12,18 @@ import { InlineNotice } from '../../src/components/ds/InlineNotice';
 import { LoadingState } from '../../src/components/ds/LoadingState';
 import { StatusBadge } from '../../src/components/ds/StatusBadge';
 import { WorkspaceRouteLoader } from '../../src/components/ds/WorkspaceRouteLoader';
-import { CapacityBar, CapacityCard } from '../../src/components/hours/CapacityBar';
+import { CapacityBar } from '../../src/components/hours/CapacityBar';
+import { CapacityCard } from '../../src/components/hours/CapacityCard';
 import { DocumentAutoCover } from '../../src/components/documents/DocumentAutoCover';
 import { SensitiveDataNote } from '../../src/components/privacy/SensitiveDataNote';
 import { ReportValidationBlock, type ReportSignatureStyleV59 } from '../../src/components/reports/ReportValidationBlock';
 import { capacityOf } from '../../src/lib/capacity';
-import '../../src/styles/tailwind.css';
 import '../../src/styles/theme-tokens.css';
 import '../../src/styles/surface-foundation.css';
 import '../../src/components/ds/surface-controls.css';
 import '../../src/components/workspace/workspace-shell.generated.css';
 import '../../src/components/workspace/operational.css';
-import '../../src/modules/public/forms/public-form.css';
-import '../../src/modules/reports/report-paper-editorial.css';
-import '../../src/modules/team/company-team.css';
+import '../../src/components/reports/report-document-a4.css';
 import './visual-variants.css';
 
 const buttons = [
@@ -88,8 +86,8 @@ export function VisualVariants() {
     </section>
     <section aria-label="Tabelas e privacidade" className="fixture-visual-card">
       <h2>Tabelas e privacidade</h2>
-      <div className="company-team fixture-team-table"><div className="team-report-table-wrap">
-        <DataTable variant="teamReport"><caption>Quadro da empresa</caption>
+      <div className="fixture-team-table"><div className="tw:w-full tw:overflow-x-auto tw:rounded-xl tw:border tw:border-solid tw:border-cali-line">
+        <DataTable variant="teamReport" className="tw:w-full tw:min-w-[44.375rem] tw:border-collapse tw:text-left tw:text-xs tw:[&_th]:bg-[#f7f1eb] tw:[&_th]:px-3 tw:[&_th]:py-2.75 tw:[&_th]:text-[0.65rem] tw:[&_th]:uppercase tw:[&_th]:tracking-[0.07em] tw:[&_th]:text-cali-muted tw:[&_td]:border-t tw:[&_td]:border-solid tw:[&_td]:border-cali-line tw:[&_td]:px-3 tw:[&_td]:py-2.5"><caption>Quadro da empresa</caption>
           <thead><tr><th>Pessoa</th><th>Situação</th></tr></thead>
           <tbody><tr><td>Pessoa QA</td><td><StatusBadge variant="status">Ativa</StatusBadge></td></tr></tbody>
         </DataTable>
@@ -108,7 +106,6 @@ export function VisualVariants() {
           <h3>{label}</h3>
           <CapacityCard
             capacity={capacityOf(hours, minutes)}
-            month="novembro"
             occurrence={minutes > 600 ? 3 : undefined}
             paused={minutes > 600}
           />

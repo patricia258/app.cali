@@ -1,5 +1,5 @@
 import { Button } from '../../components/ds/Button';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Loader2, Printer } from 'lucide-react';
 import { useNavigate } from '../../hooks/useNavigate';
 import { useParams } from '../../hooks/useParams';
@@ -65,8 +65,12 @@ async function imageAsDataUrl(url?: string | null) {
     return url;
   }
 }
-async function waitForPrintAssets() {
-  const images = Array.from(document.images);
+async function waitForPrintAssets(stage: HTMLDivElement) {
+  const deadline = performance.now() + 5000;
+  while (stage.isConnected && stage.querySelector('[data-report-media-pending]') && performance.now() < deadline) {
+    await nextPaint();
+  }
+  const images = Array.from(stage.getElementsByTagName('img'));
   await Promise.all(images.map(async (image) => {
     if (!image.complete) {
       await new Promise<void>((resolve) => {
@@ -84,22 +88,16 @@ async function waitForPrintAssets() {
 function nextPaint() {
   return new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 }
-function pinClientLogoForPrint(logoUrl?: string | null) {
-  if (!logoUrl) return;
-  document.querySelectorAll<HTMLImageElement>('.reports-v19-client > img').forEach((image) => {
-    if (image.src !== logoUrl) image.src = logoUrl;
-  });
-}
-
 export function ReportPrintPage({ role }: Props) {
   const { reportId } = useParams(), navigate = useNavigate();
   const [data, setData] = useState<Loaded | null>(null), [loading, setLoading] = useState(true), [error, setError] = useState('');
+  const printStage = useRef<HTMLDivElement>(null);
   const autoPrint = useMemo(() => new URLSearchParams(window.location.search).get('print') === '1', []);
 
   useEffect(() => {
     const html = document.documentElement, previousTheme = html.getAttribute('data-workspace-theme'), previousScheme = html.style.colorScheme;
-    html.classList.add('report-print-v16-isolated'); html.setAttribute('data-workspace-theme', 'day'); html.style.colorScheme = 'light'; document.body.classList.add('reports-v16-print-route');
-    return () => { html.classList.remove('report-print-v16-isolated'); document.body.classList.remove('reports-v16-print-route'); if (previousTheme) html.setAttribute('data-workspace-theme', previousTheme); else html.removeAttribute('data-workspace-theme'); html.style.colorScheme = previousScheme; };
+    html.classList.add('report-print-v16-isolated'); html.setAttribute('data-workspace-theme', 'day'); html.style.colorScheme = 'light';
+    return () => { html.classList.remove('report-print-v16-isolated'); if (previousTheme) html.setAttribute('data-workspace-theme', previousTheme); else html.removeAttribute('data-workspace-theme'); html.style.colorScheme = previousScheme; };
   }, []);
   useEffect(() => {
     if (!reportId) return;
@@ -114,19 +112,18 @@ export function ReportPrintPage({ role }: Props) {
       document.title = `Relatório CALI RH - ${data.company.name} - ${data.periodName}`;
       await new Promise((resolve) => window.setTimeout(resolve, 320));
       if (cancelled) return;
-      await prepareAndPrint(data);
+      await prepareAndPrint();
     })();
     return () => { cancelled = true; };
   }, [data, autoPrint]);
 
-  async function prepareAndPrint(current: Loaded) {
-    pinClientLogoForPrint(current.company.logoUrl);
+  async function prepareAndPrint() {
+    const stage = printStage.current;
+    if (!stage) return;
     await nextPaint();
-    await waitForPrintAssets();
-    pinClientLogoForPrint(current.company.logoUrl);
+    await waitForPrintAssets(stage);
     await nextPaint();
-    await waitForPrintAssets();
-    window.print();
+    if (printStage.current === stage) window.print();
   }
 
   async function load(id: string, signal: AbortSignal) {
@@ -149,8 +146,70 @@ export function ReportPrintPage({ role }: Props) {
     }
   }
 
-  if (loading) return <main className="report-print-v16-state"><Loader2 className="spin" size={22} />Preparando versão para impressão…</main>;
+  if (loading) return (
+    <main className="report-print-v16-state tw:grid tw:min-h-screen tw:content-center tw:gap-2.5 tw:bg-cali-day-canvas
+      tw:text-center tw:text-[#4c433e] tw:workspace-compact:flex tw:workspace-compact:flex-col tw:workspace-compact:items-center
+      tw:workspace-compact:rounded-[0.625rem] tw:workspace-compact:border tw:workspace-compact:border-solid
+      tw:workspace-compact:border-[#e9e0d8] tw:workspace-compact:bg-white tw:workspace-compact:px-[1.5625rem]
+      tw:workspace-compact:py-[2.875rem] tw:workspace-compact:text-[0.6875rem] tw:workspace-compact:text-[#82786f]">
+      <Loader2 className="tw:animate-spin" size={22} />Preparando versão para impressão…
+    </main>
+  );
   const goBack = () => role === 'client' ? navigate('/cliente/relatorios') : role === 'staff' ? navigate('/equipe/relatorios') : navigate(-1);
-  if (error || !data) return <main className="report-print-v16-state error"><strong>Não foi possível abrir o relatório.</strong><p>{error}</p><button type="button" onClick={goBack}>Voltar</button></main>;
-  return <main className="report-print-v16-page"><div className="report-print-v16-toolbar"><div><strong>Relatório executivo · v{data.version}</strong><span>{data.company.name} · {data.periodName}</span></div><div><button type="button" onClick={goBack}><ArrowLeft size={16} />Voltar</button><Button variant="primary" type="button" onClick={() => void prepareAndPrint(data)}><Printer size={16} />Imprimir / salvar PDF</Button></div></div><div className="report-print-v16-stage"><WorkspaceExecutiveReportPaper company={data.company} snapshot={data.snapshot} editor={data.editor} reportType={data.reportType} periodName={data.periodName} protocol={data.protocol} deliveries={data.deliveries} approvalIdentity={data.approvalIdentity} acknowledgementIdentity={data.ackIdentity} approvedAt={data.approvedAt} acknowledgedAt={data.acknowledgedAt} acknowledgementProtocol={data.ackProtocol} /></div></main>;
+  if (error || !data) return (
+    <main className="report-print-v16-state error tw:grid tw:min-h-screen tw:content-center tw:gap-2.5 tw:bg-cali-day-canvas
+      tw:text-center tw:text-[#4c433e] tw:workspace-compact:flex tw:workspace-compact:flex-col tw:workspace-compact:items-center
+      tw:workspace-compact:rounded-[0.625rem] tw:workspace-compact:border tw:workspace-compact:border-solid
+      tw:workspace-compact:border-[#e9e0d8] tw:workspace-compact:bg-white tw:workspace-compact:px-[1.5625rem]
+      tw:workspace-compact:py-[2.875rem] tw:workspace-compact:text-[0.6875rem] tw:workspace-compact:text-[#82786f]">
+      <strong>Não foi possível abrir o relatório.</strong>
+      <p className="tw:m-0 tw:text-[#7c706a]">{error}</p>
+      <button type="button" className="tw:min-h-[2.375rem] tw:justify-self-center tw:rounded-[0.5625rem] tw:border-0 tw:bg-cali-brand tw:px-3.5 tw:font-extrabold tw:text-white" onClick={goBack}>Voltar</button>
+    </main>
+  );
+  return (
+    <main className="report-print-v16-page tw:min-h-screen tw:bg-[#d9d3cf] tw:text-cali-ink tw:workspace-compact:block
+      tw:workspace-compact:min-h-0 tw:workspace-compact:bg-transparent tw:workspace-compact:p-0">
+      <div className="report-print-v16-toolbar tw:sticky tw:top-0 tw:z-5 tw:flex tw:items-center tw:justify-between
+        tw:gap-4 tw:border-0 tw:border-b tw:border-solid tw:border-[#e3dbd5] tw:bg-[#fffdfa] tw:px-[1.125rem] tw:py-3
+        tw:shadow-[0_0.375rem_1.125rem_#0000000f] tw:max-[680px]:flex-col tw:max-[680px]:items-start tw:workspace-compact:static
+        tw:workspace-compact:mb-3.5 tw:workspace-compact:gap-3.5 tw:workspace-compact:rounded-[0.5625rem]
+        tw:workspace-compact:border tw:workspace-compact:border-[#ebe4de] tw:workspace-compact:bg-white
+        tw:workspace-compact:px-3.5 tw:workspace-compact:py-[0.6875rem] tw:workspace-compact:shadow-none
+        tw:workspace-compact:max-[680px]:flex-row tw:workspace-compact:max-[680px]:items-center">
+        <div className="tw:grid tw:gap-0.5 tw:workspace-compact:flex tw:workspace-compact:flex-col tw:workspace-compact:gap-1">
+          <strong className="tw:text-xs tw:workspace-compact:text-[#3e3533]">Relatório executivo · v{data.version}</strong>
+          <span className="tw:text-[0.59375rem] tw:text-[#7f736d] tw:workspace-compact:text-[0.625rem] tw:workspace-compact:text-[#8c8079]">{data.company.name} · {data.periodName}</span>
+        </div>
+        <div className="tw:flex tw:gap-2 tw:workspace-compact:gap-[0.5625rem]">
+          <Button type="button" variant="unstyled" className="tw:inline-flex tw:min-h-[2.375rem] tw:cursor-pointer tw:items-center tw:gap-[0.4375rem] tw:rounded-[0.625rem]
+            tw:border tw:border-solid tw:border-[#ded4cd] tw:bg-white tw:px-[0.8125rem] tw:py-0 tw:[font-family:inherit] tw:[line-height:inherit] tw:text-[0.6875rem]
+            tw:font-extrabold tw:text-cali-brand tw:workspace-compact:h-auto tw:workspace-compact:rounded-[0.4375rem]
+            tw:workspace-compact:border-[#e7ddd5] tw:workspace-compact:py-2.5 tw:workspace-compact:font-semibold
+            tw:workspace-compact:shadow-none" onClick={goBack}><ArrowLeft size={16} />Voltar</Button>
+          <Button className="tw:inline-flex tw:min-h-[2.375rem] tw:cursor-pointer tw:items-center tw:gap-[0.4375rem] tw:rounded-[0.625rem]
+            tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-[0.8125rem] tw:py-0 tw:[font-family:inherit] tw:[line-height:inherit] tw:text-[0.6875rem]
+            tw:font-extrabold tw:text-white tw:workspace-compact:h-auto tw:workspace-compact:rounded-[0.4375rem]
+            tw:workspace-compact:py-2.5 tw:workspace-compact:font-semibold tw:workspace-compact:shadow-none" variant="unstyled" type="button" onClick={() => void prepareAndPrint()}><Printer size={16} />Imprimir / salvar PDF</Button>
+        </div>
+      </div>
+      <div ref={printStage} className="report-print-v16-stage tw:pt-6 tw:pb-[3.125rem]">
+        <WorkspaceExecutiveReportPaper
+          pinnedCompanyLogo
+          company={data.company}
+          snapshot={data.snapshot}
+          editor={data.editor}
+          reportType={data.reportType}
+          periodName={data.periodName}
+          protocol={data.protocol}
+          deliveries={data.deliveries}
+          approvalIdentity={data.approvalIdentity}
+          acknowledgementIdentity={data.ackIdentity}
+          approvedAt={data.approvedAt}
+          acknowledgedAt={data.acknowledgedAt}
+          acknowledgementProtocol={data.ackProtocol}
+        />
+      </div>
+    </main>
+  );
 }

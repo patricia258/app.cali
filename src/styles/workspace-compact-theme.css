@@ -1,0 +1,22 @@
+/* Mantém os valores do tema compacto após as folhas base do Workspace. */
+html[data-workspace-ui='v2'] {
+  --theme-page: #f7f3ee;
+  --theme-page-2: #f7f3ee;
+  --theme-surface: #fff;
+  --theme-surface-soft: #fbf7f4;
+  --theme-surface-muted: #f4eee8;
+  --theme-text: #322f2c;
+  --theme-muted: #857870;
+  --theme-line: #e9dbd0;
+  --theme-line-strong: #dec9c3;
+  --theme-elevated-shadow: 0 20px 80px #1d111344;
+  --theme-input: #fff;
+  --theme-input-border: #e5d8d0;
+  --theme-accent: #5a1e2d;
+  --theme-accent-soft: #f8ecef;
+  --theme-gold: #b58c52;
+  --theme-gold-soft: #fffaf1;
+  --theme-success: #42785a;
+  --theme-success-soft: #eaf3ed;
+  --theme-danger: #b7495d;
+}

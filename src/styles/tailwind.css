@@ -3,6 +3,20 @@
 @import './tokens.css';
 @import 'tailwindcss/utilities.css' prefix(tw) source('../');
 
+@layer base {
+  :where(html[data-workspace-ui='v2']) :where(button, input, select) {
+    font: inherit;
+  }
+
+  :where(html[data-workspace-ui='v2']) :where(h1, h2, h3, p) {
+    margin-top: 0;
+  }
+}
+
+@custom-variant workspace-night (&:where(html[data-workspace-theme='night'] *));
+@custom-variant workspace-compact (&:where(html[data-workspace-ui='v2'] *));
+@custom-variant compact-content (&:where(html[data-workspace-ui='v2'] .main *));
+
 @theme inline {
   --color-cali-brand: var(--cali-color-burgundy);
   --color-cali-gold: var(--cali-color-gold);

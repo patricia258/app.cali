@@ -20,13 +20,5 @@ function split(text: string) {
 
 /** Para telas em React. */
 export function withMentions(text: string): ReactNode[] {
-  return split(text).map((part) => part.mention ? <span key={part.offset} className="v2-mention">{part.text}</span> : part.text);
-}
-
-/** Para conversas montadas fora do React (texto sempre como texto, nunca como HTML). */
-export function appendWithMentions(parent: HTMLElement, text: string) {
-  for (const part of split(text)) {
-    if (!part.mention) { parent.append(document.createTextNode(part.text)); continue; }
-    const span = document.createElement('span'); span.className = 'v2-mention'; span.textContent = part.text; parent.append(span);
-  }
+  return split(text).map((part) => part.mention ? <span key={part.offset} className="tw:rounded-sm tw:bg-cali-gold/20 tw:px-0.5 tw:font-semibold tw:text-inherit">{part.text}</span> : part.text);
 }

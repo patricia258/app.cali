@@ -42,7 +42,7 @@ for (const file of files) {
     if (ts.isCallExpression(node)) {
       const expression = node.expression;
       const method = ts.isPropertyAccessExpression(expression) ? expression.name.text : expression.getText(source);
-      if (method === 'rpc' || method === 'anonPublicRpc') {
+      if (['rpc', 'runSchedulingCommand', 'anonPublicRpc'].includes(method)) {
         const names = rpcNames(node.arguments[0], source);
         const receiver = ts.isPropertyAccessExpression(expression) ? expression.expression.getText(source) : '';
         const role = method === 'anonPublicRpc' ? 'anon' : 'authenticated';

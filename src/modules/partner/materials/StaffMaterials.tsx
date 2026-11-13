@@ -1,10 +1,9 @@
-import { DialogForm } from '../../../components/ds/DialogForm';
+import { StaffDialogBody, StaffDialogFields, StaffDialogFooter, StaffDialogForm, StaffDialogHeader } from '../../../components/workspace/StaffDialog';
 import { Button } from '../../../components/ds/Button';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { useEffect, useState, type FormEvent } from 'react';
 import { readAssignedMaterials, submitMaterialReview, type MaterialReview } from '../../../api/materials/reviews';
-import { materialStatus, materialText } from '../../material-review/material-review';
-import '../../material-review/material-review.css';
+import { materialReviewCard, materialStatus, materialText } from '../../material-review/material-review';
 
 export function StaffMaterials() {
   const [items, setItems] = useState<MaterialReview[]>([]);
@@ -45,22 +44,22 @@ export function StaffMaterials() {
   return <section className="wf">
     <div className="wf-head"><div><h1>Materiais</h1><p>Rascunhos atribuídos para revisão da Patrícia.</p></div></div>
     {error && !selected && <InlineNotice as="p" role="alert">{error}</InlineNotice>}
-    {items.length ? <ul className="material-review-items">{items.map((item) => <li key={item.id}>
+    {items.length ? <ul className="tw:list-none tw:p-0">{items.map((item) => <li className={`${materialReviewCard} tw:grid tw:gap-[8px]`} key={item.id}>
       <strong>{item.title}</strong><span>{materialStatus[item.status]}</span>
       {item.decision_note && <p>{item.decision_note}</p>}
-      {['assigned','returned'].includes(item.status) && <Button variant="workflowSecondary" type="button" onClick={() => edit(item)}>Preparar material</Button>}
+      {['assigned','returned'].includes(item.status) && <Button className="tw:[justify-self:start]" variant="workflowSecondary" type="button" onClick={() => edit(item)}>Preparar material</Button>}
     </li>)}</ul> : <p>Nenhum material atribuído.</p>}
-    {selected && <div className="wf-overlay"><DialogForm className="wf-modal v2-staff-form" aria-label={selected.title} onSubmit={submit}>
-      <header><h2>{selected.title}</h2></header>
-      <div className="v2-staff-body">
+    {selected && <div className="wf-overlay"><StaffDialogForm aria-label={selected.title} onSubmit={submit}>
+      <StaffDialogHeader><h2>{selected.title}</h2></StaffDialogHeader>
+      <StaffDialogBody>
         {selected.decision_note && <p>{selected.decision_note}</p>}
-        <label>{materialText[selected.kind]}<textarea required minLength={5} maxLength={12000} rows={10} value={draft} onChange={(event) => setDraft(event.target.value)} /></label>
+        <StaffDialogFields columns={1}><label>{materialText[selected.kind]}<textarea required minLength={5} maxLength={12000} rows={10} value={draft} onChange={(event) => setDraft(event.target.value)} /></label></StaffDialogFields>
         {error && <p role="alert">{error}</p>}
-      </div>
-      <footer>
+      </StaffDialogBody>
+      <StaffDialogFooter>
         <Button variant="workflowSecondary" type="button" disabled={busy} onClick={() => setSelected(null)}>Cancelar</Button>
         <Button variant="workflowPrimary" type="submit" disabled={busy || draft.trim().length < 5}>Enviar para revisão</Button>
-      </footer>
-    </DialogForm></div>}
+      </StaffDialogFooter>
+    </StaffDialogForm></div>}
   </section>;
 }

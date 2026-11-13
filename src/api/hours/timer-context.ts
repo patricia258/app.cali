@@ -73,64 +73,23 @@ export async function readGlobalTimers(userId: string) {
   }));
 }
 
-export async function readHoursTimerLifecycle() {
+export async function readProjectTimerContext(actorId: string, companyId: string, deliverableId: string, signal: AbortSignal) {
   const client = requireHoursClient();
-  const user = (await client.auth.getUser()).data.user;
-  if (!user) return null;
-  const [timers, deliverables, tasks] = await Promise.all([
-    client.from('work_timers').select('id,deliverable_id,task_id,description').eq('user_id', user.id)
-      .eq('status', 'active').order('started_at', { ascending: true })
-      .returns<Pick<ActiveTimer, 'id' | 'deliverable_id' | 'task_id' | 'description'>[]>(),
-    client.from('deliverables').select('id,title,status,work_closed_at')
-      .or('status.eq.approved,work_closed_at.not.is.null').returns<DeliverableTimerReference[]>(),
-    client.from('deliverable_tasks').select('id,title,status,work_closed_at')
-      .or('status.eq.done,work_closed_at.not.is.null').returns<DeliverableTimerReference[]>(),
+  const [timers, deliverable, tasks] = await Promise.all([
+    client.from('work_timers').select(activeTimerColumns).eq('user_id', actorId).eq('company_id', companyId)
+      .eq('status', 'active').order('started_at', { ascending: true }).limit(1).abortSignal(signal).returns<ActiveTimer[]>(),
+    client.from('deliverables').select('id,title,status,work_closed_at').eq('id', deliverableId).eq('company_id', companyId)
+      .abortSignal(signal).returns<DeliverableTimerReference[]>().maybeSingle(),
+    client.from('deliverable_tasks').select('id,title,status,work_closed_at').eq('deliverable_id', deliverableId)
+      .abortSignal(signal).returns<DeliverableTimerReference[]>(),
   ]);
-  const deliverable = byId(deliverables.data);
-  const task = byId(tasks.data);
+  if (timers.error) throw timers.error;
+  if (deliverable.error) throw deliverable.error;
+  if (tasks.error) throw tasks.error;
+
   return {
-    closedDeliverables: new Set(deliverable.keys()),
-    closedTasks: new Set(task.keys()),
-    timers: (timers.data ?? []).map((row) => ({
-      id: row.id, deliverableId: row.deliverable_id, taskId: row.task_id, description: row.description,
-      deliverableName: deliverable.get(row.deliverable_id ?? '')?.title || null,
-      deliverableStatus: deliverable.get(row.deliverable_id ?? '')?.status || null,
-      taskName: task.get(row.task_id ?? '')?.title || null,
-    })),
+    companyTimer: timers.data?.[0] ? mapTimer(timers.data[0]) : null,
+    deliverable: deliverable.data,
+    tasks: tasks.data ?? [],
   };
-}
-
-export async function readProjectTimers() {
-  const client = requireHoursClient();
-  const user = (await client.auth.getUser()).data.user;
-  if (!user) return { timers: [], error: null };
-  const { data, error } = await client.from('work_timers').select(activeTimerColumns).eq('user_id', user.id)
-    .eq('status', 'active').order('started_at', { ascending: true }).returns<ActiveTimer[]>();
-  return { timers: (data ?? []).map(mapTimer), error };
-}
-
-export async function readProjectTimerDeliverable(protocol: string, title: string) {
-  const query = requireHoursClient().from('deliverables')
-    .select('id,company_id,project_id,title,protocol,status,client_visible,work_closed_at,approved_at');
-  const { data, error } = await (protocol && protocol !== '—' ? query.eq('protocol', protocol) : query.eq('title', title))
-    .limit(2).returns<(DeliverableTimerReference & {
-      company_id: string; project_id: string; protocol: string | null; client_visible: boolean; approved_at: string | null;
-    })[]>();
-  const row = data?.[0];
-  if (error || !row) return null;
-  return {
-    id: row.id, companyId: row.company_id, projectId: row.project_id, title: row.title, protocol: row.protocol,
-    status: row.status, clientVisible: Boolean(row.client_visible), workClosedAt: row.work_closed_at, approvedAt: row.approved_at,
-  };
-}
-
-export async function readProjectTimerTasks(deliverableId: string) {
-  const { data } = await requireHoursClient().from('deliverable_tasks')
-    .select('id,deliverable_id,title,protocol,status,client_visible,work_closed_at')
-    .eq('deliverable_id', deliverableId).neq('status', 'cancelled').order('sort_order')
-    .returns<(DeliverableTimerReference & { deliverable_id: string; protocol: string | null; client_visible: boolean })[]>();
-  return (data ?? []).map((row) => ({
-    id: row.id, deliverableId: row.deliverable_id, title: row.title, protocol: row.protocol,
-    status: row.status, clientVisible: Boolean(row.client_visible), workClosedAt: row.work_closed_at,
-  }));
 }

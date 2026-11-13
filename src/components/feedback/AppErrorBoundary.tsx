@@ -1,5 +1,4 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import './app-error-boundary.css';
 
 type Props = { children: ReactNode };
 type State = { failed: boolean };
@@ -29,12 +28,12 @@ export class AppErrorBoundary extends Component<Props, State> {
     if (!this.state.failed) return this.props.children;
 
     return (
-      <main className="workspace-fatal-fallback" role="alert" style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', padding: 24, background: '#f7f3ee', fontFamily: 'Inter,system-ui,sans-serif', color: '#322f2c' }}>
-        <section style={{ width: 'min(440px,100%)', background: '#fff', border: '1px solid #e9dfd8', borderRadius: 12, padding: 28, display: 'flex', flexDirection: 'column', gap: 12, boxShadow: '0 18px 60px #28172414' }}>
-          <span style={{ fontSize: 10, letterSpacing: 1.4, fontWeight: 800, color: '#af8f72' }}>CALI WORKSPACE</span>
-          <h1 style={{ margin: 0, fontSize: 19, lineHeight: 1.3 }}>O Workspace foi atualizado.</h1>
-          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: '#655a55' }}>Nada do que você fez foi perdido. Clique em recarregar para continuar na versão mais recente.</p>
-          <button type="button" onClick={() => window.location.assign(window.location.href)} style={{ alignSelf: 'flex-start', marginTop: 6, padding: '11px 16px', borderRadius: 7, border: '1px solid #5a1e2d', background: '#5a1e2d', color: '#fff', font: 'inherit', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Recarregar Workspace</button>
+      <main className="workspace-fatal-fallback tw:grid tw:min-h-dvh tw:place-items-center tw:bg-cali-day-canvas tw:p-6 tw:font-[Inter,system-ui,sans-serif] tw:text-[#322f2c]" role="alert">
+        <section className="tw:flex tw:w-full tw:max-w-110 tw:flex-col tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-[#e9dfd8] tw:bg-white tw:p-7 tw:shadow-[0_18px_60px_#28172414]">
+          <span className="tw:mb-3 tw:block tw:text-[10px] tw:leading-[inherit] tw:font-extrabold tw:tracking-[1.4px] tw:text-[#af8f72]">CALI WORKSPACE</span>
+          <h1 className="tw:m-0 tw:text-[19px] tw:leading-[1.3]">O Workspace foi atualizado.</h1>
+          <p className="tw:m-0 tw:text-[13px] tw:leading-[1.6] tw:text-[#655a55]">Nada do que você fez foi perdido. Clique em recarregar para continuar na versão mais recente.</p>
+          <button type="button" className="tw:mt-1.5 tw:min-h-11 tw:cursor-pointer tw:self-start tw:rounded-[7px] tw:border tw:border-solid tw:border-cali-brand tw:bg-cali-brand tw:px-4 tw:py-[11px] tw:text-[12px] tw:leading-[inherit] tw:font-bold tw:text-white" onClick={() => window.location.assign(window.location.href)}>Recarregar Workspace</button>
         </section>
       </main>
     );

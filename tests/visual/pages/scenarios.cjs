@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const { execFileSync } = require('node:child_process');
 const path = require('node:path');
 const { makeSession, fixtureCode, sessionKey } = require('../../e2e/browser-fixture.cjs');
-const { projectId } = require('../../e2e/fixtures.cjs');
+const { projectId, tables } = require('../../e2e/fixtures.cjs');
 const { fixtureOrigin } = require('./build.cjs');
 
 const menuPaths = {
@@ -98,7 +98,7 @@ async function matrixState({ page, go, role, id }) {
       }
     }
     if (id === 'controls:team-period') {
-      await page.locator('.v2-team-period-switch').getByRole('button', { name: 'Período', exact: true }).click();
+      await page.locator('[aria-label="Filtrar por mês ou período"], .v2-team-period-switch').getByRole('button', { name: 'Período', exact: true }).click();
       await page.getByLabel('De', { exact: true }).fill('2026-08');
       await page.getByLabel('Até', { exact: true }).fill('2026-09');
       await page.getByLabel('Período deste gráfico', { exact: true }).first().selectOption('3');
@@ -168,6 +168,16 @@ const states = [
   ['admin', 'seguranca:mfa-antes-da-confirmacao', showMfa],
   ['admin', 'legado:relatorios', ({ go }) => go('/admin/relatorios')],
   [
+    'public',
+    'landing:como-funciona',
+    async ({ page, go }) => {
+      await go('/#como-funciona');
+      const steps = page.locator('#como-funciona');
+      await steps.scrollIntoViewIfNeeded();
+      await steps.getByRole('heading').first().waitFor();
+    },
+  ],
+  [
     'admin',
     'projetos:carteira-vazia',
     async ({ page, go }) => {
@@ -227,8 +237,103 @@ const states = [
       await page.getByRole('textbox', { name: 'Assunto', exact: true }).waitFor();
     },
   ],
+  [
+    'client',
+    'ocorrencias:solicitar-acesso',
+    async ({ page, go }) => {
+      await go('/cliente/registros');
+      await page.getByRole('button', { name: 'Solicitar acesso', exact: true }).click();
+      const dialog = page.getByRole('dialog', { name: 'Solicitar acesso adicional' });
+      await dialog.getByRole('textbox', { name: 'Nome completo' }).fill('Pessoa indicada QA');
+      await dialog.getByRole('textbox', { name: 'E-mail' }).fill('pessoa.qa@example.invalid');
+      await dialog.getByRole('checkbox', { name: 'Li e estou ciente das condições acima.' }).check();
+      await dialog.getByRole('button', { name: 'Enviar solicitação' }).waitFor();
+    },
+  ],
   ['client', 'entregaveis:ajuste', (scenario) => deliveryDialog(scenario, 'ajuste')],
   ['client', 'entregaveis:avaliacao', (scenario) => deliveryDialog(scenario, 'avaliacao')],
+  ...['revisao', 'pedir-ajuste', 'confirmar'].map((state) => [
+    'client',
+    'subtarefa:' + state,
+    async ({ page, go }) => {
+      const task = tables.deliverable_tasks.find(({ id }) => id === 'qa-t2');
+      const thread = [{
+        id: 'qa-task-thread',
+        author_role: 'admin',
+        body: 'O documento atualizado está disponível. [[arquivo|Documento%20de%20QA.pdf|qa%2Fdocumento.pdf|application%2Fpdf|2048]]',
+        created_at: '2026-11-12T16:00:00Z',
+      }];
+      await page.route((url) => url.origin === fixtureOrigin && ['/rest/v1/deliverable_tasks', '/rest/v1/task_messages'].includes(url.pathname), (route) => {
+        const url = new URL(route.request().url());
+        const headers = { 'access-control-allow-origin': new URL(page.url()).origin };
+        if (url.pathname.endsWith('/task_messages')) return route.fulfill({ json: thread, headers });
+        const waiting = { ...task, status: 'client_review', adjustment_count: 1 };
+        const json = url.searchParams.get('id') ? [waiting] : tables.deliverable_tasks.map((row) => row.id === task.id ? waiting : row);
+        return route.fulfill({ json, headers });
+      });
+      await go('/cliente/entregaveis?project=' + projectId);
+      await page.getByRole('tab', { name: 'Entregáveis', exact: true }).click();
+      await page.getByRole('button', { name: /Validação do cliente QA/ }).click();
+      const dialog = page.getByRole('dialog', { name: 'Subtarefa Validação do cliente QA' });
+      await dialog.getByText('O documento atualizado está disponível.', { exact: true }).waitFor();
+      if (state === 'pedir-ajuste') {
+        await dialog.getByRole('button', { name: 'Pedir ajuste', exact: true }).click();
+        await dialog.getByRole('textbox', { name: 'O que precisa ser ajustado nesta parte?' }).fill('Atualizar a data no documento de QA.');
+      } else if (state === 'confirmar') {
+        await dialog.getByRole('button', { name: 'Aprovar esta parte', exact: true }).click();
+        await dialog.getByRole('button', { name: 'Sim, aprovar', exact: true }).waitFor();
+      }
+    },
+  ]),
+  ...['admin', 'client'].map((role) => [
+    role,
+    'entregaveis:conversa',
+    async ({ page, go }) => {
+      const id = tables.comments[0].target_id;
+      const path = role === 'admin' ? '/admin/projetos' : '/cliente/entregaveis';
+      await go(`${path}?project=${projectId}&deliverable=${id}`);
+      const dialog = page.getByRole('dialog', { name: 'Entrega QA C', exact: true });
+      await dialog.getByRole('button', { name: /^Conversas/ }).click();
+      await dialog.getByText(tables.comments[0].body, { exact: true }).waitFor();
+    },
+  ]),
+  [
+    'admin',
+    'projetos:kanban',
+    async ({ page, go }) => {
+      await go('/admin/projetos?project=' + projectId);
+      await page.getByRole('tab', { name: 'Entregáveis', exact: true }).click();
+      await page.getByRole('button', { name: 'Kanban', exact: true }).click();
+      await page.locator('[data-project-kanban], .kanban-v2').getByRole('button', { name: /Entrega QA C/ }).waitFor();
+    },
+  ],
+  ...['admin', 'partner'].map((role) => [
+    role,
+    'projetos:prazos',
+    async ({ page, go }) => {
+      await go((role === 'admin' ? '/admin/projetos' : '/equipe/projetos') + '?project=' + projectId);
+      await page.getByRole('heading', { name: 'Prazos das entregas' }).waitFor();
+      await page.getByRole('button', { name: /Entrega QA C/ }).waitFor();
+    },
+  ]),
+  [
+    'client',
+    'projetos:cronograma-em-aprovacao',
+    async ({ page, go }) => {
+      const project = { ...tables.projects[0], planning_status: 'client_review', roadmap_end_date: '2027-02-01' };
+      const review = { id: 'qa-schedule-review', project_id: projectId, status: 'pending', request_number: 1, requested_at: '2026-11-12T16:00:00Z' };
+      await page.route((url) => url.origin === fixtureOrigin && ['/rest/v1/projects', '/rest/v1/project_review_requests'].includes(url.pathname), (route) => {
+        const request = route.request();
+        if (request.method() !== 'GET') return route.fallback();
+        const headers = { 'access-control-allow-origin': request.headers().origin || '*' };
+        if (new URL(request.url()).pathname.endsWith('/project_review_requests')) return route.fulfill({ headers, json: [review] });
+        const single = request.headers().accept?.includes('vnd.pgrst.object');
+        return route.fulfill({ headers, json: single ? project : [project] });
+      });
+      await go('/cliente/entregaveis?project=' + projectId);
+      await page.getByRole('button', { name: 'Aprovar cronograma', exact: true }).waitFor();
+    },
+  ],
   [
     'client',
     'agenda:escolha-visita-extra',

@@ -5,7 +5,17 @@ import { resolveDocumentBrandVisual } from '../../../../lib/documentBrandVisual'
 
 const colorPromises = new Map<string, Promise<string>>();
 
-export function ClientDocumentBrandCover({ companyId, companyName, logoUrl, compact = false }: { companyId: string; companyName: string; logoUrl?: string | null; compact?: boolean }) {
+export function ClientDocumentBrandCover({
+  companyId,
+  companyName,
+  logoUrl,
+  compact = false,
+}: {
+  companyId: string;
+  companyName: string;
+  logoUrl?: string | null;
+  compact?: boolean;
+}) {
   const [visual, setVisual] = useState({ url: '', color: '#F7F3EE' });
   useEffect(() => {
     let active = true;
@@ -16,14 +26,36 @@ export function ClientDocumentBrandCover({ companyId, companyName, logoUrl, comp
       setVisual((current) => ({ ...current, url }));
       if (!url) return;
       const key = `${companyId}:${url}`;
-      if (!colorPromises.has(key)) colorPromises.set(key, resolveDocumentBrandVisual({ id: companyId, display_name: companyName }, url).then((brand) => brand.color));
+      if (!colorPromises.has(key))
+        colorPromises.set(
+          key,
+          resolveDocumentBrandVisual({ id: companyId, display_name: companyName }, url).then(
+            (brand) => brand.color,
+          ),
+        );
       const color = await colorPromises.get(key)!;
       if (active) setVisual({ url, color });
     }
     void load();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [companyId, companyName, logoUrl]);
-  return <div className={`client-document-brand-cover${compact ? ' compact' : ''}`} style={{ backgroundColor: visual.color }} aria-label={`Capa com a marca de ${companyName}`}>
-    {visual.url ? <img src={visual.url} alt={`Logo ${companyName}`} /> : <FileText size={compact ? 25 : 32} aria-hidden="true" />}
-  </div>;
+  return (
+    <div
+      className={`tw:grid tw:size-full tw:place-items-center tw:text-cali-brand ${compact ? 'tw:p-[0.615rem]' : 'tw:p-[0.923rem]'}`}
+      style={{ backgroundColor: visual.color }}
+      aria-label={`Capa com a marca de ${companyName}`}
+    >
+      {visual.url ? (
+        <img
+          className={`tw:block tw:h-auto tw:w-auto tw:max-w-[86%] tw:object-contain ${compact ? 'tw:max-h-[6.462rem]' : 'tw:max-h-[9.692rem]'}`}
+          src={visual.url}
+          alt={`Logo ${companyName}`}
+        />
+      ) : (
+        <FileText size={compact ? 25 : 32} aria-hidden="true" />
+      )}
+    </div>
+  );
 }

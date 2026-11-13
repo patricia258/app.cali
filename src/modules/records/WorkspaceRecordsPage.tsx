@@ -6,19 +6,20 @@ import { EmptyState } from '../../components/ds/EmptyState';
 import { FieldLabel } from '../../components/ds/FieldLabel';
 import { FilterSelect } from '../../components/ds/FilterSelect';
 import { InlineNotice } from '../../components/ds/InlineNotice';
-import { openPrivateWorkspaceFile } from '../../api/files/workspace';
-import { withMentions } from '../../lib/mentionText';
 import { SensitiveDataNote } from '../../components/privacy/SensitiveDataNote';
 import { FormEvent, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useSearchParams } from '../../hooks/useSearchParams';
-import { Paperclip, ArrowRight,
+import { useRecordDeepLink } from './hooks/useRecordDeepLink';
+import { ArrowRight,
   AlertTriangle, CheckCircle2, ChevronDown, ChevronRight,
-  MessageCircle, Pencil, Plus, Search, Send, Trash2, X, UserPlus } from 'lucide-react';
+  MessageCircle, Pencil, Plus, Search, Trash2, X, UserPlus } from 'lucide-react';
 import { confirmAction } from '../../components/feedback/workspaceDialogs';
 import type { JsonObject, JsonValue } from '../../domain/json';
 import { Shell, type Role } from '../../components/workspace/WorkspaceShell';
 import { recordsAvailable } from '../../api/records/client';
-import { listRecordMessages, postRecordMessage, uploadRecordAttachment, type ConversationMessageRow } from '../../api/records/conversation';
+import { postRecordMessage } from '../../api/records/conversation';
+import { RecordConversation } from './conversation/RecordConversation';
+import { useRefreshRecordMessages } from './conversation/hooks/useRefreshRecordMessages';
+import type { RecordMessageReceipt } from './conversation/hooks/usePostRecordMessage';
 import {
   changeRecordStatus, checkRecordExists, deleteInternalRecord, insertRecord, notifyRecordShared,
   readClientRecordCompany, readPartnerRecordTimer, readPendingRecordClosures, readRecord, readRecordAuthor,
@@ -28,6 +29,12 @@ import {
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
 import { CompanyConversationHistory } from './CompanyConversationHistory';
+import { RecordOperations } from './components/RecordOperations';
+import { RecordClosureAdminSummary } from './closure/components/RecordClosureAdminSummary';
+import { RecordClosureClientActions } from './closure/components/RecordClosureClientActions';
+import { RecordClosureClientHistory } from './closure/components/RecordClosureClientHistory';
+import { RecordClosureDialogs } from './closure/components/RecordClosureDialogs';
+import { useRecordClosureExperience } from './closure/hooks/useRecordClosureExperience';
 import { AdditionalAccessDialog, type AdditionalAccessDraft } from './components/AdditionalAccessDialog';
 
 type RecordType =
@@ -62,16 +69,6 @@ type AccountRecordRow = {
   workflowStatus?: WorkflowStatus | null;
   lastActivityAt?: string | null;
   closedAt?: string | null;
-};
-
-type ConversationMessage = {
-  id: string;
-  recordId: string;
-  authorId?: string | null;
-  authorRole: 'admin' | 'client' | 'system';
-  body: string;
-  visibility: 'client' | 'internal';
-  createdAt: string;
 };
 
 type Company = { id: string; name: string; logo?: string | null; logoFallback?: string | null };
@@ -183,9 +180,6 @@ function mapRecord(row: RecordRow): AccountRecordRow {
     lastActivityAt: row.last_activity_at, closedAt: row.closed_at,
   };
 }
-function mapMessage(row: ConversationMessageRow): ConversationMessage {
-  return { id: row.id, recordId: row.record_id, authorId: row.author_id, authorRole: row.author_role, body: row.body, visibility: row.visibility, createdAt: row.created_at };
-}
 function statusLabel(status: WorkflowStatus | null | undefined, role: Role) {
   if (!status) return 'Memória';
   if (status === 'waiting_client' && role === 'client') return 'Aguardando você';
@@ -199,13 +193,25 @@ function RecordsFrame({ staff, role, children }: { staff: boolean; role: Role; c
    e "Enviar para aprovação da Patricia" no lugar de Finalizar. Sem criar, enriquecer ou excluir registros. */
 export type StaffRecordsScope = { companies: Company[] };
 export function StaffRecordsPage({ companies }: StaffRecordsScope) { return <WorkspaceRecordsPage role="admin" staff={{ companies }} />; }
+const adminFilterClass = 'tw:h-[2.77rem] tw:min-w-0 tw:flex-[0_1_14.62rem] tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-white tw:py-0 tw:pr-[2.15rem] tw:pl-[.85rem] tw:text-[.85rem] tw:text-[#322f2c]';
+const actionBadgeClass = 'tw:inline-flex tw:items-center tw:rounded-[.38rem] tw:bg-[#fbe9ec] tw:px-[.54rem] tw:py-[.23rem] tw:align-middle tw:text-[.69rem] tw:font-bold tw:tracking-[.04em] tw:text-[#b7495d]';
+const adminRecordColumns = 'tw:grid-cols-[2.62rem_minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,.9fr)_minmax(0,1fr)_minmax(0,.9fr)_1.38rem]! tw:[@media(max-width:860px)]:grid-cols-[2.62rem_minmax(0,1fr)_1.38rem]!';
+const adminRecordDetail = 'tw:[@media(max-width:860px)]:hidden!';
+const recordDrawerFooter = 'tw:m-0 tw:flex tw:flex-none tw:items-center tw:justify-between tw:gap-[.62rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#eadfd6] tw:bg-[#fffdfb] tw:px-[1.54rem] tw:py-[.92rem] tw:[@media(max-width:480px)]:flex-wrap';
+const recordDrawerActions = 'tw:m-0 tw:flex tw:min-w-0 tw:items-center tw:gap-[.46rem]';
+const recordDrawerButton = 'tw:inline-flex tw:min-h-[3.23rem] tw:flex-[0_1_auto] tw:cursor-pointer tw:items-center tw:justify-center tw:gap-[.62rem] tw:whitespace-nowrap tw:rounded-[.85rem] tw:border tw:border-solid tw:border-[#dec9c3] tw:bg-white tw:px-[.69rem] tw:py-[.69rem] tw:text-[.81rem] tw:leading-[1.2] tw:font-bold tw:text-cali-brand tw:disabled:cursor-not-allowed tw:disabled:opacity-45';
+const recordDrawerPrimary = `${recordDrawerButton} tw:border-cali-brand! tw:bg-cali-brand! tw:text-white!`;
+const adminFormGrid = 'tw:grid tw:grid-cols-3! tw:gap-x-[1.08rem] tw:gap-y-[.92rem] tw:[@media(max-width:760px)]:grid-cols-1!';
+
+
 export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: StaffRecordsScope }) {
   const { user } = useWorkspaceAuth();
   const [staffPhotos, setStaffPhotos] = useState<Record<string, string>>({});
-  const [staffFile, setStaffFile] = useState<File | null>(null); const staffFileInput = useRef<HTMLInputElement | null>(null);
-  const [staffInternal, setStaffInternal] = useState(false); const [staffTimer, setStaffTimer] = useState<{ id: string; startedAt: string } | null>(null); const [, staffTick] = useState(0); const [closeRequested, setCloseRequested] = useState<Record<string, boolean>>({});
+  const [staffTimer, setStaffTimer] = useState<{ id: string; startedAt: string } | null>(null); const [, staffTick] = useState(0); const [closeRequested, setCloseRequested] = useState<Record<string, boolean>>({});
   useEffect(() => { if (!staffTimer) return; const timer = window.setInterval(() => staffTick((value) => value + 1), 1000); return () => window.clearInterval(timer); }, [staffTimer]);
-  const [searchParams] = useSearchParams();
+  const linkedRecordId = useRecordDeepLink();
+  const refreshMessages = useRefreshRecordMessages(user?.id);
+  const drawerClose = useRef<HTMLButtonElement>(null);
   const deepLinkHandled = useRef('');
   const [records, setRecords] = useState<AccountRecordRow[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -237,9 +243,17 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
     return () => window.removeEventListener('cali-staff-timer-changed', refresh);
   }, [staff, selected?.id]);
   const [conversationOpen, setConversationOpen] = useState(false);
-  const [messages, setMessages] = useState<ConversationMessage[]>([]);
-  const [messageDraft, setMessageDraft] = useState('');
-  const [sendingMessage, setSendingMessage] = useState(false);
+  const closure = useRecordClosureExperience({
+    protocol: selected?.protocol,
+    recordId: selected?.id,
+    role,
+    actorId: user?.id,
+    workflowStatus: selected?.workflowStatus,
+    enabled: !staff && conversationOpen,
+    onRecordChanged: () => {
+      if (selected) void refreshSelectedRecord(selected);
+    },
+  });
   const [statusSaving, setStatusSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -254,13 +268,13 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
     return () => document.body.classList.remove('workspace-modal-open');
   }, [editorOpen, conversationOpen]);
   useEffect(() => {
-    const recordId = searchParams.get('record');
+    const recordId = linkedRecordId;
     if (!recordId || !records.length || deepLinkHandled.current === recordId) return;
     const found = records.find((record) => record.id === recordId);
     if (!found) return;
     deepLinkHandled.current = recordId;
     void openRecord(found);
-  }, [records, searchParams]);
+  }, [records, linkedRecordId]);
   useEffect(() => {
     if (!recordsAvailable || !companyId) return;
     const refresh = () => void loadContext(companyId).catch(() => setError('Não foi possível atualizar as ocorrências.'));
@@ -475,11 +489,15 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
 
   async function openRecord(record: AccountRecordRow) {
     if (!recordsAvailable) return;
-    setSelected(record); setConversationOpen(true); setMessageDraft(''); setMessages([]); setError('');
-    const result = await listRecordMessages(record.id);
-    if (result.error) { setError(result.error.message); return; }
-    setMessages((result.data || []).map(mapMessage));
+    setSelected(record); setConversationOpen(true); setError('');
     if (staff) void staffLoadTimer(record.id);
+  }
+
+  async function refreshSelectedRecord(record: AccountRecordRow) {
+    const { data } = await readRecord(record.id);
+    if (data) setSelected((current) => current?.id === record.id ? mapRecord(data) : current);
+    void refreshMessages(record.id);
+    await loadContext(record.companyId);
   }
 
   async function openHistoryRecord(recordId: string) {
@@ -492,39 +510,14 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
     await openRecord(mapRecord(data));
   }
 
-  async function staffOpenAttachment(path: string) {
-    try {
-      await openPrivateWorkspaceFile(path);
-    } catch {
-      setError('Não foi possível abrir este anexo agora.');
-    }
-  }
-  async function sendMessage() {
-    if (!recordsAvailable || !selected || (!messageDraft.trim() && !(staff && staffFile))) return;
-    setSendingMessage(true); setError('');
-    try {
-      let token = '';
-      if (staff && staffFile) {
-        const allowed = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
-        if (!allowed.includes(staffFile.type)) throw new Error('Use PDF, imagem, Word, Excel ou PowerPoint.');
-        if (staffFile.size > 10 * 1024 * 1024) throw new Error('O anexo pode ter até 10 MB.');
-        const { data: auth } = await readRecordAuthor();
-        const safeName = staffFile.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/-+/g, '-').slice(0, 90) || 'arquivo';
-        const path = `records/${selected.companyId}/${selected.id}/${auth.user?.id}/${Date.now()}-${safeName}`;
-        const upload = await uploadRecordAttachment(path, staffFile);
-        if (upload.error) throw new Error('Não foi possível anexar o arquivo. A mensagem não foi enviada.');
-        token = `[[arquivo|${encodeURIComponent(staffFile.name)}|${encodeURIComponent(path)}|${encodeURIComponent(staffFile.type)}|${staffFile.size}]]`;
-      }
-      const result = await postRecordMessage(selected.id, [messageDraft.trim(), token].filter(Boolean).join('\n'), Boolean(staff), Boolean(staff && staffInternal));
-      if (result.error) throw result.error;
-      setMessageDraft(''); setStaffFile(null);
-      const nextStatus = (result.data as { workflow_status?: WorkflowStatus } | null)?.workflow_status;
-      if (nextStatus) setSelected((current) => current ? { ...current, workflowStatus: nextStatus, lastActivityAt: new Date().toISOString(), requiresAction: role === 'client' } : current);
-      await openRecord({ ...(selected as AccountRecordRow), workflowStatus: nextStatus || selected.workflowStatus, lastActivityAt: new Date().toISOString() });
-      await loadContext(selected.companyId);
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar a mensagem.');
-    } finally { setSendingMessage(false); }
+  async function onMessageSent(record: AccountRecordRow, result: RecordMessageReceipt, internal: boolean) {
+    setSelected((current) => current?.id === record.id ? {
+      ...current,
+      workflowStatus: result?.workflow_status ?? current.workflowStatus,
+      lastActivityAt: new Date().toISOString(),
+      requiresAction: internal ? current.requiresAction : role === 'client',
+    } : current);
+    await loadContext(record.companyId);
   }
 
   async function staffRequestClose() {
@@ -584,13 +577,13 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
   const reopenPending = Boolean(selected && reopenByRecord[selected.id] === 'pending');
 
   function recordsTable(rows: AccountRecordRow[], emptyCopy: string) {
-    return <div className={`wf-records ${role==='admin'?'v2-admin-records-list':''}`}><div className="wf-record-row header">{role==='admin' && <span/>}<span>Protocolo / Assunto</span>{role==='admin' && <span>Aberta por</span>}<span>Tipo</span><span>Última atualização</span><span>Situação</span><span/></div>{rows.map(record=><div className="wf-record-row" key={record.id} role="button" tabIndex={0} onClick={() => void openRecord(record)} onKeyDown={event=>{if(event.target===event.currentTarget && (event.key==='Enter'||event.key===' ')){event.preventDefault();void openRecord(record)}}}>{role==='admin' && <RecordCompanyLogo company={companyById.get(record.companyId)} />}<span><small>{record.protocol || '—'}{role==='admin' && companyId==='all' && groupBy!=='company' && <em className="v2-record-company-name">{companyMap.get(record.companyId) || ''}</em>}{role==='admin' && record.requiresAction && <b className="v2-record-action">Ação necessária</b>}</small><strong>{record.title}</strong>{record.summary && <small>{record.summary}</small>}</span>{role==='admin' && <span className="v2-record-author">{record.sourceActor==='client' ? <><strong>{(record.createdBy && authors[record.createdBy]) || 'Cliente'}</strong><small>Cliente</small></> : <><strong>{(record.createdBy && authors[record.createdBy]) || 'CALI'}</strong><small>{record.sourceActor==='calendar'?'CALI · pela agenda':record.sourceActor==='import'?'CALI · importado':'CALI'}</small></>}</span>}<span>{typeLabels[record.type]}</span><span>{formatDateTime(record.lastActivityAt || record.occurredAt)}<small className="wf-record-message-count"><MessageCircle size={12}/> {messageCounts[record.id] || 0} mensagens</small></span><span><span className={`wf-tag ${record.workflowStatus==='completed'?'green':record.workflowStatus==='waiting_client'?'yellow':record.workflowStatus==='cancelled'?'red':record.workflowStatus==='open'?'blue':'purple'}`}>{statusLabel(record.workflowStatus, role)}</span></span><button type="button" aria-label={`Abrir ${record.title}`} onClick={(event) => { event.stopPropagation(); void openRecord(record); }}><ChevronRight size={16}/></button></div>)}{!rows.length && <EmptyState variant="workflow"><strong>Nenhuma ocorrência neste recorte.</strong><p>{emptyCopy}</p></EmptyState>}</div>;
+    return <div className={`wf-records ${role==='admin'?'v2-admin-records-list tw:m-0! tw:rounded-none! tw:border-0! tw:shadow-none!':''}`}><div className={`wf-record-row header ${role === 'admin' ? `${adminRecordColumns} ${adminRecordDetail}` : ''}`}>{role==='admin' && <span/>}<span>Protocolo / Assunto</span>{role==='admin' && <span>Aberta por</span>}<span>Tipo</span><span>Última atualização</span><span>Situação</span><span/></div>{rows.map(record=><div className={`wf-record-row ${role === 'admin' ? adminRecordColumns : ''}`} key={record.id} role="button" tabIndex={0} onClick={() => void openRecord(record)} onKeyDown={event=>{if(event.target===event.currentTarget && (event.key==='Enter'||event.key===' ')){event.preventDefault();void openRecord(record)}}}>{role==='admin' && <RecordCompanyLogo company={companyById.get(record.companyId)} />}<span className={role === 'admin' ? 'tw:block!' : undefined}><small>{record.protocol || '—'}{role==='admin' && companyId==='all' && groupBy!=='company' && <em className="v2-record-company-name tw:ml-[.62rem] tw:inline-flex tw:items-center tw:rounded-[.38rem] tw:bg-[#f4e6d2] tw:px-[.54rem] tw:py-[.23rem] tw:align-middle tw:text-[.69rem] tw:font-bold tw:tracking-[.02em] tw:text-[#8a5a2b] tw:not-italic">{companyMap.get(record.companyId) || ''}</em>}{role==='admin' && record.requiresAction && <b className={`${actionBadgeClass} tw:ml-[.62rem]`}>Ação necessária</b>}</small><strong>{record.title}</strong>{record.summary && <small>{record.summary}</small>}</span>{role==='admin' && <span className={`v2-record-author tw:flex tw:min-w-0 tw:flex-col tw:gap-[.23rem] tw:[&>small]:text-[.69rem] tw:[&>small]:text-[#a18e80] tw:[&>strong]:block! tw:[&>strong]:truncate tw:[&>strong]:text-[.85rem] tw:[&>strong]:font-semibold tw:[&>strong]:text-[#322f2c] ${adminRecordDetail}`}>{record.sourceActor==='client' ? <><strong>{(record.createdBy && authors[record.createdBy]) || 'Cliente'}</strong><small>Cliente</small></> : <><strong>{(record.createdBy && authors[record.createdBy]) || 'CALI'}</strong><small>{record.sourceActor==='calendar'?'CALI · pela agenda':record.sourceActor==='import'?'CALI · importado':'CALI'}</small></>}</span>}<span className={role === 'admin' ? adminRecordDetail : undefined}>{typeLabels[record.type]}</span><span className={role === 'admin' ? adminRecordDetail : undefined}>{formatDateTime(record.lastActivityAt || record.occurredAt)}<small className="wf-record-message-count"><MessageCircle size={12}/> {messageCounts[record.id] || 0} mensagens</small></span><span className={role === 'admin' ? adminRecordDetail : undefined}><span className={`wf-tag ${record.workflowStatus==='completed'?'green':record.workflowStatus==='waiting_client'?'yellow':record.workflowStatus==='cancelled'?'red':record.workflowStatus==='open'?'blue':'purple'}`}>{statusLabel(record.workflowStatus, role)}</span></span><button type="button" aria-label={`Abrir ${record.title}`} onClick={(event) => { event.stopPropagation(); void openRecord(record); }}><ChevronRight size={16}/></button></div>)}{!rows.length && <EmptyState variant="workflow"><strong>Nenhuma ocorrência neste recorte.</strong><p>{emptyCopy}</p></EmptyState>}</div>;
   }
 
   return <RecordsFrame staff={Boolean(staff)} role={role}><div className={role==='client'?'v2-client-module':'ap-app v2-admin-page v2-admin-records v2-client-module'}><div className={role==='admin'?'ap-content':undefined} style={role==='admin'?undefined:{display:'contents'}}>
     <section className="wf">
       {role==='client' && <div className="wf-head"><div><small>ÁREA DA EMPRESA / CANAL COM A CALI</small><h1>Ocorrências</h1><p>Uma conversa por assunto, com decisões e histórico no mesmo lugar.</p></div><div className="v2-head-actions"><Button variant="workflowSecondary" type="button" onClick={() => { setError(''); setAccessOpen(true); }}><UserPlus size={15}/> Solicitar acesso</Button><Button variant="workflowPrimary" type="button" onClick={openNew}><Plus size={15}/> Nova ocorrência</Button></div></div>}
-      {role==='admin' && <div className="wf-head"><div><small>{staff ? 'EQUIPE CALI / OCORRÊNCIAS' : 'BACKOFFICE / CALI RH'}</small><h1>Ocorrências</h1><p>{staff ? 'Solicitações das empresas que você atende.' : 'Solicitações dos clientes e memória consultiva de cada conta, com histórico no mesmo lugar.'}</p></div>{!staff && <div className="v2-head-actions"><Button variant="workflowPrimary" type="button" onClick={openNew}><Plus size={15}/> Novo registro</Button></div>}</div>}
+      {role==='admin' && <div className="wf-head tw:items-start"><div><small>{staff ? 'EQUIPE CALI / OCORRÊNCIAS' : 'BACKOFFICE / CALI RH'}</small><h1>Ocorrências</h1><p>{staff ? 'Solicitações das empresas que você atende.' : 'Solicitações dos clientes e memória consultiva de cada conta, com histórico no mesmo lugar.'}</p></div>{!staff && <div className="v2-head-actions"><Button variant="workflowPrimary" type="button" onClick={openNew}><Plus size={15}/> Novo registro</Button></div>}</div>}
 
       {notice && <InlineNotice tone="success" className="v2-toast" role="status"><CheckCircle2 size={18} /><span>{notice}</span></InlineNotice>}
       {error && <InlineNotice><AlertTriangle size={18} />{error}</InlineNotice>}
@@ -600,13 +593,13 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
 
       <>
         <div className="wf-summary-inline"><span><strong>{records.length}</strong> {records.length===1?'registro':'registros'}</span><span><i className="wf-dot yellow"/>{records.filter(record=>record.workflowStatus==='waiting_client').length} {role==='admin'?'aguardando cliente':'aguardando você'}</span><span><i className="wf-dot purple"/>{records.filter(record=>record.workflowStatus==='open'||record.workflowStatus==='in_progress'||record.workflowStatus==='standby').length} em acompanhamento</span><span><i className="wf-dot green"/>{records.filter(record=>record.workflowStatus==='completed').length} {records.filter(record=>record.workflowStatus==='completed').length===1?'concluído':'concluídos'}</span></div>
-        {role==='admin' ? <div className="wf-controls v2-record-controls">
-          <FilterSelect className="v2-record-company" aria-label="Empresa" value={companyId} onChange={(event) => void changeCompany(event.target.value)}><option value="all">Todas as empresas</option>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</FilterSelect>
-          <FilterSelect aria-label="Situação" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as WorkflowStatus | 'all')}><option value="all">Todas as situações</option>{(Object.keys(workflowLabels) as WorkflowStatus[]).map((status) => <option value={status} key={status}>{statusLabel(status, role)}</option>)}</FilterSelect>
-          <FilterSelect aria-label="Tipo" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as RecordType | 'all')}><option value="all">Todos os tipos</option>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</FilterSelect>
-          <FilterSelect aria-label="Agrupar por" value={groupBy} onChange={(event) => setGroupBy(event.target.value as typeof groupBy)}><option value="status">Agrupar por situação</option><option value="company">Agrupar por empresa</option><option value="type">Agrupar por tipo</option><option value="none">Sem agrupamento</option></FilterSelect>
-          <button type="button" className={`v2-record-toggle ${actionOnly?'on':''}`} aria-pressed={actionOnly} onClick={() => setActionOnly((current) => !current)}><i className="wf-dot red"/>Só com ação necessária</button>
-          <label className="v2-record-search"><Search size={14} /><input aria-label="Buscar ocorrências" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar assunto, protocolo ou empresa" /></label>
+        {role==='admin' ? <div className="wf-controls v2-record-controls tw:flex tw:flex-nowrap! tw:items-center tw:gap-[.77rem] tw:[@media(max-width:1100px)]:flex-wrap!">
+          <FilterSelect className={`v2-record-company ${adminFilterClass} tw:max-w-none! tw:flex-[0_1_16.92rem]! tw:font-semibold`} aria-label="Empresa" value={companyId} onChange={(event) => void changeCompany(event.target.value)}><option value="all">Todas as empresas</option>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</FilterSelect>
+          <FilterSelect className={adminFilterClass} aria-label="Situação" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as WorkflowStatus | 'all')}><option value="all">Todas as situações</option>{(Object.keys(workflowLabels) as WorkflowStatus[]).map((status) => <option value={status} key={status}>{statusLabel(status, role)}</option>)}</FilterSelect>
+          <FilterSelect className={adminFilterClass} aria-label="Tipo" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as RecordType | 'all')}><option value="all">Todos os tipos</option>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</FilterSelect>
+          <FilterSelect className={adminFilterClass} aria-label="Agrupar por" value={groupBy} onChange={(event) => setGroupBy(event.target.value as typeof groupBy)}><option value="status">Agrupar por situação</option><option value="company">Agrupar por empresa</option><option value="type">Agrupar por tipo</option><option value="none">Sem agrupamento</option></FilterSelect>
+          <button type="button" className="v2-record-toggle tw:inline-flex tw:h-[2.77rem] tw:flex-none tw:items-center tw:gap-[.54rem] tw:whitespace-nowrap tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-white tw:px-[.92rem] tw:text-[.85rem] tw:font-semibold tw:text-[#67574c] tw:aria-pressed:border-[#b7495d] tw:aria-pressed:bg-[#fbe9ec] tw:aria-pressed:text-[#b7495d]" aria-pressed={actionOnly} onClick={() => setActionOnly((current) => !current)}><i className="wf-dot tw:bg-[#b7495d]"/>Só com ação necessária</button>
+          <label className="v2-record-search tw:ml-auto tw:flex tw:h-[2.77rem] tw:min-w-[12.31rem] tw:flex-[1_1_15.38rem] tw:items-center tw:gap-[.54rem] tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-white tw:px-[.85rem] tw:text-[#9a8c83] tw:[@media(max-width:1100px)]:ml-0"><Search size={14} /><input className="tw:min-w-0 tw:flex-1 tw:border-0 tw:bg-transparent tw:p-0 tw:text-[.85rem] tw:text-[#322f2c] tw:outline-none" aria-label="Buscar ocorrências" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar assunto, protocolo ou empresa" /></label>
         </div> : <div className="wf-controls">
           <div className="wf-segments">{clientSegments.map(([value,label])=><button type="button" key={value} className={statusFilter===value?'on':''} onClick={()=>setStatusFilter(value)}>{label}</button>)}</div>
           <div className="wf-control-right">
@@ -617,15 +610,15 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
         </div>}
       </>
 
-      {role==='admin' ? <div className="v2-record-groups">
-        {adminGroups.map((group) => { const open = groupOpen[group.key] ?? !group.closed; const limit = groupLimit[group.key] || 8; return <section className={`v2-record-group ${open?'open':''}`} key={group.key}>
-          <button type="button" className="v2-record-group-head" aria-expanded={open} onClick={() => setGroupOpen((current) => ({ ...current, [group.key]: !open }))}>
-            <span className="v2-record-group-chevron">{open ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}</span>
-            <span className="v2-record-group-title"><small>{group.kicker}</small><strong>{group.label}</strong></span>
-            <b className="v2-record-group-count">{group.rows.length}</b>
+      {role==='admin' ? <div className="v2-record-groups tw:mt-[1.23rem] tw:flex tw:flex-col tw:gap-[1.08rem]">
+        {adminGroups.map((group) => { const open = groupOpen[group.key] ?? !group.closed; const limit = groupLimit[group.key] || 8; return <section className="v2-record-group tw:overflow-hidden tw:rounded-[.77rem] tw:border tw:border-solid tw:border-[#e9dbd0] tw:bg-white" key={group.key}>
+          <button type="button" className="v2-record-group-head tw:flex tw:w-full tw:cursor-pointer tw:items-center tw:gap-[.92rem] tw:border-0 tw:bg-[#fffdfb] tw:px-[1.23rem] tw:py-4 tw:text-left tw:aria-expanded:border-b tw:aria-expanded:border-solid tw:aria-expanded:border-[#efe7df]" aria-expanded={open} onClick={() => setGroupOpen((current) => ({ ...current, [group.key]: !open }))}>
+            <span className="v2-record-group-chevron tw:grid tw:size-[1.85rem] tw:flex-none tw:place-items-center tw:rounded-[.46rem] tw:bg-[#f6f0eb] tw:text-cali-brand">{open ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}</span>
+            <span className="v2-record-group-title tw:mr-auto tw:flex tw:min-w-0 tw:flex-col tw:gap-[.23rem]"><small className="tw:text-[.69rem] tw:tracking-[.092rem] tw:text-[#ad8259]">{group.kicker}</small><strong className="tw:truncate tw:text-[1rem] tw:font-semibold tw:text-[#322f2c]">{group.label}</strong></span>
+            <b className="v2-record-group-count tw:min-w-[2.31rem] tw:flex-none tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e7d7c8] tw:bg-[#f2e9e2] tw:px-[.69rem] tw:py-[.38rem] tw:text-center tw:text-[.85rem] tw:text-[#6d404c]">{group.rows.length}</b>
           </button>
           {open && recordsTable(group.rows.slice(0, limit), '')}
-          {open && group.rows.length > limit && <button type="button" className="v2-record-more" onClick={() => setGroupLimit((current) => ({ ...current, [group.key]: limit + 20 }))}>Mostrar mais {Math.min(20, group.rows.length - limit)} de {group.rows.length - limit}</button>}
+          {open && group.rows.length > limit && <button type="button" className="v2-record-more tw:block tw:w-full tw:cursor-pointer tw:border-0 tw:border-t tw:border-solid tw:border-[#efe7df] tw:bg-[#fffdfb] tw:px-[1.23rem] tw:py-[.85rem] tw:text-[.85rem] tw:font-bold tw:text-cali-brand" onClick={() => setGroupLimit((current) => ({ ...current, [group.key]: limit + 20 }))}>Mostrar mais {Math.min(20, group.rows.length - limit)} de {group.rows.length - limit}</button>}
         </section>; })}
         {!adminGroups.length && <EmptyState variant="workflow"><strong>Nenhuma ocorrência neste recorte.</strong><p>Altere os filtros ou adicione um novo registro.</p></EmptyState>}
       </div> : <>
@@ -644,33 +637,55 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
 
     {conversationOpen && selected && <div className="wf-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setConversationOpen(false); }}>
       <DialogFrame className={`wf-record-drawer ${role==='admin'?'v2-admin-record-drawer':''}`} data-v2-operation="records-v13-drawer" as="aside" aria-label={selected.title}>
-        <header>
-          <div><small>{role==='admin'?'REGISTRO':'OCORRÊNCIA'}{selected.protocol ? ' · ' : ''}<span className="section-kicker">{selected.protocol || ''}</span></small><h2>{selected.title}</h2>{role==='admin' && <p>{companyMap.get(selected.companyId) || ''}</p>}</div>
+        <header className="tw:relative tw:z-7 tw:bg-white tw:px-[1.85rem]! tw:pt-[1.38rem]! tw:pb-[1.08rem]!">
+          <div className="tw:min-w-0 tw:flex-1"><small className={role === 'admin' && !staff ? 'tw:block tw:truncate tw:pr-[12.69rem]' : undefined}>{role==='admin'?'REGISTRO':'OCORRÊNCIA'}{selected.protocol ? ' · ' : ''}<span className="tw:inline tw:text-inherit tw:[font:inherit]">{selected.protocol || ''}</span></small><h2 className={role === 'admin' ? 'tw:mt-[1.69rem]!' : undefined}>{selected.title}</h2>{role==='admin' && <p className="tw:mt-[.46rem] tw:mb-0 tw:text-[.85rem] tw:text-[#857870]">{companyMap.get(selected.companyId) || ''}</p>}</div>
           {staff && selected.workflowStatus && !['completed', 'cancelled'].includes(selected.workflowStatus) && <button type="button" className={`v2-staff-record-timer ${staffTimer ? 'on' : ''}`} onClick={() => void staffToggleTimer()}>{staffTimer ? <><span aria-hidden="true">❚❚</span> Pausar · {(() => { const total = Math.max(0, Math.floor((Date.now() - new Date(staffTimer.startedAt).getTime()) / 1000)); return `${String(Math.floor(total / 3600)).padStart(2, '0')}:${String(Math.floor(total % 3600 / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`; })()}</> : <><span aria-hidden="true">▶</span> Iniciar</>}</button>}
-          <button type="button" className="drawer-close" aria-label="Fechar" onClick={() => setConversationOpen(false)}><X size={18} /></button>
+          <button ref={drawerClose} type="button" className="drawer-close tw:grid tw:size-[2.31rem] tw:flex-none tw:place-items-center tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#ece4dd] tw:bg-[#faf6f3] tw:p-0 tw:text-[#6b4d4a]" aria-label="Fechar" onClick={() => setConversationOpen(false)}><X size={18} /></button>
         </header>
-        <div className="wf-drawer-meta">
+        <div className="wf-drawer-meta tw:px-[1.85rem]! tw:py-[.77rem]!">
           {<><span className={`wf-tag ${selected.workflowStatus==='completed'?'green':selected.workflowStatus==='waiting_client'?'yellow':selected.workflowStatus==='cancelled'?'red':selected.workflowStatus==='open'?'blue':'purple'}`}>{statusLabel(selected.workflowStatus, role)}</span><span>{typeLabels[selected.type]}</span></>}
           <span>Atualizado {formatDateTime(selected.lastActivityAt || selected.occurredAt)}</span>
-          {selected.requiresAction && role === 'admin' && <b className="v2-record-action">Ação necessária</b>}
+          {selected.requiresAction && role === 'admin' && <b className={`${actionBadgeClass} tw:ml-[.62rem]`}>Ação necessária</b>}
         </div>
-        {role==='client'?<details className="wf-story wf-story-compact"><summary>Contexto inicial · ver detalhes</summary><section className="records-v25-ops" aria-label="Resumo do atendimento" /></details>:<section className="records-v25-ops" aria-label="Resumo do atendimento" />}
+        {role === 'client' ? (
+          <details className="wf-story wf-story-compact">
+            <summary>Contexto inicial · ver detalhes</summary>
+            <section className="tw:grid tw:gap-[.77rem] tw:border-0 tw:border-t tw:border-solid tw:border-cali-line tw:bg-[color-mix(in_srgb,var(--theme-surface)_96%,var(--theme-surface-soft))] tw:px-[1.54rem] tw:py-[.92rem]" aria-label="Resumo do atendimento">
+              <RecordOperations key={selected.id} actorId={user?.id} protocol={selected.protocol ?? ''} recordId={selected.id} role={role} onDeleted={() => {
+                setConversationOpen(false);
+                setSelected(null);
+                void loadContext(selected.companyId);
+              }} />
+            </section>
+          </details>
+        ) : (
+          <section className="tw:m-0 tw:block tw:border-0 tw:bg-transparent tw:p-0" aria-label="Resumo do atendimento">
+            {!staff && <>
+              <RecordOperations key={selected.id} actorId={user?.id} protocol={selected.protocol ?? ''} recordId={selected.id} role={role} />
+              <RecordClosureAdminSummary experience={closure} />
+            </>}
+          </section>
+        )}
 
-        {selected.workflowStatus ? <div className="wf-record-conversation" data-v2-operation="records-v13-conversation">
-          <h3 className="wf-thread-title">Conversa e encaminhamentos</h3>
-          {staff ? <div className="wf-thread v2-staff-thread" aria-live="polite">{messages.length ? messages.map((message) => { const mine = message.authorId === user?.id; const name = message.authorId ? authors[message.authorId] || (message.authorRole === 'client' ? 'Cliente' : 'CALI') : 'Sistema'; return <div key={message.id} className={`conversation-line records-chat-line role-${message.authorRole} ${mine ? 'mine' : 'other'} ${message.visibility === 'internal' ? 'internal-note' : ''}`}>{!mine && <span className="v2-chat-photo">{message.authorId && staffPhotos[message.authorId] ? <img src={staffPhotos[message.authorId]} alt="" /> : name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')}</span>}<div className="conversation-bubble records-chat-bubble"><div className="records-chat-head"><strong>{name}{message.visibility === 'internal' ? ' · nota interna' : ''}</strong><time>{formatDateTime(message.createdAt)}</time></div>{(() => { const files: { name: string; path: string; size: number }[] = []; const clean = message.body.replace(/\[\[arquivo\|([^|]+)\|([^|]+)\|([^|]+)\|(\d+)\]\]/g, (_all: string, n: string, filePath: string, _type: string, size: string) => { try { files.push({ name: decodeURIComponent(n), path: decodeURIComponent(filePath), size: Number(size || 0) }); } catch { files.push({ name: n, path: filePath, size: Number(size || 0) }); } return ''; }).trim(); return <>{clean && <p>{withMentions(clean)}</p>}{files.length > 0 && <div className="records-chat-attachments">{files.map((file) => <button key={file.path} type="button" className="records-chat-attachment" onClick={() => void staffOpenAttachment(file.path)}><span>📎</span><span><strong>{file.name}</strong><small>{file.size ? `${Math.max(1, Math.round(file.size / 1024))} KB` : 'arquivo'}</small></span></button>)}</div>}</>; })()}</div>{mine && <span className="v2-chat-photo">{message.authorId && staffPhotos[message.authorId] ? <img src={staffPhotos[message.authorId]} alt="" /> : name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('')}</span>}</div>; }) : <p className="v2-staff-thread-empty">Ainda não há mensagens nesta conversa.</p>}</div>
-          : <div className="wf-thread" data-v2-operation="conversation-history" aria-live="polite" />}
-          {!clientConversationLocked && !['completed', 'cancelled'].includes(selected.workflowStatus) && <div className="wf-compose" data-v2-operation="conversation-compose">
-            <div className={`wf-compose-label ${staff ? 'v2-staff-compose-head' : ''}`}><label htmlFor="wf-answer">{staff && staffInternal ? 'Nota interna para a Patricia' : role==='admin'?'Responder ao cliente':'Responder nesta ocorrência'}</label></div>
-            <div className="records-chat-runtime-pending-host" />
-            <div className="records-chat-runtime-tools-host" />
-            <textarea id="wf-answer" rows={3} value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder={staff && staffInternal ? 'Só a Patricia vê esta nota…' : role === 'admin' ? 'Responder ao cliente…' : 'Escreva sua mensagem para a CALI…'} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} />
-            {staff ? <div className="v2-staff-compose-actions"><span className="v2-staff-compose-mode" role="tablist" aria-label="Para quem"><button type="button" role="tab" aria-selected={!staffInternal} className={!staffInternal ? 'on' : ''} onClick={() => setStaffInternal(false)}>Cliente</button><button type="button" role="tab" aria-selected={staffInternal} className={staffInternal ? 'on' : ''} onClick={() => setStaffInternal(true)}>Interno</button></span><input ref={staffFileInput} type="file" hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.docx,.xlsx,.pptx" onChange={(event) => { setStaffFile(event.target.files?.[0] || null); event.target.value = ''; }} /><Button variant="secondary" className="v2-staff-attach" type="button" title={staffFile ? 'Clique para trocar o arquivo' : 'PDF, imagem, Word, Excel ou PowerPoint, até 10 MB'} onClick={() => staffFileInput.current?.click()}><Paperclip size={14} /><span>{staffFile ? staffFile.name : 'Anexar'}</span></Button><Button variant="primary" type="button" disabled={sendingMessage || (!messageDraft.trim() && !staffFile)} onClick={() => void sendMessage()}><Send size={14} />{sendingMessage ? 'Enviando…' : 'Enviar'}</Button></div>
-            : <Button variant="primary" type="button" disabled={sendingMessage || !messageDraft.trim()} onClick={() => void sendMessage()}><Send size={14} />{sendingMessage ? 'Enviando…' : 'Enviar'}</Button>}
-            {role === 'client' && <SensitiveDataNote />}
-          </div>}
-          {clientConversationLocked && <div className="records-v27-chat-locked">
-            <div><span>CONVERSA ENCERRADA</span><strong>{selected.workflowStatus === 'standby' ? 'Esta solicitação está em stand by.' : selected.workflowStatus === 'cancelled' ? 'Esta solicitação foi cancelada.' : 'Esta solicitação foi finalizada.'}</strong><p>O histórico continua disponível, mas novas mensagens só são liberadas depois que a CALI aprovar a reabertura. O tempo já consumido permanece contabilizado e não é devolvido ao saldo de horas.</p></div>
+        {selected.workflowStatus ? <div className="tw:flex tw:min-h-0 tw:flex-[1_1_auto] tw:flex-col" data-v2-operation="records-v13-conversation">
+          <h3 className="tw:mx-[1.85rem] tw:mt-[1.15rem] tw:mb-[.46rem] tw:flex-none tw:text-[.92rem] tw:font-bold tw:text-[#322f2c]">Conversa e encaminhamentos</h3>
+          <RecordConversation
+            key={selected.id}
+            recordId={selected.id}
+            companyId={selected.companyId}
+            actorId={user?.id}
+            role={role}
+            partner={Boolean(staff)}
+            authors={authors}
+            staffPhotos={staffPhotos}
+            locked={clientConversationLocked || ['completed', 'cancelled'].includes(selected.workflowStatus)}
+            onSent={(result, internal) => onMessageSent(selected, result, internal)}
+            onHistoryFocus={() => drawerClose.current?.focus()}
+          />
+          {role === 'client' && <RecordClosureClientHistory experience={closure} />}
+          {clientConversationLocked && <div className="tw:m-0 tw:flex tw:flex-none tw:flex-col tw:items-center tw:justify-between tw:gap-[.92rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#eee7e1] tw:bg-[color-mix(in_srgb,#b58c52_7%,var(--theme-surface))] tw:px-[1.85rem] tw:pt-[1.38rem] tw:pb-[1.54rem] tw:text-[.85rem] tw:text-[#655b57] tw:[@media(max-width:720px)]:items-stretch tw:[&>button]:min-h-[3.08rem] tw:[&>button]:flex-none tw:[&>button]:whitespace-nowrap tw:[@media(max-width:720px)]:[&>button]:w-full">
+            <div className="tw:grid tw:min-w-0 tw:gap-[.31rem]"><span className="tw:text-[.69rem] tw:font-bold tw:tracking-[.1rem] tw:text-[#a4836f]">CONVERSA ENCERRADA</span><strong className="tw:my-[.31rem] tw:block tw:text-[.92rem] tw:text-[#322f2c]">{selected.workflowStatus === 'standby' ? 'Esta solicitação está em stand by.' : selected.workflowStatus === 'cancelled' ? 'Esta solicitação foi cancelada.' : 'Esta solicitação foi finalizada.'}</strong><p className="tw:m-0 tw:max-w-[44.62rem] tw:text-[.81rem] tw:leading-[1.6] tw:text-cali-muted">O histórico continua disponível, mas novas mensagens só são liberadas depois que a CALI aprovar a reabertura. O tempo já consumido permanece contabilizado e não é devolvido ao saldo de horas.</p></div>
+            <RecordClosureClientActions experience={closure} />
           </div>}
         </div> : <div className="wf-memory-detail">
           <div><span>Contexto</span><p>{selected.summary || 'Sem resumo registrado.'}</p></div>
@@ -679,33 +694,34 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
           {selected.nextActions.length > 0 && <div><span>Próximas ações</span><ul>{selected.nextActions.map((item) => <li key={item}>{item}</li>)}</ul></div>}
         </div>}
 
-        {staff && selected.workflowStatus && <footer className="records-v13-drawer-actions v2-record-drawer-actions v2-staff-record-actions">
-          <div className="status-actions">
-            {selected.workflowStatus === 'open' && <Button variant="primary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Assumir</Button>}
-            {selected.workflowStatus === 'in_progress' && <><Button variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('waiting_client')}>Aguardar cliente</Button><Button variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('standby')}>Stand by</Button></>}
-            {selected.workflowStatus === 'waiting_client' && <><Button variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Retomar</Button><Button variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('standby')}>Stand by</Button></>}
-            {selected.workflowStatus === 'standby' && <Button variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Retomar</Button>}
-            {['in_progress', 'waiting_client', 'standby'].includes(selected.workflowStatus) && <Button variant="primary" disabled={statusSaving || closeRequested[selected.id]} onClick={() => void staffRequestClose()}>{closeRequested[selected.id] ? 'Aguardando a Patricia' : 'Enviar para aprovação da Patricia'}</Button>}
+        {staff && selected.workflowStatus && <footer className={recordDrawerFooter}>
+          <div className={recordDrawerActions}>
+            {selected.workflowStatus === 'open' && <Button className={recordDrawerPrimary} variant="primary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Assumir</Button>}
+            {selected.workflowStatus === 'in_progress' && <><Button className={recordDrawerButton} variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('waiting_client')}>Aguardar cliente</Button><Button className={recordDrawerButton} variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('standby')}>Stand by</Button></>}
+            {selected.workflowStatus === 'waiting_client' && <><Button className={recordDrawerButton} variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Retomar</Button><Button className={recordDrawerButton} variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('standby')}>Stand by</Button></>}
+            {selected.workflowStatus === 'standby' && <Button className={recordDrawerButton} variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Retomar</Button>}
+            {['in_progress', 'waiting_client', 'standby'].includes(selected.workflowStatus) && <Button className={recordDrawerPrimary} variant="primary" disabled={statusSaving || closeRequested[selected.id]} onClick={() => void staffRequestClose()}>{closeRequested[selected.id] ? 'Aguardando a Patricia' : 'Enviar para aprovação da Patricia'}</Button>}
             {['completed', 'cancelled'].includes(selected.workflowStatus) && <span className="v2-staff-closed-note">Ocorrência encerrada. Só a Patricia pode reabrir.</span>}
           </div>
         </footer>}
-        {role === 'admin' && !staff && <footer className="records-v13-drawer-actions v2-record-drawer-actions">
-          <div className="status-actions">
-            {selected.workflowStatus === 'open' && <Button variant="primary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Assumir</Button>}
-            {selected.workflowStatus === 'in_progress' && <><Button variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('waiting_client')}>Aguardar cliente</Button><Button variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('standby')}>Stand by</Button><Button variant="primary" disabled={statusSaving} onClick={() => void changeStatus('completed')}>Finalizar</Button></>}
-            {selected.workflowStatus === 'waiting_client' && <><Button variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Retomar</Button><Button variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('standby')}>Stand by</Button><Button variant="primary" disabled={statusSaving} onClick={() => void changeStatus('completed')}>Finalizar</Button></>}
-            {selected.workflowStatus === 'standby' && <Button variant="primary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>{reopenPending ? 'Aprovar reabertura' : 'Retomar'}</Button>}
-            {selected.workflowStatus && ['completed', 'cancelled'].includes(selected.workflowStatus) && <Button variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>{reopenPending ? 'Aprovar reabertura' : 'Reabrir'}</Button>}
+        {role === 'admin' && !staff && <footer className={recordDrawerFooter}>
+          <div className={recordDrawerActions}>
+            {selected.workflowStatus === 'open' && <Button className={recordDrawerPrimary} variant="primary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Assumir atendimento</Button>}
+            {selected.workflowStatus === 'in_progress' && <><Button className={recordDrawerButton} variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('waiting_client')}>Aguardar cliente</Button><Button className={recordDrawerButton} variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('standby')}>Stand by</Button><Button className={recordDrawerPrimary} variant="primary" disabled={statusSaving} onClick={() => void changeStatus('completed')}>Finalizar</Button></>}
+            {selected.workflowStatus === 'waiting_client' && <><Button className={recordDrawerButton} variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>Retomar</Button><Button className={recordDrawerButton} variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('standby')}>Stand by</Button><Button className={recordDrawerPrimary} variant="primary" disabled={statusSaving} onClick={() => void changeStatus('completed')}>Finalizar</Button></>}
+            {!closure.pendingReopen && selected.workflowStatus === 'standby' && <Button className={recordDrawerPrimary} variant="primary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>{reopenPending ? 'Aprovar reabertura' : 'Retomar'}</Button>}
+            {!closure.pendingReopen && selected.workflowStatus && ['completed', 'cancelled'].includes(selected.workflowStatus) && <Button className={recordDrawerButton} variant="secondary" disabled={statusSaving} onClick={() => void changeStatus('in_progress')}>{reopenPending ? 'Aprovar reabertura' : 'Reabrir'}</Button>}
           </div>
-          <div className="memory-actions">
-            <Button variant="secondary" type="button" onClick={() => { setConversationOpen(false); openEdit(selected); }}><Pencil size={14} />Enriquecer memória</Button>
-            {!selected.workflowStatus && <button className="danger-text" type="button" onClick={() => void remove(selected)}><Trash2 size={14} />Excluir</button>}
+          <div className={recordDrawerActions}>
+            <Button className={`${recordDrawerButton} tw:border-[#b58c5261]! tw:bg-[#b58c520f]! tw:text-[#8a6426]!`} variant="secondary" type="button" onClick={() => { setConversationOpen(false); openEdit(selected); }}><Pencil size={14} />Salvar na memória da conta</Button>
+            {!selected.workflowStatus && <button className={`${recordDrawerButton} tw:border-[#ecd0d5]! tw:text-[#b7495d]!`} type="button" onClick={() => void remove(selected)}><Trash2 size={14} />Excluir</button>}
           </div>
         </footer>}
+        {!staff && <RecordClosureDialogs experience={closure} />}
       </DialogFrame>
     </div>}
 
-    {editorOpen && <div className="wf-overlay"><DialogForm aria-label="Registrar ocorrência" className={`wf-modal wf-create ${role==='admin'?'v2-admin-record-form':''}`} onSubmit={save}>
+    {editorOpen && <div className="wf-overlay"><DialogForm aria-label="Registrar ocorrência" className={`wf-modal wf-create ${role==='admin'?'tw:w-[min(63.08rem,100%)]!':''}`} onSubmit={save}>
       {role === 'client' ? <>
         <div className="wf-modal-header"><span>NOVA OCORRÊNCIA</span><button type="button" onClick={() => setEditorOpen(false)} aria-label="Fechar"><X size={17} /></button></div>
         <h2>O que você precisa acompanhar?</h2>
@@ -716,12 +732,12 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
         <p>{editing ? 'Aqui entram interpretação, decisões e contexto para relatório. A conversa original permanece intacta.' : 'Registre um fato consultivo ou abra uma interação com o cliente.'}</p>
       </>}
       <div className="wf-form">
-        {role === 'admin' && <div className="wf-form-grid three">
+        {role === 'admin' && <div className={`wf-form-grid ${adminFormGrid}`}>
           <FieldLabel>Cliente<select value={form.companyId} onChange={(event) => setForm((current) => ({ ...current, companyId: event.target.value, projectId: '', eventId: '' }))}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></FieldLabel>
           <FieldLabel>Projeto<select value={form.projectId} onChange={(event) => setForm((current) => ({ ...current, projectId: event.target.value }))}><option value="">Sem projeto específico</option>{projects.filter((project) => project.companyId === form.companyId).map((project) => <option value={project.id} key={project.id}>{project.name}</option>)}</select></FieldLabel>
           <FieldLabel>Reunião do calendário<select value={form.eventId} onChange={(event) => selectEvent(event.target.value)}><option value="">Sem evento vinculado</option>{events.filter((item) => item.companyId === form.companyId).map((item) => <option value={item.id} key={item.id}>{formatDateTime(item.startsAt)} · {item.title}</option>)}</select></FieldLabel>
         </div>}
-        <div className={`wf-form-grid ${role === 'admin' ? 'three' : ''}`}>
+        <div className={`wf-form-grid ${role === 'admin' ? adminFormGrid : ''}`}>
           <FieldLabel>{role === 'client' ? 'Tipo de ocorrência' : 'Tipo'}<select value={form.type} onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as RecordType }))}>{allowedTypes.map((type) => <option value={type} key={type}>{typeLabels[type]}</option>)}</select></FieldLabel>
           <FieldLabel>Data e horário<input type="datetime-local" value={form.occurredAt} onChange={(event) => setForm((current) => ({ ...current, occurredAt: event.target.value }))} /></FieldLabel>
           {role === 'admin' && <FieldLabel>Impacto<select value={form.impactLevel} onChange={(event) => setForm((current) => ({ ...current, impactLevel: event.target.value as FormState['impactLevel'] }))}><option value="low">Baixo</option><option value="medium">Médio</option><option value="high">Alto</option><option value="critical">Crítico</option></select></FieldLabel>}
@@ -731,12 +747,12 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
         {role === 'admin' && <>
           <FieldLabel>Pessoas envolvidas<input value={form.participants} onChange={(event) => setForm((current) => ({ ...current, participants: event.target.value }))} placeholder="Nome ou e-mail, separados por vírgula" /></FieldLabel>
           <FieldLabel>Transcrição / notas completas<textarea rows={7} value={form.transcript} onChange={(event) => setForm((current) => ({ ...current, transcript: event.target.value }))} placeholder="Fonte completa para a leitura executiva, quando houver." /></FieldLabel>
-          <div className="wf-form-grid three">
+          <div className={`wf-form-grid ${adminFormGrid}`}>
             <FieldLabel>Decisões<textarea rows={4} value={form.decisions} onChange={(event) => setForm((current) => ({ ...current, decisions: event.target.value }))} placeholder="Uma decisão por linha" /></FieldLabel>
             <FieldLabel>Pontos de atenção<textarea rows={4} value={form.attentionPoints} onChange={(event) => setForm((current) => ({ ...current, attentionPoints: event.target.value }))} placeholder="Um ponto por linha" /></FieldLabel>
             <FieldLabel>Próximas ações<textarea rows={4} value={form.nextActions} onChange={(event) => setForm((current) => ({ ...current, nextActions: event.target.value }))} placeholder="Uma ação por linha" /></FieldLabel>
           </div>
-          <div className="v2-record-options">
+          <div className="tw:flex tw:flex-wrap tw:items-center tw:gap-x-[1.69rem] tw:gap-y-[.77rem] tw:rounded-[.69rem] tw:border tw:border-solid tw:border-[#efe7df] tw:bg-[#fffdfb] tw:px-[1.08rem] tw:py-[.92rem] tw:[&>label]:m-0 tw:[&>label]:inline-flex! tw:[&>label]:w-auto tw:[&>label]:flex-row! tw:[&>label]:items-center! tw:[&>label]:gap-[.62rem]! tw:[&>label]:text-[.85rem] tw:[&>label]:font-semibold tw:[&>label]:text-[#322f2c] tw:[&_input]:m-0 tw:[&_input]:size-[1.15rem]! tw:[&_input]:min-h-0! tw:[&_input]:flex-none tw:[&_input]:p-0! tw:[&_input]:accent-cali-brand">
             <label><input type="checkbox" checked={form.includeInReport} onChange={(event) => setForm((current) => ({ ...current, includeInReport: event.target.checked }))} /><span>Pode alimentar o relatório</span></label>
             <label><input type="checkbox" checked={form.requiresAction} onChange={(event) => setForm((current) => ({ ...current, requiresAction: event.target.checked }))} /><span>Exige acompanhamento</span></label>
             <label><input type="checkbox" checked={form.visibility === 'client'} onChange={(event) => setForm((current) => ({ ...current, visibility: event.target.checked ? 'client' : 'internal' }))} /><span>Compartilhar com o cliente</span></label>
@@ -754,7 +770,7 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
 function RecordCompanyLogo({ company }: { company?: Company }) {
   const [src, setSrc] = useState('');
   useEffect(() => { let active = true; setSrc(''); void resolveWorkspaceMedia(company?.logo || company?.logoFallback, 86400).then((value) => { if (active) setSrc(value || ''); }); return () => { active = false; }; }, [company?.logo, company?.logoFallback]);
-  return <span className="v2-record-logo" title={company?.name || ''}>{src ? <img src={src} alt={`Logo de ${company?.name || 'empresa'}`} onError={() => setSrc('')} /> : <span aria-hidden="true">{(company?.name || 'C').slice(0, 1)}</span>}</span>;
+  return <span className="v2-record-logo tw:grid tw:size-[2.62rem] tw:flex-none tw:place-items-center tw:overflow-hidden tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#eadfd6] tw:bg-white tw:text-[.92rem] tw:font-extrabold tw:text-cali-brand" title={company?.name || ''}>{src ? <img className="tw:size-full tw:object-contain" src={src} alt={`Logo de ${company?.name || 'empresa'}`} onError={() => setSrc('')} /> : <span aria-hidden="true">{(company?.name || 'C').slice(0, 1)}</span>}</span>;
 }
 
 export function AdminRecordsPage() { return <WorkspaceRecordsPage role="admin" />; }

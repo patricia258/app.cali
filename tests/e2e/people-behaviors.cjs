@@ -24,14 +24,33 @@ const cases = [
         const url = new URL(route.request().url());
         loads.push(Object.fromEntries(url.searchParams));
         return route.fulfill({ contentType: 'text/html', body: `<!doctype html><meta charset="utf-8">
-          <h1 style="margin-top:70px">Relatório de Mapa QA</h1><p id="status"></p>
+          <h1 style="margin-top:70px">Relatório de Mapa QA</h1><p id="status"></p><p id="auth"></p>
           <script>window.addEventListener('message', (event) => {
             if (event.data?.type === 'CALI_MAPA_PRINT_REQUEST') document.querySelector('#status').textContent = 'Impressão solicitada';
-          });</script>` });
+            if (event.data?.type === 'CALI_MAPA_AUTH_RESPONSE' && typeof event.data.access_token === 'string') {
+              document.querySelector('#auth').textContent = 'Sessão recebida';
+            }
+          }); window.parent.postMessage({ type: 'CALI_MAPA_AUTH_REQUEST' }, '*');</script>` });
       });
+      await context.route('https://mapa.calirh.com/qa-other-frame', (route) => route.fulfill({
+        contentType: 'text/html',
+        body: `<script>window.addEventListener('message', (event) => {
+          if (event.data?.type === 'CALI_MAPA_AUTH_RESPONSE') document.body.textContent = 'Sessão indevida';
+        }); window.parent.postMessage({ type: 'CALI_MAPA_AUTH_REQUEST' }, '*');</script><p>Outro quadro</p>`,
+      }));
       await page.goto(origin + '/admin/mapa-de-people/relatorio/qa-map');
       const frame = page.frameLocator('iframe[title="Mapa de People — Relatório oficial"]');
       await frame.getByRole('heading', { name: 'Relatório de Mapa QA' }).waitFor();
+      await frame.getByText('Sessão recebida').waitFor();
+      await page.evaluate(() => {
+        const other = document.createElement('iframe');
+        other.title = 'Outro quadro QA';
+        other.hidden = true;
+        other.src = 'https://mapa.calirh.com/qa-other-frame';
+        document.body.append(other);
+      });
+      const otherFrame = page.frameLocator('iframe[title="Outro quadro QA"]');
+      await otherFrame.getByText('Outro quadro').waitFor({ state: 'attached' });
       const print = page.getByRole('button', { name: 'Imprimir / Salvar PDF' });
       const refresh = page.getByRole('button', { name: 'Atualizar', exact: true });
       const original = page.getByRole('link', { name: 'Abrir original' });
@@ -44,8 +63,9 @@ const cases = [
       await snapshot('relatorio-mobile');
       await print.click();
       await frame.getByText('Impressão solicitada').waitFor();
+      assert.equal(await otherFrame.getByText('Sessão indevida').count(), 0);
       await refresh.click();
-      await frame.getByRole('heading', { name: 'Relatório de Mapa QA' }).waitFor();
+      await frame.getByText('Sessão recebida').waitFor();
       assert.deepEqual(loads, ['0', '1'].map((v) => ({ id: 'qa-map', workspace: '1', v })));
       await back.click();
       await page.waitForURL((url) => url.pathname === '/admin/mapa-de-people');

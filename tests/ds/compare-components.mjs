@@ -57,7 +57,7 @@ const scenarios = [
       await assertReachable(profile, 'Menu de perfil');
       await profile.click();
       await page.getByRole('menuitem', { name: /Minha conta|Ver meu perfil/ }).click();
-      return page.locator('.profile-modal').first();
+      return page.getByRole('dialog', { name: /Minha conta|Meu perfil/ }).or(page.locator('.profile-modal')).first();
     },
   },
   {
@@ -79,8 +79,8 @@ const scenarios = [
       ...tables.hour_entries[0], category: 'Outros', created_at: syntheticDate,
     }]),
     async open({ page }) {
-      await page.locator('.hours-connect-table button[data-hour-action="edit"]').click();
-      return page.locator('.operational-safety-card');
+      await page.locator(':is([data-hours-entries], .hours-connect-table) button[data-hour-action="edit"], :is([data-hours-entries], .hours-connect-table) button[aria-label="Editar lançamento"]').first().click();
+      return page.getByRole('dialog').filter({ has: page.getByRole('heading', { name: 'Editar lançamento de horas' }) }).or(page.locator('.operational-safety-card')).first();
     },
   },
   {

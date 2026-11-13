@@ -1,14 +1,22 @@
+import { ProjectSectionTabs } from '../../../components/projects/ProjectSectionTabs';
+import { DeliveryHistory } from '../../../components/projects/DeliveryHistory';
+import { ClientDeliverySteps } from './components/ClientDeliverySteps';
+import { DeliverySchedule } from '../../../components/projects/DeliverySchedule';
+import { ClientDeliveryFront } from './components/ClientDeliveryFront';
+import { ClientDeliveryRow } from './components/ClientDeliveryRow';
+import { EmptyState } from '../../../components/ds/EmptyState';
 import { Button } from '../../../components/ds/Button';
 import { DialogFrame } from '../../../components/ds/DialogFrame';
 import { FieldLabel } from '../../../components/ds/FieldLabel';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
-import { StatusBadge } from '../../../components/ds/StatusBadge';
 import { openPrivateWorkspaceFile } from '../../../api/files/workspace';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ClientSubtaskModal } from './components/ClientSubtaskModal';
+import { ClientProjectLifecycleBanner } from './components/ClientProjectLifecycleBanner';
+import { ClientScheduleReviewPanel } from './components/ClientScheduleReviewPanel';
 import { DeliverableDependencies } from '../../../components/projects/DeliverableDependencies';
 import { complexityMeta, complexityRange, complexityClientNote, validDeliverableFeedback } from '../../../domain/projects';
-import { AlertCircle, AlertTriangle, ArrowRight, Check, CheckCircle2, ChevronDown, ChevronRight, Clock3, FileCheck2, FileText, FolderKanban, History, Leaf, Loader2, MessageCircle, RefreshCw, Star, X } from 'lucide-react';
+import { AlertCircle, AlertTriangle, ArrowRight, CheckCircle2, Clock3, FileCheck2, FileText, Leaf, MessageCircle, RefreshCw, Star, X } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import {
   loadClientDeliveryReality, approveClientDeliveryReview, readClientDeliveryCompany, requestClientDeliveryAdjustment,
@@ -20,12 +28,7 @@ import {
   type ClientDeliveryWorkstream,
   type ClientPublishedDocument,
 } from '../../../api/projects/client-delivery';
-import {
-  loadClientDeliverableConversation,
-  sendClientDeliverableMessage,
-  subscribeClientDeliverableConversation,
-  type ClientDeliverableMessage,
-} from '../../../api/projects/client-conversation';
+import { DeliverableConversation } from '../../../components/projects/conversation/DeliverableConversation';
 import { isSupabaseConfigured } from '../../../api/access/session';
 
 type DetailTab = 'overview' | 'tasks' | 'conversation' | 'history';
@@ -42,13 +45,18 @@ const statusLabel: Record<ClientDeliveryStatus, string> = {
   cancelled: 'Cancelada',
 };
 
-const taskStatusLabel: Record<string, string> = {
-  todo: 'A fazer', not_started: 'Pendente', pending: 'Pendente', in_progress: 'Em andamento', doing: 'Em andamento',
-  done: 'Concluída', completed: 'Concluída', standby: 'Em espera', cancelled: 'Cancelada',
-};
-
 const complexityCopy: Record<string, string> = { MC1: complexityMeta.MC1.description, MC2: complexityMeta.MC2.description, MC3: complexityMeta.MC3.description };
 const complexityDays: Record<string, string> = { MC1: `Prazo estimado: ${complexityRange('MC1')}.`, MC2: `Prazo estimado: ${complexityRange('MC2')}.`, MC3: `Prazo estimado: ${complexityRange('MC3')}.` };
+
+function historyStatusLabel(status: string) {
+  return statusLabel[status as ClientDeliveryStatus] || status;
+}
+
+function historyTone(status: string) {
+  if (status === 'approved') return 'approved';
+  if (status === 'client_review' || status === 'adjustment_requested') return 'review';
+  return 'neutral';
+}
 
 function formatDate(value?: string | null) {
   if (!value) return 'A definir';
@@ -102,7 +110,6 @@ function deriveFronts(reality: ClientDeliveryReality, projectId: string): Client
 
 export function ClientDeliverablesPage() {
   const refreshTimer = useRef<number | null>(null);
-  const conversationRef = useRef<HTMLDivElement | null>(null);
   const detailActionTrigger = useRef<HTMLButtonElement | null>(null);
   const reviewTarget = useRef<{ id: string; revision: number; requestedAt: string | null } | null>(null);
 
@@ -115,9 +122,6 @@ export function ClientDeliverablesPage() {
   const [openSub, setOpenSub] = useState<{ task: ClientVisibleTask; item: ClientDeliveryItem } | null>(null);
   const [expandedFronts, setExpandedFronts] = useState<Record<string, boolean>>({});
   const [detailTab, setDetailTab] = useState<DetailTab>('overview');
-  const [messages, setMessages] = useState<ClientDeliverableMessage[]>([]);
-  const [messageDraft, setMessageDraft] = useState('');
-  const [sendingMessage, setSendingMessage] = useState(false);
   const [adjustmentOpen, setAdjustmentOpen] = useState(false);
   const [adjustmentText, setAdjustmentText] = useState('');
   const [npsOpen, setNpsOpen] = useState(false);
@@ -157,20 +161,6 @@ export function ClientDeliverablesPage() {
       refreshTimer.current = window.setTimeout(() => void refreshReality(), 180);
     });
   }, [companyId]);
-
-  useEffect(() => {
-    if (!selected) {
-      setMessages([]);
-      return;
-    }
-    void loadConversation(selected.id);
-    return subscribeClientDeliverableConversation(selected.id, () => void loadConversation(selected.id));
-  }, [selected?.id]);
-
-  useEffect(() => {
-    if (!conversationRef.current) return;
-    conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
-  }, [messages.length, detailTab]);
 
   useEffect(() => {
     document.body.classList.toggle('workspace-modal-open', Boolean(selected));
@@ -250,14 +240,6 @@ export function ClientDeliverablesPage() {
     }
   }
 
-  async function loadConversation(deliverableId: string) {
-    try {
-      setMessages(await loadClientDeliverableConversation(deliverableId));
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Não foi possível carregar a conversa desta entrega.');
-    }
-  }
-
   function openDeliverable(item: ClientDeliveryItem, tab: DetailTab = 'overview') {
     setAdjustmentOpen(false);
     setNpsOpen(false);
@@ -273,23 +255,6 @@ export function ClientDeliverablesPage() {
     reviewTarget.current = null;
     setSelectedId('');
     setDetailTab('overview');
-    setMessageDraft('');
-  }
-
-  async function sendMessage() {
-    if (!selected || !messageDraft.trim()) return;
-    const body = messageDraft.trim();
-    setSendingMessage(true);
-    setError('');
-    try {
-      await sendClientDeliverableMessage(selected.id, body);
-      await loadConversation(selected.id);
-      setMessageDraft('');
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Não foi possível enviar a mensagem.');
-    } finally {
-      setSendingMessage(false);
-    }
   }
 
   async function submitAdjustment() {
@@ -355,27 +320,74 @@ export function ClientDeliverablesPage() {
   if(loading)return <Shell role="client"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando cronograma…</section></Shell>;
 
   return <Shell role="client">
-    <section className="v2-client-module" data-v2-operation="client-roadmap-page-v33">
+    <section className="v2-client-module">
       <div className="v4-projects">
-        <div className="page-head" data-v2-operation="client-roadmap-heading-v33"><div><div className="eyebrow">ÁREA DA EMPRESA / EXECUÇÃO</div><h1>Projetos<span className="title-dot">.</span></h1><p>Execução, planejamento e acompanhamento da assessoria em um só lugar.</p></div></div>
-        {reality && project && <div className="dv-toolbar"><label data-v2-operation="client-project-picker-v33"><strong>Projeto · </strong><select aria-label="Projeto" value={project?.id || ''} onChange={(event) => { setProjectId(event.target.value); closeDeliverable(); }}>{reality.projects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><span>{project.protocol || reality.company.displayName}</span></div>}
+        <div className="page-head"><div><div className="eyebrow">ÁREA DA EMPRESA / EXECUÇÃO</div><h1>Projetos<span className="title-dot">.</span></h1><p>Execução, planejamento e acompanhamento da assessoria em um só lugar.</p></div></div>
+        {reality && <ClientProjectLifecycleBanner companyId={reality.company.id} projectId={project?.id ?? null} />}
+        {reality && project && <div className="tw:mt-[1.31rem] tw:mb-[1.08rem] tw:flex tw:min-w-0 tw:flex-wrap tw:items-center tw:justify-between tw:gap-[.92rem] tw:rounded-[.77rem] tw:border tw:border-solid tw:border-[#e9e0d8] tw:bg-white tw:px-[1.08rem] tw:py-[.77rem] tw:text-[.85rem] tw:text-[#8b7f77]">
+          <label className="tw:inline-flex tw:min-w-0 tw:max-w-full tw:items-center tw:gap-[.615rem] tw:text-[#3e3533]">
+            <strong className="tw:shrink-0">Projeto · </strong>
+            <select aria-label="Projeto" value={project.id}
+              className="tw:min-w-0 tw:rounded-[.538rem] tw:border tw:border-solid tw:border-[#e7ddd5] tw:bg-white tw:px-[.69rem] tw:py-[.538rem] tw:text-[.85rem] tw:font-semibold tw:text-cali-ink"
+              onChange={(event) => { setProjectId(event.target.value); closeDeliverable(); }}>
+              {reality.projects.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </select>
+          </label>
+          <span className="tw:text-[.77rem] tw:text-[#9a8273]">{project.protocol || reality.company.displayName}</span>
+        </div>}
         {notice && <InlineNotice tone="success"><CheckCircle2 size={18} />{notice}</InlineNotice>}
         {error && <InlineNotice><AlertTriangle size={18} />{error}</InlineNotice>}
-        {reality && project && <div data-v2-operation="client-roadmap-table-v33">
-          <div className="v2-project-tabs" role="tablist" aria-label="Seções do projeto">{([['timeline','Cronograma'],['deliverables','Entregáveis'],['history','Histórico']] as const).map(([id,label])=><button key={id} role="tab" aria-selected={projectTab===id} className={projectTab===id?'current':''} onClick={()=>setProjectTab(id)}>{label}</button>)}</div>
-          {projectDeliverables.some(item=>item.status==='client_review') && <div className="dv-next-action v2-project-attention"><AlertCircle size={16}/><div><strong>Há uma validação aguardando você</strong><p>{projectDeliverables.find(item=>item.status==='client_review')!.title} · sua análise define se seguimos para publicação ou para uma nova versão.</p></div><button type="button" onClick={()=>openDeliverable(projectDeliverables.find(item=>item.status==='client_review')!)}>Abrir entrega <ArrowRight size={13}/></button></div>}
-          {projectTab==='timeline' && (()=>{const dated=projectDeliverables.map(item=>item.dueAt?Date.parse(item.dueAt):NaN).filter(value=>!Number.isNaN(value));const start=Math.min(...dated),end=Math.max(...dated);const has=dated.length>0;const span=Math.max(86400000,end-start);const tone:Record<string,string>={approved:'green',client_review:'purple',internal_review:'purple',not_started:'red',adjustment_requested:'red',rebriefing:'red'};const tick=(value:number)=>new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short'}).format(new Date(value)).replace('.','');return <section className="wf-panel v2-project-timeline"><div className="v2-project-timeline-head"><small>CRONOGRAMA</small><h2>Prazos das entregas</h2><p>Cada entrega no ponto do período em que está prevista. Clique para abrir.</p></div>{projectDeliverables.length?<div className="ch-gantt" aria-label="Prazos e andamento das entregas"><div className="ch-gantt-header"><span>ENTREGA / STATUS</span><span>INÍCIO</span><span>MEIO</span><span>CONCLUSÃO</span></div><div className="ch-gantt-lanes">{[...projectDeliverables].sort((a,b)=>String(a.dueAt||'9').localeCompare(String(b.dueAt||'9'))).map(item=>{const due=item.dueAt?Date.parse(item.dueAt):NaN;const position=has&&!Number.isNaN(due)?Math.max(4,Math.min(84,(due-start)/span*100)):50;return <button type="button" className="ch-gantt-row" key={item.id} onClick={()=>openDeliverable(item)}><div className="ch-delivery-name"><strong>{item.title}</strong><small>{item.workstream||'Frente CALI'} · {statusLabel[item.status]}</small></div><div className="ch-gantt-track" aria-hidden="true">{!Number.isNaN(due)?<span className={`ch-milestone ${tone[item.status]||''}`} style={{left:`${position}%`}}>{formatDate(item.dueAt)}</span>:<span className="ch-undated">Prazo a definir</span>}</div></button>;})}</div>{has&&<div className="ch-gantt-foot" aria-hidden="true">{[start,start+span/2,end].map(value=><time key={value}>{tick(value)}</time>)}</div>}</div>:<p className="wf-empty">Quando a CALI abrir as primeiras entregas deste projeto, elas aparecerão aqui.</p>}</section>;})()}
-          {projectTab==='history' && (()=>{const events=projectDeliverables.flatMap(item=>item.history.map(entry=>({...entry,title:item.title}))).sort((a,b)=>Date.parse(b.createdAt)-Date.parse(a.createdAt));return <section className="wf-panel v2-project-timeline"><div className="dv-history-intro"><History size={19}/><div><strong>Histórico do projeto</strong><p>Mudanças de situação das entregas compartilhadas, da mais recente para a mais antiga.</p></div></div>{events.length?<div className="dv-history-list">{events.map(entry=><div className="dv-history-row" key={entry.id}><span className={'dv-history-dot '+(entry.toStatus==='approved'?'green':entry.toStatus==='client_review'||entry.toStatus==='adjustment_requested'?'gold':'neutral')}/><div><time>{formatDateTime(entry.createdAt)}</time><strong>{entry.title}</strong><p>{entry.fromStatus?`${statusLabel[entry.fromStatus as ClientDeliveryStatus]||entry.fromStatus} → ${statusLabel[entry.toStatus as ClientDeliveryStatus]||entry.toStatus}`:statusLabel[entry.toStatus as ClientDeliveryStatus]||entry.toStatus}</p></div></div>)}</div>:<p className="dv-history-footnote">Ainda não há movimentações registradas neste projeto.</p>}</section>;})()}
-          {projectTab==='deliverables' && <div className="dv"><header><div><small>ÁREA DA EMPRESA / PROJETOS</small><h1>Entregáveis</h1><p>Frentes contratadas, cronograma, arquivos e decisões em um só fluxo.</p></div></header>{fronts.length ? fronts.map((front,frontIndex)=>{
-            const items=projectDeliverables.filter(item=>item.workstreamId===front.id || item.workstream===front.name);
-            const expanded=expandedFronts[front.id]!==false;
-            return <section className="dv-project" key={front.id}><div className="dv-project-title"><button type="button" className="dv-front-title dv-front-toggle" aria-expanded={expanded} onClick={()=>setExpandedFronts(current=>({...current,[front.id]:!expanded}))}><span className="dv-front-logo"><span className={`v2-brand-mark ${frontIndex%2?'lime':'oak'}`} aria-hidden="true"/></span><span className="dv-front-text"><small>{front.protocol || project.protocol || 'FRENTE CALI'}</small><strong>{front.name}</strong><em>{front.objective || `Frente contratada · clique para ${expanded?'recolher':'visualizar'} entregáveis`}</em></span>{expanded?<ChevronDown size={15}/>:<ChevronRight size={15}/>}</button><div className="dv-months" style={{gridTemplateColumns:`repeat(${months.length},minmax(25px,1fr))`}}>{months.map(month=><span key={month} className={month>=(front.monthStart||1)&&month<=(front.monthEnd||front.monthStart||1)?'current':''}>M{month}</span>)}</div><span className="dv-count">{items.length} {items.length===1?'entregável':'entregáveis'}</span></div>{expanded && items.length > 0 && <div className="dv-row dv-head" aria-hidden="true"><span className="dv-square"/><span className="dv-title">Entregável</span><span className="dv-subcol">Subtarefas</span><span className="dv-mc">Complexidade</span><StatusBadge variant="delivery">Situação</StatusBadge><span className="dv-due">Prazo</span><span className="dv-subend"/></div>}{expanded && (items.length ? items.map(item=><button className="dv-row" key={item.id} onClick={() => openDeliverable(item)} aria-label={`Abrir ${item.title}`}><span className="dv-square">{item.isDocument?<FileText size={16}/>:<FolderKanban size={16}/>}</span><span className="dv-title"><strong>{item.title}</strong><small>{item.protocol || item.code || 'ENTREGÁVEL'}</small></span><span className="dv-subcol">{(item.visibleTasks || []).length > 0 ? <span role="button" tabIndex={0} className="dv-subbtn" aria-expanded={!closedSubs[item.id]} title={closedSubs[item.id] ? 'Mostrar subtarefas' : 'Recolher subtarefas'} onClick={(event) => { event.stopPropagation(); setClosedSubs((current) => ({ ...current, [item.id]: !current[item.id] })); }} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); setClosedSubs((current) => ({ ...current, [item.id]: !current[item.id] })); } }}>{closedSubs[item.id] ? <ChevronRight size={14} /> : <ChevronDown size={14} />}{item.visibleTasks.length} {item.visibleTasks.length === 1 ? 'subtarefa' : 'subtarefas'}</span> : '—'}</span><b className={`mc-chip dv-mc ${(item.complexity || 'MC1').toLowerCase()}`} data-tip={complexityCopy[item.complexity || 'MC1'] || ''}>{item.complexity || 'MC1'}</b><StatusBadge variant="delivery" className={`${item.status==='client_review'?'d0':item.status==='not_started'?'d2':''}`}>{statusLabel[item.status]}</StatusBadge><span className="dv-due">{formatDate(item.dueAt)}</span><ArrowRight size={15}/></button>).flatMap((row, index) => { const item = items[index]; const subs = item.visibleTasks || []; const closed = Boolean(closedSubs[item.id]); return [row,  ...(closed ? [] : subs).map((task) => <div className="dv-row dv-subrow" role="button" tabIndex={0} title="Abrir esta parte" key={`${item.id}:${task.id}`} onClick={() => setOpenSub({ task, item })} onKeyDown={(event) => {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault();
-    setOpenSub({ task, item });
-  }
-}}><span className="dv-subline" aria-hidden="true"/><span className="dv-title"><strong>{task.title}</strong><small>{task.protocol || 'SUBTAREFA'}</small></span><span className="dv-subcol"/>{task.complexity ? <b className={`mc-chip dv-mc ${task.complexity.toLowerCase()}`} data-tip={complexityCopy[task.complexity] || ''}>{task.complexity}</b> : <b className="dv-mc dv-mc-empty">—</b>}<StatusBadge variant="delivery" className={`${task.status === 'client_review' ? 'd0' : task.status === 'todo' ? 'd2' : ''}`}>{task.status === 'todo' ? 'Programada' : task.status === 'client_review' ? 'Aguardando você' : ['done', 'approved', 'completed'].includes(task.status) ? 'Concluída' : 'Em andamento'}</StatusBadge><span className="dv-due">{formatDate(task.dueAt)}</span><ArrowRight size={15}/></div>)]; }) : <p className="wf-empty">Nenhum entregável compartilhado nesta frente ainda.</p>)}</section>;
-          }):<p className="wf-empty">O cronograma ainda não possui frentes compartilhadas.</p>}</div>}
+        {reality && project && <ClientScheduleReviewPanel key={project.id} companyId={reality.company.id} project={project} refreshProject={refreshReality} />}
+        {reality && !project && <section className="tw:mt-2 tw:grid tw:gap-1.5 tw:rounded-2xl tw:border tw:border-dashed tw:border-cali-line tw:bg-cali-surface tw:p-6 tw:text-center">
+          <span className="tw:text-[.6875rem] tw:font-black tw:tracking-widest tw:text-cali-accent">NENHUM CRONOGRAMA COMPARTILHADO</span>
+          <h2 className="tw:m-0 tw:text-lg tw:font-bold">Não há projeto aguardando sua validação agora.</h2>
+          <p className="tw:m-0 tw:mx-auto tw:max-w-[42.5rem] tw:text-xs tw:leading-relaxed tw:text-cali-muted">Rascunhos internos da CALI não aparecem nesta área. Quando um cronograma estiver pronto para sua revisão, ele será disponibilizado aqui e você receberá uma notificação.</p>
+        </section>}
+        {reality && project && <div>
+          <ProjectSectionTabs label="Seções do projeto" tabs={[[ 'timeline', 'Cronograma' ], [ 'deliverables', 'Entregáveis' ], [ 'history', 'Histórico' ]]} value={projectTab} onChange={setProjectTab} />
+          {projectDeliverables.some(item=>item.status==='client_review') && <div className="dv-next-action v2-project-attention tw:mb-[1.23rem]"><AlertCircle size={16}/><div><strong>Há uma validação aguardando você</strong><p>{projectDeliverables.find(item=>item.status==='client_review')!.title} · sua análise define se seguimos para publicação ou para uma nova versão.</p></div><button type="button" onClick={()=>openDeliverable(projectDeliverables.find(item=>item.status==='client_review')!)}>Abrir entrega <ArrowRight size={13}/></button></div>}
+          {projectTab === 'timeline' && <DeliverySchedule items={projectDeliverables} labels={statusLabel} onOpen={openDeliverable} empty={<p className="wf-empty">Quando a CALI abrir as primeiras entregas deste projeto, elas aparecerão aqui.</p>} />}
+          {projectTab === 'history' && <section className="wf-panel v2-project-timeline tw:min-w-0 tw:overflow-hidden tw:rounded-[.77rem] tw:border tw:border-solid tw:border-[#e9dbd0] tw:bg-white tw:p-[1.77rem]">
+            <DeliveryHistory
+              title="Histórico do projeto"
+              description="Mudanças de situação das entregas compartilhadas, da mais recente para a mais antiga."
+              emptyMessage="Ainda não há movimentações registradas neste projeto."
+              entries={projectDeliverables.flatMap((item) => item.history.map((entry) => ({ ...entry, title: item.title })))
+                .sort((first, second) => Date.parse(second.createdAt) - Date.parse(first.createdAt))
+                .map((entry) => ({
+                  id: entry.id,
+                  title: entry.title,
+                  date: formatDateTime(entry.createdAt),
+                  description: entry.fromStatus
+                    ? `${historyStatusLabel(entry.fromStatus)} → ${historyStatusLabel(entry.toStatus)}`
+                    : historyStatusLabel(entry.toStatus),
+                  tone: historyTone(entry.toStatus),
+                }))}
+            />
+          </section>}
+          {projectTab === 'deliverables' && <section>
+            <header className="tw:mb-[1.54rem]">
+              <small className="tw:text-[.77rem] tw:tracking-[.092rem] tw:text-[#af8f72]">ÁREA DA EMPRESA / PROJETOS</small>
+              <h1 className="tw:my-[.462rem] tw:text-[2.154rem]">Entregáveis</h1>
+              <p className="tw:text-[.923rem] tw:text-[#93857e]">Frentes contratadas, cronograma, arquivos e decisões em um só fluxo.</p>
+            </header>
+            <div className="tw:grid tw:gap-[1.08rem]">
+              {fronts.length ? fronts.map((front, index) => {
+                const items = projectDeliverables.filter((item) => item.workstreamId === front.id || item.workstream === front.name);
+                const expanded = expandedFronts[front.id] !== false;
+                return <ClientDeliveryFront key={front.id} front={front} protocol={project.protocol}
+                  months={months} count={items.length} expanded={expanded} useLimeMark={index % 2 !== 0}
+                  onToggle={() => setExpandedFronts((current) => ({ ...current, [front.id]: !expanded }))}>
+                  {expanded && items.map((item) => <ClientDeliveryRow key={item.id} item={item}
+                    statusLabel={statusLabel[item.status]} subtasksExpanded={!closedSubs[item.id]}
+                    formatDate={formatDate} onOpen={() => openDeliverable(item)}
+                    onToggleSubtasks={() => setClosedSubs((current) => ({ ...current, [item.id]: !current[item.id] }))}
+                    onOpenSubtask={(task) => setOpenSub({ task, item })}
+                  />)}
+                </ClientDeliveryFront>;
+              }) : <EmptyState as="p" variant="workflow">O cronograma ainda não possui frentes compartilhadas.</EmptyState>}
+            </div>
+          </section>}
         </div>}
       </div>
     </section>
@@ -384,14 +396,15 @@ export function ClientDeliverablesPage() {
       <DialogFrame className="dv-modal" aria-label={selected.title} data-v2-operation="deliverable-workspace-modal-v2">
         <header data-v2-operation="deliverable-workspace-header-v2">
           <div data-v2-operation="deliverable-title-v2"><small><span className="section-kicker">{selected.protocol || selected.code || 'ENTREGÁVEL'}</span> · {selected.complexity || 'MC1'}</small><h2>{selected.title}</h2><p>{selected.workstream || 'Frente CALI'} · {roadmapLabel(selected)}</p></div>
-          <button aria-label="Fechar entrega" onClick={closeDeliverable}><X size={18} /></button>
+          <button type="button" aria-label="Fechar entrega" data-dialog-close onClick={closeDeliverable}><X size={18} /></button>
         </header>
 
         <nav aria-label="Detalhes da entrega">{(['overview', 'conversation', 'history'] satisfies DetailTab[]).map((tab: DetailTab) => <button key={tab} className={detailTab === tab ? 'selected' : ''} onClick={() => setDetailTab(tab)}>{tab === 'overview' ? 'Visão geral' : tab === 'tasks' ? 'Etapas' : tab === 'conversation' ? 'Conversas' : 'Histórico'}</button>)}</nav>
 
-        {/* Os runtimes da conversa procuram a lista e o campo de resposta dentro de "conversation-pane-v2"; este invólucro (display: contents) reúne a área rolável e o campo fixo sem alterar a composição aprovada. */}
-        <div className="dv-pane" data-v2-operation="conversation-pane-v2">
-        <div className="dv-modal-content">
+        <DeliverableConversation
+          key={selected.id} role="client" companyId={companyId} deliverableId={selected.id} active={detailTab === 'conversation'}
+        />
+        {detailTab !== 'conversation' && <div className="dv-modal-content">
           {detailTab === 'overview' && <>
             <div className="dv-summary">
               <span><Clock3 size={14} /> Prazo <b>{formatDate(selected.dueAt)}</b></span>
@@ -407,34 +420,29 @@ export function ClientDeliverablesPage() {
             {selected.status === 'adjustment_requested' && <div className="dv-next-action"><AlertCircle size={16} /><div><strong>Seu ajuste está com a CALI</strong><p>{selected.latestAdjustment?.reason || 'A nova versão voltará para sua validação assim que estiver pronta.'}</p></div></div>}
           </>}
 
-          {detailTab === 'tasks' && (() => { const done = selected.visibleTasks.filter((task) => ['done', 'completed'].includes(task.status)); const total = selected.visibleTasks.length; const current = selected.visibleTasks.find((task) => !['done', 'completed'].includes(task.status)); const percent = total ? Math.round(done.length / total * 100) : 0; return <>
-            <div className="dv-progress-head"><div><small>ANDAMENTO DA ENTREGA</small><h3>{total ? `${done.length} de ${total} ${total === 1 ? 'etapa concluída' : 'etapas concluídas'}` : 'Nenhuma etapa compartilhada'}</h3><p>{current ? `Etapa atual: ${current.title}` : total ? 'Todas as etapas compartilhadas foram concluídas.' : 'Aqui aparecem as etapas que a CALI define como visíveis para você.'}</p></div><b>{total ? `${percent}%` : '—'}</b></div>
-            <div className="dv-progress-track"><span style={{ width: `${percent}%` }} /></div>
-            {total > 0 && <div className="dv-steps">{selected.visibleTasks.map((task, index) => { const isDone = ['done', 'completed'].includes(task.status); const isCurrent = task.id === current?.id; return <div className={'dv-step ' + (isCurrent ? 'current' : '')} key={task.id}><span className={'dv-step-mark ' + (isDone ? 'done' : '')}>{isDone ? <Check size={15} /> : String(index + 1).padStart(2, '0')}</span><div><strong>{task.title}</strong><p>{[task.protocol, task.dueAt ? `prazo ${formatDate(task.dueAt)}` : ''].filter(Boolean).join(' · ') || 'Etapa compartilhada pela CALI'}</p></div><span className={'dv-step-state ' + (isCurrent ? 'attention' : '')}>{taskStatusLabel[task.status] || task.status}</span></div>; })}</div>}
+          {detailTab === 'tasks' && <>
+            <ClientDeliverySteps tasks={selected.visibleTasks} formatDate={formatDate} />
             <div className="dv-next-action"><AlertCircle size={16} /><div><strong>Próxima ação</strong><p>{selected.status === 'client_review' ? 'Revisar a entrega e registrar sua devolutiva: aprovar, pedir ajuste ou conversar.' : 'Acompanhar o andamento e conversar com a CALI se precisar.'}</p></div><button type="button" onClick={() => setDetailTab('conversation')}>Conversar <ArrowRight size={13} /></button></div>
-          </>; })()}
-
-          {detailTab === 'conversation' && <section className="dv-conversation">
-            <div className="dv-chat workspace-chat-list" data-v2-operation="conversation-list-v2" ref={conversationRef} aria-live="polite" />
-          </section>}
+          </>}
 
           {detailTab === 'history' && <>
-            <div className="dv-history-intro"><History size={19} /><div><strong>Histórico da entrega</strong><p>Registro cronológico de mudanças de situação, validações e decisões — diferente das mensagens da conversa.</p></div></div>
-            {selected.history.length ? <div className="dv-history-list">{selected.history.map((item) => <div className="dv-history-row" key={item.id}><span className={'dv-history-dot ' + (item.toStatus === 'approved' ? 'green' : item.toStatus === 'client_review' || item.toStatus === 'adjustment_requested' ? 'gold' : 'neutral')} /><div><time>{formatDateTime(item.createdAt)}</time><strong>{statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}</strong><p>{item.fromStatus ? `${statusLabel[item.fromStatus as ClientDeliveryStatus] || item.fromStatus} → ${statusLabel[item.toStatus as ClientDeliveryStatus] || item.toStatus}` : 'Situação registrada.'}</p></div></div>)}</div> : <p className="dv-history-footnote">Ainda não há movimentações registradas para esta entrega.</p>}
+            <DeliveryHistory
+              title="Histórico da entrega"
+              description="Registro cronológico de mudanças de situação, validações e decisões — diferente das mensagens da conversa."
+              emptyMessage="Ainda não há movimentações registradas para esta entrega."
+              entries={selected.history.map((item) => ({
+                id: item.id,
+                date: formatDateTime(item.createdAt),
+                title: historyStatusLabel(item.toStatus),
+                description: item.fromStatus ? `${historyStatusLabel(item.fromStatus)} → ${historyStatusLabel(item.toStatus)}` : 'Situação registrada.',
+                tone: historyTone(item.toStatus),
+              }))}
+            />
             {selected.feedbackHistory?.map((feedback) => <div className="dv-file" key={feedback.id || feedback.createdAt}><Star size={20} /><div><strong>{feedback.reviewRevision ? `Revisão ${feedback.reviewRevision} · ` : ''}Sua avaliação: {feedback.score}/5</strong><small>{formatDateTime(feedback.createdAt)}{feedback.comment ? ` · ${feedback.comment}` : ''}</small></div></div>)}
           </>}
-        </div>
-
-        {detailTab === 'conversation' && <div className="dv-reply dv-reply-fixed workspace-chat-compose" data-v2-operation="conversation-composer-v2">
-          <div className="workspace-chat-runtime-pending-host" />
-          <div className="workspace-chat-runtime-tools-host" />
-          <textarea value={messageDraft} onChange={(event) => setMessageDraft(event.target.value)} placeholder="Escreva sua mensagem sobre esta entrega..." onKeyDown={(event) => { if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void sendMessage(); }} />
-          <div className="workspace-chat-send-actions"><Button variant="primary" onClick={() => void sendMessage()} disabled={sendingMessage || !messageDraft.trim()}>{sendingMessage ? <Loader2 className="spin" size={14} /> : null}Enviar <ArrowRight size={14} /></Button></div>
         </div>}
 
-        </div>
-
-        <footer className="dv-actions">
+        <footer className="dv-actions tw:shrink-0">
           <span>{statusLabel[selected.status]}{selected.updatedAt ? ` · atualizado em ${formatDateTime(selected.updatedAt)}` : ''}</span>
           <div className="dv-action-buttons">
             {selected.status === 'client_review' && <>
@@ -462,7 +470,7 @@ export function ClientDeliverablesPage() {
 
     {adjustmentOpen && selected && <div className="v2-client-module v2-client-dialog">
       <div className="wf-overlay">
-        <DialogFrame className="wf-modal wf-create" aria-labelledby="client-deliverable-adjustment-title" onKeyDown={(event) => {
+        <DialogFrame className="wf-modal wf-create tw:relative" aria-labelledby="client-deliverable-adjustment-title" onKeyDown={(event) => {
           if (event.key !== 'Escape') return;
           event.stopPropagation();
           setAdjustmentOpen(false);
@@ -471,7 +479,7 @@ export function ClientDeliverablesPage() {
           <span className="section-kicker">SOLICITAR AJUSTE</span>
           <h2 id="client-deliverable-adjustment-title">O que precisa ser revisto?</h2>
           <p>Descreva o ponto que precisa mudar. O pedido fica vinculado a <strong>{selected.protocol || selected.title}</strong>.</p>
-          <textarea value={adjustmentText} onChange={(event) => setAdjustmentText(event.target.value)} placeholder="Ex.: precisamos separar este indicador por unidade antes da validação final." rows={5} maxLength={2000} autoFocus />
+          <textarea className="tw:box-border tw:w-full tw:resize-y tw:rounded-xl tw:border tw:border-solid tw:border-cali-input-line tw:bg-cali-input tw:px-4 tw:py-3 tw:font-[inherit]" aria-label="Descreva o ajuste" value={adjustmentText} onChange={(event) => setAdjustmentText(event.target.value)} placeholder="Ex.: precisamos separar este indicador por unidade antes da validação final." rows={5} maxLength={2000} autoFocus />
           {reviewErrorNotice}
           <div className="v2-dialog-actions">
             <Button type="button" variant="secondary" onClick={() => setAdjustmentOpen(false)}>Cancelar</Button>
@@ -483,7 +491,7 @@ export function ClientDeliverablesPage() {
 
     {npsOpen && selected && <div className="v2-client-module v2-client-dialog">
       <div className="wf-overlay">
-        <DialogFrame className="wf-modal wf-create v2-rating" aria-labelledby="client-deliverable-rating-title">
+        <DialogFrame className="wf-modal wf-create v2-rating tw:relative" aria-labelledby="client-deliverable-rating-title">
           <Button variant="close" type="button" aria-label="Fechar avaliação" autoFocus onClick={() => setNpsOpen(false)}><X size={20} /></Button>
           <span className="section-kicker">APROVAÇÃO DA ENTREGA</span>
           <h2 id="client-deliverable-rating-title">Como foi esta entrega?</h2>

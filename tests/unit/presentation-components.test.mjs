@@ -3,10 +3,11 @@ import { test } from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { LegalDocument } from '../../src/components/legal/LegalDocument.tsx';
-import { CapacityBar, CapacityCard } from '../../src/components/hours/CapacityBar.tsx';
+import { CapacityBar } from '../../src/components/hours/CapacityBar.tsx';
+import { CapacityCard } from '../../src/components/hours/CapacityCard.tsx';
 import { DocumentAutoCover } from '../../src/components/documents/DocumentAutoCover.tsx';
 import { SensitiveDataNote } from '../../src/components/privacy/SensitiveDataNote.tsx';
-import { ReportManualComplementsPanel } from '../../src/components/reports/ReportManualComplementsPanel.tsx';
+import { ReportManualComplementsPanel } from '../../src/modules/admin/reports/components/ReportManualComplementsPanel.tsx';
 import { normalizeIntelligenceSnapshot } from '../../src/lib/reportIntelligence.ts';
 import { capacityOf } from '../../src/lib/capacity.ts';
 import { workspaceHttp } from './helpers/workspace-http.mjs';
@@ -21,16 +22,16 @@ test('LegalDocument preserva headings, lista, tabela e escapa texto HTML', () =>
     '| Item | Prazo |', '| --- | --- |', '| Protocolo | **30 dias** |',
   ].join('\n');
   const markup = render(LegalDocument, { source, idPrefix: 'qa' });
-  assert.match(markup, /<h2>Termos<\/h2><h3>Dados<\/h3><h4>Retenção<\/h4>/);
-  assert.match(markup, /<strong>30 dias<\/strong>\. &lt;script&gt;/);
-  assert.match(markup, /<ul><li>Solicitar pelo Workspace<\/li><\/ul><ol><li>Confirmar recebimento<\/li><\/ol>/);
-  assert.match(markup, /<th>Item<\/th><th>Prazo<\/th>.*<td>Protocolo<\/td><td><strong>30 dias<\/strong><\/td>/);
+  assert.match(markup, /<h2(?: [^>]+)?>Termos<\/h2><h3(?: [^>]+)?>Dados<\/h3><h4(?: [^>]+)?>Retenção<\/h4>/);
+  assert.match(markup, /<strong(?: [^>]+)?>30 dias<\/strong>\. &lt;script&gt;/);
+  assert.match(markup, /<ul(?: [^>]+)?><li(?: [^>]+)?>Solicitar pelo Workspace<\/li><\/ul><ol(?: [^>]+)?><li(?: [^>]+)?>Confirmar recebimento<\/li><\/ol>/);
+  assert.match(markup, /<th(?: [^>]+)?>Item<\/th><th(?: [^>]+)?>Prazo<\/th>.*<td(?: [^>]+)?>Protocolo<\/td><td(?: [^>]+)?><strong(?: [^>]+)?>30 dias<\/strong><\/td>/);
 });
 
 test('LegalDocument ignora separador de tabela isolado e mantém o restante do documento', () => {
   const markup = render(LegalDocument, { source: '# Termos\n\n| --- | --- |\n\nTexto válido', idPrefix: 'qa' });
-  assert.match(markup, /<h2>Termos<\/h2><p>Texto válido<\/p>/);
-  assert.doesNotMatch(markup, /<table>/);
+  assert.match(markup, /<h2(?: [^>]+)?>Termos<\/h2><p(?: [^>]+)?>Texto válido<\/p>/);
+  assert.doesNotMatch(markup, /<table(?: [^>]+)?>/);
 });
 
 test('CapacityBar limita a escala e anuncia o excedente real por texto acessível', () => {
@@ -41,10 +42,10 @@ test('CapacityBar limita a escala e anuncia o excedente real por texto acessíve
 });
 
 test('CapacityCard apresenta ausência de contrato e pausa sem cobrança automática', () => {
-  const noContract = render(CapacityCard, { capacity: capacityOf(null, 90), month: 'novembro' });
+  const noContract = render(CapacityCard, { capacity: capacityOf(null, 90) });
   assert.match(noContract, /Capacidade mensal ainda não definida/);
   assert.doesNotMatch(noContract, /role="progressbar"/);
-  const paused = render(CapacityCard, { capacity: capacityOf(10, 735), month: 'novembro', occurrence: 3, paused: true });
+  const paused = render(CapacityCard, { capacity: capacityOf(10, 735), occurrence: 3, paused: true });
   assert.match(paused, /Atividades pausadas até a renovação do mês/);
   assert.match(paused, /terceira ocorrência/);
   assert.match(paused, /Não há cobrança adicional ou alteração automática de contrato/);
@@ -52,7 +53,9 @@ test('CapacityCard apresenta ausência de contrato e pausa sem cobrança automá
 
 test('DocumentAutoCover preserva logo e texto alternativo da empresa', () => {
   const markup = render(DocumentAutoCover, { logo: '/logos/qa.png', name: 'CALI & QA' });
-  assert.match(markup, /<img src="\/logos\/qa\.png" alt="Logo de CALI &amp; QA"\/>/);
+  const image = markup.match(/<img\b[^>]*\/>/)?.[0] ?? '';
+  assert.match(image, /\bsrc="\/logos\/qa\.png"/);
+  assert.match(image, /\balt="Logo de CALI &amp; QA"/);
 });
 
 test('SensitiveDataNote orienta sobre documentos clínicos com ícone decorativo', () => {

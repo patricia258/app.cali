@@ -1,16 +1,33 @@
+import { ReportPeriodChanges } from './components/ReportPeriodChanges';
+import { ReportReviewChecklist } from './components/ReportReviewChecklist';
+import { ReportEditorWorkspace } from './components/ReportEditorWorkspace';
+import { ReportReviewOverview } from './components/ReportReviewOverview';
+import { ReportEditorToolbar } from './components/ReportEditorToolbar';
+import { CorrectDeliveredReportDialog } from './components/CorrectDeliveredReportDialog';
+import { useOpenReportRevision } from './hooks/useOpenReportRevision';
+import { useWithdrawableReports } from './hooks/useWithdrawableReports';
+import type { WithdrawableReport } from '../../../api/reports/withdrawal';
+import { ReportClientHistory } from './components/ReportClientHistory';
+import { ReportVersionHistory } from './components/ReportVersionHistory';
+import { ReportSectionHeading } from './components/ReportSectionHeading';
+import { ReportReviewSection } from './components/ReportReviewSection';
+import { ReportReviewAlerts } from './components/ReportReviewAlerts';
+import { ReportWorkflowConfirmation, type ReportWorkflowAction } from './components/ReportWorkflowConfirmation';
+import { useOfficialTrackedReport } from './hooks/useOfficialTrackedReport';
+import { useMarkLegacyReportSimulation } from './hooks/useMarkLegacyReportSimulation';
 import { isJsonObject, type JsonValue } from '../../../domain/json';
 import { confirmAction } from '../../../components/feedback/workspaceDialogs';
 import { Button } from '../../../components/ds/Button';
 import { DialogFrame } from '../../../components/ds/DialogFrame';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
-import { useSearchParams } from '../../../hooks/useSearchParams';
+import { useAdminReportDeepLink } from './hooks/useAdminReportDeepLink';
 import { AdminMaterialReview } from '../../material-review/AdminMaterialReview';
 import { useMaterialDeliveryConfirmation } from '../../../hooks/useMaterialDeliveryConfirmation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Eye, FileText, Loader2, Mail, Printer, RefreshCw, RotateCcw, Send, Trash2, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Eye, FileText, Loader2, Mail, Printer, RefreshCw, RotateCcw, Send, X } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { WorkspaceExecutiveReportPaper } from '../../../components/reports/WorkspaceExecutiveReportPaper';
-import { ReportManualComplementsPanel } from '../../../components/reports/ReportManualComplementsPanel';
+import { ReportManualComplementsPanel } from './components/ReportManualComplementsPanel';
 import {
   approveExecutiveReport, createReportDraft, deleteReportDraft, deliverExecutiveReport, readCurrentReportPeriod,
   readFreshReportPeriod, readReportPortfolio, readReportReadiness, readReportRecipients, refreshReportFacts,
@@ -52,6 +69,9 @@ type Report = {
   approvedAt?: string | null;
   sentAt?: string | null;
   sentTo: string[];
+  clientOpenCount: number;
+  acknowledgedAt?: string | null;
+  workflowMode?: 'official' | 'simulation';
 };
 const emptyEditor: ReportEditor = { summary: '', movements: '', decisions: '', risks: '', nextSteps: '' };
 const statusLabel: Record<ReportLifecycleStatus, string> = { draft: 'Rascunho', review: 'Em revisão', approved: 'Aprovado', sent: 'Enviado', published: 'Publicado', archived: 'Arquivado' };
@@ -75,18 +95,47 @@ function dismissedFrom(value: JsonValue | undefined): DismissedReportAlert[] {
     }];
   });
 }
-function reportRow(row: AdminReportRow): Report { return { id: row.id, companyId: row.company_id, title: row.title, reportType: row.report_type || 'monthly', periodStart: String(row.period_start || row.reference_month).slice(0, 10), periodEnd: String(row.period_end || row.reference_month).slice(0, 10), status: row.status, summary: row.executive_summary || '', movements: Array.isArray(row.movements) ? row.movements.map(String) : [], decisions: Array.isArray(row.decisions) ? row.decisions.map(String) : [], risks: Array.isArray(row.risks) ? row.risks.map(String) : [], nextSteps: Array.isArray(row.next_steps) ? row.next_steps.map(String) : [], snapshot: normalizeIntelligenceSnapshot(row.source_snapshot), protocol: row.protocol || '—', updatedAt: row.updated_at, version: Number(row.version || 1), revisionParentId: row.revision_parent_id, dismissedAlerts: dismissedFrom(row.dismissed_alerts), internalNote: row.internal_note || '', dataRefreshedAt: row.data_refreshed_at, reviewStartedAt: row.review_started_at, approvedAt: row.approved_at, sentAt: row.sent_at, sentTo: Array.isArray(row.sent_to) ? row.sent_to.map(String) : [] }; }
+function reportRow(row: AdminReportRow): Report {
+  const workflowMode = isJsonObject(row.source_snapshot) ? row.source_snapshot.workflow_mode : undefined;
+  return {
+    id: row.id, companyId: row.company_id, title: row.title, reportType: row.report_type || 'monthly',
+    periodStart: String(row.period_start || row.reference_month).slice(0, 10),
+    periodEnd: String(row.period_end || row.reference_month).slice(0, 10),
+    status: row.status, summary: row.executive_summary || '',
+    movements: Array.isArray(row.movements) ? row.movements.map(String) : [],
+    decisions: Array.isArray(row.decisions) ? row.decisions.map(String) : [],
+    risks: Array.isArray(row.risks) ? row.risks.map(String) : [],
+    nextSteps: Array.isArray(row.next_steps) ? row.next_steps.map(String) : [],
+    snapshot: normalizeIntelligenceSnapshot(row.source_snapshot), protocol: row.protocol || '—',
+    updatedAt: row.updated_at, version: Number(row.version || 1), revisionParentId: row.revision_parent_id,
+    dismissedAlerts: dismissedFrom(row.dismissed_alerts), internalNote: row.internal_note || '',
+    dataRefreshedAt: row.data_refreshed_at, reviewStartedAt: row.review_started_at, approvedAt: row.approved_at,
+    sentAt: row.sent_at, sentTo: Array.isArray(row.sent_to) ? row.sent_to.map(String) : [],
+    clientOpenCount: Number(row.client_open_count || 0), acknowledgedAt: row.acknowledged_at,
+    workflowMode: workflowMode === 'simulation' || workflowMode === 'official' ? workflowMode : undefined,
+  };
+}
 function editorFrom(report: Report): ReportEditor { return { summary: report.summary, movements: report.movements.join('\n'), decisions: report.decisions.join('\n'), risks: report.risks.join('\n'), nextSteps: report.nextSteps.join('\n') }; }
 function frozenDeliveryRows(snapshot: IntelligenceSnapshot | null) { return snapshot?.deliveryPerformanceV14 ?? null; }
+function isSent(report: Report) { return report.status === 'sent' || report.status === 'published'; }
+function isDraft(report: Report) { return report.status === 'draft' || report.status === 'review'; }
+function matchesPeriod(report: Report, companyId: string, type: ReportType, start: string, end: string) {
+  return report.companyId === companyId && report.reportType === type && report.periodStart === start && report.periodEnd === end;
+}
 
 function EditorialField({ title, value, onChange, helper, rows = 5, locked }: { title: string; value: string; onChange: (value: string) => void; helper: string; rows?: number; locked: boolean }) {
-  return <div className="reports-v16-editor-field"><div><h3>{title}</h3><p>{helper}</p></div><textarea rows={rows} value={value} readOnly={locked} onChange={(event) => onChange(event.target.value)} /></div>;
+  return <div className="reports-v16-editor-field tw:grid tw:grid-cols-[16.25rem_minmax(0,1fr)] tw:gap-[1.84615rem] tw:border-t
+    tw:border-solid tw:border-[#eee7e2] tw:py-[1.30769rem] tw:first-of-type:border-t-0 tw:first-of-type:pt-0
+    tw:max-[680px]:grid-cols-1 tw:workspace-night:border-[#3d3034]"><div><h3 className="tw:mx-0 tw:mt-0 tw:mb-[0.3125rem] tw:text-[0.8125rem] tw:workspace-night:text-[#f5efec]">{title}</h3><p className="tw:m-0 tw:text-[0.625rem] tw:leading-normal tw:text-[#8a7d76] tw:workspace-night:text-[#b6a8a3]">{helper}</p></div><textarea className="tw:w-full tw:resize-y tw:rounded-[0.625rem] tw:border tw:border-solid tw:border-[#e2d9d3] tw:bg-white
+    tw:px-[0.8125rem] tw:py-3 tw:text-[0.71875rem] tw:leading-[1.55] tw:text-cali-ink tw:outline-none
+    tw:focus:border-[#9e6875] tw:focus:shadow-[0_0_0_0.1875rem_#5a1e2d0f] tw:read-only:bg-[#f7f4f1]
+    tw:read-only:text-[#6d625c] tw:workspace-night:border-[#4b3940] tw:workspace-night:bg-[#2a2024]
+    tw:workspace-night:text-[#f3ece9] tw:workspace-night:read-only:bg-[#241c1f] tw:workspace-night:read-only:text-[#b8aaa5]" rows={rows} value={value} readOnly={locked} onChange={(event) => onChange(event.target.value)} /></div>;
 }
 
 export function AdminReportsPage() {
   const { confirmDelivery, completeDelivery } = useMaterialDeliveryConfirmation();
-  const [searchParams] = useSearchParams();
-  const deepLinkedReport = searchParams.get('report');
+  const deepLinkedReport = useAdminReportDeepLink();
   const initial = monthlyPeriod();
   const [companies, setCompanies] = useState<Company[]>([]), [reports, setReports] = useState<Report[]>([]);
   const [companyId, setCompanyId] = useState(''), [reportType, setReportType] = useState<ReportType>('monthly'), [periodStart, setPeriodStart] = useState(initial.start), [periodEnd, setPeriodEnd] = useState(initial.end);
@@ -99,7 +148,20 @@ export function AdminReportsPage() {
   const [dismissTarget, setDismissTarget] = useState<ReportCloseAlert | null>(null), [dismissReason, setDismissReason] = useState('');
   const [sendOpen, setSendOpen] = useState(false), [sendRecipients, setSendRecipients] = useState(''), [sendMessage, setSendMessage] = useState(''), [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [correctionTarget, setCorrectionTarget] = useState<WithdrawableReport | null>(null);
+  const [workflowAction, setWorkflowAction] = useState<ReportWorkflowAction | null>(null);
+  const openReportRevision = useOpenReportRevision();
+  const handledDeepLink = useRef('');
+  const { data: withdrawableReports } = useWithdrawableReports();
+  const withdrawableById = useMemo(() => new Map((withdrawableReports ?? [])
+    .filter((report) => !report.withdrawn_at)
+    .map((report) => [report.id, report])), [withdrawableReports]);
+  const toolbarCorrectionTarget = activeReport ? withdrawableById.get(activeReport.id) : undefined;
+  const { data: trackedReport } = useOfficialTrackedReport(activeReport?.protocol);
+  const { mutate: markLegacySimulation } = useMarkLegacyReportSimulation();
   const lastSavedPayload = useRef('');
+  const periodRequest = useRef(0);
 
   const selectedCompany = useMemo(() => companies.find((item) => item.id === companyId) || null, [companies, companyId]);
   const periodName = periodLabelV14(reportType, periodStart), quarters = useMemo(() => quarterOptions(), []);
@@ -119,18 +181,36 @@ export function AdminReportsPage() {
   const capacitySignal = useMemo(() => effectiveSnapshot ? capacitySignalV15(effectiveSnapshot) : null, [effectiveSnapshot]);
   const changes = useMemo(() => effectiveSnapshot ? periodChangeSignalsV17(effectiveSnapshot, reportType) : [], [effectiveSnapshot, reportType]);
   const reviewCounts = useMemo(() => effectiveSnapshot ? reportReviewCountsV16(effectiveSnapshot, effectiveDeliveries, selectedDemands.size, selectedDecisions.size, unresolvedAlerts.length) : null, [effectiveSnapshot, effectiveDeliveries, selectedDemands.size, selectedDecisions.size, unresolvedAlerts.length]);
-  const isSimulation = Boolean(activeReport?.snapshot?.workflow_mode === 'simulation');
-  const canEdit = Boolean(!activeReport || activeReport.status === 'draft' || activeReport.status === 'review');
+  const periodOfficial = companyReports.find((report) => isSent(report) && matchesPeriod(report, companyId, reportType, periodStart, periodEnd));
+  const officialReportId = readiness?.official_report_id || periodOfficial?.id;
+  const isSimulation = Boolean(activeReport && (activeReport.workflowMode === 'simulation' || (isDraft(activeReport) && officialReportId && activeReport.id !== officialReportId)));
+  const isCollectionPreview = Boolean(activeReport && isDraft(activeReport) && !isSimulation && readiness?.mode === 'preview');
+  const canEdit = !activeReport || isDraft(activeReport);
+  const canApprove = !isSimulation && !isCollectionPreview && (!readiness || readiness.can_generate_official);
+  const canSend = !isSimulation && (!readiness || readiness.can_send);
+  const createsSimulation = Boolean(activeReport && (isSent(activeReport) || (officialReportId && officialReportId !== activeReport.id)));
   const lifecycleStatus = activeReport?.status || 'draft';
 
   useEffect(() => { void loadBase(); }, []);
   useEffect(() => {
-    const refresh = () => void refreshReportViews();
-    window.addEventListener('cali:reports:refresh', refresh);
-    return () => window.removeEventListener('cali:reports:refresh', refresh);
+    if (!deepLinkedReport) {
+      handledDeepLink.current = '';
+      return;
+    }
+    if (handledDeepLink.current === deepLinkedReport) return;
+    const target = reports.find((report) => report.id === deepLinkedReport);
+    if (!target) return;
+    handledDeepLink.current = deepLinkedReport;
+    setCompanyId(target.companyId);
+    setReportType(target.reportType);
+    setPeriodStart(target.periodStart);
+    setPeriodEnd(target.periodEnd);
+  }, [deepLinkedReport, reports]);
+  useEffect(() => {
+    if (companyId && periodStart && periodEnd) void loadPeriod(companyId, reportType, periodStart, periodEnd);
+    return () => { periodRequest.current += 1; };
   }, [companyId, reportType, periodStart, periodEnd]);
-  useEffect(() => { if (companyId && periodStart && periodEnd) void loadPeriod(companyId, reportType, periodStart, periodEnd); }, [companyId, reportType, periodStart, periodEnd]);
-  useEffect(() => { if (!previewOpen && !dismissTarget && !sendOpen) return; document.body.classList.add('workspace-modal-open'); return () => document.body.classList.remove('workspace-modal-open'); }, [previewOpen, dismissTarget, sendOpen]);
+  useEffect(() => { if (!previewOpen && !dismissTarget && !sendOpen && !historyOpen && !correctionTarget && !workflowAction) return; document.body.classList.add('workspace-modal-open'); return () => document.body.classList.remove('workspace-modal-open'); }, [previewOpen, dismissTarget, sendOpen, historyOpen, correctionTarget, workflowAction]);
   useEffect(() => {
     if (!activeReport || !canEdit) return;
     const payload = JSON.stringify({ summary: editor.summary, movements: editor.movements, decisions: editor.decisions, risks: editor.risks, nextSteps: editor.nextSteps, internalNote, dismissedAlerts, manualComplements });
@@ -138,9 +218,10 @@ export function AdminReportsPage() {
     setAutosaveState('saving');
     const timer = window.setTimeout(async () => {
       try {
+        const nextSnapshot = snapshot || activeReport.snapshot;
         await saveReportEditorialDraft(activeReport.id, {
           editor, internalNote, dismissedAlerts,
-          snapshot: snapshot ? attachReportManualComplements(snapshot, manualComplements) : activeReport.snapshot,
+          snapshot: nextSnapshot ? attachReportManualComplements(withWorkflowMode(nextSnapshot), manualComplements) : null,
         });
       } catch (reason) {
         setAutosaveState('error');
@@ -150,7 +231,7 @@ export function AdminReportsPage() {
       lastSavedPayload.current = payload; setAutosaveState('saved'); setLastSavedAt(new Date().toISOString());
     }, 850);
     return () => window.clearTimeout(timer);
-  }, [activeReport?.id, canEdit, editor, internalNote, dismissedAlerts, manualComplements, snapshot]);
+  }, [activeReport?.id, canEdit, editor, internalNote, dismissedAlerts, manualComplements, snapshot, isSimulation, officialReportId]);
 
   async function loadBase() {
     setLoadingBase(true); setError('');
@@ -169,6 +250,7 @@ export function AdminReportsPage() {
       setReports(nextReports);
       const requested = !companyId && deepLinkedReport && nextReports.find((row) => row.id === deepLinkedReport);
       if (requested) {
+        handledDeepLink.current = requested.id;
         setCompanyId(requested.companyId);
         setReportType(requested.reportType);
         setPeriodStart(requested.periodStart);
@@ -214,11 +296,16 @@ export function AdminReportsPage() {
   }
 
   async function loadPeriod(nextCompanyId: string, nextType: ReportType, nextStart: string, nextEnd: string) {
+    const request = ++periodRequest.current;
     setLoadingPeriod(true); setError(''); setNotice(''); setAutosaveState('idle');
     try {
-      const [fresh, nextReadiness] = await Promise.all([readFreshReportPeriod(nextCompanyId, nextType, nextStart, nextEnd), readReportReadiness(nextCompanyId, nextType, nextStart, nextEnd)]);
+      const [fresh, nextReadiness, reportResult] = await Promise.all([
+        readFreshReportPeriod(nextCompanyId, nextType, nextStart, nextEnd),
+        readReportReadiness(nextCompanyId, nextType, nextStart, nextEnd),
+        readCurrentReportPeriod(nextCompanyId, nextType, nextStart, nextEnd),
+      ]);
+      if (periodRequest.current !== request) return;
       setLiveSnapshot(fresh.snapshot); setReadiness(nextReadiness);
-      const reportResult = await readCurrentReportPeriod(nextCompanyId, nextType, nextStart, nextEnd);
 
       if (!reportResult) {
         setActiveReport(null);
@@ -231,14 +318,19 @@ export function AdminReportsPage() {
       }
 
       const report = reportRow(reportResult), savedSnapshot = report.snapshot || fresh.snapshot;
+      const delivered = nextReadiness?.official_report_id || reports.find((item) => isSent(item) && matchesPeriod(item, nextCompanyId, nextType, nextStart, nextEnd))?.id;
+      if (delivered && delivered !== report.id && isDraft(report) && report.workflowMode !== 'simulation') {
+        markLegacySimulation({ report: reportResult, officialId: delivered });
+      }
       const frozen = frozenDeliveryRows(savedSnapshot);
       const useFrozen = ['approved', 'sent', 'published'].includes(report.status) && frozen;
       const savedManual = reportManualComplementsFromSnapshot(savedSnapshot);
       setActiveReport(report); setSnapshot(savedSnapshot); setDeliveries(useFrozen ? frozen! : fresh.deliveries); setEditor(editorFrom(report)); setManualComplements(savedManual); setInternalNote(report.internalNote); setDismissedAlerts(report.dismissedAlerts); setLastSavedAt(report.updatedAt);
       lastSavedPayload.current = JSON.stringify({ summary: report.summary, movements: report.movements.join('\n'), decisions: report.decisions.join('\n'), risks: report.risks.join('\n'), nextSteps: report.nextSteps.join('\n'), internalNote: report.internalNote, dismissedAlerts: report.dismissedAlerts, manualComplements: savedManual });
     } catch (requestError) {
+      if (periodRequest.current !== request) return;
       setSnapshot(null); setLiveSnapshot(null); setDeliveries([]); setActiveReport(null); setEditor(emptyEditor); setManualComplements(emptyReportManualComplements()); setReadiness(null); setError(requestError instanceof Error ? requestError.message : 'Não foi possível montar o fechamento.');
-    } finally { setLoadingPeriod(false); }
+    } finally { if (periodRequest.current === request) setLoadingPeriod(false); }
   }
 
   function changeType(next: ReportType) { setReportType(next); const anchor = new Date(`${periodStart}T12:00:00`), period = next === 'monthly' ? monthlyPeriod(anchor) : quarterlyPeriod(anchor); setPeriodStart(period.start); setPeriodEnd(period.end); }
@@ -260,20 +352,46 @@ export function AdminReportsPage() {
     finally { setSaving(false); }
   }
 
+  function withWorkflowMode(value: IntelligenceSnapshot): IntelligenceSnapshot {
+    if (!isSimulation) return value;
+    return {
+      ...value,
+      workflow_mode: 'simulation',
+      simulation_of: value.simulation_of || officialReportId || null,
+      simulation_marked_at: value.simulation_marked_at || new Date().toISOString(),
+    };
+  }
+
   async function refreshData() {
-    if (!activeReport || !canEdit) return;
+    if (!canEdit || saving) return;
+    const request = periodRequest.current;
     setSaving(true); setError('');
     try {
-      const fresh = await readFreshReportPeriod(companyId, reportType, periodStart, periodEnd);
-      const previousMode = activeReport.snapshot?.workflow_mode || 'official';
-      const sourceSnapshot = attachReportManualComplements({ ...fresh.snapshot, deliveryPerformanceV14: fresh.deliveries, workflow_mode: previousMode, ...(activeReport.snapshot?.simulation_of ? { simulation_of: activeReport.snapshot.simulation_of } : {}) } satisfies IntelligenceSnapshot, manualComplements);
-      await refreshReportFacts(activeReport.id, sourceSnapshot, {
-        serviceType: fresh.snapshot.contract.serviceType || selectedCompany?.serviceType || null,
-        servicePlan: fresh.snapshot.contract.servicePlan || selectedCompany?.servicePlan || null,
-        contractedHours: fresh.snapshot.contract.contractedHoursPeriod,
-      });
-      setSnapshot(fresh.snapshot); setLiveSnapshot(fresh.snapshot); setDeliveries(fresh.deliveries); setNotice('Dados automáticos atualizados. Sua curadoria editorial foi preservada.'); await loadBase();
-    } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Não foi possível atualizar os dados.'); }
+      const [fresh, nextReadiness] = await Promise.all([
+        readFreshReportPeriod(companyId, reportType, periodStart, periodEnd),
+        readReportReadiness(companyId, reportType, periodStart, periodEnd),
+      ]);
+      if (periodRequest.current !== request) return;
+      const refreshed = withWorkflowMode({ ...activeReport?.snapshot, ...fresh.snapshot, deliveryPerformanceV14: fresh.deliveries });
+      if (activeReport) {
+        const sourceSnapshot = attachReportManualComplements({ ...refreshed, workflow_mode: refreshed.workflow_mode || 'official' }, manualComplements);
+        await refreshReportFacts(activeReport.id, sourceSnapshot, {
+          serviceType: fresh.snapshot.contract.serviceType || selectedCompany?.serviceType || null,
+          servicePlan: fresh.snapshot.contract.servicePlan || selectedCompany?.servicePlan || null,
+          contractedHours: fresh.snapshot.contract.contractedHoursPeriod,
+        });
+        if (periodRequest.current !== request) return;
+        setActiveReport({ ...activeReport, snapshot: sourceSnapshot, workflowMode: sourceSnapshot.workflow_mode });
+      }
+      setReadiness(nextReadiness);
+      setSnapshot(refreshed);
+      setLiveSnapshot(fresh.snapshot);
+      setDeliveries(fresh.deliveries);
+      setNotice('Dados automáticos atualizados. Sua curadoria editorial foi preservada.');
+      if (activeReport) await loadBase();
+    } catch (requestError) {
+      if (periodRequest.current === request) setError(requestError instanceof Error ? requestError.message : 'Não foi possível atualizar os dados.');
+    }
     finally { setSaving(false); }
   }
 
@@ -297,6 +415,7 @@ export function AdminReportsPage() {
   async function approveReport() {
     if (!activeReport || !snapshot || activeReport.status !== 'review') return;
     if (isSimulation) { setError('Simulações internas não podem ser aprovadas.'); return; }
+    if (!canApprove) { setError('A aprovação fica disponível após o período mínimo de coleta.'); return; }
     if (!editor.summary.trim()) { setError('A leitura executiva precisa estar preenchida antes da aprovação.'); return; }
     if (unresolvedBlocking.length) { setError(`Existem ${unresolvedBlocking.length} item(ns) que precisam ser corrigidos antes da aprovação.`); return; }
     setSaving(true); setError('');
@@ -312,6 +431,7 @@ export function AdminReportsPage() {
 
   async function openSend() {
     if (!activeReport) return;
+    if (activeReport.status === 'approved' && !canSend) return;
     setSendMessage(''); setSendError(''); setError('');
     const recipients = await readReportRecipients(companyId).catch(() => []);
     setSendRecipients(recipients.join(', '));
@@ -320,6 +440,7 @@ export function AdminReportsPage() {
 
   async function sendReport() {
     if (!activeReport || sending || !['approved', 'sent', 'published'].includes(activeReport.status)) return;
+    if (activeReport.status === 'approved' && !canSend) return;
     const recipients = sendRecipients.split(/[;,]/).map((item) => item.trim()).filter(Boolean);
     if (!recipients.length) { setSendError('Informe pelo menos um e-mail de destinatário.'); return; }
     const requestId = await confirmDelivery(recipients, [activeReport.id, activeReport.version, sendMessage]);
@@ -339,16 +460,23 @@ export function AdminReportsPage() {
   }
 
   async function createNewVersion() {
-    if (!activeReport || !liveSnapshot || !['approved', 'sent', 'published'].includes(activeReport.status)) return;
+    if (!activeReport || !liveSnapshot || saving || !['approved', 'sent', 'published'].includes(activeReport.status)) return;
     setSaving(true); setError('');
     try {
       const fresh = await readFreshReportPeriod(companyId, reportType, periodStart, periodEnd);
-      const simulation = ['sent', 'published'].includes(activeReport.status);
+      const simulation = createsSimulation;
       await createDraft(fresh, activeReport.version + 1, activeReport.id, simulation ? 'simulation' : 'official', undefined, '', manualComplements);
       setNotice(simulation ? 'Simulação interna criada. Ela não altera nem substitui a versão enviada ao cliente.' : `Versão ${activeReport.version + 1} criada como novo rascunho.`);
       await loadBase(); await loadPeriod(companyId, reportType, periodStart, periodEnd);
     } catch (requestError) { setError(requestError instanceof Error ? requestError.message : 'Não foi possível criar a nova versão.'); }
     finally { setSaving(false); }
+  }
+
+  function confirmWorkflowAction() {
+    const action = workflowAction;
+    setWorkflowAction(null);
+    if (action === 'create-simulation') void createNewVersion();
+    else if (action) void refreshData();
   }
 
   async function deleteReport(report: Report) {
@@ -370,8 +498,8 @@ export function AdminReportsPage() {
     if (!activeReport) return null;
     if (isSimulation) return <Button variant="primary" type="button" onClick={() => setPreviewOpen(true)}><Eye size={16} />Ver simulação</Button>;
     if (activeReport.status === 'draft') return <Button variant="primary" type="button" disabled={saving || Boolean(readiness && !readiness.can_generate_official)} onClick={() => void startReview()}><Eye size={16} />Iniciar revisão</Button>;
-    if (activeReport.status === 'review') return <Button variant="primary" type="button" disabled={saving} onClick={() => void approveReport()}><CheckCircle2 size={16} />Aprovar relatório</Button>;
-    if (activeReport.status === 'approved') return <Button variant="primary" type="button" disabled={saving} onClick={() => void openSend()}><Send size={16} />Enviar ao cliente</Button>;
+    if (activeReport.status === 'review') return <Button variant="primary" type="button" disabled={saving || !canApprove} onClick={() => void approveReport()}><CheckCircle2 size={16} />Aprovar relatório</Button>;
+    if (activeReport.status === 'approved') return <Button variant="primary" type="button" disabled={saving || !canSend} onClick={() => void openSend()}><Send size={16} />Enviar ao cliente</Button>;
     if (['sent', 'published'].includes(activeReport.status)) {
       return <>
         <Button variant="secondary" type="button" disabled={saving} onClick={() => void openSend()}><Send size={16} />Reenviar ao cliente</Button>
@@ -387,76 +515,309 @@ export function AdminReportsPage() {
   const hasPlanned = Number(kpis?.plannedDeliveries || 0) > 0;
   const hasAdherence = kpis?.deliveryAdherence !== null && kpis?.deliveryAdherence !== undefined;
 
-  const history = <section className="reports-v16-history"><div className="reports-v16-section-heading"><span>08</span><div><h2>Histórico e versões</h2><p>Versões oficiais preservam o fechamento do período. Rascunhos e simulações só existem quando você os cria.</p></div></div><div className="reports-v16-history-table"><div className="head"><span>Período</span><span>Versão</span><span>Status</span><span>Data</span><span>Ações</span></div>{companyReports.slice(0, 12).map((report) => <div className={report.id === activeReport?.id ? 'active' : ''} key={report.id} data-report-id={report.id}><button type="button" className="period" onClick={() => { setReportType(report.reportType); setPeriodStart(report.periodStart); setPeriodEnd(report.periodEnd); }}>{periodLabelV14(report.reportType, report.periodStart)}</button><span>v{report.version}</span><span>{report.snapshot?.workflow_mode === 'simulation' ? 'Simulação' : statusLabel[report.status]}</span><span>{formatDateTime(report.sentAt || report.approvedAt || report.updatedAt)}</span><span className="actions"><button type="button" onClick={() => {
-      if (report.status === 'archived') {
-        window.open(`/admin/relatorios/impressao/${encodeURIComponent(report.id)}`, '_blank', 'noopener,noreferrer');
-      } else {
-        setReportType(report.reportType); setPeriodStart(report.periodStart); setPeriodEnd(report.periodEnd);
-      }
-    }}>{report.status === 'archived' ? 'Ver versão arquivada' : 'Abrir'}</button>{['draft', 'review'].includes(report.status) ? <button type="button" className="delete" onClick={() => void deleteReport(report)} aria-label="Excluir versão"><Trash2 size={14} /></button> : null}</span></div>)}</div></section>;
+  function correctionButton(reportId: string) {
+    const report = withdrawableById.get(reportId);
+    return report && (
+      <button type="button" title="Abrir revisão para correção" className="tw:cursor-pointer tw:rounded-lg tw:border-0 tw:bg-transparent tw:px-2 tw:py-1 tw:font-bold tw:text-cali-brand
+        tw:hover:bg-cali-gold/10 tw:workspace-night:text-cali-gold" onClick={() => setCorrectionTarget(report)}>Corrigir</button>
+    );
+  }
+
+  const history = <ReportVersionHistory
+    reports={companyReports.slice(0, 12).map((report) => ({
+      ...report,
+      isSimulation: report.workflowMode === 'simulation' || (isDraft(report) && companyReports.some((item) =>
+        isSent(item) && matchesPeriod(item, report.companyId, report.reportType, report.periodStart, report.periodEnd))),
+    }))}
+    activeReportId={activeReport?.id}
+    statusLabel={statusLabel}
+    formatDateTime={formatDateTime}
+    onSelect={(report) => { setReportType(report.reportType); setPeriodStart(report.periodStart); setPeriodEnd(report.periodEnd); }}
+    onDelete={(id) => {
+      const report = companyReports.find((item) => item.id === id);
+      if (report) void deleteReport(report);
+    }}
+    renderCorrection={correctionButton}
+  />;
 
   const previewEditorial = <>
-    {changes.length ? <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>03</span><div><h2>{reportType === 'quarterly' ? 'Evolução dentro do trimestre' : 'O que mudou'}</h2><p>Só existe comparativo quando há base real nos dois períodos.</p></div></div><div className="reports-v16-change-grid">{changes.map((item) => <article className={`tone-${item.tone}`} key={item.id}><span>{item.label}</span><strong>{item.value}</strong><p>{item.detail}</p></article>)}</div></section> : null}
-    <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>04</span><div><h2>Curadoria de demandas e decisões</h2><p>Você pode preparar a curadoria agora. Nada é gravado até criar o fechamento oficial.</p></div></div><div className="reports-v16-selection-grid"><div><h3>Demandas para leitura interna</h3>{demandChoices.length ? <div className="reports-v16-check-list">{demandChoices.map((item) => <label key={item}><input type="checkbox" checked={selectedDemands.has(item)} onChange={() => toggleSelection(item, 'movements')} /><span>{item}</span></label>)}</div> : <p className="reports-v16-empty">Nenhuma demanda estruturada foi registrada.</p>}</div><div><h3>Decisões registradas</h3>{decisionOptions.length ? <div className="reports-v16-check-list">{decisionOptions.map((item) => <label key={item}><input type="checkbox" checked={selectedDecisions.has(item)} onChange={() => toggleSelection(item, 'decisions')} /><span>{item}</span></label>)}</div> : <p className="reports-v16-empty">Nenhuma decisão estruturada foi registrada.</p>}</div></div></section>
-    <section className="reports-v16-section reports-v16-alert-section"><div className="reports-v16-section-heading"><span>05</span><div><h2>Conferência antes da aprovação</h2><p>{unresolvedAlerts.length ? `${unresolvedAlerts.length} ponto(s) merecem conferência antes de fechar.` : 'Nenhuma pendência aberta.'}</p></div></div>{unresolvedAlerts.length ? <div className="reports-v16-alert-list">{unresolvedAlerts.map((alert) => <article key={alert.id}><div><strong>{alert.blocking ? 'Precisa corrigir' : 'Atenção'}</strong><span><b>{alert.title}</b><p>{alert.detail}</p></span></div><div>{alert.actionHref ? <a href={alert.actionHref}>{alert.actionLabel || 'Ver origem'}</a> : null}</div></article>)}</div> : <div className="reports-v16-ok"><CheckCircle2 size={18} />Os fatos estão consistentes para o fechamento.</div>}</section>
-    <section className="reports-v16-section reports-v16-editorial"><div className="reports-v16-section-heading"><span>06</span><div><h2>Leitura executiva CALI</h2><p>Estes campos continuam editáveis antes do fechamento. O conteúdo será levado para a versão oficial quando você criá-la.</p></div></div><EditorialField title={reportType === 'quarterly' ? 'Leitura executiva do trimestre' : 'Leitura executiva do mês'} value={editor.summary} onChange={(value) => setEditor((current) => ({ ...current, summary: value }))} helper="3–5 linhas. Explique o que o período revela; não copie logs, dúvidas ou tabelas." rows={7} locked={false} /><EditorialField title="Pontos de atenção para o cliente" value={editor.risks} onChange={(value) => setEditor((current) => ({ ...current, risks: value }))} helper="Até 3 pontos. Traga risco + recomendação + dependência, sem repetir o texto da leitura executiva." rows={5} locked={false} /></section>
-    <section className="reports-v16-section reports-v16-editorial"><div className="reports-v16-section-heading"><span>07</span><div><h2>{reportType === 'quarterly' ? 'Prioridades do próximo trimestre' : 'Prioridades do próximo ciclo'}</h2><p>Feche olhando para frente. Prioridade não repete ponto de atenção.</p></div></div><EditorialField title="Prioridades" value={editor.nextSteps} onChange={(value) => setEditor((current) => ({ ...current, nextSteps: value }))} helper="1–3 movimentos. Inclua prazo, responsável ou dependência quando isso mudar a leitura." rows={5} locked={false} /></section>
-    <details className="reports-v16-internal"><summary>Adicionar nota interna</summary><p>Visível somente para você. A nota só passa a ser gravada quando o fechamento oficial for criado.</p><textarea rows={4} value={internalNote} onChange={(event) => setInternalNote(event.target.value)} placeholder="Anotação para a conversa ou para o próximo fechamento." /></details>
+    {changes.length ? <ReportReviewSection><ReportSectionHeading number="03" title={reportType === 'quarterly' ? 'Evolução dentro do trimestre' : 'O que mudou'} description={'Só existe comparativo quando há base real nos dois períodos.'} /><ReportPeriodChanges changes={changes} /></ReportReviewSection> : null}
+    <ReportReviewSection><ReportSectionHeading number="04" title={'Curadoria de demandas e decisões'} description={'Você pode preparar a curadoria agora. Nada é gravado até criar o fechamento oficial.'} /><div className="reports-v16-selection-grid tw:grid tw:grid-cols-2 tw:gap-[2.61538rem] tw:max-[1050px]:grid-cols-1
+      tw:[&_h3]:mt-0! tw:[&_h3]:text-[#3a322e] tw:workspace-night:[&_h3]:text-[#f5efec]"><div><h3>Demandas para leitura interna</h3>{demandChoices.length ? <ReportReviewChecklist>{demandChoices.map((item) => <label key={item}><input type="checkbox" checked={selectedDemands.has(item)} onChange={() => toggleSelection(item, 'movements')} /><span>{item}</span></label>)}</ReportReviewChecklist> : <p className="reports-v16-empty tw:m-0 tw:text-[0.82055rem] tw:text-[#8a7d76]">Nenhuma demanda estruturada foi registrada.</p>}</div><div><h3>Decisões registradas</h3>{decisionOptions.length ? <ReportReviewChecklist>{decisionOptions.map((item) => <label key={item}><input type="checkbox" checked={selectedDecisions.has(item)} onChange={() => toggleSelection(item, 'decisions')} /><span>{item}</span></label>)}</ReportReviewChecklist> : <p className="reports-v16-empty tw:m-0 tw:text-[0.82055rem] tw:text-[#8a7d76]">Nenhuma decisão estruturada foi registrada.</p>}</div></div></ReportReviewSection>
+    <ReportReviewAlerts alerts={unresolvedAlerts} />
+    <ReportReviewSection surface="editorial"><ReportSectionHeading number="06" title={'Leitura executiva CALI'} description={'Estes campos continuam editáveis antes do fechamento. O conteúdo será levado para a versão oficial quando você criá-la.'} /><EditorialField title={reportType === 'quarterly' ? 'Leitura executiva do trimestre' : 'Leitura executiva do mês'} value={editor.summary} onChange={(value) => setEditor((current) => ({ ...current, summary: value }))} helper="3–5 linhas. Explique o que o período revela; não copie logs, dúvidas ou tabelas." rows={7} locked={false} /><EditorialField title="Pontos de atenção para o cliente" value={editor.risks} onChange={(value) => setEditor((current) => ({ ...current, risks: value }))} helper="Até 3 pontos. Traga risco + recomendação + dependência, sem repetir o texto da leitura executiva." rows={5} locked={false} /></ReportReviewSection>
+    <ReportReviewSection surface="editorial"><ReportSectionHeading number="07" title={reportType === 'quarterly' ? 'Prioridades do próximo trimestre' : 'Prioridades do próximo ciclo'} description={'Feche olhando para frente. Prioridade não repete ponto de atenção.'} /><EditorialField title="Prioridades" value={editor.nextSteps} onChange={(value) => setEditor((current) => ({ ...current, nextSteps: value }))} helper="1–3 movimentos. Inclua prazo, responsável ou dependência quando isso mudar a leitura." rows={5} locked={false} /></ReportReviewSection>
+    <details className="reports-v16-internal tw:group tw:border-t tw:border-solid tw:border-[#ece5df] tw:bg-[#faf7f4]
+      tw:px-[2.46154rem] tw:py-[1.38462rem] tw:max-[680px]:px-[1.38462rem] tw:workspace-night:border-[#3b2d32]
+      tw:workspace-night:bg-[#1d1719]"><summary className="tw:cursor-pointer tw:list-none tw:text-[0.84615rem] tw:font-extrabold tw:text-cali-brand tw:before:mr-[0.61538rem]
+      tw:before:inline-block tw:before:text-[1.23077rem] tw:before:leading-[1.5] tw:before:font-normal
+      tw:before:content-['+'] tw:group-open:before:content-['−'] tw:[&::-webkit-details-marker]:hidden
+      tw:workspace-night:text-[#e4b9c3]">Adicionar nota interna</summary><p className="tw:mt-2 tw:mb-2.5 tw:text-[0.625rem] tw:text-[#887b75]">Visível somente para você. A nota só passa a ser gravada quando o fechamento oficial for criado.</p><textarea className="tw:w-full tw:resize-y tw:rounded-[0.625rem] tw:border tw:border-solid tw:border-[#e2d9d3] tw:bg-white
+      tw:px-[0.8125rem] tw:py-3 tw:text-[0.71875rem] tw:leading-[1.55] tw:text-cali-ink tw:outline-none
+      tw:focus:border-[#9e6875] tw:focus:shadow-[0_0_0_0.1875rem_#5a1e2d0f] tw:read-only:bg-[#f7f4f1]
+      tw:read-only:text-[#6d625c] tw:workspace-night:border-[#4b3940] tw:workspace-night:bg-[#2a2024]
+      tw:workspace-night:text-[#f3ece9] tw:workspace-night:read-only:bg-[#241c1f] tw:workspace-night:read-only:text-[#b8aaa5]" rows={4} value={internalNote} onChange={(event) => setInternalNote(event.target.value)} placeholder="Anotação para a conversa ou para o próximo fechamento." /></details>
   </>;
 
   // Trilha do fechamento: mostra em que etapa o relatório do período está.
   const stageIndex = !activeReport ? 0 : isSimulation ? 1 : ['sent', 'published'].includes(lifecycleStatus) ? 3 : lifecycleStatus === 'approved' ? 2 : 1;
   const stages = ['Prévia interna', isSimulation ? 'Simulação interna' : 'Fechamento em revisão', 'Aprovado', 'Enviado ao cliente'];
+  const canOpenDistinctPreview = activeReport && isDraft(activeReport) && !isSimulation;
+  const collectionWait = readiness && !readiness.can_generate_official && !officialReportId
+    ? `Fechamento oficial liberado ${readiness.available_on ? `em ${formatDate(readiness.available_on)}` : `após ${readiness.required_days} dias de coleta`}`
+    : null;
 
-  return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-reports v2-client-module"><div className="ap-content"><section className="wf reports-admin-v16">
-    {activeReport && ['draft','review'].includes(activeReport.status) && <AdminMaterialReview kind="report" entityId={activeReport.id} companyId={activeReport.companyId} onApproved={refreshReportViews} />}
-    <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Relatórios</h1><p>Fechamento executivo de cada conta: fatos do período, curadoria, leitura da CALI, aprovação e envio ao cliente.</p></div></div>
-    <div className="wf-controls v2-report-controls"><ol className="v2-report-stages" aria-label="Etapa do fechamento">{stages.map((label, index) => <li key={label} className={index < stageIndex ? 'done' : index === stageIndex ? 'current' : ''}><b>{index + 1}</b><span>{label}</span></li>)}</ol><div className="reports-v16-filters"><label>Empresa<select value={companyId} onChange={(event) => setCompanyId(event.target.value)}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label><label>Tipo<select value={reportType} onChange={(event) => changeType(event.target.value as ReportType)}><option value="monthly">Mensal</option><option value="quarterly">Trimestral</option></select></label>{reportType === 'monthly' ? <label>Período<input type="month" value={periodStart.slice(0, 7)} onChange={(event) => changeMonth(event.target.value)} /></label> : <label>Período<select value={quarterKey(periodStart)} onChange={(event) => changeQuarter(event.target.value)}>{quarters.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>}</div></div>
+  return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-reports v2-client-module"><div className="ap-content"><section className="wf reports-admin-v16 tw:mx-auto tw:max-w-[98.46154rem] tw:pb-[5.84615rem] tw:[&>.inline-notice:not(.success)]:border!
+    tw:[&>.inline-notice:not(.success)]:border-solid! tw:[&>.inline-notice:not(.success)]:border-[#d7c6bd]!
+    tw:[&>.inline-notice:not(.success)]:bg-cali-day-canvas! tw:[&>.inline-notice:not(.success)]:text-cali-brand!
+    tw:[&>.inline-notice:not(.success)_svg]:text-[#8b4855]! tw:max-[680px]:px-0 tw:[&_:is(strong,b,span,h1,h2,h3,dd,dt,small,p,td,th,button,label,input,select,textarea)]:[font-family:Inter,system-ui,sans-serif]!">
+    {activeReport && isDraft(activeReport) && !isSimulation && <AdminMaterialReview kind="report" entityId={activeReport.id} companyId={activeReport.companyId} onApproved={refreshReportViews} />}
+    <div className="wf-head tw:items-start"><div><small>BACKOFFICE / CALI RH</small><h1>Relatórios</h1><p>Fechamento executivo de cada conta: fatos do período, curadoria, leitura da CALI, aprovação e envio ao cliente.</p></div></div>
+    <div className="wf-controls v2-report-controls tw:mb-[1.23077rem] tw:flex tw:flex-wrap! tw:items-center tw:justify-between tw:gap-x-[1.23077rem] tw:gap-y-[0.92308rem]"><ol className="v2-report-stages tw:m-0 tw:flex tw:min-w-0 tw:flex-none tw:list-none tw:items-center tw:gap-0 tw:p-0 tw:max-[1180px]:flex-wrap tw:max-[1180px]:gap-y-[0.61538rem]" aria-label="Etapa do fechamento">{stages.map((label, index) => <li key={label} className={`tw:inline-flex tw:items-center tw:gap-[0.61538rem] tw:text-[0.84615rem] tw:whitespace-nowrap tw:text-[#a8938f] tw:[&+li]:before:mx-[0.61538rem] tw:[&+li]:before:h-px tw:[&+li]:before:w-[1.38462rem] tw:[&+li]:before:bg-[#e2d5cb] tw:[&+li]:before:content-[''] ${index < stageIndex ? 'done tw:text-[#31805a]' : index === stageIndex ? 'current tw:font-bold tw:text-[#322f2c]' : ''}`}>
+      <b className={`tw:grid tw:size-[1.375rem] tw:place-items-center tw:rounded-md tw:border tw:border-solid tw:text-[0.625rem] tw:font-bold ${index < stageIndex ? 'tw:border-[#cfe9da] tw:bg-[#e6f6ec] tw:text-[#31805a]' : index === stageIndex ? 'tw:border-cali-brand tw:bg-cali-brand tw:text-white' : 'tw:border-[#e2d5cb] tw:bg-white tw:text-[#a8938f]'}`}>{index + 1}</b><span>{label}</span></li>)}</ol><div className="reports-v16-filters tw:my-0! tw:ml-auto! tw:flex! tw:flex-none tw:flex-wrap tw:items-center tw:justify-end
+        tw:gap-[0.76923rem] tw:p-0! tw:max-[1050px]:justify-start tw:max-[680px]:w-full tw:[&_label]:m-0!
+        tw:[&_label]:inline-flex! tw:[&_label]:flex-row! tw:[&_label]:items-center tw:[&_label]:gap-[0.53846rem]
+        tw:[&_label]:text-[0.76923rem]! tw:[&_label]:font-bold! tw:[&_label]:tracking-normal! tw:[&_label]:text-[#6f625c]
+        tw:[&_label]:normal-case! tw:[&_:is(select,input)]:h-[2.76923rem]! tw:[&_:is(select,input)]:min-h-0!
+        tw:[&_:is(select,input)]:w-auto tw:[&_:is(select,input)]:min-w-[11.38462rem] tw:[&_:is(select,input)]:max-w-[16.92308rem]
+        tw:[&_:is(select,input)]:rounded-[0.53846rem]! tw:[&_:is(select,input)]:border! tw:[&_:is(select,input)]:border-solid!
+        tw:[&_:is(select,input)]:border-[#e5d9d0]! tw:[&_:is(select,input)]:bg-white! tw:[&_:is(select,input)]:px-[0.76923rem]!
+        tw:[&_:is(select,input)]:py-0! tw:[&_:is(select,input)]:text-[0.84615rem]! tw:[&_:is(select,input)]:font-semibold!
+        tw:[&_:is(select,input)]:text-[#322f2c]! tw:[&_:is(select,input)]:normal-case tw:[&_label:first-child_select]:min-w-[17.69231rem]"><label>Empresa<select value={companyId} onChange={(event) => setCompanyId(event.target.value)}>{companies.map((company) => <option value={company.id} key={company.id}>{company.name}</option>)}</select></label><label>Tipo<select value={reportType} onChange={(event) => changeType(event.target.value as ReportType)}><option value="monthly">Mensal</option><option value="quarterly">Trimestral</option></select></label>{reportType === 'monthly' ? <label>Período<input type="month" value={periodStart.slice(0, 7)} onChange={(event) => changeMonth(event.target.value)} /></label> : <label>Período<select value={quarterKey(periodStart)} onChange={(event) => changeQuarter(event.target.value)}>{quarters.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label>}</div></div>
     {notice ? <InlineNotice tone="success"><CheckCircle2 size={18} />{notice}</InlineNotice> : null}{error ? <InlineNotice><AlertTriangle size={18} />{error}</InlineNotice> : null}
 
     {loadingPeriod ? <div className="panel data-loading"><Loader2 className="spin" size={20} />Lendo {periodName}…</div> : snapshot && selectedCompany ? <>
       {!activeReport ? <>
-        <div className="reports-v16-toolbar"><div><strong>Prévia interna</strong><span>Sem registro persistente</span><span>{readiness?.required_days ? `${Math.max(0, readiness.collected_days)} de ${readiness.required_days} dias de coleta` : 'Dados lidos em tempo real'}</span>{readiness && !readiness.can_generate_official ? <span className="reports-v17-official-wait">Fechamento oficial liberado {readiness.available_on ? `em ${new Date(`${String(readiness.available_on).slice(0, 10)}T12:00:00`).toLocaleDateString('pt-BR')}` : `após ${readiness.required_days} dias de coleta`}</span> : null}{error ? <span className="reports-v17-toolbar-error" role="alert">{error}</span> : null}</div><div><Button variant="secondary" type="button" disabled={saving} onClick={() => void loadPeriod(companyId, reportType, periodStart, periodEnd)}><RefreshCw size={15} />Atualizar prévia</Button><Button variant="secondary" type="button" onClick={() => setPreviewOpen(true)}><FileText size={15} />Visualizar prévia</Button><Button variant="primary" type="button" disabled={saving || Boolean(readiness && !readiness.can_generate_official)} onClick={() => void createOfficialClosing()}><CheckCircle2 size={15} />Criar fechamento oficial</Button></div></div>
-        <section className="reports-v16-review-map"><div><span>PRÉVIA SEM PERSISTÊNCIA</span><h2>Navegar pelo período não cria mais rascunho.</h2><p>{readiness && !readiness.can_generate_official ? `A coleta mínima ainda não foi atingida. O fechamento oficial ficará disponível a partir de ${formatDate(readiness.available_on)}.` : 'Os dados podem ser conferidos e a curadoria pode ser preparada agora. O registro oficial só será criado por ação explícita.'}</p></div><div className="reports-v16-review-stats"><article><strong>{reviewCounts?.facts || 0}</strong><span>fontes automáticas</span></article><article><strong>{periodDeliveries.length}</strong><span>entregas no período</span></article><article><strong>{changes.length}</strong><span>comparativos com base</span></article></div></section>
-        <main className="reports-v16-workspace">
-          <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>01</span><div><h2>Base da prévia</h2><p>Identificação e fatos são lidos da origem, sem gravar relatório.</p></div></div><dl className="reports-v16-identification"><div><dt>Cliente</dt><dd>{selectedCompany.name}</dd></div><div><dt>Período</dt><dd>{periodName}</dd></div><div><dt>Projeto / ciclo</dt><dd>{snapshot.cycleContext?.projectName || kpis?.cycleLabel || snapshot.projects[0]?.name || '—'}</dd></div><div><dt>Protocolo</dt><dd>Será gerado no fechamento</dd></div></dl></section>
-          <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>02</span><div><h2>Fatos disponíveis</h2><p>Só aparece o que possui base real no período.</p></div></div><div className="reports-v16-fact-grid">{hasCapacity ? <article><small>Capacidade utilizada</small><strong>{usagePercent === null ? formatHoursV14(usedMinutes) : `${usagePercent}%`}</strong></article> : null}{hasPlanned ? <article><small>Entregas previstas</small><strong>{kpis?.completedDeliveries}/{kpis?.plannedDeliveries}</strong></article> : null}{hasAdherence ? <article><small>Aderência ao prazo</small><strong>{kpis?.deliveryAdherence}%</strong></article> : null}</div>{periodDeliveries.length ? <div><h3>Planejado x realizado</h3><table className="reports-v16-table deliveries"><thead><tr><th>Entregável</th><th>Previsto</th><th>Realizado</th><th>Situação</th></tr></thead><tbody>{periodDeliveries.map((item) => <tr key={item.deliverable_id}><td><strong>{item.title}</strong>{item.workstream ? <small>{item.workstream}</small> : null}</td><td>{formatDate(item.effective_due_at)}</td><td>{formatDate(item.completion_at)}</td><td>{deliveryTimingLabelV14(item)}</td></tr>)}</tbody></table></div> : <p className="reports-v16-empty">Nenhum entregável movimentado neste período.</p>}</section>
+        <ReportEditorToolbar><div><strong>Prévia interna</strong><span>Sem registro persistente</span><span>{readiness?.required_days ? `${Math.max(0, readiness.collected_days)} de ${readiness.required_days} dias de coleta` : 'Dados lidos em tempo real'}</span>{collectionWait && <span className="reports-v17-official-wait tw:font-semibold tw:text-[#9a6b1f]!">{collectionWait}</span>}{error ? <span className="reports-v17-toolbar-error tw:font-semibold tw:text-[#b42318]!" role="alert">{error}</span> : null}</div><div><Button variant="secondary" type="button" disabled={saving} onClick={() => setWorkflowAction('refresh-preview')}><RefreshCw size={15} />Atualizar prévia</Button><Button variant="secondary" type="button" onClick={() => setPreviewOpen(true)}><FileText size={15} />Visualizar prévia</Button><Button variant="primary" type="button" disabled={saving || Boolean(readiness && !readiness.can_generate_official)} onClick={() => void createOfficialClosing()}><CheckCircle2 size={15} />Criar fechamento oficial</Button></div></ReportEditorToolbar>
+        <ReportReviewOverview
+          label="PRÉVIA SEM PERSISTÊNCIA"
+          title="Navegar pelo período não cria mais rascunho."
+          description={readiness && !readiness.can_generate_official
+            ? `A coleta mínima ainda não foi atingida. O fechamento oficial ficará disponível a partir de ${formatDate(readiness.available_on)}.`
+            : 'Os dados podem ser conferidos e a curadoria pode ser preparada agora. O registro oficial só será criado por ação explícita.'}
+          metrics={[
+            { value: reviewCounts?.facts || 0, label: 'fontes automáticas' },
+            { value: periodDeliveries.length, label: 'entregas no período' },
+            { value: changes.length, label: 'comparativos com base' },
+          ]}
+        />
+        <ReportEditorWorkspace>
+          <ReportReviewSection><ReportSectionHeading number="01" title={'Base da prévia'} description={'Identificação e fatos são lidos da origem, sem gravar relatório.'} /><dl className="reports-v16-identification tw:m-0 tw:grid tw:grid-cols-4 tw:border-y tw:border-solid tw:border-[#eee7e2]
+            tw:max-[680px]:grid-cols-2 tw:workspace-night:border-[#433339] tw:[&>div]:mr-[1.38462rem] tw:[&>div]:border-r
+            tw:[&>div]:border-solid tw:[&>div]:border-[#eee7e2] tw:[&>div]:pt-[1.15385rem] tw:[&>div]:pr-[1.38462rem]
+            tw:[&>div]:pb-[1.07692rem] tw:[&>div:last-child]:mr-0 tw:[&>div:last-child]:border-r-0 tw:[&_dt]:mb-[0.38462rem]
+            tw:[&_dt]:text-[0.69231rem] tw:[&_dt]:font-extrabold tw:[&_dt]:tracking-[0.1em] tw:[&_dt]:text-[#978982]
+            tw:[&_dt]:uppercase tw:[&_dd]:m-0 tw:[&_dd]:text-[1.07692rem] tw:[&_dd]:leading-[calc(1.25/0.875)]
+            tw:[&_dd]:leading-[1.35] tw:[&_dd]:font-bold tw:[&_dd]:text-[#312c29] tw:workspace-night:[&>div]:border-[#433339]
+            tw:workspace-night:[&_dt]:text-[#aa9994] tw:workspace-night:[&_dd]:text-[#f5efec]"><div><dt>Cliente</dt><dd>{selectedCompany.name}</dd></div><div><dt>Período</dt><dd>{periodName}</dd></div><div><dt>Projeto / ciclo</dt><dd>{snapshot.cycleContext?.projectName || kpis?.cycleLabel || snapshot.projects[0]?.name || '—'}</dd></div><div><dt>Protocolo</dt><dd>Será gerado no fechamento</dd></div></dl></ReportReviewSection>
+          <ReportReviewSection><ReportSectionHeading number="02" title={'Fatos disponíveis'} description={'Só aparece o que possui base real no período.'} /><div className="reports-v16-fact-grid tw:grid tw:grid-cols-5 tw:border-y tw:border-solid tw:border-[#eee7e2] tw:max-[1050px]:grid-cols-3
+            tw:max-[680px]:grid-cols-2 tw:workspace-night:border-[#433339] tw:[&_article]:mr-[1.38462rem]
+            tw:[&_article]:border-r tw:[&_article]:border-solid tw:[&_article]:border-[#eee7e2] tw:[&_article]:pt-[1.23077rem]
+            tw:[&_article]:pr-[1.38462rem] tw:[&_article]:pb-[1.15385rem] tw:[&_article:last-child]:mr-0 tw:[&_article:last-child]:border-r-0
+            tw:[&_small]:block tw:[&_small]:text-[0.65385rem] tw:[&_small]:font-extrabold tw:[&_small]:tracking-[0.09em]
+            tw:[&_small]:text-[#95867f] tw:[&_small]:uppercase tw:[&_strong]:mt-[0.38462rem] tw:[&_strong]:block
+            tw:[&_strong]:text-[1.69231rem]! tw:[&_strong]:font-semibold! tw:[&_strong]:text-cali-brand! tw:workspace-night:[&_article]:border-[#433339]
+            tw:workspace-night:[&_small]:text-[#aa9994]">{hasCapacity ? <article><small>Capacidade utilizada</small><strong>{usagePercent === null ? formatHoursV14(usedMinutes) : `${usagePercent}%`}</strong></article> : null}{hasPlanned ? <article><small>Entregas previstas</small><strong>{kpis?.completedDeliveries}/{kpis?.plannedDeliveries}</strong></article> : null}{hasAdherence ? <article><small>Aderência ao prazo</small><strong>{kpis?.deliveryAdherence}%</strong></article> : null}</div>{periodDeliveries.length ? <div><h3>Planejado x realizado</h3><table className="reports-v16-table deliveries tw:w-full tw:border-collapse tw:[&_th]:border-b tw:[&_th]:border-solid
+            tw:[&_th]:border-[#d9d0ca] tw:[&_th]:py-[0.53846rem] tw:[&_th]:pr-[0.69231rem] tw:[&_th]:text-left
+            tw:[&_th]:text-[0.65385rem] tw:[&_th]:font-extrabold tw:[&_th]:tracking-[0.08em] tw:[&_th]:text-[#8a7d76]
+            tw:[&_th]:uppercase tw:[&_td]:border-b tw:[&_td]:border-solid tw:[&_td]:border-[#eee7e2] tw:[&_td]:py-[0.69231rem]
+            tw:[&_td]:pr-[0.69231rem] tw:[&_td]:align-top tw:[&_td]:text-[0.84615rem] tw:[&_td]:text-[#3a3430]
+            tw:[&_tr:last-child_td]:border-b-0 tw:[&_th:last-child]:pr-0 tw:[&_td:last-child]:pr-0 tw:[&_td:last-child]:text-left
+            tw:[&_td_strong]:block tw:[&_td_strong]:text-[0.84615rem] tw:[&_td_small]:mt-[0.15385rem] tw:[&_td_small]:block
+            tw:[&_td_small]:text-[0.69231rem] tw:[&_td_small]:text-[#8c7e77] tw:workspace-night:[&_th]:border-[#3d3034]
+            tw:workspace-night:[&_td]:border-[#3d3034] tw:workspace-night:[&_th]:text-[#a99a95] tw:workspace-night:[&_td]:text-[#e8dfdc]
+            tw:workspace-night:[&_td_small]:text-[#a99a95]"><thead><tr><th>Entregável</th><th>Previsto</th><th>Realizado</th><th>Situação</th></tr></thead><tbody>{periodDeliveries.map((item) => <tr key={item.deliverable_id}><td><strong>{item.title}</strong>{item.workstream ? <small>{item.workstream}</small> : null}</td><td>{formatDate(item.effective_due_at)}</td><td>{formatDate(item.completion_at)}</td><td>{deliveryTimingLabelV14(item)}</td></tr>)}</tbody></table></div> : <p className="reports-v16-empty tw:m-0 tw:text-[0.82055rem] tw:text-[#8a7d76]">Nenhum entregável movimentado neste período.</p>}</ReportReviewSection>
           <ReportManualComplementsPanel value={manualComplements} onChange={setManualComplements} />
           {previewEditorial}
           {history}
-        </main>
+        </ReportEditorWorkspace>
       </> : <>
-        <div className="reports-v16-toolbar"><div><strong>{isSimulation ? 'Simulação interna' : statusLabel[lifecycleStatus]}</strong>{!isSimulation ? <span>v{activeReport.version}</span> : null}<span>{autosaveState === 'saving' ? 'Salvando…' : autosaveState === 'error' ? 'Falha no autosave' : `Salvo ${formatDateTime(lastSavedAt || activeReport.updatedAt)}`}</span></div><div>{canEdit ? <Button variant="secondary" type="button" disabled={saving} onClick={() => void refreshData()}><RefreshCw size={15} />{isSimulation ? 'Atualizar simulação' : 'Atualizar fatos'}</Button> : null}{['approved', 'sent', 'published'].includes(lifecycleStatus) ? <Button variant="secondary" type="button" disabled={saving} onClick={() => void createNewVersion()}><RotateCcw size={15} />{['sent', 'published'].includes(lifecycleStatus) ? 'Simular atualização' : 'Nova versão'}</Button> : null}<Button variant="secondary" type="button" onClick={() => setPreviewOpen(true)}><FileText size={15} />Visualizar relatório</Button>{primaryAction()}</div></div>
+        <ReportEditorToolbar>
+          <div>
+            {!isSimulation && <strong>{isCollectionPreview ? 'Prévia interna' : statusLabel[lifecycleStatus]}</strong>}
+            {!isSimulation && !isCollectionPreview && <span>v{activeReport.version}</span>}
+            <span>{autosaveState === 'saving' ? 'Salvando…' : autosaveState === 'error' ? 'Falha no autosave' : `Salvo ${formatDateTime(lastSavedAt || activeReport.updatedAt)}`}</span>
+            {isCollectionPreview && collectionWait && <span className="reports-v17-official-wait tw:font-semibold tw:text-[#9a6b1f]!">{collectionWait}</span>}
+          </div>
+          <div>
+            {canEdit && <Button variant="secondary" type="button" disabled={saving} onClick={() => setWorkflowAction(isSimulation ? 'refresh-simulation' : isCollectionPreview ? 'refresh-preview' : 'refresh-facts')}>
+              <RefreshCw size={15} />{isSimulation ? 'Atualizar simulação' : isCollectionPreview ? 'Atualizar prévia' : 'Atualizar fatos'}
+            </Button>}
+            {['approved', 'sent', 'published'].includes(lifecycleStatus) && <Button variant="secondary" type="button" disabled={saving} onClick={() => createsSimulation ? setWorkflowAction('create-simulation') : void createNewVersion()}>
+              <RotateCcw size={15} />{createsSimulation ? 'Simular atualização' : 'Nova versão'}
+            </Button>}
+            {canOpenDistinctPreview && <Button variant="secondary" type="button" onClick={() => setPreviewOpen(true)}><FileText size={15} />Visualizar relatório</Button>}
+            {primaryAction()}
+            {toolbarCorrectionTarget && <Button variant="secondary" type="button" title="Abrir revisão para correção" onClick={() => setCorrectionTarget(toolbarCorrectionTarget)}>Corrigir</Button>}
+            {trackedReport && (
+              <>
+                <Button variant="secondary" type="button" onClick={() => window.open(`/admin/relatorios/impressao/${encodeURIComponent(trackedReport.id)}`, '_blank', 'noopener,noreferrer')}>Ver versão enviada</Button>
+                <Button variant="secondary" type="button" onClick={() => setHistoryOpen(true)}>Histórico do cliente</Button>
+              </>
+            )}
+          </div>
+        </ReportEditorToolbar>
 
-        <section className="reports-v16-review-map"><div><span>REVISÃO CALI</span><h2>{isSimulation ? 'Esta simulação não altera o fechamento enviado.' : 'O operacional já está fechado. Revise o que exige julgamento.'}</h2><p>Fatos permanecem bloqueados; decisões e direção só entram quando você as seleciona.</p></div><div className="reports-v16-review-stats"><article><strong>{reviewCounts?.facts || 0}</strong><span>fontes automáticas</span></article><article><strong>{reviewCounts?.editorial || 0}</strong><span>itens selecionados</span></article><article className={unresolvedBlocking.length ? 'attention' : ''}><strong>{reviewCounts?.alerts || 0}</strong><span>pontos para conferir</span></article></div></section>
+        <ReportReviewOverview
+          label="REVISÃO CALI"
+          title={isSimulation ? 'Esta simulação não altera o fechamento enviado.' : 'O operacional já está fechado. Revise o que exige julgamento.'}
+          description="Fatos permanecem bloqueados; decisões e direção só entram quando você as seleciona."
+          metrics={[
+            { value: reviewCounts?.facts || 0, label: 'fontes automáticas' },
+            { value: reviewCounts?.editorial || 0, label: 'itens selecionados' },
+            { value: reviewCounts?.alerts || 0, label: 'pontos para conferir', attention: Boolean(unresolvedBlocking.length) },
+          ]}
+        />
 
-        <main className="reports-v16-workspace">
-          <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>01</span><div><h2>Base do fechamento</h2><p>Identificação automática. Nada aqui deve ser digitado no relatório.</p></div></div><dl className="reports-v16-identification"><div><dt>Cliente</dt><dd>{selectedCompany.name}</dd></div><div><dt>Período</dt><dd>{periodName}</dd></div><div><dt>Projeto / ciclo</dt><dd>{snapshot.cycleContext?.projectName || kpis?.cycleLabel || snapshot.projects[0]?.name || '—'}</dd></div><div><dt>Protocolo</dt><dd>{activeReport.protocol}</dd></div></dl></section>
+        <ReportEditorWorkspace>
+          <ReportReviewSection><ReportSectionHeading number="01" title={'Base do fechamento'} description={'Identificação automática. Nada aqui deve ser digitado no relatório.'} /><dl className="reports-v16-identification tw:m-0 tw:grid tw:grid-cols-4 tw:border-y tw:border-solid tw:border-[#eee7e2]
+            tw:max-[680px]:grid-cols-2 tw:workspace-night:border-[#433339] tw:[&>div]:mr-[1.38462rem] tw:[&>div]:border-r
+            tw:[&>div]:border-solid tw:[&>div]:border-[#eee7e2] tw:[&>div]:pt-[1.15385rem] tw:[&>div]:pr-[1.38462rem]
+            tw:[&>div]:pb-[1.07692rem] tw:[&>div:last-child]:mr-0 tw:[&>div:last-child]:border-r-0 tw:[&_dt]:mb-[0.38462rem]
+            tw:[&_dt]:text-[0.69231rem] tw:[&_dt]:font-extrabold tw:[&_dt]:tracking-[0.1em] tw:[&_dt]:text-[#978982]
+            tw:[&_dt]:uppercase tw:[&_dd]:m-0 tw:[&_dd]:text-[1.07692rem] tw:[&_dd]:leading-[calc(1.25/0.875)]
+            tw:[&_dd]:leading-[1.35] tw:[&_dd]:font-bold tw:[&_dd]:text-[#312c29] tw:workspace-night:[&>div]:border-[#433339]
+            tw:workspace-night:[&_dt]:text-[#aa9994] tw:workspace-night:[&_dd]:text-[#f5efec]"><div><dt>Cliente</dt><dd>{selectedCompany.name}</dd></div><div><dt>Período</dt><dd>{periodName}</dd></div><div><dt>Projeto / ciclo</dt><dd>{snapshot.cycleContext?.projectName || kpis?.cycleLabel || snapshot.projects[0]?.name || '—'}</dd></div><div><dt>Protocolo</dt><dd>{activeReport.protocol}</dd></div></dl></ReportReviewSection>
 
-          <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>02</span><div><h2>Fatos do período</h2><p>Indicadores sem base deixam de ocupar espaço.</p></div></div><div className="reports-v16-fact-grid">{hasCapacity ? <article><small>{extraMinutes > 0 ? 'Consumo no período' : 'Capacidade utilizada'}</small><strong>{usagePercent === null ? formatHoursV14(usedMinutes) : `${usagePercent}%`}</strong></article> : null}{hasPlanned ? <article><small>Entregas previstas</small><strong>{kpis?.completedDeliveries}/{kpis?.plannedDeliveries}</strong></article> : null}{hasAdherence ? <article><small>Aderência ao prazo</small><strong>{kpis?.deliveryAdherence}%</strong></article> : null}</div>{contractedMinutes > 0 ? <div className="reports-v16-usage-track"><span style={{ width: `${Math.min(100, Math.max(0, usagePercent || 0))}%` }} /></div> : null}{extraMinutes > 0 && capacitySignal?.message ? <p className="reports-v16-capacity-signal">{capacitySignal.message}</p> : null}<div className="reports-v16-facts-split" style={{ gridTemplateColumns: '1fr' }}><div><h3>Entregas e andamento</h3>{periodDeliveries.length ? <table className="reports-v16-table deliveries"><thead><tr><th>Entregável</th><th>Previsto</th><th>Realizado</th><th>Situação</th></tr></thead><tbody>{periodDeliveries.map((item) => <tr key={item.deliverable_id}><td><strong>{item.title}</strong>{item.workstream ? <small>{item.workstream}</small> : null}</td><td>{formatDate(item.effective_due_at)}</td><td>{formatDate(item.completion_at)}</td><td>{deliveryTimingLabelV14(item)}</td></tr>)}</tbody></table> : <p className="reports-v16-empty">Nenhum entregável movimentado neste período.</p>}</div></div></section>
+          <ReportReviewSection><ReportSectionHeading number="02" title={'Fatos do período'} description={'Indicadores sem base deixam de ocupar espaço.'} /><div className="reports-v16-fact-grid tw:grid tw:grid-cols-5 tw:border-y tw:border-solid tw:border-[#eee7e2] tw:max-[1050px]:grid-cols-3
+            tw:max-[680px]:grid-cols-2 tw:workspace-night:border-[#433339] tw:[&_article]:mr-[1.38462rem]
+            tw:[&_article]:border-r tw:[&_article]:border-solid tw:[&_article]:border-[#eee7e2] tw:[&_article]:pt-[1.23077rem]
+            tw:[&_article]:pr-[1.38462rem] tw:[&_article]:pb-[1.15385rem] tw:[&_article:last-child]:mr-0 tw:[&_article:last-child]:border-r-0
+            tw:[&_small]:block tw:[&_small]:text-[0.65385rem] tw:[&_small]:font-extrabold tw:[&_small]:tracking-[0.09em]
+            tw:[&_small]:text-[#95867f] tw:[&_small]:uppercase tw:[&_strong]:mt-[0.38462rem] tw:[&_strong]:block
+            tw:[&_strong]:text-[1.69231rem]! tw:[&_strong]:font-semibold! tw:[&_strong]:text-cali-brand! tw:workspace-night:[&_article]:border-[#433339]
+            tw:workspace-night:[&_small]:text-[#aa9994]">{hasCapacity ? <article><small>{extraMinutes > 0 ? 'Consumo no período' : 'Capacidade utilizada'}</small><strong>{usagePercent === null ? formatHoursV14(usedMinutes) : `${usagePercent}%`}</strong></article> : null}{hasPlanned ? <article><small>Entregas previstas</small><strong>{kpis?.completedDeliveries}/{kpis?.plannedDeliveries}</strong></article> : null}{hasAdherence ? <article><small>Aderência ao prazo</small><strong>{kpis?.deliveryAdherence}%</strong></article> : null}</div>{contractedMinutes > 0 ? <div className="reports-v16-usage-track tw:mt-[1.15385rem] tw:mb-[0.61538rem] tw:h-[0.46154rem] tw:overflow-hidden
+            tw:rounded-full tw:bg-[#eee7e2] tw:workspace-night:bg-[#3b2e32] tw:[&>span]:block tw:[&>span]:h-full
+            tw:[&>span]:rounded-[inherit] tw:[&>span]:bg-cali-gold"><span style={{ width: `${Math.min(100, Math.max(0, usagePercent || 0))}%` }} /></div> : null}{extraMinutes > 0 && capacitySignal?.message ? <p className="reports-v16-capacity-signal tw:mt-[0.76923rem] tw:mb-[1.23077rem] tw:border-l-[0.23077rem] tw:border-solid
+            tw:border-cali-gold tw:py-[0.76923rem] tw:pl-[1.07692rem] tw:text-[0.84615rem] tw:leading-normal
+            tw:text-[#5f554f] tw:workspace-night:text-[#b8aaa5]">{capacitySignal.message}</p> : null}<div className="reports-v16-facts-split tw:mt-[1.38462rem] tw:grid tw:grid-cols-1 tw:gap-[2.30769rem] tw:[&_h3]:text-[#3a322e] tw:workspace-night:[&_h3]:text-[#f5efec]"><div><h3>Entregas e andamento</h3>{periodDeliveries.length ? <table className="reports-v16-table deliveries tw:w-full tw:border-collapse tw:[&_th]:border-b tw:[&_th]:border-solid
+            tw:[&_th]:border-[#d9d0ca] tw:[&_th]:py-[0.53846rem] tw:[&_th]:pr-[0.69231rem] tw:[&_th]:text-left
+            tw:[&_th]:text-[0.65385rem] tw:[&_th]:font-extrabold tw:[&_th]:tracking-[0.08em] tw:[&_th]:text-[#8a7d76]
+            tw:[&_th]:uppercase tw:[&_td]:border-b tw:[&_td]:border-solid tw:[&_td]:border-[#eee7e2] tw:[&_td]:py-[0.69231rem]
+            tw:[&_td]:pr-[0.69231rem] tw:[&_td]:align-top tw:[&_td]:text-[0.84615rem] tw:[&_td]:text-[#3a3430]
+            tw:[&_tr:last-child_td]:border-b-0 tw:[&_th:last-child]:pr-0 tw:[&_td:last-child]:pr-0 tw:[&_td:last-child]:text-left
+            tw:[&_td_strong]:block tw:[&_td_strong]:text-[0.84615rem] tw:[&_td_small]:mt-[0.15385rem] tw:[&_td_small]:block
+            tw:[&_td_small]:text-[0.69231rem] tw:[&_td_small]:text-[#8c7e77] tw:workspace-night:[&_th]:border-[#3d3034]
+            tw:workspace-night:[&_td]:border-[#3d3034] tw:workspace-night:[&_th]:text-[#a99a95] tw:workspace-night:[&_td]:text-[#e8dfdc]
+            tw:workspace-night:[&_td_small]:text-[#a99a95]"><thead><tr><th>Entregável</th><th>Previsto</th><th>Realizado</th><th>Situação</th></tr></thead><tbody>{periodDeliveries.map((item) => <tr key={item.deliverable_id}><td><strong>{item.title}</strong>{item.workstream ? <small>{item.workstream}</small> : null}</td><td>{formatDate(item.effective_due_at)}</td><td>{formatDate(item.completion_at)}</td><td>{deliveryTimingLabelV14(item)}</td></tr>)}</tbody></table> : <p className="reports-v16-empty tw:m-0 tw:text-[0.82055rem] tw:text-[#8a7d76]">Nenhum entregável movimentado neste período.</p>}</div></div></ReportReviewSection>
 
           <ReportManualComplementsPanel value={manualComplements} onChange={setManualComplements} locked={!canEdit} />
 
-          {changes.length ? <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>03</span><div><h2>{reportType === 'quarterly' ? 'Evolução dentro do trimestre' : 'O que mudou'}</h2><p>Só existe comparativo quando há base real nos dois períodos.</p></div></div><div className="reports-v16-change-grid">{changes.map((item) => <article className={`tone-${item.tone}`} key={item.id}><span>{item.label}</span><strong>{item.value}</strong><p>{item.detail}</p></article>)}</div></section> : null}
+          {changes.length ? <ReportReviewSection><ReportSectionHeading number="03" title={reportType === 'quarterly' ? 'Evolução dentro do trimestre' : 'O que mudou'} description={'Só existe comparativo quando há base real nos dois períodos.'} /><ReportPeriodChanges changes={changes} /></ReportReviewSection> : null}
 
-          <section className="reports-v16-section"><div className="reports-v16-section-heading"><span>04</span><div><h2>Curadoria de demandas e decisões</h2><p>O Workspace sugere candidatos; nada é selecionado automaticamente para o documento.</p></div></div><div className="reports-v16-selection-grid"><div><h3>Demandas para leitura interna</h3>{demandChoices.length ? <div className="reports-v16-check-list">{demandChoices.map((item) => <label key={item}><input type="checkbox" disabled={!canEdit} checked={selectedDemands.has(item)} onChange={() => toggleSelection(item, 'movements')} /><span>{item}</span></label>)}</div> : <p className="reports-v16-empty">Nenhuma demanda estruturada foi registrada.</p>}</div><div><h3>Decisões registradas</h3>{decisionOptions.length ? <div className="reports-v16-check-list">{decisionOptions.map((item) => <label key={item}><input type="checkbox" disabled={!canEdit} checked={selectedDecisions.has(item)} onChange={() => toggleSelection(item, 'decisions')} /><span>{item}</span></label>)}</div> : <p className="reports-v16-empty">Nenhuma decisão estruturada foi registrada.</p>}</div></div></section>
+          <ReportReviewSection><ReportSectionHeading number="04" title={'Curadoria de demandas e decisões'} description={'O Workspace sugere candidatos; nada é selecionado automaticamente para o documento.'} /><div className="reports-v16-selection-grid tw:grid tw:grid-cols-2 tw:gap-[2.61538rem] tw:max-[1050px]:grid-cols-1
+            tw:[&_h3]:mt-0! tw:[&_h3]:text-[#3a322e] tw:workspace-night:[&_h3]:text-[#f5efec]"><div><h3>Demandas para leitura interna</h3>{demandChoices.length ? <ReportReviewChecklist>{demandChoices.map((item) => <label key={item}><input type="checkbox" disabled={!canEdit} checked={selectedDemands.has(item)} onChange={() => toggleSelection(item, 'movements')} /><span>{item}</span></label>)}</ReportReviewChecklist> : <p className="reports-v16-empty tw:m-0 tw:text-[0.82055rem] tw:text-[#8a7d76]">Nenhuma demanda estruturada foi registrada.</p>}</div><div><h3>Decisões registradas</h3>{decisionOptions.length ? <ReportReviewChecklist>{decisionOptions.map((item) => <label key={item}><input type="checkbox" disabled={!canEdit} checked={selectedDecisions.has(item)} onChange={() => toggleSelection(item, 'decisions')} /><span>{item}</span></label>)}</ReportReviewChecklist> : <p className="reports-v16-empty tw:m-0 tw:text-[0.82055rem] tw:text-[#8a7d76]">Nenhuma decisão estruturada foi registrada.</p>}</div></div></ReportReviewSection>
 
-          <section className="reports-v16-section reports-v16-alert-section"><div className="reports-v16-section-heading"><span>05</span><div><h2>Conferência antes da aprovação</h2><p>{unresolvedAlerts.length ? `${unresolvedAlerts.length} ponto(s) merecem conferência antes de fechar.` : 'Nenhuma pendência aberta.'}</p></div></div>{unresolvedAlerts.length ? <div className="reports-v16-alert-list">{unresolvedAlerts.map((alert) => { const dismissed = dismissedAlerts.find((item) => item.id === alert.id); return <article key={alert.id} className={dismissed ? 'tone-dismissed' : alert.blocking || alert.severity === 'critical' ? 'tone-critical' : 'tone-attention'}><div><strong>{dismissed ? 'Ignorado' : alert.blocking ? 'Precisa corrigir' : 'Atenção'}</strong><span><b>{alert.title}</b><p>{alert.detail}</p>{dismissed ? <small>Ignorado: {dismissed.reason}</small> : null}</span></div><div>{alert.actionHref ? <a href={alert.actionHref}>{alert.actionLabel || 'Ver origem'}</a> : null}{dismissed ? <button type="button" disabled={!canEdit} onClick={() => restoreAlert(alert.id)}>Restaurar</button> : <button type="button" disabled={!canEdit} onClick={() => { setDismissTarget(alert); setDismissReason(''); }}>Ignorar com justificativa</button>}</div></article>; })}</div> : <div className="reports-v16-ok"><CheckCircle2 size={18} />Os fatos estão consistentes para o fechamento.</div>}</section>
+          <ReportReviewAlerts
+            alerts={unresolvedAlerts}
+            dismissedAlerts={dismissedAlerts}
+            locked={!canEdit}
+            onDismiss={(alert) => { setDismissTarget(alert); setDismissReason(''); }}
+            onRestore={restoreAlert}
+          />
 
-          <section className="reports-v16-section reports-v16-editorial"><div className="reports-v16-section-heading"><span>06</span><div><h2>Leitura executiva CALI</h2><p>Interprete o período sem repetir números, entregas ou mensagens brutas.</p></div></div><EditorialField title={reportType === 'quarterly' ? 'Leitura executiva do trimestre' : 'Leitura executiva do mês'} value={editor.summary} onChange={(value) => setEditor((current) => ({ ...current, summary: value }))} helper="3–5 linhas. Explique o que o período revela; não copie logs, dúvidas ou tabelas." rows={7} locked={!canEdit} /><EditorialField title="Pontos de atenção para o cliente" value={editor.risks} onChange={(value) => setEditor((current) => ({ ...current, risks: value }))} helper="Até 3 pontos. Traga risco + recomendação + dependência, sem repetir o texto da leitura executiva." rows={5} locked={!canEdit} /></section>
+          <ReportReviewSection surface="editorial"><ReportSectionHeading number="06" title={'Leitura executiva CALI'} description={'Interprete o período sem repetir números, entregas ou mensagens brutas.'} /><EditorialField title={reportType === 'quarterly' ? 'Leitura executiva do trimestre' : 'Leitura executiva do mês'} value={editor.summary} onChange={(value) => setEditor((current) => ({ ...current, summary: value }))} helper="3–5 linhas. Explique o que o período revela; não copie logs, dúvidas ou tabelas." rows={7} locked={!canEdit} /><EditorialField title="Pontos de atenção para o cliente" value={editor.risks} onChange={(value) => setEditor((current) => ({ ...current, risks: value }))} helper="Até 3 pontos. Traga risco + recomendação + dependência, sem repetir o texto da leitura executiva." rows={5} locked={!canEdit} /></ReportReviewSection>
 
-          <section className="reports-v16-section reports-v16-editorial"><div className="reports-v16-section-heading"><span>07</span><div><h2>{reportType === 'quarterly' ? 'Prioridades do próximo trimestre' : 'Prioridades do próximo ciclo'}</h2><p>Feche olhando para frente. Prioridade não repete ponto de atenção.</p></div></div><EditorialField title="Prioridades" value={editor.nextSteps} onChange={(value) => setEditor((current) => ({ ...current, nextSteps: value }))} helper="1–3 movimentos. Inclua prazo, responsável ou dependência quando isso mudar a leitura." rows={5} locked={!canEdit} /></section>
+          <ReportReviewSection surface="editorial"><ReportSectionHeading number="07" title={reportType === 'quarterly' ? 'Prioridades do próximo trimestre' : 'Prioridades do próximo ciclo'} description={'Feche olhando para frente. Prioridade não repete ponto de atenção.'} /><EditorialField title="Prioridades" value={editor.nextSteps} onChange={(value) => setEditor((current) => ({ ...current, nextSteps: value }))} helper="1–3 movimentos. Inclua prazo, responsável ou dependência quando isso mudar a leitura." rows={5} locked={!canEdit} /></ReportReviewSection>
 
-          <details className="reports-v16-internal"><summary>Adicionar nota interna</summary><p>Visível somente para você. Não aparece no PDF, Workspace ou e-mail do cliente.</p><textarea rows={4} readOnly={!canEdit} value={internalNote} onChange={(event) => setInternalNote(event.target.value)} placeholder="Anotação para a conversa ou para o próximo fechamento." /></details>
+          <details className="reports-v16-internal tw:group tw:border-t tw:border-solid tw:border-[#ece5df] tw:bg-[#faf7f4]
+            tw:px-[2.46154rem] tw:py-[1.38462rem] tw:max-[680px]:px-[1.38462rem] tw:workspace-night:border-[#3b2d32]
+            tw:workspace-night:bg-[#1d1719]"><summary className="tw:cursor-pointer tw:list-none tw:text-[0.84615rem] tw:font-extrabold tw:text-cali-brand tw:before:mr-[0.61538rem]
+            tw:before:inline-block tw:before:text-[1.23077rem] tw:before:leading-[1.5] tw:before:font-normal
+            tw:before:content-['+'] tw:group-open:before:content-['−'] tw:[&::-webkit-details-marker]:hidden
+            tw:workspace-night:text-[#e4b9c3]">Adicionar nota interna</summary><p className="tw:mt-2 tw:mb-2.5 tw:text-[0.625rem] tw:text-[#887b75]">Visível somente para você. Não aparece no PDF, Workspace ou e-mail do cliente.</p><textarea className="tw:w-full tw:resize-y tw:rounded-[0.625rem] tw:border tw:border-solid tw:border-[#e2d9d3] tw:bg-white
+            tw:px-[0.8125rem] tw:py-3 tw:text-[0.71875rem] tw:leading-[1.55] tw:text-cali-ink tw:outline-none
+            tw:focus:border-[#9e6875] tw:focus:shadow-[0_0_0_0.1875rem_#5a1e2d0f] tw:read-only:bg-[#f7f4f1]
+            tw:read-only:text-[#6d625c] tw:workspace-night:border-[#4b3940] tw:workspace-night:bg-[#2a2024]
+            tw:workspace-night:text-[#f3ece9] tw:workspace-night:read-only:bg-[#241c1f] tw:workspace-night:read-only:text-[#b8aaa5]" rows={4} readOnly={!canEdit} value={internalNote} onChange={(event) => setInternalNote(event.target.value)} placeholder="Anotação para a conversa ou para o próximo fechamento." /></details>
           {history}
-        </main>
+        </ReportEditorWorkspace>
       </>}
     </> : null}
 
-    {dismissTarget ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-modal-backdrop"><DialogFrame className="modal-card reports-v16-small-modal" aria-label="Dispensar alerta"><Button variant="close" type="button" onClick={() => setDismissTarget(null)}><X size={19} /></Button><span className="section-kicker">JUSTIFICATIVA INTERNA</span><h2>Ignorar este alerta?</h2><p><strong>{dismissTarget.title}</strong></p><textarea autoFocus rows={4} value={dismissReason} onChange={(event) => setDismissReason(event.target.value)} placeholder="Registre por que este ponto não impede o fechamento." /><footer><Button variant="secondary" type="button" onClick={() => setDismissTarget(null)}>Cancelar</Button><Button variant="primary" type="button" disabled={!dismissReason.trim()} onClick={dismissAlert}>Confirmar justificativa</Button></footer></DialogFrame></div> : null}
+    {dismissTarget ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-modal-backdrop tw:fixed tw:inset-0 tw:z-980
+      tw:grid tw:place-items-center tw:bg-[#171017a8] tw:p-[1.38462rem] tw:backdrop-blur-sm"><DialogFrame className="modal-card reports-v16-small-modal tw:relative tw:flex tw:max-h-[92dvh] tw:w-[min(41.53846rem,100%)]
+      tw:max-w-[43.84615rem] tw:flex-col tw:gap-[1rem] tw:overflow-y-auto tw:rounded-[1.07692rem] tw:border
+      tw:border-solid tw:border-[#eadfd6] tw:bg-[#fffdfb] tw:p-[2rem] tw:text-[#322f2c] tw:[&_h2]:m-0
+      tw:[&_h2]:text-[1.61538rem] tw:[&_h2]:leading-tight tw:[&_h2]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-[0.92308rem]
+      tw:[&_p]:leading-[calc(1/0.75)] tw:[&_p]:leading-normal tw:[&_p]:text-[#89796f] tw:[&_label]:flex
+      tw:[&_label]:flex-col tw:[&_label]:gap-[0.53846rem] tw:[&_label]:text-[0.84615rem] tw:[&_label]:font-bold
+      tw:[&_label]:text-[#67574c] tw:[&_footer]:mt-[0.30769rem] tw:[&_footer]:flex tw:[&_footer]:justify-end
+      tw:[&_footer]:gap-[0.76923rem] tw:[&_:is(button.primary,button.secondary)]:inline-flex tw:[&_:is(button.primary,button.secondary)]:h-auto
+      tw:[&_:is(button.primary,button.secondary)]:items-center tw:[&_:is(button.primary,button.secondary)]:justify-center
+      tw:[&_:is(button.primary,button.secondary)]:gap-[0.53846rem] tw:[&_:is(button.primary,button.secondary)]:rounded-[0.53846rem]
+      tw:[&_:is(button.primary,button.secondary)]:border tw:[&_:is(button.primary,button.secondary)]:border-solid
+      tw:[&_button.secondary]:border-[#dec9c3] tw:[&_button.secondary]:bg-white tw:[&_button.secondary]:text-cali-brand
+      tw:[&_button.primary]:border-cali-brand tw:[&_button.primary]:bg-cali-brand tw:[&_button.primary]:text-white
+      tw:[&_:is(button.primary,button.secondary)]:px-[1.07692rem] tw:[&_:is(button.primary,button.secondary)]:py-[0.76923rem]
+      tw:[&_:is(button.primary,button.secondary)]:text-[0.84615rem] tw:[&_:is(button.primary,button.secondary)]:font-bold
+      tw:[&_button:disabled]:cursor-not-allowed tw:[&_button:disabled]:opacity-45" aria-label="Dispensar alerta"><Button className="tw:absolute tw:top-4 tw:right-4 tw:grid tw:size-8 tw:place-items-center tw:rounded-[0.4375rem]
+      tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-white tw:p-0 tw:text-cali-brand" variant="close" type="button" onClick={() => setDismissTarget(null)}><X size={19} /></Button><span className="section-kicker tw:block tw:text-[0.5625rem] tw:font-extrabold tw:tracking-[0.14em] tw:text-cali-gold">JUSTIFICATIVA INTERNA</span><h2>Ignorar este alerta?</h2><p><strong>{dismissTarget.title}</strong></p><textarea className="tw:box-border tw:w-full tw:rounded-[0.5625rem] tw:border tw:border-solid tw:border-[#e5d8d0] tw:bg-white
+      tw:px-3 tw:text-xs tw:font-normal tw:text-[#322f2c] tw:resize-y tw:py-[0.6875rem]" autoFocus rows={4} value={dismissReason} onChange={(event) => setDismissReason(event.target.value)} placeholder="Registre por que este ponto não impede o fechamento." /><footer><Button variant="secondary" type="button" onClick={() => setDismissTarget(null)}>Cancelar</Button><Button variant="primary" type="button" disabled={!dismissReason.trim()} onClick={dismissAlert}>Confirmar justificativa</Button></footer></DialogFrame></div> : null}
 
-    {sendOpen && activeReport ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-modal-backdrop"><DialogFrame className="modal-card reports-v16-send-modal" aria-label="Enviar relatório"><Button variant="close" type="button" onClick={() => setSendOpen(false)}><X size={19} /></Button><span className="section-kicker">ENVIAR AO CLIENTE</span><h2>Relatório aprovado · v{activeReport.version}</h2><p>Ao confirmar, esta versão congelada ficará disponível em Relatórios no Workspace do cliente e os destinatários receberão a notificação por e-mail.</p><div className="reports-v16-send-channels"><label><input type="checkbox" checked readOnly />Disponibilizar no Workspace</label><label><input type="checkbox" checked readOnly />Enviar notificação por e-mail</label></div><label><span>Destinatários</span><input type="text" value={sendRecipients} onChange={(event) => setSendRecipients(event.target.value)} placeholder="email@cliente.com, outro@cliente.com" /></label><label><span>Mensagem opcional</span><textarea rows={4} value={sendMessage} onChange={(event) => setSendMessage(event.target.value)} placeholder="Uma observação curta antes do acesso ao relatório." /></label>{sendError && <InlineNotice tone="danger" role="alert">{sendError}</InlineNotice>}<footer><Button variant="secondary" type="button" disabled={sending} onClick={() => setSendOpen(false)}>Cancelar</Button><Button variant="primary" type="button" disabled={sending || !sendRecipients.trim()} onClick={() => void sendReport()}>{sending ? <Loader2 className="spin" size={16} /> : <Mail size={16} />}Enviar relatório</Button></footer></DialogFrame></div> : null}
+    {sendOpen && activeReport ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-modal-backdrop tw:fixed tw:inset-0 tw:z-980
+      tw:grid tw:place-items-center tw:bg-[#171017a8] tw:p-[1.38462rem] tw:backdrop-blur-sm"><DialogFrame className="modal-card reports-v16-send-modal tw:relative tw:flex tw:max-h-[92dvh] tw:w-[min(41.53846rem,100%)]
+      tw:max-w-[43.84615rem] tw:flex-col tw:gap-[1rem] tw:overflow-y-auto tw:rounded-[1.07692rem] tw:border
+      tw:border-solid tw:border-[#eadfd6] tw:bg-[#fffdfb] tw:p-[2rem] tw:text-[#322f2c] tw:[&_h2]:m-0
+      tw:[&_h2]:text-[1.61538rem] tw:[&_h2]:leading-tight tw:[&_h2]:text-cali-brand tw:[&_p]:m-0 tw:[&_p]:text-[0.92308rem]
+      tw:[&_p]:leading-[calc(1/0.75)] tw:[&_p]:leading-normal tw:[&_p]:text-[#89796f] tw:[&_label]:flex
+      tw:[&_label]:flex-col tw:[&_label]:gap-[0.53846rem] tw:[&_label]:text-[0.84615rem] tw:[&_label]:font-bold
+      tw:[&_label]:text-[#67574c] tw:[&_footer]:mt-[0.30769rem] tw:[&_footer]:flex tw:[&_footer]:justify-end
+      tw:[&_footer]:gap-[0.76923rem] tw:[&_:is(button.primary,button.secondary)]:inline-flex tw:[&_:is(button.primary,button.secondary)]:h-auto
+      tw:[&_:is(button.primary,button.secondary)]:items-center tw:[&_:is(button.primary,button.secondary)]:justify-center
+      tw:[&_:is(button.primary,button.secondary)]:gap-[0.53846rem] tw:[&_:is(button.primary,button.secondary)]:rounded-[0.53846rem]
+      tw:[&_:is(button.primary,button.secondary)]:border tw:[&_:is(button.primary,button.secondary)]:border-solid
+      tw:[&_button.secondary]:border-[#dec9c3] tw:[&_button.secondary]:bg-white tw:[&_button.secondary]:text-cali-brand
+      tw:[&_button.primary]:border-cali-brand tw:[&_button.primary]:bg-cali-brand tw:[&_button.primary]:text-white
+      tw:[&_:is(button.primary,button.secondary)]:px-[1.07692rem] tw:[&_:is(button.primary,button.secondary)]:py-[0.76923rem]
+      tw:[&_:is(button.primary,button.secondary)]:text-[0.84615rem] tw:[&_:is(button.primary,button.secondary)]:font-bold
+      tw:[&_button:disabled]:cursor-not-allowed tw:[&_button:disabled]:opacity-45" aria-label="Enviar relatório"><Button className="tw:absolute tw:top-4 tw:right-4 tw:grid tw:size-8 tw:place-items-center tw:rounded-[0.4375rem]
+      tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-white tw:p-0 tw:text-cali-brand" variant="close" type="button" onClick={() => setSendOpen(false)}><X size={19} /></Button><span className="section-kicker tw:block tw:text-[0.5625rem] tw:font-extrabold tw:tracking-[0.14em] tw:text-cali-gold">ENVIAR AO CLIENTE</span><h2>Relatório aprovado · v{activeReport.version}</h2><p>Ao confirmar, esta versão congelada ficará disponível em Relatórios no Workspace do cliente e os destinatários receberão a notificação por e-mail.</p><div className="reports-v16-send-channels tw:mt-[1.23077rem] tw:mb-[0.15385rem] tw:flex tw:flex-wrap tw:gap-[0.76923rem]
+      tw:border-y tw:border-solid tw:border-[#eee7e2] tw:py-[0.92308rem] tw:[&_label]:flex-row! tw:[&_label]:items-center
+      tw:[&_label]:gap-[0.61538rem]! tw:[&_label]:rounded-[0.61538rem] tw:[&_label]:border tw:[&_label]:border-solid
+      tw:[&_label]:border-[#efe7df] tw:[&_label]:bg-white tw:[&_label]:px-[0.92308rem] tw:[&_label]:py-[0.69231rem]
+      tw:[&_label]:font-semibold! tw:[&_input]:m-0 tw:[&_input]:size-[1.15385rem] tw:[&_input]:accent-cali-brand"><label><input type="checkbox" checked readOnly />Disponibilizar no Workspace</label><label><input type="checkbox" checked readOnly />Enviar notificação por e-mail</label></div><label><span>Destinatários</span><input className="tw:box-border tw:w-full tw:rounded-[0.5625rem] tw:border tw:border-solid tw:border-[#e5d8d0] tw:bg-white
+      tw:px-3 tw:text-xs tw:font-normal tw:text-[#322f2c] tw:h-10" type="text" value={sendRecipients} onChange={(event) => setSendRecipients(event.target.value)} placeholder="email@cliente.com, outro@cliente.com" /></label><label><span>Mensagem opcional</span><textarea className="tw:box-border tw:w-full tw:rounded-[0.5625rem] tw:border tw:border-solid tw:border-[#e5d8d0] tw:bg-white
+      tw:px-3 tw:text-xs tw:font-normal tw:text-[#322f2c] tw:resize-y tw:py-[0.6875rem]" rows={4} value={sendMessage} onChange={(event) => setSendMessage(event.target.value)} placeholder="Uma observação curta antes do acesso ao relatório." /></label>{sendError && <InlineNotice tone="danger" role="alert">{sendError}</InlineNotice>}<footer><Button variant="secondary" type="button" disabled={sending} onClick={() => setSendOpen(false)}>Cancelar</Button><Button variant="primary" type="button" disabled={sending || !sendRecipients.trim()} onClick={() => void sendReport()}>{sending ? <Loader2 className="spin" size={16} /> : <Mail size={16} />}Enviar relatório</Button></footer></DialogFrame></div> : null}
 
-    {previewOpen && snapshot && selectedCompany ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-preview-backdrop"><DialogFrame className="modal-card reports-v16-preview-modal" aria-label="Prévia do relatório"><div className="reports-v16-preview-toolbar"><div><strong>{activeReport ? 'Prévia da versão congelável' : 'Prévia interna sem persistência'}</strong><span>{selectedCompany.name} · {periodName}{activeReport ? ` · v${activeReport.version}` : ''}</span></div><div><Button variant="secondary" type="button" onClick={() => setPreviewOpen(false)}><X size={16} />Voltar</Button>{activeReport ? <Button variant="secondary" type="button" onClick={openPrint}><Printer size={16} />Baixar / imprimir PDF</Button> : null}{activeReport?.status === 'review' && !isSimulation ? <Button variant="primary" type="button" onClick={() => void approveReport()}><CheckCircle2 size={16} />Aprovar relatório</Button> : activeReport?.status === 'approved' ? <Button variant="primary" type="button" onClick={() => void openSend()}><Send size={16} />Enviar ao cliente</Button> : null}</div></div><div className="reports-v16-preview-document"><WorkspaceExecutiveReportPaper company={selectedCompany} snapshot={attachReportManualComplements(snapshot, manualComplements)} editor={editor} reportType={reportType} periodName={periodName} protocol={activeReport?.protocol || '—'} deliveries={deliveries} /></div></DialogFrame></div> : null}
+    {workflowAction && <ReportWorkflowConfirmation action={workflowAction} onCancel={() => setWorkflowAction(null)} onConfirm={confirmWorkflowAction} />}
+    {historyOpen && trackedReport && (
+      <ReportClientHistory key={trackedReport.id} companyId={trackedReport.company_id} currentId={trackedReport.id} onClose={() => setHistoryOpen(false)} renderCorrection={correctionButton} />
+    )}
+    {correctionTarget && <CorrectDeliveredReportDialog
+      key={correctionTarget.id}
+      report={correctionTarget}
+      onClose={() => setCorrectionTarget(null)}
+      onCorrected={(revisionId) => {
+        setCorrectionTarget(null);
+        setHistoryOpen(false);
+        if (revisionId) openReportRevision(revisionId);
+        void refreshReportViews();
+      }}
+    />}
+    {previewOpen && snapshot && selectedCompany ? <div className="modal-backdrop workspace-modal-backdrop reports-v16-preview-backdrop tw:fixed tw:inset-0 tw:z-980
+      tw:grid tw:place-items-center tw:bg-[#171017a8] tw:p-[1.38462rem] tw:backdrop-blur-sm"><DialogFrame className="modal-card reports-v16-preview-modal tw:flex tw:h-[94dvh] tw:max-h-[94dvh] tw:w-[min(101.53846rem,100%)]
+      tw:max-w-none tw:flex-col tw:overflow-hidden tw:rounded-[1.07692rem] tw:border tw:border-solid
+      tw:border-[#e8ded6] tw:bg-white tw:p-0 tw:shadow-[0_1.5625rem_5.3125rem_#2418234a] tw:[&_:is(button.primary,button.secondary)]:inline-flex
+      tw:[&_:is(button.primary,button.secondary)]:h-auto tw:[&_:is(button.primary,button.secondary)]:items-center
+      tw:[&_:is(button.primary,button.secondary)]:justify-center tw:[&_:is(button.primary,button.secondary)]:gap-[0.53846rem]
+      tw:[&_:is(button.primary,button.secondary)]:rounded-[0.53846rem] tw:[&_:is(button.primary,button.secondary)]:border
+      tw:[&_:is(button.primary,button.secondary)]:border-solid tw:[&_button.secondary]:border-[#dec9c3]
+      tw:[&_button.secondary]:bg-white tw:[&_button.secondary]:text-cali-brand tw:[&_button.primary]:border-cali-brand
+      tw:[&_button.primary]:bg-cali-brand tw:[&_button.primary]:text-white tw:[&_:is(button.primary,button.secondary)]:px-[1.07692rem]
+      tw:[&_:is(button.primary,button.secondary)]:py-[0.76923rem] tw:[&_:is(button.primary,button.secondary)]:text-[0.84615rem]
+      tw:[&_:is(button.primary,button.secondary)]:font-bold tw:[&_button:disabled]:cursor-not-allowed
+      tw:[&_button:disabled]:opacity-45" aria-label="Prévia do relatório"><div className="reports-v16-preview-toolbar tw:flex tw:h-[5.23077rem] tw:flex-none tw:flex-wrap tw:items-center
+      tw:justify-between tw:gap-[1.07692rem] tw:border-b tw:border-solid tw:border-[#ded5d0]! tw:bg-white!
+      tw:px-[1.69231rem] tw:py-[1.23077rem] tw:text-[0.92308rem] tw:leading-[calc(1/0.75)] tw:text-cali-ink!
+      tw:max-[680px]:h-auto tw:max-[680px]:flex-col tw:max-[680px]:items-start tw:[&>div:first-child]:flex
+      tw:[&>div:first-child]:min-w-0 tw:[&>div:first-child]:flex-col tw:[&>div:first-child]:gap-[0.30769rem]
+      tw:[&_strong]:text-[1.15385rem] tw:[&_strong]:text-cali-brand! tw:[&_span]:text-[0.84615rem] tw:[&_span]:text-[#6a5f59]!
+      tw:[&>div:last-child]:flex tw:[&>div:last-child]:flex-wrap tw:[&>div:last-child]:items-center
+      tw:[&>div:last-child]:gap-[0.61538rem]"><div><strong>{activeReport ? 'Prévia da versão congelável' : 'Prévia interna sem persistência'}</strong><span>{selectedCompany.name} · {periodName}{activeReport ? ` · v${activeReport.version}` : ''}</span></div><div><Button variant="secondary" type="button" onClick={() => setPreviewOpen(false)}><X size={16} />Voltar</Button>{activeReport ? <Button variant="secondary" type="button" onClick={openPrint}><Printer size={16} />Baixar / imprimir PDF</Button> : null}{activeReport?.status === 'review' && !isSimulation ? <Button variant="primary" type="button" disabled={saving || !canApprove} onClick={() => void approveReport()}><CheckCircle2 size={16} />Aprovar relatório</Button> : activeReport?.status === 'approved' ? <Button variant="primary" type="button" disabled={saving || !canSend} onClick={() => void openSend()}><Send size={16} />Enviar ao cliente</Button> : null}</div></div><div className="reports-v16-preview-document tw:h-[calc(100%-5.23077rem)] tw:min-h-0 tw:flex-1 tw:overflow-auto
+      tw:bg-[#d8d2cd] tw:px-[2.76923rem] tw:pt-[2.15385rem] tw:pb-[3.69231rem] tw:text-[1.02564rem]
+      tw:[scrollbar-width:none] tw:[&::-webkit-scrollbar]:hidden tw:max-[680px]:h-[calc(100%-8.61538rem)]
+      tw:max-[680px]:p-[1.07692rem] tw:[&_.reports-v16-paper_small]:text-[0.92308rem]! tw:[&_.reports-v16-paper_small]:leading-[calc(1/0.75)]!
+      tw:[&_.reports-v16-paper_h1]:text-[2.23077rem]!"><WorkspaceExecutiveReportPaper company={selectedCompany} snapshot={attachReportManualComplements(snapshot, manualComplements)} editor={editor} reportType={reportType} periodName={periodName} protocol={activeReport?.protocol || '—'} deliveries={deliveries} /></div></DialogFrame></div> : null}
   </section></div></div></Shell>;
 }

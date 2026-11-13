@@ -116,6 +116,12 @@ browserSuite([
       const initialSummary = 'Leitura executiva preparada na prévia QA.';
       const finalSummary = 'Leitura executiva revisada para o fechamento QA.';
       await editorial.fill(initialSummary);
+      await toolbar.getByRole('button', { name: 'Atualizar prévia', exact: true }).click();
+      const refresh = page.getByRole('dialog', { name: 'Atualizar esta prévia?', exact: true });
+      await refresh.getByRole('button', { name: 'Atualizar', exact: true }).click();
+      await page.getByText('Dados automáticos atualizados. Sua curadoria editorial foi preservada.', { exact: true }).waitFor();
+      assert.equal(await editorial.inputValue(), initialSummary);
+      assert.deepEqual(patches, []);
       const complement = page.locator('.reports-v21-manual-group')
         .filter({ has: page.getByRole('heading', { name: 'Tempo complementar', exact: true }) });
       await complement.getByRole('button', { name: 'Adicionar', exact: true }).click();
@@ -179,6 +185,69 @@ browserSuite([
       assert.equal(await page.getByText('Alteração na origem QA', { exact: true }).count(), 0);
       assert.equal(await complement.getByRole('button', { name: 'Adicionar', exact: true }).isDisabled(), true);
       return { previewWrites: 0, explicitDraft: true, autosave: true, rejectedEmptyReview: true, approvedSnapshotFrozen: true };
+    },
+  },
+  {
+    id: '12-admin-report-legacy-simulation-confirmation-and-version-history',
+    role: 'admin',
+    timezoneId: 'America/Sao_Paulo',
+    async run({ page, context, origin }) {
+      const snapshot = { ...tables.reports[0].source_snapshot, generatedAt: clock, period };
+      const sentId = 'c0111111-1111-4111-8111-111111111114';
+      const archivedId = 'c0111111-1111-4111-8111-111111111115';
+      const base = { ...tables.reports[0], company_id: companyId, period_start: period.start, period_end: period.end, updated_at: clock, source_snapshot: snapshot };
+      const sent = { ...base, id: sentId, status: 'sent', version: 2, client_open_count: 2, acknowledged_at: clock };
+      const archived = { ...base, id: archivedId, status: 'archived', version: 3, protocol: 'CALI-REL-QA-ARQUIVADO' };
+      let legacy = { ...base, id: reportId, status: 'draft', version: 4, protocol };
+      const patches = [];
+      await page.clock.setFixedTime(new Date(clock));
+      await rest(context, origin, 'rpc/build_report_intelligence_snapshot', 'POST', () => snapshot);
+      await rest(context, origin, 'rpc/build_report_monthly_series', 'POST', () => []);
+      await rest(context, origin, 'rpc/report_generation_readiness_v61', 'POST', () => ({
+        mode: 'simulation', collected_days: 30, required_days: 20, can_generate_official: false, can_send: false, official_report_id: sentId,
+      }));
+      await rest(context, origin, 'reports', 'GET', (request, params) => {
+        const rows = [legacy, archived, sent].filter((report) =>
+          (!params.has('protocol') || params.get('protocol') === 'eq.' + report.protocol) &&
+          (params.get('status') !== 'in.(sent,published)' || report.status === 'sent') &&
+          (params.get('status') !== 'neq.archived' || report.status !== 'archived'));
+        const limit = params.get('limit');
+        const limited = limit ? rows.slice(0, Number(limit)) : rows;
+        return request.headers().accept?.includes('vnd.pgrst.object') ? limited[0] ?? null : limited;
+      });
+      await rest(context, origin, 'reports', 'PATCH', (request, params) => {
+        assert.equal(params.get('id'), 'eq.' + reportId);
+        const patch = request.postDataJSON();
+        patches.push(patch);
+        legacy = { ...legacy, ...patch };
+        return null;
+      });
+
+      await page.goto(origin + '/admin/relatorios');
+      const toolbar = page.locator('.reports-v16-toolbar');
+      const refresh = toolbar.getByRole('button', { name: 'Atualizar simulação', exact: true });
+      await refresh.waitFor();
+      await toolbar.getByRole('button', { name: 'Ver simulação', exact: true }).waitFor();
+      assert.equal(await toolbar.getByRole('button', { name: 'Visualizar relatório' }).count(), 0);
+      assert.equal(await toolbar.getByRole('button', { name: 'Iniciar revisão' }).count(), 0);
+      assert.equal(await toolbar.getByRole('button', { name: 'Enviar ao cliente' }).count(), 0);
+      await refresh.click();
+      const confirmation = page.getByRole('dialog', { name: 'Atualizar esta simulação?', exact: true });
+      await confirmation.getByRole('button', { name: 'Cancelar', exact: true }).click();
+      await confirmation.waitFor({ state: 'hidden' });
+      assert.equal(patches.filter((patch) => 'data_refreshed_at' in patch).length, 0);
+      await refresh.click();
+      await confirmation.getByRole('button', { name: 'Atualizar', exact: true }).click();
+      await page.getByText('Dados automáticos atualizados. Sua curadoria editorial foi preservada.', { exact: true }).waitFor();
+      assert.equal(patches.filter((patch) => 'data_refreshed_at' in patch).length, 1);
+      assert.ok(patches.every((patch) => patch.source_snapshot.workflow_mode === 'simulation' && patch.source_snapshot.simulation_of === sentId));
+
+      const history = page.getByRole('region', { name: 'Histórico e versões', exact: true });
+      const sentRow = history.locator(`[data-report-id="${sentId}"]`);
+      await sentRow.getByText('Visualizado · Ciência ✓', { exact: true }).waitFor();
+      assert.equal(await sentRow.getByRole('link', { name: 'Ver versão', exact: true }).getAttribute('href'), '/admin/relatorios/impressao/' + sentId);
+      assert.equal(await history.getByRole('link', { name: 'Ver versão arquivada', exact: true }).getAttribute('href'), '/admin/relatorios/impressao/' + archivedId);
+      assert.equal(await history.locator(`[data-report-id="${archivedId}"]`).getByText('Visualizado · Ciência ✓', { exact: true }).count(), 0);
     },
   },
 ]).catch((error) => {

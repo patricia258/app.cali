@@ -4,12 +4,14 @@ import type { User } from '@supabase/supabase-js';
 import { workspaceProfileQuery } from '../api/access/profile';
 import { isSupabaseConfigured, observeWorkspaceSession, readWorkspaceSession } from '../api/access/session';
 import { WorkspaceAuthContext, type AuthSnapshot, type AuthState } from './workspaceAuthContext';
+import { useNotificationChime } from '../components/workspace/hooks/useNotificationChime';
 
 const signedOut: AuthSnapshot = { ready: true, user: null, role: null, active: false };
 
 export function WorkspaceAuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [access, setAccess] = useState<AuthSnapshot>({ ...signedOut, ready: false });
+  useNotificationChime(access.user?.id ?? null);
   const activeUserId = useRef<string | null>(null);
   const accessVersion = useRef(0);
 

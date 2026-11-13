@@ -1,17 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { countAdminProjects } from '../../../api/projects/workspace';
-import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
+import { useAdminProjectCount } from './hooks/useAdminProjectCount';
 import { AdminProjectsPage } from '../../projects/AdminProjectsPage';
 
 export function AdminProjectsGatePage() {
-  const { user } = useWorkspaceAuth();
-  const projects = useQuery({
-    queryKey: ['admin-projects-count', user?.id],
-    queryFn: ({ signal }) => countAdminProjects(signal),
-    gcTime: 0,
-  });
+  const projects = useAdminProjectCount();
   if (projects.isSuccess) return <AdminProjectsPage emptyPortfolio={projects.data === 0} />;
   if (projects.isPending) return <Shell role="admin"><section className="page data-loading" aria-live="polite" aria-busy="true">Carregando projetos…</section></Shell>;
 

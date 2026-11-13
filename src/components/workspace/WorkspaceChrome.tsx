@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { AtSign, Bell, CalendarDays, Check, Clock3, FileText, FolderKanban, MessageCircle } from 'lucide-react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { Bell } from 'lucide-react';
 import { readWorkspaceSession } from '../../api/access/session';
 import {
   listWorkspaceNotifications,
@@ -10,6 +10,9 @@ import {
 } from '../../api/workspace/notifications';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
 import type { Role } from './WorkspaceShell';
+import { NotificationItem } from './components/notifications/NotificationItem';
+import { EmptyNotifications, NotificationPanel } from './components/notifications/NotificationPanel';
+import './components/notifications/notification-motion.css';
 
 const notificationRouteParameters = new Map([
   ['deliverable', 'deliverable'],
@@ -31,35 +34,15 @@ const notificationFallback: Record<Role, WorkspaceNotification[]> = {
   ],
 };
 
-function relativeTime(value: string) {
-  const date = new Date(value).getTime();
-  const diff = Math.max(0, Date.now() - date);
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'agora';
-  if (mins < 60) return `há ${mins} min`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `há ${hours}h`;
-  return `há ${Math.floor(hours / 24)}d`;
-}
-
-function notificationVisual(type?: string) {
-  const value = String(type || '').toLowerCase();
-  if (/mention/.test(value)) return { kind: 'mention', icon: <AtSign size={18} /> };
-  if (/report|document/.test(value)) return { kind: 'document', icon: <FileText size={18} /> };
-  if (/hour|timer|capacity/.test(value)) return { kind: 'hours', icon: <Clock3 size={18} /> };
-  if (/calendar|meeting|event/.test(value)) return { kind: 'calendar', icon: <CalendarDays size={18} /> };
-  if (/comment|message|record|occurrence|request/.test(value)) return { kind: 'message', icon: <MessageCircle size={18} /> };
-  if (/deliverable|project|approval|schedule/.test(value)) return { kind: 'project', icon: <FolderKanban size={18} /> };
-  return { kind: 'general', icon: <Bell size={18} /> };
-}
-
 export function NotificationCenter({ role }: { role: Role }) {
+  const panelId = useId();
   const { user } = useWorkspaceAuth();
   const actorId = user?.id;
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<WorkspaceNotification[]>(notificationFallback[role]);
   const [recentId, setRecentId] = useState('');
   const popoverRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const arrivalTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -124,20 +107,59 @@ export function NotificationCenter({ role }: { role: Role }) {
   }
 
   return (
-    <div className="chrome-popover" ref={popoverRef}>
-      <button className="icon-button notification-button" aria-label="Notificações" onClick={() => setOpen((current) => !current)}>
-        <Bell size={20} />{unread > 0 && <span className="notification-count">{unread > 9 ? '9+' : unread}</span>}
+    <div
+      ref={popoverRef}
+      className="tw:relative tw:workspace-compact:[@media(max-width:53.75rem)]:static"
+      onKeyDown={(event) => {
+        if (open && event.key === 'Escape') {
+          event.preventDefault();
+          setOpen(false);
+          triggerRef.current?.focus();
+        }
+      }}
+    >
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-label="Notificações"
+        aria-expanded={open}
+        aria-controls={open ? panelId : undefined}
+        onClick={() => setOpen((current) => !current)}
+        className={`tw:relative tw:grid tw:size-10 tw:cursor-pointer tw:place-items-center tw:rounded-xl
+          tw:border tw:border-solid tw:p-0 tw:shadow-[0_0.25rem_0.875rem_#331e230e]
+          tw:[transition:background_.18s_ease,border-color_.18s_ease,color_.18s_ease,box-shadow_.18s_ease,transform_.18s_ease]
+          tw:hover:-translate-y-px tw:motion-reduce:transition-none tw:workspace-compact:inline-flex
+          tw:workspace-compact:size-auto tw:workspace-compact:items-center tw:workspace-compact:justify-center
+          tw:workspace-compact:rounded-none tw:workspace-compact:border-0 tw:workspace-compact:p-[0.385rem] tw:workspace-compact:shadow-none
+          tw:workspace-compact:hover:translate-y-0 tw:workspace-compact:[&>svg]:size-[1.308rem]
+          ${unread
+            ? 'tw:border-[color-mix(in_srgb,var(--cali-color-gold)_42%,var(--theme-line))] tw:bg-[color-mix(in_srgb,var(--cali-color-gold)_11%,var(--theme-surface))] tw:text-cali-brand tw:[&>svg]:stroke-[2.25] tw:workspace-night:border-[#b58c5261] tw:workspace-night:bg-[#b58c5224] tw:workspace-night:text-[#e4bb70] tw:workspace-compact:bg-[#f6edf0] tw:workspace-compact:text-cali-brand tw:workspace-compact:shadow-[0_0_0_0.231rem_#5a1e2d14]! tw:workspace-compact:[&>svg]:origin-[50%_10%] tw:workspace-compact:[&>svg]:motion-safe:animate-[notification-bell-ring_2.8s_ease-in-out_infinite]'
+            : 'tw:border-[#5a1e2d1a] tw:bg-white/80 tw:text-cali-text tw:workspace-night:border-cali-line tw:workspace-night:bg-[#241b1f] tw:workspace-compact:bg-transparent tw:workspace-compact:text-[#5d5350]'}`}
+      >
+        <Bell size={20} />
+        {unread > 0 && (
+          <span className="tw:absolute tw:-top-[0.4375rem] tw:-right-[0.4375rem] tw:grid tw:h-[1.3125rem]
+            tw:min-w-[1.3125rem] tw:place-items-center tw:rounded-full tw:border-2 tw:border-solid tw:border-[var(--ivory)]
+            tw:bg-cali-brand tw:px-[0.3125rem] tw:text-[0.68rem]/none tw:font-extrabold tw:text-white
+            tw:shadow-[0_0.25rem_0.75rem_#5a1e2d2e] tw:workspace-compact:-top-[0.462rem] tw:workspace-compact:-right-[0.462rem]
+            tw:workspace-compact:h-[1.462rem] tw:workspace-compact:min-w-[1.462rem] tw:workspace-compact:border-white
+            tw:workspace-compact:bg-[#b7495d] tw:workspace-compact:px-[0.385rem] tw:workspace-compact:text-[0.769rem]/none">
+            {unread > 9 ? '9+' : unread}
+          </span>
+        )}
       </button>
       {open && (
-        <div className="notification-panel" role="dialog" aria-label="Notificações">
-          <div className="notification-head"><div className="notification-head-title"><span className="notification-head-mark"><Bell size={18} /></span><div><strong>Notificações</strong><span>{unread ? `${unread} não lida${unread > 1 ? 's' : ''}` : 'Tudo em dia'}</span></div></div>{unread > 0 && <button onClick={markAll}><Check size={15} />Marcar como lidas</button>}</div>
-          <div className="notification-list">
-            {items.length === 0 ? <div className="notification-empty"><Check size={20} /><strong>Nenhum aviso por aqui.</strong><span>Novidades de projetos, horas, agenda e validações aparecem neste canal.</span></div> : items.map((item) => {
-              const visual = notificationVisual(item.notification_type);
-              return <button className={`notification-item notification-kind-${visual.kind} ${item.read_at ? '' : 'unread'} ${recentId === item.id ? 'is-arriving' : ''}`} data-notification-id={item.id} data-notification-action-url={notificationUrl(item)} key={item.id} onClick={() => void openNotification(item)}><span className="notification-visual">{visual.icon}</span><div className="notification-copy"><span className="notification-title-row"><strong>{item.title}</strong>{!item.read_at && <i aria-label="Não lida" />}</span>{item.body && <p>{item.body}</p>}<small>{relativeTime(item.created_at)}</small></div></button>;
-            })}
-          </div>
-        </div>
+        <NotificationPanel id={panelId} unread={unread} onMarkAll={() => void markAll()}>
+          {items.length === 0 ? <EmptyNotifications /> : items.map((item) => (
+            <NotificationItem
+              key={item.id}
+              item={item}
+              url={notificationUrl(item)}
+              arriving={recentId === item.id}
+              onOpen={() => void openNotification(item)}
+            />
+          ))}
+        </NotificationPanel>
       )}
     </div>
   );

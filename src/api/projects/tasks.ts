@@ -1,5 +1,6 @@
 import type { JsonObject } from '../../domain/json';
 import { requireProjectClient } from './client';
+import { profileAvatarColumns, type ProfileMedia } from '../workspace/identity';
 
 export async function readDeliverableTasks(deliverableId: string) {
   return await requireProjectClient().from('deliverable_tasks').select('*').eq('deliverable_id', deliverableId).order('sort_order');
@@ -34,20 +35,21 @@ export async function readClientTaskContext(taskId: string) {
   return { thread, files, adjustments };
 }
 
-export async function readClientTaskParticipants() {
+export async function readClientTaskParticipants(userId: string) {
   const client = requireProjectClient();
-  const [{ data: staff }, { data: contact }] = await Promise.all([
-    client.rpc('staff_identities'), client.rpc('get_client_account_contact'),
+  const [{ data: staff }, { data: contact }, { data: viewer }] = await Promise.all([
+    client.rpc('staff_identities'),
+    client.rpc('get_client_account_contact'),
+    userId
+      ? client.from('profiles').select(`${profileAvatarColumns},company_id`).eq('id', userId).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
   const admin = Array.isArray(contact) ? contact[0] : contact;
-  const people: { id: string; full_name: string }[] = staff ?? [];
-  return Object.fromEntries([...people, ...(admin?.id ? [admin] : [])].map((person) => [person.id, person.full_name]));
-}
-
-export async function readClientTaskCompany(userId: string) {
-  if (!userId) return '';
-  const { data } = await requireProjectClient().from('profiles').select('company_id').eq('id', userId).maybeSingle();
-  return (data?.company_id ?? '') as string;
+  const people: ProfileMedia[] = [...(staff ?? []), admin, viewer].filter(Boolean);
+  return {
+    companyId: (viewer?.company_id ?? '') as string,
+    people: Object.fromEntries(people.flatMap((person) => person.id ? [[person.id, person]] : [])),
+  };
 }
 
 export async function postClientTaskMessage(taskId: string, body: string) {

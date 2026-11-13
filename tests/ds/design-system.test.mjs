@@ -245,7 +245,7 @@ for (const [viewport, width, height] of [
       const loader = page.getByRole('main').filter({ hasText: 'Carregando seu Workspace' });
       await loader.waitFor();
       assert.equal(await loader.getAttribute('aria-busy'), 'true');
-      const loaderMark = loader.locator('.cali-loading-lime');
+      const loaderMark = loader.locator('[data-loader-mark="lime"]');
       await loaderMark.evaluate((element) => {
         for (const animation of element.getAnimations()) {
           animation.pause();
@@ -332,7 +332,7 @@ component(
     await page.locator('label.fixture-label').click();
     assert(await focused(email));
     assert.equal(await email.getAttribute('autocomplete'), 'email');
-    assert.match(await email.getAttribute('class'), /\bcf-text\b.*\bfixture-input\b/);
+    assert((await email.getAttribute('class')).split(' ').includes('fixture-input'));
     const select = page.getByRole('combobox', { name: 'Situação' });
     assert.equal(await select.inputValue(), 'all');
     await select.selectOption('open');
@@ -345,7 +345,7 @@ component(
     await textarea.pressSequentially('a'.repeat(34));
     assert.equal(await textarea.inputValue(), 'a'.repeat(32));
     assert.equal(await textarea.getAttribute('rows'), '3');
-    assert.match(await textarea.getAttribute('class'), /\bcf-text\b.*\bcf-long\b/);
+    assert.equal(await textarea.evaluate((field) => getComputedStyle(field).resize), 'none');
   },
 );
 
@@ -408,8 +408,8 @@ component(
     assert.equal(await main.getAttribute('aria-live'), 'polite');
     assert.equal(await main.getAttribute('aria-busy'), 'true');
     assert.match(await main.ariaSnapshot(), /Carregando seu Workspace/);
-    assert.equal(await main.locator('[aria-hidden="true"] .cali-loading-mark').count(), 2);
-    await page.getByRole('button', { name: 'Resolver rota' }).click();
+    assert.equal(await main.locator('[aria-hidden="true"] [data-loader-mark]').count(), 2);
+    await page.evaluate(() => window.dispatchEvent(new Event('qa:resolve-route')));
     await main.getByRole('heading', { name: 'Registros' }).waitFor();
     assert.equal(await main.getAttribute('aria-busy'), null);
     assert.doesNotMatch(await main.ariaSnapshot(), /Carregando seu Workspace/);
@@ -551,7 +551,7 @@ component(
     await second.focus();
     await page.keyboard.press('Escape');
     await second.waitFor();
-    await page.getByRole('button', { name: 'Concluir processamento' }).click();
+    await page.locator('[data-complete-timer-fixture]').evaluate((button) => button.click());
     await second.waitFor({ state: 'detached' });
   },
 );
@@ -566,10 +566,11 @@ component(
     await dialog.getByRole('img', { name: 'Vídeo de boas-vindas (em breve)' }).waitFor();
     await dialog.getByRole('button', { name: 'Conhecer o Workspace' }).click();
     await dialog.getByRole('heading', { name: 'Quem está na equipe' }).waitFor();
-    assert.match(await team.getAttribute('class'), /\bv2-tour-focus\b/);
+    await page.locator('a[href="/cliente/equipe"][data-tour-highlighted="true"]').waitFor();
     await dialog.getByRole('button', { name: 'Voltar' }).click();
     await dialog.getByRole('heading', { name: 'Bem-vinda' }).waitFor();
-    assert.doesNotMatch((await team.getAttribute('class')) || '', /\bv2-tour-focus\b/);
+    await page.locator('a[href="/cliente/equipe"][data-tour-highlighted]').waitFor({ state: 'detached' });
+    await team.waitFor();
     await dialog.getByRole('button', { name: 'Conhecer o Workspace' }).click();
     await dialog.getByRole('button', { name: 'Avançar' }).click();
     await dialog.getByRole('heading', { name: 'Tudo pronto' }).waitFor();

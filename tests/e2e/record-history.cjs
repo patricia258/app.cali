@@ -22,6 +22,66 @@ function intercept(context, origin, endpoint, method, respond) {
 
 browserSuite([
   {
+    id: '10-record-mention-inserts-name-without-sending',
+    role: 'admin',
+    async run({ page, context, origin }) {
+      let peopleReads = 0;
+      let sends = 0;
+      await intercept(context, origin, 'rpc/mention_candidates', 'POST', () => {
+        peopleReads++;
+        return { json: [
+          { id: 'mention-1', full_name: 'Ágata QA', label: 'Equipe CALI' },
+          { id: 'mention-2', full_name: 'Ágata Teste', label: 'Cliente' },
+          { id: 'mention-3', full_name: 'Outra Pessoa', label: 'Cliente' },
+        ] };
+      });
+      await intercept(context, origin, 'rpc/post_account_record_message', 'POST', () => { sends++; return { json: null }; });
+      await page.goto(origin + '/admin/registros?record=' + record.id);
+      const drawer = page.getByRole('dialog', { name: record.title, exact: true });
+      const field = drawer.getByRole('textbox', { name: 'Responder ao cliente', exact: true });
+      await field.waitFor();
+      assert.equal(peopleReads, 0);
+      await field.fill('Olá @aga');
+      const options = page.getByRole('listbox', { name: 'Mencionar uma pessoa' });
+      await options.getByRole('option', { name: /Ágata QA/ }).waitFor();
+      assert.equal(await options.getByRole('option').count(), 2);
+      await field.press('ArrowDown');
+      assert.equal(await options.getByRole('option', { name: /Ágata Teste/ }).getAttribute('aria-selected'), 'true');
+      await field.press('Enter');
+      await options.waitFor({ state: 'hidden' });
+      assert.equal(await field.inputValue(), 'Olá @Ágata Teste ');
+      assert.equal(sends, 0);
+      await field.pressSequentially('@aga');
+      await options.waitFor();
+      await options.getByRole('option', { name: /Ágata QA/ }).click();
+      assert.equal(await field.inputValue(), 'Olá @Ágata Teste @Ágata QA ');
+      assert.equal(peopleReads, 1);
+      assert.equal(sends, 0);
+    },
+  },
+  {
+    id: '10-open-record-does-not-poll-closure-while-idle',
+    role: 'admin',
+    async run({ page, context, origin }) {
+      let reads = 0;
+      await intercept(context, origin, 'account_record_reopen_requests', 'GET', () => {
+        reads++;
+        return { json: [] };
+      });
+      await page.goto(origin + '/admin/registros?record=' + record.id);
+      const drawer = page.getByRole('dialog', { name: record.title, exact: true });
+      await drawer.getByText('Resposta QA da CALI.', { exact: true }).waitFor();
+      assert.ok(reads > 0, 'O painel consulta o estado na abertura');
+      const initialReads = reads;
+      // Two intervals of the retired 1.1 s polling loop.
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+      assert.equal(reads, initialReads, 'O painel aberto fica ocioso entre mudanças');
+      await drawer.getByRole('button', { name: 'Fechar', exact: true }).click();
+      await drawer.waitFor({ state: 'hidden' });
+      return { initialReads, idleReads: reads - initialReads };
+    },
+  },
+  {
     id: '10-company-history-cursor-retry-filter-company-and-open-record',
     role: 'admin',
     async run({ page, context, origin }) {
@@ -56,7 +116,9 @@ browserSuite([
         (url) => url.origin === host && url.pathname === '/rest/v1/account_records',
         (route) => {
           const request = route.request();
-          if (request.method() === 'GET' && new URL(request.url()).searchParams.get('id') === 'eq.' + record.id) {
+          const params = new URL(request.url()).searchParams;
+          if (request.method() === 'GET' && params.get('id') === 'eq.' + record.id &&
+            params.get('select') !== 'id,protocol,workflow_status,created_at,closed_at') {
             occurrenceRead++;
           }
           return route.fallback();
@@ -149,6 +211,11 @@ browserSuite([
       const reviewNote = 'A CALI já recebeu os dados complementares.';
       const transitions = [];
       const feedback = [];
+      const messages = [...tables.account_record_messages];
+      const appendSystemMessage = (id, body) => messages.push({
+        id, record_id: record.id, company_id: companyId, author_role: 'system', body,
+        visibility: 'client', created_at: stamps[0],
+      });
       let closure;
       let reopen;
       let closureCount = 0;
@@ -160,6 +227,7 @@ browserSuite([
         await intercept(actor, origin, 'account_record_feedback', 'GET', () => ({
           json: feedback.length ? [feedback.at(-1)] : [],
         }));
+        await intercept(actor, origin, 'account_record_messages', 'GET', () => ({ json: messages }));
       }
       await intercept(client.context, origin, 'account_record_closures', 'GET', (request) => {
         const query = new URL(request.url()).searchParams;
@@ -194,6 +262,7 @@ browserSuite([
       await intercept(client.context, origin, 'rpc/request_account_record_reopen', 'POST', (request) => {
         const body = register('request', request);
         reopen = { id: requestId, status: 'pending', requested_at: stamps[0], reason: body.p_reason };
+        appendSystemMessage('qa-reopen-request', 'Reabertura solicitada pelo cliente. Motivo: ' + body.p_reason);
         return { json: { ok: true, request_id: requestId } };
       });
       await intercept(context, origin, 'rpc/decide_account_record_reopen', 'POST', (request) => {
@@ -203,6 +272,7 @@ browserSuite([
         closure = null;
         active.workflow_status = 'in_progress';
         active.closed_at = null;
+        appendSystemMessage('qa-reopen-approved', 'Reabertura aprovada pela CALI. Mensagem: ' + body.p_note);
         return { json: { ok: true } };
       });
 
@@ -213,7 +283,12 @@ browserSuite([
       await close.waitFor({ state: 'hidden' });
       await client.page.goto(origin + '/cliente/registros?record=' + record.id);
       const clientDrawer = client.page.getByRole('dialog', { name: record.title, exact: true });
-      await clientDrawer.getByRole('heading', { name: 'Como foi este atendimento?', exact: true }).waitFor();
+      const feedbackHeading = clientDrawer.getByRole('heading', { name: 'Como foi este atendimento?', exact: true });
+      await feedbackHeading.waitFor();
+      await clientDrawer.getByRole('button', { name: 'Avaliar depois', exact: true }).click();
+      await feedbackHeading.waitFor({ state: 'hidden' });
+      await clientDrawer.getByRole('button', { name: 'Avaliar atendimento', exact: true }).click();
+      await feedbackHeading.waitFor();
       const feedbackSend = clientDrawer.getByRole('button', { name: 'Enviar avaliação', exact: true });
       await clientDrawer.getByRole('button', { name: '2', exact: true }).click();
       assert(await feedbackSend.isDisabled());
@@ -231,6 +306,11 @@ browserSuite([
       await clientDrawer.getByRole('textbox', { name: 'Justificativa da reabertura' }).fill(reopenReason);
       await request.click();
       await clientDrawer.getByRole('heading', { name: 'Reabertura solicitada.', exact: true }).waitFor();
+      await back.click();
+      const requested = clientDrawer.getByRole('button', { name: 'Reabertura solicitada', exact: true });
+      await requested.waitFor();
+      assert(await requested.isDisabled());
+      await clientDrawer.getByText('Reabertura solicitada pelo cliente. Motivo: ' + reopenReason, { exact: true }).waitFor();
 
       await page.reload();
       const approval = adminDrawer.getByRole('button', { name: 'Reabrir atendimento', exact: true });
@@ -241,14 +321,17 @@ browserSuite([
       assert.equal(transitions.length, 3);
       await adminDrawer.getByRole('textbox', { name: 'Mensagem ao cliente' }).fill(reviewNote);
       await approval.click();
-      await adminDrawer.getByRole('heading', { name: 'Atendimento reaberto.', exact: true }).waitFor();
+      const approved = adminDrawer.getByRole('dialog', { name: 'Atendimento reaberto.', exact: true });
+      await approved.getByRole('button', { name: 'Fechar', exact: true }).click();
+      await approved.waitFor({ state: 'hidden' });
+      await adminDrawer.getByRole('textbox', { name: 'Responder ao cliente' }).waitFor();
+      await adminDrawer.getByText('Reabertura aprovada pela CALI. Mensagem: ' + reviewNote, { exact: true }).waitFor();
       await client.page.reload();
       await clientDrawer.getByRole('textbox', { name: 'Responder nesta ocorrência' }).waitFor();
-      await page.reload();
       await close.click();
       await close.waitFor({ state: 'hidden' });
       await client.page.reload();
-      await clientDrawer.getByRole('heading', { name: 'Como foi este atendimento?', exact: true }).waitFor();
+      await feedbackHeading.waitFor();
       await clientDrawer.getByRole('button', { name: '5', exact: true }).click();
       assert(await feedbackSend.isEnabled());
       await feedbackSend.click();
@@ -267,7 +350,7 @@ browserSuite([
         ['close', { p_record_id: record.id, p_status: 'completed' }],
         ['feedback', { p_record_id: record.id, p_closure_id: closureIds[1], p_score: 5, p_comment: null }],
       ]);
-      return { sameOccurrence: record.id, independentClosures: closureIds, approvesBeforeConversation: true };
+      return { sameOccurrence: record.id, independentClosures: closureIds, approvesBeforeConversation: true, refreshesSystemMessages: true };
     },
   },
   {
@@ -363,6 +446,55 @@ browserSuite([
       await page.waitForTimeout(500);
       assert(messageReads - readsAfterSettle <= 1, 'A conversa estável disparou releituras repetidas');
       return { retainedAttachment: true, retryKeptDraft: true, focusRestored: true, stableConversation: true };
+    },
+  },
+  {
+    id: '10-record-conversation-composes-link-emoji-and-attachment-with-retry',
+    role: 'admin',
+    async run({ page, context, origin }) {
+      const messages = [...tables.account_record_messages];
+      const sends = [];
+      const uploads = [];
+      await intercept(context, origin, 'account_record_messages', 'GET', () => ({ json: messages }));
+      await context.route((url) => url.origin === host && url.pathname.startsWith('/storage/v1/object/cali-workspace-private/records/'), (route) => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        uploads.push(new URL(route.request().url()).pathname);
+        return route.fulfill({ json: { Key: uploads.at(-1) }, headers: { 'access-control-allow-origin': origin } });
+      });
+      await intercept(context, origin, 'rpc/post_account_record_message', 'POST', (request) => {
+        const payload = request.postDataJSON();
+        sends.push(payload);
+        if (sends.length === 1) return { status: 503, json: { message: 'Falha temporária no envio QA' } };
+        messages.push({ ...messages[1], id: 'qa-rich-message', body: payload.p_body, created_at: '2026-11-12T16:00:00Z' });
+        return { json: { workflow_status: 'waiting_client' } };
+      });
+      await page.goto(origin + '/admin/registros?record=' + record.id);
+      const drawer = page.getByRole('dialog', { name: record.title, exact: true });
+      const input = drawer.getByRole('textbox', { name: 'Responder ao cliente' });
+      await input.fill('Confira');
+      await input.press('Shift+Enter');
+      assert.equal(await input.inputValue(), 'Confira\n');
+      await drawer.getByRole('button', { name: 'Abrir emojis', exact: true }).click();
+      await drawer.getByRole('button', { name: '👍', exact: true }).click();
+      await drawer.getByRole('button', { name: 'Inserir link', exact: true }).click();
+      const link = page.getByRole('dialog', { name: 'Inserir um link na mensagem', exact: true });
+      await link.getByRole('textbox', { name: 'Endereço do link' }).fill('example.invalid/qa');
+      await link.getByRole('button', { name: 'Inserir link', exact: true }).click();
+      assert.equal(await input.inputValue(), 'Confira\n👍 https://example.invalid/qa');
+      await drawer.locator('input[type=file][multiple]').setInputFiles({ name: 'qa.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\nQA') });
+      await drawer.getByRole('button', { name: 'Remover qa.pdf', exact: true }).waitFor();
+      await input.press('Enter');
+      await drawer.getByText('Falha temporária no envio QA', { exact: true }).waitFor();
+      assert.equal(await input.inputValue(), 'Confira\n👍 https://example.invalid/qa');
+      await input.press('Enter');
+      await drawer.getByRole('link', { name: 'https://example.invalid/qa' }).waitFor();
+      await drawer.getByRole('button', { name: /qa.pdf/ }).waitFor();
+      assert.equal(uploads.length, 1);
+      assert.equal(sends.length, 2);
+      assert.deepEqual(sends[0], sends[1]);
+      assert.equal(sends[1].p_record_id, record.id);
+      assert.equal(sends[1].p_internal, false);
+      assert.match(sends[1].p_body, /\[\[arquivo\|qa\.pdf\|records%2F/);
     },
   },
   {

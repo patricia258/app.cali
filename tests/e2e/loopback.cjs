@@ -6,6 +6,7 @@ const { existsSync } = require('node:fs');
 const { chromium } = require('playwright-core');
 const http = require('node:http');
 const path = require('node:path');
+const { checkBrowserResources } = require('./browser-resources.cjs');
 
 const mime = {
   '.html': 'text/html; charset=utf-8',
@@ -86,6 +87,7 @@ function defaultChrome() {
 }
 
 function launchBrowser(executablePath, proxy) {
+  checkBrowserResources();
   return chromium.launch({
     executablePath,
     headless: true,
@@ -103,18 +105,7 @@ function launchBrowser(executablePath, proxy) {
 }
 
 async function closeBrowser(browser) {
-  if (!browser) return;
-  let timer;
-  try {
-    await Promise.race([
-      browser.close(),
-      new Promise((resolve) => {
-        timer = setTimeout(resolve, 3000);
-      }),
-    ]);
-  } finally {
-    clearTimeout(timer);
-  }
+  await browser?.close();
 }
 
 function finishCli(main) {

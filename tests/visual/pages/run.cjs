@@ -8,6 +8,7 @@ const { join, resolve } = require('node:path');
 const { isDeepStrictEqual, parseArgs } = require('node:util');
 const { setTimeout: pause } = require('node:timers/promises');
 const { makeContext, relative } = require('../../e2e/browser-fixture.cjs');
+const { checkBrowserResources } = require('../../e2e/browser-resources.cjs');
 const {
   defaultChrome,
   serve,
@@ -54,7 +55,8 @@ const { values } = parseArgs({
     viewport: { type: 'string', multiple: true },
     role: { type: 'string', multiple: true },
     case: { type: 'string', multiple: true },
-    jobs: { type: 'string', default: '3' },
+    jobs: { type: 'string', default: '1' },
+    'browser-batch': { type: 'string', default: '16' },
     list: { type: 'boolean' },
     help: { type: 'boolean' },
     'require-equivalent': { type: 'boolean' },
@@ -94,7 +96,7 @@ async function waitStable(page, pending) {
       return Boolean(
         root?.children.length &&
         root.innerText.trim() &&
-        ![...root.querySelectorAll('.route-loading,.v2-mfa-wait')].some((element) => element.checkVisibility()),
+        ![...root.querySelectorAll('.route-loading,.v2-mfa-wait,[data-access-gate-loading]')].some((element) => element.checkVisibility()),
       );
     },
     null,
@@ -110,7 +112,7 @@ async function waitStable(page, pending) {
         location.pathname + location.search + location.hash,
         document.querySelector('#root')?.innerText,
         document.documentElement.scrollHeight,
-        [...document.querySelectorAll('.route-loading,.v2-mfa-wait,.data-loading,.team-loading')]
+        [...document.querySelectorAll('.route-loading,.v2-mfa-wait,[data-access-gate-loading],.data-loading,.team-loading')]
           .filter((element) => element.checkVisibility())
           .map((element) => element.textContent.trim()),
       ]);
@@ -168,7 +170,7 @@ async function captureDetail(page, directory, label, mapReport, id) {
     detail = page.locator(frame);
   } else if (id === 'landing:carrossel-segunda-tela') {
     const carousel = page.getByRole('region', { name: 'Telas do CALI Workspace na prática' });
-    const picture = carousel.locator('.lp-screen-slide.is-active img');
+    const picture = carousel.locator('[data-landing-screen="current"] img, .lp-screen-slide.is-active img');
     await picture.evaluate((image) => image.decode());
     await page.mouse.move(0, 0);
     detail = carousel;
@@ -421,13 +423,14 @@ async function capture(browser, origin, label, task, directory) {
 }
 
 async function compare(browser, servers, task, output) {
+  checkBrowserResources();
   const { role, id, viewport } = task;
   const folder = join(viewport, role, `${scenarioName(id)}-${hash(id).slice(0, 8)}`);
   const directory = join(output, folder);
   await fs.mkdir(directory, { recursive: true });
-  const [reference, candidate] = await Promise.all(
-    Object.entries(servers).map(([label, server]) => capture(browser, server.origin, label, task, directory)),
-  );
+  const reference = await capture(browser, servers.reference.origin, 'reference', task, directory);
+  checkBrowserResources();
+  const candidate = await capture(browser, servers.candidate.origin, 'candidate', task, directory);
   const captures = [reference, candidate];
   let pixels;
   let detailPixels;
@@ -520,6 +523,7 @@ async function main() {
         '--reference SHA --candidate SHA    Referência 773c9d4, candidato HEAD por padrão',
         '--reference-dist DIR --candidate-dist DIR    Builds sintéticos já compilados',
         '--output DIR --chrome BIN --jobs N    Artefatos, navegador e paralelismo',
+        '--browser-batch N       Reinicia o navegador a cada N cenários (padrão 16)',
         '--viewport desktop|mobile|laptop|tablet    Repetível, desktop/mobile por padrão',
         '--role PERFIL --case TRECHO --list    Filtros repetíveis e inventário',
         '--reference-terms VERSÃO    Recibo sintético legado, por padrão 2026-10-15',
@@ -536,6 +540,8 @@ async function main() {
   );
   const jobs = Number(values.jobs);
   assert(Number.isInteger(jobs) && jobs >= 1 && jobs <= 6, '--jobs deve estar entre 1 e 6');
+  const browserBatch = Number(values['browser-batch']);
+  assert(Number.isInteger(browserBatch) && browserBatch > 0, '--browser-batch deve ser um inteiro positivo');
   const tasks = scenarios()
     .filter(
       ({ role, id }) =>
@@ -570,19 +576,20 @@ async function main() {
   let browser;
   try {
     for (const label of ['reference', 'candidate']) servers[label] = await serve(metadata[label].dist);
-    browser = await launchBrowser(values.chrome, proxy);
-    metadata.browser = browser.version();
     const rows = [];
-    let cursor = 0;
-    await Promise.all(
-      Array.from({ length: jobs }, async () => {
-        while (cursor < tasks.length) {
-          const index = cursor++;
-          const result = await compare(browser, servers, tasks[index], output);
-          rows[index] = result;
-          const { role, id, viewport, status, pixels, candidate } = result;
-          console.error(
-            JSON.stringify({
+    for (let start = 0; start < tasks.length; start += browserBatch) {
+      browser = await launchBrowser(values.chrome, proxy);
+      metadata.browser = browser.version();
+      let cursor = start;
+      const end = Math.min(start + browserBatch, tasks.length);
+      await Promise.all(
+        Array.from({ length: Math.min(jobs, end - start) }, async () => {
+          while (cursor < end) {
+            const index = cursor++;
+            const result = await compare(browser, servers, tasks[index], output);
+            rows[index] = result;
+            const { role, id, viewport, status, pixels, candidate } = result;
+            console.error(JSON.stringify({
               index: index + 1,
               total: tasks.length,
               role,
@@ -592,12 +599,14 @@ async function main() {
               changedPercent: pixels?.changedPercent,
               error: candidate.error,
               assets: candidate.assets,
-            }),
-          );
-        }
-      }),
-    );
-    await report(output, rows, metadata);
+            }));
+          }
+        }),
+      );
+      await closeBrowser(browser);
+      browser = undefined;
+      await report(output, rows, metadata);
+    }
     if (
       rows.some(
         (row) =>

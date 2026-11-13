@@ -1,8 +1,7 @@
 /* Generates the approved V2 workspace CSS, preserving declaration order and converting
    equivalent common declarations to Tailwind utilities.
-   Usage: node scripts/generate-workspace-shell-css.cjs <path-to-cali-workspace-v2> [revision] */
+   Usage: node scripts/generate-workspace-shell-css.cjs <path-to-cali-workspace-v2> [revision] > /tmp/cali-workspace-reference.css */
 const fs = require('node:fs');
-const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 const { useUtilities } = require('./css-utilities.cjs');
 const source = process.argv[2];
@@ -26,5 +25,4 @@ const blocks = [...order, ...adminOrder].map(file => {
   return `/* ---- ${file} ---- */\n${useUtilities(css.trim()).css}`;
 });
 const out = `/* GERADO por scripts/generate-workspace-shell-css.cjs — não editar.\n   Fonte: patricia258/cali-workspace-v2@${commit}\n   Arquivos, nesta ordem: ${order.join(', ')}\n   Administradora: ${adminBranch}@${adminCommit} — ${adminOrder.join(', ')} */\n${[...new Set(imports)].join('\n')}\n@reference "../../styles/tailwind.css";\n${scope}{\n${blocks.join('\n')}\n}\n`;
-fs.writeFileSync(path.join(__dirname, '..', 'src', 'components', 'workspace', 'workspace-shell.generated.css'), out);
-console.log(`workspace-shell.generated.css: ${out.length} bytes de ${commit.slice(0, 7)}`);
+fs.writeSync(process.stdout.fd, out);

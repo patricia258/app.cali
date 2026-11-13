@@ -19,6 +19,7 @@ export type WorkspaceCalendarEvent = {
   companyId?: string | null;
   company?: string | null;
   companyLogo?: string | null;
+  companyLogoFallback?: string | null;
   projectId?: string | null;
   project?: string | null;
   type: CalendarEventType;

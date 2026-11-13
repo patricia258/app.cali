@@ -1,14 +1,17 @@
 import { Button } from '../../../components/ds/Button';
-import { FilterSelect } from '../../../components/ds/FilterSelect';
+import { AdminListControls, AdminListFilter } from '../../../components/workspace/components/AdminListControls';
+import { AdminMetricsStrip } from '../../../components/workspace/components/AdminMetricsStrip';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { LoadingState } from '../../../components/ds/LoadingState';
 import { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, RefreshCw, Search } from 'lucide-react';
+import { RefreshCw, Search } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { auditSourceLimit, auditTimelineKey, readAuditTimeline } from '../../../api/admin/audit/timeline';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 import { PrivacyRequestsPanel } from '../companies/components/PrivacyRequestsPanel';
+import { AuditItemTrail } from './components/AuditItemTrail';
+import { AuditTimeline } from './components/AuditTimeline';
 
 /* Auditoria (só administradora): reúne em uma lista o que o sistema já registra — quem fez o quê, quando e em qual empresa.
    Só leitura; não cria registro novo. Fontes: activity_log, team_changes, team_private_audit, deliverable_status_history,
@@ -87,22 +90,64 @@ export function AdminAuditPage() {
   const openTrail = (protocol: string) => { setTrail(protocol); window.scrollTo({ top: 0 }); };
   const people = new Set(filtered.map((row) => row.actor || 'system')).size; const sensitive = filtered.filter((row) => /Excluiu|restrito|descartada|Recolheu|Cancelou/.test(row.action)).length;
 
-  return <Shell role="admin"><div className="ap-app v2-admin-page v2-admin-audit v2-client-module"><div className="ap-content"><div className="wf">
+  return <Shell role="admin"><div className="ap-app v2-admin-page v2-client-module"><div className="ap-content"><div className="wf">
     <div className="wf-head"><div><small>BACKOFFICE / CALI RH</small><h1>Auditoria</h1><p>Quem fez o quê, quando e em qual empresa. O histórico não pode ser editado nem apagado; aqui você só responde os pedidos de privacidade.</p></div><div className="v2-head-actions"><Button variant="workflowSecondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</Button></div></div>
     {error && <InlineNotice>{error}</InlineNotice>}
     <PrivacyRequestsPanel />
-    <div className="v2-kpi-strip"><article><span>Registros no recorte</span><strong>{filtered.length}</strong><em>dos {rows.length} mais recentes carregados</em></article><article><span>Pessoas que agiram</span><strong>{people}</strong><em>inclui ações automáticas do sistema</em></article><article><span>Ações sensíveis</span><strong>{sensitive}</strong><em>exclusões, dados restritos, cancelamentos</em></article></div>
-    <div className="wf-controls v2-list-controls">
-      <FilterSelect aria-label="Período" value={period} onChange={(event) => setPeriod(event.target.value)}><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="all">Todo o histórico carregado</option></FilterSelect>
-      <FilterSelect aria-label="Empresa" value={company} onChange={(event) => setCompany(event.target.value)}><option value="">Todas as empresas</option>{companies.map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}</FilterSelect>
-      <FilterSelect aria-label="Área" value={area} onChange={(event) => setArea(event.target.value)}><option value="">Todas as áreas</option>{AREAS.map((item) => <option key={item}>{item}</option>)}</FilterSelect>
-      <FilterSelect aria-label="Quem" value={actor} onChange={(event) => setActor(event.target.value)}><option value="">Todas as pessoas</option>{actors.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</FilterSelect>
-      <FilterSelect aria-label="Agrupar por" value={grouping} onChange={(event) => setGrouping(event.target.value as 'day' | 'protocol')}><option value="day">Agrupar por dia</option><option value="protocol">Agrupar por protocolo</option></FilterSelect>
-      <label className="v2-audit-search"><Search size={14} /><input placeholder="Buscar ação, pessoa, protocolo ou detalhe" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
-    </div>
-    {trail && <section className="v2-audit-trail"><div><small>TRILHA DO ITEM · {(kinds[trail] || 'Item').toUpperCase()}</small><h2>{trail}</h2><p>Tudo o que foi registrado sobre este item, do mais recente ao mais antigo. Os filtros acima ficam suspensos enquanto a trilha está aberta.</p></div><dl><div><dt>Movimentações</dt><dd>{filtered.length}</dd></div><div><dt>Primeira</dt><dd>{filtered.length ? shortDay(filtered[filtered.length - 1].at) : '—'}</dd></div><div><dt>Última</dt><dd>{filtered.length ? shortDay(filtered[0].at) : '—'}</dd></div><div><dt>Quem participou</dt><dd>{trailPeople.join(', ') || '—'}</dd></div></dl><Button type="button" variant="workflowSecondary" onClick={() => setTrail('')}><ArrowLeft size={14} /> Voltar para a lista</Button></section>}
-    {loading ? <LoadingState>Carregando auditoria…</LoadingState> : groups.length ? <div className="v2-audit-list">{groups.map((group) => <section key={group.day}><h2>{group.day}{byProtocol && group.protocol && <button type="button" className="v2-audit-open" onClick={() => openTrail(group.protocol)}>Ver trilha completa</button>}</h2><div className="wf-records">{group.items.map((row) => <div className="wf-record-row" key={row.id}><time>{byProtocol || trail ? <>{shortDay(row.at)}<br /></> : null}{hour(row.at)}</time><span className={`wf-tag v2-audit-area a-${AREAS.indexOf(row.area)}`}>{row.area}</span><div><strong>{row.action}</strong>{row.detail && <small>{row.detail}</small>}</div><span className="v2-audit-who"><small>Protocolo</small>{row.protocol ? <button type="button" className="v2-audit-protocol" title="Ver tudo o que aconteceu com este item" onClick={() => openTrail(row.protocol)}>{row.protocol}</button> : '—'}</span><span className="v2-audit-who"><small>Quem</small>{who(row.actor)}</span><span className="v2-audit-who"><small>Empresa</small>{row.company ? companyName.get(row.company) || '—' : '—'}</span></div>)}</div></section>)}{filtered.length > shown && <Button type="button" variant="workflowSecondary" className="v2-audit-more" onClick={() => setShown(shown + 60)}>Mostrar mais ({filtered.length - shown} restantes)</Button>}</div> : <div className="v2-audit-empty">Nenhum registro neste recorte. Amplie o período ou limpe os filtros.</div>}
-    {partial.length > 0 && <InlineNotice className="v2-audit-partial"><strong>Auditoria incompleta:</strong> não foi possível ler {partial.join(', ')}. O restante aparece normalmente. Clique em “Atualizar”; se continuar, avise o suporte técnico.</InlineNotice>}
-    <p className="soft-note v2-audit-note">A lista mostra os {auditSourceLimit} registros mais recentes de cada fonte (acessos, horas, relatórios, agenda, documentos, ocorrências, equipe e projetos). Diagnósticos técnicos do sistema não aparecem.</p>
+    <AdminMetricsStrip metrics={[
+          { label: 'Registros no recorte', value: filtered.length, description: 'dos {rows.length} mais recentes carregados' },
+          { label: 'Pessoas que agiram', value: people, description: 'inclui ações automáticas do sistema' },
+          { label: 'Ações sensíveis', value: sensitive, description: 'exclusões, dados restritos, cancelamentos' },
+        ]} />
+    <AdminListControls alwaysWrap>
+      <AdminListFilter aria-label="Período" value={period} onChange={(event) => setPeriod(event.target.value)}><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="all">Todo o histórico carregado</option></AdminListFilter>
+      <AdminListFilter aria-label="Empresa" value={company} onChange={(event) => setCompany(event.target.value)}><option value="">Todas as empresas</option>{companies.map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}</AdminListFilter>
+      <AdminListFilter aria-label="Área" value={area} onChange={(event) => setArea(event.target.value)}><option value="">Todas as áreas</option>{AREAS.map((item) => <option key={item}>{item}</option>)}</AdminListFilter>
+      <AdminListFilter aria-label="Quem" value={actor} onChange={(event) => setActor(event.target.value)}><option value="">Todas as pessoas</option>{actors.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</AdminListFilter>
+      <AdminListFilter aria-label="Agrupar por" value={grouping} onChange={(event) => setGrouping(event.target.value as 'day' | 'protocol')}><option value="day">Agrupar por dia</option><option value="protocol">Agrupar por protocolo</option></AdminListFilter>
+      <label className="tw:flex tw:h-[2.769rem] tw:min-w-0 tw:flex-[1_1_16.923rem] tw:items-center tw:gap-[0.615rem] tw:rounded-[0.538rem] tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-white tw:px-[0.846rem] tw:text-[#96867c] tw:focus-within:border-cali-gold">
+        <Search size={14} className="tw:shrink-0" />
+        <input
+          className="tw:min-w-0 tw:flex-1 tw:border-0 tw:bg-transparent tw:p-0 tw:text-[0.846rem]/[inherit] tw:text-[#322f2c] tw:outline-none"
+          aria-label="Buscar na auditoria"
+          placeholder="Buscar ação, pessoa, protocolo ou detalhe"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+      </label>
+    </AdminListControls>
+    {trail && <AuditItemTrail
+      protocol={trail}
+      kind={kinds[trail] || 'Item'}
+      facts={[
+        { label: 'Movimentações', value: filtered.length },
+        { label: 'Primeira', value: filtered.length ? shortDay(filtered[filtered.length - 1].at) : '—' },
+        { label: 'Última', value: filtered.length ? shortDay(filtered[0].at) : '—' },
+        { label: 'Quem participou', value: trailPeople.join(', ') || '—' },
+      ]}
+      onBack={() => setTrail('')}
+    />}
+    {loading && <LoadingState>Carregando auditoria…</LoadingState>}
+    {!loading && !groups.length && <div className="tw:mt-[1.231rem] tw:rounded-[0.692rem] tw:border tw:border-dashed tw:border-[#e0d3c9] tw:bg-white tw:p-[2.154rem] tw:text-center tw:text-[0.923rem]/[inherit] tw:text-[#8c7e74]">
+      Nenhum registro neste recorte. Amplie o período ou limpe os filtros.
+    </div>}
+    {!loading && groups.length > 0 && <AuditTimeline
+      groups={groups.map((group) => ({
+        title: group.day,
+        protocol: byProtocol ? group.protocol : undefined,
+        entries: group.items.map((row) => ({
+          ...row,
+          day: byProtocol || trail ? shortDay(row.at) : undefined,
+          time: hour(row.at),
+          actor: who(row.actor),
+          company: companyName.get(row.company ?? '') || '—',
+        })),
+      }))}
+      remaining={filtered.length - shown}
+      onOpen={openTrail}
+      onMore={() => setShown((count) => count + 60)}
+    />}
+    {partial.length > 0 && <InlineNotice className="tw:mt-[1.385rem] tw:border tw:border-solid tw:border-[#ecd9b0]! tw:bg-[#fffaf1]! tw:text-[#7a5a2c]!"><strong>Auditoria incompleta:</strong> não foi possível ler {partial.join(', ')}. O restante aparece normalmente. Clique em “Atualizar”; se continuar, avise o suporte técnico.</InlineNotice>}
+    <p className="soft-note tw:mt-[1.385rem]!">A lista mostra os {auditSourceLimit} registros mais recentes de cada fonte (acessos, horas, relatórios, agenda, documentos, ocorrências, equipe e projetos). Diagnósticos técnicos do sistema não aparecem.</p>
   </div></div></div></Shell>;
 }

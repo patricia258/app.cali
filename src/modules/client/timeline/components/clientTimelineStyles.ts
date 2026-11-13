@@ -1,0 +1,9 @@
+export const overlay = 'tw:fixed tw:inset-0 tw:z-12100 tw:flex tw:items-center tw:justify-center tw:bg-[#241b216e] tw:p-[1.125rem] tw:motion-safe:animate-[v2-fade_0.22s_ease-out_backwards]';
+export const dialog = 'tw:relative tw:max-h-[calc(100dvh-2.25rem)] tw:w-[min(45rem,100%)] tw:overflow-auto tw:rounded-xl tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:p-6 tw:shadow-[0_25px_70px_#28172426] tw:max-[34.375rem]:p-[1.125rem] tw:motion-safe:animate-[v2-pop_0.34s_cubic-bezier(.2,.7,.2,1)_backwards]';
+export const dialogHeader = 'tw:flex tw:items-start tw:justify-between tw:gap-4 tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:pb-4';
+export const dialogKicker = 'tw:text-[0.625rem] tw:tracking-widest tw:text-[#ab825d]';
+export const dialogTitle = 'tw:my-2! tw:text-[1.4375rem]! tw:text-cali-brand';
+export const dialogClose = 'tw:grid tw:cursor-pointer tw:place-items-center tw:rounded-md tw:border tw:border-solid tw:border-[#e5d6ca] tw:bg-white tw:p-2 tw:text-cali-brand';
+export const detailBody = 'tw:grid tw:grid-cols-2 tw:gap-5 tw:pt-[1.375rem] tw:text-xs tw:text-[#746255] tw:max-[34.375rem]:grid-cols-1 tw:[&>div]:flex tw:[&>div]:flex-col tw:[&>div]:gap-2 tw:[&>div>span]:text-[0.625rem] tw:[&>div>span]:text-[#a28670] tw:[&>div>strong]:text-xs/[1.6]';
+export const detailLink = 'tw:inline-flex tw:items-center tw:gap-2 tw:text-xs tw:wrap-anywhere tw:text-cali-brand';
+export const changeAction = 'tw:cursor-pointer tw:rounded-[0.625rem] tw:border tw:border-solid tw:border-cali-gold tw:bg-[#fffaf1] tw:px-3.5 tw:py-2.5 tw:text-[0.8125rem]! tw:font-bold! tw:text-cali-brand tw:no-underline tw:max-[38.75rem]:basis-full tw:max-[38.75rem]:text-center tw:workspace-night:border-[#8d704a] tw:workspace-night:bg-[#35272b] tw:workspace-night:text-[#f6e8cf]';

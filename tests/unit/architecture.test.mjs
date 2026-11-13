@@ -58,6 +58,30 @@ test('custom hooks live in their own named files', () => {
   assert.deepEqual(violations, []);
 });
 
+test('consultas e mutações da interface ficam em hooks por operação', () => {
+  const violations = [];
+  for (const file of sourceFiles(src).filter((path) => path.endsWith('.tsx'))) {
+    const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+    for (const node of source.statements) {
+      if (!ts.isImportDeclaration(node) || !ts.isStringLiteral(node.moduleSpecifier) ||
+        node.moduleSpecifier.text !== '@tanstack/react-query') continue;
+      const bindings = node.importClause?.namedBindings;
+      if (!bindings) continue;
+      if (ts.isNamespaceImport(bindings)) {
+        violations.push(file.slice(src.length) + ' importa React Query como namespace');
+        continue;
+      }
+      for (const binding of bindings.elements) {
+        const name = (binding.propertyName ?? binding.name).text;
+        if (name === 'useQuery' || name === 'useMutation') {
+          violations.push(file.slice(src.length) + ' importa ' + name);
+        }
+      }
+    }
+  }
+  assert.deepEqual(violations, []);
+});
+
 test('telas e runtimes acessam Supabase por adaptadores de domínio', () => {
   const apiDirectory = join(src, 'api') + '/';
   const violations = [];
@@ -79,6 +103,42 @@ test('o bootstrap usa folhas do fluxo com Tailwind e mantém retirado o carregad
   assert.ok(existsSync(join(src, 'styles/tailwind.css')));
   const obsoleteImports = sourceFiles(src).filter((file) => /styles\/legacy|loadLegacyStyles/.test(readFileSync(file, 'utf8')));
   assert.deepEqual(obsoleteImports, []);
+});
+
+test('interfaces não montam nem remontam a marcação React pelo DOM', () => {
+  const violations = sourceFiles(src).flatMap((file) => {
+    const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+    const findings = [];
+    function visit(node) {
+      const htmlProp = ts.isJsxAttribute(node) && node.name.getText(source) === 'dangerouslySetInnerHTML';
+      const mutationObserver = ts.isNewExpression(node) && /(?:^|\.)MutationObserver$/.test(node.expression.getText(source));
+      const documentWrite = ts.isCallExpression(node) && /(?:^|\.)document\.write$/.test(node.expression.getText(source));
+      const imperativeControl = ts.isCallExpression(node) && /(?:^|\.)document\.createElement$/.test(node.expression.getText(source))
+        && node.arguments[0] && ts.isStringLiteral(node.arguments[0]) && /^(dialog|form|button|textarea|input|select)$/.test(node.arguments[0].text);
+      const htmlAssignment = ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken
+        && ts.isPropertyAccessExpression(node.left) && ['innerHTML', 'outerHTML'].includes(node.left.name.text);
+      if (htmlProp || mutationObserver || documentWrite || imperativeControl || htmlAssignment) {
+        const { line } = source.getLineAndCharacterOfPosition(node.getStart(source));
+        findings.push(`${file.slice(src.length)}:${line + 1}`);
+      }
+      ts.forEachChild(node, visit);
+    }
+    visit(source);
+    return findings;
+  });
+  assert.deepEqual(violations, []);
+});
+
+test('uma folha local é importada pelo dono sem módulo intermediário', () => {
+  const wrappers = sourceFiles(src).filter((path) => path.endsWith('.ts')).filter((file) => {
+    const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest);
+    const statements = source.statements.filter((node) => !ts.isExportDeclaration(node) || node.moduleSpecifier);
+    if (statements.length !== 1) return false;
+    const [statement] = statements;
+    return ts.isImportDeclaration(statement) && !statement.importClause && ts.isStringLiteral(statement.moduleSpecifier)
+      && statement.moduleSpecifier.text.endsWith('.css');
+  });
+  assert.deepEqual(wrappers.map((file) => file.slice(src.length)), []);
 });
 
 

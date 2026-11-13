@@ -1,0 +1,3 @@
+@keyframes landing-gallery-scroll {
+  to { transform: translateX(calc(-50% - .5625rem)); }
+}

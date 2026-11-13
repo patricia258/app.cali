@@ -166,7 +166,7 @@ async function waitRendered(page) {
     () => {
       const root = document.querySelector('#root');
       if (root?.querySelector('.workspace-fatal-fallback')) throw new Error('Fallback fatal do Workspace');
-      if (!root || root.children.length === 0 || root.querySelector('.route-loading,.v2-mfa-wait')) return false;
+      if (!root || root.children.length === 0 || root.querySelector('.route-loading,.v2-mfa-wait,[data-access-gate-loading]')) return false;
       return Boolean(root.querySelector('h1,h2,main,.cali-profile-shell,.ap-content,.inline-notice'));
     },
     undefined,
@@ -196,7 +196,7 @@ async function captureStable(page) {
     const current = await capture(page);
     const loading = await page
       .locator(
-        '#root .route-loading:visible, #root .v2-mfa-wait:visible, #root .data-loading:visible, #root .team-loading:visible',
+        '#root .route-loading:visible, #root .v2-mfa-wait:visible, #root [data-access-gate-loading]:visible, #root .data-loading:visible, #root .team-loading:visible',
       )
       .count();
     if (loading || !isDeepStrictEqual(previous, current)) stableSince = Date.now();
@@ -364,7 +364,7 @@ async function run(browser, dist, label) {
           await attempt('controls:team-period', indicators, async () => {
             await openTeam(indicators, 'Indicadores');
             const toggle = page
-              .locator('.v2-team-period-switch')
+              .getByRole('group', { name: 'Filtrar por mês ou período' })
               .getByRole('button', { name: 'Período', exact: true });
             await toggle.click({ timeout: 7000 });
             const from = page.getByLabel('De', { exact: true });
@@ -385,7 +385,7 @@ async function run(browser, dist, label) {
             assert.equal(await from.inputValue(), '2026-08');
             assert.equal(await to.inputValue(), '2026-09');
             await page
-              .locator('.v2-team-period-switch')
+              .getByRole('group', { name: 'Filtrar por mês ou período' })
               .getByRole('button', { name: 'Mês', exact: true })
               .click({ timeout: 7000 });
             assert.equal(await page.getByLabel('Mês de referência', { exact: true }).inputValue(), '2026-09');

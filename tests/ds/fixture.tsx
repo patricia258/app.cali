@@ -1,4 +1,4 @@
-import { StrictMode, Suspense, lazy, useRef, useState } from 'react';
+import { StrictMode, Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WorkspaceAuthContext } from '../../src/auth/workspaceAuthContext';
@@ -19,10 +19,11 @@ import { StatusBadge } from '../../src/components/ds/StatusBadge';
 import { WorkspaceRouteLoader } from '../../src/components/ds/WorkspaceRouteLoader';
 import { useDialogFocus } from '../../src/components/ds/useDialogFocus';
 import { DeliverableDependencies } from '../../src/components/projects/DeliverableDependencies';
-import { ReportManualComplementsPanel } from '../../src/components/reports/ReportManualComplementsPanel';
+import { ReportManualComplementsPanel } from '../../src/modules/admin/reports/components/ReportManualComplementsPanel';
 import type { ReportManualComplements } from '../../src/lib/reportManualComplements';
 import { activateWorkspaceMedia, resolveWorkspaceMedia } from '../../src/lib/workspaceMedia';
 import { ExpensesFixture, NavigationFixture, RequestFixture } from './calendar-navigation-fixtures';
+import '../../src/styles/tailwind.css';
 
 function ControlsFixture() {
   const [busy, setBusy] = useState(false);
@@ -199,19 +200,17 @@ function StatesFixture() {
 
 function RouteLoaderFixture() {
   const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const resolve = () => setLoading(false);
+    window.addEventListener('qa:resolve-route', resolve);
+    return () => window.removeEventListener('qa:resolve-route', resolve);
+  }, []);
+
+  if (loading) return <WorkspaceRouteLoader />;
   return (
-    <>
-      <button type="button" onClick={() => setLoading(false)}>
-        Resolver rota
-      </button>
-      {loading ? (
-        <WorkspaceRouteLoader />
-      ) : (
-        <main>
-          <h1>Registros</h1>
-        </main>
-      )}
-    </>
+    <main>
+      <h1>Registros</h1>
+    </main>
   );
 }
 
@@ -422,6 +421,8 @@ function TimerFixture() {
       <output aria-label="Finalizações">{confirmed}</output>
       <button
         type="button"
+        data-complete-timer-fixture=""
+        hidden
         onClick={() => {
           setBusy(false);
           setOpen(false);
@@ -440,6 +441,7 @@ const tourSteps = [
 ];
 
 function WelcomeFixture() {
+  const [tourHref, setTourHref] = useState<string | null>(null);
   return (
     <WorkspaceAuthContext.Provider
       value={{
@@ -458,13 +460,13 @@ function WelcomeFixture() {
     >
       <aside className="sidebar">
         <nav>
-          <a href="/cliente/equipe">Equipe</a>
+          <a href="/cliente/equipe" data-tour-highlighted={tourHref === '/cliente/equipe' ? true : undefined}>Equipe</a>
         </nav>
       </aside>
       <button type="button" onClick={() => window.dispatchEvent(new Event(WELCOME_OPEN_EVENT))}>
         Rever apresentação
       </button>
-      <WelcomeTour steps={tourSteps} />
+      <WelcomeTour steps={tourSteps} onHighlight={setTourHref} />
     </WorkspaceAuthContext.Provider>
   );
 }

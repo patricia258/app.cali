@@ -8,7 +8,7 @@ async function carousel({ page, origin, snapshot }, input) {
   const carousel = page.getByRole('region', { name: 'Telas do CALI Workspace na prática' });
   const next = carousel.getByRole('button', { name: 'Próxima tela', exact: true });
   const previous = carousel.getByRole('button', { name: 'Tela anterior', exact: true });
-  const selected = carousel.locator('.lp-screen-slide.is-active img');
+  const selected = carousel.locator('[data-landing-screen="current"] img, .lp-screen-slide.is-active img');
   await selected.waitFor();
   const first = await selected.getAttribute('alt');
   assert(first);

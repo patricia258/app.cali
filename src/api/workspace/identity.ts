@@ -5,40 +5,15 @@ export type ProfileMedia = {
   full_name?: string;
   role?: string | null;
   company_id?: string | null;
-  avatar_url?: string;
-  avatar_position_x?: number;
-  avatar_position_y?: number;
-  avatar_zoom?: number;
+  avatar_url?: string | null;
+  avatar_position_x?: number | null;
+  avatar_position_y?: number | null;
+  avatar_zoom?: number | null;
 };
 
-export type CompanyMedia = {
-  display_name: string;
-  logo_url?: string | null;
-  logo_workspace_url?: string | null;
-};
+export const profileAvatarColumns = 'id,full_name,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom';
 
 let companySubscriptionId = 0;
-
-export async function readVisibleCompanyMedia(signal: AbortSignal) {
-  if (!supabase) return null;
-  const { data } = await supabase.from('companies').select('display_name,logo_url,logo_workspace_url')
-    .order('display_name').abortSignal(signal);
-  return (data || []) as CompanyMedia[];
-}
-
-export async function readVisibleProfileMedia(signal: AbortSignal) {
-  if (!supabase) return null;
-  const { data } = await supabase.from('profiles')
-    .select('id,full_name,role,company_id,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom')
-    .eq('active', true).abortSignal(signal);
-  return (data || []) as ProfileMedia[];
-}
-
-export async function readClientContactMedia(signal: AbortSignal) {
-  const result = await supabase?.rpc('get_client_account_contact').abortSignal(signal);
-  const data = result?.data;
-  return (Array.isArray(data) ? data[0] : data) as ProfileMedia | null | undefined;
-}
 
 export function observeCompanyIdentityChanges(listener: () => void) {
   const client = supabase;

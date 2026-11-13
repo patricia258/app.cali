@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { requireHoursClient } from './client';
 
 export type HourAuditEntry = {
@@ -9,38 +10,20 @@ export type HourAuditEntry = {
   clientVisible: boolean;
 };
 
-type AuditRow = {
-  id: number;
-  event_type: string;
-  metadata: {
-    reason?: string;
-    deleted_entry?: { description?: string; minutes?: number };
-    after?: { description?: string; minutes?: number };
-  } | null;
-  created_at: string;
-};
+const auditSnapshot = z.object({ description: z.string().nullish(), minutes: z.number().nullish() });
+const auditRows = z.array(z.object({
+  id: z.union([z.number(), z.string()]),
+  event_type: z.string(),
+  metadata: z.object({ reason: z.string().nullish(), deleted_entry: auditSnapshot.nullish(), after: auditSnapshot.nullish() }).nullish(),
+  created_at: z.string(),
+}));
 
-export async function readAuditableHours(start: string, next: string) {
-  const client = requireHoursClient();
-  const [entries, audit] = await Promise.all([
-    client.from('hour_entries').select('id,company_id,work_date,minutes,description,category,source_type,client_visible,created_at')
-      .gte('work_date', start).lt('work_date', next).order('work_date', { ascending: false }).order('created_at', { ascending: false }),
-    client.rpc('get_hour_entry_audit', { p_limit: 200 }),
-  ]);
-  return {
-    entries: entries.error ? null : (entries.data || []).map((row): HourAuditEntry => ({
-      id: row.id,
-      workDate: row.work_date,
-      minutes: Number(row.minutes || 0),
-      description: row.description || '',
-      category: row.category || 'Outros',
-      clientVisible: Boolean(row.client_visible),
-    })),
-    audit: audit.error ? null : (audit.data || []) as AuditRow[],
-  };
+export async function readHourEntryAudit(signal: AbortSignal) {
+  const { data, error } = await requireHoursClient().rpc('get_hour_entry_audit', { p_limit: 200 })
+    .abortSignal(signal);
+  if (error) throw new Error(error.message);
+  return auditRows.parse(data ?? []);
 }
-
-export type { AuditRow };
 
 export async function deleteAuditedHourEntry(entryId: string, reason: string) {
   return await requireHoursClient().rpc('delete_hour_entry_with_audit', {

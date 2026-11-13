@@ -1,19 +1,17 @@
-import { useQuery } from '@tanstack/react-query';
-import { loadMapaDeliveryState, sendMapaReport } from '../../../api/admin/people-map/delivery';
+import { useMapaDeliveryState } from './hooks/useMapaDeliveryState';
+import { sendMapaReport } from '../../../api/admin/people-map/delivery';
 import { Button } from '../../../components/ds/Button';
-import { DialogFrame } from '../../../components/ds/DialogFrame';
 import { FieldLabel } from '../../../components/ds/FieldLabel';
 import { AdminMaterialReview } from '../../material-review/AdminMaterialReview';
 import { useMaterialDeliveryConfirmation } from '../../../hooks/useMaterialDeliveryConfirmation';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, Building2, FileText, Mail, RefreshCw, Save, Send, UserRound, X } from 'lucide-react';
+import { ArrowLeft, Building2, FileText, Mail, RefreshCw, Save, Send, UserRound } from 'lucide-react';
 import { useNavigate } from '../../../hooks/useNavigate';
 import { useSearchParams } from '../../../hooks/useSearchParams';
-import { Shell } from '../../../components/workspace/WorkspaceShell';
+import { DocumentShell } from '../../../components/workspace/DocumentShell';
 import { readMapaReview, saveMapaReview } from '../../../api/admin/people-map/reviews';
-import '../../../components/workspace/document-shell.css';
-import './people-map-review.css';
+import { PeopleMapSendDialog } from './components/PeopleMapSendDialog';
 
 type DiagnosticoV2 = {
   version?: number;
@@ -133,12 +131,7 @@ export function AdminPeopleMapReviewPage(){
   const [emailFeedback,setEmailFeedback]=useState('');
   const [emailMessage,setEmailMessage]=useState('');
   const [sending,setSending]=useState(false);
-  const delivery = useQuery({
-    queryKey: ['mapa-delivery', record?.id],
-    queryFn: () => loadMapaDeliveryState(record!.id),
-    enabled: emailOpen && Boolean(record),
-    retry: false,
-  });
+  const delivery = useMapaDeliveryState(record?.id, emailOpen);
   const deliveryReady = delivery.isSuccess && !delivery.isFetching;
 
   useEffect(() => {
@@ -244,8 +237,8 @@ export function AdminPeopleMapReviewPage(){
     }
   }
 
-  if(loading)return <Shell role="admin"><div className="people-map-review-state"><RefreshCw className="spin" size={22}/>Abrindo revisão…</div></Shell>;
-  if(error||!record||!draft||!scores)return <Shell role="admin"><div className="people-map-review-state error"><strong>Não foi possível abrir a revisão.</strong><span>{error}</span><Button variant="secondary" onClick={()=>navigate('/admin/mapa-de-people')}>Voltar ao Mapa</Button></div></Shell>;
+  if(loading)return <DocumentShell><div className="people-map-review-state tw:flex tw:min-h-[60vh] tw:items-center tw:justify-center tw:gap-[0.625rem] tw:text-[#7d7073]"><RefreshCw className="tw:animate-spin tw:[animation-duration:0.9s] tw:motion-reduce:animate-none" size={22}/>Abrindo revisão…</div></DocumentShell>;
+  if(error||!record||!draft||!scores)return <DocumentShell><div className="people-map-review-state error tw:flex tw:min-h-[60vh] tw:flex-col tw:items-center tw:justify-center tw:gap-[0.625rem] tw:text-[#7d7073] tw:[&>span]:text-[0.75rem] tw:[&>span]:text-[#918487] tw:[&>button]:mt-[0.375rem]"><strong>Não foi possível abrir a revisão.</strong><span>{error}</span><Button variant="secondary" onClick={()=>navigate('/admin/mapa-de-people')}>Voltar ao Mapa</Button></div></DocumentShell>;
 
   const dimensions:[1|2|3|4,string,keyof Draft,number|null][]=[
     [1,'D1 · Maturidade Estrutural','d1_obs',scores.d1],
@@ -254,22 +247,50 @@ export function AdminPeopleMapReviewPage(){
     [4,'D4 · Dimensões Operacionais','d4_obs',scores.d4],
   ];
 
-  return <Shell role="admin">
-    <section className="page people-map-review-page">
-      <button className="people-map-review-back" onClick={()=>navigate('/admin/mapa-de-people')}><ArrowLeft size={17}/>Voltar ao Mapa</button>
-      <div className="people-map-review-head"><div><span className="eyebrow">REVISÃO DO RELATÓRIO · {record.protocolo}</span><h1>{record.c_empresa||record.c_nome}</h1><p>{record.c_nome}{record.c_cargo?` · ${record.c_cargo}`:''} · respondido em {formatDate(record.created_at)}</p></div><div className="people-map-review-score"><strong>{fmt(scores.total)}</strong><span>/10</span><small>score geral</small></div></div>
-      <div className="people-map-review-grid">
-        <main className="people-map-review-main">
-          {dimensions.map(([dimension,title,key,score])=><section className="panel people-map-review-card" key={dimension}><header><div><span className="section-kicker">DIMENSÃO {dimension}</span><h2>{title}</h2></div><strong>{fmt(score)}<small>/10</small></strong></header><div className="people-map-review-answers">{rows(record,dimension).map(([label,value])=><div key={label}><span>{label}</span><b>{scoreLabel(value)}</b></div>)}</div><FieldLabel>Observação da Patrícia<textarea rows={4} value={String(draft[key]||'')} onChange={(e)=>setDraft({...draft,[key]:e.target.value})}/></FieldLabel></section>)}
-          <section className="panel people-map-review-card people-map-review-final"><header><div><span className="section-kicker">DEVOLUTIVA</span><h2>Parecer final</h2></div><FileText size={22}/></header><FieldLabel>O que você indicaria primeiro<textarea rows={7} value={draft.parecer} onChange={(e)=>setDraft({...draft,parecer:e.target.value})}/></FieldLabel><FieldLabel>Serviço recomendado<select value={draft.servico_recomendado} onChange={(e)=>setDraft({...draft,servico_recomendado:e.target.value})}>{SERVICES.map((service)=><option key={service}>{service}</option>)}</select></FieldLabel></section>
+  const reviewSectionHeader = 'tw:mb-[0.9375rem] tw:flex tw:items-start tw:justify-between tw:gap-[1.125rem] tw:border-0 tw:border-b tw:border-solid tw:border-[#5a1e2d14] tw:pb-[0.875rem]';
+  const reviewSectionTitle = 'tw:mt-[0.3125rem]! tw:mb-0! tw:text-[1.1875rem]/[inherit]! tw:text-[#302a2c] tw:workspace-night:text-cali-day-canvas';
+  const reviewSideTitle = 'tw:m-0! tw:text-[0.9375rem]/[inherit]! tw:text-[#302a2c] tw:workspace-night:text-cali-day-canvas';
+  const reviewInput = 'tw:bg-white tw:text-[0.8125rem]/[inherit]! tw:workspace-night:border-[#f7f3ee24] tw:workspace-night:bg-[#241b1e] tw:workspace-night:text-cali-day-canvas';
+  const reviewFacts = 'tw:mt-[0.875rem] tw:mb-0 tw:grid tw:gap-[0.5625rem] tw:[&>div]:grid tw:[&>div]:gap-[0.125rem] tw:[&>div]:border-0 tw:[&>div]:border-b tw:[&>div]:border-solid tw:[&>div]:border-[#5a1e2d12] tw:[&>div]:pb-[0.5rem] tw:[&>div:last-child]:border-b-0 tw:[&>div:last-child]:pb-0 tw:[&_dt]:text-[0.625rem] tw:[&_dt]:font-extrabold tw:[&_dt]:tracking-[0.06em] tw:[&_dt]:text-[#9b8e91] tw:[&_dt]:uppercase tw:[&_dd]:m-0 tw:[&_dd]:text-[0.75rem] tw:[&_dd]:text-[#514649] tw:[&_dd]:[overflow-wrap:anywhere] tw:workspace-night:[&_dt]:text-[#9f9295] tw:workspace-night:[&_dd]:text-[#c5b9bb]';
+
+  return <DocumentShell>
+    <section className="page people-map-review-page tw:pb-[4.5rem]">
+      <button className="people-map-review-back tw:mb-[1.125rem] tw:inline-flex tw:cursor-pointer tw:items-center tw:gap-[0.4375rem] tw:border-0 tw:bg-transparent tw:text-[0.8125rem]/[inherit] tw:font-extrabold tw:text-cali-brand" onClick={()=>navigate('/admin/mapa-de-people')}><ArrowLeft size={17}/>Voltar ao Mapa</button>
+      <div className="people-map-review-head tw:mb-[1.375rem] tw:flex tw:items-end tw:justify-between tw:gap-[1.5rem] tw:[@media(max-width:61.25rem)]:items-start tw:[@media(max-width:42.5rem)]:flex-col"><div><span className="eyebrow">REVISÃO DO RELATÓRIO · {record.protocolo}</span><h1 className="tw:mt-[0.375rem]! tw:mb-[0.25rem]! tw:text-[2.375rem]/[inherit]! tw:tracking-[-0.035em] tw:workspace-night:text-cali-day-canvas">{record.c_empresa||record.c_nome}</h1><p className="tw:m-0! tw:text-[0.8125rem]/[inherit] tw:text-[#877a7d] tw:workspace-night:text-[#c5b9bb]">{record.c_nome}{record.c_cargo?` · ${record.c_cargo}`:''} · respondido em {formatDate(record.created_at)}</p></div><div className="people-map-review-score tw:grid tw:grid-cols-[auto_auto] tw:items-baseline tw:text-right tw:[@media(max-width:61.25rem)]:min-w-[5.9375rem] tw:[@media(max-width:42.5rem)]:justify-start tw:[@media(max-width:42.5rem)]:text-left"><strong className="tw:text-[2.375rem]/none tw:text-cali-brand">{fmt(scores.total)}</strong><span className="tw:ml-[0.1875rem] tw:text-[0.75rem]/[inherit] tw:text-[#95888b]">/10</span><small className="tw:col-span-full tw:mt-[0.25rem] tw:text-[0.6875rem]/[inherit] tw:text-[#95888b]">score geral</small></div></div>
+      <div className="people-map-review-grid tw:grid tw:grid-cols-[minmax(0,1fr)_minmax(18.75rem,21.875rem)] tw:items-start tw:gap-[1.125rem] tw:[@media(max-width:61.25rem)]:grid-cols-1">
+        <main className="people-map-review-main tw:grid tw:gap-[0.875rem]">
+          {dimensions.map(([dimension,title,key,score])=><section className="panel people-map-review-card tw:p-[1.25rem] tw:[@media(max-width:42.5rem)]:p-[1rem]" key={dimension}><header className={reviewSectionHeader}><div><span className="section-kicker">DIMENSÃO {dimension}</span><h2 className={reviewSectionTitle}>{title}</h2></div><strong className="tw:text-[1.4375rem]/[inherit] tw:text-cali-brand">{fmt(score)}<small className="tw:ml-[0.125rem] tw:text-[0.625rem]/[inherit] tw:text-[#9f9295]">/10</small></strong></header><div className="people-map-review-answers tw:mb-[1rem] tw:grid tw:grid-cols-2 tw:gap-x-[0.75rem] tw:gap-y-[0.5rem] tw:[@media(max-width:42.5rem)]:grid-cols-1">{rows(record,dimension).map(([label,value])=><div key={label} className="tw:rounded-[0.625rem] tw:bg-[#5a1e2d09] tw:px-[0.75rem] tw:py-[0.625rem] tw:workspace-night:bg-white/4"><span className="tw:block tw:text-[0.6875rem]/[inherit] tw:text-[#8a7d80] tw:workspace-night:text-[#9f9295]">{label}</span><b className="tw:mt-[0.1875rem] tw:block tw:text-[0.75rem]/[inherit] tw:text-[#514649] tw:workspace-night:text-[#d9ced0]">{scoreLabel(value)}</b></div>)}</div><FieldLabel>Observação da Patrícia<textarea className={reviewInput} rows={4} value={String(draft[key]||'')} onChange={(e)=>setDraft({...draft,[key]:e.target.value})}/></FieldLabel></section>)}
+          <section className="panel people-map-review-card tw:border-[#b58c5247] tw:p-[1.25rem] tw:[@media(max-width:42.5rem)]:p-[1rem]"><header className={reviewSectionHeader}><div><span className="section-kicker">DEVOLUTIVA</span><h2 className={reviewSectionTitle}>Parecer final</h2></div><FileText size={22}/></header><FieldLabel>O que você indicaria primeiro<textarea className={reviewInput} rows={7} value={draft.parecer} onChange={(e)=>setDraft({...draft,parecer:e.target.value})}/></FieldLabel><FieldLabel>Serviço recomendado<select className={reviewInput} value={draft.servico_recomendado} onChange={(e)=>setDraft({...draft,servico_recomendado:e.target.value})}>{SERVICES.map((service)=><option key={service}>{service}</option>)}</select></FieldLabel></section>
         </main>
-        <aside className="people-map-review-side">
-          <section className="panel people-map-review-sidecard"><div className="people-map-review-side-title"><UserRound size={18}/><h3>Contato</h3></div><dl><div><dt>Nome</dt><dd>{record.c_nome}</dd></div><div><dt>Empresa</dt><dd>{record.c_empresa}</dd></div><div><dt>Cargo</dt><dd>{record.c_cargo||'Não informado'}</dd></div><div><dt>E-mail</dt><dd>{record.c_email}</dd></div><div><dt>WhatsApp</dt><dd>{record.c_whatsapp||'Não informado'}</dd></div><div><dt>Preferência</dt><dd>{record.c_preferencia_contato||'Não informada'}</dd></div><div><dt>LinkedIn / site</dt><dd>{record.c_linkedin_site||'Não informado'}</dd></div></dl></section>
-          <section className="panel people-map-review-sidecard"><div className="people-map-review-side-title"><Building2 size={18}/><h3>Qualificação</h3></div><dl><div><dt>Prazo</dt><dd>{record.q_prazo||'—'}</dd></div><div><dt>Decisores</dt><dd>{[...(record.q_decisor||[]),record.q_decisor_outro].filter(Boolean).join(', ')||'—'}</dd></div><div><dt>Formato</dt><dd>{record.q_formato||'—'}</dd></div><div><dt>Apoio posterior</dt><dd>{qv2.apoio_pos||'—'}</dd></div><div><dt>Jurídico</dt><dd>{qv2.juridico||'—'}</dd></div><div><dt>Investimento</dt><dd>{record.q_investimento||'—'}</dd></div><div><dt>Origem</dt><dd>{record.q_origem||'—'}</dd></div></dl></section>
-          {record.status!=='enviado'&&<AdminMaterialReview kind="mapa" entityId={record.id} onApproved={() => setReviewRefresh((version) => version + 1)} />}<section className="panel people-map-review-sidecard people-map-review-actions"><h3>Fluxo aprovado</h3><p>Salve a revisão, confira o relatório e envie exatamente o PDF aprovado ao decisor.</p><Button variant="secondary" onClick={save} disabled={saving}><Save size={16}/>{saving?'Salvando…':'Salvar revisão'}</Button><Button variant="primary" onClick={saveAndOpenReport} disabled={saving}><FileText size={16}/>{saving?'Salvando…':'Salvar e abrir relatório'}</Button><Button variant="secondary" onClick={openEmailModal}><Mail size={16}/>Enviar relatório por e-mail</Button><Button variant="secondary" onClick={openWhatsapp}><Send size={16}/>Preparar WhatsApp</Button>{record.relatorio_enviado_em&&<small>Último envio: {new Date(record.relatorio_enviado_em).toLocaleString('pt-BR')}</small>}<span className="people-map-review-feedback" aria-live="polite">{feedback}</span></section>
+        <aside className="people-map-review-side tw:sticky tw:top-[5.75rem] tw:grid tw:gap-[0.75rem] tw:[@media(max-width:61.25rem)]:static">
+          <section className="panel people-map-review-sidecard tw:p-[1.125rem]"><div className="people-map-review-side-title tw:flex tw:items-center tw:gap-[0.5rem] tw:text-cali-brand"><UserRound size={18}/><h3 className={reviewSideTitle}>Contato</h3></div><dl className={reviewFacts}><div><dt>Nome</dt><dd>{record.c_nome}</dd></div><div><dt>Empresa</dt><dd>{record.c_empresa}</dd></div><div><dt>Cargo</dt><dd>{record.c_cargo||'Não informado'}</dd></div><div><dt>E-mail</dt><dd>{record.c_email}</dd></div><div><dt>WhatsApp</dt><dd>{record.c_whatsapp||'Não informado'}</dd></div><div><dt>Preferência</dt><dd>{record.c_preferencia_contato||'Não informada'}</dd></div><div><dt>LinkedIn / site</dt><dd>{record.c_linkedin_site||'Não informado'}</dd></div></dl></section>
+          <section className="panel people-map-review-sidecard tw:p-[1.125rem]"><div className="people-map-review-side-title tw:flex tw:items-center tw:gap-[0.5rem] tw:text-cali-brand"><Building2 size={18}/><h3 className={reviewSideTitle}>Qualificação</h3></div><dl className={reviewFacts}><div><dt>Prazo</dt><dd>{record.q_prazo||'—'}</dd></div><div><dt>Decisores</dt><dd>{[...(record.q_decisor||[]),record.q_decisor_outro].filter(Boolean).join(', ')||'—'}</dd></div><div><dt>Formato</dt><dd>{record.q_formato||'—'}</dd></div><div><dt>Apoio posterior</dt><dd>{qv2.apoio_pos||'—'}</dd></div><div><dt>Jurídico</dt><dd>{qv2.juridico||'—'}</dd></div><div><dt>Investimento</dt><dd>{record.q_investimento||'—'}</dd></div><div><dt>Origem</dt><dd>{record.q_origem||'—'}</dd></div></dl></section>
+          {record.status!=='enviado'&&<AdminMaterialReview kind="mapa" entityId={record.id} onApproved={() => setReviewRefresh((version) => version + 1)} />}<section className="panel people-map-review-sidecard people-map-review-actions tw:grid tw:gap-[0.5625rem] tw:p-[1.125rem] tw:[&>button]:w-full tw:[&>button]:justify-start tw:[&>small]:text-[0.625rem] tw:[&>small]:text-[#928589]"><h3 className={reviewSideTitle}>Fluxo aprovado</h3><p className="tw:mt-[0.25rem] tw:mb-[0.3125rem] tw:text-[0.75rem]/[1.5] tw:text-[#75686b] tw:workspace-night:text-[#c5b9bb]">Salve a revisão, confira o relatório e envie exatamente o PDF aprovado ao decisor.</p><Button variant="secondary" onClick={save} disabled={saving}><Save size={16}/>{saving?'Salvando…':'Salvar revisão'}</Button><Button variant="primary" onClick={saveAndOpenReport} disabled={saving}><FileText size={16}/>{saving?'Salvando…':'Salvar e abrir relatório'}</Button><Button variant="secondary" onClick={openEmailModal}><Mail size={16}/>Enviar relatório por e-mail</Button><Button variant="secondary" onClick={openWhatsapp}><Send size={16}/>Preparar WhatsApp</Button>{record.relatorio_enviado_em&&<small>Último envio: {new Date(record.relatorio_enviado_em).toLocaleString('pt-BR')}</small>}<span className="people-map-review-feedback tw:min-h-[1rem] tw:text-[0.6875rem]/[inherit] tw:text-[#7c6e71]" aria-live="polite">{feedback}</span></section>
         </aside>
       </div>
     </section>
-    {emailOpen&&createPortal(<div className="workspace-modal-layer people-map-send-layer" role="presentation" onMouseDown={(event)=>{if(event.target===event.currentTarget&&!sending)setEmailOpen(false)}}><DialogFrame className="workspace-standard-modal people-map-send-modal" aria-labelledby="people-map-send-title"><button className="people-map-send-close" onClick={()=>!sending&&setEmailOpen(false)} disabled={sending} aria-label="Fechar"><X size={20}/></button><span className="eyebrow">ENVIO DO RELATÓRIO</span><h2 id="people-map-send-title">Confirmar devolutiva</h2><div className="people-map-email-form"><div className="people-map-send-recipient"><span>Destinatário da resposta</span><strong>{record.c_nome} &lt;{record.c_email}&gt;</strong></div><div className="people-map-email-subject"><span>Assunto</span><strong>{REPORT_EMAIL_SUBJECT}</strong></div><FieldLabel><span>Mensagem adicional <em>opcional</em></span><textarea rows={3} value={emailMessage} disabled={sending} maxLength={3000} placeholder="Escreva aqui uma observação pessoal para acompanhar o e-mail padrão da CALI." onChange={(event)=>setEmailMessage(event.target.value)}/><small>{emailMessage.length}/3000 · entra no corpo do e-mail sem substituir o modelo aprovado.</small></FieldLabel></div>{delivery.isError ? <div role="alert">Não foi possível consultar a revisão. <Button type="button" variant="secondary" onClick={() => void delivery.refetch()}>Tentar novamente</Button></div> : !deliveryReady ? <p role="status">Consultando revisão…</p> : delivery.data?.hasPdf ? <p>O envio usa o PDF oficial da versão {delivery.data.revision}.</p> : <label className={`people-map-pdf-upload${pdfFile?' has-file':''}`}><input type="file" accept="application/pdf,.pdf" disabled={sending} onChange={(e)=>{setPdfFile(e.target.files?.[0]||null);setEmailFeedback('')}}/><FileText size={22}/><strong>{pdfFile?pdfFile.name:'Selecionar relatório aprovado'}</strong><span>{pdfFile?`${(pdfFile.size/1024/1024).toFixed(2)} MB · pronto para enviar`:'PDF de até 8 MB'}</span></label>}{emailFeedback&&<div className="people-map-email-feedback" aria-live="polite">{emailFeedback}</div>}<footer><Button variant="secondary" onClick={()=>setEmailOpen(false)} disabled={sending}>Cancelar</Button><Button variant="primary" onClick={sendEmail} disabled={sending||!deliveryReady||(!delivery.data?.hasPdf&&!pdfFile)}>{sending ? 'Enviando…' : record.status === 'enviado' ? 'Reenviar relatório' : 'Enviar relatório'}</Button></footer></DialogFrame></div>,document.body)}
-  </Shell>;
+    {emailOpen && createPortal(
+      <PeopleMapSendDialog
+        surface="document"
+        recipient={`${record.c_nome} <${record.c_email}>`} recipientLabel="Destinatário da resposta"
+        file={pdfFile} onFile={(file) => { setPdfFile(file); setEmailFeedback(''); }}
+        onClose={() => setEmailOpen(false)} onSend={sendEmail}
+        sending={sending} sent={record.status === 'enviado'}
+        deliveryReady={deliveryReady} deliveryError={delivery.isError} onRetry={() => void delivery.refetch()}
+        officialPdf={delivery.data?.hasPdf} revision={delivery.data?.revision} feedback={emailFeedback}
+      >
+        <div className="tw:mb-[1rem] tw:grid tw:gap-[0.9375rem]">
+          <div className="tw:grid tw:gap-[0.25rem] tw:rounded-[0.6875rem] tw:border tw:border-solid tw:border-[#5a1e2d14] tw:bg-[#5a1e2d09] tw:px-[0.8125rem] tw:py-[0.6875rem] tw:workspace-night:border-[#49373e] tw:workspace-night:bg-[#241b1f]">
+            <span className="tw:text-[0.62rem]/[inherit] tw:font-extrabold tw:tracking-[0.08em] tw:text-[#9b8d90] tw:uppercase">Assunto</span>
+            <strong className="tw:text-[0.75rem]/[inherit] tw:font-[650] tw:text-[#514649] tw:workspace-night:text-[#e1d6d8]">{REPORT_EMAIL_SUBJECT}</strong>
+          </div>
+          <FieldLabel className="tw:grid tw:gap-[0.4375rem] tw:text-[0.76rem]/[inherit] tw:font-[750] tw:text-[#3a3033] tw:workspace-night:text-cali-day-canvas">
+            <span>Mensagem adicional <em className="tw:font-medium tw:text-[#9e9093] tw:not-italic">opcional</em></span>
+            <textarea className="tw:min-h-[5.125rem] tw:w-full tw:resize-y tw:rounded-[0.6875rem]! tw:border tw:border-solid tw:border-[#e6ddd4]! tw:bg-white! tw:px-[0.75rem]! tw:py-[0.6875rem]! tw:text-[0.78rem]/[1.5]! tw:text-cali-ink! tw:focus:border-[#5a1e2d52]! tw:focus:shadow-[0_0_0_3px_#5a1e2d12] tw:workspace-night:border-[#49373e]! tw:workspace-night:bg-[#1b1518]! tw:workspace-night:text-cali-day-canvas!" rows={3} value={emailMessage} disabled={sending} maxLength={3000} placeholder="Escreva aqui uma observação pessoal para acompanhar o e-mail padrão da CALI." onChange={(event) => setEmailMessage(event.target.value)} />
+            <small className="tw:text-[0.67rem]/[1.4] tw:font-medium tw:text-[#8e8184] tw:workspace-night:text-[#bcaeb1]">{emailMessage.length}/3000 · entra no corpo do e-mail sem substituir o modelo aprovado.</small>
+          </FieldLabel>
+        </div>
+      </PeopleMapSendDialog>, document.body
+    )}
+  </DocumentShell>;
 }

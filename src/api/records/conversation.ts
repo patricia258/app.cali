@@ -43,11 +43,12 @@ export async function readConversationIdentities(role: 'admin' | 'client', compa
   };
 }
 
-export async function listRecordMessages(recordId: string) {
-  return await requireRecordsClient().from('account_record_messages')
+export async function listRecordMessages(recordId: string, signal?: AbortSignal) {
+  const query = requireRecordsClient().from('account_record_messages')
     .select('id,record_id,author_id,author_role,body,visibility,created_at,edited_at')
     .eq('record_id', recordId).is('deleted_at', null).order('created_at')
     .returns<ConversationMessageRow[]>();
+  return await (signal ? query.abortSignal(signal) : query);
 }
 
 export async function postRecordMessage(recordId: string, body: string, partner = false, internal = false) {
@@ -72,16 +73,13 @@ export async function removeRecordAttachment(path: string) {
   return await requireRecordsClient().storage.from('cali-workspace-private').remove([path]);
 }
 
-export function subscribeRecordMessages(recordId: string, event: 'INSERT' | 'UPDATE', refresh: () => void) {
+export function subscribeRecordMessages(recordId: string, refresh: (event: 'INSERT' | 'UPDATE') => void) {
   if (!recordsAvailable) return () => {};
   const client = requireRecordsClient();
   const filter = `record_id=eq.${recordId}`;
-  const channel = client.channel(`record-messages-${event}-${recordId}-${Date.now()}`);
-  if (event === 'INSERT') {
-    channel.on('postgres_changes', { event, schema: 'cali_workspace', table: 'account_record_messages', filter }, refresh);
-  } else {
-    channel.on('postgres_changes', { event, schema: 'cali_workspace', table: 'account_record_messages', filter }, refresh);
-  }
-  channel.subscribe();
+  const channel = client.channel(`record-messages-${recordId}-${crypto.randomUUID()}`)
+    .on('postgres_changes', { event: 'INSERT', schema: 'cali_workspace', table: 'account_record_messages', filter }, () => refresh('INSERT'))
+    .on('postgres_changes', { event: 'UPDATE', schema: 'cali_workspace', table: 'account_record_messages', filter }, () => refresh('UPDATE'))
+    .subscribe();
   return () => { void client.removeChannel(channel); };
 }

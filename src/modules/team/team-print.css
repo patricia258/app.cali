@@ -1,0 +1,116 @@
+@reference "../../styles/tailwind.css";
+
+@media print {
+  body.team-printing :is(.sidebar, .topbar) {
+    display: none !important;
+  }
+}
+
+/* Paginação e controle do layout impresso dos indicadores. */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  body.pa-printing
+    :is(
+      .sidebar,
+      .topbar,
+      .page-head,
+      .section-tabs,
+      .context-strip,
+      .v2-compare,
+      .v2-month-strip,
+      .ie-switch,
+      .v2-module-gate.locked,
+      .v2-module-blur,
+      .v2-module-lock,
+      .pa-missing,
+      .team-alert,
+      .ch-chat-trigger,
+      .toast,
+      .inline-notice,
+      .v2-ess-legend
+    ) {
+    @apply tw:hidden!;
+  }
+  body.pa-printing .pa-card header :is(select, button, label, [role='tablist']) {
+    @apply tw:hidden!;
+  }
+  html[data-workspace-ui='v2']:has(body.pa-printing),
+  body.pa-printing,
+  body.pa-printing #root {
+    @apply tw:h-auto! tw:min-h-0! tw:overflow-visible!;
+    background: #fff !important;
+  }
+  body.pa-printing :is(.app, .main, .content, .v2-client-module) {
+    @apply tw:block! tw:static! tw:w-auto! tw:max-w-none! tw:h-auto! tw:min-h-0! tw:max-h-none! tw:overflow-visible! tw:m-0! tw:p-0!;
+    background: #fff !important;
+  }
+  body.pa-printing * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    box-shadow: none !important;
+  }
+  body.pa-printing .pa-print-head {
+    @apply tw:block;
+    margin: 0 0 14px;
+    padding: 0 0 10px;
+    border-bottom: 2px solid #5a1e2d;
+  }
+  body.pa-printing .pa-print-head small {
+    @apply tw:text-[8px];
+    letter-spacing: 1.4px;
+    font-weight: 700;
+    color: #a5866b;
+  }
+  body.pa-printing .pa-print-head h1 {
+    @apply tw:text-[20px];
+    margin: 4px 0 2px;
+    color: #2b2024;
+  }
+  body.pa-printing .pa-print-head p {
+    @apply tw:text-[10px] tw:m-0;
+    color: #6b5d63;
+  }
+  body.pa-printing .pa-print-ess {
+    @apply tw:grid;
+    grid-template-columns: 1fr 1fr;
+    @apply tw:gap-[10px];
+  }
+  body.pa-printing .pa-print-ess .v2-ess-chart h3 {
+    @apply tw:text-[12px];
+  }
+  body.pa-printing .pa-print-ess {
+    break-before: page;
+    page-break-before: always;
+  }
+  body.pa-printing .pa-print-ess > h2 {
+    grid-column: 1/-1;
+    @apply tw:text-[15px];
+    margin: 0 0 2px;
+    color: #2b2024;
+  }
+  body.pa-printing .pa-print-ess .v2-ess-chart {
+    padding: 12px 14px !important;
+    @apply tw:m-0!;
+  }
+  body.pa-printing .pa-print-ess .mini-chart {
+    height: 150px !important;
+    @apply tw:min-h-0!;
+  }
+  body.pa-printing :is(.pa-hover, .pa-section-head p) {
+    @apply tw:hidden!;
+  }
+  body.pa-printing .pa-section-head {
+    break-before: page;
+    page-break-before: always;
+  }
+  body.pa-printing :is(.pa-card, .panel, .metric-strip > div, .ie-insight, .v2-ess-chart, .pa-section-head) {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  body.pa-printing .pa-reading {
+    break-inside: avoid;
+  }
+}

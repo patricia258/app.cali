@@ -54,13 +54,15 @@ const printPath = '/equipe/relatorios/impressao/qa-report';
 const staffPath = '/rest/v1/staff_members';
 const companiesPath = '/rest/v1/rpc/partner_companies';
 const publicPartnerPaths = new Set(['/rest/v1/profiles', legacyTermsPath, readTermsPath]);
-const gateError = '.v2-mfa [role=alert]';
+const gateError = '[data-access-gate] [role=alert]';
 const adminMarker = '#root .ap-app';
 const clientMarker = '#root h1';
 const b64 = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
+const profileAvatarPath = '/storage/v1/object/sign/cali-workspace-private/qa-guards/avatar.svg';
 const isIdentityQuery = (url) =>
-  (url.pathname === '/rest/v1/companies' && url.searchParams.get('select') === 'display_name,logo_url,logo_workspace_url') ||
-  (url.pathname === '/rest/v1/profiles' && url.searchParams.get('select') === 'id,full_name,role,company_id,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom');
+  url.pathname === '/rest/v1/profiles' &&
+  url.searchParams.get('id')?.startsWith('eq.') &&
+  url.searchParams.get('select')?.split(',').includes('avatar_url');
 
 const cases = [
   {
@@ -218,7 +220,7 @@ async function mock(browser, origin, test) {
   const staffBoundary = test.id.startsWith('staff:');
   let receiptConfirmed = false;
   const rows = structuredClone(tables);
-  rows.profiles[0] = { ...rows.profiles[0], role: test.role };
+  rows.profiles[0] = { ...rows.profiles[0], role: test.role, avatar_url: 'private:qa-guards/avatar.svg' };
   if (test.expected === 'terms-actor-replaced') {
     rows.profiles.push({ ...rows.profiles[0], id: replacementUser.id });
   }
@@ -274,7 +276,11 @@ async function mock(browser, origin, test) {
         });
       }
       if (method === 'OPTIONS') return fulfill(204);
-      if (method === 'GET' && isIdentityQuery(url)) entry.identity = true;
+      if ((method === 'GET' && isIdentityQuery(url)) || url.pathname === profileAvatarPath) entry.identity = true;
+      if (url.pathname === profileAvatarPath) {
+        if (method === 'POST') return fulfill(200, { signedURL: profileAvatarPath.replace('/storage/v1', '') + '?token=qa-guards' });
+        return route.fulfill({ headers, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><rect width="20" height="20" fill="#723043"/></svg>' });
+      }
       if (staffBoundary && url.pathname === '/rest/v1/reports' && url.searchParams.get('id') === 'eq.qa-report') {
         entry.printReport = true;
       }
@@ -445,10 +451,7 @@ async function assertIdentitySuspended(page, requests, from) {
   assert(!requests.slice(from).some((entry) => entry.identity), 'Identidade consultada depois de perder a guarda');
 }
 
-const identityResponse = (page) => page.waitForResponse(
-  (response) => response.request().method() === 'GET' && isIdentityQuery(new URL(response.url())) && response.ok(),
-  { timeout },
-);
+const profileAvatarVisible = (page) => page.locator('img[src*="qa-guards/avatar.svg?token=qa-guards"]').first().waitFor({ timeout });
 
 async function verifyMfa(page, test, requests) {
   const input = page.getByLabel('Código do aplicativo');
@@ -519,8 +522,11 @@ async function verifyTerms(page, test, requests) {
     await page.locator(gateError).waitFor({ timeout });
     await deniedByTerms(page, test.role);
   } else {
-    await Promise.all([assertAdmitted(page, test), identityResponse(page)]);
-    assert(requests.slice(submitIndex + 1).some(receiptRead), 'Aceite liberou antes de reler a confirmação');
+    await Promise.all([assertAdmitted(page, test), profileAvatarVisible(page)]);
+    const afterSubmit = requests.slice(submitIndex + 1);
+    const receiptIndex = afterSubmit.findIndex(receiptRead);
+    const signatureIndex = afterSubmit.findIndex((entry) => entry.path === profileAvatarPath && entry.method === 'POST');
+    assert(receiptIndex >= 0 && signatureIndex > receiptIndex, 'Foto privada deve ser assinada depois de reler o recibo');
     if (test.tourUnseen) {
       const tour = page.getByRole('dialog', { name: 'Apresentação do CALI Workspace' });
       await tour.waitFor({ timeout });
@@ -556,7 +562,7 @@ async function runCase(browser, origin, test) {
       assert(recorded(requests, '/auth/v1/factors', 200));
       await adminDenied(page);
     } else if (test.expected === 'mfa-session-replaced') {
-      await Promise.all([assertAdmitted(page, test), identityResponse(page)]);
+      await Promise.all([assertAdmitted(page, test), profileAvatarVisible(page)]);
       const replacement = session('aal1', [factor], false, 'dddddddd-dddd-4ddd-8ddd-dddddddddddd');
       const beforeReplacement = requests.length;
       await replaceSession(page, replacement);
@@ -564,7 +570,7 @@ async function runCase(browser, origin, test) {
       await adminDenied(page);
       await assertIdentitySuspended(page, requests, beforeReplacement);
     } else if (test.expected === 'terms-actor-replaced') {
-      await Promise.all([assertAdmitted(page, test), identityResponse(page)]);
+      await Promise.all([assertAdmitted(page, test), profileAvatarVisible(page)]);
       const beforeReplacement = requests.length;
       await replaceSession(page, session('aal1', [], false, 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', replacementUser));
       await page.getByRole('checkbox', { name: /Li e aceito/ }).waitFor({ timeout });

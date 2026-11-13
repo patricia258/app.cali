@@ -1,12 +1,8 @@
 import { requireProjectClient } from './client';
+import { profileAvatarColumns, type ProfileMedia } from '../workspace/identity';
 
 export async function readProjectActor() {
   return await requireProjectClient().auth.getUser();
-}
-
-export async function readProjectViewerId() {
-  const { data } = await requireProjectClient().auth.getSession();
-  return data.session?.user?.id ?? '';
 }
 
 export async function readPartnerDeliverableConversation(deliverableId: string, visible: boolean) {
@@ -40,8 +36,8 @@ export async function readTaskConversationPeople(partner: boolean) {
   const client = requireProjectClient();
   const team = await client.rpc('staff_identities');
   const admins = partner ? await client.rpc('staff_admin_contacts')
-    : await client.from('profiles').select('id,full_name,avatar_url').eq('role', 'admin');
-  const people: { id: string; full_name?: string; avatar_url?: string }[] = [...(team.data ?? []), ...(admins.data ?? [])];
+    : await client.from('profiles').select(profileAvatarColumns).eq('role', 'admin');
+  const people: ProfileMedia[] = [...(team.data ?? []), ...(admins.data ?? [])];
   return people;
 }
 
@@ -59,34 +55,57 @@ export async function postTaskMessage(input: {
   });
 }
 
-const identityColumns = 'id,full_name,role,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom';
+const identityColumns = `${profileAvatarColumns},role`;
 
-export async function readDeliverableConversationIdentities(role: 'admin' | 'client', companyId: string) {
+export type DeliverableConversationIdentity = {
+  id?: string | null;
+  full_name: string;
+  role?: string | null;
+  avatar_url?: string | null;
+  avatar_position_x?: number | null;
+  avatar_position_y?: number | null;
+  avatar_zoom?: number | null;
+};
+
+export async function readDeliverableConversationIdentities(role: 'admin' | 'client', companyId: string, actorId: string, signal: AbortSignal) {
   const client = requireProjectClient();
-  const userId = await readProjectViewerId();
-  const viewer = userId ? (await client.from('profiles').select(identityColumns).eq('id', userId).maybeSingle()).data : null;
-  let staff = [];
-  try {
-    const result = await client.rpc('staff_identities');
-    staff = result.data ?? [];
-  } catch {
-    // Os nomes padrão continuam disponíveis se as identidades da equipe falharem.
-  }
-  const clients = role === 'admin' || viewer?.role === 'admin'
-    ? (await client.from('profiles').select(identityColumns).eq('company_id', companyId).eq('role', 'client').eq('active', true)).data ?? []
-    : [];
-  const contact = role === 'client' && viewer?.role === 'client' ? (await client.rpc('get_client_account_contact')).data : null;
-  return { viewer, staff, clients, contact: Array.isArray(contact) ? contact[0] : contact };
+  const [viewer, staff, participants] = await Promise.all([
+    client.from('profiles').select(identityColumns).eq('id', actorId).abortSignal(signal).maybeSingle(),
+    client.rpc('staff_identities').abortSignal(signal),
+    role === 'admin'
+      ? client.from('profiles').select(identityColumns).eq('company_id', companyId).eq('role', 'client').eq('active', true).abortSignal(signal)
+      : client.rpc('get_client_account_contact').abortSignal(signal),
+  ]);
+  const people = (Array.isArray(participants.data) ? participants.data : participants.data ? [participants.data] : []) as DeliverableConversationIdentity[];
+  return {
+    viewer: viewer.data as DeliverableConversationIdentity | null,
+    staff: (staff.data ?? []) as DeliverableConversationIdentity[],
+    clients: role === 'admin' ? people : [],
+    contact: role === 'client' ? people[0] ?? null : null,
+  };
 }
 
-export async function readDeliverableConversationIdentity(protocol: string) {
-  const { data } = await requireProjectClient().from('deliverables').select('id,company_id,project_id,protocol').eq('protocol', protocol).maybeSingle();
-  return data;
+export type DeliverableConversationMessage = {
+  id: string;
+  author_user_id: string | null;
+  body: string;
+  source_actor: 'admin' | 'client' | 'partner' | 'system' | null;
+  created_at: string;
+};
+
+export async function readDeliverableConversation(companyId: string, deliverableId: string, visible: boolean, signal: AbortSignal) {
+  const { data, error } = await requireProjectClient().from('comments').select('id,author_user_id,body,source_actor,created_at')
+    .eq('company_id', companyId).eq('target_type', 'deliverable').eq('target_id', deliverableId).eq('client_visible', visible)
+    .order('created_at').abortSignal(signal);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as DeliverableConversationMessage[];
 }
 
-export async function readDeliverableConversation(deliverableId: string, visible: boolean) {
-  return await requireProjectClient().from('comments').select('id,company_id,target_id,author_user_id,body,client_visible,source_actor,created_at')
-    .eq('target_type', 'deliverable').eq('target_id', deliverableId).eq('client_visible', visible).order('created_at');
+export async function readDeliverableConversationCount(companyId: string, deliverableId: string, signal: AbortSignal) {
+  const { count, error } = await requireProjectClient().from('comments').select('id', { count: 'exact', head: true })
+    .eq('company_id', companyId).eq('target_type', 'deliverable').eq('target_id', deliverableId).abortSignal(signal);
+  if (error) throw new Error(error.message);
+  return count;
 }
 
 export async function postClientDeliverableComment(deliverableId: string, body: string) {
@@ -97,10 +116,14 @@ export async function removeDeliverableAttachment(path: string) {
   return await requireProjectClient().storage.from('cali-workspace-private').remove([path]);
 }
 
-export function subscribeDeliverableConversation(deliverableId: string, refresh: () => void) {
+export function subscribeDeliverableConversation(deliverableId: string, actorId: string, refresh: (arrivingId?: string) => void) {
   const client = requireProjectClient();
-  const channel = client.channel(`deliverable-chat-v35-${deliverableId}-${Date.now()}`)
-    .on('postgres_changes', { event: 'INSERT', schema: 'cali_workspace', table: 'comments', filter: `target_id=eq.${deliverableId}` }, refresh)
+  const channel = client.channel(`deliverable-conversation-${deliverableId}-${crypto.randomUUID()}`)
+    .on('postgres_changes', { event: '*', schema: 'cali_workspace', table: 'comments', filter: `target_id=eq.${deliverableId}` }, (payload) => {
+      if (payload.eventType !== 'DELETE' && payload.new.target_type !== 'deliverable') return;
+      const arrivingId = payload.eventType === 'INSERT' && payload.new.author_user_id !== actorId ? String(payload.new.id ?? '') : undefined;
+      refresh(arrivingId);
+    })
     .subscribe();
   return () => { void client.removeChannel(channel); };
 }

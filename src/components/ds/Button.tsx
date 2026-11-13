@@ -1,15 +1,23 @@
 import { forwardRef, type ComponentPropsWithoutRef } from 'react';
 
 const buttonClass = {
+  unstyled: '',
   primary: 'primary',
   secondary: 'secondary',
   workflowPrimary: 'wf-primary',
   workflowSecondary: 'wf-secondary',
+  formSecondary: `tw:inline-flex! tw:items-center! tw:justify-center tw:gap-[0.538rem]!
+    tw:rounded-[0.538rem] tw:border tw:border-solid tw:border-[#e3d6cc]!
+    tw:bg-white! tw:px-[1rem]! tw:py-[0.692rem]! tw:font-cali-body
+    tw:text-[0.846rem] tw:leading-normal tw:font-semibold! tw:text-cali-brand
+    tw:cursor-pointer tw:transition-colors tw:duration-150
+    tw:enabled:hover:border-cali-brand! tw:enabled:hover:bg-[#fbf7f3]!
+    tw:disabled:cursor-default tw:disabled:opacity-45`,
   workflowOutline: 'wf-outline',
   adminPrimary: 'ap-primary',
   adminOutline: 'ap-outline',
-  gatePrimary: 'v2-mfa-primary',
-  gateExit: 'v2-mfa-leave',
+  gatePrimary: 'tw:h-[3.375rem] tw:cursor-pointer tw:rounded-[.75rem] tw:border-0 tw:bg-cali-brand tw:text-[1.077rem] tw:font-bold tw:text-white tw:disabled:cursor-default tw:disabled:opacity-45',
+  gateExit: 'tw:cursor-pointer tw:self-center tw:border-0 tw:bg-transparent tw:text-[.923rem] tw:text-[#7d726b] tw:underline',
   close: 'modal-close',
   inlineClose: 'modal-close-static',
 } as const;

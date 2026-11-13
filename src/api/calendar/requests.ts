@@ -45,7 +45,7 @@ export async function readClientSchedulingRequests(companyId: string) {
 export async function readAdminSchedulingRequests() {
   const client = requireSchedulingClient();
   return await Promise.all([
-    client.from('companies').select(companyColumns).neq('status', 'archived').order('display_name'),
+    client.from('companies').select(`${companyColumns},logo_workspace_url`).neq('status', 'archived').order('display_name'),
     client.from('scheduling_requests').select('*').order('created_at', { ascending: false }).limit(50),
   ]);
 }
@@ -79,14 +79,4 @@ export async function readSchedulingRequestPolicies(client: boolean) {
   const requests = requireSchedulingClient().from('scheduling_requests');
   if (client) return await requests.select(`${columns},extra_visit`).order('created_at', { ascending: false }).limit(30);
   return await requests.select(columns).order('created_at', { ascending: false }).limit(60);
-}
-
-export async function readRecentSchedulingRequestBilling() {
-  return await requireSchedulingClient().from('scheduling_requests')
-    .select('id,request_mode,billable_extra,billing_acknowledged_at,urgency_level,urgency_fee_applies')
-    .order('created_at', { ascending: false }).limit(60);
-}
-
-export async function readConfirmedSchedulingRequests() {
-  return await requireSchedulingClient().from('scheduling_requests').select('id,status').eq('status', 'confirmed').limit(100);
 }

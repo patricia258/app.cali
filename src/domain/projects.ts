@@ -39,7 +39,9 @@ export type WorkspaceProject = {
   description?: string | null;
   planningStatus: ProjectPlanningStatus;
   startDate?: string | null;
+  roadmapStartDate?: string | null;
   endDate?: string | null;
+  forecastEndDate?: string | null;
   clientResponseBusinessDays: number;
   adjustmentLimit: number;
   deliverables: ProjectDeliverable[];
@@ -184,3 +186,13 @@ export type ScheduleReviewChanges = {
   swapTargetComplexity?: string;
   priority?: string;
 };
+
+export function scheduleChangeSummary(change: ScheduleReviewChanges) {
+  return [
+    change.actionLabel,
+    change.targetComplexity && `Complexidade ${change.targetComplexity}`,
+    change.requestedDate && `Data desejada: ${formatProjectDate(change.requestedDate)}`,
+    change.swapTargetLabel && `Troca com: ${change.swapTargetLabel}${change.swapTargetComplexity ? ` · ${change.swapTargetComplexity}` : ''}`,
+    change.priority,
+  ].filter((item): item is string => Boolean(item));
+}

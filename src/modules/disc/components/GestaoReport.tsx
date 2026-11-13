@@ -6,7 +6,6 @@ import { useState, type ReactNode } from 'react';
 import { STYLES, type Style } from '../profileMethod';
 import { NATURE, STYLE_CONTENT } from '../profileContent';
 import { Alert, Page, SignatureBlock, type ProfileSigner } from './ProfileReports';
-import '../profile-report.css';
 
 export type GestaoData = {
   link_id: string; title: string; company: string | null; purpose: string;
@@ -109,7 +108,7 @@ export function GestaoReport({ data }: { data: GestaoData }) {
 
   const configurationBlock = dist ? <>
         <small className="cpr-eyebrow">ONDE ESTA CONFIGURAÇÃO AJUDA E ONDE TRAVA</small>
-        <div className="cpr-grid2">
+        <div className="cpr-grid2 tw:grid tw:grid-cols-2 tw:gap-3">
           <div><strong className="cpr-sub">O que o time faz bem</strong><ul className="cpr-list good">{strengths.map((style) => <li key={style}><b>{STYLE_CONTENT[style].evaluator.roleFavors[0]}.</b> Consequência: mais {STYLE_CONTENT[style].verb === 'resolve' ? 'velocidade de decisão' : STYLE_CONTENT[style].verb === 'conecta' ? 'engajamento e comunicação' : STYLE_CONTENT[style].verb === 'sustenta' ? 'constância e retenção' : 'qualidade e menos retrabalho'} na rotina de {sector.flow}.</li>)}</ul></div>
           <div><strong className="cpr-sub">O que o time não faz</strong><ul className="cpr-list warn"><li><b>{STYLE_CONTENT[gap].evaluator.roleFavors[0]}.</b> Consequência: {missing.consequence.replace(/\.$/, '').toLowerCase()}.</li><li><b>Contraponto a {STYLE_CONTENT[top].name}.</b> Consequência: {concentrated.consequence.replace(/\.$/, '').toLowerCase()}.</li></ul></div>
         </div>
@@ -123,7 +122,7 @@ export function GestaoReport({ data }: { data: GestaoData }) {
         <div className="cpr-callout"><b>O que isso pede da liderança.</b> {highPressure ? 'Sinalizar com antecedência os picos, combinar prioridade por escrito e acompanhar quem segura mais carga.' : 'Manter a cobrança com clareza de prioridade e observar o desgaste de quem não reclama.'}</div>
   </> : null;
 
-  return <div className="cali-profile-report cali-gestao-report">
+  return <div className="cali-profile-report cali-gestao-report tw:flex tw:flex-col tw:items-center tw:gap-[1.375rem] tw:print:gap-0">
     <Page number={1} total={total} title={title} cover protocol={protocol}>
       <div className="cpr-cover-top"><img className="cpr-cover-logo" src="/brand/cali-logo-light.png" alt="CALI RH" width={126} height={70} /><span>RELATÓRIO DE GESTÃO</span></div>
       <div className="cpr-cover-main">

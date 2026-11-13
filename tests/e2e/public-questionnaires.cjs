@@ -200,6 +200,63 @@ browserSuite([
     },
   },
   {
+    id: '17-public-form-releases-attachment-preview',
+    role: 'public',
+    async run({ page, context, origin }) {
+      const form = {
+        id: '55555559-5555-4555-8555-555555555555',
+        slug: 'qa-attachment',
+        title: 'Anexo QA',
+        status: 'open',
+        questions: [
+          { id: 'attachment', kind: 'file', label: 'Anexe uma imagem', required: true },
+          { id: 'details', kind: 'short_text', label: 'Observações' },
+        ],
+      };
+      await rpc(context, origin, 'cali_form_public', () => ({ json: form }));
+      await rpc(context, origin, 'cali_form_submit', ({ p_answers: answers }) => {
+        assert.match(answers.attachment, /segunda\.png$/);
+        return { json: { ok: true } };
+      });
+      await context.route(host + '/storage/v1/object/cali-forms/**', (route) => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        return route.fulfill({ json: { Key: 'cali-forms/qa.png' }, headers: { 'access-control-allow-origin': origin } });
+      });
+      const image = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH+kAAAAASUVORK5CYII=', 'base64');
+      async function choose(name) {
+        await page.locator('input[type=file]').setInputFiles({ name, mimeType: 'image/png', buffer: image });
+        await page.getByText('Arquivo pronto', { exact: true }).waitFor();
+        return visiblePreview();
+      }
+      async function visiblePreview() {
+        const preview = page.locator('main img[src^="blob:"]');
+        await preview.waitFor();
+        const url = await preview.getAttribute('src');
+        assert.equal(await page.evaluate(async (url) => (await fetch(url)).ok, url), true);
+        return url;
+      }
+      async function released(url) {
+        await page.waitForFunction((url) => fetch(url).then(() => false, () => true), url);
+      }
+      await page.goto(origin + '/f/' + form.slug);
+      await page.getByRole('button', { name: 'Começar', exact: true }).click();
+      const removed = await choose('primeira.png');
+      await page.getByRole('button', { name: 'Remover arquivo' }).click();
+      await released(removed);
+      const next = await choose('segunda.png');
+      await page.getByRole('button', { name: 'OK', exact: true }).click();
+      await page.getByRole('heading', { name: /Observações/ }).waitFor();
+      await released(next);
+      await page.getByRole('button', { name: 'Pergunta anterior' }).click();
+      const restored = await visiblePreview();
+      assert.notEqual(restored, next);
+      await page.getByRole('button', { name: 'OK', exact: true }).click();
+      await released(restored);
+      await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+      await page.getByRole('heading', { name: 'Muito obrigado!' }).waitFor();
+    },
+  },
+  {
     id: '17-disc-invite-consent-block-resume-and-slug-isolation',
     role: 'public',
     async run({ page, context, origin }) {

@@ -17,12 +17,6 @@ export async function readCompanyLogoForGeneration(id: string, signal: AbortSign
   return (result?.data ?? null) as CompanyLogoRecord | null;
 }
 
-export async function listCompanyLogoRegistry(signal: AbortSignal) {
-  const result = await supabase?.from('companies').select('id,display_name,logo_url,logo_workspace_url,status')
-    .order('display_name').abortSignal(signal);
-  return result?.error ? [] : (result?.data || []) as CompanyLogoRecord[];
-}
-
 export async function listCompaniesWithoutWorkspaceLogo(limit: number, signal: AbortSignal) {
   const result = await supabase?.from('companies').select(companyLogoFields)
     .not('logo_url', 'is', null).is('logo_workspace_url', null)

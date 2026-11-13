@@ -1,5 +1,7 @@
 import type { ReportIdentityV55, ReportSignatureStyleV59 } from '../../domain/report-identity';
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
+import { isPrivateWorkspaceMedia } from '../../lib/workspaceMedia';
+import { ReportPrivateImage } from './components/ReportPrivateImage';
 import './report-signature-fonts.css';
 
 const allowedStyles=new Set<ReportSignatureStyleV59>(['executive','editorial','notarial','heritage','calligraphic','autograph','contemporary','italian','minimal','personal','classic','fluid','delicate','formal']);
@@ -21,10 +23,22 @@ function initials(name?:string){return String(name||'C').split(' ').filter(Boole
 function styleClass(identity?:ReportIdentityV55|null){const raw=identity?.signature_style;const value=raw&&allowedStyles.has(raw)?raw:'executive';return `signature-style-${value}`;}
 
 function SignatureMark({identity}:{identity:ReportIdentityV55}){
-  if(identity.signature_mode==='uploaded'&&identity.signature_url){
-    return <img className="report-signature-image-v55" src={identity.signature_url} alt={`Assinatura de ${identity.full_name||'responsável'}`}/>;
-  }
-  return <span className={`report-signature-generated-v55 ${styleClass(identity)}`}>{identity.full_name||'Assinatura'}</span>;
+  const raw = identity.signature_mode === 'uploaded' ? identity.signature_url : null;
+  const [failed, setFailed] = useState('');
+  const fallback = <span className={`report-signature-generated-v55 ${styleClass(identity)}`}>{identity.full_name||'Assinatura'}</span>;
+  const alt = `Assinatura de ${identity.full_name || 'responsável'}`;
+  if (raw && isPrivateWorkspaceMedia(raw)) return <ReportPrivateImage source={raw} className="report-signature-image-v55" alt={alt} fallback={fallback} />;
+  return raw && failed !== raw ? <img className="report-signature-image-v55" src={raw} alt={alt} onError={() => setFailed(raw)} /> : fallback;
+}
+
+function ValidationAvatar({ identity }: { identity: ReportIdentityV55 }) {
+  const raw = identity.avatar_url;
+  const [failed, setFailed] = useState('');
+  const fallback = <span>{initials(identity.full_name)}</span>;
+  return <span className="report-validation-avatar-v55" style={avatarVars(identity)}>
+    {raw && isPrivateWorkspaceMedia(raw) ? <ReportPrivateImage source={raw} alt="" fallback={fallback} />
+      : raw && failed !== raw ? <img src={raw} alt="" onError={() => setFailed(raw)} /> : fallback}
+  </span>;
 }
 
 function Party({label,identity,date,protocol,pending}:{label:string;identity?:ReportIdentityV55|null;date?:string|null;protocol?:string|null;pending?:boolean}){
@@ -39,9 +53,7 @@ function Party({label,identity,date,protocol,pending}:{label:string;identity?:Re
     <span className="report-signature-label-v57">{label}</span>
     <div className="report-signature-line-v57"><SignatureMark identity={identity}/></div>
     <div className="report-signature-person-v57">
-      <span className="report-validation-avatar-v55" style={avatarVars(identity)}>
-        {identity.avatar_url?<img src={identity.avatar_url} alt=""/>:<span>{initials(identity.full_name)}</span>}
-      </span>
+      <ValidationAvatar identity={identity} />
       <div><strong>{identity.full_name||'Responsável'}</strong><span>{identity.job_title||''}</span></div>
     </div>
     <div className="report-signature-meta-v57"><span>{fmt(date||identity.signed_at)}</span>{protocol?<b>{protocol}</b>:null}</div>

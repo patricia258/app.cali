@@ -331,10 +331,31 @@ const cases = [
       await page.goto(origin + '/cliente');
       await page.getByText('Patrícia Lima', { exact: true }).waitFor();
       await page.getByText('Apoio QA', { exact: true }).waitFor();
-      assert.equal(await page.locator('.client-home textarea').count(), 0);
+      assert.equal(await page.getByRole('region', { name: 'Visão geral do cliente' }).locator('textarea').count(), 0);
       await page.getByRole('link', { name: 'Falar com a CALI' }).click();
       await page.waitForURL(origin + '/cliente/registros');
       await page.getByRole('heading', { name: 'Ocorrências', exact: true }).waitFor();
+    },
+  },
+  {
+    id: '04-client-home-keeps-cards-and-deadlines-inside-mobile-layout',
+    role: 'client',
+    width: 390,
+    async run({ page, origin }) {
+      await page.goto(origin + '/cliente');
+      const updates = page.getByRole('region', { name: 'Atualizações da conta', exact: true });
+      const document = updates.getByRole('article').first();
+      const occurrence = updates.getByRole('article').last();
+      await occurrence.waitFor();
+      const [first, second] = await Promise.all([document.boundingBox(), occurrence.boundingBox()]);
+      assert(first && second && second.y >= first.y + first.height, 'Documento e ocorrência não podem se sobrepor');
+      const dates = page.getByRole('group', { name: 'Prazos e andamento das entregas' }).locator('time[datetime]');
+      await dates.first().waitFor();
+      assert(await dates.evaluateAll((elements) => elements.every((date) => {
+        const chip = date.getBoundingClientRect();
+        const track = date.parentElement.getBoundingClientRect();
+        return chip.left >= track.left && chip.right <= track.right;
+      })), 'Prazos não podem ser cortados nas extremidades do cronograma');
     },
   },
   {
@@ -348,6 +369,31 @@ const cases = [
       await page.getByRole('button', { name: 'Abrir ' + delivery.title, exact: true }).waitFor();
       await page.getByRole('tab', { name: 'Histórico', exact: true }).click();
       await page.getByText('Histórico do projeto', { exact: true }).waitFor();
+    },
+  },
+  {
+    id: '05-mobile-delivery-schedule-keeps-dates-and-adjustment-inside',
+    role: 'client',
+    width: 390,
+    async run({ page, origin }) {
+      await page.goto(origin + '/cliente/entregaveis');
+      const schedule = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Prazos das entregas', exact: true }) }).last();
+      const dates = schedule.locator('button time');
+      await dates.first().waitFor();
+      assert(await dates.evaluateAll((elements) => elements.every((date) => {
+        const chip = date.getBoundingClientRect();
+        const track = date.parentElement.getBoundingClientRect();
+        return chip.left >= track.left && chip.right <= track.right;
+      })), 'As datas precisam ficar dentro da faixa do cronograma');
+      await page.goto(origin + '/cliente/entregaveis?deliverable=' + delivery.id + '&project=' + projectId);
+      await page.getByRole('button', { name: 'Solicitar ajuste', exact: true }).click();
+      const panel = page.getByRole('dialog', { name: 'O que precisa ser revisto?' });
+      const close = panel.getByRole('button', { name: 'Fechar ajuste' });
+      const text = panel.getByRole('textbox', { name: 'Descreva o ajuste' });
+      const [panelBox, closeBox, textBox] = await Promise.all([panel.boundingBox(), close.boundingBox(), text.boundingBox()]);
+      assert(panelBox && closeBox && textBox);
+      assert(closeBox.x >= panelBox.x && closeBox.x + closeBox.width <= panelBox.x + panelBox.width);
+      assert(closeBox.y >= panelBox.y && textBox.width >= panelBox.width * .75);
     },
   },
   {
@@ -390,7 +436,8 @@ const cases = [
         return { data: 1 };
       });
       await page.goto(origin + '/admin/projetos?deliverable=' + delivery.id + '&project=' + projectId);
-      const header = page.locator('.project-header-timer');
+      const header = page.getByRole('dialog', { name: delivery.title, exact: true })
+        .locator(`[data-timer-context-deliverable-id="${delivery.id}"]`);
       await header.getByRole('button', { name: 'Iniciar timer' }).click();
       await header.getByText('Timer ativo', { exact: true }).waitFor();
       assert.equal(await header.getByRole('button', { name: 'Iniciar timer' }).count(), 0);
@@ -401,6 +448,96 @@ const cases = [
         { start: { p_company_id: companyId, p_project_id: projectId, p_deliverable_id: delivery.id,
           p_task_id: null, p_category: 'Entregáveis', p_description: delivery.title, p_client_visible: true } },
         { pause: { p_timer_id: timerId } },
+      ]);
+    },
+  },
+  {
+    id: '06-project-task-timer-respects-company-and-requires-two-confirmations',
+    role: 'admin',
+    async run({ page, context, origin }) {
+      const timerId = 'bb000000-0000-4000-8000-000000000004';
+      const taskId = 'bb000000-0000-4000-8000-000000000005';
+      const otherDelivery = tables.deliverables.find((row) => row.id !== delivery.id && row.project_id === projectId);
+      const task = {
+        id: taskId, protocol: 'CALI-TSK-00000005', company_id: companyId, deliverable_id: delivery.id,
+        title: 'Subtarefa com timer QA', status: 'todo', client_visible: false, work_closed_at: null,
+      };
+      const timer = {
+        id: timerId, company_id: companyId, project_id: projectId, deliverable_id: otherDelivery.id, task_id: null,
+        started_at: new Date().toISOString(), paused_seconds: 0, description: otherDelivery.title, status: 'active',
+      };
+      const requests = [];
+      const calls = [];
+      let rejectFinalization = true;
+      let active = true;
+      const endpoint = (table) => `https://cali-local-qa.supabase.co/rest/v1/${table}?**`;
+      const headers = { 'access-control-allow-origin': origin };
+      await context.route(endpoint('work_timers'), (route) => {
+        if (route.request().method() !== 'GET') return route.fallback();
+        const params = new URL(route.request().url()).searchParams;
+        if (params.has('company_id')) requests.push(Object.fromEntries(params));
+        return route.fulfill({ json: active ? [timer] : [], headers });
+      });
+      await context.route(endpoint('deliverable_tasks'), (route) => {
+        if (route.request().method() !== 'GET') return route.fallback();
+        return route.fulfill({ json: [task], headers });
+      });
+      await mockRpc(context, origin, 'pause_work_timer', (body) => {
+        calls.push({ pause: body });
+        active = false;
+        return { data: 1 };
+      });
+      await mockRpc(context, origin, 'start_work_timer_v2', (body) => {
+        calls.push({ start: body });
+        Object.assign(timer, { deliverable_id: delivery.id, task_id: taskId, description: task.title });
+        task.status = 'doing';
+        active = true;
+        return { data: timerId };
+      });
+      await mockRpc(context, origin, 'stop_work_timer', (body) => {
+        calls.push({ stop: body });
+        if (rejectFinalization) {
+          rejectFinalization = false;
+          return { data: { message: 'Falha temporária QA' }, status: 409 };
+        }
+        active = false;
+        task.status = 'done';
+        task.work_closed_at = new Date().toISOString();
+        return { data: 1 };
+      });
+
+      await page.goto(origin + '/admin/projetos?deliverable=' + otherDelivery.id + '&project=' + projectId);
+      const originDialog = page.getByRole('dialog', { name: otherDelivery.title, exact: true });
+      await originDialog.getByRole('button', { name: 'Pausar e registrar sessão', exact: true }).waitFor();
+      await page.goto(origin + '/admin/projetos?deliverable=' + delivery.id + '&project=' + projectId + '&task=' + taskId);
+      const deliveryDialog = page.getByRole('dialog', { name: delivery.title, exact: true });
+      await deliveryDialog.getByRole('button', { name: 'Já há um cronômetro ligado nesta empresa', exact: true }).waitFor();
+      assert.equal(await deliveryDialog.getByRole('button', { name: 'Iniciar timer', exact: true }).count(), 0);
+      await page.goto(origin + '/admin/projetos?deliverable=' + otherDelivery.id + '&project=' + projectId);
+      await originDialog.getByRole('button', { name: 'Pausar e registrar sessão', exact: true }).click();
+      await originDialog.getByRole('button', { name: 'Iniciar timer', exact: true }).waitFor();
+      await page.goto(origin + '/admin/projetos?deliverable=' + delivery.id + '&project=' + projectId + '&task=' + taskId);
+      await deliveryDialog.getByRole('button', { name: 'Abrir ' + task.title, exact: true }).click();
+      const taskDialog = page.getByRole('dialog', { name: 'Subtarefa ' + task.title, exact: true });
+      await taskDialog.getByRole('button', { name: 'Iniciar', exact: true }).click();
+      await taskDialog.getByRole('button', { name: 'Finalizar trabalho definitivamente', exact: true }).click();
+      const first = page.getByRole('dialog', { name: 'Finalizar esta subtarefa?', exact: true });
+      await first.getByRole('button', { name: 'Continuar', exact: true }).click();
+      assert.equal(calls.filter((item) => item.stop).length, 0);
+      const second = page.getByRole('dialog', { name: 'Tem certeza mesmo?', exact: true });
+      const confirm = second.getByRole('button', { name: 'Sim, finalizar definitivamente', exact: true });
+      await confirm.click();
+      await second.getByText('Falha temporária QA', { exact: true }).waitFor();
+      await confirm.click();
+      await taskDialog.getByText('Encerrada', { exact: true }).waitFor();
+      assert.equal(await taskDialog.getByRole('button', { name: 'Iniciar', exact: true }).count(), 0);
+      assert.ok(requests.length >= 3);
+      assert.ok(requests.every(({ company_id: company, user_id: user }) => company === `eq.${companyId}` && user?.startsWith('eq.')));
+      assert.deepEqual(calls, [
+        { pause: { p_timer_id: timerId } },
+        { start: { p_company_id: companyId, p_project_id: projectId, p_deliverable_id: delivery.id,
+          p_task_id: taskId, p_category: 'Entregáveis', p_description: task.title, p_client_visible: false } },
+        ...Array.from({ length: 2 }, () => ({ stop: { p_timer_id: timerId, p_description: task.title } })),
       ]);
     },
   },

@@ -1,9 +1,9 @@
 import { Button } from '../ds/Button';
 import { DialogFrame } from '../ds/DialogFrame';
 import { FieldLabel } from '../ds/FieldLabel';
-import { ChangeEvent, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { ChangeEvent, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { Building2, Camera, Check, ChevronDown, Download, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, ShieldCheck, Upload, UserRound, X } from 'lucide-react';
+import { Building2, Camera, Check, ChevronDown, Download, Instagram, Linkedin, Loader2, Mail, MessageCircle, PenLine, Phone, ShieldCheck, UserRound, X } from 'lucide-react';
 import { exportOwnWorkspaceData, listOwnPrivacyRequests, requestWorkspaceDataRights } from '../../api/workspace/privacy';
 import {
   readOwnWorkspaceProfile,
@@ -18,6 +18,11 @@ import { legalEnabled } from '../../domain/legalTexts';
 import { optimizeImageForUpload } from '../../lib/imageUpload';
 import { resolveWorkspaceMedia } from '../../lib/workspaceMedia';
 import { Link } from '../navigation/Link';
+import { ProfileSignatureEditor } from './components/ProfileSignatureEditor';
+import { ProfileInfoSection } from './components/ProfileInfoSection';
+import { ProfilePrivacyButton } from './components/ProfilePrivacyButton';
+import './components/profile-dialog-motion.css';
+import { WorkspaceProfileAvatar } from './WorkspaceProfileAvatar';
 
 type Role='admin'|'client'|'partner';
 type SignatureMode='generated'|'uploaded';
@@ -73,7 +78,6 @@ type PrivacyRequest = {
 function initials(name:string){return name.split(' ').filter(Boolean).slice(0,2).map((part)=>part[0]?.toUpperCase()).join('')||'C';}
 function normalizeExternalUrl(value:string){const trimmed=value.trim();if(!trimmed)return'';return/^https?:\/\//i.test(trimmed)?trimmed:`https://${trimmed}`;}
 function whatsappUrl(value:string){const digits=value.replace(/\D/g,'');if(!digits)return'';return`https://wa.me/${digits.startsWith('55')?digits:`55${digits}`}`;}
-function avatarStyle(profile:Pick<ProfileData,'avatar_position_x'|'avatar_position_y'|'avatar_zoom'>): CSSProperties & Record<`--${string}`, string> {return{'--avatar-x':`${profile.avatar_position_x}%`,'--avatar-y':`${profile.avatar_position_y}%`,'--avatar-zoom':String(profile.avatar_zoom)};}
 function safeSignatureStyle(value: string | null | undefined):SignatureStyle{
   const raw=String(value||'');
   const legacy=legacyStyleMap[raw];
@@ -148,7 +152,7 @@ export function DirectProfileControl({role,trigger,partnerHasOccurrences = false
 
   useEffect(()=>{if(!modalOpen)return;document.body.classList.add('workspace-modal-open');return()=>document.body.classList.remove('workspace-modal-open');},[modalOpen]);
 
-  const avatar=useMemo(()=>profile.avatar_url?<img src={profile.avatar_url} alt="" style={avatarStyle(profile)}/>:<span>{initials(profile.full_name)}</span>,[profile]);
+  const avatar = <WorkspaceProfileAvatar identity={profile} alt="" fallback={<span data-workspace-identity>{initials(profile.full_name)}</span>} />;
   function openEditor(){setDraft(profile);setMessage('');setActiveSection('details');setCropOpen(false);setPrivacyForm(null);setPrivacyMessage('');setModalOpen(true);}
   async function uploadImage(file:File,kind:'avatar'|'signature'){
     if (!workspaceProfileAvailable || !user) return '';
@@ -179,42 +183,90 @@ export function DirectProfileControl({role,trigger,partnerHasOccurrences = false
     finally{setSaving(false);}
   }
 
+  const profileFieldClass = 'tw:min-w-0 tw:gap-[0.231rem]! tw:text-[0.923rem]/[inherit]! tw:text-[#493b3e] tw:[&>input]:min-h-[2.769rem] tw:[&>input]:rounded-[0.692rem]! tw:[&>input]:px-[0.769rem]! tw:[&>input]:py-[0.462rem]! tw:[&>input:disabled]:bg-[#f5f0ea]! tw:[&>input:disabled]:text-[#716766]! tw:workspace-night:text-[#fff8f1] tw:workspace-night:[&>input]:border-[#f7f3ee1c]! tw:workspace-night:[&>input]:bg-[#241a1e]! tw:workspace-night:[&>input]:text-[#fffaf7]! tw:workspace-night:[&>input:disabled]:bg-[#33272a]! tw:workspace-night:[&>input:disabled]:text-[#e0d3cc]!';
+  const profileTabClass = 'tw:-mb-px tw:inline-flex tw:min-h-[3.231rem] tw:flex-none tw:items-center tw:gap-[0.615rem] tw:border-0 tw:border-b-2 tw:border-solid tw:border-transparent tw:bg-transparent tw:px-[1.154rem] tw:py-[0.538rem] tw:font-semibold tw:text-[#65575a] tw:aria-[current=page]:border-cali-gold tw:aria-[current=page]:text-cali-brand tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-gold tw:workspace-night:text-[#d5c7c2] tw:workspace-night:aria-[current=page]:text-[#e6bf78] tw:[@media(max-width:43.75rem)]:min-h-[2.923rem] tw:[@media(max-width:43.75rem)]:basis-1/2 tw:[@media(max-width:43.75rem)]:shrink tw:[@media(max-width:43.75rem)]:justify-center tw:[@media(max-width:43.75rem)]:p-[0.462rem]';
+
   return <>
-    {trigger?trigger({profile,avatar,companyName:companyName||'',openEditor}):<div className="profile-control profile-control-direct">
-      <button className="profile-trigger profile-trigger-direct" type="button" onClick={openEditor} aria-label="Minha conta" title="Minha conta">
-        <span className="profile-avatar">{avatar}</span>
-        <span className="profile-copy"><strong>{profile.full_name}</strong><small>{role==='admin'?'Administradora geral':'Perfil cliente'}</small></span>
-        <ChevronDown className="profile-edit-chevron" size={16}/>
-      </button>
-    </div>}
-    {modalOpen?createPortal(<div className="modal-backdrop chrome-modal-backdrop full-screen-modal" role="presentation">
-      <DialogFrame className="modal-card profile-modal profile-modal-v2 profile-modal-v55 profile-account-v66" aria-label="Minha conta">
-        <Button variant="close" type="button" onClick={()=>setModalOpen(false)} aria-label="Fechar"><X size={20}/></Button>
-        <header className="profile-account-header"><div className="profile-account-title-row"><h2>Minha conta</h2>{role==='admin'?<span className="profile-role-label">Administradora geral</span>:null}</div><p>Seus dados e sua identidade nos registros da CALI.</p></header>
-        {role==='client'&&companyName?<div className="profile-company-affiliation"><span className="profile-company-mark">{companyLogo?<img src={companyLogo} alt={`Logo ${companyName}`}/>:<Building2 size={22}/>}</span><span><small>PERFIL CLIENTE</small><strong>{companyName}</strong><span>Seu acesso está vinculado a esta empresa.</span></span></div>:null}
-        <nav className="profile-account-tabs" aria-label="Seções do perfil">
-          <button type="button" className={activeSection==='details'?'active':''} aria-current={activeSection==='details'?'page':undefined} onClick={()=>setActiveSection('details')}><UserRound size={17}/>Dados pessoais</button>
-          <button type="button" className={activeSection==='signature'?'active':''} aria-current={activeSection==='signature'?'page':undefined} onClick={()=>setActiveSection('signature')}><PenLine size={17}/>Assinatura</button>
+    {trigger ? trigger({ profile, avatar, companyName: companyName || '', openEditor }) : (
+      <div className="profile-control profile-control-direct tw:grid tw:size-[3.25rem] tw:place-items-center
+        tw:group-hover/document-sidebar:block tw:group-hover/document-sidebar:size-auto tw:max-[53.8125rem]:block tw:max-[53.8125rem]:size-auto">
+        <Button
+          className="profile-trigger profile-trigger-direct tw:group/document-profile tw:grid tw:size-[3.25rem] tw:cursor-pointer
+            tw:place-items-center tw:overflow-hidden tw:rounded-[0.9375rem] tw:border tw:border-solid tw:border-[#f7f3ee38]
+            tw:bg-[#f7f3ee14] tw:p-1 tw:text-left tw:text-[0.875rem]/[normal] tw:text-[#fffaf7e6]
+            tw:shadow-[0_0.375rem_1.125rem_#2a11181a] tw:workspace-night:border-[#5a1e2d2e] tw:workspace-night:bg-[#5a1e2d11]
+            tw:workspace-night:shadow-[0_0.375rem_1.125rem_#4b242f14]
+            tw:min-[53.8125rem]:group-hover/document-sidebar:h-[3.875rem] tw:min-[53.8125rem]:group-hover/document-sidebar:w-full
+            tw:min-[53.8125rem]:group-hover/document-sidebar:grid-cols-[2.75rem_minmax(0,1fr)_1.125rem]
+            tw:min-[53.8125rem]:group-hover/document-sidebar:justify-items-start tw:min-[53.8125rem]:group-hover/document-sidebar:gap-3.5
+            tw:min-[53.8125rem]:group-hover/document-sidebar:rounded-none tw:min-[53.8125rem]:group-hover/document-sidebar:border-0
+            tw:min-[53.8125rem]:group-hover/document-sidebar:bg-transparent tw:min-[53.8125rem]:group-hover/document-sidebar:py-[0.3125rem]
+            tw:min-[53.8125rem]:group-hover/document-sidebar:pr-5 tw:min-[53.8125rem]:group-hover/document-sidebar:pl-1
+            tw:min-[53.8125rem]:group-hover/document-sidebar:shadow-none
+            tw:max-[53.8125rem]:h-auto tw:max-[53.8125rem]:w-full tw:max-[53.8125rem]:grid-cols-[2.75rem_minmax(0,1fr)_1.125rem]
+            tw:max-[53.8125rem]:justify-items-start tw:max-[53.8125rem]:gap-3.5 tw:max-[53.8125rem]:rounded-none
+            tw:max-[53.8125rem]:border-0 tw:max-[53.8125rem]:bg-transparent tw:max-[53.8125rem]:py-1.5
+            tw:max-[53.8125rem]:pr-1 tw:max-[53.8125rem]:pl-0.5 tw:max-[53.8125rem]:shadow-none"
+          variant="unstyled"
+          type="button"
+          onClick={openEditor}
+          aria-label="Minha conta"
+          title="Minha conta"
+        >
+          <span className="profile-avatar tw:grid tw:size-[2.625rem] tw:shrink-0 tw:place-items-center tw:overflow-hidden
+            tw:rounded-xl tw:border tw:border-solid tw:border-white/28 tw:bg-[#fffaf7] tw:font-[750] tw:text-cali-brand
+            tw:min-[53.8125rem]:group-hover/document-sidebar:mr-0.5 tw:min-[53.8125rem]:group-hover/document-sidebar:size-[3.125rem]
+            tw:min-[53.8125rem]:group-hover/document-sidebar:rounded-[0.875rem] tw:max-[53.8125rem]:mr-0.5
+            tw:max-[53.8125rem]:size-[3.125rem] tw:max-[53.8125rem]:rounded-[0.875rem]">
+            {avatar}
+          </span>
+          <span className="profile-copy tw:hidden tw:w-full tw:min-w-0 tw:group-hover/document-sidebar:block
+            tw:min-[53.8125rem]:ml-0.5 tw:min-[53.8125rem]:w-auto tw:min-[53.8125rem]:justify-self-stretch tw:max-[53.8125rem]:block">
+            <strong className="tw:block tw:truncate tw:text-[0.9rem] tw:text-[#fffaf7]">{profile.full_name}</strong>
+            <small className="tw:mt-1 tw:block tw:truncate tw:text-[0.72rem] tw:text-[#fffaf7ad]
+              tw:min-[53.8125rem]:text-[#fffaf7b8]">{role === 'admin' ? 'Administradora geral' : 'Perfil cliente'}</small>
+          </span>
+          <ChevronDown
+            className="profile-edit-chevron tw:hidden tw:shrink-0 tw:text-white tw:transition-transform
+              tw:group-hover/document-profile:translate-y-0.5 tw:motion-reduce:transition-none
+              tw:min-[53.8125rem]:mr-[0.3125rem] tw:min-[53.8125rem]:text-[#fffaf7d1]
+              tw:group-hover/document-sidebar:block tw:max-[53.8125rem]:block"
+            size={16}
+          />
+        </Button>
+      </div>
+    )}
+    {modalOpen?createPortal(<div className="modal-backdrop chrome-modal-backdrop full-screen-modal tw:fixed tw:inset-0 tw:z-110 tw:flex tw:items-center tw:justify-center tw:bg-[#1b12157a]! tw:p-[1.538rem] tw:backdrop-blur-[0.923rem] tw:backdrop-saturate-[.92] tw:[@media(max-width:45rem)]:p-[0.615rem]" role="presentation">
+      <DialogFrame className="modal-card tw:animate-[profile-dialog-enter_.4s_cubic-bezier(.2,.78,.2,1)_both] tw:motion-reduce:animate-none tw:relative tw:flex! tw:max-h-[min(56.923rem,calc(100dvh-2.769rem))]! tw:w-[min(68.462rem,calc(100vw-2.769rem))]! tw:max-w-[68.462rem]! tw:flex-col tw:overflow-x-hidden! tw:overflow-y-auto! tw:overscroll-contain tw:rounded-[1.923rem]! tw:border tw:border-solid tw:border-[#5a1e2d1a] tw:bg-[#fbf8f4]! tw:px-[2.154rem]! tw:pt-[1.846rem]! tw:pb-0! tw:shadow-[0_38px_110px_#1e101552]! tw:[scrollbar-width:none] tw:workspace-night:border-[#f7f3ee1a] tw:workspace-night:bg-[#1c1518]! tw:[@media(max-width:43.75rem)]:max-h-[calc(100dvh-1.231rem)]! tw:[@media(max-width:43.75rem)]:w-[calc(100vw-1.231rem)]! tw:[@media(max-width:43.75rem)]:rounded-[1.462rem]! tw:[@media(max-width:43.75rem)]:px-[1.231rem]! tw:[@media(max-width:43.75rem)]:pt-[1.385rem]! tw:[@media(max-width:40rem)]:h-[calc(100dvh-0.923rem)]" aria-label="Minha conta">
+        <Button variant="close" type="button" className="tw:sticky! tw:top-[1.077rem]! tw:z-3! tw:mt-[1.077rem]! tw:mr-[-.538rem]! tw:ml-auto! tw:self-end" onClick={()=>setModalOpen(false)} aria-label="Fechar"><X size={20}/></Button>
+        <header className="tw:sticky tw:top-0 tw:z-2 tw:mx-[-1.923rem] tw:mb-[1.077rem] tw:flex-none tw:border-0 tw:border-b tw:border-solid tw:border-[#eee5df] tw:bg-white tw:py-[1.385rem] tw:pr-[5.385rem] tw:pl-[1.923rem] tw:workspace-night:border-[#f7f3ee17] tw:workspace-night:bg-[#1c1518] tw:max-[43.75rem]:mx-[-1.231rem] tw:max-[43.75rem]:pr-[3.4rem] tw:max-[43.75rem]:pl-[1.231rem]"><div className="tw:flex tw:flex-wrap tw:items-center tw:gap-x-[1.077rem] tw:gap-y-[0.615rem]"><h2 className="tw:my-[0.308rem]! tw:text-[2.077rem]/[1.2]! tw:text-[#51202f] tw:workspace-night:text-[#fff8f1] tw:[@media(max-width:43.75rem)]:text-[1.846rem]!">Minha conta</h2>{role==='admin'?<span className="tw:inline-flex tw:min-h-[1.923rem] tw:items-center tw:rounded-[0.538rem] tw:border tw:border-solid tw:border-[#b58c5266] tw:bg-[#f5ede1] tw:px-[0.692rem] tw:py-[0.231rem] tw:text-[0.846rem]/[inherit] tw:font-[750] tw:tracking-[0.02em] tw:text-cali-brand tw:workspace-night:border-[#dab9838c] tw:workspace-night:bg-[#35242a] tw:workspace-night:text-[#f8ead7]">Administradora geral</span>:null}</div><p className="tw:mt-[0.308rem]! tw:mb-[0.923rem]! tw:text-base/[1.5]! tw:text-[#635a56]! tw:workspace-night:text-[#d5c7c2]!">Seus dados e sua identidade nos registros da CALI.</p></header>
+        {role==='client'&&companyName?<div className="tw:mb-[0.923rem] tw:flex tw:items-center tw:gap-[0.923rem] tw:rounded-[1rem] tw:border tw:border-solid tw:border-[#b58c5252] tw:bg-[linear-gradient(110deg,#f5ede1,#fbf8f3)] tw:px-[1.077rem] tw:py-[0.769rem] tw:text-base/[1.4] tw:text-[#512838] tw:workspace-night:bg-[linear-gradient(110deg,#35242a,#302428)]"><span className="tw:grid tw:size-[3.923rem] tw:shrink-0 tw:place-items-center tw:overflow-hidden tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#5a1e2d26] tw:bg-white tw:text-[#9b713e]">{companyLogo?<img className="tw:size-full tw:object-contain tw:p-[0.231rem]" src={companyLogo} alt={`Logo ${companyName}`}/>:<Building2 size={22}/>}</span><span className="tw:grid tw:min-w-0 tw:gap-[0.077rem]"><small className="tw:text-[0.769rem]/[inherit] tw:font-extrabold tw:tracking-[0.13em] tw:text-[#9b713e]">PERFIL CLIENTE</small><strong className="tw:text-[1.308rem]/[1.2] tw:text-cali-brand tw:workspace-night:text-[#fff8f1]">{companyName}</strong><span className="tw:text-[0.923rem]/[inherit] tw:text-[#645651] tw:workspace-night:text-[#ddd0c8]">Seu acesso está vinculado a esta empresa.</span></span></div>:null}
+        <nav className="tw:mb-[0.923rem] tw:flex tw:min-h-[3.231rem] tw:w-full tw:flex-none tw:items-center tw:gap-[0.308rem] tw:border-0 tw:border-b tw:border-solid tw:border-[#5a1e2d24] tw:text-[0.846rem]/[inherit] tw:text-[#90837c] tw:workspace-night:border-[#f7f3ee2b] tw:[@media(max-width:43.75rem)]:min-h-[2.923rem]" aria-label="Seções do perfil">
+          <button type="button" className={profileTabClass} aria-current={activeSection==='details'?'page':undefined} onClick={()=>setActiveSection('details')}><UserRound size={17}/>Dados pessoais</button>
+          <button type="button" className={profileTabClass} aria-current={activeSection==='signature'?'page':undefined} onClick={()=>setActiveSection('signature')}><PenLine size={17}/>Assinatura</button>
         </nav>
-        {activeSection==='details'?<div className="profile-account-details">
-          <section className="profile-account-photo" aria-label="Foto do perfil">
-            <span className="profile-avatar profile-avatar-editor large-editor-avatar">{draft.avatar_url?<img src={draft.avatar_url} alt="Prévia do perfil" style={avatarStyle(draft)}/>:<span>{initials(draft.full_name)}</span>}</span>
-            <strong>Foto do perfil</strong><p>Escolha a imagem que aparece para você e para a CALI.</p>
-            <label className="photo-upload-button"><Camera size={16}/>Trocar foto<input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleAvatar}/></label>
-            {draft.avatar_url?<button type="button" className="profile-account-crop-toggle" aria-expanded={cropOpen} onClick={()=>setCropOpen((open)=>!open)}>{cropOpen?'Fechar ajuste':'Ajustar enquadramento'}</button>:null}
-            {cropOpen&&draft.avatar_url?<div className="profile-account-crop"><label>Zoom<input type="range" min="1" max="3" step="0.05" value={draft.avatar_zoom} onChange={(event)=>setDraft((current)=>({...current,avatar_zoom:Number(event.target.value)}))}/></label><label>Horizontal<input type="range" min="0" max="100" value={draft.avatar_position_x} onChange={(event)=>setDraft((current)=>({...current,avatar_position_x:Number(event.target.value)}))}/></label><label>Vertical<input type="range" min="0" max="100" value={draft.avatar_position_y} onChange={(event)=>setDraft((current)=>({...current,avatar_position_y:Number(event.target.value)}))}/></label></div>:null}
+        {activeSection==='details'?<div className="tw:grid tw:flex-1 tw:grid-cols-[minmax(16.154rem,.32fr)_minmax(0,1fr)] tw:items-start tw:gap-[1.077rem] tw:[@media(max-width:43.75rem)]:grid-cols-1 tw:[@media(max-width:43.75rem)]:gap-[0.692rem]">
+          <section className="tw:flex tw:min-w-0 tw:flex-col tw:items-center tw:gap-[0.385rem] tw:rounded-[1.231rem] tw:border tw:border-solid tw:border-[#5a1e2d1c] tw:bg-[#fffdfa] tw:px-[0.923rem] tw:py-[1.154rem] tw:text-center tw:shadow-[0_7px_24px_#361c2209] tw:workspace-night:border-[#f7f3ee21] tw:workspace-night:bg-[#271c21] tw:[@media(max-width:43.75rem)]:grid tw:[@media(max-width:43.75rem)]:grid-cols-[5.231rem_1fr] tw:[@media(max-width:43.75rem)]:gap-x-4 tw:[@media(max-width:43.75rem)]:gap-y-[0.308rem] tw:[@media(max-width:43.75rem)]:p-[0.769rem] tw:[@media(max-width:43.75rem)]:text-left" aria-label="Foto do perfil">
+            <span className="tw:mb-[0.308rem] tw:grid tw:size-[7.308rem] tw:shrink-0 tw:place-items-center tw:overflow-hidden tw:rounded-[1.385rem] tw:border tw:border-solid tw:border-[#5a1e2d38] tw:bg-[#f7f3ee] tw:text-xl tw:font-bold tw:text-cali-brand tw:[@media(max-width:43.75rem)]:row-span-3 tw:[@media(max-width:43.75rem)]:size-[5.231rem]">
+              <WorkspaceProfileAvatar identity={draft} alt="Prévia do perfil" fallback={<span data-workspace-identity>{initials(draft.full_name)}</span>} />
+            </span>
+            <strong className="tw:text-[1.154rem]/[inherit] tw:text-[#51202f] tw:workspace-night:text-[#fff8f1]">Foto do perfil</strong><p className="tw:mt-0 tw:mb-[0.462rem] tw:text-[0.923rem]/[1.4]! tw:text-[#706662]! tw:workspace-night:text-[#d5c7c2]! tw:[@media(max-width:43.75rem)]:hidden">Escolha a imagem que aparece para você e para a CALI.</p>
+            <label className="tw:inline-flex tw:min-h-[2.923rem] tw:cursor-pointer tw:items-center tw:gap-[0.538rem] tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#ded0c7] tw:bg-white tw:px-[0.923rem] tw:py-[0.538rem] tw:text-[0.923rem]/[inherit] tw:text-cali-brand tw:focus-within:outline-2 tw:focus-within:outline-offset-2 tw:focus-within:outline-cali-gold tw:[@media(max-width:43.75rem)]:w-max"><Camera size={16}/>Trocar foto<input className="tw:sr-only" type="file" accept="image/png,image/jpeg,image/webp" onChange={handleAvatar}/></label>
+            {draft.avatar_url?<button type="button" className="tw:cursor-pointer tw:border-0 tw:bg-transparent tw:text-[0.923rem]/[inherit] tw:text-[#6d3246] tw:underline tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-gold tw:workspace-night:text-[#ead1ae] tw:[@media(max-width:43.75rem)]:col-span-full" aria-expanded={cropOpen} onClick={()=>setCropOpen((open)=>!open)}>{cropOpen?'Fechar ajuste':'Ajustar enquadramento'}</button>:null}
+            {cropOpen&&draft.avatar_url?<div className="tw:grid tw:w-full tw:gap-[0.692rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#5a1e2d1f] tw:pt-[0.615rem] tw:text-left tw:[@media(max-width:43.75rem)]:col-span-full"><label className="tw:grid tw:gap-[0.154rem] tw:text-[0.846rem]/[inherit] tw:text-[#5b4c4f] tw:workspace-night:text-[#ead1ae]">Zoom<input className="tw:w-full tw:accent-cali-brand" type="range" min="1" max="3" step="0.05" value={draft.avatar_zoom} onChange={(event)=>setDraft((current)=>({...current,avatar_zoom:Number(event.target.value)}))}/></label><label className="tw:grid tw:gap-[0.154rem] tw:text-[0.846rem]/[inherit] tw:text-[#5b4c4f] tw:workspace-night:text-[#ead1ae]">Horizontal<input className="tw:w-full tw:accent-cali-brand" type="range" min="0" max="100" value={draft.avatar_position_x} onChange={(event)=>setDraft((current)=>({...current,avatar_position_x:Number(event.target.value)}))}/></label><label className="tw:grid tw:gap-[0.154rem] tw:text-[0.846rem]/[inherit] tw:text-[#5b4c4f] tw:workspace-night:text-[#ead1ae]">Vertical<input className="tw:w-full tw:accent-cali-brand" type="range" min="0" max="100" value={draft.avatar_position_y} onChange={(event)=>setDraft((current)=>({...current,avatar_position_y:Number(event.target.value)}))}/></label></div>:null}
           </section>
-          <section className="profile-account-fields" aria-label="Dados pessoais e contato"><h3>Dados pessoais</h3><div className="form-grid profile-form-grid"><FieldLabel className="wide">Nome completo<input value={draft.full_name} onChange={(event)=>setDraft((current)=>({...current,full_name:event.target.value}))} autoComplete="name"/></FieldLabel><FieldLabel>Cargo / função<input value={draft.job_title} onChange={(event)=>setDraft((current)=>({...current,job_title:event.target.value}))}/></FieldLabel><FieldLabel>Telefone<input value={draft.phone} onChange={(event)=>setDraft((current)=>({...current,phone:event.target.value}))} inputMode="tel"/></FieldLabel><FieldLabel><span className="label-with-icon"><MessageCircle size={15}/>WhatsApp</span><input value={draft.whatsapp} onChange={(event)=>setDraft((current)=>({...current,whatsapp:event.target.value}))} inputMode="tel"/></FieldLabel><FieldLabel><span className="label-with-icon"><Linkedin size={15}/>LinkedIn</span><input value={draft.linkedin_url} onChange={(event)=>setDraft((current)=>({...current,linkedin_url:event.target.value}))}/></FieldLabel><FieldLabel><span className="label-with-icon"><Instagram size={15}/>Instagram</span><input value={draft.instagram_url} onChange={(event)=>setDraft((current)=>({...current,instagram_url:event.target.value}))}/></FieldLabel><FieldLabel className="wide"><span className="label-with-icon"><Mail size={15}/>E-mail de acesso</span><input value={draft.email} disabled/></FieldLabel></div></section>
-        </div>:<section className="profile-signature-v55 profile-signature-v56 profile-signature-v59 profile-signature-clean">
-          <div className="profile-signature-heading-v55"><div><span>ASSINATURA</span><h3>Sua assinatura</h3><p>Digite seu nome. Ele aparece abaixo com o mesmo traço de assinatura em todo o Workspace.</p></div></div>
-          {draft.signature_mode==='uploaded'&&draft.signature_url?<div className="profile-signature-uploaded"><img src={draft.signature_url} alt="Sua assinatura atual"/><button type="button" onClick={()=>setDraft((current)=>({...current,signature_mode:'generated',signature_style:'calligraphic'}))}>Usar meu nome digitado</button></div>:<label className="profile-signature-single-field"><span>Nome para assinatura</span><input className="signature-style-calligraphic" value={draft.full_name} onChange={(event)=>setDraft((current)=>({...current,full_name:event.target.value,signature_mode:'generated',signature_style:'calligraphic'}))} placeholder="Digite seu nome" autoComplete="name"/></label>}
-          <label className="profile-signature-upload-link"><Upload size={14}/>Prefiro enviar uma assinatura em imagem<input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleSignature}/></label>
-          <small>Esta é sua identidade visual. A ciência de documentos e relatórios é confirmada separadamente.</small>
-        </section>}
-        {activeSection==='details'?<div className="profile-live-actions">{(draft.whatsapp||draft.phone)?<a className="secondary" href={whatsappUrl(draft.whatsapp||draft.phone)} target="_blank" rel="noreferrer"><MessageCircle size={16}/>Abrir WhatsApp</a>:null}{draft.phone?<a className="secondary" href={`tel:${draft.phone.replace(/[^+\d]/g,'')}`}><Phone size={16}/>Ligar</a>:null}</div>:null}
-        <section className="profile-privacy-v2" aria-label="Ajuda e contato">
+          <section className="tw:min-w-0 tw:rounded-[1.231rem] tw:border tw:border-solid tw:border-[#5a1e2d1c] tw:bg-[#fffdfa] tw:px-[1.308rem] tw:py-[1.154rem] tw:shadow-[0_7px_24px_#361c2209] tw:workspace-night:border-[#f7f3ee21] tw:workspace-night:bg-[#271c21] tw:[@media(max-width:43.75rem)]:p-[0.923rem]" aria-label="Dados pessoais e contato"><h3 className="tw:mt-0 tw:mb-[0.769rem]! tw:text-[1.308rem]/[inherit]! tw:text-[#51202f] tw:workspace-night:text-[#fff8f1]">Dados pessoais</h3><div className="tw:grid tw:grid-cols-2 tw:gap-x-[0.923rem] tw:gap-y-[0.615rem] tw:pt-[1.154rem] tw:pb-[1.538rem] tw:[@media(max-width:43.75rem)]:grid-cols-1 tw:[@media(max-width:43.75rem)]:gap-[0.538rem]"><FieldLabel className={`${profileFieldClass} tw:col-span-full`}>Nome completo<input value={draft.full_name} onChange={(event)=>setDraft((current)=>({...current,full_name:event.target.value}))} autoComplete="name"/></FieldLabel><FieldLabel className={profileFieldClass}>Cargo / função<input value={draft.job_title} onChange={(event)=>setDraft((current)=>({...current,job_title:event.target.value}))}/></FieldLabel><FieldLabel className={profileFieldClass}>Telefone<input value={draft.phone} onChange={(event)=>setDraft((current)=>({...current,phone:event.target.value}))} inputMode="tel"/></FieldLabel><FieldLabel className={profileFieldClass}><span className="tw:inline-flex tw:items-center tw:gap-[.462rem]"><MessageCircle size={15}/>WhatsApp</span><input value={draft.whatsapp} onChange={(event)=>setDraft((current)=>({...current,whatsapp:event.target.value}))} inputMode="tel"/></FieldLabel><FieldLabel className={profileFieldClass}><span className="tw:inline-flex tw:items-center tw:gap-[.462rem]"><Linkedin size={15}/>LinkedIn</span><input value={draft.linkedin_url} onChange={(event)=>setDraft((current)=>({...current,linkedin_url:event.target.value}))}/></FieldLabel><FieldLabel className={profileFieldClass}><span className="tw:inline-flex tw:items-center tw:gap-[.462rem]"><Instagram size={15}/>Instagram</span><input value={draft.instagram_url} onChange={(event)=>setDraft((current)=>({...current,instagram_url:event.target.value}))}/></FieldLabel><FieldLabel className={`${profileFieldClass} tw:col-span-full`}><span className="tw:inline-flex tw:items-center tw:gap-[.462rem]"><Mail size={15}/>E-mail de acesso</span><input value={draft.email} disabled/></FieldLabel></div></section>
+        </div> : <ProfileSignatureEditor
+          name={draft.full_name}
+          uploadedSource={draft.signature_mode === 'uploaded' ? draft.signature_url : undefined}
+          onNameChange={(name) => setDraft((current) => ({ ...current, full_name: name, signature_mode: 'generated', signature_style: 'calligraphic' }))}
+          onUseName={() => setDraft((current) => ({ ...current, signature_mode: 'generated', signature_style: 'calligraphic' }))}
+          onUpload={handleSignature}
+        />}
+        {activeSection==='details'?<div className="tw:flex tw:flex-wrap tw:gap-[.769rem] tw:pt-[.462rem] tw:[&_a]:inline-flex tw:[&_a]:items-center tw:[&_a]:gap-[.538rem] tw:[&_a]:rounded-[.538rem] tw:[&_a]:border tw:[&_a]:border-solid tw:[&_a]:border-[#ded0c7] tw:[&_a]:bg-white tw:[&_a]:px-[1.077rem] tw:[&_a]:py-[.769rem] tw:[&_a]:text-[.923rem] tw:[&_a]:text-cali-brand">{(draft.whatsapp||draft.phone)?<a className="secondary" href={whatsappUrl(draft.whatsapp||draft.phone)} target="_blank" rel="noreferrer"><MessageCircle size={16}/>Abrir WhatsApp</a>:null}{draft.phone?<a className="secondary" href={`tel:${draft.phone.replace(/[^+\d]/g,'')}`}><Phone size={16}/>Ligar</a>:null}</div>:null}
+        <ProfileInfoSection aria-label="Ajuda e contato">
           <strong>Ajuda e contato</strong>
-          <span className="profile-privacy-actions">
+          <span className="tw:flex tw:flex-wrap tw:gap-[0.615rem]">
             {occurrencePath && <Link to={occurrencePath} onClick={() => setModalOpen(false)}>Acompanhar um assunto</Link>}
             <a href={accessSupportLink()}>Problemas de acesso</a>
             {role === 'client' ? <a href="#meus-pedidos-de-dados" onClick={(event) => {
@@ -223,17 +275,17 @@ export function DirectProfileControl({role,trigger,partnerHasOccurrences = false
               privacySection.current?.scrollIntoView({ block: 'start' });
             }}>Pedidos sobre meus dados</a> : <a href={privacySupportLink}>Pedidos sobre meus dados</a>}
           </span>
-        </section>
-        <section ref={privacySection} id="meus-pedidos-de-dados" className="profile-privacy-v2" aria-label="Privacidade e meus dados" tabIndex={-1}>
+        </ProfileInfoSection>
+        <ProfileInfoSection ref={privacySection} id="meus-pedidos-de-dados" aria-label="Privacidade e meus dados" tabIndex={-1}>
           <div><strong><ShieldCheck size={16}/>Privacidade e meus dados</strong><p>Você pode baixar uma cópia dos seus dados. {legalEnabled()?<><a href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</a> · <a href="/termos" target="_blank" rel="noopener">Termos de Uso</a></>:<a href="https://calirh.com/privacidade.html" target="_blank" rel="noopener noreferrer">Política de privacidade</a>}</p></div>
-          {privacyForm?<div className="profile-privacy-form"><label>Tipo de pedido<select value={privacyForm.kind} onChange={(event)=>setPrivacyForm({...privacyForm,kind:event.target.value})}><option value="access">Acesso aos meus dados</option><option value="correction">Correção de dados</option><option value="deletion">Exclusão de dados</option><option value="other">Outro pedido</option></select></label><label>O que você precisa<textarea rows={3} maxLength={2000} value={privacyForm.details} onChange={(event)=>setPrivacyForm({...privacyForm,details:event.target.value})} placeholder="Descreva o pedido."/></label><span><button type="button" onClick={()=>setPrivacyForm(null)}>Cancelar</button><Button type="button" variant="primary" disabled={privacyBusy||privacyForm.details.trim().length<5} onClick={()=>void sendPrivacyRequest()}>{privacyBusy?'Enviando…':'Enviar pedido'}</Button></span></div>
-          :<span className="profile-privacy-actions"><button type="button" disabled={privacyBusy} onClick={()=>void downloadMyData()}><Download size={14}/>{privacyBusy?'Gerando…':'Baixar meus dados'}</button>{role === 'client' && <button type="button" onClick={()=>{setPrivacyMessage('');setPrivacyForm({kind:'access',details:''});}}>Pedir acesso, correção ou exclusão</button>}</span>}
+          {privacyForm?<div className="tw:flex tw:flex-col tw:gap-[0.615rem]"><label className="tw:flex tw:flex-col tw:gap-[0.308rem] tw:text-[0.885rem] tw:font-bold">Tipo de pedido<select className="tw:box-border tw:rounded-[0.615rem] tw:border tw:border-solid tw:border-[#dfd3ca] tw:bg-white tw:px-[0.769rem] tw:py-[0.615rem] tw:font-cali-body tw:text-[0.962rem] tw:font-normal" value={privacyForm.kind} onChange={(event)=>setPrivacyForm({...privacyForm,kind:event.target.value})}><option value="access">Acesso aos meus dados</option><option value="correction">Correção de dados</option><option value="deletion">Exclusão de dados</option><option value="other">Outro pedido</option></select></label><label className="tw:flex tw:flex-col tw:gap-[0.308rem] tw:text-[0.885rem] tw:font-bold">O que você precisa<textarea className="tw:box-border tw:rounded-[0.615rem] tw:border tw:border-solid tw:border-[#dfd3ca] tw:bg-white tw:px-[0.769rem] tw:py-[0.615rem] tw:font-cali-body tw:text-[0.962rem] tw:font-normal" rows={3} maxLength={2000} value={privacyForm.details} onChange={(event)=>setPrivacyForm({...privacyForm,details:event.target.value})} placeholder="Descreva o pedido."/></label><span className="tw:flex tw:flex-wrap tw:gap-[0.615rem]"><ProfilePrivacyButton onClick={()=>setPrivacyForm(null)}>Cancelar</ProfilePrivacyButton><ProfilePrivacyButton primary disabled={privacyBusy||privacyForm.details.trim().length<5} onClick={()=>void sendPrivacyRequest()}>{privacyBusy?'Enviando…':'Enviar pedido'}</ProfilePrivacyButton></span></div>
+          :<span className="tw:flex tw:flex-wrap tw:gap-[0.615rem]"><ProfilePrivacyButton disabled={privacyBusy} onClick={()=>void downloadMyData()}><Download size={14}/>{privacyBusy?'Gerando…':'Baixar meus dados'}</ProfilePrivacyButton>{role === 'client' && <ProfilePrivacyButton onClick={()=>{setPrivacyMessage('');setPrivacyForm({kind:'access',details:''});}}>Pedir acesso, correção ou exclusão</ProfilePrivacyButton>}</span>}
           {privacyMessage&&<small role="status">{privacyMessage}</small>}
           {role === 'client' && (
             <details>
               <summary>Meus pedidos de dados</summary>
               {privacyLoadError ? (
-                <p role="alert">Não foi possível consultar seus pedidos. <button type="button" onClick={() => setPrivacyRevision((revision) => revision + 1)}>Tentar novamente</button></p>
+                <p role="alert">Não foi possível consultar seus pedidos. <ProfilePrivacyButton onClick={() => setPrivacyRevision((revision) => revision + 1)}>Tentar novamente</ProfilePrivacyButton></p>
               ) : !privacyRequests ? (
                 <p role="status">Carregando pedidos…</p>
               ) : privacyRequests.length ? (
@@ -249,16 +301,16 @@ export function DirectProfileControl({role,trigger,partnerHasOccurrences = false
               ) : <p>Você ainda não fez pedidos.</p>}
             </details>
           )}
-        </section>
-        <section className="profile-privacy-v2" aria-label="Sobre a CALI">
+        </ProfileInfoSection>
+        <ProfileInfoSection aria-label="Sobre a CALI">
           <strong>Sobre a CALI</strong>
-          <span className="profile-privacy-actions">
+          <span className="tw:flex tw:flex-wrap tw:gap-[0.615rem]">
             <a href={caliInstagram} target="_blank" rel="noreferrer">Instagram</a>
             <a href={caliLinkedIn} target="_blank" rel="noreferrer">LinkedIn</a>
           </span>
-        </section>
+        </ProfileInfoSection>
         {message?<div className="form-message">{message}</div>:null}
-        <div className="modal-actions"><button type="button" className="profile-secondary-v56" onClick={()=>setModalOpen(false)}>Fechar</button><button type="button" className="profile-primary-v56" onClick={saveProfile} disabled={saving}>{saving?<Loader2 size={17} className="spin"/>:<Check size={17}/>} {saving?'Salvando…':'Salvar alterações'}</button></div>
+        <div className="modal-actions tw:sticky tw:bottom-0 tw:z-2 tw:mx-[-2.154rem]! tw:my-0! tw:flex tw:min-h-[5.692rem] tw:flex-none tw:justify-end tw:gap-[0.692rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#5a1e2d14] tw:bg-[#fbf8f4]! tw:px-[2.154rem]! tw:py-[0.846rem]! tw:shadow-[0_-14px_34px_#351f240e] tw:backdrop-blur-[1.385rem] tw:workspace-night:border-[#f7f3ee17] tw:workspace-night:bg-[#1c1518]! tw:[@media(max-width:43.75rem)]:mx-[-1.231rem]! tw:[@media(max-width:43.75rem)]:px-[1.231rem]!"><button type="button" className="tw:min-h-[3.308rem] tw:rounded-[0.846rem]! tw:px-[1.308rem]! tw:text-base/[inherit]! tw:border-[rgba(90,30,45,.35)]! tw:bg-transparent! tw:text-cali-brand! tw:shadow-none! tw:hover:bg-[#5a1e2d0f]! tw:workspace-night:border-[#e7c66f59]! tw:workspace-night:text-cali-day-canvas! tw:workspace-night:hover:bg-[#e7c66f14]!" onClick={()=>setModalOpen(false)}>Fechar</button><button type="button" className="tw:min-h-[3.308rem] tw:rounded-[0.846rem]! tw:border-cali-brand! tw:bg-cali-brand! tw:px-[1.308rem]! tw:text-base/[inherit]! tw:text-white! tw:shadow-none! tw:hover:border-[#481724]! tw:hover:bg-[#481724]!" onClick={saveProfile} disabled={saving}>{saving?<Loader2 size={17} className="spin"/>:<Check size={17}/>} {saving?'Salvando…':'Salvar alterações'}</button></div>
       </DialogFrame>
     </div>,document.body):null}
   </>;

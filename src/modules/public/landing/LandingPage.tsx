@@ -1,33 +1,31 @@
-import { useEffect, useRef, useState } from 'react';
-import { Link } from '../../../components/navigation/Link';
+import { LandingSection, LandingSectionHeading, LandingWidth } from './components/LandingSection';
+import { LandingContact } from './components/LandingContact';
+import { LandingClosing } from './components/LandingClosing';
+import { LandingPackages } from './components/LandingPackages';
+import { LandingAudience } from './components/LandingAudience';
+import { LandingScreens, type ScreenSlot } from './components/LandingScreens';
+import { LandingGallery, type PhotoSlot } from './components/LandingGallery';
+import { LandingHeroCopy } from './components/LandingHeroCopy';
+import { LandingProductPreview } from './components/LandingProductPreview';
+import { LandingPrinciples } from './components/LandingPrinciples';
+import { LandingModules } from './components/LandingModules';
+import { LandingHeader } from './components/LandingHeader';
 import {
   ArrowRight,
-  BarChart3,
   CalendarDays,
-  Check,
-  ChevronLeft,
-  ChevronRight,
   ClipboardCheck,
   Clock3,
   FileText,
   FolderOpen,
   Gauge,
-  Instagram,
   LayoutDashboard,
-  Leaf,
-  LineChart,
-  Linkedin,
-  Mail,
-  Menu,
   MessageCircle,
-  ShieldCheck,
-  Target,
-  Users,
   Workflow,
-  X,
-  ArrowUpRight,
 } from 'lucide-react';
 import { patiWavePoster, patiWaveVideo } from '../../../assets/patiWaveMedia';
+import { LandingFooter } from './components/LandingFooter';
+import { LandingReveal } from './components/LandingReveal';
+import { LandingSteps } from './components/LandingSteps';
 import './landing-identity.css';
 
 const carouselPhotoModules = import.meta.glob(
@@ -47,14 +45,6 @@ const CAROUSEL_PHOTO_URLS = Object.entries(carouselPhotoModules)
 const WORKSPACE_SCREEN_URLS = Object.entries(workspaceScreenModules)
   .sort(([a], [b]) => a.localeCompare(b, 'pt-BR', { numeric: true }))
   .map(([, url]) => url);
-
-type ScreenSlot = {
-  label: string;
-  eyebrow: string;
-  description: string;
-  src?: string;
-  fallbackSrc?: string;
-};
 
 const WA_LINK =
   'https://wa.me/5541987791933?text=' +
@@ -120,13 +110,6 @@ const SCREENSHOTS: ScreenSlot[] = WORKSPACE_SCREEN_URLS.length
     }))
   : DEFAULT_SCREENSHOTS;
 
-type PhotoSlot = {
-  title: string;
-  mark: 'oak' | 'lime';
-  src?: string;
-  objectPosition?: string;
-};
-
 const DEFAULT_PHOTO_SLOTS: PhotoSlot[] = [
   { title: 'Foto CALI 1', mark: 'oak', src: '/landing/pati-mic.webp?v=9', objectPosition: '50% 34%' },
   { title: 'Foto CALI 2', mark: 'lime', src: '/landing/pati-presentation.webp?v=9', objectPosition: '62% 50%' },
@@ -191,33 +174,6 @@ const MODULES = [
   },
 ];
 
-const STEPS = [
-  {
-    n: '01',
-    icon: Target,
-    title: 'Direção',
-    text: 'A CALI entende o momento do negócio, define prioridade e organiza o ciclo.',
-  },
-  {
-    n: '02',
-    icon: Workflow,
-    title: 'Planejamento',
-    text: 'Projetos, marcos, reuniões e entregáveis entram no Workspace com clareza.',
-  },
-  {
-    n: '03',
-    icon: Users,
-    title: 'Execução conjunta',
-    text: 'A CALI conduz. A liderança acompanha, participa e valida sem operar um SaaS de RH.',
-  },
-  {
-    n: '04',
-    icon: LineChart,
-    title: 'Leitura executiva',
-    text: 'O ciclo fecha com resultado, riscos, decisões tomadas e próximos movimentos.',
-  },
-];
-
 const PACKAGE_FEATURES = {
   partner: [
     'Reunião mensal com founders, diretoria ou RH',
@@ -234,496 +190,66 @@ const PACKAGE_FEATURES = {
   ],
 };
 
-function BrandSlot({
-  title,
-  mark = 'oak',
-  src,
-  objectPosition = '50% 50%',
-}: {
-  title: string;
-  mark?: 'oak' | 'lime';
-  src?: string;
-  objectPosition?: string;
-}) {
-  return (
-    <div className={`lp-photo-slot ${src ? 'has-photo' : ''}`}>
-      {src ? (
-        <img
-          className="lp-photo-user"
-          src={src}
-          alt={title}
-          style={{ objectPosition }}
-        />
-      ) : (
-        <img
-          className="lp-photo-brand-mark"
-          src={mark === 'oak' ? '/brand/cali-oak-mark-light.svg' : '/brand/cali-lime-mark.svg'}
-          alt=""
-          aria-hidden="true"
-        />
-      )}
-      {!src && (
-        <div className="lp-photo-caption" aria-hidden="true">
-          <small>imagem CALI</small>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ScreenVisual({ slot }: { slot: ScreenSlot }) {
-  if (slot.src) {
-    return (
-      <img
-        className="lp-screen-image"
-        src={slot.src}
-        alt={slot.label}
-        decoding="async"
-        onError={(event) => {
-          if (!slot.fallbackSrc) return;
-          const image = event.currentTarget;
-          if (image.dataset.fallbackApplied === 'true') return;
-          image.dataset.fallbackApplied = 'true';
-          image.src = slot.fallbackSrc;
-        }}
-      />
-    );
-  }
-
-  return (
-    <div className="lp-screen-placeholder" aria-label={`Espaço reservado para print: ${slot.label}`}>
-      <img src="/brand/cali-oak-mark-light.svg" alt="" aria-hidden="true" />
-      <span>{slot.eyebrow}</span>
-      <strong>{slot.label}</strong>
-      <small>print reservado para inserir depois</small>
-    </div>
-  );
-}
-
 export function LandingPage() {
-  const [activeScreen, setActiveScreen] = useState(0);
-  const heroScreenRef = useRef<HTMLDivElement>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const update = () => setScrolled(window.scrollY > 40);
-    update();
-    window.addEventListener('scroll', update, { passive: true });
-    return () => window.removeEventListener('scroll', update);
-  }, []);
-
-  useEffect(() => {
-    const nodes = Array.from(document.querySelectorAll<HTMLElement>('[data-lp-reveal], [data-lp-flow]'));
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            (entry.target as HTMLElement).classList.add('is-visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.12 },
-    );
-
-    nodes.forEach((node) => observer.observe(node));
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const interval = window.setTimeout(() => {
-      setActiveScreen((value) => (value + 1) % SCREENSHOTS.length);
-    }, 4600);
-    return () => window.clearTimeout(interval);
-  }, [activeScreen]);
-
   return (
-    <main className="cali-landing">
-      <header className={`lp-site-header ${scrolled ? 'scrolled' : ''}`}>
-        <div className="lp-site-nav-shell">
-          <a href="https://calirh.com" className="lp-site-brand" aria-label="CALI RH, ir para a página inicial"><img src="/brand/cali-logo-light.svg" alt="CALI RH" /></a>
-          <nav className={`lp-site-nav-links ${menuOpen ? 'open' : ''}`} aria-label="Menu principal">
-            <a href="https://calirh.com">Início</a><a href="https://calirh.com/assessoria">Assessoria mensal</a><a href="https://calirh.com/projetos">Projetos e soluções</a><a href="https://calirh.com/sobre">A CALI</a><a href="https://comuni.calirh.com/" target="_blank" rel="noopener noreferrer">ComuniCALI</a>
-            <div className="lp-site-mobile-utility"><a href="https://portal.calirh.com">Portal CALI <ArrowUpRight size={16}/></a><Link to="/" onClick={() => setMenuOpen(false)}>CALI Workspace <ArrowUpRight size={16}/></Link><div className="lp-site-mobile-social"><a href="https://www.instagram.com/calirh_/" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><Instagram size={24}/></a><a href="https://www.linkedin.com/in/patriciaazumi/" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer"><Linkedin size={24}/></a><a href="mailto:patricia@calirh.com" aria-label="E-mail"><Mail size={24}/></a></div></div>
-            <a className="lp-site-mobile-contact" href={WA_LINK} target="_blank" rel="noopener noreferrer">Fale com a Pati</a>
-          </nav>
-          <div className="lp-site-nav-utilities"><a href="https://portal.calirh.com">Portal CALI</a><Link to="/" aria-current="page">Workspace</Link><span className="lp-site-nav-social"><a href="https://www.instagram.com/calirh_/" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><Instagram size={21}/></a><a href="https://www.linkedin.com/in/patriciaazumi/" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer"><Linkedin size={21}/></a><a href="mailto:patricia@calirh.com" aria-label="E-mail"><Mail size={21}/></a></span></div>
-          <a className="lp-site-nav-contact" href={WA_LINK} target="_blank" rel="noopener noreferrer">Vamos conversar <ArrowUpRight size={16}/></a>
-          <button className="lp-site-menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'} aria-expanded={menuOpen}>{menuOpen ? <X/> : <Menu/>}</button>
-        </div>
-      </header>
+    <main className="cali-landing tw:min-h-screen tw:overflow-x-hidden tw:bg-cali-day-canvas tw:font-cali-body tw:text-[.875rem] tw:leading-normal tw:text-cali-ink">
+      <LandingHeader contactHref={WA_LINK} />
 
-      <section className="lp-hero" id="inicio">
-        <div className="lp-shell lp-hero-grid">
-          <div className="lp-hero-copy" data-lp-reveal="left">
-            <span className="lp-eyebrow">CALI WORKSPACE</span>
-            <h1>Acompanhe seus projetos <span>com o app da CALI.</span></h1>
-            <p className="lp-hero-lead">Entregas, horas, agenda, documentos e decisões da sua empresa com a CALI, no mesmo lugar e com histórico.</p>
-            <div className="lp-hero-ctas">
-              <Link className="lp-hero-login" to="/login">
-                Entrar no Workspace <ArrowUpRight size={19} aria-hidden="true" />
-              </Link>
-              <a className="lp-hero-secondary" href="#workspace">Ver o app por dentro <ArrowRight size={17} aria-hidden="true" /></a>
-            </div>
-            <ul className="lp-hero-proof" aria-label="O que o Workspace reúne">
-              <li><strong>Entregas</strong><span>aprovação e histórico</span></li>
-              <li><strong>Horas</strong><span>consumo do ciclo</span></li>
-              <li><strong>Documentos</strong><span>versões aprovadas</span></li>
-            </ul>
-          </div>
+      <section className="tw:relative tw:isolate tw:grid tw:min-h-[min(55rem,100svh)] tw:items-center tw:overflow-hidden tw:bg-[radial-gradient(ellipse_50%_60%_at_82%_38%,#e7c66f29,transparent_72%),radial-gradient(ellipse_60%_70%_at_8%_90%,#b58c5224,transparent_70%),linear-gradient(#f7f3ee09_1px,transparent_1px),linear-gradient(90deg,#f7f3ee09_1px,transparent_1px),linear-gradient(150deg,#6a2536_0%,#4a1826_48%,#2e1018_100%)] tw:[background-size:auto,auto,2rem_2rem,2rem_2rem,auto] tw:pt-[clamp(9.6875rem,18vh,12.5rem)] tw:pb-[clamp(5.625rem,11vh,7.8125rem)] tw:text-cali-day-canvas tw:[@media(35rem<width<=60rem)]:min-h-0 tw:[@media(35rem<width<=60rem)]:pt-[9.0625rem] tw:[@media(35rem<width<=60rem)]:pb-[5.3125rem] tw:[@media(max-width:35rem)]:min-h-0 tw:[@media(max-width:35rem)]:pt-[7.375rem] tw:[@media(max-width:35rem)]:pb-[4.5rem]" id="inicio">
+        <div className="tw:mx-auto tw:grid tw:w-[min(82.5rem,calc(100%-5rem))] tw:grid-cols-[minmax(0,.84fr)_minmax(0,1.16fr)] tw:content-center tw:items-center tw:gap-[clamp(2.125rem,5vw,4.875rem)] tw:[@media(35rem<width<=60rem)]:w-[min(45.625rem,calc(100%-3rem))] tw:[@media(35rem<width<=60rem)]:grid-cols-1 tw:[@media(35rem<width<=60rem)]:justify-items-center tw:[@media(35rem<width<=60rem)]:gap-[2.875rem] tw:[@media(max-width:35rem)]:w-[calc(100%-2rem)] tw:[@media(max-width:35rem)]:grid-cols-1 tw:[@media(max-width:35rem)]:justify-items-center tw:[@media(max-width:35rem)]:gap-9">
+          <LandingHeroCopy />
 
-          <div className="lp-hero-product" data-lp-reveal="right">
-            <div className="lp-hero-screen-float">
-              <div
-                className="lp-hero-screen-stage"
-                ref={heroScreenRef}
-                onPointerMove={(event) => {
-                  if (event.pointerType === 'touch' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-                  const rect = event.currentTarget.getBoundingClientRect();
-                  const x = (event.clientX - rect.left) / rect.width - 0.5;
-                  const y = (event.clientY - rect.top) / rect.height - 0.5;
-                  heroScreenRef.current?.style.setProperty('--tilt-x', `${-y * 7}deg`);
-                  heroScreenRef.current?.style.setProperty('--tilt-y', `${x * 9}deg`);
-                }}
-                onPointerLeave={() => {
-                  heroScreenRef.current?.style.setProperty('--tilt-x', '0deg');
-                  heroScreenRef.current?.style.setProperty('--tilt-y', '0deg');
-                }}
-              >
-                <img src={WORKSPACE_SCREEN_URLS[0] || '/landing/cali-workspace-sign-in-preview.jpg?v=1'} alt="Visão geral do CALI Workspace" />
-                <div className="lp-hero-chip lp-hero-chip-a" aria-hidden="true"><span className="dot" /><div><small>VALIDAÇÃO</small><strong>1 entrega aguarda você</strong></div></div>
-                <div className="lp-hero-chip lp-hero-chip-b" aria-hidden="true"><div><small>HORAS DO MÊS</small><strong>1h30 de 20h</strong></div><i><b style={{ width: '18%' }} /></i></div>
-              </div>
-            </div>
-          </div>
+          <LandingProductPreview image={WORKSPACE_SCREEN_URLS[0] || '/landing/cali-workspace-sign-in-preview.jpg?v=1'} />
         </div>
       </section>
 
-      <section className="lp-section lp-section-light" id="cali">
-        <div className="lp-shell lp-about-grid">
-          <div className="lp-section-copy" data-lp-reveal="left">
-            <span className="lp-kicker">A CALI RH</span>
-            <h2>A plataforma organiza o trabalho. A condução continua sendo da CALI.</h2>
-            <p>
-              A CALI atua como <strong>People Advisory Executive</strong> junto à liderança.
-              O Workspace registra prioridades, entregas e decisões sem transformar o cliente
-              em operador de software.
+      <LandingSection tone="light" id="cali">
+        <LandingWidth className="tw:grid tw:grid-cols-[minmax(0,1.03fr)_minmax(26.25rem,.97fr)] tw:items-center tw:gap-[clamp(3.375rem,8vw,6.875rem)] tw:[@media(max-width:65rem)]:grid-cols-1">
+          <LandingReveal direction="left">
+            <span className="tw:mb-[1.125rem] tw:inline-block tw:text-[.656rem] tw:font-bold tw:tracking-[.14em] tw:text-cali-brand">A CALI RH</span>
+            <h2 className="tw:m-0 tw:text-[clamp(2.55rem,4.15vw,4.45rem)] tw:leading-[1.02] tw:text-cali-brand tw:[@media(max-width:35rem)]:text-[clamp(2.25rem,11vw,3.7rem)]">A plataforma organiza o trabalho. A condução continua sendo da CALI.</h2>
+            <p className="tw:m-0 tw:mt-6 tw:max-w-[41.25rem] tw:text-base tw:leading-[1.75] tw:text-[#655d58]">
+              A CALI atua como <strong className="tw:text-[#4b4140]">People Advisory Executive</strong> junto à liderança.
+              O Workspace registra prioridades, entregas e decisões sem transformar o cliente em operador de software.
             </p>
-            <p>
-              <strong>A CALI conduz.</strong> O cliente enxerga o ciclo, valida o que importa
-              e decide com contexto.
+            <p className="tw:m-0 tw:mt-3.5 tw:max-w-[41.25rem] tw:text-base tw:leading-[1.75] tw:text-[#655d58]">
+              <strong className="tw:text-[#4b4140]">A CALI conduz.</strong> O cliente enxerga o ciclo, valida o que importa e decide com contexto.
             </p>
-            <a className="lp-text-link" href="https://calirh.com" target="_blank" rel="noreferrer">
-              Ver a atuação da CALI <ArrowRight size={15} />
+            <a className="tw:mt-6.5 tw:inline-flex tw:items-center tw:gap-2 tw:text-[.8rem] tw:font-semibold tw:text-cali-brand tw:hover:gap-3" href="https://calirh.com" target="_blank" rel="noreferrer">
+              Ver a atuação da CALI <ArrowRight size={15} aria-hidden="true" />
             </a>
-          </div>
+          </LandingReveal>
+          <LandingPrinciples />
+        </LandingWidth>
+        <LandingGallery photos={PHOTO_SLOTS} />
+      </LandingSection>
 
-          <div className="lp-principles" data-lp-reveal="right">
-            <article>
-              <Leaf size={21} />
-              <span>Direção</span>
-              <strong>prioridade antes de atividade</strong>
-            </article>
-            <article>
-              <BarChart3 size={21} />
-              <span>Leitura</span>
-              <strong>dados antes de opinião solta</strong>
-            </article>
-            <article>
-              <Users size={21} />
-              <span>Proximidade</span>
-              <strong>ao lado da liderança</strong>
-            </article>
-            <article>
-              <ShieldCheck size={21} />
-              <span>Governança</span>
-              <strong>registro sem burocracia</strong>
-            </article>
-          </div>
-        </div>
+      <LandingSection tone="burgundy" id="workspace">
+        <LandingWidth>
+          <LandingSectionHeading dark eyebrow="DENTRO DO WORKSPACE" title="O que precisa estar visível para a decisão não depender de memória."
+            description="Projetos, horas, documentos, conversas e indicadores ficam no mesmo contexto, com histórico e responsabilidade claros." />
+          <LandingModules modules={MODULES} />
+        </LandingWidth>
+      </LandingSection>
 
-        <div className="lp-photo-rail" aria-label="Galeria de fotos da CALI">
-          <div className="lp-photo-track">
-            {['gallery', 'loop'].flatMap((copy) => PHOTO_SLOTS.map((slot) => (
-              <BrandSlot
-                key={`${copy}-${slot.title}`}
-                title={slot.title}
-                mark={slot.mark}
-                src={slot.src}
-                objectPosition={slot.objectPosition}
-              />
-            )))}
-          </div>
-        </div>
-      </section>
+      <LandingSection tone="ivory">
+        <LandingWidth>
+          <LandingSectionHeading eyebrow="UM LOGIN · DOIS AMBIENTES" title="Um login. Papéis diferentes. A mesma fonte de verdade." />
+          <LandingAudience />
+        </LandingWidth>
+      </LandingSection>
 
-      <section className="lp-section lp-section-burgundy" id="workspace">
-        <div className="lp-shell">
-          <div className="lp-section-heading lp-section-heading-dark" data-lp-reveal>
-            <span className="lp-kicker">DENTRO DO WORKSPACE</span>
-            <h2>O que precisa estar visível para a decisão não depender de memória.</h2>
-            <p>
-              Projetos, horas, documentos, conversas e indicadores ficam no mesmo contexto,
-              com histórico e responsabilidade claros.
-            </p>
-          </div>
+      <LandingScreens screens={SCREENSHOTS} />
 
-          <div className="lp-module-grid">
-            {MODULES.map((module, index) => {
-              const Icon = module.icon;
-              return (
-                <article
-                  className="lp-module-card"
-                  key={module.title}
-                  data-lp-reveal={index % 3 === 0 ? 'left' : index % 3 === 1 ? 'up' : 'right'}
-                  style={{ transitionDelay: `${index * 55}ms` }}
-                >
-                  <Icon size={21} />
-                  <h3>{module.title}</h3>
-                  <p>{module.text}</p>
-                </article>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+      <LandingContact contactHref={WA_LINK} video={patiWaveVideo} poster={patiWavePoster} />
 
-      <section className="lp-section lp-section-ivory">
-        <div className="lp-shell">
-          <div className="lp-section-heading" data-lp-reveal>
-            <span className="lp-kicker">UM LOGIN · DOIS AMBIENTES</span>
-            <h2>Um login. Papéis diferentes. A mesma fonte de verdade.</h2>
-          </div>
+      <LandingSteps />
 
-          <div className="lp-audience-grid">
-            <article className="lp-audience-card" data-lp-reveal="left">
-              <span className="lp-card-index">01</span>
-              <div className="lp-audience-icon"><Users size={23} /></div>
-              <small>AMBIENTE DO CLIENTE</small>
-              <h3>Visibilidade sem virar operador da ferramenta.</h3>
-              <p>
-                Cronograma, entregáveis, horas, documentos e relatórios ficam disponíveis
-                para consulta, comentários, aprovações e ajustes com histórico.
-              </p>
-              <div className="lp-mini-list">
-                <span><Check size={15} /> acompanhar</span>
-                <span><Check size={15} /> participar</span>
-                <span><Check size={15} /> validar</span>
-                <span><Check size={15} /> avaliar</span>
-              </div>
-            </article>
+      <LandingPackages features={PACKAGE_FEATURES} />
 
-            <article className="lp-audience-card lp-audience-card-dark" data-lp-reveal="right">
-              <span className="lp-card-index">02</span>
-              <div className="lp-audience-icon"><LayoutDashboard size={23} /></div>
-              <small>AMBIENTE CALI</small>
-              <h3>A operação inteira no mesmo sistema.</h3>
-              <p>
-                Carteira, projetos, agenda, documentos, relatórios, Mapa de People e propostas
-                ficam integrados à operação conduzida pela CALI.
-              </p>
-              <div className="lp-mini-list">
-                <span><Check size={15} /> administrar</span>
-                <span><Check size={15} /> executar</span>
-                <span><Check size={15} /> interpretar</span>
-                <span><Check size={15} /> decidir</span>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
+      <LandingClosing contactHref={WA_LINK} />
 
-      <section className="lp-section lp-screens-section">
-        <div className="lp-shell">
-          <div
-            className="lp-screen-carousel"
-            role="region"
-            aria-roledescription="carrossel"
-            aria-label="Telas do CALI Workspace na prática"
-            data-lp-reveal="zoom"
-          >
-            <div className="lp-screen-frame">
-              {SCREENSHOTS.map((slot, index) => (
-                <div
-                  className={`lp-screen-slide ${index === activeScreen ? 'is-active' : ''}`}
-                  key={slot.label}
-                  aria-hidden={index !== activeScreen}
-                >
-                  <ScreenVisual slot={slot} />
-                </div>
-              ))}
-            </div>
-
-            <div className="lp-screen-controls">
-              <button type="button" aria-label="Tela anterior"
-                onClick={() => setActiveScreen((value) => (value - 1 + SCREENSHOTS.length) % SCREENSHOTS.length)}
-              ><ChevronLeft size={18} /></button>
-              <button type="button" aria-label="Próxima tela"
-                onClick={() => setActiveScreen((value) => (value + 1) % SCREENSHOTS.length)}
-              ><ChevronRight size={18} /></button>
-            </div>
-            <div className="lp-screen-dots" aria-label="Selecionar tela">
-              {SCREENSHOTS.map((slot, index) => (
-                <button
-                  type="button"
-                  key={slot.label}
-                  aria-label={`Ver ${slot.label}`}
-                  aria-current={index === activeScreen ? 'true' : undefined}
-                  className={index === activeScreen ? 'is-active' : ''}
-                  onClick={() => setActiveScreen(index)}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      <section className="lp-section lp-video-section" id="fale-com-a-pati">
-        <img className="lp-video-art lp-video-art-oak" src="/brand/cali-oak-mark-light.svg" alt="" aria-hidden="true" />
-        <img className="lp-video-art lp-video-art-lime" src="/brand/cali-lime-mark.svg" alt="" aria-hidden="true" />
-        <div className="lp-shell lp-video-grid">
-          <div className="lp-video-copy" data-lp-reveal="left">
-            <span className="lp-kicker">FALE COM A PATI</span>
-            <h2>Tem gente de verdade do outro lado.</h2>
-            <p>
-              Quando algo pede contexto, a conversa não vira ticket. Você fala com a Pati,
-              com a mesma proximidade que orienta o trabalho da CALI.
-            </p>
-            <a className="lp-button lp-button-light" href={WA_LINK} target="_blank" rel="noreferrer">
-              Falar com a Pati <MessageCircle size={17} />
-            </a>
-          </div>
-
-          <div className="lp-video-media" data-lp-reveal="right">
-            <div className="lp-video-card">
-              <video
-              className="lp-pati-video"
-              src={patiWaveVideo}
-              poster={patiWavePoster}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              aria-label="Vídeo da Patrícia, CALI RH"
-            />
-            </div>
-            <div className="lp-video-identity">
-              <strong>Patrícia Lima</strong>
-              <span>People Advisory Executive · CALI RH</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="lp-section lp-section-light" id="como-funciona">
-        <div className="lp-shell">
-          <div className="lp-section-heading lp-section-heading-centered" data-lp-reveal="up">
-            <span className="lp-kicker">COMO FUNCIONA</span>
-            <h2>Da direção à leitura executiva.</h2>
-          </div>
-
-          <div className="lp-steps" data-lp-flow>
-            {STEPS.map((step, index) => {
-              const Icon = step.icon;
-              return (
-                <article
-                  key={step.n}
-                  data-lp-reveal={index % 2 === 0 ? 'left' : 'right'}
-                  style={{ transitionDelay: `${index * 80}ms` }}
-                >
-                  <div className="lp-step-number">
-                    <span>{step.n}</span>
-                    <i><Icon size={20} /></i>
-                  </div>
-                  <h3>{step.title}</h3>
-                  <p>{step.text}</p>
-                </article>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section className="lp-section lp-packages" id="pacotes">
-        <div className="lp-shell">
-          <div className="lp-section-heading lp-section-heading-centered" data-lp-reveal>
-            <span className="lp-kicker">ASSESSORIA ESTRATÉGICA MENSAL</span>
-            <h2>Uma assessoria. Duas formas de estar perto.</h2>
-            <p>Escolha o ritmo de acompanhamento da sua empresa. O escopo é definido em proposta.</p>
-          </div>
-
-          <div className="lp-package-grid">
-            <article className="lp-package-card" data-lp-reveal="left">
-              <div className="lp-package-top">
-                <div>
-                  <h3>CALI Partner</h3>
-                </div>
-                <span className="lp-term-badge">8 meses</span>
-              </div>
-              <p className="lp-package-intro">Direção sênior para organizar prioridades e apoiar decisões de pessoas, com acompanhamento online.</p>
-              <div className="lp-package-capacity"><strong>10–15h</strong><span>de referência por mês</span></div>
-              <div className="lp-package-list">
-                {PACKAGE_FEATURES.partner.map((item) => <span key={item}><Check size={15} />{item}</span>)}
-              </div>
-              <a className="lp-package-link" href="https://calirh.com/assessoria" target="_blank" rel="noopener noreferrer">
-                Conhecer o Partner <ArrowRight size={16} />
-              </a>
-            </article>
-
-            <article className="lp-package-card lp-package-card-featured" data-lp-reveal="right">
-              <div className="lp-package-ribbon">MAIOR PROXIMIDADE</div>
-              <div className="lp-package-top">
-                <div>
-                  <h3>CALI Full</h3>
-                </div>
-                <span className="lp-term-badge">12 meses</span>
-              </div>
-              <p className="lp-package-intro">Mais presença para decisões complexas, com ritmo quinzenal e uma visita presencial fixa por mês.</p>
-              <div className="lp-package-capacity"><strong>20–25h</strong><span>de referência por mês</span></div>
-              <div className="lp-package-list">
-                {PACKAGE_FEATURES.full.map((item) => <span key={item}><Check size={15} />{item}</span>)}
-              </div>
-              <a className="lp-package-link" href="https://calirh.com/assessoria" target="_blank" rel="noopener noreferrer">
-                Conhecer o Full <ArrowRight size={16} />
-              </a>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section className="lp-final-cta">
-        <img className="lp-final-art" src="/brand/cali-lime-mark.svg" alt="" aria-hidden="true" />
-        <div className="lp-shell lp-final-grid" data-lp-reveal="up">
-          <div>
-            <span className="lp-eyebrow">JÁ É CLIENTE CALI?</span>
-            <h2>O trabalho continua aqui.</h2>
-            <p>Entre com seu e-mail cadastrado e retome o ciclo de onde parou.</p>
-          </div>
-          <div className="lp-final-actions">
-            <Link className="lp-button lp-button-light" to="/login">
-              Acessar Workspace <ArrowRight size={17} />
-            </Link>
-            <a className="lp-text-link lp-text-link-light" href={WA_LINK} target="_blank" rel="noreferrer">
-              Ainda não é cliente? Fale com a CALI <MessageCircle size={15} />
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <footer className="lp-footer">
-        <div className="lp-shell">
-          <a href="https://calirh.com" aria-label="CALI RH, ir para o site"><img src="/brand/cali-logo-light.svg" alt="CALI RH" /></a>
-          <nav className="lp-footer-site-links" aria-label="Links CALI"><a href="https://calirh.com/assessoria">Assessoria mensal</a><a href="https://calirh.com/projetos">Projetos</a><a href="https://calirh.com/sobre">A CALI</a><a href="https://comuni.calirh.com/" target="_blank" rel="noopener noreferrer">ComuniCALI</a><a href="https://portal.calirh.com">Portal de propostas</a><Link to="/login">Acesso ao app</Link><a href="https://calirh.com/privacidade.html">Privacidade</a></nav>
-          <div className="lp-footer-social"><a href="https://www.instagram.com/calirh_/" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><Instagram size={24}/></a><a href="https://www.linkedin.com/in/patriciaazumi/" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer"><Linkedin size={24}/></a><a href="mailto:patricia@calirh.com" aria-label="E-mail"><Mail size={24}/></a></div>
-          <div className="lp-footer-copy">
-            <span>© {new Date().getFullYear()} CALI RH · HRB — RH para o Negócio · Todos os direitos reservados.</span>
-          </div>
-        </div>
-      </footer>
+      <LandingFooter />
     </main>
   );
 }

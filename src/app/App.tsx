@@ -4,7 +4,6 @@ import { useLocation } from '../hooks/useLocation';
 import { ProtectedRoute } from '../auth/ProtectedRoute';
 import { WorkspaceRouteLoader } from '../components/ds/WorkspaceRouteLoader';
 import { Shell, WorkspaceFrame } from '../components/workspace/WorkspaceShell';
-import { RouteRuntimeManager } from '../runtime/RouteRuntimeManager';
 import { applyVisualSystem } from '../components/workspace/visualSystem';
 
 function WorkspaceNavigationFallback() {
@@ -62,7 +61,6 @@ export default function App() {
 
   return (
     <ProtectedRoute role={workspaceRole}>
-      <RouteRuntimeManager />
       <WorkspaceFrame role={workspaceRole}>{routes}</WorkspaceFrame>
     </ProtectedRoute>
   );

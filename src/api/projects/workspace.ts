@@ -1,5 +1,6 @@
 import type { JsonObject } from '../../domain/json';
 import { requireProjectClient } from './client';
+import { profileAvatarColumns, type ProfileMedia } from '../workspace/identity';
 
 type Payload = JsonObject;
 
@@ -21,12 +22,13 @@ export async function readProjectsWorkspace(companies?: ProjectCompany[]) {
   const client = requireProjectClient();
   const [companyRows, projects, fronts, deliverables, tasks, hours, timers] = await Promise.all([
     companies ? Promise.resolve({ data: companies }) : client.from('companies').select('id,display_name,logo_url,service_type,service_plan').neq('status', 'closed').order('display_name'),
-    client.from('projects').select('id,protocol,company_id,name,description,status,planning_status,start_date,target_end_date,client_response_business_days,adjustment_limit').order('created_at', { ascending: false }),
+    client.from('projects').select('id,protocol,company_id,name,description,status,planning_status,start_date,roadmap_start_date,target_end_date,roadmap_end_date,client_response_business_days,adjustment_limit').order('created_at', { ascending: false }),
     client.from('project_workstreams').select('id,protocol,project_id,company_id,name,objective,roadmap_month_start,roadmap_month_end,status,sort_order').order('sort_order'),
     client.from('deliverables').select('id,protocol,code,project_id,company_id,title,description,status,workstream,workstream_id,complexity,roadmap_month_start,roadmap_month_end,due_at,original_due_at,client_response_due_at,client_delay_business_days,adjustment_count,rebriefing_required,is_document,sort_order,client_visible,review_revision').order('sort_order'),
     client.from('deliverable_tasks').select('id,protocol,deliverable_id,title,description,status,due_at,client_visible,estimated_minutes,sort_order').order('sort_order'),
     client.from('hour_entries').select('deliverable_id,minutes'),
-    client.from('work_timers').select('id,deliverable_id,task_id,started_at,status').eq('status', 'active').order('started_at', { ascending: false }).limit(1),
+    companies ? client.from('work_timers').select('id,deliverable_id,task_id,started_at,status').eq('status', 'active')
+      .order('started_at', { ascending: false }).limit(1) : Promise.resolve({ data: null }),
   ]);
   return {
     companyRows: companyRows.data, projectRows: projects.data, frontRows: fronts.data,
@@ -37,10 +39,10 @@ export async function readProjectsWorkspace(companies?: ProjectCompany[]) {
 export async function readProjectPartnerContext() {
   const client = requireProjectClient();
   const [{ data: auth }, profiles, admins, pending] = await Promise.all([
-    client.auth.getUser(), client.from('profiles').select('id,full_name,avatar_url'), client.rpc('staff_admin_contacts'),
+    client.auth.getUser(), client.from('profiles').select(profileAvatarColumns), client.rpc('staff_admin_contacts'),
     client.from('staff_review_requests').select('entity_id').eq('kind', 'deliverable').eq('status', 'pending'),
   ]);
-  const people: { id: string; full_name?: string; avatar_url?: string }[] = [...(profiles.data ?? []), ...(admins.data ?? [])];
+  const people: ProfileMedia[] = [...(admins.data ?? []), ...(profiles.data ?? [])];
   return {
     userId: auth.user?.id ?? '',
     pending: Object.fromEntries((pending.data ?? []).map((row) => [row.entity_id, true])),
@@ -50,12 +52,11 @@ export async function readProjectPartnerContext() {
 
 export async function readDeliverableContext(deliverableId: string, partner: boolean) {
   const client = requireProjectClient();
-  const [comments, statuses, corrections] = await Promise.all([
-    client.from('comments').select('id,body,client_visible,created_at').eq('target_type', 'deliverable').eq('target_id', deliverableId).order('created_at'),
+  const [statuses, corrections] = await Promise.all([
     client.from('deliverable_status_history').select('*').eq('deliverable_id', deliverableId).order('created_at', { ascending: false }),
     partner ? Promise.resolve({ data: null }) : client.rpc('read_deliverable_review_history_v2', { p_deliverable_id: deliverableId }),
   ]);
-  return { commentRows: comments.data, statusRows: statuses.data, correctionRows: corrections.data };
+  return { statusRows: statuses.data, correctionRows: corrections.data };
 }
 
 export async function createProjectWithFronts(project: Payload & { company_id: string }, fronts: Payload[]) {
@@ -124,12 +125,6 @@ export async function submitPartnerProjectChange(companyId: string, action: stri
   const { data } = await client.auth.getUser();
   return await client.from('staff_review_requests').insert({
     staff_user_id: data.user?.id, company_id: companyId, kind: 'change', title: title.slice(0, 200), payload: { action, ...payload },
-  });
-}
-
-export async function startProjectWorkTimer(companyId: string, projectId: string, deliverableId: string, taskId: string | null, note: string) {
-  return await requireProjectClient().rpc('start_work_timer', {
-    p_company_id: companyId, p_project_id: projectId, p_deliverable_id: deliverableId, p_task_id: taskId, p_note: note,
   });
 }
 

@@ -7,6 +7,7 @@ const { tmpdir } = require('node:os');
 const { join, resolve } = require('node:path');
 const { parseArgs } = require('node:util');
 const { defaultChrome } = require('./loopback.cjs');
+const { checkBrowserResources } = require('./browser-resources.cjs');
 
 const { values } = parseArgs({
   options: {
@@ -91,6 +92,7 @@ function main() {
 
   let failed = 0;
   for (const suite of selected) {
+    checkBrowserResources();
     console.log('Executando ' + suite.name + '…');
     const artifact = join(output, suite.standalone ? suite.name + '.json' : suite.name);
     const run = spawnSync(

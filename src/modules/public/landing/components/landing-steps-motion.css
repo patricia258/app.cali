@@ -1,0 +1,10 @@
+@keyframes landing-step-line {
+  from { transform: scaleX(0); opacity: .2; }
+  to { transform: scaleX(1); opacity: 1; }
+}
+
+@keyframes landing-step-icon {
+  0% { transform: translateY(.75rem) scale(.72); opacity: .2; }
+  68% { transform: translateY(-.1875rem) scale(1.08); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}

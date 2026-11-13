@@ -43,6 +43,10 @@ function normalizePrivateMedia(raw: string) {
   }
 }
 
+export function isPrivateWorkspaceMedia(source?: string | null) {
+  return Boolean(source && normalizePrivateMedia(source).startsWith('private:'));
+}
+
 export async function resolveWorkspaceMedia(raw?: string | null, expiresIn = 3600, forceRefresh = false) {
   if (!raw || !workspaceStorageAvailable) return raw || '';
 

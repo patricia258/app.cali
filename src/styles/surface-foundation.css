@@ -1,7 +1,7 @@
 @reference "./tailwind.css";
 /* Typography and browser defaults for public pages and the document workspace. */
 
-:where(html[data-workspace-surface]) {
+:where(html[data-workspace-surface]:not([data-workspace-surface='landing'])) {
 
 &:root {
   @apply tw:font-cali-body;

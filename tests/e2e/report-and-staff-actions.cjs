@@ -26,6 +26,156 @@ function intercept(context, origin, path, method, handle) {
 
 browserSuite([
   {
+    id: '12-partner-report-direct-print-loads-a4-paper',
+    role: 'partner',
+    async run({ page, context, origin }) {
+      const report = {
+        ...tables.reports[0],
+        executive_summary: 'Resumo do período para validar uma folha comum.',
+        risks: ['Acompanhar o planejamento do próximo período.'],
+        next_steps: ['Confirmar as prioridades no próximo encontro.'],
+        source_snapshot: {
+          period: { start: '2026-09-01', end: '2026-09-30' },
+          contract: { monthlyHours: 20 },
+          deliverables: {},
+          hours: { contractedHours: 20, consumedMinutes: 540 },
+        },
+      };
+      await intercept(context, origin, 'reports', 'GET', (request) => ({
+        json: request.headers().accept?.includes('vnd.pgrst.object') ? report : [report],
+      }));
+      await page.goto(origin + '/equipe/relatorios/impressao/' + report.id);
+      const paper = page.locator('.reports-v19-paper').first();
+      await paper.waitFor();
+      const { width, height, horizontalPadding } = await paper.evaluate((element) => {
+        const styles = getComputedStyle(element);
+        return { width: parseFloat(styles.width), height: parseFloat(styles.height), horizontalPadding: parseFloat(styles.paddingLeft) };
+      });
+      assert.ok(Math.abs(width - 210 * 96 / 25.4) < 1, `Largura da folha A4: ${width}`);
+      assert.ok(Math.abs(height - 297 * 96 / 25.4) < 1, `Altura da folha A4: ${height}`);
+      assert.ok(horizontalPadding > 30, `Margem interna da folha: ${horizontalPadding}`);
+      assert.equal(await page.locator('.reports-v19-paper').count(), 2);
+      assert.equal(await page.locator('.reports-v16-footer b').last().textContent(), '2 / 2');
+    },
+  },
+  {
+    id: '12-partner-long-report-fits-before-every-footer',
+    role: 'partner',
+    async run({ page, context, origin, snapshot }) {
+      const finalStep = 'MARCADOR FINAL DO PROXIMO CICLO';
+      const report = {
+        ...tables.reports[0],
+        next_steps: [tables.reports[0].next_steps[0].trim() + ' ' + finalStep],
+      };
+      await intercept(context, origin, 'reports', 'GET', (request) => ({
+        json: request.headers().accept?.includes('vnd.pgrst.object') ? report : [report],
+      }));
+      await page.goto(origin + '/equipe/relatorios/impressao/' + report.id);
+      await page.getByText(finalStep, { exact: false }).waitFor();
+      await page.evaluate(() => document.fonts.ready);
+
+      for (const media of ['screen', 'print']) {
+        await page.emulateMedia({ media });
+        const pages = await page.locator('.reports-v19-paper').evaluateAll((articles) => articles.map((article) => {
+          const footer = article.querySelector('footer');
+          const lastContent = footer.previousElementSibling.getBoundingClientRect();
+          return {
+            overlap: lastContent.bottom - footer.getBoundingClientRect().top,
+            footer: footer.querySelector('b').textContent,
+            width: parseFloat(getComputedStyle(article).width),
+            height: parseFloat(getComputedStyle(article).height),
+          };
+        }));
+        assert(pages.every(({ overlap }) => overlap <= 0), media + ': conteúdo atravessa o rodapé ' + JSON.stringify(pages));
+        assert.equal(pages.length, 3, media + ': folha de continuação ausente');
+        assert.deepEqual(pages.map(({ footer }) => footer), ['1 / 3', '2 / 3', '3 / 3']);
+        assert(
+          pages.every(({ width, height }) => Math.abs(width - 210 * 96 / 25.4) < 1 && Math.abs(height - 297 * 96 / 25.4) < 1),
+          media + ': folhas fora do formato A4 ' + JSON.stringify(pages),
+        );
+      }
+
+      const finalPage = page.locator('.reports-v19-paper').last();
+      assert.equal(await finalPage.getByText(finalStep, { exact: false }).count(), 1);
+      const pdf = await page.pdf({ format: 'A4', preferCSSPageSize: true, printBackground: true });
+      const physicalPages = (pdf.toString('latin1').match(/\/Type\s*\/Page\b/g) || []).length;
+      assert.equal(physicalPages, 3, 'PDF físico deve ter três folhas');
+      await snapshot('continuation', finalPage);
+      return { physicalPages, contentAndFooterSeparated: true };
+    },
+  },
+  {
+    id: '12-admin-report-history-and-agenda-snapshot',
+    role: 'admin',
+    async run({ context, page, origin }) {
+      const report = {
+        ...tables.reports[0],
+        status: 'sent',
+        protocol: 'CALI-RPT-QA-HISTORY',
+        sent_at: clock,
+        client_open_count: 2,
+        acknowledged_at: clock,
+        acknowledgement_protocol: 'CIENCIA-QA-001',
+        source_snapshot: {
+          ...tables.reports[0].source_snapshot,
+          agendaCompliance: {
+            label: 'CALI Partner',
+            requiredTotal: 2,
+            occurredCount: 1,
+            extraCount: 1,
+            pendingOutcomeCount: 1,
+            items: [{ outcome: 'occurred', scheduleClass: 'extra', mode: 'remote' }],
+          },
+        },
+      };
+      await intercept(context, origin, 'rpc/build_report_intelligence_snapshot', 'POST', () => ({ json: report.source_snapshot }));
+      await intercept(context, origin, 'rpc/build_report_monthly_series', 'POST', () => ({ json: [] }));
+      await intercept(context, origin, 'reports', 'GET', (request) => ({
+        json: request.headers().accept?.includes('vnd.pgrst.object') ? report : [report],
+      }));
+      await intercept(context, origin, 'report_client_events', 'GET', () => ({
+        json: [{ id: 'qa-event', report_id: report.id, event_type: 'acknowledged', created_at: clock, user_id: null }],
+      }));
+      const corrections = [];
+      await intercept(context, origin, 'rpc/revise_delivered_report', 'POST', (request) => {
+        corrections.push(request.postDataJSON());
+        return { status: 409, json: { message: 'report_not_reopenable' } };
+      });
+      await page.goto(origin + '/admin/relatorios?report=' + report.id);
+      const historyButton = page.getByRole('button', { name: 'Histórico do cliente', exact: true });
+      await historyButton.click();
+      const history = page.getByRole('dialog', { name: 'Histórico do cliente', exact: true });
+      await history.getByText('Visualizado', { exact: true }).waitFor();
+      assert.equal(await history.getByRole('link', { name: 'Ver versão' }).getAttribute('href'), '/admin/relatorios/impressao/' + report.id);
+      await history.getByRole('button', { name: 'Detalhes', exact: true }).click();
+      await history.getByText('CIENCIA-QA-001', { exact: true }).waitFor();
+      await history.getByText('Ciência registrada', { exact: true }).waitFor();
+      await page.keyboard.press('Escape');
+      await history.waitFor({ state: 'hidden' });
+      assert.equal(await historyButton.evaluate((button) => button === document.activeElement), true);
+
+      await page.getByRole('button', { name: 'Ver relatório', exact: true }).click();
+      const paper = page.getByRole('dialog', { name: 'Prévia do relatório' });
+      await paper.getByRole('heading', { name: 'Encontros do período' }).waitFor();
+      await paper.getByText('Adicionais realizados', { exact: true }).waitFor();
+      await paper.getByText('Pendente de registro:', { exact: true }).waitFor();
+      await paper.getByRole('button', { name: 'Voltar' }).click();
+      await page.locator('.reports-v16-toolbar').getByRole('button', { name: 'Corrigir', exact: true }).click();
+      const correction = page.getByRole('dialog', { name: 'Corrigir fechamento' });
+      const revise = correction.getByRole('button', { name: 'Editar e reenviar' });
+      assert.equal(await correction.getByRole('button', { name: 'Retirar sem substituir' }).count(), 0);
+      await revise.click();
+      await correction.getByText('Informe o motivo da correção.', { exact: true }).waitFor();
+      assert.deepEqual(corrections, []);
+      await correction.getByRole('textbox', { name: 'Motivo' }).fill('  Motivo de correção QA. ');
+      await correction.getByRole('checkbox', { name: 'Solicitar nova ciência ao cliente' }).check();
+      await revise.click();
+      await correction.getByText('Este relatório não está mais em um estado que permita correção antes da leitura.', { exact: true }).waitFor();
+      assert.deepEqual(corrections, [{ p_report_id: report.id, p_reason: 'Motivo de correção QA.', p_request_acknowledgement: true }]);
+      return { reportHistory: true, agendaSnapshot: true, correctionError: true };
+    },
+  },
+  {
     id: '12-client-report-open-cancel-retry-ack-and-print',
     role: 'client',
     async run({ context, page, origin }) {

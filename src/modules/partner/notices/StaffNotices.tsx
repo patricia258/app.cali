@@ -1,13 +1,11 @@
-import { DialogForm } from '../../../components/ds/DialogForm';
+import { StaffDialogBody, StaffDialogFields, StaffDialogFooter, StaffDialogForm, StaffDialogHeader } from '../../../components/workspace/StaffDialog';
 import { Button } from '../../../components/ds/Button';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { useEffect, useState, type FormEvent } from 'react';
-import { X } from 'lucide-react';
 import { readPartnerNoticeReviews, submitNoticeReview, type NoticeReview } from '../../../api/notices/reviews';
 import type { PartnerWorkspace } from '../../../api/partner/workspace';
 import { StaffNoticesPage } from '../../notices/NoticesBoard';
-import { noticeCategories, noticeReviewStatus } from '../../notices/notice-review';
-import '../../notices/notice-review.css';
+import { noticeCategories, noticeReviewStatus, noticeReviewStyles } from '../../notices/notice-review';
 
 function newDraft(review?: NoticeReview) {
   return {
@@ -59,12 +57,12 @@ export function StaffNotices({ me }: { me: PartnerWorkspace }) {
     } finally { setBusy(false); }
   }
 
-  return <div className="ap-app v2-admin-page v2-admin-notices"><div className="ap-content">
+  return <div className="ap-app v2-admin-page"><div className="ap-content">
     {done && <InlineNotice as="p" tone="success" role="status">{done}</InlineNotice>}
     {error && !draft && <InlineNotice as="p" role="alert">{error}</InlineNotice>}
-    {reviews.length > 0 && <section className="notice-review-panel">
-      <h2>Meus comunicados</h2>
-      <ul>{reviews.map((review) => <li key={review.id}>
+    {reviews.length > 0 && <section className={noticeReviewStyles.panel}>
+      <h2 className={noticeReviewStyles.heading}>Meus comunicados</h2>
+      <ul className={noticeReviewStyles.list}>{reviews.map((review) => <li className={noticeReviewStyles.item} key={review.id}>
         <strong>{review.title}</strong>
         <span>{noticeReviewStatus[review.status]}</span>
         {review.review_note && <p>{review.review_note}</p>}
@@ -72,32 +70,31 @@ export function StaffNotices({ me }: { me: PartnerWorkspace }) {
       </li>)}</ul>
     </section>}
     <StaffNoticesPage onCompose={() => open()} />
-    {draft && <div className="wf-overlay"><DialogForm className="wf-modal v2-staff-form"
+    {draft && <div className="wf-overlay"><StaffDialogForm
       aria-label={draft.id ? 'Ajustar comunicado' : 'Novo comunicado'} onSubmit={save}>
-      <header><h2>{draft.id ? 'Ajustar comunicado' : 'Novo comunicado'}</h2>
-        <button type="button" onClick={() => setDraft(null)} aria-label="Fechar" disabled={busy}><X size={16} /></button></header>
-      <div className="v2-staff-body">
-        <div className="v2-staff-fields">
+      <StaffDialogHeader onClose={() => setDraft(null)} disabled={busy}><h2>{draft.id ? 'Ajustar comunicado' : 'Novo comunicado'}</h2></StaffDialogHeader>
+      <StaffDialogBody>
+        <StaffDialogFields>
           <label>Tipo<select value={draft.category} onChange={(event) => setDraft({ ...draft, category: event.target.value })}>
             {noticeCategories.map(([id, label]) => <option value={id} key={id}>{label}</option>)}
           </select></label>
           <label>Data do aviso<input type="date" value={draft.date} onChange={(event) => setDraft({ ...draft, date: event.target.value })} /></label>
-        </div>
-        <div className="v2-staff-fields one">
+        </StaffDialogFields>
+        <StaffDialogFields columns={1}>
           <label>Título<input value={draft.title} required maxLength={180} onChange={(event) => setDraft({ ...draft, title: event.target.value })} /></label>
           <label>Mensagem<textarea rows={4} value={draft.body} required maxLength={5000} onChange={(event) => setDraft({ ...draft, body: event.target.value })} /></label>
-        </div>
-        <fieldset><legend>Empresas</legend><div className="v2-staff-checks">{me.companies.map((item) => <label key={item.id}>
+        </StaffDialogFields>
+        <fieldset><legend>Empresas</legend><div className="tw:grid tw:grid-cols-2 tw:gap-[.62rem] tw:[@media(max-width:860px)]:grid-cols-1 tw:[&>label]:flex tw:[&>label]:cursor-pointer tw:[&>label]:items-start tw:[&>label]:gap-[.69rem] tw:[&>label]:rounded-[.62rem] tw:[&>label]:border tw:[&>label]:border-solid tw:[&>label]:border-[#eadfd8] tw:[&>label]:bg-white tw:[&>label]:px-[.92rem] tw:[&>label]:py-[.77rem] tw:[&>label]:text-[.92rem] tw:[&>label]:text-[#322f2c] tw:[&>label:has(input:checked)]:border-cali-brand tw:[&>label:has(input:checked)]:bg-[#fbf5f6] tw:[&_input]:mx-0 tw:[&_input]:mt-[.15rem] tw:[&_input]:mb-0 tw:[&_input]:flex-none tw:[&_input]:accent-cali-brand">{me.companies.map((item) => <label key={item.id}>
           <input type="checkbox" checked={draft.companies.includes(item.id)} onChange={() => setDraft({ ...draft,
             companies: draft.companies.includes(item.id) ? draft.companies.filter((id) => id !== item.id) : [...draft.companies, item.id],
           })} /><span>{item.display_name}</span>
         </label>)}</div></fieldset>
         {error && <InlineNotice as="p" role="alert">{error}</InlineNotice>}
-      </div>
-      <footer>
+      </StaffDialogBody>
+      <StaffDialogFooter>
         <Button type="button" variant="workflowSecondary" onClick={() => setDraft(null)} disabled={busy}>Cancelar</Button>
         <Button type="submit" variant="workflowPrimary" pending={busy} disabled={!draft.companies.length}>{busy ? 'Enviando…' : 'Enviar para revisão'}</Button>
-      </footer>
-    </DialogForm></div>}
+      </StaffDialogFooter>
+    </StaffDialogForm></div>}
   </div></div>;
 }

@@ -90,6 +90,38 @@ browserSuite([
     },
   },
   {
+    id: '11-document-cover-fills-the-card-on-mobile',
+    role: 'client',
+    width: 390,
+    async run({ page, origin }) {
+      await page.goto(origin + '/cliente/documentos');
+      const cover = page.getByRole('button', { name: 'Abrir a pasta ' + delivery.title, exact: true });
+      const logo = cover.getByRole('img');
+      await logo.waitFor();
+      const geometry = await logo.evaluate((image) => {
+        const art = image.parentElement;
+        const button = art.closest('button');
+        const frame = button.getBoundingClientRect();
+        const fill = art.getBoundingClientRect();
+        const mark = image.getBoundingClientRect();
+        return {
+          width: frame.width,
+          height: frame.height,
+          fillWidth: fill.width,
+          left: fill.left - frame.left,
+          markCenter: mark.left + mark.width / 2 - frame.left,
+          markWidth: mark.width,
+        };
+      });
+      assert.ok(Math.abs(geometry.height - 112) < 1, 'a capa mantém 112px de altura');
+      assert.ok(Math.abs(geometry.fillWidth - geometry.width) < 1, 'o fundo ocupa toda a largura');
+      assert.ok(Math.abs(geometry.left) < 1, 'a capa começa na borda do cartão');
+      assert.ok(Math.abs(geometry.markCenter - geometry.width / 2) < 1, 'o logo fica centralizado');
+      assert.ok(geometry.markWidth > 0 && geometry.markWidth <= geometry.width * 0.44 + 1);
+      return { coverWidth: geometry.width, imageWidth: geometry.markWidth };
+    },
+  },
+  {
     id: '11-drive-folder-mixed-content-and-partial-retry',
     role: 'client',
     async run({ page, context, origin }) {

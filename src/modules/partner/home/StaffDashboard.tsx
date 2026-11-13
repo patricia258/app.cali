@@ -1,3 +1,4 @@
+import { WorkspacePageHeader } from '../../../components/workspace/WorkspacePageHeader';
 /* Visão geral do Partner (Equipe CALI). Mesma composição e mesmas classes da Visão geral da administradora (.ap-*),
    com os dados que ele pode ver: empresas atribuídas e módulos liberados. Cada bloco só aparece se o módulo estiver liberado. */
 import { EmptyState } from '../../../components/ds/EmptyState';
@@ -64,12 +65,11 @@ export function StaffDashboard({ me }: { me: PartnerWorkspace }) {
   ];
 
   return <div className="ap-app v2-admin-page v2-staff-dashboard"><div className="ap-content">
-    <div className="ap-title">
-      <div><small>EQUIPE CALI / VISÃO GERAL</small><h1>Visão geral<span>.</span></h1><p>Prioridades, agenda e consumo de horas.</p></div>
-      <div className="ap-title-actions"><Link className="ap-outline" to="/equipe/aprovacoes"><Send size={15} /> Ver aprovações</Link></div>
-    </div>
+    <WorkspacePageHeader eyebrow="EQUIPE CALI / VISÃO GERAL" title="Visão geral" description="Prioridades, agenda e consumo de horas.">
+      <Link className="tw:inline-flex tw:items-center tw:gap-[.538rem] tw:rounded-[.615rem] tw:border tw:border-solid tw:border-[#e5d9d1] tw:bg-white tw:px-4 tw:py-[.846rem] tw:font-bold tw:text-cali-brand" to="/equipe/aprovacoes"><Send size={15} /> Ver aprovações</Link>
+    </WorkspacePageHeader>
 
-    <section className="ap-overview-hero">
+    <section className="ap-overview-hero tw:min-h-0!">
       <div><small>CALI · EQUIPE</small><h2>{greeting()}, {me.name.split(' ')[0]}.</h2><p>Veja o que precisa de você hoje.</p></div>
     </section>
 
@@ -84,7 +84,7 @@ export function StaffDashboard({ me }: { me: PartnerWorkspace }) {
       </section>}
       {has('calendar') && <section className="ap-pane">
         <div className="ap-pane-head"><h2>Agenda das suas empresas</h2><Link to="/equipe/calendario">Ver calendário <ArrowRight size={14} /></Link></div>
-        {events.length ? events.map((event) => <Link className="ap-time-line" key={event.id} to="/equipe/calendario"><time>{dateLabel(event.starts_at)} · {timeLabel(event.starts_at)}</time><i /><span><strong>{event.title}</strong><small>{companyName.get(event.company_id || '') || 'CALI'} · {eventKind[event.event_type || ''] || 'Compromisso'}</small></span><ChevronRight size={14} /></Link>) : <EmptyState as="p" variant="admin">Nenhum compromisso marcado nos próximos dias.</EmptyState>}
+        {events.length ? events.map((event) => <Link className="ap-time-line" key={event.id} to="/equipe/calendario"><time>{dateLabel(event.starts_at)} · {timeLabel(event.starts_at)}</time><i className="tw:bg-[#a484d7]" /><span><strong>{event.title}</strong><small>{companyName.get(event.company_id || '') || 'CALI'} · {eventKind[event.event_type || ''] || 'Compromisso'}</small></span><ChevronRight size={14} /></Link>) : <EmptyState as="p" variant="admin">Nenhum compromisso marcado nos próximos dias.</EmptyState>}
       </section>}
       {has('projects') && !has('calendar') && <section className="ap-pane">
         <div className="ap-pane-head"><h2>Próximos prazos</h2><Link to="/equipe/projetos">Ver entregas <ArrowRight size={14} /></Link></div>
@@ -108,13 +108,13 @@ export function StaffDashboard({ me }: { me: PartnerWorkspace }) {
 
     <section className="ap-pane ap-full">
       <div className="ap-pane-head"><h2>Suas empresas</h2></div>
-      {me.companies.length ? <div className="ap-account-grid">{me.companies.map((client) => { const mine = open.filter((item) => item.company_id === client.id); const talk = openRecords.filter((item) => item.company_id === client.id).length; const state = mine.some((item) => item.status === 'adjustment_requested') ? ['Ajuste solicitado', 'red'] : mine.some((item) => item.status === 'client_review') ? ['Aguardando cliente', 'red'] : talk ? [`${talk} ${talk === 1 ? 'ocorrência aberta' : 'ocorrências abertas'}`, 'amber'] : mine.length ? ['Em execução', 'amber'] : ['Em dia', 'green'];
-        return <Link className="ap-client" key={client.id} to={has('projects') ? '/equipe/projetos' : '/equipe'}><span className="ap-client-brand">{logos[client.id] ? <img src={logos[client.id]} alt="" /> : mark(client.display_name)}</span><div><strong>{client.display_name}</strong><small>{[PLAN[String(client.service_plan || '').toLowerCase()] || client.service_plan, client.monthly_hours_contracted ? `${client.monthly_hours_contracted}h por mês` : '', has('projects') ? `${mine.length} ${mine.length === 1 ? 'entrega em andamento' : 'entregas em andamento'}` : ''].filter(Boolean).join(' · ')}</small></div><span className={`ap-status ${state[1]}`}>{state[0]}</span><ArrowRight size={15} /></Link>; })}</div> : <EmptyState as="p" variant="admin">Nenhuma empresa atribuída a você ainda. Fale com a Patricia.</EmptyState>}
+      {me.companies.length ? <div className="ap-account-grid tw:grid-cols-[repeat(auto-fill,minmax(min(100%,25.38rem),1fr))]!">{me.companies.map((client) => { const mine = open.filter((item) => item.company_id === client.id); const talk = openRecords.filter((item) => item.company_id === client.id).length; const state = mine.some((item) => item.status === 'adjustment_requested') ? ['Ajuste solicitado', 'red'] : mine.some((item) => item.status === 'client_review') ? ['Aguardando cliente', 'red'] : talk ? [`${talk} ${talk === 1 ? 'ocorrência aberta' : 'ocorrências abertas'}`, 'amber'] : mine.length ? ['Em execução', 'amber'] : ['Em dia', 'green'];
+        return <Link className="ap-client tw:min-w-0 tw:[@media(max-width:640px)]:flex-wrap" key={client.id} to={has('projects') ? '/equipe/projetos' : '/equipe'}><span className="ap-client-brand">{logos[client.id] ? <img src={logos[client.id]} alt="" /> : mark(client.display_name)}</span><div className="tw:min-w-0 tw:flex-1"><strong>{client.display_name}</strong><small className="tw:block tw:truncate tw:[@media(max-width:640px)]:whitespace-normal">{[PLAN[String(client.service_plan || '').toLowerCase()] || client.service_plan, client.monthly_hours_contracted ? `${client.monthly_hours_contracted}h por mês` : '', has('projects') ? `${mine.length} ${mine.length === 1 ? 'entrega em andamento' : 'entregas em andamento'}` : ''].filter(Boolean).join(' · ')}</small></div><span className={`ap-status ${state[1]}`}>{state[0]}</span><ArrowRight size={15} /></Link>; })}</div> : <EmptyState as="p" variant="admin">Nenhuma empresa atribuída a você ainda. Fale com a Patricia.</EmptyState>}
     </section>
 
     <section className="ap-pane ap-full v2-staff-scope">
       <div className="ap-pane-head"><h2>O que está liberado para você</h2></div>
-      <div className="v2-staff-scope-tags">{me.modules.map((key) => <span className="ap-status purple" key={key}>{({ records: 'Ocorrências', projects: 'Projetos e entregas', hours: 'Horas', calendar: 'Calendário', documents: 'Documentos', reports: 'Relatórios', notices: 'Avisos', team: 'Equipe do cliente', people_map: 'Mapa de People' } satisfies Record<string, string>)[key] || key}</span>)}</div>
+      <div className="tw:flex tw:flex-wrap tw:gap-[.62rem] tw:pt-[.31rem]">{me.modules.map((key) => <span className="ap-status purple" key={key}>{({ records: 'Ocorrências', projects: 'Projetos e entregas', hours: 'Horas', calendar: 'Calendário', documents: 'Documentos', reports: 'Relatórios', notices: 'Avisos', team: 'Equipe do cliente', people_map: 'Mapa de People' } satisfies Record<string, string>)[key] || key}</span>)}</div>
     </section>
   </div></div>;
 }

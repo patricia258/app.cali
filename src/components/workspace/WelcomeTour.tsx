@@ -3,7 +3,8 @@
    (cali:welcome-seen:<id>).
    Reabre por evento: window.dispatchEvent(new Event('cali:welcome-open')). */
 import { DialogFrame } from '../ds/DialogFrame';
-import { useEffect, useState } from 'react';
+import './components/workspace-dialog-motion.css';
+import { useEffect, useState, type ReactNode } from 'react';
 import { ArrowLeft, ArrowRight, Play, X } from 'lucide-react';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
 import { hasSeenWorkspaceWelcome, markWorkspaceWelcomeSeen } from '../../api/workspace/welcome';
@@ -25,7 +26,10 @@ const clientSteps: Step[] = [
 ];
 
 export type WelcomeStep = Step;
-export function WelcomeTour({ steps: custom }: { steps?: Step[] } = {}) {
+export function WelcomeTour({ steps: custom, onHighlight }: {
+  steps?: Step[];
+  onHighlight?: (href: string | null) => void;
+} = {}) {
   const steps = custom || clientSteps;
   const { user } = useWorkspaceAuth();
   const key = user?.id ? `cali:welcome-seen:${user.id}` : '';
@@ -44,24 +48,63 @@ export function WelcomeTour({ steps: custom }: { steps?: Step[] } = {}) {
   useEffect(() => { const open = () => setIndex(0); window.addEventListener(WELCOME_OPEN_EVENT, open); return () => window.removeEventListener(WELCOME_OPEN_EVENT, open); }, []);
   const step = index == null ? null : steps[index];
   useEffect(() => {
-    document.querySelectorAll('.v2-tour-focus').forEach((node) => node.classList.remove('v2-tour-focus'));
-    if (step?.href) document.querySelector(`.sidebar nav a[href="${step.href}"]`)?.classList.add('v2-tour-focus');
-    return () => document.querySelectorAll('.v2-tour-focus').forEach((node) => node.classList.remove('v2-tour-focus'));
-  }, [step]);
+    onHighlight?.(step?.href ?? null);
+    return () => onHighlight?.(null);
+  }, [onHighlight, step?.href]);
   if (index == null || !step) return null;
   const close = () => { try { if (key) localStorage.setItem(key, new Date().toISOString()); } catch { /* segue */ } if (user?.id) void markWorkspaceWelcomeSeen(user.id); setIndex(null); };
   const last = index === steps.length - 1;
-  return <div className="v2-welcome-overlay"><DialogFrame className="v2-welcome" aria-label="Apresentação do CALI Workspace" key={step.title}>
-    <header><span>{step.label}</span><button type="button" onClick={close} aria-label="Fechar apresentação"><X size={16} /></button></header>
-    <div className="v2-welcome-body">
-      {index === 0 && <div className="v2-welcome-video" role="img" aria-label="Vídeo de boas-vindas (em breve)"><span><Play size={22} /></span><small>Vídeo de boas-vindas · em breve</small></div>}
-      <h2>{step.title}</h2><p>{step.text}</p>
+  return (
+    <div
+      data-workspace-welcome
+      className="tw:fixed tw:inset-0 tw:z-995 tw:grid tw:place-items-center tw:bg-[#20151d73] tw:p-[1.385rem] tw:backdrop-blur-[.154rem] tw:motion-safe:animate-[workspace-dialog-fade_.22s_ease-out_backwards]"
+    >
+      <DialogFrame
+        aria-label="Apresentação do CALI Workspace"
+        key={step.title}
+        className="tw:flex tw:max-h-full tw:w-full tw:max-w-[35.385rem] tw:flex-col tw:overflow-auto tw:rounded-[.923rem] tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-[#fffdfb] tw:shadow-[0_1.846rem_6.154rem_#28172440] tw:motion-safe:animate-[workspace-dialog-enter_.34s_cubic-bezier(.2,.7,.2,1)_backwards]"
+      >
+        <header className="tw:flex tw:items-center tw:justify-between tw:gap-[.923rem] tw:border-0 tw:border-b tw:border-solid tw:border-[#eee2db] tw:px-[1.385rem] tw:py-[1.077rem]">
+          <span className="tw:text-[.769rem] tw:font-extrabold tw:tracking-[.108rem] tw:text-[#af8f72]">{step.label}</span>
+          <button type="button" onClick={close} aria-label="Fechar apresentação" className="tw:grid tw:size-[2.154rem] tw:place-items-center tw:rounded-[.538rem] tw:border tw:border-solid tw:border-[#ecded5] tw:bg-white tw:p-0 tw:text-[#322f2c]">
+            <X aria-hidden="true" className="tw:size-[1.231rem]" />
+          </button>
+        </header>
+        <div className="tw:flex tw:min-h-[9.846rem] tw:flex-col tw:gap-[.769rem] tw:p-[1.385rem]">
+          {index === 0 && (
+            <div role="img" aria-label="Vídeo de boas-vindas (em breve)" className="tw:mb-[.308rem] tw:flex tw:aspect-video tw:flex-col tw:items-center tw:justify-center tw:gap-[.769rem] tw:rounded-[.692rem] tw:bg-[linear-gradient(135deg,#5a1e2d,#7a3346)]">
+              <span className="tw:grid tw:size-[4.154rem] tw:place-items-center tw:rounded-full tw:border tw:border-solid tw:border-[#ffffff59] tw:bg-[#ffffff26] tw:text-white">
+                <Play aria-hidden="true" className="tw:size-[1.692rem]" />
+              </span>
+              <small className="tw:text-[.846rem] tw:text-[#eadfd8]">Vídeo de boas-vindas · em breve</small>
+            </div>
+          )}
+          <h2 className="tw:m-0 tw:text-[1.385rem] tw:leading-[1.3] tw:font-bold tw:text-[#322f2c]">{step.title}</h2>
+          <p className="tw:m-0 tw:text-[1rem] tw:leading-[1.6] tw:text-[#655a55]">{step.text}</p>
+        </div>
+        <footer className="tw:flex tw:items-center tw:gap-[.615rem] tw:border-0 tw:border-t tw:border-solid tw:border-[#ece1da] tw:px-[1.385rem] tw:py-[.923rem] tw:max-[35rem]:flex-wrap">
+          <div role="img" aria-label={`Passo ${index + 1} de ${steps.length}`} className="tw:mr-auto tw:flex tw:items-center tw:gap-[.308rem] tw:max-[35rem]:mb-[.308rem] tw:max-[35rem]:w-full">
+            {steps.map((item, position) => (
+              <span key={item.label} className={`tw:h-[.462rem] ${position === index ? 'tw:w-[1.231rem] tw:rounded-[.231rem] tw:bg-cali-brand' : 'tw:w-[.462rem] tw:rounded-full tw:bg-[#e6d9cf]'}`} />
+            ))}
+          </div>
+          {!last && <button type="button" className="tw:cursor-pointer tw:border-0 tw:bg-transparent tw:px-[.462rem] tw:py-[.615rem] tw:text-[.846rem] tw:text-[#8c7e74]" onClick={close}>Pular</button>}
+          {index > 0 && <WelcomeAction onClick={() => setIndex(index - 1)}><ArrowLeft aria-hidden="true" className="tw:size-[1.077rem]" /> Voltar</WelcomeAction>}
+          <WelcomeAction primary onClick={() => last ? close() : setIndex(index + 1)}>
+            {index === 0 ? 'Conhecer o Workspace' : last ? 'Começar' : 'Avançar'} <ArrowRight aria-hidden="true" className="tw:size-[1.077rem]" />
+          </WelcomeAction>
+        </footer>
+      </DialogFrame>
     </div>
-    <footer>
-      <div className="v2-welcome-dots" aria-label={`Passo ${index + 1} de ${steps.length}`}>{steps.map((item, position) => <i key={item.label} className={position === index ? 'on' : ''} />)}</div>
-      {!last && <button type="button" className="v2-welcome-skip" onClick={close}>Pular</button>}
-      {index > 0 && <button type="button" className="outline-button" onClick={() => setIndex(index - 1)}><ArrowLeft size={14} /> Voltar</button>}
-      <button type="button" className="primary-button" onClick={() => last ? close() : setIndex(index + 1)}>{index === 0 ? 'Conhecer o Workspace' : last ? 'Começar' : 'Avançar'} <ArrowRight size={14} /></button>
-    </footer>
-  </DialogFrame></div>;
+  );
+}
+
+function WelcomeAction({ children, onClick, primary }: { children: ReactNode; onClick: () => void; primary?: boolean }) {
+  return <button
+    type="button"
+    onClick={onClick}
+    className={`tw:inline-flex tw:items-center tw:gap-[.462rem] tw:rounded-[.538rem] tw:border tw:border-solid tw:px-[1.077rem] tw:py-[.769rem] tw:text-[.846rem] tw:font-semibold tw:whitespace-nowrap ${primary
+      ? 'tw:border-cali-brand tw:bg-cali-brand tw:text-white'
+      : 'tw:border-[#e5dbd5] tw:bg-white tw:text-[#594e4b] tw:hover:border-cali-gold'}`}
+  >{children}</button>;
 }

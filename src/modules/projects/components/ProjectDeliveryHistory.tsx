@@ -1,7 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
 import { CalendarCheck2, Clock3, History, TimerReset } from 'lucide-react';
-import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
-import { readProjectPerformance, type DeliveryPerformance } from '../../../api/projects/performance';
+import { useProjectDeliveryHistory } from '../hooks/useProjectDeliveryHistory';
+import type { DeliveryPerformance } from '../../../api/projects/performance';
 
 function dateTime(value?:string|null){if(!value)return'—';return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(value));}
 function dateOnly(value?:string|null){if(!value)return'—';return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(`${value.slice(0,10)}T12:00:00`));}
@@ -10,16 +9,7 @@ function timingLabel(row:DeliveryPerformance){const d=Number(row.business_days_f
 function startLabel(status:DeliveryPerformance['start_timing']){return status==='started_early'?'Iniciado antes do planejado':status==='started_on_time'?'Iniciado na data planejada':status==='started_late'?'Iniciado depois do planejado':'Início planejado não definido';}
 
 export function ProjectDeliveryHistory({ projectId }: { projectId: string }) {
-  const { user } = useWorkspaceAuth();
-  const history = useQuery({
-    queryKey: ['project-delivery-history', user?.id, projectId],
-    queryFn: ({ signal }) => readProjectPerformance(projectId, signal),
-    refetchInterval: 10_000,
-    refetchIntervalInBackground: true,
-    refetchOnWindowFocus: false,
-    retry: false,
-    gcTime: 0,
-  });
+  const history = useProjectDeliveryHistory(projectId);
   const completed = (history.data ?? [])
     .filter((row) => row.status === 'approved' || Boolean(row.work_closed_at))
     .sort((left, right) => new Date(right.completion_at || right.work_closed_at || 0).getTime()

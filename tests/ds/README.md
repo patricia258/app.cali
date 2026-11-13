@@ -44,8 +44,8 @@ As folhas dos componentes usam utilitários para estrutura, dimensões, cores re
 | `feedback/AppErrorBoundary.tsx` | Fixtures de erro, recuperação manual e recarga única para módulo desatualizado. |
 | `hours/CapacityBar.tsx` | Galeria de ausência de contrato, uso normal, atenção, completo, excedente, pausa e fundo escuro. Unitários de texto e escala. |
 | `hours/GlobalTimerBar.tsx` | E2E `global-timer-pause-and-finalize`. Comparação `timers-overflow` prova quatro timers acessíveis, foco após Escape, reabertura por teclado e controles do cabeçalho. |
-| `hours/HoursLifecycleBridge.tsx` | E2E `hours-lifecycle-finalizes-selected-active-timer` verifica escolha por ID e dupla confirmação. |
-| `hours/ProjectTimerBridge.tsx` | E2E `06-project-timer-start-and-pause` pelo detalhe do projeto. |
+| `modules/hours/AdminHoursPage.tsx` | E2E `hours-lifecycle-finalizes-selected-active-timer` verifica escolha por ID, dupla confirmação e nova tentativa após erro. |
+| `modules/projects/components/ProjectWorkTimer.tsx` | E2E `06-project-timer-start-and-pause` e `06-project-task-timer-respects-company-and-requires-two-confirmations`. Cobrem os controles de entregável e subtarefa, limite por empresa, pausa, confirmação em duas etapas e bloqueio após encerrar. |
 | `hours/TimerFinalizationDialog.tsx` | Fixture de duas confirmações e trava durante processamento. |
 | `legal/LegalDocument.tsx` | Unitários de títulos, listas, tabelas e escape. E2E de termos na entrada e impressão por papel. |
 | `navigation/Link.tsx` | Fixtures de caminho, query, hash, clique cancelado e modificado, download, alvo e histórico. |
@@ -57,7 +57,7 @@ As folhas dos componentes usam utilitários para estrutura, dimensões, cores re
 | `reports/ReportManualComplementsPanel.tsx` | Fixture de inclusão, edição, total e remoção. Unitário de travamento da versão fechada. Persistência externa fora da fixture. |
 | `reports/ReportValidationBlock.tsx` | Galeria com 14 estilos gerados, assinatura enviada, ciência pendente e protocolo. Unitário pelo papel do relatório. |
 | `workspace/DirectProfileControl.tsx` | E2E `profile-save-retry-and-reopen` e casos `account-*`. Comparação da conta aberta em quatro larguras. |
-| `workspace/OperationalSafetyBridge.tsx` | E2E `hours-audit-edit-keeps-visible-entry`. Comparação de edição de horas com justificativa. |
+| `modules/hours/components/AuditedHourEntryDialog.tsx` e `HoursAuditDialog.tsx` | E2E `hours-audit-edit-keeps-visible-entry` verifica edição com justificativa, leitura da trilha e cancelamento de exclusão. |
 | `workspace/WelcomeTour.tsx` | Fixture de avanço, retorno, destaque, conclusão persistida e reabertura. Guardas de primeira entrada. |
 | `workspace/WorkspaceChrome.tsx` | E2E de destino, leitura, bloqueio de origem externa e troca de sessão com dois titulares. Comparação do sino. |
 | `workspace/WorkspaceShell.tsx` | Jornadas de entrada por papel e rotas diretas. Testes de barra global, notificações e pontes instaladas pelo shell. |

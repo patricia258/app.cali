@@ -1,24 +1,6 @@
 
 @reference "../../../styles/tailwind.css";
 
-.satisfaction-requests {
-  @apply tw:my-[14px];
-}
-
-.satisfaction-requests ul {
-  @apply tw:p-0;
-  list-style: none;
-}
-
-.satisfaction-requests li {
-  @apply tw:flex tw:flex-wrap tw:items-center tw:justify-between tw:gap-[8px];
-  padding-block: 6px;
-}
-
-.satisfaction-requests .satisfaction-print-only {
-  @apply tw:hidden;
-}
-
 @media print {
   html:has(.v2-admin-nps),
   body:has(.v2-admin-nps),
@@ -55,9 +37,6 @@
     break-inside: avoid;
   }
 
-  .v2-admin-nps .satisfaction-requests .satisfaction-print-only {
-    @apply tw:flex;
-  }
 }
 
 .satisfaction-print-cohort {

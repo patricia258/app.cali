@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  END_OF_FORM, buildFormSubmission, formSubmissionKey, formatAnswer, nextQuestionIndex, richTextHtml, slugify, validateAnswer,
+  END_OF_FORM, buildFormSubmission, formSubmissionKey, formatAnswer, nextQuestionIndex, slugify, validateAnswer,
 } from '../../src/modules/forms/formModel.ts';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { RichText } from '../../src/components/public/RichText.tsx';
 
 test('conditional form navigation preserves old question IDs and handles retired targets', () => {
   const questions = [
@@ -38,12 +41,14 @@ test('public form preserves the readable slug and export format for old answer d
 });
 
 test('form instructions render formatting and escape markup from submitted text', () => {
-  const result = richTextHtml('**Política** [Ajuda](https://example.test/ajuda) <img src=x onerror=alert(1)>');
+  const render = (value) => renderToStaticMarkup(createElement(RichText, { value }));
+  const result = render('**Política** [Ajuda](https://example.test/ajuda) <img src=x onerror=alert(1)>');
   assert.match(result, /<strong>Política<\/strong>/);
   assert.match(result, /<a href="https:\/\/example.test\/ajuda" target="_blank" rel="noopener noreferrer">Ajuda<\/a>/);
   assert.match(result, /&lt;img/);
   assert.doesNotMatch(result, /<img/);
-  assert.doesNotMatch(richTextHtml('[clique](javascript:alert(1))'), /<a /);
+  assert.doesNotMatch(render('[clique](javascript:alert(1))'), /<a /);
+  assert.match(render('__CALI__ *Formulário* https://example.test/ajuda?a=1&b=2.'), /<u>CALI<\/u> <em>Formulário<\/em> <a href="https:\/\/example.test\/ajuda\?a=1&amp;b=2"[^>]+>[^<]+<\/a>\./);
 });
 
 test('public form submits only the answers and files on the chosen branch after going back', () => {

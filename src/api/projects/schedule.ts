@@ -1,40 +1,50 @@
 import { requireProjectClient } from './client';
+import type { ScheduleReviewChanges } from '../../domain/projects';
 
-const scheduleColumns = 'id,protocol,company_id,name,planning_status,start_date,roadmap_start_date,target_end_date,roadmap_end_date,client_response_business_days,client_approved_at,activated_at';
+const scheduleColumns = 'id,name,planning_status,start_date,roadmap_start_date,roadmap_end_date';
+const reviewColumns = 'id,project_id,status,request_number,response_due_at,response_note,requested_changes,resolution_note,requested_at';
 
-async function readScheduleParts(projectId: string) {
+export type ScheduleReviewRequest = {
+  id: string;
+  status: string;
+  request_number: number;
+  response_due_at: string | null;
+  response_note: string | null;
+  requested_changes: ScheduleReviewChanges | null;
+  requested_at: string;
+};
+
+export async function readProjectScheduleReviewRequests(projectId: string, signal: AbortSignal) {
+  const { data, error } = await requireProjectClient().from('project_review_requests').select(reviewColumns)
+    .eq('project_id', projectId).order('requested_at', { ascending: false }).abortSignal(signal);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ScheduleReviewRequest[];
+}
+
+export async function readClientScheduleReview(companyId: string, projectId: string, signal: AbortSignal) {
   const client = requireProjectClient();
+  const { data: project, error } = await client.from('projects').select(scheduleColumns)
+    .eq('company_id', companyId).eq('id', projectId).abortSignal(signal).maybeSingle();
+  if (error) throw new Error(error.message);
+  const expectedStatus = project?.planning_status === 'client_review' ? 'pending'
+    : project?.planning_status === 'adjustment_requested' ? 'adjustment_requested' : null;
+  if (!project || !expectedStatus) return null;
+
   const [fronts, deliverables, reviews] = await Promise.all([
-    client.from('project_workstreams').select('id,protocol,project_id,name,objective,status,sort_order,roadmap_month_start,roadmap_month_end')
-      .eq('project_id', projectId).neq('status', 'cancelled').order('sort_order'),
-    client.from('deliverables').select('id,protocol,project_id,workstream,workstream_id,title,due_at,status,sort_order,complexity')
-      .eq('project_id', projectId).neq('status', 'cancelled').order('sort_order'),
-    client.from('project_review_requests').select('id,project_id,status,request_number,response_due_at,response_note,requested_changes,resolution_note,requested_at')
-      .eq('project_id', projectId).order('requested_at', { ascending: false }),
+    client.from('project_workstreams').select('id,name')
+      .eq('project_id', projectId).neq('status', 'cancelled').order('sort_order').abortSignal(signal),
+    client.from('deliverables').select('id,title,due_at,complexity')
+      .eq('project_id', projectId).neq('status', 'cancelled').order('sort_order').abortSignal(signal),
+    readProjectScheduleReviewRequests(projectId, signal),
   ]);
-  return { fronts: fronts.data ?? [], deliverables: deliverables.data ?? [], reviews: reviews.data ?? [] };
+  if (fronts.error) throw new Error(fronts.error.message);
+  if (deliverables.error) throw new Error(deliverables.error.message);
+  const review = reviews.find((item) => item.status === expectedStatus);
+  if (!review) return null;
+  return { project, fronts: fronts.data ?? [], deliverables: deliverables.data ?? [], review };
 }
 
-export async function readAdminScheduleReview(protocol: string) {
-  const { data: project, error } = await requireProjectClient().from('projects').select(scheduleColumns)
-    .eq('protocol', protocol).maybeSingle();
-  if (error || !project) return null;
-  return { project, ...await readScheduleParts(project.id) };
-}
-
-export async function readClientScheduleReview(selectedProjectId: string) {
-  const client = requireProjectClient();
-  const { data: auth } = await client.auth.getUser();
-  if (!auth.user?.id) return null;
-  const { data: profile } = await client.from('profiles').select('company_id').eq('id', auth.user.id).maybeSingle();
-  if (!profile?.company_id) return null;
-  const { data: projects, error } = await client.from('projects').select(scheduleColumns)
-    .eq('company_id', profile.company_id).order('created_at', { ascending: false });
-  if (error || !projects?.length) return null;
-  const project = projects.find((row) => row.id === selectedProjectId)
-    ?? projects.find((row) => row.planning_status === 'client_review' || row.planning_status === 'adjustment_requested') ?? projects[0];
-  return { project, ...await readScheduleParts(project.id) };
-}
+export type ClientScheduleReview = NonNullable<Awaited<ReturnType<typeof readClientScheduleReview>>>;
 
 export async function renameProjectWorkstream(id: string, name: string, objective: string | null) {
   return await requireProjectClient().rpc('admin_update_project_workstream', { p_workstream_id: id, p_name: name, p_objective: objective });
@@ -57,17 +67,18 @@ export async function sendScheduleReminder(project: { id: string; company_id: st
   });
 }
 
-type ScheduleAdjustment = {
-  p_project_id: string; p_target_type: string; p_target_id: string | null; p_reason: string; p_priority: string | null;
+export type ScheduleAdjustment = {
+  p_project_id: string;
+  p_target_type: 'workstream' | 'deliverable' | 'project';
+  p_target_id: string | null;
+  p_reason: string;
+  p_priority: string | null;
+  p_action: 'reschedule' | 'swap_order' | 'change_proposal' | null;
+  p_requested_date: string | null;
+  p_swap_target_id: string | null;
 };
 
 export async function requestScheduleAdjustment(input: ScheduleAdjustment) {
-  return await requireProjectClient().rpc('client_request_project_schedule_adjustment', input);
-}
-
-export async function requestScheduleAdjustmentV39(input: ScheduleAdjustment & {
-  p_action: string | null; p_requested_date: string | null; p_swap_target_id: string | null;
-}) {
   return await requireProjectClient().rpc('client_request_project_schedule_adjustment_v39', input);
 }
 

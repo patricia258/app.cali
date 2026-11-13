@@ -24,7 +24,7 @@ async function publicSurfaces({ page, context, origin }) {
     );
   });
   await page.goto(origin + '/');
-  const entry = page.locator('.lp-hero-login');
+  const entry = page.getByRole('link', { name: 'Entrar no Workspace', exact: true });
   await entry.waitFor();
   await scope(page, { workspaceUi: null, workspaceSurface: 'landing', workspaceTheme: 'night' });
   await page.evaluate(() => { window.__caliSurfaceCheck = 'spa'; });
@@ -69,6 +69,43 @@ async function documentSurface({ page, context, origin }) {
   return { editorPadding: '20px', inactiveOutsideDocument: true, restoredOnBack: true };
 }
 
+async function readBriefingLayout(page) {
+  await page.getByRole('button', { name: 'Abrir briefing', exact: true }).click();
+  const drawer = page.locator('.portal-admin-drawer');
+  await drawer.getByRole('heading', { name: 'Empresa QA fictícia', exact: true }).waitFor();
+  const layout = await drawer.evaluate((element) => {
+    const style = getComputedStyle(element);
+    const scrollArea = getComputedStyle(element.querySelector('.portal-admin-drawer-scroll'));
+    return {
+      display: style.display,
+      width: style.width,
+      scroll: scrollArea.overflowY,
+      backgroundScroll: getComputedStyle(document.body).overflowY,
+    };
+  });
+  await drawer.getByRole('button', { name: 'Fechar briefing', exact: true }).click();
+  await drawer.waitFor({ state: 'detached' });
+  return layout;
+}
+
+async function proposalBriefing({ page, origin, snapshot }) {
+  const listUrl = '/admin/propostas';
+  await page.goto(origin + listUrl);
+  const direct = await readBriefingLayout(page);
+  assert.equal(direct.display, 'flex');
+  assert.equal(direct.scroll, 'auto');
+  assert.equal(direct.backgroundScroll, 'hidden');
+
+  await page.getByRole('button', { name: 'Abrir briefing', exact: true }).click();
+  const drawer = page.locator('.portal-admin-drawer');
+  await snapshot('briefing', drawer);
+  await drawer.getByRole('button', { name: 'Preparar proposta', exact: true }).click();
+  await page.locator('.portal-proposal-editor-head').getByRole('button', { name: 'Propostas', exact: true }).click();
+  await page.waitForURL((url) => url.pathname === listUrl);
+  assert.deepEqual(await readBriefingLayout(page), direct);
+  return { drawer: direct, unchangedAfterEditor: true };
+}
+
 async function draftPrint({ page, context, origin, snapshot }) {
   const proposal = {
     id: 'qa-draft', submission_id: 'qa-submission', service_slug: 'assessoria-estrategica',
@@ -92,10 +129,18 @@ async function draftPrint({ page, context, origin, snapshot }) {
   const paper = page.locator('.portal-proposal-page.proposal-cover');
   await paper.getByRole('heading', { name: 'Olá, Pessoa.', exact: true }).waitFor();
   await page.emulateMedia({ media: 'print' });
+  await page.waitForFunction(() => {
+    const cover = document.querySelector('.portal-proposal-page.proposal-cover');
+    if (!cover || !matchMedia('print').matches) return false;
+    const { x, y } = cover.getBoundingClientRect();
+    return Math.abs(x) < 1 && Math.abs(y) < 1;
+  }, undefined, { timeout: 2500 });
   const geometry = await paper.evaluate((element) => {
     const style = getComputedStyle(element);
+    const { x, y } = element.getBoundingClientRect();
     return {
       width: parseFloat(style.width), height: parseFloat(style.height), breakAfter: style.breakAfter,
+      x, y,
       toolbar: getComputedStyle(document.querySelector('.portal-proposal-preview-toolbar')).display,
     };
   });
@@ -103,13 +148,19 @@ async function draftPrint({ page, context, origin, snapshot }) {
   assert(Math.abs(geometry.height - (296 * 96) / 25.4) < 1);
   assert.equal(geometry.breakAfter, 'page');
   assert.equal(geometry.toolbar, 'none');
+  assert(Math.abs(geometry.x) < 1 && Math.abs(geometry.y) < 1, 'A capa deve iniciar na origem da folha: ' + JSON.stringify(geometry));
+  await page.getByText('Preparação e revisão com Partner', { exact: true }).waitFor({ state: 'hidden' });
+  const pdf = await page.pdf({ format: 'A4', preferCSSPageSize: true, printBackground: true });
+  const physicalPages = (pdf.toString('latin1').match(/\/Type\s*\/Page\b/g) || []).length;
+  assert.equal(physicalPages, await page.locator('.portal-proposal-page').count());
   await snapshot('a4', paper);
-  return { paper: '210 × 296 mm', breakAfter: geometry.breakAfter, toolbarHidden: true };
+  return { paper: '210 × 296 mm', origin: [geometry.x, geometry.y], physicalPages, toolbarHidden: true };
 }
 
 browserSuite([
   { id: 'surface-public-night-spa', role: 'public', run: publicSurfaces },
   { id: 'surface-admin-document-spa', role: 'admin', run: documentSurface },
+  { id: 'surface-proposal-briefing-spa', role: 'admin', run: proposalBriefing },
   { id: 'surface-proposal-draft-print', role: 'admin', run: draftPrint },
 ]).catch((error) => {
   console.error(error);

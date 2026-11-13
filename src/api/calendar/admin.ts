@@ -36,7 +36,7 @@ type CalendarEventWrite = {
   title: string; company_id: string | null; visibility: string; starts_at: string; ends_at: string;
 } & JsonObject;
 
-export async function saveCalendarEvent(event: CalendarEventWrite, attendees: string[], eventId?: string) {
+export async function saveCalendarEvent(event: CalendarEventWrite, attendees: string[], eventId?: string): Promise<string> {
   if (!supabase) throw new Error('Conexão indisponível.');
   const client = supabase;
   const people = (id: string) => attendees.map((email) => ({
@@ -49,14 +49,16 @@ export async function saveCalendarEvent(event: CalendarEventWrite, attendees: st
     if (error) throw error;
     await client.from('event_attendees').delete().eq('event_id', eventId);
     if (attendees.length) await client.from('event_attendees').insert(people(eventId));
-    return;
+    return eventId;
   }
   const { data: userData } = await client.auth.getUser();
   const { data: inserted, error } = await client.from('events').insert({
     ...event, created_by: userData.user?.id || null,
   }).select('id, protocol').single();
   if (error) throw error;
-  if (inserted?.id && attendees.length) await client.from('event_attendees').insert(people(inserted.id));
+  if (!inserted?.id) throw new Error('O evento foi salvo sem identificador.');
+  if (attendees.length) await client.from('event_attendees').insert(people(inserted.id));
+  return inserted.id;
 }
 
 export async function cancelCalendarEvent(id: string, reason: string) {

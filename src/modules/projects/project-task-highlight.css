@@ -1,0 +1,5 @@
+@keyframes project-task-highlight {
+  50% {
+    background: color-mix(in srgb, var(--theme-accent) 10%, transparent);
+  }
+}

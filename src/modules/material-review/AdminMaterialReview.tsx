@@ -1,8 +1,7 @@
 import { Button } from '../../components/ds/Button';
 import { useEffect, useState, type FormEvent } from 'react';
 import { assignMaterialReview, decideMaterialReview, readMaterialCompanies, readMaterialPartners, readMaterialReview, type MaterialKind, type MaterialReview } from '../../api/materials/reviews';
-import { materialStatus, materialText } from './material-review';
-import './material-review.css';
+import { materialReviewCard, materialStatus, materialText } from './material-review';
 
 type Company = { id: string; display_name: string };
 type Staff = { user_id: string | null; full_name: string; modules: string[]; active: boolean };
@@ -71,26 +70,26 @@ function Review({ kind, entityId, companyId, onApproved }: ReviewProps) {
     finally { setBusy(false); }
   }
 
-  return <div className="material-review-content">
+  return <div className="tw:mt-[12px] tw:grid tw:gap-[8px]">
     {record && <p><strong>{materialStatus[record.status]}</strong></p>}
     {record?.status === 'pending' ? <>
       <h3>{materialText[kind]} para revisão</h3>
-      <p className="material-review-text">{record.draft_text}</p>
-      <label>Motivo da devolução<textarea value={note} maxLength={2000} onChange={(event) => setNote(event.target.value)} /></label>
-      <div className="material-review-actions">
-        <Button type="button" variant="workflowSecondary" disabled={busy || note.trim().length < 3} onClick={() => void decide(false)}>Devolver para ajuste</Button>
-        <Button type="button" variant="workflowPrimary" disabled={busy} onClick={() => void decide(true)}>Aprovar e aplicar ao rascunho</Button>
+      <p className="tw:whitespace-pre-wrap">{record.draft_text}</p>
+      <label className="tw:grid tw:gap-[8px]">Motivo da devolução<textarea className="tw:w-full" value={note} maxLength={2000} onChange={(event) => setNote(event.target.value)} /></label>
+      <div className="tw:flex tw:flex-wrap tw:gap-[8px]">
+        <Button className="tw:[justify-self:start]" type="button" variant="workflowSecondary" disabled={busy || note.trim().length < 3} onClick={() => void decide(false)}>Devolver para ajuste</Button>
+        <Button className="tw:[justify-self:start]" type="button" variant="workflowPrimary" disabled={busy} onClick={() => void decide(true)}>Aprovar e aplicar ao rascunho</Button>
       </div>
-    </> : <form onSubmit={assign}>
-      {!companyId && <label>Empresa<select value={target} required onChange={(event) => { setTarget(event.target.value); setAuthor(''); }}>
+    </> : <form className="tw:grid tw:gap-[8px]" onSubmit={assign}>
+      {!companyId && <label className="tw:grid tw:gap-[8px]">Empresa<select className="tw:w-full" value={target} required onChange={(event) => { setTarget(event.target.value); setAuthor(''); }}>
         <option value="">Escolha a empresa</option>
         {companies.map((company) => <option value={company.id} key={company.id}>{company.display_name}</option>)}
       </select></label>}
-      <label>Partner<select value={author} required onChange={(event) => setAuthor(event.target.value)}>
+      <label className="tw:grid tw:gap-[8px]">Partner<select className="tw:w-full" value={author} required onChange={(event) => setAuthor(event.target.value)}>
         <option value="">Escolha o responsável</option>
         {staff.map((person) => <option value={person.user_id ?? ''} key={person.user_id}>{person.full_name}</option>)}
       </select></label>
-      <Button variant="workflowSecondary" type="submit" disabled={busy || !target || !author}>Atribuir material</Button>
+      <Button className="tw:[justify-self:start]" variant="workflowSecondary" type="submit" disabled={busy || !target || !author}>Atribuir material</Button>
     </form>}
     {error && <p role="alert">{error}</p>}
   </div>;
@@ -98,8 +97,8 @@ function Review({ kind, entityId, companyId, onApproved }: ReviewProps) {
 
 export function AdminMaterialReview(props: ReviewProps) {
   const [open, setOpen] = useState(false);
-  return <details className="material-review" onToggle={(event) => setOpen(event.currentTarget.open)}>
-    <summary>Preparação e revisão com Partner</summary>
+  return <details className={materialReviewCard} onToggle={(event) => setOpen(event.currentTarget.open)}>
+    <summary className="tw:cursor-pointer tw:font-bold">Preparação e revisão com Partner</summary>
     {open && <Review key={props.entityId} {...props} />}
   </details>;
 }

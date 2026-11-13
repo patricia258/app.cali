@@ -31,6 +31,33 @@ async function noticeReview(page) {
 
 browserSuite([
   {
+    id: '13-notice-releases-replaced-and-cancelled-cover-previews',
+    role: 'admin',
+    async run({ page, origin }) {
+      await page.goto(origin + '/admin/avisos');
+      await page.getByRole('button', { name: 'Novo comunicado', exact: true }).click();
+      const dialog = page.getByRole('dialog', { name: 'Editar aviso' });
+      const input = dialog.getByLabel('Imagem de capa (opcional)');
+      const image = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH+kAAAAASUVORK5CYII=', 'base64');
+      async function preview(name, previous) {
+        await input.setInputFiles({ name, mimeType: 'image/png', buffer: image });
+        const current = dialog.getByRole('img', { name: 'Prévia da capa' });
+        await current.waitFor();
+        await page.waitForFunction((previous) => document.querySelector('img[alt="Prévia da capa"]')?.src.startsWith('blob:')
+          && document.querySelector('img[alt="Prévia da capa"]').src !== previous, previous);
+        const url = await current.getAttribute('src');
+        assert.equal(await page.evaluate(async (url) => (await fetch(url)).ok, url), true);
+        return url;
+      }
+      const first = await preview('primeira.png');
+      const second = await preview('segunda.png', first);
+      await page.waitForFunction((url) => fetch(url).then(() => false, () => true), first);
+      await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
+      await dialog.waitFor({ state: 'hidden' });
+      await page.waitForFunction((url) => fetch(url).then(() => false, () => true), second);
+    },
+  },
+  {
     id: '13-notice-comment-retry-reaction-rollback-and-scoped-admin-reply',
     role: 'client',
     async run({ page, context, openActor, origin }) {

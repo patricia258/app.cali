@@ -16,6 +16,27 @@ function endpoint(context, pathname, method, handler) {
 
 const cases = [
   {
+    id: '11-admin-document-releases-cancelled-cover-preview',
+    role: 'admin',
+    async run({ page, origin }) {
+      await page.goto(origin + '/admin/documentos');
+      await page.getByRole('button', { name: 'Adicionar documento', exact: true }).click();
+      const editor = page.getByRole('dialog', { name: 'Editar documento' });
+      await editor.locator('input[accept="image/png,image/jpeg,image/webp"]').setInputFiles({
+        name: 'capa.png',
+        mimeType: 'image/png',
+        buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jH+kAAAAASUVORK5CYII=', 'base64'),
+      });
+      const preview = editor.getByRole('img', { name: 'Prévia da capa' });
+      await preview.waitFor();
+      const url = await preview.getAttribute('src');
+      assert.equal(await page.evaluate(async (url) => (await fetch(url)).ok, url), true);
+      await editor.getByRole('button', { name: 'Cancelar', exact: true }).click();
+      await editor.waitFor({ state: 'hidden' });
+      await page.waitForFunction((url) => fetch(url).then(() => false, () => true), url);
+    },
+  },
+  {
     id: '11-admin-document-revision-private-upload-and-publication',
     role: 'admin',
     async run({ page, context, openActor, origin }) {

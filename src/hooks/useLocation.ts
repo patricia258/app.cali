@@ -10,5 +10,6 @@ export function useLocation() {
   const search = sameEntry ? raw.search : location.searchStr;
   const fragment = location.href.match(/#.*$/)?.[0] ?? '';
   const hash = sameEntry ? raw.hash : fragment;
-  return useMemo(() => ({ pathname, search, hash }), [pathname, search, hash]);
+  const entryKey = location.state.__TSR_key;
+  return useMemo(() => ({ pathname, search, hash, entryKey }), [pathname, search, hash, entryKey]);
 }

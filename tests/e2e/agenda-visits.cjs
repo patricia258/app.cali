@@ -2,7 +2,7 @@
 
 const assert = require('node:assert/strict');
 const { browserSuite } = require('./browser-suite.cjs');
-const { companyId, user } = require('./fixtures.cjs');
+const { companyId, tables, user } = require('./fixtures.cjs');
 
 browserSuite([
   {
@@ -25,6 +25,13 @@ browserSuite([
       let cancellations = 0;
       let syncCalls = 0;
       const headers = { 'access-control-allow-origin': origin };
+      const logoSource = host + '/qa-calendar-original.svg';
+      const logoFallback = tables.companies[0].logo_workspace_url;
+      await context.route(logoSource, (route) => route.fulfill({ status: 404 }));
+      await context.route(
+        (url) => url.origin === host && url.pathname === '/rest/v1/companies' && url.searchParams.get('select') === 'id,display_name,logo_url,logo_workspace_url',
+        (route) => route.fulfill({ headers, json: [{ ...tables.companies[0], logo_url: logoSource }] }),
+      );
       await context.route(
         (url) => url.origin === host && url.pathname === '/rest/v1/events',
         (route) => {
@@ -106,9 +113,14 @@ browserSuite([
       await add.click();
       await create.waitFor({ state: 'hidden' });
       const events = page.locator('.calendar-agenda-view');
+      const originalLogo = page.waitForResponse((response) => response.url() === logoSource);
       await events.getByRole('button', { name: new RegExp(title) }).click();
       const detail = page.getByRole('dialog', { name: title, exact: true });
       await detail.getByText(originalGuest, { exact: true }).waitFor();
+      assert.equal((await originalLogo).status(), 404);
+      const logo = detail.locator('.calendar-detail-company-mark img');
+      await page.waitForFunction((source) => document.querySelector('.calendar-detail-company-mark img')?.getAttribute('src') === source, logoFallback);
+      assert.equal(await logo.evaluate((image) => getComputedStyle(image).objectFit), 'contain');
       await detail.getByRole('button', { name: 'Editar ou remarcar' }).click();
       const edit = page.getByRole('dialog', { name: 'Atualizar compromisso', exact: true });
       assert.equal(await edit.getByLabel('Início', { exact: true }).inputValue(), '10:15');

@@ -1,74 +1,47 @@
-import './workspace-dialog.css';
+type DialogRequest = {
+  message: string;
+  acknowledge: boolean;
+  complete: (accepted: boolean) => void;
+};
 
-type DialogOptions = { initialValue?: string; acknowledge?: boolean };
+let current: DialogRequest | null = null;
+const listeners = new Set<() => void>();
 
-function openDialog(message: string, { initialValue, acknowledge = false }: DialogOptions = {}): Promise<string | null> {
-  if (document.querySelector('.workspace-action-dialog[open]')) return Promise.resolve(null);
+export function subscribeWorkspaceDialog(listener: () => void) {
+  listeners.add(listener);
+  return () => { listeners.delete(listener); };
+}
 
-  const dialog = document.createElement('dialog');
-  dialog.className = 'workspace-action-dialog';
-  dialog.setAttribute('aria-label', message);
-  const form = document.createElement('form');
-  const description = document.createElement('p');
-  description.textContent = message;
-  form.append(description);
+export function readWorkspaceDialog() {
+  return current;
+}
 
-  const input = initialValue === undefined ? null : document.createElement('textarea');
-  if (input) {
-    input.setAttribute('aria-label', message);
-    input.value = initialValue ?? '';
-    input.autofocus = true;
-    form.append(input);
-  }
+function publish() {
+  listeners.forEach((listener) => listener());
+}
 
-  const actions = document.createElement('footer');
-  if (!acknowledge) {
-    const cancel = document.createElement('button');
-    cancel.type = 'button';
-    cancel.textContent = 'Cancelar';
-    cancel.autofocus = !input;
-    cancel.addEventListener('click', () => dialog.close());
-    actions.append(cancel);
-  }
-  const submit = document.createElement('button');
-  submit.type = 'submit';
-  submit.textContent = acknowledge ? 'OK' : 'Confirmar';
-  actions.append(submit);
-  form.append(actions);
-  dialog.append(form);
-
+function openDialog(message: string, acknowledge: boolean): Promise<boolean> {
+  if (current) return Promise.resolve(false);
   return new Promise((resolve) => {
-    let result: string | null = null;
-    const previous = document.activeElement;
-    const close = () => dialog.close();
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      result = input?.value ?? '';
-      close();
-    });
-    dialog.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') event.stopPropagation();
-    });
-    dialog.addEventListener('close', () => {
-      window.removeEventListener('popstate', close);
-      dialog.remove();
-      if (previous instanceof HTMLElement && previous.isConnected) previous.focus({ preventScroll: true });
-      resolve(result);
-    }, { once: true });
-    window.addEventListener('popstate', close, { once: true });
-    document.body.append(dialog);
-    dialog.showModal();
+    const request: DialogRequest = {
+      message,
+      acknowledge,
+      complete(accepted) {
+        if (current !== request) return;
+        current = null;
+        publish();
+        resolve(accepted);
+      },
+    };
+    current = request;
+    publish();
   });
 }
 
-export async function confirmAction(message: string) {
-  return (await openDialog(message)) !== null;
-}
-
-export function promptText(message: string, initialValue = '') {
-  return openDialog(message, { initialValue });
+export function confirmAction(message: string) {
+  return openDialog(message, false);
 }
 
 export async function showMessage(message: string) {
-  await openDialog(message, { acknowledge: true });
+  await openDialog(message, true);
 }

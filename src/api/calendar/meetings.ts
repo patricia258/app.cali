@@ -17,25 +17,6 @@ export async function readMeetingOutcome(eventId: string) {
     .select('outcome,reason_category,justified,note,transcription_url,transcription_note,marked_at').eq('event_id', eventId).maybeSingle();
 }
 
-export async function readClientScheduledWork(companyId: string) {
-  const client = requireMeetingClient();
-  return await Promise.all([
-    client.from('events').select('id,company_id,protocol,title,starts_at,ends_at,mode,location,meeting_url,description,visibility,source_type,source_entity_id,schedule_class,billing_applies,google_html_link,sync_status')
-      .eq('company_id', companyId).eq('visibility', 'client').is('cancelled_at', null).order('starts_at'),
-    client.from('deliverables').select('id,title,status,due_at').eq('company_id', companyId)
-      .eq('client_visible', true).not('due_at', 'is', null).neq('status', 'cancelled').order('due_at'),
-  ]);
-}
-
-export async function findMeetingToClassify(companyId: string, name: string, protocol: string, day: string) {
-  const query = requireMeetingClient().from('events').select('id').eq('company_id', companyId).eq('title', name)
-    .eq('event_type', 'meeting').order('created_at', { ascending: false }).limit(1);
-  if (protocol) query.eq('protocol', protocol);
-  else if (day) query.gte('starts_at', `${day}T00:00:00-03:00`).lte('starts_at', `${day}T23:59:59-03:00`);
-  const { data } = await query.maybeSingle();
-  return data?.id as string | undefined;
-}
-
 export async function recordMeetingOutcome(eventId: string, schedulingRequest: boolean, occurred: boolean, reason: string | null, justified: boolean, note: string) {
   const client = requireMeetingClient();
   const input = { p_event_id: eventId, p_outcome: occurred ? 'occurred' : 'not_occurred', p_reason_category: reason, p_justified: justified, p_note: note };
@@ -55,7 +36,8 @@ export async function uploadMeetingTranscription(eventId: string, path: string, 
   if (error) throw error;
 }
 
-export async function readReportAgendaSnapshot(protocol: string) {
-  return await requireMeetingClient().from('reports').select('source_snapshot').eq('protocol', protocol)
+export async function readReportAgendaSnapshot(protocol: string, signal?: AbortSignal) {
+  const query = requireMeetingClient().from('reports').select('source_snapshot').eq('protocol', protocol);
+  return await (signal ? query.abortSignal(signal) : query)
     .maybeSingle().overrideTypes<{ source_snapshot: { agendaCompliance?: ReportAgendaCompliance } | null }, { merge: false }>();
 }

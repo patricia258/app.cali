@@ -5,37 +5,45 @@
    Cliente: só abre o que foi liberado para a própria empresa (cali_workspace.profile_gestao). */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from '../../components/navigation/Link';
-import { useParams } from '../../hooks/useParams';
 import { ArrowLeft, Download, Printer, Send } from 'lucide-react';
-import { changeManagementDiscState, readManagementDiscReport, saveManagementDiscContext, sendManagementDiscPdf } from '../../api/disc/reports';
-import { GestaoReport, MOMENTS, SECTORS, type GestaoData } from './components/GestaoReport';
+import { useManagementDiscReport } from './hooks/useManagementDiscReport';
+import { useSaveManagementDiscContext } from './hooks/useSaveManagementDiscContext';
+import { useChangeManagementDiscState } from './hooks/useChangeManagementDiscState';
+import { useSendManagementDiscPdf } from './hooks/useSendManagementDiscPdf';
+import { useDiscReportRoute } from './hooks/useDiscReportRoute';
+import { GestaoReport, MOMENTS, SECTORS } from './components/GestaoReport';
 import { downloadBlob, fileSlug, pagesToPdf } from './profilePdf';
-import './profile-pages.css';
+import { discReport, DiscReportEmpty, DiscReportLoading } from './components/DiscReportShell';
 
 const NOTE_LIMIT = 700;
+const adminLabel = 'tw:flex tw:flex-col tw:items-stretch tw:gap-1.5 tw:text-left tw:font-[Inter,sans-serif] tw:text-[.75rem] tw:leading-[normal] tw:font-semibold tw:text-[#3e3533]';
+const adminInput = 'tw:w-full tw:rounded-lg tw:border tw:border-solid tw:border-[#e3d6cc] tw:bg-white tw:px-2.5 tw:py-2 tw:font-[Inter,sans-serif] tw:text-[.8125rem] tw:leading-[normal] tw:font-medium';
+const adminStep = 'tw:col-span-full tw:flex tw:flex-wrap tw:items-baseline tw:gap-2.5 tw:border-0 tw:border-t tw:border-solid tw:border-[#f1e9e2] tw:pt-3 tw:font-[Inter,sans-serif] tw:text-[.78125rem] tw:leading-[normal] tw:text-[#6b5d63] tw:first:border-0 tw:first:pt-0 tw:[&_b]:text-[.8125rem] tw:[&_b]:text-cali-brand';
+const adminActions = 'tw:col-span-full tw:flex tw:flex-wrap tw:gap-2';
 const when = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }).format(new Date(iso));
 
 export function GestaoPage({ role }: { role: 'admin' | 'client' }) {
-  const { linkId = '' } = useParams();
+  const { linkId, back } = useDiscReportRoute(role);
+  return <ManagementReport key={`${role}:${linkId}`} role={role} linkId={linkId} back={back} />;
+}
+
+function ManagementReport({ role, linkId, back }: { role: 'admin' | 'client'; linkId: string; back: string }) {
   const admin = role === 'admin';
-  const [data, setData] = useState<GestaoData | null>(null);
-  const [missing, setMissing] = useState(false);
+  const report = useManagementDiscReport(linkId, role);
+  const data = report.data;
+  const { mutateAsync: saveContext } = useSaveManagementDiscContext();
+  const { mutateAsync: updateStatus } = useChangeManagementDiscState();
+  const { mutateAsync: sendPdf } = useSendManagementDiscPdf();
   const [fields, setFields] = useState({ moment: '', sector: '', goal: '', note: '' });
   const [recipient, setRecipient] = useState({ name: '', email: '' });
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState('');
   const [zoom, setZoom] = useState(1);
   const captureRef = useRef<HTMLDivElement>(null);
-  const back = admin ? '/admin/perfil-comportamental' : '/cliente/equipe';
-
-  async function load() {
-    const payload = await readManagementDiscReport(linkId);
-    if (!payload) { setMissing(true); return; }
-    const value = payload as GestaoData;
-    setData(value);
-    setFields({ moment: value.moment || '', sector: value.sector || '', goal: value.goal || '', note: value.note || '' });
-  }
-  useEffect(() => { document.title = 'Relatório de gestão · CALI RH'; void load(); }, [linkId]);
+  useEffect(() => { document.title = 'Relatório de gestão · CALI RH'; }, []);
+  useEffect(() => {
+    if (data) setFields({ moment: data.moment || '', sector: data.sector || '', goal: data.goal || '', note: data.note || '' });
+  }, [data, report.dataUpdatedAt]);
 
   useLayoutEffect(() => {
     const fit = () => setZoom(Math.min(1, (window.innerWidth - 24) / 794));
@@ -46,20 +54,20 @@ export function GestaoPage({ role }: { role: 'admin' | 'client' }) {
   async function saveFields() {
     if (!data) return;
     setBusy('save');
-    const { error } = await saveManagementDiscContext(data.link_id, fields);
+    const { error } = await saveContext({ id: data.link_id, fields });
     setBusy('');
     if (error) { setNote(`Não foi possível salvar: ${error.message}`); return; }
     setNote(data.approved_at ? 'Salvo. Como o conteúdo mudou, o relatório voltou para rascunho: aprove de novo.' : 'Salvo.');
-    await load();
+    await report.refetch();
   }
 
   async function changeState(action: 'approve' | 'release', id: string, value: boolean, message: string) {
     setBusy(action);
-    const { error } = await changeManagementDiscState(id, action, value);
+    const { error } = await updateStatus({ id, action, value });
     setBusy('');
     if (error) { setNote(error.message); return false; }
     setNote(message);
-    await load();
+    await report.refetch();
     return true;
   }
 
@@ -82,53 +90,53 @@ export function GestaoPage({ role }: { role: 'admin' | 'client' }) {
     try {
       const blob = await makePdf();
       const path = `gestao/${data.link_id}/${data.protocol || 'relatorio'}-${Date.now()}.pdf`;
-      await sendManagementDiscPdf(data.link_id, recipient, path, blob);
+      await sendPdf({ id: data.link_id, recipient, path, blob });
       setNote(`PDF enviado para ${recipient.email.trim()}.`);
       setRecipient({ name: '', email: '' });
-      await load();
+      await report.refetch();
     } catch (error) { setNote(error instanceof Error ? error.message : 'Não foi possível enviar.'); }
     finally { setBusy(''); }
   }
 
-  if (missing) return <div className="cali-profile-shell"><div className="cps-empty"><img src="/brand/cali-rh-bordo.png" alt="CALI RH" /><h1>Relatório não disponível</h1><p>{admin ? 'Este link não existe mais.' : 'Este relatório ainda não foi liberado pela CALI RH.'}</p><Link className="cps-back" to={back}><ArrowLeft size={15} /> Voltar</Link></div></div>;
-  if (!data) return <div className="cali-profile-shell"><div className="cps-empty"><span className="cps-spinner" aria-label="Carregando" /></div></div>;
+  if (report.isError || data === null || !linkId) return <DiscReportEmpty message={admin ? 'Este link não existe mais.' : 'Este relatório ainda não foi liberado pela CALI RH.'} back={back} />;
+  if (!data) return <DiscReportLoading />;
 
   const changed = fields.moment !== (data.moment || '') || fields.sector !== (data.sector || '') || fields.goal.trim() !== (data.goal || '') || fields.note.trim() !== (data.note || '');
   const missingItems = [data.n < 5 ? 'pelo menos 5 respostas' : '', !data.goal?.trim() ? 'o resultado que a empresa persegue' : '', (data.note?.trim().length || 0) < 20 ? 'o parecer da CALI' : ''].filter(Boolean);
   const approved = Boolean(data.approved_at);
-  return <div className="cali-profile-shell">
-    <header className="cps-bar">
-      <Link className="cps-back" to={back}><ArrowLeft size={15} /> {admin ? 'Perfil comportamental' : 'Equipe'}</Link>
-      <div className="cps-bar-status">{note}</div>
-      <button type="button" className="cps-secondary" onClick={() => window.print()}><Printer size={15} /> Imprimir</button>
-      <button type="button" className="cps-primary" disabled={busy === 'pdf'} onClick={() => void download()}><Download size={15} /> {busy === 'pdf' ? 'Gerando…' : 'Baixar PDF'}</button>
+  return <div className={discReport.shell}>
+    <header className={discReport.header}>
+      <Link className={discReport.back} to={back}><ArrowLeft size={15} /> {admin ? 'Perfil comportamental' : 'Equipe'}</Link>
+      <div className={discReport.status}>{note}</div>
+      <button type="button" className={discReport.secondary} onClick={() => window.print()}><Printer size={15} /> Imprimir</button>
+      <button type="button" className={discReport.primary} disabled={busy === 'pdf'} onClick={() => void download()}><Download size={15} /> {busy === 'pdf' ? 'Gerando…' : 'Baixar PDF'}</button>
     </header>
-    {admin && <div className="cps-admin-tools cgp-tools">
-      <div className="cgp-step"><b>1. Conteúdo</b>{approved && <span>Editar volta o relatório para rascunho.</span>}</div>
-      <label>Momento da empresa<select value={fields.moment} onChange={(event) => setFields({ ...fields, moment: event.target.value })}><option value="">Não informado</option>{Object.entries(MOMENTS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-      <label>Setor (vocabulário)<select value={fields.sector} onChange={(event) => setFields({ ...fields, sector: event.target.value })}><option value="">Não informado</option>{Object.entries(SECTORS).map(([key, item]) => <option key={key} value={key}>{item.label}</option>)}</select></label>
-      <label className="wide">Resultado que a empresa persegue<input value={fields.goal} maxLength={160} placeholder="Ex.: Abrir a segunda unidade sem perder a qualidade do atendimento" onChange={(event) => setFields({ ...fields, goal: event.target.value })} /></label>
-      <label className="full">Parecer da CALI <em>{fields.note.length}/{NOTE_LIMIT} · entra na última página, assinado</em><textarea rows={5} maxLength={NOTE_LIMIT} value={fields.note} placeholder="O que você quer que esta liderança leve da leitura, com as suas palavras." onChange={(event) => setFields({ ...fields, note: event.target.value })} /></label>
-      <div className="cgp-actions"><button type="button" className="cps-secondary" disabled={!changed || busy === 'save'} onClick={() => void saveFields()}>{busy === 'save' ? 'Salvando…' : 'Salvar'}</button></div>
+    {admin && <div className={`${discReport.toolbar} tw:grid tw:grid-cols-[12.5rem_12.5rem_1fr] tw:items-end tw:justify-items-stretch tw:gap-3 tw:text-left tw:max-[761px]:grid-cols-1`}>
+      <div className={adminStep}><b>1. Conteúdo</b>{approved && <span>Editar volta o relatório para rascunho.</span>}</div>
+      <label className={adminLabel}>Momento da empresa<select className={adminInput} value={fields.moment} onChange={(event) => setFields({ ...fields, moment: event.target.value })}><option value="">Não informado</option>{Object.entries(MOMENTS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
+      <label className={adminLabel}>Setor (vocabulário)<select className={adminInput} value={fields.sector} onChange={(event) => setFields({ ...fields, sector: event.target.value })}><option value="">Não informado</option>{Object.entries(SECTORS).map(([key, item]) => <option key={key} value={key}>{item.label}</option>)}</select></label>
+      <label className={adminLabel}>Resultado que a empresa persegue<input className={adminInput} value={fields.goal} maxLength={160} placeholder="Ex.: Abrir a segunda unidade sem perder a qualidade do atendimento" onChange={(event) => setFields({ ...fields, goal: event.target.value })} /></label>
+      <label className={`${adminLabel} tw:col-span-full`}>Parecer da CALI <em className="tw:ml-1.5 tw:font-medium tw:text-[#8c807a] tw:not-italic">{fields.note.length}/{NOTE_LIMIT} · entra na última página, assinado</em><textarea className="tw:w-full tw:resize-y tw:rounded-lg tw:border tw:border-solid tw:border-[#e3d6cc] tw:bg-white tw:px-3 tw:py-2.5 tw:font-[Inter,sans-serif] tw:text-[.84375rem] tw:leading-[1.6] tw:font-normal" rows={5} maxLength={NOTE_LIMIT} value={fields.note} placeholder="O que você quer que esta liderança leve da leitura, com as suas palavras." onChange={(event) => setFields({ ...fields, note: event.target.value })} /></label>
+      <div className={`${adminActions} tw:justify-end`}><button type="button" className={discReport.secondary} disabled={!changed || busy === 'save'} onClick={() => void saveFields()}>{busy === 'save' ? 'Salvando…' : 'Salvar'}</button></div>
 
-      <div className="cgp-step"><b>2. Aprovação</b>{approved ? <span>Aprovado e assinado em {when(data.approved_at!)} · protocolo {data.protocol}</span> : missingItems.length ? <span>Falta: {missingItems.join(', ')}.</span> : <span>Pronto para aprovar.</span>}</div>
-      <div className="cgp-actions">{approved
-        ? <button type="button" className="cps-secondary" disabled={Boolean(busy)} onClick={() => void changeState('approve', data.link_id, false, 'Aprovação desfeita: o relatório voltou para rascunho.')}>Reabrir para edição</button>
-        : <button type="button" className="cps-primary" disabled={Boolean(missingItems.length) || changed || Boolean(busy)} title={changed ? 'Salve antes de aprovar' : ''} onClick={() => void changeState('approve', data.link_id, true, 'Aprovado e assinado.')}>Aprovar e assinar</button>}</div>
+      <div className={adminStep}><b>2. Aprovação</b>{approved ? <span>Aprovado e assinado em {when(data.approved_at!)} · protocolo {data.protocol}</span> : missingItems.length ? <span>Falta: {missingItems.join(', ')}.</span> : <span>Pronto para aprovar.</span>}</div>
+      <div className={`${adminActions} tw:justify-end`}>{approved
+        ? <button type="button" className={discReport.secondary} disabled={Boolean(busy)} onClick={() => void changeState('approve', data.link_id, false, 'Aprovação desfeita: o relatório voltou para rascunho.')}>Reabrir para edição</button>
+        : <button type="button" className={discReport.primary} disabled={Boolean(missingItems.length) || changed || Boolean(busy)} title={changed ? 'Salve antes de aprovar' : ''} onClick={() => void changeState('approve', data.link_id, true, 'Aprovado e assinado.')}>Aprovar e assinar</button>}</div>
 
       {approved && <>
-        <div className="cgp-step"><b>3. Entrega</b><span>{data.has_account ? 'A empresa tem conta no aplicativo: libere lá (as pessoas da empresa são avisadas por e-mail) e, se quiser, envie também o PDF.' : 'A empresa não tem conta no aplicativo: envie o PDF por e-mail ao gestor.'}</span></div>
-        {data.company_id && data.has_account && <div className="cgp-actions cgp-left">{data.released_at
-          ? <button type="button" className="cps-secondary" disabled={Boolean(busy)} onClick={() => void changeState('release', data.link_id, false, 'Relatório retirado do aplicativo do cliente.')}>Liberado no aplicativo em {when(data.released_at)} · retirar</button>
-          : <button type="button" className="cps-primary" disabled={Boolean(busy)} onClick={() => void changeState('release', data.link_id, true, 'Liberado no aplicativo; as pessoas da empresa foram avisadas por e-mail.')}>Liberar no aplicativo</button>}</div>}
-        <label>Nome do gestor<input value={recipient.name} maxLength={120} placeholder="Ex.: Ana Ribeiro" onChange={(event) => setRecipient({ ...recipient, name: event.target.value })} /></label>
-        <label className="wide">E-mail do gestor<input type="email" value={recipient.email} placeholder="ana@empresa.com" onChange={(event) => setRecipient({ ...recipient, email: event.target.value })} /></label>
-        <div className="cgp-actions"><button type="button" className="cps-primary" disabled={busy === 'send' || !recipient.email.trim()} onClick={() => void sendToManager()}><Send size={15} /> {busy === 'send' ? 'Gerando e enviando…' : 'Enviar PDF ao gestor'}</button></div>
-        {!!data.sent_log?.length && <ul className="cgp-log">{data.sent_log.map((item) => <li key={item.at}>{when(item.at)} · PDF enviado para {item.name ? `${item.name} (${item.email})` : item.email} · {item.protocol}</li>)}</ul>}
+        <div className={adminStep}><b>3. Entrega</b><span>{data.has_account ? 'A empresa tem conta no aplicativo: libere lá (as pessoas da empresa são avisadas por e-mail) e, se quiser, envie também o PDF.' : 'A empresa não tem conta no aplicativo: envie o PDF por e-mail ao gestor.'}</span></div>
+        {data.company_id && data.has_account && <div className={`${adminActions} tw:justify-start`}>{data.released_at
+          ? <button type="button" className={discReport.secondary} disabled={Boolean(busy)} onClick={() => void changeState('release', data.link_id, false, 'Relatório retirado do aplicativo do cliente.')}>Liberado no aplicativo em {when(data.released_at)} · retirar</button>
+          : <button type="button" className={discReport.primary} disabled={Boolean(busy)} onClick={() => void changeState('release', data.link_id, true, 'Liberado no aplicativo; as pessoas da empresa foram avisadas por e-mail.')}>Liberar no aplicativo</button>}</div>}
+        <label className={adminLabel}>Nome do gestor<input className={adminInput} value={recipient.name} maxLength={120} placeholder="Ex.: Ana Ribeiro" onChange={(event) => setRecipient({ ...recipient, name: event.target.value })} /></label>
+        <label className={adminLabel}>E-mail do gestor<input className={adminInput} type="email" value={recipient.email} placeholder="ana@empresa.com" onChange={(event) => setRecipient({ ...recipient, email: event.target.value })} /></label>
+        <div className={`${adminActions} tw:justify-end`}><button type="button" className={discReport.primary} disabled={busy === 'send' || !recipient.email.trim()} onClick={() => void sendToManager()}><Send size={15} /> {busy === 'send' ? 'Gerando e enviando…' : 'Enviar PDF ao gestor'}</button></div>
+        {!!data.sent_log?.length && <ul className="tw:col-span-full tw:m-0 tw:pl-[1.125rem] tw:text-[.75rem] tw:leading-[1.6] tw:text-[#6b5d63]">{data.sent_log.map((item) => <li key={item.at}>{when(item.at)} · PDF enviado para {item.name ? `${item.name} (${item.email})` : item.email} · {item.protocol}</li>)}</ul>}
       </>}
-      <span className="cps-note">Nenhum nome de quem respondeu aparece neste relatório. Aprovação, liberação e envios ficam registrados na auditoria.</span>
+      <span className={`${discReport.note} tw:col-span-full`}>Nenhum nome de quem respondeu aparece neste relatório. Aprovação, liberação e envios ficam registrados na auditoria.</span>
     </div>}
-    <main className="cps-report" style={{ zoom }}><GestaoReport data={data} /></main>
-    <div className="cps-capture" ref={captureRef} aria-hidden="true"><GestaoReport data={data} /></div>
+    <main className={discReport.report} style={{ zoom }}><GestaoReport data={data} /></main>
+    <div className={discReport.capture} ref={captureRef} aria-hidden="true"><GestaoReport data={data} /></div>
   </div>;
 }

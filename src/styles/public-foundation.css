@@ -1,16 +1,6 @@
 /* Public forms, privacy and callbacks share typography and browser behavior. */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
 @reference "./tailwind.css";
-@keyframes lp-final-monitor-float {
-  0%,100% { transform: translate3d(0,0,0) rotate(-.25deg); }
-  50% { transform: translate3d(0,-9px,0) rotate(.25deg); }
-}
-@keyframes ux-chat-pop {
-  0% { opacity: 0; transform: translateY(24px) scale(.84); }
-  72% { opacity: 1; transform: translateY(-3px) scale(1.012); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-:where(html[data-workspace-surface='public']) {
+:where(html[data-workspace-surface='public'], html[data-workspace-surface='sign-in']) {
 
 @media (max-width: 620px) {
   &:is(html) { @apply tw:text-[16px]; }
@@ -250,9 +240,6 @@ textarea:not(.v2-client-module):not(.v2-client-module *) { @apply tw:text-[14px]
   }
 }
 
-@media print{
-  @page{size:A4;margin:0!important}
-}
 &:root{
   --ws-type-page:40px;
   --ws-type-section:24px;

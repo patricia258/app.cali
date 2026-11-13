@@ -1,53 +1,100 @@
-import { DialogFrame } from '../../../components/ds/DialogFrame';
-import { useEffect, useState, type FormEvent } from 'react';
+import './calendar-dialog-motion.css';
+import { useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { CalendarClock, X } from 'lucide-react';
-import { decideAgendaChange, observeAdminAgendaChanges, readAdminAgendaChanges, type AgendaChangeRequest as Request } from '../../../api/calendar/changes';
-import './agenda-change-inbox.css';
+import type { AgendaChangeRequest } from '../../../api/calendar/changes';
+import { DialogFrame } from '../../../components/ds/DialogFrame';
+import { useAgendaChangeDecision } from '../hooks/useAgendaChangeDecision';
+import { useAgendaChangeInbox } from '../hooks/useAgendaChangeInbox';
 
-const date=(value:string)=>new Intl.DateTimeFormat('pt-BR',{dateStyle:'long',timeStyle:'short',timeZone:'America/Sao_Paulo'}).format(new Date(value));
+const date = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeStyle: 'short', timeZone: 'America/Sao_Paulo' });
+const entryButtonClass = 'tw:inline-flex tw:h-auto tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-md tw:border tw:border-solid tw:border-[#ead9ce] tw:bg-white tw:px-3 tw:py-2.5 tw:text-xs! tw:font-semibold! tw:text-[#603144] tw:shadow-none';
+const formButtonClass = 'tw:w-max tw:cursor-pointer tw:rounded-lg tw:border tw:border-solid tw:border-cali-gold tw:px-3 tw:py-2 tw:disabled:cursor-default tw:disabled:opacity-60';
+const optionClass = 'tw:flex tw:items-center tw:gap-2 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:p-2.5';
 
-export function AgendaChangeInbox({onDecision}:{onDecision:()=>void}) {
-  const [rows,setRows]=useState<Request[]>([]),[titles,setTitles]=useState<Record<string,string>>({}),[companyNames,setCompanies]=useState<Record<string,string>>({});
-  const [active,setActive]=useState<Request|null>(null),[index,setIndex]=useState(0),[note,setNote]=useState(''),[approve,setApprove]=useState(true),[slot,setSlot]=useState(0),[busy,setBusy]=useState(false),[error,setError]=useState('');
-  async function load() {
-    const next = await readAdminAgendaChanges();
-    setRows(next.requests);
-    setTitles(next.titles);
-    setCompanies(next.companies);
+export function AgendaChangeInbox({ onDecision }: { onDecision: () => void }) {
+  const { data, refetch } = useAgendaChangeInbox();
+  const { mutateAsync, isPending: busy } = useAgendaChangeDecision();
+  const [active, setActive] = useState<AgendaChangeRequest | null>(null);
+  const [index, setIndex] = useState(0);
+  const [note, setNote] = useState('');
+  const [approve, setApprove] = useState(true);
+  const [slot, setSlot] = useState(0);
+  const [error, setError] = useState('');
+  const [syncWarning, setSyncWarning] = useState('');
+  const pending = data?.requests.filter(row => row.status === 'pending') ?? [];
+
+  function openCurrent() {
+    setActive(pending[index % pending.length]);
+    setNote('');
+    setApprove(true);
+    setSlot(0);
+    setError('');
   }
-  useEffect(() => {
-    void load();
-    return observeAdminAgendaChanges(() => void load());
-  }, []);
-  const [syncWarning,setSyncWarning] = useState('');
 
   async function decide(event: FormEvent) {
     event.preventDefault();
     if (!active || busy) return;
-    setBusy(true);
     setError('');
     try {
-      const result = await decideAgendaChange(active.id, approve, note, slot);
-      if (result.error) {
-        setError(result.error.message);
-        return;
-      }
-
-      setSyncWarning(result.sync === 'pending'
+      const sync = await mutateAsync({ id: active.id, approve, note, slot });
+      setSyncWarning(sync === 'pending'
         ? 'Decisão salva no Workspace. A sincronização com o Google ficou pendente.'
-        : result.sync === 'disconnected' ? 'Decisão salva no Workspace. Conecte a agenda do Google para sincronizar.' : '');
+        : sync === 'disconnected' ? 'Decisão salva no Workspace. Conecte a agenda do Google para sincronizar.' : '');
       setActive(null);
       setNote('');
-      await load();
+      await refetch();
       onDecision();
-    } finally {
-      setBusy(false);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Não foi possível salvar a decisão.');
     }
   }
-  const pending=rows.filter(row=>row.status==='pending');
-  return <div className="agenda-change-inbox"><button type="button" className="agenda-change-trigger" disabled={!pending.length} title={pending.length ? `${pending.length} pedido(s) aguardando análise` : 'Nenhum pedido pendente'} onClick={()=>{setActive(pending[index%pending.length]);setNote('');setApprove(true);setSlot(0);setError('')}}><CalendarClock size={17}/> Alterações de reuniões {pending.length>0&&<b>{pending.length}</b>}</button>
-  {pending.length>1&&<span className="agenda-change-navigation"><button type="button" onClick={()=>setIndex((index-1+pending.length)%pending.length)}>‹</button><small>{index%pending.length+1}/{pending.length}</small><button type="button" onClick={()=>setIndex((index+1)%pending.length)}>›</button></span>}
-  {syncWarning && <p role="status" className="tw:text-cali-caption tw:text-cali-text">{syncWarning}</p>}
-  {active&&createPortal(<div className="client-agenda-detail-backdrop agenda-change-admin-backdrop" onMouseDown={event=>{if(event.currentTarget===event.target&&!busy)setActive(null)}}><DialogFrame className="agenda-change-admin-modal" aria-labelledby="agenda-admin-change-title"><header><div><small>PEDIDO DO CLIENTE</small><h2 id="agenda-admin-change-title">{active.action==='cancel'?'Cancelar reunião':'Reagendar reunião'}</h2></div><button type="button" disabled={busy} onClick={()=>setActive(null)} aria-label="Fechar"><X size={18}/></button></header><form onSubmit={decide}><strong>{companyNames[active.company_id]} · {titles[active.event_id]}</strong><p>Original: {date(active.original_starts_at)}</p><p>Motivo do cliente: {active.reason}</p>{active.action==='reschedule'&&<div className="agenda-change-slot-options">{active.slots.map((option,i)=><label key={option.startsAt}><input type="radio" name="option" checked={slot===i} onChange={()=>setSlot(i)}/>{date(option.startsAt)}</label>)}</div>}<div className="agenda-change-slot-options"><label><input type="radio" name="decision" checked={approve} onChange={()=>setApprove(true)}/>Confirmar pedido</label><label><input type="radio" name="decision" checked={!approve} onChange={()=>setApprove(false)}/>Recusar pedido</label></div><label className="agenda-change-note">Resposta ao cliente<textarea minLength={5} required value={note} onChange={event=>setNote(event.target.value)} placeholder="Explique sua decisão e eventual condição de cobrança."/></label>{error&&<p role="alert">{error}</p>}<div className="agenda-change-actions"><button type="button" disabled={busy} onClick={()=>setActive(null)}>Voltar</button><button type="submit" disabled={busy}>{busy?'Salvando…':'Enviar resposta'}</button></div></form></DialogFrame></div>,document.body)}</div>;
+
+  return (
+    <div className="tw:inline-flex tw:items-center tw:gap-1.5">
+      <button type="button" className={`${entryButtonClass} tw:disabled:cursor-default tw:disabled:opacity-70`} disabled={!pending.length}
+        title={pending.length ? `${pending.length} pedido(s) aguardando análise` : 'Nenhum pedido pendente'} onClick={openCurrent}>
+        <CalendarClock size={17} /> Alterações de reuniões
+        {pending.length > 0 && <b className="tw:grid tw:h-5 tw:min-w-5 tw:place-items-center tw:rounded-full tw:bg-cali-gold tw:text-[0.6875rem] tw:text-[#25151c]">{pending.length}</b>}
+      </button>
+      {pending.length > 1 && <span className="tw:flex tw:items-center tw:gap-2.5">
+        <button type="button" aria-label="Pedido anterior" className={entryButtonClass} onClick={() => setIndex((index - 1 + pending.length) % pending.length)}>‹</button>
+        <small>{index % pending.length + 1}/{pending.length}</small>
+        <button type="button" aria-label="Próximo pedido" className={entryButtonClass} onClick={() => setIndex((index + 1) % pending.length)}>›</button>
+      </span>}
+      {syncWarning && <p role="status" className="tw:text-cali-caption tw:text-cali-text">{syncWarning}</p>}
+      {active && createPortal(
+        <div className="tw:fixed tw:inset-0 tw:z-12200 tw:grid tw:place-items-center tw:bg-[#211017aa] tw:p-4 tw:backdrop-blur-sm"
+          onMouseDown={event => { if (event.currentTarget === event.target && !busy) setActive(null); }}>
+          <DialogFrame aria-labelledby="agenda-admin-change-title" className="tw:max-h-[calc(100dvh-1.875rem)] tw:w-[min(35.625rem,100%)] tw:overflow-auto tw:rounded-2xl tw:border tw:border-solid tw:border-cali-gold tw:bg-cali-surface tw:text-cali-text tw:motion-safe:animate-[calendarDialogRise_0.3s_ease_both]">
+            <header className="tw:flex tw:justify-between tw:bg-cali-brand tw:p-5 tw:text-white">
+              <div><small className="tw:text-[#edce8d]">PEDIDO DO CLIENTE</small><h2 id="agenda-admin-change-title" className="tw:mt-1.5! tw:mb-0! tw:text-white">{active.action === 'cancel' ? 'Cancelar reunião' : 'Reagendar reunião'}</h2></div>
+              <button type="button" className="tw:rounded-md tw:border tw:border-solid tw:border-white/45 tw:bg-transparent tw:text-white"
+                disabled={busy} onClick={() => setActive(null)} aria-label="Fechar"><X size={18} /></button>
+            </header>
+            <form onSubmit={decide} className="tw:grid tw:gap-3 tw:p-5">
+              <strong>{data?.companies[active.company_id]} · {data?.titles[active.event_id]}</strong>
+              <p className="tw:m-0! tw:leading-[1.45]">Original: {date.format(new Date(active.original_starts_at))}</p>
+              <p className="tw:m-0! tw:leading-[1.45]">Motivo do cliente: {active.reason}</p>
+              {active.action === 'reschedule' && <div className="tw:grid tw:gap-2">{active.slots.map((option, index) => (
+                <label className={optionClass} key={option.startsAt}><input type="radio" name="option" checked={slot === index} onChange={() => setSlot(index)} />{date.format(new Date(option.startsAt))}</label>
+              ))}</div>}
+              <div className="tw:grid tw:gap-2">
+                <label className={optionClass}><input type="radio" name="decision" checked={approve} onChange={() => setApprove(true)} />Confirmar pedido</label>
+                <label className={optionClass}><input type="radio" name="decision" checked={!approve} onChange={() => setApprove(false)} />Recusar pedido</label>
+              </div>
+              <label className="tw:grid tw:gap-1.5">Resposta ao cliente
+                <textarea className="tw:box-border tw:min-h-[5.625rem] tw:w-full tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:p-2.5 tw:text-cali-text" minLength={5} required value={note}
+                  onChange={event => setNote(event.target.value)} placeholder="Explique sua decisão e eventual condição de cobrança." />
+              </label>
+              {error && <p role="alert">{error}</p>}
+              <div className="tw:flex tw:justify-end tw:gap-2">
+                <button type="button" className={`${formButtonClass} tw:bg-transparent tw:text-cali-text`} disabled={busy} onClick={() => setActive(null)}>Voltar</button>
+                <button type="submit" className={`${formButtonClass} tw:bg-cali-brand tw:text-white`} disabled={busy}>{busy ? 'Salvando…' : 'Enviar resposta'}</button>
+              </div>
+            </form>
+          </DialogFrame>
+        </div>, document.body)}
+    </div>
+  );
 }

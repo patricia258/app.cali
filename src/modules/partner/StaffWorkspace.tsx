@@ -5,7 +5,6 @@
 import { FilterSelect } from '../../components/ds/FilterSelect';
 import { InlineNotice } from '../../components/ds/InlineNotice';
 import { LoadingState } from '../../components/ds/LoadingState';
-import { ReportPrintPage } from '../reports/ReportPrintPage';
 import { CompanyTeamPage } from '../team/CompanyTeamPage';
 import { MfaGate } from '../../auth/MfaGate';
 import { TermsGate } from '../../auth/TermsGate';
@@ -20,7 +19,6 @@ import { Bell, BriefcaseBusiness, CalendarDays, Clock3, FileBarChart2, FolderOpe
 import { readPartnerNotifications, readPartnerReports, readPartnerReviews, recordPartnerSession, type PartnerNotification, type PartnerReview } from '../../api/partner/operations';
 import { endWorkspaceSession } from '../../api/access/session';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
-import { RouteRuntimeManager } from '../../runtime/RouteRuntimeManager';
 import { type WelcomeStep } from '../../components/workspace/WelcomeTour';
 import { WorkspaceShellLayout } from '../../components/workspace/WorkspaceShellLayout';
 import { StaffNotices } from './notices/StaffNotices';
@@ -32,11 +30,8 @@ import type { PartnerWorkspace } from '../../api/partner/workspace';
 import { StaffRecordsPage } from '../records/WorkspaceRecordsPage';
 import { StaffProjectsPage } from '../projects/AdminProjectsPage';
 import { StaffHoursPage } from '../hours/AdminHoursPage';
-import '../calendar/styles';
 import { StaffCalendarPage } from '../calendar/AdminCalendarPage';
 import '../../components/workspace/workspace-shell.generated.css';
-import '../records/styles';
-import '../projects/styles';
 import '../../components/workspace/operational.css';
 
 const moment = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
@@ -76,8 +71,8 @@ function StaffBell({ me }: { me: PartnerWorkspace }) {
   }, [me.id]);
   const fresh = items.filter((item) => item.created_at > seen).length;
   const toggle = () => { const next = !open; setOpen(next); if (next && items[0]) { try { localStorage.setItem(key, items[0].created_at); } catch { /* segue */ } setSeen(items[0].created_at); } };
-  return <span className="v2-staff-bell"><button type="button" className={'notification-button ' + (fresh ? 'has-new' : '')} onClick={toggle} aria-label={fresh ? `${fresh} avisos novos` : 'Avisos'} aria-expanded={open}><Bell size={17} />{fresh > 0 && <b>{fresh}</b>}</button>
-    {open && <div className="v2-staff-bell-list" role="menu"><strong>Avisos</strong>{items.length ? items.map((item) => <Link key={item.id} className={item.notification_type === 'chat_mention' ? 'is-mention' : undefined} to={item.action_url && item.action_url.startsWith('/equipe') ? item.action_url : '/equipe'} onClick={() => setOpen(false)}><span>{item.title}</span>{item.body && <small>{item.body}</small>}<em>{moment(item.created_at)}</em></Link>) : <p>Nenhum aviso por enquanto.</p>}</div>}</span>;
+  return <span className="v2-staff-bell tw:relative tw:inline-flex"><button type="button" className={`tw:relative tw:grid tw:size-[2.92rem] tw:cursor-pointer tw:place-items-center tw:rounded-[.62rem] tw:border tw:border-solid tw:text-cali-brand ${fresh ? 'tw:border-[#e9c8cf] tw:bg-[#fbeef0]' : 'tw:border-[#e9dfd8] tw:bg-white'}`} onClick={toggle} aria-label={fresh ? `${fresh} avisos novos` : 'Avisos'} aria-expanded={open}><Bell size={17} />{fresh > 0 && <b className="tw:absolute tw:-top-[.46rem] tw:-right-[.46rem] tw:h-[1.31rem] tw:min-w-[1.31rem] tw:rounded-[.69rem] tw:bg-[#b7495d] tw:px-[.31rem] tw:text-center tw:text-[.77rem] tw:leading-[1.31rem] tw:text-white">{fresh}</b>}</button>
+    {open && <div className="tw:absolute tw:top-[3.54rem] tw:right-0 tw:z-60 tw:flex tw:max-h-[60vh] tw:w-[min(26.15rem,86vw)] tw:flex-col tw:gap-[.46rem] tw:overflow-y-auto tw:rounded-[.77rem] tw:border tw:border-solid tw:border-[#e9dfd8] tw:bg-white tw:p-[.92rem] tw:shadow-[0_1.38rem_4.62rem_#28172426] tw:[scrollbar-width:none] tw:motion-safe:animate-[v2-pop_.2s_ease-out_backwards]" role="menu"><strong className="tw:px-[.46rem] tw:pt-[.15rem] tw:pb-[.46rem] tw:text-[.85rem] tw:tracking-[.03rem] tw:text-[#8c7e74]">Avisos</strong>{items.length ? items.map((item) => <Link key={item.id} className={`tw:flex tw:flex-col tw:gap-[.23rem] tw:rounded-[.54rem] tw:px-[.77rem] tw:py-[.69rem] tw:text-[.92rem] tw:text-[#322f2c] tw:no-underline tw:hover:bg-[#faf6f2] ${item.notification_type === 'chat_mention' ? 'tw:border-0 tw:border-l-[.31rem] tw:border-solid tw:border-[#d9a514] tw:bg-[#fff8e6]' : ''}`} to={item.action_url && item.action_url.startsWith('/equipe') ? item.action_url : '/equipe'} onClick={() => setOpen(false)}><span className="tw:font-bold">{item.title}</span>{item.body && <small className="tw:text-[.85rem] tw:leading-[1.45] tw:text-[#655a55]">{item.body}</small>}<em className="tw:text-[.77rem] tw:text-[#96867c] tw:not-italic">{moment(item.created_at)}</em></Link>) : <p className="tw:m-0 tw:px-[.46rem] tw:py-[.62rem] tw:text-[.92rem] tw:text-[#8c7e74]">Nenhum aviso por enquanto.</p>}</div>}</span>;
 }
 
 function Frame({ me, children }: { me: PartnerWorkspace; children: ReactNode }) {
@@ -89,13 +84,13 @@ function Frame({ me, children }: { me: PartnerWorkspace; children: ReactNode }) 
   useEffect(() => { try { if (sessionStorage.getItem('cali:staff-session') === me.id) return; sessionStorage.setItem('cali:staff-session', me.id); } catch { /* segue */ } void recordPartnerSession('staff_session_started'); }, [me.id]);
   async function logout() { try { await recordPartnerSession('staff_session_ended'); sessionStorage.removeItem('cali:staff-session'); } catch { /* a saída não pode ficar presa ao registro */ } await endWorkspaceSession(); navigate('/login', { replace: true }); }
   /* Mesma moldura da administradora e do cliente (topo, busca, sino, menu do perfil com "Ver meu perfil" e "Sair"). */
-  return <WorkspaceShellLayout role="partner" navigation={nav} extras={<StaffTimerBar me={me} />} notifications={<StaffBell me={me} />} bridges={null} onLogout={() => void logout()} welcomeSteps={welcomeSteps}>{plain ? children : <div className="v2-client-module v2-staff-area">{children}</div>}</WorkspaceShellLayout>;
+  return <WorkspaceShellLayout role="partner" navigation={nav} extras={<StaffTimerBar me={me} />} notifications={<StaffBell me={me} />} onLogout={() => void logout()} welcomeSteps={welcomeSteps}>{plain ? children : <div className="v2-client-module tw:flex tw:flex-col tw:gap-[1.23rem] tw:[&>*]:my-0 tw:[&>.ap-app>.ap-content]:max-w-none tw:[&>.ap-app>.ap-content]:p-0">{children}</div>}</WorkspaceShellLayout>;
 }
 
 function Head({ eyebrow, title, text, action }: { eyebrow: string; title: string; text: string; action?: ReactNode }) {
   return <div className="page-head"><div><div className="eyebrow">{eyebrow}</div><h1>{title}<span className="title-dot">.</span></h1><p>{text}</p></div>{action}</div>;
 }
-const CompanySelect = ({ me, value, onChange, all }: { me: PartnerWorkspace; value: string; onChange: (value: string) => void; all?: boolean }) => <FilterSelect aria-label="Empresa" value={value} onChange={(event) => onChange(event.target.value)}>{all && <option value="">Todas as minhas empresas</option>}{!all && <option value="">Escolha a empresa</option>}{me.companies.map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}</FilterSelect>;
+const CompanySelect = ({ me, value, onChange, all }: { me: PartnerWorkspace; value: string; onChange: (value: string) => void; all?: boolean }) => <FilterSelect className="tw:h-[3.08rem] tw:min-w-[15.38rem] tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-white tw:px-[.85rem] tw:py-0 tw:text-[.85rem] tw:text-[#322f2c]" aria-label="Empresa" value={value} onChange={(event) => onChange(event.target.value)}>{all && <option value="">Todas as minhas empresas</option>}{!all && <option value="">Escolha a empresa</option>}{me.companies.map((item) => <option key={item.id} value={item.id}>{item.display_name}</option>)}</FilterSelect>;
 
 /* Consulta (somente leitura) dos módulos liberados. O banco só devolve o que é das empresas atribuídas. */
 type BrowseRow = { id: string; company_id: string | null; title: string; sub: string; tag: string; when: string | null; href?: string };
@@ -122,8 +117,8 @@ function PartnerReports({ me }: { me: PartnerWorkspace }) {
   const companyName = new Map(me.companies.map((item) => [item.id, item.display_name])); const text = query.trim().toLocaleLowerCase('pt-BR');
   const visible = (rows || []).filter((row) => (!company || row.company_id === company) && (!text || `${row.title} ${row.sub}`.toLocaleLowerCase('pt-BR').includes(text)));
   return <><Head eyebrow={config.eyebrow} title={config.title} text={config.text} />
-    <div className="toolbar"><CompanySelect me={me} value={company} onChange={setCompany} all /><input className="v2-staff-search" placeholder="Buscar" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Buscar" /></div>
-    {failed ? <InlineNotice>Não foi possível carregar. Recarregue a página; se continuar, fale com a Patricia.</InlineNotice> : !rows ? <LoadingState>Carregando…</LoadingState> : visible.length ? <div className="wf-records v2-staff-browse">{visible.map((row) => <div className={`wf-record-row${row.href ? ' is-link' : ''}`} key={row.id} role={row.href ? 'link' : undefined} tabIndex={row.href ? 0 : undefined} onClick={() => { if (row.href) window.open(row.href, '_blank', 'noopener'); }}><div><strong>{row.title}</strong><small>{[row.company_id ? companyName.get(row.company_id) : '', row.sub].filter(Boolean).join(' · ') || '—'}</small></div><span className="wf-tag">{row.tag}</span><small>{row.when ? dayLabel(row.when) : '—'}</small></div>)}</div> : <div className="empty">{config.empty}</div>}
+    <div className="toolbar tw:flex tw:gap-[.77rem]"><CompanySelect me={me} value={company} onChange={setCompany} all /><input className="tw:h-[3.08rem] tw:max-w-[24.62rem] tw:min-w-0 tw:flex-1 tw:rounded-[.54rem] tw:border tw:border-solid tw:border-[#e5d9d0] tw:bg-white tw:px-[.92rem] tw:text-[.92rem] tw:text-[#322f2c]" placeholder="Buscar" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Buscar" /></div>
+    {failed ? <InlineNotice>Não foi possível carregar. Recarregue a página; se continuar, fale com a Patricia.</InlineNotice> : !rows ? <LoadingState>Carregando…</LoadingState> : visible.length ? <div className="wf-records v2-staff-browse">{visible.map((row) => <div className={`wf-record-row tw:grid tw:grid-cols-[minmax(0,1fr)_auto_8.46rem]! tw:items-center tw:gap-[1.08rem] tw:[@media(max-width:860px)]:grid-cols-[minmax(0,1fr)_auto]! ${row.href ? 'is-link tw:cursor-pointer tw:hover:bg-[#fbf7f4]!' : 'tw:cursor-default'}`} key={row.id} role={row.href ? 'link' : undefined} tabIndex={row.href ? 0 : undefined} onClick={() => { if (row.href) window.open(row.href, '_blank', 'noopener'); }}><div className="tw:flex tw:min-w-0 tw:flex-col tw:gap-[.23rem]"><strong className="tw:text-[.92rem] tw:text-[#322f2c]">{row.title}</strong><small className="tw:text-[.85rem] tw:text-[#8c7e74]">{[row.company_id ? companyName.get(row.company_id) : '', row.sub].filter(Boolean).join(' · ') || '—'}</small></div><span className="wf-tag">{row.tag}</span><small className="tw:text-[.85rem] tw:text-[#8c7e74] tw:[@media(max-width:860px)]:hidden">{row.when ? dayLabel(row.when) : '—'}</small></div>)}</div> : <div className="empty">{config.empty}</div>}
     <p className="soft-note">Tela de consulta. Você vê, mas não altera por aqui.</p></>;
 }
 
@@ -146,11 +141,11 @@ function Reviews({ me }: { me: PartnerWorkspace }) {
     });
     return () => { active = false; };
   }, [me.id]);
-  const companyName = new Map(me.companies.map((item) => [item.id, item.display_name])); const tone: Record<string, [string, string]> = { pending: ['wait', 'Aguardando'], approved: ['ok', 'Aprovado'], returned: ['bad', 'Devolvido'] };
+  const companyName = new Map(me.companies.map((item) => [item.id, item.display_name])); const tone: Record<string, [string, string]> = { pending: ['tw:bg-[#fff4de] tw:text-[#9b6c21]', 'Aguardando'], approved: ['tw:bg-[#e6f6ec] tw:text-[#31805a]', 'Aprovado'], returned: ['tw:bg-[#fdecee] tw:text-[#b7495d]', 'Devolvido'] };
   const visible = (rows || []).filter((row) => filter === 'all' || row.status === 'pending'); const waiting = (rows || []).filter((row) => row.status === 'pending').length;
   return <><Head eyebrow="EQUIPE CALI / APROVAÇÕES" title="Aprovações" text="O que você enviou para a Patricia e o que ela respondeu." />
-    <div className="toolbar"><div className="wf-segments"><button type="button" className={filter === 'pending' ? 'on' : ''} onClick={() => setFilter('pending')}>Aguardando ({waiting})</button><button type="button" className={filter === 'all' ? 'on' : ''} onClick={() => setFilter('all')}>Tudo</button></div></div>
-    {!rows ? <LoadingState>Carregando…</LoadingState> : visible.length ? <div className="wf-records v2-staff-sent">{visible.map((row) => <div className="wf-record-row" key={row.id}><time>{moment(row.created_at)}</time><strong>{row.kind === 'hours' ? 'Horas' : KINDS[row.kind] || row.kind}</strong><div><strong>{row.title}</strong><small>{[companyName.get(row.company_id) || 'Empresa', row.note, row.decision_note ? `Resposta: ${row.decision_note}` : ''].filter(Boolean).join(' · ')}</small></div><span className={`wf-tag ${tone[row.status]?.[0] || ''}`}>{tone[row.status]?.[1] || row.status}</span></div>)}</div> : <div className="empty">{filter === 'pending' ? 'Nada aguardando no momento.' : 'Você ainda não enviou nada para aprovação.'}</div>}</>;
+    <div className="toolbar tw:flex tw:gap-[.77rem]"><div className="wf-segments"><button type="button" className={filter === 'pending' ? 'on' : ''} onClick={() => setFilter('pending')}>Aguardando ({waiting})</button><button type="button" className={filter === 'all' ? 'on' : ''} onClick={() => setFilter('all')}>Tudo</button></div></div>
+    {!rows ? <LoadingState>Carregando…</LoadingState> : visible.length ? <div className="wf-records v2-staff-sent">{visible.map((row) => <div className="wf-record-row tw:cursor-default tw:grid-cols-[8.46rem_4.92rem_minmax(0,1fr)_auto]! tw:items-center tw:gap-[1.08rem] tw:[@media(max-width:860px)]:grid-cols-1!" key={row.id}><time className="tw:text-[.85rem] tw:text-[#8c7e74]">{moment(row.created_at)}</time><strong className="tw:text-[.92rem] tw:text-[#322f2c]">{row.kind === 'hours' ? 'Horas' : KINDS[row.kind] || row.kind}</strong><div className="tw:flex tw:min-w-0 tw:flex-col tw:gap-[.23rem]"><strong className="tw:text-[.92rem] tw:text-[#322f2c]">{row.title}</strong><small className="tw:text-[.85rem] tw:text-[#8c7e74]">{[companyName.get(row.company_id) || 'Empresa', row.note, row.decision_note ? `Resposta: ${row.decision_note}` : ''].filter(Boolean).join(' · ')}</small></div><span className={`wf-tag ${tone[row.status]?.[0] || ''}`}>{tone[row.status]?.[1] || row.status}</span></div>)}</div> : <div className="empty">{filter === 'pending' ? 'Nada aguardando no momento.' : 'Você ainda não enviou nada para aprovação.'}</div>}</>;
 }
 
 const sectionModules = {
@@ -194,10 +189,6 @@ export function StaffWorkspaceSection({ section }: { section: StaffSection }) {
   }
 }
 
-export function StaffPrint() {
-  return <ReportPrintPage role="staff" />;
-}
-
 function AuthorizedStaffWorkspace() {
   const { me, error } = usePartnerWorkspace();
   const { pathname } = useLocation();
@@ -225,7 +216,6 @@ export function StaffWorkspace() {
   return (
     <MfaGate>
       <TermsGate>
-        <RouteRuntimeManager />
         <AuthorizedStaffWorkspace />
       </TermsGate>
     </MfaGate>

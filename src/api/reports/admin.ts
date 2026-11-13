@@ -1,12 +1,13 @@
 import { format, subMonths } from 'date-fns';
 import { z } from 'zod';
+import { isJsonObject } from '../../domain/json';
 import type { ReportEditor, ReportType } from '../../lib/reportComposition';
 import { normalizeIntelligenceSnapshot, type IntelligenceSnapshot } from '../../lib/reportIntelligence';
 import type { DeliveryPerformanceRow, DismissedReportAlert } from '../../lib/reportCloseMetrics';
 import { supabase } from '../supabase';
 import { reportContent } from './report-content';
 
-const reportFields = 'id,company_id,title,report_type,period_start,period_end,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,updated_at,version,revision_parent_id,dismissed_alerts,internal_note,data_refreshed_at,review_started_at,approved_at,sent_at,sent_to';
+const reportFields = 'id,company_id,title,report_type,period_start,period_end,reference_month,status,executive_summary,movements,decisions,risks,next_steps,source_snapshot,protocol,updated_at,version,revision_parent_id,dismissed_alerts,internal_note,data_refreshed_at,review_started_at,approved_at,sent_at,sent_to,client_open_count,acknowledged_at';
 const storedReport = reportContent.extend({
   company_id: z.string(),
   status: z.enum(['draft', 'review', 'approved', 'sent', 'published', 'archived']),
@@ -18,6 +19,8 @@ const storedReport = reportContent.extend({
   review_started_at: z.string().nullish(),
   approved_at: z.string().nullish(),
   sent_to: z.json().optional(),
+  client_open_count: z.union([z.number(), z.string()]).nullish(),
+  acknowledged_at: z.string().nullish(),
 });
 export type AdminReportRow = z.infer<typeof storedReport>;
 
@@ -134,6 +137,14 @@ export async function readCurrentReportPeriod(companyId: string, type: ReportTyp
     .neq('status', 'archived').order('version', { ascending: false }).limit(1).maybeSingle();
   if (result.error) throw result.error;
   return storedReport.nullable().parse(result.data);
+}
+
+export async function markLegacyReportSimulation(report: AdminReportRow, officialId: string) {
+  const snapshot = isJsonObject(report.source_snapshot) ? report.source_snapshot : {};
+  const result = await database().from('reports').update({
+    source_snapshot: { ...snapshot, workflow_mode: 'simulation', simulation_of: officialId, simulation_marked_at: new Date().toISOString() },
+  }).eq('id', report.id).eq('updated_at', report.updated_at).in('status', ['draft', 'review']);
+  if (result.error) throw result.error;
 }
 
 export async function createReportDraft(payload: DraftReport, mode: 'official' | 'simulation') {

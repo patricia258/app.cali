@@ -1,51 +1,44 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Pause, Square, TimerReset, X } from 'lucide-react';
+import { TimerReset, X } from 'lucide-react';
 import { useLocation } from '../../hooks/useLocation';
-import { useNavigate } from '../../hooks/useNavigate';
-import { hoursAvailable } from '../../api/hours/client';
-import { readGlobalTimers } from '../../api/hours/timer-context';
-import { finalizeTimerWork, pauseTimerSession, TIMER_EVENT } from '../../lib/timerSemantics';
+import { useOpenTimerOrigin } from './hooks/useOpenTimerOrigin';
+import { useGlobalTimers, type GlobalTimer } from './hooks/useGlobalTimers';
+import { usePauseGlobalTimer } from './hooks/usePauseGlobalTimer';
+import { useFinalizeGlobalTimer } from './hooks/useFinalizeGlobalTimer';
+import { GlobalTimerChip } from './components/GlobalTimerChip';
 import { TimerFinalizationDialog, type TimerFinalizationTarget } from './TimerFinalizationDialog';
 import type { Role } from '../workspace/WorkspaceShell';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
-import './global-timer-overflow.css';
 
-type TimerRow = {
-  id: string; companyId: string; projectId?: string|null; deliverableId?: string|null; taskId?: string|null; accountRecordId?: string|null;
-  startedAt: string; pausedSeconds: number; category?: string|null; description?: string|null;
-  companyName: string; companyLogo?: string|null; projectName?: string|null; deliverableName?: string|null; taskName?: string|null; recordTitle?: string|null;
-  deliverableStatus?: string|null;
-};
-type PendingOrigin = { deliverableId?: string|null; deliverableName?: string|null; taskId?: string|null; taskName?: string|null };
-type PendingFinalization = { timer: TimerRow; target: TimerFinalizationTarget } | null;
-const ORIGIN_KEY='cali:timer-origin';
-
+type PendingFinalization = { timer: GlobalTimer; target: TimerFinalizationTarget } | null;
 function primaryTimerLimit() {
   if (window.innerWidth >= 1400) return 2;
   if (window.innerWidth >= 1024) return 1;
   return 0;
 }
 
-function timerSeconds(timer:TimerRow,nowMs:number){return Math.max(0,Math.floor((nowMs-new Date(timer.startedAt).getTime())/1000)-Number(timer.pausedSeconds||0));}
-function timerLabel(seconds:number){const h=Math.floor(seconds/3600),m=Math.floor((seconds%3600)/60),s=seconds%60;return[h,m,s].map(v=>String(v).padStart(2,'0')).join(':');}
-function initials(name:string){return name.trim().split(/\s+/).slice(0,2).map(p=>p[0]).join('').toUpperCase();}
-function normalize(value?:string|null){return(value||'').replace(/\s+/g,' ').trim().toLocaleLowerCase('pt-BR');}
-function findOriginButton(deliverableName:string){const title=normalize(deliverableName);return Array.from(document.querySelectorAll<HTMLButtonElement>('.front-deliverable-open-v3,.deliverable-list-open-v3,button')).find(b=>{const t=normalize(b.textContent);return t===title||t.includes(title);})||null;}
-function openPendingOrigin(origin:PendingOrigin){
-  if(!origin.deliverableName)return false;const button=findOriginButton(origin.deliverableName);if(!button)return false;button.click();
-  window.setTimeout(()=>{if(!origin.taskName)return;const modal=document.querySelector<HTMLElement>(":is(.deliverable-workspace-modal-v2,[data-v2-operation~=\"deliverable-workspace-modal-v2\"])");if(!modal)return;Array.from(modal.querySelectorAll<HTMLButtonElement>('.deliverable-tabs-v2 button')).find(x=>normalize(x.textContent).startsWith('subtarefas'))?.click();window.setTimeout(()=>{const task=Array.from(document.querySelectorAll<HTMLElement>('.task-list-v2 article')).find(x=>normalize(x.textContent).includes(normalize(origin.taskName)));if(task){task.classList.add('timer-origin-highlight');task.scrollIntoView({behavior:'smooth',block:'center'});window.setTimeout(()=>task.classList.remove('timer-origin-highlight'),3500);}},180);},180);return true;
-}
-
 export function GlobalTimerBar({role}:{role:Role}){
   const { user } = useWorkspaceAuth();
-  const location=useLocation(),navigate=useNavigate();
-  const [timers,setTimers]=useState<TimerRow[]>([]),[nowMs,setNowMs]=useState(Date.now()),[busyId,setBusyId]=useState<string|null>(null),[moreOpen,setMoreOpen]=useState(false);
-  const [pending,setPending]=useState<PendingFinalization>(null),[confirmStep,setConfirmStep]=useState<1|2>(1);const mounted=useRef(true);
+  const { pathname } = useLocation();
+  const openTimerOrigin = useOpenTimerOrigin();
+  const { data: timers } = useGlobalTimers(role === 'admin' ? user?.id : undefined);
+  const [nowMs, setNowMs] = useState(Date.now);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [pending, setPending] = useState<PendingFinalization>(null);
+  const [confirmStep, setConfirmStep] = useState<1 | 2>(1);
+  const pauseTimer = usePauseGlobalTimer();
+  const finishTimer = useFinalizeGlobalTimer(() => {
+    setPending(null);
+    setConfirmStep(1);
+  });
+  const busyId = pauseTimer.isPending ? pauseTimer.variables : finishTimer.isPending ? finishTimer.variables?.id : undefined;
+  const tickClock = Boolean(timers?.length && !pathname.startsWith('/admin/horas'));
   const [primaryLimit, setPrimaryLimit] = useState(primaryTimerLimit);
   const [panelPosition, setPanelPosition] = useState({ top: 0, right: 16 });
   const moreButton = useRef<HTMLButtonElement>(null);
   const morePanel = useRef<HTMLDivElement>(null);
+  const moreCloseButton = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const panelTitleId = useId();
 
@@ -73,7 +66,7 @@ export function GlobalTimerBar({role}:{role:Role}){
 
   useEffect(() => {
     if (!moreOpen) return;
-    morePanel.current?.querySelector('button')?.focus();
+    moreCloseButton.current?.focus();
     const outside = (event: PointerEvent) => {
       if (event.target instanceof Node && !morePanel.current?.contains(event.target) && !moreButton.current?.contains(event.target)) {
         setMoreOpen(false);
@@ -95,67 +88,60 @@ export function GlobalTimerBar({role}:{role:Role}){
     };
   }, [closePanel, moreOpen, updatePanelPosition]);
 
-  const load = useCallback(async () => {
-    if (role !== 'admin' || !hoursAvailable || !user) {
-      setTimers([]);
-      return;
-    }
-    const next = await readGlobalTimers(user.id);
-    if (mounted.current) setTimers(next);
-  }, [role, user]);
+  useEffect(() => {
+    if (!tickClock) return;
+    const tick = () => setNowMs(Date.now());
+    tick();
+    const timer = window.setInterval(tick, 1000);
+    return () => window.clearInterval(timer);
+  }, [tickClock]);
 
-  useEffect(()=>{mounted.current=true;void load();const refresh=window.setInterval(()=>void load(),15000),tick=window.setInterval(()=>setNowMs(Date.now()),1000),changed=()=>void load();window.addEventListener(TIMER_EVENT,changed);return()=>{mounted.current=false;window.clearInterval(refresh);window.clearInterval(tick);window.removeEventListener(TIMER_EVENT,changed);};},[load]);
-  useEffect(()=>{if(role!=='admin'||!location.pathname.startsWith('/admin/projetos'))return;const raw=sessionStorage.getItem(ORIGIN_KEY);if(!raw)return;let origin:PendingOrigin|null=null;try{origin=JSON.parse(raw);}catch{sessionStorage.removeItem(ORIGIN_KEY);}if(!origin)return;let attempts=0;const id=window.setInterval(()=>{attempts++;if(openPendingOrigin(origin as PendingOrigin)||attempts>=30){window.clearInterval(id);sessionStorage.removeItem(ORIGIN_KEY);}},180);return()=>window.clearInterval(id);},[role,location.pathname]);
-
-  const visibleTimers = location.pathname.startsWith('/admin/horas') ? [] : timers;
-  async function pause(timer:TimerRow){if(busyId)return;setBusyId(timer.id);try{await pauseTimerSession(timer.id);await load();}catch(e){console.error('Falha ao pausar e registrar sessão',e);}finally{setBusyId(null);}}
-  function requestStop(timer:TimerRow){if(timer.accountRecordId)return;setPending({timer,target:{id:timer.taskId||timer.deliverableId||timer.id,label:timer.taskName||timer.deliverableName||timer.description||'esta atuação',kind:timer.taskId?'task':'deliverable',clientApproved:timer.deliverableStatus==='approved'}});setConfirmStep(1);setMoreOpen(false);}
-  async function confirmStop(){if(!pending||busyId)return;setBusyId(pending.timer.id);try{await finalizeTimerWork(pending.timer);setPending(null);setConfirmStep(1);await load();}catch(e){console.error('Falha ao finalizar execução',e);}finally{setBusyId(null);}}
-  function goToOrigin(timer:TimerRow){
+  const visibleTimers = pathname.startsWith('/admin/horas') ? [] : timers ?? [];
+  function requestStop(timer: GlobalTimer) {
+    if (timer.accountRecordId) return;
+    setPending({
+      timer,
+      target: {
+        id: timer.taskId || timer.deliverableId || timer.id,
+        label: timer.taskName || timer.deliverableName || timer.description || 'esta atuação',
+        kind: timer.taskId ? 'task' : 'deliverable',
+        clientApproved: timer.deliverableStatus === 'approved',
+      },
+    });
+    setConfirmStep(1);
     setMoreOpen(false);
-    if(timer.accountRecordId){navigate(`/admin/registros?record=${timer.accountRecordId}`);return;}
-    const origin={deliverableId:timer.deliverableId,deliverableName:timer.deliverableName,taskId:timer.taskId,taskName:timer.taskName};sessionStorage.setItem(ORIGIN_KEY,JSON.stringify(origin));
-    if(location.pathname.startsWith('/admin/projetos')){openPendingOrigin(origin);return;}navigate('/admin/projetos');
   }
 
+  function confirmStop() {
+    if (pending && !busyId) finishTimer.mutate(pending.timer, {
+      onError: (error) => console.error('Falha ao finalizar execução', error),
+    });
+  }
   const primary = visibleTimers.slice(0, primaryLimit);
   const overflow = visibleTimers.slice(primaryLimit);
-  const showMore = moreOpen && overflow.length > 0;
-  function chip(timer: TimerRow, extended = false) {
-    const workLabel = timer.recordTitle || timer.taskName || timer.deliverableName;
-    return <article className={extended ? 'global-timer-chip global-timer-chip-expanded' : 'global-timer-chip'} key={timer.id}>
-      <button className="global-timer-origin" type="button" onClick={() => goToOrigin(timer)} title="Abrir origem do timer">
-        <span className="global-timer-logo">
-          {timer.companyLogo
-            ? <img src={timer.companyLogo} alt="" width={29} height={29} decoding="async" />
-            : initials(timer.companyName)}
-        </span>
-        <span className="global-timer-copy">
-          <strong title={workLabel || timer.description || ''}>
-            {workLabel || (timer.description || '').split(' · ').pop() || timer.projectName || 'Atuação CALI'}
-          </strong>
-          {extended && <small>{timer.companyName}</small>}
-        </span>
-      </button>
-      <span className="global-timer-clock">{timerLabel(timerSeconds(timer, nowMs))}</span>
-      <button className="global-timer-control" type="button" disabled={busyId === timer.id} onClick={() => void pause(timer)}
-        aria-label="Pausar e registrar esta sessão" title="Pausar: registra esta sessão e remove o timer">
-        <Pause size={14}/>
-      </button>
-      {!timer.accountRecordId && <button className="global-timer-control stop" type="button" disabled={busyId === timer.id}
-        onClick={() => requestStop(timer)} aria-label="Finalizar trabalho definitivamente" title="Stop: finalizar trabalho definitivamente">
-        <Square size={13}/>
-      </button>}
-    </article>;
+  function chipProps(timer: GlobalTimer) {
+    return {
+      timer,
+      nowMs,
+      busy: busyId === timer.id,
+      onOpen: () => { setMoreOpen(false); openTimerOrigin(timer); },
+      onPause: () => {
+        if (!busyId) pauseTimer.mutate(timer.id, {
+          onError: (error) => console.error('Falha ao pausar e registrar sessão', error),
+        });
+      },
+      onStop: () => requestStop(timer),
+    };
   }
+  const showMore = moreOpen && overflow.length > 0;
 
   return <>
-    {role === 'admin' && visibleTimers.length > 0 && <div className="global-timers global-timers-fit" aria-label="Timers ativos">
-      <span className="global-timers-mark" title={`${visibleTimers.length} timer(s) fora do contexto atual`}><TimerReset size={16}/></span>
-      {primary.length > 0 && <div className="global-timers-primary">{primary.map(timer => chip(timer))}</div>}
+    {role === 'admin' && visibleTimers.length > 0 && <div className="global-timers tw:mr-[0.3125rem] tw:flex tw:min-w-0 tw:shrink-0 tw:items-center tw:gap-[0.4375rem] tw:[@media(max-width:47.5rem)]:max-w-[16.1538rem]" aria-label="Timers ativos">
+      <span className="global-timers-mark tw:grid tw:size-[2.125rem] tw:flex-none tw:place-items-center tw:rounded-[0.6875rem] tw:bg-[color:color-mix(in_srgb,var(--theme-accent)_11%,var(--theme-surface))] tw:text-cali-accent tw:workspace-compact:hidden tw:[@media(max-width:61.25rem)]:hidden" title={`${visibleTimers.length} timer(s) fora do contexto atual`}><TimerReset size={16}/></span>
+      {primary.length > 0 && <div className="global-timers-primary tw:flex tw:min-w-0 tw:items-center tw:gap-[0.4375rem]">{primary.map((timer) => <GlobalTimerChip key={timer.id} {...chipProps(timer)} />)}</div>}
       {overflow.length > 0 && <button
         ref={moreButton}
-        className="global-timers-more"
+        className={`global-timers-more tw:inline-flex tw:h-[2.3125rem] tw:min-w-[2.375rem] tw:shrink-0 tw:cursor-pointer tw:items-center tw:justify-center tw:gap-[0.3125rem] tw:rounded-full tw:border tw:border-solid tw:border-cali-line tw:bg-[color:var(--theme-surface-soft)] tw:px-[0.625rem] tw:text-[0.875rem] tw:font-extrabold tw:whitespace-nowrap tw:text-cali-text tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-accent`}
         type="button"
         aria-label={overflow.length === 1 ? 'Ver mais 1 timer ativo' : `Ver mais ${overflow.length} timers ativos`}
         aria-haspopup="dialog"
@@ -172,18 +158,18 @@ export function GlobalTimerBar({role}:{role:Role}){
     </div>}
     {showMore && createPortal(
       <div
-        className="global-timers-popover global-timers-overlay"
+        className="global-timers-popover tw:fixed tw:z-1000 tw:w-[min(33.0625rem,calc(100vw-2.4615rem))] tw:overflow-auto tw:rounded-[1.1538rem] tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:p-[0.75rem] tw:text-cali-text tw:shadow-[0_1.3846rem_4.2308rem_#2b2b2b2b]"
         id={panelId}
         ref={morePanel}
         role="dialog"
         aria-labelledby={panelTitleId}
         style={{ top: panelPosition.top, right: panelPosition.right, maxHeight: `calc(100dvh - ${panelPosition.top + 16}px)` }}
       >
-        <header>
-          <div><strong id={panelTitleId}>{primary.length > 0 ? 'Outros timers' : 'Timers ativos'}</strong><small>Empresas diferentes podem rodar em paralelo.</small></div>
-          <button type="button" aria-label="Fechar timers" onClick={closePanel}><X size={16}/></button>
+        <header className="tw:flex tw:items-start tw:justify-between tw:gap-[0.9375rem] tw:p-[0.2308rem_0.2308rem_0.6875rem]">
+          <div className="tw:grid tw:gap-[0.1538rem]"><strong className="tw:text-[0.9375rem]" id={panelTitleId}>{primary.length > 0 ? 'Outros timers' : 'Timers ativos'}</strong><small className="tw:text-[0.8077rem] tw:text-cali-muted">Empresas diferentes podem rodar em paralelo.</small></div>
+          <button className={`tw:grid tw:size-[2.125rem] tw:shrink-0 tw:cursor-pointer tw:place-items-center tw:border-0 tw:bg-transparent tw:text-cali-muted tw:focus-visible:outline-2 tw:focus-visible:outline-offset-2 tw:focus-visible:outline-cali-accent`} type="button" ref={moreCloseButton} aria-label="Fechar timers" onClick={closePanel}><X size={16}/></button>
         </header>
-        <div>{overflow.map(timer => chip(timer, true))}</div>
+        <div className="tw:grid tw:gap-[0.4375rem]">{overflow.map((timer) => <GlobalTimerChip key={timer.id} {...chipProps(timer)} extended />)}</div>
       </div>,
       document.body,
     )}

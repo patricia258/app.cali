@@ -6,6 +6,7 @@ const path = require('node:path');
 const { parseArgs } = require('node:util');
 const { defaultChrome, serve, denyProxy, launchBrowser, closeBrowser } = require('./loopback.cjs');
 const { makeContext, relative } = require('./browser-fixture.cjs');
+const { checkBrowserResources } = require('./browser-resources.cjs');
 
 async function browserSuite(cases) {
   const { values } = parseArgs({
@@ -27,6 +28,7 @@ async function browserSuite(cases) {
     browser = await launchBrowser(values.chrome, proxy);
     const results = [];
     for (const test of selected) {
+      checkBrowserResources();
       const width = test.width ?? 1440;
       const actors = [];
       const pageErrors = [];
@@ -91,7 +93,7 @@ function press(locator, input) {
 }
 
 async function answerWorkspaceDialog(page, accept) {
-  const open = page.locator('dialog.workspace-action-dialog[open]');
+  const open = page.locator('dialog[open]:is(.workspace-action-dialog, [data-workspace-action-dialog])');
   await open.waitFor();
   const message = await open.getAttribute('aria-label');
   const dialog = page.getByRole('dialog', { name: message, exact: true });

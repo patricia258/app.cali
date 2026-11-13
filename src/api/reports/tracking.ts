@@ -36,17 +36,17 @@ export async function readClientReportHistory(companyId: string) {
     return true;
   });
   const ids = consolidated.map((item) => item.id);
-  const events = ids.length ? await supabase.from('report_client_events').select('report_id,event_type,created_at,user_id,metadata')
+  const events = ids.length ? await supabase.from('report_client_events').select('id,report_id,event_type,created_at,user_id')
     .in('report_id', ids).order('created_at', { ascending: false }) : null;
   if (events?.error) return null;
   const users = [...new Set((events?.data ?? []).flatMap((event) => event.user_id ? [event.user_id] : []))];
   const profiles = users.length ? await supabase.from('profiles').select('id,full_name').in('id', users) : null;
   const names = new Map((profiles?.data ?? []).map((profile) => [String(profile.id), String(profile.full_name || 'Cliente')]));
-  const eventsByReport = new Map<string, { date: string; label: string; actor: string }[]>();
+  const eventsByReport = new Map<string, { id: string; date: string; label: string; actor: string }[]>();
   for (const event of events?.data ?? []) {
     const id = String(event.report_id);
     const list = eventsByReport.get(id) ?? [];
-    list.push({ date: event.created_at, label: clientEvents[event.event_type] || event.event_type, actor: names.get(String(event.user_id)) || 'Cliente' });
+    list.push({ id: event.id, date: event.created_at, label: clientEvents[event.event_type] || event.event_type, actor: names.get(String(event.user_id)) || 'Cliente' });
     eventsByReport.set(id, list);
   }
   return { companyName: company.data?.display_name || 'Cliente', consolidated, eventsByReport };

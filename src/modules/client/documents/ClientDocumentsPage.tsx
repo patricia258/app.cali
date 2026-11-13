@@ -1,12 +1,13 @@
+import { DocumentCardArt, DocumentCardTags } from '../../../components/documents/DocumentCardArt';
+import { DocumentCardFact, DocumentCardFacts } from '../../../components/documents/DocumentCardFacts';
+import { DocumentCardActions, DocumentCardContent, DocumentCardProtocol } from '../../../components/documents/DocumentCardContent';
 import { Button } from '../../../components/ds/Button';
-import { DialogFrame } from '../../../components/ds/DialogFrame';
 import { EmptyState } from '../../../components/ds/EmptyState';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
-import { LoadingState } from '../../../components/ds/LoadingState';
 import { openPrivateWorkspaceFile } from '../../../api/files/workspace';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from '../../../hooks/useLocation';
-import { ArrowLeft, Clock3, FolderOpen, AlertTriangle, CheckCircle2, ChevronRight, Cloud, ExternalLink, Eye, FileCheck2, FileText, MessageSquare, Search, Send, X } from 'lucide-react';
+import { FolderOpen, AlertTriangle, CheckCircle2, ChevronRight, Cloud, ExternalLink, Eye, FileCheck2, FileText, MessageSquare, Search } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { useQueryClient } from '@tanstack/react-query';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
@@ -19,10 +20,14 @@ import {
   type DriveSyncState as SyncState,
 } from '../../../api/client/documents/drive';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
-import { DocumentAutoCover } from '../../../components/documents/DocumentAutoCover';
+import { DocumentFolderProgress, DocumentLayoutSwitch } from '../../../components/documents/DocumentFolderHeader';
+import { ClientDocumentFolder } from './components/ClientDocumentFolder';
+import { ClientDocumentDetails } from './components/ClientDocumentDetails';
+import { ClientDocumentList } from './components/ClientDocumentList';
+import { ClientDocumentComments, type DocumentComment } from './components/ClientDocumentComments';
 
 type CategorySlug = 'policy' | 'manual' | 'flow' | 'guide' | 'report' | 'onboarding' | 'deliverable' | 'schedule' | 'contract' | 'reference' | 'other';
-type ClientDoc = {
+export type ClientDoc = {
   id: string;
   companyId: string;
   title: string;
@@ -40,8 +45,6 @@ type ClientDoc = {
   deliverableId: string | null;
   taskId: string | null;
 };
-
-type CommentRow = { id: string; body: string; createdAt: string; mine: boolean };
 
 const categoryOptions: Array<{ value: CategorySlug; label: string }> = [
   { value: 'deliverable', label: 'Entregável' }, { value: 'report', label: 'Relatório' }, { value: 'policy', label: 'Política' },
@@ -84,7 +87,7 @@ export function ClientDocumentsPage() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [commentDoc, setCommentDoc] = useState<ClientDoc | null>(null);
-  const [comments, setComments] = useState<CommentRow[]>([]);
+  const [comments, setComments] = useState<DocumentComment[]>([]);
   const [comment, setComment] = useState('');
   const [commentLoading, setCommentLoading] = useState(false);
 
@@ -275,31 +278,73 @@ export function ClientDocumentsPage() {
     if (doc.requiresAcknowledgement) return { tone: 'green', label: 'Ciente' };
     return { tone: 'green', label: 'Disponível' };
   };
+  const selectedFolder = folders.find((folder) => folder.id === openFolder);
+  const folderEntries = selectedFolder ? [
+    ...documents.filter((doc) => !doc.taskId && doc.deliverableId === selectedFolder.id).map((doc) => ({
+      key: `d:${doc.id}`, title: doc.title, hint: 'Documento do entregável', docs: [doc],
+    })),
+    ...selectedFolder.items.map((part) => ({
+      key: part.id, title: part.title, hint: 'Parte do entregável', docs: documents.filter((doc) => doc.taskId === part.id),
+    })),
+  ] : [];
   const overdue = documents.filter((doc) => { const left = daysUntil(doc.validUntil); return left != null && left < 0; });
   const expiring = documents.filter((doc) => { const left = daysUntil(doc.validUntil); return left != null && left >= 0 && left <= 60; });
-  return <Shell role="client"><section className={`v2-client-module v2-client-docs ${openFolder ? "v2-in-folder" : ""}`}><div className="wf">
+  return <Shell role="client"><section className="v2-client-module v2-client-docs"><div className="wf">
     <div className="wf-head"><div><small>ÁREA DA EMPRESA / ACERVO</small><h1>Documentos</h1><p>Entregáveis com capa, versões, protocolo e acompanhamento.</p></div></div>
     {notice && <InlineNotice tone="success" role="status"><CheckCircle2 size={18}/>{notice}</InlineNotice>}
     {error && <InlineNotice role="alert">{error}</InlineNotice>}
     <section className="wf-doc-drive"><Cloud size={23}/><div><strong>{driveConnection ? 'Drive da sua empresa conectado' : 'Leve suas versões aprovadas para o Drive da sua empresa'}</strong><p>{driveConnection ? `${driveConnection.accountEmail || 'Conta Google conectada'}. Você escolhe quais versões copiar para o Drive da empresa.` : 'Conecte a conta Google da sua empresa para salvar as versões aprovadas.'}</p></div><Button type="button" variant="workflowOutline" disabled={driveConnecting} onClick={() => void connectDrive()}>{driveConnecting ? 'Abrindo Google…' : driveConnection ? 'Trocar conta' : 'Conectar meu Drive'}</Button></section>
-    {(() => { const folder = folders.find((item) => item.id === openFolder); if (!folder) return null;
-      const entries = [...documents.filter((doc) => !doc.taskId && doc.deliverableId === folder.id).map((doc) => ({ key: `d:${doc.id}`, title: doc.title, hint: 'Documento do entregável', docs: [doc] })), ...folder.items.map((item) => ({ key: item.id, title: item.title, hint: 'Parte do entregável', docs: documents.filter((doc) => doc.taskId === item.id) }))];
-      const done = entries.filter((entry) => entry.docs.length > 0).length; const pct = entries.length ? Math.round((done / entries.length) * 100) : 0;
-      const actions = (entry: typeof entries[number]) => entry.docs.length ? <div className="v2-fv-actions">{entry.docs.map((doc) => <span key={doc.id}><button type="button" className="v2-folder-ack" onClick={() => void openDocument(doc)}><Eye size={14} /> Abrir</button>{acknowledged.includes(doc.id) ? <em className="v2-folder-ok"><CheckCircle2 size={13} /> Confirmado</em> : <button type="button" className="v2-folder-ack" title="Confirmar o recebimento deste documento" onClick={() => void acknowledgeDocument(doc)}>Confirmar</button>}</span>)}</div> : null;
-      return <section className="v2-fv" aria-label={`Pasta ${folder.title}`}>
-        <div className="v2-fv-top"><button type="button" className="v2-fv-back" onClick={() => setOpenFolder(null)}><ArrowLeft size={14} /> Documentos</button>
-        <header className="v2-fv-head"><div><FolderOpen size={22} /><div><h2>{folder.title}</h2><p>{folder.protocol || 'ENTREGÁVEL'} · {done} de {entries.length} {entries.length === 1 ? 'entregue' : 'entregues'}</p></div></div><div className="v2-fv-right">{driveConnection && done > 0 && <button type="button" className="v2-fv-drive" disabled={folderSaving === folder.id} onClick={() => void saveFolderToDrive(folder.id, folder.title)}><Cloud size={14} /> {folderSaving === folder.id ? 'Salvando no Drive…' : 'Salvar pasta no Drive'}</button>}<div className="v2-fv-bar" aria-hidden="true"><i style={{ width: `${pct}%` }} /></div><div className="wf-segments" aria-label="Exibição da pasta"><button type="button" className={layout === 'covers' ? 'on' : ''} onClick={() => setLayout('covers')}>Capas</button><button type="button" className={layout === 'list' ? 'on' : ''} onClick={() => setLayout('list')}>Lista</button></div></div></header></div>
-        {layout === 'covers' ? <div className="v2-fv-grid">{entries.map((entry) => <article key={entry.key} className={`v2-fv-card ${entry.docs.length ? '' : 'pending'}`}><div className="v2-fv-cover">{entry.docs.length ? (companyBrand.logoUrl ? <DocumentAutoCover logo={companyBrand.logoUrl} name={companyBrand.name} /> : <FileText size={28} />) : <Clock3 size={26} />}<span className={`wf-tag ${entry.docs.length ? 'green' : 'amber'}`}>{entry.docs.length ? 'Entregue' : 'Em produção'}</span></div><div className="v2-fv-body"><h3 title={entry.title}>{entry.title}</h3><small>{entry.docs.length ? `${entry.hint} · ${entry.docs[0].date}` : `${entry.hint} · ainda sem documento`}</small>{actions(entry)}</div></article>)}</div>
-          : <div className="v2-fv-list"><div className="v2-fv-row head"><span>Nome</span><span>Situação</span><span>Entregue em</span><span /></div>{entries.map((entry) => <div key={entry.key} className={`v2-fv-row ${entry.docs.length ? '' : 'pending'}`}><span className="v2-fv-name">{entry.docs.length ? <FileText size={16} /> : <Clock3 size={16} />}<strong>{entry.title}</strong></span><span><span className={`wf-tag ${entry.docs.length ? 'green' : 'amber'}`}>{entry.docs.length ? 'Entregue' : 'Em produção'}</span></span><span>{entry.docs.length ? entry.docs[0].date : '—'}</span>{actions(entry) || <span />}</div>)}</div>}
-      </section>; })()}
-    <div className="wf-doc-toolbar"><strong>{[shownFolders.length ? `${shownFolders.length} ${shownFolders.length === 1 ? 'pasta' : 'pastas'}` : '', filtered.length || !shownFolders.length ? `${filtered.length} ${filtered.length === 1 ? 'documento' : 'documentos'}` : ''].filter(Boolean).join(' · ')}</strong><label><Search size={14}/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nome, tipo ou protocolo" aria-label="Buscar documentos"/></label><select className="wf-doc-filter" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} aria-label="Filtrar documentos por categoria"><option value="all">Todas as categorias</option>{folders.length > 0 && <option value="folder">Pastas</option>}{categories.map((value) => <option key={value} value={value}>{categoryLabel(value)}</option>)}</select><div className="wf-segments" aria-label="Exibição do acervo"><button type="button" className={layout === 'covers' ? 'on' : ''} onClick={()=>setLayout('covers')}>Capas</button><button type="button" className={layout === 'list' ? 'on' : ''} onClick={()=>setLayout('list')}>Lista</button></div></div>
+    {selectedFolder && <ClientDocumentFolder
+      title={selectedFolder.title}
+      protocol={selectedFolder.protocol}
+      entries={folderEntries}
+      layout={layout}
+      companyBrand={companyBrand}
+      acknowledged={acknowledged}
+      driveConnected={Boolean(driveConnection)}
+      saving={folderSaving === selectedFolder.id}
+      onBack={() => setOpenFolder(null)}
+      onLayout={setLayout}
+      onSave={() => void saveFolderToDrive(selectedFolder.id, selectedFolder.title)}
+      onOpen={(doc) => void openDocument(doc)}
+      onAcknowledge={(doc) => void acknowledgeDocument(doc)}
+    />}
+    <div hidden={Boolean(selectedFolder)} className="tw:[&[hidden]]:hidden!">
+    <div className="tw:mb-[1.154rem] tw:flex tw:flex-wrap tw:items-center tw:justify-end tw:gap-4 tw:rounded-[0.769rem] tw:border tw:border-solid tw:border-[#eee4dc] tw:bg-white tw:p-[1.154rem] tw:min-[68.8125rem]:flex-nowrap"><strong className="tw:mr-auto tw:text-[0.923rem]/[inherit]">{[shownFolders.length ? `${shownFolders.length} ${shownFolders.length === 1 ? 'pasta' : 'pastas'}` : '', filtered.length || !shownFolders.length ? `${filtered.length} ${filtered.length === 1 ? 'documento' : 'documentos'}` : ''].filter(Boolean).join(' · ')}</strong><label className="tw:flex tw:min-w-[20rem] tw:items-center tw:gap-[0.692rem] tw:rounded-[0.615rem] tw:border tw:border-solid tw:border-[#e9dcd3] tw:px-[0.923rem] tw:py-[0.769rem] tw:focus-within:border-cali-gold tw:max-[40.6875rem]:min-w-[min(100%,13.846rem)]"><Search size={14}/><input className="tw:w-full tw:min-w-0 tw:border-0 tw:text-[0.846rem]/[inherit] tw:outline-none" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por nome, tipo ou protocolo" aria-label="Buscar documentos"/></label><select className="tw:rounded-[0.615rem] tw:border tw:border-solid tw:border-[#eaded5] tw:bg-white tw:px-[0.923rem] tw:py-[0.769rem] tw:text-[0.846rem]/[inherit] tw:text-[#604c49]" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} aria-label="Filtrar documentos por categoria"><option value="all">Todas as categorias</option>{folders.length > 0 && <option value="folder">Pastas</option>}{categories.map((value) => <option key={value} value={value}>{categoryLabel(value)}</option>)}</select><DocumentLayoutSwitch label="Exibição do acervo" layout={layout} onChange={setLayout} /></div>
     {filtered.length === 0 && shownFolders.length === 0 && <EmptyState variant="workflow"><strong>Nenhum documento encontrado.</strong><p>{documents.length || folders.length ? 'Ajuste a busca ou o filtro.' : 'Assim que a CALI publicar uma versão final para você, ela aparecerá aqui.'}</p></EmptyState>}
     {(expiring.length > 0 || overdue.length > 0) && <div className={`v2-hours-notice ${overdue.length ? 'critical' : 'warning'}`} role="status"><AlertTriangle size={16}/><span>{[overdue.length ? `${overdue.length} ${overdue.length === 1 ? 'documento está com a validade vencida' : 'documentos estão com a validade vencida'}` : '', expiring.length ? `${expiring.length} ${expiring.length === 1 ? 'documento tem' : 'documentos têm'} validade ou revisão prevista nos próximos 60 dias` : ''].filter(Boolean).join(' · ')}.</span></div>}
-    {layout === 'list' && (filtered.length > 0 || shownFolders.length > 0) && <div className="wf-records v2-doc-list">{shownFolders.map((folder) => { const total = folder.items.length + documents.filter((doc) => !doc.taskId && doc.deliverableId === folder.id).length; const done = folder.items.filter((item) => documents.some((doc) => doc.taskId === item.id)).length + documents.filter((doc) => !doc.taskId && doc.deliverableId === folder.id).length; return <button type="button" className="wf-record-row doc-deliverable v2-folder-row" key={`f:${folder.id}`} onClick={() => setOpenFolder(folder.id)}><strong><FolderOpen size={15} /> {folder.title}</strong><span>Pasta de entregável</span><span>{folder.protocol || '—'}</span><span className="wf-tag amber">{done} de {total} entregues</span><ChevronRight size={14}/></button>; })}{filtered.map((doc) => { const tone = doc.category === 'deliverable' ? 'doc-deliverable' : doc.category === 'report' ? 'doc-executive' : 'doc-work'; const state = docState(doc); return <button type="button" className={`wf-record-row ${tone}`} key={doc.id} onClick={() => setDetailDoc(doc)}><strong>{doc.title}</strong><span>{categoryLabel(doc.category)}</span><span>{doc.date}</span><span className={`wf-tag ${state.tone}`}>{state.label}</span><ChevronRight size={14}/></button>; })}</div>}
-    {layout === 'covers' && <section className="wf-doc-gallery">
+    {layout === 'list' && (filtered.length > 0 || shownFolders.length > 0) && (
+      <ClientDocumentList rows={[
+        ...shownFolders.map((folder) => {
+          const own = documents.filter((doc) => !doc.taskId && doc.deliverableId === folder.id).length;
+          const done = own + folder.items.filter((part) => documents.some((doc) => doc.taskId === part.id)).length;
+          return {
+            id: `f:${folder.id}`, title: folder.title, category: 'Pasta de entregável', reference: folder.protocol || '—',
+            status: `${done} de ${own + folder.items.length} entregues`, tone: 'amber', kind: 'folder' as const, onOpen: () => setOpenFolder(folder.id),
+          };
+        }),
+        ...filtered.map((doc) => {
+          const state = docState(doc);
+          return {
+            id: doc.id, title: doc.title, category: categoryLabel(doc.category), reference: doc.date,
+            status: state.label, tone: state.tone, kind: doc.category === 'deliverable' ? 'delivery' as const : doc.category === 'report' ? 'report' as const : 'work' as const,
+            onOpen: () => setDetailDoc(doc),
+          };
+        }),
+      ]} />
+    )}
+    {layout === 'covers' && <section className="tw:mt-[1.231rem] tw:grid tw:grid-cols-[repeat(auto-fill,minmax(min(100%,20.769rem),1fr))] tw:gap-[1.231rem]">
       {shownFolders.map((folder) => { const own = documents.filter((doc) => !doc.taskId && doc.deliverableId === folder.id).length; const total = folder.items.length + own; const done = folder.items.filter((item) => documents.some((doc) => doc.taskId === item.id)).length + own; return <article className="wf-doc-cover v2-doc-card doc-deliverable v2-folder-card" key={`f:${folder.id}`}>
-        <div className="v2-doc-art-wrap"><button type="button" className="wf-doc-art v2-folder-art" aria-label={`Abrir a pasta ${folder.title}`} onClick={() => setOpenFolder(folder.id)}>{companyBrand.logoUrl ? <DocumentAutoCover logo={companyBrand.logoUrl} name={companyBrand.name} /> : <span><b>CALI</b></span>}</button><span className="v2-folder-mark" aria-hidden="true"><FolderOpen size={18} /></span><div className="v2-doc-tags"><span className="wf-doc-label doc-deliverable">Pasta</span></div></div>
-        <div className="wf-doc-content"><h2 title={folder.title}>{folder.title}</h2><p>{folder.protocol || 'Entregável'}</p><div className="v2-fv-bar" aria-hidden="true"><i style={{ width: `${total ? Math.round((done / total) * 100) : 0}%` }} /></div><small className="v2-folder-count">{done} de {total} {total === 1 ? 'entregue' : 'entregues'}</small><button type="button" className="v2-folder-open" onClick={() => setOpenFolder(folder.id)}>Abrir pasta <ChevronRight size={14} /></button></div>
+        <DocumentCardArt folder tone="delivery" logo={companyBrand.logoUrl} name={companyBrand.name} label={`Abrir a pasta ${folder.title}`} onOpen={() => setOpenFolder(folder.id)} fallback={<b>CALI</b>}>
+          <span className="v2-folder-mark tw:pointer-events-none tw:absolute tw:top-[0.769rem] tw:left-[0.769rem] tw:grid tw:size-[2.615rem] tw:place-items-center tw:rounded-[0.692rem] tw:bg-white tw:text-cali-brand tw:shadow-[0_1px_4px_#2817241a]" aria-hidden="true"><FolderOpen size={18} /></span>
+          <DocumentCardTags><span className="wf-doc-label doc-deliverable">Pasta</span></DocumentCardTags>
+        </DocumentCardArt>
+        <DocumentCardContent title={folder.title}>
+          <p className="tw:m-0! tw:text-[0.769rem]/[inherit] tw:text-[#857870]">{folder.protocol || 'Entregável'}</p>
+          <DocumentFolderProgress percentage={total ? Math.round((done / total) * 100) : 0} className="tw:mt-[0.923rem] tw:mb-[0.462rem]" />
+          <small className="v2-folder-count">{done} de {total} {total === 1 ? 'entregue' : 'entregues'}</small>
+          <button type="button" className="v2-folder-open" onClick={() => setOpenFolder(folder.id)}>Abrir pasta <ChevronRight size={14} /></button>
+        </DocumentCardContent>
       </article>; })}
       {filtered.map((doc) => {
         const isAcknowledged = acknowledged.includes(doc.id);
@@ -307,45 +352,65 @@ export function ClientDocumentsPage() {
         const syncLocked = syncState?.status === 'pending' || syncState?.status === 'processing';
         const tone = doc.category === 'deliverable' ? 'doc-deliverable' : doc.category === 'report' ? 'doc-executive' : 'doc-work';
         const left = daysUntil(doc.validUntil);
-        const review = !doc.validUntil ? { date: 'Não definida', note: '', tone: 'muted' } : { date: formatDate(doc.validUntil), note: left == null ? '' : left < 0 ? `vencida há ${-left} ${-left === 1 ? 'dia' : 'dias'}` : left === 0 ? 'vence hoje' : `faltam ${left} ${left === 1 ? 'dia' : 'dias'}`, tone: left != null && left < 0 ? 'late' : left != null && left <= 60 ? 'soon' : '' };
+        const review: { date: string; note: string; tone: 'muted' | 'late' | 'soon' | '' } = !doc.validUntil ? { date: 'Não definida', note: '', tone: 'muted' } : { date: formatDate(doc.validUntil), note: left == null ? '' : left < 0 ? `vencida há ${-left} ${-left === 1 ? 'dia' : 'dias'}` : left === 0 ? 'vence hoje' : `faltam ${left} ${left === 1 ? 'dia' : 'dias'}`, tone: left != null && left < 0 ? 'late' : left != null && left <= 60 ? 'soon' : '' };
         const kindLabel = doc.kind.trim().toLowerCase() === categoryLabel(doc.category).trim().toLowerCase() ? '' : doc.kind;
         return <article className={`wf-doc-cover v2-doc-card ${tone}`} key={doc.id}>
-          <div className="v2-doc-art-wrap">
-            <button type="button" className={`wf-doc-art ${doc.coverUrl ? 'has-cover' : ''}`} aria-label={`Ver informações de ${doc.title}`} onClick={() => setDetailDoc(doc)}>{doc.coverUrl ? <img src={doc.coverUrl} alt="" /> : companyBrand.logoUrl ? <DocumentAutoCover logo={companyBrand.logoUrl} name={companyBrand.name} /> : <span><FileText size={30}/><b>CALI</b></span>}</button>
-            <div className="v2-doc-tags"><span className={`wf-doc-label ${tone}`}>{categoryLabel(doc.category)}</span>{isAcknowledged && <span className="wf-tag green">Ciente</span>}</div>
-          </div>
-          <div className="wf-doc-content"><h2>{doc.title}</h2>{doc.description && <p>{doc.description}</p>}
-            <dl className="v2-doc-facts">
-              <div><dt>Versão</dt><dd>{String(doc.version).replace(/^v/i, '')}</dd></div>
-              <div><dt>{kindLabel ? 'Tipo' : 'Categoria'}</dt><dd>{kindLabel || categoryLabel(doc.category)}</dd></div>
-              <div><dt>Publicado em</dt><dd>{doc.date}</dd></div>
-              <div className={review.tone}><dt>Validade / revisão</dt><dd>{review.date}{review.note && <small>{review.note}</small>}</dd></div>
-            </dl>
-            <div className="v2-doc-foot"><strong className="wf-doc-protocol">{doc.protocol || 'Sem protocolo'}</strong></div>
-            <div className="wf-doc-actions"><button type="button" onClick={() => void openDocument(doc)}><Eye size={14}/> Abrir</button><button type="button" onClick={() => void openComments(doc)}><MessageSquare size={14}/> Comentar</button>
+          <DocumentCardArt tone={doc.category === 'deliverable' ? 'delivery' : doc.category === 'report' ? 'report' : 'work'} cover={doc.coverUrl} logo={companyBrand.logoUrl} name={companyBrand.name} label={`Ver informações de ${doc.title}`} onOpen={() => setDetailDoc(doc)} fallback={<><FileText size={30} /><b>CALI</b></>}>
+            <DocumentCardTags><span className={`wf-doc-label ${tone}`}>{categoryLabel(doc.category)}</span>{isAcknowledged && <span className="wf-tag green">Ciente</span>}</DocumentCardTags>
+          </DocumentCardArt>
+          <DocumentCardContent title={doc.title}>
+            {doc.description && <p className="tw:m-0! tw:text-[0.769rem]/[inherit] tw:text-[#857870]">{doc.description}</p>}
+            <DocumentCardFacts>
+              <DocumentCardFact label="Versão">{String(doc.version).replace(/^v/i, '')}</DocumentCardFact>
+              <DocumentCardFact label={kindLabel ? 'Tipo' : 'Categoria'}>{kindLabel || categoryLabel(doc.category)}</DocumentCardFact>
+              <DocumentCardFact label="Publicado em">{doc.date}</DocumentCardFact>
+              <DocumentCardFact label="Validade / revisão" note={review.note} tone={review.tone}>{review.date}</DocumentCardFact>
+            </DocumentCardFacts>
+            <DocumentCardProtocol value={doc.protocol} />
+            <DocumentCardActions><button type="button" onClick={() => void openDocument(doc)}><Eye size={14}/> Abrir</button><button type="button" onClick={() => void openComments(doc)}><MessageSquare size={14}/> Comentar</button>
               {doc.requiresAcknowledgement && <button type="button" disabled={isAcknowledged} onClick={() => void acknowledgeDocument(doc)}>{isAcknowledged ? <><CheckCircle2 size={14}/>Ciente</> : <><FileCheck2 size={14}/>Registrar ciência</>}</button>}
               {driveConnection && doc.storagePath && <button type="button" disabled={Boolean(syncLocked)} onClick={() => void requestDriveCopy(doc)}>{syncState?.status === 'synced' ? <ExternalLink size={14}/> : <Cloud size={14}/>} {driveActionLabel(syncState)}</button>}
-            </div>
-          </div>
+            </DocumentCardActions>
+          </DocumentCardContent>
         </article>;
       })}
     </section>}
-    {detailDoc && (() => { const doc = detailDoc; const state = docState(doc); const left = daysUntil(doc.validUntil); const isAcknowledged = acknowledged.includes(doc.id); return <div className="wf-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetailDoc(null); }}><DialogFrame className="wf-modal v2-doc-sheet" aria-label={`Informações de ${doc.title}`}>
-      <div className="wf-modal-header"><span>DOCUMENTO{doc.protocol ? ` · ${doc.protocol}` : ''}</span><button type="button" onClick={() => setDetailDoc(null)} aria-label="Fechar"><X size={17}/></button></div>
-      <h2>{doc.title}</h2>
-      {doc.description && <p>{doc.description}</p>}
-      <span className={`wf-tag ${state.tone}`}>{state.label}</span>
-      <div className="wf-modal-grid">
-        <span>Tipo <strong>{categoryLabel(doc.category)}{doc.kind ? ` · ${doc.kind}` : ''}</strong></span>
-        <span>Versão <strong>{doc.version || '—'}</strong></span>
-        <span>Publicado em <strong>{doc.date}</strong></span>
-        <span>Validade / próxima revisão <strong>{doc.validUntil ? formatDate(doc.validUntil) : 'Não definida'}</strong></span>
-        <span>Prazo <strong>{left == null ? '—' : left < 0 ? `Vencida há ${Math.abs(left)} ${Math.abs(left) === 1 ? 'dia' : 'dias'}` : left === 0 ? 'Vence hoje' : `${left} ${left === 1 ? 'dia restante' : 'dias restantes'}`}</strong></span>
-        <span>Elaborado por <strong>CALI · Assessoria</strong></span>
-        {doc.requiresAcknowledgement && <span>Ciência <strong>{isAcknowledged ? 'Registrada' : 'Pendente'}</strong></span>}
-      </div>
-      <div className="wf-modal-actions"><button type="button" onClick={() => setDetailDoc(null)}>Fechar</button><Button type="button" variant="workflowOutline" onClick={() => { setDetailDoc(null); void openComments(doc); }}><MessageSquare size={14}/> Comentar</Button>{doc.requiresAcknowledgement && !isAcknowledged && <Button type="button" variant="workflowOutline" onClick={() => void acknowledgeDocument(doc)}><FileCheck2 size={14}/> Registrar ciência</Button>}<Button type="button" variant="workflowPrimary" onClick={() => void openDocument(doc)}><ExternalLink size={14}/> Abrir documento</Button></div>
-    </DialogFrame></div>; })()}
-    {commentDoc && <div className="wf-overlay" role="presentation"><DialogFrame className="wf-modal wf-create" aria-label={`Comentários de ${commentDoc.title}`}><div className="wf-modal-header"><span>COMENTÁRIOS DO DOCUMENTO</span><button type="button" onClick={() => setCommentDoc(null)} aria-label="Fechar"><X size={20}/></button></div><h2>{commentDoc.title}</h2><p>{commentDoc.protocol}</p><div className="wf-thread">{commentLoading ? <LoadingState aria-live="polite" aria-busy="true">Carregando…</LoadingState> : comments.map((item) => <div className={item.mine ? 'wf-bubble sent' : 'wf-bubble received'} key={item.id}><p>{item.body}</p><small>{item.createdAt}</small></div>)}</div><div className="wf-compose"><textarea rows={3} value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Escreva um comentário sobre este documento…" aria-label="Comentário"/><div><Button variant="workflowPrimary" disabled={!comment.trim()} onClick={() => void sendComment()}><Send size={16}/>Enviar comentário</Button></div></div></DialogFrame></div>}
+    </div>
+    {detailDoc && (() => {
+      const doc = detailDoc;
+      const left = daysUntil(doc.validUntil);
+      const isAcknowledged = acknowledged.includes(doc.id);
+      const deadline = left == null ? '—' : left < 0 ? `Vencida há ${Math.abs(left)} ${Math.abs(left) === 1 ? 'dia' : 'dias'}` : left === 0 ? 'Vence hoje' : `${left} ${left === 1 ? 'dia restante' : 'dias restantes'}`;
+      const facts = [
+        { label: 'Tipo', value: [categoryLabel(doc.category), doc.kind].filter(Boolean).join(' · ') },
+        { label: 'Versão', value: doc.version || '—' },
+        { label: 'Publicado em', value: doc.date },
+        { label: 'Validade / próxima revisão', value: doc.validUntil ? formatDate(doc.validUntil) : 'Não definida' },
+        { label: 'Prazo', value: deadline },
+        { label: 'Elaborado por', value: 'CALI · Assessoria' },
+      ];
+      if (doc.requiresAcknowledgement) facts.push({ label: 'Ciência', value: isAcknowledged ? 'Registrada' : 'Pendente' });
+
+      return <ClientDocumentDetails
+        doc={doc}
+        state={docState(doc)}
+        facts={facts}
+        acknowledged={isAcknowledged}
+        onClose={() => setDetailDoc(null)}
+        onComment={() => { setDetailDoc(null); void openComments(doc); }}
+        onAcknowledge={() => void acknowledgeDocument(doc)}
+        onOpen={() => void openDocument(doc)}
+      />;
+    })()}
+    {commentDoc && <ClientDocumentComments
+      title={commentDoc.title}
+      protocol={commentDoc.protocol}
+      comments={comments}
+      draft={comment}
+      loading={commentLoading}
+      onDraft={setComment}
+      onSend={() => void sendComment()}
+      onClose={() => setCommentDoc(null)}
+    />}
   </div></section></Shell>;
 }

@@ -27,32 +27,33 @@ const BAND_SHADE: Record<Band, string> = { Baixo: '#F7F3EE', Moderado: '#F1EAE3'
 
 /** Barras por estilo com faixas de fundo, o intervalo provável (escore ± margem) e o rótulo honesto da faixa. */
 export function ProfileBandBars({ values, margin, plain }: { values: Pcts; margin: number; plain?: boolean }) {
-  return <div className="cpr-bars">
-    {STYLES.map((style) => { const { lo, hi } = rangeOf(values[style], margin); return <div className="cpr-bar-row" key={style}>
-      <span className="cpr-bar-name" style={{ color: STYLE_CONTENT[style].ink }}><b>{style}</b> {STYLE_CONTENT[style].name}</span>
-      <div className="cpr-bar-track">
-        {BANDS.map((band) => <i key={band.band} style={{ left: `${band.from}%`, width: `${band.to - band.from + (band.to === 100 ? 0 : 1)}%`, background: BAND_SHADE[band.band] }} />)}
-        <b className="cpr-bar-range" style={{ left: `${lo}%`, width: `${hi - lo}%`, background: STYLE_CONTENT[style].color }} />
-        <em style={{ left: `calc(${values[style]}% - 5px)`, background: STYLE_CONTENT[style].color }} />
-        <s style={{ left: '50%' }} />
+  return <div className="cpr-bars tw:flex tw:flex-col tw:gap-[0.8125rem] tw:[.cpr-chart-row>&]:flex-1">
+    {STYLES.map((style) => { const { lo, hi } = rangeOf(values[style], margin); return <div className="cpr-bar-row tw:grid tw:grid-cols-[7.5rem_1fr_11rem] tw:items-center tw:gap-2.5" key={style}>
+      <span className="cpr-bar-name tw:text-[0.78125rem] tw:font-semibold tw:[&_b]:inline-block tw:[&_b]:w-3.5" style={{ color: STYLE_CONTENT[style].ink }}><b>{style}</b> {STYLE_CONTENT[style].name}</span>
+      <div className="cpr-bar-track tw:relative tw:h-5 tw:overflow-hidden tw:rounded-xl tw:bg-[var(--marfim)]">
+        {BANDS.map((band) => <i className="tw:absolute tw:inset-y-0" key={band.band} style={{ left: `${band.from}%`, width: `${band.to - band.from + (band.to === 100 ? 0 : 1)}%`, background: BAND_SHADE[band.band] }} />)}
+        <b className="cpr-bar-range tw:absolute tw:inset-y-[0.3125rem] tw:rounded-[0.3125rem] tw:opacity-[0.28]" style={{ left: `${lo}%`, width: `${hi - lo}%`, background: STYLE_CONTENT[style].color }} />
+        <em className="tw:absolute tw:top-1 tw:h-3.5 tw:w-3 tw:rounded-[0.4375rem] tw:shadow-[0_0_0_0.125rem_white]" style={{ left: `calc(${values[style]}% - 5px)`, background: STYLE_CONTENT[style].color }} />
+        <s className="tw:absolute tw:inset-y-0 tw:w-px tw:bg-[#2b202459]" style={{ left: '50%' }} />
       </div>
-      <span className="cpr-bar-value">{!plain && <strong>{values[style]}</strong>}<small>{plain ? '' : `${lo}–${hi} · `}{bandText(values[style], margin)}</small></span>
+      <span className="cpr-bar-value tw:flex tw:min-w-0 tw:flex-wrap tw:items-baseline tw:gap-x-1.5 tw:gap-y-0 tw:leading-tight tw:whitespace-normal tw:[overflow-wrap:anywhere]">{!plain && <strong className="tw:text-[0.8125rem]">{values[style]}</strong>}<small className="tw:text-[0.625rem] tw:text-[color:var(--muted)]">{plain ? '' : `${lo}–${hi} · `}{bandText(values[style], margin)}</small></span>
     </div>; })}
-    <div className="cpr-bar-legend"><span>0</span><span>Baixo</span><span>Moderado</span><span>Alto</span><span>Muito alto</span><span>100</span></div>
+    <div className="cpr-bar-legend tw:grid tw:grid-cols-[7.5rem_39fr_20fr_20fr_21fr_11rem] tw:gap-x-2.5 tw:pl-0 tw:text-[0.5625rem] tw:text-[color:var(--muted)]"><span className="tw:invisible tw:pr-0.5 tw:text-right">0</span><span>Baixo</span><span>Moderado</span><span>Alto</span><span>Muito alto</span><span>100</span></div>
   </div>;
 }
 
 /** Dia comum x semana difícil, lado a lado por estilo: cada leitura com a sua margem, sem subtrair uma da outra. */
 export function TwinBands({ natural, pressure, naturalMargin, pressureMargin, plain }: { natural: Pcts; pressure: Pcts; naturalMargin: number; pressureMargin: number; plain?: boolean }) {
-  const row = (value: number, margin: number, style: Style, dashed?: boolean) => { const { lo, hi } = rangeOf(value, margin); return <div className={`cpr-twin-bar${dashed ? ' dashed' : ''}`}>
-    <b style={{ left: `${lo}%`, width: `${hi - lo}%`, background: STYLE_CONTENT[style].color }} /><em style={{ left: `calc(${value}% - 4px)`, background: STYLE_CONTENT[style].color }} /><s />
+  const row = (value: number, margin: number, style: Style, dashed?: boolean) => { const { lo, hi } = rangeOf(value, margin); return <div className={`cpr-twin-bar tw:relative tw:h-[1.125rem] tw:rounded-[0.5625rem] tw:bg-[var(--marfim)] ${dashed ? 'dashed' : ''}`}>
+    <b className={`tw:absolute tw:inset-y-1 tw:rounded ${dashed ? 'tw:opacity-[0.16]' : 'tw:opacity-[0.28]'}`} style={{ left: `${lo}%`, width: `${hi - lo}%`, background: STYLE_CONTENT[style].color }} /><em className="tw:absolute tw:top-[0.1875rem] tw:h-3 tw:w-2.5 tw:rounded-[0.375rem] tw:shadow-[0_0_0_0.125rem_white]" style={{ left: `calc(${value}% - 4px)`, background: STYLE_CONTENT[style].color }} /><s className="tw:absolute tw:-inset-y-0.5 tw:left-1/2 tw:w-px tw:bg-[#2b20244d]" />
   </div>; };
-  return <div className="cpr-twin">
-    <div className="cpr-twin-head"><span /><span>Dia comum {!plain && <small>(18 blocos, ±{naturalMargin})</small>}</span><span>Semana difícil {!plain && <small>(6 blocos, ±{pressureMargin})</small>}</span></div>
-    {STYLES.map((style) => <div className="cpr-twin-row" key={style}>
-      <span className="cpr-bar-name" style={{ color: STYLE_CONTENT[style].ink }}><b>{style}</b> {STYLE_CONTENT[style].name}</span>
-      <div>{row(natural[style], naturalMargin, style)}<small>{bandText(natural[style], naturalMargin)}</small></div>
-      <div>{row(pressure[style], pressureMargin, style, true)}<small>{bandText(pressure[style], pressureMargin)}</small></div>
+  return <div className="cpr-twin tw:flex tw:flex-col tw:gap-[1.125rem]">
+    <div className="cpr-twin-head tw:grid tw:grid-cols-[7.5rem_1fr_1fr] tw:items-center tw:gap-3.5 tw:[&_span]:text-[0.65625rem]
+      tw:[&_span]:font-bold tw:[&_span]:text-[color:var(--ink)] tw:[&_small]:font-medium tw:[&_small]:text-[color:var(--muted)]"><span /><span>Dia comum {!plain && <small>(18 blocos, ±{naturalMargin})</small>}</span><span>Semana difícil {!plain && <small>(6 blocos, ±{pressureMargin})</small>}</span></div>
+    {STYLES.map((style) => <div className="cpr-twin-row tw:grid tw:grid-cols-[7.5rem_1fr_1fr] tw:items-center tw:gap-3.5" key={style}>
+      <span className="cpr-bar-name tw:text-[0.78125rem] tw:font-semibold tw:[&_b]:inline-block tw:[&_b]:w-3.5" style={{ color: STYLE_CONTENT[style].ink }}><b>{style}</b> {STYLE_CONTENT[style].name}</span>
+      <div className="tw:flex tw:flex-col tw:gap-[0.1875rem]">{row(natural[style], naturalMargin, style)}<small className="tw:text-[0.6875rem] tw:text-[color:var(--muted)]">{bandText(natural[style], naturalMargin)}</small></div>
+      <div className="tw:flex tw:flex-col tw:gap-[0.1875rem]">{row(pressure[style], pressureMargin, style, true)}<small className="tw:text-[0.6875rem] tw:text-[color:var(--muted)]">{bandText(pressure[style], pressureMargin)}</small></div>
     </div>)}
   </div>;
 }

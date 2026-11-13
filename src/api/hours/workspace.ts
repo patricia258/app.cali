@@ -1,20 +1,19 @@
 import { z } from 'zod';
-import type { CompanyLogoRecord } from '../../lib/companyWorkspaceLogo';
 import { requireHoursClient } from './client';
 
 const staffSummary = z.array(z.object({ company_id: z.string(), minutes: z.coerce.number().nullish() }));
 
 export type StaffHoursCompany = {
   id: string; display_name: string; logo_url: string | null;
+  logo_workspace_url?: string | null;
   monthly_hours_contracted: number | null; service_plan: string | null;
 };
 
 type ProjectRow = { id: string; company_id: string; name: string; status: string | null; planning_status: string | null };
-type DeliverableRow = { id: string; company_id: string; project_id: string | null; title: string; status: string; protocol: string | null };
+type DeliverableRow = { id: string; company_id: string; project_id: string | null; title: string; status: string; protocol: string | null; work_closed_at: string | null };
 type TaskRow = Omit<DeliverableRow, 'project_id'> & { deliverable_id: string };
 type CycleRow = { id: string; company_id: string; project_id: string | null; contracted_hours: number | null };
 type VisibilityRow = { company_id: string; period_start: string; enabled: boolean };
-export type HoursCompanyLogo = CompanyLogoRecord & { status?: string | null };
 
 export type HourSource = 'timer' | 'manual' | 'calendar' | 'interaction';
 
@@ -63,12 +62,6 @@ function mapEntry(row: EntryRow, staff = false) {
   };
 }
 
-export async function readHoursCompanyLogos(signal: AbortSignal) {
-  return await requireHoursClient().from('companies')
-    .select('id,display_name,logo_url,logo_workspace_url,logo_workspace_generated_at,status')
-    .neq('status', 'closed').order('display_name').abortSignal(signal).returns<HoursCompanyLogo[]>();
-}
-
 function mapSubmission(row: SubmissionRow) {
   const reason = row.justification || '';
   const sourceType: HourSource = /^(Tempo medido no cronômetro|Cronômetro pausado)/i.test(reason)
@@ -93,13 +86,13 @@ export async function readHoursWorkspace(start: string, next: string, staffCompa
   const userId = actor.data.user?.id;
   const [companyRows, visibilityRows, projects, deliverables, tasks, cycles, entries, submissions, timers] = await Promise.all([
     staffCompanies ? { data: staffCompanies.map((row) => ({ ...row, show_hours_to_client: false })), error: null }
-      : client.from('companies').select('id,display_name,logo_url,monthly_hours_contracted,service_plan,show_hours_to_client')
-        .neq('status', 'closed').order('display_name').returns<(StaffHoursCompany & { show_hours_to_client: boolean })[]>(),
+      : client.from('companies').select('id,display_name,logo_url,monthly_hours_contracted,service_plan,show_hours_to_client,logo_workspace_url')
+        .neq('status', 'closed').order('display_name').returns<(StaffHoursCompany & { show_hours_to_client: boolean; logo_workspace_url: string | null })[]>(),
     staffCompanies ? { data: [], error: null } : client.from('company_hours_visibility').select('company_id,period_start,enabled')
       .lte('period_start', start).order('period_start', { ascending: false }).returns<VisibilityRow[]>(),
     client.from('projects').select('id,company_id,name,status,planning_status').neq('status', 'cancelled').order('name').returns<ProjectRow[]>(),
-    client.from('deliverables').select('id,company_id,project_id,title,status,protocol').neq('status', 'cancelled').order('title').returns<DeliverableRow[]>(),
-    client.from('deliverable_tasks').select('id,company_id,deliverable_id,title,status,protocol')
+    client.from('deliverables').select('id,company_id,project_id,title,status,protocol,work_closed_at').neq('status', 'cancelled').order('title').returns<DeliverableRow[]>(),
+    client.from('deliverable_tasks').select('id,company_id,deliverable_id,title,status,protocol,work_closed_at')
       .neq('status', 'cancelled').order('sort_order').order('created_at').returns<TaskRow[]>(),
     client.from('service_cycles').select('id,company_id,project_id,contracted_hours').gte('reference_month', start).lt('reference_month', next).returns<CycleRow[]>(),
     staffCompanies ? { data: [], error: null } : readEntries(start, next, true),
@@ -131,17 +124,17 @@ export async function readHoursWorkspace(start: string, next: string, staffCompa
 
   return {
     companies: (companyRows.data ?? []).map((row) => ({
-      id: row.id, name: row.display_name, logoUrl: row.logo_url, monthlyHours: Number(row.monthly_hours_contracted || 0),
+      id: row.id, name: row.display_name, logoUrl: row.logo_url, logoFallbackUrl: row.logo_workspace_url, monthlyHours: Number(row.monthly_hours_contracted || 0),
       servicePlan: row.service_plan, showHoursToClient: visibility.get(row.id) ?? Boolean(row.show_hours_to_client),
     })),
     projects: (projects.data ?? []).map((row) => ({
       id: row.id, companyId: row.company_id, name: row.name, status: row.status, planningStatus: row.planning_status,
     })),
     deliverables: (deliverables.data ?? []).map((row) => ({
-      id: row.id, companyId: row.company_id, projectId: row.project_id, title: row.title, status: row.status, protocol: row.protocol,
+      id: row.id, companyId: row.company_id, projectId: row.project_id, title: row.title, status: row.status, protocol: row.protocol, workClosedAt: row.work_closed_at,
     })),
     tasks: (tasks.data ?? []).map((row) => ({
-      id: row.id, companyId: row.company_id, deliverableId: row.deliverable_id, title: row.title, status: row.status, protocol: row.protocol,
+      id: row.id, companyId: row.company_id, deliverableId: row.deliverable_id, title: row.title, status: row.status, protocol: row.protocol, workClosedAt: row.work_closed_at,
     })),
     cycles: (cycles.data ?? []).map((row) => ({
       id: row.id, companyId: row.company_id, projectId: row.project_id,

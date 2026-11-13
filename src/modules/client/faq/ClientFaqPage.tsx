@@ -31,10 +31,39 @@ export function ClientFaqPage() {
   return <Shell role="client">
     <section className="v2-client-module">
       <header className="page-head"><div><div className="eyebrow">AJUDA / CONTRATO E HORAS</div><h1>Dúvidas frequentes<span className="title-dot">.</span></h1><p>Como funcionam as horas contratadas, os avisos de consumo e os excedentes.</p></div></header>
-      <label className="v2-faq-search"><Search size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar por palavra, por exemplo: excedente" aria-label="Buscar nas dúvidas frequentes" /></label>
-      {groups.length === 0 ? <p className="v2-faq-empty">Nenhuma pergunta encontrada para “{query}”. Fale com a CALI pelas Ocorrências.</p> : groups.map((group) => <section className="v2-faq-group" key={group.topic}><h2>{group.topic}</h2>
-        {group.items.map(([question, answer]) => { const isOpen = open === question || Boolean(query.trim()); return <div className="v2-faq-item" key={question}><button type="button" aria-expanded={isOpen} onClick={() => setOpen(open === question ? null : question)}>{question}{isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</button>{isOpen && <p>{answer}</p>}</div>; })}
-      </section>)}
+      <label className="tw:mb-[1.385rem] tw:flex tw:h-[3.23rem] tw:max-w-[35.385rem] tw:items-center tw:gap-3 tw:rounded-xl tw:border tw:border-solid tw:border-[#dfd3ca] tw:bg-white tw:px-4 tw:focus-within:outline tw:focus-within:outline-cali-brand">
+        <Search size={15} />
+        <input
+          className="tw:min-w-0 tw:flex-1 tw:border-0 tw:bg-transparent tw:font-[inherit] tw:text-[1rem] tw:leading-[inherit] tw:outline-none"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Buscar por palavra, por exemplo: excedente"
+          aria-label="Buscar nas dúvidas frequentes"
+        />
+      </label>
+      {groups.length === 0 ? (
+        <p className="tw:text-[1rem] tw:leading-[inherit] tw:text-[#8a7c74]">Nenhuma pergunta encontrada para “{query}”. Fale com a CALI pelas Ocorrências.</p>
+      ) : groups.map((group) => (
+        <section className="tw:mb-[1.385rem] tw:rounded-2xl tw:border tw:border-solid tw:border-[#eadfd5] tw:bg-white tw:px-[1.385rem] tw:py-[.462rem]" key={group.topic}>
+          <h2 className="tw:mt-[1.077rem] tw:mb-[.462rem] tw:text-[.846rem] tw:leading-[inherit] tw:tracking-[.1em] tw:text-[#a8773f] tw:uppercase">{group.topic}</h2>
+          {group.items.map(([question, answer]) => {
+            const isOpen = open === question || Boolean(query.trim());
+            return (
+              <div className="tw:border-0 tw:border-t tw:border-solid tw:border-[#f0e8e1] tw:first-of-type:border-t-0" key={question}>
+                <button
+                  className="tw:flex tw:w-full tw:cursor-pointer tw:items-center tw:justify-between tw:gap-[1.077rem] tw:border-0 tw:bg-transparent tw:px-0 tw:py-[1.077rem] tw:text-left tw:font-[inherit] tw:text-[1.038rem] tw:leading-[inherit] tw:font-bold tw:text-cali-ink"
+                  type="button"
+                  aria-expanded={isOpen}
+                  onClick={() => setOpen(open === question ? null : question)}
+                >
+                  {question}{isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                </button>
+                {isOpen && <p className="tw:m-0 tw:mb-5 tw:max-w-[63.08rem] tw:text-[1rem] tw:leading-[1.6] tw:text-[#5f5650]">{answer}</p>}
+              </div>
+            );
+          })}
+        </section>
+      ))}
     </section>
   </Shell>;
 }

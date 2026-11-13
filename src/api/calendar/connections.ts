@@ -70,9 +70,9 @@ type GoogleCalendarEventsResponse =
   | { state: 'reconnect_required' }
   | { state?: never; error: string };
 
-export async function readGoogleCalendarEvents(action: 'events' | 'client_events', range: { start: string; end: string }) {
+export async function readGoogleCalendarEvents(action: 'events' | 'client_events', range: { start: string; end: string }, signal?: AbortSignal) {
   if (!supabase) return { data: null, error: { message: 'Supabase indisponível.' } };
-  return await supabase.functions.invoke<GoogleCalendarEventsResponse>('workspace-google-calendar-read', { body: { action, ...range } });
+  return await supabase.functions.invoke<GoogleCalendarEventsResponse>('workspace-google-calendar-read', { body: { action, ...range }, signal });
 }
 
 export async function refreshGoogleEventStatus(eventIds: string[]) {

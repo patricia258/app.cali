@@ -2,12 +2,14 @@
    a decisão), na estrutura do parecer de 23/10/2026. Páginas A4 (.cpr-page) — as mesmas viram o PDF.
    Regras de leitura: escore sempre com margem (±10 natural, ±18 semana difícil), faixa honesta ("no limite com"),
    adaptação em níveis (nunca em pontos) e o mesmo nome de perfil em todas as páginas. */
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { isPrivateWorkspaceMedia } from '../../../lib/workspaceMedia';
+import { ReportPrivateImage } from '../../../components/reports/components/ReportPrivateImage';
 import { adaptationOf, bandOf, bandText, MARGIN, METHOD_VERSION, NATURAL_BLOCKS, PRESSURE_BLOCKS, rangeOf, STYLES, type Scores, type Style } from '../profileMethod';
 import { BAND_EXPLAIN, NATURE, STYLE_CONTENT, VALIDITY, combinationOf, profileName } from '../profileContent';
 import { ProfileBandBars, ProfileRadar, RoleMatrix, TwinBands, type RoleProfile } from './ProfileCharts';
 import '../../../components/reports/report-signature-fonts.css';
-import '../profile-report.css';
+import './profile-report-a4.css';
 
 export type ProfileResultView = {
   id: string;
@@ -38,11 +40,14 @@ const pcts = (scores: Scores, key: 'natural' | 'pressure' | 'natural6') => Objec
 const signed = (value: number) => (value > 0 ? `+${value}` : value < 0 ? `−${-value}` : '0');
 
 export function Page({ children, number, total, title, cover, protocol }: { children: ReactNode; number: number; total: number; title: string; cover?: boolean; protocol?: string | null }) {
-  return <section className={`cpr-page${cover ? ' cpr-cover' : ''}`}>
+  return <section className={`cpr-page tw:relative tw:flex tw:flex-none tw:flex-col tw:overflow-hidden ${cover ? 'cpr-cover' : ''}`}>
     {cover && <img className="cpr-cover-leaf" src="/brand/cali-cover-leaf.png" alt="" aria-hidden="true" width={720} height={720} />}
-    {!cover && <header className="cpr-head"><img src="/brand/cali-rh-bordo.png" alt="CALI RH" width={64} height={30} /><span>{title}</span></header>}
-    <div className="cpr-body">{children}</div>
-    {!cover && <footer className="cpr-foot"><span>CALI RH · HR for Business · calirh.com{protocol ? (protocol.startsWith('CALI-') ? ` · Protocolo ${protocol}` : ` · ${protocol}`) : ''}</span><span>{String(number).padStart(2, '0')} / {String(total).padStart(2, '0')}</span></footer>}
+    {!cover && <header className="cpr-head tw:flex tw:items-center tw:justify-between">
+      <img src="/brand/cali-rh-bordo.png" alt="CALI RH" width={64} height={30} />
+      <span className="tw:text-[0.625rem] tw:font-bold tw:tracking-[0.12em] tw:text-[color:var(--gold)] tw:uppercase">{title}</span>
+    </header>}
+    <div className={['cpr-body tw:flex tw:flex-1 tw:flex-col tw:[&>*]:shrink-0', cover ? 'tw:justify-between tw:gap-0 tw:overflow-visible tw:p-0' : 'tw:gap-[0.875rem] tw:overflow-hidden'].join(' ')}>{children}</div>
+    {!cover && <footer className="cpr-foot tw:flex tw:justify-between"><span>CALI RH · HR for Business · calirh.com{protocol ? (protocol.startsWith('CALI-') ? ` · Protocolo ${protocol}` : ` · ${protocol}`) : ''}</span><span>{String(number).padStart(2, '0')} / {String(total).padStart(2, '0')}</span></footer>}
   </section>;
 }
 
@@ -60,14 +65,24 @@ const signedAt = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-dig
 
 /** Assinatura da responsável técnica: assinatura virtual, foto, nome, cargo, data e protocolo. `pending`: rascunho ainda não aprovado. */
 export function SignatureBlock({ signer, protocol, date, pending }: { signer?: ProfileSigner | null; protocol?: string | null; date?: string | null; pending?: boolean }) {
+  const signature = !pending && signer?.signature_mode === 'uploaded' ? signer.signature_url : null;
+  const avatar = signer?.avatar_url;
+  const [failedSignature, setFailedSignature] = useState('');
+  const [failedAvatar, setFailedAvatar] = useState('');
   if (!signer?.full_name) return null;
   const initials = signer.full_name.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+  const signatureAlt = `Assinatura de ${signer.full_name}`;
+  const signatureFallback = <span className={`report-signature-generated-v55 signature-style-${signer.signature_style || 'executive'}`}>{signer.full_name}</span>;
+  const avatarFallback = <b>{initials}</b>;
+  const avatarPosition = { objectPosition: `${signer.avatar_position_x ?? 50}% ${signer.avatar_position_y ?? 50}%` };
   return <div className={`cpr-sign${pending ? ' pending' : ''}`}>
     <div className="cpr-sign-mark">{pending ? <span className="cpr-sign-pending">Aguardando aprovação</span>
-      : signer.signature_mode === 'uploaded' && signer.signature_url ? <img src={signer.signature_url} alt={`Assinatura de ${signer.full_name}`} crossOrigin="anonymous" />
-      : <span className={`report-signature-generated-v55 signature-style-${signer.signature_style || 'executive'}`}>{signer.full_name}</span>}</div>
+      : signature && isPrivateWorkspaceMedia(signature) ? <ReportPrivateImage source={signature} alt={signatureAlt} crossOrigin="anonymous" fallback={signatureFallback} />
+      : signature && failedSignature !== signature ? <img src={signature} alt={signatureAlt} crossOrigin="anonymous" onError={() => setFailedSignature(signature)} />
+      : signatureFallback}</div>
     <div className="cpr-sign-person">
-      <span className="cpr-sign-photo">{signer.avatar_url ? <img src={signer.avatar_url} alt="" crossOrigin="anonymous" style={{ objectPosition: `${signer.avatar_position_x ?? 50}% ${signer.avatar_position_y ?? 50}%` }} /> : <b>{initials}</b>}</span>
+      <span className="cpr-sign-photo">{avatar && isPrivateWorkspaceMedia(avatar) ? <ReportPrivateImage source={avatar} alt="" crossOrigin="anonymous" style={avatarPosition} fallback={avatarFallback} />
+        : avatar && failedAvatar !== avatar ? <img src={avatar} alt="" crossOrigin="anonymous" style={avatarPosition} onError={() => setFailedAvatar(avatar)} /> : avatarFallback}</span>
       <span><strong>{signer.full_name}</strong><small>{signer.job_title || 'Responsável técnica'} · CALI RH</small></span>
       <span className="cpr-sign-meta">{pending ? 'Rascunho: ainda sem protocolo' : <>{date ? `Assinado em ${signedAt(date)}` : ''}{protocol ? <b>Protocolo {protocol}</b> : null}</>}</span>
     </div>
@@ -94,7 +109,7 @@ export function RespondentReport({ result, signer }: { result: ProfileResultView
   const plan = result.mixed ? [p.respondent.plan[0], p.respondent.plan[1], s.respondent.plan[0]] : p.respondent.plan;
   const total = 7;
   const title = 'Perfil Comportamental · seu relatório';
-  return <div className="cali-profile-report">
+  return <div className="cali-profile-report tw:flex tw:flex-col tw:items-center tw:gap-[1.375rem] tw:print:gap-0">
     <Page number={1} total={total} title={title} cover protocol={result.protocol}>
       <div className="cpr-cover-top"><img className="cpr-cover-logo" src="/brand/cali-logo-light.png" alt="CALI RH" width={126} height={70} /><span>PERFIL COMPORTAMENTAL</span></div>
       <div className="cpr-cover-main">
@@ -110,7 +125,7 @@ export function RespondentReport({ result, signer }: { result: ProfileResultView
       <small className="cpr-eyebrow">SEU RESULTADO</small>
       <h2>Seus quatro estilos</h2>
       <p>O losango mostra o formato do seu perfil; as barras, a intensidade de cada estilo no seu dia a dia de trabalho.</p>
-      <div className="cpr-chart-row"><ProfileRadar natural={natural} size={320} /><ul className="cpr-styles-line">{STYLES.map((style) => <li key={style}><b style={{ color: STYLE_CONTENT[style].ink }}>{style} · {STYLE_CONTENT[style].name}</b><span>{STYLE_CONTENT[style].verbLine}</span></li>)}</ul></div>
+      <div className="cpr-chart-row tw:flex tw:items-center tw:gap-[1.375rem]"><ProfileRadar natural={natural} size={320} /><ul className="cpr-styles-line">{STYLES.map((style) => <li key={style}><b style={{ color: STYLE_CONTENT[style].ink }}>{style} · {STYLE_CONTENT[style].name}</b><span>{STYLE_CONTENT[style].verbLine}</span></li>)}</ul></div>
       <small className="cpr-eyebrow">INTENSIDADE, COM A MARGEM DE LEITURA</small>
       <ProfileBandBars values={natural} margin={MARGIN.natural} plain />
       <p className="cpr-note"><b>Como ler:</b> o ponto mostra onde você está e a faixa colorida em volta, a variação natural da leitura. Quando ela cruza a fronteira entre duas faixas, aparece &quot;no limite com&quot;. {BAND_EXPLAIN} Estilo baixo não é defeito: mostra o que você usa menos, não o que você não sabe fazer.</p>
@@ -119,7 +134,7 @@ export function RespondentReport({ result, signer }: { result: ProfileResultView
     <Page number={3} total={total} title={title} protocol={result.protocol}>
       <small className="cpr-eyebrow">SEU PERFIL</small>
       <div className="cpr-profile-head"><Characters result={result} height={220} /><div><h2 style={{ color: p.ink }}>{name}</h2><p className="cpr-lead">Combinação {combination.name}</p><p>{combination.text}</p></div></div>
-      <div className="cpr-grid2">
+      <div className="cpr-grid2 tw:grid tw:grid-cols-2 tw:gap-3">
         {[P, S].map((style, index) => { const c = STYLE_CONTENT[style]; return <div className="cpr-card" key={style} style={{ borderTopColor: c.color }}>
           <span className="cpr-tag" style={{ background: c.soft, color: c.ink }}>{index === 0 ? (result.mixed ? 'Estilo 1' : 'Predominante') : (result.mixed ? 'Estilo 2' : 'Traço secundário')} · {c.name}</span>
           <p>{c.respondent.summary}</p>
@@ -127,7 +142,7 @@ export function RespondentReport({ result, signer }: { result: ProfileResultView
         </div>; })}
       </div>
       <small className="cpr-eyebrow">COMO VOCÊ DECIDE E COMUNICA</small>
-      <div className="cpr-grid2 cpr-two">
+      <div className="cpr-grid2 cpr-two tw:grid tw:grid-cols-2 tw:gap-3">
         <div><strong>Decide</strong><p>{p.respondent.decides}</p></div>
         <div><strong>Comunica</strong><p>{p.respondent.communicates}</p></div>
       </div>
@@ -144,7 +159,7 @@ export function RespondentReport({ result, signer }: { result: ProfileResultView
       <small className="cpr-eyebrow">NA PRÓXIMA SEMANA DIFÍCIL, EXPERIMENTE</small>
       <ul className="cpr-list good">{(adapt.changed.length ? adapt.changed : [{ style: P, up: true }]).map(({ style, up }) => <li key={style}>{up ? STYLE_CONTENT[style].pressureTipUp : STYLE_CONTENT[style].pressureTipDown}</li>)}</ul>
       <div className="cpr-callout"><b>Que apoio pedir.</b> {p.askForHelp}</div>
-      <div className="cpr-grid2">
+      <div className="cpr-grid2 tw:grid tw:grid-cols-2 tw:gap-3">
         <div><small className="cpr-eyebrow">O QUE TE DÁ ENERGIA</small><ul className="cpr-list good">{p.respondent.energy.map((item) => <li key={item}>{item}</li>)}</ul></div>
         <div><small className="cpr-eyebrow">O QUE TE DESGASTA</small><ul className="cpr-list warn">{p.respondent.drains.map((item) => <li key={item}>{item}</li>)}</ul></div>
       </div>
@@ -152,7 +167,7 @@ export function RespondentReport({ result, signer }: { result: ProfileResultView
 
     <Page number={5} total={total} title={title} protocol={result.protocol}>
       <small className="cpr-eyebrow">O QUE TE FAVORECE</small>
-      <div className="cpr-grid2">
+      <div className="cpr-grid2 tw:grid tw:grid-cols-2 tw:gap-3">
         {p.respondent.strengths.map((item) => <div className="cpr-card" key={item.title} style={{ borderTopColor: p.color }}><span className="cpr-tag" style={{ background: p.soft, color: p.ink }}>{p.name}</span><strong>{item.title}</strong><p>{item.example}</p></div>)}
         {[S, third].map((style) => { const c = STYLE_CONTENT[style]; return <div className="cpr-card" key={style} style={{ borderTopColor: c.color }}><span className="cpr-tag" style={{ background: c.soft, color: c.ink }}>{c.name} · em outro contexto</span><strong>{c.respondent.contextStrength.title}</strong><p>{c.respondent.contextStrength.text}</p></div>; })}
       </div>
@@ -224,7 +239,7 @@ export function EvaluatorReport({ result, team, base, signer, editableRole, onRo
   const concentrated = STYLES.filter((style) => teamTotal && teamCount[style] / teamTotal >= 0.5);
   const missing = STYLES.filter((style) => teamTotal && !teamCount[style]);
 
-  return <div className="cali-profile-report">
+  return <div className="cali-profile-report tw:flex tw:flex-col tw:items-center tw:gap-[1.375rem] tw:print:gap-0">
     <Page number={1} total={total} title={title} cover protocol={result.protocol}>
       <div className="cpr-cover-top"><img className="cpr-cover-logo" src="/brand/cali-logo-light.png" alt="CALI RH" width={126} height={70} /><span>PERFIL COMPORTAMENTAL · AVALIADOR</span></div>
       <div className="cpr-cover-main">
@@ -264,7 +279,7 @@ export function EvaluatorReport({ result, team, base, signer, editableRole, onRo
       <div className="cpr-profile-head"><Characters result={result} height={150} /><div><h2 style={{ color: p.ink }}>{name}</h2><p className="cpr-lead">Combinação {combo?.name} ({P}+{S})</p></div></div>
       <p>{combo?.text}</p>
       {result.mixed && <div className="cpr-callout">Perfil misto: {p.name} ({natural[P]}) e {s.name} ({natural[S]}) ficaram a menos de {MARGIN.natural} pontos, dentro da margem de leitura. Leia os dois estilos como igualmente presentes.</div>}
-      <div className="cpr-grid2">{[P, S].map((style, index) => { const c = STYLE_CONTENT[style]; return <div className="cpr-card" key={style} style={{ borderTopColor: c.color }}>
+      <div className="cpr-grid2 tw:grid tw:grid-cols-2 tw:gap-3">{[P, S].map((style, index) => { const c = STYLE_CONTENT[style]; return <div className="cpr-card" key={style} style={{ borderTopColor: c.color }}>
         <span className="cpr-tag" style={{ background: c.soft, color: c.ink }}>{index === 0 ? (result.mixed ? 'Estilo 1' : 'Predominante') : (result.mixed ? 'Estilo 2' : 'Secundário')} · {c.name}</span>
         <p>{c.evaluator.synthesis}</p>
         <p className="cpr-note"><b>Como costuma ser percebido:</b> {c.respondent.perceived.replace('Quem trabalha com você', 'Quem trabalha com a pessoa').replace('do que você pretende', 'do que pretende')}</p>
@@ -293,7 +308,7 @@ export function EvaluatorReport({ result, team, base, signer, editableRole, onRo
       {(editableRole || roleDefined) ? <RoleMatrix values={natural} margin={MARGIN.natural} role={role} editable={editableRole} onChange={onRoleChange} />
         : <p className="cpr-note">A matriz de papel aparece quando o avaliador define o que a função pede em cada estilo.</p>}
       <div className="cpr-callout"><b>Leitura ao contrário: o que a pessoa traz além do papel.</b> {!roleDefined ? 'Defina na matriz o que a função pede para ver o que a pessoa traz a mais.' : beyond.length ? `A pessoa traz mais ${beyond.map((gap) => STYLE_CONTENT[gap.style].name).join(' e ')} do que o papel pede: é capacidade que precisa de dono no time, ou vira atrito.` : 'Nos estilos definidos, a pessoa não traz mais do que o papel pede.'}</div>
-      <div className="cpr-grid2">
+      <div className="cpr-grid2 tw:grid tw:grid-cols-2 tw:gap-3">
         <div><strong className="cpr-sub">A função tende a favorecer quando pede</strong><ul className="cpr-list good">{p.evaluator.roleFavors.map((item) => <li key={item}>{item}</li>)}</ul></div>
         <div><strong className="cpr-sub">A função tende a tolerar mal quando pede</strong><ul className="cpr-list warn">{p.evaluator.roleNeedsSupport.map((item) => <li key={item}>{item}</li>)}</ul></div>
       </div>

@@ -1,25 +1,16 @@
-import { skipToken, useQuery } from '@tanstack/react-query';
-import { readReportPaperIdentity, readReportVisitCosts } from '../../api/reports/paper';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
 import { ExecutiveReportPaper, type ExecutiveReportPaperProps } from './ExecutiveReportPaper';
 
-export function WorkspaceExecutiveReportPaper(props: ExecutiveReportPaperProps) {
+import { useReportPaperIdentity } from './hooks/useReportPaperIdentity';
+import { useReportVisitCosts } from './hooks/useReportVisitCosts';
+import { useReportAgendaSnapshot } from './hooks/useReportAgendaSnapshot';
+
+export function WorkspaceExecutiveReportPaper({ pinnedCompanyLogo, ...props }: ExecutiveReportPaperProps & { pinnedCompanyLogo?: boolean }) {
   const { user } = useWorkspaceAuth();
   const { protocol } = props;
-  const active = Boolean(user?.id && protocol && protocol !== '—');
-  const identity = useQuery({
-    queryKey: ['reports', 'paper-identity', user?.id, protocol],
-    queryFn: active ? ({ signal }) => readReportPaperIdentity(protocol, signal) : skipToken,
-    refetchInterval: 5000,
-    refetchIntervalInBackground: true,
-  });
-  const canonical = identity.data;
-  const visits = useQuery({
-    queryKey: ['reports', 'paper-visits', user?.id, protocol, canonical?.approvedAt],
-    queryFn: canonical ? ({ signal }) => readReportVisitCosts(canonical, signal) : skipToken,
-    refetchInterval: 5000,
-    refetchIntervalInBackground: true,
-  });
+  const { data: canonical } = useReportPaperIdentity(user?.id, protocol);
+  const { data: visitCosts } = useReportVisitCosts(user?.id, protocol, canonical);
+  const { data: agenda } = useReportAgendaSnapshot(user?.id, protocol);
   const signatures = canonical ? {
     approvalIdentity: canonical.approvalIdentity,
     acknowledgementIdentity: canonical.acknowledgementIdentity,
@@ -31,7 +22,8 @@ export function WorkspaceExecutiveReportPaper(props: ExecutiveReportPaperProps) 
   return <ExecutiveReportPaper
     {...props}
     {...signatures}
-    company={{ ...props.company, logoUrl: canonical?.logoUrl || props.company.logoUrl }}
-    visitCosts={visits.data}
+    company={{ ...props.company, logoUrl: pinnedCompanyLogo ? props.company.logoUrl : canonical?.logoUrl || props.company.logoUrl }}
+    visitCosts={visitCosts}
+    agenda={agenda}
   />;
 }

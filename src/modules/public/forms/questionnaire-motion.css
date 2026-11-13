@@ -1,0 +1,24 @@
+@keyframes questionnaire-leaf-rise {
+  from { opacity: 0; transform: translateY(calc(-50% + 70px)) rotate(-2deg); }
+  to { opacity: 1; transform: translateY(-50%) rotate(-8deg); }
+}
+
+@keyframes questionnaire-leaf-rise-soft {
+  from { opacity: 0; transform: translateY(calc(-50% + 70px)) rotate(-2deg); }
+  to { opacity: .75; transform: translateY(-50%) rotate(-8deg); }
+}
+
+@keyframes questionnaire-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes questionnaire-in-up {
+  from { opacity: 0; transform: translateY(46px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes questionnaire-in-down {
+  from { opacity: 0; transform: translateY(-46px); }
+  to { opacity: 1; transform: none; }
+}

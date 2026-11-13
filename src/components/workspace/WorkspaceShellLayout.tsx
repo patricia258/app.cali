@@ -4,23 +4,23 @@
    Apenas apresentação: sessão, notificações, perfil, frentes e agendamento chegam prontos
    dos componentes operacionais oficiais. */
 import { Button } from '../ds/Button';
-import { DialogFrame } from '../ds/DialogFrame';
+import { StaffDialog, StaffDialogBody, StaffDialogFooter, StaffDialogHeader } from './StaffDialog';
 import { InlineNotice } from '../ds/InlineNotice';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link } from '../navigation/Link';
 import { useLocation } from '../../hooks/useLocation';
-import { useNavigate } from '../../hooks/useNavigate';
-import { ArrowRight, BriefcaseBusiness, Building2, CalendarDays, CalendarPlus, CheckCircle2, ChevronDown, ChevronRight, ClipboardList, Clock3, Fingerprint, FileBarChart2, FolderOpen, History, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Search, ShieldCheck, Star, UserCog, Target, Users, X, type LucideIcon } from 'lucide-react';
-import { DirectProfileControl } from './DirectProfileControl';
+import { BriefcaseBusiness, Building2, CalendarDays, CalendarPlus, ClipboardList, Clock3, Fingerprint, FileBarChart2, FolderOpen, History, LayoutDashboard, Megaphone, Menu, MessageCircleMore, Star, UserCog, Target, Users, X } from 'lucide-react';
+import { CompactWorkspaceSidebar, type WorkspaceNavItem } from './components/CompactWorkspaceSidebar';
+import { CompactWorkspaceSearch } from './components/CompactWorkspaceSearch';
+import { CompactWorkspaceProfile } from './components/CompactWorkspaceProfile';
 import { hoursAvailable } from '../../api/hours/client';
 import { pauseWorkTimer, readActiveTimersBeforeExit, stopPartnerTimer } from '../../api/hours/timers';
-import { startTimerPresence } from '../../runtime/hours/timerPresence';
-import { WelcomeTour, WELCOME_OPEN_EVENT, type WelcomeStep } from './WelcomeTour';
+import { useTimerPresence } from '../hours/hooks/useTimerPresence';
+import { WelcomeTour, type WelcomeStep } from './WelcomeTour';
 import './workspace-shell.generated.css';
 import './operational.css';
 
-type NavItem = { label: string; href: string; icon: LucideIcon };
-export const clientNavigation: NavItem[] = [
+export const clientNavigation: WorkspaceNavItem[] = [
   { label: 'Visão Geral', href: '/cliente', icon: LayoutDashboard },
   { label: 'Equipe', href: '/cliente/equipe', icon: Users },
   { label: 'Horas', href: '/cliente/horas', icon: Clock3 },
@@ -33,7 +33,7 @@ export const clientNavigation: NavItem[] = [
 ];
 /* Menus oficiais da administradora, na mesma barra lateral. Propostas e Mapa de People são produtos
    integrados e ficam na barra superior, como no protótipo. */
-export const adminNavigation: NavItem[] = [
+export const adminNavigation: WorkspaceNavItem[] = [
   { label: 'Visão geral', href: '/admin', icon: LayoutDashboard },
   { label: 'Clientes', href: '/admin/clientes', icon: Building2 },
   { label: 'Equipe', href: '/admin/equipe', icon: Users },
@@ -48,36 +48,33 @@ export const adminNavigation: NavItem[] = [
   { label: 'Equipe CALI', href: '/admin/equipe-cali', icon: UserCog },
   { label: 'Auditoria', href: '/admin/auditoria', icon: History },
 ];
-export const adminProducts: NavItem[] = [
+export const adminProducts: WorkspaceNavItem[] = [
   { label: 'Propostas', href: '/admin/propostas', icon: BriefcaseBusiness },
   { label: 'Mapa de People', href: '/admin/mapa-de-people', icon: Target },
   { label: 'Formulários', href: '/admin/formularios', icon: ClipboardList },
   { label: 'Perfil comportamental', href: '/admin/perfil-comportamental', icon: Fingerprint },
 ];
-const teamAreas = [['diretorio', 'Diretório'], ['estrutura', 'Estrutura organizacional'], ['movimentacoes', 'Movimentações'], ['indicadores', 'Indicadores']] as const;
-const privacyPolicyUrl = 'https://calirh.com/privacidade.html';
 
 type ShellRole = 'admin' | 'client' | 'partner';
 type Props = {
   /** Passos da apresentação inicial quando o papel tem roteiro próprio (Partner). */
   welcomeSteps?: WelcomeStep[];
   role: ShellRole;
-  navigation: NavItem[];
+  navigation: WorkspaceNavItem[];
   /** Controles operacionais próprios do papel (timers ativos, despesas de visita). */
   extras?: ReactNode;
   children: ReactNode;
   /** Fluxo oficial de agendamento: permanece montado para atender aos pedidos abertos pelas páginas. */
   scheduling?: ReactNode;
   notifications: ReactNode;
-  bridges: ReactNode;
   onLogout: () => void;
 };
 
-export function WorkspaceShellLayout({ role, navigation, extras, children, scheduling, notifications, bridges, onLogout, welcomeSteps }: Props) {
+export function WorkspaceShellLayout({ role, navigation, extras, children, scheduling, notifications, onLogout, welcomeSteps }: Props) {
   const home = role === 'admin' ? '/admin' : role === 'partner' ? '/equipe' : '/cliente';
   /* Cronômetro esquecido: presença enquanto a pessoa usa o Workspace e conferência antes de sair. */
   const [exitTimers, setExitTimers] = useState<{ id: string; description: string | null; started_at: string }[] | null>(null); const [exitBusy, setExitBusy] = useState(false); const [exitError, setExitError] = useState('');
-  useEffect(() => { if (role !== 'client') startTimerPresence(); }, [role]);
+  useTimerPresence(role !== 'client');
   async function requestLogout() {
     if (role === 'client' || !hoursAvailable) { onLogout(); return; }
     try {
@@ -106,96 +103,62 @@ export function WorkspaceShellLayout({ role, navigation, extras, children, sched
   }
   const searchDestinations = useMemo(() => [...navigation.map(({ label, href }) => ({ label, href })), ...(role === 'client' ? [{ label: 'Frentes contratadas', href: '/cliente/frentes' }] : role === 'partner' ? [] : adminProducts.map(({ label, href }) => ({ label, href })))], [navigation, role]);
   const { pathname, search } = useLocation();
-  const navigate = useNavigate();
+  const [tourHref, setTourHref] = useState<string | null>(null);
   const [mobileNav, setMobileNav] = useState(false);
   const [teamFlyout, setTeamFlyout] = useState(false);
   const teamTab = pathname === '/cliente/equipe' ? new URLSearchParams(search).get('aba') || 'diretorio' : null;
-  const [profileMenu, setProfileMenu] = useState(false);
-  const [searching, setSearching] = useState(false);
-  const [term, setTerm] = useState('');
-  const profileRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const results = useMemo(() => {
-    const wanted = term.trim().toLocaleLowerCase('pt-BR');
-    return wanted ? searchDestinations.filter(item => item.label.toLocaleLowerCase('pt-BR').includes(wanted)) : searchDestinations;
-  }, [term, searchDestinations]);
-
-  useEffect(() => { setMobileNav(false); setProfileMenu(false); setSearching(false); setTerm(''); setTeamFlyout(false); }, [pathname, search]);
   useEffect(() => {
-    const shortcut = (event: KeyboardEvent) => { if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setSearching(true); } };
-    document.addEventListener('keydown', shortcut);
-    return () => document.removeEventListener('keydown', shortcut);
-  }, []);
-  useEffect(() => {
-    if (!profileMenu && !searching) return;
-    const close = (event: MouseEvent | KeyboardEvent) => {
-      if (event instanceof KeyboardEvent) { if (event.key === 'Escape') { setProfileMenu(false); setSearching(false); } return; }
-      if (!profileRef.current?.contains(event.target as Node)) setProfileMenu(false);
-      if (!searchRef.current?.contains(event.target as Node)) setSearching(false);
-    };
-    document.addEventListener('mousedown', close);
-    document.addEventListener('keydown', close);
-    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', close); };
-  }, [profileMenu, searching]);
+    setMobileNav(false);
+    setTeamFlyout(false);
+  }, [pathname, search]);
 
   const isActive = (href: string) => pathname === href || (href !== home && pathname.startsWith(`${href}/`));
 
-  return <div className="app" data-workspace-role={role}>
-    <aside onMouseLeave={() => setTeamFlyout(false)} className={'sidebar ' + (mobileNav ? 'mobile-open' : '')} aria-label="Menu lateral CALI">
-      <div className="brand"><span className="v2-brand-mark oak" role="img" aria-label="CALI"/></div>
-      <nav aria-label="Navegação principal">{navigation.map(({ label, href, icon: Icon }) => <Link key={href} to={href} onMouseEnter={() => setTeamFlyout(role === 'client' && href === '/cliente/equipe')} onFocus={() => setTeamFlyout(role === 'client' && href === '/cliente/equipe')} className={'nav-link ' + (isActive(href) ? 'active' : '')} title={label} aria-label={label} aria-current={isActive(href) ? 'page' : undefined}><Icon size={17} strokeWidth={1.6} /></Link>)}</nav>
-      <div className="sidebar-bottom"><span className="gold-rule" /><a className="nav-link" href={privacyPolicyUrl} target="_blank" rel="noopener noreferrer" title="Política de privacidade" aria-label="Política de privacidade"><ShieldCheck size={17} /></a></div>
-      {teamFlyout && <div className="sidebar-flyout" onMouseEnter={() => setTeamFlyout(true)}>
-        <div className="flyout-heading"><strong>Equipe</strong><span className="flyout-context">Áreas do módulo</span></div>
-        {teamAreas.map(([id, label]) => <Link key={id} className={'flyout-link ' + (teamTab === id ? 'selected' : '')} to={`/cliente/equipe?aba=${id}`}><span>{label}</span>{teamTab === id ? <CheckCircle2 size={14} /> : <ChevronRight size={13} />}</Link>)}
-      </div>}
-    </aside>
-    {bridges}
-    <main className="main">
-      <header className="topbar">
-        <button className="mobile-menu" onClick={() => setMobileNav(!mobileNav)} aria-label={mobileNav ? 'Fechar menu' : 'Abrir menu'} aria-expanded={mobileNav}>{mobileNav ? <X size={19} /> : <Menu size={19} />}</button>
-        <div className="top-left"><span className="workspace-label">CALI <span>WORKSPACE</span></span></div>
-        <div className="top-actions">
+  const resetKey = pathname + search;
+  const topToolStyle = 'ch-tool tw:relative tw:inline-flex tw:min-h-[2.692rem] tw:min-w-[2.692rem] tw:items-center tw:justify-center tw:rounded-[0.692rem] tw:border tw:border-solid tw:text-[#62293a] tw:[@media(max-width:50rem)]:min-h-[2.385rem] tw:[@media(max-width:50rem)]:min-w-[2.231rem]';
+
+  return <div className="app tw:flex tw:min-h-screen tw:[&:has([data-workspace-welcome])>.sidebar]:z-996!" data-workspace-role={role}>
+    <CompactWorkspaceSidebar
+      navigation={navigation}
+      mobileOpen={mobileNav}
+      teamFlyout={teamFlyout}
+      teamTab={teamTab}
+      tourHref={tourHref}
+      isActive={isActive}
+      onPreview={(href) => setTeamFlyout(role === 'client' && href === '/cliente/equipe')}
+    />
+    <main className="main tw:w-full tw:min-w-0 tw:flex-1 tw:[@media(min-width:53.1875rem)]:ml-[4.308rem] tw:[@media(min-width:53.1875rem)]:w-[calc(100%-4.308rem)] tw:[@media(max-width:46.25rem)]:[&:has([data-staff-timer-dock])>.content]:pb-[10rem]!">
+      <header className="topbar tw:relative tw:z-24 tw:flex tw:h-[4.692rem] tw:items-center tw:justify-between tw:gap-[1.385rem] tw:border-0 tw:border-b tw:border-solid tw:border-[#e9e3de] tw:bg-white tw:px-[2.385rem] tw:[@media(max-width:53.125rem)]:px-[1.154rem]">
+        <button type="button" className="mobile-menu tw:hidden tw:items-center tw:border-0 tw:bg-transparent tw:[@media(max-width:53.125rem)]:inline-flex" onClick={() => setMobileNav(!mobileNav)} aria-label={mobileNav ? 'Fechar menu' : 'Abrir menu'} aria-expanded={mobileNav}>{mobileNav ? <X size={19} /> : <Menu size={19} />}</button>
+        <div className="top-left tw:flex tw:items-center tw:gap-[1.385rem]">
+          <span className="workspace-label tw:text-[0.923rem]/[inherit] tw:font-bold tw:tracking-[0.115rem] tw:whitespace-nowrap tw:text-cali-brand">
+            CALI <span className="tw:font-normal tw:tracking-[0.077rem] tw:text-[#918781]">WORKSPACE</span>
+          </span>
+        </div>
+        <div className={`top-actions tw:flex tw:items-center ${role === 'partner' ? 'tw:gap-[1.23rem]!' : 'tw:gap-[1.385rem]'}`}>
           {role === 'client' && <div className="ch-tools v2-top-tools">
-            <Link aria-label="Abrir agenda" title="Abrir agenda" className="ch-tool gold" to="/cliente/cronograma"><CalendarPlus size={17} /></Link>
-            <Link className="ch-tool pill" to="/cliente/frentes"><BriefcaseBusiness size={17} /> Frentes</Link>
+            <Link aria-label="Abrir agenda" title="Abrir agenda" className={`${topToolStyle} gold tw:border-[#e6be64] tw:bg-[#f6d98e]`} to="/cliente/cronograma"><CalendarPlus size={17} /></Link>
+            <Link className={`${topToolStyle} pill tw:gap-[0.538rem] tw:border-[#ebddd4] tw:bg-white tw:px-[0.923rem] tw:font-semibold`} to="/cliente/frentes"><BriefcaseBusiness size={17} /> Frentes</Link>
           </div>}
-          {role === 'admin' && <div className="ch-tools v2-top-tools">{adminProducts.map(({ label, href, icon: Icon }) => <Link key={href} className="ch-tool v2-top-icon" to={href} title={label} aria-label={label}><Icon size={17} /></Link>)}</div>}
-          <div className="profile-holder" ref={searchRef}>
-            {searching
-              ? <label className="global-search"><Search size={15} /><input autoFocus value={term} onChange={event => setTerm(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && results[0]) navigate(results[0].href); }} placeholder="Buscar no Workspace" aria-label="Buscar no Workspace" /></label>
-              : <button type="button" className="global-search" onClick={() => setSearching(true)} aria-label="Buscar no Workspace"><Search size={15} /><span>Buscar no Workspace</span><kbd>⌘ K</kbd></button>}
-            {searching && <div className="profile-dropdown v2-search-results" role="listbox" aria-label="Resultados">{results.length ? results.map(item => <button key={item.href} role="option" aria-selected={false} onClick={() => navigate(item.href)}>{item.label} <ChevronRight size={14} /></button>) : <span>Nenhum módulo encontrado.</span>}</div>}
-          </div>
+          {role === 'admin' && <div className="ch-tools v2-top-tools">{adminProducts.map(({ label, href, icon: Icon }) => <Link key={href} className="ch-tool v2-top-icon tw:inline-grid tw:size-[2.923rem] tw:min-h-[2.692rem] tw:min-w-[2.692rem] tw:place-items-center tw:rounded-[0.615rem] tw:border tw:border-solid tw:border-[#e5dbd5] tw:bg-white tw:text-cali-brand tw:[@media(max-width:50rem)]:min-h-[2.385rem] tw:[@media(max-width:50rem)]:min-w-[2.231rem]" to={href} title={label} aria-label={label}><Icon size={17} /></Link>)}</div>}
+          <CompactWorkspaceSearch destinations={searchDestinations} resetKey={resetKey} />
           {extras}
-          <div className="profile-holder">{notifications}</div>
-          <div className="profile-holder" ref={profileRef}>
-            <DirectProfileControl role={role} partnerHasOccurrences={navigation.some((item) => item.href === '/equipe/ocorrencias')} trigger={({ profile, avatar, companyName, openEditor }) => <>
-              <button aria-expanded={profileMenu} aria-haspopup="menu" onClick={() => setProfileMenu(!profileMenu)} className="profile"><span className="avatar small">{avatar}</span><span>{profile.full_name}</span><ChevronDown size={13} /></button>
-              {profileMenu && <div className="profile-dropdown v2-profile" role="menu">
-                <div className="v2-profile-head"><span className="avatar small">{avatar}</span><span><strong>{profile.full_name}</strong><small>{profile.job_title || (role === 'admin' ? 'Administradora geral' : role === 'partner' ? 'Partner · Equipe CALI' : 'Perfil cliente')}</small></span></div>
-                <div className="v2-profile-meta">{companyName && <span>Empresa <b>{companyName}</b></span>}<span>Acesso <b>{role === 'admin' ? 'Administradora' : role === 'partner' ? 'Partner · Equipe CALI' : 'Cliente'}</b></span></div>
-                <button role="menuitem" onClick={() => { setProfileMenu(false); openEditor(); }}>Minha conta <ChevronRight size={14} /></button>
-                {role !== 'admin' && <button role="menuitem" onClick={() => { setProfileMenu(false); window.dispatchEvent(new Event(WELCOME_OPEN_EVENT)); }}>Rever apresentação <ChevronRight size={14} /></button>}
-                {role === 'client' && <button role="menuitem" onClick={() => { setProfileMenu(false); navigate('/cliente/ajuda'); }}>Dúvidas frequentes <ChevronRight size={14} /></button>}
-                <button role="menuitem" onClick={() => { setProfileMenu(false); void requestLogout(); }}>Sair <ArrowRight size={14} /></button>
-              </div>}
-            </>} />
-          </div>
+          <div className="profile-holder tw:relative tw:[@media(max-width:53.75rem)]:static">{notifications}</div>
+          <CompactWorkspaceProfile role={role} partnerHasOccurrences={navigation.some((item) => item.href === '/equipe/ocorrencias')} resetKey={resetKey} onLogout={() => void requestLogout()} />
         </div>
       </header>
       {scheduling}
-      <div className="content">{children}</div>
+      <div className="content tw:mx-auto tw:max-w-[119.231rem] tw:px-[2.692rem] tw:pt-8 tw:pb-[5.385rem] tw:[@media(53.125rem<width<=78.125rem)]:px-[1.846rem] tw:[@media(53.125rem<width<=78.125rem)]:pb-[4.615rem] tw:[@media(max-width:53.125rem)]:px-[1.154rem] tw:[@media(max-width:53.125rem)]:pb-[1.923rem]">{children}</div>
     </main>
-    {exitTimers && <div className="wf-overlay v2-exit-guard" role="presentation"><DialogFrame className="wf-modal v2-staff-form v2-staff-decision" role="alertdialog" aria-label="Cronômetro ligado">
-      <header><div><small>ANTES DE SAIR</small><h2>Você está com cronômetro ligado</h2></div></header>
-      <div className="v2-staff-body"><InlineNotice className="v2-exit-alert"><strong>Se você sair agora sem pausar, o tempo continua contando.</strong> Pause para registrar só o que foi trabalhado.</InlineNotice>
-        {exitTimers.map((timer) => <div className="v2-staff-decision-item" key={timer.id}><strong>{timer.description || 'Atuação em andamento'}</strong><small>Ligado desde {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(timer.started_at)).replace('.', '')}</small></div>)}
-        {exitError && <InlineNotice className="v2-staff-error" role="alert">{exitError}</InlineNotice>}</div>
-      <footer><Button type="button" variant="workflowSecondary" onClick={() => setExitTimers(null)}>Voltar ao trabalho</Button><Button type="button" variant="workflowPrimary" disabled={exitBusy} onClick={() => void pauseAndLogout()}>{exitBusy ? 'Pausando…' : 'Pausar e sair'}</Button></footer>
-    </DialogFrame></div>}
-    {role === 'client' && <WelcomeTour />}
-    {role === 'partner' && <WelcomeTour steps={welcomeSteps} />}
+    {exitTimers && <div className="wf-overlay tw:z-1250!" role="presentation"><StaffDialog compact role="alertdialog" aria-label="Cronômetro ligado">
+      <StaffDialogHeader><div><small>ANTES DE SAIR</small><h2>Você está com cronômetro ligado</h2></div></StaffDialogHeader>
+      <StaffDialogBody><InlineNotice className="tw:m-0 tw:rounded-[.69rem] tw:border tw:border-solid tw:border-[#ecd9b0] tw:bg-[#fff6e3] tw:px-[1.08rem] tw:py-[.92rem] tw:text-[.92rem] tw:leading-[1.5] tw:text-[#7a5a2c]"><strong>Se você sair agora sem pausar, o tempo continua contando.</strong> Pause para registrar só o que foi trabalhado.</InlineNotice>
+        {exitTimers.map((timer) => <div className="tw:flex tw:flex-col tw:gap-[.31rem] tw:rounded-[.62rem] tw:bg-[#faf6f2] tw:px-[1.08rem] tw:py-[.92rem] tw:text-[.92rem] tw:text-[#322f2c] tw:[&>small]:text-[.85rem] tw:[&>small]:text-[#8c7e74]" key={timer.id}><strong>{timer.description || 'Atuação em andamento'}</strong><small>Ligado desde {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(timer.started_at)).replace('.', '')}</small></div>)}
+        {exitError && <InlineNotice className="tw:border tw:border-solid tw:border-[#f0d5d8] tw:bg-[#fdf3f3] tw:text-[#9d4b64]" role="alert">{exitError}</InlineNotice>}</StaffDialogBody>
+      <StaffDialogFooter><Button type="button" variant="workflowSecondary" onClick={() => setExitTimers(null)}>Voltar ao trabalho</Button><Button type="button" variant="workflowPrimary" disabled={exitBusy} onClick={() => void pauseAndLogout()}>{exitBusy ? 'Pausando…' : 'Pausar e sair'}</Button></StaffDialogFooter>
+    </StaffDialog></div>}
+    {role === 'client' && <WelcomeTour onHighlight={setTourHref} />}
+    {role === 'partner' && <WelcomeTour steps={welcomeSteps} onHighlight={setTourHref} />}
   </div>;
 }
 

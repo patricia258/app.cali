@@ -32,16 +32,6 @@ export async function refreshGoogleCalendarEvent(eventId: string) {
   return error ? null : data;
 }
 
-export async function findCalendarEventForSync(protocol: string | null, title: string) {
-  const client = requireCalendarClient();
-  if (protocol) return (await client.from('events').select('id,sync_status').eq('protocol', protocol).maybeSingle()).data;
-  if (!title) return null;
-  const { data: auth } = await client.auth.getUser();
-  const query = client.from('events').select('id,sync_status').eq('title', title).order('created_at', { ascending: false }).limit(1);
-  if (auth.user?.id) query.eq('created_by', auth.user.id);
-  return (await query.maybeSingle()).data;
-}
-
 export async function listMyPendingCalendarEvents(since: string) {
   const client = requireCalendarClient();
   const { data: auth } = await client.auth.getUser();

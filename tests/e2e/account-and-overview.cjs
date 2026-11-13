@@ -152,6 +152,34 @@ const cases = [
   { id: 'account-partner-limited', role: 'partnerLimited', run: (ctx) => staffAccount(ctx, { path: '/equipe' }) },
   { id: 'overview-admin-pagination', role: 'admin', run: adminOverview },
   {
+    id: 'overview-export-clones-the-selected-react-document',
+    role: 'admin',
+    async run({ page, origin }) {
+      await page.addInitScript(() => {
+        const open = window.open.bind(window);
+        window.open = (...args) => {
+          const popup = open(...args);
+          if (popup) popup.print = () => { popup.document.documentElement.dataset.printRequested = 'true'; };
+          return popup;
+        };
+      });
+      await page.goto(origin + '/admin');
+      await page.getByRole('button', { name: 'Exportar', exact: true }).click();
+      const preview = page.locator('.overview-export-print');
+      await preview.waitFor({ state: 'attached' });
+      const popupPromise = page.waitForEvent('popup');
+      await page.getByRole('button', { name: 'Abrir visualização do PDF' }).click();
+      const popup = await popupPromise;
+      await popup.locator('html[data-print-requested="true"]').waitFor({ state: 'attached' });
+      assert.equal(await popup.title(), 'Panorama do Workspace');
+      const paper = popup.locator('body > article.overview-export-print');
+      assert.equal(await paper.textContent(), await preview.textContent());
+      const size = await paper.evaluate((element) => parseFloat(getComputedStyle(element).width));
+      assert.ok(Math.abs(size - 210 * 96 / 25.4) < 1);
+      await popup.close();
+    },
+  },
+  {
     id: 'overview-admin-mobile-header',
     role: 'admin',
     width: 390,
