@@ -1,30 +1,30 @@
-import { supabase } from './supabase';
+import { signPrivateWorkspaceMedia, workspaceStorageAvailable } from '../api/files/workspace';
 
 type CachedMedia = { url: string; expiresAt: number };
+type MediaSession = {
+  signal: AbortSignal;
+  signed: Map<string, CachedMedia>;
+  pending: Map<string, Promise<string>>;
+};
 
-const signedMediaCache = new Map<string, CachedMedia>();
-const pendingMedia = new Map<string, Promise<string>>();
-const STORAGE_KEY = 'cali-workspace-media-cache-v1';
+let active: MediaSession | null = null;
 
-function readStoredMedia(key: string) {
-  try {
-    const raw = window.sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Record<string, CachedMedia>;
-    return parsed[key] || null;
-  } catch {
-    return null;
-  }
+export function workspaceMediaSignal() {
+  return active?.signal;
 }
 
-function storeMedia(key: string, value: CachedMedia) {
+export function activateWorkspaceMedia(signal: AbortSignal) {
+  const scope: MediaSession = { signal, signed: new Map(), pending: new Map() };
+  active = scope;
+  signal.addEventListener('abort', () => {
+    scope.signed.clear();
+    scope.pending.clear();
+    if (active === scope) active = null;
+  }, { once: true });
   try {
-    const parsed = JSON.parse(window.sessionStorage.getItem(STORAGE_KEY) || '{}') as Record<string, CachedMedia>;
-    parsed[key] = value;
-    const live = Object.fromEntries(Object.entries(parsed).filter(([, item]) => item.expiresAt > Date.now() + 60_000));
-    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(live));
+    window.sessionStorage.removeItem('cali-workspace-media-cache-v1');
   } catch {
-    // O cache persistente é uma otimização; a imagem continua carregando sem ele.
+    // O navegador pode desabilitar sessionStorage.
   }
 }
 
@@ -43,45 +43,46 @@ function normalizePrivateMedia(raw: string) {
   }
 }
 
+export function isPrivateWorkspaceMedia(source?: string | null) {
+  return Boolean(source && normalizePrivateMedia(source).startsWith('private:'));
+}
+
 export async function resolveWorkspaceMedia(raw?: string | null, expiresIn = 3600, forceRefresh = false) {
-  if (!raw || !supabase) return raw || '';
+  if (!raw || !workspaceStorageAvailable) return raw || '';
 
   const normalized = normalizePrivateMedia(raw);
   if (!normalized.startsWith('private:')) return raw;
+  const scope = active;
+  if (!scope || scope.signal.aborted) return '';
 
-  const cached = signedMediaCache.get(normalized) || readStoredMedia(normalized);
+  const cached = scope.signed.get(normalized);
   const now = Date.now();
-  if (!forceRefresh && cached && cached.expiresAt > now + 60_000) {
-    signedMediaCache.set(normalized, cached);
-    return cached.url;
-  }
+  if (!forceRefresh && cached && cached.expiresAt > now + 60_000) return cached.url;
 
-  const inFlight = pendingMedia.get(normalized);
+  const inFlight = scope.pending.get(normalized);
   if (inFlight) return inFlight;
 
   const path = normalized.slice('private:'.length);
   const request = (async () => {
-    const { data, error } = await supabase.storage
-      .from('cali-workspace-private')
-      .createSignedUrl(path, expiresIn);
+    const url = await signPrivateWorkspaceMedia(path, expiresIn);
 
-    if (error || !data?.signedUrl) {
-      signedMediaCache.delete(normalized);
+    if (active !== scope || scope.signal.aborted) return '';
+    if (!url) {
+      scope.signed.delete(normalized);
       return '';
     }
 
     const value = {
-      url: data.signedUrl,
+      url,
       expiresAt: now + Math.max(60, expiresIn) * 1000,
     };
-    signedMediaCache.set(normalized, value);
-    storeMedia(normalized, value);
-    return data.signedUrl;
+    scope.signed.set(normalized, value);
+    return url;
   })();
-  pendingMedia.set(normalized, request);
+  scope.pending.set(normalized, request);
   try {
     return await request;
   } finally {
-    pendingMedia.delete(normalized);
+    scope.pending.delete(normalized);
   }
 }

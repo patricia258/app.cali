@@ -1,3 +1,5 @@
+import type { JsonValue } from '../_shared/json.ts';
+import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 // CALI Workspace — convite por e-mail para a Equipe CALI (perfil Partner).
 // Só a administradora pode chamar (confere com cali_workspace.is_admin() usando a sessão de quem chamou).
 // Não cria usuário nem dá acesso: apenas envia o e-mail com o endereço do Workspace para quem já está em staff_members.
@@ -8,14 +10,14 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
-const APP_URL = "https://app.calirh.com";
+const APP_URL = deliveryAppOrigin;
 
 function cors(request: Request) {
   const origin = request.headers.get("origin") ?? "";
   const allowed = origin === APP_URL || /^https:\/\/[-a-z0-9]+\.vercel\.app$/i.test(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin);
   return { "Access-Control-Allow-Origin": allowed ? origin : APP_URL, "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info", "Access-Control-Allow-Methods": "POST, OPTIONS", Vary: "Origin" };
 }
-function json(request: Request, body: unknown, status = 200) {
+function json(request: Request, body: JsonValue, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { ...cors(request), "Content-Type": "application/json; charset=utf-8" } });
 }
 function firstName(name: string | null | undefined) { return String(name || "").trim().split(/\s+/)[0] || "Olá"; }
@@ -56,6 +58,7 @@ Deno.serve(async (request) => {
     if (staffError) throw staffError;
     if (!staff || !staff.active) return json(request, { error: "Cadastro não encontrado ou desativado." }, 404);
     if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY não configurada.");
+    if (!emailDestinationsAllowed([staff.email])) return json(request, { error: "Destinatário indisponível neste ambiente." }, 403);
     const resend = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": `workspace-staff-invite-${crypto.randomUUID()}` },

@@ -1,0 +1,63 @@
+/* The public landing route owns the document scroll and local brand tokens. */
+@layer base {
+  :where(html[data-workspace-surface='landing']) {
+    height: auto;
+    min-height: 100%;
+    font-size: 1rem;
+    overflow-x: clip;
+    overflow-y: auto;
+    overscroll-behavior: none;
+    scroll-behavior: smooth;
+    background: #f1ede8;
+  }
+
+  :where(html[data-workspace-surface='landing']) :where(body, #root) {
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+    overflow: visible;
+  }
+
+  :where(html[data-workspace-surface='landing']) body {
+    min-width: 20rem;
+    margin: 0;
+  }
+
+  :where(html[data-workspace-surface='landing'][data-workspace-theme='night']) {
+    background: #160f12;
+  }
+
+  :where(.cali-landing, .cali-landing *, .cali-landing *::before, .cali-landing *::after) {
+    box-sizing: border-box;
+  }
+
+  :where(.cali-landing a) {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :where(.cali-landing h1, .cali-landing h2, .cali-landing h3) {
+    font-family: var(--cali-font-body);
+    font-weight: 700;
+    letter-spacing: -.025em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :where(html[data-workspace-surface='landing']) {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+.cali-landing {
+  --id-burgundy: #5a1e2d;
+  --id-canvas: #f7f3ee;
+  --id-gold: #b58c52;
+  --id-gold-soft: #e7c66f;
+  --id-ink: #2b2024;
+  --id-line: #e9e0d8;
+  --id-radius-card: .875rem;
+  --id-radius-control: .5625rem;
+  --lp-gold: #b58c52;
+  --lp-line: rgb(90 30 45 / 11%);
+}

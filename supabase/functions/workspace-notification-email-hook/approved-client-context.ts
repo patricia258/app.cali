@@ -1,14 +1,12 @@
+import type { NotificationDb } from "./database.ts";
+
 type Notification = {
   id:string; entity_id:string|null; entity_type:string|null; company_id:string; user_id:string;
   title:string; body:string|null; created_at:string; action_url?:string|null;
 };
 type EmailKind = "record_status"|"record_reopen_decision"|"team_month_update"|"chat_mention";
-const statusMap:Record<string,string> = {
-  open:"Aberta", standby:"Em espera", in_progress:"Em andamento",
-  waiting_client:"Aguardando cliente", completed:"Finalizada", cancelled:"Cancelada",
-};
 export async function approvedClientContext(
-  ws:any,n:Notification,key:EmailKind,
+  ws:NotificationDb,n:Notification,key:EmailKind,
 ):Promise<Record<string,string>>{
   if(key==="chat_mention"){
     if(!n.title?.endsWith(" mencionou você") || !n.body?.trim())throw Error("Menção sem remetente ou trecho.");

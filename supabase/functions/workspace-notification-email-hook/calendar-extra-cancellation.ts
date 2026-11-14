@@ -1,7 +1,9 @@
+import type { NotificationDb } from "./database.ts";
+
 // O cancelamento no calendário não altera necessariamente o status da solicitação.
 // Para este caminho, usar o evento efetivamente cancelado, nunca a solicitação ainda confirmada.
 export async function cancelledCalendarExtraFields(
-  ws: any,
+  ws: NotificationDb,
   n: {entity_id:string;company_id:string;user_id:string},
 ): Promise<{fields:Record<string,string>;timely:boolean}> {
   const {data:event,error:eventError}=await ws.from("events")

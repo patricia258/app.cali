@@ -1,0 +1,39 @@
+@reference "./tailwind.css";
+/* Typography and browser defaults for public pages and the document workspace. */
+
+:where(html[data-workspace-surface]:not([data-workspace-surface='landing'])) {
+
+&:root {
+  @apply tw:font-cali-body;
+  color: var(--cali-color-ink);
+  background: var(--cali-color-canvas);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --burgundy: var(--cali-color-burgundy);
+  --burgundy-dark: var(--cali-color-burgundy-deep);
+  --ivory: var(--cali-color-canvas);
+  --paper: var(--cali-color-paper);
+  --graphite: var(--cali-color-ink);
+  --taupe: #b7a99a;
+  --gold: var(--cali-color-gold);
+  --line: var(--cali-color-line);
+  --muted: var(--cali-color-muted);
+  --soft: #f0e9e2;
+  --success: var(--cali-color-success);
+  --warning: var(--cali-color-warning);
+  --shadow: 0 12px 32px rgba(63, 39, 30, .07);
+}
+
+&, * { @apply tw:box-border; }
+&:is(html) { @apply tw:text-[16px]; }
+body { @apply tw:m-0; min-width: 320px; @apply tw:min-h-[100vh]; background: var(--ivory); }
+button, input, select, textarea { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+a { color: inherit; text-decoration: none; }
+button { @apply tw:cursor-pointer; }
+
+h1, h2, h3 { @apply tw:font-cali-heading tw:m-0; color: var(--graphite); }
+h1 { font-size: clamp(2rem, 3vw, 3.05rem); line-height: 1.06; letter-spacing: -.035em; }
+h2 { font-size: clamp(1.35rem, 2vw, 1.7rem); line-height: 1.15; }
+p { @apply tw:text-[1rem]; line-height: 1.65; @apply tw:m-0; color: var(--muted); }
+}

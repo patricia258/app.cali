@@ -1,3 +1,5 @@
+import type { JsonValue } from '../_shared/json.ts';
+import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 
@@ -6,12 +8,12 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const FROM_EMAIL = "APP CALI RH <workspace@calirh.com>";
 const REPLY_TO = "nao-responda@calirh.com";
-const APP_URL = "https://app.calirh.com";
+const APP_URL = deliveryAppOrigin;
 const LOGO_URL = `${APP_URL}/brand/cali-workspace-transparent.svg`;
 const MARK_URL = `${APP_URL}/brand/cali-oak-mark.svg`;
 const headers = { "Content-Type": "application/json" };
 
-const esc = (value: unknown) => String(value ?? "")
+const esc = (value: JsonValue | undefined) => String(value ?? "")
   .replaceAll("&", "&amp;")
   .replaceAll("<", "&lt;")
   .replaceAll(">", "&gt;")
@@ -29,6 +31,7 @@ type NotificationRow = {
   id: string; user_id: string; company_id: string; entity_id?: string | null;
   action_url?: string | null; created_at: string;
 };
+type ProfileRow = { id: string; active: boolean; email: string | null; full_name: string | null };
 type RecordRow = { id: string; protocol?: string | null; title: string; record_type: string; company_id: string };
 type Thread = { recordId: string; protocol: string; title: string; type: string; count: number; url: string; companyId: string };
 
@@ -86,7 +89,7 @@ Deno.serve(async (req: Request) => {
 
     const userIds = [...new Set(rows.map((row) => row.user_id).filter(Boolean))];
     const companyIds = [...new Set(rows.map((row) => row.company_id).filter(Boolean))];
-    const recordIds = [...new Set(rows.map((row) => row.entity_id).filter(Boolean))] as string[];
+    const recordIds = [...new Set(rows.map((row) => row.entity_id).filter((id): id is string => Boolean(id)))];
     const [profilesResult, companiesResult, recordsResult] = await Promise.all([
       ws.from("profiles").select("id,email,full_name,active").in("id", userIds),
       ws.from("companies").select("id,display_name").in("id", companyIds),
@@ -96,16 +99,16 @@ Deno.serve(async (req: Request) => {
     if (companiesResult.error) throw companiesResult.error;
     if (recordsResult.error) throw recordsResult.error;
 
-    const profiles = new Map((profilesResult.data || []).map((row: any) => [row.id, row]));
-    const companies = new Map((companiesResult.data || []).map((row: any) => [row.id, row.display_name]));
+    const profiles = new Map<string, ProfileRow>((profilesResult.data || []).map((row) => [row.id, row]));
+    const companies = new Map<string, string | null>((companiesResult.data || []).map((row) => [row.id, row.display_name]));
     const records = new Map(((recordsResult.data || []) as RecordRow[]).map((row) => [row.id, row]));
     const grouped = new Map<string, NotificationRow[]>();
     rows.forEach((row) => grouped.set(row.user_id, [...(grouped.get(row.user_id) || []), row]));
 
     let sent = 0;
     for (const [userId, userRows] of grouped) {
-      const profile: any = profiles.get(userId);
-      if (!profile?.active || !profile.email) continue;
+      const profile = profiles.get(userId);
+      if (!profile?.active || !profile.email || !emailDestinationsAllowed([String(profile.email)])) continue;
       const threadMap = new Map<string, Thread>();
       for (const notification of userRows) {
         const record = notification.entity_id ? records.get(notification.entity_id) : undefined;
@@ -123,7 +126,7 @@ Deno.serve(async (req: Request) => {
         });
       }
       const threads = [...threadMap.values()];
-      const companyNames = [...new Set(threads.map((thread) => companies.get(thread.companyId)).filter(Boolean))] as string[];
+      const companyNames = [...new Set(threads.map((thread) => companies.get(thread.companyId)).filter((name): name is string => Boolean(name)))];
       const companyLabel = companyNames.length === 1 ? companyNames[0] : companyNames.length > 1 ? companyNames.join(" · ") : "Sua conta CALI";
       const total = userRows.length;
       const subject = `CALI Workspace · ${companyLabel} · ${total} mensagem${total === 1 ? "" : "s"} pendente${total === 1 ? "" : "s"}`;

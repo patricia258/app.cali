@@ -1,0 +1,5 @@
+@keyframes profile-dialog-enter {
+  0% { opacity: 0; transform: translateY(16px) scale(.975); }
+  64% { opacity: 1; transform: translateY(-3px) scale(1.004); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}

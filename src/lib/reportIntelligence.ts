@@ -1,3 +1,5 @@
+import type { DeliveryPerformanceRow } from './reportCloseMetrics';
+import type { ReportManualComplements } from './reportManualComplements';
 import { normalizeMonthlySeries, type MonthlySeriesPoint, type ReportEditor, type ReportType } from './reportComposition';
 
 export type AccountRecord = {
@@ -152,33 +154,42 @@ export type IntelligenceSnapshot = {
   previousReports: PreviousReport[];
   monthlySeries: MonthlySeriesPoint[];
   manualOverrides?: Record<string, number | null>;
+  deliveryPerformanceV14?: DeliveryPerformanceRow[];
+  workflow_mode?: 'official' | 'simulation';
+  simulation_of?: string | null;
+  simulation_marked_at?: string;
+  reportManual?: ReportManualComplements;
 };
 
 export type HourGroup = { label: string; minutes: number; percent: number };
 export type UpgradeSignal = { active: boolean; consecutive: number; message: string };
 
-function arr<T>(value: unknown): T[] {
-  return Array.isArray(value) ? value as T[] : [];
+function arr<T>(value: T[] | null | undefined): T[] {
+  return Array.isArray(value) ? value : [];
 }
-function num(value: unknown) {
+function num(value: string | number | boolean | null | undefined) {
   const parsed = Number(value || 0);
   return Number.isFinite(parsed) ? parsed : 0;
 }
-function nullableNum(value: unknown) {
+function nullableNum(value: string | number | boolean | null | undefined) {
   if (value === null || value === undefined || value === '') return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
-function textArray(value: unknown) {
-  return arr<unknown>(value).map(String).map((item) => item.trim()).filter(Boolean);
+function textArray(value: string[] | null | undefined) {
+  return arr(value).map(String).map((item) => item.trim()).filter(Boolean);
 }
 
-export function normalizeIntelligenceSnapshot(value: unknown): IntelligenceSnapshot | null {
+export function normalizeIntelligenceSnapshot(value: object | string | number | boolean | null | undefined): IntelligenceSnapshot | null {
   if (!value || typeof value !== 'object') return null;
-  const raw = value as Record<string, any>;
+  const raw = value as Partial<IntelligenceSnapshot>;
   if (!raw.period || !raw.contract || !raw.deliverables || !raw.hours) return null;
   return {
     ...raw,
+    generatedAt: raw.generatedAt ?? '',
+    companyId: raw.companyId ?? '',
+    companyName: raw.companyName ?? '',
+    period: raw.period,
     contract: {
       ...raw.contract,
       monthlyHours: num(raw.contract.monthlyHours),
@@ -212,7 +223,7 @@ export function normalizeIntelligenceSnapshot(value: unknown): IntelligenceSnaps
     events: raw.events || { count: 0, items: [] },
     documents: raw.documents || { publishedCount: 0, published: [], awaitingFinalCount: 0, readyToPublishCount: 0 },
     conversations: raw.conversations || { commentCount: 0, comments: [] },
-    records: arr<any>(raw.records).map((record) => ({
+    records: arr(raw.records).map((record) => ({
       ...record,
       participants: arr(record.participants),
       decisions: textArray(record.decisions),
@@ -222,19 +233,19 @@ export function normalizeIntelligenceSnapshot(value: unknown): IntelligenceSnaps
       requiresAction: Boolean(record.requiresAction),
       impactLevel: record.impactLevel || 'medium',
     })),
-    dependencies: { items: arr(raw.dependencies?.items).map((item: any) => ({
+    dependencies: { items: arr(raw.dependencies?.items).map((item) => ({
       ...item,
       delayBusinessDays: num(item.delayBusinessDays),
       impactBusinessDays: num(item.impactBusinessDays),
     })) },
-    previousReports: arr<any>(raw.previousReports).map((item) => ({
+    previousReports: arr(raw.previousReports).map((item) => ({
       ...item,
       contractedHours: nullableNum(item.contractedHours),
       consumedMinutes: num(item.consumedMinutes),
       feedbackAverage: nullableNum(item.feedbackAverage),
     })),
     monthlySeries: normalizeMonthlySeries(raw.monthlySeries),
-  } as IntelligenceSnapshot;
+  };
 }
 
 export function packageLabel(snapshot: IntelligenceSnapshot) {

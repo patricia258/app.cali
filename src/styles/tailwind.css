@@ -1,0 +1,57 @@
+/* Utilities keep the existing reset and CSS cascade. */
+@import 'tailwindcss/theme.css' prefix(tw);
+@import './tokens.css';
+@import 'tailwindcss/utilities.css' prefix(tw) source('../');
+
+@layer base {
+  :where(html[data-workspace-ui='v2']) :where(button, input, select) {
+    font: inherit;
+  }
+
+  :where(html[data-workspace-ui='v2']) :where(h1, h2, h3, p) {
+    margin-top: 0;
+  }
+}
+
+@custom-variant workspace-night (&:where(html[data-workspace-theme='night'] *));
+@custom-variant workspace-documents (&:where(html[data-workspace-surface='admin-documents'] *));
+@custom-variant workspace-compact (&:where(html[data-workspace-ui='v2'] *));
+@custom-variant workspace-standalone (&:where(html[data-workspace-surface] *));
+@custom-variant compact-content (&:where(html[data-workspace-ui='v2'] .main *));
+
+@theme {
+  --animate-message-arrive: cali-message-arrive .56s cubic-bezier(.2, .78, .2, 1) both;
+
+  @keyframes cali-message-arrive {
+    0% { opacity: 0; transform: translateY(18px) scale(.94); }
+    58% { opacity: 1; transform: translateY(-5px) scale(1.018); }
+    78% { transform: translateY(2px) scale(.994); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+}
+
+@theme inline {
+  --color-cali-brand: var(--cali-color-burgundy);
+  --color-cali-gold: var(--cali-color-gold);
+  --color-cali-paper: var(--cali-color-paper);
+  --color-cali-ink: var(--cali-color-ink);
+  --color-cali-day-canvas: var(--cali-color-canvas);
+  --color-cali-day-muted: var(--cali-color-muted);
+  --color-cali-canvas: var(--theme-page, var(--cali-color-canvas));
+  --color-cali-surface: var(--theme-surface, var(--cali-color-paper));
+  --color-cali-text: var(--theme-text, var(--cali-color-ink));
+  --color-cali-muted: var(--theme-muted, var(--cali-color-muted));
+  --color-cali-line: var(--theme-line, var(--cali-color-line));
+  --color-cali-input: var(--theme-input, var(--cali-color-paper));
+  --color-cali-input-line: var(--theme-input-border, var(--cali-color-line));
+  --color-cali-accent: var(--theme-accent, var(--cali-color-burgundy));
+  --color-cali-success: var(--theme-success, var(--cali-color-success));
+  --color-cali-danger: var(--theme-danger, #8d463e);
+  --font-cali-body: var(--cali-font-body);
+  --font-cali-heading: var(--cali-font-heading);
+  --text-cali-small: var(--cali-font-small);
+  --text-cali-caption: var(--cali-font-caption);
+  --spacing-cali-control: var(--cali-control-height);
+  --spacing-cali-control-gap: var(--cali-control-gap);
+  --radius-cali-control: var(--cali-control-radius);
+}

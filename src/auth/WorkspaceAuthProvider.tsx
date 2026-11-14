@@ -1,106 +1,86 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { isSupabaseConfigured, supabase } from '../lib/supabase';
-import type { Role as ShellRole } from '../components/WorkspaceShell';
+import { workspaceProfileQuery } from '../api/access/profile';
+import { isSupabaseConfigured, observeWorkspaceSession, readWorkspaceSession } from '../api/access/session';
+import { WorkspaceAuthContext, type AuthSnapshot, type AuthState } from './workspaceAuthContext';
+import { useNotificationChime } from '../components/workspace/hooks/useNotificationChime';
 
-/* Perfis de acesso: administradora, cliente e Partner (equipe CALI, área própria em /equipe). */
-export type Role = ShellRole | 'partner';
-export const homeOf = (role: Role | null | undefined) => role === 'admin' ? '/admin' : role === 'partner' ? '/equipe' : '/cliente';
-
-type AuthState = {
-  ready: boolean;
-  user: User | null;
-  role: Role | null;
-  active: boolean;
-  refreshAccess: () => Promise<void>;
-};
-
-const WorkspaceAuthContext = createContext<AuthState | null>(null);
-
-async function readProfile(user: User | null) {
-  if (!user || !supabase) return { role: null as Role | null, active: false };
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('role, active')
-    .eq('id', user.id)
-    .single();
-
-  if (error || !data?.active) return { role: null as Role | null, active: false };
-  return { role: data.role as Role, active: true };
-}
+const signedOut: AuthSnapshot = { ready: true, user: null, role: null, active: false };
 
 export function WorkspaceAuthProvider({ children }: { children: ReactNode }) {
-  const [ready, setReady] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<Role | null>(null);
-  const [active, setActive] = useState(false);
+  const queryClient = useQueryClient();
+  const [access, setAccess] = useState<AuthSnapshot>({ ...signedOut, ready: false });
+  useNotificationChime(access.user?.id ?? null);
+  const activeUserId = useRef<string | null>(null);
+  const accessVersion = useRef(0);
 
-  async function applyUser(nextUser: User | null) {
-    setUser(nextUser);
+  const applyUser = useCallback(async (nextUser: User | null) => {
+    const version = ++accessVersion.current;
+    const previousId = activeUserId.current;
+    const nextId = nextUser?.id ?? null;
+    activeUserId.current = nextId;
+
+    if (previousId && previousId !== nextId) {
+      queryClient.clear();
+    }
+
     if (!nextUser) {
-      setRole(null);
-      setActive(false);
-      setReady(true);
+      setAccess(signedOut);
       return;
     }
 
-    const profile = await readProfile(nextUser);
-    setRole(profile.role);
-    setActive(profile.active);
-    setReady(true);
-  }
+    setAccess((current) =>
+      previousId === nextId
+        ? { ...current, user: nextUser }
+        : { ...signedOut, ready: false, user: nextUser },
+    );
 
-  async function refreshAccess() {
-    if (!isSupabaseConfigured || !supabase) {
-      setReady(true);
-      setUser(null);
-      setRole(null);
-      setActive(false);
+    const profile = await queryClient.fetchQuery(workspaceProfileQuery(nextUser.id)).catch(() => null);
+    if (accessVersion.current !== version) return;
+
+    const role = profile?.active ? profile.role : null;
+    setAccess({ ready: true, user: nextUser, role, active: role !== null });
+  }, [queryClient]);
+
+  const refreshAccess = useCallback(async () => {
+    if (!isSupabaseConfigured) {
+      await applyUser(null);
       return;
     }
 
-    const { data } = await supabase.auth.getSession();
-    await applyUser(data.session?.user ?? null);
-  }
+    const version = accessVersion.current;
+    const session = await readWorkspaceSession().catch(() => null);
+    if (accessVersion.current === version) await applyUser(session?.user ?? null);
+  }, [applyUser]);
 
   useEffect(() => {
-    let mounted = true;
-
-    if (!isSupabaseConfigured || !supabase) {
-      setReady(true);
+    if (!isSupabaseConfigured) {
+      setAccess(signedOut);
       return;
     }
 
-    (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!mounted) return;
-      await applyUser(data.session?.user ?? null);
-    })();
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!mounted) return;
-      void applyUser(session?.user ?? null);
+    let mounted = true;
+    void refreshAccess();
+    const unsubscribe = observeWorkspaceSession((session) => {
+      if (mounted) void applyUser(session?.user ?? null);
     });
 
     return () => {
       mounted = false;
-      listener.subscription.unsubscribe();
+      accessVersion.current++;
+      unsubscribe();
+      if (activeUserId.current) {
+        queryClient.clear();
+        activeUserId.current = null;
+      }
     };
-  }, []);
+  }, [applyUser, queryClient, refreshAccess]);
 
   const value = useMemo<AuthState>(() => ({
-    ready,
-    user,
-    role,
-    active,
+    ...access,
     refreshAccess,
-  }), [ready, user, role, active]);
+  }), [access, refreshAccess]);
 
   return <WorkspaceAuthContext.Provider value={value}>{children}</WorkspaceAuthContext.Provider>;
-}
-
-export function useWorkspaceAuth() {
-  const value = useContext(WorkspaceAuthContext);
-  if (!value) throw new Error('useWorkspaceAuth must be used inside WorkspaceAuthProvider');
-  return value;
 }

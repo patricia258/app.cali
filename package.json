@@ -5,15 +5,29 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix --max-warnings=0",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "build": "vite build",
-    "check": "npm run typecheck && npm run build",
-    "test:smoke": "npm run check",
-    "preview": "vite preview"
+    "check": "npm run lint && npm run typecheck && npm run build",
+    "test:smoke": "npm run check && npm test",
+    "preview": "vite preview",
+    "test": "TSX_TSCONFIG_PATH=tsconfig.app.json node --import tsx --test 'tests/unit/**/*.test.mjs' 'tests/visual/**/*.test.cjs'",
+    "test:coverage": "TSX_TSCONFIG_PATH=tsconfig.app.json node --import tsx --test --experimental-test-coverage --test-coverage-include='src/**' --test-coverage-include='api/**' --test-coverage-include='supabase/functions/**' 'tests/unit/**/*.test.mjs'",
+    "test:components": "node --test tests/ds/*.test.mjs",
+    "test:e2e": "node tests/e2e/run.cjs",
+    "test:visual:pages": "node tests/visual/pages/run.cjs",
+    "test:visual:components": "node tests/ds/compare-components.mjs",
+    "test:contracts": "bash tests/contracts/run-sql.sh && node --env-file .cali-db-schema.local/qa/stack.env tests/contracts/session-http.mjs && node --env-file .cali-db-schema.local/qa/stack.env tests/contracts/commercial-http.mjs",
+    "test:local": "npm run check && npm test && npm run test:components && npm run test:e2e && npm run test:contracts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
-    "date-fns": "^4.1.0",
+    "@tanstack/react-form": "1.33.5",
+    "@tanstack/react-query": "5.105.0",
+    "@tanstack/react-router": "1.170.46",
+    "axios": "1.21.0",
+    "date-fns": "4.4.0",
     "fflate": "^0.8.2",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
@@ -21,14 +35,27 @@
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0"
+    "zod": "4.6.7"
   },
   "devDependencies": {
+    "@eslint/js": "9.39.4",
+    "@tailwindcss/vite": "4.3.3",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "9.39.4",
+    "eslint-plugin-import": "2.32.0",
+    "eslint-plugin-jsx-a11y": "6.10.2",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "7.0.1",
+    "eslint-plugin-unused-imports": "4.4.1",
+    "globals": "16.4.0",
+    "playwright-core": "1.58.2",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.21.0",
     "typescript": "^5.6.3",
+    "typescript-eslint": "8.58.0",
     "vite": "^5.4.11"
   }
 }

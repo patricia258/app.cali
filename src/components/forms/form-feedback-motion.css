@@ -1,0 +1,10 @@
+@keyframes form-feedback-enter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 0.615rem);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}

@@ -1,0 +1,37 @@
+const cellBorder = 'tw:border-0 tw:border-r tw:border-b tw:border-solid tw:border-cali-line';
+const headerBackground = 'tw:bg-(--theme-surface-muted) tw:workspace-night:bg-[#1e171a]';
+const eventColors = 'tw:border-(--event-color) tw:bg-(--event-soft) tw:text-cali-text';
+export const personalEventColors = 'tw:border-(--event-color)! tw:bg-(--event-color)! tw:text-(--event-foreground)!';
+const workspaceWeekColors = 'tw:bg-[color-mix(in_srgb,var(--event-color)_17%,var(--theme-surface))] tw:text-cali-text tw:workspace-night:border-[#96716b]! tw:workspace-night:bg-[#412d32]! tw:workspace-night:text-[#fff5f1]!';
+export const previewEventColors = 'tw:border-dashed! tw:border-[#a97546]! tw:bg-[color-mix(in_srgb,#fff0d7_72%,var(--theme-surface))]! tw:text-[#573623]! tw:workspace-night:border-[#d9ab64]! tw:workspace-night:bg-[#45351f]! tw:workspace-night:text-[#fff1d7]!';
+
+export const monthHead = `tw:grid tw:min-h-[2.6875rem] tw:grid-cols-7 tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:max-[56.25rem]:min-w-[47.5rem] ${headerBackground}`;
+export const monthWeekday = 'tw:flex tw:items-center tw:justify-center tw:border-0 tw:border-r tw:border-solid tw:border-cali-line tw:text-[0.625rem] tw:font-extrabold tw:tracking-[0.07em] tw:uppercase tw:text-cali-muted tw:last:border-r-0';
+export const monthGrid = 'tw:grid tw:grid-cols-7 tw:max-[56.25rem]:min-w-[47.5rem]';
+export const monthCell = `tw:group/day tw:relative tw:min-h-[8.25rem] tw:bg-(--theme-surface-soft) tw:px-2 tw:pt-[0.5625rem] tw:pb-2 tw:nth-[7n]:border-r-0 tw:transition-[background-color,box-shadow] tw:duration-150 tw:motion-reduce:transition-none tw:hover:bg-[color-mix(in_srgb,var(--theme-surface)_94%,var(--theme-accent)_6%)] tw:workspace-night:bg-[#21191d] tw:workspace-night:hover:bg-[#281e22] ${cellBorder}`;
+export const monthOutside = 'tw:bg-(--theme-surface-muted)! tw:opacity-55 tw:workspace-night:bg-[#1b1518]!';
+export const monthToday = 'tw:shadow-[inset_0_0_0_1px_#5a1e2d26]';
+export const monthDayNumber = 'tw:grid tw:size-7 tw:cursor-pointer tw:place-items-center tw:rounded-lg tw:border-0 tw:bg-transparent tw:p-0 tw:text-[0.6875rem]! tw:font-extrabold! tw:text-cali-text tw:workspace-night:text-[#f3eeeb]';
+export const todayNumber = 'tw:bg-cali-accent! tw:text-white!';
+export const monthEvents = 'tw:mt-[0.3125rem] tw:grid tw:gap-1';
+export const monthChip = `tw:flex tw:min-h-7 tw:w-full tw:cursor-pointer tw:items-center tw:gap-1.5 tw:overflow-hidden tw:rounded-md tw:border tw:border-l-[0.1875rem] tw:border-solid tw:px-2 tw:py-1.5 tw:text-left tw:hover:-translate-y-px tw:hover:shadow-[0_5px_14px_#23161a14] tw:motion-reduce:hover:translate-y-0 ${eventColors}`;
+export const monthChipText = 'tw:min-w-0 tw:truncate tw:text-[0.71875rem]/[1.25] tw:font-bold';
+export const monthChipTime = 'tw:shrink-0 tw:text-[0.65625rem]/[1.25] tw:font-extrabold';
+export const monthChipDot = 'tw:size-1.5 tw:shrink-0 tw:rounded-full tw:bg-(--event-color)';
+export const monthMore = 'tw:cursor-pointer tw:border-0 tw:bg-transparent tw:px-1 tw:py-0.5 tw:text-left tw:text-[0.5625rem]! tw:font-extrabold! tw:text-cali-accent';
+export const monthAdd = 'tw:absolute tw:top-2 tw:right-2 tw:grid tw:size-6 tw:cursor-pointer tw:place-items-center tw:rounded-lg tw:border tw:border-solid tw:border-transparent tw:bg-transparent tw:p-0 tw:text-transparent tw:transition-colors tw:duration-150 tw:group-hover/day:border-cali-line tw:group-hover/day:bg-cali-surface tw:group-hover/day:text-cali-accent tw:focus-visible:border-cali-line tw:focus-visible:bg-cali-surface tw:focus-visible:text-cali-accent tw:motion-reduce:transition-none';
+
+export const weekCorner = `tw:col-start-1 tw:row-start-1 ${cellBorder} ${headerBackground}`;
+export const weekDayHead = `tw:row-start-1 tw:grid tw:content-center tw:place-items-center tw:gap-1 ${cellBorder} ${headerBackground}`;
+export const weekDayLabel = 'tw:text-[0.5625rem] tw:font-extrabold tw:uppercase tw:text-cali-muted';
+export const weekDayNumber = 'tw:grid tw:size-7 tw:place-items-center tw:rounded-lg tw:text-[0.71875rem]';
+export const weekAllDay = `tw:min-h-[2.125rem] tw:p-1 ${cellBorder} ${headerBackground}`;
+export const weekAllDayEvent = `tw:my-0.5 tw:block tw:w-full tw:cursor-pointer tw:truncate tw:rounded-md tw:border tw:border-l-2 tw:border-solid tw:px-1.5 tw:py-1 tw:text-left tw:text-[0.6875rem]! ${eventColors}`;
+export const weekAxis = `tw:relative tw:border-0 tw:border-r tw:border-solid tw:border-cali-line ${headerBackground}`;
+export const weekLane = 'tw:relative tw:min-w-0 tw:overflow-hidden tw:border-0 tw:border-r tw:border-solid tw:border-cali-line tw:bg-(--theme-surface-soft) tw:workspace-night:bg-[#21191d]';
+export const weekHour = 'tw:absolute tw:inset-x-0 tw:border-0 tw:border-t tw:border-solid tw:border-cali-line';
+export const weekEvent = `tw:absolute tw:flex tw:cursor-pointer tw:flex-col tw:gap-[0.1875rem] tw:overflow-hidden tw:rounded-md tw:border tw:border-l-2 tw:border-solid tw:px-2 tw:py-1.5 tw:text-left tw:hover:brightness-105 tw:hover:shadow-[0_2px_8px_#27151b33] ${eventColors}`;
+export const weekEventCompact = 'tw:flex-row! tw:items-center tw:px-2 tw:py-0.5! tw:[&>small]:hidden tw:[&>time]:hidden';
+export const weekWorkspaceEvent = workspaceWeekColors;
+export const weekEventTitle = 'tw:truncate tw:text-xs/[1.25]';
+export const weekEventCopy = 'tw:truncate tw:text-[0.65625rem]/[1.25] tw:text-inherit tw:opacity-85';

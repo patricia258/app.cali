@@ -1,5 +1,7 @@
+import type { NotificationDb } from "./database.ts";
+
 export async function cancelledVisitFields(
-  ws: any,
+  ws: NotificationDb,
   n: {entity_id:string;company_id:string;user_id:string},
 ): Promise<Record<string,string>> {
   const {data:req,error}=await ws.from("scheduling_requests")

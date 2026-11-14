@@ -1,5 +1,14 @@
 # Log de mudanças entre agentes (Claude + Codex)
 
+## 2026-11-12 — Codex — consolidação local do Workspace
+
+- A branch `codex/cali-consolidacao` reúne a documentação de fluxos, bibliotecas, organização por módulo e os lotes de acesso, ficha, Cliente e Partner.
+- O laboratório restaurou a estrutura do CALI MAPA em rede isolada. Usou dados sintéticos, Auth e Storage locais, Mailpit e provedor Google simulado.
+- As provas de navegador cobriram 104 cenários de navegação, 31 guardas, 7 interações e 27 comparações visuais em desktop e celular. Os cenários de negócio incluíram liberação de acesso, histórico por empresa, avaliação por encerramento, termos `2026-11-12.2`, retomada de eliminação, aprovação de Avisos e entrega dos três materiais após dupla confirmação.
+- A revisão de Entregáveis passou quatro cenários adicionais. A correção retira a revisão da área Cliente, preserva as avaliações anteriores e exige a revisão vigente para aprovar ou pedir ajuste.
+- O Partner recebe alerta do cronômetro aos 25 minutos e pausa aos 30. O trecho preservado segue para aprovação com justificativa. O laboratório confirmou a entrega do alerta ao Partner e à administradora configurada.
+- O Preview depende de projeto Supabase de homologação, permissões para o deploy e destinos de teste. O inventário remoto acessível mostrou apenas o CALI MAPA. [Runbook](RUNBOOK.md#preview-e-corte)
+
 ## 2026-10-09 — Codex — correção de fidelidade e de status da entrega
 
 - Feedback da Pati: não reconheceu a V2 na integração. A entrega anterior foi descrita como mais concluída do que a verificação visual permitia. Status corrigido: integração parcial; refação completa não homologada.
@@ -13,10 +22,10 @@
 - Pedido: transportar a V2 aprovada para os fluxos reais, cliente primeiro e administradora depois, na branch `feat/client-visual-v2-inplace-20261008`, sem produção/merge.
 - Apresentação V2 no shell e módulos oficiais; tema noturno e todos os atalhos preservados. Seis arquivos CSS consolidados em dois, com conteúdo e ordem idênticos. Removidas 65 declarações de shell substituídas.
 - Integridade: 271 fontes operacionais comparadas com `7d817c3`, sem alterações além de imports CSS e marcadores de apresentação. Nenhuma alteração de banco/env/dados.
-- Verificações: `npm ci`, typecheck/build por módulo, `git diff --check` e `scripts/verify-v2-operation.cjs` passaram. Chromium local indisponível; instalação falhou. Teste de navegador preparado, ainda não aprovado.
+- Verificações: `npm ci`, typecheck/build por módulo, `git diff --check` e `scripts/verify-visual-migration-bindings.cjs` passaram. Chromium local indisponível; instalação falhou. Teste de navegador preparado, ainda não aprovado.
 - Conferência remota encontrou conflito do shell expandido: removido o CSS antigo de gradiente/geometria e 24 regras substituídas; escopo V2 corrigido. Build/check e integridade passaram novamente. Desktop: dashboard, horas dia/noite e documentos com busca/modal conferidos. Equipe sem sessão permaneceu carregando.
 - Preview READY do commit `4ec52f7`: https://app-cali-e7hy87t4u-cali11.vercel.app/login . Sem produção ou merge.
-- Handoff e limites: `docs/VISUAL_V2_HOMOLOGACAO_2026-10-09.md`. Homologação visual e regressão autenticada pendentes; nenhum aceite presumido. Rollback por revert nesta branch.
+- Handoff e limites: `docs/HOMOLOGACAO_VISUAL_WORKSPACE_2026-10-09.md`. Homologação visual e regressão autenticada pendentes; nenhum aceite presumido. Rollback por revert nesta branch.
 
 ## 2026-10-04 — Codex (conteúdo e hierarquia comercial de Frentes)
 

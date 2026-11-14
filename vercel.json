@@ -1,4 +1,36 @@
 {
+  "git": {
+    "deploymentEnabled": {
+      "codex/cali-consolidacao": false
+    }
+  },
+  "redirects": [
+    {
+      "source": "/brand/cali-workspace-preview-v2.jpg",
+      "destination": "/brand/cali-workspace-preview.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/landing/cali-workspace-login-v2.jpg",
+      "destination": "/landing/cali-workspace-sign-in-preview.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/report-flow-cleanup-v57.css",
+      "destination": "/report-client-reading.css",
+      "permanent": true
+    },
+    {
+      "source": "/report-print-completeness-v63.css",
+      "destination": "/report-print-completeness.css",
+      "permanent": true
+    },
+    {
+      "source": "/report-print-ready-v64.js",
+      "destination": "/report-print-ready.js",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/f/:slug",

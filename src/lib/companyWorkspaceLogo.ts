@@ -1,26 +1,19 @@
-import { supabase } from './supabase';
-import { resolveWorkspaceMedia } from './workspaceMedia';
+import { workspaceStorageAvailable } from '../api/files/workspace';
+import {
+  listCompaniesWithoutWorkspaceLogo,
+  readCompanyLogoForGeneration,
+  saveCompanyWorkspaceLogo,
+  type CompanyLogoRecord,
+} from '../api/workspace/company-logo';
+import { resolveWorkspaceMedia, workspaceMediaSignal } from './workspaceMedia';
 
-export type CompanyLogoRecord = {
-  id: string;
-  display_name: string;
-  logo_url?: string | null;
-  logo_workspace_url?: string | null;
-  logo_workspace_generated_at?: string | null;
-  status?: string | null;
-};
+export type { CompanyLogoRecord };
 
 const WORKSPACE_BG = '#F7F3EE';
 const WORKSPACE_MARK = '#5A1E2D';
 const TILE_SIZE = 256;
 const STYLE_VERSION = 1;
-type CompanyLogoRegistry = {
-  byId: Map<string, { raw: string; resolved: string; name: string }>;
-  byName: Map<string, { raw: string; resolved: string; id: string }>;
-};
-let registryCache: { value: CompanyLogoRegistry; expiresAt: number } | null = null;
-let registryPromise: Promise<CompanyLogoRegistry> | null = null;
-let ensureQueue: Promise<unknown> = Promise.resolve();
+const ensureQueues = new WeakMap<AbortSignal, Promise<string>>();
 
 function clamp(value: number, min = 0, max = 1) {
   return Math.max(min, Math.min(max, value));
@@ -173,74 +166,46 @@ export async function createWorkspaceLogoBlob(source: Blob): Promise<Blob> {
   return canvasToBlob(tile);
 }
 
-export async function createWorkspaceLogoFromUrl(raw: string) {
+export async function createWorkspaceLogoFromUrl(raw: string, signal: AbortSignal) {
   const url = await resolveCompanyAsset(raw, 900);
+  signal.throwIfAborted();
   if (!url) throw new Error('Logo original indisponível.');
-  const response = await fetch(url, { credentials: 'omit' });
+  const response = await fetch(url, { credentials: 'omit', signal });
   if (!response.ok) throw new Error('Não foi possível carregar a logo original.');
   return createWorkspaceLogoBlob(await response.blob());
 }
 
-export async function uploadWorkspaceLogo(company: CompanyLogoRecord, blob: Blob) {
-  if (!supabase) return '';
+export async function uploadWorkspaceLogo(company: CompanyLogoRecord, blob: Blob, signal: AbortSignal) {
+  if (!workspaceStorageAvailable || signal.aborted) return '';
   const path = `${company.id}/brand/workspace-logo-v${STYLE_VERSION}-${Date.now()}-${safeName(company.display_name)}.png`;
-  const { error: uploadError } = await supabase.storage.from('cali-workspace-private').upload(path, blob, { contentType: 'image/png', upsert: false });
-  if (uploadError) throw uploadError;
-  const stored = `private:${path}`;
-  const { error: updateError } = await supabase.from('companies').update({ logo_workspace_url: stored, logo_workspace_generated_at: new Date().toISOString() }).eq('id', company.id);
-  if (updateError) throw updateError;
-  return stored;
+  return saveCompanyWorkspaceLogo(company.id, path, blob, signal);
 }
 
-export async function ensureCompanyWorkspaceLogo(company: CompanyLogoRecord) {
-  if (!company.logo_url || company.logo_workspace_url || !supabase) return company.logo_workspace_url || '';
-  const client = supabase;
-  const job = ensureQueue.then(async () => {
-    const fresh = await client.from('companies').select('id,display_name,logo_url,logo_workspace_url,logo_workspace_generated_at,status').eq('id', company.id).maybeSingle();
-    const row = fresh.data as CompanyLogoRecord | null;
+export async function ensureCompanyWorkspaceLogo(company: CompanyLogoRecord, signal = workspaceMediaSignal()) {
+  if (!signal || signal.aborted || !workspaceStorageAvailable) return '';
+  if (!company.logo_url || company.logo_workspace_url) return company.logo_workspace_url || '';
+  const job = (ensureQueues.get(signal) ?? Promise.resolve()).then(async () => {
+    if (signal.aborted) return '';
+    const row = await readCompanyLogoForGeneration(company.id, signal);
+    if (signal.aborted) return '';
     if (!row?.logo_url || row.logo_workspace_url) return row?.logo_workspace_url || '';
-    const blob = await createWorkspaceLogoFromUrl(row.logo_url);
-    return uploadWorkspaceLogo(row, blob);
+    const blob = await createWorkspaceLogoFromUrl(row.logo_url, signal);
+    return uploadWorkspaceLogo(row, blob, signal);
   }).catch((error) => {
-    console.warn('CALI workspace logo', company.display_name, error);
+    if (!signal.aborted) console.warn('CALI workspace logo', company.display_name, error);
     return '';
   });
-  ensureQueue = job;
+  ensureQueues.set(signal, job);
   return job;
 }
 
-export async function loadCompanyLogoRegistry(): Promise<CompanyLogoRegistry> {
-  if (!supabase) return { byId: new Map(), byName: new Map() };
-  if (registryCache && registryCache.expiresAt > Date.now()) return registryCache.value;
-  if (registryPromise) return registryPromise;
-
-  registryPromise = (async () => {
-    const byId = new Map<string, { raw: string; resolved: string; name: string }>();
-    const byName = new Map<string, { raw: string; resolved: string; id: string }>();
-    const result = await supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url,status').order('display_name');
-    if (!result.error) {
-      for (const row of (result.data || []) as CompanyLogoRecord[]) {
-        const raw = row.logo_url || row.logo_workspace_url || '';
-        const resolved = raw ? await resolveCompanyAsset(raw) : '';
-        byId.set(row.id, { raw, resolved, name: row.display_name });
-        byName.set(row.display_name.trim().toLocaleLowerCase('pt-BR'), { raw, resolved, id: row.id });
-      }
-    }
-    const value = { byId, byName };
-    registryCache = { value, expiresAt: Date.now() + 5_000 };
-    return value;
-  })().finally(() => {
-    registryPromise = null;
-  });
-
-  return registryPromise;
-}
-
-export async function backfillWorkspaceLogos(limit = 3) {
-  if (!supabase || !location.pathname.startsWith('/admin/')) return;
-  const result = await supabase.from('companies').select('id,display_name,logo_url,logo_workspace_url,logo_workspace_generated_at,status').not('logo_url', 'is', null).is('logo_workspace_url', null).order('updated_at', { ascending: false }).limit(limit);
-  if (result.error) return;
-  for (const row of (result.data || []) as CompanyLogoRecord[]) await ensureCompanyWorkspaceLogo(row);
+export async function backfillWorkspaceLogos(limit: number, signal: AbortSignal) {
+  if (!workspaceStorageAvailable || signal.aborted || !location.pathname.startsWith('/admin/')) return;
+  const rows = await listCompaniesWithoutWorkspaceLogo(limit, signal);
+  for (const row of rows) {
+    if (signal.aborted) break;
+    await ensureCompanyWorkspaceLogo(row, signal);
+  }
 }
 
 export const companyWorkspaceVisual = {
