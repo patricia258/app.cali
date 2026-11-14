@@ -40,6 +40,8 @@ O agente decide a implementação. Reduções de escopo e exceções aos critér
 | 8. Partner e envios | Cronômetro e horas com aprovação. Revisão de Avisos e materiais. Entrega após dupla confirmação onde exigida. | Atribuição, fila, retomada e entrega externa verificadas com destinatários de teste. |
 | 9. Aceite local e Preview | Duas rodadas locais com a base versionada, comparação visual e limpeza dos artefatos temporários. | Tudo aprovado localmente antes de publicar o Preview no Vercel. Felipe recebe a URL e o roteiro de aceite. |
 
+A branch `codex/cali-consolidacao` tem o deploy automático do Vercel desabilitado para permitir revisão no GitHub enquanto o Preview aguarda o aceite local e o backend isolado.
+
 ## Organização da aplicação
 
 O [mapa de arquitetura](ARCHITECTURE.md) se aplica a todo o repositório. A fila React da [Agenda](../src/modules/calendar/scheduling/) exemplifica composição em JSX, subcomponentes exclusivos, hooks por operação e Tailwind na marcação. Cada lote compara a branch e a `main` em dois workspaces locais com os mesmos cenários. Registre as diferenças intencionais e cubra as correções com testes de comportamento.

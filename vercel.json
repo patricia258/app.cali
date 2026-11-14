@@ -1,4 +1,9 @@
 {
+  "git": {
+    "deploymentEnabled": {
+      "codex/cali-consolidacao": false
+    }
+  },
   "redirects": [
     {
       "source": "/brand/cali-workspace-preview-v2.jpg",
