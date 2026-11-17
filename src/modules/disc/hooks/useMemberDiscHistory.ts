@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { discKeys } from '../../../api/disc/query-keys';
 import { z } from 'zod';
 import { STYLES } from '../profileMethod';
 import { readMemberDiscHistory } from '../../../api/disc/reports';
@@ -17,8 +18,8 @@ const row = z.object({
 export function useMemberDiscHistory(memberId: string, admin: boolean) {
   const { user, active, role } = useWorkspaceAuth();
   return useQuery({
-    queryKey: ['disc', 'member-history', user?.id, memberId],
-    queryFn: async () => (await readMemberDiscHistory(memberId)).flatMap((item) => {
+    queryKey: discKeys.memberHistory(user?.id, memberId),
+    queryFn: async ({ signal }) => (await readMemberDiscHistory(memberId, signal)).flatMap((item) => {
       const result = row.safeParse(item);
       return result.success ? [result.data] : [];
     }),

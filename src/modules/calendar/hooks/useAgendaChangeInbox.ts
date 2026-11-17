@@ -1,3 +1,4 @@
+import { calendarKeys } from '../../../api/calendar/query-keys';
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { isSupabaseConfigured } from '../../../api/access/session';
@@ -8,8 +9,8 @@ export function useAgendaChangeInbox() {
   const { user, role } = useWorkspaceAuth();
   const enabled = Boolean(isSupabaseConfigured && user?.id && role === 'admin');
   const query = useQuery({
-    queryKey: ['calendar', 'agenda-change-inbox', user?.id],
-    queryFn: readAdminAgendaChanges,
+    queryKey: calendarKeys.changeInbox(user?.id),
+    queryFn: ({ signal }) => readAdminAgendaChanges(signal),
     enabled,
   });
   const { refetch } = query;

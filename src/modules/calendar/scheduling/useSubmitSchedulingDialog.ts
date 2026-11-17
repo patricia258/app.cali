@@ -1,15 +1,30 @@
-import type { FormEvent } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useRef, useState, type FormEvent } from 'react';
+import { errorMessage } from '../../../lib/errorMessage';
 
 export function useSubmitSchedulingDialog(
   onSubmit: (form: FormData) => Promise<void>,
   onClose: () => void,
 ) {
-  const { mutate, isPending, error } = useMutation({ mutationFn: onSubmit, onSuccess: onClose });
+  const pending = useRef(false);
+  const [isPending, setPending] = useState(false);
+  const [error, setError] = useState('');
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isPending) mutate(new FormData(event.currentTarget));
+    if (pending.current) return;
+    const form = new FormData(event.currentTarget);
+    pending.current = true;
+    setPending(true);
+    setError('');
+    try {
+      await onSubmit(form);
+      onClose();
+    } catch (failure) {
+      setError(errorMessage(failure, 'Não foi possível concluir a ação.'));
+    } finally {
+      pending.current = false;
+      setPending(false);
+    }
   }
 
   return { submit, isPending, error };

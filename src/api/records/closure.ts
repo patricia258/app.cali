@@ -11,31 +11,36 @@ export type RecordFeedback = { score: number; comment?: string | null; created_a
 type ClosureRow = { id: string; answered_at: string | null; closed_unanswered_at: string | null };
 type ReopenRow = { id: string; reason?: string | null; requested_at: string; status: string; decision_note?: string | null };
 
-async function readRecordClosureView(recordId: string) {
-  const { data, error } = await requireRecordsClient().from('account_records')
-    .select('id,protocol,workflow_status,created_at,closed_at')
-    .eq('id', recordId).maybeSingle();
+async function readRecordClosureView(recordId: string, signal?: AbortSignal) {
+  const query = requireRecordsClient().from('account_records')
+    .select('id,protocol,workflow_status,created_at,closed_at').eq('id', recordId);
+  const { data, error } = await (signal ? query.abortSignal(signal) : query).maybeSingle();
   return error ? null : data as RecordClosureView | null;
 }
 
-async function readLatestRecordFeedback(recordId: string): Promise<RecordFeedback | null> {
-  const { data, error } = await requireRecordsClient().from('account_record_feedback').select('score,comment,created_at')
-    .eq('record_id', recordId).order('created_at', { ascending: false }).limit(1).maybeSingle();
+async function readLatestRecordFeedback(recordId: string, signal?: AbortSignal): Promise<RecordFeedback | null> {
+  const query = requireRecordsClient().from('account_record_feedback').select('score,comment,created_at')
+    .eq('record_id', recordId).order('created_at', { ascending: false }).limit(1);
+  const { data, error } = await (signal ? query.abortSignal(signal) : query).maybeSingle();
   return error ? null : data;
 }
 
-export async function readRecordClosureContext(recordId: string, role: 'admin' | 'client') {
+export async function readRecordClosureContext(recordId: string, role: 'admin' | 'client', signal?: AbortSignal) {
   const client = requireRecordsClient();
-  const record = await readRecordClosureView(recordId);
+  const record = await readRecordClosureView(recordId, signal);
+  signal?.throwIfAborted();
   if (!record) return null;
+
+  const closureQuery = role === 'client' && record.workflow_status === 'completed'
+    ? client.from('account_record_closures').select('id,answered_at,closed_unanswered_at')
+      .eq('record_id', record.id).is('superseded_at', null)
+    : null;
+  const reopenQuery = client.from('account_record_reopen_requests').select('id,reason,requested_at,status,decision_note')
+    .eq('record_id', record.id).eq('status', 'pending').order('requested_at', { ascending: false }).limit(1);
   const [closure, feedback, reopen] = await Promise.all([
-    role === 'client' && record.workflow_status === 'completed'
-      ? client.from('account_record_closures').select('id,answered_at,closed_unanswered_at')
-        .eq('record_id', record.id).is('superseded_at', null).maybeSingle()
-      : null,
-    readLatestRecordFeedback(record.id),
-    client.from('account_record_reopen_requests').select('id,reason,requested_at,status,decision_note')
-      .eq('record_id', record.id).eq('status', 'pending').order('requested_at', { ascending: false }).limit(1).maybeSingle(),
+    closureQuery && (signal ? closureQuery.abortSignal(signal) : closureQuery).maybeSingle(),
+    readLatestRecordFeedback(record.id, signal),
+    (signal ? reopenQuery.abortSignal(signal) : reopenQuery).maybeSingle(),
   ]);
   return {
     record,

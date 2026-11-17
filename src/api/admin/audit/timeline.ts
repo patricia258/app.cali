@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { supabase } from '../../supabase';
 
-export const auditTimelineKey = (actorId: string) => ['admin', 'audit', actorId] as const;
 
 const nullableText = z.string().nullish().transform((value) => value ?? null);
 const actor = nullableText;

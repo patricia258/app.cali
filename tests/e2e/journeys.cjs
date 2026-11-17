@@ -746,12 +746,13 @@ const cases = [
           chartHeight: element.getBoundingClientRect().height,
           cardPadding: Number.parseFloat(getComputedStyle(card).paddingLeft),
           activeMetricAccent: getComputedStyle(document.querySelector('.metric-strip > .m-green'), '::before').backgroundColor,
+          expectedAccent: getComputedStyle(element).getPropertyValue('--cali-rgb-teal-accent').trim().split(/\s+/).join(', '),
           overflow: document.documentElement.scrollWidth - window.innerWidth,
         };
       });
       assert(Math.abs(layout.chartHeight - 238) < 1);
       assert(Math.abs(layout.cardPadding - 18) < 1);
-      assert.equal(layout.activeMetricAccent, 'rgb(85, 182, 138)');
+      assert.equal(layout.activeMetricAccent, `rgb(${layout.expectedAccent})`);
       assert.equal(layout.overflow, 0);
       await page.getByRole('button', { name: 'Período', exact: true }).click();
       await page.getByLabel('De', { exact: true }).fill('2026-08');

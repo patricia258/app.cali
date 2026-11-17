@@ -5,7 +5,7 @@ import { useLocation } from '../../hooks/useLocation';
 import { useOpenTimerOrigin } from './hooks/useOpenTimerOrigin';
 import { useGlobalTimers, type GlobalTimer } from './hooks/useGlobalTimers';
 import { usePauseGlobalTimer } from './hooks/usePauseGlobalTimer';
-import { useFinalizeGlobalTimer } from './hooks/useFinalizeGlobalTimer';
+import { useFinalizeWorkTimer } from './hooks/useFinalizeWorkTimer';
 import { GlobalTimerChip } from './components/GlobalTimerChip';
 import { TimerFinalizationDialog, type TimerFinalizationTarget } from './TimerFinalizationDialog';
 import type { Role } from '../workspace/WorkspaceShell';
@@ -28,7 +28,7 @@ export function GlobalTimerBar({role}:{role:Role}){
   const [pending, setPending] = useState<PendingFinalization>(null);
   const [confirmStep, setConfirmStep] = useState<1 | 2>(1);
   const pauseTimer = usePauseGlobalTimer();
-  const finishTimer = useFinalizeGlobalTimer(() => {
+  const finishTimer = useFinalizeWorkTimer(() => {
     setPending(null);
     setConfirmStep(1);
   });

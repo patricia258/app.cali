@@ -50,18 +50,18 @@ export function awaitsAdmin(request: SchedulingRequest) {
   return request.status === 'submitted' || request.status === 'reschedule_review';
 }
 
-export async function loadClientRequests() {
-  const companyId = await readClientSchedulingCompany();
+export async function loadClientRequests(signal: AbortSignal) {
+  const companyId = await readClientSchedulingCompany(signal);
   if (!companyId) throw new Error('Empresa não vinculada ao acesso.');
-  const [company, requests] = await readClientSchedulingRequests(companyId);
+  const [company, requests] = await readClientSchedulingRequests(companyId, signal);
   if (company.error) throw company.error;
   if (requests.error) throw requests.error;
   if (!company.data) throw new Error('Empresa indisponível.');
   return { company: company.data as Company, requests: (requests.data ?? []) as SchedulingRequest[] };
 }
 
-export async function loadAdminRequests() {
-  const [companies, result] = await readAdminSchedulingRequests();
+export async function loadAdminRequests(signal: AbortSignal) {
+  const [companies, result] = await readAdminSchedulingRequests(signal);
   if (companies.error) throw companies.error;
   if (result.error) throw result.error;
   const requests = (result.data ?? []) as SchedulingRequest[];
@@ -69,6 +69,7 @@ export async function loadAdminRequests() {
   const details = active.length ? await readSchedulingRequestDetails(
     [...new Set(active.map((request) => request.requested_by))],
     active.map((request) => request.id),
+    signal,
   ) : null;
   const names: Record<string, string | null> = Object.fromEntries(
     (details?.[0].data ?? []).map((person) => [person.id, person.full_name]),

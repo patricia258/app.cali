@@ -67,6 +67,6 @@ export function AdminScheduleReview({ project, onChanged, onNotice }: Props) {
     {dialog === 'reminder' && <ScheduleReminderDialog project={project} responseDate={formatDateTime(current?.response_due_at)}
       onClose={close} onSent={() => { close(); onNotice('Lembrete enviado ao cliente.'); }} />}
     {(dialog === 'accept' || dialog === 'reject') && current && <ScheduleAdjustmentDecisionDialog
-      review={current} accept={dialog === 'accept'} onClose={close} onSaved={async () => { await Promise.all([onChanged(), reviews.refetch()]); close(); }} />}
+      projectId={project.id} review={current} accept={dialog === 'accept'} onClose={close} onSaved={async () => { await onChanged(); close(); }} />}
   </>;
 }

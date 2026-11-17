@@ -1,3 +1,4 @@
+import { hoursKeys } from '../../../api/hours/query-keys';
 import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { hoursAvailable } from '../../../api/hours/client';
@@ -10,13 +11,13 @@ export function useProjectTimerContext(actorId?: string, companyId?: string, del
 
   useEffect(() => {
     if (!ready) return;
-    const refresh = () => void queryClient.invalidateQueries({ queryKey: ['hours', 'project-timer', actorId, companyId] });
+    const refresh = () => void queryClient.invalidateQueries({ queryKey: hoursKeys.projectTimers(actorId, companyId) });
     window.addEventListener(TIMER_EVENT, refresh);
     return () => window.removeEventListener(TIMER_EVENT, refresh);
   }, [actorId, companyId, queryClient, ready]);
 
   return useQuery({
-    queryKey: ['hours', 'project-timer', actorId, companyId, deliverableId],
+    queryKey: hoursKeys.projectTimer(actorId, companyId, deliverableId),
     queryFn: hoursAvailable && actorId && companyId && deliverableId
       ? ({ signal }) => readProjectTimerContext(actorId, companyId, deliverableId, signal)
       : skipToken,

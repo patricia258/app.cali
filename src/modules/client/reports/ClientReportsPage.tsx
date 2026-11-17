@@ -12,14 +12,16 @@ import { CalendarDays, ChevronRight, FileText, MessageCircle, Printer, ShieldChe
 import { WorkspaceExecutiveReportPaper } from '../../../components/reports/WorkspaceExecutiveReportPaper';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import type { ReportIdentityV55 } from '../../../domain/report-identity';
-import { useQueryClient } from '@tanstack/react-query';
-import { acknowledgeClientReport, clientReportsKey, readClientReports, recordReportRead, type ClientReportRow } from '../../../api/client/reports/library';
+import type { ClientReportRow } from '../../../api/client/reports/library';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
 import { type ReportType } from '../../../lib/reportComposition';
 import { normalizeIntelligenceSnapshot, type IntelligenceSnapshot } from '../../../lib/reportIntelligence';
 import { reportQuestionDeadline } from '../../../domain/report-question';
 import { formatReportQuestionDeadline, ReportQuestionDialog } from './components/ReportQuestionDialog';
+import { useAcknowledgeClientReport } from './hooks/useAcknowledgeClientReport';
+import { useClientReportLibrary } from './hooks/useClientReportLibrary';
+import { useRecordClientReportRead } from './hooks/useRecordClientReportRead';
 
 type Report={
   id:string;title:string;reportType:ReportType;periodStart:string;periodEnd:string;summary:string;
@@ -64,21 +66,38 @@ function formatDateTime(value?:string|null){
 
 export function ClientReportsPage(){
   const { user } = useWorkspaceAuth();
-  const queryClient = useQueryClient();
-  const[reports,setReports]=useState<Report[]>([]);
-  const[company,setCompany]=useState<Company|null>(null);
-  const[selectedId,setSelectedId]=useState('');
-  const[loading,setLoading]=useState(true);
-  const[error,setError]=useState('');
+  const actorId = user?.id ?? null;
+  const library = useClientReportLibrary(actorId);
+  const acknowledgement = useAcknowledgeClientReport(actorId);
+  const { mutate: recordRead } = useRecordClientReportRead(actorId);
+  const reports = useMemo(() => (library.data?.reports ?? []).map(rowToReport), [library.data?.reports]);
+  const companyRow = library.data?.company;
+  const companySource = companyRow?.logo_workspace_url || companyRow?.logo_url;
+  const [signedLogo, setSignedLogo] = useState<{ actorId: string | null; source: string; url: string }>();
+  const company: Company | null = library.data ? {
+    name: companyRow?.display_name || 'Empresa',
+    logoUrl: signedLogo?.actorId === actorId && signedLogo?.source === companySource ? signedLogo?.url : null,
+    workspaceLogo: Boolean(companyRow?.logo_workspace_url),
+  } : null;
+  const [selectedId, setSelectedId] = useState(() => new URLSearchParams(window.location.search).get('report') || '');
+  const [actionError, setError] = useState('');
+  const error = actionError || (library.error instanceof Error ? library.error.message : library.error ? 'Não foi possível carregar os relatórios.' : '');
   const[view,setView]=useState<'current'|'list'>('current');
   const[revealed,setRevealed]=useState<Set<string>>(()=>new Set());
   const[periodFilter,setPeriodFilter]=useState('');
   const[ackOpen,setAckOpen]=useState(false);
-  const[acknowledging,setAcknowledging]=useState(false);
+  const [acknowledging, setAcknowledging] = useState(false);
   const [question, setQuestion] = useState<{ id: string; deadline: Date } | null>(null);
   const [questionNotice, setQuestionNotice] = useState('');
 
-  useEffect(()=>{void load();},[]);
+  useEffect(() => {
+    if (!companySource) return;
+    let active = true;
+    void resolveWorkspaceMedia(companySource, 86400, true).then((url) => {
+      if (active) setSignedLogo({ actorId, source: companySource, url });
+    });
+    return () => { active = false; };
+  }, [actorId, companySource]);
   useEffect(()=>{
     if(!ackOpen && !question)return;
     document.body.classList.add('workspace-modal-open');
@@ -90,70 +109,27 @@ export function ClientReportsPage(){
     return () => window.clearTimeout(timer);
   }, [questionNotice]);
 
-  async function load(preferredId?:string){
-    setLoading(true);setError('');
-    try{
-      const userId=user?.id;
-      if(!userId)throw new Error('Sessão do cliente não encontrada.');
-      const library = await queryClient.fetchQuery({
-        queryKey: clientReportsKey(userId),
-        queryFn: ({ signal }) => readClientReports(userId, signal),
-        staleTime: 0,
-      });
-      const companyName=library.company?.display_name||'Empresa';
-      setCompany({name:companyName,logoUrl:null});
-      const workspaceLogo=Boolean(library.company?.logo_workspace_url);
-      void resolveWorkspaceMedia(library.company?.logo_workspace_url||library.company?.logo_url,86400,true).then((logoUrl)=>setCompany({name:companyName,logoUrl,workspaceLogo}));
-      const next=library.reports.map(rowToReport);
-      setReports(next);
-      const queryId=new URLSearchParams(window.location.search).get('report')||'';
-      const desired=preferredId||queryId||selectedId;
-      setSelectedId(next.some((item)=>item.id===desired)?desired:(next[0]?.id||''));
-    }catch(requestError){
-      setError(requestError instanceof Error?requestError.message:'Não foi possível carregar os relatórios.');
-    }finally{setLoading(false);}
-  }
-
-  async function recordOpen(id:string){
-    const data = await recordReportRead(id, 'opened');
-    if (!data) return;
-    setReports((current)=>current.map((item)=>item.id===id?{
-      ...item,
-      openCount:Number(data?.open_count??item.openCount),
-      firstOpenedAt:data?.first_opened_at||item.firstOpenedAt,
-      lastOpenedAt:data?.last_opened_at||item.lastOpenedAt
-    }:item));
-  }
-
-  const selected=useMemo(()=>reports.find((item)=>item.id===selectedId)||null,[reports,selectedId]);
+  const selected = reports.find((item) => item.id === selectedId) ?? reports[0] ?? null;
   const questionDeadline = reportQuestionDeadline(selected?.firstOpenedAt);
   const periods=useMemo(()=>[...new Map(reports.map((report)=>[`${report.reportType}:${report.periodStart.slice(0,7)}`,periodLabel(report.reportType,report.periodStart)])).entries()],[reports]);
   const visibleReports=useMemo(()=>periodFilter?reports.filter((report)=>`${report.reportType}:${report.periodStart.slice(0,7)}`===periodFilter):reports,[reports,periodFilter]);
 
   function noteReportOpened(report:Report){
     setSelectedId(report.id);
-    void recordOpen(report.id);
+    recordRead({ id: report.id, event: 'opened' });
   }
   function requestAcknowledge(report:Report){setError('');setSelectedId(report.id);setAckOpen(true);}
   async function acknowledge(){
     if(!selected)return;
     setAcknowledging(true);setError('');
     try{
-      if(!selected.openCount)await recordOpen(selected.id);
-      const data = await acknowledgeClientReport(selected.id);
-      setReports((current)=>current.map((item)=>item.id===selected.id?{
-        ...item,
-        acknowledgedAt:data?.acknowledged_at||item.acknowledgedAt,
-        ackProtocol:data?.acknowledgement_protocol||item.ackProtocol,
-        ackIdentity:data?.identity||item.ackIdentity
-      }:item));
-      setAckOpen(false);
+      if (await acknowledgement.mutateAsync({ id: selected.id, needsOpen: !selected.openCount })) setAckOpen(false);
     }catch(requestError){
       setError(requestError instanceof Error?requestError.message:'Não foi possível registrar a ciência.');
     }finally{setAcknowledging(false);}
   }
 
-  if(loading) return <Shell role="client"><section className="v2-client-module data-loading" aria-live="polite" aria-busy="true">Carregando leitura executiva…</section></Shell>;
+  if(library.isPending) return <Shell role="client"><section className="v2-client-module data-loading" aria-live="polite" aria-busy="true">Carregando leitura executiva…</section></Shell>;
 
   // O relatório mais recente abre a página. Enquanto o cliente não o visualiza, ele fica desfocado atrás do
   // convite; "Visualizar" registra a abertura (record_report_client_event_v55) e libera a leitura.
@@ -163,7 +139,7 @@ export function ClientReportsPage(){
   const printReport=async(report:Report)=>{
     const previous=document.title;
     document.title=`Relatório CALI RH - ${company?.name||'Empresa'} - ${periodLabel(report.reportType,report.periodStart)}`;
-    void recordReportRead(report.id, 'pdf_opened').catch(() => undefined);
+    recordRead({ id: report.id, event: 'pdf_opened' });
     await Promise.all(Array.from(document.images).map((image)=>image.complete?Promise.resolve():new Promise<void>((resolve)=>{image.addEventListener('load',()=>resolve(),{once:true});image.addEventListener('error',()=>resolve(),{once:true});})));
     try{await document.fonts?.ready;}catch{/* navegador sem FontFaceSet */}
     window.print();

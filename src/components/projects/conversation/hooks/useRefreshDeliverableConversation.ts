@@ -1,3 +1,4 @@
+import { projectKeys } from '../../../../api/projects/query-keys';
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { subscribeDeliverableConversation } from '../../../../api/projects/conversation';
@@ -12,7 +13,7 @@ export function useRefreshDeliverableConversation(actorId: string | undefined, c
         setArrivingId(arrival);
         window.dispatchEvent(new CustomEvent('cali:workspace-chime'));
       }
-      void client.invalidateQueries({ queryKey: ['deliverable-conversation', actorId, companyId, deliverableId] });
+      void client.invalidateQueries({ queryKey: projectKeys.conversationScope(actorId, companyId, deliverableId) });
     });
   }, [actorId, client, companyId, deliverableId]);
   return arrivingId;

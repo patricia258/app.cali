@@ -4,13 +4,14 @@ import { scheduleReviewDate } from '../scheduleReviewDate';
 import { ClientScheduleDialog } from './ClientScheduleDialog';
 
 type Props = {
+  companyId: string;
   project: ClientScheduleReview['project'];
   onClose: () => void;
   onSaved: () => Promise<void>;
 };
 
-export function ClientScheduleApprovalDialog({ project, onClose, onSaved }: Props) {
-  const approval = useApproveClientSchedule(project.id, onSaved);
+export function ClientScheduleApprovalDialog({ companyId, project, onClose, onSaved }: Props) {
+  const approval = useApproveClientSchedule(companyId, project.id, onSaved);
 
   return <ClientScheduleDialog title="Aprovar cronograma" kicker="Aprovação final" action="Aprovar cronograma"
     cancelLabel="Voltar" pending={approval.isPending} error={approval.error?.message} onClose={onClose}

@@ -55,13 +55,17 @@ export function RecordConversation({ recordId, companyId, role, actorId, partner
           partner={partner}
           arriving={Boolean(knownMessageIds.current && !knownMessageIds.current.has(message.id))}
           canManage={!partner && role === 'admin' && message.author_role === 'admin' && message.visibility === 'client'}
-          onChanged={async () => { await messages.refetch(); }}
-          onDeleted={() => input.current ? input.current.focus() : onHistoryFocus()}
+          actorId={actorId}
+          onDeleted={() => {
+            if (!historyRef.current) return;
+            if (input.current) input.current.focus();
+            else onHistoryFocus();
+          }}
         />)}
       </div>
       {!locked && <RecordMessageComposer role={role} partner={partner} companyId={companyId} recordId={recordId} actorId={actorId} input={input} onSent={async (result, internal) => {
         followSentMessage();
-        await Promise.all([messages.refetch(), onSent(result, internal)]);
+        await onSent(result, internal);
       }} />}
     </>
   );

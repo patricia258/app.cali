@@ -1,7 +1,7 @@
-import { runSchedulingCommand } from '../../../api/calendar/requests';
+import { useSaveClientSchedulingRequest } from './useSaveClientSchedulingRequest';
 import { SchedulingDialog } from './SchedulingDialog';
 import { SchedulingFields, SchedulingNoteField, SlotFields } from './SchedulingFields';
-import { formatPrice, minSlotDate, readSlots, type SchedulingRequest } from './schedulingRequests';
+import { formatPrice, minSlotDate, type SchedulingRequest } from './schedulingRequests';
 
 export type ClientSchedulingSelection = { kind: 'extra-options' | 'options' | 'quote'; request: SchedulingRequest };
 
@@ -10,23 +10,8 @@ export function ClientSchedulingDialog({ selection, onClose, onSaved }: {
   onClose: () => void;
   onSaved: (message: string) => void;
 }) {
-  async function submit(form: FormData) {
-    const { request, kind } = selection;
-    const note = String(form.get('note') ?? '');
-    if (kind === 'quote') {
-      await runSchedulingCommand('client_accept_online_extra_quote_v1', { p_request_id: request.id });
-      onSaved('Orçamento aceito. A CALI poderá confirmar o horário.');
-    } else if (kind === 'extra-options') {
-      const slots = readSlots(form, 240);
-      if (slots.length !== 2) throw new Error('Informe duas opções completas.');
-      await runSchedulingCommand('client_counter_extra_visit_v1', { p_request_id: request.id, p_slots: slots, p_note: note });
-      onSaved('Novas opções enviadas. Vai dar certo 🙂');
-    } else {
-      await runSchedulingCommand('client_request_new_scheduling_options_v1', { p_request_id: request.id, p_note: note });
-      onSaved('Pedido enviado. Vamos encontrar uma data juntos.');
-    }
-    window.dispatchEvent(new Event('cali-calendar-record-updated'));
-  }
+  const { mutateAsync } = useSaveClientSchedulingRequest(selection, onSaved);
+  const submit = async (form: FormData) => { await mutateAsync(form); };
 
   if (selection.kind === 'quote') {
     return (

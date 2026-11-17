@@ -35,15 +35,13 @@ import {
 } from 'lucide-react';
 import { Shell, type Role } from '../../components/workspace/WorkspaceShell';
 import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
-import { useQueryClient } from '@tanstack/react-query';
+import { useLoadCompanyTeam } from './hooks/useLoadCompanyTeam';
 import {
   archiveTeamMember,
   readAnalyticsFront,
-  readCompanyTeam,
   readTeamCompanies,
   readTeamMetrics,
   saveTeamMembers,
-  teamDirectoryKey,
 } from '../../api/team/directory';
 import type { Change, Company, Draft, Member, MonthMetric, Private, Snapshot, Vacancy } from '../../domain/team';
 import { writeTeamMetrics, type TeamMetricsWrite } from '../../api/team/metrics';
@@ -603,19 +601,15 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
     };
   }, [admin, staff, user?.id]);
 
-  const queryClient = useQueryClient();
+  const { loadDirectory, cancelDirectory } = useLoadCompanyTeam(user?.id, staff ? 'partner' : role);
   async function loadTeam(id = companyId) {
     if (!id || !user) return;
     const request = ++loadSequence.current;
     setLoading(true);
     setError('');
     try {
-      const result = await queryClient.fetchQuery({
-        queryKey: teamDirectoryKey(user.id, id, staff),
-        queryFn: ({ signal }) => readCompanyTeam(id, staff, signal),
-        staleTime: 0,
-      });
-      if (request !== loadSequence.current) return;
+      const result = await loadDirectory(id);
+      if (!result || request !== loadSequence.current) return;
       setMembers(result.people);
       setMonths(result.months);
       setSnapshots(result.snapshots);
@@ -637,7 +631,11 @@ export function CompanyTeamPage({ role, staff = false }: { role: Role; staff?: b
       setImportRows([]);
       void loadTeam(companyId);
     }
-  }, [companyId]);
+    return () => {
+      loadSequence.current++;
+      if (companyId) void cancelDirectory(companyId);
+    };
+  }, [cancelDirectory, companyId, loadDirectory]);
   const monthSnapshots = snapshots.filter((item) => item.reference_month === `${month}-01`);
   const visibleMembers: Member[] = isCurrent
     ? members.filter((m) => !m.archived_at)

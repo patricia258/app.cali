@@ -1,8 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { captureQueryScope } from '../../../../api/query-client';
+import { reportsKeys } from '../../../../api/reports/query-keys';
+import { useWorkspaceAuth } from '../../../../auth/hooks/useWorkspaceAuth';
 import { correctDeliveredReport } from '../../../../api/reports/withdrawal';
 
 export function useCorrectDeliveredReport(reportId: string, onCorrected: (revisionId: string | null) => void) {
   const client = useQueryClient();
+  const { user } = useWorkspaceAuth();
   return useMutation({
     mutationFn: async ({ action, reason, acknowledgement }: { action: 'edit' | 'remove'; reason: string; acknowledgement: boolean }) => {
       const result = await correctDeliveredReport(reportId, reason, action, acknowledgement);
@@ -15,11 +19,15 @@ export function useCorrectDeliveredReport(reportId: string, onCorrected: (revisi
       }
       throw new Error(`Não foi possível concluir a ação: ${result.error}`);
     },
-    onSuccess: (revisionId) => {
-      void client.invalidateQueries({ queryKey: ['admin', 'withdrawable-reports'] });
-      void client.invalidateQueries({ queryKey: ['admin', 'report-tracking'] });
-      void client.invalidateQueries({ queryKey: ['admin', 'report-client-history'] });
-      onCorrected(revisionId);
+    onMutate: () => ({ isCurrent: captureQueryScope(client), actorId: user?.id }),
+    onSuccess: async (revisionId, _change, scope) => {
+      if (!scope?.isCurrent()) return;
+      await Promise.all([
+        client.invalidateQueries({ queryKey: reportsKeys.withdrawable(scope.actorId), exact: true }),
+        client.invalidateQueries({ queryKey: reportsKeys.tracking(scope.actorId) }),
+        client.invalidateQueries({ queryKey: reportsKeys.clientHistories(scope.actorId) }),
+      ]);
+      if (scope.isCurrent()) onCorrected(revisionId);
     },
   });
 }

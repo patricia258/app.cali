@@ -31,9 +31,9 @@ function ManagementReport({ role, linkId, back }: { role: 'admin' | 'client'; li
   const admin = role === 'admin';
   const report = useManagementDiscReport(linkId, role);
   const data = report.data;
-  const { mutateAsync: saveContext } = useSaveManagementDiscContext();
-  const { mutateAsync: updateStatus } = useChangeManagementDiscState();
-  const { mutateAsync: sendPdf } = useSendManagementDiscPdf();
+  const { mutateAsync: saveContext } = useSaveManagementDiscContext(linkId);
+  const { mutateAsync: updateStatus } = useChangeManagementDiscState(linkId);
+  const { mutateAsync: sendPdf } = useSendManagementDiscPdf(linkId);
   const [fields, setFields] = useState({ moment: '', sector: '', goal: '', note: '' });
   const [recipient, setRecipient] = useState({ name: '', email: '' });
   const [note, setNote] = useState('');
@@ -58,7 +58,6 @@ function ManagementReport({ role, linkId, back }: { role: 'admin' | 'client'; li
     setBusy('');
     if (error) { setNote(`Não foi possível salvar: ${error.message}`); return; }
     setNote(data.approved_at ? 'Salvo. Como o conteúdo mudou, o relatório voltou para rascunho: aprove de novo.' : 'Salvo.');
-    await report.refetch();
   }
 
   async function changeState(action: 'approve' | 'release', id: string, value: boolean, message: string) {
@@ -67,7 +66,6 @@ function ManagementReport({ role, linkId, back }: { role: 'admin' | 'client'; li
     setBusy('');
     if (error) { setNote(error.message); return false; }
     setNote(message);
-    await report.refetch();
     return true;
   }
 
@@ -93,7 +91,6 @@ function ManagementReport({ role, linkId, back }: { role: 'admin' | 'client'; li
       await sendPdf({ id: data.link_id, recipient, path, blob });
       setNote(`PDF enviado para ${recipient.email.trim()}.`);
       setRecipient({ name: '', email: '' });
-      await report.refetch();
     } catch (error) { setNote(error instanceof Error ? error.message : 'Não foi possível enviar.'); }
     finally { setBusy(''); }
   }

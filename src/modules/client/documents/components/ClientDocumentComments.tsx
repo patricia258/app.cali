@@ -5,12 +5,13 @@ import { LoadingState } from '../../../../components/ds/LoadingState';
 
 export type DocumentComment = { id: string; body: string; createdAt: string; mine: boolean };
 
-export function ClientDocumentComments({ title, protocol, comments, draft, loading, onDraft, onSend, onClose }: {
+export function ClientDocumentComments({ title, protocol, comments, draft, loading, sending, onDraft, onSend, onClose }: {
   title: string;
   protocol: string;
   comments: DocumentComment[];
   draft: string;
   loading: boolean;
+  sending: boolean;
   onDraft: (value: string) => void;
   onSend: () => void;
   onClose: () => void;
@@ -35,7 +36,7 @@ export function ClientDocumentComments({ title, protocol, comments, draft, loadi
         <div className="tw:border-0 tw:border-t tw:border-solid tw:border-cali-neutral-soft tw:px-7.5 tw:pt-5.5 tw:pb-6">
           <textarea className="tw:h-21 tw:w-full tw:resize-y tw:rounded-cali-compact-control tw:border tw:border-solid tw:border-cali-input-line tw:px-3 tw:py-2 tw:text-cali-body/[inherit]" rows={3} value={draft} onChange={(event) => onDraft(event.target.value)} placeholder="Escreva um comentário sobre este documento…" aria-label="Comentário" />
           <div className="tw:mt-2.5 tw:flex tw:items-center tw:justify-between">
-            <Button type="button" variant="workflowPrimary" disabled={!draft.trim()} onClick={onSend}><Send size={16} />Enviar comentário</Button>
+            <Button type="button" variant="workflowPrimary" disabled={sending || !draft.trim()} onClick={onSend}><Send size={16} />Enviar comentário</Button>
           </div>
         </div>
       </DialogFrame>

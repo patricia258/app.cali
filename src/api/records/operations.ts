@@ -1,4 +1,4 @@
-import { readRecordViewerId, requireRecordsClient } from './client';
+import { requireRecordsClient } from './client';
 
 export type RecordOperationsRow = {
   id: string;
@@ -10,9 +10,9 @@ export type RecordOperationsRow = {
 
 type TimerRow = { id: string; started_at: string; paused_seconds?: number | null };
 
-export async function readRecordOperations(protocol: string): Promise<RecordOperationsRow | null> {
+export async function readRecordOperations(protocol: string, signal: AbortSignal): Promise<RecordOperationsRow | null> {
   const { data, error } = await requireRecordsClient().from('account_records')
-    .select('id,source_actor,created_by,workflow_status,first_admin_opened_at').eq('protocol', protocol).maybeSingle();
+    .select('id,source_actor,created_by,workflow_status,first_admin_opened_at').eq('protocol', protocol).abortSignal(signal).maybeSingle();
   return error ? null : data;
 }
 
@@ -24,13 +24,12 @@ export async function deleteUnopenedRecord(recordId: string) {
   return await requireRecordsClient().rpc('client_delete_unopened_account_record', { p_record_id: recordId });
 }
 
-export async function readRecordTimerData(recordId: string) {
+export async function readRecordTimerData(recordId: string, actorId: string, signal: AbortSignal) {
   const client = requireRecordsClient();
-  const viewer = await readRecordViewerId();
   const [timer, hours] = await Promise.all([
     client.from('work_timers').select('id,started_at,paused_seconds')
-      .eq('account_record_id', recordId).eq('user_id', viewer).eq('status', 'active').maybeSingle(),
-    client.from('hour_entries').select('minutes').eq('account_record_id', recordId),
+      .eq('account_record_id', recordId).eq('user_id', actorId).eq('status', 'active').abortSignal(signal).maybeSingle(),
+    client.from('hour_entries').select('minutes').eq('account_record_id', recordId).abortSignal(signal),
   ]);
   const entries = hours.data ?? [];
   const total = entries.reduce((sum, row) => sum + Number(row.minutes || 0), 0);

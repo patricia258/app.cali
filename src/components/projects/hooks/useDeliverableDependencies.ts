@@ -1,3 +1,4 @@
+import { projectKeys } from '../../../api/projects/query-keys';
 import { useQuery } from '@tanstack/react-query';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 import { isSupabaseConfigured } from '../../../api/access/session';
@@ -9,10 +10,9 @@ export function useDeliverableDependencies(deliverableId: string, companyId: str
   const { user } = useWorkspaceAuth();
 
   return useQuery({
-    queryKey: ['deliverable-dependencies', user?.id, mode, companyId, deliverableId],
+    queryKey: projectKeys.dependencies(user?.id, companyId, deliverableId, mode),
     queryFn: ({ signal }) => readDeliverableDependencies(deliverableId, signal),
-    enabled: isSupabaseConfigured,
-    retry: false,
+    enabled: Boolean(isSupabaseConfigured && user?.id && companyId && deliverableId),
     gcTime: 0,
     refetchOnWindowFocus: false,
   });

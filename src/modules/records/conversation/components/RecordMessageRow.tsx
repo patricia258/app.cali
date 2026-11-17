@@ -26,19 +26,19 @@ function MessageAvatar({ identity, mine, partner }: { identity: ConversationIden
   </span>;
 }
 
-export function RecordMessageRow({ message, identity, mine, partner, canManage, arriving, onChanged, onDeleted }: {
+export function RecordMessageRow({ actorId, message, identity, mine, partner, canManage, arriving, onDeleted }: {
+  actorId?: string;
   message: ConversationMessageRow;
   identity: ConversationIdentity;
   mine: boolean;
   partner: boolean;
   canManage: boolean;
   arriving: boolean;
-  onChanged: () => Promise<void>;
   onDeleted: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const editButton = useRef<HTMLButtonElement>(null);
-  const { mutateAsync: removeMessage, isPending: deleting } = useDeleteRecordMessage(message.id);
+  const { mutateAsync: removeMessage, isPending: deleting } = useDeleteRecordMessage(actorId, message.record_id, message.id);
   const { text, attachments } = readConversationMessageBody(message.body);
   const internal = message.visibility === 'internal';
   const date = new Date(message.created_at);
@@ -60,7 +60,6 @@ export function RecordMessageRow({ message, identity, mine, partner, canManage, 
     try {
       await removeMessage();
       onDeleted();
-      await onChanged();
     } catch (error) {
       void showMessage(error instanceof Error ? error.message : 'Não foi possível excluir a mensagem.');
     }
@@ -81,7 +80,7 @@ export function RecordMessageRow({ message, identity, mine, partner, canManage, 
           </span>}
         </div>
         {editing ? (
-          <RecordMessageEditor messageId={message.id} text={text} attachments={attachments} onCancel={closeEditor} onSaved={() => { closeEditor(); void onChanged(); }} />
+          <RecordMessageEditor actorId={actorId} recordId={message.record_id} messageId={message.id} text={text} attachments={attachments} onCancel={closeEditor} onSaved={closeEditor} />
         ) : text && <p className="tw:m-0 tw:text-cali-body tw:leading-[1.5] tw:whitespace-pre-wrap tw:[overflow-wrap:anywhere]">{keysByContent(text.split(/(https?:\/\/[^\s]+)/g), (part) => part).map(({ item: part, key }) => /^https?:\/\//i.test(part) ? (
           <a key={key} className="tw:font-semibold tw:text-inherit tw:underline" href={part} target="_blank" rel="noopener noreferrer">{part}</a>
         ) : <Fragment key={key}>{withMentions(part)}</Fragment>)}</p>}

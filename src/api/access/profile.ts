@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query';
 import { z } from 'zod';
 import { supabase } from '../supabase';
+import { accessKeys } from './query-keys';
 
 const workspaceRole = z.enum(['admin', 'client', 'partner']);
 const workspaceProfile = z.object({
@@ -9,8 +10,6 @@ const workspaceProfile = z.object({
 });
 
 export type WorkspaceRole = z.infer<typeof workspaceRole>;
-
-export const workspaceProfileKey = (userId: string) => ['workspace-auth', 'profile', userId] as const;
 
 export async function readWorkspaceProfile(userId: string, signal?: AbortSignal) {
   if (!supabase) throw new Error('Supabase não configurado.');
@@ -25,7 +24,7 @@ export async function readWorkspaceProfile(userId: string, signal?: AbortSignal)
 
 export function workspaceProfileQuery(userId: string) {
   return queryOptions({
-    queryKey: workspaceProfileKey(userId),
+    queryKey: accessKeys.profile(userId),
     queryFn: ({ signal }) => readWorkspaceProfile(userId, signal),
     staleTime: 0,
     networkMode: 'always',

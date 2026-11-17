@@ -4,13 +4,13 @@ import { formContentColumns, formContentSchema } from './contracts';
 
 const submissionReceipt = z.object({ ok: z.boolean(), confirmation: z.boolean().optional() });
 
-export async function readPublicForm(slug: string, preview: boolean) {
-  const published = await anonPublicRpc('cali_form_public', { p_slug: slug });
+export async function readPublicForm(slug: string, preview: boolean, signal: AbortSignal) {
+  const published = await anonPublicRpc('cali_form_public', { p_slug: slug }, signal);
   const result = formContentSchema.safeParse(published.data);
 
   if (preview && supabase) {
     const own = await supabase.from('forms').select(formContentColumns)
-      .eq('slug', slug.toLowerCase()).maybeSingle();
+      .eq('slug', slug.toLowerCase()).abortSignal(signal).maybeSingle();
     const draft = formContentSchema.safeParse(own.data);
     if (draft.success) return { ...draft.data, status: 'open' } as const;
   }

@@ -29,7 +29,7 @@ import { StaffDialogBody, StaffDialogFields, StaffDialogFooter, StaffDialogForm,
 import { Button } from '../../components/ds/Button';
 import { LoadingState } from '../../components/ds/LoadingState';
 import { TimerFinalizationDialog, type TimerFinalizationTarget } from '../../components/hours/TimerFinalizationDialog';
-import { useFinalizeHoursTimer } from './hooks/useFinalizeHoursTimer';
+import { useFinalizeWorkTimer } from '../../components/hours/hooks/useFinalizeWorkTimer';
 import { Fragment, FormEvent, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { CapacityPanel } from '../projects/components/CapacityPanel';
 import {
@@ -100,7 +100,7 @@ export function AdminHoursPage({ staff }: { staff?: StaffHoursScope } = {}){
   const [companies,setCompanies]=useState<Company[]>([]); const [projects,setProjects]=useState<Project[]>([]); const [deliverables,setDeliverables]=useState<Deliverable[]>([]); const [tasks,setTasks]=useState<Task[]>([]); const [cycles,setCycles]=useState<Cycle[]>([]); const [entries,setEntries]=useState<Entry[]>([]); const [activeTimers,setActiveTimers]=useState<TimerRow[]>([]);
   const [nowMs,setNowMs]=useState(Date.now);
   const [finalization, setFinalization] = useState<PendingFinalization | null>(null);
-  const finishTimer = useFinalizeHoursTimer();
+  const finishTimer = useFinalizeWorkTimer();
   const [auditOpen, setAuditOpen] = useState(false);
   const [auditAction, setAuditAction] = useState<{ kind: 'edit' | 'delete'; entry: HourAuditEntry } | null>(null);
   const hasRunningTimer = activeTimers.some((timer) => timer.status === 'active');

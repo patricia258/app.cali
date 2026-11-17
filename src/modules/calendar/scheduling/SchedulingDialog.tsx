@@ -2,7 +2,6 @@ import { useId, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { DialogFrame } from '../../../components/ds/DialogFrame';
-import { errorMessage } from '../../../lib/errorMessage';
 import { SchedulingAction } from './SchedulingAction';
 import { useSubmitSchedulingDialog } from './useSubmitSchedulingDialog';
 
@@ -55,7 +54,7 @@ export function SchedulingDialog({
           <fieldset disabled={isPending} className="tw:m-0 tw:min-w-0 tw:border-0 tw:p-0">
             {children}
             {error && <p role="alert" className="tw:mt-3.5 tw:rounded-xl tw:bg-cali-red-surface tw:px-3.5 tw:py-3 tw:text-sm/[inherit] tw:text-cali-red-strong">
-              {errorMessage(error, 'Não foi possível concluir a ação.')}
+              {error}
             </p>}
             <footer className="tw:mt-5.5 tw:flex tw:justify-end tw:gap-2.5">
               <SchedulingAction onClick={onClose}>{cancelLabel}</SchedulingAction>

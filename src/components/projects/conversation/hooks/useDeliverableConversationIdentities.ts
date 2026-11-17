@@ -1,9 +1,10 @@
+import { projectKeys } from '../../../../api/projects/query-keys';
 import { useQuery } from '@tanstack/react-query';
 import { readDeliverableConversationIdentities, type DeliverableConversationIdentity } from '../../../../api/projects/conversation';
 
 export function useDeliverableConversationIdentities(role: 'admin' | 'client', companyId: string, actorId: string | undefined, active: boolean) {
   return useQuery({
-    queryKey: ['deliverable-conversation-identities', role, companyId, actorId],
+    queryKey: projectKeys.conversationIdentities(actorId, companyId, role),
     queryFn: async ({ signal }) => {
       if (!actorId) return null;
       const people = await readDeliverableConversationIdentities(role, companyId, actorId, signal);

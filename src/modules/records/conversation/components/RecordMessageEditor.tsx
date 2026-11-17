@@ -5,7 +5,9 @@ import { showMessage } from '../../../../components/feedback/workspaceDialogs';
 import { useEditRecordMessage } from '../hooks/useEditRecordMessage';
 import type { ConversationMessageAttachment } from '../../../../lib/conversationMessageBody';
 
-export function RecordMessageEditor({ messageId, text, attachments, onCancel, onSaved }: {
+export function RecordMessageEditor({ actorId, recordId, messageId, text, attachments, onCancel, onSaved }: {
+  actorId?: string;
+  recordId: string;
   messageId: string;
   text: string;
   attachments: ConversationMessageAttachment[];
@@ -14,7 +16,7 @@ export function RecordMessageEditor({ messageId, text, attachments, onCancel, on
 }) {
   const [draft, setDraft] = useState(text);
   const input = useRef<HTMLTextAreaElement>(null);
-  const { mutateAsync, isPending } = useEditRecordMessage(messageId);
+  const { mutateAsync, isPending } = useEditRecordMessage(actorId, recordId, messageId);
 
   useLayoutEffect(() => {
     input.current?.focus();

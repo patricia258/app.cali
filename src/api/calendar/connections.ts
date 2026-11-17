@@ -11,19 +11,20 @@ const providerError = z.object({ error: z.string().optional(), detail: z.string(
 
 export type GoogleCalendarConnection = z.infer<typeof connection>;
 
-export async function readClientGoogleConnection() {
+export async function readClientGoogleConnection(signal: AbortSignal) {
   if (!supabase) throw new Error('Supabase indisponível.');
   const { data: userData, error: userError } = await supabase.auth.getUser();
+  signal.throwIfAborted();
   if (userError) throw userError;
   const userId = userData.user?.id;
   if (!userId) throw new Error('Sessão do cliente não encontrada.');
-  const { data: profile, error: profileError } = await supabase.from('profiles').select('company_id').eq('id', userId).maybeSingle();
+  const { data: profile, error: profileError } = await supabase.from('profiles').select('company_id').eq('id', userId).abortSignal(signal).maybeSingle();
   if (profileError) throw profileError;
   const companyId = profile?.company_id || '';
   if (!companyId) return { companyId, connection: null };
   const result = await supabase.from('calendar_connections').select('id,account_email,status,sync_enabled,last_sync_at')
     .eq('user_id', userId).eq('provider', 'google').eq('company_id', companyId)
-    .eq('status', 'connected').limit(1).maybeSingle();
+    .eq('status', 'connected').limit(1).abortSignal(signal).maybeSingle();
   if (result.error) throw result.error;
   return { companyId, connection: connection.nullable().parse(result.data) };
 }

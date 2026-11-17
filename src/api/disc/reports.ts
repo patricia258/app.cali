@@ -1,6 +1,6 @@
 import type { JsonObject } from '../../domain/json';
 import { z } from 'zod';
-import { anonPublicRpc, supabase } from '../supabase';
+import { anonPublicRpc, authenticatedPublicRpc, supabase } from '../supabase';
 
 const unavailable = { message: 'Conexão indisponível.' };
 const resultFields = 'id,person_name,email,company_id,company_name,job_title,purpose,created_at,scores,primary_style,secondary_style,mixed,method_version,role_profile,team_member_id,report_path,companies(display_name),protocol';
@@ -22,28 +22,28 @@ export async function deleteDiscResult(id: string, path: string | null) {
   return await supabase.from('profile_results').delete().eq('id', id);
 }
 
-export async function readEvaluatorResult(id: string) {
+export async function readEvaluatorResult(id: string, signal: AbortSignal) {
   if (!supabase) return null;
-  const result = await supabase.from('profile_results').select(resultFields).eq('id', id).maybeSingle();
+  const result = await supabase.from('profile_results').select(resultFields).eq('id', id).abortSignal(signal).maybeSingle();
   return result.data;
 }
 
-export async function readEvaluatorCompanyContext(companyId: string) {
+export async function readEvaluatorCompanyContext(companyId: string, signal: AbortSignal) {
   if (!supabase) return { styles: [], members: [] };
   const [styles, members] = await Promise.all([
-    supabase.from('profile_results').select('primary_style').eq('company_id', companyId),
-    supabase.from('team_members').select('id,full_name,work_email').eq('company_id', companyId).is('archived_at', null).order('full_name'),
+    supabase.from('profile_results').select('primary_style').eq('company_id', companyId).abortSignal(signal),
+    supabase.from('team_members').select('id,full_name,work_email').eq('company_id', companyId).is('archived_at', null).order('full_name').abortSignal(signal),
   ]);
   return { styles: styles.data ?? [], members: members.data ?? [] };
 }
 
-export async function readEvaluatorReference() {
-  const result = await supabase?.schema('public').rpc('cali_profile_base');
+export async function readEvaluatorReference(signal: AbortSignal) {
+  const result = await authenticatedPublicRpc('cali_profile_base', undefined, signal);
   return result?.data ?? null;
 }
 
-export async function readDiscSigner() {
-  const result = await anonPublicRpc('cali_profile_signer', {});
+export async function readDiscSigner(signal: AbortSignal) {
+  const result = await anonPublicRpc('cali_profile_signer', {}, signal);
   return result.data;
 }
 
@@ -52,22 +52,22 @@ export async function updateEvaluatorResult(id: string, fields: { team_member_id
   return await supabase.from('profile_results').update(fields).eq('id', id);
 }
 
-export async function readMemberDiscHistory(memberId: string) {
+export async function readMemberDiscHistory(memberId: string, signal: AbortSignal) {
   if (!supabase) return [];
   const result = await supabase.from('profile_results').select('id,created_at,primary_style,secondary_style,mixed,scores')
-    .eq('team_member_id', memberId).order('created_at', { ascending: false });
+    .eq('team_member_id', memberId).order('created_at', { ascending: false }).abortSignal(signal);
   return result.data ?? [];
 }
 
-export async function readManagementDiscCatalog() {
+export async function readManagementDiscCatalog(signal: AbortSignal) {
   if (!supabase) return [];
-  const result = await supabase.rpc('profile_gestao_list');
+  const result = await supabase.rpc('profile_gestao_list').abortSignal(signal);
   const row = z.object({ id: z.string(), title: z.string(), released_at: z.string() });
   return z.array(row).safeParse(result.data).data ?? [];
 }
 
-export async function readManagementDiscReport(id: string) {
-  const result = await supabase?.rpc('profile_gestao', { p_link: id });
+export async function readManagementDiscReport(id: string, signal: AbortSignal) {
+  const result = await supabase?.rpc('profile_gestao', { p_link: id }).abortSignal(signal);
   return result?.data ?? null;
 }
 
@@ -88,10 +88,12 @@ export async function changeManagementDiscState(id: string, action: 'approve' | 
 
 export async function sendManagementDiscPdf(
   id: string, recipient: { name: string; email: string }, path: string, blob: Blob,
+  isCurrent: () => boolean,
 ) {
   if (!supabase) throw new Error(unavailable.message);
   const upload = await supabase.storage.from('cali-profiles').upload(path, blob, { contentType: 'application/pdf', upsert: false });
   if (upload.error) throw upload.error;
+  if (!isCurrent()) throw new Error('A sessão mudou.');
   const { error } = await supabase.rpc('profile_gestao_send', {
     p_link: id, p_name: recipient.name.trim(), p_email: recipient.email.trim(), p_path: path,
   });

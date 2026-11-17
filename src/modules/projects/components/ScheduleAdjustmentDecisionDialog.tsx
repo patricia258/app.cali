@@ -5,15 +5,16 @@ import { useResolveScheduleAdjustment } from '../hooks/useResolveScheduleAdjustm
 import { ProjectActionDialog } from './ProjectActionDialog';
 
 type Props = {
+  projectId: string;
   review: ScheduleReviewRequest;
   accept: boolean;
   onClose: () => void;
   onSaved: () => Promise<void>;
 };
 
-export function ScheduleAdjustmentDecisionDialog({ review, accept, onClose, onSaved }: Props) {
+export function ScheduleAdjustmentDecisionDialog({ projectId, review, accept, onClose, onSaved }: Props) {
   const [note, setNote] = useState('');
-  const mutation = useResolveScheduleAdjustment(review.id, accept, onSaved);
+  const mutation = useResolveScheduleAdjustment(projectId, review.id, accept, onSaved);
   const change = review.requested_changes ?? {};
 
   return <ProjectActionDialog title={accept ? 'Acolher pedido de ajuste' : 'Não aplicar pedido'} kicker="Análise CALI"

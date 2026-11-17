@@ -35,7 +35,7 @@ export function RecordMessageComposer({ role, partner, companyId, recordId, acto
   const mounted = useRef(true);
   const uploadedDraft = useRef(new Set<string>());
   const posting = useRef(false);
-  const { mutateAsync: sendMessage, isPending } = usePostRecordMessage(recordId, partner);
+  const { mutateAsync: sendMessage, isPending } = usePostRecordMessage(actorId, recordId, partner);
   const { mutateAsync: upload, isPending: uploading } = useUploadRecordMessageAttachment(companyId, recordId, actorId);
 
   useEffect(() => {

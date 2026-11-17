@@ -11,12 +11,13 @@ const frontPriorities = [
 ];
 
 type Props = {
+  companyId: string;
   review: ClientScheduleReview;
   onClose: () => void;
   onSaved: () => Promise<void>;
 };
 
-export function ClientScheduleAdjustmentDialog({ review, onClose, onSaved }: Props) {
+export function ClientScheduleAdjustmentDialog({ companyId, review, onClose, onSaved }: Props) {
   const { project, fronts, deliverables } = review;
   const fieldsId = useId();
   const [type, setType] = useState<ScheduleAdjustment['p_target_type']>('workstream');
@@ -27,7 +28,7 @@ export function ClientScheduleAdjustmentDialog({ review, onClose, onSaved }: Pro
   const [priority, setPriority] = useState(frontPriorities[0]);
   const [reason, setReason] = useState('');
   const [validation, setValidation] = useState('');
-  const adjustment = useRequestClientScheduleAdjustment(onSaved);
+  const adjustment = useRequestClientScheduleAdjustment(companyId, onSaved);
   const primary = deliverables.find((row) => row.id === targetId);
   const swap = deliverables.find((row) => row.id === swapTargetId);
   const rescheduling = type === 'deliverable' && action === 'reschedule';

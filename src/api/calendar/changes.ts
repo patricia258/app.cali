@@ -11,18 +11,18 @@ export type AgendaChangeRequest = z.infer<typeof request>;
 
 const unavailable = { message: 'Conexão indisponível.' };
 
-export async function readAdminAgendaChanges() {
+export async function readAdminAgendaChanges(signal: AbortSignal) {
   const client = supabase;
   if (!client) return { requests: [], titles: {}, companies: {} };
   const { data } = await client.from('agenda_change_requests')
     .select('id,event_id,company_id,action,reason,slots,status,original_starts_at,created_at,decision_note')
-    .order('created_at', { ascending: false }).limit(100);
+    .order('created_at', { ascending: false }).limit(100).abortSignal(signal);
   const requests = z.array(request).safeParse(data ?? []).data ?? [];
   const ids = [...new Set(requests.map((row) => row.event_id))];
   const companyIds = [...new Set(requests.map((row) => row.company_id))];
   const [events, companies] = await Promise.all([
-    ids.length ? client.from('events').select('id,title').in('id', ids) : { data: [] },
-    companyIds.length ? client.from('companies').select('id,display_name').in('id', companyIds) : { data: [] },
+    ids.length ? client.from('events').select('id,title').in('id', ids).abortSignal(signal) : { data: [] },
+    companyIds.length ? client.from('companies').select('id,display_name').in('id', companyIds).abortSignal(signal) : { data: [] },
   ]);
   return {
     requests,
@@ -39,18 +39,18 @@ export function observeAdminAgendaChanges(listener: () => void) {
   return () => { void client.removeChannel(channel); };
 }
 
-export async function decideAgendaChange(id: string, approve: boolean, note: string, index: number) {
+export async function decideAgendaChange(id: string, approve: boolean, note: string, index: number, isCurrent: () => boolean) {
   if (!supabase) return { error: unavailable, sync: null };
   const { data, error } = await supabase.rpc('admin_decide_agenda_change_v1', {
     p_change_id: id, p_approve: approve, p_note: note.trim(), p_slot_index: index,
   });
   if (error) return { error, sync: null };
-  if (!approve || !data?.event_id) return { error: null, sync: null };
+  if (!approve || !data?.event_id || !isCurrent()) return { error: null, sync: null };
 
   let sync = await supabase.functions.invoke('google-calendar-oauth', {
     body: { action: data.action === 'cancel' ? 'cancel_event' : 'sync_event', eventId: data.event_id },
   });
-  if (sync.data?.status === 'deferred_to_scheduling_sync') {
+  if (isCurrent() && sync.data?.status === 'deferred_to_scheduling_sync') {
     sync = await supabase.functions.invoke('workspace-sync-scheduled-event', { body: { eventId: data.event_id } });
   }
   const outcome = sync.error ? 'pending' : ['no_google_connection', 'admin_google_not_connected'].includes(sync.data?.status) ? 'disconnected' : null;

@@ -61,8 +61,8 @@ type CalendarRequestRow = {
   purpose: string | null;
   location: string | null;
 };
-export async function loadAdminCalendarData(staff: boolean) {
-  const { companyRows, eventRows, attendeeRows, deadlineRows, connectionRows, requestRows, projectRows } = await readAdminCalendar(Boolean(staff));
+export async function loadAdminCalendarData(staff: boolean, signal: AbortSignal) {
+  const { companyRows, eventRows, attendeeRows, deadlineRows, connectionRows, requestRows, projectRows } = await readAdminCalendar(Boolean(staff), signal);
 
   const options: CompanyOption[] = (companyRows || []).map((row: CalendarCompanyRow) => ({
     id: row.id,
@@ -119,7 +119,7 @@ export async function loadAdminCalendarData(staff: boolean) {
   const meetingIds = manual.filter(event => event.type === 'meeting' && CALENDAR_UUID_PATTERN.test(event.id)).map(event => event.id);
   let meetingOutcomes: Record<string, MeetingOutcome> = {};
   if (meetingIds.length) {
-    const { data: outcomes, error: outcomeError } = await readMeetingOutcomes(meetingIds);
+    const { data: outcomes, error: outcomeError } = await readMeetingOutcomes(meetingIds, signal);
     if (outcomeError) throw outcomeError;
     meetingOutcomes = Object.fromEntries(((outcomes || []) as MeetingOutcome[]).map(row => [row.event_id, row]));
   }

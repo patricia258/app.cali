@@ -2,9 +2,11 @@ import { z } from 'zod';
 
 import { supabase } from '../../supabase';
 
-export async function loadMapaDeliveryState(responseId: string) {
+export async function loadMapaDeliveryState(responseId: string, signal?: AbortSignal) {
   if (!supabase) throw new Error('Envio indisponível.');
-  const { data, error } = await supabase.rpc('read_mapa_delivery_state', { p_response_id: responseId });
+  const query = supabase.rpc('read_mapa_delivery_state', { p_response_id: responseId });
+  if (signal) query.abortSignal(signal);
+  const { data, error } = await query;
   if (error || !Number.isSafeInteger(data?.revision) || data.revision < 1) {
     throw new Error('Não foi possível consultar a revisão da devolutiva.');
   }

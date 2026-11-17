@@ -22,39 +22,40 @@ export async function runSchedulingCommand(name: SchedulingCommand, args: JsonOb
 
 const companyColumns = 'id,display_name,logo_url,onsite_visits_included_per_month';
 
-export async function readClientSchedulingCompany() {
+export async function readClientSchedulingCompany(signal: AbortSignal) {
   const client = requireSchedulingClient();
   const { data: auth, error: authError } = await client.auth.getUser();
+  signal.throwIfAborted();
   if (authError) throw authError;
   if (!auth.user?.id) throw new Error('Sessão do cliente não encontrada.');
-  const { data: profile, error } = await client.from('profiles').select('company_id').eq('id', auth.user.id).maybeSingle();
+  const { data: profile, error } = await client.from('profiles').select('company_id').eq('id', auth.user.id).abortSignal(signal).maybeSingle();
   if (error) throw error;
   return String(profile?.company_id || '');
 }
 
-export async function readClientSchedulingRequests(companyId: string) {
+export async function readClientSchedulingRequests(companyId: string, signal: AbortSignal) {
   const client = requireSchedulingClient();
   return await Promise.all([
-    client.from('companies').select(companyColumns).eq('id', companyId).maybeSingle(),
-    client.from('scheduling_requests').select('*').eq('company_id', companyId).order('created_at', { ascending: false }).limit(20),
+    client.from('companies').select(companyColumns).eq('id', companyId).abortSignal(signal).maybeSingle(),
+    client.from('scheduling_requests').select('*').eq('company_id', companyId).order('created_at', { ascending: false }).limit(20).abortSignal(signal),
     client.from('extra_visit_expenses').select('request_id,expense_kind,amount_cents,receipt_path,protocol,hours_quantity')
-      .eq('company_id', companyId).order('created_at', { ascending: false }).limit(100),
+      .eq('company_id', companyId).order('created_at', { ascending: false }).limit(100).abortSignal(signal),
   ]);
 }
 
-export async function readAdminSchedulingRequests() {
+export async function readAdminSchedulingRequests(signal: AbortSignal) {
   const client = requireSchedulingClient();
   return await Promise.all([
-    client.from('companies').select(`${companyColumns},logo_workspace_url`).neq('status', 'archived').order('display_name'),
-    client.from('scheduling_requests').select('*').order('created_at', { ascending: false }).limit(50),
+    client.from('companies').select(`${companyColumns},logo_workspace_url`).neq('status', 'archived').order('display_name').abortSignal(signal),
+    client.from('scheduling_requests').select('*').order('created_at', { ascending: false }).limit(50).abortSignal(signal),
   ]);
 }
 
-export async function readSchedulingRequestDetails(userIds: string[], requestIds: string[]) {
+export async function readSchedulingRequestDetails(userIds: string[], requestIds: string[], signal: AbortSignal) {
   const client = requireSchedulingClient();
   return await Promise.all([
-    client.from('profiles').select('id,full_name').in('id', userIds),
-    client.from('extra_visit_request_attachments').select('request_id,storage_path,file_name').in('request_id', requestIds),
+    client.from('profiles').select('id,full_name').in('id', userIds).abortSignal(signal),
+    client.from('extra_visit_request_attachments').select('request_id,storage_path,file_name').in('request_id', requestIds).abortSignal(signal),
   ]);
 }
 

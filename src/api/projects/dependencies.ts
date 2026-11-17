@@ -30,12 +30,13 @@ export async function readDeliverableDependencies(deliverableId: string, signal?
   return { items: items.data, history: history.data };
 }
 
-export async function addDeliverableDependency(deliverableId: string, companyId: string, title: string, dueDate: string, partner: boolean) {
+export async function addDeliverableDependency(deliverableId: string, companyId: string, title: string, dueDate: string, partner: boolean, isCurrent: () => boolean) {
   if (!supabase) throw new Error('Supabase não configurado.');
   if (partner) {
     return await supabase.rpc('partner_add_dependency', { p_deliverable_id: deliverableId, p_title: title, p_due_date: dueDate });
   }
   const { data } = await supabase.auth.getUser();
+  if (!isCurrent()) throw new Error('A sessão mudou. Tente novamente.');
   return await supabase.from('deliverable_client_dependencies').insert({
     deliverable_id: deliverableId, company_id: companyId, title, due_date: dueDate, created_by: data.user?.id ?? null,
   });
@@ -54,13 +55,15 @@ export async function cancelDeliverableDependency(id: string) {
 
 export async function writeDeliverableDeadlinePlan(companyId: string, cause: string, steps: {
   id: string; from: string | null; to: string; reason: string; keepOriginal: boolean;
-}[]) {
+}[], isCurrent: () => boolean) {
   if (!supabase) throw new Error('Supabase não configurado.');
   const { data: auth } = await supabase.auth.getUser();
   for (const step of steps) {
+    if (!isCurrent()) return 'A sessão mudou. Atualize os prazos antes de tentar novamente.';
     const update = await supabase.from('deliverables')
       .update({ due_at: step.to, ...(step.keepOriginal ? { original_due_at: step.from } : {}) }).eq('id', step.id);
     if (update.error) return update.error.message || 'Não foi possível alterar o prazo.';
+    if (!isCurrent()) return 'A sessão mudou. Atualize os prazos antes de tentar novamente.';
     const log = await supabase.from('deliverable_due_revisions').insert({
       deliverable_id: step.id, company_id: companyId, previous_due: step.from, new_due: step.to,
       cause, reason: step.reason, created_by: auth.user?.id ?? null,

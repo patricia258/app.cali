@@ -6,15 +6,15 @@ function requireMeetingClient() {
   return supabase;
 }
 
-export async function readMeetingByProtocol(protocol: string) {
+export async function readMeetingByProtocol(protocol: string, signal: AbortSignal) {
   return await requireMeetingClient().from('events')
     .select('id,company_id,title,event_type,starts_at,mode,source_type,source_entity_id,schedule_class,contract_session_number,billing_applies,billing_reason')
-    .eq('protocol', protocol).maybeSingle();
+    .eq('protocol', protocol).abortSignal(signal).maybeSingle();
 }
 
-export async function readMeetingOutcome(eventId: string) {
+export async function readMeetingOutcome(eventId: string, signal: AbortSignal) {
   return await requireMeetingClient().from('event_outcomes')
-    .select('outcome,reason_category,justified,note,transcription_url,transcription_note,marked_at').eq('event_id', eventId).maybeSingle();
+    .select('outcome,reason_category,justified,note,transcription_url,transcription_note,marked_at').eq('event_id', eventId).abortSignal(signal).maybeSingle();
 }
 
 export async function recordMeetingOutcome(eventId: string, schedulingRequest: boolean, occurred: boolean, reason: string | null, justified: boolean, note: string) {
@@ -28,10 +28,11 @@ export async function saveMeetingTranscription(eventId: string, url: string, not
   return await requireMeetingClient().rpc('admin_save_event_transcription_v69', { p_event_id: eventId, p_url: url, p_note: note });
 }
 
-export async function uploadMeetingTranscription(eventId: string, path: string, file: File) {
+export async function uploadMeetingTranscription(eventId: string, path: string, file: File, isCurrent: () => boolean) {
   const client = requireMeetingClient();
   const upload = await client.storage.from('cali-workspace-private').upload(path, file, { upsert: false, contentType: file.type });
   if (upload.error) throw upload.error;
+  if (!isCurrent()) throw new Error('A sessão mudou.');
   const { error } = await client.rpc('admin_attach_meeting_record_v1', { p_event_id: eventId, p_path: path, p_name: file.name });
   if (error) throw error;
 }

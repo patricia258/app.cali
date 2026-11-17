@@ -1,15 +1,12 @@
 import { Button } from '../../components/ds/Button';
 import { useState } from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
 import { History } from 'lucide-react';
-import { useWorkspaceAuth } from '../../auth/hooks/useWorkspaceAuth';
-import { readCompanyConversationHistory, type HistoryEvent } from '../../api/records/history';
+import { historyPageSize, useCompanyConversationHistory } from './hooks/useCompanyConversationHistory';
 
 const filters = [
   ['', 'Todos os eventos'], ['record', 'Ocorrências'], ['delivery', 'Entregáveis'],
   ['closure', 'Encerramentos'], ['reopen', 'Reaberturas'], ['approval', 'Aprovações'], ['hours', 'Horas'],
 ];
-const pageSize = 25;
 const historyDate = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Sao_Paulo',
 });
@@ -22,18 +19,9 @@ function Timeline({ companyId, role, staff, openRecord }: {
   staff: boolean;
   openRecord: (recordId: string) => void;
 }) {
-  const { user } = useWorkspaceAuth();
   const [filter, setFilter] = useState('');
-  const history = useInfiniteQuery({
-    queryKey: ['record-history', user?.id, role, staff, companyId, filter],
-    initialPageParam: null as HistoryEvent | null,
-    queryFn: ({ pageParam, signal }) => readCompanyConversationHistory(companyId, filter, pageParam, signal),
-    getNextPageParam: (page) => page.length > pageSize ? page[pageSize - 1] : undefined,
-    retry: false,
-    gcTime: 0,
-    refetchOnWindowFocus: false,
-  });
-  const rows = [...new Map(history.data?.pages.flatMap((page) => page.slice(0, pageSize))
+  const history = useCompanyConversationHistory(companyId, role, staff, filter);
+  const rows = [...new Map(history.data?.pages.flatMap((page) => page.slice(0, historyPageSize))
     .map((row) => [row.id, row])).values()];
   const loading = history.isPending || history.isFetchingNextPage;
 

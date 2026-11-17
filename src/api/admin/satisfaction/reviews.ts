@@ -39,9 +39,6 @@ const followup = followupFields.extend({ source_type: z.enum(['record', 'deliver
 export type SatisfactionReview = z.infer<typeof rating>;
 export type SatisfactionClosure = z.infer<typeof closure>;
 
-export const satisfactionRatingsKey = (actorId: string) => ['admin', 'satisfaction', 'ratings', actorId] as const;
-export const satisfactionClosuresKey = (actorId: string) => ['admin', 'satisfaction', 'closures', actorId] as const;
-
 export async function readSatisfactionClosures(signal: AbortSignal) {
   if (!supabase) throw new Error('Conexão indisponível.');
   const entries: SatisfactionClosure[] = [];

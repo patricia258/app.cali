@@ -1,7 +1,7 @@
-import { runSchedulingCommand } from '../../../api/calendar/requests';
+import { useSaveAdminSchedulingRequest } from './useSaveAdminSchedulingRequest';
 import { SchedulingDialog } from './SchedulingDialog';
 import { SchedulingFields, SchedulingNoteField, SlotFields } from './SchedulingFields';
-import { minSlotDate, readSlots, slotMinutes, type SchedulingRequest } from './schedulingRequests';
+import { minSlotDate, slotMinutes, type SchedulingRequest } from './schedulingRequests';
 
 export type AdminSchedulingSelection = {
   kind: 'quote' | 'counter' | 'decline' | 'fee';
@@ -14,6 +14,8 @@ export function AdminSchedulingDialog({ selection, onClose, onSaved }: {
   onSaved: (message: string) => void;
 }) {
   const { kind, request } = selection;
+  const { mutateAsync } = useSaveAdminSchedulingRequest(selection, onSaved);
+  const submit = async (form: FormData) => { await mutateAsync(form); };
   const requestedMinutes = slotMinutes(request.requested_slots?.[0]);
 
   if (kind === 'quote') {
@@ -21,14 +23,7 @@ export function AdminSchedulingDialog({ selection, onClose, onSaved }: {
     return (
       <SchedulingDialog title="Orçamento da reunião online extra" section="CONDIÇÕES PARA O CLIENTE"
         submitLabel="Enviar orçamento" cancelLabel="Voltar" onClose={onClose}
-        onSubmit={async (form) => {
-          await runSchedulingCommand('admin_quote_online_extra_v1', {
-            p_request_id: request.id,
-            p_amount_cents: Math.round(Number(form.get('amount')) * 100),
-            p_note: String(form.get('note') ?? ''),
-          });
-          onSaved('Orçamento enviado para aceite do cliente.');
-        }}
+        onSubmit={submit}
       >
         <label className="tw:mb-4 tw:flex tw:flex-col tw:gap-2">
           <span className="tw:text-cali-label tw:font-black tw:text-cali-muted tw:uppercase">Valor em reais (tabela: 1 hora R$ 200 · 1h30 R$ 300)</span>
@@ -46,12 +41,7 @@ export function AdminSchedulingDialog({ selection, onClose, onSaved }: {
   if (kind === 'fee') {
     return (
       <SchedulingDialog title="Condição da alteração" section="DECISÃO DA CALI" submitLabel="Enviar decisão" cancelLabel="Voltar" onClose={onClose}
-        onSubmit={async (form) => {
-          await runSchedulingCommand('admin_decide_extra_visit_change_v2', {
-            p_request_id: request.id, p_charge: form.get('charge') === 'true', p_note: String(form.get('note') ?? ''),
-          });
-          onSaved('Decisão registrada e cliente notificado.');
-        }}
+        onSubmit={submit}
       >
         <p>Motivo do cliente: {request.extra_visit_change_reason}</p>
         <fieldset className="tw:my-4 tw:flex tw:flex-wrap tw:gap-2.5 tw:border-0 tw:p-0">
@@ -79,12 +69,7 @@ export function AdminSchedulingDialog({ selection, onClose, onSaved }: {
   if (kind === 'decline') {
     return (
       <SchedulingDialog title="Recusar solicitação" section="ANÁLISE DE AGENDA" submitLabel="Registrar resposta" tone="danger" onClose={onClose}
-        onSubmit={async (form) => {
-          await runSchedulingCommand('admin_respond_scheduling_request_v1', {
-            p_request_id: request.id, p_proposed_slots: [], p_note: String(form.get('note') ?? ''), p_decline: true,
-          });
-          onSaved('Resposta registrada.');
-        }}
+        onSubmit={submit}
       >
         <SchedulingNoteField label="Motivo" required placeholder="Explique de forma objetiva por que esta solicitação será recusada." />
       </SchedulingDialog>
@@ -95,16 +80,7 @@ export function AdminSchedulingDialog({ selection, onClose, onSaved }: {
   const minDate = minSlotDate(24);
   return (
     <SchedulingDialog title="Sugerir outros horários" section="ANÁLISE DE AGENDA" submitLabel="Enviar opções" onClose={onClose}
-      onSubmit={async (form) => {
-        const minutes = Number(form.get('duration'));
-        const slots = readSlots(form, minutes);
-        if (request.extra_visit && (minutes !== 240 || slots.length !== 2)) throw new Error('Envie duas opções de 4 horas para a visita extra.');
-        if (slots.length === 0) throw new Error('Informe ao menos um horário.');
-        await runSchedulingCommand('admin_respond_scheduling_request_v1', {
-          p_request_id: request.id, p_proposed_slots: slots, p_note: String(form.get('note') ?? ''), p_decline: false,
-        });
-        onSaved('Novos horários enviados ao cliente.');
-      }}
+      onSubmit={submit}
     >
       <SchedulingFields>
         <label className="tw:col-span-full tw:flex tw:flex-col tw:gap-2">

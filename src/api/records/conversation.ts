@@ -1,4 +1,4 @@
-import { readRecordViewerId, recordsAvailable, requireRecordsClient } from './client';
+import { recordsAvailable, requireRecordsClient } from './client';
 
 export type ConversationMessageRow = {
   id: string;
@@ -22,16 +22,17 @@ export type ConversationIdentity = {
 
 const identityColumns = 'id,full_name,avatar_url,avatar_position_x,avatar_position_y,avatar_zoom';
 
-export async function readConversationIdentities(role: 'admin' | 'client', companyId: string) {
+export async function readConversationIdentities(role: 'admin' | 'client', companyId: string, actorId: string, signal: AbortSignal) {
   const client = requireRecordsClient();
-  const userId = await readRecordViewerId();
-  const self = userId ? await client.from('profiles').select(identityColumns).eq('id', userId).maybeSingle() : null;
+  const self = await client.from('profiles').select(identityColumns).eq('id', actorId).abortSignal(signal).maybeSingle();
+  signal.throwIfAborted();
   const participants = role === 'admin'
-    ? await client.from('profiles').select(identityColumns).eq('company_id', companyId).eq('role', 'client').eq('active', true)
-    : await client.rpc('get_client_account_contact');
+    ? await client.from('profiles').select(identityColumns).eq('company_id', companyId).eq('role', 'client').eq('active', true).abortSignal(signal)
+    : await client.rpc('get_client_account_contact').abortSignal(signal);
+  signal.throwIfAborted();
   let staff: ConversationIdentity[] = [];
   try {
-    const result = await client.rpc('staff_identities');
+    const result = await client.rpc('staff_identities').abortSignal(signal);
     staff = result.data ?? [];
   } catch {
     // Identidades de apoio são opcionais nesta conversa.

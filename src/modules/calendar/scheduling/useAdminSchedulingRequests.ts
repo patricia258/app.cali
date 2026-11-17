@@ -1,3 +1,4 @@
+import { calendarKeys } from '../../../api/calendar/query-keys';
 import { useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { isSupabaseConfigured } from '../../../api/access/session';
@@ -9,8 +10,8 @@ export function useAdminSchedulingRequests() {
   const { user, role } = useWorkspaceAuth();
   const enabled = isSupabaseConfigured && role === 'admin' && Boolean(user?.id);
   const { data, error, refetch } = useQuery({
-    queryKey: ['scheduling-requests', 'admin', user?.id],
-    queryFn: loadAdminRequests,
+    queryKey: calendarKeys.schedulingRequests(user?.id, 'admin'),
+    queryFn: ({ signal }) => loadAdminRequests(signal),
     enabled,
   });
   const refresh = useCallback(() => { void refetch(); }, [refetch]);

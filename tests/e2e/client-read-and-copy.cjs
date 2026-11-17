@@ -51,6 +51,69 @@ const connected = (jobs = []) => ({
 
 browserSuite([
   {
+    id: '11-document-comments-discard-previous-document-read',
+    role: 'client',
+    async run({ page, context, origin }) {
+      const secondDocument = {
+        ...standalone,
+        id: '55555554-5555-4555-8555-555555555556',
+        title: 'Procedimento publicado QA',
+      };
+      const reads = [];
+      const headers = { 'access-control-allow-origin': origin };
+      let signalFirstRead;
+      const firstRead = new Promise((resolve) => { signalFirstRead = resolve; });
+      let releaseFirstResponse;
+      const firstResponse = new Promise((resolve) => { releaseFirstResponse = resolve; });
+      await intercept(context, origin, '/rest/v1/files', 'GET', () => ({ json: [standalone, secondDocument] }));
+      await context.route(
+        (url) => url.origin === host && url.pathname === '/rest/v1/comments',
+        async (route) => {
+          const request = route.request();
+          if (request.method() !== 'GET') return route.fallback();
+          const documentId = new URL(request.url()).searchParams.get('target_id')?.replace('eq.', '');
+          reads.push(documentId);
+          const initialRead = reads.length === 1;
+          if (initialRead) {
+            signalFirstRead();
+            await firstResponse;
+          }
+          const body = initialRead ? 'Comentário antigo do primeiro documento'
+            : documentId === secondDocument.id ? 'Comentário do segundo documento' : 'Comentário atualizado do primeiro documento';
+          const response = route.fulfill({ headers, json: [{ id: documentId, body, created_at: '2026-11-12T15:00:00Z' }] });
+          return initialRead ? response.catch(() => undefined) : response;
+        },
+      );
+
+      try {
+        await page.goto(origin + '/cliente/documentos');
+        const comment = (title) => page.getByRole('article')
+          .filter({ has: page.getByRole('heading', { name: title, exact: true }) })
+          .getByRole('button', { name: 'Comentar', exact: true });
+        const dialog = (title) => page.getByRole('dialog', { name: 'Comentários de ' + title, exact: true });
+        await Promise.all([firstRead, comment(standalone.title).click()]);
+        const firstDialog = dialog(standalone.title);
+        const firstAborted = page.waitForEvent('requestfailed', {
+          predicate: (request) => request.url().includes('/rest/v1/comments') && request.url().includes(standalone.id),
+          timeout: 5000,
+        });
+        await Promise.all([firstAborted, firstDialog.getByRole('button', { name: 'Fechar', exact: true }).click()]);
+        await comment(secondDocument.title).click();
+        const secondDialog = dialog(secondDocument.title);
+        await secondDialog.getByText('Comentário do segundo documento', { exact: true }).waitFor();
+        releaseFirstResponse();
+        assert.equal(await secondDialog.getByText('Comentário antigo do primeiro documento', { exact: true }).count(), 0);
+        await secondDialog.getByRole('button', { name: 'Fechar', exact: true }).click();
+        await comment(standalone.title).click();
+        await firstDialog.getByText('Comentário atualizado do primeiro documento', { exact: true }).waitFor();
+        assert.deepEqual(reads, [standalone.id, secondDocument.id, standalone.id]);
+        return { cancelsClosedDocument: true, isolatesCommentCacheByDocument: true };
+      } finally {
+        releaseFirstResponse();
+      }
+    },
+  },
+  {
     id: '11-drive-copy-file-and-open-persisted-receipt',
     role: 'client',
     async run({ page, context, origin }) {

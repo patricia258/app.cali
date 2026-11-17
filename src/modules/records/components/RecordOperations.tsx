@@ -18,7 +18,7 @@ type RecordOperationsProps = {
 
 export function RecordOperations({ actorId, recordId, protocol, role, onDeleted }: RecordOperationsProps) {
   const { data: record } = useRecordOperations(role, actorId, recordId, protocol);
-  const { mutate: markOpened } = useMarkRecordOpened(actorId, recordId);
+  const { mutate: markOpened } = useMarkRecordOpened(actorId, recordId, protocol);
   const needsReadReceipt = role === 'admin' && Boolean(record && !record.first_admin_opened_at);
   useEffect(() => {
     if (needsReadReceipt) markOpened();
@@ -30,12 +30,12 @@ export function RecordOperations({ actorId, recordId, protocol, role, onDeleted 
   }
   return onDeleted && record.source_actor === 'client' && record.created_by === actorId &&
     record.workflow_status === 'open' && !record.first_admin_opened_at
-    ? <UnopenedRecordRemoval recordId={recordId} onDeleted={onDeleted} />
+    ? <UnopenedRecordRemoval actorId={actorId} recordId={recordId} protocol={protocol} onDeleted={onDeleted} />
     : null;
 }
 
-function UnopenedRecordRemoval({ recordId, onDeleted }: { recordId: string; onDeleted: () => void }) {
-  const { mutate, isPending, error } = useDeleteUnopenedRecord(recordId, onDeleted);
+function UnopenedRecordRemoval({ actorId, recordId, protocol, onDeleted }: { actorId?: string; recordId: string; protocol: string; onDeleted: () => void }) {
+  const { mutate, isPending, error } = useDeleteUnopenedRecord(actorId, recordId, protocol, onDeleted);
   async function confirmRemoval() {
     if (await confirmAction('Excluir esta solicitação? Isso só é possível porque a CALI ainda não abriu o atendimento.')) mutate();
   }

@@ -14,14 +14,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from '../../../hooks/useLocation';
 import { FolderOpen, AlertTriangle, CheckCircle2, Cloud, ExternalLink, Eye, FileCheck2, FileText, MessageSquare, Search } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { useQueryClient } from '@tanstack/react-query';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
+import { recordDocumentView } from '../../../api/client/documents/library';
 import {
-  acknowledgeDocumentVersion, documentLibraryKey, postDocumentComment, readClientDocumentLibrary,
-  readDocumentComments, recordDocumentView,
-} from '../../../api/client/documents/library';
-import {
-  authorizeDriveConnection, copyFileToDrive, copyFolderToDrive, type DriveConnection,
+  authorizeDriveConnection, copyFileToDrive, copyFolderToDrive,
   type DriveSyncState as SyncState,
 } from '../../../api/client/documents/drive';
 import { resolveWorkspaceMedia } from '../../../lib/workspaceMedia';
@@ -29,7 +25,11 @@ import { DocumentFolderProgress, DocumentLayoutSwitch } from '../../../component
 import { ClientDocumentFolder } from './components/ClientDocumentFolder';
 import { ClientDocumentDetails } from './components/ClientDocumentDetails';
 import { ClientDocumentList } from './components/ClientDocumentList';
-import { ClientDocumentComments, type DocumentComment } from './components/ClientDocumentComments';
+import { ClientDocumentComments } from './components/ClientDocumentComments';
+import { useAcknowledgeClientDocument } from './hooks/useAcknowledgeClientDocument';
+import { useClientDocumentComments } from './hooks/useClientDocumentComments';
+import { useClientDocumentLibrary } from './hooks/useClientDocumentLibrary';
+import { usePostClientDocumentComment } from './hooks/usePostClientDocumentComment';
 
 type CategorySlug = 'policy' | 'manual' | 'flow' | 'guide' | 'report' | 'onboarding' | 'deliverable' | 'schedule' | 'contract' | 'reference' | 'other';
 export type ClientDoc = {
@@ -74,27 +74,52 @@ function daysUntil(value?: string | null) {
 
 export function ClientDocumentsPage() {
   const { user } = useWorkspaceAuth();
-  const queryClient = useQueryClient();
-  const [documents, setDocuments] = useState<ClientDoc[]>([]);
-  const [folders, setFolders] = useState<{ id: string; title: string; protocol: string | null; items: { id: string; title: string; status: string }[] }[]>([]);
+  const actorId = user?.id ?? null;
+  const library = useClientDocumentLibrary(actorId);
+  const acknowledgement = useAcknowledgeClientDocument(actorId);
   const [openFolder, setOpenFolder] = useState<string | null>(null);
-  const [companyBrand, setCompanyBrand] = useState({ name: 'sua empresa', logoUrl: '' });
+  const [signedBrand, setSignedBrand] = useState<{ actorId: string | null; source: string; logoUrl: string }>();
   const [query, setQuery] = useState('');
   const [layout, setLayout] = useState<'covers' | 'list'>('covers');
   const [detailDoc, setDetailDoc] = useState<ClientDoc | null>(null);
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [driveConnection, setDriveConnection] = useState<DriveConnection | null>(null);
   const [driveConnecting, setDriveConnecting] = useState(false);
-  const [syncByFile, setSyncByFile] = useState<Record<string, SyncState>>({});
+  const [driveOverrides, setDriveOverrides] = useState<Record<string, SyncState>>({});
   const [folderSaving, setFolderSaving] = useState('');
-  const [acknowledged, setAcknowledged] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [commentDoc, setCommentDoc] = useState<ClientDoc | null>(null);
-  const [comments, setComments] = useState<DocumentComment[]>([]);
   const [comment, setComment] = useState('');
-  const [commentLoading, setCommentLoading] = useState(false);
+  const commentDialogVersion = useRef(0);
+  const commentQuery = useClientDocumentComments(actorId, commentDoc?.id ?? null);
+  const postComment = usePostClientDocumentComment(actorId);
+  const comments = (commentQuery.data ?? []).map((item) => ({ ...item, createdAt: formatDate(item.createdAt) }));
+  const commentLoading = commentQuery.isPending || commentQuery.isFetching;
+  const readError = library.error ?? commentQuery.error;
+  const alert = error || (readError instanceof Error ? readError.message : readError ? 'Não foi possível carregar os documentos.' : '');
+  const brand = library.data?.brand;
+  const companyBrand = { name: brand?.display_name || 'sua empresa', logoUrl: signedBrand?.actorId === actorId && signedBrand.source === brand?.logo_url ? signedBrand.logoUrl : '' };
+  const folders = library.data?.folders ?? [];
+  const acknowledged = library.data?.acknowledged ?? [];
+  const driveConnection = library.data?.drive.connection;
+  const syncByFile = { ...library.data?.drive.jobs, ...driveOverrides };
+  const documents = useMemo<ClientDoc[]>(() => (library.data?.documents ?? []).map((item) => ({
+    id: item.id,
+    companyId: item.company_id,
+    title: item.title,
+    category: (item.category || 'other') as CategorySlug,
+    kind: item.document_kind || 'Outro',
+    date: formatDate(item.updated_at),
+    version: item.version_label || 'final',
+    protocol: item.protocol || '—',
+    storagePath: item.storage_path || undefined,
+    driveUrl: item.drive_url || undefined,
+    requiresAcknowledgement: Boolean(item.requires_acknowledgement),
+    description: item.description,
+    validUntil: item.valid_until,
+    deliverableId: item.deliverable_id,
+    taskId: item.task_id,
+  })), [library.data?.documents]);
 
   const categories = useMemo(() => Array.from(new Set(documents.map((doc) => doc.category))), [documents]);
   const folderIds = useMemo(() => new Set(folders.map((folder) => folder.id)), [folders]);
@@ -107,8 +132,14 @@ export function ClientDocumentsPage() {
   const shownFolders = useMemo(() => folders.filter((folder) => (categoryFilter === 'all' || categoryFilter === 'folder') && `${folder.title} ${folder.protocol || ''} pasta`.toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR'))), [folders, query, categoryFilter]);
 
   useEffect(() => {
-    void loadDocuments();
-  }, [user?.id]);
+    const source = brand?.logo_url;
+    if (!source) return;
+    let active = true;
+    void resolveWorkspaceMedia(source, 86400).then((logoUrl) => {
+      if (active) setSignedBrand({ actorId, source, logoUrl });
+    });
+    return () => { active = false; };
+  }, [actorId, brand?.logo_url]);
 
   // Chegando por um aviso (?documento=...): abre a pasta do documento ou a ficha dele, uma vez só.
   const location = useLocation(); const openedFromLink = useRef('');
@@ -127,50 +158,6 @@ export function ClientDocumentsPage() {
     return () => document.body.classList.remove('workspace-modal-open');
   }, [commentDoc]);
 
-  async function loadDocuments() {
-    if (!user) return;
-    setLoading(true);
-    setError('');
-    try {
-      const library = await queryClient.fetchQuery({
-        queryKey: documentLibraryKey(user.id),
-        queryFn: ({ signal }) => readClientDocumentLibrary(signal),
-        staleTime: 0,
-      });
-      if (library.brand) {
-        setCompanyBrand({
-          name: library.brand.display_name || 'sua empresa',
-          logoUrl: (await resolveWorkspaceMedia(library.brand.logo_url, 86400)) || '',
-        });
-      }
-      setDocuments(library.documents.map((item) => ({
-        id: item.id,
-        companyId: item.company_id,
-        title: item.title,
-        category: (item.category || 'other') as CategorySlug,
-        kind: item.document_kind || 'Outro',
-        date: formatDate(item.updated_at),
-        version: item.version_label || 'final',
-        protocol: item.protocol || '—',
-        storagePath: item.storage_path || undefined,
-        driveUrl: item.drive_url || undefined,
-        requiresAcknowledgement: Boolean(item.requires_acknowledgement),
-        description: item.description,
-        validUntil: item.valid_until,
-        deliverableId: item.deliverable_id,
-        taskId: item.task_id,
-      })));
-      setFolders(library.folders);
-      setAcknowledged(library.acknowledged);
-      setDriveConnection(library.drive.connection);
-      setSyncByFile(library.drive.jobs);
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Não foi possível carregar os documentos.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function openDocument(doc: ClientDoc) {
     setError('');
     try {
@@ -185,38 +172,31 @@ export function ClientDocumentsPage() {
   async function acknowledgeDocument(doc: ClientDoc) {
     if (acknowledged.includes(doc.id)) return;
     try {
-      if (!await acknowledgeDocumentVersion(doc)) return;
+      if (!await acknowledgement.mutateAsync(doc)) return;
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Não foi possível registrar a ciência.');
       return;
     }
-    setAcknowledged((current) => [...current, doc.id]);
     setNotice(`Ciência registrada em ${doc.title}.`);
   }
 
-  async function openComments(doc: ClientDoc) {
+  function openComments(doc: ClientDoc) {
+    commentDialogVersion.current++;
     setCommentDoc(doc);
     setComment('');
-    setCommentLoading(true);
-    try {
-      const next = await readDocumentComments(doc.id);
-      setComments(next.map((item) => ({ ...item, createdAt: formatDate(item.createdAt) })));
-    } catch (reason) {
-      setComments([]);
-      setError(reason instanceof Error ? reason.message : 'Não foi possível carregar os comentários.');
-    } finally {
-      setCommentLoading(false);
-    }
+    setError('');
   }
 
   async function sendComment() {
-    if (!commentDoc || !comment.trim()) return;
+    if (!commentDoc || !comment.trim() || postComment.isPending) return;
+    const version = commentDialogVersion.current;
     try {
-      if (!await postDocumentComment(commentDoc, comment)) return;
-      setComment('');
-      await openComments(commentDoc);
+      if (!await postComment.mutateAsync({ file: commentDoc, message: comment })) return;
+      if (version === commentDialogVersion.current) setComment((draft) => draft === comment ? '' : draft);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Não foi possível enviar o comentário.');
+      if (version === commentDialogVersion.current) {
+        setError(reason instanceof Error ? reason.message : 'Não foi possível enviar o comentário.');
+      }
     }
   }
 
@@ -243,14 +223,14 @@ export function ClientDocumentsPage() {
     }
     if (existing?.status === 'pending' || existing?.status === 'processing') return;
     setError('');
-    setSyncByFile((current) => ({ ...current, [doc.id]: { status: 'processing' } }));
+    setDriveOverrides((current) => ({ ...current, [doc.id]: { status: 'processing' } }));
     const { data, error: syncError, detail } = await copyFileToDrive(doc.id);
     if (syncError) {
-      setSyncByFile((current) => ({ ...current, [doc.id]: { status: 'error' } }));
+      setDriveOverrides((current) => ({ ...current, [doc.id]: { status: 'error' } }));
       setError(detail || syncError || 'Não foi possível salvar este arquivo no Google Drive.');
       return;
     }
-    setSyncByFile((current) => ({ ...current, [doc.id]: { status: 'synced', url: data?.url || null } }));
+    setDriveOverrides((current) => ({ ...current, [doc.id]: { status: 'synced', url: data?.url || null } }));
     setNotice(`${doc.title} foi salvo no seu Google Drive.`);
   }
 
@@ -272,7 +252,7 @@ export function ClientDocumentsPage() {
     return 'Salvando no Drive…';
   }
 
-  if (loading) return <Shell role="client"><section className="v2-client-module data-loading" aria-live="polite" aria-busy="true">Carregando biblioteca…</section></Shell>;
+  if (library.isPending) return <Shell role="client"><section className="v2-client-module data-loading" aria-live="polite" aria-busy="true">Carregando biblioteca…</section></Shell>;
 
   // Situação exibida na lista e na ficha: validade primeiro, depois ciência.
   const docState = (doc: ClientDoc) => {
@@ -297,7 +277,7 @@ export function ClientDocumentsPage() {
   return <Shell role="client"><section className="v2-client-module v2-client-docs"><WorkflowPage>
     <WorkflowHeading><div><small>ÁREA DA EMPRESA / ACERVO</small><h1>Documentos</h1><p>Entregáveis com capa, versões, protocolo e acompanhamento.</p></div></WorkflowHeading>
     {notice && <InlineNotice tone="success" role="status"><CheckCircle2 size={18}/>{notice}</InlineNotice>}
-    {error && <InlineNotice role="alert">{error}</InlineNotice>}
+    {alert && <InlineNotice role="alert">{alert}</InlineNotice>}
     <DocumentStorageNotice icon={<Cloud size={23} />}
       title={driveConnection ? 'Drive da sua empresa conectado' : 'Leve suas versões aprovadas para o Drive da sua empresa'}
       description={driveConnection ? `${driveConnection.accountEmail || 'Conta Google conectada'}. Você escolhe quais versões copiar para o Drive da empresa.` : 'Conecte a conta Google da sua empresa para salvar as versões aprovadas.'}
@@ -418,9 +398,10 @@ export function ClientDocumentsPage() {
       comments={comments}
       draft={comment}
       loading={commentLoading}
+      sending={postComment.isPending}
       onDraft={setComment}
       onSend={() => void sendComment()}
-      onClose={() => setCommentDoc(null)}
+      onClose={() => { commentDialogVersion.current++; setCommentDoc(null); }}
     />}
   </WorkflowPage></section></Shell>;
 }

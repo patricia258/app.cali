@@ -23,8 +23,6 @@ export type Front = z.infer<typeof frontSchema>;
 export type ContractedFront = z.infer<typeof contractedFront>;
 export type CompanyPlan = z.infer<typeof companyPlan>;
 
-export const clientFrontsKey = (actorId: string) => ['client', 'fronts', actorId] as const;
-
 export async function loadContractFronts(companyId: string, signal?: AbortSignal) {
   if (!supabase) throw new Error('Conexão indisponível.');
   const catalogQuery = supabase.from('front_catalog').select('code,title,description,category,partner_core,full_core,partner_slot,full_slot,build_allowed,display_order')

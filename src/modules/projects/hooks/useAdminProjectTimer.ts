@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { readProjectTimerContext } from '../../../api/hours/timer-context';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
-import { useFinalizeGlobalTimer } from '../../../components/hours/hooks/useFinalizeGlobalTimer';
+import { useFinalizeWorkTimer } from '../../../components/hours/hooks/useFinalizeWorkTimer';
 import { usePauseGlobalTimer } from '../../../components/hours/hooks/usePauseGlobalTimer';
 import type { TimerFinalizationTarget } from '../../../components/hours/TimerFinalizationDialog';
 import { errorMessage } from '../../../lib/errorMessage';
@@ -22,7 +22,7 @@ export function useAdminProjectTimer(scope: TimerScope | undefined, onChanged: (
   const [confirmation, setConfirmation] = useState<Pending>();
   const [step, setStep] = useState<1 | 2>(1);
   const [finalizationError, setFinalizationError] = useState('');
-  const finalize = useFinalizeGlobalTimer(() => {
+  const finalize = useFinalizeWorkTimer(() => {
     setConfirmation(undefined);
     setStep(1);
   });

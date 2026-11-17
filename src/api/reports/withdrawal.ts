@@ -12,11 +12,11 @@ const withdrawable = z.object({
 });
 export type WithdrawableReport = z.infer<typeof withdrawable>;
 
-export async function readWithdrawableReports() {
+export async function readWithdrawableReports(signal: AbortSignal) {
   if (!supabase) return null;
   const result = await supabase.from('reports')
     .select('id,protocol,status,client_open_count,client_first_opened_at,acknowledged_at,withdrawn_at')
-    .in('status', ['sent', 'published']).order('period_start', { ascending: false }).limit(60);
+    .in('status', ['sent', 'published']).order('period_start', { ascending: false }).limit(60).abortSignal(signal);
   if (result.error) return null;
   return z.array(withdrawable).safeParse(result.data ?? []).data ?? null;
 }

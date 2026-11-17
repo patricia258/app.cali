@@ -13,8 +13,8 @@ export const preRegistrationFieldsSchema = z.object({
 
 export type PreRegistrationFields = z.infer<typeof preRegistrationFieldsSchema>;
 
-export async function readPreRegistration(token: string) {
-  const result = await anonPublicRpc('cali_read_company_pre_registration', { p_token: z.uuid().parse(token) });
+export async function readPreRegistration(token: string, signal?: AbortSignal) {
+  const result = await anonPublicRpc('cali_read_company_pre_registration', { p_token: z.uuid().parse(token) }, signal);
   if (result.error) throw new Error(result.error.message);
   return z.enum(['open', 'submitted', 'missing']).parse(result.data);
 }

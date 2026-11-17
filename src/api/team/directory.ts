@@ -17,9 +17,6 @@ const vacancy = z.object({
 const review = z.object({ reference_month: z.string() });
 const unavailable = 'Conexão indisponível.';
 
-export const teamDirectoryKey = (actorId: string, companyId: string, staff: boolean) =>
-  ['team', 'directory', actorId, companyId, staff] as const;
-
 export async function readTeamCompanies(actorId: string, scope: 'admin' | 'client' | 'partner'): Promise<Company[]> {
   if (!supabase) throw new Error(unavailable);
   if (scope === 'partner') {

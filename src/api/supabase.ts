@@ -32,7 +32,7 @@ const rawPublicSupabase = isSupabaseConfigured
 
 type RpcResult<T> = { data: T | null; error: { message: string } | null };
 
-async function directPublicRpc<T = JsonValue>(fn: string, args?: JsonObject): Promise<RpcResult<T>> {
+export async function authenticatedPublicRpc<T = JsonValue>(fn: string, args?: JsonObject, signal?: AbortSignal): Promise<RpcResult<T>> {
   if (!workspaceSupabase) {
     return { data: null, error: { message: 'Supabase não configurado.' } };
   }
@@ -47,6 +47,7 @@ async function directPublicRpc<T = JsonValue>(fn: string, args?: JsonObject): Pr
     const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${encodeURIComponent(fn)}`, {
       method: 'POST',
       cache: 'no-store',
+      signal,
       headers: {
         apikey: supabasePublishableKey,
         Authorization: `Bearer ${sessionData.session.access_token}`,
@@ -78,13 +79,14 @@ async function directPublicRpc<T = JsonValue>(fn: string, args?: JsonObject): Pr
 }
 
 /** Chamada pública sem sessão (ex.: CALI Forms em /f/:slug). Só para funções liberadas ao papel anon. */
-export async function anonPublicRpc<T = JsonValue>(fn: string, args?: JsonObject): Promise<RpcResult<T>> {
+export async function anonPublicRpc<T = JsonValue>(fn: string, args?: JsonObject, signal?: AbortSignal): Promise<RpcResult<T>> {
   if (!supabaseEnvironment) return { data: null, error: { message: 'Supabase não configurado.' } };
 
   try {
     const response = await fetch(`${supabaseUrl}/rest/v1/rpc/${encodeURIComponent(fn)}`, {
       method: 'POST',
       cache: 'no-store',
+      signal,
       headers: { apikey: supabasePublishableKey, 'Content-Type': 'application/json', 'Accept-Profile': 'public', 'Content-Profile': 'public' },
       body: JSON.stringify(args || {}),
     });
@@ -103,7 +105,7 @@ export const publicSupabase = rawPublicSupabase
   ? new Proxy(rawPublicSupabase, {
       get(target, prop, receiver) {
         if (prop === 'rpc') {
-          return (fn: string, args?: JsonObject) => directPublicRpc(fn, args);
+          return (fn: string, args?: JsonObject) => authenticatedPublicRpc(fn, args);
         }
         const value = Reflect.get(target, prop, receiver);
         return typeof value === 'function' ? value.bind(target) : value;

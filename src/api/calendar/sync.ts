@@ -6,29 +6,30 @@ function requireCalendarClient() {
   return supabase;
 }
 
-export async function readAdminGoogleConnection() {
+export async function readAdminGoogleConnection(signal: AbortSignal) {
   const client = requireCalendarClient();
   const { data: auth } = await client.auth.getUser();
+  signal.throwIfAborted();
   if (!auth.user?.id) return null;
   const { data } = await client.from('calendar_connections')
     .select('id,user_id,company_id,account_email,status,sync_enabled,is_primary').eq('user_id', auth.user.id)
-    .eq('provider', 'google').is('company_id', null).eq('status', 'connected').eq('sync_enabled', true).eq('is_primary', true).limit(1).maybeSingle();
+    .eq('provider', 'google').is('company_id', null).eq('status', 'connected').eq('sync_enabled', true).eq('is_primary', true).limit(1).abortSignal(signal).maybeSingle();
   return data;
 }
 
-export async function invokeGoogleCalendar(body: JsonObject) {
-  return await requireCalendarClient().functions.invoke('google-calendar-oauth', { body });
+export async function invokeGoogleCalendar(body: JsonObject, signal?: AbortSignal) {
+  return await requireCalendarClient().functions.invoke('google-calendar-oauth', { body, signal });
 }
 
-export async function runGoogleCalendarOperation(body: JsonObject) {
-  const { data, error } = await invokeGoogleCalendar(body);
+export async function runGoogleCalendarOperation(body: JsonObject, signal?: AbortSignal) {
+  const { data, error } = await invokeGoogleCalendar(body, signal);
   if (error) throw error;
   if (data?.error) throw new Error(data.detail || data.error);
   return data;
 }
 
-export async function refreshGoogleCalendarEvent(eventId: string) {
-  const { data, error } = await requireCalendarClient().functions.invoke('google-calendar-refresh-event', { body: { eventId } });
+export async function refreshGoogleCalendarEvent(eventId: string, signal: AbortSignal) {
+  const { data, error } = await requireCalendarClient().functions.invoke('google-calendar-refresh-event', { body: { eventId }, signal });
   return error ? null : data;
 }
 
@@ -41,10 +42,10 @@ export async function listMyPendingCalendarEvents(since: string) {
   return data ?? [];
 }
 
-export async function readGoogleCalendarEvent(key: { protocol: string } | { id: string }) {
+export async function readGoogleCalendarEvent(key: { protocol: string } | { id: string }, signal: AbortSignal) {
   const event = requireCalendarClient().from('events')
     .select('id,protocol,google_event_id,google_html_link,meeting_url,reminder_minutes,auto_transcription,sync_status');
-  return await ('id' in key ? event.eq('id', key.id) : event.eq('protocol', key.protocol)).maybeSingle();
+  return await ('id' in key ? event.eq('id', key.id) : event.eq('protocol', key.protocol)).abortSignal(signal).maybeSingle();
 }
 
 export function observeCalendarEventSync(listener: (row: { id?: string; cancelled_at?: string | null; sync_status?: string }) => void) {

@@ -31,6 +31,12 @@ Contra a `main`, as 22 comparações abriram e indicaram diferenças. As mudanç
 
 O [teste de superfície](../tests/e2e/surface-styles.cjs) verifica contraste computado e seis páginas físicas na proposta A4. O [teste de Pessoas](../tests/e2e/people-behaviors.cjs) baixa um PDF DISC real, valida o nome e lê a assinatura do arquivo. A impressão da [Visão geral](../tests/e2e/account-and-overview.cjs) confere a cor da marca na janela independente.
 
+### Padronização do TanStack Query
+
+Agenda e Projetos do Admin, Documentos e Relatórios do Cliente foram comparados em 1440 e 390 px. As oito capturas ficaram equivalentes ao build anterior da branch. As oito comparações contra a `main` em `773c9d4` registraram diferenças que já estavam no build anterior da branch. As duas referências e o candidato abriram todos os casos. Chrome serial, com um cenário por lote e dados sintéticos.
+
+O [teste de Agenda](../tests/e2e/agenda-components.cjs) verifica a atualização da lista Google depois de excluir um evento. O [teste de Documentos](../tests/e2e/client-read-and-copy.cjs) mantém uma leitura de comentários pendente, troca de documento e verifica cancelamento e isolamento. O [teste de cache](../tests/unit/query-cache.test.mjs) verifica respostas tardias depois de trocar sessão.
+
 ### Memória do navegador
 
 Em 13/11/2026, o ensaio local com uma aba e oito trocas entre Relatórios, Agenda, Ocorrências e Projetos atingiu 753 MiB de RSS agregado no Chrome na `main` e 773 MiB na branch. Após coleta de lixo, o heap JS terminou em 8,7 MiB na `main` e 10,7 MiB na branch. Em outro ensaio, abrir e fechar a mesma conversa oito vezes atingiu 863 MiB de RSS na branch, com heap final de 9,0 MiB. Os dados foram sintéticos. O pico relatado de aproximadamente 10 GB ficou sem reprodução. Na conversa aberta e ociosa, a troca da consulta periódica de encerramento por atualização por evento reduziu as requisições observadas em 10 segundos de 30 para 3. O ensaio da correção atingiu 873 MiB de RSS e heap final de 9,5 MiB.

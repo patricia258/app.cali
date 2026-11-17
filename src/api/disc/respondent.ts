@@ -21,10 +21,10 @@ const inviteSchema = z.object({
 export type RespondentLink = z.infer<typeof linkSchema>;
 export type RespondentInvite = z.infer<typeof inviteSchema>;
 
-export async function openRespondentQuestionnaire(slug: string, inviteToken: string) {
+export async function openRespondentQuestionnaire(slug: string, inviteToken: string, signal: AbortSignal) {
   const [link, invite] = await Promise.all([
-    anonPublicRpc('cali_profile_link', { p_slug: slug }),
-    inviteToken ? anonPublicRpc('cali_profile_invite_open', { p_token: inviteToken }) : { data: null },
+    anonPublicRpc('cali_profile_link', { p_slug: slug }, signal),
+    inviteToken ? anonPublicRpc('cali_profile_invite_open', { p_token: inviteToken }, signal) : { data: null },
   ]);
   const publicLink = linkSchema.safeParse(link.data);
   const invitation = inviteSchema.safeParse(invite.data);

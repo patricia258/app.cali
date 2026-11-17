@@ -19,25 +19,24 @@ import { EmptyState } from '../../../components/ds/EmptyState';
 import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { LoadingState } from '../../../components/ds/LoadingState';
 import { useEffect, useMemo, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { endOfMonth, startOfMonth, subDays, subMonths } from 'date-fns';
 import { ArrowUpRight, BarChart3, CalendarRange, Clock3, MessageSquareText, RefreshCw, Star, UserRound } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
 import { resolveCompanyAsset } from '../../../lib/companyWorkspaceLogo';
-import {
-  closeFeedbackRequest, deleteSatisfactionFollowup, readSatisfactionClosures, readSatisfactionReviews,
-  satisfactionClosuresKey, satisfactionRatingsKey, saveSatisfactionFollowup, type SatisfactionClosure,
-  type SatisfactionReview,
-} from '../../../api/admin/satisfaction/reviews';
+import type { SatisfactionReview } from '../../../api/admin/satisfaction/reviews';
+import { useCloseSatisfactionFeedback } from './hooks/useCloseSatisfactionFeedback';
+import { useDeleteSatisfactionFollowup } from './hooks/useDeleteSatisfactionFollowup';
+import { useSatisfactionClosures } from './hooks/useSatisfactionClosures';
+import { useSatisfactionRatings } from './hooks/useSatisfactionRatings';
+import { useSaveSatisfactionFollowup } from './hooks/useSaveSatisfactionFollowup';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 import { filterSatisfactionResponses, summarizeClosureCohort, summarizeSatisfaction } from './satisfactionSummary';
 import './satisfaction-print.css';
 
-type SatisfactionRow = SatisfactionReview & { companyLogoResolved: string; responderAvatarResolved: string };
+type SatisfactionRow = SatisfactionReview;
 
 type PeriodPreset='month'|'30'|'90'|'180'|'365'|'all';
 // Tratativa das notas baixas (tabela satisfaction_followups, só administradora).
-type Followup={theme:string|null;note:string|null;handledAt:string};
 const THEMES:[string,string][]=[['prazo','Prazo'],['qualidade','Qualidade da entrega'],['comunicacao','Comunicação'],['atendimento','Atendimento'],['outro','Outro']];
 const themeLabel=(value?:string|null)=>THEMES.find(([key])=>key===value)?.[1]||'Sem tema';
 const followKey=(row:{sourceType:string;id:string})=>`${row.sourceType}:${row.id}`;
@@ -48,42 +47,50 @@ function sourceLabel(source:SatisfactionRow['sourceType']){return source==='reco
 function initials(value?:string|null){return (value||'C').split(/\s+/).filter(Boolean).slice(0,2).map((part)=>part[0]?.toUpperCase()).join('')||'C';}
 
 export function AdminSatisfactionPage(){
-  const { user } = useWorkspaceAuth();
-  const queryClient = useQueryClient();
-  const [rows,setRows]=useState<SatisfactionRow[]>([]);
-  const [loading,setLoading]=useState(true);
-  const [error,setError]=useState('');
+  const { user, role } = useWorkspaceAuth();
+  const actorId = role === 'admin' ? user?.id ?? null : null;
+  const ratings = useSatisfactionRatings(actorId);
+  const feedback = useSatisfactionClosures(actorId);
+  const closeFeedback = useCloseSatisfactionFeedback(actorId);
+  const saveTreatment = useSaveSatisfactionFollowup(actorId);
+  const deleteTreatment = useDeleteSatisfactionFollowup(actorId);
+  const rows = ratings.data?.ratings ?? [];
+  const followups = ratings.data?.followups ?? {};
+  const closures = feedback.data ?? [];
+  const [companyLogos, setCompanyLogos] = useState<{ actorId: string | null; sources: Record<string, string> }>();
+  const logos = companyLogos?.actorId === actorId ? companyLogos.sources : {};
+  const loading = ratings.isFetching || feedback.isFetching;
+  const readError = ratings.error ?? feedback.error;
+  const [actionError, setError] = useState('');
+  const error = actionError || (readError instanceof Error ? readError.message : readError ? 'Não foi possível carregar as avaliações.' : '');
   const [period,setPeriod]=useState<PeriodPreset>('month');
   const [company,setCompany]=useState('');
   const [source,setSource]=useState<'all'|'record'|'deliverable'>('all');
   const [score,setScore]=useState('all');
   const [from,setFrom]=useState('');
   const [to,setTo]=useState('');
-  const [followups,setFollowups]=useState<Record<string,Followup>>({});
   const [editing,setEditing]=useState<SatisfactionRow|null>(null);
   const [draft,setDraft]=useState({theme:'',note:''});
-  const [savingFollow,setSavingFollow]=useState(false);
-  const [closures,setClosures]=useState<SatisfactionClosure[]>([]);
+  const savingFollow = saveTreatment.isPending || deleteTreatment.isPending;
   const [closing,setClosing]=useState<string|null>(null);
   const [requestsPage,setRequestsPage]=useState(1);
 
-  async function loadClosures() {
-    if (!user) return;
-    const entries = await queryClient.fetchQuery({
-      queryKey: satisfactionClosuresKey(user.id),
-      queryFn: ({ signal }) => readSatisfactionClosures(signal),
-      staleTime: 0,
-    });
-    setClosures(entries);
-  }
+  useEffect(() => {
+    const records = ratings.data?.ratings;
+    if (!records) return;
+    let active = true;
+    const sources = new Set(records.map((row) => row.companyLogoWorkspace || row.companyLogoOriginal || '').filter(Boolean));
+    void Promise.all([...sources].map(async (source) => [source, await resolveCompanyAsset(source)] as const))
+      .then((entries) => { if (active) setCompanyLogos({ actorId, sources: Object.fromEntries(entries) }); });
+    return () => { active = false; };
+  }, [actorId, ratings.data?.ratings]);
 
   async function closeRequest(id: string) {
-    if (!user || closing || !(await confirmAction('Encerrar a espera por esta avaliação?'))) return;
+    if (!actorId || closing || !(await confirmAction('Encerrar a espera por esta avaliação?'))) return;
     setClosing(id);
     setError('');
     try {
-      await closeFeedbackRequest(id);
-      await loadClosures();
+      await closeFeedback.mutateAsync(id);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Não foi possível encerrar a espera.');
     } finally {
@@ -91,28 +98,11 @@ export function AdminSatisfactionPage(){
     }
   }
 
-  async function load(){
-    if(!user)return;setLoading(true);setError('');
-    try{
-      const [result] = await Promise.all([
-        queryClient.fetchQuery({
-          queryKey: satisfactionRatingsKey(user.id),
-          queryFn: ({ signal }) => readSatisfactionReviews(signal),
-          staleTime: 0,
-        }),
-        loadClosures(),
-      ]);
-      const hydrated=await Promise.all(result.ratings.map(async(row)=>({
-        ...row,
-        companyLogoResolved:await resolveCompanyAsset(row.companyLogoWorkspace||row.companyLogoOriginal||''),
-        responderAvatarResolved:await resolveCompanyAsset(row.responderAvatar||''),
-      })));
-      setRows(hydrated);
-      if(result.followups)setFollowups(result.followups);
-    }catch(requestError){setError(requestError instanceof Error?requestError.message:'Não foi possível carregar as avaliações.');}
-    finally{setLoading(false);}
+  async function load() {
+    if (!actorId) return;
+    setError('');
+    await Promise.all([ratings.refetch(), feedback.refetch()]);
   }
-  useEffect(()=>{void load();},[]);
 
   const companies=useMemo(() => {
     const names = new Map(rows.map((row) => [row.companyId, row.company]));
@@ -181,21 +171,24 @@ export function AdminSatisfactionPage(){
   },[lowRows,followups]);
 
   function openFollowup(row:SatisfactionRow){const current=followups[followKey(row)];setDraft({theme:current?.theme||'',note:current?.note||''});setError('');setEditing(row);}
-  async function saveFollowup(){
-    if(!user||!editing)return;setSavingFollow(true);
-    const result=await saveSatisfactionFollowup(editing, { theme: draft.theme || null, note: draft.note.trim() || null });
-    setSavingFollow(false);
-    if(result.error){setError(result.error.message);return;}
-    setFollowups((current)=>({...current,[followKey(editing)]:{theme:result.data?.theme??(draft.theme||null),note:result.data?.note??(draft.note.trim()||null),handledAt:result.data?.handled_at||new Date().toISOString()}}));
-    setEditing(null);
+  async function saveFollowup() {
+    if (!actorId || !editing || savingFollow) return;
+    try {
+      await saveTreatment.mutateAsync({ review: editing, fields: { theme: draft.theme || null, note: draft.note.trim() || null } });
+      setEditing(null);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Não foi possível salvar a tratativa.');
+    }
   }
-  async function removeFollowup(){
-    if(!user||!editing)return;setSavingFollow(true);
-    const result=await deleteSatisfactionFollowup(editing);
-    setSavingFollow(false);
-    if(result.error){setError(result.error.message);return;}
-    setFollowups((current)=>{const next={...current};delete next[followKey(editing)];return next;});
-    setEditing(null);
+
+  async function removeFollowup() {
+    if (!actorId || !editing || savingFollow) return;
+    try {
+      await deleteTreatment.mutateAsync(editing);
+      setEditing(null);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Não foi possível remover a tratativa.');
+    }
   }
 
   function selectPreset(value:PeriodPreset){setPeriod(value);setFrom('');setTo('');}
@@ -293,7 +286,7 @@ export function AdminSatisfactionPage(){
       {filtered.map((row)=>{
         const href=row.sourceType==='record'&&row.entityId?`/admin/registros?record=${encodeURIComponent(row.entityId)}`:row.sourceType==='deliverable'&&row.entityId?`/admin/projetos?deliverable=${encodeURIComponent(row.entityId)}`:'';
         return <WorkflowListRow className="tw:cursor-default! tw:grid-cols-[2.615rem_minmax(0,1.2fr)_minmax(0,.9fr)_minmax(0,2.2fr)_repeat(2,minmax(0,1fr))_minmax(0,1.1fr)]! tw:[@media(max-width:53.75rem)]:grid-cols-[2.615rem_minmax(0,1fr)_auto]! tw:[@media(max-width:53.75rem)]:[&>span:nth-child(n+4)]:hidden!" key={`${row.sourceType}-${row.id}`}>
-          <span className="tw:grid tw:size-10.5 tw:place-items-center tw:overflow-hidden tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:text-sm tw:leading-none tw:font-extrabold tw:text-cali-brand">{row.companyLogoResolved?<img className="tw:size-full tw:object-contain" src={row.companyLogoResolved} alt=""/>:<span aria-hidden="true">{initials(row.company)}</span>}</span>
+          <span className="tw:grid tw:size-10.5 tw:place-items-center tw:overflow-hidden tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:text-sm tw:leading-none tw:font-extrabold tw:text-cali-brand">{logos[row.companyLogoWorkspace || row.companyLogoOriginal || '']?<img className="tw:size-full tw:object-contain" src={logos[row.companyLogoWorkspace || row.companyLogoOriginal || '']} alt=""/>:<span aria-hidden="true">{initials(row.company)}</span>}</span>
           <span className="tw:flex tw:min-w-0 tw:flex-col tw:gap-1"><strong className="tw:truncate tw:text-sm tw:leading-[inherit] tw:font-semibold tw:text-cali-text">{row.company}</strong><small className="tw:text-cali-label tw:leading-[inherit] tw:text-cali-muted">{row.responderName||'Cliente'}</small></span>
           <span className="tw:flex tw:flex-col tw:items-start tw:gap-2"><StatusBadge variant="workflow" tone={tone(row.score)}>{row.score}/5 · {scoreLabel(row.score)}</StatusBadge>{row.score<=3&&(followups[followKey(row)]?<button type="button" className="tw:cursor-pointer tw:rounded-md tw:border tw:border-solid tw:border-cali-green-soft tw:bg-cali-success-surface tw:px-2.5 tw:py-1 tw:text-xs tw:leading-[inherit] tw:text-cali-success" title={followups[followKey(row)].note||'Sem anotação'} onClick={()=>openFollowup(row)}>Tratada · {themeLabel(followups[followKey(row)].theme)}</button>:<button type="button" className="tw:cursor-pointer tw:rounded-md tw:border tw:border-dashed tw:border-cali-line-strong tw:bg-cali-neutral-surface tw:px-2.5 tw:py-1 tw:text-xs tw:leading-[inherit] tw:text-cali-brand" onClick={()=>openFollowup(row)}>Marcar como tratada</button>)}</span>
           <span className="tw:flex tw:min-w-0 tw:flex-col tw:gap-1"><strong className="tw:truncate tw:text-sm tw:leading-[inherit] tw:font-semibold tw:text-cali-text">{row.title||'Avaliação do cliente'}</strong><small className="tw:text-xs tw:leading-[1.45] tw:text-cali-muted">{row.comment?.trim()||'Sem comentário adicional.'}</small></span>

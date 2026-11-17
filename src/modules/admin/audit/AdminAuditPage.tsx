@@ -8,11 +8,10 @@ import { AdminMetricsStrip } from '../../../components/workspace/components/Admi
 import { InlineNotice } from '../../../components/ds/InlineNotice';
 import { LoadingState } from '../../../components/ds/LoadingState';
 import { useEffect, useMemo, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw, Search } from 'lucide-react';
 import { Shell } from '../../../components/workspace/WorkspaceShell';
-import { auditSourceLimit, auditTimelineKey, readAuditTimeline } from '../../../api/admin/audit/timeline';
-import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
+import { auditSourceLimit } from '../../../api/admin/audit/timeline';
+import { useAdminAuditTimeline } from './hooks/useAdminAuditTimeline';
 import { PrivacyRequestsPanel } from '../companies/components/PrivacyRequestsPanel';
 import { AuditItemTrail } from './components/AuditItemTrail';
 import { AuditTimeline } from './components/AuditTimeline';
@@ -49,42 +48,37 @@ const shortDay = (iso: string) => new Intl.DateTimeFormat('pt-BR', { day: '2-dig
 const hour = (iso: string) => new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
 
 export function AdminAuditPage() {
-  const { user } = useWorkspaceAuth();
-  const queryClient = useQueryClient();
-  const [rows, setRows] = useState<Row[]>([]); const [names, setNames] = useState<Record<string, string>>({}); const [companies, setCompanies] = useState<{ id: string; display_name: string }[]>([]);
-  const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [partial, setPartial] = useState<string[]>([]);
-  const [company, setCompany] = useState(''); const [area, setArea] = useState(''); const [actor, setActor] = useState(''); const [period, setPeriod] = useState('30'); const [search, setSearch] = useState(''); const [shown, setShown] = useState(60); const [grouping, setGrouping] = useState<'day' | 'protocol'>('day'); const [trail, setTrail] = useState(''); const [kinds, setKinds] = useState<Record<string, string>>({});
+  const { data, dataUpdatedAt, error: readError, isFetching: loading, refetch } = useAdminAuditTimeline();
+  const error = readError instanceof Error ? readError.message : readError ? 'Não foi possível carregar a auditoria.' : '';
+  const [company, setCompany] = useState(''); const [area, setArea] = useState(''); const [actor, setActor] = useState(''); const [period, setPeriod] = useState('30'); const [search, setSearch] = useState(''); const [shown, setShown] = useState(60); const [grouping, setGrouping] = useState<'day' | 'protocol'>('day'); const [trail, setTrail] = useState('');
 
-  async function load() {
-    if (!user) return;
-    setLoading(true); setError('');
-    try {
-      const { activity, team, priv, status, lifecycle, reports, people, firms, members, protocolSources, failed } =
-        await queryClient.fetchQuery({
-          queryKey: auditTimelineKey(user.id),
-          queryFn: ({ signal }) => readAuditTimeline(signal),
-          staleTime: 0,
-        });
-      const protocolOf = new Map<string, string>(); const kindOf: Record<string, string> = {}; const kindLabels = ['Ocorrência', 'Entrega', 'Compromisso', 'Documento', 'Relatório', 'Projeto', 'Aviso']; protocolSources.forEach((list, position) => list.forEach((item) => { if (item.protocol) { protocolOf.set(item.id, item.protocol); kindOf[item.protocol] = kindLabels[position]; } })); setKinds(kindOf);
-      const reasonText = <T,>(value: T) => text(value) === 'under_30_seconds' ? '' : text(value);
-      const member = new Map(members.map((item) => [item.id, item.full_name as string]));
-      const out: Row[] = [];
-      activity.forEach((item) => { if (hidden.has(item.event_type)) return; const known = activityLabels[item.event_type]; const meta = item.metadata || {}; out.push({ id: `a${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: known?.[0] || 'Outros', action: known?.[1] || String(item.event_type).replace(/_/g, ' '), detail: [text(meta.title), reasonText(meta.reason) && `Motivo: ${reasonText(meta.reason)}`, text(meta.minutes) && `${text(meta.minutes)} min`].filter(Boolean).join(' · '), protocol: protocolOf.get(item.entity_id ?? '') || protocolOf.get(text(meta.record_id)) || protocolOf.get(text(meta.deliverable_id)) || protocolOf.get(text(meta.report_id)) || text(meta.protocol) }); });
-      team.forEach((item) => out.push({ id: `t${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: 'Equipe', action: teamLabels[item.change_type] || 'Atualizou a equipe', detail: member.get(item.member_id ?? '') || '', protocol: '' }));
-      priv.forEach((item) => out.push({ id: `p${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: 'Equipe', action: 'Alterou dados com acesso restrito', detail: [member.get(item.member_id ?? ''), (item.changed_fields || []).map((field: string) => fieldLabels[field] || field).join(', ')].filter(Boolean).join(' · '), protocol: '' }));
-      status.forEach((item) => out.push({ id: `s${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: 'Projetos', action: 'Mudou a situação de uma entrega', detail: [`${statusLabels[item.from_status ?? ''] || item.from_status || 'Início'} → ${statusLabels[item.to_status] || item.to_status}`, text(item.note)].filter(Boolean).join(' · '), protocol: protocolOf.get(item.deliverable_id) || '' }));
-      lifecycle.forEach((item) => out.push({ id: `l${item.id}`, at: item.created_at, actor: item.created_by, company: item.company_id, area: 'Projetos', action: `${lifecycleLabels[item.action] || 'Alterou'} ${item.scope_type === 'project' ? 'o projeto' : item.scope_type === 'workstream' ? 'uma frente' : 'uma entrega'}`, detail: [text(item.scope_label), text(item.reason) && `Motivo: ${text(item.reason)}`].filter(Boolean).join(' · '), protocol: protocolOf.get(item.project_id ?? '') || '' }));
-      reports.forEach((item) => out.push({ id: `r${item.id}`, at: item.created_at, actor: item.user_id, company: item.company_id, area: 'Relatórios', action: reportEventLabels[item.event_type] || 'Cliente interagiu com o relatório', detail: '', protocol: protocolOf.get(item.report_id) || '' }));
-      out.sort((a, b) => b.at.localeCompare(a.at));
-      setRows(out); setNames(Object.fromEntries(people.map((item) => [item.id, item.full_name || '']))); setCompanies(firms); setPartial(failed);
-    } catch (err) { setError(err instanceof Error ? err.message : 'Não foi possível carregar a auditoria.'); } finally { setLoading(false); }
-  }
-  useEffect(() => { void load(); }, []);
+  const { rows, names, companies, partial, kinds } = useMemo(() => {
+    if (!data) return { rows: [], names: {}, companies: [], partial: [], kinds: {} };
+    const { activity, team, priv, status, lifecycle, reports, people, firms, members, protocolSources, failed } = data;
+    const protocolOf = new Map<string, string>(); const kindOf: Record<string, string> = {}; const kindLabels = ['Ocorrência', 'Entrega', 'Compromisso', 'Documento', 'Relatório', 'Projeto', 'Aviso']; protocolSources.forEach((list, position) => list.forEach((item) => { if (item.protocol) { protocolOf.set(item.id, item.protocol); kindOf[item.protocol] = kindLabels[position]; } }));
+    const reasonText = <T,>(value: T) => text(value) === 'under_30_seconds' ? '' : text(value);
+    const member = new Map(members.map((item) => [item.id, item.full_name as string]));
+    const out: Row[] = [];
+    activity.forEach((item) => { if (hidden.has(item.event_type)) return; const known = activityLabels[item.event_type]; const meta = item.metadata || {}; out.push({ id: `a${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: known?.[0] || 'Outros', action: known?.[1] || String(item.event_type).replace(/_/g, ' '), detail: [text(meta.title), reasonText(meta.reason) && `Motivo: ${reasonText(meta.reason)}`, text(meta.minutes) && `${text(meta.minutes)} min`].filter(Boolean).join(' · '), protocol: protocolOf.get(item.entity_id ?? '') || protocolOf.get(text(meta.record_id)) || protocolOf.get(text(meta.deliverable_id)) || protocolOf.get(text(meta.report_id)) || text(meta.protocol) }); });
+    team.forEach((item) => out.push({ id: `t${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: 'Equipe', action: teamLabels[item.change_type] || 'Atualizou a equipe', detail: member.get(item.member_id ?? '') || '', protocol: '' }));
+    priv.forEach((item) => out.push({ id: `p${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: 'Equipe', action: 'Alterou dados com acesso restrito', detail: [member.get(item.member_id ?? ''), (item.changed_fields || []).map((field: string) => fieldLabels[field] || field).join(', ')].filter(Boolean).join(' · '), protocol: '' }));
+    status.forEach((item) => out.push({ id: `s${item.id}`, at: item.created_at, actor: item.actor_user_id, company: item.company_id, area: 'Projetos', action: 'Mudou a situação de uma entrega', detail: [`${statusLabels[item.from_status ?? ''] || item.from_status || 'Início'} → ${statusLabels[item.to_status] || item.to_status}`, text(item.note)].filter(Boolean).join(' · '), protocol: protocolOf.get(item.deliverable_id) || '' }));
+    lifecycle.forEach((item) => out.push({ id: `l${item.id}`, at: item.created_at, actor: item.created_by, company: item.company_id, area: 'Projetos', action: `${lifecycleLabels[item.action] || 'Alterou'} ${item.scope_type === 'project' ? 'o projeto' : item.scope_type === 'workstream' ? 'uma frente' : 'uma entrega'}`, detail: [text(item.scope_label), text(item.reason) && `Motivo: ${text(item.reason)}`].filter(Boolean).join(' · '), protocol: protocolOf.get(item.project_id ?? '') || '' }));
+    reports.forEach((item) => out.push({ id: `r${item.id}`, at: item.created_at, actor: item.user_id, company: item.company_id, area: 'Relatórios', action: reportEventLabels[item.event_type] || 'Cliente interagiu com o relatório', detail: '', protocol: protocolOf.get(item.report_id) || '' }));
+    out.sort((a, b) => b.at.localeCompare(a.at));
+    return {
+      rows: out,
+      names: Object.fromEntries(people.map((item) => [item.id, item.full_name || ''])),
+      companies: firms,
+      partial: failed,
+      kinds: kindOf,
+    };
+  }, [data]);
   useEffect(() => { setShown(60); }, [company, area, actor, period, search, grouping, trail]);
 
   const companyName = useMemo(() => new Map(companies.map((item) => [item.id, item.display_name])), [companies]);
   const who = (id: string | null) => id ? names[id] || 'Usuário sem nome no perfil' : 'Sistema';
-  const filtered = useMemo(() => { const since = period === 'all' ? '' : new Date(Date.now() - Number(period) * 86400000).toISOString(); const query = search.trim().toLocaleLowerCase('pt-BR'); return rows.filter((row) => trail ? row.protocol === trail : (!company || row.company === company) && (!area || row.area === area) && (!actor || (row.actor || 'system') === actor) && (!since || row.at >= since) && (!query || `${row.action} ${row.detail} ${row.protocol} ${who(row.actor)} ${companyName.get(row.company || '') || ''}`.toLocaleLowerCase('pt-BR').includes(query))); }, [rows, company, area, actor, period, search, names, companyName, trail]);
+  const filtered = useMemo(() => { const since = period === 'all' ? '' : new Date(dataUpdatedAt - Number(period) * 86400000).toISOString(); const query = search.trim().toLocaleLowerCase('pt-BR'); return rows.filter((row) => trail ? row.protocol === trail : (!company || row.company === company) && (!area || row.area === area) && (!actor || (row.actor || 'system') === actor) && (!since || row.at >= since) && (!query || `${row.action} ${row.detail} ${row.protocol} ${who(row.actor)} ${companyName.get(row.company || '') || ''}`.toLocaleLowerCase('pt-BR').includes(query))); }, [rows, company, area, actor, period, search, names, companyName, trail, dataUpdatedAt]);
   const actors = useMemo(() => [...new Set(rows.map((row) => row.actor || 'system'))].map((id) => [id, id === 'system' ? 'Sistema' : who(id)] satisfies [string, string]).sort((a, b) => a[1].localeCompare(b[1], 'pt-BR')), [rows, names]);
   const byProtocol = grouping === 'protocol' && !trail;
   const ordered = byProtocol ? (() => { const latest = new Map<string, string>(); filtered.forEach((row) => { const key = row.protocol || ''; if (!latest.has(key)) latest.set(key, row.at); }); return filtered.slice().sort((a, b) => (a.protocol ? 0 : 1) - (b.protocol ? 0 : 1) || (latest.get(b.protocol) || '').localeCompare(latest.get(a.protocol) || '') || b.at.localeCompare(a.at)); })() : filtered;
@@ -95,7 +89,7 @@ export function AdminAuditPage() {
   const people = new Set(filtered.map((row) => row.actor || 'system')).size; const sensitive = filtered.filter((row) => /Excluiu|restrito|descartada|Recolheu|Cancelou/.test(row.action)).length;
 
   return <Shell role="admin"><WorkspaceAdminPage className="v2-client-module"><WorkspaceAdminContent><WorkflowPage>
-    <WorkflowHeading><div><small>BACKOFFICE / CALI RH</small><h1>Auditoria</h1><p>Quem fez o quê, quando e em qual empresa. O histórico não pode ser editado nem apagado; aqui você só responde os pedidos de privacidade.</p></div><div className="v2-head-actions tw:flex tw:flex-wrap tw:items-center tw:gap-3"><Button variant="workflowSecondary" type="button" onClick={() => void load()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</Button></div></WorkflowHeading>
+    <WorkflowHeading><div><small>BACKOFFICE / CALI RH</small><h1>Auditoria</h1><p>Quem fez o quê, quando e em qual empresa. O histórico não pode ser editado nem apagado; aqui você só responde os pedidos de privacidade.</p></div><div className="v2-head-actions tw:flex tw:flex-wrap tw:items-center tw:gap-3"><Button variant="workflowSecondary" type="button" onClick={() => void refetch()} disabled={loading}><RefreshCw size={15} /> {loading ? 'Atualizando…' : 'Atualizar'}</Button></div></WorkflowHeading>
     {error && <InlineNotice>{error}</InlineNotice>}
     <PrivacyRequestsPanel />
     <AdminMetricsStrip metrics={[

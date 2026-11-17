@@ -1,3 +1,4 @@
+import { calendarKeys } from '../../../api/calendar/query-keys';
 import { useQuery } from '@tanstack/react-query';
 import { isSupabaseConfigured } from '../../../api/access/session';
 import { readCalendarNotices } from '../../../api/calendar/agenda';
@@ -13,7 +14,7 @@ const noticeColors: Record<string, string> = {
 export function useCalendarNoticeEvents() {
   const { user, role } = useWorkspaceAuth();
   return useQuery({
-    queryKey: ['calendar', 'published-notices', user?.id, role],
+    queryKey: calendarKeys.publishedNotices(user?.id, role),
     enabled: Boolean(isSupabaseConfigured && user?.id && (role === 'admin' || role === 'partner')),
     queryFn: async ({ signal }) => {
       const result = await readCalendarNotices(true, signal);

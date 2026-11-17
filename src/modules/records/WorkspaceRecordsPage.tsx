@@ -669,8 +669,10 @@ export function WorkspaceRecordsPage({ role, staff }: { role: Role; staff?: Staf
             </summary>
             <section className="tw:grid tw:gap-3 tw:border-0 tw:border-t tw:border-solid tw:border-cali-line tw:bg-[color-mix(in_srgb,var(--theme-surface)_96%,var(--theme-surface-soft))] tw:px-6 tw:py-3.5" aria-label="Resumo do atendimento">
               <RecordOperations key={selected.id} actorId={user?.id} protocol={selected.protocol ?? ''} recordId={selected.id} role={role} onDeleted={() => {
-                setConversationOpen(false);
-                setSelected(null);
+                if (selectedRecordId.current === selected.id) {
+                  setConversationOpen(false);
+                  setSelected(null);
+                }
                 void loadContext(selected.companyId);
               }} />
             </section>

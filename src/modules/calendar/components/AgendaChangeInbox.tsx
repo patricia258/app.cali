@@ -12,8 +12,8 @@ const entryButtonClass = 'tw:inline-flex tw:h-auto tw:cursor-pointer tw:items-ce
 const formButtonClass = 'tw:w-max tw:cursor-pointer tw:rounded-lg tw:border tw:border-solid tw:border-cali-gold tw:px-3 tw:py-2 tw:disabled:cursor-default tw:disabled:opacity-60';
 const optionClass = 'tw:flex tw:items-center tw:gap-2 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:p-2.5';
 
-export function AgendaChangeInbox({ onDecision }: { onDecision: () => void }) {
-  const { data, refetch } = useAgendaChangeInbox();
+export function AgendaChangeInbox() {
+  const { data } = useAgendaChangeInbox();
   const { mutateAsync, isPending: busy } = useAgendaChangeDecision();
   const [active, setActive] = useState<AgendaChangeRequest | null>(null);
   const [index, setIndex] = useState(0);
@@ -37,14 +37,12 @@ export function AgendaChangeInbox({ onDecision }: { onDecision: () => void }) {
     if (!active || busy) return;
     setError('');
     try {
-      const sync = await mutateAsync({ id: active.id, approve, note, slot });
+      const sync = await mutateAsync({ id: active.id, eventId: active.event_id, approve, note, slot });
       setSyncWarning(sync === 'pending'
         ? 'Decisão salva no Workspace. A sincronização com o Google ficou pendente.'
         : sync === 'disconnected' ? 'Decisão salva no Workspace. Conecte a agenda do Google para sincronizar.' : '');
       setActive(null);
       setNote('');
-      await refetch();
-      onDecision();
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Não foi possível salvar a decisão.');
     }

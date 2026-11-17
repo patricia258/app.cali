@@ -1,5 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { recordMeetingOutcome, saveMeetingTranscription, uploadMeetingTranscription } from '../../../api/calendar/meetings';
+import { notifyCalendarRecordUpdated } from '../../../api/calendar/query-cache';
+import { calendarKeys } from '../../../api/calendar/query-keys';
+import { captureQueryScope } from '../../../api/query-client';
+import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 
 type Change =
   | { type: 'outcome'; occurred: boolean; reason: string | null; justified: boolean; note: string }
@@ -7,8 +11,10 @@ type Change =
   | { type: 'attachment'; file: File };
 
 export function useSaveCalendarMeetingRecord(meeting: { id: string; company_id: string; source_type?: string | null }, protocol: string) {
+  const { user } = useWorkspaceAuth();
   const queryClient = useQueryClient();
   return useMutation({
+    onMutate: () => ({ actorId: user?.id, isCurrent: captureQueryScope(queryClient) }),
     mutationFn: async (change: Change) => {
       switch (change.type) {
         case 'outcome': {
@@ -28,14 +34,21 @@ export function useSaveCalendarMeetingRecord(meeting: { id: string; company_id: 
           }
           const filename = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
           const path = `meeting-transcripts/${meeting.company_id}/${meeting.id}/${crypto.randomUUID()}-${filename}`;
-          await uploadMeetingTranscription(meeting.id, path, file);
+          await uploadMeetingTranscription(meeting.id, path, file, captureQueryScope(queryClient));
           return 'Anexo disponível ao cliente';
         }
       }
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['calendar', 'meeting-record', protocol] });
-      window.dispatchEvent(new Event('cali-calendar-record-updated'));
+    onSuccess: async (_data, { type }, scope) => {
+      if (!scope?.actorId || !scope.isCurrent()) return;
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: calendarKeys.meetingRecord(scope.actorId, protocol), exact: true }),
+        queryClient.invalidateQueries({ queryKey: calendarKeys.workspace(scope.actorId) }),
+        type === 'outcome' ? queryClient.invalidateQueries({
+          queryKey: calendarKeys.schedulingRequests(scope.actorId, 'admin'), exact: true,
+        }) : undefined,
+      ]);
+      if (scope.isCurrent()) notifyCalendarRecordUpdated();
     },
   });
 }

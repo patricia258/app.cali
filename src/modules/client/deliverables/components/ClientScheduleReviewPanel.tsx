@@ -21,7 +21,7 @@ export function ClientScheduleReviewPanel({ companyId, project, refreshProject }
   const review = query.data;
 
   async function onSaved() {
-    await Promise.all([query.refetch(), refreshProject()]);
+    await refreshProject();
     setDialog(null);
   }
 
@@ -70,7 +70,7 @@ export function ClientScheduleReviewPanel({ companyId, project, refreshProject }
           className="tw:border-cali-brand tw:bg-cali-brand tw:text-cali-neutral-surface tw:workspace-night:border-cali-orange-line tw:workspace-night:bg-cali-gold tw:workspace-night:text-cali-burgundy-inverse">Aprovar cronograma</button>
       </div>
     </section>
-    {dialog === 'adjustment' && <ClientScheduleAdjustmentDialog review={review} onClose={() => setDialog(null)} onSaved={onSaved} />}
-    {dialog === 'approval' && <ClientScheduleApprovalDialog project={review.project} onClose={() => setDialog(null)} onSaved={onSaved} />}
+    {dialog === 'adjustment' && <ClientScheduleAdjustmentDialog companyId={companyId} review={review} onClose={() => setDialog(null)} onSaved={onSaved} />}
+    {dialog === 'approval' && <ClientScheduleApprovalDialog companyId={companyId} project={review.project} onClose={() => setDialog(null)} onSaved={onSaved} />}
   </>;
 }

@@ -433,7 +433,7 @@ export function ClientDeliverablesPage() {
               <p className="tw:mt-2.5! tw:text-cali-detail/[1.45]! tw:italic tw:text-cali-muted!"><span aria-hidden="true">* </span>{complexityClientNote}</p>
               {selected.originalDueAt && selected.originalDueAt !== selected.dueAt && <p>Prazo original: {formatDate(selected.originalDueAt)}.</p>}
             </div>
-            <DeliverableDependencies deliverableId={selected.id} companyId="" title={selected.title} dueAt={selected.dueAt || null} mode="client" />
+            <DeliverableDependencies key={selected.id} deliverableId={selected.id} companyId={companyId} title={selected.title} dueAt={selected.dueAt || null} mode="client" />
             {selected.isDocument && <ClientDeliveryFile
               icon={<FileText size={20} />}
               title={selected.document?.title || 'Arquivo ainda não publicado'}

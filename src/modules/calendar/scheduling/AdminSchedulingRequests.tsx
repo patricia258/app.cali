@@ -20,11 +20,6 @@ export function AdminSchedulingRequests() {
   const [notice, setNotice] = useSchedulingNotice();
   const { data, error, enabled } = useAdminSchedulingRequests();
 
-  function saved(message: string) {
-    setNotice({ message });
-    window.dispatchEvent(new Event('cali-calendar-record-updated'));
-  }
-
   const accept = useConfirmSchedulingRequest(setNotice);
 
   async function openAttachment(path: string) {
@@ -124,7 +119,7 @@ export function AdminSchedulingRequests() {
         </>,
         document.body,
       )}
-      {dialog && <AdminSchedulingDialog selection={dialog} onClose={() => setDialog(null)} onSaved={saved} />}
+      {dialog && <AdminSchedulingDialog selection={dialog} onClose={() => setDialog(null)} onSaved={(message) => setNotice({ message })} />}
       <SchedulingNotice notice={notice} />
     </>
   );

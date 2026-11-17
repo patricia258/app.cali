@@ -318,12 +318,13 @@ browserSuite([
         return {
           background: control.backgroundColor,
           badgeBackground: getComputedStyle(element.parentElement).backgroundColor,
+          expectedBackground: control.getPropertyValue('--cali-rgb-orange-accent').trim().split(/\s+/).join(', '),
           color: control.color,
           label: element.selectedOptions[0]?.textContent,
         };
       });
       assert.equal(statusStyle.background, 'rgba(0, 0, 0, 0)');
-      assert.equal(statusStyle.badgeBackground, 'rgb(217, 138, 43)');
+      assert.equal(statusStyle.badgeBackground, `rgb(${statusStyle.expectedBackground})`);
       assert.equal(statusStyle.color, 'rgb(255, 255, 255)');
       assert.match(statusStyle.label || '', /Aguardando cliente/);
       assert.equal(await tabs.getByRole('button').count(), 5);

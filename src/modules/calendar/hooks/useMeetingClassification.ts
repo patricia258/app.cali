@@ -1,3 +1,4 @@
+import { calendarKeys } from '../../../api/calendar/query-keys';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { isSupabaseConfigured } from '../../../api/access/session';
@@ -9,10 +10,10 @@ export function useMeetingClassification(protocol: string | undefined, enabled: 
   const { user, role } = useWorkspaceAuth();
   const [edited, setEdited] = useState<MeetingClassification | null>(null);
   const { data } = useQuery({
-    queryKey: ['calendar', 'meeting-classification', protocol, user?.id],
-    queryFn: async () => {
+    queryKey: calendarKeys.meetingClassification(user?.id, protocol),
+    queryFn: async ({ signal }) => {
       if (!protocol) return null;
-      const { data, error } = await readMeetingByProtocol(protocol);
+      const { data, error } = await readMeetingByProtocol(protocol, signal);
       if (error) throw error;
       return data?.schedule_class;
     },

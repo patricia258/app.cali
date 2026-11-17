@@ -25,7 +25,7 @@ import { CalendarDeleteEventDialog } from './components/CalendarDeleteEventDialo
 import { CalendarToolbar } from './components/CalendarToolbar';
 import { CalendarLegend } from './components/CalendarLegend';
 import { CalendarGoogleConnection } from './components/CalendarGoogleConnection';
-import { useInvalidateGoogleCalendarEvent } from './hooks/useInvalidateGoogleCalendarEvent';
+import { useCancelCalendarEvent } from './hooks/useCancelCalendarEvent';
 import { useCalendarEventSync } from './hooks/useCalendarEventSync';
 import { useCalendarEventSave } from './hooks/useCalendarEventSave';
 import { useMeetingClassification } from './hooks/useMeetingClassification';
@@ -48,7 +48,7 @@ import {
 } from '../../domain/calendar';
 import type { JsonObject } from '../../domain/json';
 import { isSupabaseConfigured } from '../../api/access/session';
-import { cancelCalendarEvent, submitStaffCalendarChange } from '../../api/calendar/admin';
+import { submitStaffCalendarChange } from '../../api/calendar/admin';
 import { NoticeCalendarCard } from '../notices/NoticesBoard';
 import { CALENDAR_UUID_PATTERN, type CompanyOption } from './adminCalendarData';
 import { useAdminGoogleCalendarEvents } from './hooks/useAdminGoogleCalendarEvents';
@@ -179,7 +179,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
     return sent;
   }
   const today = useMemo(() => new Date(), []);
-  const { data: calendar, isPending, enabled, refetch: loadCalendar } = useAdminCalendarData(Boolean(staff));
+  const { data: calendar, isPending, enabled } = useAdminCalendarData(Boolean(staff));
   const [localEvents, setEvents] = useState<WorkspaceCalendarEvent[] | null>(null);
   const events = localEvents ?? calendar?.events ?? previewCalendarEvents;
   const companies = calendar?.companies.length ? calendar.companies : fallbackCompanies;
@@ -188,7 +188,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
   const loading = enabled && isPending;
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12));
   const { data: noticeEvents = [] } = useCalendarNoticeEvents();
-  const { data: googleCalendar, status: googleReadStatus, refetch: reloadGoogleCalendar } = useAdminGoogleCalendarEvents(cursor, Boolean(staff));
+  const { data: googleCalendar, status: googleReadStatus } = useAdminGoogleCalendarEvents(cursor, Boolean(staff));
   const googleEvents = googleCalendar?.events ?? [];
   const [view, setView] = useState<CalendarView>('week');
   const [companyFilter, setCompanyFilter] = useState('all');
@@ -203,8 +203,8 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
   const [calendarNotice, setCalendarNotice] = useSchedulingNotice();
   const [selectedEvent, setSelectedEvent] = useState<WorkspaceCalendarEvent | null>(null);
   const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
-  const invalidateGoogleEvent = useInvalidateGoogleCalendarEvent();
-  const syncEvent = useCalendarEventSync(setCalendarNotice, invalidateGoogleEvent);
+  const cancelCalendarEvent = useCancelCalendarEvent();
+  const syncEvent = useCalendarEventSync(setCalendarNotice);
   const [saving, setSaving] = useState(false);
   const [eventError, setEventError] = useState('');
   const [cancelReason, setCancelReason] = useState('');
@@ -369,13 +369,13 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
           event: eventPayload,
           attendees: attendeeEmails,
           eventId: editingEvent?.id,
+          protocol: editingProtocol,
           classification: form.companyId && form.type === 'meeting' ? classification : undefined,
         });
         await syncEvent({ eventId: result.savedId });
         if (result.classificationPending) {
           setCalendarNotice({ tone: 'error', message: 'Evento salvo. A classificação contratual ficou pendente. Edite o evento para tentar novamente.' });
         }
-        await loadCalendar();
       } else {
         const localEvent: WorkspaceCalendarEvent = {
           id: editingEvent?.id || `local-${Date.now()}`,
@@ -422,9 +422,8 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
         const submitted = await staffSubmitChange('event_cancel', `Cancelar evento: ${selectedEvent.title}`, { id: selectedEvent.id, reason: cancelReason.trim() }, selectedEvent.companyId);
         if (!submitted) return;
       } else if (isSupabaseConfigured && CALENDAR_UUID_PATTERN.test(selectedEvent.id)) {
-        await cancelCalendarEvent(selectedEvent.id, cancelReason);
+        await cancelCalendarEvent.mutateAsync({ eventId: selectedEvent.id, reason: cancelReason });
         await syncEvent({ eventId: selectedEvent.id, action: 'cancel_event', silent: true });
-        await loadCalendar();
       } else {
         setEvents((current) => (current ?? events).map((item) => item.id === selectedEvent.id ? { ...item, cancelledAt: new Date().toISOString() } : item));
       }
@@ -461,13 +460,12 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
       {staffNotice && <WorkspaceToast><Check size={18} /><span>{staffNotice}</span></WorkspaceToast>}
       <section className="tw:relative">
         <WorkspacePageHeader eyebrow={staff ? 'EQUIPE CALI / CALENDÁRIO' : 'BACKOFFICE / CALI RH'} title={staff ? 'Calendário' : 'Agenda da CALI'} description={staff ? 'Reuniões, validações e prazos das empresas que você atende.' : 'Reuniões, validações, prazos e a sua agenda Google em uma visão única.'} actionClassName="tw:my-3! tw:flex! tw:flex-wrap tw:items-center tw:gap-2 tw:[&_button]:whitespace-nowrap">
-          {!staff && <AgendaChangeInbox onDecision={()=>void loadCalendar()}/>}
+          {!staff && <AgendaChangeInbox />}
           {!staff && <ExtraVisitExpenses placement="calendar" />}
           {!staff && <Button variant="adminOutline" className="tw:inline-flex tw:min-h-[2.4375rem] tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-cali-panel tw:border tw:border-solid tw:border-cali-line tw:bg-cali-surface tw:px-3 tw:text-xs! tw:font-bold! tw:text-cali-text" type="button" onClick={()=>setHistoryOpenedAt(Date.now())}><FileText size={15}/> Histórico de reuniões</Button>}
           <Button variant="adminPrimary" onClick={() => openCreateForDate()}><Plus size={15} /> Novo evento</Button>
         </WorkspacePageHeader>
-        {!staff && <CalendarGoogleConnection readStatus={googleReadStatus} connected={calendarConnection === 'connected'}
-          onDisconnected={() => { void loadCalendar(); void reloadGoogleCalendar(); }} />}
+        {!staff && <CalendarGoogleConnection readStatus={googleReadStatus} connected={calendarConnection === 'connected'} />}
         {!staff && <AdminSchedulingRequests />}
 
         <CalendarToolbar view={view} label={cursorLabel} onViewChange={setView}
@@ -569,7 +567,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
         onEdit={() => openEditEvent(selectedEvent)} onDelete={() => setDeletingEventId(selectedEvent.id)}
         saving={saving} error={eventError} />}
       {deletingEventId && <CalendarDeleteEventDialog eventId={deletingEventId} onClose={() => setDeletingEventId(null)}
-        onDeleted={() => { setSelectedEvent(null); invalidateGoogleEvent(deletingEventId); }} />}
+        onDeleted={() => setSelectedEvent(null)} />}
       </WorkspaceAdminContent></WorkspaceAdminPage>
     </CalendarFrame>
   );

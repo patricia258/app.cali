@@ -28,8 +28,6 @@ const extractRow = z.object({
 const capacity = z.object({ occurrence: z.coerce.number().nullish(), paused: z.boolean().nullish() });
 const companyPlan = z.object({ service_plan: z.string().nullish() });
 
-export const clientHoursKey = (actorId: string, period: string) => ['client', 'hours', actorId, period] as const;
-
 export async function readClientHours(actorId: string, start: string, end: string, signal: AbortSignal) {
   if (!supabase) throw new Error('Conexão indisponível.');
   const profile = await supabase.from('profiles').select('company_id').eq('id', actorId).abortSignal(signal).maybeSingle();

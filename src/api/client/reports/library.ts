@@ -42,8 +42,6 @@ const report = reportContent.extend({
 export type ClientReportRow = z.infer<typeof report>;
 const company = z.object({ display_name: nullableText, logo_url: nullableText, logo_workspace_url: nullableText });
 
-export const clientReportsKey = (actorId: string) => ['client', 'reports', actorId] as const;
-
 export async function readClientReports(actorId: string, signal: AbortSignal) {
   if (!supabase) throw new Error('Conexão indisponível.');
   const profile = await supabase.from('profiles').select('company_id').eq('id', actorId).abortSignal(signal).maybeSingle();

@@ -75,12 +75,18 @@ test('custom hooks live in their own named files', () => {
 });
 
 test('consultas e mutações da interface ficam em hooks por operação', () => {
+  const hooks = new Set([
+    'useQuery', 'useInfiniteQuery', 'useQueries',
+    'useSuspenseQuery', 'useSuspenseInfiniteQuery', 'useSuspenseQueries', 'useMutation',
+  ]);
+  const loaders = new Set(['fetchQuery', 'fetchInfiniteQuery', 'prefetchQuery', 'prefetchInfiniteQuery', 'ensureQueryData', 'ensureInfiniteQueryData']);
   const violations = [];
-  for (const file of sourceFiles(src).filter((path) => path.endsWith('.tsx'))) {
+  for (const file of sourceFiles(src)) {
+    const isHook = /^use[A-Z].*\.tsx?$/.test(basename(file));
     const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+    const imports = new Map();
     for (const node of source.statements) {
-      if (!ts.isImportDeclaration(node) || !ts.isStringLiteral(node.moduleSpecifier) ||
-        node.moduleSpecifier.text !== '@tanstack/react-query') continue;
+      if (!ts.isImportDeclaration(node) || node.moduleSpecifier.text !== '@tanstack/react-query') continue;
       const bindings = node.importClause?.namedBindings;
       if (!bindings) continue;
       if (ts.isNamespaceImport(bindings)) {
@@ -89,11 +95,48 @@ test('consultas e mutações da interface ficam em hooks por operação', () => 
       }
       for (const binding of bindings.elements) {
         const name = (binding.propertyName ?? binding.name).text;
-        if (name === 'useQuery' || name === 'useMutation') {
-          violations.push(file.slice(src.length) + ' importa ' + name);
-        }
+        if (hooks.has(name)) imports.set(binding.name.text, name);
       }
     }
+    let operations = 0;
+    function visit(node) {
+      if (ts.isCallExpression(node)) {
+        const callee = node.expression;
+        const hook = ts.isIdentifier(callee) ? imports.get(callee.text) : undefined;
+        const loader = ts.isPropertyAccessExpression(callee) && loaders.has(callee.name.text) ? callee.name.text : undefined;
+        if (hook || loader) {
+          operations++;
+          if (!isHook) violations.push(file.slice(src.length) + ' executa ' + (hook || loader));
+        }
+      }
+      ts.forEachChild(node, visit);
+    }
+    visit(source);
+    if (isHook && operations > 1) violations.push(file.slice(src.length) + ' junta operações de Query');
+  }
+  assert.deepEqual(violations, []);
+});
+
+test('chaves de Query vêm de funções tipadas no domínio', () => {
+  const violations = [];
+  const cacheMethods = new Set(['getQueryData', 'getQueryState', 'setQueryData']);
+  for (const file of sourceFiles(src)) {
+    const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+    function isInlineKey(value) {
+      while (value && (ts.isAsExpression(value) || ts.isSatisfiesExpression(value) || ts.isParenthesizedExpression(value))) value = value.expression;
+      return value && ts.isArrayLiteralExpression(value);
+    }
+    function visit(node) {
+      if (ts.isPropertyAssignment(node) && /^(queryKey|mutationKey)$/.test(node.name.getText(source)) && isInlineKey(node.initializer)) {
+        violations.push(file.slice(src.length) + ' declara chave direta');
+      }
+      if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
+        cacheMethods.has(node.expression.name.text) && isInlineKey(node.arguments[0])) {
+        violations.push(file.slice(src.length) + ' manipula cache com chave direta');
+      }
+      ts.forEachChild(node, visit);
+    }
+    visit(source);
   }
   assert.deepEqual(violations, []);
 });

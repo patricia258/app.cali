@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { readRecordClosureContext, subscribeRecordClosure } from '../../../../api/records/closure';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useRecordClosureContext } from './useRecordClosureContext';
 import { recordsAvailable } from '../../../../api/records/client';
 import { useRecordClosureFeedback } from './useRecordClosureFeedback';
 import { useRequestRecordReopen } from './useRequestRecordReopen';
@@ -21,34 +20,24 @@ type Confirmation = 'feedback' | 'requested' | 'approved' | 'rejected';
 export function useRecordClosureExperience({
   protocol, recordId, role, actorId, enabled, workflowStatus, onRecordChanged,
 }: Selection) {
-  const queryClient = useQueryClient();
   const active = Boolean(recordsAvailable && enabled && actorId && recordId && protocol);
   const selection = active ? recordId ?? '' : '';
   const scope = selection ? JSON.stringify([actorId, role, selection]) : '';
-  const key = ['records', 'closure', actorId, role, selection, workflowStatus] as const;
-  const query = useQuery({
-    queryKey: key,
-    queryFn: () => selection ? readRecordClosureContext(selection, role) : null,
-    enabled: active,
-    gcTime: 0,
-    refetchOnWindowFocus: true,
-    refetchInterval: (current) => {
-      const closure = current.state.data?.closure;
-      return active && role === 'client' && closure && !closure.answered_at && !closure.closed_unanswered_at ? 60_000 : false;
-    },
-  });
+  const currentScope = useRef('');
+  useLayoutEffect(() => {
+    currentScope.current = scope;
+    return () => { currentScope.current = ''; };
+  }, [scope]);
+  const query = useRecordClosureContext(actorId, role, selection, workflowStatus);
 
   const [dismissedFeedback, setDismissedFeedback] = useState('');
   const [dismissedRequest, setDismissedRequest] = useState('');
   const [clientReopen, setClientReopen] = useState('');
   const [confirmation, setConfirmation] = useState<{ id: string; kind: Confirmation } | null>(null);
 
-  const refresh = () => {
-    void queryClient.invalidateQueries({ queryKey: ['records', 'closure', actorId, role, selection] });
-  };
-  const { mutateAsync: submitFeedback, isPending: submittingFeedback } = useRecordClosureFeedback(selection, refresh);
-  const { mutateAsync: submitReopen, isPending: requestingReopen } = useRequestRecordReopen(selection, refresh);
-  const { mutateAsync: submitDecision, isPending: decidingReopen } = useDecideRecordReopen(refresh);
+  const { mutateAsync: submitFeedback, isPending: submittingFeedback } = useRecordClosureFeedback(actorId, role, selection);
+  const { mutateAsync: submitReopen, isPending: requestingReopen } = useRequestRecordReopen(actorId, role, selection);
+  const { mutateAsync: submitDecision, isPending: decidingReopen } = useDecideRecordReopen(actorId, role, selection);
 
   useEffect(() => {
     if (!selection) {
@@ -56,12 +45,8 @@ export function useRecordClosureExperience({
       setDismissedRequest('');
       setClientReopen('');
       setConfirmation(null);
-      return;
     }
-    return subscribeRecordClosure(selection, () => {
-      void queryClient.invalidateQueries({ queryKey: ['records', 'closure', actorId, role, selection] });
-    });
-  }, [actorId, queryClient, role, selection]);
+  }, [selection]);
 
   const ctx = active ? query.data : undefined;
   const pendingReopen = ctx?.reopen ?? null;
@@ -88,11 +73,13 @@ export function useRecordClosureExperience({
     sendFeedback: async (score: number, comment: string | null) => {
       if (!openClosure) return;
       await submitFeedback({ closureId: openClosure.id, score, comment });
+      if (scope !== currentScope.current) return;
       setDismissedFeedback(feedbackKey);
       setConfirmation({ id: scope, kind: 'feedback' });
     },
     sendReopen: async (reason: string) => {
       await submitReopen(reason);
+      if (scope !== currentScope.current) return;
       setClientReopen('');
       setConfirmation({ id: scope, kind: 'requested' });
       onRecordChanged?.();
@@ -100,6 +87,7 @@ export function useRecordClosureExperience({
     decideReopen: async (decision: 'approved' | 'rejected', note: string | null) => {
       if (!pendingReopen) return;
       await submitDecision({ requestId: pendingReopen.id, decision, note });
+      if (scope !== currentScope.current) return;
       setDismissedRequest(requestKey);
       setConfirmation({ id: scope, kind: decision });
       onRecordChanged?.();

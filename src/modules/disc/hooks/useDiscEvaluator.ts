@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { discKeys } from '../../../api/disc/query-keys';
 import { readDiscSigner, readEvaluatorCompanyContext, readEvaluatorReference, readEvaluatorResult } from '../../../api/disc/reports';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
 import type { Style } from '../profileMethod';
@@ -6,23 +7,19 @@ import type { ProfileBase, ProfileResultView, ProfileSigner } from '../component
 
 export type DiscEvaluatorRow = ProfileResultView & { company_id: string | null; team_member_id: string | null; email: string; report_path: string | null };
 
-export function discEvaluatorKey(actorId: string | undefined, id: string) {
-  return ['disc', 'evaluator', actorId, id] as const;
-}
-
 export function useDiscEvaluator(id: string, admin: boolean) {
   const { user, role, active } = useWorkspaceAuth();
   return useQuery({
-    queryKey: discEvaluatorKey(user?.id, id),
-    queryFn: async () => {
+    queryKey: discKeys.evaluator(user?.id, id),
+    queryFn: async ({ signal }) => {
       const [base, signer, data] = await Promise.all([
-        readEvaluatorReference(), readDiscSigner(), readEvaluatorResult(id),
+        readEvaluatorReference(signal), readDiscSigner(signal), readEvaluatorResult(id, signal),
       ]);
       if (!data) return null;
       const { companies, ...fields } = data;
       const company = Array.isArray(companies) ? companies[0] : companies;
       const row: DiscEvaluatorRow = { ...fields, company_name: company?.display_name || data.company_name };
-      const context = row.company_id ? await readEvaluatorCompanyContext(row.company_id) : { styles: [], members: [] };
+      const context = row.company_id ? await readEvaluatorCompanyContext(row.company_id, signal) : { styles: [], members: [] };
       return {
         row, base: base as ProfileBase | null, signer: signer as ProfileSigner | null,
         team: context.styles as Array<{ primary_style: Style }>, members: context.members,

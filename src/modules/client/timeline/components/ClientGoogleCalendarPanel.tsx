@@ -19,9 +19,7 @@ export function ClientGoogleCalendarPanel() {
     if (action === 'disconnect' && !(await confirmAction('Desconectar sua agenda Google do CALI Workspace? Os compromissos que já existem no Google não serão apagados.'))) return;
     setError('');
     try {
-      const url = await mutateAsync({ action, companyId });
-      if (url) window.location.assign(url);
-      else await refetch();
+      await mutateAsync({ action, companyId });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : action === 'disconnect'
         ? 'Não foi possível desconectar sua agenda.'

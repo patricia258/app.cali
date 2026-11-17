@@ -9,13 +9,12 @@ import { useEffect, useState } from 'react';
 import { AlertTriangle, CalendarClock, Check, Plus } from 'lucide-react';
 import { useDeliverableDependencies, type DependencyMode } from './hooks/useDeliverableDependencies';
 import { isSupabaseConfigured } from '../../api/access/session';
-import {
-  addDeliverableDependency,
-  cancelDeliverableDependency,
-  markDeliverableDependencyReceived,
-  writeDeliverableDeadlinePlan,
-  type DeliverableDependency as Dep,
-} from '../../api/projects/dependencies';
+import type { DeliverableDependency as Dep } from '../../api/projects/dependencies';
+import { useAddDeliverableDependency } from './hooks/useAddDeliverableDependency';
+import { useReceiveDeliverableDependency } from './hooks/useReceiveDeliverableDependency';
+import { useCancelDeliverableDependency } from './hooks/useCancelDeliverableDependency';
+import { useWriteDeliverableDeadlinePlan } from './hooks/useWriteDeliverableDeadlinePlan';
+import { errorMessage } from '../../lib/errorMessage';
 
 type Sibling = { id: string; title: string; dueAt: string | null };
 
@@ -85,7 +84,6 @@ export function DeliverableDependencies({
   onNotice?: (message: string) => void;
   onChanged?: () => void;
 }) {
-  const [busy, setBusy] = useState(false);
   const [draft, setDraft] = useState({ title: '', due: '' });
   const [plan, setPlan] = useState<{ date: string; cause: string; reason: string; shift: string[] } | null>(null);
   const today = localDay();
@@ -93,6 +91,12 @@ export function DeliverableDependencies({
   const fail = (message: string) => onNotice?.(message);
 
   const dependencies = useDeliverableDependencies(deliverableId, companyId, mode);
+  const staff = mode === 'staff';
+  const addDependency = useAddDeliverableDependency(companyId, deliverableId, staff);
+  const receiveDependency = useReceiveDeliverableDependency(companyId, deliverableId, staff);
+  const cancelDependency = useCancelDeliverableDependency(companyId, deliverableId);
+  const writePlan = useWriteDeliverableDeadlinePlan(companyId);
+  const busy = addDependency.isPending || receiveDependency.isPending || cancelDependency.isPending || writePlan.isPending;
   const deps = dependencies.data?.items ?? [];
   const revs = dependencies.data?.history ?? [];
   useEffect(() => {
@@ -106,45 +110,26 @@ export function DeliverableDependencies({
   const extra = REMOBILIZATION[complexity || ''] || 0;
   const due = dueAt ? asDay(dueAt) : '';
 
-  async function add() {
+  function add() {
     if (!isSupabaseConfigured || busy || !draft.title.trim() || !draft.due) return;
-    setBusy(true);
-    const { error } = await addDeliverableDependency(
-      deliverableId,
-      companyId,
-      draft.title.trim(),
-      draft.due,
-      mode === 'staff',
-    );
-    setBusy(false);
-    if (error) {
-      fail(error.message || 'Não foi possível registrar a dependência.');
-      return;
-    }
-    setDraft({ title: '', due: '' });
-    await dependencies.refetch();
+    addDependency.mutate({ title: draft.title.trim(), dueDate: draft.due }, {
+      onSuccess: () => setDraft({ title: '', due: '' }),
+      onError: (error) => fail(errorMessage(error, 'Não foi possível registrar a dependência.')),
+    });
   }
-  async function receive(dep: Dep) {
+
+  function receive(dep: Dep) {
     if (!isSupabaseConfigured || busy) return;
-    setBusy(true);
-    const { error } = await markDeliverableDependencyReceived(dep.id, mode === 'staff');
-    setBusy(false);
-    if (error) {
-      fail(error.message || 'Não foi possível marcar como recebido.');
-      return;
-    }
-    await dependencies.refetch();
+    receiveDependency.mutate(dep.id, {
+      onError: (error) => fail(errorMessage(error, 'Não foi possível marcar como recebido.')),
+    });
   }
-  async function cancel(dep: Dep) {
+
+  function cancel(dep: Dep) {
     if (!isSupabaseConfigured || busy) return;
-    setBusy(true);
-    const { error } = await cancelDeliverableDependency(dep.id);
-    setBusy(false);
-    if (error) {
-      fail(error.message);
-      return;
-    }
-    await dependencies.refetch();
+    cancelDependency.mutate(dep.id, {
+      onError: (error) => fail(errorMessage(error, 'Não foi possível cancelar a dependência.')),
+    });
   }
 
   function openPlan() {
@@ -158,9 +143,8 @@ export function DeliverableDependencies({
       shift: [],
     });
   }
-  async function applyPlan() {
+  function applyPlan() {
     if (!isSupabaseConfigured || !plan || busy || !plan.date || !plan.reason.trim() || plan.date === due) return;
-    setBusy(true);
     const moved = due ? gap(due, plan.date) : 0;
     const steps = [
       {
@@ -180,22 +164,19 @@ export function DeliverableDependencies({
           keepOriginal: false,
         })),
     ];
-    const failure = await writeDeliverableDeadlinePlan(
-      companyId,
-      plan.cause,
-      steps.map((step) => ({ ...step, to: stamp(step.to) })),
-    );
-    setBusy(false);
-    if (failure) {
-      fail(failure);
-      return;
-    }
-    setPlan(null);
-    fail(
-      `Prazo reprogramado para ${show(plan.date)}${steps.length > 1 ? ` e ${steps.length - 1} ${steps.length === 2 ? 'entrega seguinte ajustada' : 'entregas seguintes ajustadas'}` : ''}.`,
-    );
-    await dependencies.refetch();
-    onChanged?.();
+    writePlan.mutate({
+      cause: plan.cause,
+      steps: steps.map((step) => ({ ...step, to: stamp(step.to) })),
+    }, {
+      onError: (error) => fail(errorMessage(error, 'Não foi possível alterar o prazo.')),
+      onSuccess: () => {
+        setPlan(null);
+        fail(
+          `Prazo reprogramado para ${show(plan.date)}${steps.length > 1 ? ` e ${steps.length - 1} ${steps.length === 2 ? 'entrega seguinte ajustada' : 'entregas seguintes ajustadas'}` : ''}.`,
+        );
+        onChanged?.();
+      },
+    });
   }
 
   if (mode === 'client' && !deps.length && !revs.length) return null;

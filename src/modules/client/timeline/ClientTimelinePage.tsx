@@ -19,9 +19,35 @@ import { NoticeCalendarCard } from '../../notices/NoticesBoard';
 import { isSupabaseConfigured } from '../../../api/access/session';
 import { readCalendarNotices, observeSchedulingRequests } from '../../../api/calendar/agenda';
 import { readClientCalendar, readClientCalendarAttendees } from '../../../api/calendar/client';
-import { requestAgendaChange } from '../../../api/calendar/changes';
-import { readGoogleCalendarEvents, refreshGoogleEventStatus } from '../../../api/calendar/connections';
+import { refreshGoogleEventStatus, type GoogleCalendarEvent } from '../../../api/calendar/connections';
 import { useWorkspaceAuth } from '../../../auth/hooks/useWorkspaceAuth';
+import { errorMessage } from '../../../lib/errorMessage';
+import { useClientGoogleCalendarEvents } from './hooks/useClientGoogleCalendarEvents';
+import { useRequestClientAgendaChange } from './hooks/useRequestClientAgendaChange';
+
+function personalCalendarItem(row: GoogleCalendarEvent): TimelineItem {
+  const start = row.allDay ? `${row.start}T12:00:00-03:00` : String(row.start);
+  return {
+    id: `personal-${row.calendarId}-${row.id}`,
+    sourceId: String(row.id),
+    kind: 'google',
+    title: String(row.title || 'Compromisso'),
+    at: start,
+    endsAt: row.allDay ? null : row.end,
+    googleHtmlLink: row.htmlLink,
+    description: row.description,
+    secondaryDetail: row.location ?? undefined,
+    color: /^#[0-9a-f]{6}$/i.test(row.color) ? row.color : null,
+    textColor: /^#[0-9a-f]{6}$/i.test(row.textColor ?? '') ? row.textColor : null,
+    allDay: Boolean(row.allDay),
+    dateLabel: formatDay(start),
+    timeLabel: row.allDay ? 'Dia inteiro' : formatTime(start),
+    state: dateState(start),
+    typeLabel: 'Google Agenda',
+    statusLabel: 'Compromisso pessoal',
+    tone: 'pending',
+  };
+}
 
 const emptyChangeSlots = () => [
   { id: 'first-choice', date: '', time: '' },
@@ -192,7 +218,7 @@ export function ClientTimelinePage() {
   const [changeAction, setChangeAction] = useState<'cancel' | 'reschedule' | null>(null);
   const [changeReason, setChangeReason] = useState('');
   const [newSlots, setNewSlots] = useState(emptyChangeSlots);
-  const [changeBusy, setChangeBusy] = useState(false);
+  const { mutateAsync: requestChange, isPending: changeBusy } = useRequestClientAgendaChange();
   const [changeError, setChangeError] = useState('');
   const [changeTarget, setChangeTarget] = useState<TimelineItem | null>(null);
   const [meetingRecords, setMeetingRecords] = useState<Record<string, MeetingRecord>>({});
@@ -202,7 +228,12 @@ export function ClientTimelinePage() {
   const [agendaView, setAgendaView] = useState<'week'|'list'|'month'>('week');
   const [weekCursor, setWeekCursor] = useState(() => new Date());
   const [visibleKinds, setVisibleKinds] = useState<Set<TimelineItem['kind']>>(() => new Set(['event','request','deadline']));
-  const [personalGoogle, setPersonalGoogle] = useState<TimelineItem[]>([]);
+  const googleResults = useClientGoogleCalendarEvents(weekCursor, visibleKinds.has('google'));
+  const personalGoogle = googleResults?.data?.state === 'checked' ? googleResults.data.events.map(personalCalendarItem) : [];
+  const personalGoogleNotice = !googleResults || googleResults.data?.state === 'checked' ? ''
+    : googleResults.data?.state === 'reconnect_required'
+      ? 'Conecte sua conta em “Integração com Google Calendar” para ver seus compromissos pessoais.'
+      : 'Não foi possível consultar seus eventos do Google agora.';
   // Avisos da CALI com data (feriado, atendimento) entram na agenda como informação de dia inteiro.
   const [noticeItems, setNoticeItems] = useState<TimelineItem[]>([]);
   useEffect(() => { let active = true; void (async () => {
@@ -212,7 +243,6 @@ export function ClientTimelinePage() {
     const tone: Record<string, string> = { feriado: 'var(--cali-color-gold-accent)', atendimento: 'var(--cali-color-blue-accent)', comunicado: 'var(--cali-color-violet-accent)' };
     setNoticeItems((result.data || []).map((row): TimelineItem => { const start = `${row.notice_date}T12:00:00-03:00`; return { id: `notice-${row.id}`, sourceId: String(row.id), kind: 'google', title: `Aviso · ${row.title}`, at: start, endsAt: null, description: row.body, secondaryDetail: [row.time_label, row.coverage].filter(Boolean).join(' · ') || undefined, color: tone[row.category] || 'var(--cali-color-violet-accent)', textColor: 'var(--cali-color-neutral-surface)', allDay: true, dateLabel: formatDay(start), timeLabel: row.time_label || 'Dia inteiro', state: dateState(start), typeLabel: 'Aviso da CALI', statusLabel: 'Aviso da CALI', tone: 'pending' } satisfies TimelineItem; }));
   })(); return () => { active = false; }; }, []);
-  const [personalGoogleNotice, setPersonalGoogleNotice] = useState('');
   useEffect(() => { if (!selectedItem) return; const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setSelectedItem(null); }; window.addEventListener('keydown', close); return () => window.removeEventListener('keydown', close); }, [selectedItem]);
 
   useEffect(() => { void load(); }, []);
@@ -221,19 +251,6 @@ export function ClientTimelinePage() {
     window.addEventListener('cali-calendar-record-updated', refresh);
     return () => window.removeEventListener('cali-calendar-record-updated', refresh);
   }, [user?.id]);
-  useEffect(()=>{
-    if(!isSupabaseConfigured||!visibleKinds.has('google')){setPersonalGoogle([]);setPersonalGoogleNotice('');return;}
-    let current=true;
-    const first=new Date(weekCursor.getFullYear(),weekCursor.getMonth(),weekCursor.getDate()-weekCursor.getDay());
-    const last=new Date(first.getFullYear(),first.getMonth(),first.getDate()+7);
-    void readGoogleCalendarEvents('client_events', { start: first.toISOString(), end: last.toISOString() }).then(({data,error})=>{
-      if(!current)return;
-      if(error||data?.state!=='checked'){setPersonalGoogle([]);setPersonalGoogleNotice(data?.state==='reconnect_required'?'Conecte sua conta em “Integração com Google Calendar” para ver seus compromissos pessoais.':'Não foi possível consultar seus eventos do Google agora.');return;}
-      setPersonalGoogleNotice('');
-      setPersonalGoogle((data.events||[]).map((row):TimelineItem=>{const start=row.allDay?`${row.start}T12:00:00-03:00`:String(row.start);return {id:`personal-${row.calendarId}-${row.id}`,sourceId:String(row.id),kind:'google',title:String(row.title||'Compromisso'),at:start,endsAt:row.allDay?null:row.end,googleHtmlLink:row.htmlLink,description:row.description,secondaryDetail:row.location ?? undefined,color:/^#[0-9a-f]{6}$/i.test(row.color)?row.color:null,textColor:/^#[0-9a-f]{6}$/i.test(row.textColor ?? '')?row.textColor:null,allDay:Boolean(row.allDay),dateLabel:formatDay(start),timeLabel:row.allDay?'Dia inteiro':formatTime(start),state:dateState(start),typeLabel:'Google Agenda',statusLabel:'Compromisso pessoal',tone:'pending'}}));
-    });
-    return()=>{current=false};
-  },[weekCursor,visibleKinds]);
   useEffect(() => {
     if (!isSupabaseConfigured) return;
     return observeSchedulingRequests('client-agenda-current', () => void load());
@@ -382,14 +399,20 @@ export function ClientTimelinePage() {
     if (changeAction === 'reschedule' && newSlots.some(slot => !slot.date || !slot.time)) { setChangeError('Informe duas novas opções de data e horário.'); return; }
     const originalDuration = changeTarget.kind === 'event' ? Math.max(30, (new Date(events.find(row=>row.id===changeTarget.sourceId)?.ends_at||'').getTime()-new Date(changeTarget.at).getTime())/60000 || 60) : 240;
     const slots = changeAction === 'reschedule' ? newSlots.map(slot => ({ startsAt: new Date(`${slot.date}T${slot.time}:00-03:00`).toISOString(), endsAt: new Date(new Date(`${slot.date}T${slot.time}:00-03:00`).getTime() + originalDuration * 60000).toISOString() })) : [];
-    setChangeBusy(true); setChangeError('');
+    if (changeBusy) return;
+    setChangeError('');
     const target = changeTarget.request?.extra_visit
       ? { kind: 'extra' as const, id: changeTarget.request.id }
       : { kind: 'event' as const, id: changeTarget.sourceId };
-    const { error: changeFailure } = await requestAgendaChange(target, changeAction, changeReason, slots);
-    if (changeFailure) setChangeError(changeFailure.message);
-    else { setChangeTarget(null); setChangeAction(null); setChangeReason(''); setNewSlots(emptyChangeSlots()); await load(); }
-    setChangeBusy(false);
+    try {
+      await requestChange([target, changeAction, changeReason, slots]);
+      setChangeTarget(null);
+      setChangeAction(null);
+      setChangeReason('');
+      setNewSlots(emptyChangeSlots());
+    } catch (failure) {
+      setChangeError(errorMessage(failure, 'Não foi possível registrar a alteração.'));
+    }
   }
 
   const futureItems = items.filter((item) => (item.state !== 'past' || item.kind === 'request') && item.statusLabel !== 'Cancelado');

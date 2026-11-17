@@ -21,6 +21,61 @@ function intercept(context, origin, path, method, respond) {
 
 browserSuite([
   {
+    id: 'agenda-admin-delete-refreshes-google-list',
+    role: 'admin',
+    async run({ context, page, origin }) {
+      const event = {
+        ...tables.events[0],
+        id: 'c6110000-0000-4000-8000-000000000050',
+        protocol: 'CALI-EVT-2026-000050',
+        title: 'Compromisso QA para excluir',
+        starts_at: '2026-11-12T14:00:00Z',
+        ends_at: '2026-11-12T15:00:00Z',
+        google_event_id: 'agenda-delete-qa',
+        sync_status: 'synced',
+      };
+      const googleEvent = {
+        id: event.google_event_id, calendarId: 'qa', title: event.title,
+        start: event.starts_at, end: event.ends_at, allDay: false, attendees: [],
+      };
+      let deleted = false;
+      let googleReads = 0;
+      let readsAfterDelete = 0;
+      await intercept(context, origin, '/rest/v1/events', 'GET', (request) => {
+        const id = new URL(request.url()).searchParams.get('id');
+        if (id && id !== 'eq.' + event.id) return null;
+        return { json: deleted ? [] : [event] };
+      });
+      await intercept(context, origin, '/functions/v1/workspace-google-calendar-read', 'POST', () => {
+        googleReads++;
+        if (deleted) readsAfterDelete++;
+        return { json: { state: 'checked', events: deleted ? [] : [googleEvent] } };
+      });
+      await intercept(context, origin, '/functions/v1/google-calendar-refresh-event', 'POST', () => ({ json: { attendees: [] } }));
+      await intercept(context, origin, '/functions/v1/google-calendar-oauth', 'POST', (request) => {
+        const body = request.postDataJSON();
+        if (body.action !== 'delete_event') return null;
+        assert.deepEqual(body, { action: 'delete_event', eventId: event.id, reason: 'Excluir no teste' });
+        deleted = true;
+        return { json: { status: 'deleted' } };
+      });
+
+      await page.clock.setFixedTime(new Date('2026-11-12T15:00:00Z'));
+      await page.goto(origin + '/admin/calendario');
+      const eventButton = page.getByRole('button', { name: new RegExp(event.title) });
+      await eventButton.click();
+      const details = page.getByRole('dialog', { name: event.title });
+      await details.getByRole('button', { name: 'Excluir evento', exact: true }).click();
+      const confirmation = page.getByRole('dialog', { name: 'Excluir este evento?' });
+      await confirmation.getByLabel('Motivo da exclusão').fill('Excluir no teste');
+      assert.ok(googleReads >= 3);
+      await confirmation.getByRole('button', { name: 'Excluir definitivamente' }).click();
+      await confirmation.waitFor({ state: 'hidden' });
+      await eventButton.waitFor({ state: 'hidden' });
+      assert.ok(readsAfterDelete >= 3);
+    },
+  },
+  {
     id: 'agenda-client-proposal-acknowledgement-retry-and-sync',
     role: 'client',
     width: 390,

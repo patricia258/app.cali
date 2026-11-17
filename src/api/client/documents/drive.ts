@@ -26,9 +26,9 @@ type Command = { action: 'status' | 'authorize' } |
   { action: 'copy_file'; fileId: string } |
   { action: 'copy_folder'; deliverableId: string };
 
-async function invokeDrive<Schema extends z.ZodType>(body: Command, schema: Schema) {
+async function invokeDrive<Schema extends z.ZodType>(body: Command, schema: Schema, signal?: AbortSignal) {
   if (!supabase) return { data: null, error: 'Serviço indisponível. Tente novamente em instantes.', detail: null };
-  const result = await supabase.functions.invoke('google-drive-oauth', { body });
+  const result = await supabase.functions.invoke('google-drive-oauth', { body, signal });
   const reported = providerError.safeParse(result.data);
   if (result.error || (reported.success && reported.data.error)) {
     return {
@@ -43,8 +43,8 @@ async function invokeDrive<Schema extends z.ZodType>(body: Command, schema: Sche
     : { data: null, error: 'O Google Drive retornou dados inválidos.', detail: null };
 }
 
-export async function readDriveConnection() {
-  const { data } = await invokeDrive({ action: 'status' }, statusSchema);
+export async function readDriveConnection(signal?: AbortSignal) {
+  const { data } = await invokeDrive({ action: 'status' }, statusSchema, signal);
   const jobs: Record<string, DriveSyncState> = {};
   for (const job of data?.jobs ?? []) {
     jobs[job.file_id] ??= { status: job.status, url: job.external_url };

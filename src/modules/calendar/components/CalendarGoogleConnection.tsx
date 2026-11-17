@@ -2,17 +2,18 @@ import { useState } from 'react';
 import { Cloud } from 'lucide-react';
 import { errorMessage } from '../../../lib/errorMessage';
 import { useAdminGoogleCalendarConnection } from '../hooks/useAdminGoogleCalendarConnection';
+import { useChangeAdminGoogleCalendarConnection } from '../hooks/useChangeAdminGoogleCalendarConnection';
 import { SchedulingDialog } from '../scheduling/SchedulingDialog';
 import { SchedulingAction } from '../scheduling/SchedulingAction';
 
 type Props = {
   readStatus: 'loading' | 'ready' | 'reconnect' | 'unavailable';
   connected: boolean;
-  onDisconnected: () => void;
 };
 
-export function CalendarGoogleConnection({ readStatus, connected, onDisconnected }: Props) {
-  const { query, change, enabled } = useAdminGoogleCalendarConnection();
+export function CalendarGoogleConnection({ readStatus, connected }: Props) {
+  const { query, enabled } = useAdminGoogleCalendarConnection();
+  const change = useChangeAdminGoogleCalendarConnection();
   const [confirming, setConfirming] = useState(false);
   const configuration = query.data?.configuration;
   const email = query.data?.connection?.account_email || 'Google Calendar';
@@ -51,7 +52,7 @@ export function CalendarGoogleConnection({ readStatus, connected, onDisconnected
         {change.error && !confirming && <span role="alert" className={connectionDetail}>{errorMessage(change.error, 'Não foi possível iniciar a autorização do Google.')}</span>}
       </div>
       {confirming && <SchedulingDialog title="Desconectar Google Calendar" section="AGENDA" submitLabel="Desconectar"
-        onClose={() => setConfirming(false)} onSubmit={async () => { await change.mutateAsync('disconnect'); onDisconnected(); }}>
+        onClose={() => setConfirming(false)} onSubmit={async () => { await change.mutateAsync('disconnect'); }}>
         <p>Os eventos já criados no Google permanecem no calendário.</p>
       </SchedulingDialog>}
     </section>

@@ -1,3 +1,4 @@
+import { calendarKeys } from '../../../api/calendar/query-keys';
 import { caliPalette } from '../../../../supabase/functions/_shared/cali-palette';
 import { useQuery } from '@tanstack/react-query';
 import { isSupabaseConfigured } from '../../../api/access/session';
@@ -48,7 +49,7 @@ export function useAdminGoogleCalendarEvents(cursor: Date, staff: boolean) {
   const month = cursor.getMonth();
   const enabled = Boolean(isSupabaseConfigured && !staff && role === 'admin' && user?.id);
   const query = useQuery({
-    queryKey: ['calendar', 'admin-google-events', user?.id, year, month],
+    queryKey: calendarKeys.googleEventsByMonth(user?.id, year, month),
     enabled,
     refetchInterval: 5 * 60 * 1000,
     queryFn: async ({ signal }) => {

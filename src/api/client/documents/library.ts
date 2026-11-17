@@ -30,8 +30,6 @@ const comment = z.object({
 
 const unavailable = 'Serviço indisponível. Tente novamente em instantes.';
 
-export const documentLibraryKey = (actorId: string) => ['client', 'document-library', actorId] as const;
-
 export async function readClientDocumentLibrary(signal: AbortSignal) {
   const client = supabase;
   if (!client) throw new Error(unavailable);
@@ -39,7 +37,7 @@ export async function readClientDocumentLibrary(signal: AbortSignal) {
     client.from('files').select('deliverable_id,task_id,id,company_id,title,category,document_kind,version_label,protocol,storage_path,drive_url,requires_acknowledgement,description,updated_at,status,client_visible,valid_until')
       .eq('client_visible', true).eq('status', 'published').order('updated_at', { ascending: false }).abortSignal(signal),
     client.from('document_acknowledgements').select('file_id,acknowledged_at').abortSignal(signal),
-    readDriveConnection(),
+    readDriveConnection(signal),
   ]);
   if (files.error) throw new Error(files.error.message);
 
@@ -114,11 +112,11 @@ export async function acknowledgeDocumentVersion(file: FileReference) {
   return true;
 }
 
-export async function readDocumentComments(fileId: string) {
+export async function readDocumentComments(fileId: string, signal: AbortSignal) {
   if (!supabase) throw new Error(unavailable);
   const actor = await readActor();
   const result = await supabase.from('comments').select('id,body,created_at,author_user_id')
-    .eq('target_type', 'file').eq('target_id', fileId).order('created_at');
+    .eq('target_type', 'file').eq('target_id', fileId).order('created_at').abortSignal(signal);
   if (result.error) throw new Error(result.error.message);
   return z.array(comment).parse(result.data ?? []).map((item) => ({
     id: item.id, body: item.body, createdAt: item.created_at, mine: item.author_user_id === actor,

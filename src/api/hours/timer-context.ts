@@ -33,10 +33,10 @@ function byId<Row extends { id: string }>(rows: Row[] | null) {
   return new Map((rows ?? []).map((row) => [row.id, row]));
 }
 
-export async function readGlobalTimers(userId: string) {
+export async function readGlobalTimers(userId: string, signal: AbortSignal) {
   const client = requireHoursClient();
   const timers = await client.from('work_timers').select(`${activeTimerColumns},account_record_id,category`)
-    .eq('user_id', userId).eq('status', 'active').order('started_at', { ascending: true }).returns<GlobalTimer[]>();
+    .eq('user_id', userId).eq('status', 'active').order('started_at', { ascending: true }).abortSignal(signal).returns<GlobalTimer[]>();
   if (timers.error || !timers.data?.length) return [];
   const companyIds = uniqueIds(timers.data, 'company_id');
   const projectIds = uniqueIds(timers.data, 'project_id');
@@ -44,17 +44,18 @@ export async function readGlobalTimers(userId: string) {
   const taskIds = uniqueIds(timers.data, 'task_id');
   const recordIds = uniqueIds(timers.data, 'account_record_id');
   const [companies, projects, deliverables, tasks, records] = await Promise.all([
-    companyIds.length ? client.from('companies').select('id,display_name,logo_url').in('id', companyIds)
+    companyIds.length ? client.from('companies').select('id,display_name,logo_url').in('id', companyIds).abortSignal(signal)
       .returns<{ id: string; display_name: string; logo_url: string | null }[]>() : { data: null },
-    projectIds.length ? client.from('projects').select('id,name').in('id', projectIds)
+    projectIds.length ? client.from('projects').select('id,name').in('id', projectIds).abortSignal(signal)
       .returns<{ id: string; name: string }[]>() : { data: null },
-    deliverableIds.length ? client.from('deliverables').select('id,title,status').in('id', deliverableIds)
+    deliverableIds.length ? client.from('deliverables').select('id,title,status').in('id', deliverableIds).abortSignal(signal)
       .returns<(Named & { status: string })[]>() : { data: null },
-    taskIds.length ? client.from('deliverable_tasks').select('id,title').in('id', taskIds)
+    taskIds.length ? client.from('deliverable_tasks').select('id,title').in('id', taskIds).abortSignal(signal)
       .returns<Named[]>() : { data: null },
-    recordIds.length ? client.from('account_records').select('id,title').in('id', recordIds)
+    recordIds.length ? client.from('account_records').select('id,title').in('id', recordIds).abortSignal(signal)
       .returns<Named[]>() : { data: null },
   ]);
+  signal.throwIfAborted();
   const company = byId(companies.data);
   const project = byId(projects.data);
   const deliverable = byId(deliverables.data);

@@ -25,7 +25,7 @@ export function ProjectLifecycleControls({ projectId, renderHero, onChanged }: P
   }
 
   async function onSaved() {
-    await Promise.all([query.refetch(), onChanged()]);
+    await onChanged();
     close();
   }
 
