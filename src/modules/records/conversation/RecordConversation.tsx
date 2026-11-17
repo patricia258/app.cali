@@ -37,8 +37,10 @@ export function RecordConversation({ recordId, companyId, role, actorId, partner
     };
     if (message.author_role === 'system') return { full_name: partner ? 'Sistema' : 'CALI RH' };
     const known = message.author_id ? identities?.byId.get(message.author_id) : undefined;
-    return known ?? (message.author_role === 'admin' ? identities?.admin : identities?.client)
-      ?? { full_name: message.author_role === 'admin' ? 'Patrícia Lima' : 'Cliente' };
+    if (known) return known;
+    const neutral = { full_name: message.author_role === 'admin' ? 'Equipe CALI' : 'Cliente' };
+    if (message.author_id) return neutral;
+    return (message.author_role === 'admin' ? identities?.admin : identities?.client) ?? neutral;
   }
 
   return (

@@ -22,6 +22,23 @@ const mockRpc = (context, origin, name, handler) =>
   mockJson(context, origin, 'rpc/' + name, 'POST', (request) => handler(request.postDataJSON()));
 
 const cases = [
+  {
+    id: 'workspace-notifications-error-has-no-demo-items',
+    role: 'admin',
+    async run({ context, page, origin }) {
+      await context.route((url) => url.pathname === '/rest/v1/notifications', (route) => route.fulfill({
+        status: 403, json: { message: 'Notificações indisponíveis' }, headers: { 'access-control-allow-origin': origin },
+      }));
+      await page.goto(origin + '/admin');
+      await page.getByRole('button', { name: 'Notificações', exact: true }).click();
+      const panel = page.getByRole('dialog', { name: 'Notificações', exact: true });
+      await panel.getByRole('alert').filter({ hasText: 'Não foi possível carregar as notificações.' }).waitFor();
+      assert.equal(await panel.getByText('Tudo em dia', { exact: true }).count(), 0);
+      assert.equal(await panel.getByText(/Grupo Aurora|Novatech|Studio Norte|agosto/).count(), 0);
+      assert.equal(await panel.getByRole('button', { name: 'Marcar como lidas', exact: true }).count(), 0);
+    },
+  },
+
   ...[390, 1651].map((width) => ({
     id: `admin-single-navigation-${width}`,
     role: 'admin',

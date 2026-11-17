@@ -1,3 +1,4 @@
+import { useOwnWorkspaceProfile } from '../../../components/workspace/hooks/useOwnWorkspaceProfile';
 import { Select } from '../../../components/ds/Select';
 import { WorkspaceAdminPage } from '../../../components/workspace/components/WorkspaceAdminPage';
 import { WorkspaceAdminContent } from '../../../components/workspace/components/WorkspaceAdminContent';
@@ -41,6 +42,9 @@ function greeting() {
   return hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
 }
 export function AdminDashboard() {
+  const profile = useOwnWorkspaceProfile();
+  const firstName = profile.data?.full_name?.trim().split(/\s+/)[0];
+
   const [loaded, setData] = useState<DashboardData>({
     companies: [],
     projects: [],
@@ -277,7 +281,7 @@ export function AdminDashboard() {
             <Button variant="secondary" type="button" onClick={() => setReloadRevision((revision) => revision + 1)}>Tentar novamente</Button>
           </InlineNotice>}
 
-          <WorkspaceOverviewIntro eyebrow="CALI · OPERAÇÃO" title={`${greeting()}, Patrícia.`} description="O que precisa de decisão agora, quais contas merecem atenção e como cada ciclo está avançando.">
+          <WorkspaceOverviewIntro eyebrow="CALI · OPERAÇÃO" title={firstName ? `${greeting()}, ${firstName}.` : `${greeting()}.`} description="O que precisa de decisão agora, quais contas merecem atenção e como cada ciclo está avançando.">
             {!loading && !failedSources.length && <ExportOverview data={loaded} />}
           </WorkspaceOverviewIntro>
 

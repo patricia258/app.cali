@@ -48,7 +48,7 @@ export function StaffTimerBar({ me }: { me: PartnerWorkspace }) {
       } else {
         const data = await stopPartnerTimer(active.id);
         setNotice(data?.recovery_required ? 'Trecho pausado. Envie a justificativa.'
-          : data?.discarded ? 'Sessão com menos de 30 segundos.' : 'Tempo enviado para aprovação da Patrícia.');
+          : data?.discarded ? 'Sessão com menos de 30 segundos.' : 'Tempo enviado para aprovação da Administração CALI.');
       }
       await refresh();
       changed();
@@ -72,7 +72,7 @@ export function StaffTimerBar({ me }: { me: PartnerWorkspace }) {
     try {
       await submitPartnerTimerRecovery(editing.id, reason, Number(minutes));
       setEditing(null);
-      setNotice('Justificativa enviada para aprovação da Patrícia.');
+      setNotice('Justificativa enviada para aprovação da Administração CALI.');
       await refresh();
       changed();
     } catch (reason) {

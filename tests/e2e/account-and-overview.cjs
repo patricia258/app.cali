@@ -2,13 +2,14 @@
 
 const assert = require('node:assert/strict');
 const { browserSuite } = require('./browser-suite.cjs');
+const { user, tables } = require('./fixtures.cjs');
 
 const supportAddress = 'mailto:patricia@calirh.com?subject=Acesso%20ao%20CALI%20Workspace';
 const privacyAddress = 'mailto:privacidade@calirh.com';
 const profileTrigger = (page) => page.locator('.profile[aria-haspopup="menu"]');
 
 async function openAccount(page, origin, path) {
-  await page.goto(origin + path, { waitUntil: 'domcontentloaded' });
+  if (page.url() !== origin + path) await page.goto(origin + path, { waitUntil: 'domcontentloaded' });
   await profileTrigger(page).click();
   await page.getByRole('menuitem', { name: 'Minha conta', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Minha conta', exact: true });
@@ -146,6 +147,85 @@ async function adminOverview({ page, context, origin, snapshot }) {
 }
 
 const cases = [
+  {
+    id: 'admin-greeting-uses-own-profile-and-refreshes-after-edit',
+    role: 'admin',
+    async run({ page, context, origin }) {
+      let stored = { ...tables.profiles[0], role: 'admin', full_name: '  Felipe da Silva  ', email: user.email };
+      let finishRead;
+      const pending = new Promise((resolve) => { finishRead = resolve; });
+      let reads = 0;
+      await context.addInitScript(({ id }) => {
+        localStorage.setItem(`cali-workspace-profile-${id}`, JSON.stringify({ full_name: 'Patrícia Lima', email: 'old@example.invalid' }));
+      }, user);
+      await context.route((url) => url.pathname === '/rest/v1/profiles', async (route) => {
+        const url = new URL(route.request().url());
+        if (!url.searchParams.get('select')?.includes('signature_style')) return route.fallback();
+        assert.equal(url.searchParams.get('id'), 'eq.' + user.id);
+        reads++;
+        await pending;
+        return route.fulfill({ json: stored, headers: cors(route, origin) });
+      });
+      await context.route((url) => url.pathname === '/rest/v1/rpc/update_my_profile_v56', async (route) => {
+        stored = { ...stored, full_name: route.request().postDataJSON().p_full_name };
+        return route.fulfill({ json: true, headers: cors(route, origin) });
+      });
+      await page.goto(origin + '/admin');
+      const greeting = page.getByRole('heading', { level: 2, name: /^(Bom dia|Boa tarde|Boa noite)/ });
+      assert.match(await greeting.textContent(), /^(Bom dia|Boa tarde|Boa noite)\.$/);
+      assert.equal(await profileTrigger(page).getByText('Patrícia', { exact: false }).count(), 0);
+      finishRead();
+      await page.getByRole('heading', { name: /^(Bom dia|Boa tarde|Boa noite), Felipe\.$/ }).waitFor();
+      await profileTrigger(page).getByText('Felipe da Silva', { exact: true }).waitFor();
+      assert.equal(reads, 1, 'Saudação e menu compartilham a consulta do perfil.');
+      const dialog = await openAccount(page, origin, '/admin');
+      await dialog.getByLabel('Nome completo').fill('João QA');
+      await dialog.getByRole('button', { name: 'Salvar alterações', exact: true }).click();
+      await dialog.waitFor({ state: 'detached' });
+      await page.getByRole('heading', { name: /^(Bom dia|Boa tarde|Boa noite), João\.$/ }).waitFor();
+      await profileTrigger(page).getByText('João QA', { exact: true }).waitFor();
+      return { ownProfile: true, ignoredLegacyCache: true, sharedRead: true, editedNameReflected: true };
+    },
+  },
+  ...['empty', 'error'].map((mode) => ({
+    id: 'admin-greeting-without-profile-' + mode,
+    role: 'admin',
+    async run({ page, context, origin }) {
+      let savedName = '';
+      let available = mode !== 'error';
+      await context.route((url) => url.pathname === '/rest/v1/profiles', (route) => {
+        const url = new URL(route.request().url());
+        if (!url.searchParams.get('select')?.includes('signature_style')) return route.fallback();
+        const fails = !available;
+        return route.fulfill({
+          status: fails ? 403 : 200,
+          json: fails ? { message: 'Perfil indisponível' } : { ...tables.profiles[0], full_name: savedName, email: null, job_title: null },
+          headers: cors(route, origin),
+        });
+      });
+      await context.route((url) => url.pathname === '/rest/v1/rpc/update_my_profile_v56', (route) => {
+        savedName = route.request().postDataJSON().p_full_name;
+        return route.fulfill({ json: true, headers: cors(route, origin) });
+      });
+      await page.goto(origin + '/admin');
+      await page.getByRole('heading', { name: /^(Bom dia|Boa tarde|Boa noite)\.$/ }).waitFor();
+      const dialog = await openAccount(page, origin, '/admin');
+      assert.equal(await dialog.getByLabel('Nome completo').inputValue(), '');
+      assert.equal(await dialog.getByLabel('E-mail de acesso').inputValue(), user.email);
+      if (mode === 'error') {
+        assert.equal(await dialog.getByRole('button', { name: 'Salvar alterações', exact: true }).isDisabled(), true);
+        available = true;
+        await dialog.getByRole('button', { name: 'Tentar novamente', exact: true }).click();
+        await dialog.locator('button:enabled').filter({ hasText: 'Salvar alterações' }).waitFor();
+      }
+      await dialog.getByLabel('Nome completo').fill('Renata QA');
+      await dialog.getByRole('button', { name: 'Salvar alterações', exact: true }).click();
+      await dialog.waitFor({ state: 'detached' });
+      await page.getByRole('heading', { name: /^(Bom dia|Boa tarde|Boa noite), Renata\.$/ }).waitFor();
+      return { neutralGreeting: true, authenticatedEmail: true, saveRecoversProfile: true };
+    },
+  })),
+
   { id: 'account-login-support', role: 'public', run: loginSupport },
   { id: 'account-client-privacy', role: 'client', run: clientAccount },
   { id: 'account-admin-links', role: 'admin', run: (ctx) => staffAccount(ctx, { path: '/admin', occurrences: '/admin/registros' }) },

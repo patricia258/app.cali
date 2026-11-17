@@ -58,7 +58,7 @@ export function StaffNotices({ me }: { me: PartnerWorkspace }) {
     try {
       await submitNoticeReview(draft);
       setDraft(null);
-      setDone('Comunicado enviado para revisão da Patrícia.');
+      setDone('Comunicado enviado para revisão da Administração CALI.');
       await load();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Não foi possível enviar o comunicado para revisão.');

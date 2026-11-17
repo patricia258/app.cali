@@ -39,7 +39,6 @@ import {
   eventDateKey,
   formatCalendarTime,
   monthCells,
-  previewCalendarEvents,
   startOfCalendarWeek,
   weekCells,
   type CalendarEventType,
@@ -50,16 +49,10 @@ import type { JsonObject } from '../../domain/json';
 import { isSupabaseConfigured } from '../../api/access/session';
 import { submitStaffCalendarChange } from '../../api/calendar/admin';
 import { NoticeCalendarCard } from '../notices/NoticesBoard';
-import { CALENDAR_UUID_PATTERN, type CompanyOption } from './adminCalendarData';
+import { CALENDAR_UUID_PATTERN } from './adminCalendarData';
 import { useAdminGoogleCalendarEvents } from './hooks/useAdminGoogleCalendarEvents';
 import { useCalendarNoticeEvents } from './hooks/useCalendarNoticeEvents';
 import { useAdminCalendarData } from './hooks/useAdminCalendarData';
-
-const fallbackCompanies: CompanyOption[] = [
-  { id: 'aurora', name: 'Grupo Aurora' },
-  { id: 'novatech', name: 'Novatech' },
-  { id: 'studio-norte', name: 'Studio Norte' },
-];
 
 const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -72,7 +65,7 @@ const WEEK_END_HOUR = hours[hours.length - 1] + 1;
 function defaultForm(date = dateKey(new Date())): CreateEventForm {
   return {
     title: '',
-    companyId: 'aurora',
+    companyId: '',
     type: 'meeting',
     color: calendarTypeMeta.meeting.color,
     date,
@@ -167,7 +160,7 @@ function eventProtocol(event: WorkspaceCalendarEvent) {
 }
 
 // Mesma página para a Equipe CALI (Partner): só as empresas dele, sem a agenda Google da administradora;
-// criar, alterar ou cancelar vira pedido para a Patricia aprovar.
+// criar, alterar ou cancelar vira pedido para a Administração CALI aprovar.
 const CalendarFrame = ({ staff, children }: { staff?: boolean; children: ReactNode }) => staff ? <>{children}</> : <Shell role="admin">{children}</Shell>;
 export const StaffCalendarPage = () => <AdminCalendarPage staff />;
 export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
@@ -181,8 +174,8 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
   const today = useMemo(() => new Date(), []);
   const { data: calendar, isPending, enabled } = useAdminCalendarData(Boolean(staff));
   const [localEvents, setEvents] = useState<WorkspaceCalendarEvent[] | null>(null);
-  const events = localEvents ?? calendar?.events ?? previewCalendarEvents;
-  const companies = calendar?.companies.length ? calendar.companies : fallbackCompanies;
+  const events = localEvents ?? calendar?.events ?? [];
+  const companies = calendar?.companies ?? [];
   const meetingOutcomes = calendar?.meetingOutcomes ?? {};
   const calendarConnection = calendar?.connected ? 'connected' : 'not_connected';
   const loading = enabled && isPending;
@@ -252,7 +245,7 @@ export function AdminCalendarPage({ staff }: { staff?: boolean } = {}) {
   function openCreateForDate(date?: Date, minutes?: number, duration = 60) {
     const target = date || cursor;
     const next = defaultForm(dateKey(target));
-    next.companyId = companies[0]?.id || 'aurora';
+    next.companyId = companies[0]?.id || '';
     if (typeof minutes === 'number') {
       next.startTime = `${String(Math.floor(minutes/60)).padStart(2, '0')}:${String(minutes%60).padStart(2, '0')}`;
       const end=Math.min(minutes+duration,20*60);

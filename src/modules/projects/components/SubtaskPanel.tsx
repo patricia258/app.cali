@@ -93,7 +93,7 @@ export const subtaskStatusOptions = (staff: boolean, current: string) =>
       : ['todo', 'doing', 'standby', 'internal_review']
     : ['todo', 'doing', 'standby', 'internal_review', 'client_review', 'approved', 'done'];
 export const subtaskStatusLabel = (status: string, staff: boolean) =>
-  staff && status === 'internal_review' ? 'Revisão da Patricia' : SUBTASK_STATUS[status]?.label || status;
+  staff && status === 'internal_review' ? 'Revisão da CALI' : SUBTASK_STATUS[status]?.label || status;
 
 type SubtaskInfo = {
   id: string;
@@ -191,7 +191,7 @@ export function SubtaskModal({
     }
     onNotice(
       action === 'propose'
-        ? 'Enviado para a Patricia liberar ao cliente.'
+        ? 'Enviado para a Administração CALI liberar ao cliente.'
         : action === 'release'
           ? 'Liberado para o cliente em Documentos.'
           : action === 'suspend'
@@ -284,7 +284,7 @@ export function SubtaskModal({
   const author = (message: Message) =>
     (message.author_user_id && identities[message.author_user_id]?.full_name) ||
     (message.author_role === 'admin'
-      ? 'Patrícia Lima'
+      ? 'Equipe CALI'
       : message.author_role === 'client'
         ? 'Cliente'
         : 'Equipe CALI');
@@ -528,7 +528,7 @@ export function SubtaskModal({
               <h3>Arquivos desta subtarefa</h3>
               <p className="tw:mt-0 tw:mb-3.5 tw:text-cali-body tw:text-cali-muted">
                 {staff
-                  ? 'Escolha o arquivo que é a entrega final. A Patricia libera para o cliente.'
+                  ? 'Escolha o arquivo que é a entrega final. A Administração CALI libera para o cliente.'
                   : 'Escolha o arquivo que é a entrega final. Ao liberar, ele aparece para o cliente na pasta do entregável, em Documentos.'}
               </p>
               {files.length ? (
@@ -554,7 +554,7 @@ export function SubtaskModal({
                           {state === 'published'
                             ? 'Liberado ao cliente'
                             : state === 'draft'
-                              ? 'Aguardando liberação da Patricia'
+                              ? 'Aguardando liberação da CALI'
                               : state === 'archived'
                                 ? 'Suspenso'
                                 : 'Arquivo de trabalho'}

@@ -79,3 +79,21 @@ test('regra de agenda conserva a projeção do cliente e o contrato de resultado
     { p_event_id: eventId, p_outcome: 'not_occurred', p_reason_category: 'external', p_justified: true, p_note: 'Agenda indisponível' },
   ]);
 });
+
+test('nota de projeto usa o nome do ator e identificação institucional quando o perfil não tem nome', async (t) => {
+  const http = await workspaceHttp(t);
+  const { addProjectNote } = await http.load('projects/notes.ts');
+  await http.signIn();
+  for (const name of ['Felipe QA', null]) {
+    http.respond('/auth/v1/user', http.user, { method: 'GET' });
+    http.respond('/rest/v1/profiles', { full_name: name }, { method: 'GET' });
+    http.respond('/rest/v1/note_entries', null, { status: 201 });
+    const result = await addProjectNote(companyId, deliverableId, null, 'Nota de acompanhamento', false);
+    assert.equal(result.error, null);
+    const profileRead = http.requests.at(-2);
+    assert.equal(profileRead.url.searchParams.get('id'), 'eq.' + actorId);
+    const { body } = http.requests.at(-1);
+    assert.equal(body.author_user_id, actorId);
+    assert.equal(body.author_name, name ?? 'Equipe CALI');
+  }
+});

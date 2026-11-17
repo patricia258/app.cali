@@ -722,7 +722,7 @@ const cases = [
       await form.getByLabel('Justificativa', { exact: true }).fill('Trecho de teste em reunião.');
       await send.click();
       await form.waitFor({ state: 'hidden' });
-      await page.getByText('Justificativa enviada para aprovação da Patrícia.', { exact: true }).waitFor();
+      await page.getByText('Justificativa enviada para aprovação da Administração CALI.', { exact: true }).waitFor();
       assert.deepEqual(submissions, [
         { p_timer_id: 'qa-recovery', p_justification: 'Trecho de teste em reunião.', p_minutes: 30 },
       ]);

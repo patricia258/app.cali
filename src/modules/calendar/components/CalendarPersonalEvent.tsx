@@ -47,7 +47,7 @@ export function CalendarPersonalEvent({ event }: { event: WorkspaceCalendarEvent
       {event.attendees.length > 0 && <DetailLine icon={<Users />} title="Convidados">
         <span>{event.attendees.map(guest => `${guest.name} · ${guestStatus[guest.status]}`).join(' · ')}</span>
       </DetailLine>}
-      <DetailLine icon={<CalendarDays />} title="Agenda Google"><span>{event.organizer || 'Patrícia Lima'}</span></DetailLine>
+      <DetailLine icon={<CalendarDays />} title="Agenda Google"><span>{event.organizer || 'Organizador não informado'}</span></DetailLine>
       {event.reminderMinutes != null && <DetailLine icon={<Clock3 />} title="Lembrete"><span>{event.reminderMinutes} minutos antes</span></DetailLine>}
     </section>
   );

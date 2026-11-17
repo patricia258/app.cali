@@ -21,6 +21,13 @@
 - Mantenha a paleta em `public/brand/color-palette.css`, com até sete tons nomeados por família. Use tokens de papel na interface. Ao editar a paleta, execute `node scripts/sync-cali-palette.mjs` e valide também e-mails e exportações que usam os valores resolvidos.
 - Importe o CSS indispensável pelo componente ou módulo dono. Confira acesso direto, navegação interna e recarga. A aparência de uma tela deve independer das rotas visitadas antes.
 
+## Identidade de usuários
+
+- Saudação, nome, e-mail, cargo, avatar e autoria de ações vêm do perfil e da sessão correspondentes. Perfil ausente, em carregamento ou com falha usa apresentação neutra.
+- Compartilhe a consulta do perfil por ator e reflita edições nos consumidores. Respostas antigas seguem a proteção de cache da sessão.
+- Dados de demonstração pertencem às fixtures de teste. Carregamento, base vazia e falha de leitura usam os estados correspondentes.
+- Ao revisar interfaces, confira identidades e valores de negócio fixados como substitutos de dados. Registre e comunique as ocorrências encontradas.
+
 ## Comunicação
 
 Use a skill `caveman` em modo `full` para respostas. Preserve a precisão técnica e a clareza em decisões de escopo. Mantenha o modo até o usuário pedir `normal mode` ou `stop caveman`.

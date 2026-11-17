@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { InlineNotice } from '../ds/InlineNotice';
 import { Bell } from 'lucide-react';
 import { readWorkspaceSession } from '../../api/access/session';
 import {
@@ -22,25 +23,15 @@ const notificationRouteParameters = new Map([
   ['report', 'report'],
 ]);
 
-const notificationFallback: Record<Role, WorkspaceNotification[]> = {
-  admin: [
-    { id: 'demo-1', title: 'Entregável pronto para sua revisão', body: 'Grupo Aurora · Estrutura de indicadores de People', created_at: new Date().toISOString(), read_at: null, notification_type: 'deliverable' },
-    { id: 'demo-2', title: 'Horas próximas do limite contratado', body: 'Novatech atingiu 82% do ciclo atual.', created_at: new Date(Date.now() - 3600000).toISOString(), read_at: null, notification_type: 'hours' },
-    { id: 'demo-3', title: 'Novo comentário do cliente', body: 'Studio Norte solicitou um ajuste no ritual de gestão.', created_at: new Date(Date.now() - 86400000).toISOString(), read_at: new Date().toISOString(), notification_type: 'comment' },
-  ],
-  client: [
-    { id: 'demo-c1', title: 'Você tem uma entrega para validar', body: 'Estrutura de indicadores de People · prazo em 2 dias.', created_at: new Date().toISOString(), read_at: null, notification_type: 'deliverable' },
-    { id: 'demo-c2', title: 'Novo relatório publicado', body: 'Relatório executivo de agosto está disponível.', created_at: new Date(Date.now() - 7200000).toISOString(), read_at: null, notification_type: 'report' },
-  ],
-};
-
 export function NotificationCenter({ role }: { role: Role }) {
   const panelId = useId();
   const { user } = useWorkspaceAuth();
   const actorId = user?.id;
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<WorkspaceNotification[]>(notificationFallback[role]);
+  const [items, setItems] = useState<WorkspaceNotification[]>([]);
   const [recentId, setRecentId] = useState('');
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [revision, setRevision] = useState(0);
   const popoverRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const arrivalTimerRef = useRef<number | null>(null);
@@ -48,17 +39,20 @@ export function NotificationCenter({ role }: { role: Role }) {
   useEffect(() => {
     let mounted = true;
     let unsubscribe: (() => void) | undefined;
-    setItems(notificationFallback[role]);
+    setItems([]);
     setRecentId('');
+    setStatus('loading');
     async function load() {
       if (!actorId) return;
       const session = await readWorkspaceSession();
       if (!mounted || session?.user.id !== actorId) return;
       const data = await listWorkspaceNotifications(actorId);
       if (!mounted) return;
-      if (data) setItems(data);
+      setItems(data ?? []);
+      setStatus(data === null ? 'error' : 'ready');
       unsubscribe = observeWorkspaceNotifications(actorId, 'menu', (next) => {
         if (!mounted) return;
+        setStatus('ready');
         setItems((current) => [next, ...current].slice(0, 20));
         setRecentId(next.id);
         if (arrivalTimerRef.current) window.clearTimeout(arrivalTimerRef.current);
@@ -71,7 +65,7 @@ export function NotificationCenter({ role }: { role: Role }) {
       if (arrivalTimerRef.current) window.clearTimeout(arrivalTimerRef.current);
       unsubscribe?.();
     };
-  }, [actorId, role]);
+  }, [actorId, role, revision]);
 
   useEffect(() => {
     function closeOutside(event: MouseEvent) {
@@ -99,7 +93,7 @@ export function NotificationCenter({ role }: { role: Role }) {
   }
   async function markRead(item: WorkspaceNotification) {
     setItems((current) => current.map((notification) => notification.id === item.id ? { ...notification, read_at: notification.read_at || new Date().toISOString() } : notification));
-    if (!item.id.startsWith('demo-')) await markWorkspaceNotificationRead(item.id);
+    await markWorkspaceNotificationRead(item.id);
   }
   async function markAll() {
     setItems((current) => current.map((item) => ({ ...item, read_at: item.read_at || new Date().toISOString() })));
@@ -149,8 +143,11 @@ export function NotificationCenter({ role }: { role: Role }) {
         )}
       </button>
       {open && (
-        <NotificationPanel id={panelId} unread={unread} onMarkAll={() => void markAll()}>
-          {items.length === 0 ? <EmptyNotifications /> : items.map((item) => (
+        <NotificationPanel id={panelId} status={status} unread={unread} onMarkAll={() => void markAll()}>
+          {status === 'error' ? <InlineNotice role="alert" tone="danger">
+            Não foi possível carregar as notificações.{' '}
+            <button type="button" className="tw:cursor-pointer tw:border-0 tw:bg-transparent tw:text-inherit tw:underline" onClick={() => setRevision((current) => current + 1)}>Tentar novamente</button>
+          </InlineNotice> : status === 'loading' ? <p role="status" className="tw:p-4 tw:text-cali-muted">Carregando notificações…</p> : items.length === 0 ? <EmptyNotifications /> : items.map((item) => (
             <NotificationItem
               key={item.id}
               item={item}

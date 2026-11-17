@@ -15,7 +15,7 @@ export async function addProjectNote(companyId: string, deliverableId: string, t
   const profile = userId ? await client.from('profiles').select('full_name').eq('id', userId).maybeSingle() : null;
   return await client.from('note_entries').insert({
     deliverable_id: deliverableId, task_id: taskId, company_id: companyId,
-    author_user_id: userId, author_name: profile?.data?.full_name || 'Patrícia Lima', body,
+    author_user_id: userId, author_name: profile?.data?.full_name?.trim() || 'Equipe CALI', body,
   });
 }
 
