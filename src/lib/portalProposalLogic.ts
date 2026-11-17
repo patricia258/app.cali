@@ -1,6 +1,10 @@
-import type { PortalPricingRule } from './portalAdminApi';
+import type { JsonObject, JsonValue } from '../domain/json';
+import type { PortalPricingRule } from '../api/commercial/portal';
 
-type Answers=Record<string,any>;
+type Answers = JsonObject;
+function answerLength(value: JsonValue | undefined) {
+  return typeof value === 'string' || Array.isArray(value) ? value.length : 0;
+}
 type Band={min:number;max:number};
 type InvestmentBand={value:string;label:string;min:number|null;max:number|null};
 
@@ -66,7 +70,7 @@ export function initialPackageFor(serviceSlug:string,answers:Answers={},pricing:
   if(serviceSlug==='assessoria-estrategica'){
     const investment=investmentContextFor(serviceSlug,answers);if(investment?.max&&investment.max<=5800)return 'PARTNER';
     if(['PARTNER','FULL'].includes(String(answers.modelo_interesse)))return String(answers.modelo_interesse);
-    const fronts=answers.frentes?.length||0;if(fronts>=5||answers.frequencia==='semanal'||answers.presencial==='mensal'||answers.presencial==='mais')return 'FULL';return 'PARTNER';
+    const fronts=answerLength(answers.frentes)||0;if(fronts>=5||answers.frequencia==='semanal'||answers.presencial==='mensal'||answers.presencial==='mais')return 'FULL';return 'PARTNER';
   }
   if(serviceSlug==='cali-build'){
     const size=Number(answers.colaboradores||0),people=Number(answers.pessoas_rh||0),fronts=Array.isArray(answers.frentes)?answers.frentes.length:0,ratio=people>0?size/people:size;
@@ -75,7 +79,7 @@ export function initialPackageFor(serviceSlug:string,answers:Answers={},pricing:
     return complex?'COMPLETO':'ESSENCIAL';
   }
   if(serviceSlug==='treinamentos')return trainingPackageRecommendation(answers).code;
-  if(serviceSlug==='mentoria-rh'){if(answers.modalidade==='grupo'||answers.suporte==='proximo'||(answers.objetivos?.length||0)>=3||answers.frequencia==='semanal')return 'AMPLIADO';return 'ESSENCIAL';}
+  if(serviceSlug==='mentoria-rh'){if(answers.modalidade==='grupo'||answers.suporte==='proximo'||(answerLength(answers.objetivos)||0)>=3||answers.frequencia==='semanal')return 'AMPLIADO';return 'ESSENCIAL';}
   if(serviceSlug==='diagnostico-executivo')return Number(answers.entrevistas||0)>3||answers.survey==='sim'||answers.documentos!=='organizada'?'COMPLETO':'ESSENCIAL';
   if(serviceSlug==='cultura-direcao')return 'PROJETO';if(serviceSlug==='shadowing-lideranca')return 'CICLO';
   if(serviceSlug==='marca-empregadora')return answers.modelo_contratacao==='recorrente'?'RECORRENTE':'PROJETO';
@@ -83,9 +87,9 @@ export function initialPackageFor(serviceSlug:string,answers:Answers={},pricing:
 }
 
 export function calculateProposal(input:{serviceSlug:string;answers:Answers;packageCode:string;basePrice:number|string;discount?:number|string;extras?:number|string;months?:number|string;finalOverride?:number|string|null;scopeMode?:'integral'|'prioritized'}){
-  const {serviceSlug,answers,packageCode}=input;const n=(value:any,fallback=0)=>Number(value)||fallback;
-  let factor=1,extras=n(input.extras),months=n(input.months,1);const breakdown:any[]=[];
-  if(serviceSlug==='assessoria-estrategica'){const size=n(answers.colaboradores,20),sizeFactor=size<=20?1:size<=50?1.08:size<=100?1.15:1.22;const fronts=answers.frentes?.length||1,included=packageCode==='FULL'?2:1,frontFactor=1+Math.max(0,fronts-included)*.06,cadenceFactor=answers.frequencia==='semanal'?1.14:answers.frequencia==='quinzenal'?1.06:1;factor=sizeFactor*frontFactor*cadenceFactor;breakdown.push(['Porte',sizeFactor],['Frentes',frontFactor],['Cadência',cadenceFactor]);const minimumMonths=packageCode==='FULL'?12:8;months=Math.max(months||minimumMonths,minimumMonths);}
+  const {serviceSlug,answers,packageCode}=input;const n=(value: JsonValue | undefined,fallback=0)=>Number(value)||fallback;
+  let factor=1,extras=n(input.extras),months=n(input.months,1);const breakdown: [string, number][]=[];
+  if(serviceSlug==='assessoria-estrategica'){const size=n(answers.colaboradores,20),sizeFactor=size<=20?1:size<=50?1.08:size<=100?1.15:1.22;const fronts=answerLength(answers.frentes)||1,included=packageCode==='FULL'?2:1,frontFactor=1+Math.max(0,fronts-included)*.06,cadenceFactor=answers.frequencia==='semanal'?1.14:answers.frequencia==='quinzenal'?1.06:1;factor=sizeFactor*frontFactor*cadenceFactor;breakdown.push(['Porte',sizeFactor],['Frentes',frontFactor],['Cadência',cadenceFactor]);const minimumMonths=packageCode==='FULL'?12:8;months=Math.max(months||minimumMonths,minimumMonths);}
   else if(serviceSlug==='cali-build'){
     const size=n(answers.colaboradores,20),people=n(answers.pessoas_rh,0),fronts=Array.isArray(answers.frentes)?answers.frentes.length:0,included=packageCode==='COMPLETO'?3:1;
     const sizeDelta=size<=50?0:size<=100?.05:size<=250?.12:size<=500?.20:size<=1000?.28:.35;
@@ -103,7 +107,7 @@ export function calculateProposal(input:{serviceSlug:string;answers:Answers;pack
   else if(serviceSlug==='diagnostico-executivo'){const interviews=n(answers.entrevistas,packageCode==='COMPLETO'?6:3),units=n(answers.unidades,1),docFactor=answers.documentos==='desorganizada'?1.2:answers.documentos==='parcial'?1.1:1,includedInterviews=packageCode==='COMPLETO'?6:3;factor=(1+Math.max(0,interviews-includedInterviews)*.03)*(1+Math.max(0,units-1)*.05)*docFactor;breakdown.push(['Entrevistas',interviews],['Unidades',units],['Documentação',docFactor]);}
   else if(serviceSlug==='cultura-direcao'){const interviews=n(answers.entrevistas,4),groups=n(answers.grupos,1),workshops=n(answers.workshops,1);factor=1+Math.max(0,interviews-4)*.03+Math.max(0,groups-1)*.06+Math.max(0,workshops-1)*.08;breakdown.push(['Entrevistas',interviews],['Grupos focais',groups],['Workshops',workshops]);}
   else if(serviceSlug==='shadowing-lideranca'){const leaders=n(answers.lideres,1),hours=n(answers.horas,4);factor=Math.max(1,hours/4);breakdown.push(['Líderes',leaders],['Horas por líder',hours]);}
-  else if(serviceSlug==='marca-empregadora'){const units=n(answers.unidades,1),personas=n(answers.personas,2),assets=answers.ativos?.length||1;factor=(1+Math.max(0,units-1)*.08)*(1+Math.max(0,personas-2)*.05)*(1+Math.max(0,assets-3)*.06);breakdown.push(['Unidades',units],['Personas',personas],['Ativos',assets]);}
+  else if(serviceSlug==='marca-empregadora'){const units=n(answers.unidades,1),personas=n(answers.personas,2),assets=answerLength(answers.ativos)||1;factor=(1+Math.max(0,units-1)*.08)*(1+Math.max(0,personas-2)*.05)*(1+Math.max(0,assets-3)*.06);breakdown.push(['Unidades',units],['Personas',personas],['Ativos',assets]);}
   const scopeMode=input.scopeMode||'integral';if(scopeMode==='prioritized'){factor=Math.min(factor,1);extras=0;breakdown.push(['Escopo priorizado',1]);}
   const priceBand=PACKAGE_PRICE_BANDS[serviceSlug]?.[packageCode]||null,monthly=serviceSlug==='assessoria-estrategica'||serviceSlug==='cali-build'||(serviceSlug==='marca-empregadora'&&packageCode==='RECORRENTE');
   const rawSubtotal=Math.round((n(input.basePrice)*factor+extras)/50)*50,subtotal=priceBand&&rawSubtotal>0?Math.min(priceBand.max,Math.max(priceBand.min,rawSubtotal)):rawSubtotal;

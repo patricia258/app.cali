@@ -143,9 +143,9 @@ function consumedPercent(snapshot: CompositionSnapshot) {
   return (Number(snapshot.hours.consumedMinutes || 0) / 60 / contracted) * 100;
 }
 
-export function normalizeMonthlySeries(value: unknown): MonthlySeriesPoint[] {
+export function normalizeMonthlySeries(value: object | null | undefined): MonthlySeriesPoint[] {
   if (!Array.isArray(value)) return [];
-  return value.map((raw: any) => ({
+  return value.map((raw: Partial<MonthlySeriesPoint> | null) => ({
     monthRef: String(raw?.monthRef || ''),
     start: String(raw?.start || ''),
     end: String(raw?.end || ''),
@@ -189,8 +189,8 @@ export function planReadingMode(servicePlan?: string | null) {
   };
 }
 
-export function quarterlyEvolutionSummary(series: MonthlySeriesPoint[]) {
-  if (!series.length) return [] as string[];
+export function quarterlyEvolutionSummary(series: MonthlySeriesPoint[]): string[] {
+  if (!series.length) return [];
   const labels = series.map((item) => monthLabel(item.monthRef));
   const hours = series.map((item) => minutesLabel(item.consumedMinutes));
   const approvals = series.map((item) => item.approvedCount);

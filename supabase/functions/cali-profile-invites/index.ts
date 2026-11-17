@@ -1,3 +1,6 @@
+import { emailColors } from '../_shared/email-colors.ts';
+import type { JsonValue } from '../_shared/json.ts';
+import { deliveryAppOrigin, emailDestinationsAllowed } from "../_shared/delivery-environment.ts";
 // Perfil Comportamental CALI: convites e lembretes por e-mail (especificação "Prazos-Lembretes-Painel_v1").
 // Chamado só pelo banco (cali_workspace.profile_post_invite_email), com o segredo x-workspace-hook.
 // Tipos: invite, reminder1 (não abriu), reminder2 (parou no meio), reminder3 (último toque), focal_eve (véspera, pendentes),
@@ -12,13 +15,13 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const FROM_EMAIL = "CALI RH <workspace@calirh.com>";
 const REPLY_TO = "nao-responda@calirh.com";
-const APP_URL = "https://app.calirh.com";
+const APP_URL = deliveryAppOrigin;
 const LOGO_URL = `${APP_URL}/brand/cali-workspace-transparent.svg`;
 const MARK_URL = `${APP_URL}/brand/cali-oak-mark-light.svg`;
 const TOTAL_BLOCKS = 24;
 const headers = { "Content-Type": "application/json" };
 
-const esc = (value: unknown) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+const esc = (value: JsonValue | undefined) => String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 const first = (name: string) => esc(String(name || "").trim().split(/\s+/)[0]);
 const when = (iso: string) => {
   const date = new Date(iso);
@@ -30,26 +33,27 @@ const shortDate = (iso: string) => new Intl.DateTimeFormat("pt-BR", { day: "2-di
 const addMonths = (iso: string, months: number) => { const d = new Date(iso); d.setMonth(d.getMonth() + months); return d.toISOString(); };
 
 function layout(eyebrow: string, title: string, body: string, footer = "E-mail automático da CALI RH. Não responda esta mensagem.") {
-  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#F7F3EE;font-family:Arial,Helvetica,sans-serif;color:#2B2B2B">
+  return `<!doctype html><html lang="pt-BR"><body style="margin:0;background:${emailColors.page};font-family:Arial,Helvetica,sans-serif;color:${emailColors.text}">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:28px 14px">
-    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#fff;border:1px solid #E8DDD4;border-radius:18px;overflow:hidden">
-      <tr><td style="padding:20px 26px;background:#5A1E2D"><table width="100%" cellpadding="0" cellspacing="0"><tr>
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:${emailColors.surface};border:1px solid ${emailColors.line};border-radius:18px;overflow:hidden">
+      <tr><td style="padding:20px 26px;background:${emailColors.brand}"><table width="100%" cellpadding="0" cellspacing="0"><tr>
         <td align="left"><img src="${LOGO_URL}" alt="CALI RH" width="122" style="display:block;width:122px;height:auto"></td>
         <td align="right"><img src="${MARK_URL}" alt="" width="44" height="44" style="display:block;width:44px;height:44px"></td></tr></table></td></tr>
       <tr><td style="padding:30px">
-        <div style="font-size:10px;letter-spacing:.12em;color:#B58C52;font-weight:700;margin-bottom:8px">${esc(eyebrow)}</div>
-        <h1 style="font-size:23px;line-height:1.3;color:#5A1E2D;margin:0 0 16px">${title}</h1>
+        <div style="font-size:10px;letter-spacing:.12em;color:${emailColors.accentText};font-weight:700;margin-bottom:8px">${esc(eyebrow)}</div>
+        <h1 style="font-size:23px;line-height:1.3;color:${emailColors.brand};margin:0 0 16px">${title}</h1>
         ${body}
       </td></tr>
-      <tr><td style="padding:16px 30px;border-top:1px solid #EFE6DF;font-size:11px;line-height:1.6;color:#8C807A">${footer}</td></tr>
+      <tr><td style="padding:16px 30px;border-top:1px solid ${emailColors.lineSoft};font-size:11px;line-height:1.6;color:${emailColors.textMuted}">${footer}</td></tr>
     </table></td></tr></table></body></html>`;
 }
 const p = (html: string, size = 15) => `<p style="font-size:${size}px;line-height:1.65;margin:0 0 16px">${html}</p>`;
-const button = (href: string, label: string) => `<div style="text-align:center;margin:8px 0 24px"><a href="${esc(href)}" style="display:inline-block;background:#5A1E2D;color:#fff;text-decoration:none;font-size:15px;font-weight:700;padding:14px 26px;border-radius:999px">${esc(label)}</a></div>`;
-const box = (html: string) => `<div style="margin:0 0 20px;padding:14px 18px;border:1px solid #E8DDD4;border-left:4px solid #5A1E2D;border-radius:12px;background:#FBF7F3;font-size:14px;line-height:1.6">${html}</div>`;
-const optOut = (token: string) => `Se não quiser participar, <a href="${APP_URL}/perfil/sair/${token}" style="color:#8C807A">clique aqui</a> e não enviaremos mais mensagens sobre este convite. E-mail automático da CALI RH.`;
+const button = (href: string, label: string) => `<div style="text-align:center;margin:8px 0 24px"><a href="${esc(href)}" style="display:inline-block;background:${emailColors.brand};color:${emailColors.onBrand};text-decoration:none;font-size:15px;font-weight:700;padding:14px 26px;border-radius:999px">${esc(label)}</a></div>`;
+const box = (html: string) => `<div style="margin:0 0 20px;padding:14px 18px;border:1px solid ${emailColors.line};border-left:4px solid ${emailColors.brand};border-radius:12px;background:${emailColors.surfaceSoft};font-size:14px;line-height:1.6">${html}</div>`;
+const optOut = (token: string) => `Se não quiser participar, <a href="${APP_URL}/perfil/sair/${token}" style="color:${emailColors.textMuted}">clique aqui</a> e não enviaremos mais mensagens sobre este convite. E-mail automático da CALI RH.`;
 
 async function send(to: string, subject: string, html: string, attachments?: Array<{ filename: string; content: string }>) {
+  if (!emailDestinationsAllowed([to])) throw new Error("Destinatário indisponível neste ambiente.");
   const sent = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
@@ -131,8 +135,8 @@ Deno.serve(async (req: Request) => {
         const pending = list.filter((row) => ["sent", "opened", "started"].includes(state(row)));
         subject = `Perfil Comportamental: ${pending.length} ${pending.length === 1 ? "pessoa ainda não respondeu" : "pessoas ainda não responderam"}`;
         title = `${hello} O prazo fecha ${esc(when(payload.deadline_at))}.`;
-        const table = pending.length ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;border:1px solid #E8DDD4;border-radius:12px;font-size:14px">
-          ${pending.map((row) => `<tr><td style="padding:10px 14px;border-top:1px solid #F1E9E2">${esc(row.person_name)}</td><td style="padding:10px 14px;border-top:1px solid #F1E9E2;color:#6B5D63">${STATE_LABEL[state(row)]}${state(row) === "started" && row.last_block ? ` (bloco ${row.last_block} de ${TOTAL_BLOCKS})` : ""}</td></tr>`).join("")}
+        const table = pending.length ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;border:1px solid ${emailColors.line};border-radius:12px;font-size:14px">
+          ${pending.map((row) => `<tr><td style="padding:10px 14px;border-top:1px solid ${emailColors.lineSoft}">${esc(row.person_name)}</td><td style="padding:10px 14px;border-top:1px solid ${emailColors.lineSoft};color:${emailColors.textMuted}">${STATE_LABEL[state(row)]}${state(row) === "started" && row.last_block ? ` (bloco ${row.last_block} de ${TOTAL_BLOCKS})` : ""}</td></tr>`).join("")}
         </table>` : "";
         body = p(`${esc(link.title)}${link.company ? ` · ${esc(link.company)}` : ""}: ${completed} de ${total - declined} já responderam.`) + table
           + p("Um lembrete curto do líder costuma fazer diferença. Esta lista mostra só a situação de cada convite, nunca o conteúdo das respostas.", 13);

@@ -1,7 +1,9 @@
+import type { NotificationDb } from "./database.ts";
+
 // Contexto verificado para avisos administrativos de rebriefing e reabertura.
 // Nunca inventar a observação do cliente; eventos ambíguos preservam HTML anterior.
 type N={entity_type:string|null;entity_id:string|null;company_id:string;created_at:string;body:string|null;title:string|null};
-export async function approvedAdminPendingFields(ws:any,n:N,key:"deliverable_rebriefing"|"record_reopen_request"):Promise<Record<string,string>>{
+export async function approvedAdminPendingFields(ws:NotificationDb,n:N,key:"deliverable_rebriefing"|"record_reopen_request"):Promise<Record<string,string>>{
  if(!n.entity_id)throw Error("Registro do aviso ausente.");
  const t=Date.parse(n.created_at);
  if(!Number.isFinite(t))throw Error("Data de evento inválida.");

@@ -1,0 +1,27 @@
+@page {
+  size: A4;
+  margin: 0;
+}
+
+html,
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: var(--cali-color-neutral-surface) !important;
+}
+
+.overview-export-print {
+  display: block !important;
+  width: 210mm !important;
+  min-height: 297mm !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  background: var(--cali-color-sand-soft) !important;
+  color: var(--cali-color-neutral-strong) !important;
+
+  &,
+  & * {
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}

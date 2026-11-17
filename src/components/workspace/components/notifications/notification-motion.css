@@ -1,0 +1,13 @@
+@keyframes notification-bell-ring {
+  0%, 86%, 100% { transform: rotate(0); }
+  89% { transform: rotate(11deg); }
+  92% { transform: rotate(-9deg); }
+  95% { transform: rotate(6deg); }
+  98% { transform: rotate(-3deg); }
+}
+
+@keyframes notification-popover-in {
+  0% { opacity: 0; transform: translateY(-0.5rem) scale(.975); }
+  68% { opacity: 1; transform: translateY(0.125rem) scale(1.006); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}

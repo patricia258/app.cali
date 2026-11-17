@@ -1,7 +1,9 @@
+import type { NotificationDb } from "./database.ts";
+
 // Contexto histórico dos avisos de decisão do cliente em entregáveis.
 // Falha fechada: se não houver correspondência inequívoca, usa o e-mail anterior.
 type Notif = { entity_id:string|null; entity_type:string|null; company_id:string; body:string|null; created_at:string; title:string|null };
-export async function approvedAdminDeliverableFields(ws:any,n:Notif,key:"deliverable_approved"|"deliverable_adjustment"):Promise<Record<string,string>>{
+export async function approvedAdminDeliverableFields(ws:NotificationDb,n:Notif,key:"deliverable_approved"|"deliverable_adjustment"):Promise<Record<string,string>>{
  if(n.entity_type!=="deliverable" || !n.entity_id)throw Error("Entregável sem referência.");
  const {data:d,error:de}=await ws.from("deliverables").select("id,title,project_id,client_visible,status,client_response_at").eq("id",n.entity_id).eq("company_id",n.company_id).maybeSingle();
  if(de)throw de;

@@ -1,0 +1,10 @@
+@keyframes form-response-editor-enter {
+  from {
+    opacity: 0;
+    transform: translateX(2.308rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
