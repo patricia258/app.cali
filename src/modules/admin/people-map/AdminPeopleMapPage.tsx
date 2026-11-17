@@ -6,7 +6,7 @@ import { WorkflowSegments } from '../../../components/ds/WorkflowControls';
 import { WorkflowHeading } from '../../../components/ds/WorkflowHeading';
 import { WorkflowList, WorkflowListRow } from '../../../components/ds/WorkflowList';
 import { useMapaDeliveryState } from './hooks/useMapaDeliveryState';
-import { sendMapaReport } from '../../../api/admin/people-map/delivery';
+import { useSendMapaReport } from './hooks/useSendMapaReport';
 import { Button } from '../../../components/ds/Button';
 import { DialogFrame } from '../../../components/ds/DialogFrame';
 import { EmptyState } from '../../../components/ds/EmptyState';
@@ -193,15 +193,6 @@ function dimensionRows(record: MapaRecord, dimension: 1 | 2 | 3 | 4) {
   if (dimension === 3) return [['Acompanha indicadores', record.d3_indicadores], ['Decisão por dado', record.d3_decisao], ['Conhece custo de gente', record.d3_custo]] satisfies Array<[string, number | null | undefined]>;
   return [['Colaboradores', record.d4_colaboradores], ['Unidades', record.d4_unidades], ['Turnover', record.d4_turnover]] satisfies Array<[string, number | null | undefined]>;
 }
-function fileToBase64(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || '').split(',')[1] || '');
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
-
 export function AdminPeopleMapPage() {
   const reportWindows = useRef(new WeakSet<Window>());
   useOfficialReportAuth({ popup: reportWindows });
@@ -222,9 +213,11 @@ export function AdminPeopleMapPage() {
   const [feedback, setFeedback] = useState('');
   const [emailOpen, setEmailOpen] = useState(false);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [sendingEmail, setSendingEmail] = useState(false);
   const [emailFeedback, setEmailFeedback] = useState('');
+  const emailDialog = useRef<symbol | null>(null);
+  const emailCloseTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const delivery = useMapaDeliveryState(selected?.id, emailOpen);
+  const sendReport = useSendMapaReport();
   const deliveryReady = delivery.isSuccess && !delivery.isFetching;
 
   async function loadAll() {
@@ -243,6 +236,10 @@ export function AdminPeopleMapPage() {
   }
 
   useEffect(() => { loadAll(); }, []);
+  useEffect(() => () => {
+    emailDialog.current = null;
+    clearTimeout(emailCloseTimer.current);
+  }, []);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase('pt-BR');
@@ -268,7 +265,24 @@ export function AdminPeopleMapPage() {
   const journeyKpis = useMemo(() => ({ visitas: journeys.length, iniciados: journeys.filter((j) => j.started).length, abandonos: journeys.filter((j) => journeyStatus(j) === 'abandono').length, copias: journeys.reduce((sum,j) => sum + Number(j.copy_events || 0), 0) }), [journeys]);
 
   function openRecord(record: MapaRecord) { setSelected(record); setDraft(observationDraft(record)); setFeedback(''); document.body.classList.add('workspace-modal-open'); }
-  function closeRecord() { setEmailOpen(false); document.body.classList.remove('workspace-modal-open'); setSelected(null); setDraft(null); setFeedback(''); }
+  function closeRecord() { closeEmail(); document.body.classList.remove('workspace-modal-open'); setSelected(null); setDraft(null); setFeedback(''); }
+
+  function openEmail() {
+    clearTimeout(emailCloseTimer.current);
+    emailDialog.current = Symbol();
+    setPdfFile(null);
+    setEmailFeedback('');
+    setEmailOpen(true);
+  }
+
+  function closeEmail() {
+    clearTimeout(emailCloseTimer.current);
+    emailDialog.current = null;
+    sendReport.reset();
+    setEmailOpen(false);
+    setPdfFile(null);
+    setEmailFeedback('');
+  }
 
   async function persist(record: MapaRecord, nextStatus: string, nextObservations: Record<string, string>) {
     try {
@@ -317,8 +331,10 @@ export function AdminPeopleMapPage() {
     window.open(`https://wa.me/${number}?text=${encodeURIComponent(text)}`, '_blank');
   }
   async function sendEmail() {
-    if (!selected || sendingEmail || !deliveryReady || !delivery.data) return;
+    const dialog = emailDialog.current;
+    if (!dialog || !selected || sendReport.isPending || !deliveryReady || !delivery.data) return;
     const { revision, hasPdf } = delivery.data;
+    const responseId = selected.id;
     const recipient = selected.c_email.trim().toLowerCase();
     if (!recipient.includes('@')) { setEmailFeedback('Confira o e-mail da resposta do Mapa.'); return; }
     const attachment = hasPdf ? null : pdfFile;
@@ -326,20 +342,25 @@ export function AdminPeopleMapPage() {
     if (attachment && attachment.type !== 'application/pdf' && !attachment.name.toLowerCase().endsWith('.pdf')) { setEmailFeedback('Selecione um arquivo PDF.'); return; }
     if (attachment && attachment.size > 8 * 1024 * 1024) { setEmailFeedback('O PDF precisa ter até 8 MB.'); return; }
     const fileIdentity = attachment && [attachment.name, attachment.size, attachment.lastModified];
-    const requestId = await confirmDelivery([recipient], [selected.id, revision, fileIdentity]);
-    if (!requestId) return;
-    setSendingEmail(true); setEmailFeedback('Enviando…');
+    const isCurrent = sendReport.captureScope();
+    const isActiveDialog = () => isCurrent() && emailDialog.current === dialog;
+    const requestId = await confirmDelivery([recipient], [responseId, revision, fileIdentity]);
+    if (!requestId || !isActiveDialog()) return;
+    setEmailFeedback('Enviando…');
     try {
-      const pdfBase64 = attachment ? await fileToBase64(attachment) : undefined;
-      const data = await sendMapaReport({ responseId: selected.id, revision, pdfBase64, requestId, recipient });
+      const data = await sendReport.send({ responseId, revision, attachment, requestId, recipient, isCurrent });
+      if (!isCurrent()) return;
+      const sentAt = new Date().toISOString();
+      setRecords((current) => current.map((item) => item.id === responseId ? { ...item, status: 'enviado', relatorio_enviado_em: sentAt } : item));
+      setSelected((current) => current?.id === responseId ? { ...current, status: 'enviado', relatorio_enviado_em: sentAt } : current);
+      if (!isActiveDialog()) return;
       completeDelivery();
-      void delivery.refetch();
-      setEmailFeedback(`Enviado para ${data.to || selected.c_email} ✓`);
-      setRecords((current) => current.map((item) => item.id === selected.id ? { ...item, status: 'enviado', relatorio_enviado_em: new Date().toISOString() } : item));
-      setSelected((current) => current ? { ...current, status: 'enviado', relatorio_enviado_em: new Date().toISOString() } : current);
-      setTimeout(() => { setEmailOpen(false); setPdfFile(null); setEmailFeedback(''); }, 1400);
-    } catch (err) { setEmailFeedback(err instanceof Error ? err.message : 'Não foi possível enviar.'); }
-    finally { setSendingEmail(false); }
+      const sentTo = Array.isArray(data.to) ? data.to.join(', ') : (data.to || recipient);
+      setEmailFeedback(`Enviado para ${sentTo} ✓`);
+      emailCloseTimer.current = setTimeout(() => { if (isActiveDialog()) closeEmail(); }, 1400);
+    } catch (err) {
+      if (isActiveDialog()) setEmailFeedback(err instanceof Error ? err.message : 'Não foi possível enviar.');
+    }
   }
 
   const selectedScores = selected ? scoresFor(selected) : null;
@@ -412,15 +433,15 @@ export function AdminPeopleMapPage() {
       </>}
     </WorkflowPage></WorkspaceAdminContent></WorkspaceAdminPage>
 
-    {selected && draft && selectedScores && <div className="workspace-modal-layer people-map-modal-layer tw:fixed tw:inset-0 tw:z-2147483000 tw:grid tw:h-dvh tw:w-screen tw:place-items-center tw:bg-cali-neutral-inverse/54! tw:px-[clamp(1.077rem,3vw,3.231rem)] tw:py-[clamp(1.077rem,3vh,2.308rem)] tw:backdrop-blur-[0.769rem] tw:backdrop-saturate-90 tw:[@media(max-width:45rem)]:p-2" role="presentation"><DialogFrame className="workspace-standard-modal people-map-modal tw:grid! tw:h-[min(69.231rem,calc(100dvh-2.923rem))] tw:w-[min(101.538rem,100%)]! tw:max-w-none! tw:grid-rows-[auto_minmax(0,1fr)_auto] tw:overflow-hidden! tw:rounded-[1.077rem]! tw:border tw:border-solid tw:border-cali-line! tw:bg-cali-neutral-surface! tw:p-0! tw:font-cali-body tw:shadow-[0_25px_85px_rgb(var(--cali-rgb-burgundy-inverse)/0.2902)]! tw:[@media(max-width:45rem)]:h-[calc(100dvh-1.077rem)]" aria-label="Editar diagnóstico"><header className="people-map-modal-header tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:bg-[linear-gradient(90deg,var(--cali-color-sand-surface),var(--cali-color-orange-surface))] tw:px-8 tw:pt-7 tw:pb-6 tw:[@media(max-width:45rem)]:px-5 tw:[@media(max-width:45rem)]:pt-5 tw:[@media(max-width:45rem)]:pb-4.5"><button className="people-map-back tw:inline-flex tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-2.5 tw:text-sm/[inherit] tw:font-bold tw:text-cali-brand" type="button" onClick={closeRecord}><ChevronLeft size={18}/>Voltar ao Mapa</button><div className="people-map-modal-identity tw:mt-5 tw:flex tw:items-end tw:justify-between tw:gap-8 tw:[@media(max-width:45rem)]:items-start"><div><span className="tw:text-cali-label/[inherit] tw:font-extrabold tw:tracking-[0.14em] tw:text-cali-gold">{selected.protocolo}</span><h2 className="tw:mt-1.5! tw:mb-1! tw:text-cali-title-lg/[1.08]! tw:font-bold tw:text-cali-brand">{selected.c_empresa}</h2><p className="tw:m-0! tw:text-base/[inherit] tw:text-cali-neutral-accent tw:workspace-night:text-cali-sand-accent">{selected.c_nome}{selected.c_cargo?` · ${selected.c_cargo}`:''} · respondido em {formatDate(selected.created_at)}</p></div><div className="people-map-score-hero tw:grid tw:min-w-[8.462rem] tw:grid-cols-[auto_auto] tw:items-baseline tw:justify-end tw:text-right"><strong className="tw:text-cali-display-lg/none tw:tracking-[-0.04em] tw:text-cali-brand tw:[@media(max-width:45rem)]:text-4xl">{fmtScore(selectedScores.total)}</strong><span className="tw:ml-1 tw:text-cali-body/[inherit] tw:text-cali-sand-text">/10</span><small className="tw:col-span-full tw:mt-1 tw:text-sm/[inherit] tw:text-cali-sand-text">score geral</small></div></div></header><div className="people-map-modal-scroll tw:min-h-0 tw:overflow-auto tw:[scrollbar-width:none]"><div className="people-map-detail-grid tw:grid tw:grid-cols-[minmax(0,1fr)_minmax(22.308rem,26.154rem)] tw:items-start tw:gap-5.5 tw:px-8 tw:pt-7 tw:pb-9 tw:[@media(max-width:61.25rem)]:grid-cols-1 tw:[@media(max-width:45rem)]:px-4.5 tw:[@media(max-width:45rem)]:pt-4.5 tw:[@media(max-width:45rem)]:pb-7"><main className="people-map-dimensions tw:grid tw:gap-4.5">{([[1,'D1 · Maturidade Estrutural',selectedScores.d1,'d1_obs'],[2,'D2 · Liderança & Cultura',selectedScores.d2,'d2_obs'],[3,'D3 · Dados & Decisão',selectedScores.d3,'d3_obs'],[4,'D4 · Dimensões Operacionais',selectedScores.d4,'d4_obs']] as const).map(([dimension,title,score,key])=><section className={mapModalCard} key={dimension}><div className="people-map-dimension-head tw:flex tw:items-start tw:justify-between tw:gap-6"><div><span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-xs/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-cali-muted">DIMENSÃO {dimension}</span><h3 className="tw:mt-1.5 tw:mb-0 tw:text-cali-title-sm/[inherit] tw:text-cali-neutral-strong tw:workspace-night:text-cali-day-canvas">{title}</h3></div><strong className="tw:text-cali-title/[inherit] tw:text-cali-brand">{fmtScore(score)}<small className="tw:ml-0.5 tw:text-xs/[inherit] tw:text-cali-sand-text">/10</small></strong></div><div className="people-map-answer-grid tw:mt-4.5 tw:mb-5 tw:grid tw:grid-cols-2 tw:gap-x-4.5 tw:gap-y-2.5 tw:[@media(max-width:45rem)]:grid-cols-1">{dimensionRows(selected,dimension).map(([label,value])=><div key={label} className="tw:rounded-xl tw:bg-cali-brand/4 tw:px-3.5 tw:py-3 tw:workspace-night:bg-cali-neutral-surface/4"><span className="tw:block tw:text-sm/[inherit] tw:text-cali-sand-text tw:workspace-night:text-cali-sand-text">{label}</span><strong className="tw:mt-1 tw:block tw:text-cali-body/[inherit] tw:font-bold tw:text-cali-neutral-text tw:workspace-night:text-cali-neutral-line">{scoreLabel(value)}</strong></div>)}</div><FieldLabel className="tw:mt-3.5">Observação da Patrícia<textarea className={mapModalInput} rows={3} value={draft[key]} onChange={(e)=>setDraft((current)=>current?{...current,[key]:e.target.value}:current)}/></FieldLabel></section>)}<section className={`${mapModalCard} tw:border-cali-gold/28`}><div className="people-map-dimension-head tw:flex tw:items-start tw:justify-between tw:gap-6"><div><span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-xs/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-cali-muted">DEVOLUTIVA</span><h3 className="tw:mt-1.5 tw:mb-0 tw:text-cali-title-sm/[inherit] tw:text-cali-neutral-strong tw:workspace-night:text-cali-day-canvas">Parecer final</h3></div><FileText size={22}/></div><FieldLabel className="tw:mt-3.5">O que você indicaria primeiro<textarea className={mapModalInput} rows={5} value={draft.parecer} onChange={(e)=>setDraft((current)=>current?{...current,parecer:e.target.value}:current)}/></FieldLabel><FieldLabel className="tw:mt-3.5">Serviço recomendado<select className={mapModalInput} value={draft.servico_recomendado} onChange={(e)=>setDraft((current)=>current?{...current,servico_recomendado:e.target.value}:current)}>{SERVICES.map((service)=><option key={service}>{service}</option>)}</select></FieldLabel></section></main><aside className="people-map-contact-column tw:sticky tw:top-0 tw:grid tw:gap-3.5 tw:[@media(max-width:61.25rem)]:static tw:[@media(max-width:61.25rem)]:grid-cols-2 tw:[@media(max-width:45rem)]:grid-cols-1"><section className={mapModalCard}><div className="people-map-side-title tw:flex tw:items-center tw:gap-3 tw:text-cali-brand"><UserRound size={19}/><h3 className={mapModalSideTitle}>Contato</h3></div><dl className={mapModalFacts}><div><dt>Nome</dt><dd>{selected.c_nome}</dd></div><div><dt>Empresa</dt><dd>{selected.c_empresa}</dd></div><div><dt>Cargo</dt><dd>{selected.c_cargo||'Não informado'}</dd></div><div><dt>E-mail</dt><dd>{selected.c_email}</dd></div><div><dt>WhatsApp</dt><dd>{selected.c_whatsapp}</dd></div><div><dt>Preferência</dt><dd>{selected.c_preferencia_contato||'Não informada'}</dd></div><div><dt>LinkedIn / site</dt><dd>{selected.c_linkedin_site||'Não informado'}</dd></div></dl></section><section className={mapModalCard}><div className="people-map-side-title tw:flex tw:items-center tw:gap-3 tw:text-cali-brand"><Building2 size={19}/><h3 className={mapModalSideTitle}>Qualificação</h3></div><dl className={mapModalFacts}><div><dt>Prazo</dt><dd>{selected.q_prazo||'—'}</dd></div><div><dt>Decisores</dt><dd>{[...(selected.q_decisor||[]),selected.q_decisor_outro].filter(Boolean).join(', ')||'—'}</dd></div><div><dt>Formato</dt><dd>{selected.q_formato||'—'}</dd></div><div><dt>Apoio posterior</dt><dd>{qv2.apoio_pos||'—'}</dd></div><div><dt>Jurídico</dt><dd>{qv2.juridico||'—'}</dd></div><div><dt>Investimento</dt><dd>{selected.q_investimento||'—'}</dd></div><div><dt>Origem</dt><dd>{selected.q_origem||'—'}</dd></div><div><dt>Possíveis sócios(as)</dt><dd>{qv2.candidatos_socio||'—'}</dd></div></dl></section><section className={`${mapModalCard} tw:grid tw:gap-3 tw:[&>button]:w-full tw:[&>button]:justify-start tw:[&>small]:text-xs tw:[&>small]:leading-[1.45] tw:[&>small]:text-cali-sand-text`}><h3 className={mapModalSideTitle}>Próximas ações</h3><Button className={mapModalAction} variant="secondary" type="button" onClick={openReport}><FileText size={16}/>Gerar relatório</Button><Button className={mapModalAction} variant="secondary" type="button" onClick={()=>{setPdfFile(null);setEmailFeedback('');setEmailOpen(true)}} disabled={!selected.c_email}><Mail size={16}/>Enviar por e-mail</Button><Button className={mapModalAction} variant="secondary" type="button" onClick={openWhatsapp}><Send size={16}/>Preparar WhatsApp</Button>{selected.relatorio_enviado_em&&<small>Último relatório enviado em {formatDate(selected.relatorio_enviado_em,true)}</small>}</section></aside></div></div><footer className="people-map-modal-footer tw:flex tw:min-h-[5.538rem] tw:flex-wrap tw:items-center tw:justify-end tw:gap-2.5 tw:border-0 tw:border-t tw:border-solid tw:border-cali-line tw:bg-cali-paper tw:px-7.5 tw:py-4.5 tw:[@media(max-width:45rem)]:flex-col tw:[@media(max-width:45rem)]:items-stretch"><span>{feedback}</span><div className="tw:flex tw:min-w-0 tw:items-center tw:gap-3 tw:[@media(max-width:45rem)]:justify-between"><Button className={mapModalAction} variant="secondary" type="button" onClick={closeRecord}>Cancelar</Button><Button className={`${mapModalAction} tw:border-cali-brand! tw:bg-cali-brand! tw:text-cali-neutral-surface!`} variant="primary" type="button" onClick={saveReview} disabled={saving}>{saving?'Salvando…':'Salvar revisão'}</Button></div></footer></DialogFrame></div>}
+    {selected && draft && selectedScores && <div className="workspace-modal-layer people-map-modal-layer tw:fixed tw:inset-0 tw:z-2147483000 tw:grid tw:h-dvh tw:w-screen tw:place-items-center tw:bg-cali-neutral-inverse/54! tw:px-[clamp(1.077rem,3vw,3.231rem)] tw:py-[clamp(1.077rem,3vh,2.308rem)] tw:backdrop-blur-[0.769rem] tw:backdrop-saturate-90 tw:[@media(max-width:45rem)]:p-2" role="presentation"><DialogFrame className="workspace-standard-modal people-map-modal tw:grid! tw:h-[min(69.231rem,calc(100dvh-2.923rem))] tw:w-[min(101.538rem,100%)]! tw:max-w-none! tw:grid-rows-[auto_minmax(0,1fr)_auto] tw:overflow-hidden! tw:rounded-[1.077rem]! tw:border tw:border-solid tw:border-cali-line! tw:bg-cali-neutral-surface! tw:p-0! tw:font-cali-body tw:shadow-[0_25px_85px_rgb(var(--cali-rgb-burgundy-inverse)/0.2902)]! tw:[@media(max-width:45rem)]:h-[calc(100dvh-1.077rem)]" aria-label="Editar diagnóstico"><header className="people-map-modal-header tw:border-0 tw:border-b tw:border-solid tw:border-cali-line tw:bg-[linear-gradient(90deg,var(--cali-color-sand-surface),var(--cali-color-orange-surface))] tw:px-8 tw:pt-7 tw:pb-6 tw:[@media(max-width:45rem)]:px-5 tw:[@media(max-width:45rem)]:pt-5 tw:[@media(max-width:45rem)]:pb-4.5"><button className="people-map-back tw:inline-flex tw:cursor-pointer tw:items-center tw:gap-2 tw:rounded-lg tw:border tw:border-solid tw:border-cali-line tw:bg-cali-neutral-surface tw:px-3.5 tw:py-2.5 tw:text-sm/[inherit] tw:font-bold tw:text-cali-brand" type="button" onClick={closeRecord}><ChevronLeft size={18}/>Voltar ao Mapa</button><div className="people-map-modal-identity tw:mt-5 tw:flex tw:items-end tw:justify-between tw:gap-8 tw:[@media(max-width:45rem)]:items-start"><div><span className="tw:text-cali-label/[inherit] tw:font-extrabold tw:tracking-[0.14em] tw:text-cali-gold">{selected.protocolo}</span><h2 className="tw:mt-1.5! tw:mb-1! tw:text-cali-title-lg/[1.08]! tw:font-bold tw:text-cali-brand">{selected.c_empresa}</h2><p className="tw:m-0! tw:text-base/[inherit] tw:text-cali-neutral-accent tw:workspace-night:text-cali-sand-accent">{selected.c_nome}{selected.c_cargo?` · ${selected.c_cargo}`:''} · respondido em {formatDate(selected.created_at)}</p></div><div className="people-map-score-hero tw:grid tw:min-w-[8.462rem] tw:grid-cols-[auto_auto] tw:items-baseline tw:justify-end tw:text-right"><strong className="tw:text-cali-display-lg/none tw:tracking-[-0.04em] tw:text-cali-brand tw:[@media(max-width:45rem)]:text-4xl">{fmtScore(selectedScores.total)}</strong><span className="tw:ml-1 tw:text-cali-body/[inherit] tw:text-cali-sand-text">/10</span><small className="tw:col-span-full tw:mt-1 tw:text-sm/[inherit] tw:text-cali-sand-text">score geral</small></div></div></header><div className="people-map-modal-scroll tw:min-h-0 tw:overflow-auto tw:[scrollbar-width:none]"><div className="people-map-detail-grid tw:grid tw:grid-cols-[minmax(0,1fr)_minmax(22.308rem,26.154rem)] tw:items-start tw:gap-5.5 tw:px-8 tw:pt-7 tw:pb-9 tw:[@media(max-width:61.25rem)]:grid-cols-1 tw:[@media(max-width:45rem)]:px-4.5 tw:[@media(max-width:45rem)]:pt-4.5 tw:[@media(max-width:45rem)]:pb-7"><main className="people-map-dimensions tw:grid tw:gap-4.5">{([[1,'D1 · Maturidade Estrutural',selectedScores.d1,'d1_obs'],[2,'D2 · Liderança & Cultura',selectedScores.d2,'d2_obs'],[3,'D3 · Dados & Decisão',selectedScores.d3,'d3_obs'],[4,'D4 · Dimensões Operacionais',selectedScores.d4,'d4_obs']] as const).map(([dimension,title,score,key])=><section className={mapModalCard} key={dimension}><div className="people-map-dimension-head tw:flex tw:items-start tw:justify-between tw:gap-6"><div><span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-xs/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-cali-muted">DIMENSÃO {dimension}</span><h3 className="tw:mt-1.5 tw:mb-0 tw:text-cali-title-sm/[inherit] tw:text-cali-neutral-strong tw:workspace-night:text-cali-day-canvas">{title}</h3></div><strong className="tw:text-cali-title/[inherit] tw:text-cali-brand">{fmtScore(score)}<small className="tw:ml-0.5 tw:text-xs/[inherit] tw:text-cali-sand-text">/10</small></strong></div><div className="people-map-answer-grid tw:mt-4.5 tw:mb-5 tw:grid tw:grid-cols-2 tw:gap-x-4.5 tw:gap-y-2.5 tw:[@media(max-width:45rem)]:grid-cols-1">{dimensionRows(selected,dimension).map(([label,value])=><div key={label} className="tw:rounded-xl tw:bg-cali-brand/4 tw:px-3.5 tw:py-3 tw:workspace-night:bg-cali-neutral-surface/4"><span className="tw:block tw:text-sm/[inherit] tw:text-cali-sand-text tw:workspace-night:text-cali-sand-text">{label}</span><strong className="tw:mt-1 tw:block tw:text-cali-body/[inherit] tw:font-bold tw:text-cali-neutral-text tw:workspace-night:text-cali-neutral-line">{scoreLabel(value)}</strong></div>)}</div><FieldLabel className="tw:mt-3.5">Observação da Patrícia<textarea className={mapModalInput} rows={3} value={draft[key]} onChange={(e)=>setDraft((current)=>current?{...current,[key]:e.target.value}:current)}/></FieldLabel></section>)}<section className={`${mapModalCard} tw:border-cali-gold/28`}><div className="people-map-dimension-head tw:flex tw:items-start tw:justify-between tw:gap-6"><div><span className="section-kicker tw:workspace-compact:block tw:workspace-compact:text-xs/[inherit] tw:workspace-compact:font-bold tw:workspace-compact:tracking-[0.077rem] tw:workspace-compact:text-cali-muted">DEVOLUTIVA</span><h3 className="tw:mt-1.5 tw:mb-0 tw:text-cali-title-sm/[inherit] tw:text-cali-neutral-strong tw:workspace-night:text-cali-day-canvas">Parecer final</h3></div><FileText size={22}/></div><FieldLabel className="tw:mt-3.5">O que você indicaria primeiro<textarea className={mapModalInput} rows={5} value={draft.parecer} onChange={(e)=>setDraft((current)=>current?{...current,parecer:e.target.value}:current)}/></FieldLabel><FieldLabel className="tw:mt-3.5">Serviço recomendado<select className={mapModalInput} value={draft.servico_recomendado} onChange={(e)=>setDraft((current)=>current?{...current,servico_recomendado:e.target.value}:current)}>{SERVICES.map((service)=><option key={service}>{service}</option>)}</select></FieldLabel></section></main><aside className="people-map-contact-column tw:sticky tw:top-0 tw:grid tw:gap-3.5 tw:[@media(max-width:61.25rem)]:static tw:[@media(max-width:61.25rem)]:grid-cols-2 tw:[@media(max-width:45rem)]:grid-cols-1"><section className={mapModalCard}><div className="people-map-side-title tw:flex tw:items-center tw:gap-3 tw:text-cali-brand"><UserRound size={19}/><h3 className={mapModalSideTitle}>Contato</h3></div><dl className={mapModalFacts}><div><dt>Nome</dt><dd>{selected.c_nome}</dd></div><div><dt>Empresa</dt><dd>{selected.c_empresa}</dd></div><div><dt>Cargo</dt><dd>{selected.c_cargo||'Não informado'}</dd></div><div><dt>E-mail</dt><dd>{selected.c_email}</dd></div><div><dt>WhatsApp</dt><dd>{selected.c_whatsapp}</dd></div><div><dt>Preferência</dt><dd>{selected.c_preferencia_contato||'Não informada'}</dd></div><div><dt>LinkedIn / site</dt><dd>{selected.c_linkedin_site||'Não informado'}</dd></div></dl></section><section className={mapModalCard}><div className="people-map-side-title tw:flex tw:items-center tw:gap-3 tw:text-cali-brand"><Building2 size={19}/><h3 className={mapModalSideTitle}>Qualificação</h3></div><dl className={mapModalFacts}><div><dt>Prazo</dt><dd>{selected.q_prazo||'—'}</dd></div><div><dt>Decisores</dt><dd>{[...(selected.q_decisor||[]),selected.q_decisor_outro].filter(Boolean).join(', ')||'—'}</dd></div><div><dt>Formato</dt><dd>{selected.q_formato||'—'}</dd></div><div><dt>Apoio posterior</dt><dd>{qv2.apoio_pos||'—'}</dd></div><div><dt>Jurídico</dt><dd>{qv2.juridico||'—'}</dd></div><div><dt>Investimento</dt><dd>{selected.q_investimento||'—'}</dd></div><div><dt>Origem</dt><dd>{selected.q_origem||'—'}</dd></div><div><dt>Possíveis sócios(as)</dt><dd>{qv2.candidatos_socio||'—'}</dd></div></dl></section><section className={`${mapModalCard} tw:grid tw:gap-3 tw:[&>button]:w-full tw:[&>button]:justify-start tw:[&>small]:text-xs tw:[&>small]:leading-[1.45] tw:[&>small]:text-cali-sand-text`}><h3 className={mapModalSideTitle}>Próximas ações</h3><Button className={mapModalAction} variant="secondary" type="button" onClick={openReport}><FileText size={16}/>Gerar relatório</Button><Button className={mapModalAction} variant="secondary" type="button" onClick={openEmail} disabled={!selected.c_email}><Mail size={16}/>Enviar por e-mail</Button><Button className={mapModalAction} variant="secondary" type="button" onClick={openWhatsapp}><Send size={16}/>Preparar WhatsApp</Button>{selected.relatorio_enviado_em&&<small>Último relatório enviado em {formatDate(selected.relatorio_enviado_em,true)}</small>}</section></aside></div></div><footer className="people-map-modal-footer tw:flex tw:min-h-[5.538rem] tw:flex-wrap tw:items-center tw:justify-end tw:gap-2.5 tw:border-0 tw:border-t tw:border-solid tw:border-cali-line tw:bg-cali-paper tw:px-7.5 tw:py-4.5 tw:[@media(max-width:45rem)]:flex-col tw:[@media(max-width:45rem)]:items-stretch"><span>{feedback}</span><div className="tw:flex tw:min-w-0 tw:items-center tw:gap-3 tw:[@media(max-width:45rem)]:justify-between"><Button className={mapModalAction} variant="secondary" type="button" onClick={closeRecord}>Cancelar</Button><Button className={`${mapModalAction} tw:border-cali-brand! tw:bg-cali-brand! tw:text-cali-neutral-surface!`} variant="primary" type="button" onClick={saveReview} disabled={saving}>{saving?'Salvando…':'Salvar revisão'}</Button></div></footer></DialogFrame></div>}
 
     {emailOpen && selected && <PeopleMapSendDialog
       label="Enviar diagnóstico"
       recipient={`${selected.c_nome} <${selected.c_email}>`}
       description="O PDF aprovado será enviado pelo padrão CALI e o registro será marcado como enviado."
       file={pdfFile} onFile={setPdfFile}
-      onClose={() => setEmailOpen(false)} onSend={sendEmail}
-      sending={sendingEmail} sent={selected.status === 'enviado'}
+      onClose={closeEmail} onSend={sendEmail}
+      sending={sendReport.isPending} sent={selected.status === 'enviado'}
       deliveryReady={deliveryReady} deliveryError={delivery.isError} onRetry={() => void delivery.refetch()}
       officialPdf={delivery.data?.hasPdf} revision={delivery.data?.revision} feedback={emailFeedback}
     />}

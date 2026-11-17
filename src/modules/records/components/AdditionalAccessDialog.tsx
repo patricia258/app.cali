@@ -1,5 +1,3 @@
-import { useForm } from '@tanstack/react-form';
-import { z } from 'zod';
 import { ArrowRight, X } from 'lucide-react';
 import { Button } from '../../../components/ds/Button';
 import {
@@ -13,17 +11,9 @@ import {
   WorkspaceFormDialogField,
   WorkspaceFormDialogFields,
 } from '../../../components/workspace/components/WorkspaceFormDialog';
+import { isAdditionalAccessReady, useAdditionalAccessForm, type AdditionalAccessDraft } from '../hooks/useAdditionalAccessForm';
 
-const accessSchema = z.object({
-  name: z.string().trim().min(1),
-  job: z.string().trim(),
-  email: z.string().trim().min(1),
-  phone: z.string().trim(),
-  notes: z.string().trim(),
-  ack: z.boolean().refine(Boolean),
-});
-
-export type AdditionalAccessDraft = z.infer<typeof accessSchema>;
+export type { AdditionalAccessDraft } from '../hooks/useAdditionalAccessForm';
 
 export function AdditionalAccessDialog({ available, error, onClose, onRequest }: {
   available: boolean;
@@ -31,13 +21,7 @@ export function AdditionalAccessDialog({ available, error, onClose, onRequest }:
   onClose: () => void;
   onRequest: (draft: AdditionalAccessDraft) => Promise<void>;
 }) {
-  const form = useForm({
-    defaultValues: { name: '', job: '', email: '', phone: '', notes: '', ack: false },
-    onSubmit: async ({ value }) => {
-      const draft = accessSchema.safeParse(value);
-      if (available && draft.success) await onRequest(draft.data);
-    },
-  });
+  const form = useAdditionalAccessForm(available, onRequest);
 
   return (
     <WorkflowDialogOverlay>
@@ -79,7 +63,7 @@ export function AdditionalAccessDialog({ available, error, onClose, onRequest }:
         </div>
         <WorkflowDialogActions>
           <button type="button" onClick={onClose}>Cancelar</button>
-          <form.Subscribe selector={(state) => ({ busy: state.isSubmitting, ready: accessSchema.safeParse(state.values).success })}>
+          <form.Subscribe selector={(state) => ({ busy: state.isSubmitting, ready: isAdditionalAccessReady(state.values) })}>
             {({ busy, ready }) => (
               <Button variant="workflowPrimary" type="submit" disabled={busy || !ready || !available}>
                 {busy ? 'Enviando…' : <>Enviar solicitação <ArrowRight size={14} /></>}

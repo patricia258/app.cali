@@ -50,6 +50,7 @@ Importe uma folha local pelo consumidor. Valide acesso direto e navegação entr
 ## Hooks, estado e dependências
 
 - Cada hook próprio tem um arquivo com o mesmo nome, inclusive hooks locais. Importe pelo arquivo dono. Encapsule `useQuery`, `useInfiniteQuery`, `useMutation` e leituras imperativas como `fetchQuery` em hooks por operação. Aplique a mesma separação à lógica de navegação baseada em `useSearchParams`, `useLocation` e operações equivalentes. Hooks nativos de estado, efeito e refs podem permanecer junto do componente que os usa.
+- Cada formulário que usa TanStack Form tem um hook com os valores iniciais, validadores e submissão. Componentes cuidam da marcação, dos rótulos e do feedback. Links e botões usam os hooks locais de navegação. A composição da árvore de rotas e os providers ficam na inicialização do app.
 - Hooks de navegação compartilhados ficam em [src/hooks](../src/hooks). Hooks de Auth ficam em [src/auth/hooks](../src/auth/hooks). Hook de tela fica em `hooks/` do fluxo. Hooks que forem contrato de dados de vários módulos podem ficar na pasta da API do domínio.
 - URL guarda filtros, seleção e parâmetros compartilháveis. Formulário guarda rascunhos. Query guarda dados remotos por ator, empresa e filtros relevantes. Escopo privado limpa ou revalida cache ao trocar identidade. O [hook de Partner](../src/modules/partner/hooks/usePartnerWorkspace.ts) usa chave por ator, cancela leituras com o sinal da consulta e descarta cache ao desmontar.
 - A camada `api` concentra Auth, Data API, Storage e Edge em adaptadores por domínio, com validação nos contratos estruturados. O [cliente Supabase](../src/api/supabase.ts) fica dentro dessa camada. O [Portal comercial](../src/api/commercial/portal.ts) usa Axios no transporte HTTP. A [suíte de arquitetura](../tests/unit/architecture.test.mjs) verifica a fronteira de acesso e a organização dos hooks.
@@ -69,6 +70,7 @@ O descarte de sessão cancela leituras com transporte abortável e protege as at
 | Fluxo | Atualização |
 | --- | --- |
 | Agenda e Google | Invalidação e Realtime para a projeção local. Listas Google do Admin consultam o provedor a cada cinco minutos enquanto visíveis. A desconexão do Cliente descarta eventos pessoais do cache. |
+| Mapa | O envio invalida a consulta de entrega da resposta exata no escopo do ator. A confirmação e a leitura do anexo conferem o escopo antes de enviar. |
 | Conversas e encerramento | Realtime atualiza mensagens. A consulta de encerramento usa polling somente enquanto há estado pendente que depende de resposta de outra pessoa. |
 | Horas e Projetos | Cronômetros globais reagem ao evento compartilhado e atualizam a cada 15 segundos enquanto visíveis. O histórico de entregas atualiza a cada 10 segundos enquanto visível e ao voltar à aba. |
 | Relatórios | O acompanhamento e as leituras de identidade e despesas usam intervalos de cinco segundos enquanto visíveis para refletir confirmações recebidas por outros canais. A correção de relatório invalida acompanhamento, histórico e lista de versões que podem ser retiradas. |

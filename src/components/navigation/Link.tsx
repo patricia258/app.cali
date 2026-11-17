@@ -1,10 +1,10 @@
-import { useRouter } from '@tanstack/react-router';
 import type { ComponentPropsWithoutRef } from 'react';
+import { useNavigate } from '../../hooks/useNavigate';
 
 type LinkProps = Omit<ComponentPropsWithoutRef<'a'>, 'href'> & { to: string };
 
 export function Link({ to, onClick, target, download, ...props }: LinkProps) {
-  const { history } = useRouter();
+  const navigate = useNavigate();
 
   return (
     <a
@@ -30,8 +30,7 @@ export function Link({ to, onClick, target, download, ...props }: LinkProps) {
         }
 
         event.preventDefault();
-        if (history.location.href === to) history.replace(to);
-        else history.push(to);
+        navigate(to, { replaceIfSame: true });
       }}
     />
   );

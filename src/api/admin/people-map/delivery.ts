@@ -13,7 +13,7 @@ export async function loadMapaDeliveryState(responseId: string, signal?: AbortSi
   return { revision: data.revision as number, hasPdf: data.has_pdf === true };
 }
 
-type MapaDelivery = {
+export type MapaDelivery = {
   responseId: string;
   revision: number;
   pdfBase64?: string;

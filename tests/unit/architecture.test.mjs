@@ -122,13 +122,33 @@ test('chaves de Query vêm de funções tipadas no domínio', () => {
   const cacheMethods = new Set(['getQueryData', 'getQueryState', 'setQueryData']);
   for (const file of sourceFiles(src)) {
     const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
-    function isInlineKey(value) {
-      while (value && (ts.isAsExpression(value) || ts.isSatisfiesExpression(value) || ts.isParenthesizedExpression(value))) value = value.expression;
-      return value && ts.isArrayLiteralExpression(value);
+    const locals = new Map();
+    function collectLocals(node) {
+      if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer) {
+        const definitions = locals.get(node.name.text) ?? [];
+        definitions.push(node.initializer);
+        locals.set(node.name.text, definitions);
+      }
+      ts.forEachChild(node, collectLocals);
+    }
+    collectLocals(source);
+    function isInlineKey(value, visited = new Set()) {
+      if (!value || visited.has(value)) return false;
+      visited.add(value);
+      if (ts.isAsExpression(value) || ts.isSatisfiesExpression(value) || ts.isParenthesizedExpression(value)) {
+        return isInlineKey(value.expression, visited);
+      }
+      if (ts.isIdentifier(value)) {
+        return (locals.get(value.text) ?? []).some((definition) => isInlineKey(definition, visited));
+      }
+      return ts.isArrayLiteralExpression(value);
     }
     function visit(node) {
       if (ts.isPropertyAssignment(node) && /^(queryKey|mutationKey)$/.test(node.name.getText(source)) && isInlineKey(node.initializer)) {
         violations.push(file.slice(src.length) + ' declara chave direta');
+      }
+      if (ts.isShorthandPropertyAssignment(node) && /^(queryKey|mutationKey)$/.test(node.name.text) && isInlineKey(node.name)) {
+        violations.push(file.slice(src.length) + ' usa chave local em vez da fábrica do domínio');
       }
       if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
         cacheMethods.has(node.expression.name.text) && isInlineKey(node.arguments[0])) {
@@ -137,6 +157,24 @@ test('chaves de Query vêm de funções tipadas no domínio', () => {
       ts.forEachChild(node, visit);
     }
     visit(source);
+  }
+  assert.deepEqual(violations, []);
+});
+
+test('componentes usam os hooks do projeto para TanStack Form e Router', () => {
+  const violations = [];
+  for (const file of sourceFiles(src).filter((path) => !/^use[A-Z].*\.tsx?$/.test(basename(path)))) {
+    const source = ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true);
+    for (const node of source.statements) {
+      if (!ts.isImportDeclaration(node) ||
+        !['@tanstack/react-form', '@tanstack/react-router'].includes(node.moduleSpecifier.text)) continue;
+      const bindings = node.importClause?.namedBindings;
+      if (!bindings) continue;
+      if (ts.isNamespaceImport(bindings) ||
+        bindings.elements.some((binding) => /^use[A-Z]/.test((binding.propertyName ?? binding.name).text))) {
+        violations.push(file.slice(src.length));
+      }
+    }
   }
   assert.deepEqual(violations, []);
 });

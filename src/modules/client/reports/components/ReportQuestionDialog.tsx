@@ -1,8 +1,6 @@
 import { WorkflowDialogOverlay, WorkflowDialog, WorkflowDialogHeader, WorkflowDialogActions } from '../../../../components/ds/WorkflowDialog';
-import { useState } from 'react';
-import { useForm } from '@tanstack/react-form';
 import { X } from 'lucide-react';
-import { submitReportQuestion } from '../../../../api/client/reports/library';
+import { useReportQuestionForm } from '../hooks/useReportQuestionForm';
 import { Button } from '../../../../components/ds/Button';
 import { InlineNotice } from '../../../../components/ds/InlineNotice';
 
@@ -18,19 +16,7 @@ export const formatReportQuestionDeadline = (date: Date) => new Intl.DateTimeFor
 }).format(date);
 
 export function ReportQuestionDialog({ reportId, deadline, onClose, onSent }: Props) {
-  const [error, setError] = useState('');
-  const form = useForm({
-    defaultValues: { message: '' },
-    onSubmit: async ({ value }) => {
-      setError('');
-      try {
-        const receipt = await submitReportQuestion(reportId, value.message);
-        onSent(receipt.record_protocol ?? null);
-      } catch (reason) {
-        setError(reason instanceof Error ? reason.message : 'Não foi possível enviar a dúvida.');
-      }
-    },
-  });
+  const { form, error } = useReportQuestionForm(reportId, onSent);
 
   return <form.Subscribe selector={(state) => state.isSubmitting}>
     {(sending) => <WorkflowDialogOverlay  role="presentation" onPointerDown={(event) => {

@@ -1,10 +1,10 @@
 import { useMapaDeliveryState } from './hooks/useMapaDeliveryState';
-import { sendMapaReport } from '../../../api/admin/people-map/delivery';
+import { useSendMapaReport } from './hooks/useSendMapaReport';
 import { DocumentAction } from '../../../components/workspace/components/DocumentAction';
 import { FieldLabel } from '../../../components/ds/FieldLabel';
 import { AdminMaterialReview } from '../../material-review/AdminMaterialReview';
 import { useMaterialDeliveryConfirmation } from '../../../hooks/useMaterialDeliveryConfirmation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowLeft, Building2, FileText, Mail, RefreshCw, Save, Send, UserRound } from 'lucide-react';
 import { useNavigate } from '../../../hooks/useNavigate';
@@ -81,7 +81,6 @@ function fmt(v:number|null){return v==null?'—':v.toLocaleString('pt-BR',{minim
 function formatDate(v:string|null){return v?new Date(v).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}):'—'}
 function scoreLabel(v:number|null|undefined){return v==null?'—':`${v}/5 · ${SCALE[v]||''}`}
 function normalizeStatus(v:string){return v==='em_revisao'?'em_andamento':v}
-function fileToBase64(file:File){return new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||'').split(',')[1]||'');reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)})}
 
 function scoresFor(r:MapaRecord){
   const v2=r.diagnostico_v2;
@@ -127,12 +126,15 @@ export function AdminPeopleMapReviewPage(){
   const [error,setError]=useState('');
   const [saving,setSaving]=useState(false);
   const [feedback,setFeedback]=useState('');
-  const [emailOpen,setEmailOpen]=useState(false);
+  const [emailProtocol,setEmailProtocol]=useState<string|null>(null);
   const [pdfFile,setPdfFile]=useState<File|null>(null);
   const [emailFeedback,setEmailFeedback]=useState('');
   const [emailMessage,setEmailMessage]=useState('');
-  const [sending,setSending]=useState(false);
+  const emailDialog = useRef<symbol | null>(null);
+  const emailCloseTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const emailOpen = emailProtocol !== null && emailProtocol === protocolo;
   const delivery = useMapaDeliveryState(record?.id, emailOpen);
+  const sendReport = useSendMapaReport();
   const deliveryReady = delivery.isSuccess && !delivery.isFetching;
 
   useEffect(() => {
@@ -161,6 +163,14 @@ export function AdminPeopleMapReviewPage(){
     document.body.classList.add('workspace-modal-open');
     return()=>document.body.classList.remove('workspace-modal-open');
   },[emailOpen]);
+
+  useEffect(() => {
+    setEmailProtocol(null);
+    return () => {
+      emailDialog.current = null;
+      clearTimeout(emailCloseTimer.current);
+    };
+  }, [protocolo]);
 
   const scores=useMemo(()=>record?scoresFor(record):null,[record]);
   const qv2=record?.diagnostico_v2?.qualificacao||{};
@@ -197,17 +207,30 @@ export function AdminPeopleMapReviewPage(){
     window.open(`https://wa.me/${raw}?text=${encodeURIComponent(text)}`,'_blank','noopener,noreferrer');
   }
 
-  function openEmailModal(){
-    if(!record)return;
+  function openEmailModal() {
+    clearTimeout(emailCloseTimer.current);
+    emailDialog.current = Symbol();
     setPdfFile(null);
     setEmailFeedback('');
     setEmailMessage('');
-    setEmailOpen(true);
+    setEmailProtocol(protocolo);
+  }
+
+  function closeEmailModal() {
+    clearTimeout(emailCloseTimer.current);
+    emailDialog.current = null;
+    sendReport.reset();
+    setEmailProtocol(null);
+    setPdfFile(null);
+    setEmailMessage('');
+    setEmailFeedback('');
   }
 
   async function sendEmail(){
-    if (!record || sending || !deliveryReady || !delivery.data) return;
+    const dialog = emailDialog.current;
+    if (!dialog || !record || sendReport.isPending || !deliveryReady || !delivery.data) return;
     const { revision, hasPdf } = delivery.data;
+    const responseId = record.id;
     const recipient = record.c_email.trim().toLowerCase();
     if (!EMAIL_PATTERN.test(recipient)) { setEmailFeedback('Confira o e-mail da resposta do Mapa.'); return; }
     const attachment = hasPdf ? null : pdfFile;
@@ -215,26 +238,27 @@ export function AdminPeopleMapReviewPage(){
     if (attachment && attachment.type !== 'application/pdf' && !attachment.name.toLowerCase().endsWith('.pdf')) { setEmailFeedback('Selecione um arquivo PDF.'); return; }
     if (attachment && attachment.size > 8 * 1024 * 1024) { setEmailFeedback('O PDF precisa ter até 8 MB.'); return; }
     const fileIdentity = attachment && [attachment.name, attachment.size, attachment.lastModified];
-    const requestId = await confirmDelivery([recipient], [record.id, revision, fileIdentity, emailMessage.trim()]);
-    if(!requestId)return;
-    setSending(true);setEmailFeedback('Enviando relatório…');
-    try{
-      const pdfBase64 = attachment ? await fileToBase64(attachment) : undefined;
-      const data = await sendMapaReport({
-        responseId: record.id, revision, pdfBase64, requestId, recipient,
-        customMessage: emailMessage.trim() || null,
+    const message = emailMessage.trim();
+    const isCurrent = sendReport.captureScope();
+    const isActiveDialog = () => isCurrent() && emailDialog.current === dialog;
+    const requestId = await confirmDelivery([recipient], [responseId, revision, fileIdentity, message]);
+    if (!requestId || !isActiveDialog()) return;
+    setEmailFeedback('Enviando relatório…');
+    try {
+      const data = await sendReport.send({
+        responseId, revision, attachment, requestId, recipient,
+        customMessage: message || null, isCurrent,
       });
+      if (!isCurrent()) return;
+      const sentAt = new Date().toISOString();
+      setRecord((current) => current?.id === responseId ? { ...current, status: 'enviado', relatorio_enviado_em: sentAt } : current);
+      if (!isActiveDialog()) return;
       completeDelivery();
-      void delivery.refetch();
-      const sentAt=new Date().toISOString();
-      const sentTo=Array.isArray(data.to)?data.to.join(', '):(data.to||recipient);
+      const sentTo = Array.isArray(data.to) ? data.to.join(', ') : (data.to || recipient);
       setEmailFeedback(`Enviado para ${sentTo} ✓`);
-      setRecord((current)=>current?{...current,status:'enviado',relatorio_enviado_em:sentAt}:current);
-      setTimeout(()=>{setEmailOpen(false);setPdfFile(null);setEmailMessage('');setEmailFeedback('')},1400);
-    }catch(err){
-      setEmailFeedback(err instanceof Error?err.message:'Não foi possível enviar.');
-    }finally{
-      setSending(false);
+      emailCloseTimer.current = setTimeout(() => { if (isActiveDialog()) closeEmailModal(); }, 1400);
+    } catch (err) {
+      if (isActiveDialog()) setEmailFeedback(err instanceof Error ? err.message : 'Não foi possível enviar.');
     }
   }
 
@@ -277,8 +301,8 @@ export function AdminPeopleMapReviewPage(){
         surface="document"
         recipient={`${record.c_nome} <${record.c_email}>`} recipientLabel="Destinatário da resposta"
         file={pdfFile} onFile={(file) => { setPdfFile(file); setEmailFeedback(''); }}
-        onClose={() => setEmailOpen(false)} onSend={sendEmail}
-        sending={sending} sent={record.status === 'enviado'}
+        onClose={closeEmailModal} onSend={sendEmail}
+        sending={sendReport.isPending} sent={record.status === 'enviado'}
         deliveryReady={deliveryReady} deliveryError={delivery.isError} onRetry={() => void delivery.refetch()}
         officialPdf={delivery.data?.hasPdf} revision={delivery.data?.revision} feedback={emailFeedback}
       >
@@ -289,7 +313,7 @@ export function AdminPeopleMapReviewPage(){
           </div>
           <FieldLabel className="tw:grid tw:gap-2 tw:text-xs/[inherit] tw:font-[750] tw:text-cali-neutral-strong tw:workspace-night:text-cali-day-canvas">
             <span>Mensagem adicional <em className="tw:font-medium tw:text-cali-sand-text tw:not-italic">opcional</em></span>
-            <textarea className="tw:min-h-20.5 tw:w-full tw:resize-y tw:rounded-cali-panel! tw:border tw:border-solid tw:border-cali-line! tw:bg-cali-neutral-surface! tw:px-3! tw:py-3! tw:text-xs/[1.5]! tw:text-cali-ink! tw:focus:border-cali-brand/32! tw:focus:shadow-[0_0_0_3px_rgb(var(--cali-rgb-burgundy-accent)/0.07059)] tw:workspace-night:border-cali-line-strong! tw:workspace-night:bg-cali-neutral-inverse! tw:workspace-night:text-cali-day-canvas!" rows={3} value={emailMessage} disabled={sending} maxLength={3000} placeholder="Escreva aqui uma observação pessoal para acompanhar o e-mail padrão da CALI." onChange={(event) => setEmailMessage(event.target.value)} />
+            <textarea className="tw:min-h-20.5 tw:w-full tw:resize-y tw:rounded-cali-panel! tw:border tw:border-solid tw:border-cali-line! tw:bg-cali-neutral-surface! tw:px-3! tw:py-3! tw:text-xs/[1.5]! tw:text-cali-ink! tw:focus:border-cali-brand/32! tw:focus:shadow-[0_0_0_3px_rgb(var(--cali-rgb-burgundy-accent)/0.07059)] tw:workspace-night:border-cali-line-strong! tw:workspace-night:bg-cali-neutral-inverse! tw:workspace-night:text-cali-day-canvas!" rows={3} value={emailMessage} disabled={sendReport.isPending} maxLength={3000} placeholder="Escreva aqui uma observação pessoal para acompanhar o e-mail padrão da CALI." onChange={(event) => setEmailMessage(event.target.value)} />
             <small className="tw:text-cali-label/[1.4] tw:font-medium tw:text-cali-sand-text tw:workspace-night:text-cali-sand-accent">{emailMessage.length}/3000 · entra no corpo do e-mail sem substituir o modelo aprovado.</small>
           </FieldLabel>
         </div>

@@ -91,6 +91,7 @@ async function proposal({ page, context, origin }) {
 
 async function mapa({ page, context, origin }) {
   const messages = [];
+  const deliveryReads = [];
   const response = {
     id: entityId,
     protocolo: 'MAPA-QA-0001',
@@ -106,8 +107,8 @@ async function mapa({ page, context, origin }) {
     json: response,
   }));
   await routeJson(context, origin, '/rest/v1/rpc/read_mapa_delivery_state', 'POST', (request) => {
-    assert.deepEqual(request.postDataJSON(), { p_response_id: entityId });
-    return { json: { revision: 2, has_pdf: true } };
+    deliveryReads.push(request.postDataJSON());
+    return { json: { revision: messages.length ? 3 : 2, has_pdf: true } };
   });
   await routeJson(context, origin, '/functions/v1/workspace-enviar-relatorio-mapa', 'POST', (request) => {
     messages.push(request.postDataJSON());
@@ -126,12 +127,14 @@ async function mapa({ page, context, origin }) {
   await send.click();
   await dialogs.answer(true, true);
   await dialog.getByText(`Enviado para ${recipient} ✓`, { exact: true }).waitFor();
+  await dialog.getByText('O envio usa o PDF oficial da versão 3.', { exact: true }).waitFor();
+  assert.deepEqual(deliveryReads, [{ p_response_id: entityId }, { p_response_id: entityId }]);
   assert.equal(messages.length, 1);
   assert.deepEqual(messages[0].recipients, [recipient]);
   assert.equal(messages[0].revision, 2);
   assert.equal(messages[0].response_id, entityId);
   assert.equal(Object.hasOwn(messages[0], 'pdf_base64'), false);
-  return { correctContact: true, version: 2, archivedPdf: true, cancellation: true };
+  return { correctContact: true, version: 2, archivedPdf: true, cancellation: true, exactDeliveryRefresh: true };
 }
 
 async function report({ page, context, origin }) {

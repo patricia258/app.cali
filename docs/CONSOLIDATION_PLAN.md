@@ -50,6 +50,17 @@ Arquivos e diretórios usam nomes pela função em todo o repositório. Cada lot
 
 Componentes, páginas e módulos seguem o [design system](DESIGN_SYSTEM.md#tokens-e-tailwind). Usem utilitários Tailwind, cores por papel, até sete tons nomeados por família e o passo mais próximo da escala de texto e espaçamento. Quando uma integração, impressão ou animação exigir CSS próprio, coloquem a folha junto do dono e registrem o escopo e a ordem da cascata. O aceite local verifica tanto a interface quanto as saídas que dependem de cores resolvidas.
 
+## Próximo lote de design system
+
+Na fila após as rodadas da padronização atual, incluindo a repetição do Playwright no build final de TanStack Query. Os apontamentos abaixo são os primeiros casos da revisão de componentes reutilizáveis em todas as páginas, módulos, formulários e diálogos.
+
+| Superfície | Revisão e aceite |
+| --- | --- |
+| Horas Admin, lançamento manual | Migrar os selects de Cliente, Projeto, Entregável, Subtarefa e Natureza, os campos de data e horário e as áreas de descrição e justificativa para as primitivas do DS. Preservar rótulos, foco, estados desabilitados, dependência entre campos, validação e envio. |
+| Projetos Admin, filtros | Revisar Empresa, Projeto e Status e adotar o select do DS. O recuo da seta à direita usa a mesma medida do recuo inicial do texto, conforme a regra vigente. Aplicar a regra também aos selects de Horas e aos demais usos equivalentes. |
+| Cabeçalho Admin, busca global | Reproduzir em 1203 × 906 e revisar a distribuição da largura. Manter “Buscar no Workspace” e o atalho em uma linha quando houver espaço. Conferir a variante compacta em telas estreitas, além de abertura, teclado e resultados. |
+| Reuso no Workspace | Inventariar controles e padrões repetidos renderizados diretamente nos fluxos. Migrar para as primitivas e variantes do DS e extrair as composições compartilháveis que faltarem. Cobrir as variantes em testes de componentes e a migração em testes de comportamento e comparação visual local. |
+
 ## Fontes de aceite
 
 - [Regras de produto](PRODUCT_RULES.md) define o comportamento e os públicos.
